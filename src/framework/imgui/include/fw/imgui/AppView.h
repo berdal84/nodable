@@ -32,10 +32,20 @@ namespace fw
         static constexpr float k_desired_delta_time = 1.0f / k_desired_fps;
 	public:
 
-        typedef int DIALOG;
-        enum DIALOG_ {
+        enum DialogType
+        {
             DIALOG_SaveAs,
             DIALOG_Browse
+        };
+
+        enum Dockspace
+        {
+            Dockspace_ROOT,
+            Dockspace_CENTER,
+            Dockspace_RIGHT,
+            Dockspace_BOTTOM,
+            Dockspace_TOP,
+            Dockspace_COUNT,
         };
 
         struct Conf {
@@ -43,7 +53,6 @@ namespace fw
             std::vector<FontConf> fonts;
             std::array<const char*, FontSlot_COUNT> fonts_default;
             ImColor               background_color;
-            bool                  is_layout_initialized;
             std::string           splashscreen_title;
             bool                  show_splashscreen      = true;
             bool                  show_properties_editor = false;
@@ -51,6 +60,7 @@ namespace fw
             std::string           splashscreen_path      = "images/nodable-logo-xs.png";
             std::string           icons_path             = "fonts/fa-solid-900.ttf";
             float                 ui_dockspace_down_size = 48.f;
+            float                 ui_dockspace_top_size  = 48.f;
             float                 ui_dockspace_right_ratio = 0.3f;
         };
 
@@ -61,17 +71,19 @@ namespace fw
 		bool               draw() override;
         virtual void       shutdown();
         virtual bool       onInit() = 0;
-        virtual bool       onDraw() = 0;
-        bool               pick_file_path(std::string& _out_path, DIALOG _dialog_type);
+        virtual bool       onDraw(bool& redock_all) = 0;
+        virtual bool       onResetLayout() = 0;
+        bool               pick_file_path(std::string& _out_path, DialogType);
         ImFont*            load_font(const FontConf& _config);
         ImFont*            get_font_by_id(const char *id);
         void               set_splashscreen_visible(bool b);
-        ImFont*            get_font(FontSlot_ slot) const;
+        ImFont*            get_font(FontSlot slot) const;
         bool               get_fullscreen() const;
         void               set_fullscreen(bool b);
         void               set_layout_initialized(bool b);
         bool               get_layout_initialized() const;
-
+        ImGuiID            get_dockspace(Dockspace)const;
+        void               dock_window(const char* window_name, Dockspace)const;
     protected:
         App*               m_app;
         Conf               m_conf;
@@ -85,6 +97,7 @@ namespace fw
         std::array<ImFont*, FontSlot_COUNT> m_fonts;        // Fonts currently in use
         bool               m_is_layout_initialized;
         bool               m_is_splashscreen_visible;
+        std::array<ImGuiID, Dockspace_COUNT> m_dockspaces;
 
         REFLECT_DERIVED_CLASS(View)
     };

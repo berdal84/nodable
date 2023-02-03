@@ -29,19 +29,20 @@ namespace ndbl
 		AppView(App* _app, fw::AppView::Conf _conf);
 		~AppView() override;
         bool onInit() override;
-		bool onDraw() override;
+		bool onDraw(bool& redock_all) override;
+        bool onResetLayout() override;
     private:
-        void draw_file_editor(ImGuiID dockspace_id, bool redock_all, File *file);
+        void draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file);
         void draw_history_bar(History*);
-        void draw_properties_editor();
-        void draw_startup_menu(ImGuiID dockspace_id);
-        void draw_splashcreen();
-        void draw_status_bar() const;
-        void draw_tool_bar();
-        void draw_vm_view();
-        void draw_node_properties();
-        void draw_file_info() const;
-        void draw_imgui_style_editor() const;
+        void draw_settings_window();
+        void draw_startup_window(ImGuiID dockspace_id);
+        void draw_splashcreen_window();
+        void draw_status_window() const;
+        void draw_toolbar_window();
+        void draw_virtual_machine_window();
+        void draw_node_properties_window();
+        void draw_file_info_window() const;
+        void draw_imgui_settings_window() const;
         void draw_help_window() const;
 
         fw::Texture*       m_logo;

@@ -92,7 +92,7 @@ bool AppView::init()
     }
 
     // Assign fonts (user might want to change it later, but we need defaults)
-    for( auto each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
+    for( int each_slot = 0; each_slot < fw::FontSlot_COUNT; ++each_slot )
     {
         if(auto font = m_conf.fonts_default[each_slot] )
         {
@@ -100,7 +100,7 @@ bool AppView::init()
         }
         else
         {
-            LOG_WARNING("AppView", "No default font declared for slot %i\n, using fallback", each_slot);
+            LOG_WARNING("AppView", "No default font declared for slot #%i, using ImGui's default font as fallback\n", each_slot);
             m_fonts[each_slot] = ImGui::GetDefaultFont();
         }
     }
@@ -175,16 +175,23 @@ ImFont* AppView::load_font(const FontConf &_config)
 
 bool AppView::draw()
 {
-    bool isMainWindowOpen = true;
-    bool redock_all       = false;
+    bool is_main_window_open = true;
+    bool redock_all          = false;
+
+    // 1) Begin a new frame
+    //---------------------
 
 	ImGui_ImplOpenGL3_NewFrame();
 	ImGui_ImplSDL2_NewFrame(m_sdl_window);
 	ImGui::NewFrame();
 	ImGuiEx::BeginFrame();
+
+    // 2) Draw
+    //--------
+
     ImGui::SetCurrentFont( m_fonts[FontSlot_Paragraph] );
 
-    // Demo Window
+    // Show/Hide ImGui Demo Window
     {
         if (m_conf.show_imgui_demo){
             ImGui::SetNextWindowPos(vec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
@@ -192,73 +199,97 @@ bool AppView::draw()
         }
     }
 
-    // Fullscreen m_sdlWindow
+    // Setup main window
+
+    ImGuiWindowFlags window_flags =
+          ImGuiWindowFlags_MenuBar
+        | ImGuiWindowFlags_NoDocking // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+        | ImGuiWindowFlags_NoMove    // because it would be confusing to have two docking targets within each others.
+        | ImGuiWindowFlags_NoTitleBar
+        | ImGuiWindowFlags_NoCollapse
+        | ImGuiWindowFlags_NoResize
+        | ImGuiWindowFlags_NoBringToFrontOnFocus
+        | ImGuiWindowFlags_NoNavFocus;
+
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f)); // Remove padding
+
+    ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
+
+    // Draw main window
+
+    ImGui::Begin("App", &is_main_window_open, window_flags);
     {
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        ImGui::PopStyleVar(3);
 
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImGui::SetNextWindowPos(viewport->WorkPos);
-        ImGui::SetNextWindowSize(viewport->WorkSize);
-        ImGui::SetNextWindowViewport(viewport->ID);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-
-        // Remove padding
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f));
-
-        ImGui::Begin("App", &isMainWindowOpen, window_flags);
+        // Build layout
+        if (!m_is_layout_initialized)
         {
-            ImGui::PopStyleVar();
+            // Dockspace IDs
+            m_dockspaces[Dockspace_ROOT]   = ImGui::GetID("Dockspace_ROOT");
+            m_dockspaces[Dockspace_CENTER] = ImGui::GetID("Dockspace_CENTER");
+            m_dockspaces[Dockspace_RIGHT]  = ImGui::GetID("Dockspace_RIGHT");
+            m_dockspaces[Dockspace_BOTTOM] = ImGui::GetID("Dockspace_BOTTOM");
 
-            ImGui::PopStyleVar(2);
+            // Split root to have 3 dockspaces (center, right, and bottom)
+            ImVec2 viewport_size = ImGui::GetMainViewport()->Size;
 
-            /*
-             * Main Layout
-             */
+            ImGui::DockBuilderRemoveNode(m_dockspaces[Dockspace_ROOT]); // Clear out existing layout
+            ImGui::DockBuilderAddNode(m_dockspaces[Dockspace_ROOT]     , ImGuiDockNodeFlags_DockSpace);
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_ROOT] , viewport_size);
 
-            ImGuiID ds_root   = ImGui::GetID("dockspace_main");
-            ImGuiID ds_center = ImGui::GetID("dockspace_center");
-            ImGuiID ds_right  = ImGui::GetID("dockspace_right");
-            ImGuiID ds_bottom = ImGui::GetID("dockspace_bottom");
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_ROOT]   , ImGuiDir_Down , 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER]);
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , vec2(viewport_size.x, m_conf.ui_dockspace_down_size));
 
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , vec2(viewport_size.x, m_conf.ui_dockspace_top_size));
 
-            if (!m_conf.is_layout_initialized)
-            {
-                ImGui::DockBuilderRemoveNode(ds_root); // Clear out existing layout
-                ImGui::DockBuilderAddNode(ds_root     , ImGuiDockNodeFlags_DockSpace);
-                ImGui::DockBuilderSetNodeSize(ds_root , ImGui::GetMainViewport()->Size);
-                ImGui::DockBuilderSplitNode(ds_root   , ImGuiDir_Down , 0.5f, &ds_bottom, &ds_center);
-                ImGui::DockBuilderSetNodeSize(ds_bottom , vec2(ImGui::GetMainViewport()->Size.x, m_conf.ui_dockspace_down_size));
-                ImGui::DockBuilderSplitNode(ds_center , ImGuiDir_Right, m_conf.ui_dockspace_right_ratio, &ds_right, NULL );
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf.ui_dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
 
-                ImGui::DockBuilderGetNode(ds_center)->HasCloseButton      = false;
-                ImGui::DockBuilderGetNode(ds_right)->HasCloseButton       = false;
-                ImGui::DockBuilderGetNode(ds_bottom)->HasCloseButton      = false;
-                ImGui::DockBuilderGetNode(ds_bottom)->WantHiddenTabBarToggle = true;
+            // Configure dockspaces
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton      = false;
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_RIGHT])->HasCloseButton       = false;
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_BOTTOM])->HasCloseButton      = false;
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_BOTTOM])->WantHiddenTabBarToggle = true;
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_TOP])->HasCloseButton      = false;
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_TOP])->WantHiddenTabBarToggle = true;
 
-                ImGui::DockBuilderFinish(ds_root);
+            // Call user defined handler
+            onResetLayout();
 
-                m_is_layout_initialized = true;
-                redock_all              = true;
-            }
+            // Finish the build
+            ImGui::DockBuilderFinish(m_dockspaces[Dockspace_ROOT]);
 
-            NDBL_EXPECT(onDraw(), "onDraw return an error code");
-
-            ImGui::DockSpace(ds_root);
+            m_is_layout_initialized = true;
+            redock_all              = true;
         }
-        ImGui::End(); // Main window
-    }
-    ImGuiEx::EndFrame();
 
-    // Rendering
-	ImGui::Render();
+        // Define root as current dockspace
+        ImGui::DockSpace(get_dockspace(Dockspace_ROOT));
+
+        // Call user defined handler
+        if (!onDraw(redock_all))
+        {
+            LOG_ERROR( "AppView", "User defined onDraw() returned false.\n");
+        }
+    }
+    ImGui::End(); // Main window
+
+
+
+    // 3. End frame and Render
+    //------------------------
+
+    ImGuiEx::EndFrame();
+	ImGui::Render(); // Finalize draw data
+
 	SDL_GL_MakeCurrent(m_sdl_window, m_sdl_gl_context);
-	auto io = ImGui::GetIO();
+	ImGuiIO& io = ImGui::GetIO();
 	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
 	glClearColor(m_conf.background_color.Value.x, m_conf.background_color.Value.y, m_conf.background_color.Value.z, m_conf.background_color.Value.w);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -287,7 +318,7 @@ bool AppView::draw()
     return false;
 }
 
-bool AppView::pick_file_path(std::string& _out_path, DIALOG _dialog_type)
+bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
 {
     nfdchar_t *out_path;
     nfdresult_t result;
@@ -392,7 +423,7 @@ bool AppView::get_fullscreen() const
     return SDL_GetWindowFlags(m_sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
 
-ImFont* AppView::get_font(FontSlot_ slot) const
+ImFont* AppView::get_font(FontSlot slot) const
 {
     return m_fonts[slot];
 }
@@ -407,7 +438,12 @@ void AppView::set_fullscreen(bool b)
     SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-bool AppView::get_layout_initialized() const
+ImGuiID AppView::get_dockspace(Dockspace dockspace)const
 {
-    return m_is_layout_initialized;
+    return m_dockspaces[dockspace];
+}
+
+void AppView::dock_window(const char* window_name, Dockspace dockspace)const
+{
+    ImGui::DockBuilderDockWindow(window_name, m_dockspaces[dockspace]);
 }
