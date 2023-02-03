@@ -138,11 +138,7 @@ void App::onUpdate()
     Settings& settings = Settings::get_instance();
 
     // 1. Update current file
-
-    if (File *file = current_file())
-    {
-        file->update();
-    }
+    m_current_file && m_current_file->update();
 
     // 2. Handle events
 
@@ -180,11 +176,7 @@ void App::onUpdate()
      */
     m_view->handle_events();
 
-    /*
-     * Nodable events
-     *
-     * SDL_ API inspired, but with custom events.
-     */
+    // Nodable events ( SDL_ API inspired, but with custom events)
     Event event{};
     NodeView*      selected_view = NodeView::get_selected();
     while( fw::EventManager::poll_event((fw::Event&)event) )
@@ -307,8 +299,14 @@ void App::onUpdate()
                 break;
             }
             case fw::EventType_file_opened:
-                current_file()->update_graph();
-                // fallthrough
+            {
+                if (!m_current_file) break;
+                m_current_file->update_graph();
+                FileView *view = m_current_file->get_view();
+                view->clear_overlay();
+                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_NO_SELECTION);
+                break;
+            }
             case EventType_node_view_deselected:
             {
                 FileView* view = m_current_file->get_view();

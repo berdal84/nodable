@@ -23,7 +23,7 @@ namespace ndbl {
         size_t                                   ui_log_tooltip_max_count;
         std::array<fw::vec4, fw::Log::Verbosity_COUNT>   ui_log_color;
         std::vector<FontConf>                    ui_text_fonts;
-        std::array<const char *, FontSlot_COUNT> ui_text_defaultFontsId;
+        std::array<const char *, fw::FontSlot_COUNT> ui_text_defaultFontsId;
         TextEditor::Palette                      ui_text_textEditorPalette;
         FontConf       ui_icons;
         float          ui_wire_bezier_roundness;
