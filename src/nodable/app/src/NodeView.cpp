@@ -386,7 +386,7 @@ bool NodeView::draw()
     // Draw Node connectors (in background)
     bool is_connector_hovered = false;
     {
-        ImColor color = settings.ui_node_nodeConnectorColor;
+        ImColor color        = settings.ui_node_nodeConnectorColor;
         ImColor hoveredColor = settings.ui_node_nodeConnectorHoveredColor;
 
         auto draw_and_handle_evt = [&](NodeConnector *connector)

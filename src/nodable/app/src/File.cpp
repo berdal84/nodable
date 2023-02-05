@@ -8,6 +8,11 @@
 #include <nodable/app/GraphNodeView.h>
 #include <nodable/app/History.h>
 #include <nodable/app/NodeView.h>
+#include <nodable/core/ConditionalStructNode.h>
+#include <nodable/core/InstructionNode.h>
+#include <nodable/core/InvokableComponent.h>
+#include <nodable/core/LiteralNode.h>
+#include <nodable/core/VariableNode.h>
 #include <nodable/core/language/Nodlang.h>
 
 using namespace ndbl;
@@ -22,13 +27,32 @@ File::File(std::string _name)
 
           // add a view
           auto view = _node->add_component<NodeView>();
-          // set default colors
+
+          // Set common colors
           Settings& settings = Settings::get_instance();
-          view->set_color(fw::View::Color_Fill             , &settings.ui_node_fillColor);
           view->set_color(fw::View::Color_Highlighted      , &settings.ui_node_highlightedColor);
           view->set_color(fw::View::Color_Border           , &settings.ui_node_borderColor);
           view->set_color(fw::View::Color_BorderHighlights , &settings.ui_node_borderHighlightedColor);
           view->set_color(fw::View::Color_Shadow           , &settings.ui_node_shadowColor);
+          view->set_color(fw::View::Color_Fill             , &settings.ui_node_fillColor);
+
+          // Set specific colors
+          if(_node->is<VariableNode>())
+          {
+              view->set_color(fw::View::Color_Fill, &settings.ui_node_variableColor);
+          }
+          else if (_node->has<InvokableComponent>())
+          {
+              view->set_color(fw::View::Color_Fill, &settings.ui_node_invokableColor);
+          }
+          else if (_node->is<InstructionNode>())
+          {
+              view->set_color(fw::View::Color_Fill, &settings.ui_node_instructionColor);
+          }
+          else if (_node->is<LiteralNode>())
+          {
+              view->set_color(fw::View::Color_Fill, &settings.ui_node_literalColor);
+          }
         })
         , m_history(&Settings::get_instance().experimental_hybrid_history)
 {
