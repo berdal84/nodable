@@ -1,4 +1,5 @@
 #include <nodable/app/Settings.h>
+#include <nodable/app/build_info.h>
 #include <fw/imgui/types.h>
 
 using namespace ndbl;
@@ -109,6 +110,7 @@ Settings::Settings()
         fw_app_view.fonts_default[FontSlot_ToolBtn]   = k_tool;
     }
     fw_app_view.icon_font = {"Icons", "fonts/fa-solid-900.ttf" };
+    fw_app_view.title     = BuildInfo::version_extended;
 }
 
 void Settings::patch_imgui_style(ImGuiStyle& _style)
