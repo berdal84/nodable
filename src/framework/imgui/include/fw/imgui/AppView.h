@@ -27,16 +27,29 @@ namespace fw
 	*/
 	class AppView : public View
 	{
-        static constexpr float k_desired_fps        = 60.0f;
-        static constexpr float k_desired_delta_time = 1.0f / k_desired_fps;
 	public:
 
-        enum DialogType
+        enum DialogType // Helps to configure the file browse dialog
         {
-            DIALOG_SaveAs,
-            DIALOG_Browse
+            DIALOG_SaveAs,   // Allows to set a new file or select an existing file
+            DIALOG_Browse    // Only allows to pick a file
         };
 
+        /*
+         * Dockspace: enum to identify dockspaces
+         * ----------------------------------------
+         *                 TOP                    |
+         * ----------------------------------------
+         *                           |            |
+         *                           |            |
+         *            CENTER         |    RIGHT   |
+         *                           |            |
+         *                           |            |
+         *                           |            |
+         * ---------------------------------------|
+         *                   BOTTOM               |
+         * ----------------------------------------
+         */
         enum Dockspace
         {
             Dockspace_ROOT,
@@ -50,11 +63,12 @@ namespace fw
         // AppView's configuration
         struct Conf {
             std::string           title                    = "Untitled";
+            float                 min_frame_time           = 1.0f / 60.0f;            // limit to 60fps
             ImColor               background_color         = ImColor(0.f,0.f,0.f);
             const char*           splashscreen_title       = "##Splashscreen";
             bool                  show_splashscreen        = true;
             bool                  show_imgui_demo          = false;
-            FontConf              icon_font                    = {"FA-solid-900", "fonts/fa-solid-900.ttf"};
+            FontConf              icon_font                = {"FA-solid-900", "fonts/fa-solid-900.ttf"};
             float                 dockspace_down_size      = 48.f;
             float                 dockspace_top_size       = 48.f;
             float                 dockspace_right_ratio    = 0.3f;
@@ -88,24 +102,24 @@ namespace fw
 		~AppView() override;
     private:
         friend App;
-        bool               init();
-        void               handle_events();
-		bool               draw() override;
-        void               shutdown();
+        bool               init();                          // called by fw::App automatically
+        void               handle_events();                 //              ...
+		bool               draw() override;                 //              ...
+        void               shutdown();                      //              ...
     protected:
-        virtual bool       on_draw(bool& redock_all) = 0;
-        virtual bool       on_init() = 0;
-        virtual bool       on_reset_layout() = 0;
-        virtual void       on_draw_splashscreen() = 0;
+        virtual bool       on_draw(bool& redock_all) = 0;   // implement here your app ui using ImGui
+        virtual bool       on_init() = 0;                   // initialize your view here (SDL and ImGui are ready)
+        virtual bool       on_reset_layout() = 0;           // implement behavior when layout is reset
+        virtual void       on_draw_splashscreen() = 0;      // implement here the splashscreen windows content
     public:
-        ImFont*            get_font(FontSlot slot) const;
-        ImFont*            get_font_by_id(const char *id);
-        ImFont*            load_font(const FontConf& _config);
+        ImFont*            get_font(FontSlot) const;
+        ImFont*            get_font_by_id(const char*);
+        ImFont*            load_font(const FontConf&);
         ImGuiID            get_dockspace(Dockspace)const;
         bool               is_fullscreen() const;
         bool               is_splashscreen_visible()const;
-        bool               pick_file_path(std::string& _out_path, DialogType);
-        void               dock_window(const char* window_name, Dockspace)const;
+        bool               pick_file_path(std::string& _out_path, DialogType);   // pick a file and store its path in _out_path
+        void               dock_window(const char* window_name, Dockspace)const; // Call this within on_reset_layout
         void               set_fullscreen(bool b);
         void               set_layout_initialized(bool b);
         void               set_splashscreen_visible(bool b);
