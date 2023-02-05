@@ -51,7 +51,6 @@ namespace ndbl
 
     private:
         File*           m_current_file;
-        VirtualMachine  m_vm;
         size_t          m_current_file_index;
         std::vector<File*> m_loaded_files;
     };

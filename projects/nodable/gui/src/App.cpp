@@ -23,7 +23,9 @@
 using namespace ndbl;
 
 App::App()
-    : fw::App(ghc::filesystem::path( fw::System::get_executable_directory() ) / BuildInfo::assets_dir, new AppView(this, Settings::get_instance().fw_app_view) )
+    : fw::App(
+            ghc::filesystem::path( fw::System::get_executable_directory() ) / BuildInfo::assets_dir,
+            new AppView(this, Settings::get_instance().fw_app_view))
     , m_current_file_index(0)
     , m_current_file(nullptr)
 {
@@ -546,9 +548,10 @@ bool App::compile_and_load_program()
 
             if (asm_code)
             {
-                m_vm.release_program();
+                auto& vm = VirtualMachine::get_instance();
+                vm.release_program();
 
-                if (m_vm.load_program(std::move(asm_code)))
+                if (vm.load_program(std::move(asm_code)))
                 {
                     return true;
                 }
@@ -563,7 +566,7 @@ void App::run_program()
 {
     if (compile_and_load_program() )
     {
-        m_vm.run_program();
+        VirtualMachine::get_instance().run_program();
     }
 }
 
@@ -571,18 +574,19 @@ void App::debug_program()
 {
     if (compile_and_load_program() )
     {
-        m_vm.debug_program();
+        VirtualMachine::get_instance().debug_program();
     }
 }
 
 void App::step_over_program()
 {
-    m_vm.step_over();
-    if (!m_vm.is_there_a_next_instr() )
+    auto& vm = VirtualMachine::get_instance();
+    vm.step_over();
+    if (!vm.is_there_a_next_instr() )
     {
         NodeView::set_selected(nullptr);
     }
-    else if ( auto view = m_vm.get_next_node()->get<NodeView>() )
+    else if ( auto view = vm.get_next_node()->get<NodeView>() )
     {
         NodeView::set_selected(view);
     }
@@ -590,16 +594,17 @@ void App::step_over_program()
 
 void App::stop_program()
 {
-    m_vm.stop_program();
+    VirtualMachine::get_instance().stop_program();
 }
 
 void App::reset_program()
 {
     if ( auto currFile = current_file() )
     {
-        if ( m_vm.is_program_running() )
+        auto& vm = VirtualMachine::get_instance();
+        if ( vm.is_program_running() )
         {
-            m_vm.stop_program();
+            vm.stop_program();
         }
 
         // TODO: restore graph state without parsing again like that:
