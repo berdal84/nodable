@@ -20,7 +20,6 @@ namespace fw
     class File;
     class History;
     struct Texture;
-    class Settings;
     class VirtualMachine;
 
 	/*
@@ -48,56 +47,81 @@ namespace fw
             Dockspace_COUNT,
         };
 
+        // AppView's configuration
         struct Conf {
-            std::string           title;
-            std::vector<FontConf> fonts;
-            std::array<const char*, FontSlot_COUNT> fonts_default;
-            ImColor               background_color;
-            std::string           splashscreen_title;
-            bool                  show_splashscreen      = true;
-            bool                  show_properties_editor = false;
-            bool                  show_imgui_demo        = false;
-            std::string           splashscreen_path      = "images/nodable-logo-xs.png";
-            std::string           icons_path             = "fonts/fa-solid-900.ttf";
-            float                 ui_dockspace_down_size = 48.f;
-            float                 ui_dockspace_top_size  = 48.f;
-            float                 ui_dockspace_right_ratio = 0.3f;
+            std::string           title                    = "Untitled";
+            ImColor               background_color         = ImColor(0.f,0.f,0.f);
+            const char*           splashscreen_title       = "##Splashscreen";
+            bool                  show_splashscreen        = true;
+            bool                  show_imgui_demo          = false;
+            FontConf              icon_font                    = {"FA-solid-900", "fonts/fa-solid-900.ttf"};
+            float                 dockspace_down_size      = 48.f;
+            float                 dockspace_top_size       = 48.f;
+            float                 dockspace_right_ratio    = 0.3f;
+            size_t                log_tooltip_max_count    = 25;
+            std::array<
+                fw::vec4,
+                fw::Log::Verbosity_COUNT> log_color         {
+                                                                vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
+                                                                vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
+                                                                vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
+                                                                vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
+                                                            };
+            std::vector<FontConf> fonts                    = {{
+                                                                "default",                          // id
+                                                                "fonts/JetBrainsMono-Medium.ttf",   // path
+                                                                18.0f,                              // size in px.
+                                                                true,                               // include icons?
+                                                                18.0f                               // icons size in px.
+                                                            }};
+            std::array<
+                const char*,
+                FontSlot_COUNT> fonts_default               {
+                                                                "default", // FontSlot_Paragraph
+                                                                "default", // FontSlot_Heading
+                                                                "default", // FontSlot_Code
+                                                                "default"  // FontSlot_ToolBtn
+                                                            };
         };
 
 		AppView(App*, Conf);
 		~AppView() override;
-        virtual bool       init();
-        virtual void       handle_events();
+    private:
+        friend App;
+        bool               init();
+        void               handle_events();
 		bool               draw() override;
-        virtual void       shutdown();
-        virtual bool       onInit() = 0;
-        virtual bool       onDraw(bool& redock_all) = 0;
-        virtual bool       onResetLayout() = 0;
-        bool               pick_file_path(std::string& _out_path, DialogType);
-        ImFont*            load_font(const FontConf& _config);
-        ImFont*            get_font_by_id(const char *id);
-        void               set_splashscreen_visible(bool b);
+        void               shutdown();
+    protected:
+        virtual bool       on_draw(bool& redock_all) = 0;
+        virtual bool       on_init() = 0;
+        virtual bool       on_reset_layout() = 0;
+        virtual void       on_draw_splashscreen() = 0;
+    public:
         ImFont*            get_font(FontSlot slot) const;
-        bool               get_fullscreen() const;
+        ImFont*            get_font_by_id(const char *id);
+        ImFont*            load_font(const FontConf& _config);
+        ImGuiID            get_dockspace(Dockspace)const;
+        bool               is_fullscreen() const;
+        bool               is_splashscreen_visible()const;
+        bool               pick_file_path(std::string& _out_path, DialogType);
+        void               dock_window(const char* window_name, Dockspace)const;
         void               set_fullscreen(bool b);
         void               set_layout_initialized(bool b);
-        bool               get_layout_initialized() const;
-        ImGuiID            get_dockspace(Dockspace)const;
-        void               dock_window(const char* window_name, Dockspace)const;
+        void               set_splashscreen_visible(bool b);
+    private:
+        void               draw_splashcreen_window();
+        void               draw_status_window() const;
     protected:
         App*               m_app;
         Conf               m_conf;
-
     private:
-        fw::Texture*       m_logo;
-        fw::Texture*       m_splashscreen_texture;
-        SDL_Window*        m_sdl_window;
         SDL_GLContext      m_sdl_gl_context;
-        std::map<std::string, ImFont*>      m_loaded_fonts; // All fonts loaded in memory
-        std::array<ImFont*, FontSlot_COUNT> m_fonts;        // Fonts currently in use
+        SDL_Window*        m_sdl_window;
         bool               m_is_layout_initialized;
-        bool               m_is_splashscreen_visible;
+        std::array<ImFont*, FontSlot_COUNT>  m_fonts;        // Required fonts
         std::array<ImGuiID, Dockspace_COUNT> m_dockspaces;
+        std::map<std::string, ImFont*>       m_loaded_fonts; // Available fonts
 
         REFLECT_DERIVED_CLASS(View)
     };

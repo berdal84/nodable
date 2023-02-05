@@ -23,7 +23,7 @@
 using namespace ndbl;
 
 App::App()
-    : fw::App(ghc::filesystem::path( fw::System::get_executable_directory() ) / BuildInfo::assets_dir, new AppView(this, AppView::Conf()) )
+    : fw::App(ghc::filesystem::path( fw::System::get_executable_directory() ) / BuildInfo::assets_dir, new AppView(this, Settings::get_instance().fw_app_view) )
     , m_current_file_index(0)
     , m_current_file(nullptr)
 {
@@ -168,13 +168,6 @@ void App::onUpdate()
 
         }
     };
-
-    /*
-     * SDL events
-     *
-     * Some of them might trigger a Nodable event, we will handle them just after.
-     */
-    m_view->handle_events();
 
     // Nodable events ( SDL_ API inspired, but with custom events)
     Event event{};

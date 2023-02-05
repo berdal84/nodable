@@ -25,27 +25,24 @@ namespace ndbl
 	public:
 		AppView(App* _app, fw::AppView::Conf _conf);
 		~AppView() override;
-        bool onInit() override;
-		bool onDraw(bool& redock_all) override;
-        bool onResetLayout() override;
+        bool on_init() override;
+		bool on_draw(bool& redock_all) override;
     private:
+        bool on_reset_layout() override;
+        void draw_file_info_window() const;
         void draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file);
+        void draw_help_window() const;
         void draw_history_bar(History*);
+        void draw_imgui_settings_window() const;
+        void draw_node_properties_window();
         void draw_settings_window();
         void draw_startup_window(ImGuiID dockspace_id);
-        void draw_splashcreen_window();
-        void draw_status_window() const;
         void draw_toolbar_window();
         void draw_virtual_machine_window();
-        void draw_node_properties_window();
-        void draw_file_info_window() const;
-        void draw_imgui_settings_window() const;
-        void draw_help_window() const;
+        void on_draw_splashscreen() override;
 
         fw::Texture*       m_logo;
         bool               m_is_history_dragged;
-        const char*        m_splashscreen_title;
-        bool               m_show_splashscreen;
         bool               m_show_properties_editor;
         bool               m_show_imgui_demo;
         bool               m_show_advanced_node_properties;
