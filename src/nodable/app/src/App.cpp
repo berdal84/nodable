@@ -138,7 +138,10 @@ void App::onUpdate()
     Settings& settings = Settings::get_instance();
 
     // 1. Update current file
-    m_current_file && m_current_file->update();
+    if ( m_current_file )
+    {
+        m_current_file->update();
+    }
 
     // 2. Handle events
 
@@ -627,6 +630,7 @@ File *App::new_file()
 
     return file;
 }
+
 App& App::get_instance()
 {
     static App instance;
