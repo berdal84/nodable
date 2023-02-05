@@ -6,39 +6,7 @@ using namespace fw;
 
 Settings::Settings()
 {
-    ui_log_tooltip_max_count             = 25;
-    ui_log_color[Log::Verbosity_Error]   = vec4(0.5f, 0.0f, 0.0f, 1.0f); // red
-    ui_log_color[Log::Verbosity_Warning] = vec4(0.5f, 0.0f, 0.5f, 1.0f); // violet
-    ui_log_color[Log::Verbosity_Message] = vec4(0.5f, 0.5f, 0.5f, 1.0f); // gray
-    ui_log_color[Log::Verbosity_Verbose] = vec4(0.0f, 0.5f, 0.0f, 1.0f); // green
-
-    ui_dockspace_right_ratio = 0.25f;
-    ui_dockspace_down_size   = 15.f * 2.f; // for 2 lines
-
-    ui_splashscreen_imagePath = "images/nodable-logo-xs.png";
-
-    {
-        constexpr const char *k_paragraph = "Paragraph";
-        constexpr const char *k_heading   = "Heading 1";
-        constexpr const char *k_code      = "Code";
-        constexpr const char *k_tool      = "Tool Button";
-
-        ui_text_fonts = {
-            // id          , font_path                          , size , icons? , icons size
-            { k_paragraph  , "fonts/JetBrainsMono-Medium.ttf"   , 18.0f, true   , 18.0f      },
-            { k_heading    , "fonts/JetBrainsMono-Bold.ttf"     , 25.0f, true   , 18.0f      },
-            { k_code       , "fonts/JetBrainsMono-Regular.ttf"  , 18.0f, true   , 18.0f      },
-            { k_tool       , "fonts/JetBrainsMono-Bold.ttf"     , 16.0f, true   , 14.0f      }
-        };
-
-        ui_text_defaultFontsId[FontSlot_Paragraph] = k_paragraph;
-        ui_text_defaultFontsId[FontSlot_Heading]   = k_heading;
-        ui_text_defaultFontsId[FontSlot_Code]      = k_code;
-        ui_text_defaultFontsId[FontSlot_ToolBtn]   = k_tool;
-    }
-    ui_icons = { "Icons", "fonts/fa-solid-900.ttf" };
-
-
+    ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
             0xffffffff, // None
             0xffd69c56, // Keyword
@@ -117,6 +85,30 @@ Settings::Settings()
     experimental_graph_autocompletion = false;
     experimental_hybrid_history       = false;
     isolate_selection                 = false;
+
+    // AppView
+    fw_app_view.dockspace_right_ratio = 0.25f;
+    fw_app_view.dockspace_down_size   = 15.f * 2.f; // for 2 lines
+    {
+        constexpr const char *k_paragraph = "Paragraph";
+        constexpr const char *k_heading   = "Heading 1";
+        constexpr const char *k_code      = "Code";
+        constexpr const char *k_tool      = "Tool Button";
+
+        fw_app_view.fonts = {
+                // id          , font_path                          , size , icons? , icons size
+                { k_paragraph  , "fonts/JetBrainsMono-Medium.ttf"   , 18.0f, true   , 18.0f      },
+                { k_heading    , "fonts/JetBrainsMono-Bold.ttf"     , 25.0f, true   , 18.0f      },
+                { k_code       , "fonts/JetBrainsMono-Regular.ttf"  , 18.0f, true   , 18.0f      },
+                { k_tool       , "fonts/JetBrainsMono-Bold.ttf"     , 16.0f, true   , 14.0f      }
+        };
+
+        fw_app_view.fonts_default[FontSlot_Paragraph] = k_paragraph;
+        fw_app_view.fonts_default[FontSlot_Heading]   = k_heading;
+        fw_app_view.fonts_default[FontSlot_Code]      = k_code;
+        fw_app_view.fonts_default[FontSlot_ToolBtn]   = k_tool;
+    }
+    fw_app_view.icon_font = {"Icons", "fonts/fa-solid-900.ttf" };
 }
 
 void Settings::patch_imgui_style(ImGuiStyle& _style)

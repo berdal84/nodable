@@ -19,41 +19,38 @@ using namespace ndbl;
 using namespace ndbl::assembly;
 
 AppView::AppView(App *_app, fw::AppView::Conf _conf)
-        : fw::AppView(_app, std::move(_conf)), m_logo(nullptr), m_show_splashscreen(true),
-          m_splashscreen_title("##STARTUPSCREEN"), m_is_history_dragged(false), m_show_properties_editor(false),
+        : fw::AppView(_app, std::move(_conf)), m_logo(nullptr), m_is_history_dragged(false), m_show_properties_editor(false),
           m_show_imgui_demo(false), m_show_advanced_node_properties(false), m_scroll_to_curr_instr(true) {
 }
 
 AppView::~AppView() {}
 
-bool AppView::onInit() {
+bool AppView::on_init() {
 
-    // Configure fonts
     auto settings = Settings::get_instance();
-    m_conf.fonts         = settings.ui_text_fonts;
-    m_conf.fonts_default = settings.ui_text_defaultFontsId;
-    m_conf.icons_path    = settings.ui_icons.path;
 
     // Load splashscreen image
-    App &app = App::get_instance();
-    m_logo = app.texture_manager().get_or_create_from(app.compute_asset_path(m_conf.splashscreen_path.c_str()));
+    App& app = App::get_instance();
+    fw::TextureManager& texture_manager = app.texture_manager();
+    m_logo = texture_manager.get_or_create_from(app.compute_asset_path(settings.ui_splashscreen_imagePath));
+
+    // Apply settings to ImGui's style
+    settings.patch_imgui_style(ImGui::GetStyle());
 
     return true;
 }
 
-bool AppView::onDraw(bool& redock_all) {
+bool AppView::on_draw(bool& redock_all) {
     bool isMainWindowOpen = true;
     auto &app             = App::get_instance();
     auto &settings        = Settings::get_instance();
     File *current_file    = app.current_file();
     auto &virtual_machine = VirtualMachine::get_instance();
 
-    draw_splashcreen_window();
-
-    // Get current file's history
-    History* current_file_history = current_file ? current_file->get_history() : nullptr;
-
+    // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar()) {
+        History* current_file_history = current_file ? current_file->get_history() : nullptr;
+
         if (ImGui::BeginMenu("File")) {
             bool has_file = current_file;
             bool changed = current_file != nullptr && current_file->has_changed();
@@ -131,8 +128,8 @@ bool AppView::onDraw(bool& redock_all) {
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Fullscreen", "", get_fullscreen())) {
-                set_fullscreen(!get_fullscreen());
+            if (ImGui::MenuItem("Fullscreen", "", is_fullscreen())) {
+                set_fullscreen(!is_fullscreen());
             }
             ImGui::Separator();
 
@@ -209,7 +206,7 @@ bool AppView::onDraw(bool& redock_all) {
 
         if (ImGui::BeginMenu("Help")) {
             if (ImGui::MenuItem("Show Splash Screen", "F1")) {
-                m_show_splashscreen = true;
+                set_splashscreen_visible(true);
             }
 
             if (ImGui::MenuItem("Browse source code")) {
@@ -226,9 +223,15 @@ bool AppView::onDraw(bool& redock_all) {
         ImGui::EndMenuBar();
     }
 
+    // 2. Draw windows
+    // All draw_xxx_window() are ImGui windows docked to a dockspace (defined in on_reset_layout() )
+
+
+
     if(!app.has_files())
     {
-        draw_startup_window(get_dockspace(Dockspace_ROOT));
+        if( !is_splashscreen_visible() )
+            draw_startup_window(get_dockspace(Dockspace_ROOT));
     }
     else
     {
@@ -247,8 +250,6 @@ bool AppView::onDraw(bool& redock_all) {
         draw_node_properties_window();
         draw_help_window();
     }
-
-    draw_status_window();
     return true;
 }
 
@@ -605,63 +606,37 @@ void AppView::draw_settings_window() {
     ImGui::End();
 }
 
-void AppView::draw_splashcreen_window() {
-    if (m_show_splashscreen && !ImGui::IsPopupOpen(m_splashscreen_title)) {
-        ImGui::OpenPopup(m_splashscreen_title);
+void AppView::on_draw_splashscreen()
+{
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+    // Image
+    ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
+    ImGui::Image((void *) (intptr_t) m_logo->image, fw::vec2((float) m_logo->width, (float) m_logo->height));
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, fw::vec2(50.0f, 30.0f));
+
+    // disclaimer
+    ImGui::TextWrapped(
+            "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
+
+    ImGui::NewLine();
+    ImGui::NewLine();
+
+    // credits
+    const char *credit = "by Berdal84";
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
+    ImGui::TextWrapped("%s", credit);
+
+    // build version
+    ImGui::TextWrapped("%s", BuildInfo::version);
+
+    // close on left/rightmouse btn click
+    if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+    {
+        set_splashscreen_visible(false);
     }
-
-    ImGui::SetNextWindowSizeConstraints(fw::vec2(500, 200), fw::vec2(500, 50000));
-    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, fw::vec2(0.5f, 0.5f));
-
-    auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
-
-    if (ImGui::BeginPopupModal(m_splashscreen_title, nullptr, flags)) {
-        ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-        ImGui::Image((void *) (intptr_t) m_logo->image, fw::vec2((float) m_logo->width, (float) m_logo->height));
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, fw::vec2(50.0f, 30.0f));
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-
-        ImGui::TextWrapped(
-                "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
-
-        ImGui::NewLine();
-        ImGui::NewLine();
-
-        const char *credit = "by Berdal84";
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
-        ImGui::TextWrapped("%s", credit);
-        ImGui::TextWrapped("%s", BuildInfo::version);
-        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)) {
-            ImGui::CloseCurrentPopup();
-            m_show_splashscreen = false;
-        }
-        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
-        ImGui::EndPopup();
-    }
-
-}
-
-void AppView::draw_status_window() const {
-    if (ImGui::Begin(k_status_window_name)) {
-        if (!fw::Log::get_messages().empty()) {
-            auto &settings = Settings::get_instance();
-            const fw::Log::Messages &messages = fw::Log::get_messages();
-            auto it = messages.rend() - settings.ui_log_tooltip_max_count;
-            while (it != messages.rend()) {
-                auto &each_message = *it;
-                ImGui::TextColored(settings.ui_log_color[each_message.verbosity], "%s",
-                                   each_message.to_full_string().c_str());
-                ++it;
-            }
-
-            if (!ImGui::IsWindowHovered()) {
-                ImGui::SetScrollHereY();
-            }
-
-        }
-    }
-    ImGui::End();
+    ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
 }
 
 void AppView::draw_history_bar(History *currentFileHistory) {
@@ -726,7 +701,8 @@ void AppView::draw_history_bar(History *currentFileHistory) {
 
 void AppView::draw_toolbar_window() {
 
-    if (ImGui::Begin(k_toolbar_window_name)) {
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
+    if (ImGui::Begin(k_toolbar_window_name, NULL, flags )) {
         auto &app = App::get_instance();
         auto &vm = VirtualMachine::get_instance();
         auto &settings = Settings::get_instance();
@@ -799,21 +775,15 @@ void AppView::draw_toolbar_window() {
     ImGui::End();
 }
 
-bool AppView::onResetLayout() {
+bool AppView::on_reset_layout() {
     // Dock windows to specific dockspace
-    dock_window(k_status_window_name           , Dockspace_BOTTOM);
-
     dock_window(k_help_window_name             , Dockspace_RIGHT);
     dock_window(k_settings_window_name         , Dockspace_RIGHT);
     dock_window(k_file_info_window_name        , Dockspace_RIGHT);
     dock_window(k_node_properties_window_name  , Dockspace_RIGHT);
     dock_window(k_virtual_machine_window_name  , Dockspace_RIGHT);
     dock_window(k_imgui_settings_window_name   , Dockspace_RIGHT);
-
     dock_window(k_toolbar_window_name          , Dockspace_TOP);
-
-    // Apply settings to ImGui's style
-    Settings::get_instance().patch_imgui_style(ImGui::GetStyle());
 
     return true;
 }
