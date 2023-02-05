@@ -69,7 +69,7 @@ namespace fw
             bool                  show_splashscreen        = true;
             bool                  show_imgui_demo          = false;
             FontConf              icon_font                = {"FA-solid-900", "fonts/fa-solid-900.ttf"};
-            float                 dockspace_down_size      = 48.f;
+            float                 dockspace_bottom_size      = 48.f;
             float                 dockspace_top_size       = 48.f;
             float                 dockspace_right_ratio    = 0.3f;
             size_t                log_tooltip_max_count    = 25;

@@ -247,7 +247,7 @@ bool AppView::draw()
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_ROOT] , viewport_size);
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_ROOT]   , ImGuiDir_Down , 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , vec2(viewport_size.x, m_conf.dockspace_down_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , vec2(viewport_size.x, m_conf.dockspace_bottom_size));
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , vec2(viewport_size.x, m_conf.dockspace_top_size));
@@ -259,11 +259,12 @@ bool AppView::draw()
             ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_RIGHT])->HasCloseButton          = false;
             ImGuiDockNode *ds_bottom_builder = ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_BOTTOM]);
             ds_bottom_builder->HasCloseButton         = false;
-            ds_bottom_builder->WantHiddenTabBarToggle = true;
+
             ds_bottom_builder->SharedFlags            = ImGuiDockNodeFlags_NoDocking;
             ImGuiDockNode *ds_top_builder = ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_TOP]);
             ds_top_builder->HasCloseButton            = false;
             ds_top_builder->WantHiddenTabBarToggle    = true;
+            ds_top_builder->WantLockSizeOnce          = true;
 
             // Dock windows
             dock_window(k_status_window_name, Dockspace_BOTTOM);
