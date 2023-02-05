@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 
     fw::type_register::log_statistics();
 
-    ndbl::App app;
+    ndbl::App& app = ndbl::App::get_instance();
 
     if( app.init() )
     {
