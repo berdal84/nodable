@@ -13,12 +13,12 @@
 
 using namespace fw;
 
+constexpr const char* k_status_window_name = "Status";
+
 AppView::AppView(App* _app, Conf _conf )
     : View()
     , m_conf(_conf)
     , m_app(_app)
-    , m_logo(nullptr)
-    , m_splashscreen_texture(nullptr)
     , m_is_layout_initialized(false)
 {
 }
@@ -61,13 +61,6 @@ bool AppView::init()
 
     gl3wInit();
 
-    // preload images
-    if(!m_conf.splashscreen_path.empty())
-    {
-        auto path = m_app->compute_asset_path(m_conf.splashscreen_path.c_str());
-        m_splashscreen_texture = m_app->texture_manager().get_or_create_from(path);
-    }
-
     // Setup Dear ImGui binding
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -81,7 +74,7 @@ bool AppView::init()
 	//io.WantCaptureMouse     = true;
 
     // Run user code
-    if(!onInit()) return false;
+    if(!on_init()) return false;
 
 	// Setup Dear ImGui style
 
@@ -154,9 +147,9 @@ ImFont* AppView::load_font(const FontConf &_config)
     // Add Icons my merging to previous font.
     if ( _config.icons_enable )
     {
-        if(m_conf.icons_path.empty())
+        if(strlen(m_conf.icon_font.path) == 0)
         {
-            LOG_WARNING("AppView", "m_conf.icons_path is empty, icons will be \"?\"\n");
+            LOG_WARNING("AppView", "m_conf.icons is empty, icons will be \"?\"\n");
             return font;
         }
 
@@ -169,7 +162,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.PixelSnapH  = true;
         config.GlyphOffset.y = -(_config.icons_size - _config.size)*0.5f;
         config.GlyphMinAdvanceX = _config.icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_app->compute_asset_path(m_conf.icons_path.c_str());
+        auto fontPath = m_app->compute_asset_path(m_conf.icon_font.path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
@@ -204,6 +197,9 @@ bool AppView::draw()
             ImGui::ShowDemoWindow(&m_conf.show_imgui_demo);
         }
     }
+
+    // Splashscreen
+    draw_splashcreen_window();
 
     // Setup main window
 
@@ -251,12 +247,12 @@ bool AppView::draw()
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_ROOT] , viewport_size);
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_ROOT]   , ImGuiDir_Down , 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , vec2(viewport_size.x, m_conf.ui_dockspace_down_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , vec2(viewport_size.x, m_conf.dockspace_down_size));
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , vec2(viewport_size.x, m_conf.ui_dockspace_top_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , vec2(viewport_size.x, m_conf.dockspace_top_size));
 
-            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf.ui_dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf.dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
 
             // Configure dockspaces
             ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton         = false;
@@ -269,8 +265,11 @@ bool AppView::draw()
             ds_top_builder->HasCloseButton            = false;
             ds_top_builder->WantHiddenTabBarToggle    = true;
 
+            // Dock windows
+            dock_window(k_status_window_name, Dockspace_BOTTOM);
+
             // Call user defined handler
-            onResetLayout();
+            on_reset_layout();
 
             // Finish the build
             ImGui::DockBuilderFinish(m_dockspaces[Dockspace_ROOT]);
@@ -282,10 +281,13 @@ bool AppView::draw()
         // Define root as current dockspace
         ImGui::DockSpace(get_dockspace(Dockspace_ROOT));
 
-        // Call user defined handler
-        if (!onDraw(redock_all))
+        // Draw Windows
+        draw_status_window();
+
+        // User defined draw
+        if (!on_draw(redock_all))
         {
-            LOG_ERROR( "AppView", "User defined onDraw() returned false.\n");
+            LOG_ERROR( "AppView", "User defined on_draw() returned false.\n");
         }
     }
     ImGui::End(); // Main window
@@ -423,10 +425,10 @@ void AppView::shutdown()
 
 void AppView::set_splashscreen_visible(bool b)
 {
-    m_is_splashscreen_visible = b;
+    m_conf.show_splashscreen = b;
 }
 
-bool AppView::get_fullscreen() const
+bool AppView::is_fullscreen() const
 {
     return SDL_GetWindowFlags(m_sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
@@ -454,4 +456,54 @@ ImGuiID AppView::get_dockspace(Dockspace dockspace)const
 void AppView::dock_window(const char* window_name, Dockspace dockspace)const
 {
     ImGui::DockBuilderDockWindow(window_name, m_dockspaces[dockspace]);
+}
+
+void AppView::draw_splashcreen_window()
+{
+    if (m_conf.show_splashscreen && !ImGui::IsPopupOpen(m_conf.splashscreen_title))
+    {
+        ImGui::OpenPopup(m_conf.splashscreen_title);
+    }
+
+    ImGui::SetNextWindowSizeConstraints(fw::vec2(550, 300), fw::vec2(550, 50000));
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, fw::vec2(0.5f, 0.5f));
+
+    auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
+
+    if (ImGui::BeginPopupModal(m_conf.splashscreen_title, &m_conf.show_splashscreen, flags))
+    {
+        on_draw_splashscreen(); // user defined
+        ImGui::EndPopup();
+    }
+}
+
+bool AppView::is_splashscreen_visible() const
+{
+    return m_conf.show_splashscreen;
+}
+
+void AppView::draw_status_window() const
+{
+    if (ImGui::Begin(k_status_window_name))
+    {
+        if (!fw::Log::get_messages().empty())
+        {
+            const fw::Log::Messages &messages = fw::Log::get_messages();
+            auto it = messages.rend() - m_conf.log_tooltip_max_count;
+            while (it != messages.rend())
+            {
+                auto &each_message = *it;
+                ImGui::TextColored(m_conf.log_color[each_message.verbosity], "%s",
+                                   each_message.to_full_string().c_str());
+                ++it;
+            }
+
+            if (!ImGui::IsWindowHovered())
+            {
+                ImGui::SetScrollHereY();
+            }
+
+        }
+    }
+    ImGui::End();
 }

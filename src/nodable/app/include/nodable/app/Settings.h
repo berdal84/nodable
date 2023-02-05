@@ -12,6 +12,7 @@
 #include <imgui/imgui.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <nodable/app/types.h>
+#include "fw/imgui/AppView.h"
 
 namespace ndbl {
 
@@ -20,12 +21,7 @@ namespace ndbl {
 
         Settings();
 
-        size_t                                   ui_log_tooltip_max_count;
-        std::array<fw::vec4, fw::Log::Verbosity_COUNT>   ui_log_color;
-        std::vector<FontConf>                    ui_text_fonts;
-        std::array<const char *, fw::FontSlot_COUNT> ui_text_defaultFontsId;
-        TextEditor::Palette                      ui_text_textEditorPalette;
-        FontConf       ui_icons;
+        TextEditor::Palette ui_text_textEditorPalette;
         float          ui_wire_bezier_roundness;
         float          ui_wire_bezier_thickness;
         bool           ui_wire_displayArrows;
@@ -49,8 +45,6 @@ namespace ndbl {
         u8_t           ui_node_animation_subsample_count;
         float          ui_node_connector_height;
         float          ui_node_connector_padding;
-        float          ui_dockspace_right_ratio;
-        float          ui_dockspace_down_size;
         float          ui_node_connector_width;
         fw::vec4       ui_codeFlow_lineColor;
         fw::vec4       ui_codeFlow_lineShadowColor;
@@ -70,6 +64,7 @@ namespace ndbl {
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
         bool           isolate_selection;
+        fw::AppView::Conf fw_app_view;
 
         void             patch_imgui_style(ImGuiStyle&);  // Apply the settings to an existing ImGuiStyle
         static Settings& get_instance();                  // Get the shared settings
