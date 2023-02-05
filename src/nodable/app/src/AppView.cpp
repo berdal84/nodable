@@ -27,10 +27,14 @@ AppView::AppView(App *_app, fw::AppView::Conf _conf)
 AppView::~AppView() {}
 
 bool AppView::onInit() {
-    for (auto font_config: Settings::get_instance().ui_text_fonts) {
-        if (!load_font(font_config)) return false;
-    }
 
+    // Configure fonts
+    auto settings = Settings::get_instance();
+    m_conf.fonts         = settings.ui_text_fonts;
+    m_conf.fonts_default = settings.ui_text_defaultFontsId;
+    m_conf.icons_path    = settings.ui_icons.path;
+
+    // Load splashscreen image
     App &app = App::get_instance();
     m_logo = app.texture_manager().get_or_create_from(app.compute_asset_path(m_conf.splashscreen_path.c_str()));
 
