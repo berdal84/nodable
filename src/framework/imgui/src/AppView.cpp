@@ -320,9 +320,9 @@ bool AppView::draw()
     SDL_GL_SwapWindow(m_sdl_window);
 
     // limit frame rate
-    if (ImGui::GetIO().DeltaTime < k_desired_delta_time)
+    if (ImGui::GetIO().DeltaTime < m_conf.min_frame_time)
     {
-        SDL_Delay((unsigned int)((k_desired_delta_time - ImGui::GetIO().DeltaTime) * 1000.f) );
+        SDL_Delay((unsigned int)((m_conf.min_frame_time - ImGui::GetIO().DeltaTime) * 1000.f) );
     }
 
     return false;
