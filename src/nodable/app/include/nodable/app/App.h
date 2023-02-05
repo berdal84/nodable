@@ -37,7 +37,8 @@ namespace ndbl
         void            close_file(File*);
         bool            is_current(const File* _file ) const { return m_current_file == _file; }
         void            current_file(File *_file);
-        const std::vector<File*>& get_files() const { return m_loaded_files; }
+        const std::vector<File*>&
+                        get_files() const { return m_loaded_files; }
         bool            has_files() const { return !m_loaded_files.empty(); }
         File*           current_file()const;
         void            run_program();
@@ -46,7 +47,7 @@ namespace ndbl
         void            stop_program();
         void            reset_program();
         bool            compile_and_load_program();
-        static App&     get_instance();
+        static App&     get_instance();             // singleton pattern
 
     private:
         File*           m_current_file;
