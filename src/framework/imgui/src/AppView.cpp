@@ -241,8 +241,9 @@ bool AppView::draw()
             m_dockspaces[Dockspace_CENTER] = ImGui::GetID("Dockspace_CENTER");
             m_dockspaces[Dockspace_RIGHT]  = ImGui::GetID("Dockspace_RIGHT");
             m_dockspaces[Dockspace_BOTTOM] = ImGui::GetID("Dockspace_BOTTOM");
+            m_dockspaces[Dockspace_TOP]    = ImGui::GetID("Dockspace_TOP");
 
-            // Split root to have 3 dockspaces (center, right, and bottom)
+            // Split root to have N dockspaces
             ImVec2 viewport_size = ImGui::GetMainViewport()->Size;
 
             ImGui::DockBuilderRemoveNode(m_dockspaces[Dockspace_ROOT]); // Clear out existing layout
@@ -258,12 +259,15 @@ bool AppView::draw()
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf.ui_dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
 
             // Configure dockspaces
-            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton      = false;
-            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_RIGHT])->HasCloseButton       = false;
-            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_BOTTOM])->HasCloseButton      = false;
-            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_BOTTOM])->WantHiddenTabBarToggle = true;
-            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_TOP])->HasCloseButton      = false;
-            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_TOP])->WantHiddenTabBarToggle = true;
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton         = false;
+            ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_RIGHT])->HasCloseButton          = false;
+            ImGuiDockNode *ds_bottom_builder = ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_BOTTOM]);
+            ds_bottom_builder->HasCloseButton         = false;
+            ds_bottom_builder->WantHiddenTabBarToggle = true;
+            ds_bottom_builder->SharedFlags            = ImGuiDockNodeFlags_NoDocking;
+            ImGuiDockNode *ds_top_builder = ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_TOP]);
+            ds_top_builder->HasCloseButton            = false;
+            ds_top_builder->WantHiddenTabBarToggle    = true;
 
             // Call user defined handler
             onResetLayout();
@@ -285,8 +289,6 @@ bool AppView::draw()
         }
     }
     ImGui::End(); // Main window
-
-
 
     // 3. End frame and Render
     //------------------------
