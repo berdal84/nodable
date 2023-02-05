@@ -15,7 +15,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
 set(CMAKE_INSTALL_PREFIX             "${CMAKE_CURRENT_LIST_DIR}/out/app")      # ./out/ folder must not be changed, referenced in readme.md
 set(NDBL_APP_NAME                    "Nodable")
 set(NDBL_PACKAGE_DIR                 "${CMAKE_CURRENT_LIST_DIR}/out/package")  #                     //
-set(NDBL_CONFIGURED_DIR              "${PROJECT_BINARY_DIR}/configured/nodable")
+set(NDBL_CONFIGURED_DIR              "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS                  OFF )
 set(NDBL_CORE_INSTALL_ENABLE         OFF)
 set(NDBL_CORE_INSTALL_DESTINATION    libs) # relative to CMAKE_INSTALL_PREFIX
@@ -27,12 +27,12 @@ include( cmake/set-build-ref-variable.cmake )
 
 #include other CMakeLists.txt
 add_subdirectory(libs)                    # libraries (SDL, lodepng, Dear ImGui, etc.)
-add_subdirectory(src/framework/headless)  # CLI framework
-add_subdirectory(src/framework/imgui)     # ImGui based framework
-add_subdirectory(src/nodable/core)        # nodable core (static library).
-add_subdirectory(src/nodable/cli)         # nodable application (terminal).
-add_subdirectory(src/nodable/app)         # nodable application (with gui).
-add_subdirectory(tests)
+add_subdirectory(projects/framework/core)      # core framework
+add_subdirectory(projects/framework/gui)       # gui framework (ImGui based)
+add_subdirectory(projects/nodable/core)        # nodable core (static library)
+add_subdirectory(projects/nodable/cli)         # nodable command line interface (terminal)
+add_subdirectory(projects/nodable/gui)         # nodable application (gui)
+add_subdirectory(projects/tests)
 
 #  Packaging:
 #===========
