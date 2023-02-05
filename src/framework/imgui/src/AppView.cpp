@@ -154,7 +154,13 @@ ImFont* AppView::load_font(const FontConf &_config)
     // Add Icons my merging to previous font.
     if ( _config.icons_enable )
     {
-        // merge in icons from Font Awesome
+        if(m_conf.icons_path.empty())
+        {
+            LOG_WARNING("AppView", "m_conf.icons_path is empty, icons will be \"?\"\n");
+            return font;
+        }
+
+        // merge in icons font
         static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
         ImFontConfig config;
         config.OversampleH = 3;
@@ -163,7 +169,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.PixelSnapH  = true;
         config.GlyphOffset.y = -(_config.icons_size - _config.size)*0.5f;
         config.GlyphMinAdvanceX = _config.icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_app->compute_asset_path(_config.path);
+        auto fontPath = m_app->compute_asset_path(m_conf.icons_path.c_str());
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
