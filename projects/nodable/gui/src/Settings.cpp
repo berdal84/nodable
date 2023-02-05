@@ -89,7 +89,8 @@ Settings::Settings()
 
     // AppView
     fw_app_view.dockspace_right_ratio = 0.25f;
-    fw_app_view.dockspace_down_size   = 15.f * 2.f; // for 2 lines
+    fw_app_view.dockspace_top_size    = 36.f;
+    fw_app_view.dockspace_bottom_size = 100.f;
     {
         constexpr const char *k_paragraph = "Paragraph";
         constexpr const char *k_heading   = "Heading 1";

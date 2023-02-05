@@ -19,8 +19,14 @@ using namespace ndbl;
 using namespace ndbl::assembly;
 
 AppView::AppView(App *_app, fw::AppView::Conf _conf)
-        : fw::AppView(_app, std::move(_conf)), m_logo(nullptr), m_is_history_dragged(false), m_show_properties_editor(false),
-          m_show_imgui_demo(false), m_show_advanced_node_properties(false), m_scroll_to_curr_instr(true) {
+    : fw::AppView(_app, std::move(_conf))
+    , m_logo(nullptr)
+    , m_is_history_dragged(false)
+    , m_show_properties_editor(false)
+    , m_show_imgui_demo(false)
+    , m_show_advanced_node_properties(false)
+    , m_scroll_to_curr_instr(true)
+{
 }
 
 AppView::~AppView() {}
@@ -702,7 +708,10 @@ void AppView::draw_history_bar(History *currentFileHistory) {
 void AppView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, fw::vec2(5.0f, 5.0f));
     if (ImGui::Begin(k_toolbar_window_name, NULL, flags )) {
+        ImGui::PopStyleVar();
+
         auto &app = App::get_instance();
         auto &vm = VirtualMachine::get_instance();
         auto &settings = Settings::get_instance();
@@ -715,8 +724,6 @@ void AppView::draw_toolbar_window() {
 
         ImGui::PushFont(get_font(fw::FontSlot_ToolBtn));
 
-        // small margin
-        ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 5.0f);
         ImGui::BeginGroup();
 
         // compile
