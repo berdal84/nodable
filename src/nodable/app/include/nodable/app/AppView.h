@@ -22,10 +22,7 @@ namespace ndbl
 	*/
     class AppView : public fw::AppView
 	{
-        static constexpr float k_desired_fps        = 60.0f;
-        static constexpr float k_desired_delta_time = 1.0f / k_desired_fps;
-
-	public:		
+	public:
 		AppView(App* _app, fw::AppView::Conf _conf);
 		~AppView() override;
         bool onInit() override;
