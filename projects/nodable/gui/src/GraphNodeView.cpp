@@ -188,7 +188,7 @@ bool GraphNodeView::draw()
             fw::vec2 dst = hovered_property_conn ? hovered_property_conn->get_pos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(
                     src, dst,
-                    get_color(Color_BorderHighlights),
+                    get_color(ColorType_BorderHighlights),
                     settings.ui_wire_bezier_thickness
                 );
         }

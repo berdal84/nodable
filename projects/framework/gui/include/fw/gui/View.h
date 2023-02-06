@@ -18,14 +18,14 @@ namespace fw
 	    /**
 	     * Enum to define some color types
 	     */
-		enum Color
+		enum ColorType
 		{
-			Color_Fill,
-			Color_Highlighted,
-			Color_Border,
-			Color_BorderHighlights,
-			Color_Shadow,
-			Color_COUNT
+			ColorType_Fill,
+			ColorType_Highlighted,
+			ColorType_Border,
+			ColorType_BorderHighlights,
+			ColorType_Shadow,
+			ColorType_COUNT
 		};
 
 		View();
@@ -33,12 +33,11 @@ namespace fw
 
 		virtual bool         draw() = 0;
 		bool                 draw_as_child(const char* _name, const vec2& _size, bool border = false, ImGuiWindowFlags flags = 0);
-		void                 set_color(Color _type, vec4* _color );
-		ImColor              get_color(Color) const;
+		void                 set_color(ColorType, const vec4* );
+		ImColor              get_color(ColorType) const;
 		inline void          set_visible(bool _visibility){ m_is_visible = _visibility;}
-        inline bool          is_visible()const{return m_is_visible;}
-		inline bool          is_hovered()const{return m_is_hovered;}
-		// inline void          set_visible_rect(ImRect _rect) { m_visible_rect = _rect; }
+        inline bool          is_visible()const {return m_is_visible;}
+		inline bool          is_hovered()const {return m_is_hovered;}
 		inline ImRect        get_visible_rect() const { return m_visible_rect; }
 
 	protected:
@@ -46,9 +45,8 @@ namespace fw
 		ImRect   m_visible_rect;
 		ImRect   m_visible_screen_rect;
 		bool     m_is_hovered;
-
     private:
-        std::map<Color, vec4*> m_colors;
+        std::map<ColorType, const vec4*> m_colors;
 
 		REFLECT_BASE_CLASS()
     };
