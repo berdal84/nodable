@@ -216,8 +216,8 @@ bool VirtualMachine::_stepOver()
 
                     if( input
                         && !each_property->is_connected_by_ref()
-                        && each_property->get_type() != type::null
-                        && input->get_type() != type::null )
+                        && each_property->get_type() != type::null()
+                        && input->get_type() != type::null() )
                     {
                         *each_property->get_variant() = *input->get_variant();
                     }

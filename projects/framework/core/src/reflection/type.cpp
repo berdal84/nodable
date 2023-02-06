@@ -16,8 +16,17 @@ REGISTER
     registration::push<null_t>("null");
 }
 
-type type::any  = type::get<any_t>();
-type type::null = type::get<null_t>();
+const type& type::any()
+{
+    static type any  = type::get<any_t>();
+    return any;
+}
+
+const type& type::null()
+{
+    static type null  = type::get<null_t>();
+    return null;
+}
 
 bool type::is_ptr(type left)
 {
@@ -31,7 +40,7 @@ bool type::is_ref(type left)
 
 bool type::is_implicitly_convertible(type _src, type _dst )
 {
-    if(_src == type::any || _dst == type::any ) // We allow cast to unknown type
+    if(_src == type::any() || _dst == type::any() ) // We allow cast to unknown type
     {
         return true;
     }

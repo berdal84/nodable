@@ -7,7 +7,7 @@ using namespace fw;
 
 func_type::func_type(std::string _id)
     : m_identifier(_id)
-    , m_return_type(type::null)
+    , m_return_type(type::null())
 {
 }
 

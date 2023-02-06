@@ -126,9 +126,8 @@ namespace fw
         template<typename T>
         static type get(T value) { return get<T>(); }
 
-        static type any;
-        static type null;
-
+        static const type& any();
+        static const type& null();
     protected:
         std::string m_name;
         std::string m_compiler_name;
