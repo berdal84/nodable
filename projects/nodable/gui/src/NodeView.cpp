@@ -247,7 +247,7 @@ void NodeView::set_owner(Node *_node)
     {
         const char* trail = "..";
         char short_identifier[10];
-        strncpy(short_identifier, m_label.c_str(), label_max_length - strlen(trail) );
+        strncpy(short_identifier, m_label.c_str(), label_max_length - strlen(trail) - 1 );
         strcat(short_identifier, trail);
         m_short_label = short_identifier;
     } else {
