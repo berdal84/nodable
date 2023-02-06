@@ -158,19 +158,19 @@ void NodeView::set_owner(Node *_node)
 
     if (_node->has<InvokableComponent>())
     {
-        set_color(Color_Fill, &settings.ui_node_invokableColor); // blue
+        set_color(ColorType_Fill, &settings.ui_node_invokableColor); // blue
     }
     else if (clss.is_child_of<VariableNode>())
     {
-        set_color(Color_Fill, &settings.ui_node_variableColor); // purple
+        set_color(ColorType_Fill, &settings.ui_node_variableColor); // purple
     }
     else if (clss.is_child_of<LiteralNode>())
     {
-        set_color(Color_Fill, &settings.ui_node_literalColor);
+        set_color(ColorType_Fill, &settings.ui_node_literalColor);
     }
     else
     {
-        set_color(Color_Fill, &settings.ui_node_instructionColor); // green
+        set_color(ColorType_Fill, &settings.ui_node_instructionColor); // green
     }
 
     // 3. NodeConnectors
@@ -412,15 +412,15 @@ bool NodeView::draw()
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
 	{			
-		auto borderCol = is_selected(this) ? m_border_color_selected : get_color(Color_Border);
+		auto borderCol = is_selected(this) ? m_border_color_selected : get_color(ColorType_Border);
 
 		auto itemRectMin = screen_cursor_pos_content_start - halfSize;
 		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
 
 		// Draw the rectangle under everything
-        fw::ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, fw::vec2(1.0f), get_color(Color_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax, get_color(Color_Fill), m_border_radius);
-		draw_list->AddRect(itemRectMin + fw::vec2(1.0f), itemRectMax, get_color(Color_BorderHighlights), m_border_radius);
+        fw::ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, fw::vec2(1.0f), get_color(ColorType_Shadow));
+		draw_list->AddRectFilled(itemRectMin, itemRectMax, get_color(ColorType_Fill), m_border_radius);
+		draw_list->AddRect(itemRectMin + fw::vec2(1.0f), itemRectMax, get_color(ColorType_BorderHighlights), m_border_radius);
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
 
 		// darken the background under the content
@@ -455,7 +455,7 @@ bool NodeView::draw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        fw::ImGuiEx::ShadowedText(fw::vec2(1.0f), get_color(Color_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
+        fw::ImGuiEx::ShadowedText(fw::vec2(1.0f), get_color(ColorType_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 
@@ -723,7 +723,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
         auto* variable = _property->get_input()->get_owner()->as<VariableNode>();
         snprintf(str, 255, "%s", variable->get_name() );
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(Color_Fill) );
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(ColorType_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
         ImGui::PopStyleColor();
 
