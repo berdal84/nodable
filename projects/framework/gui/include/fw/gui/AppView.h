@@ -62,10 +62,13 @@ namespace fw
 
         // AppView's configuration
         struct Conf {
-            std::string           title                    = "Untitled";
+            std::string           app_window_label         = "Framework AppView";
             float                 min_frame_time           = 1.0f / 60.0f;            // limit to 60fps
             ImColor               background_color         = ImColor(0.f,0.f,0.f);
-            const char*           splashscreen_title       = "##Splashscreen";
+            fw::vec4              button_activeColor       = vec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
+            fw::vec4              button_hoveredColor      = vec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
+            fw::vec4              button_color             = vec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
+            const char*           splashscreen_window_label= "##Splashscreen";
             bool                  show_splashscreen        = true;
             bool                  show_imgui_demo          = false;
             FontConf              icon_font                = {"FA-solid-900", "fonts/fa-solid-900.ttf"};
@@ -96,6 +99,71 @@ namespace fw
                                                                 "default", // FontSlot_Code
                                                                 "default"  // FontSlot_ToolBtn
                                                             };
+
+            void patch_imgui_style(ImGuiStyle& _style) // Apply the configuration to an existing ImGuiStyle
+            {
+                vec4* colors = _style.Colors;
+                colors[ImGuiCol_Text]                   = vec4(0.20f, 0.20f, 0.20f, 1.00f);
+                colors[ImGuiCol_TextDisabled]           = vec4(0.21f, 0.21f, 0.21f, 1.00f);
+                colors[ImGuiCol_WindowBg]               = vec4(0.76f, 0.76f, 0.76f, 1.00f);
+                colors[ImGuiCol_DockingEmptyBg]         = vec4(0.64f, 0.24f, 0.24f, 1.00f);
+                colors[ImGuiCol_ChildBg]                = vec4(0.69f, 0.69f, 0.69f, 1.00f);
+                colors[ImGuiCol_PopupBg]                = vec4(0.66f, 0.66f, 0.66f, 1.00f);
+                colors[ImGuiCol_Border]                 = vec4(0.70f, 0.70f, 0.70f, 1.00f);
+                colors[ImGuiCol_BorderShadow]           = vec4(0.30f, 0.30f, 0.30f, 0.50f);
+                colors[ImGuiCol_FrameBg]                = vec4(1.00f, 1.00f, 1.00f, 1.00f);
+                colors[ImGuiCol_FrameBgHovered]         = vec4(0.90f, 0.80f, 0.80f, 1.00f);
+                colors[ImGuiCol_FrameBgActive]          = vec4(0.90f, 0.65f, 0.65f, 1.00f);
+                colors[ImGuiCol_TitleBg]                = vec4(0.60f, 0.60f, 0.60f, 1.00f);
+                colors[ImGuiCol_TitleBgActive]          = vec4(0.60f, 0.60f, 0.60f, 1.00f);
+                colors[ImGuiCol_TitleBgCollapsed]       = vec4(0.49f, 0.63f, 0.69f, 1.00f);
+                colors[ImGuiCol_MenuBarBg]              = vec4(0.60f, 0.60f, 0.60f, 0.98f);
+                colors[ImGuiCol_ScrollbarBg]            = vec4(0.40f, 0.40f, 0.40f, 1.00f);
+                colors[ImGuiCol_ScrollbarGrab]          = vec4(0.61f, 0.61f, 0.62f, 1.00f);
+                colors[ImGuiCol_ScrollbarGrabHovered]   = vec4(0.70f, 0.70f, 0.70f, 1.00f);
+                colors[ImGuiCol_ScrollbarGrabActive]    = vec4(0.80f, 0.80f, 0.80f, 1.00f);
+                colors[ImGuiCol_CheckMark]              = vec4(0.31f, 0.23f, 0.14f, 1.00f);
+                colors[ImGuiCol_SliderGrab]             = vec4(0.71f, 0.46f, 0.22f, 0.63f);
+                colors[ImGuiCol_SliderGrabActive]       = vec4(0.71f, 0.46f, 0.22f, 1.00f);
+                colors[ImGuiCol_Button]                 = button_color;
+                colors[ImGuiCol_ButtonHovered]          = button_hoveredColor;
+                colors[ImGuiCol_ButtonActive]           = button_activeColor;
+                colors[ImGuiCol_Header]                 = vec4(0.70f, 0.70f, 0.70f, 1.00f);
+                colors[ImGuiCol_HeaderHovered]          = vec4(0.89f, 0.65f, 0.11f, 0.96f);
+                colors[ImGuiCol_HeaderActive]           = vec4(1.00f, 1.00f, 1.00f, 1.00f);
+                colors[ImGuiCol_Separator]              = vec4(0.43f, 0.43f, 0.50f, 0.50f);
+                colors[ImGuiCol_SeparatorHovered]       = vec4(0.71f, 0.71f, 0.71f, 0.78f);
+                colors[ImGuiCol_SeparatorActive]        = vec4(1.00f, 0.62f, 0.00f, 1.00f);
+                colors[ImGuiCol_ResizeGrip]             = vec4(1.00f, 1.00f, 1.00f, 0.30f);
+                colors[ImGuiCol_ResizeGripHovered]      = vec4(1.00f, 1.00f, 1.00f, 0.60f);
+                colors[ImGuiCol_ResizeGripActive]       = vec4(1.00f, 1.00f, 1.00f, 0.90f);
+                colors[ImGuiCol_Tab]                    = vec4(0.58f, 0.54f, 0.50f, 0.86f);
+                colors[ImGuiCol_TabHovered]             = vec4(1.00f, 0.79f, 0.45f, 1.00f);
+                colors[ImGuiCol_TabActive]              = vec4(1.00f, 0.73f, 0.25f, 1.00f);
+                colors[ImGuiCol_TabUnfocused]           = vec4(0.53f, 0.53f, 0.53f, 0.97f);
+                colors[ImGuiCol_TabUnfocusedActive]     = vec4(0.79f, 0.79f, 0.79f, 1.00f);
+                colors[ImGuiCol_DockingPreview]         = vec4(1.00f, 0.70f, 0.09f, 0.70f);
+                colors[ImGuiCol_DockingEmptyBg]         = vec4(0.20f, 0.20f, 0.20f, 1.00f);
+                colors[ImGuiCol_PlotLines]              = vec4(1.00f, 1.00f, 1.00f, 1.00f);
+                colors[ImGuiCol_PlotLinesHovered]       = vec4(0.90f, 0.70f, 0.00f, 1.00f);
+                colors[ImGuiCol_PlotHistogram]          = vec4(0.90f, 0.70f, 0.00f, 1.00f);
+                colors[ImGuiCol_PlotHistogramHovered]   = vec4(1.00f, 0.60f, 0.00f, 1.00f);
+                colors[ImGuiCol_TextSelectedBg]         = vec4(0.00f, 0.00f, 1.00f, 0.35f);
+                colors[ImGuiCol_DragDropTarget]         = vec4(1.00f, 1.00f, 0.00f, 0.90f);
+                colors[ImGuiCol_NavHighlight]           = vec4(0.26f, 0.59f, 0.98f, 1.00f);
+                colors[ImGuiCol_NavWindowingHighlight]  = vec4(1.00f, 1.00f, 1.00f, 0.70f);
+                colors[ImGuiCol_NavWindowingDimBg]      = vec4(0.80f, 0.80f, 0.80f, 0.20f);
+                colors[ImGuiCol_ModalWindowDimBg]       = vec4(0.20f, 0.20f, 0.20f, 0.55f);
+
+                _style.WindowBorderSize   = 1.0f;
+                _style.FrameBorderSize    = 1.0f;
+                _style.FrameRounding      = 3.0f;
+                _style.ChildRounding      = 3.0f;
+                _style.WindowRounding     = 0.0f;
+                _style.AntiAliasedFill    = true;
+                _style.AntiAliasedLines   = true;
+                _style.WindowPadding      = vec2(10.0f,10.0f);
+            }
         };
 
 		AppView(App*, Conf);

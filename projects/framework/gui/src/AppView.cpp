@@ -45,7 +45,7 @@ bool AppView::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    m_sdl_window = SDL_CreateWindow(m_conf.title.c_str(),
+    m_sdl_window = SDL_CreateWindow(m_conf.app_window_label.c_str(),
                                    SDL_WINDOWPOS_CENTERED,
                                    SDL_WINDOWPOS_CENTERED,
                                    800,
@@ -72,6 +72,9 @@ bool AppView::init()
     io.FontAllowUserScaling = true;
 	//io.WantCaptureKeyboard  = true;
 	//io.WantCaptureMouse     = true;
+
+    // Override ImGui's default Style
+    m_conf.patch_imgui_style(ImGui::GetStyle());
 
     // Run user code
     if(!on_init()) return false;
@@ -461,9 +464,9 @@ void AppView::dock_window(const char* window_name, Dockspace dockspace)const
 
 void AppView::draw_splashcreen_window()
 {
-    if (m_conf.show_splashscreen && !ImGui::IsPopupOpen(m_conf.splashscreen_title))
+    if (m_conf.show_splashscreen && !ImGui::IsPopupOpen(m_conf.splashscreen_window_label))
     {
-        ImGui::OpenPopup(m_conf.splashscreen_title);
+        ImGui::OpenPopup(m_conf.splashscreen_window_label);
     }
 
     ImGui::SetNextWindowSizeConstraints(fw::vec2(550, 300), fw::vec2(550, 50000));
@@ -471,7 +474,7 @@ void AppView::draw_splashcreen_window()
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-    if (ImGui::BeginPopupModal(m_conf.splashscreen_title, &m_conf.show_splashscreen, flags))
+    if (ImGui::BeginPopupModal(m_conf.splashscreen_window_label, &m_conf.show_splashscreen, flags))
     {
         on_draw_splashscreen(); // user defined
         ImGui::EndPopup();
