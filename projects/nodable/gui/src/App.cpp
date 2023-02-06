@@ -616,7 +616,7 @@ File *App::new_file()
 {
     // get a unique friendly name
     const char* basename   = "Untitled";
-    char        name[18]; // "Untitled_XXX.cpp\0";
+    char        name[255];
     snprintf(name, sizeof(name), "%s.cpp", basename);
 
     int num = 0;
