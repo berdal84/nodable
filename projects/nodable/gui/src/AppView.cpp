@@ -11,7 +11,6 @@
 #include <ndbl/gui/NodeView.h>
 #include <ndbl/gui/Settings.h>
 #include <ndbl/gui/build_info.h>
-#include <ndbl/gui/constants.h>
 
 #include <utility>
 
@@ -39,9 +38,6 @@ bool AppView::on_init() {
     App& app = App::get_instance();
     fw::TextureManager& texture_manager = app.texture_manager();
     m_logo = texture_manager.get_or_create_from(app.compute_asset_path(settings.ui_splashscreen_imagePath));
-
-    // Apply settings to ImGui's style
-    settings.patch_imgui_style(ImGui::GetStyle());
 
     return true;
 }
@@ -260,7 +256,7 @@ bool AppView::on_draw(bool& redock_all) {
 }
 
 void AppView::draw_help_window() const {
-    if (ImGui::Begin(k_help_window_name)) {
+    if (ImGui::Begin(Settings::get_instance().ui_help_window_label)) {
         ImGui::PushFont(get_font(fw::FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
@@ -295,7 +291,7 @@ void AppView::draw_help_window() const {
 }
 
 void AppView::draw_imgui_settings_window() const {
-    if (ImGui::Begin(k_imgui_settings_window_name)) {
+    if (ImGui::Begin(Settings::get_instance().ui_imgui_settings_window_label)) {
         ImGui::ShowStyleEditor();
     }
     ImGui::End();
@@ -303,7 +299,7 @@ void AppView::draw_imgui_settings_window() const {
 
 void AppView::draw_file_info_window() const {
     if (auto current_file = App::get_instance().current_file()) {
-        if (ImGui::Begin(k_file_info_window_name)) {
+        if (ImGui::Begin(Settings::get_instance().ui_file_info_window_label)) {
             if (current_file) {
                 FileView *fileView = current_file->get_view();
                 fileView->draw_info();
@@ -317,7 +313,7 @@ void AppView::draw_file_info_window() const {
 }
 
 void AppView::draw_node_properties_window() {
-    if (ImGui::Begin(k_node_properties_window_name)) {
+    if (ImGui::Begin(Settings::get_instance().ui_node_properties_window_label)) {
         NodeView *view = NodeView::get_selected();
         if (view) {
             ImGui::Indent(10.0f);
@@ -328,7 +324,7 @@ void AppView::draw_node_properties_window() {
 }
 
 void AppView::draw_virtual_machine_window() {
-    if (ImGui::Begin(k_virtual_machine_window_name)) {
+    if (ImGui::Begin(Settings::get_instance().ui_virtual_machine_window_label)) {
         auto &vm = VirtualMachine::get_instance();
 
         ImGui::Text("Virtual Machine:");
@@ -446,7 +442,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3, 0.3, 0.3, 1.0));
 
-    ImGui::Begin(k_startup_window_name);
+    ImGui::Begin(Settings::get_instance().ui_startup_window_label);
     {
         auto &app = App::get_instance();
 
@@ -561,7 +557,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
 }
 
 void AppView::draw_settings_window() {
-    if (ImGui::Begin(k_settings_window_name)) {
+    if (ImGui::Begin(Settings::get_instance().ui_settings_window_label)) {
         Settings &settings = Settings::get_instance();
 
         ImGui::Text("Nodable Settings:");
@@ -709,7 +705,7 @@ void AppView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, fw::vec2(5.0f, 5.0f));
-    if (ImGui::Begin(k_toolbar_window_name, NULL, flags )) {
+    if (ImGui::Begin(Settings::get_instance().ui_toolbar_window_label, NULL, flags )) {
         ImGui::PopStyleVar();
 
         auto &app = App::get_instance();
@@ -719,8 +715,7 @@ void AppView::draw_toolbar_window() {
         bool running = vm.is_program_running();
         bool debugging = vm.is_debugging();
         bool stopped = vm.is_program_stopped();
-        fw::vec2 &button_size = settings.ui_toolButton_size;
-        fw::vec4 &active_color = settings.ui_button_activeColor;
+        fw::vec2 button_size  = settings.ui_toolButton_size;
 
         ImGui::PushFont(get_font(fw::FontSlot_ToolBtn));
 
@@ -733,7 +728,7 @@ void AppView::draw_toolbar_window() {
         ImGui::SameLine();
 
         // run
-        if (running) ImGui::PushStyleColor(ImGuiCol_Button, active_color);
+        if (running) ImGui::PushStyleColor(ImGuiCol_Button, m_conf.button_activeColor);
 
         if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped) {
             app.run_program();
@@ -743,7 +738,7 @@ void AppView::draw_toolbar_window() {
         ImGui::SameLine();
 
         // debug
-        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, active_color);
+        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, m_conf.button_activeColor);
         if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped) {
             app.debug_program();
         }
@@ -784,13 +779,14 @@ void AppView::draw_toolbar_window() {
 
 bool AppView::on_reset_layout() {
     // Dock windows to specific dockspace
-    dock_window(k_help_window_name             , Dockspace_RIGHT);
-    dock_window(k_settings_window_name         , Dockspace_RIGHT);
-    dock_window(k_file_info_window_name        , Dockspace_RIGHT);
-    dock_window(k_node_properties_window_name  , Dockspace_RIGHT);
-    dock_window(k_virtual_machine_window_name  , Dockspace_RIGHT);
-    dock_window(k_imgui_settings_window_name   , Dockspace_RIGHT);
-    dock_window(k_toolbar_window_name          , Dockspace_TOP);
+    auto& settings = Settings::get_instance();
+    dock_window(settings.ui_help_window_label             , Dockspace_RIGHT);
+    dock_window(settings.ui_settings_window_label         , Dockspace_RIGHT);
+    dock_window(settings.ui_file_info_window_label        , Dockspace_RIGHT);
+    dock_window(settings.ui_node_properties_window_label  , Dockspace_RIGHT);
+    dock_window(settings.ui_virtual_machine_window_label  , Dockspace_RIGHT);
+    dock_window(settings.ui_imgui_settings_window_label   , Dockspace_RIGHT);
+    dock_window(settings.ui_toolbar_window_label          , Dockspace_TOP);
 
     return true;
 }

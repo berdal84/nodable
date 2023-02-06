@@ -47,9 +47,6 @@ namespace ndbl {
         float          ui_node_connector_width;
         fw::vec4       ui_codeFlow_lineColor;
         fw::vec4       ui_codeFlow_lineShadowColor;
-        fw::vec4       ui_button_activeColor;
-        fw::vec4       ui_button_hoveredColor;
-        fw::vec4       ui_button_color;
         fw::vec2       ui_toolButton_size;
         float          ui_history_btn_spacing;
         float          ui_history_btn_height;
@@ -60,12 +57,19 @@ namespace ndbl {
         fw::vec4       ui_overlay_window_bg_golor;
         fw::vec4       ui_overlay_border_color;
         fw::vec4       ui_overlay_text_color;
+        const char*    ui_file_info_window_label;
+        const char*    ui_help_window_label;
+        const char*    ui_imgui_settings_window_label;
+        const char*    ui_node_properties_window_label;
+        const char*    ui_settings_window_label;
+        const char*    ui_startup_window_label;
+        const char*    ui_toolbar_window_label ;
+        const char*    ui_virtual_machine_window_label;
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
         bool           isolate_selection;
         fw::AppView::Conf fw_app_view;
 
-        void             patch_imgui_style(ImGuiStyle&);  // Apply the settings to an existing ImGuiStyle
         static Settings& get_instance();                  // Get the shared settings
     };
 }
