@@ -13,7 +13,7 @@
 
 using namespace fw;
 
-constexpr const char* k_status_window_name = "Status";
+constexpr const char* k_status_window_name = "Messages";
 
 AppView::AppView(App* _app, Conf _conf )
     : View()

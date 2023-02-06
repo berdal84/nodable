@@ -11,7 +11,6 @@ namespace ndbl
     static const char* k_node_properties_window_name      = "Node";
     static const char* k_settings_window_name             = "Settings";
     static const char* k_startup_window_name              = "Startup";
-    static const char* k_status_window_name               = "Messages";
     static const char* k_toolbar_window_name              = "Toolbar";
     static const char* k_virtual_machine_window_name      = "VM";
 }
