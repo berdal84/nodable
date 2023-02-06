@@ -191,7 +191,7 @@ void variant::reset_value()
 
 void variant::ensure_is_initialized(bool _initialize)
 {
-    NDBL_EXPECT(m_type != type::null, "Variant: cannot ensure is_initialised(...) because type is null!");
+    NDBL_EXPECT(m_type != type::null(), "Variant: cannot ensure is_initialised(...) because type is null!");
 
     if(_initialize == m_is_initialized) return;
 
@@ -223,7 +223,7 @@ void variant::ensure_is_type(type _type)
         {
             return;
         }
-        NDBL_EXPECT( m_type == type::null || m_type == type::any,
+        NDBL_EXPECT( m_type == type::null() || m_type == type::any(),
                 "Variant: Type should not change, expecting it null or any!" );
     }
     m_type = clean;
@@ -237,7 +237,7 @@ variant::operator void* ()const       { NDBL_ASSERT(m_is_defined) return convert
 
 void variant::flag_defined(bool _value )
 {
-    NDBL_EXPECT(m_type != type::null, "Variant: Unable to ensure variant is defined because its type is null!");
+    NDBL_EXPECT(m_type != type::null(), "Variant: Unable to ensure variant is defined because its type is null!");
     NDBL_EXPECT(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
 
     /*
@@ -261,7 +261,7 @@ type variant::clean_type(const type& _type)
 
 variant& variant::operator=(const variant& _other)
 {
-    NDBL_ASSERT( _other.m_type != type::null )
+    NDBL_ASSERT( _other.m_type != type::null() )
     NDBL_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
 
     if( m_type == type::get<bool>() )

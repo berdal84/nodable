@@ -19,7 +19,7 @@ namespace fw
         variant()
             : m_is_initialized(false)
             , m_is_defined(false)
-            , m_type(type::any)
+            , m_type(type::any())
             , m_type_change_allowed(false) // for now, variant can change type once
         {}
 
@@ -55,7 +55,7 @@ namespace fw
             m_is_defined = true;
         }
 
-        void    set(null_t) { ensure_is_type(type::null); m_is_defined = false; };
+        void    set(null_t) { ensure_is_type(type::null()); m_is_defined = false; };
         void    set(double);
         void    set(bool);
         void    set(i16_t);

@@ -234,7 +234,7 @@ Property *Nodlang::to_property(std::shared_ptr<Token> _token)
             {
                 /* when strict mode is OFF, we just create a variable with Any type */
                 LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->get_word().c_str())
-                variable = m_graph->create_variable(type::null, _token->get_word(), get_current_scope());
+                variable = m_graph->create_variable(type::null(), _token->get_word(), get_current_scope());
                 variable->get_value()->set_src_token(_token);
                 variable->set_declared(false);
             }
@@ -354,7 +354,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
 
     // Create a function signature according to ltype, rtype and operator word
     func_type *type = new func_type(ope->identifier);
-    type->set_return_type(type::any);
+    type->set_return_type(type::any());
     type->push_args(_left->get_type(), right->get_type());
 
     InvokableComponent *component;
@@ -426,7 +426,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
 
     // Create a function signature
     func_type *type = new func_type(operator_token->get_word());
-    type->set_return_type(type::any);
+    type->set_return_type(type::any());
     type->push_args(value->get_type());
 
     InvokableComponent *component;
@@ -1000,7 +1000,7 @@ Property *Nodlang::parse_function_call()
 
     // Declare a new function prototype
     func_type signature(fct_id);
-    signature.set_return_type(type::any);
+    signature.set_return_type(type::any());
 
     bool parsingError = false;
     while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::fct_params_end)
