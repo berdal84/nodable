@@ -482,7 +482,7 @@ bool App::onShutdown()
 
 bool App::open_file(const fs_path& _path, bool relative)
 {
-    std::string absolute_path = relative ? compute_asset_path(_path.c_str()) : _path.string();
+    std::string absolute_path = relative ? compute_asset_path(_path.string().c_str()) : _path.string();
     auto file = new File( _path.filename().string(), absolute_path);
 
     if ( !file->read_from_disk() )
