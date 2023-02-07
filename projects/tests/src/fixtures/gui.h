@@ -5,6 +5,8 @@
 
 #ifdef NDBL_GUI_TEST_HUMAN_SPEED
 #define SLEEP_FOR_HUMAN( delay_in_ms ) std::this_thread::sleep_for( std::chrono::milliseconds( delay_in_ms ) );
+#else
+#define SLEEP_FOR_HUMAN( delay_in_ms )
 #endif
 
 namespace testing
