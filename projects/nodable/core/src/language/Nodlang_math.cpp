@@ -29,23 +29,23 @@ namespace // anonymous, accessible only in that file
     std::string _to_string(i16_t i) { return std::to_string(i); }
     std::string _to_string(std::string s) { return s; }
     template<typename T, typename U>
-    T _minus(T a, U b){ return a - b; }
+    T _minus(T a, U b){ return a - T(b); }
     template<typename T, typename U>
-    T _multiply(T a, U b) { return a * b; }
+    T _multiply(T a, U b) { return a * T(b); }
     template<typename T, typename U>
     T _plus(T a, U b){ return a + T(b); }
     template<typename T>
-    T _plus(T a, T b){ return a + b; }
+    T _plus(T a, T b){ return a + T(b); }
     template<>
     std::string _plus(std::string left, double right) { return left + fw::String::fmt_double(right); }
     template<>
     std::string _plus(std::string left, i16_t right) { return left + std::to_string(right); }
     template<typename T, typename U>
-    T _divide(T a, U b) { if ( b == 0 ) throw std::runtime_error("division by zero !"); return a / b;}
+    T _divide(T a, U b) { if ( b == 0 ) throw std::runtime_error("division by zero !"); return a / T(b);}
     template<typename T, typename U>
-    T _assign(T& a, U b) { return a = b; }
-    template<typename T, typename U>
-    T _sqrt(U n) { return sqrt(n); }
+    T _assign(T& a, U b) { return a = T(b); }
+    template<typename T>
+    T _sqrt(T n) { return (T)sqrt((float)n); }
     template<typename T, typename U>
     bool _greater(T a, U b) { return a > b; }
     template<typename T, typename U>
@@ -55,7 +55,7 @@ namespace // anonymous, accessible only in that file
     template<typename T, typename U>
     bool _lower_or_eq(T a, U b) { return a <= b; }
     template<typename T>
-    T _pow(T a, T b) { return pow(a, b); }
+    T _pow(T a, T b) { return (T)pow(a, b); }
     template<typename T>
     T _minus(T a) { return -a; }
     template<typename T>

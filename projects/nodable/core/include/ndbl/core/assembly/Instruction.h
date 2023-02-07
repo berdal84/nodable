@@ -97,12 +97,12 @@ namespace assembly
      */
     struct Instruction
     {
-        Instruction(Instruction_t _opcode, u8_t _line)
+        Instruction(Instruction_t _opcode, u64_t _line)
                 : opcode(_opcode)
                 , line(_line)
         {}
 
-        u8_t line;                                          // line index (zero-based position in the code)
+        u64_t line;                                          // line index (zero-based position in the code)
 
         // all the possible instructions
         union {

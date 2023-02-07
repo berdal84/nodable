@@ -35,7 +35,7 @@ namespace ndbl
 		const PropertyMap&     by_name()const { return m_properties_.by_name; };
 		const PropertyVec&     by_index()const { return m_properties_.by_index; };
         Property*              get_first(Way _way, const fw::type& _type) const;
-        Property*              get_input_at(u8_t n) const;
+        Property*              get_input_at(u64_t _position) const;
         std::shared_ptr<Property> add(                                      // add a new property with a given name and type.
                 const fw::type& _type,
                 const char *_name,

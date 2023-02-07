@@ -440,7 +440,7 @@ void AppView::draw_virtual_machine_window() {
 
 void AppView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3, 0.3, 0.3, 1.0));
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
 
     ImGui::Begin(Settings::get_instance().ui_startup_window_label);
     {
