@@ -477,7 +477,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
             examples.emplace_back("Single expressions    ", "examples/arithmetic.cpp");
             examples.emplace_back("Multi instructions    ", "examples/multi-instructions.cpp");
             examples.emplace_back("Conditional Structures", "examples/if-else.cpp");
-            examples.emplace_back("For Loop              ", "examples/for-loop.cpp");
+            examples.emplace_back("For Loop              ", "examples/for-loop_count.cpp");
 
             int i = 0;
             fw::vec2 small_btn_size(btn_size.x, btn_size.y * 0.66f);

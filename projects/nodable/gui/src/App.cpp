@@ -468,18 +468,22 @@ void App::onUpdate()
     }
 }
 
-void App::onShutdown()
+bool App::onShutdown()
 {
+    LOG_VERBOSE("App", "onShutdown ...\n")
     for( File* each_file : m_loaded_files )
     {
         LOG_VERBOSE("App", "Delete file %s ...\n", each_file->get_path().c_str())
         delete each_file;
     }
+    LOG_VERBOSE("App", "onShutdown OK\n")
+    return true;
 }
 
-bool App::open_file(const fs_path& _path)
+bool App::open_file(const fs_path& _path, bool relative)
 {
-    auto file = new File( _path.filename().string(), _path.string());
+    std::string absolute_path = relative ? compute_asset_path(_path.c_str()) : _path.filename().string();
+    auto file = new File( _path.filename().string(), absolute_path);
 
     if ( !file->read_from_disk() )
     {

@@ -414,17 +414,27 @@ void AppView::handle_events()
     }
 }
 
-void AppView::shutdown()
+bool AppView::shutdown()
 {
-    m_app->texture_manager().release_resources();
+    bool success = true;
+    LOG_MESSAGE("AppView", "Shutting down ...\n");
 
+    success &= m_app->texture_manager().release_resources();
+
+    LOG_MESSAGE("AppView", "Shutting down ImGui_ImplSDL2 ...\n");
     ImGui_ImplSDL2_Shutdown();
+    LOG_MESSAGE("AppView", "Destroying ImGui context ...\n");
     ImGui::DestroyContext    ();
+    LOG_MESSAGE("AppView", "Shutdown SDL ...\n");
     SDL_GL_DeleteContext     (m_sdl_gl_context);
     SDL_DestroyWindow        (m_sdl_window);
     SDL_Quit                 ();
 
+    LOG_MESSAGE("AppView", "Quitting NFD (Native File Dialog) ...\n");
     NFD_Quit();
+
+    LOG_MESSAGE("AppView", "Shutdown: %s\n", success ? OK : KO );
+    return success;
 }
 
 void AppView::set_splashscreen_visible(bool b)
