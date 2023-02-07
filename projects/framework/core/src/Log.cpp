@@ -4,6 +4,8 @@
 #include <cstdio>  // vfprintf
 #include <iostream>
 #include <algorithm>
+#include <ctime>
+#include <cstring>
 
 using namespace fw;
 
@@ -116,13 +118,13 @@ const Log::Messages& Log::get_messages()
     return s_logs;
 }
 
-static std::string time_point_to_string(const std::chrono::system_clock::time_point &tp)
+static std::string time_point_to_string(const std::chrono::system_clock::time_point &time_point)
 {
-    std::time_t time = std::chrono::system_clock::to_time_t(tp);
-    char str[26];
-    ctime_s(str,sizeof str + 1,&time);
-    str[strlen(str) - 1] = '\0'; // prevent new line
-    return str;
+    std::time_t time = std::chrono::system_clock::to_time_t(time_point);
+    char result[26];
+    ctime_s(result,sizeof result,&time);
+    result[strlen(result) - 1] = '\0'; // prevent new line
+    return result;
 }
 
 std::string Log::Message::to_full_string()const
