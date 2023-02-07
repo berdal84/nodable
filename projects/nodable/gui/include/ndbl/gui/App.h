@@ -23,7 +23,8 @@ namespace ndbl
 	{
 	public:
 		App();
-
+        App(const App&) = delete;
+        ~App();
     protected:
 		bool            onInit() override;
 		void            onShutdown() override;
@@ -50,6 +51,7 @@ namespace ndbl
         static App&     get_instance();             // singleton pattern
 
     private:
+        static App*     s_instance;
         File*           m_current_file;
         size_t          m_current_file_index;
         std::vector<File*> m_loaded_files;

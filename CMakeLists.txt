@@ -31,8 +31,14 @@ add_subdirectory(projects/framework/core)      # core framework
 add_subdirectory(projects/framework/gui)       # gui framework (ImGui based)
 add_subdirectory(projects/nodable/core)        # nodable core (static library)
 add_subdirectory(projects/nodable/cli)         # nodable command line interface (terminal)
-add_subdirectory(projects/nodable/gui)         # nodable application (gui)
-add_subdirectory(projects/tests)
+add_subdirectory(projects/nodable/gui)         # nodable gui (gui)
+add_subdirectory(projects/nodable/app)         # nodable application
+
+if ( NOT NDBL_SKIP_TESTS)
+    enable_testing()
+    add_subdirectory(projects/tests)
+endif()
+
 
 #  Packaging:
 #===========
