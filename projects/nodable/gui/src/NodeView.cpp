@@ -241,16 +241,13 @@ void NodeView::set_owner(Node *_node)
     m_label += _node->get_name();
 
     // Short label
-
-    size_t label_max_length = 10;
+    constexpr size_t label_max_length = 10;
     if (m_label.size() > label_max_length)
     {
-        const char* trail = "..";
-        char short_identifier[10];
-        strncpy(short_identifier, m_label.c_str(), label_max_length - strlen(trail) - 1 );
-        strcat(short_identifier, trail);
-        m_short_label = short_identifier;
-    } else {
+         m_short_label = m_label.substr(0, label_max_length) + "..";
+    }
+    else
+    {
         m_short_label = m_label;
     }
 
