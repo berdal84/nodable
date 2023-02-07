@@ -46,9 +46,9 @@ Property *PropertyGrp::get_first(Way _way, const fw::type& _type) const
     return found != m_properties_.by_name.end() ? (*found).second : nullptr;
 }
 
-Property *PropertyGrp::get_input_at(u8_t _position) const
+Property *PropertyGrp::get_input_at(u64_t _position) const
 {
-    u8_t count = 0;
+    u64_t count = 0;
 
     for( auto each : m_properties_.by_index)
     {
