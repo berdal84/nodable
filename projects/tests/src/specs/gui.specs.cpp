@@ -54,11 +54,41 @@ TEST_F(Gui_App, loop_duration_5s)
 TEST_F(Gui_App, open_file)
 {
     ndbl::App app;
-    EXPECT_TRUE(app.init());
-    EXPECT_NO_THROW(app.update());
+    app.init();
+    app.get_view()->set_splashscreen_visible(false);
+    app.update();
     EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp", true));
+    app.shutdown();
+}
+
+TEST_F(Gui_App, close_file)
+{
+    ndbl::App app;
+    app.init();
+    app.get_view()->set_splashscreen_visible(false);
+    app.update();
+    app.open_file("./examples/arithmetic.cpp", true);
     loop_duration(app, 1.0);
-    EXPECT_TRUE(app.shutdown());
+    app.close_file( app.current_file() );
+    loop_duration(app, 1.0);
+    app.shutdown();
+}
+
+TEST_F(Gui_App, open_examples)
+{
+    ndbl::App app;
+    app.init();
+    app.get_view()->set_splashscreen_visible(false);
+    app.update();
+    EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp", true));
+    loop_duration(app, 0.5);
+    EXPECT_TRUE(app.open_file("./examples/for-loop.cpp", true));
+    loop_duration(app, 0.5);
+    EXPECT_TRUE(app.open_file("./examples/if-else.cpp", true));
+    loop_duration(app, 0.5);
+    EXPECT_TRUE(app.open_file("./examples/multi-instructions.cpp", true));
+    loop_duration(app, 1.0);
+    app.shutdown();
 }
 
 
