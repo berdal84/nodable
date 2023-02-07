@@ -118,10 +118,11 @@ const Log::Messages& Log::get_messages()
 
 static std::string time_point_to_string(const std::chrono::system_clock::time_point &tp)
 {
-    std::time_t t = std::chrono::system_clock::to_time_t(tp);
-    std::string ts = std::ctime(&t);
-    ts.resize(ts.size() - 1); // remove end of line
-    return ts;
+    std::time_t time = std::chrono::system_clock::to_time_t(tp);
+    char str[26];
+    ctime_s(str,sizeof str + 1,&time);
+    str[strlen(str) - 1] = '\0'; // prevent new line
+    return str;
 }
 
 std::string Log::Message::to_full_string()const
