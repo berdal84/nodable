@@ -51,7 +51,7 @@ target_link_libraries(
 # Declare our main executable
 add_executable(
     nodable-gui-tests
-    src/specs/app.specs.cpp
+        src/specs/gui.specs.cpp
 )
 
 # Link libraries
@@ -78,6 +78,7 @@ elseif(UNIX) # Should be tested after APPLE
     if( $ENV{JETBRAINS_IDE} )
         ndbl_log("JETBRAINS_IDE is defined:  Enable Nodable GUI tests (hardware rendering)")
         add_test( NAME "Nodable GUI (hardware rendering)" COMMAND nodable-gui-tests)
+        add_definitions(-D NDBL_GUI_TEST_HUMAN_SPEED )
     else()
         ndbl_log("JETBRAINS_IDE not defined: Skip Nodable GUI tests")
     endif()

@@ -52,14 +52,24 @@ namespace fw
 
         /** Release all the loaded textures
          * @warning There is no check if they are still in use */
-        void release_resources()
+        bool release_resources()
         {
+            bool success = true;
             for( const auto& eachTxt : m_register )
             {
                 glDeleteTextures(1, &eachTxt.second.image);
-                LOG_MESSAGE("Texture", "Texture %s released.\n", eachTxt.first.c_str())
+                if( GL_NO_ERROR != glGetError())
+                {
+                    success = false;
+                    LOG_WARNING("Texture", "Unable to release: %s (code: %i)\n", eachTxt.first.c_str(), glGetError())
+                }
+                else
+                {
+                    LOG_MESSAGE("Texture", "Released %s\n", eachTxt.first.c_str())
+                }
             }
             m_register.clear();
+            return success;
         }
 
     private:

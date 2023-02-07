@@ -162,7 +162,7 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
 ForLoopNode* NodeFactory::new_for_loop_node() const
 {
     auto for_loop = new ForLoopNode();
-    for_loop->set_name("For loop");
+    for_loop->set_name("For loop_count");
 
     for_loop->predecessors().set_limit(std::numeric_limits<int>::max());
     for_loop->successors().set_limit(1);

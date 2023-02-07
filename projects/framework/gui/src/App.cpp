@@ -38,12 +38,14 @@ void App::flag_to_stop()
     m_should_stop = true;
 }
 
-void App::shutdown()
+bool App::shutdown()
 {
+    bool success = true;
     LOG_MESSAGE("App", "Shutting down ...\n")
-    m_view->shutdown();
-    onShutdown();
-    LOG_MESSAGE("App", "Shutdown.\n")
+    success &= m_view->shutdown();
+    success &= onShutdown();
+    LOG_MESSAGE("App", "Shutdown %s\n", success ? OK : KO)
+    return success;
 }
 
 std::string App::compute_asset_path(const char* _relative_path) const

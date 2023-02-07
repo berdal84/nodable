@@ -27,11 +27,11 @@ namespace ndbl
         ~App();
     protected:
 		bool            onInit() override;
-		void            onShutdown() override;
+		bool onShutdown() override;
 		void            onUpdate() override;
     public:
         // IAppCtx implementation
-        bool            open_file(const fs_path& _filePath);
+        bool            open_file(const fs_path& _filePath, bool relative = false);
         File*           new_file();
         void            save_file()const;
         void            save_file_as(const fs_path &_path);

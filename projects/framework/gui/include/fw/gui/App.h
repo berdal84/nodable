@@ -21,12 +21,12 @@ namespace fw
         virtual ~App() {};
 
 		bool            init();
-		void            shutdown();
+		bool shutdown();
 		void            update();
 		void            draw();
 
         virtual bool    onInit() = 0;
-        virtual void    onShutdown() = 0;
+        virtual bool    onShutdown() = 0;
         virtual void    onUpdate() = 0;
 
         bool            should_stop() const { return m_should_stop; }
