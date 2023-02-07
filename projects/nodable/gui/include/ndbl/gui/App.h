@@ -25,6 +25,9 @@ namespace ndbl
 		App();
         App(const App&) = delete;
         ~App();
+
+        fw::AppView * get_view();
+
     protected:
 		bool            onInit() override;
 		bool onShutdown() override;

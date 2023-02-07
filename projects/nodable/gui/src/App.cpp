@@ -655,3 +655,8 @@ App& App::get_instance()
     NDBL_EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
     return *s_instance;
 }
+
+fw::AppView* App::get_view()
+{
+    return m_view;
+}
