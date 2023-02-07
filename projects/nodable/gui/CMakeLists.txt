@@ -21,10 +21,8 @@ ndbl_log(" - NDBL_APP_ASSETS_ABSOLUTE_DIR: ${NDBL_APP_ASSETS_ABSOLUTE_DIR}")
 # Configure files
 configure_file("include/ndbl/gui/build_info.h.in" "${NDBL_CONFIGURED_DIR}/gui/build_info.h" )
 
-# add nodable executable
-add_executable(
-    nodable
-        WIN32
+add_library(
+    nodable-gui
         src/App.cpp
         src/AppView.cpp
         src/File.cpp
@@ -37,17 +35,10 @@ add_executable(
         src/PropertyView.cpp
         src/Settings.cpp
         src/ViewConstraint.cpp
-        src/main.cpp
-    )
-
-target_include_directories(
-    nodable
-    PRIVATE
-        include
-        ${PROJECT_BINARY_DIR}/configured)
+)
 
 target_link_libraries(
-    nodable
+    nodable-gui
     PUBLIC
         gl3w
         framework-gui
@@ -56,15 +47,20 @@ target_link_libraries(
         ImGuiColorTextEdit
 )
 
-set_target_properties(nodable PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
-set_target_properties(nodable PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+target_include_directories(
+    nodable-gui
+    PUBLIC
+        include
+        ${PROJECT_BINARY_DIR}/configured
+)
+
 
 # AFTER BUILD:
 #=============
 
 # Copy assets (fonts, scripts, etc..)
 add_custom_command(
-        TARGET nodable PRE_BUILD
+        TARGET nodable-gui PRE_BUILD
         COMMAND ${CMAKE_COMMAND}
         -E copy_directory
         "${NDBL_APP_ASSETS_ABSOLUTE_DIR}"
@@ -76,4 +72,3 @@ add_custom_command(
 
 install( DIRECTORY "${NDBL_APP_ASSETS_ABSOLUTE_DIR}" DESTINATION .)
 install( FILES     "../../../CHANGELOG.md" DESTINATION .)
-install( TARGETS   nodable RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION .)

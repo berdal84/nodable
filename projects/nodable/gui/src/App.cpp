@@ -1,7 +1,8 @@
 #include <ndbl/gui/App.h>
 
 #include <algorithm>
-#include "fw/core/System.h"
+#include <fw/core/System.h>
+#include <fw/core/assertions.h>
 #include <fw/gui/Event.h>
 
 #include <ndbl/gui/AppView.h>
@@ -22,6 +23,8 @@
 
 using namespace ndbl;
 
+App* App::s_instance = nullptr;
+
 App::App()
     : fw::App(
             ghc::filesystem::path( fw::System::get_executable_directory() ) / BuildInfo::assets_dir,
@@ -30,6 +33,13 @@ App::App()
     , m_current_file(nullptr)
 {
     LOG_MESSAGE("App", "Asset folder path:      %s\n", m_assets_folder_path.c_str() )
+    NDBL_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
+    s_instance = this;
+}
+
+App::~App()
+{
+    s_instance = nullptr;
 }
 
 bool App::onInit()
@@ -638,6 +648,6 @@ File *App::new_file()
 
 App& App::get_instance()
 {
-    static App instance;
-    return instance;
+    NDBL_EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
+    return *s_instance;
 }

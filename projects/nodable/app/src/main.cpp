@@ -1,5 +1,5 @@
-#include <ndbl/gui/App.h>
-#include <ndbl/gui/AppView.h>
+#include "ndbl/gui/App.h"
+#include "ndbl/gui/AppView.h"
 
 using Verbosity = fw::Log::Verbosity;
 
@@ -19,7 +19,7 @@ int main(int argc, char *argv[])
 
     fw::type_register::log_statistics();
 
-    ndbl::App& app = ndbl::App::get_instance();
+    ndbl::App app;
 
     if( app.init() )
     {
