@@ -1,4 +1,4 @@
-<img src="https://github.com/berdal84/Nodable/blob/master/src/app/assets/images/nodable-logo-xs.png" />
+<img src="https://github.com/berdal84/Nodable/blob/master/projects/nodable/gui/assets/images/nodable-logo-xs.png" />
    
 <a href="https://github.com/berdal84/Nodable/actions?query=workflow%3AGNU%2FLinux" title="linux">
 <img src="https://github.com/berdal84/nodable/workflows/GNU%2FLinux/badge.svg" />
