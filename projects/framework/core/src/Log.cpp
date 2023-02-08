@@ -122,7 +122,11 @@ static std::string time_point_to_string(const std::chrono::system_clock::time_po
 {
     std::time_t time = std::chrono::system_clock::to_time_t(time_point);
     char result[26];
+#ifdef WIN32
     ctime_s(result,sizeof result,&time);
+#else
+    strncpy(result, ctime(&time), 26);
+#endif
     result[strlen(result) - 1] = '\0'; // prevent new line
     return result;
 }
