@@ -56,8 +56,11 @@ TEST_F(Gui_App, open_file)
     ndbl::App app;
     app.init();
     app.get_view()->set_splashscreen_visible(false);
-    app.update();
+    loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__open_file__0.png");
     EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp", true));
+    loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__open_file__1.png");
     app.shutdown();
 }
 
@@ -66,11 +69,12 @@ TEST_F(Gui_App, close_file)
     ndbl::App app;
     app.init();
     app.get_view()->set_splashscreen_visible(false);
-    app.update();
     app.open_file("./examples/arithmetic.cpp", true);
-    loop_duration(app, 1.0);
+    loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__close_file__0.png");
     app.close_file( app.current_file() );
-    loop_duration(app, 1.0);
+    loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__close_file__1.png");
     app.shutdown();
 }
 
@@ -80,14 +84,19 @@ TEST_F(Gui_App, open_examples)
     app.init();
     app.get_view()->set_splashscreen_visible(false);
     app.update();
+    save_screenshot(app, "TEST_Gui_App__open_examples__0.png");
     EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp", true));
     loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__open_examples__1.png");
     EXPECT_TRUE(app.open_file("./examples/for-loop.cpp", true));
     loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__open_examples__2.png");
     EXPECT_TRUE(app.open_file("./examples/if-else.cpp", true));
     loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__open_examples__3.png");
     EXPECT_TRUE(app.open_file("./examples/multi-instructions.cpp", true));
-    loop_duration(app, 1.0);
+    loop_duration(app, 0.5);
+    save_screenshot(app, "TEST_Gui_App__open_examples__4.png");
     app.shutdown();
 }
 
