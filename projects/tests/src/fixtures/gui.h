@@ -57,5 +57,11 @@ namespace testing
                 ++iteration;
             }
         }
+
+        void save_screenshot(ndbl::App& app, const char* relative_path)
+        {
+            LOG_MESSAGE("Test", "Taking screenshot ...\n");
+            app.get_view()->save_screenshot(relative_path);
+        }
     };
 }

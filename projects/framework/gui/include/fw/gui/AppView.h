@@ -191,6 +191,7 @@ namespace fw
         void               set_fullscreen(bool b);
         void               set_layout_initialized(bool b);
         void               set_splashscreen_visible(bool b);
+        void               save_screenshot(const char *relative_file_path);
     private:
         void               draw_splashcreen_window();
         void               draw_status_window() const;

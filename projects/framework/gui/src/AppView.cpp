@@ -503,7 +503,7 @@ void AppView::draw_status_window() const
         if (!fw::Log::get_messages().empty())
         {
             const fw::Log::Messages &messages = fw::Log::get_messages();
-            auto it = messages.rend() - m_conf.log_tooltip_max_count;
+            auto it = messages.rend() - std::min(m_conf.log_tooltip_max_count, messages.size());
             while (it != messages.rend())
             {
                 auto &each_message = *it;
@@ -520,4 +520,31 @@ void AppView::draw_status_window() const
         }
     }
     ImGui::End();
+}
+
+void AppView::save_screenshot(const char* relative_file_path)
+{
+    LOG_MESSAGE("AppView", "Taking screenshot ...\n");
+    int width, height;
+    SDL_GetWindowSize(m_sdl_window, &width, &height);
+    GLsizei stride = 4 * width;
+    GLsizei bufferSize = stride * height;
+    std::vector<unsigned char> buffer(bufferSize);
+    glPixelStorei(GL_PACK_ALIGNMENT, 1);
+    glReadBuffer( GL_BACK);
+    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
+
+    // vertical flip
+    std::vector<unsigned char> flipped(bufferSize);
+    for (int y = 0; y < height; ++y) {
+        for (int x = 0; x < stride; ++x) {
+            flipped[y*stride+x] = buffer[(height-y-1)*stride+x];
+        }
+    }
+
+    std::vector<unsigned char> out;
+    lodepng::encode(out, flipped.data(), width, height, LCT_RGBA);
+    lodepng::save_file(out, m_app->compute_asset_path(relative_file_path).c_str());
+
+    LOG_MESSAGE("AppView", "Taking screenshot OK (%s)\n", relative_file_path);
 }

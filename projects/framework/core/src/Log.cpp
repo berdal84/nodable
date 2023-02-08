@@ -121,7 +121,7 @@ const Log::Messages& Log::get_messages()
 static std::string time_point_to_string(const std::chrono::system_clock::time_point &time_point)
 {
     std::time_t time = std::chrono::system_clock::to_time_t(time_point);
-    char result[26];
+    char result[30];
 #ifdef WIN32
     ctime_s(result,sizeof result,&time);
 #else
@@ -137,7 +137,7 @@ std::string Log::Message::to_full_string()const
     result.reserve(50);
 
     result.push_back('[');
-    result.append( time_point_to_string(date) );
+    result += time_point_to_string(date);
     result.push_back('|');
     result.append( Log::to_string(verbosity) );
     result.push_back('|');
