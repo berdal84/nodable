@@ -69,19 +69,17 @@ cmake_policy(SET CMP0110 NEW) # Allow spaces in test names
 add_test( NAME "Nodable Core" COMMAND nodable-core-tests )
 
 # GUI tests does not work on every machine (only MacOS in software on GitHub Actions)
-if(WIN32)
+if( $ENV{JETBRAINS_IDE} )
+    ndbl_log("JETBRAINS_IDE is defined:  Enable Nodable GUI tests (hardware rendering)")
+    add_test( NAME "Nodable GUI (hardware rendering)" COMMAND nodable-gui-tests)
+    add_definitions(-D NDBL_GUI_TEST_HUMAN_SPEED )
+elseif(WIN32)
     ndbl_log("Windows detected: Skip Nodable GUI tests")
 elseif(APPLE)
     ndbl_log("Apple detected: Enable Nodable GUI tests (software rendering)")
     add_test( NAME "Nodable GUI (software rendering)" COMMAND nodable-gui-tests)
 elseif(UNIX) # Should be tested after APPLE
-    if( $ENV{JETBRAINS_IDE} )
-        ndbl_log("JETBRAINS_IDE is defined:  Enable Nodable GUI tests (hardware rendering)")
-        add_test( NAME "Nodable GUI (hardware rendering)" COMMAND nodable-gui-tests)
-        add_definitions(-D NDBL_GUI_TEST_HUMAN_SPEED )
-    else()
-        ndbl_log("JETBRAINS_IDE not defined: Skip Nodable GUI tests")
-    endif()
+    ndbl_log("Linux detected: Skip Nodable GUI tests")
 endif()
 
 
