@@ -27,7 +27,7 @@ namespace testing
         /**
          * run some loops for a given iteration count
          */
-        void loop_count(ndbl::App& app, size_t iteration_count, double sleep_in_sec = 1.0)
+        static void loop_count(ndbl::App& app, size_t iteration_count, double sleep_in_sec = 1.0)
         {
             for(int i = 0; i < iteration_count; ++i)
             {
@@ -40,12 +40,12 @@ namespace testing
         /**
          * run some loops for a given duration
          */
-        void loop_duration(ndbl::App& app, double duration_in_sec)
+        static void loop_duration(ndbl::App& app, double duration_in_sec)
         {
             auto start = std::chrono::system_clock::now();
             auto end   = std::chrono::system_clock::now();
             size_t iteration = 0;
-            while((std::chrono::duration_cast<std::chrono::seconds>(end - start).count() < duration_in_sec))
+            while((std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count() < (long long)(duration_in_sec * 1000.f)))
             {
                 end = std::chrono::system_clock::now();
                 LOG_MESSAGE("Test", "Loop iteration %llu (time: %0.1f/%0.1f sec)\n"
