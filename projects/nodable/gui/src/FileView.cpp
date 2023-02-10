@@ -23,6 +23,8 @@ FileView::FileView(File& _file)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
     , m_experimental_clipboard_auto_paste(false)
+    , m_text_overlay_window_name(_file.get_name() + "_text_overlay" )
+    , m_graph_overlay_window_name(_file.get_name() + "_graph_overlay" )
 {
     m_graph_change_obs.observe(_file.m_on_graph_changed_evt, [](GraphNode* _graph)
     {
@@ -47,7 +49,7 @@ FileView::FileView(File& _file)
                 graph_view->translate_all( fw::vec2(-10000.0f), views);
 
                 // frame all (delay to next frame via event system)
-                fw::EventManager::push_event(EventType_frame_all_node_views);
+                fw::EventManager::get_instance().push_event(EventType_frame_all_node_views);
             }
         }
     });
@@ -154,7 +156,7 @@ bool FileView::draw()
     text_editor_overlay_rect.Translate(text_editor_top_left_corner);
     text_editor_overlay_rect.Expand(vec2(-2.f * settings.ui_overlay_margin)); // margin
     text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
-    draw_overlay("Quick Help:###text", m_overlay_data_for_text_editor, text_editor_overlay_rect, vec2(0,1));
+    draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], text_editor_overlay_rect, vec2(0,1));
 
      // NODE EDITOR
     //-------------
@@ -180,7 +182,7 @@ bool FileView::draw()
         graph_editor_overlay_rect.Translate(graph_editor_top_left_corner);
         graph_editor_overlay_rect.Expand(vec2(-2.0f * settings.ui_overlay_margin)); // margin
         graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
-        draw_overlay("Quick Help:###graph", m_overlay_data_for_graph_editor, graph_editor_overlay_rect, vec2(1,1));
+        draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], graph_editor_overlay_rect, vec2(1,1));
 
         // overlay for isolation mode
         if( settings.isolate_selection )
@@ -317,28 +319,27 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;
 
-    ImGui::Begin(title, &show, flags);
-
-    ImGui::Indent(settings.ui_overlay_indent);
-    std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
-        ImGui::Text("%s:", _data.label.c_str());
-        ImGui::SameLine(150);
-        ImGui::Text("%s", _data.description.c_str());
-    });
-    ImGui::PopStyleColor(3);
+    if (ImGui::Begin(title, &show, flags) )
+    {
+        ImGui::Indent(settings.ui_overlay_indent);
+        std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
+            ImGui::Text("%s:", _data.label.c_str());
+            ImGui::SameLine(150);
+            ImGui::Text("%s", _data.description.c_str());
+        });
+        ImGui::PopStyleColor(3);
+    }
     ImGui::End();
 }
 
 void FileView::clear_overlay()
 {
-    m_overlay_data_for_text_editor.clear();
-    m_overlay_data_for_graph_editor.clear();
+    std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [&](auto &vec) {
+        vec.clear();
+    });
 }
 
 void FileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
 {
-    if(overlay_type == OverlayType_GRAPH )
-        m_overlay_data_for_graph_editor.push_back(overlay_data);
-    else
-        m_overlay_data_for_text_editor.push_back(overlay_data);
+    m_overlay_data[overlay_type].push_back(overlay_data);
 }

@@ -34,15 +34,15 @@ namespace fw
         u64_t           elapsed_time() const { return m_start_time.time_since_epoch().count(); };
         std::string     compute_asset_path(const char *_relative_path) const;
         TextureManager& texture_manager() { return m_texture_manager; };
-
+        EventManager&   event_manager() { return m_event_manager; }
     protected:
         const std::chrono::time_point<std::chrono::system_clock>
                         m_start_time = std::chrono::system_clock::now();
 
         AppView*        m_view;
         TextureManager  m_texture_manager;
+        EventManager    m_event_manager;
         bool            m_should_stop;
         fs_path         m_assets_folder_path;
-
     };
 }

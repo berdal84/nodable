@@ -41,7 +41,7 @@ void App::flag_to_stop()
 bool App::shutdown()
 {
     bool success = true;
-    LOG_MESSAGE("App", "Shutting down ...\n")
+    LOG_MESSAGE("App", "Shutting down ...\n");
     success &= m_view->shutdown();
     success &= onShutdown();
     LOG_MESSAGE("App", "Shutdown %s\n", success ? OK : KO)

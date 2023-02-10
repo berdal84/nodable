@@ -35,35 +35,31 @@ namespace fw
         SimpleEvent common;
     };
 
-    class EventManager
+    struct BindedEvent
     {
-    public:
-        static void   push_event(Event& _event);
-        static size_t poll_event(Event& _event);
-        static void   push_event(EventType _type);
-
-    private:
-        static std::queue<Event> s_events;
-    };
-
-    struct BindedEvent {
         std::string label;
         uint16_t event_t;
         Shortcut shortcut;
         uint16_t condition;
     };
 
-    /**
-     * Class to manage all commands
-     */
-    class BindedEventManager
+    class EventManager
     {
     public:
+        EventManager();
+        ~EventManager();
+        void               push_event(Event& _event);
+        size_t             poll_event(Event& _event);
+        void               push_event(EventType _type);
+        void                            bind(const BindedEvent& binded_cmd);
+        const BindedEvent&              get_binded(uint16_t type);
+        const std::vector<BindedEvent>& get_binded_events() const;
+        static EventManager&            get_instance();
 
-        static void               bind(const BindedEvent& binded_cmd);
-        static const BindedEvent& get_event(uint16_t type);
-
-        static std::vector<BindedEvent>        s_binded_events;
-        static std::map<uint16_t, BindedEvent> s_binded_events_by_type;
+    private:
+        static EventManager*            s_instance;
+        std::queue<Event>               m_events;
+        std::vector<BindedEvent>        m_binded_events;
+        std::map<uint16_t, BindedEvent> m_binded_events_by_type;
     };
 }

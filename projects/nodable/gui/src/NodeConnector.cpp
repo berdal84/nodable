@@ -43,7 +43,7 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
             event.type = EventType_node_connector_disconnected;
             event.node_connectors.src = _connector;
             event.node_connectors.dst = nullptr;
-            fw::EventManager::push_event((fw::Event&)event);
+            fw::EventManager::get_instance().push_event((fw::Event&)event);
         }
 
         ImGui::EndPopup();
@@ -101,7 +101,7 @@ void NodeConnector::dropped(const NodeConnector *_left, const NodeConnector *_ri
     evt.type = EventType_node_connector_dropped;
     evt.src = _left;
     evt.dst = _right;
-    fw::EventManager::push_event((fw::Event&)evt);
+    fw::EventManager::get_instance().push_event((fw::Event&)evt);
 }
 
 Node* NodeConnector::get_connected_node() const

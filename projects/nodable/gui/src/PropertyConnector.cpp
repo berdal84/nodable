@@ -83,7 +83,7 @@ void PropertyConnector::draw(
             event.type = EventType_property_connector_disconnected;
             event.property_connectors.src = _connector;
             event.property_connectors.dst = nullptr;
-            fw::EventManager::push_event((fw::Event&)event);
+            fw::EventManager::get_instance().push_event((fw::Event&)event);
         }
 
         ImGui::EndPopup();
@@ -119,7 +119,7 @@ void PropertyConnector::dropped(const PropertyConnector *_left, const PropertyCo
     evt.type = EventType_property_connector_dropped;
     evt.property_connectors.src = _left;
     evt.property_connectors.dst = _right;
-    fw::EventManager::push_event((fw::Event&)evt);
+    fw::EventManager::get_instance().push_event((fw::Event&)evt);
 }
 
 bool PropertyConnector::has_node_connected() const {

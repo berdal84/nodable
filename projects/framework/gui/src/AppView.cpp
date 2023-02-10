@@ -364,6 +364,7 @@ bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
 
 void AppView::handle_events()
 {
+    EventManager& event_manager = EventManager::get_instance();
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -373,14 +374,14 @@ void AppView::handle_events()
         {
             case SDL_WINDOWEVENT:
                 if( event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    EventManager::push_event(fw::EventType_exit_triggered);
+                    event_manager.push_event(fw::EventType_exit_triggered);
                 break;
             case SDL_KEYDOWN:
 
                 // With mode key only
                 if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
-                    for(auto _binded_event: BindedEventManager::s_binded_events )
+                    for(auto _binded_event: event_manager.get_binded_events() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _binded_event.shortcut.mod != KMOD_NONE
@@ -389,14 +390,14 @@ void AppView::handle_events()
                              && _binded_event.shortcut.key == event.key.keysym.sym
                                 )
                         {
-                            EventManager::push_event(_binded_event.event_t);
+                            event_manager.push_event(_binded_event.event_t);
                             break;
                         }
                     }
                 }
                 else // without any mod key
                 {
-                    for(auto _binded_event: BindedEventManager::s_binded_events )
+                    for(auto _binded_event: event_manager.get_binded_events() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _binded_event.shortcut.mod == KMOD_NONE
@@ -404,7 +405,7 @@ void AppView::handle_events()
                              && _binded_event.shortcut.key == event.key.keysym.sym
                                 )
                         {
-                            EventManager::push_event(_binded_event.event_t);
+                            event_manager.push_event(_binded_event.event_t);
                             break;
                         }
                     }
