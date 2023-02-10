@@ -24,7 +24,8 @@ namespace ndbl
     using OverlayType = int;
     enum OverlayType_ {
         OverlayType_TEXT,
-        OverlayType_GRAPH
+        OverlayType_GRAPH,
+        OverlayType_COUNT
     };
 
     typedef struct {
@@ -59,10 +60,11 @@ namespace ndbl
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  fw::vec2 position);
 
     private:
-        std::vector<OverlayData> m_overlay_data_for_text_editor;
-        std::vector<OverlayData> m_overlay_data_for_graph_editor;
+        std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
 
 		File&        m_file;
+        std::string  m_text_overlay_window_name;
+        std::string  m_graph_overlay_window_name;
 		TextEditor   m_text_editor;
 		bool         m_text_has_changed;
 		float        m_child1_size;

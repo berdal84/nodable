@@ -91,7 +91,7 @@ bool AppView::on_draw(bool& redock_all) {
             auto has_selection = NodeView::get_selected() != nullptr;
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped)) {
-                fw::EventManager::push_event(EventType_delete_node_action_triggered);
+                m_app->event_manager().push_event(EventType_delete_node_action_triggered);
             }
 
             fw::ImGuiEx::MenuItemBindedToEvent(EventType_arrange_node_action_triggered, false, has_selection);
@@ -102,7 +102,7 @@ bool AppView::on_draw(bool& redock_all) {
                 Event event{};
                 event.toggle_folding.type = EventType_toggle_folding_selected_node_action_triggered;
                 event.toggle_folding.recursive = true;
-                fw::EventManager::push_event((fw::Event &) event);
+                m_app->event_manager().push_event((fw::Event &) event);
             }
             ImGui::EndMenu();
         }
@@ -463,10 +463,10 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
 
             fw::vec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                fw::EventManager::push_event(fw::EventType_new_file_triggered);
+                m_app->event_manager().push_event(fw::EventType_new_file_triggered);
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                fw::EventManager::push_event(fw::EventType_browse_file_triggered);
+                m_app->event_manager().push_event(fw::EventType_browse_file_triggered);
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -521,32 +521,30 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool is_window_open = true;
-    bool visible = ImGui::Begin(file->get_name().c_str(), &is_window_open, window_flags);
+    if( ImGui::Begin(file->get_name().c_str(), &is_window_open, window_flags) )
     {
         ImGui::PopStyleColor(1);
         ImGui::PopStyleVar();
+        const bool is_current_file = app.is_current(file);
 
-        if (visible) {
-            const bool is_current_file = app.is_current(file);
+        if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
+            app.current_file(file);
+        }
 
-            if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
-                app.current_file(file);
-            }
+        // History bar on top
+        draw_history_bar(file->get_history());
 
-            // History bar on top
-            draw_history_bar(file->get_history());
+        // File View in the middle
+        View *eachFileView = file->get_view();
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, fw::vec4(0, 0, 0, 0.35f));
+        ImGui::PushFont(get_font(fw::FontSlot_Code));
+        eachFileView->draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
+        ImGui::PopFont();
+        ImGui::PopStyleColor();
 
-            // File View in the middle
-            View *eachFileView = file->get_view();
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, fw::vec4(0, 0, 0, 0.35f));
-            ImGui::PushFont(get_font(fw::FontSlot_Code));
-            eachFileView->draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
-            ImGui::PopFont();
-            ImGui::PopStyleColor();
-
-            if (is_current_file && file->get_view()->text_has_changed()) {
-                vm.release_program();
-            }
+        if (is_current_file && file->get_view()->text_has_changed())
+        {
+            vm.release_program();
         }
     }
     ImGui::End(); // File Window
@@ -767,7 +765,7 @@ void AppView::draw_toolbar_window() {
         if (ImGui::Button(
                 settings.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            fw::EventManager::push_event(fw::EventType_toggle_isolate_selection);
+            m_app->event_manager().push_event(fw::EventType_toggle_isolate_selection);
         }
         ImGui::SameLine();
         ImGui::EndGroup();

@@ -1,40 +1,57 @@
 #include <fw/gui/Event.h>
 
-std::queue<fw::Event>               fw::EventManager::s_events;
-std::vector<fw::BindedEvent>        fw::BindedEventManager::s_binded_events;
-std::map<uint16_t, fw::BindedEvent> fw::BindedEventManager::s_binded_events_by_type;
+using namespace fw;
 
-void fw::EventManager::push_event(fw::Event &_event)
+EventManager* EventManager::s_instance = nullptr;
+
+void EventManager::push_event(Event &_event)
 {
-    s_events.push(_event);
+    m_events.push(_event);
 }
 
-size_t fw::EventManager::poll_event(fw::Event &_event)
+size_t EventManager::poll_event(Event &_event)
 {
-    size_t count = s_events.size();
+    size_t count = m_events.size();
 
     if( count )
     {
-        _event = s_events.front();
-        s_events.pop();
+        _event = m_events.front();
+        m_events.pop();
     }
 
     return count;
 }
 
-void fw::EventManager::push_event(fw::EventType _type)
+void EventManager::push_event(EventType _type)
 {
     Event simple_event = { _type };
     push_event(simple_event);
 }
 
-void fw::BindedEventManager::bind(const fw::BindedEvent &binded_cmd)
+void EventManager::bind(const BindedEvent &binded_cmd)
 {
-    s_binded_events.push_back(binded_cmd);
-    s_binded_events_by_type.insert({binded_cmd.event_t, binded_cmd});
+    m_binded_events.push_back(binded_cmd);
+    m_binded_events_by_type.insert({binded_cmd.event_t, binded_cmd});
 }
 
-const fw::BindedEvent &fw::BindedEventManager::get_event(uint16_t type)
+const BindedEvent &EventManager::get_binded(uint16_t type)
 {
-    return s_binded_events_by_type.at(type);
+    return m_binded_events_by_type.at(type);
+}
+const std::vector<BindedEvent> &EventManager::get_binded_events() const
+{
+    return m_binded_events;
+}
+EventManager& EventManager::get_instance()
+{
+    return *s_instance;
+}
+EventManager::~EventManager()
+{
+    s_instance = nullptr;
+}
+EventManager::EventManager()
+{
+    assert(!s_instance); // cannot have two instances at a time
+    s_instance = this;
 }

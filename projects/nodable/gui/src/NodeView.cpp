@@ -261,14 +261,14 @@ void NodeView::set_selected(NodeView* _view)
     {
         Event event{ EventType_node_view_deselected };
         event.node.view = s_selected;
-        fw::EventManager::push_event((fw::Event&)event);
+        fw::EventManager::get_instance().push_event((fw::Event&)event);
     }
 
     if( _view )
     {
         Event event{ EventType_node_view_selected };
         event.node.view = _view;
-        fw::EventManager::push_event((fw::Event&)event);
+        fw::EventManager::get_instance().push_event((fw::Event&)event);
     }
 
 	s_selected = _view;
