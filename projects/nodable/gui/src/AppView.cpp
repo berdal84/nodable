@@ -513,18 +513,19 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
     ImGuiWindowFlags window_flags =
             (file->has_changed() ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
 
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, fw::vec2(0, 0));
-
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
-
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, fw::vec2(0, 0));
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool is_window_open = true;
-    if( ImGui::Begin(file->get_name().c_str(), &is_window_open, window_flags) )
+    bool visible = ImGui::Begin(file->get_name().c_str(), &is_window_open, window_flags);
+
+    ImGui::PopStyleVar();
+    ImGui::PopStyleColor(1);
+
+    if(visible)
     {
-        ImGui::PopStyleColor(1);
-        ImGui::PopStyleVar();
         const bool is_current_file = app.is_current(file);
 
         if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
