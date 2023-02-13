@@ -37,7 +37,7 @@ bool AppView::on_init() {
     // Load splashscreen image
     App& app = App::get_instance();
     fw::TextureManager& texture_manager = app.texture_manager();
-    m_logo = texture_manager.get_or_create_from(app.compute_asset_path(settings.ui_splashscreen_imagePath));
+    m_logo = texture_manager.get_or_create_from(app.to_absolute_asset_path(settings.ui_splashscreen_imagePath));
 
     return true;
 }
@@ -488,7 +488,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
                 label.append(text);
                 if (i++ % 2) ImGui::SameLine();
                 if (ImGui::Button(label.c_str(), small_btn_size)) {
-                    std::string each_path = app.compute_asset_path(path.c_str());
+                    std::string each_path = app.to_absolute_asset_path(path.c_str());
                     app.open_file(each_path);
                 }
             }

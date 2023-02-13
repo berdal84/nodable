@@ -8,31 +8,29 @@
 #include <ghc/filesystem.hpp>
 #include <fw/gui/AppView.h>
 #include <fw/gui/Texture.h>
-#include "fw/core/types.h"
+#include <fw/core/types.h>
 
 namespace fw
 {
 	class App
 	{
 	public:
-        using fs_path = ghc::filesystem::path;
-
-		App(fs_path _assets_folder_path, AppView* _view);
+		App(ghc::filesystem::path _assets_folder_path, AppView* _view);
         virtual ~App() {};
 
-		bool            init();
-		bool shutdown();
-		void            update();
-		void            draw();
+		bool            init();         // Initialize the application
+		bool            shutdown();     // Shutdown the application
+		void            update();       // Update the application
+		void            draw();         // Draw the application's view
 
-        virtual bool    onInit() = 0;
-        virtual bool    onShutdown() = 0;
-        virtual void    onUpdate() = 0;
+        virtual bool    onInit() = 0;      // For custom code to run during init
+        virtual bool    onShutdown() = 0;  // For custom code to run during shutdown
+        virtual void    onUpdate() = 0;    // For custom code to run during updates
 
-        bool            should_stop() const { return m_should_stop; }
-        void            flag_to_stop();
-        u64_t           elapsed_time() const { return m_start_time.time_since_epoch().count(); };
-        std::string     compute_asset_path(const char *_relative_path) const;
+        bool            should_stop() const { return m_should_stop; }    // Check if application should stop
+        void            flag_to_stop();                                  // Flag the application to stop, will stop more likely the next frame.
+        u64_t           elapsed_time() const;                            // Get the elapsed time in seconds
+        std::string     to_absolute_asset_path(const char*) const;       // convert a relative (to ./assets) path to an absolute path
         TextureManager& texture_manager() { return m_texture_manager; };
         EventManager&   event_manager() { return m_event_manager; }
     protected:
@@ -43,6 +41,6 @@ namespace fw
         TextureManager  m_texture_manager;
         EventManager    m_event_manager;
         bool            m_should_stop;
-        fs_path         m_assets_folder_path;
+        ghc::filesystem::path m_assets_folder_path;
     };
 }

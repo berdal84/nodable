@@ -6,7 +6,7 @@
 
 using namespace fw;
 
-App::App(fs_path _assets_folder_path, AppView* _view)
+App::App(ghc::filesystem::path _assets_folder_path, AppView* _view)
     : m_should_stop(false)
     , m_assets_folder_path( _assets_folder_path )
     , m_view(_view)
@@ -48,13 +48,18 @@ bool App::shutdown()
     return success;
 }
 
-std::string App::compute_asset_path(const char* _relative_path) const
+std::string App::to_absolute_asset_path(const char* _relative_path) const
 {
-    fs_path result = m_assets_folder_path / _relative_path;
+    ghc::filesystem::path result = m_assets_folder_path / _relative_path;
 	return result.string();
 }
 
 void App::draw()
 {
     m_view->draw();
+}
+
+u64_t App::elapsed_time() const
+{
+    return m_start_time.time_since_epoch().count();
 }

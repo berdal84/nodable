@@ -142,7 +142,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = m_app->compute_asset_path(_config.path);
+        std::string fontPath = m_app->to_absolute_asset_path(_config.path);
         LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.size, &config);
     }
@@ -165,7 +165,7 @@ ImFont* AppView::load_font(const FontConf &_config)
         config.PixelSnapH  = true;
         config.GlyphOffset.y = -(_config.icons_size - _config.size)*0.5f;
         config.GlyphMinAdvanceX = _config.icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_app->compute_asset_path(m_conf.icon_font.path);
+        auto fontPath = m_app->to_absolute_asset_path(m_conf.icon_font.path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to font ...\n")
     }
@@ -545,7 +545,7 @@ void AppView::save_screenshot(const char* relative_file_path)
 
     std::vector<unsigned char> out;
     lodepng::encode(out, flipped.data(), width, height, LCT_RGBA);
-    lodepng::save_file(out, m_app->compute_asset_path(relative_file_path).c_str());
+    lodepng::save_file(out, m_app->to_absolute_asset_path(relative_file_path).c_str());
 
     LOG_MESSAGE("AppView", "Taking screenshot OK (%s)\n", relative_file_path);
 }

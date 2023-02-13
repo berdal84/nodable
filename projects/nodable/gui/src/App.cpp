@@ -480,9 +480,9 @@ bool App::onShutdown()
     return true;
 }
 
-bool App::open_file(const fs_path& _path, bool relative)
+bool App::open_file(const ghc::filesystem::path& _path, bool relative)
 {
-    std::string absolute_path = relative ? compute_asset_path(_path.string().c_str()) : _path.string();
+    std::string absolute_path = relative ? to_absolute_asset_path(_path.string().c_str()) : _path.string();
     auto file = new File( _path.filename().string(), absolute_path);
 
     if ( !file->read_from_disk() )
@@ -507,7 +507,7 @@ void App::save_file() const
 
 }
 
-void App::save_file_as(const fs_path &_path)
+void App::save_file_as(const ghc::filesystem::path &_path)
 {
     File* curr_file = current_file();
     curr_file->set_path(_path.string());
