@@ -1,14 +1,10 @@
 #pragma once
-#include "types.h"
+#include <fw/core/types.h>
 
 namespace fw::math
 {
     /**
      * Interpolate linearly _source to _target with a _factor (in [0.0f, 1.0f] )
-     * @param _source
-     * @param _target
-     * @param _factor
-     * @return
      */
     static float lerp(float _source, float _target, float _factor)
     {
