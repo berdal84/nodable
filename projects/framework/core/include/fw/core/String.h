@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "types.h"
+#include <fw/core/types.h>
 
 namespace fw
 {
