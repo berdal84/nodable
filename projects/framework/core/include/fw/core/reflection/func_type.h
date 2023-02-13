@@ -5,9 +5,7 @@
 #include <tuple>
 #include <regex>
 #include <memory>
-
-#include "type.h"
-#include "fw/core/constants.h"
+#include <fw/core/reflection/type.h>
 
 namespace fw
 {

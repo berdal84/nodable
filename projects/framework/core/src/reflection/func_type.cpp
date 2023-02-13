@@ -1,6 +1,5 @@
 #include <fw/core/reflection/func_type.h>
 #include <algorithm> // find_if
-#include <fw/core/constants.h>
 #include <fw/core/reflection/Operator.h>
 
 using namespace fw;
@@ -13,8 +12,7 @@ func_type::func_type(std::string _id)
 
 void func_type::push_arg(type _type)
 {
-   std::string name = k_func_arg_property_name_prefix;
-   name.append(std::to_string(m_args.size()));
+   std::string name = "arg_" + std::to_string(m_args.size());
    m_args.emplace_back(_type, name);
 }
 
