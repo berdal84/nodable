@@ -36,7 +36,7 @@ namespace ndbl
 
         void add(T item)                                                     // Add a given item to the slots
         {
-            NDBL_ASSERT(m_slots.size() < m_limit);
+            FW_ASSERT(m_slots.size() < m_limit);
             m_slots.push_back(item);
             m_on_added.emit(item);
         }

@@ -32,7 +32,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
 
         case Instruction_t::deref_ptr:
         {
-            NDBL_EXPECT(_instr.uref.qword_ptr, "qword_ptr is null!")
+            FW_EXPECT(_instr.uref.qword_ptr, "qword_ptr is null!")
             result.append(qword::to_string(*_instr.uref.qword_ptr ));
             result.append(", *");
             result.append( _instr.uref.qword_type->get_name() );

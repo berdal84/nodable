@@ -219,14 +219,14 @@ namespace fw {
         : m_function_impl(_implem)
         , m_function_type(*func_type_builder<function_t>::with_id(_name))
         {
-            NDBL_ASSERT(m_function_impl)
+            FW_ASSERT(m_function_impl)
         }
 
         ~invokable_static() override {}
 
         variant operator()(const std::vector<variant *> &_args = {}) const override
         {
-            NDBL_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
+            FW_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
             return fw::invoke<return_t, args_t >(m_function_impl, _args);
         }
 
@@ -264,7 +264,7 @@ namespace fw {
 
         virtual variant operator()(void* _instance, const std::vector<variant *> &_args = {}) const override
         {
-            NDBL_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
+            FW_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
             return fw::invoke_property<return_t, class_t, args_t>(reinterpret_cast<class_t *>(_instance), m_method, _args);
         };
     };

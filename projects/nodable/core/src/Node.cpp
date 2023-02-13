@@ -123,7 +123,7 @@ size_t Node::outgoing_edge_count()const
 
 const fw::iinvokable* Node::get_connected_invokable(const Property* _local_property)
 {
-    NDBL_EXPECT(_local_property->get_owner() == this, "This node has no property with this address!");
+    FW_EXPECT(_local_property->get_owner() == this, "This node has no property with this address!");
 
     // Find an edge connected to _property
     auto found = std::find_if(m_edges.cbegin(), m_edges.cend(), [_local_property](const DirectedEdge* each_edge)->bool {
@@ -158,14 +158,14 @@ bool Node::is_connected_with(const Property *_localProperty)
 
 void Node::set_parent(Node *_node)
 {
-    NDBL_ASSERT(_node != nullptr || this->m_parent != nullptr);
+    FW_ASSERT(_node != nullptr || this->m_parent != nullptr);
     this->m_parent = _node;
     set_dirty();
 }
 
 void Node::set_parent_graph(GraphNode *_parentGraph)
 {
-    NDBL_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
+    FW_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
     this->m_parent_graph = _parentGraph;
 }
 

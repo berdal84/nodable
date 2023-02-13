@@ -146,7 +146,7 @@ bool ImGuiEx::BeginTooltip(float _delay, float _duration)
 {
     if ( !ImGui::IsItemHovered() ) return false;
 
-    NDBL_EXPECT(s_is_in_a_frame, "Did you forgot to call ImGuiEx::BeginFrame/EndFrame ?");
+    FW_EXPECT(s_is_in_a_frame, "Did you forgot to call ImGuiEx::BeginFrame/EndFrame ?");
 
     s_is_any_tooltip_open     = true;
     s_tooltip_delay_elapsed   += ImGui::GetIO().DeltaTime;
@@ -171,7 +171,7 @@ void ImGuiEx::EndTooltip()
 
 void ImGuiEx::EndFrame()
 {
-    NDBL_EXPECT(s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
+    FW_EXPECT(s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
     if( !s_is_any_tooltip_open )
     {
         s_tooltip_delay_elapsed    = 0.f;
@@ -182,7 +182,7 @@ void ImGuiEx::EndFrame()
 void ImGuiEx::BeginFrame()
 {
 
-    NDBL_EXPECT(!s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
+    FW_EXPECT(!s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
     s_is_in_a_frame = true;
     s_is_any_tooltip_open = false;
 }

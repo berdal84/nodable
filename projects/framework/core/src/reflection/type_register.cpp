@@ -8,7 +8,7 @@ using namespace fw;
 type type_register::get(size_t _hash)
 {
     auto found = by_hash().find(_hash);
-    NDBL_EXPECT(found != by_hash().end(), "reflection: type not found!")
+    FW_EXPECT(found != by_hash().end(), "reflection: type not found!")
     return found->second;
 }
 

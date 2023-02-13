@@ -62,7 +62,7 @@ void Property::set_src_token(const std::shared_ptr<Token> _token)
 
 void Property::digest(Property *_property)
 {
-    NDBL_EXPECT(_property->get_outputs().empty(), "Cannot digest a property with output connections")
+    FW_EXPECT(_property->get_outputs().empty(), "Cannot digest a property with output connections")
     // Transfer
     m_variant     = _property->m_variant;
     m_sourceToken = _property->m_sourceToken;

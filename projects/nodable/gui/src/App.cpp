@@ -33,7 +33,7 @@ App::App()
     , m_current_file(nullptr)
 {
     LOG_MESSAGE("App", "Asset folder path:      %s\n", m_assets_folder_path.c_str() )
-    NDBL_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
+    FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
     s_instance = this;
 }
 
@@ -533,7 +533,7 @@ void App::close_file(File* _file)
     if ( _file )
     {
         auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
-        NDBL_ASSERT(it != m_loaded_files.end());
+        FW_ASSERT(it != m_loaded_files.end());
         it = m_loaded_files.erase(it);
 
         if ( it != m_loaded_files.end() ) //---- try to load the file next
@@ -652,7 +652,7 @@ File *App::new_file()
 
 App& App::get_instance()
 {
-    NDBL_EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
+    FW_EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
     return *s_instance;
 }
 

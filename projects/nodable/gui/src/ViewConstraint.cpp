@@ -183,13 +183,13 @@ void ViewConstraint::apply(float _dt)
 
 void ViewConstraint::add_target(NodeView *_target)
 {
-    NDBL_ASSERT(_target != nullptr);
+    FW_ASSERT(_target != nullptr);
     m_targets.push_back(_target);
 }
 
 void ViewConstraint::add_driver(NodeView *_driver)
 {
-    NDBL_ASSERT(_driver != nullptr);
+    FW_ASSERT(_driver != nullptr);
     m_drivers.push_back(_driver);
 }
 

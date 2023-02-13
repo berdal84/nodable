@@ -38,7 +38,7 @@ bool DataAccess::update()
     	else                                         writer.Null();
 	};
 
-    NDBL_ASSERT(m_owner != nullptr);
+    FW_ASSERT(m_owner != nullptr);
 
     writer.StartObject();
     {

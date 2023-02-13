@@ -149,7 +149,7 @@ bool type::is_const() const
 
 type type::to_pointer(type _type)
 {
-    NDBL_EXPECT(!_type.is_ptr(), "make_ptr only works with non pointer types!")
+    FW_EXPECT(!_type.is_ptr(), "make_ptr only works with non pointer types!")
     type ptr = _type;
     ptr.m_is_pointer = true;
     return ptr;

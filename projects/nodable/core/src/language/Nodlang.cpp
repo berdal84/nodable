@@ -203,9 +203,9 @@ bool Nodlang::to_bool(const std::string &_str)
 
 std::string Nodlang::to_unquoted_string(const std::string &_quoted_str)
 {
-    NDBL_ASSERT(_quoted_str.size() >= 2);
-    NDBL_ASSERT(_quoted_str.front() == '\"');
-    NDBL_ASSERT(_quoted_str.back() == '\"');
+    FW_ASSERT(_quoted_str.size() >= 2);
+    FW_ASSERT(_quoted_str.front() == '\"');
+    FW_ASSERT(_quoted_str.back() == '\"');
     return std::string(++_quoted_str.cbegin(), --_quoted_str.cend());
 }
 
@@ -583,8 +583,8 @@ Node *Nodlang::parse_program()
     parse_code_block(false);// we do not check if we parsed something empty or not, a program can be empty.
 
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
-    NDBL_ASSERT(!program_scope->get_begin_scope_token())
-    NDBL_ASSERT(!program_scope->get_end_scope_token())
+    FW_ASSERT(!program_scope->get_begin_scope_token())
+    FW_ASSERT(!program_scope->get_end_scope_token())
     program_scope->set_begin_scope_token(m_token_ribbon.m_prefix_acc);
     program_scope->set_end_scope_token(m_token_ribbon.m_suffix_acc);
 
@@ -647,7 +647,7 @@ IScope *Nodlang::parse_code_block(bool _create_scope)
 
     auto curr_scope = _create_scope ? m_graph->create_scope()->get<Scope>() : get_current_scope();
 
-    NDBL_ASSERT(curr_scope);// needed
+    FW_ASSERT(curr_scope);// needed
 
     bool stop = false;
 
@@ -1032,7 +1032,7 @@ Property *Nodlang::parse_function_call()
     auto connectArg = [&](const func_type *_sig, Node *_node, size_t _arg_index) -> void {// lambda to connect input property to node for a specific argument index.
         Property *src_property = args.at(_arg_index);
         Property *dst_property = _node->props()->get_input_at(_arg_index);
-        NDBL_ASSERT(dst_property)
+        FW_ASSERT(dst_property)
         m_graph->connect(src_property, dst_property);
     };
 
@@ -1069,7 +1069,7 @@ Property *Nodlang::parse_function_call()
 
 Scope *Nodlang::get_current_scope()
 {
-    NDBL_ASSERT(m_scope_stack.top());// stack SHALL not be empty.
+    FW_ASSERT(m_scope_stack.top());// stack SHALL not be empty.
     return m_scope_stack.top();
 }
 
@@ -1531,7 +1531,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
 
 std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
 {
-    NDBL_ASSERT(_node != nullptr)
+    FW_ASSERT(_node != nullptr)
     type type = _node->get_type();
 
     if (type.is_child_of<InstructionNode>())
@@ -1590,7 +1590,7 @@ std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instr
     if (root_node_property->has_input_connected() && root_node_property->get_variant()->is_initialized())
     {
         auto root_node = (const Node *) *root_node_property;
-        NDBL_ASSERT(root_node)
+        FW_ASSERT(root_node)
         serialize(_out, root_node);
     }
 
@@ -1754,7 +1754,7 @@ void Nodlang::add_function(std::shared_ptr<const iinvokable> _invokable)
 
     // Register the invokable as an operator implementation
     auto found = std::find(m_operators_impl.begin(), m_operators_impl.end(), _invokable);
-    NDBL_ASSERT(found == m_operators_impl.end())
+    FW_ASSERT(found == m_operators_impl.end())
     m_operators_impl.push_back(_invokable);
     LOG_VERBOSE("Nodlang", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str());
 }
@@ -1763,7 +1763,7 @@ void Nodlang::add_operator(const char *_id, Operator_t _type, int _precedence)
 {
     const Operator *op = new Operator(_id, _type, _precedence);
 
-    NDBL_ASSERT(std::find(m_operators.begin(), m_operators.end(), op) == m_operators.end())
+    FW_ASSERT(std::find(m_operators.begin(), m_operators.end(), op) == m_operators.end())
     m_operators.push_back(op);
 }
 
@@ -1885,7 +1885,7 @@ int Nodlang::get_precedence(const iinvokable *_invokable) const
 
 type Nodlang::get_type(Token_t _token) const
 {
-    NDBL_EXPECT(is_a_type_keyword(_token), "_token_t is not a type keyword!");
+    FW_EXPECT(is_a_type_keyword(_token), "_token_t is not a type keyword!");
     return m_token_type_keyword_to_type.find(_token)->second;
 }
 

@@ -117,7 +117,7 @@ namespace fw
 
         func_type* construct()
         {
-            NDBL_EXPECT( !m_id.empty(), "No identifier specified! use with_id()" );
+            FW_EXPECT( !m_id.empty(), "No identifier specified! use with_id()" );
 
             func_type* signature = new func_type(m_id);
 

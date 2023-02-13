@@ -130,7 +130,7 @@ ImFont* AppView::get_font_by_id(const char *id) {
 
 ImFont* AppView::load_font(const FontConf &_config)
 {
-    NDBL_ASSERT(m_loaded_fonts.find(_config.id) == m_loaded_fonts.end()); // do not allow the use of same key for different fonts
+    FW_ASSERT(m_loaded_fonts.find(_config.id) == m_loaded_fonts.end()); // do not allow the use of same key for different fonts
 
     ImFont*   font     = nullptr;
     auto&     io       = ImGui::GetIO();

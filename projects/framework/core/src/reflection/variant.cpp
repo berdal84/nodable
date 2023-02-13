@@ -52,7 +52,7 @@ double variant::convert_to<double>()const
     if( m_type == type::get<i16_t>() )        return double(m_data.i16);
     if( m_type == type::get<bool>() )         return double(m_data.b);
 
-    NDBL_ASSERT(false) // this case is not handled
+    FW_ASSERT(false) // this case is not handled
 
 }
 
@@ -69,7 +69,7 @@ i16_t variant::convert_to<i16_t>()const
     if( m_type == type::get<i16_t>() )        return m_data.i16;
     if( m_type == type::get<bool>() )         return  i16_t(m_data.b);
 
-    NDBL_ASSERT(false) // this case is not handled
+    FW_ASSERT(false) // this case is not handled
 }
 
 template<>
@@ -85,7 +85,7 @@ bool variant::convert_to<bool>()const
     if( m_type == type::get<i16_t>() )        return m_data.i16 != 0;
     if( m_type == type::get<bool>() )         return m_data.b;
     if( m_type == type::get<void*>() )        return m_data.ptr;
-    NDBL_EXPECT(false,"Case not handled!")
+    FW_EXPECT(false,"Case not handled!")
 }
 
 template<>
@@ -106,7 +106,7 @@ std::string variant::convert_to<std::string>()const
     if( m_type == type::get<double>() )       return String::fmt_double(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
     if( m_type.is_ptr())                      return String::fmt_ptr(m_data.ptr);
-    NDBL_EXPECT(false,"Case not handled!")
+    FW_EXPECT(false,"Case not handled!")
 }
 
 const type& variant::get_type()const
@@ -160,7 +160,7 @@ bool variant::is_initialized()const
 
 void variant::reset_value()
 {
-    NDBL_EXPECT(m_is_initialized, "Variant: cannot reset value, variant not intialized!");
+    FW_EXPECT(m_is_initialized, "Variant: cannot reset value, variant not intialized!");
 
     if( m_type == type::get<double>() )
     {
@@ -185,13 +185,13 @@ void variant::reset_value()
     }
     else
     {
-        NDBL_EXPECT(false, "Missing case")
+        FW_EXPECT(false, "Missing case")
     }
 }
 
 void variant::ensure_is_initialized(bool _initialize)
 {
-    NDBL_EXPECT(m_type != type::null(), "Variant: cannot ensure is_initialised(...) because type is null!");
+    FW_EXPECT(m_type != type::null(), "Variant: cannot ensure is_initialised(...) because type is null!");
 
     if(_initialize == m_is_initialized) return;
 
@@ -223,22 +223,22 @@ void variant::ensure_is_type(type _type)
         {
             return;
         }
-        NDBL_EXPECT( m_type == type::null() || m_type == type::any(),
+        FW_EXPECT( m_type == type::null() || m_type == type::any(),
                 "Variant: Type should not change, expecting it null or any!" );
     }
     m_type = clean;
 }
 
-variant::operator i16_t()const        { NDBL_ASSERT(m_is_defined) return convert_to<i16_t>(); }
-variant::operator double()const       { NDBL_ASSERT(m_is_defined) return convert_to<double>(); }
-variant::operator bool()const         { NDBL_ASSERT(m_is_defined) return convert_to<bool>(); }
-variant::operator std::string ()const { NDBL_ASSERT(m_is_defined) return convert_to<std::string>(); }
-variant::operator void* ()const       { NDBL_ASSERT(m_is_defined) return convert_to<void*>(); }
+variant::operator i16_t()const        { FW_ASSERT(m_is_defined) return convert_to<i16_t>(); }
+variant::operator double()const       { FW_ASSERT(m_is_defined) return convert_to<double>(); }
+variant::operator bool()const         { FW_ASSERT(m_is_defined) return convert_to<bool>(); }
+variant::operator std::string ()const { FW_ASSERT(m_is_defined) return convert_to<std::string>(); }
+variant::operator void* ()const       { FW_ASSERT(m_is_defined) return convert_to<void*>(); }
 
 void variant::flag_defined(bool _value )
 {
-    NDBL_EXPECT(m_type != type::null(), "Variant: Unable to ensure variant is defined because its type is null!");
-    NDBL_EXPECT(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
+    FW_EXPECT(m_type != type::null(), "Variant: Unable to ensure variant is defined because its type is null!");
+    FW_EXPECT(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
 
     /*
      * Like is c/cpp, a memory space can be initialized (ex: int i;) but not defined by the user.
@@ -261,8 +261,8 @@ type variant::clean_type(const type& _type)
 
 variant& variant::operator=(const variant& _other)
 {
-    NDBL_ASSERT( _other.m_type != type::null() )
-    NDBL_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
+    FW_ASSERT( _other.m_type != type::null() )
+    FW_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
 
     if( m_type == type::get<bool>() )
     {
@@ -286,7 +286,7 @@ variant& variant::operator=(const variant& _other)
     }
     else
     {
-        NDBL_EXPECT(false, "Variant: missing type case for operator=");
+        FW_EXPECT(false, "Variant: missing type case for operator=");
     }
     return *this;
 }

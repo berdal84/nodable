@@ -62,7 +62,7 @@ void VirtualMachine::advance_cursor(i64_t _amount)
 
 void VirtualMachine::run_program()
 {
-    NDBL_ASSERT(m_program_asm_code);
+    FW_ASSERT(m_program_asm_code);
     LOG_MESSAGE("VM", "Running program ...\n")
     m_is_program_running = true;
 
@@ -129,7 +129,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_ptr:
         {
-            NDBL_EXPECT(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.fw::qword_ptr is nullptr")
+            FW_EXPECT(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.fw::qword_ptr is nullptr")
             fw::qword qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 
@@ -156,7 +156,7 @@ bool VirtualMachine::_stepOver()
             }
             else
             {
-                NDBL_EXPECT(false, "This type is not handled!")
+                FW_EXPECT(false, "This type is not handled!")
             }
 
             advance_cursor();
@@ -187,7 +187,7 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            NDBL_EXPECT(variable->get_value()->get_variant()->is_initialized(),
+            FW_EXPECT(variable->get_value()->get_variant()->is_initialized(),
                               "Variable should be initialized since it should have been pushed earlier!");
             variable->get_value()->get_variant()->reset_value();
             variable->get_value()->get_variant()->ensure_is_initialized(false);
@@ -339,7 +339,7 @@ bool VirtualMachine::step_over()
 
 void VirtualMachine::debug_program()
 {
-    NDBL_ASSERT(m_program_asm_code);
+    FW_ASSERT(m_program_asm_code);
     m_is_debugging = true;
     m_is_program_running = true;
     m_cpu.clear_registers();
@@ -369,8 +369,8 @@ Instruction* VirtualMachine::get_next_instr() const
 
 bool VirtualMachine::load_program(std::unique_ptr<const Code> _code)
 {
-    NDBL_ASSERT(!m_is_program_running)   // dev must stop before to load program.
-    NDBL_ASSERT(!m_program_asm_code)     // dev must unload before to load.
+    FW_ASSERT(!m_is_program_running)   // dev must stop before to load program.
+    FW_ASSERT(!m_program_asm_code)     // dev must unload before to load.
 
     m_program_asm_code = std::move(_code);
 

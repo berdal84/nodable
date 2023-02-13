@@ -35,7 +35,7 @@ namespace ndbl {
             , m_way(_way)
             , m_display_side(_pos)
         {
-            NDBL_ASSERT(_property)
+                                                              FW_ASSERT(_property)
         };
 
         ~PropertyConnector() = default;

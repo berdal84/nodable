@@ -34,9 +34,9 @@ bool DirectedEdge::operator==(const DirectedEdge& other) const
 
 void DirectedEdge::sanitize(DirectedEdge* edge)
 {
-    NDBL_EXPECT(edge->prop.src != nullptr, "edge->prop.src is nullptr");
-    NDBL_EXPECT(edge->prop.dst != nullptr, "edge->prop.dst is nullptr");
-    NDBL_EXPECT(edge->prop.src != edge->prop.dst, "edge->prop.src and edge->prop.dst are identical");
+    FW_EXPECT(edge->prop.src != nullptr, "edge->prop.src is nullptr");
+    FW_EXPECT(edge->prop.dst != nullptr, "edge->prop.dst is nullptr");
+    FW_EXPECT(edge->prop.src != edge->prop.dst, "edge->prop.src and edge->prop.dst are identical");
 
     if (edge->type == Edge_t::IS_PREDECESSOR_OF ) // we never want this type of edge in our database
     {

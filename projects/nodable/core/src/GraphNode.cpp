@@ -53,7 +53,7 @@ void GraphNode::clear()
         LOG_VERBOSE("GraphNode", "No nodes in registry.\n")
     }
     m_node_registry.clear();
-    NDBL_EXPECT(m_edge_registry.empty(), "m_edge_registry should be empty because all nodes have been deleted.");
+    FW_EXPECT(m_edge_registry.empty(), "m_edge_registry should be empty because all nodes have been deleted.");
     m_root = nullptr;
 
     LOG_VERBOSE("GraphNode", "Graph cleared.\n")
@@ -203,8 +203,8 @@ bool GraphNode::is_empty() const
 
 const DirectedEdge* GraphNode::connect(Property * _src_property, Property * _dst_property)
 {
-    NDBL_EXPECT(_src_property != _dst_property, "Can't connect same Property!")
-    NDBL_EXPECT( fw::type::is_implicitly_convertible(_src_property->get_type(), _dst_property->get_type()),
+    FW_EXPECT(_src_property != _dst_property, "Can't connect same Property!")
+    FW_EXPECT( fw::type::is_implicitly_convertible(_src_property->get_type(), _dst_property->get_type()),
                        "Can't connect non implicitly convertible Properties!");
 
     const DirectedEdge* edge = nullptr;
@@ -303,7 +303,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
              */
             if ( _side_effects )
             {
-                NDBL_ASSERT( dst->has<Scope>() )
+                FW_ASSERT( dst->has<Scope>() )
 
                 if (dst->successors().accepts() )                               // directly
                 {
@@ -322,7 +322,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
                             connect({src, Edge_t::IS_SUCCESSOR_OF, each_instruction}, false);
                         }
 
-                        NDBL_ASSERT(!tails.empty())
+                        FW_ASSERT(!tails.empty())
                     }
                     else if (tail->successors().accepts() )
                     {
@@ -377,7 +377,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
             break;
 
         default:
-            NDBL_ASSERT(false); // This connection type is not yet implemented
+            FW_ASSERT(false); // This connection type is not yet implemented
     }
 
 
@@ -437,7 +437,7 @@ void GraphNode::disconnect(const DirectedEdge* _edge, bool _side_effects)
             break;
 
         default:
-            NDBL_ASSERT(false); // This connection type is not yet implemented
+            FW_ASSERT(false); // This connection type is not yet implemented
     }
 
    set_dirty();

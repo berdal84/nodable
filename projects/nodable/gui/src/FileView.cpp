@@ -162,7 +162,7 @@ bool FileView::draw()
     //-------------
 
     GraphNode* graph = m_file.get_graph();
-    NDBL_ASSERT(graph);
+    FW_ASSERT(graph);
     auto graph_node_view = graph->get<GraphNodeView>();
     ImGui::SameLine();
     if ( graph_node_view )

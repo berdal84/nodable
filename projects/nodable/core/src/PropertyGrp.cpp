@@ -14,7 +14,7 @@ bool PropertyGrp::has(const char* _name) const
 
 std::shared_ptr<Property> PropertyGrp::add(const fw::type& _type, const char* _name, Visibility _visibility, Way _way, Property::Flags _flags )
 {
-    NDBL_ASSERT(!has(_name));
+    FW_ASSERT(!has(_name));
 
     // create the property
     auto new_property = Property::new_with_type(this, _type, _flags);

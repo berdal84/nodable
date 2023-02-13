@@ -2,27 +2,26 @@
 
 #include "Log.h" // to flush before to assert/throw
 
-// Assertion
-#ifndef _NDBL_ASSERT
-#define _NDBL_ASSERT(expression) \
+// Assertion is stopping the program when expression is false
+#ifndef FW_ASSERT_
+#define FW_ASSERT_(expression) \
     LOG_FLUSH(); \
     assert((expression));
 #endif
 
-// Expectation throwing an exception
-#ifndef _NDBL_EXPECT
-#define _NDBL_EXPECT(expression, message_if_fails )\
+// Expect is throwing an exception when expression is false
+#ifndef FW_EXPECT_
+#define FW_EXPECT_(expression, message_if_fails )\
     if(!(expression)) { LOG_FLUSH(); throw std::runtime_error(message_if_fails); }
 #endif
 
-// Assert shortcut
 #if NOEXCEPT
 #   include <cassert>
-#   define NDBL_ASSERT(expression)          _NDBL_ASSERT( expression )
-#   define NDBL_EXPECT(expression, message) _NDBL_ASSERT( expression )
+#   define FW_ASSERT(expression)          FW_ASSERT_( expression )
+#   define FW_EXPECT(expression, message) FW_ASSERT_( expression )
 #else
 #   include <stdexcept>
 #   include <cassert>
-#   define NDBL_ASSERT(expression)          _NDBL_EXPECT( (expression), "Assertion failed: " #expression" is false" )
-#   define NDBL_EXPECT(expression, message) _NDBL_EXPECT( (expression), message )
+#   define FW_ASSERT(expression) FW_EXPECT_( (expression), "Assertion failed: " #expression" is false" )
+#   define FW_EXPECT(expression, message) FW_EXPECT_( (expression), message )
 #endif

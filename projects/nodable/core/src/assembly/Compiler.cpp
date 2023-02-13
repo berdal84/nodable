@@ -72,7 +72,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
 
 void assembly::Compiler::compile(const Property * _property )
 {
-    NDBL_ASSERT(_property);
+    FW_ASSERT(_property);
     {
         if ( _property->get_type() == fw::type::get<Node*>() )
         {
@@ -99,7 +99,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     }
 
     Node* scope_owner = _scope->get_owner();
-    NDBL_ASSERT(scope_owner)
+    FW_ASSERT(scope_owner)
 
     // call push_stack_frame
     {
@@ -290,7 +290,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 void assembly::Compiler::compile(const InstructionNode *instr_node)
 {
     const Property * root_node_property = instr_node->get_root_node_property();
-    NDBL_ASSERT(root_node_property)
+    FW_ASSERT(root_node_property)
 
     // copy instruction result to rax register
     if ( root_node_property->has_input_connected() )
@@ -321,7 +321,7 @@ std::unique_ptr<const Code> assembly::Compiler::compile_syntax_tree(const GraphN
         try
         {
             auto scope = root->get<Scope>();
-            NDBL_ASSERT(scope)
+            FW_ASSERT(scope)
             compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");
         }

@@ -204,7 +204,8 @@ void NodeView::set_owner(Node *_node)
                     outputs().add(_other_node_view ); break;
                 case Edge_t::IS_SUCCESSOR_OF:
                     successors().add(_other_node_view ); break;
-                case Edge_t::IS_PREDECESSOR_OF: NDBL_ASSERT(false); /* NOT HANDLED */break;
+                case Edge_t::IS_PREDECESSOR_OF:
+                    FW_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 
@@ -222,7 +223,8 @@ void NodeView::set_owner(Node *_node)
                     outputs().remove(_other_node_view ); break;
                 case Edge_t::IS_SUCCESSOR_OF:
                     successors().remove(_other_node_view ); break;
-                case Edge_t::IS_PREDECESSOR_OF: NDBL_ASSERT(false); /* NOT HANDLED */break;
+                case Edge_t::IS_PREDECESSOR_OF:
+                    FW_ASSERT(false); /* NOT HANDLED */break;
             }
         });
 
@@ -378,7 +380,7 @@ bool NodeView::draw()
 	auto      node     = get_owner();
 	Settings& settings = Settings::get_instance();
 
-	NDBL_ASSERT(node != nullptr);
+    FW_ASSERT(node != nullptr);
 
     // Draw Node connectors (in background)
     bool is_connector_hovered = false;
