@@ -22,6 +22,7 @@ namespace ndbl
         EventType_property_connector_disconnected,
         EventType_node_connector_dropped,                                    // operation on node connectors
         EventType_node_connector_disconnected,
+        EventType_toggle_isolate_selection
     };
 
     struct NodeViewEvent {

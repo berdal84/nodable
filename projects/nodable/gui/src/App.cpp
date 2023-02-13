@@ -114,7 +114,7 @@ bool App::onInit()
              Condition_ENABLE});
     event_manager().bind(
             {"Isolate on/off",
-             fw::EventType_toggle_isolate_selection,
+             EventType_toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR});
     event_manager().bind(
@@ -191,7 +191,7 @@ void App::onUpdate()
     {
         switch ( event.type )
         {
-            case fw::EventType_toggle_isolate_selection:
+            case EventType_toggle_isolate_selection:
             {
                 settings.isolate_selection = !settings.isolate_selection;
                 if( m_current_file )

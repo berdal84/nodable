@@ -6,8 +6,10 @@
 
 namespace fw
 {
+    // Declare some event types.
+    // EventType can be extended starting at EventType_USER_DEFINED
     typedef uint16_t EventType;
-    enum EventType_
+    enum EventType_                           // Declare common event types
     {
         EventType_none = 0,
         EventType_save_file_triggered,        // operation on files
@@ -15,12 +17,11 @@ namespace fw
         EventType_new_file_triggered,
         EventType_close_file_triggered,
         EventType_browse_file_triggered,
-        EventType_undo_triggered,
-        EventType_redo_triggered,
         EventType_file_opened,
+        EventType_undo_triggered,            // history
+        EventType_redo_triggered,
         EventType_exit_triggered,            // general
         EventType_show_splashscreen_triggered,
-        EventType_toggle_isolate_selection,
 
         EventType_USER_DEFINED = 0xff,
     };

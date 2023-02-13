@@ -141,7 +141,7 @@ bool AppView::on_draw(bool& redock_all) {
 
             ImGui::Separator();
 
-            fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_toggle_isolate_selection, settings.isolate_selection);
+            fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_isolate_selection, settings.isolate_selection);
 
             ImGui::EndMenu();
         }
@@ -766,7 +766,7 @@ void AppView::draw_toolbar_window() {
         if (ImGui::Button(
                 settings.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->event_manager().push_event(fw::EventType_toggle_isolate_selection);
+            m_app->event_manager().push_event(EventType_toggle_isolate_selection);
         }
         ImGui::SameLine();
         ImGui::EndGroup();
