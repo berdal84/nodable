@@ -37,7 +37,7 @@ bool AppView::on_init() {
     // Load splashscreen image
     App& app = App::get_instance();
     fw::TextureManager& texture_manager = app.texture_manager();
-    m_logo = texture_manager.get_or_create_from(app.to_absolute_asset_path(settings.ui_splashscreen_imagePath));
+    m_logo = texture_manager.get_from_path(app.to_absolute_asset_path(settings.ui_splashscreen_imagePath));
 
     return true;
 }
@@ -613,7 +613,7 @@ void AppView::on_draw_splashscreen()
 
     // Image
     ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-    ImGui::Image((void *) (intptr_t) m_logo->image, fw::ImVec2((float) m_logo->width, (float) m_logo->height));
+    ImGui::Image((void *) (intptr_t) m_logo->gl_handler, fw::ImVec2((float) m_logo->width, (float) m_logo->height));
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, fw::ImVec2(50.0f, 30.0f));
 

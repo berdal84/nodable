@@ -13,6 +13,7 @@ add_library(
         src/Event.cpp
         src/ImGuiEx.cpp
         src/Shortcut.cpp
+        src/TextureManager.cpp
         src/View.cpp)
 
 target_include_directories(

@@ -5,10 +5,10 @@
 #include <memory>
 #include <string>
 
-#include <ghc/filesystem.hpp>
-#include <fw/gui/AppView.h>
-#include <fw/gui/Texture.h>
 #include <fw/core/types.h>
+#include <fw/gui/AppView.h>
+#include <fw/gui/TextureManager.h>
+#include <ghc/filesystem.hpp>
 
 namespace fw
 {
