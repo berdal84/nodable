@@ -37,13 +37,13 @@ Settings::Settings()
     ui_node_propertyConnectorRadius  = 5.0f;
     ui_node_invokableColor         = ImColor(255, 199, 115);          // light orange
     ui_node_variableColor          = ImColor( 171, 190, 255);         // blue
-    ui_node_instructionColor       = vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
-    ui_node_literalColor           = vec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-    ui_node_fillColor              = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ui_node_highlightedColor       = vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ui_node_borderColor            = vec4(0.2f, 0.2f, 0.2f, 1.0f);
-    ui_node_borderHighlightedColor = vec4(1.0f, 1.0f, 1.0f, 0.8f);
-    ui_node_shadowColor            = vec4(0.0f, 0.0f, 0.0f, 0.2f);
+    ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
+    ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
+    ui_node_fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_node_highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
+    ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
     ui_node_nodeConnectorHoveredColor = ImColor(200, 200, 200);
     ui_node_nodeConnectorColor     = ImColor(127, 127, 127);
     ui_node_spacing                = 30.0f;
@@ -57,7 +57,7 @@ Settings::Settings()
     ui_wire_bezier_roundness        = 0.5f;
     ui_wire_bezier_thickness        = 2.0f;
     ui_wire_displayArrows           = false;
-    ui_wire_fillColor               = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ui_wire_shadowColor             = ui_node_shadowColor;
 
     // code flow
@@ -65,7 +65,7 @@ Settings::Settings()
     ui_codeFlow_lineShadowColor     = ImColor(0, 0, 0, 64);
 
     // buttons
-    ui_toolButton_size              = vec2(0.0f, 25.0f);
+    ui_toolButton_size              = ImVec2(0.0f, 25.0f);
 
     // history
     ui_history_btn_spacing            = 1.f;
@@ -75,9 +75,9 @@ Settings::Settings()
     // overlay
     ui_overlay_margin                 = 10.0f;
     ui_overlay_indent                 = 5.0f;
-    ui_overlay_window_bg_golor        = vec4(0.9f,0.9f,0.9f,0.2f);
-    ui_overlay_border_color           = vec4(0,0,0,0);
-    ui_overlay_text_color             = vec4(0,0,0,0.5f);
+    ui_overlay_window_bg_golor        = ImVec4(0.9f,0.9f,0.9f,0.2f);
+    ui_overlay_border_color           = ImVec4(0,0,0,0);
+    ui_overlay_text_color             = ImVec4(0,0,0,0.5f);
 
     // Window names
     ui_file_info_window_label           = "File";

@@ -67,7 +67,7 @@ namespace ndbl
         void add_drivers(const NodeViews&);
         void draw_view();
 
-        fw::vec2 m_offset;
+        fw::ImVec2 m_offset;
 
         static const Filter no_target_expanded;
         static const Filter drivers_are_expanded;
@@ -101,11 +101,11 @@ namespace ndbl
 		void                    expose(Property *);
 		bool                    draw()override;
 		bool                    update()override;
-		inline const fw::vec2&  get_position()const { return m_position; }
-		inline fw::vec2         get_position_rounded()const { return fw::vec2(std::round(m_position.x), std::round(m_position.y)); }
-		void                    set_position(fw::vec2);
-		void                    translate(fw::vec2, bool _recurse = false);
-		void                    translate_to(fw::vec2 desiredPos, float _factor, bool _recurse = false);
+		inline const fw::ImVec2 &  get_position()const { return m_position; }
+		inline fw::ImVec2 get_position_rounded()const { return fw::ImVec2(std::round(m_position.x), std::round(m_position.y)); }
+		void                    set_position(fw::ImVec2);
+		void                    translate(fw::ImVec2, bool _recurse = false);
+		void                    translate_to(fw::ImVec2 desiredPos, float _factor, bool _recurse = false);
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
         ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
@@ -114,14 +114,14 @@ namespace ndbl
         void                    apply_constraints(float _dt);
         void                    clear_constraints();
         const PropertyView*     get_property_view(const Property *)const;
-        inline fw::vec2         get_size() const { return m_size; }
-        fw::vec2                get_screen_position();
+        inline fw::ImVec2 get_size() const { return m_size; }
+        fw::ImVec2 get_screen_position();
         void                    set_pinned(bool b) { m_pinned = b; }
         bool                    is_pinned()const { return m_pinned; }
         bool                    is_dragged()const { return s_dragged == this; }
         bool                    is_expanded()const { return m_expanded; }
-        void                    add_force_to_translate_to(fw::vec2 desiredPos, float _factor, bool _recurse = false);
-        void                    add_force(fw::vec2 force, bool _recurse = false);
+        void                    add_force_to_translate_to(fw::ImVec2 desiredPos, float _factor, bool _recurse = false);
+        void                    add_force(fw::ImVec2 force, bool _recurse = false);
         void                    apply_forces(float _dt, bool _recurse);
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
@@ -161,11 +161,11 @@ namespace ndbl
         std::string     m_short_label;
         bool            m_apply_constraints;
         bool            m_edition_enable;
-        fw::vec2        m_forces_sum;
-        fw::vec2        m_last_frame_forces_sum;
+        fw::ImVec2 m_forces_sum;
+        fw::ImVec2 m_last_frame_forces_sum;
         bool            m_expanded;
-		fw::vec2        m_position;
-		fw::vec2        m_size;
+		fw::ImVec2 m_position;
+		fw::ImVec2 m_size;
 		float           m_opacity;
 		bool            m_force_property_inputs_visible;
 		bool            m_pinned;
@@ -186,7 +186,7 @@ namespace ndbl
 		static NodeView*              s_selected;
 		static NodeView*              s_dragged;
         static const float            s_property_input_size_min;
-        static const fw::vec2         s_property_input_toggle_button_size;
+        static const fw::ImVec2 s_property_input_toggle_button_size;
         static std::vector<NodeView*> s_instances;
         static NodeViewDetail         s_view_detail;
 
@@ -200,7 +200,7 @@ namespace ndbl
      */
     class PropertyView
     {
-        fw::vec2            m_relative_pos;
+        fw::ImVec2 m_relative_pos;
 
     public:
         Property *          m_property;
@@ -221,7 +221,7 @@ namespace ndbl
             m_showInput = false;
         }
 
-        fw::vec2  relative_pos() const { return m_relative_pos; }
-        void      relative_pos(fw::vec2 _pos) { m_relative_pos = _pos; }
+        fw::ImVec2 relative_pos() const { return m_relative_pos; }
+        void      relative_pos(fw::ImVec2 _pos) { m_relative_pos = _pos; }
     };
 }

@@ -44,7 +44,7 @@ namespace ndbl {
 
         Property*          get_property()const;
         fw::type           get_property_type()const;
-        fw::vec2           get_pos()const override;
+        fw::ImVec2 get_pos()const override;
         bool               share_parent_with(const PropertyConnector *other)const override;
         bool               has_node_connected() const;
         static void        draw(const PropertyConnector *_connector, float _radius, const fw::Color &_color, const fw::Color &_borderColor, const fw::Color &_hoverColor, bool _editable);

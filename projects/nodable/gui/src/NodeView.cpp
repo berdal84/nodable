@@ -19,7 +19,7 @@
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/language/Nodlang.h>
 
-constexpr fw::vec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
+constexpr fw::ImVec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
 
 using namespace ndbl;
 
@@ -34,7 +34,7 @@ NodeView*          NodeView::s_selected                        = nullptr;
 NodeView*          NodeView::s_dragged                         = nullptr;
 NodeViewDetail     NodeView::s_view_detail                     = NodeViewDetail::Default;
 const float        NodeView::s_property_input_size_min           = 10.0f;
-const fw::vec2     NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
+const fw::ImVec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
 std::vector<NodeView*> NodeView::s_instances;
 
 NodeView::NodeView()
@@ -309,12 +309,12 @@ const PropertyView* NodeView::get_property_view(const Property * _property)const
     return found->second;
 }
 
-void NodeView::set_position(fw::vec2 _position)
+void NodeView::set_position(fw::ImVec2 _position)
 {
 	m_position = _position;
 }
 
-void NodeView::translate(fw::vec2 _delta, bool _recurse)
+void NodeView::translate(fw::ImVec2 _delta, bool _recurse)
 {
     this->set_position(m_position + _delta);
 
@@ -405,8 +405,8 @@ bool NodeView::draw()
 	const auto halfSize = m_size / 2.0;
 	ImGui::SetCursorPos(get_position_rounded() - halfSize );
 	ImGui::PushID(this);
-    fw::vec2 cursor_pos_content_start = ImGui::GetCursorPos();
-    fw::vec2 screen_cursor_pos_content_start = fw::ImGuiEx::CursorPosToScreenPos(get_position_rounded() );
+    fw::ImVec2 cursor_pos_content_start = ImGui::GetCursorPos();
+    fw::ImVec2 screen_cursor_pos_content_start = fw::ImGuiEx::CursorPosToScreenPos(get_position_rounded() );
 
 	// Draw the background of the Group
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -417,20 +417,20 @@ bool NodeView::draw()
 		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
 
 		// Draw the rectangle under everything
-        fw::ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, fw::vec2(1.0f), get_color(ColorType_Shadow));
+        fw::ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, fw::ImVec2(1.0f), get_color(ColorType_Shadow));
 		draw_list->AddRectFilled(itemRectMin, itemRectMax, get_color(ColorType_Fill), m_border_radius);
-		draw_list->AddRect(itemRectMin + fw::vec2(1.0f), itemRectMax, get_color(ColorType_BorderHighlights), m_border_radius);
+		draw_list->AddRect(itemRectMin + fw::ImVec2(1.0f), itemRectMax, get_color(ColorType_BorderHighlights), m_border_radius);
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + fw::vec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings.ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
+		draw_list->AddRectFilled(itemRectMin + fw::ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings.ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (is_selected(this))
 		{
 			auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
 			float offset = 4.0f;
-			draw_list->AddRect(itemRectMin - fw::vec2(offset), itemRectMax + fw::vec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), m_border_radius + offset, ~0, offset / 2.0f);
+			draw_list->AddRect(itemRectMin - fw::ImVec2(offset), itemRectMax + fw::ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), m_border_radius + offset, ~0, offset / 2.0f);
 		}
 	}
 
@@ -454,7 +454,7 @@ bool NodeView::draw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        fw::ImGuiEx::ShadowedText(fw::vec2(1.0f), get_color(ColorType_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
+        fw::ImGuiEx::ShadowedText(fw::ImVec2(1.0f), get_color(ColorType_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 
@@ -642,7 +642,7 @@ bool NodeView::draw(PropertyView* _view )
 
     _view->m_showInput = show;
 
-    fw::vec2 new_relative_pos = ImGui::GetCursorScreenPos() - get_screen_position();
+    fw::ImVec2 new_relative_pos = ImGui::GetCursorScreenPos() - get_screen_position();
 
     // input
     float input_size = NodeView::s_property_input_toggle_button_size.x;
@@ -1006,7 +1006,7 @@ void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
 	
 	if ( !NodeView::is_inside(_view, _rect)) {
 
-		_rect.Expand(fw::vec2(-2, -2)); // shrink
+		_rect.Expand(fw::ImVec2(-2, -2)); // shrink
 
 		auto nodeRect = _view->get_rect();
 
@@ -1047,7 +1047,7 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
     }
 }
 
-fw::vec2 NodeView::get_screen_position()
+fw::ImVec2 NodeView::get_screen_position()
 {
     return m_position - (ImGui::GetCursorPos() - ImGui::GetCursorScreenPos());
 }
@@ -1060,7 +1060,7 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
         return { m_position - m_size * 0.5f, m_position + m_size * 0.5f};
     }
 
-    ImRect result_rect( fw::vec2(std::numeric_limits<float>::max()), fw::vec2(-std::numeric_limits<float>::max()) );
+    ImRect result_rect( fw::ImVec2(std::numeric_limits<float>::max()), fw::ImVec2(-std::numeric_limits<float>::max()) );
 
     if ( !_ignoreSelf && m_is_visible )
     {
@@ -1104,14 +1104,14 @@ void NodeView::apply_constraints(float _dt)
     }
 }
 
-void NodeView::add_force_to_translate_to(fw::vec2 desiredPos, float _factor, bool _recurse)
+void NodeView::add_force_to_translate_to(fw::ImVec2 desiredPos, float _factor, bool _recurse)
 {
-    fw::vec2 delta(desiredPos - m_position);
+    fw::ImVec2 delta(desiredPos - m_position);
     auto factor = std::max(0.0f, _factor);
     add_force(delta * factor, _recurse);
 }
 
-void NodeView::add_force(fw::vec2 force, bool _recurse)
+void NodeView::add_force(fw::ImVec2 force, bool _recurse)
 {
     m_forces_sum += force;
 
@@ -1133,17 +1133,17 @@ void NodeView::apply_forces(float _dt, bool _recurse)
 
     constexpr float magnitude_max  = 100.0f;
     const float     friction       = fw::math::lerp (0.0f, 0.5f, magnitude / magnitude_max);
-    const fw::vec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
+    const fw::ImVec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
 
     translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
 
     m_last_frame_forces_sum = m_forces_sum;
-    m_forces_sum            = fw::vec2();
+    m_forces_sum            = fw::ImVec2();
 }
 
-void NodeView::translate_to(fw::vec2 desiredPos, float _factor, bool _recurse)
+void NodeView::translate_to(fw::ImVec2 desiredPos, float _factor, bool _recurse)
 {
-    fw::vec2 delta(desiredPos - m_position);
+    fw::ImVec2 delta(desiredPos - m_position);
 
     bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
     if (!isDeltaTooSmall)
@@ -1159,7 +1159,7 @@ ImRect NodeView::get_rect(
         bool _ignorePinned,
         bool _ignoreMultiConstrained)
 {
-    ImRect result_rect( fw::vec2(std::numeric_limits<float>::max()), fw::vec2(-std::numeric_limits<float>::max()) );
+    ImRect result_rect( fw::ImVec2(std::numeric_limits<float>::max()), fw::ImVec2(-std::numeric_limits<float>::max()) );
 
     for (auto eachView : _views)
     {

@@ -76,16 +76,16 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 ImRect NodeConnector::get_rect() const
 {
     Settings& settings = Settings::get_instance();
-    fw::vec2 leftCornerPos = m_way == Way_In ? m_node_view.get_rect().GetTL() : m_node_view.get_rect().GetBL();
+    fw::ImVec2 leftCornerPos = m_way == Way_In ? m_node_view.get_rect().GetTL() : m_node_view.get_rect().GetBL();
 
-    fw::vec2 size(settings.ui_node_connector_width, settings.ui_node_connector_height);
+    fw::ImVec2 size(settings.ui_node_connector_width, settings.ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);
-    rect.Translate(fw::vec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(fw::vec2(- settings.ui_node_connector_padding, 0.0f));
+    rect.Translate(fw::ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
+    rect.Expand(fw::ImVec2(- settings.ui_node_connector_padding, 0.0f));
     return rect;
 }
 
-fw::vec2 NodeConnector::get_pos()const
+fw::ImVec2 NodeConnector::get_pos()const
 {
     return get_rect().GetCenter() + fw::ImGuiEx::ToScreenPosOffset();
 }

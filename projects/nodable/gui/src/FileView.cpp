@@ -46,7 +46,7 @@ FileView::FileView(File& _file)
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 std::vector<NodeView*> views;
                 Node::get_components<NodeView>( _graph->get_node_registry(), views );
-                graph_view->translate_all( fw::vec2(-10000.0f), views);
+                graph_view->translate_all( fw::ImVec2(-10000.0f), views);
 
                 // frame all (delay to next frame via event system)
                 fw::EventManager::get_instance().push_event(EventType_frame_all_node_views);
@@ -66,7 +66,7 @@ void FileView::init()
 bool FileView::draw()
 {
     auto& settings = Settings::get_instance();
-    const vec2 margin(10.0f, 0.0f);
+    const ImVec2 margin(10.0f, 0.0f);
     auto region_available = ImGui::GetContentRegionAvail() - margin;
 
      // Splitter
@@ -89,8 +89,8 @@ bool FileView::draw()
      // TEXT EDITOR
     //------------
 
-    vec2 text_editor_top_left_corner = ImGui::GetCursorPos();
-    vec2 text_editor_size = vec2(m_child1_size, region_available.y);
+    ImVec2 text_editor_top_left_corner = ImGui::GetCursorPos();
+    ImVec2 text_editor_size = ImVec2(m_child1_size, region_available.y);
     ImGui::BeginChild("file", text_editor_size, false);
 
     auto old_cursor_position = m_text_editor.GetCursorPosition();
@@ -152,11 +152,11 @@ bool FileView::draw()
     }
 
     ImGui::EndChild();
-    ImRect text_editor_overlay_rect(vec2(), text_editor_size);
+    ImRect text_editor_overlay_rect(ImVec2(), text_editor_size);
     text_editor_overlay_rect.Translate(text_editor_top_left_corner);
-    text_editor_overlay_rect.Expand(vec2(-2.f * settings.ui_overlay_margin)); // margin
-    text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
-    draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], text_editor_overlay_rect, vec2(0,1));
+    text_editor_overlay_rect.Expand(ImVec2(-2.f * settings.ui_overlay_margin)); // margin
+    text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(ImVec2()));
+    draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], text_editor_overlay_rect, ImVec2(0,1));
 
      // NODE EDITOR
     //-------------
@@ -170,19 +170,19 @@ bool FileView::draw()
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         graph_node_view->update();
-        vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
-        bool changed = graph_node_view->draw_as_child("graph", vec2(m_child2_size, region_available.y), false, flags);
+        ImVec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
+        bool changed = graph_node_view->draw_as_child("graph", ImVec2(m_child2_size, region_available.y), false, flags);
         if( changed )
         {
             graph->set_dirty();
         }
 
         // overlay (commands and shortcuts)
-        ImRect graph_editor_overlay_rect(vec2(), graph_node_view->get_visible_rect().GetSize());
+        ImRect graph_editor_overlay_rect(ImVec2(), graph_node_view->get_visible_rect().GetSize());
         graph_editor_overlay_rect.Translate(graph_editor_top_left_corner);
-        graph_editor_overlay_rect.Expand(vec2(-2.0f * settings.ui_overlay_margin)); // margin
-        graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(vec2()));
-        draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], graph_editor_overlay_rect, vec2(1,1));
+        graph_editor_overlay_rect.Expand(ImVec2(-2.0f * settings.ui_overlay_margin)); // margin
+        graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(ImVec2()));
+        draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], graph_editor_overlay_rect, ImVec2(1,1));
 
         // overlay for isolation mode
         if( settings.isolate_selection )
@@ -305,7 +305,7 @@ void  FileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect, vec2 position)
+void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect, ImVec2 position)
 {
     if( overlay_data.empty() ) return;
 

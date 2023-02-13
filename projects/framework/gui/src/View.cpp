@@ -7,7 +7,7 @@ REGISTER
     registration::push_class<View>("View");
 }
 
-constexpr vec4 NULL_COLOR(0.5f, 0.5f, 0.5f, 1);
+constexpr ImVec4 NULL_COLOR(0.5f, 0.5f, 0.5f, 1);
 
 View::View():
     m_is_hovered(false),
@@ -21,7 +21,7 @@ View::View():
     set_color(ColorType_Shadow, &NULL_COLOR);
 }
 
-void View::set_color(ColorType _type, const vec4* _color)
+void View::set_color(ColorType _type, const ImVec4 * _color)
 {
 	m_colors.insert_or_assign(_type, _color);
 }
@@ -31,7 +31,7 @@ ImColor View::get_color(ColorType _type) const
 	return  ImColor(*m_colors.at(_type));
 }
 
-bool View::draw_as_child(const char* _name, const vec2& _size, bool border, ImGuiWindowFlags flags)
+bool View::draw_as_child(const char* _name, const ImVec2 & _size, bool border, ImGuiWindowFlags flags)
 {
 	bool changed;
 

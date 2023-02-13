@@ -14,11 +14,11 @@ const PropertyConnector*   PropertyConnector::s_dragged = nullptr;
 const PropertyConnector*   PropertyConnector::s_hovered = nullptr;
 const PropertyConnector*   PropertyConnector::s_focused = nullptr;
 
-fw::vec2 PropertyConnector::get_pos()const
+fw::ImVec2 PropertyConnector::get_pos()const
 {
-    fw::vec2 relative_pos_constrained = m_propertyView->relative_pos();
+    fw::ImVec2 relative_pos_constrained = m_propertyView->relative_pos();
 
-    fw::vec2 node_view_size = m_propertyView->m_nodeView->get_size();
+    fw::ImVec2 node_view_size = m_propertyView->m_nodeView->get_size();
 
     switch (m_display_side)
     {
@@ -38,7 +38,7 @@ fw::vec2 PropertyConnector::get_pos()const
             relative_pos_constrained.y = 0;
             relative_pos_constrained.x = node_view_size.x * 0.5f;
     }
-    return fw::vec2(m_propertyView->m_nodeView->get_screen_position() + relative_pos_constrained);
+    return fw::ImVec2(m_propertyView->m_nodeView->get_screen_position() + relative_pos_constrained);
 }
 
 bool PropertyConnector::share_parent_with(const PropertyConnector* other) const
@@ -60,11 +60,11 @@ void PropertyConnector::draw(
     auto connnectorScreenPos = _connector->get_pos();
 
     // Unvisible Button on top of the Circle
-    fw::vec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+    fw::ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
     auto invisibleButtonOffsetFactor = 1.2f;
-    ImGui::SetCursorScreenPos(connnectorScreenPos - fw::vec2(_radius * invisibleButtonOffsetFactor));
+    ImGui::SetCursorScreenPos(connnectorScreenPos - fw::ImVec2(_radius * invisibleButtonOffsetFactor));
     ImGui::PushID(_connector);
-    bool clicked = ImGui::InvisibleButton("###", fw::vec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
+    bool clicked = ImGui::InvisibleButton("###", fw::ImVec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
     ImGui::PopID();
     ImGui::SetCursorScreenPos(cursorScreenPos);
     auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);

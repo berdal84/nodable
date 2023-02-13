@@ -20,8 +20,8 @@ namespace fw
     typedef unsigned short int u8_t;
 
     // gui related
-    typedef ImVec2 vec2;
-    typedef ImVec4 vec4;
+    typedef ImVec2 ImVec2;
+    typedef ImVec4 ImVec4;
     typedef ImColor Color;
 }
 

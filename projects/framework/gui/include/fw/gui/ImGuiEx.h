@@ -1,21 +1,18 @@
 #pragma once
 
-#include "imgui/imgui.h"
+#include <imgui/imgui.h>
 
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include "Event.h"
-#include "IconFontCppHeaders/IconsFontAwesome5.h"
-#include "imgui/imgui_internal.h"
-#include "types.h"
+#include <fw/gui/Event.h>
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include <imgui/imgui_internal.h>
+#include <fw/gui/types.h>
 
 namespace fw
 {
-    typedef ImVec2 vec2;
-    typedef ImVec4 vec4;
-
     class ImGuiEx
     {
     public:
@@ -44,34 +41,34 @@ namespace fw
          * TODO: use a low cost method, this one is drawing several rectangle with modulated opacity.
         */
         static void DrawRectShadow(
-                vec2 _topLeftCorner,
-                vec2 _bottomRightCorner,
+                ImVec2 _topLeftCorner,
+                ImVec2 _bottomRightCorner,
                 float _borderRadius = 0.0f,
                 int _shadowRadius = 10,
-                vec2 _shadowOffset = vec2(),
+                ImVec2 _shadowOffset = ImVec2(),
                 ImColor _shadowColor = ImColor(0.0f, 0.0f, 0.0f));
 
         static void ShadowedText(
-                vec2 _offset,
+                ImVec2 _offset,
                 ImColor _shadowColor,
                 const char *_format,
                 ...);
 
         static void ColoredShadowedText(
-                vec2 _offset,
+                ImVec2 _offset,
                 ImColor _textColor,
                 ImColor _shadowColor,
                 const char *_format,
                 ...);
 
-        static vec2 CursorPosToScreenPos(vec2 _cursorPosition);
+        static ImVec2 CursorPosToScreenPos(ImVec2 _cursorPosition);
 
-        static vec2 ToScreenPosOffset();
+        static ImVec2 ToScreenPosOffset();
 
         static void DrawVerticalWire(
                 ImDrawList *draw_list,
-                vec2 pos0,
-                vec2 pos1,
+                ImVec2 pos0,
+                ImVec2 pos1,
                 ImColor color,
                 ImColor shadowColor,
                 float thickness = 1.0f,
@@ -79,8 +76,8 @@ namespace fw
 
         static void DrawHorizontalWire(
                 ImDrawList *draw_list,
-                vec2 pos0,
-                vec2 pos1,
+                ImVec2 pos0,
+                ImVec2 pos1,
                 ImColor color,
                 ImColor shadowColor,
                 float thickness = 1.0f,

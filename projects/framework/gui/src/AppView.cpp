@@ -196,7 +196,7 @@ bool AppView::draw()
     // Show/Hide ImGui Demo Window
     {
         if (m_conf.show_imgui_demo){
-            ImGui::SetNextWindowPos(vec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
+            ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
             ImGui::ShowDemoWindow(&m_conf.show_imgui_demo);
         }
     }
@@ -219,7 +219,7 @@ bool AppView::draw()
 
     ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
     ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, vec2(0.0f, 0.0f)); // Remove padding
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f)); // Remove padding
 
     ImGuiViewport* viewport = ImGui::GetMainViewport();
     ImGui::SetNextWindowPos(viewport->WorkPos);
@@ -250,10 +250,10 @@ bool AppView::draw()
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_ROOT] , viewport_size);
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_ROOT]   , ImGuiDir_Down , 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , vec2(viewport_size.x, m_conf.dockspace_bottom_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , ImVec2(viewport_size.x, m_conf.dockspace_bottom_size));
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , vec2(viewport_size.x, m_conf.dockspace_top_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, m_conf.dockspace_top_size));
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf.dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
 
@@ -480,8 +480,8 @@ void AppView::draw_splashcreen_window()
         ImGui::OpenPopup(m_conf.splashscreen_window_label);
     }
 
-    ImGui::SetNextWindowSizeConstraints(fw::vec2(550, 300), fw::vec2(550, 50000));
-    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, fw::vec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSizeConstraints(fw::ImVec2(550, 300), fw::ImVec2(550, 50000));
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, fw::ImVec2(0.5f, 0.5f));
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 

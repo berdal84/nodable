@@ -32,8 +32,8 @@ namespace fw
 		virtual ~View() = default;
 
 		virtual bool         draw() = 0;
-		bool                 draw_as_child(const char* _name, const vec2& _size, bool border = false, ImGuiWindowFlags flags = 0);
-		void                 set_color(ColorType, const vec4* );
+		bool                 draw_as_child(const char* _name, const ImVec2 & _size, bool border = false, ImGuiWindowFlags flags = 0);
+		void                 set_color(ColorType, const ImVec4 * );
 		ImColor              get_color(ColorType) const;
 		inline void          set_visible(bool _visibility){ m_is_visible = _visibility;}
         inline bool          is_visible()const {return m_is_visible;}
@@ -46,7 +46,7 @@ namespace fw
 		ImRect   m_visible_screen_rect;
 		bool     m_is_hovered;
     private:
-        std::map<ColorType, const vec4*> m_colors;
+        std::map<ColorType, const ImVec4 *> m_colors;
 
 		REFLECT_BASE_CLASS()
     };

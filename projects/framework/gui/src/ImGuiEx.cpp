@@ -13,22 +13,22 @@ float   ImGuiEx::s_tooltip_duration_default = 0.2f;
 float   ImGuiEx::s_tooltip_delay_default    = 0.5f;
 float   ImGuiEx::s_tooltip_delay_elapsed    = 0.0f;
 
-vec2 ImGuiEx::CursorPosToScreenPos(vec2 _position)
+ImVec2 ImGuiEx::CursorPosToScreenPos(ImVec2 _position)
 {
     return _position + ToScreenPosOffset();
 }
 
-vec2 ImGuiEx::ToScreenPosOffset()
+ImVec2 ImGuiEx::ToScreenPosOffset()
 {
     return ImGui::GetCursorScreenPos() - ImGui::GetCursorPos();
 }
 
 
-void ImGuiEx::DrawRectShadow (vec2 _topLeftCorner, vec2 _bottomRightCorner, float _borderRadius, int _shadowRadius, vec2 _shadowOffset, ImColor _shadowColor)
+void ImGuiEx::DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, float _borderRadius, int _shadowRadius, ImVec2 _shadowOffset, ImColor _shadowColor)
 {
-    vec2 itemRectMin(_topLeftCorner.x + _shadowOffset.x, _topLeftCorner.y + _shadowOffset.y);
-    vec2 itemRectMax(_bottomRightCorner.x + _shadowOffset.x, _bottomRightCorner.y + _shadowOffset.y);
-    vec4 color       = _shadowColor;
+    ImVec2 itemRectMin(_topLeftCorner.x + _shadowOffset.x, _topLeftCorner.y + _shadowOffset.y);
+    ImVec2 itemRectMax(_bottomRightCorner.x + _shadowOffset.x, _bottomRightCorner.y + _shadowOffset.y);
+    ImVec4 color       = _shadowColor;
     color.w /= _shadowRadius;
     auto borderRadius  = _borderRadius;
 
@@ -49,11 +49,11 @@ void ImGuiEx::DrawRectShadow (vec2 _topLeftCorner, vec2 _bottomRightCorner, floa
     }
 }
 
-void ImGuiEx::ShadowedText(vec2 _offset, ImColor _shadowColor, const char* _format, ...)
+void ImGuiEx::ShadowedText(ImVec2 _offset, ImColor _shadowColor, const char* _format, ...)
 {
     // draw first the shadow
     auto p = ImGui::GetCursorPos();
-    ImGui::SetCursorPos(vec2(p.x + _offset.x, p.y + _offset.y));
+    ImGui::SetCursorPos(ImVec2(p.x + _offset.x, p.y + _offset.y));
 
     va_list args;
     va_start(args, _format);
@@ -63,11 +63,11 @@ void ImGuiEx::ShadowedText(vec2 _offset, ImColor _shadowColor, const char* _form
     va_end(args);
 }
 
-void ImGuiEx::ColoredShadowedText(vec2 _offset, ImColor _textColor, ImColor _shadowColor, const char* _format, ...)
+void ImGuiEx::ColoredShadowedText(ImVec2 _offset, ImColor _textColor, ImColor _shadowColor, const char* _format, ...)
 {
     // draw first the shadow
     auto p = ImGui::GetCursorPos();
-    ImGui::SetCursorPos(vec2(p.x + _offset.x, p.y + _offset.y));
+    ImGui::SetCursorPos(ImVec2(p.x + _offset.x, p.y + _offset.y));
 
     va_list args;
     va_start(args, _format);
@@ -79,8 +79,8 @@ void ImGuiEx::ColoredShadowedText(vec2 _offset, ImColor _textColor, ImColor _sha
 
 void ImGuiEx::DrawVerticalWire(
         ImDrawList *draw_list,
-        vec2 pos0,
-        vec2 pos1,
+        ImVec2 pos0,
+        ImVec2 pos1,
         ImColor color,
         ImColor shadowColor,
         float thickness,
@@ -89,14 +89,14 @@ void ImGuiEx::DrawVerticalWire(
     // Compute tangents
     float roundedDist = std::abs(pos1.y - pos0.y) * roundness;
 
-    vec2 cp0_fill(pos0.x , pos0.y + roundedDist);
-    vec2 cp1_fill(pos1.x , pos1.y - roundedDist);
+    ImVec2 cp0_fill(pos0.x , pos0.y + roundedDist);
+    ImVec2 cp1_fill(pos1.x , pos1.y - roundedDist);
 
-    vec2 pos_shadow_offset(1.f, 1.f);
-    vec2 pos0_shadow(pos0 + pos_shadow_offset);
-    vec2 pos1_shadow(pos1 + pos_shadow_offset);
-    vec2 cp0_shadow(pos0_shadow.x , pos0_shadow.y + roundedDist * 1.05f);
-    vec2 cp1_shadow(pos1_shadow.x , pos1_shadow.y - roundedDist * 0.95f);
+    ImVec2 pos_shadow_offset(1.f, 1.f);
+    ImVec2 pos0_shadow(pos0 + pos_shadow_offset);
+    ImVec2 pos1_shadow(pos1 + pos_shadow_offset);
+    ImVec2 cp0_shadow(pos0_shadow.x , pos0_shadow.y + roundedDist * 1.05f);
+    ImVec2 cp1_shadow(pos1_shadow.x , pos1_shadow.y - roundedDist * 0.95f);
 
     // shadow
     draw_list->AddBezierCurve( pos0_shadow, cp0_shadow, cp1_shadow, pos1_shadow, shadowColor, thickness);
@@ -106,8 +106,8 @@ void ImGuiEx::DrawVerticalWire(
 
 void ImGuiEx::DrawHorizontalWire(
         ImDrawList *draw_list,
-        vec2 pos0,
-        vec2 pos1,
+        ImVec2 pos0,
+        ImVec2 pos1,
         ImColor color,
         ImColor shadowColor,
         float thickness,
@@ -117,11 +117,11 @@ void ImGuiEx::DrawHorizontalWire(
     // Compute tangents
     float dist = std::max(std::abs(pos1.y - pos0.y), 200.0f);
 
-    vec2 cp0(pos0.x + dist * roundness , pos0.y );
-    vec2 cp1(pos1.x - dist * roundness , pos1.y );
+    ImVec2 cp0(pos0.x + dist * roundness , pos0.y );
+    ImVec2 cp1(pos1.x - dist * roundness , pos1.y );
 
     // draw bezier curve
-    vec2 shadowOffset(1.0f, 2.0f);
+    ImVec2 shadowOffset(1.0f, 2.0f);
     draw_list->AddBezierCurve(  pos0 + shadowOffset,
                                 cp0  + shadowOffset,
                                 cp1  + shadowOffset,
