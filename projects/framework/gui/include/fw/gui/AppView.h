@@ -100,7 +100,7 @@ namespace fw
                                                                 "default"  // FontSlot_ToolBtn
                                                             };
 
-            void patch_imgui_style(ImGuiStyle& _style) // Apply the configuration to an existing ImGuiStyle
+            void patch_imgui_style(ImGuiStyle& _style) const // Apply the configuration to an existing ImGuiStyle
             {
                 vec4* colors = _style.Colors;
                 colors[ImGuiCol_Text]                   = vec4(0.20f, 0.20f, 0.20f, 1.00f);
