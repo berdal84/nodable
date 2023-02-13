@@ -503,7 +503,7 @@ void AppView::draw_status_window() const
     {
         if (!fw::Log::get_messages().empty())
         {
-            const fw::Log::Messages &messages = fw::Log::get_messages();
+            const std::deque<fw::Log::Message> &messages = fw::Log::get_messages();
             auto it = messages.rend() - std::min(m_conf.log_tooltip_max_count, messages.size());
             while (it != messages.rend())
             {

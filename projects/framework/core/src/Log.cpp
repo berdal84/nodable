@@ -9,24 +9,14 @@
 
 using namespace fw;
 
-Log::Messages   Log::s_logs;
-Log::Verbosity  Log::s_verbosity = Verbosity_DEFAULT;
+std::deque<Log::Message> Log::s_logs;
+Log::Verbosity           Log::s_verbosity = Verbosity_DEFAULT;
 
 std::map<std::string, Log::Verbosity>& Log::get_verbosity_by_category()
 {
-    // use singleton pattern to avoid static code issues
+    // use singleton pattern instead of static member to avoid static code issues
     static std::map<std::string, Log::Verbosity> verbosity_by_category;
-
     return verbosity_by_category;
-}
-
-const Log::Message& Log::get_last_message()
-{
-#if LOG_ENABLE
-    return  Log::s_logs.front();
-#else
-    return nullptr;
-#endif
 }
 
 void Log::set_verbosity(const std::string& _category, Verbosity _level)
@@ -37,6 +27,7 @@ void Log::set_verbosity(const std::string& _category, Verbosity _level)
 void Log::set_verbosity(Verbosity _level)
 {
     s_verbosity = _level;
+    get_verbosity_by_category().clear(); // ensure no overrides remains
 }
 Log::Verbosity Log::get_verbosity()
 {
@@ -113,7 +104,7 @@ void Log::flush()
     std::cout << std::flush;
 }
 
-const Log::Messages& Log::get_messages()
+const std::deque<Log::Message>& Log::get_messages()
 {
     return s_logs;
 }

@@ -70,21 +70,18 @@ namespace fw {
             std::string  to_string()const;     // get a pretty string of this message (ex: "[MSG|Game] Starting ...")
             std::string  to_full_string()const;// get a pretty string of this message (ex: "[<date>|MSG|Game] Starting ...")
         };
-
-        using Messages = std::deque<Message>;
 	private:
-        static Messages  s_logs;      // message history
-        static Verbosity s_verbosity; // current global verbosity level
+        static std::deque<Message>  s_logs;      // message history
+        static Verbosity s_verbosity; // global verbosity level
         static std::map<std::string, Verbosity>& get_verbosity_by_category();
 
 	public:
-        static const Messages& get_messages();
-        static const Message& get_last_message();
-	    static void           set_verbosity(const std::string& _category, Verbosity);
-	    static void           set_verbosity(Verbosity);
-        static Verbosity      get_verbosity(const std::string& _category);
-        static Verbosity      get_verbosity();
-		static void           push_message(Verbosity _verbosity, const char* _category, const char* _format, ...);
-		static void           flush();
+        static const std::deque<Message>& get_messages();                               // Get message history
+	    static void           set_verbosity(const std::string& _category, Verbosity);   // Set verbosity level for a given category
+	    static void           set_verbosity(Verbosity);                                 // Set global verbosity level (for all categories)
+        static Verbosity      get_verbosity(const std::string& _category);              // Get verbosity level for a given category
+        static Verbosity      get_verbosity();                                          // Get global verbosity level
+        static void           flush();                                                  // Ensure all messages have been printed out
+        static void           push_message(Verbosity, const char* _category, const char* _format, ...); // Push a new message for a given category
     };
 }
