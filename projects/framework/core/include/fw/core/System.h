@@ -3,24 +3,14 @@
 
 namespace fw
 {
-    /**
-     * @namespace Set of cross platform functions library to deal with system
-     */
-    namespace System
+    namespace System                                    // Set of cross-platform functions library to deal with system
     {
-        /** Browse a given URL asynchronously */
-        extern void        open_url_async(std::string /* url */);
-        /** Get the path to the executable directory */
-        extern std::string get_executable_directory();
+        extern void        open_url_async(std::string); // Browse a given URL asynchronously
+        extern std::string get_executable_directory();  // Get the path to the executable directory
 
-        /**
-         * @namespace Set of cross platform functions library to deal with the console
-         */
-        namespace console
+        namespace console                               //  Set of cross-platform functions library to deal with the console
         {
-            /** Clear the console */
-            extern void clear();
+            extern void clear();                        // Clear the console
         }
-
     };
 }

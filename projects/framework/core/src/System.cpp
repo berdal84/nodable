@@ -40,34 +40,23 @@ void System::open_url_async(std::string _URL)
 std::string System::get_executable_directory()
 {
     std::string result;
-
-    // set asset absolute path
-    char* path = nullptr;
     int length, dirname_length;
-    length = wai_getExecutablePath(nullptr, 0, &dirname_length);
-    if (length > 0)
+    char path[255];
+    length = wai_getExecutablePath(path, 255, &dirname_length);
+    if ( length )
     {
-        path = new char[length + 1];
-
-        if ( wai_getExecutablePath(path, length, &dirname_length) )
-        {
-            path[length] = '\0';
-            LOG_MESSAGE("System", "executable path: %s\n", path);
-            path[dirname_length] = '\0';
-            LOG_MESSAGE("System", "  dirname: %s\n", path);
-            LOG_MESSAGE("System", "  basename: %s\n", path + dirname_length + 1);
-            result.append(path);
-        }
-        else
-        {
-            LOG_ERROR("System", "Unable to get executable path\n");
-        }
-        delete path;
+        path[length] = '\0';
+        LOG_MESSAGE("System", "executable path: %s\n", path);
+        path[dirname_length] = '\0';
+        LOG_MESSAGE("System", "  dirname: %s\n", path);
+        LOG_MESSAGE("System", "  basename: %s\n", path + dirname_length + 1);
+        result.append(path);
     }
     else
     {
-        LOG_WARNING("System", "Unable to get executable directory!\n");
+        LOG_ERROR("System", "Unable to get executable path\n");
     }
+
     return result;
 }
 
