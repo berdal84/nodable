@@ -30,13 +30,13 @@ App::App()
     , m_current_file_index(0)
     , m_current_file(nullptr)
 {
-    LOG_MESSAGE("App", "Asset folder path:      %s\n", s_assets_folder_path.c_str() )
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
     s_instance = this;
 }
 
 App::~App()
 {
+    delete m_view;
     s_instance = nullptr;
 }
 
