@@ -43,99 +43,99 @@ App::~App()
 bool App::onInit()
 {
     using fw::EventType; // TODO: split framework and nodable event types.
-
+    
     // Bind commands to shortcuts
-    event_manager().bind(
+    m_event_manager.bind(
             {"Delete",
              EventType_delete_node_action_triggered,
              {SDLK_DELETE, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Arrange",
              EventType_arrange_node_action_triggered,
              {SDLK_a, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Fold/Unfold",
              EventType_toggle_folding_selected_node_action_triggered,
              {SDLK_x, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Next",
              EventType_select_successor_node_action_triggered,
              {SDLK_n, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {ICON_FA_SAVE " Save",
              fw::EventType_save_file_triggered,
              {SDLK_s, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {ICON_FA_SAVE " Save as",
              fw::EventType_save_file_as_triggered,
              {SDLK_s, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {ICON_FA_TIMES "  Close",
              fw::EventType_close_file_triggered,
              {SDLK_w, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {ICON_FA_FOLDER_OPEN " Open",
              fw::EventType_browse_file_triggered,
              {SDLK_o, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {ICON_FA_FILE " New",
              fw::EventType_new_file_triggered,
              {SDLK_n, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Splashscreen",
              fw::EventType_show_splashscreen_triggered,
              {SDLK_F1},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {ICON_FA_SIGN_OUT_ALT " Exit",
              fw::EventType_exit_triggered,
              {SDLK_F4, KMOD_ALT},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Undo",
              fw::EventType_undo_triggered,
              {SDLK_z, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Redo",
              fw::EventType_redo_triggered,
              {SDLK_y, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Isolate on/off",
              EventType_toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Select",
              fw::EventType_none,
              {0, KMOD_NONE, "Left mouse click on a node"},
              Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Deselect",
              fw::EventType_none,
              {0, KMOD_NONE, "Double left mouse click on background"},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Move Graph",
              fw::EventType_none,
              {0, KMOD_NONE, "Left mouse btn drag on background"},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Frame Selection",
              EventType_frame_selected_node_views,
              {SDLK_f, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager().bind(
+    m_event_manager.bind(
             {"Frame All",
              EventType_frame_all_node_views,
              {SDLK_f, KMOD_LCTRL},
@@ -185,7 +185,7 @@ void App::onUpdate()
     // Nodable events ( SDL_ API inspired, but with custom events)
     Event event{};
     NodeView*      selected_view = NodeView::get_selected();
-    while(event_manager().poll_event((fw::Event&)event) )
+    while(m_event_manager.poll_event((fw::Event&)event) )
     {
         switch ( event.type )
         {
@@ -492,7 +492,7 @@ bool App::open_file(const ghc::filesystem::path& _path, bool relative)
 
     m_loaded_files.push_back( file );
     current_file(file);
-    event_manager().push_event(fw::EventType_file_opened);
+    m_event_manager.push_event(fw::EventType_file_opened);
 	return true;
 }
 
