@@ -79,27 +79,8 @@ bool AppView::init()
     // Run user code
     if(!on_init()) return false;
 
-	// Setup Dear ImGui style
-
-    // load fonts (TODO: hum, load only if font is used...)
-    for ( auto& each_font : m_conf.fonts )
-    {
-        load_font(each_font);
-    }
-
-    // Assign fonts (user might want to change it later, but we need defaults)
-    for( int each_slot = 0; each_slot < fw::FontSlot_COUNT; ++each_slot )
-    {
-        if(auto font = m_conf.fonts_default[each_slot] )
-        {
-            m_fonts[each_slot] = get_font_by_id( font );
-        }
-        else
-        {
-            LOG_WARNING("AppView", "No default font declared for slot #%i, using ImGui's default font as fallback\n", each_slot);
-            m_fonts[each_slot] = ImGui::GetDefaultFont();
-        }
-    }
+    // load fonts
+    m_app->font_manager().init(m_conf.fonts, m_conf.fonts_default, &m_conf.icon_font);
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
@@ -124,57 +105,6 @@ bool AppView::init()
 	return true;
 }
 
-ImFont* AppView::get_font_by_id(const char *id) {
-    return m_loaded_fonts.at(id );
-}
-
-ImFont* AppView::load_font(const FontConf &_config)
-{
-    FW_ASSERT(m_loaded_fonts.find(_config.id) == m_loaded_fonts.end()); // do not allow the use of same key for different fonts
-
-    ImFont*   font     = nullptr;
-    auto&     io       = ImGui::GetIO();
-
-    // Create font
-    {
-        ImFontConfig config;
-        config.OversampleH = 3;
-        config.OversampleV = 1;
-
-        //io.Fonts->AddFontDefault();
-        std::string fontPath = m_app->to_absolute_asset_path(_config.path);
-        LOG_VERBOSE("AppView", "Adding font from file ... %s\n", fontPath.c_str())
-        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.size, &config);
-    }
-
-    // Add Icons my merging to previous font.
-    if ( _config.icons_enable )
-    {
-        if(strlen(m_conf.icon_font.path) == 0)
-        {
-            LOG_WARNING("AppView", "m_conf.icons is empty, icons will be \"?\"\n");
-            return font;
-        }
-
-        // merge in icons font
-        static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
-        ImFontConfig config;
-        config.OversampleH = 3;
-        config.OversampleV = 1;
-        config.MergeMode   = true;
-        config.PixelSnapH  = true;
-        config.GlyphOffset.y = -(_config.icons_size - _config.size)*0.5f;
-        config.GlyphMinAdvanceX = _config.icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = m_app->to_absolute_asset_path(m_conf.icon_font.path);
-        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), _config.icons_size, &config, icons_ranges);
-        LOG_VERBOSE("AppView", "Adding icons to font ...\n")
-    }
-
-    m_loaded_fonts.insert({_config.id, font});
-    LOG_MESSAGE("AppView", "Font %s added to register with the id \"%s\"\n", _config.path, _config.id)
-    return font;
-}
-
 bool AppView::on_draw()
 {
     bool is_main_window_open = true;
@@ -191,7 +121,7 @@ bool AppView::on_draw()
     // 2) Draw
     //--------
 
-    ImGui::SetCurrentFont( m_fonts[FontSlot_Paragraph] );
+    ImGui::SetCurrentFont( m_app->font_manager().get_font(FontSlot_Paragraph));
 
     // Show/Hide ImGui Demo Window
     {
@@ -446,11 +376,6 @@ void AppView::set_splashscreen_visible(bool b)
 bool AppView::is_fullscreen() const
 {
     return SDL_GetWindowFlags(m_sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
-}
-
-ImFont* AppView::get_font(FontSlot slot) const
-{
-    return m_fonts[slot];
 }
 
 void AppView::set_layout_initialized(bool b)

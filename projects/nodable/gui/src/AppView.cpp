@@ -256,8 +256,10 @@ bool AppView::on_draw(bool& redock_all) {
 }
 
 void AppView::draw_help_window() const {
-    if (ImGui::Begin(Settings::get_instance().ui_help_window_label)) {
-        ImGui::PushFont(get_font(fw::FontSlot_Heading));
+    if (ImGui::Begin(Settings::get_instance().ui_help_window_label))
+    {
+        auto& font_manager = m_app->font_manager();
+        ImGui::PushFont(font_manager.get_font(fw::FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -272,7 +274,7 @@ void AppView::draw_help_window() const {
         fw::ImGuiEx::BulletTextWrapped(
                 "but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
         ImGui::NewLine();
-        ImGui::PushFont(get_font(fw::FontSlot_Heading));
+        ImGui::PushFont(font_manager.get_font(fw::FontSlot_Heading));
         ImGui::Text("Quick start");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -458,7 +460,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
         {
             ImGui::Indent(center_area.x * 0.05f);
 
-            ImGui::PushFont(get_font(fw::FontSlot_ToolBtn));
+            ImGui::PushFont(m_app->font_manager().get_font(fw::FontSlot_ToolBtn));
             ImGui::NewLine();
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
@@ -538,7 +540,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
         // File View in the middle
         View *eachFileView = file->get_view();
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        ImGui::PushFont(get_font(fw::FontSlot_Code));
+        ImGui::PushFont(m_app->font_manager().get_font(fw::FontSlot_Code));
         eachFileView->draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
         ImGui::PopFont();
         ImGui::PopStyleColor();
@@ -716,7 +718,7 @@ void AppView::draw_toolbar_window() {
         bool stopped = vm.is_program_stopped();
         ImVec2 button_size  = settings.ui_toolButton_size;
 
-        ImGui::PushFont(get_font(fw::FontSlot_ToolBtn));
+        ImGui::PushFont(m_app->font_manager().get_font(fw::FontSlot_ToolBtn));
 
         ImGui::BeginGroup();
 

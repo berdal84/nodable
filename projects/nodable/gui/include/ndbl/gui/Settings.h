@@ -4,11 +4,10 @@
 #include <vector>
 #include <memory>
 
-#include <fw/gui/types.h>
-#include <fw/gui/FontConf.h>
-#include <fw/gui/FontSlot.h>
-#include <fw/gui/AppView.h>
 #include <fw/core/reflection/reflection>
+#include <fw/gui/AppView.h>
+#include <fw/gui/FontManager.h>
+#include <fw/gui/types.h>
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ndbl/gui/types.h>

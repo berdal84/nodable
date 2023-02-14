@@ -15,7 +15,7 @@ namespace fw
 	class App
 	{
 	public:
-		App(ghc::filesystem::path _assets_folder_path, AppView* _view);
+		App(AppView* _view);
         virtual ~App() {};
 
 		bool            init();         // Initialize the application
@@ -30,9 +30,11 @@ namespace fw
         bool            should_stop() const { return m_should_stop; }    // Check if application should stop
         void            flag_to_stop();                                  // Flag the application to stop, will stop more likely the next frame.
         u64_t           elapsed_time() const;                            // Get the elapsed time in seconds
-        std::string     to_absolute_asset_path(const char*) const;       // convert a relative (to ./assets) path to an absolute path
         TextureManager& texture_manager() { return m_texture_manager; };
         EventManager&   event_manager() { return m_event_manager; }
+        FontManager&    font_manager() { return m_font_manager; }
+
+        static std::string to_absolute_asset_path(const char*);       // convert a relative (to ./assets) path to an absolute path
     protected:
         const std::chrono::time_point<std::chrono::system_clock>
                         m_start_time = std::chrono::system_clock::now();
@@ -40,7 +42,8 @@ namespace fw
         AppView*        m_view;
         TextureManager  m_texture_manager;
         EventManager    m_event_manager;
+        FontManager     m_font_manager;
         bool            m_should_stop;
-        ghc::filesystem::path m_assets_folder_path;
+        ghc::filesystem::path s_assets_folder_path;
     };
 }

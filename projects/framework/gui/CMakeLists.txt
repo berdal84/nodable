@@ -11,6 +11,7 @@ add_library(
         src/App.cpp
         src/AppView.cpp
         src/Event.cpp
+        src/FontManager.cpp
         src/ImGuiEx.cpp
         src/Shortcut.cpp
         src/TextureManager.cpp

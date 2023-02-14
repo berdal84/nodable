@@ -26,13 +26,11 @@ using namespace ndbl;
 App* App::s_instance = nullptr;
 
 App::App()
-    : fw::App(
-            ghc::filesystem::path( fw::System::get_executable_directory() ) / BuildInfo::assets_dir,
-            new AppView(this, Settings::get_instance().fw_app_view))
+    : fw::App(new AppView(this, Settings::get_instance().fw_app_view))
     , m_current_file_index(0)
     , m_current_file(nullptr)
 {
-    LOG_MESSAGE("App", "Asset folder path:      %s\n", m_assets_folder_path.c_str() )
+    LOG_MESSAGE("App", "Asset folder path:      %s\n", s_assets_folder_path.c_str() )
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
     s_instance = this;
 }

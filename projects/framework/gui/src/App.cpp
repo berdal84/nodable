@@ -1,18 +1,16 @@
 #include <fw/gui/App.h>
 
+#include <fw/core/System.h>
 #include <algorithm>
 #include <fw/gui/AppView.h>
 #include <fw/gui/Event.h>
 
 using namespace fw;
 
-App::App(ghc::filesystem::path _assets_folder_path, AppView* _view)
+App::App(AppView* _view)
     : m_should_stop(false)
-    , m_assets_folder_path( _assets_folder_path )
     , m_view(_view)
 {
-
-    LOG_MESSAGE("App", "Asset folder path:      %s\n", m_assets_folder_path.c_str() )
 }
 
 bool App::init()
@@ -48,10 +46,10 @@ bool App::shutdown()
     return success;
 }
 
-std::string App::to_absolute_asset_path(const char* _relative_path) const
+std::string App::to_absolute_asset_path(const char* _relative_path)
 {
-    ghc::filesystem::path result = m_assets_folder_path / _relative_path;
-	return result.string();
+    static ghc::filesystem::path assets_folder_path = fw::System::get_executable_directory();
+	return (assets_folder_path / "assets" / _relative_path).string();
 }
 
 void App::draw()

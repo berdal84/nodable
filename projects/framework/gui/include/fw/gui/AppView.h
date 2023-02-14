@@ -7,11 +7,10 @@
 #include <map>
 #include <string>
 
-#include <fw/gui/FontConf.h>
-#include <fw/gui/FontSlot.h>
+#include <fw/core/types.h>
+#include <fw/gui/FontManager.h>
 #include <fw/gui/Shortcut.h>
 #include <fw/gui/View.h>
-#include <fw/core/types.h>
 
 namespace fw
 {
@@ -180,9 +179,6 @@ namespace fw
         virtual bool       on_reset_layout() = 0;           // implement behavior when layout is reset
         virtual void       on_draw_splashscreen() = 0;      // implement here the splashscreen windows content
     public:
-        ImFont*            get_font(FontSlot) const;
-        ImFont*            get_font_by_id(const char*);
-        ImFont*            load_font(const FontConf&);
         ImGuiID            get_dockspace(Dockspace)const;
         bool               is_fullscreen() const;
         bool               is_splashscreen_visible()const;
@@ -202,9 +198,7 @@ namespace fw
         SDL_GLContext      m_sdl_gl_context;
         SDL_Window*        m_sdl_window;
         bool               m_is_layout_initialized;
-        std::array<ImFont*, FontSlot_COUNT>  m_fonts;        // Required fonts
         std::array<ImGuiID, Dockspace_COUNT> m_dockspaces;
-        std::map<std::string, ImFont*>       m_loaded_fonts; // Available fonts
 
         REFLECT_DERIVED_CLASS(View)
     };
