@@ -13,7 +13,6 @@ add_library(
         src/EventManager.cpp
         src/FontManager.cpp
         src/ImGuiEx.cpp
-        src/Shortcut.cpp
         src/TextureManager.cpp
         src/View.cpp)
 

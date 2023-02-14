@@ -1,11 +1,21 @@
 #pragma once
 
-#include <fw/gui/Shortcut.h>
-#include <fw/gui/types.h>
 #include <queue>
+#include <string>
+#include <SDL/include/SDL_keycode.h>
+#include <fw/gui/types.h>
 
 namespace fw
 {
+    struct Shortcut
+    {
+        SDL_Keycode key         = SDLK_UNKNOWN;    // a key to be pressed
+        SDL_Keymod  mod         = KMOD_NONE;       // modifiers (alt, ctrl, etc.)
+        std::string description;
+        std::string to_string() const;
+    };
+
+
     // Declare some event types.
     // EventType can be extended starting at EventType_USER_DEFINED
     typedef uint16_t EventType;

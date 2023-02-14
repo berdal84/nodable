@@ -9,7 +9,7 @@
 
 #include <fw/core/types.h>
 #include <fw/gui/FontManager.h>
-#include <fw/gui/Shortcut.h>
+#include <fw/gui/EventManager.h>
 #include <fw/gui/View.h>
 
 namespace fw
