@@ -30,7 +30,7 @@ REGISTER
         .extends<fw::View>();
 }
 
-bool GraphNodeView::draw()
+bool GraphNodeView::on_draw()
 {
     bool            changed          = false;
     VirtualMachine& virtual_machine  = VirtualMachine::get_instance();
@@ -38,7 +38,7 @@ bool GraphNodeView::draw()
     Node*           new_node         = nullptr;
     Settings&       settings         = Settings::get_instance();
     GraphNode*      graph            = get_graph_node();
-    fw::ImVec2 origin           = ImGui::GetCursorScreenPos();
+    ImVec2          origin           = ImGui::GetCursorScreenPos();
     const std::vector<Node*>& node_registry    = graph->get_node_registry();
 
 	const PropertyConnector* dragged_property_conn = PropertyConnector::get_gragged();
@@ -46,7 +46,7 @@ bool GraphNodeView::draw()
     const NodeConnector*   dragged_node_conn   = NodeConnector::get_gragged();
     const NodeConnector*   hovered_node_conn   = NodeConnector::get_hovered();
     
-    ImGui::SetCursorPos(fw::ImVec2(0,0));
+    ImGui::SetCursorPos(ImVec2(0,0));
 
     /*
     * Function to draw an invocable menu (operators or functions)
@@ -157,13 +157,13 @@ bool GraphNodeView::draw()
                 float lineWidth = std::min(settings.ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
-                fw::ImVec2 start = each_view->get_screen_position();
+                ImVec2 start = each_view->get_screen_position();
                 start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
                 start.y += settings.ui_node_connector_height * 0.25f;
 
-                fw::ImVec2 end = each_successor_view->get_screen_position();
+                ImVec2 end = each_successor_view->get_screen_position();
                 end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
@@ -184,8 +184,8 @@ bool GraphNodeView::draw()
         // Draw temporary Property connection
         if ( dragged_property_conn )
         {
-            fw::ImVec2 src = dragged_property_conn->get_pos();
-            fw::ImVec2 dst = hovered_property_conn ? hovered_property_conn->get_pos() : ImGui::GetMousePos();
+            ImVec2 src = dragged_property_conn->get_pos();
+            ImVec2 dst = hovered_property_conn ? hovered_property_conn->get_pos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(
                     src, dst,
                     get_color(ColorType_BorderHighlights),
@@ -196,8 +196,8 @@ bool GraphNodeView::draw()
         // Draw temporary Node connection
         if ( dragged_node_conn )
         {
-            fw::ImVec2 src = dragged_node_conn->get_pos();
-            fw::ImVec2 dst = hovered_node_conn ? hovered_node_conn->get_pos() : ImGui::GetMousePos();
+            ImVec2 src = dragged_node_conn->get_pos();
+            ImVec2 dst = hovered_node_conn ? hovered_node_conn->get_pos() : ImGui::GetMousePos();
             fw::ImGuiEx::DrawVerticalWire(
                 ImGui::GetWindowDrawList(),
                 src, dst,
@@ -250,8 +250,8 @@ bool GraphNodeView::draw()
 
                         if ( src_property_view && dst_property_view )
                         {
-                            fw::ImVec2 src_pos = src_property_view->m_out->get_pos();
-                            fw::ImVec2 dst_pos = dst_property_view->m_in->get_pos();
+                            ImVec2 src_pos = src_property_view->m_out->get_pos();
+                            ImVec2 dst_pos = dst_property_view->m_in->get_pos();
 
                             // do not draw long lines between a variable value
                             bool skip_wire = false;
@@ -259,7 +259,7 @@ bool GraphNodeView::draw()
                                     ((dst_property->get_type().is_ptr() && dst_owner->is<InstructionNode>() && src_owner->is<VariableNode>()) ||
                                      (src_owner->is<VariableNode>() && src_property == src_owner->props()->get(k_value_property_name))))
                             {
-                                fw::ImVec2 delta = src_pos - dst_pos;
+                                ImVec2 delta = src_pos - dst_pos;
                                 if( abs(delta.x) > 100.0f || abs(delta.y) > 100.0f )
                                 {
                                     skip_wire = true;
@@ -308,7 +308,7 @@ bool GraphNodeView::draw()
             if (each_node_view->is_visible())
             {
                 each_node_view->enable_edition(enable_edition);
-                changed |= each_node_view->draw();
+                changed |= each_node_view->on_draw();
 
                 if( virtual_machine.is_debugging() && virtual_machine.is_next_node(each_node_view->get_owner() ) )
                 {
@@ -338,23 +338,23 @@ bool GraphNodeView::draw()
         const Node* node = virtual_machine.get_next_node();
         if( auto view = node->get<NodeView>())
         {
-            fw::ImVec2 vm_cursor_pos = view->get_screen_position();
+            ImVec2 vm_cursor_pos = view->get_screen_position();
             vm_cursor_pos += view->get_property_view(node->get_this_property())->relative_pos();
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
             auto draw_list = ImGui::GetWindowDrawList();
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
-            fw::ImVec2 linePos = vm_cursor_pos + fw::ImVec2(- 10.0f, 0.5f);
-            linePos += fw::ImVec2(sin(float(App::get_instance().elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            ImVec2 linePos = vm_cursor_pos + ImVec2(- 10.0f, 0.5f);
+            linePos += ImVec2(sin(float(App::get_instance().elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255,255,255);
 
             // arrow ->
-            draw_list->AddLine( linePos - fw::ImVec2(1.f, 0.0f), linePos - fw::ImVec2(size, 0.0f), color, width);
-            draw_list->AddLine( linePos, linePos - fw::ImVec2(size * 0.5f, -size * 0.5f), color, width);
-            draw_list->AddLine( linePos, linePos - fw::ImVec2(size * 0.5f, size * 0.5f) , color, width);
+            draw_list->AddLine( linePos - ImVec2(1.f, 0.0f), linePos - ImVec2(size, 0.0f), color, width);
+            draw_list->AddLine( linePos, linePos - ImVec2(size * 0.5f, -size * 0.5f), color, width);
+            draw_list->AddLine( linePos, linePos - ImVec2(size * 0.5f, size * 0.5f) , color, width);
         }
     }
 
@@ -384,7 +384,7 @@ bool GraphNodeView::draw()
 	if ( enable_edition && !isAnyNodeHovered && ImGui::BeginPopupContextWindow(k_context_menu_popup) )
 	{
 		// Title :
-        fw::ImGuiEx::ColoredShadowedText( fw::ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
+        fw::ImGuiEx::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
 		ImGui::Separator();
 
 		if ( !dragged_node_conn )
@@ -704,7 +704,7 @@ void GraphNodeView::frame_views(std::vector<NodeView*>& _views) {
     ImRect rect = NodeView::get_rect(_views);
 
     // align graph to center
-    fw::ImVec2 delta = m_visible_rect.GetSize() * 0.5f - rect.GetCenter();
+    ImVec2 delta = m_visible_rect.GetSize() * 0.5f - rect.GetCenter();
 
     // if there is x overflow, align left
     if (m_visible_rect.GetSize().x <= rect.GetSize().x)
@@ -724,7 +724,7 @@ void GraphNodeView::frame_views(std::vector<NodeView*>& _views) {
     translate_all(delta , all_views);
 }
 
-void GraphNodeView::translate_all(fw::ImVec2 delta, const std::vector<NodeView*>& _views)
+void GraphNodeView::translate_all(ImVec2 delta, const std::vector<NodeView*>& _views)
 {
     for (auto node_view : _views )
     {

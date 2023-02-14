@@ -18,11 +18,6 @@ namespace fw
     typedef unsigned long      u32_t;
     typedef unsigned int       u16_t;
     typedef unsigned short int u8_t;
-
-    // gui related
-    typedef ImVec2 ImVec2;
-    typedef ImVec4 ImVec4;
-    typedef ImColor Color;
 }
 
 

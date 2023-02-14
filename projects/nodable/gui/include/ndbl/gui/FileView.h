@@ -41,7 +41,7 @@ namespace ndbl
 		~FileView() override = default;
 
 		void                           init();
-		bool                           draw() override;
+		bool on_draw() override;
 		bool                           text_has_changed() const { return m_text_has_changed; }
 		void                           set_text(const std::string&);
 		std::string                    get_selected_text()const;
@@ -57,7 +57,7 @@ namespace ndbl
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           clear_overlay();
-        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  fw::ImVec2 position);
+        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  ImVec2 position);
 
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;

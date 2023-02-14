@@ -58,8 +58,8 @@ void ViewConstraint::apply(float _dt)
             if(!first_target->is_pinned() && first_target->is_visible())
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers, true);
-                fw::ImVec2 newPos(bbox.GetCenter()
-                            - fw::ImVec2(bbox.GetSize().x * 0.5f
+                ImVec2 newPos(bbox.GetCenter()
+                            - ImVec2(bbox.GetSize().x * 0.5f
                             + settings.ui_node_spacing
                             + first_target->get_rect().GetSize().x * 0.5f, 0 ));
                 first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed);
@@ -73,7 +73,7 @@ void ViewConstraint::apply(float _dt)
             if(!first_target->is_pinned() && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers);
-                fw::ImVec2 newPos(bbox.GetCenter() + fw::ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings.ui_node_spacing));
+                ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings.ui_node_spacing));
                 newPos.y -= settings.ui_node_spacing + first_target->get_size().y / 2.0f;
                 newPos.x += settings.ui_node_spacing + first_target->get_size().x / 2.0f;
 
@@ -131,7 +131,7 @@ void ViewConstraint::apply(float _dt)
 
                     if(m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop ) y_offset *= -1.0f;
 
-                    fw::ImVec2 new_pos;
+                    ImVec2 new_pos;
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
                     new_pos.y = first_driver->get_position().y + y_offset;
 
@@ -153,8 +153,8 @@ void ViewConstraint::apply(float _dt)
                 // compute
                 auto drivers_rect = NodeView::get_rect(clean_drivers, false, true);
                 auto target_rect  = first_target->get_rect(true, true);
-                fw::ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
-                fw::ImVec2 new_pos;
+                ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
+                ImVec2 new_pos;
                 new_pos.x = drivers_rect.GetCenter().x;
                 new_pos.y = first_target->get_position().y + target_driver_offset.y + settings.ui_node_spacing;
 
@@ -169,8 +169,8 @@ void ViewConstraint::apply(float _dt)
             if (!first_target->is_pinned() && first_target->is_visible() )
             {
                 // compute
-                fw::ImVec2 new_pos = clean_drivers[0]->get_position();
-                new_pos     += fw::ImVec2(0.0f, clean_drivers[0]->get_size().y);
+                ImVec2 new_pos = clean_drivers[0]->get_position();
+                new_pos     += ImVec2(0.0f, clean_drivers[0]->get_size().y);
                 new_pos.y   += settings.ui_node_spacing + first_target->get_size().y;
 
                 // apply

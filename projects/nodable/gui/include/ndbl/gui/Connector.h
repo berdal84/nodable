@@ -14,7 +14,7 @@ namespace ndbl {
     class Connector
     {
     public:
-        virtual fw::ImVec2 get_pos()const = 0;
+        virtual ImVec2   get_pos()const = 0;
         virtual bool     share_parent_with(const T *) const = 0;
 
         static void      start_drag(const T* connector) { if(T::s_dragged == nullptr) T::s_dragged = connector; }

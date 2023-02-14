@@ -26,11 +26,11 @@ namespace ndbl
     class GraphNodeView: public fw::View, public Component
     {
 	public:
-	    GraphNodeView(): fw::View() { m_new_node_desired_position = fw::ImVec2(-1, -1); };
+	    GraphNodeView(): fw::View() { m_new_node_desired_position = ImVec2(-1, -1); };
 		~GraphNodeView() override = default;
 
         void        set_owner(Node *) override;
-        bool        draw() override ;
+        bool on_draw() override ;
         /** Update view (once per frame)*/
         bool        update() override;
         /** Update view given a certain delta time */
@@ -46,14 +46,14 @@ namespace ndbl
                         const fw::func_type *_signature);
         void        frame_all_node_views();
         void        frame_selected_node_views();
-        void        translate_all(fw::ImVec2 /* delta */, const std::vector<NodeView*>&);
+        void        translate_all(ImVec2 /* delta */, const std::vector<NodeView*>&);
     private:
         void        frame_views( std::vector<NodeView*>&);
         GraphNode*  get_graph_node() const;
 
         std::vector<ViewConstraint>                  m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
-        fw::ImVec2 m_new_node_desired_position;
+        ImVec2                                       m_new_node_desired_position;
         static constexpr const char* k_context_menu_popup = "GraphNodeView.ContextMenu";
         static constexpr const char* k_operator_menu_label = "Operators";
         static constexpr const char* k_function_menu_label = "Functions";

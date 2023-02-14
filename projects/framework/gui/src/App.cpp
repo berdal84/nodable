@@ -56,7 +56,7 @@ std::string App::to_absolute_asset_path(const char* _relative_path) const
 
 void App::draw()
 {
-    m_view->draw();
+    m_view->on_draw();
 }
 
 u64_t App::elapsed_time() const

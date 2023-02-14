@@ -44,10 +44,10 @@ namespace ndbl {
 
         Property*          get_property()const;
         fw::type           get_property_type()const;
-        fw::ImVec2 get_pos()const override;
+        ImVec2             get_pos()const override;
         bool               share_parent_with(const PropertyConnector *other)const override;
         bool               has_node_connected() const;
-        static void        draw(const PropertyConnector *_connector, float _radius, const fw::Color &_color, const fw::Color &_borderColor, const fw::Color &_hoverColor, bool _editable);
+        static void        draw(const PropertyConnector *_connector, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor, bool _editable);
         static void        dropped(const PropertyConnector *_left, const PropertyConnector *_right);
 
         PropertyView* m_propertyView;

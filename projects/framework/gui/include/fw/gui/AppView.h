@@ -65,9 +65,9 @@ namespace fw
             std::string           app_window_label         = "Framework AppView";
             float                 min_frame_time           = 1.0f / 60.0f;            // limit to 60fps
             ImColor               background_color         = ImColor(0.f,0.f,0.f);
-            fw::ImVec4 button_activeColor       = ImVec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
-            fw::ImVec4 button_hoveredColor      = ImVec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
-            fw::ImVec4 button_color             = ImVec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
+            ImVec4                button_activeColor       = ImVec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
+            ImVec4                button_hoveredColor      = ImVec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
+            ImVec4                button_color             = ImVec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
             const char*           splashscreen_window_label= "##Splashscreen";
             bool                  show_splashscreen        = true;
             bool                  show_imgui_demo          = false;
@@ -77,7 +77,7 @@ namespace fw
             float                 dockspace_right_ratio    = 0.3f;
             size_t                log_tooltip_max_count    = 25;
             std::array<
-                fw::ImVec4,
+                ImVec4,
                 fw::Log::Verbosity_COUNT> log_color         {
                             ImVec4(0.5f, 0.0f, 0.0f, 1.0f), // red
                             ImVec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
@@ -172,7 +172,7 @@ namespace fw
         friend App;
         bool               init();                          // called by fw::App automatically
         void               handle_events();                 //              ...
-		bool               draw() override;                 //              ...
+		bool on_draw() override;                 //              ...
         bool shutdown();                      //              ...
     protected:
         virtual bool       on_draw(bool& redock_all) = 0;   // implement here your app ui using ImGui

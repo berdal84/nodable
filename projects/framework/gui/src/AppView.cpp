@@ -175,7 +175,7 @@ ImFont* AppView::load_font(const FontConf &_config)
     return font;
 }
 
-bool AppView::draw()
+bool AppView::on_draw()
 {
     bool is_main_window_open = true;
     bool redock_all          = false;
@@ -480,8 +480,8 @@ void AppView::draw_splashcreen_window()
         ImGui::OpenPopup(m_conf.splashscreen_window_label);
     }
 
-    ImGui::SetNextWindowSizeConstraints(fw::ImVec2(550, 300), fw::ImVec2(550, 50000));
-    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, fw::ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(550, 300), ImVec2(550, 50000));
+    ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, ImVec2(0.5f, 0.5f));
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 

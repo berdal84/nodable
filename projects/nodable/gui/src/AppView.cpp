@@ -461,7 +461,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
             ImGui::PushFont(get_font(fw::FontSlot_ToolBtn));
             ImGui::NewLine();
 
-            fw::ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
+            ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
                 m_app->event_manager().push_event(fw::EventType_new_file_triggered);
             ImGui::SameLine();
@@ -480,7 +480,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
             examples.emplace_back("For Loop              ", "examples/for-loop_count.cpp");
 
             int i = 0;
-            fw::ImVec2 small_btn_size(btn_size.x, btn_size.y * 0.66f);
+            ImVec2 small_btn_size(btn_size.x, btn_size.y * 0.66f);
 
             for (auto [text, path]: examples) {
                 std::string label;
@@ -497,7 +497,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
 
             ImGui::NewLine();
             ImGui::Separator();
-            ImGui::TextColored(fw::ImVec4(0, 0, 0, 0.30f), "%s", BuildInfo::version);
+            ImGui::TextColored(ImVec4(0, 0, 0, 0.30f), "%s", BuildInfo::version);
             ImGui::Unindent();
         }
         ImGui::EndChild();
@@ -515,7 +515,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, fw::ImVec2(0, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool is_window_open = true;
@@ -537,7 +537,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
 
         // File View in the middle
         View *eachFileView = file->get_view();
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, fw::ImVec4(0, 0, 0, 0.35f));
+        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
         ImGui::PushFont(get_font(fw::FontSlot_Code));
         eachFileView->draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
         ImGui::PopFont();
@@ -556,9 +556,9 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
 }
 
 void AppView::draw_settings_window() {
-    if (ImGui::Begin(Settings::get_instance().ui_settings_window_label)) {
-        Settings &settings = Settings::get_instance();
-
+    Settings &settings = Settings::get_instance();
+    if (ImGui::Begin(settings.ui_settings_window_label))
+    {
         ImGui::Text("Nodable Settings:");
         ImGui::Indent();
 
@@ -613,9 +613,9 @@ void AppView::on_draw_splashscreen()
 
     // Image
     ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-    ImGui::Image((void *) (intptr_t) m_logo->gl_handler, fw::ImVec2((float) m_logo->width, (float) m_logo->height));
+    ImGui::Image((void *) (intptr_t) m_logo->gl_handler, ImVec2((float) m_logo->width, (float) m_logo->height));
 
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, fw::ImVec2(50.0f, 30.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
 
     // disclaimer
     ImGui::TextWrapped(
@@ -654,7 +654,7 @@ void AppView::draw_history_bar(History *currentFileHistory) {
     float avail_width = ImGui::GetContentRegionAvail().x;
     float btn_width = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, fw::ImVec2(btn_spacing, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(btn_spacing, 0));
 
     for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++) {
         ImGui::SameLine();
@@ -664,11 +664,11 @@ void AppView::draw_history_bar(History *currentFileHistory) {
         // Draw an highlighted button for the current history position
         if (cmd_pos == 0) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::Button(label.c_str(), fw::ImVec2(btn_width, btn_height));
+            ImGui::Button(label.c_str(), ImVec2(btn_width, btn_height));
             ImGui::PopStyleColor();
         } else // or a simple one for other history positions
         {
-            ImGui::Button(label.c_str(), fw::ImVec2(btn_width, btn_height));
+            ImGui::Button(label.c_str(), ImVec2(btn_width, btn_height));
         }
 
         // Hovered item
@@ -703,7 +703,7 @@ void AppView::draw_history_bar(History *currentFileHistory) {
 void AppView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, fw::ImVec2(5.0f, 5.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 5.0f));
     if (ImGui::Begin(Settings::get_instance().ui_toolbar_window_label, NULL, flags )) {
         ImGui::PopStyleVar();
 
@@ -714,7 +714,7 @@ void AppView::draw_toolbar_window() {
         bool running = vm.is_program_running();
         bool debugging = vm.is_debugging();
         bool stopped = vm.is_program_stopped();
-        fw::ImVec2 button_size  = settings.ui_toolButton_size;
+        ImVec2 button_size  = settings.ui_toolButton_size;
 
         ImGui::PushFont(get_font(fw::FontSlot_ToolBtn));
 

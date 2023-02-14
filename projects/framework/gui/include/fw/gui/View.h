@@ -8,8 +8,6 @@ namespace fw
     /**
      * View is an abstract class to provide a GUI for a specific Node.
      * View also implement a small static library to draw custom ImGui widgets/graphics.
-     *
-     * TODO: split "interface" and "ImGui implementation"
      */
 	class View
 	{
@@ -31,14 +29,17 @@ namespace fw
 		View();
 		virtual ~View() = default;
 
-		virtual bool         draw() = 0;
-		bool                 draw_as_child(const char* _name, const ImVec2 & _size, bool border = false, ImGuiWindowFlags flags = 0);
-		void                 set_color(ColorType, const ImVec4 * );
-		ImColor              get_color(ColorType) const;
-		inline void          set_visible(bool _visibility){ m_is_visible = _visibility;}
-        inline bool          is_visible()const {return m_is_visible;}
-		inline bool          is_hovered()const {return m_is_hovered;}
-		inline ImRect        get_visible_rect() const { return m_visible_rect; }
+		virtual bool  on_draw() = 0;                                 // custom draw to implement
+		bool          draw_as_child( const char* _name,
+                                     const ImVec2 & _size,
+                                     bool border = false,
+                                     ImGuiWindowFlags flags = 0);    // draw within a sized child
+		void          set_color(ColorType, const ImVec4* );          // set color of a given type
+		ImColor       get_color(ColorType) const;                    // get color of a given type
+		void          set_visible(bool _visibility);                 // show/hide view
+        bool          is_visible()const;                             // check if visible
+		bool          is_hovered()const;                             // check if hovered
+		ImRect        get_visible_rect()const;                       // get visible rectangle (relative to view local coordinates)
 
 	protected:
         bool     m_is_visible;
@@ -46,7 +47,7 @@ namespace fw
 		ImRect   m_visible_screen_rect;
 		bool     m_is_hovered;
     private:
-        std::map<ColorType, const ImVec4 *> m_colors;
+        std::array<const ImVec4*, ColorType_COUNT> m_colors;
 
 		REFLECT_BASE_CLASS()
     };

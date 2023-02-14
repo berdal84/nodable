@@ -46,7 +46,7 @@ FileView::FileView(File& _file)
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 std::vector<NodeView*> views;
                 Node::get_components<NodeView>( _graph->get_node_registry(), views );
-                graph_view->translate_all( fw::ImVec2(-10000.0f), views);
+                graph_view->translate_all( ImVec2(-10000.0f), views);
 
                 // frame all (delay to next frame via event system)
                 fw::EventManager::get_instance().push_event(EventType_frame_all_node_views);
@@ -63,7 +63,7 @@ void FileView::init()
 	m_text_editor.SetPalette(Settings::get_instance().ui_text_textEditorPalette);
 }
 
-bool FileView::draw()
+bool FileView::on_draw()
 {
     auto& settings = Settings::get_instance();
     const ImVec2 margin(10.0f, 0.0f);
