@@ -44,6 +44,5 @@ namespace fw
         EventManager    m_event_manager;
         FontManager     m_font_manager;
         bool            m_should_stop;
-        ghc::filesystem::path s_assets_folder_path;
     };
 }
