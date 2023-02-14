@@ -1,8 +1,7 @@
 #pragma once
-
-#include <vector>
 #include <observe/event.h>
-#include "fw/core/assertions.h"
+#include <vector>
+#include <fw/core/assertions.h>
 
 namespace ndbl
 {

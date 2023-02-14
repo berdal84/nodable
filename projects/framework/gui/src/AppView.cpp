@@ -8,7 +8,7 @@
 #include "fw/core/Log.h"
 #include "fw/core/System.h"
 #include <fw/gui/App.h>
-#include <fw/gui/Event.h>
+#include <fw/gui/EventManager.h>
 #include <fw/gui/TextureManager.h>
 
 using namespace fw;

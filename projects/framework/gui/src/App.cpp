@@ -1,9 +1,9 @@
 #include <fw/gui/App.h>
 
-#include <fw/core/System.h>
 #include <algorithm>
+#include <fw/core/System.h>
 #include <fw/gui/AppView.h>
-#include <fw/gui/Event.h>
+#include <fw/gui/EventManager.h>
 
 using namespace fw;
 

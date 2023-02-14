@@ -6,10 +6,10 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include <fw/gui/Event.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <imgui/imgui_internal.h>
+#include <fw/gui/EventManager.h>
 #include <fw/gui/types.h>
+#include <imgui/imgui_internal.h>
 
 namespace fw
 {

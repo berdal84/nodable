@@ -1,9 +1,9 @@
-#include <fw/gui/Event.h>
-#include <algorithm>
-#include <cmath>
-#include <fw/gui/ImGuiEx.h>
 #include "fw/core/Log.h"
 #include "fw/core/assertions.h"
+#include <algorithm>
+#include <cmath>
+#include <fw/gui/EventManager.h>
+#include <fw/gui/ImGuiEx.h>
 
 using namespace fw;
 

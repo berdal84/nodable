@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <fw/core/System.h>
 #include <fw/core/assertions.h>
-#include <fw/gui/Event.h>
+#include <fw/gui/EventManager.h>
 
 #include <ndbl/gui/AppView.h>
 #include <ndbl/gui/Condition.h>

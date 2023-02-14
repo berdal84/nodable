@@ -1,12 +1,12 @@
 #pragma once
 
+#include <ImGuiColorTextEdit/TextEditor.h>// for coordinates
 #include <SDL.h>
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
-#include <string>
-#include <algorithm>
 #include <observe/event.h>
-#include <ImGuiColorTextEdit/TextEditor.h> // for coordinates
+#include <string>
 
 #include <fw/core/reflection/reflection>
 #include "fw/core/Log.h"

@@ -10,7 +10,7 @@ add_library(
         ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl.cpp     #          //
         src/App.cpp
         src/AppView.cpp
-        src/Event.cpp
+        src/EventManager.cpp
         src/FontManager.cpp
         src/ImGuiEx.cpp
         src/Shortcut.cpp

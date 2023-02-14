@@ -1,5 +1,5 @@
 #pragma once
-#include <fw/gui/Event.h>
+#include <fw/gui/EventManager.h>
 
 namespace ndbl
 {
