@@ -7,7 +7,7 @@
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include <fw/core/reflection/reflection>
 
 #include <ndbl/gui/Command.h>

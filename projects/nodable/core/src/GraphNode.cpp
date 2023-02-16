@@ -3,7 +3,7 @@
 #include <algorithm>    // std::find_if
 
 #include "fw/core/assertions.h"
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
 #include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/DirectedEdge.h>

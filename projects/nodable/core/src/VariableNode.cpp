@@ -1,6 +1,6 @@
 #include <ndbl/core/VariableNode.h>
 
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include <ndbl/core/Property.h>
 
 using namespace ndbl;

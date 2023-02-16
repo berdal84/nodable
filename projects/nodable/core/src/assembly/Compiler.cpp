@@ -4,7 +4,7 @@
 #include <exception>
 #include <iostream>
 
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include "fw/core/string.h"
 #include "fw/core/assertions.h"
 #include "fw/core/math.h"

@@ -5,7 +5,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <nativefiledialog-extended/src/include/nfd.h>
 
-#include <fw/core/Log.h>
+#include <fw/core/log.h>
 #include <fw/core/system.h>
 #include <fw/gui/App.h>
 #include <fw/gui/EventManager.h>
@@ -426,9 +426,9 @@ void AppView::draw_status_window() const
 {
     if (ImGui::Begin(k_status_window_name))
     {
-        if (!fw::Log::get_messages().empty())
+        if (!fw::log::get_messages().empty())
         {
-            const std::deque<fw::Log::Message> &messages = fw::Log::get_messages();
+            const std::deque<fw::log::Message> &messages = fw::log::get_messages();
             auto it = messages.rend() - std::min(m_conf.log_tooltip_max_count, messages.size());
             while (it != messages.rend())
             {

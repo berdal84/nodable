@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Log.h" // to flush before to assert/throw
+#include "log.h" // to flush before to assert/throw
 
 // Assertion is stopping the program when expression is false
 #ifndef FW_ASSERT_

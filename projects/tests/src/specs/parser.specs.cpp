@@ -1,6 +1,6 @@
 #include "../fixtures/core.h"
 #include <gtest/gtest.h>
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
 using namespace ndbl;
 
@@ -542,7 +542,7 @@ TEST_F(Parser, parse_serialize_empty_program_with_space )
 
 TEST_F(Parser, parse_serialize_single_line_program_with_a_comment_before )
 {
-    fw::Log::set_verbosity("Parser", fw::Log::Verbosity_Verbose);
+    fw::log::set_verbosity("Parser", fw::log::Verbosity_Verbose);
     std::string program =
             "// comment\n"
             "int a = 42;";

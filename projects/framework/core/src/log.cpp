@@ -1,4 +1,4 @@
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
 #include <cstdarg> // va_list, va_start, va_end
 #include <cstdio>  // vfprintf
@@ -9,32 +9,32 @@
 
 using namespace fw;
 
-std::deque<Log::Message> Log::s_logs;
-Log::Verbosity           Log::s_verbosity = Verbosity_DEFAULT;
+std::deque<log::Message> log::s_logs;
+log::Verbosity           log::s_verbosity = Verbosity_DEFAULT;
 
-std::map<std::string, Log::Verbosity>& Log::get_verbosity_by_category()
+std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()
 {
     // use singleton pattern instead of static member to avoid static code issues
-    static std::map<std::string, Log::Verbosity> verbosity_by_category;
+    static std::map<std::string, log::Verbosity> verbosity_by_category;
     return verbosity_by_category;
 }
 
-void Log::set_verbosity(const std::string& _category, Verbosity _level)
+void log::set_verbosity(const std::string& _category, Verbosity _level)
 {
    get_verbosity_by_category().insert_or_assign(_category, _level );
 }
 
-void Log::set_verbosity(Verbosity _level)
+void log::set_verbosity(Verbosity _level)
 {
     s_verbosity = _level;
     get_verbosity_by_category().clear(); // ensure no overrides remains
 }
-Log::Verbosity Log::get_verbosity()
+log::Verbosity log::get_verbosity()
 {
     return s_verbosity;
 }
 
-Log::Verbosity Log::get_verbosity(const std::string& _category)
+log::Verbosity log::get_verbosity(const std::string& _category)
 {
     auto verbosity_by_category = get_verbosity_by_category();
     auto pair = verbosity_by_category.find(_category);
@@ -45,7 +45,7 @@ Log::Verbosity Log::get_verbosity(const std::string& _category)
     return s_verbosity;
 }
 
-void Log::push_message(Verbosity _verbosity, const char* _category, const char* _format, ...)
+void log::push_message(Verbosity _verbosity, const char* _category, const char* _format, ...)
 {
 	// Print log only if verbosity level allows it
 
@@ -61,8 +61,8 @@ void Log::push_message(Verbosity _verbosity, const char* _category, const char* 
         // select a color
         switch (_verbosity)
         {
-            case Log::Verbosity_Error:   std::cout << RED;      break;
-            case Log::Verbosity_Warning: std::cout << MAGENTA;  break;
+            case log::Verbosity_Error:   std::cout << RED;      break;
+            case log::Verbosity_Warning: std::cout << MAGENTA;  break;
             default:;
         }
 
@@ -88,7 +88,7 @@ void Log::push_message(Verbosity _verbosity, const char* _category, const char* 
 
 }
 
-std::string Log::to_string(Log::Verbosity _verbosity)
+std::string log::to_string(log::Verbosity _verbosity)
 {
     switch (_verbosity)
     {
@@ -99,12 +99,12 @@ std::string Log::to_string(Log::Verbosity _verbosity)
     }
 }
 
-void Log::flush()
+void log::flush()
 {
     std::cout << std::flush;
 }
 
-const std::deque<Log::Message>& Log::get_messages()
+const std::deque<log::Message>& log::get_messages()
 {
     return s_logs;
 }
@@ -122,7 +122,7 @@ static std::string time_point_to_string(const std::chrono::system_clock::time_po
     return result;
 }
 
-std::string Log::Message::to_full_string()const
+std::string log::Message::to_full_string()const
 {
     std::string result;
     result.reserve(50);
@@ -130,7 +130,7 @@ std::string Log::Message::to_full_string()const
     result.push_back('[');
     result += time_point_to_string(date);
     result.push_back('|');
-    result.append( Log::to_string(verbosity) );
+    result.append(log::to_string(verbosity) );
     result.push_back('|');
     result.append( category );
     result.push_back(']');
@@ -140,13 +140,13 @@ std::string Log::Message::to_full_string()const
     return result;
 }
 
-std::string Log::Message::to_string()const
+std::string log::Message::to_string()const
 {
     std::string result;
     result.reserve(50);
 
     result.push_back('[');
-    result.append( Log::to_string(verbosity) );
+    result.append(log::to_string(verbosity) );
     result.push_back('|');
     result.append( category );
     result.push_back(']');

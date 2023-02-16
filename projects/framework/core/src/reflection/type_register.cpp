@@ -1,6 +1,6 @@
 #include <fw/core/reflection/type_register.h>
 #include <fw/core/reflection/type.h>
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include "fw/core/assertions.h"
 
 using namespace fw;

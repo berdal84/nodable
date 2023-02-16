@@ -9,7 +9,7 @@
 #include <string>
 
 #include <fw/core/reflection/reflection>
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
 #include <ndbl/gui/App.h>
 #include <ndbl/gui/History.h>

@@ -31,7 +31,7 @@ CLI::CLI()
                  R"(Nodable Copyright (C) 2023 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
                  R"(This is free software, and you are welcome to redistribute it under certain conditions.)"
             << std::endl << R"(Feel lost? type "help".)" << std::endl;
-    fw::Log::set_verbosity(fw::Log::Verbosity_Warning);
+    fw::log::set_verbosity(fw::log::Verbosity_Warning);
 }
 
 CLI::~CLI()

@@ -1,6 +1,6 @@
 #include <ndbl/core/VirtualMachine.h>
 
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include "fw/core/string.h"
 
 #include <ndbl/core/VariableNode.h>

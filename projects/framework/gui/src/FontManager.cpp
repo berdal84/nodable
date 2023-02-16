@@ -1,5 +1,5 @@
 #include <fw/gui/FontManager.h>
-#include <fw/core/Log.h>
+#include <fw/core/log.h>
 #include <imgui/imgui_internal.h>
 #include <fw/core/assertions.h>
 #include <fw/gui/App.h>

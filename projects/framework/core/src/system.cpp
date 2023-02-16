@@ -4,7 +4,7 @@
 #include <cstdlib>                 // for ::system
 #include <thread>                  // for std::thread
 
-#include <fw/core/Log.h>
+#include <fw/core/log.h>
 
 using namespace fw;
 

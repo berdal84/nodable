@@ -1,7 +1,7 @@
 #include <ndbl/cli/CLI.h>
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
-using Verbosity = fw::Log::Verbosity;
+using Verbosity = fw::log::Verbosity;
 
 int main(int argc, char *argv[])
 {

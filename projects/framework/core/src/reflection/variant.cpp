@@ -1,5 +1,5 @@
 #include <fw/core/reflection/variant.h>
-#include "fw/core/Log.h" // for LOG_DEBUG(...)
+#include "fw/core/log.h" // for LOG_DEBUG(...)
 #include "fw/core/types.h"
 #include "fw/core/string.h"
 

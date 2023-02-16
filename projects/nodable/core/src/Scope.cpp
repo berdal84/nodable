@@ -2,7 +2,7 @@
 
 #include <cstring>
 #include <algorithm> // for std::find_if
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
 #include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/ForLoopNode.h>

@@ -14,7 +14,6 @@
 #include <ndbl/gui/NodeConnector.h>
 #include <ndbl/gui/NodeView.h>
 #include <ndbl/gui/PropertyConnector.h>
-#include <ndbl/gui/build_info.h>// file generated (aka configured) from build_info.h.in
 #include <ndbl/gui/commands/Cmd_ConnectEdge.h>
 #include <ndbl/gui/commands/Cmd_DisconnectEdge.h>
 #include <ndbl/gui/commands/Cmd_Group.h>

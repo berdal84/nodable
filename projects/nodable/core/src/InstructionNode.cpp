@@ -1,4 +1,4 @@
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
 #include <ndbl/core/InstructionNode.h>
 #include <ndbl/core/Property.h>

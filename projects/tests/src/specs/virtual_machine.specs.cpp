@@ -2,7 +2,7 @@
 #include <gtest/gtest.h>
 
 #include "../fixtures/core.h"
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 
 using namespace ndbl;
 typedef ::testing::Core Virtual_Machine;

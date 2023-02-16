@@ -10,7 +10,7 @@
 #include <utility>
 #include <vector>
 
-#include <fw/core/Log.h>
+#include <fw/core/log.h>
 #include <fw/core/types.h>
 
 namespace fw

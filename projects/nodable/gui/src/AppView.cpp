@@ -1,6 +1,6 @@
 #include <ndbl/gui/AppView.h>
 
-#include <fw/core/Log.h>
+#include <fw/core/log.h>
 #include <fw/core/system.h>
 
 #include <ndbl/gui/Event.h>
@@ -173,16 +173,16 @@ bool AppView::on_draw(bool& redock_all) {
 
         if (ImGui::BeginMenu("Developer")) {
             if (ImGui::BeginMenu("Verbosity")) {
-                auto menu_item_verbosity = [](fw::Log::Verbosity _verbosity, const char *_label) {
-                    if (ImGui::MenuItem(_label, "", fw::Log::get_verbosity() == _verbosity)) {
-                        fw::Log::set_verbosity(_verbosity);
+                auto menu_item_verbosity = [](fw::log::Verbosity _verbosity, const char *_label) {
+                    if (ImGui::MenuItem(_label, "", fw::log::get_verbosity() == _verbosity)) {
+                        fw::log::set_verbosity(_verbosity);
                     }
                 };
 
-                menu_item_verbosity(fw::Log::Verbosity_Verbose, "Verbose");
-                menu_item_verbosity(fw::Log::Verbosity_Message, "Message (default)");
-                menu_item_verbosity(fw::Log::Verbosity_Warning, "Warning");
-                menu_item_verbosity(fw::Log::Verbosity_Error, "Error");
+                menu_item_verbosity(fw::log::Verbosity_Verbose, "Verbose");
+                menu_item_verbosity(fw::log::Verbosity_Message, "Message (default)");
+                menu_item_verbosity(fw::log::Verbosity_Warning, "Warning");
+                menu_item_verbosity(fw::log::Verbosity_Error, "Error");
                 ImGui::EndMenu();
             }
 

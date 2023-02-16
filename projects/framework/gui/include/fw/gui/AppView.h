@@ -77,7 +77,7 @@ namespace fw
             size_t                log_tooltip_max_count    = 25;
             std::array<
                 ImVec4,
-                fw::Log::Verbosity_COUNT> log_color         {
+                fw::log::Verbosity_COUNT> log_color         {
                             ImVec4(0.5f, 0.0f, 0.0f, 1.0f), // red
                             ImVec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
                             ImVec4(0.5f, 0.5f, 0.5f, 1.0f), // grey

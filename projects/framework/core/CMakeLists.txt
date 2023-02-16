@@ -6,7 +6,7 @@ ndbl_log_title_header()
 add_library(
         framework-core
         STATIC
-            src/Log.cpp
+        src/log.cpp
         src/string.cpp
         src/system.cpp
             src/reflection/func_type.cpp

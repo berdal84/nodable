@@ -1,4 +1,4 @@
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include <fw/core/reflection/func_type.h>
 
 #include <ndbl/core/InvokableComponent.h>

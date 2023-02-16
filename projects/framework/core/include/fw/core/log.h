@@ -29,11 +29,11 @@
 #define LOG_ENABLE true
 
 #if LOG_ENABLE
-#   define LOG_ERROR(...)   fw::Log::push_message( fw::Log::Verbosity_Error  , __VA_ARGS__ ); fw::Log::flush();
-#   define LOG_WARNING(...) fw::Log::push_message( fw::Log::Verbosity_Warning, __VA_ARGS__ );
-#   define LOG_MESSAGE(...) fw::Log::push_message( fw::Log::Verbosity_Message, __VA_ARGS__ );
-#   define LOG_VERBOSE(...) fw::Log::push_message( fw::Log::Verbosity_Verbose, __VA_ARGS__ );
-#   define LOG_FLUSH()      fw::Log::flush();
+#   define LOG_ERROR(...)   fw::log::push_message( fw::log::Verbosity_Error  , __VA_ARGS__ ); fw::log::flush();
+#   define LOG_WARNING(...) fw::log::push_message( fw::log::Verbosity_Warning, __VA_ARGS__ );
+#   define LOG_MESSAGE(...) fw::log::push_message( fw::log::Verbosity_Message, __VA_ARGS__ );
+#   define LOG_VERBOSE(...) fw::log::push_message( fw::log::Verbosity_Verbose, __VA_ARGS__ );
+#   define LOG_FLUSH()      fw::log::flush();
 #else
 #   define LOG_ERROR(...)
 #   define LOG_WARNING(...)
@@ -44,7 +44,7 @@
 
 namespace fw {
 
-	class Log
+	class log
     {
     public:
 

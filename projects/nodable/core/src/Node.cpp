@@ -1,7 +1,7 @@
 #include <algorithm>    // for std::find
 #include <utility>
 #include "fw/core/types.h"
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include <fw/core/reflection/func_type.h>
 #include <fw/core/reflection/invokable.h>
 

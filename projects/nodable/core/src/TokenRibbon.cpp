@@ -1,6 +1,6 @@
 #include <ndbl/core/TokenRibbon.h>
 
-#include "fw/core/Log.h"
+#include "fw/core/log.h"
 #include "fw/core/assertions.h"
 
 #include <ndbl/core/Token_t.h>

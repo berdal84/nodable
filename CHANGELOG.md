@@ -1,5 +1,5 @@
 
-Nodable Change Log :
+Nodable Change log :
 ====================
 
 Author: Bérenger Dalle-Cort, 2017-2023

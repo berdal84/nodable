@@ -1,7 +1,7 @@
 #include "ndbl/gui/App.h"
 #include "ndbl/gui/AppView.h"
 
-using Verbosity = fw::Log::Verbosity;
+using Verbosity = fw::log::Verbosity;
 
 int main(int argc, char *argv[])
 {
