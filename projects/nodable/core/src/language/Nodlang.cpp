@@ -14,7 +14,7 @@
 #include <sstream>
 #include <string>
 
-#include <fw/core/String.h>
+#include <fw/core/string.h>
 #include <fw/core/system.h>
 #include <fw/core/reflection/reflection>
 #include <fw/core/Log.h>

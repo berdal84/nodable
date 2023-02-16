@@ -4,7 +4,7 @@
 #include <gtest/gtest.h>
 #include <string>
 
-#include <fw/core/String.h>
+#include <fw/core/string.h>
 #include <fw/core/types.h>
 #include <ndbl/core/GraphNode.h>
 #include <ndbl/core/Node.h>

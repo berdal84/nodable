@@ -5,10 +5,7 @@
 
 namespace fw
 {
-    /**
-     * @class Static library to deal with string formatting
-     */
-    class String
+    class string // Static library to deal with string formatting
     {
     public:
         static std::string fmt_double(double);           // Format a double to a string (without trailing zeros).

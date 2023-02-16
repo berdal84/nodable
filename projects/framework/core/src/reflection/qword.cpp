@@ -1,6 +1,6 @@
 #include <fw/core/reflection/qword.h>
 #include <string>
-#include "fw/core/String.h"
+#include "fw/core/string.h"
 
 using namespace fw;
 
@@ -19,5 +19,5 @@ R_UNION_MEMBER_DEFINITION(qword, ptr)
 
 std::string qword::to_string(const qword& _value)
 {
-    return String::fmt_hex(_value.u64);
+    return string::fmt_hex(_value.u64);
 }

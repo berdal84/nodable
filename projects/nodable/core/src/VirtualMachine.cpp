@@ -1,7 +1,7 @@
 #include <ndbl/core/VirtualMachine.h>
 
 #include "fw/core/Log.h"
-#include "fw/core/String.h"
+#include "fw/core/string.h"
 
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/Scope.h>
@@ -152,7 +152,7 @@ bool VirtualMachine::_stepOver()
             }
             else if( t == type::get<void*>() )
             {
-                LOG_VERBOSE("VM", "pointed address: %s\n", String::fmt_ptr(qword.ptr).c_str() );
+                LOG_VERBOSE("VM", "pointed address: %s\n", string::fmt_ptr(qword.ptr).c_str() );
             }
             else
             {

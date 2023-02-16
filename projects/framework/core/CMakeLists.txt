@@ -7,7 +7,7 @@ add_library(
         framework-core
         STATIC
             src/Log.cpp
-            src/String.cpp
+        src/string.cpp
         src/system.cpp
             src/reflection/func_type.cpp
             src/reflection/qword.cpp

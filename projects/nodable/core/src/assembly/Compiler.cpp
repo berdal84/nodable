@@ -5,7 +5,7 @@
 #include <iostream>
 
 #include "fw/core/Log.h"
-#include "fw/core/String.h"
+#include "fw/core/string.h"
 #include "fw/core/assertions.h"
 #include "fw/core/math.h"
 #include <ndbl/core/ConditionalStructNode.h>

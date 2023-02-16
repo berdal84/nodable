@@ -4,13 +4,11 @@
 #include <string>
 #include <cmath>
 
-#include "fw/core/String.h"
+#include "fw/core/string.h"
 #include <fw/core/reflection/registration.h>
 #include "fw/core/types.h"
 
 using namespace ndbl;
-using namespace fw;
-using string = std::string;
 
 namespace // anonymous, accessible only in that file
 {
@@ -25,7 +23,7 @@ namespace // anonymous, accessible only in that file
     double _secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
     double _sin(double n) { return sin(n); }
     std::string _to_string(bool b) { return b ? "true" : "false"; }
-    std::string _to_string(double n) { return String::fmt_double(n); }
+    std::string _to_string(double n) { return fw::string::fmt_double(n); }
     std::string _to_string(i16_t i) { return std::to_string(i); }
     std::string _to_string(std::string s) { return s; }
     template<typename T, typename U>
@@ -37,7 +35,7 @@ namespace // anonymous, accessible only in that file
     template<typename T>
     T _plus(T a, T b){ return a + T(b); }
     template<>
-    std::string _plus(std::string left, double right) { return left + fw::String::fmt_double(right); }
+    std::string _plus(std::string left, double right) { return left + fw::string::fmt_double(right); }
     template<>
     std::string _plus(std::string left, i16_t right) { return left + std::to_string(right); }
     template<typename T, typename U>
@@ -76,14 +74,14 @@ namespace // anonymous, accessible only in that file
 
 REGISTER
 {
-    registration::push_class<Nodlang_math>("Nodlang_math")
+    fw::registration::push_class<Nodlang_math>("Nodlang_math")
         .add_method<double(double, i16_t)> (&_plus, "+", "plus")
         .add_method<double(double, double)>(&_plus, "+", "plus")
         .add_method<i16_t(i16_t, i16_t)>   (&_plus, "+", "plus")
         .add_method<i16_t(i16_t, double)>  (&_plus, "+", "plus")
-        .add_method<string(string, string)>(&_plus, "+", "plus")
-        .add_method<string(string, i16_t)> (&_plus, "+", "plus")
-        .add_method<string(string, double)>(&_plus, "+", "plus")
+        .add_method<std::string(std::string, std::string)>(&_plus, "+", "plus")
+        .add_method<std::string(std::string, i16_t)> (&_plus, "+", "plus")
+        .add_method<std::string(std::string, double)>(&_plus, "+", "plus")
         .add_method(&_or, "||", "or")
         .add_method(&_and, "&&", "and")
         .add_method(&_not, "!", "not")
@@ -114,7 +112,7 @@ REGISTER
         .add_method<bool(double, double)>(&_lower_or_eq, "<=")
         .add_method<bool(i16_t, i16_t)>(&_lower_or_eq, "<=")
         .add_method<bool(i16_t, double)>(&_lower_or_eq, "<=")
-        .add_method<string(string& , string)>(&_assign, "=")
+        .add_method<std::string(std::string& , std::string)>(&_assign, "=")
         .add_method<bool(bool& , bool)>(&_assign, "=")
         .add_method<double(double& , i16_t)>(&_assign, "=")
         .add_method<double(double& , double)>(&_assign, "=")
@@ -122,12 +120,12 @@ REGISTER
         .add_method<i16_t(i16_t & , double)>(&_assign, "=")
         .add_method<bool(i16_t, i16_t)>(&_equals, "==")
         .add_method<bool(double, double)>(&_equals, "==")
-        .add_method<bool(string, string)>(&_equals, "==")
+        .add_method<bool(std::string, std::string)>(&_equals, "==")
         .add_method<bool(bool, bool)>(&_equals, "<=>")
         .add_method<bool(bool, bool)>(&_not_equals, "!=")
         .add_method<bool(i16_t, i16_t)>(&_not_equals, "!=")
         .add_method<bool(double, double)>(&_not_equals, "!=")
-        .add_method<bool(string, string)>(&_not_equals, "!=")
+        .add_method<bool(std::string, std::string)>(&_not_equals, "!=")
         .add_method<bool(double, double)>(&_greater, ">")
         .add_method< bool(i16_t, i16_t)>(&_greater, ">")
         .add_method<bool(double, double)>(&_lower, "<")
@@ -135,7 +133,7 @@ REGISTER
         .add_method<bool(bool)>(&_return, "return")
         .add_method<i16_t(i16_t)>(&_return, "return")
         .add_method<double(double)>(&_return, "return")
-        .add_method<string(string)>(&_return, "return")
+        .add_method<std::string(std::string)>(&_return, "return")
         .add_method(&_sin, "sin")
         .add_method(&_cos, "cos")
         .add_method<double(double)>(&_sqrt, "sqrt")
@@ -145,14 +143,14 @@ REGISTER
         .add_method<i16_t(i16_t, i16_t)>(&_pow, "pow")
         .add_method<double(double, double)>(&_pow, "pow")
         .add_method(&_secondDegreePolynomial, "secondDegreePolynomial" )
-        .add_method<string(bool)>(&_to_string, "to_unquoted_string")
-        .add_method<string(double)>(&_to_string, "to_unquoted_string")
-        .add_method<string(i16_t)>(&_to_string, "to_unquoted_string")
-        .add_method<string(string)>(&_to_string, "to_unquoted_string")
-        .add_method<string(bool)>(&_print, "print")
-        .add_method<string(double)>(&_print, "print")
-        .add_method<string(i16_t)>(&_print, "print")
-        .add_method<string(string)>(&_print, "print");
+        .add_method<std::string(bool)>(&_to_string, "to_unquoted_string")
+        .add_method<std::string(double)>(&_to_string, "to_unquoted_string")
+        .add_method<std::string(i16_t)>(&_to_string, "to_unquoted_string")
+        .add_method<std::string(std::string)>(&_to_string, "to_unquoted_string")
+        .add_method<std::string(bool)>(&_print, "print")
+        .add_method<std::string(double)>(&_print, "print")
+        .add_method<std::string(i16_t)>(&_print, "print")
+        .add_method<std::string(std::string)>(&_print, "print");
 };
 
 Nodlang_math::Nodlang_math(){} // necessary to trigger static code execution
