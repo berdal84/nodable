@@ -1,7 +1,7 @@
 #include <ndbl/gui/AppView.h>
 
-#include "fw/core/Log.h"
-#include "fw/core/System.h"
+#include <fw/core/Log.h>
+#include <fw/core/system.h>
 
 #include <ndbl/gui/Event.h>
 #include <ndbl/gui/App.h>
@@ -196,11 +196,11 @@ bool AppView::on_draw(bool& redock_all) {
 
         if (ImGui::BeginMenu("An issue ?")) {
             if (ImGui::MenuItem("Report on Github.com")) {
-                fw::System::open_url_async("https://github.com/berdal84/Nodable/issues");
+                fw::system::open_url_async("https://github.com/berdal84/Nodable/issues");
             }
 
             if (ImGui::MenuItem("Report by email")) {
-                fw::System::open_url_async("mail:berenger@dalle-cort.fr");
+                fw::system::open_url_async("mail:berenger@dalle-cort.fr");
             }
 
             ImGui::EndMenu();
@@ -212,11 +212,11 @@ bool AppView::on_draw(bool& redock_all) {
             }
 
             if (ImGui::MenuItem("Browse source code")) {
-                fw::System::open_url_async("https://www.github.com/berdal84/nodable");
+                fw::system::open_url_async("https://www.github.com/berdal84/nodable");
             }
 
             if (ImGui::MenuItem("Credits")) {
-                fw::System::open_url_async("https://github.com/berdal84/nodable#credits-");
+                fw::system::open_url_async("https://github.com/berdal84/nodable#credits-");
             }
 
             ImGui::EndMenu();

@@ -1,7 +1,7 @@
 #include <ndbl/gui/App.h>
 
 #include <algorithm>
-#include <fw/core/System.h>
+#include <fw/core/system.h>
 #include <fw/core/assertions.h>
 #include <fw/gui/EventManager.h>
 

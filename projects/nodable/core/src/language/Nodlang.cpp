@@ -14,10 +14,10 @@
 #include <sstream>
 #include <string>
 
-#include "fw/core/String.h"
-#include "fw/core/System.h"
+#include <fw/core/String.h>
+#include <fw/core/system.h>
 #include <fw/core/reflection/reflection>
-#include "fw/core/Log.h"
+#include <fw/core/Log.h>
 
 #include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/ConditionalStructNode.h>

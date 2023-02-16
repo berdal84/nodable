@@ -212,5 +212,5 @@ void CLI::help()
 
 void CLI::clear()
 {
-    fw::System::console::clear();
+    fw::system::console::clear();
 }

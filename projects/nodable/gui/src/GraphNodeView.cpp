@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <memory> // std::shared_ptr
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "fw/core/Log.h"
-#include "fw/core/System.h"
+#include <fw/core/Log.h>
+#include <fw/core/system.h>
 
 #include <ndbl/gui/App.h>
 #include <ndbl/gui/PropertyConnector.h>

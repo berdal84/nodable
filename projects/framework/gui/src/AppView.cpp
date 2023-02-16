@@ -5,8 +5,8 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <nativefiledialog-extended/src/include/nfd.h>
 
-#include "fw/core/Log.h"
-#include "fw/core/System.h"
+#include <fw/core/Log.h>
+#include <fw/core/system.h>
 #include <fw/gui/App.h>
 #include <fw/gui/EventManager.h>
 #include <fw/gui/TextureManager.h>

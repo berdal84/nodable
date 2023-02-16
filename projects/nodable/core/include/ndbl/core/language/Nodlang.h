@@ -6,7 +6,7 @@
 #include <memory>
 #include <exception>
 #include <fw/core/reflection/reflection>
-#include "fw/core/System.h"
+#include <fw/core/system.h>
 
 #include <ndbl/core/ForLoopNode.h>
 #include <ndbl/core/Token.h>

@@ -8,7 +8,7 @@ add_library(
         STATIC
             src/Log.cpp
             src/String.cpp
-            src/System.cpp
+        src/system.cpp
             src/reflection/func_type.cpp
             src/reflection/qword.cpp
             src/reflection/type.cpp

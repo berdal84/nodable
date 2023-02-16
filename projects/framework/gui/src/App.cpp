@@ -1,7 +1,7 @@
 #include <fw/gui/App.h>
 
 #include <algorithm>
-#include <fw/core/System.h>
+#include <fw/core/system.h>
 #include <fw/gui/AppView.h>
 #include <fw/gui/EventManager.h>
 
@@ -48,7 +48,8 @@ bool App::shutdown()
 
 std::string App::to_absolute_asset_path(const char* _relative_path)
 {
-    static ghc::filesystem::path assets_folder_path = fw::System::get_executable_directory();
+    // TODO: move this to fw::system
+    static ghc::filesystem::path assets_folder_path = fw::system::get_executable_directory();
 	return (assets_folder_path / "assets" / _relative_path).string();
 }
 
