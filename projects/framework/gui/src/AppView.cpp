@@ -1,108 +1,31 @@
 #include <fw/gui/AppView.h>
 
-#include <imgui/backends/imgui_impl_sdl.h>
-#include <imgui/backends/imgui_impl_opengl3.h>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include <nativefiledialog-extended/src/include/nfd.h>
-
 #include <fw/core/log.h>
 #include <fw/core/system.h>
 #include <fw/gui/App.h>
 #include <fw/gui/EventManager.h>
 #include <fw/gui/TextureManager.h>
+#include <nfd.h>
 
 using namespace fw;
 
 constexpr const char* k_status_window_name = "Messages";
 
-AppView::AppView(App* _app, Conf _conf )
+AppView::AppView(App* _app)
     : View()
-    , m_conf(_conf)
     , m_app(_app)
     , m_is_layout_initialized(false)
+    , m_conf(_app->conf()) // shortcut
 {
+    LOG_VERBOSE("fw::AppView", "Constructor ...\n");
+    FW_EXPECT(m_app != nullptr, "m_app is required");
+    m_app->on_draw.connect([&]() { on_draw(); });
+    LOG_VERBOSE("fw::AppView", "Constructor " OK "\n");
 }
 
 AppView::~AppView()
-{}
-
-bool AppView::init()
 {
-    // Setup SDL
-    if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
-    {
-        LOG_ERROR( "AppView", "SDL Error: %s\n", SDL_GetError())
-        return false;
-    }
-
-    // Setup window
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
-    SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
-    SDL_DisplayMode current;
-    SDL_GetCurrentDisplayMode(0, &current);
-    m_sdl_window = SDL_CreateWindow(m_conf.app_window_label.c_str(),
-                                   SDL_WINDOWPOS_CENTERED,
-                                   SDL_WINDOWPOS_CENTERED,
-                                   800,
-                                   600,
-                                SDL_WINDOW_OPENGL |
-                                SDL_WINDOW_RESIZABLE |
-                                SDL_WINDOW_MAXIMIZED |
-                                SDL_WINDOW_SHOWN
-                                );
-
-    m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
-
-    gl3wInit();
-
-    // Setup Dear ImGui binding
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;       // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
-    io.FontAllowUserScaling = true;
-	//io.WantCaptureKeyboard  = true;
-	//io.WantCaptureMouse     = true;
-
-    // Override ImGui's default Style
-    m_conf.patch_imgui_style(ImGui::GetStyle());
-
-    // Run user code
-    if(!on_init()) return false;
-
-    // load fonts
-    m_app->font_manager().init(m_conf.fonts, m_conf.fonts_default, &m_conf.icon_font);
-
-    // Configure ImGui Style
-    ImGuiStyle& style = ImGui::GetStyle();
-
-    // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
-
-    // Setup Platform/Renderer bindings
-    ImGui_ImplSDL2_InitForOpenGL(m_sdl_window, m_sdl_gl_context);
-    const char* glsl_version = NULL; // let backend decide wich version to use, usually 130 (pc) or 150 (macos).
-    ImGui_ImplOpenGL3_Init(glsl_version);
-
-    if (NFD_Init() != NFD_OKAY)
-    {
-        LOG_ERROR("AppView", "Unable to init NFD\n");
-    }
-
-	return true;
+    LOG_VERBOSE("fw::AppView", "Destructor " OK "\n");
 }
 
 bool AppView::on_draw()
@@ -110,24 +33,16 @@ bool AppView::on_draw()
     bool is_main_window_open = true;
     bool redock_all          = false;
 
-    // 1) Begin a new frame
-    //---------------------
-
-	ImGui_ImplOpenGL3_NewFrame();
-	ImGui_ImplSDL2_NewFrame(m_sdl_window);
-	ImGui::NewFrame();
-	ImGuiEx::BeginFrame();
-
     // 2) Draw
     //--------
 
-    ImGui::SetCurrentFont( m_app->font_manager().get_font(FontSlot_Paragraph));
+    ImGui::SetCurrentFont(m_app->font_manager()->get_font(FontSlot_Paragraph));
 
     // Show/Hide ImGui Demo Window
     {
-        if (m_conf.show_imgui_demo){
+        if (m_conf->show_imgui_demo){
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowDemoWindow(&m_conf.show_imgui_demo);
+            ImGui::ShowDemoWindow(&m_conf->show_imgui_demo);
         }
     }
 
@@ -180,12 +95,12 @@ bool AppView::on_draw()
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_ROOT] , viewport_size);
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_ROOT]   , ImGuiDir_Down , 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , ImVec2(viewport_size.x, m_conf.dockspace_bottom_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , ImVec2(viewport_size.x, m_conf->dockspace_bottom_size));
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, m_conf.dockspace_top_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, m_conf->dockspace_top_size));
 
-            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf.dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf->dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
 
             // Configure dockspaces
             ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton         = false;
@@ -202,8 +117,8 @@ bool AppView::on_draw()
             // Dock windows
             dock_window(k_status_window_name, Dockspace_BOTTOM);
 
-            // Call user defined handler
-            on_reset_layout();
+            // Run user defined code
+            reset_layout_event.emit();
 
             // Finish the build
             ImGui::DockBuilderFinish(m_dockspaces[Dockspace_ROOT]);
@@ -219,45 +134,9 @@ bool AppView::on_draw()
         draw_status_window();
 
         // User defined draw
-        if (!on_draw(redock_all))
-        {
-            LOG_ERROR( "AppView", "User defined on_draw() returned false.\n");
-        }
+        draw_event.emit({redock_all});
     }
     ImGui::End(); // Main window
-
-    // 3. End frame and Render
-    //------------------------
-
-    ImGuiEx::EndFrame();
-	ImGui::Render(); // Finalize draw data
-
-	SDL_GL_MakeCurrent(m_sdl_window, m_sdl_gl_context);
-	ImGuiIO& io = ImGui::GetIO();
-	glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-	glClearColor(m_conf.background_color.Value.x, m_conf.background_color.Value.y, m_conf.background_color.Value.z, m_conf.background_color.Value.w);
-	glClear(GL_COLOR_BUFFER_BIT);
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-    // Update and Render additional Platform Windows
-    // (Platform functions may change the current OpenGL context, so we save/restore it to make it easier to paste this code elsewhere.
-    //  For this specific demo app we could also call SDL_GL_MakeCurrent(window, gl_context) directly)
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-    {
-        SDL_Window*   backup_current_window  = SDL_GL_GetCurrentWindow();
-        SDL_GLContext backup_current_context = SDL_GL_GetCurrentContext();
-        ImGui::UpdatePlatformWindows();
-        ImGui::RenderPlatformWindowsDefault();
-        SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
-    }
-
-    SDL_GL_SwapWindow(m_sdl_window);
-
-    // limit frame rate
-    if (ImGui::GetIO().DeltaTime < m_conf.min_frame_time)
-    {
-        SDL_Delay((unsigned int)((m_conf.min_frame_time - ImGui::GetIO().DeltaTime) * 1000.f) );
-    }
 
     return false;
 }
@@ -284,108 +163,22 @@ bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
             NFD_FreePath(out_path);
             return true;
         case NFD_CANCEL:
-            LOG_MESSAGE("AppView", "User pressed cancel.");
+            LOG_MESSAGE("fw::AppView", "User pressed cancel.");
             return false;
         default:
-            LOG_ERROR("AppView", "%s\n", NFD_GetError());
+            LOG_ERROR("fw::AppView", "%s\n", NFD_GetError());
             return false;
     }
-}
-
-void AppView::handle_events()
-{
-    EventManager& event_manager = EventManager::get_instance();
-    SDL_Event event;
-    while (SDL_PollEvent(&event))
-    {
-        ImGui_ImplSDL2_ProcessEvent(&event);
-
-        switch (event.type)
-        {
-            case SDL_WINDOWEVENT:
-                if( event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    event_manager.push_event(fw::EventType_exit_triggered);
-                break;
-            case SDL_KEYDOWN:
-
-                // With mode key only
-                if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
-                {
-                    for(auto _binded_event: event_manager.get_binded_events() )
-                    {
-                        // first, priority to shortcuts with mod
-                        if ( _binded_event.shortcut.mod != KMOD_NONE
-                             && _binded_event.event_t
-                             && (_binded_event.shortcut.mod & event.key.keysym.mod)
-                             && _binded_event.shortcut.key == event.key.keysym.sym
-                                )
-                        {
-                            event_manager.push_event(_binded_event.event_t);
-                            break;
-                        }
-                    }
-                }
-                else // without any mod key
-                {
-                    for(auto _binded_event: event_manager.get_binded_events() )
-                    {
-                        // first, priority to shortcuts with mod
-                        if ( _binded_event.shortcut.mod == KMOD_NONE
-                             && _binded_event.event_t
-                             && _binded_event.shortcut.key == event.key.keysym.sym
-                                )
-                        {
-                            event_manager.push_event(_binded_event.event_t);
-                            break;
-                        }
-                    }
-                }
-                break;
-        }
-    }
-}
-
-bool AppView::shutdown()
-{
-    bool success = true;
-    LOG_MESSAGE("AppView", "Shutting down ...\n");
-
-    success &= m_app->texture_manager().release_resources();
-
-    LOG_MESSAGE("AppView", "Shutting down ImGui_ImplSDL2 ...\n");
-    ImGui_ImplSDL2_Shutdown();
-    LOG_MESSAGE("AppView", "Destroying ImGui context ...\n");
-    ImGui::DestroyContext    ();
-    LOG_MESSAGE("AppView", "Shutdown SDL ...\n");
-    SDL_GL_DeleteContext     (m_sdl_gl_context);
-    SDL_DestroyWindow        (m_sdl_window);
-    SDL_Quit                 ();
-
-    LOG_MESSAGE("AppView", "Quitting NFD (Native File Dialog) ...\n");
-    NFD_Quit();
-
-    LOG_MESSAGE("AppView", "Shutdown: %s\n", success ? OK : KO );
-    return success;
 }
 
 void AppView::set_splashscreen_visible(bool b)
 {
-    m_conf.show_splashscreen = b;
-}
-
-bool AppView::is_fullscreen() const
-{
-    return SDL_GetWindowFlags(m_sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
+    m_conf->show_splashscreen = b;
 }
 
 void AppView::set_layout_initialized(bool b)
 {
     m_is_layout_initialized = b;
-}
-
-void AppView::set_fullscreen(bool b)
-{
-    SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
 ImGuiID AppView::get_dockspace(Dockspace dockspace)const
@@ -400,9 +193,9 @@ void AppView::dock_window(const char* window_name, Dockspace dockspace)const
 
 void AppView::draw_splashcreen_window()
 {
-    if (m_conf.show_splashscreen && !ImGui::IsPopupOpen(m_conf.splashscreen_window_label))
+    if (m_conf->show_splashscreen && !ImGui::IsPopupOpen(m_conf->splashscreen_window_label))
     {
-        ImGui::OpenPopup(m_conf.splashscreen_window_label);
+        ImGui::OpenPopup(m_conf->splashscreen_window_label);
     }
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(550, 300), ImVec2(550, 50000));
@@ -410,16 +203,16 @@ void AppView::draw_splashcreen_window()
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-    if (ImGui::BeginPopupModal(m_conf.splashscreen_window_label, &m_conf.show_splashscreen, flags))
+    if (ImGui::BeginPopupModal(m_conf->splashscreen_window_label, &m_conf->show_splashscreen, flags))
     {
-        on_draw_splashscreen(); // user defined
+        draw_splashscreen_event.emit(); // run user defined code
         ImGui::EndPopup();
     }
 }
 
 bool AppView::is_splashscreen_visible() const
 {
-    return m_conf.show_splashscreen;
+    return m_conf->show_splashscreen;
 }
 
 void AppView::draw_status_window() const
@@ -429,11 +222,11 @@ void AppView::draw_status_window() const
         if (!fw::log::get_messages().empty())
         {
             const std::deque<fw::log::Message> &messages = fw::log::get_messages();
-            auto it = messages.rend() - std::min(m_conf.log_tooltip_max_count, messages.size());
+            auto it = messages.rend() - std::min(m_conf->log_tooltip_max_count, messages.size());
             while (it != messages.rend())
             {
                 auto &each_message = *it;
-                ImGui::TextColored(m_conf.log_color[each_message.verbosity], "%s",
+                ImGui::TextColored(m_conf->log_color[each_message.verbosity], "%s",
                                    each_message.to_full_string().c_str());
                 ++it;
             }
@@ -448,29 +241,7 @@ void AppView::draw_status_window() const
     ImGui::End();
 }
 
-void AppView::save_screenshot(const char* relative_file_path)
+Conf* AppView::conf()
 {
-    LOG_MESSAGE("AppView", "Taking screenshot ...\n");
-    int width, height;
-    SDL_GetWindowSize(m_sdl_window, &width, &height);
-    GLsizei stride = 4 * width;
-    GLsizei bufferSize = stride * height;
-    std::vector<unsigned char> buffer(bufferSize);
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadBuffer( GL_BACK);
-    glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer.data());
-
-    // vertical flip
-    std::vector<unsigned char> flipped(bufferSize);
-    for (int y = 0; y < height; ++y) {
-        for (int x = 0; x < stride; ++x) {
-            flipped[y*stride+x] = buffer[(height-y-1)*stride+x];
-        }
-    }
-
-    std::vector<unsigned char> out;
-    lodepng::encode(out, flipped.data(), width, height, LCT_RGBA);
-    lodepng::save_file(out, m_app->to_absolute_asset_path(relative_file_path).c_str());
-
-    LOG_MESSAGE("AppView", "Taking screenshot OK (%s)\n", relative_file_path);
+    return m_conf;
 }

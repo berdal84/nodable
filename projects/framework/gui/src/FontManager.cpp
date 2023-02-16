@@ -21,7 +21,7 @@ void FontManager::init(
     {
         if(auto font = defaults[each_slot] )
         {
-            m_fonts[each_slot] = get_font_by_id( font );
+            m_fonts[each_slot] = get_font(font);
         }
         else
         {
@@ -31,14 +31,9 @@ void FontManager::init(
     }
 }
 
-ImFont* FontManager::get_font_by_id(const char *id)const
-{
-    return m_loaded_fonts.at(id );
-}
-
 ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_font)
 {
-    FW_ASSERT(m_loaded_fonts.find(text_font->id) == m_loaded_fonts.end()); // do not allow the use of same key for different fonts
+    FW_EXPECT(m_loaded_fonts.find(text_font->id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
 
     ImFont*   font     = nullptr;
     auto&     io       = ImGui::GetIO();
@@ -50,7 +45,7 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = App::to_absolute_asset_path(text_font->path);
+        std::string fontPath = App::asset_path(text_font->path);
         LOG_VERBOSE("AppView", "Adding text_font from file ... %s\n", fontPath.c_str())
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), text_font->size, &config);
     }
@@ -73,7 +68,7 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
         config.PixelSnapH  = true;
         config.GlyphOffset.y = -(text_font->icons_size - text_font->size)*0.5f;
         config.GlyphMinAdvanceX = text_font->icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = App::to_absolute_asset_path(icon_font->path);
+        auto fontPath = App::asset_path(icon_font->path);
         font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), text_font->icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to text_font ...\n")
     }
@@ -86,5 +81,10 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
 ImFont* FontManager::get_font(FontSlot slot) const
 {
     return m_fonts[slot];
+}
+
+ImFont* FontManager::get_font(const char *id)const
+{
+    return m_loaded_fonts.at(id );
 }
 

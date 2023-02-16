@@ -9,12 +9,17 @@ TEST_F(Gui_App, constructor)
 
 TEST_F(Gui_App, get_instance)
 {
-    ndbl::App  app;
-    EXPECT_NO_THROW(ndbl::App::get_instance());
+    {
+        EXPECT_ANY_THROW(ndbl::App::get_instance());
+        ndbl::App  app;
+        EXPECT_NO_THROW(ndbl::App::get_instance());
+    }
+    EXPECT_ANY_THROW(ndbl::App::get_instance());
 }
 
 TEST_F(Gui_App, init)
 {
+    fw::log::set_verbosity(fw::log::Verbosity_Verbose);
     ndbl::App app;
     EXPECT_NO_THROW(app.init());
     EXPECT_TRUE(app.shutdown());
@@ -55,10 +60,10 @@ TEST_F(Gui_App, open_file)
 {
     ndbl::App app;
     app.init();
-    app.get_view()->set_splashscreen_visible(false);
+    app.framework()->view()->set_splashscreen_visible(false);
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__0.png");
-    EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp", true));
+    EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__1.png");
     app.shutdown();
@@ -68,8 +73,8 @@ TEST_F(Gui_App, close_file)
 {
     ndbl::App app;
     app.init();
-    app.get_view()->set_splashscreen_visible(false);
-    app.open_file("./examples/arithmetic.cpp", true);
+    app.framework()->view()->set_splashscreen_visible(false);
+    app.open_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__0.png");
     app.close_file( app.current_file() );
@@ -82,19 +87,19 @@ TEST_F(Gui_App, open_examples)
 {
     ndbl::App app;
     app.init();
-    app.get_view()->set_splashscreen_visible(false);
+    app.framework()->view()->set_splashscreen_visible(false);
     app.update();
     save_screenshot(app, "TEST_Gui_App__open_examples__0.png");
-    EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp", true));
+    EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__1.png");
-    EXPECT_TRUE(app.open_file("./examples/for-loop.cpp", true));
+    EXPECT_TRUE(app.open_file("./examples/for-loop.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__2.png");
-    EXPECT_TRUE(app.open_file("./examples/if-else.cpp", true));
+    EXPECT_TRUE(app.open_file("./examples/if-else.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__3.png");
-    EXPECT_TRUE(app.open_file("./examples/multi-instructions.cpp", true));
+    EXPECT_TRUE(app.open_file("./examples/multi-instructions.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__4.png");
     app.shutdown();

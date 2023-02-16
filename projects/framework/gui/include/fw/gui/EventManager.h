@@ -58,7 +58,9 @@ namespace fw
     {
     public:
         EventManager();
+        EventManager(const EventManager&) = delete;
         ~EventManager();
+
         void               push_event(Event& _event);
         size_t             poll_event(Event& _event);
         void               push_event(EventType _type);

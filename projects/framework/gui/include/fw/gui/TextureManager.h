@@ -29,14 +29,16 @@ namespace fw
     class TextureManager
     {
     public:
-        TextureManager() = default;
-        Texture*   get_from_path(const std::string&);       // Get texture from absolute path (resource will be loaded from disk the first call)
+        TextureManager()  { LOG_VERBOSE("fw::TextureManager", "Constructor " OK "\n"); };
+        TextureManager(const TextureManager&) = delete;
+        ~TextureManager() { LOG_VERBOSE("fw::TextureManager", "Destructor " OK "\n"); };
+        Texture*get_asset(const std::string &path);       // Get texture from absolute path (resource will be loaded from disk the first call)
         bool       release_resources();                     // Release all the loaded textures (There is no check if they are still in use)
     private:
         Texture*   load_png_to_gpu(const std::string&);     // Create a texture (loaded to GPU) from a png file path
         static int load_png(const std::string&, Texture*);  // Load a PNG file to Texture (RAM only)
         static int load_to_gpu(Texture*);                   // Load a Texture to GPU
-
+        std::string description = "This is a texture manager";// TODO remove
         std::map<std::string, Texture*> m_register;         // Texture storage (absolute path => Texture*)
     };
 
