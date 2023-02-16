@@ -95,16 +95,16 @@ Settings::Settings()
     isolate_selection                 = false;
 
     // AppView
-    fw_app_view.dockspace_right_ratio = 0.25f;
-    fw_app_view.dockspace_top_size    = 36.f;
-    fw_app_view.dockspace_bottom_size = 100.f;
+    fw_conf.dockspace_right_ratio = 0.25f;
+    fw_conf.dockspace_top_size    = 36.f;
+    fw_conf.dockspace_bottom_size = 100.f;
     {
         constexpr const char *k_paragraph = "Paragraph";
         constexpr const char *k_heading   = "Heading 1";
         constexpr const char *k_code      = "Code";
         constexpr const char *k_tool      = "Tool Button";
 
-        fw_app_view.fonts = {
+        fw_conf.fonts = {
                 // id          , font_path                          , size , icons? , icons size
                 { k_paragraph  , "fonts/JetBrainsMono-Medium.ttf"   , 18.0f, true   , 18.0f      },
                 { k_heading    , "fonts/JetBrainsMono-Bold.ttf"     , 25.0f, true   , 18.0f      },
@@ -112,17 +112,11 @@ Settings::Settings()
                 { k_tool       , "fonts/JetBrainsMono-Bold.ttf"     , 16.0f, true   , 14.0f      }
         };
 
-        fw_app_view.fonts_default[FontSlot_Paragraph] = k_paragraph;
-        fw_app_view.fonts_default[FontSlot_Heading]   = k_heading;
-        fw_app_view.fonts_default[FontSlot_Code]      = k_code;
-        fw_app_view.fonts_default[FontSlot_ToolBtn]   = k_tool;
+        fw_conf.fonts_default[FontSlot_Paragraph] = k_paragraph;
+        fw_conf.fonts_default[FontSlot_Heading]   = k_heading;
+        fw_conf.fonts_default[FontSlot_Code]      = k_code;
+        fw_conf.fonts_default[FontSlot_ToolBtn]   = k_tool;
     }
-    fw_app_view.icon_font = {"Icons", "fonts/fa-solid-900.ttf" };
-    fw_app_view.app_window_label     = BuildInfo::version_extended;
-}
-
-Settings& Settings::get_instance()
-{
-    static Settings instance;
-    return instance;
+    fw_conf.icon_font = {"Icons", "fonts/fa-solid-900.ttf" };
+    fw_conf.app_window_label     = BuildInfo::version_extended;
 }

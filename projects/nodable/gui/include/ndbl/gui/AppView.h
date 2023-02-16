@@ -20,15 +20,19 @@ namespace ndbl
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
-    class AppView : public fw::AppView
+    class AppView
 	{
 	public:
-		AppView(App* _app, fw::AppView::Conf _conf);
-		~AppView() override;
-        bool on_init() override;
-		bool on_draw(bool& redock_all) override;
+		AppView(App*fw_view);
+        AppView(const App&) = delete;
+		~AppView();
+
     private:
-        bool on_reset_layout() override;
+        bool on_init();
+        bool on_draw(bool& redock_all);
+        bool on_reset_layout();
+        void on_draw_splashscreen();
+
         void draw_file_info_window() const;
         void draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file);
         void draw_help_window() const;
@@ -39,7 +43,6 @@ namespace ndbl
         void draw_startup_window(ImGuiID dockspace_id);
         void draw_toolbar_window();
         void draw_virtual_machine_window();
-        void on_draw_splashscreen() override;
 
         fw::Texture*       m_logo;
         bool               m_is_history_dragged;
@@ -47,7 +50,7 @@ namespace ndbl
         bool               m_show_imgui_demo;
         bool               m_show_advanced_node_properties;
         bool               m_scroll_to_curr_instr;
-
-        REFLECT_DERIVED_CLASS(fw::View)
+        fw::AppView*       m_framework;
+        App*               m_app;
     };
 }

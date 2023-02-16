@@ -1,4 +1,6 @@
 #include <fw/gui/EventManager.h>
+#include <fw/core/log.h>
+#include <fw/core/assertions.h>
 #include <SDL/include/SDL_keyboard.h>
 
 using namespace fw;
@@ -45,16 +47,21 @@ const std::vector<BindedEvent> &EventManager::get_binded_events() const
 }
 EventManager& EventManager::get_instance()
 {
+    FW_EXPECT(s_instance, "No instance found.");
     return *s_instance;
 }
 EventManager::~EventManager()
 {
+    LOG_VERBOSE("fw::EventManager", "Destructor ...\n");
     s_instance = nullptr;
+    LOG_VERBOSE("fw::EventManager", "Destructor " OK "\n");
 }
 EventManager::EventManager()
 {
-    assert(!s_instance); // cannot have two instances at a time
+    LOG_VERBOSE("fw::EventManager", "Constructor ...\n");
+    FW_EXPECT(!s_instance, "cannot have two instances at a time");
     s_instance = this;
+    LOG_VERBOSE("fw::EventManager", "Constructor " OK "\n");
 }
 
 

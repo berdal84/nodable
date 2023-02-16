@@ -1,3 +1,4 @@
+#include "fw/gui/App.h"
 #include <fw/gui/TextureManager.h>
 
 using namespace fw;
@@ -13,14 +14,16 @@ Texture::Texture(std::vector<unsigned char> _buffer, int _width, int _height, GL
     , height(_height)
 {}
 
-Texture* TextureManager::get_from_path(const std::string &path)
+Texture* TextureManager::get_asset(const std::string &path)
 {
+    auto absolute_path = fw::App::asset_path(path.c_str());
+
     // Return if already exists
-    auto tex = m_register.find(path );
+    auto tex = m_register.find(absolute_path );
     if (tex != m_register.end() )
         return tex->second;
 
-    return load_png_to_gpu(path);
+    return load_png_to_gpu(absolute_path);
 }
 
 bool TextureManager::release_resources()

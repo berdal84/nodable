@@ -29,32 +29,32 @@ File::File(std::string _name)
           auto view = _node->add_component<NodeView>();
 
           // Set common colors
-          Settings& settings = Settings::get_instance();
-          view->set_color(fw::View::ColorType_Highlighted      , &settings.ui_node_highlightedColor);
-          view->set_color(fw::View::ColorType_Border           , &settings.ui_node_borderColor);
-          view->set_color(fw::View::ColorType_BorderHighlights , &settings.ui_node_borderHighlightedColor);
-          view->set_color(fw::View::ColorType_Shadow           , &settings.ui_node_shadowColor);
-          view->set_color(fw::View::ColorType_Fill             , &settings.ui_node_fillColor);
+          Settings* settings = App::get_instance()->settings();
+          view->set_color(fw::View::ColorType_Highlighted      , &settings->ui_node_highlightedColor);
+          view->set_color(fw::View::ColorType_Border           , &settings->ui_node_borderColor);
+          view->set_color(fw::View::ColorType_BorderHighlights , &settings->ui_node_borderHighlightedColor);
+          view->set_color(fw::View::ColorType_Shadow           , &settings->ui_node_shadowColor);
+          view->set_color(fw::View::ColorType_Fill             , &settings->ui_node_fillColor);
 
           // Set specific colors
           if(_node->is<VariableNode>())
           {
-              view->set_color(fw::View::ColorType_Fill, &settings.ui_node_variableColor);
+              view->set_color(fw::View::ColorType_Fill, &settings->ui_node_variableColor);
           }
           else if (_node->has<InvokableComponent>())
           {
-              view->set_color(fw::View::ColorType_Fill, &settings.ui_node_invokableColor);
+              view->set_color(fw::View::ColorType_Fill, &settings->ui_node_invokableColor);
           }
           else if (_node->is<InstructionNode>())
           {
-              view->set_color(fw::View::ColorType_Fill, &settings.ui_node_instructionColor);
+              view->set_color(fw::View::ColorType_Fill, &settings->ui_node_instructionColor);
           }
           else if (_node->is<LiteralNode>())
           {
-              view->set_color(fw::View::ColorType_Fill, &settings.ui_node_literalColor);
+              view->set_color(fw::View::ColorType_Fill, &settings->ui_node_literalColor);
           }
         })
-        , m_history(&Settings::get_instance().experimental_hybrid_history)
+        , m_history(&App::get_instance()->settings()->experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 
@@ -77,7 +77,7 @@ File::File(std::string _name)
     m_graph = new GraphNode(
             &language,
             &m_factory,
-            &Settings::get_instance().experimental_graph_autocompletion );
+            &App::get_instance()->settings()->experimental_graph_autocompletion );
 
     char label[50];
     snprintf(label, sizeof(label), "%s's graph", get_name().c_str());
@@ -146,14 +146,14 @@ bool File::update_graph(std::string& _code_source)
 
 bool File::update()
 {
-    const auto& settings        = Settings::get_instance();
+    const Settings* settings        = App::get_instance()->settings();
     const auto& virtual_machine = VirtualMachine::get_instance();
     bool graph_has_changed;
 
 	if ( m_history.is_dirty() )
 	{
         LOG_VERBOSE("File","history is dirty\n")
-        if ( !settings.experimental_hybrid_history )
+        if ( !settings->experimental_hybrid_history )
         {
             update_graph(); // when not in hybrid mode the undo/redo is text based
         }
@@ -184,7 +184,7 @@ bool File::update()
                 Nodlang::get_instance().serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace text\n")
-                settings.isolate_selection ? m_view->replace_selected_text(code) : m_view->replace_text(code);
+                settings->isolate_selection ? m_view->replace_selected_text(code) : m_view->replace_text(code);
             }
             graph_has_changed = true;
         }
@@ -201,7 +201,7 @@ bool File::update()
 bool File::update_graph()
 {
     LOG_VERBOSE("File","get selected text\n")
-	std::string code_source = Settings::get_instance().isolate_selection ? m_view->get_selected_text() : m_view->get_text();
+	std::string code_source = App::get_instance()->settings()->isolate_selection ? m_view->get_selected_text() : m_view->get_text();
 	return update_graph(code_source);
 }
 

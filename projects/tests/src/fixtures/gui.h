@@ -21,7 +21,7 @@ namespace testing
             label += test_info->test_suite_name();
             label += " - ";
             label += test_info->name();
-            ndbl::Settings::get_instance().fw_app_view.app_window_label = label;
+            // ndbl::Settings::get_instance().fw_app_view.app_window_label = label;
         }
 
         /**
@@ -31,8 +31,8 @@ namespace testing
         {
             for(int i = 0; i < iteration_count; ++i)
             {
-                EXPECT_NO_THROW(app.update());
-                EXPECT_NO_THROW(app.draw());
+                EXPECT_NO_THROW(app.framework()->update());
+                EXPECT_NO_THROW(app.framework()->draw());
             }
             SLEEP_FOR_HUMAN((long)(1000.0 * sleep_in_sec));
         }
@@ -52,8 +52,8 @@ namespace testing
                 , iteration
                 , float(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0f
                 , duration_in_sec);
-                EXPECT_NO_THROW(app.update());
-                EXPECT_NO_THROW(app.draw());
+                EXPECT_NO_THROW(app.framework()->update());
+                EXPECT_NO_THROW(app.framework()->draw());
                 ++iteration;
             }
         }
@@ -61,7 +61,16 @@ namespace testing
         void save_screenshot(ndbl::App& app, const char* relative_path)
         {
             LOG_MESSAGE("Test", "Taking screenshot ...\n");
-            app.get_view()->save_screenshot(relative_path);
+            ghc::filesystem::path path {relative_path};
+            if( path.is_relative() )
+            {
+                path = ghc::filesystem::path(fw::system::get_executable_directory()) / "screenshots" / path;
+            }
+            if (!ghc::filesystem::exists(path.parent_path()))
+            {
+                create_directories(path.parent_path());
+            }
+            app.framework()->save_screenshot(path.string().c_str());
         }
     };
 }

@@ -19,22 +19,24 @@ namespace ndbl
     class File;
     class AppView;
 
-    class App : public fw::App
+    class App
 	{
 	public:
 		App();
         App(const App&) = delete;
         ~App();
 
-        fw::AppView * get_view();
+        observe::Event<>  after_init;
 
-    protected:
-		bool            onInit() override;
-		bool onShutdown() override;
-		void            onUpdate() override;
-    public:
-        // IAppCtx implementation
-        bool            open_file(const ghc::filesystem::path& _filePath, bool relative = false);
+        bool            init();
+        bool            should_stop();
+        void            update();
+        void            draw();
+        bool            shutdown();
+        fw::App*        framework();
+        bool            is_fullscreen();
+        void            toggle_fullscreen();
+        bool            open_file(const ghc::filesystem::path& _filePath);
         File*           new_file();
         void            save_file()const;
         void            save_file_as(const ghc::filesystem::path &_path);
@@ -51,12 +53,23 @@ namespace ndbl
         void            stop_program();
         void            reset_program();
         bool            compile_and_load_program();
-        static App&     get_instance();             // singleton pattern
+        Settings*       settings();
+        static App *    get_instance();             // singleton pattern
+
+    private:
+        bool            on_init();
+        bool            on_shutdown();
+        void            on_update();
 
     private:
         static App*     s_instance;
         File*           m_current_file;
         size_t          m_current_file_index;
+        fw::App*        m_framework;                 // wrapped framework application
+        AppView*        m_view;
         std::vector<File*> m_loaded_files;
+        Settings        m_settings;
+        bool pick_file_path(std::string &out, fw::AppView::DialogType type);
+        void set_splashscreen_visible(bool b);
     };
 }

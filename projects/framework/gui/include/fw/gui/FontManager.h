@@ -5,6 +5,7 @@
 #include <string>
 #include <imgui/imgui.h>
 #include <fw/core/reflection/enum.h>
+#include <fw/core/log.h>
 
 namespace fw {
 
@@ -35,11 +36,14 @@ namespace fw {
     class FontManager
     {
     public:
+        FontManager()  { LOG_VERBOSE("fw::FontManager", "Constructor " OK "\n"); };
+        FontManager(const FontManager&) = delete;
+        ~FontManager() { LOG_VERBOSE("fw::FontManager", "Destructor " OK "\n"); };
         void        init( const std::vector<FontConf>&text_fonts,
                           const std::array<const char*, FontSlot_COUNT>& defaults,
                           const FontConf* icon_font);
         ImFont*           get_font(FontSlot) const;
-        ImFont*           get_font_by_id(const char*) const;
+        ImFont*get_font(const char*) const;
         ImFont*           load_font(const FontConf* font, const FontConf* icon_font);
     private:
         std::array<ImFont*, FontSlot_COUNT>  m_fonts;        // Required fonts
