@@ -11,6 +11,7 @@
 #include <fw/core/types.h>
 #include <fw/gui/EventManager.h>
 #include <fw/gui/View.h>
+#include <fw/gui/Config.h>
 
 namespace fw
 {
@@ -20,7 +21,7 @@ namespace fw
     class History;
     struct Texture;
     class VirtualMachine;
-    struct Conf;
+    struct Config;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
@@ -68,24 +69,23 @@ namespace fw
             AppView* view;
             bool redock;
         };
-        observe::Event<DrawEvent> event_draw;          // triggered during draw()
-        observe::Event<AppView*> event_reset_layout;           // triggered during reset layout
-        observe::Event<AppView*> event_draw_splashscreen;      // triggered when drawing splashscreen
+        observe::Event<DrawEvent> event_draw;             // triggered during draw()
+        observe::Event<AppView*> event_reset_layout;      // triggered during reset layout
+        observe::Event<AppView*> event_draw_splashscreen; // triggered when drawing splashscreen
 
+        void               init();
         bool               on_draw() override;
         ImGuiID            get_dockspace(Dockspace)const;
         bool               is_splashscreen_visible()const;
         bool               pick_file_path(std::string& _out_path, DialogType);   // pick a file and store its path in _out_path
         void               dock_window(const char* window_name, Dockspace)const; // Call this within on_reset_layout
         void               set_layout_initialized(bool b);
-        void               set_splashscreen_visible(bool b);
-        Conf*              conf();
+
 
     private:
         void               draw_splashcreen_window();
         void               draw_status_window() const;
         App*               m_app;
-        Conf*              m_conf;
         bool               m_is_layout_initialized;
         std::array<ImGuiID, Dockspace_COUNT> m_dockspaces{};
 

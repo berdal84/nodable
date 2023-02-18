@@ -25,7 +25,7 @@ void ViewConstraint::apply(float _dt)
         return;
     }
 
-    const Settings* settings = App::get_instance()->settings();
+    const Settings& settings = App::get_instance().settings;
 
     // try to get a visible view for drivers, is view is not visible we take the parent
     std::vector<NodeView*> clean_drivers;
@@ -59,9 +59,9 @@ void ViewConstraint::apply(float _dt)
                 ImRect bbox = NodeView::get_rect(clean_drivers, true);
                 ImVec2 newPos(bbox.GetCenter()
                             - ImVec2(bbox.GetSize().x * 0.5f
-                            + settings->ui_node_spacing
+                            + settings.ui_node_spacing
                             + first_target->get_rect().GetSize().x * 0.5f, 0 ));
-                first_target->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed);
+                first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed);
             }
 
             break;
@@ -72,13 +72,13 @@ void ViewConstraint::apply(float _dt)
             if(!first_target->is_pinned() && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers);
-                ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings->ui_node_spacing));
-                newPos.y -= settings->ui_node_spacing + first_target->get_size().y / 2.0f;
-                newPos.x += settings->ui_node_spacing + first_target->get_size().x / 2.0f;
+                ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - settings.ui_node_spacing));
+                newPos.y -= settings.ui_node_spacing + first_target->get_size().y / 2.0f;
+                newPos.x += settings.ui_node_spacing + first_target->get_size().x / 2.0f;
 
                 if (newPos.y < first_target->get_position().y )
                 {
-                    first_target->add_force_to_translate_to(newPos + m_offset, settings->ui_node_speed, true);
+                    first_target->add_force_to_translate_to(newPos + m_offset, settings.ui_node_speed, true);
                 }
             }
 
@@ -113,7 +113,7 @@ void ViewConstraint::apply(float _dt)
                 // indent
                 start_pos_x = first_driver->get_position().x
                         + first_driver->get_size().x / 2.0f
-                        + settings->ui_node_spacing;
+                        + settings.ui_node_spacing;
             }
 
             // Constraint in row:
@@ -124,7 +124,7 @@ void ViewConstraint::apply(float _dt)
                 if (!each_target->is_pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
-                    float y_offset = settings->ui_node_spacing
+                    float y_offset = settings.ui_node_spacing
                             + each_target->get_size().y / 2.0f
                             + first_driver->get_size().y / 2.0f;
 
@@ -136,8 +136,8 @@ void ViewConstraint::apply(float _dt)
 
                     if (each_target->should_follow_output(first_driver) )
                     {
-                        each_target->add_force_to_translate_to(new_pos + m_offset, settings->ui_node_speed, true);
-                        start_pos_x += size_x[node_index] + settings->ui_node_spacing;
+                        each_target->add_force_to_translate_to(new_pos + m_offset, settings.ui_node_speed, true);
+                        start_pos_x += size_x[node_index] + settings.ui_node_spacing;
                     }
                     node_index++;
                 }
@@ -155,10 +155,10 @@ void ViewConstraint::apply(float _dt)
                 ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
                 ImVec2 new_pos;
                 new_pos.x = drivers_rect.GetCenter().x;
-                new_pos.y = first_target->get_position().y + target_driver_offset.y + settings->ui_node_spacing;
+                new_pos.y = first_target->get_position().y + target_driver_offset.y + settings.ui_node_spacing;
 
                 // apply
-                first_target->add_force_to_translate_to(new_pos + m_offset, settings->ui_node_speed, true);
+                first_target->add_force_to_translate_to(new_pos + m_offset, settings.ui_node_speed, true);
                 break;
             }
         }
@@ -170,10 +170,10 @@ void ViewConstraint::apply(float _dt)
                 // compute
                 ImVec2 new_pos = clean_drivers[0]->get_position();
                 new_pos     += ImVec2(0.0f, clean_drivers[0]->get_size().y);
-                new_pos.y   += settings->ui_node_spacing + first_target->get_size().y;
+                new_pos.y   += settings.ui_node_spacing + first_target->get_size().y;
 
                 // apply
-                first_target->add_force_to_translate_to(new_pos + m_offset, settings->ui_node_speed);
+                first_target->add_force_to_translate_to(new_pos + m_offset, settings.ui_node_speed);
                 break;
             }
         }

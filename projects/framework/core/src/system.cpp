@@ -37,11 +37,8 @@ void fw::system::open_url_async(std::string _URL)
     std::thread(open_url, _URL).detach();
 }
 
-std::string fw::system::get_executable_directory()
+ghc::filesystem::path fw::system::get_executable_directory()
 {
-    std::string result;
-
-    // set asset absolute path
     char* path = nullptr;
     int length, dirname_length;
     length = wai_getExecutablePath(nullptr, 0, &dirname_length);
@@ -56,7 +53,9 @@ std::string fw::system::get_executable_directory()
             path[dirname_length] = '\0';
             LOG_MESSAGE("fw::system", "  dirname: %s\n", path);
             LOG_MESSAGE("fw::system", "  basename: %s\n", path + dirname_length + 1);
-            result.append(path);
+            ghc::filesystem::path result{path};
+            delete path;
+            return result;
         }
         else
         {
@@ -68,7 +67,7 @@ std::string fw::system::get_executable_directory()
     {
         LOG_WARNING("fw::system", "Unable to get executable directory!\n");
     }
-    return result;
+    return "";
 }
 
 void fw::system::console::clear() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */

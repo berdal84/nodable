@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include "ghc/filesystem.hpp"
 
 namespace fw
 {
@@ -7,7 +8,7 @@ namespace fw
     {
     public:
         static void        open_url_async(std::string /* url */); // Browse a given URL asynchronously
-        static std::string get_executable_directory();            // Get the executable directory absolute path
+        static ghc::filesystem::path get_executable_directory();            // Get the executable directory absolute path
 
         class console
         {

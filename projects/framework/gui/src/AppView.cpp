@@ -15,11 +15,7 @@ AppView::AppView(App* _app)
     : View()
     , m_app(_app)
     , m_is_layout_initialized(false)
-    , m_conf(_app->conf()) // shortcut
 {
-    LOG_VERBOSE("fw::AppView", "Constructor ...\n");
-    FW_EXPECT(m_app != nullptr, "m_app is required");
-    m_app->event_on_draw.connect([&]() { on_draw(); });
     LOG_VERBOSE("fw::AppView", "Constructor " OK "\n");
 }
 
@@ -27,6 +23,16 @@ AppView::~AppView()
 {
     LOG_VERBOSE("fw::AppView", "Destructor " OK "\n");
 }
+
+
+void AppView::init()
+{
+    LOG_VERBOSE("fw::AppView", "init ...\n");
+    FW_EXPECT(m_app != nullptr, "m_app is required");
+    m_app->event_on_draw.connect([&]() { on_draw(); });
+    LOG_VERBOSE("fw::AppView", "init " OK "\n");
+}
+
 
 bool AppView::on_draw()
 {
@@ -36,13 +42,13 @@ bool AppView::on_draw()
     // 2) Draw
     //--------
 
-    ImGui::SetCurrentFont(m_app->font_manager()->get_font(FontSlot_Paragraph));
+    ImGui::SetCurrentFont(m_app->font_manager.get_font(FontSlot_Paragraph));
 
     // Show/Hide ImGui Demo Window
     {
-        if (m_conf->show_imgui_demo){
+        if (m_app->config.imgui_demo){
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowDemoWindow(&m_conf->show_imgui_demo);
+            ImGui::ShowDemoWindow(&m_app->config.imgui_demo);
         }
     }
 
@@ -95,12 +101,12 @@ bool AppView::on_draw()
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_ROOT] , viewport_size);
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_ROOT]   , ImGuiDir_Down , 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , ImVec2(viewport_size.x, m_conf->dockspace_bottom_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , ImVec2(viewport_size.x, m_app->config.dockspace_bottom_size));
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, m_conf->dockspace_top_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, m_app->config.dockspace_top_size));
 
-            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf->dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], &m_dockspaces[Dockspace_CENTER]);
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_app->config.dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], &m_dockspaces[Dockspace_CENTER]);
 
             // Configure dockspaces
             ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton         = false;
@@ -171,11 +177,6 @@ bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
     }
 }
 
-void AppView::set_splashscreen_visible(bool b)
-{
-    m_conf->show_splashscreen = b;
-}
-
 void AppView::set_layout_initialized(bool b)
 {
     m_is_layout_initialized = b;
@@ -193,9 +194,9 @@ void AppView::dock_window(const char* window_name, Dockspace dockspace)const
 
 void AppView::draw_splashcreen_window()
 {
-    if (m_conf->show_splashscreen && !ImGui::IsPopupOpen(m_conf->splashscreen_window_label))
+    if (m_app->config.splashscreen && !ImGui::IsPopupOpen(m_app->config.splashscreen_window_label))
     {
-        ImGui::OpenPopup(m_conf->splashscreen_window_label);
+        ImGui::OpenPopup(m_app->config.splashscreen_window_label);
     }
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(550, 300), ImVec2(550, 50000));
@@ -203,16 +204,11 @@ void AppView::draw_splashcreen_window()
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-    if (ImGui::BeginPopupModal(m_conf->splashscreen_window_label, &m_conf->show_splashscreen, flags))
+    if (ImGui::BeginPopupModal(m_app->config.splashscreen_window_label, &m_app->config.splashscreen, flags))
     {
         event_draw_splashscreen.emit(this); // run user defined code
         ImGui::EndPopup();
     }
-}
-
-bool AppView::is_splashscreen_visible() const
-{
-    return m_conf->show_splashscreen;
 }
 
 void AppView::draw_status_window() const
@@ -222,11 +218,11 @@ void AppView::draw_status_window() const
         if (!fw::log::get_messages().empty())
         {
             const std::deque<fw::log::Message> &messages = fw::log::get_messages();
-            auto it = messages.rend() - std::min(m_conf->log_tooltip_max_count, messages.size());
+            auto it = messages.rend() - std::min(m_app->config.log_tooltip_max_count, messages.size());
             while (it != messages.rend())
             {
                 auto &each_message = *it;
-                ImGui::TextColored(m_conf->log_color[each_message.verbosity], "%s",
+                ImGui::TextColored(m_app->config.log_color[each_message.verbosity], "%s",
                                    each_message.to_full_string().c_str());
                 ++it;
             }
@@ -239,9 +235,4 @@ void AppView::draw_status_window() const
         }
     }
     ImGui::End();
-}
-
-Conf* AppView::conf()
-{
-    return m_conf;
 }

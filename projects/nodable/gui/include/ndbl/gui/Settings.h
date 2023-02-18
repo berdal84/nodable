@@ -8,7 +8,7 @@
 #include <fw/gui/AppView.h>
 #include <fw/gui/FontManager.h>
 #include <fw/gui/types.h>
-#include <fw/gui/Conf.h>
+#include <fw/gui/Config.h>
 
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <ndbl/gui/types.h>
@@ -68,6 +68,6 @@ namespace ndbl {
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
         bool           isolate_selection;
-        fw::Conf       fw_conf;
+        fw::Config       fw_conf;
     };
 }
