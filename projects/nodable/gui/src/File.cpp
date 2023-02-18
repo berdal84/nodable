@@ -145,14 +145,13 @@ bool File::update_graph(std::string& _code_source)
 
 bool File::update()
 {
-    const Config& config    = App::get_instance().config;
-    const auto& virtual_machine = VirtualMachine::get_instance();
-    bool graph_has_changed;
+    App&          app           = App::get_instance();
+    bool          graph_changed = false;
 
 	if ( m_history.is_dirty() )
 	{
         LOG_VERBOSE("File","history is dirty\n")
-        if ( !config.experimental_hybrid_history )
+        if ( !app.config.experimental_hybrid_history )
         {
             update_graph(); // when not in hybrid mode the undo/redo is text based
         }
@@ -160,7 +159,7 @@ bool File::update()
         m_history.set_dirty(false);
 	}
 
-    if( !virtual_machine.is_program_running() )
+    if( !app.vm.is_program_running() )
     {
         LOG_VERBOSE("File","m_graph->update()\n")
         auto result = m_graph->update();
@@ -168,7 +167,7 @@ bool File::update()
         if ( result == UpdateResult::Success_NoChanges && !view.get_text().empty() )
         {
             LOG_VERBOSE("File","graph_has_changed = false\n")
-            graph_has_changed = false;
+            graph_changed = false;
         }
         else
         {
@@ -183,18 +182,18 @@ bool File::update()
                 Nodlang::get_instance().serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace text\n")
-                config.isolate_selection ? view.replace_selected_text(code) : view.replace_text(code);
+                app.config.isolate_selection ? view.replace_selected_text(code) : view.replace_text(code);
             }
-            graph_has_changed = true;
+            graph_changed = true;
         }
     }
     else
     {
         LOG_VERBOSE("File","graph_has_changed = false\n")
-        graph_has_changed = false;
+        graph_changed = false;
     }
 
-	return graph_has_changed;
+	return graph_changed;
 }
 
 bool File::update_graph()

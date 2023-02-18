@@ -55,13 +55,13 @@ bool AppView::on_init()
     return true;
 }
 
-bool AppView::on_draw(bool& redock_all) {
-
+bool AppView::on_draw(bool& redock_all)
+{
     File*             current_file    = m_app->current_file;
     fw::App&          framework       = m_app->framework;
     fw::EventManager& event_manager   = framework.event_manager;
     Config&           config          = m_app->config;
-    VirtualMachine&   virtual_machine = VirtualMachine::get_instance();
+    VirtualMachine&   virtual_machine = m_app->vm;
 
     // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar()) {
@@ -335,8 +335,9 @@ void AppView::draw_node_properties_window()
 }
 
 void AppView::draw_virtual_machine_window() {
-    if (ImGui::Begin(m_app->config.ui_virtual_machine_window_label)) {
-        auto &vm = VirtualMachine::get_instance();
+    if (ImGui::Begin(m_app->config.ui_virtual_machine_window_label))
+    {
+        auto &vm = m_app->vm;
 
         ImGui::Text("Virtual Machine:");
         ImGui::SameLine();
@@ -517,7 +518,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
 }
 
 void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file) {
-    auto &vm = VirtualMachine::get_instance();
+    auto &vm = m_app->vm;
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
@@ -715,17 +716,17 @@ void AppView::draw_toolbar_window() {
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 5.0f));
     Config& config = m_app->config;
-    if (ImGui::Begin(config.ui_toolbar_window_label, NULL, flags )) {
+    if (ImGui::Begin(config.ui_toolbar_window_label, NULL, flags ))
+    {
         ImGui::PopStyleVar();
-        auto &vm = VirtualMachine::get_instance();
-        fw::Config& conf = m_app->framework.config;
-        bool running = vm.is_program_running();
-        bool debugging = vm.is_debugging();
-        bool stopped = vm.is_program_stopped();
-        ImVec2 button_size  = config.ui_toolButton_size;
+        VirtualMachine& vm   = m_app->vm;
+        fw::Config&     conf = m_app->framework.config;
+        bool running         = vm.is_program_running();
+        bool debugging       = vm.is_debugging();
+        bool stopped         = vm.is_program_stopped();
+        ImVec2 button_size   = config.ui_toolButton_size;
 
         ImGui::PushFont(m_app->framework.font_manager.get_font(fw::FontSlot_ToolBtn));
-
         ImGui::BeginGroup();
 
         // compile
