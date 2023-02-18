@@ -115,7 +115,7 @@ bool App::init()
     }
 
     LOG_VERBOSE("fw::App", "after_init.emit() ...\n");
-    after_init.emit();
+    event_after_init.emit();
     LOG_VERBOSE("fw::App", "init " OK "\n");
     return true;
 }
@@ -124,7 +124,7 @@ void App::update()
 {
     LOG_VERBOSE("fw::App", "update ...\n");
     handle_events();
-    after_update.emit();
+    event_after_update.emit();
     LOG_VERBOSE("fw::App", "update " OK "\n");
 }
 
@@ -152,7 +152,7 @@ bool App::shutdown()
     LOG_MESSAGE("fw::App", "Quitting NFD (Native File Dialog) ...\n");
     NFD_Quit();
 
-    after_shutdown.emit();
+    event_after_shutdown.emit();
     LOG_MESSAGE("fw::App", "Shutdown %s\n", success ? OK : KO)
     return success;
 }
@@ -165,7 +165,7 @@ void App::draw()
     ImGui::NewFrame();
     ImGuiEx::BeginFrame();
 
-    on_draw.emit();
+    event_on_draw.emit();
 
     // 3. End frame and Render
     //------------------------
@@ -225,14 +225,14 @@ void App::handle_events()
         {
             case SDL_WINDOWEVENT:
                 if( event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    m_event_manager.push_event(fw::EventType_exit_triggered);
+                    m_should_stop = true;
                 break;
             case SDL_KEYDOWN:
 
                 // With mode key only
                 if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
-                    for(auto _binded_event: m_event_manager.get_binded_events() )
+                    for(const auto& _binded_event: m_event_manager.get_binded_events() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _binded_event.shortcut.mod != KMOD_NONE
@@ -248,7 +248,7 @@ void App::handle_events()
                 }
                 else // without any mod key
                 {
-                    for(auto _binded_event: m_event_manager.get_binded_events() )
+                    for(const auto& _binded_event: m_event_manager.get_binded_events() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _binded_event.shortcut.mod == KMOD_NONE
@@ -307,4 +307,29 @@ void App::set_fullscreen(bool b)
 AppView *App::view()
 {
     return &m_view;
+}
+
+int App::run()
+{
+    if (init())
+    {
+        while (!should_stop())
+        {
+            update();
+            draw();
+        }
+        shutdown();
+        LOG_FLUSH()
+        return 0;
+    }
+    else
+    {
+        LOG_FLUSH()
+        return 1;
+    }
+}
+
+int App::fps()
+{
+    return (int)ImGui::GetIO().Framerate;
 }

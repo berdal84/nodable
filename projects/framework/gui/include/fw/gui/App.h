@@ -22,16 +22,12 @@ namespace fw
         App(const App&) = delete;
         ~App();
 
-		bool               init();     // Initialize the application
-		bool               shutdown(); // Shutdown the application
-		void               update();   // Update the application
-		void               draw();     // Draw the application's view
+        observe::Event<> event_after_init;     // Triggered after init
+        observe::Event<> event_on_draw;        // Triggered between ImGui::BeginFrame() and EndFrame()
+        observe::Event<> event_after_shutdown; // Triggered after shutdown
+        observe::Event<> event_after_update;   // Triggered after update
 
-        observe::Event<>   after_init;     // Triggered after init
-        observe::Event<>   on_draw   ;     // Triggered between ImGui::BeginFrame() and EndFrame()
-        observe::Event<>   after_shutdown; // Triggered after shutdown
-        observe::Event<>   after_update;   // Triggered after update
-
+        int                run();              // Run the main loop
         bool               should_stop() const { return m_should_stop; } // Check if application should stop
         void               flag_to_stop();                               // Flag the application to stop, will stop more likely the next frame.
         u64_t              elapsed_time() const;                         // Get the elapsed time in seconds
@@ -44,7 +40,12 @@ namespace fw
         void               set_fullscreen(bool b);
         void               save_screenshot(const char *relative_file_path);
         static std::string asset_path(const char*);       // convert a relative (to ./assets) path to an absolute path
-        fw::AppView *view();
+        fw::AppView*       view();
+        bool               init();     // Initialize the application
+        bool               shutdown(); // Shutdown the application
+        void               update();   // Update the application
+        void               draw();     // Draw the application's view
+        static int fps();
 
     private:
         const std::chrono::time_point<std::chrono::system_clock>

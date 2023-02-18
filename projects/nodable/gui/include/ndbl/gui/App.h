@@ -28,11 +28,7 @@ namespace ndbl
 
         observe::Event<>  after_init;
 
-        bool            init();
-        bool            should_stop();
-        void            update();
-        void            draw();
-        bool            shutdown();
+        int             run() { return m_framework->run(); }
         fw::App*        framework();
         bool            is_fullscreen();
         void            toggle_fullscreen();

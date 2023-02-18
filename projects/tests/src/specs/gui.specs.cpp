@@ -21,58 +21,58 @@ TEST_F(Gui_App, init)
 {
     fw::log::set_verbosity(fw::log::Verbosity_Verbose);
     ndbl::App app;
-    EXPECT_NO_THROW(app.init());
-    EXPECT_TRUE(app.shutdown());
+    EXPECT_NO_THROW(app.framework()->init());
+    EXPECT_TRUE(app.framework()->shutdown());
 }
 
 TEST_F(Gui_App, shutdown)
 {
     ndbl::App app;
-    EXPECT_TRUE(app.init());
-    EXPECT_NO_THROW(app.shutdown());
+    EXPECT_TRUE(app.framework()->init());
+    EXPECT_NO_THROW(app.framework()->shutdown());
 }
 
 TEST_F(Gui_App, update)
 {
     ndbl::App app;
-    EXPECT_TRUE(app.init());
-    EXPECT_NO_THROW(app.update());
-    EXPECT_TRUE(app.shutdown());
+    EXPECT_TRUE(app.framework()->init());
+    EXPECT_NO_THROW(app.framework()->update());
+    EXPECT_TRUE(app.framework()->shutdown());
 }
 
 TEST_F(Gui_App, loop_count_1)
 {
     ndbl::App app;
-    EXPECT_TRUE(app.init());
+    EXPECT_TRUE(app.framework()->init());
     loop_count(app, 1);
-    EXPECT_TRUE(app.shutdown());
+    EXPECT_TRUE(app.framework()->shutdown());
 }
 
 TEST_F(Gui_App, loop_duration_5s)
 {
     ndbl::App app;
-    EXPECT_TRUE(app.init());
+    EXPECT_TRUE(app.framework()->init());
     loop_duration(app, 5.0);
-    EXPECT_TRUE(app.shutdown());
+    EXPECT_TRUE(app.framework()->shutdown());
 }
 
 TEST_F(Gui_App, open_file)
 {
     ndbl::App app;
-    app.init();
+    app.framework()->init();
     app.framework()->view()->set_splashscreen_visible(false);
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__0.png");
     EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__1.png");
-    app.shutdown();
+    app.framework()->shutdown();
 }
 
 TEST_F(Gui_App, close_file)
 {
     ndbl::App app;
-    app.init();
+    app.framework()->init();
     app.framework()->view()->set_splashscreen_visible(false);
     app.open_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
@@ -80,15 +80,15 @@ TEST_F(Gui_App, close_file)
     app.close_file( app.current_file() );
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__1.png");
-    app.shutdown();
+    app.framework()->shutdown();
 }
 
 TEST_F(Gui_App, open_examples)
 {
     ndbl::App app;
-    app.init();
+    app.framework()->init();
     app.framework()->view()->set_splashscreen_visible(false);
-    app.update();
+    app.framework()->update();
     save_screenshot(app, "TEST_Gui_App__open_examples__0.png");
     EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
@@ -102,7 +102,7 @@ TEST_F(Gui_App, open_examples)
     EXPECT_TRUE(app.open_file("./examples/multi-instructions.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__4.png");
-    app.shutdown();
+    app.framework()->shutdown();
 }
 
 
