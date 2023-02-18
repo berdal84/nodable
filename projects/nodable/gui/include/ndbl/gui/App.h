@@ -8,7 +8,7 @@
 #include <fw/gui/App.h>
 
 #include <ndbl/gui/AppView.h>
-#include <ndbl/gui/Settings.h>
+#include <ndbl/gui/Config.h>
 #include <ndbl/gui/types.h>
 #include <ndbl/core/VirtualMachine.h>
 #include <ndbl/core/language/Nodlang.h>
@@ -19,16 +19,21 @@ namespace ndbl
     class File;
     class AppView;
 
+    // Nodable application
+    // - Only a single instance can exist at the same time
+    // - Instantiate it as you want (stack or heap)
+    // - The instance will be available statically via: App* App::get_instance()
+    // - Is based on fw::App, but extends it using composition instead of inheritance
     class App
 	{
 	public:
 		App();
-        App(const App&) = delete;
+        App(const App&) = delete;       // Avoid copy (single instance only)
         ~App();
 
         observe::Event<>  after_init;   // Triggered just after app initialize, for custom code
-        fw::App           framework;    // Underlying framework
-        Settings          settings;
+        fw::App           framework;    // The underlying framework (we use composition instead of inheritance)
+        Config            config;       // Nodable configuration (includes framework configuration)
 
         // wrapped framework application
         int             run() { return framework.run(); }

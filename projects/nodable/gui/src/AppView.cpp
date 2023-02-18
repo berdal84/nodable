@@ -9,7 +9,7 @@
 #include <ndbl/gui/FileView.h>
 #include <ndbl/gui/History.h>
 #include <ndbl/gui/NodeView.h>
-#include <ndbl/gui/Settings.h>
+#include <ndbl/gui/Config.h>
 #include <ndbl/gui/build_info.h>
 
 #include <utility>
@@ -48,7 +48,7 @@ bool AppView::on_init()
     m_app->framework.view.event_draw_splashscreen.connect([&](auto){on_draw_splashscreen();});
 
     // Load splashscreen image
-    m_logo = m_app->framework.texture_manager.get_asset(m_app->settings.ui_splashscreen_imagePath);
+    m_logo = m_app->framework.texture_manager.get_asset(m_app->config.ui_splashscreen_imagePath);
 
     LOG_VERBOSE("ndbl::AppView", "on_init " OK "\n");
 
@@ -60,7 +60,7 @@ bool AppView::on_draw(bool& redock_all) {
     File*             current_file    = m_app->current_file();
     fw::App&          framework       = m_app->framework;
     fw::EventManager& event_manager   = framework.event_manager;
-    Settings&         settings        = m_app->settings;
+    Config&           config          = m_app->config;
     VirtualMachine&   virtual_machine = VirtualMachine::get_instance();
 
     // 1. Draw Menu Bar
@@ -155,7 +155,7 @@ bool AppView::on_draw(bool& redock_all) {
 
             ImGui::Separator();
 
-            fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_isolate_selection, settings.isolate_selection);
+            fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_isolate_selection, config.isolate_selection);
 
             ImGui::EndMenu();
         }
@@ -201,8 +201,8 @@ bool AppView::on_draw(bool& redock_all) {
             }
 
             if (ImGui::BeginMenu("Experimental")) {
-                ImGui::Checkbox("Hybrid history", &settings.experimental_hybrid_history);
-                ImGui::Checkbox("Graph auto-completion", &settings.experimental_graph_autocompletion);
+                ImGui::Checkbox("Hybrid history", &config.experimental_hybrid_history);
+                ImGui::Checkbox("Graph auto-completion", &config.experimental_graph_autocompletion);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -260,8 +260,8 @@ bool AppView::on_draw(bool& redock_all) {
         }
 
         draw_virtual_machine_window();
-        draw_settings_window();
-        draw_imgui_settings_window();
+        draw_config_window();
+        draw_imgui_config_window();
         draw_file_info_window();
         draw_node_properties_window();
         draw_help_window();
@@ -270,7 +270,7 @@ bool AppView::on_draw(bool& redock_all) {
 }
 
 void AppView::draw_help_window() const {
-    if (ImGui::Begin(m_app->settings.ui_help_window_label))
+    if (ImGui::Begin(m_app->config.ui_help_window_label))
     {
         fw::FontManager& font_manager = m_app->framework.font_manager;
         ImGui::PushFont(font_manager.get_font(fw::FontSlot_Heading));
@@ -297,7 +297,7 @@ void AppView::draw_help_window() const {
         fw::ImGuiEx::BulletTextWrapped(
                 "At the center, there is the graph editor where you can create/delete/connect nodes\n");
         fw::ImGuiEx::BulletTextWrapped(
-                "On the right side (this side) you will find many tabs to manage additional settings such as node properties, virtual machine or app properties\n");
+                "On the right side (this side) you will find many tabs to manage additional config such as node properties, virtual machine or app properties\n");
         fw::ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
                                        " There, few buttons will serve to compile, run and debug your program.");
         fw::ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
@@ -306,8 +306,8 @@ void AppView::draw_help_window() const {
     ImGui::End();
 }
 
-void AppView::draw_imgui_settings_window() const {
-    if (ImGui::Begin(m_app->settings.ui_imgui_settings_window_label)) {
+void AppView::draw_imgui_config_window() const {
+    if (ImGui::Begin(m_app->config.ui_imgui_config_window_label)) {
         ImGui::ShowStyleEditor();
     }
     ImGui::End();
@@ -315,7 +315,7 @@ void AppView::draw_imgui_settings_window() const {
 
 void AppView::draw_file_info_window() const {
     if (auto current_file = m_app->current_file()) {
-        if (ImGui::Begin(m_app->settings.ui_file_info_window_label)) {
+        if (ImGui::Begin(m_app->config.ui_file_info_window_label)) {
             if (current_file) {
                 FileView *fileView = current_file->get_view();
                 fileView->draw_info();
@@ -329,7 +329,7 @@ void AppView::draw_file_info_window() const {
 }
 
 void AppView::draw_node_properties_window() {
-    if (ImGui::Begin(m_app->settings.ui_node_properties_window_label)) {
+    if (ImGui::Begin(m_app->config.ui_node_properties_window_label)) {
         NodeView *view = NodeView::get_selected();
         if (view) {
             ImGui::Indent(10.0f);
@@ -340,7 +340,7 @@ void AppView::draw_node_properties_window() {
 }
 
 void AppView::draw_virtual_machine_window() {
-    if (ImGui::Begin(m_app->settings.ui_virtual_machine_window_label)) {
+    if (ImGui::Begin(m_app->config.ui_virtual_machine_window_label)) {
         auto &vm = VirtualMachine::get_instance();
 
         ImGui::Text("Virtual Machine:");
@@ -458,7 +458,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
 
-    ImGui::Begin(m_app->settings.ui_startup_window_label);
+    ImGui::Begin(m_app->config.ui_startup_window_label);
     {
         fw::FontManager&  font_manager  = m_app->framework.font_manager;
         fw::EventManager& event_manager = m_app->framework.event_manager;
@@ -570,52 +570,52 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
     }
 }
 
-void AppView::draw_settings_window() {
+void AppView::draw_config_window() {
 
-    Settings& settings = m_app->settings;
-    if (ImGui::Begin(settings.ui_settings_window_label))
+    Config& config = m_app->config;
+    if (ImGui::Begin(config.ui_config_window_label))
     {
         ImGui::Text("Nodable Settings:");
         ImGui::Indent();
 
         ImGui::Text("Buttons:");
         ImGui::Indent();
-        ImGui::SliderFloat2("ui_toolButton_size", &settings.ui_toolButton_size.x, 20.0f, 50.0f);
+        ImGui::SliderFloat2("ui_toolButton_size", &config.ui_toolButton_size.x, 20.0f, 50.0f);
         ImGui::Unindent();
 
         ImGui::Text("Wires:");
         ImGui::Indent();
-        ImGui::SliderFloat("thickness", &settings.ui_wire_bezier_thickness, 0.5f, 10.0f);
-        ImGui::SliderFloat("roundness", &settings.ui_wire_bezier_roundness, 0.0f, 1.0f);
-        ImGui::Checkbox("arrows", &settings.ui_wire_displayArrows);
+        ImGui::SliderFloat("thickness", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
+        ImGui::SliderFloat("roundness", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
+        ImGui::Checkbox("arrows", &config.ui_wire_displayArrows);
         ImGui::Unindent();
 
         ImGui::Text("Nodes:");
         ImGui::Indent();
-        ImGui::SliderFloat("property connector radius", &settings.ui_node_propertyConnectorRadius, 1.0f, 10.0f);
-        ImGui::SliderFloat("padding", &settings.ui_node_padding, 1.0f, 20.0f);
-        ImGui::SliderFloat("speed", &settings.ui_node_speed, 0.0f, 100.0f);
-        ImGui::SliderFloat("spacing", &settings.ui_node_spacing, 0.0f, 100.0f);
-        ImGui::SliderFloat("node connector padding", &settings.ui_node_connector_padding, 0.0f, 100.0f);
-        ImGui::SliderFloat("node connector height", &settings.ui_node_connector_height, 2.0f, 100.0f);
-        ImGui::ColorEdit4("variables color", &settings.ui_node_variableColor.x);
-        ImGui::ColorEdit4("instruction color", &settings.ui_node_instructionColor.x);
-        ImGui::ColorEdit4("literal color", &settings.ui_node_literalColor.x);
-        ImGui::ColorEdit4("function color", &settings.ui_node_invokableColor.x);
-        ImGui::ColorEdit4("shadow color", &settings.ui_node_shadowColor.x);
-        ImGui::ColorEdit4("border color", &settings.ui_node_borderColor.x);
-        ImGui::ColorEdit4("high. color", &settings.ui_node_highlightedColor.x);
-        ImGui::ColorEdit4("border high. color", &settings.ui_node_borderHighlightedColor.x);
-        ImGui::ColorEdit4("fill color", &settings.ui_node_fillColor.x);
-        ImGui::ColorEdit4("node connector color", &settings.ui_node_nodeConnectorColor.x);
-        ImGui::ColorEdit4("node connector hovered color", &settings.ui_node_nodeConnectorHoveredColor.x);
+        ImGui::SliderFloat("property connector radius", &config.ui_node_propertyConnectorRadius, 1.0f, 10.0f);
+        ImGui::SliderFloat("padding", &config.ui_node_padding, 1.0f, 20.0f);
+        ImGui::SliderFloat("speed", &config.ui_node_speed, 0.0f, 100.0f);
+        ImGui::SliderFloat("spacing", &config.ui_node_spacing, 0.0f, 100.0f);
+        ImGui::SliderFloat("node connector padding", &config.ui_node_connector_padding, 0.0f, 100.0f);
+        ImGui::SliderFloat("node connector height", &config.ui_node_connector_height, 2.0f, 100.0f);
+        ImGui::ColorEdit4("variables color", &config.ui_node_variableColor.x);
+        ImGui::ColorEdit4("instruction color", &config.ui_node_instructionColor.x);
+        ImGui::ColorEdit4("literal color", &config.ui_node_literalColor.x);
+        ImGui::ColorEdit4("function color", &config.ui_node_invokableColor.x);
+        ImGui::ColorEdit4("shadow color", &config.ui_node_shadowColor.x);
+        ImGui::ColorEdit4("border color", &config.ui_node_borderColor.x);
+        ImGui::ColorEdit4("high. color", &config.ui_node_highlightedColor.x);
+        ImGui::ColorEdit4("border high. color", &config.ui_node_borderHighlightedColor.x);
+        ImGui::ColorEdit4("fill color", &config.ui_node_fillColor.x);
+        ImGui::ColorEdit4("node connector color", &config.ui_node_nodeConnectorColor.x);
+        ImGui::ColorEdit4("node connector hovered color", &config.ui_node_nodeConnectorHoveredColor.x);
 
         ImGui::Unindent();
 
         // code flow
         ImGui::Text("Code flow:");
         ImGui::Indent();
-        ImGui::SliderFloat("line width min", &settings.ui_node_connector_width, 1.0f, 100.0f);
+        ImGui::SliderFloat("line width min", &config.ui_node_connector_width, 1.0f, 100.0f);
         ImGui::Unindent();
 
         ImGui::Unindent();
@@ -660,10 +660,10 @@ void AppView::draw_history_bar(History *currentFileHistory) {
     if (ImGui::IsMouseReleased(0)) {
         m_is_history_dragged = false;
     }
-    Settings& settings = m_app->settings;
-    float btn_spacing = settings.ui_history_btn_spacing;
-    float btn_height = settings.ui_history_btn_height;
-    float btn_width_max = settings.ui_history_btn_width_max;
+    Config& config = m_app->config;
+    float btn_spacing = config.ui_history_btn_spacing;
+    float btn_height = config.ui_history_btn_height;
+    float btn_width_max = config.ui_history_btn_width_max;
 
     size_t historySize = currentFileHistory->get_size();
     std::pair<int, int> history_range = currentFileHistory->get_command_id_range();
@@ -720,15 +720,15 @@ void AppView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 5.0f));
-    Settings& settings = m_app->settings;
-    if (ImGui::Begin(settings.ui_toolbar_window_label, NULL, flags )) {
+    Config& config = m_app->config;
+    if (ImGui::Begin(config.ui_toolbar_window_label, NULL, flags )) {
         ImGui::PopStyleVar();
         auto &vm = VirtualMachine::get_instance();
         fw::Config& conf = m_app->framework.config;
         bool running = vm.is_program_running();
         bool debugging = vm.is_debugging();
         bool stopped = vm.is_program_stopped();
-        ImVec2 button_size  = settings.ui_toolButton_size;
+        ImVec2 button_size  = config.ui_toolButton_size;
 
         ImGui::PushFont(m_app->framework.font_manager.get_font(fw::FontSlot_ToolBtn));
 
@@ -778,7 +778,7 @@ void AppView::draw_toolbar_window() {
 
         // enter isolation mode
         if (ImGui::Button(
-                settings.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
+                config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
             m_app->framework.event_manager.push(EventType_toggle_isolate_selection);
         }
@@ -792,15 +792,15 @@ void AppView::draw_toolbar_window() {
 
 bool AppView::on_reset_layout() {
     // Dock windows to specific dockspace
-    const Settings& settings  = m_app->settings;
+    const Config& config  = m_app->config;
     fw::AppView&    framework = m_app->framework.view;
-    framework.dock_window(settings.ui_help_window_label             , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(settings.ui_settings_window_label         , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(settings.ui_file_info_window_label        , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(settings.ui_node_properties_window_label  , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(settings.ui_virtual_machine_window_label  , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(settings.ui_imgui_settings_window_label   , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(settings.ui_toolbar_window_label          , fw::AppView::Dockspace_TOP);
+    framework.dock_window(config.ui_help_window_label             , fw::AppView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_config_window_label         , fw::AppView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_file_info_window_label        , fw::AppView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_node_properties_window_label  , fw::AppView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_virtual_machine_window_label  , fw::AppView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_imgui_config_window_label   , fw::AppView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_toolbar_window_label          , fw::AppView::Dockspace_TOP);
 
     return true;
 }

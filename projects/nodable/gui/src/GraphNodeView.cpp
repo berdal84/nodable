@@ -10,7 +10,7 @@
 #include <ndbl/gui/PropertyConnector.h>
 #include <ndbl/gui/NodeConnector.h>
 #include <ndbl/gui/NodeView.h>
-#include <ndbl/gui/Settings.h>
+#include <ndbl/gui/Config.h>
 #include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/GraphNode.h>
 #include <ndbl/core/language/Nodlang.h>
@@ -154,23 +154,23 @@ bool GraphNodeView::on_draw()
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
                 float viewWidthMin = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
-                float lineWidth = std::min(app.settings.ui_node_connector_width,
+                float lineWidth = std::min(app.config.ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
                 ImVec2 start = each_view->get_screen_position();
                 start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
-                start.y += app.settings.ui_node_connector_height * 0.25f;
+                start.y += app.config.ui_node_connector_height * 0.25f;
 
                 ImVec2 end = each_successor_view->get_screen_position();
                 end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
-                end.y -= app.settings.ui_node_connector_height * 0.25f;
+                end.y -= app.config.ui_node_connector_height * 0.25f;
 
-                ImColor color(app.settings.ui_codeFlow_lineColor);
-                ImColor shadowColor(app.settings.ui_codeFlow_lineShadowColor);
+                ImColor color(app.config.ui_codeFlow_lineColor);
+                ImColor shadowColor(app.config.ui_codeFlow_lineShadowColor);
                 fw::ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
                                           lineWidth - linePadding * 2.0f, 0.0f);
             }
@@ -189,7 +189,7 @@ bool GraphNodeView::on_draw()
             ImGui::GetWindowDrawList()->AddLine(
                     src, dst,
                     get_color(ColorType_BorderHighlights),
-                    app.settings.ui_wire_bezier_thickness
+                    app.config.ui_wire_bezier_thickness
                 );
         }
 
@@ -201,9 +201,9 @@ bool GraphNodeView::on_draw()
             fw::ImGuiEx::DrawVerticalWire(
                 ImGui::GetWindowDrawList(),
                 src, dst,
-                app.settings.ui_codeFlow_lineColor,
-                app.settings.ui_codeFlow_lineShadowColor,
-                app.settings.ui_node_connector_width,
+                app.config.ui_codeFlow_lineColor,
+                app.config.ui_codeFlow_lineShadowColor,
+                app.config.ui_node_connector_width,
                 0.f // roundness
                 );
         }
@@ -266,7 +266,6 @@ bool GraphNodeView::on_draw()
                                 }
                             }
 
-                            // TODO: add multiple wire type settings
                             if ( !skip_wire )
                             {
                                 // straight wide lines for node connections
@@ -275,10 +274,10 @@ bool GraphNodeView::on_draw()
                                     fw::ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
                                             src_pos, dst_pos,
-                                            app.settings.ui_codeFlow_lineColor,
-                                            app.settings.ui_codeFlow_lineShadowColor,
-                                            app.settings.ui_wire_bezier_thickness * 3.0f,
-                                            app.settings.ui_wire_bezier_roundness * 0.25f);
+                                            app.config.ui_codeFlow_lineColor,
+                                            app.config.ui_codeFlow_lineShadowColor,
+                                            app.config.ui_wire_bezier_thickness * 3.0f,
+                                            app.config.ui_wire_bezier_roundness * 0.25f);
                                 }
                                 // curved thin for the others
                                 else
@@ -286,10 +285,10 @@ bool GraphNodeView::on_draw()
                                     fw::ImGuiEx::DrawVerticalWire(
                                             ImGui::GetWindowDrawList(),
                                             src_pos, dst_pos,
-                                            app.settings.ui_wire_fillColor,
-                                            app.settings.ui_wire_shadowColor,
-                                            app.settings.ui_wire_bezier_thickness,
-                                            app.settings.ui_wire_bezier_roundness);
+                                            app.config.ui_wire_fillColor,
+                                            app.config.ui_wire_shadowColor,
+                                            app.config.ui_wire_bezier_thickness,
+                                            app.config.ui_wire_bezier_roundness);
                                 }
                             }
                         }
@@ -508,7 +507,7 @@ bool GraphNodeView::on_draw()
                 }
                 PropertyConnector::stop_drag();
             }
-            else if ( new_node != graph->get_root() && app.settings.experimental_graph_autocompletion )
+            else if ( new_node != graph->get_root() && app.config.experimental_graph_autocompletion )
             {
                 graph->ensure_has_root();
                 // graph->connect( new_node, graph->get_root(), RelType::IS_CHILD_OF  );
@@ -647,7 +646,7 @@ bool GraphNodeView::update()
     {
         create_child_view_constraints();
     }
-    return update( ImGui::GetIO().DeltaTime, App::get_instance().settings.ui_node_animation_subsample_count );
+    return update( ImGui::GetIO().DeltaTime, App::get_instance().config.ui_node_animation_subsample_count );
 }
 
 void GraphNodeView::set_owner(Node *_owner)

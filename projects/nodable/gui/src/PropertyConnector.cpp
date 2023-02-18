@@ -1,6 +1,6 @@
 #include <ndbl/gui/PropertyConnector.h>
 
-#include <ndbl/gui/Settings.h>
+#include <ndbl/gui/Config.h>
 #include <ndbl/core/Node.h>
 #include <ndbl/core/GraphNode.h>
 #include <ndbl/gui/NodeView.h>

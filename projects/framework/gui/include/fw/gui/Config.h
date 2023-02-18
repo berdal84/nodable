@@ -8,6 +8,10 @@ namespace fw
 
     // AppView's configuration
     struct Config {
+
+        Config() = default;
+        Config(const Config&) = delete; // disable copy
+
         std::string           app_window_label         = "Framework AppView";
         float                 min_frame_time           = 1.0f / 60.0f;            // limit to 60fps
         ImColor               background_color         = ImColor(0.f,0.f,0.f);
