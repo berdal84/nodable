@@ -50,7 +50,6 @@ namespace ndbl
         bool               m_show_imgui_demo;
         bool               m_show_advanced_node_properties;
         bool               m_scroll_to_curr_instr;
-        fw::AppView*       m_framework;
         App*               m_app;
     };
 }

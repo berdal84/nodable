@@ -7,7 +7,7 @@ namespace fw
 {
 
     // AppView's configuration
-    struct Conf {
+    struct Config {
         std::string           app_window_label         = "Framework AppView";
         float                 min_frame_time           = 1.0f / 60.0f;            // limit to 60fps
         ImColor               background_color         = ImColor(0.f,0.f,0.f);
@@ -15,10 +15,10 @@ namespace fw
         ImVec4                button_hoveredColor      = ImVec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
         ImVec4                button_color             = ImVec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
         const char*           splashscreen_window_label= "##Splashscreen";
-        bool                  show_splashscreen        = true;
-        bool                  show_imgui_demo          = false;
+        bool                  splashscreen             = true; // hide/show splashscreen
+        bool                  imgui_demo               = false;
         FontConf              icon_font                = {"FA-solid-900", "fonts/fa-solid-900.ttf"};
-        float                 dockspace_bottom_size      = 48.f;
+        float                 dockspace_bottom_size    = 48.f;
         float                 dockspace_top_size       = 48.f;
         float                 dockspace_right_ratio    = 0.3f;
         size_t                log_tooltip_max_count    = 25;

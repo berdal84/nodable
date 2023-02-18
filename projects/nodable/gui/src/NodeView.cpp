@@ -117,7 +117,7 @@ void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
 
-    Settings* settings = App::get_instance()->settings();
+    const Settings& settings = App::get_instance().settings;
     std::vector<Property *> not_exposed;
 
     // 1. Expose properties (make visible)
@@ -158,19 +158,19 @@ void NodeView::set_owner(Node *_node)
 
     if (_node->has<InvokableComponent>())
     {
-        set_color(ColorType_Fill, &settings->ui_node_invokableColor); // blue
+        set_color(ColorType_Fill, &settings.ui_node_invokableColor); // blue
     }
     else if (clss.is_child_of<VariableNode>())
     {
-        set_color(ColorType_Fill, &settings->ui_node_variableColor); // purple
+        set_color(ColorType_Fill, &settings.ui_node_variableColor); // purple
     }
     else if (clss.is_child_of<LiteralNode>())
     {
-        set_color(ColorType_Fill, &settings->ui_node_literalColor);
+        set_color(ColorType_Fill, &settings.ui_node_literalColor);
     }
     else
     {
-        set_color(ColorType_Fill, &settings->ui_node_instructionColor); // green
+        set_color(ColorType_Fill, &settings.ui_node_instructionColor); // green
     }
 
     // 3. NodeConnectors
@@ -378,15 +378,15 @@ bool NodeView::on_draw()
 {
 	bool      changed  = false;
 	auto      node     = get_owner();
-	Settings* settings = App::get_instance()->settings();
+	Settings& settings = App::get_instance().settings;
 
     FW_ASSERT(node != nullptr);
 
     // Draw Node connectors (in background)
     bool is_connector_hovered = false;
     {
-        ImColor color        = settings->ui_node_nodeConnectorColor;
-        ImColor hoveredColor = settings->ui_node_nodeConnectorHoveredColor;
+        ImColor color        = settings.ui_node_nodeConnectorColor;
+        ImColor hoveredColor = settings.ui_node_nodeConnectorHoveredColor;
 
         auto draw_and_handle_evt = [&](NodeConnector *connector)
         {
@@ -423,7 +423,7 @@ bool NodeView::on_draw()
 		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
 
 		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings->ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
+		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + settings.ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
 
 		// Draw an additionnal blinking rectangle when selected
 		if (is_selected(this))
@@ -439,8 +439,8 @@ bool NodeView::on_draw()
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
 	ImGui::SetCursorPos(cursor_pos_content_start);
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
+	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui_node_padding );
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -478,8 +478,8 @@ bool NodeView::on_draw()
         ImGui::EndGroup();
         ImGui::SameLine();
 
-        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings->ui_node_padding * 2.0f);
-        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings->ui_node_padding );
+        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + settings.ui_node_padding * 2.0f);
+        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + settings.ui_node_padding );
     ImGui::EndGroup();
 
     // Ends the Window
@@ -492,10 +492,10 @@ bool NodeView::on_draw()
 
     // Draw Property in/out connectors
     {
-        float radius      = settings->ui_node_propertyConnectorRadius;
-        ImColor color     = settings->ui_node_nodeConnectorColor;
-        ImColor borderCol = settings->ui_node_borderColor;
-        ImColor hoverCol  = settings->ui_node_nodeConnectorHoveredColor;
+        float radius      = settings.ui_node_propertyConnectorRadius;
+        ImColor color     = settings.ui_node_nodeConnectorColor;
+        ImColor borderCol = settings.ui_node_borderColor;
+        ImColor hoverCol  = settings.ui_node_nodeConnectorHoveredColor;
 
         if ( m_exposed_this_property_view )
         {

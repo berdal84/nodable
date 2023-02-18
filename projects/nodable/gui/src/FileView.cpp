@@ -49,7 +49,7 @@ FileView::FileView(File& _file)
                 graph_view->translate_all( ImVec2(-10000.0f), views);
 
                 // frame all (delay to next frame via event system)
-                fw::EventManager::get_instance().push_event(EventType_frame_all_node_views);
+                fw::EventManager::get_instance().push(EventType_frame_all_node_views);
             }
         }
     });
@@ -60,12 +60,12 @@ void FileView::init()
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
-	m_text_editor.SetPalette(App::get_instance()->settings()->ui_text_textEditorPalette);
+	m_text_editor.SetPalette(App::get_instance().settings.ui_text_textEditorPalette);
 }
 
 bool FileView::on_draw()
 {
-    const Settings* settings = App::get_instance()->settings();
+    const App& app = App::get_instance();
     const ImVec2 margin(10.0f, 0.0f);
     auto region_available = ImGui::GetContentRegionAvail() - margin;
 
@@ -124,7 +124,7 @@ bool FileView::on_draw()
 
     m_file.get_history()->enable_text_editor(true); // ensure to begin to record history
     m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
-    if (settings->experimental_hybrid_history )
+    if (app.settings.experimental_hybrid_history )
     {
         m_file.get_history()->enable_text_editor(false); // avoid recording events caused by graph serialisation
     }
@@ -139,7 +139,7 @@ bool FileView::on_draw()
 
     m_text_has_changed = is_line_text_modified ||
                          m_text_editor.IsTextChanged() ||
-                         (settings->isolate_selection && is_selected_text_modified);
+                         (app.settings.isolate_selection && is_selected_text_modified);
 
     if (m_text_editor.IsTextChanged())
     {
@@ -154,7 +154,7 @@ bool FileView::on_draw()
     ImGui::EndChild();
     ImRect text_editor_overlay_rect(ImVec2(), text_editor_size);
     text_editor_overlay_rect.Translate(text_editor_top_left_corner);
-    text_editor_overlay_rect.Expand(ImVec2(-2.f * settings->ui_overlay_margin)); // margin
+    text_editor_overlay_rect.Expand(ImVec2(-2.f * app.settings.ui_overlay_margin)); // margin
     text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(ImVec2()));
     draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], text_editor_overlay_rect, ImVec2(0,1));
 
@@ -180,14 +180,14 @@ bool FileView::on_draw()
         // overlay (commands and shortcuts)
         ImRect graph_editor_overlay_rect(ImVec2(), graph_node_view->get_visible_rect().GetSize());
         graph_editor_overlay_rect.Translate(graph_editor_top_left_corner);
-        graph_editor_overlay_rect.Expand(ImVec2(-2.0f * settings->ui_overlay_margin)); // margin
+        graph_editor_overlay_rect.Expand(ImVec2(-2.0f * app.settings.ui_overlay_margin)); // margin
         graph_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(ImVec2()));
         draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], graph_editor_overlay_rect, ImVec2(1,1));
 
         // overlay for isolation mode
-        if( settings->isolate_selection )
+        if( app.settings.isolate_selection )
         {
-            ImGui::SetCursorPos(graph_editor_top_left_corner + settings->ui_overlay_margin);
+            ImGui::SetCursorPos(graph_editor_top_left_corner + app.settings.ui_overlay_margin);
             ImGui::Text("Isolation mode ON");
         }
     }
@@ -309,10 +309,10 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 {
     if( overlay_data.empty() ) return;
 
-    const auto* settings = App::get_instance()->settings();
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, settings->ui_overlay_window_bg_golor);
-    ImGui::PushStyleColor(ImGuiCol_Border, settings->ui_overlay_border_color);
-    ImGui::PushStyleColor(ImGuiCol_Text, settings->ui_overlay_text_color);
+    const auto& app = App::get_instance();
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, app.settings.ui_overlay_window_bg_golor);
+    ImGui::PushStyleColor(ImGuiCol_Border, app.settings.ui_overlay_border_color);
+    ImGui::PushStyleColor(ImGuiCol_Text, app.settings.ui_overlay_text_color);
     ImGui::SetNextWindowPos( rect.GetTL() + rect.GetSize() * position, ImGuiCond_Always, position);
     ImGui::SetNextWindowSize(rect.GetSize(), ImGuiCond_Appearing);
     bool show = true;
@@ -321,7 +321,7 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 
     if (ImGui::Begin(title, &show, flags) )
     {
-        ImGui::Indent(settings->ui_overlay_indent);
+        ImGui::Indent(app.settings.ui_overlay_indent);
         std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
             ImGui::Text("%s:", _data.label.c_str());
             ImGui::SameLine(150);

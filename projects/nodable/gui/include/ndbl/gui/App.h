@@ -26,10 +26,12 @@ namespace ndbl
         App(const App&) = delete;
         ~App();
 
-        observe::Event<>  after_init;
+        observe::Event<>  after_init;   // Triggered just after app initialize, for custom code
+        fw::App           framework;    // Underlying framework
+        Settings          settings;
 
-        int             run() { return m_framework->run(); }
-        fw::App*        framework();
+        // wrapped framework application
+        int             run() { return framework.run(); }
         bool            is_fullscreen();
         void            toggle_fullscreen();
         bool            open_file(const ghc::filesystem::path& _filePath);
@@ -49,23 +51,19 @@ namespace ndbl
         void            stop_program();
         void            reset_program();
         bool            compile_and_load_program();
-        Settings*       settings();
-        static App *    get_instance();             // singleton pattern
-
+        static App&     get_instance();             // singleton pattern
     private:
         bool            on_init();
         bool            on_shutdown();
         void            on_update();
-
+        bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
+        void            set_splashscreen_visible(bool b);
     private:
         static App*     s_instance;
         File*           m_current_file;
         size_t          m_current_file_index;
-        fw::App*        m_framework;                 // wrapped framework application
         AppView*        m_view;
         std::vector<File*> m_loaded_files;
-        Settings        m_settings;
-        bool pick_file_path(std::string &out, fw::AppView::DialogType type);
-        void set_splashscreen_visible(bool b);
+
     };
 }

@@ -11,16 +11,21 @@ using namespace fw;
 
 App* App::s_instance = nullptr;
 
-App::App(Conf& _conf)
-    : m_should_stop(false)
-    , m_font_manager()
-    , m_event_manager()
-    , m_texture_manager()
-    , m_conf(std::move(_conf))
-    , m_view(this)
+App::App(Config& _conf)
+    : config(_conf)
+    , should_stop(false)
+    , font_manager()
+    , event_manager()
+    , texture_manager()
+    , event_after_init()
+    , event_after_shutdown()
+    , event_after_update()
+    , event_on_draw()
     , m_sdl_window(nullptr)
     , m_sdl_gl_context()
+    , view(this)
 {
+    view.init();
     LOG_VERBOSE("fw::App", "Constructor ...\n");
     FW_EXPECT(s_instance == nullptr, "Only a single fw::App at a time allowed");
     s_instance = this;
@@ -57,7 +62,7 @@ bool App::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    m_sdl_window = SDL_CreateWindow(m_conf.app_window_label.c_str(),
+    m_sdl_window = SDL_CreateWindow(config.app_window_label.c_str(),
                                     SDL_WINDOWPOS_CENTERED,
                                     SDL_WINDOWPOS_CENTERED,
                                     800,
@@ -89,10 +94,10 @@ bool App::init()
 
     // Override ImGui's default Style
     LOG_VERBOSE("fw::AppView", "patch ImGui's style ...\n");
-    m_conf.patch_imgui_style(ImGui::GetStyle());
+    config.patch_imgui_style(ImGui::GetStyle());
 
     // load fonts
-    m_font_manager.init(m_conf.fonts, m_conf.fonts_default, &m_conf.icon_font);
+    font_manager.init(config.fonts, config.fonts_default, &config.icon_font);
 
     // Configure ImGui Style
     ImGuiStyle& style = ImGui::GetStyle();
@@ -128,17 +133,12 @@ void App::update()
     LOG_VERBOSE("fw::App", "update " OK "\n");
 }
 
-void App::flag_to_stop()
-{
-    m_should_stop = true;
-}
-
 bool App::shutdown()
 {
     bool success = true;
     LOG_MESSAGE("fw::App", "Shutting down ...\n");
 
-    success &= m_texture_manager.release_resources();
+    success &= texture_manager.release_resources();
 
     LOG_MESSAGE("fw::App", "Shutting down ImGui_ImplSDL2 ...\n");
     ImGui_ImplSDL2_Shutdown();
@@ -176,7 +176,7 @@ void App::draw()
     SDL_GL_MakeCurrent(m_sdl_window, m_sdl_gl_context);
     ImGuiIO& io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    glClearColor(m_conf.background_color.Value.x, m_conf.background_color.Value.y, m_conf.background_color.Value.z, m_conf.background_color.Value.w);
+    glClearColor(config.background_color.Value.x, config.background_color.Value.y, config.background_color.Value.z, config.background_color.Value.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
@@ -195,9 +195,9 @@ void App::draw()
     SDL_GL_SwapWindow(m_sdl_window);
 
     // limit frame rate
-    if (ImGui::GetIO().DeltaTime < m_conf.min_frame_time)
+    if (ImGui::GetIO().DeltaTime < config.min_frame_time)
     {
-        SDL_Delay((unsigned int)((m_conf.min_frame_time - ImGui::GetIO().DeltaTime) * 1000.f) );
+        SDL_Delay((unsigned int)((config.min_frame_time - ImGui::GetIO().DeltaTime) * 1000.f) );
     }
     LOG_VERBOSE("fw::App", "draw " OK "\n");
 }
@@ -207,11 +207,19 @@ u64_t App::elapsed_time() const
     return m_start_time.time_since_epoch().count();
 }
 
-std::string App::asset_path(const char* _relative_path)
+ghc::filesystem::path App::asset_path(const ghc::filesystem::path& _path)
 {
-    // TODO: move this to fw::system
-    static ghc::filesystem::path assets_folder_path = fw::system::get_executable_directory();
-    return (assets_folder_path / "assets" / _relative_path).string();
+    // If the path is absolute, we use it as-is,
+    // Else we append assets path.
+    if( _path.is_absolute() ) return _path;
+
+    return fw::system::get_executable_directory() / "assets" / _path;
+}
+
+ghc::filesystem::path App::asset_path(const char* _path)
+{
+    const ghc::filesystem::path fs_path{_path};
+    return asset_path(fs_path);
 }
 
 void App::handle_events()
@@ -225,14 +233,14 @@ void App::handle_events()
         {
             case SDL_WINDOWEVENT:
                 if( event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    m_should_stop = true;
+                    should_stop = true;
                 break;
             case SDL_KEYDOWN:
 
                 // With mode key only
                 if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
-                    for(const auto& _binded_event: m_event_manager.get_binded_events() )
+                    for(const auto& _binded_event: event_manager.get_binded_events() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _binded_event.shortcut.mod != KMOD_NONE
@@ -241,14 +249,14 @@ void App::handle_events()
                             && _binded_event.shortcut.key == event.key.keysym.sym
                         )
                         {
-                            m_event_manager.push_event(_binded_event.event_t);
+                            event_manager.push(_binded_event.event_t);
                             break;
                         }
                     }
                 }
                 else // without any mod key
                 {
-                    for(const auto& _binded_event: m_event_manager.get_binded_events() )
+                    for(const auto& _binded_event: event_manager.get_binded_events() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _binded_event.shortcut.mod == KMOD_NONE
@@ -256,7 +264,7 @@ void App::handle_events()
                             && _binded_event.shortcut.key == event.key.keysym.sym
                         )
                         {
-                            m_event_manager.push_event(_binded_event.event_t);
+                            event_manager.push(_binded_event.event_t);
                             break;
                         }
                     }
@@ -304,16 +312,11 @@ void App::set_fullscreen(bool b)
     SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-AppView *App::view()
-{
-    return &m_view;
-}
-
 int App::run()
 {
     if (init())
     {
-        while (!should_stop())
+        while (!should_stop)
         {
             update();
             draw();

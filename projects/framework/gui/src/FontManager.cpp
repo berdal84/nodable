@@ -55,7 +55,7 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
     {
         if(strlen(icon_font->path) == 0)
         {
-            LOG_WARNING("AppView", "m_conf.icons is empty, icons will be \"?\"\n");
+            LOG_WARNING("AppView", "config.icons is empty, icons will be \"?\"\n");
             return font;
         }
 

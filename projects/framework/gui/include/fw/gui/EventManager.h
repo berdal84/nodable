@@ -63,7 +63,7 @@ namespace fw
 
         void               push_event(Event& _event);
         size_t             poll_event(Event& _event);
-        void               push_event(EventType _type);
+        void               push(EventType _type);
         void                            bind(const BindedEvent& binded_cmd);
         const BindedEvent&              get_binded(uint16_t type);
         const std::vector<BindedEvent>& get_binded_events() const;

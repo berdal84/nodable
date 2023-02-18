@@ -27,10 +27,10 @@ App* App::s_instance = nullptr;
 App::App()
     : m_current_file_index(0)
     , m_current_file(nullptr)
+    , framework(settings.fw_conf)
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
-    m_framework = new fw::App(m_settings.fw_conf);
     m_view      = new AppView(this);
 
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
@@ -38,9 +38,9 @@ App::App()
 
     // Bind methods to framework events
     LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
-    m_framework->event_after_init.connect([this](){ on_init();});
-    m_framework->event_after_update.connect([this](){ on_update();});
-    m_framework->event_after_shutdown.connect([this](){ on_shutdown();});
+    framework.event_after_init.connect([this](){ on_init();});
+    framework.event_after_update.connect([this](){ on_update();});
+    framework.event_after_shutdown.connect([this](){ on_shutdown();});
 
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 
@@ -50,7 +50,6 @@ App::~App()
 {
     LOG_VERBOSE("ndbl::App", "Destructor ...\n");
     delete m_view;
-    delete m_framework;
     s_instance = nullptr;
     LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
@@ -59,101 +58,101 @@ bool App::on_init()
 {
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
 
-    fw::EventManager* event_manager = m_framework->event_manager();
+    fw::EventManager& event_manager = framework.event_manager;
 
     // Bind commands to shortcuts
     using fw::EventType;
-    event_manager->bind(
+    event_manager.bind(
             {"Delete",
              EventType_delete_node_action_triggered,
              {SDLK_DELETE, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Arrange",
              EventType_arrange_node_action_triggered,
              {SDLK_a, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Fold/Unfold",
              EventType_toggle_folding_selected_node_action_triggered,
              {SDLK_x, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Next",
              EventType_select_successor_node_action_triggered,
              {SDLK_n, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {ICON_FA_SAVE " Save",
              fw::EventType_save_file_triggered,
              {SDLK_s, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {ICON_FA_SAVE " Save as",
              fw::EventType_save_file_as_triggered,
              {SDLK_s, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {ICON_FA_TIMES "  Close",
              fw::EventType_close_file_triggered,
              {SDLK_w, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {ICON_FA_FOLDER_OPEN " Open",
              fw::EventType_browse_file_triggered,
              {SDLK_o, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {ICON_FA_FILE " New",
              fw::EventType_new_file_triggered,
              {SDLK_n, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {"Splashscreen",
              fw::EventType_show_splashscreen_triggered,
              {SDLK_F1},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {ICON_FA_SIGN_OUT_ALT " Exit",
              fw::EventType_exit_triggered,
              {SDLK_F4, KMOD_ALT},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {"Undo",
              fw::EventType_undo_triggered,
              {SDLK_z, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {"Redo",
              fw::EventType_redo_triggered,
              {SDLK_y, KMOD_CTRL},
              Condition_ENABLE});
-    event_manager->bind(
+    event_manager.bind(
             {"Isolate on/off",
              EventType_toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Select",
              fw::EventType_none,
              {0, KMOD_NONE, "Left mouse click on a node"},
              Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Deselect",
              fw::EventType_none,
              {0, KMOD_NONE, "Double left mouse click on background"},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Move Graph",
              fw::EventType_none,
              {0, KMOD_NONE, "Left mouse btn drag on background"},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Frame Selection",
              EventType_frame_selected_node_views,
              {SDLK_f, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager->bind(
+    event_manager.bind(
             {"Frame All",
              EventType_frame_all_node_views,
              {SDLK_f, KMOD_LCTRL},
@@ -169,7 +168,7 @@ bool App::on_init()
 void App::on_update()
 {
     LOG_VERBOSE("ndbl::App", "on_update ...\n");
-    auto* event_manager = m_framework->event_manager();
+    fw::EventManager& event_manager = framework.event_manager;
 
     // 1. Update current file
     if ( m_current_file )
@@ -181,7 +180,7 @@ void App::on_update()
 
     // shorthand to push all shortcuts to a file view overlay depending on conditions
     auto push_overlay_shortcuts = [&](ndbl::FileView* view, Condition condition) -> void {
-        for (const auto& _binded_event: event_manager->get_binded_events())
+        for (const auto& _binded_event: event_manager.get_binded_events())
         {
             if( (_binded_event.condition & condition) == condition)
             {
@@ -209,13 +208,13 @@ void App::on_update()
     // Nodable events ( SDL_ API inspired, but with custom events)
     Event event{};
     NodeView*      selected_view = NodeView::get_selected();
-    while(event_manager->poll_event((fw::Event&)event) )
+    while(event_manager.poll_event((fw::Event&)event) )
     {
         switch ( event.type )
         {
             case EventType_toggle_isolate_selection:
             {
-                m_settings.isolate_selection = !m_settings.isolate_selection;
+                settings.isolate_selection = !settings.isolate_selection;
                 if( m_current_file )
                 {
                     m_current_file->update_graph();
@@ -225,7 +224,7 @@ void App::on_update()
 
             case fw::EventType_exit_triggered:
             {
-                m_framework->flag_to_stop();
+                framework.should_stop = true;
                 break;
             }
 
@@ -505,7 +504,7 @@ bool App::on_shutdown()
 
 bool App::open_file(const ghc::filesystem::path& _path)
 {
-    std::string absolute_path = _path.is_relative() ? fw::App::asset_path(_path.string().c_str()) : _path.string();
+    std::string absolute_path = fw::App::asset_path(_path);
     auto file = new File( _path.filename().string(), absolute_path);
 
     if ( !file->read_from_disk() )
@@ -517,7 +516,7 @@ bool App::open_file(const ghc::filesystem::path& _path)
 
     m_loaded_files.push_back( file );
     current_file(file);
-    m_framework->event_manager()->push_event(fw::EventType_file_opened);
+    framework.event_manager.push(fw::EventType_file_opened);
 	return true;
 }
 
@@ -532,7 +531,7 @@ void App::save_file() const
 
 void App::save_file_as(const ghc::filesystem::path& _path)
 {
-    auto absolute_path = _path.is_relative() ? fw::App::asset_path(_path.string().c_str()) : _path;
+    ghc::filesystem::path absolute_path = _path.is_relative() ? fw::App::asset_path(_path.string().c_str()) : _path;
     File* curr_file = current_file();
     curr_file->set_path(absolute_path.string());
     curr_file->set_name(absolute_path.filename().string());
@@ -674,37 +673,28 @@ File *App::new_file()
     return file;
 }
 
-App* App::get_instance()
+App& App::get_instance()
 {
     FW_EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
-    return s_instance;
+    return *s_instance;
 }
 
-fw::App* App::framework()
-{
-    return m_framework;
-}
-
-Settings* App::settings()
-{
-    return &m_settings;
-}
 void App::toggle_fullscreen()
 {
-    m_framework->set_fullscreen( !is_fullscreen() );
+    framework.set_fullscreen(!is_fullscreen() );
 }
 
 bool App::is_fullscreen()
 {
-    return m_framework->is_fullscreen();
+    return framework.is_fullscreen();
 }
 
 bool App::pick_file_path(std::string &out, fw::AppView::DialogType type)
 {
-    return m_framework->view()->pick_file_path(out, type);
+    return framework.view.pick_file_path(out, type);
 }
 
 void App::set_splashscreen_visible(bool b)
 {
-    m_framework->view()->set_splashscreen_visible(b);
+    framework.config.splashscreen = b;
 }

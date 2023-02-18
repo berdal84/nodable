@@ -25,7 +25,7 @@ size_t EventManager::poll_event(Event &_event)
     return count;
 }
 
-void EventManager::push_event(EventType _type)
+void EventManager::push(EventType _type)
 {
     Event simple_event = { _type };
     push_event(simple_event);
