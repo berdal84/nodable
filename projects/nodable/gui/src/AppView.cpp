@@ -57,7 +57,7 @@ bool AppView::on_init()
 
 bool AppView::on_draw(bool& redock_all) {
 
-    File*             current_file    = m_app->current_file();
+    File*             current_file    = m_app->current_file;
     fw::App&          framework       = m_app->framework;
     fw::EventManager& event_manager   = framework.event_manager;
     Config&           config          = m_app->config;
@@ -69,7 +69,7 @@ bool AppView::on_draw(bool& redock_all) {
 
         if (ImGui::BeginMenu("File")) {
             bool has_file = current_file;
-            bool changed = current_file != nullptr && current_file->has_changed();
+            bool changed = current_file != nullptr && current_file->changed;
             fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_new_file_triggered);
             fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_browse_file_triggered);
             ImGui::Separator();
@@ -78,15 +78,10 @@ bool AppView::on_draw(bool& redock_all) {
             ImGui::Separator();
             fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_close_file_triggered, false, has_file);
 
-            FileView *fileView = nullptr;
-            bool auto_paste;
-            if (has_file) {
-                fileView = current_file->get_view();
-                auto_paste = fileView->experimental_clipboard_auto_paste();
-            }
+            auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste();
 
-            if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, fileView)) {
-                fileView->experimental_clipboard_auto_paste(!auto_paste);
+            if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, has_file ) && current_file ) {
+                current_file->view.experimental_clipboard_auto_paste(!auto_paste);
             }
 
             fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_exit_triggered);
@@ -313,25 +308,25 @@ void AppView::draw_imgui_config_window() const {
     ImGui::End();
 }
 
-void AppView::draw_file_info_window() const {
-    if (auto current_file = m_app->current_file()) {
-        if (ImGui::Begin(m_app->config.ui_file_info_window_label)) {
-            if (current_file) {
-                FileView *fileView = current_file->get_view();
-                fileView->draw_info();
-            } else {
-                ImGui::Text("No open file");
-            }
-
+void AppView::draw_file_info_window() const
+{
+    if ( m_app->current_file )
+    {
+        if (ImGui::Begin(m_app->config.ui_file_info_window_label))
+        {
+            m_app->current_file->view.draw_info();
         }
         ImGui::End();
     }
 }
 
-void AppView::draw_node_properties_window() {
-    if (ImGui::Begin(m_app->config.ui_node_properties_window_label)) {
+void AppView::draw_node_properties_window()
+{
+    if (ImGui::Begin(m_app->config.ui_node_properties_window_label))
+    {
         NodeView *view = NodeView::get_selected();
-        if (view) {
+        if (view)
+        {
             ImGui::Indent(10.0f);
             NodeView::draw_as_properties_panel(view, &m_show_advanced_node_properties);
         }
@@ -526,7 +521,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
-            (file->has_changed() ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
+            (file->changed ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
@@ -534,7 +529,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool is_window_open = true;
-    bool visible = ImGui::Begin(file->get_name().c_str(), &is_window_open, window_flags);
+    bool visible = ImGui::Begin(file->name.c_str(), &is_window_open, window_flags);
 
     ImGui::PopStyleVar();
     ImGui::PopStyleColor(1);
@@ -544,21 +539,20 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
         const bool is_current_file = m_app->is_current(file);
 
         if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
-            m_app->current_file(file);
+            m_app->current_file = file;
         }
 
         // History bar on top
         draw_history_bar(file->get_history());
 
         // File View in the middle
-        fw::View* eachFileView = file->get_view();
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
         ImGui::PushFont(m_app->framework.font_manager.get_font(fw::FontSlot_Code));
-        eachFileView->draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
+        file->view.draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
         ImGui::PopFont();
         ImGui::PopStyleColor();
 
-        if (is_current_file && file->get_view()->text_has_changed())
+        if (is_current_file && file->view.text_has_changed())
         {
             vm.release_program();
         }

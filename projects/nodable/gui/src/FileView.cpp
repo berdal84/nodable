@@ -23,8 +23,8 @@ FileView::FileView(File& _file)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
     , m_experimental_clipboard_auto_paste(false)
-    , m_text_overlay_window_name(_file.get_name() + "_text_overlay" )
-    , m_graph_overlay_window_name(_file.get_name() + "_graph_overlay" )
+    , m_text_overlay_window_name(_file.name + "_text_overlay" )
+    , m_graph_overlay_window_name(_file.name + "_graph_overlay" )
 {
     m_graph_change_obs.observe(_file.event_graph_changed, [](GraphNode* _graph)
     {
@@ -143,7 +143,7 @@ bool FileView::on_draw()
 
     if (m_text_editor.IsTextChanged())
     {
-        m_file.set_changed_flag();
+        m_file.changed = true;
     }
 
     if ( m_text_has_changed )
@@ -267,7 +267,7 @@ void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 void FileView::draw_info() const
 {
     // Basic information
-    ImGui::Text("Name: %s", m_file.get_name().c_str());
+    ImGui::Text("Name: %s", m_file.name.c_str());
     ImGui::Text("Path: %s", m_file.path.string().c_str());
     ImGui::NewLine();
 

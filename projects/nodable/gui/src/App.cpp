@@ -25,13 +25,12 @@ using namespace ndbl;
 App* App::s_instance = nullptr;
 
 App::App()
-    : m_current_file_index(0)
-    , m_current_file(nullptr)
-    , framework(config.framework )
+    : current_file(nullptr)
+    , framework(config.framework)
+    , view(this)
+    , vm()
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
-
-    m_view      = new AppView(this);
 
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
     s_instance = this;
@@ -48,8 +47,6 @@ App::App()
 
 App::~App()
 {
-    LOG_VERBOSE("ndbl::App", "Destructor ...\n");
-    delete m_view;
     s_instance = nullptr;
     LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
@@ -171,22 +168,22 @@ void App::on_update()
     fw::EventManager& event_manager = framework.event_manager;
 
     // 1. Update current file
-    if ( m_current_file )
+    if (current_file)
     {
-        m_current_file->update();
+        current_file->update();
     }
 
     // 2. Handle events
 
     // shorthand to push all shortcuts to a file view overlay depending on conditions
-    auto push_overlay_shortcuts = [&](ndbl::FileView* view, Condition condition) -> void {
+    auto push_overlay_shortcuts = [&](ndbl::FileView& _view, Condition _condition) -> void {
         for (const auto& _binded_event: event_manager.get_binded_events())
         {
-            if( (_binded_event.condition & condition) == condition)
+            if( (_binded_event.condition & _condition) == _condition)
             {
                 if (_binded_event.condition & Condition_HIGHLIGHTED_IN_GRAPH_EDITOR)
                 {
-                    view->push_overlay(
+                    _view.push_overlay(
                         {
                             _binded_event.label.substr(0, 12),
                             _binded_event.shortcut.to_string()
@@ -194,7 +191,7 @@ void App::on_update()
                 }
                 if ( _binded_event.condition & Condition_HIGHLIGHTED_IN_TEXT_EDITOR)
                 {
-                    view->push_overlay(
+                    _view.push_overlay(
                         {
                             _binded_event.label.substr(0,12),
                             _binded_event.shortcut.to_string()
@@ -208,6 +205,10 @@ void App::on_update()
     // Nodable events ( SDL_ API inspired, but with custom events)
     Event event{};
     NodeView*      selected_view = NodeView::get_selected();
+    GraphNodeView* graph_view    = current_file ?
+                                   current_file->get_graph()->get<GraphNodeView>() : nullptr;
+    History* curr_file_history   = current_file ? current_file->get_history() : nullptr;
+
     while(event_manager.poll_event((fw::Event&)event) )
     {
         switch ( event.type )
@@ -215,9 +216,9 @@ void App::on_update()
             case EventType_toggle_isolate_selection:
             {
                 config.isolate_selection = !config.isolate_selection;
-                if( m_current_file )
+                if(current_file)
                 {
-                    m_current_file->update_graph();
+                    current_file->update_graph();
                 }
                 break;
             }
@@ -230,19 +231,18 @@ void App::on_update()
 
             case fw::EventType_close_file_triggered:
             {
-                if( m_current_file ) close_file(m_current_file);
+                if(current_file) close_file(current_file);
                 break;
             }
-
             case fw::EventType_undo_triggered:
             {
-                if( m_current_file ) m_current_file->get_history()->undo();
+                if(current_file) curr_file_history->undo();
                 break;
             }
 
             case fw::EventType_redo_triggered:
             {
-                if( m_current_file ) m_current_file->get_history()->redo();
+                if(current_file) curr_file_history->redo();
                 break;
             }
 
@@ -267,7 +267,7 @@ void App::on_update()
 
             case fw::EventType_save_file_as_triggered:
             {
-                if (m_current_file)
+                if (current_file)
                 {
                     std::string path;
                     if(pick_file_path(path, fw::AppView::DIALOG_SaveAs))
@@ -281,11 +281,11 @@ void App::on_update()
 
             case fw::EventType_save_file_triggered:
             {
-                if (m_current_file)
+                if (current_file)
                 {
-                    if( !m_current_file->path.empty())
+                    if( !current_file->path.empty())
                     {
-                        save_file(m_current_file);
+                        save_file(current_file);
                     }
                     else
                     {
@@ -301,46 +301,39 @@ void App::on_update()
 
             case fw::EventType_show_splashscreen_triggered:
             {
-                set_splashscreen_visible(true);
+                framework.config.splashscreen = true;
                 break;
             }
-
-            case EventType_frame_selected_node_views:
+             case EventType_frame_selected_node_views:
             {
-                auto view = m_current_file->get_graph()->get<GraphNodeView>();
-                view->frame_selected_node_views();
+                graph_view->frame_selected_node_views();
                 break;
             }
 
             case EventType_frame_all_node_views:
             {
-                auto view = m_current_file->get_graph()->get<GraphNodeView>();
-                view->frame_all_node_views();
+                graph_view->frame_all_node_views();
                 break;
             }
-
             case EventType_node_view_selected:
             {
-                FileView* view = m_current_file->get_view();
-                view->clear_overlay();
-                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_SELECTION);
+                current_file->view.clear_overlay();
+                push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_SELECTION);
                 LOG_MESSAGE( "App", "NodeView selected\n")
                 break;
             }
             case fw::EventType_file_opened:
             {
-                if (!m_current_file) break;
-                m_current_file->update_graph();
-                FileView *view = m_current_file->get_view();
-                view->clear_overlay();
-                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_NO_SELECTION);
+                if (!current_file) break;
+                current_file->update_graph();
+                current_file->view.clear_overlay();
+                push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION);
                 break;
             }
             case EventType_node_view_deselected:
             {
-                FileView* view = m_current_file->get_view();
-                view->clear_overlay();
-                push_overlay_shortcuts(view, Condition_ENABLE_IF_HAS_NO_SELECTION );
+                 current_file->view.clear_overlay();
+                push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
             case EventType_delete_node_action_triggered:
@@ -406,7 +399,6 @@ void App::on_update()
                     if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
                     DirectedEdge edge(src->get_node(), Edge_t::IS_PREDECESSOR_OF, dst->get_node());
                     auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
-                    History *curr_file_history = current_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
                 break;
@@ -437,7 +429,6 @@ void App::on_update()
                     if (src->m_way != Way_Out) std::swap(src, dst); // guarantee src to be the output
                     DirectedEdge edge(src->get_property(), dst->get_property());
                     auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
-                    History *curr_file_history = current_file()->get_history();
                     curr_file_history->push_command(cmd);
                 }
                 break;
@@ -453,10 +444,8 @@ void App::on_update()
 
                 DirectedEdge edge(src, Edge_t::IS_PREDECESSOR_OF, dst);
                 auto cmd = std::make_shared<Cmd_DisconnectEdge>( edge );
-
-                History *curr_file_history = current_file()->get_history();
                 curr_file_history->push_command(cmd);
-
+                
                 break;
             }
             case EventType_property_connector_disconnected:
@@ -474,8 +463,6 @@ void App::on_update()
                     auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(*each_edge);
                     cmd_grp->push_cmd( std::static_pointer_cast<ICommand>(each_cmd) );
                 }
-
-                History *curr_file_history = current_file()->get_history();
                 curr_file_history->push_command(std::static_pointer_cast<ICommand>(cmd_grp));
 
                 break;
@@ -502,21 +489,28 @@ bool App::on_shutdown()
     return true;
 }
 
-bool App::open_file(const ghc::filesystem::path& _path)
+File *App::open_file(const ghc::filesystem::path& _path)
 {
     auto file = new File( fw::App::asset_path(_path) );
 
-    if ( !file->read_from_disk() )
+    if ( !file->load() )
     {
         LOG_ERROR("File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
         delete file;
-        return false;
+        return nullptr;
     }
 
-    m_loaded_files.push_back( file );
-    current_file(file);
+    return open_file(file);
+}
+
+File *App::open_file(File* _file)
+{
+    if(!_file) return nullptr;
+
+    m_loaded_files.push_back( _file );
+    current_file = _file;
     framework.event_manager.push(fw::EventType_file_opened);
-	return true;
+    return _file;
 }
 
 void App::save_file(File* _file) const
@@ -525,32 +519,21 @@ void App::save_file(File* _file) const
 
 	if ( !_file->write_to_disk() )
     {
-        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _file->get_name().c_str(), _file->path.c_str());
+        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _file->name.c_str(), _file->path.c_str());
         return;
     }
     LOG_MESSAGE("ndbl::App", "File saved: %s\n", _file->path.c_str());
 }
 
-void App::save_file_as(const ghc::filesystem::path& _path)
+void App::save_file_as(const ghc::filesystem::path& _path) const
 {
-    ghc::filesystem::path absolute_path = _path.is_relative() ? fw::App::asset_path(_path.string().c_str()) : _path;
-    File* curr_file = current_file();
-    curr_file->path = absolute_path.string();
-    curr_file->set_name(absolute_path.filename().string());
-    if( !curr_file->write_to_disk() )
+    ghc::filesystem::path absolute_path = fw::App::asset_path(_path);
+    current_file->path = absolute_path.string();
+    current_file->name = absolute_path.filename().string();
+    if( !current_file->write_to_disk() )
     {
         LOG_ERROR("App", "Unable to save as %s (%s)\n", absolute_path.filename().c_str(), absolute_path.c_str());
     }
-}
-
-File* App::current_file()const
-{
-	return m_current_file;
-}
-
-void App::current_file(File* _file)
-{
-    m_current_file = _file;
 }
 
 void App::close_file(File* _file)
@@ -563,11 +546,11 @@ void App::close_file(File* _file)
 
         if ( it != m_loaded_files.end() ) //---- try to load the file next
         {
-            m_current_file = *it;
+            current_file = *it;
         }
         else
         {
-            m_current_file = nullptr;
+            current_file = nullptr;
         }
 
         delete _file;
@@ -576,9 +559,9 @@ void App::close_file(File* _file)
 
 bool App::compile_and_load_program()
 {
-    if ( File* file = current_file())
+    if ( current_file )
     {
-        const GraphNode* graph = file->get_graph();
+        const GraphNode* graph = current_file->get_graph();
 
         if (graph)
         {
@@ -587,7 +570,6 @@ bool App::compile_and_load_program()
 
             if (asm_code)
             {
-                auto& vm = VirtualMachine::get_instance();
                 vm.release_program();
 
                 if (vm.load_program(std::move(asm_code)))
@@ -605,7 +587,7 @@ void App::run_program()
 {
     if (compile_and_load_program() )
     {
-        VirtualMachine::get_instance().run_program();
+        vm.run_program();
     }
 }
 
@@ -613,13 +595,12 @@ void App::debug_program()
 {
     if (compile_and_load_program() )
     {
-        VirtualMachine::get_instance().debug_program();
+        vm.debug_program();
     }
 }
 
 void App::step_over_program()
 {
-    auto& vm = VirtualMachine::get_instance();
     vm.step_over();
     if (!vm.is_there_a_next_instr() )
     {
@@ -633,27 +614,25 @@ void App::step_over_program()
 
 void App::stop_program()
 {
-    VirtualMachine::get_instance().stop_program();
+    vm.stop_program();
 }
 
 void App::reset_program()
 {
-    if ( auto currFile = current_file() )
-    {
-        auto& vm = VirtualMachine::get_instance();
-        if ( vm.is_program_running() )
-        {
-            vm.stop_program();
-        }
+    if(!current_file) return;
 
-        // TODO: restore graph state without parsing again like that:
-        currFile->update_graph();
+    if ( vm.is_program_running() )
+    {
+        vm.stop_program();
     }
+    current_file->update_graph();
 }
 
 File *App::new_file()
 {
-    // get a unique friendly name
+    // 1. Create the file in memory
+
+    // 1.a Determine a unique-ish name
     const char* basename   = "Untitled";
     char        name[255];
     snprintf(name, sizeof(name), "%s.cpp", basename);
@@ -661,17 +640,21 @@ File *App::new_file()
     int num = 0;
     for(auto each_file : m_loaded_files)
     {
-        if( strcmp( each_file->get_name().c_str(), name) == 0 )
+        if( strcmp( each_file->name.c_str(), name) == 0 )
         {
             snprintf(name, sizeof(name), "%s_%i.cpp", basename, ++num);
         }
     }
 
-    // create the file
-    auto file = new File(ghc::filesystem::path{name});
-    m_loaded_files.push_back(file);
-    current_file(file);
+    // 1.b Create instance
+    File* file = new File(ghc::filesystem::path{name});
 
+    // 2. try to open from disk
+    if ( !open_file(file) )
+    {
+        delete file;
+        return nullptr;
+    }
     return file;
 }
 
@@ -686,7 +669,7 @@ void App::toggle_fullscreen()
     framework.set_fullscreen(!is_fullscreen() );
 }
 
-bool App::is_fullscreen()
+bool App::is_fullscreen() const
 {
     return framework.is_fullscreen();
 }
@@ -694,9 +677,4 @@ bool App::is_fullscreen()
 bool App::pick_file_path(std::string &out, fw::AppView::DialogType type)
 {
     return framework.view.pick_file_path(out, type);
-}
-
-void App::set_splashscreen_visible(bool b)
-{
-    framework.config.splashscreen = b;
 }

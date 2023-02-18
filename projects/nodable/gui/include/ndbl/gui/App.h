@@ -34,22 +34,23 @@ namespace ndbl
         observe::Event<>  after_init;   // Triggered just after app initialize, for custom code
         fw::App           framework;    // The underlying framework (we use composition instead of inheritance)
         Config            config;       // Nodable configuration (includes framework configuration)
+        AppView           view;
+        File*             current_file;
+        VirtualMachine    vm;           // Virtual Machine to compile/debug/run/pause/... programs
 
-        // wrapped framework application
-        int             run() { return framework.run(); }
-        bool            is_fullscreen();
+        int             run() { return framework.run(); } // run app main loop
+        bool            is_fullscreen() const;
         void            toggle_fullscreen();
-        bool            open_file(const ghc::filesystem::path& _filePath);
+        File*           open_file(const ghc::filesystem::path&_path);
         File*           new_file();
-        void save_file(File *pFile) const;
-        void            save_file_as(const ghc::filesystem::path &_path);
+        void            save_file(File *pFile) const;
+        void            save_file_as(const ghc::filesystem::path &_path) const;
+        File*           open_file(File *_file);
         void            close_file(File*);
-        bool            is_current(const File* _file ) const { return m_current_file == _file; }
-        void            current_file(File *_file);
+        bool            is_current(const File* _file ) const { return current_file == _file; }
         const std::vector<File*>&
                         get_files() const { return m_loaded_files; }
         bool            has_files() const { return !m_loaded_files.empty(); }
-        File*           current_file()const;
         void            run_program();
         void            debug_program();
         void            step_over_program();
@@ -62,13 +63,8 @@ namespace ndbl
         bool            on_shutdown();
         void            on_update();
         bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
-        void            set_splashscreen_visible(bool b);
     private:
-        static App*     s_instance;
-        File*           m_current_file;
-        size_t          m_current_file_index;
-        AppView*        m_view;
+        static App*        s_instance;
         std::vector<File*> m_loaded_files;
-
     };
 }

@@ -386,8 +386,4 @@ const Code *VirtualMachine::get_program_asm_code()
 {
     return m_program_asm_code.get();
 }
-VirtualMachine &VirtualMachine::get_instance()
-{
-    static VirtualMachine instance;
-    return instance;
-}
+
