@@ -18,8 +18,9 @@
 using namespace ndbl;
 
 File::File(std::string _name)
-        : m_name(std::move(_name))
-        , m_modified(true)
+        : name(std::move(_name))
+        , changed(true)
+        , view(*this)
         , m_graph(nullptr)
         , m_factory(&Nodlang::get_instance(), [](Node* _node) {
 
@@ -61,15 +62,14 @@ File::File(std::string _name)
     auto& language = Nodlang::get_instance();
 
     // FileView
-    m_view = new FileView(*this);
-    m_view->init();
+    view.init();
 
     LOG_VERBOSE( "File", "View built, creating History ...\n")
 
     // History
-    TextEditor* text_editor = m_view->get_text_editor();
+    TextEditor*       text_editor     = view.get_text_editor();
     TextEditorBuffer* text_editor_buf = m_history.configure_text_editor_undo_buffer(text_editor);
-    m_view->set_undo_buffer(text_editor_buf);
+    view.set_undo_buffer(text_editor_buf);
 
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
@@ -80,7 +80,7 @@ File::File(std::string _name)
             &App::get_instance().config.experimental_graph_autocompletion );
 
     char label[50];
-    snprintf(label, sizeof(label), "%s's graph", get_name().c_str());
+    snprintf(label, sizeof(label), "%s's graph", name.c_str());
     m_graph->set_name(label);
     m_graph->add_component<GraphNodeView>();
 
@@ -97,7 +97,6 @@ File::File(const ghc::filesystem::path& _path)
 File::~File()
 {
     delete m_graph;
-    delete m_view;
 }
 
 bool File::write_to_disk()
@@ -107,13 +106,13 @@ bool File::write_to_disk()
         return false;
     }
 
-	if ( m_modified )
+	if (changed)
 	{
 		std::ofstream out_fstream(path.c_str());
-        std::string content = m_view->get_text();
+        std::string content = view.get_text();
         out_fstream.write(content.c_str(), content.size());
-        m_modified = false;
-        LOG_MESSAGE("File", "%s saved\n", m_name.c_str());
+        changed = false;
+        LOG_MESSAGE("File", "%s saved\n", name.c_str());
 	} else {
         LOG_MESSAGE("File", "Nothing to save\n");
     }
@@ -164,9 +163,9 @@ bool File::update()
     if( !virtual_machine.is_program_running() )
     {
         LOG_VERBOSE("File","m_graph->update()\n")
-        auto graphUpdateResult = m_graph->update();
+        auto result = m_graph->update();
 
-        if (   graphUpdateResult == UpdateResult::Success_NoChanges && !m_view->get_text().empty() )
+        if ( result == UpdateResult::Success_NoChanges && !view.get_text().empty() )
         {
             LOG_VERBOSE("File","graph_has_changed = false\n")
             graph_has_changed = false;
@@ -184,7 +183,7 @@ bool File::update()
                 Nodlang::get_instance().serialize(code, root_node );
 
                 LOG_VERBOSE("File","replace text\n")
-                config.isolate_selection ? m_view->replace_selected_text(code) : m_view->replace_text(code);
+                config.isolate_selection ? view.replace_selected_text(code) : view.replace_text(code);
             }
             graph_has_changed = true;
         }
@@ -201,11 +200,11 @@ bool File::update()
 bool File::update_graph()
 {
     LOG_VERBOSE("File","get selected text\n")
-	std::string code_source = App::get_instance().config.isolate_selection ? m_view->get_selected_text() : m_view->get_text();
+	std::string code_source = App::get_instance().config.isolate_selection ? view.get_selected_text() : view.get_text();
 	return update_graph(code_source);
 }
 
-bool File::read_from_disk()
+bool File::load()
 {
     if(path.empty() )
     {
@@ -226,10 +225,9 @@ bool File::read_from_disk()
     std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
 
     LOG_VERBOSE("File", "Content read, creating File object ...\n")
-    m_view->set_text(content);
-
-    m_modified = false;
-    LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", m_name.c_str(), path.c_str())
+    view.set_text(content);
+    changed = false;
+    LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", name.c_str(), path.c_str())
 
     return true;
 }

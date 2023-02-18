@@ -48,6 +48,7 @@ namespace ndbl
         using code_uptr = std::unique_ptr<const Code>;
     public:
         VirtualMachine();
+        VirtualMachine(const VirtualMachine&) = delete;  // disable copy
         ~VirtualMachine() = default;
         // Load program code
         [[nodiscard]] bool    load_program(code_uptr _code);
@@ -81,9 +82,6 @@ namespace ndbl
         const Code *          get_program_asm_code();
         // Check if a given Node is the next to be executed
         bool                  is_next_node(Node *_node)const { return m_next_node == _node; }
-
-        static VirtualMachine &get_instance();
-
     private:
         // Advance the instruction pointer of a given amount
         void                  advance_cursor(i64_t _amount = 1);

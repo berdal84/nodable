@@ -74,10 +74,10 @@ TEST_F(Gui_App, close_file)
     ndbl::App app;
     app.framework.init();
     app.framework.config.splashscreen = false;
-    app.open_file("./examples/arithmetic.cpp");
+    ndbl::File* file = app.open_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__0.png");
-    app.close_file( app.current_file() );
+    app.close_file( file );
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__1.png");
     app.framework.shutdown();
