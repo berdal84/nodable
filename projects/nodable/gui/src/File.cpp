@@ -88,10 +88,10 @@ File::File(std::string _name)
 
 }
 
-File::File(const std::string &_name, const std::string &_path)
-    : File(_name)
+File::File(const ghc::filesystem::path& _path)
+    : File(_path.filename().string())
 {
-    m_path = _path;
+    path = _path;
 }
 
 File::~File()
@@ -102,14 +102,14 @@ File::~File()
 
 bool File::write_to_disk()
 {
-    if( m_path.empty() )
+    if(path.empty() )
     {
         return false;
     }
 
 	if ( m_modified )
 	{
-		std::ofstream out_fstream(m_path.c_str());
+		std::ofstream out_fstream(path.c_str());
         std::string content = m_view->get_text();
         out_fstream.write(content.c_str(), content.size());
         m_modified = false;
@@ -138,7 +138,7 @@ bool File::update_graph(std::string& _code_source)
         graph_view->create_child_view_constraints();
         m_graph->set_dirty(false);
         LOG_VERBOSE("File","graph changed, emiting event ...\n")
-        m_on_graph_changed_evt.emit(m_graph);
+        event_graph_changed.emit(m_graph);
         return true;
     }
     return false;
@@ -207,18 +207,18 @@ bool File::update_graph()
 
 bool File::read_from_disk()
 {
-    if( m_path.empty() )
+    if(path.empty() )
     {
         return false;
     }
 
-    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", m_path.c_str())
-    std::ifstream file_stream(m_path);
+    LOG_MESSAGE( "File", "Loading file \"%s\"...\n", path.c_str())
+    std::ifstream file_stream(path);
     LOG_VERBOSE( "File", "Input file stream created.\n")
 
     if (!file_stream.is_open())
     {
-        LOG_ERROR("File", "Unable to load \"%s\"\n", m_path.c_str())
+        LOG_ERROR("File", "Unable to load \"%s\"\n", path.c_str())
         return false;
     }
 
@@ -229,12 +229,7 @@ bool File::read_from_disk()
     m_view->set_text(content);
 
     m_modified = false;
-    LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", m_name.c_str(), m_path.c_str())
+    LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", m_name.c_str(), path.c_str())
 
     return true;
-}
-
-void File::set_path(const std::string& _path)
-{
-    m_path = _path;
 }

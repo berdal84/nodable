@@ -45,9 +45,9 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        std::string fontPath = App::asset_path(text_font->path);
-        LOG_VERBOSE("AppView", "Adding text_font from file ... %s\n", fontPath.c_str())
-        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), text_font->size, &config);
+        ghc::filesystem::path absolute_path = App::asset_path(text_font->path);
+        LOG_VERBOSE("AppView", "Adding text_font from file ... %s\n", absolute_path.c_str())
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font->size, &config);
     }
 
     // Add Icons my merging to previous text_font.
@@ -66,10 +66,10 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
         config.OversampleV = 1;
         config.MergeMode   = true;
         config.PixelSnapH  = true;
-        config.GlyphOffset.y = -(text_font->icons_size - text_font->size)*0.5f;
+        config.GlyphOffset.y = -(text_font->icons_size - text_font->size)/2.f;
         config.GlyphMinAdvanceX = text_font->icons_size; // monospace to fix text alignment in drop down menus.
-        auto fontPath = App::asset_path(icon_font->path);
-        font = io.Fonts->AddFontFromFileTTF(fontPath.c_str(), text_font->icons_size, &config, icons_ranges);
+        ghc::filesystem::path absolute_path = App::asset_path(icon_font->path);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font->icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to text_font ...\n")
     }
 

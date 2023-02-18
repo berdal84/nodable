@@ -16,14 +16,14 @@ Texture::Texture(std::vector<unsigned char> _buffer, int _width, int _height, GL
 
 Texture* TextureManager::get_asset(const std::string &path)
 {
-    auto absolute_path = fw::App::asset_path(path.c_str());
+    auto absolute_path = fw::App::asset_path(path);
 
     // Return if already exists
-    auto tex = m_register.find(absolute_path );
+    auto tex = m_register.find(absolute_path.string());
     if (tex != m_register.end() )
         return tex->second;
 
-    return load_png_to_gpu(absolute_path);
+    return load_png_to_gpu(absolute_path.string());
 }
 
 bool TextureManager::release_resources()

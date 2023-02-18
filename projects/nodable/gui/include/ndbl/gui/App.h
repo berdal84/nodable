@@ -41,7 +41,7 @@ namespace ndbl
         void            toggle_fullscreen();
         bool            open_file(const ghc::filesystem::path& _filePath);
         File*           new_file();
-        void            save_file()const;
+        void save_file(File *pFile) const;
         void            save_file_as(const ghc::filesystem::path &_path);
         void            close_file(File*);
         bool            is_current(const File* _file ) const { return m_current_file == _file; }

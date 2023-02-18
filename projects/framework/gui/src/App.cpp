@@ -275,7 +275,7 @@ void App::handle_events()
 }
 
 
-void App::save_screenshot(const char* relative_file_path)
+void App::save_screenshot(const char*_path)
 {
     LOG_MESSAGE("fw::AppView", "Taking screenshot ...\n");
     int width, height;
@@ -297,9 +297,10 @@ void App::save_screenshot(const char* relative_file_path)
 
     std::vector<unsigned char> out;
     lodepng::encode(out, flipped.data(), width, height, LCT_RGBA);
-    lodepng::save_file(out, asset_path(relative_file_path).c_str());
+    auto absolute_path = asset_path(_path);
+    lodepng::save_file(out, absolute_path.string());
 
-    LOG_MESSAGE("fw::AppView", "Taking screenshot OK (%s)\n", relative_file_path);
+    LOG_MESSAGE("fw::AppView", "Taking screenshot OK (%s)\n", _path);
 }
 
 bool App::is_fullscreen() const

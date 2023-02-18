@@ -26,7 +26,7 @@ FileView::FileView(File& _file)
     , m_text_overlay_window_name(_file.get_name() + "_text_overlay" )
     , m_graph_overlay_window_name(_file.get_name() + "_graph_overlay" )
 {
-    m_graph_change_obs.observe(_file.m_on_graph_changed_evt, [](GraphNode* _graph)
+    m_graph_change_obs.observe(_file.event_graph_changed, [](GraphNode* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )
@@ -268,14 +268,14 @@ void FileView::draw_info() const
 {
     // Basic information
     ImGui::Text("Name: %s", m_file.get_name().c_str());
-    ImGui::Text("Path: %s", m_file.get_path().c_str());
+    ImGui::Text("Path: %s", m_file.path.string().c_str());
     ImGui::NewLine();
 
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %lu", m_file.get_graph()->get_node_registry().size());
-    ImGui::Text("Edge count: %lu", m_file.get_graph()->get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file.get_graph()->get_node_registry().size());
+    ImGui::Text("Edge count: %zu", m_file.get_graph()->get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
