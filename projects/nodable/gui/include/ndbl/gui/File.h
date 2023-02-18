@@ -27,11 +27,11 @@ namespace ndbl
 	class File
 	{
 	public:
-		File(std::string _name);
-		File(const std::string &_name, const std::string &_path);
+		explicit File(std::string _name);
+		explicit File(const ghc::filesystem::path& _path);
         ~File();
 
-        observe::Event<GraphNode*> m_on_graph_changed_evt;
+        observe::Event<GraphNode*> event_graph_changed;
 
         bool                             read_from_disk();
         bool                             write_to_disk();
@@ -40,19 +40,15 @@ namespace ndbl
         inline History*                  get_history() { return &m_history; }
         const std::string&               get_name()const { return m_name; }
         void                             set_name(const std::string& _name) { m_name = _name; }
-        bool                             has_path()const { return !m_path.empty(); }
-        void                             set_path(const std::string& _path);
-        const std::string&               get_path()const { return m_path; }
         inline FileView*                 get_view()const { return m_view; };
         inline void                      set_changed_flag(bool _value = true) { m_modified = _value; }
         inline bool                      has_changed() const { return m_modified; }
         bool                             update_graph();
         bool                             update_graph(std::string &_expression);
-
+        ghc::filesystem::path            path; // file path on disk
     private:
 		bool                       m_modified;
 		std::string                m_name;
-		std::string                m_path;
 		const NodeFactory          m_factory;
 		FileView*                  m_view;
 		History                    m_history;

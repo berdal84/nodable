@@ -283,9 +283,9 @@ void App::on_update()
             {
                 if (m_current_file)
                 {
-                    if(m_current_file->has_path())
+                    if( !m_current_file->path.empty())
                     {
-                        save_file();
+                        save_file(m_current_file);
                     }
                     else
                     {
@@ -495,7 +495,7 @@ bool App::on_shutdown()
     LOG_VERBOSE("ndbl::App", "on_shutdown ...\n");
     for( File* each_file : m_loaded_files )
     {
-        LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->get_path().c_str())
+        LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str())
         delete each_file;
     }
     LOG_VERBOSE("ndbl::App", "on_shutdown " OK "\n");
@@ -504,8 +504,7 @@ bool App::on_shutdown()
 
 bool App::open_file(const ghc::filesystem::path& _path)
 {
-    std::string absolute_path = fw::App::asset_path(_path);
-    auto file = new File( _path.filename().string(), absolute_path);
+    auto file = new File( fw::App::asset_path(_path) );
 
     if ( !file->read_from_disk() )
     {
@@ -520,20 +519,23 @@ bool App::open_file(const ghc::filesystem::path& _path)
 	return true;
 }
 
-void App::save_file() const
+void App::save_file(File* _file) const
 {
-	if (m_current_file && !m_current_file->write_to_disk() )
-    {
-        LOG_ERROR("App", "Unable to save %s (%s)\n", m_current_file->get_name().c_str(), m_current_file->get_path().c_str());
-    }
+    FW_EXPECT(_file,"file must be defined");
 
+	if ( !_file->write_to_disk() )
+    {
+        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _file->get_name().c_str(), _file->path.c_str());
+        return;
+    }
+    LOG_MESSAGE("ndbl::App", "File saved: %s\n", _file->path.c_str());
 }
 
 void App::save_file_as(const ghc::filesystem::path& _path)
 {
     ghc::filesystem::path absolute_path = _path.is_relative() ? fw::App::asset_path(_path.string().c_str()) : _path;
     File* curr_file = current_file();
-    curr_file->set_path(absolute_path.string());
+    curr_file->path = absolute_path.string();
     curr_file->set_name(absolute_path.filename().string());
     if( !curr_file->write_to_disk() )
     {
@@ -666,7 +668,7 @@ File *App::new_file()
     }
 
     // create the file
-    auto file = new File(name);
+    auto file = new File(ghc::filesystem::path{name});
     m_loaded_files.push_back(file);
     current_file(file);
 
