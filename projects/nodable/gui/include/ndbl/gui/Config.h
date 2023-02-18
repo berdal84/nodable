@@ -15,12 +15,13 @@
 
 namespace ndbl {
 
-    class Settings  {
+    class Config  {
     public:
 
-        Settings();
+        Config();
+        Config(const Config&) = delete; // Disable copy
 
-        TextEditor::Palette ui_text_textEditorPalette;
+        TextEditor::Palette ui_text_textEditorPalette{};
         float          ui_wire_bezier_roundness;
         float          ui_wire_bezier_thickness;
         bool           ui_wire_displayArrows;
@@ -59,15 +60,15 @@ namespace ndbl {
         ImVec4         ui_overlay_text_color;
         const char*    ui_file_info_window_label;
         const char*    ui_help_window_label;
-        const char*    ui_imgui_settings_window_label;
+        const char*    ui_imgui_config_window_label;
         const char*    ui_node_properties_window_label;
-        const char*    ui_settings_window_label;
+        const char*    ui_config_window_label;
         const char*    ui_startup_window_label;
         const char*    ui_toolbar_window_label ;
         const char*    ui_virtual_machine_window_label;
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
         bool           isolate_selection;
-        fw::Config       fw_conf;
+        fw::Config       framework;
     };
 }

@@ -1,11 +1,11 @@
-#include <ndbl/gui/Settings.h>
+#include <ndbl/gui/Config.h>
 #include <ndbl/gui/build_info.h>
 #include <fw/gui/types.h>
 
 using namespace ndbl;
 using namespace fw;
 
-Settings::Settings()
+ndbl::Config::Config()
 {
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
@@ -82,9 +82,9 @@ Settings::Settings()
     // Window names
     ui_file_info_window_label           = "File";
     ui_help_window_label                = "Help";
-    ui_imgui_settings_window_label      = "ImGui";
+    ui_imgui_config_window_label      = "ImGui";
     ui_node_properties_window_label     = "Node";
-    ui_settings_window_label            = "Settings";
+    ui_config_window_label            = "Settings";
     ui_startup_window_label             = "Startup";
     ui_toolbar_window_label             = "Toolbar";
     ui_virtual_machine_window_label     = "VM";
@@ -95,16 +95,16 @@ Settings::Settings()
     isolate_selection                 = false;
 
     // AppView
-    fw_conf.dockspace_right_ratio = 0.25f;
-    fw_conf.dockspace_top_size    = 36.f;
-    fw_conf.dockspace_bottom_size = 100.f;
+    framework.dockspace_right_ratio = 0.25f;
+    framework.dockspace_top_size    = 36.f;
+    framework.dockspace_bottom_size = 100.f;
     {
         constexpr const char *k_paragraph = "Paragraph";
         constexpr const char *k_heading   = "Heading 1";
         constexpr const char *k_code      = "Code";
         constexpr const char *k_tool      = "Tool Button";
 
-        fw_conf.fonts = {
+        framework.fonts = {
                 // id          , font_path                          , size , icons? , icons size
                 { k_paragraph  , "fonts/JetBrainsMono-Medium.ttf"   , 18.0f, true   , 18.0f      },
                 { k_heading    , "fonts/JetBrainsMono-Bold.ttf"     , 25.0f, true   , 18.0f      },
@@ -112,11 +112,11 @@ Settings::Settings()
                 { k_tool       , "fonts/JetBrainsMono-Bold.ttf"     , 16.0f, true   , 14.0f      }
         };
 
-        fw_conf.fonts_default[FontSlot_Paragraph] = k_paragraph;
-        fw_conf.fonts_default[FontSlot_Heading]   = k_heading;
-        fw_conf.fonts_default[FontSlot_Code]      = k_code;
-        fw_conf.fonts_default[FontSlot_ToolBtn]   = k_tool;
+        framework.fonts_default[FontSlot_Paragraph] = k_paragraph;
+        framework.fonts_default[FontSlot_Heading]   = k_heading;
+        framework.fonts_default[FontSlot_Code]      = k_code;
+        framework.fonts_default[FontSlot_ToolBtn]   = k_tool;
     }
-    fw_conf.icon_font = {"Icons", "fonts/fa-solid-900.ttf" };
-    fw_conf.app_window_label     = BuildInfo::version_extended;
+    framework.icon_font = {"Icons", "fonts/fa-solid-900.ttf" };
+    framework.app_window_label     = BuildInfo::version_extended;
 }

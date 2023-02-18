@@ -5,7 +5,7 @@
 #include <ndbl/core/Node.h>
 #include <ndbl/gui/Event.h>
 #include <ndbl/gui/NodeView.h>
-#include <ndbl/gui/Settings.h>
+#include <ndbl/gui/Config.h>
 
 using namespace ndbl;
 
@@ -79,10 +79,10 @@ ImRect NodeConnector::get_rect() const
     App& app = App::get_instance();
     ImVec2 leftCornerPos = m_way == Way_In ? m_node_view.get_rect().GetTL() : m_node_view.get_rect().GetBL();
 
-    ImVec2 size(app.settings.ui_node_connector_width, app.settings.ui_node_connector_height);
+    ImVec2 size(app.config.ui_node_connector_width, app.config.ui_node_connector_height);
     ImRect rect(leftCornerPos, leftCornerPos + size);
     rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(ImVec2(- app.settings.ui_node_connector_padding, 0.0f));
+    rect.Expand(ImVec2(- app.config.ui_node_connector_padding, 0.0f));
     return rect;
 }
 

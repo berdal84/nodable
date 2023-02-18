@@ -27,7 +27,7 @@ App* App::s_instance = nullptr;
 App::App()
     : m_current_file_index(0)
     , m_current_file(nullptr)
-    , framework(settings.fw_conf)
+    , framework(config.framework )
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
@@ -214,7 +214,7 @@ void App::on_update()
         {
             case EventType_toggle_isolate_selection:
             {
-                settings.isolate_selection = !settings.isolate_selection;
+                config.isolate_selection = !config.isolate_selection;
                 if( m_current_file )
                 {
                     m_current_file->update_graph();

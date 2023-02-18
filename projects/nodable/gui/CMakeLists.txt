@@ -33,7 +33,7 @@ add_library(
         src/NodeView.cpp
         src/PropertyConnector.cpp
         src/PropertyView.cpp
-        src/Settings.cpp
+        src/Config.cpp
         src/ViewConstraint.cpp
 )
 
