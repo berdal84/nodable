@@ -46,9 +46,9 @@ bool AppView::on_init()
     LOG_VERBOSE("ndbl::AppView", "on_init ...\n");
     m_framework = m_app->framework()->view();
     FW_EXPECT(m_framework, "Framework view is not defined");
-    m_framework->draw_event.connect([&](auto event){ on_draw(event.redock); });
-    m_framework->reset_layout_event.connect([&](){on_reset_layout();});
-    m_framework->draw_splashscreen_event.connect([&](){on_draw_splashscreen();});
+    m_framework->event_draw.connect([&](auto event){ on_draw(event.redock); });
+    m_framework->event_reset_layout.connect([&](auto){on_reset_layout();});
+    m_framework->event_draw_splashscreen.connect([&](auto){on_draw_splashscreen();});
 
     // Load splashscreen image
     fw::TextureManager* texture_manager = m_app->framework()->texture_manager();

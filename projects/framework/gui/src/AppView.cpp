@@ -19,7 +19,7 @@ AppView::AppView(App* _app)
 {
     LOG_VERBOSE("fw::AppView", "Constructor ...\n");
     FW_EXPECT(m_app != nullptr, "m_app is required");
-    m_app->on_draw.connect([&]() { on_draw(); });
+    m_app->event_on_draw.connect([&]() { on_draw(); });
     LOG_VERBOSE("fw::AppView", "Constructor " OK "\n");
 }
 
@@ -100,7 +100,7 @@ bool AppView::on_draw()
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, m_conf->dockspace_top_size));
 
-            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf->dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], nullptr );
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_conf->dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], &m_dockspaces[Dockspace_CENTER]);
 
             // Configure dockspaces
             ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton         = false;
@@ -118,7 +118,7 @@ bool AppView::on_draw()
             dock_window(k_status_window_name, Dockspace_BOTTOM);
 
             // Run user defined code
-            reset_layout_event.emit();
+            event_reset_layout.emit(this);
 
             // Finish the build
             ImGui::DockBuilderFinish(m_dockspaces[Dockspace_ROOT]);
@@ -134,7 +134,7 @@ bool AppView::on_draw()
         draw_status_window();
 
         // User defined draw
-        draw_event.emit({redock_all});
+        event_draw.emit({this, redock_all});
     }
     ImGui::End(); // Main window
 
@@ -205,7 +205,7 @@ void AppView::draw_splashcreen_window()
 
     if (ImGui::BeginPopupModal(m_conf->splashscreen_window_label, &m_conf->show_splashscreen, flags))
     {
-        draw_splashscreen_event.emit(); // run user defined code
+        event_draw_splashscreen.emit(this); // run user defined code
         ImGui::EndPopup();
     }
 }

@@ -38,9 +38,9 @@ App::App()
 
     // Bind methods to framework events
     LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
-    m_framework->after_init.connect([this](){ on_init();});
-    m_framework->after_update.connect([this](){ on_update();});
-    m_framework->after_shutdown.connect([this](){ on_shutdown();});
+    m_framework->event_after_init.connect([this](){ on_init();});
+    m_framework->event_after_update.connect([this](){ on_update();});
+    m_framework->event_after_shutdown.connect([this](){ on_shutdown();});
 
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 
@@ -684,6 +684,7 @@ fw::App* App::framework()
 {
     return m_framework;
 }
+
 Settings* App::settings()
 {
     return &m_settings;
@@ -698,34 +699,11 @@ bool App::is_fullscreen()
     return m_framework->is_fullscreen();
 }
 
-bool App::should_stop()
-{
-    return m_framework->should_stop();
-}
-
-bool App::init()
-{
-    return m_framework->init();
-}
-
-bool App::shutdown()
-{
-    return m_framework->shutdown();
-}
-
-void App::draw()
-{
-    m_framework->draw();
-}
-
-void App::update()
-{
-    m_framework->update();
-}
 bool App::pick_file_path(std::string &out, fw::AppView::DialogType type)
 {
     return m_framework->view()->pick_file_path(out, type);
 }
+
 void App::set_splashscreen_visible(bool b)
 {
     m_framework->view()->set_splashscreen_visible(b);

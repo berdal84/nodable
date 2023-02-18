@@ -65,11 +65,12 @@ namespace fw
 		~AppView() override;
 
         struct DrawEvent {
+            AppView* view;
             bool redock;
         };
-        observe::Event<DrawEvent> draw_event;          // triggered during draw()
-        observe::Event<> reset_layout_event;           // triggered during reset layout
-        observe::Event<> draw_splashscreen_event;      // triggered when drawing splashscreen
+        observe::Event<DrawEvent> event_draw;          // triggered during draw()
+        observe::Event<AppView*> event_reset_layout;           // triggered during reset layout
+        observe::Event<AppView*> event_draw_splashscreen;      // triggered when drawing splashscreen
 
         bool               on_draw() override;
         ImGuiID            get_dockspace(Dockspace)const;
