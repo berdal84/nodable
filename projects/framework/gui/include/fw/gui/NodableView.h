@@ -16,7 +16,7 @@
 namespace fw
 {
     // forward declarations
-    class App;
+    class Nodable;
     class File;
     class History;
     struct Texture;
@@ -26,7 +26,7 @@ namespace fw
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
-	class AppView : public View
+	class NodableView : public View
 	{
 	public:
 
@@ -61,9 +61,9 @@ namespace fw
             Dockspace_COUNT,
         };
 
-		AppView(App*);
-        AppView(const App&) = delete;
-		~AppView() override;
+        NodableView(Nodable *);
+        NodableView(const Nodable &) = delete;
+		~NodableView() override;
 
         enum StateChange
         {
@@ -82,7 +82,7 @@ namespace fw
     private:
         void               draw_splashscreen_window();
         void               draw_status_window() const;
-        App*               m_app;
+        Nodable *               m_app;
         bool               m_is_layout_initialized;
         std::array<ImGuiID, Dockspace_COUNT> m_dockspaces{};
 

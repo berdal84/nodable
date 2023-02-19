@@ -3,13 +3,13 @@
 #include <fw/core/log.h>
 #include <fw/core/system.h>
 
+#include <ndbl/gui/Config.h>
 #include <ndbl/gui/Event.h>
-#include <ndbl/gui/App.h>
 #include <ndbl/gui/File.h>
 #include <ndbl/gui/FileView.h>
 #include <ndbl/gui/History.h>
+#include <ndbl/gui/Nodable.h>
 #include <ndbl/gui/NodeView.h>
-#include <ndbl/gui/Config.h>
 #include <ndbl/gui/build_info.h>
 
 #include <utility>
@@ -17,7 +17,7 @@
 using namespace ndbl;
 using namespace ndbl::assembly;
 
-AppView::AppView(App* _app)
+AppView::AppView(Nodable * _app)
     : m_logo(nullptr)
     , m_is_history_dragged(false)
     , m_show_properties_editor(false)
@@ -43,16 +43,16 @@ AppView::~AppView()
 bool AppView::on_init()
 {
     LOG_VERBOSE("ndbl::AppView", "on_init ...\n");
-    m_app->framework.view.changes.connect( [&](fw::AppView::StateChange change) {
+    m_app->framework.view.changes.connect( [&](fw::NodableView::StateChange change) {
         switch (change)
         {
-            case fw::AppView::ON_DRAW_MAIN:
+            case fw::NodableView::ON_DRAW_MAIN:
                 on_draw();
                 break;
-            case fw::AppView::ON_DRAW_SPLASHSCREEN_CONTENT:
+            case fw::NodableView::ON_DRAW_SPLASHSCREEN_CONTENT:
                 on_draw_splashscreen();
                 break;
-            case fw::AppView::ON_RESET_LAYOUT:
+            case fw::NodableView::ON_RESET_LAYOUT:
                 on_reset_layout();
                 break;
         }
@@ -70,7 +70,7 @@ bool AppView::on_draw()
 {
     bool redock_all = true;
     File*             current_file    = m_app->current_file;
-    fw::App&          framework       = m_app->framework;
+    fw::Nodable &          framework       = m_app->framework;
     fw::EventManager& event_manager   = framework.event_manager;
     Config&           config          = m_app->config;
     VirtualMachine&   virtual_machine = m_app->virtual_machine;
@@ -254,13 +254,13 @@ bool AppView::on_draw()
     if(!m_app->has_files())
     {
         if( !framework.config.splashscreen )
-            draw_startup_window(framework.view.get_dockspace(fw::AppView::Dockspace_ROOT));
+            draw_startup_window(framework.view.get_dockspace(fw::NodableView::Dockspace_ROOT));
     }
     else
     {
         draw_toolbar_window();
 
-        auto ds_root = framework.view.get_dockspace(fw::AppView::Dockspace_ROOT);
+        auto ds_root = framework.view.get_dockspace(fw::NodableView::Dockspace_ROOT);
         for (File *each_file: m_app->get_files())
         {
             draw_file_window(ds_root, redock_all, each_file);
@@ -513,7 +513,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
                 if (i++ % 2) ImGui::SameLine();
                 if (ImGui::Button(label.c_str(), small_btn_size))
                 {
-                    m_app->open_file( fw::App::asset_path(path.c_str()) );
+                    m_app->open_file( fw::Nodable::asset_path(path.c_str()) );
                 }
             }
 
@@ -800,14 +800,14 @@ void AppView::draw_toolbar_window() {
 bool AppView::on_reset_layout() {
     // Dock windows to specific dockspace
     const Config& config  = m_app->config;
-    fw::AppView&    framework = m_app->framework.view;
-    framework.dock_window(config.ui_help_window_label             , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_config_window_label         , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_file_info_window_label        , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_node_properties_window_label  , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_virtual_machine_window_label  , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_imgui_config_window_label   , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_toolbar_window_label          , fw::AppView::Dockspace_TOP);
+    fw::NodableView &    framework = m_app->framework.view;
+    framework.dock_window(config.ui_help_window_label             , fw::NodableView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_config_window_label         , fw::NodableView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_file_info_window_label        , fw::NodableView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_node_properties_window_label  , fw::NodableView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_virtual_machine_window_label  , fw::NodableView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_imgui_config_window_label   , fw::NodableView::Dockspace_RIGHT);
+    framework.dock_window(config.ui_toolbar_window_label          , fw::NodableView::Dockspace_TOP);
 
     return true;
 }

@@ -5,10 +5,10 @@
 #include <memory>
 #include <string>
 
-#include <fw/gui/FontManager.h>
 #include <fw/core/types.h>
 #include <fw/gui/Config.h>
-#include <fw/gui/AppView.h>
+#include <fw/gui/FontManager.h>
+#include <fw/gui/NodableView.h>
 #include <fw/gui/TextureManager.h>
 #include <ghc/filesystem.hpp>
 #include <observe/event.h>
@@ -20,19 +20,19 @@ namespace fw
      * Application Framework
      * See /project/framework/example for usage
      */
-	class App
-	{
+	class Nodable
+    {
 	public:
-		App(Config&);
-        App(const App&) = delete;
-        ~App();
+        Nodable(Config&);
+        Nodable(const Nodable &) = delete;
+        ~Nodable();
 
         TextureManager   texture_manager;       // Manages Texture resources
         FontManager      font_manager;          // Manages Font resources
         EventManager     event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
         bool             should_stop;           // Set this field true to tell the application to stop its main loop the next frame
         Config&          config;                // Application configuration (names, colors, fonts)
-        AppView          view;                  // Application View (based on ImGui)
+        NodableView view;                  // Application View (based on ImGui)
 
         enum StateChange
         {
@@ -64,7 +64,7 @@ namespace fw
         SDL_GLContext   m_sdl_gl_context;
         SDL_Window*     m_sdl_window;
 
-        static App*     s_instance;
+        static Nodable *     s_instance;
 
     };
 }

@@ -1,9 +1,9 @@
-#include <fw/gui/AppView.h>
+#include <fw/gui/NodableView.h>
 
 #include <fw/core/log.h>
 #include <fw/core/system.h>
-#include <fw/gui/App.h>
 #include <fw/gui/EventManager.h>
+#include <fw/gui/Nodable.h>
 #include <fw/gui/TextureManager.h>
 #include <nfd.h>
 
@@ -11,7 +11,7 @@ using namespace fw;
 
 constexpr const char* k_status_window_name = "Messages";
 
-AppView::AppView(App* _app)
+NodableView::NodableView(Nodable * _app)
     : View()
     , m_app(_app)
     , m_is_layout_initialized(false)
@@ -19,24 +19,24 @@ AppView::AppView(App* _app)
     LOG_VERBOSE("fw::AppView", "Constructor " OK "\n");
 }
 
-AppView::~AppView()
+NodableView::~NodableView()
 {
     LOG_VERBOSE("fw::AppView", "Destructor " OK "\n");
 }
 
 
-void AppView::init()
+void NodableView::init()
 {
     LOG_VERBOSE("fw::AppView", "init ...\n");
     FW_EXPECT(m_app != nullptr, "m_app is required");
-    m_app->changes.connect([&](App::StateChange evt) {
-        if( evt == App::ON_DRAW ) on_draw();
+    m_app->changes.connect([&](Nodable::StateChange evt) {
+        if( evt == Nodable::ON_DRAW ) on_draw();
     });
     LOG_VERBOSE("fw::AppView", "init " OK "\n");
 }
 
 
-bool AppView::on_draw()
+bool NodableView::on_draw()
 {
     bool is_main_window_open = true;
     bool redock_all          = false;
@@ -149,7 +149,7 @@ bool AppView::on_draw()
     return false;
 }
 
-bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
+bool NodableView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
 {
     nfdchar_t *out_path;
     nfdresult_t result;
@@ -179,22 +179,22 @@ bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
     }
 }
 
-void AppView::set_layout_initialized(bool b)
+void NodableView::set_layout_initialized(bool b)
 {
     m_is_layout_initialized = b;
 }
 
-ImGuiID AppView::get_dockspace(Dockspace dockspace)const
+ImGuiID NodableView::get_dockspace(Dockspace dockspace)const
 {
     return m_dockspaces[dockspace];
 }
 
-void AppView::dock_window(const char* window_name, Dockspace dockspace)const
+void NodableView::dock_window(const char* window_name, Dockspace dockspace)const
 {
     ImGui::DockBuilderDockWindow(window_name, m_dockspaces[dockspace]);
 }
 
-void AppView::draw_splashscreen_window()
+void NodableView::draw_splashscreen_window()
 {
     if (m_app->config.splashscreen && !ImGui::IsPopupOpen(m_app->config.splashscreen_window_label))
     {
@@ -213,7 +213,7 @@ void AppView::draw_splashscreen_window()
     }
 }
 
-void AppView::draw_status_window() const
+void NodableView::draw_status_window() const
 {
     if (ImGui::Begin(k_status_window_name))
     {

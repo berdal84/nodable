@@ -1,17 +1,17 @@
-#include <fw/gui/App.h>
+#include <fw/gui/Nodable.h>
 
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <nativefiledialog-extended/src/include/nfd.h>
 
 #include <fw/core/system.h>
-#include <fw/gui/AppView.h>
+#include <fw/gui/NodableView.h>
 
 using namespace fw;
 
-App* App::s_instance = nullptr;
+Nodable *Nodable::s_instance = nullptr;
 
-App::App(Config& _conf)
+Nodable::Nodable(Config& _conf)
     : config(_conf)
     , should_stop(false)
     , font_manager()
@@ -29,14 +29,14 @@ App::App(Config& _conf)
     LOG_VERBOSE("fw::App", "Constructor " OK "\n");
 }
 
-App::~App()
+Nodable::~Nodable()
 {
     LOG_VERBOSE("fw::App", "Destructor ...\n");
     s_instance = nullptr;
     LOG_VERBOSE("fw::App", "Destructor " OK "\n");
 }
 
-bool App::init()
+bool Nodable::init()
 {
     LOG_VERBOSE("fw::App", "init ...\n");
     LOG_VERBOSE("fw::AppView", "init ...\n");
@@ -122,7 +122,7 @@ bool App::init()
     return true;
 }
 
-void App::update()
+void Nodable::update()
 {
     LOG_VERBOSE("fw::App", "update ...\n");
     handle_events();
@@ -131,7 +131,7 @@ void App::update()
     LOG_VERBOSE("fw::App", "update " OK "\n");
 }
 
-bool App::shutdown()
+bool Nodable::shutdown()
 {
     bool success = true;
     LOG_MESSAGE("fw::App", "Shutting down ...\n");
@@ -151,12 +151,12 @@ bool App::shutdown()
     NFD_Quit();
 
     LOG_VERBOSE("fw::App", "state_changes.emit(App::ON_SHUTDOWN) ...\n");
-    changes.emit(App::ON_SHUTDOWN);
+    changes.emit(Nodable::ON_SHUTDOWN);
     LOG_MESSAGE("fw::App", "Shutdown %s\n", success ? OK : KO)
     return success;
 }
 
-void App::draw()
+void Nodable::draw()
 {
     LOG_VERBOSE("fw::App", "draw ...\n");
     ImGui_ImplOpenGL3_NewFrame();
@@ -165,7 +165,7 @@ void App::draw()
     ImGuiEx::BeginFrame();
 
     LOG_VERBOSE("fw::App", "state_changes.emit(App::ON_DRAW) ...\n");
-    changes.emit(App::ON_DRAW);
+    changes.emit(Nodable::ON_DRAW);
 
     // 3. End frame and Render
     //------------------------
@@ -202,12 +202,12 @@ void App::draw()
     LOG_VERBOSE("fw::App", "draw " OK "\n");
 }
 
-u64_t App::elapsed_time() const
+u64_t Nodable::elapsed_time() const
 {
     return m_start_time.time_since_epoch().count();
 }
 
-ghc::filesystem::path App::asset_path(const ghc::filesystem::path& _path)
+ghc::filesystem::path Nodable::asset_path(const ghc::filesystem::path& _path)
 {
     // If the path is absolute, we use it as-is,
     // Else we append assets path.
@@ -216,13 +216,13 @@ ghc::filesystem::path App::asset_path(const ghc::filesystem::path& _path)
     return fw::system::get_executable_directory() / "assets" / _path;
 }
 
-ghc::filesystem::path App::asset_path(const char* _path)
+ghc::filesystem::path Nodable::asset_path(const char* _path)
 {
     const ghc::filesystem::path fs_path{_path};
     return asset_path(fs_path);
 }
 
-void App::handle_events()
+void Nodable::handle_events()
 {
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -275,7 +275,7 @@ void App::handle_events()
 }
 
 
-void App::save_screenshot(const char*_path)
+void Nodable::save_screenshot(const char*_path)
 {
     LOG_MESSAGE("fw::AppView", "Taking screenshot ...\n");
     int width, height;
@@ -303,17 +303,17 @@ void App::save_screenshot(const char*_path)
     LOG_MESSAGE("fw::AppView", "Taking screenshot OK (%s)\n", _path);
 }
 
-bool App::is_fullscreen() const
+bool Nodable::is_fullscreen() const
 {
     return SDL_GetWindowFlags(m_sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
 
-void App::set_fullscreen(bool b)
+void Nodable::set_fullscreen(bool b)
 {
     SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-int App::run()
+int Nodable::run()
 {
     if (init())
     {
@@ -333,7 +333,7 @@ int App::run()
     }
 }
 
-int App::fps()
+int Nodable::fps()
 {
     return (int)ImGui::GetIO().Framerate;
 }

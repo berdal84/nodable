@@ -3,10 +3,8 @@
 #include <future>
 #include <memory>
 #include <string>
-
 #include <fw/core/reflection/reflection>
-#include <fw/gui/App.h>
-
+#include <fw/gui/Nodable.h>
 #include <ndbl/gui/AppView.h>
 #include <ndbl/gui/Config.h>
 #include <ndbl/gui/types.h>
@@ -24,15 +22,15 @@ namespace ndbl
     // - Instantiate it as you want (stack or heap)
     // - The instance will be available statically via: App* App::get_instance()
     // - Is based on fw::App, but extends it using composition instead of inheritance
-    class App
-	{
+    class Nodable
+    {
 	public:
-		App();
-        App(const App&) = delete;          // Avoid copy (single instance only)
-        ~App();
+        Nodable();
+        Nodable(const Nodable &) = delete;          // Avoid copy (single instance only)
+        ~Nodable();
 
         observe::Event<>  after_init;      // Triggered just after app initialize, for custom code
-        fw::App           framework;       // The underlying framework (we use composition instead of inheritance)
+        fw::Nodable framework;       // The underlying framework (we use composition instead of inheritance)
         Config            config;          // Nodable configuration (includes framework configuration)
         AppView           view;
         File*             current_file;
@@ -64,13 +62,13 @@ namespace ndbl
         void            reset_program();
         bool            compile_and_load_program();
 
-        static App&     get_instance();             // singleton pattern
+        static Nodable &     get_instance();             // singleton pattern
     private:
         bool            on_init();
         bool            on_shutdown();
         void            on_update();
-        bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
-        static App*        s_instance;
+        bool            pick_file_path(std::string &out, fw::NodableView::DialogType type);
+        static Nodable *        s_instance;
         std::vector<File*> m_loaded_files;
     };
 }

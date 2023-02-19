@@ -15,7 +15,7 @@
 namespace ndbl
 {
     // forward declarations
-    class App;
+    class Nodable;
 
 	typedef struct {
         std::string                 label;

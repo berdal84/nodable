@@ -1,11 +1,11 @@
 #include <ndbl/gui/NodeConnector.h>
 
-#include "ndbl/gui/App.h"
+#include "ndbl/gui/Nodable.h"
 #include <ndbl/core/GraphNode.h>
 #include <ndbl/core/Node.h>
+#include <ndbl/gui/Config.h>
 #include <ndbl/gui/Event.h>
 #include <ndbl/gui/NodeView.h>
-#include <ndbl/gui/Config.h>
 
 using namespace ndbl;
 
@@ -76,7 +76,7 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
 ImRect NodeConnector::get_rect() const
 {
-    App& app = App::get_instance();
+    Nodable & app = Nodable::get_instance();
     ImVec2 leftCornerPos = m_way == Way_In ? m_node_view.get_rect().GetTL() : m_node_view.get_rect().GetBL();
 
     ImVec2 size(app.config.ui_node_connector_width, app.config.ui_node_connector_height);

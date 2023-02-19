@@ -4,8 +4,8 @@
 #include <map>
 #include <array>
 
-#include <fw/gui/AppView.h>
 #include <fw/core/reflection/reflection>
+#include <fw/gui/NodableView.h>
 
 #include <ndbl/gui/types.h>
 
@@ -15,7 +15,7 @@ namespace ndbl
     class History;
     struct Texture;
     class File;
-    class App;
+    class Nodable;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
@@ -23,8 +23,8 @@ namespace ndbl
     class AppView
 	{
 	public:
-		AppView(App*fw_view);
-        AppView(const App&) = delete;
+		AppView(Nodable *fw_view);
+        AppView(const Nodable &) = delete;
 		~AppView();
 
     private:
@@ -50,6 +50,6 @@ namespace ndbl
         bool               m_show_imgui_demo;
         bool               m_show_advanced_node_properties;
         bool               m_scroll_to_curr_instr;
-        App*               m_app;
+        Nodable *               m_app;
     };
 }

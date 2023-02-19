@@ -7,17 +7,17 @@
 #include "fw/core/math.h"
 #include <fw/core/reflection/registration.h>
 
-#include <ndbl/gui/Event.h>
-#include <ndbl/gui/App.h>
-#include <ndbl/gui/NodeConnector.h>
-#include <ndbl/gui/PropertyConnector.h>
-#include <ndbl/gui/Config.h>
 #include <ndbl/core/GraphNode.h>
 #include <ndbl/core/InvokableComponent.h>
 #include <ndbl/core/LiteralNode.h>
 #include <ndbl/core/Scope.h>
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/language/Nodlang.h>
+#include <ndbl/gui/Config.h>
+#include <ndbl/gui/Event.h>
+#include <ndbl/gui/Nodable.h>
+#include <ndbl/gui/NodeConnector.h>
+#include <ndbl/gui/PropertyConnector.h>
 
 constexpr ImVec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
 
@@ -117,7 +117,7 @@ void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
 
-    const Config& config = App::get_instance().config;
+    const Config& config = Nodable::get_instance().config;
     std::vector<Property *> not_exposed;
 
     // 1. Expose properties (make visible)
@@ -378,7 +378,7 @@ bool NodeView::on_draw()
 {
 	bool      changed  = false;
 	auto      node     = get_owner();
-	Config& config = App::get_instance().config;
+	Config& config = Nodable::get_instance().config;
 
     FW_ASSERT(node != nullptr);
 

@@ -23,8 +23,8 @@ configure_file("include/ndbl/gui/build_info.h.in" "${NDBL_CONFIGURED_DIR}/gui/bu
 
 add_library(
     nodable-gui
-        src/App.cpp
-        src/AppView.cpp
+        src/Nodable.cpp
+        src/NodableView.cpp
         src/File.cpp
         src/FileView.cpp
         src/GraphNodeView.cpp
