@@ -36,16 +36,22 @@ namespace fw {
     class FontManager
     {
     public:
-        FontManager()  { LOG_VERBOSE("fw::FontManager", "Constructor " OK "\n"); };
+        struct Config {
+            std::vector<FontConf>                   text;      // text fonts
+            std::array<const char*, FontSlot_COUNT> defaults;  // ids for font slots
+            FontConf                                icon;      // icon font
+            float                                   subsamples;
+        };
+
+        FontManager(Config& config): m_config(config), m_fonts(), m_loaded_fonts() {}
         FontManager(const FontManager&) = delete;
         ~FontManager() { LOG_VERBOSE("fw::FontManager", "Destructor " OK "\n"); };
-        void        init( const std::vector<FontConf>&text_fonts,
-                          const std::array<const char*, FontSlot_COUNT>& defaults,
-                          const FontConf* icon_font);
-        ImFont*           get_font(FontSlot) const;
-        ImFont*get_font(const char*) const;
-        ImFont*           load_font(const FontConf* font, const FontConf* icon_font);
+        void        init();
+        ImFont*     get_font(FontSlot) const;
+        ImFont*     get_font(const char*) const;
     private:
+        ImFont*     load_font(const FontConf&);
+        Config&                              m_config;
         std::array<ImFont*, FontSlot_COUNT>  m_fonts;        // Required fonts
         std::map<std::string, ImFont*>       m_loaded_fonts; // Available fonts
     };
