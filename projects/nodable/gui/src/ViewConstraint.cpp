@@ -2,10 +2,10 @@
 
 #include <numeric>
 
-#include <ndbl/gui/App.h>
 #include <ndbl/core/ForLoopNode.h>
 #include <ndbl/core/InstructionNode.h>
 #include <ndbl/core/Node.h>
+#include <ndbl/gui/Nodable.h>
 
 using namespace ndbl;
 
@@ -25,7 +25,7 @@ void ViewConstraint::apply(float _dt)
         return;
     }
 
-    const Config& config = App::get_instance().config;
+    const Config& config = Nodable::get_instance().config;
 
     // try to get a visible view for drivers, is view is not visible we take the parent
     std::vector<NodeView*> clean_drivers;

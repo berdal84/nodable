@@ -3,17 +3,17 @@
 #include <fstream>
 #include <utility>
 
-#include <ndbl/gui/App.h>
-#include <ndbl/gui/FileView.h>
-#include <ndbl/gui/GraphNodeView.h>
-#include <ndbl/gui/History.h>
-#include <ndbl/gui/NodeView.h>
 #include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/InstructionNode.h>
 #include <ndbl/core/InvokableComponent.h>
 #include <ndbl/core/LiteralNode.h>
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/language/Nodlang.h>
+#include <ndbl/gui/FileView.h>
+#include <ndbl/gui/GraphNodeView.h>
+#include <ndbl/gui/History.h>
+#include <ndbl/gui/Nodable.h>
+#include <ndbl/gui/NodeView.h>
 
 using namespace ndbl;
 
@@ -30,7 +30,7 @@ File::File(std::string _name)
           auto view = _node->add_component<NodeView>();
 
           // Set common colors
-          const Config& config = App::get_instance().config;
+          const Config& config = Nodable::get_instance().config;
           view->set_color(fw::View::ColorType_Highlighted      , &config.ui_node_highlightedColor);
           view->set_color(fw::View::ColorType_Border           , &config.ui_node_borderColor);
           view->set_color(fw::View::ColorType_BorderHighlights , &config.ui_node_borderHighlightedColor);
@@ -55,7 +55,7 @@ File::File(std::string _name)
               view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
           }
         })
-        , m_history(&App::get_instance().config.experimental_hybrid_history)
+        , m_history(&Nodable::get_instance().config.experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 
@@ -77,7 +77,7 @@ File::File(std::string _name)
     m_graph = new GraphNode(
             &language,
             &m_factory,
-            &App::get_instance().config.experimental_graph_autocompletion );
+            &Nodable::get_instance().config.experimental_graph_autocompletion );
 
     char label[50];
     snprintf(label, sizeof(label), "%s's graph", name.c_str());
@@ -145,7 +145,7 @@ bool File::update_graph(std::string& _code_source)
 
 bool File::update()
 {
-    App&          app           = App::get_instance();
+    Nodable &          app           = Nodable::get_instance();
     bool          graph_changed = false;
 
 	if ( m_history.is_dirty() )
@@ -199,7 +199,7 @@ bool File::update()
 bool File::update_graph()
 {
     LOG_VERBOSE("File","get selected text\n")
-	std::string code_source = App::get_instance().config.isolate_selection ? view.get_selected_text() : view.get_text();
+	std::string code_source = Nodable::get_instance().config.isolate_selection ? view.get_selected_text() : view.get_text();
 	return update_graph(code_source);
 }
 

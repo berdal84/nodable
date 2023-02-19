@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
 
-#include <ndbl/gui/App.h>
+#include <ndbl/gui/Nodable.h>
 #include <thread>
 
 #ifdef NDBL_GUI_TEST_HUMAN_SPEED
@@ -27,7 +27,7 @@ namespace testing
         /**
          * run some loops for a given iteration count
          */
-        static void loop_count(ndbl::App& app, size_t iteration_count, double sleep_in_sec = 1.0)
+        static void loop_count(ndbl::Nodable & app, size_t iteration_count, double sleep_in_sec = 1.0)
         {
             for(int i = 0; i < iteration_count; ++i)
             {
@@ -40,7 +40,7 @@ namespace testing
         /**
          * run some loops for a given duration
          */
-        static void loop_duration(ndbl::App& app, double duration_in_sec)
+        static void loop_duration(ndbl::Nodable & app, double duration_in_sec)
         {
             auto start = std::chrono::system_clock::now();
             auto end   = std::chrono::system_clock::now();
@@ -58,7 +58,7 @@ namespace testing
             }
         }
 
-        void save_screenshot(ndbl::App& app, const char* relative_path)
+        void save_screenshot(ndbl::Nodable & app, const char* relative_path)
         {
             LOG_MESSAGE("Test", "Taking screenshot ...\n");
             ghc::filesystem::path path {relative_path};

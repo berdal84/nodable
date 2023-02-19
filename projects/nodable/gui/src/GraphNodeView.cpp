@@ -6,19 +6,19 @@
 #include <fw/core/log.h>
 #include <fw/core/system.h>
 
-#include <ndbl/gui/App.h>
-#include <ndbl/gui/PropertyConnector.h>
-#include <ndbl/gui/NodeConnector.h>
-#include <ndbl/gui/NodeView.h>
-#include <ndbl/gui/Config.h>
 #include <ndbl/core/ConditionalStructNode.h>
+#include <ndbl/core/ForLoopNode.h>
 #include <ndbl/core/GraphNode.h>
-#include <ndbl/core/language/Nodlang.h>
 #include <ndbl/core/InstructionNode.h>
 #include <ndbl/core/LiteralNode.h>
-#include <ndbl/core/ForLoopNode.h>
 #include <ndbl/core/Scope.h>
 #include <ndbl/core/VariableNode.h>
+#include <ndbl/core/language/Nodlang.h>
+#include <ndbl/gui/Config.h>
+#include <ndbl/gui/Nodable.h>
+#include <ndbl/gui/NodeConnector.h>
+#include <ndbl/gui/NodeView.h>
+#include <ndbl/gui/PropertyConnector.h>
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -33,7 +33,7 @@ REGISTER
 bool GraphNodeView::on_draw()
 {
     bool            changed          = false;
-    App&            app              = App::get_instance();
+    Nodable &            app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
     Node*           new_node         = nullptr;
     GraphNode*      graph            = get_graph_node();
@@ -645,7 +645,7 @@ bool GraphNodeView::update()
     {
         create_child_view_constraints();
     }
-    return update( ImGui::GetIO().DeltaTime, App::get_instance().config.ui_node_animation_subsample_count );
+    return update( ImGui::GetIO().DeltaTime, Nodable::get_instance().config.ui_node_animation_subsample_count );
 }
 
 void GraphNodeView::set_owner(Node *_owner)

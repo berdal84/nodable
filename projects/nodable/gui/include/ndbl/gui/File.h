@@ -11,11 +11,11 @@
 #include <fw/core/reflection/reflection>
 #include <fw/core/log.h>
 
-#include <ndbl/gui/App.h>
-#include <ndbl/gui/History.h>
-#include <ndbl/gui/types.h>
 #include <ndbl/core/NodeFactory.h>
 #include <ndbl/gui/FileView.h>
+#include <ndbl/gui/History.h>
+#include <ndbl/gui/Nodable.h>
+#include <ndbl/gui/types.h>
 
 namespace ndbl
 {

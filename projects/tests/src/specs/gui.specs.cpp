@@ -4,37 +4,36 @@ typedef ::testing::Gui Gui_App;
 
 TEST_F(Gui_App, constructor)
 {
-    EXPECT_NO_THROW(ndbl::App app);
+    EXPECT_NO_THROW(ndbl::Nodable app);
 }
 
 TEST_F(Gui_App, get_instance)
 {
     {
-        EXPECT_ANY_THROW(ndbl::App::get_instance());
-        ndbl::App  app;
-        EXPECT_NO_THROW(ndbl::App::get_instance());
+        EXPECT_ANY_THROW(ndbl::Nodable::get_instance());
+        ndbl::Nodable app;
+        EXPECT_NO_THROW(ndbl::Nodable::get_instance());
     }
-    EXPECT_ANY_THROW(ndbl::App::get_instance());
+    EXPECT_ANY_THROW(ndbl::Nodable::get_instance());
 }
 
 TEST_F(Gui_App, init)
 {
-    fw::log::set_verbosity(fw::log::Verbosity_Verbose);
-    ndbl::App app;
+    ndbl::Nodable app;
     EXPECT_NO_THROW(app.framework.init());
     EXPECT_TRUE(app.framework.shutdown());
 }
 
 TEST_F(Gui_App, shutdown)
 {
-    ndbl::App app;
+    ndbl::Nodable app;
     EXPECT_TRUE(app.framework.init());
     EXPECT_NO_THROW(app.framework.shutdown());
 }
 
 TEST_F(Gui_App, update)
 {
-    ndbl::App app;
+    ndbl::Nodable app;
     EXPECT_TRUE(app.framework.init());
     EXPECT_NO_THROW(app.framework.update());
     EXPECT_TRUE(app.framework.shutdown());
@@ -42,7 +41,7 @@ TEST_F(Gui_App, update)
 
 TEST_F(Gui_App, loop_count_1)
 {
-    ndbl::App app;
+    ndbl::Nodable app;
     EXPECT_TRUE(app.framework.init());
     loop_count(app, 1);
     EXPECT_TRUE(app.framework.shutdown());
@@ -50,7 +49,7 @@ TEST_F(Gui_App, loop_count_1)
 
 TEST_F(Gui_App, loop_duration_5s)
 {
-    ndbl::App app;
+    ndbl::Nodable app;
     EXPECT_TRUE(app.framework.init());
     loop_duration(app, 5.0);
     EXPECT_TRUE(app.framework.shutdown());
@@ -58,7 +57,7 @@ TEST_F(Gui_App, loop_duration_5s)
 
 TEST_F(Gui_App, open_file)
 {
-    ndbl::App app;
+    ndbl::Nodable app;
     app.framework.init();
     app.framework.config.splashscreen = false;
     loop_duration(app, 1.0);
@@ -71,7 +70,7 @@ TEST_F(Gui_App, open_file)
 
 TEST_F(Gui_App, close_file)
 {
-    ndbl::App app;
+    ndbl::Nodable app;
     app.framework.init();
     app.framework.config.splashscreen = false;
     ndbl::File* file = app.open_file("./examples/arithmetic.cpp");
@@ -85,7 +84,7 @@ TEST_F(Gui_App, close_file)
 
 TEST_F(Gui_App, open_examples)
 {
-    ndbl::App app;
+    ndbl::Nodable app;
     app.framework.init();
     app.framework.config.splashscreen = false;
     app.framework.update();

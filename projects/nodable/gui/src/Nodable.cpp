@@ -1,10 +1,10 @@
-#include <ndbl/gui/App.h>
-
+#include <ndbl/gui/Nodable.h>
 #include <algorithm>
-#include <fw/core/system.h>
 #include <fw/core/assertions.h>
+#include <fw/core/system.h>
 #include <fw/gui/EventManager.h>
-
+#include <ndbl/core/DataAccess.h>
+#include <ndbl/core/VariableNode.h>
 #include <ndbl/gui/AppView.h>
 #include <ndbl/gui/Condition.h>
 #include <ndbl/gui/Event.h>
@@ -17,14 +17,12 @@
 #include <ndbl/gui/commands/Cmd_ConnectEdge.h>
 #include <ndbl/gui/commands/Cmd_DisconnectEdge.h>
 #include <ndbl/gui/commands/Cmd_Group.h>
-#include <ndbl/core/DataAccess.h>
-#include <ndbl/core/VariableNode.h>
 
 using namespace ndbl;
 
-App* App::s_instance = nullptr;
+Nodable *Nodable::s_instance = nullptr;
 
-App::App()
+Nodable::Nodable()
     : current_file(nullptr)
     , framework(config.framework)
     , view(this)
@@ -38,26 +36,26 @@ App::App()
 
     // Bind methods to framework events
     LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
-    using fw::App;
-    framework.changes.connect([this](App::StateChange evt) {
+    using fw::Nodable;
+    framework.changes.connect([this](Nodable::StateChange evt) {
         switch (evt)
         {
-            case App::ON_INIT:     on_init(); break;
-            case App::ON_DRAW:     on_update(); break;
-            case App::ON_SHUTDOWN: on_shutdown(); break;
-            case App::ON_UPDATE: break;
+            case Nodable::ON_INIT:     on_init(); break;
+            case Nodable::ON_DRAW:     on_update(); break;
+            case Nodable::ON_SHUTDOWN: on_shutdown(); break;
+            case Nodable::ON_UPDATE: break;
         }
     });
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 }
 
-App::~App()
+Nodable::~Nodable()
 {
     s_instance = nullptr;
     LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
 
-bool App::on_init()
+bool Nodable::on_init()
 {
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
 
@@ -168,7 +166,7 @@ bool App::on_init()
     return true;
 }
 
-void App::on_update()
+void Nodable::on_update()
 {
     LOG_VERBOSE("ndbl::App", "on_update ...\n");
     fw::EventManager& event_manager = framework.event_manager;
@@ -255,7 +253,7 @@ void App::on_update()
             case fw::EventType_browse_file_triggered:
             {
                 std::string path;
-                if( pick_file_path(path, fw::AppView::DIALOG_Browse))
+                if( pick_file_path(path, fw::NodableView::DIALOG_Browse))
                 {
                     open_file(path);
                     break;
@@ -276,7 +274,7 @@ void App::on_update()
                 if (current_file)
                 {
                     std::string path;
-                    if(pick_file_path(path, fw::AppView::DIALOG_SaveAs))
+                    if(pick_file_path(path, fw::NodableView::DIALOG_SaveAs))
                     {
                         save_file_as(path);
                         break;
@@ -296,7 +294,7 @@ void App::on_update()
                     else
                     {
                         std::string path;
-                        if(pick_file_path(path, fw::AppView::DIALOG_SaveAs))
+                        if(pick_file_path(path, fw::NodableView::DIALOG_SaveAs))
                         {
                             save_file_as(path);
                         }
@@ -483,7 +481,7 @@ void App::on_update()
     LOG_VERBOSE("ndbl::App", "on_update " OK "\n");
 }
 
-bool App::on_shutdown()
+bool Nodable::on_shutdown()
 {
     LOG_VERBOSE("ndbl::App", "on_shutdown ...\n");
     for( File* each_file : m_loaded_files )
@@ -495,9 +493,9 @@ bool App::on_shutdown()
     return true;
 }
 
-File *App::open_file(const ghc::filesystem::path& _path)
+File *Nodable::open_file(const ghc::filesystem::path& _path)
 {
-    auto file = new File( fw::App::asset_path(_path) );
+    auto file = new File( fw::Nodable::asset_path(_path) );
 
     if ( !file->load() )
     {
@@ -509,7 +507,7 @@ File *App::open_file(const ghc::filesystem::path& _path)
     return open_file(file);
 }
 
-File *App::open_file(File* _file)
+File *Nodable::open_file(File* _file)
 {
     if(!_file) return nullptr;
 
@@ -519,7 +517,7 @@ File *App::open_file(File* _file)
     return _file;
 }
 
-void App::save_file(File* _file) const
+void Nodable::save_file(File* _file) const
 {
     FW_EXPECT(_file,"file must be defined");
 
@@ -531,9 +529,9 @@ void App::save_file(File* _file) const
     LOG_MESSAGE("ndbl::App", "File saved: %s\n", _file->path.c_str());
 }
 
-void App::save_file_as(const ghc::filesystem::path& _path) const
+void Nodable::save_file_as(const ghc::filesystem::path& _path) const
 {
-    ghc::filesystem::path absolute_path = fw::App::asset_path(_path);
+    ghc::filesystem::path absolute_path = fw::Nodable::asset_path(_path);
     current_file->path = absolute_path.string();
     current_file->name = absolute_path.filename().string();
     if( !current_file->write_to_disk() )
@@ -542,7 +540,7 @@ void App::save_file_as(const ghc::filesystem::path& _path) const
     }
 }
 
-void App::close_file(File* _file)
+void Nodable::close_file(File* _file)
 {
     if ( _file )
     {
@@ -563,7 +561,7 @@ void App::close_file(File* _file)
     }
 }
 
-bool App::compile_and_load_program()
+bool Nodable::compile_and_load_program()
 {
     if ( current_file )
     {
@@ -589,7 +587,7 @@ bool App::compile_and_load_program()
     return false;
 }
 
-void App::run_program()
+void Nodable::run_program()
 {
     if (compile_and_load_program() )
     {
@@ -597,7 +595,7 @@ void App::run_program()
     }
 }
 
-void App::debug_program()
+void Nodable::debug_program()
 {
     if (compile_and_load_program() )
     {
@@ -605,7 +603,7 @@ void App::debug_program()
     }
 }
 
-void App::step_over_program()
+void Nodable::step_over_program()
 {
     virtual_machine.step_over();
     if (!virtual_machine.is_there_a_next_instr() )
@@ -618,12 +616,12 @@ void App::step_over_program()
     }
 }
 
-void App::stop_program()
+void Nodable::stop_program()
 {
     virtual_machine.stop_program();
 }
 
-void App::reset_program()
+void Nodable::reset_program()
 {
     if(!current_file) return;
 
@@ -634,7 +632,7 @@ void App::reset_program()
     current_file->update_graph();
 }
 
-File *App::new_file()
+File *Nodable::new_file()
 {
     // 1. Create the file in memory
 
@@ -664,23 +662,23 @@ File *App::new_file()
     return file;
 }
 
-App& App::get_instance()
+Nodable &Nodable::get_instance()
 {
     FW_EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
     return *s_instance;
 }
 
-void App::toggle_fullscreen()
+void Nodable::toggle_fullscreen()
 {
     framework.set_fullscreen(!is_fullscreen() );
 }
 
-bool App::is_fullscreen() const
+bool Nodable::is_fullscreen() const
 {
     return framework.is_fullscreen();
 }
 
-bool App::pick_file_path(std::string &out, fw::AppView::DialogType type)
+bool Nodable::pick_file_path(std::string &out, fw::NodableView::DialogType type)
 {
     return framework.view.pick_file_path(out, type);
 }

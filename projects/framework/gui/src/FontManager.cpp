@@ -1,8 +1,8 @@
-#include <fw/gui/FontManager.h>
-#include <fw/core/log.h>
-#include <imgui/imgui_internal.h>
 #include <fw/core/assertions.h>
-#include <fw/gui/App.h>
+#include <fw/core/log.h>
+#include <fw/gui/FontManager.h>
+#include <fw/gui/Nodable.h>
+#include <imgui/imgui_internal.h>
 
 using namespace fw;
 
@@ -45,7 +45,7 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
         config.OversampleV = 1;
 
         //io.Fonts->AddFontDefault();
-        ghc::filesystem::path absolute_path = App::asset_path(text_font->path);
+        ghc::filesystem::path absolute_path = Nodable::asset_path(text_font->path);
         LOG_VERBOSE("AppView", "Adding text_font from file ... %s\n", absolute_path.c_str())
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font->size, &config);
     }
@@ -68,7 +68,7 @@ ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_f
         config.PixelSnapH  = true;
         config.GlyphOffset.y = -(text_font->icons_size - text_font->size)/2.f;
         config.GlyphMinAdvanceX = text_font->icons_size; // monospace to fix text alignment in drop down menus.
-        ghc::filesystem::path absolute_path = App::asset_path(icon_font->path);
+        ghc::filesystem::path absolute_path = Nodable::asset_path(icon_font->path);
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font->icons_size, &config, icons_ranges);
         LOG_VERBOSE("AppView", "Adding icons to text_font ...\n")
     }

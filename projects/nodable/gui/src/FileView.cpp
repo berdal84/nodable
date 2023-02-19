@@ -60,12 +60,12 @@ void FileView::init()
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
-	m_text_editor.SetPalette(App::get_instance().config.ui_text_textEditorPalette);
+	m_text_editor.SetPalette(Nodable::get_instance().config.ui_text_textEditorPalette);
 }
 
 bool FileView::on_draw()
 {
-    const App& app = App::get_instance();
+    const Nodable & app = Nodable::get_instance();
     const ImVec2 margin(10.0f, 0.0f);
     auto region_available = ImGui::GetContentRegionAvail() - margin;
 
@@ -309,7 +309,7 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 {
     if( overlay_data.empty() ) return;
 
-    const auto& app = App::get_instance();
+    const auto& app = Nodable::get_instance();
     ImGui::PushStyleColor(ImGuiCol_WindowBg, app.config.ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, app.config.ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, app.config.ui_overlay_text_color);
