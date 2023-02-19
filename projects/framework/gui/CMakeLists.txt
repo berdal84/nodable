@@ -49,6 +49,7 @@ target_link_libraries(
         Threads::Threads
         lodepng
         nfd                     # native file dialog - extended
+        freetype                # because: https://github.com/ocornut/imgui/tree/master/misc/freetype
 )
 
 # link APPLE specific libraries

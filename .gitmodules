@@ -22,3 +22,6 @@
 [submodule "libs/nativefiledialog-extended"]
 	path = libs/nativefiledialog-extended
 	url = https://github.com/btzy/nativefiledialog-extended.git
+[submodule "libs/freetype"]
+	path = libs/freetype
+	url = https://github.com/freetype/freetype/

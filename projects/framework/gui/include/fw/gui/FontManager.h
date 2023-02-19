@@ -3,6 +3,8 @@
 #include <array>
 #include <map>
 #include <string>
+#include <misc/freetype/imgui_freetype.h>
+#define IMGUI
 #include <imgui/imgui.h>
 #include <fw/core/reflection/enum.h>
 #include <fw/core/log.h>

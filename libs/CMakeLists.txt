@@ -2,6 +2,10 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
+# freetype
+#------------------------------
+add_subdirectory(freetype EXCLUDE_FROM_ALL)
+
 # native file dialog - extended
 #------------------------------
 set(NFD_PORTAL ON)                          # use portal instead of gtk, read: https://github.com/btzy/nativefiledialog-extended#using-xdg-desktop-portal-on-linux
@@ -35,13 +39,19 @@ add_library(
             imgui/imgui_draw.cpp
             imgui/imgui_tables.cpp
             imgui/imgui_widgets.cpp
+            imgui/misc/freetype/imgui_freetype.cpp
         )
+
+target_link_libraries(
+        ImGui
+        PUBLIC
+                freetype
+)
 
 target_include_directories(
         ImGui
         PUBLIC
-           ./imgui/
-           ./
+           imgui/
 )
 
 # imgui color text edit
