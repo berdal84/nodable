@@ -2,7 +2,6 @@
 #include <fw/core/log.h>
 #include <fw/gui/FontManager.h>
 #include <fw/gui/Nodable.h>
-#include <imgui/imgui_internal.h>
 
 using namespace fw;
 
@@ -38,7 +37,9 @@ ImFont* FontManager::load_font(const FontConf& text_font)
     // Create text_font
     {
         ImFontConfig imfont_cfg;
-        imfont_cfg.PixelSnapH  = true;
+        imfont_cfg.RasterizerMultiply = 1.2f;
+        imfont_cfg.OversampleH = 2;
+        imfont_cfg.OversampleV = 3;
         ghc::filesystem::path absolute_path = Nodable::asset_path(text_font.path);
         LOG_VERBOSE("AppView", "Adding text_font from file ... %s\n", absolute_path.c_str())
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.size * m_config.subsamples, &imfont_cfg);
@@ -56,17 +57,19 @@ ImFont* FontManager::load_font(const FontConf& text_font)
         // merge in icons text_font
         static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
         ImFontConfig imfont_cfg;
+
         imfont_cfg.MergeMode   = true;
-        imfont_cfg.PixelSnapH  = true;
-        imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f * m_config.subsamples;
-        imfont_cfg.GlyphMinAdvanceX = text_font.icons_size; // monospace to fix text alignment in drop down menus.
+        imfont_cfg.RasterizerMultiply = 1.2f;
+        imfont_cfg.OversampleH = 2;
+        imfont_cfg.OversampleV = 3;
+        //imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f;
+        imfont_cfg.GlyphMinAdvanceX = text_font.icons_size  * m_config.subsamples; // monospace to fix text alignment in drop down menus.
         ghc::filesystem::path absolute_path = Nodable::asset_path(m_config.icon.path);
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.icons_size  * m_config.subsamples, &imfont_cfg, icons_ranges);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.icons_size * m_config.subsamples, &imfont_cfg, icons_ranges);
         LOG_VERBOSE("AppView", "Merging icons font ...\n")
     }
 
-    font->FontSize = text_font.size;
-    font->Scale = 1.f / m_config.subsamples;
+    font->Scale = 1.0f / m_config.subsamples;
 
     m_loaded_fonts.insert_or_assign(text_font.id, font);
     LOG_MESSAGE("AppView", "Font %s added: \"%s\"\n", text_font.id, text_font.path )

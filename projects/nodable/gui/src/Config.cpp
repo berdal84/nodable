@@ -106,10 +106,10 @@ ndbl::Config::Config()
 
         framework.font_manager.text = {
                 // id          , font_path                          , size , icons? , icons size
-                { k_paragraph  , "fonts/JetBrainsMono-Medium.ttf"   , 18.0f, false   , 18.0f      },
-                { k_heading    , "fonts/JetBrainsMono-Bold.ttf"     , 25.0f, true   , 18.0f      },
-                { k_code       , "fonts/JetBrainsMono-Regular.ttf"  , 18.0f, true   , 18.0f      },
-                { k_tool       , "fonts/JetBrainsMono-Bold.ttf"     , 16.0f, true   , 14.0f      }
+                { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
+                { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
+                { k_code       , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
+                { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
         };
 
         framework.font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
@@ -117,7 +117,7 @@ ndbl::Config::Config()
         framework.font_manager.defaults[FontSlot_Code]      = k_code;
         framework.font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
     }
-    framework.font_manager.subsamples = 1.5f;
+    framework.font_manager.subsamples = 1.0f;
     framework.font_manager.icon = {"Icons", "fonts/fa-solid-900.ttf" };
     framework.app_window_label     = BuildInfo::version_extended;
 }

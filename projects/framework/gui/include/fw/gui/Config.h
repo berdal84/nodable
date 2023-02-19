@@ -51,7 +51,7 @@ namespace fw
                 "FA-solid-900",           // Icon font name
                 "fonts/fa-solid-900.ttf"  // Icon font path
             },
-            1.0f  // Global font scale
+            1.0f  // subsampling
         };
 
         void patch_imgui_style(ImGuiStyle& _style) const // Apply the configuration to an existing ImGuiStyle
