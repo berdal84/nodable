@@ -29,7 +29,9 @@ void AppView::init()
 {
     LOG_VERBOSE("fw::AppView", "init ...\n");
     FW_EXPECT(m_app != nullptr, "m_app is required");
-    m_app->event_on_draw.connect([&]() { on_draw(); });
+    m_app->changes.connect([&](App::StateChange evt) {
+        if( evt == App::ON_DRAW ) on_draw();
+    });
     LOG_VERBOSE("fw::AppView", "init " OK "\n");
 }
 
@@ -53,7 +55,7 @@ bool AppView::on_draw()
     }
 
     // Splashscreen
-    draw_splashcreen_window();
+    draw_splashscreen_window();
 
     // Setup main window
 
@@ -124,7 +126,7 @@ bool AppView::on_draw()
             dock_window(k_status_window_name, Dockspace_BOTTOM);
 
             // Run user defined code
-            event_reset_layout.emit(this);
+            changes.emit(ON_RESET_LAYOUT);
 
             // Finish the build
             ImGui::DockBuilderFinish(m_dockspaces[Dockspace_ROOT]);
@@ -140,7 +142,7 @@ bool AppView::on_draw()
         draw_status_window();
 
         // User defined draw
-        event_draw.emit({this, redock_all});
+        changes.emit(ON_DRAW_MAIN);
     }
     ImGui::End(); // Main window
 
@@ -192,7 +194,7 @@ void AppView::dock_window(const char* window_name, Dockspace dockspace)const
     ImGui::DockBuilderDockWindow(window_name, m_dockspaces[dockspace]);
 }
 
-void AppView::draw_splashcreen_window()
+void AppView::draw_splashscreen_window()
 {
     if (m_app->config.splashscreen && !ImGui::IsPopupOpen(m_app->config.splashscreen_window_label))
     {
@@ -206,7 +208,7 @@ void AppView::draw_splashcreen_window()
 
     if (ImGui::BeginPopupModal(m_app->config.splashscreen_window_label, &m_app->config.splashscreen, flags))
     {
-        event_draw_splashscreen.emit(this); // run user defined code
+        changes.emit(ON_DRAW_SPLASHSCREEN_CONTENT); // run user defined code
         ImGui::EndPopup();
     }
 }

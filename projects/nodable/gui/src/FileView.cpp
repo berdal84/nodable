@@ -97,7 +97,7 @@ bool FileView::on_draw()
     auto old_selected_text = m_text_editor.GetSelectedText();
     auto old_line_text = m_text_editor.GetCurrentLineText();
 
-    bool is_running = app.vm.is_program_running();
+    bool is_running = app.virtual_machine.is_program_running();
     auto allow_keyboard = !is_running &&
                           !NodeView::is_any_dragged();
 

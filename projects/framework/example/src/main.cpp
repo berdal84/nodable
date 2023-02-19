@@ -2,74 +2,91 @@
 
 int main(int argc, char *argv[])
 {
+    // Create a framework configuration, and override some fields ...
     fw::Config conf;
     conf.app_window_label = "framework-example - (based on framework-gui library)";
+
+    // Instantiate the application using the predefined configuration
     fw::App app{conf};
 
-    // Add log message using events
-    app.event_after_update.connect([](){
-        LOG_MESSAGE("main", "update!\n");
-    });
-
-    app.event_after_init.connect([](){
-        LOG_MESSAGE("main", "init!\n");
-    });
-
-    app.event_after_shutdown.connect([](){
-        LOG_MESSAGE("main", "shutdown!\n");
-    });
-
-    app.view.event_reset_layout.connect([&](auto view){
-        // Bind each window to a dockspace
-        view->dock_window("center", fw::AppView::Dockspace_CENTER);
-        view->dock_window("right", fw::AppView::Dockspace_RIGHT);
-        view->dock_window("top", fw::AppView::Dockspace_TOP);
-    });
-
-    app.view.event_draw.connect([&](auto evt){
-
-        // Add a simple menu bar
-        if( ImGui::BeginMainMenuBar())
+    // Plug custom code when app state changes:
+    app.changes.connect([](fw::App::StateChange state) {
+        switch (state)
         {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("Show splashscreen")) app.config.splashscreen = true;
-                if (ImGui::MenuItem("Quit")) app.should_stop = true;
-                ImGui::EndMenu();
-            }
-            ImGui::EndMainMenuBar();
+            case fw::App::ON_DRAW:
+            case fw::App::ON_UPDATE:
+                break;
+            case fw::App::ON_INIT:
+                LOG_MESSAGE("main", "My ON_INIT log!\n");
+                break;
+            case fw::App::ON_SHUTDOWN:
+                LOG_MESSAGE("main", "My ON_SHUTDOWN log!\n");
+                break;
         }
-
-        // do not draw windows when splashscreen is visible
-        if( app.config.splashscreen) return;
-
-        if( ImGui::Begin("top"))
-        {
-            ImGui::TextWrapped("\"top\" window content");
-        }
-        ImGui::End();
-
-        if( ImGui::Begin("right"))
-        {
-            ImGui::TextWrapped("\"right\" window content");
-        }
-        ImGui::End();
-
-        if ( ImGui::Begin("center" )  )
-        {
-            ImGui::TextWrapped("\"center\" window content");
-        }
-        ImGui::End();
     });
 
-    app.view.event_draw_splashscreen.connect([](auto view) {
-        ImGui::TextWrapped("Welcome to the framework-example app.\nThis demonstrates how to use the framework-gui library.");
-        ImGui::Separator();
-        ImGui::TextWrapped("\nFor your information, this is the splashscreen window of the app.\n"
-                           "You can inject your custom code by doing:\n\n");
-        ImGui::Text("app.view.event_draw_splashscreen.connect([](auto view) {\n");
-        ImGui::Text("   // your ImGui code here \n");
-        ImGui::Text("});\n");
-    });
+    // Plug custom code when app's view state changes:
+    app.view.changes.connect([&](fw::AppView::StateChange state) {
+          switch (state)
+          {
+              case fw::AppView::ON_DRAW_MAIN:
+              {
+                  // Add a simple menu bar
+                  if (ImGui::BeginMainMenuBar())
+                  {
+                      if (ImGui::BeginMenu("File"))
+                      {
+                          if (ImGui::MenuItem("Show splashscreen")) app.config.splashscreen = true;
+                          if (ImGui::MenuItem("Quit")) app.should_stop = true;
+                          ImGui::EndMenu();
+                      }
+                      ImGui::EndMainMenuBar();
+                  }
+
+                  // do not draw windows when splashscreen is visible
+                  if (app.config.splashscreen) return;
+
+                  if (ImGui::Begin("top"))
+                  {
+                      ImGui::TextWrapped("\"top\" window content");
+                  }
+                  ImGui::End();
+
+                  if (ImGui::Begin("right"))
+                  {
+                      ImGui::TextWrapped("\"right\" window content");
+                  }
+                  ImGui::End();
+
+                  if (ImGui::Begin("center"))
+                  {
+                      ImGui::TextWrapped("\"center\" window content");
+                  }
+                  ImGui::End();
+                  break;
+              }
+              case fw::AppView::ON_DRAW_SPLASHSCREEN_CONTENT:
+              {
+                  ImGui::TextWrapped("Welcome to the framework-example app.\nThis demonstrates how to use the framework-gui library.");
+                  ImGui::Separator();
+                  ImGui::TextWrapped("\nFor your information, this is the splashscreen window of the app.\n"
+                                     "You can inject your custom code by doing:\n\n");
+                  ImGui::Text("app.view.event_draw_splashscreen.connect([](auto view) {\n");
+                  ImGui::Text("   // your ImGui code here \n");
+                  ImGui::Text("});\n");
+                  break;
+              }
+              case fw::AppView::ON_RESET_LAYOUT:
+              {
+                  // Bind each window to a dockspace
+                  app.view.dock_window("center", fw::AppView::Dockspace_CENTER);
+                  app.view.dock_window("right", fw::AppView::Dockspace_RIGHT);
+                  app.view.dock_window("top", fw::AppView::Dockspace_TOP);
+                  break;
+              }
+          }
+      });
+
+    // Run the main loop until user closes the app or a crash happens...
     return app.run();
 }

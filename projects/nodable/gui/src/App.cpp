@@ -28,21 +28,27 @@ App::App()
     : current_file(nullptr)
     , framework(config.framework)
     , view(this)
-    , vm()
+    , virtual_machine()
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
+    // set this instance as s_instance to access it via App::get_instance()
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
     s_instance = this;
 
     // Bind methods to framework events
     LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
-    framework.event_after_init.connect([this](){ on_init();});
-    framework.event_after_update.connect([this](){ on_update();});
-    framework.event_after_shutdown.connect([this](){ on_shutdown();});
-
+    using fw::App;
+    framework.changes.connect([this](App::StateChange evt) {
+        switch (evt)
+        {
+            case App::ON_INIT:     on_init(); break;
+            case App::ON_DRAW:     on_update(); break;
+            case App::ON_SHUTDOWN: on_shutdown(); break;
+            case App::ON_UPDATE: break;
+        }
+    });
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
-
 }
 
 App::~App()
@@ -570,9 +576,9 @@ bool App::compile_and_load_program()
 
             if (asm_code)
             {
-                vm.release_program();
+                virtual_machine.release_program();
 
-                if (vm.load_program(std::move(asm_code)))
+                if (virtual_machine.load_program(std::move(asm_code)))
                 {
                     return true;
                 }
@@ -587,7 +593,7 @@ void App::run_program()
 {
     if (compile_and_load_program() )
     {
-        vm.run_program();
+        virtual_machine.run_program();
     }
 }
 
@@ -595,18 +601,18 @@ void App::debug_program()
 {
     if (compile_and_load_program() )
     {
-        vm.debug_program();
+        virtual_machine.debug_program();
     }
 }
 
 void App::step_over_program()
 {
-    vm.step_over();
-    if (!vm.is_there_a_next_instr() )
+    virtual_machine.step_over();
+    if (!virtual_machine.is_there_a_next_instr() )
     {
         NodeView::set_selected(nullptr);
     }
-    else if ( auto view = vm.get_next_node()->get<NodeView>() )
+    else if ( auto view = virtual_machine.get_next_node()->get<NodeView>() )
     {
         NodeView::set_selected(view);
     }
@@ -614,16 +620,16 @@ void App::step_over_program()
 
 void App::stop_program()
 {
-    vm.stop_program();
+    virtual_machine.stop_program();
 }
 
 void App::reset_program()
 {
     if(!current_file) return;
 
-    if ( vm.is_program_running() )
+    if (virtual_machine.is_program_running() )
     {
-        vm.stop_program();
+        virtual_machine.stop_program();
     }
     current_file->update_graph();
 }

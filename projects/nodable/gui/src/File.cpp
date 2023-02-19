@@ -159,7 +159,7 @@ bool File::update()
         m_history.set_dirty(false);
 	}
 
-    if( !app.vm.is_program_running() )
+    if( !app.virtual_machine.is_program_running() )
     {
         LOG_VERBOSE("File","m_graph->update()\n")
         auto result = m_graph->update();
