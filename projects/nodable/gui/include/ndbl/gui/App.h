@@ -28,19 +28,22 @@ namespace ndbl
 	{
 	public:
 		App();
-        App(const App&) = delete;       // Avoid copy (single instance only)
+        App(const App&) = delete;          // Avoid copy (single instance only)
         ~App();
 
-        observe::Event<>  after_init;   // Triggered just after app initialize, for custom code
-        fw::App           framework;    // The underlying framework (we use composition instead of inheritance)
-        Config            config;       // Nodable configuration (includes framework configuration)
+        observe::Event<>  after_init;      // Triggered just after app initialize, for custom code
+        fw::App           framework;       // The underlying framework (we use composition instead of inheritance)
+        Config            config;          // Nodable configuration (includes framework configuration)
         AppView           view;
         File*             current_file;
-        VirtualMachine    vm;           // Virtual Machine to compile/debug/run/pause/... programs
+        VirtualMachine    virtual_machine; // Virtual Machine to compile/debug/run/pause/... programs
 
         int             run() { return framework.run(); } // run app main loop
         bool            is_fullscreen() const;
         void            toggle_fullscreen();
+
+        // File related:
+
         File*           open_file(const ghc::filesystem::path&_path);
         File*           new_file();
         void            save_file(File *pFile) const;
@@ -51,19 +54,22 @@ namespace ndbl
         const std::vector<File*>&
                         get_files() const { return m_loaded_files; }
         bool            has_files() const { return !m_loaded_files.empty(); }
+
+        // Virtual Machine related:
+
         void            run_program();
         void            debug_program();
         void            step_over_program();
         void            stop_program();
         void            reset_program();
         bool            compile_and_load_program();
+
         static App&     get_instance();             // singleton pattern
     private:
         bool            on_init();
         bool            on_shutdown();
         void            on_update();
         bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
-    private:
         static App*        s_instance;
         std::vector<File*> m_loaded_files;
     };

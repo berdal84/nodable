@@ -29,7 +29,7 @@ namespace ndbl
 
     private:
         bool on_init();
-        bool on_draw(bool& redock_all);
+        bool on_draw();
         bool on_reset_layout();
         void on_draw_splashscreen();
 

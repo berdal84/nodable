@@ -15,6 +15,11 @@
 
 namespace fw
 {
+
+    /*
+     * Application Framework
+     * See /project/framework/example for usage
+     */
 	class App
 	{
 	public:
@@ -22,16 +27,21 @@ namespace fw
         App(const App&) = delete;
         ~App();
 
-        TextureManager  texture_manager;       // Manages Texture resources
-        FontManager     font_manager;          // Manages Font resources
-        EventManager    event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
-        bool            should_stop;           // Set this field true to tell the application to stop its main loop the next frame
-        Config&         config;                // Application configuration (names, colors, fonts)
-        AppView         view;                  // Application View (based on ImGui)
-        observe::Event<> event_after_init;     // Triggered after init
-        observe::Event<> event_on_draw;        // Triggered between ImGui::BeginFrame() and EndFrame()
-        observe::Event<> event_after_shutdown; // Triggered after shutdown
-        observe::Event<> event_after_update;   // Triggered after update
+        TextureManager   texture_manager;       // Manages Texture resources
+        FontManager      font_manager;          // Manages Font resources
+        EventManager     event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
+        bool             should_stop;           // Set this field true to tell the application to stop its main loop the next frame
+        Config&          config;                // Application configuration (names, colors, fonts)
+        AppView          view;                  // Application View (based on ImGui)
+
+        enum StateChange
+        {
+            ON_INIT,
+            ON_UPDATE,
+            ON_DRAW,
+            ON_SHUTDOWN
+        };
+        observe::Event<StateChange> changes; // use changes.connect([](...) { /** you code here */ }); to extend behavior
 
         int                run();                 // Run the main loop
         u64_t              elapsed_time() const;  // Get the elapsed time in seconds

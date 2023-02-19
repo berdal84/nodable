@@ -65,25 +65,22 @@ namespace fw
         AppView(const App&) = delete;
 		~AppView() override;
 
-        struct DrawEvent {
-            AppView* view;
-            bool redock;
+        enum StateChange
+        {
+            ON_DRAW_MAIN,
+            ON_DRAW_SPLASHSCREEN_CONTENT,
+            ON_RESET_LAYOUT
         };
-        observe::Event<DrawEvent> event_draw;             // triggered during draw()
-        observe::Event<AppView*> event_reset_layout;      // triggered during reset layout
-        observe::Event<AppView*> event_draw_splashscreen; // triggered when drawing splashscreen
+        observe::Event<StateChange> changes; // use changes.connect([](...) { /** you code here */ }); to extend behavior
 
         void               init();
         bool               on_draw() override;
         ImGuiID            get_dockspace(Dockspace)const;
-        bool               is_splashscreen_visible()const;
         bool               pick_file_path(std::string& _out_path, DialogType);   // pick a file and store its path in _out_path
-        void               dock_window(const char* window_name, Dockspace)const; // Call this within on_reset_layout
+        void               dock_window(const char* window_name, Dockspace)const; // Must be called ON_RESET_LAYOUT
         void               set_layout_initialized(bool b);
-
-
     private:
-        void               draw_splashcreen_window();
+        void               draw_splashscreen_window();
         void               draw_status_window() const;
         App*               m_app;
         bool               m_is_layout_initialized;

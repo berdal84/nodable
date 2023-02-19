@@ -43,9 +43,20 @@ AppView::~AppView()
 bool AppView::on_init()
 {
     LOG_VERBOSE("ndbl::AppView", "on_init ...\n");
-    m_app->framework.view.event_draw.connect([&](auto event){ on_draw(event.redock); });
-    m_app->framework.view.event_reset_layout.connect([&](auto){on_reset_layout();});
-    m_app->framework.view.event_draw_splashscreen.connect([&](auto){on_draw_splashscreen();});
+    m_app->framework.view.changes.connect( [&](fw::AppView::StateChange change) {
+        switch (change)
+        {
+            case fw::AppView::ON_DRAW_MAIN:
+                on_draw();
+                break;
+            case fw::AppView::ON_DRAW_SPLASHSCREEN_CONTENT:
+                on_draw_splashscreen();
+                break;
+            case fw::AppView::ON_RESET_LAYOUT:
+                on_reset_layout();
+                break;
+        }
+    });
 
     // Load splashscreen image
     m_logo = m_app->framework.texture_manager.get_asset(m_app->config.ui_splashscreen_imagePath);
@@ -55,13 +66,14 @@ bool AppView::on_init()
     return true;
 }
 
-bool AppView::on_draw(bool& redock_all)
+bool AppView::on_draw()
 {
+    bool redock_all = true;
     File*             current_file    = m_app->current_file;
     fw::App&          framework       = m_app->framework;
     fw::EventManager& event_manager   = framework.event_manager;
     Config&           config          = m_app->config;
-    VirtualMachine&   virtual_machine = m_app->vm;
+    VirtualMachine&   virtual_machine = m_app->virtual_machine;
 
     // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar()) {
@@ -337,7 +349,7 @@ void AppView::draw_node_properties_window()
 void AppView::draw_virtual_machine_window() {
     if (ImGui::Begin(m_app->config.ui_virtual_machine_window_label))
     {
-        auto &vm = m_app->vm;
+        auto &vm = m_app->virtual_machine;
 
         ImGui::Text("Virtual Machine:");
         ImGui::SameLine();
@@ -518,7 +530,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
 }
 
 void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file) {
-    auto &vm = m_app->vm;
+    auto &vm = m_app->virtual_machine;
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
@@ -719,7 +731,7 @@ void AppView::draw_toolbar_window() {
     if (ImGui::Begin(config.ui_toolbar_window_label, NULL, flags ))
     {
         ImGui::PopStyleVar();
-        VirtualMachine& vm   = m_app->vm;
+        VirtualMachine& vm   = m_app->virtual_machine;
         fw::Config&     conf = m_app->framework.config;
         bool running         = vm.is_program_running();
         bool debugging       = vm.is_debugging();

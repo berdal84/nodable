@@ -34,7 +34,7 @@ bool GraphNodeView::on_draw()
 {
     bool            changed          = false;
     App&            app              = App::get_instance();
-    const bool      enable_edition   = app.vm.is_program_stopped();
+    const bool      enable_edition   = app.virtual_machine.is_program_stopped();
     Node*           new_node         = nullptr;
     GraphNode*      graph            = get_graph_node();
     ImVec2          origin           = ImGui::GetCursorScreenPos();
@@ -308,7 +308,7 @@ bool GraphNodeView::on_draw()
                 each_node_view->enable_edition(enable_edition);
                 changed |= each_node_view->on_draw();
 
-                if( app.vm.is_debugging() && app.vm.is_next_node(each_node_view->get_owner() ) )
+                if( app.virtual_machine.is_debugging() && app.virtual_machine.is_next_node(each_node_view->get_owner() ) )
                 {
                     ImGui::SetScrollHereY();
                 }
@@ -331,9 +331,9 @@ bool GraphNodeView::on_draw()
 	isAnyNodeDragged |= PropertyConnector::is_dragging();
 
 	// Virtual Machine cursor
-    if ( app.vm.is_program_running() )
+    if ( app.virtual_machine.is_program_running() )
     {
-        const Node* node = app.vm.get_next_node();
+        const Node* node = app.virtual_machine.get_next_node();
         if( auto view = node->get<NodeView>())
         {
             ImVec2 vm_cursor_pos = view->get_screen_position();

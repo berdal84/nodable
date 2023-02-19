@@ -17,10 +17,7 @@ App::App(Config& _conf)
     , font_manager()
     , event_manager()
     , texture_manager()
-    , event_after_init()
-    , event_after_shutdown()
-    , event_after_update()
-    , event_on_draw()
+    , changes()
     , m_sdl_window(nullptr)
     , m_sdl_gl_context()
     , view(this)
@@ -119,8 +116,8 @@ bool App::init()
         LOG_ERROR("fw::AppView", "Unable to init NFD\n");
     }
 
-    LOG_VERBOSE("fw::App", "after_init.emit() ...\n");
-    event_after_init.emit();
+    LOG_VERBOSE("fw::App", "state_changes.emit(ON_INIT) ...\n");
+    changes.emit(ON_INIT);
     LOG_VERBOSE("fw::App", "init " OK "\n");
     return true;
 }
@@ -129,7 +126,8 @@ void App::update()
 {
     LOG_VERBOSE("fw::App", "update ...\n");
     handle_events();
-    event_after_update.emit();
+    LOG_VERBOSE("fw::App", "state_changes.emit(ON_UPDATE) ...\n");
+    changes.emit(ON_UPDATE);
     LOG_VERBOSE("fw::App", "update " OK "\n");
 }
 
@@ -152,7 +150,8 @@ bool App::shutdown()
     LOG_MESSAGE("fw::App", "Quitting NFD (Native File Dialog) ...\n");
     NFD_Quit();
 
-    event_after_shutdown.emit();
+    LOG_VERBOSE("fw::App", "state_changes.emit(App::ON_SHUTDOWN) ...\n");
+    changes.emit(App::ON_SHUTDOWN);
     LOG_MESSAGE("fw::App", "Shutdown %s\n", success ? OK : KO)
     return success;
 }
@@ -165,7 +164,8 @@ void App::draw()
     ImGui::NewFrame();
     ImGuiEx::BeginFrame();
 
-    event_on_draw.emit();
+    LOG_VERBOSE("fw::App", "state_changes.emit(App::ON_DRAW) ...\n");
+    changes.emit(App::ON_DRAW);
 
     // 3. End frame and Render
     //------------------------
