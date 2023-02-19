@@ -6,20 +6,17 @@
 
 using namespace fw;
 
-void FontManager::init(
-        const std::vector<FontConf>& text_fonts,
-        const std::array<const char*, FontSlot_COUNT>& defaults,
-        const FontConf* icon_font)
+void FontManager::init()
 {
-    for ( const FontConf& each_font : text_fonts)
+    for (const FontConf& each_font : m_config.text)
     {
-        load_font(&each_font, icon_font);
+        load_font(each_font);
     }
 
     // Assign text_fonts (user might want to change it later, but we need defaults)
     for( int each_slot = 0; each_slot < fw::FontSlot_COUNT; ++each_slot )
     {
-        if(auto font = defaults[each_slot] )
+        if(auto font = m_config.defaults[each_slot] )
         {
             m_fonts[each_slot] = get_font(font);
         }
@@ -31,50 +28,48 @@ void FontManager::init(
     }
 }
 
-ImFont* FontManager::load_font(const FontConf* text_font, const FontConf* icon_font)
+ImFont* FontManager::load_font(const FontConf& text_font)
 {
-    FW_EXPECT(m_loaded_fonts.find(text_font->id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
+    FW_EXPECT(m_loaded_fonts.find(text_font.id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
 
     ImFont*   font     = nullptr;
     auto&     io       = ImGui::GetIO();
 
     // Create text_font
     {
-        ImFontConfig config;
-        config.OversampleH = 3;
-        config.OversampleV = 1;
-
-        //io.Fonts->AddFontDefault();
-        ghc::filesystem::path absolute_path = Nodable::asset_path(text_font->path);
+        ImFontConfig imfont_cfg;
+        imfont_cfg.PixelSnapH  = true;
+        ghc::filesystem::path absolute_path = Nodable::asset_path(text_font.path);
         LOG_VERBOSE("AppView", "Adding text_font from file ... %s\n", absolute_path.c_str())
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font->size, &config);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.size * m_config.subsamples, &imfont_cfg);
     }
 
     // Add Icons my merging to previous text_font.
-    if (text_font->icons_enable )
+    if (text_font.icons_enable )
     {
-        if(strlen(icon_font->path) == 0)
+        if(strlen(m_config.icon.path) == 0)
         {
-            LOG_WARNING("AppView", "config.icons is empty, icons will be \"?\"\n");
+            LOG_WARNING("AppView", "m_config.icon.path is empty, icons will be \"?\"\n");
             return font;
         }
 
         // merge in icons text_font
         static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
-        ImFontConfig config;
-        config.OversampleH = 3;
-        config.OversampleV = 1;
-        config.MergeMode   = true;
-        config.PixelSnapH  = true;
-        config.GlyphOffset.y = -(text_font->icons_size - text_font->size)/2.f;
-        config.GlyphMinAdvanceX = text_font->icons_size; // monospace to fix text alignment in drop down menus.
-        ghc::filesystem::path absolute_path = Nodable::asset_path(icon_font->path);
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font->icons_size, &config, icons_ranges);
-        LOG_VERBOSE("AppView", "Adding icons to text_font ...\n")
+        ImFontConfig imfont_cfg;
+        imfont_cfg.MergeMode   = true;
+        imfont_cfg.PixelSnapH  = true;
+        imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f * m_config.subsamples;
+        imfont_cfg.GlyphMinAdvanceX = text_font.icons_size; // monospace to fix text alignment in drop down menus.
+        ghc::filesystem::path absolute_path = Nodable::asset_path(m_config.icon.path);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.icons_size  * m_config.subsamples, &imfont_cfg, icons_ranges);
+        LOG_VERBOSE("AppView", "Merging icons font ...\n")
     }
 
-    m_loaded_fonts.insert_or_assign(text_font->id, font);
-    LOG_MESSAGE("AppView", "Font %s added to register with the id \"%s\"\n", text_font->path, text_font->id)
+    font->FontSize = text_font.size;
+    font->Scale = 1.f / m_config.subsamples;
+
+    m_loaded_fonts.insert_or_assign(text_font.id, font);
+    LOG_MESSAGE("AppView", "Font %s added: \"%s\"\n", text_font.id, text_font.path )
     return font;
 }
 

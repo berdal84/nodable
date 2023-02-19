@@ -21,7 +21,6 @@ namespace fw
         const char*           splashscreen_window_label= "##Splashscreen";
         bool                  splashscreen             = true; // hide/show splashscreen
         bool                  imgui_demo               = false;
-        FontConf              icon_font                = {"FA-solid-900", "fonts/fa-solid-900.ttf"};
         float                 dockspace_bottom_size    = 48.f;
         float                 dockspace_top_size       = 48.f;
         float                 dockspace_right_ratio    = 0.3f;
@@ -34,21 +33,26 @@ namespace fw
                         ImVec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
                         ImVec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
                 };
-        std::vector<FontConf> fonts                    = {{
-                "default",                          // id
-                "fonts/JetBrainsMono-Medium.ttf",   // path
-                18.0f,                              // size in px.
-                true,                               // include icons?
-                18.0f                               // icons size in px.
-        }};
-        std::array<
-                const char*,
-                FontSlot_COUNT> fonts_default               {
-                        "default", // FontSlot_Paragraph
-                        "default", // FontSlot_Heading
-                        "default", // FontSlot_Code
-                        "default"  // FontSlot_ToolBtn
-                };
+        FontManager::Config font_manager{
+            {{
+                    "default",                       // id
+                    "fonts/JetBrainsMono-Medium.ttf",// path
+                    13.0f,                           // size in px.
+                    true,                            // include icons?
+                    13.0f                            // icons size in px.
+            }},
+            {
+                    "default",// FontSlot_Paragraph
+                    "default",// FontSlot_Heading
+                    "default",// FontSlot_Code
+                    "default" // FontSlot_ToolBtn
+            },
+            {
+                "FA-solid-900",           // Icon font name
+                "fonts/fa-solid-900.ttf"  // Icon font path
+            },
+            1.0f  // Global font scale
+        };
 
         void patch_imgui_style(ImGuiStyle& _style) const // Apply the configuration to an existing ImGuiStyle
         {

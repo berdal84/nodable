@@ -11,10 +11,10 @@ using namespace fw;
 
 Nodable *Nodable::s_instance = nullptr;
 
-Nodable::Nodable(Config& _conf)
-    : config(_conf)
+Nodable::Nodable(Config& _config)
+    : config(_config)
     , should_stop(false)
-    , font_manager()
+    , font_manager(_config.font_manager)
     , event_manager()
     , texture_manager()
     , changes()
@@ -89,15 +89,16 @@ bool Nodable::init()
     //io.WantCaptureKeyboard  = true;
     //io.WantCaptureMouse     = true;
 
+
+
     // Override ImGui's default Style
     LOG_VERBOSE("fw::AppView", "patch ImGui's style ...\n");
-    config.patch_imgui_style(ImGui::GetStyle());
+    ImGuiStyle& style = ImGui::GetStyle();
+    config.patch_imgui_style(style);
+    //style.ScaleAllSizes(1.25f);
 
     // load fonts
-    font_manager.init(config.fonts, config.fonts_default, &config.icon_font);
-
-    // Configure ImGui Style
-    ImGuiStyle& style = ImGui::GetStyle();
+    font_manager.init();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
