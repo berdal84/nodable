@@ -81,7 +81,7 @@ set_target_properties(framework-gui PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${
 set(ASSETS "assets/fonts/fa-solid-900.ttf")
 
 foreach(EACH_FILE ${ASSETS})
-    configure_file("${EACH_FILE}" "${CMAKE_BINARY_DIR}/${EACH_FILE}" COPYONLY)
+    configure_file("${EACH_FILE}" "${EACH_FILE}" COPYONLY)
 endforeach()
 
 install(FILES ${ASSETS} DESTINATION .)

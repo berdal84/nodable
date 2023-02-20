@@ -35,6 +35,7 @@ add_library(
         src/PropertyView.cpp
         src/Config.cpp
         src/ViewConstraint.cpp
+
 )
 
 target_link_libraries(
@@ -73,4 +74,4 @@ foreach(EACH_FILE ${ASSETS})
 endforeach()
 
 # install the assets
-install(DIRECTORY "${CMAKE_BINARY_DIR}/assets" DESTINATION .)
+install(FILES ${ASSETS} DESTINATION .)
