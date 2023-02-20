@@ -72,6 +72,3 @@ set(ASSETS
 foreach(EACH_FILE ${ASSETS})
     configure_file("${EACH_FILE}" "${CMAKE_BINARY_DIR}/${EACH_FILE}" COPYONLY)
 endforeach()
-
-# install the assets
-install(FILES ${ASSETS} DESTINATION .)

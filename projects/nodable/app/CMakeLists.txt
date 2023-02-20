@@ -20,15 +20,15 @@ set_target_properties(nodable-app PROPERTIES POSITION_INDEPENDENT_CODE FALSE)   
 set_target_properties(nodable-app PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 set_target_properties(nodable-app PROPERTIES OUTPUT_NAME "nodable" )
 
+set(README "${PROJECT_SOURCE_DIR}/README.md")
+set(LICENSE "${PROJECT_SOURCE_DIR}/LICENSE")
+
+configure_file("${README}" . COPYONLY)
+configure_file("${LICENSE}" . COPYONLY)
+
 # Installation :
 #===============
 
-install( TARGETS nodable-app DESTINATION . RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE )
-
-set(ASSETS "${PROJECT_SOURCE_DIR}/README.md" "${PROJECT_SOURCE_DIR}/LICENSE")
-
-foreach(EACH_FILE ${ASSETS})
-    configure_file("${EACH_FILE}" . COPYONLY)
-endforeach()
-
-install(FILES ${ASSETS} DESTINATION .)
+install(TARGETS nodable-app DESTINATION . RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE )
+install(DIRECTORY "${CMAKE_BINARY_DIR}/assets" DESTINATION .)
+install(FILES ${LICENSE} ${README} DESTINATION .)
