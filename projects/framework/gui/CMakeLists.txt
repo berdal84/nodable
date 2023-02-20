@@ -6,8 +6,6 @@ ndbl_log_title_header()
 # add imgui executable
 add_library(
     framework-gui
-        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_opengl3.cpp # include backend as-is
-        ${PROJECT_SOURCE_DIR}/libs/imgui/backends/imgui_impl_sdl.cpp     #          //
         src/App.cpp
         src/AppView.cpp
         src/EventManager.cpp
@@ -78,3 +76,12 @@ ENDIF()
 
 set_target_properties(framework-gui PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
 set_target_properties(framework-gui PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+
+
+set(ASSETS "assets/fonts/fa-solid-900.ttf")
+
+foreach(EACH_FILE ${ASSETS})
+    configure_file("${EACH_FILE}" "${CMAKE_BINARY_DIR}/${EACH_FILE}" COPYONLY)
+endforeach()
+
+install(FILES ${ASSETS} DESTINATION .)

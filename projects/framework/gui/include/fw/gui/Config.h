@@ -35,11 +35,11 @@ namespace fw
                 };
         FontManager::Config font_manager{
             {{
-                    "default",                       // id
-                    "fonts/JetBrainsMono-Medium.ttf",// path
-                    13.0f,                           // size in px.
-                    true,                            // include icons?
-                    13.0f                            // icons size in px.
+                    "default",                  // id
+                    "fonts/CenturyGothic.ttf",  // path
+                    18.0f,                      // size in px.
+                    true,                       // include icons?
+                    18.0f                       // icons size in px.
             }},
             {
                     "default",// FontSlot_Paragraph

@@ -17,8 +17,6 @@ set(NDBL_APP_NAME                    "Nodable")
 set(NDBL_PACKAGE_DIR                 "${CMAKE_CURRENT_LIST_DIR}/out/package")  #                     //
 set(NDBL_CONFIGURED_DIR              "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS                  OFF )
-set(NDBL_CORE_INSTALL_ENABLE         OFF)
-set(NDBL_CORE_INSTALL_DESTINATION    libs) # relative to CMAKE_INSTALL_PREFIX
 
 # include *.cmake scripts
 include( cmake/log.cmake )
@@ -26,7 +24,7 @@ include( cmake/compiler-config.cmake )
 include( cmake/set-build-ref-variable.cmake )
 
 #include other CMakeLists.txt
-add_subdirectory(libs)                    # libraries (SDL, lodepng, Dear ImGui, etc.)
+add_subdirectory(libs lib)                    # libraries (SDL, lodepng, Dear ImGui, etc.)
 add_subdirectory(projects/framework/core)      # core framework
 add_subdirectory(projects/framework/gui)       # gui framework (ImGui based)
 add_subdirectory(projects/framework/gui-example)   # gui example using framework-gui

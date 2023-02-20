@@ -23,4 +23,4 @@ set_target_properties(framework-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIREC
 # Installation :
 #===============
 
-install( TARGETS framework-gui-example RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION .)
+# install( TARGETS framework-gui-example RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION .)

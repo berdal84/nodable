@@ -6,9 +6,9 @@ ndbl_log_title_header()
 add_library(
         framework-core
         STATIC
-        src/log.cpp
-        src/string.cpp
-        src/system.cpp
+            src/log.cpp
+            src/string.cpp
+            src/system.cpp
             src/reflection/func_type.cpp
             src/reflection/qword.cpp
             src/reflection/type.cpp

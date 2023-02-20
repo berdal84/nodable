@@ -40,18 +40,21 @@ add_library(
             imgui/imgui_tables.cpp
             imgui/imgui_widgets.cpp
             imgui/misc/freetype/imgui_freetype.cpp
+            imgui/backends/imgui_impl_opengl3.cpp # include backend as-is
+            imgui/backends/imgui_impl_sdl.cpp     #          //
         )
 
 target_link_libraries(
         ImGui
         PUBLIC
-                freetype
+             freetype
 )
 
 target_include_directories(
         ImGui
         PUBLIC
            imgui/
+           SDL/include/
 )
 
 # imgui color text edit

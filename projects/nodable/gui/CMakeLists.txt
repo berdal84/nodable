@@ -10,7 +10,7 @@ if( NOT NDBL_CONFIGURED_DIR )
 endif()
 
 # defines
-set(NDBL_APP_ASSETS_DIR assets)
+set(NDBL_APP_ASSETS_DIR ../../../assets)
 set(NDBL_APP_ASSETS_ABSOLUTE_DIR "${CMAKE_CURRENT_LIST_DIR}/${NDBL_APP_ASSETS_DIR}")
 
 # log variables
@@ -54,21 +54,23 @@ target_include_directories(
         ${PROJECT_BINARY_DIR}/configured
 )
 
+# define assets
+set(ASSETS
+    "assets/examples/arithmetic.cpp"
+    "assets/examples/for-loop.cpp"
+    "assets/examples/if-else.cpp"
+    "assets/examples/multi-instructions.cpp"
+    "assets/fonts/JetBrainsMono-Bold.ttf"
+    "assets/fonts/JetBrainsMono-Italic.ttf"
+    "assets/fonts/JetBrainsMono-Medium.ttf"
+    "assets/fonts/JetBrainsMono-Regular.ttf"
+    "assets/images/nodable-logo-xs.png"
+    )
 
-# AFTER BUILD:
-#=============
+# copy each file (will dirty the build when file changes)
+foreach(EACH_FILE ${ASSETS})
+    configure_file("${EACH_FILE}" "${CMAKE_BINARY_DIR}/${EACH_FILE}" COPYONLY)
+endforeach()
 
-# Copy assets (fonts, scripts, etc..)
-add_custom_command(
-        TARGET nodable-gui PRE_BUILD
-        COMMAND ${CMAKE_COMMAND}
-        -E copy_directory
-        "${NDBL_APP_ASSETS_ABSOLUTE_DIR}"
-        "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${NDBL_APP_ASSETS_DIR}"
-)
-
-# Installation :
-#===============
-
-install( DIRECTORY "${NDBL_APP_ASSETS_ABSOLUTE_DIR}" DESTINATION .)
-install( FILES     "../../../CHANGELOG.md" DESTINATION .)
+# install the assets
+install(DIRECTORY "${CMAKE_BINARY_DIR}/assets" DESTINATION .)

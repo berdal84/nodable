@@ -10,7 +10,6 @@ endif()
 
 # options
 option(NDBL_CORE_INSTALL_ENABLE      "Enable nodable-core static library install" ON )
-option(NDBL_CORE_INSTALL_DESTINATION "Install folder"                             dev/nodable-core )
 
 # log options
 ndbl_log("Logging options ...")
@@ -58,10 +57,7 @@ target_include_directories(
         include
 )
 
-if( ${NDBL_CORE_INSTALL_ENABLE} )
-    ndbl_log("Defining install ...")
-    install( TARGETS   nodable-core ARCHIVE DESTINATION "${NDBL_CORE_INSTALL_DESTINATION}")
-    install( DIRECTORY include DESTINATION "${NDBL_CORE_INSTALL_DESTINATION}lib/include" FILES_MATCHING PATTERN "*.h")
-else()
-    ndbl_log("Skip install")
-endif()
+ndbl_log("Defining install ...")
+set_target_properties(nodable-core PROPERTIES OUTPUT_NAME "core" )
+install( TARGETS   nodable-core ARCHIVE DESTINATION "libs")
+install( DIRECTORY include DESTINATION "libs" FILES_MATCHING PATTERN "*.h")

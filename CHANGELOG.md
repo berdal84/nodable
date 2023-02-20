@@ -4,6 +4,17 @@ Nodable Change log :
 
 Author: Bérenger Dalle-Cort, 2017-2023
 
+### v0.10:
+    - add comments
+    - fixed lot of crashes
+    - add help panel
+    - add FontManager
+    - run gui tests on github actions    
+    - use freetype instead of truetype to get sharp small fonts
+    - architecture:
+        - nodable / framework split
+        - Simplifications (less getters/setters, less inheritance, more composition, less virtuals...)
+
 ### v0.9:
     - add a shortcut system (rely on SDL2),
     - nodable events can be binded to shortcuts,
@@ -13,7 +24,6 @@ Author: Bérenger Dalle-Cort, 2017-2023
     - show variable name in input fields,
     - mem leak fixes,
     - add Compiler to run code in the VirtualMachine,
-    - Reflect is now named R,
     - remove CodeBlockNode, keep only ScopeNode and interfaces,
     - add ForLoopNode,
     - add Slots,

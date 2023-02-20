@@ -34,6 +34,7 @@ target_include_directories(
 )
 set_target_properties(nodable-cli PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
 set_target_properties(nodable-cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+set_target_properties(nodable-cli PROPERTIES OUTPUT_NAME "cli" )
 
 # AFTER BUILD:
 #=============
@@ -41,4 +42,4 @@ set_target_properties(nodable-cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BU
 # Installation :
 #===============
 
-install( TARGETS nodable-cli RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION bin )
+install( TARGETS nodable-cli DESTINATION bin RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE  )
