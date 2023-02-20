@@ -1,6 +1,16 @@
+[Home](./README.md) ->  Build
+
 # How to build?
 
-### Requirements:
+## Architecture
+
+Nodable is split in two [projects](./projects/README.md):
+- the [nodable](./projects/nodable/README.md) project.
+- the [framework](./projects/framework/README.md) project.
+
+They both rely on external [libraries](./libs/README.md).
+
+## Prerequisites:
 - System:
   - Windows 64bits / Linux 64bits / MacOS 10.13+ 
   - CMake 3.14+
@@ -12,7 +22,7 @@
 
 _*: no help is available here for that particular subject_
 
-### Commands
+## Build commands
 
 Run the following commands:
 ```console
