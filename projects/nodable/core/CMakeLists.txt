@@ -2,20 +2,6 @@
 include(../../../cmake/log.cmake)
 ndbl_log_title_header()
 
-# checks
-ndbl_log("Checking ...")
-if( NOT NDBL_CORE_INSTALL_DESTINATION)
-    ndbl_warn(" - Variable NDBL_CORE_INSTALL_DESTINATION not defined, default value will be used.")
-endif()
-
-# options
-option(NDBL_CORE_INSTALL_ENABLE      "Enable nodable-core static library install" ON )
-
-# log options
-ndbl_log("Logging options ...")
-ndbl_log(" - NDBL_CORE_INSTALL_ENABLE:      ${NDBL_CORE_INSTALL_ENABLE}")
-ndbl_log(" - NDBL_CORE_INSTALL_DESTINATION: ${NDBL_CORE_INSTALL_DESTINATION}")
-
 add_library(
     nodable-core
     STATIC
@@ -59,5 +45,6 @@ target_include_directories(
 
 ndbl_log("Defining install ...")
 set_target_properties(nodable-core PROPERTIES OUTPUT_NAME "core" )
-install( TARGETS   nodable-core ARCHIVE DESTINATION "libs")
-install( DIRECTORY include DESTINATION "libs" FILES_MATCHING PATTERN "*.h")
+
+#install( TARGETS   nodable-core ARCHIVE DESTINATION "libs")
+#install( DIRECTORY include DESTINATION "libs" FILES_MATCHING PATTERN "*.h")
