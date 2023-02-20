@@ -67,7 +67,7 @@ int main(int argc, char *argv[])
               }
               case fw::NodableView::ON_DRAW_SPLASHSCREEN_CONTENT:
               {
-                  ImGui::TextWrapped("Welcome to the framework-example app.\nThis demonstrates how to use the framework-gui library.");
+                  ImGui::TextWrapped("Welcome to the framework-gui-example app.\nThis demonstrates how to use the framework-gui library.");
                   ImGui::Separator();
                   ImGui::TextWrapped("\nFor your information, this is the splashscreen window of the app.\n"
                                      "You can inject your custom code by doing:\n\n");
