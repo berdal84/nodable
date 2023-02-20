@@ -16,7 +16,7 @@
 namespace fw
 {
     // forward declarations
-    class Nodable;
+    class App;
     class File;
     class History;
     struct Texture;
@@ -26,9 +26,10 @@ namespace fw
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
-	class NodableView : public View
+	class AppView : public View
 	{
 	public:
+        friend App;
 
         enum DialogType // Helps to configure the file browse dialog
         {
@@ -61,29 +62,28 @@ namespace fw
             Dockspace_COUNT,
         };
 
-        NodableView(Nodable *);
-        NodableView(const Nodable &) = delete;
-		~NodableView() override;
+        AppView(App *);
+        AppView(const App &) = delete;
+		~AppView() override;
 
-        enum StateChange
+        enum Signal
         {
-            ON_DRAW_MAIN,
-            ON_DRAW_SPLASHSCREEN_CONTENT,
-            ON_RESET_LAYOUT
+            Signal_ON_DRAW_MAIN,
+            Signal_ON_DRAW_SPLASHSCREEN_CONTENT,
+            Signal_ON_RESET_LAYOUT
         };
-        observe::Event<StateChange> changes; // use changes.connect([](...) { /** you code here */ }); to extend behavior
+        std::function<void(Signal)> signal_handler; // override this function to extend the behavior
 
-        void               init();
-        bool               on_draw() override;
         ImGuiID            get_dockspace(Dockspace)const;
         bool               pick_file_path(std::string& _out_path, DialogType);   // pick a file and store its path in _out_path
         void               dock_window(const char* window_name, Dockspace)const; // Must be called ON_RESET_LAYOUT
         void               set_layout_initialized(bool b);
     private:
+        bool               on_draw() override;
         void               draw_splashscreen_window();
         void               draw_status_window() const;
-        Nodable *               m_app;
-        bool               m_is_layout_initialized;
+        App *               m_app;
+        bool                m_is_layout_initialized;
         std::array<ImGuiID, Dockspace_COUNT> m_dockspaces{};
 
         REFLECT_DERIVED_CLASS(View)

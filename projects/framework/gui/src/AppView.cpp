@@ -1,9 +1,9 @@
-#include <fw/gui/NodableView.h>
+#include <fw/gui/AppView.h>
 
 #include <fw/core/log.h>
 #include <fw/core/system.h>
 #include <fw/gui/EventManager.h>
-#include <fw/gui/Nodable.h>
+#include <fw/gui/App.h>
 #include <fw/gui/TextureManager.h>
 #include <nfd.h>
 
@@ -11,7 +11,7 @@ using namespace fw;
 
 constexpr const char* k_status_window_name = "Messages";
 
-NodableView::NodableView(Nodable * _app)
+AppView::AppView(App * _app)
     : View()
     , m_app(_app)
     , m_is_layout_initialized(false)
@@ -19,24 +19,12 @@ NodableView::NodableView(Nodable * _app)
     LOG_VERBOSE("fw::AppView", "Constructor " OK "\n");
 }
 
-NodableView::~NodableView()
+AppView::~AppView()
 {
     LOG_VERBOSE("fw::AppView", "Destructor " OK "\n");
 }
 
-
-void NodableView::init()
-{
-    LOG_VERBOSE("fw::AppView", "init ...\n");
-    FW_EXPECT(m_app != nullptr, "m_app is required");
-    m_app->changes.connect([&](Nodable::StateChange evt) {
-        if( evt == Nodable::ON_DRAW ) on_draw();
-    });
-    LOG_VERBOSE("fw::AppView", "init " OK "\n");
-}
-
-
-bool NodableView::on_draw()
+bool AppView::on_draw()
 {
     bool is_main_window_open = true;
     bool redock_all          = false;
@@ -126,7 +114,7 @@ bool NodableView::on_draw()
             dock_window(k_status_window_name, Dockspace_BOTTOM);
 
             // Run user defined code
-            changes.emit(ON_RESET_LAYOUT);
+            signal_handler(Signal_ON_RESET_LAYOUT);
 
             // Finish the build
             ImGui::DockBuilderFinish(m_dockspaces[Dockspace_ROOT]);
@@ -142,14 +130,14 @@ bool NodableView::on_draw()
         draw_status_window();
 
         // User defined draw
-        changes.emit(ON_DRAW_MAIN);
+        signal_handler(Signal_ON_DRAW_MAIN);
     }
     ImGui::End(); // Main window
 
     return false;
 }
 
-bool NodableView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
+bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
 {
     nfdchar_t *out_path;
     nfdresult_t result;
@@ -179,22 +167,22 @@ bool NodableView::pick_file_path(std::string& _out_path, DialogType _dialog_type
     }
 }
 
-void NodableView::set_layout_initialized(bool b)
+void AppView::set_layout_initialized(bool b)
 {
     m_is_layout_initialized = b;
 }
 
-ImGuiID NodableView::get_dockspace(Dockspace dockspace)const
+ImGuiID AppView::get_dockspace(Dockspace dockspace)const
 {
     return m_dockspaces[dockspace];
 }
 
-void NodableView::dock_window(const char* window_name, Dockspace dockspace)const
+void AppView::dock_window(const char* window_name, Dockspace dockspace)const
 {
     ImGui::DockBuilderDockWindow(window_name, m_dockspaces[dockspace]);
 }
 
-void NodableView::draw_splashscreen_window()
+void AppView::draw_splashscreen_window()
 {
     if (m_app->config.splashscreen && !ImGui::IsPopupOpen(m_app->config.splashscreen_window_label))
     {
@@ -208,12 +196,12 @@ void NodableView::draw_splashscreen_window()
 
     if (ImGui::BeginPopupModal(m_app->config.splashscreen_window_label, &m_app->config.splashscreen, flags))
     {
-        changes.emit(ON_DRAW_SPLASHSCREEN_CONTENT); // run user defined code
+        signal_handler(Signal_ON_DRAW_SPLASHSCREEN_CONTENT); // run user defined code
         ImGui::EndPopup();
     }
 }
 
-void NodableView::draw_status_window() const
+void AppView::draw_status_window() const
 {
     if (ImGui::Begin(k_status_window_name))
     {

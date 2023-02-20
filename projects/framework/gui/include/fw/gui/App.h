@@ -8,7 +8,7 @@
 #include <fw/core/types.h>
 #include <fw/gui/Config.h>
 #include <fw/gui/FontManager.h>
-#include <fw/gui/NodableView.h>
+#include <fw/gui/AppView.h>
 #include <fw/gui/TextureManager.h>
 #include <ghc/filesystem.hpp>
 #include <observe/event.h>
@@ -20,28 +20,28 @@ namespace fw
      * Application Framework
      * See /project/framework/example for usage
      */
-	class Nodable
+	class App
     {
 	public:
-        Nodable(Config&);
-        Nodable(const Nodable &) = delete;
-        ~Nodable();
+        App(Config&);
+        App(const App &) = delete;
+        ~App();
 
         TextureManager   texture_manager;       // Manages Texture resources
         FontManager      font_manager;          // Manages Font resources
         EventManager     event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
         bool             should_stop;           // Set this field true to tell the application to stop its main loop the next frame
         Config&          config;                // Application configuration (names, colors, fonts)
-        NodableView view;                  // Application View (based on ImGui)
+        AppView view;                  // Application View (based on ImGui)
 
-        enum StateChange
+        enum Signal
         {
-            ON_INIT,
-            ON_UPDATE,
-            ON_DRAW,
-            ON_SHUTDOWN
+            Signal_ON_INIT,
+            Signal_ON_UPDATE,
+            Signal_ON_DRAW,
+            Signal_ON_SHUTDOWN
         };
-        observe::Event<StateChange> changes; // use changes.connect([](...) { /** you code here */ }); to extend behavior
+        std::function<void(Signal)> signal_handler; // override this function to customize behavior
 
         int                run();                 // Run the main loop
         u64_t              elapsed_time() const;  // Get the elapsed time in seconds
@@ -64,7 +64,7 @@ namespace fw
         SDL_GLContext   m_sdl_gl_context;
         SDL_Window*     m_sdl_window;
 
-        static Nodable *     s_instance;
+        static App *     s_instance;
 
     };
 }

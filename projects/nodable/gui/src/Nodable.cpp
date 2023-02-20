@@ -5,7 +5,7 @@
 #include <fw/gui/EventManager.h>
 #include <ndbl/core/DataAccess.h>
 #include <ndbl/core/VariableNode.h>
-#include <ndbl/gui/AppView.h>
+#include <ndbl/gui/NodableView.h>
 #include <ndbl/gui/Condition.h>
 #include <ndbl/gui/Event.h>
 #include <ndbl/gui/File.h>
@@ -36,16 +36,16 @@ Nodable::Nodable()
 
     // Bind methods to framework events
     LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
-    using fw::Nodable;
-    framework.changes.connect([this](Nodable::StateChange evt) {
+    using fw::App;
+    framework.signal_handler = [this](App::Signal evt) {
         switch (evt)
         {
-            case Nodable::ON_INIT:     on_init(); break;
-            case Nodable::ON_DRAW:     on_update(); break;
-            case Nodable::ON_SHUTDOWN: on_shutdown(); break;
-            case Nodable::ON_UPDATE: break;
+            case App::Signal_ON_INIT:     on_init(); break;
+            case App::Signal_ON_DRAW:     on_update(); break;
+            case App::Signal_ON_SHUTDOWN: on_shutdown(); break;
+            case App::Signal_ON_UPDATE: break;
         }
-    });
+    };
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 }
 
@@ -159,8 +159,8 @@ bool Nodable::on_init()
              {SDLK_f, KMOD_LCTRL},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
 
-    LOG_VERBOSE("ndbl::App", "after_init ...\n");
-    after_init.emit();
+    LOG_VERBOSE("ndbl::App", "events ...\n");
+    signal_handler(Nodable::Signal_ON_INIT);
     LOG_VERBOSE("ndbl::App", "on_init " OK "\n");
 
     return true;
@@ -207,7 +207,7 @@ void Nodable::on_update()
     };
 
     // Nodable events ( SDL_ API inspired, but with custom events)
-    Event event{};
+    ndbl::Event event{};
     NodeView*      selected_view = NodeView::get_selected();
     GraphNodeView* graph_view    = current_file ?
                                    current_file->get_graph()->get<GraphNodeView>() : nullptr;
@@ -253,7 +253,7 @@ void Nodable::on_update()
             case fw::EventType_browse_file_triggered:
             {
                 std::string path;
-                if( pick_file_path(path, fw::NodableView::DIALOG_Browse))
+                if( pick_file_path(path, fw::AppView::DIALOG_Browse))
                 {
                     open_file(path);
                     break;
@@ -274,7 +274,7 @@ void Nodable::on_update()
                 if (current_file)
                 {
                     std::string path;
-                    if(pick_file_path(path, fw::NodableView::DIALOG_SaveAs))
+                    if(pick_file_path(path, fw::AppView::DIALOG_SaveAs))
                     {
                         save_file_as(path);
                         break;
@@ -294,7 +294,7 @@ void Nodable::on_update()
                     else
                     {
                         std::string path;
-                        if(pick_file_path(path, fw::NodableView::DIALOG_SaveAs))
+                        if(pick_file_path(path, fw::AppView::DIALOG_SaveAs))
                         {
                             save_file_as(path);
                         }
@@ -495,7 +495,7 @@ bool Nodable::on_shutdown()
 
 File *Nodable::open_file(const ghc::filesystem::path& _path)
 {
-    auto file = new File( fw::Nodable::asset_path(_path) );
+    auto file = new File( fw::App::asset_path(_path) );
 
     if ( !file->load() )
     {
@@ -531,7 +531,7 @@ void Nodable::save_file(File* _file) const
 
 void Nodable::save_file_as(const ghc::filesystem::path& _path) const
 {
-    ghc::filesystem::path absolute_path = fw::Nodable::asset_path(_path);
+    ghc::filesystem::path absolute_path = fw::App::asset_path(_path);
     current_file->path = absolute_path.string();
     current_file->name = absolute_path.filename().string();
     if( !current_file->write_to_disk() )
@@ -678,7 +678,7 @@ bool Nodable::is_fullscreen() const
     return framework.is_fullscreen();
 }
 
-bool Nodable::pick_file_path(std::string &out, fw::NodableView::DialogType type)
+bool Nodable::pick_file_path(std::string &out, fw::AppView::DialogType type)
 {
     return framework.view.pick_file_path(out, type);
 }

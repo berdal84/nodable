@@ -5,7 +5,7 @@
 #include <array>
 
 #include <fw/core/reflection/reflection>
-#include <fw/gui/NodableView.h>
+#include <fw/gui/AppView.h>
 
 #include <ndbl/gui/types.h>
 
@@ -23,7 +23,7 @@ namespace ndbl
     class AppView
 	{
 	public:
-		AppView(Nodable *fw_view);
+		AppView(Nodable*);
         AppView(const Nodable &) = delete;
 		~AppView();
 
@@ -50,6 +50,6 @@ namespace ndbl
         bool               m_show_imgui_demo;
         bool               m_show_advanced_node_properties;
         bool               m_scroll_to_curr_instr;
-        Nodable *               m_app;
+        Nodable *          m_app;
     };
 }

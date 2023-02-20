@@ -7,7 +7,7 @@
 #include <fw/core/reflection/reflection>
 #include <fw/gui/Config.h>
 #include <fw/gui/FontManager.h>
-#include <fw/gui/NodableView.h>
+#include <fw/gui/AppView.h>
 #include <fw/gui/types.h>
 
 #include <ImGuiColorTextEdit/TextEditor.h>

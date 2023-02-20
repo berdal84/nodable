@@ -1,7 +1,7 @@
 #include <fw/core/assertions.h>
 #include <fw/core/log.h>
 #include <fw/gui/FontManager.h>
-#include <fw/gui/Nodable.h>
+#include <fw/gui/App.h>
 
 using namespace fw;
 
@@ -21,7 +21,7 @@ void FontManager::init()
         }
         else
         {
-            LOG_WARNING("AppView", "No default text_font declared for slot #%i, using ImGui's default text_font as fallback\n", each_slot);
+            LOG_WARNING("NodableView", "No default text_font declared for slot #%i, using ImGui's default text_font as fallback\n", each_slot);
             m_fonts[each_slot] = ImGui::GetDefaultFont();
         }
     }
@@ -40,8 +40,8 @@ ImFont* FontManager::load_font(const FontConf& text_font)
         imfont_cfg.RasterizerMultiply = 1.2f;
         imfont_cfg.OversampleH = 2;
         imfont_cfg.OversampleV = 3;
-        ghc::filesystem::path absolute_path = Nodable::asset_path(text_font.path);
-        LOG_VERBOSE("AppView", "Adding text_font from file ... %s\n", absolute_path.c_str())
+        ghc::filesystem::path absolute_path = App::asset_path(text_font.path);
+        LOG_VERBOSE("NodableView", "Adding text_font from file ... %s\n", absolute_path.c_str())
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.size * m_config.subsamples, &imfont_cfg);
     }
 
@@ -50,7 +50,7 @@ ImFont* FontManager::load_font(const FontConf& text_font)
     {
         if(strlen(m_config.icon.path) == 0)
         {
-            LOG_WARNING("AppView", "m_config.icon.path is empty, icons will be \"?\"\n");
+            LOG_WARNING("NodableView", "m_config.icon.path is empty, icons will be \"?\"\n");
             return font;
         }
 
@@ -64,15 +64,15 @@ ImFont* FontManager::load_font(const FontConf& text_font)
         imfont_cfg.OversampleV = 3;
         //imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f;
         imfont_cfg.GlyphMinAdvanceX = text_font.icons_size  * m_config.subsamples; // monospace to fix text alignment in drop down menus.
-        ghc::filesystem::path absolute_path = Nodable::asset_path(m_config.icon.path);
+        ghc::filesystem::path absolute_path = App::asset_path(m_config.icon.path);
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.icons_size * m_config.subsamples, &imfont_cfg, icons_ranges);
-        LOG_VERBOSE("AppView", "Merging icons font ...\n")
+        LOG_VERBOSE("NodableView", "Merging icons font ...\n")
     }
 
     font->Scale = 1.0f / m_config.subsamples;
 
     m_loaded_fonts.insert_or_assign(text_font.id, font);
-    LOG_MESSAGE("AppView", "Font %s added: \"%s\"\n", text_font.id, text_font.path )
+    LOG_MESSAGE("NodableView", "Font %s added: \"%s\"\n", text_font.id, text_font.path )
     return font;
 }
 

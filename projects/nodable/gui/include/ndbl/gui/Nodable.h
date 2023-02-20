@@ -4,8 +4,8 @@
 #include <memory>
 #include <string>
 #include <fw/core/reflection/reflection>
-#include <fw/gui/Nodable.h>
-#include <ndbl/gui/AppView.h>
+#include <fw/gui/App.h>
+#include <ndbl/gui/NodableView.h>
 #include <ndbl/gui/Config.h>
 #include <ndbl/gui/types.h>
 #include <ndbl/core/VirtualMachine.h>
@@ -29,8 +29,11 @@ namespace ndbl
         Nodable(const Nodable &) = delete;          // Avoid copy (single instance only)
         ~Nodable();
 
-        observe::Event<>  after_init;      // Triggered just after app initialize, for custom code
-        fw::Nodable framework;       // The underlying framework (we use composition instead of inheritance)
+        enum Signal {
+            Signal_ON_INIT
+        };
+        std::function<void(Signal)>  signal_handler; // override this to customize behavior
+        fw::App           framework;       // The underlying framework (we use composition instead of inheritance)
         Config            config;          // Nodable configuration (includes framework configuration)
         AppView           view;
         File*             current_file;
@@ -67,7 +70,7 @@ namespace ndbl
         bool            on_init();
         bool            on_shutdown();
         void            on_update();
-        bool            pick_file_path(std::string &out, fw::NodableView::DialogType type);
+        bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
         static Nodable *        s_instance;
         std::vector<File*> m_loaded_files;
     };

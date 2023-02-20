@@ -94,7 +94,7 @@ ndbl::Config::Config()
     experimental_hybrid_history       = false;
     isolate_selection                 = false;
 
-    // AppView
+    // NodableView
     framework.dockspace_right_ratio = 0.25f;
     framework.dockspace_top_size    = 36.f;
     framework.dockspace_bottom_size = 100.f;

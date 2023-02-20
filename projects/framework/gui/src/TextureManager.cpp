@@ -1,4 +1,4 @@
-#include "fw/gui/Nodable.h"
+#include "fw/gui/App.h"
 #include <fw/gui/TextureManager.h>
 
 using namespace fw;
@@ -16,7 +16,7 @@ Texture::Texture(std::vector<unsigned char> _buffer, int _width, int _height, GL
 
 Texture* TextureManager::get_asset(const std::string &path)
 {
-    auto absolute_path = fw::Nodable::asset_path(path);
+    auto absolute_path = fw::App::asset_path(path);
 
     // Return if already exists
     auto tex = m_register.find(absolute_path.string());

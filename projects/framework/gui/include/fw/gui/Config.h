@@ -6,13 +6,13 @@
 namespace fw
 {
 
-    // AppView's configuration
+    // NodableView's configuration
     struct Config {
 
         Config() = default;
         Config(const Config&) = delete; // disable copy
 
-        std::string           app_window_label         = "Framework AppView";
+        std::string           app_window_label         = "Framework NodableView";
         float                 min_frame_time           = 1.0f / 60.0f;            // limit to 60fps
         ImColor               background_color         = ImColor(0.f,0.f,0.f);
         ImVec4                button_activeColor       = ImVec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
