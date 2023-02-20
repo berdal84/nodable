@@ -1,5 +1,5 @@
 <div>
-<img src="assets/images/nodable-logo-xs.png"  alt="nodable-logo.png"/>
+<img src="https://user-images.githubusercontent.com/942052/220032555-99cd216e-fd40-4dcf-9794-4eb6c11b642e.png"  alt="nodable-logo.png"/>
 </div>
 
 <div>
