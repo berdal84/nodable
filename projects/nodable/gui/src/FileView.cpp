@@ -156,7 +156,7 @@ bool FileView::on_draw()
     text_editor_overlay_rect.Translate(text_editor_top_left_corner);
     text_editor_overlay_rect.Expand(ImVec2(-2.f * app.config.ui_overlay_margin)); // margin
     text_editor_overlay_rect.Translate(ImGuiEx::CursorPosToScreenPos(ImVec2()));
-    draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], text_editor_overlay_rect, ImVec2(0,1));
+    draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], text_editor_overlay_rect, ImVec2(0,1));
 
      // NODE EDITOR
     //-------------
