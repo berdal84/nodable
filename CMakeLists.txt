@@ -6,7 +6,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET      "10.9" CACHE STRING "Minimum OS X deploymen
                                                                                             # 10.9 is earliest version supporting c++11
 
 # project declaration
-project( "Nodable" VERSION "0.9" )
+project( "Nodable" VERSION "0.11" )
 
 # options/variables
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY   ${CMAKE_BINARY_DIR}/)
