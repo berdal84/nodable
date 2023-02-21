@@ -67,14 +67,14 @@ bool Nodable::on_init()
             {"Delete",
              EventType_delete_node_action_triggered,
              {SDLK_DELETE, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
+             Condition_ENABLE});
     event_manager.bind(
             {"Arrange",
              EventType_arrange_node_action_triggered,
              {SDLK_a, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     event_manager.bind(
-            {"Fold/Unfold",
+            {"Fold",
              EventType_toggle_folding_selected_node_action_triggered,
              {SDLK_x, KMOD_NONE},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
@@ -82,7 +82,7 @@ bool Nodable::on_init()
             {"Next",
              EventType_select_successor_node_action_triggered,
              {SDLK_n, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
+             Condition_ENABLE});
     event_manager.bind(
             {ICON_FA_SAVE " Save",
              fw::EventType_save_file_triggered,
@@ -129,24 +129,19 @@ bool Nodable::on_init()
              {SDLK_y, KMOD_CTRL},
              Condition_ENABLE});
     event_manager.bind(
-            {"Isolate on/off",
+            {"Isolate",
              EventType_toggle_isolate_selection,
              {SDLK_i, KMOD_CTRL},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR});
     event_manager.bind(
-            {"Select",
-             fw::EventType_none,
-             {0, KMOD_NONE, "Left mouse click on a node"},
-             Condition_ENABLE_IF_HAS_NO_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager.bind(
             {"Deselect",
              fw::EventType_none,
-             {0, KMOD_NONE, "Double left mouse click on background"},
+             {0, KMOD_NONE, "Double click on bg"},
              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     event_manager.bind(
             {"Move Graph",
              fw::EventType_none,
-             {0, KMOD_NONE, "Left mouse btn drag on background"},
+             {0, KMOD_NONE, "Drag background"},
              Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
     event_manager.bind(
             {"Frame Selection",
@@ -157,7 +152,7 @@ bool Nodable::on_init()
             {"Frame All",
              EventType_frame_all_node_views,
              {SDLK_f, KMOD_LCTRL},
-             Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
+             Condition_ENABLE});
 
     LOG_VERBOSE("ndbl::App", "events ...\n");
     signal_handler(Nodable::Signal_ON_INIT);
