@@ -215,10 +215,7 @@ void Nodable::on_update()
             case EventType_toggle_isolate_selection:
             {
                 config.isolate_selection = !config.isolate_selection;
-                if(current_file)
-                {
-                    current_file->update_graph();
-                }
+                if(current_file) current_file->update_graph();
                 break;
             }
 
@@ -235,13 +232,13 @@ void Nodable::on_update()
             }
             case fw::EventType_undo_triggered:
             {
-                if(current_file) curr_file_history->undo();
+                if(curr_file_history) curr_file_history->undo();
                 break;
             }
 
             case fw::EventType_redo_triggered:
             {
-                if(current_file) curr_file_history->redo();
+                if(curr_file_history) curr_file_history->redo();
                 break;
             }
 
@@ -305,13 +302,13 @@ void Nodable::on_update()
             }
              case EventType_frame_selected_node_views:
             {
-                graph_view->frame_selected_node_views();
+                if (graph_view) graph_view->frame_selected_node_views();
                 break;
             }
 
             case EventType_frame_all_node_views:
             {
-                graph_view->frame_all_node_views();
+                if (graph_view) graph_view->frame_all_node_views();
                 break;
             }
             case EventType_node_view_selected:
@@ -331,7 +328,7 @@ void Nodable::on_update()
             }
             case EventType_node_view_deselected:
             {
-                 current_file->view.clear_overlay();
+                current_file->view.clear_overlay();
                 push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
@@ -343,14 +340,13 @@ void Nodable::on_update()
                 }
                 break;
             }
+
             case EventType_arrange_node_action_triggered:
             {
-                if ( selected_view )
-                {
-                    selected_view->arrange_recursively();
-                }
+                if ( selected_view )selected_view->arrange_recursively();
                 break;
             }
+
             case EventType_select_successor_node_action_triggered:
             {
                 if ( selected_view )
