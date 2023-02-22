@@ -3,16 +3,8 @@
 </div>
 
 <div>
-<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3AGNU%2FLinux" title="linux">
-<img src="https://github.com/berdal84/nodable/workflows/GNU%2FLinux/badge.svg"  alt="badge-linux.svg"/>
-</a>
-
-<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3AWindows" title="windows">
-<img src="https://github.com/berdal84/nodable/workflows/Windows/badge.svg"  alt="badge-win.svg" />
-</a>
-
-<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3AMacOS" title="macos">
-<img src="https://github.com/berdal84/nodable/workflows/MacOS/badge.svg" alt="badge-macos.svg" />
+<a href="https://github.com/berdal84/Nodable/actions?query=workflow%3Aci" title="linux">
+<img src="https://github.com/berdal84/nodable/workflows/ci/badge.svg"  alt="badge-linux.svg"/>
 </a>
 </div>
 
