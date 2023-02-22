@@ -151,29 +151,7 @@ void NodeView::set_owner(Node *_node)
         expose(this_property);
     }
 
-    // 2. Determine a color depending on node type
-    //---------------------------------------------
-
-    fw::type clss = _node->get_type();
-
-    if (_node->has<InvokableComponent>())
-    {
-        set_color(ColorType_Fill, &config.ui_node_invokableColor);
-    }
-    else if (clss.is_child_of<VariableNode>())
-    {
-        set_color(ColorType_Fill, &config.ui_node_variableColor);
-    }
-    else if (clss.is_child_of<LiteralNode>())
-    {
-        set_color(ColorType_Fill, &config.ui_node_literalColor);
-    }
-    else
-    {
-        set_color(ColorType_Fill, &config.ui_node_instructionColor);
-    }
-
-    // 3. NodeConnectors
+    // 2. NodeConnectors
     //------------------
 
     // add a successor connector per successor slot

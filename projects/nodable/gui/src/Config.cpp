@@ -35,11 +35,12 @@ ndbl::Config::Config()
     // nodes
     ui_node_padding                = 6.0f;
     ui_node_propertyConnectorRadius  = 5.0f;
-    ui_node_invokableColor         = ImColor(255, 199, 115);          // light orange
-    ui_node_variableColor          = ImColor( 171, 190, 255);         // blue
+    ui_node_invokableColor         = ImColor(255, 199, 115);            // light orange
+    ui_node_variableColor          = ImColor( 171, 190, 255);           // blue
     ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
     ui_node_literalColor           = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-    ui_node_fillColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_node_condStructColor        = ImVec4(1.f, 1.f, 1.f, 1.0f);       // white
+    ui_node_fillColor              = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
     ui_node_highlightedColor       = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);

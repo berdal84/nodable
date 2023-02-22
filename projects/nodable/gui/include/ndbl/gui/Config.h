@@ -33,6 +33,7 @@ namespace ndbl {
         ImVec4         ui_node_invokableColor;
         ImVec4         ui_node_instructionColor;
         ImVec4         ui_node_literalColor;
+        ImVec4         ui_node_condStructColor;
         ImVec4         ui_node_shadowColor;
         ImVec4         ui_node_borderHighlightedColor;
         ImVec4         ui_node_borderColor;

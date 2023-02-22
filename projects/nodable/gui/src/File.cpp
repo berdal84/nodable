@@ -27,32 +27,36 @@ File::File(std::string _name)
           // Code executed after node instantiation
 
           // add a view
-          auto view = _node->add_component<NodeView>();
+          auto node_view = _node->add_component<NodeView>();
 
           // Set common colors
           const Config& config = Nodable::get_instance().config;
-          view->set_color(fw::View::ColorType_Highlighted      , &config.ui_node_highlightedColor);
-          view->set_color(fw::View::ColorType_Border           , &config.ui_node_borderColor);
-          view->set_color(fw::View::ColorType_BorderHighlights , &config.ui_node_borderHighlightedColor);
-          view->set_color(fw::View::ColorType_Shadow           , &config.ui_node_shadowColor);
-          view->set_color(fw::View::ColorType_Fill             , &config.ui_node_fillColor);
+          node_view->set_color(fw::View::ColorType_Highlighted      , &config.ui_node_highlightedColor);
+          node_view->set_color(fw::View::ColorType_Border           , &config.ui_node_borderColor);
+          node_view->set_color(fw::View::ColorType_BorderHighlights , &config.ui_node_borderHighlightedColor);
+          node_view->set_color(fw::View::ColorType_Shadow           , &config.ui_node_shadowColor);
+          node_view->set_color(fw::View::ColorType_Fill             , &config.ui_node_fillColor);
 
           // Set specific colors
           if(_node->is<VariableNode>())
           {
-              view->set_color(fw::View::ColorType_Fill, &config.ui_node_variableColor);
+              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_variableColor);
           }
           else if (_node->has<InvokableComponent>())
           {
-              view->set_color(fw::View::ColorType_Fill, &config.ui_node_invokableColor);
+              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_invokableColor);
           }
           else if (_node->is<InstructionNode>())
           {
-              view->set_color(fw::View::ColorType_Fill, &config.ui_node_instructionColor);
+              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_instructionColor);
           }
           else if (_node->is<LiteralNode>())
           {
-              view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
+              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
+          }
+          else if (_node->is<ConditionalStructNode>() || _node->is<ForLoopNode>())
+          {
+              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_condStructColor);
           }
         })
         , m_history(&Nodable::get_instance().config.experimental_hybrid_history)
