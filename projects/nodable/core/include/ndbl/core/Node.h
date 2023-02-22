@@ -188,8 +188,9 @@ namespace ndbl {
 
         size_t delete_components();
 
-        observe::Event<Node*, Edge_t> m_on_edge_added;
-        observe::Event<Node*, Edge_t> m_on_edge_removed;
+        observe::Event<Node*, Edge_t> on_edge_added;
+        observe::Event<Node*, Edge_t> on_edge_removed;
+        observe::Event<Node*>         on_name_change;
 
         template<typename T>
         T convert_value_to() const

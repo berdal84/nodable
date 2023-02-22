@@ -158,11 +158,11 @@ void NodeView::set_owner(Node *_node)
 
     if (_node->has<InvokableComponent>())
     {
-        set_color(ColorType_Fill, &config.ui_node_invokableColor); // blue
+        set_color(ColorType_Fill, &config.ui_node_invokableColor);
     }
     else if (clss.is_child_of<VariableNode>())
     {
-        set_color(ColorType_Fill, &config.ui_node_variableColor); // purple
+        set_color(ColorType_Fill, &config.ui_node_variableColor);
     }
     else if (clss.is_child_of<LiteralNode>())
     {
@@ -170,7 +170,7 @@ void NodeView::set_owner(Node *_node)
     }
     else
     {
-        set_color(ColorType_Fill, &config.ui_node_instructionColor); // green
+        set_color(ColorType_Fill, &config.ui_node_instructionColor);
     }
 
     // 3. NodeConnectors
@@ -190,10 +190,10 @@ void NodeView::set_owner(Node *_node)
     // 4. Listen to connection/disconnections
     //---------------------------------------
 
-    m_onRelationAddedObserver = _node->m_on_edge_added.createObserver(
+    _node->on_edge_added.connect(
         [this](Node* _other_node, Edge_t _edge )
         {
-            NodeView* _other_node_view = _other_node->get<NodeView>();
+            auto _other_node_view = _other_node->get<NodeView>();
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
@@ -209,10 +209,10 @@ void NodeView::set_owner(Node *_node)
             }
         });
 
-    m_onRelationRemovedObserver = _node->m_on_edge_removed.createObserver(
+    _node->on_edge_removed.connect(
     [this](Node* _other_node, Edge_t _edge )
         {
-            NodeView* _other_node_view = _other_node->get<NodeView>();
+            auto _other_node_view = _other_node->get<NodeView>();
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
@@ -228,9 +228,15 @@ void NodeView::set_owner(Node *_node)
             }
         });
 
-    // 5. Set label and short label
-    //------------------------------
+    // update label
+    update_labels_from_name(_node);
+    _node->on_name_change.connect([&](Node* _node) {
+        update_labels_from_name(_node);
+    });
+}
 
+void NodeView::update_labels_from_name(Node* _node)
+{
     // Label
 
     m_label.clear();
@@ -246,13 +252,12 @@ void NodeView::set_owner(Node *_node)
     constexpr size_t label_max_length = 10;
     if (m_label.size() > label_max_length)
     {
-         m_short_label = m_label.substr(0, label_max_length) + "..";
+        m_short_label = m_label.substr(0, label_max_length) + "..";
     }
     else
     {
         m_short_label = m_label;
     }
-
 }
 
 void NodeView::set_selected(NodeView* _view)

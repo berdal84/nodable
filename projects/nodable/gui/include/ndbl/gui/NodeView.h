@@ -94,12 +94,9 @@ namespace ndbl
         NodeView (const NodeView&) = delete;
         NodeView& operator= (const NodeView&) = delete;
 
-		observe::Observer m_onRelationAddedObserver;
-		observe::Observer m_onRelationRemovedObserver;
-
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);
-		bool on_draw()override;
+		bool                    on_draw()override;
 		bool                    update()override;
 		inline const ImVec2&    get_position()const { return m_position; }
 		inline ImVec2           get_position_rounded()const { return ImVec2(std::round(m_position.x), std::round(m_position.y)); }
@@ -156,6 +153,7 @@ namespace ndbl
         virtual bool            update(float _deltaTime);
 		bool                    draw(PropertyView *_view);
         bool                    is_exposed(const Property *_property)const;
+        void                    update_labels_from_name(Node *_node);
 
         std::string     m_label;
         std::string     m_short_label;
@@ -191,7 +189,6 @@ namespace ndbl
         static NodeViewDetail         s_view_detail;
 
         REFLECT_DERIVED_CLASS()
-
     };
 
 

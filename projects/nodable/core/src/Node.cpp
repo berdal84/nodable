@@ -1,11 +1,9 @@
-#include <algorithm>    // for std::find
+#include <ndbl/core/Node.h>
 #include <utility>
-#include "fw/core/types.h"
-#include "fw/core/log.h"
+#include <algorithm> // for std::find
+#include <fw/core/log.h>
 #include <fw/core/reflection/func_type.h>
 #include <fw/core/reflection/invokable.h>
-
-#include <ndbl/core/Node.h>
 #include <ndbl/core/DataAccess.h>
 #include <ndbl/core/InvokableComponent.h>
 
@@ -40,35 +38,35 @@ Node::Node(std::string _label)
 
     // propagate "inputs" events
     m_inputs.m_on_added.connect( [this](Node* _node){
-        m_on_edge_added.emit(_node, Edge_t::IS_INPUT_OF);
+        on_edge_added.emit(_node, Edge_t::IS_INPUT_OF);
         set_dirty();
     });
 
     m_inputs.m_on_removed.connect( [this](Node* _node){
-        m_on_edge_removed.emit(_node, Edge_t::IS_INPUT_OF);
+        on_edge_removed.emit(_node, Edge_t::IS_INPUT_OF);
         set_dirty();
     });
 
 
     // propagate "outputs" events
     m_outputs.m_on_added.connect( [this](Node* _node){
-        m_on_edge_added.emit(_node, Edge_t::IS_OUTPUT_OF);
+        on_edge_added.emit(_node, Edge_t::IS_OUTPUT_OF);
         set_dirty();
     });
 
     m_outputs.m_on_removed.connect( [this](Node* _node){
-        m_on_edge_removed.emit(_node, Edge_t::IS_OUTPUT_OF);
+        on_edge_removed.emit(_node, Edge_t::IS_OUTPUT_OF);
         set_dirty();
     });
 
     // propagate "children" events
     m_children.m_on_added.connect( [this](Node* _node){
-        m_on_edge_added.emit(_node, Edge_t::IS_CHILD_OF);
+        on_edge_added.emit(_node, Edge_t::IS_CHILD_OF);
         set_dirty();
     });
 
     m_children.m_on_removed.connect( [this](Node* _node){
-        m_on_edge_removed.emit(_node, Edge_t::IS_CHILD_OF);
+        on_edge_removed.emit(_node, Edge_t::IS_CHILD_OF);
         set_dirty();
     });
 }
@@ -86,6 +84,7 @@ void Node::set_dirty(bool _value)
 void Node::set_name(const char *_label)
 {
     m_name = _label;
+    on_name_change.emit(this);
 }
 
 const char* Node::get_name()const
