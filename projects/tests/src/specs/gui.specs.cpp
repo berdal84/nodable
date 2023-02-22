@@ -55,6 +55,17 @@ TEST_F(Gui_App, loop_duration_5s)
     EXPECT_TRUE(app.framework.shutdown());
 }
 
+TEST_F(Gui_App, new_file)
+{
+    ndbl::Nodable app;
+    app.framework.init();
+    app.framework.config.splashscreen = false;
+    app.new_file();
+    loop_duration(app, 1.0);
+    save_screenshot(app, "TEST_Gui_App__new_file__0.png");
+    app.framework.shutdown();
+}
+
 TEST_F(Gui_App, open_file)
 {
     ndbl::Nodable app;
