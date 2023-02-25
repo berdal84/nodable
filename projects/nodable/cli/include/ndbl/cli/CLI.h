@@ -29,6 +29,7 @@ namespace ndbl
         bool         run();
         bool         serialize();
         void         update();
+        bool         set_verbose();
 
         std::string test_return_str() { return (std::string)m_virtual_machine.get_last_result(); }
         std::string test_concat_str(std::string left, std::string right) { return left + right; }
@@ -46,5 +47,6 @@ namespace ndbl
         VirtualMachine             m_virtual_machine;
         bool                       m_auto_completion = false;
         void log_function_call(const fw::variant &result, const fw::func_type &type) const;
+
     };
 }

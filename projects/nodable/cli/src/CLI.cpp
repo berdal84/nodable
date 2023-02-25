@@ -18,6 +18,7 @@ REGISTER
         .add_method(&CLI::parse            , "parse")
         .add_method(&CLI::serialize        , "serialize")
         .add_method(&CLI::compile          , "compile")
+        .add_method(&CLI::set_verbose      , "set_verbose")
         .add_method(&CLI::run              , "run");
 };
 
@@ -146,6 +147,11 @@ bool CLI::compile()
         LOG_ERROR("CLI", "unable to compile!\n")
         return false;
     }
+}
+
+bool CLI::set_verbose()
+{
+    fw::log::set_verbosity(fw::log::Verbosity_Verbose);
 }
 
 bool CLI::parse()
