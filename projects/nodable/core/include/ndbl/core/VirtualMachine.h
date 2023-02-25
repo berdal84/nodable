@@ -1,8 +1,5 @@
 #pragma once
-
-#include <memory>
-#include "fw/core/types.h"
-
+#include <fw/core/types.h>
 #include <ndbl/core/assembly/Compiler.h>
 #include <ndbl/core/assembly/Register.h>
 
