@@ -38,12 +38,12 @@ namespace ndbl
         std::string get_line() const;
         std::string get_word() const;
 
-        std::unique_ptr<Nodlang>   m_language;
+        Nodlang                    m_language;
         bool                       m_should_stop;
         NodeFactory                m_factory;
         GraphNode                  m_graph;
         assembly::Compiler         m_compiler;
-        std::unique_ptr<const assembly::Code> m_asm_code;
+        const assembly::Code*            m_asm_code;
         VirtualMachine             m_virtual_machine;
         bool                       m_auto_completion = false;
         void log_function_call(const fw::variant &result, const fw::func_type &type) const;

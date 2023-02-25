@@ -1,13 +1,11 @@
-#include "ndbl/core/assembly/Compiler.h"
-
+#include <ndbl/core/assembly/Compiler.h>
 #include <memory>
 #include <exception>
 #include <iostream>
-
-#include "fw/core/log.h"
-#include "fw/core/string.h"
-#include "fw/core/assertions.h"
-#include "fw/core/math.h"
+#include <fw/core/log.h>
+#include <fw/core/string.h>
+#include <fw/core/assertions.h>
+#include <fw/core/math.h>
 #include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/ForLoopNode.h>
 #include <ndbl/core/GraphNode.h>
@@ -33,20 +31,17 @@ Instruction* Code::push_instr(Instruction_t _type)
 
 bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
 {
-    if( _graph->is_empty())
-    {
-        return false;
-    }
+    if( _graph->is_empty()) return false;
 
-    const auto& nodes = _graph->get_node_registry();
+    const std::vector<Node*>& nodes = _graph->get_node_registry();
     for( auto each_node : nodes )
     {
         // Check for undeclared variables
         if( const Scope* scope = each_node->get<Scope>())
         {
-            const auto& vars = scope->get_variables();
+            const std::vector<VariableNode*>& variables = scope->get_variables();
 
-            for(const VariableNode* each_variable : vars)
+            for(const VariableNode* each_variable : variables)
             {
                 if( !each_variable->is_declared() )
                 {
@@ -72,21 +67,23 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
 
 void assembly::Compiler::compile(const Property * _property )
 {
-    FW_ASSERT(_property);
+    FW_ASSERT(_property)
+
+    if ( _property->get_type() == fw::type::get<Node*>() )
     {
-        if ( _property->get_type() == fw::type::get<Node*>() )
-        {
-            compile((const Node *) *_property);
-        }
-        else if (Property * input = _property->get_input() )
-        {
-            /*
-             * if the property has an input it means it is not a simple literal value and we have to compile it.
-             * In order to do that, we traverse the syntax tree starting from the node connected to it.
-             * Once we have the list of the nodes to be updated, we loop on them.
-             */
-            compile(input->get_owner());
-        }
+        /*
+         * If property points a node, we dereference it and we compile the Node
+         */
+        return compile((const Node *) *_property);
+    }
+
+    if (Property * input = _property->get_input() )
+    {
+        /*
+         * if the property has an input it means it is not a simple literal value and we have to compile it.
+         * In order to do that, we traverse the syntax tree starting from the node connected to it.
+         */
+        compile(input->get_owner());
     }
 }
 
@@ -205,10 +202,11 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
     // for_loop init instruction
     compile(for_loop->get_init_instr());
 
+    // compile condition and memorise its position
     u64_t condition_instr_line = m_temp_code->get_next_index();
-
     compile_as_condition(for_loop->get_cond_expr());
 
+    // jump if condition is not true
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
 
@@ -248,7 +246,7 @@ void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node
 
 void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
-    compile_as_condition(_cond_node->get_cond_expr()); // compile condition isntruction, store result, compare
+    compile_as_condition(_cond_node->get_cond_expr()); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     jump_over_true_branch->m_comment   = "jump if not equals";
@@ -310,13 +308,12 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
     }
 }
 
-std::unique_ptr<const Code> assembly::Compiler::compile_syntax_tree(const GraphNode* _graph)
+const Code* assembly::Compiler::compile_syntax_tree(const GraphNode* _graph)
 {
     if (is_syntax_tree_valid(_graph))
     {
         Node* root = _graph->get_root();
-
-        m_temp_code = std::make_unique<Code>(root);
+        m_temp_code = new Code(root);
 
         try
         {
@@ -327,10 +324,11 @@ std::unique_ptr<const Code> assembly::Compiler::compile_syntax_tree(const GraphN
         }
         catch ( const std::exception& e )
         {
-            m_temp_code.reset();
+            delete m_temp_code;
+            m_temp_code = nullptr;
             LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
         }
-        return std::move(m_temp_code);
+        return m_temp_code;
     }
     return nullptr;
 }

@@ -1,8 +1,5 @@
 #pragma once
-
-#include <memory>
-#include "fw/core/types.h"
-
+#include <fw/core/types.h>
 #include <ndbl/core/assembly/Code.h>
 
 namespace ndbl
@@ -25,7 +22,7 @@ namespace assembly
     {
     public:
         Compiler()= default;
-        std::unique_ptr<const Code> compile_syntax_tree(const GraphNode*);        // Compile the full syntax tree (a.k.a. graph) and return a code VirtualMachine can load.
+        const Code* compile_syntax_tree(const GraphNode *_graph);        // Compile the full syntax tree (a.k.a. graph) and return dynamically allocated code that VirtualMachine can load.
     private:
         bool is_syntax_tree_valid(const GraphNode*);                              // Check if syntax tree has a valid syntax (declared variables and functions).
         void compile(const Node*);                                                // Compile a node recursively, result depends on node type.
@@ -36,7 +33,7 @@ namespace assembly
         void compile(const ForLoopNode*);                                         // Compile a "for" recursively (initial, condition, iterative instructions and inner scope).
         void compile(const ConditionalStructNode*);                               // Compile an "if/else" recursively.
 
-        std::unique_ptr<Code> m_temp_code;                                        // Store the code being compiled, is released when compilation ends.
+        Code* m_temp_code;  // Store the code being compiled, is released when compilation ends.
     };
 } // namespace assembly
 } // namespace nodable

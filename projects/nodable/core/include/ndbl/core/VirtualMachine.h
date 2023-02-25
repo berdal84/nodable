@@ -51,9 +51,9 @@ namespace ndbl
         VirtualMachine(const VirtualMachine&) = delete;  // disable copy
         ~VirtualMachine() = default;
         // Load program code
-        [[nodiscard]] bool    load_program(code_uptr _code);
+        [[nodiscard]] bool    load_program(const Code *_code);
         // Release any loaded program
-        code_uptr             release_program();
+        const Code * release_program();
         // Run loaded program. Check load_program()'s return value before to run.*/
         void                  run_program();
         // Stop the execution
@@ -93,7 +93,7 @@ namespace ndbl
         bool                  m_is_debugging;
         Instruction*          m_last_step_next_instr;
         CPU                   m_cpu;
-        code_uptr             m_program_asm_code;
+        const Code*           m_program_asm_code;
     };
 }
 

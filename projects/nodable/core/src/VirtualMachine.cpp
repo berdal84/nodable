@@ -91,7 +91,7 @@ void VirtualMachine::stop_program()
     }
 }
 
-std::unique_ptr<const Code> VirtualMachine::release_program()
+const Code* VirtualMachine::release_program()
 {
     if( m_is_program_running )
     {
@@ -103,7 +103,9 @@ std::unique_ptr<const Code> VirtualMachine::release_program()
     LOG_VERBOSE("VM", "registers cleared\n")
 
     LOG_VERBOSE("VM", "program released\n")
-    return std::move(m_program_asm_code);
+    const Code* copy = m_program_asm_code;
+    m_program_asm_code = nullptr;
+    return copy;
 }
 
 bool VirtualMachine::_stepOver()
@@ -367,12 +369,12 @@ Instruction* VirtualMachine::get_next_instr() const
     return nullptr;
 }
 
-bool VirtualMachine::load_program(std::unique_ptr<const Code> _code)
+bool VirtualMachine::load_program(const Code *_code)
 {
     FW_ASSERT(!m_is_program_running)   // dev must stop before to load program.
     FW_ASSERT(!m_program_asm_code)     // dev must unload before to load.
 
-    m_program_asm_code = std::move(_code);
+    m_program_asm_code = _code;
 
     return m_program_asm_code && m_program_asm_code->size() != 0;
 }
@@ -384,6 +386,6 @@ fw::qword VirtualMachine::read_cpu_register(Register _register)const
 
 const Code *VirtualMachine::get_program_asm_code()
 {
-    return m_program_asm_code.get();
+    return m_program_asm_code;
 }
 

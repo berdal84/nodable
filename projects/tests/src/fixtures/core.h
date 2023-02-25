@@ -59,10 +59,10 @@ public:
         {
             throw std::runtime_error("Compiler was not able to compile program's graph.");
         }
-        std::cout << assembly::Code::to_string(asm_code.get()) << std::flush;
+        std::cout << assembly::Code::to_string(asm_code) << std::flush;
 
         // load
-        if (!virtual_machine.load_program(std::move(asm_code)))
+        if (!virtual_machine.load_program(asm_code))
         {
             throw std::runtime_error("VM was not able to load the compiled program.");
         }
@@ -92,10 +92,10 @@ public:
         {
             throw std::runtime_error("core: Compiler was not able to compile program's graph.");
         }
-        std::cout << assembly::Code::to_string(code.get()) << std::flush;
+        std::cout << assembly::Code::to_string(code) << std::flush;
 
         // load
-        if (!virtual_machine.load_program(std::move(code)))
+        if (!virtual_machine.load_program(code))
         {
             throw std::runtime_error("core: VM was not able to load the compiled program.");
         }

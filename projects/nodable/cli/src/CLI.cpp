@@ -24,9 +24,9 @@ REGISTER
 
 CLI::CLI()
     : m_should_stop(false)
-    , m_language(std::make_unique<Nodlang>() )
-    , m_factory(m_language.get())
-    , m_graph(m_language.get(), &m_factory, &m_auto_completion)
+    , m_asm_code(nullptr)
+    , m_factory(&m_language)
+    , m_graph(&m_language, &m_factory, &m_auto_completion)
 {
     std::cout << R"(== Nodable command line interface ==)" << std::endl <<
                  R"(Nodable Copyright (C) 2023 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
@@ -38,6 +38,7 @@ CLI::CLI()
 CLI::~CLI()
 {
     std::cout << "Good bye!" << std::endl;
+    delete m_asm_code;
 }
 
 bool CLI::should_stop() const
@@ -97,7 +98,7 @@ void CLI::update()
     }
 
     // try to eval (parse, compile and run).
-    m_language->parse(input, &m_graph) && compile() && run();
+    m_language.parse(input, &m_graph) && compile() && run();
 }
 void CLI::log_function_call(const fw::variant &result, const fw::func_type &type) const {LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n", type.get_identifier().c_str(), result.is_defined() ? result.convert_to<std::string>().c_str() : "void")}
 
@@ -126,7 +127,7 @@ bool CLI::serialize()
     if(Node* root = m_graph.get_root())
     {
         std::string result;
-        m_language->serialize(result, root);
+        m_language.serialize(result, root);
         std::cout << result << std::endl;
         return true;
     }
@@ -137,16 +138,13 @@ bool CLI::serialize()
 
 bool CLI::compile()
 {
-    if( auto asm_code = m_compiler.compile_syntax_tree(&m_graph))
-    {
-        m_asm_code = std::move(asm_code);
-        return m_asm_code.get();
-    }
-    else
+    m_asm_code = m_compiler.compile_syntax_tree(&m_graph);
+    if(!m_asm_code)
     {
         LOG_ERROR("CLI", "unable to compile!\n")
         return false;
     }
+    return true;
 }
 
 void CLI::set_verbose()
@@ -159,7 +157,7 @@ bool CLI::parse()
     // ask for user input
     std::cout << ">>> ";
     std::string parse_in = get_line();
-    return m_language->parse(parse_in, &m_graph);
+    return m_language.parse(parse_in, &m_graph);
 }
 
 bool CLI::run()
@@ -169,7 +167,7 @@ bool CLI::run()
         return false;
     }
 
-    if( m_virtual_machine.load_program(std::move(m_asm_code)) )
+    if( m_virtual_machine.load_program(m_asm_code) )
     {
         m_virtual_machine.run_program();
         fw::qword last_result = m_virtual_machine.get_last_result();
@@ -181,8 +179,7 @@ bool CLI::run()
         std::cout << " | i16_t:  " << std::setw(12) << (i16_t)last_result;
         std::cout << " | hex:    " << std::setw(12) << last_result.to_string() << std::endl;
 
-        auto program = m_virtual_machine.release_program();
-        return program.get();
+        return m_virtual_machine.release_program();
     }
     else
     {
