@@ -135,7 +135,7 @@ bool App::shutdown()
     bool success = true;
     LOG_MESSAGE("fw::App", "Shutting down ...\n");
 
-    success &= texture_manager.release_resources();
+    success &= texture_manager.release_all();
 
     LOG_MESSAGE("fw::App", "Shutting down ImGui_ImplSDL2 ...\n");
     ImGui_ImplSDL2_Shutdown();

@@ -14,7 +14,7 @@ Texture::Texture(std::vector<unsigned char> _buffer, int _width, int _height, GL
     , height(_height)
 {}
 
-Texture* TextureManager::get_asset(const std::string &path)
+Texture* TextureManager::load(const std::string &path)
 {
     auto absolute_path = fw::App::asset_path(path);
 
@@ -26,7 +26,7 @@ Texture* TextureManager::get_asset(const std::string &path)
     return load_png_to_gpu(absolute_path.string());
 }
 
-bool TextureManager::release_resources()
+bool TextureManager::release_all()
 {
     bool success = true;
     for( const auto& [key, texture] : m_register )

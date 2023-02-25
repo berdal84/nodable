@@ -60,7 +60,7 @@ bool AppView::on_init()
     };
 
     // Load splashscreen image
-    m_logo = m_app->framework.texture_manager.get_asset(m_app->config.ui_splashscreen_imagePath);
+    m_logo = m_app->framework.texture_manager.load(m_app->config.ui_splashscreen_imagePath);
 
     LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
 
