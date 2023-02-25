@@ -29,6 +29,7 @@ void log::set_verbosity(Verbosity _level)
     s_verbosity = _level;
     get_verbosity_by_category().clear(); // ensure no overrides remains
 }
+
 log::Verbosity log::get_verbosity()
 {
     return s_verbosity;
@@ -36,12 +37,9 @@ log::Verbosity log::get_verbosity()
 
 log::Verbosity log::get_verbosity(const std::string& _category)
 {
-    auto verbosity_by_category = get_verbosity_by_category();
+    std::map<std::string, log::Verbosity>& verbosity_by_category = get_verbosity_by_category();
     auto pair = verbosity_by_category.find(_category);
-    if (pair != verbosity_by_category.end() )
-    {
-        return pair->second;
-    }
+    if (pair != verbosity_by_category.end() ) return pair->second;
     return s_verbosity;
 }
 
@@ -51,39 +49,34 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
 
 	if (_verbosity <= get_verbosity(_category) )
     {
-        // Build log string
-        char buffer[255];
+        Message message{};
+        message.verbosity = _verbosity;
+        strncpy(message.category, _category, sizeof(message.category));
+
+        // Fill a buffer with the formatted message
         va_list arglist;
         va_start( arglist, _format );
-        vsnprintf(buffer, sizeof(buffer), _format, arglist); // store into buffer
+        vsnprintf(message.text, sizeof(message.text), _format, arglist); // store into buffer
         va_end( arglist );
 
-        // select a color
+        // Select the appropriate color depending on the verbosity
         switch (_verbosity)
         {
             case log::Verbosity_Error:   std::cout << RED;      break;
             case log::Verbosity_Warning: std::cout << MAGENTA;  break;
-            default:;
+            default: /* uses default terminal color */;
         }
 
         // print the text
-        std::cout << "[" << to_string(_verbosity) << "|" << _category << "] ";
-        std::cout << RESET;
-        std::cout << buffer;
+        std::cout << "[" << to_string(_verbosity) << "|" << _category << "] " << RESET << message.text;
 
-        // Store type and buffer in history
-        s_logs.push_front({std::chrono::system_clock::now(), _verbosity, _category, buffer} );
+        // Store the message in the front of the queue
+        s_logs.push_front(message);
 
-        // Constraint the queue to be size() < 500
-        // Erase by chunk of 250
-        constexpr size_t chunk_size = 250;
-        if (s_logs.size() > 2*chunk_size )
-        {
-            while( s_logs.size() > chunk_size )
-            {
-                s_logs.pop_back();
-            }
-        }
+        // Constraint the queue to have a limited size
+        constexpr size_t max_count = 5000; // a Message is 512 bytes
+        constexpr size_t min_count = 4000; //
+        if (s_logs.size() > max_count ) s_logs.resize(min_count);
     }
 
 }

@@ -48,7 +48,7 @@ namespace fw {
     {
     public:
 
-        // Different verbosity levels a log can have
+        // Different verbosity levels a message can have
         enum Verbosity: size_t
         {
             Verbosity_Error,          // highest level (always logged)
@@ -60,19 +60,22 @@ namespace fw {
         };
         static std::string to_string(Verbosity _verbosity);
 
+        // 512 byte sized message
         struct Message
         {
-            using time_point_t = std::chrono::time_point<std::chrono::system_clock>;
-            time_point_t date;                 // message date
-            Verbosity    verbosity;            // verbosity level
-            std::string  category;             // category (ex: "Game", "App", etc.)
-            std::string  text;                 // message content text
+            std::chrono::time_point<std::chrono::system_clock>
+                         date = std::chrono::system_clock::now();
+            Verbosity    verbosity=Verbosity_DEFAULT; // verbosity level
+            char         category[32]={};      // short category name (ex: "Game", "App", etc.)
+            char         text[460]={} ;        // message content text
             std::string  to_string()const;     // get a pretty string of this message (ex: "[MSG|Game] Starting ...")
             std::string  to_full_string()const;// get a pretty string of this message (ex: "[<date>|MSG|Game] Starting ...")
         };
+        static_assert(sizeof(Message) == 512); // check size, it is to know how much space takes a given number of logs
+
 	private:
         static std::deque<Message>  s_logs;      // message history
-        static Verbosity s_verbosity; // global verbosity level
+        static Verbosity            s_verbosity; // global verbosity level
         static std::map<std::string, Verbosity>& get_verbosity_by_category();
 
 	public:
