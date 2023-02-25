@@ -29,7 +29,7 @@ namespace ndbl
         bool         run();
         bool         serialize();
         void         update();
-        bool         set_verbose();
+        void         set_verbose();
 
         std::string test_return_str() { return (std::string)m_virtual_machine.get_last_result(); }
         std::string test_concat_str(std::string left, std::string right) { return left + right; }

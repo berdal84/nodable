@@ -149,7 +149,7 @@ bool CLI::compile()
     }
 }
 
-bool CLI::set_verbose()
+void CLI::set_verbose()
 {
     fw::log::set_verbosity(fw::log::Verbosity_Verbose);
 }
