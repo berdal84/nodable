@@ -19,18 +19,19 @@ ImVec2 PropertyConnector::get_pos() const
 {
     ImVec2 node_screen_pos = m_propertyView->m_nodeView->get_position(fw::Space_Screen);
     ImVec2 node_view_size  = m_propertyView->m_nodeView->get_size();
-    ImVec2 screen_pos      = m_propertyView->m_position;
+    ImVec2 screen_pos{
+            m_propertyView->m_position.x,
+            node_screen_pos.y
+    };
 
     switch (m_display_side)
     {
         case Side::Top:
             screen_pos.y -= node_view_size.y * 0.5f;
             break;
-
         case Side::Bottom:
             screen_pos.y += node_view_size.y * 0.5f;
             break;
-
         case Side::Left:
             screen_pos.x -= node_view_size.x * 0.5f;
             break;

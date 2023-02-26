@@ -617,9 +617,9 @@ void AppView::draw_config_window() {
 
             if ( ImGui::CollapsingHeader("Misc."))
             {
-                ImGui::SliderFloat("padding", &config.ui_node_padding, 1.0f, 20.0f);
-                ImGui::SliderFloat("spacing", &config.ui_node_spacing, 10.0f, 100.0f);
-                ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 100.0f);
+                ImGui::SliderFloat("padding", &config.ui_node_padding, 2.0f, 10.0f);
+                ImGui::SliderFloat("spacing", &config.ui_node_spacing, 10.0f, 50.0f);
+                ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 10.0f);
             }
             ImGui::Unindent();
         }
