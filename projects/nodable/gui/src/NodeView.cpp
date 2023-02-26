@@ -404,7 +404,8 @@ bool NodeView::draw_implem()
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
 	const auto halfSize = m_size / 2.0;
     ImVec2 node_screen_center_pos = get_position(fw::Space_Screen);
-	ImGui::SetCursorScreenPos(node_screen_center_pos - halfSize); // start from th top left corner
+    const ImVec2 &node_top_left_corner = node_screen_center_pos - halfSize;
+    ImGui::SetCursorScreenPos(node_top_left_corner); // start from th top left corner
 	ImGui::PushID(this);
 
 
@@ -413,7 +414,7 @@ bool NodeView::draw_implem()
 	{			
 		auto borderCol = is_selected(this) ? m_border_color_selected : get_color(ColorType_Border);
 
-		auto itemRectMin = node_screen_center_pos - halfSize;
+		auto itemRectMin = node_top_left_corner;
 		auto itemRectMax = node_screen_center_pos + halfSize;
 
 		// Draw the rectangle under everything
@@ -435,10 +436,10 @@ bool NodeView::draw_implem()
 	}
 
 	// Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorScreenPos(node_screen_center_pos - halfSize);
+	ImGui::SetCursorScreenPos(node_top_left_corner);
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
-    ImGui::SetCursorScreenPos(node_screen_center_pos - halfSize + config.ui_node_padding); // top left corner + padding in x and y.
+    ImGui::SetCursorScreenPos(node_top_left_corner + config.ui_node_padding); // top left corner + padding in x and y.
 	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_propertyConnectorRadius); // add + space for "this" left connector
     bool is_node_hovered = ImGui::IsItemHovered();
 
@@ -462,7 +463,7 @@ bool NodeView::draw_implem()
         for (auto &propertyView : m_exposed_input_only_properties)
         {
             ImGui::SameLine();
-            ImGui::SetCursorScreenPos(node_screen_center_pos + ImVec2(0, 2.0f));
+            ImGui::SetCursorScreenPos(node_top_left_corner + ImVec2(0, 2.0f));
             changed |= draw_property(propertyView);
         }
 
@@ -470,7 +471,7 @@ bool NodeView::draw_implem()
         for (auto &propertyView : m_exposed_out_or_inout_properties)
         {
             ImGui::SameLine();
-            ImGui::SetCursorScreenPos(node_screen_center_pos + ImVec2(0, 8.0f));
+            ImGui::SetCursorScreenPos(node_top_left_corner + ImVec2(0, 8.0f));
             changed |= draw_property(propertyView);
         }
 
