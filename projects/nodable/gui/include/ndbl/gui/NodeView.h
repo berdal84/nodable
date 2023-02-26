@@ -148,7 +148,7 @@ namespace ndbl
     private:
         bool                    draw_implem()override;
         virtual bool            update(float _deltaTime);
-		bool                    draw_property(PropertyView *_view);
+        bool draw_property(PropertyView *_view);
         bool                    is_exposed(const Property *_property)const;
         void                    update_labels_from_name(Node *_node);
         inline ImVec2           get_position_rounded() const { return ImVec2(std::round(m_position.x), std::round(m_position.y)); }
@@ -195,8 +195,8 @@ namespace ndbl
      */
     class PropertyView
     {
-        ImVec2              m_relative_pos;
     public:
+        ImVec2              m_position;
         Property *          m_property;
         NodeView*           m_nodeView;
         PropertyConnector*  m_in;
@@ -214,8 +214,5 @@ namespace ndbl
             m_touched   = false;
             m_showInput = false;
         }
-
-        ImVec2    relative_pos() const { return m_relative_pos; }
-        void      relative_pos(ImVec2 _pos) { m_relative_pos = _pos; }
     };
 }

@@ -18,8 +18,8 @@ const PropertyConnector*   PropertyConnector::s_focused = nullptr;
 ImVec2 PropertyConnector::get_pos() const
 {
     ImVec2 node_screen_pos = m_propertyView->m_nodeView->get_position(fw::Space_Screen);
-    ImVec2 screen_pos = m_propertyView->relative_pos() + node_screen_pos;
-    ImVec2 node_view_size = m_propertyView->m_nodeView->get_size();
+    ImVec2 node_view_size  = m_propertyView->m_nodeView->get_size();
+    ImVec2 screen_pos      = m_propertyView->m_position;
 
     switch (m_display_side)
     {
@@ -38,7 +38,7 @@ ImVec2 PropertyConnector::get_pos() const
             screen_pos.x += node_view_size.x * 0.5f;
     }
 
-    fw::ImGuiEx::DebugLine(node_screen_pos, screen_pos, ImColor(0,255,0,100));
+    fw::ImGuiEx::DebugLine(node_screen_pos, screen_pos, ImColor(0,0,255));
 
     return screen_pos;
 }
@@ -76,7 +76,7 @@ void PropertyConnector::draw(
     draw_list->AddCircleFilled(connector_pos, _radius, isItemHovered ? _hoverColor : _color);
     draw_list->AddCircle(connector_pos, _radius, _borderColor);
 
-    fw::ImGuiEx::DebugRect(connector_pos + _radius, connector_pos - _radius, _borderColor, ImColor(255, 0, 0, 0));
+    fw::ImGuiEx::DebugCircle(connector_pos, _radius, _borderColor, ImColor(255, 0, 0, 0));
 
     // behavior
     //--------

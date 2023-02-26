@@ -260,7 +260,7 @@ bool GraphNodeView::draw_implem()
                             if ( NodeView::is_selected(src_property_view->m_nodeView) || NodeView::is_selected(dst_property_view->m_nodeView))
                             {
                                 // blink wire colors
-                                float blink = 1.0 + std::sin(app.framework.elapsed_time() * 10.0) * 0.25;
+                                float blink = 1.f + std::sin(float(app.framework.elapsed_time()) * 10.f) * 0.25f;
                                 line_color.x *= blink;
                                 line_color.y *= blink;
                                 line_color.z *= blink;
@@ -342,8 +342,7 @@ bool GraphNodeView::draw_implem()
         const Node* node = app.virtual_machine.get_next_node();
         if( auto view = node->get<NodeView>())
         {
-            ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen);
-            vm_cursor_pos += view->get_property_view(node->get_this_property())->relative_pos();
+            ImVec2 vm_cursor_pos = view->get_property_view(node->get_this_property())->m_position;
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
             auto draw_list = ImGui::GetWindowDrawList();

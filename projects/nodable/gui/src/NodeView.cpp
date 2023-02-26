@@ -463,9 +463,7 @@ bool NodeView::draw_implem()
         // draw properties
         auto draw_property_lambda = [&](PropertyView* view) {
             ImGui::SameLine();
-            ImVec2 pos = get_position(fw::Space_Screen);
-            ImVec2 offset{0.0f, -halfSize.y}; // align to top
-            ImGui::SetCursorScreenPos(pos);
+
             changed |= draw_property(view);
         };
         std::for_each(m_exposed_input_only_properties.begin(), m_exposed_input_only_properties.end(), draw_property_lambda);
@@ -591,19 +589,16 @@ bool NodeView::draw_implem()
 	return changed;
 }
 
-bool NodeView::draw_property(PropertyView* _view )
+bool NodeView::draw_property(PropertyView *_view)
 {
-    bool    show;
-    bool    changed = false;
-    Property * property  = _view->m_property;
-
-    fw::type owner_type = property->get_owner()->get_type();
+    bool      show;
+    bool      changed      = false;
+    Property* property     = _view->m_property;
+    fw::type  owner_type   = property->get_owner()->get_type();
 
     /*
      * Handle input visibility
      */
-
-
     if ( _view->m_touched )  // in case user touched it, we keep the current state
     {
         show = _view->m_showInput;
@@ -636,10 +631,7 @@ bool NodeView::draw_property(PropertyView* _view )
     {
         show = property->get_variant()->is_defined();
     }
-
     _view->m_showInput = show;
-
-    ImVec2 new_relative_pos = get_position(fw::Space_Screen) - ImGui::GetCursorScreenPos();
 
     // input
     float input_size = NodeView::s_property_input_toggle_button_size.x;
@@ -689,8 +681,13 @@ bool NodeView::draw_property(PropertyView* _view )
         }
     }
 
-    new_relative_pos.x += input_size * 0.5f; // center over input
-    _view->relative_pos(new_relative_pos);
+    // compute center position
+    ImVec2 pos = ImGui::GetItemRectMin() ;
+    fw::ImGuiEx::DebugCircle(pos, 2.5f, ImColor(0,0,0));
+    pos += ImGui::GetItemRectSize() * 0.5f;
+
+    // memorize
+    _view->m_position = pos;
 
     return changed;
 }
