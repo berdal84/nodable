@@ -57,7 +57,8 @@ ndbl::Config::Config()
     // wires
     ui_wire_bezier_roundness        = 0.5f;
     ui_wire_bezier_thickness        = 2.0f;
-    ui_wire_bezier_length_max       = 300.0f;
+    ui_wire_bezier_length_min       = 300.0f;
+    ui_wire_bezier_length_max       = 1000.0f;
     ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ui_wire_shadowColor             = ui_node_shadowColor;
 
