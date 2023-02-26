@@ -705,6 +705,7 @@ void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
 
     // get selection rectangle
     ImRect rect = NodeView::get_rect(_views);
+    rect.Translate(m_screen_space_content_region.Min); // to screen
     fw::ImGuiEx::DebugRect( rect.Min, rect.Max, IM_COL32( 0, 255, 0, 127 ), 5.0f );
     // align graph to center
     fw::ImGuiEx::DebugRect( m_screen_space_content_region.Min, m_screen_space_content_region.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );

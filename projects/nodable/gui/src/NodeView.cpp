@@ -378,7 +378,7 @@ bool NodeView::draw_implem()
 {
 	bool      changed  = false;
 	auto      node     = get_owner();
-	Config& config = Nodable::get_instance().config;
+	Config&   config   = Nodable::get_instance().config;
 
     FW_ASSERT(node != nullptr);
 
@@ -410,32 +410,13 @@ bool NodeView::draw_implem()
 
 
 	// Draw the background of the Group
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	{			
-		auto borderCol = is_selected(this) ? m_border_color_selected : get_color(ColorType_Border);
+    auto border_color = is_selected(this) ? m_border_color_selected : get_color(ColorType_Border);
+    DrawNodeRect(
+            node_top_left_corner, node_top_left_corner + m_size,
+            get_color(ColorType_Fill), get_color(ColorType_BorderHighlights), get_color(ColorType_Shadow), border_color,
+            is_selected(this), 5.0f, config.ui_node_padding);
 
-		auto itemRectMin = node_top_left_corner;
-		auto itemRectMax = node_screen_center_pos + halfSize;
-
-		// Draw the rectangle under everything
-        fw::ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, ImVec2(1.0f), get_color(ColorType_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax, get_color(ColorType_Fill), m_border_radius);
-		draw_list->AddRect(itemRectMin + ImVec2(1.0f), itemRectMax, get_color(ColorType_BorderHighlights), m_border_radius);
-		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
-
-		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + config.ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
-
-		// Draw an additional blinking rectangle when selected
-		if (is_selected(this))
-		{
-			auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
-			float offset = 4.0f;
-			draw_list->AddRect(itemRectMin - ImVec2(offset), itemRectMax + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), m_border_radius + offset, ~0, offset / 2.0f);
-		}
-	}
-
-	// Add an invisible just on top of the background to detect mouse hovering
+    // Add an invisible just on top of the background to detect mouse hovering
 	ImGui::SetCursorScreenPos(node_top_left_corner);
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
@@ -463,7 +444,6 @@ bool NodeView::draw_implem()
         // draw properties
         auto draw_property_lambda = [&](PropertyView* view) {
             ImGui::SameLine();
-
             changed |= draw_property(view);
         };
         std::for_each(m_exposed_input_only_properties.begin(), m_exposed_input_only_properties.end(), draw_property_lambda);
@@ -587,6 +567,28 @@ bool NodeView::draw_implem()
     m_is_hovered = is_node_hovered || is_connector_hovered;
 
 	return changed;
+}
+void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) const
+{
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+
+    // Draw the rectangle under everything
+    fw::ImGuiEx::DrawRectShadow(rect_min, rect_max, border_radius, 4, ImVec2(1.0f), shadow_col);
+    draw_list->AddRectFilled(rect_min, rect_max, color, border_radius);
+    draw_list->AddRect(rect_min + ImVec2(1.0f), rect_max, border_highlight_col, border_radius);
+    draw_list->AddRect(rect_min, rect_max, border_col, border_radius);
+
+    // darken the background under the content
+    draw_list->AddRectFilled(rect_min + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + padding), rect_max, ImColor(0.0f, 0.0f, 0.0f, 0.1f), border_radius, 4);
+
+    // Draw an additional blinking rectangle when selected
+    if (selected)
+    {
+        auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
+        float offset = 4.0f;
+        draw_list->AddRect(rect_min - ImVec2(offset), rect_max + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), border_radius + offset, ~0, offset / 2.0f);
+    }
+
 }
 
 bool NodeView::draw_property(PropertyView *_view)

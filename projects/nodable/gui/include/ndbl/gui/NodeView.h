@@ -152,6 +152,7 @@ namespace ndbl
         bool                    is_exposed(const Property *_property)const;
         void                    update_labels_from_name(Node *_node);
         inline ImVec2           get_position_rounded() const { return ImVec2(std::round(m_position.x), std::round(m_position.y)); }
+        void                    DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) const;
 
         std::string     m_label;
         std::string     m_short_label;
