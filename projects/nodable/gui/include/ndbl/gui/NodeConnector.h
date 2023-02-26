@@ -1,6 +1,7 @@
 #pragma once
 #include <ndbl/gui/Connector.h>
 #include <imgui/imgui_internal.h>
+#include "fw/gui/ImGuiEx.h"
 
 namespace ndbl {
 
@@ -27,8 +28,8 @@ namespace ndbl {
         ~NodeConnector() = default;
         Node*              get_node()const;
         Node*              get_connected_node() const;
-        ImRect             get_rect()const;
-        ImVec2             get_pos()const override;
+        ImRect             get_rect() const;
+        ImVec2             get_pos() const override;
         bool               share_parent_with(const NodeConnector *other) const override;
         static void        draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable);
         static void        dropped(const NodeConnector *_left, const NodeConnector *_right);

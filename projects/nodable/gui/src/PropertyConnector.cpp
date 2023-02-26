@@ -7,6 +7,7 @@
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "ndbl/gui/Event.h"
+#include "ndbl/gui/Nodable.h"
 
 using namespace ndbl;
 
@@ -14,31 +15,32 @@ const PropertyConnector*   PropertyConnector::s_dragged = nullptr;
 const PropertyConnector*   PropertyConnector::s_hovered = nullptr;
 const PropertyConnector*   PropertyConnector::s_focused = nullptr;
 
-ImVec2 PropertyConnector::get_pos()const
+ImVec2 PropertyConnector::get_pos() const
 {
-    ImVec2 relative_pos_constrained = m_propertyView->relative_pos();
-
+    ImVec2 node_screen_pos = m_propertyView->m_nodeView->get_position(fw::Space_Screen);
+    ImVec2 screen_pos = m_propertyView->relative_pos() + node_screen_pos;
     ImVec2 node_view_size = m_propertyView->m_nodeView->get_size();
 
     switch (m_display_side)
     {
         case Side::Top:
-            relative_pos_constrained.y = -node_view_size.y * 0.5f;
+            screen_pos.y -= node_view_size.y * 0.5f;
             break;
 
         case Side::Bottom:
-            relative_pos_constrained.y = node_view_size.y * 0.5f;
+            screen_pos.y += node_view_size.y * 0.5f;
             break;
 
         case Side::Left:
-            relative_pos_constrained.y = 0;
-            relative_pos_constrained.x = -node_view_size.x * 0.5f;
+            screen_pos.x -= node_view_size.x * 0.5f;
             break;
         case Side::Right:
-            relative_pos_constrained.y = 0;
-            relative_pos_constrained.x = node_view_size.x * 0.5f;
+            screen_pos.x += node_view_size.x * 0.5f;
     }
-    return ImVec2(m_propertyView->m_nodeView->get_screen_position() + relative_pos_constrained);
+
+    fw::ImGuiEx::DebugLine(node_screen_pos, screen_pos, ImColor(0,255,0,100));
+
+    return screen_pos;
 }
 
 bool PropertyConnector::share_parent_with(const PropertyConnector* other) const
@@ -57,21 +59,24 @@ void PropertyConnector::draw(
     // draw
     //-----
     auto draw_list = ImGui::GetWindowDrawList();
-    auto connnectorScreenPos = _connector->get_pos();
+    auto connector_pos = _connector->get_pos();
 
     // Unvisible Button on top of the Circle
-    ImVec2 cursorScreenPos = ImGui::GetCursorScreenPos();
+    ImVec2 cursor_screen_pos = ImGui::GetCursorScreenPos();
+    fw::ImGuiEx::DebugCircle(cursor_screen_pos, _radius, ImColor(255,0,0));
     auto invisibleButtonOffsetFactor = 1.2f;
-    ImGui::SetCursorScreenPos(connnectorScreenPos - ImVec2(_radius * invisibleButtonOffsetFactor));
+    ImGui::SetCursorScreenPos(connector_pos - ImVec2(_radius * invisibleButtonOffsetFactor));
     ImGui::PushID(_connector);
     bool clicked = ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
     ImGui::PopID();
-    ImGui::SetCursorScreenPos(cursorScreenPos);
+    ImGui::SetCursorScreenPos(cursor_screen_pos);
     auto isItemHovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
     // Circle
-    draw_list->AddCircleFilled(connnectorScreenPos, _radius, isItemHovered ? _hoverColor : _color);
-    draw_list->AddCircle(connnectorScreenPos, _radius, _borderColor);
+    draw_list->AddCircleFilled(connector_pos, _radius, isItemHovered ? _hoverColor : _color);
+    draw_list->AddCircle(connector_pos, _radius, _borderColor);
+
+    fw::ImGuiEx::DebugRect(connector_pos + _radius, connector_pos - _radius, _borderColor, ImColor(255, 0, 0, 0));
 
     // behavior
     //--------

@@ -24,7 +24,8 @@ namespace ndbl {
         TextEditor::Palette ui_text_textEditorPalette{};
         float          ui_wire_bezier_roundness;
         float          ui_wire_bezier_thickness;
-        bool           ui_wire_displayArrows;
+        float          ui_wire_bezier_length_min;
+        float          ui_wire_bezier_length_max;
         ImVec4         ui_wire_fillColor;
         ImVec4         ui_wire_shadowColor;
         float          ui_node_propertyConnectorRadius;

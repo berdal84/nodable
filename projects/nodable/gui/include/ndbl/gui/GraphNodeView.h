@@ -30,7 +30,6 @@ namespace ndbl
 		~GraphNodeView() override = default;
 
         void        set_owner(Node *) override;
-        bool on_draw() override ;
         /** Update view (once per frame)*/
         bool        update() override;
         /** Update view given a certain delta time */
@@ -48,6 +47,7 @@ namespace ndbl
         void        frame_selected_node_views();
         void        translate_all(ImVec2 /* delta */, const std::vector<NodeView*>&);
     private:
+        bool        draw_implem() override ;
         void        frame_views( std::vector<NodeView*>&);
         GraphNode*  get_graph_node() const;
 

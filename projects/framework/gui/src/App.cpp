@@ -157,14 +157,14 @@ bool App::shutdown()
 
 void App::draw()
 {
-    LOG_VERBOSE("fw::App", "draw ...\n");
+    LOG_VERBOSE("fw::App", "draw_property ...\n");
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(m_sdl_window);
     ImGui::NewFrame();
     ImGuiEx::BeginFrame();
 
     LOG_VERBOSE("fw::App", "state_changes.emit(App::ON_DRAW) ...\n");
-    view.on_draw();
+    view.draw();
     signal_handler(App::Signal_ON_DRAW);
 
     // 3. End frame and Render
@@ -199,12 +199,12 @@ void App::draw()
     {
         SDL_Delay((unsigned int)((config.min_frame_time - ImGui::GetIO().DeltaTime) * 1000.f) );
     }
-    LOG_VERBOSE("fw::App", "draw " OK "\n");
+    LOG_VERBOSE("fw::App", "draw_property " OK "\n");
 }
 
-u64_t App::elapsed_time() const
+double App::elapsed_time() const
 {
-    return m_start_time.time_since_epoch().count();
+    return ImGui::GetTime();
 }
 
 ghc::filesystem::path App::asset_path(const ghc::filesystem::path& _path)

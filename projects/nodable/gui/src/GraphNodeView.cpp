@@ -30,10 +30,10 @@ REGISTER
         .extends<fw::View>();
 }
 
-bool GraphNodeView::on_draw()
+bool GraphNodeView::draw_implem()
 {
     bool            changed          = false;
-    Nodable &            app              = Nodable::get_instance();
+    Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
     Node*           new_node         = nullptr;
     GraphNode*      graph            = get_graph_node();
@@ -156,13 +156,13 @@ bool GraphNodeView::on_draw()
                 float lineWidth = std::min(app.config.ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
-                ImVec2 start = each_view->get_screen_position();
+                ImVec2 start = each_view->get_position(fw::Space_Screen);
                 start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
                 start.y += app.config.ui_node_connector_height * 0.25f;
 
-                ImVec2 end = each_successor_view->get_screen_position();
+                ImVec2 end = each_successor_view->get_position(fw::Space_Screen);
                 end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
@@ -253,42 +253,48 @@ bool GraphNodeView::on_draw()
                             ImVec2 dst_pos = dst_property_view->m_in->get_pos();
 
                             // do not draw long lines between a variable value
-                            bool skip_wire = false;
-                            if ( !NodeView::is_selected(src_property_view->m_nodeView) && !NodeView::is_selected(dst_property_view->m_nodeView) &&
-                                    ((dst_property->get_type().is_ptr() && dst_owner->is<InstructionNode>() && src_owner->is<VariableNode>()) ||
-                                     (src_owner->is<VariableNode>() && src_property == src_owner->props()->get(k_value_property_name))))
+                            ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
+                            ImVec4 shadow_color = app.config.ui_codeFlow_lineShadowColor;
+
+
+                            if ( NodeView::is_selected(src_property_view->m_nodeView) || NodeView::is_selected(dst_property_view->m_nodeView))
                             {
+                                // blink wire colors
+                                float blink = 1.0 + std::sin(app.framework.elapsed_time() * 10.0) * 0.25;
+                                line_color.x *= blink;
+                                line_color.y *= blink;
+                                line_color.z *= blink;
+                            }
+                            else
+                            {
+                                // transparent depending on wire length
                                 ImVec2 delta = src_pos - dst_pos;
-                                if( abs(delta.x) > 100.0f || abs(delta.y) > 100.0f )
+                                float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+                                if (dist > app.config.ui_wire_bezier_length_min)
                                 {
-                                    skip_wire = true;
+                                    float factor = (dist - app.config.ui_wire_bezier_length_min) /
+                                                   (app.config.ui_wire_bezier_length_max -
+                                                    app.config.ui_wire_bezier_length_min);
+                                    line_color = ImLerp(line_color, ImColor(0, 0, 0, 0), factor);
+                                    shadow_color = ImLerp(shadow_color, ImColor(0, 0, 0, 0), factor);
                                 }
                             }
 
-                            if ( !skip_wire )
+                            // draw the wire if necessary
+                            if ( line_color.w != 0.f )
                             {
+                                float thickness = app.config.ui_wire_bezier_thickness;
+                                float roundness = app.config.ui_wire_bezier_roundness;
+
                                 // straight wide lines for node connections
                                 if (fw::type::is_ptr(src_property->get_type()))
                                 {
-                                    fw::ImGuiEx::DrawVerticalWire(
-                                            ImGui::GetWindowDrawList(),
-                                            src_pos, dst_pos,
-                                            app.config.ui_codeFlow_lineColor,
-                                            app.config.ui_codeFlow_lineShadowColor,
-                                            app.config.ui_wire_bezier_thickness * 3.0f,
-                                            app.config.ui_wire_bezier_roundness * 0.25f);
+                                    thickness *= 3.0f;
+                                    roundness *= 0.25f;
                                 }
-                                // curved thin for the others
-                                else
-                                {
-                                    fw::ImGuiEx::DrawVerticalWire(
-                                            ImGui::GetWindowDrawList(),
-                                            src_pos, dst_pos,
-                                            app.config.ui_wire_fillColor,
-                                            app.config.ui_wire_shadowColor,
-                                            app.config.ui_wire_bezier_thickness,
-                                            app.config.ui_wire_bezier_roundness);
-                                }
+
+                                ImDrawList* draw_list = ImGui::GetWindowDrawList();
+                                fw::ImGuiEx::DrawVerticalWire(draw_list, src_pos, dst_pos, line_color, shadow_color, thickness, roundness);
                             }
                         }
                     }
@@ -301,12 +307,12 @@ bool GraphNodeView::on_draw()
         */
         std::vector<NodeView*> node_views;
         Node::get_components(node_registry, node_views);
-		for (auto each_node_view : node_views)
+		for (NodeView* each_node_view : node_views)
 		{
             if (each_node_view->is_visible())
             {
                 each_node_view->enable_edition(enable_edition);
-                changed |= each_node_view->on_draw();
+                changed |= each_node_view->draw();
 
                 if( app.virtual_machine.is_debugging() && app.virtual_machine.is_next_node(each_node_view->get_owner() ) )
                 {
@@ -336,7 +342,7 @@ bool GraphNodeView::on_draw()
         const Node* node = app.virtual_machine.get_next_node();
         if( auto view = node->get<NodeView>())
         {
-            ImVec2 vm_cursor_pos = view->get_screen_position();
+            ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen);
             vm_cursor_pos += view->get_property_view(node->get_this_property())->relative_pos();
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
@@ -515,12 +521,11 @@ bool GraphNodeView::on_draw()
             // set new_node's view position
             if( auto* view = new_node->get<NodeView>() )
             {
-                view->set_position(m_new_node_desired_position);
+                view->set_position(m_new_node_desired_position, fw::Space_Local);
             }
 		}
 
 		ImGui::EndPopup();
-
 	}
 
 	// reset dragged if right click
@@ -691,32 +696,34 @@ void GraphNodeView::frame_selected_node_views()
    frame_views( views );
 }
 
-void GraphNodeView::frame_views(std::vector<NodeView*>& _views) {
-
-    if (_views.empty()) {
+void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
+{
+    if (_views.empty())
+    {
         LOG_VERBOSE("GraphNodeView", "Unable to frame views vector. Reason: is empty.\n")
         return;
     }
 
     // get selection rectangle
     ImRect rect = NodeView::get_rect(_views);
-
+    fw::ImGuiEx::DebugRect( rect.Min, rect.Max, IM_COL32( 0, 255, 0, 127 ), 5.0f );
     // align graph to center
-    ImVec2 delta = m_visible_rect.GetSize() * 0.5f - rect.GetCenter();
+    fw::ImGuiEx::DebugRect( m_screen_space_content_region.Min, m_screen_space_content_region.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
+    ImVec2 delta = m_screen_space_content_region.GetCenter() - rect.GetCenter();
 
     // if there is x overflow, align left
-    if (m_visible_rect.GetSize().x <= rect.GetSize().x)
+    if (m_screen_space_content_region.GetSize().x <= rect.GetSize().x)
     {
         delta.x = - rect.GetTL().x + 50.0f;
     }
 
     // if there is y overflow, align top
-    if (m_visible_rect.GetSize().y <= rect.GetSize().y)
+    if (m_screen_space_content_region.GetSize().y <= rect.GetSize().y)
     {
         // align graph to top-left corner
         delta.y = - rect.GetTL().y + 50.0f;
     }
-
+    fw::ImGuiEx::DebugLine( rect.GetCenter(), rect.GetCenter() + delta, IM_COL32( 255, 0, 0, 255 ), 20.0f);
     std::vector<NodeView*> all_views;
     Node::get_components(get_graph_node()->get_node_registry(), all_views);
     translate_all(delta , all_views);

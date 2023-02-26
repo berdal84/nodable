@@ -5,7 +5,7 @@
 #include <cmath> // round()
 #include <algorithm>
 #include <observe/observer.h>
-#include <imgui/imgui.h>   // for vec2
+#include <fw/gui/ImGuiEx.h>
 #include <fw/gui/View.h>
 
 #include <ndbl/gui/types.h>     // for constants and forward declarations
@@ -86,7 +86,7 @@ namespace ndbl
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
-    class NodeView :  public Component, public fw::View
+    class NodeView : public fw::View, public Component
 	{
 	public:
 		NodeView();
@@ -96,11 +96,9 @@ namespace ndbl
 
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);
-		bool                    on_draw()override;
 		bool                    update()override;
-		inline const ImVec2&    get_position()const { return m_position; }
-		inline ImVec2           get_position_rounded()const { return ImVec2(std::round(m_position.x), std::round(m_position.y)); }
-		void                    set_position(ImVec2);
+		const ImVec2            get_position(fw::Space)const;
+		void                    set_position(ImVec2, fw::Space);
 		void                    translate(ImVec2, bool _recurse = false);
 		void                    translate_to(ImVec2 desiredPos, float _factor, bool _recurse = false);
 		void                    arrange_recursively(bool _smoothly = true);
@@ -112,7 +110,6 @@ namespace ndbl
         void                    clear_constraints();
         const PropertyView*     get_property_view(const Property *)const;
         inline ImVec2           get_size() const { return m_size; }
-        ImVec2                  get_screen_position();
         void                    set_pinned(bool b) { m_pinned = b; }
         bool                    is_pinned()const { return m_pinned; }
         bool                    is_dragged()const { return s_dragged == this; }
@@ -132,9 +129,8 @@ namespace ndbl
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
-
         static ImRect           get_rect(const std::vector<NodeView *>&, bool _recursive = false
-                                        , bool _ignorePinned = true, bool _ignoreMultiConstrained = true);
+                                        , bool _ignorePinned = true, bool _ignoreMultiConstrained = true); // rectangle is in local space
         static void             set_selected(NodeView*);
         static NodeView*        get_selected();
         static bool             is_selected(NodeView*);
@@ -149,11 +145,15 @@ namespace ndbl
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
 
+        ImRect get_screen_rect();
+
     private:
+        bool                    draw_implem()override;
         virtual bool            update(float _deltaTime);
-		bool                    draw(PropertyView *_view);
+		bool                    draw_property(PropertyView *_view);
         bool                    is_exposed(const Property *_property)const;
         void                    update_labels_from_name(Node *_node);
+        inline ImVec2           get_position_rounded() const { return ImVec2(std::round(m_position.x), std::round(m_position.y)); }
 
         std::string     m_label;
         std::string     m_short_label;
@@ -162,7 +162,7 @@ namespace ndbl
         ImVec2          m_forces_sum;
         ImVec2          m_last_frame_forces_sum;
         bool            m_expanded;
-		ImVec2          m_position;
+		ImVec2          m_position;                      // local position (not affected by scroll)
 		ImVec2          m_size;
 		float           m_opacity;
 		bool            m_force_property_inputs_visible;
