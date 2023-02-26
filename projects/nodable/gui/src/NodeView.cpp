@@ -459,21 +459,18 @@ bool NodeView::draw_implem()
         ImGui::SameLine();
 
         ImGui::BeginGroup();
-        // Draw inputs
-        for (auto &propertyView : m_exposed_input_only_properties)
-        {
-            ImGui::SameLine();
-            ImGui::SetCursorScreenPos(node_top_left_corner + ImVec2(0, 2.0f));
-            changed |= draw_property(propertyView);
-        }
 
-        // Draw outputs
-        for (auto &propertyView : m_exposed_out_or_inout_properties)
-        {
+        // draw properties
+        auto draw_property_lambda = [&](PropertyView* view) {
             ImGui::SameLine();
-            ImGui::SetCursorScreenPos(node_top_left_corner + ImVec2(0, 8.0f));
-            changed |= draw_property(propertyView);
-        }
+            ImVec2 pos = get_position(fw::Space_Screen);
+            ImVec2 offset{0.0f, -halfSize.y}; // align to top
+            ImGui::SetCursorScreenPos(pos);
+            changed |= draw_property(view);
+        };
+        std::for_each(m_exposed_input_only_properties.begin(), m_exposed_input_only_properties.end(), draw_property_lambda);
+        std::for_each(m_exposed_out_or_inout_properties.begin(), m_exposed_out_or_inout_properties.end(), draw_property_lambda);
+
 
         ImGui::EndGroup();
         ImGui::SameLine();
