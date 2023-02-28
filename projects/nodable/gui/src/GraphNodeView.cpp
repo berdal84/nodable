@@ -342,7 +342,7 @@ bool GraphNodeView::draw_implem()
         const Node* node = app.virtual_machine.get_next_node();
         if( auto view = node->get<NodeView>())
         {
-            ImVec2 vm_cursor_pos = view->get_property_view(node->get_this_property())->m_position;
+            ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen);
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
             auto draw_list = ImGui::GetWindowDrawList();
