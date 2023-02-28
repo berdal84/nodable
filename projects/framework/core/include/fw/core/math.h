@@ -1,5 +1,4 @@
 #pragma once
-#include <cmath> // for round()
 #include <imgui/imgui.h>
 #include <fw/core/types.h>
 
@@ -23,6 +22,6 @@ namespace fw::math
 
     static ImVec2 round(ImVec2 vec)
     {
-        return {std::round(vec.x), std::round(vec.y)};
+        return {(float)(int)(vec.x), (float)(int)(vec.y)};
     }
 }
