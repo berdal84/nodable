@@ -324,7 +324,7 @@ bool GraphNodeView::draw_implem()
                 {
                     each_node_view->translate(ImGui::GetMouseDragDelta(), true);
                     ImGui::ResetMouseDragDelta();
-                    each_node_view->set_pinned(true);
+                    each_node_view->pinned = true;
                 }
 
                 isAnyNodeDragged |= NodeView::get_dragged() == each_node_view;
@@ -584,7 +584,7 @@ void GraphNodeView::create_child_view_constraints()
             // Align in row Conditional Struct Node's children
             //------------------------------------------------
 
-            std::vector<NodeView*>& children = each_view->children().content();
+            std::vector<NodeView*>& children = each_view->children.content();
             if(!children.empty() && t.is_child_of<IConditionalStruct>() )
             {
                 ViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
@@ -594,7 +594,7 @@ void GraphNodeView::create_child_view_constraints()
 
                 if (t.is_child_of<ForLoopNode>() )
                 {
-                    constraint.add_targets(each_view->successors().content());
+                    constraint.add_targets(each_view->successors.content());
                 }
                 each_view->add_constraint(constraint);
             }
@@ -602,11 +602,11 @@ void GraphNodeView::create_child_view_constraints()
             // Align in row Input connected Nodes
             //-----------------------------------
 
-            if ( !each_view->inputs().empty() )
+            if ( !each_view->inputs.empty() )
             {
                 ViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
                 constraint.add_driver(each_view);
-                constraint.add_targets(each_view->inputs().content());
+                constraint.add_targets(each_view->inputs.content());
                 each_view->add_constraint(constraint);
                 constraint.apply_when(ViewConstraint::always);
             }

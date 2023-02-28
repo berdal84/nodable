@@ -13,7 +13,7 @@ namespace ndbl
     {
         Slots(size_t _max_count = std::numeric_limits<size_t>::max())
             : m_limit(_max_count) {}
-
+        Slots(const Slots&) = delete;
         std::vector<T>&       content() { return m_slots; }       // Get slots content as a vector
         const std::vector<T>& content() const { return m_slots; } // Get slots content as a vector
         auto      begin() const { return m_slots.begin(); }       // Get an iterator at the beginning of the slots

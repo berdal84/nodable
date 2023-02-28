@@ -45,14 +45,10 @@ NodeView::NodeView()
         , m_opacity(1.0f)
         , m_expanded(true)
         , m_force_property_inputs_visible(false)
-        , m_pinned(false)
+        , pinned(false)
         , m_border_radius(5.0f)
         , m_border_color_selected(1.0f, 1.0f, 1.0f)
         , m_exposed_this_property_view(nullptr)
-        , m_children_slots()
-        , m_input_slots()
-        , m_output_slots()
-        , m_successor_slots()
         , m_edition_enable(true)
         , m_apply_constraints(true)
 {
@@ -175,13 +171,13 @@ void NodeView::set_owner(Node *_node)
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
-                    children().add(_other_node_view ); break;
+                    children.add(_other_node_view ); break;
                 case Edge_t::IS_INPUT_OF:
-                    inputs().add(_other_node_view ); break;
+                    inputs.add(_other_node_view ); break;
                 case Edge_t::IS_OUTPUT_OF:
-                    outputs().add(_other_node_view ); break;
+                    outputs.add(_other_node_view ); break;
                 case Edge_t::IS_SUCCESSOR_OF:
-                    successors().add(_other_node_view ); break;
+                    successors.add(_other_node_view ); break;
                 case Edge_t::IS_PREDECESSOR_OF:
                     FW_ASSERT(false); /* NOT HANDLED */break;
             }
@@ -194,13 +190,13 @@ void NodeView::set_owner(Node *_node)
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
-                    children().remove(_other_node_view ); break;
+                    children.remove(_other_node_view ); break;
                 case Edge_t::IS_INPUT_OF:
-                    inputs().remove(_other_node_view ); break;
+                    inputs.remove(_other_node_view ); break;
                 case Edge_t::IS_OUTPUT_OF:
-                    outputs().remove(_other_node_view ); break;
+                    outputs.remove(_other_node_view ); break;
                 case Edge_t::IS_SUCCESSOR_OF:
-                    successors().remove(_other_node_view ); break;
+                    successors.remove(_other_node_view ); break;
                 case Edge_t::IS_PREDECESSOR_OF:
                     FW_ASSERT(false); /* NOT HANDLED */break;
             }
@@ -324,7 +320,7 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
         {
 	        if ( NodeView* eachInputView = eachInput->get<NodeView>() )
 	        {
-	            if (!eachInputView->m_pinned && eachInputView->should_follow_output(this) )
+	            if (!eachInputView->pinned && eachInputView->should_follow_output(this) )
                     eachInputView->translate(_delta, true);
 	        }
         }
@@ -335,19 +331,19 @@ void NodeView::arrange_recursively(bool _smoothly)
 {
     std::vector<NodeView*> views;
 
-    for (auto inputView : m_input_slots)
+    for (auto each_input_view: inputs)
     {
-        if (inputView->should_follow_output(this))
+        if (each_input_view->should_follow_output(this))
         {
-            views.push_back(inputView);
-            inputView->arrange_recursively();
+            views.push_back(each_input_view);
+            each_input_view->arrange_recursively();
         }
     }
 
-    for (auto eachChild : m_children_slots)
+    for (auto each_child_view: children)
     {
-        views.push_back(eachChild);
-        eachChild->arrange_recursively();
+        views.push_back(each_child_view);
+        each_child_view->arrange_recursively();
     }
 
 //     Force and update of input connected nodes with a delta time extra high
@@ -357,7 +353,7 @@ void NodeView::arrange_recursively(bool _smoothly)
         update(float(1000));
     }
 
-    m_pinned = false;
+    pinned = false;
 }
 
 bool NodeView::update()
@@ -511,7 +507,7 @@ bool NodeView::draw_implem()
             this->arrange_recursively();
         }
 
-        ImGui::MenuItem("Pinned", "", &m_pinned, true);
+        ImGui::MenuItem("Pinned", "", &pinned, true);
 
 		if ( ImGui::MenuItem("Expanded", "", &m_expanded, true) )
         {
@@ -1058,15 +1054,15 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
     {
         if( !_view) return;
 
-        if ( _view->m_is_visible && !(_view->m_pinned && _ignorePinned) && _view->should_follow_output(this) )
+        if ( _view->m_is_visible && !(_view->pinned && _ignorePinned) && _view->should_follow_output(this) )
         {
             ImRect child_rect = _view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
             fw::ImGuiEx::EnlargeToInclude(result_rect, child_rect);
         }
     };
 
-    std::for_each(m_children_slots.begin(), m_children_slots.end(), enlarge_to_fit_all);
-    std::for_each(m_input_slots.begin()   , m_input_slots.end()   , enlarge_to_fit_all);
+    std::for_each(children.begin(), children.end(), enlarge_to_fit_all);
+    std::for_each(inputs.begin()  , inputs.end()  , enlarge_to_fit_all);
 
     fw::ImGuiEx::DebugRect(result_rect.Min, result_rect.Max, IM_COL32( 0, 255, 0, 255 ),4 );
 
@@ -1105,11 +1101,11 @@ void NodeView::add_force(ImVec2 force, bool _recurse)
 
     if ( _recurse )
     {
-        for ( auto each_input : m_input_slots )
+        for ( NodeView* each_input_view: inputs )
         {
-            if (!each_input->m_pinned && each_input->should_follow_output(this))
+            if (!each_input_view->pinned && each_input_view->should_follow_output(this))
             {
-                each_input->add_force(force, _recurse);
+                each_input_view->add_force(force, _recurse);
             }
         }
     }
@@ -1163,9 +1159,9 @@ ImRect NodeView::get_rect(
 void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
-    for( auto each_child : m_children_slots )
+    for( NodeView* each_child_view: children )
     {
-        each_child->set_expanded_rec(_expanded);
+        each_child_view->set_expanded_rec(_expanded);
     }
 }
 
@@ -1176,43 +1172,40 @@ void NodeView::set_expanded(bool _expanded)
     set_children_visible(_expanded, true);
 }
 
-bool NodeView::should_follow_output(const NodeView* output)
+bool NodeView::should_follow_output(const NodeView* output) const
 {
-    if ( m_output_slots.empty())
-    {
-        return true;
-    }
-    return m_output_slots[0] == output;
+    if ( outputs.empty()) return true;
+    return outputs[0] == output;
 }
 
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
-    for( auto each_input : m_input_slots )
+    for( NodeView* each_input_view: inputs )
     {
-        if( _visible || (outputs().empty() || each_input->should_follow_output(this)) )
+        if( _visible || (outputs.empty() || each_input_view->should_follow_output(this)) )
         {
-            if ( _recursive && each_input->m_expanded ) // propagate only if expanded
+            if ( _recursive && each_input_view->m_expanded ) // propagate only if expanded
             {
-                each_input->set_children_visible(_visible, true);
-                each_input->set_inputs_visible(_visible, true);
+                each_input_view->set_children_visible(_visible, true);
+                each_input_view->set_inputs_visible(_visible, true);
             }
-            each_input->set_visible(_visible);
+            each_input_view->set_visible(_visible);
         }
     }
 }
 
 void NodeView::set_children_visible(bool _visible, bool _recursive)
 {
-    for( auto each_child : m_children_slots )
+    for( auto each_child_view : children )
     {
-        if( _visible || (outputs().empty() || each_child->should_follow_output(this)) )
+        if( _visible || (outputs.empty() || each_child_view->should_follow_output(this)) )
         {
-            if ( _recursive && each_child->m_expanded) // propagate only if expanded
+            if ( _recursive && each_child_view->m_expanded) // propagate only if expanded
             {
-                each_child->set_children_visible(_visible, true);
-                each_child->set_inputs_visible(_visible, true);
+                each_child_view->set_children_visible(_visible, true);
+                each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child->set_visible(_visible);
+            each_child_view->set_visible(_visible);
         }
     }
 }
@@ -1234,10 +1227,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
                 {
                     return substitute_with_parent_if_not_visible(parent_view, _recursive);
                 }
-                else
-                {
-                    return parent_view;
-                }
+                return parent_view;
             }
         }
     }

@@ -94,6 +94,12 @@ namespace ndbl
         NodeView (const NodeView&) = delete;
         NodeView& operator= (const NodeView&) = delete;
 
+        Slots<NodeView*>        successors;
+        Slots<NodeView*>        children;
+        Slots<NodeView*>        outputs;
+        Slots<NodeView*>        inputs;
+        bool                    pinned;
+
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);
 		bool                    update()override;
@@ -110,8 +116,6 @@ namespace ndbl
         void                    clear_constraints();
         const PropertyView*     get_property_view(const Property *)const;
         inline ImVec2           get_size() const { return m_size; }
-        void                    set_pinned(bool b) { m_pinned = b; }
-        bool                    is_pinned()const { return m_pinned; }
         bool                    is_dragged()const { return s_dragged == this; }
         bool                    is_expanded()const { return m_expanded; }
         void                    add_force_to_translate_to(ImVec2 desiredPos, float _factor, bool _recurse = false);
@@ -121,11 +125,7 @@ namespace ndbl
         void                    set_expanded(bool _expanded);
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
         void                    set_children_visible(bool _visible, bool _recursive = false);
-        bool                    should_follow_output(const NodeView*);
-        Slots<NodeView*>&       successors() { return m_successor_slots; }
-        Slots<NodeView*>&       children() { return m_children_slots; }
-        Slots<NodeView*>&       outputs() { return m_output_slots; }
-        Slots<NodeView*>&       inputs() { return m_input_slots; }
+        bool                    should_follow_output(const NodeView*) const;
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
@@ -164,13 +164,8 @@ namespace ndbl
 		ImVec2          m_size;
 		float           m_opacity;
 		bool            m_force_property_inputs_visible;
-		bool            m_pinned;
 		float           m_border_radius;
 		ImColor         m_border_color_selected;
-        Slots<NodeView*> m_children_slots;
-        Slots<NodeView*> m_input_slots;
-        Slots<NodeView*> m_output_slots;
-        Slots<NodeView*> m_successor_slots;
 		std::vector<NodeConnector*>          m_predecessors;
 		std::vector<NodeConnector*>          m_successors;
 		std::vector<PropertyView*>             m_exposed_input_only_properties;

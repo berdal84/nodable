@@ -69,7 +69,7 @@ void ViewConstraint::apply(float _dt)
     {
         case ViewConstraint_t::AlignOnBBoxLeft:
         {
-            if(!first_target->is_pinned() && first_target->is_visible())
+            if(!first_target->pinned && first_target->is_visible())
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers, true);
                 ImVec2 newPos(bbox.GetCenter()
@@ -84,7 +84,7 @@ void ViewConstraint::apply(float _dt)
 
         case ViewConstraint_t::AlignOnBBoxTop:
         {
-            if(!first_target->is_pinned() && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
+            if(!first_target->pinned && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
             {
                 ImRect bbox = NodeView::get_rect(clean_drivers);
                 ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - config.ui_node_spacing));
@@ -111,7 +111,7 @@ void ViewConstraint::apply(float _dt)
 
             for (auto each_target : clean_targets)
             {
-                bool ignore = each_target->is_pinned() || !each_target->is_visible();
+                bool ignore = each_target->pinned || !each_target->is_visible();
                 size_x.push_back(ignore ? 0.f : each_target->get_rect(recursively).GetSize().x);
             }
             auto size_x_total = std::accumulate(size_x.begin(), size_x.end(), 0.0f);
@@ -137,7 +137,7 @@ void ViewConstraint::apply(float _dt)
             auto node_index = 0;
             for (auto each_target : clean_targets)
             {
-                if (!each_target->is_pinned() && each_target->is_visible() )
+                if (!each_target->pinned && each_target->is_visible() )
                 {
                     // Compute new position for this input view
                     float y_offset = config.ui_node_spacing
@@ -163,7 +163,7 @@ void ViewConstraint::apply(float _dt)
 
         case ViewConstraint_t::FollowWithChildren:
         {
-            if (!first_target->is_pinned() && first_target->is_visible() )
+            if (!first_target->pinned && first_target->is_visible() )
             {
                 // compute
                 auto drivers_rect = NodeView::get_rect(clean_drivers, false, true);
@@ -181,7 +181,7 @@ void ViewConstraint::apply(float _dt)
 
         case ViewConstraint_t::Follow:
         {
-            if (!first_target->is_pinned() && first_target->is_visible() )
+            if (!first_target->pinned && first_target->is_visible() )
             {
                 // compute
                 ImVec2 new_pos = clean_drivers[0]->get_position(fw::Space_Local);
