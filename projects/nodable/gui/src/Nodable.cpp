@@ -494,14 +494,13 @@ File *Nodable::open_file(const ghc::filesystem::path& _path)
         delete file;
         return nullptr;
     }
-
-    return open_file(file);
+    add_file(file);
+    return file;
 }
 
-File *Nodable::open_file(File* _file)
+File *Nodable::add_file(File* _file)
 {
-    if(!_file) return nullptr;
-
+    FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
     framework.event_manager.push(fw::EventType_file_opened);
@@ -533,22 +532,21 @@ void Nodable::save_file_as(const ghc::filesystem::path& _path) const
 
 void Nodable::close_file(File* _file)
 {
-    if ( _file )
+    // Find and delete the file
+    FW_EXPECT(_file, "Cannot close a nullptr File!");
+    auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
+    FW_EXPECT(it != m_loaded_files.end(), "Unable to find the file in the loaded_files");
+    it = m_loaded_files.erase(it);
+    delete _file;
+
+    // Switch to the next file if possible
+    if ( it != m_loaded_files.end() )
     {
-        auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
-        FW_ASSERT(it != m_loaded_files.end());
-        it = m_loaded_files.erase(it);
-
-        if ( it != m_loaded_files.end() ) //---- try to load the file next
-        {
-            current_file = *it;
-        }
-        else
-        {
-            current_file = nullptr;
-        }
-
-        delete _file;
+        current_file = *it;
+    }
+    else
+    {
+        current_file = nullptr;
     }
 }
 
@@ -601,9 +599,9 @@ void Nodable::step_over_program()
     {
         NodeView::set_selected(nullptr);
     }
-    else if ( auto view = virtual_machine.get_next_node()->get<NodeView>() )
+    else if (NodeView* next_node_view = virtual_machine.get_next_node()->get<NodeView>() )
     {
-        NodeView::set_selected(view);
+        NodeView::set_selected(next_node_view);
     }
 }
 
@@ -645,7 +643,7 @@ File *Nodable::new_file()
     File* file = new File(ghc::filesystem::path{name});
 
     // 2. try to open from disk
-    if ( !open_file(file) )
+    if ( !add_file(file) )
     {
         delete file;
         return nullptr;

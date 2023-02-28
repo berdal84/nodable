@@ -49,7 +49,7 @@ namespace ndbl
         File*           new_file();
         void            save_file(File *pFile) const;
         void            save_file_as(const ghc::filesystem::path &_path) const;
-        File*           open_file(File *_file);
+        File*           add_file(File *_file);
         void            close_file(File*);
         bool            is_current(const File* _file ) const { return current_file == _file; }
         const std::vector<File*>&
@@ -71,7 +71,7 @@ namespace ndbl
         bool            on_shutdown();
         void            on_update();
         bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
-        static Nodable *        s_instance;
+        static Nodable *   s_instance;
         std::vector<File*> m_loaded_files;
     };
 }
