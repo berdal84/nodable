@@ -17,7 +17,7 @@ const PropertyConnector*   PropertyConnector::s_focused = nullptr;
 
 ImVec2 PropertyConnector::get_pos() const
 {
-    ImVec2 node_screen_pos = m_propertyView->m_nodeView->get_position(fw::Space_Screen);
+    ImVec2 node_screen_pos = m_propertyView->m_nodeView->get_position(fw::Space_Screen, false);
     ImVec2 node_view_size  = m_propertyView->m_nodeView->get_size();
     ImVec2 screen_pos{
             node_screen_pos.x,

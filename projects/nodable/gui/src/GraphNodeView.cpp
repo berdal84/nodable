@@ -156,13 +156,13 @@ bool GraphNodeView::draw_implem()
                 float lineWidth = std::min(app.config.ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
-                ImVec2 start = each_view->get_position(fw::Space_Screen);
+                ImVec2 start = each_view->get_position(fw::Space_Screen, false);
                 start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
                 start.y += app.config.ui_node_connector_height * 0.25f;
 
-                ImVec2 end = each_successor_view->get_position(fw::Space_Screen);
+                ImVec2 end = each_successor_view->get_position(fw::Space_Screen, false);
                 end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
@@ -709,24 +709,16 @@ void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
     fw::ImGuiEx::DebugRect( rect.Min, rect.Max, IM_COL32( 0, 255, 0, 127 ), 5.0f );
     // align graph to center
     fw::ImGuiEx::DebugRect( m_screen_space_content_region.Min, m_screen_space_content_region.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
-    ImVec2 delta = m_screen_space_content_region.GetCenter() - rect.GetCenter();
+    ImVec2 position_delta = m_screen_space_content_region.GetCenter() - rect.GetCenter();
 
-    // if there is x overflow, align left
-    if (m_screen_space_content_region.GetSize().x <= rect.GetSize().x)
-    {
-        delta.x = - rect.GetTL().x + 50.0f;
-    }
+    ImVec2 overflow{rect.GetSize()-m_screen_space_content_region.GetSize()};
+    if (overflow.x > 0) position_delta.x += overflow.x / 2.0f; // Align to top if vertical overflow
+    if (overflow.y > 0) position_delta.y += overflow.y / 2.0f; // Align to left if horizontal overflow
 
-    // if there is y overflow, align top
-    if (m_screen_space_content_region.GetSize().y <= rect.GetSize().y)
-    {
-        // align graph to top-left corner
-        delta.y = - rect.GetTL().y + 50.0f;
-    }
-    fw::ImGuiEx::DebugLine( rect.GetCenter(), rect.GetCenter() + delta, IM_COL32( 255, 0, 0, 255 ), 20.0f);
+    fw::ImGuiEx::DebugLine( rect.GetCenter(), rect.GetCenter() + position_delta, IM_COL32( 255, 0, 0, 255 ), 20.0f);
     std::vector<NodeView*> all_views;
     Node::get_components(get_graph_node()->get_node_registry(), all_views);
-    translate_all(delta , all_views);
+    translate_all(position_delta, all_views);
 }
 
 void GraphNodeView::translate_all(ImVec2 delta, const std::vector<NodeView*>& _views)

@@ -42,12 +42,15 @@ void ViewConstraint::apply(float _dt)
     }
 
     //debug
-    if( fw::ImGuiEx::debug) {
-        for (auto each_target: clean_targets) {
-            for (auto each_driver: clean_drivers) {
+    if( fw::ImGuiEx::debug )
+    {
+        for (auto each_target: clean_targets)
+        {
+            for (auto each_driver: clean_drivers)
+            {
                 fw::ImGuiEx::DebugLine(
-                        each_driver->get_position(fw::Space_Screen),
-                        each_target->get_position(fw::Space_Screen),
+                        each_driver->get_position(fw::Space_Local),
+                        each_target->get_position(fw::Space_Local),
                         IM_COL32(0, 0, 255, 30), 1.0f);
             }
         }
@@ -88,7 +91,7 @@ void ViewConstraint::apply(float _dt)
                 newPos.y -= config.ui_node_spacing + first_target->get_size().y / 2.0f;
                 newPos.x += config.ui_node_spacing + first_target->get_size().x / 2.0f;
 
-                if (newPos.y < first_target->get_position(fw::Space_Local).y )
+                if (newPos.y < first_target->get_position(fw::Space_Local, false).y )
                 {
                     first_target->add_force_to_translate_to(newPos + m_offset, config.ui_node_speed, true);
                 }
@@ -116,16 +119,17 @@ void ViewConstraint::apply(float _dt)
             // Determine x position start:
             //---------------------------
 
-            float        start_pos_x = first_driver->get_position(fw::Space_Local).x - size_x_total / 2.0f;
-            fw::type driver_type = first_driver->get_owner()->get_type();
+            ImVec2   first_driver_pos = first_driver->get_position(fw::Space_Local);
+            float    start_pos_x      = first_driver_pos.x - size_x_total / 2.0f;
+            fw::type driver_type      = first_driver->get_owner()->get_type();
 
             if (driver_type.is_child_of<InstructionNode>()
                 || (driver_type.is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
-                start_pos_x = first_driver->get_position(fw::Space_Local).x
-                        + first_driver->get_size().x / 2.0f
-                        + config.ui_node_spacing;
+                start_pos_x = first_driver_pos.x
+                            + first_driver->get_size().x / 2.0f
+                            + config.ui_node_spacing;
             }
 
             // Constraint in row:
@@ -144,7 +148,7 @@ void ViewConstraint::apply(float _dt)
 
                     ImVec2 new_pos;
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
-                    new_pos.y = first_driver->get_position(fw::Space_Local).y + y_offset;
+                    new_pos.y = first_driver_pos.y + y_offset;
 
                     if (each_target->should_follow_output(first_driver) )
                     {

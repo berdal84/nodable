@@ -1,4 +1,5 @@
 #pragma once
+#include "imgui/imgui.h"
 #include <fw/core/types.h>
 
 namespace fw::math
@@ -17,5 +18,10 @@ namespace fw::math
         u64_t abs_diff = left_greater_than_right ? (_left - _right) : (_right - _left);
         FW_ASSERT( abs_diff <= std::numeric_limits<u64_t>::max() );
         return left_greater_than_right ? (i64_t)abs_diff : -(i64_t)abs_diff;
+    }
+
+    static ImVec2 round(ImVec2 vec)
+    {
+        return {std::round(vec.x), std::round(vec.y)};
     }
 }

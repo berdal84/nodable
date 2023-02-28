@@ -303,15 +303,15 @@ void NodeView::set_position(ImVec2 _position, fw::Space origin)
     }
 }
 
-const ImVec2 NodeView::get_position(fw::Space origin) const
+ImVec2 NodeView::get_position(fw::Space origin, bool round) const
 {
-    switch (origin)
-    {
-        case fw::Space_Local:   return m_position;
-        case fw::Space_Screen:  return m_position + m_screen_space_content_region.GetTL();
-        default:
-            FW_EXPECT(false, "OriginRef_ case not handled, cannot compute perform get_position(...)")
-    }
+    // compute position depending on space
+    ImVec2 result = m_position;
+    if (origin == fw::Space_Screen) result += m_screen_space_content_region.GetTL();
+
+    // return rounded or not if needed
+    if(round) return fw::math::round(result);
+    return result;
 }
 
 void NodeView::translate(ImVec2 _delta, bool _recurse)
@@ -403,7 +403,7 @@ bool NodeView::draw_implem()
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
 	const auto halfSize = m_size / 2.0;
-    ImVec2 node_screen_center_pos = get_position(fw::Space_Screen);
+    ImVec2 node_screen_center_pos = get_position(fw::Space_Screen, true);
     const ImVec2 &node_top_left_corner = node_screen_center_pos - halfSize;
     ImGui::SetCursorScreenPos(node_top_left_corner); // start from th top left corner
 	ImGui::PushID(this);
@@ -459,11 +459,9 @@ bool NodeView::draw_implem()
 
     // Ends the Window
     //----------------
-
-    m_size.x = std::ceil(ImGui::GetItemRectSize().x );
-    m_size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil(ImGui::GetItemRectSize().y ));
-    m_size.x = std::max( 1.0f, m_size.x); // to avoid 0 sized rectangle
-    m_size.y = std::max( 1.0f, m_size.y);
+    ImVec2 node_top_right_corner = ImGui::GetCursorScreenPos();
+    m_size.x = std::max( 1.0f, std::ceil(ImGui::GetItemRectSize().x));
+    m_size.y = std::max( 1.0f, std::ceil(node_top_right_corner.y - node_top_left_corner.y ));
 
     // Draw Property in/out connectors
     {
@@ -568,7 +566,7 @@ bool NodeView::draw_implem()
 
 	return changed;
 }
-void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) const
+void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding)
 {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -577,9 +575,6 @@ void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImC
     draw_list->AddRectFilled(rect_min, rect_max, color, border_radius);
     draw_list->AddRect(rect_min + ImVec2(1.0f), rect_max, border_highlight_col, border_radius);
     draw_list->AddRect(rect_min, rect_max, border_col, border_radius);
-
-    // darken the background under the content
-    draw_list->AddRectFilled(rect_min + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + padding), rect_max, ImColor(0.0f, 0.0f, 0.0f, 0.1f), border_radius, 4);
 
     // Draw an additional blinking rectangle when selected
     if (selected)
@@ -1005,7 +1000,7 @@ void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
 
 		auto nodeRect = _view->get_rect();
 
-		auto newPos = _view->get_position_rounded();
+		auto newPos = _view->get_position(fw::Space_Local, true);
 
 		auto left  = _rect.Min.x - nodeRect.Min.x;
 		auto right = _rect.Max.x - nodeRect.Max.x;
@@ -1044,7 +1039,6 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
 
 ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf)
 {
-
     if( !_recursively)
     {
         ImRect rect{m_position, m_position};
@@ -1258,6 +1252,6 @@ void NodeView::expand_toggle_rec()
 ImRect NodeView::get_screen_rect()
 {
     ImVec2 half_size = m_size / 2.0f;
-    ImVec2 screen_pos = get_position(fw::Space_Screen);
+    ImVec2 screen_pos = get_position(fw::Space_Screen, false);
     return {screen_pos - half_size, screen_pos + half_size};
 }

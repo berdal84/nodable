@@ -23,11 +23,11 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
     ImDrawCornerFlags cornerFlags = _connector->m_way == Way_Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
     auto cursorScreenPos = ImGui::GetCursorScreenPos();
-    ImGui::SetCursorPos(rect.GetTL());
+    ImGui::SetCursorScreenPos(rect.GetTL());
     ImGui::PushID(_connector);
     ImGui::InvisibleButton("###", rect.GetSize());
     ImGui::PopID();
-    ImGui::SetCursorPos(cursorScreenPos);
+    ImGui::SetCursorScreenPos(cursorScreenPos);
 
     ImColor color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hoveredColor : _color;
     draw_list->AddRectFilled(rect.Min, rect.Max, color, rounding, cornerFlags );
