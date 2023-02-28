@@ -15,11 +15,10 @@ const NodeConnector*     NodeConnector::s_focused   = nullptr;
 
 void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable)
 {
-    float rounding = 6.0f;
+    constexpr float rounding = 6.0f;
 
-    auto draw_list = ImGui::GetWindowDrawList();
-    auto rect      = _connector->get_rect();
-    rect.Translate(fw::ImGuiEx::ToScreenPosOffset());
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
+    ImRect      rect      = _connector->get_rect();
 
     ImDrawCornerFlags cornerFlags = _connector->m_way == Way_Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
@@ -33,6 +32,7 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
     ImColor color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hoveredColor : _color;
     draw_list->AddRectFilled(rect.Min, rect.Max, color, rounding, cornerFlags );
     draw_list->AddRect(rect.Min, rect.Max, ImColor(50,50, 50), rounding, cornerFlags );
+    fw::ImGuiEx::DebugRect(rect.Min, rect.Max, ImColor(255,0, 0, 127), 0.0f );
 
     // behavior
     auto connectedNode = _connector->get_connected_node();
@@ -56,13 +56,13 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
         {
             if ( _connector->m_way == Way_Out)
             {
-                const auto& successors = _connector->get_node()->successors();
+                const Slots<Node*>& successors = _connector->get_node()->successors();
                 if (successors.size() < successors.get_limit() ) start_drag(_connector);
             }
             else
             {
-                const auto& predecessors = _connector->get_node()->predecessors();
-                if (predecessors.size() < predecessors.get_limit() ) start_drag(_connector);
+                const Slots<Node*>& predecessors = _connector->get_node()->predecessors();
+                if ( predecessors.empty() ) start_drag(_connector);
             }
         }
 
@@ -76,19 +76,28 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
 ImRect NodeConnector::get_rect() const
 {
-    Nodable & app = Nodable::get_instance();
-    ImVec2 leftCornerPos = m_way == Way_In ? m_node_view.get_rect().GetTL() : m_node_view.get_rect().GetBL();
+    Config& config         = Nodable::get_instance().config;
 
-    ImVec2 size(app.config.ui_node_connector_width, app.config.ui_node_connector_height);
-    ImRect rect(leftCornerPos, leftCornerPos + size);
+    // pick a corner
+    ImVec2   left_corner = m_way == Way_In ?
+            m_node_view.get_screen_rect().GetTL() : m_node_view.get_screen_rect().GetBL();
+
+    // compute connector size
+    ImVec2 size(
+            std::min(config.ui_node_connector_width,  m_node_view.get_size().x),
+            std::min(config.ui_node_connector_height, m_node_view.get_size().y));
+    ImRect rect(left_corner, left_corner + size);
     rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(ImVec2(- app.config.ui_node_connector_padding, 0.0f));
+    rect.Expand(ImVec2(- config.ui_node_connector_padding, 0.0f));
+
+
+
     return rect;
 }
 
-ImVec2 NodeConnector::get_pos()const
+ImVec2 NodeConnector::get_pos() const
 {
-    return get_rect().GetCenter() + fw::ImGuiEx::ToScreenPosOffset();
+    return get_rect().GetCenter();
 }
 
 bool NodeConnector::share_parent_with(const NodeConnector *other) const

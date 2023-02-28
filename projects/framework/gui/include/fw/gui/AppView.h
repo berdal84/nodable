@@ -79,7 +79,7 @@ namespace fw
         void               dock_window(const char* window_name, Dockspace)const; // Must be called ON_RESET_LAYOUT
         void               set_layout_initialized(bool b);
     private:
-        bool               on_draw() override;
+        bool               draw_implem() override;
         void               draw_splashscreen_window();
         void               draw_status_window() const;
         App *               m_app;

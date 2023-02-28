@@ -44,7 +44,7 @@ namespace fw
         std::function<void(Signal)> signal_handler; // override this function to customize behavior
 
         int                run();                 // Run the main loop
-        u64_t              elapsed_time() const;  // Get the elapsed time in seconds
+        double elapsed_time() const;  // Get the elapsed time in seconds
         void               handle_events();
         bool               is_fullscreen() const;
         void               set_fullscreen(bool b);

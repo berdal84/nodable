@@ -57,7 +57,8 @@ ndbl::Config::Config()
     // wires
     ui_wire_bezier_roundness        = 0.5f;
     ui_wire_bezier_thickness        = 2.0f;
-    ui_wire_displayArrows           = false;
+    ui_wire_bezier_length_min       = 300.0f;
+    ui_wire_bezier_length_max       = 1000.0f;
     ui_wire_fillColor               = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
     ui_wire_shadowColor             = ui_node_shadowColor;
 
@@ -83,9 +84,9 @@ ndbl::Config::Config()
     // Window names
     ui_file_info_window_label           = "File";
     ui_help_window_label                = "Help";
-    ui_imgui_config_window_label      = "ImGui";
+    ui_imgui_config_window_label        = "ImGui";
     ui_node_properties_window_label     = "Node";
-    ui_config_window_label            = "Settings";
+    ui_config_window_label              = "Settings";
     ui_startup_window_label             = "Startup";
     ui_toolbar_window_label             = "Toolbar";
     ui_virtual_machine_window_label     = "VM";

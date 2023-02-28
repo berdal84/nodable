@@ -41,7 +41,6 @@ namespace ndbl
 		~FileView() override = default;
 
 		void                           init();
-		bool on_draw() override;
 		bool                           text_has_changed() const { return m_text_has_changed; }
 		void                           set_text(const std::string&);
 		std::string                    get_selected_text()const;
@@ -60,6 +59,7 @@ namespace ndbl
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  ImVec2 position);
 
     private:
+        bool draw_implem() override;
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
 
 		File&        m_file;

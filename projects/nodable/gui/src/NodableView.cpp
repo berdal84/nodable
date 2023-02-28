@@ -562,7 +562,14 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
         ImGui::PushFont(m_app->framework.font_manager.get_font(fw::FontSlot_Code));
-        file->view.draw_as_child("FileView", ImGui::GetContentRegionAvail(), false);
+        const ImVec2 &size = ImGui::GetContentRegionAvail();
+
+        ImGui::BeginChild("FileView", size, false, 0);
+        {
+            file->view.draw();
+        }
+        ImGui::EndChild();
+
         ImGui::PopFont();
         ImGui::PopStyleColor();
 
@@ -573,9 +580,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
     }
     ImGui::End(); // File Window
 
-    if (!is_window_open) {
-        m_app->close_file(file);
-    }
+    if (!is_window_open) m_app->close_file(file);
 }
 
 void AppView::draw_config_window() {
@@ -584,49 +589,55 @@ void AppView::draw_config_window() {
     if (ImGui::Begin(config.ui_config_window_label))
     {
         ImGui::Text("Nodable Settings:");
-        ImGui::Indent();
 
-        ImGui::Text("Buttons:");
-        ImGui::Indent();
-        ImGui::SliderFloat2("ui_toolButton_size", &config.ui_toolButton_size.x, 20.0f, 50.0f);
-        ImGui::Unindent();
+        if (ImGui::CollapsingHeader("Nodes:", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
+        {
+            ImGui::Indent();
+            if ( ImGui::CollapsingHeader("Colors"))
+            {
+                ImGui::ColorEdit4("default", &config.ui_node_fillColor.x);
+                ImGui::ColorEdit4("highlighted", &config.ui_node_highlightedColor.x);
+                ImGui::ColorEdit4("variable", &config.ui_node_variableColor.x);
+                ImGui::ColorEdit4("instruction", &config.ui_node_instructionColor.x);
+                ImGui::ColorEdit4("literal", &config.ui_node_literalColor.x);
+                ImGui::ColorEdit4("function", &config.ui_node_invokableColor.x);
+                ImGui::ColorEdit4("shadow", &config.ui_node_shadowColor.x);
+                ImGui::ColorEdit4("border", &config.ui_node_borderColor.x);
+                ImGui::ColorEdit4("border (highlighted)", &config.ui_node_borderHighlightedColor.x);
+                ImGui::ColorEdit4("connector", &config.ui_node_nodeConnectorColor.x);
+                ImGui::ColorEdit4("connector (hovered)", &config.ui_node_nodeConnectorHoveredColor.x);
+            }
 
-        ImGui::Text("Wires:");
-        ImGui::Indent();
-        ImGui::SliderFloat("thickness", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
-        ImGui::SliderFloat("roundness", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
-        ImGui::Checkbox("arrows", &config.ui_wire_displayArrows);
-        ImGui::Unindent();
+            if ( ImGui::CollapsingHeader("Connectors"))
+            {
+                ImGui::SliderFloat("property connector radius", &config.ui_node_propertyConnectorRadius, 5.0f, 10.0f);
+                ImGui::SliderFloat("node connector padding", &config.ui_node_connector_padding, 0.0f, 100.0f);
+                ImGui::SliderFloat("node connector height", &config.ui_node_connector_height, 2.0f, 100.0f);
+            }
 
-        ImGui::Text("Nodes:");
-        ImGui::Indent();
-        ImGui::SliderFloat("property connector radius", &config.ui_node_propertyConnectorRadius, 1.0f, 10.0f);
-        ImGui::SliderFloat("padding", &config.ui_node_padding, 1.0f, 20.0f);
-        ImGui::SliderFloat("speed", &config.ui_node_speed, 0.0f, 100.0f);
-        ImGui::SliderFloat("spacing", &config.ui_node_spacing, 0.0f, 100.0f);
-        ImGui::SliderFloat("node connector padding", &config.ui_node_connector_padding, 0.0f, 100.0f);
-        ImGui::SliderFloat("node connector height", &config.ui_node_connector_height, 2.0f, 100.0f);
-        ImGui::ColorEdit4("variables color", &config.ui_node_variableColor.x);
-        ImGui::ColorEdit4("instruction color", &config.ui_node_instructionColor.x);
-        ImGui::ColorEdit4("literal color", &config.ui_node_literalColor.x);
-        ImGui::ColorEdit4("function color", &config.ui_node_invokableColor.x);
-        ImGui::ColorEdit4("shadow color", &config.ui_node_shadowColor.x);
-        ImGui::ColorEdit4("border color", &config.ui_node_borderColor.x);
-        ImGui::ColorEdit4("high. color", &config.ui_node_highlightedColor.x);
-        ImGui::ColorEdit4("border high. color", &config.ui_node_borderHighlightedColor.x);
-        ImGui::ColorEdit4("fill color", &config.ui_node_fillColor.x);
-        ImGui::ColorEdit4("node connector color", &config.ui_node_nodeConnectorColor.x);
-        ImGui::ColorEdit4("node connector hovered color", &config.ui_node_nodeConnectorHoveredColor.x);
+            if ( ImGui::CollapsingHeader("Misc."))
+            {
+                ImGui::SliderFloat("padding", &config.ui_node_padding, 2.0f, 10.0f);
+                ImGui::SliderFloat("spacing", &config.ui_node_spacing, 10.0f, 50.0f);
+                ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 10.0f);
+            }
+            ImGui::Unindent();
+        }
 
-        ImGui::Unindent();
+        if (ImGui::CollapsingHeader("Wires / Edges"))
+        {
+            ImGui::SliderFloat("wire thickness", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat("wire thickness (flow)", &config.ui_node_connector_width, 10.0f, 20.0f);
+            ImGui::SliderFloat("wire roundness", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
+            ImGui::SliderFloat("wire length min", &config.ui_wire_bezier_length_min, 200.0f, 1000.0f);
+            ImGui::SliderFloat("wire length max", &config.ui_wire_bezier_length_max, 200.0f, 1000.0f);
+        }
 
-        // code flow
-        ImGui::Text("Code flow:");
-        ImGui::Indent();
-        ImGui::SliderFloat("line width min", &config.ui_node_connector_width, 1.0f, 100.0f);
-        ImGui::Unindent();
+        if (ImGui::CollapsingHeader("Debugging"))
+        {
+            ImGui::Checkbox("fw::ImGuiEx::debug", &fw::ImGuiEx::debug);
+        }
 
-        ImGui::Unindent();
     }
     ImGui::End();
 }

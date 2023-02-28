@@ -1,6 +1,7 @@
 #pragma once
 #include <ndbl/core/Way.h>
 #include <ndbl/gui/types.h>
+#include <fw/gui/ImGuiEx.h>
 
 namespace ndbl {
 
@@ -14,9 +15,8 @@ namespace ndbl {
     class Connector
     {
     public:
-        virtual ImVec2   get_pos()const = 0;
+        virtual ImVec2   get_pos() const = 0;
         virtual bool     share_parent_with(const T *) const = 0;
-
         static void      start_drag(const T* connector) { if(T::s_dragged == nullptr) T::s_dragged = connector; }
         static const T*  get_hovered() { return T::s_hovered; }
         static const T*  get_gragged() { return T::s_dragged; }

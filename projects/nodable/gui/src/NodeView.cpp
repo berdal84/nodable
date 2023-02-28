@@ -292,14 +292,31 @@ const PropertyView* NodeView::get_property_view(const Property * _property)const
     return found->second;
 }
 
-void NodeView::set_position(ImVec2 _position)
+void NodeView::set_position(ImVec2 _position, fw::Space origin)
 {
-	m_position = _position;
+    switch (origin)
+    {
+        case fw::Space_Local: m_position = _position; break;
+        case fw::Space_Screen: m_position = _position - m_screen_space_content_region.GetTL(); break;
+        default:
+            FW_EXPECT(false, "OriginRef_ case not handled, cannot compute perform set_position(...)")
+    }
+}
+
+ImVec2 NodeView::get_position(fw::Space origin, bool round) const
+{
+    // compute position depending on space
+    ImVec2 result = m_position;
+    if (origin == fw::Space_Screen) result += m_screen_space_content_region.GetTL();
+
+    // return rounded or not if needed
+    if(round) return fw::math::round(result);
+    return result;
 }
 
 void NodeView::translate(ImVec2 _delta, bool _recurse)
 {
-    this->set_position(m_position + _delta);
+    set_position(m_position + _delta, fw::Space_Local);
 
 	if ( _recurse )
     {
@@ -357,11 +374,11 @@ bool NodeView::update(float _deltaTime)
 	return true;
 }
 
-bool NodeView::on_draw()
+bool NodeView::draw_implem()
 {
 	bool      changed  = false;
 	auto      node     = get_owner();
-	Config& config = Nodable::get_instance().config;
+	Config&   config   = Nodable::get_instance().config;
 
     FW_ASSERT(node != nullptr);
 
@@ -386,44 +403,25 @@ bool NodeView::on_draw()
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
 	const auto halfSize = m_size / 2.0;
-	ImGui::SetCursorPos(get_position_rounded() - halfSize );
+    ImVec2 node_screen_center_pos = get_position(fw::Space_Screen, true);
+    const ImVec2 &node_top_left_corner = node_screen_center_pos - halfSize;
+    ImGui::SetCursorScreenPos(node_top_left_corner); // start from th top left corner
 	ImGui::PushID(this);
-    ImVec2 cursor_pos_content_start = ImGui::GetCursorPos();
-    ImVec2 screen_cursor_pos_content_start = fw::ImGuiEx::CursorPosToScreenPos(get_position_rounded() );
+
 
 	// Draw the background of the Group
-	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	{			
-		auto borderCol = is_selected(this) ? m_border_color_selected : get_color(ColorType_Border);
+    auto border_color = is_selected(this) ? m_border_color_selected : get_color(ColorType_Border);
+    DrawNodeRect(
+            node_top_left_corner, node_top_left_corner + m_size,
+            get_color(ColorType_Fill), get_color(ColorType_BorderHighlights), get_color(ColorType_Shadow), border_color,
+            is_selected(this), 5.0f, config.ui_node_padding);
 
-		auto itemRectMin = screen_cursor_pos_content_start - halfSize;
-		auto itemRectMax = screen_cursor_pos_content_start + halfSize;
-
-		// Draw the rectangle under everything
-        fw::ImGuiEx::DrawRectShadow(itemRectMin, itemRectMax, m_border_radius, 4, ImVec2(1.0f), get_color(ColorType_Shadow));
-		draw_list->AddRectFilled(itemRectMin, itemRectMax, get_color(ColorType_Fill), m_border_radius);
-		draw_list->AddRect(itemRectMin + ImVec2(1.0f), itemRectMax, get_color(ColorType_BorderHighlights), m_border_radius);
-		draw_list->AddRect(itemRectMin, itemRectMax, borderCol, m_border_radius);
-
-		// darken the background under the content
-		draw_list->AddRectFilled(itemRectMin + ImVec2(0.0f, ImGui::GetTextLineHeightWithSpacing() + config.ui_node_padding), itemRectMax, ImColor(0.0f, 0.0f, 0.0f, 0.1f), m_border_radius, 4);
-
-		// Draw an additionnal blinking rectangle when selected
-		if (is_selected(this))
-		{
-			auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
-			float offset = 4.0f;
-			draw_list->AddRect(itemRectMin - ImVec2(offset), itemRectMax + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), m_border_radius + offset, ~0, offset / 2.0f);
-		}
-	}
-
-	// Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorPos(cursor_pos_content_start);
+    // Add an invisible just on top of the background to detect mouse hovering
+	ImGui::SetCursorScreenPos(node_top_left_corner);
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
-	ImGui::SetCursorPos(cursor_pos_content_start);
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_padding * 2.0f); // x2 padding to keep space for "this" connector
-	ImGui::SetCursorPosY( ImGui::GetCursorPosY() + config.ui_node_padding );
+    ImGui::SetCursorScreenPos(node_top_left_corner + config.ui_node_padding); // top left corner + padding in x and y.
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_propertyConnectorRadius); // add + space for "this" left connector
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -442,21 +440,15 @@ bool NodeView::on_draw()
         ImGui::SameLine();
 
         ImGui::BeginGroup();
-        // Draw inputs
-        for (auto &propertyView : m_exposed_input_only_properties)
-        {
-            ImGui::SameLine();
-            ImGui::SetCursorPosY(cursor_pos_content_start.y + 1.0f);
-            changed |= draw(propertyView);
-        }
 
-        // Draw outputs
-        for (auto &propertyView : m_exposed_out_or_inout_properties)
-        {
+        // draw properties
+        auto draw_property_lambda = [&](PropertyView* view) {
             ImGui::SameLine();
-            ImGui::SetCursorPosY(cursor_pos_content_start.y + 8.0f);
-            changed |= draw(propertyView);
-        }
+            changed |= draw_property(view);
+        };
+        std::for_each(m_exposed_input_only_properties.begin(), m_exposed_input_only_properties.end(), draw_property_lambda);
+        std::for_each(m_exposed_out_or_inout_properties.begin(), m_exposed_out_or_inout_properties.end(), draw_property_lambda);
+
 
         ImGui::EndGroup();
         ImGui::SameLine();
@@ -467,11 +459,9 @@ bool NodeView::on_draw()
 
     // Ends the Window
     //----------------
-
-    m_size.x = std::ceil(ImGui::GetItemRectSize().x );
-    m_size.y = std::max(NODE_VIEW_DEFAULT_SIZE.y, std::ceil(ImGui::GetItemRectSize().y ));
-    m_size.x = std::max( 1.0f, m_size.x); // to avoid 0 sized rectangle 
-    m_size.y = std::max( 1.0f, m_size.y);
+    ImVec2 node_top_right_corner = ImGui::GetCursorScreenPos();
+    m_size.x = std::max( 1.0f, std::ceil(ImGui::GetItemRectSize().x));
+    m_size.y = std::max( 1.0f, std::ceil(node_top_right_corner.y - node_top_left_corner.y ));
 
     // Draw Property in/out connectors
     {
@@ -576,20 +566,36 @@ bool NodeView::on_draw()
 
 	return changed;
 }
-
-bool NodeView::draw(PropertyView* _view )
+void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding)
 {
-    bool    show;
-    bool    changed = false;
-    Property * property  = _view->m_property;
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-    fw::type owner_type = property->get_owner()->get_type();
+    // Draw the rectangle under everything
+    fw::ImGuiEx::DrawRectShadow(rect_min, rect_max, border_radius, 4, ImVec2(1.0f), shadow_col);
+    draw_list->AddRectFilled(rect_min, rect_max, color, border_radius);
+    draw_list->AddRect(rect_min + ImVec2(1.0f), rect_max, border_highlight_col, border_radius);
+    draw_list->AddRect(rect_min, rect_max, border_col, border_radius);
+
+    // Draw an additional blinking rectangle when selected
+    if (selected)
+    {
+        auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
+        float offset = 4.0f;
+        draw_list->AddRect(rect_min - ImVec2(offset), rect_max + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), border_radius + offset, ~0, offset / 2.0f);
+    }
+
+}
+
+bool NodeView::draw_property(PropertyView *_view)
+{
+    bool      show;
+    bool      changed      = false;
+    Property* property     = _view->m_property;
+    fw::type  owner_type   = property->get_owner()->get_type();
 
     /*
      * Handle input visibility
      */
-
-
     if ( _view->m_touched )  // in case user touched it, we keep the current state
     {
         show = _view->m_showInput;
@@ -622,10 +628,7 @@ bool NodeView::draw(PropertyView* _view )
     {
         show = property->get_variant()->is_defined();
     }
-
     _view->m_showInput = show;
-
-    ImVec2 new_relative_pos = ImGui::GetCursorScreenPos() - get_screen_position();
 
     // input
     float input_size = NodeView::s_property_input_toggle_button_size.x;
@@ -675,8 +678,13 @@ bool NodeView::draw(PropertyView* _view )
         }
     }
 
-    new_relative_pos.x += input_size * 0.5f; // center over input
-    _view->relative_pos(new_relative_pos);
+    // compute center position
+    ImVec2 pos = ImGui::GetItemRectMin() ;
+    fw::ImGuiEx::DebugCircle(pos, 2.5f, ImColor(0,0,0));
+    pos += ImGui::GetItemRectSize() * 0.5f;
+
+    // memorize
+    _view->m_position = pos;
 
     return changed;
 }
@@ -782,8 +790,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
 }
 
 bool NodeView::is_inside(NodeView* _nodeView, ImRect _rect) {
-	auto nodeRect = _nodeView->get_rect();
-	return _rect.Contains(nodeRect);
+	return _rect.Contains(_nodeView->get_rect());
 }
 
 void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
@@ -993,7 +1000,7 @@ void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
 
 		auto nodeRect = _view->get_rect();
 
-		auto newPos = _view->get_position_rounded();
+		auto newPos = _view->get_position(fw::Space_Local, true);
 
 		auto left  = _rect.Min.x - nodeRect.Min.x;
 		auto right = _rect.Max.x - nodeRect.Max.x;
@@ -1006,7 +1013,7 @@ void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
 			 if ( up > 0 )    nodeRect.TranslateY(up);
 		else if ( down < 0 )  nodeRect.TranslateY(down);
 
-        _view->set_position(nodeRect.GetCenter());
+        _view->set_position(nodeRect.GetCenter(), fw::Space_Local);
 	}
 
 }
@@ -1030,17 +1037,13 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
     }
 }
 
-ImVec2 NodeView::get_screen_position()
-{
-    return m_position - (ImGui::GetCursorPos() - ImGui::GetCursorScreenPos());
-}
-
 ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf)
 {
-
     if( !_recursively)
     {
-        return { m_position - m_size * 0.5f, m_position + m_size * 0.5f};
+        ImRect rect{m_position, m_position};
+        rect.Expand(m_size);
+        return rect;
     }
 
     ImRect result_rect( ImVec2(std::numeric_limits<float>::max()), ImVec2(-std::numeric_limits<float>::max()) );
@@ -1064,6 +1067,8 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
 
     std::for_each(m_children_slots.begin(), m_children_slots.end(), enlarge_to_fit_all);
     std::for_each(m_input_slots.begin()   , m_input_slots.end()   , enlarge_to_fit_all);
+
+    fw::ImGuiEx::DebugRect(result_rect.Min, result_rect.Max, IM_COL32( 0, 255, 0, 255 ),4 );
 
     return result_rect;
 }
@@ -1142,18 +1147,17 @@ ImRect NodeView::get_rect(
         bool _ignorePinned,
         bool _ignoreMultiConstrained)
 {
-    ImRect result_rect( ImVec2(std::numeric_limits<float>::max()), ImVec2(-std::numeric_limits<float>::max()) );
+    ImRect rect(ImVec2(std::numeric_limits<float>::max()), ImVec2(-std::numeric_limits<float>::max()) );
 
     for (auto eachView : _views)
     {
         if ( eachView->m_is_visible )
         {
-            auto rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
-            fw::ImGuiEx::EnlargeToInclude(result_rect, rect);
+            auto each_rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
+            fw::ImGuiEx::EnlargeToInclude(rect, each_rect);
         }
     }
-
-    return result_rect;
+    return rect;
 }
 
 void NodeView::set_expanded_rec(bool _expanded)
@@ -1243,4 +1247,11 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
 void NodeView::expand_toggle_rec()
 {
     return set_expanded_rec(!m_expanded);
+}
+
+ImRect NodeView::get_screen_rect()
+{
+    ImVec2 half_size = m_size / 2.0f;
+    ImVec2 screen_pos = get_position(fw::Space_Screen, false);
+    return {screen_pos - half_size, screen_pos + half_size};
 }

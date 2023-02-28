@@ -13,6 +13,12 @@
 
 namespace fw
 {
+    // to distinguish the referential of a position
+    enum Space {
+        Space_Local,
+        Space_Screen
+    };
+
     class ImGuiEx
     {
     public:
@@ -61,10 +67,6 @@ namespace fw
                 const char *_format,
                 ...);
 
-        static ImVec2 CursorPosToScreenPos(ImVec2 _cursorPosition);
-
-        static ImVec2 ToScreenPosOffset();
-
         static void DrawVerticalWire(
                 ImDrawList *draw_list,
                 ImVec2 pos0,
@@ -92,6 +94,13 @@ namespace fw
 
         static void     MenuItemBindedToEvent(uint16_t type, bool selected = false, bool enable = true);
         static void     BulletTextWrapped(const char*);
+
+        static ImRect  GetContentRegion(Space);
+
+        static bool    debug; // when true, all DebugXXX commands actually draw, otherwise it is skipped
+        static void    DebugRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding = 0.f, ImDrawFlags flags = 0, float thickness = 1.f);
+        static void    DebugCircle(const ImVec2& center, float radius, ImU32 col, int num_segments = 0, float thickness = 1.0f);
+        static void    DebugLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness = 1.0f);
     private:
         static bool    s_is_in_a_frame;
         static bool    s_is_any_tooltip_open;

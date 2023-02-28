@@ -4,6 +4,7 @@
 
 #include <fw/core/reflection/reflection>
 #include "fw/core/assertions.h"
+#include "fw/gui/ImGuiEx.h"
 
 #include <ndbl/gui/Connector.h>
 #include <ndbl/gui/types.h>
@@ -44,7 +45,7 @@ namespace ndbl {
 
         Property*          get_property()const;
         fw::type           get_property_type()const;
-        ImVec2             get_pos()const override;
+        ImVec2             get_pos() const override;
         bool               share_parent_with(const PropertyConnector *other)const override;
         bool               has_node_connected() const;
         static void        draw(const PropertyConnector *_connector, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor, bool _editable);
