@@ -33,6 +33,7 @@ REGISTER
 bool GraphNodeView::draw_implem()
 {
     bool            changed          = false;
+    bool pixel_perfect = true;
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
     Node*           new_node         = nullptr;
@@ -156,13 +157,13 @@ bool GraphNodeView::draw_implem()
                 float lineWidth = std::min(app.config.ui_node_connector_width,
                                            viewWidthMin / float(slot_count) - (padding * 2.0f));
 
-                ImVec2 start = each_view->get_position(fw::Space_Screen, false);
+                ImVec2 start = each_view->get_position(fw::Space_Screen, pixel_perfect);
                 start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
                 start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
                 start.y += app.config.ui_node_connector_height * 0.25f;
 
-                ImVec2 end = each_successor_view->get_position(fw::Space_Screen, false);
+                ImVec2 end = each_successor_view->get_position(fw::Space_Screen, pixel_perfect);
                 end.x -= each_successor_view->get_size().x * 0.5f;
                 end.x += lineWidth * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
@@ -342,7 +343,7 @@ bool GraphNodeView::draw_implem()
         const Node* node = app.virtual_machine.get_next_node();
         if( auto view = node->get<NodeView>())
         {
-            ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen);
+            ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen, pixel_perfect);
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
             auto draw_list = ImGui::GetWindowDrawList();
