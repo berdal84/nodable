@@ -56,13 +56,13 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
         {
             if ( _connector->m_way == Way_Out)
             {
-                const auto& successors = _connector->get_node()->successors();
+                const Slots<Node*>& successors = _connector->get_node()->successors();
                 if (successors.size() < successors.get_limit() ) start_drag(_connector);
             }
             else
             {
-                const auto& predecessors = _connector->get_node()->predecessors();
-                if (predecessors.size() < predecessors.get_limit() ) start_drag(_connector);
+                const Slots<Node*>& predecessors = _connector->get_node()->predecessors();
+                if ( predecessors.empty() ) start_drag(_connector);
             }
         }
 
