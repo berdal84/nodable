@@ -81,8 +81,10 @@ bool FileView::draw_implem()
         m_child2_size *= ratio;
     }
 
-    ImRect splitter_rect{ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos()};
-    splitter_rect.Max += ImVec2(region_available.y, 4.0f);
+    ImRect splitter_rect{
+            ImGui::GetCursorScreenPos(),
+            ImGui::GetCursorScreenPos() + ImVec2(4.0f, region_available.y)
+    };
     splitter_rect.TranslateX(m_child1_size + 2.0f);
     ImGui::SplitterBehavior(splitter_rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
 
