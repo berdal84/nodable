@@ -292,8 +292,8 @@ void NodeView::set_position(ImVec2 _position, fw::Space origin)
 {
     switch (origin)
     {
-        case fw::Space_Local: m_position = _position; break;
-        case fw::Space_Screen: m_position = _position - m_screen_space_content_region.GetTL(); break;
+        case fw::Space_Local: m_position = _position - position_offset_user; break;
+        case fw::Space_Screen: m_position = _position - position_offset_user - m_screen_space_content_region.GetTL(); break;
         default:
             FW_EXPECT(false, "OriginRef_ case not handled, cannot compute perform set_position(...)")
     }
@@ -302,7 +302,7 @@ void NodeView::set_position(ImVec2 _position, fw::Space origin)
 ImVec2 NodeView::get_position(fw::Space origin, bool round) const
 {
     // compute position depending on space
-    ImVec2 result = m_position;
+    ImVec2 result = m_position + position_offset_user;
     if (origin == fw::Space_Screen) result += m_screen_space_content_region.GetTL();
 
     // return rounded or not if needed
@@ -312,7 +312,8 @@ ImVec2 NodeView::get_position(fw::Space origin, bool round) const
 
 void NodeView::translate(ImVec2 _delta, bool _recurse)
 {
-    set_position(m_position + _delta, fw::Space_Local);
+    ImVec2 current_local_position = get_position(fw::Space_Local);
+    set_position( current_local_position + _delta, fw::Space_Local);
 
 	if ( _recurse )
     {
@@ -354,6 +355,7 @@ void NodeView::arrange_recursively(bool _smoothly)
     }
 
     pinned = false;
+    position_offset_user = {};
 }
 
 bool NodeView::update()
@@ -1037,8 +1039,10 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
 {
     if( !_recursively)
     {
-        ImRect rect{m_position, m_position};
+        ImVec2 local_position = get_position(fw::Space_Local);
+        ImRect rect{local_position, local_position};
         rect.Expand(m_size);
+
         return rect;
     }
 

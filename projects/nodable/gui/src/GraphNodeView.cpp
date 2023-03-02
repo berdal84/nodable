@@ -323,9 +323,11 @@ bool GraphNodeView::draw_implem()
                 // dragging
                 if (NodeView::get_dragged() == each_node_view && ImGui::IsMouseDragging(0))
                 {
-                    each_node_view->translate(ImGui::GetMouseDragDelta(), true);
+                    ImVec2 mouse_drag_delta = ImGui::GetMouseDragDelta();
+                    //each_node_view->translate(mouse_drag_delta, true);
                     ImGui::ResetMouseDragDelta();
-                    each_node_view->pinned = true;
+                    each_node_view->position_offset_user += mouse_drag_delta;
+                    //each_node_view->pinned = true;
                 }
 
                 isAnyNodeDragged |= NodeView::get_dragged() == each_node_view;
