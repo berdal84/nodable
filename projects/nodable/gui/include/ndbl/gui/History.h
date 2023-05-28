@@ -59,7 +59,7 @@ namespace ndbl
 		 *                          This flag is here to handle legacy history mode (text based) and
 		 *                          hybrid mode (Text/Graph).
 		 */
-		void push_command(std::shared_ptr<ICommand>, bool _from_text_editor = false);
+		void push_command(std::shared_ptr<AbstractCommand>, bool _from_text_editor = false);
 
         void enable_text_editor(bool _val) { m_text_editor_buffer.set_enable(_val); }
 
@@ -99,7 +99,7 @@ namespace ndbl
 	    size_t              m_size_max;
 		TextEditorBuffer    m_text_editor_buffer;
         const bool*         m_experimental_hybrid_history;
-		std::deque<std::shared_ptr<ICommand>> m_past;
-		std::deque<std::shared_ptr<ICommand>> m_future;
+		std::deque<std::shared_ptr<AbstractCommand>> m_past;
+		std::deque<std::shared_ptr<AbstractCommand>> m_future;
     };
 }

@@ -5,7 +5,7 @@
 
 namespace ndbl
 {
-    class Cmd_ConnectEdge : public IUndoableCmd
+    class Cmd_ConnectEdge : public AbstractCommand
     {
     public:
         Cmd_ConnectEdge(DirectedEdge _edge)

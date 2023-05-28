@@ -8,7 +8,7 @@ namespace ndbl
     /**
      * Command triggered when user modify text in the text editor.
      */
-    class Cmd_ReplaceText : public IUndoableCmd
+    class Cmd_ReplaceText : public AbstractCommand
     {
     public:
         Cmd_ReplaceText(

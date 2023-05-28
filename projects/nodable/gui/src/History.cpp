@@ -9,7 +9,7 @@ History::~History()
 	m_future.clear();
 }
 
-void History::push_command(std::shared_ptr<ICommand> _cmd, bool _from_text_editor)
+void History::push_command(std::shared_ptr<AbstractCommand> _cmd, bool _from_text_editor)
 {
     // clear any future commands (when we undo, commands are moved from past to future)
     m_future.clear();
@@ -38,7 +38,7 @@ void History::undo()
 {
 	if ( !m_past.empty() )
 	{
-        std::shared_ptr<ICommand> command_to_undo = m_past.front();
+        std::shared_ptr<AbstractCommand> command_to_undo = m_past.front();
         command_to_undo->undo();
         m_past.pop_front();
         m_future.push_front(command_to_undo);
@@ -50,7 +50,7 @@ void History::redo()
 {
 	if ( !m_future.empty() )
 	{
-        std::shared_ptr<ICommand> command_to_redo = m_future.front();
+        std::shared_ptr<AbstractCommand> command_to_redo = m_future.front();
         command_to_redo->redo();
         m_future.pop_front();
         m_past.push_front(command_to_redo);
@@ -101,7 +101,7 @@ std::string History::get_cmd_description_at(int _cmd_position)
     }
     else
 	{
-        std::shared_ptr<ICommand> cmd;
+        std::shared_ptr<AbstractCommand> cmd;
         if (_cmd_position <= 0 )
         {
             cmd = m_past.at(abs(_cmd_position));

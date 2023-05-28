@@ -6,7 +6,7 @@ namespace ndbl
     /**
      * Command triggered when user modify text in the text editor.
      */
-    class Cmd_WrappedTextEditorUndoRecord : public IUndoableCmd
+    class Cmd_WrappedTextEditorUndoRecord : public AbstractCommand
     {
     public:
         Cmd_WrappedTextEditorUndoRecord(

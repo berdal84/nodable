@@ -456,9 +456,9 @@ void Nodable::on_update()
                 for(auto each_edge: edges)
                 {
                     auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(*each_edge);
-                    cmd_grp->push_cmd( std::static_pointer_cast<ICommand>(each_cmd) );
+                    cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
-                curr_file_history->push_command(std::static_pointer_cast<ICommand>(cmd_grp));
+                curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
 
                 break;
             }
