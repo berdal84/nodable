@@ -21,10 +21,9 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
     ImRect      rect      = _connector->get_rect();
     ImVec2      rect_size = rect.GetSize();
 
-    // Return early when area is 0,
-    // TODO: Find why some nodes are positioned so far from origin.
-    //       That causes the size to be 0.0f due to float precision.
-    if(rect_size.x == 0.0f || rect_size.y == 0.0f) return;
+    // Return early if rectangle cannot be draw.
+    // TODO: Find why size can be zero more (more surprisingly) nan.
+    if(rect_size.x == 0.0f || rect_size.y == 0.0f || std::isnan(rect_size.x) || std::isnan(rect_size.y) ) return;
 
     ImDrawCornerFlags cornerFlags = _connector->m_way == Way_Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
