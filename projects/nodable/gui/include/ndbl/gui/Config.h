@@ -71,6 +71,8 @@ namespace ndbl {
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
         bool           isolate_selection;
-        fw::Config       framework;
+        float          graph_unfold_dt;
+        i16_t          graph_unfold_iterations;
+        fw::Config     framework;
     };
 }

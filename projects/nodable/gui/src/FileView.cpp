@@ -26,7 +26,7 @@ FileView::FileView(File& _file)
     , m_text_overlay_window_name(_file.name + "_text_overlay" )
     , m_graph_overlay_window_name(_file.name + "_graph_overlay" )
 {
-    m_graph_change_obs.observe(_file.event_graph_changed, [](GraphNode* _graph)
+    m_graph_change_obs.observe(_file.event_graph_changed, [this](GraphNode* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )
@@ -40,13 +40,13 @@ FileView::FileView(File& _file)
             // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
             {
-                // unfold graph (simulate 1000 updates). Does not work well,
-                graph_view->update( 100000.0f, 100);
+                // visually unfold graph. Does not work super well...
+                graph_view->unfold();
 
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 std::vector<NodeView*> views;
                 Node::get_components<NodeView>( _graph->get_node_registry(), views );
-                graph_view->translate_all( ImVec2(-10000.0f), views);
+                graph_view->translate_all( ImVec2(-10000.0f) , views);
 
                 // frame all (delay to next frame via event system)
                 fw::EventManager::get_instance().push(EventType_frame_all_node_views);

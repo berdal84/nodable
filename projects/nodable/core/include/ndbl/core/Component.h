@@ -18,7 +18,6 @@ namespace ndbl
         Component (const Component&) = delete;                    // disable to avoid mistakes
         Component& operator= (const Component&) = delete;         //       ... same ...
         virtual ~Component() = default;
-        virtual bool    update() = 0;                             // Called each frame
         inline Node*    get_owner()const { return m_owner; }      // Get the node owning this component
         template<class T> [[nodiscard]]                           // Shorthand to cast<T>(this)
             inline T*       as() { return fw::cast<T>(this); }

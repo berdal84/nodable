@@ -103,7 +103,7 @@ namespace ndbl
 
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);
-		bool                    update()override;
+		bool                    update(float);
         ImVec2                  get_position(fw::Space, bool round = false) const;
 		void                    set_position(ImVec2, fw::Space);
 		void                    translate(ImVec2, bool _recurse = false);
@@ -148,11 +148,10 @@ namespace ndbl
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
     private:
         bool                    draw_implem()override;
-        virtual bool            update(float _deltaTime);
         bool                    draw_property(PropertyView *_view);
         bool                    is_exposed(const Property *_property)const;
         void                    update_labels_from_name(Node *_node);
-        static void                    DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) ;
+        static void             DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) ;
 
         std::string     m_label;
         std::string     m_short_label;

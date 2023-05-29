@@ -12,7 +12,6 @@ namespace ndbl
         Scope();
         ~Scope(){}
 
-        bool                    update() override { return true; };
         Node*                   get_last_code_block();
         void                    get_last_instructions_rec(std::vector<InstructionNode *> &_out) override ;
 

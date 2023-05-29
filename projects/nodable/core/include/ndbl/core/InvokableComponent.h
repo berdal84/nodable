@@ -22,7 +22,7 @@ namespace ndbl
 		InvokableComponent(const fw::func_type*, bool _is_operator, const fw::iinvokable*);
 		~InvokableComponent() = default;
 
-        bool                               update() override;
+        bool                               update();
 		inline void                        set_arg(size_t _index, Property *_value) { m_args[_index] = _value; }
 		inline Property *                     get_arg(size_t _index)const  { return m_args[_index]; }
 		inline const std::vector<Property *>& get_args()const { return m_args; }

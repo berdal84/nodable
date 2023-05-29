@@ -617,10 +617,10 @@ void GraphNodeView::create_child_view_constraints()
     }
 }
 
-bool GraphNodeView::update(float delta_time, u8_t subsample_count)
+bool GraphNodeView::update(float delta_time, i16_t subsample_count)
 {
     const float subsample_delta_time = delta_time / float(subsample_count);
-    for(u8_t i = 0; i < subsample_count; i++)
+    for(i16_t i = 0; i < subsample_count; i++)
         update( subsample_delta_time );
     return true;
 }
@@ -641,7 +641,7 @@ bool GraphNodeView::update(float delta_time)
 
     // Update
     for (auto eachView : views)
-        eachView->update();
+        eachView->update(delta_time);
 
     return true;
 }
@@ -743,4 +743,10 @@ void GraphNodeView::destroy_child_view_constraints()
             eachView->clear_constraints();
         }
     }
+}
+
+void GraphNodeView::unfold()
+{
+    auto& config = Nodable::get_instance().config;
+    update( config.graph_unfold_dt, config.graph_unfold_iterations );
 }

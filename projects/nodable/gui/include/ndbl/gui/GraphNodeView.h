@@ -31,11 +31,11 @@ namespace ndbl
 
         void        set_owner(Node *) override;
         /** Update view (once per frame)*/
-        bool        update() override;
+        bool        update();
         /** Update view given a certain delta time */
         bool        update(float /* delta_time */);
         /** Update view given a certain delta time and a subsample count */
-        bool        update(float /* delta_time */, u8_t /* subsample_count */);
+        bool        update(float /* delta_time */, i16_t /* subsample_count */);
         void        create_child_view_constraints();
         void        destroy_child_view_constraints();
 		void        add_contextual_menu_item(
@@ -46,6 +46,8 @@ namespace ndbl
         void        frame_all_node_views();
         void        frame_selected_node_views();
         void        translate_all(ImVec2 /* delta */, const std::vector<NodeView*>&);
+        void        unfold(); // unfold the graph until it is stabilized
+
     private:
         bool        draw_implem() override ;
         void        frame_views( std::vector<NodeView*>&);

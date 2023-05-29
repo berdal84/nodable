@@ -347,8 +347,8 @@ void NodeView::arrange_recursively(bool _smoothly)
         each_child_view->arrange_recursively();
     }
 
-//     Force and update of input connected nodes with a delta time extra high
-//     to ensure all nodes were well placed in a single call (no smooth moves)
+    // Force an update of input nodes with a delta time extra high
+    // to ensure all nodes will be well placed in a single call (no smooth moves)
     if ( !_smoothly )
     {
         update(float(1000));
@@ -358,17 +358,11 @@ void NodeView::arrange_recursively(bool _smoothly)
     position_offset_user = {};
 }
 
-bool NodeView::update()
-{
-	auto deltaTime = ImGui::GetIO().DeltaTime;
-
-	return update(deltaTime);
-}
-
 bool NodeView::update(float _deltaTime)
 {
-    fw::math::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
-    this->apply_forces(_deltaTime, false);
+    if(m_opacity != 1.0f) fw::math::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
+
+    apply_forces(_deltaTime, false);
 	return true;
 }
 

@@ -633,6 +633,12 @@ void AppView::draw_config_window() {
             ImGui::SliderFloat("wire length max", &config.ui_wire_bezier_length_max, 200.0f, 1000.0f);
         }
 
+        if (ImGui::CollapsingHeader("Graph"))
+        {
+            ImGui::InputFloat("graph unfold delta time", &config.graph_unfold_dt);
+            ImGui::InputInt("graph unfold iterations", &config.graph_unfold_iterations, 1, 1000);
+        }
+
         if (ImGui::CollapsingHeader("Debugging"))
         {
             ImGui::Checkbox("fw::ImGuiEx::debug", &fw::ImGuiEx::debug);

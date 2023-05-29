@@ -19,6 +19,12 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
     ImRect      rect      = _connector->get_rect();
+    ImVec2      rect_size = rect.GetSize();
+
+    // Return early when area is 0,
+    // TODO: Find why some nodes are positioned so far from origin.
+    //       That causes the size to be 0.0f due to float precision.
+    if(rect_size.x == 0.0f || rect_size.y == 0.0f) return;
 
     ImDrawCornerFlags cornerFlags = _connector->m_way == Way_Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
@@ -89,8 +95,6 @@ ImRect NodeConnector::get_rect() const
     ImRect rect(left_corner, left_corner + size);
     rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
     rect.Expand(ImVec2(- config.ui_node_connector_padding, 0.0f));
-
-
 
     return rect;
 }
