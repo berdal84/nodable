@@ -48,7 +48,7 @@ ndbl::Config::Config()
     ui_node_nodeConnectorHoveredColor = ImColor(200, 200, 200);
     ui_node_nodeConnectorColor     = ImColor(127, 127, 127);
     ui_node_spacing                = 30.0f;
-    ui_node_speed                  = 80.0f;
+    ui_node_speed                  = 20.0f;
     ui_node_animation_subsample_count = 4;  // 60fps * 4 gives virtually 240Fps for the animations
     ui_node_connector_height       = 20.0f;
     ui_node_connector_padding      = 2.0f;

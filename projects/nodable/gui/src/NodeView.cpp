@@ -1113,13 +1113,13 @@ void NodeView::apply_forces(float _dt, bool _recurse)
 {
     float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
-    constexpr float magnitude_max  = 100.0f;
+    constexpr float magnitude_max  = 1000.0f;
     const float     friction       = fw::math::lerp (0.0f, 0.5f, magnitude / magnitude_max);
     const ImVec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
 
     translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
 
-    m_last_frame_forces_sum = m_forces_sum;
+    m_last_frame_forces_sum = avg_forces_sum;
     m_forces_sum            = ImVec2();
 }
 
