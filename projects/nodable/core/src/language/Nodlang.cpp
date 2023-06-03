@@ -50,6 +50,7 @@ using namespace fw;
 Nodlang::Nodlang(bool _strict)
     : m_strict_mode(_strict)
     , m_graph(nullptr)
+    , m_parser_method(ParserMethod::NOREGEX_IF_POSSIBLE) // until NOREGEX is fully featured
 {
 
     // A.1. Define regular expressions
@@ -786,7 +787,7 @@ bool Nodlang::tokenize(const std::string &_string)
     auto &regexIdToTokType = get_token_t_by_regex_index();
 
     // Parsing method #1: loop over all regex (might be slow).
-    auto parse_token_using_regexes = [&]() -> std::shared_ptr<Token> {
+    auto parse_token__regex = [&]() -> std::shared_ptr<Token> {
         std::shared_ptr<Token> result;
         size_t index = std::distance(_string.cbegin(), cursor);
 
@@ -810,8 +811,8 @@ bool Nodlang::tokenize(const std::string &_string)
         return result;
     };
 
-    // Parsing method #2: should be faster (that's the objective)
-    auto parse_token_fast = [&]() -> std::shared_ptr<Token> {
+    // ParseMethod::CUSTOM : should be faster (that's the objective)
+    auto parse_token__noregex = [&]() -> std::shared_ptr<Token> {
         std::shared_ptr<Token> result;
         size_t cursor_idx = std::distance(_string.cbegin(), cursor);
         size_t char_left = _string.size() - cursor_idx;
@@ -878,13 +879,24 @@ bool Nodlang::tokenize(const std::string &_string)
     {
         std::shared_ptr<Token> new_token;
 
-        // first, we try to tokenize using a WIP technique not involving any regex
-        new_token = parse_token_fast();
-
-        // then, if nothing matches, we try using our old technique using regexes
-        if (!new_token)
+        switch (m_parser_method)
         {
-            new_token = parse_token_using_regexes();
+            case ParserMethod::NOREGEX:
+                new_token = parse_token__noregex();
+                break;
+
+            case ParserMethod::NOREGEX_IF_POSSIBLE:
+                new_token = parse_token__noregex();
+                if(!new_token)
+                    new_token = parse_token__regex();
+                break;
+
+            case ParserMethod::REGEX:
+                new_token = parse_token__regex();
+                break;
+
+            default:
+                FW_EXPECT(false, "Unhandled ParserMethod case");
         }
 
         if (!new_token)

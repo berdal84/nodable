@@ -22,6 +22,12 @@ namespace ndbl{
     class InvokableComponent;
     class Scope;
 
+    enum class ParserMethod {
+        REGEX = 0,
+        NOREGEX_IF_POSSIBLE,
+        NOREGEX
+    };
+
 	/**
 	 * @class Nodlang is Nodable's language.
 	 * This class allows to parse, serialize, and define Nodlang language.
@@ -40,6 +46,7 @@ namespace ndbl{
         // Parser ---------------------------------------------------------------------
     public:
         bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
+        void                   set_parser_method(ParserMethod _method) { m_parser_method = _method; }
     private:
         void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
         void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
@@ -71,6 +78,7 @@ namespace ndbl{
         TokenRibbon            m_token_ribbon;    // This token ribbon is cleared/filled when tokenize() is called.
         std::stack<Scope*>     m_scope_stack;     // Current scopes (babushka dolls).
         bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared variable is rejected. When OFF, parser can produce a graph with undeclared variables but the compiler won't be able to handle it.
+        ParserMethod           m_parser_method;
 
         // Serializer ------------------------------------------------------------------
     public:

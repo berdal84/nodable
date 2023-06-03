@@ -63,6 +63,24 @@ target_link_libraries(
         nodable-gui
 )
 
+# Benchmarks
+#-----------
+
+# Declare our main executable
+add_executable(
+        nodable-core-benchmark
+        src/main_benchmark.cpp
+)
+
+# Link libraries
+target_link_libraries(
+        nodable-core-benchmark
+        PRIVATE
+        benchmark::benchmark # google's
+        nodable-core
+        framework-core
+)
+
 # Add test executables
 #---------------------
 cmake_policy(SET CMP0110 NEW) # Allow spaces in test names
