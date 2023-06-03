@@ -23,10 +23,16 @@ namespace ndbl{
     class Scope;
 
     enum class ParserMethod {
-        REGEX = 0,
-        NOREGEX_IF_POSSIBLE,
-        NOREGEX
+        REGEX_ONLY = 0,  // allow regular expressions
+        PREFER_NO_REGEX, // allow regular expressions only if there is no other option
+        NO_REGEX_ONLY    // do not allow regular expressions
     };
+
+    R_ENUM(ParserMethod)
+        R_ENUM_VALUE(REGEX_ONLY)
+        R_ENUM_VALUE(PREFER_NO_REGEX)
+        R_ENUM_VALUE(NO_REGEX_ONLY)
+    R_ENUM_END
 
 	/**
 	 * @class Nodlang is Nodable's language.

@@ -50,15 +50,15 @@ using namespace fw;
 Nodlang::Nodlang(bool _strict)
     : m_strict_mode(_strict)
     , m_graph(nullptr)
-    , m_parser_method(ParserMethod::NOREGEX_IF_POSSIBLE) // until NOREGEX is fully featured
+    , m_parser_method(ParserMethod::NO_REGEX_ONLY) // until NO_REGEX is fully featured
 {
 
     // A.1. Define regular expressions
     //--------------------------------
 
     // ignored
-    add_regex(std::regex("^(//(.+?)($|\n))"), Token_t::ignore);// Single line
-    add_regex(std::regex("^(/\\*(.+?)\\*/)"), Token_t::ignore);// Multi line
+    add_regex(std::regex("^(//(.+?)($|\n))"), Token_t::ignore);// single-line comment
+    add_regex(std::regex("^(/\\*(.+?)\\*/)"), Token_t::ignore);// multi-line comment
     add_char('\t', Token_t::ignore);
     add_char(' ' , Token_t::ignore);
 
@@ -87,7 +87,7 @@ Nodlang::Nodlang(bool _strict)
 #endif
 
     // literals
-    // USE OTHER METHOD: insert(std::regex("^(true|false)")                , Token_t::literal_bool  , type::get<bool>());
+    add_regex(std::regex("(true|false)"), Token_t::literal_bool  , type::get<bool>());
     add_regex(std::regex(R"(("[^"]*"))"), Token_t::literal_string, type::get<std::string>());
     add_regex(std::regex("(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal_double, type::get<double>());
     add_regex(std::regex("(0|([1-9][0-9]*))"), Token_t::literal_int, type::get<i16_t>());
@@ -97,7 +97,7 @@ Nodlang::Nodlang(bool _strict)
 
     // operators
     add_regex(std::regex("(<=>)"), Token_t::operator_);                           // 3 chars
-    add_regex(std::regex("([=\\|&]{2}|(<=)|(>=)|(=>)|(!=))"), Token_t::operator_);// 2 chars
+    add_regex(std::regex("([=\\|&]{2}|([/+\\-*!=<>]=)|(=>))"), Token_t::operator_);// 2 chars
     add_regex(std::regex("[/+\\-*!=<>]"), Token_t::operator_);                    // single char
 
     add_operator("-", Operator_t::Unary, 5);// --------- unary (sorted by precedence)
@@ -118,6 +118,10 @@ Nodlang::Nodlang(bool _strict)
     add_operator(">", Operator_t::Binary, 10);
     add_operator("<", Operator_t::Binary, 10);
     add_operator("=", Operator_t::Binary, 0);
+    add_operator("+=", Operator_t::Binary, 0);
+    add_operator("-=", Operator_t::Binary, 0);
+    add_operator("/=", Operator_t::Binary, 0);
+    add_operator("*=", Operator_t::Binary, 0);
 
     // A.3. Load libraries
     //---------------------
@@ -786,7 +790,7 @@ bool Nodlang::tokenize(const std::string &_string)
     auto &regex = get_token_regexes();
     auto &regexIdToTokType = get_token_t_by_regex_index();
 
-    // Parsing method #1: loop over all regex (might be slow).
+    // parse using regular expressions: loop over all regex (might be slow).
     auto parse_token__regex = [&]() -> std::shared_ptr<Token> {
         std::shared_ptr<Token> result;
         size_t index = std::distance(_string.cbegin(), cursor);
@@ -803,7 +807,11 @@ bool Nodlang::tokenize(const std::string &_string)
                 result = std::make_shared<Token>(matched_token_t, matched_str, index);
                 std::advance(cursor, matched_str.length());
 
-                LOG_VERBOSE("Parser", "Token identified as %s at char %i: %s\n", to_string(matched_token_t).c_str(), index, matched_str.c_str())
+                LOG_VERBOSE("Parser",
+                            "\"%s\" identified as a Token_t::%s at char %i\n",
+                            matched_str.c_str(),
+                            to_string(matched_token_t).c_str(),
+                            index )
 
                 return result;
             }
@@ -811,16 +819,47 @@ bool Nodlang::tokenize(const std::string &_string)
         return result;
     };
 
-    // ParseMethod::CUSTOM : should be faster (that's the objective)
+    // parse without regular expressions : should be faster (that's the objective)
     auto parse_token__noregex = [&]() -> std::shared_ptr<Token> {
         std::shared_ptr<Token> result;
         size_t cursor_idx = std::distance(_string.cbegin(), cursor);
         size_t char_left = _string.size() - cursor_idx;
-        std::string::value_type current_char = _string.data()[cursor_idx];
+        std::string::value_type current_char = *cursor;
 
-        // single char
+        // comments
+        if (current_char == '/' && (cursor + 1) != _string.end())
+        {
+            auto next_char = *(cursor + 1);
+            if (next_char == '*' || next_char == '/')
+            {
+                auto cursor_end = cursor + 1;
+                bool multi_line = next_char == '*';
+                while (
+                        cursor_end != _string.end()
+                        &&
+                        (
+                            ( !multi_line && *cursor_end != '\n')
+                            ||
+                            ( multi_line && !(*cursor_end == '/' && *(cursor_end-1) == '*'))
+                        )
+                    )
+                {
+                    ++cursor_end;
+                }
+                ++cursor_end;
+                size_t length = std::distance(cursor, cursor_end);
+                result = std::make_shared<Token>(Token_t::ignore, _string.substr(cursor_idx, length), cursor_idx);
+                std::advance(cursor, length);
+                return result;
+            }
+        }
+
+
         switch (current_char)
         {
+            // punctuation
+            //------------
+
             case '{':
                 cursor++;
                 return std::make_shared<Token>(Token_t::scope_begin, current_char, cursor_idx);
@@ -839,39 +878,148 @@ bool Nodlang::tokenize(const std::string &_string)
             case ';':
                 cursor++;
                 return std::make_shared<Token>(Token_t::end_of_instruction, current_char, cursor_idx);
-            case '\n':// fallthrough ...
-            case ' ': // fallthrough ...
+
+            // ignored chars
+            //--------------
+
+            case '\n':
+            case ' ':
             case '\t':
                 cursor++;
                 return std::make_shared<Token>(Token_t::ignore, current_char, cursor_idx);
-            default: /* no warning */;
+
+            // operators
+            //----------
+
+            case '=': {
+                // "=>" or "=="
+                auto cursor_end = cursor + 1;
+                if (cursor_end != _string.end() && (*cursor_end == '>' || *cursor_end == '=')) {
+                    ++cursor_end;
+                    auto length = std::distance(cursor, cursor_end);
+                    std::advance(cursor, length);
+                    return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
+                }
+                // <operator>
+                cursor++;
+                return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
+            }
+
+            case '!':
+            case '/':
+            case '*':
+            case '+':
+            case '-':
+            case '>':
+            case '<': {
+                // "<operator>=" (do not handle: "++", "--")
+                auto cursor_end = cursor + 1;
+                if (cursor_end != _string.end() && *cursor_end == '=') {
+                    ++cursor_end;
+                    // special case for "<=>" operator
+                    if (current_char == '<' && cursor_end != _string.end() && *cursor_end == '>') {
+                        ++cursor_end;
+                    }
+                    auto length = std::distance(cursor, cursor_end);
+                    std::advance(cursor, length);
+                    return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
+                }
+
+                // <operator>
+                cursor++;
+                return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
+            }
         }
 
-        // booleans
-        if (_string.compare(cursor_idx, 4, "true") == 0)
-        {
-            result = std::make_shared<Token>(Token_t::literal_bool, "true", cursor_idx);
-            std::advance(cursor, 4);
-            return result;
+        // number (double)
+        //     note: we do not deal with zero prefix issues like: 0002.15454, or 01000
+        if (current_char >= '0' && current_char <= '9') {
+            auto cursor_end = cursor + 1;
+            bool parsing_decimals = false;
+            while (cursor_end != _string.end()
+                   && (
+                           // 0-9 digits
+                           (*cursor_end >= '0' && *cursor_end <= '9')
+                           ||
+                           // dot (allowed once)
+                           (*cursor_end == '.' && !parsing_decimals)
+                   )
+                    ) {
+                if ((*cursor_end) == '.') {
+                    parsing_decimals = true;
+                }
+                ++cursor_end;
+            }
+            auto length = std::distance(cursor, cursor_end);
+            std::advance(cursor, length);
+            return std::make_shared<Token>(
+                    parsing_decimals ? Token_t::literal_double : Token_t::literal_int,
+                    _string.substr(cursor_idx, length), cursor_idx);
         }
-        if (_string.compare(cursor_idx, 5, "false") == 0)
+
+        const std::map<const char*, Token_t> keywords{
+            { "if", Token_t::keyword_if },
+            { "for", Token_t::keyword_for },
+            { "int", Token_t::keyword_int },
+            { "bool", Token_t::keyword_bool },
+            { "else", Token_t::keyword_else },
+            { "true", Token_t::literal_bool },
+            { "false", Token_t::literal_bool },
+            { "double", Token_t::keyword_double },
+            { "string", Token_t::keyword_string },
+            { "operator", Token_t::keyword_operator },
+        };
+
+        // reserved keywords
+        for(auto [keyword, token_type] : keywords)
         {
-            result = std::make_shared<Token>(Token_t::literal_bool, "false", cursor_idx);
-            std::advance(cursor, 5);
+            if (_string.compare(cursor_idx, strlen(keyword), keyword) == 0) {
+                result = std::make_shared<Token>(token_type, keyword, cursor_idx);
+                std::advance(cursor, result->m_buffer.size() );
+                return result;
+            }
+        }
+
+        // double-quoted string
+        if ( current_char == '"')
+        {
+            auto cursor_end = cursor + 1;
+            while ( cursor_end != _string.end() && (*cursor_end != '"' || *(cursor_end-1) == '\\'))
+            {
+                ++cursor_end;
+            }
+            ++cursor_end;
+            size_t length = std::distance(cursor, cursor_end);
+            result = std::make_shared<Token>(Token_t::literal_string, _string.substr(cursor_idx, length), cursor_idx);
+            std::advance(cursor, length);
             return result;
         }
 
-        // numbers
-        //        if( *cursor >= '0' && *cursor <= '9' )
-        //        {
-        //            auto temp_cursor = cursor;
-        //            while( temp_cursor!=_string.cend() && *temp_cursor >= '0' && *temp_cursor <= '9' )
-        //            {
-        //                ++temp_cursor;
-        //            }
-        //            if()
-        //            result = std::make_shared<Token>(Token_t::literal_int, "true", cursor_idx);
-        //        }
+        // symbol
+        if (*cursor >= 'a' && *cursor <= 'z')
+        {
+            auto cursor_end = cursor + 1;
+            while (
+                cursor_end != _string.end()
+                &&
+                (
+                    (*cursor_end >= 'a' && *cursor_end <= 'z') // [a-z]
+                    ||
+                    (*cursor_end >= 'A' && *cursor_end <= 'Z') // [A-Z]
+                    ||
+                    (*cursor_end >= '0' && *cursor_end <= '9') // [0-9]
+                    ||
+                    *cursor_end == '_'
+                )
+             )
+            {
+                ++cursor_end;
+            }
+            size_t length = std::distance(cursor, cursor_end);
+            result = std::make_shared<Token>(Token_t::identifier, _string.substr(cursor_idx, length), cursor_idx);
+            std::advance(cursor, length);
+            return result;
+        }
         return nullptr;
     };
 
@@ -881,17 +1029,17 @@ bool Nodlang::tokenize(const std::string &_string)
 
         switch (m_parser_method)
         {
-            case ParserMethod::NOREGEX:
+            case ParserMethod::NO_REGEX_ONLY:
                 new_token = parse_token__noregex();
                 break;
 
-            case ParserMethod::NOREGEX_IF_POSSIBLE:
+            case ParserMethod::PREFER_NO_REGEX:
                 new_token = parse_token__noregex();
                 if(!new_token)
                     new_token = parse_token__regex();
                 break;
 
-            case ParserMethod::REGEX:
+            case ParserMethod::REGEX_ONLY:
                 new_token = parse_token__regex();
                 break;
 
@@ -902,7 +1050,7 @@ bool Nodlang::tokenize(const std::string &_string)
         if (!new_token)
         {
             size_t distance = std::distance(_string.cbegin(), cursor);
-            LOG_WARNING("Parser", "Scanner Error: unable to tokenize %s at index %llu\n", _string.substr(distance, 10).c_str(), distance)
+            LOG_WARNING("Parser", "Scanner Error: unable to tokenize \"%s...\" at index %llu\n", _string.substr(distance, 20).c_str(), distance)
             return false;
         }
 
@@ -948,7 +1096,7 @@ bool Nodlang::tokenize(const std::string &_string)
                 }
             }
             m_token_ribbon.push(new_token);
-            LOG_VERBOSE("Parser", "Append: %s\n", Token::to_string(new_token).c_str())
+            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", Token::to_string(new_token).c_str())
         } else
         {
             /*
@@ -956,7 +1104,7 @@ bool Nodlang::tokenize(const std::string &_string)
              * Once a no ignored token is parsed those pending_chars are added to the suffix (option 1) or to the prefix (option 2)
              */
             pending_ignored_chars.append(new_token->get_word());
-            LOG_VERBOSE("Parser", "Append ignored: %s\n", Token::to_string(new_token).c_str())
+            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", Token::to_string(new_token).c_str())
         }
     }
 

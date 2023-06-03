@@ -28,7 +28,7 @@
 
 using namespace ndbl;
 
-class Fixture : public benchmark::Fixture {
+class NodlangFixture : public benchmark::Fixture {
 public:
     Nodlang* language;
     bool autocompletion;
@@ -38,7 +38,7 @@ public:
     std::mt19937 generator; // Standard mersenne_twister_engine
     std::uniform_real_distribution<double> distribution;
 
-    Fixture()
+    NodlangFixture()
         : generator(random_device())
         , distribution(
             -100000.0,
@@ -52,7 +52,7 @@ public:
         autocompletion = false;
         factory = new NodeFactory(language);
         graph = new GraphNode(language, factory, &autocompletion);
-        fw::log::set_verbosity(fw::log::Verbosity_Warning);
+        fw::log::set_verbosity(fw::log::Verbosity_Error);
     }
 
     void TearDown(const ::benchmark::State& state) {
@@ -65,30 +65,90 @@ public:
     }
 };
 
-BENCHMARK_DEFINE_F(Fixture, BM_ParserMethod_REGEX)(benchmark::State& state) {
-    language->set_parser_method(ParserMethod::REGEX);
+BENCHMARK_DEFINE_F(NodlangFixture, parse_double)(benchmark::State& state) {
+    auto method = (ParserMethod)state.range(0);
+    language->set_parser_method(method);
+    state.SetLabel(to_string(method));
 
     for (auto _ : state) {
-        language->parse(get_random_double_as_string(), graph);
+        FW_EXPECT(language->parse(get_random_double_as_string(), graph), "parse failed");
     }
 }
 
-BENCHMARK_DEFINE_F(Fixture, BM_ParserMethod_NOREGEX_IF_POSSIBLE)(benchmark::State& state) {
-    language->set_parser_method(ParserMethod::NOREGEX_IF_POSSIBLE);
+BENCHMARK_DEFINE_F(NodlangFixture, parse_boolean)(benchmark::State& state) {
+    auto method = (ParserMethod)state.range(0);
+    language->set_parser_method(method);
+    state.SetLabel(to_string(method));
+
+    bool b = true;
     for (auto _ : state) {
-        language->parse(get_random_double_as_string(), graph);
+        FW_EXPECT(language->parse( b ? "true" : "false", graph), "parse failed");
+        b = !b;
     }
 }
 
-BENCHMARK_DEFINE_F(Fixture, BM_ParserMethod_NOREGEX)(benchmark::State& state) {
-    language->set_parser_method(ParserMethod::NOREGEX);
+BENCHMARK_DEFINE_F(NodlangFixture, parse_operators)(benchmark::State& state) {
+    auto method = (ParserMethod)state.range(0);
+    language->set_parser_method(method);
+    state.SetLabel(to_string(method));
 
+    std::array operations{
+        "1+1",
+        "1-1",
+        "1!=1",
+        "1==1",
+        "1>1",
+        "1<1",
+        "1>=1",
+        "1<=1",
+        "1*=1",
+        "1/=1",
+        "1+=1",
+        "1-=1",
+        "1=>1",
+        "1<=>1"
+    };
+
+    size_t id = 0;
     for (auto _ : state) {
-        language->parse(get_random_double_as_string(), graph);
+        FW_EXPECT(language->parse(operations.at(id), graph ), "parse failed");
+        id = (id+1) % operations.size();
     }
 }
 
-BENCHMARK_REGISTER_F(Fixture, BM_ParserMethod_NOREGEX);
-BENCHMARK_REGISTER_F(Fixture, BM_ParserMethod_REGEX);
+BENCHMARK_DEFINE_F(NodlangFixture, parse_code)(benchmark::State& state) {
+    auto method = (ParserMethod)state.range(0);
+    language->set_parser_method(method);
+    state.SetLabel(to_string(method));
+
+    std::string code = "int a = 10;"
+                       "int b = 5;"
+                       "if(a>b){"
+                       " print(\"a>b\");"
+                       "}else{"
+                       " print(\"a<=b\");"
+                       "}"
+                       ;
+
+    for (auto _ : state) {
+        FW_EXPECT(language->parse(code, graph ), "parse failed");
+    }
+}
+
+BENCHMARK_REGISTER_F(NodlangFixture, parse_code)
+        ->Args({(int)ParserMethod::REGEX_ONLY})
+        ->Args({(int)ParserMethod::NO_REGEX_ONLY});
+
+BENCHMARK_REGISTER_F(NodlangFixture, parse_operators)
+    ->Args({(int)ParserMethod::REGEX_ONLY})
+    ->Args({(int)ParserMethod::NO_REGEX_ONLY});
+
+BENCHMARK_REGISTER_F(NodlangFixture, parse_boolean)
+    ->Args({(int)ParserMethod::REGEX_ONLY})
+    ->Args({(int)ParserMethod::NO_REGEX_ONLY});
+
+BENCHMARK_REGISTER_F(NodlangFixture, parse_double)
+    ->Args({(int)ParserMethod::REGEX_ONLY})
+    ->Args({(int)ParserMethod::NO_REGEX_ONLY});
 
 BENCHMARK_MAIN();
