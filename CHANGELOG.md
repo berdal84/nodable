@@ -4,7 +4,7 @@ Nodable Change log :
 
 Author: Bérenger Dalle-Cort, 2017-2023
 
-### v0.10:
+### v0.9:
     - remove all regex (parsing performance gain 1dt => 0.75dt )
     - fixed lot of crashes
     - add help panel
@@ -14,8 +14,6 @@ Author: Bérenger Dalle-Cort, 2017-2023
     - architecture:
         - nodable / framework split
         - Simplifications (less getters/setters, less inheritance, more composition, less virtuals...)
-
-### v0.9:
     - add a shortcut system (rely on SDL2),
     - nodable events can be binded to shortcuts,
     - whole file editing is now default, user can enable/disable isolation mode to see selected text as a graph,
