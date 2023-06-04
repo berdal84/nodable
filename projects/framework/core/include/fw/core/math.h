@@ -1,6 +1,7 @@
 #pragma once
 #include <imgui/imgui.h>
 #include <fw/core/types.h>
+#include <math.h>
 
 namespace fw::math
 {

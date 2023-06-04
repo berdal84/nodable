@@ -1,5 +1,4 @@
 #include <ndbl/core/assembly/Compiler.h>
-#include <memory>
 #include <exception>
 #include <iostream>
 #include <fw/core/log.h>

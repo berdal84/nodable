@@ -5,7 +5,7 @@ Nodable Change log :
 Author: Bérenger Dalle-Cort, 2017-2023
 
 ### v0.10:
-    - add comments
+    - remove all regex (parsing performance gain 1dt => 0.75dt )
     - fixed lot of crashes
     - add help panel
     - add FontManager
