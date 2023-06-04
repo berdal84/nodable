@@ -119,9 +119,7 @@ namespace ndbl{
             }
         }
 
-        // Add a new (abstract) operator (ex: "==", Operator_t::binary, 5)
         invokable_ptr                   find_operator_fct_fallback(const fw::func_type*) const;      // Find a fallback operator function for a given signature (allows cast).
-        // Register a type, token_t, string tuple (ex: type::get<int>, Token_t::keyword_int, "int")
 
         struct {
             std::vector<std::tuple<const char*, Token_t>>                  keywords;
