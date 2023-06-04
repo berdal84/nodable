@@ -31,7 +31,7 @@ namespace ndbl {
         identifier,
         expr_begin,
         expr_end,
-        fct_params_separator,
+        list_separator,
         scope_begin,
         scope_end ,
         end_of_instruction,

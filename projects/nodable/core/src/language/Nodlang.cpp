@@ -42,15 +42,21 @@ Nodlang::Nodlang(bool _strict)
 {
     // A.1. Define the language
     //-------------------------
+    m_definition.chars =
+    {
+        { '(',    Token_t::expr_begin},
+        { ')',    Token_t::expr_end},
+        { '{',    Token_t::scope_begin},
+        { '}',    Token_t::scope_end},
+        { '\n',   Token_t::ignore},
+        { '\t',   Token_t::ignore},
+        { ' ',    Token_t::ignore},
+        { ';',    Token_t::end_of_instruction},
+        { ',',    Token_t::list_separator}
+    };
 
     m_definition.keywords =
     {
-         { "(",    Token_t::expr_begin},
-         { ")",    Token_t::expr_end},
-         { "{",    Token_t::scope_begin},
-         { "}",    Token_t::scope_end},
-         { "\n",   Token_t::end_of_line},
-         { ";",    Token_t::end_of_instruction},
          { "if",   Token_t::keyword_if },
          { "for",  Token_t::keyword_for },
          { "else", Token_t::keyword_else },
@@ -94,6 +100,11 @@ Nodlang::Nodlang(bool _strict)
 
     // A.2. Create indexes
     //---------------------
+    for( auto [_char, token_t] : m_definition.chars)
+    {
+        m_token_t_by_single_char.insert({_char, token_t});
+        m_single_char_by_keyword.insert({token_t, _char});
+    }
 
     for( auto [keyword, token_t] : m_definition.keywords)
     {
@@ -859,10 +870,10 @@ std::shared_ptr<Token> Nodlang::parse_token(
     std::shared_ptr<Token> result;
     size_t cursor_idx = std::distance(_string.cbegin(), _cursor);
     size_t char_left = _string.size() - cursor_idx;
-    std::string::value_type current_char = *_cursor;
+    std::string::value_type cursor_char = *_cursor;
 
     // comments
-    if (current_char == '/' && (_cursor + 1) != _string.end())
+    if (cursor_char == '/' && (_cursor + 1) != _string.end())
     {
         auto next_char = *(_cursor + 1);
         if (next_char == '*' || next_char == '/')
@@ -889,42 +900,20 @@ std::shared_ptr<Token> Nodlang::parse_token(
         }
     }
 
-
-    switch (current_char)
+    // single-char
+    for( auto [each_char, token_t] : m_token_t_by_single_char)
     {
-        // punctuation
-        //------------
+        if (cursor_char == each_char )
+        {
+            _cursor++;
+            return std::make_shared<Token>(token_t, cursor_char, cursor_idx);
+        }
+    }
 
-        case '{':
-            _cursor++;
-            return std::make_shared<Token>(Token_t::scope_begin, current_char, cursor_idx);
-        case '}':
-            _cursor++;
-            return std::make_shared<Token>(Token_t::scope_end, current_char, cursor_idx);
-        case '(':
-            _cursor++;
-            return std::make_shared<Token>(Token_t::expr_begin, current_char, cursor_idx);
-        case ')':
-            _cursor++;
-            return std::make_shared<Token>(Token_t::expr_end, current_char, cursor_idx);
-        case ',':
-            _cursor++;
-            return std::make_shared<Token>(Token_t::fct_params_separator, current_char, cursor_idx);
-        case ';':
-            _cursor++;
-            return std::make_shared<Token>(Token_t::end_of_instruction, current_char, cursor_idx);
-
-            // ignored chars
-            //--------------
-
-        case '\n':
-        case ' ':
-        case '\t':
-            _cursor++;
-            return std::make_shared<Token>(Token_t::ignore, current_char, cursor_idx);
-
-            // operators
-            //----------
+    switch (cursor_char)
+    {
+        // operators
+        //----------
 
         case '=': {
             // "=>" or "=="
@@ -935,9 +924,9 @@ std::shared_ptr<Token> Nodlang::parse_token(
                 std::advance(_cursor, length);
                 return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
             }
-            // <operator>
+            // "="
             _cursor++;
-            return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
+            return std::make_shared<Token>(Token_t::operator_, cursor_char, cursor_idx);
         }
 
         case '!':
@@ -952,7 +941,7 @@ std::shared_ptr<Token> Nodlang::parse_token(
             if (cursor_end != _string.end() && *cursor_end == '=') {
                 ++cursor_end;
                 // special case for "<=>" operator
-                if (current_char == '<' && cursor_end != _string.end() && *cursor_end == '>') {
+                if (cursor_char == '<' && cursor_end != _string.end() && *cursor_end == '>') {
                     ++cursor_end;
                 }
                 auto length = std::distance(_cursor, cursor_end);
@@ -962,13 +951,13 @@ std::shared_ptr<Token> Nodlang::parse_token(
 
             // <operator>
             _cursor++;
-            return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
+            return std::make_shared<Token>(Token_t::operator_, cursor_char, cursor_idx);
         }
     }
 
     // number (double)
     //     note: we do not deal with zero prefix issues like: 0002.15454, or 01000
-    if (current_char >= '0' && current_char <= '9') {
+    if (cursor_char >= '0' && cursor_char <= '9') {
         auto cursor_end = _cursor + 1;
         bool parsing_decimals = false;
         while (cursor_end != _string.end()
@@ -1003,7 +992,7 @@ std::shared_ptr<Token> Nodlang::parse_token(
     }
 
     // double-quoted string
-    if ( current_char == '"')
+    if (cursor_char == '"')
     {
         auto cursor_end = _cursor + 1;
         while ( cursor_end != _string.end() && (*cursor_end != '"' || *(cursor_end-1) == '\\'))
@@ -1096,7 +1085,7 @@ Property *Nodlang::parse_function_call()
         {
             args.push_back(property);                // store argument as property (already parsed)
             signature.push_arg(property->get_type());// add a new argument type to the proto.
-            m_token_ribbon.eatToken(Token_t::fct_params_separator);
+            m_token_ribbon.eatToken(Token_t::list_separator);
         } else
         {
             parsingError = true;
@@ -1476,7 +1465,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature, 
 
         if (*it != _args.back())
         {
-            serialize(_out, Token_t::fct_params_separator);
+            serialize(_out, Token_t::list_separator);
         }
     }
 
@@ -1496,7 +1485,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature) 
     {
         if (it != args.begin())
         {
-            serialize(_out, Token_t::fct_params_separator);
+            serialize(_out, Token_t::list_separator);
             _out.append(" ");
         }
         serialize(_out, it->m_type);
@@ -1878,9 +1867,20 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
         case Token_t::identifier:      return _out.append("identifier");
         default:
         {
-            auto found = m_keyword_by_token_t.find(_token_t);
-            if (found != m_keyword_by_token_t.cend()) {
-                return _out.append(found->second);
+            {
+                auto found = m_keyword_by_token_t.find(_token_t);
+                if (found != m_keyword_by_token_t.cend())
+                {
+                    return _out.append(found->second);
+                }
+            }
+            {
+                auto found = m_single_char_by_keyword.find(_token_t);
+                if (found != m_single_char_by_keyword.cend())
+                {
+                    _out.push_back(found->second);
+                    return _out;
+                }
             }
             return _out.append("<?>");
         }
