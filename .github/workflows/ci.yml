@@ -21,7 +21,7 @@ jobs:
       build_type: Release # possible options: MinSizeRel Release, Debug, RelWithDebInfo
     steps:
       - name: Git recursive checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: true
@@ -60,13 +60,13 @@ jobs:
         run: cpack -C ${{env.build_type}}
 
       - name: Binary Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: nodable-${{ runner.os }}
           path: ${{runner.workspace}}/nodable/out/app/*
 
       - name: Package Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: nodable-package-${{ runner.os }}
           path: |
@@ -79,7 +79,7 @@ jobs:
     if: ${{ success() }} # see https://docs.github.com/en/actions/learn-github-actions/expressions#status-check-functions
     steps:
       - name: Git recursive checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install doxygen
@@ -88,7 +88,7 @@ jobs:
         run: cd docs && doxygen
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: Nodable-Technical-Documentation
           path: ${{runner.workspace}}/Nodable/docs/doxygen
