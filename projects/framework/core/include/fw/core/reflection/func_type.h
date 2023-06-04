@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <tuple>
-#include <regex>
 #include <memory>
 #include <fw/core/reflection/type.h>
 

@@ -10,32 +10,21 @@
 
 #include <algorithm>
 #include <memory>
-#include <regex>
 #include <sstream>
 #include <string>
 
-#include <fw/core/string.h>
-#include <fw/core/system.h>
 #include <fw/core/reflection/reflection>
 #include <fw/core/log.h>
 
 #include <ndbl/core/ConditionalStructNode.h>
-#include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/DirectedEdge.h>
 #include <ndbl/core/ForLoopNode.h>
 #include <ndbl/core/GraphNode.h>
-#include <ndbl/core/GraphNode.h>
-#include <ndbl/core/InstructionNode.h>
 #include <ndbl/core/InstructionNode.h>
 #include <ndbl/core/InvokableComponent.h>
-#include <ndbl/core/InvokableComponent.h>
-#include <ndbl/core/LiteralNode.h>
 #include <ndbl/core/LiteralNode.h>
 #include <ndbl/core/Property.h>
-#include <ndbl/core/Property.h>
 #include <ndbl/core/Scope.h>
-#include <ndbl/core/Scope.h>
-#include <ndbl/core/VariableNode.h>
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/language/Nodlang_biology.h>
 #include <ndbl/core/language/Nodlang_math.h>
@@ -50,77 +39,83 @@ using namespace fw;
 Nodlang::Nodlang(bool _strict)
     : m_strict_mode(_strict)
     , m_graph(nullptr)
-    , m_parser_method(ParserMethod::REGEX_ONLY) // until NO_REGEX_ONLY is fully featured
 {
+    // A.1. Define the language
+    //-------------------------
 
-    // A.1. Define regular expressions
-    //--------------------------------
+    m_definition.keywords =
+    {
+         { "(",    Token_t::expr_begin},
+         { ")",    Token_t::expr_end},
+         { "{",    Token_t::scope_begin},
+         { "}",    Token_t::scope_end},
+         { "\n",   Token_t::end_of_line},
+         { ";",    Token_t::end_of_instruction},
+         { "if",   Token_t::keyword_if },
+         { "for",  Token_t::keyword_for },
+         { "else", Token_t::keyword_else },
+         { "true", Token_t::literal_bool },
+         { "false",    Token_t::literal_bool },
+         { "operator", Token_t::keyword_operator },
+    };
 
-    // ignored
-    add_regex(std::regex("^(//(.+?)($|\n))"), Token_t::ignore);// single-line comment
-    add_regex(std::regex("^(/\\*(.+?)\\*/)"), Token_t::ignore);// multi-line comment
-    add_char('\t', Token_t::ignore);
-    add_char(' ' , Token_t::ignore);
-#if (WIN32)
-    add_char('\n', Token_t::ignore); // <--- should be '\n\r' not handled yet.
-#elif(__APPLE__ || __linux__)
-    add_char('\n', Token_t::ignore); // <--- We do not handle old mac '\r'.
-#endif
+    m_definition.types =
+    {
+         { "bool",   Token_t::keyword_bool,    type::get<bool>()},
+         { "string", Token_t::keyword_string,  type::get<std::string>()},
+         { "double", Token_t::keyword_double,  type::get<double>()},
+         { "int",    Token_t::keyword_int,     type::get<i16_t>()}
+    };
 
-    // keywords
-    add_string("if",       Token_t::keyword_if);
-    add_string("else",     Token_t::keyword_else);
-    add_string("for",      Token_t::keyword_for);
-    add_string("operator", Token_t::keyword_operator);
-    add_type(type::get<bool>(),        Token_t::keyword_bool,   "bool");
-    add_type(type::get<std::string>(), Token_t::keyword_string, "string");
-    add_type(type::get<double>(),      Token_t::keyword_double, "double");
-    add_type(type::get<i16_t>(),       Token_t::keyword_int,    "int");
+    m_definition.operators =
+    {
+         {"-",   Operator_t::Unary,   5},
+         {"!",   Operator_t::Unary,   5},
+         {"/",   Operator_t::Binary, 20},
+         {"*",   Operator_t::Binary, 20},
+         {"+",   Operator_t::Binary, 10},
+         {"-",   Operator_t::Binary, 10},
+         {"||",  Operator_t::Binary, 10},
+         {"&&",  Operator_t::Binary, 10},
+         {">=",  Operator_t::Binary, 10},
+         {"<=",  Operator_t::Binary, 10},
+         {"=>",  Operator_t::Binary, 10},
+         {"==",  Operator_t::Binary, 10},
+         {"<=>", Operator_t::Binary, 10},
+         {"!=",  Operator_t::Binary, 10},
+         {">",   Operator_t::Binary, 10},
+         {"<",   Operator_t::Binary, 10},
+         {"=",   Operator_t::Binary,  0},
+         {"+=",  Operator_t::Binary,  0},
+         {"-=",  Operator_t::Binary,  0},
+         {"/=",  Operator_t::Binary,  0},
+         {"*=",  Operator_t::Binary,  0}
+    };
 
-    // punctuation
-    add_char('{', Token_t::scope_begin);
-    add_char('}', Token_t::scope_end);
-    add_char('(', Token_t::fct_params_begin);
-    add_char(')', Token_t::fct_params_end);
-    add_char(',', Token_t::fct_params_separator);
-    add_char(';', Token_t::end_of_instruction);
+    // A.2. Create indexes
+    //---------------------
 
-    // literals
-    add_regex(std::regex("(true|false)"), Token_t::literal_bool  , type::get<bool>());
-    add_regex(std::regex(R"(("[^"]*"))"), Token_t::literal_string, type::get<std::string>());
-    add_regex(std::regex("(0|([1-9][0-9]*))(\\.[0-9]+)"), Token_t::literal_double, type::get<double>());
-    add_regex(std::regex("(0|([1-9][0-9]*))"), Token_t::literal_int, type::get<i16_t>());
+    for( auto [keyword, token_t] : m_definition.keywords)
+    {
+        m_token_t_by_keyword.insert({keyword, token_t});
+        m_keyword_by_token_t.insert({token_t, keyword});
+    }
 
-    // identifier
-    add_regex(std::regex("([a-zA-Z_]+[a-zA-Z0-9]*)"), Token_t::identifier);
+    for( auto [keyword, token_t, type] : m_definition.types)
+    {
+        m_keyword_by_token_t.insert({token_t, keyword});
+        m_keyword_by_type_hashcode.insert({type.hash_code(), keyword});
+        m_token_t_by_keyword.insert({keyword, token_t});
+        m_token_t_by_type_hashcode.insert({type.hash_code(), token_t});
+        m_type_by_token_t.insert({token_t, type});
+    }
 
-    // operators
-    add_regex(std::regex("(<=>)"), Token_t::operator_);                           // 3 chars
-    add_regex(std::regex("([=\\|&]{2}|([/+\\-*!=<>]=)|(=>))"), Token_t::operator_);// 2 chars
-    add_regex(std::regex("[/+\\-*!=<>]"), Token_t::operator_);                    // single char
-
-    add_operator("-", Operator_t::Unary, 5);// --------- unary (sorted by precedence)
-    add_operator("!", Operator_t::Unary, 5);
-
-    add_operator("/", Operator_t::Binary, 20);// ------- binary (sorted by precedence)
-    add_operator("*", Operator_t::Binary, 20);
-    add_operator("+", Operator_t::Binary, 10);
-    add_operator("-", Operator_t::Binary, 10);
-    add_operator("||", Operator_t::Binary, 10);
-    add_operator("&&", Operator_t::Binary, 10);
-    add_operator(">=", Operator_t::Binary, 10);
-    add_operator("<=", Operator_t::Binary, 10);
-    add_operator("=>", Operator_t::Binary, 10);
-    add_operator("==", Operator_t::Binary, 10);
-    add_operator("<=>", Operator_t::Binary, 10);
-    add_operator("!=", Operator_t::Binary, 10);
-    add_operator(">", Operator_t::Binary, 10);
-    add_operator("<", Operator_t::Binary, 10);
-    add_operator("=", Operator_t::Binary, 0);
-    add_operator("+=", Operator_t::Binary, 0);
-    add_operator("-=", Operator_t::Binary, 0);
-    add_operator("/=", Operator_t::Binary, 0);
-    add_operator("*=", Operator_t::Binary, 0);
+    for( auto [keyword, operator_t, precedence] : m_definition.operators)
+    {
+        const Operator *op = new Operator(keyword, operator_t, precedence);
+        FW_ASSERT(std::find(m_operators.begin(), m_operators.end(), op) == m_operators.end())
+        m_operators.push_back(op);
+    }
 
     // A.3. Load libraries
     //---------------------
@@ -510,7 +505,7 @@ Property *Nodlang::parse_parenthesis_expression()
 
     start_transaction();
     std::shared_ptr<Token> currentToken = m_token_ribbon.eatToken();
-    if (currentToken->m_type != Token_t::fct_params_begin)
+    if (currentToken->m_type != Token_t::expr_begin)
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
         rollback_transaction();
@@ -521,7 +516,7 @@ Property *Nodlang::parse_parenthesis_expression()
     if (result)
     {
         std::shared_ptr<Token> token = m_token_ribbon.eatToken();
-        if (token->m_type != Token_t::fct_params_end)
+        if (token->m_type != Token_t::expr_end)
         {
             LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
             LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->get_word().c_str())
@@ -560,7 +555,7 @@ InstructionNode *Nodlang::parse_instr()
         if (expectedEOI)
         {
             instr_node->end_of_instr_token(expectedEOI);
-        } else if (m_token_ribbon.peekToken()->m_type != Token_t::fct_params_end)
+        } else if (m_token_ribbon.peekToken()->m_type != Token_t::expr_end)
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
@@ -749,12 +744,12 @@ bool Nodlang::is_syntax_valid()
     {
         switch ((*currTokIt)->m_type)
         {
-            case Token_t::fct_params_begin:
+            case Token_t::expr_begin:
             {
                 opened++;
                 break;
             }
-            case Token_t::fct_params_end:
+            case Token_t::expr_end:
             {
                 if (opened <= 0)
                 {
@@ -780,271 +775,14 @@ bool Nodlang::is_syntax_valid()
     return success;
 }
 
-bool Nodlang::tokenize(const std::string &_string)
+bool Nodlang::tokenize(const std::string& _string)
 {
-    std::string::const_iterator cursor = _string.cbegin();// the current char
-    std::string pending_ignored_chars;
-
-    /* shortcuts to language propertys */
-    auto &regex = get_token_regexes();
-    auto &regexIdToTokType = get_token_t_by_regex_index();
-
-    // parse using regular expressions: loop over all regex (might be slow).
-    auto parse_token__regex = [&]() -> std::shared_ptr<Token> {
-        std::shared_ptr<Token> result;
-        size_t index = std::distance(_string.cbegin(), cursor);
-
-        for (auto &&each_regex_it = regex.cbegin(); each_regex_it != regex.cend(); each_regex_it++)
-        {
-            std::smatch sm;
-            auto match = std::regex_search(cursor, _string.cend(), sm, *each_regex_it, std::regex_constants::match_continuous);
-
-            if (match)
-            {
-                std::string matched_str = sm.str();
-                Token_t matched_token_t = regexIdToTokType[std::distance(regex.cbegin(), each_regex_it)];
-                result = std::make_shared<Token>(matched_token_t, matched_str, index);
-                std::advance(cursor, matched_str.length());
-
-                LOG_VERBOSE("Parser",
-                            "\"%s\" identified as a Token_t::%s at char %i\n",
-                            matched_str.c_str(),
-                            to_string(matched_token_t).c_str(),
-                            index )
-
-                return result;
-            }
-        }
-        return result;
-    };
-
-    // parse without regular expressions : should be faster (that's the objective)
-    auto parse_token__noregex = [&]() -> std::shared_ptr<Token> {
-        std::shared_ptr<Token> result;
-        size_t cursor_idx = std::distance(_string.cbegin(), cursor);
-        size_t char_left = _string.size() - cursor_idx;
-        std::string::value_type current_char = *cursor;
-
-        // comments
-        if (current_char == '/' && (cursor + 1) != _string.end())
-        {
-            auto next_char = *(cursor + 1);
-            if (next_char == '*' || next_char == '/')
-            {
-                auto cursor_end = cursor + 1;
-                bool multi_line = next_char == '*';
-                while (
-                        cursor_end != _string.end()
-                        &&
-                        (
-                            ( !multi_line && *cursor_end != '\n')
-                            ||
-                            ( multi_line && !(*cursor_end == '/' && *(cursor_end-1) == '*'))
-                        )
-                    )
-                {
-                    ++cursor_end;
-                }
-                ++cursor_end;
-                size_t length = std::distance(cursor, cursor_end);
-                result = std::make_shared<Token>(Token_t::ignore, _string.substr(cursor_idx, length), cursor_idx);
-                std::advance(cursor, length);
-                return result;
-            }
-        }
-
-
-        switch (current_char)
-        {
-            // punctuation
-            //------------
-
-            case '{':
-                cursor++;
-                return std::make_shared<Token>(Token_t::scope_begin, current_char, cursor_idx);
-            case '}':
-                cursor++;
-                return std::make_shared<Token>(Token_t::scope_end, current_char, cursor_idx);
-            case '(':
-                cursor++;
-                return std::make_shared<Token>(Token_t::fct_params_begin, current_char, cursor_idx);
-            case ')':
-                cursor++;
-                return std::make_shared<Token>(Token_t::fct_params_end, current_char, cursor_idx);
-            case ',':
-                cursor++;
-                return std::make_shared<Token>(Token_t::fct_params_separator, current_char, cursor_idx);
-            case ';':
-                cursor++;
-                return std::make_shared<Token>(Token_t::end_of_instruction, current_char, cursor_idx);
-
-            // ignored chars
-            //--------------
-
-            case '\n':
-            case ' ':
-            case '\t':
-                cursor++;
-                return std::make_shared<Token>(Token_t::ignore, current_char, cursor_idx);
-
-            // operators
-            //----------
-
-            case '=': {
-                // "=>" or "=="
-                auto cursor_end = cursor + 1;
-                if (cursor_end != _string.end() && (*cursor_end == '>' || *cursor_end == '=')) {
-                    ++cursor_end;
-                    auto length = std::distance(cursor, cursor_end);
-                    std::advance(cursor, length);
-                    return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
-                }
-                // <operator>
-                cursor++;
-                return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
-            }
-
-            case '!':
-            case '/':
-            case '*':
-            case '+':
-            case '-':
-            case '>':
-            case '<': {
-                // "<operator>=" (do not handle: "++", "--")
-                auto cursor_end = cursor + 1;
-                if (cursor_end != _string.end() && *cursor_end == '=') {
-                    ++cursor_end;
-                    // special case for "<=>" operator
-                    if (current_char == '<' && cursor_end != _string.end() && *cursor_end == '>') {
-                        ++cursor_end;
-                    }
-                    auto length = std::distance(cursor, cursor_end);
-                    std::advance(cursor, length);
-                    return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
-                }
-
-                // <operator>
-                cursor++;
-                return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
-            }
-        }
-
-        // number (double)
-        //     note: we do not deal with zero prefix issues like: 0002.15454, or 01000
-        if (current_char >= '0' && current_char <= '9') {
-            auto cursor_end = cursor + 1;
-            bool parsing_decimals = false;
-            while (cursor_end != _string.end()
-                   && (
-                           // 0-9 digits
-                           (*cursor_end >= '0' && *cursor_end <= '9')
-                           ||
-                           // dot (allowed once)
-                           (*cursor_end == '.' && !parsing_decimals)
-                   )
-                    ) {
-                if ((*cursor_end) == '.') {
-                    parsing_decimals = true;
-                }
-                ++cursor_end;
-            }
-            auto length = std::distance(cursor, cursor_end);
-            std::advance(cursor, length);
-            return std::make_shared<Token>(
-                    parsing_decimals ? Token_t::literal_double : Token_t::literal_int,
-                    _string.substr(cursor_idx, length), cursor_idx);
-        }
-
-        const std::map<const char*, Token_t> keywords{
-            { "if", Token_t::keyword_if },
-            { "for", Token_t::keyword_for },
-            { "int", Token_t::keyword_int },
-            { "bool", Token_t::keyword_bool },
-            { "else", Token_t::keyword_else },
-            { "true", Token_t::literal_bool },
-            { "false", Token_t::literal_bool },
-            { "double", Token_t::keyword_double },
-            { "string", Token_t::keyword_string },
-            { "operator", Token_t::keyword_operator },
-        };
-
-        // reserved keywords
-        for(auto [keyword, token_type] : keywords)
-        {
-            if (_string.compare(cursor_idx, strlen(keyword), keyword) == 0) {
-                result = std::make_shared<Token>(token_type, keyword, cursor_idx);
-                std::advance(cursor, result->m_buffer.size() );
-                return result;
-            }
-        }
-
-        // double-quoted string
-        if ( current_char == '"')
-        {
-            auto cursor_end = cursor + 1;
-            while ( cursor_end != _string.end() && (*cursor_end != '"' || *(cursor_end-1) == '\\'))
-            {
-                ++cursor_end;
-            }
-            ++cursor_end;
-            size_t length = std::distance(cursor, cursor_end);
-            result = std::make_shared<Token>(Token_t::literal_string, _string.substr(cursor_idx, length), cursor_idx);
-            std::advance(cursor, length);
-            return result;
-        }
-
-        // symbol
-        if (*cursor >= 'a' && *cursor <= 'z')
-        {
-            auto cursor_end = cursor + 1;
-            while (
-                cursor_end != _string.end()
-                &&
-                (
-                    (*cursor_end >= 'a' && *cursor_end <= 'z') // [a-z]
-                    ||
-                    (*cursor_end >= 'A' && *cursor_end <= 'Z') // [A-Z]
-                    ||
-                    (*cursor_end >= '0' && *cursor_end <= '9') // [0-9]
-                    ||
-                    *cursor_end == '_'
-                )
-             )
-            {
-                ++cursor_end;
-            }
-            size_t length = std::distance(cursor, cursor_end);
-            result = std::make_shared<Token>(Token_t::identifier, _string.substr(cursor_idx, length), cursor_idx);
-            std::advance(cursor, length);
-            return result;
-        }
-        return nullptr;
-    };
+    auto cursor = _string.cbegin();
+    std::string ignored_chars_accumulator;
 
     while (cursor != _string.cend())
     {
-        std::shared_ptr<Token> new_token;
-
-        switch (m_parser_method)
-        {
-            case ParserMethod::NO_REGEX_ONLY:
-                new_token = parse_token__noregex();
-                break;
-
-            case ParserMethod::PREFER_NO_REGEX:
-                new_token = parse_token__noregex();
-                if(!new_token)
-                    new_token = parse_token__regex();
-                break;
-
-            case ParserMethod::REGEX_ONLY:
-                new_token = parse_token__regex();
-                break;
-
-            default:
-                FW_EXPECT(false, "Unhandled ParserMethod case");
-        }
+        std::shared_ptr<Token> new_token = parse_token(_string, cursor);
 
         if (!new_token)
         {
@@ -1053,70 +791,259 @@ bool Nodlang::tokenize(const std::string &_string)
             return false;
         }
 
-        // Finally we push the token in the ribbon
-        if (new_token->m_type != Token_t::ignore)
+        // accumulate ignored chars (see else case to know why)
+        if( new_token->m_type == Token_t::ignore)
         {
-            /*
-             * Append ignored_chars, 3 options:
+            ignored_chars_accumulator.append(new_token->get_word());
+            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", Token::to_string(new_token).c_str())
+        }
+        else // handle ignored_chars_accumulator then push the token in the ribbon and handle ignored_chars_accumulator
+        {
+             /*
+             * Handle ignored_chars_accumulator, 3 options:
+             *
+             * Option 1a: append ignored_chars_accumulator to the previous token's prefix
+             *            ( ... , <previous_token><ignored_chars_accumulator>, <new_token>)
+             *
+             * Option 1b: append ignored_chars_accumulator to the next/new token's prefix
+             *            ( ... , <previous_token>, <ignored_chars_accumulator><new_token>)
+             *
+             * Option 2 : append ignored_chars_accumulator to the ribbon prefix (until we get a previous_token).
              */
-            if (!pending_ignored_chars.empty())
+            if (!ignored_chars_accumulator.empty())
             {
+                // Option 1
                 if (!m_token_ribbon.empty())
                 {
                     std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
-                    if (last_token->m_type != Token_t::identifier)
+
+                    // Option 1a
+                    if (last_token->m_type != Token_t::identifier) // we don't want identifiers to have suffixes
                     {
-                        /*
-                        * Option 1: suffix of previous token
-                        *
-                        * ( ... , <last_token><pending_ignored_chars>, <new-token>)
-                        */
-                        last_token->append_to_suffix(pending_ignored_chars);
-                        pending_ignored_chars.clear();
-                    } else
-                    {
-                        /*
-                        * Option 2: prefix of next/new token
-                        *
-                        * ( ... , <last_token>, <pending_ignored_chars><new-token>)
-                        */
-                        new_token->append_to_prefix(pending_ignored_chars);
-                        pending_ignored_chars.clear();
+                        last_token->append_to_suffix(ignored_chars_accumulator);
                     }
-                } else
-                {
-                    /*
-                    * Option 3: prefix of the ribbon
-                    *
-                    * <pending_ignored_chars> (<first-and-new-token>)
-                    */
-                    m_token_ribbon.m_prefix_acc->append_to_word(pending_ignored_chars);
-                    pending_ignored_chars.clear();
+                    // Option 1b
+                    else
+                    {
+                        new_token->append_to_prefix(ignored_chars_accumulator);
+                    }
                 }
+                // Option 2
+                else
+                {
+                    m_token_ribbon.m_prefix_acc->append_to_word(ignored_chars_accumulator);
+                }
+                ignored_chars_accumulator.clear();
             }
+
             m_token_ribbon.push(new_token);
             LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", Token::to_string(new_token).c_str())
-        } else
-        {
-            /*
-             * When a character is ignored, it goes to a pending_chars string.
-             * Once a no ignored token is parsed those pending_chars are added to the suffix (option 1) or to the prefix (option 2)
-             */
-            pending_ignored_chars.append(new_token->get_word());
-            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", Token::to_string(new_token).c_str())
         }
     }
 
     /*
-	 * Append pending ignored chars
+	 * Append remaining ignored_chars_accumulator to the ribbon suffix
 	 */
-    if (!pending_ignored_chars.empty())
+    if (!ignored_chars_accumulator.empty())
     {
-        m_token_ribbon.m_suffix_acc->append_to_word(pending_ignored_chars);
-        pending_ignored_chars.clear();
+        m_token_ribbon.m_suffix_acc->append_to_word(ignored_chars_accumulator);
+        ignored_chars_accumulator.clear();
     }
     return true;
 }
+
+std::shared_ptr<Token> Nodlang::parse_token(
+        const std::string& _string,
+        std::string::const_iterator&  _cursor) const
+{
+    std::shared_ptr<Token> result;
+    size_t cursor_idx = std::distance(_string.cbegin(), _cursor);
+    size_t char_left = _string.size() - cursor_idx;
+    std::string::value_type current_char = *_cursor;
+
+    // comments
+    if (current_char == '/' && (_cursor + 1) != _string.end())
+    {
+        auto next_char = *(_cursor + 1);
+        if (next_char == '*' || next_char == '/')
+        {
+            auto cursor_end = _cursor + 1;
+            bool multi_line = next_char == '*';
+            while (
+                    cursor_end != _string.end()
+                    &&
+                    (
+                            ( !multi_line && *cursor_end != '\n')
+                            ||
+                            ( multi_line && !(*cursor_end == '/' && *(cursor_end-1) == '*'))
+                    )
+                    )
+            {
+                ++cursor_end;
+            }
+            ++cursor_end;
+            size_t length = std::distance(_cursor, cursor_end);
+            result = std::make_shared<Token>(Token_t::ignore, _string.substr(cursor_idx, length), cursor_idx);
+            std::advance(_cursor, length);
+            return result;
+        }
+    }
+
+
+    switch (current_char)
+    {
+        // punctuation
+        //------------
+
+        case '{':
+            _cursor++;
+            return std::make_shared<Token>(Token_t::scope_begin, current_char, cursor_idx);
+        case '}':
+            _cursor++;
+            return std::make_shared<Token>(Token_t::scope_end, current_char, cursor_idx);
+        case '(':
+            _cursor++;
+            return std::make_shared<Token>(Token_t::expr_begin, current_char, cursor_idx);
+        case ')':
+            _cursor++;
+            return std::make_shared<Token>(Token_t::expr_end, current_char, cursor_idx);
+        case ',':
+            _cursor++;
+            return std::make_shared<Token>(Token_t::fct_params_separator, current_char, cursor_idx);
+        case ';':
+            _cursor++;
+            return std::make_shared<Token>(Token_t::end_of_instruction, current_char, cursor_idx);
+
+            // ignored chars
+            //--------------
+
+        case '\n':
+        case ' ':
+        case '\t':
+            _cursor++;
+            return std::make_shared<Token>(Token_t::ignore, current_char, cursor_idx);
+
+            // operators
+            //----------
+
+        case '=': {
+            // "=>" or "=="
+            auto cursor_end = _cursor + 1;
+            if (cursor_end != _string.end() && (*cursor_end == '>' || *cursor_end == '=')) {
+                ++cursor_end;
+                auto length = std::distance(_cursor, cursor_end);
+                std::advance(_cursor, length);
+                return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
+            }
+            // <operator>
+            _cursor++;
+            return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
+        }
+
+        case '!':
+        case '/':
+        case '*':
+        case '+':
+        case '-':
+        case '>':
+        case '<': {
+            // "<operator>=" (do not handle: "++", "--")
+            auto cursor_end = _cursor + 1;
+            if (cursor_end != _string.end() && *cursor_end == '=') {
+                ++cursor_end;
+                // special case for "<=>" operator
+                if (current_char == '<' && cursor_end != _string.end() && *cursor_end == '>') {
+                    ++cursor_end;
+                }
+                auto length = std::distance(_cursor, cursor_end);
+                std::advance(_cursor, length);
+                return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
+            }
+
+            // <operator>
+            _cursor++;
+            return std::make_shared<Token>(Token_t::operator_, current_char, cursor_idx);
+        }
+    }
+
+    // number (double)
+    //     note: we do not deal with zero prefix issues like: 0002.15454, or 01000
+    if (current_char >= '0' && current_char <= '9') {
+        auto cursor_end = _cursor + 1;
+        bool parsing_decimals = false;
+        while (cursor_end != _string.end()
+               && (
+                       // 0-9 digits
+                       (*cursor_end >= '0' && *cursor_end <= '9')
+                       ||
+                       // dot (allowed once)
+                       (*cursor_end == '.' && !parsing_decimals)
+               )
+                ) {
+            if ((*cursor_end) == '.') {
+                parsing_decimals = true;
+            }
+            ++cursor_end;
+        }
+        auto length = std::distance(_cursor, cursor_end);
+        std::advance(_cursor, length);
+        return std::make_shared<Token>(
+                parsing_decimals ? Token_t::literal_double : Token_t::literal_int,
+                _string.substr(cursor_idx, length), cursor_idx);
+    }
+
+    // reserved keywords
+    for(auto [keyword, token_type] : m_token_t_by_keyword)
+    {
+        if (_string.compare(cursor_idx, strlen(keyword), keyword) == 0) {
+            result = std::make_shared<Token>(token_type, keyword, cursor_idx);
+            std::advance(_cursor, result->m_buffer.size() );
+            return result;
+        }
+    }
+
+    // double-quoted string
+    if ( current_char == '"')
+    {
+        auto cursor_end = _cursor + 1;
+        while ( cursor_end != _string.end() && (*cursor_end != '"' || *(cursor_end-1) == '\\'))
+        {
+            ++cursor_end;
+        }
+        ++cursor_end;
+        size_t length = std::distance(_cursor, cursor_end);
+        result = std::make_shared<Token>(Token_t::literal_string, _string.substr(cursor_idx, length), cursor_idx);
+        std::advance(_cursor, length);
+        return result;
+    }
+
+    // symbol
+    if (*_cursor >= 'a' && *_cursor <= 'z')
+    {
+        auto cursor_end = _cursor + 1;
+        while (
+                cursor_end != _string.end()
+                &&
+                (
+                        (*cursor_end >= 'a' && *cursor_end <= 'z') // [a-z]
+                        ||
+                        (*cursor_end >= 'A' && *cursor_end <= 'Z') // [A-Z]
+                        ||
+                        (*cursor_end >= '0' && *cursor_end <= '9') // [0-9]
+                        ||
+                        *cursor_end == '_'
+                )
+                )
+        {
+            ++cursor_end;
+        }
+        size_t length = std::distance(_cursor, cursor_end);
+        result = std::make_shared<Token>(Token_t::identifier, _string.substr(cursor_idx, length), cursor_idx);
+        std::advance(_cursor, length);
+        return result;
+    }
+    return nullptr;
+};
 
 Property *Nodlang::parse_function_call()
 {
@@ -1136,7 +1063,7 @@ Property *Nodlang::parse_function_call()
     std::shared_ptr<Token> token_0 = m_token_ribbon.eatToken();
     std::shared_ptr<Token> token_1 = m_token_ribbon.eatToken();
     if (token_0->m_type == Token_t::identifier &&
-        token_1->m_type == Token_t::fct_params_begin)
+        token_1->m_type == Token_t::expr_begin)
     {
         fct_id = token_0->get_word();
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
@@ -1144,7 +1071,7 @@ Property *Nodlang::parse_function_call()
     {
         std::shared_ptr<Token> token_2 = m_token_ribbon.eatToken();// eat a "supposed open bracket>
 
-        if (token_0->m_type == Token_t::keyword_operator && token_1->m_type == Token_t::operator_ && token_2->m_type == Token_t::fct_params_begin)
+        if (token_0->m_type == Token_t::keyword_operator && token_1->m_type == Token_t::operator_ && token_2->m_type == Token_t::expr_begin)
         {
             fct_id = token_1->get_word();// operator
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
@@ -1162,7 +1089,7 @@ Property *Nodlang::parse_function_call()
     signature.set_return_type(type::any());
 
     bool parsingError = false;
-    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::fct_params_end)
+    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::expr_end)
     {
 
         if (auto property = parse_expression())
@@ -1177,7 +1104,7 @@ Property *Nodlang::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if (!m_token_ribbon.eatToken(Token_t::fct_params_end))
+    if (!m_token_ribbon.eatToken(Token_t::expr_end))
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
@@ -1247,7 +1174,7 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
 
         condStruct->set_token_if(m_token_ribbon.getEaten());
 
-        if (m_token_ribbon.eatToken(Token_t::fct_params_begin))
+        if (m_token_ribbon.eatToken(Token_t::expr_begin))
         {
             InstructionNode *condition = parse_instr();
 
@@ -1257,7 +1184,7 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
                 condition->set_name("Cond.");
                 condStruct->set_cond_expr(condition);
 
-                if (m_token_ribbon.eatToken(Token_t::fct_params_end))
+                if (m_token_ribbon.eatToken(Token_t::expr_end))
                 {
                     m_graph->connect(condition->get_this_property(), condStruct->condition_property());
 
@@ -1338,7 +1265,7 @@ ForLoopNode *Nodlang::parse_for_loop()
         for_loop_node->set_token_for(token_for);
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
-        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::fct_params_begin);
+        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::expr_begin);
         if (!open_bracket)
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
@@ -1374,7 +1301,7 @@ ForLoopNode *Nodlang::parse_for_loop()
                         m_graph->connect(iter_instr->get_this_property(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
-                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::fct_params_end);
+                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::expr_end);
                         if (!close_bracket)
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
@@ -1466,14 +1393,14 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
         auto serialize_property_with_or_without_brackets = [this, &_out](Property *property, bool needs_brackets) {
             if (needs_brackets)
             {
-                serialize(_out, Token_t::fct_params_begin);
+                serialize(_out, Token_t::expr_begin);
             }
 
             serialize(_out, property);
 
             if (needs_brackets)
             {
-                serialize(_out, Token_t::fct_params_end);
+                serialize(_out, Token_t::expr_end);
             }
         };
 
@@ -1541,7 +1468,7 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
 std::string &Nodlang::serialize(std::string &_out, const func_type *_signature, const std::vector<Property *> &_args) const
 {
     _out.append(_signature->get_identifier());
-    serialize(_out, Token_t::fct_params_begin);
+    serialize(_out, Token_t::expr_begin);
 
     for (auto it = _args.begin(); it != _args.end(); it++)
     {
@@ -1553,7 +1480,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature, 
         }
     }
 
-    serialize(_out, Token_t::fct_params_end);
+    serialize(_out, Token_t::expr_end);
     return _out;
 }
 
@@ -1562,7 +1489,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature) 
     serialize(_out, _signature->get_return_type());
     _out.append(" ");
     _out.append(_signature->get_identifier());
-    serialize(_out, Token_t::fct_params_begin);
+    serialize(_out, Token_t::expr_begin);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
@@ -1575,7 +1502,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature) 
         serialize(_out, it->m_type);
     }
 
-    serialize(_out, Token_t::fct_params_end);
+    serialize(_out, Token_t::expr_end);
     return _out;
 }
 
@@ -1777,7 +1704,7 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
 {
 
     serialize(_out, _for_loop->get_token_for());
-    serialize(_out, Token_t::fct_params_begin);
+    serialize(_out, Token_t::expr_begin);
 
     // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
     //       More work to do to know if expression is a declaration or not.
@@ -1792,7 +1719,7 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     }
     serialize(_out, _for_loop->get_cond_expr());
     serialize(_out, _for_loop->get_iter_instr());
-    serialize(_out, Token_t::fct_params_end);
+    serialize(_out, Token_t::expr_end);
 
     // if scope
     if (auto *scope = _for_loop->get_condition_true_scope())
@@ -1807,9 +1734,9 @@ std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *
 {
     // if ( <condition> )
     serialize(_out, _condStruct->get_token_if());
-    serialize(_out, Token_t::fct_params_begin);
+    serialize(_out, Token_t::expr_begin);
     serialize(_out, _condStruct->get_cond_expr());
-    serialize(_out, Token_t::fct_params_end);
+    serialize(_out, Token_t::expr_end);
 
     // if scope
     if (auto *ifScope = _condStruct->get_condition_true_scope())
@@ -1918,14 +1845,6 @@ void Nodlang::add_function(std::shared_ptr<const iinvokable> _invokable)
     LOG_VERBOSE("Nodlang", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str());
 }
 
-void Nodlang::add_operator(const char *_id, Operator_t _type, int _precedence)
-{
-    const Operator *op = new Operator(_id, _type, _precedence);
-
-    FW_ASSERT(std::find(m_operators.begin(), m_operators.end(), op) == m_operators.end())
-    m_operators.push_back(op);
-}
-
 const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_t _type) const
 {
     auto is_exactly = [&](const Operator *op) {
@@ -1940,52 +1859,10 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
     return nullptr;
 }
 
-
-void Nodlang::add_regex(const std::regex &_regex, Token_t _token_t)
-{
-    m_token_regex.push_back(_regex);
-    m_token_t_by_regex_index.push_back(_token_t);
-}
-
-void Nodlang::add_regex(const std::regex &_regex, Token_t _token_t, type _type)
-{
-    m_token_regex.push_back(_regex);
-    m_token_t_by_regex_index.push_back(_token_t);
-
-    m_type_regex.push_back(_regex);
-    m_type_by_regex_index.push_back(_type);
-
-    m_token_type_keyword_to_type.insert({_token_t, _type});
-    m_type_hashcode_to_token_t.insert({_type.hash_code(), _token_t});
-}
-
-void Nodlang::add_type(type _type, Token_t _token_t, std::string _string)
-{
-    m_token_type_keyword_to_type.insert({_token_t, _type});
-    m_type_hashcode_to_token_t.insert({_type.hash_code(), _token_t});
-    m_type_hashcode_to_string.insert({_type.hash_code(), _string});
-    add_string(_string, _token_t);
-}
-
-void Nodlang::add_string(std::string _string, Token_t _token_t)
-{
-    m_token_t_to_string.insert({_token_t, _string});
-    add_regex(std::regex("(" + _string + ")"), _token_t);
-}
-
-void Nodlang::add_char(const char _char, Token_t _token_t)
-{
-    m_token_t_to_char.insert({_token_t, _char});
-    m_char_to_token_t.insert({_char, _token_t});
-    char str[4];
-    snprintf(str, 4, "[%c]", _char);
-    add_regex(std::regex(str), _token_t);
-}
-
 std::string &Nodlang::to_string(std::string &_out, const type& _type) const
 {
-    auto found = m_type_hashcode_to_string.find(_type.hash_code());
-    if (found != m_type_hashcode_to_string.cend())
+    auto found = m_keyword_by_type_hashcode.find(_type.hash_code());
+    if (found != m_keyword_by_type_hashcode.cend())
     {
         return _out.append(found->second);
     }
@@ -1996,29 +1873,18 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
 {
     switch (_token_t)
     {
-        case Token_t::ignore:
-            return _out.append("ignore");
-        case Token_t::operator_:
-            return _out.append("operator");
-        case Token_t::identifier:
-            return _out.append("identifier");
-    }
-
-    {
-        auto found = m_token_t_to_char.find(_token_t);
-        if (found != m_token_t_to_char.cend())
+        case Token_t::ignore:          return _out.append("ignore");
+        case Token_t::operator_:       return _out.append("operator");
+        case Token_t::identifier:      return _out.append("identifier");
+        default:
         {
-            _out.push_back(found->second);
-            return _out;
+            auto found = m_keyword_by_token_t.find(_token_t);
+            if (found != m_keyword_by_token_t.cend()) {
+                return _out.append(found->second);
+            }
+            return _out.append("<?>");
         }
     }
-    auto found = m_token_t_to_string.find(_token_t);
-    if (found != m_token_t_to_string.cend())
-    {
-        return _out.append(found->second);
-    }
-
-    return _out.append("<?>");
 }
 
 std::string Nodlang::to_string(type _type) const
@@ -2048,7 +1914,7 @@ int Nodlang::get_precedence(const iinvokable *_invokable) const
 type Nodlang::get_type(Token_t _token) const
 {
     FW_EXPECT(is_a_type_keyword(_token), "_token_t is not a type keyword!");
-    return m_token_type_keyword_to_type.find(_token)->second;
+    return m_type_by_token_t.find(_token)->second;
 }
 
 Nodlang& Nodlang::get_instance()

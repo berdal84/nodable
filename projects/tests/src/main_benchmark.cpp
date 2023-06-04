@@ -40,14 +40,11 @@ public:
 
     NodlangFixture()
         : generator(random_device())
-        , distribution(
-            -100000.0,
-            100000.0
-        )
-    {
-    }
+        , distribution(-100000.0, 100000.0)
+    {}
 
-    void SetUp(const ::benchmark::State& state) {
+    void SetUp(const ::benchmark::State& state)
+    {
         language = &ndbl::Nodlang::get_instance();
         autocompletion = false;
         factory = new NodeFactory(language);
@@ -55,43 +52,32 @@ public:
         fw::log::set_verbosity(fw::log::Verbosity_Error);
     }
 
-    void TearDown(const ::benchmark::State& state) {
+    void TearDown(const ::benchmark::State& state)
+    {
         delete factory;
         delete graph;
     }
 
-    inline std::string get_random_double_as_string() {
+    inline std::string get_random_double_as_string()
+    {
         return std::to_string( distribution(generator) );
     }
 };
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_double)(benchmark::State& state) {
-    auto method = (ParserMethod)state.range(0);
-    language->set_parser_method(method);
-    state.SetLabel(to_string(method));
-
     for (auto _ : state) {
-        FW_EXPECT(language->parse(get_random_double_as_string(), graph), "parse failed");
+        language->parse(get_random_double_as_string(), graph);
     }
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_boolean)(benchmark::State& state) {
-    auto method = (ParserMethod)state.range(0);
-    language->set_parser_method(method);
-    state.SetLabel(to_string(method));
-
-    bool b = true;
     for (auto _ : state) {
-        FW_EXPECT(language->parse( b ? "true" : "false", graph), "parse failed");
-        b = !b;
+        language->parse( "true", graph);
+        language->parse( "false", graph);
     }
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_operators)(benchmark::State& state) {
-    auto method = (ParserMethod)state.range(0);
-    language->set_parser_method(method);
-    state.SetLabel(to_string(method));
-
     std::array operations{
         "1+1",
         "1-1",
@@ -111,16 +97,12 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_operators)(benchmark::State& state) {
 
     size_t id = 0;
     for (auto _ : state) {
-        FW_EXPECT(language->parse(operations.at(id), graph ), "parse failed");
+        language->parse(operations.at(id), graph );
         id = (id+1) % operations.size();
     }
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_code)(benchmark::State& state) {
-    auto method = (ParserMethod)state.range(0);
-    language->set_parser_method(method);
-    state.SetLabel(to_string(method));
-
     std::string code = "double a = 10.400012;"
                        "double b = 5.564478;"
                        "if(a>b){"
@@ -135,20 +117,9 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_code)(benchmark::State& state) {
     }
 }
 
-BENCHMARK_REGISTER_F(NodlangFixture, parse_code)
-        ->Args({(int)ParserMethod::REGEX_ONLY})
-        ->Args({(int)ParserMethod::NO_REGEX_ONLY});
-
-BENCHMARK_REGISTER_F(NodlangFixture, parse_operators)
-    ->Args({(int)ParserMethod::REGEX_ONLY})
-    ->Args({(int)ParserMethod::NO_REGEX_ONLY});
-
-BENCHMARK_REGISTER_F(NodlangFixture, parse_boolean)
-    ->Args({(int)ParserMethod::REGEX_ONLY})
-    ->Args({(int)ParserMethod::NO_REGEX_ONLY});
-
-BENCHMARK_REGISTER_F(NodlangFixture, parse_double)
-    ->Args({(int)ParserMethod::REGEX_ONLY})
-    ->Args({(int)ParserMethod::NO_REGEX_ONLY});
+BENCHMARK_REGISTER_F(NodlangFixture, parse_code);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_operators);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_boolean);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_double);
 
 BENCHMARK_MAIN();
