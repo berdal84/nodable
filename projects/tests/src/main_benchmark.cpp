@@ -66,38 +66,38 @@ public:
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_double)(benchmark::State& state) {
     for (auto _ : state) {
-        language->parse(get_random_double_as_string(), graph);
+        language->parse_token(get_random_double_as_string());
     }
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_boolean)(benchmark::State& state) {
     for (auto _ : state) {
-        language->parse( "true", graph);
-        language->parse( "false", graph);
+        language->parse_token("true");
+        language->parse_token("false");
     }
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_operators)(benchmark::State& state) {
     std::array operations{
-        "1+1",
-        "1-1",
-        "1!=1",
-        "1==1",
-        "1>1",
-        "1<1",
-        "1>=1",
-        "1<=1",
-        "1*=1",
-        "1/=1",
-        "1+=1",
-        "1-=1",
-        "1=>1",
-        "1<=>1"
+        "+",
+        "-",
+        "!=",
+        "==",
+        ">",
+        "<",
+        ">=",
+        "<=",
+        "*=",
+        "/=",
+        "+=",
+        "-=",
+        "=>",
+        "<=>"
     };
 
     size_t id = 0;
     for (auto _ : state) {
-        language->parse(operations.at(id), graph );
+        language->parse_token(operations.at(id));
         id = (id+1) % operations.size();
     }
 }
