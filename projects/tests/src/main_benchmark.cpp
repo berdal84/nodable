@@ -121,8 +121,8 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_code)(benchmark::State& state) {
     language->set_parser_method(method);
     state.SetLabel(to_string(method));
 
-    std::string code = "int a = 10;"
-                       "int b = 5;"
+    std::string code = "double a = 10.400012;"
+                       "double b = 5.564478;"
                        "if(a>b){"
                        " print(\"a>b\");"
                        "}else{"

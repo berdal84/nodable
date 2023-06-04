@@ -50,7 +50,7 @@ using namespace fw;
 Nodlang::Nodlang(bool _strict)
     : m_strict_mode(_strict)
     , m_graph(nullptr)
-    , m_parser_method(ParserMethod::NO_REGEX_ONLY) // until NO_REGEX is fully featured
+    , m_parser_method(ParserMethod::REGEX_ONLY) // until NO_REGEX_ONLY is fully featured
 {
 
     // A.1. Define regular expressions
@@ -61,6 +61,11 @@ Nodlang::Nodlang(bool _strict)
     add_regex(std::regex("^(/\\*(.+?)\\*/)"), Token_t::ignore);// multi-line comment
     add_char('\t', Token_t::ignore);
     add_char(' ' , Token_t::ignore);
+#if (WIN32)
+    add_char('\n', Token_t::ignore); // <--- should be '\n\r' not handled yet.
+#elif(__APPLE__ || __linux__)
+    add_char('\n', Token_t::ignore); // <--- We do not handle old mac '\r'.
+#endif
 
     // keywords
     add_string("if",       Token_t::keyword_if);
@@ -79,12 +84,6 @@ Nodlang::Nodlang(bool _strict)
     add_char(')', Token_t::fct_params_end);
     add_char(',', Token_t::fct_params_separator);
     add_char(';', Token_t::end_of_instruction);
-
-#if (WIN32)
-    add_char('\n', Token_t::end_of_line); // <--- should be '\n\r' not handled yet.
-#elif(__APPLE__ || __linux__)
-    add_char('\n', Token_t::end_of_line); // <--- We do not handle old mac '\r'.
-#endif
 
     // literals
     add_regex(std::regex("(true|false)"), Token_t::literal_bool  , type::get<bool>());
@@ -1971,13 +1970,16 @@ void Nodlang::add_type(type _type, Token_t _token_t, std::string _string)
 void Nodlang::add_string(std::string _string, Token_t _token_t)
 {
     m_token_t_to_string.insert({_token_t, _string});
-    add_regex(std::regex("^(" + _string + ")"), _token_t);
+    add_regex(std::regex("(" + _string + ")"), _token_t);
 }
 
 void Nodlang::add_char(const char _char, Token_t _token_t)
 {
     m_token_t_to_char.insert({_token_t, _char});
     m_char_to_token_t.insert({_char, _token_t});
+    char str[4];
+    snprintf(str, 4, "[%c]", _char);
+    add_regex(std::regex(str), _token_t);
 }
 
 std::string &Nodlang::to_string(std::string &_out, const type& _type) const
