@@ -995,7 +995,7 @@ std::shared_ptr<Token> Nodlang::parse_token(
     // reserved keywords
     for(auto [keyword, token_type] : m_token_t_by_keyword)
     {
-        if (_string.compare(cursor_idx, strlen(keyword), keyword) == 0) {
+        if (_string.compare(cursor_idx, keyword.size(), keyword) == 0) {
             result = std::make_shared<Token>(token_type, keyword, cursor_idx);
             std::advance(_cursor, result->m_buffer.size() );
             return result;

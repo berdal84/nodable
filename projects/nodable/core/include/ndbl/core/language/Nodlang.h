@@ -72,7 +72,6 @@ namespace ndbl{
         TokenRibbon            m_token_ribbon;    // This token ribbon is cleared/filled when tokenize() is called.
         std::stack<Scope*>     m_scope_stack;     // Current scopes (babushka dolls).
         bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared variable is rejected. When OFF, parser can produce a graph with undeclared variables but the compiler won't be able to handle it.
-        std::map<const char*, Token_t> m_token_t_by_keyword; // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
 
         // Serializer ------------------------------------------------------------------
     public:
@@ -122,18 +121,19 @@ namespace ndbl{
         invokable_ptr                   find_operator_fct_fallback(const fw::func_type*) const;      // Find a fallback operator function for a given signature (allows cast).
 
         struct {
-            std::vector<std::tuple<const char*, Token_t>>                  keywords;
-            std::vector<std::tuple<const char*, Token_t,        fw::type>> types;
-            std::vector<std::tuple<const char*, fw::Operator_t, int>>      operators;
+            std::vector<std::tuple<std::string, Token_t>>                  keywords;
+            std::vector<std::tuple<std::string, Token_t,        fw::type>> types;
+            std::vector<std::tuple<std::string, fw::Operator_t, int>>      operators;
         } m_definition; // language definition
 
         operators_vec m_operators;                                             // the allowed operators (!= implementations).
         Invokable_vec m_operators_impl;                                        // operators' implementations.
         Invokable_vec m_functions;                                             // all the functions (including operator's).
+        std::unordered_map<Token_t, std::string> m_keyword_by_token_t;         // token_t to string (ex: Token_t::keyword_double => "double").
+        std::unordered_map<size_t, std::string>  m_keyword_by_type_hashcode;   // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
+        std::map<std::string, Token_t>           m_token_t_by_keyword;         // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
         std::unordered_map<size_t, Token_t>      m_token_t_by_type_hashcode;   // type's hashcode into a token_t (ex: type::get<std::string>().hashcode() => Token_t::keyword_string)
-        std::unordered_map<size_t, std::string>  m_keyword_by_type_hashcode;    // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
-        std::unordered_map<Token_t, fw::type>    m_type_by_token_t; // token_t to type. Works only if token_t refers to a type keyword.
-        std::unordered_map<Token_t, std::string> m_keyword_by_token_t;          // token_t to string (ex: Token_t::keyword_double => "double").
-        std::unordered_map<size_t, Token_t>      m_char_to_token_t;            // single char to token_t (ex: '*' => Token_t::operator).
+        std::unordered_map<Token_t, fw::type>    m_type_by_token_t;            // token_t to type. Works only if token_t refers to a type keyword.
+
     };
 }
