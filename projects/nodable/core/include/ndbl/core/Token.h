@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ndbl/core/Token_t.h>
+#include <fw/core/reflection/reflection>
 #include <string>
 #include <utility>
 #include <vector>

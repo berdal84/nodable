@@ -41,6 +41,7 @@ namespace ndbl{
     public:
         bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
     private:
+        std::shared_ptr<Token> parse_token(const std::string& _string, std::string::const_iterator&  _cursor) const; // parse a single token from position _cursor in _string.
         void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
         void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
         void                   commit_transaction();                                  // Commit the pending transaction
@@ -71,6 +72,7 @@ namespace ndbl{
         TokenRibbon            m_token_ribbon;    // This token ribbon is cleared/filled when tokenize() is called.
         std::stack<Scope*>     m_scope_stack;     // Current scopes (babushka dolls).
         bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared variable is rejected. When OFF, parser can produce a graph with undeclared variables but the compiler won't be able to handle it.
+        std::map<const char*, Token_t> m_token_t_by_keyword; // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
 
         // Serializer ------------------------------------------------------------------
     public:
@@ -96,13 +98,11 @@ namespace ndbl{
         invokable_ptr                   find_operator_fct_exact(const fw::func_type*) const;         // Find an operator's function by signature (strict mode, no cast allowed).
         const fw::Operator*             find_operator(const std::string& , fw::Operator_t) const;    // Find an operator by symbol and type (unary, binary or ternary).
         const Invokable_vec &           get_api()const { return m_functions; }                   // Get all the functions registered in the language. (TODO: why do we store the declared functions here? can't we load them in the VirtualMachine instead?).
-        const std::vector<std::regex>&  get_token_regexes()const { return m_token_regex;  }      // Get all the regexes to convert a string to the corresponding token_t.
         std::string&                    to_string(std::string& /*out*/, const fw::type&)const;   // Convert a type to string (by ref).
         std::string&                    to_string(std::string& /*out*/, Token_t)const;           // Convert a type to a token_t (by ref).
         std::string                     to_string(fw::type) const;                               // Convert a type to string.
         std::string                     to_string(Token_t)const;                                 // Convert a type to a token_t.
         fw::type                        get_type(Token_t _token)const;                           // Get the type corresponding to a given token_t (must be a type keyword)
-        const std::vector<Token_t>&     get_token_t_by_regex_index()const { return m_token_t_by_regex_index; }
         void                            add_function(std::shared_ptr<const fw::iinvokable>);     // Adds a new function (regular or operator's implementation).
         int                             get_precedence(const fw::iinvokable*)const;              // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
@@ -119,26 +119,21 @@ namespace ndbl{
             }
         }
 
-        void                            add_operator(const char*, fw::Operator_t, int _precedence);  // Add a new (abstract) operator (ex: "==", Operator_t::binary, 5)
         invokable_ptr                   find_operator_fct_fallback(const fw::func_type*) const;      // Find a fallback operator function for a given signature (allows cast).
-        void                            add_regex(const std::regex&, Token_t);                   // Register a regex to token_t couple.
-        void                            add_regex(const std::regex&, Token_t, fw::type);         // Register a regex, token_t, type tuple.
-        void                            add_string(std::string, Token_t);                        // Register a string to token_t couple. ( "<<" => Token_t::operator )
-        void                            add_char(char, Token_t);                                 // Register a char to token_t couple ( '*' => Token_t::operator )
-        void                            add_type(fw::type, Token_t, std::string);                // Register a type, token_t, string tuple (ex: type::get<int>, Token_t::keyword_int, "int")
+
+        struct {
+            std::vector<std::tuple<const char*, Token_t>>                  keywords;
+            std::vector<std::tuple<const char*, Token_t,        fw::type>> types;
+            std::vector<std::tuple<const char*, fw::Operator_t, int>>      operators;
+        } m_definition; // language definition
 
         operators_vec m_operators;                                             // the allowed operators (!= implementations).
         Invokable_vec m_operators_impl;                                        // operators' implementations.
         Invokable_vec m_functions;                                             // all the functions (including operator's).
-        std::vector<std::regex>  m_type_regex;                                 // Regular expressions to get a type from a string.
-        std::vector<fw::type>    m_type_by_regex_index;                        // Types sorted by m_type_regex index.
-        std::vector<std::regex>  m_token_regex;                                // Regular expressions to get a token from a string.
-        std::vector<Token_t>     m_token_t_by_regex_index;                     // Token sorted by m_token_regex index.
-        std::unordered_map<size_t, Token_t>      m_type_hashcode_to_token_t;   // type's hashcode into a token_t (ex: type::get<std::string>().hashcode() => Token_t::keyword_string)
-        std::unordered_map<size_t, std::string>  m_type_hashcode_to_string;    // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
-        std::unordered_map<Token_t, fw::type>    m_token_type_keyword_to_type; // token_t to type. Works only if token_t refers to a type keyword.
-        std::unordered_map<Token_t, const char>  m_token_t_to_char;            // token_t to single char (ex: Token_t::operator => '*').
-        std::unordered_map<Token_t, std::string> m_token_t_to_string;          // token_t to string (ex: Token_t::keyword_double => "double").
+        std::unordered_map<size_t, Token_t>      m_token_t_by_type_hashcode;   // type's hashcode into a token_t (ex: type::get<std::string>().hashcode() => Token_t::keyword_string)
+        std::unordered_map<size_t, std::string>  m_keyword_by_type_hashcode;    // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
+        std::unordered_map<Token_t, fw::type>    m_type_by_token_t; // token_t to type. Works only if token_t refers to a type keyword.
+        std::unordered_map<Token_t, std::string> m_keyword_by_token_t;          // token_t to string (ex: Token_t::keyword_double => "double").
         std::unordered_map<size_t, Token_t>      m_char_to_token_t;            // single char to token_t (ex: '*' => Token_t::operator).
     };
 }

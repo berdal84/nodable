@@ -25,3 +25,6 @@
 [submodule "libs/freetype"]
 	path = libs/freetype
 	url = https://github.com/freetype/freetype/
+[submodule "libs/google/benchmark"]
+	path = libs/google/benchmark
+	url = https://github.com/google/benchmark.git

@@ -2,6 +2,16 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
+# google benchmark
+#-----------------
+# Did not find Google Test sources! Either pass correct path in
+# GOOGLETEST_PATH, or enable BENCHMARK_DOWNLOAD_DEPENDENCIES, or disable
+# BENCHMARK_USE_BUNDLED_GTEST, or disable BENCHMARK_ENABLE_GTEST_TESTS /
+# BENCHMARK_ENABLE_TESTING.
+set(BENCHMARK_ENABLE_GTEST_TESTS off)
+set(BENCHMARK_ENABLE_TESTING off)
+add_subdirectory(google/benchmark EXCLUDE_FROM_ALL)
+
 # freetype
 #------------------------------
 add_subdirectory(freetype EXCLUDE_FROM_ALL)

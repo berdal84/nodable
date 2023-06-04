@@ -4,12 +4,19 @@
 
 namespace fw::math
 {
+    static float clamp(float _value, float _min, float _max)
+    {
+        if ( _value < _min ) return _min;
+        if ( _value > _max ) return _max;
+        return _value;
+    }
+
     /**
      * Interpolate linearly _source to _target with a _factor (in [0.0f, 1.0f] )
      */
     static float lerp(float _source, float _target, float _factor)
     {
-        return _source + (_target - _source ) * std::clamp(_factor, 0.0f, 1.0f);
+        return _source + (_target - _source ) * clamp(_factor, 0.0f, 1.0f);
     }
 
     static i64_t signed_diff(u64_t _left, u64_t _right)

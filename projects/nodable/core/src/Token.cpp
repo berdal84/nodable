@@ -15,6 +15,7 @@ std::string Token::to_JSON(const std::shared_ptr<Token> _token)
     result.append( ", prefix: \"" + _token->get_prefix() + "\""  );
     result.append( ", suffix: \"" + _token->get_suffix() + "\""  );
     result.append( ", buffer: \"" + _token->m_buffer + "\""  );
+    result.append( ", token_type: \"" + std::to_string((int)_token->m_type) + "\"");
     result.append(" }");
     return result;
 }
