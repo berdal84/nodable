@@ -64,23 +64,27 @@ public:
     }
 };
 
-BENCHMARK_DEFINE_F(NodlangFixture, parse_double)(benchmark::State& state) {
-    for (auto _ : state) {
+BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_double)(benchmark::State& state) {
+    for (auto _ : state)
+    {
         language->parse_token(get_random_double_as_string());
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, parse_boolean)(benchmark::State& state) {
-    for (auto _ : state) {
-        language->parse_token("true");
-        language->parse_token("false");
+BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_boolean)(benchmark::State& state) {
+    bool b = true;
+    for (auto _ : state)
+    {
+        language->parse_token(b ? "true" : "false");
+        b = !b;
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, parse_operators)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_operator)(benchmark::State& state) {
     std::array operations{
         "+",
         "-",
+        "!",
         "!=",
         "==",
         ">",
@@ -96,13 +100,33 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_operators)(benchmark::State& state) {
     };
 
     size_t id = 0;
-    for (auto _ : state) {
-        language->parse_token(operations.at(id));
-        id = (id+1) % operations.size();
+    for (auto _ : state)
+    {
+        language->parse_token( operations.at(id++ % operations.size()) );
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, parse_code)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_char)(benchmark::State& state) {
+    std::array chars{
+       ",",
+       " ",
+       "\n",
+       "\t",
+       ";",
+       "{",
+       "}",
+       "(",
+       ")"
+    };
+
+    size_t id = 0;
+    for (auto _ : state)
+    {
+        language->parse_token( chars.at(id++ % chars.size() ));
+    }
+}
+
+BENCHMARK_DEFINE_F(NodlangFixture, parse__some_code_to_graph)(benchmark::State& state) {
     std::string code = "double a = 10.400012;"
                        "double b = 5.564478;"
                        "if(a>b){"
@@ -112,14 +136,16 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_code)(benchmark::State& state) {
                        "}"
                        ;
 
-    for (auto _ : state) {
+    for (auto _ : state)
+    {
         FW_EXPECT(language->parse(code, graph ), "parse failed");
     }
 }
 
-BENCHMARK_REGISTER_F(NodlangFixture, parse_code);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_operators);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_boolean);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_double);
+BENCHMARK_REGISTER_F(NodlangFixture, parse__some_code_to_graph)->Unit(benchmark::TimeUnit::kMicrosecond);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator)->Unit(benchmark::TimeUnit::kNanosecond);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean)->Unit(benchmark::TimeUnit::kNanosecond);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double)->Unit(benchmark::TimeUnit::kNanosecond);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char)->Unit(benchmark::TimeUnit::kNanosecond);
 
 BENCHMARK_MAIN();
