@@ -40,8 +40,8 @@ namespace ndbl{
         // Parser ---------------------------------------------------------------------
     public:
         bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
-        std::shared_ptr<Token> parse_token(const std::string& str, std::string::const_iterator&  _global_cursor) const; // parse a single token from position _cursor in _string.
-        std::shared_ptr<Token> parse_token(const std::string& _string) const { auto cursor = _string.begin(); return parse_token(_string, cursor ); }
+        std::shared_ptr<Token> parse_token(const std::string& str, size_t& global_cursor) const; // parse a single token from position _cursor in _string.
+        std::shared_ptr<Token> parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token(_string, cursor ); }
     private:
         void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
         void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
