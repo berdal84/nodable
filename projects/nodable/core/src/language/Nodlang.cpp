@@ -788,16 +788,16 @@ bool Nodlang::is_syntax_valid()
 
 bool Nodlang::tokenize(const std::string& _string)
 {
-    auto cursor = _string.cbegin();
+    auto global_cursor = _string.cbegin();
     std::string ignored_chars_accumulator;
 
-    while (cursor != _string.cend())
+    while (global_cursor != _string.cend())
     {
-        std::shared_ptr<Token> new_token = parse_token(_string, cursor);
+        std::shared_ptr<Token> new_token = parse_token(_string, global_cursor);
 
         if (!new_token)
         {
-            size_t distance = std::distance(_string.cbegin(), cursor);
+            size_t distance = std::distance(_string.cbegin(), global_cursor);
             LOG_WARNING("Parser", "Scanner Error: unable to tokenize \"%s...\" at index %llu\n", _string.substr(distance, 20).c_str(), distance)
             return false;
         }
@@ -864,69 +864,73 @@ bool Nodlang::tokenize(const std::string& _string)
 }
 
 std::shared_ptr<Token> Nodlang::parse_token(
-        const std::string& _string,
-        std::string::const_iterator&  _cursor) const
+        const std::string& str,
+        std::string::const_iterator& _global_cursor) const
 {
     std::shared_ptr<Token> result;
-    size_t cursor_idx = std::distance(_string.cbegin(), _cursor);
-    size_t char_left = _string.size() - cursor_idx;
-    std::string::value_type cursor_char = *_cursor;
+    const std::string::const_iterator start      = _global_cursor;
+    const std::string::value_type     first_char = *start;
+    size_t start_index = std::distance(str.cbegin(), start);
+    size_t char_left        = str.size() - start_index;
 
     // comments
-    if (cursor_char == '/' && (_cursor + 1) != _string.end())
+    if (first_char == '/' && char_left > 1)
     {
-        auto next_char = *(_cursor + 1);
-        if (next_char == '*' || next_char == '/')
+        auto local_cursor = start + 1;
+        auto second_char = *local_cursor;
+        if (second_char == '*' || second_char == '/')
         {
-            auto cursor_end = _cursor + 1;
-            bool multi_line = next_char == '*';
-            while (
-                    cursor_end != _string.end()
-                    &&
-                    (
-                            ( !multi_line && *cursor_end != '\n')
-                            ||
-                            ( multi_line && !(*cursor_end == '/' && *(cursor_end-1) == '*'))
-                    )
-                    )
+            // multi-line comment
+            if (second_char == '*')
             {
-                ++cursor_end;
+                while (local_cursor != str.end() && !(*local_cursor == '/' && *(local_cursor - 1) == '*'))
+                {
+                    ++local_cursor;
+                }
             }
-            ++cursor_end;
-            size_t length = std::distance(_cursor, cursor_end);
-            result = std::make_shared<Token>(Token_t::ignore, _string.substr(cursor_idx, length), cursor_idx);
-            std::advance(_cursor, length);
+            // single-line comment
+            else
+            {
+                while (local_cursor != str.end() && *local_cursor != '\n' )
+                {
+                    ++local_cursor;
+                }
+            }
+
+            ++local_cursor;
+            size_t length = std::distance(start, local_cursor);
+            result = std::make_shared<Token>(Token_t::ignore, str.substr(start_index, length), start_index);
+            std::advance(_global_cursor, length);
             return result;
         }
     }
 
     // single-char
-    for( auto [each_char, token_t] : m_token_t_by_single_char)
+    auto single_char_found = m_token_t_by_single_char.find(first_char);
+    if( single_char_found != m_token_t_by_single_char.end() )
     {
-        if (cursor_char == each_char )
-        {
-            _cursor++;
-            return std::make_shared<Token>(token_t, cursor_char, cursor_idx);
-        }
+        _global_cursor++;
+        const Token_t type = single_char_found->second;
+        return std::make_shared<Token>(type, first_char, start_index);
     }
 
-    switch (cursor_char)
+    // operators
+    switch (first_char)
     {
-        // operators
-        //----------
-
-        case '=': {
+        case '=':
+        {
             // "=>" or "=="
-            auto cursor_end = _cursor + 1;
-            if (cursor_end != _string.end() && (*cursor_end == '>' || *cursor_end == '=')) {
-                ++cursor_end;
-                auto length = std::distance(_cursor, cursor_end);
-                std::advance(_cursor, length);
-                return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
+            auto local_cursor = start + 1;
+            auto second_char = *local_cursor;
+            if (local_cursor != str.end() && (second_char == '>' || second_char == '=')) {
+                ++local_cursor;
+                auto length = std::distance(start, local_cursor);
+                std::advance(_global_cursor, length);
+                return std::make_shared<Token>(Token_t::operator_, str.substr(start_index, length), start_index);
             }
             // "="
-            _cursor++;
-            return std::make_shared<Token>(Token_t::operator_, cursor_char, cursor_idx);
+            _global_cursor++;
+            return std::make_shared<Token>(Token_t::operator_, first_char, start_index);
         }
 
         case '!':
@@ -935,104 +939,101 @@ std::shared_ptr<Token> Nodlang::parse_token(
         case '+':
         case '-':
         case '>':
-        case '<': {
+        case '<':
+        {
             // "<operator>=" (do not handle: "++", "--")
-            auto cursor_end = _cursor + 1;
-            if (cursor_end != _string.end() && *cursor_end == '=') {
-                ++cursor_end;
+            auto local_cursor = start + 1;
+            if (local_cursor != str.end() && *local_cursor == '=') {
+                ++local_cursor;
                 // special case for "<=>" operator
-                if (cursor_char == '<' && cursor_end != _string.end() && *cursor_end == '>') {
-                    ++cursor_end;
+                if (first_char == '<' && local_cursor != str.end() && *local_cursor == '>') {
+                    ++local_cursor;
                 }
-                auto length = std::distance(_cursor, cursor_end);
-                std::advance(_cursor, length);
-                return std::make_shared<Token>(Token_t::operator_, _string.substr(cursor_idx, length), cursor_idx);
+                auto length = std::distance(start, local_cursor);
+                std::advance(_global_cursor, length);
+                return std::make_shared<Token>(Token_t::operator_, str.substr(start_index, length), start_index);
             }
 
             // <operator>
-            _cursor++;
-            return std::make_shared<Token>(Token_t::operator_, cursor_char, cursor_idx);
+            _global_cursor++;
+            return std::make_shared<Token>(Token_t::operator_, first_char, start_index);
         }
     }
 
     // number (double)
-    //     note: we do not deal with zero prefix issues like: 0002.15454, or 01000
-    if (cursor_char >= '0' && cursor_char <= '9') {
-        auto cursor_end = _cursor + 1;
-        bool parsing_decimals = false;
-        while (cursor_end != _string.end()
-               && (
-                       // 0-9 digits
-                       (*cursor_end >= '0' && *cursor_end <= '9')
-                       ||
-                       // dot (allowed once)
-                       (*cursor_end == '.' && !parsing_decimals)
-               )
-                ) {
-            if ((*cursor_end) == '.') {
-                parsing_decimals = true;
-            }
-            ++cursor_end;
+    //     note: we accept zeros as prefix (ex: "0002.15454", or "01012")
+    if ( is_digit(first_char) )
+    {
+        auto local_cursor = start + 1;
+        Token_t type = Token_t::literal_int;
+
+        // integer
+        while (local_cursor != str.end() && is_digit(*local_cursor))
+        {
+            ++local_cursor;
         }
-        auto length = std::distance(_cursor, cursor_end);
-        std::advance(_cursor, length);
-        return std::make_shared<Token>(
-                parsing_decimals ? Token_t::literal_double : Token_t::literal_int,
-                _string.substr(cursor_idx, length), cursor_idx);
+
+        // double
+        if( local_cursor != str.end() && *local_cursor == '.'           // has a decimal separator
+            && (local_cursor+1) != str.end() && is_digit(*(local_cursor + 1)) // followed by a digit
+           )
+        {
+            auto local_cursor_decimal_separator = local_cursor;
+            ++local_cursor;
+
+            // decimal portion
+            while (local_cursor != str.end() && is_digit(*local_cursor))
+            {
+                ++local_cursor;
+            }
+            type = Token_t::literal_double;
+        }
+        auto length = std::distance(start, local_cursor);
+        std::advance(_global_cursor, length);
+        return std::make_shared<Token>(type, str.substr(start_index, length), start_index);
     }
 
     // reserved keywords
     for(auto [keyword, token_type] : m_token_t_by_keyword)
     {
-        if (_string.compare(cursor_idx, keyword.size(), keyword) == 0) {
-            result = std::make_shared<Token>(token_type, keyword, cursor_idx);
-            std::advance(_cursor, result->m_buffer.size() );
+        if (str.compare(start_index, keyword.size(), keyword) == 0)
+        {
+            result = std::make_shared<Token>(token_type, keyword, start_index);
+            std::advance(_global_cursor, keyword.size() );
             return result;
         }
     }
 
     // double-quoted string
-    if (cursor_char == '"')
+    if (first_char == '"')
     {
-        auto cursor_end = _cursor + 1;
-        while ( cursor_end != _string.end() && (*cursor_end != '"' || *(cursor_end-1) == '\\'))
+        auto local_cursor = start + 1;
+        while (local_cursor != str.end() && (*local_cursor != '"' || *(local_cursor - 1) == '\\'))
         {
-            ++cursor_end;
+            ++local_cursor;
         }
-        ++cursor_end;
-        size_t length = std::distance(_cursor, cursor_end);
-        result = std::make_shared<Token>(Token_t::literal_string, _string.substr(cursor_idx, length), cursor_idx);
-        std::advance(_cursor, length);
+        ++local_cursor;
+        size_t length = std::distance(start, local_cursor);
+        result = std::make_shared<Token>(Token_t::literal_string, str.substr(start_index, length), start_index);
+        std::advance(_global_cursor, length);
         return result;
     }
 
     // symbol
-    if (*_cursor >= 'a' && *_cursor <= 'z')
+    if (is_letter(first_char) || first_char == '_' )
     {
-        auto cursor_end = _cursor + 1;
-        while (
-                cursor_end != _string.end()
-                &&
-                (
-                        (*cursor_end >= 'a' && *cursor_end <= 'z') // [a-z]
-                        ||
-                        (*cursor_end >= 'A' && *cursor_end <= 'Z') // [A-Z]
-                        ||
-                        (*cursor_end >= '0' && *cursor_end <= '9') // [0-9]
-                        ||
-                        *cursor_end == '_'
-                )
-                )
+        auto local_cursor = start + 1;
+        while (local_cursor != str.end() && is_letter(*local_cursor) || is_digit(*local_cursor) || *local_cursor == '_' )
         {
-            ++cursor_end;
+            ++local_cursor;
         }
-        size_t length = std::distance(_cursor, cursor_end);
-        result = std::make_shared<Token>(Token_t::identifier, _string.substr(cursor_idx, length), cursor_idx);
-        std::advance(_cursor, length);
+        size_t length = std::distance(start, local_cursor);
+        result = std::make_shared<Token>(Token_t::identifier, str.substr(start_index, length), start_index);
+        std::advance(_global_cursor, length);
         return result;
     }
     return nullptr;
-};
+}
 
 Property *Nodlang::parse_function_call()
 {
