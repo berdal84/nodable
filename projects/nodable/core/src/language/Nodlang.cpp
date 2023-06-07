@@ -990,7 +990,7 @@ std::shared_ptr<Token> Nodlang::parse_token(
     }
 
     // reserved keywords
-    for(auto [keyword, token_type] : m_token_t_by_keyword)
+    for(auto& [keyword, token_type] : m_token_t_by_keyword)
     {
         if (str.compare(start_pos, keyword.size(), keyword) == 0)
         {
