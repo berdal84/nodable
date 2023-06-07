@@ -1,4 +1,5 @@
 #include <fw/core/string.h>
+#include <cstring>
 
 using namespace fw;
 
@@ -40,5 +41,29 @@ void string::limit_trailing_zeros(std::string& str, int _trailing_max)
         str.push_back('0');
     }
 
+}
+
+std::string string::fmt_title(const char *_title, int _width)
+{
+    /*
+     * Takes _title and do:
+     * ------------<=[ _title ]=>------------
+     */
+
+    const char* pre       = "-=[ ";
+    const char* post      = " ]=-";
+    const char  fill_char = '=';
+
+    int half_avail_space = (_width - strlen(_title) - strlen(pre) - strlen(post)) / 2;
+
+    std::string result;
+    result.resize(_width + 1); // +1 for \n
+
+    std::string empty_space;
+    empty_space.resize(half_avail_space);
+    std::fill(empty_space.begin(), empty_space.end(), fill_char);
+    snprintf(result.data(), result.size(), "%s%s%s%s%s\n", empty_space.c_str(), pre, _title, post, empty_space.c_str() );
+
+    return result;
 }
 
