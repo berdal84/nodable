@@ -65,9 +65,16 @@ public:
 };
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_double)(benchmark::State& state) {
+    std::array<std::string, 500> double_as_str;
+    for(size_t i = 0; i < double_as_str.size(); ++i)
+    {
+        double_as_str[i] = get_random_double_as_string();
+    }
+    size_t j = 0;
     for (auto _ : state)
     {
-        language->parse_token(get_random_double_as_string());
+        language->parse_token(double_as_str[j%double_as_str.size()]);
+        ++j;
     }
 }
 
