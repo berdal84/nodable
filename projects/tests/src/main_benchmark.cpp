@@ -149,10 +149,52 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse__some_code_to_graph)(benchmark::State& 
     }
 }
 
+BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_keyword)(benchmark::State& state) {
+
+    std::array chars{
+        "if",
+        "else",
+        "for",
+        "operator",
+        "int",
+        "bool",
+        "double",
+        "string"
+    };
+
+    size_t id = 0;
+    for (auto _ : state)
+    {
+        language->parse_token( chars.at(id++ % chars.size() ));
+    }
+}
+
+BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword)(benchmark::State& state) {
+
+    std::array chars{
+            "iff",
+            "elsee",
+            "forr",
+            "operatorr",
+            "intt",
+            "booll",
+            "doublee",
+            "stringg"
+    };
+
+    size_t id = 0;
+    for (auto _ : state)
+    {
+        language->parse_token( chars.at(id++ % chars.size() ));
+    }
+}
+
 BENCHMARK_REGISTER_F(NodlangFixture, parse__some_code_to_graph)->Unit(benchmark::TimeUnit::kMicrosecond);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator)->Unit(benchmark::TimeUnit::kNanosecond);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean)->Unit(benchmark::TimeUnit::kNanosecond);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double)->Unit(benchmark::TimeUnit::kNanosecond);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char)->Unit(benchmark::TimeUnit::kNanosecond);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword)->Unit(benchmark::TimeUnit::kNanosecond);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword)->Unit(benchmark::TimeUnit::kNanosecond);
 
 BENCHMARK_MAIN();

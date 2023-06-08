@@ -989,17 +989,6 @@ std::shared_ptr<Token> Nodlang::parse_token(
         return std::make_shared<Token>(type, str.substr(start_pos, cursor - start_pos), start_pos);
     }
 
-    // reserved keywords
-    for(auto& [keyword, token_type] : m_token_t_by_keyword)
-    {
-        if (str.compare(start_pos, keyword.size(), keyword) == 0)
-        {
-            result = std::make_shared<Token>(token_type, keyword, start_pos);
-            global_cursor += keyword.size();
-            return result;
-        }
-    }
-
     // double-quoted string
     if (first_char == '"')
     {
@@ -1014,17 +1003,27 @@ std::shared_ptr<Token> Nodlang::parse_token(
         return result;
     }
 
-    // symbol
+    // identifier / keyword
     if (is_letter(first_char) || first_char == '_' )
     {
+        Token_t token_t = Token_t::identifier; // default
+
         auto cursor = start_pos + 1;
         while (cursor != end_pos && is_letter(str[cursor]) || is_digit(str[cursor]) || str[cursor] == '_' )
         {
             ++cursor;
         }
-        result = std::make_shared<Token>(Token_t::identifier, str.substr(start_pos, cursor - start_pos), start_pos);
+        std::string word = str.substr(start_pos, cursor - start_pos);
+
+        // a keyword has priority over identifier
+        auto keyword_found = m_token_t_by_keyword.find(word);
+        if (keyword_found != m_token_t_by_keyword.end())
+        {
+            token_t = keyword_found->second;
+        }
+
         global_cursor = cursor;
-        return result;
+        return std::make_shared<Token>(token_t, word, start_pos);
     }
     return nullptr;
 }
