@@ -74,7 +74,7 @@ namespace ndbl{
         GraphNode*             m_graph;           // current graph output.
         TokenRibbon            m_token_ribbon;    // This token ribbon is cleared/filled when tokenize() is called.
         std::stack<Scope*>     m_scope_stack;     // Current scopes (babushka dolls).
-        bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared variable is rejected. When OFF, parser can produce a graph with undeclared variables but the compiler won't be able to handle it.
+        bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared symbol is rejected. When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
 
         // Serializer ------------------------------------------------------------------
     public:

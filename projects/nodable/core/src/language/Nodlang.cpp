@@ -1098,7 +1098,7 @@ Property *Nodlang::parse_function_call()
     // Find the prototype in the language library
     std::shared_ptr<const iinvokable> invokable = find_function(&signature);
 
-    auto connectArg = [&](const func_type *_sig, Node *_node, size_t _arg_index) -> void {// lambda to connect input property to node for a specific argument index.
+    auto connect_arg = [&](const func_type *_sig, Node *_node, size_t _arg_index) -> void {// lambda to connect input property to node for a specific argument index.
         Property *src_property = args.at(_arg_index);
         Property *dst_property = _node->props()->get_input_at(_arg_index);
         FW_ASSERT(dst_property)
@@ -1116,18 +1116,19 @@ Property *Nodlang::parse_function_call()
          *       this role is for the Compiler.
          */
         node = m_graph->create_function(invokable.get());
-    } else
+    }
+    else
     {
         /*
          * If we DO NOT found a function matching signature, we create an abstract function.
-         * The node will be able to be evaluated.
+         * The node will NOT be able to be evaluated.
          */
         node = m_graph->create_abstract_function(&signature);
     }
 
     for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
     {
-        connectArg(&signature, node, argIndex);
+        connect_arg(&signature, node, argIndex);
     }
 
     commit_transaction();
