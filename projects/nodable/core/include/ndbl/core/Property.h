@@ -88,7 +88,7 @@ namespace ndbl
         fw::qword&       get_underlying_data();
 
 		static std::shared_ptr<Property>  new_with_type(PropertyGrp * ,fw::type , Flags = Flags_none);
-		static std::vector<fw::variant*>& get_variant(std::vector<Property *> _in, std::vector<fw::variant*>& _out);
+		static std::vector<fw::variant*>& get_variant(std::vector<Property *> _in_properties, std::vector<fw::variant*>& _out_variants);
     private:
 
         // TODO: implem AbstractProperty, implement Value and Reference, remove this get_variant()

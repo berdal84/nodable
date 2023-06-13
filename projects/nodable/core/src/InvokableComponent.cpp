@@ -43,8 +43,11 @@ bool InvokableComponent::update()
     {
         try
         {
+            // Get properties' variants, and invoke m_invokable with the variants as arguments
             std::vector<fw::variant*> args;
-            *m_result->get_variant() = (*m_invokable)(Property::get_variant(m_args, args) );
+            Property::get_variant(m_args, args);
+            *m_result->get_variant() = (*m_invokable)(args);
+
             for(auto arg : m_args)
             {
                 arg->ensure_is_defined(true);

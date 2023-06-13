@@ -122,11 +122,11 @@ std::shared_ptr<Property> Property::new_with_type(PropertyGrp *_parent, fw::type
     return property;
 }
 
-std::vector<fw::variant*>&Property::get_variant(std::vector<Property *> _in, std::vector<fw::variant*>& _out)
+std::vector<fw::variant*>&Property::get_variant(std::vector<Property *> _in_properties, std::vector<fw::variant*>& _out_variants)
 {
-    for(auto each : _in)
+    for(Property* each_property : _in_properties)
     {
-        _out.push_back(each->get_variant());
+        _out_variants.push_back(each_property->get_variant());
     }
-    return _out;
+    return _out_variants;
 }
