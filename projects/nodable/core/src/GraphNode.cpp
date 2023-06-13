@@ -201,50 +201,48 @@ bool GraphNode::is_empty() const
     return !m_root;
 }
 
-const DirectedEdge* GraphNode::connect(Property * _src_property, Property * _dst_property)
+const DirectedEdge* GraphNode::connect(Property * _source_property, Property * _target_property)
 {
-    FW_EXPECT(_src_property != _dst_property, "Can't connect same Property!")
-    FW_EXPECT( fw::type::is_implicitly_convertible(_src_property->get_type(), _dst_property->get_type()),
+    FW_EXPECT(_source_property != _target_property, "Can't connect same Property!")
+    FW_EXPECT( fw::type::is_implicitly_convertible(_source_property->get_type(), _target_property->get_type()),
                        "Can't connect non implicitly convertible Properties!");
 
     const DirectedEdge* edge = nullptr;
     /*
      * If _from has no owner _to can digest it, no need to create an edge in this case.
      */
-    if (_src_property->get_owner() == nullptr)
+    if (_source_property->get_owner() == nullptr)
     {
-        _dst_property->digest(_src_property);
-        delete _src_property;
+        _target_property->digest(_source_property);
+        delete _source_property;
     }
     else if (
-            !_src_property->get_type().is_ptr() &&
-            _src_property->get_owner()->get_type().is_child_of<LiteralNode>() &&
-            _dst_property->get_owner()->get_type().is_not_child_of<VariableNode>())
+            !_source_property->get_type().is_ptr() &&
+            _source_property->get_owner()->get_type().is_child_of<LiteralNode>() &&
+            _target_property->get_owner()->get_type().is_not_child_of<VariableNode>())
     {
-        Node* owner = _src_property->get_owner();
-        _dst_property->digest(_src_property);
+        Node* owner = _source_property->get_owner();
+        _target_property->digest(_source_property);
         destroy(owner);
     }
     else
     {
         LOG_VERBOSE("GraphNode", "drop_on() ...\n")
-        _dst_property->set_input(_src_property);
-        _src_property->get_outputs().push_back(_dst_property);
+        _target_property->set_input(_source_property);
+        _source_property->get_outputs().push_back(_target_property);
 
-        edge = connect({_src_property, _dst_property}, true);
+        edge = connect({_source_property, _target_property}, true);
 
         // TODO: move this somewhere else
         // (transfer prefix/suffix)
-        auto fromToken = _src_property->get_src_token();
-        if (fromToken)
+        auto src_token = _source_property->get_src_token();
+        if (src_token)
         {
-            if (!_dst_property->get_src_token())
+            if (!_target_property->get_src_token())
             {
-                _dst_property->set_src_token(std::make_shared<Token>(fromToken->m_type, "", fromToken->m_charIndex));
+                _target_property->set_src_token(std::make_shared<Token>(src_token->m_type, "", src_token->m_source_word_pos));
             }
-
-            auto toToken = _dst_property->get_src_token();
-            toToken->transfer_prefix_suffix( fromToken );
+            _target_property->get_src_token()->transfer_prefix_suffix(src_token );
         }
     }
 

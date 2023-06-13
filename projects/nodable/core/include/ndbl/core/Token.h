@@ -29,9 +29,9 @@ namespace ndbl
 	    size_t      m_index;
         /* Type of token (ex: operator, symbol, literal, etc.) */
 		Token_t     m_type;
-        /* Index (or position) of the buffer first char in its original source
+        /* Position of the word's first char in its original source string
          * ex: source = "3+21", the index of "21" is 2.*/
-		size_t      m_charIndex;
+		size_t      m_source_word_pos;
 		/* String buffer to store a parsed word into (including prefix and suffix)
 		 * ex:     "  int ", "( ", "    )", etc. */
         std::string m_buffer;
@@ -40,35 +40,35 @@ namespace ndbl
         /* Size of the word (without prefix/suffix) */
         size_t      m_word_size;
 
-        Token()
-                : m_type( Token_t::default_ )
-                , m_buffer()
-                , m_index(0)
-                , m_charIndex(0)
-                , m_word_pos(0)
-                , m_word_size(0)
+        Token(Token_t _type =  Token_t::default_)
+            : m_buffer()
+            , m_type(_type)
+            , m_index(0)
+            , m_source_word_pos(0)
+            , m_word_pos(0)
+            , m_word_size(0)
         {}
 
-        Token(Token_t _type ): Token()
+        Token(Token_t _type, const char* _word, size_t _source_word_pos = 0)
+            : m_buffer(_word)
+            , m_type(_type)
+            , m_index(0)
+            , m_source_word_pos(_source_word_pos)
+            , m_word_pos(0)
         {
-            m_type = _type;
+            m_word_size = m_buffer.size();
         }
 
-		Token(Token_t _type, std::string  _word, size_t _char_index)
-            : Token(_type)
+        Token(Token_t _type, char  _char, size_t _source_word_pos = 0)
+            : m_buffer()
+            , m_type(_type)
+            , m_index(0)
+            , m_source_word_pos(_source_word_pos)
+            , m_word_pos(0)
+            , m_word_size(1)
         {
-            append_to_word(std::move(_word));
+            m_buffer.push_back(_char);
         }
-
-        Token(Token_t _type, char  _char, size_t _char_index)
-            : Token(_type)
-        {
-            append_to_word(_char);
-        }
-
-        Token(Token_t _type, const char* _char, size_t _char_index)
-        : Token( _type, std::string{_char}, _char_index)
-        {}
 
         ~Token() = default;
         /* Clear token */

@@ -23,9 +23,9 @@ std::shared_ptr<Token> TokenRibbon::push(const std::shared_ptr<Token>& _token)
     return tokens.back();
 }
 
-std::shared_ptr<Token> TokenRibbon::push(Token_t  _type, const std::string& _string, size_t _charIndex )
+std::shared_ptr<Token> TokenRibbon::push(Token_t  _type, const char* _str, size_t _charIndex )
 {
-    std::shared_ptr<Token> token = std::make_shared<Token>(_type, _string, _charIndex);
+    std::shared_ptr<Token> token = std::make_shared<Token>(_type, _str, _charIndex);
     token->m_index = tokens.size();
     tokens.push_back(token);
     return tokens.back();

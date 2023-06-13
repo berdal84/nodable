@@ -31,7 +31,7 @@ namespace ndbl
         token_ptr push(const token_ptr&);
 
         /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        [[nodiscard]] token_ptr push(Token_t _type, const std::string& _string, size_t _charIndex);
+        [[nodiscard]] token_ptr push(Token_t _type, const char* _str, size_t _charIndex);
 
         /** Get current token and increment cursor */
         token_ptr eatToken();

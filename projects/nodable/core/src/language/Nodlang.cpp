@@ -764,7 +764,7 @@ bool Nodlang::is_syntax_valid()
             {
                 if (opened <= 0)
                 {
-                    LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n", m_token_ribbon.concat_token_buffers((*currTokIt)->m_index, -10).c_str(), (*currTokIt)->m_charIndex)
+                    LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n", m_token_ribbon.concat_token_buffers((*currTokIt)->m_index, -10).c_str(), (*currTokIt)->m_source_word_pos)
                     success = false;
                 }
                 opened--;
@@ -866,11 +866,10 @@ std::shared_ptr<Token> Nodlang::parse_token(
         const std::string& str,
         size_t& global_cursor) const
 {
-    std::shared_ptr<Token> result;
-    const size_t start_pos  = global_cursor;
+    const size_t                  start_pos  = global_cursor;
     const std::string::value_type first_char = str[start_pos];
-    const size_t end_pos = str.size();
-    size_t char_left = end_pos - start_pos;
+    const size_t                  end_pos    = str.size();
+    const size_t                  char_left  = end_pos - start_pos;
 
     // comments
     if (first_char == '/' && char_left > 1)
@@ -897,9 +896,9 @@ std::shared_ptr<Token> Nodlang::parse_token(
             }
 
             ++cursor;
-            result = std::make_shared<Token>(Token_t::ignore, str.substr(start_pos, cursor - start_pos), start_pos);
             global_cursor = cursor;
-            return result;
+            std::string word = str.substr(start_pos, cursor - start_pos);
+            return std::make_shared<Token>(Token_t::ignore, word.c_str(), start_pos);
         }
     }
 
@@ -923,7 +922,8 @@ std::shared_ptr<Token> Nodlang::parse_token(
             if (cursor != end_pos && (second_char == '>' || second_char == '=')) {
                 ++cursor;
                 global_cursor = cursor;
-                return std::make_shared<Token>(Token_t::operator_, str.substr(start_pos, cursor - start_pos), start_pos);
+                std::string word = str.substr(start_pos, cursor - start_pos);
+                return std::make_shared<Token>(Token_t::operator_, word.c_str(), start_pos);
             }
             // "="
             global_cursor++;
@@ -947,12 +947,14 @@ std::shared_ptr<Token> Nodlang::parse_token(
                     ++cursor;
                 }
                 global_cursor = cursor;
-                return std::make_shared<Token>(Token_t::operator_, str.substr(start_pos, cursor - start_pos), start_pos);
+                std::string word = str.substr(start_pos, cursor - start_pos);
+                return std::make_shared<Token>(Token_t::operator_, word.c_str(), start_pos);
             }
 
             // <operator>
             global_cursor++;
-            return std::make_shared<Token>(Token_t::operator_, first_char, start_pos);
+            std::string word = str.substr(start_pos, cursor - start_pos);
+            return std::make_shared<Token>(Token_t::operator_, word.c_str(), start_pos);
         }
     }
 
@@ -986,7 +988,8 @@ std::shared_ptr<Token> Nodlang::parse_token(
             type = Token_t::literal_double;
         }
         global_cursor = cursor;
-        return std::make_shared<Token>(type, str.substr(start_pos, cursor - start_pos), start_pos);
+        std::string word = str.substr(start_pos, cursor - start_pos);
+        return std::make_shared<Token>(type, word.c_str(), start_pos);
     }
 
     // double-quoted string
@@ -998,32 +1001,32 @@ std::shared_ptr<Token> Nodlang::parse_token(
             ++cursor;
         }
         ++cursor;
-        result = std::make_shared<Token>(Token_t::literal_string, str.substr(start_pos, cursor - start_pos), start_pos);
         global_cursor = cursor;
-        return result;
+        std::string word = str.substr(start_pos, cursor - start_pos);
+        return std::make_shared<Token>(Token_t::literal_string, word.c_str(), start_pos);
     }
 
-    // identifier / keyword
+    // symbol (identifier or keyword)
     if (is_letter(first_char) || first_char == '_' )
     {
-        Token_t token_t = Token_t::identifier; // default
-
+        // parse symbol
         auto cursor = start_pos + 1;
         while (cursor != end_pos && is_letter(str[cursor]) || is_digit(str[cursor]) || str[cursor] == '_' )
         {
             ++cursor;
         }
         std::string word = str.substr(start_pos, cursor - start_pos);
+        global_cursor = cursor;
 
         // a keyword has priority over identifier
         auto keyword_found = m_token_t_by_keyword.find(word);
         if (keyword_found != m_token_t_by_keyword.end())
         {
-            token_t = keyword_found->second;
+            return std::make_shared<Token>(keyword_found->second, word.c_str(), start_pos);
         }
 
-        global_cursor = cursor;
-        return std::make_shared<Token>(token_t, word, start_pos);
+        // in absence of keyword, we fallback to identifier
+        return std::make_shared<Token>(Token_t::identifier, word.c_str(), start_pos);
     }
     return nullptr;
 }

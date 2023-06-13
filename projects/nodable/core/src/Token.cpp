@@ -11,7 +11,7 @@ std::string Token::to_JSON(const std::shared_ptr<Token> _token)
     std::string result;
     result.append("{ ");
     result.append( "word: \"" + _token->get_word() + "\"" );
-    result.append( ", charIndex: " + std::to_string(_token->m_charIndex) );
+    result.append( ", charIndex: " + std::to_string(_token->m_source_word_pos) );
     result.append( ", prefix: \"" + _token->get_prefix() + "\""  );
     result.append( ", suffix: \"" + _token->get_suffix() + "\""  );
     result.append( ", buffer: \"" + _token->m_buffer + "\""  );
@@ -84,7 +84,7 @@ void Token::clear()
 {
     m_index     = 0;
     m_type      = Token_t::default_;
-    m_charIndex = 0;
+    m_source_word_pos = 0;
     m_word_pos  = 0;
     m_word_size = 0;
     m_buffer    = "";
@@ -96,3 +96,4 @@ void Token::set_word(const std::string& word)
     m_buffer    = get_prefix() + word + get_suffix();
     m_word_size = word.size();
 }
+

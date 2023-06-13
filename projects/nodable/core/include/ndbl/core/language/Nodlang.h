@@ -39,19 +39,11 @@ namespace ndbl{
 
         // Parser ---------------------------------------------------------------------
     public:
+        bool                   tokenize(const std::string& _string);                  // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
         bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         std::shared_ptr<Token> parse_token(const std::string& str, size_t& global_cursor) const; // parse a single token from position _cursor in _string.
         std::shared_ptr<Token> parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token(_string, cursor ); }
-    private:
-        void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
-        void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
-        void                   commit_transaction();                                  // Commit the pending transaction
-        bool                   to_bool(const std::string& );                          // convert a boolean string ("true"|"false") to a boolean.
-        std::string            to_unquoted_string(const std::string& _quoted_str);    // convert a quoted string to a string.
-        double                 to_double(const std::string& );                        // convert a double string (ex: "10.0") to a double.
-        i16_t                  to_i16(const std::string& );                           // convert an integer string (ex: "42") to an integer.
-        Property *             to_property(std::shared_ptr<Token> _token);            // convert a token to a property.
-		Node*                  parse_scope();                                         // Try to parse a scope.
+        Node*                  parse_scope();                                         // Try to parse a scope.
         InstructionNode*       parse_instr();                                         // Try to parse an instruction.
         Property *             parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
         IScope*                parse_code_block(bool _create_scope);                  // Try to parse a code block with the option to create a scope or not (reusing the current one).
@@ -64,11 +56,19 @@ namespace ndbl{
         Property *             parse_binary_operator_expression(unsigned short _precedence = 0u, Property *_left = nullptr);   // Try to parse a binary expression.
         Property *             parse_atomic_expression();                                                                      // Try to parse an atomic expression (ex: "1", "a")
         Property *             parse_expression(unsigned short _precedence = 0u, Property *_left = nullptr);                   // Try to parse an expression
-		bool                   tokenize(const std::string& _string);                  // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
+        bool                   to_bool(const std::string& );                          // convert a boolean string ("true"|"false") to a boolean.
+        std::string            to_unquoted_string(const std::string& _quoted_str);    // convert a quoted string to a string.
+        double                 to_double(const std::string& );                        // convert a double string (ex: "10.0") to a double.
+        i16_t                  to_i16(const std::string& );                           // convert an integer string (ex: "42") to an integer.
+        Property *             to_property(std::shared_ptr<Token> _token);            // convert a token to a property.
+    private:
+        void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
+        void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
+        void                   commit_transaction();                                  // Commit the pending transaction
 		bool                   is_syntax_valid();                                     // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
         Scope*                 get_current_scope();                                   // Get the current scope. There is always a scope (main's scope program).
-        inline bool            is_letter(char c) const { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
-        inline bool            is_digit(char c) const { return c >= '0' && c <= '9'; }
+        static inline bool     is_letter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
+        static inline bool     is_digit(char c) { return c >= '0' && c <= '9'; }
 
     private:
         GraphNode*             m_graph;           // current graph output.
@@ -98,6 +98,7 @@ namespace ndbl{
         invokable_ptr                   find_function(const fw::func_type*) const;                   // Find a function by signature.
         invokable_ptr                   find_operator_fct(const fw::func_type*) const;               // Find an operator's function by signature (casts allowed).
         invokable_ptr                   find_operator_fct_exact(const fw::func_type*) const;         // Find an operator's function by signature (strict mode, no cast allowed).
+        invokable_ptr                   find_operator_fct_fallback(const fw::func_type*) const;      // Find a fallback operator function for a given signature (allows cast).
         const fw::Operator*             find_operator(const std::string& , fw::Operator_t) const;    // Find an operator by symbol and type (unary, binary or ternary).
         const Invokable_vec &           get_api()const { return m_functions; }                   // Get all the functions registered in the language. (TODO: why do we store the declared functions here? can't we load them in the VirtualMachine instead?).
         std::string&                    to_string(std::string& /*out*/, const fw::type&)const;   // Convert a type to string (by ref).
@@ -108,9 +109,8 @@ namespace ndbl{
         void                            add_function(std::shared_ptr<const fw::iinvokable>);     // Adds a new function (regular or operator's implementation).
         int                             get_precedence(const fw::iinvokable*)const;              // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
-    private:
         template<typename T>
-        void load_library()             // Instantiate a library from its type (uses reflection to get all its static methods).
+        void load_library() // Instantiate a library from its type (uses reflection to get all its static methods).
         {
             T library; // will force static code to run
 
@@ -121,8 +121,7 @@ namespace ndbl{
             }
         }
 
-        invokable_ptr                   find_operator_fct_fallback(const fw::func_type*) const;      // Find a fallback operator function for a given signature (allows cast).
-
+    private:
         struct {
             std::vector<std::tuple<std::string, Token_t>>                  keywords;
             std::vector<std::tuple<std::string, Token_t,        fw::type>> types;

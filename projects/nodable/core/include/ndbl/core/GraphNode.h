@@ -52,7 +52,7 @@ namespace ndbl
 
         const DirectedEdge*         connect(DirectedEdge _edge, bool _side_effects = true);     // Create a new directed edge, side effects can be turned off.
         void                        disconnect(const DirectedEdge*, bool _side_effects = true); // Disconnect a directed edge, side effects can be turned off.
-        const DirectedEdge*         connect(Property* _src, Property * _dst );                  // Create an edge between a source and a destination property (source and destination must be different).
+        const DirectedEdge*         connect(Property* _source_property, Property * _target_property );                  // Create an edge between a source and a destination property (source and destination must be different).
         const DirectedEdge*         connect(Node* _src, InstructionNode* _dst);                 // Connect a given node to an instruction node. The node will be the root expression of that instruction.
         const DirectedEdge*         connect(Property * _src, VariableNode* _dst);               // Connect a node's property to a given variable. This property will be the initial value of the variable.
         std::vector<const DirectedEdge *> filter_edges(Property *_property, Way _way) const;    // Filter all the edges connected to a given property in certain way.
