@@ -809,6 +809,7 @@ bool Nodlang::tokenize(const std::string& _string)
         }
         else // handle ignored_chars_accumulator then push the token in the ribbon and handle ignored_chars_accumulator
         {
+
              /*
              * Handle ignored_chars_accumulator, 3 options:
              *
@@ -822,32 +823,27 @@ bool Nodlang::tokenize(const std::string& _string)
              */
             if (!ignored_chars_accumulator.empty())
             {
-                // Option 1
                 if (!m_token_ribbon.empty())
                 {
                     std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
 
-                    // Option 1a
-                    if (last_token->m_type != Token_t::identifier) // we don't want identifiers to have suffixes
+                    if (last_token->m_type != Token_t::identifier)
                     {
                         last_token->append_to_suffix(ignored_chars_accumulator);
                     }
-                    // Option 1b
-                    else
+                    else if (new_token)
                     {
                         new_token->append_to_prefix(ignored_chars_accumulator);
                     }
                 }
-                // Option 2
                 else
                 {
                     m_token_ribbon.m_prefix_acc->append_to_word(ignored_chars_accumulator);
                 }
                 ignored_chars_accumulator.clear();
             }
-
-            m_token_ribbon.push(new_token);
             LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", Token::to_string(new_token).c_str())
+            m_token_ribbon.push(new_token);
         }
     }
 

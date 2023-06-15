@@ -70,11 +70,10 @@ namespace ndbl{
         static inline bool     is_letter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
         static inline bool     is_digit(char c) { return c >= '0' && c <= '9'; }
 
-    private:
-        GraphNode*             m_graph;           // current graph output.
-        TokenRibbon            m_token_ribbon;    // This token ribbon is cleared/filled when tokenize() is called.
-        std::stack<Scope*>     m_scope_stack;     // Current scopes (babushka dolls).
-        bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared symbol is rejected. When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
+    private: GraphNode*             m_graph;           // current graph output.
+    public:  TokenRibbon            m_token_ribbon;    // This token ribbon is cleared/filled when tokenize() is called.
+    private: std::stack<Scope*>     m_scope_stack;     // Current scopes (babushka dolls).
+    private: bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared symbol is rejected. When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
 
         // Serializer ------------------------------------------------------------------
     public:

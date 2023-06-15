@@ -24,16 +24,18 @@ add_subdirectory(libs/googletest)
 # Declare our main executable
 add_executable(
     nodable-core-tests
+        src/fixtures/core.h
         src/specs/graph.specs.cpp
         src/specs/language.specs.cpp
-        src/specs/property.specs.cpp
         src/specs/node.specs.cpp
-        src/specs/parser.specs.cpp
+        src/specs/parse_and_eval.specs.cpp
+        src/specs/parse_token.specs.cpp
+        src/specs/property.specs.cpp
         src/specs/reflection.specs.cpp
-        src/specs/virtual_machine.specs.cpp
-        src/specs/type_cast.specs.cpp
         src/specs/token.specs.cpp
-        src/fixtures/core.h
+        src/specs/tokenize.specs.cpp
+        src/specs/type_cast.specs.cpp
+        src/specs/virtual_machine.specs.cpp
 )
 
 # Link libraries

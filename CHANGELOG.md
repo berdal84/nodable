@@ -5,7 +5,7 @@ Nodable Change log :
 Author: Bérenger Dalle-Cort, 2017-2023
 
 ### v0.9:
-    - remove all regex (parsing performance gain 1dt => 0.75dt )
+    - remove all regex (+25% performance on Nodlang::parse() )
     - fixed lot of crashes
     - add help panel
     - add FontManager
