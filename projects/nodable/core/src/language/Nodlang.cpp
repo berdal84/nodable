@@ -28,6 +28,7 @@
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/language/Nodlang_biology.h>
 #include <ndbl/core/language/Nodlang_math.h>
+#include "fw/core/string.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -108,7 +109,7 @@ Nodlang::Nodlang(bool _strict)
 
     for( auto [keyword, token_t] : m_definition.keywords)
     {
-        m_token_t_by_keyword.insert({keyword, token_t});
+        m_token_t_by_keyword.insert({string::hash(keyword), token_t});
         m_keyword_by_token_t.insert({token_t, keyword});
     }
 
@@ -116,7 +117,7 @@ Nodlang::Nodlang(bool _strict)
     {
         m_keyword_by_token_t.insert({token_t, keyword});
         m_keyword_by_type_hashcode.insert({type.hash_code(), keyword});
-        m_token_t_by_keyword.insert({keyword, token_t});
+        m_token_t_by_keyword.insert({string::hash(keyword), token_t});
         m_token_t_by_type_hashcode.insert({type.hash_code(), token_t});
         m_type_by_token_t.insert({token_t, type});
     }
@@ -1017,19 +1018,14 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
         }
         global_cursor = cursor;
 
-        Token_t type;
-        auto keyword_found = m_token_t_by_keyword.find({ buffer + start_pos , cursor - start_pos}); // Can I avoid building this std::string?!
+        Token_t type = Token_t::identifier;
+
+        auto keyword_found = m_token_t_by_keyword.find( string::hash(buffer + start_pos, cursor - start_pos) );
         if (keyword_found != m_token_t_by_keyword.end())
         {
             // a keyword has priority over identifier
             type = keyword_found->second;
         }
-        else
-        {
-            // in absence of keyword, we fallback to identifier
-            type = Token_t::identifier;
-        }
-
         return std::make_shared<Token>(type, buffer, start_pos, cursor - start_pos);
     }
     return nullptr;

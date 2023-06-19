@@ -123,9 +123,9 @@ namespace ndbl{
 
     private:
         struct {
-            std::vector<std::tuple<std::string, Token_t>>                  keywords;
-            std::vector<std::tuple<std::string, Token_t,        fw::type>> types;
-            std::vector<std::tuple<std::string, fw::Operator_t, int>>      operators;
+            std::vector<std::tuple<const char*, Token_t>>                  keywords;
+            std::vector<std::tuple<const char*, Token_t,        fw::type>> types;
+            std::vector<std::tuple<const char*, fw::Operator_t, int>>      operators;
             std::vector<std::tuple<char, Token_t>>                         chars;
         } m_definition; // language definition
 
@@ -133,10 +133,10 @@ namespace ndbl{
         Invokable_vec m_operators_impl;                                        // operators' implementations.
         Invokable_vec m_functions;                                             // all the functions (including operator's).
         std::unordered_map<Token_t, char>        m_single_char_by_keyword;
-        std::unordered_map<Token_t, std::string> m_keyword_by_token_t;         // token_t to string (ex: Token_t::keyword_double => "double").
-        std::unordered_map<size_t, std::string>  m_keyword_by_type_hashcode;   // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
+        std::unordered_map<Token_t, const char*> m_keyword_by_token_t;         // token_t to string (ex: Token_t::keyword_double => "double").
+        std::unordered_map<size_t, const char*>  m_keyword_by_type_hashcode;   // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
         std::unordered_map<char, Token_t>        m_token_t_by_single_char;
-        std::unordered_map<std::string, Token_t> m_token_t_by_keyword;         // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
+        std::unordered_map<size_t, Token_t>      m_token_t_by_keyword;         // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
         std::unordered_map<size_t, Token_t>      m_token_t_by_type_hashcode;   // type's hashcode into a token_t (ex: type::get<std::string>().hashcode() => Token_t::keyword_string)
         std::unordered_map<Token_t, fw::type>    m_type_by_token_t;            // token_t to type. Works only if token_t refers to a type keyword.
     };
