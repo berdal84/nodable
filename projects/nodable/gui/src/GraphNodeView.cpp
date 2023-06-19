@@ -112,8 +112,10 @@ bool GraphNodeView::draw_implem()
     auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
     {
         InstructionNode* instr_node = graph->create_instr();
-        std::shared_ptr<Token> token = std::make_shared<Token>(Token_t::end_of_instruction);
-        token->append_to_suffix("\n");
+        std::shared_ptr<Token> token = std::make_shared<Token>(Token_t::end_of_instruction, "\n");
+        token->m_word_start_pos = 0;
+        token->m_word_size = 0; // '\n' is the prefix
+
         instr_node->end_of_instr_token(token);
         return instr_node;
     };
@@ -126,12 +128,10 @@ bool GraphNodeView::draw_implem()
         var_node = graph->create_variable(_type, _name, scope );
         var_node->set_declared(true);
 
-        std::shared_ptr<Token> token  = std::make_shared<Token>();
-        token->m_type = Token_t::keyword_operator;
-        token->append_to_prefix(" ");
-        token->append_to_word("=");
-        token->append_to_suffix(" ");
-        
+        std::shared_ptr<Token> token  = std::make_shared<Token>(Token_t::keyword_operator, " = ");
+        token->m_word_start_pos = 1;
+        token->m_word_size = 1;
+
         var_node->set_assignment_operator_token(token);
         return var_node;
     };

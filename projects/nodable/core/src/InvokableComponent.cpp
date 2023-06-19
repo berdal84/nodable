@@ -21,7 +21,7 @@ InvokableComponent::InvokableComponent(const fw::func_type* _signature, bool _is
     FW_EXPECT(_signature != nullptr, "Signature must be defined!")
     m_invokable = _invokable;
     m_args.resize(_signature->get_arg_count(), nullptr );
-    m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_identifier().c_str() );
+    m_source_token = std::make_shared<Token>(Token_t::identifier, _signature->get_identifier().c_str());
 }
 
 bool InvokableComponent::update()

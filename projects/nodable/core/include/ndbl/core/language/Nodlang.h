@@ -39,10 +39,11 @@ namespace ndbl{
 
         // Parser ---------------------------------------------------------------------
     public:
-        bool                   tokenize(const std::string& _string);                  // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
+        bool                   tokenize(const std::string& _string);                 // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
+        bool                   tokenize(char* buffer, size_t buffer_size);           // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
         bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
-        std::shared_ptr<Token> parse_token(const std::string& str, size_t& global_cursor) const; // parse a single token from position _cursor in _string.
-        std::shared_ptr<Token> parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token(_string, cursor ); }
+        std::shared_ptr<Token> parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
+        std::shared_ptr<Token> parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor); }
         Node*                  parse_scope();                                         // Try to parse a scope.
         InstructionNode*       parse_instr();                                         // Try to parse an instruction.
         Property *             parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").

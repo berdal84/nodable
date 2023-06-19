@@ -11,11 +11,11 @@ namespace ndbl
     struct Token;
 
     /**
-         * A class to add tokens in a vector and navigate into them.
-         *
-         * This works like a ribbon full of token, with some cursors into a stack to allow a transaction like system.
-         * User can eat several token an then decide to rollback or commit.
-         */
+     * A class to add tokens in a vector and navigate into them.
+     *
+     * This works like a ribbon full of token, with some cursors into a stack to allow a transaction like system.
+     * User can eat several token an then decide to rollback or commit.
+     */
     class TokenRibbon
     {
         using token_ptr = std::shared_ptr<Token>;
@@ -25,13 +25,10 @@ namespace ndbl
         ~TokenRibbon() = default;
 
         /** Generate a string with all tokens with _tokens[_highlight] colored in green*/
-        [[nodiscard]] std::string toString() const;
+        [[nodiscard]] std::string to_string() const;
 
         /** Push a new token into the ribbon */
-        token_ptr push(const token_ptr&);
-
-        /** Adds a new token given a _type, _string and _charIndex and add it to the tokens.*/
-        [[nodiscard]] token_ptr push(Token_t _type, const char* _str, size_t _charIndex);
+        token_ptr push(token_ptr);
 
         /** Get current token and increment cursor */
         token_ptr eatToken();
@@ -51,6 +48,9 @@ namespace ndbl
 
         /** Clear the ribbon (tokens and cursors) */
         void clear();
+        void set_source_buffer(const std::string &_buffer); // Set the source buffer (usually shared with by all Tokens)
+        char* buffer() const { return const_cast<char*>(m_source_buffer.data()); }
+        size_t buffer_size()const { return m_source_buffer.size(); }
 
         /** return true if ribbon is empty */
         [[nodiscard]] bool empty()const;
@@ -81,13 +81,10 @@ namespace ndbl
         const token_ptr m_prefix_acc;
         /** fake token to accumulate suffixes */
         const token_ptr m_suffix_acc;
+
     private:
-
-        /** Current cursor position */
-        size_t m_curr_tok_idx;
-
-        /** Stack of all transaction start indexes */
-        std::stack<size_t> transactionStartTokenIndexes;
+        std::string m_source_buffer;                     // The source string buffer used to generate the tokens all of them are sharing it.
+        size_t m_curr_tok_idx;                           // Current cursor position
+        std::stack<size_t> transactionStartTokenIndexes; // Stack of all transaction start indexes
     };
-
 }

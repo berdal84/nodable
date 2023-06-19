@@ -6,59 +6,53 @@ using namespace ndbl;
 TEST(Token, empty_constructor)
 {
     Token token;
-    EXPECT_EQ(token.get_prefix(), "");
-    EXPECT_EQ(token.get_word(), "");
-    EXPECT_EQ(token.get_suffix(), "");
+    EXPECT_EQ(token.prefix_to_string(), "");
+    EXPECT_EQ(token.word_to_string(), "");
+    EXPECT_EQ(token.suffix_to_string(), "");
+    EXPECT_EQ(token.buffer_to_string(), "");
  }
 
-TEST(Token, constructor)
+TEST(Token, constructor__with_owned_buffer)
 {
-    Token token(Token_t::identifier, "toto",0);
-    EXPECT_EQ(token.get_prefix(), "");
-    EXPECT_EQ(token.get_word(), "toto");
-    EXPECT_EQ(token.get_suffix(), "");
+    Token token(Token_t::identifier, "toto");
+    EXPECT_EQ(token.prefix_to_string(), "");
+    EXPECT_EQ(token.word_to_string(), "toto");
+    EXPECT_EQ(token.suffix_to_string(), "");
+    EXPECT_EQ(token.m_is_source_buffer_owned, true);
 }
 
-TEST(Token, append_prefix)
+TEST(Token, constructor__with_not_owned_buffer)
 {
-    Token token(Token_t::identifier, "toto",0);
-    token.append_to_prefix(" ");
-
-    EXPECT_EQ(token.get_prefix(), " ");
-    EXPECT_EQ(token.get_word(), "toto");
-    EXPECT_EQ(token.get_suffix(), "");
-}
-
-TEST(Token, append_suffix)
-{
-    Token token(Token_t::identifier, "toto",0);
-    token.append_to_suffix(" ");
-
-    EXPECT_EQ(token.get_prefix(), "");
-    EXPECT_EQ(token.get_word(), "toto");
-    EXPECT_EQ(token.get_suffix(), " ");
-}
-
-TEST(Token, append_as_word)
-{
-    Token token(Token_t::identifier, "",0);
-    token.append_to_prefix("pref ");
-    token.append_to_word("fresh");
-    EXPECT_EQ(token.m_buffer, "pref fresh");
-    EXPECT_EQ(token.get_word(), "fresh");
+    const char* buffer = "<prefix>toto<suffix>";
+    Token token(Token_t::identifier, const_cast<char*>(buffer), 0, strlen(buffer), 8, 4 );
+    EXPECT_EQ(token.prefix_to_string(), "<prefix>");
+    EXPECT_EQ(token.word_to_string(), "toto");
+    EXPECT_EQ(token.suffix_to_string(), "<suffix>");
+    EXPECT_EQ(token.m_is_source_buffer_owned, false);
 }
 
 TEST(Token, transfer_prefix_suffix)
 {
-    auto src_token = std::make_shared<Token>(Token_t::identifier, "TATA",0);
-    src_token->append_to_prefix("pref ");
-    src_token->append_to_suffix(" suff");
+    // prepare
+    std::string toto{"TOTO"};
+    std::string tata{"<prefix>TATA<suffix>"};
+    Token source(Token_t::identifier, const_cast<char*>(tata.data()), 0, tata.length(), 8, 4);
+    Token target(Token_t::identifier, const_cast<char*>(toto.data()), 0, toto.length());
 
-    Token token(Token_t::identifier, "TOTO",0);
+    // pre-check
+    EXPECT_EQ(source.buffer_to_string(), "<prefix>TATA<suffix>");
+    EXPECT_FALSE(source.m_is_source_buffer_owned);
 
-    token.transfer_prefix_suffix( src_token );
+    EXPECT_EQ(target.buffer_to_string(), "TOTO");
+    EXPECT_FALSE(target.m_is_source_buffer_owned);
 
-    EXPECT_EQ( token.m_buffer, "pref TOTO suff");
-    EXPECT_EQ( src_token->m_buffer, "TATA");
+    // act
+    target.transfer_prefix_and_suffix_from(&source);
+
+    // post-check
+    EXPECT_EQ(source.buffer_to_string(), "TATA");
+    EXPECT_FALSE(source.m_is_source_buffer_owned);
+
+    EXPECT_EQ(target.buffer_to_string(), "<prefix>TOTO<suffix>");
+    EXPECT_TRUE(target.m_is_source_buffer_owned);
 }
-

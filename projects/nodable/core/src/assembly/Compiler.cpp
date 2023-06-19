@@ -44,7 +44,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
             {
                 if( !each_variable->is_declared() )
                 {
-                    LOG_ERROR("Compiler", "Syntax error: %s is not declared.\n", each_variable->get_identifier_token()->get_word().c_str() );
+                    LOG_ERROR("Compiler", "Syntax error: \"%s\" is not declared.\n", each_variable->get_name() );
                     return false;
                 }
             }
@@ -55,7 +55,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
         {
             if ( !component->has_function() )
             {
-                LOG_ERROR("Compiler", "Syntax error: %s is not a function available.\n", each_node->get_name() );
+                LOG_ERROR("Compiler", "Syntax error: \"%s\" is not a function available.\n", each_node->get_name() );
                 return false;
             }
         }

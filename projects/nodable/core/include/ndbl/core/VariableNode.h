@@ -40,8 +40,6 @@ namespace ndbl
         const InstructionNode* get_declaration_instr()const { return m_declaration_instr; }
         /** Get variable scope*/
         IScope*          get_scope() { return m_scope; }
-        /** Set variable identifier (ex: for "double toto;", "toto" is the identifier )*/
-        void set_name(const char*);
         /** Set the token for the variable's type (ex: for "double toto", { word: "double", suffix: " "} is the type token)*/
         void             set_type_token(token_ptr token) { m_type_token = token; }
         /** Set the token for the assignment operator (ex: for "double toto = 10.0", { word: "=", prefix: " ", suffix: " "} is the assignment token)*/

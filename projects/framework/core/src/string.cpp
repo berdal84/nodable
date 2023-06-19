@@ -52,18 +52,17 @@ std::string string::fmt_title(const char *_title, int _width)
 
     const char* pre       = "-=[ ";
     const char* post      = " ]=-";
-    const char  fill_char = '=';
+    const char* padding   = "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
+                            "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-";
 
-    int half_avail_space = (_width - strlen(_title) - strlen(pre) - strlen(post)) / 2;
+    int pad_size = (_width - strlen(_title) - strlen(pre) - strlen(post)) / 2;
 
-    std::string result;
-    result.resize(_width + 1); // +1 for \n
-
-    std::string empty_space;
-    empty_space.resize(half_avail_space);
-    std::fill(empty_space.begin(), empty_space.end(), fill_char);
-    snprintf(result.data(), result.size(), "%s%s%s%s%s\n", empty_space.c_str(), pre, _title, post, empty_space.c_str() );
-
+    char result[_width+1]; // _width + end of line
+    snprintf(result, _width, "%*.*s%s%s%s%*.*s\n",
+             0, pad_size, padding,
+             pre, _title, post,
+             0, pad_size-1, padding
+             );
     return result;
 }
 

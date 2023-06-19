@@ -158,12 +158,13 @@ bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
 {
     m_graph = _graphNode;
     m_token_ribbon.clear();
+    m_token_ribbon.set_source_buffer(_source_code);
 
     LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _source_code.c_str())
     LOG_MESSAGE("Parser", "Tokenization ...\n")
 
 
-    if (!tokenize(_source_code))
+    if (!tokenize(m_token_ribbon.buffer(), m_token_ribbon.buffer_size()))
     {
         return false;
     }
@@ -233,18 +234,19 @@ Property *Nodlang::to_property(std::shared_ptr<Token> _token)
 {
     if (_token->m_type == Token_t::identifier)
     {
-        VariableNode *variable = get_current_scope()->find_variable(_token->get_word());
+        VariableNode *variable = get_current_scope()->find_variable(_token->word_to_string());
 
         if (variable == nullptr)
         {
             if (m_strict_mode)
             {
-                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->get_word().c_str())
+                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->word_to_string().c_str())
             } else
             {
                 /* when strict mode is OFF, we just create a variable with Any type */
-                LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n", _token->get_word().c_str())
-                variable = m_graph->create_variable(type::null(), _token->get_word(), get_current_scope());
+                LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
+                            _token->word_to_string().c_str())
+                variable = m_graph->create_variable(type::null(), _token->word_to_string(), get_current_scope());
                 variable->get_value()->set_src_token(_token);
                 variable->set_declared(false);
             }
@@ -263,28 +265,28 @@ Property *Nodlang::to_property(std::shared_ptr<Token> _token)
         case Token_t::literal_bool:
         {
             literal = m_graph->create_literal(type::get<bool>());
-            literal->set_value(to_bool(_token->get_word()));
+            literal->set_value(to_bool(_token->word_to_string()));
             break;
         }
 
         case Token_t::literal_int:
         {
             literal = m_graph->create_literal(type::get<i16_t>());
-            literal->set_value(to_i16(_token->get_word()));
+            literal->set_value(to_i16(_token->word_to_string()));
             break;
         }
 
         case Token_t::literal_double:
         {
             literal = m_graph->create_literal(type::get<double>());
-            literal->set_value(to_double(_token->get_word()));
+            literal->set_value(to_double(_token->word_to_string()));
             break;
         }
 
         case Token_t::literal_string:
         {
             literal = m_graph->create_literal(type::get<std::string>());
-            literal->set_value(to_unquoted_string(_token->get_word()));
+            literal->set_value(to_unquoted_string(_token->word_to_string()));
             break;
         }
 
@@ -298,7 +300,7 @@ Property *Nodlang::to_property(std::shared_ptr<Token> _token)
         return result;
     }
 
-    LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token->get_word().c_str())
+    LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token->word_to_string().c_str())
     return nullptr;
 }
 
@@ -308,7 +310,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     assert(_left != nullptr);
 
     LOG_VERBOSE("Parser", "parse binary operation expr...\n")
-    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
+    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.to_string().c_str())
 
     Property *result = nullptr;
 
@@ -334,7 +336,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
         return nullptr;
     }
 
-    auto word = operatorToken->get_word();
+    auto word = operatorToken->word_to_string();
     const Operator *ope = find_operator(word, Operator_t::Binary);
     if (ope == nullptr)
     {
@@ -400,7 +402,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
 Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
 {
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
-    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
+    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.to_string().c_str())
 
     if (!m_token_ribbon.canEat(2))
     {
@@ -435,7 +437,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     }
 
     // Create a function signature
-    func_type *type = new func_type(operator_token->get_word());
+    func_type *type = new func_type(operator_token->word_to_string());
     type->set_return_type(type::any());
     type->push_args(value->get_type());
 
@@ -506,7 +508,7 @@ Property *Nodlang::parse_atomic_expression()
 Property *Nodlang::parse_parenthesis_expression()
 {
     LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
-    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
+    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.to_string().c_str())
 
     if (!m_token_ribbon.canEat())
     {
@@ -529,8 +531,9 @@ Property *Nodlang::parse_parenthesis_expression()
         std::shared_ptr<Token> token = m_token_ribbon.eatToken();
         if (token->m_type != Token_t::expr_end)
         {
-            LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
-            LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n", token->get_word().c_str())
+            LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.to_string().c_str())
+            LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n",
+                        token->word_to_string().c_str())
             rollback_transaction();
         } else
         {
@@ -692,7 +695,7 @@ IScope *Nodlang::parse_code_block(bool _create_scope)
 Property *Nodlang::parse_expression(unsigned short _precedence, Property *_leftOverride)
 {
     LOG_VERBOSE("Parser", "parse expr...\n")
-    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.toString().c_str())
+    LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.to_string().c_str())
 
     if (!m_token_ribbon.canEat())
     {
@@ -764,7 +767,7 @@ bool Nodlang::is_syntax_valid()
             {
                 if (opened <= 0)
                 {
-                    LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n", m_token_ribbon.concat_token_buffers((*currTokIt)->m_index, -10).c_str(), (*currTokIt)->m_source_word_pos)
+                    LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n", m_token_ribbon.concat_token_buffers((*currTokIt)->m_index, -10).c_str(), (*currTokIt)->m_buffer_start_pos)
                     success = false;
                 }
                 opened--;
@@ -788,24 +791,33 @@ bool Nodlang::is_syntax_valid()
 
 bool Nodlang::tokenize(const std::string& _string)
 {
-    size_t global_cursor = 0;
-    std::string ignored_chars_accumulator;
+    return tokenize(const_cast<char*>(_string.data()), _string.length());
+}
 
-    while (global_cursor != _string.size())
+bool Nodlang::tokenize(char* buffer, size_t buffer_size)
+{
+    size_t global_cursor = 0;
+    size_t ignored_chars_start_pos = 0;
+    size_t ignored_chars_size = 0;
+    while (global_cursor != buffer_size )
     {
-        std::shared_ptr<Token> new_token = parse_token(_string, global_cursor);
+        std::shared_ptr<Token> new_token = parse_token(buffer, buffer_size, global_cursor);
 
         if (!new_token)
         {
-            LOG_WARNING("Parser", "Scanner Error: unable to tokenize \"%s...\" at index %llu\n", _string.substr(global_cursor, 20).c_str(), global_cursor)
+            char buffer_portion[40];
+            snprintf(buffer_portion, 40, "%s", &buffer[global_cursor]);
+            LOG_WARNING("Parser", "Scanner Error: unable to tokenize \"%s...\" at index %llu\n", buffer_portion, global_cursor)
             return false;
         }
 
         // accumulate ignored chars (see else case to know why)
         if( new_token->m_type == Token_t::ignore)
         {
-            ignored_chars_accumulator.append(new_token->get_word());
-            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", Token::to_string(new_token).c_str())
+            if( ignored_chars_size == 0)
+                ignored_chars_start_pos = new_token->m_buffer_start_pos;
+            ignored_chars_size += new_token->m_buffer_size;
+            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token->buffer_to_string().c_str())
         }
         else // handle ignored_chars_accumulator then push the token in the ribbon and handle ignored_chars_accumulator
         {
@@ -821,7 +833,7 @@ bool Nodlang::tokenize(const std::string& _string)
              *
              * Option 2 : append ignored_chars_accumulator to the ribbon prefix (until we get a previous_token).
              */
-            if (!ignored_chars_accumulator.empty())
+            if (ignored_chars_size != 0)
             {
                 if (!m_token_ribbon.empty())
                 {
@@ -829,20 +841,20 @@ bool Nodlang::tokenize(const std::string& _string)
 
                     if (last_token->m_type != Token_t::identifier)
                     {
-                        last_token->append_to_suffix(ignored_chars_accumulator);
+                        last_token->set_buffer_end_pos(ignored_chars_start_pos + ignored_chars_size);
                     }
                     else if (new_token)
                     {
-                        new_token->append_to_prefix(ignored_chars_accumulator);
+                        new_token->set_buffer_start_pos(ignored_chars_start_pos);
                     }
                 }
                 else
                 {
-                    m_token_ribbon.m_prefix_acc->append_to_word(ignored_chars_accumulator);
+                    m_token_ribbon.m_prefix_acc->set_buffer_end_pos(ignored_chars_start_pos + ignored_chars_size);
                 }
-                ignored_chars_accumulator.clear();
+                ignored_chars_size = 0;
             }
-            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", Token::to_string(new_token).c_str())
+            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", new_token->buffer_to_string().c_str())
             m_token_ribbon.push(new_token);
         }
     }
@@ -850,34 +862,33 @@ bool Nodlang::tokenize(const std::string& _string)
     /*
 	 * Append remaining ignored_chars_accumulator to the ribbon suffix
 	 */
-    if (!ignored_chars_accumulator.empty())
+    if (ignored_chars_size != 0)
     {
-        m_token_ribbon.m_suffix_acc->append_to_word(ignored_chars_accumulator);
-        ignored_chars_accumulator.clear();
+        LOG_VERBOSE("Parser", "Found ignored chars after tokenize, adding to the ribbon suffix...\n");
+        m_token_ribbon.m_suffix_acc->set_source_buffer(buffer, ignored_chars_start_pos, ignored_chars_size);
+        ignored_chars_start_pos = 0;
+        ignored_chars_size = 0;
     }
     return true;
 }
 
-std::shared_ptr<Token> Nodlang::parse_token(
-        const std::string& str,
-        size_t& global_cursor) const
+std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_cursor) const
 {
     const size_t                  start_pos  = global_cursor;
-    const std::string::value_type first_char = str[start_pos];
-    const size_t                  end_pos    = str.size();
-    const size_t                  char_left  = end_pos - start_pos;
+    const std::string::value_type first_char = buffer[start_pos];
+    const size_t                  char_left  = buffer_size - start_pos;
 
     // comments
     if (first_char == '/' && char_left > 1)
     {
         auto cursor = start_pos + 1;
-        auto second_char = str[cursor];
+        auto second_char = buffer[cursor];
         if (second_char == '*' || second_char == '/')
         {
             // multi-line comment
             if (second_char == '*')
             {
-                while (cursor != end_pos && !(str[cursor] == '/' && str[cursor - 1] == '*'))
+                while (cursor != buffer_size && !(buffer[cursor] == '/' && buffer[cursor - 1] == '*'))
                 {
                     ++cursor;
                 }
@@ -885,7 +896,7 @@ std::shared_ptr<Token> Nodlang::parse_token(
             // single-line comment
             else
             {
-                while (cursor != end_pos && str[cursor] != '\n' )
+                while (cursor != buffer_size && buffer[cursor] != '\n' )
                 {
                     ++cursor;
                 }
@@ -893,8 +904,7 @@ std::shared_ptr<Token> Nodlang::parse_token(
 
             ++cursor;
             global_cursor = cursor;
-            std::string word = str.substr(start_pos, cursor - start_pos);
-            return std::make_shared<Token>(Token_t::ignore, word.c_str(), start_pos);
+            return std::make_shared<Token>(Token_t::ignore, buffer, start_pos, cursor - start_pos);
         }
     }
 
@@ -904,7 +914,7 @@ std::shared_ptr<Token> Nodlang::parse_token(
     {
         ++global_cursor;
         const Token_t type = single_char_found->second;
-        return std::make_shared<Token>(type, first_char, start_pos);
+        return std::make_shared<Token>(type, buffer, start_pos, 1);
     }
 
     // operators
@@ -914,16 +924,15 @@ std::shared_ptr<Token> Nodlang::parse_token(
         {
             // "=>" or "=="
             auto cursor = start_pos + 1;
-            auto second_char = str[cursor];
-            if (cursor != end_pos && (second_char == '>' || second_char == '=')) {
+            auto second_char = buffer[cursor];
+            if (cursor != buffer_size && (second_char == '>' || second_char == '=')) {
                 ++cursor;
                 global_cursor = cursor;
-                std::string word = str.substr(start_pos, cursor - start_pos);
-                return std::make_shared<Token>(Token_t::operator_, word.c_str(), start_pos);
+                return std::make_shared<Token>(Token_t::operator_, buffer, start_pos, cursor - start_pos);
             }
             // "="
             global_cursor++;
-            return std::make_shared<Token>(Token_t::operator_, first_char, start_pos);
+            return std::make_shared<Token>(Token_t::operator_, buffer, start_pos, 1);
         }
 
         case '!':
@@ -936,21 +945,18 @@ std::shared_ptr<Token> Nodlang::parse_token(
         {
             // "<operator>=" (do not handle: "++", "--")
             auto cursor = start_pos + 1;
-            if (cursor != end_pos && str[cursor] == '=') {
+            if (cursor != buffer_size && buffer[cursor] == '=') {
                 ++cursor;
                 // special case for "<=>" operator
-                if (first_char == '<' && cursor != end_pos && str[cursor] == '>') {
+                if (first_char == '<' && cursor != buffer_size && buffer[cursor] == '>') {
                     ++cursor;
                 }
                 global_cursor = cursor;
-                std::string word = str.substr(start_pos, cursor - start_pos);
-                return std::make_shared<Token>(Token_t::operator_, word.c_str(), start_pos);
+            } else {
+                // <operator>
+                global_cursor++;
             }
-
-            // <operator>
-            global_cursor++;
-            std::string word = str.substr(start_pos, cursor - start_pos);
-            return std::make_shared<Token>(Token_t::operator_, word.c_str(), start_pos);
+            return std::make_shared<Token>(Token_t::operator_, buffer, start_pos, cursor - start_pos);
         }
     }
 
@@ -962,44 +968,42 @@ std::shared_ptr<Token> Nodlang::parse_token(
         Token_t type = Token_t::literal_int;
 
         // integer
-        while (cursor != end_pos && is_digit(str[cursor]))
+        while (cursor != buffer_size && is_digit(buffer[cursor]))
         {
             ++cursor;
         }
 
         // double
-        if(cursor + 1 < str.size()
-           && str[cursor] == '.'      // has a decimal separator
-            && is_digit(str[cursor + 1]) // followed by a digit
+        if(cursor + 1 < buffer_size
+           && buffer[cursor] == '.'      // has a decimal separator
+            && is_digit(buffer[cursor + 1]) // followed by a digit
            )
         {
             auto local_cursor_decimal_separator = cursor;
             ++cursor;
 
             // decimal portion
-            while (cursor != end_pos && is_digit(str[cursor]))
+            while (cursor != buffer_size && is_digit(buffer[cursor]))
             {
                 ++cursor;
             }
             type = Token_t::literal_double;
         }
         global_cursor = cursor;
-        std::string word = str.substr(start_pos, cursor - start_pos);
-        return std::make_shared<Token>(type, word.c_str(), start_pos);
+        return std::make_shared<Token>(type, buffer, start_pos, cursor - start_pos);
     }
 
     // double-quoted string
     if (first_char == '"')
     {
         auto cursor = start_pos + 1;
-        while (cursor != end_pos && (str[cursor] != '"' || str[cursor - 1] == '\\'))
+        while (cursor != buffer_size && (buffer[cursor] != '"' || buffer[cursor - 1] == '\\'))
         {
             ++cursor;
         }
         ++cursor;
         global_cursor = cursor;
-        std::string word = str.substr(start_pos, cursor - start_pos);
-        return std::make_shared<Token>(Token_t::literal_string, word.c_str(), start_pos);
+        return std::make_shared<Token>(Token_t::literal_string, buffer, start_pos, cursor - start_pos);
     }
 
     // symbol (identifier or keyword)
@@ -1007,22 +1011,26 @@ std::shared_ptr<Token> Nodlang::parse_token(
     {
         // parse symbol
         auto cursor = start_pos + 1;
-        while (cursor != end_pos && is_letter(str[cursor]) || is_digit(str[cursor]) || str[cursor] == '_' )
+        while (cursor != buffer_size && is_letter(buffer[cursor]) || is_digit(buffer[cursor]) || buffer[cursor] == '_' )
         {
             ++cursor;
         }
-        std::string word = str.substr(start_pos, cursor - start_pos);
         global_cursor = cursor;
 
-        // a keyword has priority over identifier
-        auto keyword_found = m_token_t_by_keyword.find(word);
+        Token_t type;
+        auto keyword_found = m_token_t_by_keyword.find({ buffer + start_pos , cursor - start_pos}); // Can I avoid building this std::string?!
         if (keyword_found != m_token_t_by_keyword.end())
         {
-            return std::make_shared<Token>(keyword_found->second, word.c_str(), start_pos);
+            // a keyword has priority over identifier
+            type = keyword_found->second;
+        }
+        else
+        {
+            // in absence of keyword, we fallback to identifier
+            type = Token_t::identifier;
         }
 
-        // in absence of keyword, we fallback to identifier
-        return std::make_shared<Token>(Token_t::identifier, word.c_str(), start_pos);
+        return std::make_shared<Token>(type, buffer, start_pos, cursor - start_pos);
     }
     return nullptr;
 }
@@ -1047,7 +1055,7 @@ Property *Nodlang::parse_function_call()
     if (token_0->m_type == Token_t::identifier &&
         token_1->m_type == Token_t::expr_begin)
     {
-        fct_id = token_0->get_word();
+        fct_id = token_0->word_to_string();
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
     } else// Try to parse operator like (ex: operator==(..,..))
     {
@@ -1055,7 +1063,7 @@ Property *Nodlang::parse_function_call()
 
         if (token_0->m_type == Token_t::keyword_operator && token_1->m_type == Token_t::operator_ && token_2->m_type == Token_t::expr_begin)
         {
-            fct_id = token_1->get_word();// operator
+            fct_id = token_1->word_to_string();// operator
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         } else
         {
@@ -1323,21 +1331,21 @@ Property *Nodlang::parse_variable_declaration()
 
     start_transaction();
 
-    std::shared_ptr<Token> tok_type = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> tok_identifier = m_token_ribbon.eatToken();
+    std::shared_ptr<Token> type_token = m_token_ribbon.eatToken();
+    std::shared_ptr<Token> identifier_token = m_token_ribbon.eatToken();
 
-    if (tok_type->is_keyword_type() && tok_identifier->m_type == Token_t::identifier)
+    if (type_token->is_keyword_type() && identifier_token->m_type == Token_t::identifier)
     {
-        type type = get_type(tok_type->m_type);
-        VariableNode *variable = m_graph->create_variable(type, tok_identifier->get_word(), get_current_scope());
+        type type = get_type(type_token->m_type);
+        VariableNode *variable = m_graph->create_variable(type, identifier_token->word_to_string(), get_current_scope());
         variable->set_declared(true);
-        variable->set_type_token(tok_type);
-        variable->get_identifier_token()->transfer_prefix_suffix(tok_identifier);
-        variable->get_value()->set_src_token(std::make_shared<Token>(*tok_identifier));
+        variable->set_type_token(type_token);
+        variable->get_identifier_token()->transfer_prefix_and_suffix_from(identifier_token.get());
+        variable->get_value()->set_src_token(std::make_shared<Token>(*identifier_token));
 
         // try to parse assignment
         std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(Token_t::operator_);
-        if (assignmentTok && assignmentTok->get_word() == "=")
+        if (assignmentTok && assignmentTok->word_to_string() == "=")
         {
             auto expression_result = parse_expression();
             if (expression_result &&
@@ -1347,7 +1355,7 @@ Property *Nodlang::parse_variable_declaration()
                 variable->set_assignment_operator_token(assignmentTok);
             } else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", tok_identifier->get_word().c_str())
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifier_token->word_to_string().c_str())
                 rollback_transaction();
                 m_graph->destroy(variable);
                 return nullptr;
@@ -1407,7 +1415,7 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
                 std::shared_ptr<Token> sourceToken = _component->get_source_token();
                 if (sourceToken)
                 {
-                    _out.append(sourceToken->m_buffer);
+                    _out.append(sourceToken->buffer(), sourceToken->m_buffer_size);
                 } else
                 {
                     _out.append(type->get_identifier());
@@ -1429,11 +1437,11 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
                 // Operator
                 std::shared_ptr<Token> token = _component->get_source_token();
 
-                if (token) _out.append(token->get_prefix());
+                if (token) _out.append(token->prefix_to_string());
 
                 _out.append(type->get_identifier());
 
-                if (token) _out.append(token->get_suffix());
+                if (token) _out.append(token->suffix_to_string());
 
                 auto inner_operator = owner->get_connected_invokable(args[0]);
                 serialize_property_with_or_without_brackets(args[0], inner_operator != nullptr);
@@ -1521,7 +1529,7 @@ std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) co
 
     // 2. Serialize variable identifier
 
-    _out.append(_node->get_identifier_token()->m_buffer);
+    _out.append(_node->get_name());
 
     // 3. If variable is connected, serialize its assigned expression
 
@@ -1530,7 +1538,7 @@ std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) co
     {
         auto append_assign_tok = [&]() {
             std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token();
-            _out.append(assign_tok ? assign_tok->m_buffer : " = ");
+            _out.append(assign_tok ? assign_tok->buffer_to_string() : " = ");
         };
 
         append_assign_tok();
@@ -1564,7 +1572,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
     std::shared_ptr<Token> sourceToken = _property->get_src_token();
     if (sourceToken)
     {
-        _out.append(sourceToken->get_prefix());
+        _out.append(sourceToken->prefix_to_string());
     }
 
     auto owner = _property->get_owner();
@@ -1593,7 +1601,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
 
     if (sourceToken)
     {
-        _out.append(sourceToken->get_suffix());
+        _out.append(sourceToken->suffix_to_string());
     }
     return _out;
 }
@@ -1668,17 +1676,18 @@ std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instr
 
 std::string &Nodlang::serialize(std::string &_out, std::shared_ptr<const Token> _token) const
 {
-    if (_token)
+    if (_token && _token->has_buffer())
     {
-        _out.append(_token->get_prefix());
+        _out.append(_token->prefix(), _token->prefix_size());
         if (_token->m_type == Token_t::unknown)
         {
-            _out.append(_token->get_word());
-        } else
+            _out.append(_token->word(), _token->word_size());
+        }
+        else
         {
             serialize(_out, _token->m_type);
         }
-        _out.append(_token->get_suffix());
+        _out.append(_token->suffix(), _token->suffix_size());
     }
     return _out;
 }

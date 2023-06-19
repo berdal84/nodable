@@ -34,6 +34,7 @@ public:
 
     void SetUp()
     {
+        fw::log::set_verbosity(fw::log::Verbosity_Warning);
     }
 
     void TearDown()
@@ -129,6 +130,11 @@ public:
         LOG_VERBOSE("tools.h", "parse_and_serialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;
+    }
+
+    void log_ribbon() const
+    {
+        LOG_MESSAGE("fixture::core", "%s\n", language.m_token_ribbon.to_string().c_str());
     }
 };
 }

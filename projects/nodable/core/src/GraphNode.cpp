@@ -240,9 +240,9 @@ const DirectedEdge* GraphNode::connect(Property * _source_property, Property * _
         {
             if (!_target_property->get_src_token())
             {
-                _target_property->set_src_token(std::make_shared<Token>(src_token->m_type, "", src_token->m_source_word_pos));
+                _target_property->set_src_token(std::make_shared<Token>(src_token->m_type));
             }
-            _target_property->get_src_token()->transfer_prefix_suffix(src_token );
+            _target_property->get_src_token()->transfer_prefix_and_suffix_from(src_token.get());
         }
     }
 
