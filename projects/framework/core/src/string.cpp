@@ -57,7 +57,7 @@ std::string string::fmt_title(const char *_title, int _width)
 
     int pad_size = (_width - strlen(_title) - strlen(pre) - strlen(post)) / 2;
 
-    char result[_width+1]; // _width + end of line
+    char result[256];
     snprintf(result, _width, "%*.*s%s%s%s%*.*s\n",
              0, pad_size, padding,
              pre, _title, post,
