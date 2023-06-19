@@ -42,27 +42,3 @@ void string::limit_trailing_zeros(std::string& str, int _trailing_max)
     }
 
 }
-
-std::string string::fmt_title(const char *_title, int _width)
-{
-    /*
-     * Takes _title and do:
-     * ------------<=[ _title ]=>------------
-     */
-
-    const char* pre       = "-=[ ";
-    const char* post      = " ]=-";
-    const char* padding   = "=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-="
-                            "-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-";
-
-    int pad_size = (_width - strlen(_title) - strlen(pre) - strlen(post)) / 2;
-
-    char result[_width+1]; // _width + end of line
-    snprintf(result, _width, "%*.*s%s%s%s%*.*s\n",
-             0, pad_size, padding,
-             pre, _title, post,
-             0, pad_size-1, padding
-             );
-    return result;
-}
-
