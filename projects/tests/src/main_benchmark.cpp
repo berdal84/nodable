@@ -133,7 +133,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_char)(benchmark::State&
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, parse__some_code_to_graph)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(NodlangFixture, tokenize__some_code_to_graph)(benchmark::State& state) {
     std::string code = "double a = 10.400012;"
                        "double b = 5.564478;"
                        "if(a>b){"
@@ -145,7 +145,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse__some_code_to_graph)(benchmark::State& 
 
     for (auto _ : state)
     {
-        FW_EXPECT(language->parse(code, graph ), "parse failed");
+        FW_EXPECT(language->tokenize(code), "parse failed");
     }
 }
 
@@ -189,12 +189,12 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_identifier_starting_wit
     }
 }
 
-BENCHMARK_REGISTER_F(NodlangFixture, parse__some_code_to_graph)->Unit(benchmark::TimeUnit::kMicrosecond);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator)->Unit(benchmark::TimeUnit::kNanosecond);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean)->Unit(benchmark::TimeUnit::kNanosecond);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double)->Unit(benchmark::TimeUnit::kNanosecond);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char)->Unit(benchmark::TimeUnit::kNanosecond);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword)->Unit(benchmark::TimeUnit::kNanosecond);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword)->Unit(benchmark::TimeUnit::kNanosecond);
+BENCHMARK_REGISTER_F(NodlangFixture, tokenize__some_code_to_graph);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
 
 BENCHMARK_MAIN();
