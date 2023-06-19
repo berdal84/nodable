@@ -2,6 +2,11 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
+# freetype
+#------------------------------
+add_library(xxhash INTERFACE)
+target_include_directories(xxhash INTERFACE ./)
+
 # google benchmark
 #-----------------
 # Did not find Google Test sources! Either pass correct path in

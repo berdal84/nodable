@@ -21,6 +21,7 @@ target_link_libraries(
             ghc_filesystem     # c++ compatible std::filesystem::path like API
             Observe            # event system using observer/observable pattern.
             rapidjson          # read/write json
+            xxhash
         PRIVATE
             whereami           # get absolute executable/dll directory path
 

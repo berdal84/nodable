@@ -24,7 +24,7 @@ This folder contains all the external source code as submodules. The [CMakeList.
 | [*googletest*](https://github.com/google/googletest)                                 | Google                               |
 | [*gulrak/filesystem*]()                                                              | Steffen Schümann                     |
 | [*Freetype* v2.13.0](https://github.com/freetype/freetype/tree/VER-2-13-0)           | cf. website                          |
-
+| [*xxHash*](https://github.com/Cyan4973/xxHash)
 _If I forgot to mention something in here, please let me know at: berenger [at] 42borgata [dot] com._
 
 *: I do not depend on *RTTR* yet, but I plan to. So I am taking inspiration from it in my code before to switch.
