@@ -4,18 +4,18 @@
 
 using namespace ndbl;
 
-const std::shared_ptr<Token> Token::s_null = std::make_shared<Token>(Token_t::null);
+const Token Token::s_null(Token_t::null);
 
-std::string Token::to_JSON(const std::shared_ptr<Token> _token)
+std::string Token::json() const
 {
     std::string result;
     result.append("{ ");
-    result.append("word: \"" + _token->word_to_string() + "\"" );
-    result.append( ", charIndex: " + std::to_string(_token->m_buffer_start_pos) );
-    result.append(", prefix: \"" + _token->prefix_to_string() + "\""  );
-    result.append(", suffix: \"" + _token->suffix_to_string() + "\""  );
-    result.append(", word: \"" + _token->word_to_string() + "\""  );
-    result.append( ", token_type: \"" + std::to_string((int)_token->m_type) + "\"");
+    result.append("word: \"" + word_to_string() + "\"" );
+    result.append( ", charIndex: " + std::to_string(m_buffer_start_pos) );
+    result.append(", prefix: \"" + prefix_to_string() + "\""  );
+    result.append(", suffix: \"" + suffix_to_string() + "\""  );
+    result.append(", word: \"" + word_to_string() + "\""  );
+    result.append( ", token_type: \"" + std::to_string((int)m_type) + "\"");
     result.append(" }");
     return result;
 }
@@ -65,7 +65,7 @@ void Token::transfer_prefix_and_suffix_from(Token* source)
 void Token::clear()
 {
     m_index = 0;
-    m_type  = Token_t::default_;
+    m_type  = Token_t::null;
     m_buffer_start_pos = 0;
     m_buffer_size      = 0;
     m_word_start_pos   = 0;
@@ -85,17 +85,4 @@ void Token::set_source_buffer(char *_buffer, size_t pos, size_t size)
     m_source_buffer = _buffer;
     m_buffer_start_pos = m_word_start_pos = pos;
     m_buffer_size = m_word_size = size;
-}
-
-void Token::set_buffer_end_pos(size_t pos)
-{
-    assert(pos >= m_buffer_start_pos + m_buffer_size );
-    m_buffer_size = pos - m_buffer_start_pos;
-}
-
-void Token::set_buffer_start_pos(size_t pos)
-{
-    assert(pos <= m_buffer_start_pos);
-    m_buffer_size += m_buffer_start_pos - pos;
-    m_buffer_start_pos = pos;
 }

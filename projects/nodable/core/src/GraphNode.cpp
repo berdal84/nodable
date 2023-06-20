@@ -235,14 +235,15 @@ const DirectedEdge* GraphNode::connect(Property * _source_property, Property * _
 
         // TODO: move this somewhere else
         // (transfer prefix/suffix)
-        auto src_token = _source_property->get_src_token();
-        if (src_token)
+        Token* src_token = &_source_property->token;
+        if (!src_token->is_null())
         {
-            if (!_target_property->get_src_token())
+            if (!_target_property->token.is_null())
             {
-                _target_property->set_src_token(std::make_shared<Token>(src_token->m_type));
+                _target_property->token.clear();
+                _target_property->token.m_type = src_token->m_type;
             }
-            _target_property->get_src_token()->transfer_prefix_and_suffix_from(src_token.get());
+            _target_property->token.transfer_prefix_and_suffix_from(src_token);
         }
     }
 

@@ -14,9 +14,7 @@ REGISTER
 VariableNode::VariableNode(const fw::type& _type, const char* identifier)
     : Node("Variable")
     , m_declaration_instr(nullptr)
-    , m_type_token(nullptr)
-    , m_identifier_token(std::make_shared<Token>(Token_t::identifier, "")) // unnamed by default
-    , m_assignment_operator_token(nullptr)                                 // unassigned by default
+    , identifier_token(Token_t::identifier)
     , m_is_declared(false)
     , m_scope(nullptr)
 {

@@ -21,8 +21,6 @@ REGISTER
 
 Scope::Scope()
     : Component()
-    , m_begin_scope_token(nullptr)
-    , m_end_scope_token(nullptr)
 {
 }
 

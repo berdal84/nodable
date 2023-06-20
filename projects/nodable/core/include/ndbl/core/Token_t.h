@@ -10,9 +10,9 @@ namespace ndbl {
      *     "bool" => Token_t::keyword_bool
      *     "100"  => Token_t::literal_int
      */
-	enum class Token_t: int
+	enum class Token_t: int8_t
 	{
-        unknown,
+        null, // to say 'absence of token', not token 'NULL'
 
         ignore ,
         keyword_if,
@@ -38,9 +38,6 @@ namespace ndbl {
         end_of_line,
 
         COUNT,
-
-        null, // to say 'absence of token', not token 'NULL'
-        default_ = unknown,
     };
 
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/

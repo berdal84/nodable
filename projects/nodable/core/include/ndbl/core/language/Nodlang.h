@@ -42,8 +42,8 @@ namespace ndbl{
         bool                   tokenize(const std::string& _string);                 // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
         bool                   tokenize(char* buffer, size_t buffer_size);           // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
         bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
-        std::shared_ptr<Token> parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
-        std::shared_ptr<Token> parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor); }
+        Token                  parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
+        Token                  parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor); }
         Node*                  parse_scope();                                         // Try to parse a scope.
         InstructionNode*       parse_instr();                                         // Try to parse an instruction.
         Property *             parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
@@ -61,7 +61,7 @@ namespace ndbl{
         std::string            to_unquoted_string(const std::string& _quoted_str);    // convert a quoted string to a string.
         double                 to_double(const std::string& );                        // convert a double string (ex: "10.0") to a double.
         i16_t                  to_i16(const std::string& );                           // convert an integer string (ex: "42") to an integer.
-        Property *             to_property(std::shared_ptr<Token> _token);            // convert a token to a property.
+        Property *             to_property(Token _token);            // convert a token to a property.
     private:
         void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
         void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
@@ -82,7 +82,7 @@ namespace ndbl{
         std::string&           serialize(std::string& _out, const fw::func_type*, const std::vector<Property *>&)const;  // serialize a function call with arguments.
         std::string&           serialize(std::string& _out, const fw::func_type*)const;                                  // serialize a function signature.
         std::string&           serialize(std::string& _out, const Token_t&)const;
-        std::string&           serialize(std::string& _out, std::shared_ptr<const Token>) const;
+        std::string&           serialize(std::string& _out, const Token &) const;
         std::string&           serialize(std::string& _out, fw::type) const;
         std::string&           serialize(std::string& _out, const Property *, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
         std::string&           serialize(std::string& _out, const InstructionNode*)const;

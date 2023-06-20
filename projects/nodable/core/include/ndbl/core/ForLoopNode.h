@@ -22,8 +22,7 @@ namespace ndbl
         ForLoopNode();
         ~ForLoopNode() = default;
 
-        inline void                         set_token_for(std::shared_ptr<Token> _token) { m_token_for = _token; }
-        inline std::shared_ptr<const Token> get_token_for()const   { return m_token_for; }
+        Token token_for;
 
         // TODO: create IIterativeStruct to reuse for a future "while" node.
 
@@ -43,7 +42,6 @@ namespace ndbl
         InstructionNode* get_cond_expr()const override { return m_cond_instr_node; }
 
     private:
-        std::shared_ptr<Token> m_token_for;
         InstructionNode* m_init_instr_node;
         InstructionNode* m_cond_instr_node;
         InstructionNode* m_iter_instr_node;

@@ -8,7 +8,7 @@ using namespace ndbl;
 Property::Property(PropertyGrp * _parent_properties)
     : m_visibility(Visibility::Default)
     , m_name("Unknown")
-    , m_sourceToken(Token::s_null)
+    , token(Token::s_null)
     , m_input(nullptr)
     , m_parentProperties(_parent_properties)
     , m_allowed_connection(Way_Default)
@@ -48,24 +48,12 @@ void Property::set_input(Property * _val)
     m_input        = _val;
 }
 
-void Property::set_src_token(const std::shared_ptr<Token> _token)
-{
-    if ( _token )
-    {
-        m_sourceToken = _token;
-    }
-    else
-    {
-        m_sourceToken = Token::s_null;
-    }
-}
-
 void Property::digest(Property *_property)
 {
     FW_EXPECT(_property->get_outputs().empty(), "Cannot digest a property with output connections")
     // Transfer
     m_variant     = _property->m_variant;
-    m_sourceToken = _property->m_sourceToken;
+    token = _property->token;
 }
 
 bool Property::is_connected_by_ref() const

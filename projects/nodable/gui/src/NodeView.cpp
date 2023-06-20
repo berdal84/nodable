@@ -804,7 +804,6 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         ImGui::Text("(?)");
         if ( fw::ImGuiEx::BeginTooltip() )
         {
-            std::shared_ptr<Token> token = _property->get_src_token();
             const auto variant = _property->get_variant();
             ImGui::Text("initialized: %s,\n"
                         "defined:     %s,\n"
@@ -812,7 +811,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                         "%s\n",
                         variant->is_initialized() ? "true" : "false",
                         variant->is_defined()     ? "true" : "false",
-                        Token::to_JSON(token).c_str()
+                        _property->token.json().c_str()
                         );
             fw::ImGuiEx::EndTooltip();
         }

@@ -22,6 +22,7 @@ namespace ndbl
 		InvokableComponent(const fw::func_type*, bool _is_operator, const fw::iinvokable*);
 		~InvokableComponent() = default;
 
+        Token token;
         bool                               update();
 		inline void                        set_arg(size_t _index, Property *_value) { m_args[_index] = _value; }
 		inline Property *                     get_arg(size_t _index)const  { return m_args[_index]; }
@@ -29,8 +30,6 @@ namespace ndbl
 		inline const fw::func_type*        get_func_type()const { return m_signature; }
 		inline const fw::iinvokable*       get_function()const { return m_invokable; }
         inline void                        set_result(Property *_value) { m_result = _value; };
-        inline void                        set_source_token(std::shared_ptr<Token> token) { m_source_token = token ? token : Token::s_null; }
-        inline std::shared_ptr<Token>      get_source_token()const { return this->m_source_token; }
         inline void                        set_l_handed_val(Property *_value) { m_args[0] = _value; }
         inline Property *                  get_l_handed_val() { return m_args[0]; };
         inline void                        set_r_handed_val(Property *_value)  { m_args[1] = _value; }
@@ -40,7 +39,6 @@ namespace ndbl
 
 	protected:
         Property *                 m_result;
-		std::shared_ptr<Token>     m_source_token;
         std::vector<Property *>    m_args;
         const fw::func_type*       m_signature;
         const fw::iinvokable*      m_invokable;

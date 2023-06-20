@@ -11,8 +11,7 @@ REGISTER
 }
 
 ForLoopNode::ForLoopNode()
-    : m_token_for(nullptr)
-    , m_init_instr_node(nullptr)
+    : m_init_instr_node(nullptr)
     , m_cond_instr_node(nullptr)
     , m_iter_instr_node(nullptr)
 {

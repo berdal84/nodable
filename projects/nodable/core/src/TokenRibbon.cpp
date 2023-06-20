@@ -10,15 +10,13 @@ using namespace ndbl;
 
 TokenRibbon::TokenRibbon()
     : m_curr_tok_idx(0)
-    , m_prefix_acc( std::make_shared<Token>() )
-    , m_suffix_acc( std::make_shared<Token>() )
 {
     transactionStartTokenIndexes.push(0);
 }
 
-std::shared_ptr<Token> TokenRibbon::push(std::shared_ptr<Token> _token)
+Token & TokenRibbon::push(Token &_token)
 {
-    _token->m_index = tokens.size();
+    _token.m_index = tokens.size();
     tokens.push_back(_token);
     return tokens.back();
 }
@@ -29,16 +27,16 @@ std::string TokenRibbon::to_string()const
     size_t buffer_size = 0;
 
     // get the total buffer sizes (but won't be exact, some token are serialized dynamically)
-    for (std::shared_ptr<Token> each_token : tokens)
+    for (const Token& each_token : tokens)
     {
-        buffer_size += each_token->m_buffer_size;
+        buffer_size += each_token.m_buffer_size;
     }
     out_buffer.reserve(buffer_size);
 
     out_buffer.append("[<begin>]=");
-    for (std::shared_ptr<Token> each_token : tokens)
+    for (const Token& each_token : tokens)
     {
-        size_t index = each_token->m_index;
+        size_t index = each_token.m_index;
 
         // Set a color to identify tokens that are inside current transaction
         if ( !transactionStartTokenIndexes.empty() && index >= transactionStartTokenIndexes.top() && index < m_curr_tok_idx )
@@ -48,11 +46,11 @@ std::string TokenRibbon::to_string()const
 
         if (index == m_curr_tok_idx ) out_buffer.append(BOLDGREEN);
         out_buffer.append("[\"");
-        if (each_token->has_buffer()) out_buffer.append(each_token->buffer(), each_token->prefix_size());
+        if (each_token.has_buffer()) out_buffer.append(each_token.buffer(), each_token.prefix_size());
         out_buffer.append("\", \"");
-        if (each_token->has_buffer()) out_buffer.append(each_token->word(), each_token->m_word_size);
+        if (each_token.has_buffer()) out_buffer.append(each_token.word(), each_token.word_size());
         out_buffer.append("\", \"");
-        if (each_token->has_buffer()) out_buffer.append(each_token->suffix(), each_token->suffix_size());
+        if (each_token.has_buffer()) out_buffer.append(each_token.suffix(), each_token.suffix_size());
         out_buffer.append("\"]");
         if (index == m_curr_tok_idx )    out_buffer.append(RESET);
         out_buffer.append("=");
@@ -65,18 +63,18 @@ std::string TokenRibbon::to_string()const
     return out_buffer;
 }
 
-std::shared_ptr<Token> TokenRibbon::eatToken(Token_t expectedType)
+Token TokenRibbon::eatToken(Token_t expectedType)
 {
-    if ( canEat() && peekToken()->m_type == expectedType )
+    if ( canEat() && peekToken().m_type == expectedType )
     {
         return eatToken();
     }
-    return nullptr;
+    return Token::s_null;
 }
 
-std::shared_ptr<Token> TokenRibbon::eatToken()
+Token TokenRibbon::eatToken()
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_curr_tok_idx, peekToken()->buffer_to_string().c_str() )
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_curr_tok_idx, peekToken().buffer_to_string().c_str() )
     return tokens.at(m_curr_tok_idx++);
 }
 
@@ -102,8 +100,8 @@ void TokenRibbon::commitTransaction()
 void TokenRibbon::clear()
 {
     tokens.clear();
-    m_prefix_acc->clear();
-    m_suffix_acc->clear();
+    m_prefix_acc = {Token_t::ignore};
+    m_suffix_acc = {Token_t::ignore};
     transactionStartTokenIndexes = std::stack<size_t>();
     m_curr_tok_idx = 0;
 }
@@ -111,8 +109,8 @@ void TokenRibbon::clear()
 void TokenRibbon::set_source_buffer(const std::string &_buffer)
 {
     m_source_buffer = _buffer;
-    m_prefix_acc->set_source_buffer(m_source_buffer.data());
-    m_suffix_acc->set_source_buffer(m_source_buffer.data());
+    m_prefix_acc.set_source_buffer(m_source_buffer.data());
+    m_suffix_acc.set_source_buffer(m_source_buffer.data());
 }
 
 bool TokenRibbon::empty() const
@@ -131,15 +129,15 @@ bool TokenRibbon::canEat(size_t _tokenCount) const
     return m_curr_tok_idx + _tokenCount <= tokens.size() ;
 }
 
-std::shared_ptr<Token> TokenRibbon::peekToken()
+const Token& TokenRibbon::peekToken() const
 {
     return tokens.at(m_curr_tok_idx);
 }
 
-std::shared_ptr<Token> TokenRibbon::getEaten()
+const Token& TokenRibbon::getEaten()const
 {
     // TODO: optimization: store a pointer to the last eaten Token ?
-    return m_curr_tok_idx == 0 ? nullptr : tokens.at(m_curr_tok_idx - 1);
+    return m_curr_tok_idx == 0 ? Token::s_null : tokens.at(m_curr_tok_idx - 1);
 }
 
 std::string TokenRibbon::concat_token_buffers(size_t offset, int count)
@@ -151,7 +149,7 @@ std::string TokenRibbon::concat_token_buffers(size_t offset, int count)
     int step_done_count = 0;
     while( idx > 0 && idx < tokens.size() && step_done_count <= step_count )
     {
-        auto token = tokens[idx];
+        Token* token = &tokens[idx];
         result = step > 0 ? result + token->buffer_to_string() : token->buffer_to_string() + result;
 
         idx += step;

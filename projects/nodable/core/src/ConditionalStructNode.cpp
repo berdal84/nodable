@@ -15,8 +15,6 @@ REGISTER
 
 ConditionalStructNode::ConditionalStructNode()
     : Node()
-    , m_token_if(nullptr)
-    , m_token_else(nullptr)
 {
     m_props.add<Node*>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In);
 }
@@ -42,25 +40,6 @@ bool ConditionalStructNode::has_elseif() const
     return false_node && false_node->is<ConditionalStructNode>();
 }
 
-void ConditionalStructNode::set_token_if(ConditionalStructNode::token_ptr token)
-{
-    m_token_if = std::move(token);
-}
-
-void ConditionalStructNode::set_token_else(ConditionalStructNode::token_ptr token)
-{
-    m_token_else = std::move(token);
-}
-
-ConditionalStructNode::token_cptr ConditionalStructNode::get_token_if() const
-{
-    return m_token_if;
-}
-
-ConditionalStructNode::token_cptr ConditionalStructNode::get_token_else() const
-{
-    return m_token_else;
-}
 Property *ConditionalStructNode::condition_property() const
 {
     return m_props.get(k_conditional_cond_property_name);

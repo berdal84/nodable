@@ -2,14 +2,10 @@
 #include <string>
 #include <vector>
 #include <stack>
-#include <ndbl/core/Token_t.h>
-#include <memory> // for std::shared_ptr
+#include <ndbl/core/Token.h>
 
 namespace ndbl
 {
-    // forward declarations
-    struct Token;
-
     /**
      * A class to add tokens in a vector and navigate into them.
      *
@@ -18,23 +14,22 @@ namespace ndbl
      */
     class TokenRibbon
     {
-        using token_ptr = std::shared_ptr<Token>;
     public:
 
         TokenRibbon();
-        ~TokenRibbon() = default;
+        ~TokenRibbon() {};
 
         /** Generate a string with all tokens with _tokens[_highlight] colored in green*/
         [[nodiscard]] std::string to_string() const;
 
         /** Push a new token into the ribbon */
-        token_ptr push(token_ptr);
+        Token& push(Token&);
 
         /** Get current token and increment cursor */
-        token_ptr eatToken();
+        Token eatToken();
 
         /** Get current token and increment cursor ONLY if token type is expected */
-        token_ptr eatToken(Token_t);
+        Token eatToken(Token_t);
 
         /** Start a transaction by saving the current cursor position in a stack
          * Multiple transaction can be stacked */
@@ -53,19 +48,21 @@ namespace ndbl
         size_t buffer_size()const { return m_source_buffer.size(); }
 
         /** return true if ribbon is empty */
-        [[nodiscard]] bool empty()const;
+        bool empty()const;
 
         /** return the size of the ribbon */
-        [[nodiscard]] size_t size()const;
+        size_t size()const;
 
         /** return true if some token count can be eaten */
-        [[nodiscard]] bool canEat(size_t _tokenCount = 1)const;
+        bool canEat(size_t _tokenCount = 1)const;
 
         /** get a ref to the current token without moving cursor */
-        [[nodiscard]] token_ptr peekToken();
+        const Token& peekToken()const;
 
         /** Get the last eaten token */
-        token_ptr getEaten();
+        const Token& getEaten()const;
+
+        Token &back() { return tokens.back(); };
 
         /** Get the current token index (or ribbon cursor position)*/
         size_t get_curr_tok_idx() { return  m_curr_tok_idx; }
@@ -75,13 +72,12 @@ namespace ndbl
 
         /** To store the result of the tokenizeExpressionString() method
             contain a vector of Tokens to be converted to a Nodable graph by all parseXXX functions */
-        std::vector<token_ptr> tokens;
+        std::vector<Token> tokens;
 
         /** fake token to accumulate prefixes */
-        const token_ptr m_prefix_acc;
+        Token m_prefix_acc;
         /** fake token to accumulate suffixes */
-        const token_ptr m_suffix_acc;
-
+        Token m_suffix_acc;
     private:
         std::string m_source_buffer;                     // The source string buffer used to generate the tokens all of them are sharing it.
         size_t m_curr_tok_idx;                           // Current cursor position

@@ -188,13 +188,13 @@ bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
         m_graph->clear();
         LOG_WARNING("Parser", "Unable to generate a full program tree.\n")
         LOG_MESSAGE("Parser", "--- Token Ribbon begin ---\n");
-        for (const auto &each_token: m_token_ribbon.tokens)
+        for (const Token &each_token: m_token_ribbon.tokens)
         {
-            LOG_MESSAGE("Parser", "token idx %i: %s\n", each_token->m_index, Token::to_JSON(each_token).c_str());
+            LOG_MESSAGE("Parser", "token idx %i: %s\n", each_token.m_index, each_token.json().c_str());
         }
         LOG_MESSAGE("Parser", "--- Token Ribbon end ---\n");
         auto curr_token = m_token_ribbon.peekToken();
-        LOG_ERROR("Parser", "Couldn't go further than token %llu: %s\n", curr_token->m_index, Token::to_JSON(curr_token).c_str())
+        LOG_ERROR("Parser", "Couldn't go further than token %llu: %s\n", curr_token.m_index, curr_token.json().c_str())
         return false;
     }
 
@@ -231,24 +231,24 @@ i16_t Nodlang::to_i16(const std::string &_str)
     return stoi(_str);
 }
 
-Property *Nodlang::to_property(std::shared_ptr<Token> _token)
+Property *Nodlang::to_property(Token _token)
 {
-    if (_token->m_type == Token_t::identifier)
+    if (_token.m_type == Token_t::identifier)
     {
-        VariableNode *variable = get_current_scope()->find_variable(_token->word_to_string());
+        VariableNode *variable = get_current_scope()->find_variable(_token.word_to_string());
 
         if (variable == nullptr)
         {
             if (m_strict_mode)
             {
-                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token->word_to_string().c_str())
+                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token.word_to_string().c_str())
             } else
             {
                 /* when strict mode is OFF, we just create a variable with Any type */
                 LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
-                            _token->word_to_string().c_str())
-                variable = m_graph->create_variable(type::null(), _token->word_to_string(), get_current_scope());
-                variable->get_value()->set_src_token(_token);
+                            _token.word_to_string().c_str())
+                variable = m_graph->create_variable(type::null(), _token.word_to_string(), get_current_scope());
+                variable->get_value()->token = _token;
                 variable->set_declared(false);
             }
         }
@@ -261,33 +261,33 @@ Property *Nodlang::to_property(std::shared_ptr<Token> _token)
 
     LiteralNode *literal = nullptr;
 
-    switch (_token->m_type)
+    switch (_token.m_type)
     {
         case Token_t::literal_bool:
         {
             literal = m_graph->create_literal(type::get<bool>());
-            literal->set_value(to_bool(_token->word_to_string()));
+            literal->set_value(to_bool(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_int:
         {
             literal = m_graph->create_literal(type::get<i16_t>());
-            literal->set_value(to_i16(_token->word_to_string()));
+            literal->set_value(to_i16(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_double:
         {
             literal = m_graph->create_literal(type::get<double>());
-            literal->set_value(to_double(_token->word_to_string()));
+            literal->set_value(to_double(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_string:
         {
             literal = m_graph->create_literal(type::get<std::string>());
-            literal->set_value(to_unquoted_string(_token->word_to_string()));
+            literal->set_value(to_unquoted_string(_token.word_to_string()));
             break;
         }
 
@@ -297,11 +297,11 @@ Property *Nodlang::to_property(std::shared_ptr<Token> _token)
     if (literal)
     {
         Property *result = literal->get_value();
-        result->set_src_token(_token);
+        result->token = _token;
         return result;
     }
 
-    LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token->word_to_string().c_str())
+    LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str())
     return nullptr;
 }
 
@@ -322,13 +322,13 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     }
 
     start_transaction();
-    std::shared_ptr<Token> operatorToken = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> operandToken = m_token_ribbon.peekToken();
+    Token operator_token = m_token_ribbon.eatToken();
+    Token operand_token = m_token_ribbon.peekToken();
 
     // Structure check
     const bool isValid = _left != nullptr &&
-                         operatorToken->m_type == Token_t::operator_ &&
-                         operandToken->m_type != Token_t::operator_;
+                         operator_token.m_type == Token_t::operator_ &&
+                         operand_token.m_type != Token_t::operator_;
 
     if (!isValid)
     {
@@ -337,7 +337,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
         return nullptr;
     }
 
-    auto word = operatorToken->word_to_string();
+    std::string word = operator_token.word_to_string();  // FIXME: avoid std::string copy, use hash
     const Operator *ope = find_operator(word, Operator_t::Binary);
     if (ope == nullptr)
     {
@@ -391,7 +391,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
         return nullptr;
     }
 
-    component->set_source_token(operatorToken);
+    component->token = operator_token;
     m_graph->connect(_left, component->get_l_handed_val());
     m_graph->connect(right, component->get_r_handed_val());
 
@@ -412,10 +412,10 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     }
 
     start_transaction();
-    std::shared_ptr<Token> operator_token = m_token_ribbon.eatToken();
+    Token operator_token = m_token_ribbon.eatToken();
 
     // Check if we get an operator first
-    if (operator_token->m_type != Token_t::operator_)
+    if (operator_token.m_type != Token_t::operator_)
     {
         rollback_transaction();
         LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
@@ -438,7 +438,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     }
 
     // Create a function signature
-    func_type *type = new func_type(operator_token->word_to_string());
+    func_type *type = new func_type(operator_token.word_to_string());  // FIXME: avoid std::string copy
     type->set_return_type(type::any());
     type->push_args(value->get_type());
 
@@ -460,7 +460,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     }
 
     component = node->get<InvokableComponent>();
-    component->set_source_token(operator_token);
+    component->token = operator_token;
 
     m_graph->connect(value, component->get_l_handed_val());
     Property *result = node->props()->get(k_value_property_name);
@@ -482,9 +482,9 @@ Property *Nodlang::parse_atomic_expression()
     }
 
     start_transaction();
-    std::shared_ptr<Token> token = m_token_ribbon.eatToken();
+    Token token = m_token_ribbon.eatToken();
 
-    if (token->m_type == Token_t::operator_)
+    if (token.m_type == Token_t::operator_)
     {
         LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
         rollback_transaction();
@@ -518,8 +518,8 @@ Property *Nodlang::parse_parenthesis_expression()
     }
 
     start_transaction();
-    std::shared_ptr<Token> currentToken = m_token_ribbon.eatToken();
-    if (currentToken->m_type != Token_t::expr_begin)
+    Token currentToken = m_token_ribbon.eatToken();
+    if (currentToken.m_type != Token_t::expr_begin)
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
         rollback_transaction();
@@ -529,12 +529,12 @@ Property *Nodlang::parse_parenthesis_expression()
     Property *result = parse_expression();
     if (result)
     {
-        std::shared_ptr<Token> token = m_token_ribbon.eatToken();
-        if (token->m_type != Token_t::expr_end)
+        Token token = m_token_ribbon.eatToken();
+        if (token.m_type != Token_t::expr_end)
         {
             LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.to_string().c_str())
             LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n",
-                        token->word_to_string().c_str())
+                        token.word_to_string().c_str())
             rollback_transaction();
         } else
         {
@@ -566,11 +566,12 @@ InstructionNode *Nodlang::parse_instr()
 
     if (m_token_ribbon.canEat())
     {
-        std::shared_ptr<Token> expectedEOI = m_token_ribbon.eatToken(Token_t::end_of_instruction);
-        if (expectedEOI)
+        Token expected_end_of_instr_token = m_token_ribbon.eatToken(Token_t::end_of_instruction);
+        if (!expected_end_of_instr_token.is_null())
         {
-            instr_node->end_of_instr_token(expectedEOI);
-        } else if (m_token_ribbon.peekToken()->m_type != Token_t::expr_end)
+            instr_node->token_end = expected_end_of_instr_token;
+        }
+        else if (m_token_ribbon.peekToken().m_type != Token_t::expr_end)
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
@@ -597,10 +598,10 @@ Node *Nodlang::parse_program()
     parse_code_block(false);// we do not check if we parsed something empty or not, a program can be empty.
 
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
-    FW_ASSERT(!program_scope->get_begin_scope_token())
-    FW_ASSERT(!program_scope->get_end_scope_token())
-    program_scope->set_begin_scope_token(m_token_ribbon.m_prefix_acc);
-    program_scope->set_end_scope_token(m_token_ribbon.m_suffix_acc);
+    FW_ASSERT(program_scope->token_begin.is_null())
+    FW_ASSERT(program_scope->token_end.is_null())
+    program_scope->token_begin = m_token_ribbon.m_prefix_acc;
+    program_scope->token_end = m_token_ribbon.m_suffix_acc;
 
     m_scope_stack.pop();
     commit_transaction();
@@ -614,7 +615,7 @@ Node *Nodlang::parse_scope()
 
     start_transaction();
 
-    if (!m_token_ribbon.eatToken(Token_t::scope_begin))
+    if (m_token_ribbon.eatToken(Token_t::scope_begin).is_null())
     {
         rollback_transaction();
         result = nullptr;
@@ -634,18 +635,19 @@ Node *Nodlang::parse_scope()
 
         m_scope_stack.push(scope);
 
-        scope->set_begin_scope_token(m_token_ribbon.getEaten());
+        scope->token_begin = m_token_ribbon.getEaten();
 
         parse_code_block(false);
 
-        if (!m_token_ribbon.eatToken(Token_t::scope_end))
+        if (m_token_ribbon.eatToken(Token_t::scope_end).is_null())
         {
             m_graph->destroy(scope_node);
             rollback_transaction();
             result = nullptr;
-        } else
+        }
+        else
         {
-            scope->set_end_scope_token(m_token_ribbon.getEaten());
+            scope->token_end = m_token_ribbon.getEaten();
             commit_transaction();
             result = scope_node;
         }
@@ -757,7 +759,7 @@ bool Nodlang::is_syntax_valid()
 
     while (currTokIt != m_token_ribbon.tokens.end() && success)
     {
-        switch ((*currTokIt)->m_type)
+        switch ((*currTokIt).m_type)
         {
             case Token_t::expr_begin:
             {
@@ -768,7 +770,7 @@ bool Nodlang::is_syntax_valid()
             {
                 if (opened <= 0)
                 {
-                    LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n", m_token_ribbon.concat_token_buffers((*currTokIt)->m_index, -10).c_str(), (*currTokIt)->m_buffer_start_pos)
+                    LOG_ERROR("Parser", "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n", m_token_ribbon.concat_token_buffers((*currTokIt).m_index, -10).c_str(), (*currTokIt).m_buffer_start_pos)
                     success = false;
                 }
                 opened--;
@@ -802,9 +804,9 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
     size_t ignored_chars_size = 0;
     while (global_cursor != buffer_size )
     {
-        std::shared_ptr<Token> new_token = parse_token(buffer, buffer_size, global_cursor);
+        Token new_token = parse_token(buffer, buffer_size, global_cursor);
 
-        if (!new_token)
+        if (new_token.is_null())
         {
             char buffer_portion[40];
             snprintf(buffer_portion, 40, "%s", &buffer[global_cursor]);
@@ -813,49 +815,39 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
         }
 
         // accumulate ignored chars (see else case to know why)
-        if( new_token->m_type == Token_t::ignore)
+        if( new_token.m_type == Token_t::ignore)
         {
             if( ignored_chars_size == 0)
-                ignored_chars_start_pos = new_token->m_buffer_start_pos;
-            ignored_chars_size += new_token->m_buffer_size;
-            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token->buffer_to_string().c_str())
+                ignored_chars_start_pos = new_token.m_buffer_start_pos;
+            ignored_chars_size += new_token.m_buffer_size;
+            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.buffer_to_string().c_str())
         }
         else // handle ignored_chars_accumulator then push the token in the ribbon and handle ignored_chars_accumulator
         {
-
-             /*
-             * Handle ignored_chars_accumulator, 3 options:
-             *
-             * Option 1a: append ignored_chars_accumulator to the previous token's prefix
-             *            ( ... , <previous_token><ignored_chars_accumulator>, <new_token>)
-             *
-             * Option 1b: append ignored_chars_accumulator to the next/new token's prefix
-             *            ( ... , <previous_token>, <ignored_chars_accumulator><new_token>)
-             *
-             * Option 2 : append ignored_chars_accumulator to the ribbon prefix (until we get a previous_token).
-             */
+            // add ignored chars to the prefix or suffix of the last or new token
+            // TODO: this part can be simplified
             if (ignored_chars_size != 0)
             {
                 if (!m_token_ribbon.empty())
                 {
-                    std::shared_ptr<Token> last_token = m_token_ribbon.tokens.back();
-
-                    if (last_token->m_type != Token_t::identifier)
+                    Token& last_token = m_token_ribbon.back();
+                     if (last_token.m_type != Token_t::identifier)
                     {
-                        last_token->set_buffer_end_pos(ignored_chars_start_pos + ignored_chars_size);
+                        last_token.m_buffer_size += ignored_chars_size;
                     }
-                    else if (new_token)
+                    else if (!new_token.is_null())
                     {
-                        new_token->set_buffer_start_pos(ignored_chars_start_pos);
+                        new_token.m_buffer_start_pos = ignored_chars_start_pos;
+                        new_token.m_buffer_size += ignored_chars_size;
                     }
                 }
                 else
                 {
-                    m_token_ribbon.m_prefix_acc->set_buffer_end_pos(ignored_chars_start_pos + ignored_chars_size);
+                    m_token_ribbon.m_prefix_acc.m_buffer_size += ignored_chars_size;
                 }
                 ignored_chars_size = 0;
             }
-            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", new_token->buffer_to_string().c_str())
+            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", new_token.buffer_to_string().c_str())
             m_token_ribbon.push(new_token);
         }
     }
@@ -866,14 +858,15 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
     if (ignored_chars_size != 0)
     {
         LOG_VERBOSE("Parser", "Found ignored chars after tokenize, adding to the ribbon suffix...\n");
-        m_token_ribbon.m_suffix_acc->set_source_buffer(buffer, ignored_chars_start_pos, ignored_chars_size);
+        m_token_ribbon.m_suffix_acc.m_buffer_start_pos = ignored_chars_start_pos;
+        m_token_ribbon.m_suffix_acc.m_buffer_size = ignored_chars_size;
         ignored_chars_start_pos = 0;
         ignored_chars_size = 0;
     }
     return true;
 }
 
-std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_cursor) const
+Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_cursor) const
 {
     const size_t                  start_pos  = global_cursor;
     const std::string::value_type first_char = buffer[start_pos];
@@ -905,7 +898,7 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
 
             ++cursor;
             global_cursor = cursor;
-            return std::make_shared<Token>(Token_t::ignore, buffer, start_pos, cursor - start_pos);
+            return Token{Token_t::ignore, buffer, start_pos, cursor - start_pos};
         }
     }
 
@@ -915,7 +908,7 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
     {
         ++global_cursor;
         const Token_t type = single_char_found->second;
-        return std::make_shared<Token>(type, buffer, start_pos, 1);
+        return Token{type, buffer, start_pos, 1};
     }
 
     // operators
@@ -929,11 +922,11 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
             if (cursor != buffer_size && (second_char == '>' || second_char == '=')) {
                 ++cursor;
                 global_cursor = cursor;
-                return std::make_shared<Token>(Token_t::operator_, buffer, start_pos, cursor - start_pos);
+                return Token{Token_t::operator_, buffer, start_pos, cursor - start_pos};
             }
             // "="
             global_cursor++;
-            return std::make_shared<Token>(Token_t::operator_, buffer, start_pos, 1);
+            return Token{Token_t::operator_, buffer, start_pos, 1};
         }
 
         case '!':
@@ -957,7 +950,7 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
                 // <operator>
                 global_cursor++;
             }
-            return std::make_shared<Token>(Token_t::operator_, buffer, start_pos, cursor - start_pos);
+            return Token{Token_t::operator_, buffer, start_pos, cursor - start_pos};
         }
     }
 
@@ -991,7 +984,7 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
             type = Token_t::literal_double;
         }
         global_cursor = cursor;
-        return std::make_shared<Token>(type, buffer, start_pos, cursor - start_pos);
+        return Token{type, buffer, start_pos, cursor - start_pos};
     }
 
     // double-quoted string
@@ -1004,7 +997,7 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
         }
         ++cursor;
         global_cursor = cursor;
-        return std::make_shared<Token>(Token_t::literal_string, buffer, start_pos, cursor - start_pos);
+        return Token{Token_t::literal_string, buffer, start_pos, cursor - start_pos};
     }
 
     // symbol (identifier or keyword)
@@ -1026,9 +1019,9 @@ std::shared_ptr<Token> Nodlang::parse_token(char* buffer, size_t buffer_size, si
             // a keyword has priority over identifier
             type = keyword_found->second;
         }
-        return std::make_shared<Token>(type, buffer, start_pos, cursor - start_pos);
+        return Token{type, buffer, start_pos, cursor - start_pos};
     }
-    return nullptr;
+    return Token::s_null;
 }
 
 Property *Nodlang::parse_function_call()
@@ -1046,20 +1039,20 @@ Property *Nodlang::parse_function_call()
 
     // Try to parse regular function: function(...)
     std::string fct_id;
-    std::shared_ptr<Token> token_0 = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> token_1 = m_token_ribbon.eatToken();
-    if (token_0->m_type == Token_t::identifier &&
-        token_1->m_type == Token_t::expr_begin)
+    Token token_0 = m_token_ribbon.eatToken();
+    Token token_1 = m_token_ribbon.eatToken();
+    if (token_0.m_type == Token_t::identifier &&
+        token_1.m_type == Token_t::expr_begin)
     {
-        fct_id = token_0->word_to_string();
+        fct_id = token_0.word_to_string();
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
     } else// Try to parse operator like (ex: operator==(..,..))
     {
-        std::shared_ptr<Token> token_2 = m_token_ribbon.eatToken();// eat a "supposed open bracket>
+        Token token_2 = m_token_ribbon.eatToken();// eat a "supposed open bracket>
 
-        if (token_0->m_type == Token_t::keyword_operator && token_1->m_type == Token_t::operator_ && token_2->m_type == Token_t::expr_begin)
+        if (token_0.m_type == Token_t::keyword_operator && token_1.m_type == Token_t::operator_ && token_2.m_type == Token_t::expr_begin)
         {
-            fct_id = token_1->word_to_string();// operator
+            fct_id = token_1.word_to_string();// operator
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
         } else
         {
@@ -1075,7 +1068,7 @@ Property *Nodlang::parse_function_call()
     signature.set_return_type(type::any());
 
     bool parsingError = false;
-    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken()->m_type != Token_t::expr_end)
+    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken().m_type != Token_t::expr_end)
     {
 
         if (auto property = parse_expression())
@@ -1090,7 +1083,7 @@ Property *Nodlang::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if (!m_token_ribbon.eatToken(Token_t::expr_end))
+    if (m_token_ribbon.eatToken(Token_t::expr_end).is_null())
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
@@ -1154,14 +1147,14 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
     bool success = false;
     ConditionalStructNode *condStruct = m_graph->create_cond_struct();
 
-    if (m_token_ribbon.eatToken(Token_t::keyword_if))
+    if (!m_token_ribbon.eatToken(Token_t::keyword_if).is_null())
     {
         m_graph->connect({condStruct, Edge_t::IS_CHILD_OF, m_scope_stack.top()->get_owner()});
         m_scope_stack.push(condStruct->get<Scope>());
 
-        condStruct->set_token_if(m_token_ribbon.getEaten());
+        condStruct->token_if  = m_token_ribbon.getEaten();
 
-        if (m_token_ribbon.eatToken(Token_t::expr_begin))
+        if (!m_token_ribbon.eatToken(Token_t::expr_begin).is_null())
         {
             InstructionNode *condition = parse_instr();
 
@@ -1171,15 +1164,15 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
                 condition->set_name("Cond.");
                 condStruct->set_cond_expr(condition);
 
-                if (m_token_ribbon.eatToken(Token_t::expr_end))
+                if (!m_token_ribbon.eatToken(Token_t::expr_end).is_null())
                 {
                     m_graph->connect(condition->get_this_property(), condStruct->condition_property());
 
                     if (Node *scopeIf = parse_scope())
                     {
-                        if (m_token_ribbon.eatToken(Token_t::keyword_else))
+                        if (!m_token_ribbon.eatToken(Token_t::keyword_else).is_null())
                         {
-                            condStruct->set_token_else(m_token_ribbon.getEaten());
+                            condStruct->token_else = m_token_ribbon.getEaten();
 
                             /* parse else scope */
                             if (parse_scope())
@@ -1241,19 +1234,19 @@ ForLoopNode *Nodlang::parse_for_loop()
     ForLoopNode *for_loop_node = nullptr;
     start_transaction();
 
-    std::shared_ptr<Token> token_for = m_token_ribbon.eatToken(Token_t::keyword_for);
+    Token token_for = m_token_ribbon.eatToken(Token_t::keyword_for);
 
-    if (token_for != nullptr)
+    if (!token_for.is_null())
     {
         for_loop_node = m_graph->create_for_loop();
         m_graph->connect({for_loop_node, Edge_t::IS_CHILD_OF, m_scope_stack.top()->get_owner()});
         m_scope_stack.push(for_loop_node->get<Scope>());
 
-        for_loop_node->set_token_for(token_for);
+        for_loop_node->token_for = token_for;
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
-        std::shared_ptr<Token> open_bracket = m_token_ribbon.eatToken(Token_t::expr_begin);
-        if (!open_bracket)
+        Token open_bracket = m_token_ribbon.eatToken(Token_t::expr_begin);
+        if (open_bracket.is_null())
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
         } else
@@ -1288,8 +1281,8 @@ ForLoopNode *Nodlang::parse_for_loop()
                         m_graph->connect(iter_instr->get_this_property(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
-                        std::shared_ptr<Token> close_bracket = m_token_ribbon.eatToken(Token_t::expr_end);
-                        if (!close_bracket)
+                        Token close_bracket = m_token_ribbon.eatToken(Token_t::expr_end);
+                        if (close_bracket.is_null())
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
                         } else if (!parse_scope())
@@ -1327,31 +1320,31 @@ Property *Nodlang::parse_variable_declaration()
 
     start_transaction();
 
-    std::shared_ptr<Token> type_token = m_token_ribbon.eatToken();
-    std::shared_ptr<Token> identifier_token = m_token_ribbon.eatToken();
+    Token type_token = m_token_ribbon.eatToken();
+    Token identifier_token = m_token_ribbon.eatToken();
 
-    if (type_token->is_keyword_type() && identifier_token->m_type == Token_t::identifier)
+    if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
-        type type = get_type(type_token->m_type);
-        VariableNode *variable = m_graph->create_variable(type, identifier_token->word_to_string(), get_current_scope());
+        type type = get_type(type_token.m_type);
+        VariableNode *variable = m_graph->create_variable(type, identifier_token.word_to_string(), get_current_scope());
         variable->set_declared(true);
-        variable->set_type_token(type_token);
-        variable->get_identifier_token()->transfer_prefix_and_suffix_from(identifier_token.get());
-        variable->get_value()->set_src_token(std::make_shared<Token>(*identifier_token));
+        variable->type_token = type_token;
+        variable->identifier_token.transfer_prefix_and_suffix_from(&identifier_token);
+        variable->get_value()->token = identifier_token;
 
         // try to parse assignment
-        std::shared_ptr<Token> assignmentTok = m_token_ribbon.eatToken(Token_t::operator_);
-        if (assignmentTok && assignmentTok->word_to_string() == "=")
+        Token operator_token = m_token_ribbon.eatToken(Token_t::operator_);
+        if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word() == '=')
         {
-            auto expression_result = parse_expression();
+            Property* expression_result = parse_expression();
             if (expression_result &&
                 type::is_implicitly_convertible(expression_result->get_type(), variable->get_value()->get_type()))
             {
                 m_graph->connect(expression_result, variable);
-                variable->set_assignment_operator_token(assignmentTok);
+                variable->assignment_operator_token = operator_token;
             } else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifier_token->word_to_string().c_str())
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifier_token.word_to_string().c_str())
                 rollback_transaction();
                 m_graph->destroy(variable);
                 return nullptr;
@@ -1408,10 +1401,9 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
                 }
 
                 // Operator
-                std::shared_ptr<Token> sourceToken = _component->get_source_token();
-                if (sourceToken)
+                if (!_component->token.is_null())
                 {
-                    _out.append(sourceToken->buffer(), sourceToken->m_buffer_size);
+                    _out.append(_component->token.buffer(), _component->token.m_buffer_size);
                 } else
                 {
                     _out.append(type->get_identifier());
@@ -1431,13 +1423,13 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
                 // Operator
-                std::shared_ptr<Token> token = _component->get_source_token();
+                const Token* token = &_component->token;
 
-                if (token) _out.append(token->prefix_to_string());
+                if (!token->is_null()) _out.append(token->prefix(), token->prefix_size());
 
                 _out.append(type->get_identifier());
 
-                if (token) _out.append(token->suffix_to_string());
+                if (!token->is_null()) _out.append(token->suffix(), token->suffix_size());
 
                 auto inner_operator = owner->get_connected_invokable(args[0]);
                 serialize_property_with_or_without_brackets(args[0], inner_operator != nullptr);
@@ -1512,9 +1504,9 @@ std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) co
     if (decl_instr)
     {
         // If parsed
-        if (std::shared_ptr<const Token> type_tok = _node->get_type_token())
+        if (!_node->type_token.is_null())
         {
-            serialize(_out, type_tok);
+            serialize(_out, _node->type_token);
         }
         else // If created in the graph by the user
         {
@@ -1532,12 +1524,7 @@ std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) co
     Property *value = _node->get_value();
     if (decl_instr && value->has_input_connected())
     {
-        auto append_assign_tok = [&]() {
-            std::shared_ptr<const Token> assign_tok = _node->get_assignment_operator_token();
-            _out.append(assign_tok ? assign_tok->buffer_to_string() : " = ");
-        };
-
-        append_assign_tok();
+        _out.append(_node->assignment_operator_token.is_null() ? " = " : _node->assignment_operator_token.buffer_to_string());
         serialize(_out, value);
     }
     return _out;
@@ -1565,10 +1552,10 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
         }
     }
 
-    std::shared_ptr<Token> sourceToken = _property->get_src_token();
-    if (sourceToken)
+
+    if (!_property->token.is_null())
     {
-        _out.append(sourceToken->prefix_to_string());
+        _out.append(_property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
     auto owner = _property->get_owner();
@@ -1595,9 +1582,9 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
         }
     }
 
-    if (sourceToken)
+    if (!_property->token.is_null())
     {
-        _out.append(sourceToken->suffix_to_string());
+        _out.append(_property->token.suffix_to_string()); // FIXME: avoid std::string copy
     }
     return _out;
 }
@@ -1640,20 +1627,13 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
 
 std::string &Nodlang::serialize(std::string &_out, const Scope *_scope) const
 {
-
-    serialize(_out, _scope->get_begin_scope_token());
+    serialize(_out, _scope->token_begin);
     auto &children = _scope->get_owner()->children_slots();
-    if (!children.empty())
+    for (Node* each_child: children)
     {
-        for (auto &eachChild: children)
-        {
-            serialize(_out, eachChild);
-        }
+        serialize(_out, each_child);
     }
-
-    serialize(_out, _scope->get_end_scope_token());
-
-    return _out;
+    return serialize(_out, _scope->token_end);
 }
 
 std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instruction) const
@@ -1667,23 +1647,14 @@ std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instr
         serialize(_out, root_node);
     }
 
-    return serialize(_out, _instruction->end_of_instr_token());
+    return serialize(_out, _instruction->token_end);
 }
 
-std::string &Nodlang::serialize(std::string &_out, std::shared_ptr<const Token> _token) const
+std::string &Nodlang::serialize(std::string& _out, const Token& _token) const
 {
-    if (_token && _token->has_buffer())
+    if (!_token.is_null() && _token.has_buffer())
     {
-        _out.append(_token->prefix(), _token->prefix_size());
-        if (_token->m_type == Token_t::unknown)
-        {
-            _out.append(_token->word(), _token->word_size());
-        }
-        else
-        {
-            serialize(_out, _token->m_type);
-        }
-        _out.append(_token->suffix(), _token->suffix_size());
+        _out.append(_token.buffer(), _token.m_buffer_size);
     }
     return _out;
 }
@@ -1691,7 +1662,7 @@ std::string &Nodlang::serialize(std::string &_out, std::shared_ptr<const Token> 
 std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop) const
 {
 
-    serialize(_out, _for_loop->get_token_for());
+    serialize(_out, _for_loop->token_for);
     serialize(_out, Token_t::expr_begin);
 
     // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
@@ -1721,7 +1692,7 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
 std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *_condStruct) const
 {
     // if ( <condition> )
-    serialize(_out, _condStruct->get_token_if());
+    serialize(_out, _condStruct->token_if);
     serialize(_out, Token_t::expr_begin);
     serialize(_out, _condStruct->get_cond_expr());
     serialize(_out, Token_t::expr_end);
@@ -1731,9 +1702,9 @@ std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *
         serialize(_out, ifScope);
 
     // else & else scope
-    if (std::shared_ptr<const Token> tokenElse = _condStruct->get_token_else())
+    if ( !_condStruct->token_else.is_null() )
     {
-        serialize(_out, tokenElse);
+        serialize(_out, _condStruct->token_else);
         Scope *elseScope = _condStruct->get_condition_false_scope();
         if (elseScope)
         {

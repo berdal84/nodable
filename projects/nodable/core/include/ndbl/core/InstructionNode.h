@@ -22,13 +22,9 @@ namespace ndbl
     public:
         explicit InstructionNode();
         ~InstructionNode()= default;
-
-        [[nodiscard]] inline Property * get_root_node_property()const { return m_props.get(k_value_property_name); }
-        [[nodiscard]] inline std::shared_ptr<Token> end_of_instr_token()const { return m_end_of_instr_token; }
-                      inline void    end_of_instr_token(std::shared_ptr<Token> token) { m_end_of_instr_token = token; }
-
+        Token token_end;
+        inline Property * get_root_node_property()const { return m_props.get(k_value_property_name); }
     private:
-        std::shared_ptr<Token> m_end_of_instr_token = nullptr;
         REFLECT_DERIVED_CLASS(Node)
     };
 }
