@@ -12,6 +12,7 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <chrono>
 
 #include <fw/core/reflection/reflection>
 #include <fw/core/log.h>
@@ -157,6 +158,9 @@ void Nodlang::commit_transaction()
 
 bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
 {
+    using namespace std::chrono;
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
     m_graph = _graphNode;
     m_token_ribbon.clear();
     m_token_ribbon.set_source_buffer(_source_code);
@@ -203,8 +207,11 @@ bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
     for (auto eachNode: nodes)
         eachNode->set_dirty(false);
 
-    LOG_MESSAGE("Parser", "Program tree updated.\n", _source_code.c_str())
+    duration<double> time_span = duration_cast<duration<double>>(high_resolution_clock::now()- t1);
+
+    LOG_MESSAGE("Parser", "Program tree updated in %.3f ms.\n", time_span.count()*1000.0 )
     LOG_VERBOSE("Parser", "Source code: <expr>%s</expr>\"\n", _source_code.c_str())
+
     return true;
 }
 
