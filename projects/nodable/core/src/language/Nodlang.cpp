@@ -45,8 +45,8 @@ Nodlang::Nodlang(bool _strict)
     //-------------------------
     m_definition.chars =
     {
-        { '(',    Token_t::expr_begin},
-        { ')',    Token_t::expr_end},
+        { '(',    Token_t::parenthesis_open},
+        { ')',    Token_t::parenthesis_close},
         { '{',    Token_t::scope_begin},
         { '}',    Token_t::scope_end},
         { '\n',   Token_t::ignore},
@@ -519,7 +519,7 @@ Property *Nodlang::parse_parenthesis_expression()
 
     start_transaction();
     Token currentToken = m_token_ribbon.eatToken();
-    if (currentToken.m_type != Token_t::expr_begin)
+    if (currentToken.m_type != Token_t::parenthesis_open)
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
         rollback_transaction();
@@ -530,7 +530,7 @@ Property *Nodlang::parse_parenthesis_expression()
     if (result)
     {
         Token token = m_token_ribbon.eatToken();
-        if (token.m_type != Token_t::expr_end)
+        if (token.m_type != Token_t::parenthesis_close)
         {
             LOG_VERBOSE("Parser", "%s \n", m_token_ribbon.to_string().c_str())
             LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n",
@@ -571,7 +571,7 @@ InstructionNode *Nodlang::parse_instr()
         {
             instr_node->token_end = expected_end_of_instr_token;
         }
-        else if (m_token_ribbon.peekToken().m_type != Token_t::expr_end)
+        else if (m_token_ribbon.peekToken().m_type != Token_t::parenthesis_close)
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
@@ -761,12 +761,12 @@ bool Nodlang::is_syntax_valid()
     {
         switch ((*currTokIt).m_type)
         {
-            case Token_t::expr_begin:
+            case Token_t::parenthesis_open:
             {
                 opened++;
                 break;
             }
-            case Token_t::expr_end:
+            case Token_t::parenthesis_close:
             {
                 if (opened <= 0)
                 {
@@ -831,7 +831,7 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
                 if (!m_token_ribbon.empty())
                 {
                     Token& last_token = m_token_ribbon.back();
-                     if (last_token.m_type != Token_t::identifier)
+                     if ( allow_to_attach_suffix(last_token.m_type) )
                     {
                         last_token.m_buffer_size += ignored_chars_size;
                     }
@@ -1042,7 +1042,7 @@ Property *Nodlang::parse_function_call()
     Token token_0 = m_token_ribbon.eatToken();
     Token token_1 = m_token_ribbon.eatToken();
     if (token_0.m_type == Token_t::identifier &&
-        token_1.m_type == Token_t::expr_begin)
+        token_1.m_type == Token_t::parenthesis_open)
     {
         fct_id = token_0.word_to_string();
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
@@ -1050,7 +1050,7 @@ Property *Nodlang::parse_function_call()
     {
         Token token_2 = m_token_ribbon.eatToken();// eat a "supposed open bracket>
 
-        if (token_0.m_type == Token_t::keyword_operator && token_1.m_type == Token_t::operator_ && token_2.m_type == Token_t::expr_begin)
+        if (token_0.m_type == Token_t::keyword_operator && token_1.m_type == Token_t::operator_ && token_2.m_type == Token_t::parenthesis_open)
         {
             fct_id = token_1.word_to_string();// operator
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
@@ -1068,7 +1068,7 @@ Property *Nodlang::parse_function_call()
     signature.set_return_type(type::any());
 
     bool parsingError = false;
-    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken().m_type != Token_t::expr_end)
+    while (!parsingError && m_token_ribbon.canEat() && m_token_ribbon.peekToken().m_type != Token_t::parenthesis_close)
     {
 
         if (auto property = parse_expression())
@@ -1083,7 +1083,7 @@ Property *Nodlang::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if (m_token_ribbon.eatToken(Token_t::expr_end).is_null())
+    if (m_token_ribbon.eatToken(Token_t::parenthesis_close).is_null())
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
@@ -1154,7 +1154,7 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
 
         condStruct->token_if  = m_token_ribbon.getEaten();
 
-        if (!m_token_ribbon.eatToken(Token_t::expr_begin).is_null())
+        if (!m_token_ribbon.eatToken(Token_t::parenthesis_open).is_null())
         {
             InstructionNode *condition = parse_instr();
 
@@ -1164,7 +1164,7 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
                 condition->set_name("Cond.");
                 condStruct->set_cond_expr(condition);
 
-                if (!m_token_ribbon.eatToken(Token_t::expr_end).is_null())
+                if (!m_token_ribbon.eatToken(Token_t::parenthesis_close).is_null())
                 {
                     m_graph->connect(condition->get_this_property(), condStruct->condition_property());
 
@@ -1245,7 +1245,7 @@ ForLoopNode *Nodlang::parse_for_loop()
         for_loop_node->token_for = token_for;
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
-        Token open_bracket = m_token_ribbon.eatToken(Token_t::expr_begin);
+        Token open_bracket = m_token_ribbon.eatToken(Token_t::parenthesis_open);
         if (open_bracket.is_null())
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
@@ -1281,7 +1281,7 @@ ForLoopNode *Nodlang::parse_for_loop()
                         m_graph->connect(iter_instr->get_this_property(), for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
-                        Token close_bracket = m_token_ribbon.eatToken(Token_t::expr_end);
+                        Token close_bracket = m_token_ribbon.eatToken(Token_t::parenthesis_close);
                         if (close_bracket.is_null())
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
@@ -1373,14 +1373,14 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
         auto serialize_property_with_or_without_brackets = [this, &_out](Property *property, bool needs_brackets) {
             if (needs_brackets)
             {
-                serialize(_out, Token_t::expr_begin);
+                serialize(_out, Token_t::parenthesis_open);
             }
 
             serialize(_out, property);
 
             if (needs_brackets)
             {
-                serialize(_out, Token_t::expr_end);
+                serialize(_out, Token_t::parenthesis_close);
             }
         };
 
@@ -1447,7 +1447,7 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
 std::string &Nodlang::serialize(std::string &_out, const func_type *_signature, const std::vector<Property *> &_args) const
 {
     _out.append(_signature->get_identifier());
-    serialize(_out, Token_t::expr_begin);
+    serialize(_out, Token_t::parenthesis_open);
 
     for (auto it = _args.begin(); it != _args.end(); it++)
     {
@@ -1459,7 +1459,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature, 
         }
     }
 
-    serialize(_out, Token_t::expr_end);
+    serialize(_out, Token_t::parenthesis_close);
     return _out;
 }
 
@@ -1468,7 +1468,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature) 
     serialize(_out, _signature->get_return_type());
     _out.append(" ");
     _out.append(_signature->get_identifier());
-    serialize(_out, Token_t::expr_begin);
+    serialize(_out, Token_t::parenthesis_open);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
@@ -1481,7 +1481,7 @@ std::string &Nodlang::serialize(std::string &_out, const func_type *_signature) 
         serialize(_out, it->m_type);
     }
 
-    serialize(_out, Token_t::expr_end);
+    serialize(_out, Token_t::parenthesis_close);
     return _out;
 }
 
@@ -1597,31 +1597,37 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     if (type.is_child_of<InstructionNode>())
     {
         serialize(_out, _node->as<InstructionNode>());
-    } else if (type.is_child_of<ConditionalStructNode>())
+    }
+    else if (type.is_child_of<ConditionalStructNode>())
     {
         serialize(_out, _node->as<ConditionalStructNode>());
-    } else if (type.is_child_of<ForLoopNode>())
+    }
+    else if (type.is_child_of<ForLoopNode>())
     {
         serialize(_out, _node->as<ForLoopNode>());
-    } else if (_node->has<Scope>())
+    }
+    else if (_node->has<Scope>())
     {
         serialize(_out, _node->get<Scope>());
-    } else if (_node->is<LiteralNode>())
+    }
+    else if (_node->is<LiteralNode>())
     {
         serialize(_out, _node->as<LiteralNode>()->get_value());
-    } else if (_node->is<VariableNode>())
+    }
+    else if (_node->is<VariableNode>())
     {
         serialize(_out, _node->as<VariableNode>());
-    } else if (_node->has<InvokableComponent>())
+    }
+    else if (_node->has<InvokableComponent>())
     {
         serialize(_out, _node->get<InvokableComponent>());
-    } else
+    }
+    else
     {
         std::string message = "Unable to serialize ";
         message.append(type.get_name());
         throw std::runtime_error(message);
     }
-
     return _out;
 }
 
@@ -1663,7 +1669,7 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
 {
 
     serialize(_out, _for_loop->token_for);
-    serialize(_out, Token_t::expr_begin);
+    serialize(_out, Token_t::parenthesis_open);
 
     // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
     //       More work to do to know if expression is a declaration or not.
@@ -1678,7 +1684,7 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     }
     serialize(_out, _for_loop->get_cond_expr());
     serialize(_out, _for_loop->get_iter_instr());
-    serialize(_out, Token_t::expr_end);
+    serialize(_out, Token_t::parenthesis_close);
 
     // if scope
     if (auto *scope = _for_loop->get_condition_true_scope())
@@ -1693,9 +1699,9 @@ std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *
 {
     // if ( <condition> )
     serialize(_out, _condStruct->token_if);
-    serialize(_out, Token_t::expr_begin);
+    serialize(_out, Token_t::parenthesis_open);
     serialize(_out, _condStruct->get_cond_expr());
-    serialize(_out, Token_t::expr_end);
+    serialize(_out, Token_t::parenthesis_close);
 
     // if scope
     if (auto *ifScope = _condStruct->get_condition_true_scope())
@@ -1869,16 +1875,17 @@ std::string Nodlang::to_string(Token_t _token) const
     return to_string(result, _token);
 }
 
-int Nodlang::get_precedence(const iinvokable *_invokable) const
+int Nodlang::get_precedence(const iinvokable* _invokable) const
 {
-    if (!_invokable) return std::numeric_limits<int>::min();// default
+    if (!_invokable)
+        return std::numeric_limits<int>::min(); // default
 
-    auto type = _invokable->get_type();
-    auto oper = find_operator(type.get_identifier(), static_cast<Operator_t>(type.get_arg_count()));
+    const func_type& type = _invokable->get_type();
+    const Operator* operator_ptr = find_operator(type.get_identifier(), static_cast<Operator_t>(type.get_arg_count()));
 
-    if (!oper) return 0;// default
-
-    return oper->precedence;
+    if (operator_ptr)
+        return operator_ptr->precedence;
+    return std::numeric_limits<int>::max();
 }
 
 type Nodlang::get_type(Token_t _token) const

@@ -64,3 +64,18 @@ TEST_F(tokenize, operator_prefix)
     EXPECT_EQ(token.prefix_to_string(), " ");
     EXPECT_EQ(token.suffix_to_string(), "");
 }
+
+
+TEST_F(tokenize, add_pow2of2_and_integer )
+{
+    std::string code = "pow(2,2) + 1";
+    language.tokenize(code);
+
+    EXPECT_EQ(language.m_token_ribbon.tokens[2].buffer_to_string(), "2");
+    EXPECT_EQ(language.m_token_ribbon.tokens[3].buffer_to_string(), ",");
+    EXPECT_EQ(language.m_token_ribbon.tokens[4].buffer_to_string(), "2");
+    EXPECT_EQ(language.m_token_ribbon.tokens[5].buffer_to_string(), ")"); // parser should not add a " " prefix after ")"
+    EXPECT_EQ(language.m_token_ribbon.tokens[6].buffer_to_string(), " + ");
+    EXPECT_EQ(language.m_token_ribbon.tokens[7].buffer_to_string(), "1");
+
+}

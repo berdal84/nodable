@@ -63,6 +63,12 @@ namespace ndbl{
         i16_t                  to_i16(const std::string& );                           // convert an integer string (ex: "42") to an integer.
         Property *             to_property(Token _token);            // convert a token to a property.
     private:
+        inline bool            allow_to_attach_suffix(Token_t type) const
+        {
+            return    type != Token_t::identifier          // identifiers must stay clean because they are reused
+                   && type != Token_t::parenthesis_open    // ")" are lost when creating AST
+                   && type != Token_t::parenthesis_close;  // "(" are lost when creating AST
+        }
         void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
         void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
         void                   commit_transaction();                                  // Commit the pending transaction

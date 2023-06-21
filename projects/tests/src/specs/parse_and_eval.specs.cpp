@@ -559,3 +559,9 @@ TEST_F(Parse_and_eval, parse_serialize_single_program_line_with_two_sigle_line_c
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(Parse_and_eval, parse_serialize_binary_expression_with_funtion )
+{
+    std::string program = "int i = pow(2,2) + 1";
+    EXPECT_EQ(parse_and_serialize(program), program); // should not be "int i = (pow(2,2))+ 1"
+}
