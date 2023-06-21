@@ -5,6 +5,8 @@ Nodable Change log :
 Author: Bérenger Dalle-Cort, 2017-2023
 
 ### v0.9:
+    - fix the lost of suffixes on close parenthesis
+    - remove any std::shared_ptr<Token> (from +18% up to +125% perfs gain on Nodlang::parse_token())
     - remove all regex (+25% performance on Nodlang::parse() )
     - fixed lot of crashes
     - add help panel
