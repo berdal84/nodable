@@ -22,7 +22,7 @@ namespace testing
 class Core : public Test
 {
 public:
-    Nodlang             language;
+    Nodlang             nodlang;
     const NodeFactory   factory;
     bool                autocompletion = false;
     GraphNode           graph;
@@ -30,11 +30,10 @@ public:
     VirtualMachine      virtual_machine;
 
     Core()
-        : factory(&language), graph(&language, &factory, &autocompletion) {}
+        : factory(&nodlang), graph(&nodlang, &factory, &autocompletion) {}
 
     void SetUp()
     {
-        fw::log::set_verbosity(fw::log::Verbosity_Warning);
     }
 
     void TearDown()
@@ -52,7 +51,7 @@ public:
         static_assert(!std::is_pointer<return_t>::value);// returning a pointer from VM will fail when accessing data
                                                          // since VM will be destroyed leaving this scope.
         // parse
-        language.parse(_source_code, &graph);
+        nodlang.parse(_source_code, &graph);
 
         // compile
         auto asm_code = compiler.compile_syntax_tree(&graph);
@@ -85,7 +84,7 @@ public:
         LOG_MESSAGE("core", "parse_compile_run_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        language.parse(_source_code, &graph);
+        nodlang.parse(_source_code, &graph);
 
         // compile
         auto code = compiler.compile_syntax_tree(&graph);
@@ -106,7 +105,7 @@ public:
 
         // serialize
         std::string result;
-        language.serialize(result, graph.get_root());
+        nodlang.serialize(result, graph.get_root());
         LOG_VERBOSE("core", "parse_compile_run_serialize serialize output is: \"%s\"\n", result.c_str());
 
         virtual_machine.release_program();
@@ -118,7 +117,7 @@ public:
         LOG_VERBOSE("core", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        language.parse(_source_code, &graph);
+        nodlang.parse(_source_code, &graph);
         if (!graph.get_root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
@@ -126,7 +125,7 @@ public:
 
         // serialize
         std::string result;
-        language.serialize(result, graph.get_root());
+        nodlang.serialize(result, graph.get_root());
         LOG_VERBOSE("tools.h", "parse_and_serialize serialize output is: \"%s\"\n", result.c_str());
 
         return result;
@@ -134,7 +133,7 @@ public:
 
     void log_ribbon() const
     {
-        LOG_MESSAGE("fixture::core", "%s\n", language.m_token_ribbon.to_string().c_str());
+        LOG_MESSAGE("fixture::core", "%s\n", nodlang.parser_state.ribbon.to_string().c_str());
     }
 };
 }

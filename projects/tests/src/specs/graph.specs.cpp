@@ -56,7 +56,7 @@ TEST_F(Graph, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
     fw::func_type*   fct_type        = fw::func_type_builder<int(int, int)>::with_id("+");
-    auto             operator_fct    = language.find_operator_fct_exact(fct_type);
+    auto             operator_fct    = nodlang.find_operator_fct_exact(fct_type);
 
     delete fct_type;
 

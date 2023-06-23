@@ -77,9 +77,54 @@ namespace ndbl{
         static inline bool     is_letter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
         static inline bool     is_digit(char c) { return c >= '0' && c <= '9'; }
 
-    private: GraphNode*             m_graph;           // current graph output.
-    public:  TokenRibbon            m_token_ribbon;    // This token ribbon is cleared/filled when tokenize() is called.
-    private: std::stack<Scope*>     m_scope_stack;     // Current scopes (babushka dolls).
+    public:
+        struct ParserState
+        {
+            struct
+            {
+                char* buffer;         // input, owned
+                size_t size;
+            } source;
+            TokenRibbon ribbon;
+            GraphNode*  graph;        // output, not owned
+            std::stack<Scope*> scope; // nested scopes
+
+            ParserState()
+                : graph(nullptr)
+                , source({nullptr, 0})
+            {}
+            ~ParserState()
+            {
+                delete[] source.buffer;
+            }
+            void set_source_buffer(const char* str, size_t size)
+            {
+                FW_ASSERT(source.buffer == nullptr); // should call clear() before
+                FW_ASSERT(str != nullptr);
+
+                if( size != 0 )
+                {
+                    LOG_VERBOSE("ParserState", "Copying source buffer (%i bytes) ...\n", size);
+                    source.buffer = new char[size];
+                    memcpy(source.buffer, str, size);
+                }
+                source.size = size;
+                ribbon.set_source_buffer(source.buffer);
+            }
+            void clear()
+            {
+                graph = nullptr;
+                ribbon.clear();
+                delete[] source.buffer;
+                source.buffer = nullptr;
+                source.size = 0;
+                while(!scope.empty())
+                {
+                    scope.pop();
+                }
+            }
+        } parser_state;
+
     private: bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared symbol is rejected. When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
 
         // Serializer ------------------------------------------------------------------
