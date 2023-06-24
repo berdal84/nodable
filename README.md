@@ -47,6 +47,6 @@ In case you prefer to build *Nodable* from sources, read [HOW-TO-BUILD.md](./HOW
 ## Credits
 
 **Nodable** is developed by [@berdal84](https://github.com/berdal84) and rely on many libraries ([more info](./libs/README.md)).
-More information about this project on [my website](https://www.dalle-cort.fr/category/project/nodable).
+More information about this project on [Nodable website](https://nodable.42borgata.com/).
 
 
