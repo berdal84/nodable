@@ -10,35 +10,21 @@
 
 # Nodable is node-able !
 
-## Introduction:
+The goal of Nodable is to provide an original source code editor using both textual and nodal paradigms. Via this hybrid prototype, technical and less-technical people can discuss and collaborate on the same source code.
 
-The goal of *Nodable* is:
-- to **provide an original hybrid source code editor**, using both textual and nodal paradigms.
-- to **learn software development**, by learning language related stuff (parsers, AST, compilation, etc.)
+Unlike other nodal softwares, the goal of Nodable is to make possible the edition of the source code and its graph representation at the same time. Users are not stuck into one of the two paradigms, they can go back and forth whenever they want.
+Code and graph illustration
+[read more...](https://nodable.42borgata.com/)
 
-The goal of *Nodable* is **not**:
-- To handle more than 1 language
-- To be a production tool.
+![image](https://github.com/berdal84/nodable/assets/942052/4c0175ca-70a5-49e8-8615-59cfb6c812e2)
 
-In Nodable, the textual and nodal points of view are strongly linked, in both ways:
-
-- A change to the source code will update the graph.
-- A change to the graph will update* the source code.
-
-_* Nodable persistent state is the source code. Some minor changes on the graph, like changing their position or adding orphaned nodes, might not update the source code_
-
-
-### Screenshots
-
-<img width="500" src="https://user-images.githubusercontent.com/942052/161857692-97786562-c30c-470c-9e07-62b240a4a222.gif"/>
-<img width="500" src="https://user-images.githubusercontent.com/942052/161857699-eedb1c42-2b49-4bea-8da7-20f1b522cf73.gif"/>
-<img width="500" src="https://user-images.githubusercontent.com/942052/211735062-21d29b63-77da-4100-8738-61805ad11318.png"/>
+⚠️ Disclaimer: This software is a prototype, do not expect too much from it.
 
 ## Download
 
 Follow the instruction from the [latest release](https://github.com/berdal84/Nodable/releases/latest) section.
 
-In case you prefer to build *Nodable* from sources, read [HOW-TO-BUILD.md](./HOW-TO-BUILD.md).
+To build *Nodable* from sources, read [HOW-TO-BUILD.md](./HOW-TO-BUILD.md).
 
 ## License
 
