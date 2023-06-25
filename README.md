@@ -10,15 +10,17 @@
 
 # Nodable is node-able !
 
+⚠️ Disclaimer: This software is a prototype, do not expect too much from it.
+
 The goal of Nodable is to provide an original source code editor using both textual and nodal paradigms. Via this hybrid prototype, technical and less-technical people can discuss and collaborate on the same source code.
+
+![image](https://github.com/berdal84/nodable/assets/942052/4c0175ca-70a5-49e8-8615-59cfb6c812e2)
 
 Unlike other nodal softwares, the goal of Nodable is to make possible the edition of the source code and its graph representation at the same time. Users are not stuck into one of the two paradigms, they can go back and forth whenever they want.
 Code and graph illustration
 [read more...](https://nodable.42borgata.com/)
 
-![image](https://github.com/berdal84/nodable/assets/942052/4c0175ca-70a5-49e8-8615-59cfb6c812e2)
-
-⚠️ Disclaimer: This software is a prototype, do not expect too much from it.
+![image](https://github.com/berdal84/nodable/assets/942052/10ec3e25-626b-47f6-b147-d27216c98643)
 
 ## Download
 
