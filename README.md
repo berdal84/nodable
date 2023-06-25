@@ -16,25 +16,22 @@ The goal of Nodable is to provide an original source code editor using both text
 
 ![image](https://github.com/berdal84/nodable/assets/942052/4c0175ca-70a5-49e8-8615-59cfb6c812e2)
 
-Unlike other nodal softwares, the goal of Nodable is to make possible the edition of the source code and its graph representation at the same time. Users are not stuck into one of the two paradigms, they can go back and forth whenever they want.
-Code and graph illustration
-[read more...](https://nodable.42borgata.com/)
+Unlike other nodal softwares, the goal of Nodable is to make possible the edition of the source code and its graph representation at the same time. Users are not stuck into one of the two paradigms, they can go back and forth whenever they want...
+[read more](https://nodable.42borgata.com/)
 
 ![image](https://github.com/berdal84/nodable/assets/942052/10ec3e25-626b-47f6-b147-d27216c98643)
 
-## Download
+### Download
 
 Follow the instruction from the [latest release](https://github.com/berdal84/Nodable/releases/latest) section.
 
 To build *Nodable* from sources, read [HOW-TO-BUILD.md](./HOW-TO-BUILD.md).
 
-## License
+### License
 
-**Nodable** is licensed under the GPL License, see [LICENSE](./LICENSE). Each submodule is licensed, browse [./libs](./libs).
+Nodable is licensed under the GPL License, see [LICENSE](./LICENSE). Each submodule is licensed, browse [./libs](./libs)
 
-## Credits
+### Credits
 
-**Nodable** is developed by [@berdal84](https://github.com/berdal84) and rely on many libraries ([more info](./libs/README.md)).
+Nodable is developed by [@berdal84](https://github.com/berdal84) and rely on many libraries ([more info](./libs/README.md)).
 More information about this project on [Nodable website](https://nodable.42borgata.com/).
-
-
