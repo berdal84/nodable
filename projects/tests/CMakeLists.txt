@@ -36,7 +36,7 @@ add_executable(
         src/specs/tokenize.specs.cpp
         src/specs/type_cast.specs.cpp
         src/specs/virtual_machine.specs.cpp
-)
+        src/specs/string.spec.cpp)
 
 # Link libraries
 target_link_libraries(
