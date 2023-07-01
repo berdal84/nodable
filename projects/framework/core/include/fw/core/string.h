@@ -100,17 +100,16 @@ namespace fw
         /**
          * Expand the buffer to the closest power of two of the desired size.
          */
-        CharT* expand_buffer_to_fit(u16_t desired_size)
+        CharT* expand_buffer_to_fit(u16_t desired_capacity)
         {
-            assert( desired_size > m_capacity + 1);
+            assert(desired_capacity > m_capacity );
 
-            static_assert( std::is_same<typeof(desired_size), u16_t>()); // code below needs to be adapted if integer is greater
+            static_assert( std::is_same<typeof(desired_capacity), u16_t>()); // code below needs to be adapted if integer is not u16
 
             // compute the next highest power of 2 of 32-bit
             // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-            u16_t new_buf_size = desired_size;
-
-            new_buf_size--;
+            u16_t new_buf_size = desired_capacity;
+            //new_buf_size--; // capacity is buffer_size - 1
             new_buf_size |= new_buf_size >> 1;
             new_buf_size |= new_buf_size >> 2;
             new_buf_size |= new_buf_size >> 4;
