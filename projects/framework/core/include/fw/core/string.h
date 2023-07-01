@@ -4,95 +4,125 @@
 #include <cstring>
 #include <fw/core/types.h>
 #include <xxhash/xxhash64.h>
+#include <assert.h>
 
 namespace fw
 {
+    template<typename CharT, u16_t STACK_BUF_SIZE> class Str; // forward decl
+
+    // define some aliases
+
+    typedef Str<char, 8>   Str8;
+    typedef Str<char, 16>  Str16;
+    typedef Str<char, 32>  Str32;
+    typedef Str<char, 64>  Str64;
+    typedef Str<char, 128> Str128;
+    typedef Str<char, 256> Str256;
+    typedef Str<char, 512> Str512;
+
     /**
      * Stack allocated string.
      * Switches to dynamic allocations when stack buffer is too small.
-     * @tparam STACK_BUF_SIZE
+     *
+     * Buffer size and string length are stored in an unsigned integer (1 byte)
      */
-    template<u8_t STACK_BUF_SIZE = 1>
+    template<typename CharType, u16_t STATIC_BUF_SIZE>
     class Str
     {
-    private:
-        union { ;
-            char stack[STACK_BUF_SIZE];
-            char* ptr;
-        } m_data;
-        u8_t m_buf_size;
-        u8_t m_length;
-        bool m_on_stack;
+        static_assert(STATIC_BUF_SIZE != 0);
+        private: CharType* m_ptr;                         // Pointer to the buffer (static or dynamic)
+        private: u16_t     m_buf_size;                    // Buffer size
+        private: u16_t     m_length;                      // String length
+        private: CharType  m_static_buf[STATIC_BUF_SIZE]; // Static buffer
 
-    public:
-        Str()
-            : m_buf_size(STACK_BUF_SIZE)
-            , m_on_stack(STACK_BUF_SIZE != 1)
+        public: Str()
+            : m_buf_size(STATIC_BUF_SIZE)
+            , m_ptr(m_static_buf)
             , m_length(0)
         {
-            if( m_on_stack )
-            {
-                m_data.stack[0] = '\0';
-            }
-            else
-            {
-                m_data.ptr = nullptr;
-            }
+            m_static_buf[0] = '\0';
         }
 
-        Str(const char* str)
-            : m_buf_size(STACK_BUF_SIZE)
-            , m_on_stack(STACK_BUF_SIZE != 1)
+        public: Str(const CharType* str)
+            : m_buf_size(STATIC_BUF_SIZE)
+            , m_ptr(m_static_buf)
+            , m_length(strlen(str))
         {
-            const size_t str_length = strlen(str);
-
-            // When buffer is too small, we switch to heap.
-            if(str_length > m_buf_size )
-            {
-                if( !m_on_stack )
-                {
-                    delete[] m_data.ptr;
-                    m_buf_size = str_length + 1; // TODO: compute the next power of 2 for the buffer size
-                    m_data.ptr = new char[m_buf_size];
-                    m_data.ptr[str_length] = '\0';
-                }
-                m_on_stack = false;
-            }
-
-            // Copy str to the stack
-            if ( m_on_stack )
-            {
-                memcpy(m_data.stack, str, str_length);
-                m_data.stack[str_length] = '\0';
-            }
-            // Copy str to the heap
-            else
-            {
-                memcpy(m_data.ptr, str, str_length);
-                m_data.ptr[str_length] = '\0';
-            };
-            m_length = str_length;
+            assert(("str is too long, use larger buffer Str<N> (stack) or use Str (heap)", m_length + 1 <= m_buf_size));
+            memcpy(m_ptr, str, m_length);
+            m_ptr[m_length] = '\0';
         }
 
-        ~Str()
+        public: ~Str()
         {
-            if( !m_on_stack )
+            if( is_on_heap() )
             {
-                delete[] m_data.ptr;
+                delete[] m_ptr;
             }
         }
 
-        const char* c_str() const
+        public: inline bool is_on_heap() const
         {
-            if (m_on_stack)            return static_cast<const char*>(m_data.stack);
-            if (m_data.ptr != nullptr) return static_cast<const char*>(m_data.ptr);
-            return "";
+            return ((void*)m_ptr) != ((void*)m_static_buf);
         }
 
-        inline u8_t capacity() const { return m_buf_size; }
-        inline u8_t length() const { return m_length; }
-        inline bool is_empty() const { return m_length == 0; }
+        public: inline const char* c_str() const
+        {
+            return const_cast<const char*>( m_ptr );
+        }
+
+        private: void enlarge_buffer_to_fit(u16_t desired_buf_size)
+        {
+            static_assert( std::is_same<typeof(desired_buf_size), u16_t>()); // code below needs to be adapted if integer is greater
+
+            // compute the next highest power of 2 of 32-bit
+            // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+            u16_t size = desired_buf_size;
+
+            size--;
+            size |= size >> 1;
+            size |= size >> 2;
+            size |= size >> 4;
+            size |= size >> 8;
+            size |= size >> 16;
+            size++;
+
+            CharType* new_ptr = new CharType[size]; // TODO: use the next power of two
+            memcpy(new_ptr, m_ptr, m_buf_size);
+            if (is_on_heap()) delete[] m_ptr;
+            m_ptr = new_ptr;
+            m_buf_size = desired_buf_size;
+        }
+        public: inline void append(CharType c)
+        {
+            if( m_buf_size <= m_length + 1 ) enlarge_buffer_to_fit(m_length + 1);
+            m_ptr[m_length] = c;
+            ++m_length;
+            m_ptr[m_length] = 0;
+        }
+
+        public: inline void append(const CharType* str, u16_t n)
+        {
+            if( m_buf_size <= m_length + n ) enlarge_buffer_to_fit(m_length + n);
+            memcpy(m_ptr + m_length, str, n);
+            m_length += n;
+            m_ptr[m_length] = 0;
+        }
+
+        public: inline void append(const CharType* str) { return append(str, strlen(str)); }
+        public: inline u16_t capacity() const { return m_buf_size - 1; }
+        public: inline u16_t length() const { return m_length; }
+        public: inline bool is_empty() const { return m_length == 0; }
     };
+
+    // Static checks about size
+    constexpr size_t base_size = sizeof(char*) + sizeof(u16_t) * 2;
+    static_assert(base_size == 2*8); // 2 Bytes
+    static_assert(sizeof(Str8) == base_size + 8); // 2 bytes + static buffer size
+    static_assert(sizeof(Str16) == base_size + 16); // 2 bytes + static buffer size
+    static_assert(sizeof(Str32) == base_size + 32); // 2 bytes + static buffer size
+    // etc...
+
     class string // Static library to deal with string formatting
     {
     public:

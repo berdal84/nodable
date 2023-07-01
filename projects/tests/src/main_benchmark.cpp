@@ -4,6 +4,7 @@
 #include <ndbl/core/NodeFactory.h>
 #include <fw/core/reflection/reflection>
 #include <random>
+#include "fw/core/string.h"
 
 /*
  *
@@ -84,6 +85,33 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_boolean)(benchmark::Sta
     {
         language->parse_token(b ? "true" : "false");
         b = !b;
+    }
+}
+
+BENCHMARK_DEFINE_F(NodlangFixture, std_string_append)(benchmark::State& state) {
+
+    for (auto _ : state)
+    {
+        std::string str;
+        str.append("This is too long!");
+    }
+}
+
+BENCHMARK_DEFINE_F(NodlangFixture, Str8_append_dynamic_alloc)(benchmark::State& state) {
+
+    for (auto _ : state)
+    {
+        fw::Str8 str;
+        str.append("This is too long!");
+    }
+}
+
+BENCHMARK_DEFINE_F(NodlangFixture, Str32_append_no_dynamic_alloc)(benchmark::State& state) {
+
+    for (auto _ : state)
+    {
+        fw::Str32 str;
+        str.append("This is too long!");
     }
 }
 
@@ -196,5 +224,8 @@ BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
+BENCHMARK_REGISTER_F(NodlangFixture, std_string_append);
+BENCHMARK_REGISTER_F(NodlangFixture, Str8_append_dynamic_alloc);
+BENCHMARK_REGISTER_F(NodlangFixture, Str32_append_no_dynamic_alloc);
 
 BENCHMARK_MAIN();
