@@ -101,7 +101,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, Str8_append_dynamic_alloc)(benchmark::State& 
 
     for (auto _ : state)
     {
-        fw::Str8 str;
+        fw::string8 str;
         str.append("This is too long!");
     }
 }
@@ -110,7 +110,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, Str32_append_no_dynamic_alloc)(benchmark::Sta
 
     for (auto _ : state)
     {
-        fw::Str32 str;
+        fw::string32 str;
         str.append("This is too long!");
     }
 }
