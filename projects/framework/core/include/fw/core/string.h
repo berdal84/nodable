@@ -11,7 +11,7 @@ namespace fw
     };
 
     template<typename CharT = char>
-    class basic_string{
+    class basic_string {
 
     protected: CharT* m_ptr;          // Pointer to the buffer (static or dynamic)
     protected: u16_t  m_capacity;     // Buffer size - 1
@@ -26,8 +26,6 @@ namespace fw
             , m_ptr(nullptr)
         {}
 
-    protected:
-
         basic_string(const CharT* str)
             : m_alloc_strategy(alloc_strategy::HEAP)
             , m_length(strlen(str))
@@ -39,6 +37,7 @@ namespace fw
             m_ptr[m_length] = 0;
         }
 
+    protected:
         basic_string(CharT* data, u16_t size, u16_t length, alloc_strategy strategy)
             : m_alloc_strategy(strategy)
             , m_capacity(size-1)
@@ -145,41 +144,31 @@ namespace fw
      * Buffer size and string length are stored in an unsigned integer (1 byte)
      */
     template<typename CharType, u16_t STATIC_BUF_SIZE>
-    class stack_string : public basic_string<CharType> {
+    class inline_string : public basic_string<CharType> {
     private:
         static_assert(STATIC_BUF_SIZE != 0);
         CharType m_static_buf[STATIC_BUF_SIZE]; // Static buffer
 
     public:
-        stack_string(): basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, 0, alloc_strategy::NEXT_ALLOC_USE_HEAP)
+        inline_string(): basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, 0, alloc_strategy::NEXT_ALLOC_USE_HEAP)
         {
             m_static_buf[0] = '\0';
         }
 
-        stack_string(const CharType *str) : basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, strlen(str), alloc_strategy::NEXT_ALLOC_USE_HEAP)
+        inline_string(const CharType *str) : basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, strlen(str), alloc_strategy::NEXT_ALLOC_USE_HEAP)
         {
             strncpy(m_static_buf, str, this->m_length);
             m_static_buf[this->m_length] = 0;
         }
     };
 
-    template<typename CharType>
-    class heap_string : public basic_string<CharType> {
-    public:
-        heap_string(): basic_string<CharType>()
-        {}
-
-        heap_string(const CharType *str) : basic_string<CharType>(str)
-        {}
-    };
-
     // Define some aliases
 
-    using string    = heap_string<char>;
-    using string8   = stack_string<char, 8>;
-    using string16  = stack_string<char, 16>;
-    using string32  = stack_string<char, 32>;
-    using string64  = stack_string<char, 64>;
-    using string128 = stack_string<char, 128>;
-    using string256 = stack_string<char, 256>;
+    using string    = basic_string<char>;
+    using string8   = inline_string<char, 8>;
+    using string16  = inline_string<char, 16>;
+    using string32  = inline_string<char, 32>;
+    using string64  = inline_string<char, 64>;
+    using string128 = inline_string<char, 128>;
+    using string256 = inline_string<char, 256>;
 }
