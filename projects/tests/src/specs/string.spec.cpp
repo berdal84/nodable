@@ -1,31 +1,29 @@
 #include <gtest/gtest.h>
 #include <fw/core/string.h>
 
-/*
+using namespace fw;
 
- TODO: implement an Str<0> optimized to only use dynamic allocations
-TEST(fw_Str, heap_allocated_constructor_no_args)
+TEST(string, constructor_no_args)
 {
-    fw::Str str;
+    string str;
     EXPECT_STREQ(str.c_str(), "");
     EXPECT_EQ(str.length(), 0);
     EXPECT_EQ(str.is_empty(), true);
-    EXPECT_EQ(str.capacity(), 1);
+    EXPECT_EQ(str.capacity(), 0);
 }
-*/
 
-TEST(fw_Str, string16_constructor_no_args)
+TEST(string16, constructor_no_args)
 {
-    fw::string16 str;
+    string16 str;
     EXPECT_STREQ(str.c_str(), "");
     EXPECT_EQ(str.length(), 0);
     EXPECT_EQ(str.is_empty(), true);
     EXPECT_EQ(str.capacity(), 15);
 }
 
-TEST(fw_Str, string16_constructor_with_args)
+TEST(string16, constructor_with_args)
 {
-    fw::string16 str("Super");
+    string16 str("Super");
 
     EXPECT_STREQ(str.c_str(), "Super");
     EXPECT_EQ(str.length(), 5);
@@ -33,9 +31,9 @@ TEST(fw_Str, string16_constructor_with_args)
     EXPECT_EQ(str.capacity(), 15);
 }
 
-TEST(fw_Str, string16_append_char)
+TEST(string16, append_char)
 {
-    fw::string16 str("Super");
+    string16 str("Super");
 
     EXPECT_STREQ(str.c_str(), "Super");
     EXPECT_EQ(str.length(), 5);
@@ -45,9 +43,9 @@ TEST(fw_Str, string16_append_char)
     EXPECT_EQ(str.length(), 6);
 }
 
-TEST(fw_Str, string16_append_strn)
+TEST(string16, append_strn)
 {
-    fw::string16 str("Super");
+    string16 str("Super");
 
     EXPECT_STREQ(str.c_str(), "Super");
     EXPECT_EQ(str.length(), 5);
@@ -57,9 +55,9 @@ TEST(fw_Str, string16_append_strn)
     EXPECT_EQ(str.length(), 9);
 }
 
-TEST(fw_Str, string16_append_const_char_ptr)
+TEST(string16, append_const_char_ptr)
 {
-    fw::string16 str("Super");
+    string16 str("Super");
 
     EXPECT_STREQ(str.c_str(), "Super");
     EXPECT_EQ(str.length(), 5);
@@ -69,9 +67,9 @@ TEST(fw_Str, string16_append_const_char_ptr)
     EXPECT_EQ(str.length(), 9);
 }
 
-TEST(fw_Str, string8_append_overflow)
+TEST(string8, append_overflow)
 {
-    fw::string8 str("Super");
+    string8 str("Super");
 
     EXPECT_FALSE(str.heap_allocated());
 
@@ -81,9 +79,9 @@ TEST(fw_Str, string8_append_overflow)
     EXPECT_TRUE(str.heap_allocated());
 }
 
-TEST(fw_Str, string_append_overflow)
+TEST(string, append_overflow)
 {
-    fw::string str("Super");
+    string str("Super");
 
     EXPECT_TRUE(str.heap_allocated());
     EXPECT_EQ(str.capacity(), 8-1);
@@ -97,4 +95,48 @@ TEST(fw_Str, string_append_overflow)
 
     EXPECT_STREQ(str.c_str(), "Super long, mais vraiment beaucoup ça race");
     EXPECT_EQ(str.capacity(), 64-1);
+}
+
+TEST(string8, copy )
+{
+    string8 str("Super");
+    string8 copy = str;
+    EXPECT_STREQ(str.c_str(), copy.c_str());
+    str.append(" bien!");
+    EXPECT_STRNE(str.c_str(), copy.c_str());
+}
+
+TEST(string8, copy_constructor )
+{
+    string8 str("Super");
+    string8 copy(str);
+    EXPECT_STREQ(str.c_str(), copy.c_str());
+    str.append(" bien!");
+    EXPECT_STRNE(str.c_str(), copy.c_str());
+}
+
+TEST(string, string_copy )
+{
+    string str("Super");
+    string copy = str;
+    EXPECT_STREQ(str.c_str(), copy.c_str());
+    str.append(" bien!");
+    EXPECT_STRNE(str.c_str(), copy.c_str());
+}
+
+TEST(string, copy_string8 )
+{
+    string8 str("Super");
+    string copy = str;
+    EXPECT_STREQ(str.c_str(), copy.c_str());
+    str.append(" bien!");
+    EXPECT_STRNE(str.c_str(), copy.c_str());
+}
+
+TEST(string8, copy_string )
+{
+    string str("Super");
+    string8 copy = str;
+    EXPECT_STREQ(str.c_str(), copy.c_str());
+    EXPECT_FALSE(copy.heap_allocated());
 }

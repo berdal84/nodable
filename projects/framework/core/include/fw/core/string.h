@@ -37,6 +37,19 @@ namespace fw
             m_ptr[m_length] = 0;
         }
 
+        basic_string(const basic_string& other)
+            : basic_string(other.c_str())
+        {}
+
+        basic_string& operator=(const basic_string& other)
+        {
+            if( m_capacity < other.m_capacity) m_ptr = expand_buffer_to_fit(other.m_length + 1);
+            memcpy(m_ptr, other.m_ptr, other.m_length);
+            m_length = other.m_length;
+            m_capacity = other.m_capacity;
+            m_ptr[m_length] = 0;
+        }
+
     protected:
         basic_string(CharT* data, u16_t size, u16_t length, alloc_strategy strategy)
             : m_alloc_strategy(strategy)
@@ -59,7 +72,7 @@ namespace fw
         { return m_alloc_strategy == alloc_strategy::HEAP; }
 
         inline const char* c_str() const
-        { return const_cast<const char*>( m_ptr ); }
+        { return m_ptr != nullptr ? const_cast<const char*>( m_ptr ) : ""; }
 
         inline void append(CharT c)
         {
@@ -95,6 +108,11 @@ namespace fw
         inline bool is_empty() const
         { return m_length == 0; }
 
+        inline void clear()
+        {
+            m_length = 0;
+            if( m_ptr != nullptr) m_ptr[0] = 0;
+        }
     private:
         /**
          * Expand the buffer to the closest power of two of the desired size.
@@ -159,6 +177,12 @@ namespace fw
         {
             strncpy(m_static_buf, str, this->m_length);
             m_static_buf[this->m_length] = 0;
+        }
+
+        inline_string(const basic_string<CharType>& other): inline_string()
+        {
+            this->clear();
+            this->append(other.c_str(), other.length());
         }
     };
 
