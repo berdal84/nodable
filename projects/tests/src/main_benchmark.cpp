@@ -4,7 +4,7 @@
 #include <ndbl/core/NodeFactory.h>
 #include <fw/core/reflection/reflection>
 #include <random>
-#include "fw/core/string.h"
+#include <fw/core/string.h>
 
 /*
  *
@@ -28,6 +28,7 @@
  */
 
 using namespace ndbl;
+using namespace fw;
 
 class NodlangFixture : public benchmark::Fixture {
 public:
@@ -50,7 +51,7 @@ public:
         autocompletion = false;
         factory = new NodeFactory(language);
         graph = new GraphNode(language, factory, &autocompletion);
-        fw::log::set_verbosity(fw::log::Verbosity_Error);
+        log::set_verbosity(log::Verbosity_Error);
     }
 
     void TearDown(const ::benchmark::State& state)
@@ -93,25 +94,38 @@ BENCHMARK_DEFINE_F(NodlangFixture, std_string_append)(benchmark::State& state) {
     for (auto _ : state)
     {
         std::string str;
-        str.append("This is too long!");
+        for(int i = 0; i < 8; i++ )
+            str.append("12345678");
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, Str8_append_dynamic_alloc)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(NodlangFixture, string_append)(benchmark::State& state) {
 
     for (auto _ : state)
     {
-        fw::string8 str;
-        str.append("This is too long!");
+        string str;
+        for(int i = 0; i < 8; i++ )
+            str.append("12345678");
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, Str32_append_no_dynamic_alloc)(benchmark::State& state) {
+BENCHMARK_DEFINE_F(NodlangFixture, string128_append_no_dynamic_alloc)(benchmark::State& state) {
 
     for (auto _ : state)
     {
-        fw::string32 str;
-        str.append("This is too long!");
+        string128 str;
+        for(int i = 0; i < 8; i++ )
+            str.append("12345678");
+    }
+}
+
+BENCHMARK_DEFINE_F(NodlangFixture, string64_append_some_dynamic_alloc)(benchmark::State& state) {
+
+    for (auto _ : state)
+    {
+        string64 str;
+        for(int i = 0; i < 8; i++ )
+            str.append("12345678");
     }
 }
 
@@ -225,7 +239,8 @@ BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
 BENCHMARK_REGISTER_F(NodlangFixture, std_string_append);
-BENCHMARK_REGISTER_F(NodlangFixture, Str8_append_dynamic_alloc);
-BENCHMARK_REGISTER_F(NodlangFixture, Str32_append_no_dynamic_alloc);
+BENCHMARK_REGISTER_F(NodlangFixture, string_append);
+BENCHMARK_REGISTER_F(NodlangFixture, string128_append_no_dynamic_alloc);
+BENCHMARK_REGISTER_F(NodlangFixture, string64_append_some_dynamic_alloc);
 
 BENCHMARK_MAIN();
