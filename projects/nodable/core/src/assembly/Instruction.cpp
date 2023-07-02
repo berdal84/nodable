@@ -1,6 +1,7 @@
 #include <ndbl/core/assembly/Register.h>
 #include <ndbl/core/assembly/Instruction.h>
-#include "fw/core/string.h"
+#include <string>
+#include <fw/core/format.h>
 
 using namespace ndbl;
 using namespace fw;
@@ -11,7 +12,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     result.reserve(80); // to fit with terminals
 
     // append "<line> :"
-    std::string str = string::fmt_hex(_instr.line);
+    std::string str = format::hexadecimal(_instr.line);
     result.append( str );
     result.resize(4, ' ');
     result.append( " : " );
@@ -26,7 +27,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     {
         case Instruction_t::eval_node:
         {
-            result.append(string::fmt_ptr(_instr.eval.node) );
+            result.append(format::address(_instr.eval.node) );
             break;
         }
 
@@ -65,16 +66,16 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
         case Instruction_t::ret: // nothing else to do.
             break;
         case Instruction_t::pop_stack_frame:
-            result.append(string::fmt_ptr(_instr.pop.scope) );
+            result.append(format::address(_instr.pop.scope) );
             break;
         case Instruction_t::pop_var:
-            result.append(string::fmt_ptr(_instr.push.var) );
+            result.append(format::address(_instr.push.var) );
             break;
         case Instruction_t::push_stack_frame:
-            result.append(string::fmt_ptr(_instr.push.scope) );
+            result.append(format::address(_instr.push.scope) );
             break;
         case Instruction_t::push_var:
-            result.append(string::fmt_ptr(_instr.push.var) );
+            result.append(format::address(_instr.push.var) );
             break;
     }
 

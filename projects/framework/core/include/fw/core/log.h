@@ -4,6 +4,7 @@
 #include <string>
 #include <map>
 #include <chrono>
+#include <fw/core/string.h>
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -58,20 +59,16 @@ namespace fw {
             Verbosity_COUNT,
             Verbosity_DEFAULT = Verbosity_Message
         };
-        static std::string to_string(Verbosity _verbosity);
+        static const char* to_string(Verbosity _verbosity);
 
-        // 512 byte sized message
         struct Message
         {
+            fw::string256 text{};
+            fw::string32  category{};      // short category name (ex: "Game", "App", etc.)
             std::chrono::time_point<std::chrono::system_clock>
-                         date = std::chrono::system_clock::now();
-            Verbosity    verbosity=Verbosity_DEFAULT; // verbosity level
-            char         category[32]={};      // short category name (ex: "Game", "App", etc.)
-            char         text[460]={} ;        // message content text
-            std::string  to_string()const;     // get a pretty string of this message (ex: "[MSG|Game] Starting ...")
-            std::string  to_full_string()const;// get a pretty string of this message (ex: "[<date>|MSG|Game] Starting ...")
+                          date = std::chrono::system_clock::now();
+            Verbosity     verbosity=Verbosity_DEFAULT; // verbosity level
         };
-        static_assert(sizeof(Message) == 512); // check size, it is to know how much space takes a given number of logs
 
 	private:
         static std::deque<Message>  s_logs;      // message history

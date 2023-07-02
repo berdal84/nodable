@@ -15,7 +15,9 @@
 #include <chrono>
 
 #include <fw/core/reflection/reflection>
+#include <fw/core/format.h>
 #include <fw/core/log.h>
+#include <fw/core/hash.h>
 
 #include <ndbl/core/ConditionalStructNode.h>
 #include <ndbl/core/DirectedEdge.h>
@@ -29,7 +31,6 @@
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/language/Nodlang_biology.h>
 #include <ndbl/core/language/Nodlang_math.h>
-#include "fw/core/string.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -110,7 +111,7 @@ Nodlang::Nodlang(bool _strict)
 
     for( auto [keyword, token_t] : m_definition.keywords)
     {
-        m_token_t_by_keyword.insert({string::hash(keyword), token_t});
+        m_token_t_by_keyword.insert({hash::hash(keyword), token_t});
         m_keyword_by_token_t.insert({token_t, keyword});
     }
 
@@ -118,7 +119,7 @@ Nodlang::Nodlang(bool _strict)
     {
         m_keyword_by_token_t.insert({token_t, keyword});
         m_keyword_by_type_hashcode.insert({type.hash_code(), keyword});
-        m_token_t_by_keyword.insert({string::hash(keyword), token_t});
+        m_token_t_by_keyword.insert({hash::hash(keyword), token_t});
         m_token_t_by_type_hashcode.insert({type.hash_code(), token_t});
         m_type_by_token_t.insert({token_t, type});
     }
@@ -191,12 +192,12 @@ bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
     {
         parser_state.graph->clear();
         LOG_WARNING("Parser", "Unable to generate a full program tree.\n")
-        LOG_MESSAGE("Parser", "%s", string::fmt_title("TokenRibbon").c_str());
+        LOG_MESSAGE("Parser", "%s", format::title("TokenRibbon").c_str());
         for (const Token& each_token : parser_state.ribbon)
         {
             LOG_MESSAGE("Parser", "token idx %i: %s\n", each_token.m_index, each_token.json().c_str());
         }
-        LOG_MESSAGE("Parser", "%s", string::fmt_title("TokenRibbon end").c_str());
+        LOG_MESSAGE("Parser", "%s", format::title("TokenRibbon end").c_str());
         auto curr_token = parser_state.ribbon.peek();
         LOG_ERROR("Parser", "Couldn't parse token %llu and above: %s\n", curr_token.m_index, curr_token.json().c_str())
         return false;
@@ -1018,7 +1019,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
 
         Token_t type = Token_t::identifier;
 
-        auto keyword_found = m_token_t_by_keyword.find( string::hash(buffer + start_pos, cursor - start_pos) );
+        auto keyword_found = m_token_t_by_keyword.find( hash::hash(buffer + start_pos, cursor - start_pos) );
         if (keyword_found != m_token_t_by_keyword.end())
         {
             // a keyword has priority over identifier

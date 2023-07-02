@@ -1,7 +1,7 @@
 #include <fw/core/reflection/variant.h>
-#include "fw/core/log.h" // for LOG_DEBUG(...)
-#include "fw/core/types.h"
-#include "fw/core/string.h"
+#include <fw/core/log.h>
+#include <fw/core/types.h>
+#include <fw/core/format.h>
 
 using namespace fw;
 
@@ -103,9 +103,9 @@ std::string variant::convert_to<std::string>()const
 
     if( m_type == type::get<std::string>() )  return *static_cast<std::string*>(m_data.ptr);
     if( m_type == type::get<i16_t>() )        return std::to_string(m_data.i16);
-    if( m_type == type::get<double>() )       return string::fmt_double(m_data.d);
+    if( m_type == type::get<double>() )       return format::number(m_data.d);
     if( m_type == type::get<bool>() )         return m_data.b ? "true" : "false";
-    if( m_type.is_ptr())                      return string::fmt_ptr(m_data.ptr);
+    if( m_type.is_ptr())                      return format::address(m_data.ptr);
     FW_EXPECT(false,"Case not handled!")
 }
 

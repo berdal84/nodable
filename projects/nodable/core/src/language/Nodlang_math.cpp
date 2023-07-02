@@ -1,12 +1,10 @@
-
 #include <ndbl/core/language/Nodlang_math.h>
 
 #include <string>
 #include <cmath>
-
-#include "fw/core/string.h"
+#include <fw/core/format.h>
 #include <fw/core/reflection/registration.h>
-#include "fw/core/types.h"
+#include <fw/core/types.h>
 
 using namespace ndbl;
 
@@ -23,7 +21,7 @@ namespace // anonymous, accessible only in that file
     double _secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
     double _sin(double n) { return sin(n); }
     std::string _to_string(bool b) { return b ? "true" : "false"; }
-    std::string _to_string(double n) { return fw::string::fmt_double(n); }
+    std::string _to_string(double n) { return fw::format::number(n); }
     std::string _to_string(i16_t i) { return std::to_string(i); }
     std::string _to_string(std::string s) { return s; }
     template<typename T, typename U>
@@ -35,7 +33,7 @@ namespace // anonymous, accessible only in that file
     template<typename T>
     T _plus(T a, T b){ return a + T(b); }
     template<>
-    std::string _plus(std::string left, double right) { return left + fw::string::fmt_double(right); }
+    std::string _plus(std::string left, double right) { return left + fw::format::number(right); }
     template<>
     std::string _plus(std::string left, i16_t right) { return left + std::to_string(right); }
     template<typename T, typename U>

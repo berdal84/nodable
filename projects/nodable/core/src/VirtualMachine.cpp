@@ -1,8 +1,8 @@
 #include <ndbl/core/VirtualMachine.h>
 
-#include "fw/core/log.h"
-#include "fw/core/string.h"
-
+#include <string>
+#include <fw/core/log.h>
+#include <fw/core/format.h>
 #include <ndbl/core/VariableNode.h>
 #include <ndbl/core/Scope.h>
 #include <ndbl/core/InvokableComponent.h>
@@ -154,7 +154,7 @@ bool VirtualMachine::_stepOver()
             }
             else if( t == type::get<void*>() )
             {
-                LOG_VERBOSE("VM", "pointed address: %s\n", string::fmt_ptr(qword.ptr).c_str() );
+                LOG_VERBOSE("VM", "pointed address: %s\n", format::address(qword.ptr).c_str() );
             }
             else
             {
