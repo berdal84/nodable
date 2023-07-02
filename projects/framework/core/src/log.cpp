@@ -15,13 +15,15 @@ log::Verbosity           log::s_verbosity = Verbosity_DEFAULT;
 static fw::string32 time_point_to_string(const std::chrono::system_clock::time_point &time_point)
 {
     std::time_t time = std::chrono::system_clock::to_time_t(time_point);
-    fw::string32 result;
+    // The 25th char contains '\n'
 #ifdef WIN32
+    char str[26];
+    ctime_s(str,sizeof str,&result);
     result.append(ctime_s(result, 24, &time), 24);
+    return {str, 24}
 #else
-    result.append(ctime(&time), 24); // 25th index contains '\n'
+    return {ctime(&time), 24};
 #endif
-    return result;
 }
 
 std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()

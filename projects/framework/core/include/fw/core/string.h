@@ -184,6 +184,12 @@ namespace fw
             m_static_buf[this->m_length] = 0;
         }
 
+        inline_string(CharType *str, u16_t length) : basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, length, alloc_strategy::NEXT_ALLOC_USE_HEAP)
+        {
+            strncpy(m_static_buf, str, this->m_length);
+            m_static_buf[this->m_length] = 0;
+        }
+
         inline_string(const basic_string<CharType>& other): inline_string()
         {
             this->clear();
