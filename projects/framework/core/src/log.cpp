@@ -15,9 +15,9 @@ log::Verbosity           log::s_verbosity = Verbosity_DEFAULT;
 static fw::string32 time_point_to_string(const std::chrono::system_clock::time_point &time_point)
 {
     std::time_t time = std::chrono::system_clock::to_time_t(time_point);
-    // The 25th char contains '\n'
+    // The result of ctime and ctime_s is formatted like: "Www Mmm dd hh:mm:ss yyyy\n\0" (24 chars + end of line + end of string)
 #ifdef WIN32
-    char str[25];
+    char str[26];
     ctime_s(str, sizeof str, &time);
     return {str, 24}
 #else
