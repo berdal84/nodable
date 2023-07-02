@@ -38,7 +38,7 @@ TEST(string16, append_char)
     EXPECT_STREQ(str.c_str(), "Super");
     EXPECT_EQ(str.length(), 5);
 
-    str.append('!');
+    str.push_back('!');
 
     EXPECT_EQ(str.length(), 6);
 }
@@ -47,6 +47,7 @@ TEST(string16, append_strn)
 {
     string16 str("Super");
 
+    EXPECT_STREQ(str.c_str(), "Super");
     EXPECT_STREQ(str.c_str(), "Super");
     EXPECT_EQ(str.length(), 5);
 
