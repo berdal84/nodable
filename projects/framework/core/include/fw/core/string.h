@@ -2,6 +2,7 @@
 
 #include <fw/core/types.h>
 #include <assert.h>
+#include <cstring> // for memcpy
 
 namespace fw
 {
@@ -48,6 +49,7 @@ namespace fw
             m_length = other.m_length;
             m_capacity = other.m_capacity;
             m_ptr[m_length] = 0;
+            return *this;
         }
 
     protected:
@@ -74,18 +76,7 @@ namespace fw
         inline const char* c_str() const
         { return m_ptr != nullptr ? const_cast<const char*>( m_ptr ) : ""; }
 
-        inline void append(CharT c)
-        {
-            if( m_capacity < m_length + 1 )
-            {
-                m_ptr = expand_capacity_to_fit(m_length + 1);
-            }
-            m_ptr[m_length] = c;
-            ++m_length;
-            m_ptr[m_length] = 0;
-        }
-
-        inline void append(const CharT* str, u16_t length)
+        inline basic_string& append(const CharT* str, u16_t length)
         {
             if( m_capacity < m_length + length )
             {
@@ -94,10 +85,23 @@ namespace fw
             memcpy(m_ptr + m_length, str, length);
             m_length += length;
             m_ptr[m_length] = 0;
+            return *this;
+        }
+        inline basic_string& append(const basic_string& str)
+        { return append(str.m_ptr, str.m_length); }
+
+        inline basic_string& append(const CharT* str)
+        { return append(str, strlen(str)); }
+
+        template<typename ...Args>
+        inline u16_t append_fmt(const char* _format, Args... args )
+        {
+            return m_length = vsnprintf(m_ptr+m_length, m_capacity-m_length, _format, args...);
         }
 
-        inline void append(const CharT* str)
-        { return append(str, strlen(str)); }
+        /** provided to easily switch to/from std::string */
+        inline basic_string& push_back(CharT str)
+        { return append(&str, 1); }
 
         inline u16_t capacity() const
         { return m_capacity; }
@@ -113,6 +117,7 @@ namespace fw
             m_length = 0;
             if( m_ptr != nullptr) m_ptr[0] = 0;
         }
+
     private:
         /**
          * Expand the buffer to the closest power of two of the desired size.

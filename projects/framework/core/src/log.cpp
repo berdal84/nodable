@@ -12,6 +12,18 @@ using namespace fw;
 std::deque<log::Message> log::s_logs;
 log::Verbosity           log::s_verbosity = Verbosity_DEFAULT;
 
+static fw::string32 time_point_to_string(const std::chrono::system_clock::time_point &time_point)
+{
+    std::time_t time = std::chrono::system_clock::to_time_t(time_point);
+    fw::string32 result;
+#ifdef WIN32
+    result.append(ctime_s(result, 24, &time), 24);
+#else
+    result.append(ctime(&time), 24); // 25th index contains '\n'
+#endif
+    return result;
+}
+
 std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()
 {
     // use singleton pattern instead of static member to avoid static code issues
@@ -51,12 +63,21 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
     {
         Message message{};
         message.verbosity = _verbosity;
-        strncpy(message.category, _category, sizeof(message.category));
+        message.category  = _category;
+
+        message.text.push_back('[');
+        message.text.append( time_point_to_string(message.date) );
+        message.text.push_back('|');
+        message.text.append(log::to_string(_verbosity));
+        message.text.push_back('|');
+        message.text.append( _category );
+        message.text.push_back(']');
+        message.text.push_back(' ');
 
         // Fill a buffer with the formatted message
         va_list arglist;
         va_start( arglist, _format );
-        vsnprintf(message.text, sizeof(message.text), _format, arglist); // store into buffer
+        message.text.append_fmt(_format, arglist);
         va_end( arglist );
 
         // Select the appropriate color depending on the verbosity
@@ -68,7 +89,7 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
         }
 
         // print the text
-        std::cout << "[" << to_string(_verbosity) << "|" << _category << "] " << RESET << message.text;
+        printf("%s", message.text.c_str());
 
         // Store the message in the front of the queue
         s_logs.push_front(message);
@@ -81,7 +102,7 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
 
 }
 
-std::string log::to_string(log::Verbosity _verbosity)
+const char* log::to_string(log::Verbosity _verbosity)
 {
     switch (_verbosity)
     {
@@ -100,51 +121,4 @@ void log::flush()
 const std::deque<log::Message>& log::get_messages()
 {
     return s_logs;
-}
-
-static std::string time_point_to_string(const std::chrono::system_clock::time_point &time_point)
-{
-    std::time_t time = std::chrono::system_clock::to_time_t(time_point);
-    char result[30];
-#ifdef WIN32
-    ctime_s(result,sizeof result,&time);
-#else
-    strncpy(result, ctime(&time), 26);
-#endif
-    result[strlen(result) - 1] = '\0'; // prevent new line
-    return result;
-}
-
-std::string log::Message::to_full_string()const
-{
-    std::string result;
-    result.reserve(50);
-
-    result.push_back('[');
-    result += time_point_to_string(date);
-    result.push_back('|');
-    result.append(log::to_string(verbosity) );
-    result.push_back('|');
-    result.append( category );
-    result.push_back(']');
-    result.push_back(' ');
-    result.append( text );
-
-    return result;
-}
-
-std::string log::Message::to_string()const
-{
-    std::string result;
-    result.reserve(50);
-
-    result.push_back('[');
-    result.append(log::to_string(verbosity) );
-    result.push_back('|');
-    result.append( category );
-    result.push_back(']');
-    result.push_back(' ');
-    result.append( text );
-
-    return result;
 }
