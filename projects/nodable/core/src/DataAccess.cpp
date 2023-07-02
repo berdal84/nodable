@@ -63,9 +63,9 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(auto& eachComponent : m_owner->get_components())
+		    for(const auto& [hash, component] : m_owner->components())
 		    {
-		    	writer.Key   (eachComponent.first.c_str());
+		    	writer.Key(component->get_type().get_name());
 		    	writer.StartObject();
 
 		    	// TODO: Save component: how to?

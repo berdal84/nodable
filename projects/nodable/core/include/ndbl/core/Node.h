@@ -13,6 +13,7 @@
 #include "fw/core/types.h"
 
 #include <ndbl/core/Component.h>
+#include <ndbl/core/Components.h>
 #include <ndbl/core/DirectedEdge.h>
 #include <ndbl/core/PropertyGrp.h>
 #include <ndbl/core/Slots.h>
@@ -45,7 +46,7 @@ namespace ndbl {
 	class Node
 	{
 	public:
-        using Components = std::map<std::string, Component*>;
+
 	    /**
 	     * Create a new Node
 	     * @param _label
@@ -53,30 +54,54 @@ namespace ndbl {
 		explicit Node(std::string  _label = "UnnamedNode");
         Node (const Node&) = delete;
         Node& operator= (const Node&) = delete;
-		virtual ~Node();
+		virtual ~Node() {}
 
-		virtual Node*        get_parent()const { return m_parent; }
-        virtual void         set_parent(Node*);
-        Slots<Node*>&        children_slots() { return m_children; }
+		inline Node*         get_parent()const { return m_parent; }
+        inline void          set_parent(Node* _node)
+        {
+            FW_ASSERT(_node != nullptr || this->m_parent != nullptr);
+            this->m_parent = _node;
+            set_dirty();
+        }
+        inline Slots<Node*>& children_slots() { return m_children; }
         inline GraphNode*    get_parent_graph()const { return m_parent_graph; }
-        void                 set_parent_graph(GraphNode*);
-        Slots<Node*>&        inputs() { return m_inputs; };
-        const Slots<Node*>&  inputs() const{ return m_inputs; };
-        Slots<Node*>&        outputs() { return m_outputs; };
-        const Slots<Node*>&  outputs() const { return m_outputs; };
-        Slots<Node*>&        successors() { return m_successors; }
-        const Slots<Node*>&  successors()const { return m_successors; }
-        Slots<Node*>&        predecessors() { return m_predecessors; }
-        bool                 flagged_to_delete() const { return m_flagged_to_delete; }
-        void                 flag_to_delete(){ m_flagged_to_delete = true;}
-        void                 set_name(const char *_label);
-        const char*          get_name()const;
-		void                 add_edge(const DirectedEdge*);
+        inline void          set_parent_graph(GraphNode* _parent_graph)
+        {
+            FW_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
+            this->m_parent_graph = _parent_graph;
+        }
+
+        inline Components&          components() { return m_components; }
+        inline Slots<Node*>&        inputs() { return m_inputs; };
+        inline const Slots<Node*>&  inputs() const{ return m_inputs; };
+        inline Slots<Node*>&        outputs() { return m_outputs; };
+        inline const Slots<Node*>&  outputs() const { return m_outputs; };
+        inline Slots<Node*>&        successors() { return m_successors; }
+        inline const Slots<Node*>&  successors()const { return m_successors; }
+        inline Slots<Node*>&        predecessors() { return m_predecessors; }
+        inline bool                 flagged_to_delete() const { return m_flagged_to_delete; }
+        inline void                 flag_to_delete(){ m_flagged_to_delete = true;}
+
+        inline void set_name(const char *_label)
+        {
+            m_name = _label;
+            on_name_change.emit(this);
+        }
+
+        inline const char* get_name()const
+        { return m_name.c_str(); }
+
+		inline void add_edge(const DirectedEdge* edge)
+        {
+            m_edges.insert(edge);
+            m_dirty = true;
+        }
+
 		void                 remove_edge(const DirectedEdge*);
         size_t               incoming_edge_count()const;
         size_t               outgoing_edge_count()const;
-		void                 set_dirty(bool _value = true);
-		bool                 is_dirty()const;
+		inline void          set_dirty(bool _value = true) { m_dirty = _value; }
+		inline bool          is_dirty()const { return m_dirty; };
         const fw::iinvokable* get_connected_invokable(const Property *each_edge); // TODO: weird, try to understand why I needed this
         bool                 is_connected_with(const Property *_localProperty);
 
@@ -84,109 +109,9 @@ namespace ndbl {
         template<class T> inline const T* as()const { return fw::cast<const T>(this); }
         template<class T> inline bool     is()const { return fw::cast<const T>(this) != nullptr; }
 
-        PropertyGrp *          props() { return &m_props; }
-        const PropertyGrp *    props()const { return &m_props; }
-        Property *             get_this_property()const { return props()->get(k_this_property_name);}
-
-		 /**
-		  * Add a component to this Node
-		  * Check this Node has no other Component of the same type using Node::hasComponent<T>().
-		  * @tparam T
-		  * @param _component
-		  */
-		template<typename T, typename... Args>
-		T* add_component(Args... args)
-		{
-			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-            auto component = new T(args...);
-            component->set_owner(this);
-			m_components.emplace(std::make_pair(fw::type::get<T>().get_name(), component));
-            return component;
-		}
-
-		 /**
-		  * Ask if this Node has a Component with type T.
-		  * @tparam T must be Component derived.
-		  * @return true if this node has the component specified by it's type T.
-		  */
-		template<typename T>
-		[[nodiscard]] bool has()const
-		{
-			return get<T>();
-		}
-
-		/**
-		 * Get all components of this Node
-		 */
-		[[nodiscard]] inline const Components& get_components()const
-		{
-			return m_components;
-		}
-
-		 /**
-		  * Delete a component of this node by specifying its type.
-		  * @tparam T must be Component derived.
-		  */
-		template<typename T>
-		void delete_component()
-		{
-			static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-			auto name = T::Get_class()->get_name();
-			auto component = get<T>();
-			m_components.erase(name);
-			delete component;
-		}
-
-		 /**
-		  *  Get a Component by type.
-		  * @tparam T must be Component derived.
-		  * @return a T pointer.
-		  */
-		template<typename T>
-		T* get()const
-		{
-            static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
-
-		    if ( m_components.empty() )
-            {
-                return nullptr;
-            }
-
-            fw::type desired_class = fw::type::get<T>();
-
-			// Search with class name
-			{
-				auto it = m_components.find( desired_class.get_name() );
-				if (it != m_components.end())
-				{
-					return static_cast<T*>(it->second);
-				}
-			}
-
-			// Search for a derived class
-			for (const auto & [name, component] : m_components)
-			{
-				if ( component->get_type().is_child_of(desired_class) )
-				{
-					return static_cast<T*>(component);
-				}
-			}
-
-			return nullptr;
-		};
-
-        template<class T>
-		static void get_components(const std::vector<Node*>& inNodes, std::vector<T*>& outComponents)
-        {
-		    // ensure a single alloc
-		    outComponents.reserve(inNodes.size());
-
-            for (auto eachNode : inNodes)
-                if (T* view = eachNode->get<T>())
-                    outComponents.push_back(view);
-        }
-
-        size_t delete_components();
+        inline PropertyGrp*          props() { return &m_props; }
+        inline const PropertyGrp*    props()const { return &m_props; }
+        inline Property*             get_this_property()const { return m_props.get(k_this_property_name);}
 
         observe::Event<Node*, Edge_t> on_edge_added;
         observe::Event<Node*, Edge_t> on_edge_removed;
@@ -205,9 +130,35 @@ namespace ndbl {
             return (T)*result_node_value->get_variant();
         }
 
+        template<class T>
+        static void get_components(const std::vector<Node*>& inNodes, std::vector<T*>& outComponents)
+        {
+            outComponents.reserve(inNodes.size());
+
+            for (auto eachNode : inNodes)
+                if (T* view = eachNode->m_components.get<T>())
+                    outComponents.push_back(view);
+        }
+
+        template<class T>
+        inline T* get_component()
+        { return m_components.get<T>(); }
+
+        template<class T>
+        inline T* get_component() const
+        { return m_components.get<T>(); }
+
+        template<class T>
+        inline bool has_component() const
+        { return m_components.has<T>(); }
+
+        template<typename T, typename... Args>
+        T* add_component(Args... args)
+        { return m_components.add<T>(args...); }
+
 	protected:
         PropertyGrp        m_props;
-		Components         m_components;
+        Components         m_components;
         Node*              m_parent;
         Slots<Node*>       m_successors;
         Slots<Node*>       m_predecessors;

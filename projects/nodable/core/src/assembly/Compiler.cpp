@@ -36,7 +36,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
     for( auto each_node : nodes )
     {
         // Check for undeclared variables
-        if( const Scope* scope = each_node->get<Scope>())
+        if( const Scope* scope = each_node->get_component<Scope>())
         {
             const std::vector<VariableNode*>& variables = scope->get_variables();
 
@@ -51,7 +51,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
         }
 
         // Check for undeclared functions
-        if( const InvokableComponent* component = each_node->get<InvokableComponent>() )
+        if( const InvokableComponent* component = each_node->get_component<InvokableComponent>() )
         {
             if ( !component->has_function() )
             {
@@ -183,7 +183,7 @@ void assembly::Compiler::compile(const Node* _node)
         }
 
         // eval node
-        bool should_be_evaluated = _node->has<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
+        bool should_be_evaluated = _node->has_component<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
         if ( should_be_evaluated )
         {
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
@@ -316,7 +316,7 @@ const Code* assembly::Compiler::compile_syntax_tree(const GraphNode* _graph)
 
         try
         {
-            auto scope = root->get<Scope>();
+            Scope* scope = root->get_component<Scope>();
             FW_ASSERT(scope)
             compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");

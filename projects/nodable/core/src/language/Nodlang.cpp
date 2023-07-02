@@ -160,7 +160,7 @@ void Nodlang::commit_transaction()
 bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
 {
     using namespace std::chrono;
-    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+    high_resolution_clock::time_point parse_begin = high_resolution_clock::now();
 
     parser_state.clear();
     parser_state.set_source_buffer(_source_code.c_str(), _source_code.size());
@@ -180,7 +180,13 @@ bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
         return false;
     }
 
+    high_resolution_clock::time_point tokenize_end = high_resolution_clock::now();
+    LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "tokenize()",  duration_cast<duration<double>>( tokenize_end - parse_begin).count() * 1000.0)
+
     Node *program = parse_program();
+
+    high_resolution_clock::time_point parse_program_end = high_resolution_clock::now();
+    LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "parse_program()", duration_cast<duration<double>>(parse_program_end - tokenize_end).count() * 1000.0)
 
     if (program == nullptr)
     {
@@ -208,9 +214,7 @@ bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
     for (auto eachNode: nodes)
         eachNode->set_dirty(false);
 
-    duration<double> time_span = duration_cast<duration<double>>(high_resolution_clock::now()- t1);
-
-    LOG_MESSAGE("Parser", "Program tree updated in %.3f ms.\n", time_span.count()*1000.0 )
+    LOG_MESSAGE("Parser", "Program tree updated in %.3f ms.\n", duration_cast<duration<double>>(high_resolution_clock::now() - parse_begin).count()*1000.0 )
     LOG_VERBOSE("Parser", "Source code: <expr>%s</expr>\"\n", _source_code.c_str())
 
     return true;
@@ -273,28 +277,28 @@ Property *Nodlang::to_property(Token _token)
     {
         case Token_t::literal_bool:
         {
-            literal = parser_state.graph->create_literal(type::get<bool>());
+            literal = parser_state.graph->create_literal<bool>();
             literal->set_value(to_bool(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_int:
         {
-            literal = parser_state.graph->create_literal(type::get<i16_t>());
+            literal = parser_state.graph->create_literal<i16_t>();
             literal->set_value(to_i16(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_double:
         {
-            literal = parser_state.graph->create_literal(type::get<double>());
+            literal = parser_state.graph->create_literal<double>();
             literal->set_value(to_double(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_string:
         {
-            literal = parser_state.graph->create_literal(type::get<std::string>());
+            literal = parser_state.graph->create_literal<std::string>();
             literal->set_value(to_unquoted_string(_token.word_to_string()));
             break;
         }
@@ -385,14 +389,16 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     {
         // concrete operator
         binary_op = parser_state.graph->create_operator(invokable.get());
-        component = binary_op->get<InvokableComponent>();
+        component = binary_op->get_component<InvokableComponent>();
         delete type;
-    } else if (type)
+    }
+    else if (type)
     {
         // abstract operator
         binary_op = parser_state.graph->create_abstract_operator(type);
-        component = binary_op->get<InvokableComponent>();
-    } else
+        component = binary_op->get_component<InvokableComponent>();
+    }
+    else
     {
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " no signature\n")
         rollback_transaction();
@@ -463,7 +469,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
         node = parser_state.graph->create_abstract_operator(type);
     }
 
-    component = node->get<InvokableComponent>();
+    component = node->get_component<InvokableComponent>();
     component->token = operator_token;
 
     parser_state.graph->connect(value, component->get_l_handed_val());
@@ -596,7 +602,7 @@ Node *Nodlang::parse_program()
 
     parser_state.graph->clear();
     Node *root = parser_state.graph->create_root();
-    Scope *program_scope = root->get<Scope>();
+    Scope *program_scope = root->get_component<Scope>();
     parser_state.scope.push(program_scope);
 
     parse_code_block(false);// we do not check if we parsed something empty or not, a program can be empty.
@@ -627,7 +633,7 @@ Node *Nodlang::parse_scope()
     else
     {
         auto scope_node = parser_state.graph->create_scope();
-        auto scope = scope_node->get<Scope>();
+        auto scope = scope_node->get_component<Scope>();
         /*
          * link scope with parent_scope.
          * They must be linked in order to find_variables recursively.
@@ -666,7 +672,7 @@ IScope *Nodlang::parse_code_block(bool _create_scope)
 {
     start_transaction();
 
-    auto curr_scope = _create_scope ? parser_state.graph->create_scope()->get<Scope>() : get_current_scope();
+    auto curr_scope = _create_scope ? parser_state.graph->create_scope()->get_component<Scope>() : get_current_scope();
 
     FW_ASSERT(curr_scope);// needed
 
@@ -1157,7 +1163,7 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
     if (!parser_state.ribbon.eat_if(Token_t::keyword_if).is_null())
     {
         parser_state.graph->connect({condStruct, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-        parser_state.scope.push(condStruct->get<Scope>());
+        parser_state.scope.push(condStruct->get_component<Scope>());
 
         condStruct->token_if  = parser_state.ribbon.get_eaten();
 
@@ -1247,7 +1253,7 @@ ForLoopNode *Nodlang::parse_for_loop()
     {
         for_loop_node = parser_state.graph->create_for_loop();
         parser_state.graph->connect({for_loop_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-        parser_state.scope.push(for_loop_node->get<Scope>());
+        parser_state.scope.push(for_loop_node->get_component<Scope>());
 
         for_loop_node->token_for = token_for;
 
@@ -1570,7 +1576,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
     if (recursively && owner && _property->allows_connection(Way_In) && owner->is_connected_with(_property))
     {
         Property *src_property = _property->get_input();
-        InvokableComponent *compute_component = src_property->get_owner()->get<InvokableComponent>();
+        InvokableComponent *compute_component = src_property->get_owner()->get_component<InvokableComponent>();
 
         if (compute_component)
         {
@@ -1614,9 +1620,9 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     {
         serialize(_out, _node->as<ForLoopNode>());
     }
-    else if (_node->has<Scope>())
+    else if (_node->has_component<Scope>())
     {
-        serialize(_out, _node->get<Scope>());
+        serialize(_out, _node->get_component<Scope>());
     }
     else if (_node->is<LiteralNode>())
     {
@@ -1626,9 +1632,9 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     {
         serialize(_out, _node->as<VariableNode>());
     }
-    else if (_node->has<InvokableComponent>())
+    else if (_node->has_component<InvokableComponent>())
     {
-        serialize(_out, _node->get<InvokableComponent>());
+        serialize(_out, _node->get_component<InvokableComponent>());
     }
     else
     {

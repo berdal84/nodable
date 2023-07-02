@@ -85,7 +85,7 @@ TEST_F(Graph, create_and_delete_relations)
 {
     // prepare
     auto double_type = fw::type::get<double>();
-    auto scope       = graph.create_root()->get<Scope>();
+    Scope* scope     = graph.create_root()->get_component<Scope>();
     auto& edges      = graph.get_edge_registry();
     EXPECT_EQ(edges.size(), 0);
     Node* n1 = graph.create_variable(double_type, "n1", scope);

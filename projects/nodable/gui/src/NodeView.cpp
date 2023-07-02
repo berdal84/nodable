@@ -167,7 +167,7 @@ void NodeView::set_owner(Node *_node)
     _node->on_edge_added.connect(
         [this](Node* _other_node, Edge_t _edge )
         {
-            auto _other_node_view = _other_node->get<NodeView>();
+            NodeView* _other_node_view = _other_node->get_component<NodeView>();
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
@@ -186,7 +186,7 @@ void NodeView::set_owner(Node *_node)
     _node->on_edge_removed.connect(
     [this](Node* _other_node, Edge_t _edge )
         {
-            auto _other_node_view = _other_node->get<NodeView>();
+            NodeView* _other_node_view = _other_node->get_component<NodeView>();
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
@@ -319,7 +319,7 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
     {
 	    for(auto eachInput : get_owner()->inputs() )
         {
-	        if ( NodeView* eachInputView = eachInput->get<NodeView>() )
+	        if ( NodeView* eachInputView = eachInput->get_component<NodeView>() )
 	        {
 	            if (!eachInputView->pinned && eachInputView->should_follow_output(this) )
                     eachInputView->translate(_delta, true);
@@ -705,7 +705,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
         auto* variable = _property->get_input()->get_owner()->as<VariableNode>();
         snprintf(str, 255, "%s", variable->get_name() );
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get<NodeView>()->get_color(ColorType_Fill) );
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get_component<NodeView>()->get_color(ColorType_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
         ImGui::PopStyleColor();
 
@@ -879,7 +879,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // Components
         if( ImGui::TreeNode("Components") )
         {
-            for (auto &pair : node->get_components())
+            for (auto &pair : node->components())
             {
                 Component *component = pair.second;
                 ImGui::BulletText("%s", component->get_type().get_name());
@@ -932,7 +932,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
         // Scope specific:
         ImGui::Separator();
-        if (auto scope = node->get<Scope>())
+        if (Scope* scope = node->get_component<Scope>())
         {
             if( ImGui::TreeNode("Variables") )
             {
@@ -1218,7 +1218,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
     {
         if ( Node* parent = _view->get_owner()->get_parent() )
         {
-            if ( auto parent_view = parent->get<NodeView>() )
+            if ( NodeView* parent_view = parent->get_component<NodeView>() )
             {
                 if (  _recursive )
                 {

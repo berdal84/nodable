@@ -179,7 +179,7 @@ void GraphNode::destroy(Node* _node)
             scope->remove_variable(node_variable);
         }
     }
-    else if ( auto* scope = _node->get<Scope>() )
+    else if ( auto* scope = _node->get_component<Scope>() )
     {
         if ( !scope->has_no_variable() )
         {
@@ -302,7 +302,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
              */
             if ( _side_effects )
             {
-                FW_ASSERT( dst->has<Scope>() )
+                FW_ASSERT( dst->has_component<Scope>() )
 
                 if (dst->successors().accepts() )                               // directly
                 {
@@ -310,10 +310,10 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
                 }
                 else if ( Node* tail = dst->children_slots().get_back_or_nullptr() ) // to the last children
                 {
-                    if ( tail->has<Scope>() )
+                    if ( tail->has_component<Scope>() )
                     {
                         std::vector<InstructionNode*> tails;
-                        Scope* scope = tail->get<Scope>();
+                        Scope* scope = tail->get_component<Scope>();
                         scope->get_last_instructions_rec(tails);
 
                         for (InstructionNode *each_instruction : tails)
@@ -351,7 +351,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
 
             if (_side_effects)
             {
-                if ( dst->has<Scope>() )
+                if ( dst->has_component<Scope>() )
                 {
                     connect({src, Edge_t::IS_CHILD_OF, dst}, false);
                 }

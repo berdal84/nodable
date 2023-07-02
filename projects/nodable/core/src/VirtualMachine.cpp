@@ -246,7 +246,7 @@ bool VirtualMachine::_stepOver()
             }
 
             // evaluate Invokable Component, could be an operator or a function
-            if(auto invokable = node->get<InvokableComponent>())
+            if(auto invokable = node->get_component<InvokableComponent>())
             {
                 invokable->update();
             }

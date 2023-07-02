@@ -34,8 +34,8 @@ FileView::FileView(File& _file)
             LOG_VERBOSE("FileView", "graph is not empty\n")
             Node* root = _graph->get_root();
 
-            auto* root_node_view = root->get<NodeView>();
-            auto* graph_view = root->get_parent_graph()->get<GraphNodeView>();
+            NodeView* root_node_view = root->get_component<NodeView>();
+            GraphNodeView* graph_view = root->get_parent_graph()->get_component<GraphNodeView>();
 
             // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
@@ -161,7 +161,7 @@ bool FileView::draw_implem()
 
     GraphNode* graph = m_file.get_graph();
     FW_ASSERT(graph);
-    auto graph_node_view = graph->get<GraphNodeView>();
+    GraphNodeView* graph_node_view = graph->get_component<GraphNodeView>();
     ImGui::SameLine();
     if ( graph_node_view )
     {

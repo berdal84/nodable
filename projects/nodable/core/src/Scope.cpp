@@ -50,7 +50,7 @@ VariableNode* Scope::find_variable(const std::string &_name)
 
         if ( owner_parent )
         {
-            auto parent_scope = owner_parent->get<Scope>();
+            Scope* parent_scope = owner_parent->get_component<Scope>();
             if ( parent_scope )
             {
                 result = parent_scope->find_variable( _name );
@@ -95,14 +95,14 @@ void Scope::get_last_instructions_rec(std::vector<InstructionNode *> & _out)
     {
         if (each_child)
         {
-            if (auto* instr = each_child->as<InstructionNode>())
+            if (InstructionNode* instr = each_child->as<InstructionNode>())
             {
                 if (owner_children.back() == instr )
                 {
                     _out.push_back(instr);
                 }
             }
-            else if ( auto scope = each_child->get<Scope>() )
+            else if ( Scope* scope = each_child->get_component<Scope>() )
             {
                 scope->get_last_instructions_rec(_out);
             }

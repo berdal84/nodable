@@ -22,12 +22,12 @@ ForLoopNode::ForLoopNode()
 
 Scope* ForLoopNode::get_condition_true_scope() const
 {
-    return !m_successors.empty() ? m_successors[0]->get<Scope>() : nullptr;
+    return !m_successors.empty() ? m_successors[0]->get_component<Scope>() : nullptr;
 }
 
 Scope*  ForLoopNode::get_condition_false_scope() const
 {
-    return m_successors.size() > 1 ? m_successors[1]->get<Scope>() : nullptr;
+    return m_successors.size() > 1 ? m_successors[1]->get_component<Scope>() : nullptr;
 }
 
 void ForLoopNode::set_iter_instr(InstructionNode* _node)

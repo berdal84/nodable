@@ -115,7 +115,7 @@ void NodeFactory::add_invokable_component(Node *_node, const fw::func_type* _fun
     PropertyGrp * props = _node->props();
 
     // Create an InvokableComponent with the function.
-    auto component = _node->add_component<InvokableComponent>(_func_type, _is_operator, _invokable );
+    auto component = _node->components().add<InvokableComponent>(_func_type, _is_operator, _invokable );
 
     // Link result property
     component->set_result(props->get(k_value_property_name));
@@ -137,7 +137,7 @@ Node* NodeFactory::new_scope() const
     scope_node->predecessors().set_limit(std::numeric_limits<int>::max());
     scope_node->successors().set_limit(1);
 
-    scope_node->add_component<Scope>();
+    scope_node->components().add<Scope>();
 
     m_post_process(scope_node);
 
