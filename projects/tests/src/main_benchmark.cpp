@@ -89,97 +89,42 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_boolean)(benchmark::Sta
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, empty_constructor__std_string)(benchmark::State& state)
+template<class StringT>
+static void BM_empty_constructor(benchmark::State& state)
 {
     for (auto _ : state)
     {
-        std::string str;
-        benchmark::DoNotOptimize(str);
-    }
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, empty_constructor__string)(benchmark::State& state)
-{
-    for (auto _ : state)
-    {
-        string str;
-        benchmark::DoNotOptimize(str);
-    }
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, empty_constructor__string64)(benchmark::State& state)
-{
-    for (auto _ : state)
-    {
-        string64 str;
-        benchmark::DoNotOptimize(str);
-    }
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, empty_constructor__string128)(benchmark::State& state)
-{
-    for (auto _ : state)
-    {
-        string128 str;
+        StringT str;
         benchmark::DoNotOptimize(str);
     }
 }
 
 const char* SIXTY_THREE_CHARS = "|<------------------------ 63 chars ------------------------->|";
 
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__std_string)(benchmark::State& state)
+template<class StringT>
+static void BM_63chars_constructor(benchmark::State& state)
 {
-    for (auto _ : state) std::string str{SIXTY_THREE_CHARS};
+    for (auto _ : state) StringT str{SIXTY_THREE_CHARS};
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__string)(benchmark::State& state)
-{
-    for (auto _ : state) string str{SIXTY_THREE_CHARS};
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__string64)(benchmark::State& state)
-{
-    for (auto _ : state) string64 str{SIXTY_THREE_CHARS};
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__string128)(benchmark::State& state)
-{
-    for (auto _ : state) string128 str{SIXTY_THREE_CHARS};
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__std_string__then_append_with_one_dynamic_alloc)(benchmark::State& state)
+template<class StringT>
+static void BM_63chars_constructor_then_append_char(benchmark::State& state)
 {
     for (auto _ : state)
     {
-        std::string str{SIXTY_THREE_CHARS};
-        str.push_back('+');
+        StringT str{SIXTY_THREE_CHARS}; // reach 50% capacity
+        str.append("+");
     }
 }
 
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__string__then_append_with_one_dynamic_alloc)(benchmark::State& state)
+static void BM_strncpy(benchmark::State& state)
 {
-    for (auto _ : state)
+    char source[ 1 << 16];
+    while (state.KeepRunning())
     {
-        string str{SIXTY_THREE_CHARS};
-        str.append('+');
-    }
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__string64__then_append_with_one_dynamic_alloc)(benchmark::State& state)
-{
-    for (auto _ : state)
-    {
-        string64 str{SIXTY_THREE_CHARS}; // reach max capacity
-        str.append('+');
-    }
-}
-
-BENCHMARK_DEFINE_F(NodlangFixture, sixtythree_chars_constructor__string128__then_append_with_no_dynamic_alloc)(benchmark::State& state)
-{
-    for (auto _ : state)
-    {
-        string128 str{SIXTY_THREE_CHARS}; // reach 50% capacity
-        str.append('+');
+        char destination[ 1 << 16];
+        strncpy(destination, source, state.range(0));
+        benchmark::DoNotOptimize(destination);
     }
 }
 
@@ -293,19 +238,21 @@ BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
 BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
 
-BENCHMARK_REGISTER_F(NodlangFixture, empty_constructor__std_string);
-BENCHMARK_REGISTER_F(NodlangFixture, empty_constructor__string);
-BENCHMARK_REGISTER_F(NodlangFixture, empty_constructor__string64);
-BENCHMARK_REGISTER_F(NodlangFixture, empty_constructor__string128);
+BENCHMARK(BM_empty_constructor<std::string>);
+BENCHMARK(BM_empty_constructor<string>);
+BENCHMARK(BM_empty_constructor<string64>);
+BENCHMARK(BM_empty_constructor<string128>);
 
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__std_string);
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__string);
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__string64);
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__string128);
+BENCHMARK(BM_63chars_constructor<std::string>);
+BENCHMARK(BM_63chars_constructor<string>);
+BENCHMARK(BM_63chars_constructor<string64>);
+BENCHMARK(BM_63chars_constructor<string128>);
 
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__std_string__then_append_with_one_dynamic_alloc);
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__string__then_append_with_one_dynamic_alloc);
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__string64__then_append_with_one_dynamic_alloc);
-BENCHMARK_REGISTER_F(NodlangFixture, sixtythree_chars_constructor__string128__then_append_with_no_dynamic_alloc);
+BENCHMARK(BM_63chars_constructor_then_append_char<std::string>);
+BENCHMARK(BM_63chars_constructor_then_append_char<string>);
+BENCHMARK(BM_63chars_constructor_then_append_char<string64>);
+BENCHMARK(BM_63chars_constructor_then_append_char<string128>);
+
+BENCHMARK(BM_strncpy)->Ranges({{1 << 2, 1 << 8}});
 
 BENCHMARK_MAIN();
