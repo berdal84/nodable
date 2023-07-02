@@ -32,7 +32,7 @@ namespace fw
             , m_capacity(0)
             , m_ptr(nullptr)
         {
-            m_ptr = expand_buffer_to_fit(m_length + 1);
+            m_ptr = expand_capacity_to_fit(m_length);
             memcpy(m_ptr, str, m_length);
             m_ptr[m_length] = 0;
         }
@@ -43,7 +43,7 @@ namespace fw
 
         basic_string& operator=(const basic_string& other)
         {
-            if( m_capacity < other.m_capacity) m_ptr = expand_buffer_to_fit(other.m_length + 1);
+            if( m_capacity < other.m_capacity) m_ptr = expand_capacity_to_fit(other.m_length + 1);
             memcpy(m_ptr, other.m_ptr, other.m_length);
             m_length = other.m_length;
             m_capacity = other.m_capacity;
@@ -78,7 +78,7 @@ namespace fw
         {
             if( m_capacity < m_length + 1 )
             {
-                m_ptr = expand_buffer_to_fit(m_length + 1);
+                m_ptr = expand_capacity_to_fit(m_length + 1);
             }
             m_ptr[m_length] = c;
             ++m_length;
@@ -89,7 +89,7 @@ namespace fw
         {
             if( m_capacity < m_length + length )
             {
-                m_ptr = expand_buffer_to_fit(m_length + length);
+                m_ptr = expand_capacity_to_fit(m_length + length);
             }
             memcpy(m_ptr + m_length, str, length);
             m_length += length;
@@ -117,7 +117,7 @@ namespace fw
         /**
          * Expand the buffer to the closest power of two of the desired size.
          */
-        CharT* expand_buffer_to_fit(u16_t desired_capacity)
+        CharT* expand_capacity_to_fit(u16_t desired_capacity)
         {
             assert(desired_capacity > m_capacity );
 
