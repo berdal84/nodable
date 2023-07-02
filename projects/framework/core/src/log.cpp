@@ -19,7 +19,7 @@ static fw::string32 time_point_to_string(const std::chrono::system_clock::time_p
 #ifdef WIN32
     char str[26];
     ctime_s(str, sizeof str, &time);
-    return {str, 24}
+    return {str, 24};
 #else
     return {ctime(&time), 24};
 #endif
