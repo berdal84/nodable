@@ -126,7 +126,7 @@ namespace fw
         {
             assert(desired_capacity > m_capacity );
 
-            static_assert( std::is_same<typeof(desired_capacity), u16_t>()); // code below needs to be adapted if integer is not u16
+            static_assert( std::is_same<decltype(desired_capacity), u16_t>()); // code below needs to be adapted if integer is not u16
 
             // compute the next highest power of 2 of 32-bit
             // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
