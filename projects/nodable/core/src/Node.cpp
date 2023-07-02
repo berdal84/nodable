@@ -25,6 +25,7 @@ Node::Node(std::string _label)
     , m_inner_graph(nullptr)
     , m_dirty(true)
     , m_flagged_to_delete(false)
+    , m_components(this)
 {
     /*
      * Add "this" Property to be able to connect this Node as an object pointer.
@@ -68,33 +69,6 @@ Node::Node(std::string _label)
     });
 }
 
-bool Node::is_dirty()const
-{
-    return m_dirty;
-}
-
-void Node::set_dirty(bool _value)
-{
-    m_dirty = _value;
-}
-
-void Node::set_name(const char *_label)
-{
-    m_name = _label;
-    on_name_change.emit(this);
-}
-
-const char* Node::get_name()const
-{
-	return m_name.c_str();
-}
-
-void Node::add_edge(const DirectedEdge* edge)
-{
-    m_edges.insert(edge);
-    m_dirty = true;
-}
-
 void Node::remove_edge(const DirectedEdge*edge)
 {
 	auto found = m_edges.find(edge);
@@ -130,7 +104,7 @@ const fw::iinvokable* Node::get_connected_invokable(const Property* _local_prope
     if (found != m_edges.end() )
     {
         Node* node = (*found)->prop.src->get_owner();
-        auto* compute_component = node->get<InvokableComponent>();
+        InvokableComponent* compute_component = node->get_component<InvokableComponent>();
         if ( compute_component )
         {
             return compute_component->get_function();
@@ -150,34 +124,4 @@ bool Node::is_connected_with(const Property *_localProperty)
     });
 
     return found != m_edges.end();
-}
-
-void Node::set_parent(Node *_node)
-{
-    FW_ASSERT(_node != nullptr || this->m_parent != nullptr);
-    this->m_parent = _node;
-    set_dirty();
-}
-
-void Node::set_parent_graph(GraphNode *_parentGraph)
-{
-    FW_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
-    this->m_parent_graph = _parentGraph;
-}
-
-Node::~Node()
-{
-    if ( !m_components.empty())
-        delete_components();
-}
-
-size_t Node::delete_components()
-{
-    size_t count(m_components.size());
-    for ( const auto& keyComponentPair : m_components)
-    {
-        delete keyComponentPair.second;
-    }
-    m_components.clear();
-    return count;
 }

@@ -123,7 +123,7 @@ bool GraphNodeView::draw_implem()
     auto create_variable = [&](const fw::type& _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
-        Scope* scope = _scope ? _scope : graph->get_root()->get<Scope>();
+        Scope* scope = _scope ? _scope : graph->get_root()->get_component<Scope>();
 
         var_node = graph->create_variable(_type, _name, scope );
         var_node->set_declared(true);
@@ -148,8 +148,8 @@ bool GraphNodeView::draw_implem()
         float linePadding = 5.0f;
         for (Node* each_successor_node : each_node->successors() )
         {
-            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get<NodeView>() );
-            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get<NodeView>() );
+            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>() );
+            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>() );
 
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
@@ -240,8 +240,8 @@ bool GraphNodeView::draw_implem()
                 {
                     Node *src_owner = src_property->get_owner();
                     Node *dst_owner = dst_property->get_owner();
-                    auto src_node_view = src_owner->get<NodeView>();
-                    auto dst_node_view = eachNode->get<NodeView>(); // equival to dst_property->getOwner()->get<NodeView>();
+                    NodeView* src_node_view = src_owner->get_component<NodeView>();
+                    NodeView* dst_node_view = eachNode->get_component<NodeView>(); // equival to dst_property->getOwner()->get<NodeView>();
 
                     if (src_node_view->is_visible() && dst_node_view->is_visible() )
                     {
@@ -343,7 +343,7 @@ bool GraphNodeView::draw_implem()
     if ( app.virtual_machine.is_program_running() )
     {
         const Node* node = app.virtual_machine.get_next_node();
-        if( auto view = node->get<NodeView>())
+        if( NodeView* view = node->get_component<NodeView>())
         {
             ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen, pixel_perfect);
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
@@ -521,7 +521,7 @@ bool GraphNodeView::draw_implem()
             }
 
             // set new_node's view position
-            if( auto* view = new_node->get<NodeView>() )
+            if( NodeView* view = new_node->get_component<NodeView>() )
             {
                 view->set_position(m_new_node_desired_position, fw::Space_Local);
             }
@@ -564,7 +564,7 @@ void GraphNodeView::create_child_view_constraints()
 
     for(Node* _eachNode: nodeRegistry)
     {
-        if ( auto each_view = _eachNode->get<NodeView>() )
+        if ( NodeView* each_view = _eachNode->get_component<NodeView>() )
         {
             fw::type t = _eachNode->get_type();
 
@@ -738,7 +738,7 @@ void GraphNodeView::destroy_child_view_constraints()
 
     for(Node* _eachNode: get_graph_node()->get_node_registry())
     {
-        if (auto eachView = _eachNode->get<NodeView>())
+        if (NodeView* eachView = _eachNode->get_component<NodeView>())
         {
             eachView->clear_constraints();
         }

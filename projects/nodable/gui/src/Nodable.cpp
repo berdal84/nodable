@@ -205,7 +205,7 @@ void Nodable::on_update()
     ndbl::Event event{};
     NodeView*      selected_view = NodeView::get_selected();
     GraphNodeView* graph_view    = current_file ?
-                                   current_file->get_graph()->get<GraphNodeView>() : nullptr;
+                                   current_file->get_graph()->get_component<GraphNodeView>() : nullptr;
     History* curr_file_history   = current_file ? current_file->get_history() : nullptr;
 
     while(event_manager.poll_event((fw::Event&)event) )
@@ -354,7 +354,7 @@ void Nodable::on_update()
                     Node* possible_successor = selected_view->get_owner()->successors().get_front_or_nullptr();
                     if (possible_successor)
                     {
-                        if (auto successor_view = possible_successor->get<NodeView>())
+                        if (NodeView* successor_view = possible_successor->get_component<NodeView>())
                         {
                             NodeView::set_selected(successor_view);
                         }
@@ -599,7 +599,7 @@ void Nodable::step_over_program()
     {
         NodeView::set_selected(nullptr);
     }
-    else if (NodeView* next_node_view = virtual_machine.get_next_node()->get<NodeView>() )
+    else if (NodeView* next_node_view = virtual_machine.get_next_node()->get_component<NodeView>() )
     {
         NodeView::set_selected(next_node_view);
     }

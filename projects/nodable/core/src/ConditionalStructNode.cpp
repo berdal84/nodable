@@ -21,12 +21,12 @@ ConditionalStructNode::ConditionalStructNode()
 
 Scope* ConditionalStructNode::get_condition_true_scope() const
 {
-    return !m_successors.empty() ? m_successors[0]->get<Scope>() : nullptr;
+    return !m_successors.empty() ? m_successors[0]->get_component<Scope>() : nullptr;
 }
 
 Scope* ConditionalStructNode::get_condition_false_scope() const
 {
-    return m_successors.size() > 1 ? m_successors[1]->get<Scope>() : nullptr;
+    return m_successors.size() > 1 ? m_successors[1]->get_component<Scope>() : nullptr;
 }
 
 void ConditionalStructNode::set_cond_expr(InstructionNode* _node)

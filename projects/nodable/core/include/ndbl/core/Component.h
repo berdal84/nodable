@@ -23,10 +23,9 @@ namespace ndbl
             inline T*       as() { return fw::cast<T>(this); }
         template<class T> [[nodiscard]]                           // Shorthand to cast<const T>(this)
             inline const T* as()const { return fw::cast<const T>(this); }
-
-	protected:
         virtual void  set_owner(Node* node){ m_owner = node; }     // Set the component's owner
 
+	protected:
         Node* m_owner;                                             // The Node which own this component
 
 		REFLECT_BASE_CLASS()

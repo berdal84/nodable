@@ -42,7 +42,7 @@ File::File(std::string _name)
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_variableColor);
           }
-          else if (_node->has<InvokableComponent>())
+          else if (_node->has_component<InvokableComponent>())
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_invokableColor);
           }
@@ -129,7 +129,7 @@ bool File::update_graph(std::string& _code_source)
     LOG_VERBOSE("File","updating graph ...\n")
     m_graph->clear();
 
-    auto graph_view = m_graph->get<GraphNodeView>();
+    GraphNodeView* graph_view = m_graph->get_component<GraphNodeView>();
     if (graph_view)
     {
         LOG_VERBOSE("File","clear graph view child constraints ...\n")
