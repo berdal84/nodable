@@ -117,35 +117,47 @@ static void BM_63chars_constructor_then_append_char(benchmark::State& state)
     }
 }
 
-static void BM_strncpy(benchmark::State& state)
+template<size_t STRING_SIZE>
+static void BM_strncpy_stack_to_stack(benchmark::State& state)
 {
-    char source[ 1 << 16];
+    char source[STRING_SIZE];
     while (state.KeepRunning())
     {
-        char destination[ 1 << 16];
-        strncpy(destination, source, state.range(0));
+        char destination[STRING_SIZE];
+        strncpy(destination, source, STRING_SIZE);
         benchmark::DoNotOptimize(destination);
     }
 }
 
+template<size_t STRING_SIZE>
+static void BM_strncpy_heap_to_stack(benchmark::State& state)
+{
+    char* source = new char[STRING_SIZE];
+    while (state.KeepRunning())
+    {
+        char destination[STRING_SIZE];
+        strncpy(destination, source, STRING_SIZE);
+        benchmark::DoNotOptimize(destination);
+    }
+    delete[] source;
+}
+
+template<size_t STRING_SIZE>
+static void BM_strncpy_heap_to_heap(benchmark::State& state)
+{
+    char* source = new char[STRING_SIZE];
+    char* destination = new char[STRING_SIZE];
+    while (state.KeepRunning())
+    {
+        strncpy(destination, source, STRING_SIZE);
+        benchmark::DoNotOptimize(destination);
+    }
+    delete[] source;
+    delete[] destination;
+}
+
 BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_operator)(benchmark::State& state) {
-    std::array operations{
-        "+",
-        "-",
-        "!",
-        "!=",
-        "==",
-        ">",
-        "<",
-        ">=",
-        "<=",
-        "*=",
-        "/=",
-        "+=",
-        "-=",
-        "=>",
-        "<=>"
-    };
+    std::array operations{ "+", "-", "!", "!=", "==", ">", "<", ">=", "<=", "*=", "/=", "+=", "-=", "=>", "<=>" };
 
     size_t id = 0;
     for (auto _ : state)
@@ -155,17 +167,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_operator)(benchmark::St
 }
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_char)(benchmark::State& state) {
-    std::array chars{
-       ",",
-       " ",
-       "\n",
-       "\t",
-       ";",
-       "{",
-       "}",
-       "(",
-       ")"
-    };
+    std::array chars{ ",", " ", "\n", "\t", ";", "{", "}", "(", ")" };
 
     size_t id = 0;
     for (auto _ : state)
@@ -192,16 +194,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, tokenize__some_code_to_graph)(benchmark::Stat
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_keyword)(benchmark::State& state) {
 
-    std::array chars{
-        "if",
-        "else",
-        "for",
-        "operator",
-        "int",
-        "bool",
-        "double",
-        "string"
-    };
+    std::array chars{ "if", "else", "for", "operator", "int", "bool", "double", "string" };
 
     size_t id = 0;
     for (auto _ : state)
@@ -212,16 +205,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_keyword)(benchmark::Sta
 
 BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword)(benchmark::State& state) {
 
-    std::array chars{
-            "iff",
-            "elsee",
-            "forr",
-            "operatorr",
-            "intt",
-            "booll",
-            "doublee",
-            "stringg"
-    };
+    std::array chars{ "iff", "elsee", "forr", "operatorr", "intt", "booll", "doublee", "stringg"};
 
     size_t id = 0;
     for (auto _ : state)
@@ -253,6 +237,20 @@ BENCHMARK(BM_63chars_constructor_then_append_char<string>);
 BENCHMARK(BM_63chars_constructor_then_append_char<string64>);
 BENCHMARK(BM_63chars_constructor_then_append_char<string128>);
 
-BENCHMARK(BM_strncpy)->Ranges({{1 << 2, 1 << 8}});
+#define BENCHMARK_STRNCPY(BM_strncpy_, size) \
+BENCHMARK(BM_strncpy_<size/8>); \
+BENCHMARK(BM_strncpy_<size/4>); \
+BENCHMARK(BM_strncpy_<size/2>); \
+BENCHMARK(BM_strncpy_<size>); \
+BENCHMARK(BM_strncpy_<size*2>); \
+BENCHMARK(BM_strncpy_<size*4>); \
+BENCHMARK(BM_strncpy_<size*8>); \
+BENCHMARK(BM_strncpy_<size*16>); \
+BENCHMARK(BM_strncpy_<size*32>);
+
+constexpr size_t _32KiB = 32 * 1024;
+BENCHMARK_STRNCPY(BM_strncpy_stack_to_stack, _32KiB)
+BENCHMARK_STRNCPY(BM_strncpy_heap_to_stack, _32KiB)
+BENCHMARK_STRNCPY(BM_strncpy_heap_to_heap, _32KiB)
 
 BENCHMARK_MAIN();
