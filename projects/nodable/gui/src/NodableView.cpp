@@ -201,7 +201,9 @@ bool AppView::on_draw()
                     }
                 };
 
+#ifndef LOG_DISABLE_VERBOSE
                 menu_item_verbosity(fw::log::Verbosity_Verbose, "Verbose");
+#endif
                 menu_item_verbosity(fw::log::Verbosity_Message, "Message (default)");
                 menu_item_verbosity(fw::log::Verbosity_Warning, "Warning");
                 menu_item_verbosity(fw::log::Verbosity_Error, "Error");

@@ -27,20 +27,17 @@
 #define KO RED "[KO]" RESET      // red colored "[KO]" string.
 #define OK GREEN "[OK]" RESET    // green colored "[OK]" string.
 
-#define LOG_ENABLE true
+#define LOG_DISABLE_VERBOSE
 
-#if LOG_ENABLE
 #   define LOG_ERROR(...)   fw::log::push_message( fw::log::Verbosity_Error  , __VA_ARGS__ ); fw::log::flush();
 #   define LOG_WARNING(...) fw::log::push_message( fw::log::Verbosity_Warning, __VA_ARGS__ );
 #   define LOG_MESSAGE(...) fw::log::push_message( fw::log::Verbosity_Message, __VA_ARGS__ );
-#   define LOG_VERBOSE(...) fw::log::push_message( fw::log::Verbosity_Verbose, __VA_ARGS__ );
 #   define LOG_FLUSH()      fw::log::flush();
+
+#ifndef LOG_DISABLE_VERBOSE
+#   define LOG_VERBOSE(...) fw::log::push_message( fw::log::Verbosity_Verbose, __VA_ARGS__ );
 #else
-#   define LOG_ERROR(...)
-#   define LOG_WARNING(...)
-#   define LOG_MESSAGE(...)
 #   define LOG_VERBOSE(...)
-#   define LOG_FLUSH()
 #endif
 
 namespace fw {
@@ -55,7 +52,7 @@ namespace fw {
             Verbosity_Error,          // highest level (always logged)
             Verbosity_Warning,
             Verbosity_Message,
-            Verbosity_Verbose,        // lowest level
+            Verbosity_Verbose,
             Verbosity_COUNT,
             Verbosity_DEFAULT = Verbosity_Message
         };
@@ -76,12 +73,19 @@ namespace fw {
         static std::map<std::string, Verbosity>& get_verbosity_by_category();
 
 	public:
-        static const std::deque<Message>& get_messages();                               // Get message history
-	    static void           set_verbosity(const std::string& _category, Verbosity);   // Set verbosity level for a given category
-	    static void           set_verbosity(Verbosity);                                 // Set global verbosity level (for all categories)
-        static Verbosity      get_verbosity(const std::string& _category);              // Get verbosity level for a given category
-        static Verbosity      get_verbosity();                                          // Get global verbosity level
-        static void           flush();                                                  // Ensure all messages have been printed out
-        static void           push_message(Verbosity, const char* _category, const char* _format, ...); // Push a new message for a given category
+        static const std::deque<Message>& get_messages(); // Get message history
+	    static void           set_verbosity(const std::string& _category, Verbosity _level) // Set verbosity level for a given category
+        { get_verbosity_by_category().insert_or_assign(_category, _level ); }
+
+	    inline static void    set_verbosity(Verbosity _level)                           // Set global verbosity level (for all categories)
+        {
+            s_verbosity = _level;
+            get_verbosity_by_category().clear(); // ensure no overrides remains
+        }
+
+        static Verbosity        get_verbosity(const std::string& _category);            // Get verbosity level for a given category
+        inline static Verbosity get_verbosity() { return s_verbosity; }                 // Get global verbosity level
+        static void             flush();                                                // Ensure all messages have been printed out
+        static void             push_message(Verbosity, const char* _category, const char* _format, ...); // Push a new message for a given category
     };
 }

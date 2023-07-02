@@ -32,22 +32,6 @@ std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()
     return verbosity_by_category;
 }
 
-void log::set_verbosity(const std::string& _category, Verbosity _level)
-{
-   get_verbosity_by_category().insert_or_assign(_category, _level );
-}
-
-void log::set_verbosity(Verbosity _level)
-{
-    s_verbosity = _level;
-    get_verbosity_by_category().clear(); // ensure no overrides remains
-}
-
-log::Verbosity log::get_verbosity()
-{
-    return s_verbosity;
-}
-
 log::Verbosity log::get_verbosity(const std::string& _category)
 {
     std::map<std::string, log::Verbosity>& verbosity_by_category = get_verbosity_by_category();
@@ -62,7 +46,9 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
 
 	if (_verbosity <= get_verbosity(_category) )
     {
-        Message message{};
+        {};
+        // Store the message in the front of the queue
+        Message& message = s_logs.emplace_front();
         message.verbosity = _verbosity;
         message.category  = _category;
 
@@ -91,9 +77,6 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
 
         // print the text
         printf("%s", message.text.c_str());
-
-        // Store the message in the front of the queue
-        s_logs.push_front(message);
 
         // Constraint the queue to have a limited size
         constexpr size_t max_count = 5000; // a Message is 512 bytes
