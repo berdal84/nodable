@@ -17,11 +17,11 @@ static fw::string32 time_point_to_string(const std::chrono::system_clock::time_p
     std::time_t time = std::chrono::system_clock::to_time_t(time_point);
     // The 25th char contains '\n'
 #ifdef WIN32
-    char str[26];
+    char str[25];
     ctime_s(str, sizeof str, &time);
-    return {str, 25}
+    return {str, 24}
 #else
-    return {ctime(&time), 25};
+    return {ctime(&time), 24};
 #endif
 }
 
