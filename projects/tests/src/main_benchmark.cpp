@@ -102,19 +102,30 @@ static void BM_empty_constructor(benchmark::State& state)
 const char* SIXTY_THREE_CHARS = "|<------------------------ 63 chars ------------------------->|";
 
 template<class StringT>
-static void BM_63chars_constructor(benchmark::State& state)
+static void BM_constructor(benchmark::State& state)
 {
-    for (auto _ : state) StringT str{SIXTY_THREE_CHARS};
+    char* buf = new char[state.range(0)];
+    memset(buf, 'x', state.range(0));
+    buf[state.range(0)-1] = 0;
+    for (auto _ : state)
+    {
+        StringT str{buf};
+    }
+    delete[] buf;
 }
 
 template<class StringT>
-static void BM_63chars_constructor_then_append_char(benchmark::State& state)
+static void BM_constructor_then_push_back_a_char(benchmark::State& state)
 {
+    char* buf = new char[state.range(0)];
+    memset(buf, 'x', state.range(0));
+    buf[state.range(0)-1] = 0;
     for (auto _ : state)
     {
-        StringT str{SIXTY_THREE_CHARS}; // reach 50% capacity
-        str.append("+");
+        StringT str{buf};
+        str.push_back('+');
     }
+    delete[] buf;
 }
 
 template<size_t STRING_SIZE>
@@ -214,43 +225,45 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_identifier_starting_wit
     }
 }
 
-BENCHMARK_REGISTER_F(NodlangFixture, tokenize__some_code_to_graph);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
-BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
-
-BENCHMARK(BM_empty_constructor<std::string>);
-BENCHMARK(BM_empty_constructor<string>);
-BENCHMARK(BM_empty_constructor<string64>);
-BENCHMARK(BM_empty_constructor<string128>);
-
-BENCHMARK(BM_63chars_constructor<std::string>);
-BENCHMARK(BM_63chars_constructor<string>);
-BENCHMARK(BM_63chars_constructor<string64>);
-BENCHMARK(BM_63chars_constructor<string128>);
-
-BENCHMARK(BM_63chars_constructor_then_append_char<std::string>);
-BENCHMARK(BM_63chars_constructor_then_append_char<string>);
-BENCHMARK(BM_63chars_constructor_then_append_char<string64>);
-BENCHMARK(BM_63chars_constructor_then_append_char<string128>);
-
-#define BENCHMARK_STRNCPY(BM_strncpy_, size) \
-BENCHMARK(BM_strncpy_<size/8>); \
-BENCHMARK(BM_strncpy_<size/4>); \
-BENCHMARK(BM_strncpy_<size/2>); \
-BENCHMARK(BM_strncpy_<size>); \
-BENCHMARK(BM_strncpy_<size*2>); \
-BENCHMARK(BM_strncpy_<size*4>); \
-BENCHMARK(BM_strncpy_<size*8>); \
-BENCHMARK(BM_strncpy_<size*16>); \
-BENCHMARK(BM_strncpy_<size*32>);
-
-constexpr size_t _32KiB = 32 * 1024;
-BENCHMARK_STRNCPY(BM_strncpy_stack_to_stack, _32KiB)
-BENCHMARK_STRNCPY(BM_strncpy_heap_to_stack, _32KiB)
-BENCHMARK_STRNCPY(BM_strncpy_heap_to_heap, _32KiB)
+//BENCHMARK_REGISTER_F(NodlangFixture, tokenize__some_code_to_graph);
+//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator);
+//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean);
+//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double);
+//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
+//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
+//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
+//
+//BENCHMARK(BM_empty_constructor<std::string>);
+//BENCHMARK(BM_empty_constructor<string>);
+//BENCHMARK(BM_empty_constructor<string64>);
+//BENCHMARK(BM_empty_constructor<string128>);
+//
+BENCHMARK(BM_constructor<std::string>)->Range(1, 16);
+BENCHMARK(BM_constructor<string>)->Range(1, 16);
+BENCHMARK(BM_constructor<string8>)->Range(1, 16);
+BENCHMARK(BM_constructor<string16>)->Range(1, 16);
+BENCHMARK(BM_constructor<string32>)->Range(1, 16);
+//
+//BENCHMARK(BM_constructor_then_append_a_char<std::string>);
+//BENCHMARK(BM_constructor_then_append_a_char<string>);
+//BENCHMARK(BM_constructor_then_append_a_char<string64>);
+//BENCHMARK(BM_constructor_then_append_a_char<string128>);
+//
+//
+//#define BENCHMARK_STRNCPY(BM_strncpy_, size) \
+//BENCHMARK(BM_strncpy_<size/8>); \
+//BENCHMARK(BM_strncpy_<size/4>); \
+//BENCHMARK(BM_strncpy_<size/2>); \
+//BENCHMARK(BM_strncpy_<size>); \
+//BENCHMARK(BM_strncpy_<size*2>); \
+//BENCHMARK(BM_strncpy_<size*4>); \
+//BENCHMARK(BM_strncpy_<size*8>); \
+//BENCHMARK(BM_strncpy_<size*16>); \
+//BENCHMARK(BM_strncpy_<size*32>);
+//
+//constexpr size_t _32KiB = 32 * 1024;
+//BENCHMARK_STRNCPY(BM_strncpy_stack_to_stack, _32KiB)
+//BENCHMARK_STRNCPY(BM_strncpy_heap_to_stack, _32KiB)
+//BENCHMARK_STRNCPY(BM_strncpy_heap_to_heap, _32KiB)
 
 BENCHMARK_MAIN();

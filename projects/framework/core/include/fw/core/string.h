@@ -15,8 +15,8 @@ namespace fw
     class basic_string {
 
     protected: CharT* m_ptr;          // Pointer to the buffer (static or dynamic)
-    protected: u16_t  m_capacity;     // Buffer size - 1
-    protected: u16_t  m_length;       // String length (excluding terminal string)
+    protected: size_t m_length;       // String length (excluding terminal string)
+    protected: size_t m_capacity;     // Buffer size - 1
     protected: alloc_strategy m_alloc_strategy;
 
     public:
@@ -44,7 +44,7 @@ namespace fw
 
         basic_string& operator=(const basic_string& other)
         {
-            if( m_capacity < other.m_capacity) m_ptr = expand_capacity_to_fit(other.m_length + 1);
+            if( m_capacity < other.m_capacity) m_ptr = expand_capacity_to_fit(other.m_length);
             memcpy(m_ptr, other.m_ptr, other.m_length);
             m_length = other.m_length;
             m_capacity = other.m_capacity;
@@ -53,9 +53,9 @@ namespace fw
         }
 
     protected:
-        basic_string(CharT* data, u16_t size, u16_t length, alloc_strategy strategy)
+        basic_string(CharT* data, size_t capacity, size_t length, alloc_strategy strategy = alloc_strategy::NEXT_ALLOC_USE_HEAP)
             : m_alloc_strategy(strategy)
-            , m_capacity(size-1)
+            , m_capacity(capacity )
             , m_length(length)
             , m_ptr(data)
         {}
@@ -73,10 +73,13 @@ namespace fw
         inline bool heap_allocated() const
         { return m_alloc_strategy == alloc_strategy::HEAP; }
 
-        inline const char* c_str() const
-        { return m_ptr != nullptr ? const_cast<const char*>( m_ptr ) : ""; }
+        inline const char* data() const
+        { return m_ptr != nullptr ? const_cast<const char*>(m_ptr) : ""; }
 
-        inline basic_string& append(const CharT* str, u16_t length)
+        inline const char* c_str() const
+        { return data(); }
+
+        inline basic_string& append(const CharT* str, size_t length)
         {
             if( m_capacity < m_length + length )
             {
@@ -94,7 +97,7 @@ namespace fw
         { return append(str, strlen(str)); }
 
         template<typename ...Args>
-        inline u16_t append_fmt(const char* _format, Args... args )
+        inline size_t append_fmt(const char* _format, Args... args )
         {
             return m_length = vsnprintf(m_ptr+m_length, m_capacity-m_length, _format, args...);
         }
@@ -103,10 +106,10 @@ namespace fw
         inline basic_string& push_back(CharT str)
         { return append(&str, 1); }
 
-        inline u16_t capacity() const
+        inline size_t capacity() const
         { return m_capacity; }
 
-        inline u16_t length() const
+        inline size_t length() const
         { return m_length; }
 
         inline bool is_empty() const
@@ -122,21 +125,22 @@ namespace fw
         /**
          * Expand the buffer to the closest power of two of the desired size.
          */
-        CharT* expand_capacity_to_fit(u16_t desired_capacity)
+        CharT* expand_capacity_to_fit(size_t desired_capacity)
         {
             assert(desired_capacity > m_capacity );
 
-            static_assert( std::is_same<decltype(desired_capacity), u16_t>()); // code below needs to be adapted if integer is not u16
+            // compute the next highest power of 2 of 64-bit
 
-            // compute the next highest power of 2 of 32-bit
-            // https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-            u16_t new_buf_size = desired_capacity;
+            // based on https://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
+            size_t new_buf_size = desired_capacity;
             //new_buf_size--; // capacity is buffer_size - 1
             new_buf_size |= new_buf_size >> 1;
             new_buf_size |= new_buf_size >> 2;
             new_buf_size |= new_buf_size >> 4;
             new_buf_size |= new_buf_size >> 8;
             new_buf_size |= new_buf_size >> 16;
+            new_buf_size |= new_buf_size >> 32;
+
             new_buf_size++;
 
             CharT* new_ptr = new CharT[new_buf_size];
@@ -166,35 +170,24 @@ namespace fw
      *
      * Buffer size and string length are stored in an unsigned integer (1 byte)
      */
-    template<typename CharType, u16_t STATIC_BUF_SIZE>
+    template<typename CharType, size_t STATIC_BUF_SIZE>
     class inline_string : public basic_string<CharType> {
     private:
-        static_assert(STATIC_BUF_SIZE != 0);
+        static_assert(STATIC_BUF_SIZE >= 8);
         CharType m_static_buf[STATIC_BUF_SIZE]; // Static buffer
 
     public:
-        inline_string(): basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, 0, alloc_strategy::NEXT_ALLOC_USE_HEAP)
-        {
-            m_static_buf[0] = '\0';
-        }
+        inline_string(): basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE-1, 0)
+        { m_static_buf[0] = '\0'; }
 
-        inline_string(const CharType *str) : basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, strlen(str), alloc_strategy::NEXT_ALLOC_USE_HEAP)
-        {
-            strncpy(m_static_buf, str, this->m_length);
-            m_static_buf[this->m_length] = 0;
-        }
+        inline_string(CharType *str, size_t length) : basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE-1, 0)
+        { this->append(str, length); }
 
-        inline_string(CharType *str, u16_t length) : basic_string<CharType>(m_static_buf, STATIC_BUF_SIZE, length, alloc_strategy::NEXT_ALLOC_USE_HEAP)
-        {
-            strncpy(m_static_buf, str, this->m_length);
-            m_static_buf[this->m_length] = 0;
-        }
+        inline_string(const CharType *str) : inline_string(const_cast<char*>(str), strlen(str))
+        {}
 
         inline_string(const basic_string<CharType>& other): inline_string()
-        {
-            this->clear();
-            this->append(other.c_str(), other.length());
-        }
+        {  this->append(other.c_str(), other.length()); }
     };
 
     // Define some aliases
