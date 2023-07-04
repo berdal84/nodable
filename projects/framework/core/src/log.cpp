@@ -72,7 +72,7 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
         {
             case log::Verbosity_Error:   std::cout << RED;      break;
             case log::Verbosity_Warning: std::cout << MAGENTA;  break;
-            default: /* uses default terminal color */;
+            default:                     std::cout << RESET;  break;
         }
 
         // print the text
