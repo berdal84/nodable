@@ -42,6 +42,29 @@ namespace fw
             : basic_string(other.c_str())
         {}
 
+        basic_string(basic_string&& other)
+            : m_alloc_strategy(alloc_strategy::HEAP)
+            , m_length(0)
+            , m_capacity(0)
+            , m_ptr(nullptr)
+        {
+            *this = std::move(other);
+        }
+
+        basic_string& operator=(basic_string&& other)
+        {
+            m_alloc_strategy = alloc_strategy::HEAP;
+            m_length = other.m_length;
+            m_capacity = other.m_capacity;
+            m_ptr = other.m_ptr;
+
+            other.m_length = 0;
+            other.m_capacity = 0;
+            other.m_ptr = nullptr;
+
+            return *this;
+        }
+
         basic_string& operator=(const basic_string& other)
         {
             if( m_capacity < other.m_capacity) m_ptr = expand_capacity_to_fit(other.m_length);

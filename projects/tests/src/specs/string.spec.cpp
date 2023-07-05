@@ -141,3 +141,19 @@ TEST(string8, copy_string )
     EXPECT_STREQ(str.c_str(), copy.c_str());
     EXPECT_FALSE(copy.heap_allocated());
 }
+
+TEST(string8, move_ctor )
+{
+    string str("My string is very long");
+    string copy(std::move(str));
+    EXPECT_STREQ(copy.c_str(), "My string is very long");
+    EXPECT_STREQ(str.c_str(), "");
+}
+
+TEST(string8, move_assignment)
+{
+    string str("My string is very long");
+    string copy = std::move(str);
+    EXPECT_STREQ(copy.c_str(), "My string is very long");
+    EXPECT_STREQ(str.c_str(), "");
+}
