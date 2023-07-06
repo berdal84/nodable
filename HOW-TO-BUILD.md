@@ -4,9 +4,9 @@
 
 ## Architecture
 
-Nodable is split in two [projects](./projects/README.md):
-- the [nodable](./projects/nodable/README.md) project.
-- the [framework](./projects/framework/README.md) project.
+Nodable is split in two [src](./src/README.md):
+- the [nodable](./src/nodable/README.md) project.
+- the [framework](./src/framework/README.md) project.
 
 They both rely on external [libraries](./libs/README.md).
 
