@@ -54,10 +54,20 @@ namespace fw
 
         basic_string& operator=(basic_string&& other)
         {
-            m_alloc_strategy = alloc_strategy::HEAP;
-            m_length = other.m_length;
-            m_capacity = other.m_capacity;
-            m_ptr = other.m_ptr;
+            if( m_alloc_strategy == alloc_strategy::HEAP )
+            {
+                if( m_ptr != nullptr)
+                {
+                    delete[] m_ptr;
+                }
+                m_ptr = other.m_ptr;
+                m_length = other.m_length;
+                m_capacity = other.m_capacity;
+            }
+            else
+            {
+                append(other); // may use heap or stack depending on capacity
+            }
 
             other.m_length = 0;
             other.m_capacity = 0;
@@ -88,7 +98,7 @@ namespace fw
     public:
         ~basic_string()
         {
-            if( m_alloc_strategy == alloc_strategy::HEAP )
+            if( m_alloc_strategy == alloc_strategy::HEAP && m_ptr != nullptr)
             {
                 delete[] m_ptr;
             }
