@@ -20,7 +20,7 @@ namespace fw
         {
         public:
 
-            type m_type;
+            type* m_type;
 
             push(const char* _name )
             {
@@ -33,8 +33,8 @@ namespace fw
         class push_class
         {
         public:
-            type              m_class;
-            std::vector<type> m_parents;
+            type*              m_class;
+            std::vector<type*> m_parents;
 
             push_class(const char* _name )
             {
@@ -44,7 +44,7 @@ namespace fw
             ~push_class()
             {
                 type_register::insert(m_class);
-                for(auto each_parent : m_parents)
+                for(type* each_parent : m_parents)
                 {
                     type_register::insert(each_parent);
                 }
@@ -55,12 +55,12 @@ namespace fw
             {
                 {
                     auto invokable_ = std::make_shared<invokable_static<F>>(_function, _name);
-                    m_class.add_static(_name, invokable_);
+                    m_class->add_static(_name, invokable_);
                 }
                 if(_alt_name[0] != '\0')
                 {
                     auto invokable_ = std::make_shared<invokable_static<F>>(_function, _alt_name);
-                    m_class.add_static(_alt_name, invokable_ );
+                    m_class->add_static(_alt_name, invokable_ );
                 }
                 return *this;
             }
@@ -71,7 +71,7 @@ namespace fw
                 using F = R(C::*)(Ts...);
                 {
                     auto invokable_ = std::make_shared<invokable_nonstatic<F> >(_function, _name);
-                    m_class.add_method(_name, invokable_);
+                    m_class->add_method(_name, invokable_);
                 }
                 return *this;
             }
@@ -79,10 +79,10 @@ namespace fw
             template<typename BASE>
             push_class& extends()
             {
-                type parent = type::create<BASE>();
-                m_parents.push_back( parent );
-                m_class.add_parent( parent.hash_code() );
-                parent.add_child( m_class.hash_code() );
+                type* base_class = type::create<BASE>();
+                m_parents.push_back(base_class );
+                m_class->add_parent(base_class->index() );
+                base_class->add_child(m_class->index() );
                 return *this;
             }
 

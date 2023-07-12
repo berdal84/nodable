@@ -36,10 +36,10 @@ namespace fw
         variant& operator=(const variant& );
         ~variant();
 
-        qword&  get_underlying_data() { return m_data; }
+        qword*  get_underlying_data() { return &m_data; }
         bool    is_initialized() const;
         bool    is_defined() const { return m_is_defined; }
-        void    ensure_is_type(type _type);
+        void    ensure_is_type(const type* _type);
         void    ensure_is_initialized(bool _initialize = true);
         void    flag_defined(bool _defined = true);
         void    reset_value();
@@ -59,7 +59,7 @@ namespace fw
         void    set(double);
         void    set(bool);
         void    set(i16_t);
-        const type & get_type()const;
+        const type* get_type()const;
         template<typename T> T convert_to()const;
 
         template<typename T> operator const T*()const  {
@@ -88,11 +88,11 @@ namespace fw
         operator void* ()const;
 
     private:
-	    static type     clean_type(const type&);
+	    static const type*     normalize_type(const type *_type);
 
         bool            m_is_defined;
         bool            m_is_initialized;
-        type            m_type;
+        const type*     m_type;
         bool            m_type_change_allowed;
         qword           m_data;
     };

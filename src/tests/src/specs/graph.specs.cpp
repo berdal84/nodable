@@ -58,8 +58,6 @@ TEST_F(Graph, clear)
     fw::func_type*   fct_type        = fw::func_type_builder<int(int, int)>::with_id("+");
     auto             operator_fct    = nodlang.find_operator_fct_exact(fct_type);
 
-    delete fct_type;
-
     EXPECT_TRUE(operator_fct.get() != nullptr);
     Node* operatorNode = graph.create_operator(operator_fct.get());
     auto props = operatorNode->props();
@@ -78,6 +76,7 @@ TEST_F(Graph, clear)
     EXPECT_EQ(graph.get_node_registry().size(), 0);
     EXPECT_EQ(graph.get_edge_registry().size(), 0);
 
+    delete fct_type;
 }
 
 

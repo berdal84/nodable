@@ -133,28 +133,28 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_ptr:
         {
-            FW_EXPECT(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.fw::qword_ptr is nullptr")
+            FW_EXPECT(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
             fw::qword qword = *next_instr->uref.qword_ptr;
             m_cpu.write(Register::rax, qword );
 
-            type t = *next_instr->uref.qword_type;
-            if( t == type::get<bool>() )
+            const type* ptr_type = next_instr->uref.qword_type;
+            if(ptr_type->is<bool>() )
             {
                 LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
             }
-            else if( t == type::get<double >() )
+            else if(ptr_type->is<double>() )
             {
                 LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
             }
-            else if( t == type::get<i16_t >() )
+            else if(ptr_type->is<i16_t>() )
             {
                 LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
             }
-            else if( t == type::get<std::string>() )
+            else if(ptr_type->is<std::string>() )
             {
                 LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
             }
-            else if( t == type::get<void*>() )
+            else if(ptr_type->is<void *>() )
             {
                 LOG_VERBOSE("VM", "pointed address: %s\n", format::address(qword.ptr).c_str() );
             }
@@ -220,8 +220,8 @@ bool VirtualMachine::_stepOver()
 
                     if( input
                         && !each_property->is_connected_by_ref()
-                        && each_property->get_type() != type::null()
-                        && input->get_type() != type::null() )
+                        && !each_property->get_type()->is<null_t>()
+                        && !input->get_type()->is<null_t>() )
                     {
                         *each_property->get_variant() = *input->get_variant();
                     }

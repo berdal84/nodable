@@ -58,8 +58,7 @@ void Property::digest(Property *_property)
 
 bool Property::is_connected_by_ref() const
 {
-    const fw::type& variant_type = m_variant.get_type();
-    return m_input && (variant_type.is_ptr() || variant_type.is_ref());
+    return m_input && m_variant.get_type()->is_ptr();
 }
 
 void Property::ensure_is_defined(bool _value)
@@ -82,12 +81,12 @@ void Property::set(Node* _value)
     get_pointed_variant().set(_value);
 }
 
-fw::qword &Property::get_underlying_data()
+fw::qword* Property::get_underlying_data()
 {
     return get_pointed_variant().get_underlying_data();
 }
 
-std::shared_ptr<Property> Property::new_with_type(PropertyGrp *_parent, fw::type _type, Flags _flags)
+std::shared_ptr<Property> Property::new_with_type(PropertyGrp *_parent, const fw::type* _type, Flags _flags)
 {
     auto property = std::make_shared<Property>(_parent);
     property->m_variant.ensure_is_type(_type);

@@ -404,8 +404,8 @@ void Nodable::on_update()
             {
                 const PropertyConnector *src = event.property_connectors.src;
                 const PropertyConnector *dst = event.property_connectors.dst;
-                fw::type src_meta_type = src->get_property_type();
-                fw::type dst_meta_type = dst->get_property_type();
+                const fw::type* src_meta_type = src->get_property_type();
+                const fw::type* dst_meta_type = dst->get_property_type();
 
                 if ( src->share_parent_with(dst) )
                 {
@@ -418,8 +418,8 @@ void Nodable::on_update()
                 else if ( !fw::type::is_implicitly_convertible(src_meta_type, dst_meta_type) )
                 {
                     LOG_WARNING( "App", "Unable to drop_on %s to %s\n",
-                                src_meta_type.get_fullname().c_str(),
-                                dst_meta_type.get_fullname().c_str())
+                                src_meta_type->get_fullname().c_str(),
+                                dst_meta_type->get_fullname().c_str())
                 }
                 else
                 {

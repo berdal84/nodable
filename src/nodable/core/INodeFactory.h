@@ -22,8 +22,8 @@ namespace ndbl
     public:
         virtual Node*                       new_program()const = 0;
         virtual InstructionNode*            new_instr()const = 0;
-        virtual VariableNode*				new_variable(fw::type, const std::string&, IScope *)const = 0;
-        virtual LiteralNode*                new_literal(fw::type)const = 0;
+        virtual VariableNode*				new_variable(const fw::type *, const std::string&, IScope *)const = 0;
+        virtual LiteralNode*                new_literal(const fw::type *)const = 0;
         virtual Node*                       new_abstract_function(const fw::func_type*, bool _is_operator)const = 0;
         virtual Node*                       new_function(const fw::iinvokable*, bool _is_operator)const = 0;
         virtual Node*                       new_scope()const = 0;

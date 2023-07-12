@@ -35,10 +35,10 @@ namespace ndbl
         Node*                  get_owner()const { return m_owner; };
 		const PropertyMap&     by_name()const { return m_properties_.by_name; };
 		const PropertyVec&     by_index()const { return m_properties_.by_index; };
-        Property*              get_first(Way _way, const fw::type& _type) const;
+        Property*              get_first(Way _way, const fw::type *_type) const;
         Property*              get_input_at(u64_t _position) const;
         std::shared_ptr<Property> add(                                      // add a new property with a given name and type.
-                const fw::type& _type,
+                const fw::type* _type,
                 const char *_name,
                 Visibility _visibility = Visibility::Default,
                 Way _way = Way_Default,

@@ -48,29 +48,21 @@ TEST(Reflection, is_convertible__incompatible_types)
 
 TEST(Reflection, is_ptr)
 {
-    EXPECT_FALSE(type::is_ptr(type::get<bool &>()) );
     EXPECT_FALSE(type::is_ptr(type::get<bool>()) );
     EXPECT_TRUE(type::is_ptr(type::get<bool *>()) );
-}
-
-TEST(Reflection, is_ref)
-{
-    EXPECT_TRUE(type::is_ref(type::get<bool &>()) );
-    EXPECT_FALSE(type::is_ref(type::get<bool>()) );
-    EXPECT_FALSE(type::is_ref(type::get<bool *>()) );
 }
 
 TEST(Reflection, node_as_pointer)
 {
     // prepare
-    auto node_ptr = std::unique_ptr<ndbl::Node>();
+    ndbl::Node node;
     variant v;
 
     // act
-    v.set(node_ptr.get());
+    v.set(&node);
 
     // check
     EXPECT_EQ(v.get_type(), type::get<void*>() );
-    EXPECT_EQ(node_ptr.get(), (ndbl::Node*)v );
-    EXPECT_TRUE(v.get_type().is_ptr());
+    EXPECT_EQ(&node, (ndbl::Node*)v );
+    EXPECT_TRUE(v.get_type()->is_ptr());
 }

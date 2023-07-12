@@ -71,7 +71,7 @@ void assembly::Compiler::compile(const Property * _property )
 {
     FW_ASSERT(_property)
 
-    if ( _property->get_type() == fw::type::get<Node*>() )
+    if ( _property->get_type()->is<Node*>() )
     {
         /*
          * If property points a node, we dereference it and we compile the Node
@@ -152,7 +152,7 @@ void assembly::Compiler::compile(const Node* _node)
         return;
     }
 
-    if ( _node->get_type().is_child_of( fw::type::get<IConditionalStruct>() ))
+    if ( _node->get_type()->is_child_of( fw::type::get<IConditionalStruct>() ))
     {
         if ( const auto* for_loop = _node->as<ForLoopNode>())
         {
@@ -165,7 +165,7 @@ void assembly::Compiler::compile(const Node* _node)
         else
         {
             std::string message = "The class ";
-            message.append(_node->get_type().get_name());
+            message.append(_node->get_type()->get_name());
             message.append(" is not handled by the compiler.");
             throw std::runtime_error(message);
         }
@@ -251,7 +251,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
     compile_as_condition(_cond_node->get_cond_expr()); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(Instruction_t::jne);
-    jump_over_true_branch->m_comment   = "jump if not equals";
+    jump_over_true_branch->m_comment   = "jump if not is";
 
     Instruction* jump_after_conditional = nullptr;
 
@@ -303,8 +303,8 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
         if ( root_node_value )
         {
             Instruction* instr     = m_temp_code->push_instr(Instruction_t::deref_ptr);
-            instr->uref.qword_ptr  = &root_node_value->get_underlying_data();
-            instr->uref.qword_type = &root_node_value->get_type();
+            instr->uref.qword_ptr  = root_node_value->get_underlying_data();
+            instr->uref.qword_type = root_node_value->get_type();
             instr->m_comment       = "copy unreferenced data";
         }
     }

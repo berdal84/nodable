@@ -80,7 +80,7 @@ std::string NodeView::get_label()
 
     if (s_view_detail == NodeViewDetail::Minimalist )
     {
-        // I always add an ICON_FA at the begining of any node label string (encoded in 4 bytes)
+        // I always add an ICON_FA at the beginning of any node label string (encoded in 4 bytes)
         return m_short_label;
     }
     return m_label;
@@ -218,7 +218,7 @@ void NodeView::update_labels_from_name(Node* _node)
     m_short_label.clear();
     if ( auto variable = _node->as<VariableNode>())
     {
-        m_label += variable->get_value()->get_type().get_name();
+        m_label += variable->get_value()->get_type()->get_name();
         m_label += " ";
     }
     m_label += _node->get_name();
@@ -584,7 +584,7 @@ bool NodeView::draw_property(PropertyView *_view)
     bool      show;
     bool      changed      = false;
     Property* property     = _view->m_property;
-    fw::type  owner_type   = property->get_owner()->get_type();
+    const fw::type* owner_type = property->get_owner()->get_type();
 
     /*
      * Handle input visibility
@@ -609,7 +609,7 @@ bool NodeView::draw_property(PropertyView *_view)
     {
         show = property->get_variant()->is_defined();   // we always show a defined unconnected property
     }
-    else if (property->get_type().is_ptr() )
+    else if (property->get_type()->is_ptr() )
     {
         show = property->is_connected_to_variable();
     }
@@ -628,7 +628,7 @@ bool NodeView::draw_property(PropertyView *_view)
 
     if ( _view->m_showInput )
     {
-        bool limit_size = property->get_type() != fw::type::get<bool>();
+        bool limit_size = !property->get_type()->is<bool>();
 
         if ( limit_size )
         {
@@ -660,7 +660,7 @@ bool NodeView::draw_property(PropertyView *_view)
         {
             ImGui::Text("%s (%s)",
                         property->get_name().c_str(),
-                        property->get_type().get_fullname().c_str());
+                        property->get_type()->get_fullname().c_str());
             fw::ImGuiEx::EndTooltip();
         }
 
@@ -718,9 +718,9 @@ bool NodeView::draw_input(Property *_property, const char *_label)
     else
     {
         /* Draw the property */
-        fw::type t = _property->get_type();
+        const fw::type* t = _property->get_type();
 
-        if( t == fw::type::get<i16_t>() )
+        if(t->is<i16_t>() )
         {
             auto i16 = (i16_t)*_property;
 
@@ -730,7 +730,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
                 changed |= true;
             }
         }
-        else if( t == fw::type::get<double>() )
+        else if(t->is<double>() )
         {
             auto d = (double)*_property;
 
@@ -740,7 +740,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
                 changed |= true;
             }
         }
-        else if( t == fw::type::get<std::string>() )
+        else if(t->is<std::string>() )
         {
             char str[255];
             snprintf(str, 255, "%s", ((std::string)*_property).c_str() );
@@ -751,7 +751,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
                 changed |= true;
             }
         }
-        else if( t == fw::type::get<bool >() )
+        else if(t->is<bool>() )
         {
             std::string checkBoxLabel = _property->get_name();
 
@@ -799,7 +799,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 "%s (%s, %s): ",
                 _property->get_name().c_str(),
                 WayToString(_property->get_allowed_connection()).c_str(),
-                _property->get_type().get_fullname().c_str());
+                _property->get_type()->get_fullname().c_str());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
@@ -827,7 +827,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     };
 
     ImGui::Text("Name:       \"%s\"" , node->get_name());
-    ImGui::Text("Class:      %s"     , node->get_type().get_name());
+    ImGui::Text("Class:      %s"     , node->get_type()->get_name());
 
     // Draw exposed input properties
     ImGui::Separator();
@@ -883,7 +883,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             for (auto &pair : node->components())
             {
                 Component *component = pair.second;
-                ImGui::BulletText("%s", component->get_type().get_name());
+                ImGui::BulletText("%s", component->get_type()->get_name());
             }
             ImGui::TreePop();
         }

@@ -16,7 +16,7 @@ namespace ndbl {
     class Components
     {
     public:
-        using const_iterator = std::unordered_map<size_t, Component*>::const_iterator;
+        using const_iterator = std::unordered_map<std::type_index, Component*>::const_iterator;
 
         Components(Node* _owner)
             : m_owner(_owner)
@@ -40,7 +40,7 @@ namespace ndbl {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
             auto component = new T(args...);
             component->set_owner(m_owner);
-            m_components.emplace(fw::type::get<T>().hash_code(), component);
+            m_components.emplace(fw::type::get<T>()->index(), component);
             return component;
         }
 
@@ -57,7 +57,7 @@ namespace ndbl {
         /**
          * Get all components of this Node
          */
-        [[nodiscard]] inline const std::unordered_map<size_t, Component*>&
+        [[nodiscard]] inline const std::unordered_map<std::type_index, Component*>&
         get()const
         { return m_components; }
 
@@ -71,7 +71,7 @@ namespace ndbl {
             static_assert(std::is_base_of<Component, T>::value, "T must inherit from Component");
             fw::type desired_class = fw::type::get<T>();
             auto component = get<T>();
-            m_components.erase(desired_class.hash_code());
+            m_components.erase(desired_class.index());
             delete component;
         }
 
@@ -90,11 +90,11 @@ namespace ndbl {
                 return nullptr;
             }
 
-            fw::type desired_class = fw::type::get<T>();
+            const fw::type* desired_class = fw::type::get<T>();
 
             // Search with class name
             {
-                auto it = m_components.find( desired_class.hash_code() );
+                auto it = m_components.find(desired_class->index() );
                 if (it != m_components.end())
                 {
                     return static_cast<T*>(it->second);
@@ -104,7 +104,7 @@ namespace ndbl {
             // Search for a derived class
             for (const auto & [name, component] : m_components)
             {
-                if ( component->get_type().is_child_of(desired_class) )
+                if ( component->get_type()->is_child_of(desired_class) )
                 {
                     return static_cast<T*>(component);
                 }
@@ -131,7 +131,7 @@ namespace ndbl {
         end() const { return m_components.cend(); }
 
     protected:
-        std::unordered_map<size_t, Component*> m_components;
+        std::unordered_map<std::type_index, Component*> m_components;
         Node*                                  m_owner;
     };
 }

@@ -51,7 +51,7 @@ namespace ndbl
             get_pointed_variant().set(_value);
         }
 
-		void set_type(fw::type _type) { get_pointed_variant().ensure_is_type(_type); }
+		void set_type(const fw::type* _type) { get_pointed_variant().ensure_is_type(_type); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
         void set_owner(Node* _owner) { m_owner = _owner; }
 
@@ -59,7 +59,7 @@ namespace ndbl
         Property *                   get_input()const { return m_input; }
 		std::vector<Property *>&     get_outputs() { return m_outputs; }
         const std::string&           get_name()const { return m_name; }
-        const fw::type&              get_type()const { return get_pointed_variant().get_type(); }
+        const fw::type*              get_type()const { return get_pointed_variant().get_type(); }
         Visibility                   get_visibility()const { return m_visibility; }
         Way                          get_allowed_connection()const { return m_allowed_connection; }
         const fw::variant*           get_variant()const { return &get_pointed_variant(); }
@@ -82,9 +82,9 @@ namespace ndbl
         void             ensure_is_defined(bool _value);
         bool             is_connected_to_variable() const;
         VariableNode*    get_connected_variable();
-        fw::qword&       get_underlying_data();
+        fw::qword*       get_underlying_data();
 
-		static std::shared_ptr<Property>  new_with_type(PropertyGrp * ,fw::type , Flags = Flags_none);
+		static std::shared_ptr<Property>  new_with_type(PropertyGrp * , const fw::type* , Flags = Flags_none);
 		static std::vector<fw::variant*>& get_variant(std::vector<Property *> _in_properties, std::vector<fw::variant*>& _out_variants);
     private:
 

@@ -36,13 +36,13 @@ TEST_F(Virtual_Machine, Cond_2)
             "{"
             "   str = \"true\";"
             "}"
-            "else if (false)"
+            "else"
             "{"
             "   str = \"false\";"
             "}"
             "return(str);";
 
-    EXPECT_EQ(eval<std::string>(program), "default");
+    EXPECT_EQ(eval<std::string>(program), "false");
 }
 
 TEST_F(Virtual_Machine, Loop_1_using_global_var)
@@ -81,7 +81,7 @@ TEST_F(Virtual_Machine, Loop_2_using_global_var)
             "for(n=0; n<10; n=n+1)"
             "{"
             "   p = pow(n,2);"
-            "   if( p != n )/* skip powers equals to n */"
+            "   if( p != n )/* skip powers is to n */"
             "   {"
             "      str = str + to_unquoted_string(p);     /* concat powers */"
             "   }"
@@ -103,7 +103,7 @@ TEST_F(Virtual_Machine, Loop_2_using_local_var)
             "for(int n=0; n<10; n=n+1)"
             "{"
             "   int p = pow(n,2);"
-            "   if( p != n ) /* skip powers equals to n */"
+            "   if( p != n ) /* skip powers is to n */"
             "   {"
             "      str = str + to_unquoted_string(p);     /* concat powers */"
             "   }"

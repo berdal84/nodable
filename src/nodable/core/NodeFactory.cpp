@@ -22,7 +22,7 @@ InstructionNode* NodeFactory::new_instr() const
     return instr_node;
 }
 
-VariableNode* NodeFactory::new_variable(fw::type _type, const std::string& _name, IScope *_scope) const
+VariableNode* NodeFactory::new_variable(const fw::type *_type, const std::string& _name, IScope *_scope) const
 {
     // create
     auto* node = new VariableNode(_type, _name.c_str());
@@ -105,7 +105,7 @@ Node* NodeFactory::_new_abstract_function(const fw::func_type* _func_type, bool 
 Node* NodeFactory::new_function(const fw::iinvokable* _function, bool _is_operator) const
 {
     // Create an abstract function node
-    const fw::func_type* type = &_function->get_type();
+    const fw::func_type* type = _function->get_type();
     Node* node = _new_abstract_function(type, _is_operator);
     add_invokable_component(node, type, _function, _is_operator);
     m_post_process(node);
@@ -192,7 +192,7 @@ Node* NodeFactory::new_node() const
     return node;
 }
 
-LiteralNode* NodeFactory::new_literal(fw::type _type) const
+LiteralNode* NodeFactory::new_literal(const fw::type *_type) const
 {
     LiteralNode* node = new LiteralNode(_type);
     node->set_name("Literal");

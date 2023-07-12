@@ -34,8 +34,8 @@ namespace ndbl
 
         Node*                       create_root();                                              // Create a new root instruction in this graph.
         InstructionNode*            create_instr();                                             // Create a new instruction in this graph.
-		VariableNode*				create_variable(fw::type, const std::string&, IScope*);     // Create a new variable of a given type, identifier and scope (use create_scope()) in this graph.
-		LiteralNode*                create_literal(fw::type);                                   // Create a new literal of a given type.
+		VariableNode*				create_variable(const fw::type *_type, const std::string &_name, IScope *_scope);     // Create a new variable of a given type, identifier and scope (use create_scope()) in this graph.
+		LiteralNode*                create_literal(const fw::type *_type);                                   // Create a new literal of a given type.
         template<typename T>
         LiteralNode*                create_literal() { return create_literal(fw::type::get<T>()); }
 		Node*                       create_abstract_function(const fw::func_type*, bool _is_operator = false); // Create and append a new abstract (without known implementation)  function of a given type.

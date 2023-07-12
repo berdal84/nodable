@@ -6,6 +6,7 @@
 #include <typeinfo>
 #include <typeindex>
 #include <memory>
+#include <vector>
 
 #include "type_register.h"
 #include "core/assertions.h"
@@ -14,7 +15,7 @@ namespace fw
 {
     struct any_t{};
     struct null_t{};
-    using hash_code_t = size_t;
+    using hash_code_t = std::type_index;
     class iinvokable;
     class iinvokable_nonstatic;
 
@@ -40,17 +41,24 @@ namespace fw
         friend class type_register;
 
     public:
-        type() = default;
+        type(std::type_index index, std::type_index primitive_index)
+        : m_index(index)
+        , m_primitive_index(primitive_index)
+        { }
+
+        type(const type&) = delete; // a type must be unique
+        type(type&&) = delete;
         ~type() = default;
 
         const char*               get_name() const { return m_name.c_str(); };
         std::string               get_fullname() const;
-        size_t                    hash_code() const { return m_hash_code; }
+        std::type_index           index() const { return m_index; }
         bool                      is_class() const { return m_is_class; }
+        bool                      any_of(std::vector<const type*> args)const;
         bool                      is_ptr() const;
-        bool                      is_ref() const;
         bool                      is_const() const;
-        bool                      is_child_of(type _possible_parent_class, bool _selfCheck = true) const;
+        bool                      is_child_of(const type* _possible_parent_class, bool _selfCheck = true) const;
+        bool                      equals(const type* other) const { return equals(this, other); }
         void                      add_parent(hash_code_t _parent);
         void                      add_child(hash_code_t _child);
         void                      add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable);
@@ -59,83 +67,69 @@ namespace fw
                                   get_static_methods()const { return m_static_methods; }
         const std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>&
                                   get_methods()const { return m_methods; }
-        std::shared_ptr<iinvokable> get_static(const std::string& _name);
-        std::shared_ptr<iinvokable_nonstatic> get_method(const std::string& _name);
+        std::shared_ptr<iinvokable> get_static(const std::string& _name) const;
+        std::shared_ptr<iinvokable_nonstatic> get_method(const std::string& _name) const;
         template<class T> inline bool is_child_of() const { return is_child_of(get<T>(), true); }
         template<class T> inline bool is_not_child_of() const { return !is_child_of(get<T>(), true); }
+        template<typename T>
+        bool is() const
+        { return equals(this, get<T>()); }
 
-        static type               to_pointer(type);
-        static bool               is_ptr(type);
-        static bool               is_ref(type);
-        static bool               is_implicitly_convertible(type _src, type _dst);
+        static bool               is_ptr(const type*);
+        static bool               is_implicitly_convertible(const type* _src, const type* _dst);
 
-        friend bool operator==(const type& left, const type& right)
+        static bool equals(const type* left, const type* right)
         {
-            return  left.m_hash_code    == right.m_hash_code
-                 && left.m_is_pointer   == right.m_is_pointer
-                 //&& left.m_is_reference == right.m_is_reference
-                 && left.m_is_const     == right.m_is_const;
-        }
-
-        friend bool operator!=(const type& left, const type& right)
-        {
-            return !(left == right);
+            return left->m_index == right->m_index
+                 && left->m_is_pointer   == right->m_is_pointer
+                 && left->m_is_const     == right->m_is_const;
         }
 
         /** to get a type at compile time */
         template<typename T>
-        static type get()
+        static const type* get()
         {
-            auto hash = fw::unqualified<T>::hash_code();
+            auto type_index = std::type_index(typeid(T));
 
-            type type;
-
-            if( type_register::has(hash) )
+            if( type_register::has(type_index) )
             {
-                type = type_register::get(hash);
-            }
-            else
-            {
-                type = create<T>(); // we create a temporary type
-                type_register::insert(type);
+                return type_register::get(type_index);
             }
 
-            type.m_is_pointer   = std::is_pointer<T>::value;
-            type.m_is_reference = std::is_reference<T>::value;
-            type.m_is_const     = std::is_const<T>::value;
+            type* type = create<T>();
+            type_register::insert(type);
 
             return type;
         }
 
         template<typename T>
-        static type create(const std::string &_name = "")
+        static type* create(const std::string &_name = "")
         {
-            type type;
-            type.m_name                  = _name;
-            type.m_compiler_name         = fw::unqualified<T>::name();
-            type.m_hash_code             = fw::unqualified<T>::hash_code();
-            type.m_is_pointer            = std::is_pointer<T>::value;
-            type.m_is_reference          = std::is_reference<T>::value;
-            type.m_is_const              = std::is_const<T>::value;
-            type.m_is_class              = fw::is_class<T>::value;
+            using primitive_T = typename unqualified<T>::type;
+            auto* new_type = new type(std::type_index(typeid(T)),
+                                      std::type_index(typeid(primitive_T)));
+            
+            new_type->m_name          = _name;
+            new_type->m_compiler_name = typeid(T).name();
+            new_type->m_is_pointer    = std::is_pointer<T>::value;
+            new_type->m_is_const      = std::is_const<T>::value;
+            new_type->m_is_class      = fw::is_class<T>::value;
 
-            return type;
+            return new_type;
         }
 
-        /** to get a type ar runtime */
         template<typename T>
-        static type get(T value) { return get<T>(); }
-
-        static const type& any();
-        static const type& null();
+        static const type* get(T value) { return get<T>(); }
+        static const type* any();
+        static const type* null();
     protected:
         std::string m_name;
         std::string m_compiler_name;
         bool        m_is_class;
         bool        m_is_pointer;
-        bool        m_is_reference;
         bool        m_is_const;
-        hash_code_t m_hash_code;
+        const std::type_index m_primitive_index; // ex: T
+        const std::type_index m_index;           // ex: T**, T&, T&&
         std::unordered_set<hash_code_t> m_parents;
         std::unordered_set<hash_code_t> m_children;
         std::unordered_set<std::shared_ptr<iinvokable>>                    m_static_methods;
@@ -147,7 +141,7 @@ namespace fw
     template<class target_t, class source_t>
     static target_t* cast(source_t *_source)
     {
-        if( _source->get_type().is_child_of( type::get<target_t>(), true ))
+        if( _source->get_type()->is_child_of( type::get<target_t>(), true ))
         {
             return static_cast<target_t*>(_source);
         }

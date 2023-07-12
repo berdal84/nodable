@@ -16,8 +16,12 @@ namespace fw
      */
     struct FuncArg
     {
-        FuncArg(type _type, std::string& _name): m_type(_type), m_name(_name){}
-        type        m_type;
+        FuncArg(const type* _type, std::string& _name)
+            : m_type(_type)
+            , m_name(_name)
+        {
+        }
+        const type* m_type;
         std::string m_name;
     };
 
@@ -33,26 +37,24 @@ namespace fw
         func_type(std::string _id);
         ~func_type() {};
 
-        void                           push_arg(type _type);
-
         template <typename... T>
-        void push_args(T&&... args) {
-            int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... };
-        }
+        void push_args(T&&... args)
+        { int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... }; }
 
-        bool                           has_an_arg_of_type(type type)const;
+        void                           push_arg(const type* _type);
+        bool                           has_an_arg_of_type(const type* type)const;
         bool                           is_exactly(const func_type* _other)const;
         bool                           is_compatible(const func_type* _other)const;
         const std::string&             get_identifier()const { return m_identifier; };
         FuncArgs&                      get_args() { return m_args;};
         const FuncArgs&                get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
-        const type                     get_return_type() const { return m_return_type; }
-        void                           set_return_type(type _type) { m_return_type = _type; };
+        const type*                    get_return_type() const { return m_return_type; }
+        void                           set_return_type(const type* _type) { m_return_type = _type; };
     private:
         std::string     m_identifier;
         FuncArgs        m_args;
-        type            m_return_type;
+        const type*     m_return_type;
 
     public:
 

@@ -10,7 +10,7 @@ func_type::func_type(std::string _id)
 {
 }
 
-void func_type::push_arg(type _type)
+void func_type::push_arg(const type* _type)
 {
    std::string name = "arg_" + std::to_string(m_args.size());
    m_args.emplace_back(_type, name);
@@ -29,7 +29,7 @@ bool func_type::is_exactly(const func_type* _other)const
         auto &arg_t       = m_args[i].m_type;
         auto &other_arg_t = _other->m_args[i].m_type;
 
-        if ( arg_t != other_arg_t )
+        if ( !arg_t->equals(other_arg_t) )
         {
             return false;
         }
@@ -48,16 +48,11 @@ bool func_type::is_compatible(const func_type* _other)const
     size_t i = 0;
     while( i < m_args.size() )
     {
-        auto &arg_t       = m_args[i].m_type;
-        auto &other_arg_t = _other->m_args[i].m_type;
+        const type* arg_t       = m_args[i].m_type;
+        const type* other_arg_t = _other->m_args[i].m_type;
 
-        if ( arg_t == other_arg_t )
-        {
-        }
-        else if ( other_arg_t.is_ref() && type::is_implicitly_convertible(other_arg_t, arg_t))
-        {
-        }
-        else
+        if ( !arg_t->equals(other_arg_t) &&
+             !type::is_implicitly_convertible(other_arg_t, arg_t))
         {
             return false;
         }
@@ -67,8 +62,8 @@ bool func_type::is_compatible(const func_type* _other)const
 
 }
 
-bool func_type::has_an_arg_of_type(type _type) const
+bool func_type::has_an_arg_of_type(const type* _type) const
 {
-    auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type == _type; } );
+    auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type->equals(_type); } );
     return found != m_args.end();
 }

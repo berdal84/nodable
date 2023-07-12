@@ -10,7 +10,7 @@ REGISTER
 }
 
 
-VariableNode::VariableNode(const fw::type& _type, const char* identifier)
+VariableNode::VariableNode(const fw::type *_type, const char* identifier)
     : Node("Variable")
     , m_declaration_instr(nullptr)
     , identifier_token(Token_t::identifier)

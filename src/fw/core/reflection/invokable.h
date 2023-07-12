@@ -17,7 +17,7 @@ namespace fw {
     {
     public:
         virtual ~iinvokable() {};
-        virtual const func_type& get_type() const = 0;
+        virtual const func_type* get_type() const = 0;
         virtual variant operator()(const std::vector<variant *> &_args = {}) const = 0;
     };
 
@@ -25,7 +25,7 @@ namespace fw {
     {
     public:
         virtual ~iinvokable_nonstatic() {};
-        virtual const func_type& get_type() const = 0;
+        virtual const func_type* get_type() const = 0;
         virtual variant operator()(void* _instance, const std::vector<variant *> &_args = {}) const = 0;
     };
 
@@ -231,7 +231,7 @@ namespace fw {
             return fw::invoke<return_t, args_t >(m_function_impl, _args);
         }
 
-        const func_type& get_type() const override { return m_function_type; }
+        const func_type* get_type() const override { return &m_function_type; }
 
     private:
         function_t* const m_function_impl;
@@ -261,7 +261,7 @@ namespace fw {
         {
         }
 
-        const func_type& get_type() const override { return m_method_type; };
+        const func_type* get_type() const override { return &m_method_type; };
 
         virtual variant operator()(void* _instance, const std::vector<variant *> &_args = {}) const override
         {

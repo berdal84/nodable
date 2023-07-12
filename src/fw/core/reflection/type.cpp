@@ -16,72 +16,82 @@ REGISTER
     registration::push<null_t>("null");
 }
 
-const type& type::any()
+const type* type::any()
 {
-    static type any  = type::get<any_t>();
+    static const type* any  = type::get<any_t>();
     return any;
 }
 
-const type& type::null()
+const type* type::null()
 {
-    static type null  = type::get<null_t>();
+    static const type* null  = type::get<null_t>();
     return null;
 }
 
-bool type::is_ptr(type left)
+bool type::is_ptr(const type* left)
 {
-    return left.m_is_pointer;
+    return left->m_is_pointer;
 }
 
-bool type::is_ref(type left)
+bool type::is_implicitly_convertible(const type* _src, const type* _dst )
 {
-    return left.m_is_reference;
-}
-
-bool type::is_implicitly_convertible(type _src, type _dst )
-{
-    if(_src == type::any() || _dst == type::any() ) // We allow cast to unknown type
+    if( _dst->m_is_const )
+    {
+        return false;
+    }
+    else if (_src->m_index == _dst->m_index )
     {
         return true;
     }
-    else if (_src.m_hash_code == _dst.m_hash_code )
+    else if (_src->m_primitive_index == _dst->m_primitive_index)
     {
         return true;
     }
-    else if (is_ptr(_src) && is_ptr(_dst))
+    else if (_src->m_is_pointer && _dst->m_is_pointer)
+    {
+        return true;
+    }
+    else if(_src->is<any_t>() || _dst->is<any_t>() ) // We allow cast to unknown type
     {
         return true;
     }
 
-    auto allow_cast = [&](const type& src, const type& dst)
-    {
-        return _src.m_hash_code == src.m_hash_code && _dst.m_hash_code == dst.m_hash_code;
-    };
-
-    return allow_cast(type::get<i16_t>(), type::get<double>());
+    return
+        // Allows specific casts:
+        //
+        _src->m_index == type::get<i16_t>()->m_index &&  // From i16_t
+        _dst->m_index == type::get<double>()->m_index;   // To double
 }
 
 std::string type::get_fullname() const
 {
     std::string result;
 
-    if (is_const())
+    if (m_is_const)
     {
         result.append("const ");
     }
 
     result.append(m_name);
 
-    if (is_ptr())
+    if (m_is_pointer)
     {
         result.append("*");
     }
-    else if (is_ref())
-    {
-        result.append("&");
-    }
 
     return result;
+}
+
+bool type::any_of(std::vector<const type*> types) const
+{
+    for ( auto each : types )
+    {
+        if(equals(each))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 bool type::is_ptr()const
@@ -89,16 +99,11 @@ bool type::is_ptr()const
     return m_is_pointer;
 }
 
-bool type::is_ref()const
-{
-    return m_is_reference;
-}
-
-bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
+bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) const
 {
     bool is_child;
 
-    if (_selfCheck && m_hash_code == _possible_parent_class.m_hash_code )
+    if (_selfCheck && m_index == _possible_parent_class->m_index )
     {
         is_child = true;
     }
@@ -108,7 +113,7 @@ bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
     }
     else
     {
-        auto direct_parent_found = m_parents.find(_possible_parent_class.m_hash_code);
+        auto direct_parent_found = m_parents.find(_possible_parent_class->m_index);
 
         // direct parent check
         if ( direct_parent_found != m_parents.end())
@@ -120,8 +125,8 @@ bool type::is_child_of(type _possible_parent_class, bool _selfCheck) const
             bool is_a_parent_is_child_of = false;
             for (auto each : m_parents)
             {
-                type parent_type = type_register::get(each);
-                if (parent_type.is_child_of(_possible_parent_class, true))
+                const type* parent_type = type_register::get(each);
+                if (parent_type->is_child_of(_possible_parent_class, true))
                 {
                     is_a_parent_is_child_of = true;
                 }
@@ -147,14 +152,6 @@ bool type::is_const() const
     return m_is_const;
 }
 
-type type::to_pointer(type _type)
-{
-    FW_EXPECT(!_type.is_ptr(), "make_ptr only works with non pointer types!")
-    type ptr = _type;
-    ptr.m_is_pointer = true;
-    return ptr;
-}
-
 void type::add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable)
 {
     m_static_methods.insert(_invokable);
@@ -167,7 +164,7 @@ void type::add_method(const std::string &_name, std::shared_ptr<iinvokable_nonst
     m_methods_by_name.insert({_name, _invokable});
 }
 
-std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
+std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name) const
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )
@@ -177,7 +174,7 @@ std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
     return nullptr;
 }
 
-std::shared_ptr<iinvokable> type::get_static(const std::string& _name)
+std::shared_ptr<iinvokable> type::get_static(const std::string& _name)const
 {
     auto found = m_static_methods_by_name.find(_name);
     if( found != m_static_methods_by_name.end() )

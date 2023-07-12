@@ -59,8 +59,8 @@ bool InvokableComponent::update()
             LOG_ERROR("InvokableComponent", "Exception thrown updating \"%s\" Component"
                                             " while updating Node \"%s\"."
                                             " Reason: %s\n",
-                                            get_type().get_name(),
-                      get_owner()->get_name(),
+                                            get_type()->get_name(),
+                                            get_owner()->get_name(),
                                             err.what() )
             success = false;
         }
