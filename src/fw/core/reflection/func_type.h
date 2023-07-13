@@ -16,16 +16,16 @@ namespace fw
      */
     struct FuncArg
     {
-        FuncArg(const type* _type, std::string& _name)
+        FuncArg(const type* _type, bool _by_reference, const std::string& _name)
             : m_type(_type)
+            , m_by_reference(_by_reference)
             , m_name(_name)
         {
         }
         const type* m_type;
+        bool        m_by_reference;
         std::string m_name;
     };
-
-    using FuncArgs = std::vector<FuncArg>;
 
     /*
      * Class to store a function signature.
@@ -41,20 +41,20 @@ namespace fw
         void push_args(T&&... args)
         { int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... }; }
 
-        void                           push_arg(const type* _type);
+        void                           push_arg(const type* _type, bool _by_reference = false);
         bool                           has_an_arg_of_type(const type* type)const;
         bool                           is_exactly(const func_type* _other)const;
         bool                           is_compatible(const func_type* _other)const;
         const std::string&             get_identifier()const { return m_identifier; };
-        FuncArgs&                      get_args() { return m_args;};
-        const FuncArgs&                get_args()const { return m_args;};
+        std::vector<FuncArg>&          get_args() { return m_args;};
+        const std::vector<FuncArg>&    get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
         const type*                    get_return_type() const { return m_return_type; }
         void                           set_return_type(const type* _type) { m_return_type = _type; };
     private:
-        std::string     m_identifier;
-        FuncArgs        m_args;
-        const type*     m_return_type;
+        std::string          m_identifier;
+        std::vector<FuncArg> m_args;
+        const type*          m_return_type;
 
     public:
 
@@ -68,7 +68,7 @@ namespace fw
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
                 using T = std::tuple_element_t<N-1, Tuple>;
-                _signature->push_arg( type::get<T>() );
+                _signature->push_arg( type::get<T>(), std::is_reference<T>::value );
             }
         };
 
@@ -78,7 +78,7 @@ namespace fw
             static void push_into(func_type *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
-                _signature->push_arg( type::get<T>() );
+                _signature->push_arg( type::get<T>(), std::is_reference<T>::value );
             };
         };
 
