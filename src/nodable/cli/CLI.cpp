@@ -72,8 +72,7 @@ void CLI::update()
     {
         try
         {
-            // invoke the function
-            fw::variant result = (*static_fct)();
+            fw::variant result = static_fct->invoke();
             log_function_call(result, static_fct->get_type());
         }
         catch (std::runtime_error e )
@@ -89,7 +88,7 @@ void CLI::update()
         try
         {
             // then we invoke it
-            fw::variant result = (*method)((void *) this);
+            fw::variant result = method->invoke((void*)this);
             log_function_call(result, method->get_type());
         }
         catch (std::runtime_error e )

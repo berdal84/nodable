@@ -33,7 +33,8 @@ namespace fw
         CONSTRUCTOR(null_t)
 #undef CONSTRUCTOR
 
-        variant& operator=(const variant& );
+        variant(const variant&);
+        variant(variant&&);
         ~variant();
 
         qword*  get_underlying_data() { return &m_data; }
@@ -45,6 +46,11 @@ namespace fw
         void    reset_value();
         void    set(const std::string& _value);
         void    set(const char* _value);
+        void    set(null_t) { ensure_is_type(type::null()); m_is_defined = false; };
+        void    set(double);
+        void    set(bool);
+        void    set(i16_t);
+        void    set(const variant&);
 
         template<typename T>
         void    set(T* _pointer)
@@ -55,38 +61,42 @@ namespace fw
             m_is_defined = true;
         }
 
-        void    set(null_t) { ensure_is_type(type::null()); m_is_defined = false; };
-        void    set(double);
-        void    set(bool);
-        void    set(i16_t);
         const type* get_type()const;
         template<typename T> T convert_to()const;
 
-        template<typename T> operator const T*()const  {
-            FW_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.ptr); }
-        template<typename T> operator T*()             {
-            FW_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.ptr); }
+        template<typename T>
+        explicit operator const T*()const
+        { FW_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.ptr); }
+
+        template<typename T>
+        explicit operator T*()
+        { FW_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.ptr); }
+
+        variant operator=(const variant& other)
+        {
+            set(other);
+            return *this;
+        }
 
         // cast by pointer
-		operator double*()        { FW_ASSERT(m_is_initialized) return &m_data.d; }
-		operator i16_t *()        { FW_ASSERT(m_is_initialized) return &m_data.i16; }
-        operator bool*()          { FW_ASSERT(m_is_initialized) return &m_data.b; }
-        operator std::string* ()  { FW_ASSERT(m_is_initialized) return static_cast<std::string*>(m_data.ptr); }
-        operator void* ()         { FW_ASSERT(m_is_initialized) return m_data.ptr; }
+		explicit operator double*()        { FW_ASSERT(m_is_initialized) return &m_data.d; }
+        explicit operator i16_t *()        { FW_ASSERT(m_is_initialized) return &m_data.i16; }
+        explicit operator bool*()          { FW_ASSERT(m_is_initialized) return &m_data.b; }
+        explicit operator std::string* ()  { FW_ASSERT(m_is_initialized) return m_data.ptr_std_string; }
+        explicit operator void* ()         { FW_ASSERT(m_is_initialized) return m_data.ptr; }
 
         // cast by address
-        operator double&()        { FW_ASSERT(m_is_initialized) return m_data.d; }
-        operator i16_t &()        { FW_ASSERT(m_is_initialized) return m_data.i16; }
-        operator bool&()          { FW_ASSERT(m_is_initialized) return m_data.b; }
-        operator std::string& ()  { FW_ASSERT(m_is_initialized) return *static_cast<std::string*>(m_data.ptr); }
+        explicit operator double&()        { FW_ASSERT(m_is_initialized) return m_data.d; }
+        explicit operator i16_t &()        { FW_ASSERT(m_is_initialized) return m_data.i16; }
+        explicit operator bool&()          { FW_ASSERT(m_is_initialized) return m_data.b; }
+        explicit operator std::string& ()  { FW_ASSERT(m_is_initialized) return *m_data.ptr_std_string; }
 
         // cast by copy
-        operator i16_t()const;
-        operator double()const;
-        operator bool()const;
-        operator std::string ()const;
-        operator void* ()const;
-
+        explicit operator i16_t()const;
+        explicit operator double()const;
+        explicit operator bool()const;
+        explicit operator std::string ()const;
+        explicit operator void* ()const;
     private:
 	    static const type*     normalize_type(const type *_type);
 

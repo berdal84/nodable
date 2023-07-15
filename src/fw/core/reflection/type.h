@@ -85,7 +85,6 @@ namespace fw
                  && left->m_is_const     == right->m_is_const;
         }
 
-        /** to get a type at compile time */
         template<typename T>
         static const type* get()
         {

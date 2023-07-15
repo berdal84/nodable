@@ -9,6 +9,7 @@
 
 namespace fw
 {
+
     /**
      * @brief 64 bits of data, is union of all types (bool, double, void*, etc.).
      */
@@ -27,15 +28,17 @@ namespace fw
             float     f;
             double    d;
             void*     ptr;
+            std::string* ptr_std_string;
         };
 
-        qword() { memset(this, 0, sizeof(*this) ); }
+        qword() { reset(); }
+        void reset() { memset(this, 0, sizeof(*this) ); }
         [[nodiscard]] std::string        to_string()const { return qword::to_string(*this); }
         [[nodiscard]] static std::string to_string(const qword&);
 
         template<typename T>
         explicit operator T() const { return get<const T>(); }
-        explicit operator std::string() const { return *static_cast<std::string*>(ptr); }
+        explicit operator std::string() const { return *ptr_std_string; }
 
         R_UNION(qword)
     };

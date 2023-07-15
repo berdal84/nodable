@@ -127,7 +127,8 @@ void NodeFactory::add_invokable_component(Node *_node, const fw::func_type* _fun
     for (size_t arg_idx = 0; arg_idx < args.size(); arg_idx++)
     {
         Property * property = props->get_input_at((u8_t)arg_idx);
-        component->set_arg(arg_idx, property);
+        property->set_reference(args[arg_idx].m_by_reference);  // to handle by reference function args
+        component->set_arg(arg_idx, property);                  // link
     }
 }
 

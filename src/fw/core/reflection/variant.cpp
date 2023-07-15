@@ -1,3 +1,4 @@
+#include <zconf.h>
 #include "variant.h"
 
 #include "core/log.h"
@@ -48,7 +49,7 @@ double variant::convert_to<double>()const
         return 0.0;
     }
 
-    if(m_type->is<std::string>() )  return stod(*static_cast<std::string*>(m_data.ptr) );
+    if(m_type->is<std::string>() )  return stod(*m_data.ptr_std_string );
     if(m_type->is<double>() )       return m_data.d;
     if(m_type->is<i16_t>() )        return double(m_data.i16);
     if(m_type->is<bool>() )         return double(m_data.b);
@@ -65,10 +66,10 @@ i16_t variant::convert_to<i16_t>()const
         return 0;
     }
 
-    if(m_type->is<std::string>() )  return stoi(*static_cast<std::string*>(m_data.ptr) );
+    if(m_type->is<std::string>() )  return stoi(*m_data.ptr_std_string );
     if(m_type->is<double>() )       return i16_t(m_data.d);
     if(m_type->is<i16_t>() )        return m_data.i16;
-    if(m_type->is<bool>() )         return  i16_t(m_data.b);
+    if(m_type->is<bool>() )         return i16_t(m_data.b);
 
     FW_ASSERT(false) // this case is not handled
 }
@@ -81,11 +82,11 @@ bool variant::convert_to<bool>()const
         return false;
     }
 
-    if(m_type->is<std::string>() )  return !(static_cast<std::string*>(m_data.ptr))->empty();
+    if(m_type->is<std::string>() )  return !m_data.ptr_std_string->empty();
     if(m_type->is<double>() )       return m_data.d != 0.0;
     if(m_type->is<i16_t>() )        return m_data.i16 != 0;
     if(m_type->is<bool>() )         return m_data.b;
-    if(m_type->is<void *>() )        return m_data.ptr;
+    if(m_type->is<void *>() )       return m_data.ptr;
     FW_EXPECT(false,"Case not handled!")
 }
 
@@ -102,11 +103,11 @@ std::string variant::convert_to<std::string>()const
         return "undefined";
     }
 
-    if(m_type->is<std::string>() )  return *static_cast<std::string*>(m_data.ptr);
+    if(m_type->is<std::string>() )  return *m_data.ptr_std_string;
     if(m_type->is<i16_t>() )        return std::to_string(m_data.i16);
     if(m_type->is<double>() )       return format::number(m_data.d);
     if(m_type->is<bool>() )         return m_data.b ? "true" : "false";
-    if( m_type->is_ptr())            return format::address(m_data.ptr);
+    if(m_type->is_ptr())            return format::address(m_data.ptr);
     FW_EXPECT(false,"Case not handled!")
 }
 
@@ -119,9 +120,8 @@ void variant::set(const std::string& _value)
 {
     ensure_is_type( type::get<std::string>() );
     ensure_is_initialized(true);
-    auto* string = static_cast<std::string*>(m_data.ptr);
-    string->clear();
-    string->append(_value);
+    m_data.ptr_std_string->clear();
+    m_data.ptr_std_string->append(_value);
     flag_defined();
 }
 
@@ -177,7 +177,7 @@ void variant::reset_value()
     }
     else if(m_type->is<std::string>() )
     {
-        static_cast<std::string*>(m_data.ptr)->clear();
+        m_data.ptr_std_string->clear();
     }
     else if( m_type->is_ptr() )
     {
@@ -199,14 +199,15 @@ void variant::ensure_is_initialized(bool _initialize)
     {
         if(m_type->is<std::string>() )
         {
-            m_data.ptr   = new std::string();
+            m_data.ptr_std_string = new std::string();
         }
     }
     else
     {
         if (m_type->is<std::string>() )
         {
-            delete (std::string*)m_data.ptr;
+            delete m_data.ptr_std_string;
+            m_data.reset();
         }
     }
 
@@ -217,14 +218,14 @@ void variant::ensure_is_initialized(bool _initialize)
 void variant::ensure_is_type(const type* _type)
 {
     const type* new_type = normalize_type(_type);
-    if( !m_type_change_allowed )
+
+    if( new_type->equals(m_type) )
     {
-        if( new_type->equals(m_type) )
-        {
-            return;
-        }
-        FW_EXPECT( m_type->any_of({type::null(), type::any()}),
-                "Variant: Type should not change, expecting it null or any!" );
+        return;
+    }
+    else if( !m_type_change_allowed )
+    {
+        FW_EXPECT( m_type->any_of({type::null(), type::any()}), "variant's type should not change (or be null or any)" );
     }
     m_type = new_type;
 }
@@ -258,8 +259,7 @@ const type* variant::normalize_type(const type* _type)
     return _type;
 }
 
-
-variant& variant::operator=(const variant& _other)
+void variant::set(const variant& _other)
 {
     FW_ASSERT( _other.m_type != type::null() )
     FW_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
@@ -278,7 +278,7 @@ variant& variant::operator=(const variant& _other)
     }
     else if(m_type->is<std::string>() )
     {
-        set( *static_cast<std::string*>(_other.m_data.ptr) );
+        set( _other.m_data.ptr_std_string->c_str() );
     }
     else if( m_type->is_ptr() )
     {
@@ -288,5 +288,27 @@ variant& variant::operator=(const variant& _other)
     {
         FW_EXPECT(false, "Variant: missing type case for operator=");
     }
-    return *this;
+}
+
+variant::variant(const variant& other)
+    : m_type(other.m_type)
+    , m_is_initialized(false)
+    , m_is_defined(false)
+    , m_type_change_allowed(false)
+{
+    set(other);
+}
+
+variant::variant(variant&& other)
+{
+    // move to this
+    ensure_is_type(other.m_type);
+    ensure_is_initialized( other.m_is_initialized);
+    m_is_defined = other.m_is_defined;
+    m_data = other.m_data;
+
+    // clear other
+    other.m_data.reset();
+    other.m_is_initialized = false;
+    other.m_is_defined = false;
 }

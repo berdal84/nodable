@@ -223,7 +223,7 @@ bool VirtualMachine::_stepOver()
                         && !each_property->get_type()->is<null_t>()
                         && !input->get_type()->is<null_t>() )
                     {
-                        *each_property->get_variant() = *input->get_variant();
+                        each_property->get_variant()->set(*input->get_variant());
                     }
                 }
             };

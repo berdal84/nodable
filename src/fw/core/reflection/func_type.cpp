@@ -10,10 +10,10 @@ func_type::func_type(std::string _id)
 {
 }
 
-void func_type::push_arg(const type* _type)
+void func_type::push_arg(const type* _type, bool _by_reference)
 {
-   std::string name = "arg_" + std::to_string(m_args.size());
-   m_args.emplace_back(_type, name);
+   std::string name{"arg_" + std::to_string(m_args.size())};
+   m_args.emplace_back(_type, _by_reference, name );
 }
 
 bool func_type::is_exactly(const func_type* _other)const

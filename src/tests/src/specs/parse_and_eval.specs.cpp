@@ -140,10 +140,18 @@ TEST_F(Parse_and_eval, unexisting_function)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(Parse_and_eval, function_call_return)
+TEST_F(Parse_and_eval, function_call_return_int)
 {
     EXPECT_EQ(eval<int>("return(5)"), 5);
+}
+
+TEST_F(Parse_and_eval, function_call_return_string)
+{
     EXPECT_EQ(eval<std::string>("return(\"coucou\")"), "coucou");
+}
+
+TEST_F(Parse_and_eval, function_call_return_bool)
+{
     EXPECT_EQ(eval<bool>("return(true)"), true);
 }
 
