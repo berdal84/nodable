@@ -120,7 +120,7 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(fw::type _type, const std::string& _name, IScope* _scope)
+VariableNode* GraphNode::create_variable(const fw::type *_type, const std::string& _name, IScope* _scope)
 {
     auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
@@ -217,9 +217,9 @@ const DirectedEdge* GraphNode::connect(Property * _source_property, Property * _
         delete _source_property;
     }
     else if (
-            !_source_property->get_type().is_ptr() &&
-            _source_property->get_owner()->get_type().is_child_of<LiteralNode>() &&
-            _target_property->get_owner()->get_type().is_not_child_of<VariableNode>())
+            !_source_property->get_type()->is_ptr() &&
+            _source_property->get_owner()->get_type()->is_child_of<LiteralNode>() &&
+            _target_property->get_owner()->get_type()->is_not_child_of<VariableNode>())
     {
         Node* owner = _source_property->get_owner();
         _target_property->digest(_source_property);
@@ -477,7 +477,7 @@ Node* GraphNode::create_node()
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(fw::type _type)
+LiteralNode* GraphNode::create_literal(const fw::type *_type)
 {
     LiteralNode* node = m_factory->new_literal(_type);
     add(node);

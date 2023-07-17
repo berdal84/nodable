@@ -140,7 +140,7 @@ Property * PropertyConnector::get_property()const
     return m_propertyView ?  m_propertyView->m_property : nullptr;
 }
 
-fw::type PropertyConnector::get_property_type()const
+const fw::type* PropertyConnector::get_property_type()const
 {
     return get_property()->get_type();
 }

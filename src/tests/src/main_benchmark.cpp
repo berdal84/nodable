@@ -225,24 +225,24 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_identifier_starting_wit
     }
 }
 
-//BENCHMARK_REGISTER_F(NodlangFixture, tokenize__some_code_to_graph);
-//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator);
-//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean);
-//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double);
-//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
-//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
-//BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
+BENCHMARK_REGISTER_F(NodlangFixture, tokenize__some_code_to_graph);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_operator);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_boolean);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_double);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_char);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_keyword);
+BENCHMARK_REGISTER_F(NodlangFixture, parse_token__a_single_identifier_starting_with_a_keyword);
 //
 //BENCHMARK(BM_empty_constructor<std::string>);
 //BENCHMARK(BM_empty_constructor<string>);
 //BENCHMARK(BM_empty_constructor<string64>);
 //BENCHMARK(BM_empty_constructor<string128>);
 //
-BENCHMARK(BM_constructor<std::string>)->Range(1, 16);
-BENCHMARK(BM_constructor<string>)->Range(1, 16);
-BENCHMARK(BM_constructor<string8>)->Range(1, 16);
-BENCHMARK(BM_constructor<string16>)->Range(1, 16);
-BENCHMARK(BM_constructor<string32>)->Range(1, 16);
+//BENCHMARK(BM_constructor<std::string>)->Range(1, 16);
+//BENCHMARK(BM_constructor<string>)->Range(1, 16);
+//BENCHMARK(BM_constructor<string8>)->Range(1, 16);
+//BENCHMARK(BM_constructor<string16>)->Range(1, 16);
+//BENCHMARK(BM_constructor<string32>)->Range(1, 16);
 //
 //BENCHMARK(BM_constructor_then_append_a_char<std::string>);
 //BENCHMARK(BM_constructor_then_append_a_char<string>);

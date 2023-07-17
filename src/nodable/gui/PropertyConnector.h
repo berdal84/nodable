@@ -44,7 +44,7 @@ namespace ndbl {
         PropertyConnector& operator= (const PropertyConnector&) = delete;
 
         Property*          get_property()const;
-        fw::type           get_property_type()const;
+        const fw::type * get_property_type()const;
         ImVec2             get_pos() const override;
         bool               share_parent_with(const PropertyConnector *other)const override;
         bool               has_node_connected() const;

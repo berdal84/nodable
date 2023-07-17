@@ -12,7 +12,7 @@ bool PropertyGrp::has(const char* _name) const
     return m_properties_.by_name.find(_name) != m_properties_.by_name.end();
 }
 
-std::shared_ptr<Property> PropertyGrp::add(const fw::type& _type, const char* _name, Visibility _visibility, Way _way, Property::Flags _flags )
+std::shared_ptr<Property> PropertyGrp::add(const fw::type* _type, const char* _name, Visibility _visibility, Way _way, Property::Flags _flags )
 {
     FW_ASSERT(!has(_name));
 
@@ -32,7 +32,7 @@ std::shared_ptr<Property> PropertyGrp::add(const fw::type& _type, const char* _n
     return new_property;
 }
 
-Property *PropertyGrp::get_first(Way _way, const fw::type& _type) const
+Property *PropertyGrp::get_first(Way _way, const fw::type *_type) const
 {
     auto filter = [_way, _type](auto each_pair) -> bool
     {

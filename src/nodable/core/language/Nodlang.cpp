@@ -118,9 +118,9 @@ Nodlang::Nodlang(bool _strict)
     for( auto [keyword, token_t, type] : m_definition.types)
     {
         m_keyword_by_token_t.insert({token_t, keyword});
-        m_keyword_by_type_hashcode.insert({type.hash_code(), keyword});
+        m_keyword_by_type_index.insert({type->index(), keyword});
         m_token_t_by_keyword.insert({hash::hash(keyword), token_t});
-        m_token_t_by_type_hashcode.insert({type.hash_code(), token_t});
+        m_token_t_by_type_index.insert({type->index(), token_t});
         m_type_by_token_t.insert({token_t, type});
     }
 
@@ -1338,7 +1338,7 @@ Property *Nodlang::parse_variable_declaration()
 
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
-        type type = get_type(type_token.m_type);
+        const type* type = get_type(type_token.m_type);
         VariableNode *variable = parser_state.graph->create_variable(type, identifier_token.word_to_string(), get_current_scope());
         variable->set_declared(true);
         variable->type_token = type_token;
@@ -1504,7 +1504,7 @@ std::string &Nodlang::serialize(std::string &_out, const Token_t &_type) const
     return _out.append(to_string(_type));
 }
 
-std::string &Nodlang::serialize(std::string &_out, type _type) const
+std::string &Nodlang::serialize(std::string &_out, const type* _type) const
 {
     return _out.append(to_string(_type));
 }
@@ -1548,7 +1548,7 @@ std::string &Nodlang::serialize(std::string &_out, const variant *variant) const
 {
     std::string variant_string = variant->convert_to<std::string>();
 
-    if (variant->get_type() == type::get<std::string>())
+    if (variant->get_type()->is<std::string>())
     {
         return _out.append('"' + variant_string + '"');
     }
@@ -1558,7 +1558,7 @@ std::string &Nodlang::serialize(std::string &_out, const variant *variant) const
 std::string &Nodlang::serialize(std::string &_out, const Property *_property, bool recursively) const
 {
     // specific case of a Node*
-    if (_property->get_type() == type::get<Node *>())
+    if (_property->get_type()->is<Node*>())
     {
         if (_property->get_variant()->is_initialized())
         {
@@ -1587,7 +1587,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
         }
     } else
     {
-        if (owner && owner->get_type() == type::get<VariableNode>())
+        if (owner && owner->get_type()->is<VariableNode>())
         {
             _out.append(owner->as<VariableNode>()->get_name());
         } else
@@ -1606,17 +1606,17 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
 std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
 {
     FW_ASSERT(_node != nullptr)
-    type type = _node->get_type();
+    const type* type = _node->get_type();
 
-    if (type.is_child_of<InstructionNode>())
+    if (type->is_child_of<InstructionNode>())
     {
         serialize(_out, _node->as<InstructionNode>());
     }
-    else if (type.is_child_of<ConditionalStructNode>())
+    else if (type->is_child_of<ConditionalStructNode>())
     {
         serialize(_out, _node->as<ConditionalStructNode>());
     }
-    else if (type.is_child_of<ForLoopNode>())
+    else if (type->is_child_of<ForLoopNode>())
     {
         serialize(_out, _node->as<ForLoopNode>());
     }
@@ -1639,7 +1639,7 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     else
     {
         std::string message = "Unable to serialize ";
-        message.append(type.get_name());
+        message.append(type->get_name());
         throw std::runtime_error(message);
     }
     return _out;
@@ -1689,7 +1689,7 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     //       More work to do to know if expression is a declaration or not.
 
     Property *input = _for_loop->get_init_expr()->get_input();
-    if (input && input->get_owner()->get_type().is_child_of<VariableNode>())
+    if (input && input->get_owner()->get_type()->is_child_of<VariableNode>())
     {
         serialize(_out, input->get_owner()->as<VariableNode>());
     } else
@@ -1736,17 +1736,45 @@ std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *
 
 // Language definition ------------------------------------------------------------------------------------------------------------
 
-std::shared_ptr<const iinvokable> Nodlang::find_function(const func_type *_signature) const
+std::shared_ptr<const iinvokable> Nodlang::find_function(const func_type* _type) const
 {
-    auto is_compatible = [&](std::shared_ptr<const iinvokable> fct) {
-        return fct->get_type().is_compatible(_signature);
+    if (!_type)
+    {
+        return nullptr;
+    }
+    auto exact = find_function_exact(_type);
+    if (!exact) return find_function_fallback(_type);
+    return exact;
+}
+
+std::shared_ptr<const iinvokable> Nodlang::find_function_exact(const func_type *_signature) const
+{
+    auto is_exactly = [&](std::shared_ptr<const iinvokable> fct) {
+        return fct->get_type()->is_exactly(_signature);
     };
 
-    auto it = std::find_if(m_functions.begin(), m_functions.end(), is_compatible);
+    auto it = std::find_if(m_functions.begin(), m_functions.end(), is_exactly);
 
     if (it != m_functions.end())
     {
         return *it;
+    }
+
+    return nullptr;
+}
+
+std::shared_ptr<const iinvokable> Nodlang::find_function_fallback(const func_type *_type) const
+{
+
+    auto is_compatible = [&](std::shared_ptr<const iinvokable> _invokable) {
+        return _type->is_compatible(_invokable->get_type());
+    };
+
+    auto found = std::find_if(m_functions.cbegin(), m_functions.cend(), is_compatible);
+
+    if (found != m_functions.end())
+    {
+        return *found;
     }
 
     return nullptr;
@@ -1760,7 +1788,7 @@ std::shared_ptr<const iinvokable> Nodlang::find_operator_fct_exact(const func_ty
     }
 
     auto is_exactly = [&](std::shared_ptr<const iinvokable> _invokable) {
-        return _type->is_exactly(&_invokable->get_type());
+        return _type->is_exactly(_invokable->get_type());
     };
 
     auto found = std::find_if(m_operators_impl.cbegin(), m_operators_impl.cend(), is_exactly);
@@ -1788,7 +1816,7 @@ std::shared_ptr<const iinvokable> Nodlang::find_operator_fct_fallback(const func
 {
 
     auto is_compatible = [&](std::shared_ptr<const iinvokable> _invokable) {
-        return _type->is_compatible(&_invokable->get_type());
+        return _type->is_compatible(_invokable->get_type());
     };
 
     auto found = std::find_if(m_operators_impl.cbegin(), m_operators_impl.cend(), is_compatible);
@@ -1805,7 +1833,7 @@ void Nodlang::add_function(std::shared_ptr<const iinvokable> _invokable)
 {
     m_functions.push_back(_invokable);
 
-    const func_type *type = &_invokable->get_type();
+    const func_type *type = _invokable->get_type();
 
     std::string type_as_string;
     serialize(type_as_string, type);
@@ -1824,10 +1852,10 @@ void Nodlang::add_function(std::shared_ptr<const iinvokable> _invokable)
     LOG_VERBOSE("Nodlang", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str());
 }
 
-const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_t _type) const
+const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_t operator_type) const
 {
     auto is_exactly = [&](const Operator *op) {
-        return op->identifier == _identifier && op->type == _type;
+        return op->identifier == _identifier && op->type == operator_type;
     };
 
     auto found = std::find_if(m_operators.cbegin(), m_operators.cend(), is_exactly);
@@ -1838,10 +1866,10 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
     return nullptr;
 }
 
-std::string &Nodlang::to_string(std::string &_out, const type& _type) const
+std::string &Nodlang::to_string(std::string &_out, const type *_type) const
 {
-    auto found = m_keyword_by_type_hashcode.find(_type.hash_code());
-    if (found != m_keyword_by_type_hashcode.cend())
+    auto found = m_keyword_by_type_index.find(_type->index());
+    if (found != m_keyword_by_type_index.cend())
     {
         return _out.append(found->second);
     }
@@ -1877,7 +1905,7 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
     }
 }
 
-std::string Nodlang::to_string(type _type) const
+std::string Nodlang::to_string(const fw::type *_type) const
 {
     std::string result;
     return to_string(result, _type);
@@ -1894,17 +1922,18 @@ int Nodlang::get_precedence(const iinvokable* _invokable) const
     if (!_invokable)
         return std::numeric_limits<int>::min(); // default
 
-    const func_type& type = _invokable->get_type();
-    const Operator* operator_ptr = find_operator(type.get_identifier(), static_cast<Operator_t>(type.get_arg_count()));
+    const func_type* type = _invokable->get_type();
+    const Operator* operator_ptr = find_operator(type->get_identifier(), static_cast<Operator_t>(type->get_arg_count()));
 
     if (operator_ptr)
         return operator_ptr->precedence;
     return std::numeric_limits<int>::max();
 }
 
-type Nodlang::get_type(Token_t _token) const
+const type * Nodlang::get_type(Token_t _token) const
 {
     FW_EXPECT(is_a_type_keyword(_token), "_token_t is not a type keyword!");
+    return m_type_by_token_t.find(_token)->second;
     return m_type_by_token_t.find(_token)->second;
 }
 

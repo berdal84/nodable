@@ -17,16 +17,16 @@ namespace fw {
     {
     public:
         virtual ~iinvokable() {};
-        virtual const func_type& get_type() const = 0;
-        virtual variant operator()(const std::vector<variant *> &_args = {}) const = 0;
+        virtual const func_type* get_type() const = 0;
+        virtual variant invoke(const std::vector<variant *> &_args = {}) const = 0;
     };
 
     class iinvokable_nonstatic
     {
     public:
         virtual ~iinvokable_nonstatic() {};
-        virtual const func_type& get_type() const = 0;
-        virtual variant operator()(void* _instance, const std::vector<variant *> &_args = {}) const = 0;
+        virtual const func_type* get_type() const = 0;
+        virtual variant invoke(void* _instance, const std::vector<variant *> &_args = {}) const = 0;
     };
 
 #define ENABLE_IF_VOID(T)     typename std::enable_if< std::is_void<T>::value, int>::type = 0
@@ -225,13 +225,13 @@ namespace fw {
 
         ~invokable_static() override {}
 
-        variant operator()(const std::vector<variant *> &_args = {}) const override
+        variant invoke(const std::vector<variant *> &_args = {}) const override
         {
             FW_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
             return fw::invoke<return_t, args_t >(m_function_impl, _args);
         }
 
-        const func_type& get_type() const override { return m_function_type; }
+        const func_type* get_type() const override { return &m_function_type; }
 
     private:
         function_t* const m_function_impl;
@@ -261,9 +261,9 @@ namespace fw {
         {
         }
 
-        const func_type& get_type() const override { return m_method_type; };
+        const func_type* get_type() const override { return &m_method_type; };
 
-        virtual variant operator()(void* _instance, const std::vector<variant *> &_args = {}) const override
+        virtual variant invoke(void* _instance, const std::vector<variant *> &_args = {}) const override
         {
             FW_EXPECT(_args.size() == std::tuple_size<args_t>(), "Wrong argument count!");
             return fw::invoke_property<return_t, class_t, args_t>(reinterpret_cast<class_t *>(_instance), m_method, _args);

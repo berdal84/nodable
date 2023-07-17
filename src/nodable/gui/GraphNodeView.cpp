@@ -52,7 +52,7 @@ bool GraphNodeView::draw_implem()
     /*
     * Function to draw an invocable menu (operators or functions)
     */
-    auto draw_invocable_menu = [&](
+    auto draw_invokable_menu = [&](
         const PropertyConnector* dragged_property_conn,
         const std::string& _key) -> void
     {
@@ -77,7 +77,7 @@ bool GraphNodeView::draw_implem()
                 }
                 else
                 {
-                    fw::type dragged_property_type = dragged_property_conn->get_property_type();
+                    const fw::type* dragged_property_type = dragged_property_conn->get_property_type();
 
                     if ( dragged_property_conn->m_way == Way_Out )
                     {
@@ -85,7 +85,7 @@ bool GraphNodeView::draw_implem()
                     }
                     else
                     {
-                        has_compatible_signature = menu_item.function_signature->get_return_type() == dragged_property_type;
+                        has_compatible_signature = menu_item.function_signature->get_return_type()->equals(dragged_property_type);
                     }
                 }
 
@@ -121,7 +121,7 @@ bool GraphNodeView::draw_implem()
         return instr_node;
     };
 
-    auto create_variable = [&](const fw::type& _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](const fw::type* _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
         Scope* scope = _scope ? _scope : graph->get_root()->get_component<Scope>();
@@ -396,15 +396,15 @@ bool GraphNodeView::draw_implem()
 
 		if ( !dragged_node_conn )
 		{
-		    draw_invocable_menu( dragged_property_conn, k_operator_menu_label );
-            draw_invocable_menu( dragged_property_conn, k_function_menu_label );
+		    draw_invokable_menu(dragged_property_conn, k_operator_menu_label );
+            draw_invokable_menu(dragged_property_conn, k_function_menu_label );
             ImGui::Separator();
         }
 
         if ( !dragged_node_conn )
         {
             // If dragging a property we create a VariableNode with the same type.
-            if ( dragged_property_conn && !dragged_property_conn->get_property_type().is_ptr() )
+            if ( dragged_property_conn && !dragged_property_conn->get_property_type()->is_ptr() )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
@@ -567,7 +567,7 @@ void GraphNodeView::create_child_view_constraints()
     {
         if ( NodeView* each_view = _eachNode->get_component<NodeView>() )
         {
-            fw::type t = _eachNode->get_type();
+            const fw::type* node_type = _eachNode->get_type();
 
             // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
             //---------------------------------------------------------------------------------
@@ -575,7 +575,7 @@ void GraphNodeView::create_child_view_constraints()
             const std::vector<Node*>& predecessor_nodes = _eachNode->predecessors().content();
             std::vector<NodeView*> predecessor_views;
             Node::get_components<NodeView>(predecessor_nodes, predecessor_views);
-            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type().is_not_child_of<IConditionalStruct>() )
+            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
             {
                 ViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
                 constraint.add_drivers(predecessor_views);
@@ -589,14 +589,14 @@ void GraphNodeView::create_child_view_constraints()
             //------------------------------------------------
 
             std::vector<NodeView*>& children = each_view->children.content();
-            if(!children.empty() && t.is_child_of<IConditionalStruct>() )
+            if(!children.empty() && node_type->is_child_of<IConditionalStruct>() )
             {
                 ViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
                 constraint.apply_when(ViewConstraint::drivers_are_expanded);
                 constraint.add_driver(each_view);
                 constraint.add_targets(children);
 
-                if (t.is_child_of<ForLoopNode>() )
+                if (node_type->is_child_of<ForLoopNode>() )
                 {
                     constraint.add_targets(each_view->successors.content());
                 }
@@ -666,9 +666,8 @@ void GraphNodeView::set_owner(Node *_owner)
 
     for (auto& each_fct : language.get_api())
     {
-        const fw::func_type* type = &each_fct->get_type();
+        const fw::func_type* type = each_fct->get_type();
         bool is_operator = language.find_operator_fct(type) != nullptr;
-
 
         auto create_node = [graph, each_fct, is_operator]() -> Node*
         {

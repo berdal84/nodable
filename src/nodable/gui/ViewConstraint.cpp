@@ -121,10 +121,10 @@ void ViewConstraint::apply(float _dt)
 
             ImVec2   first_driver_pos = first_driver->get_position(fw::Space_Local);
             float    start_pos_x      = first_driver_pos.x - size_x_total / 2.0f;
-            fw::type driver_type      = first_driver->get_owner()->get_type();
+            const fw::type* driver_type = first_driver->get_owner()->get_type();
 
-            if (driver_type.is_child_of<InstructionNode>()
-                || (driver_type.is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
+            if (driver_type->is_child_of<InstructionNode>()
+                || (driver_type->is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
                 start_pos_x = first_driver_pos.x

@@ -8,7 +8,7 @@ namespace ndbl
     class LiteralNode: public Node
     {
     public:
-        explicit LiteralNode(fw::type);
+        explicit LiteralNode(const fw::type*);
         ~LiteralNode() override = default;
 
         [[nodiscard]]

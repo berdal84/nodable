@@ -135,7 +135,7 @@ namespace ndbl{
         std::string&           serialize(std::string& _out, const fw::func_type*)const;                                  // serialize a function signature.
         std::string&           serialize(std::string& _out, const Token_t&)const;
         std::string&           serialize(std::string& _out, const Token &) const;
-        std::string&           serialize(std::string& _out, fw::type) const;
+        std::string&           serialize(std::string& _out, const fw::type*) const;
         std::string&           serialize(std::string& _out, const Property *, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
         std::string&           serialize(std::string& _out, const InstructionNode*)const;
         std::string&           serialize(std::string& _out, const Node*)const;
@@ -147,36 +147,28 @@ namespace ndbl{
 
         // Language definition -------------------------------------------------------------------------
     public:
-        invokable_ptr                   find_function(const fw::func_type*) const;                   // Find a function by signature.
-        invokable_ptr                   find_operator_fct(const fw::func_type*) const;               // Find an operator's function by signature (casts allowed).
-        invokable_ptr                   find_operator_fct_exact(const fw::func_type*) const;         // Find an operator's function by signature (strict mode, no cast allowed).
-        invokable_ptr                   find_operator_fct_fallback(const fw::func_type*) const;      // Find a fallback operator function for a given signature (allows cast).
+        invokable_ptr                   find_function(const fw::func_type*) const;                   // Find a function by signature (strict first, then cast allowed)
+        invokable_ptr                   find_function_exact(const fw::func_type*) const;             // Find a function by signature (no cast allowed).
+        invokable_ptr                   find_function_fallback(const fw::func_type*) const;          // Find a function by signature (casts allowed).
+        invokable_ptr                   find_operator_fct(const fw::func_type*) const;               // Find an operator's function by signature (strict first, then cast allowed)
+        invokable_ptr                   find_operator_fct_exact(const fw::func_type*) const;         // Find an operator's function by signature (no cast allowed).
+        invokable_ptr                   find_operator_fct_fallback(const fw::func_type*) const;      // Find an operator's function by signature (casts allowed).
         const fw::Operator*             find_operator(const std::string& , fw::Operator_t) const;    // Find an operator by symbol and type (unary, binary or ternary).
         const Invokable_vec &           get_api()const { return m_functions; }                   // Get all the functions registered in the language. (TODO: why do we store the declared functions here? can't we load them in the VirtualMachine instead?).
-        std::string&                    to_string(std::string& /*out*/, const fw::type&)const;   // Convert a type to string (by ref).
+        std::string&                    to_string(std::string& /*out*/, const fw::type*)const;   // Convert a type to string (by ref).
         std::string&                    to_string(std::string& /*out*/, Token_t)const;           // Convert a type to a token_t (by ref).
-        std::string                     to_string(fw::type) const;                               // Convert a type to string.
+        std::string                     to_string(const fw::type *) const;                       // Convert a type to string.
         std::string                     to_string(Token_t)const;                                 // Convert a type to a token_t.
-        fw::type                        get_type(Token_t _token)const;                           // Get the type corresponding to a given token_t (must be a type keyword)
+        const fw::type*                 get_type(Token_t _token)const;                           // Get the type corresponding to a given token_t (must be a type keyword)
         void                            add_function(std::shared_ptr<const fw::iinvokable>);     // Adds a new function (regular or operator's implementation).
         int                             get_precedence(const fw::iinvokable*)const;              // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
-        template<typename T>
-        void load_library() // Instantiate a library from its type (uses reflection to get all its static methods).
-        {
-            T library; // will force static code to run
-
-            auto type = fw::type::get<T>();
-            for(auto& each_static : type.get_static_methods())
-            {
-                add_function(each_static);
-            }
-        }
+        template<typename T> void       load_library(); // Instantiate a library from its type (uses reflection to get all its static methods).
 
     private:
         struct {
             std::vector<std::tuple<const char*, Token_t>>                  keywords;
-            std::vector<std::tuple<const char*, Token_t,        fw::type>> types;
+            std::vector<std::tuple<const char*, Token_t, const fw::type*>> types;
             std::vector<std::tuple<const char*, fw::Operator_t, int>>      operators;
             std::vector<std::tuple<char, Token_t>>                         chars;
         } m_definition; // language definition
@@ -186,10 +178,23 @@ namespace ndbl{
         Invokable_vec m_functions;                                             // all the functions (including operator's).
         std::unordered_map<Token_t, char>        m_single_char_by_keyword;
         std::unordered_map<Token_t, const char*> m_keyword_by_token_t;         // token_t to string (ex: Token_t::keyword_double => "double").
-        std::unordered_map<size_t, const char*>  m_keyword_by_type_hashcode;   // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
-        std::unordered_map<char, Token_t>        m_token_t_by_single_char;
-        std::unordered_map<size_t, Token_t>      m_token_t_by_keyword;         // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
-        std::unordered_map<size_t, Token_t>      m_token_t_by_type_hashcode;   // type's hashcode into a token_t (ex: type::get<std::string>().hashcode() => Token_t::keyword_string)
-        std::unordered_map<Token_t, fw::type>    m_type_by_token_t;            // token_t to type. Works only if token_t refers to a type keyword.
+        std::unordered_map<std::type_index, const char*>  m_keyword_by_type_index;  // type's hashcode into a string (ex: type::get<std::string>().hashcode() => "std::string")
+        std::unordered_map<char, Token_t>                 m_token_t_by_single_char;
+        std::unordered_map<size_t, Token_t>               m_token_t_by_keyword;     // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
+        std::unordered_map<std::type_index, Token_t>      m_token_t_by_type_index;  // type's hashcode into a token_t (ex: type::get<std::string>().hashcode() => Token_t::keyword_string)
+        std::unordered_map<Token_t, const fw::type*>      m_type_by_token_t;        // token_t to type. Works only if token_t refers to a type keyword.
     };
+
+    template<typename T>
+    void Nodlang::load_library()
+    {
+        T library; // will force static code to run
+
+        auto type = fw::type::get<T>();
+        for(auto& each_static : type->get_static_methods())
+        {
+            add_function(each_static);
+        }
+    }
 }
+

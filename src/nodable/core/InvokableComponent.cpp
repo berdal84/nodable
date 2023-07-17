@@ -47,7 +47,8 @@ bool InvokableComponent::update()
             // Get properties' variants, and invoke m_invokable with the variants as arguments
             std::vector<fw::variant*> args;
             Property::get_variant(m_args, args);
-            *m_result->get_variant() = (*m_invokable)(args);
+            auto result = m_invokable->invoke(args);
+            m_result->get_variant()->set(result);
 
             for(auto arg : m_args)
             {
@@ -59,8 +60,8 @@ bool InvokableComponent::update()
             LOG_ERROR("InvokableComponent", "Exception thrown updating \"%s\" Component"
                                             " while updating Node \"%s\"."
                                             " Reason: %s\n",
-                                            get_type().get_name(),
-                      get_owner()->get_name(),
+                                            get_type()->get_name(),
+                                            get_owner()->get_name(),
                                             err.what() )
             success = false;
         }

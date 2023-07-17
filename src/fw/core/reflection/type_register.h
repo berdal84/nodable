@@ -2,7 +2,7 @@
 
 #include <string>
 #include <map>
-#include <type_traits>
+#include <typeindex>
 
 #include "core/log.h"
 
@@ -16,11 +16,11 @@ namespace fw
     class type_register
     {
     public:
-        static std::map<size_t, type>& by_hash();
-        static type get(size_t _hash);
+        static std::map<std::type_index, const type*>& by_index();
+        static const type* get(std::type_index);
         static bool has(type);
-        static bool has(size_t _hash_code);
-        static void insert(type);
+        static bool has(std::type_index);
+        static void insert(type*);
         static void log_statistics();
     };
 } // namespace headless

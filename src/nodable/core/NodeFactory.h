@@ -29,8 +29,8 @@ namespace ndbl
 
         Node*                       new_program()const override ;
         InstructionNode*            new_instr()const override ;
-        VariableNode*				new_variable(fw::type, const std::string&, IScope *)const override ;
-        LiteralNode*                new_literal(fw::type)const override ;
+        VariableNode*				new_variable(const fw::type *, const std::string&, IScope *)const override ;
+        LiteralNode*                new_literal(const fw::type *)const override ;
         Node*                       new_abstract_function(const fw::func_type*, bool _is_operator)const override;
         Node*                       new_function(const fw::iinvokable*, bool _is_operator)const override ;
         Node*                       new_scope()const override ;

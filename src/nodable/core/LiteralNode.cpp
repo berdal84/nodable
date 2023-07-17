@@ -7,7 +7,7 @@ REGISTER
     fw::registration::push_class<LiteralNode>("LiteralNode").extends<Node>();
 }
 
-LiteralNode::LiteralNode(fw::type _type) : Node()
+LiteralNode::LiteralNode(const fw::type* _type) : Node()
 {
     Property::Flags flags = Property::Flags_initialize
                         | Property::Flags_define

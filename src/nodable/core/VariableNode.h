@@ -22,7 +22,7 @@ namespace ndbl
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(const fw::type&, const char*identifier);
+		explicit VariableNode(const fw::type *, const char*identifier);
 		~VariableNode() override = default;
 
         /** Check if variable is declared (could be only a reference to an undeclared variable) */

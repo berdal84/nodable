@@ -48,7 +48,7 @@ namespace ndbl
         const assembly::Code*            m_asm_code;
         VirtualMachine             m_virtual_machine;
         bool                       m_auto_completion = false;
-        void log_function_call(const fw::variant &result, const fw::func_type &type) const;
+        void log_function_call(const fw::variant &result, const fw::func_type *type) const;
 
     };
 }

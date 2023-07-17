@@ -67,13 +67,12 @@ void CLI::update()
     }
 
     // get static function from user input
-    fw::type api = fw::type::get<CLI>();
-    if( auto static_fct = api.get_static(input) )
+    const fw::type* cli_type = fw::type::get<CLI>();
+    if( auto static_fct = cli_type->get_static(input) )
     {
         try
         {
-            // invoke the function
-            fw::variant result = (*static_fct)();
+            fw::variant result = static_fct->invoke();
             log_function_call(result, static_fct->get_type());
         }
         catch (std::runtime_error e )
@@ -84,12 +83,12 @@ void CLI::update()
     }
 
     // no static found earlier, we try to get a method from user input
-    if( auto method = api.get_method(input) )
+    if( auto method = cli_type->get_method(input) )
     {
         try
         {
             // then we invoke it
-            fw::variant result = (*method)((void *) this);
+            fw::variant result = method->invoke((void*)this);
             log_function_call(result, method->get_type());
         }
         catch (std::runtime_error e )
@@ -102,7 +101,15 @@ void CLI::update()
     // try to eval (parse, compile and run).
     m_language.parse(input, &m_graph) && compile() && run();
 }
-void CLI::log_function_call(const fw::variant &result, const fw::func_type &type) const {LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n", type.get_identifier().c_str(), result.is_defined() ? result.convert_to<std::string>().c_str() : "void")}
+
+void CLI::log_function_call(const fw::variant &result, const fw::func_type *type) const
+{
+    LOG_MESSAGE("CLI",
+                "CLI::%s() done (result: %s)\n",
+                type->get_identifier().c_str(),
+                result.is_defined() ? result.convert_to<std::string>().c_str() : "void"
+                )
+}
 
 std::string CLI::get_word() const
 {
@@ -194,22 +201,22 @@ void CLI::help()
 {
     std::vector<std::string> command_names;
 
-    fw::type api = fw::type::get<CLI>();
+    const fw::type* cli_type = fw::type::get<CLI>();
 
-    for(auto each : api.get_static_methods() )
+    for ( auto static_method_type : cli_type->get_static_methods() )
     {
-        command_names.push_back( each->get_type().get_identifier() + " (static)" );
+        command_names.push_back(static_method_type->get_type()->get_identifier() + " (static)" );
     }
 
-    for(auto each : api.get_methods() )
+    for ( auto method_type : cli_type->get_methods() )
     {
-        command_names.push_back( each->get_type().get_identifier());
+        command_names.push_back(method_type->get_type()->get_identifier());
     }
 
     std::sort(command_names.begin(), command_names.end());
 
     std::cout << "Command list:" << std::endl;
-    for(auto each : command_names )
+    for ( auto each : command_names )
     {
         std::cout << "  o " << each << std::endl;
     }

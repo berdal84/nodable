@@ -28,11 +28,11 @@ bool DataAccess::update()
 	{
 		writer.Key(_value->get_name().c_str());
 
-    	fw::type t = _value->get_type();
+    	const fw::type* property_type = _value->get_type();
 
-    	     if ( t == fw::type::get<std::string>() ) writer.String(((const char*)*_value));
-        else if ( t == fw::type::get<double>() )      writer.Double((double)*_value);
-        else if ( t == fw::type::get<bool>() )        writer.Double((bool)*_value);
+    	     if (property_type->is<std::string>() ) writer.String(((const char*)*_value));
+        else if (property_type->is<double>() )      writer.Double((double)*_value);
+        else if (property_type->is<bool>() )        writer.Double((bool)*_value);
     	else                                         writer.Null();
 	};
 
@@ -63,7 +63,7 @@ bool DataAccess::update()
     	{
 		    for(const auto& [hash, component] : m_owner->components())
 		    {
-		    	writer.Key(component->get_type().get_name());
+		    	writer.Key(component->get_type()->get_name());
 		    	writer.StartObject();
 
 		    	// TODO: Save component: how to?
