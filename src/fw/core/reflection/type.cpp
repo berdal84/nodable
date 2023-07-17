@@ -39,15 +39,11 @@ bool type::is_implicitly_convertible(const type* _src, const type* _dst )
     {
         return false;
     }
-    else if (_src->m_index == _dst->m_index )
-    {
-        return true;
-    }
-    else if (_src->m_primitive_index == _dst->m_primitive_index)
-    {
-        return true;
-    }
-    else if (_src->m_is_pointer && _dst->m_is_pointer)
+    else if (
+        (_src->equals(_dst))
+        ||
+        (_src->m_is_pointer && _dst->m_is_pointer && _src->m_primitive_index == _dst->m_primitive_index)
+    )
     {
         return true;
     }
