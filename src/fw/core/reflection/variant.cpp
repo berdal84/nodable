@@ -184,8 +184,6 @@ void variant::reset_value()
 
 void variant::ensure_is_initialized(bool _initialize)
 {
-    FW_EXPECT(m_type != type::null(), "Variant: cannot ensure is_initialised(...) because type is null!");
-
     if(_initialize == m_is_initialized) return;
 
     if ( _initialize )
