@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <cstring> // for memcpy
+#include <memory> // for std::move
 
 #include "types.h"
 

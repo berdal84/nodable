@@ -1,4 +1,5 @@
 #include "Token.h"
+#include <cstring>
 
 using namespace ndbl;
 
@@ -39,20 +40,20 @@ void Token::transfer_prefix_and_suffix_from(Token* source)
     // copy prefix from source
     if( size_t prefix_size = source->prefix_size())
     {
-        strncpy(m_source_buffer, source->buffer(), prefix_size);
+        memcpy(m_source_buffer, source->buffer(), prefix_size);
         m_word_start_pos = prefix_size;
     }
 
     // reassign word
     if( m_word_size )
     {
-        strncpy(word(), word_copy.data(), m_word_size);
+        memcpy(word(), word_copy.data(), m_word_size);
     }
 
     // copy suffix from source
     if( size_t suffix_size = source->suffix_size())
     {
-        strncpy(suffix(), source->suffix(), suffix_size);
+        memcpy(suffix(), source->suffix(), suffix_size);
     }
 
     // Remove prefix and suffix on the source
@@ -84,3 +85,39 @@ void Token::set_source_buffer(char *_buffer, size_t pos, size_t size)
     m_buffer_start_pos = m_word_start_pos = pos;
     m_buffer_size = m_word_size = size;
 }
+
+std::string Token::prefix_to_string()const
+{
+    if( has_buffer() )
+    {
+        return std::string{ prefix(), prefix_size()};
+    }
+    return {};
+}
+
+std::string Token::word_to_string()const
+{
+    if( has_buffer() )
+    {
+        return std::string{ word(), m_word_size};
+    }
+    return {};
+}
+
+std::string Token::suffix_to_string()const
+{
+    if( has_buffer() )
+    {
+        return std::string{ suffix(), suffix_size()};
+    }
+    return {};
+}
+
+std::string Token::buffer_to_string() const
+{
+    if (has_buffer())
+    {
+        return { buffer(), m_buffer_size };
+    }
+    return {};
+};

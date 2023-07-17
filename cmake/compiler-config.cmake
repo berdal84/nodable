@@ -29,6 +29,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 # with other compilers)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
 
-if(MSVC)
-    add_compile_definitions(NOMINMAX) # avoid macros min/max causing std::min / std::max conflicts
+if(WIN32)
+    add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions
 endif()

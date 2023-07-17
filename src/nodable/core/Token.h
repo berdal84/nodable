@@ -4,7 +4,9 @@
 #include <utility>
 #include <vector>
 #include <memory>
+#include <cstring>
 
+#include "fw/core/string.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/assertions.h"
 #include "Token_t.h"
@@ -55,8 +57,8 @@ namespace ndbl
             : Token(_type)
         {
             m_buffer_size = strlen(_word);
-            m_source_buffer = new char[m_buffer_size];
-            strncpy(m_source_buffer, _word, m_buffer_size);
+            m_source_buffer = new char[m_buffer_size+1];
+            memcpy(m_source_buffer, _word, m_buffer_size);
             m_is_source_buffer_owned = true;
             m_word_size = m_buffer_size;
         }
@@ -83,7 +85,14 @@ namespace ndbl
               char* const _buffer,
               size_t _buffer_start_pos,
               size_t _buffer_size
-        ): Token(_type, _buffer, _buffer_start_pos, _buffer_size, _buffer_start_pos, _buffer_size)
+        ): Token(
+            _type, 
+            _buffer, 
+            _buffer_start_pos, 
+            _buffer_size, 
+            _buffer_start_pos, 
+            _buffer_size
+            )
         {}
 
         Token(const Token& other)
@@ -101,14 +110,11 @@ namespace ndbl
             if( m_is_source_buffer_owned ) delete[] m_source_buffer;
         };
         void clear();
-        inline std::string buffer_to_string() const {
-            if (buffer() == nullptr) return {};
-            return { buffer(), m_buffer_size };
-        };
         inline bool has_buffer()const { return m_source_buffer != nullptr; }
-        inline std::string prefix_to_string()const { return has_buffer() ? std::string{ prefix(), prefix_size()} : ""; }
-        inline std::string word_to_string()const { return has_buffer() ? std::string{ word(), m_word_size} : ""; }
-        inline std::string suffix_to_string()const { return has_buffer() ? std::string{ suffix(), suffix_size()} : ""; }
+        std::string buffer_to_string() const;
+        std::string prefix_to_string()const;
+        std::string word_to_string()const;
+        std::string suffix_to_string()const;
         inline char* buffer() const { return m_source_buffer + m_buffer_start_pos; }
         inline char* prefix() const { return buffer(); }
         inline char* word() const { return m_source_buffer + m_word_start_pos; };
