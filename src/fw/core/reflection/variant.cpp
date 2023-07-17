@@ -1,18 +1,11 @@
-#include <zconf.h>
 #include "variant.h"
-
-#include "core/log.h"
-#include "core/types.h"
 #include "core/format.h"
 
 using namespace fw;
 
 variant::~variant()
 {
-    if( m_is_initialized)
-    {
-        ensure_is_initialized(false);
-    }
+    ensure_is_initialized(false);
 }
 
 
