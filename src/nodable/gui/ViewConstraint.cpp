@@ -248,8 +248,8 @@ void ViewConstraint::draw_view()
     if( ImGui::TreeNode(m_name) )
     {
         ImGui::Text("Type:     %s", to_string(m_type));
-        ImGui::Text("Drivers:  %lu", m_drivers.size());
-        ImGui::Text("Targets:  %lu", m_targets.size());
+        ImGui::Text("Drivers:  %zu", m_drivers.size());
+        ImGui::Text("Targets:  %zu", m_targets.size());
         ImGui::Checkbox("Enable", &m_is_enable);
         ImGui::TreePop();
     }

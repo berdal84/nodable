@@ -68,3 +68,4 @@ _screenshots/
 .gitconfig
 /cmake-build-linux_relwithdebinfo/
 /cmake-build-linux_debug/
+.cache
