@@ -6,10 +6,10 @@
 #include <memory>
 #include <exception>
 
+#include "core/VariableNode.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/system.h"
 
-#include "core/ForLoopNode.h"
 #include "core/Token.h"
 #include "core/TokenRibbon.h"
 
@@ -22,6 +22,11 @@ namespace ndbl{
     class InstructionNode;
     class InvokableComponent;
     class Scope;
+    class WhileLoopNode;
+    class Graph;
+    class Node;
+    class Property;
+    class VariableNode;
 
 	/**
 	 * @class Nodlang is Nodable's language.
@@ -42,7 +47,7 @@ namespace ndbl{
     public:
         bool                   tokenize(const std::string& _string);                 // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
         bool                   tokenize(char* buffer, size_t buffer_size);           // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
-        bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
+        bool                   parse(const std::string& _in, Graph *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                  parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                  parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor); }
         Node*                  parse_scope();                                         // Try to parse a scope.
@@ -50,7 +55,8 @@ namespace ndbl{
         Property *             parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
         IScope*                parse_code_block(bool _create_scope);                  // Try to parse a code block with the option to create a scope or not (reusing the current one).
         ConditionalStructNode* parse_conditional_structure();                         // Try to parse a conditional structure (if/else if/.else) recursively.
-        ForLoopNode*           parse_for_loop();                                      // Try to parse a "for" loop.
+        ForLoopNode*           parse_for_loop();                                      // Try to parse a "for loop".
+        WhileLoopNode*         parse_while_loop();                                    // Try to parse a "while loop".
         Node*                  parse_program();                                       // Try to parse an entire program.
         Property *             parse_function_call();                                 // Try to parse a function call.
         Property *             parse_parenthesis_expression();                        // Try to parse a parenthesis expression.
@@ -86,9 +92,9 @@ namespace ndbl{
                 char* buffer;         // input, owned
                 size_t size;
             } source;
-            TokenRibbon ribbon;
-            GraphNode*  graph;        // output, not owned
-            std::stack<Scope*> scope; // nested scopes
+            TokenRibbon        ribbon;
+            Graph*             graph;  // output, not owned
+            std::stack<Scope*> scope;  // nested scopes
 
             ParserState()
                 : graph(nullptr)

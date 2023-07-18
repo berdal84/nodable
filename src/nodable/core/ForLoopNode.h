@@ -24,8 +24,6 @@ namespace ndbl
 
         Token token_for;
 
-        // TODO: create IIterativeStruct to reuse for a future "while" node.
-
         Property *       get_init_expr()const { return m_props.get(k_interative_init_property_name); }
         Property *       get_iter_expr()const { return m_props.get(k_interative_iter_property_name); }
         InstructionNode* get_iter_instr()const { return m_iter_instr_node; }

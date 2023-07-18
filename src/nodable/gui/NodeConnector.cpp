@@ -1,6 +1,6 @@
 #include "NodeConnector.h"
 
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/Node.h"
 
 #include "Config.h"

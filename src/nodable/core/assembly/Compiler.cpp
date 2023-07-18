@@ -9,7 +9,7 @@
 
 #include "core/ConditionalStructNode.h"
 #include "core/ForLoopNode.h"
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/IConditionalStruct.h"
 #include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
@@ -31,7 +31,7 @@ Instruction* Code::push_instr(Instruction_t _type)
     return instr;
 }
 
-bool assembly::Compiler::is_syntax_tree_valid(const GraphNode* _graph)
+bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
 {
     if( _graph->is_empty()) return false;
 
@@ -310,7 +310,7 @@ void assembly::Compiler::compile(const InstructionNode *instr_node)
     }
 }
 
-const Code* assembly::Compiler::compile_syntax_tree(const GraphNode* _graph)
+const Code* assembly::Compiler::compile_syntax_tree(const Graph* _graph)
 {
     if (is_syntax_tree_valid(_graph))
     {

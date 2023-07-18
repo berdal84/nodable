@@ -1,6 +1,6 @@
 #include "FileView.h"
 
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/Node.h"
 #include "core/VirtualMachine.h"
 #include "core/language/Nodlang.h"
@@ -9,7 +9,7 @@
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
 #include "Event.h"
 #include "File.h"
-#include "GraphNodeView.h"
+#include "GraphView.h"
 #include "NodeView.h"
 #include "Config.h"
 
@@ -27,7 +27,7 @@ FileView::FileView(File& _file)
     , m_text_overlay_window_name(_file.name + "_text_overlay" )
     , m_graph_overlay_window_name(_file.name + "_graph_overlay" )
 {
-    m_graph_change_obs.observe(_file.event_graph_changed, [this](GraphNode* _graph)
+    m_graph_change_obs.observe(_file.event_graph_changed, [this](Graph* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )
@@ -36,7 +36,7 @@ FileView::FileView(File& _file)
             Node* root = _graph->get_root();
 
             NodeView* root_node_view = root->get_component<NodeView>();
-            GraphNodeView* graph_view = root->get_parent_graph()->get_component<GraphNodeView>();
+            GraphView* graph_view = m_file.get_graph_view();
 
             // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
@@ -160,20 +160,20 @@ bool FileView::draw_implem()
      // NODE EDITOR
     //-------------
 
-    GraphNode* graph = m_file.get_graph();
+    Graph*     graph      = m_file.get_graph();
+    GraphView* graph_view = m_file.get_graph_view();
     FW_ASSERT(graph);
-    GraphNodeView* graph_node_view = graph->get_component<GraphNodeView>();
     ImGui::SameLine();
-    if ( graph_node_view )
+    if ( m_file.get_graph_view() )
     {
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        graph_node_view->update();
+        graph_view->update();
         ImVec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
 
         ImGui::BeginChild("graph", graph_editor_size, false, flags);
         {
-            bool changed = graph_node_view->draw();
+            bool changed = graph_view->draw();
             if( changed )
             {
                 graph->set_dirty();

@@ -9,6 +9,7 @@
 #include "Nodlang.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <memory>
 #include <sstream>
 #include <string>
@@ -22,13 +23,15 @@
 #include "core/ConditionalStructNode.h"
 #include "core/DirectedEdge.h"
 #include "core/ForLoopNode.h"
-#include "core/GraphNode.h"
+#include "core/WhileLoopNode.h"
+#include "core/Graph.h"
 #include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "core/Property.h"
 #include "core/Scope.h"
 #include "core/VariableNode.h"
+#include "core/WhileLoopNode.h"
 #include "core/language/Nodlang_biology.h"
 #include "core/language/Nodlang_math.h"
 
@@ -157,7 +160,7 @@ void Nodlang::commit_transaction()
     parser_state.ribbon.transaction_commit();
 }
 
-bool Nodlang::parse(const std::string &_source_code, GraphNode *_graphNode)
+bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
 {
     using namespace std::chrono;
     high_resolution_clock::time_point parse_begin = high_resolution_clock::now();
@@ -1323,6 +1326,65 @@ ForLoopNode *Nodlang::parse_for_loop()
     }
 
     return for_loop_node;
+}
+
+WhileLoopNode *Nodlang::parse_while_loop()
+{
+    bool success = false;
+    WhileLoopNode *while_loop_node = nullptr;
+    start_transaction();
+
+    Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while);
+
+    if (!token_while.is_null())
+    {
+        while_loop_node = parser_state.graph->create_while_loop();
+        parser_state.graph->connect({while_loop_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
+        parser_state.scope.push(while_loop_node->get_component<Scope>());
+
+        while_loop_node->token_while = token_while;
+
+        LOG_VERBOSE("Parser", "parse WHILE (...) { /* block */ }\n")
+        Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
+        if (open_bracket.is_null())
+        {
+            LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n")
+        }
+        else if( InstructionNode* cond_instr = parse_instr())
+        {
+            cond_instr->set_name("Condition");
+            parser_state.graph->connect(cond_instr->get_this_property(), while_loop_node->condition_property());
+            while_loop_node->set_cond_expr(cond_instr);
+
+            Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
+            if (close_bracket.is_null())
+            {
+                LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n")
+            }
+            else if (!parse_scope())
+            {
+                LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n")
+            }
+            else
+            {
+                success = true;
+            }
+        }
+        parser_state.scope.pop();
+    }
+
+    if (success)
+    {
+        commit_transaction();
+        return while_loop_node;
+    }
+
+    rollback_transaction();
+    if (while_loop_node)
+    {
+        parser_state.graph->destroy(while_loop_node);
+    }
+    return nullptr;
 }
 
 Property *Nodlang::parse_variable_declaration()

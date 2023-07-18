@@ -11,6 +11,7 @@
 #include "Scope.h"
 #include "ConditionalStructNode.h"
 #include "ForLoopNode.h"
+#include "WhileLoopNode.h"
 
 using namespace ndbl;
 
@@ -165,16 +166,29 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
 ForLoopNode* NodeFactory::new_for_loop_node() const
 {
     auto for_loop = new ForLoopNode();
-    for_loop->set_name("For loop_count");
-
+    
+    for_loop->set_name("For");
     for_loop->predecessors().set_limit(std::numeric_limits<int>::max());
     for_loop->successors().set_limit(1);
-
     for_loop->add_component<Scope>();
 
     m_post_process(for_loop);
 
     return for_loop;
+}
+
+WhileLoopNode* NodeFactory::new_while_loop_node() const
+{
+    auto while_loop = new WhileLoopNode();
+
+    while_loop->set_name("While");
+    while_loop->predecessors().set_limit(std::numeric_limits<int>::max());
+    while_loop->successors().set_limit(1);
+    while_loop->add_component<Scope>();
+
+    m_post_process(while_loop);
+
+    return while_loop;
 }
 
 Node* NodeFactory::new_program() const

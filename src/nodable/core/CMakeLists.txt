@@ -10,7 +10,7 @@ add_library(
         DataAccess.cpp
         DirectedEdge.cpp
         ForLoopNode.cpp
-        GraphNode.cpp
+        Graph.cpp
         InstructionNode.cpp
         InvokableComponent.cpp
         LiteralNode.cpp
@@ -24,6 +24,7 @@ add_library(
         VariableNode.cpp
         VirtualMachine.cpp
         Way.cpp
+        WhileLoopNode.cpp
         assembly/Code.cpp
         assembly/Compiler.cpp
         assembly/Instruction.cpp

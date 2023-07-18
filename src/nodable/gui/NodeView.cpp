@@ -7,7 +7,7 @@
 #include "fw/core/math.h"
 #include "fw/core/reflection/registration.h"
 
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "core/Scope.h"
@@ -958,7 +958,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 std::string parentName = "NULL";
 
                 if (node->get_parent_graph()) {
-                    parentName = node->get_parent_graph()->get_name();
+                    parentName = "Graph";
                     parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
 
                 }

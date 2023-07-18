@@ -21,7 +21,8 @@ namespace ndbl
 {
     // forward declarations
     class Node;
-    class GraphNode;
+    class Graph;
+    class GraphView;
     class History;
 
 	class File
@@ -31,12 +32,13 @@ namespace ndbl
 		explicit File(const ghc::filesystem::path& _path);
         ~File();
 
-        observe::Event<GraphNode*> event_graph_changed;
+        observe::Event<Graph*> event_graph_changed;
 
         bool load();
         bool                             write_to_disk();
         bool                             update();
-        inline GraphNode*                get_graph() { return m_graph; }
+        inline Graph*                    get_graph() { return m_graph; }
+        inline GraphView*                get_graph_view() { return m_graph_view; }
         inline History*                  get_history() { return &m_history; }
         bool                             update_graph();
         bool                             update_graph(std::string &_expression);
@@ -47,6 +49,7 @@ namespace ndbl
     private:
 		const NodeFactory          m_factory;
 		History                    m_history;
-		GraphNode*                 m_graph;
+		Graph*                     m_graph;
+        GraphView*                 m_graph_view;
     };
 }

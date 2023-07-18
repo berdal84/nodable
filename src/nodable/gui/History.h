@@ -10,7 +10,7 @@
 #include "fw/core/reflection/reflection"
 
 #include "core/Component.h"
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/Property.h"
 
 #include "Command.h"

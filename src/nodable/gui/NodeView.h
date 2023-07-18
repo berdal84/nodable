@@ -19,7 +19,7 @@ namespace ndbl
 {
     // forward declaration
     class Node;
-    class GraphNode;
+    class Graph;
     class NodeView;
     class PropertyView;
     class PropertyConnector;

@@ -12,7 +12,7 @@
 #include "gui/Event.h"
 #include "gui/File.h"
 #include "gui/FileView.h"
-#include "gui/GraphNodeView.h"
+#include "gui/GraphView.h"
 #include "gui/NodeConnector.h"
 #include "gui/NodeView.h"
 #include "gui/PropertyConnector.h"
@@ -205,10 +205,9 @@ void Nodable::on_update()
 
     // Nodable events ( SDL_ API inspired, but with custom events)
     ndbl::Event event{};
-    NodeView*      selected_view = NodeView::get_selected();
-    GraphNodeView* graph_view    = current_file ?
-                                   current_file->get_graph()->get_component<GraphNodeView>() : nullptr;
-    History* curr_file_history   = current_file ? current_file->get_history() : nullptr;
+    NodeView*  selected_view = NodeView::get_selected();
+    GraphView* graph_view          = current_file ? current_file->get_graph_view() : nullptr;
+    History*   curr_file_history   = current_file ? current_file->get_history() : nullptr;
 
     while(event_manager.poll_event((fw::Event&)event) )
     {
@@ -556,7 +555,7 @@ bool Nodable::compile_and_load_program()
 {
     if ( current_file )
     {
-        const GraphNode* graph = current_file->get_graph();
+        const Graph* graph = current_file->get_graph();
 
         if (graph)
         {

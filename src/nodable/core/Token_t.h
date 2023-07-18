@@ -10,14 +10,15 @@ namespace ndbl {
      *     "bool" => Token_t::keyword_bool
      *     "100"  => Token_t::literal_int
      */
-	enum class Token_t: int8_t
+	enum class Token_t: i8_t
 	{
-        null, // to say 'absence of token', not token 'NULL'
+        null = 0, // to say 'absence of token', not token 'NULL'
 
         ignore ,
         keyword_if,
         keyword_else,
         keyword_for,
+        keyword_while,
         keyword_operator,
         keyword_string,
         keyword_double,
