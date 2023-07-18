@@ -44,6 +44,6 @@ namespace ndbl
         const fw::iinvokable*      m_invokable;
         const bool                 m_is_operator;
 
-        REFLECT_DERIVED_CLASS(Component)
+        REFLECT_DERIVED_CLASS()
 	};
 }

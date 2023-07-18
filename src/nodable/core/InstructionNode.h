@@ -25,6 +25,6 @@ namespace ndbl
         Token token_end;
         inline Property * get_root_node_property()const { return m_props.get(k_value_property_name); }
     private:
-        REFLECT_DERIVED_CLASS(Node)
+        REFLECT_DERIVED_CLASS()
     };
 }

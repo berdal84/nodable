@@ -65,6 +65,7 @@ Nodlang::Nodlang(bool _strict)
     {
          { "if",   Token_t::keyword_if },
          { "for",  Token_t::keyword_for },
+         { "while",  Token_t::keyword_while },
          { "else", Token_t::keyword_else },
          { "true", Token_t::literal_bool },
          { "false",    Token_t::literal_bool },
@@ -685,7 +686,11 @@ IScope *Nodlang::parse_code_block(bool _create_scope)
         {
             parser_state.graph->connect({instr_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
         }
-        else if (parse_conditional_structure() || parse_for_loop() || parse_scope())
+        else if (
+            parse_conditional_structure() ||
+            parse_for_loop() ||
+            parse_while_loop() ||
+            parse_scope())
         {}
         else
         {
@@ -1682,6 +1687,10 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     {
         serialize(_out, _node->as<ForLoopNode>());
     }
+    else if (type->is_child_of<WhileLoopNode>())
+    {
+        serialize(_out, _node->as<WhileLoopNode>());
+    }
     else if (_node->has_component<Scope>())
     {
         serialize(_out, _node->get_component<Scope>());
@@ -1720,6 +1729,8 @@ std::string &Nodlang::serialize(std::string &_out, const Scope *_scope) const
 
 std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instruction) const
 {
+    FW_EXPECT(_instruction != nullptr, "IntructionNode should NOT be nullptr");
+
     const Property *root_node_property = _instruction->get_root_node_property();
 
     if (root_node_property->has_input_connected() && root_node_property->get_variant()->is_initialized())
@@ -1754,12 +1765,22 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     if (input && input->get_owner()->get_type()->is_child_of<VariableNode>())
     {
         serialize(_out, input->get_owner()->as<VariableNode>());
-    } else
-    {
-        serialize(_out, _for_loop->get_init_instr());
     }
-    serialize(_out, _for_loop->get_cond_expr());
-    serialize(_out, _for_loop->get_iter_instr());
+    else if (const InstructionNode* init_instr = _for_loop->get_init_instr())
+    {
+        serialize(_out, init_instr);
+    }
+
+    if(const InstructionNode* condition = _for_loop->get_cond_expr())
+    {
+        serialize(_out, condition);
+    }
+
+    if(const Property* iter_instr = _for_loop->get_iter_expr())
+    {
+        serialize(_out, iter_instr);
+    }
+
     serialize(_out, Token_t::parenthesis_close);
 
     // if scope
@@ -1771,12 +1792,36 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     return _out;
 }
 
+std::string &Nodlang::serialize(std::string &_out, const WhileLoopNode* _while_loop_node) const
+{
+
+    serialize(_out, _while_loop_node->token_while);
+    serialize(_out, Token_t::parenthesis_open);
+    if(const InstructionNode* condition = _while_loop_node->get_cond_expr())
+    {
+        serialize(_out, condition);
+    }
+    serialize(_out, Token_t::parenthesis_close);
+
+    // if scope
+    if (auto *scope = _while_loop_node->get_condition_true_scope())
+    {
+        serialize(_out, scope);
+    }
+
+    return _out;
+}
+
+
 std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *_condStruct) const
 {
     // if ( <condition> )
     serialize(_out, _condStruct->token_if);
     serialize(_out, Token_t::parenthesis_open);
-    serialize(_out, _condStruct->get_cond_expr());
+    if ( const InstructionNode* condition = _condStruct->get_cond_expr() )
+    {
+        serialize(_out, condition);
+    }
     serialize(_out, Token_t::parenthesis_close);
 
     // if scope
@@ -2003,4 +2048,42 @@ Nodlang& Nodlang::get_instance()
 {
     static Nodlang instance;
     return instance;
+}
+
+Nodlang::ParserState::ParserState()
+    : graph(nullptr)
+    , source({nullptr, 0})
+{}
+
+Nodlang::ParserState::~ParserState()
+{
+    delete[] source.buffer;
+}
+
+void Nodlang::ParserState::set_source_buffer(const char *str, size_t size)
+{
+    FW_ASSERT(source.buffer == nullptr); // should call clear() before
+    FW_ASSERT(str != nullptr);
+
+    if( size != 0 )
+    {
+        LOG_VERBOSE("ParserState", "Copying source buffer (%i bytes) ...\n", size);
+        source.buffer = new char[size];
+        memcpy(source.buffer, str, size);
+    }
+    source.size = size;
+    ribbon.set_source_buffer(source.buffer);
+}
+
+void Nodlang::ParserState::clear()
+{
+    graph = nullptr;
+    ribbon.clear();
+    delete[] source.buffer;
+    source.buffer = nullptr;
+    source.size = 0;
+    while(!scope.empty())
+    {
+        scope.pop();
+    }
 }

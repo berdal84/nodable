@@ -96,40 +96,10 @@ namespace ndbl{
             Graph*             graph;  // output, not owned
             std::stack<Scope*> scope;  // nested scopes
 
-            ParserState()
-                : graph(nullptr)
-                , source({nullptr, 0})
-            {}
-            ~ParserState()
-            {
-                delete[] source.buffer;
-            }
-            void set_source_buffer(const char* str, size_t size)
-            {
-                FW_ASSERT(source.buffer == nullptr); // should call clear() before
-                FW_ASSERT(str != nullptr);
-
-                if( size != 0 )
-                {
-                    LOG_VERBOSE("ParserState", "Copying source buffer (%i bytes) ...\n", size);
-                    source.buffer = new char[size];
-                    memcpy(source.buffer, str, size);
-                }
-                source.size = size;
-                ribbon.set_source_buffer(source.buffer);
-            }
-            void clear()
-            {
-                graph = nullptr;
-                ribbon.clear();
-                delete[] source.buffer;
-                source.buffer = nullptr;
-                source.size = 0;
-                while(!scope.empty())
-                {
-                    scope.pop();
-                }
-            }
+            ParserState();
+            ~ParserState();
+            void set_source_buffer(const char* str, size_t size);
+            void clear();
         } parser_state;
 
     private: bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared symbol is rejected. When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
@@ -146,10 +116,11 @@ namespace ndbl{
         std::string&           serialize(std::string& _out, const InstructionNode*)const;
         std::string&           serialize(std::string& _out, const Node*)const;
         std::string&           serialize(std::string& _out, const Scope*)const;
-        std::string&           serialize(std::string& _out, const ForLoopNode* _for_loop)const;
+        std::string&           serialize(std::string& _out, const ForLoopNode*)const;
+        std::string&           serialize(std::string& _out, const WhileLoopNode*)const;
         std::string&           serialize(std::string& _out, const ConditionalStructNode*) const;
-        std::string&           serialize(std::string& _out, const fw::variant* variant) const;
-        std::string&           serialize(std::string& _out, const VariableNode *_node) const;    // serialize a variable (declared or not)
+        std::string&           serialize(std::string& _out, const fw::variant*) const;
+        std::string&           serialize(std::string& _out, const VariableNode*) const;    // serialize a variable (declared or not)
 
         // Language definition -------------------------------------------------------------------------
     public:

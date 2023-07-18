@@ -25,7 +25,7 @@ public:
     Nodlang             nodlang;
     const NodeFactory   factory;
     bool                autocompletion = false;
-    GraphNode           graph;
+    Graph               graph;
     assembly::Compiler  compiler;
     VirtualMachine      virtual_machine;
 

@@ -44,6 +44,6 @@ namespace ndbl
         InstructionNode* m_cond_instr_node;
         InstructionNode* m_iter_instr_node;
 
-        REFLECT_DERIVED_CLASS(Node, IConditionalStruct)
+        REFLECT_DERIVED_CLASS()
     };
 }

@@ -54,7 +54,7 @@ File::File(std::string _name)
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
           }
-          else if (_node->is<ConditionalStructNode>() || _node->is<ForLoopNode>())
+          else if (_node->get_type()->is_child_of<IConditionalStruct>())
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_condStructColor);
           }

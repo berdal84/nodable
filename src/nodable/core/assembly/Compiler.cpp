@@ -9,6 +9,7 @@
 
 #include "core/ConditionalStructNode.h"
 #include "core/ForLoopNode.h"
+#include "core/WhileLoopNode.h"
 #include "core/Graph.h"
 #include "core/IConditionalStruct.h"
 #include "core/InstructionNode.h"
@@ -158,6 +159,10 @@ void assembly::Compiler::compile(const Node* _node)
         {
             compile(for_loop);
         }
+        else if ( const auto* while_loop = _node->as<WhileLoopNode>())
+        {
+            compile(while_loop);
+        }
         else if ( const auto* cond_struct_node = _node->as<ConditionalStructNode>())
         {
             compile(cond_struct_node);
@@ -220,6 +225,29 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
         compile(for_loop->get_iter_instr());
 
         // insert jump to condition instructions.
+        auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
+        loop_jump->jmp.offset = math::signed_diff(condition_instr_line, loop_jump->line);
+        loop_jump->m_comment  = "jump back to for";
+    }
+
+    skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
+}
+
+void assembly::Compiler::compile(const WhileLoopNode*while_loop)
+{
+    // compile condition and memorise its position
+    u64_t condition_instr_line = m_temp_code->get_next_index();
+    compile_as_condition(while_loop->get_cond_expr());
+
+    // jump if condition is not true
+    Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
+    skip_true_branch->m_comment = "jump if not equal";
+
+    if ( auto true_scope = while_loop->get_condition_true_scope() )
+    {
+        compile(true_scope);
+
+        // jump back to condition instruction
         auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
         loop_jump->jmp.offset = math::signed_diff(condition_instr_line, loop_jump->line);
         loop_jump->m_comment  = "jump back to for";

@@ -7,6 +7,7 @@ namespace ndbl
     // forward declarations
     class ConditionalStructNode;
     class ForLoopNode;
+    class WhileLoopNode;
     class Graph;
     class InstructionNode;
     class Node;
@@ -30,7 +31,8 @@ namespace assembly
         void compile(const Scope*, bool _insert_fake_return = false);             // Compile a scope recursively, optionally insert a fake return statement (lack of return" keyword").
         void compile(const InstructionNode*);                                     // Compile an instruction (will compile its root recursively).
         void compile_as_condition(const InstructionNode *_instr_node);            // Compile an instruction as a condition.
-        void compile(const ForLoopNode*);                                         // Compile a "for" recursively (initial, condition, iterative instructions and inner scope).
+        void compile(const ForLoopNode*);                                         // Compile a "for loop" recursively (initial, condition, iterative instructions and inner scope).
+        void compile(const WhileLoopNode*);                                       // Compile a "while loop" recursively (initial, condition, iterative instructions and inner scope).
         void compile(const ConditionalStructNode*);                               // Compile an "if/else" recursively.
 
         Code* m_temp_code;  // Store the code being compiled, is released when compilation ends.

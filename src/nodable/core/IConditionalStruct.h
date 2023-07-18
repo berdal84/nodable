@@ -20,6 +20,7 @@ namespace ndbl
         virtual Scope*           get_condition_false_scope()const = 0;     // Get the "false" (else) branch's scope
         virtual void             set_cond_expr(InstructionNode*) = 0;      // Set the condition expression to evaluate
         virtual InstructionNode* get_cond_expr()const = 0;                 // Get the condition expression to evaluate
-    };
 
+        REFLECT_BASE_CLASS()
+    };
 }

@@ -102,7 +102,7 @@ namespace assembly
                 , line(_line)
         {}
 
-        u64_t line;                                          // line index (zero-based position in the code)
+        size_t line;                                        // line index (zero-based position in the code)
 
         // all the possible instructions
         union {

@@ -36,6 +36,6 @@ namespace ndbl
     private:
         InstructionNode* m_cond_expr;  // The instruction to evaluate the condition
 
-        REFLECT_DERIVED_CLASS(Node, IConditionalStruct)
+        REFLECT_DERIVED_CLASS()
     };
 }

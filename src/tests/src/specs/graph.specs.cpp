@@ -3,7 +3,7 @@
 #include "../fixtures/core.h"
 #include "fw/core/reflection/func_type.h"
 #include "nodable/core/DirectedEdge.h"
-#include "nodable/core/GraphNode.h"
+#include "nodable/core/Graph.h"
 #include "nodable/core/InstructionNode.h"
 #include "nodable/core/InvokableComponent.h"
 #include "nodable/core/Node.h"
@@ -14,9 +14,9 @@
 #include "nodable/core/language/Nodlang.h"
 
 using namespace ndbl;
-typedef ::testing::Core Graph;
+typedef ::testing::Core Graph_;
 
-TEST_F(Graph, connect)
+TEST_F(Graph_, connect)
 {
     auto node1   = graph.create_node();
     auto node1_output = node1->props()->add<bool>("output");
@@ -31,7 +31,7 @@ TEST_F(Graph, connect)
     EXPECT_EQ(graph.get_edge_registry().size(), 1);
  }
 
-TEST_F(Graph, disconnect)
+TEST_F(Graph_, disconnect)
 {
     Node* a      = graph.create_node();
     auto  output = a->props()->add<bool>("output");
@@ -52,7 +52,7 @@ TEST_F(Graph, disconnect)
     EXPECT_EQ(b->incoming_edge_count() , 0);
 }
 
-TEST_F(Graph, clear)
+TEST_F(Graph_, clear)
 {
     InstructionNode* instructionNode = graph.create_instr();
     fw::func_type*   fct_type        = fw::func_type_builder<int(int, int)>::with_id("+");
@@ -80,7 +80,7 @@ TEST_F(Graph, clear)
 }
 
 
-TEST_F(Graph, create_and_delete_relations)
+TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
     auto double_type = fw::type::get<double>();

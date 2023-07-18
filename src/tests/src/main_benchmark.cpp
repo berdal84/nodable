@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 #include <random>
 #include "nodable/core/language/Nodlang.h"
-#include "nodable/core/GraphNode.h"
+#include "nodable/core/Graph.h"
 #include "nodable/core/NodeFactory.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/string.h"
