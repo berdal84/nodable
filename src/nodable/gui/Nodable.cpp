@@ -624,32 +624,15 @@ void Nodable::reset_program()
 
 File *Nodable::new_file()
 {
-    // 1. Create the file in memory
+    m_untitled_file_count++;
+    std::string name{"Untitled_"};
+    name.append(std::to_string(m_untitled_file_count));
+    name.append(".cpp");
 
-    // 1.a Determine a unique-ish name
-    const char* basename   = "Untitled";
-    char        name[255];
-    snprintf(name, sizeof(name), "%s.cpp", basename);
-
-    int num = 0;
-    for(auto each_file : m_loaded_files)
-    {
-        if( strcmp( each_file->name.c_str(), name) == 0 )
-        {
-            snprintf(name, sizeof(name), "%s_%i.cpp", basename, ++num);
-        }
-    }
-
-    // 1.b Create instance
     File* file = new File(ghc::filesystem::path{name});
+    // file->set_text( "// " + name);
 
-    // 2. try to open from disk
-    if ( !add_file(file) )
-    {
-        delete file;
-        return nullptr;
-    }
-    return file;
+    return add_file(file);
 }
 
 Nodable &Nodable::get_instance()

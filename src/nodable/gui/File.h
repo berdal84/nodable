@@ -34,7 +34,7 @@ namespace ndbl
 
         observe::Event<Graph*> event_graph_changed;
 
-        bool load();
+        bool                             load();
         bool                             write_to_disk();
         bool                             update();
         inline Graph*                    get_graph() { return m_graph; }
@@ -42,10 +42,12 @@ namespace ndbl
         inline History*                  get_history() { return &m_history; }
         bool                             update_graph();
         bool                             update_graph(std::string &_expression);
+        void                             set_text(const std::string& string);
         ghc::filesystem::path            path;    // file path on disk
         std::string                      name;    // friendly name
         bool                             changed; // true if changes needs to be saved
         FileView                         view;
+
     private:
 		const NodeFactory          m_factory;
 		History                    m_history;

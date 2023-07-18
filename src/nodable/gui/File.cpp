@@ -230,3 +230,8 @@ bool File::load()
 
     return true;
 }
+
+void File::set_text(const std::string& str)
+{
+    view.set_text(str);
+}

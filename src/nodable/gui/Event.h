@@ -8,7 +8,7 @@ namespace ndbl
     class NodeConnector;
     class NodeView;
 
-    enum EventType_
+    enum EventType_: fw::EventType
     {
         EventType_delete_node_action_triggered = fw::EventType_USER_DEFINED, // operation on nodes
         EventType_arrange_node_action_triggered,

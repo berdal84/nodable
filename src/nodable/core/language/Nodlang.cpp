@@ -1795,6 +1795,11 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     {
         serialize(_out, scope);
     }
+    else
+    {
+        // When created manually, no scope is created, we serialize a fake one
+        _out.append("\n{\n}\n");
+    }
 
     return _out;
 }
@@ -1824,6 +1829,11 @@ std::string &Nodlang::serialize(std::string &_out, const WhileLoopNode* _while_l
     if (auto *scope = _while_loop_node->get_condition_true_scope())
     {
         serialize(_out, scope);
+    }
+    else
+    {
+        // When created manually, no scope is created, we serialize a fake one
+        _out.append("\n{\n}\n");
     }
 
     return _out;

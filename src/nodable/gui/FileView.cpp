@@ -47,10 +47,10 @@ FileView::FileView(File& _file)
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 std::vector<NodeView*> views;
                 Node::get_components<NodeView>( _graph->get_node_registry(), views );
-                graph_view->translate_all( ImVec2(-m_screen_space_content_region.GetSize().x, 0.0f) , views);
+                graph_view->translate_all( ImVec2(-1000.f, -1000.0f) , views);
 
-                // frame all (delay to next frame via event system)
-                fw::EventManager::get_instance().push(EventType_frame_all_node_views);
+                // frame all (33ms delayed)
+                fw::EventManager::get_instance().push_async(EventType_frame_all_node_views, 33);
             }
         }
     });

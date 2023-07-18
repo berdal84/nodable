@@ -13,7 +13,7 @@ add_library(
             reflection/qword.cpp
             reflection/type.cpp
             reflection/type_register.cpp
-            reflection/variant.cpp)
+            reflection/variant.cpp async.cpp)
 
 target_link_libraries(
         framework-core

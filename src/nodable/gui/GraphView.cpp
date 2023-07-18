@@ -683,45 +683,61 @@ bool GraphView::update()
 
 void GraphView::frame_all_node_views()
 {
-    std::vector<NodeView*> views;
-    Node::get_components(m_graph->get_node_registry(), views);
-    frame_views( views );
+    const auto root_view = m_graph->get_root()->get_component<NodeView>();
+    std::vector<const NodeView*> views{root_view};
+    // frame the root's view (top-left corner)
+    frame_views(&views, true);
 }
 
 void GraphView::frame_selected_node_views()
 {
-    std::vector<NodeView*> views; // we use a vector to send it to a generic function
+    std::vector<const NodeView*> views; // we use a vector to send it to a generic function
     if( auto selected = NodeView::get_selected())
     {
         views.push_back(selected);
     }
-   frame_views( views );
+    // frame selected node (centered)
+    frame_views(&views, false);
 }
 
-void GraphView::frame_views(std::vector<NodeView*>& _views)
+void GraphView::frame_views(const std::vector<const NodeView*>* _views, bool _align_top_left_corner)
 {
-    if (_views.empty())
+    if (_views->empty())
     {
         LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n")
         return;
     }
+    ImRect screen = m_screen_space_content_region;
 
     // get selection rectangle
-    ImRect rect = NodeView::get_rect(_views);
-    rect.Translate(m_screen_space_content_region.Min); // to screen
-    fw::ImGuiEx::DebugRect( rect.Min, rect.Max, IM_COL32( 0, 255, 0, 127 ), 5.0f );
-    // align m_graph to center
-    fw::ImGuiEx::DebugRect( m_screen_space_content_region.Min, m_screen_space_content_region.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
-    ImVec2 position_delta = m_screen_space_content_region.GetCenter() - rect.GetCenter();
+    ImRect nodes_screen_rect = NodeView::get_rect(_views);
+    nodes_screen_rect.Translate(screen.Min); // convert to screen space
 
-    ImVec2 overflow{rect.GetSize()-m_screen_space_content_region.GetSize()};
-    if (overflow.x > 0) position_delta.x += overflow.x / 2.0f; // Align to top if vertical overflow
-    if (overflow.y > 0) position_delta.y += overflow.y / 2.0f; // Align to left if horizontal overflow
+    // debug
+    fw::ImGuiEx::DebugRect(nodes_screen_rect.Min, nodes_screen_rect.Max, IM_COL32(0, 255, 0, 127 ), 5.0f );
+    fw::ImGuiEx::DebugRect(screen.Min, screen.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
 
-    fw::ImGuiEx::DebugLine( rect.GetCenter(), rect.GetCenter() + position_delta, IM_COL32( 255, 0, 0, 255 ), 20.0f);
+    // align
+    ImVec2 translate_vec;
+    if (_align_top_left_corner)
+    {
+        // Align with the top-left corner
+        nodes_screen_rect.Expand(20.0f); // add a padding to avoid alignment too close from the border
+        translate_vec = screen.GetTL() - nodes_screen_rect.GetTL();
+    }
+    else
+    {
+        // Align the center of the node rectangle with the screen center
+        translate_vec = screen.GetCenter() - nodes_screen_rect.GetCenter();
+    }
+
+    // apply the translation
     std::vector<NodeView*> all_views;
     Node::get_components(m_graph->get_node_registry(), all_views);
-    translate_all(position_delta, all_views);
+    translate_all(translate_vec, all_views);
+
+    // debug
+    fw::ImGuiEx::DebugLine(nodes_screen_rect.GetCenter(), nodes_screen_rect.GetCenter() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
 void GraphView::translate_all(ImVec2 delta, const std::vector<NodeView*>& _views)

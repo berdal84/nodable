@@ -1,7 +1,10 @@
 #include "EventManager.h"
 #include <SDL/include/SDL_keyboard.h>
+#include <future>
+#include <thread>
 #include "core/log.h"
 #include "core/assertions.h"
+#include "core/async.h"
 
 using namespace fw;
 
@@ -62,6 +65,16 @@ EventManager::EventManager()
     FW_EXPECT(!s_instance, "cannot have two instances at a time");
     s_instance = this;
     LOG_VERBOSE("fw::EventManager", "Constructor " OK "\n");
+}
+
+void EventManager::push_async(EventType type, u64_t delay)
+{
+    fw::async::get_instance().add_task(
+        std::async(std::launch::async, [this, type, delay]() -> void {
+            std::this_thread::sleep_for(std::chrono::milliseconds{delay});
+            push(type);
+        })
+    );
 }
 
 

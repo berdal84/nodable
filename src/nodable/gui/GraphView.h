@@ -49,8 +49,7 @@ namespace ndbl
 
     private:
         bool        draw_implem() override ;
-        void        frame_views( std::vector<NodeView*>&);
-        Graph*      get_graph_node() const;
+        void        frame_views(const std::vector<const NodeView *>* _views, bool _align_top_left_corner);
 
         Graph*      m_graph;
         std::vector<ViewConstraint>                  m_child_view_constraints;

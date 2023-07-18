@@ -1029,7 +1029,7 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
     }
 }
 
-ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf)
+ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf) const
 {
     if( !_recursively)
     {
@@ -1136,14 +1136,14 @@ void NodeView::translate_to(ImVec2 desiredPos, float _factor, bool _recurse)
 }
 
 ImRect NodeView::get_rect(
-        const std::vector<NodeView *>& _views,
+        const std::vector<const NodeView*>* _views,
         bool _recursive,
         bool _ignorePinned,
         bool _ignoreMultiConstrained)
 {
     ImRect rect(ImVec2(std::numeric_limits<float>::max()), ImVec2(-std::numeric_limits<float>::max()) );
 
-    for (auto eachView : _views)
+    for (auto eachView : *_views)
     {
         if ( eachView->m_is_visible )
         {
