@@ -86,14 +86,9 @@ bool variant::convert_to<bool>()const
 template<>
 std::string variant::convert_to<std::string>()const
 {
-    if( !m_is_initialized)
+    if( !m_is_initialized || !m_is_defined)
     {
-        return "uninitialized";
-    }
-
-    if(!m_is_defined)
-    {
-        return "undefined";
+        return "";
     }
 
     if(m_type->is<std::string>() )  return *m_data.ptr_std_string;

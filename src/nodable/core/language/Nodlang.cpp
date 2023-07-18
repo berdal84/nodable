@@ -1754,8 +1754,15 @@ std::string &Nodlang::serialize(std::string& _out, const Token& _token) const
 
 std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop) const
 {
+    if( _for_loop->token_for.is_null())
+    {
+        serialize(_out, Token_t::keyword_for);
+    }
+    else
+    {
+        serialize(_out, _for_loop->token_for);
+    }
 
-    serialize(_out, _for_loop->token_for);
     serialize(_out, Token_t::parenthesis_open);
 
     // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
@@ -1795,12 +1802,22 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
 std::string &Nodlang::serialize(std::string &_out, const WhileLoopNode* _while_loop_node) const
 {
 
-    serialize(_out, _while_loop_node->token_while);
+    if( _while_loop_node->token_while.is_null())
+    {
+        serialize(_out, Token_t::keyword_while);
+    }
+    else
+    {
+        serialize(_out, _while_loop_node->token_while);
+    }
+
     serialize(_out, Token_t::parenthesis_open);
+
     if(const InstructionNode* condition = _while_loop_node->get_cond_expr())
     {
         serialize(_out, condition);
     }
+
     serialize(_out, Token_t::parenthesis_close);
 
     // if scope
