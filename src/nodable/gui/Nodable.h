@@ -76,5 +76,6 @@ namespace ndbl
         bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
         static Nodable *   s_instance;
         std::vector<File*> m_loaded_files;
+        u8_t               m_untitled_file_count;
     };
 }

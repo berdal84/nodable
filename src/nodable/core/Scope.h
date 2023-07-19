@@ -28,6 +28,6 @@ namespace ndbl
     private:
         VariableNodeVec        m_variables;
 
-        REFLECT_DERIVED_CLASS(Component, IScope)
+        REFLECT_DERIVED_CLASS()
     };
 }

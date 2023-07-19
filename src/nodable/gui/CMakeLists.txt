@@ -27,7 +27,7 @@ add_library(
         NodableView.cpp
         File.cpp
         FileView.cpp
-        GraphNodeView.cpp
+        GraphView.cpp
         History.cpp
         NodeConnector.cpp
         NodeView.cpp

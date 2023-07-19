@@ -213,3 +213,15 @@ TEST_F(Virtual_Machine, integers)
     EXPECT_EQ(eval<int>("int i = 3 + 5"), 8);
     EXPECT_EQ(eval<int>("int i = 1-2"), -1);
 }
+
+TEST_F(Virtual_Machine, while_loop)
+{
+    std::string program =
+            "int i = 0;"
+            "while(i < 42){"
+            "   i = i+1;"
+            "}"
+            "return(i)";
+
+    EXPECT_EQ( eval<int>(program), 42);
+}

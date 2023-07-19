@@ -15,6 +15,6 @@ namespace ndbl
 		DataAccess() {};
 		bool update();  // Write the node owner of this component to disk (as JSON)
 
-        REFLECT_DERIVED_CLASS(Component)
+        REFLECT_DERIVED_CLASS()
 	};
 }

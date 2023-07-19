@@ -12,7 +12,7 @@
 #include "gui/Event.h"
 #include "gui/File.h"
 #include "gui/FileView.h"
-#include "gui/GraphNodeView.h"
+#include "gui/GraphView.h"
 #include "gui/NodeConnector.h"
 #include "gui/NodeView.h"
 #include "gui/PropertyConnector.h"
@@ -205,10 +205,9 @@ void Nodable::on_update()
 
     // Nodable events ( SDL_ API inspired, but with custom events)
     ndbl::Event event{};
-    NodeView*      selected_view = NodeView::get_selected();
-    GraphNodeView* graph_view    = current_file ?
-                                   current_file->get_graph()->get_component<GraphNodeView>() : nullptr;
-    History* curr_file_history   = current_file ? current_file->get_history() : nullptr;
+    NodeView*  selected_view = NodeView::get_selected();
+    GraphView* graph_view          = current_file ? current_file->get_graph_view() : nullptr;
+    History*   curr_file_history   = current_file ? current_file->get_history() : nullptr;
 
     while(event_manager.poll_event((fw::Event&)event) )
     {
@@ -556,7 +555,7 @@ bool Nodable::compile_and_load_program()
 {
     if ( current_file )
     {
-        const GraphNode* graph = current_file->get_graph();
+        const Graph* graph = current_file->get_graph();
 
         if (graph)
         {
@@ -625,32 +624,15 @@ void Nodable::reset_program()
 
 File *Nodable::new_file()
 {
-    // 1. Create the file in memory
+    m_untitled_file_count++;
+    std::string name{"Untitled_"};
+    name.append(std::to_string(m_untitled_file_count));
+    name.append(".cpp");
 
-    // 1.a Determine a unique-ish name
-    const char* basename   = "Untitled";
-    char        name[255];
-    snprintf(name, sizeof(name), "%s.cpp", basename);
-
-    int num = 0;
-    for(auto each_file : m_loaded_files)
-    {
-        if( strcmp( each_file->name.c_str(), name) == 0 )
-        {
-            snprintf(name, sizeof(name), "%s_%i.cpp", basename, ++num);
-        }
-    }
-
-    // 1.b Create instance
     File* file = new File(ghc::filesystem::path{name});
+    // file->set_text( "// " + name);
 
-    // 2. try to open from disk
-    if ( !add_file(file) )
-    {
-        delete file;
-        return nullptr;
-    }
-    return file;
+    return add_file(file);
 }
 
 Nodable &Nodable::get_instance()

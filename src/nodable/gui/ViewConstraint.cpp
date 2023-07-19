@@ -57,7 +57,7 @@ void ViewConstraint::apply(float _dt)
     }
 
     // return if no views are visible
-    auto is_visible = [](NodeView* view) { return view->is_visible(); };
+    auto is_visible = [](const NodeView* view) { return view->is_visible(); };
     if (std::find_if(clean_targets.begin(), clean_targets.end(), is_visible) == clean_targets.end()) return;
     if (std::find_if(clean_drivers.begin(), clean_drivers.end(), is_visible) == clean_drivers.end()) return;
 
@@ -71,7 +71,7 @@ void ViewConstraint::apply(float _dt)
         {
             if(!first_target->pinned && first_target->is_visible())
             {
-                ImRect bbox = NodeView::get_rect(clean_drivers, true);
+                ImRect bbox = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView*> *>(&clean_drivers), true);
                 ImVec2 newPos(bbox.GetCenter()
                             - ImVec2(bbox.GetSize().x * 0.5f
                             + config.ui_node_spacing
@@ -86,7 +86,7 @@ void ViewConstraint::apply(float _dt)
         {
             if(!first_target->pinned && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
             {
-                ImRect bbox = NodeView::get_rect(clean_drivers);
+                ImRect bbox = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView *>*>(&clean_drivers));
                 ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - config.ui_node_spacing));
                 newPos.y -= config.ui_node_spacing + first_target->get_size().y / 2.0f;
                 newPos.x += config.ui_node_spacing + first_target->get_size().x / 2.0f;
@@ -166,7 +166,7 @@ void ViewConstraint::apply(float _dt)
             if (!first_target->pinned && first_target->is_visible() )
             {
                 // compute
-                auto drivers_rect = NodeView::get_rect(clean_drivers, false, true);
+                auto drivers_rect = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView *> *>(&clean_drivers), false, true);
                 auto target_rect  = first_target->get_rect(true, true);
                 ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
                 ImVec2 new_pos;

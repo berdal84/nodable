@@ -6,10 +6,10 @@
 #include <memory>
 #include <exception>
 
+#include "core/VariableNode.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/system.h"
 
-#include "core/ForLoopNode.h"
 #include "core/Token.h"
 #include "core/TokenRibbon.h"
 
@@ -22,6 +22,11 @@ namespace ndbl{
     class InstructionNode;
     class InvokableComponent;
     class Scope;
+    class WhileLoopNode;
+    class Graph;
+    class Node;
+    class Property;
+    class VariableNode;
 
 	/**
 	 * @class Nodlang is Nodable's language.
@@ -42,7 +47,7 @@ namespace ndbl{
     public:
         bool                   tokenize(const std::string& _string);                 // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
         bool                   tokenize(char* buffer, size_t buffer_size);           // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
-        bool                   parse(const std::string& _in, GraphNode *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
+        bool                   parse(const std::string& _in, Graph *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                  parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                  parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor); }
         Node*                  parse_scope();                                         // Try to parse a scope.
@@ -50,7 +55,8 @@ namespace ndbl{
         Property *             parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
         IScope*                parse_code_block(bool _create_scope);                  // Try to parse a code block with the option to create a scope or not (reusing the current one).
         ConditionalStructNode* parse_conditional_structure();                         // Try to parse a conditional structure (if/else if/.else) recursively.
-        ForLoopNode*           parse_for_loop();                                      // Try to parse a "for" loop.
+        ForLoopNode*           parse_for_loop();                                      // Try to parse a "for loop".
+        WhileLoopNode*         parse_while_loop();                                    // Try to parse a "while loop".
         Node*                  parse_program();                                       // Try to parse an entire program.
         Property *             parse_function_call();                                 // Try to parse a function call.
         Property *             parse_parenthesis_expression();                        // Try to parse a parenthesis expression.
@@ -86,44 +92,14 @@ namespace ndbl{
                 char* buffer;         // input, owned
                 size_t size;
             } source;
-            TokenRibbon ribbon;
-            GraphNode*  graph;        // output, not owned
-            std::stack<Scope*> scope; // nested scopes
+            TokenRibbon        ribbon;
+            Graph*             graph;  // output, not owned
+            std::stack<Scope*> scope;  // nested scopes
 
-            ParserState()
-                : graph(nullptr)
-                , source({nullptr, 0})
-            {}
-            ~ParserState()
-            {
-                delete[] source.buffer;
-            }
-            void set_source_buffer(const char* str, size_t size)
-            {
-                FW_ASSERT(source.buffer == nullptr); // should call clear() before
-                FW_ASSERT(str != nullptr);
-
-                if( size != 0 )
-                {
-                    LOG_VERBOSE("ParserState", "Copying source buffer (%i bytes) ...\n", size);
-                    source.buffer = new char[size];
-                    memcpy(source.buffer, str, size);
-                }
-                source.size = size;
-                ribbon.set_source_buffer(source.buffer);
-            }
-            void clear()
-            {
-                graph = nullptr;
-                ribbon.clear();
-                delete[] source.buffer;
-                source.buffer = nullptr;
-                source.size = 0;
-                while(!scope.empty())
-                {
-                    scope.pop();
-                }
-            }
+            ParserState();
+            ~ParserState();
+            void set_source_buffer(const char* str, size_t size);
+            void clear();
         } parser_state;
 
     private: bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared symbol is rejected. When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
@@ -140,10 +116,11 @@ namespace ndbl{
         std::string&           serialize(std::string& _out, const InstructionNode*)const;
         std::string&           serialize(std::string& _out, const Node*)const;
         std::string&           serialize(std::string& _out, const Scope*)const;
-        std::string&           serialize(std::string& _out, const ForLoopNode* _for_loop)const;
+        std::string&           serialize(std::string& _out, const ForLoopNode*)const;
+        std::string&           serialize(std::string& _out, const WhileLoopNode*)const;
         std::string&           serialize(std::string& _out, const ConditionalStructNode*) const;
-        std::string&           serialize(std::string& _out, const fw::variant* variant) const;
-        std::string&           serialize(std::string& _out, const VariableNode *_node) const;    // serialize a variable (declared or not)
+        std::string&           serialize(std::string& _out, const fw::variant*) const;
+        std::string&           serialize(std::string& _out, const VariableNode*) const;    // serialize a variable (declared or not)
 
         // Language definition -------------------------------------------------------------------------
     public:

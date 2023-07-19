@@ -19,7 +19,7 @@
 namespace ndbl {
 
     // forward declarations
-    class GraphNode;
+    class Graph;
 
     /**
      * Distinguish between all possible update result
@@ -37,7 +37,7 @@ namespace ndbl {
 		A node is an Object (composed by Properties) that can be linked together in
 		order to create graphs.
 
-		Every Node has a parent GraphNode. All nodes are built from a GraphNode, which first create an instance of this class (or derived) and then
+		Every Node has a parent Graph. All nodes are built from a Graph, which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/
 	class Node
@@ -61,8 +61,8 @@ namespace ndbl {
             set_dirty();
         }
         inline Slots<Node*>& children_slots() { return m_children; }
-        inline GraphNode*    get_parent_graph()const { return m_parent_graph; }
-        inline void          set_parent_graph(GraphNode* _parent_graph)
+        inline Graph*        get_parent_graph()const { return m_parent_graph; }
+        inline void          set_parent_graph(Graph* _parent_graph)
         {
             FW_ASSERT(this->m_parent_graph == nullptr); // TODO: implement parentGraph switch
             this->m_parent_graph = _parent_graph;
@@ -163,8 +163,8 @@ namespace ndbl {
         bool               m_flagged_to_delete;
 
     private:
-		GraphNode*         m_inner_graph;
-		GraphNode*         m_parent_graph;
+		Graph*             m_inner_graph;
+		Graph*             m_parent_graph;
 		std::string        m_name;
 		bool               m_dirty;
         std::set<const DirectedEdge*> m_edges;

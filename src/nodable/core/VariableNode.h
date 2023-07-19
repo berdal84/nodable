@@ -52,6 +52,6 @@ namespace ndbl
         InstructionNode*       m_declaration_instr;
         IScope*                m_scope;
 
-		REFLECT_DERIVED_CLASS(Node)
+		REFLECT_DERIVED_CLASS()
     };
 }

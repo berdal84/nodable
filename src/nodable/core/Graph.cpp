@@ -1,4 +1,4 @@
-#include "GraphNode.h"
+#include "Graph.h"
 
 #include <algorithm>    // std::find_if
 
@@ -7,7 +7,7 @@
 
 #include "ConditionalStructNode.h"
 #include "DirectedEdge.h"
-#include "INodeFactory.h"
+#include "NodeFactory.h"
 #include "InstructionNode.h"
 #include "LiteralNode.h"
 #include "Node.h"
@@ -17,49 +17,49 @@
 
 using namespace ndbl;
 
-REGISTER
-{
-    fw::registration::push_class<GraphNode>("GraphNode").extends<Node>();
-}
-
-GraphNode::GraphNode(const Nodlang* _language, const INodeFactory* _factory, const bool* _autocompletion)
+Graph::Graph(
+    const Nodlang* _language,
+    const NodeFactory* _factory,
+    const bool* _autocompletion
+    )
     : m_language(_language)
     , m_factory(_factory)
     , m_root(nullptr)
     , m_autocompletion(_autocompletion)
+    , m_is_dirty(false)
 {
 }
 
-GraphNode::~GraphNode()
+Graph::~Graph()
 {
 	clear();
 }
 
-void GraphNode::clear()
+void Graph::clear()
 {
-	LOG_VERBOSE( "GraphNode", "Clearing graph ...\n")
+	LOG_VERBOSE( "Graph", "Clearing graph ...\n")
 
 	if ( !m_node_registry.empty() )
 	{
         for (auto i = m_node_registry.size(); i > 0; i--)
         {
             Node* node = m_node_registry[i - 1];
-            LOG_VERBOSE("GraphNode", "remove and delete: %s \n", node->get_name() )
+            LOG_VERBOSE("Graph", "remove and delete: %s \n", node->get_name() )
             destroy(node);
         }
 	}
 	else
     {
-        LOG_VERBOSE("GraphNode", "No nodes in registry.\n")
+        LOG_VERBOSE("Graph", "No nodes in registry.\n")
     }
     m_node_registry.clear();
     FW_EXPECT(m_edge_registry.empty(), "m_edge_registry should be empty because all nodes have been deleted.");
     m_root = nullptr;
 
-    LOG_VERBOSE("GraphNode", "Graph cleared.\n")
+    LOG_VERBOSE("Graph", "Graph cleared.\n")
 }
 
-UpdateResult GraphNode::update()
+UpdateResult Graph::update()
 {
     UpdateResult result = UpdateResult::Success_NoChanges;
 
@@ -91,20 +91,20 @@ UpdateResult GraphNode::update()
     return result;
 }
 
-void GraphNode::add(Node* _node)
+void Graph::add(Node* _node)
 {
 	m_node_registry.push_back(_node);
     _node->set_parent_graph(this);
-    LOG_VERBOSE("GraphNode", "registerNode %s (%s)\n", _node->get_name(), _node->get_type().get_name())
+    LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->get_name(), _node->get_type().get_name())
 }
 
-void GraphNode::remove(Node* _node)
+void Graph::remove(Node* _node)
 {
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     m_node_registry.erase(found);
 }
 
-InstructionNode* GraphNode::create_instr()
+InstructionNode* Graph::create_instr()
 {
 	auto instructionNode = m_factory->new_instr();
     add(instructionNode);
@@ -112,7 +112,7 @@ InstructionNode* GraphNode::create_instr()
 	return instructionNode;
 }
 
-void GraphNode::ensure_has_root()
+void Graph::ensure_has_root()
 {
     if( is_empty() )
     {
@@ -120,38 +120,38 @@ void GraphNode::ensure_has_root()
     }
 }
 
-VariableNode* GraphNode::create_variable(const fw::type *_type, const std::string& _name, IScope* _scope)
+VariableNode* Graph::create_variable(const fw::type *_type, const std::string& _name, IScope* _scope)
 {
     auto node = m_factory->new_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
-Node* GraphNode::create_abstract_function(const fw::func_type* _invokable, bool _is_operator)
+Node* Graph::create_abstract_function(const fw::func_type* _invokable, bool _is_operator)
 {
     Node* node = m_factory->new_abstract_function(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-Node* GraphNode::create_function(const fw::iinvokable* _invokable, bool _is_operator)
+Node* Graph::create_function(const fw::iinvokable* _invokable, bool _is_operator)
 {
     Node* node = m_factory->new_function(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-Node* GraphNode::create_abstract_operator(const fw::func_type* _invokable)
+Node* Graph::create_abstract_operator(const fw::func_type* _invokable)
 {
     return create_abstract_function(_invokable, true);
 }
 
-Node* GraphNode::create_operator(const fw::iinvokable* _invokable)
+Node* Graph::create_operator(const fw::iinvokable* _invokable)
 {
 	return create_function(_invokable, true);
 }
 
-void GraphNode::destroy(Node* _node)
+void Graph::destroy(Node* _node)
 {
     // disconnect any edge connected to this node
     std::vector<const DirectedEdge*> edges_to_disconnect;
@@ -196,12 +196,12 @@ void GraphNode::destroy(Node* _node)
     delete _node;
 }
 
-bool GraphNode::is_empty() const
+bool Graph::is_empty() const
 {
     return !m_root;
 }
 
-const DirectedEdge* GraphNode::connect(Property * _source_property, Property * _target_property)
+const DirectedEdge* Graph::connect(Property * _source_property, Property * _target_property)
 {
     FW_EXPECT(_source_property != _target_property, "Can't connect same Property!")
     FW_EXPECT( fw::type::is_implicitly_convertible(_source_property->get_type(), _target_property->get_type()),
@@ -227,7 +227,7 @@ const DirectedEdge* GraphNode::connect(Property * _source_property, Property * _
     }
     else
     {
-        LOG_VERBOSE("GraphNode", "drop_on() ...\n")
+        LOG_VERBOSE("Graph", "drop_on() ...\n")
         _target_property->set_input(_source_property);
         _source_property->get_outputs().push_back(_target_property);
 
@@ -252,7 +252,7 @@ const DirectedEdge* GraphNode::connect(Property * _source_property, Property * _
     return edge;
 }
 
-void GraphNode::remove(DirectedEdge* edge)
+void Graph::remove(DirectedEdge* edge)
 {
     auto found = std::find_if( m_edge_registry.begin()
                              , m_edge_registry.end()
@@ -264,11 +264,11 @@ void GraphNode::remove(DirectedEdge* edge)
     }
     else
     {
-        LOG_WARNING("GraphNode", "Unable to unregister edge\n")
+        LOG_WARNING("Graph", "Unable to unregister edge\n")
     }
 }
 
-const DirectedEdge* GraphNode::connect(Node* _src, InstructionNode* _dst)
+const DirectedEdge* Graph::connect(Node* _src, InstructionNode* _dst)
 {
     // set declaration_instr once
     if(auto variable = _src->as<VariableNode>())
@@ -282,12 +282,12 @@ const DirectedEdge* GraphNode::connect(Node* _src, InstructionNode* _dst)
     return connect(_src->get_this_property(), _dst->get_root_node_property() );
 }
 
-const DirectedEdge* GraphNode::connect(Property * _src, VariableNode* _dst)
+const DirectedEdge* Graph::connect(Property * _src, VariableNode* _dst)
 {
     return connect(_src, _dst->get_value() );
 }
 
-const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
+const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
 {
     auto edge = new DirectedEdge(_edge);
     Node* src = edge->prop.src->get_owner();
@@ -385,7 +385,7 @@ const DirectedEdge* GraphNode::connect(DirectedEdge _edge, bool _side_effects)
     return edge;
 }
 
-void GraphNode::disconnect(const DirectedEdge* _edge, bool _side_effects)
+void Graph::disconnect(const DirectedEdge* _edge, bool _side_effects)
 {
     // find the edge to disconnect
     auto [begin, end] = m_edge_registry.equal_range(_edge->type );
@@ -442,49 +442,56 @@ void GraphNode::disconnect(const DirectedEdge* _edge, bool _side_effects)
    set_dirty();
 }
 
-Node *GraphNode::create_scope()
+Node *Graph::create_scope()
 {
     Node* scopeNode = m_factory->new_scope();
     add(scopeNode);
     return scopeNode;
 }
 
-ConditionalStructNode *GraphNode::create_cond_struct()
+ConditionalStructNode *Graph::create_cond_struct()
 {
     ConditionalStructNode* condStructNode = m_factory->new_cond_struct();
     add(condStructNode);
     return condStructNode;
 }
 
-ForLoopNode* GraphNode::create_for_loop()
+ForLoopNode* Graph::create_for_loop()
 {
     ForLoopNode* for_loop = m_factory->new_for_loop_node();
     add(for_loop);
     return for_loop;
 }
 
-Node *GraphNode::create_root()
+WhileLoopNode* Graph::create_while_loop()
+{
+    WhileLoopNode* while_loop = m_factory->new_while_loop_node();
+    add(while_loop);
+    return while_loop;
+}
+
+Node *Graph::create_root()
 {
     m_root = m_factory->new_program();
     add(m_root);
     return m_root;
 }
 
-Node* GraphNode::create_node()
+Node* Graph::create_node()
 {
     Node* node = m_factory->new_node();
     add(node);
     return node;
 }
 
-LiteralNode* GraphNode::create_literal(const fw::type *_type)
+LiteralNode* Graph::create_literal(const fw::type *_type)
 {
     LiteralNode* node = m_factory->new_literal(_type);
     add(node);
     return node;
 }
 
-std::vector<const DirectedEdge*> GraphNode::filter_edges(Property* _property, Way _way) const
+std::vector<const DirectedEdge*> Graph::filter_edges(Property* _property, Way _way) const
 {
     std::vector<const DirectedEdge*> result;
 

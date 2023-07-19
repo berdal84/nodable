@@ -1,7 +1,7 @@
 #pragma once
 #include "gui/Command.h"
 #include "core/Node.h"
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 
 namespace ndbl
 {
@@ -45,6 +45,6 @@ namespace ndbl
     private:
         std::string   m_description;
         DirectedEdge  m_edge;
-        GraphNode*    m_graph;
+        Graph*    m_graph;
     };
 }

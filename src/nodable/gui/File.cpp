@@ -10,7 +10,7 @@
 #include "core/VariableNode.h"
 #include "core/language/Nodlang.h"
 #include "gui/FileView.h"
-#include "gui/GraphNodeView.h"
+#include "gui/GraphView.h"
 #include "gui/History.h"
 #include "gui/Nodable.h"
 #include "gui/NodeView.h"
@@ -54,7 +54,7 @@ File::File(std::string _name)
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
           }
-          else if (_node->is<ConditionalStructNode>() || _node->is<ForLoopNode>())
+          else if (_node->get_type()->is_child_of<IConditionalStruct>())
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_condStructColor);
           }
@@ -77,19 +77,15 @@ File::File(std::string _name)
 
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
-    // GraphNode
-    m_graph = new GraphNode(
+    // Graph
+    m_graph = new Graph(
             &language,
             &m_factory,
             &Nodable::get_instance().config.experimental_graph_autocompletion );
 
-    char label[50];
-    snprintf(label, sizeof(label), "%s's graph", name.c_str());
-    m_graph->set_name(label);
-    m_graph->add_component<GraphNodeView>();
+    m_graph_view = new GraphView(m_graph);
 
     LOG_VERBOSE( "File", "Constructor being called.\n")
-
 }
 
 File::File(const ghc::filesystem::path& _path)
@@ -101,6 +97,7 @@ File::File(const ghc::filesystem::path& _path)
 File::~File()
 {
     delete m_graph;
+    delete m_graph_view;
 }
 
 bool File::write_to_disk()
@@ -129,16 +126,15 @@ bool File::update_graph(std::string& _code_source)
     LOG_VERBOSE("File","updating graph ...\n")
     m_graph->clear();
 
-    GraphNodeView* graph_view = m_graph->get_component<GraphNodeView>();
-    if (graph_view)
+    if (m_graph_view)
     {
         LOG_VERBOSE("File","clear graph view child constraints ...\n")
-        graph_view->destroy_child_view_constraints();
+        m_graph_view->destroy_child_view_constraints();
     }
 
     if ( Nodlang::get_instance().parse(_code_source, m_graph) && !m_graph->is_empty() )
     {
-        graph_view->create_child_view_constraints();
+        m_graph_view->create_child_view_constraints();
         m_graph->set_dirty(false);
         LOG_VERBOSE("File","graph changed, emiting event ...\n")
         event_graph_changed.emit(m_graph);
@@ -149,8 +145,8 @@ bool File::update_graph(std::string& _code_source)
 
 bool File::update()
 {
-    Nodable &          app           = Nodable::get_instance();
-    bool          graph_changed = false;
+    Nodable& app           = Nodable::get_instance();
+    bool     graph_changed = false;
 
 	if ( m_history.is_dirty() )
 	{
@@ -233,4 +229,9 @@ bool File::load()
     LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", name.c_str(), path.c_str())
 
     return true;
+}
+
+void File::set_text(const std::string& str)
+{
+    view.set_text(str);
 }

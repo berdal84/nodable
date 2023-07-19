@@ -1,7 +1,7 @@
 #pragma once
 #include "gui/Command.h"
 #include "core/DirectedEdge.h"
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/Property.h"
 
 namespace ndbl
@@ -48,6 +48,6 @@ namespace ndbl
         Property*   m_src;
         Property*   m_dst;
         DirectedEdge m_edge;
-        GraphNode*  m_graph;
+        Graph*  m_graph;
     };
 }

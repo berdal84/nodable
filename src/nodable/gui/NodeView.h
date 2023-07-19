@@ -19,7 +19,7 @@ namespace ndbl
 {
     // forward declaration
     class Node;
-    class GraphNode;
+    class Graph;
     class NodeView;
     class PropertyView;
     class PropertyConnector;
@@ -113,7 +113,7 @@ namespace ndbl
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
         ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
-                                      , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false);
+                                      , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
         void                    add_constraint(ViewConstraint&);
         void                    apply_constraints(float _dt);
         void                    clear_constraints();
@@ -133,8 +133,11 @@ namespace ndbl
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
         ImRect                  get_screen_rect();
-        static ImRect           get_rect(const std::vector<NodeView *>&, bool _recursive = false
-                                        , bool _ignorePinned = true, bool _ignoreMultiConstrained = true); // rectangle is in local space
+        static ImRect           get_rect(
+                                    const std::vector<const NodeView*>*,
+                                    bool _recursive = false,
+                                    bool _ignorePinned = true,
+                                    bool _ignoreMultiConstrained = true); // rectangle is in local space
         static void             set_selected(NodeView*);
         static NodeView*        get_selected();
         static bool             is_selected(NodeView*);

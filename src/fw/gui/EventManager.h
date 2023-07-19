@@ -2,6 +2,8 @@
 
 #include <queue>
 #include <string>
+#include <future>
+
 #include <SDL/include/SDL_keycode.h>
 #include "types.h"
 
@@ -64,9 +66,11 @@ namespace fw
         void               push_event(Event& _event);
         size_t             poll_event(Event& _event);
         void               push(EventType _type);
+        void               push_async(EventType, u64_t); // Push an event with a delay in millisecond
+        const std::vector<BindedEvent>& get_binded_events() const;
         void                            bind(const BindedEvent& binded_cmd);
         const BindedEvent&              get_binded(uint16_t type);
-        const std::vector<BindedEvent>& get_binded_events() const;
+
         static EventManager&            get_instance();
 
     private:

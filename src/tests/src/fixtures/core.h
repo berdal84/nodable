@@ -6,7 +6,7 @@
 
 #include "fw/core/string.h"
 #include "fw/core/types.h"
-#include "nodable/core/GraphNode.h"
+#include "nodable/core/Graph.h"
 #include "nodable/core/Node.h"
 #include "nodable/core/NodeFactory.h"
 #include "nodable/core/Property.h"
@@ -25,7 +25,7 @@ public:
     Nodlang             nodlang;
     const NodeFactory   factory;
     bool                autocompletion = false;
-    GraphNode           graph;
+    Graph               graph;
     assembly::Compiler  compiler;
     VirtualMachine      virtual_machine;
 

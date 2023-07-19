@@ -11,8 +11,8 @@ int main(int argc, char *argv[])
 //    fw::Log::SetVerbosityLevel("File", Verbosity::Message);
 //    fw::Log::SetVerbosityLevel("GraphTraversal", Verbosity::Message);
 //    fw::Log::SetVerbosityLevel("Parser", Verbosity::Message);
-//    fw::Log::SetVerbosityLevel("GraphNode", Verbosity::Message);
-//    fw::Log::SetVerbosityLevel("GraphNodeView", Verbosity::Message);
+//    fw::Log::SetVerbosityLevel("Graph", Verbosity::Message);
+//    fw::Log::SetVerbosityLevel("GraphView", Verbosity::Message);
 //    fw::Log::SetVerbosityLevel("VM", Verbosity::Message);
 
     // by default log is on Verbosity::Message ...

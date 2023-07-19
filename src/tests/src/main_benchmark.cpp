@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
 #include <random>
 #include "nodable/core/language/Nodlang.h"
-#include "nodable/core/GraphNode.h"
+#include "nodable/core/Graph.h"
 #include "nodable/core/NodeFactory.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/string.h"
@@ -32,12 +32,12 @@ using namespace fw;
 
 class NodlangFixture : public benchmark::Fixture {
 public:
-    Nodlang* language;
-    bool autocompletion;
+    Nodlang*     language;
+    bool         autocompletion;
     NodeFactory* factory;
-    GraphNode* graph;
+    Graph*       graph;
     std::random_device random_device;  // Will be used to obtain a seed for the random number engine
-    std::mt19937 generator; // Standard mersenne_twister_engine
+    std::mt19937       generator; // Standard mersenne_twister_engine
     std::uniform_real_distribution<double> distribution;
 
     NodlangFixture()
@@ -47,10 +47,10 @@ public:
 
     void SetUp(const ::benchmark::State& state)
     {
-        language = &ndbl::Nodlang::get_instance();
+        language       = &ndbl::Nodlang::get_instance();
         autocompletion = false;
-        factory = new NodeFactory(language);
-        graph = new GraphNode(language, factory, &autocompletion);
+        factory        = new NodeFactory(language);
+        graph          = new Graph(language, factory, &autocompletion);
         log::set_verbosity(log::Verbosity_Error);
     }
 

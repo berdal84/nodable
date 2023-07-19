@@ -420,6 +420,19 @@ TEST_F(Parse_and_eval, code_formatting_preserving_04 )
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
+/////////////////////////////////////////////////////////////
+
+TEST_F(Parse_and_eval, While_loop )
+{
+    std::string program =
+            "int i = 0;"
+            "while(i < 10){"
+            "   i = i+1;"
+            "}";
+
+    EXPECT_EQ( parse_and_serialize(program), program);
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 TEST_F(Parse_and_eval, Conditional_Structures_IF )

@@ -6,7 +6,7 @@
 
 #include "core/language/Nodlang.h"
 #include "core/NodeFactory.h"
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/VirtualMachine.h"
 #include "core/assembly/Compiler.h"
 
@@ -43,7 +43,7 @@ namespace ndbl
         Nodlang                    m_language;
         bool                       m_should_stop;
         NodeFactory                m_factory;
-        GraphNode                  m_graph;
+        Graph                      m_graph;
         assembly::Compiler         m_compiler;
         const assembly::Code*            m_asm_code;
         VirtualMachine             m_virtual_machine;

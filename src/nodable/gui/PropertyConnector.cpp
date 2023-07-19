@@ -3,7 +3,7 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 #include "core/Node.h"
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "Config.h"
 
 #include "NodeView.h"

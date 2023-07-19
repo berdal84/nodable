@@ -1,14 +1,15 @@
-#include "GraphNodeView.h"
+#include "GraphView.h"
 
 #include <algorithm>
 #include <memory> // std::shared_ptr
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include "core/types.h"
 #include "fw/core/log.h"
 #include "fw/core/system.h"
 
 #include "core/ConditionalStructNode.h"
 #include "core/ForLoopNode.h"
-#include "core/GraphNode.h"
+#include "core/Graph.h"
 #include "core/InstructionNode.h"
 #include "core/LiteralNode.h"
 #include "core/Scope.h"
@@ -26,21 +27,41 @@ using namespace ndbl::assembly;
 
 REGISTER
 {
-    fw::registration::push_class<GraphNodeView>("GraphNodeView")
-        .extends<Node>()
-        .extends<fw::View>();
+    fw::registration::push_class<GraphView>("GraphView").extends<fw::View>();
 }
 
-bool GraphNodeView::draw_implem()
+GraphView::GraphView(Graph* graph)
+    : fw::View()
+    , m_graph(graph)
+    , m_new_node_desired_position(-1, -1)
+{   
+    const Nodlang& language = Nodlang::get_instance();
+    for (auto& each_fct : language.get_api())
+    {
+        const fw::func_type* type = each_fct->get_type();
+        bool is_operator = language.find_operator_fct(type) != nullptr;
+
+        auto create_node = [this, each_fct, is_operator]() -> Node*
+        {
+            return m_graph->create_function(each_fct.get(), is_operator);
+        };
+
+        std::string label;
+        language.serialize(label, type);
+        std::string category = is_operator ? k_operator_menu_label : k_function_menu_label;
+        add_contextual_menu_item(category, label, create_node, type);
+    }
+}
+
+bool GraphView::draw_implem()
 {
     bool            changed          = false;
-    bool pixel_perfect = true;
+    bool            pixel_perfect    = true;
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
     Node*           new_node         = nullptr;
-    GraphNode*      graph            = get_graph_node();
     ImVec2          origin           = ImGui::GetCursorScreenPos();
-    const std::vector<Node*>& node_registry    = graph->get_node_registry();
+    const std::vector<Node*>& node_registry    = m_graph->get_node_registry();
 
 	const PropertyConnector* dragged_property_conn = PropertyConnector::get_gragged();
     const PropertyConnector* hovered_property_conn = PropertyConnector::get_hovered();
@@ -100,7 +121,7 @@ bool GraphNodeView::draw_implem()
                     }
                     else
                     {
-                        LOG_WARNING("GraphNodeView", "The function associated to the key %s is nullptr",
+                        LOG_WARNING("GraphView", "The function associated to the key %s is nullptr",
                                     menu_item.label.c_str())
                     }
                 }
@@ -112,7 +133,7 @@ bool GraphNodeView::draw_implem()
 
     auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
     {
-        InstructionNode* instr_node = graph->create_instr();
+        InstructionNode* instr_node = m_graph->create_instr();
         Token token(Token_t::end_of_instruction, "\n");
         token.m_word_start_pos = 1;
         token.m_word_size = 0; // '\n' is the prefix
@@ -124,9 +145,9 @@ bool GraphNodeView::draw_implem()
     auto create_variable = [&](const fw::type* _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
-        Scope* scope = _scope ? _scope : graph->get_root()->get_component<Scope>();
+        Scope* scope = _scope ? _scope : m_graph->get_root()->get_component<Scope>();
 
-        var_node = graph->create_variable(_type, _name, scope );
+        var_node = m_graph->create_variable(_type, _name, scope );
         var_node->set_declared(true);
 
         Token token(Token_t::keyword_operator, " = ");
@@ -416,7 +437,7 @@ bool GraphNodeView::draw_implem()
                 if ( dragged_property_conn->get_property()->get_owner()->is<VariableNode>()
                      && ImGui::MenuItem(ICON_FA_FILE "Literal") )
                 {
-                    new_node = graph->create_literal(dragged_property_conn->get_property_type() );
+                    new_node = m_graph->create_literal(dragged_property_conn->get_property_type() );
                 }
             }
             // By not knowing anything, we propose all possible types to the user.
@@ -429,6 +450,9 @@ bool GraphNodeView::draw_implem()
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
                         new_node = create_variable(fw::type::get<double>(), "var", nullptr);
+                    
+                    if (ImGui::MenuItem(ICON_FA_DATABASE " Int (16bits)"))
+                        new_node = create_variable(fw::type::get<i16_t>(), "var", nullptr);
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
                         new_node = create_variable(fw::type::get<std::string>(), "var", nullptr);
@@ -439,13 +463,16 @@ bool GraphNodeView::draw_implem()
                 if ( ImGui::BeginMenu("Literal") )
                 {
                     if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                        new_node = graph->create_literal(fw::type::get<bool>());
+                        new_node = m_graph->create_literal(fw::type::get<bool>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                        new_node = graph->create_literal(fw::type::get<double>());
+                        new_node = m_graph->create_literal(fw::type::get<double>());
+
+                    if (ImGui::MenuItem(ICON_FA_FILE " Int (16bits)"))
+                        new_node = m_graph->create_literal(fw::type::get<i16_t>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                        new_node = graph->create_literal(fw::type::get<std::string>());
+                        new_node = m_graph->create_literal(fw::type::get<std::string>());
 
                     ImGui::EndMenu();
                 }
@@ -465,25 +492,29 @@ bool GraphNodeView::draw_implem()
         if( !dragged_property_conn )
         {
             if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
-                new_node = graph->create_cond_struct();
+                new_node = m_graph->create_cond_struct();
+            if (ImGui::MenuItem(ICON_FA_CODE " For Loop"))
+                new_node = m_graph->create_for_loop();
+            if (ImGui::MenuItem(ICON_FA_CODE " While Loop"))
+                new_node = m_graph->create_while_loop();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
-                new_node = graph->create_scope();
+                new_node = m_graph->create_scope();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Program"))
             {
-                graph->clear();
-                new_node = graph->create_root();
+                m_graph->clear();
+                new_node = m_graph->create_root();
             }
                 
         }
 
         /*
-        *  In case user has created a new node we need to connect it to the graph depending
+        *  In case user has created a new node we need to connect it to the m_graph depending
         *  on if a connector is being dragged and  what is its nature.
         */
         if (new_node)
@@ -494,7 +525,7 @@ bool GraphNodeView::draw_implem()
             {
                 Node* dragged_node = dragged_node_conn->get_node();
                 Edge_t edge_type = dragged_node_conn->m_way == Way_Out ? Edge_t::IS_SUCCESSOR_OF : Edge_t::IS_PREDECESSOR_OF;
-                graph->connect( {new_node, edge_type, dragged_node} );
+                m_graph->connect( {new_node, edge_type, dragged_node} );
                 NodeConnector::stop_drag();
             }
             else if ( dragged_property_conn )
@@ -503,7 +534,7 @@ bool GraphNodeView::draw_implem()
                 {
                     Property * dst_property = dragged_property_conn->get_property();
                     Property * src_property = new_node->props()->get_first(Way_Out, dst_property->get_type());
-                    graph->connect( src_property, dst_property );
+                    m_graph->connect( src_property, dst_property );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
                 else
@@ -511,14 +542,14 @@ bool GraphNodeView::draw_implem()
                     // connect dragged (out) to first input on new node.
                     Property * src_property = dragged_property_conn->get_property();
                     Property * dst_property = new_node->props()->get_first(Way_In, src_property->get_type());
-                    graph->connect( src_property, dst_property);
+                    m_graph->connect( src_property, dst_property);
                 }
                 PropertyConnector::stop_drag();
             }
-            else if ( new_node != graph->get_root() && app.config.experimental_graph_autocompletion )
+            else if ( new_node != m_graph->get_root() && app.config.experimental_graph_autocompletion )
             {
-                graph->ensure_has_root();
-                // graph->connect( new_node, graph->get_root(), RelType::IS_CHILD_OF  );
+                m_graph->ensure_has_root();
+                // m_graph->connect( new_node, m_graph->get_root(), RelType::IS_CHILD_OF  );
             }
 
             // set new_node's view position
@@ -545,7 +576,7 @@ bool GraphNodeView::draw_implem()
 	return changed;
 }
 
-void GraphNodeView::add_contextual_menu_item(
+void GraphView::add_contextual_menu_item(
         const std::string &_category,
         const std::string &_label,
         std::function<Node *(void)> _function,
@@ -554,14 +585,9 @@ void GraphNodeView::add_contextual_menu_item(
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
 }
 
-GraphNode* GraphNodeView::get_graph_node() const
+void GraphView::create_child_view_constraints()
 {
-    return get_owner()->as<GraphNode>();
-}
-
-void GraphNodeView::create_child_view_constraints()
-{
-    auto nodeRegistry = get_graph_node()->get_node_registry();
+    auto nodeRegistry = m_graph->get_node_registry();
 
     for(Node* _eachNode: nodeRegistry)
     {
@@ -618,7 +644,7 @@ void GraphNodeView::create_child_view_constraints()
     }
 }
 
-bool GraphNodeView::update(float delta_time, i16_t subsample_count)
+bool GraphView::update(float delta_time, i16_t subsample_count)
 {
     const float subsample_delta_time = delta_time / float(subsample_count);
     for(i16_t i = 0; i < subsample_count; i++)
@@ -626,10 +652,9 @@ bool GraphNodeView::update(float delta_time, i16_t subsample_count)
     return true;
 }
 
-bool GraphNodeView::update(float delta_time)
+bool GraphView::update(float delta_time)
 {
-    GraphNode* graph                        = get_graph_node();
-    const std::vector<Node*>& node_registry = graph->get_node_registry();
+    const std::vector<Node*>& node_registry = m_graph->get_node_registry();
 
     // Find NodeView components
     std::vector<NodeView*> views;
@@ -647,84 +672,75 @@ bool GraphNodeView::update(float delta_time)
     return true;
 }
 
-bool GraphNodeView::update()
+bool GraphView::update()
 {
-    if (get_graph_node()->is_dirty() )
+    if (m_graph->is_dirty() )
     {
         create_child_view_constraints();
     }
     return update( ImGui::GetIO().DeltaTime, Nodable::get_instance().config.ui_node_animation_subsample_count );
 }
 
-void GraphNodeView::set_owner(Node *_owner)
+void GraphView::frame_all_node_views()
 {
-    Component::set_owner(_owner);
-
-    // create contextual menu items (not sure this is relevant, but it is better than in File class ^^)
-    auto           graph    = fw::cast<GraphNode>(_owner);
-    const Nodlang& language = Nodlang::get_instance();
-
-    for (auto& each_fct : language.get_api())
-    {
-        const fw::func_type* type = each_fct->get_type();
-        bool is_operator = language.find_operator_fct(type) != nullptr;
-
-        auto create_node = [graph, each_fct, is_operator]() -> Node*
-        {
-            return graph->create_function(each_fct.get(), is_operator);
-        };
-
-        std::string label;
-        language.serialize(label, type);
-        std::string category = is_operator ? k_operator_menu_label : k_function_menu_label;
-        add_contextual_menu_item(category, label, create_node, type);
-    }
+    const auto root_view = m_graph->get_root()->get_component<NodeView>();
+    std::vector<const NodeView*> views{root_view};
+    // frame the root's view (top-left corner)
+    frame_views(&views, true);
 }
 
-void GraphNodeView::frame_all_node_views()
+void GraphView::frame_selected_node_views()
 {
-    std::vector<NodeView*> views;
-    Node::get_components(get_graph_node()->get_node_registry(), views);
-    frame_views( views );
-}
-
-void GraphNodeView::frame_selected_node_views()
-{
-    std::vector<NodeView*> views; // we use a vector to send it to a generic function
+    std::vector<const NodeView*> views; // we use a vector to send it to a generic function
     if( auto selected = NodeView::get_selected())
     {
         views.push_back(selected);
     }
-   frame_views( views );
+    // frame selected node (centered)
+    frame_views(&views, false);
 }
 
-void GraphNodeView::frame_views(std::vector<NodeView*>& _views)
+void GraphView::frame_views(const std::vector<const NodeView*>* _views, bool _align_top_left_corner)
 {
-    if (_views.empty())
+    if (_views->empty())
     {
-        LOG_VERBOSE("GraphNodeView", "Unable to frame views vector. Reason: is empty.\n")
+        LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n")
         return;
     }
+    ImRect screen = m_screen_space_content_region;
 
     // get selection rectangle
-    ImRect rect = NodeView::get_rect(_views);
-    rect.Translate(m_screen_space_content_region.Min); // to screen
-    fw::ImGuiEx::DebugRect( rect.Min, rect.Max, IM_COL32( 0, 255, 0, 127 ), 5.0f );
-    // align graph to center
-    fw::ImGuiEx::DebugRect( m_screen_space_content_region.Min, m_screen_space_content_region.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
-    ImVec2 position_delta = m_screen_space_content_region.GetCenter() - rect.GetCenter();
+    ImRect nodes_screen_rect = NodeView::get_rect(_views);
+    nodes_screen_rect.Translate(screen.Min); // convert to screen space
 
-    ImVec2 overflow{rect.GetSize()-m_screen_space_content_region.GetSize()};
-    if (overflow.x > 0) position_delta.x += overflow.x / 2.0f; // Align to top if vertical overflow
-    if (overflow.y > 0) position_delta.y += overflow.y / 2.0f; // Align to left if horizontal overflow
+    // debug
+    fw::ImGuiEx::DebugRect(nodes_screen_rect.Min, nodes_screen_rect.Max, IM_COL32(0, 255, 0, 127 ), 5.0f );
+    fw::ImGuiEx::DebugRect(screen.Min, screen.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
 
-    fw::ImGuiEx::DebugLine( rect.GetCenter(), rect.GetCenter() + position_delta, IM_COL32( 255, 0, 0, 255 ), 20.0f);
+    // align
+    ImVec2 translate_vec;
+    if (_align_top_left_corner)
+    {
+        // Align with the top-left corner
+        nodes_screen_rect.Expand(20.0f); // add a padding to avoid alignment too close from the border
+        translate_vec = screen.GetTL() - nodes_screen_rect.GetTL();
+    }
+    else
+    {
+        // Align the center of the node rectangle with the screen center
+        translate_vec = screen.GetCenter() - nodes_screen_rect.GetCenter();
+    }
+
+    // apply the translation
     std::vector<NodeView*> all_views;
-    Node::get_components(get_graph_node()->get_node_registry(), all_views);
-    translate_all(position_delta, all_views);
+    Node::get_components(m_graph->get_node_registry(), all_views);
+    translate_all(translate_vec, all_views);
+
+    // debug
+    fw::ImGuiEx::DebugLine(nodes_screen_rect.GetCenter(), nodes_screen_rect.GetCenter() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
-void GraphNodeView::translate_all(ImVec2 delta, const std::vector<NodeView*>& _views)
+void GraphView::translate_all(ImVec2 delta, const std::vector<NodeView*>& _views)
 {
     for (auto node_view : _views )
     {
@@ -732,11 +748,11 @@ void GraphNodeView::translate_all(ImVec2 delta, const std::vector<NodeView*>& _v
     }
 }
 
-void GraphNodeView::destroy_child_view_constraints()
+void GraphView::destroy_child_view_constraints()
 {
     m_child_view_constraints.clear();
 
-    for(Node* _eachNode: get_graph_node()->get_node_registry())
+    for(Node* _eachNode: m_graph->get_node_registry())
     {
         if (NodeView* eachView = _eachNode->get_component<NodeView>())
         {
@@ -745,7 +761,7 @@ void GraphNodeView::destroy_child_view_constraints()
     }
 }
 
-void GraphNodeView::unfold()
+void GraphView::unfold()
 {
     auto& config = Nodable::get_instance().config;
     update( config.graph_unfold_dt, config.graph_unfold_iterations );

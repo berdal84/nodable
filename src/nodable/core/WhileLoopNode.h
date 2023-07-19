@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include "fw/core/reflection/reflection"
+
 #include "Token.h"
 #include "Node.h" // base class
 #include "IConditionalStruct.h" // interface
@@ -12,24 +14,19 @@ namespace ndbl
     class InstructionNode;
 
     /**
-     * @class Represent a conditional and iterative structure "for"
-     * for( init_state, condition_expr, iterate_expr ) { ... }
+     * @class Represent a conditional and iterative structure "while"
+     * while( condition_expr ) {
+     *   // do something
+     * }
      */
-    class ForLoopNode
+    class WhileLoopNode
         : public Node
         , public IConditionalStruct {
     public:
-        ForLoopNode();
-        ~ForLoopNode() = default;
+        WhileLoopNode();
+        ~WhileLoopNode() = default;
 
-        Token token_for;
-
-        Property *       get_init_expr()const { return m_props.get(k_interative_init_property_name); }
-        Property *       get_iter_expr()const { return m_props.get(k_interative_iter_property_name); }
-        InstructionNode* get_iter_instr()const { return m_iter_instr_node; }
-        InstructionNode* get_init_instr()const { return m_init_instr_node; }
-        void             set_iter_instr(InstructionNode*);
-        void             set_init_instr(InstructionNode*);
+        Token token_while;
 
         // implements IConditionalStruct (which is already documented)
 
@@ -40,9 +37,7 @@ namespace ndbl
         InstructionNode* get_cond_expr()const override { return m_cond_instr_node; }
 
     private:
-        InstructionNode* m_init_instr_node;
         InstructionNode* m_cond_instr_node;
-        InstructionNode* m_iter_instr_node;
 
         REFLECT_DERIVED_CLASS()
     };

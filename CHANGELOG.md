@@ -5,6 +5,9 @@ Nodable Change log :
 Author: Bérenger Dalle-Cort, 2017-2023
 
 ### v0.9:
+    - fix graph creation (ForLoopNode / WhileLoopNode)
+    - add WhileLoopNode
+    - use shared buffer for the Tokens (huge perf gain, up to x4)
     - fix the lost of suffixes on close parenthesis
     - remove any std::shared_ptr<Token> (from +18% up to +125% perfs gain on Nodlang::parse_token())
     - remove all regex (+25% performance on Nodlang::parse() )
