@@ -72,5 +72,13 @@ ENDIF()
 set_target_properties(framework-gui PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
 set_target_properties(framework-gui PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 
-set(FONT "assets/fonts/fa-solid-900.ttf")
-configure_file(${FONT} ${CMAKE_BINARY_DIR}/${FONT} COPYONLY)
+# define assets
+set(ASSETS
+        "assets/fonts/CenturyGothic.ttf"
+        "assets/fonts/fa-solid-900.ttf"
+        )
+
+# copy each file (will dirty the build when file changes)
+foreach(EACH_FILE ${ASSETS})
+    configure_file("${EACH_FILE}" "${CMAKE_BINARY_DIR}/${EACH_FILE}" COPYONLY)
+endforeach()
