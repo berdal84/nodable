@@ -159,6 +159,33 @@ bool GraphView::draw_implem()
     };
 
     /*
+        Grid
+        Draw X vertical and Y horizontal lines every grid_size pixels
+     */
+    const float  grid_size = app.config.ui_graph_grid_size;
+    const int    vertical_line_count = m_screen_space_content_region.GetSize().x / grid_size;
+    const int    horizontal_line_count = m_screen_space_content_region.GetSize().y / grid_size;
+    ImDrawList*  draw_list = ImGui::GetWindowDrawList();
+    ImColor      grid_color = app.config.ui_graph_grid_color;
+
+    for(int x = 0; x <= vertical_line_count; ++x)
+    {
+        float pos = m_screen_space_content_region.GetTL().x + float(x) * grid_size;
+        const ImVec2 line_start{pos, m_screen_space_content_region.GetTL().y};
+        const ImVec2 line_end{pos, m_screen_space_content_region.GetBL().y};
+        draw_list->AddLine(line_start, line_end, grid_color);
+    }
+
+    for(int y = 0; y <= horizontal_line_count; ++y)
+    {
+        float pos = m_screen_space_content_region.GetTL().y + float(y) * grid_size;
+        const ImVec2 line_start{m_screen_space_content_region.GetTL().x, pos};
+        const ImVec2 line_end{m_screen_space_content_region.GetBR().x, pos};
+        draw_list->AddLine(line_start, line_end, grid_color);
+    }
+
+
+    /*
        Draw Code Flow.
        Code flow is the set of green lines that links  a set of nodes.
      */

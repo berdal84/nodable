@@ -63,7 +63,7 @@ ndbl::Config::Config()
     ui_wire_shadowColor             = ui_node_shadowColor;
 
     // code flow
-    ui_codeFlow_lineColor           = ImColor(200, 255, 200, 50);
+    ui_codeFlow_lineColor           = ImColor(150, 170, 140); // slightly green
     ui_codeFlow_lineShadowColor     = ImColor(0, 0, 0, 64);
 
     // buttons
@@ -90,6 +90,10 @@ ndbl::Config::Config()
     ui_startup_window_label             = "Startup";
     ui_toolbar_window_label             = "Toolbar";
     ui_virtual_machine_window_label     = "VM";
+
+    // Graph
+    ui_graph_grid_color               = ImColor(68,68,68);
+    ui_graph_grid_size                = 50.0f;
 
     // Misc.
     experimental_graph_autocompletion = false;

@@ -622,6 +622,7 @@ void AppView::draw_config_window() {
                 ImGui::SliderFloat("padding", &config.ui_node_padding, 2.0f, 10.0f);
                 ImGui::SliderFloat("spacing", &config.ui_node_spacing, 10.0f, 50.0f);
                 ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 10.0f);
+                ImGui::SliderFloat("graph grid size", &config.ui_graph_grid_size, 1.0f, 500.0f);
             }
             ImGui::Unindent();
         }
@@ -629,16 +630,19 @@ void AppView::draw_config_window() {
         if (ImGui::CollapsingHeader("Wires / Edges"))
         {
             ImGui::SliderFloat("wire thickness", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("wire thickness (flow)", &config.ui_node_connector_width, 10.0f, 20.0f);
             ImGui::SliderFloat("wire roundness", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
             ImGui::SliderFloat("wire length min", &config.ui_wire_bezier_length_min, 200.0f, 1000.0f);
             ImGui::SliderFloat("wire length max", &config.ui_wire_bezier_length_max, 200.0f, 1000.0f);
+            ImGui::Separator();
+            ImGui::SliderFloat("wire thickness (flow)", &config.ui_node_connector_width, 10.0f, 20.0f);
+            ImGui::ColorEdit4("wire color (flow)", &config.ui_codeFlow_lineColor.x);
         }
 
         if (ImGui::CollapsingHeader("Graph"))
         {
-            ImGui::InputFloat("graph unfold delta time", &config.graph_unfold_dt);
-            ImGui::InputInt("graph unfold iterations", &config.graph_unfold_iterations, 1, 1000);
+            ImGui::InputFloat("unfold delta time", &config.graph_unfold_dt);
+            ImGui::InputInt("unfold iterations", &config.graph_unfold_iterations, 1, 1000);
+            ImGui::ColorEdit4("grid color", &config.ui_graph_grid_color.x);
         }
 
         if (ImGui::CollapsingHeader("Debugging"))
