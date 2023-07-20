@@ -7,6 +7,7 @@
 
 #include "fw/core/assertions.h"
 #include "fw/core/types.h"
+#include "fw/core/reflection/reflection"
 
 #include "Component.h"
 #include "Node.h"
@@ -16,8 +17,6 @@ namespace ndbl {
     class Components
     {
     public:
-        using const_iterator = std::unordered_map<std::type_index, Component*>::const_iterator;
-
         Components(Node* _owner)
             : m_owner(_owner)
         {}
@@ -57,7 +56,7 @@ namespace ndbl {
         /**
          * Get all components of this Node
          */
-        [[nodiscard]] inline const std::unordered_map<std::type_index, Component*>&
+        [[nodiscard]] inline const std::unordered_map<std::size_t, Component*>&
         get()const
         { return m_components; }
 
@@ -124,14 +123,15 @@ namespace ndbl {
             return count;
         }
 
-        inline const_iterator
+        inline std::unordered_map<std::size_t, Component*>::const_iterator
         begin() const { return m_components.cbegin(); }
 
-        inline const_iterator
+        inline std::unordered_map<std::size_t, Component*>::const_iterator
         end() const { return m_components.cend(); }
 
     protected:
-        std::unordered_map<std::type_index, Component*> m_components;
-        Node*                                  m_owner;
+        std::unordered_map<std::size_t, Component*>
+                m_components;
+        Node*   m_owner;
     };
 }

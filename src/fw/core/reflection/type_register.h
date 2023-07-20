@@ -1,13 +1,14 @@
 #pragma once
 
 #include <string>
-#include <map>
+#include <unordered_map>
 #include <typeindex>
 
-#include "core/log.h"
+#include "../log.h"
 
 namespace fw
 {
+    // forward declaration
     class type;
 
     /**
@@ -16,10 +17,10 @@ namespace fw
     class type_register
     {
     public:
-        static std::map<std::type_index, const type*>& by_index();
-        static const type* get(std::type_index);
+        static std::unordered_map<std::size_t, const type*>& by_index();
+        static const type* get(std::size_t);
         static bool has(type);
-        static bool has(std::type_index);
+        static bool has(std::size_t);
         static void insert(type*);
         static void log_statistics();
     };

@@ -16,6 +16,21 @@ REGISTER
     registration::push<null_t>("null");
 }
 
+type::type(
+    std::size_t _index,
+    std::size_t _primitive_index,
+    const char* _name,
+    const char* _compiler_name,
+    Flags _flags)
+    : m_index(_index)
+    , m_primitive_index(_primitive_index)
+    , m_name(_name)
+    , m_compiler_name(_compiler_name)
+    , m_flags(_flags)
+{
+    FW_EXPECT(_index != 0, "Index cannot be null")
+}
+
 const type* type::any()
 {
     static const type* any  = type::get<any_t>();
@@ -28,21 +43,16 @@ const type* type::null()
     return null;
 }
 
-bool type::is_ptr(const type* left)
-{
-    return left->m_is_pointer;
-}
-
 bool type::is_implicitly_convertible(const type* _src, const type* _dst )
 {
-    if( _dst->m_is_const )
+    if( _dst->is_const() )
     {
         return false;
     }
     else if (
         (_src->equals(_dst))
         ||
-        (_src->m_is_pointer && _dst->m_is_pointer && _src->m_primitive_index == _dst->m_primitive_index)
+        (!_src->is_ptr() && !_dst->is_ptr() && _src->m_primitive_index == _dst->m_primitive_index)
     )
     {
         return true;
@@ -54,23 +64,22 @@ bool type::is_implicitly_convertible(const type* _src, const type* _dst )
 
     return
         // Allows specific casts:
-        //
-        _src->m_index == type::get<i16_t>()->m_index &&  // From i16_t
-        _dst->m_index == type::get<double>()->m_index;   // To double
+        //        from                 to
+        _src->is<i16_t>() && _dst->is<double>();
 }
 
 std::string type::get_fullname() const
 {
     std::string result;
 
-    if (m_is_const)
+    if (is_const())
     {
         result.append("const ");
     }
 
     result.append(m_name);
 
-    if (m_is_pointer)
+    if (is_ptr())
     {
         result.append("*");
     }
@@ -90,62 +99,49 @@ bool type::any_of(std::vector<const type*> types) const
     return false;
 }
 
-bool type::is_ptr()const
-{
-    return m_is_pointer;
-}
-
 bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) const
 {
-    bool is_child;
-
     if (_selfCheck && m_index == _possible_parent_class->m_index )
     {
-        is_child = true;
+        return true;
     }
-    else if ( m_parents.empty())
-    {
-        is_child = false;
-    }
-    else
-    {
-        auto direct_parent_found = m_parents.find(_possible_parent_class->m_index);
 
-        // direct parent check
-        if ( direct_parent_found != m_parents.end())
+    if( !has_parent() )
+    {
+        return false;
+    }
+
+    auto direct_parent_found = m_parents.find(_possible_parent_class->m_index);
+
+    // direct parent check
+    if ( direct_parent_found != m_parents.end())
+    {
+        return true;
+    }
+
+    // indirect parent check
+    for (auto each : m_parents)
+    {
+        const type* parent_type = type_register::get(each);
+        if (parent_type->is_child_of(_possible_parent_class, true))
         {
-            is_child = true;
-        }
-        else // indirect parent check
-        {
-            bool is_a_parent_is_child_of = false;
-            for (auto each : m_parents)
-            {
-                const type* parent_type = type_register::get(each);
-                if (parent_type->is_child_of(_possible_parent_class, true))
-                {
-                    is_a_parent_is_child_of = true;
-                }
-            }
-            is_child = is_a_parent_is_child_of;
+            return true;
         }
     }
-    return is_child;
+
+    return false;
 };
 
-void type::add_parent(hash_code_t _parent)
+void type::add_parent(std::size_t parent)
 {
-    m_parents.insert(_parent);
+    m_parents.insert(parent);
+    m_flags |= Flags_HAS_PARENT;
 }
 
-void type::add_child(hash_code_t _child)
+void type::add_child(std::size_t _child)
 {
     m_children.insert( _child );
-}
-
-bool type::is_const() const
-{
-    return m_is_const;
+    m_flags |= Flags_HAS_CHILD;
 }
 
 void type::add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable)
@@ -180,3 +176,7 @@ std::shared_ptr<iinvokable> type::get_static(const std::string& _name)const
     return nullptr;
 }
 
+bool type::equals(const type *left, const type *right)
+{
+    return left->m_index == right->m_index;
+}

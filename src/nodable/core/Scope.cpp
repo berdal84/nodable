@@ -15,9 +15,7 @@ using namespace ndbl;
 
 REGISTER
 {
-    fw::registration::push_class<Scope>("Scope")
-        .extends<IScope>()
-        .extends<Node>();
+    fw::registration::push_class<Scope>("Scope");
 }
 
 Scope::Scope()

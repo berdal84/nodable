@@ -15,7 +15,7 @@ namespace fw
     public:
 
 
-        template<typename T>
+        template<typename Type>
         class push
         {
         public:
@@ -24,30 +24,21 @@ namespace fw
 
             push(const char* _name )
             {
-                m_type = type::create<T>(_name);
+                m_type = type::create<Type>(_name);
                 type_register::insert(m_type);
             }
         };
 
-        template<typename T>
+        template<typename ClassT>
         class push_class
         {
         public:
-            type*              m_class;
-            std::vector<type*> m_parents;
+            type* m_class;
 
             push_class(const char* _name )
             {
-                m_class = type::create<T>(_name);
-            }
-
-            ~push_class()
-            {
-                type_register::insert(m_class);
-                for(type* each_parent : m_parents)
-                {
-                    type_register::insert(each_parent);
-                }
+                m_class = const_cast<type*>(type::get<ClassT>());
+                m_class->m_name = _name;
             }
 
             template<typename F>
@@ -76,11 +67,12 @@ namespace fw
                 return *this;
             }
 
-            template<typename BASE>
+            template<typename BaseClassT>
             push_class& extends()
             {
-                type* base_class = type::create<BASE>();
-                m_parents.push_back(base_class );
+                static_assert(std::is_base_of_v<BaseClassT, ClassT>);
+
+                type* base_class = const_cast<type*>(type::get<BaseClassT>()); // get or create
                 m_class->add_parent(base_class->index() );
                 base_class->add_child(m_class->index() );
                 return *this;

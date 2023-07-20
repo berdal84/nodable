@@ -26,8 +26,8 @@ bool func_type::is_exactly(const func_type* _other)const
     size_t i = 0;
     while( i < m_args.size() )
     {
-        auto &arg_t       = m_args[i].m_type;
-        auto &other_arg_t = _other->m_args[i].m_type;
+        const type* arg_t       = m_args[i].m_type;
+        const type* other_arg_t = _other->m_args[i].m_type;
 
         if ( !arg_t->equals(other_arg_t) )
         {

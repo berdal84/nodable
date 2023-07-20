@@ -30,6 +30,7 @@ add_executable(
         src/specs/node.specs.cpp
         src/specs/parse_and_eval.specs.cpp
         src/specs/parse_token.specs.cpp
+        src/specs/parse_function_call.specs.cpp
         src/specs/property.specs.cpp
         src/specs/reflection.specs.cpp
         src/specs/token.specs.cpp

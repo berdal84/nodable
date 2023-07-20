@@ -5,16 +5,16 @@
 
 using namespace fw;
 
-const type* type_register::get(std::type_index _hash)
+const type* type_register::get(std::size_t index)
 {
-    auto found = by_index().find(_hash);
+    auto found = by_index().find(index);
     FW_EXPECT(found != by_index().end(), "reflection: type not found!")
     return found->second;
 }
 
-std::map<std::type_index, const type*>& type_register::by_index()
+std::unordered_map<std::size_t, const type*>& type_register::by_index()
 {
-    static std::map<std::type_index, const type*> meta_type_register_by_typeid;
+    static std::unordered_map<std::size_t, const type*> meta_type_register_by_typeid;
     return meta_type_register_by_typeid;
 }
 
@@ -24,7 +24,7 @@ bool type_register::has(type _type)
     return by_index().find(_type.index()) != by_index().end();
 }
 
-bool type_register::has(std::type_index index)
+bool type_register::has(std::size_t index)
 {
     auto found = by_index().find(index);
     return found != by_index().end();
@@ -41,11 +41,12 @@ void type_register::insert(type* _type)
 
     // merge with existing
     const type* existing = get(_type->index());
-    LOG_VERBOSE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
-    , existing->m_name.c_str(), existing->m_compiler_name.c_str()
-    , _type->m_name.c_str(), _type->m_compiler_name.c_str()
+
+    LOG_MESSAGE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
+    , existing->m_name, existing->m_compiler_name
+    , _type->m_name, _type->m_compiler_name
     )
-    if( _type->m_name.empty() )
+    if( _type->m_name[0] == '\0' )
     {
         _type->m_name = existing->m_name;
     }
@@ -62,7 +63,7 @@ void type_register::log_statistics()
 
     for ( const auto& [type_hash, type] : by_index() )
     {
-        LOG_MESSAGE("reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name.c_str(), type->m_compiler_name.c_str() );
+        LOG_MESSAGE("reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name, type->m_compiler_name );
     }
 
     LOG_MESSAGE("reflection", "Logging done.\n");
