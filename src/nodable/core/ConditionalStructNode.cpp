@@ -14,6 +14,7 @@ REGISTER
 
 ConditionalStructNode::ConditionalStructNode()
     : Node()
+    , m_cond_expr(nullptr)
 {
     m_props.add<Node*>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In);
 }

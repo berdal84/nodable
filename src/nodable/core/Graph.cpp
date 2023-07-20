@@ -321,7 +321,7 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
                             connect({src, Edge_t::IS_SUCCESSOR_OF, each_instruction}, false);
                         }
 
-                        FW_ASSERT(!tails.empty())
+                        if( !tails.empty()) LOG_VERBOSE("Graph", "Empty scope found when trying to connect(...)" );
                     }
                     else if (tail->successors().accepts() )
                     {

@@ -1166,87 +1166,90 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
     start_transaction();
 
     bool success = false;
-    ConditionalStructNode *condStruct = parser_state.graph->create_cond_struct();
+    InstructionNode* condition = nullptr;
+    Node* scopeIf = nullptr;
+    ConditionalStructNode* else_cond_struct = nullptr;
 
-    if (!parser_state.ribbon.eat_if(Token_t::keyword_if).is_null())
+    if (parser_state.ribbon.eat_if(Token_t::keyword_if).is_null())
     {
-        parser_state.graph->connect({condStruct, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-        parser_state.scope.push(condStruct->get_component<Scope>());
+        return nullptr;
+    }
 
-        condStruct->token_if  = parser_state.ribbon.get_eaten();
+    ConditionalStructNode *condStruct = parser_state.graph->create_cond_struct();
+    parser_state.graph->connect({condStruct, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
+    parser_state.scope.push(condStruct->get_component<Scope>());
 
-        if (!parser_state.ribbon.eat_if(Token_t::parenthesis_open).is_null())
+    condStruct->token_if  = parser_state.ribbon.get_eaten();
+
+    if (!parser_state.ribbon.eat_if(Token_t::parenthesis_open).is_null())
+    {
+        bool empty_parenthesis = !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null();
+        if (!empty_parenthesis && (condition = parse_instr()))
         {
-            InstructionNode *condition = parse_instr();
+            condition->set_name("Condition");
+            condition->set_name("Cond.");
+            condStruct->set_cond_expr(condition);
+            parser_state.graph->connect(condition->get_this_property(), condStruct->condition_property());
+        }
 
-            if (condition)
+        if ( empty_parenthesis || (condition && !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null()))
+        {
+            if (scopeIf = parse_scope())
             {
-                condition->set_name("Condition");
-                condition->set_name("Cond.");
-                condStruct->set_cond_expr(condition);
-
-                if (!parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null())
+                if (!parser_state.ribbon.eat_if(Token_t::keyword_else).is_null())
                 {
-                    parser_state.graph->connect(condition->get_this_property(), condStruct->condition_property());
+                    condStruct->token_else = parser_state.ribbon.get_eaten();
 
-                    if (Node *scopeIf = parse_scope())
+                    /* parse else scope */
+                    if (parse_scope())
                     {
-                        if (!parser_state.ribbon.eat_if(Token_t::keyword_else).is_null())
-                        {
-                            condStruct->token_else = parser_state.ribbon.get_eaten();
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
+                        success = true;
+                    }
+                        /* (or) parse else if scope */
+                    else if (else_cond_struct = parse_conditional_structure())
+                    {
+                        // Having "else if" looks weird, indeed it is obvious the second "if" is already in the "else" branch.
+                        // else_cond_struct->set_name("else if");
 
-                            /* parse else scope */
-                            if (parse_scope())
-                            {
-                                LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
-                                success = true;
-                            }
-                            /* (or) parse else if scope */
-                            else if (ConditionalStructNode *else_cond_struct = parse_conditional_structure())
-                            {
-                                else_cond_struct->set_name("else if");
-
-                                LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
-                                success = true;
-                            } else
-                            {
-                                LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
-                                parser_state.graph->destroy(scopeIf);
-                            }
-                        } else
-                        {
-                            LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
-                            success = true;
-                        }
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
+                        success = true;
                     } else
                     {
-                        if (condition)
-                        {
-                            parser_state.graph->destroy(condition);
-                        }
-                        LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
+
                     }
                 } else
                 {
-                    LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n")
-                    success = false;
+                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
+                    success = true;
                 }
             }
+            else
+            {
+                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
+            }
         }
-        parser_state.scope.pop();
+        else
+        {
+            LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n")
+            success = false;
+        }
     }
+    parser_state.scope.pop();
 
     if (success)
     {
         commit_transaction();
-    } else
-    {
-        parser_state.graph->destroy(condStruct);
-        condStruct = nullptr;
-        rollback_transaction();
+        return condStruct;
     }
 
-    return condStruct;
+    if(else_cond_struct) parser_state.graph->destroy(else_cond_struct);
+    if(scopeIf) parser_state.graph->destroy(scopeIf);
+    if(condition) parser_state.graph->destroy(condition);
+    if(condStruct) parser_state.graph->destroy(condStruct);
+    rollback_transaction();
+    return nullptr;
 }
 
 ForLoopNode *Nodlang::parse_for_loop()
@@ -1842,8 +1845,17 @@ std::string &Nodlang::serialize(std::string &_out, const WhileLoopNode* _while_l
 
 std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *_condStruct) const
 {
-    // if ( <condition> )
-    serialize(_out, _condStruct->token_if);
+    // if ...
+    if (_condStruct->token_if.is_null())
+    {
+        serialize(_out, Token_t::keyword_if);
+    }
+    else
+    {
+        serialize(_out, _condStruct->token_if);
+    }
+
+    // ... ( <condition> )
     serialize(_out, Token_t::parenthesis_open);
     if ( const InstructionNode* condition = _condStruct->get_cond_expr() )
     {
@@ -1851,9 +1863,19 @@ std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *
     }
     serialize(_out, Token_t::parenthesis_close);
 
-    // if scope
+    // ... ( ... ) <scope>
     if (auto *ifScope = _condStruct->get_condition_true_scope())
+    {
         serialize(_out, ifScope);
+    }
+    else
+    {
+        // When scope is undefined, serialized a fake one
+        serialize(_out, Token_t::end_of_line);
+        serialize(_out, Token_t::scope_begin);
+        serialize(_out, Token_t::end_of_line);
+        serialize(_out, Token_t::scope_end);
+    }
 
     // else & else scope
     if ( !_condStruct->token_else.is_null() )
@@ -2014,6 +2036,7 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
 {
     switch (_token_t)
     {
+        case Token_t::end_of_line:     return _out.append("\n"); // TODO: handle all platforms
         case Token_t::ignore:          return _out.append("ignore");
         case Token_t::operator_:       return _out.append("operator");
         case Token_t::identifier:      return _out.append("identifier");
