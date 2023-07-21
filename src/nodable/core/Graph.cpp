@@ -72,14 +72,14 @@ UpdateResult Graph::update()
             nodeIndex--;
             auto node = m_node_registry.at(nodeIndex);
 
-            if (node->flagged_to_delete())
+            if (node->flagged_to_delete)
             {
                 destroy(node);
                 result = UpdateResult::Success_WithChanges;
             }
-            else if (node->is_dirty()) // We just check if the node is dirty
+            else if (node->dirty)
             {
-                node->set_dirty(false);
+                node->dirty = false;
                 result = UpdateResult::Success_WithChanges;
             }
 
@@ -94,7 +94,7 @@ UpdateResult Graph::update()
 void Graph::add(Node* _node)
 {
 	m_node_registry.push_back(_node);
-    _node->set_parent_graph(this);
+    _node->parent_graph = this;
     LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->get_name(), _node->get_type().get_name())
 }
 
@@ -279,7 +279,7 @@ const DirectedEdge* Graph::connect(Node* _src, InstructionNode* _dst)
         }
     }
 
-    return connect(_src->get_this_property(), _dst->get_root_node_property() );
+    return connect(_src->as_property, _dst->root );
 }
 
 const DirectedEdge* Graph::connect(Property * _src, VariableNode* _dst)
@@ -304,11 +304,11 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
             {
                 FW_ASSERT( dst->has_component<Scope>() )
 
-                if (dst->successors().accepts() )                               // directly
+                if (dst->successors.accepts() )                               // directly
                 {
                     connect({src, Edge_t::IS_SUCCESSOR_OF, dst}, false);
                 }
-                else if ( Node* tail = dst->children_slots().get_back_or_nullptr() ) // to the last children
+                else if ( Node* tail = dst->children.get_back_or_nullptr() ) // to the last children
                 {
                     if ( tail->has_component<Scope>() )
                     {
@@ -323,7 +323,7 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
 
                         if( !tails.empty()) LOG_VERBOSE("Graph", "Empty scope found when trying to connect(...)" );
                     }
-                    else if (tail->successors().accepts() )
+                    else if (tail->successors.accepts() )
                     {
                         connect({src, Edge_t::IS_SUCCESSOR_OF, tail}, false);
                     }
@@ -331,23 +331,23 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
             }
 
             // create "parent-child" links
-            dst->children_slots().add(src);
+            dst->children.add(src);
             src->set_parent(dst);
 
             break;
         }
 
         case Edge_t::IS_INPUT_OF:
-            dst->inputs().add(src);
-            src->outputs().add(dst);
+            dst->inputs.add(src);
+            src->outputs.add(dst);
             src->add_edge(edge);
             dst->add_edge(edge);
 
             break;
 
         case Edge_t::IS_SUCCESSOR_OF:
-            dst->successors().add(src);
-            src->predecessors().add(dst);
+            dst->successors.add(src);
+            src->predecessors.add(dst);
 
             if (_side_effects)
             {
@@ -355,21 +355,21 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
                 {
                     connect({src, Edge_t::IS_CHILD_OF, dst}, false);
                 }
-                else if ( Node* dst_parent = dst->get_parent() )
+                else if ( dst->parent )
                 {
-                    connect({src, Edge_t::IS_CHILD_OF, dst_parent}, false);
+                    connect({src, Edge_t::IS_CHILD_OF, dst->parent}, false);
                 }
 
                 /**
                  * create child/parent link with dst_parent
                  */
-                if ( Node* src_parent = src->get_parent()  )
+                if ( src->parent  )
                 {
-                    Node *each_successor = src->successors().get_front_or_nullptr();
-                    while (each_successor && each_successor->get_parent() == nullptr)
+                    Node *each_successor = src->successors.get_front_or_nullptr();
+                    while (each_successor && each_successor->parent == nullptr)
                     {
-                        connect({each_successor, Edge_t::IS_CHILD_OF, src_parent}, false);
-                        each_successor = each_successor->successors().get_front_or_nullptr();
+                        connect({each_successor, Edge_t::IS_CHILD_OF, src->parent }, false);
+                        each_successor = each_successor->successors.get_front_or_nullptr();
                     }
                 }
             }
@@ -405,31 +405,31 @@ void Graph::disconnect(const DirectedEdge* _edge, bool _side_effects)
     switch (_edge->type )
     {
         case Edge_t::IS_CHILD_OF:
-            dst->children_slots().remove(src);
+            dst->children.remove(src);
             src->set_parent(nullptr);
             break;
 
         case Edge_t::IS_INPUT_OF:
-            dst->inputs().remove(src);
-            src->outputs().remove(dst);
+            dst->inputs.remove(src);
+            src->outputs.remove(dst);
             src->remove_edge(_edge);
             dst->remove_edge(_edge);
             break;
 
         case Edge_t::IS_SUCCESSOR_OF:
-            dst->successors().remove(src);
-            src->predecessors().remove(dst);
+            dst->successors.remove(src);
+            src->predecessors.remove(dst);
 
             if ( _side_effects )
             {
-                if ( auto parent = src->get_parent() )
+                if ( src->parent )
                 {
                     Node* successor = src;
-                    while (successor && successor->get_parent() == parent )
+                    while (successor && successor->parent == src->parent )
                     {
-                        DirectedEdge edge(successor, Edge_t::IS_CHILD_OF, parent);
+                        DirectedEdge edge(successor, Edge_t::IS_CHILD_OF, src->parent);
                         disconnect(&edge, false );
-                        successor = successor->successors().get_front_or_nullptr();
+                        successor = successor->successors.get_front_or_nullptr();
                     }
                 }
             }

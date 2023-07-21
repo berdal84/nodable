@@ -13,17 +13,17 @@ REGISTER
 WhileLoopNode::WhileLoopNode()
     : m_cond_instr_node(nullptr)
 {
-    m_props.add<Node*>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In); // for (   ..   ; <here>  ;   ..   ) { ... }
+    props.add<Node*>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In); // while ( <here> ) { ... }
 }
 
 Scope* WhileLoopNode::get_condition_true_scope() const
 {
-    return !m_successors.empty() ? m_successors[0]->get_component<Scope>() : nullptr;
+    return !successors.empty() ? successors[0]->get_component<Scope>() : nullptr;
 }
 
 Scope*  WhileLoopNode::get_condition_false_scope() const
 {
-    return m_successors.size() > 1 ? m_successors[1]->get_component<Scope>() : nullptr;
+    return successors.size() > 1 ? successors[1]->get_component<Scope>() : nullptr;
 }
 
 void WhileLoopNode::set_cond_expr(InstructionNode* _node)

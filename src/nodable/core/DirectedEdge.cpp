@@ -11,7 +11,7 @@ DirectedEdge::DirectedEdge(Property * _src, Edge_t _type, Property * _dst)
 }
 
 DirectedEdge::DirectedEdge(Node* _src, Edge_t _type, Node * _dst)
-    : DirectedEdge(_src->get_this_property(), _type, _dst->get_this_property())
+    : DirectedEdge(_src->as_property, _type, _dst->as_property)
 {}
 
 DirectedEdge::DirectedEdge(Property * _src, Property * _dst)

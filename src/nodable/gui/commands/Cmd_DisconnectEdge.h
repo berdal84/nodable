@@ -12,7 +12,7 @@ namespace ndbl
         Cmd_DisconnectEdge(DirectedEdge _edge)
         : m_src(_edge.prop.src)
         , m_dst(_edge.prop.dst)
-        , m_graph(_edge.prop.src->get_owner()->get_parent_graph())
+        , m_graph(_edge.prop.src->get_owner()->parent_graph)
         , m_edge(_edge)
         {
             char str[200];

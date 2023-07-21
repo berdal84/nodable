@@ -214,7 +214,7 @@ bool VirtualMachine::_stepOver()
 
             auto transfer_input_values = [](Node* _node)
             {
-                for(Property * each_property : _node->props()->by_index())
+                for(Property * each_property : _node->props.by_index())
                 {
                     Property * input = each_property->get_input();
 
@@ -253,7 +253,7 @@ bool VirtualMachine::_stepOver()
                 invokable->update();
             }
 
-            node->set_dirty(false);
+            node->dirty = false;
             advance_cursor();
             success = true;
             break;

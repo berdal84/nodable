@@ -10,7 +10,7 @@ namespace ndbl
     public:
         Cmd_ConnectEdge(DirectedEdge _edge)
         : m_edge(_edge)
-        , m_graph(_edge.prop.src->get_owner()->get_parent_graph())
+        , m_graph(_edge.prop.src->get_owner()->parent_graph)
         {
             char str[200];
             snprintf(str

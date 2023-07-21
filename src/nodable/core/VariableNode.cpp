@@ -18,5 +18,5 @@ VariableNode::VariableNode(const fw::type *_type, const char* identifier)
     , m_scope(nullptr)
 {
     set_name(identifier);
-	m_value = m_props.add(_type, k_value_property_name, Visibility::Always, Way_InOut).get();
+	m_value = props.add(_type, k_value_property_name, Visibility::Always, Way_InOut).get();
 }

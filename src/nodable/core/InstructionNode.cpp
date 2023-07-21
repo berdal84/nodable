@@ -10,7 +10,8 @@ REGISTER
 InstructionNode::InstructionNode()
     : Node()
 {
-    m_props.add<Node*>(k_value_property_name, Visibility::Default, Way_In);
-    m_successors.set_limit(1);
-    m_predecessors.set_limit(-1);
+    auto property = props.add<Node*>(k_value_property_name, Visibility::Default, Way_In);
+    this->root = property.get();
+    successors.set_limit(1);
+    predecessors.set_limit(-1);
 }

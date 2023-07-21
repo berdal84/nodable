@@ -3,10 +3,6 @@
 #include <utility>
 #include <algorithm> // for std::find
 
-#include "fw/core/log.h"
-#include "fw/core/reflection/func_type.h"
-#include "fw/core/reflection/invokable.h"
-#include "core/DataAccess.h"
 #include "core/InvokableComponent.h"
 
 using namespace ndbl;
@@ -18,78 +14,77 @@ REGISTER
 }
 
 Node::Node(std::string _label)
-    : m_successors(0)
-    , m_predecessors(0)
-    , m_props(this)
-    , m_parent_graph(nullptr)
-    , m_parent(nullptr)
-    , m_name(std::move(_label))
-    , m_inner_graph(nullptr)
-    , m_dirty(true)
-    , m_flagged_to_delete(false)
-    , m_components(this)
+    : successors(0)
+    , predecessors(0)
+    , props(this)
+    , parent_graph(nullptr)
+    , parent(nullptr)
+    , name(std::move(_label))
+    , dirty(true)
+    , flagged_to_delete(false)
+    , components(this)
 {
     /*
      * Add "this" Property to be able to connect this Node as an object pointer.
      * Usually an object pointer is connected to an InstructionNode's "node_to_eval" Property.
      */
-    auto this_property = m_props.add<Node*>(k_this_property_name, Visibility::Always, Way::Way_Out);
-    this_property->set( this );
+    auto property = props.add<Node*>(k_this_property_name, Visibility::Always, Way::Way_Out);
+    property->set(this);
+    this->as_property = property.get();
 
     // propagate "inputs" events
-    m_inputs.m_on_added.connect( [this](Node* _node){
+    inputs.m_on_added.connect( [this](Node* _node){
         on_edge_added.emit(_node, Edge_t::IS_INPUT_OF);
-        set_dirty();
+        dirty = true;
     });
 
-    m_inputs.m_on_removed.connect( [this](Node* _node){
+    inputs.m_on_removed.connect( [this](Node* _node){
         on_edge_removed.emit(_node, Edge_t::IS_INPUT_OF);
-        set_dirty();
+        dirty = true;
     });
-
 
     // propagate "outputs" events
-    m_outputs.m_on_added.connect( [this](Node* _node){
+    outputs.m_on_added.connect( [this](Node* _node){
         on_edge_added.emit(_node, Edge_t::IS_OUTPUT_OF);
-        set_dirty();
+        dirty = true;
     });
 
-    m_outputs.m_on_removed.connect( [this](Node* _node){
+    outputs.m_on_removed.connect( [this](Node* _node){
         on_edge_removed.emit(_node, Edge_t::IS_OUTPUT_OF);
-        set_dirty();
+        dirty = true;
     });
 
     // propagate "children" events
-    m_children.m_on_added.connect( [this](Node* _node){
+    children.m_on_added.connect( [this](Node* _node){
         on_edge_added.emit(_node, Edge_t::IS_CHILD_OF);
-        set_dirty();
+        dirty = true;
     });
 
-    m_children.m_on_removed.connect( [this](Node* _node){
+    children.m_on_removed.connect( [this](Node* _node){
         on_edge_removed.emit(_node, Edge_t::IS_CHILD_OF);
-        set_dirty();
+        dirty = true;
     });
 }
 
 void Node::remove_edge(const DirectedEdge*edge)
 {
-	auto found = m_edges.find(edge);
-	if(found != m_edges.end())
+	auto found = edges.find(edge);
+	if(found != edges.end())
     {
-        m_edges.erase(found);
-        m_dirty = true;
+        edges.erase(found);
+        dirty = true;
     }
 }
 
 size_t Node::incoming_edge_count()const
 {
-    return std::count_if(m_edges.cbegin(), m_edges.cend()
+    return std::count_if(edges.cbegin(), edges.cend()
                        , [this](const auto each_edge) { return each_edge->prop.dst->get_owner() == this; });
 }
 
 size_t Node::outgoing_edge_count()const
 {
-	return std::count_if(m_edges.cbegin(), m_edges.cend()
+	return std::count_if(edges.cbegin(), edges.cend()
                        , [this](const auto each_edge) { return each_edge->prop.src->get_owner() == this; });
 }
 
@@ -98,12 +93,12 @@ const fw::iinvokable* Node::get_connected_invokable(const Property* _local_prope
     FW_EXPECT(_local_property->get_owner() == this, "This node has no property with this address!");
 
     // Find an edge connected to _property
-    auto found = std::find_if(m_edges.cbegin(), m_edges.cend(), [_local_property](const DirectedEdge* each_edge)->bool {
+    auto found = std::find_if(edges.cbegin(), edges.cend(), [_local_property](const DirectedEdge* each_edge)->bool {
         return each_edge->prop.dst == _local_property;
     });
 
     // If found, we try to get the InvokableComponent from its source node.
-    if (found != m_edges.end() )
+    if (found != edges.end() )
     {
         Node* node = (*found)->prop.src->get_owner();
         InvokableComponent* compute_component = node->get_component<InvokableComponent>();
@@ -121,9 +116,28 @@ bool Node::is_connected_with(const Property *_localProperty)
     /*
      * Find a wire connected to _property
      */
-    auto found = std::find_if(m_edges.cbegin(), m_edges.cend(), [_localProperty](const DirectedEdge* _each_edge)->bool {
+    auto found = std::find_if(edges.cbegin(), edges.cend(), [_localProperty](const DirectedEdge* _each_edge)->bool {
         return _each_edge->prop.dst == _localProperty;
     });
 
-    return found != m_edges.end();
+    return found != edges.end();
+}
+
+void Node::set_parent(Node *_node)
+{
+    FW_ASSERT(_node != nullptr || parent != nullptr);
+    parent = _node;
+    dirty = true;
+}
+
+void Node::set_name(const char *_label)
+{
+    name = _label;
+    on_name_change.emit(this);
+}
+
+void Node::add_edge(const DirectedEdge *edge)
+{
+    edges.insert(edge);
+    dirty = true;
 }

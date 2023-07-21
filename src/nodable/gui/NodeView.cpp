@@ -90,7 +90,7 @@ void NodeView::expose(Property * _property)
 {
     auto property_view = new PropertyView(_property, this);
 
-    if ( _property == get_owner()->get_this_property() )
+    if ( _property == get_owner()->as_property )
     {
         property_view->m_out->m_display_side = PropertyConnector::Side::Left; // force to be displayed on the left
         m_exposed_this_property_view = property_view;
@@ -122,7 +122,7 @@ void NodeView::set_owner(Node *_node)
 
     //  We expose first the properties which allows input connections
 
-    for(Property * each_property : _node->props()->by_index())
+    for(Property * each_property : _node->props.by_index())
     {
         if (each_property->get_visibility() == Visibility::Always && each_property->allows_connection(Way_In) )
         {
@@ -143,7 +143,7 @@ void NodeView::set_owner(Node *_node)
         }
     }
 
-    if ( auto this_property = _node->get_this_property() )
+    if ( auto this_property = _node->as_property )
     {
         expose(this_property);
     }
@@ -152,14 +152,14 @@ void NodeView::set_owner(Node *_node)
     //------------------
 
     // add a successor connector per successor slot
-    const size_t successor_max_count = _node->successors().get_limit();
+    const size_t successor_max_count = _node->successors.get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
         m_successors.push_back(new NodeConnector(*this, Way_Out, index, successor_max_count));
     }
 
     // add a single predecessor connector if node can be connected in this way
-    if(_node->predecessors().get_limit() != 0)
+    if(_node->predecessors.get_limit() != 0)
         m_predecessors.push_back(new NodeConnector(*this, Way_In));
 
     // 4. Listen to connection/disconnections
@@ -221,7 +221,7 @@ void NodeView::update_labels_from_name(Node* _node)
         m_label += variable->get_value()->get_type()->get_name();
         m_label += " ";
     }
-    m_label += _node->get_name();
+    m_label += _node->name;
 
     // Short label
     constexpr size_t label_max_length = 10;
@@ -318,7 +318,7 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 	if ( _recurse )
     {
-	    for(auto eachInput : get_owner()->inputs() )
+	    for(auto eachInput : get_owner()->inputs )
         {
 	        if ( NodeView* eachInputView = eachInput->get_component<NodeView>() )
 	        {
@@ -515,7 +515,7 @@ bool NodeView::draw_implem()
 
         if( ImGui::Selectable("Delete", !m_edition_enable ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
         {
-            node->flag_to_delete();
+            node->flagged_to_delete = true;
         }
 
         ImGui::EndPopup();
@@ -549,11 +549,7 @@ bool NodeView::draw_implem()
 	ImGui::PopStyleVar();
 	ImGui::PopID();
 
-	if( changed )
-    {
-        get_owner()->set_dirty();
-    }
-
+	get_owner()->dirty |= changed;
 
     m_is_hovered = is_node_hovered || is_connector_hovered;
 
@@ -636,7 +632,7 @@ bool NodeView::draw_property(PropertyView *_view)
             std::string str;
             if (property->is_connected_to_variable())
             {
-                str = property->get_connected_variable()->get_name();
+                str = property->get_connected_variable()->name;
             }
             else
             {
@@ -704,7 +700,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
     {
         char str[255];
         auto* variable = _property->get_input()->get_owner()->as<VariableNode>();
-        snprintf(str, 255, "%s", variable->get_name() );
+        snprintf(str, 255, "%s", variable->name.c_str() );
 
         ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get_component<NodeView>()->get_color(ColorType_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
@@ -819,14 +815,11 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         bool edited = NodeView::draw_input(_property, nullptr);
-        if ( edited )
-        {
-            _property->get_owner()->set_dirty();
-        }
+        _property->get_owner()->dirty |= edited;
 
     };
 
-    ImGui::Text("Name:       \"%s\"" , node->get_name());
+    ImGui::Text("Name:       \"%s\"" , node->name.c_str());
     ImGui::Text("Class:      %s"     , node->get_type()->get_name());
 
     // Draw exposed input properties
@@ -880,7 +873,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // Components
         if( ImGui::TreeNode("Components") )
         {
-            for (auto &pair : node->components())
+            for (auto &pair : node->components)
             {
                 Component *component = pair.second;
                 ImGui::BulletText("%s", component->get_type()->get_name());
@@ -898,7 +891,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                     {
                         for (auto each : slots.content())
                         {
-                            ImGui::BulletText("- %s", each->get_name());
+                            ImGui::BulletText("- %s", each->name.c_str());
                         }
                     }
                     else
@@ -909,11 +902,11 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 }
             };
 
-            draw_slots("Inputs:"      , node->inputs());
-            draw_slots("Outputs:"     , node->outputs());
-            draw_slots("Predecessors:", node->predecessors());
-            draw_slots("Successors:"  , node->successors());
-            draw_slots("Children:"    , node->children_slots());
+            draw_slots("Inputs:"      , node->inputs);
+            draw_slots("Outputs:"     , node->outputs);
+            draw_slots("Predecessors:", node->predecessors);
+            draw_slots("Successors:"  , node->successors);
+            draw_slots("Children:"    , node->children);
 
             ImGui::TreePop();
         }
@@ -940,7 +933,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 auto vars = scope->get_variables();
                 for (auto eachVar : vars)
                 {
-                    ImGui::BulletText("%s: %s", eachVar->get_name(), eachVar->get_value()->convert_to<std::string>().c_str());
+                    ImGui::BulletText("%s: %s", eachVar->name.c_str(), eachVar->get_value()->convert_to<std::string>().c_str());
                 }
                 ImGui::TreePop();
             }
@@ -950,16 +943,16 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         {
             // dirty state
             ImGui::Separator();
-            bool b = _view->get_owner()->is_dirty();
+            bool b = _view->get_owner()->dirty;
             ImGui::Checkbox("Is dirty ?", &b);
 
             // Parent graph
             {
                 std::string parentName = "NULL";
 
-                if (node->get_parent_graph()) {
+                if (node->parent_graph) {
                     parentName = "Graph";
-                    parentName.append(node->get_parent_graph()->is_dirty() ? " (dirty)" : "");
+                    parentName.append(node->parent_graph->is_dirty() ? " (dirty)" : "");
 
                 }
                 ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
@@ -970,9 +963,8 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (node->get_parent()) {
-                    parentName = node->get_parent()->get_name();
-                    parentName.append(node->get_parent()->is_dirty() ? " (dirty)" : "");
+                if (node->parent) {
+                    parentName = node->parent->name + (node->parent->dirty ? " (dirty)" : "");
                 }
                 ImGui::Text("Parent node is \"%s\"", parentName.c_str());
             }
@@ -1217,7 +1209,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
 {
     if( !_view->is_visible() )
     {
-        if ( Node* parent = _view->get_owner()->get_parent() )
+        if ( Node* parent = _view->get_owner()->parent )
         {
             if ( NodeView* parent_view = parent->get_component<NodeView>() )
             {

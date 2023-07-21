@@ -32,7 +32,7 @@ VariableNode* Scope::find_variable(const std::string &_name)
      */
     auto has_name = [_name](const VariableNode* _variable ) -> bool
     {
-        return _variable->get_name() == _name;
+        return _variable->name == _name;
     };
 
     auto it = std::find_if(m_variables.begin(), m_variables.end(), has_name);
@@ -45,7 +45,7 @@ VariableNode* Scope::find_variable(const std::string &_name)
      */
     if ( result == nullptr )
     {
-        Node* owner_parent = get_owner()->get_parent();
+        Node* owner_parent = get_owner()->parent;
 
         if ( owner_parent )
         {
@@ -61,20 +61,20 @@ VariableNode* Scope::find_variable(const std::string &_name)
 
 Node* Scope::get_last_code_block()
 {
-    if (get_owner()->children_slots().empty() )
+    if (get_owner()->children.empty() )
         return nullptr;
-    return get_owner()->children_slots().back();
+    return get_owner()->children.back();
 }
 
 void Scope::add_variable(VariableNode* _variableNode)
 {
-    if ( find_variable(_variableNode->get_name()) )
+    if ( find_variable(_variableNode->name) )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variableNode->get_name())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variableNode->name.c_str())
     }
     else if ( _variableNode->get_scope() )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variableNode->get_name())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variableNode->name.c_str())
     }
     else
     {
@@ -86,7 +86,7 @@ void Scope::add_variable(VariableNode* _variableNode)
 
 void Scope::get_last_instructions_rec(std::vector<InstructionNode *> & _out)
 {
-    auto& owner_children = get_owner()->children_slots();
+    auto& owner_children = get_owner()->children;
     if ( owner_children.empty())
         return;
 

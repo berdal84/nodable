@@ -13,18 +13,15 @@ namespace ndbl
     // forward declarations
     struct Token;
 
-    /*
-        The role of this class is to symbolize an instruction.
-        The result of the instruction is value()
-    */
     class InstructionNode : public Node
     {
     public:
+        Property* root;
+        Token     token_end;
+
         explicit InstructionNode();
         ~InstructionNode()= default;
-        Token token_end;
-        inline Property * get_root_node_property()const { return m_props.get(k_value_property_name); }
-    private:
+
         REFLECT_DERIVED_CLASS()
     };
 }

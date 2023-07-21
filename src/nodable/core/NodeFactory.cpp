@@ -67,8 +67,7 @@ Node* NodeFactory::_new_abstract_function(const fw::func_type* _func_type, bool 
     }
 
     // Create a result/value
-    PropertyGrp * props = node->props();
-    props->add(_func_type->get_return_type(), k_value_property_name, Visibility::Default, Way_Out);
+    node->props.add(_func_type->get_return_type(), k_value_property_name, Visibility::Default, Way_Out);
 
     // Create arguments
     auto args = _func_type->get_args();
@@ -83,11 +82,11 @@ Node* NodeFactory::_new_abstract_function(const fw::func_type* _func_type, bool 
         switch ( count )
         {
             case 1:
-                props->add(args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
+                node->props.add(args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
                 break;
             case 2:
-                props->add( args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
-                props->add( args[1].m_type, k_rh_value_property_name, Visibility::Default, Way_In);
+                node->props.add( args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
+                node->props.add( args[1].m_type, k_rh_value_property_name, Visibility::Default, Way_In);
                 break;
             default: /* no warning */ ;
         }
@@ -96,7 +95,7 @@ Node* NodeFactory::_new_abstract_function(const fw::func_type* _func_type, bool 
     {
         for (auto& arg : args)
         {
-            props->add(arg.m_type, arg.m_name.c_str(), Visibility::Default, Way_In);
+            node->props.add(arg.m_type, arg.m_name.c_str(), Visibility::Default, Way_In);
         }
     }
 
@@ -115,19 +114,17 @@ Node* NodeFactory::new_function(const fw::iinvokable* _function, bool _is_operat
 
 void NodeFactory::add_invokable_component(Node *_node, const fw::func_type* _func_type, const fw::iinvokable *_invokable, bool _is_operator) const
 {
-    PropertyGrp * props = _node->props();
-
     // Create an InvokableComponent with the function.
-    auto component = _node->components().add<InvokableComponent>(_func_type, _is_operator, _invokable );
+    auto component = _node->components.add<InvokableComponent>(_func_type, _is_operator, _invokable );
 
     // Link result property
-    component->set_result(props->get(k_value_property_name));
+    component->set_result(_node->props.get(k_value_property_name));
 
     // Link arguments
     auto args = _func_type->get_args();
     for (size_t arg_idx = 0; arg_idx < args.size(); arg_idx++)
     {
-        Property * property = props->get_input_at((u8_t)arg_idx);
+        Property * property = _node->props.get_input_at((u8_t)arg_idx);
         property->set_reference(args[arg_idx].m_by_reference);  // to handle by reference function args
         component->set_arg(arg_idx, property);                  // link
     }
@@ -138,10 +135,10 @@ Node* NodeFactory::new_scope() const
     auto scope_node = new Node();
     scope_node->set_name("{} Scope");
 
-    scope_node->predecessors().set_limit(std::numeric_limits<int>::max());
-    scope_node->successors().set_limit(1);
+    scope_node->predecessors.set_limit(std::numeric_limits<int>::max());
+    scope_node->successors.set_limit(1);
 
-    scope_node->components().add<Scope>();
+    scope_node->components.add<Scope>();
 
     m_post_process(scope_node);
 
@@ -153,8 +150,8 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
     auto cond_struct_node = new ConditionalStructNode();
     cond_struct_node->set_name("If");
 
-    cond_struct_node->predecessors().set_limit(std::numeric_limits<int>::max());
-    cond_struct_node->successors().set_limit(2); // true/false branches
+    cond_struct_node->predecessors.set_limit(std::numeric_limits<int>::max());
+    cond_struct_node->successors.set_limit(2); // true/false branches
 
     cond_struct_node->add_component<Scope>();
 
@@ -168,8 +165,8 @@ ForLoopNode* NodeFactory::new_for_loop_node() const
     auto for_loop = new ForLoopNode();
     
     for_loop->set_name("For");
-    for_loop->predecessors().set_limit(std::numeric_limits<int>::max());
-    for_loop->successors().set_limit(1);
+    for_loop->predecessors.set_limit(std::numeric_limits<int>::max());
+    for_loop->successors.set_limit(1);
     for_loop->add_component<Scope>();
 
     m_post_process(for_loop);
@@ -182,8 +179,8 @@ WhileLoopNode* NodeFactory::new_while_loop_node() const
     auto while_loop = new WhileLoopNode();
 
     while_loop->set_name("While");
-    while_loop->predecessors().set_limit(std::numeric_limits<int>::max());
-    while_loop->successors().set_limit(1);
+    while_loop->predecessors.set_limit(std::numeric_limits<int>::max());
+    while_loop->successors.set_limit(1);
     while_loop->add_component<Scope>();
 
     m_post_process(while_loop);

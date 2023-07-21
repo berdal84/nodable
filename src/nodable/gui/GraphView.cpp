@@ -192,10 +192,10 @@ bool GraphView::draw_implem()
     for( Node* each_node : node_registry)
     {
         size_t slot_index = 0;
-        size_t slot_count = each_node->successors().get_limit();
+        size_t slot_count = each_node->successors.get_limit();
         float padding     = 2.0f;
         float linePadding = 5.0f;
-        for (Node* each_successor_node : each_node->successors() )
+        for (Node* each_successor_node : each_node->successors )
         {
             NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>() );
             NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>() );
@@ -281,9 +281,7 @@ bool GraphView::draw_implem()
         */
         for (auto eachNode : node_registry)
         {
-            const std::vector<Property*>& properties = eachNode->props()->by_index();
-
-            for (auto& dst_property : properties)
+            for (auto& dst_property : eachNode->props.by_index())
             {
                 if ( const Property * src_property = dst_property->get_input() )
                 {
@@ -560,7 +558,7 @@ bool GraphView::draw_implem()
                 if ( dragged_property_conn->m_way == Way_In )
                 {
                     Property * dst_property = dragged_property_conn->get_property();
-                    Property * src_property = new_node->props()->get_first(Way_Out, dst_property->get_type());
+                    Property * src_property = new_node->props.get_first(Way_Out, dst_property->get_type());
                     m_graph->connect( src_property, dst_property );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -568,7 +566,7 @@ bool GraphView::draw_implem()
                 {
                     // connect dragged (out) to first input on new node.
                     Property * src_property = dragged_property_conn->get_property();
-                    Property * dst_property = new_node->props()->get_first(Way_In, src_property->get_type());
+                    Property * dst_property = new_node->props.get_first(Way_In, src_property->get_type());
                     m_graph->connect( src_property, dst_property);
                 }
                 PropertyConnector::stop_drag();
@@ -625,7 +623,7 @@ void GraphView::create_child_view_constraints()
             // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
             //---------------------------------------------------------------------------------
 
-            const std::vector<Node*>& predecessor_nodes = _eachNode->predecessors().content();
+            const std::vector<Node*>& predecessor_nodes = _eachNode->predecessors.content();
             std::vector<NodeView*> predecessor_views;
             Node::get_components<NodeView>(predecessor_nodes, predecessor_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )

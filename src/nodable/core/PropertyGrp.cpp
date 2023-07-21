@@ -3,9 +3,13 @@
 
 using namespace ndbl;
 
-PropertyGrp::PropertyGrp(Node* _owner):m_owner(_owner){}
+PropertyGrp::PropertyGrp(Node* _owner)
+: m_owner(_owner)
+, _this_(nullptr)
+{}
 
-PropertyGrp::~PropertyGrp() {}
+PropertyGrp::~PropertyGrp()
+{}
 
 bool PropertyGrp::has(const char* _name) const
 {

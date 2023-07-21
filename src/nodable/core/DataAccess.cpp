@@ -46,7 +46,7 @@ bool DataAccess::update()
     	writer.Key("properties");
     	writer.StartObject();
     	{
-		    for(auto& each : m_owner->props()->by_name())
+		    for(auto& each : m_owner->props.by_name())
 		    {
 		    	auto value = each.second;
 
@@ -61,7 +61,7 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(const auto& [hash, component] : m_owner->components())
+		    for(const auto& [hash, component] : m_owner->components)
 		    {
 		    	writer.Key(component->get_type()->get_name());
 		    	writer.StartObject();
@@ -77,7 +77,7 @@ bool DataAccess::update()
     writer.EndObject();
 
     std::string fileName("node_");
-    fileName += m_owner->get_name();
+    fileName += m_owner->name;
     fileName += ".json";
 
     std::ofstream outfile ("saves/" +fileName ,std::ofstream::binary);

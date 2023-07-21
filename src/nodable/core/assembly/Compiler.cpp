@@ -48,7 +48,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
             {
                 if( !each_variable->is_declared() )
                 {
-                    LOG_ERROR("Compiler", "Syntax error: \"%s\" is not declared.\n", each_variable->get_name() );
+                    LOG_ERROR("Compiler", "Syntax error: \"%s\" is not declared.\n", each_variable->name.c_str() );
                     return false;
                 }
             }
@@ -59,7 +59,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
         {
             if ( !component->has_function() )
             {
-                LOG_ERROR("Compiler", "Syntax error: \"%s\" is not a function available.\n", each_node->get_name() );
+                LOG_ERROR("Compiler", "Syntax error: \"%s\" is not a function available.\n", each_node->name.c_str() );
                 return false;
             }
         }
@@ -106,7 +106,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
         Instruction *instr  = m_temp_code->push_instr(Instruction_t::push_stack_frame);
         instr->push.scope = _scope;
         char str[64];
-        snprintf(str, 64, "%s's scope", scope_owner->get_name());
+        snprintf(str, 64, "%s's scope", scope_owner->name.c_str());
         instr->m_comment = str;
     }
 
@@ -115,11 +115,11 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     {
         Instruction *instr   = m_temp_code->push_instr(Instruction_t::push_var);
         instr->push.var      = each_variable;
-        instr->m_comment     = std::string{each_variable->get_name()};
+        instr->m_comment     = each_variable->name;
     }
 
     // compile content
-    for( const Node* each_node : scope_owner->children_slots().content() )
+    for( const Node* each_node : scope_owner->children.content() )
     {
         compile(each_node);
     }
@@ -135,13 +135,13 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     {
         Instruction *instr   = m_temp_code->push_instr(Instruction_t::pop_var);
         instr->push.var      = each_variable;
-        instr->m_comment     = std::string{each_variable->get_name()};
+        instr->m_comment     = each_variable->name;
     }
 
     {
         Instruction *instr     = m_temp_code->push_instr(Instruction_t::pop_stack_frame);
         instr->pop.scope = _scope;
-        instr->m_comment = std::string{scope_owner->get_name()} + "'s scope";
+        instr->m_comment = scope_owner->name + "'s scope";
     }
 }
 
@@ -182,7 +182,7 @@ void assembly::Compiler::compile(const Node* _node)
     else
     {
         // eval inputs
-        for ( const Node* each_input : _node->inputs().content() )
+        for ( const Node* each_input : _node->inputs.content() )
         {
             if ( !each_input->is<VariableNode>() )
             {
@@ -196,7 +196,7 @@ void assembly::Compiler::compile(const Node* _node)
         {
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
             instr->eval.node   = _node;
-            instr->m_comment   = _node->get_name();
+            instr->m_comment   = _node->name;
 
             // result is not stored, because this is necessary only for instruction's root node.
         }
@@ -317,16 +317,15 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 
 void assembly::Compiler::compile(const InstructionNode *instr_node)
 {
-    const Property * root_node_property = instr_node->get_root_node_property();
-    FW_ASSERT(root_node_property)
+    FW_ASSERT(instr_node->root)
 
     // copy instruction result to rax register
-    if ( root_node_property->has_input_connected() )
+    if ( instr_node->root->has_input_connected() )
     {
-        compile(root_node_property);
+        compile(instr_node->root);
 
-        Node*   root_node       = root_node_property->get_input()->get_owner();
-        Property * root_node_value = root_node->props()->get(k_value_property_name);
+        Node*     root_node       = instr_node->root->get_input()->get_owner();
+        Property* root_node_value = root_node->props.get(k_value_property_name);
 
         if ( root_node_value )
         {

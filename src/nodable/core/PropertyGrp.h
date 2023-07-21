@@ -19,16 +19,14 @@ namespace ndbl
      */
 	class PropertyGrp
     {
+    public:
         using PropertyVec = std::vector<Property*>;
         using PropertyMap = std::map<std::string, Property*>;
-    private:
-        struct PropertiesIndex {
-            PropertyVec  by_index;   // properties ordered
-            PropertyMap  by_name;    // properties indexed by name
-        };
-	public:
+
 		explicit PropertyGrp(Node* owner);
 		virtual ~PropertyGrp();
+
+        Property* _this_;
 
         bool                   has(const char*) const;
         Property*              get(const char* _name)const { return m_properties_.by_name.at(_name); };
@@ -53,6 +51,10 @@ namespace ndbl
                 return add(fw::type::get<T>(), _name, _visibility, _way, _flags);
             }
 	private:
+        struct PropertiesIndex {
+            PropertyVec  by_index;   // properties ordered
+            PropertyMap  by_name;    // properties indexed by name
+        };
         Node*                               m_owner;
         std::set<std::shared_ptr<Property>> m_properties;
         PropertiesIndex                     m_properties_;

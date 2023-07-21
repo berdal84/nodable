@@ -337,7 +337,7 @@ void Nodable::on_update()
             {
                 if ( selected_view && !ImGui::IsAnyItemFocused() )
                 {
-                    selected_view->get_owner()->flag_to_delete();
+                    selected_view->get_owner()->flagged_to_delete = true;
                 }
                 break;
             }
@@ -352,7 +352,7 @@ void Nodable::on_update()
             {
                 if ( selected_view )
                 {
-                    Node* possible_successor = selected_view->get_owner()->successors().get_front_or_nullptr();
+                    Node* possible_successor = selected_view->get_owner()->successors.get_front_or_nullptr();
                     if (possible_successor)
                     {
                         if (NodeView* successor_view = possible_successor->get_component<NodeView>())
@@ -449,9 +449,7 @@ void Nodable::on_update()
                 const PropertyConnector* src_connector = event.property_connectors.src;
                 Property * src = src_connector->get_property();
 
-                auto edges = src->get_owner()
-                                     ->get_parent_graph()
-                                     ->filter_edges(src, src_connector->m_way);
+                auto edges = src->get_owner()->parent_graph->filter_edges(src, src_connector->m_way);
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 for(auto each_edge: edges)

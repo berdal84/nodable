@@ -24,8 +24,8 @@ namespace ndbl
 
         Token token_for;
 
-        Property *       get_init_expr()const { return m_props.get(k_interative_init_property_name); }
-        Property *       get_iter_expr()const { return m_props.get(k_interative_iter_property_name); }
+        Property *       get_init_expr()const { return props.get(k_interative_init_property_name); }
+        Property *       get_iter_expr()const { return props.get(k_interative_iter_property_name); }
         InstructionNode* get_iter_instr()const { return m_iter_instr_node; }
         InstructionNode* get_init_instr()const { return m_init_instr_node; }
         void             set_iter_instr(InstructionNode*);
@@ -33,7 +33,7 @@ namespace ndbl
 
         // implements IConditionalStruct (which is already documented)
 
-        Property *       condition_property()const override { return m_props.get(k_conditional_cond_property_name);}
+        Property *       condition_property()const override { return props.get(k_conditional_cond_property_name);}
         Scope*           get_condition_true_scope()const override;
         Scope*           get_condition_false_scope()const override;
         void             set_cond_expr(InstructionNode*) override;

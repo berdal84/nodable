@@ -30,7 +30,7 @@ namespace ndbl
 
         // implements IConditionalStruct (which is already documented)
 
-        Property *       condition_property()const override { return m_props.get(k_conditional_cond_property_name);}
+        Property *       condition_property()const override { return props.get(k_conditional_cond_property_name);}
         Scope*           get_condition_true_scope()const override;
         Scope*           get_condition_false_scope()const override;
         void             set_cond_expr(InstructionNode*) override;

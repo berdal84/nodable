@@ -216,7 +216,9 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
     // We unset dirty, since we did a lot of connections but we don't want any update now
     auto &nodes = parser_state.graph->get_node_registry();
     for (auto eachNode: nodes)
-        eachNode->set_dirty(false);
+    {
+        eachNode->dirty = false;
+    }
 
     LOG_MESSAGE("Parser", "Program tree updated in %.3f ms.\n", duration_cast<duration<double>>(high_resolution_clock::now() - parse_begin).count()*1000.0 )
     LOG_VERBOSE("Parser", "Source code: <expr>%s</expr>\"\n", _source_code.c_str())
@@ -282,28 +284,28 @@ Property *Nodlang::to_property(Token _token)
         case Token_t::literal_bool:
         {
             literal = parser_state.graph->create_literal<bool>();
-            literal->set_value(to_bool(_token.word_to_string())); // FIXME: avoid std::string copy
+            literal->value->set(to_bool(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_int:
         {
             literal = parser_state.graph->create_literal<i16_t>();
-            literal->set_value(to_i16(_token.word_to_string())); // FIXME: avoid std::string copy
+            literal->value->set(to_i16(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_double:
         {
             literal = parser_state.graph->create_literal<double>();
-            literal->set_value(to_double(_token.word_to_string())); // FIXME: avoid std::string copy
+            literal->value->set(to_double(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_string:
         {
             literal = parser_state.graph->create_literal<std::string>();
-            literal->set_value(to_unquoted_string(_token.word_to_string()));
+            literal->value->set(to_unquoted_string(_token.word_to_string()));
             break;
         }
 
@@ -312,9 +314,8 @@ Property *Nodlang::to_property(Token _token)
 
     if (literal)
     {
-        Property *result = literal->get_value();
-        result->token = _token;
-        return result;
+        literal->value->token = _token;
+        return literal->value;
     }
 
     LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str())
@@ -415,7 +416,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-    return binary_op->props()->get(k_value_property_name);
+    return binary_op->props.get(k_value_property_name);
 }
 
 Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
@@ -477,7 +478,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     component->token = operator_token;
 
     parser_state.graph->connect(value, component->get_l_handed_val());
-    Property *result = node->props()->get(k_value_property_name);
+    Property *result = node->props.get(k_value_property_name);
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
     commit_transaction();
@@ -698,7 +699,7 @@ IScope *Nodlang::parse_code_block(bool _create_scope)
         }
     }
 
-    if (curr_scope->get_owner()->children_slots().empty())
+    if (curr_scope->get_owner()->children.empty())
     {
         rollback_transaction();
         return nullptr;
@@ -1117,7 +1118,7 @@ Property *Nodlang::parse_function_call()
 
     auto connect_arg = [&](const func_type *_sig, Node *_node, size_t _arg_index) -> void {// lambda to connect input property to node for a specific argument index.
         Property *src_property = args.at(_arg_index);
-        Property *dst_property = _node->props()->get_input_at(_arg_index);
+        Property *dst_property = _node->props.get_input_at(_arg_index);
         FW_ASSERT(dst_property)
         parser_state.graph->connect(src_property, dst_property);
     };
@@ -1151,7 +1152,7 @@ Property *Nodlang::parse_function_call()
     commit_transaction();
     LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-    return node->props()->get(k_value_property_name);
+    return node->props.get(k_value_property_name);
 }
 
 Scope *Nodlang::get_current_scope()
@@ -1189,7 +1190,7 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
             condition->set_name("Condition");
             condition->set_name("Cond.");
             condStruct->set_cond_expr(condition);
-            parser_state.graph->connect(condition->get_this_property(), condStruct->condition_property());
+            parser_state.graph->connect(condition->as_property, condStruct->condition_property());
         }
 
         if ( empty_parenthesis || (condition && !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null()))
@@ -1282,7 +1283,7 @@ ForLoopNode *Nodlang::parse_for_loop()
             } else
             {
                 init_instr->set_name("Initialisation");
-                parser_state.graph->connect(init_instr->get_this_property(), for_loop_node->get_init_expr());
+                parser_state.graph->connect(init_instr->as_property, for_loop_node->get_init_expr());
                 for_loop_node->set_init_instr(init_instr);
 
                 InstructionNode *cond_instr = parse_instr();
@@ -1292,7 +1293,7 @@ ForLoopNode *Nodlang::parse_for_loop()
                 } else
                 {
                     cond_instr->set_name("Condition");
-                    parser_state.graph->connect(cond_instr->get_this_property(), for_loop_node->condition_property());
+                    parser_state.graph->connect(cond_instr->as_property, for_loop_node->condition_property());
                     for_loop_node->set_cond_expr(cond_instr);
 
                     InstructionNode *iter_instr = parse_instr();
@@ -1302,7 +1303,7 @@ ForLoopNode *Nodlang::parse_for_loop()
                     } else
                     {
                         iter_instr->set_name("Iteration");
-                        parser_state.graph->connect(iter_instr->get_this_property(), for_loop_node->get_iter_expr());
+                        parser_state.graph->connect(iter_instr->as_property, for_loop_node->get_iter_expr());
                         for_loop_node->set_iter_instr(iter_instr);
 
                         Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
@@ -1361,7 +1362,7 @@ WhileLoopNode *Nodlang::parse_while_loop()
         else if( InstructionNode* cond_instr = parse_instr())
         {
             cond_instr->set_name("Condition");
-            parser_state.graph->connect(cond_instr->get_this_property(), while_loop_node->condition_property());
+            parser_state.graph->connect(cond_instr->as_property, while_loop_node->condition_property());
             while_loop_node->set_cond_expr(cond_instr);
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
@@ -1601,7 +1602,7 @@ std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) co
 
     // 2. Serialize variable identifier
 
-    _out.append(_node->get_name());
+    _out.append(_node->name);
 
     // 3. If variable is connected, serialize its assigned expression
 
@@ -1659,7 +1660,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
     {
         if (owner && owner->get_type()->is<VariableNode>())
         {
-            _out.append(owner->as<VariableNode>()->get_name());
+            _out.append(owner->as<VariableNode>()->name);
         } else
         {
             serialize(_out, _property->get_variant());
@@ -1700,7 +1701,7 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     }
     else if (_node->is<LiteralNode>())
     {
-        serialize(_out, _node->as<LiteralNode>()->get_value());
+        serialize(_out, _node->as<LiteralNode>()->value);
     }
     else if (_node->is<VariableNode>())
     {
@@ -1722,7 +1723,7 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
 std::string &Nodlang::serialize(std::string &_out, const Scope *_scope) const
 {
     serialize(_out, _scope->token_begin);
-    auto &children = _scope->get_owner()->children_slots();
+    auto &children = _scope->get_owner()->children;
     for (Node* each_child: children)
     {
         serialize(_out, each_child);
@@ -1734,11 +1735,9 @@ std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instr
 {
     FW_EXPECT(_instruction != nullptr, "IntructionNode should NOT be nullptr");
 
-    const Property *root_node_property = _instruction->get_root_node_property();
-
-    if (root_node_property->has_input_connected() && root_node_property->get_variant()->is_initialized())
+    if (_instruction->root->has_input_connected() && _instruction->root->get_variant()->is_initialized())
     {
-        auto root_node = (const Node *) *root_node_property;
+        auto root_node = static_cast<const Node*>(*_instruction->root);
         FW_ASSERT(root_node)
         serialize(_out, root_node);
     }
