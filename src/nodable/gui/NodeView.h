@@ -35,21 +35,17 @@ namespace ndbl
 	};
 
     enum class ViewConstraint_t {
-        AlignOnBBoxTop,
         AlignOnBBoxLeft,
         MakeRowAndAlignOnBBoxTop,
         MakeRowAndAlignOnBBoxBottom,
         FollowWithChildren,
-        Follow,
     };
 
     R_ENUM(ViewConstraint_t)
-    R_ENUM_VALUE(AlignOnBBoxTop)
     R_ENUM_VALUE(AlignOnBBoxLeft)
     R_ENUM_VALUE(MakeRowAndAlignOnBBoxTop)
     R_ENUM_VALUE(MakeRowAndAlignOnBBoxBottom)
     R_ENUM_VALUE(FollowWithChildren)
-    R_ENUM_VALUE(Follow)
     R_ENUM_END
 
 	/**
@@ -57,32 +53,30 @@ namespace ndbl
 	 */
 	class ViewConstraint {
 	public:
-        using NodeViews = std::vector<NodeView*>;
-	    using Filter    = std::function<bool(ViewConstraint*)>;
+	    using Filter = std::function<bool(ViewConstraint*)>;
 
 	    ViewConstraint(const char* _name, ViewConstraint_t _type);
 	    void apply(float _dt);
         void apply_when(const Filter& _lambda) { m_filter = _lambda; }
         void add_target(NodeView*);
         void add_driver(NodeView*);
-        void add_targets(const NodeViews&);
-        void add_drivers(const NodeViews&);
+        void add_targets(const std::vector<NodeView*>&);
+        void add_drivers(const std::vector<NodeView*>&);
         void draw_view();
 
-        ImVec2 m_offset;
+        ImVec2 m_offset; // offset applied to the constrain
 
         static const Filter no_target_expanded;
         static const Filter drivers_are_expanded;
         static const Filter always;
 
     private:
-        bool              m_is_enable;
-        bool              should_apply();
-        Filter            m_filter;
-	    ViewConstraint_t  m_type;
-        NodeViews         m_drivers;
-        NodeViews         m_targets;
         const char*       m_name;
+        bool              m_is_enable;
+        Filter            m_filter; // Lambda returning true if this constrain should apply.
+	    ViewConstraint_t  m_type;
+        std::vector<NodeView*> m_drivers; // driving the targets
+        std::vector<NodeView*> m_targets;
     };
 
 	/**

@@ -15,31 +15,33 @@ ViewConstraint::ViewConstraint(const char* _name, ViewConstraint_t _type)
 , m_is_enable(true)
 , m_name(_name)
 {
-
 }
 
 void ViewConstraint::apply(float _dt)
 {
-    if( !should_apply() )
+    bool should_apply = m_is_enable && m_filter(this);
+    if(!should_apply)
     {
         return;
     }
 
-    const Config& config = Nodable::get_instance().config;
-
-    // try to get a visible view for drivers, is view is not visible we take the parent
-    std::vector<NodeView*> clean_drivers;
-    for(auto each : m_drivers)
+    /*
+     * To get a clean list of node views.
+     * Substitute each not visible view by their respective parent.
+     */
+    auto get_clean = [](std::vector<NodeView*> _in)
     {
-        clean_drivers.push_back(NodeView::substitute_with_parent_if_not_visible(each ) );
-    }
+        std::vector<NodeView*> out;
+        out.reserve(_in.size());
+        for(auto each : _in)
+        {
+            out.push_back(NodeView::substitute_with_parent_if_not_visible(each ));
+        }
+        return std::move(out);
+    };
 
-    // the same for targets
-    std::vector<NodeView*> clean_targets;
-    for(auto each : m_targets)
-    {
-        clean_targets.push_back(NodeView::substitute_with_parent_if_not_visible(each ) );
-    }
+    std::vector<NodeView*> clean_drivers = get_clean(m_drivers);
+    std::vector<NodeView*> clean_targets = get_clean(m_targets);
 
     //debug
     if( fw::ImGuiEx::debug )
@@ -56,53 +58,44 @@ void ViewConstraint::apply(float _dt)
         }
     }
 
-    // return if no views are visible
-    auto is_visible = [](const NodeView* view) { return view->is_visible(); };
-    if (std::find_if(clean_targets.begin(), clean_targets.end(), is_visible) == clean_targets.end()) return;
-    if (std::find_if(clean_drivers.begin(), clean_drivers.end(), is_visible) == clean_drivers.end()) return;
+    auto none_is_visible = [](const std::vector<NodeView*>& _views)-> bool {
+        auto is_visible = [](const NodeView* view) { return view->is_visible(); };
+        return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
+    };
+    if (none_is_visible(clean_targets) || none_is_visible(clean_drivers)) return;
 
-    // shortcuts
-    auto first_target = clean_targets[0];
-    auto first_driver = clean_drivers[0];
+    const Config& config = Nodable::get_instance().config;
 
     switch ( m_type )
     {
         case ViewConstraint_t::AlignOnBBoxLeft:
         {
-            if(!first_target->pinned && first_target->is_visible())
+            /*
+             * Align first target's bbox border left with all driver's bbox border right
+             */
+
+            NodeView* target = clean_targets[0];
+
+            if(!target->pinned && target->is_visible())
             {
-                ImRect bbox = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView*> *>(&clean_drivers), true);
-                ImVec2 newPos(bbox.GetCenter()
-                            - ImVec2(bbox.GetSize().x * 0.5f
-                            + config.ui_node_spacing
-                            + first_target->get_rect().GetSize().x * 0.5f, 0 ));
-                first_target->add_force_to_translate_to(newPos + m_offset, config.ui_node_speed);
+                ImRect drivers_bbox = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView*> *>(&clean_drivers), true);
+                ImVec2 new_position(drivers_bbox.GetCenter()
+                                    - ImVec2(drivers_bbox.GetSize().x * 0.5f
+                                    + config.ui_node_spacing
+                                    + target->get_rect().GetSize().x * 0.5f, 0 ));
+                target->add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
             }
-
-            break;
-        }
-
-        case ViewConstraint_t::AlignOnBBoxTop:
-        {
-            if(!first_target->pinned && first_target->is_visible() && first_target->should_follow_output(clean_drivers[0]))
-            {
-                ImRect bbox = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView *>*>(&clean_drivers));
-                ImVec2 newPos(bbox.GetCenter() + ImVec2(0.0, -bbox.GetHeight() * 0.5f - config.ui_node_spacing));
-                newPos.y -= config.ui_node_spacing + first_target->get_size().y / 2.0f;
-                newPos.x += config.ui_node_spacing + first_target->get_size().x / 2.0f;
-
-                if (newPos.y < first_target->get_position(fw::Space_Local, false).y )
-                {
-                    first_target->add_force_to_translate_to(newPos + m_offset, config.ui_node_speed, true);
-                }
-            }
-
             break;
         }
 
         case ViewConstraint_t::MakeRowAndAlignOnBBoxTop:
         case ViewConstraint_t::MakeRowAndAlignOnBBoxBottom:
         {
+            /*
+             * Make a row with targets, and constrain it to be above at the top (or bottom) the driver's bbox
+             */
+            NodeView* driver = clean_drivers[0];
+
             // Compute size_x_total :
             //-----------------------
 
@@ -119,17 +112,17 @@ void ViewConstraint::apply(float _dt)
             // Determine x position start:
             //---------------------------
 
-            ImVec2   first_driver_pos = first_driver->get_position(fw::Space_Local);
+            ImVec2   first_driver_pos = driver->get_position(fw::Space_Local);
             float    start_pos_x      = first_driver_pos.x - size_x_total / 2.0f;
-            const fw::type* driver_type = first_driver->get_owner()->get_type();
+            const fw::type* driver_type = driver->get_owner()->get_type();
 
             if (driver_type->is_child_of<InstructionNode>()
                 || (driver_type->is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
                 start_pos_x = first_driver_pos.x
-                            + first_driver->get_size().x / 2.0f
-                            + config.ui_node_spacing;
+                              + driver->get_size().x / 2.0f
+                              + config.ui_node_spacing;
             }
 
             // Constraint in row:
@@ -141,16 +134,17 @@ void ViewConstraint::apply(float _dt)
                 {
                     // Compute new position for this input view
                     float y_offset = config.ui_node_spacing
-                            + each_target->get_size().y / 2.0f
-                            + first_driver->get_size().y / 2.0f;
+                                     + each_target->get_size().y / 2.0f
+                                     + driver->get_size().y / 2.0f;
 
+                    // top or bottom ?
                     if(m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop ) y_offset *= -1.0f;
 
                     ImVec2 new_pos;
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
                     new_pos.y = first_driver_pos.y + y_offset;
 
-                    if (each_target->should_follow_output(first_driver) )
+                    if (each_target->should_follow_output(driver) )
                     {
                         each_target->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
                         start_pos_x += size_x[node_index] + config.ui_node_spacing;
@@ -163,33 +157,23 @@ void ViewConstraint::apply(float _dt)
 
         case ViewConstraint_t::FollowWithChildren:
         {
-            if (!first_target->pinned && first_target->is_visible() )
+            /*
+             * Constrain the target view (and its children) to follow the drivers' bbox
+             */
+
+            NodeView* target = clean_targets[0];
+            if (!target->pinned && target->is_visible() )
             {
                 // compute
                 auto drivers_rect = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView *> *>(&clean_drivers), false, true);
-                auto target_rect  = first_target->get_rect(true, true);
+                auto target_rect  = target->get_rect(true, true);
                 ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
                 ImVec2 new_pos;
                 new_pos.x = drivers_rect.GetCenter().x;
-                new_pos.y = first_target->get_position(fw::Space_Local).y + target_driver_offset.y + config.ui_node_spacing;
+                new_pos.y = target->get_position(fw::Space_Local).y + target_driver_offset.y + config.ui_node_spacing;
 
                 // apply
-                first_target->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
-                break;
-            }
-        }
-
-        case ViewConstraint_t::Follow:
-        {
-            if (!first_target->pinned && first_target->is_visible() )
-            {
-                // compute
-                ImVec2 new_pos = clean_drivers[0]->get_position(fw::Space_Local);
-                new_pos     += ImVec2(0.0f, clean_drivers[0]->get_size().y);
-                new_pos.y   += config.ui_node_spacing + first_target->get_size().y;
-
-                // apply
-                first_target->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed);
+                target->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
                 break;
             }
         }
@@ -237,11 +221,6 @@ const ViewConstraint::Filter
     return std::find_if(_constraint->m_drivers.cbegin(), _constraint->m_drivers.cend(), not_expanded)
            == _constraint->m_drivers.cend();
 };
-
-bool ViewConstraint::should_apply()
-{
-    return m_is_enable && m_filter(this);
-}
 
 void ViewConstraint::draw_view()
 {
