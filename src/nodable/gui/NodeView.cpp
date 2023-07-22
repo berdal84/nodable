@@ -651,12 +651,12 @@ bool NodeView::draw_property_view(PropertyView *_view)
 
         // Generate the property's source code
         std::string source_code;
-        if( !property->allows_connection(Way_In) && property->get_owner()->components.has<InvokableComponent>() )
+        if( property->get_type()->is_ptr() || !property->allows_connection(Way_In)) // pointer to Node* or output
         {
-            // When property is an output, we serialize the InvokableComponent
             Nodlang::get_instance().serialize(
                     source_code,
-                    property->get_owner()->components.get<InvokableComponent>());
+                    property->get_owner());
+
         }
         else
         {
