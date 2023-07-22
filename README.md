@@ -19,7 +19,9 @@ The goal of Nodable is to provide an original source code editor using both text
 Unlike other nodal softwares, the goal of Nodable is to make possible the edition of the source code and its graph representation at the same time. Users are not stuck into one of the two paradigms, they can go back and forth whenever they want...
 [read more](https://nodable.42borgata.com/)
 
-![image](https://github.com/berdal84/nodable/assets/942052/10ec3e25-626b-47f6-b147-d27216c98643)
+![image](https://github.com/berdal84/nodable/assets/942052/7b433160-f62f-42f1-82bb-b145e9471fb7)
+
+![image](https://github.com/berdal84/nodable/assets/942052/50392b57-d4b0-40c6-86ae-248815796bc7)
 
 ### Download
 
