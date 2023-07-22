@@ -1,4 +1,4 @@
-#include "NodeView.h"
+#include "NodeViewConstraint.h"
 
 #include <numeric>
 
@@ -6,10 +6,11 @@
 #include "core/InstructionNode.h"
 
 #include "Nodable.h"
+#include "NodeView.h"
 
 using namespace ndbl;
 
-ViewConstraint::ViewConstraint(const char* _name, ViewConstraint_t _type)
+NodeViewConstraint::NodeViewConstraint(const char* _name, ViewConstraint_t _type)
 : m_type(_type)
 , m_filter(always)
 , m_is_enable(true)
@@ -17,7 +18,7 @@ ViewConstraint::ViewConstraint(const char* _name, ViewConstraint_t _type)
 {
 }
 
-void ViewConstraint::apply(float _dt)
+void NodeViewConstraint::apply(float _dt)
 {
     bool should_apply = m_is_enable && m_filter(this);
     if(!should_apply)
@@ -180,24 +181,24 @@ void ViewConstraint::apply(float _dt)
     }
 }
 
-void ViewConstraint::add_target(NodeView *_target)
+void NodeViewConstraint::add_target(NodeView *_target)
 {
     FW_ASSERT(_target != nullptr);
     m_targets.push_back(_target);
 }
 
-void ViewConstraint::add_driver(NodeView *_driver)
+void NodeViewConstraint::add_driver(NodeView *_driver)
 {
     FW_ASSERT(_driver != nullptr);
     m_drivers.push_back(_driver);
 }
 
-void ViewConstraint::add_targets(const std::vector<NodeView *> &_new_targets)
+void NodeViewConstraint::add_targets(const std::vector<NodeView *> &_new_targets)
 {
     m_targets.insert(m_targets.end(), _new_targets.begin(), _new_targets.end());
 }
 
-void ViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers)
+void NodeViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers)
 {
     m_drivers.insert(m_drivers.end(), _new_drivers.begin(), _new_drivers.end());
 }
@@ -205,24 +206,24 @@ void ViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers)
 
 auto not_expanded  = [](const NodeView* _view ) { return !_view->is_expanded(); };
 
-const ViewConstraint::Filter
-        ViewConstraint::always = [](ViewConstraint* _constraint){ return true; };
+const NodeViewConstraint::Filter
+        NodeViewConstraint::always = [](NodeViewConstraint* _constraint){ return true; };
 
-const ViewConstraint::Filter
-        ViewConstraint::no_target_expanded = [](const ViewConstraint* _constraint)
+const NodeViewConstraint::Filter
+        NodeViewConstraint::no_target_expanded = [](const NodeViewConstraint* _constraint)
 {
     return std::find_if(_constraint->m_targets.cbegin(), _constraint->m_targets.cend(), not_expanded)
            == _constraint->m_targets.cend();
 };
 
-const ViewConstraint::Filter
-        ViewConstraint::drivers_are_expanded = [](const ViewConstraint* _constraint)
+const NodeViewConstraint::Filter
+        NodeViewConstraint::drivers_are_expanded = [](const NodeViewConstraint* _constraint)
 {
     return std::find_if(_constraint->m_drivers.cbegin(), _constraint->m_drivers.cend(), not_expanded)
            == _constraint->m_drivers.cend();
 };
 
-void ViewConstraint::draw_view()
+void NodeViewConstraint::draw_view()
 {
     if( ImGui::TreeNode(m_name) )
     {

@@ -19,6 +19,8 @@
 #include "Nodable.h"
 #include "NodeConnector.h"
 #include "PropertyConnector.h"
+#include "PropertyView.h"
+#include "NodeViewConstraint.h"
 
 constexpr ImVec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
 
@@ -1059,11 +1061,12 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
     return result_rect;
 }
 
-void NodeView::clear_constraints() {
+void NodeView::clear_constraints()
+{
     m_constraints.clear();
 }
 
-void NodeView::add_constraint(ViewConstraint &_constraint)
+void NodeView::add_constraint(NodeViewConstraint& _constraint)
 {
     m_constraints.push_back(std::move(_constraint));
 }
@@ -1072,7 +1075,7 @@ void NodeView::apply_constraints(float _dt)
 {
     if( !m_apply_constraints ) return;
 
-    for ( ViewConstraint& eachConstraint : m_constraints)
+    for (NodeViewConstraint& eachConstraint : m_constraints)
     {
         eachConstraint.apply(_dt);
     }

@@ -34,7 +34,7 @@ add_library(
         PropertyConnector.cpp
         PropertyView.cpp
         Config.cpp
-        ViewConstraint.cpp
+        NodeViewConstraint.cpp
 )
 
 target_link_libraries(

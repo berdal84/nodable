@@ -20,6 +20,7 @@
 #include "Nodable.h"
 #include "NodeConnector.h"
 #include "NodeView.h"
+#include "PropertyView.h"
 #include "PropertyConnector.h"
 
 using namespace ndbl;

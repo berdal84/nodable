@@ -1,12 +1,11 @@
 #include "PropertyConnector.h"
 
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
-
 #include "core/Node.h"
 #include "core/Graph.h"
-#include "Config.h"
 
+#include "Config.h"
 #include "NodeView.h"
+#include "PropertyView.h"
 #include "Event.h"
 #include "Nodable.h"
 

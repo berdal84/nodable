@@ -7,16 +7,17 @@
 #include "fw/gui/View.h"  // base class
 #include "fw/core/reflection/reflection"
 
-#include "core/IScope.h"
 #include "core/Component.h"  // base class
+#include "core/IScope.h"
 
-#include "types.h"     // forward declarations
-#include "NodeView.h" // for NodeViewConstraint
+#include "types.h"
+#include "NodeViewConstraint.h"
 
 namespace ndbl
 {
     // forward declarations
     class Nodable;
+    class Graph;
 
 	typedef struct {
         std::string                 label;
@@ -52,7 +53,7 @@ namespace ndbl
         void        frame_views(const std::vector<const NodeView *>* _views, bool _align_top_left_corner);
 
         Graph*      m_graph;
-        std::vector<ViewConstraint>                  m_child_view_constraints;
+        std::vector<NodeViewConstraint>              m_child_view_constraints;
 		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
         ImVec2                                       m_new_node_desired_position;
         static constexpr const char* k_context_menu_popup = "GraphView.ContextMenu";

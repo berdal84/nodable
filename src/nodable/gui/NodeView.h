@@ -24,6 +24,7 @@ namespace ndbl
     class PropertyView;
     class PropertyConnector;
     class NodeConnector;
+    class NodeViewConstraint;
 
 	/** We use this enum to identify all NodeView detail modes */
 	enum class NodeViewDetail: unsigned short int
@@ -33,51 +34,6 @@ namespace ndbl
 		Exhaustive  = 2,
 		Default     = Essential
 	};
-
-    enum class ViewConstraint_t {
-        AlignOnBBoxLeft,
-        MakeRowAndAlignOnBBoxTop,
-        MakeRowAndAlignOnBBoxBottom,
-        FollowWithChildren,
-    };
-
-    R_ENUM(ViewConstraint_t)
-    R_ENUM_VALUE(AlignOnBBoxLeft)
-    R_ENUM_VALUE(MakeRowAndAlignOnBBoxTop)
-    R_ENUM_VALUE(MakeRowAndAlignOnBBoxBottom)
-    R_ENUM_VALUE(FollowWithChildren)
-    R_ENUM_END
-
-	/**
-	 * A class to abstract a constraint between some NodeView
-	 */
-	class ViewConstraint {
-	public:
-	    using Filter = std::function<bool(ViewConstraint*)>;
-
-	    ViewConstraint(const char* _name, ViewConstraint_t _type);
-	    void apply(float _dt);
-        void apply_when(const Filter& _lambda) { m_filter = _lambda; }
-        void add_target(NodeView*);
-        void add_driver(NodeView*);
-        void add_targets(const std::vector<NodeView*>&);
-        void add_drivers(const std::vector<NodeView*>&);
-        void draw_view();
-
-        ImVec2 m_offset; // offset applied to the constrain
-
-        static const Filter no_target_expanded;
-        static const Filter drivers_are_expanded;
-        static const Filter always;
-
-    private:
-        const char*       m_name;
-        bool              m_is_enable;
-        Filter            m_filter; // Lambda returning true if this constrain should apply.
-	    ViewConstraint_t  m_type;
-        std::vector<NodeView*> m_drivers; // driving the targets
-        std::vector<NodeView*> m_targets;
-    };
 
 	/**
 	 * This class implement a view for Nodes using ImGui.
@@ -108,7 +64,7 @@ namespace ndbl
         std::string             get_label();
         ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
-        void                    add_constraint(ViewConstraint&);
+        void                    add_constraint(NodeViewConstraint&);
         void                    apply_constraints(float _dt);
         void                    clear_constraints();
         const PropertyView*     get_property_view(const Property *)const;
@@ -171,7 +127,7 @@ namespace ndbl
 		std::vector<PropertyView*>             m_exposed_out_or_inout_properties;
         std::map<const Property *, PropertyView*> m_exposed_properties;
         PropertyView*                          m_exposed_this_property_view;
-        std::vector<ViewConstraint>      m_constraints;
+        std::vector<NodeViewConstraint>        m_constraints;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_dragged;
@@ -181,32 +137,5 @@ namespace ndbl
         static NodeViewDetail         s_view_detail;
 
         REFLECT_DERIVED_CLASS()
-    };
-
-
-    /**
-     * Simple struct to store a property view state
-     */
-    class PropertyView
-    {
-    public:
-        ImVec2              m_position;
-        Property *          m_property;
-        NodeView*           m_nodeView;
-        PropertyConnector*  m_in;
-        PropertyConnector*  m_out;
-        bool                m_showInput;
-        bool                m_touched;
-
-        PropertyView(Property * _property, NodeView* _nodeView);
-        ~PropertyView();
-        PropertyView (const PropertyView&) = delete;
-        PropertyView& operator= (const PropertyView&) = delete;
-
-        void reset()
-        {
-            m_touched   = false;
-            m_showInput = false;
-        }
     };
 }

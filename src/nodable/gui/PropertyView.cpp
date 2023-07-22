@@ -1,5 +1,5 @@
 #include "NodeView.h"
-#include "core/Property.h"
+#include "PropertyView.h"
 #include "PropertyConnector.h"
 
 using namespace ndbl;
