@@ -20,7 +20,7 @@ namespace ndbl {
         NodeView*           m_nodeView;
         PropertyConnector*  m_in;
         PropertyConnector*  m_out;
-        bool                m_showInput;
+        bool                m_show_input;
         bool                m_touched;
 
         PropertyView(Property * _property, NodeView* _nodeView);
@@ -31,7 +31,7 @@ namespace ndbl {
         void reset()
         {
             m_touched   = false;
-            m_showInput = false;
+            m_show_input = false;
         }
     };
 }

@@ -7,7 +7,7 @@ using Side = ndbl::PropertyConnector::Side;
 
 PropertyView::PropertyView(Property * _property, NodeView* _nodeView)
         : m_property(_property)
-        , m_showInput(false)
+        , m_show_input(false)
         , m_touched(false)
         , m_in(nullptr)
         , m_out(nullptr)

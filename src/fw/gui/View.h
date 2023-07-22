@@ -7,7 +7,7 @@ namespace fw
 {
     /**
      * View is an abstract class to provide a GUI for a specific Node.
-     * View also implement a small static library to draw_property custom ImGui widgets/graphics.
+     * View also implement a small static library to draw_property_view custom ImGui widgets/graphics.
      */
 	class View
 	{

@@ -96,14 +96,14 @@ namespace ndbl
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
         static NodeView*        get_dragged();
-        static bool             draw_input(Property *_property, const char *_label);
+        static bool             draw_property(Property *_property, const char *_label);
         static void             draw_as_properties_panel(NodeView *_view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
     private:
         bool                    draw_implem()override;
-        bool                    draw_property(PropertyView *_view);
+        bool                    draw_property_view(PropertyView *_view);
         bool                    is_exposed(const Property *_property)const;
         void                    update_labels_from_name(Node *_node);
         static void             DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) ;

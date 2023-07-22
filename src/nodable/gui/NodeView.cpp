@@ -438,7 +438,7 @@ bool NodeView::draw_implem()
         // draw properties
         auto draw_property_lambda = [&](PropertyView* view) {
             ImGui::SameLine();
-            changed |= draw_property(view);
+            changed |= draw_property_view(view);
         };
         std::for_each(m_exposed_input_only_properties.begin(), m_exposed_input_only_properties.end(), draw_property_lambda);
         std::for_each(m_exposed_out_or_inout_properties.begin(), m_exposed_out_or_inout_properties.end(), draw_property_lambda);
@@ -576,54 +576,39 @@ void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImC
 
 }
 
-bool NodeView::draw_property(PropertyView *_view)
+bool NodeView::draw_property_view(PropertyView *_view)
 {
-    bool      show;
     bool      changed      = false;
     Property* property     = _view->m_property;
+    bool      is_defined   = property->get_variant()->is_defined();
     const fw::type* owner_type = property->get_owner()->get_type();
 
     /*
      * Handle input visibility
      */
-    if ( _view->m_touched )  // in case user touched it, we keep the current state
+    if ( _view->m_touched )
     {
-        show = _view->m_showInput;
-    }
-    else if( s_view_detail == NodeViewDetail::Exhaustive )
-    {
-        show = true;
-    }
-    else if( fw::extends<LiteralNode>(property->get_owner()) )
-    {
-        show = true;                               // we always show literal´s
-    }
-    else if( fw::extends<VariableNode>(property->get_owner()) )
-    {
-        show = property->get_variant()->is_defined();
-    }
-    else if( !property->has_input_connected() )
-    {
-        show = property->get_variant()->is_defined();   // we always show a defined unconnected property
-    }
-    else if (property->get_type()->is_ptr() )
-    {
-        show = property->is_connected_to_variable();
-    }
-    else if ( property->is_connected_to_variable() )
-    {
-        show = true;
+        // When touched, we show the input if the value is defined (can be edited).
+        _view->m_show_input &= is_defined;
     }
     else
     {
-        show = property->get_variant()->is_defined();
+        // When untouched, it depends...
+
+        // Always show literals (their property don't have input connector)
+        _view->m_show_input |= owner_type->is<LiteralNode>();
+        // Always show when defined in exhaustive mode
+        _view->m_show_input |= is_defined && s_view_detail == NodeViewDetail::Exhaustive;
+        // Always show when connected to a variable
+        _view->m_show_input |= property->is_connected_to_variable();
+        // Shows variable property only if they are not connected (don't need to show anything, the variable name is already displayed on the node itself)
+        _view->m_show_input |= is_defined && (owner_type->is<VariableNode>() || !property->has_input_connected());
     }
-    _view->m_showInput = show;
 
     // input
     float input_size = NodeView::s_property_input_toggle_button_size.x;
 
-    if ( _view->m_showInput )
+    if ( _view->m_show_input )
     {
         bool limit_size = !property->get_type()->is<bool>();
 
@@ -642,7 +627,7 @@ bool NodeView::draw_property(PropertyView *_view)
             input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_property_input_size_min);
             ImGui::PushItemWidth(input_size);
         }
-        changed = NodeView::draw_input(property, nullptr);
+        changed = NodeView::draw_property(property, nullptr);
 
         if ( limit_size )
         {
@@ -663,7 +648,7 @@ bool NodeView::draw_property(PropertyView *_view)
 
         if ( ImGui::IsItemClicked(0) )
         {
-            _view->m_showInput = !_view->m_showInput;
+            _view->m_show_input = !_view->m_show_input;
             _view->m_touched = true;
         }
     }
@@ -679,7 +664,7 @@ bool NodeView::draw_property(PropertyView *_view)
     return changed;
 }
 
-bool NodeView::draw_input(Property *_property, const char *_label)
+bool NodeView::draw_property(Property *_property, const char *_label)
 {
     bool  changed = false;
     Node* node    = _property->get_owner();
@@ -710,7 +695,7 @@ bool NodeView::draw_input(Property *_property, const char *_label)
     }
     else if( !_property->get_variant()->is_initialized() )
     {
-        ImGui::LabelText(label.c_str(), "uninitialized!");
+        ImGui::LabelText(label.c_str(), "uninitialized");
     }
     else
     {
@@ -815,7 +800,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        bool edited = NodeView::draw_input(_property, nullptr);
+        bool edited = NodeView::draw_property(_property, nullptr);
         _property->get_owner()->dirty |= edited;
 
     };
