@@ -170,7 +170,7 @@ void NodeView::set_owner(Node *_node)
     _node->on_edge_added.connect(
         [this](Node* _other_node, Edge_t _edge )
         {
-            NodeView* _other_node_view = _other_node->get_component<NodeView>();
+            NodeView* _other_node_view = _other_node->components.get<NodeView>();
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
@@ -189,7 +189,7 @@ void NodeView::set_owner(Node *_node)
     _node->on_edge_removed.connect(
     [this](Node* _other_node, Edge_t _edge )
         {
-            NodeView* _other_node_view = _other_node->get_component<NodeView>();
+            NodeView* _other_node_view = _other_node->components.get<NodeView>();
             switch ( _edge )
             {
                 case Edge_t::IS_CHILD_OF:
@@ -218,7 +218,7 @@ void NodeView::update_labels_from_name(Node* _node)
 
     m_label.clear();
     m_short_label.clear();
-    if ( auto variable = _node->as<VariableNode>())
+    if ( auto variable = fw::cast<const VariableNode>(_node))
     {
         m_label += variable->get_value()->get_type()->get_name();
         m_label += " ";
@@ -318,15 +318,14 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
     ImVec2 current_local_position = get_position(fw::Space_Local);
     set_position( current_local_position + _delta, fw::Space_Local);
 
-	if ( _recurse )
+	if ( !_recurse ) return;
+
+    for(auto eachInput : get_owner()->inputs )
     {
-	    for(auto eachInput : get_owner()->inputs )
+        NodeView* eachInputView = eachInput->components.get<NodeView>();
+        if ( eachInputView && !eachInputView->pinned && eachInputView->should_follow_output(this) )
         {
-	        if ( NodeView* eachInputView = eachInput->get_component<NodeView>() )
-	        {
-	            if (!eachInputView->pinned && eachInputView->should_follow_output(this) )
-                    eachInputView->translate(_delta, true);
-	        }
+                eachInputView->translate(_delta, true);
         }
     }
 }
@@ -595,11 +594,11 @@ bool NodeView::draw_property(PropertyView *_view)
     {
         show = true;
     }
-    else if( property->get_owner()->is<LiteralNode>() )
+    else if( fw::extends<LiteralNode>(property->get_owner()) )
     {
         show = true;                               // we always show literal´s
     }
-    else if( property->get_owner()->is<VariableNode>() )
+    else if( fw::extends<VariableNode>(property->get_owner()) )
     {
         show = property->get_variant()->is_defined();
     }
@@ -701,10 +700,10 @@ bool NodeView::draw_input(Property *_property, const char *_label)
     if( _property->has_input_connected() && _property->is_connected_to_variable() ) // if is a ref to a variable, we just draw variable name
     {
         char str[255];
-        auto* variable = _property->get_input()->get_owner()->as<VariableNode>();
+        auto* variable = fw::cast<const VariableNode>(_property->get_input()->get_owner());
         snprintf(str, 255, "%s", variable->name.c_str() );
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->get_component<NodeView>()->get_color(ColorType_Fill) );
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->components.get<NodeView>()->get_color(ColorType_Fill) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
         ImGui::PopStyleColor();
 
@@ -928,7 +927,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
         // Scope specific:
         ImGui::Separator();
-        if (Scope* scope = node->get_component<Scope>())
+        if (Scope* scope = node->components.get<Scope>())
         {
             if( ImGui::TreeNode("Variables") )
             {
@@ -1212,19 +1211,27 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
 {
     if( !_view->is_visible() )
     {
-        if ( Node* parent = _view->get_owner()->parent )
-        {
-            if ( NodeView* parent_view = parent->get_component<NodeView>() )
-            {
-                if (  _recursive )
-                {
-                    return substitute_with_parent_if_not_visible(parent_view, _recursive);
-                }
-                return parent_view;
-            }
-        }
+        return _view;
     }
-    return _view;
+
+    Node* parent = _view->get_owner()->parent;
+    if ( !parent )
+    {
+        return _view;
+    }
+
+    NodeView* parent_view = parent->components.get<NodeView>();
+    if ( !parent_view )
+    {
+        return _view;
+    }
+
+    if (  _recursive )
+    {
+        return substitute_with_parent_if_not_visible(parent_view, _recursive);
+    }
+
+    return parent_view;
 }
 
 void NodeView::expand_toggle_rec()

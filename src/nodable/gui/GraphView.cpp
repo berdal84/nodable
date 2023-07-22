@@ -146,7 +146,12 @@ bool GraphView::draw_implem()
     auto create_variable = [&](const fw::type* _type, const char*  _name, Scope*  _scope) -> VariableNode*
     {
         VariableNode* var_node;
-        Scope* scope = _scope ? _scope : m_graph->get_root()->get_component<Scope>();
+        Scope*        scope = _scope;
+
+        if( !scope)
+        {
+           scope = m_graph->get_root()->components.get<Scope>();
+        }
 
         var_node = m_graph->create_variable(_type, _name, scope );
         var_node->set_declared(true);
@@ -198,8 +203,8 @@ bool GraphView::draw_implem()
         float linePadding = 5.0f;
         for (Node* each_successor_node : each_node->successors )
         {
-            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>() );
-            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>() );
+            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->components.get<NodeView>() );
+            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->components.get<NodeView>() );
 
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
@@ -288,8 +293,8 @@ bool GraphView::draw_implem()
                 {
                     Node *src_owner = src_property->get_owner();
                     Node *dst_owner = dst_property->get_owner();
-                    NodeView* src_node_view = src_owner->get_component<NodeView>();
-                    NodeView* dst_node_view = eachNode->get_component<NodeView>(); // equival to dst_property->getOwner()->get<NodeView>();
+                    NodeView* src_node_view = src_owner->components.get<NodeView>();
+                    NodeView* dst_node_view = eachNode->components.get<NodeView>(); // equival to dst_property->getOwner()->get<NodeView>();
 
                     if (src_node_view->is_visible() && dst_node_view->is_visible() )
                     {
@@ -309,7 +314,7 @@ bool GraphView::draw_implem()
                             if ( NodeView::is_selected(src_property_view->m_nodeView) || NodeView::is_selected(dst_property_view->m_nodeView))
                             {
                                 // blink wire colors
-                                float blink = 1.f + std::sin(float(app.framework.elapsed_time()) * 10.f) * 0.25f;
+                                float blink = 1.f + std::sin(float(app.core.elapsed_time()) * 10.f) * 0.25f;
                                 line_color.x *= blink;
                                 line_color.y *= blink;
                                 line_color.z *= blink;
@@ -391,7 +396,7 @@ bool GraphView::draw_implem()
     if ( app.virtual_machine.is_program_running() )
     {
         const Node* node = app.virtual_machine.get_next_node();
-        if( NodeView* view = node->get_component<NodeView>())
+        if( NodeView* view = node->components.get<NodeView>())
         {
             ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen, pixel_perfect);
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
@@ -400,7 +405,7 @@ bool GraphView::draw_implem()
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
             ImVec2 linePos = vm_cursor_pos + ImVec2(- 10.0f, 0.5f);
-            linePos += ImVec2(sin(float(app.framework.elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            linePos += ImVec2(sin(float(app.core.elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255,255,255);
@@ -460,7 +465,7 @@ bool GraphView::draw_implem()
 
                 // we allows literal only if connected to variables.
                 // why? behavior when connecting a literal to a non var node is to digest it.
-                if ( dragged_property_conn->get_property()->get_owner()->is<VariableNode>()
+                if ( fw::extends<VariableNode>( dragged_property_conn->get_property()->get_owner())
                      && ImGui::MenuItem(ICON_FA_FILE "Literal") )
                 {
                     new_node = m_graph->create_literal(dragged_property_conn->get_property_type() );
@@ -579,7 +584,7 @@ bool GraphView::draw_implem()
             }
 
             // set new_node's view position
-            if( NodeView* view = new_node->get_component<NodeView>() )
+            if( NodeView* view = new_node->components.get<NodeView>() )
             {
                 view->set_position(m_new_node_desired_position, fw::Space_Local);
             }
@@ -617,7 +622,7 @@ void GraphView::create_child_view_constraints()
 
     for(Node* _eachNode: nodeRegistry)
     {
-        if ( NodeView* each_view = _eachNode->get_component<NodeView>() )
+        if ( NodeView* each_view = _eachNode->components.get<NodeView>() )
         {
             const fw::type* node_type = _eachNode->get_type();
 
@@ -629,12 +634,12 @@ void GraphView::create_child_view_constraints()
             Node::get_components<NodeView>(predecessor_nodes, predecessor_views);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
             {
-                ViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
+                NodeViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
                 constraint.add_drivers(predecessor_views);
                 constraint.add_target(each_view);
                 each_view->add_constraint(constraint);
 
-                constraint.apply_when(ViewConstraint::always);
+                constraint.apply_when(NodeViewConstraint::always);
             }
 
             // Align in row Conditional Struct Node's children
@@ -643,8 +648,8 @@ void GraphView::create_child_view_constraints()
             std::vector<NodeView*>& children = each_view->children.content();
             if(!children.empty() && node_type->is_child_of<IConditionalStruct>() )
             {
-                ViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
-                constraint.apply_when(ViewConstraint::drivers_are_expanded);
+                NodeViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
+                constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
                 constraint.add_driver(each_view);
                 constraint.add_targets(children);
 
@@ -660,11 +665,11 @@ void GraphView::create_child_view_constraints()
 
             if ( !each_view->inputs.empty() )
             {
-                ViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
+                NodeViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
                 constraint.add_driver(each_view);
                 constraint.add_targets(each_view->inputs.content());
                 each_view->add_constraint(constraint);
-                constraint.apply_when(ViewConstraint::always);
+                constraint.apply_when(NodeViewConstraint::always);
             }
         }
     }
@@ -709,7 +714,7 @@ bool GraphView::update()
 
 void GraphView::frame_all_node_views()
 {
-    const auto root_view = m_graph->get_root()->get_component<NodeView>();
+    const auto root_view = m_graph->get_root()->components.get<NodeView>();
     std::vector<const NodeView*> views{root_view};
     // frame the root's view (top-left corner)
     frame_views(&views, true);
@@ -780,7 +785,7 @@ void GraphView::destroy_child_view_constraints()
 
     for(Node* _eachNode: m_graph->get_node_registry())
     {
-        if (NodeView* eachView = _eachNode->get_component<NodeView>())
+        if (NodeView* eachView = _eachNode->components.get<NodeView>())
         {
             eachView->clear_constraints();
         }

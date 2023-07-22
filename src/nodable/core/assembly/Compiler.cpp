@@ -40,7 +40,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
     for( auto each_node : nodes )
     {
         // Check for undeclared variables
-        if( const Scope* scope = each_node->get_component<Scope>())
+        if( const Scope* scope = each_node->components.get<Scope>())
         {
             const std::vector<VariableNode*>& variables = scope->get_variables();
 
@@ -55,7 +55,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
         }
 
         // Check for undeclared functions
-        if( const InvokableComponent* component = each_node->get_component<InvokableComponent>() )
+        if( const InvokableComponent* component = each_node->components.get<InvokableComponent>() )
         {
             if ( !component->has_function() )
             {
@@ -155,15 +155,15 @@ void assembly::Compiler::compile(const Node* _node)
 
     if ( _node->get_type()->is_child_of( fw::type::get<IConditionalStruct>() ))
     {
-        if ( const auto* for_loop = _node->as<ForLoopNode>())
+        if ( auto for_loop = fw::cast<const ForLoopNode>(_node))
         {
             compile(for_loop);
         }
-        else if ( const auto* while_loop = _node->as<WhileLoopNode>())
+        else if ( auto while_loop = fw::cast<const WhileLoopNode>(_node))
         {
             compile(while_loop);
         }
-        else if ( const auto* cond_struct_node = _node->as<ConditionalStructNode>())
+        else if ( auto cond_struct_node = fw::cast<const ConditionalStructNode>(_node) )
         {
             compile(cond_struct_node);
         }
@@ -175,7 +175,7 @@ void assembly::Compiler::compile(const Node* _node)
             throw std::runtime_error(message);
         }
     }
-    else if ( const InstructionNode* instr_node = _node->as<InstructionNode>() )
+    else if ( auto instr_node = fw::cast<const InstructionNode>(_node) )
     {
         compile(instr_node);
     }
@@ -184,14 +184,15 @@ void assembly::Compiler::compile(const Node* _node)
         // eval inputs
         for ( const Node* each_input : _node->inputs.content() )
         {
-            if ( !each_input->is<VariableNode>() )
+            if ( !fw::extends<VariableNode>(each_input) )
             {
                 compile(each_input);
             }
         }
 
         // eval node
-        bool should_be_evaluated = _node->has_component<InvokableComponent>() || _node->is<VariableNode>() || _node->is<LiteralNode>();
+        bool should_be_evaluated = _node->components.has<InvokableComponent>() || fw::extends<VariableNode>(_node) ||
+                                   fw::extends<LiteralNode>(_node) ;
         if ( should_be_evaluated )
         {
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
@@ -300,7 +301,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
     {
         if( _cond_node->has_elseif() )
         {
-            auto* else_if = false_scope->get_owner()->as<ConditionalStructNode>();
+            auto else_if = fw::cast<const ConditionalStructNode>(false_scope->get_owner());
             compile(else_if);
         }
         else
@@ -346,7 +347,7 @@ const Code* assembly::Compiler::compile_syntax_tree(const Graph* _graph)
 
         try
         {
-            Scope* scope = root->get_component<Scope>();
+            Scope* scope = root->components.get<Scope>();
             FW_ASSERT(scope)
             compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");

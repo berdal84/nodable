@@ -27,7 +27,7 @@ File::File(std::string _name)
           // Code executed after node instantiation
 
           // add a view
-          auto node_view = _node->add_component<NodeView>();
+          auto node_view = _node->components.add<NodeView>();
 
           // Set common colors
           const Config& config = Nodable::get_instance().config;
@@ -38,23 +38,23 @@ File::File(std::string _name)
           node_view->set_color(fw::View::ColorType_Fill             , &config.ui_node_fillColor);
 
           // Set specific colors
-          if(_node->is<VariableNode>())
+          if(fw::extends<VariableNode>(_node))
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_variableColor);
           }
-          else if (_node->has_component<InvokableComponent>())
+          else if (_node->components.has<InvokableComponent>())
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_invokableColor);
           }
-          else if (_node->is<InstructionNode>())
+          else if (fw::extends<InstructionNode>(_node))
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_instructionColor);
           }
-          else if (_node->is<LiteralNode>())
+          else if (fw::extends<LiteralNode>(_node))
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
           }
-          else if (_node->get_type()->is_child_of<IConditionalStruct>())
+          else if (fw::extends<IConditionalStruct>(_node))
           {
               node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_condStructColor);
           }

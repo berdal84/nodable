@@ -35,7 +35,7 @@ FileView::FileView(File& _file)
             LOG_VERBOSE("FileView", "graph is not empty\n")
             Node* root = _graph->get_root();
 
-            NodeView* root_node_view = root->get_component<NodeView>();
+            NodeView* root_node_view = root->components.get<NodeView>();
             GraphView* graph_view = m_file.get_graph_view();
 
             // unfold graph (lot of updates) and frame all nodes

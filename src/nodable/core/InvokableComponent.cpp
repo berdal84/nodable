@@ -31,7 +31,7 @@ bool InvokableComponent::update()
 
     auto not_declared_predicate = [](Property * _property)
     {
-        auto var = _property->get_owner()->as<VariableNode>();
+        auto var = fw::cast<const VariableNode>(_property->get_owner());
         return var && !var->is_declared();
     };
 

@@ -394,14 +394,14 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     {
         // concrete operator
         binary_op = parser_state.graph->create_operator(invokable.get());
-        component = binary_op->get_component<InvokableComponent>();
+        component = binary_op->components.get<InvokableComponent>();
         delete type;
     }
     else if (type)
     {
         // abstract operator
         binary_op = parser_state.graph->create_abstract_operator(type);
-        component = binary_op->get_component<InvokableComponent>();
+        component = binary_op->components.get<InvokableComponent>();
     }
     else
     {
@@ -474,7 +474,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
         node = parser_state.graph->create_abstract_operator(type);
     }
 
-    component = node->get_component<InvokableComponent>();
+    component = node->components.get<InvokableComponent>();
     component->token = operator_token;
 
     parser_state.graph->connect(value, component->get_l_handed_val());
@@ -607,7 +607,7 @@ Node *Nodlang::parse_program()
 
     parser_state.graph->clear();
     Node *root = parser_state.graph->create_root();
-    Scope *program_scope = root->get_component<Scope>();
+    Scope *program_scope = root->components.get<Scope>();
     parser_state.scope.push(program_scope);
 
     parse_code_block(false);// we do not check if we parsed something empty or not, a program can be empty.
@@ -638,7 +638,7 @@ Node *Nodlang::parse_scope()
     else
     {
         auto scope_node = parser_state.graph->create_scope();
-        auto scope = scope_node->get_component<Scope>();
+        auto scope = scope_node->components.get<Scope>();
         /*
          * link scope with parent_scope.
          * They must be linked in order to find_variables recursively.
@@ -677,7 +677,7 @@ IScope *Nodlang::parse_code_block(bool _create_scope)
 {
     start_transaction();
 
-    auto curr_scope = _create_scope ? parser_state.graph->create_scope()->get_component<Scope>() : get_current_scope();
+    auto curr_scope = _create_scope ? parser_state.graph->create_scope()->components.get<Scope>() : get_current_scope();
 
     FW_ASSERT(curr_scope);// needed
 
@@ -1178,7 +1178,7 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
 
     ConditionalStructNode *condStruct = parser_state.graph->create_cond_struct();
     parser_state.graph->connect({condStruct, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-    parser_state.scope.push(condStruct->get_component<Scope>());
+    parser_state.scope.push(condStruct->components.get<Scope>());
 
     condStruct->token_if  = parser_state.ribbon.get_eaten();
 
@@ -1265,7 +1265,7 @@ ForLoopNode *Nodlang::parse_for_loop()
     {
         for_loop_node = parser_state.graph->create_for_loop();
         parser_state.graph->connect({for_loop_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-        parser_state.scope.push(for_loop_node->get_component<Scope>());
+        parser_state.scope.push(for_loop_node->components.get<Scope>());
 
         for_loop_node->token_for = token_for;
 
@@ -1349,7 +1349,7 @@ WhileLoopNode *Nodlang::parse_while_loop()
     {
         while_loop_node = parser_state.graph->create_while_loop();
         parser_state.graph->connect({while_loop_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-        parser_state.scope.push(while_loop_node->get_component<Scope>());
+        parser_state.scope.push(while_loop_node->components.get<Scope>());
 
         while_loop_node->token_while = token_while;
 
@@ -1647,7 +1647,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
     if (recursively && owner && _property->allows_connection(Way_In) && owner->is_connected_with(_property))
     {
         Property *src_property = _property->get_input();
-        InvokableComponent *compute_component = src_property->get_owner()->get_component<InvokableComponent>();
+        InvokableComponent *compute_component = src_property->get_owner()->components.get<InvokableComponent>();
 
         if (compute_component)
         {
@@ -1658,9 +1658,9 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
         }
     } else
     {
-        if (owner && owner->get_type()->is<VariableNode>())
+        if (owner && fw::extends<VariableNode>(owner) )
         {
-            _out.append(owner->as<VariableNode>()->name);
+            _out.append( owner->name );
         } else
         {
             serialize(_out, _property->get_variant());
@@ -1679,45 +1679,49 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     FW_ASSERT(_node != nullptr)
     const type* type = _node->get_type();
 
-    if (type->is_child_of<InstructionNode>())
+    if (auto instr = fw::cast<const InstructionNode>(_node))
     {
-        serialize(_out, _node->as<InstructionNode>());
+        return serialize(_out, instr);
     }
-    else if (type->is_child_of<ConditionalStructNode>())
+
+    if (auto cond_struct = fw::cast<const ConditionalStructNode>(_node))
     {
-        serialize(_out, _node->as<ConditionalStructNode>());
+        return serialize(_out, cond_struct);
     }
-    else if (type->is_child_of<ForLoopNode>())
+
+    if (auto for_loop = fw::cast<const ForLoopNode>(_node))
     {
-        serialize(_out, _node->as<ForLoopNode>());
+        return serialize(_out, for_loop);
     }
-    else if (type->is_child_of<WhileLoopNode>())
+
+    if (auto while_loop = fw::cast<const WhileLoopNode>(_node))
     {
-        serialize(_out, _node->as<WhileLoopNode>());
+        return serialize(_out, while_loop);
     }
-    else if (_node->has_component<Scope>())
+
+    if (auto scope = _node->components.get<Scope>())
     {
-        serialize(_out, _node->get_component<Scope>());
+        return serialize(_out, scope);
     }
-    else if (_node->is<LiteralNode>())
+
+    if (auto literal = fw::cast<const LiteralNode>(_node))
     {
-        serialize(_out, _node->as<LiteralNode>()->value);
+        return serialize(_out, literal->value);
     }
-    else if (_node->is<VariableNode>())
+
+    if (auto variable = fw::cast<const VariableNode>(_node))
     {
-        serialize(_out, _node->as<VariableNode>());
+        return serialize(_out, variable);
     }
-    else if (_node->has_component<InvokableComponent>())
+
+    if (auto invokable = _node->components.get<InvokableComponent>())
     {
-        serialize(_out, _node->get_component<InvokableComponent>());
+        return serialize(_out, invokable);
     }
-    else
-    {
-        std::string message = "Unable to serialize ";
-        message.append(type->get_name());
-        throw std::runtime_error(message);
-    }
-    return _out;
+
+    std::string message = "Unable to serialize ";
+    message.append(type->get_name());
+    throw std::runtime_error(message);
 }
 
 std::string &Nodlang::serialize(std::string &_out, const Scope *_scope) const
@@ -1771,9 +1775,9 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     //       More work to do to know if expression is a declaration or not.
 
     Property *input = _for_loop->get_init_expr()->get_input();
-    if (input && input->get_owner()->get_type()->is_child_of<VariableNode>())
+    if (input && fw::extends<VariableNode>(input->get_owner()) )
     {
-        serialize(_out, input->get_owner()->as<VariableNode>());
+        serialize(_out, fw::cast<VariableNode>(input->get_owner()));
     }
     else if (const InstructionNode* init_instr = _for_loop->get_init_instr())
     {

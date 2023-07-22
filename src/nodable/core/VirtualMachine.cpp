@@ -228,7 +228,7 @@ bool VirtualMachine::_stepOver()
                 }
             };
 
-            if( auto variable = node->as<VariableNode>())
+            if( auto variable = fw::cast<VariableNode>(node))
             {
                 variant* variant = variable->get_value()->get_variant();
                 if( !variant->is_initialized() )
@@ -248,7 +248,7 @@ bool VirtualMachine::_stepOver()
             }
 
             // evaluate Invokable Component, could be an operator or a function
-            if(auto invokable = node->get_component<InvokableComponent>())
+            if(auto invokable = node->components.get<InvokableComponent>())
             {
                 invokable->update();
             }

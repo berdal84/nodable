@@ -31,7 +31,7 @@ TEST_F(parse_function_call, dna_to_protein)
     // check
     EXPECT_TRUE(result != nullptr);
     Node* invokable_node = result->get_owner();
-    EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
-    auto type = invokable_node->get_component<InvokableComponent>()->get_type();
-    EXPECT_TRUE(invokable_node->get_component<InvokableComponent>()->has_function()); // should not be abstract
+    EXPECT_TRUE(invokable_node->components.has<InvokableComponent>());
+    auto type = invokable_node->components.get<InvokableComponent>()->get_type();
+    EXPECT_TRUE(invokable_node->components.get<InvokableComponent>()->has_function()); // should not be abstract
 }

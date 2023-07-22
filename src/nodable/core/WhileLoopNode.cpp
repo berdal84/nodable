@@ -18,12 +18,12 @@ WhileLoopNode::WhileLoopNode()
 
 Scope* WhileLoopNode::get_condition_true_scope() const
 {
-    return !successors.empty() ? successors[0]->get_component<Scope>() : nullptr;
+    return !successors.empty() ? successors[0]->components.get<Scope>() : nullptr;
 }
 
 Scope*  WhileLoopNode::get_condition_false_scope() const
 {
-    return successors.size() > 1 ? successors[1]->get_component<Scope>() : nullptr;
+    return successors.size() > 1 ? successors[1]->components.get<Scope>() : nullptr;
 }
 
 void WhileLoopNode::set_cond_expr(InstructionNode* _node)

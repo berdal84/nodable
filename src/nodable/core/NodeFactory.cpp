@@ -153,7 +153,7 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
     cond_struct_node->predecessors.set_limit(std::numeric_limits<int>::max());
     cond_struct_node->successors.set_limit(2); // true/false branches
 
-    cond_struct_node->add_component<Scope>();
+    cond_struct_node->components.add<Scope>();
 
     m_post_process(cond_struct_node);
 
@@ -167,7 +167,7 @@ ForLoopNode* NodeFactory::new_for_loop_node() const
     for_loop->set_name("For");
     for_loop->predecessors.set_limit(std::numeric_limits<int>::max());
     for_loop->successors.set_limit(1);
-    for_loop->add_component<Scope>();
+    for_loop->components.add<Scope>();
 
     m_post_process(for_loop);
 
@@ -181,7 +181,7 @@ WhileLoopNode* NodeFactory::new_while_loop_node() const
     while_loop->set_name("While");
     while_loop->predecessors.set_limit(std::numeric_limits<int>::max());
     while_loop->successors.set_limit(1);
-    while_loop->add_component<Scope>();
+    while_loop->components.add<Scope>();
 
     m_post_process(while_loop);
 

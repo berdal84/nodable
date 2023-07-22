@@ -84,18 +84,6 @@ namespace ndbl {
         bool                 is_connected_with(const Property *_localProperty);
 
         template<class T>
-        inline T* as()
-        { return fw::cast<T>(this); }
-
-        template<class T>
-        inline const T* as()const
-        { return fw::cast<const T>(this); }
-
-        template<class T>
-        inline bool is()const
-        { return fw::cast<const T>(this) != nullptr; }
-
-        template<class T>
         static void get_components(const std::vector<Node*>& _in_nodes, std::vector<T*>& _out_components)
         {
             _out_components.reserve(_in_nodes.size());
@@ -107,22 +95,6 @@ namespace ndbl {
                 }
             }
         }
-
-        template<class T>
-        inline T* get_component()
-        { return components.get<T>(); }
-
-        template<class T>
-        inline T* get_component() const
-        { return components.get<T>(); }
-
-        template<class T>
-        inline bool has_component() const
-        { return components.has<T>(); }
-
-        template<typename T, typename... Args>
-        T* add_component(Args... args)
-        { return components.add<T>(args...); }
 
 		REFLECT_BASE_CLASS()
     };

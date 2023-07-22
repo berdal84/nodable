@@ -63,12 +63,12 @@ void Property::ensure_is_defined(bool _value)
 
 bool Property::is_connected_to_variable() const
 {
-    return m_input && m_input->get_owner()->is<VariableNode>();
+    return m_input && fw::extends<VariableNode>(m_input->get_owner());
 }
 
-VariableNode*Property::get_connected_variable()
+VariableNode* Property::get_connected_variable()
 {
-    return m_input->get_owner()->as<VariableNode>();
+    return fw::cast<VariableNode>(m_input->get_owner());
 }
 
 void Property::set(Node* _value)

@@ -101,7 +101,7 @@ const fw::iinvokable* Node::get_connected_invokable(const Property* _local_prope
     if (found != edges.end() )
     {
         Node* node = (*found)->prop.src->get_owner();
-        InvokableComponent* compute_component = node->get_component<InvokableComponent>();
+        InvokableComponent* compute_component = node->components.get<InvokableComponent>();
         if ( compute_component )
         {
             return compute_component->get_function();

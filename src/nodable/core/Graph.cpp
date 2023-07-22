@@ -171,7 +171,7 @@ void Graph::destroy(Node* _node)
 
 
     // if it is a variable, we remove it from its scope
-    if ( VariableNode* node_variable = _node->as<VariableNode>() )
+    if ( VariableNode* node_variable = fw::cast<VariableNode>(_node) )
     {
         IScope* scope = node_variable->get_scope();
         if ( scope )
@@ -179,7 +179,7 @@ void Graph::destroy(Node* _node)
             scope->remove_variable(node_variable);
         }
     }
-    else if ( auto* scope = _node->get_component<Scope>() )
+    else if ( auto* scope = _node->components.get<Scope>() )
     {
         if ( !scope->has_no_variable() )
         {
@@ -271,7 +271,7 @@ void Graph::remove(DirectedEdge* edge)
 const DirectedEdge* Graph::connect(Node* _src, InstructionNode* _dst)
 {
     // set declaration_instr once
-    if(auto variable = _src->as<VariableNode>())
+    if(auto variable = fw::cast<VariableNode>(_src))
     {
         if( !variable->get_declaration_instr() )
         {
@@ -302,7 +302,7 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
              */
             if ( _side_effects )
             {
-                FW_ASSERT( dst->has_component<Scope>() )
+                FW_ASSERT( dst->components.has<Scope>() )
 
                 if (dst->successors.accepts() )                               // directly
                 {
@@ -310,10 +310,10 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
                 }
                 else if ( Node* tail = dst->children.get_back_or_nullptr() ) // to the last children
                 {
-                    if ( tail->has_component<Scope>() )
+                    if ( tail->components.has<Scope>() )
                     {
                         std::vector<InstructionNode*> tails;
-                        Scope* scope = tail->get_component<Scope>();
+                        Scope* scope = tail->components.get<Scope>();
                         scope->get_last_instructions_rec(tails);
 
                         for (InstructionNode *each_instruction : tails)
@@ -351,7 +351,7 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
 
             if (_side_effects)
             {
-                if ( dst->has_component<Scope>() )
+                if ( dst->components.has<Scope>() )
                 {
                     connect({src, Edge_t::IS_CHILD_OF, dst}, false);
                 }
