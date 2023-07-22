@@ -1209,7 +1209,7 @@ void NodeView::expand_toggle()
 
 NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive)
 {
-    if( !_view->is_visible() )
+    if( _view->is_visible() )
     {
         return _view;
     }
