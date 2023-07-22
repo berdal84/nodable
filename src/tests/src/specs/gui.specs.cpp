@@ -20,85 +20,85 @@ TEST_F(Gui_App, get_instance)
 TEST_F(Gui_App, init)
 {
     ndbl::Nodable app;
-    EXPECT_NO_THROW(app.framework.init());
-    EXPECT_TRUE(app.framework.shutdown());
+    EXPECT_NO_THROW(app.core.init());
+    EXPECT_TRUE(app.core.shutdown());
 }
 
 TEST_F(Gui_App, shutdown)
 {
     ndbl::Nodable app;
-    EXPECT_TRUE(app.framework.init());
-    EXPECT_NO_THROW(app.framework.shutdown());
+    EXPECT_TRUE(app.core.init());
+    EXPECT_NO_THROW(app.core.shutdown());
 }
 
 TEST_F(Gui_App, update)
 {
     ndbl::Nodable app;
-    EXPECT_TRUE(app.framework.init());
-    EXPECT_NO_THROW(app.framework.update());
-    EXPECT_TRUE(app.framework.shutdown());
+    EXPECT_TRUE(app.core.init());
+    EXPECT_NO_THROW(app.core.update());
+    EXPECT_TRUE(app.core.shutdown());
 }
 
 TEST_F(Gui_App, loop_count_1)
 {
     ndbl::Nodable app;
-    EXPECT_TRUE(app.framework.init());
+    EXPECT_TRUE(app.core.init());
     loop_count(app, 1);
-    EXPECT_TRUE(app.framework.shutdown());
+    EXPECT_TRUE(app.core.shutdown());
 }
 
 TEST_F(Gui_App, loop_duration_5s)
 {
     ndbl::Nodable app;
-    EXPECT_TRUE(app.framework.init());
+    EXPECT_TRUE(app.core.init());
     loop_duration(app, 5.0);
-    EXPECT_TRUE(app.framework.shutdown());
+    EXPECT_TRUE(app.core.shutdown());
 }
 
 TEST_F(Gui_App, new_file)
 {
     ndbl::Nodable app;
-    app.framework.init();
-    app.framework.config.splashscreen = false;
+    app.core.init();
+    app.core.config.splashscreen = false;
     app.new_file();
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__new_file__0.png");
-    app.framework.shutdown();
+    app.core.shutdown();
 }
 
 TEST_F(Gui_App, open_file)
 {
     ndbl::Nodable app;
-    app.framework.init();
-    app.framework.config.splashscreen = false;
+    app.core.init();
+    app.core.config.splashscreen = false;
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__0.png");
     EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__1.png");
-    app.framework.shutdown();
+    app.core.shutdown();
 }
 
 TEST_F(Gui_App, close_file)
 {
     ndbl::Nodable app;
-    app.framework.init();
-    app.framework.config.splashscreen = false;
+    app.core.init();
+    app.core.config.splashscreen = false;
     ndbl::File* file = app.open_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__0.png");
     app.close_file( file );
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__1.png");
-    app.framework.shutdown();
+    app.core.shutdown();
 }
 
 TEST_F(Gui_App, open_examples)
 {
     ndbl::Nodable app;
-    app.framework.init();
-    app.framework.config.splashscreen = false;
-    app.framework.update();
+    app.core.init();
+    app.core.config.splashscreen = false;
+    app.core.update();
     save_screenshot(app, "TEST_Gui_App__open_examples__0.png");
     EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
@@ -112,7 +112,7 @@ TEST_F(Gui_App, open_examples)
     EXPECT_TRUE(app.open_file("./examples/multi-instructions.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__4.png");
-    app.framework.shutdown();
+    app.core.shutdown();
 }
 
 

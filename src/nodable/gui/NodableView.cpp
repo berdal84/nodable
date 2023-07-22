@@ -44,7 +44,7 @@ AppView::~AppView()
 bool AppView::on_init()
 {
     LOG_VERBOSE("ndbl::NodableView", "on_init ...\n");
-    m_app->framework.view.signal_handler = [&](fw::AppView::Signal change) {
+    m_app->core.view.signal_handler = [&](fw::AppView::Signal change) {
         switch (change)
         {
             case fw::AppView::Signal_ON_DRAW_MAIN:
@@ -60,7 +60,7 @@ bool AppView::on_init()
     };
 
     // Load splashscreen image
-    m_logo = m_app->framework.texture_manager.load(m_app->config.ui_splashscreen_imagePath);
+    m_logo = m_app->core.texture_manager.load(m_app->config.ui_splashscreen_imagePath);
 
     LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
 
@@ -71,7 +71,7 @@ bool AppView::on_draw()
 {
     bool redock_all = true;
     File*             current_file    = m_app->current_file;
-    fw::App &          framework       = m_app->framework;
+    fw::App &          framework       = m_app->core;
     fw::EventManager& event_manager   = framework.event_manager;
     Config&           config          = m_app->config;
     VirtualMachine&   virtual_machine = m_app->virtual_machine;
@@ -158,7 +158,7 @@ bool AppView::on_draw()
             ImGui::Separator();
 
             if (ImGui::MenuItem("Reset Layout", "")) {
-                m_app->framework.view.set_layout_initialized(false);
+                m_app->core.view.set_layout_initialized(false);
             }
 
             ImGui::Separator();
@@ -282,7 +282,7 @@ bool AppView::on_draw()
 void AppView::draw_help_window() const {
     if (ImGui::Begin(m_app->config.ui_help_window_label))
     {
-        fw::FontManager& font_manager = m_app->framework.font_manager;
+        fw::FontManager& font_manager = m_app->core.font_manager;
         ImGui::PushFont(font_manager.get_font(fw::FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
@@ -471,8 +471,8 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
 
     ImGui::Begin(m_app->config.ui_startup_window_label);
     {
-        fw::FontManager&  font_manager  = m_app->framework.font_manager;
-        fw::EventManager& event_manager = m_app->framework.event_manager;
+        fw::FontManager&  font_manager  = m_app->core.font_manager;
+        fw::EventManager& event_manager = m_app->core.event_manager;
         ImGui::PopStyleColor();
 
         ImVec2 center_area(500.0f, 250.0f);
@@ -563,7 +563,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
 
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        ImGui::PushFont(m_app->framework.font_manager.get_font(fw::FontSlot_Code));
+        ImGui::PushFont(m_app->core.font_manager.get_font(fw::FontSlot_Code));
         const ImVec2 &size = ImGui::GetContentRegionAvail();
 
         ImGui::BeginChild("FileView", size, false, 0);
@@ -682,7 +682,7 @@ void AppView::on_draw_splashscreen()
     // close on left/rightmouse btn click
     if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
     {
-        m_app->framework.config.splashscreen = false;
+        m_app->core.config.splashscreen = false;
     }
     ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
 }
@@ -756,13 +756,13 @@ void AppView::draw_toolbar_window() {
     {
         ImGui::PopStyleVar();
         VirtualMachine& vm   = m_app->virtual_machine;
-        fw::Config&     conf = m_app->framework.config;
+        fw::Config&     conf = m_app->core.config;
         bool running         = vm.is_program_running();
         bool debugging       = vm.is_debugging();
         bool stopped         = vm.is_program_stopped();
         ImVec2 button_size   = config.ui_toolButton_size;
 
-        ImGui::PushFont(m_app->framework.font_manager.get_font(fw::FontSlot_ToolBtn));
+        ImGui::PushFont(m_app->core.font_manager.get_font(fw::FontSlot_ToolBtn));
         ImGui::BeginGroup();
 
         // compile
@@ -811,7 +811,7 @@ void AppView::draw_toolbar_window() {
         if (ImGui::Button(
                 config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->framework.event_manager.push(EventType_toggle_isolate_selection);
+            m_app->core.event_manager.push(EventType_toggle_isolate_selection);
         }
         ImGui::SameLine();
         ImGui::EndGroup();
@@ -824,7 +824,7 @@ void AppView::draw_toolbar_window() {
 bool AppView::on_reset_layout() {
     // Dock windows to specific dockspace
     const Config& config  = m_app->config;
-    fw::AppView &    framework = m_app->framework.view;
+    fw::AppView &    framework = m_app->core.view;
     framework.dock_window(config.ui_help_window_label             , fw::AppView::Dockspace_RIGHT);
     framework.dock_window(config.ui_config_window_label         , fw::AppView::Dockspace_RIGHT);
     framework.dock_window(config.ui_file_info_window_label        , fw::AppView::Dockspace_RIGHT);

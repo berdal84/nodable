@@ -31,8 +31,8 @@ namespace testing
         {
             for(int i = 0; i < iteration_count; ++i)
             {
-                EXPECT_NO_THROW(app.framework.update());
-                EXPECT_NO_THROW(app.framework.draw());
+                EXPECT_NO_THROW(app.core.update());
+                EXPECT_NO_THROW(app.core.draw());
             }
             SLEEP_FOR_HUMAN((long)(1000.0 * sleep_in_sec));
         }
@@ -52,8 +52,8 @@ namespace testing
                 , iteration
                 , float(std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count()) / 1000.0f
                 , duration_in_sec);
-                EXPECT_NO_THROW(app.framework.update());
-                EXPECT_NO_THROW(app.framework.draw());
+                EXPECT_NO_THROW(app.core.update());
+                EXPECT_NO_THROW(app.core.draw());
                 ++iteration;
             }
         }
@@ -70,7 +70,7 @@ namespace testing
             {
                 create_directories(path.parent_path());
             }
-            app.framework.save_screenshot(path.string().c_str());
+            app.core.save_screenshot(path.string().c_str());
         }
     };
 }

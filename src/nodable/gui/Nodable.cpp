@@ -26,7 +26,7 @@ Nodable *Nodable::s_instance = nullptr;
 
 Nodable::Nodable()
     : current_file(nullptr)
-    , framework(config.framework)
+    , core(config.framework)
     , view(this)
     , virtual_machine()
 {
@@ -39,7 +39,7 @@ Nodable::Nodable()
     // Bind methods to framework events
     LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
     using fw::App;
-    framework.signal_handler = [this](App::Signal evt) {
+    core.signal_handler = [this](App::Signal evt) {
         switch (evt)
         {
             case App::Signal_ON_INIT:     on_init(); break;
@@ -61,7 +61,7 @@ bool Nodable::on_init()
 {
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
 
-    fw::EventManager& event_manager = framework.event_manager;
+    fw::EventManager& event_manager = core.event_manager;
 
     // Bind commands to shortcuts
     using fw::EventType;
@@ -166,7 +166,7 @@ bool Nodable::on_init()
 void Nodable::on_update()
 {
     LOG_VERBOSE("ndbl::App", "on_update ...\n");
-    fw::EventManager& event_manager = framework.event_manager;
+    fw::EventManager& event_manager = core.event_manager;
 
     // 1. Update current file
     if (current_file)
@@ -222,7 +222,7 @@ void Nodable::on_update()
 
             case fw::EventType_exit_triggered:
             {
-                framework.should_stop = true;
+                core.should_stop = true;
                 break;
             }
 
@@ -298,7 +298,7 @@ void Nodable::on_update()
 
             case fw::EventType_show_splashscreen_triggered:
             {
-                framework.config.splashscreen = true;
+                core.config.splashscreen = true;
                 break;
             }
              case EventType_frame_selected_node_views:
@@ -355,7 +355,7 @@ void Nodable::on_update()
                     Node* possible_successor = selected_view->get_owner()->successors.get_front_or_nullptr();
                     if (possible_successor)
                     {
-                        if (NodeView* successor_view = possible_successor->get_component<NodeView>())
+                        if (NodeView* successor_view = possible_successor->components.get<NodeView>())
                         {
                             NodeView::set_selected(successor_view);
                         }
@@ -502,7 +502,7 @@ File *Nodable::add_file(File* _file)
     FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
-    framework.event_manager.push(fw::EventType_file_opened);
+    core.event_manager.push(fw::EventType_file_opened);
     return _file;
 }
 
@@ -598,7 +598,7 @@ void Nodable::step_over_program()
     {
         NodeView::set_selected(nullptr);
     }
-    else if (NodeView* next_node_view = virtual_machine.get_next_node()->get_component<NodeView>() )
+    else if (NodeView* next_node_view = virtual_machine.get_next_node()->components.get<NodeView>() )
     {
         NodeView::set_selected(next_node_view);
     }
@@ -641,15 +641,15 @@ Nodable &Nodable::get_instance()
 
 void Nodable::toggle_fullscreen()
 {
-    framework.set_fullscreen(!is_fullscreen() );
+    core.set_fullscreen(!is_fullscreen() );
 }
 
 bool Nodable::is_fullscreen() const
 {
-    return framework.is_fullscreen();
+    return core.is_fullscreen();
 }
 
 bool Nodable::pick_file_path(std::string &out, fw::AppView::DialogType type)
 {
-    return framework.view.pick_file_path(out, type);
+    return core.view.pick_file_path(out, type);
 }

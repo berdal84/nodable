@@ -35,14 +35,15 @@ namespace ndbl
         enum Signal {
             Signal_ON_INIT
         };
-        std::function<void(Signal)>  signal_handler; // override this to customize behavior
-        fw::App           framework;       // The underlying framework (we use composition instead of inheritance)
-        Config            config;          // Nodable configuration (includes framework configuration)
+        std::function<void(Signal)>
+                          signal_handler; // override this to customize behavior
+        fw::App           core;           // The underlying framework (we use composition instead of inheritance)
+        Config            config;         // Nodable configuration (includes framework configuration)
         AppView           view;
         File*             current_file;
-        VirtualMachine    virtual_machine; // Virtual Machine to compile/debug/run/pause/... programs
+        VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
 
-        int             run() { return framework.run(); } // run app main loop
+        int             run() { return core.run(); } // run app main loop
         bool            is_fullscreen() const;
         void            toggle_fullscreen();
 
