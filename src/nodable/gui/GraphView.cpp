@@ -718,8 +718,12 @@ bool GraphView::update()
 
 void GraphView::frame_all_node_views()
 {
-    const auto root_view = m_graph->get_root()->components.get<NodeView>();
-    std::vector<const NodeView*> views{root_view};
+    Node* root = m_graph->get_root();
+    if(!root)
+    {
+        return;
+    }
+    std::vector<const NodeView*> views{root->components.get<NodeView>()};
     // frame the root's view (top-left corner)
     frame_views(&views, true);
 }
