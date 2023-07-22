@@ -622,7 +622,6 @@ void AppView::draw_config_window() {
                 ImGui::SliderFloat("padding", &config.ui_node_padding, 2.0f, 10.0f);
                 ImGui::SliderFloat("spacing", &config.ui_node_spacing, 10.0f, 50.0f);
                 ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 10.0f);
-                ImGui::SliderFloat("graph grid size", &config.ui_graph_grid_size, 1.0f, 500.0f);
             }
             ImGui::Unindent();
         }
@@ -642,7 +641,10 @@ void AppView::draw_config_window() {
         {
             ImGui::InputFloat("unfold delta time", &config.graph_unfold_dt);
             ImGui::InputInt("unfold iterations", &config.graph_unfold_iterations, 1, 1000);
-            ImGui::ColorEdit4("grid color", &config.ui_graph_grid_color.x);
+            ImGui::ColorEdit4("grid color (major)", &config.ui_graph_grid_color_major.x);
+            ImGui::ColorEdit4("grid color (minor)", &config.ui_graph_grid_color_minor.x);
+            ImGui::SliderFloat("grid size", &config.ui_graph_grid_size, 1.0f, 500.0f);
+            ImGui::SliderInt("grid subdivisions", &config.ui_graph_grid_subdivs, 1, 16);
         }
 
         if (ImGui::CollapsingHeader("Debugging"))

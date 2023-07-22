@@ -59,7 +59,9 @@ namespace ndbl {
         ImVec4         ui_overlay_window_bg_golor;
         ImVec4         ui_overlay_border_color;
         ImVec4         ui_overlay_text_color;
-        ImVec4         ui_graph_grid_color;
+        ImVec4         ui_graph_grid_color_major;
+        ImVec4         ui_graph_grid_color_minor;
+        int            ui_graph_grid_subdivs;
         float          ui_graph_grid_size;
         const char*    ui_file_info_window_label;
         const char*    ui_help_window_label;

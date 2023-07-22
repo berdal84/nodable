@@ -92,8 +92,10 @@ ndbl::Config::Config()
     ui_virtual_machine_window_label     = "VM";
 
     // Graph
-    ui_graph_grid_color               = ImColor(68,68,68);
-    ui_graph_grid_size                = 50.0f;
+    ui_graph_grid_color_major         = ImColor(0, 0, 0, 42);
+    ui_graph_grid_color_minor         = ImColor(0, 0, 0, 17);
+    ui_graph_grid_subdivs             = 4;
+    ui_graph_grid_size                = 100.0f;
 
     // Misc.
     experimental_graph_autocompletion = false;
