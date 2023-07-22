@@ -13,6 +13,9 @@
 
 namespace fw
 {
+    // forward declarations
+    class Texture;
+
     // to distinguish the referential of a position
     enum Space {
         Space_Local,
@@ -101,6 +104,8 @@ namespace fw
         static void    DebugRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding = 0.f, ImDrawFlags flags = 0, float thickness = 1.f);
         static void    DebugCircle(const ImVec2& center, float radius, ImU32 col, int num_segments = 0, float thickness = 1.0f);
         static void    DebugLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness = 1.0f);
+
+        static void    Image(fw::Texture* );
     private:
         static bool    s_is_in_a_frame;
         static bool    s_is_any_tooltip_open;

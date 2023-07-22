@@ -6,6 +6,7 @@
 #include "core/log.h"
 #include "core/assertions.h"
 
+#include "Texture.h"
 #include "EventManager.h"
 
 using namespace fw;
@@ -235,4 +236,9 @@ void ImGuiEx::DebugLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thi
     if(!debug) return;
     ImDrawList* list = ImGui::GetForegroundDrawList();
     list->AddLine(p1, p2, col, thickness);
+}
+
+void ImGuiEx::Image(Texture* _texture)
+{
+    ImGui::Image((void *)(intptr_t)_texture->gl_handler, ImVec2(_texture->width, _texture->height));
 }
