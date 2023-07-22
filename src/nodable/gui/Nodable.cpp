@@ -417,8 +417,8 @@ void Nodable::on_update()
                 else if ( !fw::type::is_implicitly_convertible(src_meta_type, dst_meta_type) )
                 {
                     LOG_WARNING( "App", "Unable to drop_on %s to %s\n",
-                                src_meta_type->get_fullname().c_str(),
-                                dst_meta_type->get_fullname().c_str())
+                                src_meta_type->get_name(),
+                                dst_meta_type->get_name())
                 }
                 else
                 {

@@ -5,16 +5,16 @@
 
 using namespace fw;
 
-const type* type_register::get(std::size_t index)
+type* type_register::get(std::size_t index)
 {
     auto found = by_index().find(index);
     FW_EXPECT(found != by_index().end(), "reflection: type not found!")
     return found->second;
 }
 
-std::unordered_map<std::size_t, const type*>& type_register::by_index()
+std::unordered_map<std::size_t, type*>& type_register::by_index()
 {
-    static std::unordered_map<std::size_t, const type*> meta_type_register_by_typeid;
+    static std::unordered_map<std::size_t, type*> meta_type_register_by_typeid;
     return meta_type_register_by_typeid;
 }
 
@@ -40,20 +40,18 @@ void type_register::insert(type* _type)
     }
 
     // merge with existing
-    const type* existing = get(_type->index());
+    type* existing = get(_type->index());
 
     LOG_MESSAGE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
-    , existing->m_name, existing->m_compiler_name
-    , _type->m_name, _type->m_compiler_name
+        , existing->m_name, existing->m_compiler_name
+        , _type->m_name, _type->m_compiler_name
     )
-    if( _type->m_name[0] == '\0' )
+    if( existing->m_name[0] == '\0' )
     {
-        _type->m_name = existing->m_name;
+        existing->m_name = _type->m_name;
     }
-    _type->m_children.insert(existing->m_children.begin(), existing->m_children.end() );
-    _type->m_parents.insert(existing->m_parents.begin(), existing->m_parents.end() );
-
-    by_index().insert_or_assign(_type->index(), _type);
+    existing->m_children.insert(_type->m_children.begin(), _type->m_children.end() );
+    existing->m_parents.insert(_type->m_parents.begin(), _type->m_parents.end() );
 }
 
 void type_register::log_statistics()

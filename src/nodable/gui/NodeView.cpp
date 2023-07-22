@@ -638,19 +638,34 @@ bool NodeView::draw_property_view(PropertyView *_view)
     {
         ImGui::Button("", NodeView::s_property_input_toggle_button_size);
 
-        if ( fw::ImGuiEx::BeginTooltip() )
-        {
-            ImGui::Text("%s (%s)",
-                        property->get_name().c_str(),
-                        property->get_type()->get_fullname().c_str());
-            fw::ImGuiEx::EndTooltip();
-        }
-
         if ( ImGui::IsItemClicked(0) )
         {
             _view->m_show_input = !_view->m_show_input;
             _view->m_touched = true;
         }
+    }
+
+    if ( fw::ImGuiEx::BeginTooltip() )
+    {
+        ImGui::Text("%s %s\n", property->get_type()->get_name(), property->get_name().c_str());
+
+        // Generate the property's source code
+        std::string source_code;
+        if( !property->allows_connection(Way_In) && property->get_owner()->components.has<InvokableComponent>() )
+        {
+            // When property is an output, we serialize the InvokableComponent
+            Nodlang::get_instance().serialize(
+                    source_code,
+                    property->get_owner()->components.get<InvokableComponent>());
+        }
+        else
+        {
+            Nodlang::get_instance().serialize(source_code, property);
+        }
+
+        ImGui::Text("source: \"%s\"", source_code.c_str());
+
+        fw::ImGuiEx::EndTooltip();
     }
 
     // compute center position
@@ -750,15 +765,6 @@ bool NodeView::draw_property(Property *_property, const char *_label)
             auto property_as_string = _property->get_variant()->convert_to<std::string>();
             ImGui::Text( "%s", property_as_string.c_str());
         }
-
-        /* If value is hovered, we draw a tooltip that print the source expression of the value*/
-        if (fw::ImGuiEx::BeginTooltip())
-        {
-            std::string buffer;
-            Nodlang::get_instance().serialize(buffer, _property);
-            ImGui::Text("%s", buffer.c_str() );
-            fw::ImGuiEx::EndTooltip();
-        }
     }
 
     return changed;
@@ -781,7 +787,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 "%s (%s, %s): ",
                 _property->get_name().c_str(),
                 WayToString(_property->get_allowed_connection()).c_str(),
-                _property->get_type()->get_fullname().c_str());
+                _property->get_type()->get_name());
 
         ImGui::SameLine();
         ImGui::Text("(?)");

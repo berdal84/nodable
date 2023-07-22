@@ -87,7 +87,6 @@ namespace fw
 
         std::size_t               index() const { return m_index; }
         const char*               get_name() const { return m_name; };
-        std::string               get_fullname() const;
         bool                      is_class() const { return m_flags & Flags_IS_CLASS; }
         bool                      any_of(std::vector<const type*> args)const;
         bool                      has_parent() const { return m_flags & Flags_HAS_PARENT; }

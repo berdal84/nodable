@@ -11,7 +11,11 @@ REGISTER
     registration::push<std::string>("string");
     registration::push<bool>("bool");
     registration::push<void>("void");
+    registration::push<void*>("void*");
+    registration::push< i8_t>("i8");
     registration::push<i16_t>("int");
+    registration::push<i32_t>("i32");
+    registration::push<i64_t>("i64");
     registration::push<any_t>("any");
     registration::push<null_t>("null");
 }
@@ -66,25 +70,6 @@ bool type::is_implicitly_convertible(const type* _src, const type* _dst )
         // Allows specific casts:
         //        from                 to
         _src->is<i16_t>() && _dst->is<double>();
-}
-
-std::string type::get_fullname() const
-{
-    std::string result;
-
-    if (is_const())
-    {
-        result.append("const ");
-    }
-
-    result.append(m_name);
-
-    if (is_ptr())
-    {
-        result.append("*");
-    }
-
-    return result;
 }
 
 bool type::any_of(std::vector<const type*> types) const
