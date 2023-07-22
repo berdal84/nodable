@@ -179,12 +179,34 @@ namespace fw
         );
     }
 
-    template<class TargetClass, class SourceClass>
-    TargetClass* cast(SourceClass *_source)
+    /**
+     * Return if SourceClass extends PossiblyBaseClass
+     */
+    template<class PossiblyBaseClass, class SourceClass, bool self_check = true>
+    bool extends(SourceClass* source_ptr)
     {
-        if( _source->get_type()->is_child_of(type::get<TargetClass>(), true ))
+        // ensure both classes are reflected
+        static_assert(std::is_member_function_pointer_v<decltype(&SourceClass::get_type)>);
+        static_assert(std::is_member_function_pointer_v<decltype(&PossiblyBaseClass::get_type)>);
+
+        // check if source_type is a child of possibly_base_class
+        const type* source_type = source_ptr->get_type();
+        const type* possibly_base_class = type::get<PossiblyBaseClass>();
+        return source_type->is_child_of(possibly_base_class, self_check );
+    }
+
+    template<class TargetClass>
+    inline TargetClass* cast(TargetClass* source_ptr)
+    { return source_ptr; }
+
+    template<class TargetClass, class SourceClass>
+    TargetClass* cast(SourceClass* source_ptr)
+    {
+        static_assert(!std::is_same_v<TargetClass, SourceClass>);
+
+        if( extends<TargetClass>(source_ptr) )
         {
-            return static_cast<TargetClass*>(_source);
+            return static_cast<TargetClass*>(source_ptr);
         }
         return nullptr;
     }
