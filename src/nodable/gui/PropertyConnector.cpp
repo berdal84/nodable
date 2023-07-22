@@ -123,7 +123,11 @@ void PropertyConnector::draw(
 
 void PropertyConnector::dropped(const PropertyConnector *_left, const PropertyConnector *_right)
 {
-    Event evt{};
+    if(!_left || !_right)
+    {
+        return;
+    }
+    Event evt;
     evt.type = EventType_property_connector_dropped;
     evt.property_connectors.src = _left;
     evt.property_connectors.dst = _right;
