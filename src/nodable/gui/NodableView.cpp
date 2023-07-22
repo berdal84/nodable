@@ -4,6 +4,7 @@
 
 #include "fw/core/log.h"
 #include "fw/core/system.h"
+#include "fw/gui/Texture.h"
 
 #include "Config.h"
 #include "Event.h"
@@ -60,7 +61,7 @@ bool AppView::on_init()
     };
 
     // Load splashscreen image
-    m_logo = m_app->core.texture_manager.load(m_app->config.ui_splashscreen_imagePath);
+    m_logo = m_app->core.texture_manager.load( fw::App::asset_path(m_app->config.ui_splashscreen_imagePath) );
 
     LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
 
@@ -662,7 +663,7 @@ void AppView::on_draw_splashscreen()
 
     // Image
     ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-    ImGui::Image((void *) (intptr_t) m_logo->gl_handler, ImVec2((float) m_logo->width, (float) m_logo->height));
+    fw::ImGuiEx::Image(m_logo);
 
     ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
 

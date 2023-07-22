@@ -1,30 +1,13 @@
-
 #pragma once
 
-#include "gl3w/GL/gl3w.h"
-#include "gl3w/GL/glcorearb.h"
-#include "lodepng/lodepng.h"
-#include <iostream>
 #include <map>
 #include <string>
 #include <utility>
-#include <vector>
-
-#include "core/log.h"
-#include "core/types.h"
 
 namespace fw
 {
-    struct Texture  //  Simple data structure to store OpenGL texture information
-    {
-        Texture();
-        Texture(std::vector<unsigned char> _buffer, int _width, int _height, GLuint _image = 0 );
-
-        GLuint gl_handler;                 // OpenGL handler to the texture in the GPU
-        std::vector<unsigned char> buffer; // Image buffer loaded into memory
-        u32_t width;                       // in pixels
-        u32_t height;                      // in pixels
-    };
+    // forward declarations
+    class Texture;
 
     class TextureManager
     {
@@ -39,5 +22,4 @@ namespace fw
         static int load_to_gpu(Texture*);                   // Load a Texture to GPU
         std::map<std::string, Texture*> m_register;         // Texture storage (absolute path => Texture*)
     };
-
 }

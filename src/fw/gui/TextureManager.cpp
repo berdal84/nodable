@@ -1,29 +1,27 @@
-#include "App.h"
 #include "TextureManager.h"
 
+#include "lodepng/lodepng.h"
+
+#include "core/log.h"
+#include "Texture.h"
+//#include "gl3w/GL/gl3w.h"
+//#include "gl3w/GL/glcorearb.h"
+//#include "lodepng/lodepng.h"
+//#include <iostream>
+//#include <map>
+//#include <string>
+//#include <utility>
+//#include <vector>
 using namespace fw;
-
-Texture::Texture()
-    : Texture({}, 0, 0)
-{}
-
-Texture::Texture(std::vector<unsigned char> _buffer, int _width, int _height, GLuint _image)
-    : buffer(std::move(_buffer))
-    , gl_handler(_image)
-    , width(_width)
-    , height(_height)
-{}
 
 Texture* TextureManager::load(const std::string &path)
 {
-    auto absolute_path = fw::App::asset_path(path);
-
     // Return if already exists
-    auto tex = m_register.find(absolute_path.string());
+    auto tex = m_register.find(path);
     if (tex != m_register.end() )
         return tex->second;
 
-    return load_png_to_gpu(absolute_path.string());
+    return load_png_to_gpu(path);
 }
 
 bool TextureManager::release_all()
