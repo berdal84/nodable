@@ -50,8 +50,7 @@ namespace ndbl
         Slots<NodeView*>        children;
         Slots<NodeView*>        outputs;
         Slots<NodeView*>        inputs;
-        bool                    pinned;               // When pinned, the view is not affected by ViewConstraints
-        ImVec2                  position_offset_user; // User defined position offset to arrange graph without loosing automatic layout
+        bool                    pinned;
 
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);
