@@ -110,8 +110,6 @@ namespace ndbl
 		ImVec2          m_position;                      // local position (not affected by scroll)
 		ImVec2          m_size;
 		float           m_opacity;
-		bool            m_force_property_inputs_visible;
-		float           m_border_radius;
 		ImColor         m_border_color_selected;
 		std::vector<NodeConnector*>          m_predecessors;
 		std::vector<NodeConnector*>          m_successors;

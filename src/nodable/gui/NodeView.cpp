@@ -48,9 +48,7 @@ NodeView::NodeView()
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
         , m_expanded(true)
-        , m_force_property_inputs_visible(false)
         , pinned(false)
-        , m_border_radius(5.0f)
         , m_border_color_selected(1.0f, 1.0f, 1.0f)
         , m_exposed_this_property_view(nullptr)
         , m_edition_enable(true)
@@ -295,8 +293,8 @@ void NodeView::set_position(ImVec2 _position, fw::Space origin)
 {
     switch (origin)
     {
-        case fw::Space_Local: m_position = _position - position_offset_user; break;
-        case fw::Space_Screen: m_position = _position - position_offset_user - m_screen_space_content_region.GetTL(); break;
+        case fw::Space_Local: m_position = _position; break;
+        case fw::Space_Screen: m_position = _position - m_screen_space_content_region.GetTL(); break;
         default:
             FW_EXPECT(false, "OriginRef_ case not handled, cannot compute perform set_position(...)")
     }
@@ -305,7 +303,7 @@ void NodeView::set_position(ImVec2 _position, fw::Space origin)
 ImVec2 NodeView::get_position(fw::Space origin, bool round) const
 {
     // compute position depending on space
-    ImVec2 result = m_position + position_offset_user;
+    ImVec2 result = m_position;
     if (origin == fw::Space_Screen) result += m_screen_space_content_region.GetTL();
 
     // return rounded or not if needed
@@ -357,7 +355,6 @@ void NodeView::arrange_recursively(bool _smoothly)
     }
 
     pinned = false;
-    position_offset_user = {};
 }
 
 bool NodeView::update(float _deltaTime)
