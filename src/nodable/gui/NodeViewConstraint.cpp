@@ -107,8 +107,12 @@ void NodeViewConstraint::apply(float _dt)
 
             for (auto each_target : clean_targets)
             {
-                bool ignore = each_target->pinned || !each_target->is_visible();
-                size_x.push_back(ignore ? 0.f : each_target->get_rect(recursively).GetSize().x);
+                float size = 0.0f;
+                if( !(each_target->pinned || !each_target->is_visible()) )
+                {
+                    size = each_target->get_rect(recursively).GetSize().x;
+                }
+                size_x.push_back(size);
             }
             auto size_x_total = std::accumulate(size_x.begin(), size_x.end(), 0.0f);
 
@@ -170,6 +174,7 @@ void NodeViewConstraint::apply(float _dt)
             {
                 // compute
                 auto drivers_rect = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView *> *>(&clean_drivers), false, true);
+
                 auto target_rect  = target->get_rect(true, true);
                 ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
                 ImVec2 new_pos;
