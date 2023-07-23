@@ -47,7 +47,7 @@ namespace ndbl {
 
     private:
         const char*       m_name;
-        bool              m_is_enable;
+        bool              m_is_active;
         Filter            m_filter; // Lambda returning true if this constrain should apply.
         ViewConstraint_t  m_type;
         std::vector<NodeView*> m_drivers; // driving the targets

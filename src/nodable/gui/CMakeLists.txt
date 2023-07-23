@@ -23,18 +23,19 @@ configure_file("build_info.h.in" "${NDBL_CONFIGURED_DIR}/gui/build_info.h" )
 
 add_library(
     nodable-gui
-        Nodable.cpp
-        NodableView.cpp
+        Config.cpp
         File.cpp
         FileView.cpp
         GraphView.cpp
         History.cpp
+        Nodable.cpp
+        NodableView.cpp
         NodeConnector.cpp
         NodeView.cpp
+        NodeViewConstraint.cpp
+        Physics.cpp
         PropertyConnector.cpp
         PropertyView.cpp
-        Config.cpp
-        NodeViewConstraint.cpp
 )
 
 target_link_libraries(

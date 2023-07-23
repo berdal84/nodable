@@ -49,7 +49,7 @@ namespace ndbl
         FileView                         view;
 
     private:
-		const NodeFactory          m_factory;
+		const NodeFactory*         m_factory;
 		History                    m_history;
 		Graph*                     m_graph;
         GraphView*                 m_graph_view;

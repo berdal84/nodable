@@ -8,6 +8,7 @@
 #include "fw/gui/App.h"
 
 #include "core/VirtualMachine.h"
+#include "core/NodeFactory.h"
 #include "core/language/Nodlang.h"
 
 #include "NodableView.h"
@@ -39,6 +40,7 @@ namespace ndbl
                           signal_handler; // override this to customize behavior
         fw::App           core;           // The underlying framework (we use composition instead of inheritance)
         Config            config;         // Nodable configuration (includes framework configuration)
+        NodeFactory       node_factory;
         AppView           view;
         File*             current_file;
         VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs

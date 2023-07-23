@@ -7,18 +7,22 @@
 #include "fw/gui/EventManager.h"
 #include "core/DataAccess.h"
 #include "core/VariableNode.h"
-#include "gui/NodableView.h"
-#include "gui/Condition.h"
-#include "gui/Event.h"
-#include "gui/File.h"
-#include "gui/FileView.h"
-#include "gui/GraphView.h"
-#include "gui/NodeConnector.h"
-#include "gui/NodeView.h"
-#include "gui/PropertyConnector.h"
-#include "gui/commands/Cmd_ConnectEdge.h"
-#include "gui/commands/Cmd_DisconnectEdge.h"
-#include "gui/commands/Cmd_Group.h"
+#include "core/InvokableComponent.h"
+#include "core/LiteralNode.h"
+#include "core/InstructionNode.h"
+#include "NodableView.h"
+#include "Condition.h"
+#include "Event.h"
+#include "File.h"
+#include "FileView.h"
+#include "GraphView.h"
+#include "NodeConnector.h"
+#include "NodeView.h"
+#include "PropertyConnector.h"
+#include "commands/Cmd_ConnectEdge.h"
+#include "commands/Cmd_DisconnectEdge.h"
+#include "commands/Cmd_Group.h"
+#include "Physics.h"
 
 using namespace ndbl;
 
@@ -29,7 +33,45 @@ Nodable::Nodable()
     , core(config.framework)
     , view(this)
     , virtual_machine()
+    , node_factory(&Nodlang::get_instance(), [](Node* _node) {
+        // Code executed after node instantiation
+
+        // add a view with physics
+        auto node_view = _node->components.add<NodeView>();
+        _node->components.add<Physics>(node_view);
+
+        // Set common colors
+        const Config& config = Nodable::get_instance().config;
+        node_view->set_color(fw::View::ColorType_Highlighted      , &config.ui_node_highlightedColor);
+        node_view->set_color(fw::View::ColorType_Border           , &config.ui_node_borderColor);
+        node_view->set_color(fw::View::ColorType_BorderHighlights , &config.ui_node_borderHighlightedColor);
+        node_view->set_color(fw::View::ColorType_Shadow           , &config.ui_node_shadowColor);
+        node_view->set_color(fw::View::ColorType_Fill             , &config.ui_node_fillColor);
+
+        // Set specific colors
+        if(fw::extends<VariableNode>(_node))
+        {
+            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_variableColor);
+        }
+        else if (_node->components.has<InvokableComponent>())
+        {
+            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_invokableColor);
+        }
+        else if (fw::extends<InstructionNode>(_node))
+        {
+            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_instructionColor);
+        }
+        else if (fw::extends<LiteralNode>(_node))
+        {
+            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
+        }
+        else if (fw::extends<IConditionalStruct>(_node))
+        {
+            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_condStructColor);
+        }
+    })
 {
+
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
     // set this instance as s_instance to access it via App::get_instance()

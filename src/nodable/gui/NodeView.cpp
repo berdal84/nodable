@@ -21,6 +21,7 @@
 #include "PropertyConnector.h"
 #include "PropertyView.h"
 #include "NodeViewConstraint.h"
+#include "Physics.h"
 
 constexpr ImVec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
 
@@ -53,7 +54,6 @@ NodeView::NodeView()
         , m_border_color_selected(1.0f, 1.0f, 1.0f)
         , m_exposed_this_property_view(nullptr)
         , m_edition_enable(true)
-        , m_apply_constraints(true)
 {
     NodeView::s_instances.push_back(this);
 }
@@ -363,8 +363,6 @@ void NodeView::arrange_recursively(bool _smoothly)
 bool NodeView::update(float _deltaTime)
 {
     if(m_opacity != 1.0f) fw::math::lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
-
-    apply_forces(_deltaTime, false);
 	return true;
 }
 
@@ -903,13 +901,14 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             ImGui::TreePop();
         }
 
-        // m_apply_constraints
+        // Physics Component
         ImGui::Separator();
-        if( ImGui::TreeNode("Constraints") )
+        if( ImGui::TreeNode("Physics") )
         {
-            ImGui::Checkbox("Apply", &_view->m_apply_constraints);
+            Physics* physics_component = node->components.get<Physics>();
+            ImGui::Checkbox("On/Off", &physics_component->is_active);
             int i = 0;
-            for(auto& constraint : _view->m_constraints)
+            for(NodeViewConstraint& constraint : physics_component->constraints)
             {
                 constraint.draw_view();
             }
@@ -1049,63 +1048,6 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
     fw::ImGuiEx::DebugRect(result_rect.Min, result_rect.Max, IM_COL32( 0, 255, 0, 255 ),4 );
 
     return result_rect;
-}
-
-void NodeView::clear_constraints()
-{
-    m_constraints.clear();
-}
-
-void NodeView::add_constraint(NodeViewConstraint& _constraint)
-{
-    m_constraints.push_back(std::move(_constraint));
-}
-
-void NodeView::apply_constraints(float _dt)
-{
-    if( !m_apply_constraints ) return;
-
-    for (NodeViewConstraint& eachConstraint : m_constraints)
-    {
-        eachConstraint.apply(_dt);
-    }
-}
-
-void NodeView::add_force_to_translate_to(ImVec2 desiredPos, float _factor, bool _recurse)
-{
-    ImVec2 delta(desiredPos - m_position);
-    auto factor = std::max(0.0f, _factor);
-    add_force(delta * factor, _recurse);
-}
-
-void NodeView::add_force(ImVec2 force, bool _recurse)
-{
-    m_forces_sum += force;
-
-    if ( _recurse )
-    {
-        for ( NodeView* each_input_view: inputs )
-        {
-            if (!each_input_view->pinned && each_input_view->should_follow_output(this))
-            {
-                each_input_view->add_force(force, _recurse);
-            }
-        }
-    }
-}
-
-void NodeView::apply_forces(float _dt, bool _recurse)
-{
-    float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
-
-    constexpr float magnitude_max  = 1000.0f;
-    const float     friction       = fw::math::lerp (0.0f, 0.5f, magnitude / magnitude_max);
-    const ImVec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
-
-    translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
-
-    m_last_frame_forces_sum = avg_forces_sum;
-    m_forces_sum            = ImVec2();
 }
 
 void NodeView::translate_to(ImVec2 desiredPos, float _factor, bool _recurse)

@@ -22,6 +22,7 @@
 #include "NodeView.h"
 #include "PropertyView.h"
 #include "PropertyConnector.h"
+#include "Physics.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -620,65 +621,6 @@ void GraphView::add_contextual_menu_item(
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
 }
 
-void GraphView::create_child_view_constraints()
-{
-    auto nodeRegistry = m_graph->get_node_registry();
-
-    for(Node* _eachNode: nodeRegistry)
-    {
-        if ( NodeView* each_view = _eachNode->components.get<NodeView>() )
-        {
-            const fw::type* node_type = _eachNode->get_type();
-
-            // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
-            //---------------------------------------------------------------------------------
-
-            const std::vector<Node*>& predecessor_nodes = _eachNode->predecessors.content();
-            std::vector<NodeView*> predecessor_views;
-            Node::get_components<NodeView>(predecessor_nodes, predecessor_views);
-            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
-            {
-                NodeViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
-                constraint.add_drivers(predecessor_views);
-                constraint.add_target(each_view);
-                each_view->add_constraint(constraint);
-
-                constraint.apply_when(NodeViewConstraint::always);
-            }
-
-            // Align in row Conditional Struct Node's children
-            //------------------------------------------------
-
-            std::vector<NodeView*>& children = each_view->children.content();
-            if(!children.empty() && node_type->is_child_of<IConditionalStruct>() )
-            {
-                NodeViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
-                constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
-                constraint.add_driver(each_view);
-                constraint.add_targets(children);
-
-                if (node_type->is_child_of<ForLoopNode>() )
-                {
-                    constraint.add_targets(each_view->successors.content());
-                }
-                each_view->add_constraint(constraint);
-            }
-
-            // Align in row Input connected Nodes
-            //-----------------------------------
-
-            if ( !each_view->inputs.empty() )
-            {
-                NodeViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
-                constraint.add_driver(each_view);
-                constraint.add_targets(each_view->inputs.content());
-                each_view->add_constraint(constraint);
-                constraint.apply_when(NodeViewConstraint::always);
-            }
-        }
-    }
-}
-
 bool GraphView::update(float delta_time, i16_t subsample_count)
 {
     const float subsample_delta_time = delta_time / float(subsample_count);
@@ -691,18 +633,27 @@ bool GraphView::update(float delta_time)
 {
     const std::vector<Node*>& node_registry = m_graph->get_node_registry();
 
-    // Find NodeView components
+    // 1. Update Physics Components
+    std::vector<Physics*> physics_components;
+    Node::get_components(node_registry, physics_components);
+    // 1.1 Apply constraints (but apply no translation, we want to be sure order does no matter)
+    for (Physics* physics_component : physics_components)
+    {
+        physics_component->apply_constraints(delta_time);
+    }
+    // 1.3 Apply forces (translate views)
+    for(Physics* physics_component : physics_components)
+    {
+        physics_component->apply_forces(delta_time, false);
+    }
+
+    // 2. Update NodeViews
     std::vector<NodeView*> views;
     Node::get_components(node_registry, views);
-
-    // Apply constraints
     for (auto eachView : views)
-        if(eachView->is_visible() )
-            eachView->apply_constraints(delta_time);
-
-    // Update
-    for (auto eachView : views)
+    {
         eachView->update(delta_time);
+    }
 
     return true;
 }
@@ -711,7 +662,7 @@ bool GraphView::update()
 {
     if (m_graph->is_dirty() )
     {
-        create_child_view_constraints();
+        Physics::create_constraints(m_graph->get_node_registry());
     }
     return update( ImGui::GetIO().DeltaTime, Nodable::get_instance().config.ui_node_animation_subsample_count );
 }
@@ -784,19 +735,6 @@ void GraphView::translate_all(ImVec2 delta, const std::vector<NodeView*>& _views
     for (auto node_view : _views )
     {
         node_view->translate(delta);
-    }
-}
-
-void GraphView::destroy_child_view_constraints()
-{
-    m_child_view_constraints.clear();
-
-    for(Node* _eachNode: m_graph->get_node_registry())
-    {
-        if (NodeView* eachView = _eachNode->components.get<NodeView>())
-        {
-            eachView->clear_constraints();
-        }
     }
 }
 

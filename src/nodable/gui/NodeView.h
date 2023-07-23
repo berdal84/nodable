@@ -56,6 +56,7 @@ namespace ndbl
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);
 		bool                    update(float);
+        ImVec2                  get_position() const { return m_position; };
         ImVec2                  get_position(fw::Space, bool round = false) const;
 		void                    set_position(ImVec2, fw::Space);
 		void                    translate(ImVec2, bool _recurse = false);
@@ -64,16 +65,10 @@ namespace ndbl
         std::string             get_label();
         ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
-        void                    add_constraint(NodeViewConstraint&);
-        void                    apply_constraints(float _dt);
-        void                    clear_constraints();
         const PropertyView*     get_property_view(const Property *)const;
         inline ImVec2           get_size() const { return m_size; }
         bool                    is_dragged()const { return s_dragged == this; }
         bool                    is_expanded()const { return m_expanded; }
-        void                    add_force_to_translate_to(ImVec2 desiredPos, float _factor, bool _recurse = false);
-        void                    add_force(ImVec2 force, bool _recurse = false);
-        void                    apply_forces(float _dt, bool _recurse);
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
@@ -110,10 +105,7 @@ namespace ndbl
 
         std::string     m_label;
         std::string     m_short_label;
-        bool            m_apply_constraints;
         bool            m_edition_enable;
-        ImVec2          m_forces_sum;
-        ImVec2          m_last_frame_forces_sum;
         bool            m_expanded;
 		ImVec2          m_position;                      // local position (not affected by scroll)
 		ImVec2          m_size;
@@ -127,7 +119,6 @@ namespace ndbl
 		std::vector<PropertyView*>             m_exposed_out_or_inout_properties;
         std::map<const Property *, PropertyView*> m_exposed_properties;
         PropertyView*                          m_exposed_this_property_view;
-        std::vector<NodeViewConstraint>        m_constraints;
 
 		static NodeView*              s_selected;
 		static NodeView*              s_dragged;

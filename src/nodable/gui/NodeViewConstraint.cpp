@@ -7,20 +7,21 @@
 
 #include "Nodable.h"
 #include "NodeView.h"
+#include "Physics.h"
 
 using namespace ndbl;
 
 NodeViewConstraint::NodeViewConstraint(const char* _name, ViewConstraint_t _type)
 : m_type(_type)
 , m_filter(always)
-, m_is_enable(true)
+, m_is_active(true)
 , m_name(_name)
 {
 }
 
 void NodeViewConstraint::apply(float _dt)
 {
-    bool should_apply = m_is_enable && m_filter(this);
+    bool should_apply = m_is_active && m_filter(this);
     if(!should_apply)
     {
         return;
@@ -84,7 +85,8 @@ void NodeViewConstraint::apply(float _dt)
                                     - ImVec2(drivers_bbox.GetSize().x * 0.5f
                                     + config.ui_node_spacing
                                     + target->get_rect().GetSize().x * 0.5f, 0 ));
-                target->add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
+                auto target_physics = target->get_owner()->components.get<Physics>();
+                target_physics->add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
             }
             break;
         }
@@ -147,7 +149,8 @@ void NodeViewConstraint::apply(float _dt)
 
                     if (each_target->should_follow_output(driver) )
                     {
-                        each_target->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
+                        auto target_physics = each_target->get_owner()->components.get<Physics>();
+                        target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
                         start_pos_x += size_x[node_index] + config.ui_node_spacing;
                     }
                     node_index++;
@@ -174,7 +177,8 @@ void NodeViewConstraint::apply(float _dt)
                 new_pos.y = target->get_position(fw::Space_Local).y + target_driver_offset.y + config.ui_node_spacing;
 
                 // apply
-                target->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
+                auto target_physics = target->get_owner()->components.get<Physics>();
+                target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
                 break;
             }
         }
@@ -230,7 +234,7 @@ void NodeViewConstraint::draw_view()
         ImGui::Text("Type:     %s", to_string(m_type));
         ImGui::Text("Drivers:  %zu", m_drivers.size());
         ImGui::Text("Targets:  %zu", m_targets.size());
-        ImGui::Checkbox("Enable", &m_is_enable);
+        ImGui::Checkbox("On/Off", &m_is_active);
         ImGui::TreePop();
     }
 }

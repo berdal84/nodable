@@ -30,14 +30,9 @@ namespace ndbl
 	public:
 	    GraphView(Graph* graph);
 		~GraphView() override = default;
-        /** Update view (once per frame)*/
         bool        update();
-        /** Update view given a certain delta time */
         bool        update(float /* delta_time */);
-        /** Update view given a certain delta time and a subsample count */
         bool        update(float /* delta_time */, i16_t /* subsample_count */);
-        void        create_child_view_constraints();
-        void        destroy_child_view_constraints();
 		void        add_contextual_menu_item(
                         const std::string &_category,
                         const std::string &_label,
@@ -53,9 +48,8 @@ namespace ndbl
         void        frame_views(const std::vector<const NodeView *>* _views, bool _align_top_left_corner);
 
         Graph*      m_graph;
-        std::vector<NodeViewConstraint>              m_child_view_constraints;
-		std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
-        ImVec2                                       m_new_node_desired_position;
+        ImVec2      m_new_node_desired_position;
+        std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
         static constexpr const char* k_context_menu_popup = "GraphView.ContextMenu";
         static constexpr const char* k_operator_menu_label = "Operators";
         static constexpr const char* k_function_menu_label = "Functions";

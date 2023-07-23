@@ -9,11 +9,12 @@
 #include "core/LiteralNode.h"
 #include "core/VariableNode.h"
 #include "core/language/Nodlang.h"
-#include "gui/FileView.h"
-#include "gui/GraphView.h"
-#include "gui/History.h"
-#include "gui/Nodable.h"
-#include "gui/NodeView.h"
+#include "FileView.h"
+#include "GraphView.h"
+#include "History.h"
+#include "Nodable.h"
+#include "NodeView.h"
+#include "Physics.h"
 
 using namespace ndbl;
 
@@ -22,48 +23,9 @@ File::File(std::string _name)
         , changed(true)
         , view(*this)
         , m_graph(nullptr)
-        , m_factory(&Nodlang::get_instance(), [](Node* _node) {
-
-          // Code executed after node instantiation
-
-          // add a view
-          auto node_view = _node->components.add<NodeView>();
-
-          // Set common colors
-          const Config& config = Nodable::get_instance().config;
-          node_view->set_color(fw::View::ColorType_Highlighted      , &config.ui_node_highlightedColor);
-          node_view->set_color(fw::View::ColorType_Border           , &config.ui_node_borderColor);
-          node_view->set_color(fw::View::ColorType_BorderHighlights , &config.ui_node_borderHighlightedColor);
-          node_view->set_color(fw::View::ColorType_Shadow           , &config.ui_node_shadowColor);
-          node_view->set_color(fw::View::ColorType_Fill             , &config.ui_node_fillColor);
-
-          // Set specific colors
-          if(fw::extends<VariableNode>(_node))
-          {
-              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_variableColor);
-          }
-          else if (_node->components.has<InvokableComponent>())
-          {
-              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_invokableColor);
-          }
-          else if (fw::extends<InstructionNode>(_node))
-          {
-              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_instructionColor);
-          }
-          else if (fw::extends<LiteralNode>(_node))
-          {
-              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
-          }
-          else if (fw::extends<IConditionalStruct>(_node))
-          {
-              node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_condStructColor);
-          }
-        })
         , m_history(&Nodable::get_instance().config.experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
-
-    auto& language = Nodlang::get_instance();
 
     // FileView
     view.init();
@@ -79,8 +41,8 @@ File::File(std::string _name)
 
     // Graph
     m_graph = new Graph(
-            &language,
-            &m_factory,
+            &Nodlang::get_instance(),
+            &Nodable::get_instance().node_factory,
             &Nodable::get_instance().config.experimental_graph_autocompletion );
 
     m_graph_view = new GraphView(m_graph);
@@ -128,13 +90,12 @@ bool File::update_graph(std::string& _code_source)
 
     if (m_graph_view)
     {
-        LOG_VERBOSE("File","clear graph view child constraints ...\n")
-        m_graph_view->destroy_child_view_constraints();
+        Physics::destroy_constraints(m_graph->get_node_registry());
     }
 
     if ( Nodlang::get_instance().parse(_code_source, m_graph) && !m_graph->is_empty() )
     {
-        m_graph_view->create_child_view_constraints();
+        Physics::create_constraints(m_graph->get_node_registry());
         m_graph->set_dirty(false);
         LOG_VERBOSE("File","graph changed, emiting event ...\n")
         event_graph_changed.emit(m_graph);
