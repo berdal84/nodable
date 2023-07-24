@@ -6,7 +6,7 @@ using namespace ndbl;
 void
 Components::add(Component *component)
 {
-    m_components_by_type.emplace(component->get_type()->index(), component);
+    m_components_by_type.emplace(component->get_type()->id(), component);
     m_components.push_back(component);
     component->set_owner(m_owner);
 }
@@ -16,7 +16,7 @@ Components::remove(Component *component)
 {
     auto found = std::find(m_components.begin(), m_components.end(), component);
     FW_EXPECT(found != m_components.end(), "Component can't be found it those components");
-    m_components_by_type.erase(component->get_type()->index());
+    m_components_by_type.erase(component->get_type()->id());
     m_components.erase(found);
     component->set_owner(nullptr);
 }
@@ -25,7 +25,7 @@ Component* Components::get(const fw::type* desired_type) const
 {
     // Search with class name
     {
-        auto it = m_components_by_type.find(desired_type->index() );
+        auto it = m_components_by_type.find(desired_type->id() );
         if (it != m_components_by_type.end())
         {
             return it->second;

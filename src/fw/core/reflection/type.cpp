@@ -21,18 +21,17 @@ REGISTER
 }
 
 type::type(
-    std::size_t _index,
-    std::size_t _primitive_index,
+        id_t _id,
+    id_t _primitive_id,
     const char* _name,
     const char* _compiler_name,
     Flags _flags)
-    : m_index(_index)
-    , m_primitive_index(_primitive_index)
+    : m_id(_id)
+    , m_primitive_id(_primitive_id)
     , m_name(_name)
     , m_compiler_name(_compiler_name)
     , m_flags(_flags)
 {
-    FW_EXPECT(_index != 0, "Index cannot be null")
 }
 
 const type* type::any()
@@ -56,7 +55,7 @@ bool type::is_implicitly_convertible(const type* _src, const type* _dst )
     else if (
         (_src->equals(_dst))
         ||
-        (!_src->is_ptr() && !_dst->is_ptr() && _src->m_primitive_index == _dst->m_primitive_index)
+        (!_src->is_ptr() && !_dst->is_ptr() && _src->m_primitive_id == _dst->m_primitive_id)
     )
     {
         return true;
@@ -86,7 +85,7 @@ bool type::any_of(std::vector<const type*> types) const
 
 bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) const
 {
-    if (_selfCheck && m_index == _possible_parent_class->m_index )
+    if (_selfCheck && m_id == _possible_parent_class->m_id )
     {
         return true;
     }
@@ -96,7 +95,7 @@ bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) cons
         return false;
     }
 
-    auto direct_parent_found = m_parents.find(_possible_parent_class->m_index);
+    auto direct_parent_found = m_parents.find(_possible_parent_class->m_id);
 
     // direct parent check
     if ( direct_parent_found != m_parents.end())
@@ -117,13 +116,13 @@ bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) cons
     return false;
 };
 
-void type::add_parent(std::size_t parent)
+void type::add_parent(id_t parent)
 {
     m_parents.insert(parent);
     m_flags |= Flags_HAS_PARENT;
 }
 
-void type::add_child(std::size_t _child)
+void type::add_child(id_t _child)
 {
     m_children.insert( _child );
     m_flags |= Flags_HAS_CHILD;
@@ -163,5 +162,5 @@ std::shared_ptr<iinvokable> type::get_static(const std::string& _name)const
 
 bool type::equals(const type *left, const type *right)
 {
-    return left->m_index == right->m_index;
+    return left->m_id == right->m_id;
 }

@@ -61,8 +61,8 @@ namespace fw
     {
         friend class registration;
         friend class type_register;
-
     public:
+        using id_t = std::type_index;
         typedef u8_t Flags;
         enum Flags_ : u8_t
         {
@@ -75,17 +75,17 @@ namespace fw
         };
 
         type(
-            std::size_t _index,
-            std::size_t _primitive_index,
-            const char* _name,
-            const char* _compiler_name,
-            Flags _flags);
+                id_t _id,
+                id_t _primitive_id,
+                const char* _name,
+                const char* _compiler_name,
+                Flags _flags);
 
         type(const type&) = delete; // a type must be unique
         type(type&&) = delete;
         ~type() = default;
 
-        std::size_t               index() const { return m_index; }
+        id_t                     id() const { return m_id; }
         const char*               get_name() const { return m_name; };
         bool                      is_class() const { return m_flags & Flags_IS_CLASS; }
         bool                      any_of(std::vector<const type*> args)const;
@@ -94,8 +94,8 @@ namespace fw
         bool                      is_const() const { return m_flags & Flags_IS_CONST; }
         bool                      is_child_of(const type* _possible_parent_class, bool _selfCheck = true) const;
         bool                      equals(const type* other) const { return equals(this, other); }
-        void                      add_parent(std::size_t _parent);
-        void                      add_child(std::size_t _child);
+        void                      add_parent(id_t _parent);
+        void                      add_child(id_t _child);
         void                      add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable);
         void                      add_method(const std::string& _name, std::shared_ptr<iinvokable_nonstatic> _invokable);
         const std::unordered_set<std::shared_ptr<iinvokable>>&
@@ -131,15 +131,27 @@ namespace fw
         const char* m_name;
         const char* m_compiler_name;
         Flags       m_flags;
-        const std::size_t m_primitive_index; // ex: T
-        const std::size_t m_index;           // ex: T**, T*
-        std::unordered_set<std::size_t> m_parents;
-        std::unordered_set<std::size_t> m_children;
+        const id_t m_primitive_id; // ex: T
+        const id_t m_id;           // ex: T**, T*
+        std::unordered_set<id_t> m_parents;
+        std::unordered_set<id_t> m_children;
         std::unordered_set<std::shared_ptr<iinvokable>>                        m_static_methods;
         std::unordered_map<std::string, std::shared_ptr<iinvokable>>           m_static_methods_by_name;
         std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>              m_methods;
         std::unordered_map<std::string, std::shared_ptr<iinvokable_nonstatic>> m_methods_by_name;
     };
+
+    template<typename T>
+    type::id_t get_type_id()
+    { return std::type_index(typeid(T)); }
+
+    template<typename T>
+    type::id_t get_primitive_type_id()
+    { return get_type_id<typename remove_pointer<T>::type>(); }
+
+    template<typename T>
+    const char* get_type_compiler_name()
+    { return typeid(T).name(); }
 
     template<typename T>
     bool type::is() const
@@ -148,11 +160,11 @@ namespace fw
     template<typename T>
     const type* type::get()
     {
-        std::size_t index = typeid(T).hash_code();
+        type::id_t id = get_type_id<T>();
 
-        if ( type_register::has(index) )
+        if ( type_register::has(id) )
         {
-            return type_register::get(index);
+            return type_register::get(id);
         }
 
         type* type = create<T>();
@@ -170,10 +182,10 @@ namespace fw
         if(fw::is_class<T>::value)    flags += Flags_IS_CLASS;
 
         return new type(
-            typeid(T).hash_code(),
-            typeid(typename remove_pointer<T>::type).hash_code(), // primitive type
+            get_type_id<T>(),
+            get_primitive_type_id<T>(),
             _name,
-            typeid(T).name(), // compiler name
+            get_type_compiler_name<T>(),
             flags
         );
     }

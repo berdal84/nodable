@@ -122,9 +122,9 @@ Nodlang::Nodlang(bool _strict)
     for( auto [keyword, token_t, type] : m_definition.types)
     {
         m_keyword_by_token_t.insert({token_t, keyword});
-        m_keyword_by_type_index.insert({type->index(), keyword});
+        m_keyword_by_type_id.insert({type->id(), keyword});
         m_token_t_by_keyword.insert({hash::hash(keyword), token_t});
-        m_token_t_by_type_index.insert({type->index(), token_t});
+        m_token_t_by_type_id.insert({type->id(), token_t});
         m_type_by_token_t.insert({token_t, type});
     }
 
@@ -2027,8 +2027,8 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
 
 std::string &Nodlang::to_string(std::string &_out, const type *_type) const
 {
-    auto found = m_keyword_by_type_index.find(_type->index());
-    if (found != m_keyword_by_type_index.cend())
+    auto found = m_keyword_by_type_id.find(_type->id());
+    if (found != m_keyword_by_type_id.cend())
     {
         return _out.append(found->second);
     }

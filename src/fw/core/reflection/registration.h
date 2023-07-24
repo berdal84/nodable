@@ -24,8 +24,8 @@ namespace fw
 
             push(const char* _name )
             {
-                m_type = type::create<Type>(_name);
-                type_register::insert(m_type);
+                type* type = type::create<Type>(_name);
+                m_type = type_register::insert_or_merge(type);
             }
         };
 
@@ -73,8 +73,8 @@ namespace fw
                 static_assert(std::is_base_of_v<BaseClassT, ClassT>);
 
                 type* base_class = const_cast<type*>(type::get<BaseClassT>()); // get or create
-                m_class->add_parent(base_class->index() );
-                base_class->add_child(m_class->index() );
+                m_class->add_parent( base_class->id() );
+                base_class->add_child( m_class->id() );
                 return *this;
             }
 

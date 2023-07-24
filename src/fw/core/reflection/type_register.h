@@ -17,11 +17,14 @@ namespace fw
     class type_register
     {
     public:
-        static std::unordered_map<std::size_t, type*>& by_index();
-        static type* get(std::size_t);
-        static bool has(type);
-        static bool has(std::size_t);
-        static void insert(type*);
+        static std::unordered_map<std::type_index, type*>& by_index();
+        static type* get(std::type_index);
+        static bool  has(type);
+        static bool  has(std::type_index);
+        static void  insert(type*);
+        static type* merge(type* existing, const type* other);
+        static type* insert_or_merge(type*);
         static void log_statistics();
+
     };
 } // namespace headless

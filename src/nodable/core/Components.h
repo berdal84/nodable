@@ -39,18 +39,18 @@ namespace ndbl {
         template<typename T>
         T* get()const;
 
-        inline std::unordered_map<u32_t, Component*>::const_iterator
+        inline std::unordered_map<fw::type::id_t , Component*>::const_iterator
         begin() const { return m_components_by_type.cbegin(); }
 
-        inline std::unordered_map<u32_t, Component*>::const_iterator
+        inline std::unordered_map<fw::type::id_t, Component*>::const_iterator
         end() const { return m_components_by_type.cend(); }
 
         std::vector<Component*> get_all();
 
     protected:
-        Node*                                 m_owner;
-        std::unordered_map<u32_t, Component*> m_components_by_type;
-        std::vector<Component*>               m_components;
+        Node*                   m_owner;
+        std::vector<Component*> m_components;
+        std::unordered_map<fw::type::id_t, Component*> m_components_by_type;
     };
 
     template<typename ComponentT>
