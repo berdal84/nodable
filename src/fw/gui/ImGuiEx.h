@@ -14,7 +14,7 @@
 namespace fw
 {
     // forward declarations
-    class Texture;
+    struct Texture;
 
     // to distinguish the referential of a position
     enum Space {

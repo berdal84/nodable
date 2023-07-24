@@ -7,7 +7,7 @@
 namespace fw
 {
     // forward declarations
-    class Texture;
+    struct Texture;
 
     class TextureManager
     {
