@@ -27,7 +27,6 @@ REGISTER
 CLI::CLI()
     : m_should_stop(false)
     , m_asm_code(nullptr)
-    , m_factory(&m_language)
     , m_graph(&m_language, &m_factory, &m_auto_completion)
 {
     std::cout << R"(== Nodable command line interface ==)" << std::endl <<

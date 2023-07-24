@@ -52,6 +52,7 @@ namespace ndbl
         Slots<NodeView*>        inputs;
         bool                    pinned;
 
+        bool                    draw()override;
 		void                    set_owner(Node *_node)override;
 		void                    expose(Property *);
 		bool                    update(float);
@@ -96,7 +97,6 @@ namespace ndbl
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
     private:
-        bool                    draw_implem()override;
         bool                    draw_property_view(PropertyView *_view);
         bool                    is_exposed(const Property *_property)const;
         void                    update_labels_from_name(Node *_node);

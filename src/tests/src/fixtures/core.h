@@ -30,7 +30,7 @@ public:
     VirtualMachine      virtual_machine;
 
     Core()
-        : factory(&nodlang), graph(&nodlang, &factory, &autocompletion) {}
+        : factory(), graph(&nodlang, &factory, &autocompletion) {}
 
     void SetUp()
     {

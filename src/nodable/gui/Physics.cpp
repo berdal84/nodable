@@ -4,8 +4,15 @@
 #include "NodeView.h"
 #include "core/IConditionalStruct.h"
 #include "core/ForLoopNode.h"
+#include "core/ComponentManager.h"
 
 using namespace ndbl;
+
+REGISTER
+{
+    fw::registration::push_class<Physics>("Physics")
+                     .extends<Component>();
+};
 
 Physics::Physics(ndbl::NodeView *_view)
     : m_view(_view)
@@ -73,7 +80,7 @@ void Physics::apply_forces(float _dt, bool _recurse)
 
 void Physics::create_constraints(const std::vector<Node*>& nodes)
 {
-    LOG_VERBOSE(__FILE__, "create_constraints ...\n");
+    LOG_VERBOSE("Physics", "create_constraints ...\n");
     for(Node* each_node: nodes)
     {
         auto each_view    = each_node->components.get<NodeView>();
@@ -86,8 +93,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
             //---------------------------------------------------------------------------------
 
             const std::vector<Node*>& predecessor_nodes = each_node->predecessors.content();
-            std::vector<NodeView*> predecessor_views;
-            Node::get_components<NodeView>(predecessor_nodes, predecessor_views);
+            std::vector<NodeView*> predecessor_views = ComponentManager::collect<NodeView>(predecessor_nodes);
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
@@ -129,17 +135,15 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
             }
         }
     }
-    LOG_VERBOSE(__FILE__, "create_constraints OK\n");
+    LOG_VERBOSE("Physics", "create_constraints OK\n");
 }
 
-void Physics::destroy_constraints(const std::vector<Node*>& nodes)
+void Physics::destroy_constraints(const std::vector<Physics*>& physics_components)
 {
-    LOG_VERBOSE(__FILE__, "destroy_constraints ...\n");
-    std::vector<Physics*> physics_components;
-    Node::get_components(nodes, physics_components);
+    LOG_VERBOSE("Physics", "destroy_constraints ...\n");
     for(Physics* physics: physics_components)
     {
         physics->clear_constraints();
     }
-    LOG_VERBOSE(__FILE__, "destroy_constraints OK\n");
+    LOG_VERBOSE("Physics", "destroy_constraints OK\n");
 }

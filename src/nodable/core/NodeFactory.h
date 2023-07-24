@@ -28,9 +28,8 @@ namespace ndbl
     class NodeFactory
     {
     public:
-        NodeFactory(const Nodlang* _language, std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
-        : m_language(_language)
-        , m_post_process(_post_process_fct) {}
+        NodeFactory(std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
+        : m_post_process(_post_process_fct) {}
         ~NodeFactory() {}
 
         Node*                       new_program()const;
@@ -44,11 +43,12 @@ namespace ndbl
         ForLoopNode*                new_for_loop_node()const;
         WhileLoopNode*              new_while_loop_node()const;
         Node*                       new_node()const;
+        void                        delete_node(Node *pNode)const;
+
     private:
         Node*                       _new_abstract_function(const fw::func_type*, bool _is_operator) const; // this do not invoke post_process
         void                        add_invokable_component(Node *_node, const fw::func_type*, const fw::iinvokable *_invokable, bool _is_operator) const;
 
         std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
-        const Nodlang*              m_language;
     };
 }

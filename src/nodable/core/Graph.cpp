@@ -2,9 +2,6 @@
 
 #include <algorithm>    // std::find_if
 
-#include "fw/core/assertions.h"
-#include "fw/core/log.h"
-
 #include "ConditionalStructNode.h"
 #include "DirectedEdge.h"
 #include "NodeFactory.h"
@@ -61,29 +58,28 @@ void Graph::clear()
 
 UpdateResult Graph::update()
 {
-    UpdateResult result = UpdateResult::Success_NoChanges;
+    UpdateResult result = UpdateResult::SUCCES_WITHOUT_CHANGES;
 
     // Delete (flagged Nodes) / Check if dirty
+    auto nodeIndex = m_node_registry.size();
+
+    while (nodeIndex > 0)
     {
-        auto nodeIndex = m_node_registry.size();
+        nodeIndex--;
+        auto node = m_node_registry.at(nodeIndex);
 
-        while (nodeIndex > 0)
+        if (node->flagged_to_delete)
         {
-            nodeIndex--;
-            auto node = m_node_registry.at(nodeIndex);
-
-            if (node->flagged_to_delete)
-            {
-                destroy(node);
-                result = UpdateResult::Success_WithChanges;
-            }
-            else if (node->dirty)
-            {
-                node->dirty = false;
-                result = UpdateResult::Success_WithChanges;
-            }
-
+            destroy(node);
+            result = UpdateResult::SUCCESS_WITH_CHANGES;
         }
+        else if (node->dirty)
+        {
+            // TODO: dirty seems to be ignored, why do we need this? It this the remains of a refactor?
+            node->dirty = false;
+            result = UpdateResult::SUCCESS_WITH_CHANGES;
+        }
+
     }
 
     set_dirty(false);
@@ -193,7 +189,7 @@ void Graph::destroy(Node* _node)
     {
         m_root = nullptr;
     }
-    delete _node;
+    m_factory->delete_node(_node);
 }
 
 bool Graph::is_empty() const

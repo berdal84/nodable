@@ -12,6 +12,7 @@
 #include "ConditionalStructNode.h"
 #include "ForLoopNode.h"
 #include "WhileLoopNode.h"
+#include "ComponentManager.h"
 
 using namespace ndbl;
 
@@ -115,7 +116,8 @@ Node* NodeFactory::new_function(const fw::iinvokable* _function, bool _is_operat
 void NodeFactory::add_invokable_component(Node *_node, const fw::func_type* _func_type, const fw::iinvokable *_invokable, bool _is_operator) const
 {
     // Create an InvokableComponent with the function.
-    auto component = _node->components.add<InvokableComponent>(_func_type, _is_operator, _invokable );
+    InvokableComponent* component = ComponentManager::create<InvokableComponent>(_func_type, _is_operator, _invokable);
+    ComponentManager::attach(component, _node);
 
     // Link result property
     component->set_result(_node->props.get(k_value_property_name));
@@ -138,7 +140,8 @@ Node* NodeFactory::new_scope() const
     scope_node->predecessors.set_limit(std::numeric_limits<int>::max());
     scope_node->successors.set_limit(1);
 
-    scope_node->components.add<Scope>();
+    Scope* scope_component = ComponentManager::create<Scope>();
+    ComponentManager::attach(scope_component, scope_node);
 
     m_post_process(scope_node);
 
@@ -153,7 +156,8 @@ ConditionalStructNode* NodeFactory::new_cond_struct() const
     cond_struct_node->predecessors.set_limit(std::numeric_limits<int>::max());
     cond_struct_node->successors.set_limit(2); // true/false branches
 
-    cond_struct_node->components.add<Scope>();
+    Scope* scope_component = ComponentManager::create<Scope>();
+    ComponentManager::attach(scope_component, cond_struct_node);
 
     m_post_process(cond_struct_node);
 
@@ -167,7 +171,9 @@ ForLoopNode* NodeFactory::new_for_loop_node() const
     for_loop->set_name("For");
     for_loop->predecessors.set_limit(std::numeric_limits<int>::max());
     for_loop->successors.set_limit(1);
-    for_loop->components.add<Scope>();
+
+    Scope* scope_component = ComponentManager::create<Scope>();
+    ComponentManager::attach(scope_component, for_loop);
 
     m_post_process(for_loop);
 
@@ -181,7 +187,9 @@ WhileLoopNode* NodeFactory::new_while_loop_node() const
     while_loop->set_name("While");
     while_loop->predecessors.set_limit(std::numeric_limits<int>::max());
     while_loop->successors.set_limit(1);
-    while_loop->components.add<Scope>();
+
+    Scope* scope_component = ComponentManager::create<Scope>();
+    ComponentManager::attach(scope_component, while_loop);
 
     m_post_process(while_loop);
 
@@ -210,4 +218,16 @@ LiteralNode* NodeFactory::new_literal(const fw::type *_type) const
     node->set_name("Literal");
     m_post_process(node);
     return node;
+}
+
+void NodeFactory::delete_node(Node* node) const
+{
+    // Copy the vector to make sure deleting do not invalidate iterator
+    std::vector<Component*> components_copy = node->components.get_all();
+    for(Component* component : components_copy )
+    {
+        ComponentManager::detach(component, node);
+        ComponentManager::destroy(component);
+    }
+    delete node;
 }

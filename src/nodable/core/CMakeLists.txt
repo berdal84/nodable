@@ -6,6 +6,8 @@ add_library(
     nodable-core
     STATIC
         Component.cpp
+        ComponentManager.cpp
+        Components.cpp
         ConditionalStructNode.cpp
         DataAccess.cpp
         DirectedEdge.cpp
@@ -30,7 +32,8 @@ add_library(
         assembly/Instruction.cpp
         language/Nodlang.cpp
         language/Nodlang_biology.cpp
-        language/Nodlang_math.cpp)
+        language/Nodlang_math.cpp
+)
 
 target_link_libraries(
     nodable-core

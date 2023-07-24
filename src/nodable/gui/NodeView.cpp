@@ -114,6 +114,11 @@ void NodeView::set_owner(Node *_node)
 {
     Component::set_owner(_node);
 
+    if( !_node )
+    {
+        return;
+    }
+
     const Config& config = Nodable::get_instance().config;
     std::vector<Property *> not_exposed;
 
@@ -363,7 +368,7 @@ bool NodeView::update(float _deltaTime)
 	return true;
 }
 
-bool NodeView::draw_implem()
+bool NodeView::draw()
 {
 	bool      changed  = false;
 	auto      node     = get_owner();
@@ -399,10 +404,10 @@ bool NodeView::draw_implem()
 
 
 	// Draw the background of the Group
-    auto border_color = is_selected(this) ? m_border_color_selected : get_color(ColorType_Border);
+    auto border_color = is_selected(this) ? m_border_color_selected : get_color(Color_BORDER);
     DrawNodeRect(
             node_top_left_corner, node_top_left_corner + m_size,
-            get_color(ColorType_Fill), get_color(ColorType_BorderHighlights), get_color(ColorType_Shadow), border_color,
+            get_color(Color_FILL), get_color(Color_BORDER_HIGHLIGHT), get_color(Color_SHADOW), border_color,
             is_selected(this), 5.0f, config.ui_node_padding);
 
     // Add an invisible just on top of the background to detect mouse hovering
@@ -424,7 +429,7 @@ bool NodeView::draw_implem()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        fw::ImGuiEx::ShadowedText(ImVec2(1.0f), get_color(ColorType_BorderHighlights), label.c_str()); // text with a lighter shadow (incrust effect)
+        fw::ImGuiEx::ShadowedText(ImVec2(1.0f), get_color(Color_BORDER_HIGHLIGHT), label.c_str()); // text with a lighter shadow (incrust effect)
 
         ImGui::SameLine();
 
@@ -698,7 +703,7 @@ bool NodeView::draw_property(Property *_property, const char *_label)
         auto* variable = fw::cast<const VariableNode>(_property->get_input()->get_owner());
         snprintf(str, 255, "%s", variable->name.c_str() );
 
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->components.get<NodeView>()->get_color(ColorType_Fill) );
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, (ImVec4) variable->components.get<NodeView>()->get_color(Color_FILL) );
         ImGui::InputText(label.c_str(), str, 255, inputFlags);
         ImGui::PopStyleColor();
 

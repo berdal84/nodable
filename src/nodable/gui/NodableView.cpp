@@ -8,12 +8,13 @@
 
 #include "Config.h"
 #include "Event.h"
-#include "File.h"
-#include "FileView.h"
+#include "HybridFile.h"
+#include "HybridFileView.h"
 #include "History.h"
 #include "Nodable.h"
 #include "NodeView.h"
 #include "build_info.h"
+#include "core/ComponentManager.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -71,8 +72,9 @@ bool AppView::on_init()
 bool AppView::on_draw()
 {
     bool redock_all = true;
-    File*             current_file    = m_app->current_file;
-    fw::App &          framework       = m_app->core;
+
+    HybridFile*       current_file    = m_app->current_file;
+    fw::App &         framework       = m_app->core;
     fw::EventManager& event_manager   = framework.event_manager;
     Config&           config          = m_app->config;
     VirtualMachine&   virtual_machine = m_app->virtual_machine;
@@ -265,7 +267,7 @@ bool AppView::on_draw()
         draw_toolbar_window();
 
         auto ds_root = framework.view.get_dockspace(fw::AppView::Dockspace_ROOT);
-        for (File *each_file: m_app->get_files())
+        for (HybridFile *each_file: m_app->get_files())
         {
             draw_file_window(ds_root, redock_all, each_file);
         }
@@ -533,7 +535,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::End(); // Startup Window
 }
 
-void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file) {
+void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, HybridFile *file) {
     auto &vm = m_app->virtual_machine;
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
@@ -575,11 +577,6 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File *file
 
         ImGui::PopFont();
         ImGui::PopStyleColor();
-
-        if (is_current_file && file->view.text_has_changed())
-        {
-            vm.release_program();
-        }
     }
     ImGui::End(); // File Window
 
@@ -651,8 +648,12 @@ void AppView::draw_config_window() {
         if (ImGui::CollapsingHeader("Debugging"))
         {
             ImGui::Checkbox("fw::ImGuiEx::debug", &fw::ImGuiEx::debug);
-        }
 
+            ImGui::NewLine();
+            ComponentManager::Stats stats = ComponentManager::get_stats();
+            ImGui::Text("ComponentManager stats:");
+            ImGui::Text("component_count........ %8zu", stats.component_count);
+        }
     }
     ImGui::End();
 }

@@ -73,12 +73,12 @@ namespace fw
         };
         std::function<void(Signal)> signal_handler; // override this function to extend the behavior
 
+        bool               draw() override;
         ImGuiID            get_dockspace(Dockspace)const;
         bool               pick_file_path(std::string& _out_path, DialogType);   // pick a file and store its path in _out_path
         void               dock_window(const char* window_name, Dockspace)const; // Must be called ON_RESET_LAYOUT
         void               set_layout_initialized(bool b);
     private:
-        bool               draw_implem() override;
         void               draw_splashscreen_window();
         void               draw_status_window() const;
         App *               m_app;

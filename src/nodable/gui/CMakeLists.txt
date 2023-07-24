@@ -24,10 +24,10 @@ configure_file("build_info.h.in" "${NDBL_CONFIGURED_DIR}/gui/build_info.h" )
 add_library(
     nodable-gui
         Config.cpp
-        File.cpp
-        FileView.cpp
         GraphView.cpp
         History.cpp
+        HybridFile.cpp
+        HybridFileView.cpp
         Nodable.cpp
         NodableView.cpp
         NodeConnector.cpp

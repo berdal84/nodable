@@ -26,8 +26,8 @@ namespace ndbl {
      */
     enum class UpdateResult
     {
-        Success_NoChanges,
-        Success_WithChanges,
+        SUCCES_WITHOUT_CHANGES,
+        SUCCESS_WITH_CHANGES,
     };
 
 	/**
@@ -82,19 +82,6 @@ namespace ndbl {
         size_t               outgoing_edge_count()const;
         const fw::iinvokable*get_connected_invokable(const Property *each_edge); // TODO: can't remember to understand why I needed this...
         bool                 is_connected_with(const Property *_localProperty);
-
-        template<class T>
-        static void get_components(const std::vector<Node*>& _in_nodes, std::vector<T*>& _out_components)
-        {
-            _out_components.reserve(_in_nodes.size());
-            for (auto eachNode : _in_nodes)
-            {
-                if (T* view = eachNode->components.get<T>())
-                {
-                    _out_components.push_back(view);
-                }
-            }
-        }
 
 		REFLECT_BASE_CLASS()
     };

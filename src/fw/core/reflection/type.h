@@ -209,4 +209,15 @@ namespace fw
         }
         return nullptr;
     }
+
+    template<class Type>
+    constexpr bool has_get_type = std::is_member_pointer<decltype(&Type::get_type)>::value;
+
+    template<class DerivedT, class BaseT>
+    struct is_base_of
+    {
+        static_assert(fw::has_get_type<BaseT>, "BaseT must have polymorphic reflection");
+        static_assert(fw::has_get_type<DerivedT>, "DerivedT must have polymorphic reflection");
+        static constexpr bool value = std::is_same_v<DerivedT, BaseT> || std::is_base_of_v<DerivedT, BaseT>;
+    };
 }

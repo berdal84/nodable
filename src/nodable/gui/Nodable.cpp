@@ -13,8 +13,8 @@
 #include "NodableView.h"
 #include "Condition.h"
 #include "Event.h"
-#include "File.h"
-#include "FileView.h"
+#include "HybridFile.h"
+#include "HybridFileView.h"
 #include "GraphView.h"
 #include "NodeConnector.h"
 #include "NodeView.h"
@@ -23,8 +23,11 @@
 #include "commands/Cmd_DisconnectEdge.h"
 #include "commands/Cmd_Group.h"
 #include "Physics.h"
+#include "core/ComponentManager.h"
 
 using namespace ndbl;
+using ndbl::HybridFile;
+using fw::View;
 
 Nodable *Nodable::s_instance = nullptr;
 
@@ -33,41 +36,43 @@ Nodable::Nodable()
     , core(config.framework)
     , view(this)
     , virtual_machine()
-    , node_factory(&Nodlang::get_instance(), [](Node* _node) {
+    , node_factory([this](Node* _node) {
         // Code executed after node instantiation
 
         // add a view with physics
-        auto node_view = _node->components.add<NodeView>();
-        _node->components.add<Physics>(node_view);
+        auto* view_component = ComponentManager::create<NodeView>();
+        ComponentManager::attach(view_component, _node);
+
+        auto* physics_component = ComponentManager::create<Physics>(view_component);
+        ComponentManager::attach(physics_component, _node);
 
         // Set common colors
-        const Config& config = Nodable::get_instance().config;
-        node_view->set_color(fw::View::ColorType_Highlighted      , &config.ui_node_highlightedColor);
-        node_view->set_color(fw::View::ColorType_Border           , &config.ui_node_borderColor);
-        node_view->set_color(fw::View::ColorType_BorderHighlights , &config.ui_node_borderHighlightedColor);
-        node_view->set_color(fw::View::ColorType_Shadow           , &config.ui_node_shadowColor);
-        node_view->set_color(fw::View::ColorType_Fill             , &config.ui_node_fillColor);
+        view_component->set_color(View::Color_HIGHLIGH         , &config.ui_node_highlightedColor);
+        view_component->set_color(View::Color_BORDER           , &config.ui_node_borderColor);
+        view_component->set_color(View::Color_BORDER_HIGHLIGHT , &config.ui_node_borderHighlightedColor);
+        view_component->set_color(View::Color_SHADOW           , &config.ui_node_shadowColor);
+        view_component->set_color(View::Color_FILL             , &config.ui_node_fillColor);
 
         // Set specific colors
         if(fw::extends<VariableNode>(_node))
         {
-            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_variableColor);
+            view_component->set_color(View::Color_FILL, &config.ui_node_variableColor);
         }
         else if (_node->components.has<InvokableComponent>())
         {
-            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_invokableColor);
+            view_component->set_color(View::Color_FILL, &config.ui_node_invokableColor);
         }
         else if (fw::extends<InstructionNode>(_node))
         {
-            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_instructionColor);
+            view_component->set_color(View::Color_FILL, &config.ui_node_instructionColor);
         }
         else if (fw::extends<LiteralNode>(_node))
         {
-            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_literalColor);
+            view_component->set_color(View::Color_FILL, &config.ui_node_literalColor);
         }
         else if (fw::extends<IConditionalStruct>(_node))
         {
-            node_view->set_color(fw::View::ColorType_Fill, &config.ui_node_condStructColor);
+            view_component->set_color(View::Color_FILL, &config.ui_node_condStructColor);
         }
     })
 {
@@ -211,15 +216,24 @@ void Nodable::on_update()
     fw::EventManager& event_manager = core.event_manager;
 
     // 1. Update current file
-    if (current_file)
+    if (current_file && !virtual_machine.is_program_running())
     {
+        //
+        // When history is dirty we update the graph from the text.
+        // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
+        if ( current_file->get_history()->is_dirty() && !config.experimental_hybrid_history )
+        {
+            current_file->update_graph_from_text(config.isolate_selection);
+            current_file->get_history()->set_dirty(false);
+        }
+        // Run the main update loop for the file
         current_file->update();
     }
 
     // 2. Handle events
 
     // shorthand to push all shortcuts to a file view overlay depending on conditions
-    auto push_overlay_shortcuts = [&](ndbl::FileView& _view, Condition _condition) -> void {
+    auto push_overlay_shortcuts = [&](ndbl::HybridFileView& _view, Condition _condition) -> void {
         for (const auto& _binded_event: event_manager.get_binded_events())
         {
             if( (_binded_event.condition & _condition) == _condition)
@@ -258,7 +272,10 @@ void Nodable::on_update()
             case EventType_toggle_isolate_selection:
             {
                 config.isolate_selection = !config.isolate_selection;
-                if(current_file) current_file->update_graph();
+                if(current_file)
+                {
+                    current_file->update_graph_from_text(config.isolate_selection);
+                }
                 break;
             }
 
@@ -364,7 +381,6 @@ void Nodable::on_update()
             case fw::EventType_file_opened:
             {
                 if (!current_file) break;
-                current_file->update_graph();
                 current_file->view.clear_overlay();
                 push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION);
                 break;
@@ -516,7 +532,7 @@ void Nodable::on_update()
 bool Nodable::on_shutdown()
 {
     LOG_VERBOSE("ndbl::App", "on_shutdown ...\n");
-    for( File* each_file : m_loaded_files )
+    for( HybridFile* each_file : m_loaded_files )
     {
         LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str())
         delete each_file;
@@ -525,9 +541,9 @@ bool Nodable::on_shutdown()
     return true;
 }
 
-File *Nodable::open_file(const ghc::filesystem::path& _path)
+HybridFile *Nodable::open_file(const ghc::filesystem::path& _path)
 {
-    auto file = new File( fw::App::asset_path(_path) );
+    auto file = new HybridFile(fw::App::asset_path(_path) );
 
     if ( !file->load() )
     {
@@ -536,10 +552,11 @@ File *Nodable::open_file(const ghc::filesystem::path& _path)
         return nullptr;
     }
     add_file(file);
+    file->update_graph_from_text(config.isolate_selection);
     return file;
 }
 
-File *Nodable::add_file(File* _file)
+HybridFile *Nodable::add_file(HybridFile* _file)
 {
     FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
@@ -548,7 +565,7 @@ File *Nodable::add_file(File* _file)
     return _file;
 }
 
-void Nodable::save_file(File* _file) const
+void Nodable::save_file(HybridFile* _file) const
 {
     FW_EXPECT(_file,"file must be defined");
 
@@ -571,7 +588,7 @@ void Nodable::save_file_as(const ghc::filesystem::path& _path) const
     }
 }
 
-void Nodable::close_file(File* _file)
+void Nodable::close_file(HybridFile* _file)
 {
     // Find and delete the file
     FW_EXPECT(_file, "Cannot close a nullptr File!");
@@ -659,17 +676,17 @@ void Nodable::reset_program()
     {
         virtual_machine.stop_program();
     }
-    current_file->update_graph();
+    current_file->update_graph_from_text(config.isolate_selection);
 }
 
-File *Nodable::new_file()
+HybridFile *Nodable::new_file()
 {
     m_untitled_file_count++;
     std::string name{"Untitled_"};
     name.append(std::to_string(m_untitled_file_count));
     name.append(".cpp");
 
-    File* file = new File(ghc::filesystem::path{name});
+    HybridFile* file = new HybridFile(ghc::filesystem::path{name});
     // file->set_text( "// " + name);
 
     return add_file(file);

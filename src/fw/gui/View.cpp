@@ -42,13 +42,12 @@ bool View::is_hovered() const
     return m_is_hovered;
 }
 
-bool View::draw(ImRect rect)
+void View::use_available_region(View* view, ImRect rect)
 {
     if( rect.GetHeight() == 0 || rect.GetWidth() == 0) {
-        m_screen_space_content_region = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
-        m_local_space_content_region  = fw::ImGuiEx::GetContentRegion(fw::Space_Local);
+        view->m_screen_space_content_region = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
+        view->m_local_space_content_region  = fw::ImGuiEx::GetContentRegion(fw::Space_Local);
     } else {
-        m_screen_space_content_region = rect;
+        view->m_screen_space_content_region = rect;
     }
-    return draw_implem();
 }

@@ -84,7 +84,7 @@ TEST_F(Gui_App, close_file)
     ndbl::Nodable app;
     app.core.init();
     app.core.config.splashscreen = false;
-    ndbl::File* file = app.open_file("./examples/arithmetic.cpp");
+    ndbl::HybridFile* file = app.open_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__0.png");
     app.close_file( file );

@@ -21,12 +21,14 @@ namespace  ndbl
         void            add_force(ImVec2 force, bool _recurse = false);
         void            apply_forces(float _dt, bool _recurse);
         static void     create_constraints(const std::vector<Node*>& nodes);
-        static void     destroy_constraints(const std::vector<Node*>& nodes);
+        static void     destroy_constraints(const std::vector<Physics*>& nodes);
     private:
         NodeView*       m_view;
         bool            m_edition_enable;
         ImVec2          m_forces_sum;
         ImVec2          m_last_frame_forces_sum;
+
+        REFLECT_DERIVED_CLASS()
     };
 }
 

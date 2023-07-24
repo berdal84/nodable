@@ -23,6 +23,7 @@
 #include "PropertyView.h"
 #include "PropertyConnector.h"
 #include "Physics.h"
+#include "core/ComponentManager.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -55,22 +56,22 @@ GraphView::GraphView(Graph* graph)
     }
 }
 
-bool GraphView::draw_implem()
+bool GraphView::draw()
 {
     bool            changed          = false;
     bool            pixel_perfect    = true;
+    ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
     Node*           new_node         = nullptr;
     ImVec2          origin           = ImGui::GetCursorScreenPos();
     const std::vector<Node*>& node_registry    = m_graph->get_node_registry();
+    std::vector<NodeView*> node_views          = ComponentManager::collect<NodeView>(node_registry);
 
 	const PropertyConnector* dragged_property_conn = PropertyConnector::get_gragged();
     const PropertyConnector* hovered_property_conn = PropertyConnector::get_hovered();
     const NodeConnector*   dragged_node_conn   = NodeConnector::get_gragged();
     const NodeConnector*   hovered_node_conn   = NodeConnector::get_hovered();
-    
-    ImGui::SetCursorPos(ImVec2(0,0));
 
     /*
     * Function to draw an invocable menu (operators or functions)
@@ -173,7 +174,6 @@ bool GraphView::draw_implem()
     const float  grid_subdiv_size = app.config.ui_graph_grid_size / app.config.ui_graph_grid_subdivs;
     const int    vertical_line_count = m_screen_space_content_region.GetSize().x / grid_subdiv_size;
     const int    horizontal_line_count = m_screen_space_content_region.GetSize().y / grid_subdiv_size;
-    ImDrawList*  draw_list = ImGui::GetWindowDrawList();
     ImColor      grid_color = app.config.ui_graph_grid_color_major;
     ImColor      grid_color_light = app.config.ui_graph_grid_color_minor;
 
@@ -248,7 +248,7 @@ bool GraphView::draw_implem()
             ImVec2 dst = hovered_property_conn ? hovered_property_conn->get_pos() : ImGui::GetMousePos();
             ImGui::GetWindowDrawList()->AddLine(
                     src, dst,
-                    get_color(ColorType_BorderHighlights),
+                    get_color(Color_BORDER_HIGHLIGHT),
                     app.config.ui_wire_bezier_thickness
                 );
         }
@@ -352,7 +352,6 @@ bool GraphView::draw_implem()
                                     roundness *= 0.25f;
                                 }
 
-                                ImDrawList* draw_list = ImGui::GetWindowDrawList();
                                 fw::ImGuiEx::DrawVerticalWire(draw_list, src_pos, dst_pos, line_color, shadow_color, thickness, roundness);
                             }
                         }
@@ -364,13 +363,12 @@ bool GraphView::draw_implem()
         /*
             NodeViews
         */
-        std::vector<NodeView*> node_views;
-        Node::get_components(node_registry, node_views);
 		for (NodeView* each_node_view : node_views)
 		{
             if (each_node_view->is_visible())
             {
                 each_node_view->enable_edition(enable_edition);
+                View::use_available_region(each_node_view);
                 changed |= each_node_view->draw();
 
                 if( app.virtual_machine.is_debugging() && app.virtual_machine.is_next_node(each_node_view->get_owner() ) )
@@ -405,7 +403,6 @@ bool GraphView::draw_implem()
             ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen, pixel_perfect);
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
-            auto draw_list = ImGui::GetWindowDrawList();
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
             ImVec2 linePos = vm_cursor_pos + ImVec2(- 10.0f, 0.5f);
@@ -434,9 +431,7 @@ bool GraphView::draw_implem()
 	*/
 	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
     {
-        std::vector<NodeView*> views;
-        Node::get_components<NodeView>( node_registry, views);
-        translate_all( ImGui::GetMouseDragDelta(), views);
+        translate_view(ImGui::GetMouseDragDelta());
         ImGui::ResetMouseDragDelta();
     }
 
@@ -630,11 +625,11 @@ bool GraphView::update(float delta_time, i16_t subsample_count)
 
 bool GraphView::update(float delta_time)
 {
-    const std::vector<Node*>& node_registry = m_graph->get_node_registry();
+    const std::vector<Node*>& nodes = m_graph->get_node_registry();
+    std::vector<Physics*>     physics_components  = ComponentManager::collect<Physics>(nodes);
+    std::vector<NodeView*>    nodeview_components = ComponentManager::collect<NodeView>(nodes);
 
     // 1. Update Physics Components
-    std::vector<Physics*> physics_components;
-    Node::get_components(node_registry, physics_components);
     // 1.1 Apply constraints (but apply no translation, we want to be sure order does no matter)
     for (Physics* physics_component : physics_components)
     {
@@ -647,9 +642,7 @@ bool GraphView::update(float delta_time)
     }
 
     // 2. Update NodeViews
-    std::vector<NodeView*> views;
-    Node::get_components(node_registry, views);
-    for (auto eachView : views)
+    for (auto eachView : nodeview_components)
     {
         eachView->update(delta_time);
     }
@@ -659,10 +652,6 @@ bool GraphView::update(float delta_time)
 
 bool GraphView::update()
 {
-    if (m_graph->is_dirty() )
-    {
-        Physics::create_constraints(m_graph->get_node_registry());
-    }
     return update( ImGui::GetIO().DeltaTime, Nodable::get_instance().config.ui_node_animation_subsample_count );
 }
 
@@ -721,8 +710,9 @@ void GraphView::frame_views(const std::vector<const NodeView*>* _views, bool _al
     }
 
     // apply the translation
-    std::vector<NodeView*> all_views;
-    Node::get_components(m_graph->get_node_registry(), all_views);
+    // TODO: Instead of applying a translation to all views, we could translate a Camera.
+    //       See if we can use matrices in the shaders of ImGui...
+    std::vector<NodeView*> all_views = ComponentManager::collect<NodeView>(m_graph->get_node_registry());
     translate_all(translate_vec, all_views);
 
     // debug
@@ -741,4 +731,13 @@ void GraphView::unfold()
 {
     auto& config = Nodable::get_instance().config;
     update( config.graph_unfold_dt, config.graph_unfold_iterations );
+}
+
+void GraphView::translate_view(ImVec2 delta)
+{
+    auto views = ComponentManager::collect<NodeView>(m_graph->get_node_registry());
+    translate_all(delta, views);
+
+    // TODO: implement a better solution, storing an offset. And then substract it in draw();
+    // m_view_origin += delta;
 }

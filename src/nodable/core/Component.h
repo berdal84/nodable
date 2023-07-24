@@ -12,22 +12,15 @@ namespace ndbl
      */
 	class Component
 	{
-        friend Node; // tightly coupled
     public:
         Component(): m_owner(nullptr) {}
-        Component (const Component&) = delete;                    // disable to avoid mistakes
-        Component& operator= (const Component&) = delete;         //       ... same ...
+        Component (const Component&) = delete;                   // disable to avoid mistakes
+        Component& operator= (const Component&) = delete;        //       ... same ...
         virtual ~Component() = default;
-        inline Node*    get_owner()const { return m_owner; }      // Get the node owning this component
-        template<class T> [[nodiscard]]                           // Shorthand to cast<T>(this)
-            inline T*       as() { return fw::cast<T>(this); }
-        template<class T> [[nodiscard]]                           // Shorthand to cast<const T>(this)
-            inline const T* as()const { return fw::cast<const T>(this); }
-        virtual void  set_owner(Node* node){ m_owner = node; }     // Set the component's owner
-
+        Node*        get_owner()const { return m_owner; }
+        virtual void set_owner(Node* node){ m_owner = node; }
 	protected:
-        Node* m_owner;                                             // The Node which own this component
-
+        Node* m_owner;
 		REFLECT_BASE_CLASS()
     };
 }

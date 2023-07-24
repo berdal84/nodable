@@ -43,8 +43,6 @@ namespace ndbl
     */
     class VirtualMachine
     {
-        // The current code loaded
-        using code_uptr = std::unique_ptr<const Code>;
     public:
         VirtualMachine();
         VirtualMachine(const VirtualMachine&) = delete;  // disable copy
@@ -52,7 +50,7 @@ namespace ndbl
         // Load program code
         [[nodiscard]] bool    load_program(const Code *_code);
         // Release any loaded program
-        const Code * release_program();
+        const Code*           release_program();
         // Run loaded program. Check load_program()'s return value before to run.*/
         void                  run_program();
         // Stop the execution

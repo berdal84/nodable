@@ -30,6 +30,8 @@ namespace ndbl
 	public:
 	    GraphView(Graph* graph);
 		~GraphView() override = default;
+
+        bool        draw() override;
         bool        update();
         bool        update(float /* delta_time */);
         bool        update(float /* delta_time */, i16_t /* subsample_count */);
@@ -44,10 +46,11 @@ namespace ndbl
         void        unfold(); // unfold the graph until it is stabilized
 
     private:
-        bool        draw_implem() override ;
         void        frame_views(const std::vector<const NodeView *>* _views, bool _align_top_left_corner);
+        void        translate_view(ImVec2 vec2);
 
         Graph*      m_graph;
+        ImVec2      m_view_origin;
         ImVec2      m_new_node_desired_position;
         std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
         static constexpr const char* k_context_menu_popup = "GraphView.ContextMenu";
@@ -55,6 +58,5 @@ namespace ndbl
         static constexpr const char* k_function_menu_label = "Functions";
 
 		REFLECT_DERIVED_CLASS()
-
     };
 }

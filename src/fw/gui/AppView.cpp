@@ -25,7 +25,7 @@ AppView::~AppView()
     LOG_VERBOSE("fw::AppView", "Destructor " OK "\n");
 }
 
-bool AppView::draw_implem()
+bool AppView::draw()
 {
     bool is_main_window_open = true;
     bool redock_all          = false;

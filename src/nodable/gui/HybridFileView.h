@@ -11,7 +11,7 @@
 namespace ndbl
 {
     // forward declarations
-    class File;
+    class HybridFile;
     class IAppCtx;
 
     enum OverlayPos {
@@ -34,14 +34,18 @@ namespace ndbl
         OverlayPos position;
     } OverlayData;
 
-    class FileView : public fw::View
+    class HybridFileView : public fw::View
 	{
 	public:
-		explicit FileView(File& _file);
-		~FileView() override = default;
+		explicit HybridFileView(HybridFile& _file);
+		~HybridFileView() override = default;
 
 		void                           init();
-		bool                           text_has_changed() const { return m_text_has_changed; }
+        bool                           draw() override;
+        bool                           changed() const { return m_focused_text_changed || m_graph_changed; }
+        bool                           focused_text_changed() const { return m_focused_text_changed; }
+        bool                           graph_changed() const { return m_graph_changed; }
+        void                           changed(bool b) { m_focused_text_changed = m_graph_changed = b; }
 		void                           set_text(const std::string&);
 		std::string                    get_selected_text()const;
 		std::string                    get_text()const;
@@ -59,14 +63,13 @@ namespace ndbl
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  ImVec2 position);
 
     private:
-        bool draw_implem() override;
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
-
-		File&        m_file;
+        bool         m_focused_text_changed;
+        bool         m_graph_changed;
+		HybridFile&  m_file;
         std::string  m_text_overlay_window_name;
         std::string  m_graph_overlay_window_name;
 		TextEditor   m_text_editor;
-		bool         m_text_has_changed;
 		float        m_child1_size;
 		float        m_child2_size;
         std::string  m_experimental_clipboard_curr;

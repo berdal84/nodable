@@ -18,7 +18,6 @@
 namespace ndbl
 {
     // forward declarations
-    class File;
     class AppView;
 
     // Nodable application
@@ -42,7 +41,7 @@ namespace ndbl
         Config            config;         // Nodable configuration (includes framework configuration)
         NodeFactory       node_factory;
         AppView           view;
-        File*             current_file;
+        HybridFile*       current_file;
         VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
 
         int             run() { return core.run(); } // run app main loop
@@ -51,14 +50,14 @@ namespace ndbl
 
         // File related:
 
-        File*           open_file(const ghc::filesystem::path&_path);
-        File*           new_file();
-        void            save_file(File *pFile) const;
+        HybridFile*     open_file(const ghc::filesystem::path&_path);
+        HybridFile*     new_file();
+        void            save_file(HybridFile *pFile) const;
         void            save_file_as(const ghc::filesystem::path &_path) const;
-        File*           add_file(File *_file);
-        void            close_file(File*);
-        bool            is_current(const File* _file ) const { return current_file == _file; }
-        const std::vector<File*>&
+        HybridFile*     add_file(HybridFile *_file);
+        void            close_file(HybridFile*);
+        bool            is_current(const HybridFile* _file ) const { return current_file == _file; }
+        const std::vector<HybridFile*>&
                         get_files() const { return m_loaded_files; }
         bool            has_files() const { return !m_loaded_files.empty(); }
 
@@ -78,7 +77,8 @@ namespace ndbl
         void            on_update();
         bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
         static Nodable *   s_instance;
-        std::vector<File*> m_loaded_files;
+        std::vector<HybridFile*> m_loaded_files;
         u8_t               m_untitled_file_count;
+
     };
 }

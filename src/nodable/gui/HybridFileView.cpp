@@ -1,14 +1,15 @@
-#include "FileView.h"
+#include "HybridFileView.h"
 
 #include "core/Graph.h"
 #include "core/Node.h"
 #include "core/VirtualMachine.h"
 #include "core/language/Nodlang.h"
+#include "core/ComponentManager.h"
 
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
 #include "Event.h"
-#include "File.h"
+#include "HybridFile.h"
 #include "GraphView.h"
 #include "NodeView.h"
 #include "Config.h"
@@ -16,10 +17,11 @@
 using namespace ndbl;
 using namespace fw;
 
-FileView::FileView(File& _file)
+HybridFileView::HybridFileView(HybridFile& _file)
     : fw::View()
     , m_text_editor()
-    , m_text_has_changed(false)
+    , m_focused_text_changed(false)
+    , m_graph_changed(false)
     , m_file(_file)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
@@ -27,7 +29,7 @@ FileView::FileView(File& _file)
     , m_text_overlay_window_name(_file.name + "_text_overlay" )
     , m_graph_overlay_window_name(_file.name + "_graph_overlay" )
 {
-    m_graph_change_obs.observe(_file.event_graph_changed, [this](Graph* _graph)
+    m_graph_change_obs.observe(_file.graph_changed, [this](Graph* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )
@@ -45,8 +47,7 @@ FileView::FileView(File& _file)
                 graph_view->unfold();
 
                 // make sure views are outside viewable rectangle (to avoid flickering)
-                std::vector<NodeView*> views;
-                Node::get_components<NodeView>( _graph->get_node_registry(), views );
+                std::vector<NodeView*> views = ComponentManager::collect<NodeView>(_graph->get_node_registry());
                 graph_view->translate_all( ImVec2(-1000.f, -1000.0f) , views);
 
                 // frame all (33ms delayed)
@@ -56,7 +57,7 @@ FileView::FileView(File& _file)
     });
 }
 
-void FileView::init()
+void HybridFileView::init()
 {
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
@@ -64,7 +65,7 @@ void FileView::init()
 	m_text_editor.SetPalette(Nodable::get_instance().config.ui_text_textEditorPalette);
 }
 
-bool FileView::draw_implem()
+bool HybridFileView::draw()
 {
     const ImVec2 margin(10.0f, 0.0f);
     const Nodable &app       = Nodable::get_instance();
@@ -148,12 +149,11 @@ bool FileView::draw_implem()
                                      new_cursor_position.mLine == old_cursor_position.mLine;
         auto is_selected_text_modified = new_cursor_position != old_cursor_position;
 
-        m_text_has_changed = is_line_text_modified ||
-                             m_text_editor.IsTextChanged() ||
-                             (app.config.isolate_selection && is_selected_text_modified);
+        m_focused_text_changed = is_line_text_modified ||
+                                 m_text_editor.IsTextChanged() ||
+                                 (app.config.isolate_selection && is_selected_text_modified);
 
         if (m_text_editor.IsTextChanged())  m_file.changed = true;
-        if (m_text_has_changed) m_file.update_graph();
     }
     ImGui::EndChild();
 
@@ -164,7 +164,7 @@ bool FileView::draw_implem()
     GraphView* graph_view = m_file.get_graph_view();
     FW_ASSERT(graph);
     ImGui::SameLine();
-    if ( m_file.get_graph_view() )
+    if ( graph_view )
     {
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -173,19 +173,17 @@ bool FileView::draw_implem()
 
         ImGui::BeginChild("graph", graph_editor_size, false, flags);
         {
-            bool changed = graph_view->draw();
-            if( changed )
-            {
-                graph->set_dirty();
-            }
+            // Draw graph
+            View::use_available_region(graph_view);
+            m_graph_changed = graph_view->draw();
 
-            // overlay (for shortcuts)
+            // Draw overlay: shortcuts
             ImRect overlay_rect = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
             overlay_rect.Expand(ImVec2(-2.0f * app.config.ui_overlay_margin)); // margin
             draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, ImVec2(1, 1));
             fw::ImGuiEx::DebugRect( overlay_rect.Min, overlay_rect.Max, IM_COL32( 255, 255, 0, 127 ) );
 
-            // overlay (for isolation mode status)
+            // Draw overlay: isolation mode ON/OFF
             if( app.config.isolate_selection )
             {
                 ImGui::SetCursorPos(graph_editor_top_left_corner + app.config.ui_overlay_margin);
@@ -201,15 +199,15 @@ bool FileView::draw_implem()
         LOG_ERROR("FileView", "graphNodeView is null\n");
     }
 
-	return m_text_has_changed;
+    return changed();
 }
 
-std::string FileView::get_text()const
+std::string HybridFileView::get_text()const
 {
 	return m_text_editor.GetText();
 }
 
-void FileView::replace_selected_text(const std::string &_val)
+void HybridFileView::replace_selected_text(const std::string &_val)
 {
     if (get_selected_text() != _val )
     {
@@ -240,7 +238,7 @@ void FileView::replace_selected_text(const std::string &_val)
     }
 }
 
-void FileView::replace_text(const std::string& _content)
+void HybridFileView::replace_text(const std::string& _content)
 {
     const std::string current_content = get_text();
     if (current_content != _content )
@@ -254,21 +252,21 @@ void FileView::replace_text(const std::string& _content)
     }
 }
 
-void FileView::set_text(const std::string& _content)
+void HybridFileView::set_text(const std::string& _content)
 {
 	m_text_editor.SetText(_content);
 }
 
-std::string FileView::get_selected_text()const
+std::string HybridFileView::get_selected_text()const
 {
 	return m_text_editor.HasSelection() ? m_text_editor.GetSelectedText() : m_text_editor.GetCurrentLineText();
 }
 
-void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
+void HybridFileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 	this->m_text_editor.SetExternalUndoBuffer(_buffer);
 }
 
-void FileView::draw_info() const
+void HybridFileView::draw_info() const
 {
     // Basic information
     ImGui::Text("Name: %s", m_file.name.c_str());
@@ -300,7 +298,7 @@ void FileView::draw_info() const
     }
 }
 
-void  FileView::experimental_clipboard_auto_paste(bool _enable)
+void  HybridFileView::experimental_clipboard_auto_paste(bool _enable)
 {
     m_experimental_clipboard_auto_paste = _enable;
     if( _enable )
@@ -309,7 +307,7 @@ void  FileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect, ImVec2 position)
+void HybridFileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect, ImVec2 position)
 {
     if( overlay_data.empty() ) return;
 
@@ -336,14 +334,14 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
     ImGui::End();
 }
 
-void FileView::clear_overlay()
+void HybridFileView::clear_overlay()
 {
     std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [&](auto &vec) {
         vec.clear();
     });
 }
 
-void FileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
+void HybridFileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
 {
     m_overlay_data[overlay_type].push_back(overlay_data);
 }
