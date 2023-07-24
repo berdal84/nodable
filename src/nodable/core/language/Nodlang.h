@@ -44,7 +44,6 @@ namespace ndbl{
         static Nodlang& get_instance();
 
         // Parser ---------------------------------------------------------------------
-    public:
         bool                   tokenize(const std::string& _string);                 // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
         bool                   tokenize(char* buffer, size_t buffer_size);           // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
         bool                   parse(const std::string& _in, Graph *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
@@ -106,21 +105,21 @@ namespace ndbl{
 
         // Serializer ------------------------------------------------------------------
     public:
-        std::string&           serialize(std::string& _out, const InvokableComponent*) const;
-        std::string&           serialize(std::string& _out, const fw::func_type*, const std::vector<Property *>&)const;  // serialize a function call with arguments.
-        std::string&           serialize(std::string& _out, const fw::func_type*)const;                                  // serialize a function signature.
-        std::string&           serialize(std::string& _out, const Token_t&)const;
-        std::string&           serialize(std::string& _out, const Token &) const;
-        std::string&           serialize(std::string& _out, const fw::type*) const;
-        std::string&           serialize(std::string& _out, const Property *, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
-        std::string&           serialize(std::string& _out, const InstructionNode*)const;
-        std::string&           serialize(std::string& _out, const Node*)const;
-        std::string&           serialize(std::string& _out, const Scope*)const;
-        std::string&           serialize(std::string& _out, const ForLoopNode*)const;
-        std::string&           serialize(std::string& _out, const WhileLoopNode*)const;
-        std::string&           serialize(std::string& _out, const ConditionalStructNode*) const;
-        std::string&           serialize(std::string& _out, const fw::variant*) const;
-        std::string&           serialize(std::string& _out, const VariableNode*) const;    // serialize a variable (declared or not)
+        std::string&           serialize_invokable(std::string& _out, const InvokableComponent*) const;
+        std::string&           serialize_func_call(std::string& _out, const fw::func_type*, const std::vector<Property *>&)const;
+        std::string&           serialize_func_sig(std::string& _out, const fw::func_type*)const;
+        std::string&           serialize_token_t(std::string& _out, const Token_t&)const;
+        std::string&           serialize_token(std::string& _out, const Token &) const;
+        std::string&           serialize_type(std::string& _out, const fw::type*) const;
+        std::string&           serialize_property(std::string& _out, const Property *, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
+        std::string&           serialize_instr(std::string& _out, const InstructionNode*)const;
+        std::string&           serialize_node(std::string& _out, const Node*)const;
+        std::string&           serialize_scope(std::string& _out, const Scope*)const;
+        std::string&           serialize_for_loop(std::string& _out, const ForLoopNode*)const;
+        std::string&           serialize_while_loop(std::string& _out, const WhileLoopNode*)const;
+        std::string&           serialize_cond_struct(std::string& _out, const ConditionalStructNode*) const;
+        std::string&           serialize_variant(std::string& _out, const fw::variant*) const;
+        std::string&           serialize_variable(std::string& _out, const VariableNode*) const;
 
         // Language definition -------------------------------------------------------------------------
     public:

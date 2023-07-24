@@ -135,7 +135,7 @@ bool CLI::serialize()
     if(Node* root = m_graph.get_root())
     {
         std::string result;
-        m_language.serialize(result, root);
+        m_language.serialize_node(result, root);
         std::cout << result << std::endl;
         return true;
     }

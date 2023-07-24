@@ -653,14 +653,14 @@ bool NodeView::draw_property_view(PropertyView *_view)
         std::string source_code;
         if( property->get_type()->is_ptr() || !property->allows_connection(Way_In)) // pointer to Node* or output
         {
-            Nodlang::get_instance().serialize(
+            Nodlang::get_instance().serialize_node(
                     source_code,
                     property->get_owner());
 
         }
         else
         {
-            Nodlang::get_instance().serialize(source_code, property);
+            Nodlang::get_instance().serialize_property(source_code, property);
         }
 
         ImGui::Text("source: \"%s\"", source_code.c_str());

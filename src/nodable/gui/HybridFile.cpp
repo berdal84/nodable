@@ -121,7 +121,7 @@ UpdateResult HybridFile::update_text_from_graph(bool isolate_selection)
     if ( root_node )
     {
         std::string code;
-        Nodlang::get_instance().serialize(code, root_node );
+        Nodlang::get_instance().serialize_node(code, root_node);
 
         if ( isolate_selection )
         {

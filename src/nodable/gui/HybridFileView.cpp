@@ -290,7 +290,7 @@ void HybridFileView::draw_info() const
         for(const auto& each_fct : language.get_api() )
         {
             std::string name;
-            language.serialize(name, each_fct->get_type());
+            language.serialize_func_sig(name, each_fct->get_type());
             ImGui::Text("%s", name.c_str());
         }
 

@@ -50,7 +50,7 @@ GraphView::GraphView(Graph* graph)
         };
 
         std::string label;
-        language.serialize(label, type);
+        language.serialize_func_sig(label, type);
         std::string category = is_operator ? k_operator_menu_label : k_function_menu_label;
         add_contextual_menu_item(category, label, create_node, type);
     }

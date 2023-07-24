@@ -1448,7 +1448,7 @@ Property *Nodlang::parse_variable_declaration()
 // [SECTION] C. Serializer --------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_component) const
+std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComponent *_component) const
 {
     const func_type *type = _component->get_func_type();
 
@@ -1458,14 +1458,14 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
         auto serialize_property_with_or_without_brackets = [this, &_out](Property *property, bool needs_brackets) {
             if (needs_brackets)
             {
-                serialize(_out, Token_t::parenthesis_open);
+                serialize_token_t(_out, Token_t::parenthesis_open);
             }
 
-            serialize(_out, property);
+            serialize_property(_out, property);
 
             if (needs_brackets)
             {
-                serialize(_out, Token_t::parenthesis_close);
+                serialize_token_t(_out, Token_t::parenthesis_close);
             }
         };
 
@@ -1523,64 +1523,64 @@ std::string &Nodlang::serialize(std::string &_out, const InvokableComponent *_co
         }
     } else
     {
-        serialize(_out, type, _component->get_args());
+        serialize_func_call(_out, type, _component->get_args());
     }
 
     return _out;
 }
 
-std::string &Nodlang::serialize(std::string &_out, const func_type *_signature, const std::vector<Property *> &_args) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<Property *> &_args) const
 {
     _out.append(_signature->get_identifier());
-    serialize(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, Token_t::parenthesis_open);
 
     for (auto it = _args.begin(); it != _args.end(); it++)
     {
-        serialize(_out, *it);
+        serialize_property(_out, *it);
 
         if (*it != _args.back())
         {
-            serialize(_out, Token_t::list_separator);
+            serialize_token_t(_out, Token_t::list_separator);
         }
     }
 
-    serialize(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, Token_t::parenthesis_close);
     return _out;
 }
 
-std::string &Nodlang::serialize(std::string &_out, const func_type *_signature) const
+std::string &Nodlang::serialize_func_sig(std::string &_out, const fw::func_type *_signature) const
 {
-    serialize(_out, _signature->get_return_type());
+    serialize_type(_out, _signature->get_return_type());
     _out.append(" ");
     _out.append(_signature->get_identifier());
-    serialize(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, Token_t::parenthesis_open);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
         {
-            serialize(_out, Token_t::list_separator);
+            serialize_token_t(_out, Token_t::list_separator);
             _out.append(" ");
         }
-        serialize(_out, it->m_type);
+        serialize_type(_out, it->m_type);
     }
 
-    serialize(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, Token_t::parenthesis_close);
     return _out;
 }
 
-std::string &Nodlang::serialize(std::string &_out, const Token_t &_type) const
+std::string &Nodlang::serialize_token_t(std::string &_out, const Token_t &_type) const
 {
     return _out.append(to_string(_type));
 }
 
-std::string &Nodlang::serialize(std::string &_out, const type* _type) const
+std::string &Nodlang::serialize_type(std::string &_out, const fw::type *_type) const
 {
     return _out.append(to_string(_type));
 }
 
-std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) const
+std::string &Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const
 {
     const InstructionNode *decl_instr = _node->get_declaration_instr();
 
@@ -1591,11 +1591,11 @@ std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) co
         // If parsed
         if (!_node->type_token.is_null())
         {
-            serialize(_out, _node->type_token);
+            serialize_token(_out, _node->type_token);
         }
         else // If created in the graph by the user
         {
-            serialize(_out, _node->get_value()->get_type());
+            serialize_type(_out, _node->get_value()->get_type());
             _out.append(" ");
         }
     }
@@ -1610,12 +1610,12 @@ std::string &Nodlang::serialize(std::string &_out, const VariableNode *_node) co
     if (decl_instr && value->has_input_connected())
     {
         _out.append(_node->assignment_operator_token.is_null() ? " = " : _node->assignment_operator_token.buffer_to_string());
-        serialize(_out, value);
+        serialize_property(_out, value);
     }
     return _out;
 }
 
-std::string &Nodlang::serialize(std::string &_out, const variant *variant) const
+std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *variant) const
 {
     std::string variant_string = variant->convert_to<std::string>();
 
@@ -1626,14 +1626,14 @@ std::string &Nodlang::serialize(std::string &_out, const variant *variant) const
     return _out.append(variant_string);
 }
 
-std::string &Nodlang::serialize(std::string &_out, const Property *_property, bool recursively) const
+std::string &Nodlang::serialize_property(std::string &_out, const Property *_property, bool recursively) const
 {
     // specific case of a Node*
     if (_property->get_type()->is<Node*>())
     {
         if (_property->get_variant()->is_initialized())
         {
-            return serialize(_out, (const Node *) *_property);
+            return serialize_node(_out, (const Node *) *_property);
         }
     }
 
@@ -1651,10 +1651,10 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
 
         if (compute_component)
         {
-            serialize(_out, compute_component);
+            serialize_invokable(_out, compute_component);
         } else
         {
-            serialize(_out, src_property, false);
+            serialize_property(_out, src_property, false);
         }
     } else
     {
@@ -1663,7 +1663,7 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
             _out.append( owner->name );
         } else
         {
-            serialize(_out, _property->get_variant());
+            serialize_variant(_out, _property->get_variant());
         }
     }
 
@@ -1674,49 +1674,49 @@ std::string &Nodlang::serialize(std::string &_out, const Property *_property, bo
     return _out;
 }
 
-std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
+std::string &Nodlang::serialize_node(std::string &_out, const Node *_node) const
 {
     FW_ASSERT(_node != nullptr)
     const type* type = _node->get_type();
 
     if (auto instr = fw::cast<const InstructionNode>(_node))
     {
-        return serialize(_out, instr);
+        return serialize_instr(_out, instr);
     }
 
     if (auto cond_struct = fw::cast<const ConditionalStructNode>(_node))
     {
-        return serialize(_out, cond_struct);
+        return serialize_cond_struct(_out, cond_struct);
     }
 
     if (auto for_loop = fw::cast<const ForLoopNode>(_node))
     {
-        return serialize(_out, for_loop);
+        return serialize_for_loop(_out, for_loop);
     }
 
     if (auto while_loop = fw::cast<const WhileLoopNode>(_node))
     {
-        return serialize(_out, while_loop);
+        return serialize_while_loop(_out, while_loop);
     }
 
     if (auto scope = _node->components.get<Scope>())
     {
-        return serialize(_out, scope);
+        return serialize_scope(_out, scope);
     }
 
     if (auto literal = fw::cast<const LiteralNode>(_node))
     {
-        return serialize(_out, literal->value);
+        return serialize_property(_out, literal->value);
     }
 
     if (auto variable = fw::cast<const VariableNode>(_node))
     {
-        return serialize(_out, variable);
+        return serialize_variable(_out, variable);
     }
 
     if (auto invokable = _node->components.get<InvokableComponent>())
     {
-        return serialize(_out, invokable);
+        return serialize_invokable(_out, invokable);
     }
 
     std::string message = "Unable to serialize ";
@@ -1724,18 +1724,18 @@ std::string &Nodlang::serialize(std::string &_out, const Node *_node) const
     throw std::runtime_error(message);
 }
 
-std::string &Nodlang::serialize(std::string &_out, const Scope *_scope) const
+std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
 {
-    serialize(_out, _scope->token_begin);
+    serialize_token(_out, _scope->token_begin);
     auto &children = _scope->get_owner()->children;
     for (Node* each_child: children)
     {
-        serialize(_out, each_child);
+        serialize_node(_out, each_child);
     }
-    return serialize(_out, _scope->token_end);
+    return serialize_token(_out, _scope->token_end);
 }
 
-std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instruction) const
+std::string &Nodlang::serialize_instr(std::string &_out, const InstructionNode *_instruction) const
 {
     FW_EXPECT(_instruction != nullptr, "IntructionNode should NOT be nullptr");
 
@@ -1743,13 +1743,13 @@ std::string &Nodlang::serialize(std::string &_out, const InstructionNode *_instr
     {
         auto root_node = static_cast<const Node*>(*_instruction->root);
         FW_ASSERT(root_node)
-        serialize(_out, root_node);
+        serialize_node(_out, root_node);
     }
 
-    return serialize(_out, _instruction->token_end);
+    return serialize_token(_out, _instruction->token_end);
 }
 
-std::string &Nodlang::serialize(std::string& _out, const Token& _token) const
+std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) const
 {
     if (!_token.is_null() && _token.has_buffer())
     {
@@ -1758,18 +1758,18 @@ std::string &Nodlang::serialize(std::string& _out, const Token& _token) const
     return _out;
 }
 
-std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop) const
+std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_for_loop) const
 {
     if( _for_loop->token_for.is_null())
     {
-        serialize(_out, Token_t::keyword_for);
+        serialize_token_t(_out, Token_t::keyword_for);
     }
     else
     {
-        serialize(_out, _for_loop->token_for);
+        serialize_token(_out, _for_loop->token_for);
     }
 
-    serialize(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, Token_t::parenthesis_open);
 
     // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
     //       More work to do to know if expression is a declaration or not.
@@ -1777,29 +1777,29 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     Property *input = _for_loop->get_init_expr()->get_input();
     if (input && fw::extends<VariableNode>(input->get_owner()) )
     {
-        serialize(_out, fw::cast<VariableNode>(input->get_owner()));
+        serialize_variable(_out, fw::cast<VariableNode>(input->get_owner()));
     }
     else if (const InstructionNode* init_instr = _for_loop->get_init_instr())
     {
-        serialize(_out, init_instr);
+        serialize_instr(_out, init_instr);
     }
 
     if(const InstructionNode* condition = _for_loop->get_cond_expr())
     {
-        serialize(_out, condition);
+        serialize_instr(_out, condition);
     }
 
     if(const Property* iter_instr = _for_loop->get_iter_expr())
     {
-        serialize(_out, iter_instr);
+        serialize_property(_out, iter_instr);
     }
 
-    serialize(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, Token_t::parenthesis_close);
 
     // if scope
     if (auto *scope = _for_loop->get_condition_true_scope())
     {
-        serialize(_out, scope);
+        serialize_scope(_out, scope);
     }
     else
     {
@@ -1810,31 +1810,31 @@ std::string &Nodlang::serialize(std::string &_out, const ForLoopNode *_for_loop)
     return _out;
 }
 
-std::string &Nodlang::serialize(std::string &_out, const WhileLoopNode* _while_loop_node) const
+std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode* _while_loop_node) const
 {
 
     if( _while_loop_node->token_while.is_null())
     {
-        serialize(_out, Token_t::keyword_while);
+        serialize_token_t(_out, Token_t::keyword_while);
     }
     else
     {
-        serialize(_out, _while_loop_node->token_while);
+        serialize_token(_out, _while_loop_node->token_while);
     }
 
-    serialize(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, Token_t::parenthesis_open);
 
     if(const InstructionNode* condition = _while_loop_node->get_cond_expr())
     {
-        serialize(_out, condition);
+        serialize_instr(_out, condition);
     }
 
-    serialize(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, Token_t::parenthesis_close);
 
     // if scope
     if (auto *scope = _while_loop_node->get_condition_true_scope())
     {
-        serialize(_out, scope);
+        serialize_scope(_out, scope);
     }
     else
     {
@@ -1846,48 +1846,48 @@ std::string &Nodlang::serialize(std::string &_out, const WhileLoopNode* _while_l
 }
 
 
-std::string &Nodlang::serialize(std::string &_out, const ConditionalStructNode *_condStruct) const
+std::string &Nodlang::serialize_cond_struct(std::string &_out, const ConditionalStructNode *_condStruct) const
 {
     // if ...
     if (_condStruct->token_if.is_null())
     {
-        serialize(_out, Token_t::keyword_if);
+        serialize_token_t(_out, Token_t::keyword_if);
     }
     else
     {
-        serialize(_out, _condStruct->token_if);
+        serialize_token(_out, _condStruct->token_if);
     }
 
     // ... ( <condition> )
-    serialize(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, Token_t::parenthesis_open);
     if ( const InstructionNode* condition = _condStruct->get_cond_expr() )
     {
-        serialize(_out, condition);
+        serialize_instr(_out, condition);
     }
-    serialize(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, Token_t::parenthesis_close);
 
     // ... ( ... ) <scope>
     if (auto *ifScope = _condStruct->get_condition_true_scope())
     {
-        serialize(_out, ifScope);
+        serialize_scope(_out, ifScope);
     }
     else
     {
         // When scope is undefined, serialized a fake one
-        serialize(_out, Token_t::end_of_line);
-        serialize(_out, Token_t::scope_begin);
-        serialize(_out, Token_t::end_of_line);
-        serialize(_out, Token_t::scope_end);
+        serialize_token_t(_out, Token_t::end_of_line);
+        serialize_token_t(_out, Token_t::scope_begin);
+        serialize_token_t(_out, Token_t::end_of_line);
+        serialize_token_t(_out, Token_t::scope_end);
     }
 
     // else & else scope
     if ( !_condStruct->token_else.is_null() )
     {
-        serialize(_out, _condStruct->token_else);
+        serialize_token(_out, _condStruct->token_else);
         Scope *elseScope = _condStruct->get_condition_false_scope();
         if (elseScope)
         {
-            serialize(_out, elseScope->get_owner());
+            serialize_node(_out, elseScope->get_owner());
         }
     }
     return _out;
@@ -1995,7 +1995,7 @@ void Nodlang::add_function(std::shared_ptr<const iinvokable> _invokable)
     const func_type *type = _invokable->get_type();
 
     std::string type_as_string;
-    serialize(type_as_string, type);
+    serialize_func_sig(type_as_string, type);
 
     // Stops if no operator having the same identifier and argument count is found
     if (!find_operator(type->get_identifier(), static_cast<Operator_t>(type->get_arg_count())))

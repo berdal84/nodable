@@ -105,8 +105,8 @@ public:
 
         // serialize
         std::string result;
-        nodlang.serialize(result, graph.get_root());
-        LOG_VERBOSE("core", "parse_compile_run_serialize serialize output is: \"%s\"\n", result.c_str());
+        nodlang.serialize_node(result, graph.get_root());
+        LOG_VERBOSE("core", "parse_compile_run_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         virtual_machine.release_program();
         return result;
@@ -125,8 +125,8 @@ public:
 
         // serialize
         std::string result;
-        nodlang.serialize(result, graph.get_root());
-        LOG_VERBOSE("tools.h", "parse_and_serialize serialize output is: \"%s\"\n", result.c_str());
+        nodlang.serialize_node(result, graph.get_root());
+        LOG_VERBOSE("tools.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         return result;
     }
