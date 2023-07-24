@@ -14,7 +14,7 @@
 //#include <vector>
 using namespace fw;
 
-Texture* TextureManager::load(const std::string &path)
+Texture* TextureManager::load(const std::string& path)
 {
     // Return if already exists
     auto tex = m_register.find(path);
