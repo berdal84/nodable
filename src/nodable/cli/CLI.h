@@ -20,6 +20,7 @@ namespace ndbl
     public:
         CLI();
         ~CLI();
+        int          main(int argc, char* argv[]);
         bool         should_stop() const;
 
         // api
@@ -33,7 +34,9 @@ namespace ndbl
         void         update();
         void         set_verbose();
 
+        int          print_program();
         std::string test_return_str() { return (std::string)m_virtual_machine.get_last_result(); }
+
         std::string test_concat_str(std::string left, std::string right) { return left + right; }
 
     private:
@@ -45,7 +48,8 @@ namespace ndbl
         NodeFactory                m_factory;
         Graph                      m_graph;
         assembly::Compiler         m_compiler;
-        const assembly::Code*            m_asm_code;
+        std::string                m_source_code;
+        const assembly::Code*      m_asm_code;
         VirtualMachine             m_virtual_machine;
         bool                       m_auto_completion = false;
         void log_function_call(const fw::variant &result, const fw::func_type *type) const;

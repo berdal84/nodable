@@ -120,6 +120,38 @@ namespace fw
         static bool               equals(const type* left, const type* right);
         template<typename T>
         static const type*        get();
+
+        template<class ...Types>
+        struct get_all
+        {
+            using tuple = std::tuple<Types...>;
+            static constexpr size_t size = std::tuple_size_v<tuple>;
+            using result_t = std::array<const fw::type*, size>;
+
+            static result_t types()
+            {
+                result_t output{};
+                return extract_type_at<size - 1>(output);
+            }
+
+        private:
+            template<size_t N, typename std::enable_if_t<N!=0, bool> = 0 >
+            static result_t& extract_type_at(result_t& output)
+            {
+                using element_t = std::tuple_element_t<N, tuple>;
+                output[N] = fw::type::get<element_t>();
+                return extract_type_at<N - 1>(output);
+            }
+
+            template<size_t N>
+            static result_t& extract_type_at(result_t& output)
+            {
+                using element_t = std::tuple_element_t<0, tuple>;
+                output[0] = fw::type::get<element_t>();
+                return output;
+            }
+        };
+
         template<typename T>
         static type*              create(const char* _name = "");
         template<typename T>

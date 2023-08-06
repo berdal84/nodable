@@ -17,10 +17,12 @@ REGISTER
         .add_method(&CLI::clear            , "clear")
         .add_method(&CLI::help             , "help")
         .add_method(&CLI::exit_            , "exit")
+        .add_method(&CLI::exit_            , "quit")
         .add_method(&CLI::parse            , "parse")
         .add_method(&CLI::serialize        , "serialize")
         .add_method(&CLI::compile          , "compile")
         .add_method(&CLI::set_verbose      , "set_verbose")
+        .add_method(&CLI::print_program    , "print program" )
         .add_method(&CLI::run              , "run");
 };
 
@@ -33,13 +35,27 @@ CLI::CLI()
                  R"(Nodable Copyright (C) 2023 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
                  R"(This is free software, and you are welcome to redistribute it under certain conditions.)"
             << std::endl << R"(Feel lost? type "help".)" << std::endl;
-    fw::log::set_verbosity(fw::log::Verbosity_Warning);
 }
 
 CLI::~CLI()
 {
     std::cout << "Good bye!" << std::endl;
     delete m_asm_code;
+}
+
+
+
+int CLI::main(int argc, char* argv[])
+{
+    fw::log::set_verbosity(fw::log::Verbosity_Warning);
+
+    while (!should_stop())
+    {
+        update();
+    }
+
+    LOG_FLUSH()
+    return 0;
 }
 
 bool CLI::should_stop() const
@@ -50,24 +66,22 @@ bool CLI::should_stop() const
 void CLI::update()
 /*
  * TODO:
- * - we must differenciate current graph and program state (should be in VirtualMachine)
- * - user input should be parsed, compiled and executed in the existing program state.
- * - VirtualMachine should return a result after each execution.
+ * - we must differentiate current graph and program state (should be in VirtualMachine)
  */
 {
     // command prompt
     std::cout << ">>> ";
 
     // get user input
-    std::string input;
-    while ( input.empty())
+    std::string user_input;
+    while ( user_input.empty())
     {
-        input = get_line();
+        user_input = get_line();
     }
 
-    // get static function from user input
+    // Priority 1: call a static function immediately
     const fw::type* cli_type = fw::type::get<CLI>();
-    if( auto static_fct = cli_type->get_static(input) )
+    if( auto static_fct = cli_type->get_static(user_input) )
     {
         try
         {
@@ -81,8 +95,8 @@ void CLI::update()
         return;
     }
 
-    // no static found earlier, we try to get a method from user input
-    if( auto method = cli_type->get_method(input) )
+    // Priority 2: try to call a CLI method immediately
+    if( auto method = cli_type->get_method(user_input) )
     {
         try
         {
@@ -97,8 +111,10 @@ void CLI::update()
         return;
     }
 
-    // try to eval (parse, compile and run).
-    m_language.parse(input, &m_graph) && compile() && run();
+    // Priority 3: append to source code, parse, compile, and run the code;
+    m_language.serialize_token_t(user_input, Token_t::end_of_instruction);
+    m_source_code.append(user_input);
+    m_language.parse(m_source_code, &m_graph) && compile() && run();
 }
 
 void CLI::log_function_call(const fw::variant &result, const fw::func_type *type) const
@@ -157,7 +173,17 @@ bool CLI::compile()
 
 void CLI::set_verbose()
 {
+    printf("Verbose mode ON\n");
     fw::log::set_verbosity(fw::log::Verbosity_Verbose);
+}
+
+int CLI::print_program()
+{
+    if( m_source_code.empty() )
+    {
+        return printf("The current program is empty.\n");
+    }
+    return printf("Program:\n%s\n", m_source_code.c_str());
 }
 
 bool CLI::parse()
@@ -180,12 +206,12 @@ bool CLI::run()
         m_virtual_machine.run_program();
         fw::qword last_result = m_virtual_machine.get_last_result();
 
-        std::cout << "Result in various types:";
-        std::cout << std::endl;
-        std::cout << " bool:   " << std::setw(12) << std::boolalpha << (bool)last_result;
-        std::cout << " | double: " << std::setw(12) << (double)last_result;
-        std::cout << " | i16_t:  " << std::setw(12) << (i16_t)last_result;
-        std::cout << " | hex:    " << std::setw(12) << last_result.to_string() << std::endl;
+        printf( "bool: %s | int: %12f | double: %12d | hex: %12s\n"
+           , (bool)last_result ? "true" : "false"
+           , (double)last_result
+           , (i16_t)last_result
+           , last_result.to_string().c_str()
+        );
 
         return m_virtual_machine.release_program();
     }
@@ -223,5 +249,9 @@ void CLI::help()
 
 void CLI::clear()
 {
+    m_source_code.clear();
     fw::system::console::clear();
+    delete m_asm_code;
+    m_graph.clear();
+    m_virtual_machine.release_program();
 }

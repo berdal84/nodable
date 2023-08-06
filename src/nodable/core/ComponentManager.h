@@ -23,7 +23,8 @@ namespace ndbl {
         {
             size_t component_count  = 0;
         };
-
+        template<class ...Args>
+        static void init();
         template<class ComponentT, typename ...Args>
         static ComponentT*   create(Args...);
         static void          destroy(Component*);
@@ -72,5 +73,12 @@ namespace ndbl {
         std::for_each(nodes.begin(), nodes.end(), get_component_if_exists);
 
         return components_found; // wil be moved
+    }
+
+    template<class... Types>
+    void ComponentManager::init()
+    {
+        auto types = fw::type::get_all<Types...>();
+        LOG_MESSAGE("ComponentManager", "init()");
     }
 }

@@ -75,8 +75,8 @@ void log::push_message(Verbosity _verbosity, const char* _category, const char* 
             default:                     std::cout << RESET;  break;
         }
 
-        // print the text
-        printf("%s", message.text.c_str());
+        // print the text and reset the color
+        printf("%s" RESET, message.text.c_str());
 
         // Constraint the queue to have a limited size
         constexpr size_t max_count = 5000; // a Message is 512 bytes
