@@ -76,8 +76,10 @@ Nodable::Nodable()
         }
     })
 {
-
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
+
+    fw::type_register::log_statistics();
+    ComponentManager::init<NodeView, Physics, Scope, InvokableComponent>();
 
     // set this instance as s_instance to access it via App::get_instance()
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
@@ -711,4 +713,9 @@ bool Nodable::is_fullscreen() const
 bool Nodable::pick_file_path(std::string &out, fw::AppView::DialogType type)
 {
     return core.view.pick_file_path(out, type);
+}
+
+int Nodable::main(int argc, char **argv)
+{
+    return core.main();
 }

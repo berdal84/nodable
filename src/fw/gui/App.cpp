@@ -315,7 +315,7 @@ void App::set_fullscreen(bool b)
     SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-int App::run()
+int App::main()
 {
     if (init())
     {

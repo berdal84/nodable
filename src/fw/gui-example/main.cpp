@@ -88,5 +88,5 @@ int main(int argc, char *argv[])
       };
 
     // Run the main loop until user closes the app or a crash happens...
-    return app.run();
+    return app.main();
 }

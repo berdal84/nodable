@@ -44,7 +44,7 @@ namespace ndbl
         HybridFile*       current_file;
         VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
 
-        int             run() { return core.run(); } // run app main loop
+        int             main(int argc, char* argv[]);
         bool            is_fullscreen() const;
         void            toggle_fullscreen();
 
