@@ -79,7 +79,7 @@ Nodable::Nodable()
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
     fw::type_register::log_statistics();
-    ComponentManager::init<NodeView, Physics, Scope, InvokableComponent>();
+    ComponentManager::init_for<NodeView, Physics, Scope, InvokableComponent>();
 
     // set this instance as s_instance to access it via App::get_instance()
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");

@@ -143,7 +143,7 @@ namespace fw
                 return extract_type_at<N - 1>(output);
             }
 
-            template<size_t N>
+            template<size_t N, typename std::enable_if_t<N==0, bool> = 0 >
             static result_t& extract_type_at(result_t& output)
             {
                 using element_t = std::tuple_element_t<0, tuple>;

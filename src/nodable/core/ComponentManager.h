@@ -24,7 +24,7 @@ namespace ndbl {
             size_t component_count  = 0;
         };
         template<class ...Args>
-        static void init();
+        static void init_for();
         template<class ComponentT, typename ...Args>
         static ComponentT*   create(Args...);
         static void          destroy(Component*);
@@ -76,9 +76,19 @@ namespace ndbl {
     }
 
     template<class... Types>
-    void ComponentManager::init()
+    void ComponentManager::init_for()
     {
-        auto types = fw::type::get_all<Types...>();
-        LOG_MESSAGE("ComponentManager", "init()");
+        auto types = fw::type::get_all<Types...>::types();
+        LOG_MESSAGE("ComponentManager", "Initializing for ...\n");
+
+        for(const fw::type* each_type : types )
+        {
+            LOG_MESSAGE("ComponentManager", "- %s\n", each_type->get_name() );
+
+            // TODO: instantiate N pools (one per Type)
+            //       each pool will be responsible for storing a given Type contiguously in memory.
+        }
+
+        LOG_MESSAGE("ComponentManager", "Initializing DONE.\n");
     }
 }
