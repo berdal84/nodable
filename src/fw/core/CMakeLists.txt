@@ -9,6 +9,7 @@ add_library(
             log.cpp
             format.cpp
             system.cpp
+            Pool.cpp
             reflection/func_type.cpp
             reflection/qword.cpp
             reflection/type.cpp

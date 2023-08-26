@@ -16,10 +16,10 @@ namespace assembly
         using Instructions = std::vector<Instruction*>;
         struct MetaData
         {
-            Node* root_node;
+            ID<Node> root_node;
         };
     public:
-        Code(Node* _root): m_meta_data({_root}) {};
+        Code(ID<Node> _root);
         ~Code();
 
         Instruction*               push_instr(Instruction_t _type);                                                    // Push back a new instruction to the code.

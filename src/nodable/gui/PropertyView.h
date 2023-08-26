@@ -1,6 +1,7 @@
 #pragma once
 
 #include "imgui.h"
+#include "fw/core/Pool.h"
 
 namespace ndbl {
 
@@ -8,6 +9,7 @@ namespace ndbl {
     class Property;
     class PropertyConnector;
     class NodeView;
+    using fw::pool::ID;
 
     /**
      * Simple struct to store a property view state
@@ -15,23 +17,23 @@ namespace ndbl {
     class PropertyView
     {
     public:
-        ImVec2              m_position;
-        Property*           m_property;
-        NodeView*           m_nodeView;
-        PropertyConnector*  m_in;
-        PropertyConnector*  m_out;
-        bool                m_show_input;
-        bool                m_touched;
+        ImVec2              position;
+        bool                show_input;
+        bool                touched;
+        const ID<NodeView> node_view;
 
-        PropertyView(Property * _property, NodeView* _nodeView);
+        PropertyView(Property *_property, ID<NodeView> _nodeView);
         ~PropertyView();
         PropertyView (const PropertyView&) = delete;
         PropertyView& operator= (const PropertyView&) = delete;
 
-        void reset()
-        {
-            m_touched   = false;
-            m_show_input = false;
-        }
+        void                reset();
+        Property*           property() { return m_property; }
+        PropertyConnector*  input() const { return m_input; }
+        PropertyConnector*  output() const { return m_output; }
+    private:
+        Property*           m_property;
+        PropertyConnector*  m_input;
+        PropertyConnector*  m_output;
     };
 }

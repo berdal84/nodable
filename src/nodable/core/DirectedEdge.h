@@ -1,12 +1,14 @@
 #pragma once
 
 #include "fw/core/reflection/reflection" // for reflection MACROS
+#include "fw/core/Pool.h"
 #include "core/Property.h"
 
 namespace ndbl
 {
     // forward declarations
     class Node;
+    using fw::pool::ID;
 
     /**
      * @enum Possible types for an edge
@@ -30,33 +32,6 @@ namespace ndbl
     R_ENUM_END
 
     /**
-     * @struct Simple structure to store a pair of T, provide comparison and swap.
-     * @tparam T the inner type for pair elements
-     */
-    template<typename T>
-    struct Pair
-    {
-        Pair() = delete;
-        Pair(T _src, T _dst): src(_src), dst(_dst){}
-
-        T src;
-        T dst;
-
-        /** Compare two pairs (ex: (a,b) == (a,b), but (b,a) != (a,b) ) */
-        friend bool operator==(const Pair<T>& _left, const Pair<T>& _right)
-        {
-            return (_left.src == _right.src)
-                   && (_left.dst == _right.dst);
-        }
-
-        /** Swap the pair */
-        void swap()
-        {
-            std::swap(src, dst);
-        }
-    };
-
-    /**
      * @class Class to represent a property to property oriented edge and its nature.
      * Order is important.
      *
@@ -69,19 +44,28 @@ namespace ndbl
     class DirectedEdge
     {
     public:
-        Pair<Property*> prop; // Source and destination
-        Edge_t type;          // Nature of the edge
-
         DirectedEdge() = delete;
-        DirectedEdge(Property * _src, Edge_t _type, Property * _dst);  // Connect source to target with a given edge type.
-        DirectedEdge(Property * _src, Property * _dst);                // Connect source to target with the edge IS_INPUT_OF
-        DirectedEdge(Node * _src, Edge_t _type, Node * _dst);          // Connect source["this"] to target["this"] with a given edge type.
-        DirectedEdge(Edge_t _type, Pair<Property*> _pair);             // Connect a pair of property (source, target) with a given edge type.
+        DirectedEdge(Property* _src, Edge_t _type, Property* _dst);        // Connect source to target with a given edge type.
+        DirectedEdge(Property* _src, Property* _dst);                      // Connect source to target with the edge IS_INPUT_OF
+        DirectedEdge(Edge_t, std::pair<Property*,Property*>);              // Connect a pair of property (source, target) with a given edge type.
+        DirectedEdge(Node *_src, Edge_t _type, Node *_dst);                // Connect source["this"] to target["this"] with a given edge type.
+        DirectedEdge(ID<Node> _src, Edge_t _type, ID<Node> _dst);  // Connect source["this"] to target["this"] with a given edge type.
 
-        bool is_connected_to(Node* _node)const;                        // Check if a given node is connected to this edge.
-        bool operator==(const DirectedEdge&) const;                    // Compare (type, nodes, and direction) two edges.
+        bool operator==(const DirectedEdge&) const;  // Compare (type, nodes, and direction) two edges.
+
+        bool                            is_connected_to(const ID<Node> _node)const; // Check if a given node is connected to this edge.
+        std::pair<Node*, Node*>         nodes() const; // Get the pair of nodes connected by this edge
+        std::pair<Property*, Property*> props() const { return m_props; } // get the pair of properties connected by this edge
+        Edge_t                          type() const { return m_type; } // Nature of the edge
+        Property*                       src() const { return m_props.first; }
+        Node*                           src_node() const { return src()->owner().get(); }
+        Property*                       dst() const { return m_props.second; }
+        Node*                           dst_node() const { return dst()->owner().get(); }
     protected:
-        static void sanitize(DirectedEdge*);                           // ensure a given edge is well-formed.
+        static void                     sanitize(DirectedEdge*);  // ensure a given edge is well-formed.
+
+        std::pair<Property*, Property*> m_props; // <Source, Destination>
+        Edge_t                          m_type;
     };
 
 }

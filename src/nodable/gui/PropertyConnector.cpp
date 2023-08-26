@@ -11,14 +11,29 @@
 
 using namespace ndbl;
 
-const PropertyConnector*   PropertyConnector::s_dragged = nullptr;
-const PropertyConnector*   PropertyConnector::s_hovered = nullptr;
-const PropertyConnector*   PropertyConnector::s_focused = nullptr;
+PropertyConnector* PropertyConnector::s_dragged;
+PropertyConnector* PropertyConnector::s_hovered;
+PropertyConnector* PropertyConnector::s_focused;
+
+PropertyConnector::PropertyConnector()
+{}
+
+PropertyConnector::PropertyConnector(
+    PropertyView* _property,
+    Way _way,
+    PropertyConnector::Side _pos
+    )
+    : m_property_view(_property)
+    , m_way(_way)
+    , m_display_side(_pos)
+{
+    FW_ASSERT(_property)
+}
 
 ImVec2 PropertyConnector::get_pos() const
 {
-    ImVec2 node_screen_pos = m_propertyView->m_nodeView->get_position(fw::Space_Screen, false);
-    ImVec2 node_view_size  = m_propertyView->m_nodeView->get_size();
+    ImVec2 node_screen_pos = m_property_view->node_view->get_position(fw::Space_Screen, false);
+    ImVec2 node_view_size  = m_property_view->node_view->get_size();
     ImVec2 screen_pos{
             node_screen_pos.x,
             node_screen_pos.y
@@ -27,11 +42,11 @@ ImVec2 PropertyConnector::get_pos() const
     switch (m_display_side)
     {
         case Side::Top:
-            screen_pos.x  = m_propertyView->m_position.x;
+            screen_pos.x  = m_property_view->position.x;
             screen_pos.y -= node_view_size.y * 0.5f;
             break;
         case Side::Bottom:
-            screen_pos.x  = m_propertyView->m_position.x;
+            screen_pos.x  = m_property_view->position.x;
             screen_pos.y += node_view_size.y * 0.5f;
             break;
         case Side::Left:
@@ -46,13 +61,13 @@ ImVec2 PropertyConnector::get_pos() const
     return screen_pos;
 }
 
-bool PropertyConnector::share_parent_with(const PropertyConnector* other) const
+bool PropertyConnector::share_parent_with(const PropertyConnector*  other) const
 {
-    return get_property() == other->get_property();
+    return m_property_view->property() == other->m_property_view->property();
 }
 
 void PropertyConnector::draw(
-        const PropertyConnector *_connector,
+        PropertyConnector* _connector,
         float _radius,
         const ImColor &_color,
         const ImColor &_borderColor,
@@ -89,8 +104,8 @@ void PropertyConnector::draw(
         {
             Event event{};
             event.type = EventType_property_connector_disconnected;
-            event.property_connectors.src = _connector;
-            event.property_connectors.dst = nullptr;
+            event.connector.src.prop = _connector;
+            event.connector.dst.prop = nullptr;
             fw::EventManager::get_instance().push_event((fw::Event&)event);
         }
 
@@ -109,10 +124,9 @@ void PropertyConnector::draw(
 
     if (isItemHovered)
     {
-        if ( ImGui::IsMouseDown(0))
+        if ( ImGui::IsMouseDown(0) && s_dragged && !NodeView::is_any_dragged())
         {
-            if ( s_dragged == nullptr && !NodeView::is_any_dragged())
-                PropertyConnector::start_drag(_connector);
+            PropertyConnector::start_drag(_connector);
         }
     }
     else if ( s_hovered == _connector )
@@ -127,23 +141,25 @@ void PropertyConnector::dropped(const PropertyConnector *_left, const PropertyCo
     {
         return;
     }
-    Event evt;
+    ConnectorEvent evt{};
     evt.type = EventType_property_connector_dropped;
-    evt.property_connectors.src = _left;
-    evt.property_connectors.dst = _right;
+    evt.src.prop = _left;
+    evt.dst.prop = _right;
     fw::EventManager::get_instance().push_event((fw::Event&)evt);
 }
 
-bool PropertyConnector::has_node_connected() const {
-    return m_way == Way_In ? get_property()->get_input() != nullptr : !get_property()->get_outputs().empty();
+bool PropertyConnector::has_node_connected() const
+{
+    return m_way == Way_In ? !get_property()->get_input() : !get_property()->get_outputs().empty();
 }
 
-Property * PropertyConnector::get_property()const
+Property* PropertyConnector::get_property()const
 {
-    return m_propertyView ?  m_propertyView->m_property : nullptr;
+    return m_property_view ? m_property_view->property() : nullptr;
 }
 
 const fw::type* PropertyConnector::get_property_type()const
 {
-    return get_property()->get_type();
+    Property* property = get_property();
+    return property ? property->get_type() : nullptr;
 }

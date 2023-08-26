@@ -3,44 +3,54 @@
 
 using namespace ndbl;
 
-DirectedEdge::DirectedEdge(Property * _src, Edge_t _type, Property * _dst)
-    : type(_type)
-    , prop(_src, _dst)
+DirectedEdge::DirectedEdge(Property* _src, Edge_t _type, Property* _dst)
+    : m_type(_type)
+    , m_props(_src, _dst)
 {
     sanitize(this);
 }
 
-DirectedEdge::DirectedEdge(Node* _src, Edge_t _type, Node * _dst)
-    : DirectedEdge(_src->as_property, _type, _dst->as_property)
-{}
-
-DirectedEdge::DirectedEdge(Property * _src, Property * _dst)
+DirectedEdge::DirectedEdge(Property* _src, Property* _dst)
     : DirectedEdge(_src, Edge_t::IS_INPUT_OF, _dst)
 {}
 
-DirectedEdge::DirectedEdge(Edge_t _type, const Pair<Property *> _pair)
-    : DirectedEdge(_pair.src, _type, _pair.dst)
+DirectedEdge::DirectedEdge(Edge_t _type, const std::pair<Property*, Property*> _pair)
+    : DirectedEdge(_pair.first, _type, _pair.second)
 {}
 
-bool DirectedEdge::is_connected_to(Node* _node)const
+DirectedEdge::DirectedEdge(Node* _src, Edge_t _type, Node* _dst)
+    : DirectedEdge(_src->as_prop(), _type, _dst->as_prop() )
+{}
+
+DirectedEdge::DirectedEdge(ID<Node> _src, Edge_t _type, ID<Node> _dst)
+    : DirectedEdge(_src->as_prop(), _type, _dst->as_prop() )
+{}
+
+bool DirectedEdge::is_connected_to(const ID<Node> _node )const
 {
-    return prop.src->get_owner() == _node || prop.dst->get_owner() == _node;
+    return src()->owner() == _node || dst()->owner() == _node;
 }
 
 bool DirectedEdge::operator==(const DirectedEdge& other) const
 {
-    return this->type == other.type && this->prop == other.prop;
+    return this->m_type  == other.m_type &&
+           this->m_props == other.m_props;
 }
 
 void DirectedEdge::sanitize(DirectedEdge* edge)
 {
-    FW_EXPECT(edge->prop.src != nullptr, "edge->prop.src is nullptr");
-    FW_EXPECT(edge->prop.dst != nullptr, "edge->prop.dst is nullptr");
-    FW_EXPECT(edge->prop.src != edge->prop.dst, "edge->prop.src and edge->prop.dst are identical");
+    FW_EXPECT(edge->m_props.first != nullptr, "edge->prop.src is nullptr");
+    FW_EXPECT(edge->m_props.second != nullptr, "edge->prop.dst is nullptr");
+    FW_EXPECT(edge->m_props.first != edge->m_props.second, "edge->prop.src and edge->prop.dst are identical");
 
-    if (edge->type == Edge_t::IS_PREDECESSOR_OF ) // we never want this type of edge in our database
+    if (edge->m_type == Edge_t::IS_PREDECESSOR_OF ) // we never want this type of edge in our database
     {
-        edge->type = Edge_t::IS_SUCCESSOR_OF;
-        edge->prop.swap();
+        edge->m_type = Edge_t::IS_SUCCESSOR_OF;
+        edge->m_props.swap( edge->m_props );
     }
+}
+
+std::pair<Node*, Node*> DirectedEdge::nodes() const
+{
+    return std::pair<Node*, Node*>(m_props.first->owner().get(), m_props.second->owner().get() );
 }

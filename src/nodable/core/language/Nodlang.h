@@ -49,25 +49,25 @@ namespace ndbl{
         bool                   parse(const std::string& _in, Graph *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                  parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                  parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor); }
-        Node*                  parse_scope();                                         // Try to parse a scope.
-        InstructionNode*       parse_instr();                                         // Try to parse an instruction.
-        Property *             parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
-        IScope*                parse_code_block(bool _create_scope);                  // Try to parse a code block with the option to create a scope or not (reusing the current one).
-        ConditionalStructNode* parse_conditional_structure();                         // Try to parse a conditional structure (if/else if/.else) recursively.
-        ForLoopNode*           parse_for_loop();                                      // Try to parse a "for loop".
-        WhileLoopNode*         parse_while_loop();                                    // Try to parse a "while loop".
-        Node*                  parse_program();                                       // Try to parse an entire program.
-        Property *             parse_function_call();                                 // Try to parse a function call.
-        Property *             parse_parenthesis_expression();                        // Try to parse a parenthesis expression.
-        Property *             parse_unary_operator_expression(unsigned short _precedence = 0u);                               // Try to parse a unary expression.
-        Property *             parse_binary_operator_expression(unsigned short _precedence = 0u, Property *_left = nullptr);   // Try to parse a binary expression.
-        Property *             parse_atomic_expression();                                                                      // Try to parse an atomic expression (ex: "1", "a")
-        Property *             parse_expression(unsigned short _precedence = 0u, Property *_left = nullptr);                   // Try to parse an expression
+        ID<Node>               parse_scope();                                         // Try to parse a scope.
+        ID<InstructionNode>    parse_instr();                                         // Try to parse an instruction.
+        Property*              parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
+        ID<Scope> parse_code_block(ID<Scope> curr_scope);                       // Try to parse a code block with the option to create a scope or not (reusing the current one).
+        ID<ConditionalStructNode> parse_conditional_structure();                  // Try to parse a conditional structure (if/else if/.else) recursively.
+        ID<ForLoopNode>        parse_for_loop();                                      // Try to parse a "for loop".
+        ID<WhileLoopNode>      parse_while_loop();                                    // Try to parse a "while loop".
+        ID<Node>               parse_program();                                       // Try to parse an entire program.
+        Property*              parse_function_call();                                 // Try to parse a function call.
+        Property*              parse_parenthesis_expression();                        // Try to parse a parenthesis expression.
+        Property*              parse_unary_operator_expression(unsigned short _precedence = 0u);                               // Try to parse a unary expression.
+        Property*              parse_binary_operator_expression(unsigned short _precedence = 0u, Property* _left = {}); // Try to parse a binary expression.
+        Property*              parse_atomic_expression();                                                                      // Try to parse an atomic expression (ex: "1", "a")
+        Property*              parse_expression(unsigned short _precedence = 0u, Property* _leftOverride = {});                 // Try to parse an expression
         bool                   to_bool(const std::string& );                          // convert a boolean string ("true"|"false") to a boolean.
         std::string            to_unquoted_string(const std::string& _quoted_str);    // convert a quoted string to a string.
         double                 to_double(const std::string& );                        // convert a double string (ex: "10.0") to a double.
         i16_t                  to_i16(const std::string& );                           // convert an integer string (ex: "42") to an integer.
-        Property *             to_property(Token _token);            // convert a token to a property.
+        Property*              to_property(Token _token);            // convert a token to a property.
     private:
         inline bool            allow_to_attach_suffix(Token_t type) const
         {
@@ -79,7 +79,8 @@ namespace ndbl{
         void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
         void                   commit_transaction();                                  // Commit the pending transaction
 		bool                   is_syntax_valid();                                     // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
-        Scope*                 get_current_scope();                                   // Get the current scope. There is always a scope (main's scope program).
+        ID<Scope>              get_current_scope();                                   // Get the current scope. There is always a scope (main's scope program).
+        ID<Node>               get_current_scope_node();
         static inline bool     is_letter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
         static inline bool     is_digit(char c) { return c >= '0' && c <= '9'; }
 
@@ -92,8 +93,8 @@ namespace ndbl{
                 size_t size;
             } source;
             TokenRibbon        ribbon;
-            Graph*             graph;  // output, not owned
-            std::stack<Scope*> scope;  // nested scopes
+            Graph*             graph;         // output, not owned
+            std::stack<ID<Scope>> scope;  // nested scopes
 
             ParserState();
             ~ParserState();
@@ -101,25 +102,26 @@ namespace ndbl{
             void clear();
         } parser_state;
 
-    private: bool                   m_strict_mode;     // When strict mode is ON, any use of undeclared symbol is rejected. When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
+    private: bool m_strict_mode; // When strict mode is ON, any use of undeclared symbol is rejected.
+                                 // When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.
 
         // Serializer ------------------------------------------------------------------
     public:
-        std::string&           serialize_invokable(std::string& _out, const InvokableComponent*) const;
-        std::string&           serialize_func_call(std::string& _out, const fw::func_type*, const std::vector<Property *>&)const;
+        std::string&           serialize_invokable(std::string& _out, const InvokableComponent *_component) const;
+        std::string&           serialize_func_call(std::string& _out, const fw::func_type*, const std::vector<Property *> &)const;
         std::string&           serialize_func_sig(std::string& _out, const fw::func_type*)const;
         std::string&           serialize_token_t(std::string& _out, const Token_t&)const;
         std::string&           serialize_token(std::string& _out, const Token &) const;
         std::string&           serialize_type(std::string& _out, const fw::type*) const;
-        std::string&           serialize_property(std::string& _out, const Property *, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
-        std::string&           serialize_instr(std::string& _out, const InstructionNode*)const;
-        std::string&           serialize_node(std::string& _out, const Node*)const;
-        std::string&           serialize_scope(std::string& _out, const Scope*)const;
-        std::string&           serialize_for_loop(std::string& _out, const ForLoopNode*)const;
-        std::string&           serialize_while_loop(std::string& _out, const WhileLoopNode*)const;
-        std::string&           serialize_cond_struct(std::string& _out, const ConditionalStructNode*) const;
+        std::string&           serialize_property(std::string& _out, const Property *_property, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
+        std::string&           serialize_instr(std::string& _out, const InstructionNode *_instruction)const;
+        std::string&           serialize_node(std::string& _out, ID<const Node> _node)const;
+        std::string&           serialize_scope(std::string& _out, const Scope *_scope)const;
+        std::string&           serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
+        std::string&           serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;
+        std::string&           serialize_cond_struct(std::string& _out, const ConditionalStructNode *_condStruct) const;
         std::string&           serialize_variant(std::string& _out, const fw::variant*) const;
-        std::string&           serialize_variable(std::string& _out, const VariableNode*) const;
+        std::string&           serialize_variable(std::string& _out, const VariableNode *_node) const;
 
         // Language definition -------------------------------------------------------------------------
     public:

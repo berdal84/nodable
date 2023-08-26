@@ -27,28 +27,29 @@ namespace ndbl
      */
     class NodeFactory
     {
+        using PostProcessFct = std::function<void(ID<Node>)>;
     public:
-        NodeFactory(std::function<void(Node *)> _post_process_fct = [](Node* _node){} )
-        : m_post_process(_post_process_fct) {}
-        ~NodeFactory() {}
+        NodeFactory();
+        ~NodeFactory(){}
 
-        Node*                       new_program()const;
-        InstructionNode*            new_instr()const;
-        VariableNode*				new_variable(const fw::type *, const std::string&, IScope *)const;
-        LiteralNode*                new_literal(const fw::type *)const;
-        Node*                       new_abstract_function(const fw::func_type*, bool _is_operator)const;
-        Node*                       new_function(const fw::iinvokable*, bool _is_operator)const;
-        Node*                       new_scope()const;
-        ConditionalStructNode*      new_cond_struct()const;
-        ForLoopNode*                new_for_loop_node()const;
-        WhileLoopNode*              new_while_loop_node()const;
-        Node*                       new_node()const;
-        void                        delete_node(Node *pNode)const;
-
+        ID<Node>                  create_program()const;
+        ID<InstructionNode>       create_instr()const;
+        ID<VariableNode>          create_variable(const fw::type *_type, const std::string &_name, ID<Scope> _scope)const;
+        ID<LiteralNode>           create_literal(const fw::type *_type)const;
+        ID<Node>                  create_abstract_func(const fw::func_type *_signature, bool _is_operator)const;
+        ID<Node>                  create_func(const fw::iinvokable *_function, bool _is_operator)const;
+        ID<Node>                  create_scope()const;
+        ID<ConditionalStructNode> create_cond_struct()const;
+        ID<ForLoopNode>           create_for_loop()const;
+        ID<WhileLoopNode>         create_while_loop()const;
+        ID<Node>                  create_node()const;
+        void                      destroy_node(ID<Node> node)const;
+        void                      set_post_process_fct( PostProcessFct );
     private:
-        Node*                       _new_abstract_function(const fw::func_type*, bool _is_operator) const; // this do not invoke post_process
-        void                        add_invokable_component(Node *_node, const fw::func_type*, const fw::iinvokable *_invokable, bool _is_operator) const;
+        ID<Node>                  _create_abstract_func(const fw::func_type *_func_type, bool _is_operator) const; // this do not invoke post_process
+        void                      add_invokable_component(ID<Node> _node, const fw::func_type *_func_type, const fw::iinvokable *_invokable, bool _is_operator) const;
 
-        std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
+        bool                           m_post_process_set;
+        std::function<void(ID<Node>)>  m_post_process; // invoked after each node creation, just before to return.
     };
 }

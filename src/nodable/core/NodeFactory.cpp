@@ -12,26 +12,27 @@
 #include "ConditionalStructNode.h"
 #include "ForLoopNode.h"
 #include "WhileLoopNode.h"
-#include "ComponentManager.h"
+#include "NodeUtils.h"
 
 using namespace ndbl;
+using fw::pool::Pool;
 
-InstructionNode* NodeFactory::new_instr() const
+ID<InstructionNode> NodeFactory::create_instr() const
 {
-    InstructionNode* instr_node = new InstructionNode();
+    auto instr_node = Pool::get_pool()->create<InstructionNode>();
     instr_node->set_name("Instr.");
     m_post_process(instr_node);
     return instr_node;
 }
 
-VariableNode* NodeFactory::new_variable(const fw::type *_type, const std::string& _name, IScope *_scope) const
+ID<VariableNode> NodeFactory::create_variable(const fw::type *_type, const std::string& _name, ID<Scope> _scope) const
 {
     // create
-    auto* node = new VariableNode(_type, _name.c_str());
+    auto node = Pool::get_pool()->create<VariableNode>(_type, _name.c_str());
 
-    if( _scope)
+    if( _scope )
     {
-        _scope->add_variable(node);
+        _scope->add_variable( node );
     }
     else
     {
@@ -43,17 +44,18 @@ VariableNode* NodeFactory::new_variable(const fw::type *_type, const std::string
     return node;
 }
 
-Node* NodeFactory::new_abstract_function(const fw::func_type* _signature, bool _is_operator) const
+ID<Node> NodeFactory::create_abstract_func(const fw::func_type* _signature, bool _is_operator) const
 {
-    auto node = _new_abstract_function(_signature, _is_operator);
+    ID<Node> node = _create_abstract_func(_signature, _is_operator);
     add_invokable_component(node, _signature, nullptr, _is_operator );
     m_post_process(node);
     return node;
 }
 
-Node* NodeFactory::_new_abstract_function(const fw::func_type* _func_type, bool _is_operator) const
+ID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type, bool _is_operator) const
 {
-    Node* node = new Node();
+    ID<Node> node_id = Pool::get_pool()->create<Node>();
+    Node*    node    = node_id.get();
 
     if( _is_operator )
     {
@@ -100,134 +102,136 @@ Node* NodeFactory::_new_abstract_function(const fw::func_type* _func_type, bool 
         }
     }
 
-    return node;
+    return node_id;
 }
 
-Node* NodeFactory::new_function(const fw::iinvokable* _function, bool _is_operator) const
+ID<Node> NodeFactory::create_func(const fw::iinvokable* _function, bool _is_operator) const
 {
     // Create an abstract function node
     const fw::func_type* type = _function->get_type();
-    Node* node = _new_abstract_function(type, _is_operator);
+    ID<Node> node = _create_abstract_func(type, _is_operator);
     add_invokable_component(node, type, _function, _is_operator);
     m_post_process(node);
     return node;
 }
 
-void NodeFactory::add_invokable_component(Node *_node, const fw::func_type* _func_type, const fw::iinvokable *_invokable, bool _is_operator) const
+void NodeFactory::add_invokable_component(ID<Node> _node, const fw::func_type* _func_type, const fw::iinvokable *_invokable, bool _is_operator) const
 {
     // Create an InvokableComponent with the function.
-    InvokableComponent* component = ComponentManager::create<InvokableComponent>(_func_type, _is_operator, _invokable);
-    ComponentManager::attach(component, _node);
+    ID<InvokableComponent> component = Pool::get_pool()->create<InvokableComponent>(_func_type, _is_operator, _invokable);
+    _node->add_component(component);
 
-    // Link result property
-    component->set_result(_node->props.get(k_value_property_name));
+    // Bind result property
+    component->bind_result_property(k_value_property_name);
 
     // Link arguments
     auto args = _func_type->get_args();
     for (size_t arg_idx = 0; arg_idx < args.size(); arg_idx++)
     {
-        Property * property = _node->props.get_input_at((u8_t)arg_idx);
+        Property* property = _node->props.get_input_at((u8_t)arg_idx);
         property->set_reference(args[arg_idx].m_by_reference);  // to handle by reference function args
-        component->set_arg(arg_idx, property);                  // link
+        component->set_arg(arg_idx, property);
     }
 }
 
-Node* NodeFactory::new_scope() const
+ID<Node> NodeFactory::create_scope() const
 {
-    auto scope_node = new Node();
-    scope_node->set_name("{} Scope");
+    ID<Node> node = Pool::get_pool()->create<Node>();
 
-    scope_node->predecessors.set_limit(std::numeric_limits<int>::max());
-    scope_node->successors.set_limit(1);
+    node->set_name("{} Scope");
 
-    Scope* scope_component = ComponentManager::create<Scope>();
-    ComponentManager::attach(scope_component, scope_node);
+    node->predecessors.set_limit(std::numeric_limits<int>::max());
+    node->successors.set_limit(1);
 
-    m_post_process(scope_node);
+    ID<Scope> scope_id = Pool::get_pool()->create<Scope>();
+    node->add_component(scope_id);
 
-    return scope_node;
+    m_post_process(node);
+
+    return node;
 }
 
-ConditionalStructNode* NodeFactory::new_cond_struct() const
+ID<ConditionalStructNode> NodeFactory::create_cond_struct() const
 {
-    auto cond_struct_node = new ConditionalStructNode();
-    cond_struct_node->set_name("If");
+    ID<ConditionalStructNode> id = Pool::get_pool()->create<ConditionalStructNode>();
+    ConditionalStructNode*    node{ id.get() };
 
-    cond_struct_node->predecessors.set_limit(std::numeric_limits<int>::max());
-    cond_struct_node->successors.set_limit(2); // true/false branches
+    node->set_name("If");
+    node->predecessors.set_limit(std::numeric_limits<int>::max());
+    node->successors.set_limit(2); // true/false branches
+    node->add_component(Pool::get_pool()->create<Scope>());
 
-    Scope* scope_component = ComponentManager::create<Scope>();
-    ComponentManager::attach(scope_component, cond_struct_node);
+    m_post_process(id);
 
-    m_post_process(cond_struct_node);
-
-    return cond_struct_node;
+    return id;
 }
 
-ForLoopNode* NodeFactory::new_for_loop_node() const
+ID<ForLoopNode> NodeFactory::create_for_loop() const
 {
-    auto for_loop = new ForLoopNode();
-    
-    for_loop->set_name("For");
-    for_loop->predecessors.set_limit(std::numeric_limits<int>::max());
-    for_loop->successors.set_limit(1);
+    ID<ForLoopNode> node = Pool::get_pool()->create<ForLoopNode>();
 
-    Scope* scope_component = ComponentManager::create<Scope>();
-    ComponentManager::attach(scope_component, for_loop);
+    node->set_name("For");
+    node->predecessors.set_limit(std::numeric_limits<int>::max());
+    node->successors.set_limit(1);
+    node->add_component(Pool::get_pool()->create<Scope>());
 
-    m_post_process(for_loop);
+    m_post_process(node);
 
-    return for_loop;
+    return node;
 }
 
-WhileLoopNode* NodeFactory::new_while_loop_node() const
+ID<WhileLoopNode> NodeFactory::create_while_loop() const
 {
-    auto while_loop = new WhileLoopNode();
+    ID<WhileLoopNode> node = Pool::get_pool()->create<WhileLoopNode>();
 
-    while_loop->set_name("While");
-    while_loop->predecessors.set_limit(std::numeric_limits<int>::max());
-    while_loop->successors.set_limit(1);
+    node->set_name("While");
+    node->predecessors.set_limit(std::numeric_limits<int>::max());
+    node->successors.set_limit(1);
+    node->add_component(Pool::get_pool()->create<Scope>());
 
-    Scope* scope_component = ComponentManager::create<Scope>();
-    ComponentManager::attach(scope_component, while_loop);
+    m_post_process(node);
 
-    m_post_process(while_loop);
-
-    return while_loop;
+    return node;
 }
 
-Node* NodeFactory::new_program() const
+ID<Node> NodeFactory::create_program() const
 {
-    Node* prog = new_scope();
-    prog->set_name(ICON_FA_FILE_CODE " Program");
+    ID<Node> node = create_scope(); // A program is a main scope.
+    node->set_name(ICON_FA_FILE_CODE " Program");
 
-    m_post_process(prog);
-    return prog;
-}
-
-Node* NodeFactory::new_node() const
-{
-    auto node = new Node();
     m_post_process(node);
     return node;
 }
 
-LiteralNode* NodeFactory::new_literal(const fw::type *_type) const
+ID<Node> NodeFactory::create_node() const
 {
-    LiteralNode* node = new LiteralNode(_type);
+    ID<Node> node = Pool::get_pool()->create<Node>();
+    m_post_process(node);
+    return node;
+}
+
+ID<LiteralNode> NodeFactory::create_literal(const fw::type *_type) const
+{
+    ID<LiteralNode> node = Pool::get_pool()->create<LiteralNode>(_type);
     node->set_name("Literal");
     m_post_process(node);
     return node;
 }
 
-void NodeFactory::delete_node(Node* node) const
+void NodeFactory::destroy_node(ID<Node> node) const
 {
-    // Copy the vector to make sure deleting do not invalidate iterator
-    std::vector<Component*> components_copy = node->components.get_all();
-    for(Component* component : components_copy )
-    {
-        ComponentManager::detach(component, node);
-        ComponentManager::destroy(component);
-    }
-    delete node;
+    Pool* pool = Pool::get_pool();
+    pool->destroy( node->get_components() );
+    pool->destroy( node );
 }
+
+void NodeFactory::set_post_process_fct(NodeFactory::PostProcessFct f)
+{
+    FW_EXPECT( m_post_process_set == false, "Cannot set post process function more than once." );
+    m_post_process_set = true;
+    m_post_process     = f;
+}
+
+NodeFactory::NodeFactory()
+: m_post_process([](ID<Node> _node){})
+{}

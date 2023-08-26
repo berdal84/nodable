@@ -23,10 +23,10 @@
 #include "commands/Cmd_DisconnectEdge.h"
 #include "commands/Cmd_Group.h"
 #include "Physics.h"
-#include "core/ComponentManager.h"
+#include "core/NodeUtils.h"
 
 using namespace ndbl;
-using ndbl::HybridFile;
+using namespace fw::pool;
 using fw::View;
 
 Nodable *Nodable::s_instance = nullptr;
@@ -36,50 +36,10 @@ Nodable::Nodable()
     , core(config.framework)
     , view(this)
     , virtual_machine()
-    , node_factory([this](Node* _node) {
-        // Code executed after node instantiation
-
-        // add a view with physics
-        auto* view_component = ComponentManager::create<NodeView>();
-        ComponentManager::attach(view_component, _node);
-
-        auto* physics_component = ComponentManager::create<Physics>(view_component);
-        ComponentManager::attach(physics_component, _node);
-
-        // Set common colors
-        view_component->set_color(View::Color_HIGHLIGH         , &config.ui_node_highlightedColor);
-        view_component->set_color(View::Color_BORDER           , &config.ui_node_borderColor);
-        view_component->set_color(View::Color_BORDER_HIGHLIGHT , &config.ui_node_borderHighlightedColor);
-        view_component->set_color(View::Color_SHADOW           , &config.ui_node_shadowColor);
-        view_component->set_color(View::Color_FILL             , &config.ui_node_fillColor);
-
-        // Set specific colors
-        if(fw::extends<VariableNode>(_node))
-        {
-            view_component->set_color(View::Color_FILL, &config.ui_node_variableColor);
-        }
-        else if (_node->components.has<InvokableComponent>())
-        {
-            view_component->set_color(View::Color_FILL, &config.ui_node_invokableColor);
-        }
-        else if (fw::extends<InstructionNode>(_node))
-        {
-            view_component->set_color(View::Color_FILL, &config.ui_node_instructionColor);
-        }
-        else if (fw::extends<LiteralNode>(_node))
-        {
-            view_component->set_color(View::Color_FILL, &config.ui_node_literalColor);
-        }
-        else if (fw::extends<IConditionalStruct>(_node))
-        {
-            view_component->set_color(View::Color_FILL, &config.ui_node_condStructColor);
-        }
-    })
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
     fw::type_register::log_statistics();
-    ComponentManager::init_for<NodeView, Physics, Scope, InvokableComponent>();
 
     // set this instance as s_instance to access it via App::get_instance()
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
@@ -97,6 +57,48 @@ Nodable::Nodable()
             case App::Signal_ON_UPDATE: break;
         }
     };
+
+     node_factory.set_post_process_fct([&](ID<Node> node) -> void {
+        // Code executed after node instantiation
+
+        // add a view with physics
+        auto* pool = Pool::get_pool();
+        ID<NodeView> new_view_id = pool->create<NodeView>();
+        ID<Physics>  physics_id  = pool->create<Physics>( new_view_id );
+        node->add_component(new_view_id);
+        node->add_component(physics_id);
+
+        // Set common colors
+        NodeView* new_view = new_view_id.get();
+        new_view->set_color(View::Color_HIGHLIGH         , &config.ui_node_highlightedColor);
+        new_view->set_color(View::Color_BORDER           , &config.ui_node_borderColor);
+        new_view->set_color(View::Color_BORDER_HIGHLIGHT , &config.ui_node_borderHighlightedColor);
+        new_view->set_color(View::Color_SHADOW           , &config.ui_node_shadowColor);
+        new_view->set_color(View::Color_FILL             , &config.ui_node_fillColor);
+
+        // Set specific colors
+        if(fw::extends<VariableNode>(node.get()))
+        {
+            new_view->set_color(View::Color_FILL, &config.ui_node_variableColor);
+        }
+        else if (node->has_component<InvokableComponent>())
+        {
+            new_view->set_color(View::Color_FILL, &config.ui_node_invokableColor);
+        }
+        else if (fw::extends<InstructionNode>(node.get()))
+        {
+            new_view->set_color(View::Color_FILL, &config.ui_node_instructionColor);
+        }
+        else if (fw::extends<LiteralNode>(node.get()))
+        {
+            new_view->set_color(View::Color_FILL, &config.ui_node_literalColor);
+        }
+        else if (fw::extends<IConditionalStruct>(node.get()))
+        {
+            new_view->set_color(View::Color_FILL, &config.ui_node_condStructColor);
+        }
+    });
+
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 }
 
@@ -109,6 +111,8 @@ Nodable::~Nodable()
 bool Nodable::on_init()
 {
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
+
+    fw::pool::Pool::init();
 
     fw::EventManager& event_manager = core.event_manager;
 
@@ -263,7 +267,7 @@ void Nodable::on_update()
 
     // Nodable events ( SDL_ API inspired, but with custom events)
     ndbl::Event event{};
-    NodeView*  selected_view = NodeView::get_selected();
+    auto       selected_view       = NodeView::get_selected();
     GraphView* graph_view          = current_file ? current_file->get_graph_view() : nullptr;
     History*   curr_file_history   = current_file ? current_file->get_history() : nullptr;
 
@@ -397,51 +401,40 @@ void Nodable::on_update()
             {
                 if ( selected_view && !ImGui::IsAnyItemFocused() )
                 {
-                    selected_view->get_owner()->flagged_to_delete = true;
+                    Node* selected_node = selected_view->get_owner().get();
+                    selected_node->flagged_to_delete = true;
                 }
                 break;
             }
 
             case EventType_arrange_node_action_triggered:
             {
-                if ( selected_view )selected_view->arrange_recursively();
+                if ( selected_view ) selected_view->arrange_recursively();
                 break;
             }
 
             case EventType_select_successor_node_action_triggered:
             {
-                if ( selected_view )
+                if (!selected_view) break;
+                ID<Node> possible_successor = selected_view->get_owner()->successors.first();
+                if (!possible_successor) break;
+                if (ID<NodeView> successor_view = possible_successor->get_component<NodeView>() )
                 {
-                    Node* possible_successor = selected_view->get_owner()->successors.get_front_or_nullptr();
-                    if (possible_successor)
-                    {
-                        if (NodeView* successor_view = possible_successor->components.get<NodeView>())
-                        {
-                            NodeView::set_selected(successor_view);
-                        }
-                    }
+                    NodeView::set_selected(successor_view);
                 }
                 break;
             }
             case EventType_toggle_folding_selected_node_action_triggered:
             {
-                if ( selected_view )
-                {
-                    if( event.toggle_folding.recursive )
-                    {
-                        selected_view->expand_toggle_rec();
-                    }
-                    else
-                    {
-                        selected_view->expand_toggle();
-                    }
-                }
+                if ( !selected_view ) break;
+                event.toggle_folding.recursive ? selected_view->expand_toggle_rec()
+                                               : selected_view->expand_toggle();
                 break;
             }
             case EventType_node_connector_dropped:
             {
-                const NodeConnector *src = event.node_connectors.src;
-                const NodeConnector *dst = event.node_connectors.dst;
+                const NodeConnector* src = event.connector.src.node;
+                const NodeConnector* dst = event.connector.dst.node;
                 if ( src->share_parent_with(dst) )
                 {
                     LOG_WARNING("App", "Unable to drop_on these two Connectors from the same Node.\n")
@@ -450,7 +443,7 @@ void Nodable::on_update()
                 {
                     LOG_WARNING("App", "Unable to drop_on these two Node Connectors (must have different ways).\n")
                 }
-                else
+                else if (curr_file_history)
                 {
                     if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
                     DirectedEdge edge(src->get_node(), Edge_t::IS_PREDECESSOR_OF, dst->get_node());
@@ -461,8 +454,8 @@ void Nodable::on_update()
             }
             case EventType_property_connector_dropped:
             {
-                const PropertyConnector *src = event.property_connectors.src;
-                const PropertyConnector *dst = event.property_connectors.dst;
+                const PropertyConnector* src = event.connector.src.prop;
+                const PropertyConnector* dst = event.connector.dst.prop;
                 const fw::type* src_meta_type = src->get_property_type();
                 const fw::type* dst_meta_type = dst->get_property_type();
 
@@ -492,9 +485,9 @@ void Nodable::on_update()
 
             case EventType_node_connector_disconnected:
             {
-                const NodeConnector* src_connector = event.node_connectors.src;
-                Node* src = src_connector->get_node();
-                Node* dst = src_connector->get_connected_node();
+                const NodeConnector* src_connector = event.connector.src.node;
+                ID<Node> src = src_connector->get_node();
+                ID<Node> dst = src_connector->get_connected_node();
 
                 if (src_connector->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
 
@@ -506,10 +499,10 @@ void Nodable::on_update()
             }
             case EventType_property_connector_disconnected:
             {
-                const PropertyConnector* src_connector = event.property_connectors.src;
-                Property * src = src_connector->get_property();
+                const PropertyConnector* src_connector = event.connector.src.prop;
+                Property*                src_property  = src_connector->get_property();
 
-                auto edges = src->get_owner()->parent_graph->filter_edges(src, src_connector->m_way);
+                auto edges = src_property->owner()->parent_graph->filter_edges(src_property, src_connector->m_way);
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 for(auto each_edge: edges)
@@ -540,6 +533,9 @@ bool Nodable::on_shutdown()
         delete each_file;
     }
     LOG_VERBOSE("ndbl::App", "on_shutdown " OK "\n");
+
+    fw::pool::Pool::shutdown();
+
     return true;
 }
 
@@ -657,11 +653,16 @@ void Nodable::step_over_program()
     virtual_machine.step_over();
     if (!virtual_machine.is_there_a_next_instr() )
     {
-        NodeView::set_selected(nullptr);
+        NodeView::set_selected({});
+        return;
     }
-    else if (NodeView* next_node_view = virtual_machine.get_next_node()->components.get<NodeView>() )
+
+    const Node* next_node = virtual_machine.get_next_node();
+    if ( !next_node ) return;
+
+    if( ID<NodeView> next_node_view = next_node->get_component<NodeView>() )
     {
-        NodeView::set_selected(next_node_view);
+        NodeView::set_selected( next_node_view );
     }
 }
 

@@ -8,9 +8,12 @@
 #include "../assertions.h"
 #include "qword.h"
 #include "type.h"
+#include "core/Pool.h"
 
 namespace fw
 {
+    using pool::ID;
+
     /**
      * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data property)
      */
@@ -24,11 +27,11 @@ namespace fw
         {}
 
 #define CONSTRUCTOR(type) variant(type val): variant() { set(val); }
-        CONSTRUCTOR(void *)
         CONSTRUCTOR(const std::string&)
         CONSTRUCTOR(const char*)
         CONSTRUCTOR(double)
         CONSTRUCTOR(i16_t)
+        CONSTRUCTOR(i32_t)
         CONSTRUCTOR(bool)
         CONSTRUCTOR(null_t)
 #undef CONSTRUCTOR
@@ -37,73 +40,61 @@ namespace fw
         variant(variant&&);
         ~variant();
 
-        qword*  get_underlying_data() { return &m_data; }
-        bool    is_initialized() const;
-        bool    is_defined() const { return m_is_defined; }
-        void    ensure_is_type(const type* _type);
-        void    ensure_is_initialized(bool _initialize = true);
-        void    flag_defined(bool _defined = true);
-        void    reset_value();
-        void    set(const std::string& _value);
-        void    set(const char* _value);
-        void    set(null_t) { ensure_is_type(type::null()); m_is_defined = false; };
-        void    set(double);
-        void    set(bool);
-        void    set(i16_t);
-        void    set(const variant&);
-
+        qword*      data() { return &m_data; }
+        bool        is_initialized() const;
+        bool        is_defined() const { return m_is_defined; }
+        void        ensure_is_type(const type* _type);
+        void        ensure_is_initialized(bool _initialize = true);
+        void        flag_defined(bool _defined = true);
+        void        reset_value();
         template<typename T>
-        void    set(T* _pointer)
-        {
-            ensure_is_type(type::get<decltype(_pointer)>());
-            ensure_is_initialized();
-            m_data.set<void*>(_pointer);
-            m_is_defined = true;
-        }
-
+        void        set(ID<T> id);
+        void        set(const std::string& _value);
+        void        set(const char* _value);
+        void        set(null_t);;
+        void        set(double);
+        void        set(bool);
+        void        set(i16_t);
+        void        set(i32_t);
+        void        set(const variant&);
         const type* get_type()const;
-        template<typename T> T convert_to()const;
+        template<typename T>
+        T           to()const;
+        variant     operator=(const variant& other);
+        operator    double&();
+        operator    i32_t&();
+        operator    i16_t&();
+        operator    bool&();
+        operator    std::string& ();
+        operator    double() const;
+        operator    i32_t() const;
+        operator    i16_t() const;
+        operator    bool() const;
+        operator    std::string() const;
+        operator    const char*() const;
 
         template<typename T>
-        explicit operator const T*()const
-        { FW_ASSERT(m_is_initialized) return reinterpret_cast<const T*>(m_data.ptr); }
+        T& as() { return *this; }
 
         template<typename T>
-        explicit operator T*()
-        { FW_ASSERT(m_is_initialized) return reinterpret_cast<T*>(m_data.ptr); }
-
-        variant operator=(const variant& other)
-        {
-            set(other);
-            return *this;
-        }
-
-        // cast by pointer
-		explicit operator double*()        { FW_ASSERT(m_is_initialized) return &m_data.d; }
-        explicit operator i16_t *()        { FW_ASSERT(m_is_initialized) return &m_data.i16; }
-        explicit operator bool*()          { FW_ASSERT(m_is_initialized) return &m_data.b; }
-        explicit operator std::string* ()  { FW_ASSERT(m_is_initialized) return m_data.ptr_std_string; }
-        explicit operator void* ()         { FW_ASSERT(m_is_initialized) return m_data.ptr; }
-
-        // cast by address
-        explicit operator double&()        { FW_ASSERT(m_is_initialized) return m_data.d; }
-        explicit operator i16_t &()        { FW_ASSERT(m_is_initialized) return m_data.i16; }
-        explicit operator bool&()          { FW_ASSERT(m_is_initialized) return m_data.b; }
-        explicit operator std::string& ()  { FW_ASSERT(m_is_initialized) return *m_data.ptr_std_string; }
-
-        // cast by copy
-        explicit operator i16_t()const;
-        explicit operator double()const;
-        explicit operator bool()const;
-        explicit operator std::string ()const;
-        explicit operator void* ()const;
+        T as() const { return *this; }
     private:
-	    static const type*     normalize_type(const type *_type);
+	    static const type* normalize_type(const type *_type);
 
-        bool            m_is_defined;
-        bool            m_is_initialized;
-        const type*     m_type;
-        bool            m_type_change_allowed;
-        qword           m_data;
+        bool        m_is_defined;
+        bool        m_is_initialized;
+        const type* m_type;
+        bool        m_type_change_allowed;
+        qword       m_data;
     };
+
+
+    template<typename T>
+    void variant::set(ID<T> id)
+    {
+        ensure_is_type(type::get<ID<T>>());
+        ensure_is_initialized();
+        m_data.i32 = (i32_t)id;
+        flag_defined();
+    }
 }

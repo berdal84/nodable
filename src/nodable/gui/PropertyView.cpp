@@ -1,26 +1,35 @@
-#include "NodeView.h"
 #include "PropertyView.h"
+#include "nodable/core/Property.h"
+#include "nodable/core/Node.h"
 #include "PropertyConnector.h"
+#include "NodeView.h"
 
 using namespace ndbl;
+using namespace fw::pool;
 using Side = ndbl::PropertyConnector::Side;
 
-PropertyView::PropertyView(Property * _property, NodeView* _nodeView)
+PropertyView::PropertyView(Property* _property, ID<NodeView> _nodeView)
         : m_property(_property)
-        , m_show_input(false)
-        , m_touched(false)
-        , m_in(nullptr)
-        , m_out(nullptr)
-        , m_nodeView(_nodeView)
+        , show_input(false)
+        , touched(false)
+        , m_input(nullptr)
+        , m_output(nullptr)
+        , node_view(_nodeView)
 {
-    FW_ASSERT(_property ); // Property must be defined
-    FW_ASSERT(_nodeView ); // Property must be defined
-    if (m_property->allows_connection(Way_In) ) m_in  = new PropertyConnector(this, Way_In, Side::Top);
-    if (m_property->allows_connection(Way_Out) ) m_out = new PropertyConnector(this, Way_Out, Side::Bottom);
+    FW_ASSERT( _property != nullptr );
+    FW_ASSERT( _nodeView.get() != nullptr );
+    if (m_property->allows_connection(Way_In)  ) m_input  = new PropertyConnector(this, Way_In, Side::Top);
+    if (m_property->allows_connection(Way_Out) ) m_output = new PropertyConnector(this, Way_Out, Side::Bottom);
 }
 
 PropertyView::~PropertyView()
 {
-    delete m_in;
-    delete m_out;
+    delete m_input;
+    delete m_output;
+}
+
+void PropertyView::reset()
+{
+    touched    = false;
+    show_input = false;
 }

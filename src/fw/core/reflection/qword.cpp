@@ -16,7 +16,6 @@ R_UNION_MEMBER_DEFINITION(qword, i64)
 R_UNION_MEMBER_DEFINITION(qword, f)
 R_UNION_MEMBER_DEFINITION(qword, d)
 R_UNION_MEMBER_DEFINITION(qword, ptr)
-R_UNION_MEMBER_DEFINITION(qword, ptr_std_string)
 
 std::string qword::to_string(const qword& _value)
 {

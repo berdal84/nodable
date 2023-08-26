@@ -8,11 +8,11 @@
 #include "fw/core/assertions.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/types.h"
+#include "fw/core/Pool.h"
 
-#include "Component.h"
 #include "Components.h"
 #include "DirectedEdge.h"
-#include "PropertyGrp.h"
+#include "PropertyBag.h"
 #include "Slots.h"
 #include "constants.h"
 
@@ -40,49 +40,72 @@ namespace ndbl {
 	    which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/
-	class Node
+    class Node
 	{
 	public:
 
         // Data
-
-        std::string                     name;
-        Node*                           parent;
-        Graph*                          parent_graph;
-        PropertyGrp                     props;
-        Property*                       as_property; // Property to this instance
-        Components                      components;
-        Slots<Node*>                    successors;
-        Slots<Node*>                    predecessors;
-        Slots<Node*>                    children;
-        Slots<Node*>                    outputs;
-        Slots<Node*>                    inputs;
+        ID<Node>          parent;
+        std::string       name;
+        Graph*            parent_graph;
+        PropertyBag       props;
+        Slots<ID<Node>>   successors;
+        Slots<ID<Node>>   predecessors;
+        Slots<ID<Node>>   children;
+        Slots<ID<Node>>   outputs;
+        Slots<ID<Node>>   inputs;
         bool                            dirty; // TODO: use flags
         bool                            flagged_to_delete; // TODO: use flags
         std::set<const DirectedEdge*>   edges;
-        observe::Event<Node*, Edge_t>   on_edge_added; // TODO: share a unique event
-        observe::Event<Node*, Edge_t>   on_edge_removed; // TODO: share a unique event
-        observe::Event<Node*>           on_name_change; // TODO: share a unique event
+        observe::Event<ID<Node>, SlotEvent, Edge_t> on_slot_change;
+        observe::Event<ID<Node>>                    on_name_change;
 
         // Code
 
-        explicit Node(std::string  _label = "UnnamedNode");
+        Node(std::string  _label = "UnnamedNode");
+        Node(Node&&) = default;
+        Node& operator=(Node&&) = default;
+        virtual ~Node() = default;
 
-        Node (const Node&) = delete;
-
-        Node& operator= (const Node&) = delete;
-
-		virtual ~Node() {}
-
-        void                 set_parent(Node* _node);
+        Property*            as_prop() { return get_prop(k_this_property_name ); }
+        void                 set_parent(ID<Node> _node);
         void                 set_name(const char *_label);
 		void                 add_edge(const DirectedEdge* edge);
 		void                 remove_edge(const DirectedEdge*);
         size_t               incoming_edge_count()const;
         size_t               outgoing_edge_count()const;
-        const fw::iinvokable*get_connected_invokable(const Property *each_edge); // TODO: can't remember to understand why I needed this...
-        bool                 is_connected_with(const Property *_localProperty);
+        const fw::iinvokable*get_connected_invokable(const Property *_local_property) const; // TODO: can't remember to understand why I needed this...
+        bool                 is_connected_with(const Property *property_id);
+        std::vector<ID<Component>> get_components();
+
+        Property* get_prop(const char* _name)
+        { return props.get(_name); }
+
+        Property* get_prop(const char* _name) const
+        { return props.get(_name); }
+
+        template<typename ValueT, typename ...ArgsT>
+        Property* add_prop(ArgsT...args)
+        { return props.add<ValueT>(args...); }
+
+        template<class ComponentT>
+        void add_component(ID<ComponentT> component)
+        { return m_components.add( component ); }
+
+        template<class ComponentT>
+        ID<ComponentT> get_component() const
+        { return m_components.get<ComponentT>(); }
+
+        template<class ComponentT>
+        bool has_component() const
+        { return m_components.has<ComponentT>(); }
 
 		REFLECT_BASE_CLASS()
+        POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM(Node);
+    private:
+        Components m_components;
     };
 }
+
+static_assert(std::is_move_assignable_v<ndbl::Node>, "Should be move assignable");
+static_assert(std::is_move_constructible_v<ndbl::Node>, "Should be move constructible");

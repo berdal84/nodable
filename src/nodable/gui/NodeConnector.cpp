@@ -7,14 +7,27 @@
 #include "Event.h"
 #include "NodeView.h"
 #include "Nodable.h"
+#include "core/Pool.h"
 
 using namespace ndbl;
 
-const NodeConnector*     NodeConnector::s_dragged   = nullptr;
-const NodeConnector*     NodeConnector::s_hovered   = nullptr;
-const NodeConnector*     NodeConnector::s_focused   = nullptr;
+const NodeConnector* NodeConnector::s_dragged;
+const NodeConnector* NodeConnector::s_hovered;
+const NodeConnector* NodeConnector::s_focused;
 
-void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable)
+NodeConnector::NodeConnector(
+     NodeView* _nodeView
+    , Way _way
+    , size_t _index
+    , size_t _count
+    )
+    : m_node_view(_nodeView->id())
+    , m_way(_way)
+    , m_index(_index)
+    , m_count(_count)
+{};
+
+void NodeConnector::draw(NodeConnector* _connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable)
 {
     constexpr float rounding = 6.0f;
 
@@ -41,15 +54,14 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
     fw::ImGuiEx::DebugRect(rect.Min, rect.Max, ImColor(255,0, 0, 127), 0.0f );
 
     // behavior
-    auto connectedNode = _connector->get_connected_node();
-    if ( _editable && connectedNode && ImGui::BeginPopupContextItem() )
+    if (_editable && (bool)_connector->get_connected_node() && ImGui::BeginPopupContextItem() )
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
-            Event event{};
+            ConnectorEvent event{};
             event.type = EventType_node_connector_disconnected;
-            event.node_connectors.src = _connector;
-            event.node_connectors.dst = nullptr;
+            event.src.node = _connector;
+            event.dst.node = nullptr;
             fw::EventManager::get_instance().push_event((fw::Event&)event);
         }
 
@@ -60,18 +72,18 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
     {
         if ( ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::is_any_dragged())
         {
+
             if ( _connector->m_way == Way_Out)
             {
-                const Slots<Node*>& successors = _connector->get_node()->successors;
-                if (successors.size() < successors.get_limit() )
+                Node* node = _connector->get_node().get();
+                if (node->successors.size() < node->successors.get_limit() )
                 {
                     start_drag(_connector);
                 }
             }
             else
             {
-                const Slots<Node*>& predecessors = _connector->get_node()->predecessors;
-                if ( predecessors.empty() )
+                if ( _connector->get_node()->predecessors.empty() )
                 {
                     start_drag(_connector);
                 }
@@ -89,15 +101,16 @@ void NodeConnector::draw(const NodeConnector *_connector, const ImColor &_color,
 ImRect NodeConnector::get_rect() const
 {
     Config& config         = Nodable::get_instance().config;
+    NodeView* node_view    = m_node_view.get();
 
     // pick a corner
     ImVec2   left_corner = m_way == Way_In ?
-            m_node_view.get_screen_rect().GetTL() : m_node_view.get_screen_rect().GetBL();
+                           node_view->get_screen_rect().GetTL() : node_view->get_screen_rect().GetBL();
 
     // compute connector size
     ImVec2 size(
-            std::min(config.ui_node_connector_width,  m_node_view.get_size().x),
-            std::min(config.ui_node_connector_height, m_node_view.get_size().y));
+            std::min(config.ui_node_connector_width,  node_view->get_size().x),
+            std::min(config.ui_node_connector_height, node_view->get_size().y));
     ImRect rect(left_corner, left_corner + size);
     rect.Translate(ImVec2(size.x * float(m_index), -rect.GetSize().y * 0.5f) );
     rect.Expand(ImVec2(- config.ui_node_connector_padding, 0.0f));
@@ -110,23 +123,23 @@ ImVec2 NodeConnector::get_pos() const
     return get_rect().GetCenter();
 }
 
-bool NodeConnector::share_parent_with(const NodeConnector *other) const
+bool NodeConnector::share_parent_with(const NodeConnector* other) const
 {
     return get_node() == other->get_node();
 }
 
-void NodeConnector::dropped(const NodeConnector *_left, const NodeConnector *_right)
+void NodeConnector::dropped(const NodeConnector* _left, const NodeConnector* _right)
 {
-    NodeConnectorEvent evt{};
+    ConnectorEvent evt{};
     evt.type = EventType_node_connector_dropped;
-    evt.src = _left;
-    evt.dst = _right;
+    evt.src.node = _left;
+    evt.dst.node = _right;
     fw::EventManager::get_instance().push_event((fw::Event&)evt);
 }
 
-Node* NodeConnector::get_connected_node() const
+ID<Node> NodeConnector::get_connected_node() const
 {
-    auto node = get_node();
+    Node* node = get_node().get();
 
     if ( m_way == Way_In )
     {
@@ -139,12 +152,11 @@ Node* NodeConnector::get_connected_node() const
     {
         return node->successors[m_index];
     }
-    return nullptr;
-
+    return {};
 }
 
-Node* NodeConnector::get_node()const
+ID<Node> NodeConnector::get_node()const
 {
-    return m_node_view.get_owner();
+    return m_node_view->get_owner();
 }
 

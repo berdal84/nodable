@@ -27,16 +27,15 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     {
         case Instruction_t::eval_node:
         {
-            result.append(format::address(_instr.eval.node) );
+            result.append(format::hexadecimal(_instr.eval.node.id) );
             break;
         }
 
-        case Instruction_t::deref_ptr:
+        case Instruction_t::deref_pool_id:
         {
-            FW_EXPECT(_instr.uref.qword_ptr, "qword_ptr is null!")
-            result.append(qword::to_string(*_instr.uref.qword_ptr ));
+            result.append(format::hexadecimal( (u64_t)_instr.uref.pool_id ));
             result.append(", *");
-            result.append( _instr.uref.qword_type->get_name() );
+            result.append( _instr.uref.type->get_name() );
             break;
         }
 
@@ -66,16 +65,16 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
         case Instruction_t::ret: // nothing else to do.
             break;
         case Instruction_t::pop_stack_frame:
-            result.append(format::address(_instr.pop.scope) );
+            result.append(format::hexadecimal(_instr.pop.scope.id) );
             break;
         case Instruction_t::pop_var:
-            result.append(format::address(_instr.push.var) );
+            result.append(format::hexadecimal(_instr.push.var.id) );
             break;
         case Instruction_t::push_stack_frame:
-            result.append(format::address(_instr.push.scope) );
+            result.append(format::hexadecimal(_instr.push.scope.id) );
             break;
         case Instruction_t::push_var:
-            result.append(format::address(_instr.push.var) );
+            result.append(format::hexadecimal(_instr.push.var.id) );
             break;
     }
 

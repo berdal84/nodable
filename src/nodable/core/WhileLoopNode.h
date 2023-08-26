@@ -24,20 +24,18 @@ namespace ndbl
         , public IConditionalStruct {
     public:
         WhileLoopNode();
+        WhileLoopNode(WhileLoopNode&&) = default;
+        WhileLoopNode& operator=(WhileLoopNode&&) = default;
         ~WhileLoopNode() = default;
 
-        Token token_while;
+        Token                   token_while;
+        ID<InstructionNode> cond_instr;
 
         // implements IConditionalStruct (which is already documented)
 
-        Property *       condition_property()const override { return props.get(k_conditional_cond_property_name);}
-        Scope*           get_condition_true_scope()const override;
-        Scope*           get_condition_false_scope()const override;
-        void             set_cond_expr(InstructionNode*) override;
-        InstructionNode* get_cond_expr()const override { return m_cond_instr_node; }
-
-    private:
-        InstructionNode* m_cond_instr_node;
+        Property* condition_property()const override;
+        ID<Scope> get_condition_true_scope()const override;
+        ID<Scope> get_condition_false_scope()const override;
 
         REFLECT_DERIVED_CLASS()
     };

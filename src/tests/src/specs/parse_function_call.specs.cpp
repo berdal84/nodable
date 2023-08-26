@@ -30,8 +30,34 @@ TEST_F(parse_function_call, dna_to_protein)
 
     // check
     EXPECT_TRUE(result != nullptr);
-    Node* invokable_node = result->get_owner();
-    EXPECT_TRUE(invokable_node->components.has<InvokableComponent>());
-    auto type = invokable_node->components.get<InvokableComponent>()->get_type();
-    EXPECT_TRUE(invokable_node->components.get<InvokableComponent>()->has_function()); // should not be abstract
+    Node* invokable_node = result->owner().get();
+    EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
+    EXPECT_TRUE(invokable_node->get_component<InvokableComponent>()->has_function()); // should not be abstract
+}
+
+TEST_F(parse_function_call, operator_add)
+{
+    // prepare parser
+    std::string buffer{"42+42"};
+    nodlang.parser_state.clear();
+    nodlang.parser_state.set_source_buffer(buffer.data(), buffer.length());
+    nodlang.parser_state.graph = &graph;
+
+    // tokenize
+    nodlang.tokenize(buffer);
+
+    // check
+    EXPECT_EQ(nodlang.parser_state.ribbon.size(), 3);
+    EXPECT_EQ(nodlang.parser_state.ribbon.at(0).m_type, Token_t::literal_int);
+    EXPECT_EQ(nodlang.parser_state.ribbon.at(1).m_type, Token_t::operator_);
+    EXPECT_EQ(nodlang.parser_state.ribbon.at(2).m_type, Token_t::literal_int);
+
+    // parse
+    Property* result = nodlang.parse_expression();
+
+    // check
+    EXPECT_TRUE(result != nullptr);
+    Node* invokable_node = result->owner().get();
+    EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
+    EXPECT_TRUE(invokable_node->get_component<InvokableComponent>()->has_function()); // should not be abstract
 }

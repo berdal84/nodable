@@ -1,8 +1,11 @@
 #include <gtest/gtest.h>
+#define private public
+#define protected public
 #include "fw/core/reflection/reflection"
 #include "nodable/core/Node.h"
 
 using namespace fw;
+using namespace ndbl;
 
 TEST(Reflection, is_convertible__type_to_ptr)
 {
@@ -53,19 +56,19 @@ TEST(Reflection, is_ptr)
     EXPECT_TRUE(type::is_ptr(type::get<bool*>()));
 }
 
-TEST(Reflection, node_as_pointer)
+TEST(Reflection, node_as_poolid)
 {
     // prepare
-    ndbl::Node node;
-    variant v;
+    Node node;
+    node.m_id = 42;
+    variant value;
 
     // act
-    v.set(&node);
+    value.set( node.id() );
 
     // check
-    EXPECT_EQ(v.get_type(), type::get<void*>() );
-    EXPECT_EQ(&node, (ndbl::Node*)v );
-    EXPECT_TRUE(v.get_type()->is_ptr());
+    EXPECT_TRUE( value.get_type()->equals( type::get<ID<Node>>() ) );
+    EXPECT_TRUE( node.id() == value );
 }
 
 TEST(Reflection, is_child_of)

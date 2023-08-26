@@ -28,7 +28,6 @@ namespace fw
             float     f;
             double    d;
             void*     ptr;
-            std::string* ptr_std_string;
         };
 
         qword() { reset(); }
@@ -36,9 +35,21 @@ namespace fw
         [[nodiscard]] std::string        to_string()const { return qword::to_string(*this); }
         [[nodiscard]] static std::string to_string(const qword&);
 
-        template<typename T>
-        explicit operator T() const { return get<const T>(); }
-        explicit operator std::string() const { return *ptr_std_string; }
+        template<typename T, std::enable_if_t<std::is_fundamental_v<T>, bool> = 0>
+        explicit operator T() const
+        {
+            static_assert( std::is_fundamental_v<T>, "Handle only fundamental types");
+            return get<const T>();
+        }
+
+        template<typename T, std::enable_if_t<!std::is_fundamental_v<T>, bool> = 0>
+        explicit operator T() const
+        {
+            static_assert( !std::is_fundamental_v<T>, "Handle only fundamental types");
+            FW_EXPECT(ptr, "nullptr")
+            return *(T*)ptr;
+        }
+
 
         R_UNION(qword)
     };

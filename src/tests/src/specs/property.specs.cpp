@@ -1,116 +1,118 @@
 
 #include <gtest/gtest.h>
+#include "fw/core/Pool.h"
 #include "nodable/core/Property.h"
 
 using namespace ndbl;
+using namespace fw::pool;
 
 TEST(Property, Way_In)
 {
-    Property m(nullptr);
-    m.set_allowed_connection(Way_In);
+    Property property;
+    property.set_allowed_connection(Way_In);
 
-    EXPECT_FALSE(m.allows_connection(Way_Out));
-    EXPECT_FALSE(m.allows_connection(Way_InOut));
-    EXPECT_TRUE(m.allows_connection(Way_In));
-    EXPECT_TRUE(m.allows_connection(Way_None));
+    EXPECT_FALSE(property.allows_connection(Way_Out));
+    EXPECT_FALSE(property.allows_connection(Way_InOut));
+    EXPECT_TRUE(property.allows_connection(Way_In));
+    EXPECT_TRUE(property.allows_connection(Way_None));
 }
 
 TEST(Property, Way_Out)
 {
-    Property m(nullptr);
-    m.set_allowed_connection(Way_Out);
+    Property property;
+    property.set_allowed_connection(Way_Out);
 
-    EXPECT_TRUE(m.allows_connection(Way_Out));
-    EXPECT_FALSE(m.allows_connection(Way_InOut));
-    EXPECT_FALSE(m.allows_connection(Way_In));
-    EXPECT_TRUE(m.allows_connection(Way_None));
+    EXPECT_TRUE(property.allows_connection(Way_Out));
+    EXPECT_FALSE(property.allows_connection(Way_InOut));
+    EXPECT_FALSE(property.allows_connection(Way_In));
+    EXPECT_TRUE(property.allows_connection(Way_None));
 }
 
 TEST(Property, Way_None)
 {
-    Property m(nullptr);
-    m.set_allowed_connection(Way_Out);
+    Property property;
+    property.set_allowed_connection(Way_Out);
 
-    EXPECT_TRUE(m.allows_connection(Way_Out));
-    EXPECT_FALSE(m.allows_connection(Way_InOut));
-    EXPECT_FALSE(m.allows_connection(Way_In));
-    EXPECT_TRUE(m.allows_connection(Way_None));
+    EXPECT_TRUE(property.allows_connection(Way_Out));
+    EXPECT_FALSE(property.allows_connection(Way_InOut));
+    EXPECT_FALSE(property.allows_connection(Way_In));
+    EXPECT_TRUE(property.allows_connection(Way_None));
 }
 
 TEST(Property, Way_InOut)
 {
-    Property m(nullptr);
-    m.set_allowed_connection(Way_InOut);
+    Property property;
+    property.set_allowed_connection(Way_InOut);
 
-    EXPECT_TRUE(m.allows_connection(Way_Out));
-    EXPECT_TRUE(m.allows_connection(Way_InOut));
-    EXPECT_TRUE(m.allows_connection(Way_In));
-    EXPECT_TRUE(m.allows_connection(Way_None));
+    EXPECT_TRUE(property.allows_connection(Way_Out));
+    EXPECT_TRUE(property.allows_connection(Way_InOut));
+    EXPECT_TRUE(property.allows_connection(Way_In));
+    EXPECT_TRUE(property.allows_connection(Way_None));
 }
 
 TEST(Property, Type_Boolean)
 {
 
-    Property m(nullptr);
+    Property property;
 
-    m.set(true);
-    EXPECT_TRUE((bool)m);
-    EXPECT_EQ(m.get_type(), fw::type::get<bool>());
+    property.set(true);
+    EXPECT_TRUE((bool)*property);
+    EXPECT_EQ(property.get_type(), fw::type::get<bool>());
 
-    m.set(false);
-    EXPECT_FALSE((bool)m);
-    EXPECT_TRUE(m.get_variant()->is_defined());
+    property.set(false);
+    EXPECT_FALSE((bool)*property);
+    EXPECT_TRUE(property.value()->is_defined());
 
 }
 
 TEST(Property, Type_String)
 {
-    Property m;
+    Property property;
     const std::string str = "Hello world !";
-    m.set(str);
+    property.set(str);
 
-    EXPECT_EQ((std::string)m, str);
-    EXPECT_TRUE(m.convert_to<bool>());
-    EXPECT_EQ(m.get_type(), fw::type::get<std::string>());
-    EXPECT_TRUE(m.get_variant()->is_defined());
+    EXPECT_EQ((std::string)*property, str);
+    EXPECT_TRUE(property.to<bool>());
+    EXPECT_EQ(property.get_type(), fw::type::get<std::string>());
+    EXPECT_TRUE(property->is_defined());
 }
 
 TEST(Property, Type_Double)
 {
-    Property m(nullptr);
-    m.set((double)50);
+    Property property;
+    property.set((double)50);
 
-    EXPECT_EQ((double)m, (double)50);
-    EXPECT_EQ(m.get_type(), fw::type::get<double>());
-    EXPECT_TRUE(m.get_variant()->is_defined());
+    EXPECT_EQ((double)50, (double)*property);
+    EXPECT_EQ(property.get_type(), fw::type::get<double>());
+    EXPECT_TRUE(property->is_defined());
 }
 
 TEST(Property, Modify_by_reference_using_a_pointer)
 {
-    Property m(nullptr);
-    m.set(50.0);
+    Property property;
+    property.set(50.0);
 
-    EXPECT_EQ((double)m, 50.0);
-    EXPECT_EQ(m.get_type(), fw::type::get<double>());
-    EXPECT_TRUE(m.get_variant()->is_defined());
+    EXPECT_EQ((double)*property, 50.0);
+    EXPECT_EQ(property.get_type(), fw::type::get<double>());
+    EXPECT_TRUE(property->is_defined());
 
-    double& ref = (double&)m;
+    double& ref = (double&)*property;
     ref = 100.0;
 
-    EXPECT_EQ((double)m, 100.0);
+    EXPECT_EQ((double)*property, 100.0);
 }
 
 TEST(Property, Modify_by_reference_using_a_reference)
 {
-    Property m1(nullptr, 50.0);
-    Property m2(nullptr, 50.0);
+    Property property_1(50.0);
+    Property property_2(50.0);
 
-    EXPECT_EQ((double)m1, 50.0);
-    EXPECT_EQ(m1.get_type(), fw::type::get<double>());
-    EXPECT_TRUE(m1.get_variant()->is_defined());
+    EXPECT_EQ((double)*property_1, 50.0);
+    EXPECT_EQ(property_1.get_type(), fw::type::get<double>());
+    EXPECT_TRUE(property_1->is_defined());
 
     auto add_right_to_left = [](double& a, double b) -> double { return  a = a + b; };
-    add_right_to_left((double&)m1, (double)m2);
+    add_right_to_left((double&)*property_1, (double)*property_2);
 
-    EXPECT_EQ((double)m1, 100.0);
+    EXPECT_EQ((double)*property_1, 100.0);
 }

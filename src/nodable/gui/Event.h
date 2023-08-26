@@ -1,5 +1,6 @@
 #pragma once
-#include <fw/gui/EventManager.h>
+#include "fw/gui/EventManager.h"
+#include "fw/core/Pool.h"
 
 namespace ndbl
 {
@@ -7,6 +8,7 @@ namespace ndbl
     class PropertyConnector;
     class NodeConnector;
     class NodeView;
+    using fw::pool::ID;
 
     enum EventType_: fw::EventType
     {
@@ -26,8 +28,8 @@ namespace ndbl
     };
 
     struct NodeViewEvent {
-        fw::EventType type;
-        const NodeView *view;
+        fw::EventType          type;
+        ID<const NodeView> view;
     };
 
     struct ToggleFoldingEvent {
@@ -35,16 +37,16 @@ namespace ndbl
         bool recursive;
     };
 
-    struct PropertyConnectorEvent {
-        fw::EventType type;
-        const PropertyConnector *src;
-        const PropertyConnector *dst;
-    };
-
-    struct NodeConnectorEvent {
-        fw::EventType type;
-        const NodeConnector *src;
-        const NodeConnector *dst;
+    struct ConnectorEvent {
+        fw::EventType      type;
+        union {
+            const NodeConnector*     node;
+            const PropertyConnector* prop;
+        } src;
+        union {
+            const NodeConnector*     node;
+            const PropertyConnector* prop;
+        } dst;
     };
 
     union Event
@@ -53,8 +55,7 @@ namespace ndbl
         fw::Event              event;
         fw::SimpleEvent        common;
         NodeViewEvent          node;
-        PropertyConnectorEvent property_connectors;
-        NodeConnectorEvent     node_connectors;
+        ConnectorEvent         connector;
         ToggleFoldingEvent     toggle_folding;
     };
 

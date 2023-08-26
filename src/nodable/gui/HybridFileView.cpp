@@ -4,7 +4,7 @@
 #include "core/Node.h"
 #include "core/VirtualMachine.h"
 #include "core/language/Nodlang.h"
-#include "core/ComponentManager.h"
+#include "core/NodeUtils.h"
 
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
@@ -35,9 +35,9 @@ HybridFileView::HybridFileView(HybridFile& _file)
         if ( !_graph->is_empty() )
         {
             LOG_VERBOSE("FileView", "graph is not empty\n")
-            Node* root = _graph->get_root();
+            Node* root = _graph->get_root().get();
 
-            NodeView* root_node_view = root->components.get<NodeView>();
+            NodeView* root_node_view = root->get_component<NodeView>().get();
             GraphView* graph_view = m_file.get_graph_view();
 
             // unfold graph (lot of updates) and frame all nodes
@@ -47,7 +47,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
                 graph_view->unfold();
 
                 // make sure views are outside viewable rectangle (to avoid flickering)
-                std::vector<NodeView*> views = ComponentManager::collect<NodeView>(_graph->get_node_registry());
+                auto views = NodeUtils::get_components<NodeView>( _graph->get_node_registry() );
                 graph_view->translate_all( ImVec2(-1000.f, -1000.0f) , views);
 
                 // frame all (33ms delayed)

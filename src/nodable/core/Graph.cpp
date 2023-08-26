@@ -7,6 +7,7 @@
 #include "NodeFactory.h"
 #include "InstructionNode.h"
 #include "LiteralNode.h"
+#include "NodeUtils.h"
 #include "Node.h"
 #include "Scope.h"
 #include "VariableNode.h"
@@ -15,14 +16,9 @@
 using namespace ndbl;
 
 Graph::Graph(
-    const Nodlang* _language,
-    const NodeFactory* _factory,
-    const bool* _autocompletion
+    const NodeFactory* _factory
     )
-    : m_language(_language)
-    , m_factory(_factory)
-    , m_root(nullptr)
-    , m_autocompletion(_autocompletion)
+    : m_factory(_factory)
     , m_is_dirty(false)
 {
 }
@@ -38,10 +34,10 @@ void Graph::clear()
 
 	if ( !m_node_registry.empty() )
 	{
-        for (auto i = m_node_registry.size(); i > 0; i--)
+        std::vector<ID<Node>> node_ids = m_node_registry; // copy to avoid iterator invalidation
+        for (auto node : node_ids)
         {
-            Node* node = m_node_registry[i - 1];
-            LOG_VERBOSE("Graph", "remove and delete: %s \n", node->get_name() )
+            LOG_VERBOSE("Graph", "remove and delete: %s \n", node->name.c_str() )
             destroy(node);
         }
 	}
@@ -51,7 +47,7 @@ void Graph::clear()
     }
     m_node_registry.clear();
     FW_EXPECT(m_edge_registry.empty(), "m_edge_registry should be empty because all nodes have been deleted.");
-    m_root = nullptr;
+    m_root.reset();
 
     LOG_VERBOSE("Graph", "Graph cleared.\n")
 }
@@ -66,7 +62,7 @@ UpdateResult Graph::update()
     while (nodeIndex > 0)
     {
         nodeIndex--;
-        auto node = m_node_registry.at(nodeIndex);
+        ID<Node> node = m_node_registry.at(nodeIndex);
 
         if (node->flagged_to_delete)
         {
@@ -87,22 +83,23 @@ UpdateResult Graph::update()
     return result;
 }
 
-void Graph::add(Node* _node)
+void Graph::add(ID<Node> _node)
 {
-	m_node_registry.push_back(_node);
+    FW_ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node->id()) == m_node_registry.end())
+	m_node_registry.push_back(_node->id());
     _node->parent_graph = this;
-    LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->get_name(), _node->get_type().get_name())
+    LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->name.c_str(), _node->get_type()->get_name())
 }
 
-void Graph::remove(Node* _node)
+void Graph::remove(ID<Node> _node)
 {
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     m_node_registry.erase(found);
 }
 
-InstructionNode* Graph::create_instr()
+ID<InstructionNode> Graph::create_instr()
 {
-	auto instructionNode = m_factory->new_instr();
+    ID<InstructionNode> instructionNode = m_factory->create_instr();
     add(instructionNode);
 
 	return instructionNode;
@@ -116,46 +113,51 @@ void Graph::ensure_has_root()
     }
 }
 
-VariableNode* Graph::create_variable(const fw::type *_type, const std::string& _name, IScope* _scope)
+ID<VariableNode> Graph::create_variable(const fw::type *_type, const std::string& _name, ID<Scope> _scope)
 {
-    auto node = m_factory->new_variable(_type, _name, _scope);
+    ID<VariableNode> node = m_factory->create_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
-Node* Graph::create_abstract_function(const fw::func_type* _invokable, bool _is_operator)
+ID<Node> Graph::create_abstract_function(const fw::func_type* _invokable, bool _is_operator)
 {
-    Node* node = m_factory->new_abstract_function(_invokable, _is_operator);
+    ID<Node> node = m_factory->create_abstract_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-Node* Graph::create_function(const fw::iinvokable* _invokable, bool _is_operator)
+ID<Node> Graph::create_function(const fw::iinvokable* _invokable, bool _is_operator)
 {
-    Node* node = m_factory->new_function(_invokable, _is_operator);
+    ID<Node> node = m_factory->create_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-Node* Graph::create_abstract_operator(const fw::func_type* _invokable)
+ID<Node> Graph::create_abstract_operator(const fw::func_type* _invokable)
 {
     return create_abstract_function(_invokable, true);
 }
 
-Node* Graph::create_operator(const fw::iinvokable* _invokable)
+ID<Node> Graph::create_operator(const fw::iinvokable* _invokable)
 {
 	return create_function(_invokable, true);
 }
 
-void Graph::destroy(Node* _node)
+void Graph::destroy(ID<Node> _node)
 {
+    if( _node.get() == nullptr )
+    {
+        return;
+    }
+
     // disconnect any edge connected to this node
     std::vector<const DirectedEdge*> edges_to_disconnect;
 
-    for (auto pair : m_edge_registry)
+    for (auto& pair : m_edge_registry)
     {
         const DirectedEdge* edge = pair.second;
-        if(edge->is_connected_to(_node) )
+        if(edge->is_connected_to( _node->id() ) )
         {
             edges_to_disconnect.push_back(edge);
         }
@@ -167,15 +169,14 @@ void Graph::destroy(Node* _node)
 
 
     // if it is a variable, we remove it from its scope
-    if ( VariableNode* node_variable = fw::cast<VariableNode>(_node) )
+    if ( VariableNode* node_variable = fw::cast<VariableNode> (_node.get() ) )
     {
-        IScope* scope = node_variable->get_scope();
-        if ( scope )
+        if ( IScope* scope = node_variable->get_scope().get() )
         {
             scope->remove_variable(node_variable);
         }
     }
-    else if ( auto* scope = _node->components.get<Scope>() )
+    else if ( Scope* scope = _node->get_component<Scope>().get() )
     {
         if ( !scope->has_no_variable() )
         {
@@ -184,20 +185,20 @@ void Graph::destroy(Node* _node)
     }
 
     // unregister and delete
-    remove(_node);
-    if ( _node == m_root )
+    remove(_node->id());
+    if ( m_root == _node->id() )
     {
-        m_root = nullptr;
+        m_root.reset();
     }
-    m_factory->delete_node(_node);
+    m_factory->destroy_node(_node);
 }
 
 bool Graph::is_empty() const
 {
-    return !m_root;
+    return m_root.get() == nullptr;
 }
 
-const DirectedEdge* Graph::connect(Property * _source_property, Property * _target_property)
+const DirectedEdge* Graph::connect(Property *_source_property, Property *_target_property)
 {
     FW_EXPECT(_source_property != _target_property, "Can't connect same Property!")
     FW_EXPECT( fw::type::is_implicitly_convertible(_source_property->get_type(), _target_property->get_type()),
@@ -207,19 +208,19 @@ const DirectedEdge* Graph::connect(Property * _source_property, Property * _targ
     /*
      * If _from has no owner _to can digest it, no need to create an edge in this case.
      */
-    if (_source_property->get_owner() == nullptr)
+    if (_source_property->owner().get() == nullptr )
     {
         _target_property->digest(_source_property);
         delete _source_property;
     }
     else if (
-            !_source_property->get_type()->is_ptr() &&
-            _source_property->get_owner()->get_type()->is_child_of<LiteralNode>() &&
-            _target_property->get_owner()->get_type()->is_not_child_of<VariableNode>())
+            !_source_property->is_referencing_a_node() &&
+            _source_property->owner()->get_type()->is_child_of<LiteralNode>() &&
+            _target_property->owner()->get_type()->is_not_child_of<VariableNode>())
     {
-        Node* owner = _source_property->get_owner();
+        ID<Node> source_owner = _source_property->owner();
         _target_property->digest(_source_property);
-        destroy(owner);
+        destroy(source_owner);
     }
     else
     {
@@ -264,32 +265,30 @@ void Graph::remove(DirectedEdge* edge)
     }
 }
 
-const DirectedEdge* Graph::connect(Node* _src, InstructionNode* _dst)
+const DirectedEdge* Graph::connect(Node *_src, InstructionNode *_dst)
 {
     // set declaration_instr once
-    if(auto variable = fw::cast<VariableNode>(_src))
+    if ( auto* variable = fw::cast<VariableNode>(_src) )
     {
-        if( !variable->get_declaration_instr() )
+        if( variable->get_declaration_instr().get() == nullptr )
         {
-            variable->set_declaration_instr(_dst);
+            variable->set_declaration_instr(_dst->id());
         }
     }
-
-    return connect(_src->as_property, _dst->root );
+    return connect(_src->as_prop(), _dst->root() );
 }
 
-const DirectedEdge* Graph::connect(Property * _src, VariableNode* _dst)
+const DirectedEdge* Graph::connect(Property* _src, VariableNode *_dst)
 {
-    return connect(_src, _dst->get_value() );
+    return connect(_src, _dst->property() );
 }
 
 const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
 {
     auto edge = new DirectedEdge(_edge);
-    Node* src = edge->prop.src->get_owner();
-    Node* dst = edge->prop.dst->get_owner();
+    auto [src, dst] = edge->nodes();
 
-    switch (edge->type )
+    switch ( edge->type() )
     {
         case Edge_t::IS_CHILD_OF:
         {
@@ -298,21 +297,20 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
              */
             if ( _side_effects )
             {
-                FW_ASSERT( dst->components.has<Scope>() )
+                FW_ASSERT(dst->has_component<Scope>() )
 
                 if (dst->successors.accepts() )                               // directly
                 {
                     connect({src, Edge_t::IS_SUCCESSOR_OF, dst}, false);
                 }
-                else if ( Node* tail = dst->children.get_back_or_nullptr() ) // to the last children
+                else if ( Node* tail = dst->children.last().get() ) // to the last children
                 {
-                    if ( tail->components.has<Scope>() )
+                    if ( auto scope = tail->get_component<Scope>().get() )
                     {
                         std::vector<InstructionNode*> tails;
-                        Scope* scope = tail->components.get<Scope>();
                         scope->get_last_instructions_rec(tails);
 
-                        for (InstructionNode *each_instruction : tails)
+                        for (InstructionNode* each_instruction : tails)
                         {
                             connect({src, Edge_t::IS_SUCCESSOR_OF, each_instruction}, false);
                         }
@@ -327,45 +325,45 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
             }
 
             // create "parent-child" links
-            dst->children.add(src);
-            src->set_parent(dst);
+            dst->children.add( src->id() );
+            src->set_parent( dst->id() );
 
             break;
         }
 
         case Edge_t::IS_INPUT_OF:
-            dst->inputs.add(src);
-            src->outputs.add(dst);
-            src->add_edge(edge);
-            dst->add_edge(edge);
+            dst->inputs.add( src->id() );
+            src->outputs.add( dst->id() );
+            src->add_edge( edge );
+            dst->add_edge( edge );
 
             break;
 
         case Edge_t::IS_SUCCESSOR_OF:
-            dst->successors.add(src);
-            src->predecessors.add(dst);
+            dst->successors.add( src->id() );
+            src->predecessors.add( dst->id() );
 
             if (_side_effects)
             {
-                if ( dst->components.has<Scope>() )
+                if (dst->has_component<Scope>() )
                 {
                     connect({src, Edge_t::IS_CHILD_OF, dst}, false);
                 }
-                else if ( dst->parent )
+                else if ( Node* dst_parent = dst->parent.get() )
                 {
-                    connect({src, Edge_t::IS_CHILD_OF, dst->parent}, false);
+                    connect({src, Edge_t::IS_CHILD_OF, dst_parent}, false);
                 }
 
                 /**
                  * create child/parent link with dst_parent
                  */
-                if ( src->parent  )
+                if ( Node* src_parent = src->parent.get()  )
                 {
-                    Node *each_successor = src->successors.get_front_or_nullptr();
-                    while (each_successor && each_successor->parent == nullptr)
+                    Node* each_successor = src->successors.first().get();
+                    while (each_successor && each_successor->parent.get() != nullptr )
                     {
-                        connect({each_successor, Edge_t::IS_CHILD_OF, src->parent }, false);
-                        each_successor = each_successor->successors.get_front_or_nullptr();
+                        connect({each_successor, Edge_t::IS_CHILD_OF, src_parent }, false);
+                        each_successor = each_successor->successors.first().get();
                     }
                 }
             }
@@ -376,7 +374,7 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
     }
 
 
-    m_edge_registry.emplace(edge->type, edge);
+    m_edge_registry.emplace(edge->type(), edge);
     set_dirty();
     return edge;
 }
@@ -384,53 +382,51 @@ const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
 void Graph::disconnect(const DirectedEdge* _edge, bool _side_effects)
 {
     // find the edge to disconnect
-    auto [begin, end] = m_edge_registry.equal_range(_edge->type );
+    auto [begin, end] = m_edge_registry.equal_range(_edge->type() );
     auto found = std::find_if(begin, end, [&_edge](auto& pair)
     {
-        return pair.second->prop == _edge->prop; // we do not compare type, since we did a equal_range
+        return pair.second->props() == _edge->props(); // we do not compare type, since we did a equal_range
     });
 
     if(found == end) return;
 
     m_edge_registry.erase(found);
 
-    Node* src = _edge->prop.src->get_owner();
-    Node* dst = _edge->prop.dst->get_owner();
+    auto [src, dst] = _edge->nodes();
 
     // disconnect effectively
-    switch (_edge->type )
+    switch (_edge->type() )
     {
         case Edge_t::IS_CHILD_OF:
-            dst->children.remove(src);
-            src->set_parent(nullptr);
+            dst->children.remove( src->id() );
+            src->set_parent({});
             break;
 
         case Edge_t::IS_INPUT_OF:
-            dst->inputs.remove(src);
-            src->outputs.remove(dst);
+            dst->inputs.remove( src->id() );
+            src->outputs.remove( dst->id() );
             src->remove_edge(_edge);
             dst->remove_edge(_edge);
             break;
 
         case Edge_t::IS_SUCCESSOR_OF:
-            dst->successors.remove(src);
-            src->predecessors.remove(dst);
-
-            if ( _side_effects )
+        {
+            Node* successor = src;
+            dst->successors.remove( successor->id() );
+            successor->predecessors.remove( dst->id() );
+            Node* successor_parent = successor->parent.get();
+            if ( _side_effects && successor_parent  )
             {
-                if ( src->parent )
+                while (successor && successor->parent == src->parent )
                 {
-                    Node* successor = src;
-                    while (successor && successor->parent == src->parent )
-                    {
-                        DirectedEdge edge(successor, Edge_t::IS_CHILD_OF, src->parent);
-                        disconnect(&edge, false );
-                        successor = successor->successors.get_front_or_nullptr();
-                    }
+                    DirectedEdge edge(successor, Edge_t::IS_CHILD_OF, src->parent.get());
+                    disconnect(&edge, false );
+                    successor = successor->successors.first().get();
                 }
             }
-            break;
 
+            break;
+        }
         default:
             FW_ASSERT(false); // This connection type is not yet implemented
     }
@@ -438,65 +434,65 @@ void Graph::disconnect(const DirectedEdge* _edge, bool _side_effects)
    set_dirty();
 }
 
-Node *Graph::create_scope()
+ID<Node> Graph::create_scope()
 {
-    Node* scopeNode = m_factory->new_scope();
+    ID<Node> scopeNode = m_factory->create_scope();
     add(scopeNode);
     return scopeNode;
 }
 
-ConditionalStructNode *Graph::create_cond_struct()
+ID<ConditionalStructNode> Graph::create_cond_struct()
 {
-    ConditionalStructNode* condStructNode = m_factory->new_cond_struct();
+    ID<ConditionalStructNode> condStructNode = m_factory->create_cond_struct();
     add(condStructNode);
     return condStructNode;
 }
 
-ForLoopNode* Graph::create_for_loop()
+ID<ForLoopNode> Graph::create_for_loop()
 {
-    ForLoopNode* for_loop = m_factory->new_for_loop_node();
+    ID<ForLoopNode> for_loop = m_factory->create_for_loop();
     add(for_loop);
     return for_loop;
 }
 
-WhileLoopNode* Graph::create_while_loop()
+ID<WhileLoopNode> Graph::create_while_loop()
 {
-    WhileLoopNode* while_loop = m_factory->new_while_loop_node();
+    ID<WhileLoopNode> while_loop = m_factory->create_while_loop();
     add(while_loop);
     return while_loop;
 }
 
-Node *Graph::create_root()
+ID<Node> Graph::create_root()
 {
-    m_root = m_factory->new_program();
-    add(m_root);
-    return m_root;
+    ID<Node> node = m_factory->create_program();
+    add(node);
+    m_root = node;
+    return node;
 }
 
-Node* Graph::create_node()
+ID<Node> Graph::create_node()
 {
-    Node* node = m_factory->new_node();
+    ID<Node> node = m_factory->create_node();
     add(node);
     return node;
 }
 
-LiteralNode* Graph::create_literal(const fw::type *_type)
+ID<LiteralNode> Graph::create_literal(const fw::type *_type)
 {
-    LiteralNode* node = m_factory->new_literal(_type);
+    ID<LiteralNode> node = m_factory->create_literal(_type);
     add(node);
     return node;
 }
 
-std::vector<const DirectedEdge*> Graph::filter_edges(Property* _property, Way _way) const
+std::vector<const DirectedEdge*> Graph::filter_edges(Property* property, Way _way) const
 {
     std::vector<const DirectedEdge*> result;
-
-    auto is_property_linked_to = [_property, _way](const DirectedEdge* edge)
+    auto is_property_linked_to = [property, _way](const DirectedEdge* edge)
     {
         return
-            ( (_way & Way_Out) && edge->prop.src == _property)
+            ( (_way & Way_Out) && edge->src() == property)
             ||
-            ( (_way & Way_In) && edge->prop.dst == _property);
+            ( (_way & Way_In) && edge->dst() == property);
     };
 
     for( auto& [type, each_edge] : m_edge_registry)

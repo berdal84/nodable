@@ -20,6 +20,7 @@
 #include "fw/core/log.h"
 #include "fw/core/hash.h"
 
+#include "core/Pool.h"
 #include "core/ConditionalStructNode.h"
 #include "core/DirectedEdge.h"
 #include "core/ForLoopNode.h"
@@ -187,12 +188,12 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
     high_resolution_clock::time_point tokenize_end = high_resolution_clock::now();
     LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "tokenize()",  duration_cast<duration<double>>( tokenize_end - parse_begin).count() * 1000.0)
 
-    Node *program = parse_program();
+    ID<Node> program = parse_program();
 
     high_resolution_clock::time_point parse_program_end = high_resolution_clock::now();
     LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "parse_program()", duration_cast<duration<double>>(parse_program_end - tokenize_end).count() * 1000.0)
 
-    if (program == nullptr)
+    if ( program.get() == nullptr )
     {
         LOG_WARNING("Parser", "Unable to generate program tree.\n")
         return false;
@@ -249,13 +250,13 @@ i16_t Nodlang::to_i16(const std::string &_str)
     return stoi(_str);
 }
 
-Property *Nodlang::to_property(Token _token)
+Property* Nodlang::to_property(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
     {
-        VariableNode *variable = get_current_scope()->find_variable(_token.word_to_string());
+        ID<VariableNode> variable = get_current_scope()->find_variable( _token.word_to_string() );
 
-        if (variable == nullptr)
+        if ( variable.get() == nullptr)
         {
             if (m_strict_mode)
             {
@@ -265,47 +266,47 @@ Property *Nodlang::to_property(Token _token)
                 /* when strict mode is OFF, we just create a variable with Any type */
                 LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
                             _token.word_to_string().c_str())
-                variable = parser_state.graph->create_variable(type::null(), _token.word_to_string(), get_current_scope());
-                variable->get_value()->token = _token;
+                variable = parser_state.graph->create_variable(type::null(), _token.word_to_string(), get_current_scope() );
+                variable->property()->token = std::move(_token);
                 variable->set_declared(false);
             }
         }
-        if (variable)
+        if ( variable.get() != nullptr )
         {
-            return variable->get_value();
+            return variable->property();
         }
         return nullptr;
     }
 
-    LiteralNode *literal = nullptr;
+    ID<LiteralNode> literal;
 
     switch (_token.m_type)
     {
         case Token_t::literal_bool:
         {
             literal = parser_state.graph->create_literal<bool>();
-            literal->value->set(to_bool(_token.word_to_string())); // FIXME: avoid std::string copy
+            literal->value()->set(to_bool(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_int:
         {
             literal = parser_state.graph->create_literal<i16_t>();
-            literal->value->set(to_i16(_token.word_to_string())); // FIXME: avoid std::string copy
+            literal->value()->set(to_i16(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_double:
         {
             literal = parser_state.graph->create_literal<double>();
-            literal->value->set(to_double(_token.word_to_string())); // FIXME: avoid std::string copy
+            literal->value()->set(to_double(_token.word_to_string())); // FIXME: avoid std::string copy
             break;
         }
 
         case Token_t::literal_string:
         {
             literal = parser_state.graph->create_literal<std::string>();
-            literal->value->set(to_unquoted_string(_token.word_to_string()));
+            literal->value()->set(to_unquoted_string(_token.word_to_string()));
             break;
         }
 
@@ -314,23 +315,21 @@ Property *Nodlang::to_property(Token _token)
 
     if (literal)
     {
-        literal->value->token = _token;
-        return literal->value;
+        literal->value()->token = std::move(_token);
+        return literal->value();
     }
 
     LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str())
-    return nullptr;
+    return {};
 }
 
-Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, Property *_left)
+Property* Nodlang::parse_binary_operator_expression(unsigned short _precedence, Property* _left)
 {
 
-    assert(_left != nullptr);
+    FW_ASSERT( _left != nullptr );
 
     LOG_VERBOSE("Parser", "parse binary operation expr...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
-
-    Property *result = nullptr;
 
     if (!parser_state.ribbon.can_eat(2))
     {
@@ -343,8 +342,7 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     const Token operand_token  = parser_state.ribbon.peek();
 
     // Structure check
-    const bool isValid = _left != nullptr &&
-                         operator_token.m_type == Token_t::operator_ &&
+    const bool isValid = operator_token.m_type == Token_t::operator_ &&
                          operand_token.m_type != Token_t::operator_;
 
     if (!isValid)
@@ -373,9 +371,9 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
 
 
     // Parse right expression
-    auto right = parse_expression(ope->precedence, nullptr);
+    Property* right = parse_expression(ope->precedence, nullptr);
 
-    if (!right)
+    if (right == nullptr)
     {
         LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n")
         rollback_transaction();
@@ -387,21 +385,21 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     type->set_return_type(type::any());
     type->push_args(_left->get_type(), right->get_type());
 
-    InvokableComponent *component;
-    Node *binary_op;
+    ID<InvokableComponent> component;
+    ID<Node> binary_op;
 
     if (auto invokable = find_operator_fct(type))
     {
         // concrete operator
         binary_op = parser_state.graph->create_operator(invokable.get());
-        component = binary_op->components.get<InvokableComponent>();
+        component = binary_op->get_component<InvokableComponent>();
         delete type;
     }
     else if (type)
     {
         // abstract operator
         binary_op = parser_state.graph->create_abstract_operator(type);
-        component = binary_op->components.get<InvokableComponent>();
+        component = binary_op->get_component<InvokableComponent>();
     }
     else
     {
@@ -416,10 +414,10 @@ Property *Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-    return binary_op->props.get(k_value_property_name);
+    return binary_op->get_prop(k_value_property_name);
 }
 
-Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
+Property* Nodlang::parse_unary_operator_expression(unsigned short _precedence)
 {
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
@@ -442,14 +440,14 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     }
 
     // Parse expression after the operator
-    Property *value = parse_atomic_expression();
+    Property* value = parse_atomic_expression();
 
-    if (value == nullptr)
+    if ( value == nullptr )
     {
         value = parse_parenthesis_expression();
     }
 
-    if (value == nullptr)
+    if ( value == nullptr )
     {
         LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
         rollback_transaction();
@@ -457,12 +455,12 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     }
 
     // Create a function signature
-    func_type *type = new func_type(operator_token.word_to_string());  // FIXME: avoid std::string copy
+    auto* type = new func_type(operator_token.word_to_string());  // FIXME: avoid std::string copy
     type->set_return_type(type::any());
     type->push_args(value->get_type());
 
-    InvokableComponent *component;
-    Node *node;
+    ID<InvokableComponent> component;
+    ID<Node> node;
 
     if (auto invokable = find_operator_fct(type))
     {
@@ -474,11 +472,11 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
         node = parser_state.graph->create_abstract_operator(type);
     }
 
-    component = node->components.get<InvokableComponent>();
-    component->token = operator_token;
+    component = node->get_component<InvokableComponent>();
+    component->token = std::move( operator_token );
 
     parser_state.graph->connect(value, component->get_l_handed_val());
-    Property *result = node->props.get(k_value_property_name);
+    Property* result = node->get_prop(k_value_property_name);
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
     commit_transaction();
@@ -486,7 +484,7 @@ Property *Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     return result;
 }
 
-Property *Nodlang::parse_atomic_expression()
+Property* Nodlang::parse_atomic_expression()
 {
     LOG_VERBOSE("Parser", "parse atomic expr... \n")
 
@@ -506,22 +504,22 @@ Property *Nodlang::parse_atomic_expression()
         return nullptr;
     }
 
-    auto result = to_property(token);
+    Property* result = to_property(token);
 
-    if (result != nullptr)
+    if ( result != nullptr )
     {
         commit_transaction();
         LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n")
-    } else
-    {
-        rollback_transaction();
-        LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n")
+        return result;
     }
 
-    return result;
+    rollback_transaction();
+    LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n")
+
+    return nullptr;
 }
 
-Property *Nodlang::parse_parenthesis_expression()
+Property* Nodlang::parse_parenthesis_expression()
 {
     LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
@@ -541,8 +539,8 @@ Property *Nodlang::parse_parenthesis_expression()
         return nullptr;
     }
 
-    Property *result = parse_expression();
-    if (result)
+    Property* result = parse_expression();
+    if ( result != nullptr )
     {
         Token token = parser_state.ribbon.eat();
         if (token.m_type != Token_t::parenthesis_close)
@@ -564,20 +562,20 @@ Property *Nodlang::parse_parenthesis_expression()
     return result;
 }
 
-InstructionNode *Nodlang::parse_instr()
+ID<InstructionNode> Nodlang::parse_instr()
 {
     start_transaction();
 
-    Property *expression = parse_expression();
+    Property* expression = parse_expression();
 
-    if (!expression)
+    if ( expression == nullptr )
     {
         LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n")
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
-    InstructionNode *instr_node = parser_state.graph->create_instr();
+    ID<InstructionNode> instr_node = parser_state.graph->create_instr();
 
     if (parser_state.ribbon.can_eat())
     {
@@ -590,27 +588,27 @@ InstructionNode *Nodlang::parse_instr()
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
-            return nullptr;
+            return {};
         }
     }
 
-    parser_state.graph->connect(expression->get_owner(), instr_node);
+    parser_state.graph->connect(expression->owner().get(), instr_node.get());
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
-    return instr_node;
+    return instr_node->id();
 }
 
-Node *Nodlang::parse_program()
+ID<Node> Nodlang::parse_program()
 {
     start_transaction();
 
     parser_state.graph->clear();
-    Node *root = parser_state.graph->create_root();
-    Scope *program_scope = root->components.get<Scope>();
-    parser_state.scope.push(program_scope);
+    ID<Node> root = parser_state.graph->create_root();
+    ID<Scope> program_scope = root->get_component<Scope>();
+    parser_state.scope.emplace(program_scope);
 
-    parse_code_block(false);// we do not check if we parsed something empty or not, a program can be empty.
+    parse_code_block(program_scope);// we do not check if we parsed something empty or not, a program can be empty.
 
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
     FW_ASSERT(program_scope->token_begin.is_null())
@@ -621,51 +619,51 @@ Node *Nodlang::parse_program()
     parser_state.scope.pop();
     commit_transaction();
 
-    return parser_state.graph->get_root();
+    return root;
 }
 
-Node *Nodlang::parse_scope()
+ID<Node> Nodlang::parse_scope()
 {
-    Node *result;
+    ID<Node> result;
 
     start_transaction();
 
     if (parser_state.ribbon.eat_if(Token_t::scope_begin).is_null())
     {
         rollback_transaction();
-        result = nullptr;
     }
     else
     {
-        auto scope_node = parser_state.graph->create_scope();
-        auto scope = scope_node->components.get<Scope>();
+        ID<Node>  scope_node = parser_state.graph->create_scope();
+        ID<Scope> scope      = scope_node->get_component<Scope>();
         /*
          * link scope with parent_scope.
          * They must be linked in order to find_variables recursively.
          */
-        auto parent_scope = parser_state.scope.top();
+        Scope* parent_scope = get_current_scope().get();
         if (parent_scope)
         {
-            parser_state.graph->connect({scope_node, Edge_t::IS_CHILD_OF, parent_scope->get_owner()});
+            ID<Node> parent_scope_node = parent_scope->get_owner();
+            parser_state.graph->connect({scope_node.get(), Edge_t::IS_CHILD_OF, parent_scope_node.get() });
         }
 
-        parser_state.scope.push(scope);
+        parser_state.scope.emplace(scope);
 
         scope->token_begin = parser_state.ribbon.get_eaten();
 
-        parse_code_block(false);
+        parse_code_block( get_current_scope() );
 
         if (parser_state.ribbon.eat_if(Token_t::scope_end).is_null())
         {
-            parser_state.graph->destroy(scope_node);
+            parser_state.graph->destroy( scope_node );
             rollback_transaction();
-            result = nullptr;
+            result.reset();
         }
         else
         {
             scope->token_end = parser_state.ribbon.get_eaten();
             commit_transaction();
-            result = scope_node;
+            result = scope_node->id();
         }
 
         parser_state.scope.pop();
@@ -673,36 +671,37 @@ Node *Nodlang::parse_scope()
     return result;
 }
 
-IScope *Nodlang::parse_code_block(bool _create_scope)
+ID<Scope> Nodlang::parse_code_block(ID<Scope> curr_scope)
 {
+    FW_ASSERT(curr_scope);
+
     start_transaction();
-
-    auto curr_scope = _create_scope ? parser_state.graph->create_scope()->components.get<Scope>() : get_current_scope();
-
-    FW_ASSERT(curr_scope);// needed
 
     while (parser_state.ribbon.can_eat())
     {
-        if (InstructionNode *instr_node = parse_instr())
+        if ( InstructionNode* instr_node = parse_instr().get() )
         {
-            parser_state.graph->connect({instr_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
+            parser_state.graph->connect({instr_node, Edge_t::IS_CHILD_OF, get_current_scope_node().get() });
+            continue;
         }
-        else if (
+
+        if (
             parse_conditional_structure() ||
             parse_for_loop() ||
             parse_while_loop() ||
-            parse_scope())
-        {}
-        else
+            parse_scope()
+        )
         {
-            break;
+            continue;
         }
+
+        break;
     }
 
     if (curr_scope->get_owner()->children.empty())
     {
         rollback_transaction();
-        return nullptr;
+        return {};
     }
     else
     {
@@ -711,7 +710,7 @@ IScope *Nodlang::parse_code_block(bool _create_scope)
     }
 }
 
-Property *Nodlang::parse_expression(unsigned short _precedence, Property *_leftOverride)
+Property* Nodlang::parse_expression(unsigned short _precedence, Property* _leftOverride)
 {
     LOG_VERBOSE("Parser", "parse expr...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
@@ -725,29 +724,27 @@ Property *Nodlang::parse_expression(unsigned short _precedence, Property *_leftO
     /*
 		Get the left handed operand
 	*/
-    Property *left = _leftOverride;
-    if (left == nullptr) left = parse_parenthesis_expression();
-    if (left == nullptr) left = parse_unary_operator_expression(_precedence);
-    if (left == nullptr) left = parse_function_call();
-    if (left == nullptr) left = parse_variable_declaration();
-    if (left == nullptr) left = parse_atomic_expression();
+    Property* left = _leftOverride;
+    if ( left == nullptr) left = parse_parenthesis_expression();
+    if ( left == nullptr) left = parse_unary_operator_expression(_precedence);
+    if ( left == nullptr) left = parse_function_call();
+    if ( left == nullptr) left = parse_variable_declaration();
+    if ( left == nullptr) left = parse_atomic_expression();
 
     if (!parser_state.ribbon.can_eat())
     {
         LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n")
     }
 
-    Property *result;
+    Property* result;
 
     /*
 		Get the right handed operand
 	*/
-    if (left)
+    if ( left != nullptr )
     {
         LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n")
-        auto binResult = parse_binary_operator_expression(_precedence, left);
-
-        if (binResult)
+        if ( Property* binResult = parse_binary_operator_expression(_precedence, left) )
         {
             LOG_VERBOSE("Parser", "parse expr... right parsed, recursive call\n")
             result = parse_expression(_precedence, binResult);
@@ -1045,7 +1042,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
     return Token::s_null;
 }
 
-Property *Nodlang::parse_function_call()
+Property* Nodlang::parse_function_call()
 {
     LOG_VERBOSE("Parser", "parse function call...\n")
 
@@ -1053,7 +1050,7 @@ Property *Nodlang::parse_function_call()
     if (!parser_state.ribbon.can_eat(3))
     {
         LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n")
-        return nullptr;
+        return {};
     }
 
     start_transaction();
@@ -1079,10 +1076,10 @@ Property *Nodlang::parse_function_call()
         {
             LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n")
             rollback_transaction();
-            return nullptr;
+            return {};
         }
     }
-    std::vector<Property *> args;
+    std::vector<Property* > args;
 
     // Declare a new function prototype
     func_type signature(fct_id);
@@ -1093,12 +1090,13 @@ Property *Nodlang::parse_function_call()
             parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
     {
 
-        if (auto property = parse_expression())
+        if ( Property* property = parse_expression() )
         {
-            args.push_back(property);                // store argument as property (already parsed)
+            args.push_back(property);            // store argument as property (already parsed)
             signature.push_arg(property->get_type());// add a new argument type to the proto.
             parser_state.ribbon.eat_if(Token_t::list_separator);
-        } else
+        }
+        else
         {
             parsingError = true;
         }
@@ -1109,7 +1107,7 @@ Property *Nodlang::parse_function_call()
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
 
@@ -1117,13 +1115,13 @@ Property *Nodlang::parse_function_call()
     std::shared_ptr<const iinvokable> invokable = find_function(&signature);
 
     auto connect_arg = [&](const func_type *_sig, Node *_node, size_t _arg_index) -> void {// lambda to connect input property to node for a specific argument index.
-        Property *src_property = args.at(_arg_index);
-        Property *dst_property = _node->props.get_input_at(_arg_index);
+        Property* src_property = args.at(_arg_index);
+        Property* dst_property = _node->props.get_input_at(_arg_index);
         FW_ASSERT(dst_property)
         parser_state.graph->connect(src_property, dst_property);
     };
 
-    Node *node;
+    ID<Node> fct_node_id;
     if (invokable)
     {
         /*
@@ -1133,7 +1131,7 @@ Property *Nodlang::parse_function_call()
          * TODO: remove this method, the parser should not check if function exist or not.
          *       this role is for the Compiler.
          */
-        node = parser_state.graph->create_function(invokable.get());
+        fct_node_id = parser_state.graph->create_function(invokable.get());
     }
     else
     {
@@ -1141,44 +1139,55 @@ Property *Nodlang::parse_function_call()
          * If we DO NOT found a function matching signature, we create an abstract function.
          * The node will NOT be able to be evaluated.
          */
-        node = parser_state.graph->create_abstract_function(&signature);
+        fct_node_id = parser_state.graph->create_abstract_function(&signature);
     }
 
+    Node* fct_node{ fct_node_id.get() };
     for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
     {
-        connect_arg(&signature, node, argIndex);
+        connect_arg(&signature, fct_node, argIndex);
     }
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-    return node->props.get(k_value_property_name);
+    return fct_node->get_prop(k_value_property_name);
 }
 
-Scope *Nodlang::get_current_scope()
+ID<Scope> Nodlang::get_current_scope()
 {
-    FW_ASSERT(parser_state.scope.top());// stack SHALL not be empty.
+    FW_ASSERT( parser_state.scope.top() );
     return parser_state.scope.top();
 }
 
-ConditionalStructNode *Nodlang::parse_conditional_structure()
+ID<Node> Nodlang::get_current_scope_node()
+{
+    FW_ASSERT( parser_state.scope.top() );
+    return parser_state.scope.top()->get_owner();
+}
+
+ID<ConditionalStructNode> Nodlang::parse_conditional_structure()
 {
     LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
     start_transaction();
 
     bool success = false;
-    InstructionNode* condition = nullptr;
-    Node* scopeIf = nullptr;
-    ConditionalStructNode* else_cond_struct = nullptr;
+    ID<InstructionNode>       condition;
+    ID<Node>                  scopeIf;
+    ID<ConditionalStructNode> condStruct;
+    ID<ConditionalStructNode> else_cond_struct;
 
-    if (parser_state.ribbon.eat_if(Token_t::keyword_if).is_null())
+    Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
+    if ( if_token.is_null() )
     {
-        return nullptr;
+        return {};
     }
 
-    ConditionalStructNode *condStruct = parser_state.graph->create_cond_struct();
-    parser_state.graph->connect({condStruct, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-    parser_state.scope.push(condStruct->components.get<Scope>());
+    condStruct = parser_state.graph->create_cond_struct();
+    Node* scope_node = get_current_scope()->get_owner().get();
+
+    parser_state.graph->connect({condStruct.get(), Edge_t::IS_CHILD_OF, scope_node});
+    parser_state.scope.push(condStruct->get_component<Scope>()->id());
 
     condStruct->token_if  = parser_state.ribbon.get_eaten();
 
@@ -1189,30 +1198,28 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
         {
             condition->set_name("Condition");
             condition->set_name("Cond.");
-            condStruct->set_cond_expr(condition);
-            parser_state.graph->connect(condition->as_property, condStruct->condition_property());
+            condStruct->cond_expr = condition;
+            parser_state.graph->connect(condition->as_prop(), condStruct->condition_property());
         }
 
-        if ( empty_parenthesis || (condition && !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null()))
+        if ( empty_parenthesis || ( condition.get() && !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null()))
         {
-            if (scopeIf = parse_scope())
+            scopeIf = parse_scope();
+            if ( scopeIf.get() != nullptr )
             {
                 if (!parser_state.ribbon.eat_if(Token_t::keyword_else).is_null())
                 {
                     condStruct->token_else = parser_state.ribbon.get_eaten();
 
                     /* parse else scope */
-                    if (parse_scope())
+                    if ( parse_scope().get() )
                     {
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
                         success = true;
                     }
                         /* (or) parse else if scope */
-                    else if (else_cond_struct = parse_conditional_structure())
+                    else if ( parse_conditional_structure().get() )
                     {
-                        // Having "else if" looks weird, indeed it is obvious the second "if" is already in the "else" branch.
-                        // else_cond_struct->set_name("else if");
-
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
                         success = true;
                     } else
@@ -1245,18 +1252,18 @@ ConditionalStructNode *Nodlang::parse_conditional_structure()
         return condStruct;
     }
 
-    if(else_cond_struct) parser_state.graph->destroy(else_cond_struct);
-    if(scopeIf) parser_state.graph->destroy(scopeIf);
-    if(condition) parser_state.graph->destroy(condition);
-    if(condStruct) parser_state.graph->destroy(condStruct);
+    parser_state.graph->destroy( else_cond_struct );
+    parser_state.graph->destroy( scopeIf );
+    parser_state.graph->destroy( condition );
+    parser_state.graph->destroy( condStruct );
     rollback_transaction();
-    return nullptr;
+    return {};
 }
 
-ForLoopNode *Nodlang::parse_for_loop()
+ID<ForLoopNode> Nodlang::parse_for_loop()
 {
     bool success = false;
-    ForLoopNode *for_loop_node = nullptr;
+    ID<ForLoopNode> for_loop_node;
     start_transaction();
 
     Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for);
@@ -1264,8 +1271,8 @@ ForLoopNode *Nodlang::parse_for_loop()
     if (!token_for.is_null())
     {
         for_loop_node = parser_state.graph->create_for_loop();
-        parser_state.graph->connect({for_loop_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-        parser_state.scope.push(for_loop_node->components.get<Scope>());
+        parser_state.graph->connect({for_loop_node.get(), Edge_t::IS_CHILD_OF, get_current_scope()->get_owner().get() });
+        parser_state.scope.push(for_loop_node->get_component<Scope>()->id());
 
         for_loop_node->token_for = token_for;
 
@@ -1276,41 +1283,41 @@ ForLoopNode *Nodlang::parse_for_loop()
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
         } else
         {
-            InstructionNode *init_instr = parse_instr();
-            if (!init_instr)
+            ID<InstructionNode> init_instr = parse_instr();
+            if (!init_instr.get())
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
             } else
             {
                 init_instr->set_name("Initialisation");
-                parser_state.graph->connect(init_instr->as_property, for_loop_node->get_init_expr());
-                for_loop_node->set_init_instr(init_instr);
+                parser_state.graph->connect(init_instr->as_prop(), for_loop_node->get_init_expr());
+                for_loop_node->init_instr = init_instr;
 
-                InstructionNode *cond_instr = parse_instr();
-                if (!cond_instr)
+                ID<InstructionNode> cond_instr = parse_instr();
+                if (!cond_instr.get())
                 {
                     LOG_ERROR("Parser", "Unable to find condition instruction.\n")
                 } else
                 {
                     cond_instr->set_name("Condition");
-                    parser_state.graph->connect(cond_instr->as_property, for_loop_node->condition_property());
-                    for_loop_node->set_cond_expr(cond_instr);
+                    parser_state.graph->connect(cond_instr->as_prop(), for_loop_node->condition_property());
+                    for_loop_node->cond_instr = cond_instr;
 
-                    InstructionNode *iter_instr = parse_instr();
-                    if (!iter_instr)
+                    ID<InstructionNode> iter_instr = parse_instr();
+                    if (!iter_instr.get())
                     {
                         LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
                     } else
                     {
                         iter_instr->set_name("Iteration");
-                        parser_state.graph->connect(iter_instr->as_property, for_loop_node->get_iter_expr());
-                        for_loop_node->set_iter_instr(iter_instr);
+                        parser_state.graph->connect(iter_instr->as_prop(), for_loop_node->get_iter_expr() );
+                        for_loop_node->iter_instr = iter_instr;
 
                         Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
                         if (close_bracket.is_null())
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
-                        } else if (!parse_scope())
+                        } else if (!parse_scope().get())
                         {
                             LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
                         } else
@@ -1330,17 +1337,17 @@ ForLoopNode *Nodlang::parse_for_loop()
     } else
     {
         rollback_transaction();
-        if (for_loop_node) parser_state.graph->destroy(for_loop_node);
-        for_loop_node = nullptr;
+        parser_state.graph->destroy( for_loop_node );
+        for_loop_node.reset();
     }
 
     return for_loop_node;
 }
 
-WhileLoopNode *Nodlang::parse_while_loop()
+ID<WhileLoopNode> Nodlang::parse_while_loop()
 {
     bool success = false;
-    WhileLoopNode *while_loop_node = nullptr;
+    ID<WhileLoopNode> while_loop_node;
     start_transaction();
 
     Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while);
@@ -1348,8 +1355,8 @@ WhileLoopNode *Nodlang::parse_while_loop()
     if (!token_while.is_null())
     {
         while_loop_node = parser_state.graph->create_while_loop();
-        parser_state.graph->connect({while_loop_node, Edge_t::IS_CHILD_OF, parser_state.scope.top()->get_owner()});
-        parser_state.scope.push(while_loop_node->components.get<Scope>());
+        parser_state.graph->connect({while_loop_node.get(), Edge_t::IS_CHILD_OF, get_current_scope()->get_owner().get() });
+        parser_state.scope.push(while_loop_node->get_component<Scope>() );
 
         while_loop_node->token_while = token_while;
 
@@ -1359,18 +1366,18 @@ WhileLoopNode *Nodlang::parse_while_loop()
         {
             LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n")
         }
-        else if( InstructionNode* cond_instr = parse_instr())
+        else if( InstructionNode* cond_instr = parse_instr().get())
         {
             cond_instr->set_name("Condition");
-            parser_state.graph->connect(cond_instr->as_property, while_loop_node->condition_property());
-            while_loop_node->set_cond_expr(cond_instr);
+            while_loop_node->cond_instr = cond_instr->id();
+            parser_state.graph->connect(cond_instr->as_prop(), while_loop_node->condition_property());
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
             if (close_bracket.is_null())
             {
                 LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n")
             }
-            else if (!parse_scope())
+            else if (!parse_scope().get())
             {
                 LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n")
             }
@@ -1389,18 +1396,15 @@ WhileLoopNode *Nodlang::parse_while_loop()
     }
 
     rollback_transaction();
-    if (while_loop_node)
-    {
-        parser_state.graph->destroy(while_loop_node);
-    }
-    return nullptr;
+    parser_state.graph->destroy( while_loop_node );
+    return {};
 }
 
-Property *Nodlang::parse_variable_declaration()
+Property* Nodlang::parse_variable_declaration()
 {
 
     if (!parser_state.ribbon.can_eat(2))
-        return nullptr;
+        return {};
 
     start_transaction();
 
@@ -1410,11 +1414,12 @@ Property *Nodlang::parse_variable_declaration()
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
         const type* type = get_type(type_token.m_type);
-        VariableNode *variable = parser_state.graph->create_variable(type, identifier_token.word_to_string(), get_current_scope());
+        ID<VariableNode> variable_id = parser_state.graph->create_variable(type, identifier_token.word_to_string(), get_current_scope() );
+        VariableNode* variable{ variable_id.get() };
         variable->set_declared(true);
         variable->type_token = type_token;
         variable->identifier_token.transfer_prefix_and_suffix_from(&identifier_token);
-        variable->get_value()->token = identifier_token;
+        variable->property()->token = identifier_token;
 
         // try to parse assignment
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
@@ -1422,7 +1427,7 @@ Property *Nodlang::parse_variable_declaration()
         {
             Property* expression_result = parse_expression();
             if (expression_result &&
-                type::is_implicitly_convertible(expression_result->get_type(), variable->get_value()->get_type()))
+                type::is_implicitly_convertible(expression_result->get_type(), variable->type() ) )
             {
                 parser_state.graph->connect(expression_result, variable);
                 variable->assignment_operator_token = operator_token;
@@ -1431,17 +1436,17 @@ Property *Nodlang::parse_variable_declaration()
             {
                 LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifier_token.word_to_string().c_str())
                 rollback_transaction();
-                parser_state.graph->destroy(variable);
-                return nullptr;
+                parser_state.graph->destroy( variable->id() );
+                return {};
             }
         }
 
         commit_transaction();
-        return variable->get_value();
+        return variable->property();
     }
 
     rollback_transaction();
-    return nullptr;
+    return {};
 }
 
 //---------------------------------------------------------------------------------------------------------------------------
@@ -1455,21 +1460,19 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     if (_component->is_operator())
     {
         // generic serialize property lambda
-        auto serialize_property_with_or_without_brackets = [this, &_out](Property *property, bool needs_brackets) {
-            if (needs_brackets)
+        auto serialize_property_with_or_without_brackets = [this, &_out](const Property* property, bool needs_brackets)
+        {
+            if (!needs_brackets)
             {
-                serialize_token_t(_out, Token_t::parenthesis_open);
+                serialize_property(_out, property);
+                return;
             }
-
+            serialize_token_t(_out, Token_t::parenthesis_open);
             serialize_property(_out, property);
-
-            if (needs_brackets)
-            {
-                serialize_token_t(_out, Token_t::parenthesis_close);
-            }
+            serialize_token_t(_out, Token_t::parenthesis_close);
         };
 
-        Node *owner = _component->get_owner();
+        const Node* owner = _component->get_owner().get();
         const std::vector<Property*>& args = _component->get_args();
         int precedence = get_precedence(_component->get_function());
 
@@ -1510,11 +1513,16 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
                 // Operator
                 const Token* token = &_component->token;
 
-                if (!token->is_null()) _out.append(token->prefix(), token->prefix_size());
-
-                _out.append(type->get_identifier());
-
-                if (!token->is_null()) _out.append(token->suffix(), token->suffix_size());
+                if (!token->is_null())
+                {
+                    _out.append(token->prefix(), token->prefix_size());
+                    _out.append(type->get_identifier());
+                    _out.append(token->suffix(), token->suffix_size());
+                }
+                else
+                {
+                    _out.append(type->get_identifier());
+                }
 
                 auto inner_operator = owner->get_connected_invokable(args[0]);
                 serialize_property_with_or_without_brackets(args[0], inner_operator != nullptr);
@@ -1529,7 +1537,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     return _out;
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<Property *> &_args) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<Property* > &_args) const
 {
     _out.append(_signature->get_identifier());
     serialize_token_t(_out, Token_t::parenthesis_open);
@@ -1580,9 +1588,9 @@ std::string &Nodlang::serialize_type(std::string &_out, const fw::type *_type) c
     return _out.append(to_string(_type));
 }
 
-std::string &Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const
+std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const
 {
-    const InstructionNode *decl_instr = _node->get_declaration_instr();
+    InstructionNode* decl_instr = _node->get_declaration_instr().get();
 
     // 1. Serialize variable's type
 
@@ -1595,7 +1603,7 @@ std::string &Nodlang::serialize_variable(std::string &_out, const VariableNode *
         }
         else // If created in the graph by the user
         {
-            serialize_type(_out, _node->get_value()->get_type());
+            serialize_type(_out, _node->property()->get_type());
             _out.append(" ");
         }
     }
@@ -1606,7 +1614,7 @@ std::string &Nodlang::serialize_variable(std::string &_out, const VariableNode *
 
     // 3. If variable is connected, serialize its assigned expression
 
-    Property *value = _node->get_value();
+    const Property* value = _node->property();
     if (decl_instr && value->has_input_connected())
     {
         _out.append(_node->assignment_operator_token.is_null() ? " = " : _node->assignment_operator_token.buffer_to_string());
@@ -1617,7 +1625,7 @@ std::string &Nodlang::serialize_variable(std::string &_out, const VariableNode *
 
 std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *variant) const
 {
-    std::string variant_string = variant->convert_to<std::string>();
+    std::string variant_string = variant->to<std::string>();
 
     if (variant->get_type()->is<std::string>())
     {
@@ -1629,11 +1637,11 @@ std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *va
 std::string &Nodlang::serialize_property(std::string &_out, const Property *_property, bool recursively) const
 {
     // specific case of a Node*
-    if (_property->get_type()->is<Node*>())
+    if (_property->get_type()->is<ID<Node>>())
     {
-        if (_property->get_variant()->is_initialized())
+        if ( (*_property)->is_initialized() )
         {
-            return serialize_node(_out, (const Node *) *_property);
+            return serialize_node(_out, (i32_t)*_property->value() );
         }
     }
 
@@ -1643,28 +1651,28 @@ std::string &Nodlang::serialize_property(std::string &_out, const Property *_pro
         _out.append(_property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
-    auto owner = _property->get_owner();
+    Node* owner = _property->owner().get();
     if (recursively && owner && _property->allows_connection(Way_In) && owner->is_connected_with(_property))
     {
-        Property *src_property = _property->get_input();
-        InvokableComponent *compute_component = src_property->get_owner()->components.get<InvokableComponent>();
+        Property*           src_property      = _property->get_input();
+        ID<InvokableComponent> compute_component = src_property->owner()->get_component<InvokableComponent>();
 
         if (compute_component)
         {
-            serialize_invokable(_out, compute_component);
-        } else
+            serialize_invokable(_out, compute_component.get());
+        }
+        else
         {
             serialize_property(_out, src_property, false);
         }
-    } else
+    }
+    else if ( owner->get_type()->is<VariableNode>() )
     {
-        if (owner && fw::extends<VariableNode>(owner) )
-        {
-            _out.append( owner->name );
-        } else
-        {
-            serialize_variant(_out, _property->get_variant());
-        }
+        _out.append( owner->name );
+    }
+    else
+    {
+        serialize_variant(_out, _property->value() );
     }
 
     if (!_property->token.is_null())
@@ -1674,47 +1682,47 @@ std::string &Nodlang::serialize_property(std::string &_out, const Property *_pro
     return _out;
 }
 
-std::string &Nodlang::serialize_node(std::string &_out, const Node *_node) const
+std::string& Nodlang::serialize_node(std::string &_out, ID<const Node> node_id) const
 {
-    FW_ASSERT(_node != nullptr)
-    const type* type = _node->get_type();
-
-    if (auto instr = fw::cast<const InstructionNode>(_node))
+    const Node* node{ node_id.get() };
+    FW_ASSERT( node )
+    const type* type = node->get_type();
+    if (auto* instr = fw::cast<const InstructionNode>(node ) )
     {
         return serialize_instr(_out, instr);
     }
 
-    if (auto cond_struct = fw::cast<const ConditionalStructNode>(_node))
+    if ( auto* cond_struct = fw::cast<const ConditionalStructNode>(node ) )
     {
         return serialize_cond_struct(_out, cond_struct);
     }
 
-    if (auto for_loop = fw::cast<const ForLoopNode>(_node))
+    if ( auto* for_loop = fw::cast<const ForLoopNode>(node ) )
     {
         return serialize_for_loop(_out, for_loop);
     }
 
-    if (auto while_loop = fw::cast<const WhileLoopNode>(_node))
+    if ( auto* while_loop = fw::cast<const WhileLoopNode>(node ) )
     {
         return serialize_while_loop(_out, while_loop);
     }
 
-    if (auto scope = _node->components.get<Scope>())
+    if ( auto* scope = node->get_component<Scope>().get() )
     {
         return serialize_scope(_out, scope);
     }
 
-    if (auto literal = fw::cast<const LiteralNode>(_node))
+    if ( auto* literal = fw::cast<const LiteralNode>(node ) )
     {
-        return serialize_property(_out, literal->value);
+        return serialize_property(_out, literal->value());
     }
 
-    if (auto variable = fw::cast<const VariableNode>(_node))
+    if ( auto* variable = fw::cast<const VariableNode>(node ) )
     {
         return serialize_variable(_out, variable);
     }
 
-    if (auto invokable = _node->components.get<InvokableComponent>())
+    if (auto* invokable = node->get_component<InvokableComponent>().get() )
     {
         return serialize_invokable(_out, invokable);
     }
@@ -1727,23 +1735,21 @@ std::string &Nodlang::serialize_node(std::string &_out, const Node *_node) const
 std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
 {
     serialize_token(_out, _scope->token_begin);
-    auto &children = _scope->get_owner()->children;
-    for (Node* each_child: children)
+    for (ID<const Node> each_child : _scope->get_owner()->children)
     {
-        serialize_node(_out, each_child);
+        serialize_node(_out, each_child );
     }
     return serialize_token(_out, _scope->token_end);
 }
 
-std::string &Nodlang::serialize_instr(std::string &_out, const InstructionNode *_instruction) const
+std::string& Nodlang::serialize_instr(std::string &_out, const InstructionNode *_instruction) const
 {
     FW_EXPECT(_instruction != nullptr, "IntructionNode should NOT be nullptr");
 
-    if (_instruction->root->has_input_connected() && _instruction->root->get_variant()->is_initialized())
+    Property* instr_root = _instruction->root();
+    if (instr_root->has_input_connected() && (*instr_root)->is_initialized())
     {
-        auto root_node = static_cast<const Node*>(*_instruction->root);
-        FW_ASSERT(root_node)
-        serialize_node(_out, root_node);
+        serialize_node(_out, instr_root->owner() );
     }
 
     return serialize_token(_out, _instruction->token_end);
@@ -1774,22 +1780,22 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
     //       More work to do to know if expression is a declaration or not.
 
-    Property *input = _for_loop->get_init_expr()->get_input();
-    if (input && fw::extends<VariableNode>(input->get_owner()) )
+    Node* input_node = _for_loop->get_init_expr()->get_input()->owner().get();
+    if ( auto * input_variable = fw::cast<const VariableNode>( input_node ) )
     {
-        serialize_variable(_out, fw::cast<VariableNode>(input->get_owner()));
+        serialize_variable(_out, input_variable );
     }
-    else if (const InstructionNode* init_instr = _for_loop->get_init_instr())
+    else if ( const InstructionNode* init_instr = _for_loop->init_instr.get())
     {
         serialize_instr(_out, init_instr);
     }
 
-    if(const InstructionNode* condition = _for_loop->get_cond_expr())
+    if( const InstructionNode* condition = _for_loop->cond_instr.get() )
     {
         serialize_instr(_out, condition);
     }
 
-    if(const Property* iter_instr = _for_loop->get_iter_expr())
+    if( const Property* iter_instr = _for_loop->get_iter_expr() )
     {
         serialize_property(_out, iter_instr);
     }
@@ -1797,7 +1803,7 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     serialize_token_t(_out, Token_t::parenthesis_close);
 
     // if scope
-    if (auto *scope = _for_loop->get_condition_true_scope())
+    if (const Scope* scope = _for_loop->get_condition_true_scope().get())
     {
         serialize_scope(_out, scope);
     }
@@ -1810,7 +1816,7 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     return _out;
 }
 
-std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode* _while_loop_node) const
+std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode *_while_loop_node) const
 {
 
     if( _while_loop_node->token_while.is_null())
@@ -1824,7 +1830,7 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 
     serialize_token_t(_out, Token_t::parenthesis_open);
 
-    if(const InstructionNode* condition = _while_loop_node->get_cond_expr())
+    if( const InstructionNode* condition = _while_loop_node->cond_instr.get() )
     {
         serialize_instr(_out, condition);
     }
@@ -1832,7 +1838,7 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
     serialize_token_t(_out, Token_t::parenthesis_close);
 
     // if scope
-    if (auto *scope = _while_loop_node->get_condition_true_scope())
+    if ( const Scope* scope = _while_loop_node->get_condition_true_scope().get())
     {
         serialize_scope(_out, scope);
     }
@@ -1860,14 +1866,14 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const Conditional
 
     // ... ( <condition> )
     serialize_token_t(_out, Token_t::parenthesis_open);
-    if ( const InstructionNode* condition = _condStruct->get_cond_expr() )
+    if ( const InstructionNode* condition = _condStruct->cond_expr.get() )
     {
         serialize_instr(_out, condition);
     }
     serialize_token_t(_out, Token_t::parenthesis_close);
 
     // ... ( ... ) <scope>
-    if (auto *ifScope = _condStruct->get_condition_true_scope())
+    if ( const Scope* ifScope = _condStruct->get_condition_true_scope().get() )
     {
         serialize_scope(_out, ifScope);
     }
@@ -1884,10 +1890,9 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const Conditional
     if ( !_condStruct->token_else.is_null() )
     {
         serialize_token(_out, _condStruct->token_else);
-        Scope *elseScope = _condStruct->get_condition_false_scope();
-        if (elseScope)
+        if ( const Scope* else_scope = _condStruct->get_condition_false_scope().get() )
         {
-            serialize_node(_out, elseScope->get_owner());
+            serialize_node(_out, else_scope->get_owner() );
         }
     }
     return _out;

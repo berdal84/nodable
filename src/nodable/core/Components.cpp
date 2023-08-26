@@ -4,47 +4,32 @@
 using namespace ndbl;
 
 void
-Components::add(Component *component)
+Components::add(ID<Component> id)
 {
-    m_components_by_type.emplace(component->get_type()->id(), component);
-    m_components.push_back(component);
-    component->set_owner(m_owner);
+    Component* component = id.get();
+    const fw::type* type = component->get_type();
+    std::type_index type_id = type->id();
+
+    m_components_by_type.emplace( type_id, id );
+    m_components.push_back( id );
+    component->set_owner( m_owner );
 }
 
 void
-Components::remove(Component *component)
+Components::remove(ID<Component> component)
 {
-    auto found = std::find(m_components.begin(), m_components.end(), component);
+    auto found = std::find(m_components.begin(), m_components.end(), component->id() );
     FW_EXPECT(found != m_components.end(), "Component can't be found it those components");
     m_components_by_type.erase(component->get_type()->id());
     m_components.erase(found);
-    component->set_owner(nullptr);
+    component->set_owner({});
 }
 
-Component* Components::get(const fw::type* desired_type) const
+void Components::set_owner(ID<Node> owner)
 {
-    // Search with class name
+    m_owner = owner;
+    for(auto each_component : m_components )
     {
-        auto it = m_components_by_type.find(desired_type->id() );
-        if (it != m_components_by_type.end())
-        {
-            return it->second;
-        }
+        each_component->set_owner( owner );
     }
-
-    // Search for a derived class
-    for (const auto & [name, component] : m_components_by_type)
-    {
-        if ( component->get_type()->is_child_of(desired_type) )
-        {
-            return component;
-        }
-    }
-
-    return nullptr;
-}
-
-std::vector<Component*> Components::get_all()
-{
-    return m_components;
 }

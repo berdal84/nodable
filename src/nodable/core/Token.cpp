@@ -120,4 +120,63 @@ std::string Token::buffer_to_string() const
         return { buffer(), m_buffer_size };
     }
     return {};
+}
+
+
+Token::Token(Token&& other)
+{
+    *this = std::move( other );
+};
+
+Token& Token::operator=(Token&& other)
+{
+    if( this == &other )
+    {
+        return *this;
+    }
+
+    m_source_buffer          = other.m_source_buffer;
+    m_word_size              = other.m_word_size;
+    m_buffer_size            = other.m_buffer_size;
+    m_is_source_buffer_owned = other.m_is_source_buffer_owned;
+    m_word_start_pos         = other.m_word_start_pos;
+    m_buffer_start_pos       = other.m_buffer_start_pos;
+    m_type                   = other.m_type;
+    m_index                  = other.m_index;
+
+    other.m_source_buffer          = nullptr;
+    other.m_buffer_size            = 0;
+    other.m_word_size              = 0;
+    other.m_is_source_buffer_owned = false;
+    other.m_buffer_start_pos       = 0;
+    other.m_word_start_pos         = 0;
+    other.m_buffer_start_pos       = 0;
+    other.m_type                   = Token_t::null;
+    other.m_index                  = 0;
+
+    return *this;
+};
+
+Token& Token::operator=(const Token& other)
+{
+    if( m_is_source_buffer_owned )
+    {
+        delete[] this->m_source_buffer;
+    }
+
+    m_index                  = other.m_index;
+    m_buffer_start_pos       = other.m_buffer_start_pos;
+    m_buffer_size            = other.m_buffer_size;
+    m_word_start_pos         = other.m_word_start_pos;
+    m_word_size              = other.m_word_size;
+    m_type                   = other.m_type;
+    m_is_source_buffer_owned = other.m_is_source_buffer_owned;
+    m_source_buffer          = other.m_is_source_buffer_owned ? new char(m_buffer_size) : other.m_source_buffer;
+
+    if( other.m_is_source_buffer_owned )
+    {
+        memcpy(m_source_buffer, other.m_source_buffer, m_buffer_size);
+    }
+
+    return *this;
 };

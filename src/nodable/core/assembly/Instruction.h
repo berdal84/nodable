@@ -2,6 +2,7 @@
 
 #include "fw/core/types.h"
 #include "fw/core/reflection/reflection"
+#include "fw/core/Pool.h"
 
 namespace ndbl
 {
@@ -9,6 +10,7 @@ namespace ndbl
     class Scope;
     class VariableNode;
     class Node;
+    using fw::pool::ID;
 
 namespace assembly
 {
@@ -20,7 +22,7 @@ namespace assembly
         jmp,                   // unconditional jump.
         jne,                   // conditional jump.
         mov,                   // move or copy memory.
-        deref_ptr,             // pointer de-referencing.
+        deref_pool_id,         // pool::ID<T> de-referencing.
         pop_stack_frame,       // ends the current stack frame.
         pop_var,               // pop a variable from the stack.
         push_stack_frame,      // starts a new stack frame within the current.
@@ -30,7 +32,7 @@ namespace assembly
 
     R_ENUM(Instruction_t)
     R_ENUM_VALUE(mov)
-    R_ENUM_VALUE(deref_ptr)
+    R_ENUM_VALUE(deref_pool_id)
     R_ENUM_VALUE(eval_node)
     R_ENUM_VALUE(push_var)
     R_ENUM_VALUE(pop_var)
@@ -60,8 +62,8 @@ namespace assembly
     struct Instruction_uref
     {
         Instruction_t   opcode;
-        fw::qword*      qword_ptr;   // pointer to the data.
-        const fw::type* qword_type;  // pointed data's type.
+        fw::qword       pool_id; // pool id to the data.
+        const fw::type* type;    // pointed data's type.
     };
 
     // Compare two operands (test if equals)
@@ -77,8 +79,8 @@ namespace assembly
     {
         Instruction_t opcode;            // Instruction_t::push_xxx or Instruction_t::pop_xxx.
         union {
-            const VariableNode* var;     // a variable to push/pop.
-            const Scope*        scope;   // a scope to push/pop.
+            ID<VariableNode> var;     // a variable to push/pop.
+            ID<const Scope>  scope;   // a scope to push/pop.
         };
     };
 
@@ -86,7 +88,7 @@ namespace assembly
     struct Instruction_eval
     {
         Instruction_t opcode;
-        const Node*   node;             // The node to evaluate.
+        ID<Node>  node; // The node to evaluate.
     };
 
     /**

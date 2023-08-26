@@ -1,5 +1,6 @@
 #pragma once
 #include "fw/core/reflection/reflection"
+#include "fw/core/Pool.h"
 #include <unordered_map>
 
 namespace ndbl {
@@ -7,6 +8,7 @@ namespace ndbl {
     // forward declarations
     class Node;
     class Component;
+    using fw::pool::ID;
 
     /**
      * Store a list of Components* owned by a single owner.
@@ -14,17 +16,14 @@ namespace ndbl {
      */
     class Components
     {
+        friend Node;
     public:
-        Components(Node* _owner)
-            : m_owner(_owner)
-        {}
 
-        inline Node* get_owner()const
-        { return m_owner; }
+        Components() = default;
 
-        void       add(Component* component);
-        void       remove(Component* component);
-        Component* get(const fw::type*) const;
+        void              set_owner(ID<Node>);
+        void              add(ID<Component>);
+        void              remove(ID<Component>);
 
         /**
          * Ask if this Node has a Component with type T.
@@ -34,37 +33,44 @@ namespace ndbl {
         template<typename T>
         [[nodiscard]] inline bool
         has()const
-        { return get<T>(); }
+        { return get<T>() != fw::pool::ID_NULL; }
 
         template<typename T>
-        T* get()const;
+        ID<T> get()const;
 
-        inline std::unordered_map<fw::type::id_t , Component*>::const_iterator
+        inline std::unordered_map<fw::type::id_t , ID<Component>>::const_iterator
         begin() const { return m_components_by_type.cbegin(); }
 
-        inline std::unordered_map<fw::type::id_t, Component*>::const_iterator
+        inline std::unordered_map<fw::type::id_t, ID<Component>>::const_iterator
         end() const { return m_components_by_type.cend(); }
 
-        std::vector<Component*> get_all();
+        const std::vector<ID<Component>>& get_all()
+        { return m_components; }
 
-    protected:
-        Node*                   m_owner;
-        std::vector<Component*> m_components;
-        std::unordered_map<fw::type::id_t, Component*> m_components_by_type;
+    private:
+        ID<Node> m_owner;
+        std::vector<ID<Component>> m_components;
+        std::unordered_map<fw::type::id_t, ID<Component>> m_components_by_type;
     };
 
-    template<typename ComponentT>
-    ComponentT*
+    template<typename T>
+    ID<T>
     Components::get() const
     {
-        static_assert(fw::is_base_of<Component, ComponentT>::value, "ComponentT must inherit from Component");
+        static_assert(fw::is_base_of<Component, T>::value, "ComponentT must inherit from Component");
+        if ( m_components_by_type.empty() ) return {};
 
-        if ( m_components_by_type.empty() )
+        auto desired_typeid = std::type_index(typeid(T));
+
+        // Search with class name
         {
-            return nullptr;
+            auto it = m_components_by_type.find( desired_typeid );
+            if (it != m_components_by_type.end())
+            {
+                return ID<T>{it->second};
+            }
         }
 
-        const fw::type* desired_class = fw::type::get<ComponentT>();
-        return static_cast<ComponentT*>(get(desired_class));
+        return {};
     }
 }

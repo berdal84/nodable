@@ -23,10 +23,11 @@
 #include "PropertyView.h"
 #include "PropertyConnector.h"
 #include "Physics.h"
-#include "core/ComponentManager.h"
+#include "core/NodeUtils.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
+using namespace fw::pool;
 
 REGISTER
 {
@@ -44,7 +45,7 @@ GraphView::GraphView(Graph* graph)
         const fw::func_type* type = each_fct->get_type();
         bool is_operator = language.find_operator_fct(type) != nullptr;
 
-        auto create_node = [this, each_fct, is_operator]() -> Node*
+        auto create_node = [this, each_fct, is_operator]() -> ID<Node>
         {
             return m_graph->create_function(each_fct.get(), is_operator);
         };
@@ -63,15 +64,14 @@ bool GraphView::draw()
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
-    Node*           new_node         = nullptr;
+    ID<Node>    new_node_id;
     ImVec2          origin           = ImGui::GetCursorScreenPos();
-    const std::vector<Node*>& node_registry    = m_graph->get_node_registry();
-    std::vector<NodeView*> node_views          = ComponentManager::collect<NodeView>(node_registry);
+    auto            node_registry    = Pool::get_pool()->get( m_graph->get_node_registry() );
 
-	const PropertyConnector* dragged_property_conn = PropertyConnector::get_gragged();
+    const PropertyConnector* dragged_property_conn = PropertyConnector::get_dragged();
     const PropertyConnector* hovered_property_conn = PropertyConnector::get_hovered();
-    const NodeConnector*   dragged_node_conn   = NodeConnector::get_gragged();
-    const NodeConnector*   hovered_node_conn   = NodeConnector::get_hovered();
+    const NodeConnector*     dragged_node_conn     = NodeConnector::get_dragged();
+    const NodeConnector*     hovered_node_conn     = NodeConnector::get_hovered();
 
     /*
     * Function to draw an invocable menu (operators or functions)
@@ -120,7 +120,7 @@ bool GraphView::draw()
                 {
                     if ( menu_item.create_node_fct  )
                     {
-                        new_node = menu_item.create_node_fct();
+                        new_node_id = menu_item.create_node_fct()->id();
                     }
                     else
                     {
@@ -134,28 +134,27 @@ bool GraphView::draw()
         }	
     };
 
-    auto create_instr = [&]( Scope* _scope ) -> InstructionNode*
+    auto create_instr = [&]( Scope* _scope ) -> ID<InstructionNode>
     {
-        InstructionNode* instr_node = m_graph->create_instr();
+        ID<InstructionNode> instr_node = m_graph->create_instr();
         Token token(Token_t::end_of_instruction, "\n");
+
+        // Set '\n' as prefix
         token.m_word_start_pos = 1;
-        token.m_word_size = 0; // '\n' is the prefix
+        token.m_word_size = 0;
 
         instr_node->token_end = token;
         return instr_node;
     };
 
-    auto create_variable = [&](const fw::type* _type, const char*  _name, Scope*  _scope) -> VariableNode*
+    auto create_variable = [&](const fw::type* _type, const char*  _name, ID<Scope>  _scope) -> ID<VariableNode>
     {
-        VariableNode* var_node;
-        Scope*        scope = _scope;
-
-        if( !scope)
+        if( !_scope)
         {
-           scope = m_graph->get_root()->components.get<Scope>();
+           _scope = m_graph->get_root()->get_component<Scope>();
         }
 
-        var_node = m_graph->create_variable(_type, _name, scope );
+        ID<VariableNode> var_node = m_graph->create_variable(_type, _name, _scope );
         var_node->set_declared(true);
 
         Token token(Token_t::keyword_operator, " = ");
@@ -200,16 +199,17 @@ bool GraphView::draw()
        Draw Code Flow.
        Code flow is the set of green lines that links  a set of nodes.
      */
-    for( Node* each_node : node_registry)
+    for( Node* each_node : node_registry )
     {
         size_t slot_index = 0;
         size_t slot_count = each_node->successors.get_limit();
         float padding     = 2.0f;
         float linePadding = 5.0f;
-        for (Node* each_successor_node : each_node->successors )
+        for (ID<Node> each_successor_node : each_node->successors )
         {
-            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->components.get<NodeView>() );
-            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->components.get<NodeView>() );
+            // TODO: I should probably compute those 2 lines once for all
+            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
+            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
 
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
@@ -290,16 +290,16 @@ bool GraphView::draw()
         /*
             Wires
         */
-        for (auto eachNode : node_registry)
+        for (auto eachNode : node_registry )
         {
-            for (auto& dst_property : eachNode->props.by_index())
+            for (Property* dst_property : eachNode->props.by_index())
             {
-                if ( const Property * src_property = dst_property->get_input() )
+                if ( Property* src_property = dst_property->get_input() )
                 {
-                    Node *src_owner = src_property->get_owner();
-                    Node *dst_owner = dst_property->get_owner();
-                    NodeView* src_node_view = src_owner->components.get<NodeView>();
-                    NodeView* dst_node_view = eachNode->components.get<NodeView>(); // equival to dst_property->getOwner()->get<NodeView>();
+                    Node *src_owner = src_property->owner().get();
+                    Node *dst_owner = dst_property->owner().get();
+                    NodeView* src_node_view = src_owner->get_component<NodeView>().get();
+                    NodeView* dst_node_view = eachNode->get_component<NodeView>().get(); // equival to dst_property->getOwner()->get<NodeView>();
 
                     if (src_node_view->is_visible() && dst_node_view->is_visible() )
                     {
@@ -308,15 +308,15 @@ bool GraphView::draw()
 
                         if ( src_property_view && dst_property_view )
                         {
-                            ImVec2 src_pos = src_property_view->m_out->get_pos();
-                            ImVec2 dst_pos = dst_property_view->m_in->get_pos();
+                            ImVec2 src_pos = src_property_view->output()->get_pos();
+                            ImVec2 dst_pos = dst_property_view->input()->get_pos();
 
                             // do not draw long lines between a variable value
                             ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
                             ImVec4 shadow_color = app.config.ui_codeFlow_lineShadowColor;
 
 
-                            if ( NodeView::is_selected(src_property_view->m_nodeView) || NodeView::is_selected(dst_property_view->m_nodeView))
+                            if ( NodeView::is_selected(src_property_view->node_view) || NodeView::is_selected(dst_property_view->node_view))
                             {
                                 // blink wire colors
                                 float blink = 1.f + std::sin(float(app.core.elapsed_time()) * 10.f) * 0.25f;
@@ -363,7 +363,7 @@ bool GraphView::draw()
         /*
             NodeViews
         */
-		for (NodeView* each_node_view : node_views)
+		for ( NodeView* each_node_view : NodeUtils::get_components<NodeView>( m_graph->get_node_registry() ) )
 		{
             if (each_node_view->is_visible())
             {
@@ -371,13 +371,13 @@ bool GraphView::draw()
                 View::use_available_region(each_node_view);
                 changed |= each_node_view->draw();
 
-                if( app.virtual_machine.is_debugging() && app.virtual_machine.is_next_node(each_node_view->get_owner() ) )
+                if( app.virtual_machine.is_debugging() && app.virtual_machine.is_next_node( each_node_view->get_owner() ) )
                 {
                     ImGui::SetScrollHereY();
                 }
 
                 // dragging
-                if (NodeView::get_dragged() == each_node_view && ImGui::IsMouseDragging(0))
+                if (NodeView::get_dragged() == each_node_view->id() && ImGui::IsMouseDragging(0))
                 {
                     ImVec2 mouse_drag_delta = ImGui::GetMouseDragDelta();
                     each_node_view->translate(mouse_drag_delta, true);
@@ -385,7 +385,7 @@ bool GraphView::draw()
                     each_node_view->pinned = true;
                 }
 
-                isAnyNodeDragged |= NodeView::get_dragged() == each_node_view;
+                isAnyNodeDragged |= NodeView::get_dragged() == each_node_view->id();
                 isAnyNodeHovered |= each_node_view->is_hovered();
             }
 		}
@@ -398,7 +398,7 @@ bool GraphView::draw()
     if ( app.virtual_machine.is_program_running() )
     {
         const Node* node = app.virtual_machine.get_next_node();
-        if( NodeView* view = node->components.get<NodeView>())
+        if( NodeView* view = node->get_component<NodeView>().get() )
         {
             ImVec2 vm_cursor_pos = view->get_position(fw::Space_Screen, pixel_perfect);
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
@@ -421,9 +421,9 @@ bool GraphView::draw()
 	/*
 		Deselection (by double click)
 	*/
-	if ( NodeView::get_selected() && !isAnyNodeHovered && ImGui::IsMouseDoubleClicked(0) && ImGui::IsWindowFocused())
+	if ( NodeView::is_any_selected() && !isAnyNodeHovered && ImGui::IsMouseDoubleClicked(0) && ImGui::IsWindowFocused())
     {
-        NodeView::set_selected(nullptr);
+        NodeView::set_selected({});
     }
 
 	/*
@@ -455,19 +455,19 @@ bool GraphView::draw()
         if ( !dragged_node_conn )
         {
             // If dragging a property we create a VariableNode with the same type.
-            if ( dragged_property_conn && !dragged_property_conn->get_property_type()->is_ptr() )
+            if ( dragged_property_conn && !dragged_property_conn->get_property_type()->is<ID<Node>>() )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
-                    new_node = create_variable(dragged_property_conn->get_property_type(), "var", nullptr);
+                    new_node_id = create_variable(dragged_property_conn->get_property_type(), "var", {});
                 }
 
                 // we allows literal only if connected to variables.
                 // why? behavior when connecting a literal to a non var node is to digest it.
-                if ( fw::extends<VariableNode>( dragged_property_conn->get_property()->get_owner())
+                if ( dragged_property_conn->get_property()->owner()->get_type()->is<VariableNode>()
                      && ImGui::MenuItem(ICON_FA_FILE "Literal") )
                 {
-                    new_node = m_graph->create_literal(dragged_property_conn->get_property_type() );
+                    new_node_id = m_graph->create_literal(dragged_property_conn->get_property_type() );
                 }
             }
             // By not knowing anything, we propose all possible types to the user.
@@ -476,16 +476,16 @@ bool GraphView::draw()
                 if ( ImGui::BeginMenu("Variable") )
                 {
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                        new_node = create_variable(fw::type::get<bool>(), "var", nullptr);
+                        new_node_id = create_variable(fw::type::get<bool>(), "var", {});
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                        new_node = create_variable(fw::type::get<double>(), "var", nullptr);
+                        new_node_id = create_variable(fw::type::get<double>(), "var", {});
                     
                     if (ImGui::MenuItem(ICON_FA_DATABASE " Int (16bits)"))
-                        new_node = create_variable(fw::type::get<i16_t>(), "var", nullptr);
+                        new_node_id = create_variable(fw::type::get<i16_t>(), "var", {});
 
                     if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                        new_node = create_variable(fw::type::get<std::string>(), "var", nullptr);
+                        new_node_id = create_variable(fw::type::get<std::string>(), "var", {});
 
                     ImGui::EndMenu();
                 }
@@ -493,16 +493,16 @@ bool GraphView::draw()
                 if ( ImGui::BeginMenu("Literal") )
                 {
                     if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                        new_node = m_graph->create_literal(fw::type::get<bool>());
+                        new_node_id = m_graph->create_literal(fw::type::get<bool>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                        new_node = m_graph->create_literal(fw::type::get<double>());
+                        new_node_id = m_graph->create_literal(fw::type::get<double>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " Int (16bits)"))
-                        new_node = m_graph->create_literal(fw::type::get<i16_t>());
+                        new_node_id = m_graph->create_literal(fw::type::get<i16_t>());
 
                     if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                        new_node = m_graph->create_literal(fw::type::get<std::string>());
+                        new_node_id = m_graph->create_literal(fw::type::get<std::string>());
 
                     ImGui::EndMenu();
                 }
@@ -515,30 +515,30 @@ bool GraphView::draw()
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
             {
-                new_node = create_instr(nullptr);
+                new_node_id = create_instr(nullptr);
             }
         }
 
         if( !dragged_property_conn )
         {
             if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
-                new_node = m_graph->create_cond_struct();
+                new_node_id = m_graph->create_cond_struct();
             if (ImGui::MenuItem(ICON_FA_CODE " For Loop"))
-                new_node = m_graph->create_for_loop();
+                new_node_id = m_graph->create_for_loop();
             if (ImGui::MenuItem(ICON_FA_CODE " While Loop"))
-                new_node = m_graph->create_while_loop();
+                new_node_id = m_graph->create_while_loop();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
-                new_node = m_graph->create_scope();
+                new_node_id = m_graph->create_scope();
 
             ImGui::Separator();
 
             if (ImGui::MenuItem(ICON_FA_CODE " Program"))
             {
                 m_graph->clear();
-                new_node = m_graph->create_root();
+                new_node_id = m_graph->create_root();
             }
                 
         }
@@ -547,43 +547,42 @@ bool GraphView::draw()
         *  In case user has created a new node we need to connect it to the m_graph depending
         *  on if a connector is being dragged and  what is its nature.
         */
-        if (new_node)
+        if ( new_node_id )
         {
 
             // dragging node connector ?
             if ( dragged_node_conn )
             {
-                Node* dragged_node = dragged_node_conn->get_node();
                 Edge_t edge_type = dragged_node_conn->m_way == Way_Out ? Edge_t::IS_SUCCESSOR_OF : Edge_t::IS_PREDECESSOR_OF;
-                m_graph->connect( {new_node, edge_type, dragged_node} );
+                m_graph->connect( {new_node_id.get(), edge_type, dragged_node_conn->get_node().get()} );
                 NodeConnector::stop_drag();
             }
             else if ( dragged_property_conn )
             {
                 if ( dragged_property_conn->m_way == Way_In )
                 {
-                    Property * dst_property = dragged_property_conn->get_property();
-                    Property * src_property = new_node->props.get_first(Way_Out, dst_property->get_type());
+                    Property* dst_property = dragged_property_conn->get_property();
+                    Property* src_property = new_node_id->props.get_first(Way_Out, dst_property->get_type());
                     m_graph->connect( src_property, dst_property );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    Property * src_property = dragged_property_conn->get_property();
-                    Property * dst_property = new_node->props.get_first(Way_In, src_property->get_type());
+                    Property*  src_property = dragged_property_conn->get_property();
+                    Property*  dst_property = new_node_id->props.get_first(Way_In, src_property->get_type());
                     m_graph->connect( src_property, dst_property);
                 }
                 PropertyConnector::stop_drag();
             }
-            else if ( new_node != m_graph->get_root() && app.config.experimental_graph_autocompletion )
+            else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
             {
                 m_graph->ensure_has_root();
                 // m_graph->connect( new_node, m_graph->get_root(), RelType::IS_CHILD_OF  );
             }
 
             // set new_node's view position
-            if( NodeView* view = new_node->components.get<NodeView>() )
+            if( ID<NodeView> view = new_node_id->get_component<NodeView>() )
             {
                 view->set_position(m_new_node_desired_position, fw::Space_Local);
             }
@@ -609,7 +608,7 @@ bool GraphView::draw()
 void GraphView::add_contextual_menu_item(
         const std::string &_category,
         const std::string &_label,
-        std::function<Node *(void)> _function,
+        std::function<ID<Node>(void)> _function,
         const fw::func_type *_signature)
 {
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
@@ -625,23 +624,21 @@ bool GraphView::update(float delta_time, i16_t subsample_count)
 
 bool GraphView::update(float delta_time)
 {
-    const std::vector<Node*>& nodes = m_graph->get_node_registry();
-    std::vector<Physics*>     physics_components  = ComponentManager::collect<Physics>(nodes);
-    std::vector<NodeView*>    nodeview_components = ComponentManager::collect<NodeView>(nodes);
-
     // 1. Update Physics Components
+    std::vector<Physics*> physics_components = NodeUtils::get_components<Physics>( m_graph->get_node_registry() );
     // 1.1 Apply constraints (but apply no translation, we want to be sure order does no matter)
-    for (Physics* physics_component : physics_components)
+    for (auto physics_component : physics_components)
     {
         physics_component->apply_constraints(delta_time);
     }
     // 1.3 Apply forces (translate views)
-    for(Physics* physics_component : physics_components)
+    for(auto physics_component : physics_components)
     {
         physics_component->apply_forces(delta_time, false);
     }
 
     // 2. Update NodeViews
+    std::vector<NodeView*> nodeview_components = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
     for (auto eachView : nodeview_components)
     {
         eachView->update(delta_time);
@@ -657,30 +654,27 @@ bool GraphView::update()
 
 void GraphView::frame_all_node_views()
 {
-    Node* root = m_graph->get_root();
+    Node* root = m_graph->get_root().get();
     if(!root)
     {
         return;
     }
-    std::vector<const NodeView*> views{root->components.get<NodeView>()};
     // frame the root's view (top-left corner)
-    frame_views(&views, true);
+    auto root_view = root->get_component<NodeView>().get();
+    frame_views( {root_view}, true);
 }
 
 void GraphView::frame_selected_node_views()
 {
-    std::vector<const NodeView*> views; // we use a vector to send it to a generic function
-    if( auto selected = NodeView::get_selected())
+    if( auto selected_view = NodeView::get_selected().get())
     {
-        views.push_back(selected);
+        frame_views({selected_view}, false);
     }
-    // frame selected node (centered)
-    frame_views(&views, false);
 }
 
-void GraphView::frame_views(const std::vector<const NodeView*>* _views, bool _align_top_left_corner)
+void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_top_left_corner)
 {
-    if (_views->empty())
+    if (_views.empty())
     {
         LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n")
         return;
@@ -712,7 +706,7 @@ void GraphView::frame_views(const std::vector<const NodeView*>* _views, bool _al
     // apply the translation
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
     //       See if we can use matrices in the shaders of ImGui...
-    std::vector<NodeView*> all_views = ComponentManager::collect<NodeView>(m_graph->get_node_registry());
+    auto all_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
     translate_all(translate_vec, all_views);
 
     // debug
@@ -735,7 +729,7 @@ void GraphView::unfold()
 
 void GraphView::translate_view(ImVec2 delta)
 {
-    auto views = ComponentManager::collect<NodeView>(m_graph->get_node_registry());
+    auto views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
     translate_all(delta, views);
 
     // TODO: implement a better solution, storing an offset. And then substract it in draw();

@@ -10,9 +10,9 @@ namespace ndbl
     {
     public:
         Cmd_DisconnectEdge(DirectedEdge _edge)
-        : m_src(_edge.prop.src)
-        , m_dst(_edge.prop.dst)
-        , m_graph(_edge.prop.src->get_owner()->parent_graph)
+        : m_src(_edge.src())
+        , m_dst(_edge.dst())
+        , m_graph(_edge.src_node()->parent_graph)
         , m_edge(_edge)
         {
             char str[200];
@@ -44,10 +44,10 @@ namespace ndbl
         }
 
     private:
-        std::string m_description;
-        Property*   m_src;
-        Property*   m_dst;
+        std::string  m_description;
+        Property*    m_src;
+        Property*    m_dst;
         DirectedEdge m_edge;
-        Graph*  m_graph;
+        Graph*       m_graph;
     };
 }

@@ -31,33 +31,27 @@ namespace ndbl {
             Right
         };
 
-        PropertyConnector(PropertyView* _property, Way _way, Side _pos)
-            : m_propertyView(_property)
-            , m_way(_way)
-            , m_display_side(_pos)
-        {
-                                                              FW_ASSERT(_property)
-        };
+        PropertyView* m_property_view;
+        Side          m_display_side;
+        Way           m_way;
 
+        PropertyConnector();
+        PropertyConnector(PropertyView* _property, Way _way, Side _pos);
         ~PropertyConnector() = default;
         PropertyConnector (const PropertyConnector&) = delete;
         PropertyConnector& operator= (const PropertyConnector&) = delete;
 
         Property*          get_property()const;
-        const fw::type * get_property_type()const;
+        const fw::type*    get_property_type()const;
         ImVec2             get_pos() const override;
-        bool               share_parent_with(const PropertyConnector *other)const override;
+        bool               share_parent_with(const PropertyConnector* other)const override;
         bool               has_node_connected() const;
-        static void        draw(const PropertyConnector *_connector, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor, bool _editable);
-        static void        dropped(const PropertyConnector *_left, const PropertyConnector *_right);
+        static void        draw(PropertyConnector*, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor, bool _editable);
+        static void        dropped(const PropertyConnector*, const PropertyConnector*);
 
-        PropertyView* m_propertyView;
-        Side        m_display_side;
-        Way         m_way;
-
-        static const PropertyConnector* s_hovered;
-        static const PropertyConnector* s_dragged;
-        static const PropertyConnector* s_focused;
+        static PropertyConnector* s_hovered;
+        static PropertyConnector* s_dragged;
+        static PropertyConnector* s_focused;
 
 
     };

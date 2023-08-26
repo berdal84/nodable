@@ -20,22 +20,26 @@ namespace ndbl
     {
     public:
         ConditionalStructNode();
+        ConditionalStructNode(ConditionalStructNode&& other) = default;
         ~ConditionalStructNode() = default;
-        Token token_if;   // The "if" token (ex: { prefix: "", word: "if", suffix: " "})
-        Token token_else; // The "else" token (ex: { prefix: " ", word: "else", suffix: " "})
+        ConditionalStructNode& operator=(ConditionalStructNode&&) = default;
 
-        bool              has_elseif() const;              // Check if another conditional structure is connected to the else branch (forming an else if)
+        Token               token_if;   // The "if" token (ex: { prefix: "", word: "if", suffix: " "})
+        Token               token_else; // The "else" token (ex: { prefix: " ", word: "else", suffix: " "})
+        ID<InstructionNode> cond_expr;  // The instruction to evaluate the condition
+
+        bool              has_elseif() const;// Check if another conditional structure is connected to the else branch (forming an else if)
 
         // implement IConditionalStruct (which is already documented)
 
-        Scope*           get_condition_true_scope()const override;
-        Scope*           get_condition_false_scope()const override;
-        Property *       condition_property()const override;
-        void             set_cond_expr(InstructionNode*) override;
-        InstructionNode* get_cond_expr()const override;
-    private:
-        InstructionNode* m_cond_expr;  // The instruction to evaluate the condition
+        ID<Scope>  get_condition_true_scope()const override;
+        ID<Scope>  get_condition_false_scope()const override;
+        Property * condition_property()const override;
 
         REFLECT_DERIVED_CLASS()
     };
 }
+
+
+static_assert(std::is_move_assignable_v<ndbl::ConditionalStructNode>, "Should be move assignable");
+static_assert(std::is_move_constructible_v<ndbl::ConditionalStructNode>, "Should be move constructible");

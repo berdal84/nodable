@@ -20,10 +20,16 @@
 
 #include "Register.h"
 #include "Instruction.h"
+#include "core/Pool.h"
 
 using namespace ndbl;
-using namespace fw;
 using namespace ndbl::assembly;
+using namespace fw;
+using namespace fw::pool;
+
+Code::Code(ID<Node> root)
+: m_meta_data({root})
+{}
 
 Instruction* Code::push_instr(Instruction_t _type)
 {
@@ -36,15 +42,15 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
 {
     if( _graph->is_empty()) return false;
 
-    const std::vector<Node*>& nodes = _graph->get_node_registry();
+    const std::vector<ID<Node>>& nodes = _graph->get_node_registry();
     for( auto each_node : nodes )
     {
         // Check for undeclared variables
-        if( const Scope* scope = each_node->components.get<Scope>())
+        if( auto scope = each_node->get_component<Scope>() )
         {
-            const std::vector<VariableNode*>& variables = scope->get_variables();
+            const std::vector< ID<VariableNode> >& variables = scope->variables();
 
-            for(const VariableNode* each_variable : variables)
+            for(auto each_variable : variables)
             {
                 if( !each_variable->is_declared() )
                 {
@@ -55,7 +61,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
         }
 
         // Check for undeclared functions
-        if( const InvokableComponent* component = each_node->components.get<InvokableComponent>() )
+        if( auto component = each_node->get_component<const InvokableComponent>() )
         {
             if ( !component->has_function() )
             {
@@ -72,21 +78,18 @@ void assembly::Compiler::compile(const Property * _property )
 {
     FW_ASSERT(_property)
 
-    if ( _property->get_type()->is<Node*>() )
+    if ( _property->is_referencing_a_node() )
     {
-        /*
-         * If property points a node, we dereference it and we compile the Node
-         */
-        return compile((const Node *) *_property);
+         return compile( _property->value_as_node_id() );
     }
 
-    if (Property * input = _property->get_input() )
+    if (Property* input = _property->get_input() )
     {
         /*
          * if the property has an input it means it is not a simple literal value and we have to compile it.
          * In order to do that, we traverse the syntax tree starting from the node connected to it.
          */
-        compile(input->get_owner());
+        compile( input->owner() );
     }
 }
 
@@ -98,28 +101,28 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
         return;
     }
 
-    Node* scope_owner = _scope->get_owner();
+    const Node* scope_owner = _scope->get_owner().get();
     FW_ASSERT(scope_owner)
 
     // call push_stack_frame
     {
         Instruction *instr  = m_temp_code->push_instr(Instruction_t::push_stack_frame);
-        instr->push.scope = _scope;
+        instr->push.scope = _scope->id();
         char str[64];
         snprintf(str, 64, "%s's scope", scope_owner->name.c_str());
         instr->m_comment = str;
     }
 
     // push each variable
-    for(const VariableNode* each_variable : _scope->get_variables())
+    for(auto each_variable : _scope->variables())
     {
-        Instruction *instr   = m_temp_code->push_instr(Instruction_t::push_var);
+        Instruction* instr   = m_temp_code->push_instr(Instruction_t::push_var);
         instr->push.var      = each_variable;
         instr->m_comment     = each_variable->name;
     }
 
     // compile content
-    for( const Node* each_node : scope_owner->children.content() )
+    for( auto each_node : scope_owner->children.content() )
     {
         compile(each_node);
     }
@@ -131,7 +134,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     }
 
     // pop each variable
-    for(const VariableNode* each_variable : _scope->get_variables())
+    for(auto each_variable : _scope->variables())
     {
         Instruction *instr   = m_temp_code->push_instr(Instruction_t::pop_var);
         instr->push.var      = each_variable;
@@ -139,21 +142,22 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     }
 
     {
-        Instruction *instr     = m_temp_code->push_instr(Instruction_t::pop_stack_frame);
-        instr->pop.scope = _scope;
-        instr->m_comment = scope_owner->name + "'s scope";
+        Instruction *instr = m_temp_code->push_instr(Instruction_t::pop_stack_frame);
+        instr->pop.scope   = _scope->id();
+        instr->m_comment   = scope_owner->name + "'s scope";
     }
 }
 
-void assembly::Compiler::compile(const Node* _node)
+void assembly::Compiler::compile(ID<const Node> node_id)
 {
-    if( !_node)
+    if( !node_id)
     {
         LOG_VERBOSE("Compiler", "Ignoring nullptr Node.\n")
         return;
     }
 
-    if ( _node->get_type()->is_child_of( fw::type::get<IConditionalStruct>() ))
+    const Node* _node { node_id.get() };
+    if ( _node->get_type()->is_child_of<IConditionalStruct>())
     {
         if ( auto for_loop = fw::cast<const ForLoopNode>(_node))
         {
@@ -182,21 +186,21 @@ void assembly::Compiler::compile(const Node* _node)
     else
     {
         // eval inputs
-        for ( const Node* each_input : _node->inputs.content() )
+        for ( ID<Node> each_input : _node->inputs.content() )
         {
-            if ( !fw::extends<VariableNode>(each_input) )
+            if ( each_input->get_type()->is_not_child_of<VariableNode>() )
             {
-                compile(each_input);
+                compile( each_input );
             }
         }
 
         // eval node
-        bool should_be_evaluated = _node->components.has<InvokableComponent>() || fw::extends<VariableNode>(_node) ||
+        bool should_be_evaluated = _node->has_component<InvokableComponent>() || fw::extends<VariableNode>(_node) ||
                                    fw::extends<LiteralNode>(_node) ;
         if ( should_be_evaluated )
         {
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
-            instr->eval.node   = _node;
+            instr->eval.node   = _node->id();
             instr->m_comment   = _node->name;
 
             // result is not stored, because this is necessary only for instruction's root node.
@@ -208,22 +212,22 @@ void assembly::Compiler::compile(const Node* _node)
 void assembly::Compiler::compile(const ForLoopNode* for_loop)
 {
     // for_loop init instruction
-    compile(for_loop->get_init_instr());
+    compile(for_loop->init_instr.get());
 
     // compile condition and memorise its position
     u64_t condition_instr_line = m_temp_code->get_next_index();
-    compile_as_condition(for_loop->get_cond_expr());
+    compile_as_condition(for_loop->cond_instr.get());
 
     // jump if condition is not true
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
 
-    if ( auto true_scope = for_loop->get_condition_true_scope() )
+    if ( auto true_scope = for_loop->get_condition_true_scope().get() )
     {
         compile(true_scope);
 
         // insert end-loop instruction.
-        compile(for_loop->get_iter_instr());
+        compile(for_loop->iter_instr.get());
 
         // insert jump to condition instructions.
         auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
@@ -238,13 +242,13 @@ void assembly::Compiler::compile(const WhileLoopNode*while_loop)
 {
     // compile condition and memorise its position
     u64_t condition_instr_line = m_temp_code->get_next_index();
-    compile_as_condition(while_loop->get_cond_expr());
+    compile_as_condition(while_loop->cond_instr.get());
 
     // jump if condition is not true
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
 
-    if ( auto true_scope = while_loop->get_condition_true_scope() )
+    if ( Scope* true_scope = while_loop->get_condition_true_scope().get() )
     {
         compile(true_scope);
 
@@ -277,14 +281,14 @@ void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node
 
 void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 {
-    compile_as_condition(_cond_node->get_cond_expr()); // compile condition instruction, store result, compare
+    compile_as_condition(_cond_node->cond_expr.get()); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     jump_over_true_branch->m_comment   = "jump if not is";
 
     Instruction* jump_after_conditional = nullptr;
 
-    if ( auto true_scope = _cond_node->get_condition_true_scope() )
+    if ( Scope* true_scope = _cond_node->get_condition_true_scope().get() )
     {
         compile(true_scope);
 
@@ -297,12 +301,12 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 
     jump_over_true_branch->jmp.offset = i64_t(m_temp_code->get_next_index()) - jump_over_true_branch->line;
 
-    if ( auto false_scope = _cond_node->get_condition_false_scope() )
+    if ( Scope* false_scope = _cond_node->get_condition_false_scope().get() )
     {
         if( _cond_node->has_elseif() )
         {
-            auto else_if = fw::cast<const ConditionalStructNode>(false_scope->get_owner());
-            compile(else_if);
+            auto conditional_struct = Pool::get_pool()->get( false_scope->get_owner() );
+            compile(fw::cast<const ConditionalStructNode>( conditional_struct ) );
         }
         else
         {
@@ -318,21 +322,22 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 
 void assembly::Compiler::compile(const InstructionNode *instr_node)
 {
-    FW_ASSERT(instr_node->root)
+    FW_ASSERT( instr_node->root() )
 
     // copy instruction result to rax register
-    if ( instr_node->root->has_input_connected() )
+    if ( instr_node->root()->has_input_connected() )
     {
-        compile(instr_node->root);
+        compile( instr_node->root() );
 
-        Node*     root_node       = instr_node->root->get_input()->get_owner();
-        Property* root_node_value = root_node->props.get(k_value_property_name);
+        ID<Node>  root_node       = instr_node->root()->get_input()->owner();
+        Property* root_node_prop  = root_node->get_prop( k_value_property_name );
 
-        if ( root_node_value )
+        if ( root_node_prop )
         {
-            Instruction* instr     = m_temp_code->push_instr(Instruction_t::deref_ptr);
-            instr->uref.qword_ptr  = root_node_value->get_underlying_data();
-            instr->uref.qword_type = root_node_value->get_type();
+            variant*     value     = root_node_prop->value();
+            Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_pool_id );
+            instr->uref.pool_id    = *value->data();
+            instr->uref.type       = value->get_type();
             instr->m_comment       = "copy unreferenced data";
         }
     }
@@ -342,12 +347,11 @@ const Code* assembly::Compiler::compile_syntax_tree(const Graph* _graph)
 {
     if (is_syntax_tree_valid(_graph))
     {
-        Node* root = _graph->get_root();
-        m_temp_code = new Code(root);
+        m_temp_code = new Code( _graph->get_root() );
 
         try
         {
-            Scope* scope = root->components.get<Scope>();
+            Scope* scope = _graph->get_root()->get_component<Scope>().get();
             FW_ASSERT(scope)
             compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");

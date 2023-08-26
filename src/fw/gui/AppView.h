@@ -85,6 +85,6 @@ namespace fw
         bool                m_is_layout_initialized;
         std::array<ImGuiID, Dockspace_COUNT> m_dockspaces{};
 
-        REFLECT_DERIVED_CLASS(View)
+        REFLECT_DERIVED_CLASS()
     };
 }

@@ -3,11 +3,13 @@
 #include <vector>
 #include "imgui.h"
 #include "core/reflection/reflection"
+#include "core/Pool.h"
 
 namespace ndbl {
 
     // forward declarations
     class NodeView;
+    using fw::pool::ID;
 
     enum class ViewConstraint_t {
         AlignOnBBoxLeft,
@@ -33,10 +35,10 @@ namespace ndbl {
         NodeViewConstraint(const char* _name, ViewConstraint_t _type);
         void apply(float _dt);
         void apply_when(const Filter& _lambda) { m_filter = _lambda; }
-        void add_target(NodeView*);
-        void add_driver(NodeView*);
-        void add_targets(const std::vector<NodeView*>&);
-        void add_drivers(const std::vector<NodeView*>&);
+        void add_target(ID<NodeView>);
+        void add_driver(ID<NodeView>);
+        void add_targets(const std::vector<ID<NodeView>>&);
+        void add_drivers(const std::vector<ID<NodeView>>&);
         void draw_view();
 
         ImVec2 m_offset; // offset applied to the constrain
@@ -50,7 +52,7 @@ namespace ndbl {
         bool              m_is_active;
         Filter            m_filter; // Lambda returning true if this constrain should apply.
         ViewConstraint_t  m_type;
-        std::vector<NodeView*> m_drivers; // driving the targets
-        std::vector<NodeView*> m_targets;
+        std::vector<ID<NodeView>> m_drivers; // driving the targets
+        std::vector<ID<NodeView>> m_targets;
     };
 }

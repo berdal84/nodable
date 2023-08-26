@@ -4,6 +4,7 @@
 #include <algorithm> // for std::find_if
 
 #include "fw/core/log.h"
+#include "fw/core/Pool.h"
 
 #include "ConditionalStructNode.h"
 #include "ForLoopNode.h"
@@ -23,14 +24,14 @@ Scope::Scope()
 {
 }
 
-VariableNode* Scope::find_variable(const std::string &_name)
+ID<VariableNode> Scope::find_variable(const std::string &_name)
 {
-    VariableNode* result = nullptr;
+    ID<VariableNode> result;
 
     /*
      * Try first to find in this scope
      */
-    auto has_name = [_name](const VariableNode* _variable ) -> bool
+    auto has_name = [_name](ID<VariableNode> _variable ) -> bool
     {
         return _variable->name == _name;
     };
@@ -40,35 +41,34 @@ VariableNode* Scope::find_variable(const std::string &_name)
         result = *it;
     }
 
+    if ( result.get() != nullptr )
+    {
+        return result;
+    }
+
     /*
      * In case not found, find recursively
      */
-    if ( result == nullptr )
+    if ( Node* owner = m_owner.get() )
     {
-        Node* owner_parent = get_owner()->parent;
-
-        if ( owner_parent )
+        Node* parent = owner->parent.get();
+        if ( !parent )
         {
-            Scope* parent_scope = owner_parent->components.get<Scope>();
-            if ( parent_scope )
-            {
-                result = parent_scope->find_variable( _name );
-            }
+            return fw::pool::ID_NULL;
         }
+        ID<Scope> scope = parent->get_component<Scope>();
+        if ( !scope.get() )
+        {
+            return fw::pool::ID_NULL;
+        }
+        return scope->find_variable( _name );
     }
-    return result;
+    return fw::pool::ID_NULL;
 }
 
-Node* Scope::get_last_code_block()
+void Scope::add_variable(ID<VariableNode> _variableNode)
 {
-    if (get_owner()->children.empty() )
-        return nullptr;
-    return get_owner()->children.back();
-}
-
-void Scope::add_variable(VariableNode* _variableNode)
-{
-    if ( find_variable(_variableNode->name) )
+    if ( find_variable(_variableNode->name).get() != nullptr )
     {
         LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variableNode->name.c_str())
     }
@@ -78,30 +78,33 @@ void Scope::add_variable(VariableNode* _variableNode)
     }
     else
     {
-        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variableNode->get_name())
+        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variableNode->name.c_str() )
         m_variables.push_back(_variableNode);
-        _variableNode->set_scope(this);
+        _variableNode->reset_scope(this);
     }
 }
 
-void Scope::get_last_instructions_rec(std::vector<InstructionNode *> & _out)
+void Scope::get_last_instructions_rec(std::vector<InstructionNode*>& _out)
 {
-    auto& owner_children = get_owner()->children;
-    if ( owner_children.empty())
-        return;
-
-    for(auto each_child : owner_children)
+    Node* owner = m_owner.get();
+    if ( owner->children.empty() )
     {
-        if (each_child)
+        return;
+    }
+
+    for(auto each_id : owner->children )
+    {
+        Node* each_child = each_id.get();
+        if ( each_child != nullptr )
         {
-            if (auto child_instruction = fw::cast<InstructionNode>(each_child) )
+            if ( auto* each_instr = fw::cast<InstructionNode>( each_child ) )
             {
-                if (owner_children.back() == child_instruction )
+                if (owner->children.back().get() == each_instr )
                 {
-                    _out.push_back(child_instruction);
+                    _out.push_back(each_instr);
                 }
             }
-            else if ( Scope* scope = each_child->components.get<Scope>() )
+            else if ( Scope* scope = each_child->get_component<Scope>().get() )
             {
                 scope->get_last_instructions_rec(_out);
             }
@@ -109,22 +112,22 @@ void Scope::get_last_instructions_rec(std::vector<InstructionNode *> & _out)
     }
 }
 
-void Scope::remove_variable(VariableNode *_variable)
+void Scope::remove_variable(VariableNode* _variable)
 {
-    FW_ASSERT(_variable)
-    FW_ASSERT(_variable->get_scope() == this)
-    auto found = std::find( m_variables.begin(), m_variables.end(), _variable);
-    FW_ASSERT(*found)
-    _variable->set_scope(nullptr);
+    FW_ASSERT(_variable != nullptr)
+    FW_ASSERT(_variable->get_scope() == m_id)
+    auto found = std::find(m_variables.begin(), m_variables.end(), _variable->id() );
+    FW_ASSERT(found->get() != nullptr);
+    _variable->reset_scope();
     m_variables.erase( found );
 }
 
 size_t Scope::remove_all_variables()
 {
     size_t count = m_variables.size();
-    for(VariableNode* each_variable : m_variables)
+    for(ID<VariableNode> each_variable : m_variables)
     {
-        each_variable->set_scope(nullptr);
+        each_variable->reset_scope();
     }
     m_variables.clear();
     return count;

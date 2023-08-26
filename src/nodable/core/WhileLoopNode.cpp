@@ -1,5 +1,6 @@
 #include "WhileLoopNode.h"
 #include "core/Scope.h"
+#include "InstructionNode.h"
 
 using namespace ndbl;
 
@@ -11,22 +12,25 @@ REGISTER
 }
 
 WhileLoopNode::WhileLoopNode()
-    : m_cond_instr_node(nullptr)
 {
-    props.add<Node*>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In); // while ( <here> ) { ... }
+    add_prop<ID<Node>>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In); // while ( <here> ) { ... }
 }
 
-Scope* WhileLoopNode::get_condition_true_scope() const
+ID<Scope> WhileLoopNode::get_condition_true_scope() const
 {
-    return !successors.empty() ? successors[0]->components.get<Scope>() : nullptr;
+    if ( !successors.empty() )
+        return successors[0]->get_component<Scope>();
+    return {};
 }
 
-Scope*  WhileLoopNode::get_condition_false_scope() const
+ID<Scope> WhileLoopNode::get_condition_false_scope() const
 {
-    return successors.size() > 1 ? successors[1]->components.get<Scope>() : nullptr;
+    if ( successors.size() > 1 )
+        return successors[1]->get_component<Scope>();
+    return {};
 }
 
-void WhileLoopNode::set_cond_expr(InstructionNode* _node)
+Property* WhileLoopNode::condition_property() const
 {
-    m_cond_instr_node = _node;
+    return get_prop(k_conditional_cond_property_name);
 }

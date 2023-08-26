@@ -6,7 +6,6 @@ add_library(
     nodable-core
     STATIC
         Component.cpp
-        ComponentManager.cpp
         Components.cpp
         ConditionalStructNode.cpp
         DataAccess.cpp
@@ -19,7 +18,7 @@ add_library(
         Node.cpp
         NodeFactory.cpp
         Property.cpp
-        PropertyGrp.cpp
+        PropertyBag.cpp
         Scope.cpp
         Token.cpp
         TokenRibbon.cpp

@@ -11,9 +11,10 @@
 #include "Nodable.h"
 #include "NodeView.h"
 #include "Physics.h"
-#include "core/ComponentManager.h"
+#include "core/NodeUtils.h"
 
 using namespace ndbl;
+using namespace fw::pool;
 
 HybridFile::HybridFile(std::string _name)
         : name(std::move(_name))
@@ -36,11 +37,7 @@ HybridFile::HybridFile(std::string _name)
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
     // Graph
-    m_graph = new Graph(
-            &Nodlang::get_instance(),
-            &Nodable::get_instance().node_factory,
-            &Nodable::get_instance().config.experimental_graph_autocompletion );
-
+    m_graph      = new Graph(&Nodable::get_instance().node_factory);
     m_graph_view = new GraphView(m_graph);
 
     LOG_VERBOSE( "File", "Constructor being called.\n")
@@ -117,23 +114,16 @@ void HybridFile::set_text(const std::string& text)
 
 UpdateResult HybridFile::update_text_from_graph(bool isolate_selection)
 {
-    Node* root_node = m_graph->get_root();
-    if ( root_node )
+    ID<Node> root_node = m_graph->get_root();
+    if ( root_node == ID_NULL )
     {
-        std::string code;
-        Nodlang::get_instance().serialize_node(code, root_node);
-
-        if ( isolate_selection )
-        {
-            view.replace_selected_text(code);
-        }
-        else
-        {
-            view.replace_text(code);
-        }
-        return UpdateResult::SUCCESS_WITH_CHANGES;
+        return UpdateResult::SUCCES_WITHOUT_CHANGES;
     }
-    return UpdateResult::SUCCES_WITHOUT_CHANGES;
+    std::string code;
+    Nodlang::get_instance().serialize_node(code, root_node);
+    isolate_selection ? view.replace_selected_text(code)
+                      : view.replace_text(code);
+    return UpdateResult::SUCCESS_WITH_CHANGES;
 }
 
 UpdateResult HybridFile::update()
@@ -169,8 +159,8 @@ UpdateResult HybridFile::update()
 UpdateResult HybridFile::update_graph_from_text(bool isolate_selection)
 {
     // Destroy all physics' constraints
-    auto physics_components = ComponentManager::collect<Physics>( m_graph->get_node_registry() );
-    Physics::destroy_constraints(physics_components);
+    auto physics_components = NodeUtils::get_components<Physics>( m_graph->get_node_registry() );
+    Physics::destroy_constraints( physics_components );
 
     // Parse source code
     bool parse_ok = Nodlang::get_instance().parse( get_text(isolate_selection), m_graph);

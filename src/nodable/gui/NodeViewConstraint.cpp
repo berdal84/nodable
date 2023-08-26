@@ -10,6 +10,7 @@
 #include "Physics.h"
 
 using namespace ndbl;
+using namespace fw::pool;
 
 NodeViewConstraint::NodeViewConstraint(const char* _name, ViewConstraint_t _type)
 : m_type(_type)
@@ -37,13 +38,13 @@ void NodeViewConstraint::apply(float _dt)
         out.reserve(_in.size());
         for(auto each : _in)
         {
-            out.push_back(NodeView::substitute_with_parent_if_not_visible(each ));
+            out.push_back(NodeView::substitute_with_parent_if_not_visible(each));
         }
         return std::move(out);
     };
 
-    std::vector<NodeView*> clean_drivers = get_clean(m_drivers);
-    std::vector<NodeView*> clean_targets = get_clean(m_targets);
+    std::vector<NodeView*> clean_drivers = get_clean( Pool::get_pool()->get( m_drivers ) );
+    std::vector<NodeView*> clean_targets = get_clean( Pool::get_pool()->get( m_targets ) );
 
     //debug
     if( fw::ImGuiEx::debug )
@@ -80,12 +81,12 @@ void NodeViewConstraint::apply(float _dt)
 
             if(!target->pinned && target->is_visible())
             {
-                ImRect drivers_bbox = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView*> *>(&clean_drivers), true);
+                ImRect drivers_bbox = NodeView::get_rect(clean_drivers, true);
                 ImVec2 new_position(drivers_bbox.GetCenter()
                                     - ImVec2(drivers_bbox.GetSize().x * 0.5f
                                     + config.ui_node_spacing
                                     + target->get_rect().GetSize().x * 0.5f, 0 ));
-                auto target_physics = target->get_owner()->components.get<Physics>();
+                auto target_physics = target->get_owner()->get_component<Physics>();
                 target_physics->add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
             }
             break;
@@ -151,9 +152,9 @@ void NodeViewConstraint::apply(float _dt)
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
                     new_pos.y = first_driver_pos.y + y_offset;
 
-                    if (each_target->should_follow_output(driver) )
+                    if (each_target->should_follow_output( driver->id() ) )
                     {
-                        auto target_physics = each_target->get_owner()->components.get<Physics>();
+                        auto target_physics = each_target->get_owner()->get_component<Physics>();
                         target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
                         start_pos_x += size_x[node_index] + config.ui_node_spacing;
                     }
@@ -173,7 +174,7 @@ void NodeViewConstraint::apply(float _dt)
             if (!target->pinned && target->is_visible() )
             {
                 // compute
-                auto drivers_rect = NodeView::get_rect(reinterpret_cast<const std::vector<const NodeView *> *>(&clean_drivers), false, true);
+                auto drivers_rect = NodeView::get_rect(clean_drivers, false, true);
 
                 auto target_rect  = target->get_rect(true, true);
                 ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
@@ -182,7 +183,7 @@ void NodeViewConstraint::apply(float _dt)
                 new_pos.y = target->get_position(fw::Space_Local).y + target_driver_offset.y + config.ui_node_spacing;
 
                 // apply
-                auto target_physics = target->get_owner()->components.get<Physics>();
+                auto target_physics = target->get_owner()->get_component<Physics>();
                 target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
                 break;
             }
@@ -190,30 +191,30 @@ void NodeViewConstraint::apply(float _dt)
     }
 }
 
-void NodeViewConstraint::add_target(NodeView *_target)
+void NodeViewConstraint::add_target(ID<NodeView> _target)
 {
-    FW_ASSERT(_target != nullptr);
+    FW_ASSERT( _target );
     m_targets.push_back(_target);
 }
 
-void NodeViewConstraint::add_driver(NodeView *_driver)
+void NodeViewConstraint::add_driver(ID<NodeView> _driver)
 {
-    FW_ASSERT(_driver != nullptr);
+    FW_ASSERT( _driver );
     m_drivers.push_back(_driver);
 }
 
-void NodeViewConstraint::add_targets(const std::vector<NodeView *> &_new_targets)
+void NodeViewConstraint::add_targets(const std::vector<ID<NodeView>> &_new_targets)
 {
     m_targets.insert(m_targets.end(), _new_targets.begin(), _new_targets.end());
 }
 
-void NodeViewConstraint::add_drivers(const std::vector<NodeView *> &_new_drivers)
+void NodeViewConstraint::add_drivers(const std::vector<ID<NodeView>> &_new_drivers)
 {
     m_drivers.insert(m_drivers.end(), _new_drivers.begin(), _new_drivers.end());
 }
 
 
-auto not_expanded  = [](const NodeView* _view ) { return !_view->is_expanded(); };
+auto not_expanded  = [](ID<const NodeView> _view ) { return !_view->is_expanded(); };
 
 const NodeViewConstraint::Filter
         NodeViewConstraint::always = [](NodeViewConstraint* _constraint){ return true; };

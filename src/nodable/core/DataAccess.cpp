@@ -7,6 +7,7 @@
 #include <rapidjson/stringbuffer.h>
 
 #include "fw/core/assertions.h"
+#include "fw/core/Pool.h"
 #include "core/Node.h"
 
 using namespace ndbl;
@@ -24,20 +25,21 @@ bool DataAccess::update()
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     rapidjson::Document doc;
 
-	auto writeProperty = [&writer](const Property * _value)
+	auto writeProperty = [&writer](const Property* property)
 	{
-		writer.Key(_value->get_name().c_str());
+		writer.Key(property->get_name().c_str());
 
-    	const fw::type* property_type = _value->get_type();
+        auto& value = *property->value();
+    	const fw::type* type = value.get_type();
 
-    	     if (property_type->is<std::string>() ) writer.String(((const char*)*_value));
-        else if (property_type->is<double>() )      writer.Double((double)*_value);
-        else if (property_type->is<bool>() )        writer.Double((bool)*_value);
-    	else                                         writer.Null();
+    	     if (type->is<std::string>() ) writer.String(value);
+        else if (type->is<double>() )      writer.Double(value);
+        else if (type->is<bool>() )        writer.Bool(value);
+    	else                               writer.Null();
 	};
 
-    FW_ASSERT(m_owner != nullptr);
-
+    Node* owner = m_owner.get();
+    FW_ASSERT( owner != nullptr );
     writer.StartObject();
     {
     	// Write Properties
@@ -46,11 +48,9 @@ bool DataAccess::update()
     	writer.Key("properties");
     	writer.StartObject();
     	{
-		    for(auto& each : m_owner->props.by_name())
+		    for(auto& [_, property ] : owner->props.by_name())
 		    {
-		    	auto value = each.second;
-
-		    	writeProperty(value);
+		    	writeProperty( property );
 		    }
 		}
 	    writer.EndObject();
@@ -61,7 +61,7 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(const auto& [hash, component] : m_owner->components)
+		    for(ID<Component> component : owner->get_components())
 		    {
 		    	writer.Key(component->get_type()->get_name());
 		    	writer.StartObject();
@@ -77,7 +77,7 @@ bool DataAccess::update()
     writer.EndObject();
 
     std::string fileName("node_");
-    fileName += m_owner->name;
+    fileName += owner->name;
     fileName += ".json";
 
     std::ofstream outfile ("saves/" +fileName ,std::ofstream::binary);

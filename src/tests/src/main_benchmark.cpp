@@ -50,7 +50,7 @@ public:
         language       = &ndbl::Nodlang::get_instance();
         autocompletion = false;
         factory        = new NodeFactory();
-        graph          = new Graph(language, factory, &autocompletion);
+        graph          = new Graph(factory);
         log::set_verbosity(log::Verbosity_Error);
     }
 

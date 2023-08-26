@@ -10,23 +10,23 @@ namespace ndbl
     {
     public:
         Scope();
-        ~Scope(){}
+        Scope(Scope&&) = default;
+        Scope& operator=(Scope&&) = default;
+        ~Scope() = default;
 
-        Node*                   get_last_code_block();
-        void                    get_last_instructions_rec(std::vector<InstructionNode *> &_out) override ;
-
-        bool                    has_no_variable()const override { return m_variables.empty(); }
-        void                    add_variable(VariableNode*) override ;
-        void                    remove_variable(VariableNode *_variable)override;
-        size_t                  remove_all_variables() override;
-        VariableNode*           find_variable(const std::string &_name) override ;
-        const VariableNodeVec&  get_variables()const override { return m_variables; };
-
-    public:
         Token token_begin;
         Token token_end;
+
+        void                    get_last_instructions_rec(std::vector<InstructionNode *> &_out) override ;
+        bool                    has_no_variable()const override { return m_variables.empty(); }
+        void                    add_variable(ID<VariableNode>) override ;
+        void                    remove_variable(VariableNode *_variable)override;
+        size_t                  remove_all_variables() override;
+        ID<VariableNode>        find_variable(const std::string &_name) override ;
+        const VariableNodeVec&  variables()const override { return m_variables; };
+
     private:
-        VariableNodeVec        m_variables;
+        VariableNodeVec m_variables;
 
         REFLECT_DERIVED_CLASS()
     };

@@ -29,7 +29,7 @@ REGISTER
 CLI::CLI()
     : m_should_stop(false)
     , m_asm_code(nullptr)
-    , m_graph(&m_language, &m_factory, &m_auto_completion)
+    , m_graph(&m_factory)
 {
     std::cout << R"(== Nodable command line interface ==)" << std::endl <<
                  R"(Nodable Copyright (C) 2023 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
@@ -41,6 +41,7 @@ CLI::~CLI()
 {
     std::cout << "Good bye!" << std::endl;
     delete m_asm_code;
+    fw::pool::Pool::shutdown();
 }
 
 
@@ -48,6 +49,7 @@ CLI::~CLI()
 int CLI::main(int argc, char* argv[])
 {
     fw::log::set_verbosity(fw::log::Verbosity_Warning);
+    fw::pool::Pool::init();
 
     while (!should_stop())
     {
@@ -122,7 +124,7 @@ void CLI::log_function_call(const fw::variant &result, const fw::func_type *type
     LOG_MESSAGE("CLI",
                 "CLI::%s() done (result: %s)\n",
                 type->get_identifier().c_str(),
-                result.is_defined() ? result.convert_to<std::string>().c_str() : "void"
+                result.is_defined() ? result.to<std::string>().c_str() : "void"
                 )
 }
 
@@ -148,7 +150,7 @@ void CLI::exit_()
 
 bool CLI::serialize()
 {
-    if(Node* root = m_graph.get_root())
+    if(ID<Node> root = m_graph.get_root())
     {
         std::string result;
         m_language.serialize_node(result, root);

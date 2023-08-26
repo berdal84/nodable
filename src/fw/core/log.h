@@ -4,7 +4,7 @@
 #include <string>
 #include <map>
 #include <chrono>
-#include "string.h"
+#include "./string.h"
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -27,18 +27,17 @@
 #define KO RED "[KO]" RESET      // red colored "[KO]" string.
 #define OK GREEN "[OK]" RESET    // green colored "[OK]" string.
 
-#define LOG_DISABLE_VERBOSE
-
 #   define LOG_ERROR(...)   fw::log::push_message( fw::log::Verbosity_Error  , __VA_ARGS__ ); fw::log::flush();
 #   define LOG_WARNING(...) fw::log::push_message( fw::log::Verbosity_Warning, __VA_ARGS__ );
 #   define LOG_MESSAGE(...) fw::log::push_message( fw::log::Verbosity_Message, __VA_ARGS__ );
 #   define LOG_FLUSH()      fw::log::flush();
 
-#ifndef LOG_DISABLE_VERBOSE
+#if NDBL_DEBUG
 #   define LOG_VERBOSE(...) fw::log::push_message( fw::log::Verbosity_Verbose, __VA_ARGS__ );
 #else
 #   define LOG_VERBOSE(...)
 #endif
+
 
 namespace fw {
 

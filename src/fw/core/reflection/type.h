@@ -85,14 +85,14 @@ namespace fw
         type(type&&) = delete;
         ~type() = default;
 
-        id_t                     id() const { return m_id; }
+        id_t                      id() const { return m_id; }
         const char*               get_name() const { return m_name; };
         bool                      is_class() const { return m_flags & Flags_IS_CLASS; }
         bool                      any_of(std::vector<const type*> args)const;
         bool                      has_parent() const { return m_flags & Flags_HAS_PARENT; }
         bool                      is_ptr() const { return m_flags & Flags_IS_POINTER; }
         bool                      is_const() const { return m_flags & Flags_IS_CONST; }
-        bool                      is_child_of(const type* _possible_parent_class, bool _selfCheck = true) const;
+        bool                      is_child_of(std::type_index _possible_parent_id, bool _selfCheck = true) const;
         bool                      equals(const type* other) const { return equals(this, other); }
         void                      add_parent(id_t _parent);
         void                      add_child(id_t _child);
@@ -107,9 +107,9 @@ namespace fw
         std::shared_ptr<iinvokable_nonstatic>
                                   get_method(const std::string& _name) const;
         template<class T>
-        inline bool               is_child_of() const { return is_child_of(get<T>(), true); }
+        inline bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
         template<class T>
-        inline bool               is_not_child_of() const { return !is_child_of(get<T>(), true); }
+        inline bool               is_not_child_of() const { return !is_child_of<T>(); }
         template<typename T>
         bool                      is() const;
 
@@ -235,7 +235,7 @@ namespace fw
         // check if source_type is a child of possibly_base_class
         const type* source_type = source_ptr->get_type();
         const type* possibly_base_class = type::get<PossiblyBaseClass>();
-        return source_type->is_child_of(possibly_base_class, self_check );
+        return source_type->is_child_of(possibly_base_class->id(), self_check );
     }
 
     template<class TargetClass>

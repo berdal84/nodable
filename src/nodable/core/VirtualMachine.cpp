@@ -49,7 +49,6 @@ void CPU::write(Register _id, fw::qword _data)
 VirtualMachine::VirtualMachine()
     : m_is_debugging(false)
     , m_is_program_running(false)
-    , m_next_node(nullptr)
     , m_program_asm_code(nullptr)
 {
 
@@ -84,7 +83,7 @@ void VirtualMachine::stop_program()
     {
         m_is_program_running = false;
         m_is_debugging       = false;
-        m_next_node          = nullptr;
+        m_next_node.reset();
         LOG_MESSAGE("VM", "Program stopped\n")
     }
     else
@@ -131,32 +130,35 @@ bool VirtualMachine::_stepOver()
             break;
         }
 
-        case opcode::deref_ptr:
+        case opcode::deref_pool_id:
         {
-            FW_EXPECT(next_instr->uref.qword_ptr, "in instruction deref_ptr: uref.qword_ptr is nullptr")
-            fw::qword qword = *next_instr->uref.qword_ptr;
+            fw::qword qword = next_instr->uref.pool_id;
             m_cpu.write(Register::rax, qword );
 
-            const type* ptr_type = next_instr->uref.qword_type;
+            const type* ptr_type = next_instr->uref.type;
             if(ptr_type->is<bool>() )
             {
-                LOG_VERBOSE("VM", "value dereferenced: %b\n", qword.b);
+                LOG_VERBOSE("VM", "bool dereferenced: %b\n", qword.b);
             }
             else if(ptr_type->is<double>() )
             {
-                LOG_VERBOSE("VM", "value dereferenced: %d\n", qword.d );
+                LOG_VERBOSE("VM", "double dereferenced: %d\n", qword.d );
             }
             else if(ptr_type->is<i16_t>() )
             {
-                LOG_VERBOSE("VM", "value dereferenced: %i\n", qword.i16 );
+                LOG_VERBOSE("VM", "i16_t dereferenced: %i\n", qword.i16 );
+            }
+            else if(ptr_type->is<ID<Node>>() )
+            {
+                LOG_VERBOSE("VM", "ID<Node> dereferenced: %i\n", qword.i32 );
             }
             else if(ptr_type->is<std::string>() )
             {
-                LOG_VERBOSE("VM", "pointed string: %s\n", ((std::string*)qword.ptr)->c_str() );
+                LOG_VERBOSE("VM", "pointed string (%p): %s\n", ((std::string*)qword)->c_str() );
             }
             else if(ptr_type->is<void *>() )
             {
-                LOG_VERBOSE("VM", "pointed address: %s\n", format::address(qword.ptr).c_str() );
+                LOG_VERBOSE("VM", "pointed address: %p\n", qword.ptr );
             }
             else
             {
@@ -181,8 +183,7 @@ bool VirtualMachine::_stepOver()
         case opcode::push_var:
         {
             advance_cursor();
-            auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            variable->get_value()->get_variant()->ensure_is_initialized(false);
+            next_instr->push.var->property()->ensure_is_initialized(false);
             success = true;
             break;
         }
@@ -190,11 +191,11 @@ bool VirtualMachine::_stepOver()
         case opcode::pop_var:
         {
             advance_cursor();
-            auto* variable = const_cast<VariableNode*>( next_instr->push.var ); // hack !
-            FW_EXPECT(variable->get_value()->get_variant()->is_initialized(),
-                              "Variable should be initialized since it should have been pushed earlier!");
-            variable->get_value()->get_variant()->reset_value();
-            variable->get_value()->get_variant()->ensure_is_initialized(false);
+            const VariableNode* variable = next_instr->push.var.get();
+            variant* variant  = variable->property()->value();
+            FW_EXPECT(variant->is_initialized(), "Variable should be initialized since it should have been pushed earlier!");
+            variant->reset_value();
+            variant->ensure_is_initialized(false);
             success = true;
             break;
         }
@@ -210,27 +211,27 @@ bool VirtualMachine::_stepOver()
         case opcode::eval_node:
         {
             bool transfer_inputs = true;
-            auto node            = const_cast<Node*>( next_instr->eval.node ); // hack !
+            Node* node     = next_instr->eval.node.get();
 
             auto transfer_input_values = [](Node* _node)
             {
-                for(Property * each_property : _node->props.by_index())
+                for(Property* each_property : _node->props.by_index())
                 {
-                    Property * input = each_property->get_input();
+                    Property* input = each_property->get_input();
 
                     if( input
                         && !each_property->is_connected_by_ref()
                         && !each_property->get_type()->is<null_t>()
                         && !input->get_type()->is<null_t>() )
                     {
-                        each_property->get_variant()->set(*input->get_variant());
+                        *each_property->value() = *input->value();
                     }
                 }
             };
 
             if( auto variable = fw::cast<VariableNode>(node))
             {
-                variant* variant = variable->get_value()->get_variant();
+                variant* variant = variable->value();
                 if( !variant->is_initialized() )
                 {
                     variant->ensure_is_initialized();
@@ -248,7 +249,7 @@ bool VirtualMachine::_stepOver()
             }
 
             // evaluate Invokable Component, could be an operator or a function
-            if(auto invokable = node->components.get<InvokableComponent>())
+            if( InvokableComponent* invokable = node->get_component<InvokableComponent>().get() )
             {
                 invokable->update();
             }
@@ -315,7 +316,7 @@ bool VirtualMachine::step_over()
     if( !continue_execution )
     {
         stop_program();
-        m_next_node = nullptr;
+        m_next_node.reset();
         m_last_step_next_instr = nullptr;
     }
     else

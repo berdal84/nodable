@@ -24,20 +24,23 @@ class Core : public Test
 public:
     Nodlang             nodlang;
     const NodeFactory   factory;
-    bool                autocompletion = false;
     Graph               graph;
     assembly::Compiler  compiler;
     VirtualMachine      virtual_machine;
 
     Core()
-        : factory(), graph(&nodlang, &factory, &autocompletion) {}
+    : graph(&factory)
+    {}
 
     void SetUp()
     {
+        fw::pool::Pool::init();
     }
 
     void TearDown()
     {
+        graph.clear();
+        fw::pool::Pool::shutdown();
     }
 
     ~Core()
@@ -48,8 +51,8 @@ public:
     template<typename return_t>
     return_t eval(const std::string &_source_code)
     {
-        static_assert(!std::is_pointer<return_t>::value);// returning a pointer from VM will fail when accessing data
-                                                         // since VM will be destroyed leaving this scope.
+        static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving this scope)");
+
         // parse
         nodlang.parse(_source_code, &graph);
 
@@ -105,7 +108,7 @@ public:
 
         // serialize
         std::string result;
-        nodlang.serialize_node(result, graph.get_root());
+        nodlang.serialize_node(result, graph.get_root() );
         LOG_VERBOSE("core", "parse_compile_run_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         virtual_machine.release_program();
@@ -125,7 +128,7 @@ public:
 
         // serialize
         std::string result;
-        nodlang.serialize_node(result, graph.get_root());
+        nodlang.serialize_node(result, graph.get_root() );
         LOG_VERBOSE("tools.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         return result;

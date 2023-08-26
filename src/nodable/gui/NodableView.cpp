@@ -14,10 +14,12 @@
 #include "Nodable.h"
 #include "NodeView.h"
 #include "build_info.h"
-#include "core/ComponentManager.h"
+#include "core/NodeUtils.h"
+#include "Physics.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
+using namespace fw::pool;
 
 AppView::AppView(Nodable * _app)
     : m_logo(nullptr)
@@ -114,7 +116,7 @@ bool AppView::on_draw()
                 ImGui::Separator();
             }
 
-            auto has_selection = NodeView::get_selected() != nullptr;
+            auto has_selection = NodeView::is_any_selected();
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped)) {
                 event_manager.push(EventType_delete_node_action_triggered);
@@ -343,11 +345,10 @@ void AppView::draw_node_properties_window()
 {
     if (ImGui::Begin(m_app->config.ui_node_properties_window_label))
     {
-        NodeView *view = NodeView::get_selected();
-        if (view)
+        if (NodeView* selected_view = NodeView::get_selected().get())
         {
             ImGui::Indent(10.0f);
-            NodeView::draw_as_properties_panel(view, &m_show_advanced_node_properties);
+            NodeView::draw_as_properties_panel(selected_view, &m_show_advanced_node_properties);
         }
     }
     ImGui::End();
@@ -651,9 +652,12 @@ void AppView::draw_config_window() {
             ImGui::Checkbox("fw::ImGuiEx::debug", &fw::ImGuiEx::debug);
 
             ImGui::NewLine();
-            ComponentManager::Stats stats = ComponentManager::get_stats();
-            ImGui::Text("ComponentManager stats:");
-            ImGui::Text("component_count........ %8zu", stats.component_count);
+
+            ImGui::Text("Pool stats:");
+            ImGui::Text(" - Node.................... %8zu", Pool::get_pool()->get_all<Node>().size() );
+            ImGui::Text(" - NodeView................ %8zu", Pool::get_pool()->get_all<NodeView>().size() );
+            ImGui::Text(" - Physics................. %8zu", Pool::get_pool()->get_all<Physics>().size() );
+            ImGui::Text(" - Scope................... %8zu", Pool::get_pool()->get_all<Scope>().size() );
         }
     }
     ImGui::End();

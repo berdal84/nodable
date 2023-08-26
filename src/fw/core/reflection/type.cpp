@@ -83,9 +83,9 @@ bool type::any_of(std::vector<const type*> types) const
     return false;
 }
 
-bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) const
+bool type::is_child_of(std::type_index _possible_parent_id, bool _selfCheck) const
 {
-    if (_selfCheck && m_id == _possible_parent_class->m_id )
+    if (_selfCheck && m_id == _possible_parent_id )
     {
         return true;
     }
@@ -95,7 +95,7 @@ bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) cons
         return false;
     }
 
-    auto direct_parent_found = m_parents.find(_possible_parent_class->m_id);
+    auto direct_parent_found = m_parents.find( _possible_parent_id );
 
     // direct parent check
     if ( direct_parent_found != m_parents.end())
@@ -107,7 +107,7 @@ bool type::is_child_of(const type* _possible_parent_class, bool _selfCheck) cons
     for (auto each : m_parents)
     {
         const type* parent_type = type_register::get(each);
-        if (parent_type->is_child_of(_possible_parent_class, true))
+        if (parent_type->is_child_of(_possible_parent_id, true))
         {
             return true;
         }

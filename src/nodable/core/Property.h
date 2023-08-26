@@ -2,6 +2,7 @@
 
 #include "fw/core/types.h" // for constants and forward declarations
 #include "fw/core/reflection/variant.h"
+#include "fw/core/Pool.h"
 #include "core/Visibility.h"
 #include "core/Token.h"
 #include "core/Way.h"
@@ -14,8 +15,9 @@ namespace ndbl
 {
     // forward declarations
     class Node;
-    class PropertyGrp;
+    class PropertyBag;
     class VariableNode;
+    using fw::pool::ID;
 
     /**
      * @class The class store a value (as a variant) and is owned by a PropertyGroup
@@ -25,81 +27,88 @@ namespace ndbl
      */
 	class Property
     {
+        friend PropertyBag;
     public:
-        template<typename T>
-        explicit Property(PropertyGrp * _parent_properties, T* _value): Property(_parent_properties) { m_variant.set(_value); };
-        explicit Property(PropertyGrp * = nullptr);
-        explicit Property(PropertyGrp *, const std::string&);
-        explicit Property(PropertyGrp *, int);
-        explicit Property(PropertyGrp *, bool);
-        explicit Property(PropertyGrp *, double);
-        explicit Property(PropertyGrp *, const char *);
-        ~Property() = default;
-
-        Token token;
-        void digest(Property *_property);
-        bool is_connected_by_ref() const;
-        bool is_reference() const;
-        bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
-        bool has_input_connected()const;
-        void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
-        void set_input(Property *);
-        void set_name(const char* _name) { m_name = _name; }
-        void set_reference(bool b);
-        void set(Node* _value);
-        void set(const Property & _other) { deref_variant().set(_other.m_variant); }
-        template<typename T> void set(T _value)
-        {
-            deref_variant().set(_value);
-        }
-
-		void set_type(const fw::type* _type) { deref_variant().ensure_is_type(_type); }
-		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
-        void set_owner(Node* _owner) { m_owner = _owner; }
-
-		Node*                        get_owner()const { return m_owner; };
-        Property *                   get_input()const { return m_input; }
-		std::vector<Property *>&     get_outputs() { return m_outputs; }
-        const std::string&           get_name()const { return m_name; }
-        const fw::type*              get_type()const { return deref_variant().get_type(); }
-        Visibility                   get_visibility()const { return m_visibility; }
-        Way                          get_allowed_connection()const { return m_allowed_connection; }
-        const fw::variant*           get_variant()const { return &deref_variant(); }
-        fw::variant*                 get_variant() { return &deref_variant(); }
-
-        template<typename T> inline explicit operator T*()     { return (T*) deref_variant(); }
-        template<typename T> inline explicit operator const T*() const { return (const T*) deref_variant(); }
-        template<typename T> inline explicit operator T()const { return deref_variant().convert_to<T>(); }
-        template<typename T> inline explicit operator T&()     { return (T&) deref_variant(); }
-        template<typename T> inline T convert_to()const        { return deref_variant().convert_to<T>(); }
-
         typedef int Flags;
         enum Flags_ {
             Flags_none         = 0,
             Flags_initialize   = 1,
             Flags_define       = 1 << 1,
             Flags_reset_value  = 1 << 2
-		};
+        };
 
-        void             ensure_is_defined(bool _value);
-        bool             is_connected_to_variable() const;
-        VariableNode*    get_connected_variable();
-        fw::qword*       get_underlying_data();
+        Token    token;
 
-		static std::shared_ptr<Property>  new_with_type(PropertyGrp * , const fw::type* , Flags = Flags_none);
-		static std::vector<fw::variant*>& get_variant(std::vector<Property *> _in_properties, std::vector<fw::variant*>& _out_variants);
+        explicit Property();
+        explicit Property(const std::string &);
+        explicit Property(int);
+        explicit Property(bool);
+        explicit Property(double);
+        explicit Property(const char *);
+        template<typename T>
+        explicit Property(ID<T> _value);
+        ~Property() = default;
+
+        fw::variant*                 operator->() { return value(); }
+        const fw::variant*           operator->() const { return value(); }
+        fw::variant&                 operator*() { return *value(); }
+        const fw::variant&           operator*() const { return *value(); }
+        template<typename T> T       to()const { return value()->to<T>(); }
+
+        void digest(Property *_property);
+        bool is_connected_by_ref() const;
+        bool is_reference() const;
+        bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
+        bool has_input_connected()const;
+        void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
+        void set_input(Property*);
+        void set_name(const char* _name) { m_name = _name; }
+        void set_reference(bool b);
+        void set(Node* _value);
+        void set(const Property& _other) { value()->set(_other.m_variant); }
+        template<typename T>
+        void set(T _value);
+		void set_type(const fw::type* _type) { value()->ensure_is_type(_type); }
+		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
+
+        ID<Node>                     owner() const { return m_owner; }
+        Property*                    get_input()const { return m_input; }
+		std::vector<Property*>&      get_outputs() { return m_outputs; }
+        const std::string&           get_name()const { return m_name; }
+        const fw::type*              get_type()const { return value()->get_type(); }
+        Visibility                   get_visibility()const { return m_visibility; }
+        Way                          get_allowed_connection()const { return m_allowed_connection; }
+        void                         ensure_is_defined(bool b);
+        void                         ensure_is_initialized(bool b);
+        bool                         is_connected_to_variable() const;
+        bool                         is_referencing_a_node() const;
+        ID<Node>                     value_as_node_id() const;
+        VariableNode*                get_connected_variable();
+        fw::variant*                 value()     { return is_connected_by_ref() ? &m_input->m_variant : &m_variant; }
+        const fw::variant*           value()const{ return is_connected_by_ref() ? &m_input->m_variant : &m_variant; }
+
+		static Property*             new_with_type(const fw::type *_type, Flags _flags);
+		static std::vector<fw::variant*> get(std::vector<Property *> _in_properties);
+
+        template<typename T>
+        T& as() { return value()->as<T>(); }
+
+        template<typename T>
+        T as() const { return value()->as<T>(); }
+
     private:
-		fw::variant&       deref_variant()     { return is_connected_by_ref() ? m_input->m_variant : m_variant; }
-        const fw::variant& deref_variant()const{ return is_connected_by_ref() ? m_input->m_variant : m_variant; }
 
+        ID<Node>                m_owner;
         Property*               m_input;
         Visibility 		        m_visibility;
-        Node*                   m_owner;
-        PropertyGrp*            m_property_group;
-		std::vector<Property *> m_outputs;
+		std::vector<Property*>  m_outputs;
 		Way                     m_allowed_connection;
 		std::string             m_name;
 		fw::variant             m_variant;
         bool                    m_is_reference;
     };
+
+    template<typename T>
+    void Property::set(T _value)
+    { value()->set( _value ); }
 }

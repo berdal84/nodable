@@ -27,7 +27,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # define _DEBUG (MSVC define it under windows but this is not the default behavior
 # with other compilers)
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -D_DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDBL_DEBUG")
 
 if(WIN32)
     add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions

@@ -22,36 +22,47 @@ namespace ndbl
 	class VariableNode : public Node
     {
 	public:
-		explicit VariableNode(const fw::type *, const char*identifier);
+		VariableNode();
+        VariableNode(VariableNode&& other): Node(std::move(other)) {};
+		explicit VariableNode(const fw::type *, const char* identifier);
 		~VariableNode() override = default;
+        VariableNode& operator=(VariableNode&&) = default;
 
         /** Check if variable is declared (could be only a reference to an undeclared variable) */
 		inline bool      is_declared()const { return m_is_declared; }
         /** Get variable's value (as a Property) */
-        Property *       get_value()const { return m_value; }
+        Property*        property()const { return m_value; }
         /** Get the instruction where this variable is declared */
-        const InstructionNode* get_declaration_instr()const { return m_declaration_instr; }
+        const ID<InstructionNode> get_declaration_instr()const { return m_declaration_instr; }
         /** Get variable scope*/
-        IScope*          get_scope() { return m_scope; }
-        /** Write a new value into the variable*/
-        template<class T> void         set(T _value) { m_value->set(_value); };
+        ID<Scope>        get_scope();
         /** Set the declared flag value. Parser need to know if a variable is declared or not to avoid duplicates*/
         void             set_declared(bool b = true) { m_is_declared = b; }
         /** Set the scope of the variable */
-        void             set_scope(IScope* _scope) { m_scope = _scope; }
+        void             reset_scope(Scope* _scope = nullptr);
         /** Set the instruction where this variable is declared */
-        void             set_declaration_instr(InstructionNode* _instr) { m_declaration_instr = _instr; }
+        void             set_declaration_instr(ID<InstructionNode> _instr) { m_declaration_instr = _instr; }
+
+        const fw::type*  type() const;
+        fw::variant*     value();
+
+        fw::variant& operator * () const { return *property()->value(); }
+        fw::variant* operator -> () const { return property()->value(); }
+
+
     public:
         Token  type_token;
         Token  assignment_operator_token;
         Token  identifier_token;
     private:
-        /** Variable's value is stored in this Property*/
-        Property *             m_value;
-        bool                   m_is_declared;
-        InstructionNode*       m_declaration_instr;
-        IScope*                m_scope;
+        Property*           m_value;
+        bool                m_is_declared;
+        ID<InstructionNode> m_declaration_instr;
+        ID<Node>            m_scope;
 
 		REFLECT_DERIVED_CLASS()
     };
 }
+
+static_assert(std::is_move_assignable_v<ndbl::VariableNode>, "Should be move assignable");
+static_assert(std::is_move_constructible_v<ndbl::VariableNode>, "Should be move constructible");

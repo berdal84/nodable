@@ -2,6 +2,7 @@
 #include "Connector.h"
 #include <imgui/imgui_internal.h>
 #include "fw/gui/ImGuiEx.h"
+#include "core/Pool.h"
 
 namespace ndbl {
 
@@ -14,30 +15,26 @@ namespace ndbl {
     class NodeConnector: public Connector<NodeConnector>
     {
     public:
+        NodeConnector(){}
         NodeConnector(
-              NodeView& _nodeView
+             NodeView* _nodeView
             , Way _way
             , size_t _index = 0
-            , size_t _count = 1)
-        : m_node_view(_nodeView)
-        , m_way(_way)
-        , m_index(_index)
-        , m_count(_count)
-        {};
+            , size_t _count = 1);
 
         ~NodeConnector() = default;
-        Node*              get_node()const;
-        Node*              get_connected_node() const;
+        ID<Node>           get_node()const;
+        ID<Node>           get_connected_node() const;
         ImRect             get_rect() const;
         ImVec2             get_pos() const override;
-        bool               share_parent_with(const NodeConnector *other) const override;
-        static void        draw(const NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable);
-        static void        dropped(const NodeConnector *_left, const NodeConnector *_right);
+        bool               share_parent_with(const NodeConnector* other) const override;
+        static void        draw(NodeConnector *_connector, const ImColor &_color, const ImColor &_hoveredColor, bool _editable);
+        static void        dropped(const NodeConnector*, const NodeConnector*);
 
         size_t    m_index;
         size_t    m_count;
-        NodeView& m_node_view;
         Way       m_way;
+        ID<NodeView> m_node_view;
 
         static const NodeConnector* s_hovered;
         static const NodeConnector* s_dragged;

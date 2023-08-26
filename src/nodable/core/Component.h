@@ -1,11 +1,13 @@
 #pragma once
 
 #include "fw/core/reflection/reflection"
+#include "fw/core/Pool.h"
 
 namespace ndbl
 {
     // forward declaration
     class Node;
+    using fw::pool::ID;
 
     /**
      * @class Base abstract class for any Node Component
@@ -13,14 +15,15 @@ namespace ndbl
 	class Component
 	{
     public:
-        Component(): m_owner(nullptr) {}
-        Component (const Component&) = delete;                   // disable to avoid mistakes
-        Component& operator= (const Component&) = delete;        //       ... same ...
+        Component();
+        Component(Component&&) = default;
+        Component& operator=(Component&&) = default;
         virtual ~Component() = default;
-        Node*        get_owner()const { return m_owner; }
-        virtual void set_owner(Node* node){ m_owner = node; }
+        ID<Node>         get_owner()const { return m_owner; }
+        virtual void     set_owner(ID<Node> node);
 	protected:
-        Node* m_owner;
+        ID<Node> m_owner;
 		REFLECT_BASE_CLASS()
+        POOL_REGISTRABLE(Component)
     };
 }
