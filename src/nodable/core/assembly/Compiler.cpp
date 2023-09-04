@@ -74,22 +74,25 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
     return true;
 }
 
-void assembly::Compiler::compile(const Property * _property )
+void Compiler::compile(Connector connector)
 {
-    FW_ASSERT(_property)
+    Property* property = connector.get_property();
 
-    if ( _property->is_referencing_a_node() )
+    FW_EXPECT(property != nullptr, "Vertex should contain a valid property id" )
+
+    if ( property->is_referencing<Node>() )
     {
-         return compile( _property->value_as_node_id() );
+        return compile( (ID<Node>)*property->value() );
     }
 
-    if (Property* input = _property->get_input() )
+    Edge edge = connector.node->get_edge_heading( property->id);
+    if ( edge != Edge::null )
     {
         /*
          * if the property has an input it means it is not a simple literal value and we have to compile it.
          * In order to do that, we traverse the syntax tree starting from the node connected to it.
          */
-        compile( input->owner() );
+        compile( edge.tail.node );
     }
 }
 
@@ -122,7 +125,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     }
 
     // compile content
-    for( auto each_node : scope_owner->children.content() )
+    for( ID<Node> each_node : scope_owner->children() )
     {
         compile(each_node);
     }
@@ -186,11 +189,11 @@ void assembly::Compiler::compile(ID<const Node> node_id)
     else
     {
         // eval inputs
-        for ( ID<Node> each_input : _node->inputs.content() )
+        for ( const Edge& edge : _node->filter_edges(Relation::WRITE_READ) )
         {
-            if ( each_input->get_type()->is_not_child_of<VariableNode>() )
+            if ( edge.head.node->get_type()->is_not_child_of<VariableNode>() )
             {
-                compile( each_input );
+                compile( edge.head );
             }
         }
 
@@ -322,19 +325,18 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 
 void assembly::Compiler::compile(const InstructionNode *instr_node)
 {
-    FW_ASSERT( instr_node->root() )
+    Edge edge = instr_node->get_edge_heading(ROOT_PROPERTY);
 
-    // copy instruction result to rax register
-    if ( instr_node->root()->has_input_connected() )
+    if ( edge != Edge::null )
     {
-        compile( instr_node->root() );
+        // Compiles input
+        compile( edge.tail );
 
-        ID<Node>  root_node       = instr_node->root()->get_input()->owner();
-        Property* root_node_prop  = root_node->get_prop( k_value_property_name );
-
-        if ( root_node_prop )
+        // Copy result to rax register
+        Property* tail_node_property = edge.tail.node->get_prop(VALUE_PROPERTY);
+        if (tail_node_property)
         {
-            variant*     value     = root_node_prop->value();
+            variant*     value     = tail_node_property->value();
             Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_pool_id );
             instr->uref.pool_id    = *value->data();
             instr->uref.type       = value->get_type();

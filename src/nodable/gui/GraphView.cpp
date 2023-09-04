@@ -15,14 +15,13 @@
 #include "core/Scope.h"
 #include "core/VariableNode.h"
 #include "core/language/Nodlang.h"
-
+#include "core/Connector.h"
 #include "Config.h"
 #include "Nodable.h"
-#include "NodeConnector.h"
 #include "NodeView.h"
-#include "PropertyView.h"
-#include "PropertyConnector.h"
 #include "Physics.h"
+#include "SlotView.h"
+#include "PropertyView.h"
 #include "core/NodeUtils.h"
 
 using namespace ndbl;
@@ -64,20 +63,17 @@ bool GraphView::draw()
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
-    ID<Node>    new_node_id;
+    ID<Node>        new_node_id;
     ImVec2          origin           = ImGui::GetCursorScreenPos();
     auto            node_registry    = Pool::get_pool()->get( m_graph->get_node_registry() );
-
-    const PropertyConnector* dragged_property_conn = PropertyConnector::get_dragged();
-    const PropertyConnector* hovered_property_conn = PropertyConnector::get_hovered();
-    const NodeConnector*     dragged_node_conn     = NodeConnector::get_dragged();
-    const NodeConnector*     hovered_node_conn     = NodeConnector::get_hovered();
+    const SlotView* dragged_slot     = SlotView::get_dragged();
+    const SlotView* hovered_slot     = SlotView::get_hovered();
 
     /*
     * Function to draw an invocable menu (operators or functions)
     */
     auto draw_invokable_menu = [&](
-        const PropertyConnector* dragged_property_conn,
+        const PropertyConnectorView * dragged_property_conn,
         const std::string& _key) -> void
     {
         char menuLabel[255];
@@ -95,15 +91,15 @@ bool GraphView::draw()
                 */
                 bool has_compatible_signature;
 
-                if ( !dragged_property_conn )
+                if ( !dragged_slot )
                 {
                     has_compatible_signature = true;
                 }
-                else
+                else if ( !dragged_slot->is_node_connector() )
                 {
-                    const fw::type* dragged_property_type = dragged_property_conn->get_property_type();
+                    const fw::type* dragged_property_type = dragged_slot->get_property_type();
 
-                    if ( dragged_property_conn->m_way == Way_Out )
+                    if ( dragged_slot->allows( Way::Out ) )
                     {
                         has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
                     }
@@ -202,10 +198,10 @@ bool GraphView::draw()
     for( Node* each_node : node_registry )
     {
         size_t slot_index = 0;
-        size_t slot_count = each_node->successors.get_limit();
+        size_t slot_count = each_node->get_slot_count(Relation::NEXT_PREVIOUS, Way::Out);
         float padding     = 2.0f;
         float linePadding = 5.0f;
-        for (ID<Node> each_successor_node : each_node->successors )
+        for (ID<Node> each_successor_node : each_node->successors() )
         {
             // TODO: I should probably compute those 2 lines once for all
             NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
@@ -254,10 +250,10 @@ bool GraphView::draw()
         }
 
         // Draw temporary Node connection
-        if ( dragged_node_conn )
+        if (dragged_slot)
         {
-            ImVec2 src = dragged_node_conn->get_pos();
-            ImVec2 dst = hovered_node_conn ? hovered_node_conn->get_pos() : ImGui::GetMousePos();
+            ImVec2 src = dragged_slot->get_pos();
+            ImVec2 dst = hovered_slot ? hovered_slot->get_pos() : ImGui::GetMousePos();
             fw::ImGuiEx::DrawVerticalWire(
                 ImGui::GetWindowDrawList(),
                 src, dst,
@@ -270,7 +266,7 @@ bool GraphView::draw()
 
         // Drops ?
         bool require_new_node   = false;
-        PropertyConnector::drop_behavior(require_new_node, enable_edition);
+        PropertyConnectorView::drop_behavior(require_new_node, enable_edition);
         NodeConnector::drop_behavior(require_new_node, enable_edition);
 
         // Need a need node ?
@@ -392,7 +388,7 @@ bool GraphView::draw()
 	}
 
 	isAnyNodeDragged |= NodeConnector::is_dragging();
-	isAnyNodeDragged |= PropertyConnector::is_dragging();
+	isAnyNodeDragged |= PropertyConnectorView::is_dragging();
 
 	// Virtual Machine cursor
     if ( app.virtual_machine.is_program_running() )
@@ -445,14 +441,14 @@ bool GraphView::draw()
         fw::ImGuiEx::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
 		ImGui::Separator();
 
-		if ( !dragged_node_conn )
+		if ( !dragged_slot)
 		{
 		    draw_invokable_menu(dragged_property_conn, k_operator_menu_label );
             draw_invokable_menu(dragged_property_conn, k_function_menu_label );
             ImGui::Separator();
         }
 
-        if ( !dragged_node_conn )
+        if ( !dragged_slot)
         {
             // If dragging a property we create a VariableNode with the same type.
             if ( dragged_property_conn && !dragged_property_conn->get_property_type()->is<ID<Node>>() )
@@ -551,18 +547,18 @@ bool GraphView::draw()
         {
 
             // dragging node connector ?
-            if ( dragged_node_conn )
+            if (dragged_slot)
             {
-                Edge_t edge_type = dragged_node_conn->m_way == Way_Out ? Edge_t::IS_SUCCESSOR_OF : Edge_t::IS_PREDECESSOR_OF;
-                m_graph->connect( {new_node_id.get(), edge_type, dragged_node_conn->get_node().get()} );
+                Relation edge_type = dragged_slot->m_way == Way::Out ? Relation::SUCCESSOR : Relation::NEXT_PREVIOUS;
+                m_graph->connect( {new_node_id.get(), edge_type, dragged_slot->get_node().get()} );
                 NodeConnector::stop_drag();
             }
             else if ( dragged_property_conn )
             {
-                if ( dragged_property_conn->m_way == Way_In )
+                if ( dragged_property_conn->m_way == Way::In )
                 {
                     Property* dst_property = dragged_property_conn->get_property();
-                    Property* src_property = new_node_id->props.get_first(Way_Out, dst_property->get_type());
+                    Property* src_property = new_node_id->props.get_first(Way::Out, dst_property->get_type());
                     m_graph->connect( src_property, dst_property );
                 }
                 //  [ dragged connector ](out) ---- dragging this way ----> (in)[ new node ]
@@ -570,15 +566,15 @@ bool GraphView::draw()
                 {
                     // connect dragged (out) to first input on new node.
                     Property*  src_property = dragged_property_conn->get_property();
-                    Property*  dst_property = new_node_id->props.get_first(Way_In, src_property->get_type());
+                    Property*  dst_property = new_node_id->props.get_first(Way::In, src_property->get_type());
                     m_graph->connect( src_property, dst_property);
                 }
-                PropertyConnector::stop_drag();
+                PropertyConnectorView::stop_drag();
             }
             else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
             {
                 m_graph->ensure_has_root();
-                // m_graph->connect( new_node, m_graph->get_root(), RelType::IS_CHILD_OF  );
+                // m_graph->connect( new_node, m_graph->get_root(), RelType::CHILD  );
             }
 
             // set new_node's view position
@@ -595,7 +591,7 @@ bool GraphView::draw()
 	if ( ImGui::IsMouseClicked(1) )
     {
         ImGui::CloseCurrentPopup();
-        PropertyConnector::stop_drag();
+        PropertyConnectorView::stop_drag();
         NodeConnector::stop_drag();
     }
 

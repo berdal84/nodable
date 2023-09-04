@@ -1,6 +1,7 @@
 #include "WhileLoopNode.h"
 #include "core/Scope.h"
 #include "InstructionNode.h"
+#include "GraphUtil.h"
 
 using namespace ndbl;
 
@@ -13,24 +14,21 @@ REGISTER
 
 WhileLoopNode::WhileLoopNode()
 {
-    add_prop<ID<Node>>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In); // while ( <here> ) { ... }
+    add_prop<ID<Node>>(CONDITION_PROPERTY, Visibility::Always, Way::In); // while ( <here> ) { ... }
 }
 
 ID<Scope> WhileLoopNode::get_condition_true_scope() const
 {
-    if ( !successors.empty() )
-        return successors[0]->get_component<Scope>();
-    return {};
+    return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 0);
 }
 
 ID<Scope> WhileLoopNode::get_condition_false_scope() const
 {
-    if ( successors.size() > 1 )
-        return successors[1]->get_component<Scope>();
-    return {};
+    return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 1);
 }
 
-Property* WhileLoopNode::condition_property() const
+
+const Property* WhileLoopNode::condition_property() const
 {
-    return get_prop(k_conditional_cond_property_name);
+    return get_prop(CONDITION_PROPERTY);
 }

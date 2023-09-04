@@ -22,12 +22,8 @@ namespace ndbl
         InstructionNode(InstructionNode&& other) = default;
         ~InstructionNode()= default;
         InstructionNode& operator=(InstructionNode&& other) = default;
-
-        Property* root() const { return m_root; }
-
-    private:
-        Property* m_root;
-
+        const Property* root_property() const { return get_prop(VALUE_PROPERTY); }
+        Slot root_slot() const { return get_slot(VALUE_PROPERTY, Way::In); }
         REFLECT_DERIVED_CLASS()
     };
 }

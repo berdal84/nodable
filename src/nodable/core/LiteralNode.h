@@ -14,9 +14,10 @@ namespace ndbl
         LiteralNode& operator=(LiteralNode&&) = default;
         explicit LiteralNode(const fw::type*);
         ~LiteralNode() override = default;
-        Property* value() const { return m_value; }
+        Property* value() { return get_prop_at( m_value_property_id ); }
+        const Property* value() const { return get_prop_at( m_value_property_id ); }
     private:
-        Property* m_value;
+        size_t m_value_property_id;
 
         REFLECT_DERIVED_CLASS()
     };

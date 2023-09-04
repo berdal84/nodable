@@ -29,8 +29,8 @@ TEST_F(Graph_, connect)
 
     const DirectedEdge* edge = graph.connect(node1_output, node2_input);
 
-    EXPECT_EQ(edge->src() , node1_output);
-    EXPECT_EQ(edge->dst() , node2_input);
+    EXPECT_EQ(edge->tail() , node1_output);
+    EXPECT_EQ(edge->head() , node2_input);
     EXPECT_EQ(graph.get_edge_registry().size(), 1);
  }
 
@@ -63,8 +63,8 @@ TEST_F(Graph_, clear)
 
     EXPECT_TRUE(operator_fct.get() != nullptr);
     auto operatorNode = graph.create_operator(operator_fct.get());
-    operatorNode->get_prop(k_lh_value_property_name)->set(2);
-    operatorNode->get_prop(k_rh_value_property_name)->set(2);
+    operatorNode->get_prop(LEFT_VALUE_PROPERTY)->set(2);
+    operatorNode->get_prop(RIGHT_VALUE_PROPERTY)->set(2);
 
     graph.connect(operatorNode->as_prop(), instructionNode->root() );
 
@@ -97,20 +97,20 @@ TEST_F(Graph_, create_and_delete_relations)
 
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ(n2->children.size(), 0);
-    auto edge1 = graph.connect({n1, Edge_t::IS_CHILD_OF, n2}, false);
-    EXPECT_EQ(n2->children.size(), 1);
+    EXPECT_EQ(n2->children.edge_count(), 0);
+    auto edge1 = graph.connect({n1, Relation::CHILD_PARENT, n2}, false);
+    EXPECT_EQ(n2->children.edge_count(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph.disconnect(edge1);
-    EXPECT_EQ(n2->children.size(), 0);
+    EXPECT_EQ(n2->children.edge_count(), 0);
 
     // Is input of
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ(n2->inputs.size(), 0);
-    auto edge2 = graph.connect({n1, Edge_t::IS_INPUT_OF, n2}, false);
-    EXPECT_EQ(n2->inputs.size(), 1);
+    EXPECT_EQ(n2->inputs.edge_count(), 0);
+    auto edge2 = graph.connect({n1, Relation::INPUT, n2}, false);
+    EXPECT_EQ(n2->inputs.edge_count(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph.disconnect(edge2);
-    EXPECT_EQ(n2->inputs.size(), 0);
+    EXPECT_EQ(n2->inputs.edge_count(), 0);
     EXPECT_EQ(edges.size(), 0);
 }

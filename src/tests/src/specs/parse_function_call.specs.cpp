@@ -26,11 +26,11 @@ TEST_F(parse_function_call, dna_to_protein)
     EXPECT_EQ(nodlang.parser_state.ribbon.at(3).m_type, Token_t::parenthesis_close);
 
     // parse
-    Property* result = nodlang.parse_function_call();
+    Connector function_out = nodlang.parse_function_call();
 
     // check
-    EXPECT_TRUE(result != nullptr);
-    Node* invokable_node = result->owner().get();
+    EXPECT_TRUE(function_out);
+    Node* invokable_node = function_out.get_node();
     EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
     EXPECT_TRUE(invokable_node->get_component<InvokableComponent>()->has_function()); // should not be abstract
 }

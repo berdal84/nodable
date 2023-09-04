@@ -14,9 +14,6 @@
 namespace ndbl
 {
     // forward declarations
-    class Node;
-    class PropertyBag;
-    class VariableNode;
     using fw::pool::ID;
 
     /**
@@ -27,8 +24,9 @@ namespace ndbl
      */
 	class Property
     {
-        friend PropertyBag;
     public:
+        typedef u8_t ID;
+
         typedef int Flags;
         enum Flags_ {
             Flags_none         = 0,
@@ -37,7 +35,8 @@ namespace ndbl
             Flags_reset_value  = 1 << 2
         };
 
-        Token    token;
+        ID    id;
+        Token token;
 
         explicit Property();
         explicit Property(const std::string &);
@@ -46,7 +45,7 @@ namespace ndbl
         explicit Property(double);
         explicit Property(const char *);
         template<typename T>
-        explicit Property(ID<T> _value);
+        explicit Property(fw::ID<T> _value);
         ~Property() = default;
 
         fw::variant*                 operator->() { return value(); }
@@ -56,36 +55,31 @@ namespace ndbl
         template<typename T> T       to()const { return value()->to<T>(); }
 
         void digest(Property *_property);
-        bool is_connected_by_ref() const;
-        bool is_reference() const;
-        bool allows_connection(Way _flag)const { return (m_allowed_connection & _flag) == _flag; }
-        bool has_input_connected()const;
+        bool allows_connection(Way _flag)const;
         void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
-        void set_input(Property*);
         void set_name(const char* _name) { m_name = _name; }
-        void set_reference(bool b);
-        void set(Node* _value);
         void set(const Property& _other) { value()->set(_other.m_variant); }
         template<typename T>
         void set(T _value);
 		void set_type(const fw::type* _type) { value()->ensure_is_type(_type); }
 		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
 
-        ID<Node>                     owner() const { return m_owner; }
-        Property*                    get_input()const { return m_input; }
-		std::vector<Property*>&      get_outputs() { return m_outputs; }
         const std::string&           get_name()const { return m_name; }
         const fw::type*              get_type()const { return value()->get_type(); }
         Visibility                   get_visibility()const { return m_visibility; }
         Way                          get_allowed_connection()const { return m_allowed_connection; }
-        void                         ensure_is_defined(bool b);
         void                         ensure_is_initialized(bool b);
-        bool                         is_connected_to_variable() const;
-        bool                         is_referencing_a_node() const;
-        ID<Node>                     value_as_node_id() const;
-        VariableNode*                get_connected_variable();
-        fw::variant*                 value()     { return is_connected_by_ref() ? &m_input->m_variant : &m_variant; }
-        const fw::variant*           value()const{ return is_connected_by_ref() ? &m_input->m_variant : &m_variant; }
+        void                         set_ref() { m_is_ref = true; }
+        bool                         is_ref() const;
+
+        template<typename T, typename U = fw::pool::ID<T> >
+        bool is_referencing() const
+        {
+            return get_type()->is<U>();
+        }
+
+        fw::variant*                 value()     { return &m_variant; }
+        const fw::variant*           value()const{ return &m_variant; }
 
 		static Property*             new_with_type(const fw::type *_type, Flags _flags);
 		static std::vector<fw::variant*> get(std::vector<Property *> _in_properties);
@@ -96,16 +90,14 @@ namespace ndbl
         template<typename T>
         T as() const { return value()->as<T>(); }
 
-    private:
+        bool is_type_null() const;
 
-        ID<Node>                m_owner;
-        Property*               m_input;
+    private:
         Visibility 		        m_visibility;
-		std::vector<Property*>  m_outputs;
 		Way                     m_allowed_connection;
 		std::string             m_name;
 		fw::variant             m_variant;
-        bool                    m_is_reference;
+        bool                    m_is_ref;
     };
 
     template<typename T>

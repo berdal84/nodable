@@ -11,9 +11,12 @@
 #include "fw/core/Pool.h"
 
 #include "Components.h"
+#include "Connector.h"
 #include "DirectedEdge.h"
+#include "Edge.h"
+#include "Property.h"
 #include "PropertyBag.h"
-#include "Slots.h"
+#include "SlotBag.h"
 #include "constants.h"
 
 namespace ndbl {
@@ -42,23 +45,22 @@ namespace ndbl {
 	*/
     class Node
 	{
+        REFLECT_BASE_CLASS()
+        size_t get_slot_count(Relation edge, Way way) const;
+        POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM(Node);
 	public:
-
         // Data
+
         ID<Node>          parent;
         std::string       name;
         Graph*            parent_graph;
         PropertyBag       props;
-        Slots<ID<Node>>   successors;
-        Slots<ID<Node>>   predecessors;
-        Slots<ID<Node>>   children;
-        Slots<ID<Node>>   outputs;
-        Slots<ID<Node>>   inputs;
-        bool                            dirty; // TODO: use flags
-        bool                            flagged_to_delete; // TODO: use flags
-        std::set<const DirectedEdge*>   edges;
-        observe::Event<ID<Node>, SlotEvent, Edge_t> on_slot_change;
-        observe::Event<ID<Node>>                    on_name_change;
+        SlotBag           slots;
+        bool              dirty; // TODO: use flags
+        bool              flagged_to_delete; // TODO: use flags
+
+        observe::Event<SlotBag::Event> on_slot_change;
+        observe::Event<ID<Node>>       on_name_change;
 
         // Code
 
@@ -67,25 +69,37 @@ namespace ndbl {
         Node& operator=(Node&&) = default;
         virtual ~Node() = default;
 
-        Property*            as_prop() { return get_prop(k_this_property_name ); }
-        void                 set_parent(ID<Node> _node);
-        void                 set_name(const char *_label);
-		void                 add_edge(const DirectedEdge* edge);
-		void                 remove_edge(const DirectedEdge*);
+        std::vector<Edge> filter_edges(Relation edge) const;
+        std::vector<Edge>    edges() const;
+        std::vector<ID<Node>> successors() const;
+        std::vector<ID<Node>> children() const;
+        bool                 allows_more(Relation);
+        void                 set_parent(ID<Node>);
+        void                 set_name(const char*);
+		void                 add_edge(Edge);
+		void                 remove_edge(Edge);
         size_t               incoming_edge_count()const;
         size_t               outgoing_edge_count()const;
-        const fw::iinvokable*get_connected_invokable(const Property *_local_property) const; // TODO: can't remember to understand why I needed this...
-        bool                 is_connected_with(const Property *property_id);
+        size_t               edge_count(Way)const;
+        std::vector<ID<Node>>get_predecessors() const;
+        Slot&slot(Way way = Way::InOut) const;
+        Slot&                get_slot(Property*, Way) const;
+        Slot&                get_slot(Property::ID, Way) const;
+        Slot&                get_slot(const char* _name, Way) const;
+        const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
+        Edge                 get_edge_heading(Property::ID) const;
+        Edge                 get_edge_heading(const char* name) const;
+        bool                 has_edge_heading(size_t property) const;
+        bool                 has_edge_heading(const char* name) const;
+        Property*            get_prop_at(size_t pos);
+        const Property*      get_prop_at(size_t pos) const;
+        Property*            get_prop(const char* _name);
+        const Property*      get_prop(const char* _name) const;
+        std::vector<Edge>    get_input_edges(const std::vector<Property::ID>& properties) const;
         std::vector<ID<Component>> get_components();
 
-        Property* get_prop(const char* _name)
-        { return props.get(_name); }
-
-        Property* get_prop(const char* _name) const
-        { return props.get(_name); }
-
         template<typename ValueT, typename ...ArgsT>
-        Property* add_prop(ArgsT...args)
+        size_t add_prop(ArgsT...args)
         { return props.add<ValueT>(args...); }
 
         template<class ComponentT>
@@ -99,9 +113,6 @@ namespace ndbl {
         template<class ComponentT>
         bool has_component() const
         { return m_components.has<ComponentT>(); }
-
-		REFLECT_BASE_CLASS()
-        POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM(Node);
     private:
         Components m_components;
     };

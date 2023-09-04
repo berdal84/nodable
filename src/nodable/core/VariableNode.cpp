@@ -23,7 +23,7 @@ VariableNode::VariableNode(const fw::type *_type, const char* identifier)
     , m_is_declared(false)
 {
     set_name(identifier);
-    m_value = props.add(_type, k_value_property_name, Visibility::Always, Way_InOut);
+    m_value_property_id = props.add(_type, VALUE_PROPERTY, Visibility::Always, Way::InOut);
 }
 
 ID<Scope> VariableNode::get_scope()
@@ -34,15 +34,20 @@ ID<Scope> VariableNode::get_scope()
 
 const fw::type *VariableNode::type() const
 {
-    return m_value->get_type();
+    return property()->get_type();
 }
 
 fw::variant* VariableNode::value()
 {
-    return m_value->value();
+    return property()->value();
 }
 
 void VariableNode::reset_scope(Scope* _scope)
 {
     m_scope = _scope ? _scope->get_owner() : ID<Node>{};
+}
+
+Slot VariableNode::get_value_slot(Way way) const
+{
+    return get_slot(m_value_property_id, way);
 }

@@ -4,14 +4,13 @@
 #include "fw/core/types.h"
 #include "fw/core/reflection/reflection"
 
-#include "core/Token.h"
+#include "core/Edge.h"
 #include "core/Component.h"
+#include "core/Property.h"
+#include "core/Token.h"
 
 namespace ndbl
 {
-    // forward declarations
-    class Property;
-
 	/**
 	  * @brief ComputeFunction extends Compute base to provide a Component that represents a Function.
 	  *        This function has some arguments.
@@ -26,27 +25,28 @@ namespace ndbl
         InvokableComponent& operator=(InvokableComponent&&) = default;
 
         Token token;
-        bool                               update();
-		inline void                        set_arg(size_t _index, Property* _value) { m_args[_index] = _value; }
-		inline Property*                   get_arg(size_t _index)const  { return m_args[_index]; }
-		inline const std::vector<Property*>& get_args()const { return m_args; }
-		inline const fw::func_type*        get_func_type()const { return m_signature; }
-		inline const fw::iinvokable*       get_function()const { return m_invokable; }
-        void                               bind_result_property(const char* property_name); // bind an existing property to the result of the computation
-        inline Property*                   get_l_handed_val() { return m_args[0]; };
-        inline Property*                   get_r_handed_val() { return m_args[1]; };
-        inline bool                        has_function() const { return m_invokable; };
-		bool                               is_operator()const { return m_is_operator; };
+        bool                        update();
+		void                        bind_arg(size_t arg_id, size_t property_id);
+        Property::ID                get_arg(size_t _index)const;
+		std::vector<Property*>      get_args()const;
+        const std::vector<Property::ID>& get_arg_ids() const;
+		const fw::func_type*        get_func_type()const { return m_signature; }
+		const fw::iinvokable*       get_function()const { return m_invokable; }
+        void                        bind_result_property(size_t property_id); // bind an existing property to the result of the computation
+        Property::ID                get_l_handed_val();
+        Property::ID                get_r_handed_val();
+        bool                        has_function() const { return m_invokable; };
+		bool                        is_operator()const { return m_is_operator; };
 
-	protected:
-        Property*                  m_result;
-        std::vector<Property*>     m_args;
+    protected:
+        size_t                     m_result_id;
+        std::vector<Property::ID>  m_argument_id;
         const fw::func_type*       m_signature;
         const fw::iinvokable*      m_invokable;
         bool                       m_is_operator;
 
         REFLECT_DERIVED_CLASS()
-	};
+    };
 }
 
 static_assert(std::is_move_assignable_v<ndbl::InvokableComponent>, "Should be move assignable");

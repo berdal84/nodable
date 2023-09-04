@@ -86,28 +86,28 @@ void Scope::add_variable(ID<VariableNode> _variableNode)
 
 void Scope::get_last_instructions_rec(std::vector<InstructionNode*>& _out)
 {
-    Node* owner = m_owner.get();
-    if ( owner->children.empty() )
+    std::vector<ID<Node>> children = m_owner->children();
+
+    if ( children.empty() )
     {
         return;
     }
 
-    for(auto each_id : owner->children )
+    for ( ID<Node> child_node_id : children )
     {
-        Node* each_child = each_id.get();
-        if ( each_child != nullptr )
+        Node* child_node = child_node_id.get();
+        if ( child_node == nullptr ) continue;
+
+        if ( auto* each_instr = fw::cast<InstructionNode>(child_node) )
         {
-            if ( auto* each_instr = fw::cast<InstructionNode>( each_child ) )
+            if ( children.back().get() == each_instr )
             {
-                if (owner->children.back().get() == each_instr )
-                {
-                    _out.push_back(each_instr);
-                }
+                _out.push_back(each_instr);
             }
-            else if ( Scope* scope = each_child->get_component<Scope>().get() )
-            {
-                scope->get_last_instructions_rec(_out);
-            }
+        }
+        else if ( Scope* scope = child_node->get_component<Scope>().get() )
+        {
+            scope->get_last_instructions_rec(_out);
         }
     }
 }

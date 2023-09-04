@@ -13,18 +13,17 @@
 #endif
 
 #define POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM( Class ) \
-friend ::fw::pool::Pool; \
-protected: ::fw::pool::ID<Class> m_id;\
-private:   static constexpr bool is_pool_registrable = true; \
-public:    ::fw::pool::ID<Class> id() const { return m_id; };\
-private:   void                  id(ID<Class> id)
+public:\
+    friend ::fw::pool::Pool;  \
+    ::fw::pool::ID<Class> id() const { return m_id; };\
+protected: \
+    ::fw::pool::ID<Class> m_id;\
+private: \
+    static constexpr bool is_pool_registrable = true; \
+    void                  id(::fw::pool::ID<Class> id)
 
 #define POOL_REGISTRABLE( Class ) \
-friend ::fw::pool::Pool; \
-protected: ::fw::pool::ID<Class> m_id;\
-private:   static constexpr bool is_pool_registrable = true; \
-public:    ::fw::pool::ID<Class> id() const { return m_id; };\
-private:   void id(ID<Class> id) { m_id = std::move(id); }
+POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM( Class ) { m_id = std::move(id); }
 
 
 namespace fw
@@ -51,11 +50,11 @@ namespace pool
     {
         i32_t id; // Address of an object in a Pool
 
-        ID(i32_t _id = ID_NULL)
+        constexpr ID(i32_t _id = ID_NULL)
             : id(_id)
         {};
 
-        ID(const ID<Type>& other)
+        constexpr ID(const ID<Type>& other)
             : id(other.id)
         {}
 

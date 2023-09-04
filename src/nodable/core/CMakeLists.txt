@@ -9,7 +9,6 @@ add_library(
         Components.cpp
         ConditionalStructNode.cpp
         DataAccess.cpp
-        DirectedEdge.cpp
         ForLoopNode.cpp
         Graph.cpp
         InstructionNode.cpp
@@ -20,11 +19,11 @@ add_library(
         Property.cpp
         PropertyBag.cpp
         Scope.cpp
+        SlotBag.cpp
         Token.cpp
         TokenRibbon.cpp
         VariableNode.cpp
         VirtualMachine.cpp
-        Way.cpp
         WhileLoopNode.cpp
         assembly/Code.cpp
         assembly/Compiler.cpp
@@ -32,7 +31,7 @@ add_library(
         language/Nodlang.cpp
         language/Nodlang_biology.cpp
         language/Nodlang_math.cpp
-)
+        Connector.cpp Slot.cpp GraphUtil.cpp GraphUtil.h)
 
 target_link_libraries(
     nodable-core

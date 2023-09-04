@@ -25,11 +25,11 @@ bool DataAccess::update()
     rapidjson::PrettyWriter<rapidjson::StringBuffer> writer(buffer);
     rapidjson::Document doc;
 
-	auto writeProperty = [&writer](const Property* property)
+	auto writeProperty = [&writer](const Property& property)
 	{
-		writer.Key(property->get_name().c_str());
+		writer.Key(property.get_name().c_str());
 
-        auto& value = *property->value();
+        auto& value = *property.value();
     	const fw::type* type = value.get_type();
 
     	     if (type->is<std::string>() ) writer.String(value);
@@ -48,9 +48,9 @@ bool DataAccess::update()
     	writer.Key("properties");
     	writer.StartObject();
     	{
-		    for(auto& [_, property ] : owner->props.by_name())
+		    for(auto& each_property : owner->props )
 		    {
-		    	writeProperty( property );
+		    	writeProperty( each_property );
 		    }
 		}
 	    writer.EndObject();

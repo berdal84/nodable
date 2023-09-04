@@ -11,5 +11,5 @@ REGISTER
 Component::Component()
 {}
 
-void Component::set_owner(ID<Node> node)
+void Component::set_owner(fw::ID<Node> node)
 { m_owner = node; }

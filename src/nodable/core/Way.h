@@ -1,25 +1,21 @@
 #pragma once
-#include <string>
+#include "fw/core/reflection/reflection"
 
 namespace ndbl
 {
-	/**
-	  The role of this enum is to distinguish the way
-	  to drop_on a specific connector.
-	*/
-	typedef enum Way: int
+	enum class Way : u8_t
 	{
-		Way_None    = 0,
-		Way_In      = 1 << 0,
-		Way_Out     = 1 << 1,
-		Way_InOut   = Way_In | Way_Out,
-		Way_Default = Way_None
-	} Way;
+		None    = 0,
+		In      = 1 << 0,
+		Out     = 1 << 1,
+		InOut   = In | Out,
+		Default = None
+	};
 
-	/**
-	 * Get the string representation for a given Way_ enum
-	 * @param _way
-	 * @return
-	 */
-	std::string WayToString(Way _way);
+    R_ENUM(Way)
+    R_ENUM_VALUE(None)
+    R_ENUM_VALUE(In)
+    R_ENUM_VALUE(Out)
+    R_ENUM_VALUE(InOut)
+    R_ENUM_END
 }

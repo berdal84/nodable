@@ -11,7 +11,7 @@
 
 #include "core/Component.h" // base class
 #include "core/Property.h"
-#include "core/Slots.h"
+#include "core/SlotBag.h"
 
 #include "types.h"     // for constants and forward declarations
 
@@ -22,7 +22,7 @@ namespace ndbl
     class Graph;
     class NodeView;
     class PropertyView;
-    class PropertyConnector;
+    class PropertyConnectorView;
     class NodeConnector;
     class NodeViewConstraint;
 
@@ -46,10 +46,11 @@ namespace ndbl
         NodeView (NodeView&&) = default;
         NodeView& operator=(NodeView&&) = default;
 
-        Slots<ID<NodeView>> successors;
-        Slots<ID<NodeView>> children;
-        Slots<ID<NodeView>> outputs;
-        Slots<ID<NodeView>> inputs;
+        std::vector<ID<NodeView>> successors;
+        std::vector<ID<NodeView>> children;
+        std::vector<ID<NodeView>> outputs;
+        std::vector<ID<NodeView>> inputs;
+
         bool                pinned;
 
         bool                    draw()override;

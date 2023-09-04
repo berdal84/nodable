@@ -1,12 +1,12 @@
 #pragma once
-#include "fw/gui/EventManager.h"
+#include "SlotView.h"
 #include "fw/core/Pool.h"
+#include "fw/gui/EventManager.h"
 
 namespace ndbl
 {
     // forward declaration
-    class PropertyConnector;
-    class NodeConnector;
+    class PropertyConnectorView;
     class NodeView;
     using fw::pool::ID;
 
@@ -20,8 +20,8 @@ namespace ndbl
         EventType_node_view_deselected,
         EventType_frame_all_node_views,
         EventType_frame_selected_node_views,
-        EventType_property_connector_dropped,                                // operation on property connectors
-        EventType_property_connector_disconnected,
+        EventType_connector_dropped,                                // operation on property connectors
+        EventType_connector_disconnected,
         EventType_node_connector_dropped,                                    // operation on node connectors
         EventType_node_connector_disconnected,
         EventType_toggle_isolate_selection
@@ -37,16 +37,11 @@ namespace ndbl
         bool recursive;
     };
 
-    struct ConnectorEvent {
-        fw::EventType      type;
-        union {
-            const NodeConnector*     node;
-            const PropertyConnector* prop;
-        } src;
-        union {
-            const NodeConnector*     node;
-            const PropertyConnector* prop;
-        } dst;
+    struct ConnectorEvent
+    {
+        fw::EventType  type;
+        SlotView * src;
+        SlotView * dst;
     };
 
     union Event

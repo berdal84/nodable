@@ -3,6 +3,7 @@
 #include "fw/core/log.h"
 #include "fw/core/reflection/func_type.h"
 #include "fw/core/Pool.h"
+#include "fw/core/algorithm.h"
 
 #include "core/VariableNode.h"
 
@@ -29,55 +30,76 @@ InvokableComponent::InvokableComponent(const fw::func_type* _signature, bool _is
 {
     FW_EXPECT(_signature != nullptr, "Signature must be defined!")
     m_invokable = _invokable;
-    m_args.resize(_signature->get_arg_count());
+    m_argument_id.resize(_signature->get_arg_count());
 }
 
 bool InvokableComponent::update()
 {
-    bool success = true;
-
-    auto not_declared_predicate = [](const Property* _property)
+    if( !m_invokable )
     {
-        auto* variable_node = fw::cast<const VariableNode>( _property->owner().get() );
-        return variable_node != nullptr  && !variable_node->is_declared();
-    };
-
-    /* avoid to invoke if arguments contains an undeclared variable */
-    if ( std::find_if(m_args.begin(), m_args.end(), not_declared_predicate) != m_args.end() )
-    {
-        success = false;
-    }
-    else if( m_invokable )
-    {
-        try
-        {
-            // Get properties' variants, and invoke m_invokable with the variants as arguments
-            auto result = m_invokable->invoke(Property::get(m_args) );
-            m_result->set(result);
-
-            for(auto arg : m_args)
-            {
-                arg->ensure_is_defined(true);
-            }
-        }
-        catch (std::exception& err)
-        {
-            LOG_ERROR("InvokableComponent", "Exception thrown updating \"%s\" Component"
-                                            " while updating Node \"%s\"."
-                                            " Reason: %s\n",
-                                            get_type()->get_name(),
-                                            m_owner->name.c_str(),
-                                            err.what()
-                                            )
-            success = false;
-        }
+        return true;
     }
 
-	return success;
+    try
+    {
+        // Get properties' variants, and invoke m_invokable with the variants as arguments
+        auto variants = fw::map<fw::variant*>(m_argument_id, [=](auto id) { return m_owner->get_prop_at(id)->value(); });
+        fw::variant result = m_invokable->invoke( variants );
+        m_owner->get_prop_at( m_result_id )->set( result);
+        for( auto* variant : variants ) variant->flag_defined(true);
+    }
+    catch (std::exception& err)
+    {
+        LOG_ERROR("InvokableComponent", "Exception thrown updating \"%s\" Component"
+                                        " while updating Node \"%s\"."
+                                        " Reason: %s\n",
+                                        get_type()->get_name(),
+                                        m_owner->name.c_str(),
+                                        err.what()
+                                        )
+        return false;
+    }
+    return true;
 }
 
-void InvokableComponent::bind_result_property(const char* property_name)
+void InvokableComponent::bind_result_property(size_t property_id)
 {
-   m_result = m_owner->get_prop( property_name );
-   FW_EXPECT( m_result != nullptr, "Property not found" );
+    FW_EXPECT( m_owner->get_prop_at(property_id) != nullptr, "Property not found" );
+    m_result_id = property_id;
+}
+
+Property::ID InvokableComponent::get_l_handed_val()
+{
+    return m_argument_id[0];
+}
+
+Property::ID InvokableComponent::get_r_handed_val()
+{
+    return m_argument_id[1];
+}
+
+Property::ID InvokableComponent::get_arg(size_t arg_id) const
+{
+    return m_argument_id[arg_id];
+}
+
+void InvokableComponent::bind_arg(size_t arg_id, size_t property_id)
+{
+    m_argument_id[arg_id] = property_id;
+}
+
+const std::vector<Property::ID>& InvokableComponent::get_arg_ids() const
+{
+    return m_argument_id;
+}
+
+std::vector<Property*> InvokableComponent::get_args() const
+{
+    std::vector<Property*> result;
+    result.reserve(m_argument_id.size());
+    auto& props = m_owner->props;
+    std::transform(m_argument_id.begin(), m_argument_id.end(),
+                   result.end(),
+                   [&props](auto& each_id ) { return props.at(each_id); });
+    return std::move(result);
 }

@@ -1,31 +1,18 @@
 #include "PropertyView.h"
-#include "nodable/core/Property.h"
-#include "nodable/core/Node.h"
-#include "PropertyConnector.h"
 #include "NodeView.h"
+#include "SlotView.h"
+#include "nodable/core/Node.h"
 
 using namespace ndbl;
 using namespace fw::pool;
-using Side = ndbl::PropertyConnector::Side;
 
-PropertyView::PropertyView(Property* _property, ID<NodeView> _nodeView)
-        : m_property(_property)
-        , show_input(false)
-        , touched(false)
-        , m_input(nullptr)
-        , m_output(nullptr)
-        , node_view(_nodeView)
+PropertyView::PropertyView(u8_t _property_id, ID<NodeView> _node_view_id)
+: property(_property_id)
+, show_input(false)
+, touched(false)
+, node_view(_node_view_id)
 {
-    FW_ASSERT( _property != nullptr );
-    FW_ASSERT( _nodeView.get() != nullptr );
-    if (m_property->allows_connection(Way_In)  ) m_input  = new PropertyConnector(this, Way_In, Side::Top);
-    if (m_property->allows_connection(Way_Out) ) m_output = new PropertyConnector(this, Way_Out, Side::Bottom);
-}
-
-PropertyView::~PropertyView()
-{
-    delete m_input;
-    delete m_output;
+    FW_ASSERT( _node_view_id.get() != nullptr );
 }
 
 void PropertyView::reset()

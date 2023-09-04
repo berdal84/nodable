@@ -2,6 +2,7 @@
 #include "fw/core/reflection/reflection"
 #include "Scope.h"
 #include "InstructionNode.h"
+#include "GraphUtil.h"
 
 using namespace ndbl;
 
@@ -16,27 +17,29 @@ REGISTER
 ConditionalStructNode::ConditionalStructNode()
     : Node()
 {
-    add_prop<ID<Node>>(k_conditional_cond_property_name, Visibility::Always, Way::Way_In);
+    add_prop<ID<Node>>(CONDITION_PROPERTY, Visibility::Always, Way::In);
 }
 
 ID<Scope> ConditionalStructNode::get_condition_true_scope() const
 {
-    if ( !successors.empty() ) return successors[0]->get_component<Scope>();
-    return {};
+    return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 0);
 }
 
 ID<Scope> ConditionalStructNode::get_condition_false_scope() const
 {
-    if ( successors.size() > 1 ) return successors[1]->get_component<Scope>();
-    return {};
+    return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 1);
 }
 
 bool ConditionalStructNode::has_elseif() const
 {
-    return successors.size() > 1 && successors[1]->get_type()->is_child_of<ConditionalStructNode>();
+    if( ID<Node> node = GraphUtil::adjacent_node_at(this, Relation::NEXT_PREVIOUS, Way::Out, 1) )
+    {
+        return node->get_type()->is_child_of<ConditionalStructNode>();
+    }
+    return false;
 }
 
-Property * ConditionalStructNode::condition_property() const
+const Property* ConditionalStructNode::condition_property() const
 {
-    return get_prop(k_conditional_cond_property_name);
+    return get_prop(CONDITION_PROPERTY);
 }

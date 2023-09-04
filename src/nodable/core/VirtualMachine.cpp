@@ -5,9 +5,11 @@
 #include "fw/core/log.h"
 #include "fw/core/format.h"
 
-#include "VariableNode.h"
-#include "Scope.h"
+#include "Graph.h"
 #include "InvokableComponent.h"
+#include "Scope.h"
+#include "VariableNode.h"
+#include "core/algorithm.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -191,11 +193,10 @@ bool VirtualMachine::_stepOver()
         case opcode::pop_var:
         {
             advance_cursor();
-            const VariableNode* variable = next_instr->push.var.get();
-            variant* variant  = variable->property()->value();
-            FW_EXPECT(variant->is_initialized(), "Variable should be initialized since it should have been pushed earlier!");
-            variant->reset_value();
-            variant->ensure_is_initialized(false);
+            VariableNode* variable = next_instr->push.var.get();
+            FW_EXPECT(variable->value()->is_initialized(), "Variable should be initialized since it should have been pushed earlier!");
+            variable->value()->reset_value();
+            variable->value()->ensure_is_initialized(false);
             success = true;
             break;
         }
@@ -215,16 +216,19 @@ bool VirtualMachine::_stepOver()
 
             auto transfer_input_values = [](Node* _node)
             {
-                for(Property* each_property : _node->props.by_index())
-                {
-                    Property* input = each_property->get_input();
+                std::vector<Edge> input_edge = _node->filter_edges(Relation::WRITE_READ);
 
-                    if( input
-                        && !each_property->is_connected_by_ref()
-                        && !each_property->get_type()->is<null_t>()
-                        && !input->get_type()->is<null_t>() )
+                // Copy by value (exclude references)
+                for(const Edge& edge : _node->edges() )
+                {
+                    Property* head_property = edge.head.get_property();
+                    Property* tail_property = edge.tail.get_property();
+
+                    if(    !head_property->is_ref()
+                        && !head_property->is_type_null()
+                        && !tail_property->is_type_null() )
                     {
-                        *each_property->value() = *input->value();
+                        *head_property->value() = *tail_property->value();
                     }
                 }
             };

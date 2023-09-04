@@ -152,21 +152,10 @@ void Graph::destroy(ID<Node> _node)
     }
 
     // disconnect any edge connected to this node
-    std::vector<const DirectedEdge*> edges_to_disconnect;
-
-    for (auto& pair : m_edge_registry)
+    for(const Edge& each_edge : _node->edges())
     {
-        const DirectedEdge* edge = pair.second;
-        if(edge->is_connected_to( _node->id() ) )
-        {
-            edges_to_disconnect.push_back(edge);
-        }
-    }
-    for(auto each_edge: edges_to_disconnect)
-    {
-        disconnect(each_edge, false );
+        disconnect(each_edge, ConnectFlag::SIDE_EFFECTS_OFF );
     };
-
 
     // if it is a variable, we remove it from its scope
     if ( VariableNode* node_variable = fw::cast<VariableNode> (_node.get() ) )
@@ -198,62 +187,58 @@ bool Graph::is_empty() const
     return m_root.get() == nullptr;
 }
 
-const DirectedEdge* Graph::connect(Property *_source_property, Property *_target_property)
+Edge Graph::connect(Slot tail, Slot head)
 {
-    FW_EXPECT(_source_property != _target_property, "Can't connect same Property!")
-    FW_EXPECT( fw::type::is_implicitly_convertible(_source_property->get_type(), _target_property->get_type()),
-                       "Can't connect non implicitly convertible Properties!");
+    Property* tail_property = tail.connector.get_property();
+    Property* head_property = head.connector.get_property();
 
-    const DirectedEdge* edge = nullptr;
+    FW_EXPECT( tail_property != head_property, "Can't connect same properties!" )
+    FW_EXPECT( fw::type::is_implicitly_convertible(tail_property->get_type(), head_property->get_type()), "Can't connect non implicitly convertible Properties!");
+
     /*
      * If _from has no owner _to can digest it, no need to create an edge in this case.
      */
-    if (_source_property->owner().get() == nullptr )
+    if ( tail.connector.get_node() == nullptr )
     {
-        _target_property->digest(_source_property);
-        delete _source_property;
+        head_property->digest( tail_property );
+        delete tail_property;
+        return {};
     }
-    else if (
-            !_source_property->is_referencing_a_node() &&
-            _source_property->owner()->get_type()->is_child_of<LiteralNode>() &&
-            _target_property->owner()->get_type()->is_not_child_of<VariableNode>())
+
+    if (
+        !tail_property->is_referencing<Node>() &&
+        tail.connector.node->get_type()->is_child_of<LiteralNode>() &&
+        head.connector.node->get_type()->is_not_child_of<VariableNode>())
     {
-        ID<Node> source_owner = _source_property->owner();
-        _target_property->digest(_source_property);
-        destroy(source_owner);
+        head_property->digest( tail_property );
+        destroy(tail.connector.node);
+        set_dirty();
+        return Edge::null;
     }
-    else
+
+    Edge edge = connect(tail, Relation::WRITE_READ, head, ConnectFlag::SIDE_EFFECTS_ON);
+
+    // TODO: move this somewhere else
+    // (transfer prefix/suffix)
+    Token* src_token = &tail_property->token;
+    if (!src_token->is_null())
     {
-        LOG_VERBOSE("Graph", "drop_on() ...\n")
-        _target_property->set_input(_source_property);
-        _source_property->get_outputs().push_back(_target_property);
-
-        edge = connect({_source_property, _target_property}, true);
-
-        // TODO: move this somewhere else
-        // (transfer prefix/suffix)
-        Token* src_token = &_source_property->token;
-        if (!src_token->is_null())
+        if (!head_property->token.is_null())
         {
-            if (!_target_property->token.is_null())
-            {
-                _target_property->token.clear();
-                _target_property->token.m_type = src_token->m_type;
-            }
-            _target_property->token.transfer_prefix_and_suffix_from(src_token);
+            head_property->token.clear();
+            head_property->token.m_type = src_token->m_type;
         }
+        head_property->token.transfer_prefix_and_suffix_from(src_token);
     }
-
     set_dirty();
-
     return edge;
 }
 
-void Graph::remove(DirectedEdge* edge)
+void Graph::remove(Edge edge)
 {
     auto found = std::find_if( m_edge_registry.begin()
                              , m_edge_registry.end()
-                             , [edge](const EdgeRegistry_t::value_type& each){ return *edge == *each.second;});
+                             , [edge](auto& each){ return edge == each.second;});
 
     if (found != m_edge_registry.end() )
     {
@@ -265,163 +250,147 @@ void Graph::remove(DirectedEdge* edge)
     }
 }
 
-const DirectedEdge* Graph::connect(Node *_src, InstructionNode *_dst)
+Edge Graph::connect(Node* tail_node, InstructionNode* head_node)
 {
     // set declaration_instr once
-    if ( auto* variable = fw::cast<VariableNode>(_src) )
+    if ( auto* variable = fw::cast<VariableNode>(tail_node) )
     {
         if( variable->get_declaration_instr().get() == nullptr )
         {
-            variable->set_declaration_instr(_dst->id());
+            variable->set_declaration_instr(head_node->id());
         }
     }
-    return connect(_src->as_prop(), _dst->root() );
+    return connect(tail_node->slot(Way::Out), head_node->root_slot() );
 }
 
-const DirectedEdge* Graph::connect(Property* _src, VariableNode *_dst)
+Edge Graph::connect(Slot tail, VariableNode* head_node)
 {
-    return connect(_src, _dst->property() );
+    return connect(tail, head_node->get_value_slot( Way::In ) );
 }
 
-const DirectedEdge* Graph::connect(DirectedEdge _edge, bool _side_effects)
+Edge Graph::connect(Slot _tail, Relation _type, Slot _head, ConnectFlag _flags)
 {
-    auto edge = new DirectedEdge(_edge);
-    auto [src, dst] = edge->nodes();
+    return connect(_tail.connector, _type, _head.connector, _flags);
+}
 
-    switch ( edge->type() )
+Edge Graph::connect(Connector _tail, Relation _type, Connector _head, ConnectFlag _flags)
+{
+    Edge edge{_tail, _type, _head};
+    sanitize_edge(edge);
+
+    Node *tail_node = edge.tail.node.get();
+    Node *head_node = edge.head.node.get();
+
+    if (_flags == ConnectFlag::SIDE_EFFECTS_ON)
     {
-        case Edge_t::IS_CHILD_OF:
+        switch ( edge.relation )
         {
-            /*
-             * Here we create IS_SUCCESSOR_OF connections.
-             */
-            if ( _side_effects )
+            case Relation::CHILD_PARENT:
             {
-                FW_ASSERT(dst->has_component<Scope>() )
+                FW_ASSERT(head_node->has_component<Scope>())
 
-                if (dst->successors.accepts() )                               // directly
+                if (head_node->allows_more(Relation::NEXT_PREVIOUS))// directly
                 {
-                    connect({src, Edge_t::IS_SUCCESSOR_OF, dst}, false);
-                }
-                else if ( Node* tail = dst->children.last().get() ) // to the last children
+                    connect(tail_node->slot(), Relation::NEXT_PREVIOUS, head_node->slot(), ConnectFlag::SIDE_EFFECTS_OFF);
+                } else if (Node *tail = head_node->children().back().get())// to the last children
                 {
-                    if ( auto scope = tail->get_component<Scope>().get() )
+                    if (auto scope = tail->get_component<Scope>().get())
                     {
-                        std::vector<InstructionNode*> tails;
+                        std::vector<InstructionNode *> tails;
                         scope->get_last_instructions_rec(tails);
 
-                        for (InstructionNode* each_instruction : tails)
+                        for (InstructionNode *each_instruction: tails)
                         {
-                            connect({src, Edge_t::IS_SUCCESSOR_OF, each_instruction}, false);
+                            connect(tail_node->slot(), Relation::NEXT_PREVIOUS, each_instruction->slot(), ConnectFlag::SIDE_EFFECTS_OFF);
                         }
 
-                        if( !tails.empty()) LOG_VERBOSE("Graph", "Empty scope found when trying to connect(...)" );
+                        if (!tails.empty()) LOG_VERBOSE("Graph", "Empty scope found when trying to connect(...)");
                     }
-                    else if (tail->successors.accepts() )
+                    else if ( tail->allows_more(Relation::NEXT_PREVIOUS) )
                     {
-                        connect({src, Edge_t::IS_SUCCESSOR_OF, tail}, false);
+                        connect(tail_node->slot(), Relation::NEXT_PREVIOUS, tail->slot(), ConnectFlag::SIDE_EFFECTS_OFF);
                     }
                 }
+                break;
             }
 
-            // create "parent-child" links
-            dst->children.add( src->id() );
-            src->set_parent( dst->id() );
+            case Relation::WRITE_READ:
+                // no side effect
+                break;
 
-            break;
-        }
+            case Relation::NEXT_PREVIOUS:
 
-        case Edge_t::IS_INPUT_OF:
-            dst->inputs.add( src->id() );
-            src->outputs.add( dst->id() );
-            src->add_edge( edge );
-            dst->add_edge( edge );
-
-            break;
-
-        case Edge_t::IS_SUCCESSOR_OF:
-            dst->successors.add( src->id() );
-            src->predecessors.add( dst->id() );
-
-            if (_side_effects)
-            {
-                if (dst->has_component<Scope>() )
+                if (head_node->has_component<Scope>())
                 {
-                    connect({src, Edge_t::IS_CHILD_OF, dst}, false);
-                }
-                else if ( Node* dst_parent = dst->parent.get() )
+                    connect(tail_node->slot(), Relation::CHILD_PARENT, head_node->slot(), ConnectFlag::SIDE_EFFECTS_OFF);
+                } else if (Node *dst_parent = head_node->parent.get())
                 {
-                    connect({src, Edge_t::IS_CHILD_OF, dst_parent}, false);
+                    connect(tail_node->slot(), Relation::CHILD_PARENT, dst_parent->slot(), ConnectFlag::SIDE_EFFECTS_OFF);
                 }
 
                 /**
                  * create child/parent link with dst_parent
                  */
-                if ( Node* src_parent = src->parent.get()  )
+                if (Node *src_parent = tail_node->parent.get())
                 {
-                    Node* each_successor = src->successors.first().get();
-                    while (each_successor && each_successor->parent.get() != nullptr )
+                    Node* current_successor = tail_node->successors().begin()->get();
+                    while (current_successor && current_successor->parent.get() != nullptr)
                     {
-                        connect({each_successor, Edge_t::IS_CHILD_OF, src_parent }, false);
-                        each_successor = each_successor->successors.first().get();
+                        connect(current_successor->slot(), Relation::CHILD_PARENT, src_parent->slot(), ConnectFlag::SIDE_EFFECTS_OFF);
+                        current_successor = current_successor->successors().begin()->get();
                     }
                 }
-            }
-            break;
+                break;
 
-        default:
-            FW_ASSERT(false); // This connection type is not yet implemented
+            default:
+                FW_ASSERT(false);// This connection type is not yet implemented
+        }
     }
+    tail_node->add_edge(edge);
+    head_node->add_edge(edge);
 
-
-    m_edge_registry.emplace(edge->type(), edge);
+    m_edge_registry.emplace(edge.relation, edge);
     set_dirty();
     return edge;
 }
 
-void Graph::disconnect(const DirectedEdge* _edge, bool _side_effects)
+void Graph::disconnect(Edge _edge, ConnectFlag flags)
 {
     // find the edge to disconnect
-    auto [begin, end] = m_edge_registry.equal_range(_edge->type() );
+    auto [begin, end] = m_edge_registry.equal_range(_edge.relation );
     auto found = std::find_if(begin, end, [&_edge](auto& pair)
     {
-        return pair.second->props() == _edge->props(); // we do not compare type, since we did a equal_range
+        return pair.second == _edge;
     });
 
     if(found == end) return;
 
-    m_edge_registry.erase(found);
-
-    auto [src, dst] = _edge->nodes();
+    Node* tail_node = _edge.tail.get_node();
+    Node* head_node = _edge.head.get_node();
 
     // disconnect effectively
-    switch (_edge->type() )
+    switch (_edge.relation )
     {
-        case Edge_t::IS_CHILD_OF:
-            dst->children.remove( src->id() );
-            src->set_parent({});
+        case Relation::CHILD_PARENT:
+            tail_node->set_parent({});
             break;
 
-        case Edge_t::IS_INPUT_OF:
-            dst->inputs.remove( src->id() );
-            src->outputs.remove( dst->id() );
-            src->remove_edge(_edge);
-            dst->remove_edge(_edge);
+        case Relation::WRITE_READ:
+            tail_node->remove_edge(_edge);
+            head_node->remove_edge(_edge);
             break;
 
-        case Edge_t::IS_SUCCESSOR_OF:
+        case Relation::NEXT_PREVIOUS:
         {
-            Node* successor = src;
-            dst->successors.remove( successor->id() );
-            successor->predecessors.remove( dst->id() );
+            Node* successor = tail_node;
             Node* successor_parent = successor->parent.get();
-            if ( _side_effects && successor_parent  )
+            if ( flags == ConnectFlag::SIDE_EFFECTS_ON && successor_parent  )
             {
-                while (successor && successor->parent == src->parent )
+                while (successor && successor->parent == tail_node->parent )
                 {
-                    DirectedEdge edge(successor, Edge_t::IS_CHILD_OF, src->parent.get());
-                    disconnect(&edge, false );
-                    successor = successor->successors.first().get();
+                    Edge child_of_edge{successor->slot().connector, Relation::CHILD_PARENT, tail_node->parent->slot().connector};
+                    disconnect( child_of_edge, ConnectFlag::SIDE_EFFECTS_OFF );
+                    successor = successor->successors().begin()->get();
                 }
             }
 
@@ -484,22 +453,7 @@ ID<LiteralNode> Graph::create_literal(const fw::type *_type)
     return node;
 }
 
-std::vector<const DirectedEdge*> Graph::filter_edges(Property* property, Way _way) const
+Edge Graph::connect(Edge edge, ConnectFlag flags)
 {
-    std::vector<const DirectedEdge*> result;
-    auto is_property_linked_to = [property, _way](const DirectedEdge* edge)
-    {
-        return
-            ( (_way & Way_Out) && edge->src() == property)
-            ||
-            ( (_way & Way_In) && edge->dst() == property);
-    };
-
-    for( auto& [type, each_edge] : m_edge_registry)
-    {
-        if ( is_property_linked_to(each_edge) ) result.push_back(each_edge);
-    }
-
-    return result;
+    return connect(edge.tail, edge.relation, edge.head, flags);
 }
-

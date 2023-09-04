@@ -250,7 +250,7 @@ i16_t Nodlang::to_i16(const std::string &_str)
     return stoi(_str);
 }
 
-Property* Nodlang::to_property(Token _token)
+Slot Nodlang::parse_token(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
     {
@@ -273,9 +273,9 @@ Property* Nodlang::to_property(Token _token)
         }
         if ( variable.get() != nullptr )
         {
-            return variable->property();
+            return variable->get_value_slot(Way::Out);
         }
-        return nullptr;
+        return {};
     }
 
     ID<LiteralNode> literal;
@@ -315,18 +315,19 @@ Property* Nodlang::to_property(Token _token)
 
     if (literal)
     {
-        literal->value()->token = std::move(_token);
-        return literal->value();
+        Slot& output_slot = literal->get_slot(VALUE_PROPERTY, Way::Out);
+        output_slot.get_property()->token = std::move(_token);
+        return output_slot;
     }
 
     LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str())
     return {};
 }
 
-Property* Nodlang::parse_binary_operator_expression(unsigned short _precedence, Property* _left)
+Slot Nodlang::parse_binary_operator_expression(unsigned short _precedence, Slot _left)
 {
 
-    FW_ASSERT( _left != nullptr );
+    FW_ASSERT( _left != Slot::null );
 
     LOG_VERBOSE("Parser", "parse binary operation expr...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
@@ -334,7 +335,7 @@ Property* Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     if (!parser_state.ribbon.can_eat(2))
     {
         LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n")
-        return nullptr;
+        return {};
     }
 
     start_transaction();
@@ -349,7 +350,7 @@ Property* Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     {
         rollback_transaction();
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n")
-        return nullptr;
+        return {};
     }
 
     std::string word = operator_token.word_to_string();  // FIXME: avoid std::string copy, use hash
@@ -358,7 +359,7 @@ Property* Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     {
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", word.c_str())
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
     // Precedence check
@@ -366,24 +367,24 @@ Property* Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     {// always update the first operation if they have the same precedence or less.
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n")
         rollback_transaction();
-        return nullptr;
+        return{};
     }
 
 
     // Parse right expression
-    Property* right = parse_expression(ope->precedence, nullptr);
+    Slot right = parse_expression(ope->precedence, {});
 
-    if (right == nullptr)
+    if ( right == Slot::null )
     {
         LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n")
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
     // Create a function signature according to ltype, rtype and operator word
     func_type *type = new func_type(ope->identifier);
     type->set_return_type(type::any());
-    type->push_args(_left->get_type(), right->get_type());
+    type->push_args(_left.get_property()->get_type(), right.get_property()->get_type());
 
     ID<InvokableComponent> component;
     ID<Node> binary_op;
@@ -405,19 +406,19 @@ Property* Nodlang::parse_binary_operator_expression(unsigned short _precedence, 
     {
         LOG_VERBOSE("Parser", "parse binary operation expr... " KO " no signature\n")
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
     component->token = operator_token;
-    parser_state.graph->connect(_left, component->get_l_handed_val());
-    parser_state.graph->connect(right, component->get_r_handed_val());
+    parser_state.graph->connect(_left, binary_op->get_slot( component->get_l_handed_val(), Way::In) );
+    parser_state.graph->connect(right, binary_op->get_slot( component->get_r_handed_val(), Way::In));
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-    return binary_op->get_prop(k_value_property_name);
+    return binary_op->get_slot(VALUE_PROPERTY, Way::Out);
 }
 
-Property* Nodlang::parse_unary_operator_expression(unsigned short _precedence)
+Slot Nodlang::parse_unary_operator_expression(unsigned short _precedence)
 {
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
@@ -425,7 +426,7 @@ Property* Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     if (!parser_state.ribbon.can_eat(2))
     {
         LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n")
-        return nullptr;
+        return {};
     }
 
     start_transaction();
@@ -436,28 +437,28 @@ Property* Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     {
         rollback_transaction();
         LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
-        return nullptr;
+        return {};
     }
 
     // Parse expression after the operator
-    Property* value = parse_atomic_expression();
+    Slot value = parse_atomic_expression();
 
-    if ( value == nullptr )
+    if ( value == Slot::null )
     {
         value = parse_parenthesis_expression();
     }
 
-    if ( value == nullptr )
+    if ( value == Slot::null )
     {
         LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
     // Create a function signature
     auto* type = new func_type(operator_token.word_to_string());  // FIXME: avoid std::string copy
     type->set_return_type(type::any());
-    type->push_args(value->get_type());
+    type->push_args(value.get_property()->get_type());
 
     ID<InvokableComponent> component;
     ID<Node> node;
@@ -475,23 +476,22 @@ Property* Nodlang::parse_unary_operator_expression(unsigned short _precedence)
     component = node->get_component<InvokableComponent>();
     component->token = std::move( operator_token );
 
-    parser_state.graph->connect(value, component->get_l_handed_val());
-    Property* result = node->get_prop(k_value_property_name);
+    parser_state.graph->connect(value, node->get_slot(LEFT_VALUE_PROPERTY, Way::In) );
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
     commit_transaction();
 
-    return result;
+    return node->get_slot(VALUE_PROPERTY, Way::Out);
 }
 
-Property* Nodlang::parse_atomic_expression()
+Slot Nodlang::parse_atomic_expression()
 {
     LOG_VERBOSE("Parser", "parse atomic expr... \n")
 
     if (!parser_state.ribbon.can_eat())
     {
         LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n")
-        return nullptr;
+        return {};
     }
 
     start_transaction();
@@ -501,12 +501,12 @@ Property* Nodlang::parse_atomic_expression()
     {
         LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
-    Property* result = to_property(token);
+    Slot result = parse_token(token);
 
-    if ( result != nullptr )
+    if ( result != Slot::null )
     {
         commit_transaction();
         LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n")
@@ -516,10 +516,10 @@ Property* Nodlang::parse_atomic_expression()
     rollback_transaction();
     LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n")
 
-    return nullptr;
+    return {};
 }
 
-Property* Nodlang::parse_parenthesis_expression()
+Slot Nodlang::parse_parenthesis_expression()
 {
     LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
@@ -527,7 +527,7 @@ Property* Nodlang::parse_parenthesis_expression()
     if (!parser_state.ribbon.can_eat())
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n")
-        return nullptr;
+        return {};
     }
 
     start_transaction();
@@ -536,11 +536,11 @@ Property* Nodlang::parse_parenthesis_expression()
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
         rollback_transaction();
-        return nullptr;
+        return {};
     }
 
-    Property* result = parse_expression();
-    if ( result != nullptr )
+    Slot result = parse_expression();
+    if ( result != Slot::null )
     {
         Token token = parser_state.ribbon.eat();
         if (token.m_type != Token_t::parenthesis_close)
@@ -549,12 +549,14 @@ Property* Nodlang::parse_parenthesis_expression()
             LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n",
                         token.word_to_string().c_str())
             rollback_transaction();
-        } else
+        }
+        else
         {
             LOG_VERBOSE("Parser", "parse parenthesis expr..." OK "\n")
             commit_transaction();
         }
-    } else
+    }
+    else
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n")
         rollback_transaction();
@@ -566,9 +568,9 @@ ID<InstructionNode> Nodlang::parse_instr()
 {
     start_transaction();
 
-    Property* expression = parse_expression();
+    Slot expression_out = parse_expression();
 
-    if ( expression == nullptr )
+    if ( expression_out == Slot::null )
     {
         LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n")
         rollback_transaction();
@@ -592,7 +594,7 @@ ID<InstructionNode> Nodlang::parse_instr()
         }
     }
 
-    parser_state.graph->connect(expression->owner().get(), instr_node.get());
+    parser_state.graph->connect(expression_out, instr_node->get_slot(ROOT_PROPERTY, Way::In));
 
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
@@ -644,7 +646,11 @@ ID<Node> Nodlang::parse_scope()
         if (parent_scope)
         {
             ID<Node> parent_scope_node = parent_scope->get_owner();
-            parser_state.graph->connect({scope_node.get(), Edge_t::IS_CHILD_OF, parent_scope_node.get() });
+            parser_state.graph->connect(
+                    scope_node->get_slot(THIS_PROPERTY, Way::Out),
+                    Relation::CHILD_PARENT,
+                    parent_scope_node->get_slot(THIS_PROPERTY, Way::In),
+                    ConnectFlag::SIDE_EFFECTS_ON);
         }
 
         parser_state.scope.emplace(scope);
@@ -681,7 +687,11 @@ ID<Scope> Nodlang::parse_code_block(ID<Scope> curr_scope)
     {
         if ( InstructionNode* instr_node = parse_instr().get() )
         {
-            parser_state.graph->connect({instr_node, Edge_t::IS_CHILD_OF, get_current_scope_node().get() });
+            parser_state.graph->connect(
+                    instr_node->get_slot(THIS_PROPERTY, Way::Out),
+                    Relation::CHILD_PARENT,
+                    get_current_scope_node()->get_slot(THIS_PROPERTY, Way::In),
+                    ConnectFlag::SIDE_EFFECTS_ON);
             continue;
         }
 
@@ -698,7 +708,7 @@ ID<Scope> Nodlang::parse_code_block(ID<Scope> curr_scope)
         break;
     }
 
-    if (curr_scope->get_owner()->children.empty())
+    if ( curr_scope->get_owner()->children().empty() )
     {
         rollback_transaction();
         return {};
@@ -710,7 +720,7 @@ ID<Scope> Nodlang::parse_code_block(ID<Scope> curr_scope)
     }
 }
 
-Property* Nodlang::parse_expression(unsigned short _precedence, Property* _leftOverride)
+Slot Nodlang::parse_expression(unsigned short _precedence, Slot _left_override)
 {
     LOG_VERBOSE("Parser", "parse expr...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
@@ -718,42 +728,44 @@ Property* Nodlang::parse_expression(unsigned short _precedence, Property* _leftO
     if (!parser_state.ribbon.can_eat())
     {
         LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n")
-        return _leftOverride;
+        return _left_override;
     }
 
     /*
 		Get the left handed operand
 	*/
-    Property* left = _leftOverride;
-    if ( left == nullptr) left = parse_parenthesis_expression();
-    if ( left == nullptr) left = parse_unary_operator_expression(_precedence);
-    if ( left == nullptr) left = parse_function_call();
-    if ( left == nullptr) left = parse_variable_declaration();
-    if ( left == nullptr) left = parse_atomic_expression();
+    Slot left = _left_override;
+    if ( left == Slot::null ) left = parse_parenthesis_expression();
+    if ( left == Slot::null ) left = parse_unary_operator_expression(_precedence);
+    if ( left == Slot::null ) left = parse_function_call();
+    if ( left == Slot::null ) left = parse_variable_declaration();
+    if ( left == Slot::null ) left = parse_atomic_expression();
 
     if (!parser_state.ribbon.can_eat())
     {
         LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n")
     }
 
-    Property* result;
+    Slot result;
 
     /*
 		Get the right handed operand
 	*/
-    if ( left != nullptr )
+    if ( left != Slot::null )
     {
         LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n")
-        if ( Property* binResult = parse_binary_operator_expression(_precedence, left) )
+        Slot expression_out = parse_binary_operator_expression(_precedence, left);
+        if ( expression_out != Slot::null )
         {
             LOG_VERBOSE("Parser", "parse expr... right parsed, recursive call\n")
-            result = parse_expression(_precedence, binResult);
+            result = parse_expression(_precedence, expression_out);
         } else
         {
             result = left;
         }
 
-    } else
+    }
+    else
     {
         LOG_VERBOSE("Parser", "parse expr... left is nullptr, we return it\n")
         result = left;
@@ -1042,7 +1054,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
     return Token::s_null;
 }
 
-Property* Nodlang::parse_function_call()
+Slot Nodlang::parse_function_call()
 {
     LOG_VERBOSE("Parser", "parse function call...\n")
 
@@ -1079,7 +1091,7 @@ Property* Nodlang::parse_function_call()
             return {};
         }
     }
-    std::vector<Property* > args;
+    std::vector<Slot> args;
 
     // Declare a new function prototype
     func_type signature(fct_id);
@@ -1089,11 +1101,11 @@ Property* Nodlang::parse_function_call()
     while (!parsingError && parser_state.ribbon.can_eat() &&
             parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
     {
-
-        if ( Property* property = parse_expression() )
+        Slot expression_out = parse_expression();
+        if ( expression_out != Slot::null )
         {
-            args.push_back(property);            // store argument as property (already parsed)
-            signature.push_arg(property->get_type());// add a new argument type to the proto.
+            args.push_back( expression_out );
+            signature.push_arg( expression_out.get_property()->get_type() );
             parser_state.ribbon.eat_if(Token_t::list_separator);
         }
         else
@@ -1113,13 +1125,6 @@ Property* Nodlang::parse_function_call()
 
     // Find the prototype in the language library
     std::shared_ptr<const iinvokable> invokable = find_function(&signature);
-
-    auto connect_arg = [&](const func_type *_sig, Node *_node, size_t _arg_index) -> void {// lambda to connect input property to node for a specific argument index.
-        Property* src_property = args.at(_arg_index);
-        Property* dst_property = _node->props.get_input_at(_arg_index);
-        FW_ASSERT(dst_property)
-        parser_state.graph->connect(src_property, dst_property);
-    };
 
     ID<Node> fct_node_id;
     if (invokable)
@@ -1143,15 +1148,15 @@ Property* Nodlang::parse_function_call()
     }
 
     Node* fct_node{ fct_node_id.get() };
-    for (size_t argIndex = 0; argIndex < signature.get_arg_count(); argIndex++)
+    for (size_t arg_index = 0; arg_index < signature.get_arg_count(); arg_index++)
     {
-        connect_arg(&signature, fct_node, argIndex);
+        parser_state.graph->connect( args.at(arg_index), fct_node->get_slot(arg_index, Way::In));
     }
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-    return fct_node->get_prop(k_value_property_name);
+    return fct_node->get_slot(VALUE_PROPERTY, Way::Out);
 }
 
 ID<Scope> Nodlang::get_current_scope()
@@ -1174,7 +1179,7 @@ ID<ConditionalStructNode> Nodlang::parse_conditional_structure()
     bool success = false;
     ID<InstructionNode>       condition;
     ID<Node>                  scopeIf;
-    ID<ConditionalStructNode> condStruct;
+    ID<ConditionalStructNode> conditional_struct_node;
     ID<ConditionalStructNode> else_cond_struct;
 
     Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
@@ -1183,13 +1188,18 @@ ID<ConditionalStructNode> Nodlang::parse_conditional_structure()
         return {};
     }
 
-    condStruct = parser_state.graph->create_cond_struct();
+    conditional_struct_node = parser_state.graph->create_cond_struct();
     Node* scope_node = get_current_scope()->get_owner().get();
 
-    parser_state.graph->connect({condStruct.get(), Edge_t::IS_CHILD_OF, scope_node});
-    parser_state.scope.push(condStruct->get_component<Scope>()->id());
+    parser_state.graph->connect(
+            conditional_struct_node->get_slot(THIS_PROPERTY, Way::Out),
+            Relation::CHILD_PARENT,
+            scope_node->get_slot(THIS_PROPERTY, Way::In),
+            ConnectFlag::SIDE_EFFECTS_ON
+            );
+    parser_state.scope.push(conditional_struct_node->get_component<Scope>()->id());
 
-    condStruct->token_if  = parser_state.ribbon.get_eaten();
+    conditional_struct_node->token_if  = parser_state.ribbon.get_eaten();
 
     if (!parser_state.ribbon.eat_if(Token_t::parenthesis_open).is_null())
     {
@@ -1198,8 +1208,11 @@ ID<ConditionalStructNode> Nodlang::parse_conditional_structure()
         {
             condition->set_name("Condition");
             condition->set_name("Cond.");
-            condStruct->cond_expr = condition;
-            parser_state.graph->connect(condition->as_prop(), condStruct->condition_property());
+            conditional_struct_node->cond_expr = condition;
+            parser_state.graph->connect(
+                condition->get_slot(THIS_PROPERTY, Way::Out),
+                conditional_struct_node->get_slot(CONDITION_PROPERTY, Way::In)
+                );
         }
 
         if ( empty_parenthesis || ( condition.get() && !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null()))
@@ -1209,7 +1222,7 @@ ID<ConditionalStructNode> Nodlang::parse_conditional_structure()
             {
                 if (!parser_state.ribbon.eat_if(Token_t::keyword_else).is_null())
                 {
-                    condStruct->token_else = parser_state.ribbon.get_eaten();
+                    conditional_struct_node->token_else = parser_state.ribbon.get_eaten();
 
                     /* parse else scope */
                     if ( parse_scope().get() )
@@ -1249,13 +1262,13 @@ ID<ConditionalStructNode> Nodlang::parse_conditional_structure()
     if (success)
     {
         commit_transaction();
-        return condStruct;
+        return conditional_struct_node;
     }
 
     parser_state.graph->destroy( else_cond_struct );
     parser_state.graph->destroy( scopeIf );
     parser_state.graph->destroy( condition );
-    parser_state.graph->destroy( condStruct );
+    parser_state.graph->destroy(conditional_struct_node);
     rollback_transaction();
     return {};
 }
@@ -1271,7 +1284,12 @@ ID<ForLoopNode> Nodlang::parse_for_loop()
     if (!token_for.is_null())
     {
         for_loop_node = parser_state.graph->create_for_loop();
-        parser_state.graph->connect({for_loop_node.get(), Edge_t::IS_CHILD_OF, get_current_scope()->get_owner().get() });
+        parser_state.graph->connect(
+            for_loop_node->get_slot(THIS_PROPERTY, Way::Out),
+                Relation::CHILD_PARENT,
+            get_current_scope()->get_owner()->get_slot(THIS_PROPERTY, Way::In),
+            ConnectFlag::SIDE_EFFECTS_ON
+        );
         parser_state.scope.push(for_loop_node->get_component<Scope>()->id());
 
         for_loop_node->token_for = token_for;
@@ -1290,7 +1308,9 @@ ID<ForLoopNode> Nodlang::parse_for_loop()
             } else
             {
                 init_instr->set_name("Initialisation");
-                parser_state.graph->connect(init_instr->as_prop(), for_loop_node->get_init_expr());
+                parser_state.graph->connect(
+                    init_instr->get_slot(THIS_PROPERTY, Way::Out),
+                    for_loop_node->get_slot(INITIALIZATION_PROPERTY, Way::In));
                 for_loop_node->init_instr = init_instr;
 
                 ID<InstructionNode> cond_instr = parse_instr();
@@ -1300,17 +1320,23 @@ ID<ForLoopNode> Nodlang::parse_for_loop()
                 } else
                 {
                     cond_instr->set_name("Condition");
-                    parser_state.graph->connect(cond_instr->as_prop(), for_loop_node->condition_property());
+                    parser_state.graph->connect(
+                            cond_instr->get_slot(THIS_PROPERTY, Way::Out),
+                            for_loop_node->get_slot(CONDITION_PROPERTY, Way::In));
+
                     for_loop_node->cond_instr = cond_instr;
 
                     ID<InstructionNode> iter_instr = parse_instr();
                     if (!iter_instr.get())
                     {
                         LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
-                    } else
+                    }
+                    else
                     {
                         iter_instr->set_name("Iteration");
-                        parser_state.graph->connect(iter_instr->as_prop(), for_loop_node->get_iter_expr() );
+                        parser_state.graph->connect(
+                                iter_instr->get_slot(THIS_PROPERTY, Way::Out),
+                                for_loop_node->get_slot(ITERATION_PROPERTY, Way::In));
                         for_loop_node->iter_instr = iter_instr;
 
                         Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
@@ -1355,7 +1381,11 @@ ID<WhileLoopNode> Nodlang::parse_while_loop()
     if (!token_while.is_null())
     {
         while_loop_node = parser_state.graph->create_while_loop();
-        parser_state.graph->connect({while_loop_node.get(), Edge_t::IS_CHILD_OF, get_current_scope()->get_owner().get() });
+        parser_state.graph->connect(
+            while_loop_node->get_slot(THIS_PROPERTY, Way::Out),
+                Relation::CHILD_PARENT,
+            get_current_scope()->get_owner()->get_slot(THIS_PROPERTY, Way::In),
+            ConnectFlag::SIDE_EFFECTS_ON);
         parser_state.scope.push(while_loop_node->get_component<Scope>() );
 
         while_loop_node->token_while = token_while;
@@ -1370,7 +1400,9 @@ ID<WhileLoopNode> Nodlang::parse_while_loop()
         {
             cond_instr->set_name("Condition");
             while_loop_node->cond_instr = cond_instr->id();
-            parser_state.graph->connect(cond_instr->as_prop(), while_loop_node->condition_property());
+            parser_state.graph->connect(
+                    cond_instr->get_slot(THIS_PROPERTY, Way::Out),
+                    while_loop_node->get_slot(CONDITION_PROPERTY, Way::In));
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
             if (close_bracket.is_null())
@@ -1400,11 +1432,13 @@ ID<WhileLoopNode> Nodlang::parse_while_loop()
     return {};
 }
 
-Property* Nodlang::parse_variable_declaration()
+Slot Nodlang::parse_variable_declaration()
 {
 
     if (!parser_state.ribbon.can_eat(2))
+    {
         return {};
+    }
 
     start_transaction();
 
@@ -1425,11 +1459,11 @@ Property* Nodlang::parse_variable_declaration()
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
         if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word() == '=')
         {
-            Property* expression_result = parse_expression();
-            if (expression_result &&
-                type::is_implicitly_convertible(expression_result->get_type(), variable->type() ) )
+            Slot expression_out = parse_expression();
+            if (expression_out != Slot::null &&
+                type::is_implicitly_convertible(expression_out.get_property()->get_type(), variable->type() ) )
             {
-                parser_state.graph->connect(expression_result, variable);
+                parser_state.graph->connect(expression_out, variable);
                 variable->assignment_operator_token = operator_token;
             }
             else
@@ -1442,7 +1476,7 @@ Property* Nodlang::parse_variable_declaration()
         }
 
         commit_transaction();
-        return variable->property();
+        return variable->get_slot(VALUE_PROPERTY, Way::Out);
     }
 
     rollback_transaction();
@@ -1455,25 +1489,25 @@ Property* Nodlang::parse_variable_declaration()
 
 std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComponent *_component) const
 {
-    const func_type *type = _component->get_func_type();
+    const func_type* type  = _component->get_func_type();
+    const Node*      owner = _component->get_owner().get();
 
     if (_component->is_operator())
     {
         // generic serialize property lambda
-        auto serialize_property_with_or_without_brackets = [this, &_out](const Property* property, bool needs_brackets)
+        auto serialize_property_with_or_without_brackets = [this, &_out](const Edge& edge, bool needs_brackets)
         {
             if (!needs_brackets)
             {
-                serialize_property(_out, property);
+                serialize_edge(_out, edge);
                 return;
             }
             serialize_token_t(_out, Token_t::parenthesis_open);
-            serialize_property(_out, property);
+            serialize_edge(_out, edge);
             serialize_token_t(_out, Token_t::parenthesis_close);
         };
 
-        const Node* owner = _component->get_owner().get();
-        const std::vector<Property*>& args = _component->get_args();
+        const std::vector<Property::ID>& args = _component->get_arg_ids();
         int precedence = get_precedence(_component->get_function());
 
         switch (type->get_arg_count())
@@ -1482,10 +1516,10 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
             {
                 // Left part of the expression
                 {
-                    auto l_handed_invokable = owner->get_connected_invokable(args[0]);
+                    auto l_handed_invokable = owner->get_connected_invokable(LEFT_VALUE_PROPERTY);
                     bool needs_brackets = l_handed_invokable && get_precedence(l_handed_invokable) < precedence;
 
-                    serialize_property_with_or_without_brackets(args[0], needs_brackets);
+                    serialize_property_with_or_without_brackets(owner->get_edge_heading(args[0]), needs_brackets );
                 }
 
                 // Operator
@@ -1499,9 +1533,9 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
 
                 // Right part of the expression
                 {
-                    auto r_handed_invokable = owner->get_connected_invokable(args[1]);
+                    auto r_handed_invokable = owner->get_connected_invokable(RIGHT_VALUE_PROPERTY);
                     bool needs_brackets = r_handed_invokable && get_precedence(r_handed_invokable) < precedence;
-                    serialize_property_with_or_without_brackets(args[1], needs_brackets);
+                    serialize_property_with_or_without_brackets(owner->get_edge_heading(args[1]), needs_brackets);
                 }
                 break;
             }
@@ -1524,32 +1558,32 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
                     _out.append(type->get_identifier());
                 }
 
-                auto inner_operator = owner->get_connected_invokable(args[0]);
-                serialize_property_with_or_without_brackets(args[0], inner_operator != nullptr);
+                auto inner_operator = owner->get_connected_invokable(LEFT_VALUE_PROPERTY);
+                serialize_property_with_or_without_brackets(owner->get_edge_heading(args[0]), inner_operator != nullptr);
                 break;
             }
         }
-    } else
+    }
+    else
     {
-        serialize_func_call(_out, type, _component->get_args());
+        serialize_func_call(_out, type, owner->get_input_edges(_component->get_arg_ids()));
     }
 
     return _out;
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<Property* > &_args) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<Edge> inputs) const
 {
     _out.append(_signature->get_identifier());
     serialize_token_t(_out, Token_t::parenthesis_open);
 
-    for (auto it = _args.begin(); it != _args.end(); it++)
+    for (auto edge : inputs)
     {
-        serialize_property(_out, *it);
-
-        if (*it != _args.back())
+        if (edge != inputs.front())
         {
             serialize_token_t(_out, Token_t::list_separator);
         }
+        serialize_edge(_out, edge);
     }
 
     serialize_token_t(_out, Token_t::parenthesis_close);
@@ -1614,11 +1648,15 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
 
     // 3. If variable is connected, serialize its assigned expression
 
-    const Property* value = _node->property();
-    if (decl_instr && value->has_input_connected())
+    const Edge edge = _node->get_edge_heading(_node->property()->id);
+    if ( edge != Edge::null && decl_instr )
     {
-        _out.append(_node->assignment_operator_token.is_null() ? " = " : _node->assignment_operator_token.buffer_to_string());
-        serialize_property(_out, value);
+        if ( _node->assignment_operator_token.is_null() )
+        { _out.append(" = "); }
+        else
+        { _out.append(_node->assignment_operator_token.buffer_to_string()); }
+
+        serialize_edge(_out, edge);
     }
     return _out;
 }
@@ -1634,28 +1672,29 @@ std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *va
     return _out.append(variant_string);
 }
 
-std::string &Nodlang::serialize_property(std::string &_out, const Property *_property, bool recursively) const
+std::string &Nodlang::serialize_edge(std::string& _out, const Edge& _edge, bool recursively) const
 {
+    const Property* property = _edge.head.get_property();
+
     // specific case of a Node*
-    if (_property->get_type()->is<ID<Node>>())
+    if ( property->is_referencing<Node>() )
     {
-        if ( (*_property)->is_initialized() )
+        if ( (*property)->is_initialized() )
         {
-            return serialize_node(_out, (i32_t)*_property->value() );
+            return serialize_node(_out, (i32_t)*property->value() );
         }
     }
 
 
-    if (!_property->token.is_null())
+    if (!property->token.is_null())
     {
-        _out.append(_property->token.prefix_to_string()); // FIXME: avoid std::string copy
+        _out.append(property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
-    Node* owner = _property->owner().get();
-    if (recursively && owner && _property->allows_connection(Way_In) && owner->is_connected_with(_property))
+    Connector tail = _edge.tail;
+    if (recursively && property->allows_connection(Way::In) )
     {
-        Property*           src_property      = _property->get_input();
-        ID<InvokableComponent> compute_component = src_property->owner()->get_component<InvokableComponent>();
+        ID<InvokableComponent> compute_component = tail.get_node()->get_component<InvokableComponent>();
 
         if (compute_component)
         {
@@ -1663,21 +1702,21 @@ std::string &Nodlang::serialize_property(std::string &_out, const Property *_pro
         }
         else
         {
-            serialize_property(_out, src_property, false);
+            serialize_property(_out, tail.get_property());
         }
     }
-    else if ( owner->get_type()->is<VariableNode>() )
+    else if ( tail.get_node()->get_type()->is<VariableNode>() )
     {
-        _out.append( owner->name );
+        _out.append( tail.get_node()->name );
     }
     else
     {
-        serialize_variant(_out, _property->value() );
+        serialize_variant(_out, property->value() );
     }
 
-    if (!_property->token.is_null())
+    if (!property->token.is_null())
     {
-        _out.append(_property->token.suffix_to_string()); // FIXME: avoid std::string copy
+        _out.append(property->token.suffix_to_string()); // FIXME: avoid std::string copy
     }
     return _out;
 }
@@ -1735,9 +1774,9 @@ std::string& Nodlang::serialize_node(std::string &_out, ID<const Node> node_id) 
 std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
 {
     serialize_token(_out, _scope->token_begin);
-    for (ID<const Node> each_child : _scope->get_owner()->children)
+    for (ID<Node> child : _scope->get_owner()->children() )
     {
-        serialize_node(_out, each_child );
+        serialize_node(_out, child);
     }
     return serialize_token(_out, _scope->token_end);
 }
@@ -1746,10 +1785,10 @@ std::string& Nodlang::serialize_instr(std::string &_out, const InstructionNode *
 {
     FW_EXPECT(_instruction != nullptr, "IntructionNode should NOT be nullptr");
 
-    Property* instr_root = _instruction->root();
-    if (instr_root->has_input_connected() && (*instr_root)->is_initialized())
+    const Property* root = _instruction->get_prop(ROOT_PROPERTY);
+    if (_instruction->has_edge_heading(root->id) && root->value()->is_initialized() )
     {
-        serialize_node(_out, instr_root->owner() );
+        serialize_node(_out, _instruction->get_edge_heading(root->id).tail.node );
     }
 
     return serialize_token(_out, _instruction->token_end);
@@ -1780,24 +1819,24 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     // TODO: I don't like this if/else, should be implicit. Serialize Property* must do it.
     //       More work to do to know if expression is a declaration or not.
 
-    Node* input_node = _for_loop->get_init_expr()->get_input()->owner().get();
+    Node* input_node = _for_loop->get_edge_heading( INITIALIZATION_PROPERTY).tail.get_node();
     if ( auto * input_variable = fw::cast<const VariableNode>( input_node ) )
     {
         serialize_variable(_out, input_variable );
     }
-    else if ( const InstructionNode* init_instr = _for_loop->init_instr.get())
+    else if( const Edge edge = _for_loop->get_edge_heading( INITIALIZATION_PROPERTY ) )
     {
-        serialize_instr(_out, init_instr);
+        serialize_edge(_out, edge);
     }
 
-    if( const InstructionNode* condition = _for_loop->cond_instr.get() )
+    if( const Edge edge = _for_loop->get_edge_heading( CONDITION_PROPERTY ) )
     {
-        serialize_instr(_out, condition);
+        serialize_edge(_out, edge);
     }
 
-    if( const Property* iter_instr = _for_loop->get_iter_expr() )
+    if( const Edge edge = _for_loop->get_edge_heading( ITERATION_PROPERTY ) )
     {
-        serialize_property(_out, iter_instr);
+        serialize_edge(_out, edge);
     }
 
     serialize_token_t(_out, Token_t::parenthesis_close);
@@ -1909,6 +1948,11 @@ std::shared_ptr<const iinvokable> Nodlang::find_function(const func_type* _type)
     auto exact = find_function_exact(_type);
     if (!exact) return find_function_fallback(_type);
     return exact;
+}
+
+std::string& Nodlang::serialize_property(std::string& _out, const Property* _property) const
+{
+    FW_EXPECT(false, "Not implemented yet. Must handle non-recursive serialisation");
 }
 
 std::shared_ptr<const iinvokable> Nodlang::find_function_exact(const func_type *_signature) const
@@ -2106,6 +2150,11 @@ Nodlang& Nodlang::get_instance()
 {
     static Nodlang instance;
     return instance;
+}
+Token Nodlang::parse_token(const std::string &_string) const
+{
+    size_t cursor = 0;
+    return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor);
 }
 
 Nodlang::ParserState::ParserState()

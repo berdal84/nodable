@@ -15,7 +15,7 @@ namespace ndbl
     class IConditionalStruct
     {
     public:
-        virtual Property*  condition_property()const = 0;
+        virtual const Property*  condition_property()const = 0;
         virtual ID<Scope>  get_condition_true_scope()const = 0;      // Get the "true" (if) branch's scope
         virtual ID<Scope>  get_condition_false_scope()const = 0;     // Get the "false" (else) branch's scope
 

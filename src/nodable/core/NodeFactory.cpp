@@ -70,7 +70,7 @@ ID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type, boo
     }
 
     // Create a result/value
-    node->props.add(_func_type->get_return_type(), k_value_property_name, Visibility::Default, Way_Out);
+    node->props.add(_func_type->get_return_type(), VALUE_PROPERTY, Visibility::Default, Way::Out);
 
     // Create arguments
     auto args = _func_type->get_args();
@@ -85,11 +85,11 @@ ID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type, boo
         switch ( count )
         {
             case 1:
-                node->props.add(args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
+                node->props.add(args[0].m_type, LEFT_VALUE_PROPERTY, Visibility::Default, Way::In);
                 break;
             case 2:
-                node->props.add( args[0].m_type, k_lh_value_property_name, Visibility::Default, Way_In);
-                node->props.add( args[1].m_type, k_rh_value_property_name, Visibility::Default, Way_In);
+                node->props.add( args[0].m_type, LEFT_VALUE_PROPERTY, Visibility::Default, Way::In);
+                node->props.add( args[1].m_type, RIGHT_VALUE_PROPERTY, Visibility::Default, Way::In);
                 break;
             default: /* no warning */ ;
         }
@@ -98,7 +98,7 @@ ID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type, boo
     {
         for (auto& arg : args)
         {
-            node->props.add(arg.m_type, arg.m_name.c_str(), Visibility::Default, Way_In);
+            node->props.add(arg.m_type, arg.m_name.c_str(), Visibility::Default, Way::In);
         }
     }
 
@@ -122,15 +122,16 @@ void NodeFactory::add_invokable_component(ID<Node> _node, const fw::func_type* _
     _node->add_component(component);
 
     // Bind result property
-    component->bind_result_property(k_value_property_name);
+    size_t property_id = _node->props.get_id(VALUE_PROPERTY);
+    component->bind_result_property(property_id);
 
     // Link arguments
     auto args = _func_type->get_args();
     for (size_t arg_idx = 0; arg_idx < args.size(); arg_idx++)
     {
-        Property* property = _node->props.get_input_at((u8_t)arg_idx);
-        property->set_reference(args[arg_idx].m_by_reference);  // to handle by reference function args
-        component->set_arg(arg_idx, property);
+        Property* property = _node->props.get_input_at(arg_idx);
+        if ( args[arg_idx].m_by_reference ) property->set_ref();  // to handle by reference function args
+        component->bind_arg(arg_idx, property->id);
     }
 }
 
@@ -139,9 +140,8 @@ ID<Node> NodeFactory::create_scope() const
     ID<Node> node = Pool::get_pool()->create<Node>();
 
     node->set_name("{} Scope");
-
-    node->predecessors.set_limit(std::numeric_limits<int>::max());
-    node->successors.set_limit(1);
+    node->slots.set_limit(NEXT_PREVIOUS, Way::In, EDGE_PER_SLOT_MAX_COUNT);
+    node->slots.set_limit(NEXT_PREVIOUS, Way::Out, 1);
 
     ID<Scope> scope_id = Pool::get_pool()->create<Scope>();
     node->add_component(scope_id);
@@ -157,8 +157,8 @@ ID<ConditionalStructNode> NodeFactory::create_cond_struct() const
     ConditionalStructNode*    node{ id.get() };
 
     node->set_name("If");
-    node->predecessors.set_limit(std::numeric_limits<int>::max());
-    node->successors.set_limit(2); // true/false branches
+    node->slots.set_limit(NEXT_PREVIOUS, Way::In, EDGE_PER_SLOT_MAX_COUNT);
+    node->slots.set_limit(NEXT_PREVIOUS, Way::Out, 2);
     node->add_component(Pool::get_pool()->create<Scope>());
 
     m_post_process(id);
@@ -171,8 +171,8 @@ ID<ForLoopNode> NodeFactory::create_for_loop() const
     ID<ForLoopNode> node = Pool::get_pool()->create<ForLoopNode>();
 
     node->set_name("For");
-    node->predecessors.set_limit(std::numeric_limits<int>::max());
-    node->successors.set_limit(1);
+    node->slots.set_limit(NEXT_PREVIOUS, Way::In, EDGE_PER_SLOT_MAX_COUNT);
+    node->slots.set_limit(NEXT_PREVIOUS, Way::Out, 1);
     node->add_component(Pool::get_pool()->create<Scope>());
 
     m_post_process(node);
@@ -185,8 +185,8 @@ ID<WhileLoopNode> NodeFactory::create_while_loop() const
     ID<WhileLoopNode> node = Pool::get_pool()->create<WhileLoopNode>();
 
     node->set_name("While");
-    node->predecessors.set_limit(std::numeric_limits<int>::max());
-    node->successors.set_limit(1);
+    node->slots.set_limit(NEXT_PREVIOUS, Way::In, EDGE_PER_SLOT_MAX_COUNT);
+    node->slots.set_limit(NEXT_PREVIOUS, Way::Out, 1);
     node->add_component(Pool::get_pool()->create<Scope>());
 
     m_post_process(node);

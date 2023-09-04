@@ -7,7 +7,7 @@ namespace ndbl {
 
     // forward declarations
     class Property;
-    class PropertyConnector;
+    class SlotView;
     class NodeView;
     using fw::pool::ID;
 
@@ -17,23 +17,18 @@ namespace ndbl {
     class PropertyView
     {
     public:
+        u8_t                property;
         ImVec2              position;
         bool                show_input;
         bool                touched;
-        const ID<NodeView> node_view;
+        const ID<NodeView>  node_view;
 
-        PropertyView(Property *_property, ID<NodeView> _nodeView);
+        PropertyView(u8_t _property_id, ID<NodeView> _node_view_id);
         ~PropertyView();
         PropertyView (const PropertyView&) = delete;
         PropertyView& operator= (const PropertyView&) = delete;
 
-        void                reset();
-        Property*           property() { return m_property; }
-        PropertyConnector*  input() const { return m_input; }
-        PropertyConnector*  output() const { return m_output; }
+        void reset();
     private:
-        Property*           m_property;
-        PropertyConnector*  m_input;
-        PropertyConnector*  m_output;
     };
 }

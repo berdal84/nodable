@@ -48,26 +48,26 @@ namespace ndbl{
         bool                   tokenize(char* buffer, size_t buffer_size);           // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
         bool                   parse(const std::string& _in, Graph *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                  parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
-        Token                  parse_token(const std::string& _string) const { size_t cursor = 0; return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor); }
+        Token                  parse_token(const std::string& _string) const;
         ID<Node>               parse_scope();                                         // Try to parse a scope.
         ID<InstructionNode>    parse_instr();                                         // Try to parse an instruction.
-        Property*              parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
-        ID<Scope> parse_code_block(ID<Scope> curr_scope);                       // Try to parse a code block with the option to create a scope or not (reusing the current one).
+        Slot                   parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
+        ID<Scope>              parse_code_block(ID<Scope> curr_scope);                       // Try to parse a code block with the option to create a scope or not (reusing the current one).
         ID<ConditionalStructNode> parse_conditional_structure();                  // Try to parse a conditional structure (if/else if/.else) recursively.
         ID<ForLoopNode>        parse_for_loop();                                      // Try to parse a "for loop".
         ID<WhileLoopNode>      parse_while_loop();                                    // Try to parse a "while loop".
         ID<Node>               parse_program();                                       // Try to parse an entire program.
-        Property*              parse_function_call();                                 // Try to parse a function call.
-        Property*              parse_parenthesis_expression();                        // Try to parse a parenthesis expression.
-        Property*              parse_unary_operator_expression(unsigned short _precedence = 0u);                               // Try to parse a unary expression.
-        Property*              parse_binary_operator_expression(unsigned short _precedence = 0u, Property* _left = {}); // Try to parse a binary expression.
-        Property*              parse_atomic_expression();                                                                      // Try to parse an atomic expression (ex: "1", "a")
-        Property*              parse_expression(unsigned short _precedence = 0u, Property* _leftOverride = {});                 // Try to parse an expression
+        Slot                   parse_function_call();                                 // Try to parse a function call.
+        Slot                   parse_parenthesis_expression();                        // Try to parse a parenthesis expression.
+        Slot                   parse_unary_operator_expression(unsigned short _precedence = 0u);                               // Try to parse a unary expression.
+        Slot                   parse_binary_operator_expression(unsigned short _precedence = 0u, Slot _left = {}); // Try to parse a binary expression.
+        Slot                   parse_atomic_expression();                                                                      // Try to parse an atomic expression (ex: "1", "a")
+        Slot                   parse_expression(unsigned short _precedence = 0u, Slot _left_override = {});                 // Try to parse an expression
+        Slot                   parse_token(Token _token);
         bool                   to_bool(const std::string& );                          // convert a boolean string ("true"|"false") to a boolean.
         std::string            to_unquoted_string(const std::string& _quoted_str);    // convert a quoted string to a string.
         double                 to_double(const std::string& );                        // convert a double string (ex: "10.0") to a double.
         i16_t                  to_i16(const std::string& );                           // convert an integer string (ex: "42") to an integer.
-        Property*              to_property(Token _token);            // convert a token to a property.
     private:
         inline bool            allow_to_attach_suffix(Token_t type) const
         {
@@ -108,12 +108,12 @@ namespace ndbl{
         // Serializer ------------------------------------------------------------------
     public:
         std::string&           serialize_invokable(std::string& _out, const InvokableComponent *_component) const;
-        std::string&           serialize_func_call(std::string& _out, const fw::func_type*, const std::vector<Property *> &)const;
+        std::string&           serialize_func_call(std::string& _out, const fw::func_type *_signature, const std::vector<Edge> inputs)const;
         std::string&           serialize_func_sig(std::string& _out, const fw::func_type*)const;
         std::string&           serialize_token_t(std::string& _out, const Token_t&)const;
         std::string&           serialize_token(std::string& _out, const Token &) const;
         std::string&           serialize_type(std::string& _out, const fw::type*) const;
-        std::string&           serialize_property(std::string& _out, const Property *_property, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
+        std::string&           serialize_edge(std::string& _out, const Edge &_edge, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
         std::string&           serialize_instr(std::string& _out, const InstructionNode *_instruction)const;
         std::string&           serialize_node(std::string& _out, ID<const Node> _node)const;
         std::string&           serialize_scope(std::string& _out, const Scope *_scope)const;
@@ -161,6 +161,7 @@ namespace ndbl{
         std::unordered_map<size_t, Token_t>               m_token_t_by_keyword;     // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
         std::unordered_map<fw::type::id_t, Token_t>       m_token_t_by_type_id;
         std::unordered_map<Token_t, const fw::type*>      m_type_by_token_t;        // token_t to type. Works only if token_t refers to a type keyword.
+        std::string &serialize_property(std::string &_out, const Property *pProperty) const;
     };
 
     template<typename T>

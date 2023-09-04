@@ -1,29 +1,28 @@
 #include "Nodable.h"
 
-#include <algorithm>
-
-#include "fw/core/assertions.h"
-#include "fw/core/system.h"
-#include "fw/gui/EventManager.h"
-#include "core/DataAccess.h"
-#include "core/VariableNode.h"
-#include "core/InvokableComponent.h"
-#include "core/LiteralNode.h"
-#include "core/InstructionNode.h"
-#include "NodableView.h"
 #include "Condition.h"
 #include "Event.h"
+#include "GraphView.h"
 #include "HybridFile.h"
 #include "HybridFileView.h"
-#include "GraphView.h"
-#include "NodeConnector.h"
+#include "NodableView.h"
 #include "NodeView.h"
-#include "PropertyConnector.h"
+#include "Physics.h"
+#include "SlotView.h"
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DisconnectEdge.h"
 #include "commands/Cmd_Group.h"
-#include "Physics.h"
+#include "core/Connector.h"
+#include "core/DataAccess.h"
+#include "core/InstructionNode.h"
+#include "core/InvokableComponent.h"
+#include "core/LiteralNode.h"
 #include "core/NodeUtils.h"
+#include "core/VariableNode.h"
+#include "fw/core/assertions.h"
+#include "fw/core/system.h"
+#include "fw/gui/EventManager.h"
+#include <algorithm>
 
 using namespace ndbl;
 using namespace fw::pool;
@@ -445,17 +444,17 @@ void Nodable::on_update()
                 }
                 else if (curr_file_history)
                 {
-                    if ( src->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
-                    DirectedEdge edge(src->get_node(), Edge_t::IS_PREDECESSOR_OF, dst->get_node());
+                    if ( src->m_way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
+                    DirectedEdge edge(src->get_node(), Relation::NEXT_PREVIOUS, dst->get_node());
                     auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                     curr_file_history->push_command(cmd);
                 }
                 break;
             }
-            case EventType_property_connector_dropped:
+            case EventType_connector_dropped:
             {
-                const PropertyConnector* src = event.connector.src.prop;
-                const PropertyConnector* dst = event.connector.dst.prop;
+                const PropertyConnectorView * src = event.connector.src.prop;
+                const PropertyConnectorView * dst = event.connector.dst.prop;
                 const fw::type* src_meta_type = src->get_property_type();
                 const fw::type* dst_meta_type = dst->get_property_type();
 
@@ -475,7 +474,7 @@ void Nodable::on_update()
                 }
                 else
                 {
-                    if (src->m_way != Way_Out) std::swap(src, dst); // guarantee src to be the output
+                    if (src->m_way != Way::Out) std::swap(src, dst); // guarantee src to be the output
                     DirectedEdge edge(src->get_property(), dst->get_property());
                     auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                     curr_file_history->push_command(cmd);
@@ -489,17 +488,17 @@ void Nodable::on_update()
                 ID<Node> src = src_connector->get_node();
                 ID<Node> dst = src_connector->get_connected_node();
 
-                if (src_connector->m_way != Way_Out ) std::swap(src, dst); // ensure src is predecessor
+                if (src_connector->m_way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
 
-                DirectedEdge edge(src, Edge_t::IS_PREDECESSOR_OF, dst);
+                DirectedEdge edge(src, Relation::NEXT_PREVIOUS, dst);
                 auto cmd = std::make_shared<Cmd_DisconnectEdge>( edge );
                 curr_file_history->push_command(cmd);
                 
                 break;
             }
-            case EventType_property_connector_disconnected:
+            case EventType_connector_disconnected:
             {
-                const PropertyConnector* src_connector = event.connector.src.prop;
+                const PropertyConnectorView * src_connector = event.connector.src.prop;
                 Property*                src_property  = src_connector->get_property();
 
                 auto edges = src_property->owner()->parent_graph->filter_edges(src_property, src_connector->m_way);

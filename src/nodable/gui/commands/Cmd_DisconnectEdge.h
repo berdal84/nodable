@@ -10,9 +10,9 @@ namespace ndbl
     {
     public:
         Cmd_DisconnectEdge(DirectedEdge _edge)
-        : m_src(_edge.src())
-        , m_dst(_edge.dst())
-        , m_graph(_edge.src_node()->parent_graph)
+        : m_src(_edge.tail())
+        , m_dst(_edge.head())
+        , m_graph(_edge.tail_node()->parent_graph)
         , m_edge(_edge)
         {
             char str[200];

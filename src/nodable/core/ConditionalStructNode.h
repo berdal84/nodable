@@ -32,9 +32,9 @@ namespace ndbl
 
         // implement IConditionalStruct (which is already documented)
 
-        ID<Scope>  get_condition_true_scope()const override;
-        ID<Scope>  get_condition_false_scope()const override;
-        Property * condition_property()const override;
+        ID<Scope>       get_condition_true_scope()const override;
+        ID<Scope>       get_condition_false_scope()const override;
+        const Property* condition_property()const override;
 
         REFLECT_DERIVED_CLASS()
     };

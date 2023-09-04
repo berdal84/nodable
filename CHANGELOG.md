@@ -29,7 +29,7 @@ Author: Bérenger Dalle-Cort, 2017-2023
     - add Compiler to run code in the VirtualMachine,
     - remove CodeBlockNode, keep only ScopeNode and interfaces,
     - add ForLoopNode,
-    - add Slots,
+    - add SlotBag,
     - add AppContext to get managers (avoid singleton pattern),
     - remove GraphTraversal.
 

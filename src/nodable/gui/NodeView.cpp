@@ -1,28 +1,25 @@
 #include "NodeView.h"
 
-#include <cmath>                  // for sinus
-#include <algorithm>              // for std::max
-#include <vector>
-
-#include "fw/core/math.h"
-#include "fw/core/reflection/registration.h"
-
-#include "core/Graph.h"
-#include "core/InvokableComponent.h"
-#include "core/LiteralNode.h"
-#include "core/Scope.h"
-#include "core/VariableNode.h"
-#include "core/language/Nodlang.h"
-
 #include "Config.h"
 #include "Event.h"
 #include "Nodable.h"
-#include "NodeConnector.h"
-#include "PropertyConnector.h"
-#include "PropertyView.h"
 #include "NodeViewConstraint.h"
 #include "Physics.h"
+#include "PropertyView.h"
+#include "SlotView.h"
+#include "core/Graph.h"
+#include "core/GraphUtil.h"
+#include "core/InvokableComponent.h"
+#include "core/LiteralNode.h"
 #include "core/Pool.h"
+#include "core/Scope.h"
+#include "core/VariableNode.h"
+#include "core/language/Nodlang.h"
+#include "fw/core/math.h"
+#include "fw/core/reflection/registration.h"
+#include <algorithm> // for std::max
+#include <cmath> // for sinus
+#include <vector>
 
 constexpr ImVec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
 
@@ -47,10 +44,6 @@ const ImVec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
 NodeView::NodeView()
         : Component()
         , fw::View()
-        , inputs(Edge_t::IS_INPUT_OF, Slots_LIMIT_MAX )
-        , outputs(Edge_t::IS_OUTPUT_OF, Slots_LIMIT_MAX )
-        , children(Edge_t::IS_CHILD_OF, Slots_LIMIT_MAX )
-        , successors(Edge_t::IS_SUCCESSOR_OF, Slots_LIMIT_MAX )
         , m_position(500.0f, -1.0f)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
@@ -90,12 +83,12 @@ void NodeView::expose(Property* _property)
     PropertyView* property_view = new PropertyView(_property, m_id);
     if (_property == m_owner->as_prop() )
     {
-        property_view->output()->m_display_side = PropertyConnector::Side::Left; // force to be displayed on the left
+        property_view->output()->m_display_side = PropertyConnectorView::Side::Left; // force to be displayed on the left
         m_exposed_this_property_view = property_view;
     }
     else
     {
-        if (_property->get_allowed_connection() == Way_In)
+        if (_property->get_allowed_connection() == Way::In)
         {
             m_exposed_input_only_properties.push_back(property_view);
         }
@@ -127,7 +120,7 @@ void NodeView::set_owner(ID<Node> node)
 
     for ( Property* property : node->props.by_index() )
     {
-        if ( property->get_visibility() == Visibility::Always && property->allows_connection(Way_In) )
+        if ( property->get_visibility() == Visibility::Always && property->allows_connection(Way::In) )
         {
             expose(property);
         }
@@ -141,7 +134,7 @@ void NodeView::set_owner(ID<Node> node)
     for (auto property_id : not_exposed)
     {
         Property* property = property_id;
-        if (property->get_visibility() == Visibility::Always && property->allows_connection(Way_Out))
+        if (property->get_visibility() == Visibility::Always && property->allows_connection(Way::Out))
         {
             expose(property);
         }
@@ -159,14 +152,14 @@ void NodeView::set_owner(ID<Node> node)
     const size_t successor_max_count = node->successors.get_limit();
     for(size_t index = 0; index < successor_max_count; ++index )
     {
-        auto* connector = new NodeConnector(this, Way_Out, index, successor_max_count);
+        auto* connector = new NodeConnector(this, Way::Out, index, successor_max_count);
         m_successors.push_back( connector );
     }
 
     // add a single predecessor connector if node can be connected in this way
     if(node->predecessors.get_limit() != 0)
     {
-        auto* connector = new NodeConnector(this, Way_In);
+        auto* connector = new NodeConnector(this, Way::In);
         m_predecessors.push_back( connector );
     }
 
@@ -174,19 +167,9 @@ void NodeView::set_owner(ID<Node> node)
     //---------------------------------------
 
     ID<NodeView> id = m_id;
-    auto synchronize_view = [id](ID<Node> other_node, SlotEvent event, Edge_t edge )
+    auto synchronize_view = [id](SlotBag::Event event)
     {
-        auto item = other_node->get_component<NodeView>();
-        switch ( edge )
-        {
-            case Edge_t::IS_CHILD_OF:       return id->children.apply( event, item );
-            case Edge_t::IS_INPUT_OF:       return id->inputs.apply( event, item );
-            case Edge_t::IS_OUTPUT_OF:      return id->outputs.apply( event, item );
-            case Edge_t::IS_SUCCESSOR_OF:   return id->successors.apply( event, item );
-            case Edge_t::IS_PREDECESSOR_OF: return; // We don't need this type of edges in the views
-            default:
-                FW_ASSERT(false); /* NOT HANDLED */break;
-        }
+        FW_EXPECT(false, "TODO: uploade children, predecessors, inputs, and outputs cache vector<ID<NodeView>>")
     };
     node->on_slot_change.connect(synchronize_view);
 
@@ -246,7 +229,7 @@ ID<NodeView> NodeView::get_selected()
 
 void NodeView::start_drag(ID<NodeView> _view)
 {
-	if( !is_any_dragged() && PropertyConnector::get_dragged() ) // Prevent dragging node while dragging connector
+	if( !is_any_dragged() && PropertyConnectorView::get_dragged() ) // Prevent dragging node while dragging connector
     {
         s_dragged = _view;
     }
@@ -442,13 +425,13 @@ bool NodeView::draw()
 
         if ( m_exposed_this_property_view )
         {
-            PropertyConnector::draw(m_exposed_this_property_view->output(), radius, color, borderCol, hoverCol, m_edition_enable);
+            PropertyConnectorView::draw(m_exposed_this_property_view->output(), radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& propertyView : m_exposed_input_only_properties )
         {
-            PropertyConnector::draw(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
+            PropertyConnectorView::draw(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
             is_connector_hovered |= ImGui::IsItemHovered();
         }
 
@@ -456,13 +439,13 @@ bool NodeView::draw()
         {
             if ( propertyView->input() )
             {
-                PropertyConnector::draw(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
+                PropertyConnectorView::draw(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
 
             if ( propertyView->output() )
             {
-                PropertyConnector::draw(propertyView->output(), radius, color, borderCol, hoverCol, m_edition_enable);
+                PropertyConnectorView::draw(propertyView->output(), radius, color, borderCol, hoverCol, m_edition_enable);
                 is_connector_hovered |= ImGui::IsItemHovered();
             }
         }
@@ -627,7 +610,7 @@ bool NodeView::draw_property_view(PropertyView* _view)
 
         // Generate the property's source code
         std::string source_code;
-        if( property->get_type()->is<ID<Node>>() || !property->allows_connection(Way_In)) // pointer to Node or output
+        if( property->get_type()->is<ID<Node>>() || !property->allows_connection(Way::In)) // pointer to Node or output
         {
             Nodlang::get_instance().serialize_node( source_code, property->owner());
         }
@@ -848,7 +831,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         if( ImGui::TreeNode("Slots") )
         {
 
-            auto draw_slots = [](const char *label, const Slots<ID<Node>> &slots)
+            auto draw_slots = [](const char *label, const SlotBag<ID<Node>> &slots)
             {
                 if( ImGui::TreeNode(label) )
                 {
@@ -1158,4 +1141,10 @@ ImRect NodeView::get_screen_rect()
 bool NodeView::is_any_selected()
 {
     return NodeView::get_selected().get() != nullptr;
+}
+
+std::vector<ID<NodeView>> NodeView::children()
+{
+    FW_EXPECT(false, "TODO: cache value");
+    std::vector<ID<NodeView>> children = GraphUtil::get_adjacent_components<NodeView>(m_owner.get(), Relation::CHILD_PARENT, Way::In);
 }

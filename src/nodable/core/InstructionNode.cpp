@@ -10,7 +10,7 @@ REGISTER
 InstructionNode::InstructionNode()
     : Node()
 {
-    m_root = add_prop<ID<Node>>(k_value_property_name, Visibility::Default, Way_In);
-    successors.set_limit(1);
-    predecessors.set_limit(-1);
+    add_prop<ID<Node>>(VALUE_PROPERTY, Visibility::Default, Way::In);
+    slots.set_limit(NEXT_PREVIOUS, Way::In, EDGE_PER_SLOT_MAX_COUNT);
+    slots.set_limit(NEXT_PREVIOUS, Way::Out, 1);
 }

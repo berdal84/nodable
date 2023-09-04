@@ -30,13 +30,11 @@ add_library(
         HybridFileView.cpp
         Nodable.cpp
         NodableView.cpp
-        NodeConnector.cpp
         NodeView.cpp
         NodeViewConstraint.cpp
         Physics.cpp
-        PropertyConnector.cpp
         PropertyView.cpp
-)
+        SlotView.cpp)
 
 target_link_libraries(
     nodable-gui

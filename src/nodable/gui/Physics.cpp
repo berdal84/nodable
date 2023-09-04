@@ -1,10 +1,12 @@
 #include "Physics.h"
-#include "core/Node.h"
-#include "core/math.h"
 #include "NodeView.h"
-#include "core/IConditionalStruct.h"
 #include "core/ForLoopNode.h"
+#include "core/IConditionalStruct.h"
+#include "core/Node.h"
 #include "core/NodeUtils.h"
+#include "core/algorithm.h"
+#include "core/math.h"
+#include "core/GraphUtil.h"
 
 using namespace ndbl;
 using namespace fw::pool;
@@ -59,11 +61,11 @@ void Physics::add_force(ImVec2 force, bool _recurse)
 
     if ( !_recurse ) return;
 
-    for (auto* each_input_view : Pool::get_pool()->get( m_view->inputs.content() ) )
+    for (auto child : m_view->children )
     {
-        if (!each_input_view->pinned && each_input_view->should_follow_output( m_view ))
+        if (!child->pinned && child->should_follow_output( m_view ))
         {
-            if(ID<Physics> physics_component = each_input_view->get_owner()->get_component<Physics>())
+            if(ID<Physics> physics_component = child->get_owner()->get_component<Physics>())
             {
                 physics_component->add_force(force, _recurse);
             }
@@ -97,11 +99,12 @@ void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
         if ( each_view )
         {
             const fw::type* node_type = each_node->get_type();
+            std::vector<ID<NodeView>> children_view = GraphUtil::adjacent_components<NodeView>(each_node, Relation::CHILD_PARENT, Way::In); // TODO: cache
 
             // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
             //---------------------------------------------------------------------------------
 
-            auto& predecessor_nodes = each_node->predecessors.content();
+            std::vector<ID<Node>> predecessor_nodes = each_node->get_predecessors();
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
@@ -116,16 +119,16 @@ void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
             // Align in row Conditional Struct Node's children
             //------------------------------------------------
 
-            if(!each_view->children.empty() && node_type->is_child_of<IConditionalStruct>() )
+            if(!children_view.empty() && node_type->is_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
                 constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
                 constraint.add_driver(each_view->id());
-                constraint.add_targets(each_view->children.content());
+                constraint.add_targets(children_view);
 
                 if (node_type->is<ForLoopNode>() )
                 {
-                    constraint.add_targets(each_view->successors.content());
+                    constraint.add_targets( each_view->successors );
                 }
                 each_physics->add_constraint(constraint);
             }
@@ -137,7 +140,7 @@ void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
             {
                 NodeViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
                 constraint.add_driver(each_view->id());
-                constraint.add_targets(each_view->inputs.content());
+                constraint.add_targets( each_view->inputs );
                 each_physics->add_constraint(constraint);
                 constraint.apply_when(NodeViewConstraint::always);
             }
