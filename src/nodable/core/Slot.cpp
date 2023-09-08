@@ -1,7 +1,6 @@
 #include "Slot.h"
 #include "Connector.h"
 
-
 using namespace ndbl;
 
 const Slot Slot::null{};
@@ -52,8 +51,18 @@ bool Slot::operator!=(const Slot& other) const
 {
     return connector != other.connector || index != other.index;
 }
+
 u8_t Slot::edge_count() const
-{ return edges.size(); }
+{
+    return edges.size();
+}
 
 bool Slot::is_full() const
-{ return edges.size() < capacity; }
+{
+    return edges.size() < capacity;
+}
+
+Slot::operator bool() const
+{
+    return *this != null;
+}

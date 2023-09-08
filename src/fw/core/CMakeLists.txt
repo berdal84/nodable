@@ -33,3 +33,46 @@ target_include_directories(
         PUBLIC
             ../
 )
+
+
+# Headless tests (nodable-core)
+#------------------------------
+
+# Declare our main executable
+add_executable(
+        framework-core-tests
+        reflection/reflection.specs.cpp
+        Pool.specs.cpp)
+
+# Link libraries
+target_link_libraries(
+        framework-core-tests
+        PRIVATE
+        gtest_main
+        gtest
+        framework-core
+)
+
+# Benchmarks
+#-----------
+
+# Declare our main executable
+add_executable(
+        framework-core-benchmark
+        benchmark.cpp
+)
+
+# Link libraries
+target_link_libraries(
+        framework-core-benchmark
+        PRIVATE
+        benchmark::benchmark # google's
+        framework-core
+)
+
+# Add test executables
+#---------------------
+cmake_policy(SET CMP0110 NEW) # Allow spaces in test names
+add_test( NAME "Framework Core" COMMAND framework-core-tests )
+
+

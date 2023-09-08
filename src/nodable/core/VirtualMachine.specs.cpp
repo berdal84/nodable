@@ -1,8 +1,7 @@
 #include <cmath>// for pow()
 #include <gtest/gtest.h>
 
-#include "../fixtures/core.h"
-#include "fw/core/log.h"
+#include "fixtures/core.h"
 
 using namespace ndbl;
 typedef ::testing::Core Virtual_Machine;

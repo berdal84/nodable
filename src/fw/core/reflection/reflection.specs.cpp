@@ -1,11 +1,13 @@
 #include <gtest/gtest.h>
+
+// Hack to avoid adding friend to classes
 #define private public
 #define protected public
-#include "fw/core/reflection/reflection"
-#include "nodable/core/Node.h"
+
+#include "reflection"
+#include "../log.h"
 
 using namespace fw;
-using namespace ndbl;
 
 TEST(Reflection, is_convertible__type_to_ptr)
 {
@@ -56,19 +58,23 @@ TEST(Reflection, is_ptr)
     EXPECT_TRUE(type::is_ptr(type::get<bool*>()));
 }
 
-TEST(Reflection, node_as_poolid)
+class Data {
+public:
+    POOL_REGISTRABLE(Data)
+};
+
+TEST(Reflection, variant_and_pool_id)
 {
     // prepare
-    Node node;
-    node.m_id = 42;
+    ID<Data> id = 42;
     variant value;
 
     // act
-    value.set( node.id() );
+    value.set( id );
 
     // check
-    EXPECT_TRUE( value.get_type()->equals( type::get<ID<Node>>() ) );
-    EXPECT_TRUE( node.id() == value );
+    EXPECT_TRUE( value.get_type()->equals( type::get<ID<Data>>() ) );
+    EXPECT_TRUE( id == value );
 }
 
 TEST(Reflection, is_child_of)
@@ -81,3 +87,4 @@ TEST(Reflection, is_child_of)
     EXPECT_TRUE(type::get<Derived>()->is_child_of<Base>());
     EXPECT_FALSE(type::get<Base>()->is_child_of<Derived>());
 }
+

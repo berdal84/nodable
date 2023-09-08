@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include "fw/core/log.h"
-#include "fw/core/Pool.h"
+#include "log.h"
+#include "Pool.h"
 
 using namespace fw::pool;
 
@@ -55,11 +55,11 @@ TEST(Pool, buffer_resizing )
 TEST(Pool, destroy_last )
 {
     Pool* pool = Pool::init(0);
-    ID<Data> node1 = pool->create<Data>("Toto");
-    ID<Data> node2 = pool->create<Data>("Tata");
+    ID<Data> data_1 = pool->create<Data>("Toto");
+    ID<Data> data_2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
-    pool->destroy( node1 );
-    EXPECT_EQ(node2->name, "Tata");
+    pool->destroy( data_1 );
+    EXPECT_EQ(data_2->name, "Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 1);
     Pool::shutdown();
 }

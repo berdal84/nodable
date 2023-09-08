@@ -62,10 +62,6 @@ NodeView::~NodeView()
 
     // deselect
     if ( s_selected == m_id ) s_selected.reset();
-
-    // delete NodeConnectors
-    for( auto& conn : m_successors ) delete conn;
-    for( auto& conn : m_predecessors ) delete conn;
 }
 
 std::string NodeView::get_label()
@@ -80,25 +76,26 @@ std::string NodeView::get_label()
 
 void NodeView::expose(Property* _property)
 {
-    PropertyView* property_view = new PropertyView(_property, m_id);
-    if (_property == m_owner->as_prop() )
-    {
-        property_view->output()->m_display_side = PropertyConnectorView::Side::Left; // force to be displayed on the left
-        m_exposed_this_property_view = property_view;
-    }
-    else
-    {
-        if (_property->get_allowed_connection() == Way::In)
-        {
-            m_exposed_input_only_properties.push_back(property_view);
-        }
-        else
-        {
-            m_exposed_out_or_inout_properties.push_back(property_view);
-        }
-    }
-
-    m_exposed_properties.insert({_property, property_view});
+    FW_EXPECT(false, "TODO: is this function still necessary since we have Slots?")
+//    PropertyView* property_view = new PropertyView(_property, m_id);
+//    if (_property == m_owner->as_prop() )
+//    {
+//        property_view->output()->m_display_side = PropertyConnectorView::Side::Left; // force to be displayed on the left
+//        m_exposed_this_property_view = property_view;
+//    }
+//    else
+//    {
+//        if (_property->get_allowed_connection() == Way::In)
+//        {
+//            m_exposed_input_only_properties.push_back(property_view);
+//        }
+//        else
+//        {
+//            m_exposed_out_or_inout_properties.push_back(property_view);
+//        }
+//    }
+//
+//    m_exposed_properties.insert({_property, property_view});
 }
 
 void NodeView::set_owner(ID<Node> node)

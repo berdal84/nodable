@@ -432,28 +432,23 @@ void Nodable::on_update()
             }
             case EventType_node_connector_dropped:
             {
-                const NodeConnector* src = event.connector.src.node;
-                const NodeConnector* dst = event.connector.dst.node;
-                if ( src->share_parent_with(dst) )
+                if ( !Connector::can_be_connected(event.connector.first, event.connector.dst) )
                 {
-                    LOG_WARNING("App", "Unable to drop_on these two Connectors from the same Node.\n")
-                }
-                else if( src->m_way == dst->m_way )
-                {
-                    LOG_WARNING("App", "Unable to drop_on these two Node Connectors (must have different ways).\n")
+                    FW_EXPECT(false, "TODO: display an error");
                 }
                 else if (curr_file_history)
                 {
-                    if ( src->m_way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
-                    DirectedEdge edge(src->get_node(), Relation::NEXT_PREVIOUS, dst->get_node());
-                    auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
+                    auto src = event.slot.first;
+                    auto dst = event.connector.second;
+                    if ( src->way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
+                    auto cmd = std::make_shared<Cmd_ConnectEdge>({src->node(), Relation::NEXT_PREVIOUS, dst->node()});
                     curr_file_history->push_command(cmd);
                 }
                 break;
             }
             case EventType_connector_dropped:
             {
-                const PropertyConnectorView * src = event.connector.src.prop;
+                const PropertyConnectorView * src = event.connector.first.prop;
                 const PropertyConnectorView * dst = event.connector.dst.prop;
                 const fw::type* src_meta_type = src->get_property_type();
                 const fw::type* dst_meta_type = dst->get_property_type();
@@ -484,7 +479,7 @@ void Nodable::on_update()
 
             case EventType_node_connector_disconnected:
             {
-                const NodeConnector* src_connector = event.connector.src.node;
+                const NodeConnector* src_connector = event.connector.first.node;
                 ID<Node> src = src_connector->get_node();
                 ID<Node> dst = src_connector->get_connected_node();
 
@@ -498,7 +493,7 @@ void Nodable::on_update()
             }
             case EventType_connector_disconnected:
             {
-                const PropertyConnectorView * src_connector = event.connector.src.prop;
+                const PropertyConnectorView * src_connector = event.connector.first.prop;
                 Property*                src_property  = src_connector->get_property();
 
                 auto edges = src_property->owner()->parent_graph->filter_edges(src_property, src_connector->m_way);

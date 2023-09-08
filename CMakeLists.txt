@@ -35,9 +35,12 @@ add_subdirectory(src/nodable/app)         # nodable application
 
 if ( NOT NDBL_SKIP_TESTS)
     enable_testing()
-    add_subdirectory(src/tests)
+    # https://stackoverflow.com/questions/12540970/how-to-make-gtest-build-mdd-instead-of-mtd-by-default-using-cmake
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+    # we don't need mocks (for now) nor install
+    option(BUILD_GMOCK OFF)
+    option(INSTALL_GTEST OFF)
 endif()
-
 
 #  Packaging:
 #===========

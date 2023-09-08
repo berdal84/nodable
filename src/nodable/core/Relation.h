@@ -32,9 +32,9 @@ namespace ndbl
     R_ENUM_VALUE(READ_WRITE)
     R_ENUM_END
 
-    bool is_primary(Relation relation)
+    static bool is_primary(Relation relation)
     { return relation >= Relation::PRIMARY_BEGIN && relation < Relation::PRIMARY_COUNT; }
 
-    Relation complement(Relation relation)
+    static Relation complement(Relation relation)
     { return static_cast<Relation>(-relation); }
 } // namespace ndbl

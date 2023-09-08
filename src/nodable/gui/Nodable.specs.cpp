@@ -1,4 +1,4 @@
-#include "../fixtures/gui.h"
+#include "fixtures/gui.h"
 
 typedef ::testing::Gui Gui_App;
 

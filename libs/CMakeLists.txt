@@ -2,6 +2,10 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
+# google tests
+#-------------
+add_subdirectory(googletest EXCLUDE_FROM_ALL)
+
 # freetype
 #------------------------------
 add_library(xxhash INTERFACE)

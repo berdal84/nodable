@@ -53,7 +53,7 @@ void SlotView::draw_connector_circle(
         {
             Event event{};
             event.type = EventType_connector_disconnected;
-            event.connector.src = _view;
+            event.connector.first = _view;
             fw::EventManager::get_instance().push_event((fw::Event&)event);
         }
 
@@ -115,9 +115,9 @@ void SlotView::draw_connector_rectangle(
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
-            ConnectorEvent event{};
+            SlotEvent event{};
             event.type = EventType_node_connector_disconnected;
-            event.src = _view;
+            event.first = _view;
             event.dst = nullptr;
             fw::EventManager::get_instance().push_event((fw::Event&)event);
         }
@@ -192,9 +192,9 @@ void SlotView::drop_behavior(bool &require_new_node, bool _enable_edition)
         {
             if ( s_hovered )
             {
-                ConnectorEvent evt{};
+                SlotEvent evt{};
                 evt.type = EventType_connector_dropped;
-                evt.src  = s_dragged;
+                evt.first = s_dragged;
                 evt.dst  = s_hovered;
                 fw::EventManager::get_instance().push_event((fw::Event&)evt);
 

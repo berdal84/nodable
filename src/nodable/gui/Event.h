@@ -20,10 +20,8 @@ namespace ndbl
         EventType_node_view_deselected,
         EventType_frame_all_node_views,
         EventType_frame_selected_node_views,
-        EventType_connector_dropped,                                // operation on property connectors
+        EventType_connector_dropped,
         EventType_connector_disconnected,
-        EventType_node_connector_dropped,                                    // operation on node connectors
-        EventType_node_connector_disconnected,
         EventType_toggle_isolate_selection
     };
 
@@ -37,11 +35,11 @@ namespace ndbl
         bool recursive;
     };
 
-    struct ConnectorEvent
+    struct SlotEvent
     {
-        fw::EventType  type;
-        SlotView * src;
-        SlotView * dst;
+        fw::EventType type;
+        Slot          first;
+        Slot          second;
     };
 
     union Event
@@ -50,7 +48,7 @@ namespace ndbl
         fw::Event              event;
         fw::SimpleEvent        common;
         NodeViewEvent          node;
-        ConnectorEvent         connector;
+        SlotEvent connector;
         ToggleFoldingEvent     toggle_folding;
     };
 

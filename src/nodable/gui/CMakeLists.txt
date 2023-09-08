@@ -69,3 +69,52 @@ set(ASSETS
 foreach(EACH_FILE ${ASSETS})
     configure_file("${EACH_FILE}" "${CMAKE_BINARY_DIR}/${EACH_FILE}" COPYONLY)
 endforeach()
+
+ndbl_log_title_header()
+
+# WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
+
+ndbl_log("NDBL_SKIP_TESTS: ${NDBL_SKIP_TESTS}")
+
+if ( NDBL_SKIP_TESTS )
+    return()
+endif()
+
+# GUI tests (nodable-gui)
+#------------------------
+
+# Declare our main executable
+add_executable(
+        nodable-gui-tests
+        Nodable.specs.cpp
+)
+
+# Link libraries
+target_link_libraries(
+        nodable-gui-tests
+        PRIVATE
+        gtest_main
+        gtest
+        nodable-gui
+)
+
+# Add test executables
+#---------------------
+cmake_policy(SET CMP0110 NEW) # Allow spaces in test names
+add_test( NAME "Nodable Core" COMMAND nodable-core-tests )
+
+# GUI tests does not work on every machine (only MacOS in software on GitHub Actions)
+if( $ENV{JETBRAINS_IDE} )
+    ndbl_log("JETBRAINS_IDE is defined:  Enable Nodable GUI tests (hardware rendering)")
+    add_test( NAME "Nodable GUI (hardware rendering)" COMMAND nodable-gui-tests)
+    add_definitions(-D NDBL_GUI_TEST_HUMAN_SPEED )
+elseif(WIN32)
+    ndbl_log("Windows detected: Skip Nodable GUI tests")
+elseif(APPLE)
+    ndbl_log("Apple detected: Enable Nodable GUI tests (software rendering)")
+    add_test( NAME "Nodable GUI (software rendering)" COMMAND nodable-gui-tests)
+elseif(UNIX) # Should be tested after APPLE
+    ndbl_log("Linux detected: Skip Nodable GUI tests")
+endif()
+
+

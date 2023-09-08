@@ -275,3 +275,8 @@ Slot& Node::get_slot(Property* property, Way way) const
 {
     return slots.by_property(property, way);
 }
+
+void Node::add_edge(Edge)
+{
+    FW_EXPECT(false, "TODO: add the edge into the slots, handle side effects?")
+}

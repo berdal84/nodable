@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
-#include "../fixtures/core.h"
+#include "fixtures/core.h"
 #include "fw/core/reflection/func_type.h"
-#include "nodable/core/DirectedEdge.h"
+#include "core/DirectedEdge.h"
 #include "nodable/core/Graph.h"
 #include "nodable/core/InstructionNode.h"
 #include "nodable/core/InvokableComponent.h"
@@ -24,35 +24,35 @@ TEST_F(Graph_, connect)
     node1->set_name("Node 1");
     node2->set_name("Node 2");
 
-    Property* node1_output = node1->add_prop<bool>("output");
-    Property* node2_input = node2->add_prop<bool>("input");
+    auto id1 = node1->add_prop<bool>("output");
+    auto id2 = node2->add_prop<bool>("input");
 
-    const DirectedEdge* edge = graph.connect(node1_output, node2_input);
+    Edge edge = graph.connect(node1->get_slot(id1, Way::Out), node2->get_slot(id2, Way::In));
 
-    EXPECT_EQ(edge->tail() , node1_output);
-    EXPECT_EQ(edge->head() , node2_input);
+    EXPECT_EQ(edge.tail.get_property(), node1->get_prop_at(id1) );
+    EXPECT_EQ(edge.head.get_property(), node2->get_prop_at(id2) );
     EXPECT_EQ(graph.get_edge_registry().size(), 1);
  }
 
 TEST_F(Graph_, disconnect)
 {
-    ID<Node> a      = graph.create_node();
-    auto     output = a->add_prop<bool>("output");
+    auto node_1 = graph.create_node();
+    auto prop_1 = node_1->add_prop<bool>("prop_1");
 
-    ID<Node> b     = graph.create_node();
-    auto     input = b->add_prop<bool>("input");
+    auto node_2 = graph.create_node();
+    auto prop_2 = node_2->add_prop<bool>("prop_2");
 
     EXPECT_EQ(graph.get_edge_registry().size(), 0);
 
-    const DirectedEdge* edge = graph.connect(output, input);
+    Edge edge = graph.connect(node_1->get_slot(prop_1, Way::Out), node_2->get_slot(prop_2, Way::In));
 
     EXPECT_EQ(graph.get_edge_registry().size(), 1); // edge must be registered when connected
 
-    graph.disconnect(edge);
+    graph.disconnect(edge, ConnectFlag::SIDE_EFFECTS_ON);
 
     EXPECT_EQ(graph.get_edge_registry().size()  , 0); // edge must be unregistered when disconnected
-    EXPECT_EQ(a->outgoing_edge_count(), 0);
-    EXPECT_EQ(b->incoming_edge_count() , 0);
+    EXPECT_EQ(node_1->outgoing_edge_count(), 0);
+    EXPECT_EQ(node_2->incoming_edge_count() , 0);
 }
 
 TEST_F(Graph_, clear)
@@ -66,7 +66,10 @@ TEST_F(Graph_, clear)
     operatorNode->get_prop(LEFT_VALUE_PROPERTY)->set(2);
     operatorNode->get_prop(RIGHT_VALUE_PROPERTY)->set(2);
 
-    graph.connect(operatorNode->as_prop(), instructionNode->root() );
+    graph.connect(
+            operatorNode->get_slot(THIS_PROPERTY, Way::Out),
+            instructionNode->get_slot(ROOT_PROPERTY, Way::In)
+            );
 
     EXPECT_TRUE(graph.get_node_registry().size() != 0);
     EXPECT_TRUE(graph.get_edge_registry().size() != 0);
@@ -89,28 +92,36 @@ TEST_F(Graph_, create_and_delete_relations)
     ID<Scope> scope  = graph.create_root()->get_component<Scope>();
     auto& edges      = graph.get_edge_registry();
     EXPECT_EQ(edges.size(), 0);
-    ID<Node> n1 = graph.create_variable(double_type, "n1", scope)->id();
+    auto node_1 = graph.create_variable(double_type, "node_1", scope);
     EXPECT_EQ(edges.size(), 0);
-    ID<Node> n2 = graph.create_variable(double_type, "n2", scope)->id();
+    auto node_2 = graph.create_variable(double_type, "node_2", scope);
 
     // Act and test
 
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ(n2->children.edge_count(), 0);
-    auto edge1 = graph.connect({n1, Relation::CHILD_PARENT, n2}, false);
-    EXPECT_EQ(n2->children.edge_count(), 1);
+    EXPECT_EQ(node_2->filter_edges(Relation::NEXT_PREVIOUS).size(), 0);
+    auto edge_1 = graph.connect(
+            node_1->get_slot(THIS_PROPERTY, Way::Out),
+            Relation::CHILD_PARENT,
+            node_2->get_slot(THIS_PROPERTY, Way::In),
+            ConnectFlag::SIDE_EFFECTS_OFF);
+    EXPECT_EQ(node_2->filter_edges(Relation::CHILD_PARENT).size(), 1);
     EXPECT_EQ(edges.size(), 1);
-    graph.disconnect(edge1);
-    EXPECT_EQ(n2->children.edge_count(), 0);
+    graph.disconnect(edge_1, ConnectFlag::SIDE_EFFECTS_OFF);
+    EXPECT_EQ(node_2->filter_edges(Relation::CHILD_PARENT).size(), 0);
 
     // Is input of
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ(n2->inputs.edge_count(), 0);
-    auto edge2 = graph.connect({n1, Relation::INPUT, n2}, false);
-    EXPECT_EQ(n2->inputs.edge_count(), 1);
+    EXPECT_EQ(node_2->filter_edges(Relation::READ_WRITE).size(), 0);
+    auto edge_2 = graph.connect(
+            node_1->get_value_slot(Way::Out),
+            Relation::READ_WRITE,
+            node_2->get_value_slot(Way::In),
+            ConnectFlag::SIDE_EFFECTS_OFF);
+    EXPECT_EQ(node_2->filter_edges(Relation::READ_WRITE).size(), 1);
     EXPECT_EQ(edges.size(), 1);
-    graph.disconnect(edge2);
-    EXPECT_EQ(n2->inputs.edge_count(), 0);
+    graph.disconnect(edge_2, ConnectFlag::SIDE_EFFECTS_OFF);
+    EXPECT_EQ(node_2->filter_edges(Relation::READ_WRITE).size(), 0);
     EXPECT_EQ(edges.size(), 0);
 }

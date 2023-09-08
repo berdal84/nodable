@@ -1,12 +1,11 @@
-
 #include <gtest/gtest.h>
 #include "fw/core/Pool.h"
-#include "nodable/core/Property.h"
+#include "Property.h"
 
 using namespace ndbl;
 using namespace fw::pool;
 
-TEST(Property, Way::In)
+TEST(Property, Way_In)
 {
     Property property;
     property.set_allowed_connection(Way::In);
@@ -17,7 +16,7 @@ TEST(Property, Way::In)
     EXPECT_TRUE(property.allows_connection(Way::None));
 }
 
-TEST(Property, Way::Out)
+TEST(Property, Way_Out)
 {
     Property property;
     property.set_allowed_connection(Way::Out);
@@ -28,7 +27,7 @@ TEST(Property, Way::Out)
     EXPECT_TRUE(property.allows_connection(Way::None));
 }
 
-TEST(Property, Way::None)
+TEST(Property, Way_None)
 {
     Property property;
     property.set_allowed_connection(Way::Out);
@@ -39,7 +38,7 @@ TEST(Property, Way::None)
     EXPECT_TRUE(property.allows_connection(Way::None));
 }
 
-TEST(Property, Way::InOut)
+TEST(Property, Way_InOut)
 {
     Property property;
     property.set_allowed_connection(Way::InOut);

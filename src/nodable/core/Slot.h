@@ -31,5 +31,6 @@ namespace ndbl
         bool is_full() const; // Slots have a capacity
         bool operator==(const Slot&) const;
         bool operator!=(const Slot&) const;
+        operator bool () const;
     };
 }
