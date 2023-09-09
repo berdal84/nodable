@@ -3,7 +3,6 @@
 #include <set>
 #include <vector>
 
-#include "Connector.h"
 #include "Edge.h"
 #include "Relation.h"
 #include "Slot.h"

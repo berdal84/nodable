@@ -27,7 +27,7 @@ namespace ndbl {
         float          ui_wire_bezier_length_max;
         ImVec4         ui_wire_fillColor;
         ImVec4         ui_wire_shadowColor;
-        float          ui_node_propertyConnectorRadius;
+        float          ui_node_propertyslotRadius;
         float          ui_node_padding;
         ImVec4         ui_node_variableColor;
         ImVec4         ui_node_invokableColor;
@@ -39,14 +39,14 @@ namespace ndbl {
         ImVec4         ui_node_borderColor;
         ImVec4         ui_node_highlightedColor;
         ImVec4         ui_node_fillColor;
-        ImVec4         ui_node_nodeConnectorColor;
-        ImVec4         ui_node_nodeConnectorHoveredColor;
+        ImVec4         ui_node_nodeslotColor;
+        ImVec4         ui_node_nodeslotHoveredColor;
         float          ui_node_spacing;
         float          ui_node_speed;
         u8_t           ui_node_animation_subsample_count;
-        float          ui_node_connector_height;
-        float          ui_node_connector_padding;
-        float          ui_node_connector_width;
+        float          ui_node_slot_height;
+        float          ui_node_slot_padding;
+        float          ui_node_slot_width;
         ImVec4         ui_codeFlow_lineColor;
         ImVec4         ui_codeFlow_lineShadowColor;
         ImVec2         ui_toolButton_size;

@@ -1,4 +1,4 @@
-#include "Connector.h"
+#include "Slot.h"
 #include "Node.h"
 #include "Scope.h"
 
@@ -49,8 +49,8 @@ namespace ndbl
             {
                 return {};
             }
-            Connector connector = _way == Way::Out ? edge.tail : edge.head;
-            return connector.node;
+            Slot slot = _way == Way::Out ? edge.tail : edge.head;
+            return slot.node;
         }
     };
 }

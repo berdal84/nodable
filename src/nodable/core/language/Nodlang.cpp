@@ -20,17 +20,16 @@
 #include "fw/core/log.h"
 #include "fw/core/hash.h"
 
-#include "core/Pool.h"
 #include "core/ConditionalStructNode.h"
-#include "core/DirectedEdge.h"
 #include "core/ForLoopNode.h"
-#include "core/WhileLoopNode.h"
 #include "core/Graph.h"
 #include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
+#include "core/Pool.h"
 #include "core/Property.h"
 #include "core/Scope.h"
+#include "core/TDirectedEdge.h"
 #include "core/VariableNode.h"
 #include "core/WhileLoopNode.h"
 #include "core/language/Nodlang_biology.h"
@@ -1691,7 +1690,7 @@ std::string &Nodlang::serialize_edge(std::string& _out, const Edge& _edge, bool 
         _out.append(property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
-    Connector tail = _edge.tail;
+    Slot tail = _edge.tail;
     if (recursively && property->allows_connection(Way::In) )
     {
         ID<InvokableComponent> compute_component = tail.get_node()->get_component<InvokableComponent>();

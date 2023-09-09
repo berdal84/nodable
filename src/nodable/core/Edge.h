@@ -1,20 +1,12 @@
 #pragma once
-#include "Connector.h"
-#include "DirectedEdge.h"
+#include "TDirectedEdge.h"
 #include "Relation.h"
 
 namespace ndbl
 {
-    using Edge = DirectedEdge<Connector, Relation>;
+    // Forward declarations
+    class Slot;
+    using Edge = TDirectedEdge<Slot, Relation>;
 
-    static Edge& sanitize_edge(Edge& _edge) // In case relation is not primary, swaps vertex and use complement relation, return the same edge otherwise.
-    {
-        if ( is_primary(_edge.relation) )
-        {
-            return _edge;
-        }
-        std::swap(_edge.tail, _edge.head);
-        _edge.relation = complement(_edge.relation);
-        return _edge;
-    }
+    static Edge& sanitize_edge(Edge& _edge);
 } // namespace ndbl

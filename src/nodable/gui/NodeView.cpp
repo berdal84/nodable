@@ -80,7 +80,7 @@ void NodeView::expose(Property* _property)
 //    PropertyView* property_view = new PropertyView(_property, m_id);
 //    if (_property == m_owner->as_prop() )
 //    {
-//        property_view->output()->m_display_side = PropertyConnectorView::Side::Left; // force to be displayed on the left
+//        property_view->output()->m_display_side = SlotView::Side::Left; // force to be displayed on the left
 //        m_exposed_this_property_view = property_view;
 //    }
 //    else
@@ -115,15 +115,15 @@ void NodeView::set_owner(ID<Node> node)
 
     //  We expose first the properties which allows input connections
 
-    for ( Property* property : node->props.by_index() )
+    for ( Property& property : node->props )
     {
-        if ( property->get_visibility() == Visibility::Always && property->allows_connection(Way::In) )
+        if ( property.get_visibility() == Visibility::Always && property.allows_connection(Way::In) )
         {
-            expose(property);
+            expose(&property);
         }
         else
         {
-            not_exposed.push_back( property );
+            not_exposed.push_back(&property);
         }
     }
 
@@ -137,36 +137,24 @@ void NodeView::set_owner(ID<Node> node)
         }
     }
 
-    if ( Property* this_property = node->as_prop() )
+    if ( Property* this_property = node->get_prop(THIS_PROPERTY) )
     {
         expose(this_property);
     }
 
-    // 2. NodeConnectors
-    //------------------
+    // 2. SlotViews
+    //--------------
 
-    // add a successor connector per successor slot
-    const size_t successor_max_count = node->successors.get_limit();
-    for(size_t index = 0; index < successor_max_count; ++index )
-    {
-        auto* connector = new NodeConnector(this, Way::Out, index, successor_max_count);
-        m_successors.push_back( connector );
-    }
+    FW_EXPECT(false, "Create")
 
-    // add a single predecessor connector if node can be connected in this way
-    if(node->predecessors.get_limit() != 0)
-    {
-        auto* connector = new NodeConnector(this, Way::In);
-        m_predecessors.push_back( connector );
-    }
-
-    // 4. Listen to connection/disconnections
+    // 3. Listen to connection/disconnections
     //---------------------------------------
 
     ID<NodeView> id = m_id;
-    auto synchronize_view = [id](SlotBag::Event event)
+    auto synchronize_view = [id, node](SlotBag::Event event)
     {
-        FW_EXPECT(false, "TODO: uploade children, predecessors, inputs, and outputs cache vector<ID<NodeView>>")
+        FW_EXPECT(false, "TODO: update children, predecessors, inputs, and outputs cache vector<ID<NodeView>>")
+        id->children = GraphUtil::adjacent_components<NodeView>(node.get(), Relation::CHILD_PARENT, Way::In);
     };
     node->on_slot_change.connect(synchronize_view);
 
@@ -226,7 +214,7 @@ ID<NodeView> NodeView::get_selected()
 
 void NodeView::start_drag(ID<NodeView> _view)
 {
-	if( !is_any_dragged() && PropertyConnectorView::get_dragged() ) // Prevent dragging node while dragging connector
+	if( !is_any_dragged() && SlotView::get_dragged() ) // Prevent dragging node while dragging slot
     {
         s_dragged = _view;
     }
@@ -332,16 +320,16 @@ bool NodeView::draw()
 
     FW_ASSERT(node != nullptr);
 
-    // Draw Node connectors (in background)
-    bool is_connector_hovered = false;
+    // Draw Node slots (in background)
+    bool is_slot_hovered = false;
     {
-        ImColor color        = config.ui_node_nodeConnectorColor;
-        ImColor hoveredColor = config.ui_node_nodeConnectorHoveredColor;
+        ImColor color        = config.ui_node_nodeslotColor;
+        ImColor hoveredColor = config.ui_node_nodeslotHoveredColor;
 
-        auto draw_and_handle_evt = [&](NodeConnector* connector)
+        auto draw_and_handle_evt = [&](Nodeslot* slot)
         {
-            NodeConnector::draw(connector, color, hoveredColor, m_edition_enable);
-            is_connector_hovered |= ImGui::IsItemHovered();
+            Nodeslot::draw(slot, color, hoveredColor, m_edition_enable);
+            is_slot_hovered |= ImGui::IsItemHovered();
         };
 
         std::for_each(m_predecessors.begin(), m_predecessors.end(), draw_and_handle_evt);
@@ -371,7 +359,7 @@ bool NodeView::draw()
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
     ImGui::SetCursorScreenPos(node_top_left_corner + config.ui_node_padding); // top left corner + padding in x and y.
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_propertyConnectorRadius); // add + space for "this" left connector
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_propertyslotRadius); // add + space for "this" left slot
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -413,43 +401,43 @@ bool NodeView::draw()
     m_size.x = std::max( 1.0f, std::ceil(ImGui::GetItemRectSize().x));
     m_size.y = std::max( 1.0f, std::ceil(node_top_right_corner.y - node_top_left_corner.y ));
 
-    // Draw Property in/out connectors
+    // Draw Property in/out slots
     {
-        float radius      = config.ui_node_propertyConnectorRadius;
-        ImColor color     = config.ui_node_nodeConnectorColor;
+        float radius      = config.ui_node_propertyslotRadius;
+        ImColor color     = config.ui_node_nodeslotColor;
         ImColor borderCol = config.ui_node_borderColor;
-        ImColor hoverCol  = config.ui_node_nodeConnectorHoveredColor;
+        ImColor hoverCol  = config.ui_node_nodeslotHoveredColor;
 
         if ( m_exposed_this_property_view )
         {
-            PropertyConnectorView::draw(m_exposed_this_property_view->output(), radius, color, borderCol, hoverCol, m_edition_enable);
-            is_connector_hovered |= ImGui::IsItemHovered();
+            SlotView::draw_slot_circle(m_exposed_this_property_view->output(), radius, color, borderCol, hoverCol, m_edition_enable);
+            is_slot_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& propertyView : m_exposed_input_only_properties )
         {
-            PropertyConnectorView::draw(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
-            is_connector_hovered |= ImGui::IsItemHovered();
+            SlotView::draw_slot_circle(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
+            is_slot_hovered |= ImGui::IsItemHovered();
         }
 
         for( auto& propertyView : m_exposed_out_or_inout_properties )
         {
             if ( propertyView->input() )
             {
-                PropertyConnectorView::draw(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
-                is_connector_hovered |= ImGui::IsItemHovered();
+                SlotView::draw_slot_circle(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
+                is_slot_hovered |= ImGui::IsItemHovered();
             }
 
             if ( propertyView->output() )
             {
-                PropertyConnectorView::draw(propertyView->output(), radius, color, borderCol, hoverCol, m_edition_enable);
-                is_connector_hovered |= ImGui::IsItemHovered();
+                SlotView::draw_slot_circle(propertyView->output(), radius, color, borderCol, hoverCol, m_edition_enable);
+                is_slot_hovered |= ImGui::IsItemHovered();
             }
         }
     }
 
     // Contextual menu (right click)
-    if ( is_node_hovered && !is_connector_hovered && ImGui::IsMouseReleased(1))
+    if ( is_node_hovered && !is_slot_hovered && ImGui::IsMouseReleased(1))
     {
         ImGui::OpenPopup("NodeViewContextualMenu");
     }
@@ -508,7 +496,7 @@ bool NodeView::draw()
 
     m_owner->dirty |= changed;
 
-    m_is_hovered = is_node_hovered || is_connector_hovered;
+    m_is_hovered = is_node_hovered || is_slot_hovered;
 
 	return changed;
 }
@@ -551,7 +539,7 @@ bool NodeView::draw_property_view(PropertyView* _view)
     {
         // When untouched, it depends...
 
-        // Always show literals (their property don't have input connector)
+        // Always show literals (their property don't have input slot)
         _view->show_input |= owner_type->is<LiteralNode>();
         // Always show when defined in exhaustive mode
         _view->show_input |= is_defined && s_view_detail == NodeViewDetail::Exhaustive;
@@ -739,7 +727,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         ImGui::Text(
                 "%s (%s, %s): ",
                 _property->get_name().c_str(),
-                WayToString(_property->get_allowed_connection()).c_str(),
+                to_string(_property->get_allowed_connection()),
                 _property->get_type()->get_name());
 
         ImGui::SameLine();
@@ -760,7 +748,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         bool edited = NodeView::draw_property(_property, nullptr);
-        _property->owner()->dirty |= edited;
+        node->dirty |= edited;
 
     };
 
@@ -828,7 +816,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         if( ImGui::TreeNode("Slots") )
         {
 
-            auto draw_slots = [](const char *label, const SlotBag<ID<Node>> &slots)
+            auto draw_slots = [](const char *label, const SlotBag& slots)
             {
                 if( ImGui::TreeNode(label) )
                 {
@@ -1138,10 +1126,4 @@ ImRect NodeView::get_screen_rect()
 bool NodeView::is_any_selected()
 {
     return NodeView::get_selected().get() != nullptr;
-}
-
-std::vector<ID<NodeView>> NodeView::children()
-{
-    FW_EXPECT(false, "TODO: cache value");
-    std::vector<ID<NodeView>> children = GraphUtil::get_adjacent_components<NodeView>(m_owner.get(), Relation::CHILD_PARENT, Way::In);
 }

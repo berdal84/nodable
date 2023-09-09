@@ -22,8 +22,8 @@ namespace ndbl
     class Graph;
     class NodeView;
     class PropertyView;
-    class PropertyConnectorView;
-    class NodeConnector;
+    class PropertyslotView;
+    class Nodeslot;
     class NodeViewConstraint;
 
 	/** We use this enum to identify all NodeView detail modes */
@@ -112,8 +112,8 @@ namespace ndbl
 		ImVec2          m_size;
 		float           m_opacity;
 		ImColor         m_border_color_selected;
-		std::vector<NodeConnector*> m_predecessors;
-		std::vector<NodeConnector*> m_successors;
+		std::vector<Nodeslot*> m_predecessors;
+		std::vector<Nodeslot*> m_successors;
 		std::vector<PropertyView*>  m_exposed_input_only_properties;
 		std::vector<PropertyView*>  m_exposed_out_or_inout_properties;
         PropertyView*               m_exposed_this_property_view;

@@ -79,7 +79,7 @@ size_t SlotBag::count(Relation relation, Way desired_way) const
     size_t result{0};
     for (auto index : m_ids_by_primary_relation[relation])
     {
-        if( m_slots[index].connector.allows(desired_way) )
+        if( m_slots[index].allows(desired_way) )
         {
             result++;
         }
@@ -98,7 +98,7 @@ Edge SlotBag::find_edge_at(Relation _relation, Way _desired_way, u8_t _index) co
     for (auto index : m_ids_by_primary_relation[_relation])
     {
         const Slot& slot = m_slots[index];
-        if( !slot.connector.allows(_desired_way) )
+        if( !slot.allows(_desired_way) )
         {
             continue;
         }

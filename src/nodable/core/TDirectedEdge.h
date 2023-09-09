@@ -3,34 +3,34 @@
 namespace ndbl
 {
     template<typename VertexT, typename RelationT>
-    class DirectedEdge
+    class TDirectedEdge
     {
     public:
         using vertex_t   = VertexT;
         using relation_t = RelationT;
 
-        static DirectedEdge<VertexT, RelationT> null;
+        static TDirectedEdge<VertexT, RelationT> null;
 
         VertexT   tail;
         VertexT   head;
         RelationT relation;
 
-        DirectedEdge() // is equivalent of NULL DirectedEdge
+        TDirectedEdge() // is equivalent of NULL DirectedEdge
         {}
 
-        DirectedEdge(const DirectedEdge& other)
+        TDirectedEdge(const TDirectedEdge & other)
         : tail(other.tail)
         , head(other.head)
         , relation(other.relation)
         {}
 
-        DirectedEdge(VertexT _tail, RelationT _relation, VertexT _head)
+        TDirectedEdge(VertexT _tail, RelationT _relation, VertexT _head)
         : tail(_tail)
         , head(_head)
         , relation(_relation)
         {}
 
-        DirectedEdge<VertexT, RelationT>& operator=(const DirectedEdge<VertexT, RelationT>& other)
+        TDirectedEdge<VertexT, RelationT>& operator=(const TDirectedEdge<VertexT, RelationT>& other)
         {
             tail     = other.tail;
             head     = other.head;
@@ -41,13 +41,13 @@ namespace ndbl
         operator bool () const
         { return *this != null; }
 
-        bool operator==(const DirectedEdge<VertexT, RelationT>& other) const
+        bool operator==(const TDirectedEdge<VertexT, RelationT>& other) const
         { return this->tail == other.tail && this->head == other.head && this->relation == other.relation; }
 
-        bool operator!=(const DirectedEdge<VertexT, RelationT>& other) const
+        bool operator!=(const TDirectedEdge<VertexT, RelationT>& other) const
         { return this->tail != other.tail || this->head == other.head || this->relation != other.relation;; }
     };
 
     template<typename VertexT, typename EdgeT>
-    DirectedEdge<VertexT, EdgeT>  DirectedEdge<VertexT, EdgeT>::null{};
+    TDirectedEdge<VertexT, EdgeT> TDirectedEdge<VertexT, EdgeT>::null{};
 }

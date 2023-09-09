@@ -11,12 +11,11 @@
 #include "fw/core/Pool.h"
 
 #include "Components.h"
-#include "Connector.h"
-#include "DirectedEdge.h"
 #include "Edge.h"
 #include "Property.h"
 #include "PropertyBag.h"
 #include "SlotBag.h"
+#include "TDirectedEdge.h"
 #include "constants.h"
 
 namespace ndbl {

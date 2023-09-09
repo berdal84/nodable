@@ -12,7 +12,7 @@
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DisconnectEdge.h"
 #include "commands/Cmd_Group.h"
-#include "core/Connector.h"
+#include "core/Slot.h"
 #include "core/DataAccess.h"
 #include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
@@ -430,36 +430,36 @@ void Nodable::on_update()
                                                : selected_view->expand_toggle();
                 break;
             }
-            case EventType_node_connector_dropped:
+            case EventType_node_slot_dropped:
             {
-                if ( !Connector::can_be_connected(event.connector.first, event.connector.dst) )
+                if ( !slot::can_be_connected(event.slot.first, event.slot.dst) )
                 {
                     FW_EXPECT(false, "TODO: display an error");
                 }
                 else if (curr_file_history)
                 {
                     auto src = event.slot.first;
-                    auto dst = event.connector.second;
+                    auto dst = event.slot.second;
                     if ( src->way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
                     auto cmd = std::make_shared<Cmd_ConnectEdge>({src->node(), Relation::NEXT_PREVIOUS, dst->node()});
                     curr_file_history->push_command(cmd);
                 }
                 break;
             }
-            case EventType_connector_dropped:
+            case EventType_slot_dropped:
             {
-                const PropertyConnectorView * src = event.connector.first.prop;
-                const PropertyConnectorView * dst = event.connector.dst.prop;
+                const PropertyslotView * src = event.slot.first.prop;
+                const PropertyslotView * dst = event.slot.dst.prop;
                 const fw::type* src_meta_type = src->get_property_type();
                 const fw::type* dst_meta_type = dst->get_property_type();
 
                 if ( src->share_parent_with(dst) )
                 {
-                    LOG_WARNING( "App", "Unable to drop_on two connectors from the same Property.\n" )
+                    LOG_WARNING( "App", "Unable to drop_on two slots from the same Property.\n" )
                 }
                 else if (src->m_display_side == dst->m_display_side)
                 {
-                    LOG_WARNING( "App", "Unable to drop_on two connectors with the same nature (in and in, out and out)\n" )
+                    LOG_WARNING( "App", "Unable to drop_on two slots with the same nature (in and in, out and out)\n" )
                 }
                 else if ( !fw::type::is_implicitly_convertible(src_meta_type, dst_meta_type) )
                 {
@@ -470,33 +470,33 @@ void Nodable::on_update()
                 else
                 {
                     if (src->m_way != Way::Out) std::swap(src, dst); // guarantee src to be the output
-                    DirectedEdge edge(src->get_property(), dst->get_property());
+                    TDirectedEdge edge(src->get_property(), dst->get_property());
                     auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                     curr_file_history->push_command(cmd);
                 }
                 break;
             }
 
-            case EventType_node_connector_disconnected:
+            case EventType_node_slot_disconnected:
             {
-                const NodeConnector* src_connector = event.connector.first.node;
-                ID<Node> src = src_connector->get_node();
-                ID<Node> dst = src_connector->get_connected_node();
+                const Nodeslot* src_slot = event.slot.first.node;
+                ID<Node> src = src_slot->get_node();
+                ID<Node> dst = src_slot->get_connected_node();
 
-                if (src_connector->m_way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
+                if (src_slot->m_way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
 
-                DirectedEdge edge(src, Relation::NEXT_PREVIOUS, dst);
+                TDirectedEdge edge(src, Relation::NEXT_PREVIOUS, dst);
                 auto cmd = std::make_shared<Cmd_DisconnectEdge>( edge );
                 curr_file_history->push_command(cmd);
                 
                 break;
             }
-            case EventType_connector_disconnected:
+            case EventType_slot_disconnected:
             {
-                const PropertyConnectorView * src_connector = event.connector.first.prop;
-                Property*                src_property  = src_connector->get_property();
+                const PropertyslotView * src_slot = event.slot.first.prop;
+                Property*                src_property  = src_slot->get_property();
 
-                auto edges = src_property->owner()->parent_graph->filter_edges(src_property, src_connector->m_way);
+                auto edges = src_property->owner()->parent_graph->filter_edges(src_property, src_slot->m_way);
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 for(auto each_edge: edges)

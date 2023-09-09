@@ -1,8 +1,8 @@
 #pragma once
-#include "gui/Command.h"
-#include "core/DirectedEdge.h"
 #include "core/Graph.h"
 #include "core/Property.h"
+#include "core/TDirectedEdge.h"
+#include "gui/Command.h"
 
 namespace ndbl
 {

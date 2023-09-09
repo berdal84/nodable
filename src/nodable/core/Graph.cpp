@@ -3,13 +3,13 @@
 #include <algorithm>    // std::find_if
 
 #include "ConditionalStructNode.h"
-#include "DirectedEdge.h"
-#include "NodeFactory.h"
 #include "InstructionNode.h"
 #include "LiteralNode.h"
-#include "NodeUtils.h"
 #include "Node.h"
+#include "NodeFactory.h"
+#include "NodeUtils.h"
 #include "Scope.h"
+#include "TDirectedEdge.h"
 #include "VariableNode.h"
 #include "language/Nodlang.h"
 
@@ -189,8 +189,8 @@ bool Graph::is_empty() const
 
 Edge Graph::connect(Slot tail, Slot head)
 {
-    Property* tail_property = tail.connector.get_property();
-    Property* head_property = head.connector.get_property();
+    Property* tail_property = tail.get_property();
+    Property* head_property = head.get_property();
 
     FW_EXPECT( tail_property != head_property, "Can't connect same properties!" )
     FW_EXPECT( fw::type::is_implicitly_convertible(tail_property->get_type(), head_property->get_type()), "Can't connect non implicitly convertible Properties!");
@@ -198,7 +198,7 @@ Edge Graph::connect(Slot tail, Slot head)
     /*
      * If _from has no owner _to can digest it, no need to create an edge in this case.
      */
-    if ( tail.connector.get_node() == nullptr )
+    if ( tail.get_node() == nullptr )
     {
         head_property->digest( tail_property );
         delete tail_property;
@@ -207,11 +207,11 @@ Edge Graph::connect(Slot tail, Slot head)
 
     if (
         !tail_property->is_referencing<Node>() &&
-        tail.connector.node->get_type()->is_child_of<LiteralNode>() &&
-        head.connector.node->get_type()->is_not_child_of<VariableNode>())
+        tail.node->get_type()->is_child_of<LiteralNode>() &&
+        head.node->get_type()->is_not_child_of<VariableNode>())
     {
         head_property->digest( tail_property );
-        destroy(tail.connector.node);
+        destroy(tail.node);
         set_dirty();
         return Edge::null;
     }
@@ -269,11 +269,6 @@ Edge Graph::connect(Slot tail, VariableNode* head_node)
 }
 
 Edge Graph::connect(Slot _tail, Relation _type, Slot _head, ConnectFlag _flags)
-{
-    return connect(_tail.connector, _type, _head.connector, _flags);
-}
-
-Edge Graph::connect(Connector _tail, Relation _type, Connector _head, ConnectFlag _flags)
 {
     Edge edge{_tail, _type, _head};
     sanitize_edge(edge);
@@ -388,7 +383,7 @@ void Graph::disconnect(Edge _edge, ConnectFlag flags)
             {
                 while (successor && successor->parent == tail_node->parent )
                 {
-                    Edge child_of_edge{successor->slot().connector, Relation::CHILD_PARENT, tail_node->parent->slot().connector};
+                    Edge child_of_edge{successor->slot(), Relation::CHILD_PARENT, tail_node->parent->slot()};
                     disconnect( child_of_edge, ConnectFlag::SIDE_EFFECTS_OFF );
                     successor = successor->successors().begin()->get();
                 }

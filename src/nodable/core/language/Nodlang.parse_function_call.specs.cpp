@@ -30,7 +30,7 @@ TEST_F(parse_function_call, dna_to_protein)
 
     // check
     EXPECT_TRUE(function_out);
-    Node* invokable_node = function_out.connector.get_node();
+    Node* invokable_node = function_out.slot.get_node();
     EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
     EXPECT_TRUE(invokable_node->get_component<InvokableComponent>()->has_function()); // should not be abstract
 }
@@ -57,7 +57,7 @@ TEST_F(parse_function_call, operator_add)
 
     // check
     EXPECT_TRUE(result);
-    Node* invokable_node = result.connector.get_node();
+    Node* invokable_node = result.slot.get_node();
     EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
     EXPECT_TRUE(invokable_node->get_component<InvokableComponent>()->has_function()); // should not be abstract
 }

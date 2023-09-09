@@ -6,7 +6,6 @@
 #include <utility>
 #include <algorithm> // for std::find
 
-#include "Connector.h"
 #include "Graph.h"
 #include "Scope.h"
 #include "core/InvokableComponent.h"
@@ -77,7 +76,7 @@ size_t Node::edge_count(Way _way)const
     size_t count = 0;
     for(auto& slot : slots.data() )
     {
-        if ( slot.connector.way == _way )
+        if ( slot.allows(_way) )
         {
             count += slot.edge_count();
         }

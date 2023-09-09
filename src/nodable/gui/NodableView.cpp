@@ -606,15 +606,15 @@ void AppView::draw_config_window() {
                 ImGui::ColorEdit4("shadow", &config.ui_node_shadowColor.x);
                 ImGui::ColorEdit4("border", &config.ui_node_borderColor.x);
                 ImGui::ColorEdit4("border (highlighted)", &config.ui_node_borderHighlightedColor.x);
-                ImGui::ColorEdit4("connector", &config.ui_node_nodeConnectorColor.x);
-                ImGui::ColorEdit4("connector (hovered)", &config.ui_node_nodeConnectorHoveredColor.x);
+                ImGui::ColorEdit4("slot", &config.ui_node_nodeslotColor.x);
+                ImGui::ColorEdit4("slot (hovered)", &config.ui_node_nodeslotHoveredColor.x);
             }
 
-            if ( ImGui::CollapsingHeader("Connectors"))
+            if ( ImGui::CollapsingHeader("slots"))
             {
-                ImGui::SliderFloat("property connector radius", &config.ui_node_propertyConnectorRadius, 5.0f, 10.0f);
-                ImGui::SliderFloat("node connector padding", &config.ui_node_connector_padding, 0.0f, 100.0f);
-                ImGui::SliderFloat("node connector height", &config.ui_node_connector_height, 2.0f, 100.0f);
+                ImGui::SliderFloat("property slot radius", &config.ui_node_propertyslotRadius, 5.0f, 10.0f);
+                ImGui::SliderFloat("node slot padding", &config.ui_node_slot_padding, 0.0f, 100.0f);
+                ImGui::SliderFloat("node slot height", &config.ui_node_slot_height, 2.0f, 100.0f);
             }
 
             if ( ImGui::CollapsingHeader("Misc."))
@@ -633,7 +633,7 @@ void AppView::draw_config_window() {
             ImGui::SliderFloat("wire length min", &config.ui_wire_bezier_length_min, 200.0f, 1000.0f);
             ImGui::SliderFloat("wire length max", &config.ui_wire_bezier_length_max, 200.0f, 1000.0f);
             ImGui::Separator();
-            ImGui::SliderFloat("wire thickness (flow)", &config.ui_node_connector_width, 10.0f, 20.0f);
+            ImGui::SliderFloat("wire thickness (flow)", &config.ui_node_slot_width, 10.0f, 20.0f);
             ImGui::ColorEdit4("wire color (flow)", &config.ui_codeFlow_lineColor.x);
         }
 

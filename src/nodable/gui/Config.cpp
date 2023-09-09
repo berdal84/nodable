@@ -34,7 +34,7 @@ ndbl::Config::Config()
 
     // nodes
     ui_node_padding                = 6.0f;
-    ui_node_propertyConnectorRadius  = 5.0f;
+    ui_node_propertyslotRadius  = 5.0f;
     ui_node_invokableColor         = ImColor(255, 199, 115);            // light orange
     ui_node_variableColor          = ImColor( 171, 190, 255);           // blue
     ui_node_instructionColor       = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
@@ -45,14 +45,14 @@ ndbl::Config::Config()
     ui_node_borderColor            = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_node_borderHighlightedColor = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_shadowColor            = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-    ui_node_nodeConnectorHoveredColor = ImColor(200, 200, 200);
-    ui_node_nodeConnectorColor     = ImColor(127, 127, 127);
+    ui_node_nodeslotHoveredColor = ImColor(200, 200, 200);
+    ui_node_nodeslotColor     = ImColor(127, 127, 127);
     ui_node_spacing                = 30.0f;
     ui_node_speed                  = 20.0f;
     ui_node_animation_subsample_count = 4;  // 60fps * 4 gives virtually 240Fps for the animations
-    ui_node_connector_height       = 20.0f;
-    ui_node_connector_padding      = 2.0f;
-    ui_node_connector_width        = ui_node_connector_height;
+    ui_node_slot_height       = 20.0f;
+    ui_node_slot_padding      = 2.0f;
+    ui_node_slot_width        = ui_node_slot_height;
 
     // wires
     ui_wire_bezier_roundness        = 0.5f;

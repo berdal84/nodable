@@ -15,7 +15,7 @@ SlotView::SlotView(Slot _slot, Side _side)
 {
 }
 
-void SlotView::draw_connector_circle(
+void SlotView::draw_slot_circle(
         SlotView* _view,
         float _radius,
         const ImColor &_color,
@@ -52,8 +52,8 @@ void SlotView::draw_connector_circle(
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
             Event event{};
-            event.type = EventType_connector_disconnected;
-            event.connector.first = _view;
+            event.type = EventType_slot_disconnected;
+            event.slot.first = _view->m_slot;
             fw::EventManager::get_instance().push_event((fw::Event&)event);
         }
 
@@ -80,7 +80,7 @@ void SlotView::draw_connector_circle(
     }
 }
 
-void SlotView::draw_connector_rectangle(
+void SlotView::draw_slot_rectangle(
         SlotView*_view,
         const ImColor &_color,
         const ImColor &_hoveredColor,
@@ -96,7 +96,7 @@ void SlotView::draw_connector_rectangle(
     // TODO: Find why size can be zero more (more surprisingly) nan.
     if(rect_size.x == 0.0f || rect_size.y == 0.0f || std::isnan(rect_size.x) || std::isnan(rect_size.y) ) return;
 
-    ImDrawCornerFlags cornerFlags = _view->m_slot.connector.way == Way::Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
+    ImDrawCornerFlags cornerFlags = _view->m_slot.slot.way == Way::Out ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
     auto cursorScreenPos = ImGui::GetCursorScreenPos();
     ImGui::SetCursorScreenPos(rect.GetTL());
@@ -116,7 +116,7 @@ void SlotView::draw_connector_rectangle(
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
             SlotEvent event{};
-            event.type = EventType_node_connector_disconnected;
+            event.type = EventType_node_slot_disconnected;
             event.first = _view;
             event.dst = nullptr;
             fw::EventManager::get_instance().push_event((fw::Event&)event);
@@ -130,7 +130,7 @@ void SlotView::draw_connector_rectangle(
         if ( ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::is_any_dragged())
         {
 
-            if (_view->m_slot.connector.way == Way::Out)
+            if (_view->m_slot.slot.way == Way::Out)
             {
                 if ( _view->node()->allows_more(Relation::NEXT_PREVIOUS) )
                 {
@@ -156,16 +156,16 @@ ImRect SlotView::get_rect() const
     ID<NodeView> node_view = node()->get_component<NodeView>();
 
     // pick a corner
-    ImVec2   left_corner = m_slot.connector.way == Way::In ?
+    ImVec2   left_corner = m_slot.way == Way::In ?
                                          node_view->get_screen_rect().GetTL() : node_view->get_screen_rect().GetBL();
 
-    // compute connector size
+    // compute slot size
     ImVec2 size(
-            std::min(config.ui_node_connector_width,  node_view->get_size().x),
-            std::min(config.ui_node_connector_height, node_view->get_size().y));
+            std::min(config.ui_node_slot_width,  node_view->get_size().x),
+            std::min(config.ui_node_slot_height, node_view->get_size().y));
     ImRect rect(left_corner, left_corner + size);
     rect.Translate(ImVec2(size.x * float(m_slot.index), -rect.GetSize().y * 0.5f) );
-    rect.Expand(ImVec2(- config.ui_node_connector_padding, 0.0f));
+    rect.Expand(ImVec2(- config.ui_node_slot_padding, 0.0f));
 
     FW_EXPECT(false, "TODO: use m_display_side instead of way");
     FW_EXPECT(false, "TODO: generate a relative rectangle (relative to node bbox)");
@@ -176,12 +176,12 @@ ImRect SlotView::get_rect() const
 
 ID<Node> SlotView::adjacent_node() const
 {
-    m_slot.first_adjacent_connector().node;
+    m_slot.first_adjacent_slot().node;
 }
 
 ID<Node> SlotView::node()const
 {
-    return m_slot.connector.node;
+    return m_slot.node;
 }
 
 void SlotView::drop_behavior(bool &require_new_node, bool _enable_edition)
@@ -193,9 +193,9 @@ void SlotView::drop_behavior(bool &require_new_node, bool _enable_edition)
             if ( s_hovered )
             {
                 SlotEvent evt{};
-                evt.type = EventType_connector_dropped;
-                evt.first = s_dragged;
-                evt.dst  = s_hovered;
+                evt.type = EventType_slot_dropped;
+                evt.first  = s_dragged->m_slot;
+                evt.second = s_hovered->m_slot;
                 fw::EventManager::get_instance().push_event((fw::Event&)evt);
 
                 reset_hovered();
@@ -248,12 +248,12 @@ ImVec2 SlotView::get_pos() const
     return screen_pos;
 }
 
-bool SlotView::is_node_connector() const
+bool SlotView::is_node_slot() const
 {
     return get_property()->is_referencing<Node>();
 }
 
 bool SlotView::allows(Way way) const
 {
-    return m_slot.connector.allows(way);
+    return m_slot.allows(way);
 }

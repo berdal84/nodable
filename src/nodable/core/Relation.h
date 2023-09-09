@@ -1,4 +1,5 @@
 #pragma once
+#include "fw/core/reflection/reflection"
 
 namespace ndbl
 {

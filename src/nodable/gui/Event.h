@@ -6,7 +6,7 @@
 namespace ndbl
 {
     // forward declaration
-    class PropertyConnectorView;
+    class PropertyslotView;
     class NodeView;
     using fw::pool::ID;
 
@@ -20,8 +20,8 @@ namespace ndbl
         EventType_node_view_deselected,
         EventType_frame_all_node_views,
         EventType_frame_selected_node_views,
-        EventType_connector_dropped,
-        EventType_connector_disconnected,
+        EventType_slot_dropped,
+        EventType_slot_disconnected,
         EventType_toggle_isolate_selection
     };
 
@@ -48,7 +48,7 @@ namespace ndbl
         fw::Event              event;
         fw::SimpleEvent        common;
         NodeViewEvent          node;
-        SlotEvent connector;
+        SlotEvent              slot;
         ToggleFoldingEvent     toggle_folding;
     };
 

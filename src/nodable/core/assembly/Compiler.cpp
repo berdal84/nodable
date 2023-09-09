@@ -74,9 +74,9 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
     return true;
 }
 
-void Compiler::compile(Connector connector)
+void Compiler::compile(Slot slot)
 {
-    Property* property = connector.get_property();
+    Property* property = slot.get_property();
 
     FW_EXPECT(property != nullptr, "Vertex should contain a valid property id" )
 
@@ -85,7 +85,7 @@ void Compiler::compile(Connector connector)
         return compile( (ID<Node>)*property->value() );
     }
 
-    Edge edge = connector.node->get_edge_heading( property->id);
+    Edge edge = slot.node->get_edge_heading( property->id);
     if ( edge != Edge::null )
     {
         /*

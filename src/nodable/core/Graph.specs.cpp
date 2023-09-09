@@ -1,8 +1,8 @@
 #include <gtest/gtest.h>
 
+#include "core/TDirectedEdge.h"
 #include "fixtures/core.h"
 #include "fw/core/reflection/func_type.h"
-#include "core/DirectedEdge.h"
 #include "nodable/core/Graph.h"
 #include "nodable/core/InstructionNode.h"
 #include "nodable/core/InvokableComponent.h"

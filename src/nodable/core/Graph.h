@@ -70,7 +70,6 @@ namespace ndbl
 
         Edge         connect(Edge, ConnectFlag);
         Edge         connect(Slot _tail, Relation, Slot _head, ConnectFlag);
-        Edge         connect(Connector _tail, Relation, Connector _head, ConnectFlag);
         Edge         connect(Slot, Slot);
         Edge         connect(Node*, InstructionNode*);
         Edge         connect(Slot, VariableNode*);

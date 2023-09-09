@@ -9,8 +9,10 @@ add_library(
         Components.cpp
         ConditionalStructNode.cpp
         DataAccess.cpp
+        Edge.cpp
         ForLoopNode.cpp
         Graph.cpp
+        GraphUtil.cpp
         InstructionNode.cpp
         InvokableComponent.cpp
         LiteralNode.cpp
@@ -19,6 +21,7 @@ add_library(
         Property.cpp
         PropertyBag.cpp
         Scope.cpp
+        Slot.cpp
         SlotBag.cpp
         Token.cpp
         TokenRibbon.cpp
@@ -31,7 +34,7 @@ add_library(
         language/Nodlang.cpp
         language/Nodlang_biology.cpp
         language/Nodlang_math.cpp
-        Connector.cpp Slot.cpp GraphUtil.cpp GraphUtil.h)
+)
 
 target_link_libraries(
     nodable-core
