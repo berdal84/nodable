@@ -19,9 +19,9 @@ set(NDBL_CONFIGURED_DIR              "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS                  OFF )
 
 # include *.cmake scripts
-include( cmake/log.cmake )
-include( cmake/compiler-config.cmake )
-include( cmake/set-build-ref-variable.cmake )
+include(scripts/cmake/log.cmake)
+include(scripts/cmake/compiler-config.cmake)
+include(scripts/cmake/set-build-ref-variable.cmake)
 
 #include other CMakeLists.txt
 add_subdirectory(libs lib)                # libraries (SDL, lodepng, Dear ImGui, etc.)
@@ -45,4 +45,4 @@ endif()
 #  Packaging:
 #===========
 
-include(cmake/cpack.cmake)
+include(scripts/cmake/cpack.cmake)

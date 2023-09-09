@@ -1,5 +1,5 @@
 # WARNING: Do not use this CMakeLists.txt directly, take the one from base directory.
-include(../../../cmake/log.cmake)
+include(../../../scripts/cmake/log.cmake)
 ndbl_log_title_header()
 
 add_library(
