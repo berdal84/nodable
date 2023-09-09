@@ -1,6 +1,5 @@
 #include <benchmark/benchmark.h>
 #include <random>
-#include "reflection/reflection"
 #include "string.h"
 
 using namespace fw;
@@ -15,14 +14,13 @@ static void BM_empty_constructor(benchmark::State& state)
     }
 }
 
-const char* SIXTY_THREE_CHARS = "|<------------------------ 63 chars ------------------------->|";
-
 template<class StringT>
 static void BM_constructor(benchmark::State& state)
 {
-    char* buf = new char[state.range(0)];
-    memset(buf, 'x', state.range(0));
-    buf[state.range(0)-1] = 0;
+    auto size = state.range(0);
+    char* buf = new char[size];
+    memset(buf, 'x', size);
+    buf[size-1] = 0;
     for (auto _ : state)
     {
         StringT str{buf};
@@ -94,10 +92,11 @@ BENCHMARK(BM_constructor<string8>)->Range(1, 16);
 BENCHMARK(BM_constructor<string16>)->Range(1, 16);
 BENCHMARK(BM_constructor<string32>)->Range(1, 16);
 
-BENCHMARK(BM_constructor_then_append_a_char<std::string>);
-BENCHMARK(BM_constructor_then_append_a_char<string>);
-BENCHMARK(BM_constructor_then_append_a_char<string64>);
-BENCHMARK(BM_constructor_then_append_a_char<string128>);
+BENCHMARK(BM_constructor_then_push_back_a_char<std::string>)->Range(1, 16);
+BENCHMARK(BM_constructor_then_push_back_a_char<string>)->Range(1, 16);
+BENCHMARK(BM_constructor_then_push_back_a_char<string8>)->Range(1, 16);
+BENCHMARK(BM_constructor_then_push_back_a_char<string16>)->Range(1, 16);
+BENCHMARK(BM_constructor_then_push_back_a_char<string32>)->Range(1, 16);
 
 
 #define BENCHMARK_STRNCPY(BM_strncpy_, size) \

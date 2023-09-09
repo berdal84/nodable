@@ -5,6 +5,7 @@
 #include "ConditionalStructNode.h"
 #include "InstructionNode.h"
 #include "LiteralNode.h"
+#include "Edge.h"
 #include "Node.h"
 #include "NodeFactory.h"
 #include "NodeUtils.h"

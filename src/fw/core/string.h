@@ -35,9 +35,12 @@ namespace fw
             , m_capacity(0)
             , m_ptr(nullptr)
         {
-            m_ptr = expand_capacity_to_fit(m_length);
-            memcpy(m_ptr, str, m_length);
-            m_ptr[m_length] = 0;
+            if( m_length > 0 )
+            {
+                m_ptr = expand_capacity_to_fit(m_length);
+                memcpy(m_ptr, str, m_length);
+                m_ptr[m_length] = 0;
+            }
         }
 
         basic_string(const basic_string& other)

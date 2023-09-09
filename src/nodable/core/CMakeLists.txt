@@ -68,9 +68,8 @@ endif()
 # Headless tests (nodable-core)
 #------------------------------
 
-# Declare our main executable
 add_executable(
-        nodable-core-tests
+        test-nodable-core
         Graph.specs.cpp
         Node.specs.cpp
         Property.specs.cpp
@@ -83,36 +82,13 @@ add_executable(
         language/Nodlang.specs.cpp
         language/Nodlang.tokenize.specs.cpp
         )
-
-# Link libraries
-target_link_libraries(
-        nodable-core-tests
-        PRIVATE
-        gtest_main
-        gtest
-        nodable-core
-)
+target_link_libraries(test-nodable-core PRIVATE gtest_main gtest nodable-core )
+add_test( COMMAND test-nodable-core )
 
 # Benchmarks
 #-----------
 
-# Declare our main executable
-add_executable(
-        nodable-core-benchmark
-        benchmark.cpp
-)
-
-# Link libraries
-target_link_libraries(
-        nodable-core-benchmark
-        PRIVATE
-        benchmark::benchmark # google's
-        nodable-core
-        framework-core
-)
-
-# Add test executables
-#---------------------
-cmake_policy(SET CMP0110 NEW) # Allow spaces in test names
-add_test( NAME "Nodable Core" COMMAND nodable-core-tests )
+# Nodlang
+add_executable( bench-nodable-core-Nodlang language/Nodlang.bench.cpp )
+target_link_libraries( bench-nodable-core-Nodlang PRIVATE benchmark::benchmark nodable-core framework-core )
 
