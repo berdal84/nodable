@@ -85,8 +85,8 @@ void Compiler::compile(Slot slot)
         return compile( (ID<Node>)*property->value() );
     }
 
-    Edge edge = slot.node->get_edge_heading( property->id);
-    if ( edge != Edge::null )
+    DirectedEdge edge = slot.node->get_edge_heading(property->id);
+    if (edge != DirectedEdge::null )
     {
         /*
          * if the property has an input it means it is not a simple literal value and we have to compile it.
@@ -189,7 +189,7 @@ void assembly::Compiler::compile(ID<const Node> node_id)
     else
     {
         // eval inputs
-        for ( const Edge& edge : _node->filter_edges(Relation::WRITE_READ) )
+        for ( const DirectedEdge& edge : _node->filter_edges(Relation::WRITE_READ) )
         {
             if ( edge.head.node->get_type()->is_not_child_of<VariableNode>() )
             {
@@ -325,9 +325,9 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 
 void assembly::Compiler::compile(const InstructionNode *instr_node)
 {
-    Edge edge = instr_node->get_edge_heading(ROOT_PROPERTY);
+    DirectedEdge edge = instr_node->get_edge_heading(ROOT_PROPERTY);
 
-    if ( edge != Edge::null )
+    if (edge != DirectedEdge::null )
     {
         // Compiles input
         compile( edge.tail );

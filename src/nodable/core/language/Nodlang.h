@@ -108,12 +108,12 @@ namespace ndbl{
         // Serializer ------------------------------------------------------------------
     public:
         std::string&           serialize_invokable(std::string& _out, const InvokableComponent *_component) const;
-        std::string&           serialize_func_call(std::string& _out, const fw::func_type *_signature, const std::vector<Edge> inputs)const;
+        std::string&           serialize_func_call(std::string& _out, const fw::func_type *_signature, const std::vector<DirectedEdge> inputs)const;
         std::string&           serialize_func_sig(std::string& _out, const fw::func_type*)const;
         std::string&           serialize_token_t(std::string& _out, const Token_t&)const;
         std::string&           serialize_token(std::string& _out, const Token &) const;
         std::string&           serialize_type(std::string& _out, const fw::type*) const;
-        std::string&           serialize_edge(std::string& _out, const Edge &_edge, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
+        std::string&           serialize_edge(std::string& _out, const DirectedEdge &_edge, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
         std::string&           serialize_instr(std::string& _out, const InstructionNode *_instruction)const;
         std::string&           serialize_node(std::string& _out, ID<const Node> _node)const;
         std::string&           serialize_scope(std::string& _out, const Scope *_scope)const;

@@ -27,7 +27,7 @@ TEST_F(Graph_, connect)
     auto id1 = node1->add_prop<bool>("output");
     auto id2 = node2->add_prop<bool>("input");
 
-    Edge edge = graph.connect(node1->get_slot(id1, Way::Out), node2->get_slot(id2, Way::In));
+    DirectedEdge edge = graph.connect(node1->get_slot(id1, Way::Out), node2->get_slot(id2, Way::In));
 
     EXPECT_EQ(edge.tail.get_property(), node1->get_prop_at(id1) );
     EXPECT_EQ(edge.head.get_property(), node2->get_prop_at(id2) );
@@ -44,7 +44,7 @@ TEST_F(Graph_, disconnect)
 
     EXPECT_EQ(graph.get_edge_registry().size(), 0);
 
-    Edge edge = graph.connect(node_1->get_slot(prop_1, Way::Out), node_2->get_slot(prop_2, Way::In));
+    DirectedEdge edge = graph.connect(node_1->get_slot(prop_1, Way::Out), node_2->get_slot(prop_2, Way::In));
 
     EXPECT_EQ(graph.get_edge_registry().size(), 1); // edge must be registered when connected
 

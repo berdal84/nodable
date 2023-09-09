@@ -14,12 +14,12 @@ namespace ndbl {
      * Store a list of Components* owned by a single owner.
      * Components* are not owned by this class, see ComponentManager.
      */
-    class Components
+    class ComponentBag
     {
         friend Node;
     public:
 
-        Components() = default;
+        ComponentBag() = default;
 
         void              set_owner(ID<Node>);
         void              add(ID<Component>);
@@ -55,7 +55,7 @@ namespace ndbl {
 
     template<typename T>
     ID<T>
-    Components::get() const
+    ComponentBag::get() const
     {
         static_assert(fw::is_base_of<Component, T>::value, "ComponentT must inherit from Component");
         if ( m_components_by_type.empty() ) return {};

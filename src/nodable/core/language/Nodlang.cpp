@@ -1494,7 +1494,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     if (_component->is_operator())
     {
         // generic serialize property lambda
-        auto serialize_property_with_or_without_brackets = [this, &_out](const Edge& edge, bool needs_brackets)
+        auto serialize_property_with_or_without_brackets = [this, &_out](const DirectedEdge& edge, bool needs_brackets)
         {
             if (!needs_brackets)
             {
@@ -1571,7 +1571,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     return _out;
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<Edge> inputs) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<DirectedEdge> inputs) const
 {
     _out.append(_signature->get_identifier());
     serialize_token_t(_out, Token_t::parenthesis_open);
@@ -1647,8 +1647,8 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
 
     // 3. If variable is connected, serialize its assigned expression
 
-    const Edge edge = _node->get_edge_heading(_node->property()->id);
-    if ( edge != Edge::null && decl_instr )
+    const DirectedEdge edge = _node->get_edge_heading(_node->property()->id);
+    if (edge != DirectedEdge::null && decl_instr )
     {
         if ( _node->assignment_operator_token.is_null() )
         { _out.append(" = "); }
@@ -1671,7 +1671,7 @@ std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *va
     return _out.append(variant_string);
 }
 
-std::string &Nodlang::serialize_edge(std::string& _out, const Edge& _edge, bool recursively) const
+std::string &Nodlang::serialize_edge(std::string& _out, const DirectedEdge& _edge, bool recursively) const
 {
     const Property* property = _edge.head.get_property();
 
@@ -1823,17 +1823,17 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     {
         serialize_variable(_out, input_variable );
     }
-    else if( const Edge edge = _for_loop->get_edge_heading( INITIALIZATION_PROPERTY ) )
+    else if( const DirectedEdge edge = _for_loop->get_edge_heading(INITIALIZATION_PROPERTY ) )
     {
         serialize_edge(_out, edge);
     }
 
-    if( const Edge edge = _for_loop->get_edge_heading( CONDITION_PROPERTY ) )
+    if( const DirectedEdge edge = _for_loop->get_edge_heading(CONDITION_PROPERTY ) )
     {
         serialize_edge(_out, edge);
     }
 
-    if( const Edge edge = _for_loop->get_edge_heading( ITERATION_PROPERTY ) )
+    if( const DirectedEdge edge = _for_loop->get_edge_heading(ITERATION_PROPERTY ) )
     {
         serialize_edge(_out, edge);
     }

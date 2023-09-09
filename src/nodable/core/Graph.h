@@ -64,26 +64,26 @@ namespace ndbl
         void                        clear();  // Delete all nodes, wires, edges and reset scope.
         std::vector<ID<Node>>&      get_node_registry() {return m_node_registry;}
         const std::vector<ID<Node>>& get_node_registry()const {return m_node_registry;}
-        std::multimap<Relation, Edge>& get_edge_registry() {return m_edge_registry;}
+        std::multimap<Relation, DirectedEdge>& get_edge_registry() {return m_edge_registry;}
 
         // edge related
 
-        Edge         connect(Edge, ConnectFlag);
-        Edge         connect(Slot _tail, Relation, Slot _head, ConnectFlag);
-        Edge         connect(Slot, Slot);
-        Edge         connect(Node*, InstructionNode*);
-        Edge         connect(Slot, VariableNode*);
-        void         disconnect(Edge, ConnectFlag);
+        DirectedEdge         connect(DirectedEdge, ConnectFlag);
+        DirectedEdge         connect(Slot _tail, Relation, Slot _head, ConnectFlag);
+        DirectedEdge         connect(Slot, Slot);
+        DirectedEdge         connect(Node*, InstructionNode*);
+        DirectedEdge         connect(Slot, VariableNode*);
+        void         disconnect(DirectedEdge, ConnectFlag);
 
     private:
         // register management
         void                        add(ID<Node> _node);    // Add a given node to the registry.
         void                        remove(ID<Node> _node); // Remove a given node from the registry.
-        void                        remove(Edge);  // Remove a given edge from the registry.
+        void                        remove(DirectedEdge);  // Remove a given edge from the registry.
 
         bool                     m_is_dirty;
 		std::vector<ID<Node>>    m_node_registry;       // registry to store all the nodes from this graph.
-        std::multimap<Relation, Edge> m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.
+        std::multimap<Relation, DirectedEdge> m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.
 		ID<Node>                 m_root;                // Graph root (main scope), without it a graph cannot be compiled.
 		const NodeFactory*       m_factory;             // Node factory (can be headless or not depending on the context: app, unit tests, cli).
     };

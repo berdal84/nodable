@@ -44,8 +44,8 @@ namespace ndbl
 
         static ID<Node> adjacent_node_at(const Node* _node, Relation _relation, Way _way, u8_t _pos)
         {
-            Edge edge = _node->slots.find_edge_at(_relation, _way, _pos);
-            if ( edge == Edge::null )
+            DirectedEdge edge = _node->slots.find_edge_at(_relation, _way, _pos);
+            if (edge == DirectedEdge::null )
             {
                 return {};
             }

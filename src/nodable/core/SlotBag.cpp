@@ -12,7 +12,7 @@ void SlotBag::apply(SlotBag::Event event, bool notify)
     FW_EXPECT(false, "Unhandled case");
 }
 
-void SlotBag::remove_at(u8_t slot_id, Edge edge, bool notify)
+void SlotBag::remove_at(u8_t slot_id, DirectedEdge edge, bool notify)
 {
     Slot& slot = m_slots[slot_id];
     std::remove(m_edges.begin(), m_edges.end(), edge);
@@ -25,7 +25,7 @@ void SlotBag::remove_at(u8_t slot_id, Edge edge, bool notify)
     }
 }
 
-void SlotBag::add_at(u8_t slot_id, const Edge edge, bool notify)
+void SlotBag::add_at(u8_t slot_id, const DirectedEdge edge, bool notify)
 {
     Slot& slot = m_slots.at(slot_id);
     FW_EXPECT(slot.is_full(), "Slot is full" );
@@ -62,9 +62,9 @@ std::vector<Slot> SlotBag::by_relation(Relation relation) const
     return result;
 }
 
-std::vector<Edge> SlotBag::edges() const
+std::vector<DirectedEdge> SlotBag::edges() const
 {
-    std::vector<Edge> result;
+    std::vector<DirectedEdge> result;
 
     for(const Slot& slot : m_slots )
     {
@@ -92,7 +92,7 @@ Slot& SlotBag::by_property(Property* property, Way way) const
     FW_EXPECT(false, "TODO: Implement");
 }
 
-Edge SlotBag::find_edge_at(Relation _relation, Way _desired_way, u8_t _index) const
+DirectedEdge SlotBag::find_edge_at(Relation _relation, Way _desired_way, u8_t _index) const
 {
     size_t count{0};
     for (auto index : m_ids_by_primary_relation[_relation])
@@ -119,5 +119,5 @@ Edge SlotBag::find_edge_at(Relation _relation, Way _desired_way, u8_t _index) co
             return edge;
         }
     }
-    return Edge::null;
+    return DirectedEdge::null;
 }

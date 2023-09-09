@@ -9,7 +9,7 @@ namespace ndbl
     class Cmd_DisconnectEdge : public AbstractCommand
     {
     public:
-        Cmd_DisconnectEdge(Edge _edge)
+        Cmd_DisconnectEdge(DirectedEdge _edge)
         : m_edge(_edge)
         {
             char str[200];
@@ -39,6 +39,6 @@ namespace ndbl
         { return m_edge.head.get_node()->parent_graph; }
 
         std::string  m_description;
-        Edge         m_edge;
+        DirectedEdge         m_edge;
     };
 }

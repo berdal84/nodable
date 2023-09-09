@@ -6,10 +6,10 @@ add_library(
     nodable-core
     STATIC
         Component.cpp
-        Components.cpp
+        ComponentBag.cpp
         ConditionalStructNode.cpp
         DataAccess.cpp
-        Edge.cpp
+        DirectedEdge.cpp
         ForLoopNode.cpp
         Graph.cpp
         GraphUtil.cpp

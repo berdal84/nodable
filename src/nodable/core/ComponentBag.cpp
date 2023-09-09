@@ -1,10 +1,10 @@
-#include "Components.h"
+#include "ComponentBag.h"
 #include "Component.h"
 
 using namespace ndbl;
 
 void
-Components::add(ID<Component> id)
+ComponentBag::add(ID<Component> id)
 {
     Component* component = id.get();
     const fw::type* type = component->get_type();
@@ -16,7 +16,7 @@ Components::add(ID<Component> id)
 }
 
 void
-Components::remove(ID<Component> component)
+ComponentBag::remove(ID<Component> component)
 {
     auto found = std::find(m_components.begin(), m_components.end(), component->id() );
     FW_EXPECT(found != m_components.end(), "Component can't be found it those components");
@@ -25,7 +25,7 @@ Components::remove(ID<Component> component)
     component->set_owner({});
 }
 
-void Components::set_owner(ID<Node> owner)
+void ComponentBag::set_owner(ID<Node> owner)
 {
     m_owner = owner;
     for(auto each_component : m_components )

@@ -47,7 +47,7 @@ Author: Bérenger Dalle-Cort, 2017-2023
 	- refactor of Language and related classes (Dictionnary, TokenType, etc.)
 	- Parser now check types.
 	- Parser now parse function calls.
-	- refactor in Components: added FunctionComponent (can invoke a function defined with a Language)
+	- refactor in ComponentBag: added FunctionComponent (can invoke a function defined with a Language)
 	- Assign operator is now a real node.
 
 ### v0.6:

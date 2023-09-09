@@ -216,10 +216,10 @@ bool VirtualMachine::_stepOver()
 
             auto transfer_input_values = [](Node* _node)
             {
-                std::vector<Edge> input_edge = _node->filter_edges(Relation::WRITE_READ);
+                std::vector<DirectedEdge> input_edge = _node->filter_edges(Relation::WRITE_READ);
 
                 // Copy by value (exclude references)
-                for(const Edge& edge : _node->edges() )
+                for(const DirectedEdge& edge : _node->edges() )
                 {
                     Property* head_property = edge.head.get_property();
                     Property* tail_property = edge.tail.get_property();

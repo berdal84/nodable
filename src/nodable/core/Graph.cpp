@@ -5,7 +5,7 @@
 #include "ConditionalStructNode.h"
 #include "InstructionNode.h"
 #include "LiteralNode.h"
-#include "Edge.h"
+#include "DirectedEdge.h"
 #include "Node.h"
 #include "NodeFactory.h"
 #include "NodeUtils.h"
@@ -153,7 +153,7 @@ void Graph::destroy(ID<Node> _node)
     }
 
     // disconnect any edge connected to this node
-    for(const Edge& each_edge : _node->edges())
+    for(const DirectedEdge& each_edge : _node->edges())
     {
         disconnect(each_edge, ConnectFlag::SIDE_EFFECTS_OFF );
     };
@@ -188,7 +188,7 @@ bool Graph::is_empty() const
     return m_root.get() == nullptr;
 }
 
-Edge Graph::connect(Slot tail, Slot head)
+DirectedEdge Graph::connect(Slot tail, Slot head)
 {
     Property* tail_property = tail.get_property();
     Property* head_property = head.get_property();
@@ -214,10 +214,10 @@ Edge Graph::connect(Slot tail, Slot head)
         head_property->digest( tail_property );
         destroy(tail.node);
         set_dirty();
-        return Edge::null;
+        return DirectedEdge::null;
     }
 
-    Edge edge = connect(tail, Relation::WRITE_READ, head, ConnectFlag::SIDE_EFFECTS_ON);
+    DirectedEdge edge = connect(tail, Relation::WRITE_READ, head, ConnectFlag::SIDE_EFFECTS_ON);
 
     // TODO: move this somewhere else
     // (transfer prefix/suffix)
@@ -235,7 +235,7 @@ Edge Graph::connect(Slot tail, Slot head)
     return edge;
 }
 
-void Graph::remove(Edge edge)
+void Graph::remove(DirectedEdge edge)
 {
     auto found = std::find_if( m_edge_registry.begin()
                              , m_edge_registry.end()
@@ -251,7 +251,7 @@ void Graph::remove(Edge edge)
     }
 }
 
-Edge Graph::connect(Node* tail_node, InstructionNode* head_node)
+DirectedEdge Graph::connect(Node* tail_node, InstructionNode* head_node)
 {
     // set declaration_instr once
     if ( auto* variable = fw::cast<VariableNode>(tail_node) )
@@ -264,14 +264,14 @@ Edge Graph::connect(Node* tail_node, InstructionNode* head_node)
     return connect(tail_node->slot(Way::Out), head_node->root_slot() );
 }
 
-Edge Graph::connect(Slot tail, VariableNode* head_node)
+DirectedEdge Graph::connect(Slot tail, VariableNode* head_node)
 {
     return connect(tail, head_node->get_value_slot( Way::In ) );
 }
 
-Edge Graph::connect(Slot _tail, Relation _type, Slot _head, ConnectFlag _flags)
+DirectedEdge Graph::connect(Slot _tail, Relation _type, Slot _head, ConnectFlag _flags)
 {
-    Edge edge{_tail, _type, _head};
+    DirectedEdge edge{_tail, _type, _head};
     sanitize_edge(edge);
 
     Node *tail_node = edge.tail.node.get();
@@ -350,7 +350,7 @@ Edge Graph::connect(Slot _tail, Relation _type, Slot _head, ConnectFlag _flags)
     return edge;
 }
 
-void Graph::disconnect(Edge _edge, ConnectFlag flags)
+void Graph::disconnect(DirectedEdge _edge, ConnectFlag flags)
 {
     // find the edge to disconnect
     auto [begin, end] = m_edge_registry.equal_range(_edge.relation );
@@ -384,7 +384,7 @@ void Graph::disconnect(Edge _edge, ConnectFlag flags)
             {
                 while (successor && successor->parent == tail_node->parent )
                 {
-                    Edge child_of_edge{successor->slot(), Relation::CHILD_PARENT, tail_node->parent->slot()};
+                    DirectedEdge child_of_edge{successor->slot(), Relation::CHILD_PARENT, tail_node->parent->slot()};
                     disconnect( child_of_edge, ConnectFlag::SIDE_EFFECTS_OFF );
                     successor = successor->successors().begin()->get();
                 }
@@ -449,7 +449,7 @@ ID<LiteralNode> Graph::create_literal(const fw::type *_type)
     return node;
 }
 
-Edge Graph::connect(Edge edge, ConnectFlag flags)
+DirectedEdge Graph::connect(DirectedEdge edge, ConnectFlag flags)
 {
     return connect(edge.tail, edge.relation, edge.head, flags);
 }

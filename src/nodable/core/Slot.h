@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "fw/core/types.h"
-#include "Edge.h"
+#include "DirectedEdge.h"
 #include "Way.h"
 
 namespace ndbl
@@ -23,7 +23,7 @@ namespace ndbl
         Way               way;        // possible way a slot can be connected (in, out, both, none)
         u8_t              property;   // property index (in node's PropertyBag)
         u8_t              capacity;   // edge max count
-        std::vector<Edge> edges;      // edges connected (heading or not this slot)
+        std::vector<DirectedEdge> edges;      // edges connected (heading or not this slot)
 
         Slot();
         Slot(const Slot& other);

@@ -10,8 +10,8 @@
 #include "fw/core/types.h"
 #include "fw/core/Pool.h"
 
-#include "Components.h"
-#include "Edge.h"
+#include "ComponentBag.h"
+#include "DirectedEdge.h"
 #include "Property.h"
 #include "PropertyBag.h"
 #include "SlotBag.h"
@@ -68,15 +68,15 @@ namespace ndbl {
         Node& operator=(Node&&) = default;
         virtual ~Node() = default;
 
-        std::vector<Edge> filter_edges(Relation edge) const;
-        std::vector<Edge>    edges() const;
+        std::vector<DirectedEdge> filter_edges(Relation edge) const;
+        std::vector<DirectedEdge>    edges() const;
         std::vector<ID<Node>> successors() const;
         std::vector<ID<Node>> children() const;
         bool                 allows_more(Relation);
         void                 set_parent(ID<Node>);
         void                 set_name(const char*);
-		void                 add_edge(Edge);
-		void                 remove_edge(Edge);
+		void                 add_edge(DirectedEdge);
+		void                 remove_edge(DirectedEdge);
         size_t               incoming_edge_count()const;
         size_t               outgoing_edge_count()const;
         size_t               edge_count(Way)const;
@@ -86,15 +86,15 @@ namespace ndbl {
         Slot&                get_slot(Property::ID, Way) const;
         Slot&                get_slot(const char* _name, Way) const;
         const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
-        Edge                 get_edge_heading(Property::ID) const;
-        Edge                 get_edge_heading(const char* name) const;
+        DirectedEdge                 get_edge_heading(Property::ID) const;
+        DirectedEdge                 get_edge_heading(const char* name) const;
         bool                 has_edge_heading(size_t property) const;
         bool                 has_edge_heading(const char* name) const;
         Property*            get_prop_at(size_t pos);
         const Property*      get_prop_at(size_t pos) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        std::vector<Edge>    get_input_edges(const std::vector<Property::ID>& properties) const;
+        std::vector<DirectedEdge>    get_input_edges(const std::vector<Property::ID>& properties) const;
         std::vector<ID<Component>> get_components();
 
         template<typename ValueT, typename ...ArgsT>
@@ -113,7 +113,7 @@ namespace ndbl {
         bool has_component() const
         { return m_components.has<ComponentT>(); }
     private:
-        Components m_components;
+        ComponentBag m_components;
     };
 }
 

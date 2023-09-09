@@ -8,7 +8,7 @@ namespace ndbl
     class Cmd_ConnectEdge : public AbstractCommand
     {
     public:
-        Cmd_ConnectEdge(Edge _edge)
+        Cmd_ConnectEdge(DirectedEdge _edge)
         : m_edge(_edge)
         , m_graph(_edge.tail.node->parent_graph) // deduce graph from edge source' owner
         {
@@ -39,7 +39,7 @@ namespace ndbl
 
     private:
         std::string   m_description;
-        Edge  m_edge;
+        DirectedEdge  m_edge;
         Graph* m_graph;
     };
 }

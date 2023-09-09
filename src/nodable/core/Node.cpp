@@ -49,7 +49,7 @@ void Node::id(ID<Node> new_id)
     slots.on_change.connect( redirect_event );
 }
 
-void Node::remove_edge(Edge edge)
+void Node::remove_edge(DirectedEdge edge)
 {
     FW_EXPECT( false, "TODO: find edge in slots" )
     FW_EXPECT( false, "TODO: delete in slots" )
@@ -89,10 +89,10 @@ const fw::iinvokable* Node::get_connected_invokable(const char* property_name) c
     size_t property_id = props.get_id( property_name );
 
     // Find an edge connected to this node property
-    Edge edge = get_edge_heading( property_id );
+    DirectedEdge edge = get_edge_heading(property_id );
 
     // If found, we try to get the InvokableComponent from edge tail node.
-    if ( edge != Edge::null )
+    if (edge != DirectedEdge::null )
     {
         auto tail_node = edge.tail.node;
         if ( auto* invokable = tail_node->get_component<InvokableComponent>().get() )
@@ -135,17 +135,17 @@ std::vector<ID<Component>> Node::get_components()
     return m_components.get_all();
 }
 
-Edge Node::get_edge_heading(const char* _name) const
+DirectedEdge Node::get_edge_heading(const char* _name) const
 {
     u8_t id = props.get_id( _name );
     return get_edge_heading( id );
 }
 
-Edge Node::get_edge_heading(Property::ID property_id) const
+DirectedEdge Node::get_edge_heading(Property::ID property_id) const
 {
     Slot& slot = get_slot(property_id, Way::In);
 
-    auto is_heading_property = [=](const Edge& edge ) -> bool {
+    auto is_heading_property = [=](const DirectedEdge& edge ) -> bool {
         return edge.head.property == property_id;
     };
     auto it = std::find_if(slot.edges.begin(), slot.edges.end(), is_heading_property);
@@ -153,7 +153,7 @@ Edge Node::get_edge_heading(Property::ID property_id) const
     {
         return *it;
     }
-    return Edge::null;
+    return DirectedEdge::null;
 }
 
 Slot& Node::get_slot(const char* property_name, Way desired_way) const
@@ -179,9 +179,9 @@ std::vector<ID<Node>> Node::get_predecessors() const
 }
 
 
-std::vector<Edge> Node::get_input_edges(const std::vector<Property::ID>& properties) const
+std::vector<DirectedEdge> Node::get_input_edges(const std::vector<Property::ID>& properties) const
 {
-    std::vector<Edge> result;
+    std::vector<DirectedEdge> result;
     result.reserve(properties.size());
     std::transform(properties.begin(), properties.end(),
                    result.end(),
@@ -224,7 +224,7 @@ std::vector<ID<Node>> Node::children() const
     std::vector<ID<Node>> result;
     for(const Slot& slot : slots.by_relation(Relation::CHILD_PARENT) )
     {
-        for(const Edge& edge : slot.edges )
+        for(const DirectedEdge& edge : slot.edges )
         {
             result.push_back( edge.tail.node );
         }
@@ -232,7 +232,7 @@ std::vector<ID<Node>> Node::children() const
     return result;
 }
 
-std::vector<Edge> Node::edges() const
+std::vector<DirectedEdge> Node::edges() const
 {
     return slots.edges();
 }
@@ -252,9 +252,9 @@ std::vector<ID<Node>> Node::successors() const
     return result;
 }
 
-std::vector<Edge> Node::filter_edges(Relation type) const
+std::vector<DirectedEdge> Node::filter_edges(Relation type) const
 {
-    std::vector<Edge> result;
+    std::vector<DirectedEdge> result;
     for (auto& slot: slots.by_relation(type))
     {
         for (auto& edge: slot.edges)
@@ -275,7 +275,7 @@ Slot& Node::get_slot(Property* property, Way way) const
     return slots.by_property(property, way);
 }
 
-void Node::add_edge(Edge)
+void Node::add_edge(DirectedEdge)
 {
     FW_EXPECT(false, "TODO: add the edge into the slots, handle side effects?")
 }
