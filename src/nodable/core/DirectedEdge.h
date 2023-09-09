@@ -6,7 +6,7 @@ namespace ndbl
 {
     // Forward declarations
     class Slot;
-    typedef TDirectedEdge<Slot, Relation> DirectedEdge;
+    using DirectedEdge = TDirectedEdge<Slot, Relation>;
 
-    static DirectedEdge& sanitize_edge(DirectedEdge& _edge);
+    extern DirectedEdge& sanitize_edge(DirectedEdge& _edge);
 } // namespace ndbl
