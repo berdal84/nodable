@@ -23,6 +23,22 @@ Slot::Slot(const Slot &other)
 , edges(other.edges)
 {}
 
+
+Slot::Slot(
+u8_t     _index,
+ID<Node> _node,
+Way      _way,
+u8_t     _property,
+u8_t     _capacity,
+std::vector<DirectedEdge>&& _edges)
+: index(_index)
+, node(_node)
+, way(_way)
+, property(_property)
+, capacity(_capacity)
+, edges(std::move(_edges))
+{}
+
 Slot Slot::first_adjacent_slot() const
 {
     if (!edges.empty())
@@ -36,9 +52,19 @@ Slot Slot::first_adjacent_slot() const
     }
     return {};
 }
+
 Slot Slot::adjacent_slot_at(u8_t pos) const
 {
-    FW_EXPECT(false, "TODO: implement to get the nth adjacent slot. Adapt first_adjacent_slot to be generalist");
+    u8_t count{0};
+    for (const auto& edge : edges)
+    {
+        if( count == pos )
+        {
+            return edge.tail == *this ? edge.head : edge.tail;
+        }
+        ++count;
+    }
+    return {};
 }
 
 bool Slot::operator==(const Slot& other) const
@@ -58,7 +84,7 @@ u8_t Slot::edge_count() const
 
 bool Slot::is_full() const
 {
-    return edges.size() < capacity;
+    return edges.size() >= capacity;
 }
 
 Slot::operator bool() const
@@ -80,5 +106,17 @@ Node* Slot::get_node() const
 bool Slot::allows(Way desired_way) const
 {
     return static_cast<u8_t>(way) & static_cast<u8_t>(desired_way);
+}
+
+bool Slot::allows(Relation _relation) const
+{
+    return !allowed_relation.empty() || (allowed_relation.find(_relation) == allowed_relation.end());
+}
+
+void Slot::add_edge(DirectedEdge _edge)
+{
+    FW_EXPECT( allows( _edge.relation ), "Relation not allowed" );
+    FW_EXPECT( !is_full(), "Slot is full" );
+    edges.emplace_back(std::move(_edge));
 }
 

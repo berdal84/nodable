@@ -70,9 +70,11 @@ endif()
 
 add_executable(
         test-nodable-core
+        DirectedEdge.specs.cpp
         Graph.specs.cpp
         Node.specs.cpp
         Property.specs.cpp
+        Slot.specs.cpp
         Token.specs.cpp
         VirtualMachine.specs.cpp
         fixtures/core.h

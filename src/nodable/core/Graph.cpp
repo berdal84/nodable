@@ -272,7 +272,7 @@ DirectedEdge Graph::connect(Slot tail, VariableNode* head_node)
 DirectedEdge Graph::connect(Slot _tail, Relation _type, Slot _head, ConnectFlag _flags)
 {
     DirectedEdge edge{_tail, _type, _head};
-    sanitize_edge(edge);
+    DirectedEdgeUtil::sanitize_edge(edge);
 
     Node *tail_node = edge.tail.node.get();
     Node *head_node = edge.head.node.get();

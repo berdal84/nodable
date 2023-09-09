@@ -8,5 +8,8 @@ namespace ndbl
     class Slot;
     using DirectedEdge = TDirectedEdge<Slot, Relation>;
 
-    extern DirectedEdge& sanitize_edge(DirectedEdge& _edge);
+    namespace DirectedEdgeUtil
+    {
+        extern DirectedEdge& sanitize_edge(DirectedEdge& _edge);
+    }
 } // namespace ndbl
