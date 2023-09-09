@@ -29,13 +29,13 @@ namespace ndbl
         ~WhileLoopNode() = default;
 
         Token               token_while;
-        ID<InstructionNode> cond_instr;
+        PoolID<InstructionNode> cond_instr;
 
         // implements IConditionalStruct (which is already documented)
 
         const Property* condition_property()const override;
-        ID<Scope> get_condition_true_scope()const override;
-        ID<Scope> get_condition_false_scope()const override;
+        PoolID<Scope> get_condition_true_scope()const override;
+        PoolID<Scope> get_condition_false_scope()const override;
 
         REFLECT_DERIVED_CLASS()
     };

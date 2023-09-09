@@ -50,7 +50,7 @@ namespace ndbl {
 	public:
         // Data
 
-        ID<Node>          parent;
+        PoolID<Node>      parent;
         std::string       name;
         Graph*            parent_graph;
         PropertyBag       props;
@@ -70,8 +70,8 @@ namespace ndbl {
 
         std::vector<DirectedEdge> filter_edges(Relation edge) const;
         std::vector<DirectedEdge>    edges() const;
-        std::vector<ID<Node>> successors() const;
-        std::vector<ID<Node>> children() const;
+        std::vector<PoolID<Node>> successors() const;
+        std::vector<PoolID<Node>> children() const;
         bool                 allows_more(Relation);
         void                 set_parent(ID<Node>);
         void                 set_name(const char*);
@@ -80,22 +80,22 @@ namespace ndbl {
         size_t               incoming_edge_count()const;
         size_t               outgoing_edge_count()const;
         size_t               edge_count(Way)const;
-        std::vector<ID<Node>>get_predecessors() const;
+        std::vector<PoolID<Node>>get_predecessors() const;
         Slot&slot(Way way = Way::InOut) const;
         Slot&                get_slot(Property*, Way) const;
-        Slot&                get_slot(Property::ID, Way) const;
+        Slot&                get_slot(ID<Property>, Way) const;
         Slot&                get_slot(const char* _name, Way) const;
         const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
-        DirectedEdge                 get_edge_heading(Property::ID) const;
+        DirectedEdge                 get_edge_heading(ID<Property>) const;
         DirectedEdge                 get_edge_heading(const char* name) const;
-        bool                 has_edge_heading(size_t property) const;
+        bool                 has_edge_heading(ID<Property> property) const;
         bool                 has_edge_heading(const char* name) const;
-        Property*            get_prop_at(size_t pos);
-        const Property*      get_prop_at(size_t pos) const;
+        Property*            get_prop_at(ID<Property> pos);
+        const Property*      get_prop_at(ID<Property> pos) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        std::vector<DirectedEdge>    get_input_edges(const std::vector<Property::ID>& properties) const;
-        std::vector<ID<Component>> get_components();
+        std::vector<DirectedEdge>    get_input_edges(const std::vector<ID<Property>>& properties) const;
+        std::vector<PoolID<Component>> get_components();
 
         template<typename ValueT, typename ...ArgsT>
         size_t add_prop(ArgsT...args)
@@ -106,7 +106,7 @@ namespace ndbl {
         { return m_components.add( component ); }
 
         template<class ComponentT>
-        ID<ComponentT> get_component() const
+        PoolID<ComponentT> get_component() const
         { return m_components.get<ComponentT>(); }
 
         template<class ComponentT>

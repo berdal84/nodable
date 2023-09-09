@@ -24,16 +24,16 @@ namespace ndbl
         ~ConditionalStructNode() = default;
         ConditionalStructNode& operator=(ConditionalStructNode&&) = default;
 
-        Token               token_if;   // The "if" token (ex: { prefix: "", word: "if", suffix: " "})
-        Token               token_else; // The "else" token (ex: { prefix: " ", word: "else", suffix: " "})
-        ID<InstructionNode> cond_expr;  // The instruction to evaluate the condition
+        Token token_if;   // Example: { prefix: "", word: "if", suffix: " "}
+        Token token_else; // Example: { prefix: " ", word: "else", suffix: " "}
+        PoolID<InstructionNode> cond_expr; // The instruction to evaluate the condition
 
         bool              has_elseif() const;// Check if another conditional structure is connected to the else branch (forming an else if)
 
         // implement IConditionalStruct (which is already documented)
 
-        ID<Scope>       get_condition_true_scope()const override;
-        ID<Scope>       get_condition_false_scope()const override;
+        PoolID<Scope>   get_condition_true_scope()const override;
+        PoolID<Scope>   get_condition_false_scope()const override;
         const Property* condition_property()const override;
 
         REFLECT_DERIVED_CLASS()

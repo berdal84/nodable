@@ -17,12 +17,12 @@ WhileLoopNode::WhileLoopNode()
     add_prop<ID<Node>>(CONDITION_PROPERTY, Visibility::Always, Way::In); // while ( <here> ) { ... }
 }
 
-ID<Scope> WhileLoopNode::get_condition_true_scope() const
+PoolID<Scope> WhileLoopNode::get_condition_true_scope() const
 {
     return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 0);
 }
 
-ID<Scope> WhileLoopNode::get_condition_false_scope() const
+PoolID<Scope> WhileLoopNode::get_condition_false_scope() const
 {
     return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 1);
 }

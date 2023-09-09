@@ -39,7 +39,7 @@ namespace ndbl
         std::vector<ID<ComponentT>> result;
         result.reserve( nodes.size() );
 
-        auto get_component = [](ID<Node> node ) { return node->get_component<ComponentT>(); };
+        auto get_component = [](PoolID<Node> node ) { return node->get_component<ComponentT>(); };
         std::transform( nodes.begin(), nodes.end(), result.end(), get_component );
 
         return result; // wil be moved

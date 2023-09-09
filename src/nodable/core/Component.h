@@ -20,9 +20,9 @@ namespace ndbl
         Component(Component&&) = default;
         Component& operator=(Component&&) = default;
         virtual ~Component() = default;
-        fw::ID<Node> get_owner()const { return m_owner; }
-        virtual void set_owner(fw::ID<Node> node);
+        PoolID<Node> get_owner()const { return m_owner; }
+        virtual void set_owner(PoolID<Node> node);
 	protected:
-        fw::ID<Node> m_owner;
+        PoolID<Node> m_owner;
     };
 }

@@ -14,7 +14,7 @@
 
 namespace ndbl
 {
-    using fw::pool::ID;
+    using fw::pool::PoolID;
 
     /**
      * @brief The Properties class is a Property* container for a given Node.
@@ -28,10 +28,11 @@ namespace ndbl
         using const_iterator = std::vector<Property>::const_iterator;
 
         template<typename OwnerT>
-        PropertyBag(ID<OwnerT>)
+        PropertyBag(PoolID<OwnerT>)
         {
+            static_assert__is_pool_registrable<OwnerT>();
             // Add a property acting like a "this" for the owner Node.
-            size_t id = add<ID<OwnerT>>(THIS_PROPERTY, Visibility::Always, Way::Out);
+            size_t id = add<PoolID<OwnerT>>(THIS_PROPERTY, Visibility::Always, Way::Out);
             FW_EXPECT(id == THIS_ID, "P_THIS should have a null id");
         }
 		PropertyBag(PropertyBag&&);
@@ -43,25 +44,25 @@ namespace ndbl
         const_iterator         begin() const { return m_properties.begin(); }
         const_iterator         end() const { return m_properties.end(); }
         bool                   has(const char*) const;
-        Property*              at(size_t pos);
-        const Property*        at(size_t pos) const;
+        Property*              at(fw::ID<Property>);
+        const Property*        at(fw::ID<Property>) const;
         Property*              get(const char* _name);
         const Property*        get(const char* _name) const;
         Property*              get_first(Way _way, const fw::type *_type);
         const Property*        get_first(Way _way, const fw::type *_type) const;
-        Property*              get_input_at(size_t _position);
-        const Property*        get_input_at(size_t _position) const;
-        size_t                 get_id(const char* _name) const;
+        Property*              get_input_at(fw::ID<Property>);
+        const Property*        get_input_at(fw::ID<Property>) const;
+        fw::ID<Property>       get_id(const char* _name) const;
         Property*              get_this();
         const Property*        get_this() const;
-        size_t add( const fw::type* _type,
+        fw::ID<Property> add( const fw::type* _type,
                                     const char *_name,
                                     Visibility _visibility = Visibility::Default,
                                     Way _way = Way::Default,
                                     Property::Flags _flags = 0);
 
         template<typename T>
-        size_t add(
+        fw::ID<Property> add(
             const char* _name,
             Visibility _visibility = Visibility::Default,
             Way _way = Way::Default,
@@ -71,6 +72,6 @@ namespace ndbl
         }
 	private:
         std::vector<Property>  m_properties;
-        std::map<std::string, size_t> m_properties_by_name;
+        std::map<std::string, fw::ID<Property>> m_properties_by_name;
     };
 }

@@ -7,11 +7,10 @@ const Slot Slot::null{};
 
 Slot::Slot()
 : index(0)
-, node(0)
-, property(0)
+, node(PoolID<Node>::null)
+, property(ID<Property>::null)
 , way(Way::None)
 , capacity(0)
-, edges()
 {}
 
 Slot::Slot(const Slot &other)
@@ -25,11 +24,11 @@ Slot::Slot(const Slot &other)
 
 
 Slot::Slot(
-u8_t     _index,
-ID<Node> _node,
-Way      _way,
-u8_t     _property,
-u8_t     _capacity,
+u8_t         _index,
+PoolID<Node> _node,
+Way          _way,
+ID<Property> _property,
+u8_t         _capacity,
 std::vector<DirectedEdge>&& _edges)
 : index(_index)
 , node(_node)

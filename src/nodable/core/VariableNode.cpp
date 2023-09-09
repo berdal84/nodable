@@ -26,7 +26,7 @@ VariableNode::VariableNode(const fw::type *_type, const char* identifier)
     m_value_property_id = props.add(_type, VALUE_PROPERTY, Visibility::Always, Way::InOut);
 }
 
-ID<Scope> VariableNode::get_scope()
+PoolID<Scope> VariableNode::get_scope()
 {
     Node* scope_node = m_scope.get();
     return scope_node ? scope_node->get_component<Scope>() : ID<Scope>{};

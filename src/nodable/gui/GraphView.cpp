@@ -116,7 +116,7 @@ bool GraphView::draw()
                 {
                     if ( menu_item.create_node_fct  )
                     {
-                        new_node_id = menu_item.create_node_fct()->id();
+                        new_node_id = menu_item.create_node_fct()->poolid();
                     }
                     else
                     {

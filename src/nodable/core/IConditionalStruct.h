@@ -8,6 +8,7 @@ namespace ndbl
     class Scope;
     class Property;
     class InstructionNode;
+    using fw::pool::PoolID;
 
     /**
      * @interface Interface for any conditional structure node (ex: if/else, for, while, do/while )
@@ -16,8 +17,8 @@ namespace ndbl
     {
     public:
         virtual const Property*  condition_property()const = 0;
-        virtual ID<Scope>  get_condition_true_scope()const = 0;      // Get the "true" (if) branch's scope
-        virtual ID<Scope>  get_condition_false_scope()const = 0;     // Get the "false" (else) branch's scope
+        virtual PoolID<Scope>  get_condition_true_scope()const = 0;      // Get the "true" (if) branch's scope
+        virtual PoolID<Scope>  get_condition_false_scope()const = 0;     // Get the "false" (else) branch's scope
 
         REFLECT_BASE_CLASS()
     };

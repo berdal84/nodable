@@ -1,43 +1,48 @@
 #pragma once
+#include "TIdentifier.h"
+#include "assertions.h"
 #include <algorithm>
+#include <cstdlib>
+#include <set>
+#include <typeindex>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <set>
-#include <typeindex>
-#include <cstdlib>
-#include "assertions.h"
 
 #if NDBL_DEBUG
 #include "reflection/type.h"
 #endif
 
 #define POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM( Class ) \
-public:\
-    friend ::fw::pool::Pool;  \
-    ::fw::pool::ID<Class> id() const { return m_id; };\
 protected: \
-    ::fw::pool::ID<Class> m_id;\
-private: \
-    static constexpr bool is_pool_registrable = true; \
-    void                  id(::fw::pool::ID<Class> id)
+    template<typename T> using ID = ::fw::ID<T>; \
+    template<typename T> using PoolID = ::fw::pool::PoolID<T>; \
+    PoolID<Class> m_id;\
+public:                                              \
+    using is_pool_registrable = std::true_type; \
+    PoolID<Class> poolid() const { return m_id; }; \
+    void poolid(ID<Class> _id)
 
 #define POOL_REGISTRABLE( Class ) \
-POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM( Class ) { m_id = std::move(id); }
+POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM( Class ) { m_id = std::move(_id); }
 
+template<typename T>
+void static_assert__is_pool_registrable()
+{
+    static_assert( std::is_same_v<typename T::is_pool_registrable, std::true_type>, "This type is not pool registrable, use POOL_REGISTRABLE macros." );
+}
 
 namespace fw
 {
 namespace pool
 {
-    static constexpr i32_t ID_NULL{0};
     /**
-     * ID is the equivalent of a pointer, but it points to a Pool item.
+     * PoolID is the equivalent of a pointer, but it points to a Pool item.
      * It can be used like regular pointer, except that de-referencing cost a bit more.
      *
      * Example:
      *
-     * ID<Type> id = ...;  // we assume we have a valid id
+     * PoolID<Type> id = ...;  // we assume we have a valid id
      * id->do_something(); // de-reference from a pool id (cost a bit more) + call a method on the pointer.
      *
      * Type* ptr = id.get(); // de-referencing once before doing lots of calls is faster.
@@ -46,77 +51,29 @@ namespace pool
      * ptr->do_that();
      */
     template<typename Type>
-    struct ID
+    class PoolID: public ID<Type>
     {
-        i32_t id; // Address of an object in a Pool
+    public:
+        PoolID() = default;
 
-        constexpr ID(i32_t _id = ID_NULL)
-            : id(_id)
-        {};
-
-        constexpr ID(const ID<Type>& other)
-            : id(other.id)
+        template<typename OtherT>
+        PoolID(ID<OtherT> id)
+        : ID<Type>(id)
         {}
 
-        template<class OtherType>
-        explicit ID(const ID<OtherType>& other)
-                : id(other.id)
-        {
-            static_assert(std::is_same_v<Type, OtherType> || std::is_base_of_v<Type, OtherType> || std::is_base_of_v<OtherType, Type>,
-                          "Type and OtherT are unrelated");
-        }
-
-        explicit operator i32_t () const
-        { return this->id; }
-
-        template<typename OtherType>
-        operator ID<OtherType> () const
-        { return ID<OtherType>{this->id}; }
-
-        explicit operator bool () const
-        { return this->id != ID_NULL; }
-
-        bool operator<(const ID<Type>& other ) const
-        { return id < other.id; }
-
-        template<typename OtherType>
-        ID<Type>& operator=(const ID<OtherType>& other )
-        {
-            // TODO: This is very permissive, reconsider.
-            static_assert( std::is_base_of_v<OtherType, Type> ||
-                           std::is_base_of_v<Type, OtherType> );
-            id = other.id;
-            return *this;
-        }
-
-        template<typename OtherType>
-        bool operator!=(const ID<OtherType>& other ) const
-        { return this->id != other.id; }
-
-        template<typename OtherType>
-        bool operator==(const ID<OtherType>& other ) const
-        { return this->id == other.id; }
-
-        bool operator== (i32_t _id )const
-        { return this->id == _id; }
-
-        bool operator!= (i32_t _id )const
-        { return this->id != _id; }
-
-        void reset(i32_t _id = ID_NULL)
-        { id = _id; }
-
-        template<typename OtherType>
-        bool equals(ID<OtherType> other) const
-        { return id == other.id; }
+        static PoolID<Type> null;
 
         Type*       get() const; // Return a pointer to the data from the Pool having an id == this->id
 
+        operator u32_t () const { return this->id(); }
         Type* operator -> ()       { return get(); }
         Type* operator -> () const { return get(); }
         Type& operator *  ()       { return *get(); }
         Type& operator *  () const { return *get(); }
     };
+
+    template<typename T>
+    PoolID<T> PoolID<T>::null{};
 
     /**
      * Vector stores a pointer to a given vector type and the size of its elements
@@ -125,7 +82,6 @@ namespace pool
     {
     public:
 #define CHECK_TYPE(Type) FW_EXPECT( std::type_index(typeid(Type)) == m_type, "The type you asked is not the one this vector is made for." )
-
 
         template<class T>
         static AgnosticVector* create(size_t reserved_size)
@@ -158,13 +114,13 @@ namespace pool
                 delete buffer;
             };
 
-            auto _id_at = [buffer](size_t index) -> i32_t
+            auto _poolid_at = [buffer](size_t index) -> id_t
             {
-                return (i32_t)buffer->at( index ).id();
+                return (id_t)buffer->at( index ).poolid();
             };
 
             return new AgnosticVector(buffer, std::type_index(typeid(T)),
-                    _at, _size, _pop_back, _swap, _delete_buffer, _id_at);
+                    _at, _size, _pop_back, _swap, _delete_buffer, _poolid_at);
         }
 
         AgnosticVector(
@@ -175,7 +131,7 @@ namespace pool
                 const std::function<void()>                  _pop_back,
                 const std::function<void(size_t, size_t)>    _swap,
                 const std::function<void()>                  _delete_buffer,
-                const std::function<i32_t(size_t)>           _poolid_at)
+                const std::function<id_t(size_t)>            _poolid_at)
             : m_type( type )
             , m_buffer( buffer )
             , at( _at )
@@ -193,7 +149,7 @@ namespace pool
         std::function<size_t()>             size;
         std::function<void()>               pop_back;
         std::function<void(size_t, size_t)> swap;
-        std::function<i32_t(size_t)>        poolid_at; // get pool id at index
+        std::function<id_t(size_t)>         poolid_at; // get pool id at index
 
         template<class T, typename ...Args>
         T& emplace_back(Args ...args)
@@ -252,68 +208,74 @@ namespace pool
         void init_for();
 
         template<typename T>
-        T* get(size_t id);
+        T* get(id_t id);
 
         template<typename T>
-        T* get(ID<T> id);
+        T* get(PoolID<T> id);
 
         template<typename T>
-        std::vector<T*> get(std::vector<ID<T>> ids);
+        std::vector<T*> get(std::vector<PoolID<T>> ids);
 
         template<typename T>
         std::vector<T>& get_all();
 
         template<typename T, typename ...Args>
-        ID<T> create(Args... args);
+        PoolID<T> create(Args... args);
 
         template<typename T>
-        ID<T> create();
+        PoolID<T> create();
 
         template<typename T>
         void destroy(T* ptr);
 
         template<typename T>
-        void destroy(ID<T> id);
+        void destroy(PoolID<T> pool_id);
 
         // TODO: define a unique destroy using iterators
         template<typename T>
-        void destroy(std::unordered_set<ID<T>> ids);
+        void destroy(std::unordered_set<PoolID<T>> ids);
 
         template<typename T>
-        void destroy(std::set<ID<T>> ids);
+        void destroy(std::set<PoolID<T>> ids);
 
         template<typename T>
-        void destroy(std::vector<ID<T>> ids);
+        void destroy(std::vector<PoolID<T>> ids);
         // TODO: define a unique destroy using iterators (END)
 
     private:
-        i32_t generate_id();
+        template<typename T>
+        ID<T> generate_id()
+        {
+            m_next_id++;
+            return ID<T>{m_next_id};
+        }
 
         template<typename T>
-        ID<T> make_record(T* data, AgnosticVector* vec, size_t pos );
+        PoolID<T> make_record(T* data, AgnosticVector* vec, size_t pos );
 
         template<typename T>
         AgnosticVector* get_agnostic_vector();
 
         size_t m_reserved_size;
-        i32_t m_next_id;
-        std::unordered_map<i32_t, Record> m_record_by_id;
+        id_t   m_next_id;
+        std::unordered_map<id_t, Record> m_record_by_id;
         std::unordered_map<std::type_index, AgnosticVector*> m_vector_by_type;
     private:
         static Pool* s_current_pool;
     };
 
     template<typename Type>
-    Type* ID<Type>::get() const
-    { return id == ID_NULL ? nullptr : Pool::get_pool()->get<Type>(id); }
+    Type* PoolID<Type>::get() const
+    { return *this == null ? nullptr : Pool::get_pool()->get<Type>( *this ); }
 
     template<typename T>
-    T* Pool::get(ID<T> id)
-    { return get<T>(id.id); }
+    T* Pool::get(PoolID<T> poolid)
+    { return get<T>( poolid.id() ); }
 
     template<typename T>
-    std::vector<T*> Pool::get(std::vector<ID<T>> ids)
+    std::vector<T*> Pool::get(std::vector<PoolID<T>> ids)
     {
+        static_assert__is_pool_registrable<T>();
         std::vector<T*> result;
         result.reserve(ids.size());
         for(auto each_id : ids )
@@ -330,33 +292,36 @@ namespace pool
     { return *get_agnostic_vector<T>()->template get<T>(); }
 
     template<typename T, typename ...Args>
-    ID<T> Pool::create(Args... args)
+    PoolID<T> Pool::create(Args... args)
     {
+        static_assert__is_pool_registrable<T>();
         LOG_VERBOSE("Pool", "Create '%s' (with args) ...\n", fw::type::get<T>()->get_name() );
         auto*  vec   = get_agnostic_vector<T>();
         size_t index = vec->size();
         T*     data  = &vec->template emplace_back<T>(args...);
-        ID<T>  id    = make_record(data, vec, index );
+        PoolID<T> id = make_record(data, vec, index );
         LOG_VERBOSE("Pool", "Create '%s' (with args) OK\n", fw::type::get<T>()->get_name() );
         LOG_FLUSH();
         return id;
     }
 
     template<typename T>
-    ID<T> Pool::create()
+    PoolID<T> Pool::create()
     {
+        static_assert__is_pool_registrable<T>();
         AgnosticVector* vector  = get_agnostic_vector<T>();
         LOG_VERBOSE("Pool", "Create '%s' ...\n", fw::type::get<T>()->get_name() );
         T* data = &vector->emplace_back<T>();
-        ID<T> id = make_record(data, vector, vector->size()-1 );
+        PoolID<T> id = make_record(data, vector, vector->size()-1 );
         LOG_VERBOSE("Pool", "Create '%s' OK\n", fw::type::get<T>()->get_name() );
         LOG_FLUSH();
         return id;
     }
 
     template<typename T>
-    T* Pool::get(size_t id)
+    T* Pool::get(id_t id)
     {
+        static_assert__is_pool_registrable<T>();
         auto it = m_record_by_id.find(id);
         if ( it == m_record_by_id.end() )
         {
@@ -371,6 +336,7 @@ namespace pool
     template<typename T>
     void Pool::init_for()
     {
+        static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
         FW_ASSERT(m_vector_by_type.find(type_id) == m_vector_by_type.end() );
         AgnosticVector* agnostic_vector = AgnosticVector::create<T>(m_reserved_size);
@@ -382,6 +348,7 @@ namespace pool
     template<typename T>
     AgnosticVector* Pool::get_agnostic_vector()
     {
+        static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
         auto it = m_vector_by_type.find(type_id);
 
@@ -396,24 +363,24 @@ namespace pool
     }
 
     template<typename T>
-    ID<T> Pool::make_record(T* data, AgnosticVector* vec, size_t pos )
+    PoolID<T> Pool::make_record(T* data, AgnosticVector* vec, size_t pos )
     {
-        static_assert( T::is_pool_registrable );
-        i32_t id = generate_id();
-        data->id( id );
-        m_record_by_id.insert( {id, { vec, pos } } );
-        LOG_VERBOSE("Pool", "New record with id %zu (type: %s, index: %zu) ...\n",  id, fw::type::get<T>()->get_name(), pos );
-        return id;
+        static_assert__is_pool_registrable<T>();
+        data->poolid( generate_id<T>() );
+        m_record_by_id.insert( {data->poolid(), { vec, pos } } );
+        LOG_VERBOSE("Pool", "New record with id %zu (type: %s, index: %zu) ...\n", data->poolid(), fw::type::get<T>()->get_name(), pos );
+        return data->poolid();
     }
 
     template<typename T>
     void Pool::destroy(T* ptr)
-    { destroy(ptr->id()); }
+    { static_assert__is_pool_registrable<T>(); destroy(ptr->poolid()); }
 
     template<typename T>
-    void Pool::destroy(ID<T> id)
+    void Pool::destroy(PoolID<T> pool_id)
     {
-        auto it = m_record_by_id.find( (i32_t)id );
+        static_assert__is_pool_registrable<T>();
+        auto it = m_record_by_id.find( (id_t)pool_id );
         FW_EXPECT( it != m_record_by_id.end(), "No record_to_delete found" );
 
         Record& record_to_delete = it->second;
@@ -431,20 +398,21 @@ namespace pool
         record_to_delete.vector->pop_back();
         m_record_by_id.erase( it );
 
-        LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, index: %zu) ...\n",  id, fw::type::get<T>()->get_name(), record_to_delete.pos);
+        LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, index: %zu) ...\n", pool_id, fw::type::get<T>()->get_name(), record_to_delete.pos);
     }
 
     template<typename T>
-    void Pool::destroy(std::unordered_set<ID<T>> ids)
-    { LOG_WARNING("Pool", "destroy(std::unordered_set<ID<T>> id) not implemented yet\n" ) }
+    void Pool::destroy(std::unordered_set<PoolID<T>> ids)
+    { static_assert__is_pool_registrable<T>(); LOG_WARNING("Pool", "destroy(std::unordered_set<PoolID<T>> id) not implemented yet\n" ) }
 
     template<typename T>
-    void Pool::destroy(std::set<ID<T>> ids)
-    { LOG_WARNING("Pool", "destroy(std::set<ID<T>> id) not implemented yet\n" ) }
+    void Pool::destroy(std::set<PoolID<T>> ids)
+    { static_assert__is_pool_registrable<T>(); LOG_WARNING("Pool", "destroy(std::set<PoolID<T>> id) not implemented yet\n" ) }
 
     template<typename T>
-    void Pool::destroy(std::vector<ID<T>> ids)
+    void Pool::destroy(std::vector<PoolID<T>> ids)
     {
+        static_assert__is_pool_registrable<T>();
         for(auto each_id : ids )
         {
             destroy( each_id );

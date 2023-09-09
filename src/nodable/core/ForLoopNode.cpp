@@ -15,17 +15,17 @@ REGISTER
 
 ForLoopNode::ForLoopNode()
 {
-    add_prop<ID<Node>>(INITIALIZATION_PROPERTY, Visibility::Always, Way::In);  // for ( <here> ;   ..    ;   ..   ) { ... }
-    add_prop<ID<Node>>(CONDITION_PROPERTY,      Visibility::Always, Way::In); // for (   ..   ; <here>  ;   ..   ) { ... }
-    add_prop<ID<Node>>(ITERATION_PROPERTY,      Visibility::Always, Way::In);  // for (   ..   ;   ..    ; <here> ) { ... }
+    add_prop<PoolID<Node>>(INITIALIZATION_PROPERTY, Visibility::Always, Way::In); // for ( <here> ;   ..    ;   ..   ) { ... }
+    add_prop<PoolID<Node>>(CONDITION_PROPERTY,      Visibility::Always, Way::In); // for (   ..   ; <here>  ;   ..   ) { ... }
+    add_prop<PoolID<Node>>(ITERATION_PROPERTY,      Visibility::Always, Way::In); // for (   ..   ;   ..    ; <here> ) { ... }
 }
 
-ID<Scope> ForLoopNode::get_condition_true_scope() const
+PoolID<Scope> ForLoopNode::get_condition_true_scope() const
 {
     return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 0);
 }
 
-ID<Scope> ForLoopNode::get_condition_false_scope() const
+PoolID<Scope> ForLoopNode::get_condition_false_scope() const
 {
     return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 1);
 }

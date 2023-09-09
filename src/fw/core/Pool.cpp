@@ -30,14 +30,9 @@ void Pool::shutdown()
     s_current_pool = nullptr;
 }
 
-i32_t Pool::generate_id()
-{
-    return m_next_id++;
-}
-
 Pool::Pool(size_t reserved_size)
     : m_reserved_size( reserved_size )
-    , m_next_id( ID_NULL + 1 )
+    , m_next_id( 1 ) // Reserve 0 for null
 {}
 
 Pool::~Pool()

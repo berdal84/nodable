@@ -13,6 +13,7 @@
 #include "IScope.h"
 
 using namespace ndbl;
+using fw::pool::PoolID;
 
 REGISTER
 {
@@ -24,14 +25,14 @@ Scope::Scope()
 {
 }
 
-ID<VariableNode> Scope::find_variable(const std::string &_name)
+PoolID<VariableNode> Scope::find_variable(const std::string &_name)
 {
-    ID<VariableNode> result;
+    PoolID<VariableNode> result;
 
     /*
      * Try first to find in this scope
      */
-    auto has_name = [_name](ID<VariableNode> _variable ) -> bool
+    auto has_name = [_name](PoolID<VariableNode> _variable ) -> bool
     {
         return _variable->name == _name;
     };
@@ -54,19 +55,19 @@ ID<VariableNode> Scope::find_variable(const std::string &_name)
         Node* parent = owner->parent.get();
         if ( !parent )
         {
-            return fw::pool::ID_NULL;
+            return fw::pool::PoolID<Node>::null;
         }
-        ID<Scope> scope = parent->get_component<Scope>();
+        PoolID<Scope> scope = parent->get_component<Scope>();
         if ( !scope.get() )
         {
-            return fw::pool::ID_NULL;
+            return PoolID<VariableNode>::null;
         }
         return scope->find_variable( _name );
     }
-    return fw::pool::ID_NULL;
+    return PoolID<VariableNode>::null;
 }
 
-void Scope::add_variable(ID<VariableNode> _variableNode)
+void Scope::add_variable(PoolID<VariableNode> _variableNode)
 {
     if ( find_variable(_variableNode->name).get() != nullptr )
     {
@@ -86,14 +87,14 @@ void Scope::add_variable(ID<VariableNode> _variableNode)
 
 void Scope::get_last_instructions_rec(std::vector<InstructionNode*>& _out)
 {
-    std::vector<ID<Node>> children = m_owner->children();
+    std::vector<PoolID<Node>> children = m_owner->children();
 
     if ( children.empty() )
     {
         return;
     }
 
-    for ( ID<Node> child_node_id : children )
+    for ( PoolID<Node> child_node_id : children )
     {
         Node* child_node = child_node_id.get();
         if ( child_node == nullptr ) continue;
@@ -116,7 +117,7 @@ void Scope::remove_variable(VariableNode* _variable)
 {
     FW_ASSERT(_variable != nullptr)
     FW_ASSERT(_variable->get_scope() == m_id)
-    auto found = std::find(m_variables.begin(), m_variables.end(), _variable->id() );
+    auto found = std::find(m_variables.begin(), m_variables.end(), _variable->poolid() );
     FW_ASSERT(found->get() != nullptr);
     _variable->reset_scope();
     m_variables.erase( found );
@@ -125,7 +126,7 @@ void Scope::remove_variable(VariableNode* _variable)
 size_t Scope::remove_all_variables()
 {
     size_t count = m_variables.size();
-    for(ID<VariableNode> each_variable : m_variables)
+    for(PoolID<VariableNode> each_variable : m_variables)
     {
         each_variable->reset_scope();
     }

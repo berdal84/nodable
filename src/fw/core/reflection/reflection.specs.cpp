@@ -58,23 +58,19 @@ TEST(Reflection, is_ptr)
     EXPECT_TRUE(type::is_ptr(type::get<bool*>()));
 }
 
-class Data {
-public:
-    POOL_REGISTRABLE(Data)
-};
-
-TEST(Reflection, variant_and_pool_id)
+TEST(Reflection, variant_and_id)
 {
     // prepare
-    ID<Data> id = 42;
+    struct A {};
+    ID<A> id{42};
     variant value;
 
     // act
     value.set( id );
 
     // check
-    EXPECT_TRUE( value.get_type()->equals( type::get<ID<Data>>() ) );
-    EXPECT_TRUE( id == value );
+    EXPECT_TRUE( value.get_type()->equals( type::get<ID<A>>() ) );
+    EXPECT_TRUE( id == (ID<A>)value );
 }
 
 TEST(Reflection, is_child_of)

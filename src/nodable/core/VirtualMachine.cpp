@@ -152,7 +152,7 @@ bool VirtualMachine::_stepOver()
             }
             else if(ptr_type->is<ID<Node>>() )
             {
-                LOG_VERBOSE("VM", "ID<Node> dereferenced: %i\n", qword.i32 );
+                LOG_VERBOSE("VM", "ID<Node> dereferenced: %i\n", qword.u32 );
             }
             else if(ptr_type->is<std::string>() )
             {

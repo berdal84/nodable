@@ -19,10 +19,10 @@ namespace ndbl
 
         void                    get_last_instructions_rec(std::vector<InstructionNode *> &_out) override ;
         bool                    has_no_variable()const override { return m_variables.empty(); }
-        void                    add_variable(ID<VariableNode>) override ;
+        void                    add_variable(PoolID<VariableNode>) override ;
         void                    remove_variable(VariableNode *_variable)override;
         size_t                  remove_all_variables() override;
-        ID<VariableNode>        find_variable(const std::string &_name) override ;
+        PoolID<VariableNode>    find_variable(const std::string &_name) override ;
         const VariableNodeVec&  variables()const override { return m_variables; };
 
     private:

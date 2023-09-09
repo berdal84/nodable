@@ -2,9 +2,10 @@
 #include "Component.h"
 
 using namespace ndbl;
+using namespace fw::pool;
 
 void
-ComponentBag::add(ID<Component> id)
+ComponentBag::add(PoolID<Component> id)
 {
     Component* component = id.get();
     const fw::type* type = component->get_type();
@@ -16,16 +17,16 @@ ComponentBag::add(ID<Component> id)
 }
 
 void
-ComponentBag::remove(ID<Component> component)
+ComponentBag::remove(PoolID<Component> component)
 {
-    auto found = std::find(m_components.begin(), m_components.end(), component->id() );
+    auto found = std::find(m_components.begin(), m_components.end(), component );
     FW_EXPECT(found != m_components.end(), "Component can't be found it those components");
     m_components_by_type.erase(component->get_type()->id());
     m_components.erase(found);
     component->set_owner({});
 }
 
-void ComponentBag::set_owner(ID<Node> owner)
+void ComponentBag::set_owner(PoolID<Node> owner)
 {
     m_owner = owner;
     for(auto each_component : m_components )

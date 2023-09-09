@@ -13,9 +13,6 @@
 
 namespace ndbl
 {
-    // forward declarations
-    using fw::pool::ID;
-
     /**
      * @class The class store a value (as a variant) and is owned by a PropertyGroup
      *
@@ -25,7 +22,6 @@ namespace ndbl
 	class Property
     {
     public:
-        typedef u8_t ID;
 
         typedef int Flags;
         enum Flags_ {
@@ -35,8 +31,8 @@ namespace ndbl
             Flags_reset_value  = 1 << 2
         };
 
-        ID    id;
-        Token token;
+        fw::ID<Property> id;
+        Token            token;
 
         explicit Property();
         explicit Property(const std::string &);
@@ -72,7 +68,7 @@ namespace ndbl
         void                         set_ref() { m_is_ref = true; }
         bool                         is_ref() const;
 
-        template<typename T, typename U = fw::pool::ID<T> >
+        template<typename T, typename U = fw::ID<T> >
         bool is_referencing() const
         {
             return get_type()->is<U>();

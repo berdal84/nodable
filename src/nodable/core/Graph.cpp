@@ -35,7 +35,7 @@ void Graph::clear()
 
 	if ( !m_node_registry.empty() )
 	{
-        std::vector<ID<Node>> node_ids = m_node_registry; // copy to avoid iterator invalidation
+        std::vector<PoolID<Node>> node_ids = m_node_registry; // copy to avoid iterator invalidation
         for (auto node : node_ids)
         {
             LOG_VERBOSE("Graph", "remove and delete: %s \n", node->name.c_str() )
@@ -63,7 +63,7 @@ UpdateResult Graph::update()
     while (nodeIndex > 0)
     {
         nodeIndex--;
-        ID<Node> node = m_node_registry.at(nodeIndex);
+        PoolID<Node> node = m_node_registry.at(nodeIndex);
 
         if (node->flagged_to_delete)
         {
@@ -84,23 +84,23 @@ UpdateResult Graph::update()
     return result;
 }
 
-void Graph::add(ID<Node> _node)
+void Graph::add(PoolID<Node> _node)
 {
-    FW_ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node->id()) == m_node_registry.end())
-	m_node_registry.push_back(_node->id());
+    FW_ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node->poolid()) == m_node_registry.end())
+	m_node_registry.push_back(_node->poolid());
     _node->parent_graph = this;
     LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->name.c_str(), _node->get_type()->get_name())
 }
 
-void Graph::remove(ID<Node> _node)
+void Graph::remove(PoolID<Node> _node)
 {
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     m_node_registry.erase(found);
 }
 
-ID<InstructionNode> Graph::create_instr()
+PoolID<InstructionNode> Graph::create_instr()
 {
-    ID<InstructionNode> instructionNode = m_factory->create_instr();
+    PoolID<InstructionNode> instructionNode = m_factory->create_instr();
     add(instructionNode);
 
 	return instructionNode;
@@ -114,38 +114,38 @@ void Graph::ensure_has_root()
     }
 }
 
-ID<VariableNode> Graph::create_variable(const fw::type *_type, const std::string& _name, ID<Scope> _scope)
+PoolID<VariableNode> Graph::create_variable(const fw::type *_type, const std::string& _name, PoolID<Scope> _scope)
 {
-    ID<VariableNode> node = m_factory->create_variable(_type, _name, _scope);
+    PoolID<VariableNode> node = m_factory->create_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
-ID<Node> Graph::create_abstract_function(const fw::func_type* _invokable, bool _is_operator)
+PoolID<Node> Graph::create_abstract_function(const fw::func_type* _invokable, bool _is_operator)
 {
-    ID<Node> node = m_factory->create_abstract_func(_invokable, _is_operator);
+    PoolID<Node> node = m_factory->create_abstract_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-ID<Node> Graph::create_function(const fw::iinvokable* _invokable, bool _is_operator)
+PoolID<Node> Graph::create_function(const fw::iinvokable* _invokable, bool _is_operator)
 {
-    ID<Node> node = m_factory->create_func(_invokable, _is_operator);
+    PoolID<Node> node = m_factory->create_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-ID<Node> Graph::create_abstract_operator(const fw::func_type* _invokable)
+PoolID<Node> Graph::create_abstract_operator(const fw::func_type* _invokable)
 {
     return create_abstract_function(_invokable, true);
 }
 
-ID<Node> Graph::create_operator(const fw::iinvokable* _invokable)
+PoolID<Node> Graph::create_operator(const fw::iinvokable* _invokable)
 {
 	return create_function(_invokable, true);
 }
 
-void Graph::destroy(ID<Node> _node)
+void Graph::destroy(PoolID<Node> _node)
 {
     if( _node.get() == nullptr )
     {
@@ -175,8 +175,8 @@ void Graph::destroy(ID<Node> _node)
     }
 
     // unregister and delete
-    remove(_node->id());
-    if ( m_root == _node->id() )
+    remove(_node->poolid());
+    if ( m_root == _node->poolid() )
     {
         m_root.reset();
     }
@@ -258,7 +258,7 @@ DirectedEdge Graph::connect(Node* tail_node, InstructionNode* head_node)
     {
         if( variable->get_declaration_instr().get() == nullptr )
         {
-            variable->set_declaration_instr(head_node->id());
+            variable->set_declaration_instr(head_node->poolid());
         }
     }
     return connect(tail_node->slot(Way::Out), head_node->root_slot() );
@@ -368,7 +368,7 @@ void Graph::disconnect(DirectedEdge _edge, ConnectFlag flags)
     switch (_edge.relation )
     {
         case Relation::CHILD_PARENT:
-            tail_node->set_parent({});
+            tail_node->set_parent(PoolID<Node>::null);
             break;
 
         case Relation::WRITE_READ:
@@ -399,52 +399,52 @@ void Graph::disconnect(DirectedEdge _edge, ConnectFlag flags)
    set_dirty();
 }
 
-ID<Node> Graph::create_scope()
+PoolID<Node> Graph::create_scope()
 {
-    ID<Node> scopeNode = m_factory->create_scope();
+    PoolID<Node> scopeNode = m_factory->create_scope();
     add(scopeNode);
     return scopeNode;
 }
 
-ID<ConditionalStructNode> Graph::create_cond_struct()
+PoolID<ConditionalStructNode> Graph::create_cond_struct()
 {
-    ID<ConditionalStructNode> condStructNode = m_factory->create_cond_struct();
+    PoolID<ConditionalStructNode> condStructNode = m_factory->create_cond_struct();
     add(condStructNode);
     return condStructNode;
 }
 
-ID<ForLoopNode> Graph::create_for_loop()
+PoolID<ForLoopNode> Graph::create_for_loop()
 {
-    ID<ForLoopNode> for_loop = m_factory->create_for_loop();
+    PoolID<ForLoopNode> for_loop = m_factory->create_for_loop();
     add(for_loop);
     return for_loop;
 }
 
-ID<WhileLoopNode> Graph::create_while_loop()
+PoolID<WhileLoopNode> Graph::create_while_loop()
 {
-    ID<WhileLoopNode> while_loop = m_factory->create_while_loop();
+    PoolID<WhileLoopNode> while_loop = m_factory->create_while_loop();
     add(while_loop);
     return while_loop;
 }
 
-ID<Node> Graph::create_root()
+PoolID<Node> Graph::create_root()
 {
-    ID<Node> node = m_factory->create_program();
+    PoolID<Node> node = m_factory->create_program();
     add(node);
     m_root = node;
     return node;
 }
 
-ID<Node> Graph::create_node()
+PoolID<Node> Graph::create_node()
 {
-    ID<Node> node = m_factory->create_node();
+    PoolID<Node> node = m_factory->create_node();
     add(node);
     return node;
 }
 
-ID<LiteralNode> Graph::create_literal(const fw::type *_type)
+PoolID<LiteralNode> Graph::create_literal(const fw::type *_type)
 {
-    ID<LiteralNode> node = m_factory->create_literal(_type);
+    PoolID<LiteralNode> node = m_factory->create_literal(_type);
     add(node);
     return node;
 }

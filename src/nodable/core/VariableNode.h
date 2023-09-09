@@ -31,8 +31,8 @@ namespace ndbl
 		bool             is_declared()const { return m_is_declared; }
         Property*        property() { return get_prop_at( m_value_property_id ); }
         const Property*  property()const { return get_prop_at( m_value_property_id ); }
-        const ID<InstructionNode> get_declaration_instr()const { return m_declaration_instr; }
-        ID<Scope>        get_scope();
+        const PoolID<InstructionNode> get_declaration_instr()const { return m_declaration_instr; }
+        PoolID<Scope>    get_scope();
         Slot             get_value_slot(Way way) const;
         void             set_declared(bool b = true) { m_is_declared = b; }
         void             reset_scope(Scope* _scope = nullptr);
@@ -49,10 +49,10 @@ namespace ndbl
         Token  assignment_operator_token;
         Token  identifier_token;
     private:
-        size_t              m_value_property_id;
-        bool                m_is_declared;
-        ID<InstructionNode> m_declaration_instr;
-        ID<Node>            m_scope;
+        ID<Property>            m_value_property_id;
+        bool                    m_is_declared;
+        PoolID<InstructionNode> m_declaration_instr;
+        PoolID<Node>            m_scope;
 
 		REFLECT_DERIVED_CLASS()
     };

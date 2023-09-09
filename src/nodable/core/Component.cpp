@@ -2,6 +2,7 @@
 #include "Node.h"
 
 using namespace ndbl;
+using fw::pool::PoolID;
 
 REGISTER
 {
@@ -11,5 +12,5 @@ REGISTER
 Component::Component()
 {}
 
-void Component::set_owner(fw::ID<Node> node)
+void Component::set_owner(PoolID<Node> node)
 { m_owner = node; }

@@ -24,8 +24,8 @@ TEST(Pool, init_shutdown )
 TEST(Pool, create_empty_constructor )
 {
     Pool* pool = Pool::init(0);
-    ID<Data> node = pool->create<Data>();
-    EXPECT_NE(node, ID_NULL);
+    PoolID<Data> node = pool->create<Data>();
+    EXPECT_NE(node, PoolID<Data>::null);
     EXPECT_NE(node.get(), nullptr);
     Pool::shutdown();
 }
@@ -33,8 +33,8 @@ TEST(Pool, create_empty_constructor )
 TEST(Pool, create_with_args )
 {
     Pool* pool = Pool::init(0);
-    ID<Data> node = pool->create<Data>("Toto");
-    EXPECT_NE(node, ID_NULL);
+    PoolID<Data> node = pool->create<Data>("Toto");
+    EXPECT_NE(node, PoolID<Data>::null);
     EXPECT_NE(node.get(), nullptr);
     EXPECT_STREQ(node->name, "Toto");
     Pool::shutdown();
@@ -43,8 +43,8 @@ TEST(Pool, create_with_args )
 TEST(Pool, buffer_resizing )
 {
     Pool* pool = Pool::init(0);
-    ID<Data> node1 = pool->create<Data>("Toto");
-    ID<Data> node2 = pool->create<Data>("Tata");
+    PoolID<Data> node1 = pool->create<Data>("Toto");
+    PoolID<Data> node2 = pool->create<Data>("Tata");
     EXPECT_EQ(node1, size_t(1));
     EXPECT_EQ(node2, size_t(2));
     EXPECT_STREQ(node1->name, "Toto");
@@ -55,8 +55,8 @@ TEST(Pool, buffer_resizing )
 TEST(Pool, destroy_last )
 {
     Pool* pool = Pool::init(0);
-    ID<Data> data_1 = pool->create<Data>("Toto");
-    ID<Data> data_2 = pool->create<Data>("Tata");
+    PoolID<Data> data_1 = pool->create<Data>("Toto");
+    PoolID<Data> data_2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
     pool->destroy( data_1 );
     EXPECT_EQ(data_2->name, "Tata");
@@ -68,8 +68,8 @@ TEST(Pool, destroy_last )
 TEST(Pool, destroy_first )
 {
     Pool* pool = Pool::init(0);
-    ID<Data> node1 = pool->create<Data>("Toto");
-    ID<Data> node2 = pool->create<Data>("Tata");
+    PoolID<Data> node1 = pool->create<Data>("Toto");
+    PoolID<Data> node2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
     pool->destroy( node1 );
     EXPECT_EQ(pool->get_all<Data>().size(), 1);
@@ -82,7 +82,7 @@ TEST(Pool, destroy_vector_of_ids )
     size_t n = 200;
     Pool* pool = Pool::init();
 
-    std::vector<ID<Data>> data;
+    std::vector<PoolID<Data>> data;
     for(int i = 0; i < n; ++i)
     {
         data.push_back( pool->create<Data>("Data") );

@@ -12,8 +12,6 @@
 
 namespace fw
 {
-    using pool::ID;
-
     /**
      * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data property)
      */
@@ -61,23 +59,32 @@ namespace fw
         template<typename T>
         T           to()const;
         variant     operator=(const variant& other);
-        operator    double&();
-        operator    i32_t&();
-        operator    i16_t&();
-        operator    bool&();
-        operator    std::string& ();
-        operator    double() const;
-        operator    i32_t() const;
-        operator    i16_t() const;
-        operator    bool() const;
-        operator    std::string() const;
-        operator    const char*() const;
+        explicit operator double&();
+        explicit operator u32_t&();
+        explicit operator i32_t&();
+        explicit operator i16_t&();
+        explicit operator bool&();
+        explicit operator std::string& ();
+        explicit operator double() const;
+        explicit operator u32_t() const;
+        explicit operator i32_t() const;
+        explicit operator i16_t() const;
+        explicit operator bool() const;
+        explicit operator std::string() const;
+        explicit operator const char*() const;
 
         template<typename T>
-        T& as() { return *this; }
+        explicit operator ID<T> () const
+        {
+            using underlying_type = typename ID<T>::id_t;
+            return (underlying_type)*this;
+        }
 
         template<typename T>
-        T as() const { return *this; }
+        T& as() { return (T)*this; }
+
+        template<typename T>
+        T as() const { return (T)*this; }
     private:
 	    static const type* normalize_type(const type *_type);
 
@@ -90,11 +97,11 @@ namespace fw
 
 
     template<typename T>
-    void variant::set(ID<T> id)
+    void variant::set(ID<T> _id)
     {
         ensure_is_type(type::get<ID<T>>());
         ensure_is_initialized();
-        m_data.i32 = (i32_t)id;
+        m_data.u32 = _id.m_value;
         flag_defined();
     }
 }

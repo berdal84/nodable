@@ -8,6 +8,7 @@
 #include "core/VariableNode.h"
 
 using namespace ndbl;
+using fw::ID;
 
 REGISTER
 {
@@ -62,33 +63,33 @@ bool InvokableComponent::update()
     return true;
 }
 
-void InvokableComponent::bind_result_property(size_t property_id)
+void InvokableComponent::bind_result_property(ID<Property> property_id)
 {
     FW_EXPECT( m_owner->get_prop_at(property_id) != nullptr, "Property not found" );
     m_result_id = property_id;
 }
 
-Property::ID InvokableComponent::get_l_handed_val()
+ID<Property> InvokableComponent::get_l_handed_val()
 {
     return m_argument_id[0];
 }
 
-Property::ID InvokableComponent::get_r_handed_val()
+ID<Property> InvokableComponent::get_r_handed_val()
 {
     return m_argument_id[1];
 }
 
-Property::ID InvokableComponent::get_arg(size_t arg_id) const
+ID<Property> InvokableComponent::get_arg(size_t arg_id) const
 {
     return m_argument_id[arg_id];
 }
 
-void InvokableComponent::bind_arg(size_t arg_id, size_t property_id)
+void InvokableComponent::bind_arg(size_t arg_id, ID<Property> property_id)
 {
     m_argument_id[arg_id] = property_id;
 }
 
-const std::vector<Property::ID>& InvokableComponent::get_arg_ids() const
+const std::vector<ID<Property>>& InvokableComponent::get_arg_ids() const
 {
     return m_argument_id;
 }
@@ -97,9 +98,8 @@ std::vector<Property*> InvokableComponent::get_args() const
 {
     std::vector<Property*> result;
     result.reserve(m_argument_id.size());
-    auto& props = m_owner->props;
     std::transform(m_argument_id.begin(), m_argument_id.end(),
                    result.end(),
-                   [&props](auto& each_id ) { return props.at(each_id); });
+                   [=](auto& each_id ) { return m_owner->get_prop_at(each_id); });
     return std::move(result);
 }

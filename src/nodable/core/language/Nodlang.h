@@ -44,43 +44,38 @@ namespace ndbl{
         static Nodlang& get_instance();
 
         // Parser ---------------------------------------------------------------------
-        bool                   tokenize(const std::string& _string);                 // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
-        bool                   tokenize(char* buffer, size_t buffer_size);           // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
-        bool                   parse(const std::string& _in, Graph *_out);       // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
+        bool                   tokenize(const std::string& _string);       // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
+        bool                   tokenize(char* buffer, size_t buffer_size); // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
+        bool                   parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                  parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                  parse_token(const std::string& _string) const;
-        ID<Node>               parse_scope();                                         // Try to parse a scope.
-        ID<InstructionNode>    parse_instr();                                         // Try to parse an instruction.
-        Slot                   parse_variable_declaration();                          // Try to parse a variable declaration (ex: "int a = 10;").
-        ID<Scope>              parse_code_block(ID<Scope> curr_scope);                       // Try to parse a code block with the option to create a scope or not (reusing the current one).
-        ID<ConditionalStructNode> parse_conditional_structure();                  // Try to parse a conditional structure (if/else if/.else) recursively.
-        ID<ForLoopNode>        parse_for_loop();                                      // Try to parse a "for loop".
-        ID<WhileLoopNode>      parse_while_loop();                                    // Try to parse a "while loop".
-        ID<Node>               parse_program();                                       // Try to parse an entire program.
-        Slot                   parse_function_call();                                 // Try to parse a function call.
-        Slot                   parse_parenthesis_expression();                        // Try to parse a parenthesis expression.
-        Slot                   parse_unary_operator_expression(unsigned short _precedence = 0u);                               // Try to parse a unary expression.
-        Slot                   parse_binary_operator_expression(unsigned short _precedence = 0u, Slot _left = {}); // Try to parse a binary expression.
-        Slot                   parse_atomic_expression();                                                                      // Try to parse an atomic expression (ex: "1", "a")
-        Slot                   parse_expression(unsigned short _precedence = 0u, Slot _left_override = {});                 // Try to parse an expression
+        PoolID<Node>               parse_scope();
+        PoolID<InstructionNode>    parse_instr();
+        Slot                       parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
+        PoolID<Scope>              parse_code_block(PoolID<Scope> curr_scope); // Try to parse a code block with the option to create a scope or not (reusing the current one).
+        PoolID<ConditionalStructNode> parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
+        PoolID<ForLoopNode>        parse_for_loop();
+        PoolID<WhileLoopNode>      parse_while_loop();
+        PoolID<Node>               parse_program();
+        Slot                   parse_function_call();
+        Slot                   parse_parenthesis_expression();
+        Slot                   parse_unary_operator_expression(unsigned short _precedence = 0u);
+        Slot                   parse_binary_operator_expression(unsigned short _precedence = 0u, Slot _left = {});
+        Slot                   parse_atomic_expression();
+        Slot                   parse_expression(unsigned short _precedence = 0u, Slot _left_override = {});
         Slot                   parse_token(Token _token);
-        bool                   to_bool(const std::string& );                          // convert a boolean string ("true"|"false") to a boolean.
-        std::string            to_unquoted_string(const std::string& _quoted_str);    // convert a quoted string to a string.
-        double                 to_double(const std::string& );                        // convert a double string (ex: "10.0") to a double.
-        i16_t                  to_i16(const std::string& );                           // convert an integer string (ex: "42") to an integer.
+        bool                   to_bool(const std::string& );
+        std::string            to_unquoted_string(const std::string& _quoted_str);
+        double                 to_double(const std::string& );
+        i16_t                  to_i16(const std::string& );
     private:
-        inline bool            allow_to_attach_suffix(Token_t type) const
-        {
-            return    type != Token_t::identifier          // identifiers must stay clean because they are reused
-                   && type != Token_t::parenthesis_open    // ")" are lost when creating AST
-                   && type != Token_t::parenthesis_close;  // "(" are lost when creating AST
-        }
-        void                   start_transaction();                                   // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
-        void                   rollback_transaction();                                // Rollback the pending transaction (revert cursor to parse again from the transaction start).
-        void                   commit_transaction();                                  // Commit the pending transaction
-		bool                   is_syntax_valid();                                     // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
-        ID<Scope>              get_current_scope();                                   // Get the current scope. There is always a scope (main's scope program).
-        ID<Node>               get_current_scope_node();
+        bool                   allow_to_attach_suffix(Token_t type) const;
+        void                   start_transaction(); // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
+        void                   rollback_transaction(); // Rollback the pending transaction (revert cursor to parse again from the transaction start).
+        void                   commit_transaction(); // Commit the pending transaction
+		bool                   is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
+        PoolID<Scope>          get_current_scope();
+        PoolID<Node>           get_current_scope_node();
         static inline bool     is_letter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
         static inline bool     is_digit(char c) { return c >= '0' && c <= '9'; }
 
@@ -94,7 +89,7 @@ namespace ndbl{
             } source;
             TokenRibbon        ribbon;
             Graph*             graph;         // output, not owned
-            std::stack<ID<Scope>> scope;  // nested scopes
+            std::stack<PoolID<Scope>> scope;  // nested scopes
 
             ParserState();
             ~ParserState();
@@ -115,7 +110,7 @@ namespace ndbl{
         std::string&           serialize_type(std::string& _out, const fw::type*) const;
         std::string&           serialize_edge(std::string& _out, const DirectedEdge &_edge, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
         std::string&           serialize_instr(std::string& _out, const InstructionNode *_instruction)const;
-        std::string&           serialize_node(std::string& _out, ID<const Node> _node)const;
+        std::string&           serialize_node(std::string& _out, PoolID<const Node> _node)const;
         std::string&           serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string&           serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
         std::string&           serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;
@@ -167,7 +162,7 @@ namespace ndbl{
     template<typename T>
     void Nodlang::load_library()
     {
-        T library; // will force static code to run
+        T library; // Libraries are static and this will force static code to run. TODO: add load/release methods
 
         auto type = fw::type::get<T>();
         for(auto& each_static : type->get_static_methods())

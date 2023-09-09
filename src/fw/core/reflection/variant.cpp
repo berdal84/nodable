@@ -345,6 +345,12 @@ variant::operator i32_t& ()
     return m_data.i32;
 }
 
+variant::operator u32_t& ()
+{
+    FW_ASSERT(m_is_initialized)
+    return m_data.u32;
+}
+
 variant::operator double& ()
 {
     FW_ASSERT(m_is_initialized)
@@ -373,6 +379,12 @@ variant::operator i32_t () const
 {
     FW_ASSERT(m_is_initialized)
     return m_data.i32;
+}
+
+variant::operator u32_t () const
+{
+    FW_ASSERT(m_is_initialized)
+    return m_data.u32;
 }
 
 variant::operator double () const

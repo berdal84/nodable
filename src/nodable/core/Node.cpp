@@ -32,19 +32,19 @@ Node::Node(std::string _label)
     // props.get_this().set_limits(0, 0) // 0 input, 0 output allowed
 }
 
-void Node::id(ID<Node> new_id)
+void Node::poolid(ID<Node> new_id)
 {
     m_id = new_id;
 
     FW_EXPECT( props.has(THIS_PROPERTY) == false, "PropertyBag must have a \"this\" property." )
-    props.at(0)->set( m_id );
+    get_prop(THIS_PROPERTY)->set( m_id );
 
     m_components.set_owner( m_id );
 
     // propagate events to then view
-    auto redirect_event = [new_id](SlotBag::Event _event) -> void
+    auto redirect_event = [=](SlotBag::Event _event) -> void
     {
-        new_id->on_slot_change.emit( _event );
+        m_id->on_slot_change.emit( _event );
     };
     slots.on_change.connect( redirect_event );
 }
@@ -86,7 +86,7 @@ size_t Node::edge_count(Way _way)const
 
 const fw::iinvokable* Node::get_connected_invokable(const char* property_name) const
 {
-    size_t property_id = props.get_id( property_name );
+    ID<Property> property_id = props.get_id( property_name );
 
     // Find an edge connected to this node property
     DirectedEdge edge = get_edge_heading(property_id );
@@ -105,11 +105,11 @@ const fw::iinvokable* Node::get_connected_invokable(const char* property_name) c
 
 bool Node::has_edge_heading(const char* _name) const
 {
-    u8_t id = props.get_id(_name);
+    ID<Property> id = props.get_id(_name);
     return has_edge_heading( id );
 }
 
-bool Node::has_edge_heading( size_t property_id ) const
+bool Node::has_edge_heading(ID<Property> property_id) const
 {
     Slot& slot = get_slot( property_id, Way::In );
     auto is_heading_property = [property_id](auto& each_edge) { return each_edge.head.property == property_id; };
@@ -130,18 +130,18 @@ void Node::set_name(const char *_label)
     on_name_change.emit(m_id);
 }
 
-std::vector<ID<Component>> Node::get_components()
+std::vector<PoolID<Component>> Node::get_components()
 {
     return m_components.get_all();
 }
 
 DirectedEdge Node::get_edge_heading(const char* _name) const
 {
-    u8_t id = props.get_id( _name );
+    ID<Property> id = props.get_id( _name );
     return get_edge_heading( id );
 }
 
-DirectedEdge Node::get_edge_heading(Property::ID property_id) const
+DirectedEdge Node::get_edge_heading(ID<Property> property_id) const
 {
     Slot& slot = get_slot(property_id, Way::In);
 
@@ -162,16 +162,16 @@ Slot& Node::get_slot(const char* property_name, Way desired_way) const
     return get_slot(property->id, desired_way);
 }
 
-Slot& Node::get_slot(Property::ID property_id, Way desired_way) const
+Slot& Node::get_slot(ID<Property> property_id, Way desired_way) const
 {
     const Property* property = get_prop_at(property_id);
     FW_EXPECT( property->allows_connection( desired_way ), "This property does not allow this way of connection" );
     FW_EXPECT( false, "TODO: add a m_slot_bag to the class, find the right slot from property_id and desired_way");
 }
 
-std::vector<ID<Node>> Node::get_predecessors() const
+std::vector<PoolID<Node>> Node::get_predecessors() const
 {
-    std::vector<ID<Node>> result;
+    std::vector<PoolID<Node>> result;
     Slot& slot = get_slot(THIS_PROPERTY, Way::In);
     result.reserve(slot.edge_count());
     for (auto& edge : slot.edges ) result.push_back( edge.tail.node );
@@ -179,7 +179,7 @@ std::vector<ID<Node>> Node::get_predecessors() const
 }
 
 
-std::vector<DirectedEdge> Node::get_input_edges(const std::vector<Property::ID>& properties) const
+std::vector<DirectedEdge> Node::get_input_edges(const std::vector<ID<Property>>& properties) const
 {
     std::vector<DirectedEdge> result;
     result.reserve(properties.size());
@@ -199,14 +199,14 @@ Property* Node::get_prop(const char *_name)
     return props.get(_name);
 }
 
-const Property* Node::get_prop_at(size_t pos) const
+const Property* Node::get_prop_at(ID<Property> id) const
 {
-    return props.at(pos);
+    return props.at(id);
 }
 
-Property* Node::get_prop_at(size_t pos)
+Property* Node::get_prop_at(ID<Property> id)
 {
-    return props.at(pos);
+    return props.at(id);
 }
 
 bool Node::allows_more(Relation edge_type)
@@ -219,9 +219,9 @@ Slot& Node::slot(Way way) const
     return get_slot(THIS_PROPERTY, way);
 }
 
-std::vector<ID<Node>> Node::children() const
+std::vector<PoolID<Node>> Node::children() const
 {
-    std::vector<ID<Node>> result;
+    std::vector<PoolID<Node>> result;
     for(const Slot& slot : slots.by_relation(Relation::CHILD_PARENT) )
     {
         for(const DirectedEdge& edge : slot.edges )
@@ -237,9 +237,9 @@ std::vector<DirectedEdge> Node::edges() const
     return slots.edges();
 }
 
-std::vector<ID<Node>> Node::successors() const
+std::vector<PoolID<Node>> Node::successors() const
 {
-    std::vector<ID<Node>> result;
+    std::vector<PoolID<Node>> result;
 
     for( auto& slot : slots.by_relation(Relation::NEXT_PREVIOUS) )
     {

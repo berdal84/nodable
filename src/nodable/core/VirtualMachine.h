@@ -78,14 +78,14 @@ namespace ndbl
         // Get current program ptr*/
         const Code *          get_program_asm_code();
         // Check if a given Node is the next to be executed
-        bool                  is_next_node(ID<const Node> _node)const { return m_next_node == _node; }
+        bool                  is_next_node(PoolID<const Node> _node)const { return m_next_node == _node; }
     private:
         // Advance the instruction pointer of a given amount
         void                  advance_cursor(i64_t _amount = 1);
         // Step over common code (for both "run" and "debug" modes)
         bool                  _stepOver();
 
-        ID<const Node>        m_next_node;
+        PoolID<const Node>    m_next_node;
         bool                  m_is_program_running;
         bool                  m_is_debugging;
         Instruction*          m_last_step_next_instr;

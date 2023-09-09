@@ -26,21 +26,21 @@ namespace ndbl
 
         Token token;
         bool                        update();
-		void                        bind_arg(size_t arg_id, size_t property_id);
-        Property::ID                get_arg(size_t _index)const;
+		void                        bind_arg(size_t _index, ID<Property>);
+        ID<Property>                get_arg(size_t _index)const;
 		std::vector<Property*>      get_args()const;
-        const std::vector<Property::ID>& get_arg_ids() const;
+        const std::vector<ID<Property>>& get_arg_ids() const;
 		const fw::func_type*        get_func_type()const { return m_signature; }
 		const fw::iinvokable*       get_function()const { return m_invokable; }
-        void                        bind_result_property(size_t property_id); // bind an existing property to the result of the computation
-        Property::ID                get_l_handed_val();
-        Property::ID                get_r_handed_val();
+        void                        bind_result_property(ID<Property>); // bind an existing property to the result of the computation
+        ID<Property>                get_l_handed_val();
+        ID<Property>                get_r_handed_val();
         bool                        has_function() const { return m_invokable; };
 		bool                        is_operator()const { return m_is_operator; };
 
     protected:
-        size_t                     m_result_id;
-        std::vector<Property::ID>  m_argument_id;
+        ID<Property>               m_result_id;
+        std::vector<ID<Property>>  m_argument_id;
         const fw::func_type*       m_signature;
         const fw::iinvokable*      m_invokable;
         bool                       m_is_operator;

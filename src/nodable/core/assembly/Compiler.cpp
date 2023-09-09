@@ -27,7 +27,7 @@ using namespace ndbl::assembly;
 using namespace fw;
 using namespace fw::pool;
 
-Code::Code(ID<Node> root)
+Code::Code( PoolID<Node> root )
 : m_meta_data({root})
 {}
 
@@ -42,15 +42,15 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
 {
     if( _graph->is_empty()) return false;
 
-    const std::vector<ID<Node>>& nodes = _graph->get_node_registry();
+    const std::vector<PoolID<Node>>& nodes = _graph->get_node_registry();
     for( auto each_node : nodes )
     {
         // Check for undeclared variables
         if( auto scope = each_node->get_component<Scope>() )
         {
-            const std::vector< ID<VariableNode> >& variables = scope->variables();
+            const std::vector<PoolID<VariableNode> >& variables = scope->variables();
 
-            for(auto each_variable : variables)
+            for( auto each_variable : variables )
             {
                 if( !each_variable->is_declared() )
                 {
@@ -110,7 +110,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     // call push_stack_frame
     {
         Instruction *instr  = m_temp_code->push_instr(Instruction_t::push_stack_frame);
-        instr->push.scope = _scope->id();
+        instr->push.scope = _scope->poolid();
         char str[64];
         snprintf(str, 64, "%s's scope", scope_owner->name.c_str());
         instr->m_comment = str;
@@ -125,7 +125,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     }
 
     // compile content
-    for( ID<Node> each_node : scope_owner->children() )
+    for( PoolID<Node> each_node : scope_owner->children() )
     {
         compile(each_node);
     }
@@ -146,12 +146,12 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
 
     {
         Instruction *instr = m_temp_code->push_instr(Instruction_t::pop_stack_frame);
-        instr->pop.scope   = _scope->id();
+        instr->pop.scope   = _scope->poolid();
         instr->m_comment   = scope_owner->name + "'s scope";
     }
 }
 
-void assembly::Compiler::compile(ID<const Node> node_id)
+void assembly::Compiler::compile(PoolID<const Node> node_id)
 {
     if( !node_id)
     {
@@ -203,7 +203,7 @@ void assembly::Compiler::compile(ID<const Node> node_id)
         if ( should_be_evaluated )
         {
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
-            instr->eval.node   = _node->id();
+            instr->eval.node   = _node->poolid();
             instr->m_comment   = _node->name;
 
             // result is not stored, because this is necessary only for instruction's root node.

@@ -32,9 +32,9 @@ bool DataAccess::update()
         auto& value = *property.value();
     	const fw::type* type = value.get_type();
 
-    	     if (type->is<std::string>() ) writer.String(value);
-        else if (type->is<double>() )      writer.Double(value);
-        else if (type->is<bool>() )        writer.Bool(value);
+    	     if (type->is<std::string>() ) writer.String((const char*)value);
+        else if (type->is<double>() )      writer.Double((double)value);
+        else if (type->is<bool>() )        writer.Bool((bool)value);
     	else                               writer.Null();
 	};
 
@@ -61,7 +61,7 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(ID<Component> component : owner->get_components())
+		    for(PoolID<Component> component : owner->get_components())
 		    {
 		    	writer.Key(component->get_type()->get_name());
 		    	writer.StartObject();

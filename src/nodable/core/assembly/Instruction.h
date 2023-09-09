@@ -10,7 +10,7 @@ namespace ndbl
     class Scope;
     class VariableNode;
     class Node;
-    using fw::pool::ID;
+    using fw::pool::PoolID;
 
 namespace assembly
 {
@@ -79,8 +79,8 @@ namespace assembly
     {
         Instruction_t opcode;            // Instruction_t::push_xxx or Instruction_t::pop_xxx.
         union {
-            ID<VariableNode> var;     // a variable to push/pop.
-            ID<const Scope>  scope;   // a scope to push/pop.
+            PoolID<VariableNode> var;     // a variable to push/pop.
+            PoolID<const Scope>  scope;   // a scope to push/pop.
         };
     };
 
@@ -88,7 +88,7 @@ namespace assembly
     struct Instruction_eval
     {
         Instruction_t opcode;
-        ID<Node>  node; // The node to evaluate.
+        PoolID<Node>  node; // The node to evaluate.
     };
 
     /**

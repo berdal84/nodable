@@ -75,11 +75,11 @@ TEST(Slot, is_full)
 TEST(Slot, adjacent_slot_at)
 {
     // prepare
-    Slot slot  {1, ID<Node>{1}};
+    Slot slot  {1, TID<Node>{1}};
     slot.capacity = 2;
 
-    Slot slot_0{1, ID<Node>{2}};
-    Slot slot_1{1, ID<Node>{3}};
+    Slot slot_0{1, TID<Node>{2}};
+    Slot slot_1{1, TID<Node>{3}};
 
     slot.add_edge({slot, PARENT_CHILD, slot_0});
     slot.add_edge({slot_1, CHILD_PARENT, slot}); //

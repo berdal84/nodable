@@ -110,7 +110,7 @@ void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
                 NodeViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
                 auto predecessor_views = NodeUtils::get_component_ids<NodeView>( predecessor_nodes );
                 constraint.add_drivers(predecessor_views);
-                constraint.add_target(each_view->id());
+                constraint.add_target(each_view->poolid());
                 each_physics->add_constraint(constraint);
 
                 constraint.apply_when(NodeViewConstraint::always);
@@ -123,7 +123,7 @@ void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
             {
                 NodeViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
                 constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
-                constraint.add_driver(each_view->id());
+                constraint.add_driver(each_view->poolid());
                 constraint.add_targets(children_view);
 
                 if (node_type->is<ForLoopNode>() )
@@ -139,7 +139,7 @@ void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
             if ( !each_view->inputs.empty() )
             {
                 NodeViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
-                constraint.add_driver(each_view->id());
+                constraint.add_driver(each_view->poolid());
                 constraint.add_targets( each_view->inputs );
                 each_physics->add_constraint(constraint);
                 constraint.apply_when(NodeViewConstraint::always);
