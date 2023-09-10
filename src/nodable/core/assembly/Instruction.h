@@ -10,7 +10,7 @@ namespace ndbl
     class Scope;
     class VariableNode;
     class Node;
-    using fw::pool::PoolID;
+    using fw::PoolID;
 
 namespace assembly
 {

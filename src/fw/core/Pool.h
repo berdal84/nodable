@@ -16,7 +16,7 @@
 #define POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM( Class ) \
 protected: \
     template<typename T> using ID = ::fw::ID<T>; \
-    template<typename T> using PoolID = ::fw::pool::PoolID<T>; \
+    template<typename T> using PoolID = ::fw::PoolID<T>; \
     PoolID<Class> m_id;\
 public:                                              \
     using is_pool_registrable = std::true_type; \
@@ -33,8 +33,6 @@ void static_assert__is_pool_registrable()
 }
 
 namespace fw
-{
-namespace pool
 {
     /**
      * PoolID is the equivalent of a pointer, but it points to a Pool item.
@@ -418,5 +416,4 @@ namespace pool
             destroy( each_id );
         }
     }
-} // namespace pool
 } // namespace fw

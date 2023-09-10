@@ -9,7 +9,7 @@
 #include "core/GraphUtil.h"
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 
 REGISTER
 {
@@ -22,7 +22,7 @@ Physics::Physics()
     , is_active(true)
 {}
 
-Physics::Physics(ID<NodeView> view)
+Physics::Physics(PoolPoolID<NodeView> view)
     : Physics()
 {
     m_view = view;
@@ -65,7 +65,7 @@ void Physics::add_force(ImVec2 force, bool _recurse)
     {
         if (!child->pinned && child->should_follow_output( m_view ))
         {
-            if(ID<Physics> physics_component = child->get_owner()->get_component<Physics>())
+            if(PoolPoolID<Physics> physics_component = child->get_owner()->get_component<Physics>())
             {
                 physics_component->add_force(force, _recurse);
             }
@@ -89,7 +89,7 @@ void Physics::apply_forces(float _dt, bool _recurse)
     m_forces_sum            = ImVec2();
 }
 
-void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
+void Physics::create_constraints(const std::vector<PoolPoolID<Node>>& nodes)
 {
     LOG_VERBOSE("Physics", "create_constraints ...\n");
     for(Node* each_node: Pool::get_pool()->get( nodes ) )
@@ -99,12 +99,12 @@ void Physics::create_constraints(const std::vector<ID<Node>>& nodes)
         if ( each_view )
         {
             const fw::type* node_type = each_node->get_type();
-            std::vector<ID<NodeView>> children_view = GraphUtil::adjacent_components<NodeView>(each_node, Relation::CHILD_PARENT, Way::In); // TODO: cache
+            std::vector<PoolPoolID<NodeView>> children_view = GraphUtil::adjacent_components<NodeView>(each_node, Relation::CHILD_PARENT, Way::In); // TODO: cache
 
             // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
             //---------------------------------------------------------------------------------
 
-            std::vector<ID<Node>> predecessor_nodes = each_node->get_predecessors();
+            std::vector<PoolPoolID<Node>> predecessor_nodes = each_node->get_predecessors();
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);

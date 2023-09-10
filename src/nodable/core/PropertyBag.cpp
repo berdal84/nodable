@@ -34,12 +34,12 @@ ID<Property> PropertyBag::add(const fw::type* _type, const char* _name, Visibili
     return new_property->id;
 }
 
-const Property* PropertyBag::get_first(Way _way, const fw::type *_type) const
+const Slot* PropertyBag::get_first(Way _way, const fw::type *_type) const
 {
     return get_first(_way,_type);
 }
 
-Property* PropertyBag::get_first(Way _way, const fw::type *_type)
+Slot* PropertyBag::get_first(Way _way, const fw::type *_type)
 {
     auto filter = [this, _way, _type](std::pair<const std::string, ID<Property>>& each) -> bool
     {

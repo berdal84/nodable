@@ -18,25 +18,25 @@ namespace ndbl
     public:
         template<class ComponentT>
         static std::vector<ComponentT*>
-        get_components(const std::vector<ID<Node>>&);
+        get_components(const std::vector<PoolID<Node>>&);
 
         template<class ComponentT>
-        static std::vector<ID<ComponentT>>
-        get_component_ids(const std::vector<ID<Node>>&);
+        static std::vector<PoolID<ComponentT>>
+        get_component_ids(const std::vector<PoolID<Node>>&);
 
     private:
         static NodeUtils s_instance;
     };
 
     template<class ComponentT>
-    std::vector<ID<ComponentT>> NodeUtils::get_component_ids(const std::vector<ID<Node>>& nodes)
+    std::vector<PoolID<ComponentT>> NodeUtils::get_component_ids(const std::vector<PoolID<Node>>& nodes)
     {
         if ( nodes.empty() )
         {
             return {};
         }
 
-        std::vector<ID<ComponentT>> result;
+        std::vector<PoolID<ComponentT>> result;
         result.reserve( nodes.size() );
 
         auto get_component = [](PoolID<Node> node ) { return node->get_component<ComponentT>(); };
@@ -46,7 +46,7 @@ namespace ndbl
     }
 
     template<class ComponentT>
-    std::vector<ComponentT*> NodeUtils::get_components(const std::vector<ID<Node>>& nodes)
+    std::vector<ComponentT*> NodeUtils::get_components(const std::vector<PoolID<Node>>& nodes)
     {
         // Get ComponentT on each node
         auto components_ids =  NodeUtils::get_component_ids<ComponentT>(nodes);
@@ -59,7 +59,7 @@ namespace ndbl
         std::vector<ComponentT*> result;
         result.reserve(components_ids.size());
 
-        auto get_pointer = [](ID<ComponentT> component_id ) { return component_id.get(); };
+        auto get_pointer = [](PoolID<ComponentT> component_id ) { return component_id.get(); };
         std::transform( components_ids.begin(), components_ids.end(), result.end(), get_pointer);
 
         auto is_null = [](ComponentT* component ) { return component == nullptr; };

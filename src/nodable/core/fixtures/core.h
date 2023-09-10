@@ -34,13 +34,13 @@ public:
 
     void SetUp()
     {
-        fw::pool::Pool::init();
+        fw::Pool::init();
     }
 
     void TearDown()
     {
         graph.clear();
-        fw::pool::Pool::shutdown();
+        fw::Pool::shutdown();
     }
 
     ~Core()

@@ -2,7 +2,7 @@
 #include "log.h"
 #include "Pool.h"
 
-using namespace fw::pool;
+using namespace fw;
 
 class Data {
 public:

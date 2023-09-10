@@ -2,7 +2,7 @@
 #include "Node.h"
 
 using namespace ndbl;
-using fw::pool::PoolID;
+using fw::PoolID;
 
 REGISTER
 {

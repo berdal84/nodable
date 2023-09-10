@@ -18,8 +18,8 @@ typedef ::testing::Core Graph_;
 
 TEST_F(Graph_, connect)
 {
-    ID<Node> node1 = graph.create_node();
-    ID<Node> node2 = graph.create_node();
+    auto node1 = graph.create_node();
+    auto node2 = graph.create_node();
 
     node1->set_name("Node 1");
     node2->set_name("Node 2");

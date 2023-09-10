@@ -41,7 +41,7 @@ CLI::~CLI()
 {
     std::cout << "Good bye!" << std::endl;
     delete m_asm_code;
-    fw::pool::Pool::shutdown();
+    fw::Pool::shutdown();
 }
 
 
@@ -49,7 +49,7 @@ CLI::~CLI()
 int CLI::main(int argc, char* argv[])
 {
     fw::log::set_verbosity(fw::log::Verbosity_Warning);
-    fw::pool::Pool::init();
+    fw::Pool::init();
 
     while (!should_stop())
     {

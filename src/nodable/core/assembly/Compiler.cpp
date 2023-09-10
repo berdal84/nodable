@@ -25,7 +25,6 @@
 using namespace ndbl;
 using namespace ndbl::assembly;
 using namespace fw;
-using namespace fw::pool;
 
 Code::Code( PoolID<Node> root )
 : m_meta_data({root})

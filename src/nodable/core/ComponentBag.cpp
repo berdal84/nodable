@@ -2,7 +2,7 @@
 #include "Component.h"
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 
 void
 ComponentBag::add(PoolID<Component> id)

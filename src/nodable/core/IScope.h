@@ -11,7 +11,7 @@ namespace ndbl
     class InstructionNode;
     class VariableNode;
     class Node;
-    using fw::pool::PoolID;
+    using fw::PoolID;
 
     /**
      * @class Interface for a scope node

@@ -4,9 +4,9 @@
 #include "nodable/core/Node.h"
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 
-PropertyView::PropertyView(u8_t _property_id, ID<NodeView> _node_view_id)
+PropertyView::PropertyView(u8_t _property_id, PoolID<NodeView> _node_view_id)
 : property(_property_id)
 , show_input(false)
 , touched(false)

@@ -8,7 +8,7 @@ namespace ndbl
     class Scope;
     class Property;
     class InstructionNode;
-    using fw::pool::PoolID;
+    using fw::PoolID;
 
     /**
      * @interface Interface for any conditional structure node (ex: if/else, for, while, do/while )

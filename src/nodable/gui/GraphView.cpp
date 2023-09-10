@@ -26,7 +26,7 @@
 
 using namespace ndbl;
 using namespace ndbl::assembly;
-using namespace fw::pool;
+using namespace fw;
 
 REGISTER
 {
@@ -44,7 +44,7 @@ GraphView::GraphView(Graph* graph)
         const fw::func_type* type = each_fct->get_type();
         bool is_operator = language.find_operator_fct(type) != nullptr;
 
-        auto create_node = [this, each_fct, is_operator]() -> ID<Node>
+        auto create_node = [this, each_fct, is_operator]() -> PoolID<Node>
         {
             return m_graph->create_function(each_fct.get(), is_operator);
         };
@@ -63,7 +63,7 @@ bool GraphView::draw()
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
-    ID<Node>        new_node_id;
+    PoolID<Node>        new_node_id;
     ImVec2          origin           = ImGui::GetCursorScreenPos();
     auto            node_registry    = Pool::get_pool()->get( m_graph->get_node_registry() );
     const SlotView* dragged_slot     = SlotView::get_dragged();
@@ -73,7 +73,7 @@ bool GraphView::draw()
     * Function to draw an invocable menu (operators or functions)
     */
     auto draw_invokable_menu = [&](
-        const PropertyslotView * dragged_property_conn,
+        const SlotView* dragged_slot_view,
         const std::string& _key) -> void
     {
         char menuLabel[255];
@@ -130,9 +130,9 @@ bool GraphView::draw()
         }	
     };
 
-    auto create_instr = [&]( Scope* _scope ) -> ID<InstructionNode>
+    auto create_instr = [&]( Scope* _scope ) -> PoolID<InstructionNode>
     {
-        ID<InstructionNode> instr_node = m_graph->create_instr();
+        PoolID<InstructionNode> instr_node = m_graph->create_instr();
         Token token(Token_t::end_of_instruction, "\n");
 
         // Set '\n' as prefix
@@ -143,14 +143,14 @@ bool GraphView::draw()
         return instr_node;
     };
 
-    auto create_variable = [&](const fw::type* _type, const char*  _name, ID<Scope>  _scope) -> ID<VariableNode>
+    auto create_variable = [&](const fw::type* _type, const char*  _name, PoolID<Scope>  _scope) -> PoolID<VariableNode>
     {
         if( !_scope)
         {
            _scope = m_graph->get_root()->get_component<Scope>();
         }
 
-        ID<VariableNode> var_node = m_graph->create_variable(_type, _name, _scope );
+        PoolID<VariableNode> var_node = m_graph->create_variable(_type, _name, _scope );
         var_node->set_declared(true);
 
         Token token(Token_t::keyword_operator, " = ");
@@ -201,7 +201,7 @@ bool GraphView::draw()
         size_t slot_count = each_node->get_slot_count(Relation::NEXT_PREVIOUS, Way::Out);
         float padding     = 2.0f;
         float linePadding = 5.0f;
-        for (ID<Node> each_successor_node : each_node->successors() )
+        for (PoolID<Node> each_successor_node : each_node->successors() )
         {
             // TODO: I should probably compute those 2 lines once for all
             NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
@@ -237,37 +237,36 @@ bool GraphView::draw()
     // slot Drag'n Drop
     if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
     {
-        // Draw temporary Property connection
-        if ( dragged_property_conn )
-        {
-            ImVec2 src = dragged_property_conn->get_pos();
-            ImVec2 dst = hovered_property_conn ? hovered_property_conn->get_pos() : ImGui::GetMousePos();
-            ImGui::GetWindowDrawList()->AddLine(
-                    src, dst,
-                    get_color(Color_BORDER_HIGHLIGHT),
-                    app.config.ui_wire_bezier_thickness
-                );
-        }
-
-        // Draw temporary Node connection
+        // Draw temporary edge
         if (dragged_slot)
         {
             ImVec2 src = dragged_slot->get_pos();
             ImVec2 dst = hovered_slot ? hovered_slot->get_pos() : ImGui::GetMousePos();
-            fw::ImGuiEx::DrawVerticalWire(
-                ImGui::GetWindowDrawList(),
-                src, dst,
-                app.config.ui_codeFlow_lineColor,
-                app.config.ui_codeFlow_lineShadowColor,
-                app.config.ui_node_slot_width,
-                0.f // roundness
+
+            if ( dragged_slot->get_property()->is_referencing<Node>() )
+            {
+                fw::ImGuiEx::DrawVerticalWire(
+                        ImGui::GetWindowDrawList(),
+                        src, dst,
+                        app.config.ui_codeFlow_lineColor,
+                        app.config.ui_codeFlow_lineShadowColor,
+                        app.config.ui_node_slot_width,
+                        0.f // roundness
                 );
+            }
+            else
+            {
+                ImGui::GetWindowDrawList()->AddLine(
+                        src, dst,
+                        get_color(Color_BORDER_HIGHLIGHT),
+                        app.config.ui_wire_bezier_thickness
+                );
+            }
         }
 
         // Drops ?
         bool require_new_node   = false;
-        PropertyslotView::drop_behavior(require_new_node, enable_edition);
-        Nodeslot::drop_behavior(require_new_node, enable_edition);
+        SlotView::drop_behavior(require_new_node, enable_edition);
 
         // Need a need node ?
         if (require_new_node)
@@ -288,69 +287,61 @@ bool GraphView::draw()
         */
         for (auto eachNode : node_registry )
         {
-            for (Property* dst_property : eachNode->props.by_index())
+            for (DirectedEdge &edge: eachNode->filter_edges(Relation::WRITE_READ))
             {
-                if ( Property* src_property = dst_property->get_input() )
+                NodeView* tail_node_view = edge.tail.get_node()->get_component<NodeView>().get();
+                NodeView* head_node_view = edge.head.get_node()->get_component<NodeView>().get();
+
+                if (tail_node_view->is_visible() && head_node_view->is_visible())
                 {
-                    Node *src_owner = src_property->owner().get();
-                    Node *dst_owner = dst_property->owner().get();
-                    NodeView* src_node_view = src_owner->get_component<NodeView>().get();
-                    NodeView* dst_node_view = eachNode->get_component<NodeView>().get(); // equival to dst_property->getOwner()->get<NodeView>();
+                    SlotView& tail_slot_view = tail_node_view->get_slot_view(edge.tail.index);
+                    SlotView& head_slot_view = head_node_view->get_slot_view(edge.head.index);
+                    ImVec2    src_pos        = tail_slot_view.get_pos();
+                    ImVec2    dst_pos        = head_slot_view.get_pos();
 
-                    if (src_node_view->is_visible() && dst_node_view->is_visible() )
+                    // do not draw long lines between a variable value
+                    ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
+                    ImVec4 shadow_color = app.config.ui_codeFlow_lineShadowColor;
+
+
+                    if (NodeView::is_selected(tail_node_view->poolid()) ||
+                        NodeView::is_selected(head_node_view->poolid())
+                    )
                     {
-                        const PropertyView* src_property_view = src_node_view->get_property_view(src_property);
-                        const PropertyView* dst_property_view = dst_node_view->get_property_view(dst_property);
-
-                        if ( src_property_view && dst_property_view )
-                        {
-                            ImVec2 src_pos = src_property_view->output()->get_pos();
-                            ImVec2 dst_pos = dst_property_view->input()->get_pos();
-
-                            // do not draw long lines between a variable value
-                            ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
-                            ImVec4 shadow_color = app.config.ui_codeFlow_lineShadowColor;
-
-
-                            if ( NodeView::is_selected(src_property_view->node_view) || NodeView::is_selected(dst_property_view->node_view))
-                            {
-                                // blink wire colors
-                                float blink = 1.f + std::sin(float(app.core.elapsed_time()) * 10.f) * 0.25f;
-                                line_color.x *= blink;
-                                line_color.y *= blink;
-                                line_color.z *= blink;
-                            }
-                            else
-                            {
-                                // transparent depending on wire length
-                                ImVec2 delta = src_pos - dst_pos;
-                                float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-                                if (dist > app.config.ui_wire_bezier_length_min)
-                                {
-                                    float factor = (dist - app.config.ui_wire_bezier_length_min) /
-                                                   (app.config.ui_wire_bezier_length_max -
-                                                    app.config.ui_wire_bezier_length_min);
-                                    line_color = ImLerp(line_color, ImColor(0, 0, 0, 0), factor);
-                                    shadow_color = ImLerp(shadow_color, ImColor(0, 0, 0, 0), factor);
-                                }
-                            }
-
-                            // draw the wire if necessary
-                            if ( line_color.w != 0.f )
-                            {
-                                float thickness = app.config.ui_wire_bezier_thickness;
-                                float roundness = app.config.ui_wire_bezier_roundness;
-
-                                // straight wide lines for node connections
-                                if (fw::type::is_ptr(src_property->get_type()))
-                                {
-                                    thickness *= 3.0f;
-                                    roundness *= 0.25f;
-                                }
-
-                                fw::ImGuiEx::DrawVerticalWire(draw_list, src_pos, dst_pos, line_color, shadow_color, thickness, roundness);
-                            }
+                        // blink wire colors
+                        float blink = 1.f + std::sin(float(app.core.elapsed_time()) * 10.f) * 0.25f;
+                        line_color.x *= blink;
+                        line_color.y *= blink;
+                        line_color.z *= blink;
+                    }
+                    else
+                    {
+                        // transparent depending on wire length
+                        ImVec2 delta = src_pos - dst_pos;
+                        float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+                        if (dist > app.config.ui_wire_bezier_length_min) {
+                            float factor = (dist - app.config.ui_wire_bezier_length_min) /
+                                           (app.config.ui_wire_bezier_length_max -
+                                            app.config.ui_wire_bezier_length_min);
+                            line_color = ImLerp(line_color, ImColor(0, 0, 0, 0), factor);
+                            shadow_color = ImLerp(shadow_color, ImColor(0, 0, 0, 0), factor);
                         }
+                    }
+
+                    // draw the wire if necessary
+                    if (line_color.w != 0.f)
+                    {
+                        float thickness = app.config.ui_wire_bezier_thickness;
+                        float roundness = app.config.ui_wire_bezier_roundness;
+
+                        if ( edge.relation == Relation::NEXT_PREVIOUS )
+                        {
+                            thickness *= 3.0f;
+                            roundness *= 0.25f;
+                        }
+
+                        fw::ImGuiEx::DrawVerticalWire(draw_list, src_pos, dst_pos, line_color, shadow_color,
+                                                      thickness, roundness);
                     }
                 }
             }
@@ -373,7 +364,7 @@ bool GraphView::draw()
                 }
 
                 // dragging
-                if (NodeView::get_dragged() == each_node_view->id() && ImGui::IsMouseDragging(0))
+                if (NodeView::get_dragged() == each_node_view->poolid() && ImGui::IsMouseDragging(0))
                 {
                     ImVec2 mouse_drag_delta = ImGui::GetMouseDragDelta();
                     each_node_view->translate(mouse_drag_delta, true);
@@ -381,14 +372,13 @@ bool GraphView::draw()
                     each_node_view->pinned = true;
                 }
 
-                isAnyNodeDragged |= NodeView::get_dragged() == each_node_view->id();
+                isAnyNodeDragged |= NodeView::get_dragged() == each_node_view->poolid();
                 isAnyNodeHovered |= each_node_view->is_hovered();
             }
 		}
 	}
 
-	isAnyNodeDragged |= Nodeslot::is_dragging();
-	isAnyNodeDragged |= PropertyslotView::is_dragging();
+	isAnyNodeDragged |= SlotView::is_dragging();
 
 	// Virtual Machine cursor
     if ( app.virtual_machine.is_program_running() )
@@ -441,29 +431,29 @@ bool GraphView::draw()
         fw::ImGuiEx::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
 		ImGui::Separator();
 
-		if ( !dragged_slot)
+		if ( !dragged_slot )
 		{
-		    draw_invokable_menu(dragged_property_conn, k_operator_menu_label );
-            draw_invokable_menu(dragged_property_conn, k_function_menu_label );
+		    draw_invokable_menu(dragged_slot, k_operator_menu_label );
+            draw_invokable_menu(dragged_slot, k_function_menu_label );
             ImGui::Separator();
         }
 
         if ( !dragged_slot)
         {
             // If dragging a property we create a VariableNode with the same type.
-            if ( dragged_property_conn && !dragged_property_conn->get_property_type()->is<ID<Node>>() )
+            if ( dragged_slot && !dragged_slot->is_node_slot() )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
-                    new_node_id = create_variable(dragged_property_conn->get_property_type(), "var", {});
+                    new_node_id = create_variable( dragged_slot->get_property_type(), "var", {});
                 }
 
                 // we allows literal only if connected to variables.
                 // why? behavior when connecting a literal to a non var node is to digest it.
-                if ( dragged_property_conn->get_property()->owner()->get_type()->is<VariableNode>()
+                if ( dragged_slot->node()->get_type()->is<VariableNode>()
                      && ImGui::MenuItem(ICON_FA_FILE "Literal") )
                 {
-                    new_node_id = m_graph->create_literal(dragged_property_conn->get_property_type() );
+                    new_node_id = m_graph->create_literal( dragged_slot->get_property_type() );
                 }
             }
             // By not knowing anything, we propose all possible types to the user.
@@ -507,16 +497,10 @@ bool GraphView::draw()
 
         ImGui::Separator();
 
-        if ( !dragged_property_conn )
+        if( dragged_slot && !dragged_slot->is_node_slot() )
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
-            {
                 new_node_id = create_instr(nullptr);
-            }
-        }
-
-        if( !dragged_property_conn )
-        {
             if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
                 new_node_id = m_graph->create_cond_struct();
             if (ImGui::MenuItem(ICON_FA_CODE " For Loop"))
@@ -547,29 +531,27 @@ bool GraphView::draw()
         {
 
             // dragging node slot ?
-            if (dragged_slot)
+            if ( dragged_slot && dragged_slot->is_node_slot() )
             {
-                Relation edge_type = dragged_slot->m_way == Way::Out ? Relation::SUCCESSOR : Relation::NEXT_PREVIOUS;
-                m_graph->connect( {new_node_id.get(), edge_type, dragged_slot->get_node().get()} );
-                Nodeslot::stop_drag();
+                Relation edge_type = dragged_slot->allows(Way::Out) ? Relation::PREVIOUS_NEXT : Relation::NEXT_PREVIOUS;
+                m_graph->connect( new_node_id->slot(Way::Out), edge_type, dragged_slot->node()->slot(Way::In), ConnectFlag::SIDE_EFFECTS_ON );
+                SlotView::reset_dragged();
             }
-            else if ( dragged_property_conn )
+            else if ( dragged_slot )
             {
-                if ( dragged_property_conn->m_way == Way::In )
+                if ( dragged_slot->allows( Way::In ) )
                 {
-                    Property* dst_property = dragged_property_conn->get_property();
-                    Property* src_property = new_node_id->props.get_first(Way::Out, dst_property->get_type());
-                    m_graph->connect( src_property, dst_property );
+                    Slot& tail_slot = new_node_id->props.get_first(Way::Out, dragged_slot->get_property()->get_type());
+                    m_graph->connect(tail_slot, Relation::WRITE_READ, dragged_slot, ConnectFlag::SIDE_EFFECTS_ON );
                 }
                 //  [ dragged slot ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    Property*  src_property = dragged_property_conn->get_property();
-                    Property*  dst_property = new_node_id->props.get_first(Way::In, src_property->get_type());
-                    m_graph->connect( src_property, dst_property);
+                    Slot&  head_slot = new_node_id->props.get_first(Way::In, dragged_slot->get_property()->get_type());
+                    m_graph->connect(dragged_slot, Relation::WRITE_READ, head_slot, ConnectFlag::SIDE_EFFECTS_ON );
                 }
-                PropertyslotView::stop_drag();
+                SlotView::reset_focused();
             }
             else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
             {
@@ -578,7 +560,7 @@ bool GraphView::draw()
             }
 
             // set new_node's view position
-            if( ID<NodeView> view = new_node_id->get_component<NodeView>() )
+            if( PoolID<NodeView> view = new_node_id->get_component<NodeView>() )
             {
                 view->set_position(m_new_node_desired_position, fw::Space_Local);
             }
@@ -591,8 +573,7 @@ bool GraphView::draw()
 	if ( ImGui::IsMouseClicked(1) )
     {
         ImGui::CloseCurrentPopup();
-        PropertyslotView::stop_drag();
-        Nodeslot::stop_drag();
+        SlotView::reset_dragged();
     }
 
 	// add some empty space
@@ -604,7 +585,7 @@ bool GraphView::draw()
 void GraphView::add_contextual_menu_item(
         const std::string &_category,
         const std::string &_label,
-        std::function<ID<Node>(void)> _function,
+        std::function<PoolID<Node>(void)> _function,
         const fw::func_type *_signature)
 {
 	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );

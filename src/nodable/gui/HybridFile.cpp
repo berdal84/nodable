@@ -14,7 +14,7 @@
 #include "core/NodeUtils.h"
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 
 HybridFile::HybridFile(std::string _name)
         : name(std::move(_name))
@@ -114,8 +114,8 @@ void HybridFile::set_text(const std::string& text)
 
 UpdateResult HybridFile::update_text_from_graph(bool isolate_selection)
 {
-    ID<Node> root_node = m_graph->get_root();
-    if ( root_node == ID_NULL )
+    PoolID<Node> root_node = m_graph->get_root();
+    if ( root_node == PoolID<Node>::null )
     {
         return UpdateResult::SUCCES_WITHOUT_CHANGES;
     }

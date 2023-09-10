@@ -8,7 +8,7 @@ namespace ndbl
     // forward declaration
     class PropertyslotView;
     class NodeView;
-    using fw::pool::ID;
+    using fw::PoolID;
 
     enum EventType_: fw::EventType
     {

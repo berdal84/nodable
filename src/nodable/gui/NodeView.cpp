@@ -24,7 +24,7 @@
 constexpr ImVec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 
 REGISTER
 {
@@ -33,8 +33,8 @@ REGISTER
         .extends<fw::View>();
 }
 
-ID<NodeView>   NodeView::s_selected;
-ID<NodeView>   NodeView::s_dragged;
+PoolID<NodeView>   NodeView::s_selected;
+PoolID<NodeView>   NodeView::s_dragged;
 
 // TODO: move those values into the configuration
 NodeViewDetail     NodeView::s_view_detail                       = NodeViewDetail::Default;
@@ -98,7 +98,7 @@ void NodeView::expose(Property* _property)
 //    m_exposed_properties.insert({_property, property_view});
 }
 
-void NodeView::set_owner(ID<Node> node)
+void NodeView::set_owner(PoolID<Node> node)
 {
     Component::set_owner(node);
 
@@ -150,17 +150,17 @@ void NodeView::set_owner(ID<Node> node)
     // 3. Listen to connection/disconnections
     //---------------------------------------
 
-    ID<NodeView> id = m_id;
+    PoolID<NodeView> id = m_id;
     auto synchronize_view = [id, node](SlotBag::Event event)
     {
-        FW_EXPECT(false, "TODO: update children, predecessors, inputs, and outputs cache vector<ID<NodeView>>")
+        FW_EXPECT(false, "TODO: update children, predecessors, inputs, and outputs cache vector<PoolID<NodeView>>")
         id->children = GraphUtil::adjacent_components<NodeView>(node.get(), Relation::CHILD_PARENT, Way::In);
     };
     node->on_slot_change.connect(synchronize_view);
 
     // update label
     update_labels_from_name(node.get());
-    node->on_name_change.connect([id](ID<Node> _node) {
+    node->on_name_change.connect([id](PoolID<Node> _node) {
         id->update_labels_from_name(_node.get());
     });
 }
@@ -184,7 +184,7 @@ void NodeView::update_labels_from_name(const Node* _node)
                                                        : m_label.substr(0, label_max_length) + "..";
 }
 
-void NodeView::set_selected(ID<NodeView> new_selection)
+void NodeView::set_selected(PoolID<NodeView> new_selection)
 {
     if( s_selected == new_selection ) return;
 
@@ -207,12 +207,12 @@ void NodeView::set_selected(ID<NodeView> new_selection)
     }
 }
 
-ID<NodeView> NodeView::get_selected()
+PoolID<NodeView> NodeView::get_selected()
 {
 	return s_selected;
 }
 
-void NodeView::start_drag(ID<NodeView> _view)
+void NodeView::start_drag(PoolID<NodeView> _view)
 {
 	if( !is_any_dragged() && SlotView::get_dragged() ) // Prevent dragging node while dragging slot
     {
@@ -225,12 +225,12 @@ bool NodeView::is_any_dragged()
 	return get_dragged().get() != nullptr;
 }
 
-ID<NodeView> NodeView::get_dragged()
+PoolID<NodeView> NodeView::get_dragged()
 {
 	return s_dragged;
 }
 
-bool NodeView::is_selected(ID<NodeView> view)
+bool NodeView::is_selected(PoolID<NodeView> view)
 {
 	return s_selected == view;
 }
@@ -595,7 +595,7 @@ bool NodeView::draw_property_view(PropertyView* _view)
 
         // Generate the property's source code
         std::string source_code;
-        if( property->get_type()->is<ID<Node>>() || !property->allows_connection(Way::In)) // pointer to Node or output
+        if( property->get_type()->is<PoolID<Node>>() || !property->allows_connection(Way::In)) // pointer to Node or output
         {
             Nodlang::get_instance().serialize_node( source_code, property->owner());
         }
@@ -806,7 +806,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // Components
         if( ImGui::TreeNode("Components") )
         {
-            for (ID<const Component> component : node->get_components() )
+            for (PoolID<const Component> component : node->get_components() )
             {
                 ImGui::BulletText("%s", component->get_type()->get_name());
             }
@@ -822,7 +822,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 {
                     if (!slots.empty())
                     {
-                        for (ID<Node> each : slots )
+                        for (PoolID<Node> each : slots )
                         {
                             ImGui::BulletText("- %s", each->name.c_str());
                         }
@@ -974,7 +974,7 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
         fw::ImGuiEx::EnlargeToInclude(result_rect, self_rect);
     }
 
-    auto enlarge_to_fit_all = [&](ID<NodeView> view_id)
+    auto enlarge_to_fit_all = [&](PoolID<NodeView> view_id)
     {
         NodeView* view = view_id.get();
         if( !view) return;
@@ -1028,7 +1028,7 @@ ImRect NodeView::get_rect(
 void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
-    for(ID<NodeView> each_child_view : children )
+    for(PoolID<NodeView> each_child_view : children )
     {
         each_child_view->set_expanded_rec(_expanded);
     }
@@ -1041,14 +1041,14 @@ void NodeView::set_expanded(bool _expanded)
     set_children_visible(_expanded, true);
 }
 
-bool NodeView::should_follow_output(ID<const NodeView> output) const
+bool NodeView::should_follow_output(PoolID<const NodeView> output) const
 {
     return outputs.empty() || outputs[0] == output;
 }
 
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
-    for(ID<NodeView> each_id : inputs )
+    for(PoolID<NodeView> each_id : inputs )
     {
         NodeView* each_input_view = each_id.get();
         if( _visible || (outputs.empty() || each_input_view->should_follow_output( this->m_id )) )
@@ -1126,4 +1126,9 @@ ImRect NodeView::get_screen_rect()
 bool NodeView::is_any_selected()
 {
     return NodeView::get_selected().get() != nullptr;
+}
+
+SlotView& NodeView::get_slot_view(ID<Slot> _id)
+{
+    return m_slot_view.at(_id.m_value);
 }

@@ -45,7 +45,6 @@ namespace ndbl {
     class Node
 	{
         REFLECT_BASE_CLASS()
-        size_t get_slot_count(Relation edge, Way way) const;
         POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM(Node);
 	public:
         // Data
@@ -69,7 +68,7 @@ namespace ndbl {
         virtual ~Node() = default;
 
         std::vector<DirectedEdge> filter_edges(Relation edge) const;
-        std::vector<DirectedEdge>    edges() const;
+        std::vector<DirectedEdge> edges() const;
         std::vector<PoolID<Node>> successors() const;
         std::vector<PoolID<Node>> children() const;
         bool                 allows_more(Relation);
@@ -85,20 +84,21 @@ namespace ndbl {
         Slot&                get_slot(Property*, Way) const;
         Slot&                get_slot(ID<Property>, Way) const;
         Slot&                get_slot(const char* _name, Way) const;
+        size_t               get_slot_count(Relation, Way) const;
         const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
-        DirectedEdge                 get_edge_heading(ID<Property>) const;
-        DirectedEdge                 get_edge_heading(const char* name) const;
-        bool                 has_edge_heading(ID<Property> property) const;
+        DirectedEdge         get_edge_heading(ID<Property>) const;
+        DirectedEdge         get_edge_heading(const char* name) const;
+        bool                 has_edge_heading(ID<Property>) const;
         bool                 has_edge_heading(const char* name) const;
-        Property*            get_prop_at(ID<Property> pos);
-        const Property*      get_prop_at(ID<Property> pos) const;
+        Property*            get_prop_at(ID<Property>);
+        const Property*      get_prop_at(ID<Property>) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
         std::vector<DirectedEdge>    get_input_edges(const std::vector<ID<Property>>& properties) const;
         std::vector<PoolID<Component>> get_components();
 
         template<typename ValueT, typename ...ArgsT>
-        size_t add_prop(ArgsT...args)
+        ID<Property> add_prop(ArgsT...args)
         { return props.add<ValueT>(args...); }
 
         template<class ComponentT>

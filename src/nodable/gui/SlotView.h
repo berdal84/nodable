@@ -25,8 +25,11 @@ namespace ndbl
         bool                  has_node_connected() const;
         ImVec2                get_pos() const;
         ImRect                get_rect() const;
-        ID<Node> node()const;
-        ID<Node> adjacent_node() const;
+        PoolID<Node>          node()const;
+        PoolID<Node>          adjacent_node() const;
+        bool                  is_node_slot() const;
+        bool                  allows(Way way) const;
+        PoolID<Node>          get_node();
         static SlotView*      get_dragged() { return s_dragged; }
         static SlotView*      get_focused() { return s_dragged; }
         static SlotView*      get_hovered() { return s_hovered; }
@@ -47,9 +50,6 @@ namespace ndbl
                 const ImColor &_color,
                 const ImColor &_hoveredColor,
                 bool _editable);
-        bool is_node_slot() const;
-
-        bool allows(Way way) const;
 
     private:
         Slot                  m_slot;

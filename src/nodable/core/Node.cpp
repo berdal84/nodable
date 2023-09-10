@@ -13,7 +13,7 @@
 
 
 using namespace ndbl;
-using fw::pool::Pool;
+using fw::Pool;
 
 REGISTER
 {

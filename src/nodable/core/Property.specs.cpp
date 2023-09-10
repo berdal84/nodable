@@ -3,7 +3,7 @@
 #include "Property.h"
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 
 TEST(Property, Way_In)
 {

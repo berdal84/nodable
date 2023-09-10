@@ -11,10 +11,11 @@
 #include "Property.h"
 #include "Visibility.h"
 #include "Way.h"
+#include "Slot.h"
 
 namespace ndbl
 {
-    using fw::pool::PoolID;
+    using fw::PoolID;
 
     /**
      * @brief The Properties class is a Property* container for a given Node.
@@ -48,8 +49,8 @@ namespace ndbl
         const Property*        at(fw::ID<Property>) const;
         Property*              get(const char* _name);
         const Property*        get(const char* _name) const;
-        Property*              get_first(Way _way, const fw::type *_type);
-        const Property*        get_first(Way _way, const fw::type *_type) const;
+        Slot * get_first(Way _way, const fw::type *_type);
+        const Slot * get_first(Way _way, const fw::type *_type) const;
         Property*              get_input_at(fw::ID<Property>);
         const Property*        get_input_at(fw::ID<Property>) const;
         fw::ID<Property>       get_id(const char* _name) const;

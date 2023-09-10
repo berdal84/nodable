@@ -2,6 +2,7 @@
 
 #include <string>
 #include <map>
+#include <unordered_map>
 #include <cmath> // round()
 #include <algorithm>
 #include <observe/observer.h>
@@ -14,6 +15,7 @@
 #include "core/SlotBag.h"
 
 #include "types.h"     // for constants and forward declarations
+#include "SlotView.h"
 
 namespace ndbl
 {
@@ -46,15 +48,15 @@ namespace ndbl
         NodeView (NodeView&&) = default;
         NodeView& operator=(NodeView&&) = default;
 
-        std::vector<ID<NodeView>> successors;
-        std::vector<ID<NodeView>> children;
-        std::vector<ID<NodeView>> outputs;
-        std::vector<ID<NodeView>> inputs;
+        std::vector<PoolID<NodeView>> successors;
+        std::vector<PoolID<NodeView>> children;
+        std::vector<PoolID<NodeView>> outputs;
+        std::vector<PoolID<NodeView>> inputs;
 
         bool                pinned;
 
         bool                    draw()override;
-		void                    set_owner(ID<Node>)override;
+		void                    set_owner(PoolID<Node>)override;
 		void                    expose(Property* );
 		bool                    update(float);
         ImVec2                  get_position() const { return m_position; };
@@ -68,36 +70,38 @@ namespace ndbl
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
         const PropertyView*     get_property_view(const Property * _property)const;
         inline ImVec2           get_size() const { return m_size; }
-        bool                    is_dragged()const { return s_dragged == id(); }
+        bool                    is_dragged()const { return s_dragged == poolid(); }
         bool                    is_expanded()const { return m_expanded; }
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
         void                    set_children_visible(bool _visible, bool _recursive = false);
-        bool                    should_follow_output(ID<const NodeView>) const;
+        bool                    should_follow_output(PoolID<const NodeView>) const;
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
+        SlotView&               get_slot_view(ID<Slot>);
         ImRect                  get_screen_rect();
         static ImRect           get_rect(
                 const std::vector<NodeView *> &_views,
                 bool _recursive = false,
                 bool _ignorePinned = true,
                 bool _ignoreMultiConstrained = true); // rectangle is in local space
-        static void             set_selected(ID<NodeView>);
-        static ID<NodeView>     get_selected();
-        static bool             is_selected(ID<NodeView>);
-        static void             start_drag(ID<NodeView>);
+        static void             set_selected(PoolID<NodeView>);
+        static PoolID<NodeView>     get_selected();
+        static bool             is_selected(PoolID<NodeView>);
+        static void             start_drag(PoolID<NodeView>);
         static bool		        is_any_dragged();
         static bool             is_any_selected();
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
-        static ID<NodeView>     get_dragged();
+        static PoolID<NodeView>     get_dragged();
         static bool             draw_property(Property* _property, const char *_label);
         static void             draw_as_properties_panel(NodeView* _view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
+
     private:
         bool                    draw_property_view(PropertyView* _view);
         bool                    is_exposed(const Property *_property)const;
@@ -118,9 +122,9 @@ namespace ndbl
 		std::vector<PropertyView*>  m_exposed_out_or_inout_properties;
         PropertyView*               m_exposed_this_property_view;
         std::map<const Property*, PropertyView*> m_exposed_properties;
-
-		static ID<NodeView>       s_selected;
-		static ID<NodeView>       s_dragged;
+        std::unordered_map<ID<Slot>::id_t, SlotView> m_slot_view;
+		static PoolID<NodeView>       s_selected;
+		static PoolID<NodeView>       s_dragged;
         static const float            s_property_input_size_min;
         static const ImVec2           s_property_input_toggle_button_size;
         static NodeViewDetail         s_view_detail;

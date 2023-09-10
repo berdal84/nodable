@@ -10,7 +10,7 @@
 #include "Physics.h"
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 
 NodeViewConstraint::NodeViewConstraint(const char* _name, ViewConstraint_t _type)
 : m_type(_type)
@@ -152,7 +152,7 @@ void NodeViewConstraint::apply(float _dt)
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
                     new_pos.y = first_driver_pos.y + y_offset;
 
-                    if (each_target->should_follow_output( driver->id() ) )
+                    if (each_target->should_follow_output( driver->poolid() ) )
                     {
                         auto target_physics = each_target->get_owner()->get_component<Physics>();
                         target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
@@ -191,30 +191,30 @@ void NodeViewConstraint::apply(float _dt)
     }
 }
 
-void NodeViewConstraint::add_target(ID<NodeView> _target)
+void NodeViewConstraint::add_target(PoolID<NodeView> _target)
 {
     FW_ASSERT( _target );
     m_targets.push_back(_target);
 }
 
-void NodeViewConstraint::add_driver(ID<NodeView> _driver)
+void NodeViewConstraint::add_driver(PoolID<NodeView> _driver)
 {
     FW_ASSERT( _driver );
     m_drivers.push_back(_driver);
 }
 
-void NodeViewConstraint::add_targets(const std::vector<ID<NodeView>> &_new_targets)
+void NodeViewConstraint::add_targets(const std::vector<PoolID<NodeView>> &_new_targets)
 {
     m_targets.insert(m_targets.end(), _new_targets.begin(), _new_targets.end());
 }
 
-void NodeViewConstraint::add_drivers(const std::vector<ID<NodeView>> &_new_drivers)
+void NodeViewConstraint::add_drivers(const std::vector<PoolID<NodeView>> &_new_drivers)
 {
     m_drivers.insert(m_drivers.end(), _new_drivers.begin(), _new_drivers.end());
 }
 
 
-auto not_expanded  = [](ID<const NodeView> _view ) { return !_view->is_expanded(); };
+auto not_expanded  = [](PoolID<const NodeView> _view ) { return !_view->is_expanded(); };
 
 const NodeViewConstraint::Filter
         NodeViewConstraint::always = [](NodeViewConstraint* _constraint){ return true; };

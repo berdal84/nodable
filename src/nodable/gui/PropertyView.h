@@ -9,7 +9,7 @@ namespace ndbl {
     class Property;
     class SlotView;
     class NodeView;
-    using fw::pool::ID;
+    using fw::PoolID;
 
     /**
      * Simple struct to store a property view state
@@ -21,9 +21,9 @@ namespace ndbl {
         ImVec2              position;
         bool                show_input;
         bool                touched;
-        const ID<NodeView>  node_view;
+        const PoolID<NodeView>  node_view;
 
-        PropertyView(u8_t _property_id, ID<NodeView> _node_view_id);
+        PropertyView(u8_t _property_id, PoolID<NodeView> _node_view_id);
         ~PropertyView();
         PropertyView (const PropertyView&) = delete;
         PropertyView& operator= (const PropertyView&) = delete;

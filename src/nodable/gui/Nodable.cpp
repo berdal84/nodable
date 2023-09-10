@@ -25,7 +25,7 @@
 #include <algorithm>
 
 using namespace ndbl;
-using namespace fw::pool;
+using namespace fw;
 using fw::View;
 
 Nodable *Nodable::s_instance = nullptr;
@@ -111,7 +111,7 @@ bool Nodable::on_init()
 {
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
 
-    fw::pool::Pool::init();
+    fw::Pool::init();
 
     fw::EventManager& event_manager = core.event_manager;
 
@@ -528,7 +528,7 @@ bool Nodable::on_shutdown()
     }
     LOG_VERBOSE("ndbl::App", "on_shutdown " OK "\n");
 
-    fw::pool::Pool::shutdown();
+    fw::Pool::shutdown();
 
     return true;
 }

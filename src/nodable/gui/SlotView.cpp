@@ -257,3 +257,8 @@ bool SlotView::allows(Way way) const
 {
     return m_slot.allows(way);
 }
+
+PoolID<Node> SlotView::get_node()
+{
+    return m_slot.get_node();
+}

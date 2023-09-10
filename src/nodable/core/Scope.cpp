@@ -13,7 +13,7 @@
 #include "IScope.h"
 
 using namespace ndbl;
-using fw::pool::PoolID;
+using fw::PoolID;
 
 REGISTER
 {
@@ -55,7 +55,7 @@ PoolID<VariableNode> Scope::find_variable(const std::string &_name)
         Node* parent = owner->parent.get();
         if ( !parent )
         {
-            return fw::pool::PoolID<Node>::null;
+            return fw::PoolID<Node>::null;
         }
         PoolID<Scope> scope = parent->get_component<Scope>();
         if ( !scope.get() )

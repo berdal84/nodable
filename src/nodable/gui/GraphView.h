@@ -20,9 +20,9 @@ namespace ndbl
     class Graph;
 
 	typedef struct {
-        std::string                    label;
-        std::function<ID<Node>(void)>  create_node_fct;
-        const fw::func_type*           function_signature;
+        std::string label;
+        std::function<PoolID<Node>(void)> create_node_fct;
+        const fw::func_type* function_signature;
 	} FunctionMenuItem;
 
     class GraphView: public fw::View
@@ -38,7 +38,7 @@ namespace ndbl
 		void        add_contextual_menu_item(
                         const std::string &_category,
                         const std::string &_label,
-                        std::function<ID<Node>(void)> _function,
+                        std::function<PoolID<Node>(void)> _function,
                         const fw::func_type *_signature);
         void        frame_all_node_views();
         void        frame_selected_node_views();

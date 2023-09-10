@@ -15,7 +15,7 @@
 #include "NodeUtils.h"
 
 using namespace ndbl;
-using fw::pool::Pool;
+using fw::Pool;
 
 PoolID<InstructionNode> NodeFactory::create_instr() const
 {

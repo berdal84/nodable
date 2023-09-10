@@ -6,7 +6,7 @@ using namespace ndbl;
 const Slot Slot::null{};
 
 Slot::Slot()
-: index(0)
+: index(ID<Slot>::null)
 , node(PoolID<Node>::null)
 , property(ID<Property>::null)
 , way(Way::None)
@@ -24,7 +24,7 @@ Slot::Slot(const Slot &other)
 
 
 Slot::Slot(
-u8_t         _index,
+ID<Slot>     _index,
 PoolID<Node> _node,
 Way          _way,
 ID<Property> _property,

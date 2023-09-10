@@ -8,7 +8,7 @@ namespace ndbl {
     // forward declarations
     class Node;
     class Component;
-    template<typename T> using PoolID = fw::pool::PoolID<T>;
+    template<typename T> using PoolID = fw::PoolID<T>;
 
     /**
      * Store a list of Components* owned by a single owner.

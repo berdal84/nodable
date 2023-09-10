@@ -19,7 +19,7 @@
 
 using namespace ndbl;
 using namespace ndbl::assembly;
-using namespace fw::pool;
+using namespace fw;
 
 AppView::AppView(Nodable * _app)
     : m_logo(nullptr)
