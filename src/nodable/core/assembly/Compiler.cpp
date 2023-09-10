@@ -74,7 +74,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
     return true;
 }
 
-void Compiler::compile(Slot slot)
+void Compiler::compile_slot(Slot slot)
 {
     Property* property = slot.get_property();
 
@@ -82,7 +82,7 @@ void Compiler::compile(Slot slot)
 
     if ( property->is_referencing<Node>() )
     {
-        return compile( (ID<Node>)*property->value() );
+        return compile_node((ID<Node>) *property->value());
     }
 
     DirectedEdge edge = slot.node->get_edge_heading(property->id);
@@ -92,11 +92,11 @@ void Compiler::compile(Slot slot)
          * if the property has an input it means it is not a simple literal value and we have to compile it.
          * In order to do that, we traverse the syntax tree starting from the node connected to it.
          */
-        compile( edge.tail.node );
+        compile_node(edge.tail.node);
     }
 }
 
-void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
+void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
 {
     if( !_scope)
     {
@@ -127,7 +127,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     // compile content
     for( PoolID<Node> each_node : scope_owner->children() )
     {
-        compile(each_node);
+        compile_node(each_node);
     }
 
     // before to pop, we could insert a return value
@@ -151,7 +151,7 @@ void assembly::Compiler::compile(const Scope* _scope, bool _insert_fake_return)
     }
 }
 
-void assembly::Compiler::compile(PoolID<const Node> node_id)
+void assembly::Compiler::compile_node(PoolID<const Node> node_id)
 {
     if( !node_id)
     {
@@ -164,15 +164,15 @@ void assembly::Compiler::compile(PoolID<const Node> node_id)
     {
         if ( auto for_loop = fw::cast<const ForLoopNode>(_node))
         {
-            compile(for_loop);
+            compile_for_loop(for_loop);
         }
         else if ( auto while_loop = fw::cast<const WhileLoopNode>(_node))
         {
-            compile(while_loop);
+            compile_while_loop(while_loop);
         }
         else if ( auto cond_struct_node = fw::cast<const ConditionalStructNode>(_node) )
         {
-            compile(cond_struct_node);
+            compile_conditional_struct(cond_struct_node);
         }
         else
         {
@@ -184,7 +184,7 @@ void assembly::Compiler::compile(PoolID<const Node> node_id)
     }
     else if ( auto instr_node = fw::cast<const InstructionNode>(_node) )
     {
-        compile(instr_node);
+        compile_instruction(instr_node);
     }
     else
     {
@@ -193,7 +193,7 @@ void assembly::Compiler::compile(PoolID<const Node> node_id)
         {
             if ( edge.head.node->get_type()->is_not_child_of<VariableNode>() )
             {
-                compile( edge.head );
+                compile_slot(edge.head);
             }
         }
 
@@ -212,14 +212,14 @@ void assembly::Compiler::compile(PoolID<const Node> node_id)
 
 }
 
-void assembly::Compiler::compile(const ForLoopNode* for_loop)
+void assembly::Compiler::compile_for_loop(const ForLoopNode* for_loop)
 {
     // for_loop init instruction
-    compile(for_loop->init_instr.get());
+    compile_instruction(for_loop->init_instr.get());
 
     // compile condition and memorise its position
     u64_t condition_instr_line = m_temp_code->get_next_index();
-    compile_as_condition(for_loop->cond_instr.get());
+    compile_instruction_as_condition(for_loop->cond_instr.get());
 
     // jump if condition is not true
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
@@ -227,10 +227,10 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
 
     if ( auto true_scope = for_loop->get_condition_true_scope().get() )
     {
-        compile(true_scope);
+        compile_scope(true_scope);
 
         // insert end-loop instruction.
-        compile(for_loop->iter_instr.get());
+        compile_instruction(for_loop->iter_instr.get());
 
         // insert jump to condition instructions.
         auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
@@ -241,11 +241,11 @@ void assembly::Compiler::compile(const ForLoopNode* for_loop)
     skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
 }
 
-void assembly::Compiler::compile(const WhileLoopNode*while_loop)
+void assembly::Compiler::compile_while_loop(const WhileLoopNode*while_loop)
 {
     // compile condition and memorise its position
     u64_t condition_instr_line = m_temp_code->get_next_index();
-    compile_as_condition(while_loop->cond_instr.get());
+    compile_instruction_as_condition(while_loop->cond_instr.get());
 
     // jump if condition is not true
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
@@ -253,7 +253,7 @@ void assembly::Compiler::compile(const WhileLoopNode*while_loop)
 
     if ( Scope* true_scope = while_loop->get_condition_true_scope().get() )
     {
-        compile(true_scope);
+        compile_scope(true_scope);
 
         // jump back to condition instruction
         auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
@@ -264,10 +264,10 @@ void assembly::Compiler::compile(const WhileLoopNode*while_loop)
     skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
 }
 
-void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node)
+void assembly::Compiler::compile_instruction_as_condition(const InstructionNode* _instr_node)
 {
     // compile condition result (must be stored in rax after this line)
-    compile(_instr_node);
+    compile_instruction(_instr_node);
 
     // move "true" result to rdx
     Instruction* store_true   = m_temp_code->push_instr(Instruction_t::mov);
@@ -282,9 +282,9 @@ void assembly::Compiler::compile_as_condition(const InstructionNode* _instr_node
     cmp_instr->m_comment    = "compare registers";
 }
 
-void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
+void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode* _cond_node)
 {
-    compile_as_condition(_cond_node->cond_expr.get()); // compile condition instruction, store result, compare
+    compile_instruction_as_condition(_cond_node->cond_expr.get()); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     jump_over_true_branch->m_comment   = "jump if not is";
@@ -293,7 +293,7 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
 
     if ( Scope* true_scope = _cond_node->get_condition_true_scope().get() )
     {
-        compile(true_scope);
+        compile_scope(true_scope);
 
         if ( _cond_node->get_condition_false_scope() )
         {
@@ -309,11 +309,11 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
         if( _cond_node->has_elseif() )
         {
             auto conditional_struct = Pool::get_pool()->get( false_scope->get_owner() );
-            compile(fw::cast<const ConditionalStructNode>( conditional_struct ) );
+            compile_conditional_struct(fw::cast<const ConditionalStructNode>(conditional_struct));
         }
         else
         {
-            compile(false_scope);
+            compile_scope(false_scope);
         }
 
         if ( jump_after_conditional )
@@ -323,14 +323,14 @@ void assembly::Compiler::compile(const ConditionalStructNode* _cond_node)
     }
 }
 
-void assembly::Compiler::compile(const InstructionNode *instr_node)
+void assembly::Compiler::compile_instruction(const InstructionNode *instr_node)
 {
     DirectedEdge edge = instr_node->get_edge_heading(ROOT_PROPERTY);
 
     if (edge != DirectedEdge::null )
     {
         // Compiles input
-        compile( edge.tail );
+        compile_slot(edge.tail);
 
         // Copy result to rax register
         Property* tail_node_property = edge.tail.node->get_prop(VALUE_PROPERTY);
@@ -355,7 +355,7 @@ const Code* assembly::Compiler::compile_syntax_tree(const Graph* _graph)
         {
             Scope* scope = _graph->get_root()->get_component<Scope>().get();
             FW_ASSERT(scope)
-            compile(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
+            compile_scope(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");
         }
         catch ( const std::exception& e )
