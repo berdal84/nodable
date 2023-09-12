@@ -102,7 +102,7 @@ void NodeView::set_owner(PoolID<Node> node)
 {
     Component::set_owner(node);
 
-    if( node == ID_NULL )
+    if( node == PoolID<Node>::null )
     {
         return;
     }
@@ -115,31 +115,15 @@ void NodeView::set_owner(PoolID<Node> node)
 
     //  We expose first the properties which allows input connections
 
-    for ( Property& property : node->props )
+    for ( Slot& slot : node->slots.filter_by_type( SlotFlag_INPUT ) )
     {
-        if ( property.get_visibility() == Visibility::Always && property.allows_connection(Way::In) )
-        {
-            expose(&property);
-        }
-        else
-        {
-            not_exposed.push_back(&property);
-        }
+        expose(slot.get_property());
     }
 
     // Then we expose node which allows output connection (if they are not yet exposed)
-    for (auto property_id : not_exposed)
+    for ( Slot& slot : node->slots.filter_by_type( SlotFlag_OUTPUT ) )
     {
-        Property* property = property_id;
-        if (property->get_visibility() == Visibility::Always && property->allows_connection(Way::Out))
-        {
-            expose(property);
-        }
-    }
-
-    if ( Property* this_property = node->get_prop(THIS_PROPERTY) )
-    {
-        expose(this_property);
+        expose( slot.get_property() );
     }
 
     // 2. SlotViews
@@ -154,7 +138,7 @@ void NodeView::set_owner(PoolID<Node> node)
     auto synchronize_view = [id, node](SlotBag::Event event)
     {
         FW_EXPECT(false, "TODO: update children, predecessors, inputs, and outputs cache vector<PoolID<NodeView>>")
-        id->children = GraphUtil::adjacent_components<NodeView>(node.get(), Relation::CHILD_PARENT, Way::In);
+        id->children = GraphUtil::adjacent_components<NodeView>(node.get(), SlotFlag_CHILD);
     };
     node->on_slot_change.connect(synchronize_view);
 
@@ -271,19 +255,18 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 	if ( !_recurse ) return;
 
-    for(auto eachInput : m_owner->inputs )
+    for(auto each_input_view : inputs )
     {
-        auto eachInputView = eachInput->get_component<NodeView>();
-        if ( eachInputView && !eachInputView->pinned && eachInputView->should_follow_output( this->m_id ) )
+        if ( each_input_view && !each_input_view->pinned && each_input_view->should_follow_output( this->m_id ) )
         {
-            eachInputView->translate(_delta, true);
+            each_input_view->translate(_delta, true);
         }
     }
 }
 
 void NodeView::arrange_recursively(bool _smoothly)
 {
-    for (auto each_input_view: inputs.content() )
+    for (auto each_input_view: inputs )
     {
         if (each_input_view->should_follow_output( this->m_id ))
         {
@@ -291,7 +274,7 @@ void NodeView::arrange_recursively(bool _smoothly)
         }
     }
 
-    for (auto each_child_view: children.content() )
+    for (auto each_child_view: children )
     {
         each_child_view->arrange_recursively();
     }
@@ -326,9 +309,9 @@ bool NodeView::draw()
         ImColor color        = config.ui_node_nodeslotColor;
         ImColor hoveredColor = config.ui_node_nodeslotHoveredColor;
 
-        auto draw_and_handle_evt = [&](Nodeslot* slot)
+        auto draw_and_handle_evt = [&](Slot* slot)
         {
-            Nodeslot::draw(slot, color, hoveredColor, m_edition_enable);
+            SlotView::draw_slot_rectangle(slot, color, hoveredColor, m_edition_enable);
             is_slot_hovered |= ImGui::IsItemHovered();
         };
 
@@ -595,7 +578,7 @@ bool NodeView::draw_property_view(PropertyView* _view)
 
         // Generate the property's source code
         std::string source_code;
-        if( property->get_type()->is<PoolID<Node>>() || !property->allows_connection(Way::In)) // pointer to Node or output
+        if( property->get_type()->is<PoolID<Node>>() || !property->has_flags( Way::In )) // pointer to Node or output
         {
             Nodlang::get_instance().serialize_node( source_code, property->owner());
         }
@@ -623,7 +606,7 @@ bool NodeView::draw_property_view(PropertyView* _view)
 bool NodeView::draw_property(Property* _property, const char *_label)
 {
     bool  changed = false;
-    Node* node    = _property->owner().get();
+    Node* node    = _property->owner().find_by_name();
 
     // Create a label (everything after ## will not be displayed)
     std::string label;
@@ -727,7 +710,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         ImGui::Text(
                 "%s (%s, %s): ",
                 _property->get_name().c_str(),
-                to_string(_property->get_allowed_connection()),
+                to_string( _property->flags()),
                 _property->get_type()->get_name());
 
         ImGui::SameLine();
@@ -1131,4 +1114,14 @@ bool NodeView::is_any_selected()
 SlotView& NodeView::get_slot_view(ID<Slot> _id)
 {
     return m_slot_view.at(_id.m_value);
+}
+
+ImVec2 NodeView::get_slot_pos( ID<Slot> id )
+{
+    return get_slot_view(id).get_pos();
+}
+
+bool NodeView::is_dragged() const
+{
+    return s_dragged == m_id;
 }

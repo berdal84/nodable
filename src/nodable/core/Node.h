@@ -15,7 +15,6 @@
 #include "Property.h"
 #include "PropertyBag.h"
 #include "SlotBag.h"
-#include "TDirectedEdge.h"
 #include "constants.h"
 
 namespace ndbl {
@@ -45,11 +44,10 @@ namespace ndbl {
     class Node
 	{
         REFLECT_BASE_CLASS()
-        POOL_REGISTRABLE_WITH_CUSTOM_IMPLEM(Node);
+        POOL_REGISTRABLE(Node)
 	public:
         // Data
 
-        PoolID<Node>      parent;
         std::string       name;
         Graph*            parent_graph;
         PropertyBag       props;
@@ -58,51 +56,54 @@ namespace ndbl {
         bool              flagged_to_delete; // TODO: use flags
 
         observe::Event<SlotBag::Event> on_slot_change;
-        observe::Event<ID<Node>>       on_name_change;
+        observe::Event<decltype(m_id)> on_name_change;
 
         // Code
 
         Node(std::string  _label = "UnnamedNode");
-        Node(Node&&) = default;
-        Node& operator=(Node&&) = default;
+        Node(Node&&);
+        Node& operator=(Node&&);
         virtual ~Node() = default;
 
-        std::vector<DirectedEdge> filter_edges(Relation edge) const;
-        std::vector<DirectedEdge> edges() const;
+        virtual void init();
+        std::vector<PoolID<Node>> filter_adjacent(SlotFlags) const;
         std::vector<PoolID<Node>> successors() const;
         std::vector<PoolID<Node>> children() const;
-        bool                 allows_more(Relation);
-        void                 set_parent(ID<Node>);
         void                 set_name(const char*);
-		void                 add_edge(DirectedEdge);
-		void                 remove_edge(DirectedEdge);
-        size_t               incoming_edge_count()const;
-        size_t               outgoing_edge_count()const;
-        size_t               edge_count(Way)const;
+        size_t               adjacent_count(SlotFlags )const;
         std::vector<PoolID<Node>>get_predecessors() const;
-        Slot&slot(Way way = Way::InOut) const;
-        Slot&                get_slot(Property*, Way) const;
-        Slot&                get_slot(ID<Property>, Way) const;
-        Slot&                get_slot(const char* _name, Way) const;
-        size_t               get_slot_count(Relation, Way) const;
+        PoolID<Node>         get_parent() const;
+        Slot&                get_slot(SlotFlags _flags); // implicitly THIS_PROPERTY's slot
+        Slot&                get_slot(ID<Slot>);
+        Slot&                get_slot(ID<Property>, SlotFlags);
+        const Slot&          get_slot(ID<Property>, SlotFlags) const;
+        Slot&                get_slot(const char* property_name, SlotFlags filter );
+        const Slot&          get_slot(const char* property_name, SlotFlags filter ) const;
+        size_t               get_slot_count(SlotFlags) const;
+        Slot&                find_nth_slot( u8_t, SlotFlags );
+        Slot*                get_first_slot(SlotFlags _way, const fw::type *_type);
         const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
-        DirectedEdge         get_edge_heading(ID<Property>) const;
-        DirectedEdge         get_edge_heading(const char* name) const;
+        std::vector<SlotRef> filter_adjacent_slots(SlotFlags) const;
+        std::vector<Slot*>   filter_slots(SlotFlags) const;
         bool                 has_edge_heading(ID<Property>) const;
         bool                 has_edge_heading(const char* name) const;
         Property*            get_prop_at(ID<Property>);
         const Property*      get_prop_at(ID<Property>) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        std::vector<DirectedEdge>    get_input_edges(const std::vector<ID<Property>>& properties) const;
+        std::vector<Slot*>   get_slots(const std::vector<ID<Property>>&, SlotFlags) const;
         std::vector<PoolID<Component>> get_components();
+        void                 set_limit(SlotFlags _way, u8_t _n);
+        ID<Property>         add_prop(const fw::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
+        ID<Slot>             add_slot(ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity = 1);
+        Node*                last_child();
 
-        template<typename ValueT, typename ...ArgsT>
-        ID<Property> add_prop(ArgsT...args)
-        { return props.add<ValueT>(args...); }
+        template<typename ValueT>
+        ID<Property> add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)
+        { return props.add<ValueT>(_name, _flags); }
 
         template<class ComponentT>
-        void add_component(ID<ComponentT> component)
+        void add_component(PoolID<ComponentT> component)
         { return m_components.add( component ); }
 
         template<class ComponentT>
@@ -112,6 +113,7 @@ namespace ndbl {
         template<class ComponentT>
         bool has_component() const
         { return m_components.has<ComponentT>(); }
+
     private:
         ComponentBag m_components;
     };

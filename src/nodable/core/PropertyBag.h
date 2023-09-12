@@ -9,14 +9,10 @@
 
 #include "constants.h"
 #include "Property.h"
-#include "Visibility.h"
-#include "Way.h"
 #include "Slot.h"
 
 namespace ndbl
 {
-    using fw::PoolID;
-
     /**
      * @brief The Properties class is a Property* container for a given Node.
      * This class uses several indexes (by address, name, insertion order).
@@ -27,18 +23,10 @@ namespace ndbl
         static constexpr size_t THIS_ID = 0; // id of the "this" Property. A "this" Property points to its owner's ID<Node>
         using iterator = std::vector<Property>::iterator;
         using const_iterator = std::vector<Property>::const_iterator;
-
-        template<typename OwnerT>
-        PropertyBag(PoolID<OwnerT>)
-        {
-            static_assert__is_pool_registrable<OwnerT>();
-            // Add a property acting like a "this" for the owner Node.
-            size_t id = add<PoolID<OwnerT>>(THIS_PROPERTY, Visibility::Always, Way::Out);
-            FW_EXPECT(id == THIS_ID, "P_THIS should have a null id");
-        }
-		PropertyBag(PropertyBag&&);
-		PropertyBag& operator=(PropertyBag&&);
-		virtual ~PropertyBag();
+        PropertyBag() = default;
+		PropertyBag(PropertyBag&&) = default;
+		~PropertyBag() = default;
+        PropertyBag& operator=(PropertyBag&&) = default;
 
         iterator               begin() { return m_properties.begin(); }
         iterator               end() { return m_properties.end(); }
@@ -47,31 +35,27 @@ namespace ndbl
         bool                   has(const char*) const;
         Property*              at(fw::ID<Property>);
         const Property*        at(fw::ID<Property>) const;
-        Property*              get(const char* _name);
-        const Property*        get(const char* _name) const;
-        Slot * get_first(Way _way, const fw::type *_type);
-        const Slot * get_first(Way _way, const fw::type *_type) const;
-        Property*              get_input_at(fw::ID<Property>);
-        const Property*        get_input_at(fw::ID<Property>) const;
-        fw::ID<Property>       get_id(const char* _name) const;
+        Property*              find_by_name(const char* _name);
+        const Property*        find_by_name(const char* _name) const;
+        Property*              find_first( PropertyFlags, const fw::type* );
+        const Property*        find_first( PropertyFlags, const fw::type* ) const;
+        fw::ID<Property>       find_id_from_name(const char*) const;
         Property*              get_this();
         const Property*        get_this() const;
-        fw::ID<Property> add( const fw::type* _type,
+        fw::ID<Property>       add( const fw::type* _type,
                                     const char *_name,
-                                    Visibility _visibility = Visibility::Default,
-                                    Way _way = Way::Default,
-                                    Property::Flags _flags = 0);
+                                    PropertyFlags = PropertyFlag_DEFAULT );
 
         template<typename T>
         fw::ID<Property> add(
             const char* _name,
-            Visibility _visibility = Visibility::Default,
-            Way _way = Way::Default,
-            Property::Flags _flags = 0)
+            PropertyFlags _flags = PropertyFlag_DEFAULT  )
         {
-            return add(fw::type::get<T>(), _name, _visibility, _way, _flags);
+            return add(fw::type::get<T>(), _name, _flags);
         }
 	private:
+        const Property* _find_first( PropertyFlags _flags, const fw::type *_type) const;
+        const Property* _find_nth_write_only( u8_t _n ) const;
         std::vector<Property>  m_properties;
         std::map<std::string, fw::ID<Property>> m_properties_by_name;
     };

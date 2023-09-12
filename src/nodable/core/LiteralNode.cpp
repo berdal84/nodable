@@ -7,12 +7,19 @@ REGISTER
     fw::registration::push_class<LiteralNode>("LiteralNode").extends<Node>();
 }
 
-LiteralNode::LiteralNode(const fw::type* _type) : Node()
+LiteralNode::LiteralNode(const fw::type* _type)
+: Node()
+, m_type( _type )
 {
-    Property::Flags flags = Property::Flags_initialize
-                        | Property::Flags_define
-                        | Property::Flags_reset_value;
-    m_value_property_id = props.add(_type, VALUE_PROPERTY, Visibility::Always, Way::Out, flags);
 }
 
-LiteralNode::LiteralNode(): Node() {}
+void LiteralNode::init()
+{
+    Node::init();
+    m_value_property_id = props.add(
+            m_type,
+            VALUE_PROPERTY,
+            PropertyFlag_VISIBLE | PropertyFlag_INITIALIZE | PropertyFlag_DEFINE | PropertyFlag_RESET_VALUE);
+    add_slot(m_value_property_id, SlotFlag::SlotFlag_OUTPUT, 1 );
+}
+

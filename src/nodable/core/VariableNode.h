@@ -23,20 +23,21 @@ namespace ndbl
     {
 	public:
 		VariableNode();
-        VariableNode(VariableNode&& other): Node(std::move(other)) {};
+        VariableNode(VariableNode&&) = default;
 		explicit VariableNode(const fw::type *, const char* identifier);
 		~VariableNode() override = default;
         VariableNode& operator=(VariableNode&&) = default;
 
+        void             init() override;
 		bool             is_declared()const { return m_is_declared; }
-        Property*        property() { return get_prop_at( m_value_property_id ); }
-        const Property*  property()const { return get_prop_at( m_value_property_id ); }
+        Property*        property();
+        const Property*  property()const;
         const PoolID<InstructionNode> get_declaration_instr()const { return m_declaration_instr; }
         PoolID<Scope>    get_scope();
-        Slot             get_value_slot(Way way) const;
+        Slot&            get_value_slot(SlotFlags);
         void             set_declared(bool b = true) { m_is_declared = b; }
         void             reset_scope(Scope* _scope = nullptr);
-        void             set_declaration_instr(ID<InstructionNode> _instr) { m_declaration_instr = _instr; }
+        void             set_declaration_instr(PoolID<InstructionNode> _instr) { m_declaration_instr = _instr; }
         const fw::type*  type() const;
         fw::variant*     value();
         fw::variant& operator * () { return *property()->value(); }
@@ -51,6 +52,7 @@ namespace ndbl
     private:
         ID<Property>            m_value_property_id;
         bool                    m_is_declared;
+        const fw::type*         m_type;
         PoolID<InstructionNode> m_declaration_instr;
         PoolID<Node>            m_scope;
 

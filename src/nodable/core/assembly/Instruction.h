@@ -22,7 +22,7 @@ namespace assembly
         jmp,                   // unconditional jump.
         jne,                   // conditional jump.
         mov,                   // move or copy memory.
-        deref_pool_id,         // pool::ID<T> de-referencing.
+        deref_qword,         // pool::ID<T> de-referencing.
         pop_stack_frame,       // ends the current stack frame.
         pop_var,               // pop a variable from the stack.
         push_stack_frame,      // starts a new stack frame within the current.
@@ -32,7 +32,7 @@ namespace assembly
 
     R_ENUM(Instruction_t)
     R_ENUM_VALUE(mov)
-    R_ENUM_VALUE(deref_pool_id)
+    R_ENUM_VALUE( deref_qword )
     R_ENUM_VALUE(eval_node)
     R_ENUM_VALUE(push_var)
     R_ENUM_VALUE(pop_var)
@@ -61,9 +61,9 @@ namespace assembly
     // Un-reference a pointer to a given type
     struct Instruction_uref
     {
-        Instruction_t   opcode;
-        fw::qword       pool_id; // pool id to the data.
-        const fw::type* type;    // pointed data's type.
+        Instruction_t    opcode;
+        fw::qword*       ptr;
+        const fw::type*  type; // pointed data's type.
     };
 
     // Compare two operands (test if equals)
@@ -99,7 +99,7 @@ namespace assembly
      */
     struct Instruction
     {
-        Instruction(Instruction_t _opcode, u64_t _line)
+        Instruction(Instruction_t _opcode, size_t _line)
                 : opcode(_opcode)
                 , line(_line)
         {}

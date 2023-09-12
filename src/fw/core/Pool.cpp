@@ -17,7 +17,12 @@ Pool* Pool::get_pool()
 
 Pool* Pool::init(size_t reserved_size)
 {
-    FW_EXPECT(s_current_pool == nullptr, "Already initialized");
+    if( s_current_pool != nullptr )
+    {
+        LOG_WARNING("Pool", "Pool is already initialized");
+        return s_current_pool;
+    }
+
     s_current_pool = new Pool(reserved_size);
     return s_current_pool;
 }

@@ -25,12 +25,14 @@ namespace ndbl
         EventType_toggle_isolate_selection
     };
 
-    struct NodeViewEvent {
-        fw::EventType          type;
-        ID<const NodeView> view;
+    struct NodeViewEvent
+    {
+        fw::EventType    type;
+        PoolID<NodeView> view;
     };
 
-    struct ToggleFoldingEvent {
+    struct ToggleFoldingEvent
+    {
         fw::EventType type;
         bool recursive;
     };
@@ -38,8 +40,8 @@ namespace ndbl
     struct SlotEvent
     {
         fw::EventType type;
-        Slot          first;
-        Slot          second;
+        SlotRef       first;
+        SlotRef       second;
     };
 
     union Event

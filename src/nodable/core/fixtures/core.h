@@ -30,7 +30,9 @@ public:
 
     Core()
     : graph(&factory)
-    {}
+    {
+        //fw::log::set_verbosity( fw::log::Verbosity_Verbose );
+    }
 
     void SetUp()
     {
@@ -39,13 +41,20 @@ public:
 
     void TearDown()
     {
-        graph.clear();
+        try
+        {
+            // Must be cleared before Pool shutdown
+            graph.clear();
+        }
+        catch (std::exception& error)
+        {
+            LOG_ERROR(__FILE__, "Exception during graph.clear(): %s\n", error.what() );
+        }
         fw::Pool::shutdown();
     }
 
     ~Core()
     {
-        // cleanup any pending stuff, but no exceptions allowed
     }
 
     template<typename return_t>

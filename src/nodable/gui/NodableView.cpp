@@ -19,7 +19,6 @@
 
 using namespace ndbl;
 using namespace ndbl::assembly;
-using namespace fw;
 
 AppView::AppView(Nodable * _app)
     : m_logo(nullptr)
@@ -126,7 +125,8 @@ bool AppView::on_draw()
             fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_folding_selected_node_action_triggered, false,
                                                has_selection);
 
-            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection)) {
+            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
+            {
                 Event event{};
                 event.toggle_folding.type = EventType_toggle_folding_selected_node_action_triggered;
                 event.toggle_folding.recursive = true;
@@ -654,10 +654,11 @@ void AppView::draw_config_window() {
             ImGui::NewLine();
 
             ImGui::Text("Pool stats:");
-            ImGui::Text(" - Node.................... %8zu", Pool::get_pool()->get_all<Node>().size() );
-            ImGui::Text(" - NodeView................ %8zu", Pool::get_pool()->get_all<NodeView>().size() );
-            ImGui::Text(" - Physics................. %8zu", Pool::get_pool()->get_all<Physics>().size() );
-            ImGui::Text(" - Scope................... %8zu", Pool::get_pool()->get_all<Scope>().size() );
+            auto pool = fw::Pool::get_pool();
+            ImGui::Text(" - Node.................... %8zu", pool->get_all<Node>().size() );
+            ImGui::Text(" - NodeView................ %8zu", pool->get_all<NodeView>().size() );
+            ImGui::Text(" - Physics................. %8zu", pool->get_all<Physics>().size() );
+            ImGui::Text(" - Scope................... %8zu", pool->get_all<Scope>().size() );
         }
     }
     ImGui::End();

@@ -27,7 +27,7 @@ namespace assembly
     private:
         bool is_syntax_tree_valid(const Graph*);                                  // Check if syntax tree has a valid syntax (declared variables and functions).
         void compile_node(PoolID<const Node> _node);                              // Compile a node recursively, result depends on node type.
-        void compile_slot(Slot);                                                  // Compile from a Slot recursively (if targets a "this" property will compile "this" node, if not will compile input property recursively).
+        void compile_slot( const Slot *slot );                                    // Compile from a Slot recursively (if targets a "this" property will compile "this" node, if not will compile input property recursively).
         void compile_scope(const Scope*, bool _insert_fake_return = false);       // Compile a scope recursively, optionally insert a fake return statement (lack of return" keyword").
         void compile_instruction(const InstructionNode*);                         // Compile an instruction (will compile its root recursively).
         void compile_instruction_as_condition(const InstructionNode*);            // Compile an instruction as a condition.

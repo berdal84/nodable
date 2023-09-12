@@ -13,7 +13,6 @@
 #include "fw/core/types.h"
 
 #include "IScope.h"
-#include "Relation.h"
 
 namespace ndbl
 {
@@ -21,10 +20,10 @@ namespace ndbl
     class Nodlang;
     class NodeFactory;
 
-    enum class ConnectFlag
+    enum class SideEffects
     {
-        SIDE_EFFECTS_OFF = 0,
-        SIDE_EFFECTS_ON,
+        OFF = 0,
+        ON,
     };
 
     /**
@@ -64,16 +63,15 @@ namespace ndbl
         void                            clear();  // Delete all nodes, wires, edges and reset scope.
         std::vector<PoolID<Node>>&      get_node_registry() {return m_node_registry;}
         const std::vector<PoolID<Node>>& get_node_registry()const {return m_node_registry;}
-        std::multimap<Relation, DirectedEdge>& get_edge_registry() {return m_edge_registry;}
+        std::multimap<SlotFlags, DirectedEdge>& get_edge_registry() {return m_edge_registry;}
 
         // edge related
 
-        DirectedEdge         connect(DirectedEdge, ConnectFlag);
-        DirectedEdge         connect(Slot _tail, Relation, Slot _head, ConnectFlag);
-        DirectedEdge         connect(Slot, Slot);
-        DirectedEdge         connect(Node*, InstructionNode*);
-        DirectedEdge         connect(Slot, VariableNode*);
-        void         disconnect(DirectedEdge, ConnectFlag);
+        DirectedEdge         connect(Slot*, Slot*, SideEffects );
+        DirectedEdge         connect_to_variable(Slot *tail, PoolID<VariableNode> variable_id );
+        DirectedEdge         connect_to_instruction(Slot *expression_root, InstructionNode *instruction );
+        DirectedEdge         connect_or_digest(Slot*, Slot* );
+        void                 disconnect(DirectedEdge, SideEffects );
 
     private:
         // register management
@@ -81,10 +79,10 @@ namespace ndbl
         void                        remove(PoolID<Node> _node); // Remove a given node from the registry.
         void                        remove(DirectedEdge);  // Remove a given edge from the registry.
 
-        bool                     m_is_dirty;
-		std::vector<PoolID<Node>>    m_node_registry;       // registry to store all the nodes from this graph.
-        std::multimap<Relation, DirectedEdge> m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.
-		PoolID<Node>                 m_root;                // Graph root (main scope), without it a graph cannot be compiled.
-		const NodeFactory*       m_factory;             // Node factory (can be headless or not depending on the context: app, unit tests, cli).
+		std::vector<PoolID<Node>>               m_node_registry;       // registry to store all the nodes from this graph.
+        std::multimap<SlotFlags , DirectedEdge> m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.
+        PoolID<Node>       m_root;                // Graph root (main scope), without it a graph cannot be compiled.
+        const NodeFactory* m_factory;             // Node factory (can be headless or not depending on the context: app, unit tests, cli).
+        bool               m_is_dirty;
     };
 }

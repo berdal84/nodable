@@ -73,36 +73,31 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
     return true;
 }
 
-void Compiler::compile_slot(Slot slot)
+void Compiler::compile_slot( const Slot* slot)
 {
-    Property* property = slot.get_property();
+    FW_ASSERT(slot != nullptr)
+    Property* property = slot->get_property();
 
     FW_EXPECT(property != nullptr, "Vertex should contain a valid property id" )
 
-    if ( property->is_referencing<Node>() )
+    if ( property->is_this() )
     {
-        return compile_node((ID<Node>) *property->value());
+        return compile_node((PoolID<Node>)*property->value());
     }
 
-    DirectedEdge edge = slot.node->get_edge_heading(property->id);
-    if (edge != DirectedEdge::null )
+    if (const Slot* adjacent = slot->first_adjacent().get() )
     {
         /*
          * if the property has an input it means it is not a simple literal value and we have to compile it.
          * In order to do that, we traverse the syntax tree starting from the node connected to it.
          */
-        compile_node(edge.tail.node);
+        compile_node( adjacent->node );
     }
 }
 
 void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
 {
-    if( !_scope)
-    {
-        LOG_VERBOSE("Compiler", "Ignoring nullptr Scope.\n")
-        return;
-    }
-
+    FW_ASSERT(_scope)
     const Node* scope_owner = _scope->get_owner().get();
     FW_ASSERT(scope_owner)
 
@@ -152,13 +147,9 @@ void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_re
 
 void assembly::Compiler::compile_node(PoolID<const Node> node_id)
 {
-    if( !node_id)
-    {
-        LOG_VERBOSE("Compiler", "Ignoring nullptr Node.\n")
-        return;
-    }
+    FW_ASSERT(node_id)
 
-    const Node* _node { node_id.get() };
+    const Node* _node = node_id.get();
     if ( _node->get_type()->is_child_of<IConditionalStruct>())
     {
         if ( auto for_loop = fw::cast<const ForLoopNode>(_node))
@@ -188,12 +179,23 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
     else
     {
         // eval inputs
-        for ( const DirectedEdge& edge : _node->filter_edges(Relation::WRITE_READ) )
+        for ( const Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
         {
-            if ( edge.head.node->get_type()->is_not_child_of<VariableNode>() )
+            if( slot->adjacent_count() == 0)
             {
-                compile_slot(edge.head);
+                continue;
             }
+
+            SlotRef adjacent_slot = slot->first_adjacent();
+
+            // No need to recompile a variable (is compiled once, see compile_variable_node() )
+            if ( adjacent_slot.node->get_type()->is_not_child_of<VariableNode>() )
+            {
+                continue;
+            }
+
+            // Any other slot must be compiled recursively
+            compile_slot( slot );
         }
 
         // eval node
@@ -204,8 +206,6 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
             instr->eval.node   = _node->poolid();
             instr->m_comment   = _node->name;
-
-            // result is not stored, because this is necessary only for instruction's root node.
         }
     }
 
@@ -269,16 +269,16 @@ void assembly::Compiler::compile_instruction_as_condition(const InstructionNode*
     compile_instruction(_instr_node);
 
     // move "true" result to rdx
-    Instruction* store_true   = m_temp_code->push_instr(Instruction_t::mov);
+    Instruction* store_true = m_temp_code->push_instr(Instruction_t::mov);
     store_true->mov.src.set(true);
-    store_true->mov.dst.set(static_cast<u8_t>(Register::rdx));
-    store_true->m_comment     = "store true";
+    store_true->mov.dst.set((u8_t)Register::rdx);
+    store_true->m_comment = "store true in rdx";
 
     // compare rax (condition result) with rdx (true)
     Instruction* cmp_instr  = m_temp_code->push_instr(Instruction_t::cmp);  // works only with registry
-    cmp_instr->cmp.left.set(static_cast<u8_t>(Register::rax));
-    cmp_instr->cmp.right.set(static_cast<u8_t>(Register::rdx));
-    cmp_instr->m_comment    = "compare registers";
+    cmp_instr->cmp.left.set( (u8_t)Register::rax);
+    cmp_instr->cmp.right.set( (u8_t)Register::rdx);
+    cmp_instr->m_comment = "compare condition with rdx";
 }
 
 void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode* _cond_node)
@@ -286,7 +286,7 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
     compile_instruction_as_condition(_cond_node->cond_expr.get()); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(Instruction_t::jne);
-    jump_over_true_branch->m_comment   = "jump if not is";
+    jump_over_true_branch->m_comment   = "conditional jump";
 
     Instruction* jump_after_conditional = nullptr;
 
@@ -297,18 +297,19 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
         if ( _cond_node->get_condition_false_scope() )
         {
             jump_after_conditional = m_temp_code->push_instr(Instruction_t::jmp);
-            jump_after_conditional->m_comment = "jump";
+            jump_after_conditional->m_comment = "jump after else";
         }
     }
 
-    jump_over_true_branch->jmp.offset = i64_t(m_temp_code->get_next_index()) - jump_over_true_branch->line;
+    i64_t next_index = m_temp_code->get_next_index();
+    jump_over_true_branch->jmp.offset = next_index - jump_over_true_branch->line;
 
     if ( Scope* false_scope = _cond_node->get_condition_false_scope().get() )
     {
-        if( _cond_node->has_elseif() )
+        if( _cond_node->is_chain() )
         {
-            auto conditional_struct = Pool::get_pool()->get( false_scope->get_owner() );
-            compile_conditional_struct(fw::cast<const ConditionalStructNode>(conditional_struct));
+            auto* conditional_struct = fw::cast<const ConditionalStructNode>(false_scope->get_owner().get());
+            compile_conditional_struct(conditional_struct);
         }
         else
         {
@@ -324,24 +325,25 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
 
 void assembly::Compiler::compile_instruction(const InstructionNode *instr_node)
 {
-    DirectedEdge edge = instr_node->get_edge_heading(ROOT_PROPERTY);
+    const Slot& root_slot = instr_node->root_slot();
 
-    if (edge != DirectedEdge::null )
+    // Compiles input
+    compile_slot( &root_slot );
+
+    // If necessary, copy adjacent node's value to rax register
+    Slot* adjacent_slot = root_slot.first_adjacent().get();
+    if( adjacent_slot == nullptr )
     {
-        // Compiles input
-        compile_slot(edge.tail);
-
-        // Copy result to rax register
-        Property* tail_node_property = edge.tail.node->get_prop(VALUE_PROPERTY);
-        if (tail_node_property)
-        {
-            variant*     value     = tail_node_property->value();
-            Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_pool_id );
-            instr->uref.pool_id    = *value->data();
-            instr->uref.type       = value->get_type();
-            instr->m_comment       = "copy unreferenced data";
-        }
+        return;
     }
+    variant* root_node_value = adjacent_slot->get_node()->get_prop( VALUE_PROPERTY )->value();
+    Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_qword );
+    instr->uref.ptr        = root_node_value->data();
+    instr->uref.type       = root_node_value->get_type();
+    instr->m_comment       = "de-reference ";
+    instr->m_comment.append("(");
+    instr->m_comment.append(instr->uref.type->get_name());
+    instr->m_comment.append(")");
 }
 
 const Code* assembly::Compiler::compile_syntax_tree(const Graph* _graph)

@@ -1,4 +1,5 @@
 #include "Slot.h"
+#include "SlotRef.h"
 #include "Node.h"
 
 using namespace ndbl;
@@ -6,84 +7,74 @@ using namespace ndbl;
 const Slot Slot::null{};
 
 Slot::Slot()
-: index(ID<Slot>::null)
-, node(PoolID<Node>::null)
-, property(ID<Property>::null)
-, way(Way::None)
+: flags(SlotFlag::SlotFlag_NONE )
 , capacity(0)
 {}
 
 Slot::Slot(const Slot &other)
-: index(other.index)
+: id(other.id )
 , node(other.node)
 , property(other.property)
-, way(other.way)
+, flags(other.flags)
 , capacity(other.capacity)
-, edges(other.edges)
+, adjacent(other.adjacent )
 {}
 
 
 Slot::Slot(
-ID<Slot>     _index,
+ID<Slot>::id_t _index,
 PoolID<Node> _node,
-Way          _way,
+SlotFlags    _flags,
 ID<Property> _property,
-u8_t         _capacity,
-std::vector<DirectedEdge>&& _edges)
-: index(_index)
+u8_t         _capacity)
+: id(_index)
 , node(_node)
-, way(_way)
+, flags(_flags)
 , property(_property)
 , capacity(_capacity)
-, edges(std::move(_edges))
 {}
 
-Slot Slot::first_adjacent_slot() const
+SlotRef Slot::first_adjacent() const
 {
-    if (!edges.empty())
+    if (!adjacent.empty())
     {
-        auto first = *edges.cbegin();
-        if (way == Way::In)
-        {
-            return first.tail;
-        }
-        return first.head;
+        return adjacent[0];
     }
-    return {};
+    return SlotRef::null;
 }
 
-Slot Slot::adjacent_slot_at(u8_t pos) const
+SlotRef Slot::adjacent_at(u8_t pos) const
 {
     u8_t count{0};
-    for (const auto& edge : edges)
+    for (auto& each : adjacent )
     {
         if( count == pos )
         {
-            return edge.tail == *this ? edge.head : edge.tail;
+            return each;
         }
         ++count;
     }
-    return {};
+    return SlotRef::null;
 }
 
 bool Slot::operator==(const Slot& other) const
 {
-    return node == other.node && way == other.way && property == other.property && index == other.index;
+    return node == other.node && flags == other.flags && property == other.property && id == other.id;
 }
 
 bool Slot::operator!=(const Slot& other) const
 {
-    return node != other.node || way != other.way || property != other.property || index != other.index;
+    return node != other.node || flags != other.flags || property != other.property || id != other.id;
 }
 
-u8_t Slot::edge_count() const
+size_t Slot::adjacent_count() const
 {
-    return edges.size();
+    return adjacent.size();
 }
 
 bool Slot::is_full() const
 {
-    return edges.size() >= capacity;
+    return adjacent.size() >= capacity;
 }
 
 Slot::operator bool() const
@@ -101,21 +92,28 @@ Node* Slot::get_node() const
     return node.get();
 }
 
-
-bool Slot::allows(Way desired_way) const
+void Slot::add_adjacent( const SlotRef& _ref)
 {
-    return static_cast<u8_t>(way) & static_cast<u8_t>(desired_way);
-}
-
-bool Slot::allows(Relation _relation) const
-{
-    return !allowed_relation.empty() || (allowed_relation.find(_relation) == allowed_relation.end());
-}
-
-void Slot::add_edge(DirectedEdge _edge)
-{
-    FW_EXPECT( allows( _edge.relation ), "Relation not allowed" );
+    FW_EXPECT( _ref != *this, "Reflexive edge not handled" );
+    FW_EXPECT( _ref.flags & flags & SlotFlag_TYPE_MASK, "Slot must have common type" );
     FW_EXPECT( !is_full(), "Slot is full" );
-    edges.emplace_back(std::move(_edge));
+    adjacent.emplace_back(_ref);
 }
 
+void Slot::remove_adjacent( const SlotRef& _ref )
+{
+    auto it = std::find( adjacent.begin(), adjacent.end(), _ref);
+    FW_EXPECT( it != adjacent.end(), "SlotRef not found")
+    adjacent.erase( it );
+}
+
+void Slot::allow( SlotFlags _flags)
+{
+    flags |= _flags;
+}
+
+void Slot::set_capacity( u8_t _capacity )
+{
+    FW_EXPECT( adjacent.size() < _capacity, "Cannot set a capacity below the edge count");
+    capacity = _capacity;
+}

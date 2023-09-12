@@ -9,9 +9,9 @@ SlotView *SlotView::s_focused = nullptr;
 SlotView *SlotView::s_dragged = nullptr;
 SlotView *SlotView::s_hovered = nullptr;
 
-SlotView::SlotView(Slot _slot, Side _side)
-    : m_slot(_slot)
-      , m_display_side( _side )
+SlotView::SlotView(Slot& _slot, Side _side)
+: m_slot(_slot)
+, m_display_side( _side )
 {
 }
 
@@ -111,7 +111,7 @@ void SlotView::draw_slot_rectangle(
     fw::ImGuiEx::DebugRect(rect.Min, rect.Max, ImColor(255,0, 0, 127), 0.0f );
 
     // behavior
-    if (_editable && (bool) _view->node() && ImGui::BeginPopupContextItem() )
+    if (_editable && (bool) _view->get_node() && ImGui::BeginPopupContextItem() )
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
@@ -132,12 +132,12 @@ void SlotView::draw_slot_rectangle(
 
             if (_view->m_slot.slot.way == Way::Out)
             {
-                if ( _view->node()->allows_more(Relation::NEXT_PREVIOUS) )
+                if (_view->get_node()->allows_more(Relation::NEXT_PREVIOUS) )
                 {
                     reset_dragged( _view );
                 }
             }
-            else if (_view->node()->allows_more(Relation::NEXT_PREVIOUS) )
+            else if (_view->get_node()->allows_more(Relation::NEXT_PREVIOUS) )
             {
                 reset_dragged(_view);
             }
@@ -153,7 +153,7 @@ void SlotView::draw_slot_rectangle(
 ImRect SlotView::get_rect() const
 {
     Config&      config    = Nodable::get_instance().config;
-    ID<NodeView> node_view = node()->get_component<NodeView>();
+    ID<NodeView> node_view = get_node()->get_component<NodeView>();
 
     // pick a corner
     ImVec2   left_corner = m_slot.way == Way::In ?
@@ -164,7 +164,7 @@ ImRect SlotView::get_rect() const
             std::min(config.ui_node_slot_width,  node_view->get_size().x),
             std::min(config.ui_node_slot_height, node_view->get_size().y));
     ImRect rect(left_corner, left_corner + size);
-    rect.Translate(ImVec2(size.x * float(m_slot.index), -rect.GetSize().y * 0.5f) );
+    rect.Translate(ImVec2(size.x * float(m_slot.id ), -rect.GetSize().y * 0.5f) );
     rect.Expand(ImVec2(- config.ui_node_slot_padding, 0.0f));
 
     FW_EXPECT(false, "TODO: use m_display_side instead of way");
@@ -179,7 +179,7 @@ ID<Node> SlotView::adjacent_node() const
     m_slot.first_adjacent_slot().node;
 }
 
-ID<Node> SlotView::node()const
+ID<Node> SlotView::get_node()const
 {
     return m_slot.node;
 }
@@ -253,9 +253,9 @@ bool SlotView::is_node_slot() const
     return get_property()->is_referencing<Node>();
 }
 
-bool SlotView::allows(Way way) const
+bool SlotView::allows(SlotFlag flags) const
 {
-    return m_slot.allows(way);
+    return m_slot.allows(flags);
 }
 
 PoolID<Node> SlotView::get_node()

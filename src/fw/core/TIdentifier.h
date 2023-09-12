@@ -21,7 +21,7 @@ namespace fw
         static identity_t null;
         id_t m_value; // object unique identifier in a non specified context (user decides, can be an array, a pool, etc.)
 
-        constexpr TIdentifier(id_t _id = 0)
+        explicit constexpr TIdentifier(id_t _id = 0)
         : m_value(_id)
         {};
 
@@ -38,13 +38,13 @@ namespace fw
                           "Type and OtherT are unrelated");
         }
 
-        id_t id() const
+        virtual id_t id() const
         { return m_value; }
 
         void reset(id_t _id = null.m_value)
         { m_value = _id; }
 
-        operator id_t () const
+        virtual operator id_t () const
         { return this->m_value; }
 
         template<typename OtherType>
@@ -56,6 +56,9 @@ namespace fw
 
         bool operator<(const TIdentifier<Type, id_t>& other ) const
         { return m_value < other.m_value; }
+
+        TIdentifier<Type, id_t>& operator=(const TIdentifier<Type, id_t>& other )
+        { m_value = other.m_value; return *this; }
 
         template<typename OtherType>
         TIdentifier<Type, id_t>& operator=(const TIdentifier<OtherType, id_t>& other )

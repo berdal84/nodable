@@ -57,13 +57,13 @@ Nodable::Nodable()
         }
     };
 
-     node_factory.set_post_process_fct([&](ID<Node> node) -> void {
+     node_factory.set_post_process_fct([&](PoolID<Node> node) -> void {
         // Code executed after node instantiation
 
         // add a view with physics
         auto* pool = Pool::get_pool();
-        ID<NodeView> new_view_id = pool->create<NodeView>();
-        ID<Physics>  physics_id  = pool->create<Physics>( new_view_id );
+        PoolID<NodeView> new_view_id = pool->create<NodeView>();
+        PoolID<Physics>  physics_id  = pool->create<Physics>( new_view_id );
         node->add_component(new_view_id);
         node->add_component(physics_id);
 
@@ -415,9 +415,9 @@ void Nodable::on_update()
             case EventType_select_successor_node_action_triggered:
             {
                 if (!selected_view) break;
-                ID<Node> possible_successor = selected_view->get_owner()->successors.first();
+                PoolID<Node> possible_successor = selected_view->get_owner()->successors().front();
                 if (!possible_successor) break;
-                if (ID<NodeView> successor_view = possible_successor->get_component<NodeView>() )
+                if (PoolID<NodeView> successor_view = possible_successor->get_component<NodeView>() )
                 {
                     NodeView::set_selected(successor_view);
                 }
@@ -430,78 +430,28 @@ void Nodable::on_update()
                                                : selected_view->expand_toggle();
                 break;
             }
-            case EventType_node_slot_dropped:
-            {
-                if ( !slot::can_be_connected(event.slot.first, event.slot.dst) )
-                {
-                    FW_EXPECT(false, "TODO: display an error");
-                }
-                else if (curr_file_history)
-                {
-                    auto src = event.slot.first;
-                    auto dst = event.slot.second;
-                    if ( src->way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
-                    auto cmd = std::make_shared<Cmd_ConnectEdge>({src->node(), Relation::NEXT_PREVIOUS, dst->node()});
-                    curr_file_history->push_command(cmd);
-                }
-                break;
-            }
+
             case EventType_slot_dropped:
             {
-                const PropertyslotView * src = event.slot.first.prop;
-                const PropertyslotView * dst = event.slot.dst.prop;
-                const fw::type* src_meta_type = src->get_property_type();
-                const fw::type* dst_meta_type = dst->get_property_type();
+                SlotRef tail = event.slot.first;
+                SlotRef head = event.slot.second;
 
-                if ( src->share_parent_with(dst) )
-                {
-                    LOG_WARNING( "App", "Unable to drop_on two slots from the same Property.\n" )
-                }
-                else if (src->m_display_side == dst->m_display_side)
-                {
-                    LOG_WARNING( "App", "Unable to drop_on two slots with the same nature (in and in, out and out)\n" )
-                }
-                else if ( !fw::type::is_implicitly_convertible(src_meta_type, dst_meta_type) )
-                {
-                    LOG_WARNING( "App", "Unable to drop_on %s to %s\n",
-                                src_meta_type->get_name(),
-                                dst_meta_type->get_name())
-                }
-                else
-                {
-                    if (src->m_way != Way::Out) std::swap(src, dst); // guarantee src to be the output
-                    TDirectedEdge edge(src->get_property(), dst->get_property());
-                    auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
-                    curr_file_history->push_command(cmd);
-                }
-                break;
-            }
-
-            case EventType_node_slot_disconnected:
-            {
-                const Nodeslot* src_slot = event.slot.first.node;
-                ID<Node> src = src_slot->get_node();
-                ID<Node> dst = src_slot->get_connected_node();
-
-                if (src_slot->m_way != Way::Out ) std::swap(src, dst); // ensure src is predecessor
-
-                TDirectedEdge edge(src, Relation::NEXT_PREVIOUS, dst);
-                auto cmd = std::make_shared<Cmd_DisconnectEdge>( edge );
+                if (tail.get_slot()->flags & SlotFlag_ACCEPTS_DEPENDENCIES ) std::swap(tail, head); // guarantee src to be the output
+                DirectedEdge edge(tail, head);
+                auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
-                
+
                 break;
             }
+
             case EventType_slot_disconnected:
             {
-                const PropertyslotView * src_slot = event.slot.first.prop;
-                Property*                src_property  = src_slot->get_property();
-
-                auto edges = src_property->owner()->parent_graph->filter_edges(src_property, src_slot->m_way);
+                Slot* tail_slot = event.slot.first.get_slot();
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                for(auto each_edge: edges)
+                for( auto each_edge: tail_slot->adjacent )
                 {
-                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(*each_edge);
+                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(each_edge);
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
@@ -654,7 +604,7 @@ void Nodable::step_over_program()
     const Node* next_node = virtual_machine.get_next_node();
     if ( !next_node ) return;
 
-    if( ID<NodeView> next_node_view = next_node->get_component<NodeView>() )
+    if( PoolID<NodeView> next_node_view = next_node->get_component<NodeView>() )
     {
         NodeView::set_selected( next_node_view );
     }

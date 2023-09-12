@@ -3,16 +3,26 @@
 #include "fw/core/types.h" // for constants and forward declarations
 #include "fw/core/reflection/variant.h"
 #include "fw/core/Pool.h"
-#include "core/Visibility.h"
 #include "core/Token.h"
-#include "core/Way.h"
 
 #include <string>
 #include <vector>
-#include <memory> // std::shared_ptr
 
 namespace ndbl
 {
+    typedef int PropertyFlags;
+    enum PropertyFlag
+    {
+        PropertyFlag_NONE            = 0,
+        PropertyFlag_INITIALIZE      = 1 << 0,
+        PropertyFlag_DEFINE          = 1 << 1,
+        PropertyFlag_RESET_VALUE     = 1 << 2,
+        PropertyFlag_IS_REF          = 1 << 3,
+        PropertyFlag_VISIBLE         = 1 << 4,
+        PropertyFlag_VISIBILITY_MASK = PropertyFlag_VISIBLE,
+        PropertyFlag_DEFAULT         = PropertyFlag_VISIBLE
+    };
+
     /**
      * @class The class store a value (as a variant) and is owned by a PropertyGroup
      *
@@ -22,15 +32,6 @@ namespace ndbl
 	class Property
     {
     public:
-
-        typedef int Flags;
-        enum Flags_ {
-            Flags_none         = 0,
-            Flags_initialize   = 1,
-            Flags_define       = 1 << 1,
-            Flags_reset_value  = 1 << 2
-        };
-
         fw::ID<Property> id;
         Token            token;
 
@@ -40,8 +41,7 @@ namespace ndbl
         explicit Property(bool);
         explicit Property(double);
         explicit Property(const char *);
-        template<typename T>
-        explicit Property(fw::ID<T> _value);
+        explicit Property(const fw::type *_type, PropertyFlags _flags);
         ~Property() = default;
 
         fw::variant*                 operator->() { return value(); }
@@ -51,33 +51,23 @@ namespace ndbl
         template<typename T> T       to()const { return value()->to<T>(); }
 
         void digest(Property *_property);
-        bool allows_connection(Way _flag)const;
-        void set_allowed_connection(Way wayFlags) { m_allowed_connection = wayFlags; }
+        bool has_flags( PropertyFlags _flags )const;
         void set_name(const char* _name) { m_name = _name; }
         void set(const Property& _other) { value()->set(_other.m_variant); }
         template<typename T>
         void set(T _value);
-		void set_type(const fw::type* _type) { value()->ensure_is_type(_type); }
-		void set_visibility(Visibility _visibility) { m_visibility = _visibility; }
+		void set_visibility(PropertyFlags);
 
         const std::string&           get_name()const { return m_name; }
         const fw::type*              get_type()const { return value()->get_type(); }
-        Visibility                   get_visibility()const { return m_visibility; }
-        Way                          get_allowed_connection()const { return m_allowed_connection; }
+        PropertyFlags                get_visibility()const { return m_flags & PropertyFlag_VISIBILITY_MASK; }
+        PropertyFlags                flags()const { return m_flags; }
         void                         ensure_is_initialized(bool b);
-        void                         set_ref() { m_is_ref = true; }
+        void                         flag_as_reference();
         bool                         is_ref() const;
-
-        template<typename T, typename U = fw::ID<T> >
-        bool is_referencing() const
-        {
-            return get_type()->is<U>();
-        }
-
         fw::variant*                 value()     { return &m_variant; }
         const fw::variant*           value()const{ return &m_variant; }
 
-		static Property*             new_with_type(const fw::type *_type, Flags _flags);
 		static std::vector<fw::variant*> get(std::vector<Property *> _in_properties);
 
         template<typename T>
@@ -88,12 +78,12 @@ namespace ndbl
 
         bool is_type_null() const;
 
+        bool is_this() const;
+
     private:
-        Visibility 		        m_visibility;
-		Way                     m_allowed_connection;
-		std::string             m_name;
-		fw::variant             m_variant;
-        bool                    m_is_ref;
+        PropertyFlags m_flags;
+		std::string   m_name;
+		fw::variant   m_variant;
     };
 
     template<typename T>

@@ -3,7 +3,6 @@
 #include "fw/core/log.h"
 #include "fw/core/reflection/func_type.h"
 #include "fw/core/Pool.h"
-#include "fw/core/algorithm.h"
 
 #include "core/VariableNode.h"
 
@@ -31,7 +30,7 @@ InvokableComponent::InvokableComponent(const fw::func_type* _signature, bool _is
 {
     FW_EXPECT(_signature != nullptr, "Signature must be defined!")
     m_invokable = _invokable;
-    m_argument_id.resize(_signature->get_arg_count());
+    m_argument_slot.resize(_signature->get_arg_count());
 }
 
 bool InvokableComponent::update()
@@ -43,10 +42,15 @@ bool InvokableComponent::update()
 
     try
     {
-        // Get properties' variants, and invoke m_invokable with the variants as arguments
-        auto variants = fw::map<fw::variant*>(m_argument_id, [=](auto id) { return m_owner->get_prop_at(id)->value(); });
+        // Gather the variants from argument slots
+        std::vector<fw::variant*> variants;
+        for(auto& slot: m_argument_slot )
+        {
+            variants.push_back( slot->first_adjacent()->get_property()->value() );
+        }
+        FW_ASSERT( m_argument_slot.size() == variants.size())
         fw::variant result = m_invokable->invoke( variants );
-        m_owner->get_prop_at( m_result_id )->set( result);
+         m_result_slot->get_property()->set( result);
         for( auto* variant : variants ) variant->flag_defined(true);
     }
     catch (std::exception& err)
@@ -63,43 +67,19 @@ bool InvokableComponent::update()
     return true;
 }
 
-void InvokableComponent::bind_result_property(ID<Property> property_id)
+void InvokableComponent::bind_result_property(SlotRef slot)
 {
-    FW_EXPECT( m_owner->get_prop_at(property_id) != nullptr, "Property not found" );
-    m_result_id = property_id;
+    FW_ASSERT(slot.flags & SlotFlag_OUTPUT);
+    m_result_slot = slot;
 }
 
-ID<Property> InvokableComponent::get_l_handed_val()
+void InvokableComponent::bind_arg(size_t arg_id, SlotRef slot)
 {
-    return m_argument_id[0];
+    FW_ASSERT(slot.flags & SlotFlag_INPUT)
+    m_argument_slot[arg_id] = slot;
 }
 
-ID<Property> InvokableComponent::get_r_handed_val()
+const std::vector<SlotRef>& InvokableComponent::get_arguments() const
 {
-    return m_argument_id[1];
-}
-
-ID<Property> InvokableComponent::get_arg(size_t arg_id) const
-{
-    return m_argument_id[arg_id];
-}
-
-void InvokableComponent::bind_arg(size_t arg_id, ID<Property> property_id)
-{
-    m_argument_id[arg_id] = property_id;
-}
-
-const std::vector<ID<Property>>& InvokableComponent::get_arg_ids() const
-{
-    return m_argument_id;
-}
-
-std::vector<Property*> InvokableComponent::get_args() const
-{
-    std::vector<Property*> result;
-    result.reserve(m_argument_id.size());
-    std::transform(m_argument_id.begin(), m_argument_id.end(),
-                   result.end(),
-                   [=](auto& each_id ) { return m_owner->get_prop_at(each_id); });
-    return std::move(result);
+    return m_argument_slot;
 }

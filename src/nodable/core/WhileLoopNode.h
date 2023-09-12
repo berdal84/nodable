@@ -23,19 +23,21 @@ namespace ndbl
         : public Node
         , public IConditionalStruct {
     public:
-        WhileLoopNode();
+        Token                   token_while;
+        PoolID<InstructionNode> cond_instr;
+
+        WhileLoopNode() = default;
         WhileLoopNode(WhileLoopNode&&) = default;
         WhileLoopNode& operator=(WhileLoopNode&&) = default;
         ~WhileLoopNode() = default;
 
-        Token               token_while;
-        PoolID<InstructionNode> cond_instr;
+        void init() override;
 
         // implements IConditionalStruct (which is already documented)
 
         const Property* condition_property()const override;
-        PoolID<Scope> get_condition_true_scope()const override;
-        PoolID<Scope> get_condition_false_scope()const override;
+        PoolID<Scope>   get_condition_true_scope()const override;
+        PoolID<Scope>   get_condition_false_scope()const override;
 
         REFLECT_DERIVED_CLASS()
     };

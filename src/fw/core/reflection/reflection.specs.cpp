@@ -62,15 +62,15 @@ TEST(Reflection, variant_and_id)
 {
     // prepare
     struct A {};
-    ID<A> id{42};
+    PoolID<A> id{42};
     variant value;
 
     // act
     value.set( id );
 
     // check
-    EXPECT_TRUE( value.get_type()->equals( type::get<ID<A>>() ) );
-    EXPECT_TRUE( id == (ID<A>)value );
+    EXPECT_TRUE( value.get_type()->equals( type::get<PoolID<A>>() ) );
+    EXPECT_EQ( id, (PoolID<A>)value );
 }
 
 TEST(Reflection, is_child_of)

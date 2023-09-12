@@ -60,12 +60,7 @@ _screenshots/
 /build
 /nodable/install/
 /bin/
-/cmake-build-release/
-/cmake-build-debug/
-/cmake-build-relwithdebinfo/
-/cmake-build-minsizerel/
+/cmake-build-**
 /.idea
 .gitconfig
-/cmake-build-linux_relwithdebinfo/
-/cmake-build-linux_debug/
 .cache

@@ -5,53 +5,8 @@
 using namespace ndbl;
 using namespace fw;
 
-TEST(Property, Way_In)
-{
-    Property property;
-    property.set_allowed_connection(Way::In);
-
-    EXPECT_FALSE(property.allows_connection(Way::Out));
-    EXPECT_FALSE(property.allows_connection(Way::InOut));
-    EXPECT_TRUE(property.allows_connection(Way::In));
-    EXPECT_TRUE(property.allows_connection(Way::None));
-}
-
-TEST(Property, Way_Out)
-{
-    Property property;
-    property.set_allowed_connection(Way::Out);
-
-    EXPECT_TRUE(property.allows_connection(Way::Out));
-    EXPECT_FALSE(property.allows_connection(Way::InOut));
-    EXPECT_FALSE(property.allows_connection(Way::In));
-    EXPECT_TRUE(property.allows_connection(Way::None));
-}
-
-TEST(Property, Way_None)
-{
-    Property property;
-    property.set_allowed_connection(Way::Out);
-
-    EXPECT_TRUE(property.allows_connection(Way::Out));
-    EXPECT_FALSE(property.allows_connection(Way::InOut));
-    EXPECT_FALSE(property.allows_connection(Way::In));
-    EXPECT_TRUE(property.allows_connection(Way::None));
-}
-
-TEST(Property, Way_InOut)
-{
-    Property property;
-    property.set_allowed_connection(Way::InOut);
-
-    EXPECT_TRUE(property.allows_connection(Way::Out));
-    EXPECT_TRUE(property.allows_connection(Way::InOut));
-    EXPECT_TRUE(property.allows_connection(Way::In));
-    EXPECT_TRUE(property.allows_connection(Way::None));
-}
-
 TEST(Property, Type_Boolean)
 {
-
     Property property;
 
     property.set(true);

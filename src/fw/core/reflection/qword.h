@@ -46,7 +46,10 @@ namespace fw
         explicit operator T() const
         {
             static_assert( !std::is_fundamental_v<T>, "Handle only fundamental types");
-            FW_EXPECT(ptr, "nullptr")
+            if( ptr == nullptr)
+            {
+                return {};
+            }
             return *(T*)ptr;
         }
 

@@ -9,16 +9,18 @@ namespace ndbl
     {
     public:
 
-        LiteralNode();
+        LiteralNode() = default;
+        explicit LiteralNode(const fw::type*);
         LiteralNode(LiteralNode&&) = default;
         LiteralNode& operator=(LiteralNode&&) = default;
-        explicit LiteralNode(const fw::type*);
         ~LiteralNode() override = default;
-        Property* value() { return get_prop_at( m_value_property_id ); }
+
+        void            init() override;
+        Property*       value() { return get_prop_at( m_value_property_id ); }
         const Property* value() const { return get_prop_at( m_value_property_id ); }
     private:
-        ID<Property> m_value_property_id;
-
+        ID<Property>    m_value_property_id;
+        const fw::type* m_type;
         REFLECT_DERIVED_CLASS()
     };
 }

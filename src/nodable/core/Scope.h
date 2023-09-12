@@ -17,6 +17,7 @@ namespace ndbl
         Token token_begin;
         Token token_end;
 
+        std::vector<InstructionNode*> get_last_instructions_rec();
         void                    get_last_instructions_rec(std::vector<InstructionNode *> &_out) override ;
         bool                    has_no_variable()const override { return m_variables.empty(); }
         void                    add_variable(PoolID<VariableNode>) override ;

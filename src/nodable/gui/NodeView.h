@@ -24,8 +24,7 @@ namespace ndbl
     class Graph;
     class NodeView;
     class PropertyView;
-    class PropertyslotView;
-    class Nodeslot;
+    class Slot;
     class NodeViewConstraint;
 
 	/** We use this enum to identify all NodeView detail modes */
@@ -70,7 +69,7 @@ namespace ndbl
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
         const PropertyView*     get_property_view(const Property * _property)const;
         inline ImVec2           get_size() const { return m_size; }
-        bool                    is_dragged()const { return s_dragged == poolid(); }
+        bool                    is_dragged()const;
         bool                    is_expanded()const { return m_expanded; }
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
@@ -88,19 +87,20 @@ namespace ndbl
                 bool _ignorePinned = true,
                 bool _ignoreMultiConstrained = true); // rectangle is in local space
         static void             set_selected(PoolID<NodeView>);
-        static PoolID<NodeView>     get_selected();
+        static PoolID<NodeView> get_selected();
         static bool             is_selected(PoolID<NodeView>);
         static void             start_drag(PoolID<NodeView>);
         static bool		        is_any_dragged();
         static bool             is_any_selected();
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
-        static PoolID<NodeView>     get_dragged();
+        static PoolID<NodeView> get_dragged();
         static bool             draw_property(Property* _property, const char *_label);
         static void             draw_as_properties_panel(NodeView* _view, bool *_show_advanced);
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
+        ImVec2                  get_slot_pos(ID<Slot> );
 
     private:
         bool                    draw_property_view(PropertyView* _view);

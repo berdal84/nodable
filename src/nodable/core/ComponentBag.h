@@ -8,7 +8,7 @@ namespace ndbl {
     // forward declarations
     class Node;
     class Component;
-    template<typename T> using PoolID = fw::PoolID<T>;
+    using fw::PoolID;
 
     /**
      * Store a list of Components* owned by a single owner.
@@ -33,7 +33,7 @@ namespace ndbl {
         template<typename T>
         [[nodiscard]] inline bool
         has()const
-        { return get<T>() != fw::ID<T>::null; }
+        { return get<T>() != PoolID<T>::null; }
 
         template<typename T>
         PoolID<T> get()const;

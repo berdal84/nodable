@@ -18,25 +18,25 @@ namespace ndbl
         : public Node
         , public IConditionalStruct
     {
+        REFLECT_DERIVED_CLASS()
     public:
-        ConditionalStructNode();
-        ConditionalStructNode(ConditionalStructNode&& other) = default;
-        ~ConditionalStructNode() = default;
-        ConditionalStructNode& operator=(ConditionalStructNode&&) = default;
-
         Token token_if;   // Example: { prefix: "", word: "if", suffix: " "}
         Token token_else; // Example: { prefix: " ", word: "else", suffix: " "}
         PoolID<InstructionNode> cond_expr; // The instruction to evaluate the condition
 
-        bool              has_elseif() const;// Check if another conditional structure is connected to the else branch (forming an else if)
+        ConditionalStructNode() = default;
+        ConditionalStructNode(ConditionalStructNode&& other) = default;
+        ~ConditionalStructNode() = default;
+        ConditionalStructNode& operator=(ConditionalStructNode&&) = default;
+
+        void init() override;
+        bool is_chain() const; // Check if another conditional structure is connected to the else branch (forming an else if)
 
         // implement IConditionalStruct (which is already documented)
 
         PoolID<Scope>   get_condition_true_scope()const override;
         PoolID<Scope>   get_condition_false_scope()const override;
         const Property* condition_property()const override;
-
-        REFLECT_DERIVED_CLASS()
     };
 }
 

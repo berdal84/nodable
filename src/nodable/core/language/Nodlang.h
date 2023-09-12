@@ -44,26 +44,26 @@ namespace ndbl{
         static Nodlang& get_instance();
 
         // Parser ---------------------------------------------------------------------
-        bool                   tokenize(const std::string& _string);       // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
-        bool                   tokenize(char* buffer, size_t buffer_size); // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
-        bool                   parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
-        Token                  parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
-        Token                  parse_token(const std::string& _string) const;
+        bool                       tokenize(const std::string& _string);       // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
+        bool                       tokenize(char* buffer, size_t buffer_size); // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
+        bool                       parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
+        Token                      parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
+        Token                      parse_token(const std::string& _string) const;
         PoolID<Node>               parse_scope();
         PoolID<InstructionNode>    parse_instr();
-        Slot                       parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
+        Slot*                      parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
         PoolID<Scope>              parse_code_block(PoolID<Scope> curr_scope); // Try to parse a code block with the option to create a scope or not (reusing the current one).
         PoolID<ConditionalStructNode> parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
-        PoolID<ForLoopNode>        parse_for_loop();
-        PoolID<WhileLoopNode>      parse_while_loop();
-        PoolID<Node>               parse_program();
-        Slot                   parse_function_call();
-        Slot                   parse_parenthesis_expression();
-        Slot                   parse_unary_operator_expression(unsigned short _precedence = 0u);
-        Slot                   parse_binary_operator_expression(unsigned short _precedence = 0u, Slot _left = {});
-        Slot                   parse_atomic_expression();
-        Slot                   parse_expression(unsigned short _precedence = 0u, Slot _left_override = {});
-        Slot                   parse_token(Token _token);
+        PoolID<ForLoopNode>    parse_for_loop();
+        PoolID<WhileLoopNode>  parse_while_loop();
+        PoolID<Node>           parse_program();
+        Slot*                  parse_function_call();
+        Slot*                  parse_parenthesis_expression();
+        Slot*                  parse_unary_operator_expression(u8_t _precedence = 0);
+        Slot*                  parse_binary_operator_expression(u8_t _precedence, Slot& _left);
+        Slot*                  parse_atomic_expression();
+        Slot*                  parse_expression(u8_t _precedence = 0, Slot* _left_override = nullptr);
+        Slot*                  parse_token(Token _token);
         bool                   to_bool(const std::string& );
         std::string            to_unquoted_string(const std::string& _quoted_str);
         double                 to_double(const std::string& );
@@ -102,14 +102,14 @@ namespace ndbl{
 
         // Serializer ------------------------------------------------------------------
     public:
-        std::string&           serialize_invokable(std::string& _out, const InvokableComponent *_component) const;
-        std::string&           serialize_func_call(std::string& _out, const fw::func_type *_signature, const std::vector<DirectedEdge> inputs)const;
+        std::string&           serialize_invokable(std::string&slot, const InvokableComponent *_component) const;
+        std::string&           serialize_func_call(std::string& _out, const fw::func_type *_signature, const std::vector<SlotRef> inputs)const;
         std::string&           serialize_func_sig(std::string& _out, const fw::func_type*)const;
         std::string&           serialize_token_t(std::string& _out, const Token_t&)const;
         std::string&           serialize_token(std::string& _out, const Token &) const;
         std::string&           serialize_type(std::string& _out, const fw::type*) const;
-        std::string&           serialize_edge(std::string& _out, const DirectedEdge &_edge, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
-        std::string&           serialize_instr(std::string& _out, const InstructionNode *_instruction)const;
+        std::string&           serialize_edge(std::string& _out, const Slot *_slot, bool recursively = true)const;   // serialize a property (with a recursive option if it has its input connected to another property).
+        std::string&           serialize_instr(std::string& _out, PoolID<const InstructionNode> _instruction)const;
         std::string&           serialize_node(std::string& _out, PoolID<const Node> _node)const;
         std::string&           serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string&           serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;

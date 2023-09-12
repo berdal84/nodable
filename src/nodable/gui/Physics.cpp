@@ -22,7 +22,7 @@ Physics::Physics()
     , is_active(true)
 {}
 
-Physics::Physics(PoolPoolID<NodeView> view)
+Physics::Physics(PoolID<NodeView> view)
     : Physics()
 {
     m_view = view;

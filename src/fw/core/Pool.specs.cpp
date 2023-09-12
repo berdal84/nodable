@@ -16,7 +16,7 @@ TEST(Pool, init_shutdown )
 {
     EXPECT_ANY_THROW( Pool::shutdown() ); // not initialized !
     Pool::init();
-    EXPECT_ANY_THROW( Pool::init() ); // twice!
+    Pool::init(); // no throw but warning
     Pool::shutdown();
     EXPECT_ANY_THROW( Pool::shutdown() ); // twice
 }
@@ -45,8 +45,8 @@ TEST(Pool, buffer_resizing )
     Pool* pool = Pool::init(0);
     PoolID<Data> node1 = pool->create<Data>("Toto");
     PoolID<Data> node2 = pool->create<Data>("Tata");
-    EXPECT_EQ(node1, size_t(1));
-    EXPECT_EQ(node2, size_t(2));
+    EXPECT_EQ((u32_t)node1, 1);
+    EXPECT_EQ((u32_t)node2, 2);
     EXPECT_STREQ(node1->name, "Toto");
     EXPECT_STREQ(node2->name, "Tata");
     Pool::shutdown();
@@ -59,7 +59,7 @@ TEST(Pool, destroy_last )
     PoolID<Data> data_2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
     pool->destroy( data_1 );
-    EXPECT_EQ(data_2->name, "Tata");
+    EXPECT_STREQ(data_2->name, "Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 1);
     Pool::shutdown();
 }
@@ -73,7 +73,7 @@ TEST(Pool, destroy_first )
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
     pool->destroy( node1 );
     EXPECT_EQ(pool->get_all<Data>().size(), 1);
-    EXPECT_EQ(node2->name, "Tata");
+    EXPECT_STREQ(node2->name, "Tata");
     Pool::shutdown();
 }
 
@@ -88,13 +88,12 @@ TEST(Pool, destroy_vector_of_ids )
         data.push_back( pool->create<Data>("Data") );
     }
 
-    EXPECT_EQ(pool->get_all<Data>().size(), n);
-    EXPECT_EQ(pool->get_all<Data>().capacity(), 256 );
+    auto& all_data = pool->get_all<Data>();
+    EXPECT_EQ(all_data.size(), n);
 
     pool->destroy( data );
 
-    EXPECT_EQ(pool->get_all<Data>().size(), 0 );
-
+    EXPECT_EQ(all_data.size(), 0 );
 
     Pool::shutdown();
 }

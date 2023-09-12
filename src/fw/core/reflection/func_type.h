@@ -16,12 +16,15 @@ namespace fw
      */
     struct FuncArg
     {
-        FuncArg(const type* _type, bool _by_reference, const std::string& _name)
-            : m_type(_type)
+        FuncArg(u8_t index, const type* _type, bool _by_reference, const std::string& _name)
+            : m_index( index)
+            , m_type(_type)
             , m_by_reference(_by_reference)
             , m_name(_name)
         {
         }
+
+        u8_t        m_index;
         const type* m_type;
         bool        m_by_reference;
         std::string m_name;

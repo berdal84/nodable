@@ -41,8 +41,7 @@ CLI::~CLI()
 {
     std::cout << "Good bye!" << std::endl;
     delete m_asm_code;
-    fw::Pool::shutdown();
-}
+ }
 
 
 
@@ -56,6 +55,8 @@ int CLI::main(int argc, char* argv[])
         update();
     }
 
+    m_graph.clear();
+    fw::Pool::shutdown();
     LOG_FLUSH()
     return 0;
 }
@@ -150,7 +151,7 @@ void CLI::exit_()
 
 bool CLI::serialize()
 {
-    if(ID<Node> root = m_graph.get_root())
+    if( PoolID<Node> root = m_graph.get_root())
     {
         std::string result;
         m_language.serialize_node(result, root);

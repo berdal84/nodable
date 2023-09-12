@@ -272,7 +272,7 @@ void variant::set(const variant& _other)
     }
     else if(m_type->is<std::string>() )
     {
-        set( ((std::string*)_other.m_data.ptr)->c_str() );
+        set(_other.to<std::string>());
     }
     else if( m_type->equals( _other.m_type ) )
     {
@@ -309,7 +309,7 @@ variant::variant(variant&& other)
     other.m_is_defined = false;
 }
 
-variant variant::operator=(const variant &other)
+variant& variant::operator=(const variant &other)
 {
     set(other);
     return *this;

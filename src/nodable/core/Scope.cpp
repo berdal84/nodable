@@ -32,7 +32,7 @@ PoolID<VariableNode> Scope::find_variable(const std::string &_name)
     /*
      * Try first to find in this scope
      */
-    auto has_name = [_name](PoolID<VariableNode> _variable ) -> bool
+    auto has_name = [&_name](PoolID<VariableNode> _variable ) -> bool
     {
         return _variable->name == _name;
     };
@@ -50,21 +50,21 @@ PoolID<VariableNode> Scope::find_variable(const std::string &_name)
     /*
      * In case not found, find recursively
      */
-    if ( Node* owner = m_owner.get() )
+    Node* owner = m_owner.get();
+    Node* parent = owner->get_parent().get();
+    FW_ASSERT(parent != owner);
+
+    if ( !parent )
     {
-        Node* parent = owner->parent.get();
-        if ( !parent )
-        {
-            return fw::PoolID<Node>::null;
-        }
-        PoolID<Scope> scope = parent->get_component<Scope>();
-        if ( !scope.get() )
-        {
-            return PoolID<VariableNode>::null;
-        }
-        return scope->find_variable( _name );
+        return fw::PoolID<Node>::null;
     }
-    return PoolID<VariableNode>::null;
+    PoolID<Scope> scope = parent->get_component<Scope>();
+    if ( !scope )
+    {
+        return PoolID<VariableNode>::null;
+    }
+    FW_ASSERT(scope != m_id);
+    return scope->find_variable( _name );
 }
 
 void Scope::add_variable(PoolID<VariableNode> _variableNode)
@@ -132,4 +132,10 @@ size_t Scope::remove_all_variables()
     }
     m_variables.clear();
     return count;
+}
+std::vector<InstructionNode *> Scope::get_last_instructions_rec()
+{
+    std::vector<InstructionNode *> result;
+    get_last_instructions_rec(result);
+    return result;
 }

@@ -8,7 +8,7 @@ namespace ndbl
     class Cmd_ConnectEdge : public AbstractCommand
     {
     public:
-        Cmd_ConnectEdge(DirectedEdge _edge)
+        explicit Cmd_ConnectEdge(DirectedEdge _edge)
         : m_edge(_edge)
         , m_graph(_edge.tail.node->parent_graph) // deduce graph from edge source' owner
         {
@@ -16,23 +16,22 @@ namespace ndbl
             snprintf(str
                     , sizeof(str)
                     , "ConnectEdge\n"
-                      " - src: \"%s\"\n"
-                      " - dst: \"%s\"\n"
-                      " - edge: \"%s\"\n"
-                    ,
-                     _edge.tail.node->name.c_str()
+                      " - tail: \"%s\"\n"
+                      " - head: \"%s\"\n"
+                    , _edge.tail.node->name.c_str()
                     , _edge.head.node->name.c_str()
-                    , to_string( _edge.relation ) );
+            );
             m_description.append(str);
         }
 
         ~Cmd_ConnectEdge() override = default;
 
         void execute() override
-        { m_graph->connect(m_edge, ConnectFlag::SIDE_EFFECTS_ON); }
+        {
+            m_graph->connect_to_variable( *m_edge.tail.get_slot(), *m_edge.head.get_slot(), SideEffects::ON ); }
 
         void undo() override
-        { m_graph->disconnect(m_edge, ConnectFlag::SIDE_EFFECTS_ON); }
+        { m_graph->disconnect(m_edge, SideEffects::ON ); }
 
         const char* get_description() const override
         { return m_description.c_str(); }

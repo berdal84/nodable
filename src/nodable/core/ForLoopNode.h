@@ -19,7 +19,7 @@ namespace ndbl
         : public Node
         , public IConditionalStruct {
     public:
-        ForLoopNode();
+        ForLoopNode() = default;
         ForLoopNode(ForLoopNode&& other) = default;
         ForLoopNode& operator=(ForLoopNode&& other) = default;
         ~ForLoopNode() = default;
@@ -29,6 +29,7 @@ namespace ndbl
         PoolID<InstructionNode> cond_instr;
         PoolID<InstructionNode> iter_instr;
 
+        void            init() override;
         const Property* get_init_expr()const { return get_prop(INITIALIZATION_PROPERTY); }
         const Property* get_iter_expr()const { return get_prop(ITERATION_PROPERTY); }
 

@@ -23,6 +23,7 @@ add_library(
         Scope.cpp
         Slot.cpp
         SlotBag.cpp
+        SlotRef.cpp
         Token.cpp
         TokenRibbon.cpp
         VariableNode.cpp
@@ -76,16 +77,15 @@ add_executable(
         Property.specs.cpp
         Slot.specs.cpp
         Token.specs.cpp
-        VirtualMachine.specs.cpp
-        fixtures/core.h
-        language/Nodlang.parse_and_eval.specs.cpp
-        language/Nodlang.parse_function_call.specs.cpp
-        language/Nodlang.parse_token.specs.cpp
         language/Nodlang.specs.cpp
         language/Nodlang.tokenize.specs.cpp
+        language/Nodlang.parse_function_call.specs.cpp
+        language/Nodlang.parse_token.specs.cpp
+        VirtualMachine.specs.cpp
+        language/Nodlang.parse_and_eval.specs.cpp
         )
 target_link_libraries(test-nodable-core PRIVATE gtest_main gtest nodable-core )
-add_test( COMMAND test-nodable-core )
+add_test( NAME test_nodable_core COMMAND test-nodable-core )
 
 # Benchmarks
 #-----------

@@ -13,25 +13,30 @@ REGISTER
         .extends<IConditionalStruct>();
 }
 
-ConditionalStructNode::ConditionalStructNode()
-    : Node()
+void ConditionalStructNode::init()
 {
-    add_prop<ID<Node>>(CONDITION_PROPERTY, Visibility::Always, Way::In);
+    Node::init();
+
+    auto cond_id = add_prop<PoolID<Node>>(CONDITION_PROPERTY, PropertyFlag_VISIBLE);
+    add_slot( cond_id, SlotFlag::SlotFlag_INPUT, 1 );
+
+    set_limit(SlotFlag_PREV, SLOT_MAX_CAPACITY);
+    set_limit(SlotFlag_NEXT, 2);
 }
 
 PoolID<Scope> ConditionalStructNode::get_condition_true_scope() const
 {
-    return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 0);
+    return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag_CHILD, 0);
 }
 
 PoolID<Scope> ConditionalStructNode::get_condition_false_scope() const
 {
-    return GraphUtil::adjacent_component_at<Scope>(this, Relation::NEXT_PREVIOUS, Way::Out, 1);
+    return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag_CHILD, 1);
 }
 
-bool ConditionalStructNode::has_elseif() const
+bool ConditionalStructNode::is_chain() const
 {
-    if( PoolID<Node> node = GraphUtil::adjacent_node_at(this, Relation::NEXT_PREVIOUS, Way::Out, 1) )
+    if( PoolID<Node> node = get_condition_false_scope() )
     {
         return node->get_type()->is_child_of<ConditionalStructNode>();
     }

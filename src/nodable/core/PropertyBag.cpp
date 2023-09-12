@@ -4,49 +4,45 @@
 using namespace ndbl;
 using fw::ID;
 
-PropertyBag::~PropertyBag()
-{
-    // Properties are stored in m_properties
-}
-
 bool PropertyBag::has(const char* _name) const
 {
     return m_properties_by_name.find(_name) != m_properties_by_name.end();
 }
 
-ID<Property> PropertyBag::add(const fw::type* _type, const char* _name, Visibility _visibility, Way _way, Property::Flags _flags )
+ID<Property> PropertyBag::add(const fw::type* _type, const char* _name, PropertyFlags _flags )
 {
     FW_ASSERT(!has(_name));
 
+    ID<Property> id = (ID<Property>)m_properties.size(); // we cannot delete a property, so we can count on size() to get a unique id
+
     // create the property
-    Property* new_property = Property::new_with_type(_type, _flags);
-    new_property->set_name(_name);
-    new_property->set_visibility(_visibility);
-    new_property->set_allowed_connection(_way);
-    new_property->id = (ID<Property>)m_properties.size(); // we cannot delete a property, so we can count on size() to get a unique id
+    Property& new_property = m_properties.emplace_back(_type, _flags);
+    new_property.set_name(_name);
+    new_property.id = id;
 
     // Index by name
-    m_properties_by_name.insert({new_property->get_name(), new_property->id});
+    m_properties_by_name.insert({new_property.get_name(), new_property.id});
 
-    // register property
-    m_properties.emplace_back( std::move(new_property) );
-
-    return new_property->id;
+    return new_property.id;
 }
 
-const Slot* PropertyBag::get_first(Way _way, const fw::type *_type) const
+const Property* PropertyBag::find_first( PropertyFlags _flags, const fw::type *_type) const
 {
-    return get_first(_way,_type);
+    return _find_first( _flags, _type );
 }
 
-Slot* PropertyBag::get_first(Way _way, const fw::type *_type)
+Property* PropertyBag::find_first( PropertyFlags _flags, const fw::type *_type)
 {
-    auto filter = [this, _way, _type](std::pair<const std::string, ID<Property>>& each) -> bool
+    return const_cast<Property*>( _find_first( _flags, _type ) );
+}
+
+const Property* PropertyBag::_find_first( PropertyFlags _flags, const fw::type *_type) const
+{
+    auto filter = [this, _flags, _type](const std::pair<const std::string, ID<Property>>& pair) -> bool
     {
-        auto& [_, pos] = each;
-        auto& property = m_properties[(size_t)pos];
+        auto& property = m_properties[pair.second];
         return fw::type::is_implicitly_convertible( property.get_type(), _type)
-               && ( property.allows_connection(_way) );
+               && ( property.has_flags( _flags ) );
     };
 
     auto found = std::find_if(m_properties_by_name.begin(), m_properties_by_name.end(), filter );
@@ -55,47 +51,13 @@ Slot* PropertyBag::get_first(Way _way, const fw::type *_type)
     return nullptr;
 }
 
-const Property* PropertyBag::get_input_at(ID<Property> _position) const
-{
-    return get_input_at(_position);
-}
-
-Property* PropertyBag::get_input_at(ID<Property> _position)
-{
-    size_t count = 0;
-    for(auto& each_property : m_properties)
-    {
-        if( each_property.allows_connection(Way::In) && !each_property.allows_connection(Way::Out))
-        {
-            if( count == (size_t)_position)
-            {
-                return &each_property;
-            }
-            count++;
-        }
-    }
-    return nullptr;
-}
-
-PropertyBag::PropertyBag(PropertyBag&& other)
-{
-    *this = std::move(other);
-}
-
-PropertyBag& PropertyBag::operator=(PropertyBag&& other )
-{
-    m_properties_by_name = std::move(other.m_properties_by_name);
-    m_properties  = std::move(other.m_properties);
-    return *this;
-}
-
-Property* PropertyBag::get(const char *_name)
+Property* PropertyBag::find_by_name(const char *_name)
 {
     ID<Property> id = m_properties_by_name.at(_name);
     return &m_properties[(size_t)id];
 }
 
-const Property* PropertyBag::get(const char *_name) const
+const Property* PropertyBag::find_by_name(const char *_name) const
 {
     ID<Property> id = m_properties_by_name.at(_name);
     return &m_properties[(size_t)id];
@@ -111,7 +73,7 @@ const Property* PropertyBag::at(ID<Property> property) const
     return &m_properties[property.id()];
 }
 
-ID<Property> PropertyBag::get_id(const char *_name) const
+ID<Property> PropertyBag::find_id_from_name(const char *_name) const
 {
     for(auto& [name, id] : m_properties_by_name )
     {

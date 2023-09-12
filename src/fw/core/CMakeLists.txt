@@ -43,7 +43,7 @@ add_executable(
         reflection/reflection.specs.cpp
         Pool.specs.cpp)
 target_link_libraries( test-framework-core PRIVATE gtest_main gtest framework-core )
-add_test( COMMAND test-framework-core )
+add_test( NAME test_framework_core COMMAND test-framework-core )
 
 # Benchmarks
 #-----------

@@ -6,23 +6,28 @@
 using namespace ndbl;
 typedef ::testing::Core Virtual_Machine;
 
+TEST_F(Virtual_Machine, variable_1 )
+{
+    EXPECT_EQ(eval<int>("int i = 10"), 10);
+}
+
 TEST_F(Virtual_Machine, Cond_1)
 {
     std::string program =
             "int bob   = 50;"
             "int alice = 10;"
-            "bool val;"
+            "int val;"
             "if(bob>alice)"
             "{"
-            "   val = true;"
+            "   val = bob;"
             "}"
             "else"
             "{"
-            "   val = false;"
+            "   val = alice;"
             "}"
             "return(val);";
 
-    EXPECT_EQ(eval<bool>(program), true);
+    EXPECT_EQ(eval<int>(program), 50);
 }
 
 TEST_F(Virtual_Machine, Cond_2)

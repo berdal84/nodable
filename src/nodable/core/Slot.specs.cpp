@@ -14,11 +14,11 @@ TEST(Slot, operator_equal)
     EXPECT_TRUE(a == c);
 
     Slot d;
-    d.index = 1;
+    d.id.reset(1);
     EXPECT_FALSE(a == d);
 
     Slot e;
-    e.edges.push_back({});
+    e.adjacent.push_back({});
     EXPECT_TRUE(a == e);
 }
 
@@ -38,23 +38,23 @@ TEST(Slot, operator_non_equal)
     EXPECT_FALSE(a != c);
 
     Slot d;
-    d.index = 1;
+    d.id.reset(1);
     EXPECT_TRUE(a != d);
 
     Slot e;
-    e.node = ID<Node>{1};
+    e.node = PoolID<Node>{1};
     EXPECT_TRUE(a != e);
 
     Slot f;
-    f.way = Way::InOut;
+    f.flags |= SlotFlag_ACCEPTS_DEPENDENCIES;
     EXPECT_TRUE(a != f);
 
     Slot g;
-    g.property = 42;
+    g.property.reset(42);
     EXPECT_TRUE(a != g);
 
     Slot h;
-    h.edges.push_back({});
+    h.adjacent.push_back({});
     EXPECT_FALSE(a != h);
 }
 
@@ -65,28 +65,28 @@ TEST(Slot, is_full)
     EXPECT_TRUE(slot.is_full());
 
     slot.capacity = 2;
-    slot.edges.push_back({});
+    slot.adjacent.push_back({});
     EXPECT_FALSE(slot.is_full());
 
-    slot.edges.push_back({});
+    slot.adjacent.push_back({});
     EXPECT_TRUE(slot.is_full());
 }
 
-TEST(Slot, adjacent_slot_at)
+TEST(Slot, adjacent_at)
 {
     // prepare
-    Slot slot  {1, ID<Node>{1}};
+    Slot slot  {1, PoolID<Node>{1}, SlotFlag_PARENT};
     slot.capacity = 2;
 
-    Slot slot_0{1, ID<Node>{2}};
-    Slot slot_1{1, ID<Node>{3}};
+    Slot slot_0{2, PoolID<Node>{2}, SlotFlag_CHILD};
+    Slot slot_1{3, PoolID<Node>{3}, SlotFlag_CHILD};
 
-    slot.add_edge({slot, PARENT_CHILD, slot_0});
-    slot.add_edge({slot_1, CHILD_PARENT, slot}); //
+    slot.add_adjacent( slot_0 );
+    slot.add_adjacent( slot_1 );
 
     // act
-    Slot adjacent_slot_0 = slot.adjacent_slot_at(0);
-    Slot adjacent_slot_1 = slot.adjacent_slot_at(1);
+    SlotRef adjacent_slot_0 = slot.adjacent_at( 0 );
+    SlotRef adjacent_slot_1 = slot.adjacent_at( 1 );
 
     // verify
     EXPECT_EQ(adjacent_slot_0, slot_0);
@@ -98,12 +98,9 @@ TEST(Slot, allows_relation)
     // prepare
     Slot slot;
 
-    EXPECT_TRUE( slot.allowed_relation.empty() ); // By default, allows any relation
-    EXPECT_TRUE( slot.allows(Relation::PARENT_CHILD) ); // By default, allows any relation
-    EXPECT_TRUE( slot.allows(Relation::CHILD_PARENT) ); // By default, allows any relation
+    EXPECT_TRUE( slot.flags == SlotFlag_NONE );
 
-    slot.allowed_relation.insert(Relation::PARENT_CHILD);
+    slot.allow( SlotFlag_CHILD );
 
-    EXPECT_TRUE( slot.allows(Relation::PARENT_CHILD) ); // By default, allows any relation
-    EXPECT_TRUE( slot.allows(Relation::CHILD_PARENT) ); // By default, allows any relation
+    EXPECT_TRUE( slot.flags & SlotFlag_TYPE_HIERARCHICAL );
 }

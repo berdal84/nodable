@@ -15,16 +15,21 @@ namespace ndbl
 
     class InstructionNode : public Node
     {
+        REFLECT_DERIVED_CLASS()
     public:
         Token     token_end;
 
-        InstructionNode();
+        InstructionNode() = default;
         InstructionNode(InstructionNode&& other) = default;
         ~InstructionNode()= default;
         InstructionNode& operator=(InstructionNode&& other) = default;
-        const Property* root_property() const { return get_prop(VALUE_PROPERTY); }
-        Slot root_slot() const { return get_slot(VALUE_PROPERTY, Way::In); }
-        REFLECT_DERIVED_CLASS()
+
+        void            init() override;
+        Slot&           root_slot();
+        const Slot&     root_slot() const;
+
+    private:
+        ID<Slot> m_root_slot_id;
     };
 }
 

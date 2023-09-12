@@ -1,15 +1,8 @@
 #include "VirtualMachine.h"
 
 #include <string>
-
-#include "fw/core/log.h"
-#include "fw/core/format.h"
-
-#include "Graph.h"
 #include "InvokableComponent.h"
-#include "Scope.h"
 #include "VariableNode.h"
-#include "core/algorithm.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -132,9 +125,9 @@ bool VirtualMachine::_stepOver()
             break;
         }
 
-        case opcode::deref_pool_id:
+        case opcode::deref_qword:
         {
-            fw::qword qword = next_instr->uref.pool_id;
+            fw::qword& qword = *next_instr->uref.ptr;
             m_cpu.write(Register::rax, qword );
 
             const type* ptr_type = next_instr->uref.type;
@@ -148,11 +141,15 @@ bool VirtualMachine::_stepOver()
             }
             else if(ptr_type->is<i16_t>() )
             {
-                LOG_VERBOSE("VM", "i16_t dereferenced: %i\n", qword.i16 );
+                LOG_VERBOSE("VM", "i16_t de-referenced: %i\n", qword.i16 );
             }
-            else if(ptr_type->is<ID<Node>>() )
+            else if(ptr_type->is<ID<Node>>())
             {
-                LOG_VERBOSE("VM", "ID<Node> dereferenced: %i\n", qword.u32 );
+                LOG_VERBOSE("VM", "ID<Node> de-referenced: %i\n", qword.u32 );
+            }
+            else if(ptr_type->is<PoolID<Node>>())
+            {
+                LOG_VERBOSE("VM", "PoolID<Node> de-referenced: %i\n", qword.u32 );
             }
             else if(ptr_type->is<std::string>() )
             {
@@ -185,7 +182,8 @@ bool VirtualMachine::_stepOver()
         case opcode::push_var:
         {
             advance_cursor();
-            next_instr->push.var->property()->ensure_is_initialized(false);
+            VariableNode* variable = next_instr->push.var.get();
+            variable->value()->ensure_is_initialized(false);
             success = true;
             break;
         }
@@ -211,45 +209,38 @@ bool VirtualMachine::_stepOver()
 
         case opcode::eval_node:
         {
-            bool transfer_inputs = true;
-            Node* node     = next_instr->eval.node.get();
+            Node* node = next_instr->eval.node.get();
 
-            auto transfer_input_values = [](Node* _node)
+            auto update_input__by_value_only = [](Node* _node)
             {
-                std::vector<DirectedEdge> input_edge = _node->filter_edges(Relation::WRITE_READ);
-
-                // Copy by value (exclude references)
-                for(const DirectedEdge& edge : _node->edges() )
+                for(Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
                 {
-                    Property* head_property = edge.head.get_property();
-                    Property* tail_property = edge.tail.get_property();
-
-                    if(    !head_property->is_ref()
-                        && !head_property->is_type_null()
-                        && !tail_property->is_type_null() )
+                    if( slot->adjacent_count() == 0)
                     {
-                        *head_property->value() = *tail_property->value();
+                        continue;
+                    }
+                    Property* property = slot->get_property();
+                    if( !property->is_ref() )
+                    {
+                        *property->value() = *slot->first_adjacent()->get_property()->value();
                     }
                 }
             };
 
             if( auto variable = fw::cast<VariableNode>(node))
             {
+                // If variable is not initialized, we compute its initial value from its inputs
                 variant* variant = variable->value();
                 if( !variant->is_initialized() )
                 {
                     variant->ensure_is_initialized();
                     variant->flag_defined();
-                }
-                else
-                {
-                    transfer_inputs = false;
+                    update_input__by_value_only(variable);
                 }
             }
-
-            if( transfer_inputs )
+            else
             {
-                transfer_input_values(node);
+                update_input__by_value_only(node);
             }
 
             // evaluate Invokable Component, could be an operator or a function
@@ -371,7 +362,7 @@ Instruction* VirtualMachine::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
-        return m_program_asm_code->get_instruction_at(m_cpu.read(Register::eip).u64 );
+        return m_program_asm_code->get_instruction_at( m_cpu.read(Register::eip).u32 );
     }
     return nullptr;
 }

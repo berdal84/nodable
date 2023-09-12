@@ -63,7 +63,7 @@ bool GraphView::draw()
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
-    PoolID<Node>        new_node_id;
+    PoolID<Node>    new_node_id;
     ImVec2          origin           = ImGui::GetCursorScreenPos();
     auto            node_registry    = Pool::get_pool()->get( m_graph->get_node_registry() );
     const SlotView* dragged_slot     = SlotView::get_dragged();
@@ -99,7 +99,7 @@ bool GraphView::draw()
                 {
                     const fw::type* dragged_property_type = dragged_slot->get_property_type();
 
-                    if ( dragged_slot->allows( Way::Out ) )
+                    if ( dragged_slot->allows( SlotFlag_ACCEPTS_DEPENDENCIES ) )
                     {
                         has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
                     }
@@ -198,7 +198,7 @@ bool GraphView::draw()
     for( Node* each_node : node_registry )
     {
         size_t slot_index = 0;
-        size_t slot_count = each_node->get_slot_count(Relation::NEXT_PREVIOUS, Way::Out);
+        size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ACCEPTS_DEPENDENCIES );
         float padding     = 2.0f;
         float linePadding = 5.0f;
         for (PoolID<Node> each_successor_node : each_node->successors() )
@@ -285,65 +285,71 @@ bool GraphView::draw()
         /*
             Wires
         */
-        for (auto eachNode : node_registry )
+        for (auto each_node: node_registry )
         {
-            for (DirectedEdge &edge: eachNode->filter_edges(Relation::WRITE_READ))
+            for (const Slot* slot: each_node->filter_slots( SlotFlag_INPUT ))
             {
-                NodeView* tail_node_view = edge.tail.get_node()->get_component<NodeView>().get();
-                NodeView* head_node_view = edge.head.get_node()->get_component<NodeView>().get();
-
-                if (tail_node_view->is_visible() && head_node_view->is_visible())
+                Slot*     adjacent_slot      = slot->first_adjacent();
+                if( adjacent_slot == nullptr )
                 {
-                    SlotView& tail_slot_view = tail_node_view->get_slot_view(edge.tail.index);
-                    SlotView& head_slot_view = head_node_view->get_slot_view(edge.head.index);
-                    ImVec2    src_pos        = tail_slot_view.get_pos();
-                    ImVec2    dst_pos        = head_slot_view.get_pos();
+                    continue;
+                }
+                NodeView* node_view          = slot->node->get_component<NodeView>().get();
+                NodeView* adjacent_node_view = adjacent_slot->node->get_component<NodeView>().get();
 
-                    // do not draw long lines between a variable value
-                    ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
-                    ImVec4 shadow_color = app.config.ui_codeFlow_lineShadowColor;
+                if ( !node_view->is_visible() || !adjacent_node_view->is_visible())
+                {
+                    continue;
+                }
+
+                ImVec2    src_pos        = node_view->get_slot_pos( slot->id );
+                ImVec2    dst_pos        = adjacent_node_view->get_slot_pos( adjacent_slot->id );
+
+                // do not draw long lines between a variable value
+                ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
+                ImVec4 shadow_color = app.config.ui_codeFlow_lineShadowColor;
 
 
-                    if (NodeView::is_selected(tail_node_view->poolid()) ||
-                        NodeView::is_selected(head_node_view->poolid())
-                    )
-                    {
-                        // blink wire colors
-                        float blink = 1.f + std::sin(float(app.core.elapsed_time()) * 10.f) * 0.25f;
-                        line_color.x *= blink;
-                        line_color.y *= blink;
-                        line_color.z *= blink;
-                    }
-                    else
-                    {
-                        // transparent depending on wire length
-                        ImVec2 delta = src_pos - dst_pos;
-                        float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-                        if (dist > app.config.ui_wire_bezier_length_min) {
-                            float factor = (dist - app.config.ui_wire_bezier_length_min) /
-                                           (app.config.ui_wire_bezier_length_max -
-                                            app.config.ui_wire_bezier_length_min);
-                            line_color = ImLerp(line_color, ImColor(0, 0, 0, 0), factor);
-                            shadow_color = ImLerp(shadow_color, ImColor(0, 0, 0, 0), factor);
-                        }
-                    }
-
-                    // draw the wire if necessary
-                    if (line_color.w != 0.f)
-                    {
-                        float thickness = app.config.ui_wire_bezier_thickness;
-                        float roundness = app.config.ui_wire_bezier_roundness;
-
-                        if ( edge.relation == Relation::NEXT_PREVIOUS )
-                        {
-                            thickness *= 3.0f;
-                            roundness *= 0.25f;
-                        }
-
-                        fw::ImGuiEx::DrawVerticalWire(draw_list, src_pos, dst_pos, line_color, shadow_color,
-                                                      thickness, roundness);
+                if (NodeView::is_selected( node_view->poolid()) ||
+                    NodeView::is_selected( adjacent_node_view->poolid())
+                )
+                {
+                    // blink wire colors
+                    float blink = 1.f + std::sin(float(app.core.elapsed_time()) * 10.f) * 0.25f;
+                    line_color.x *= blink;
+                    line_color.y *= blink;
+                    line_color.z *= blink;
+                }
+                else
+                {
+                    // transparent depending on wire length
+                    ImVec2 delta = src_pos - dst_pos;
+                    float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
+                    if (dist > app.config.ui_wire_bezier_length_min) {
+                        float factor = (dist - app.config.ui_wire_bezier_length_min) /
+                                       (app.config.ui_wire_bezier_length_max -
+                                        app.config.ui_wire_bezier_length_min);
+                        line_color = ImLerp(line_color, ImColor(0, 0, 0, 0), factor);
+                        shadow_color = ImLerp(shadow_color, ImColor(0, 0, 0, 0), factor);
                     }
                 }
+
+                // draw the wire if necessary
+                if (line_color.w != 0.f)
+                {
+                    float thickness = app.config.ui_wire_bezier_thickness;
+                    float roundness = app.config.ui_wire_bezier_roundness;
+
+                    if ( slot->flags & SlotFlag_TYPE_CODEFLOW )
+                    {
+                        thickness *= 3.0f;
+                        roundness *= 0.25f;
+                    }
+
+                    fw::ImGuiEx::DrawVerticalWire(draw_list, src_pos, dst_pos, line_color, shadow_color,
+                                                  thickness, roundness);
+                }
+
             }
         }
 
@@ -450,7 +456,7 @@ bool GraphView::draw()
 
                 // we allows literal only if connected to variables.
                 // why? behavior when connecting a literal to a non var node is to digest it.
-                if ( dragged_slot->node()->get_type()->is<VariableNode>()
+                if (dragged_slot->get_node()->get_type()->is<VariableNode>()
                      && ImGui::MenuItem(ICON_FA_FILE "Literal") )
                 {
                     new_node_id = m_graph->create_literal( dragged_slot->get_property_type() );
@@ -531,27 +537,22 @@ bool GraphView::draw()
         {
 
             // dragging node slot ?
-            if ( dragged_slot && dragged_slot->is_node_slot() )
+            if ( dragged_slot )
             {
-                Relation edge_type = dragged_slot->allows(Way::Out) ? Relation::PREVIOUS_NEXT : Relation::NEXT_PREVIOUS;
-                m_graph->connect( new_node_id->slot(Way::Out), edge_type, dragged_slot->node()->slot(Way::In), ConnectFlag::SIDE_EFFECTS_ON );
-                SlotView::reset_dragged();
-            }
-            else if ( dragged_slot )
-            {
-                if ( dragged_slot->allows( Way::In ) )
+                auto type = dragged_slot->get_slot().flags & SlotFlag_TYPE_MASK;
+                if ( dragged_slot->allows( SlotFlag_ACCEPTS_DEPENDENTS ) )
                 {
-                    Slot& tail_slot = new_node_id->props.get_first(Way::Out, dragged_slot->get_property()->get_type());
-                    m_graph->connect(tail_slot, Relation::WRITE_READ, dragged_slot, ConnectFlag::SIDE_EFFECTS_ON );
+                    Slot* tail_slot = new_node_id->get_first_slot( type | SlotFlag_ACCEPTS_DEPENDENCIES, dragged_slot->get_property()->get_type());
+                    m_graph->connect( *tail_slot, dragged_slot->get_slot(), SideEffects::ON );
                 }
                 //  [ dragged slot ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    Slot&  head_slot = new_node_id->props.get_first(Way::In, dragged_slot->get_property()->get_type());
-                    m_graph->connect(dragged_slot, Relation::WRITE_READ, head_slot, ConnectFlag::SIDE_EFFECTS_ON );
+                    Slot* head_slot = new_node_id->get_first_slot( type | SlotFlag_ACCEPTS_DEPENDENTS, dragged_slot->get_property()->get_type());
+                    m_graph->connect( dragged_slot->get_slot(), *head_slot, SideEffects::ON );
                 }
-                SlotView::reset_focused();
+                SlotView::reset_dragged();
             }
             else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
             {

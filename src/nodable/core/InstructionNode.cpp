@@ -7,10 +7,22 @@ REGISTER
     fw::registration::push_class<InstructionNode>("InstructionNode").extends<Node>();
 }
 
-InstructionNode::InstructionNode()
-    : Node()
+void InstructionNode::init()
 {
-    add_prop<ID<Node>>(VALUE_PROPERTY, Visibility::Default, Way::In);
-    slots.set_limit(NEXT_PREVIOUS, Way::In, EDGE_PER_SLOT_MAX_COUNT);
-    slots.set_limit(NEXT_PREVIOUS, Way::Out, 1);
+    Node::init();
+    auto root_property_id = add_prop<PoolID<Node>>(ROOT_PROPERTY, PropertyFlag_VISIBLE);
+    m_root_slot_id = add_slot( root_property_id, SlotFlag::SlotFlag_INPUT, 1 );
+
+    get_slot(SlotFlag_PREV).set_capacity( SLOT_MAX_CAPACITY );
+    get_slot(SlotFlag_NEXT).set_capacity( 1 );
+}
+
+Slot& InstructionNode::root_slot()
+{
+    return slots[m_root_slot_id];
+}
+
+const Slot& InstructionNode::root_slot() const
+{
+    return slots[m_root_slot_id];
 }

@@ -1,4 +1,5 @@
 #include "SlotBag.h"
+#include "Node.h"
 
 using namespace ndbl;
 
@@ -6,118 +7,126 @@ void SlotBag::apply(SlotBag::Event event, bool notify)
 {
     switch (event.type)
     {
-        case Event_t::CONNECT_EDGE:    return add_at( event.slot.index, event.edge, notify );
-        case Event_t::DISCONNECT_EDGE: return remove_at( event.slot.index, event.edge, notify );
+        case Event_t::CONNECT_EDGE:    return add_adjacent_at(event.slot.id, event.adjacent, notify );
+        case Event_t::DISCONNECT_EDGE: return remove_edge_at(event.slot.id, event.adjacent, notify);
     }
     FW_EXPECT(false, "Unhandled case");
 }
 
-void SlotBag::remove_at(u8_t slot_id, DirectedEdge edge, bool notify)
+void SlotBag::remove_edge_at(ID<Slot> slot_id, SlotRef adjacent, bool notify)
 {
     Slot& slot = m_slots[slot_id];
-    std::remove(m_edges.begin(), m_edges.end(), edge);
-    std::remove(slot.edges.begin(), slot.edges.end(), edge);
+    std::remove(slot.adjacent.begin(), slot.adjacent.end(), adjacent);
     if ( notify )
     {
-        Event event{ Event_t::DISCONNECT_EDGE, edge, slot };
+        Event event;
+        event.type     = Event_t::DISCONNECT_EDGE;
+        event.slot     = slot;
+        event.adjacent = adjacent;
         on_remove.emit( event );
         on_change.emit( event );
     }
 }
 
-void SlotBag::add_at(u8_t slot_id, const DirectedEdge edge, bool notify)
+void SlotBag::add_adjacent_at(ID<Slot> id, SlotRef adjacent, bool notify)
 {
-    Slot& slot = m_slots.at(slot_id);
+    Slot& slot = m_slots.at( id );
     FW_EXPECT(slot.is_full(), "Slot is full" );
-    m_edges.emplace_back(edge);
-    slot.edges.emplace_back(edge);
+    slot.adjacent.emplace_back( adjacent );
     if ( notify )
     {
-        Event event{ Event_t::CONNECT_EDGE, edge, slot };
+        Event event;
+        event.type     = Event_t::CONNECT_EDGE;
+        event.slot     = slot;
+        event.adjacent = adjacent;
+
         on_add.emit( event );
         on_change.emit( event );
     }
 }
 
-bool SlotBag::allows_more(Relation relation) const
+void SlotBag::set_capacity( ID<ndbl::Slot> _id, int _capacity )
 {
-    FW_EXPECT(false, "TODO: check if a new edge of this type is allowed")
+    m_slots[_id].set_capacity(_capacity);
 }
 
-void SlotBag::set_limit(Relation relation, Way way, int i)
+size_t SlotBag::count(SlotFlags flags) const
 {
-    FW_EXPECT(false, "TODO: implement!")
+   return filter(flags).size();
 }
 
-std::vector<Slot> SlotBag::by_relation(Relation relation) const
+Slot& SlotBag::by_property(ID<Property> property_id, SlotFlags _flags)
 {
-    std::vector<Slot> result;
+    return const_cast<Slot&>( _by_property(property_id, _flags) );
+}
 
-    FW_EXPECT( is_primary(relation), "Not implemented for secondary relations" );
-    for( size_t slot_id : m_ids_by_primary_relation[relation] )
+const Slot& SlotBag::by_property(ID<Property> property_id, SlotFlags flags) const
+{
+    return _by_property(property_id, flags);
+}
+
+const Slot& SlotBag::_by_property(ID<Property> property_id, SlotFlags _flags) const
+{
+    for(auto& slot : m_slots )
     {
-        result.push_back( m_slots[slot_id] );
-    }
-
-    return result;
-}
-
-std::vector<DirectedEdge> SlotBag::edges() const
-{
-    std::vector<DirectedEdge> result;
-
-    for(const Slot& slot : m_slots )
-    {
-        std::copy( slot.edges.begin(), slot.edges.end(), result.end() );
-    }
-
-    return result;
-}
-
-size_t SlotBag::count(Relation relation, Way desired_way) const
-{
-    size_t result{0};
-    for (auto index : m_ids_by_primary_relation[relation])
-    {
-        if( m_slots[index].allows(desired_way) )
+        if( (slot.flags & _flags) == _flags && slot.property == property_id )
         {
-            result++;
+            return slot;
         }
     }
-    return result;
+#ifdef NDBL_DEBUG
+    LOG_MESSAGE("Slot", "Unable to find a slot for Property '%zu' with flags %zu\n", property_id.id(), _flags);
+#endif
+    FW_ASSERT(false);
 }
 
-Slot& SlotBag::by_property(Property* property, Way way) const
-{
-    FW_EXPECT(false, "TODO: Implement");
-}
-
-DirectedEdge SlotBag::find_edge_at(Relation _relation, Way _desired_way, u8_t _index) const
+Slot* SlotBag::find_adjacent_at( SlotFlags flags, u8_t _index ) const
 {
     size_t count{0};
-    for (auto index : m_ids_by_primary_relation[_relation])
+    for (auto& slot : m_slots)
     {
-        const Slot& slot = m_slots[index];
-        if( !slot.allows(_desired_way) )
+        if( (slot & flags) == flags )
         {
             continue;
         }
 
-        if( count + slot.edges.size() < _index )
+        if( count + slot.adjacent.size() < _index )
         {
+            count += slot.adjacent.size();
             continue;
         }
 
-        for (const auto& edge: slot.edges)
+        for (const auto& edge: slot.adjacent )
         {
-            if ( count != _index)
+            if ( count == _index)
             {
-                count++;
-                continue;
+                return edge.get();
             }
-
-            return edge;
+            count++;
         }
     }
-    return DirectedEdge::null;
+    return nullptr;
+}
+
+ID<Slot> SlotBag::add(PoolID<Node> _node, ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity)
+{
+    FW_EXPECT(_node != PoolID<Node>::null, "node cannot be null");
+
+    size_t id = m_slots.size();
+    Slot& slot = m_slots.emplace_back(id, _node, _flags, _prop_id, _capacity);
+
+    return slot.id;
+}
+
+std::vector<Slot*> SlotBag::filter( SlotFlags _flags ) const
+{
+    std::vector<Slot*> result;
+    for(auto& slot : m_slots)
+    {
+        if( (slot.flags & _flags) == _flags )
+        {
+            result.push_back(const_cast<Slot*>( &slot ));
+        }
+    }
+    return result;
 }

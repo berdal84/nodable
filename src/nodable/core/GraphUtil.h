@@ -11,10 +11,10 @@ namespace ndbl
     {
     public:
         template<typename ComponentT>
-        static PoolID<ComponentT> adjacent_component_at(const Node* _node, Relation _relation, Way _way, u8_t _pos)
+        static PoolID<ComponentT> adjacent_component_at(const Node* _node, SlotFlags _flags, u8_t _pos)
         {
             IS_COMPONENT_GUARD(ComponentT)
-            if( Node* adjacent_node = adjacent_node_at(_node, _relation, _way, _pos).get() )
+            if( Node* adjacent_node = adjacent_node_at(_node, _flags, _pos).get() )
             {
                 return adjacent_node->get_component<ComponentT>();
             }
@@ -22,11 +22,11 @@ namespace ndbl
         }
 
         template<typename ComponentT>
-        static std::vector<PoolID<ComponentT>> adjacent_components(const Node* _node, Relation _relation, Way _way)
+        static std::vector<PoolID<ComponentT>> adjacent_components(const Node* _node, SlotFlags _flags)
         {
             IS_COMPONENT_GUARD(ComponentT)
             std::vector<PoolID<ComponentT>> result;
-            auto adjacent_nodes = get_adjacent_nodes( _node, _relation, _way );
+            auto adjacent_nodes = get_adjacent_nodes( _node, _flags );
             for(auto adjacent_node : adjacent_nodes )
             {
                 if( PoolID<ComponentT> component = adjacent_node->get_component<ComponentT>() )
@@ -37,20 +37,26 @@ namespace ndbl
             return result;
         }
 
-        static  std::vector<PoolID<Node>> get_adjacent_nodes(const Node* _node, Relation _relation, Way _way)
+        static  std::vector<PoolID<Node>> get_adjacent_nodes(const Node* _node, SlotFlags _flags)
         {
-            FW_EXPECT(false, "TODO: implement");
+            std::vector<PoolID<Node>> result;
+            for ( Slot* slot : _node->filter_slots( _flags ) )
+            {
+                for( SlotRef& adjacent : slot->adjacent )
+                {
+                    result.emplace_back( adjacent.node );
+                }
+            }
+            return result;
         }
 
-        static PoolID<Node> adjacent_node_at(const Node* _node, Relation _relation, Way _way, u8_t _pos)
+        static PoolID<Node> adjacent_node_at(const Node* _node, SlotFlags _flags, u8_t _pos)
         {
-            DirectedEdge edge = _node->slots.find_edge_at(_relation, _way, _pos);
-            if (edge == DirectedEdge::null )
+            if ( Slot* adjacent_slot = _node->slots.find_adjacent_at( _flags, _pos ) )
             {
-                return {};
+                return adjacent_slot->node;
             }
-            Slot slot = _way == Way::Out ? edge.tail : edge.head;
-            return slot.node;
+            return PoolID<Node>::null;
         }
     };
 }
