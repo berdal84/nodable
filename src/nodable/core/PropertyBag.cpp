@@ -94,3 +94,8 @@ const Property* PropertyBag::get_this() const
 {
     return &m_properties[THIS_ID];
 }
+
+size_t PropertyBag::size() const
+{
+    return m_properties.size();
+}

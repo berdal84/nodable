@@ -12,10 +12,9 @@
 
 #include "core/Component.h" // base class
 #include "core/Property.h"
-#include "core/SlotBag.h"
 
 #include "types.h"     // for constants and forward declarations
-#include "SlotView.h"
+#include "PropertyView.h"
 
 namespace ndbl
 {
@@ -23,7 +22,6 @@ namespace ndbl
     class Node;
     class Graph;
     class NodeView;
-    class PropertyView;
     class Slot;
     class NodeViewConstraint;
 
@@ -56,8 +54,7 @@ namespace ndbl
 
         bool                    draw()override;
 		void                    set_owner(PoolID<Node>)override;
-		void                    expose(Property* );
-		bool                    update(float);
+        bool                    update(float);
         ImVec2                  get_position() const { return m_position; };
         ImVec2                  get_position(fw::Space, bool round = false) const;
 		void                    set_position(ImVec2, fw::Space);
@@ -67,7 +64,7 @@ namespace ndbl
         std::string             get_label();
         ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
                                       , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
-        const PropertyView*     get_property_view(const Property * _property)const;
+        const PropertyView*     get_property_view( ID<Property> _id )const;
         inline ImVec2           get_size() const { return m_size; }
         bool                    is_dragged()const;
         bool                    is_expanded()const { return m_expanded; }
@@ -79,7 +76,7 @@ namespace ndbl
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
-        SlotView&               get_slot_view(ID<Slot>);
+        SlotView&               get_slot_view(ID8<Slot>);
         ImRect                  get_screen_rect();
         static ImRect           get_rect(
                 const std::vector<NodeView *> &_views,
@@ -95,16 +92,14 @@ namespace ndbl
         static bool             is_inside(NodeView*, ImRect);
         static void             constraint_to_rect(NodeView*, ImRect);
         static PoolID<NodeView> get_dragged();
-        static bool             draw_property(Property* _property, const char *_label);
-        static void             draw_as_properties_panel(NodeView* _view, bool *_show_advanced);
+        static bool             draw_property_view(PropertyView*, const char* _override_label);
+        static void             draw_as_properties_panel(NodeView* _view, bool *_nodes );
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
-        ImVec2                  get_slot_pos(ID<Slot> );
-
     private:
-        bool                    draw_property_view(PropertyView* _view);
-        bool                    is_exposed(const Property *_property)const;
+        bool                    _draw_property_view(PropertyView* _view);
+        bool                    is_exposed( ID<Property> _id )const;
         void                    update_labels_from_name(const Node *_node);
         static void             DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) ;
 
@@ -112,22 +107,22 @@ namespace ndbl
         std::string     m_short_label;
         bool            m_edition_enable;
         bool            m_expanded;
-		ImVec2          m_position;                      // local position (not affected by scroll)
+		ImVec2          m_position; // local position (not affected by scroll)
 		ImVec2          m_size;
 		float           m_opacity;
 		ImColor         m_border_color_selected;
-		std::vector<Nodeslot*> m_predecessors;
-		std::vector<Nodeslot*> m_successors;
-		std::vector<PropertyView*>  m_exposed_input_only_properties;
-		std::vector<PropertyView*>  m_exposed_out_or_inout_properties;
-        PropertyView*               m_exposed_this_property_view;
-        std::map<const Property*, PropertyView*> m_exposed_properties;
-        std::unordered_map<ID<Slot>::id_t, SlotView> m_slot_view;
-		static PoolID<NodeView>       s_selected;
-		static PoolID<NodeView>       s_dragged;
-        static const float            s_property_input_size_min;
-        static const ImVec2           s_property_input_toggle_button_size;
-        static NodeViewDetail         s_view_detail;
+		std::vector<PoolID<NodeView>>                    m_predecessors;
+		std::vector<PoolID<NodeView>>                    m_successors;
+        std::vector<SlotView>                            m_slot_views;
+        std::vector<PropertyView>                        m_property_views;
+        PropertyView*                                    m_property_view_this;
+        std::vector<PropertyView*>                       m_property_views_with_input_only;
+        std::vector<PropertyView*>                       m_property_views_with_output_or_inout;
+		static PoolID<NodeView>                          s_selected;
+		static PoolID<NodeView>                          s_dragged;
+        static const float                               s_property_input_size_min;
+        static const ImVec2                              s_property_input_toggle_button_size;
+        static NodeViewDetail                            s_view_detail;
 
         REFLECT_DERIVED_CLASS()
     };

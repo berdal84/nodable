@@ -6,17 +6,20 @@ namespace ndbl
 {
     // Forward declarations
     using fw::PoolID;
-    using fw::ID;
+    using fw::ID8;
     class Node;
     class Slot;
 
-    struct SlotRef
+    class SlotRef
     {
+    public:
         static const SlotRef null;
 
-        ID<Slot>     id;
-        PoolID<Node> node;
-        SlotFlags    flags;
+        PoolID<Node> node;       // 32-bits
+        ID8<Slot>    id;         //  8-bits
+        SlotFlags    flags;      //  8-bits
+        i16_t        unused;     // 16-bits extra
+
         SlotRef();
         SlotRef(const SlotRef&);
         SlotRef(SlotRef&&);
@@ -28,4 +31,7 @@ namespace ndbl
         Slot* get() const;
         Slot* operator->() const;
     };
+
+    static_assert(sizeof(SlotRef) == 8, "SlotRef should not be larger than 64-bits");
+
 } // namespace ndbl

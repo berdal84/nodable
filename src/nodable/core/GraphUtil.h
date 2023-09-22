@@ -5,11 +5,14 @@
 namespace ndbl
 {
 #define IS_COMPONENT_GUARD(Class) static_assert(std::is_base_of_v<Component, Class>, "Class is not a Component");
+    class VariableNode;
 
     // Static functions to make life easier with graph related stuff
     class GraphUtil
     {
     public:
+        static VariableNode* get_connected_variable(const Node*, Property* );
+
         template<typename ComponentT>
         static PoolID<ComponentT> adjacent_component_at(const Node* _node, SlotFlags _flags, u8_t _pos)
         {

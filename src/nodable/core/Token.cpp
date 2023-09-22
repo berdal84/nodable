@@ -171,11 +171,15 @@ Token& Token::operator=(const Token& other)
     m_word_size              = other.m_word_size;
     m_type                   = other.m_type;
     m_is_source_buffer_owned = other.m_is_source_buffer_owned;
-    m_source_buffer          = other.m_is_source_buffer_owned ? new char(m_buffer_size) : other.m_source_buffer;
 
     if( other.m_is_source_buffer_owned )
     {
+        m_source_buffer = new char[m_buffer_size];
         memcpy(m_source_buffer, other.m_source_buffer, m_buffer_size);
+    }
+    else
+    {
+        m_source_buffer = other.m_source_buffer;
     }
 
     return *this;

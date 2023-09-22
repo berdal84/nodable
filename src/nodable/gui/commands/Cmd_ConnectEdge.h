@@ -27,8 +27,7 @@ namespace ndbl
         ~Cmd_ConnectEdge() override = default;
 
         void execute() override
-        {
-            m_graph->connect_to_variable( *m_edge.tail.get_slot(), *m_edge.head.get_slot(), SideEffects::ON ); }
+        { m_graph->connect( m_edge.tail.get(), m_edge.head.get(), SideEffects::ON ); }
 
         void undo() override
         { m_graph->disconnect(m_edge, SideEffects::ON ); }
@@ -39,6 +38,6 @@ namespace ndbl
     private:
         std::string   m_description;
         DirectedEdge  m_edge;
-        Graph* m_graph;
+        Graph*        m_graph;
     };
 }

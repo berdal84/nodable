@@ -32,6 +32,7 @@ namespace ndbl
         iterator               end() { return m_properties.end(); }
         const_iterator         begin() const { return m_properties.begin(); }
         const_iterator         end() const { return m_properties.end(); }
+        size_t                 size() const;
         bool                   has(const char*) const;
         Property*              at(fw::ID<Property>);
         const Property*        at(fw::ID<Property>) const;
@@ -53,7 +54,8 @@ namespace ndbl
         {
             return add(fw::type::get<T>(), _name, _flags);
         }
-	private:
+
+    private:
         const Property* _find_first( PropertyFlags _flags, const fw::type *_type) const;
         const Property* _find_nth_write_only( u8_t _n ) const;
         std::vector<Property>  m_properties;

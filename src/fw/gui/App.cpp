@@ -159,7 +159,7 @@ bool App::shutdown()
 
 void App::draw()
 {
-    LOG_VERBOSE("fw::App", "draw_property_view ...\n");
+    LOG_VERBOSE("fw::App", "_draw_property_view ...\n");
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(m_sdl_window);
     ImGui::NewFrame();
@@ -201,7 +201,7 @@ void App::draw()
     {
         SDL_Delay((unsigned int)((config.min_frame_time - ImGui::GetIO().DeltaTime) * 1000.f) );
     }
-    LOG_VERBOSE("fw::App", "draw_property_view " OK "\n");
+    LOG_VERBOSE("fw::App", "_draw_property_view " OK "\n");
 }
 
 double App::elapsed_time() const

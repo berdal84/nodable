@@ -1,7 +1,2 @@
 #pragma once
-#include <fw/gui/types.h>
-
-namespace ndbl
-{
-
-}
+#include "fw/core/types.h"

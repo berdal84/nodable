@@ -8,7 +8,7 @@ typedef ::testing::Core Virtual_Machine;
 
 TEST_F(Virtual_Machine, variable_1 )
 {
-    EXPECT_EQ(eval<int>("int i = 10"), 10);
+    EXPECT_EQ(eval<i32_t>("int i = 10"), 10);
 }
 
 TEST_F(Virtual_Machine, Cond_1)
@@ -27,7 +27,7 @@ TEST_F(Virtual_Machine, Cond_1)
             "}"
             "return(val);";
 
-    EXPECT_EQ(eval<int>(program), 50);
+    EXPECT_EQ(eval<i32_t>(program), 50);
 }
 
 TEST_F(Virtual_Machine, Cond_2)
@@ -130,7 +130,7 @@ TEST_F(Virtual_Machine, For_loop_without_var_decl)
             "   score = i * 2;"
             "}"
             "return(score);";
-    EXPECT_EQ(eval<int>(program), 9 * 2);
+    EXPECT_EQ(eval<i32_t>(program), 9 * 2);
 }
 
 TEST_F(Virtual_Machine, For_loop_with_var_decl)
@@ -142,7 +142,7 @@ TEST_F(Virtual_Machine, For_loop_with_var_decl)
             "   score = score * 2;"
             "}"
             "return(score);";
-    EXPECT_EQ(eval<int>(program), 1 * pow(2, 10));
+    EXPECT_EQ(eval<i32_t>(program), 1 * pow(2, 10));
 }
 
 TEST_F(Virtual_Machine, declare_then_define)
@@ -151,7 +151,7 @@ TEST_F(Virtual_Machine, declare_then_define)
             "int b;"
             "b = 5;"
             "return(b);";
-    EXPECT_EQ(eval<int>(program_01), 5);
+    EXPECT_EQ(eval<i32_t>(program_01), 5);
 }
 
 TEST_F(Virtual_Machine, declare_and_define_then_reassign)
@@ -160,7 +160,7 @@ TEST_F(Virtual_Machine, declare_and_define_then_reassign)
             "int b = 6;"
             "b = 5;"
             "return(b);";
-    EXPECT_EQ(eval<int>(program_01), 5);
+    EXPECT_EQ(eval<i32_t>(program_01), 5);
 }
 
 TEST_F(Virtual_Machine, declare_then_define_then_reassign)
@@ -170,7 +170,7 @@ TEST_F(Virtual_Machine, declare_then_define_then_reassign)
             "b = 6;"
             "b = 5;"
             "return(b);";
-    EXPECT_EQ(eval<int>(program_01), 5);
+    EXPECT_EQ(eval<i32_t>(program_01), 5);
 }
 
 TEST_F(Virtual_Machine, condition_which_contains_alterated_var)
@@ -213,9 +213,9 @@ TEST_F(Virtual_Machine, else_elseif_else)
 
 TEST_F(Virtual_Machine, integers)
 {
-    EXPECT_EQ(eval<int>("int i = 1"), 1);
-    EXPECT_EQ(eval<int>("int i = 3 + 5"), 8);
-    EXPECT_EQ(eval<int>("int i = 1-2"), -1);
+    EXPECT_EQ(eval<i32_t>("int i = 1"), 1);
+    EXPECT_EQ(eval<i32_t>("int i = 3 + 5"), 8);
+    EXPECT_EQ(eval<i32_t>("int i = 1-2"), -1);
 }
 
 TEST_F(Virtual_Machine, while_loop)
@@ -227,5 +227,5 @@ TEST_F(Virtual_Machine, while_loop)
             "}"
             "return(i)";
 
-    EXPECT_EQ( eval<int>(program), 42);
+    EXPECT_EQ( eval<i32_t>(program), 42);
 }

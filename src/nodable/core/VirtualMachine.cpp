@@ -143,6 +143,10 @@ bool VirtualMachine::_stepOver()
             {
                 LOG_VERBOSE("VM", "i16_t de-referenced: %i\n", qword.i16 );
             }
+            else if(ptr_type->is<i32_t>() )
+            {
+                LOG_VERBOSE("VM", "i32_t de-referenced: %i\n", qword.i32 );
+            }
             else if(ptr_type->is<ID<Node>>())
             {
                 LOG_VERBOSE("VM", "ID<Node> de-referenced: %i\n", qword.u32 );

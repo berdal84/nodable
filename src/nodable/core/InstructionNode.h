@@ -29,7 +29,7 @@ namespace ndbl
         const Slot&     root_slot() const;
 
     private:
-        ID<Slot> m_root_slot_id;
+        ID8<Slot> m_root_slot_id;
     };
 }
 

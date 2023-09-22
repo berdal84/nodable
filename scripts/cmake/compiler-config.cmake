@@ -18,15 +18,14 @@ include(CheckPIESupported)
 check_pie_supported()
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD          11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS        ON)
+set(CMAKE_CXX_STANDARD            11)
+set(CMAKE_CXX_STANDARD_REQUIRED   ON)
+set(CMAKE_CXX_EXTENSIONS          ON)
 
 # enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-# define _DEBUG (MSVC define it under windows but this is not the default behavior
-# with other compilers)
+# define NDBL_DEBUG in DEBUG (there is no cross-compiler solution)
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDBL_DEBUG")
 
 if(WIN32)

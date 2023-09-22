@@ -12,6 +12,7 @@ namespace ndbl
     class SlotRef;
     using fw::PoolID;
     using fw::ID;
+    using fw::ID8;
 
     constexpr u8_t SLOT_MAX_CAPACITY = std::numeric_limits<u8_t>::max();
 
@@ -20,7 +21,7 @@ namespace ndbl
     public:
         static const Slot null;
 
-        ID<Slot>          id;         // slot index (in node's SlotBag)
+        ID8<Slot>         id;         // slot index (in node's SlotBag)
         PoolID<Node>      node;       // node id (in fw::Pool)
         ID<Property>      property;   // property index (in node's PropertyBag)
         u8_t              capacity;   // adjacent max count
@@ -29,7 +30,7 @@ namespace ndbl
 
         Slot();
         Slot(const Slot& other);
-        Slot(ID<Slot>::id_t , PoolID<Node>, SlotFlags, ID<Property> = ID<Property>::null, u8_t capacity = 0);
+        Slot(ID8<Slot>::value_t, PoolID<Node>, SlotFlags, ID<Property> = ID<Property>::null, u8_t capacity = 0);
 
         bool operator==(const Slot&) const;
         bool operator!=(const Slot&) const;
@@ -37,7 +38,7 @@ namespace ndbl
 
         Node*     get_node() const;
         SlotRef   first_adjacent() const;
-        SlotRef   adjacent_at(u8_t) const;
+        SlotRef   adjacent_at(u8_t ) const;
         Property* get_property() const; // Dereference the property corresponding to this Slot.
         size_t    adjacent_count() const;
         bool      is_full() const; // Slots have a capacity

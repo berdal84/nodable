@@ -49,9 +49,9 @@ namespace ndbl
         const Slot& operator[](size_t _index) const
         { return m_slots[_index]; }
 
-        ID<Slot>          add(PoolID<Node> _node, ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity = SLOT_MAX_CAPACITY);
+        ID8<Slot>         add(PoolID<Node> _node, ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity = SLOT_MAX_CAPACITY);
         void              apply(Event, bool notify = true);
-        void              set_capacity(ID<Slot>, int i);
+        void              set_capacity(ID8<Slot>, int i);
         size_t            count(SlotFlags) const;
         Slot&             by_property( ID<Property> property, SlotFlags);
         const Slot&       by_property( ID<Property> property, SlotFlags) const;
@@ -59,10 +59,10 @@ namespace ndbl
         std::vector<Slot*> filter( SlotFlags ) const;
     private:
         const Slot&       _by_property( ID<Property> property, SlotFlags ) const;
-        void              remove_edge_at(ID<Slot> id, SlotRef, bool notify = true);
-        void              add_adjacent_at(ID<Slot> id, SlotRef, bool notify = true);
+        void              remove_edge_at(ID8<Slot> id, SlotRef, bool notify = true);
+        void              add_adjacent_at(ID8<Slot> id, SlotRef, bool notify = true);
 
     private:
-        std::vector<Slot>         m_slots;
+        std::vector<Slot> m_slots;
     };
 }

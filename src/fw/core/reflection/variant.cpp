@@ -45,6 +45,7 @@ double variant::to<double>()const
     if(m_type->is<std::string>() )  return stod(*(std::string*)m_data.ptr);
     if(m_type->is<double>() )       return m_data.d;
     if(m_type->is<i16_t>() )        return double(m_data.i16);
+    if(m_type->is<i32_t>() )        return double(m_data.i32);
     if(m_type->is<bool>() )         return double(m_data.b);
 
     FW_ASSERT(false) // this case is not handled
@@ -62,6 +63,24 @@ i16_t variant::to<i16_t>()const
     if(m_type->is<std::string>() )  return stoi(*(std::string*)m_data.ptr );
     if(m_type->is<double>() )       return i16_t(m_data.d);
     if(m_type->is<i16_t>() )        return m_data.i16;
+    if(m_type->is<i32_t>() )        return (i16_t)m_data.i32;
+    if(m_type->is<bool>() )         return i16_t(m_data.b);
+
+    FW_ASSERT(false) // this case is not handled
+}
+
+template<>
+i32_t variant::to<i32_t>()const
+{
+    if( !m_is_defined)
+    {
+        return 0;
+    }
+
+    if(m_type->is<std::string>() )  return stoi(*(std::string*)m_data.ptr );
+    if(m_type->is<double>() )       return i16_t(m_data.d);
+    if(m_type->is<i16_t>() )        return m_data.i16;
+    if(m_type->is<i32_t>() )        return m_data.i32;
     if(m_type->is<bool>() )         return i16_t(m_data.b);
 
     FW_ASSERT(false) // this case is not handled
@@ -78,6 +97,7 @@ bool variant::to<bool>()const
     if(m_type->is<std::string>() )  return !((std::string*)m_data.ptr)->empty();
     if(m_type->is<double>() )       return m_data.d != 0.0;
     if(m_type->is<i16_t>() )        return m_data.i16 != 0;
+    if(m_type->is<i32_t>() )        return m_data.i32 != 0;
     if(m_type->is<bool>() )         return m_data.b;
     if(m_type->is<void *>() )       return m_data.ptr;
     FW_EXPECT(false,"Case not handled!")
@@ -93,27 +113,11 @@ std::string variant::to<std::string>()const
 
     if(m_type->is<std::string>() )  return *(std::string*)m_data.ptr;
     if(m_type->is<i16_t>() )        return std::to_string(m_data.i16);
+    if(m_type->is<i32_t>() )        return std::to_string(m_data.i32);
     if(m_type->is<double>() )       return format::number(m_data.d);
     if(m_type->is<bool>() )         return m_data.b ? "true" : "false";
     if(m_type->is_ptr())            return format::address(m_data.ptr);
     FW_EXPECT(false,"Case not handled!")
-}
-
-template<>
-i32_t variant::to<i32_t>()const
-{
-    if( !m_is_defined)
-    {
-        return 0;
-    }
-
-    if(m_type->is<std::string>() )  return stoi(*(std::string*)m_data.ptr );
-    if(m_type->is<double>() )       return i32_t(m_data.d);
-    if(m_type->is<i16_t>() )        return i32_t(m_data.i32);
-    if(m_type->is<i32_t>() )        return m_data.i32;
-    if(m_type->is<bool>() )         return i32_t(m_data.b);
-
-    FW_ASSERT(false) // this case is not handled
 }
 
 const type* variant::get_type() const

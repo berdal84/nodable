@@ -190,9 +190,24 @@ Slot& Node::get_slot(SlotFlags _flags)
     return get_slot(THIS_PROPERTY, _flags);
 }
 
-Slot& Node::get_slot(ID<Slot> id)
+Slot& Node::get_slot(ID8<Slot> id)
 {
     return slots[id];
+}
+
+std::vector<PoolID<Node>> Node::outputs() const
+{
+    return filter_adjacent(SlotFlag_OUTPUT);
+}
+
+std::vector<PoolID<Node>> Node::inputs() const
+{
+    return filter_adjacent(SlotFlag_INPUT);
+}
+
+std::vector<PoolID<Node>> Node::predecessors() const
+{
+    return filter_adjacent(SlotFlag_NEXT);
 }
 
 std::vector<PoolID<Node>> Node::children() const
@@ -255,7 +270,7 @@ ID<Property> Node::add_prop(const fw::type *_type, const char *_name, PropertyFl
     return props.add(_type, _name, _flags);
 }
 
-ID<Slot> Node::add_slot(ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity)
+ID8<Slot> Node::add_slot(ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity)
 {
     return slots.add( m_id, _prop_id, _flags, _capacity );
 }
@@ -288,4 +303,22 @@ std::vector<SlotRef> Node::filter_adjacent_slots( SlotFlags _flags ) const
 std::vector<Slot*> Node::filter_slots( SlotFlags _flags) const
 {
     return slots.filter(_flags);
+}
+
+bool Node::has_input_connected( Property* _property ) const
+{
+    FW_EXPECT(false, "TODO: implement");
+}
+
+std::vector<Slot*> Node::get_all_slots( ID<Property> _id ) const
+{
+    std::vector<Slot*> result;
+    for(auto& slot : slots.data())
+    {
+        if( slot.property == _id )
+        {
+            result.push_back( const_cast<Slot*>(&slot) );
+        }
+    }
+    return result;
 }

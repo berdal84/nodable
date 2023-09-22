@@ -6,10 +6,10 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 
 #include "fw/core/reflection/reflection"
+#include "fw/core/types.h"
 #include "fw/gui/Config.h"
 #include "fw/gui/FontManager.h"
 #include "fw/gui/AppView.h"
-#include "fw/gui/types.h"
 #include "nodable/gui/types.h"
 
 namespace ndbl {
@@ -61,7 +61,7 @@ namespace ndbl {
         ImVec4         ui_overlay_text_color;
         ImVec4         ui_graph_grid_color_major;
         ImVec4         ui_graph_grid_color_minor;
-        int            ui_graph_grid_subdivs;
+        i32_t          ui_graph_grid_subdivs;
         float          ui_graph_grid_size;
         const char*    ui_file_info_window_label;
         const char*    ui_help_window_label;
@@ -75,7 +75,7 @@ namespace ndbl {
         bool           experimental_hybrid_history;
         bool           isolate_selection;
         float          graph_unfold_dt;
-        i16_t          graph_unfold_iterations;
+        i32_t          graph_unfold_iterations;
         fw::Config     framework;
     };
 }

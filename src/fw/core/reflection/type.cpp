@@ -68,7 +68,10 @@ bool type::is_implicitly_convertible(const type* _src, const type* _dst )
     return
         // Allows specific casts:
         //        from                 to
-        _src->is<i16_t>() && _dst->is<double>();
+        _src->is<i16_t>() && _dst->is<i32_t>()  ||
+        _src->is<i16_t>() && _dst->is<double>() ||
+        _src->is<i32_t>() && _dst->is<double>()
+    ;
 }
 
 bool type::any_of(std::vector<const type*> types) const

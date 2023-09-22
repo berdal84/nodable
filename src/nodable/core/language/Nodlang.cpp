@@ -77,7 +77,8 @@ Nodlang::Nodlang(bool _strict)
          { "bool",   Token_t::keyword_bool,    type::get<bool>()},
          { "string", Token_t::keyword_string,  type::get<std::string>()},
          { "double", Token_t::keyword_double,  type::get<double>()},
-         { "int",    Token_t::keyword_int,     type::get<i16_t>()}
+         { "i16",    Token_t::keyword_i16,     type::get<i16_t>()},
+         { "int",    Token_t::keyword_int,     type::get<i32_t>()}
     };
 
     m_definition.operators =
@@ -174,7 +175,7 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
     LOG_MESSAGE("Parser", "Tokenization ...\n")
 
 
-    if (!tokenize(parser_state.source.buffer, parser_state.source.size))
+    if (!tokenize(parser_state.source_buffer, parser_state.source_buffer_size))
     {
         return false;
     }
@@ -244,11 +245,6 @@ double Nodlang::to_double(const std::string &_str)
     return stod(_str);
 }
 
-i16_t Nodlang::to_i16(const std::string &_str)
-{
-    return stoi(_str);
-}
-
 Slot *Nodlang::parse_token(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
@@ -296,8 +292,9 @@ Slot *Nodlang::parse_token(Token _token)
 
         case Token_t::literal_int:
         {
-            literal = parser_state.graph->create_literal<i16_t>();
-            literal->value()->set(to_i16(_token.word_to_string())); // FIXME: avoid std::string copy
+            literal = parser_state.graph->create_literal<i32_t>();
+            i32_t value = stoi((_token.word_to_string())); // FIXME: avoid std::string copy
+            literal->value()->set( value );
             break;
         }
 
@@ -2173,37 +2170,38 @@ bool Nodlang::allow_to_attach_suffix(Token_t type) const
 }
 
 Nodlang::ParserState::ParserState()
-    : graph(nullptr)
-    , source({nullptr, 0})
+: graph(nullptr)
+, source_buffer(nullptr)
+, source_buffer_size(0)
 {}
 
 Nodlang::ParserState::~ParserState()
 {
-    delete[] source.buffer;
+    delete[] source_buffer;
 }
 
 void Nodlang::ParserState::set_source_buffer(const char *str, size_t size)
 {
-    FW_ASSERT(source.buffer == nullptr); // should call clear() before
+    FW_ASSERT(source_buffer == nullptr); // should call clear() before
     FW_ASSERT(str != nullptr);
 
     if( size != 0 )
     {
         LOG_VERBOSE("ParserState", "Copying source buffer (%i bytes) ...\n", size);
-        source.buffer = new char[size];
-        memcpy(source.buffer, str, size);
+        source_buffer = new char[size];
+        memcpy(source_buffer, str, size);
     }
-    source.size = size;
-    ribbon.set_source_buffer(source.buffer);
+    source_buffer_size = size;
+    ribbon.set_source_buffer(source_buffer);
 }
 
 void Nodlang::ParserState::clear()
 {
     graph = nullptr;
     ribbon.clear();
-    delete[] source.buffer;
-    source.buffer = nullptr;
-    source.size = 0;
+    delete[] source_buffer;
+    source_buffer      = nullptr;
+    source_buffer_size = 0;
     while(!scope.empty())
     {
         scope.pop();

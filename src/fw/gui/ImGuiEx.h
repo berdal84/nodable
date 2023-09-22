@@ -8,7 +8,7 @@
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "EventManager.h"
-#include "types.h"
+#include "core/types.h"
 #include <imgui/imgui_internal.h>
 
 namespace fw

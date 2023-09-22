@@ -436,7 +436,7 @@ void Nodable::on_update()
                 SlotRef tail = event.slot.first;
                 SlotRef head = event.slot.second;
 
-                if (tail.get_slot()->flags & SlotFlag_ACCEPTS_DEPENDENCIES ) std::swap(tail, head); // guarantee src to be the output
+                if (tail.flags & SlotFlag_ACCEPTS_DEPENDENCIES ) std::swap(tail, head); // guarantee src to be the output
                 DirectedEdge edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
@@ -446,12 +446,14 @@ void Nodable::on_update()
 
             case EventType_slot_disconnected:
             {
-                Slot* tail_slot = event.slot.first.get_slot();
+                SlotRef slot = event.slot.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                for( auto each_edge: tail_slot->adjacent )
+                for( auto adjacent_slot: slot->adjacent )
                 {
-                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(each_edge);
+                    DirectedEdge edge{slot, adjacent_slot};
+                    DirectedEdge::normalize(edge);
+                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(edge);
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));

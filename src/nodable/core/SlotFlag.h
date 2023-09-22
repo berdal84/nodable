@@ -4,8 +4,8 @@
 namespace ndbl
 {
     // Nature of the connection allowed by a given Slot
-    typedef int SlotFlags;
-    enum SlotFlag
+    typedef i8_t SlotFlags;
+    enum SlotFlag : i8_t // require less bits, but reserve some.
     {
         // We see TYPEs as
         // DEPENDENT --- TYPE ---> DEPENDENCY

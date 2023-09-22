@@ -3,9 +3,10 @@
 #include <queue>
 #include <string>
 #include <future>
-
+#include <map>
 #include <SDL/include/SDL_keycode.h>
-#include "types.h"
+
+#include "core/types.h"
 
 namespace fw
 {
@@ -20,9 +21,11 @@ namespace fw
 
     // Declare some event types.
     // EventType can be extended starting at EventType_USER_DEFINED
-    typedef uint16_t EventType;
-    enum EventType_                           // Declare common event types
+    typedef u16_t EventType;
+    enum EventType_ : u16_t
     {
+        // Declare common event types
+
         EventType_none = 0,
         EventType_save_file_triggered,        // operation on files
         EventType_save_file_as_triggered,
@@ -51,9 +54,9 @@ namespace fw
     struct BindedEvent
     {
         std::string label;
-        uint16_t event_t;
-        Shortcut shortcut;
-        uint16_t condition;
+        u16_t       event_t;
+        Shortcut    shortcut;
+        u16_t       condition;
     };
 
     class EventManager
@@ -69,7 +72,7 @@ namespace fw
         void               push_async(EventType, u64_t); // Push an event with a delay in millisecond
         const std::vector<BindedEvent>& get_binded_events() const;
         void                            bind(const BindedEvent& binded_cmd);
-        const BindedEvent&              get_binded(uint16_t type);
+        const BindedEvent&              get_binded(u16_t type);
 
         static EventManager&            get_instance();
 
@@ -77,6 +80,6 @@ namespace fw
         static EventManager*            s_instance;
         std::queue<Event>               m_events;
         std::vector<BindedEvent>        m_binded_events;
-        std::map<uint16_t, BindedEvent> m_binded_events_by_type;
+        std::map<u16_t, BindedEvent>    m_binded_events_by_type;
     };
 }

@@ -23,6 +23,7 @@ namespace ndbl {
         keyword_string,
         keyword_double,
         keyword_int,
+        keyword_i16,
         keyword_bool,
         literal_string,
         literal_double,

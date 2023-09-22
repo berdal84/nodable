@@ -5,7 +5,7 @@
 #include "fw/core/log.h"
 #include "fw/core/system.h"
 #include "fw/gui/Texture.h"
-
+#include "core/NodeUtils.h"
 #include "Config.h"
 #include "Event.h"
 #include "HybridFile.h"
@@ -14,8 +14,8 @@
 #include "Nodable.h"
 #include "NodeView.h"
 #include "build_info.h"
-#include "core/NodeUtils.h"
 #include "Physics.h"
+#include "PropertyView.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;

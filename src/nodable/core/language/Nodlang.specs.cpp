@@ -138,7 +138,9 @@ TEST_F(Language, token_t_to_type)
 {
     EXPECT_EQ(nodlang.get_type(Token_t::keyword_bool)  , type::get<bool>());
     EXPECT_EQ(nodlang.get_type(Token_t::keyword_double), type::get<double>() );
-    EXPECT_EQ(nodlang.get_type(Token_t::keyword_int)   , type::get<i16_t>() );
+    EXPECT_EQ(nodlang.get_type(Token_t::keyword_i16)   , type::get<i16_t>() );
+    EXPECT_EQ(nodlang.get_type(Token_t::keyword_int)   , type::get<int>() );
+    EXPECT_EQ(nodlang.get_type(Token_t::keyword_int)   , type::get<i32_t>() );
     EXPECT_EQ(nodlang.get_type(Token_t::keyword_string), type::get<std::string>() );
 }
 
@@ -146,6 +148,8 @@ TEST_F(Language, type_to_string)
 {
     EXPECT_EQ(nodlang.to_string(type::get<bool>())        , "bool" );
     EXPECT_EQ(nodlang.to_string(type::get<double>())      , "double" );
-    EXPECT_EQ(nodlang.to_string(type::get<i16_t>())       , "int" );
+    EXPECT_EQ(nodlang.to_string(type::get<i16_t>())       , "i16" );
+    EXPECT_EQ(nodlang.to_string(type::get<int>())         , "int" );
+    EXPECT_EQ(nodlang.to_string(type::get<i32_t>())       , "int" );
     EXPECT_EQ(nodlang.to_string(type::get<std::string>()) , "string" );
 }

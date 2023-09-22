@@ -5,9 +5,8 @@
 #include <array>
 
 #include "fw/core/reflection/reflection"
+#include "fw/core/types.h"
 #include "fw/gui/AppView.h"
-
-#include "gui/types.h"
 
 namespace ndbl
 {

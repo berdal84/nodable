@@ -240,5 +240,9 @@ void ImGuiEx::DebugLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thi
 
 void ImGuiEx::Image(Texture* _texture)
 {
-    ImGui::Image((void *)(intptr_t)_texture->gl_handler, ImVec2(_texture->width, _texture->height));
+    ImVec2 size{
+        (float)_texture->width,
+        (float)_texture->height
+    };
+    ImGui::Image((void *)(intptr_t)_texture->gl_handler, size);
 }

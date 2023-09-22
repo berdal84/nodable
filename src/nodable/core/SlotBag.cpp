@@ -13,7 +13,7 @@ void SlotBag::apply(SlotBag::Event event, bool notify)
     FW_EXPECT(false, "Unhandled case");
 }
 
-void SlotBag::remove_edge_at(ID<Slot> slot_id, SlotRef adjacent, bool notify)
+void SlotBag::remove_edge_at(ID8<Slot> slot_id, SlotRef adjacent, bool notify)
 {
     Slot& slot = m_slots[slot_id];
     std::remove(slot.adjacent.begin(), slot.adjacent.end(), adjacent);
@@ -28,7 +28,7 @@ void SlotBag::remove_edge_at(ID<Slot> slot_id, SlotRef adjacent, bool notify)
     }
 }
 
-void SlotBag::add_adjacent_at(ID<Slot> id, SlotRef adjacent, bool notify)
+void SlotBag::add_adjacent_at(ID8<Slot> id, SlotRef adjacent, bool notify)
 {
     Slot& slot = m_slots.at( id );
     FW_EXPECT(slot.is_full(), "Slot is full" );
@@ -45,7 +45,7 @@ void SlotBag::add_adjacent_at(ID<Slot> id, SlotRef adjacent, bool notify)
     }
 }
 
-void SlotBag::set_capacity( ID<ndbl::Slot> _id, int _capacity )
+void SlotBag::set_capacity( ID8<Slot> _id, int _capacity )
 {
     m_slots[_id].set_capacity(_capacity);
 }
@@ -108,12 +108,13 @@ Slot* SlotBag::find_adjacent_at( SlotFlags flags, u8_t _index ) const
     return nullptr;
 }
 
-ID<Slot> SlotBag::add(PoolID<Node> _node, ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity)
+ID8<Slot> SlotBag::add(PoolID<Node> _node, ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity)
 {
     FW_EXPECT(_node != PoolID<Node>::null, "node cannot be null");
 
     size_t id = m_slots.size();
-    Slot& slot = m_slots.emplace_back(id, _node, _flags, _prop_id, _capacity);
+    FW_ASSERT(id < std::numeric_limits<u8_t>::max() )
+    Slot& slot = m_slots.emplace_back( (u8_t)id, _node, _flags, _prop_id, _capacity);
 
     return slot.id;
 }

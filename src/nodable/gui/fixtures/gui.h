@@ -29,7 +29,7 @@ namespace testing
          */
         static void loop_count(ndbl::Nodable & app, size_t iteration_count, double sleep_in_sec = 1.0)
         {
-            for(int i = 0; i < iteration_count; ++i)
+            for(size_t i = 0; i < iteration_count; ++i)
             {
                 EXPECT_NO_THROW(app.core.update());
                 EXPECT_NO_THROW(app.core.draw());

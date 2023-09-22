@@ -29,8 +29,7 @@ namespace ndbl
         { graph()->disconnect(m_edge, SideEffects::ON ); }
 
         void undo() override
-        {
-            graph()->connect_to_variable( *m_edge.tail.get_slot(), *m_edge.head.get_slot(), SideEffects::ON ); }
+        { graph()->connect( m_edge.tail.get(), m_edge.head.get(), SideEffects::ON ); }
 
         const char* get_description() const override
         { return m_description.c_str(); }
@@ -40,6 +39,6 @@ namespace ndbl
         { return m_edge.head.node->parent_graph; }
 
         std::string  m_description;
-        DirectedEdge         m_edge;
+        DirectedEdge m_edge;
     };
 }

@@ -2,11 +2,11 @@
 #include "SlotView.h"
 #include "fw/core/Pool.h"
 #include "fw/gui/EventManager.h"
+#include "nodable/core/SlotRef.h"
 
 namespace ndbl
 {
     // forward declaration
-    class PropertyslotView;
     class NodeView;
     using fw::PoolID;
 

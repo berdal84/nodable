@@ -95,7 +95,7 @@ bool GraphView::draw()
                 {
                     has_compatible_signature = true;
                 }
-                else if ( !dragged_slot->is_node_slot() )
+                else if ( !dragged_slot->is_this() )
                 {
                     const fw::type* dragged_property_type = dragged_slot->get_property_type();
 
@@ -243,8 +243,10 @@ bool GraphView::draw()
             ImVec2 src = dragged_slot->get_pos();
             ImVec2 dst = hovered_slot ? hovered_slot->get_pos() : ImGui::GetMousePos();
 
-            if ( dragged_slot->get_property()->is_referencing<Node>() )
+            bool is_dragging_a_this_slot = dragged_slot->get_property()->is_this();
+            if ( is_dragging_a_this_slot )
             {
+                // Thick line
                 fw::ImGuiEx::DrawVerticalWire(
                         ImGui::GetWindowDrawList(),
                         src, dst,
@@ -256,6 +258,7 @@ bool GraphView::draw()
             }
             else
             {
+                // Simple line
                 ImGui::GetWindowDrawList()->AddLine(
                         src, dst,
                         get_color(Color_BORDER_HIGHLIGHT),
@@ -289,7 +292,7 @@ bool GraphView::draw()
         {
             for (const Slot* slot: each_node->filter_slots( SlotFlag_INPUT ))
             {
-                Slot*     adjacent_slot      = slot->first_adjacent();
+                Slot* adjacent_slot = slot->first_adjacent().get();
                 if( adjacent_slot == nullptr )
                 {
                     continue;
@@ -302,8 +305,8 @@ bool GraphView::draw()
                     continue;
                 }
 
-                ImVec2    src_pos        = node_view->get_slot_pos( slot->id );
-                ImVec2    dst_pos        = adjacent_node_view->get_slot_pos( adjacent_slot->id );
+                ImVec2 src_pos = node_view->get_property_view( slot->property )->get_pos(slot->id);
+                ImVec2 dst_pos = adjacent_node_view->get_property_view( adjacent_slot->property )->get_pos(slot->id);
 
                 // do not draw long lines between a variable value
                 ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
@@ -447,7 +450,7 @@ bool GraphView::draw()
         if ( !dragged_slot)
         {
             // If dragging a property we create a VariableNode with the same type.
-            if ( dragged_slot && !dragged_slot->is_node_slot() )
+            if ( dragged_slot && !dragged_slot->is_this() )
             {
                 if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
                 {
@@ -503,7 +506,7 @@ bool GraphView::draw()
 
         ImGui::Separator();
 
-        if( dragged_slot && !dragged_slot->is_node_slot() )
+        if( dragged_slot && !dragged_slot->is_this() )
         {
             if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
                 new_node_id = create_instr(nullptr);
@@ -539,18 +542,18 @@ bool GraphView::draw()
             // dragging node slot ?
             if ( dragged_slot )
             {
-                auto type = dragged_slot->get_slot().flags & SlotFlag_TYPE_MASK;
+                auto type = dragged_slot->slot().flags & SlotFlag_TYPE_MASK;
                 if ( dragged_slot->allows( SlotFlag_ACCEPTS_DEPENDENTS ) )
                 {
                     Slot* tail_slot = new_node_id->get_first_slot( type | SlotFlag_ACCEPTS_DEPENDENCIES, dragged_slot->get_property()->get_type());
-                    m_graph->connect( *tail_slot, dragged_slot->get_slot(), SideEffects::ON );
+                    m_graph->connect( tail_slot, &dragged_slot->slot(), SideEffects::ON );
                 }
                 //  [ dragged slot ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
                     Slot* head_slot = new_node_id->get_first_slot( type | SlotFlag_ACCEPTS_DEPENDENTS, dragged_slot->get_property()->get_type());
-                    m_graph->connect( dragged_slot->get_slot(), *head_slot, SideEffects::ON );
+                    m_graph->connect( &dragged_slot->slot(), head_slot, SideEffects::ON );
                 }
                 SlotView::reset_dragged();
             }
