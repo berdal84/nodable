@@ -25,8 +25,8 @@ void ForLoopNode::init()
     add_slot(cond_id, SlotFlag::SlotFlag_INPUT, 1);
     add_slot(iter_id, SlotFlag::SlotFlag_INPUT, 1);
 
-    set_limit(SlotFlag_PREV, SLOT_MAX_CAPACITY);
-    set_limit(SlotFlag_NEXT, 1);
+    set_slot_capacity( SlotFlag_PREV, SLOT_MAX_CAPACITY );
+    set_slot_capacity( SlotFlag_NEXT, 1 );
 }
 
 PoolID<Scope> ForLoopNode::get_condition_true_scope() const

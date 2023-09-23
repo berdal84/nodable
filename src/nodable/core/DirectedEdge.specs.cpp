@@ -17,8 +17,8 @@ TEST_F( DirectedEdge_, normalize)
     {
         // prepare
         DirectedEdge edge{
-                node_1->get_slot(THIS_PROPERTY, SlotFlag_PREV),
-                node_2->get_slot(THIS_PROPERTY, SlotFlag_NEXT)};
+                *node_1->find_slot( THIS_PROPERTY, SlotFlag_PREV ),
+                *node_2->find_slot( THIS_PROPERTY, SlotFlag_NEXT )};
         DirectedEdge copy = edge;
         // act
         DirectedEdge::normalize(edge);
@@ -30,8 +30,8 @@ TEST_F( DirectedEdge_, normalize)
     {
         // prepare
         DirectedEdge edge{
-                node_1->get_slot(THIS_PROPERTY, SlotFlag_NEXT ),
-                node_2->get_slot(THIS_PROPERTY, SlotFlag_PREV )};
+                *node_1->find_slot( THIS_PROPERTY, SlotFlag_NEXT ),
+                *node_2->find_slot( THIS_PROPERTY, SlotFlag_PREV )};
         DirectedEdge copy = edge;
         // act
         DirectedEdge::normalize(edge);

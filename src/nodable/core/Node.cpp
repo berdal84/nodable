@@ -85,7 +85,7 @@ size_t Node::adjacent_count(SlotFlags _flags )const
 
 const fw::iinvokable* Node::get_connected_invokable(const char* property_name) const
 {
-    const Slot&   slot          = get_slot( property_name, SlotFlag_INPUT );
+    const Slot&   slot          = *find_slot( property_name, SlotFlag_INPUT );
     const SlotRef adjacent_slot = slot.first_adjacent();
 
     if ( adjacent_slot != SlotRef::null )
@@ -106,8 +106,8 @@ bool Node::has_edge_heading(const char* _name) const
 
 bool Node::has_edge_heading(ID<Property> property_id) const
 {
-    const Slot& slot = get_slot( property_id, SlotFlag_ACCEPTS_DEPENDENTS );
-    return !slot.adjacent.empty();
+    const Slot* slot = find_slot( property_id, SlotFlag_ACCEPTS_DEPENDENTS );
+    return slot && !slot->adjacent.empty();
 }
 
 void Node::set_name(const char *_label)
@@ -121,34 +121,41 @@ std::vector<PoolID<Component>> Node::get_components()
     return m_components.get_all();
 }
 
-const Slot& Node::get_slot(const char* property_name, SlotFlags desired_way) const
+const Slot* Node::find_slot(const char* property_name, SlotFlags desired_way) const
 {
     const Property* property = get_prop(property_name);
-    return get_slot(property->id, desired_way);
+    return find_slot( property->id, desired_way );
 }
 
-Slot& Node::get_slot(const char* property_name, SlotFlags _flags)
+Slot* Node::find_slot(const char* property_name, SlotFlags _flags)
 {
     const Property* property = get_prop(property_name);
-    return get_slot(property->id, _flags);
+    return find_slot( property->id, _flags );
 }
 
-const Slot& Node::get_slot(ID<Property> property_id, SlotFlags _flags) const
+const Slot* Node::find_slot(ID<Property> property_id, SlotFlags _flags) const
 {
-    return slots.by_property( property_id, _flags );
+    return slots.find_by_property( property_id, _flags );
 }
 
-Slot& Node::get_slot(ID<Property> property_id, SlotFlags _flags)
+Slot *Node::find_slot(ID<Property> property_id, SlotFlags _flags)
 {
-    return slots.by_property( property_id, _flags );
+    return slots.find_by_property( property_id, _flags );
 }
 
 std::vector<PoolID<Node>> Node::get_predecessors() const
 {
     std::vector<PoolID<Node>> result;
-    const Slot& slot = get_slot(THIS_PROPERTY, SlotFlag_PREV );
-    result.reserve( slot.adjacent_count());
-    for (auto&each: slot.adjacent ) result.push_back( each.node );
+    const Slot* slot = find_slot( THIS_PROPERTY, SlotFlag_PREV );
+    if( slot == nullptr )
+    {
+        return {};
+    }
+    result.reserve( slot->adjacent_count() );
+    for (auto&each: slot->adjacent )
+    {
+        result.push_back( each.node );
+    }
     return result;
 }
 
@@ -157,9 +164,9 @@ std::vector<Slot *> Node::get_slots(const std::vector<ID<Property>>& properties,
     std::vector<Slot*> result;
     for(ID<Property> prop : properties)
     {
-        if (const Slot& slot = slots.by_property(prop, flags))
+        if (const Slot* slot = slots.find_by_property( prop, flags ))
         {
-            result.push_back(const_cast<Slot*>( &slot ));
+            result.push_back(const_cast<Slot*>( slot ));
         }
     }
     return std::move(result);
@@ -185,9 +192,9 @@ Property* Node::get_prop_at(ID<Property> id)
     return props.at(id);
 }
 
-Slot& Node::get_slot(SlotFlags _flags)
+Slot* Node::find_slot(SlotFlags _flags)
 {
-    return get_slot(THIS_PROPERTY, _flags);
+    return find_slot( THIS_PROPERTY, _flags );
 }
 
 Slot& Node::get_slot(ID8<Slot> id)
@@ -260,9 +267,11 @@ Slot & Node::find_nth_slot( u8_t _n, SlotFlags _flags )
     FW_EXPECT(false, "Not found")
 }
 
-void Node::set_limit( SlotFlags _way, u8_t _n )
+void Node::set_slot_capacity( SlotFlags _way, u8_t _n )
 {
-    get_slot( THIS_PROPERTY, _way ).set_capacity( _n );
+    Slot* slot = find_slot( THIS_PROPERTY, _way );
+    FW_ASSERT(slot != nullptr)
+    slot->set_capacity( _n );
 }
 
 ID<Property> Node::add_prop(const fw::type *_type, const char *_name, PropertyFlags _flags)
@@ -277,7 +286,8 @@ ID8<Slot> Node::add_slot(ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity
 
 PoolID<Node> Node::get_parent() const
 {
-    return get_slot(THIS_PROPERTY, SlotFlag_PARENT).first_adjacent().node;
+    const Slot* slot = find_slot( THIS_PROPERTY, SlotFlag_PARENT );
+    return slot->first_adjacent().node;
 }
 
 Node* Node::last_child()
@@ -305,9 +315,10 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags) const
     return slots.filter(_flags);
 }
 
-bool Node::has_input_connected( Property* _property ) const
+bool Node::has_input_connected( const ID<Property>& id ) const
 {
-    FW_EXPECT(false, "TODO: implement");
+    const Slot* slot = find_slot( id, SlotFlag_INPUT );
+    return slot && slot->adjacent_count() > 0;
 }
 
 std::vector<Slot*> Node::get_all_slots( ID<Property> _id ) const

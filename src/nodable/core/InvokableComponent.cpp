@@ -67,7 +67,7 @@ bool InvokableComponent::update()
     return true;
 }
 
-void InvokableComponent::bind_result_property(SlotRef slot)
+void InvokableComponent::bind_result(SlotRef slot)
 {
     FW_ASSERT(slot.flags & SlotFlag_OUTPUT);
     m_result_slot = slot;

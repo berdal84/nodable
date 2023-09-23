@@ -19,8 +19,8 @@ void WhileLoopNode::init()
     auto cond_id = add_prop<PoolID<Node>>( CONDITION_PROPERTY ); // while ( <here> ) { ... }
     add_slot( cond_id, SlotFlag_INPUT, 1 );
 
-    set_limit(SlotFlag_PREV, SLOT_MAX_CAPACITY);
-    set_limit(SlotFlag_NEXT, 1);
+    set_slot_capacity( SlotFlag_PREV, SLOT_MAX_CAPACITY );
+    set_slot_capacity( SlotFlag_NEXT, 1 );
 }
 
 PoolID<Scope> WhileLoopNode::get_condition_true_scope() const

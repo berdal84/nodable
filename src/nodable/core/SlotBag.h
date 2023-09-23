@@ -53,12 +53,12 @@ namespace ndbl
         void              apply(Event, bool notify = true);
         void              set_capacity(ID8<Slot>, int i);
         size_t            count(SlotFlags) const;
-        Slot&             by_property( ID<Property> property, SlotFlags);
-        const Slot&       by_property( ID<Property> property, SlotFlags) const;
+        Slot*             find_by_property( ID<Property>, SlotFlags );
+        const Slot*       find_by_property( ID<Property>, SlotFlags ) const;
         Slot*             find_adjacent_at( SlotFlags, u8_t _index ) const;
         std::vector<Slot*> filter( SlotFlags ) const;
     private:
-        const Slot&       _by_property( ID<Property> property, SlotFlags ) const;
+        const Slot*       _find_by_property( ID<Property>, SlotFlags _flags ) const;
         void              remove_edge_at(ID8<Slot> id, SlotRef, bool notify = true);
         void              add_adjacent_at(ID8<Slot> id, SlotRef, bool notify = true);
 

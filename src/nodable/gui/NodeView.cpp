@@ -81,21 +81,23 @@ void NodeView::set_owner(PoolID<Node> node)
         return;
     }
 
-    // 1. Expose properties (create a view per property)
-    //--------------------------------------------------
+    // 1. Create Property views
+    //-------------------------
 
     // Reserve
     m_property_views.reserve( node->props.size() );
 
-    //  We expose first the properties having an input slot
     for (Property& each_prop : node->props )
     {
+        // Create view
         PropertyView& property_view = m_property_views.emplace_back( m_id, each_prop.id);
+
+        // Indexing
         if ( each_prop.is_this() )
         {
             m_property_view_this = &property_view;
         }
-        else if ( !property_view.get_slot(SlotFlag_OUTPUT) )
+        else if ( !m_owner->find_slot( each_prop.id, SlotFlag_OUTPUT ) )
         {
             m_property_views_with_input_only.push_back(&property_view);
         }
@@ -105,7 +107,36 @@ void NodeView::set_owner(PoolID<Node> node)
         }
     }
 
-    // 2. Listen to connection/disconnections
+    // 2. Create SlotViews
+    //--------------------
+    // Create a SlotView per slot
+    for(Slot& slot : m_owner->slots.data() )
+    {
+        Side side;
+
+        if( slot.get_property()->is_this() && slot.type() == SlotFlag_TYPE_VALUE )
+        {
+            // This slots (as value) are displayed on the left
+            side = Side::Left;
+        }
+        else
+        {
+            switch ( slot.flags )
+            {
+                case SlotFlag_INPUT:
+                case SlotFlag_PREV:
+                    side = Side::Top;
+                    break;
+
+                case SlotFlag_OUTPUT:
+                case SlotFlag_NEXT:
+                    side = Side::Bottom;
+            }
+        }
+        m_slot_views.emplace_back(slot, side);
+    }
+
+    // 3. Listen to connection/disconnections
     //---------------------------------------
 
     PoolID<NodeView> id = m_id;
@@ -159,8 +190,8 @@ void NodeView::set_selected(PoolID<NodeView> new_selection)
     if( new_selection )
     {
         Event event{ EventType_node_view_selected };
-        fw::EventManager::get_instance().push_event((fw::Event&)event);
         event.node.view = new_selection;
+        fw::EventManager::get_instance().push_event((fw::Event&)event);
         s_selected = new_selection;
     }
 }
@@ -280,11 +311,13 @@ bool NodeView::draw()
     {
         ImColor color        = config.ui_node_nodeslotColor;
         ImColor hoveredColor = config.ui_node_nodeslotHoveredColor;
-
         for ( SlotView& slot_view : m_slot_views )
         {
-            SlotView::draw_slot_rectangle(slot_view, color, hoveredColor, m_edition_enable);
-            is_slot_hovered |= ImGui::IsItemHovered();
+            if( slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
+            {
+                SlotView::draw_slot_rectangle(slot_view, get_slot_pos(slot_view.slot()), color, hoveredColor, m_edition_enable);
+                is_slot_hovered |= ImGui::IsItemHovered();
+            }
         }
     }
 
@@ -359,35 +392,14 @@ bool NodeView::draw()
         ImColor borderCol = config.ui_node_borderColor;
         ImColor hoverCol  = config.ui_node_nodeslotHoveredColor;
 
-        if ( m_property_view_this )
+        for( auto& slot_view: m_slot_views )
         {
-            FW_EXPECT(false, "TODO: draw THIS property slot")
-            //SlotView::draw_slot_circle(m_exposed_this_property_view->output(), radius, color, borderCol, hoverCol, m_edition_enable);
-            //is_slot_hovered |= ImGui::IsItemHovered();
-        }
-
-        for( auto& propertyView : m_property_views_with_input_only )
-        {
-            FW_EXPECT(false, "TODO: draw property input slots")
-            //SlotView::draw_slot_circle(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
-            //is_slot_hovered |= ImGui::IsItemHovered();
-        }
-
-        for( auto& propertyView : m_property_views_with_output_or_inout )
-        {
-            FW_EXPECT(false, "TODO: draw property output slots")
-            /*
-            if ( propertyView->input() )
+            if( slot_view.slot().type() == SlotFlag_TYPE_VALUE )
             {
-                SlotView::draw_slot_circle(propertyView->input(), radius, color, borderCol, hoverCol, m_edition_enable);
+                ImVec2 screen_pos = get_slot_pos(slot_view.slot());
+                SlotView::draw_slot_circle( slot_view, screen_pos, radius, color, borderCol, hoverCol, m_edition_enable );
                 is_slot_hovered |= ImGui::IsItemHovered();
             }
-
-            if ( propertyView->output() )
-            {
-                SlotView::draw_slot_circle(propertyView->output(), radius, color, borderCol, hoverCol, m_edition_enable);
-                is_slot_hovered |= ImGui::IsItemHovered();
-            }*/
         }
     }
 
@@ -479,9 +491,8 @@ bool NodeView::_draw_property_view(PropertyView* _view)
 {
     bool      changed      = false;
     Property* property     = _view->get_property();
-    Node*     owner        = _view->get_node();
     bool      is_defined   = property->value()->is_defined();
-    const fw::type* owner_type         = owner->get_type();
+    const fw::type* owner_type         = m_owner->get_type();
     VariableNode*   connected_variable = _view->get_connected_variable();
 
     /*
@@ -503,7 +514,7 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         // Always show when connected to a variable
         _view->show_input |= connected_variable != nullptr;
         // Shows variable property only if they are not connected (don't need to show anything, the variable name is already displayed on the node itself)
-        _view->show_input |= is_defined && (owner_type->is<VariableNode>() || !owner->has_input_connected(property));
+        _view->show_input |= is_defined && (owner_type->is<VariableNode>() || !m_owner->has_input_connected(property->id));
     }
 
     // input
@@ -542,7 +553,16 @@ bool NodeView::_draw_property_view(PropertyView* _view)
     {
         ImGui::Text("%s %s\n", property->get_type()->get_name(), property->get_name().c_str());
 
-        std::string source_code = _view->serialize_source();
+        std::string  source_code;
+        if( property->get_type()->is<PoolID<Node>>() || m_owner->find_slot( property->id, SlotFlag_OUTPUT ))
+        {
+            source_code = Nodlang::get_instance().serialize_node( source_code, m_owner );
+        }
+        else
+        {
+            source_code = Nodlang::get_instance().serialize_property(source_code, property );
+        }
+
         ImGui::Text("source: \"%s\"", source_code.c_str());
 
         fw::ImGuiEx::EndTooltip();
@@ -1071,4 +1091,11 @@ bool NodeView::is_any_selected()
 bool NodeView::is_dragged() const
 {
     return s_dragged == m_id;
+}
+
+ImVec2 NodeView::get_slot_pos( const Slot& slot )
+{
+    PropertyView& property_view = m_property_views.at( slot.property );
+    SlotView&     slot_view     = m_slot_views.at( slot.id );
+    return get_position(Space_Screen) + property_view.position() + slot_view.position();
 }

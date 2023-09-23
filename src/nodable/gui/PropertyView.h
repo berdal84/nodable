@@ -4,12 +4,13 @@
 #include "core/VariableNode.h"
 #include "fw/core/Pool.h"
 #include "imgui.h"
+#include "imgui_internal.h"
+#include <unordered_map>
 
 namespace ndbl {
 
     // forward declarations
     class Property;
-    class SlotView;
     class NodeView;
     using fw::ID;
     using fw::PoolID;
@@ -20,26 +21,22 @@ namespace ndbl {
     class PropertyView
     {
     public:
-        ID<Property>     property;
+        ID<Property> property_id;
         PoolID<NodeView> node_view;
         float            hpos; // horizontal position
         bool             show_input;
         bool             touched;
-        std::vector<SlotView> slot_views;
 
-        PropertyView() = default;
+        PropertyView();
         PropertyView( PoolID<NodeView> _node_view, ID<Property> _id );
-        PropertyView (const PropertyView&) = default;
-        PropertyView& operator= (const PropertyView&) = delete;
+        PropertyView (const PropertyView&);
 
         void             reset();
         Property*        get_property() const;
         Node*            get_node() const;
         VariableNode*    get_connected_variable() const;
-        std::string      serialize_source() const;
-        bool             has_slot( SlotFlag ) const;
         bool             has_input_connected() const;
-        SlotView*        get_slot( SlotFlag ) const;
-        ImVec2 get_pos( ID8<Slot> identifier ) const;
+        ImVec2           position() const;
+        ImRect           get_rect() const;
     };
 }

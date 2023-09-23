@@ -39,8 +39,10 @@ namespace ndbl
         std::vector<PoolID<ComponentT>> result;
         result.reserve( nodes.size() );
 
-        auto get_component = [](PoolID<Node> node ) { return node->get_component<ComponentT>(); };
-        std::transform( nodes.begin(), nodes.end(), result.end(), get_component );
+        for(auto& node : nodes)
+        {
+            result.push_back( node->get_component<ComponentT>() );
+        }
 
         return result; // wil be moved
     }
@@ -59,11 +61,13 @@ namespace ndbl
         std::vector<ComponentT*> result;
         result.reserve(components_ids.size());
 
-        auto get_pointer = [](PoolID<ComponentT> component_id ) { return component_id.get(); };
-        std::transform( components_ids.begin(), components_ids.end(), result.end(), get_pointer);
-
-        auto is_null = [](ComponentT* component ) { return component == nullptr; };
-        std::remove_if( result.begin(), result.end(), is_null );
+        for(auto& id : components_ids)
+        {
+            if(ComponentT* component = id.get() )
+            {
+                result.push_back(component);
+            }
+        }
 
         return result; // wil be moved
     }

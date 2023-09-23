@@ -27,16 +27,16 @@ namespace ndbl
         Token token;
         bool                        update();
 		void                        bind_arg(size_t _index, SlotRef);
-        const std::vector<SlotRef>&get_arguments() const;
+        const std::vector<SlotRef>& get_arguments() const;
 		const fw::func_type*        get_func_type()const { return m_signature; }
 		const fw::iinvokable*       get_function()const { return m_invokable; }
-        void                        bind_result_property(SlotRef); // bind an existing property to the result of the computation
+        void                        bind_result(SlotRef);
         bool                        has_function() const { return m_invokable; };
 		bool                        is_operator()const { return m_is_operator; };
 
     protected:
-        SlotRef m_result_slot;
-        std::vector<SlotRef> m_argument_slot;
+        SlotRef                    m_result_slot;
+        std::vector<SlotRef>       m_argument_slot;
         const fw::func_type*       m_signature;
         const fw::iinvokable*      m_invokable;
         bool                       m_is_operator;

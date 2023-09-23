@@ -23,6 +23,7 @@ namespace ndbl
     class Graph;
     class NodeView;
     class Slot;
+    class SlotView;
     class NodeViewConstraint;
 
 	/** We use this enum to identify all NodeView detail modes */
@@ -62,8 +63,7 @@ namespace ndbl
 		void                    translate_to(ImVec2 desiredPos, float _factor, bool _recurse = false);
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
-        ImRect                  get_rect(bool _view = false, bool _ignorePinned = true
-                                      , bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
+        ImRect                  get_rect(bool _recursively = false, bool _ignorePinned = true, bool _ignoreMultiConstrained = true, bool _ignoreSelf = false) const;
         const PropertyView*     get_property_view( ID<Property> _id )const;
         inline ImVec2           get_size() const { return m_size; }
         bool                    is_dragged()const;
@@ -76,7 +76,6 @@ namespace ndbl
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
-        SlotView&               get_slot_view(ID8<Slot>);
         ImRect                  get_screen_rect();
         static ImRect           get_rect(
                 const std::vector<NodeView *> &_views,
@@ -97,6 +96,8 @@ namespace ndbl
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
+        ImVec2                  get_slot_pos( const Slot& );
+
     private:
         bool                    _draw_property_view(PropertyView* _view);
         bool                    is_exposed( ID<Property> _id )const;

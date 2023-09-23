@@ -139,8 +139,8 @@ void NodeFactory::add_invokable_component(PoolID<Node> _node, const fw::func_typ
     _node->add_component(component);
 
     // Bind result property
-    SlotRef result_slot = _node->get_slot( VALUE_PROPERTY, SlotFlag_OUTPUT );
-    component->bind_result_property( result_slot );
+    Slot* result_slot = _node->find_slot( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    component->bind_result( *result_slot );
 
     // Link arguments
     auto args = _func_type->get_args();
@@ -161,8 +161,8 @@ PoolID<Node> NodeFactory::create_scope() const
     node->init();
     node->set_name("{} Scope");
 
-    node->set_limit(SlotFlag_PREV, SLOT_MAX_CAPACITY);
-    node->set_limit(SlotFlag_NEXT, 1);
+    node->set_slot_capacity( SlotFlag_PREV, SLOT_MAX_CAPACITY );
+    node->set_slot_capacity( SlotFlag_NEXT, 1 );
 
     PoolID<Scope> scope_id = Pool::get_pool()->create<Scope>();
     node->add_component(scope_id);

@@ -34,7 +34,7 @@ namespace ndbl
         const Property*  property()const;
         const PoolID<InstructionNode> get_declaration_instr()const { return m_declaration_instr; }
         PoolID<Scope>    get_scope();
-        Slot&            get_value_slot(SlotFlags);
+        Slot *find_value_typed_slot( SlotFlags _flags );
         void             set_declared(bool b = true) { m_is_declared = b; }
         void             reset_scope(Scope* _scope = nullptr);
         void             set_declaration_instr(PoolID<InstructionNode> _instr) { m_declaration_instr = _instr; }

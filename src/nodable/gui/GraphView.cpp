@@ -240,8 +240,8 @@ bool GraphView::draw()
         // Draw temporary edge
         if (dragged_slot)
         {
-            ImVec2 src = dragged_slot->get_pos();
-            ImVec2 dst = hovered_slot ? hovered_slot->get_pos() : ImGui::GetMousePos();
+            ImVec2 src = dragged_slot->position();
+            ImVec2 dst = hovered_slot ? hovered_slot->position() : ImGui::GetMousePos();
 
             bool is_dragging_a_this_slot = dragged_slot->get_property()->is_this();
             if ( is_dragging_a_this_slot )
@@ -305,8 +305,8 @@ bool GraphView::draw()
                     continue;
                 }
 
-                ImVec2 src_pos = node_view->get_property_view( slot->property )->get_pos(slot->id);
-                ImVec2 dst_pos = adjacent_node_view->get_property_view( adjacent_slot->property )->get_pos(slot->id);
+                ImVec2 slot_pos          = node_view->get_slot_pos( *slot );
+                ImVec2 adjacent_slot_pos = adjacent_node_view->get_slot_pos( *adjacent_slot );
 
                 // do not draw long lines between a variable value
                 ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
@@ -326,7 +326,7 @@ bool GraphView::draw()
                 else
                 {
                     // transparent depending on wire length
-                    ImVec2 delta = src_pos - dst_pos;
+                    ImVec2 delta = slot_pos - adjacent_slot_pos;
                     float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
                     if (dist > app.config.ui_wire_bezier_length_min) {
                         float factor = (dist - app.config.ui_wire_bezier_length_min) /
@@ -349,7 +349,7 @@ bool GraphView::draw()
                         roundness *= 0.25f;
                     }
 
-                    fw::ImGuiEx::DrawVerticalWire(draw_list, src_pos, dst_pos, line_color, shadow_color,
+                    fw::ImGuiEx::DrawVerticalWire(draw_list, slot_pos, adjacent_slot_pos, line_color, shadow_color,
                                                   thickness, roundness);
                 }
 

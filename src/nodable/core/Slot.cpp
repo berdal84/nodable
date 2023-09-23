@@ -117,3 +117,8 @@ void Slot::set_capacity( u8_t _capacity )
     FW_EXPECT( adjacent.size() < _capacity, "Cannot set a capacity below the edge count");
     capacity = _capacity;
 }
+
+SlotFlags Slot::type() const
+{
+    return flags & SlotFlag_TYPE_MASK;
+}

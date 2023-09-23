@@ -55,29 +55,26 @@ size_t SlotBag::count(SlotFlags flags) const
    return filter(flags).size();
 }
 
-Slot& SlotBag::by_property(ID<Property> property_id, SlotFlags _flags)
+Slot* SlotBag::find_by_property(ID<Property> property_id, SlotFlags _flags)
 {
-    return const_cast<Slot&>( _by_property(property_id, _flags) );
+    return const_cast<Slot*>( _find_by_property( property_id, _flags ) );
 }
 
-const Slot& SlotBag::by_property(ID<Property> property_id, SlotFlags flags) const
+const Slot* SlotBag::find_by_property(ID<Property> property_id, SlotFlags flags) const
 {
-    return _by_property(property_id, flags);
+    return _find_by_property( property_id, flags );
 }
 
-const Slot& SlotBag::_by_property(ID<Property> property_id, SlotFlags _flags) const
+const Slot* SlotBag::_find_by_property(ID<Property> property_id, SlotFlags _flags) const
 {
     for(auto& slot : m_slots )
     {
         if( (slot.flags & _flags) == _flags && slot.property == property_id )
         {
-            return slot;
+            return &slot;
         }
     }
-#ifdef NDBL_DEBUG
-    LOG_MESSAGE("Slot", "Unable to find a slot for Property '%zu' with flags %zu\n", property_id.id(), _flags);
-#endif
-    FW_ASSERT(false);
+    return nullptr;
 }
 
 Slot* SlotBag::find_adjacent_at( SlotFlags flags, u8_t _index ) const

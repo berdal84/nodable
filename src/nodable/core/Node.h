@@ -76,12 +76,12 @@ namespace ndbl {
         size_t               adjacent_count(SlotFlags )const;
         std::vector<PoolID<Node>>get_predecessors() const;
         PoolID<Node>         get_parent() const;
-        Slot&                get_slot(SlotFlags _flags); // implicitly THIS_PROPERTY's slot
+        Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
         Slot&                get_slot(ID8<Slot>);
-        Slot&                get_slot(ID<Property>, SlotFlags);
-        const Slot&          get_slot(ID<Property>, SlotFlags) const;
-        Slot&                get_slot(const char* property_name, SlotFlags filter );
-        const Slot&          get_slot(const char* property_name, SlotFlags filter ) const;
+        Slot*                find_slot(ID<Property>, SlotFlags );
+        const Slot*          find_slot(ID<Property>, SlotFlags ) const;
+        Slot*                find_slot(const char* property_name, SlotFlags );
+        const Slot*          find_slot(const char* property_name, SlotFlags ) const;
         size_t               get_slot_count(SlotFlags) const;
         Slot&                find_nth_slot( u8_t, SlotFlags );
         Slot*                get_first_slot(SlotFlags _way, const fw::type *_type);
@@ -96,12 +96,12 @@ namespace ndbl {
         const Property*      get_prop(const char* _name) const;
         std::vector<Slot*>   get_slots(const std::vector<ID<Property>>&, SlotFlags) const;
         std::vector<PoolID<Component>> get_components();
-        void                 set_limit(SlotFlags _way, u8_t _n);
+        void set_slot_capacity(SlotFlags _way, u8_t _n);
         ID<Property>         add_prop(const fw::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
-        ID8<Slot>            add_slot(ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity = 1);
+        ID8<Slot>            add_slot(ID<Property>, SlotFlags, u8_t _capacity = 1);
         Node*                last_child();
-        bool                 has_input_connected( Property* ) const;
-        std::vector<Slot*>   get_all_slots( ID<Property> _id ) const;
+        bool                 has_input_connected( const ID<Property>& ) const;
+        std::vector<Slot*>   get_all_slots( ID<Property> ) const;
 
         template<typename ValueT>
         ID<Property> add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)

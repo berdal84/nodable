@@ -80,9 +80,7 @@ void Physics::apply_forces(float _dt, bool _recurse)
     const float     friction       = fw::math::lerp (0.0f, 0.5f, magnitude / magnitude_max);
     const ImVec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
 
-    // TODO: handle that outside of this class, or pass view as parameter (begin)
     m_view->translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
-    // TODO: (end)
 
     m_last_frame_forces_sum = avg_forces_sum;
     m_forces_sum            = ImVec2();

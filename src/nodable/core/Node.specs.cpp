@@ -25,8 +25,8 @@ TEST_F(Node_, get_parent)
     auto parent = graph.create_scope();
 
     graph.connect(
-            &child->get_slot(THIS_PROPERTY, SlotFlag_PARENT),
-            &parent->get_slot(THIS_PROPERTY, SlotFlag_CHILD),
+            child->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
+            parent->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
             SideEffects::OFF);
 
     EXPECT_TRUE( child->get_parent() );

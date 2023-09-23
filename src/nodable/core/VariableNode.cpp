@@ -58,9 +58,9 @@ void VariableNode::reset_scope(Scope* _scope)
     m_scope = _scope ? _scope->get_owner() : PoolID<Node>{};
 }
 
-Slot& VariableNode::get_value_slot(SlotFlags _flags)
+Slot* VariableNode::find_value_typed_slot( SlotFlags _flags)
 {
-    return get_slot(m_value_property_id, _flags & SlotFlag_ACCEPTS_MASK | SlotFlag_TYPE_VALUE );
+    return find_slot( m_value_property_id, _flags & SlotFlag_ACCEPTS_MASK | SlotFlag_TYPE_VALUE );
 }
 
 Property *VariableNode::property()
