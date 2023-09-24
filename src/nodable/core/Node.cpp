@@ -214,7 +214,7 @@ std::vector<PoolID<Node>> Node::inputs() const
 
 std::vector<PoolID<Node>> Node::predecessors() const
 {
-    return filter_adjacent(SlotFlag_NEXT);
+    return filter_adjacent(SlotFlag_PREV);
 }
 
 std::vector<PoolID<Node>> Node::children() const
@@ -224,7 +224,7 @@ std::vector<PoolID<Node>> Node::children() const
 
 std::vector<PoolID<Node>> Node::successors() const
 {
-    return filter_adjacent(SlotFlag_PREV);
+    return filter_adjacent(SlotFlag_NEXT);
 }
 
 std::vector<PoolID<Node>> Node::filter_adjacent( SlotFlags _flags ) const

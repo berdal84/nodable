@@ -328,8 +328,8 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
                 if ( next_slot && !next_slot->is_full() )
                 {
                     connect(
-                        dependent_previous_slot,
                         dependency_node->find_slot( SlotFlag_NEXT ),
+                        dependent_previous_slot,
                         SideEffects::OFF );
                 }
                 else if (Node* dependency_last_child = dependency_node->last_child() )
@@ -341,11 +341,11 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
                         {
                             LOG_VERBOSE("Graph", "Empty scope found when trying to connect(...)");
                         }
-                        for (InstructionNode *each_instruction: last_instructions )
+                        for (InstructionNode* each_instruction: last_instructions )
                         {
                             connect(
-                                dependent_previous_slot,
                                 each_instruction->find_slot( SlotFlag_NEXT ),
+                                dependent_previous_slot,
                                 SideEffects::OFF );
                         }
                     }
@@ -353,7 +353,7 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
                     {
                         Slot* dependency_last_child_next_slot = dependency_last_child->find_slot( SlotFlag_NEXT );
                         FW_ASSERT(!dependency_last_child_next_slot->is_full())
-                        connect( dependent_previous_slot, dependency_last_child_next_slot, SideEffects::OFF);
+                        connect( dependency_last_child_next_slot, dependent_previous_slot, SideEffects::OFF);
                     }
                 }
                 break;
@@ -364,29 +364,29 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
                 if ( dependency_node->has_component<Scope>())
                 {
                     connect(
-                        dependent_node->find_slot( SlotFlag_PARENT ),
                         dependency_node->find_slot( SlotFlag_CHILD ),
+                        dependent_node->find_slot( SlotFlag_PARENT ),
                         SideEffects::OFF );
                 }
-                else if (Node *dst_parent = dependency_node->get_parent().get())
+                else if (Node* dependency_parent_node = dependency_node->get_parent().get())
                 {
                     connect(
+                            dependency_parent_node->find_slot( SlotFlag_CHILD ),
                         dependent_node->find_slot( SlotFlag_PARENT ),
-                        dst_parent->find_slot( SlotFlag_CHILD ),
                         SideEffects::OFF );
                 }
 
                 /**
                  * create child/get_parent() link with dst_parent
                  */
-                if (Node *src_parent = dependent_node->get_parent().get())
+                if (Node* dependent_parent_node = dependent_node->get_parent().get())
                 {
                     Node* current_successor = dependent_node->successors().begin()->get();
                     while (current_successor && current_successor->get_parent().get() != nullptr)
                     {
                         connect(
+                            dependent_parent_node->find_slot( SlotFlag_CHILD ),
                             current_successor->find_slot( SlotFlag_PARENT ),
-                            src_parent->find_slot( SlotFlag_CHILD ),
                             SideEffects::OFF );
                         current_successor = current_successor->successors().begin()->get();
                     }

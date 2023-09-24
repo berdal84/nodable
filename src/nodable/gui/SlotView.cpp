@@ -9,86 +9,73 @@ SlotView *SlotView::s_focused = nullptr;
 SlotView *SlotView::s_dragged = nullptr;
 SlotView *SlotView::s_hovered = nullptr;
 
-SlotView::SlotView(Slot& _slot, Side _side)
+SlotView::SlotView( Slot &_slot, ImVec2 _alignment )
 : m_slot(_slot)
-, m_side(_side )
-, m_relative_pos(0.f, 0.f)
+, m_alignment(_alignment)
 {
-    switch ( m_side )
-    {
-        case Side::Top:    m_relative_pos.y = -0.5f; break;
-        case Side::Bottom: m_relative_pos.y =  0.5f; break;
-        case Side::Left:   m_relative_pos.x = -0.5f; break;
-        case Side::Right:  m_relative_pos.x =  0.5f;
-    }
 }
 
 void SlotView::draw_slot_circle(
-        SlotView &_view,
+        ImDrawList* _draw_list,
+        SlotView& _view,
         ImVec2 _position,
         float _radius,
-        const ImColor &_color,
-        const ImColor &_borderColor,
-        const ImColor &_hoverColor,
+        const ImColor& _color,
+        const ImColor& _border_color,
+        const ImColor& _hover_color,
         bool _readonly)
 {
+    constexpr float INVISIBLE_BUTTON_SIZE_RATIO = 1.2f; // 120%
+
     // draw
     //-----
-    auto draw_list = ImGui::GetWindowDrawList();
+    ImGui::SetCursorScreenPos( _position - ImVec2(_radius * INVISIBLE_BUTTON_SIZE_RATIO ));
 
-    // Unvisible Button on top of the Circle
-    ImVec2 cursor_screen_pos = ImGui::GetCursorScreenPos();
-    fw::ImGuiEx::DebugCircle(cursor_screen_pos, _radius, ImColor(255,0,0));
-    auto invisibleButtonOffsetFactor = 1.2f;
-    ImGui::SetCursorScreenPos( _position - ImVec2(_radius * invisibleButtonOffsetFactor));
+    // draw a larger invisible button on top of the circle to facilitate click/drag
     ImGui::PushID(_view.m_slot.id);
-    bool clicked = ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * invisibleButtonOffsetFactor, _radius * 2.0f * invisibleButtonOffsetFactor));
+    ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO, _radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO ));
     ImGui::PopID();
-    ImGui::SetCursorScreenPos(cursor_screen_pos);
-    auto is_hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
-    // Circle
-    draw_list->AddCircleFilled( _position, _radius, is_hovered ? _hoverColor : _color);
-    draw_list->AddCircle( _position, _radius, _borderColor);
+    bool is_hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
-    fw::ImGuiEx::DebugCircle( _position, _radius, _borderColor, ImColor(255, 0, 0, 0));
+    // draw the circle
+    _draw_list->AddCircleFilled( _position, _radius, is_hovered ? _hover_color : _color);
+    _draw_list->AddCircle( _position, _radius, _border_color );
+    fw::ImGuiEx::DebugCircle( _position, _radius, _border_color, ImColor(255, 0, 0, 0));
 
     behavior(_view, _readonly);
 }
 
 void SlotView::draw_slot_rectangle(
+        ImDrawList* _draw_list,
         SlotView& _view,
-        ImVec2 _position,
+        ImRect _rect,
         const ImColor& _color,
-        const ImColor& _hoveredColor,
+        const ImColor& _border_color,
+        const ImColor& _hover_color,
         bool _readonly)
 {
-    constexpr float rounding = 6.0f;
+    constexpr float   RECTANGLE_ROUNDING_SIZE = 6.0f;
 
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
-    ImRect      rect      = _view.get_rect();
-    ImVec2      rect_size = rect.GetSize();
+    ImVec2 rect_size = _rect.GetSize();
 
     // Return early if rectangle cannot be draw.
     // TODO: Find why size can be zero more (more surprisingly) nan.
     if(rect_size.x == 0.0f || rect_size.y == 0.0f || std::isnan(rect_size.x) || std::isnan(rect_size.y) ) return;
 
-    ImDrawCornerFlags cornerFlags = _view.m_slot.flags & SlotFlag_ACCEPTS_DEPENDENTS ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
+    ImDrawCornerFlags corner_flags = _view.m_slot.flags & SlotFlag_ACCEPTS_DEPENDENTS ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
-    auto cursorScreenPos = ImGui::GetCursorScreenPos();
-    ImGui::SetCursorScreenPos(rect.GetTL());
+    ImGui::SetCursorScreenPos( _rect.GetTL());
     ImGui::PushID(_view.m_slot.id);
-    ImGui::InvisibleButton("###", rect.GetSize());
+    ImGui::InvisibleButton("###", _rect.GetSize());
     ImGui::PopID();
-    ImGui::SetCursorScreenPos(cursorScreenPos);
 
-    ImColor color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hoveredColor : _color;
-    draw_list->AddRectFilled(rect.Min, rect.Max, color, rounding, cornerFlags );
-    draw_list->AddRect(rect.Min, rect.Max, ImColor(50,50, 50), rounding, cornerFlags );
-    fw::ImGuiEx::DebugRect(rect.Min, rect.Max, ImColor(255,0, 0, 127), 0.0f );
+    ImColor fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hover_color : _color;
+    _draw_list->AddRectFilled( _rect.Min, _rect.Max, fill_color, RECTANGLE_ROUNDING_SIZE, corner_flags );
+    _draw_list->AddRect( _rect.Min, _rect.Max, _border_color, RECTANGLE_ROUNDING_SIZE, corner_flags );
+    fw::ImGuiEx::DebugRect( _rect.Min, _rect.Max, ImColor(255,0, 0, 127), 0.0f );
 
     behavior(_view, _readonly);
-    FW_EXPECT(false, "Behavior should be extracted and unified");
 }
 
 void SlotView::behavior(SlotView& _view, bool _readonly)
@@ -115,7 +102,7 @@ void SlotView::behavior(SlotView& _view, bool _readonly)
         SlotView::reset_hovered(&_view);
         if( fw::ImGuiEx::BeginTooltip() )
         {
-            ImGui::Text("%s", _view.get_property()->get_name().c_str() );
+            ImGui::Text("%s", SlotView::get_tooltip(_view).c_str() );
             fw::ImGuiEx::EndTooltip();
         }
 
@@ -133,29 +120,6 @@ void SlotView::behavior(SlotView& _view, bool _readonly)
     }
 
 }
-
-ImRect SlotView::get_rect() const
-{
-    Config&   config    = Nodable::get_instance().config;
-    NodeView* node_view = get_node()->get_component<NodeView>().get();
-
-    // pick a corner
-    FW_EXPECT(false, "TODO: generate a relative rectangle (relative to node bbox)");
-    ImRect node_view_rect = node_view->get_screen_rect();
-    ImVec2 left_corner    = m_side == Side::Top ? node_view_rect.GetTL() : node_view_rect.GetBL();
-
-    // compute slot size
-    FW_EXPECT(false, "TODO: This code is for this_slots only, handle it in the constructor");
-    ImVec2 size(
-            std::min(config.ui_node_slot_width,  node_view->get_size().x),
-            std::min(config.ui_node_slot_height, node_view->get_size().y));
-    ImRect rect(left_corner, left_corner + size);
-    rect.Translate(ImVec2(size.x * float(m_slot.id), -rect.GetSize().y * 0.5f) );
-    rect.Expand(ImVec2(- config.ui_node_slot_padding, 0.0f));
-
-    return rect;
-}
-
 
 PoolID<Node> SlotView::adjacent_node() const
 {
@@ -207,9 +171,9 @@ const fw::type* SlotView::get_property_type()const
     return property ? property->get_type() : nullptr;
 }
 
-ImVec2 SlotView::position() const
+ImVec2 SlotView::alignment() const
 {
-    return m_relative_pos;
+    return m_alignment;
 }
 
 bool SlotView::is_this() const
@@ -242,7 +206,18 @@ Property* SlotView::get_property() const
     return m_slot.get_property();
 }
 
-Side SlotView::side() const
+std::string SlotView::get_tooltip( SlotView& _view )
 {
-    return m_side;
+    std::string property_name{_view.get_property()->get_name()};
+
+    switch ( _view.slot().flags )
+    {
+        case SlotFlag_INPUT:   return property_name.append(" (in)");
+        case SlotFlag_OUTPUT:  return property_name.append(" (out)");
+        case SlotFlag_NEXT:    return "next";
+        case SlotFlag_PREV:    return "previous";
+        case SlotFlag_PARENT:  return "parent";
+        case SlotFlag_CHILD:   return "children";
+    }
+    return property_name;
 }

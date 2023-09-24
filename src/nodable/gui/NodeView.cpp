@@ -112,28 +112,22 @@ void NodeView::set_owner(PoolID<Node> node)
     // Create a SlotView per slot
     for(Slot& slot : m_owner->slots.data() )
     {
-        Side side;
+        ImVec2 alignment;
 
-        if( slot.get_property()->is_this() && slot.type() == SlotFlag_TYPE_VALUE )
+        switch ( slot.flags )
         {
-            // This slots (as value) are displayed on the left
-            side = Side::Left;
+            case SlotFlag_INPUT:  alignment.y = -0.5f; break;
+            case SlotFlag_PREV:   alignment   = { -0.5f, -0.5f}; break;
+            case SlotFlag_OUTPUT: alignment   = slot.get_property()->is_this() ? ImVec2{-0.5f, 0.0f}
+                                                                               : ImVec2{ 0.0f, 0.5f}; break;
+            case SlotFlag_NEXT:   alignment   = { -0.5f, 0.5f}; break;
+            case SlotFlag_CHILD:
+            case SlotFlag_PARENT: break; // won't be displayed, let's keep default alignment (0,0)
+            default:
+                FW_EXPECT(false, "unhandled slot flags")
         }
-        else
-        {
-            switch ( slot.flags )
-            {
-                case SlotFlag_INPUT:
-                case SlotFlag_PREV:
-                    side = Side::Top;
-                    break;
 
-                case SlotFlag_OUTPUT:
-                case SlotFlag_NEXT:
-                    side = Side::Bottom;
-            }
-        }
-        m_slot_views.emplace_back(slot, side);
+        m_slot_views.emplace_back( SlotView{slot, alignment} );
     }
 
     // 3. Listen to connection/disconnections
@@ -300,23 +294,31 @@ bool NodeView::update(float _deltaTime)
 
 bool NodeView::draw()
 {
-	bool      changed  = false;
-    Node*     node     = m_owner.get();
-	Config&   config   = Nodable::get_instance().config;
+	bool        changed   = false;
+    Node*       node      = m_owner.get();
+	Config&     config    = Nodable::get_instance().config;
+    ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     FW_ASSERT(node != nullptr);
 
     // Draw Node slots (in background)
     bool is_slot_hovered = false;
     {
-        ImColor color        = config.ui_node_nodeslotColor;
-        ImColor hoveredColor = config.ui_node_nodeslotHoveredColor;
+        ImColor color          = config.ui_node_nodeslotColor;
+        ImColor border_color   = config.ui_node_borderColor;
+        ImColor hover_color    = config.ui_node_nodeslotHoveredColor;
+        ImRect  node_view_rect = get_screen_rect();
+
+        std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
         {
             if( slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
-                SlotView::draw_slot_rectangle(slot_view, get_slot_pos(slot_view.slot()), color, hoveredColor, m_edition_enable);
+                int& count = count_by_flags[slot_view.slot().flags];
+                ImRect rect = get_slot_rect( slot_view, config, count );
+                SlotView::draw_slot_rectangle( draw_list, slot_view, rect, color, border_color, hover_color, m_edition_enable);
                 is_slot_hovered |= ImGui::IsItemHovered();
+                count++;
             }
         }
     }
@@ -397,7 +399,7 @@ bool NodeView::draw()
             if( slot_view.slot().type() == SlotFlag_TYPE_VALUE )
             {
                 ImVec2 screen_pos = get_slot_pos(slot_view.slot());
-                SlotView::draw_slot_circle( slot_view, screen_pos, radius, color, borderCol, hoverCol, m_edition_enable );
+                SlotView::draw_slot_circle( draw_list, slot_view, screen_pos, radius, color, borderCol, hoverCol, m_edition_enable );
                 is_slot_hovered |= ImGui::IsItemHovered();
             }
         }
@@ -489,9 +491,9 @@ void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImC
 
 bool NodeView::_draw_property_view(PropertyView* _view)
 {
-    bool      changed      = false;
-    Property* property     = _view->get_property();
-    bool      is_defined   = property->value()->is_defined();
+    bool            changed            = false;
+    Property*       property           = _view->get_property();
+    bool            is_defined         = property->value()->is_defined();
     const fw::type* owner_type         = m_owner->get_type();
     VariableNode*   connected_variable = _view->get_connected_variable();
 
@@ -568,13 +570,13 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         fw::ImGuiEx::EndTooltip();
     }
 
-    // compute center position
-    ImVec2 pos = ImGui::GetItemRectMin() ;
-    fw::ImGuiEx::DebugCircle(pos, 2.5f, ImColor(0,0,0));
-    pos += ImGui::GetItemRectSize() * 0.5f;
-
-    // memorize
-    _view->hpos = pos.x;
+    // memorize property view rect (screen space)
+    // enlarge rect to fit node_view top/bottom
+    _view->screen_rect = {
+        ImVec2{ImGui::GetItemRectMin().x, get_screen_rect().Min.y} ,
+        ImVec2{ImGui::GetItemRectMax().x, get_screen_rect().Max.y}
+    };
+    fw::ImGuiEx::DebugCircle( _view->screen_rect.GetCenter(), 2.5f, ImColor(0,0,0));
 
     return changed;
 }
@@ -1076,7 +1078,7 @@ void NodeView::expand_toggle_rec()
     return set_expanded_rec(!m_expanded);
 }
 
-ImRect NodeView::get_screen_rect()
+ImRect NodeView::get_screen_rect() const
 {
     ImVec2 half_size = m_size / 2.0f;
     ImVec2 screen_pos = get_position(fw::Space_Screen, false);
@@ -1095,7 +1097,31 @@ bool NodeView::is_dragged() const
 
 ImVec2 NodeView::get_slot_pos( const Slot& slot )
 {
-    PropertyView& property_view = m_property_views.at( slot.property );
-    SlotView&     slot_view     = m_slot_views.at( slot.id );
-    return get_position(Space_Screen) + property_view.position() + slot_view.position();
+    // TODO: use 3x3 matrices to simplify code
+
+    if( slot.type() == SlotFlag_TYPE_VALUE && slot.property == THIS_PROPERTY_ID )
+    {
+        return get_screen_rect().GetCenter()
+             + get_screen_rect().GetSize() * m_slot_views[slot.id].alignment();
+    }
+    ImRect property_rect = m_property_views.at( slot.property ).screen_rect;
+    return property_rect.GetCenter()
+         + property_rect.GetSize() * m_slot_views[slot.id].alignment();
+}
+
+ImRect NodeView::get_slot_rect( SlotView& _slot_view, const Config& _config, i8_t _count ) const
+{
+    // pick a corner
+    ImRect view_rect = get_screen_rect();
+    ImVec2 left_corner  = _slot_view.alignment() * view_rect.GetSize() // relative position
+                        + view_rect.GetCenter(); // left aligned
+
+    // compute slot size
+    ImVec2 size(std::min(_config.ui_node_slot_width,  get_size().x), std::min(_config.ui_node_slot_height, get_size().y));
+    ImRect rect(left_corner, left_corner + size);
+
+    rect.Translate( ImVec2(size.x * _count, -rect.GetSize().y * 0.5f) );
+    rect.Expand( ImVec2(- _config.ui_node_slot_padding, 0.0f));
+
+    return rect;
 }

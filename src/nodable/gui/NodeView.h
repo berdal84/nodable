@@ -9,12 +9,12 @@
 
 #include "fw/gui/ImGuiEx.h"
 #include "fw/gui/View.h"
-
 #include "core/Component.h" // base class
 #include "core/Property.h"
-
-#include "types.h"     // for constants and forward declarations
+#include "Config.h"
 #include "PropertyView.h"
+#include "SlotView.h"
+#include "types.h"
 
 namespace ndbl
 {
@@ -76,7 +76,7 @@ namespace ndbl
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }
-        ImRect                  get_screen_rect();
+        ImRect                  get_screen_rect() const;
         static ImRect           get_rect(
                 const std::vector<NodeView *> &_views,
                 bool _recursive = false,
@@ -97,6 +97,7 @@ namespace ndbl
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         ImVec2                  get_slot_pos( const Slot& );
+        ImRect                  get_slot_rect( SlotView &_slot_view, const Config &_config, i8_t _count ) const;
 
     private:
         bool                    _draw_property_view(PropertyView* _view);

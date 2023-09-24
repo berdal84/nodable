@@ -39,17 +39,16 @@ App::~App()
 bool App::init()
 {
     LOG_VERBOSE("fw::App", "init ...\n");
-    LOG_VERBOSE("fw::NodableView", "init ...\n");
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
-        LOG_ERROR( "fw::NodableView", "SDL Error: %s\n", SDL_GetError())
+        LOG_ERROR( "fw::App", "SDL Error: %s\n", SDL_GetError())
         return false;
     }
 
     // Setup window
-    LOG_VERBOSE("fw::NodableView", "setup SDL ...\n");
+    LOG_VERBOSE("fw::App", "setup SDL ...\n");
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_FORWARD_COMPATIBLE_FLAG);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -73,11 +72,11 @@ bool App::init()
     m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
     SDL_GL_SetSwapInterval(1); // Enable vsync
 
-    LOG_VERBOSE("fw::NodableView", "gl3w init ...\n");
+    LOG_VERBOSE("fw::App", "gl3w init ...\n");
     gl3wInit();
 
     // Setup Dear ImGui binding
-    LOG_VERBOSE("fw::NodableView", "ImGui init ...\n");
+    LOG_VERBOSE("fw::App", "ImGui init ...\n");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -92,7 +91,7 @@ bool App::init()
 
 
     // Override ImGui's default Style
-    LOG_VERBOSE("fw::NodableView", "patch ImGui's style ...\n");
+    LOG_VERBOSE("fw::App", "patch ImGui's style ...\n");
     ImGuiStyle& style = ImGui::GetStyle();
     config.patch_imgui_style(style);
     //style.ScaleAllSizes(1.25f);
@@ -114,7 +113,7 @@ bool App::init()
 
     if (NFD_Init() != NFD_OKAY)
     {
-        LOG_ERROR("fw::NodableView", "Unable to init NFD\n");
+        LOG_ERROR("fw::App", "Unable to init NFD\n");
     }
 
     LOG_VERBOSE("fw::App", "state_changes.emit(ON_INIT) ...\n");
@@ -279,7 +278,7 @@ void App::handle_events()
 
 void App::save_screenshot(const char*_path)
 {
-    LOG_MESSAGE("fw::NodableView", "Taking screenshot ...\n");
+    LOG_MESSAGE("fw::App", "Taking screenshot ...\n");
     int width, height;
     SDL_GetWindowSize(m_sdl_window, &width, &height);
     GLsizei stride = 4 * width;
@@ -302,7 +301,7 @@ void App::save_screenshot(const char*_path)
     auto absolute_path = asset_path(_path);
     lodepng::save_file(out, absolute_path.string());
 
-    LOG_MESSAGE("fw::NodableView", "Taking screenshot OK (%s)\n", _path);
+    LOG_MESSAGE("fw::App", "Taking screenshot OK (%s)\n", _path);
 }
 
 bool App::is_fullscreen() const

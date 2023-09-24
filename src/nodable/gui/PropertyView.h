@@ -21,9 +21,9 @@ namespace ndbl {
     class PropertyView
     {
     public:
-        ID<Property> property_id;
+        ID<Property>     property_id;
         PoolID<NodeView> node_view;
-        float            hpos; // horizontal position
+        ImRect           screen_rect;
         bool             show_input;
         bool             touched;
 
@@ -36,7 +36,5 @@ namespace ndbl {
         Node*            get_node() const;
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
-        ImVec2           position() const;
-        ImRect           get_rect() const;
     };
 }

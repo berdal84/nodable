@@ -6,26 +6,24 @@
 
 namespace ndbl
 {
-    enum class Side
+    enum Side
     {
-        Top,
-        Bottom,
-        Left,
-        Right
+        Side_TOP = 0,
+        Side_BOTTOM,
+        Side_LEFT,
+        Side_RIGHT,
+        Side_COUNT
     };
 
     class SlotView
     {
     public:
-        SlotView();
-        SlotView(Slot&, Side);
+        SlotView( Slot& _slot, ImVec2 _alignment );
 
         Property*             get_property()const;
         const fw::type*       get_property_type()const;
         bool                  has_node_connected() const;
-        ImVec2                position() const;
-        Side                  side() const;
-        ImRect                get_rect() const;
+        ImVec2 alignment() const;
         Slot&                 slot()const;
         PoolID<Node>          get_node()const;
         PoolID<Node>          adjacent_node() const;
@@ -41,15 +39,15 @@ namespace ndbl
         static void           reset_focused(SlotView * slot = nullptr) { s_focused = slot; }
         static void           reset_hovered(SlotView * slot = nullptr) { s_hovered = slot; }
         static void           behavior(SlotView&, bool _readonly);
-        static void           draw_slot_circle( SlotView& _view,  ImVec2 _position, float _radius, const ImColor &_color, const ImColor &_borderColor, const ImColor &_hoverColor, bool _readonly );
-        static void           draw_slot_rectangle( SlotView& _view, ImVec2 _position, const ImColor &_color, const ImColor &_hoveredColor, bool _readonly);
+        static void           draw_slot_circle( ImDrawList* _draw_list, SlotView& _view,  ImVec2 _position, float _radius, const ImColor &_color, const ImColor &_border_color, const ImColor &_hover_color, bool _readonly );
+        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, ImRect _rect, const ImColor& _color, const ImColor& _border_color, const ImColor& _hover_color, bool _readonly);
 
     private:
-        Side                  m_side;
         Slot&                 m_slot;
-        ImVec2                m_relative_pos;
+        ImVec2                m_alignment;
         static SlotView*      s_focused;
         static SlotView*      s_dragged;
         static SlotView*      s_hovered;
+        static std::string get_tooltip( SlotView &view );
     };
 }

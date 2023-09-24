@@ -20,7 +20,7 @@ PropertyView::PropertyView( PoolID<NodeView> _node_view, ID<Property> _id )
 }
 
 PropertyView::PropertyView( const PropertyView& other )
-: hpos( other.hpos )
+: screen_rect( other.screen_rect )
 , show_input( other.show_input )
 , touched( other.touched )
 , node_view( other.node_view )
@@ -64,14 +64,4 @@ VariableNode* PropertyView::get_connected_variable() const
     }
 
     return fw::cast<VariableNode>( adjacent_slot->node.get() );
-}
-
-ImVec2 PropertyView::position() const
-{
-    return {hpos, 0};
-}
-
-ImRect PropertyView::get_rect() const
-{
-    return ImRect({hpos, -0.5f}, {hpos, 0.5f});
 }

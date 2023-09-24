@@ -201,34 +201,32 @@ bool GraphView::draw()
         size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ACCEPTS_DEPENDENCIES );
         float padding     = 2.0f;
         float linePadding = 5.0f;
+        NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
         for (PoolID<Node> each_successor_node : each_node->successors() )
         {
-            // TODO: I should probably compute those 2 lines once for all
-            NodeView *each_view           = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
             NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
 
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
-                float viewWidthMin = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
-                float lineWidth = std::min(app.config.ui_node_slot_width,
-                                           viewWidthMin / float(slot_count) - (padding * 2.0f));
+                float node_view_width_min = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
+                float line_width = std::min( app.config.ui_node_slot_width, node_view_width_min / float(slot_count) - (padding * 2.0f));
 
                 ImVec2 start = each_view->get_position(fw::Space_Screen, pixel_perfect);
-                start.x -= std::max(each_view->get_size().x * 0.5f, lineWidth * float(slot_count) * 0.5f);
-                start.x += lineWidth * 0.5f + float(slot_index) * lineWidth;
+                start.x -= std::max(each_view->get_size().x * 0.5f, line_width * float(slot_count) * 0.5f);
+                start.x += line_width * 0.5f + float(slot_index) * line_width;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
                 start.y += app.config.ui_node_slot_height * 0.25f;
 
                 ImVec2 end = each_successor_view->get_position(fw::Space_Screen, pixel_perfect);
                 end.x -= each_successor_view->get_size().x * 0.5f;
-                end.x += lineWidth * 0.5f;
+                end.x += line_width * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
                 end.y -= app.config.ui_node_slot_height * 0.25f;
 
                 ImColor color(app.config.ui_codeFlow_lineColor);
                 ImColor shadowColor(app.config.ui_codeFlow_lineShadowColor);
                 fw::ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
-                                          lineWidth - linePadding * 2.0f, 0.0f);
+                                               line_width - linePadding * 2.0f, 0.0f);
             }
             ++slot_index;
         }
@@ -240,8 +238,8 @@ bool GraphView::draw()
         // Draw temporary edge
         if (dragged_slot)
         {
-            ImVec2 src = dragged_slot->position();
-            ImVec2 dst = hovered_slot ? hovered_slot->position() : ImGui::GetMousePos();
+            ImVec2 src = dragged_slot->alignment();
+            ImVec2 dst = hovered_slot ? hovered_slot->alignment() : ImGui::GetMousePos();
 
             bool is_dragging_a_this_slot = dragged_slot->get_property()->is_this();
             if ( is_dragging_a_this_slot )
@@ -290,7 +288,7 @@ bool GraphView::draw()
         */
         for (auto each_node: node_registry )
         {
-            for (const Slot* slot: each_node->filter_slots( SlotFlag_INPUT ))
+            for (const Slot* slot: each_node->filter_slots( SlotFlag_OUTPUT ))
             {
                 Slot* adjacent_slot = slot->first_adjacent().get();
                 if( adjacent_slot == nullptr )
@@ -349,8 +347,7 @@ bool GraphView::draw()
                         roundness *= 0.25f;
                     }
 
-                    fw::ImGuiEx::DrawVerticalWire(draw_list, slot_pos, adjacent_slot_pos, line_color, shadow_color,
-                                                  thickness, roundness);
+                    fw::ImGuiEx::DrawVerticalWire(draw_list, slot_pos, adjacent_slot_pos, line_color, shadow_color, thickness, roundness);
                 }
 
             }
