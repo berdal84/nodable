@@ -1672,28 +1672,31 @@ std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *va
 std::string &Nodlang::serialize_edge(std::string& _out, const Slot* _slot, bool recursively) const
 {
     FW_ASSERT(_slot != nullptr);
-    FW_EXPECT(_slot->flags & SlotFlag_ACCEPTS_DEPENDENCIES, "Slot must accept dependencies");
-    FW_EXPECT(_slot->adjacent_count() == 1, "Slot must have a single adjacent");
 
-    const Slot* tail_slot = _slot;
-    const Slot* head_slot = _slot->first_adjacent().get();
-    const Property* tail_property = _slot->get_property();
-    const Property* head_property = head_slot->get_property();
+    const Slot* adjacent_slot = _slot->first_adjacent().get();
+
+    if( adjacent_slot == nullptr )
+    {
+        return _out.append("not implemented yet");
+    }
+
+    const Property* property          = _slot->get_property();
+    const Property* adjacent_property = adjacent_slot->get_property();
 
     // specific case of a Node*
-    if ( head_property->is_this() && head_property->value()->is_initialized() )
+    if ( adjacent_property->is_this() && adjacent_property->value()->is_initialized() )
     {
-        return serialize_node(_out, (PoolID<const Node>)*head_property->value() );
+        return serialize_node(_out, (PoolID<const Node>)*adjacent_property->value() );
     }
 
-    if (!head_property->token.is_null())
+    if (!adjacent_property->token.is_null())
     {
-        _out.append( head_property->token.prefix_to_string()); // FIXME: avoid std::string copy
+        _out.append( adjacent_property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
-    if (recursively && head_slot->node->find_slot( SlotFlag_ACCEPTS_DEPENDENTS ) )
+    if (recursively && adjacent_slot->node->find_slot( SlotFlag_ACCEPTS_DEPENDENTS ) )
     {
-        PoolID<InvokableComponent> compute_component = tail_slot->get_node()->get_component<InvokableComponent>();
+        PoolID<InvokableComponent> compute_component = _slot->get_node()->get_component<InvokableComponent>();
 
         if (compute_component)
         {
@@ -1701,21 +1704,21 @@ std::string &Nodlang::serialize_edge(std::string& _out, const Slot* _slot, bool 
         }
         else
         {
-            serialize_property(_out, tail_slot->get_property());
+            serialize_property(_out, _slot->get_property());
         }
     }
-    else if ( tail_slot->get_node()->get_type()->is<VariableNode>() )
+    else if ( _slot->get_node()->get_type()->is<VariableNode>() )
     {
-        _out.append( tail_slot->get_node()->name );
+        _out.append( _slot->get_node()->name );
     }
     else
     {
-        serialize_variant(_out, head_property->value() );
+        serialize_variant(_out, adjacent_property->value() );
     }
 
-    if (!head_property->token.is_null())
+    if (!adjacent_property->token.is_null())
     {
-        _out.append( head_property->token.suffix_to_string()); // FIXME: avoid std::string copy
+        _out.append( adjacent_property->token.suffix_to_string()); // FIXME: avoid std::string copy
     }
     return _out;
 }

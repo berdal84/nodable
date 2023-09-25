@@ -3,53 +3,6 @@
 
 using namespace ndbl;
 
-void SlotBag::apply(SlotBag::Event event, bool notify)
-{
-    switch (event.type)
-    {
-        case Event_t::CONNECT_EDGE:    return add_adjacent_at(event.slot.id, event.adjacent, notify );
-        case Event_t::DISCONNECT_EDGE: return remove_edge_at(event.slot.id, event.adjacent, notify);
-    }
-    FW_EXPECT(false, "Unhandled case");
-}
-
-void SlotBag::remove_edge_at(ID8<Slot> slot_id, SlotRef adjacent, bool notify)
-{
-    Slot& slot = m_slots[slot_id];
-    std::remove(slot.adjacent.begin(), slot.adjacent.end(), adjacent);
-    if ( notify )
-    {
-        Event event;
-        event.type     = Event_t::DISCONNECT_EDGE;
-        event.slot     = slot;
-        event.adjacent = adjacent;
-        on_remove.emit( event );
-        on_change.emit( event );
-    }
-}
-
-void SlotBag::add_adjacent_at(ID8<Slot> id, SlotRef adjacent, bool notify)
-{
-    Slot& slot = m_slots.at( id );
-    FW_EXPECT(slot.is_full(), "Slot is full" );
-    slot.adjacent.emplace_back( adjacent );
-    if ( notify )
-    {
-        Event event;
-        event.type     = Event_t::CONNECT_EDGE;
-        event.slot     = slot;
-        event.adjacent = adjacent;
-
-        on_add.emit( event );
-        on_change.emit( event );
-    }
-}
-
-void SlotBag::set_capacity( ID8<Slot> _id, int _capacity )
-{
-    m_slots[_id].set_capacity(_capacity);
-}
-
 size_t SlotBag::count(SlotFlags flags) const
 {
    return filter(flags).size();

@@ -116,8 +116,8 @@ std::string variant::to<std::string>()const
     if(m_type->is<i32_t>() )        return std::to_string(m_data.i32);
     if(m_type->is<double>() )       return format::number(m_data.d);
     if(m_type->is<bool>() )         return m_data.b ? "true" : "false";
-    if(m_type->is_ptr())            return format::address(m_data.ptr);
-    FW_EXPECT(false,"Case not handled!")
+
+    return format::hexadecimal(m_data.u64);
 }
 
 const type* variant::get_type() const

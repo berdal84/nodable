@@ -29,7 +29,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
     , m_text_overlay_window_name(_file.name + "_text_overlay" )
     , m_graph_overlay_window_name(_file.name + "_graph_overlay" )
 {
-    m_graph_change_obs.observe(_file.graph_changed, [this](Graph* _graph)
+    m_graph_changed_observer.observe(_file.graph_changed, [this](Graph* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")
         if ( !_graph->is_empty() )

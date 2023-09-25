@@ -79,7 +79,7 @@ void NodeViewConstraint::apply(float _dt)
 
             NodeView* target = clean_targets[0];
 
-            if(!target->pinned && target->is_visible())
+            if(!target->pinned() && target->is_visible())
             {
                 ImRect drivers_bbox = NodeView::get_rect(clean_drivers, true);
                 ImVec2 new_position(drivers_bbox.GetCenter()
@@ -109,7 +109,7 @@ void NodeViewConstraint::apply(float _dt)
             for (auto each_target : clean_targets)
             {
                 float size = 0.0f;
-                if( !(each_target->pinned || !each_target->is_visible()) )
+                if( !(each_target->pinned() || !each_target->is_visible()) )
                 {
                     size = each_target->get_rect(recursively).GetSize().x;
                 }
@@ -129,8 +129,8 @@ void NodeViewConstraint::apply(float _dt)
             {
                 // indent
                 start_pos_x = first_driver_pos.x
-                              + driver->get_size().x / 2.0f
-                              + config.ui_node_spacing;
+                            + driver->get_size().x / 2.0f
+                            + config.ui_node_spacing;
             }
 
             // Constraint in row:
@@ -138,7 +138,7 @@ void NodeViewConstraint::apply(float _dt)
             auto node_index = 0;
             for (auto each_target : clean_targets)
             {
-                if (!each_target->pinned && each_target->is_visible() )
+                if (!each_target->pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
                     float y_offset = config.ui_node_spacing
@@ -171,7 +171,7 @@ void NodeViewConstraint::apply(float _dt)
              */
 
             NodeView* target = clean_targets[0];
-            if (!target->pinned && target->is_visible() )
+            if (!target->pinned() && target->is_visible() )
             {
                 // compute
                 auto drivers_rect = NodeView::get_rect(clean_drivers, false, true);

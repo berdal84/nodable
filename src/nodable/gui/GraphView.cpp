@@ -375,7 +375,7 @@ bool GraphView::draw()
                     ImVec2 mouse_drag_delta = ImGui::GetMouseDragDelta();
                     each_node_view->translate(mouse_drag_delta, true);
                     ImGui::ResetMouseDragDelta();
-                    each_node_view->pinned = true;
+                    each_node_view->pinned( true );
                 }
 
                 isAnyNodeDragged |= NodeView::get_dragged() == each_node_view->poolid();

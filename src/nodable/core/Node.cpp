@@ -69,13 +69,6 @@ void Node::init()
     add_slot( this_property_id, SlotFlag_OUTPUT, SLOT_MAX_CAPACITY );
 
     m_components.set_owner( m_id );
-
-    // propagate events to then view
-    auto redirect_event = [=](SlotBag::Event _event) -> void
-    {
-        m_id->on_slot_change.emit( _event );
-    };
-    slots.on_change.connect( redirect_event );
 }
 
 size_t Node::adjacent_count(SlotFlags _flags )const

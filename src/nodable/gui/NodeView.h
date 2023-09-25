@@ -46,13 +46,9 @@ namespace ndbl
         NodeView (NodeView&&) = default;
         NodeView& operator=(NodeView&&) = default;
 
-        std::vector<PoolID<NodeView>> successors;
-        std::vector<PoolID<NodeView>> children;
-        std::vector<PoolID<NodeView>> outputs;
-        std::vector<PoolID<NodeView>> inputs;
-
-        bool                pinned;
-
+        std::vector<PoolID<NodeView>> get_adjacent(SlotFlags) const;
+        void                    pinned(bool b) { m_pinned = b; }
+        bool                    pinned() const { return m_pinned; }
         bool                    draw()override;
 		void                    set_owner(PoolID<Node>)override;
         bool                    update(float);
@@ -85,7 +81,6 @@ namespace ndbl
         static void             set_selected(PoolID<NodeView>);
         static PoolID<NodeView> get_selected();
         static bool             is_selected(PoolID<NodeView>);
-        static void             start_drag(PoolID<NodeView>);
         static bool		        is_any_dragged();
         static bool             is_any_selected();
         static bool             is_inside(NodeView*, ImRect);
@@ -100,6 +95,7 @@ namespace ndbl
         ImRect                  get_slot_rect( SlotView &_slot_view, const Config &_config, i8_t _count ) const;
 
     private:
+        void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
         bool                    _draw_property_view(PropertyView* _view);
         bool                    is_exposed( ID<Property> _id )const;
         void                    update_labels_from_name(const Node *_node);
@@ -111,10 +107,9 @@ namespace ndbl
         bool            m_expanded;
 		ImVec2          m_position; // local position (not affected by scroll)
 		ImVec2          m_size;
+        bool            m_pinned;
 		float           m_opacity;
 		ImColor         m_border_color_selected;
-		std::vector<PoolID<NodeView>>                    m_predecessors;
-		std::vector<PoolID<NodeView>>                    m_successors;
         std::vector<SlotView>                            m_slot_views;
         std::vector<PropertyView>                        m_property_views;
         PropertyView*                                    m_property_view_this;

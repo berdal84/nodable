@@ -12,23 +12,6 @@ namespace ndbl
 {
     struct SlotBag
     {
-        enum Event_t
-        {
-            CONNECT_EDGE,
-            DISCONNECT_EDGE
-        };
-
-        struct Event
-        {
-            Event_t      type;
-            SlotRef      slot;
-            SlotRef      adjacent;
-        };
-
-        observe::Event<Event> on_change;
-        observe::Event<Event> on_add;    // same as on_change but only emit ADD events
-        observe::Event<Event> on_remove; // same as on_change but only emit REMOVE events
-
         SlotBag(){}
 
         std::vector<Slot>& data()
@@ -50,8 +33,6 @@ namespace ndbl
         { return m_slots[_index]; }
 
         ID8<Slot>         add(PoolID<Node> _node, ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity = SLOT_MAX_CAPACITY);
-        void              apply(Event, bool notify = true);
-        void              set_capacity(ID8<Slot>, int i);
         size_t            count(SlotFlags) const;
         Slot*             find_by_property( ID<Property>, SlotFlags );
         const Slot*       find_by_property( ID<Property>, SlotFlags ) const;
@@ -59,10 +40,6 @@ namespace ndbl
         std::vector<Slot*> filter( SlotFlags ) const;
     private:
         const Slot*       _find_by_property( ID<Property>, SlotFlags _flags ) const;
-        void              remove_edge_at(ID8<Slot> id, SlotRef, bool notify = true);
-        void              add_adjacent_at(ID8<Slot> id, SlotRef, bool notify = true);
-
-    private:
         std::vector<Slot> m_slots;
     };
 }

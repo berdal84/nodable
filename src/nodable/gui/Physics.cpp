@@ -60,9 +60,9 @@ void Physics::add_force(ImVec2 force, bool _recurse)
 
     if ( !_recurse ) return;
 
-    for (auto child : m_view->children )
+    for (auto child : m_view->get_adjacent(SlotFlag_CHILD) )
     {
-        if (!child->pinned && child->should_follow_output( m_view ))
+        if ( child->should_follow_output( m_view ))
         {
             if(PoolID<Physics> physics_component = child->get_owner()->get_component<Physics>())
             {
@@ -96,15 +96,14 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
         if ( each_view )
         {
             const fw::type* node_type = each_node->get_type();
-            std::vector<PoolID<NodeView>> children_view = GraphUtil::adjacent_components<NodeView>(each_node, SlotFlag_CHILD); // TODO: cache
 
-            // Follow predecessor Node(s), except if first predecessor is a Conditional if/else
-            //---------------------------------------------------------------------------------
+            // Follow predecessor Node(s), except if first predecessor is a Conditional
+            //-------------------------------------------------------------------------
 
             std::vector<PoolID<Node>> predecessor_nodes = each_node->get_predecessors();
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
             {
-                NodeViewConstraint constraint("follow predecessor except if IConditionalStruct", ViewConstraint_t::FollowWithChildren);
+                NodeViewConstraint constraint("follow predecessor", ViewConstraint_t::FollowWithChildren);
                 auto predecessor_views = NodeUtils::get_component_ids<NodeView>( predecessor_nodes );
                 constraint.add_drivers(predecessor_views);
                 constraint.add_target(each_view->poolid());
@@ -116,28 +115,30 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
             // Align in row Conditional Struct Node's children
             //------------------------------------------------
 
-            if(!children_view.empty() && node_type->is_child_of<IConditionalStruct>() )
+            std::vector<PoolID<NodeView>> children = each_view->get_adjacent(SlotFlag_CHILD);
+            if(!children.empty() && node_type->is_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
                 constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
                 constraint.add_driver(each_view->poolid());
-                constraint.add_targets(children_view);
+                constraint.add_targets( children );
 
                 if (node_type->is<ForLoopNode>() )
                 {
-                    constraint.add_targets( each_view->successors );
+                    std::vector<PoolID<NodeView>> successors = each_view->get_adjacent(SlotFlag_NEXT);
+                    constraint.add_targets( successors );
                 }
                 each_physics->add_constraint(constraint);
             }
 
             // Align in row Input connected Nodes
             //-----------------------------------
-
-            if ( !each_view->inputs.empty() )
+            std::vector<PoolID<NodeView>> inputs = each_view->get_adjacent(SlotFlag_INPUT);
+            if ( !inputs.empty() )
             {
                 NodeViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
                 constraint.add_driver(each_view->poolid());
-                constraint.add_targets( each_view->inputs );
+                constraint.add_targets( inputs );
                 each_physics->add_constraint(constraint);
                 constraint.apply_when(NodeViewConstraint::always);
             }

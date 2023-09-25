@@ -55,8 +55,7 @@ namespace ndbl {
         bool              dirty; // TODO: use flags
         bool              flagged_to_delete; // TODO: use flags
 
-        observe::Event<SlotBag::Event> on_slot_change;
-        observe::Event<decltype(m_id)> on_name_change;
+        observe::Event<PoolID<Node>> on_name_change;
 
         // Code
 

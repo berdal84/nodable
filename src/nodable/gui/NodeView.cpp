@@ -48,7 +48,7 @@ NodeView::NodeView()
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
         , m_expanded(true)
-        , pinned(false)
+        , m_pinned(false)
         , m_border_color_selected(1.0f, 1.0f, 1.0f)
         , m_property_view_this(nullptr)
         , m_edition_enable(true)
@@ -130,20 +130,13 @@ void NodeView::set_owner(PoolID<Node> node)
         m_slot_views.emplace_back( SlotView{slot, alignment} );
     }
 
-    // 3. Listen to connection/disconnections
-    //---------------------------------------
+    // 3. Update label
+    //----------------
 
     PoolID<NodeView> id = m_id;
-    auto synchronize_view = [id, node](SlotBag::Event event)
-    {
-        FW_EXPECT(false, "TODO: update children, predecessors, inputs, and outputs cache vector<PoolID<NodeView>>")
-        id->children = GraphUtil::adjacent_components<NodeView>(node.get(), SlotFlag_CHILD);
-    };
-    node->on_slot_change.connect(synchronize_view);
-
-    // update label
     update_labels_from_name(node.get());
-    node->on_name_change.connect([id](PoolID<Node> _node) {
+    node->on_name_change.connect([=](PoolID<Node> _node)
+    {
         id->update_labels_from_name(_node.get());
     });
 }
@@ -195,17 +188,9 @@ PoolID<NodeView> NodeView::get_selected()
 	return s_selected;
 }
 
-void NodeView::start_drag(PoolID<NodeView> _view)
-{
-	if( !is_any_dragged() && SlotView::get_dragged() ) // Prevent dragging node while dragging slot
-    {
-        s_dragged = _view;
-    }
-}
-
 bool NodeView::is_any_dragged()
 {
-	return get_dragged().get() != nullptr;
+	return s_dragged.get() != nullptr;
 }
 
 PoolID<NodeView> NodeView::get_dragged()
@@ -252,9 +237,9 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 	if ( !_recurse ) return;
 
-    for(auto each_input_view : inputs )
+    for(auto each_input_view : get_adjacent(SlotFlag_INPUT)  )
     {
-        if ( each_input_view && !each_input_view->pinned && each_input_view->should_follow_output( this->m_id ) )
+        if ( each_input_view && !each_input_view->m_pinned && each_input_view->should_follow_output( this->m_id ) )
         {
             each_input_view->translate(_delta, true);
         }
@@ -263,17 +248,17 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 void NodeView::arrange_recursively(bool _smoothly)
 {
-    for (auto each_input_view: inputs )
+    for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
-        if (each_input_view->should_follow_output( this->m_id ))
+        if ( !each_input->m_pinned && each_input->should_follow_output( this->m_id ))
         {
-            each_input_view->arrange_recursively();
+            each_input->arrange_recursively();
         }
     }
 
-    for (auto each_child_view: children )
+    for (auto each_child: get_adjacent(SlotFlag_CHILD)  )
     {
-        each_child_view->arrange_recursively();
+        each_child->arrange_recursively();
     }
 
     // Force an update of input nodes with a delta time extra high
@@ -283,7 +268,7 @@ void NodeView::arrange_recursively(bool _smoothly)
         update(float(1000));
     }
 
-    pinned = false;
+    m_pinned = false;
 }
 
 bool NodeView::update(float _deltaTime)
@@ -418,7 +403,7 @@ bool NodeView::draw()
             this->arrange_recursively();
         }
 
-        ImGui::MenuItem("Pinned", "", &pinned, true);
+        ImGui::MenuItem("Pinned", "", &m_pinned, true);
 
 		if ( ImGui::MenuItem("Expanded", "", &m_expanded, true) )
         {
@@ -444,14 +429,14 @@ bool NodeView::draw()
 	// Mouse dragging
 	if (get_dragged() != m_id )
 	{
-		if( get_dragged().get() == nullptr && ImGui::IsMouseDown(0) && is_node_hovered && ImGui::IsMouseDragPastThreshold(0))
+		if( !get_dragged() && !SlotView::get_dragged() && ImGui::IsMouseDown(0) && is_node_hovered && ImGui::IsMouseDragPastThreshold(0))
         {
-            start_drag( m_id );
+            s_dragged = m_id;
         }
 	}
 	else if ( ImGui::IsMouseReleased(0))
 	{
-        start_drag({});
+        s_dragged.reset();
 	}		
 
 	// Collapse on/off
@@ -941,15 +926,18 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
         NodeView* view = view_id.get();
         if( !view) return;
 
-        if ( view->m_is_visible && !(view->pinned && _ignorePinned) && view->should_follow_output( this->m_id ) )
+        if ( view->m_is_visible && !(view->m_pinned && _ignorePinned) && view->should_follow_output( this->m_id ) )
         {
             ImRect child_rect = view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
             fw::ImGuiEx::EnlargeToInclude(result_rect, child_rect);
         }
     };
 
-    std::for_each(children.begin(), children.end(), enlarge_to_fit_all);
-    std::for_each(inputs.begin()  , inputs.end()  , enlarge_to_fit_all);
+    auto children = get_adjacent(SlotFlag_CHILD);
+    std::for_each( children.begin(), children.end(), enlarge_to_fit_all);
+
+    auto inputs   = get_adjacent(SlotFlag_INPUT);
+    std::for_each( inputs.begin()  , inputs.end()  , enlarge_to_fit_all);
 
     fw::ImGuiEx::DebugRect(result_rect.Min, result_rect.Max, IM_COL32( 0, 255, 0, 255 ),4 );
 
@@ -990,7 +978,7 @@ ImRect NodeView::get_rect(
 void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
-    for(PoolID<NodeView> each_child_view : children )
+    for(PoolID<NodeView> each_child_view : get_adjacent(SlotFlag_CHILD) )
     {
         each_child_view->set_expanded_rec(_expanded);
     }
@@ -1005,31 +993,26 @@ void NodeView::set_expanded(bool _expanded)
 
 bool NodeView::should_follow_output(PoolID<const NodeView> output) const
 {
+    auto outputs = get_adjacent(SlotFlag_OUTPUT);
     return outputs.empty() || outputs[0] == output;
 }
 
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
-    for(PoolID<NodeView> each_id : inputs )
-    {
-        NodeView* each_input_view = each_id.get();
-        if( _visible || (outputs.empty() || each_input_view->should_follow_output( this->m_id )) )
-        {
-            if ( _recursive && each_input_view->m_expanded ) // propagate only if expanded
-            {
-                each_input_view->set_children_visible(_visible, true);
-                each_input_view->set_inputs_visible(_visible, true);
-            }
-            each_input_view->set_visible(_visible);
-        }
-    }
+    set_adjacent_visible( SlotFlag_INPUT, _visible, _recursive );
 }
 
 void NodeView::set_children_visible(bool _visible, bool _recursive)
 {
-    for( auto each_child_view : children )
+    set_adjacent_visible( SlotFlag_CHILD, _visible, _recursive );
+}
+
+void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive)
+{
+    bool has_not_output = get_adjacent(SlotFlag_OUTPUT).empty();
+    for( auto each_child_view : get_adjacent(flags) )
     {
-        if( _visible || (outputs.empty() || each_child_view->should_follow_output( this->m_id )) )
+        if( _visible || has_not_output || each_child_view->should_follow_output( m_id ) )
         {
             if ( _recursive && each_child_view->m_expanded) // propagate only if expanded
             {
@@ -1124,4 +1107,9 @@ ImRect NodeView::get_slot_rect( SlotView& _slot_view, const Config& _config, i8_
     rect.Expand( ImVec2(- _config.ui_node_slot_padding, 0.0f));
 
     return rect;
+}
+
+std::vector<PoolID<NodeView>> NodeView::get_adjacent(SlotFlags flags) const
+{
+    return GraphUtil::adjacent_components<NodeView>(m_owner.get(), flags);
 }

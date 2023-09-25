@@ -75,7 +75,7 @@ namespace ndbl
         std::string  m_experimental_clipboard_curr;
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste;
-        observe::Observer m_graph_change_obs;
+        observe::Observer m_graph_changed_observer;
 
         REFLECT_DERIVED_CLASS()
 
