@@ -208,7 +208,7 @@ bool Graph::is_empty() const
 
 DirectedEdge Graph::connect_or_digest(Slot* dependent, Slot* dependency )
 {
-    if( dependent->flags & SlotFlag_ACCEPTS_DEPENDENTS )
+    if( dependent->flags == SlotFlag_OUTPUT )
     {
        std::swap(dependent, dependency);
     }
@@ -232,7 +232,7 @@ DirectedEdge Graph::connect_or_digest(Slot* dependent, Slot* dependency )
      */
     if ( dependent->get_node() == nullptr )
     {
-       dependency_prop->digest( dependent_prop );
+        dependency_prop->digest( dependent_prop );
         delete dependent_prop;
         return {};
     }
