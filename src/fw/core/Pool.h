@@ -264,16 +264,8 @@ namespace fw
         template<typename T>
         void destroy(PoolID<T> pool_id);
 
-        // TODO: define a unique destroy using iterators
-        template<typename T>
-        void destroy(std::unordered_set<PoolID<T>> ids);
-
-        template<typename T>
-        void destroy(std::set<PoolID<T>> ids);
-
-        template<typename T>
-        void destroy(std::vector<PoolID<T>> ids);
-        // TODO: define a unique destroy using iterators (END)
+        template<typename T, template <typename...> class Container>
+        void destroy(const Container<PoolID<T>>& ids);
 
     private:
 
@@ -403,7 +395,10 @@ namespace fw
 
     template<typename T>
     void Pool::destroy(T* ptr)
-    { static_assert__is_pool_registrable<T>(); destroy(ptr->poolid()); }
+    {
+        static_assert__is_pool_registrable<T>();
+        destroy(ptr->poolid());
+    }
 
     template<typename T>
     void Pool::destroy(PoolID<T> pool_id)
@@ -413,10 +408,11 @@ namespace fw
         FW_EXPECT( it != m_record_by_id.end(), "No record_to_delete found" );
 
         Record& record_to_delete = it->second;
-        size_t  last_pos       = record_to_delete.vector->size() - 1; // size() can't be 0, because at least the item to destroy is in it
+        size_t  last_pos         = record_to_delete.vector->size() - 1; // size() can't be 0, because at least the item to destroy is in it
+        size_t  pos_to_delete    = record_to_delete.pos;
 
         // Preserve contiguous memory by swapping the record_to_delete to delete and the last.
-        if(record_to_delete.pos != last_pos)
+        if( pos_to_delete != last_pos)
         {
             // swap with the back, and update back's pool id
             size_t last_poolid = record_to_delete.vector->poolid_at( last_pos );
@@ -427,19 +423,11 @@ namespace fw
         record_to_delete.vector->pop_back();
         m_record_by_id.erase( it );
 
-        LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, index: %zu) ...\n", (u32_t)pool_id, fw::type::get<T>()->get_name(), record_to_delete.pos);
+        LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, pos: %zu) ...\n", (u32_t)pool_id, fw::type::get<T>()->get_name(), pos_to_delete);
     }
 
-    template<typename T>
-    void Pool::destroy(std::unordered_set<PoolID<T>> ids)
-    { static_assert__is_pool_registrable<T>(); LOG_WARNING("Pool", "destroy(std::unordered_set<PoolID<T>> id) not implemented yet\n" ) }
-
-    template<typename T>
-    void Pool::destroy(std::set<PoolID<T>> ids)
-    { static_assert__is_pool_registrable<T>(); LOG_WARNING("Pool", "destroy(std::set<PoolID<T>> id) not implemented yet\n" ) }
-
-    template<typename T>
-    void Pool::destroy(std::vector<PoolID<T>> ids)
+    template<typename T, template <typename...> class Container>
+    void Pool::destroy(const Container<PoolID<T>>& ids)
     {
         static_assert__is_pool_registrable<T>();
         for(auto each_id : ids )
