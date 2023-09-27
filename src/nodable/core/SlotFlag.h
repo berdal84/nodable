@@ -7,26 +7,23 @@ namespace ndbl
     typedef i8_t SlotFlags;
     enum SlotFlag : i8_t // require less bits, but reserve some.
     {
-        // We see TYPEs as
-        // DEPENDENT --- TYPE ---> DEPENDENCY
-
         SlotFlag_NONE              = 0,
 
-        SlotFlag_ACCEPTS_DEPENDENTS   = 1 << 0,
-        SlotFlag_ACCEPTS_DEPENDENCIES = 1 << 1,
+        SlotFlag_ORDER_PRIMARY     = 1 << 0,
+        SlotFlag_ORDER_SECONDARY   = 1 << 1,
 
         SlotFlag_TYPE_VALUE        = 1 << 2,
         SlotFlag_TYPE_HIERARCHICAL = 1 << 3,
         SlotFlag_TYPE_CODEFLOW     = 1 << 4,
 
-        SlotFlag_INPUT             = SlotFlag_TYPE_VALUE        | SlotFlag_ACCEPTS_DEPENDENCIES,
-        SlotFlag_OUTPUT            = SlotFlag_TYPE_VALUE        | SlotFlag_ACCEPTS_DEPENDENTS,
-        SlotFlag_PARENT            = SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ACCEPTS_DEPENDENCIES,
-        SlotFlag_CHILD             = SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ACCEPTS_DEPENDENTS,
-        SlotFlag_PREV              = SlotFlag_TYPE_CODEFLOW     | SlotFlag_ACCEPTS_DEPENDENCIES,
-        SlotFlag_NEXT              = SlotFlag_TYPE_CODEFLOW     | SlotFlag_ACCEPTS_DEPENDENTS,
+        SlotFlag_OUTPUT            = SlotFlag_TYPE_VALUE        | SlotFlag_ORDER_PRIMARY,
+        SlotFlag_INPUT             = SlotFlag_TYPE_VALUE        | SlotFlag_ORDER_SECONDARY,
+        SlotFlag_PARENT            = SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_PRIMARY,
+        SlotFlag_CHILD             = SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_SECONDARY,
+        SlotFlag_PREV              = SlotFlag_TYPE_CODEFLOW     | SlotFlag_ORDER_PRIMARY,
+        SlotFlag_NEXT              = SlotFlag_TYPE_CODEFLOW     | SlotFlag_ORDER_SECONDARY,
 
-        SlotFlag_ACCEPTS_MASK      = SlotFlag_ACCEPTS_DEPENDENTS | SlotFlag_ACCEPTS_DEPENDENCIES,
+        SlotFlag_ORDER_MASK        = SlotFlag_ORDER_PRIMARY | SlotFlag_ORDER_SECONDARY,
         SlotFlag_TYPE_MASK         = SlotFlag_TYPE_CODEFLOW | SlotFlag_TYPE_HIERARCHICAL | SlotFlag_TYPE_VALUE,
     };
 }

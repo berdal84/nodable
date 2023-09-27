@@ -436,7 +436,7 @@ void Nodable::on_update()
                 SlotRef tail = event.slot.first;
                 SlotRef head = event.slot.second;
 
-                if (tail.flags & SlotFlag_ACCEPTS_DEPENDENCIES ) std::swap(tail, head); // guarantee src to be the output
+                if (tail.flags & SlotFlag_ORDER_SECONDARY ) std::swap(tail, head); // guarantee src to be the output
                 DirectedEdge edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
@@ -452,7 +452,6 @@ void Nodable::on_update()
                 for( auto adjacent_slot: slot->adjacent )
                 {
                     DirectedEdge edge{slot, adjacent_slot};
-                    DirectedEdge::normalize(edge);
                     auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(edge);
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }

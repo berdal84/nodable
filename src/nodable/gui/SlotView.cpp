@@ -63,7 +63,7 @@ void SlotView::draw_slot_rectangle(
     // TODO: Find why size can be zero more (more surprisingly) nan.
     if(rect_size.x == 0.0f || rect_size.y == 0.0f || std::isnan(rect_size.x) || std::isnan(rect_size.y) ) return;
 
-    ImDrawCornerFlags corner_flags = _view.m_slot.flags & SlotFlag_ACCEPTS_DEPENDENTS ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
+    ImDrawCornerFlags corner_flags = _view.m_slot.flags & SlotFlag_ORDER_SECONDARY ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
     ImGui::SetCursorScreenPos( _rect.GetTL());
     ImGui::PushID(_view.m_slot.id);

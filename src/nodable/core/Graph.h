@@ -67,17 +67,17 @@ namespace ndbl
 
         // edge related
 
-        DirectedEdge         connect(Slot*, Slot*, SideEffects );
-        DirectedEdge         connect_to_variable(Slot *tail, PoolID<VariableNode> variable_id );
-        DirectedEdge         connect_to_instruction(Slot *expression_root, InstructionNode *instruction );
-        DirectedEdge         connect_or_digest(Slot*, Slot* );
-        void                 disconnect(DirectedEdge, SideEffects );
+        DirectedEdge* connect(Slot* _out, Slot* _in, SideEffects _flags );
+        DirectedEdge* connect_to_variable(Slot* _out, PoolID<VariableNode> _in );
+        DirectedEdge* connect_to_instruction(Slot* _out, InstructionNode* _in );
+        DirectedEdge* connect_or_merge(Slot* _out, Slot* _in);
+        void          disconnect(DirectedEdge, SideEffects );
 
     private:
         // register management
-        void                        add(PoolID<Node> _node);    // Add a given node to the registry.
-        void                        remove(PoolID<Node> _node); // Remove a given node from the registry.
-        void                        remove(DirectedEdge);  // Remove a given edge from the registry.
+        void         add(PoolID<Node> _node); // Add a given node to the registry.
+        void         remove(PoolID<Node> _node); // Remove a given node from the registry.
+        void         remove(DirectedEdge); // Remove a given edge from the registry.
 
 		std::vector<PoolID<Node>>               m_node_registry;       // registry to store all the nodes from this graph.
         std::multimap<SlotFlags , DirectedEdge> m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.

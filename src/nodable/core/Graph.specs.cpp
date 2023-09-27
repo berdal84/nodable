@@ -28,7 +28,7 @@ TEST_F(Graph_, connect)
     auto slot_2 = node_2->add_slot( prop_2, SlotFlag_OUTPUT );
 
     // Act
-    DirectedEdge edge = graph.connect_or_digest( &node_1->get_slot( slot_1 ), &node_2->get_slot( slot_2 ) );
+    DirectedEdge& edge = *graph.connect_or_merge( &node_1->get_slot( slot_1 ), &node_2->get_slot( slot_2 ) );
 
     // Verify
     EXPECT_EQ(edge.tail->get_property(), node_1->get_prop_at( prop_1 ) );
@@ -48,7 +48,7 @@ TEST_F(Graph_, disconnect)
     auto slot_2 = node_2->add_slot( prop_2, SlotFlag_INPUT );
 
     EXPECT_EQ(graph.get_edge_registry().size(), 0);
-    DirectedEdge edge = graph.connect_or_digest( &node_1->get_slot( slot_1 ), &node_2->get_slot( slot_2 ) );
+    DirectedEdge& edge = *graph.connect_or_merge( &node_1->get_slot( slot_1 ), &node_2->get_slot( slot_2 ) );
     EXPECT_EQ(graph.get_edge_registry().size(), 1);
 
     // Act
@@ -111,25 +111,25 @@ TEST_F(Graph_, create_and_delete_relations)
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
-    auto edge_1 = graph.connect(
+    DirectedEdge* edge_1 = graph.connect(
             node_1->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
             node_2->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
             SideEffects::OFF );
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
-    graph.disconnect(edge_1, SideEffects::OFF );
+    graph.disconnect(*edge_1, SideEffects::OFF );
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
 
     // Is input of
     EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 0);
-    auto edge_2 = graph.connect(
+    DirectedEdge* edge_2 = graph.connect(
             node_1->find_value_typed_slot( SlotFlag_OUTPUT ),
             node_2->find_value_typed_slot( SlotFlag_INPUT ),
             SideEffects::OFF );
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
-    graph.disconnect(edge_2, SideEffects::OFF );
+    graph.disconnect(*edge_2, SideEffects::OFF );
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 0);
     EXPECT_EQ(edges.size(), 0);
 }

@@ -206,51 +206,44 @@ bool Graph::is_empty() const
     return m_root.get() == nullptr;
 }
 
-DirectedEdge Graph::connect_or_digest(Slot* dependent, Slot* dependency )
+DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
 {
-    if( dependent->flags == SlotFlag_OUTPUT )
+    Property* in_prop  = _in->get_property();
+    Property* out_prop = _out->get_property();
+
+    // Guards
+    FW_EXPECT( _in->flags == SlotFlag_INPUT,  "tail slot must be a dependent")
+    FW_EXPECT( _out->flags == SlotFlag_OUTPUT, "head slot must be a dependency")
+    FW_EXPECT( in_prop, "tail property must be defined" )
+    FW_EXPECT( out_prop, "head property must be defined" )
+    FW_EXPECT( in_prop != out_prop, "Can't connect same properties!" )
+    const fw::type* out_type = out_prop->get_type();
+    const fw::type* in_type  = in_prop->get_type();
+    FW_EXPECT( fw::type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
+
+    // case 1: merge orphan slot
+    if ( _in->get_node() == nullptr ) // if dependent is orphan
     {
-       std::swap(dependent, dependency);
-    }
-    FW_EXPECT( dependent->flags == SlotFlag_INPUT,  "tail slot must be a dependent")
-    FW_EXPECT( dependency->flags == SlotFlag_OUTPUT, "head slot must be a dependency")
-
-    Property* dependent_prop  = dependent->get_property();
-    Property* dependency_prop = dependency->get_property();
-
-    FW_EXPECT( dependent_prop, "tail property must be defined" )
-    FW_EXPECT( dependency_prop, "head property must be defined" )
-    FW_EXPECT( dependent_prop != dependency_prop, "Can't connect same properties!" )
-
-    const fw::type* dependency_type = dependency_prop->get_type();
-    const fw::type* dependent_type  = dependent_prop->get_type();
-
-    FW_EXPECT( fw::type::is_implicitly_convertible( dependency_type, dependent_type), "dependency type should be implicitly convertible to dependent type");
-
-    // Digest Orphan (case 1)
-    if ( dependent->get_node() == nullptr ) // if dependent is orphan
-    {
-        dependency_prop->digest( dependent_prop );
-        delete dependent_prop;
-        return {};
+        out_prop->digest( in_prop );
+        delete in_prop;
+        // set_dirty(); // no changes on edges/nodes
+        return nullptr;
     }
 
-    // Digest Non Orphan (case 2)
-    if (!dependent_prop->is_this() && // Never digest a Node (property points to a node)
-        dependency->node->get_type()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
-        dependent->node->get_type()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
+    // case 2: merge non-orphan property
+    if (!in_prop->is_this() && // Never digest a Node (property points to a node)
+         _out->node->get_type()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
+         _in->node->get_type()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
     {
-        dependent_prop->digest( dependency_prop );
-        destroy( dependency->node);
-        set_dirty();
-        return DirectedEdge::null;
+        in_prop->digest( out_prop );
+        destroy( _out->node);
+        set_dirty(); // a node has been destroyed
+        return nullptr;
     }
 
     // Connect (case 3)
-    DirectedEdge edge = connect( dependent, dependency, SideEffects::ON );
-
     set_dirty();
-    return edge;
+    return connect( _out, _in, SideEffects::ON );
 }
 
 void Graph::remove(DirectedEdge edge)
@@ -269,7 +262,7 @@ void Graph::remove(DirectedEdge edge)
     }
 }
 
-DirectedEdge Graph::connect_to_instruction(Slot* expression_root, InstructionNode* instruction )
+DirectedEdge* Graph::connect_to_instruction(Slot* expression_root, InstructionNode* instruction )
 {
     Node* expression_node = expression_root->get_node();
 
@@ -282,46 +275,53 @@ DirectedEdge Graph::connect_to_instruction(Slot* expression_root, InstructionNod
             variable->set_declaration_instr( instruction->poolid());
         }
     }
-    return connect_or_digest(
+    return connect_or_merge(
             expression_node->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
             &instruction->root_slot() );
 }
 
-DirectedEdge Graph::connect_to_variable(Slot* tail, PoolID<VariableNode> variable_id )
+DirectedEdge* Graph::connect_to_variable(Slot* _out, PoolID<VariableNode> _variable_in )
 {
-    FW_EXPECT( tail->flags == SlotFlag_OUTPUT, "Tail should be an OUT VALUE" )
-    return connect_or_digest(tail, variable_id->find_value_typed_slot( SlotFlag_INPUT ) );
+    FW_EXPECT( _out->flags == SlotFlag_OUTPUT, "slot should be an OUTPUT" )
+    return connect_or_merge( _out, _variable_in->find_value_typed_slot( SlotFlag_INPUT ) );
 }
 
-DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
+DirectedEdge* Graph::connect(Slot* _out, Slot* _in, SideEffects _flags)
 {
-    DirectedEdge edge{*_tail, *_head};
-    DirectedEdge::normalize(edge);
+    FW_ASSERT( _out->flags & SlotFlag_ORDER_PRIMARY )
+    FW_ASSERT( _in->flags & SlotFlag_ORDER_SECONDARY )
 
-    Node* dependent_node = edge.tail.node.get();
-    Node* dependency_node = edge.head.node.get();
-    SlotFlags type = edge.tail.flags & SlotFlag_TYPE_MASK;
+    // Insert edge
+    SlotFlags type = _out->type();
+    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{*_out, *_in });
 
+    // Add cross-references to each end of the edge
+    edge.tail->add_adjacent( edge.head );
+    edge.head->add_adjacent( edge.tail );
+
+    // Handle side effects
     if (_flags == SideEffects::ON )
     {
+        Node* out_node = _out->get_node();
+        Node* in_node = _in->get_node();
+
         switch ( type )
         {
             case SlotFlag_TYPE_HIERARCHICAL:
             {
-                FW_ASSERT( dependency_node->has_component<Scope>())
-                Slot* dependent_previous_slot = dependent_node->find_slot( SlotFlag_PREV );
-
-                Slot* next_slot = dependency_node->find_slot( SlotFlag_NEXT );
-                if ( next_slot && !next_slot->is_full() )
+                FW_ASSERT( in_node->has_component<Scope>())
+                Slot* out_previous_slot = out_node->find_slot( SlotFlag_PREV );
+                Slot* in_next_slot      = in_node->find_slot( SlotFlag_NEXT );
+                if ( in_next_slot && !in_next_slot->is_full() )
                 {
                     connect(
-                        dependency_node->find_slot( SlotFlag_NEXT ),
-                        dependent_previous_slot,
-                        SideEffects::OFF );
+                            out_previous_slot,
+                            in_next_slot,
+                            SideEffects::OFF );
                 }
-                else if (Node* dependency_last_child = dependency_node->last_child() )
+                else if (Node* last_child = in_node->last_child() )
                 {
-                    if (auto scope = dependency_last_child->get_component<Scope>().get())
+                    if (auto scope = last_child->get_component<Scope>().get())
                     {
                         std::vector<InstructionNode *> last_instructions = scope->get_last_instructions_rec();
                         if (!last_instructions.empty())
@@ -331,16 +331,16 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
                         for (InstructionNode* each_instruction: last_instructions )
                         {
                             connect(
+                                out_previous_slot,
                                 each_instruction->find_slot( SlotFlag_NEXT ),
-                                dependent_previous_slot,
                                 SideEffects::OFF );
                         }
                     }
                     else
                     {
-                        Slot* dependency_last_child_next_slot = dependency_last_child->find_slot( SlotFlag_NEXT );
-                        FW_ASSERT(!dependency_last_child_next_slot->is_full())
-                        connect( dependency_last_child_next_slot, dependent_previous_slot, SideEffects::OFF);
+                        Slot*last_child_next_slot = last_child->find_slot( SlotFlag_NEXT );
+                        FW_ASSERT(!last_child_next_slot->is_full())
+                        connect( out_previous_slot, last_child_next_slot, SideEffects::OFF);
                     }
                 }
                 break;
@@ -348,32 +348,32 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
 
             case SlotFlag_TYPE_CODEFLOW:
 
-                if ( dependency_node->has_component<Scope>())
+                if ( in_node->has_component<Scope>())
                 {
                     connect(
-                        dependency_node->find_slot( SlotFlag_CHILD ),
-                        dependent_node->find_slot( SlotFlag_PARENT ),
+                        out_node->find_slot( SlotFlag_PARENT ),
+                        in_node->find_slot( SlotFlag_CHILD ),
                         SideEffects::OFF );
                 }
-                else if (Node* dependency_parent_node = dependency_node->get_parent().get())
+                else if (Node* dependency_parent_node = in_node->get_parent().get())
                 {
                     connect(
-                            dependency_parent_node->find_slot( SlotFlag_CHILD ),
-                        dependent_node->find_slot( SlotFlag_PARENT ),
+                        out_node->find_slot( SlotFlag_PARENT ),
+                        dependency_parent_node->find_slot( SlotFlag_CHILD ),
                         SideEffects::OFF );
                 }
 
                 /**
                  * create child/get_parent() link with dst_parent
                  */
-                if (Node* dependent_parent_node = dependent_node->get_parent().get())
+                if (Node* out_parent_node = out_node->get_parent().get())
                 {
-                    Node* current_successor = dependent_node->successors().begin()->get();
+                    Node* current_successor = out_node->successors().begin()->get();
                     while (current_successor && current_successor->get_parent().get() != nullptr)
                     {
                         connect(
-                            dependent_parent_node->find_slot( SlotFlag_CHILD ),
                             current_successor->find_slot( SlotFlag_PARENT ),
+                            out_parent_node->find_slot( SlotFlag_CHILD ),
                             SideEffects::OFF );
                         current_successor = current_successor->successors().begin()->get();
                     }
@@ -405,13 +405,8 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
                 FW_ASSERT(false);// This connection type is not yet implemented
         }
     }
-
-    edge.tail->add_adjacent( edge.head );
-    edge.head->add_adjacent( edge.tail );
-
-    m_edge_registry.emplace( type, edge);
     set_dirty();
-    return edge;
+    return &edge;
 }
 
 void Graph::disconnect(DirectedEdge _edge, SideEffects flags)

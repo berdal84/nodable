@@ -19,9 +19,6 @@ namespace ndbl
         operator bool () const;
         bool operator==(const DirectedEdge& other) const;
         bool operator!=(const DirectedEdge& other) const;
-
-        DirectedEdge& swap_vertices();
-        static DirectedEdge& normalize(DirectedEdge& _edge);
     };
 
     std::string to_string(const DirectedEdge& edge);

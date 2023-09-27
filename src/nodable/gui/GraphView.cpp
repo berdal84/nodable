@@ -99,7 +99,7 @@ bool GraphView::draw()
                 {
                     const fw::type* dragged_property_type = dragged_slot->get_property_type();
 
-                    if ( dragged_slot->allows( SlotFlag_ACCEPTS_DEPENDENCIES ) )
+                    if ( dragged_slot->allows( SlotFlag_ORDER_SECONDARY ) )
                     {
                         has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
                     }
@@ -198,7 +198,7 @@ bool GraphView::draw()
     for( Node* each_node : node_registry )
     {
         size_t slot_index = 0;
-        size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ACCEPTS_DEPENDENCIES );
+        size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_SECONDARY );
         float padding     = 2.0f;
         float linePadding = 5.0f;
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
@@ -540,17 +540,17 @@ bool GraphView::draw()
             if ( dragged_slot )
             {
                 auto type = dragged_slot->slot().flags & SlotFlag_TYPE_MASK;
-                if ( dragged_slot->allows( SlotFlag_ACCEPTS_DEPENDENTS ) )
+                if ( dragged_slot->allows( SlotFlag_ORDER_PRIMARY ) )
                 {
-                    Slot* tail_slot = new_node_id->get_first_slot( type | SlotFlag_ACCEPTS_DEPENDENCIES, dragged_slot->get_property()->get_type());
-                    m_graph->connect( tail_slot, &dragged_slot->slot(), SideEffects::ON );
+                    Slot* out = new_node_id->get_first_slot( type | SlotFlag_ORDER_SECONDARY, dragged_slot->get_property()->get_type());
+                    m_graph->connect( out, &dragged_slot->slot(), SideEffects::ON );
                 }
                 //  [ dragged slot ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    Slot* head_slot = new_node_id->get_first_slot( type | SlotFlag_ACCEPTS_DEPENDENTS, dragged_slot->get_property()->get_type());
-                    m_graph->connect( &dragged_slot->slot(), head_slot, SideEffects::ON );
+                    Slot* in = new_node_id->get_first_slot( type | SlotFlag_ORDER_PRIMARY, dragged_slot->get_property()->get_type());
+                    m_graph->connect( &dragged_slot->slot(), in, SideEffects::ON );
                 }
                 SlotView::reset_dragged();
             }

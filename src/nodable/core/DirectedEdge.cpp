@@ -12,26 +12,15 @@ DirectedEdge::DirectedEdge()// is equivalent of NULL DirectedEdge
 DirectedEdge::DirectedEdge( const DirectedEdge &other )
 : tail(other.tail)
 , head(other.head)
-{}
+{
+}
+
 DirectedEdge::DirectedEdge( SlotRef _tail, SlotRef _head )
 : tail(_tail)
 , head(_head)
-{}
-
-DirectedEdge &DirectedEdge::swap_vertices()
 {
-    std::swap(tail, head);
-    return *this;
-}
-
-DirectedEdge& DirectedEdge::normalize(DirectedEdge& _edge) // In case relation is not primary, swaps vertex and use complement relation, return the same edge otherwise.
-{
-    if ( (_edge.tail.flags & SlotFlag_ACCEPTS_DEPENDENCIES) == 0 )
-    {
-        _edge.swap_vertices();
-    }
-    FW_EXPECT(_edge.tail.flags & SlotFlag_ACCEPTS_DEPENDENCIES, "tail should accept dependencies");
-    return _edge;
+    FW_ASSERT(_tail.flags & SlotFlag_ORDER_PRIMARY )
+    FW_ASSERT(_head.flags & SlotFlag_ORDER_SECONDARY )
 }
 
 bool DirectedEdge::operator!=( const DirectedEdge &other ) const

@@ -411,8 +411,8 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     component->token = operator_token;
-    parser_state.graph->connect_or_digest( &_left, binary_op->find_slot( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
-    parser_state.graph->connect_or_digest( right, binary_op->find_slot( RIGHT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    parser_state.graph->connect_or_merge( &_left, binary_op->find_slot( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    parser_state.graph->connect_or_merge( right, binary_op->find_slot( RIGHT_VALUE_PROPERTY, SlotFlag_INPUT ) );
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
@@ -442,14 +442,14 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Parse expression after the operator
-    Slot* value = parse_atomic_expression();
+    Slot* out_atomic = parse_atomic_expression();
 
-    if ( value == nullptr )
+    if ( out_atomic == nullptr )
     {
-        value = parse_parenthesis_expression();
+        out_atomic = parse_parenthesis_expression();
     }
 
-    if ( value == nullptr )
+    if ( out_atomic == nullptr )
     {
         LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
         rollback_transaction();
@@ -459,7 +459,7 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     // Create a function signature
     auto* type = new func_type(operator_token.word_to_string());  // FIXME: avoid std::string copy
     type->set_return_type(type::any());
-    type->push_args(value->get_property()->get_type());
+    type->push_args( out_atomic->get_property()->get_type());
 
     PoolID<InvokableComponent> component;
     PoolID<Node> node;
@@ -477,7 +477,7 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     component = node->get_component<InvokableComponent>();
     component->token = std::move( operator_token );
 
-    parser_state.graph->connect_or_digest( value, node->find_slot( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    parser_state.graph->connect_or_merge( out_atomic, node->find_slot( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
     commit_transaction();
@@ -1148,9 +1148,9 @@ Slot* Nodlang::parse_function_call()
     for ( FuncArg& signature_arg : signature.get_args() )
     {
         // Connects each results to the corresponding input
-        auto& result_slot = result_slots.at(signature_arg.m_index);
-        Slot* input_slot = fct_node->find_slot( signature_arg.m_name.c_str(), SlotFlag_INPUT );
-        parser_state.graph->connect_or_digest( result_slot, input_slot );
+        auto& out_slot = result_slots.at(signature_arg.m_index);
+        Slot* in_slot  = fct_node->find_slot( signature_arg.m_name.c_str(), SlotFlag_INPUT );
+        parser_state.graph->connect_or_merge( out_slot, in_slot );
     }
 
     commit_transaction();
@@ -1207,7 +1207,7 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
             condition->set_name("Condition");
             condition->set_name("Cond.");
             conditional_struct_node->cond_expr = condition;
-            parser_state.graph->connect_or_digest(
+            parser_state.graph->connect_or_merge(
                     condition->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
                     conditional_struct_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
         }
@@ -1303,7 +1303,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
             } else
             {
                 init_instr->set_name("Initialisation");
-                parser_state.graph->connect_or_digest(
+                parser_state.graph->connect_or_merge(
                         init_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
                         for_loop_node->find_slot( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
                 for_loop_node->init_instr = init_instr;
@@ -1315,7 +1315,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                 } else
                 {
                     cond_instr->set_name("Condition");
-                    parser_state.graph->connect_or_digest(
+                    parser_state.graph->connect_or_merge(
                             cond_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
                             for_loop_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
 
@@ -1329,7 +1329,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                     else
                     {
                         iter_instr->set_name("Iteration");
-                        parser_state.graph->connect_or_digest(
+                        parser_state.graph->connect_or_merge(
                                 iter_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
                                 for_loop_node->find_slot( ITERATION_PROPERTY, SlotFlag_INPUT ) );
                         for_loop_node->iter_instr = iter_instr;
@@ -1394,7 +1394,7 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
         {
             cond_instr->set_name("Condition");
             while_loop_node->cond_instr = cond_instr->poolid();
-            parser_state.graph->connect_or_digest(
+            parser_state.graph->connect_or_merge(
                     cond_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
                     while_loop_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
 
@@ -1671,7 +1671,10 @@ std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *va
 
 std::string &Nodlang::serialize_edge(std::string& _out, const Slot* _slot, bool recursively) const
 {
-    FW_ASSERT(_slot != nullptr);
+    if( _slot == nullptr )
+    {
+        return _out;
+    }
 
     const Slot* adjacent_slot = _slot->first_adjacent().get();
 
@@ -1694,7 +1697,7 @@ std::string &Nodlang::serialize_edge(std::string& _out, const Slot* _slot, bool 
         _out.append( adjacent_property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
-    if (recursively && adjacent_slot->node->find_slot( SlotFlag_ACCEPTS_DEPENDENTS ) )
+    if (recursively && adjacent_slot->node->find_slot( SlotFlag_ORDER_PRIMARY ) )
     {
         PoolID<InvokableComponent> compute_component = _slot->get_node()->get_component<InvokableComponent>();
 
