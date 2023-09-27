@@ -1447,7 +1447,7 @@ Slot* Nodlang::parse_variable_declaration()
             VariableNode* variable = variable_id.get(); // dereference once to apply several changes
             variable->set_declared( true );
             variable->type_token = type_token;
-            variable->identifier_token.transfer_prefix_and_suffix_from( &identifier_token );
+            variable->identifier_token.move_prefixsuffix( &identifier_token );
             variable->property()->token = identifier_token;
         }
         // try to parse assignment

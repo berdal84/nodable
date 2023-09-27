@@ -125,7 +125,7 @@ namespace ndbl
         inline size_t word_size() const { return m_word_size; }
         inline size_t suffix_size() const { return m_buffer_size - prefix_size() - m_word_size; }
         inline bool is_keyword_type() { return ndbl::is_a_type_keyword(m_type); } // Check if whether or not this token is a keyword type
-        void transfer_prefix_and_suffix_from(Token *source); // Transfer the prefix and suffix of a given token to this token
+        void move_prefixsuffix(Token *source); // Transfer the prefix and suffix of a given token to this token
         void set_source_buffer(char* _buffer, size_t pos = 0, size_t size = 0);
         std::string json()const;
         bool is_null() const { return m_type == Token_t::null; }

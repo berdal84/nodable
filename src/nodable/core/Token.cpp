@@ -19,7 +19,7 @@ std::string Token::json() const
     return result;
 }
 
-void Token::transfer_prefix_and_suffix_from(Token* source)
+void Token::move_prefixsuffix(Token* source)
 {
     if( m_is_source_buffer_owned ) delete[] m_source_buffer;
 

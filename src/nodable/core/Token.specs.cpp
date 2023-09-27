@@ -47,7 +47,7 @@ TEST(Token, transfer_prefix_suffix)
     EXPECT_FALSE(target.m_is_source_buffer_owned);
 
     // act
-    target.transfer_prefix_and_suffix_from(&source);
+    target.move_prefixsuffix( &source );
 
     // post-check
     EXPECT_EQ(source.buffer_to_string(), "TATA");

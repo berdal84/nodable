@@ -227,41 +227,28 @@ DirectedEdge Graph::connect_or_digest(Slot* dependent, Slot* dependency )
 
     FW_EXPECT( fw::type::is_implicitly_convertible( dependency_type, dependent_type), "dependency type should be implicitly convertible to dependent type");
 
-    /*
-     * If _from has no owner _to can digest it, no need to create an edge in this case.
-     */
-    if ( dependent->get_node() == nullptr )
+    // Digest Orphan (case 1)
+    if ( dependent->get_node() == nullptr ) // if dependent is orphan
     {
         dependency_prop->digest( dependent_prop );
         delete dependent_prop;
         return {};
     }
 
-    if (
-        !dependent_prop->is_this() &&
-        dependent->node->get_type()->is_child_of<LiteralNode>() &&
-        dependency->node->get_type()->is_not_child_of<VariableNode>())
+    // Digest Non Orphan (case 2)
+    if (!dependent_prop->is_this() && // Never digest a Node (property points to a node)
+        dependency->node->get_type()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
+        dependent->node->get_type()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
     {
-        dependency_prop->digest( dependent_prop );
-        destroy( dependent->node);
+        dependent_prop->digest( dependency_prop );
+        destroy( dependency->node);
         set_dirty();
         return DirectedEdge::null;
     }
 
+    // Connect (case 3)
     DirectedEdge edge = connect( dependent, dependency, SideEffects::ON );
 
-    // TODO: move this somewhere else
-    // (transfer prefix/suffix)
-    Token* src_token = &dependent_prop->token;
-    if (!src_token->is_null())
-    {
-        if (!dependency_prop->token.is_null())
-        {
-            dependency_prop->token.clear();
-            dependency_prop->token.m_type = src_token->m_type;
-        }
-        dependency_prop->token.transfer_prefix_and_suffix_from(src_token);
-    }
     set_dirty();
     return edge;
 }
@@ -395,9 +382,25 @@ DirectedEdge Graph::connect(Slot* _tail, Slot* _head, SideEffects _flags)
 
 
             case SlotFlag_TYPE_VALUE:
-                // no side effect
+            {
+                // Transfer token prefix/suffix/type
+                //
+                //   <prefix> dependent <suffix>    (output)
+                //       |        ^         |
+                //       v        |         v
+                //    < ... > dependency < ... >    (input)
+                //
+                Token &dependent_token  = edge.tail->get_property()->token;
+                Token &dependency_token = edge.head->get_property()->token;
+                if ( dependent_token.is_null() || dependency_token.is_null() )
+                {
+                    break;
+                }
+                dependency_token.clear();
+                dependency_token.m_type = dependent_token.m_type;
+                dependency_token.move_prefixsuffix( &dependent_token );
                 break;
-
+            }
             default:
                 FW_ASSERT(false);// This connection type is not yet implemented
         }
