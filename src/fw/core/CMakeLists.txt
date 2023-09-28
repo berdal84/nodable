@@ -52,4 +52,8 @@ add_test( NAME test_framework_core COMMAND test-framework-core )
 add_executable       (bench-fw-core-string string.bench.cpp)
 target_link_libraries(bench-fw-core-string PRIVATE benchmark::benchmark framework-core )
 
+# Pool
+add_executable       (bench-fw-core-Pool Pool.bench.cpp)
+target_link_libraries(bench-fw-core-Pool PRIVATE benchmark::benchmark framework-core )
+
 
