@@ -67,13 +67,13 @@ namespace ndbl {
         virtual void init();
         std::vector<PoolID<Node>> filter_adjacent(SlotFlags) const;
         std::vector<PoolID<Node>> successors() const;
+        std::vector<PoolID<Node>> rchildren() const;
         std::vector<PoolID<Node>> children() const;
         std::vector<PoolID<Node>> inputs() const;
         std::vector<PoolID<Node>> outputs() const;
         std::vector<PoolID<Node>> predecessors() const;
         void                 set_name(const char*);
         size_t               adjacent_count(SlotFlags )const;
-        std::vector<PoolID<Node>>get_predecessors() const;
         PoolID<Node>         get_parent() const;
         Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
         Slot&                get_slot(ID8<Slot>);
@@ -95,7 +95,7 @@ namespace ndbl {
         const Property*      get_prop(const char* _name) const;
         std::vector<Slot*>   get_slots(const std::vector<ID<Property>>&, SlotFlags) const;
         std::vector<PoolID<Component>> get_components();
-        void set_slot_capacity(SlotFlags _way, u8_t _n);
+        void                 set_slot_capacity(SlotFlags _way, u8_t _n);
         ID<Property>         add_prop(const fw::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
         ID8<Slot>            add_slot(ID<Property>, SlotFlags, u8_t _capacity = 1);
         Node*                last_child();

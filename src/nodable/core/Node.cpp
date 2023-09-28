@@ -99,7 +99,7 @@ bool Node::has_edge_heading(const char* _name) const
 
 bool Node::has_edge_heading(ID<Property> property_id) const
 {
-    const Slot* slot = find_slot( property_id, SlotFlag_ORDER_PRIMARY );
+    const Slot* slot = find_slot( property_id, SlotFlag_ORDER_SECOND );
     return slot && !slot->adjacent.empty();
 }
 
@@ -134,22 +134,6 @@ const Slot* Node::find_slot(ID<Property> property_id, SlotFlags _flags) const
 Slot *Node::find_slot(ID<Property> property_id, SlotFlags _flags)
 {
     return slots.find_by_property( property_id, _flags );
-}
-
-std::vector<PoolID<Node>> Node::get_predecessors() const
-{
-    std::vector<PoolID<Node>> result;
-    const Slot* slot = find_slot( THIS_PROPERTY, SlotFlag_PREV );
-    if( slot == nullptr )
-    {
-        return {};
-    }
-    result.reserve( slot->adjacent_count() );
-    for (auto&each: slot->adjacent )
-    {
-        result.push_back( each.node );
-    }
-    return result;
 }
 
 std::vector<Slot *> Node::get_slots(const std::vector<ID<Property>>& properties, SlotFlags flags) const
@@ -208,6 +192,13 @@ std::vector<PoolID<Node>> Node::inputs() const
 std::vector<PoolID<Node>> Node::predecessors() const
 {
     return filter_adjacent(SlotFlag_PREV);
+}
+
+std::vector<PoolID<Node>> Node::rchildren() const
+{
+    auto v = children();
+    std::reverse( v.begin(), v.end() );
+    return v;
 }
 
 std::vector<PoolID<Node>> Node::children() const

@@ -99,7 +99,7 @@ bool GraphView::draw()
                 {
                     const fw::type* dragged_property_type = dragged_slot->get_property_type();
 
-                    if ( dragged_slot->allows( SlotFlag_ORDER_SECONDARY ) )
+                    if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
                     {
                         has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
                     }
@@ -198,7 +198,7 @@ bool GraphView::draw()
     for( Node* each_node : node_registry )
     {
         size_t slot_index = 0;
-        size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_SECONDARY );
+        size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_FIRST );
         float padding     = 2.0f;
         float linePadding = 5.0f;
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
@@ -540,16 +540,16 @@ bool GraphView::draw()
             if ( dragged_slot )
             {
                 auto type = dragged_slot->slot().flags & SlotFlag_TYPE_MASK;
-                if ( dragged_slot->allows( SlotFlag_ORDER_PRIMARY ) )
+                if ( dragged_slot->allows( SlotFlag_ORDER_SECOND ) )
                 {
-                    Slot* out = new_node_id->get_first_slot( type | SlotFlag_ORDER_SECONDARY, dragged_slot->get_property()->get_type());
+                    Slot* out = new_node_id->get_first_slot( type | SlotFlag_ORDER_FIRST, dragged_slot->get_property()->get_type());
                     m_graph->connect( out, &dragged_slot->slot(), SideEffects::ON );
                 }
                 //  [ dragged slot ](out) ---- dragging this way ----> (in)[ new node ]
                 else
                 {
                     // connect dragged (out) to first input on new node.
-                    Slot* in = new_node_id->get_first_slot( type | SlotFlag_ORDER_PRIMARY, dragged_slot->get_property()->get_type());
+                    Slot* in = new_node_id->get_first_slot( type | SlotFlag_ORDER_SECOND, dragged_slot->get_property()->get_type());
                     m_graph->connect( &dragged_slot->slot(), in, SideEffects::ON );
                 }
                 SlotView::reset_dragged();

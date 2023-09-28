@@ -67,7 +67,7 @@ namespace ndbl
 
         // edge related
 
-        DirectedEdge* connect(Slot* _out, Slot* _in, SideEffects _flags );
+        DirectedEdge* connect(Slot*_first, Slot*_second, SideEffects _flags );
         DirectedEdge* connect_to_variable(Slot* _out, PoolID<VariableNode> _in );
         DirectedEdge* connect_to_instruction(Slot* _out, InstructionNode* _in );
         DirectedEdge* connect_or_merge(Slot* _out, Slot* _in);

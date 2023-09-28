@@ -685,10 +685,10 @@ PoolID<Scope> Nodlang::parse_code_block(PoolID<Scope> curr_scope)
     {
         if ( InstructionNode* instr_node = parse_instr().get() )
         {
-            parser_state.graph->connect(
-                    instr_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
-                    get_current_scope_node()->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-                    SideEffects::ON );
+            // Create parent/child connection
+            Slot* out = get_current_scope_node()->find_slot( THIS_PROPERTY, SlotFlag_CHILD );
+            Slot* in  = instr_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT );
+            parser_state.graph->connect( out, in, SideEffects::ON );
             continue;
         }
 
@@ -1697,7 +1697,7 @@ std::string &Nodlang::serialize_edge(std::string& _out, const Slot* _slot, bool 
         _out.append( adjacent_property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
-    if (recursively && adjacent_slot->node->find_slot( SlotFlag_ORDER_PRIMARY ) )
+    if (recursively && adjacent_slot->node->find_slot( SlotFlag_ORDER_SECOND ) )
     {
         PoolID<InvokableComponent> compute_component = _slot->get_node()->get_component<InvokableComponent>();
 

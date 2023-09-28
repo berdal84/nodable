@@ -19,8 +19,8 @@ DirectedEdge::DirectedEdge( SlotRef _tail, SlotRef _head )
 : tail(_tail)
 , head(_head)
 {
-    FW_ASSERT(_tail.flags & SlotFlag_ORDER_PRIMARY )
-    FW_ASSERT(_head.flags & SlotFlag_ORDER_SECONDARY )
+    FW_ASSERT(_tail.flags & SlotFlag_ORDER_FIRST )
+    FW_ASSERT(_head.flags & SlotFlag_ORDER_SECOND )
 }
 
 bool DirectedEdge::operator!=( const DirectedEdge &other ) const

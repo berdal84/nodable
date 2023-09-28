@@ -286,14 +286,14 @@ DirectedEdge* Graph::connect_to_variable(Slot* _out, PoolID<VariableNode> _varia
     return connect_or_merge( _out, _variable_in->find_value_typed_slot( SlotFlag_INPUT ) );
 }
 
-DirectedEdge* Graph::connect(Slot* _out, Slot* _in, SideEffects _flags)
+DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
 {
-    FW_ASSERT( _out->flags & SlotFlag_ORDER_PRIMARY )
-    FW_ASSERT( _in->flags & SlotFlag_ORDER_SECONDARY )
+    FW_ASSERT( _first->flags & SlotFlag_ORDER_FIRST  )
+    FW_ASSERT( _second->flags & SlotFlag_ORDER_SECOND )
 
     // Insert edge
-    SlotFlags type = _out->type();
-    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{*_out, *_in });
+    SlotFlags type = _first->type();
+    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{*_first, *_second});
 
     // Add cross-references to each end of the edge
     edge.tail->add_adjacent( edge.head );
@@ -302,103 +302,129 @@ DirectedEdge* Graph::connect(Slot* _out, Slot* _in, SideEffects _flags)
     // Handle side effects
     if (_flags == SideEffects::ON )
     {
-        Node* out_node = _out->get_node();
-        Node* in_node = _in->get_node();
-
         switch ( type )
         {
             case SlotFlag_TYPE_HIERARCHICAL:
             {
-                FW_ASSERT( in_node->has_component<Scope>())
-                Slot* out_previous_slot = out_node->find_slot( SlotFlag_PREV );
-                Slot* in_next_slot      = in_node->find_slot( SlotFlag_NEXT );
-                if ( in_next_slot && !in_next_slot->is_full() )
+                Node* parent    = _first->get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
+                Node* new_child = _second->get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
+                FW_ASSERT( parent->has_component<Scope>())
+                Slot* parent_next_slot    = parent->find_slot( SlotFlag_NEXT  );
+                Slot* new_child_prev_slot = new_child->find_slot( SlotFlag_PREV );
+                FW_ASSERT(parent_next_slot)
+
+                // Case 1: Parent accepts a "next" connection.
+                if ( !parent_next_slot->is_full() )
                 {
-                    connect(
-                            out_previous_slot,
-                            in_next_slot,
-                            SideEffects::OFF );
+                    connect( parent_next_slot, new_child_prev_slot, SideEffects::OFF );
                 }
-                else if (Node* last_child = in_node->last_child() )
+                // Case 2: Connects to the last child's "next" slot.
+                //         parent
+                //           - ...
+                //           - last child ->->->
+                //           - new child <-<-<-
+                else
                 {
-                    if (auto scope = last_child->get_component<Scope>().get())
+                    PoolID<Node> previous_child = parent->rchildren().at(1);
+                    FW_ASSERT( previous_child )
+
+                    // Case 2.a: Connects to all last instructions' "next" slot (in last child's scope).
+                    //           parent
+                    //             - ...
+                    //             - last child
+                    //                  - child 0
+                    //                     - ...
+                    //                     - instr n >->->->->
+                    //                  - child 1
+                    //                     - instr 0 >->->->->
+                    //                  - ...
+                    //                  - instr n ->->->->->->
+                    //             - new child <-<-<-<-<-<-<-<
+                    //
+                    if (auto scope = previous_child->get_component<Scope>().get())
                     {
                         std::vector<InstructionNode *> last_instructions = scope->get_last_instructions_rec();
-                        if (!last_instructions.empty())
+                        for (InstructionNode* each_instr: last_instructions )
                         {
-                            LOG_VERBOSE("Graph", "Empty scope found when trying to connect(...)");
-                        }
-                        for (InstructionNode* each_instruction: last_instructions )
-                        {
-                            connect(
-                                out_previous_slot,
-                                each_instruction->find_slot( SlotFlag_NEXT ),
-                                SideEffects::OFF );
+                            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT );
+                            connect( each_instr_next_slot, new_child_prev_slot, SideEffects::OFF );
                         }
                     }
+                    // Case 2.b: Connects to last child's "next" slot.
+                    //           parent
+                    //             - ...
+                    //             - previous_child ->->->
+                    //             - new child <-<-<-<-<-<
+                    //
                     else
                     {
-                        Slot*last_child_next_slot = last_child->find_slot( SlotFlag_NEXT );
-                        FW_ASSERT(!last_child_next_slot->is_full())
-                        connect( out_previous_slot, last_child_next_slot, SideEffects::OFF);
+                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT );
+                        FW_ASSERT(!last_sibling_next_slot->is_full())
+                        connect( last_sibling_next_slot, new_child_prev_slot, SideEffects::OFF);
                     }
                 }
                 break;
             }
 
             case SlotFlag_TYPE_CODEFLOW:
+            {
+                Node* prev_node = _first->get_node(); static_assert( SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
+                Node* next_node = _second->get_node(); static_assert( SlotFlag_PREV & SlotFlag_ORDER_SECOND );
 
-                if ( in_node->has_component<Scope>())
+                // If previous node is a scope, connects next_node as child
+                if ( prev_node->has_component<Scope>() )
                 {
                     connect(
-                        out_node->find_slot( SlotFlag_PARENT ),
-                        in_node->find_slot( SlotFlag_CHILD ),
-                        SideEffects::OFF );
+                            prev_node->find_slot( SlotFlag_PARENT ),
+                            next_node->find_slot( SlotFlag_CHILD ),
+                            SideEffects::OFF );
                 }
-                else if (Node* dependency_parent_node = in_node->get_parent().get())
+                // If next node parent exists, connects next_node as a child too
+                else if ( Node* prev_parent_node = prev_node->get_parent().get() )
                 {
                     connect(
-                        out_node->find_slot( SlotFlag_PARENT ),
-                        dependency_parent_node->find_slot( SlotFlag_CHILD ),
-                        SideEffects::OFF );
+                            next_node->find_slot( SlotFlag_PARENT ),
+                            prev_parent_node->find_slot( SlotFlag_CHILD ),
+                            SideEffects::OFF );
                 }
 
-                /**
-                 * create child/get_parent() link with dst_parent
-                 */
-                if (Node* out_parent_node = out_node->get_parent().get())
+                // Recursively connect all previous_node's parent successors
+                if ( Node* prev_parent_node = prev_node->get_parent().get() )
                 {
-                    Node* current_successor = out_node->successors().begin()->get();
-                    while (current_successor && current_successor->get_parent().get() != nullptr)
+                    Node* current_prev_node_sibling = prev_node->successors().begin()->get();
+                    while ( current_prev_node_sibling && current_prev_node_sibling->get_parent().get() != nullptr )
                     {
                         connect(
-                            current_successor->find_slot( SlotFlag_PARENT ),
-                            out_parent_node->find_slot( SlotFlag_CHILD ),
-                            SideEffects::OFF );
-                        current_successor = current_successor->successors().begin()->get();
+                                current_prev_node_sibling->find_slot( SlotFlag_PARENT ),
+                                prev_parent_node->find_slot( SlotFlag_CHILD ),
+                                SideEffects::OFF );
+                        current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
                     }
                 }
                 break;
-
-
+            }
             case SlotFlag_TYPE_VALUE:
             {
-                // Transfer token prefix/suffix/type
+                // Clear in_token and transfer out_token prefix/suffix/type
                 //
                 //   <prefix> dependent <suffix>    (output)
-                //       |        ^         |
-                //       v        |         v
+                //       |       out        |
+                //       |        |         |
+                //       |        |         |
+                //       v       in         v
                 //    < ... > dependency < ... >    (input)
                 //
-                Token &dependent_token  = edge.tail->get_property()->token;
-                Token &dependency_token = edge.head->get_property()->token;
-                if ( dependent_token.is_null() || dependency_token.is_null() )
+                Token& out_token = _first->get_property()->token; static_assert(SlotFlag_OUTPUT & SlotFlag_ORDER_FIRST);
+                Token& in_token = _second->get_property()->token; static_assert(SlotFlag_INPUT & SlotFlag_ORDER_SECOND);
+
+                if ( out_token.is_null() || in_token.is_null() )
                 {
                     break;
                 }
-                dependency_token.clear();
-                dependency_token.m_type = dependent_token.m_type;
-                dependency_token.move_prefixsuffix( &dependent_token );
+
+                in_token.clear();
+                in_token.m_type = out_token.m_type;
+                in_token.move_prefixsuffix( &out_token );
                 break;
             }
             default:

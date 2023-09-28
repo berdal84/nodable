@@ -101,7 +101,7 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
             // Follow predecessor Node(s), except if first predecessor is a Conditional
             //-------------------------------------------------------------------------
 
-            std::vector<PoolID<Node>> predecessor_nodes = each_node->get_predecessors();
+            std::vector<PoolID<Node>> predecessor_nodes = each_node->predecessors();
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
             {
                 NodeViewConstraint constraint("follow predecessor", ViewConstraint_t::FollowWithChildren);

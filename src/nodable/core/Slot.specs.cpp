@@ -46,7 +46,7 @@ TEST(Slot, operator_non_equal)
     EXPECT_TRUE(a != e);
 
     Slot f;
-    f.flags |= SlotFlag_ORDER_SECONDARY;
+    f.flags |= SlotFlag_ORDER_FIRST;
     EXPECT_TRUE(a != f);
 
     Slot g;
