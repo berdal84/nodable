@@ -297,7 +297,7 @@ bool NodeView::draw()
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
         {
-            if( slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
+            if( slot_view.slot().capacity && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
                 int& count = count_by_flags[slot_view.slot().flags];
                 ImRect rect = get_slot_rect( slot_view, config, count );
@@ -381,7 +381,7 @@ bool NodeView::draw()
 
         for( auto& slot_view: m_slot_views )
         {
-            if( slot_view.slot().type() == SlotFlag_TYPE_VALUE )
+            if( slot_view.slot().capacity && slot_view.slot().type() == SlotFlag_TYPE_VALUE )
             {
                 ImVec2 screen_pos = get_slot_pos(slot_view.slot());
                 SlotView::draw_slot_circle( draw_list, slot_view, screen_pos, radius, color, borderCol, hoverCol, m_edition_enable );
