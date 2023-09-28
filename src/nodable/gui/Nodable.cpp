@@ -57,46 +57,46 @@ Nodable::Nodable()
         }
     };
 
-     node_factory.set_post_process_fct([&](PoolID<Node> node) -> void {
+    node_factory.override_post_process_fct( [&]( PoolID<Node> node ) -> void {
         // Code executed after node instantiation
 
         // add a view with physics
-        auto* pool = Pool::get_pool();
+        auto *pool = Pool::get_pool();
         PoolID<NodeView> new_view_id = pool->create<NodeView>();
-        PoolID<Physics>  physics_id  = pool->create<Physics>( new_view_id );
-        node->add_component(new_view_id);
-        node->add_component(physics_id);
+        PoolID<Physics> physics_id = pool->create<Physics>( new_view_id );
+        node->add_component( new_view_id );
+        node->add_component( physics_id );
 
         // Set common colors
-        NodeView* new_view = new_view_id.get();
-        new_view->set_color(View::Color_HIGHLIGH         , &config.ui_node_highlightedColor);
-        new_view->set_color(View::Color_BORDER           , &config.ui_node_borderColor);
-        new_view->set_color(View::Color_BORDER_HIGHLIGHT , &config.ui_node_borderHighlightedColor);
-        new_view->set_color(View::Color_SHADOW           , &config.ui_node_shadowColor);
-        new_view->set_color(View::Color_FILL             , &config.ui_node_fillColor);
+        NodeView *new_view = new_view_id.get();
+        new_view->set_color( View::Color_HIGHLIGH, &config.ui_node_highlightedColor );
+        new_view->set_color( View::Color_BORDER, &config.ui_node_borderColor );
+        new_view->set_color( View::Color_BORDER_HIGHLIGHT, &config.ui_node_borderHighlightedColor );
+        new_view->set_color( View::Color_SHADOW, &config.ui_node_shadowColor );
+        new_view->set_color( View::Color_FILL, &config.ui_node_fillColor );
 
         // Set specific colors
-        if(fw::extends<VariableNode>(node.get()))
-        {
-            new_view->set_color(View::Color_FILL, &config.ui_node_variableColor);
-        }
-        else if (node->has_component<InvokableComponent>())
-        {
-            new_view->set_color(View::Color_FILL, &config.ui_node_invokableColor);
-        }
-        else if (fw::extends<InstructionNode>(node.get()))
-        {
-            new_view->set_color(View::Color_FILL, &config.ui_node_instructionColor);
-        }
-        else if (fw::extends<LiteralNode>(node.get()))
-        {
-            new_view->set_color(View::Color_FILL, &config.ui_node_literalColor);
-        }
-        else if (fw::extends<IConditionalStruct>(node.get()))
-        {
-            new_view->set_color(View::Color_FILL, &config.ui_node_condStructColor);
-        }
-    });
+        if ( fw::extends<VariableNode>( node.get() ) )
+            {
+                new_view->set_color( View::Color_FILL, &config.ui_node_variableColor );
+            }
+        else if ( node->has_component<InvokableComponent>() )
+            {
+                new_view->set_color( View::Color_FILL, &config.ui_node_invokableColor );
+            }
+        else if ( fw::extends<InstructionNode>( node.get() ) )
+            {
+                new_view->set_color( View::Color_FILL, &config.ui_node_instructionColor );
+            }
+        else if ( fw::extends<LiteralNode>( node.get() ) )
+            {
+                new_view->set_color( View::Color_FILL, &config.ui_node_literalColor );
+            }
+        else if ( fw::extends<IConditionalStruct>( node.get() ) )
+            {
+                new_view->set_color( View::Color_FILL, &config.ui_node_condStructColor );
+            }
+    } );
 
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 }

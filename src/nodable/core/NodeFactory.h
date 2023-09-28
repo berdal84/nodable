@@ -44,12 +44,12 @@ namespace ndbl
         PoolID<WhileLoopNode>         create_while_loop()const;
         PoolID<Node>                  create_node()const;
         void                          destroy_node(PoolID<Node> node)const;
-        void                          set_post_process_fct( PostProcessFct );
+        void override_post_process_fct( NodeFactory::PostProcessFct f );
     private:
         PoolID<Node>                  _create_abstract_func(const fw::func_type *_func_type, bool _is_operator) const; // this do not invoke post_process
         void                          add_invokable_component(PoolID<Node> _node, const fw::func_type *_func_type, const fw::iinvokable *_invokable, bool _is_operator) const;
 
-        bool                           m_post_process_set;
+        bool m_post_process_is_overrided;
         std::function<void(PoolID<Node>)>  m_post_process; // invoked after each node creation, just before to return.
     };
 }

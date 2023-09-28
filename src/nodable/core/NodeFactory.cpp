@@ -20,6 +20,7 @@ using fw::Pool;
 
 NodeFactory::NodeFactory()
 : m_post_process([](PoolID<Node> _node){})
+, m_post_process_is_overrided(false)
 {}
 
 PoolID<InstructionNode> NodeFactory::create_instr() const
@@ -241,9 +242,9 @@ void NodeFactory::destroy_node(PoolID<Node> node) const
     pool->destroy( node );
 }
 
-void NodeFactory::set_post_process_fct(NodeFactory::PostProcessFct f)
+void NodeFactory::override_post_process_fct( NodeFactory::PostProcessFct f)
 {
-    FW_EXPECT( m_post_process_set == false, "Cannot set post process function more than once." );
-    m_post_process_set = true;
-    m_post_process     = f;
+    FW_EXPECT( m_post_process_is_overrided == false, "Cannot override post process function more than once." );
+    m_post_process_is_overrided = true;
+    m_post_process              = f;
 }
