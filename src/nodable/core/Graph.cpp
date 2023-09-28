@@ -173,7 +173,7 @@ void Graph::destroy(PoolID<Node> _id)
     // Disconnect all of them
     for(const DirectedEdge& each_edge : related_edges )
     {
-        disconnect(each_edge, SideEffects::OFF );
+        disconnect(each_edge);
     };
 
     // if it is a variable, we remove it from its scope
@@ -243,7 +243,7 @@ DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
 
     // Connect (case 3)
     set_dirty();
-    return connect( _out, _in, SideEffects::ON );
+    return connect( _out, _in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 }
 
 void Graph::remove(DirectedEdge edge)
@@ -286,8 +286,14 @@ DirectedEdge* Graph::connect_to_variable(Slot* _out, PoolID<VariableNode> _varia
     return connect_or_merge( _out, _variable_in->find_value_typed_slot( SlotFlag_INPUT ) );
 }
 
-DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
+DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
 {
+    // When necessary and if allowed, swap slots.
+    if( _second->flags & SlotFlag_ORDER_FIRST && _flags & ConnectFlag_ALLOW_SWAP )
+    {
+        std::swap(_first, _second);
+    }
+
     FW_ASSERT( _first->flags & SlotFlag_ORDER_FIRST  )
     FW_ASSERT( _second->flags & SlotFlag_ORDER_SECOND )
 
@@ -300,7 +306,7 @@ DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
     edge.head->add_adjacent( edge.tail );
 
     // Handle side effects
-    if (_flags == SideEffects::ON )
+    if (_flags & ConnectFlag_ALLOW_SIDE_EFFECTS )
     {
         switch ( type )
         {
@@ -316,7 +322,7 @@ DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
                 // Case 1: Parent accepts a "next" connection.
                 if ( !parent_next_slot->is_full() )
                 {
-                    connect( parent_next_slot, new_child_prev_slot, SideEffects::OFF );
+                    connect( parent_next_slot, new_child_prev_slot );
                 }
                 // Case 2: Connects to the last child's "next" slot.
                 //         parent
@@ -347,7 +353,7 @@ DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
                         for (InstructionNode* each_instr: last_instructions )
                         {
                             Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT );
-                            connect( each_instr_next_slot, new_child_prev_slot, SideEffects::OFF );
+                            connect( each_instr_next_slot, new_child_prev_slot );
                         }
                     }
                     // Case 2.b: Connects to last child's "next" slot.
@@ -360,7 +366,7 @@ DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
                     {
                         Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT );
                         FW_ASSERT(!last_sibling_next_slot->is_full())
-                        connect( last_sibling_next_slot, new_child_prev_slot, SideEffects::OFF);
+                        connect( last_sibling_next_slot, new_child_prev_slot );
                     }
                 }
                 break;
@@ -376,16 +382,14 @@ DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
                 {
                     connect(
                             prev_node->find_slot( SlotFlag_PARENT ),
-                            next_node->find_slot( SlotFlag_CHILD ),
-                            SideEffects::OFF );
+                            next_node->find_slot( SlotFlag_CHILD ));
                 }
                 // If next node parent exists, connects next_node as a child too
                 else if ( Node* prev_parent_node = prev_node->get_parent().get() )
                 {
                     connect(
                             next_node->find_slot( SlotFlag_PARENT ),
-                            prev_parent_node->find_slot( SlotFlag_CHILD ),
-                            SideEffects::OFF );
+                            prev_parent_node->find_slot( SlotFlag_CHILD ));
                 }
 
                 // Recursively connect all previous_node's parent successors
@@ -396,8 +400,7 @@ DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
                     {
                         connect(
                                 current_prev_node_sibling->find_slot( SlotFlag_PARENT ),
-                                prev_parent_node->find_slot( SlotFlag_CHILD ),
-                                SideEffects::OFF );
+                                prev_parent_node->find_slot( SlotFlag_CHILD ));
                         current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
                     }
                 }
@@ -435,7 +438,7 @@ DirectedEdge* Graph::connect(Slot*_first, Slot*_second, SideEffects _flags)
     return &edge;
 }
 
-void Graph::disconnect(DirectedEdge _edge, SideEffects flags)
+void Graph::disconnect(DirectedEdge _edge, ConnectFlags flags)
 {
     // find the edge to disconnect
     SlotFlags type = _edge.tail.flags & SlotFlag_TYPE_MASK;
@@ -457,11 +460,11 @@ void Graph::disconnect(DirectedEdge _edge, SideEffects flags)
         {
             Node* successor = _edge.tail.node.get();
             Node* successor_parent = successor->get_parent().get();
-            if ( flags == SideEffects::ON && successor_parent  )
+            if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && successor_parent  )
             {
                 while (successor && successor_parent->poolid() == successor->get_parent() )
                 {
-                    disconnect({ *successor->find_slot( SlotFlag_PARENT ), *successor->get_parent()->find_slot( SlotFlag_CHILD ) }, SideEffects::OFF );
+                    disconnect({ *successor->find_slot( SlotFlag_PARENT ), *successor->get_parent()->find_slot( SlotFlag_CHILD ) } );
                     successor = successor->successors().begin()->get();
                 }
             }

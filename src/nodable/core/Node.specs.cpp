@@ -27,7 +27,7 @@ TEST_F(Node_, get_parent)
     graph.connect(
             child->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
             parent->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-            SideEffects::OFF);
+            ConnectFlag_::OFF);
 
     EXPECT_TRUE( child->get_parent() );
     EXPECT_EQ( child->get_parent(), parent );

@@ -646,9 +646,9 @@ PoolID<Node> Nodlang::parse_scope()
         {
             PoolID<Node> parent_scope_node = parent_scope->get_owner();
             parser_state.graph->connect(
-                    scope_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
                     parent_scope_node->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-                    SideEffects::ON );
+                    scope_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
+                    ConnectFlag_ALLOW_SIDE_EFFECTS );
         }
 
         parser_state.scope.emplace(scope);
@@ -688,7 +688,7 @@ PoolID<Scope> Nodlang::parse_code_block(PoolID<Scope> curr_scope)
             // Create parent/child connection
             Slot* out = get_current_scope_node()->find_slot( THIS_PROPERTY, SlotFlag_CHILD );
             Slot* in  = instr_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT );
-            parser_state.graph->connect( out, in, SideEffects::ON );
+            parser_state.graph->connect( out, in, ConnectFlag_ALLOW_SIDE_EFFECTS );
             continue;
         }
 
@@ -1192,9 +1192,9 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
     Node* scope_node = get_current_scope()->get_owner().get();
 
     parser_state.graph->connect(
-            conditional_struct_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
             scope_node->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-            SideEffects::ON );
+            conditional_struct_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
+            ConnectFlag_ALLOW_SIDE_EFFECTS );
     parser_state.scope.push(conditional_struct_node->get_component<Scope>()->poolid());
 
     conditional_struct_node->token_if  = parser_state.ribbon.get_eaten();
@@ -1282,9 +1282,9 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
     {
         for_loop_node = parser_state.graph->create_for_loop();
         parser_state.graph->connect(
-                for_loop_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
                 get_current_scope()->get_owner()->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-                SideEffects::ON );
+                for_loop_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
+                ConnectFlag_ALLOW_SIDE_EFFECTS );
         parser_state.scope.push(for_loop_node->get_component<Scope>()->poolid());
 
         for_loop_node->token_for = token_for;
@@ -1379,7 +1379,7 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
         parser_state.graph->connect(
                 while_loop_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
                 get_current_scope()->get_owner()->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-                SideEffects::ON );
+                ConnectFlag_ALLOW_SIDE_EFFECTS );
         parser_state.scope.push(while_loop_node->get_component<Scope>() );
 
         while_loop_node->token_while = token_while;

@@ -27,10 +27,10 @@ namespace ndbl
         ~Cmd_ConnectEdge() override = default;
 
         void execute() override
-        { m_graph->connect( m_edge.tail.get(), m_edge.head.get(), SideEffects::ON ); }
+        { m_graph->connect( m_edge.tail.get(), m_edge.head.get(), ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         void undo() override
-        { m_graph->disconnect(m_edge, SideEffects::ON ); }
+        { m_graph->disconnect(m_edge, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         const char* get_description() const override
         { return m_description.c_str(); }

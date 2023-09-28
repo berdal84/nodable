@@ -26,10 +26,10 @@ namespace ndbl
         ~Cmd_DisconnectEdge() override = default;
 
         void execute() override
-        { graph()->disconnect(m_edge, SideEffects::ON ); }
+        { graph()->disconnect(m_edge, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         void undo() override
-        { graph()->connect( m_edge.tail.get(), m_edge.head.get(), SideEffects::ON ); }
+        { graph()->connect( m_edge.tail.get(), m_edge.head.get(), ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         const char* get_description() const override
         { return m_description.c_str(); }

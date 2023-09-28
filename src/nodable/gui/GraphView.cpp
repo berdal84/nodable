@@ -539,19 +539,12 @@ bool GraphView::draw()
             // dragging node slot ?
             if ( dragged_slot )
             {
-                auto type = dragged_slot->slot().flags & SlotFlag_TYPE_MASK;
-                if ( dragged_slot->allows( SlotFlag_ORDER_SECOND ) )
-                {
-                    Slot* out = new_node_id->get_first_slot( type | SlotFlag_ORDER_FIRST, dragged_slot->get_property()->get_type());
-                    m_graph->connect( out, &dragged_slot->slot(), SideEffects::ON );
-                }
-                //  [ dragged slot ](out) ---- dragging this way ----> (in)[ new node ]
-                else
-                {
-                    // connect dragged (out) to first input on new node.
-                    Slot* in = new_node_id->get_first_slot( type | SlotFlag_ORDER_SECOND, dragged_slot->get_property()->get_type());
-                    m_graph->connect( &dragged_slot->slot(), in, SideEffects::ON );
-                }
+                SlotFlags    dragged_slot_type    = dragged_slot->slot().type();
+                SlotFlags    complement_slot_type = dragged_slot_type ^ SlotFlag_TYPE_MASK;
+                Slot*        complement_slot      = new_node_id->get_first_slot( complement_slot_type, dragged_slot->get_property()->get_type());
+                ConnectFlags flags                = ConnectFlag_ALLOW_SIDE_EFFECTS
+                                                  | ConnectFlag_ALLOW_SWAP;
+                m_graph->connect( &dragged_slot->slot(), complement_slot, flags );
                 SlotView::reset_dragged();
             }
             else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )

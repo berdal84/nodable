@@ -20,10 +20,12 @@ namespace ndbl
     class Nodlang;
     class NodeFactory;
 
-    enum class SideEffects
+    typedef int ConnectFlags;
+    enum ConnectFlag_
     {
-        OFF = 0,
-        ON,
+        ConnectFlag_NONE               = 0,
+        ConnectFlag_ALLOW_SIDE_EFFECTS = 1 << 0,
+        ConnectFlag_ALLOW_SWAP = 1 << 1,
     };
 
     /**
@@ -67,11 +69,11 @@ namespace ndbl
 
         // edge related
 
-        DirectedEdge* connect(Slot*_first, Slot*_second, SideEffects _flags );
+        DirectedEdge* connect(Slot* _first, Slot*_second, ConnectFlags = ConnectFlag_NONE );
         DirectedEdge* connect_to_variable(Slot* _out, PoolID<VariableNode> _in );
         DirectedEdge* connect_to_instruction(Slot* _out, InstructionNode* _in );
         DirectedEdge* connect_or_merge(Slot* _out, Slot* _in);
-        void          disconnect(DirectedEdge, SideEffects );
+        void          disconnect(DirectedEdge, ConnectFlags = ConnectFlag_NONE );
 
     private:
         // register management
