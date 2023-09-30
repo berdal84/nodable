@@ -113,17 +113,18 @@ namespace fw
     class IPoolVector
     {
     public:
-        IPoolVector() {}
+        IPoolVector(void* _vector_ptr, size_t _elem_size)
+        : m_vector_ptr(_vector_ptr), m_elem_size(_elem_size) {}
+
         virtual ~IPoolVector() {};
 
         virtual std::type_index type_index() const = 0;
         virtual const char*     type_name() const = 0;
-        virtual void*  vector() = 0;
-        virtual void*  at(size_t index) = 0;
+        void*   at(size_t index)
+        { return ((std::vector<char>*)m_vector_ptr)->data() + index * m_elem_size; };
         virtual size_t size() const = 0;
         virtual void   pop_back() = 0;
         virtual void   swap(size_t, size_t) = 0;
-        virtual size_t elem_size() const = 0;
         virtual void*  data() = 0;
         virtual u32_t  poolid_at( size_t _pos ) const = 0;
 
@@ -138,9 +139,13 @@ namespace fw
         template<class T>
         inline std::vector<T>* get()
         {
-            FW_ASSERT(std::type_index(typeid(T)) == this->type_index() );
-            return (std::vector<T>*)this->vector();
+            //FW_ASSERT(std::type_index(typeid(T)) == this->type_index() );
+            return (std::vector<T>*)m_vector_ptr;
         }
+
+    private:
+        void* m_vector_ptr{nullptr};
+        size_t m_elem_size;
     };
 
 
@@ -151,6 +156,7 @@ namespace fw
     {
     public:
         TPoolVector(size_t _reserved = 0)
+            : IPoolVector(&m_vector, sizeof(T))
         { m_vector.reserve( _reserved ); }
 
         ~TPoolVector() = default;
@@ -161,9 +167,6 @@ namespace fw
         void pop_back() override
         { m_vector.pop_back(); };
 
-        void* at(size_t index) override
-        { return &m_vector.at(index); };
-
         size_t size() const override
         { return m_vector.size(); };
 
@@ -172,12 +175,6 @@ namespace fw
 
         const char* type_name() const override
         { return  m_type_index.name(); }
-
-        void* vector() override
-        { return &m_vector; }
-
-        size_t elem_size() const override
-        { return sizeof(T); }
 
         void* data() override
         { return m_vector.data(); }
@@ -234,18 +231,12 @@ namespace fw
         inline T* get(u32_t id)
         {
             static_assert__is_pool_registrable<T>();
-            if( id == PoolID<T>::invalid_id )
+            if ( id == PoolID<T>::invalid_id )
             {
                 return nullptr;
             }
-            FW_ASSERT( id < m_record_by_id.size() );
-            Record& record = m_record_by_id[id];
-            const u32_t pos = record.pos;
-            if( pos >= record.vector->size() )
-            {
-                return nullptr;
-            }
-            return static_cast<T*>( record.vector->at(pos));
+            const auto [vector, pos] = m_record_by_id[id];
+            return static_cast<T*>( vector->at( pos ) );
         }
 
         template<typename T>
@@ -290,7 +281,7 @@ namespace fw
     };
 
     template<typename Type>
-    Type* PoolID<Type>::get() const // Return a pointer to the data from the Pool having an id == this->id
+    inline Type* PoolID<Type>::get() const // Return a pointer to the data from the Pool having an id == this->id
     { return Pool::get_pool()->get<Type>( id.m_value ); }
 
     template<typename T>
