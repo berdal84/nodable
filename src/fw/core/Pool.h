@@ -32,6 +32,8 @@ void static_assert__is_pool_registrable()
 
 namespace fw
 {
+    constexpr u32_t INVALID_ID = ~u32_t{0};
+
     /**
      * PoolID is the equivalent of a pointer, but it points to a Pool item.
      * It can be used like regular pointer, except that de-referencing cost a bit more.
@@ -57,7 +59,7 @@ namespace fw
         ID32<Type> id;
 
         PoolID()
-        : id()
+        : PoolID(INVALID_ID)
         {}
 
         explicit PoolID(id_t _id)
@@ -78,36 +80,36 @@ namespace fw
         void reset()
         { id.reset(); }
 
-        explicit operator bool () const
-        { return (bool)id; }
+        inline explicit operator bool () const
+        { return id == INVALID_ID; }
 
-        explicit operator id_t () const
+        inline explicit operator id_t () const
         { return id; }
 
-        PoolID<Type>& operator=(const PoolID<Type> other)
+        inline PoolID<Type>& operator=(const PoolID<Type> other)
         { id = other.id; return *this; }
 
-        bool operator==(const PoolID<Type>& other) const
+        inline bool operator==(const PoolID<Type>& other) const
         { return id == other.id; }
 
-        bool operator!=(const PoolID<Type>& other) const
+        inline bool operator!=(const PoolID<Type>& other) const
         { return id != other.id; }
 
-        Type* operator -> ()
+        inline Type* operator -> ()
         { return get(); }
 
-        Type* operator -> () const
+        inline Type* operator -> () const
         { return get(); }
 
-        Type& operator *  ()
+        inline Type& operator *  ()
         { return *get(); }
 
-        Type& operator *  () const
+        inline Type& operator *  () const
         { return *get(); }
     };
 
     template<typename T>
-    PoolID<T> PoolID<T>::null{};
+    PoolID<T> PoolID<T>::null{ INVALID_ID };
 
     /**
      * Vector stores a pointer to a given vector type and the size of its elements
@@ -214,9 +216,8 @@ namespace fw
      */
     struct Record
     {
-        AgnosticVector*     vector;
+        AgnosticVector* vector;
         size_t pos;  // Zero-based position of the data in the vector.
-        [[nodiscard]] void* data() const;
     };
 
     /**
@@ -250,10 +251,22 @@ namespace fw
         inline void init_for();
 
         template<typename T>
-        inline T* get(u32_t id);
+        inline T* get(u32_t id)
+        {
+            static_assert__is_pool_registrable<T>();
+            FW_ASSERT( id < m_record_by_id.size() );
+            Record& record = m_record_by_id[id];
+            u32_t pos = record.pos;
+            if( pos >= record.vector->size() )
+            {
+                return nullptr;
+            }
+            return static_cast<T*>( record.vector->at(pos));
+        }
 
         template<typename T>
-        inline T* get(PoolID<T> id);
+        inline T* get(PoolID<T> _id)
+        { return get<T>(_id.id); }
 
         template<typename T>
         inline std::vector<T*> get(std::vector<PoolID<T>> ids);
@@ -273,8 +286,8 @@ namespace fw
         template<typename T>
         inline void destroy(PoolID<T> pool_id);
 
-        template<typename T, template <typename...> class Container>
-        inline void destroy(const Container<PoolID<T>>& ids);
+        template<typename ContainerT>
+        inline void destroy_all(const ContainerT& ids);
 
     private:
 
@@ -286,19 +299,15 @@ namespace fw
 
         size_t m_reserved_size;
         u32_t   m_next_id;
-        std::unordered_map<u32_t, Record> m_record_by_id;
+        std::vector<Record> m_record_by_id;
         std::unordered_map<std::type_index, AgnosticVector*> m_vector_by_type;
     private:
         static Pool* s_current_pool;
     };
 
     template<typename Type>
-    inline Type* PoolID<Type>::get() const
-    { return *this == null ? nullptr : Pool::get_pool()->get<Type>( id.m_value ); }
-
-    template<typename T>
-    inline T* Pool::get(PoolID<T> poolid)
-    { return get<T>( poolid.id ); }
+    Type* PoolID<Type>::get() const // Return a pointer to the data from the Pool having an id == this->id
+    { return Pool::get_pool()->get<Type>( id.m_value ); }
 
     template<typename T>
     inline std::vector<T*> Pool::get(std::vector<PoolID<T>> ids)
@@ -347,22 +356,6 @@ namespace fw
     }
 
     template<typename T>
-    inline T* Pool::get(u32_t id)
-    {
-        static_assert__is_pool_registrable<T>();
-        auto it = m_record_by_id.find(id);
-        if ( it == m_record_by_id.end() )
-        {
-            return nullptr;
-        }
-        auto ptr = reinterpret_cast<T*>( it->second.data() );
-#ifdef NDBL_DEBUG
-        FW_EXPECT( id == (u32_t)ptr->poolid(), "referencing error (id do not match)" );
-#endif
-        return ptr;
-    }
-
-    template<typename T>
     inline void Pool::init_for()
     {
         static_assert__is_pool_registrable<T>();
@@ -379,8 +372,8 @@ namespace fw
     {
         static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
+        // TODO: use operator[] instead of find() and force user to call init_for<T>() manually
         auto it = m_vector_by_type.find(type_id);
-
         if (it == m_vector_by_type.end())
         {
             LOG_VERBOSE("Pool", "No vector found for '%s'\n", fw::type::get<T>()->get_name() );
@@ -394,10 +387,8 @@ namespace fw
     template<typename T>
     inline PoolID<T> Pool::make_record(T* data, AgnosticVector* vec, size_t pos )
     {
-        static_assert__is_pool_registrable<T>();
-        data->poolid( PoolID<T>{m_next_id} );
-        m_next_id++;
-        m_record_by_id.insert( {(u32_t)data->poolid(), { vec, pos } } );
+        data->poolid( PoolID<T>{m_record_by_id.size()} );
+        m_record_by_id.push_back({ vec, pos });
         LOG_VERBOSE("Pool", "New record with id %zu (type: %s, index: %zu) ...\n", (u32_t)data->poolid(), fw::type::get<T>()->get_name(), pos );
         return data->poolid();
     }
@@ -413,11 +404,8 @@ namespace fw
     inline void Pool::destroy(PoolID<T> pool_id)
     {
         static_assert__is_pool_registrable<T>();
-        auto it = m_record_by_id.find( (u32_t)pool_id );
-        FW_EXPECT( it != m_record_by_id.end(), "No record_to_delete found" );
-
-        Record& record_to_delete = it->second;
-        size_t  last_pos         = record_to_delete.vector->size() - 1; // size() can't be 0, because at least the item to destroy is in it
+        Record& record_to_delete = m_record_by_id[(u32_t)pool_id];
+        size_t  last_pos         = record_to_delete.vector->size() - 1;
         size_t  pos_to_delete    = record_to_delete.pos;
 
         // Preserve contiguous memory by swapping the record_to_delete to delete and the last.
@@ -426,19 +414,18 @@ namespace fw
             // swap with the back, and update back's pool id
             size_t last_poolid = record_to_delete.vector->poolid_at( last_pos );
             record_to_delete.vector->swap( record_to_delete.pos, last_pos );
-            m_record_by_id.find( last_poolid )->second.pos = record_to_delete.pos;
+            m_record_by_id[last_poolid].pos = record_to_delete.pos;
         }
         // Delete instance and record_to_delete
         record_to_delete.vector->pop_back();
-        m_record_by_id.erase( it );
+        record_to_delete.pos = INVALID_ID;
 
         LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, pos: %zu) ...\n", (u32_t)pool_id, fw::type::get<T>()->get_name(), pos_to_delete);
     }
 
-    template<typename T, template <typename...> class Container>
-    inline void Pool::destroy(const Container<PoolID<T>>& ids)
+    template<typename ContainerT>
+    inline void Pool::destroy_all(const ContainerT& ids)
     {
-        static_assert__is_pool_registrable<T>();
         for(auto each_id : ids )
         {
             destroy( each_id );

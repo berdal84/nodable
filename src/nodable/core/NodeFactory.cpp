@@ -238,7 +238,7 @@ PoolID<LiteralNode> NodeFactory::create_literal(const fw::type *_type) const
 void NodeFactory::destroy_node(PoolID<Node> node) const
 {
     Pool* pool = Pool::get_pool();
-    pool->destroy( node->get_components() );
+    pool->destroy_all( node->get_components() );
     pool->destroy( node );
 }
 

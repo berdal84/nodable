@@ -24,6 +24,7 @@ TEST(Pool, init_shutdown )
 TEST(Pool, create_empty_constructor )
 {
     Pool* pool = Pool::init(0);
+    pool->init_for<Data>();
     PoolID<Data> node = pool->create<Data>();
     EXPECT_NE(node, PoolID<Data>::null);
     EXPECT_NE(node.get(), nullptr);
@@ -33,6 +34,7 @@ TEST(Pool, create_empty_constructor )
 TEST(Pool, create_with_args )
 {
     Pool* pool = Pool::init(0);
+    pool->init_for<Data>();
     PoolID<Data> node = pool->create<Data>("Toto");
     EXPECT_NE(node, PoolID<Data>::null);
     EXPECT_NE(node.get(), nullptr);
@@ -43,10 +45,11 @@ TEST(Pool, create_with_args )
 TEST(Pool, buffer_resizing )
 {
     Pool* pool = Pool::init(0);
+    pool->init_for<Data>();
     PoolID<Data> node1 = pool->create<Data>("Toto");
     PoolID<Data> node2 = pool->create<Data>("Tata");
-    EXPECT_EQ((u32_t)node1, 1);
-    EXPECT_EQ((u32_t)node2, 2);
+    EXPECT_EQ((u32_t)node1, 0);
+    EXPECT_EQ((u32_t)node2, 1);
     EXPECT_STREQ(node1->name, "Toto");
     EXPECT_STREQ(node2->name, "Tata");
     Pool::shutdown();
@@ -55,6 +58,7 @@ TEST(Pool, buffer_resizing )
 TEST(Pool, destroy_last )
 {
     Pool* pool = Pool::init(0);
+    pool->init_for<Data>();
     PoolID<Data> data_1 = pool->create<Data>("Toto");
     PoolID<Data> data_2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
@@ -68,6 +72,7 @@ TEST(Pool, destroy_last )
 TEST(Pool, destroy_first )
 {
     Pool* pool = Pool::init(0);
+    pool->init_for<Data>();
     PoolID<Data> node1 = pool->create<Data>("Toto");
     PoolID<Data> node2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
@@ -81,6 +86,7 @@ TEST(Pool, destroy_vector_of_ids )
 {
     size_t n = 200;
     Pool* pool = Pool::init();
+    pool->init_for<Data>();
 
     std::vector<PoolID<Data>> data;
     for(int i = 0; i < n; ++i)
@@ -91,7 +97,7 @@ TEST(Pool, destroy_vector_of_ids )
     auto& all_data = pool->get_all<Data>();
     EXPECT_EQ(all_data.size(), n);
 
-    pool->destroy( data );
+    pool->destroy_all( data );
 
     EXPECT_EQ(all_data.size(), 0 );
 
@@ -102,6 +108,7 @@ TEST(Pool, reserve_size )
 {
     int n = 128;
     Pool* pool = Pool::init( n );
+    pool->init_for<Data>();
 
     // Create n Data and store their address just after creation
     std::vector<Data*> pointers;

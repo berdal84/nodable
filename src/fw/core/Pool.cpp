@@ -4,11 +4,6 @@ using namespace fw;
 
 Pool* Pool::s_current_pool = nullptr;
 
-void* Record::data() const
-{
-    return vector->at(pos);
-}
-
 Pool* Pool::init(size_t reserved_size)
 {
     if( s_current_pool != nullptr )
@@ -31,7 +26,8 @@ void Pool::shutdown()
 Pool::Pool(size_t reserved_size)
     : m_reserved_size( reserved_size )
     , m_next_id( 1 ) // Reserve 0 for null
-{}
+{
+}
 
 Pool::~Pool()
 {
