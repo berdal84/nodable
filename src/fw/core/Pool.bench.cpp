@@ -23,108 +23,93 @@ public:
     char data[SIZE];
 };
 
-#define INSTANCE_COUNT 200
-
-static void iterate_n_instances__NOT_using_pool(benchmark::State& state)
+template<size_t COUNT>
+static void mutate_N_instances__enterlaced_with_another_type__using_new(benchmark::State& state)
 {
+    std::vector< DataPool<128>* > ptrs;
+    std::vector< DataPool<127>* > ptrs2;
+    ptrs.reserve( COUNT );
+    for( auto i = 0; i < COUNT; i++ )
+    {
+        ptrs.emplace_back( new DataPool<128>() );
+        ptrs2.emplace_back( new DataPool<127>() );
+    }
     for ( auto _ : state )
     {
-        state.PauseTiming();
-        std::vector< DataPool<128>* > ptrs;
-        ptrs.reserve(INSTANCE_COUNT);
-        for( auto i = 0; i < INSTANCE_COUNT; i++ )
+        // benchmark begin
+        for( auto* each : ptrs )
         {
-            ptrs.emplace_back( new DataPool<128>() );
+            each->data[0] = 'X';
+            each->data[63] = 'Y';
+            each->data[127] = 'Z';
         }
-        state.ResumeTiming();
-
-        for( DataPool<128>* each : ptrs )
-        {
-            each->data[0] = '1';
-        }
-
-        state.PauseTiming();
-        for( auto& each : ptrs ) delete each;
-        ptrs.clear();
-        state.ResumeTiming();
+        // benchmark end
     }
+    for( auto& each : ptrs ) delete each;
+    for( auto& each : ptrs2 ) delete each;
 }
 
-static void iterate_n_instances__using_pool(benchmark::State& state)
+template<size_t COUNT, bool USE_VECTOR>
+static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(benchmark::State& state)
 {
     Pool::init();
-    Pool::get_pool()->init_for<DataPool<128>>();
+    Pool* pool = Pool::get_pool();
+    pool->init_for<DataPool<128>>();
+    pool->init_for<DataPool<127>>();
 
-    for ( auto _ : state )
-    {
-        state.PauseTiming();
-        std::vector<PoolID<DataPool<128>>> ptrs;
-        ptrs.reserve(INSTANCE_COUNT);
-        for( auto i = 0; i < INSTANCE_COUNT; i++ )
-        {
-            ptrs.emplace_back( Pool::get_pool()->create<DataPool<128>>() );
-        }
-        state.ResumeTiming();
-
-        for( DataPool<128>& each : Pool::get_pool()->get_all<DataPool<128>>() )
-        {
-            each.data[0] = '1';
-        }
-
-        state.PauseTiming();
-        for(auto& each : ptrs ) Pool::get_pool()->destroy(each);
-        ptrs.clear();
-        state.ResumeTiming();
-    }
-    Pool::shutdown();
-}
-
-static void create_destroy__using_pool(benchmark::State& state)
-{
     std::vector<PoolID<DataPool<128>>> ptrs;
-    ptrs.reserve(INSTANCE_COUNT);
-    Pool::init();
-    Pool::get_pool()->init_for<DataPool<128>>();
-    for ( auto _ : state )
+    std::vector<PoolID<DataPool<127>>> ptrs2;
+    ptrs.reserve(COUNT);
+    for( auto i = 0; i < COUNT; i++ )
     {
-        for( auto i = 0; i < INSTANCE_COUNT; i++ )
+        ptrs.emplace_back( pool->create<DataPool<128>>() );
+        ptrs2.emplace_back( pool->create<DataPool<127>>() );
+    }
+
+    if( USE_VECTOR )
+    {
+        auto& vector = pool->get_all<DataPool<128>>();
+        for ( auto _ : state )
         {
-            ptrs.emplace_back( Pool::get_pool()->create<DataPool<128>>() );
+            // benchmark begin
+            for( auto& each : vector )
+            {
+                each.data[0] = 'X';
+                each.data[63] = 'Y';
+                each.data[127] = 'Z';
+            }
+            // benchmark end
         }
-        for( auto ptr : ptrs )
+    }
+    else
+    {
+        for ( auto _ : state )
         {
-            Pool::get_pool()->destroy(ptr);
+            // benchmark begin
+            for( PoolID<DataPool<128>> id : ptrs )
+            {
+                auto* each = id.get();
+                each->data[0] = 'X';
+                each->data[63] = 'Y';
+                each->data[127] = 'Z';
+            }
+            // benchmark end
         }
-        state.PauseTiming();
-        ptrs.clear();
-        state.ResumeTiming();
     }
     Pool::shutdown();
 }
 
-static void create_destroy__NOT_using_pool(benchmark::State& state)
-{
-    std::vector<Data<128>*> ptrs;
-    ptrs.reserve( INSTANCE_COUNT );
-    for ( auto _ : state )
-    {
-        for( auto i = 0; i < INSTANCE_COUNT; i++ )
-        {
-            ptrs.push_back( new Data<128>() );
-        }
-        for( auto ptr : ptrs )
-        {
-            delete ptr;
-        }
-        state.PauseTiming();
-        ptrs.clear();
-        state.ResumeTiming();
-    }
-}
+#define ENTERLACED( N ) \
+BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_new<N> ); \
+BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, false> ); \
+BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, true> );
 
-BENCHMARK( iterate_n_instances__NOT_using_pool );
-BENCHMARK( iterate_n_instances__using_pool );
-BENCHMARK( create_destroy__using_pool );
-BENCHMARK( create_destroy__NOT_using_pool );
+ENTERLACED(2)
+ENTERLACED(10)
+ENTERLACED(50)
+ENTERLACED(100)
+ENTERLACED(1000)
+ENTERLACED(10000)
+ENTERLACED(100000)
 
 BENCHMARK_MAIN();

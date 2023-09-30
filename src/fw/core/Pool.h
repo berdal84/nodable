@@ -115,7 +115,11 @@ namespace fw
     class AgnosticVector
     {
     public:
+#ifdef NDBL_DEBUG
 #define CHECK_TYPE(Type) FW_EXPECT( std::type_index(typeid(Type)) == m_type, "The type you asked is not the one this vector is made for." )
+#else
+#define CHECK_TYPE(Type)
+#endif
         template<class T>
         static AgnosticVector* create(size_t reserved_size)
         {
@@ -185,15 +189,15 @@ namespace fw
         std::function<u32_t(size_t)>         poolid_at; // get pool id at index
 
         template<class T, typename ...Args>
-        T& emplace_back(Args ...args)
+        inline T& emplace_back(Args ...args)
         { return get<T>()->template emplace_back<>( args... ); }
 
         template<class T>
-        T& emplace_back()
+        inline T& emplace_back()
         { return get<T>()->template emplace_back<>(); }
 
         template<class T>
-        std::vector<T>* get()
+        inline std::vector<T>* get()
         { CHECK_TYPE(T); return (std::vector<T>*)m_buffer; }
 
     private:
@@ -230,50 +234,55 @@ namespace fw
     public:
         static Pool* init(size_t reserved_size = 0);
         static void  shutdown();
-        static Pool* get_pool();
-
+        inline static Pool* get_pool()
+        {
+#ifdef NDBL_DEBUG
+            FW_EXPECT(s_current_pool != nullptr, "No pool. Did you called Pool::init() ?")
+#endif
+            return s_current_pool;
+        }
     private: /** for now, lets allow a single Pool at a time (see statics) */
         Pool(size_t reserved_size);
         ~Pool();
     public:
 
         template<typename T>
-        void init_for();
+        inline void init_for();
 
         template<typename T>
-        T* get(u32_t id);
+        inline T* get(u32_t id);
 
         template<typename T>
-        T* get(PoolID<T> id);
+        inline T* get(PoolID<T> id);
 
         template<typename T>
-        std::vector<T*> get(std::vector<PoolID<T>> ids);
+        inline std::vector<T*> get(std::vector<PoolID<T>> ids);
 
         template<typename T>
-        std::vector<T>& get_all();
+        inline std::vector<T>& get_all();
 
         template<typename T, typename ...Args>
-        PoolID<T> create(Args... args);
+        inline PoolID<T> create(Args... args);
 
         template<typename T>
-        PoolID<T> create();
+        inline PoolID<T> create();
 
         template<typename T>
-        void destroy(T* ptr);
+        inline void destroy(T* ptr);
 
         template<typename T>
-        void destroy(PoolID<T> pool_id);
+        inline void destroy(PoolID<T> pool_id);
 
         template<typename T, template <typename...> class Container>
-        void destroy(const Container<PoolID<T>>& ids);
+        inline void destroy(const Container<PoolID<T>>& ids);
 
     private:
 
         template<typename T>
-        PoolID<T> make_record(T* data, AgnosticVector* vec, size_t pos );
+        inline PoolID<T> make_record(T* data, AgnosticVector* vec, size_t pos );
 
         template<typename T>
-        AgnosticVector* get_agnostic_vector();
+        inline AgnosticVector* get_agnostic_vector();
 
         size_t m_reserved_size;
         u32_t   m_next_id;
@@ -284,15 +293,15 @@ namespace fw
     };
 
     template<typename Type>
-    Type* PoolID<Type>::get() const
+    inline Type* PoolID<Type>::get() const
     { return *this == null ? nullptr : Pool::get_pool()->get<Type>( id.m_value ); }
 
     template<typename T>
-    T* Pool::get(PoolID<T> poolid)
+    inline T* Pool::get(PoolID<T> poolid)
     { return get<T>( poolid.id ); }
 
     template<typename T>
-    std::vector<T*> Pool::get(std::vector<PoolID<T>> ids)
+    inline std::vector<T*> Pool::get(std::vector<PoolID<T>> ids)
     {
         static_assert__is_pool_registrable<T>();
         std::vector<T*> result;
@@ -307,11 +316,11 @@ namespace fw
     }
 
     template<typename T>
-    std::vector<T>& Pool::get_all()
+    inline std::vector<T>& Pool::get_all()
     { return *get_agnostic_vector<T>()->template get<T>(); }
 
     template<typename T, typename ...Args>
-    PoolID<T> Pool::create(Args... args)
+    inline PoolID<T> Pool::create(Args... args)
     {
         static_assert__is_pool_registrable<T>();
         LOG_VERBOSE("Pool", "Create '%s' (with args) ...\n", fw::type::get<T>()->get_name() );
@@ -325,7 +334,7 @@ namespace fw
     }
 
     template<typename T>
-    PoolID<T> Pool::create()
+    inline PoolID<T> Pool::create()
     {
         static_assert__is_pool_registrable<T>();
         AgnosticVector* vector  = get_agnostic_vector<T>();
@@ -338,7 +347,7 @@ namespace fw
     }
 
     template<typename T>
-    T* Pool::get(u32_t id)
+    inline T* Pool::get(u32_t id)
     {
         static_assert__is_pool_registrable<T>();
         auto it = m_record_by_id.find(id);
@@ -354,7 +363,7 @@ namespace fw
     }
 
     template<typename T>
-    void Pool::init_for()
+    inline void Pool::init_for()
     {
         static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
@@ -366,7 +375,7 @@ namespace fw
     }
 
     template<typename T>
-    AgnosticVector* Pool::get_agnostic_vector()
+    inline AgnosticVector* Pool::get_agnostic_vector()
     {
         static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
@@ -383,7 +392,7 @@ namespace fw
     }
 
     template<typename T>
-    PoolID<T> Pool::make_record(T* data, AgnosticVector* vec, size_t pos )
+    inline PoolID<T> Pool::make_record(T* data, AgnosticVector* vec, size_t pos )
     {
         static_assert__is_pool_registrable<T>();
         data->poolid( PoolID<T>{m_next_id} );
@@ -394,14 +403,14 @@ namespace fw
     }
 
     template<typename T>
-    void Pool::destroy(T* ptr)
+    inline void Pool::destroy(T* ptr)
     {
         static_assert__is_pool_registrable<T>();
         destroy(ptr->poolid());
     }
 
     template<typename T>
-    void Pool::destroy(PoolID<T> pool_id)
+    inline void Pool::destroy(PoolID<T> pool_id)
     {
         static_assert__is_pool_registrable<T>();
         auto it = m_record_by_id.find( (u32_t)pool_id );
@@ -427,7 +436,7 @@ namespace fw
     }
 
     template<typename T, template <typename...> class Container>
-    void Pool::destroy(const Container<PoolID<T>>& ids)
+    inline void Pool::destroy(const Container<PoolID<T>>& ids)
     {
         static_assert__is_pool_registrable<T>();
         for(auto each_id : ids )

@@ -9,12 +9,6 @@ void* Record::data() const
     return vector->at(pos);
 }
 
-Pool* Pool::get_pool()
-{
-    FW_EXPECT(s_current_pool != nullptr, "No pool. Did you called Pool::init() ?")
-    return s_current_pool;
-}
-
 Pool* Pool::init(size_t reserved_size)
 {
     if( s_current_pool != nullptr )
