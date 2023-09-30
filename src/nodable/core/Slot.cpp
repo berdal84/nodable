@@ -22,7 +22,7 @@ Slot::Slot(const Slot &other)
 
 
 Slot::Slot(
-ID8<Slot>::value_t _index,
+ID8<Slot>::id_t _index,
 PoolID<Node> _node,
 SlotFlags    _flags,
 ID<Property> _property,

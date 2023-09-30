@@ -7,8 +7,8 @@ using namespace ndbl;
 const SlotRef SlotRef::null{};
 
 SlotRef::SlotRef()
-: node(0)
-, id(0)
+: node()
+, id()
 , flags(SlotFlag_NONE)
 {
 }

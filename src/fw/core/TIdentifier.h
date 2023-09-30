@@ -14,14 +14,14 @@ namespace fw
     {
         static_assert(sizeof(IdentifierType) <= sizeof(u64_t), "IdentifierType should not be greater than 64bits for performance reasons");
     public:
-        using value_t = IdentifierType;
-        using type = Type;
+        using id_t       = IdentifierType;
         using identity_t = TIdentifier<Type, IdentifierType>;
 
-        static identity_t null;
-        value_t m_value; // object unique identifier in a non specified context (user decides, can be an array, a pool, etc.)
+        static constexpr id_t invalid_id = ~id_t{0};
+        id_t                  m_value    = invalid_id;
 
-        explicit constexpr TIdentifier( value_t _id = 0)
+        constexpr TIdentifier() = default;
+        explicit constexpr TIdentifier( id_t _id )
         : m_value(_id)
         {};
 
@@ -30,7 +30,7 @@ namespace fw
         {}
 
         template<typename OtherT>
-        explicit TIdentifier(const TIdentifier<OtherT, value_t>& other)
+        explicit TIdentifier(const TIdentifier<OtherT, id_t>& other)
         : m_value(other.m_value)
         {
             static_assert( std::is_same_v<Type, void> ||
@@ -38,30 +38,30 @@ namespace fw
                           "Type and OtherT are unrelated");
         }
 
-        value_t id() const
+        id_t id() const
         { return m_value; }
 
-        void reset( value_t _id = null.m_value)
+        void reset( id_t _id = invalid_id)
         { m_value = _id; }
 
-        operator value_t() const
+        operator id_t() const
         { return this->m_value; }
 
         template<typename OtherType>
-        operator TIdentifier<OtherType, value_t> () const
-        { return TIdentifier<OtherType, value_t>{this->m_value}; }
+        operator TIdentifier<OtherType, id_t> () const
+        { return TIdentifier<OtherType, id_t>{this->m_value}; }
 
         explicit operator bool () const
-        { return *this != null; }
+        { return this->m_value != invalid_id; }
 
-        bool operator<(const TIdentifier<Type, value_t>& other ) const
+        bool operator<(const TIdentifier<Type, id_t>& other ) const
         { return m_value < other.m_value; }
 
-        TIdentifier<Type, value_t>& operator=(const TIdentifier<Type, value_t>& other )
+        TIdentifier<Type, id_t>& operator=(const TIdentifier<Type, id_t>& other )
         { m_value = other.m_value; return *this; }
 
         template<typename OtherType>
-        TIdentifier<Type, value_t>& operator=(const TIdentifier<OtherType, value_t>& other )
+        TIdentifier<Type, id_t>& operator=(const TIdentifier<OtherType, id_t>& other )
         {
             static_assert( are_related<Type, OtherType>() );
             m_value = other.m_value;
@@ -69,17 +69,17 @@ namespace fw
         }
 
         template<typename OtherType>
-        bool operator!=(const TIdentifier<OtherType, value_t>& other ) const
+        bool operator!=(const TIdentifier<OtherType, id_t>& other ) const
         { return !are_related<Type, OtherType>() || this->m_value != other.m_value; }
 
         template<typename OtherType>
-        bool operator==(const TIdentifier<OtherType, value_t>& other ) const
+        bool operator==(const TIdentifier<OtherType, id_t>& other ) const
         { return are_related<Type, OtherType>() && this->m_value == other.m_value; }
 
-        bool operator== ( value_t _id )const
+        bool operator== ( id_t _id )const
         { return this->m_value == _id; }
 
-        bool operator!= ( value_t _id )const
+        bool operator!= ( id_t _id )const
         { return this->m_value != _id; }
 
         identity_t& operator++(int increment)
@@ -92,9 +92,6 @@ namespace fw
             return std::is_same_v<T, void> || std::is_same_v<void, T> || std::is_base_of_v<T, U> || std::is_base_of_v<U, T>;
         }
     };
-
-    template<typename T, typename U>
-    TIdentifier<T, U> TIdentifier<T, U>::null{};
 
     // Shorthand to IDs with 8, 16, 32, or 64 bits.
     template<typename T> using ID8  = TIdentifier<T, u8_t>;

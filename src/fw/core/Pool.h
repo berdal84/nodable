@@ -10,6 +10,8 @@
 #include <vector>
 #include <functional>
 
+#define AGNOSTIC_VECTOR_LAMBDA_BASED 1
+
 #if NDBL_DEBUG
 #include "reflection/type.h"
 #endif
@@ -32,8 +34,6 @@ void static_assert__is_pool_registrable()
 
 namespace fw
 {
-    constexpr u32_t INVALID_ID = ~u32_t{0};
-
     /**
      * PoolID is the equivalent of a pointer, but it points to a Pool item.
      * It can be used like regular pointer, except that de-referencing cost a bit more.
@@ -53,14 +53,13 @@ namespace fw
     {
         friend class Pool;
     public:
-        static PoolID<Type> null;
         using id_t = u32_t;
+        static PoolID<Type>   null;
+        static constexpr id_t invalid_id = ID32<Type>::invalid_id;
 
         ID32<Type> id;
 
-        PoolID()
-        : PoolID(INVALID_ID)
-        {}
+        PoolID() = default;
 
         explicit PoolID(id_t _id)
         : id(_id)
@@ -81,7 +80,7 @@ namespace fw
         { id.reset(); }
 
         inline explicit operator bool () const
-        { return id == INVALID_ID; }
+        { return (bool)id; }
 
         inline explicit operator id_t () const
         { return id; }
@@ -109,86 +108,24 @@ namespace fw
     };
 
     template<typename T>
-    PoolID<T> PoolID<T>::null{ INVALID_ID };
+    PoolID<T> PoolID<T>::null{};
 
-    /**
-     * Vector stores a pointer to a given vector type and the size of its elements
-     */
-    class AgnosticVector
+    class IPoolVector
     {
     public:
-#ifdef NDBL_DEBUG
-#define CHECK_TYPE(Type) FW_EXPECT( std::type_index(typeid(Type)) == m_type, "The type you asked is not the one this vector is made for." )
-#else
-#define CHECK_TYPE(Type)
-#endif
-        template<class T>
-        static AgnosticVector* create(size_t reserved_size)
-        {
-            auto* buffer = new std::vector<T>();
-            buffer->reserve( reserved_size );
+        IPoolVector() {}
+        virtual ~IPoolVector() {};
 
-            auto _swap = [buffer](size_t a, size_t b) -> void
-            {
-                std::swap( buffer->at(a), buffer->at(b) );
-            };
-
-            auto _pop_back = [buffer]() -> void
-            {
-                buffer->pop_back();
-            };
-
-            auto _at = [buffer](size_t index) -> void*
-            {
-                return &buffer->at( index );
-            };
-
-            auto _size = [buffer]() -> size_t
-            {
-                return buffer->size();
-            };
-
-            auto _delete_buffer = [buffer]() -> void
-            {
-                delete buffer;
-            };
-
-            auto _poolid_at = [buffer](size_t index) -> u32_t
-            {
-                return (u32_t)buffer->at( index ).poolid();
-            };
-
-            return new AgnosticVector(buffer, std::type_index(typeid(T)),
-                    _at, _size, _pop_back, _swap, _delete_buffer, _poolid_at);
-        }
-
-        AgnosticVector(
-                void* buffer,
-                const std::type_index type,
-                const std::function<void*(size_t index)>     _at,
-                const std::function<size_t()>                _size,
-                const std::function<void()>                  _pop_back,
-                const std::function<void(size_t, size_t)>    _swap,
-                const std::function<void()>                  _delete_buffer,
-                const std::function<u32_t(size_t)>            _poolid_at)
-            : m_type( type )
-            , m_buffer( buffer )
-            , at( _at )
-            , size( _size )
-            , pop_back( _pop_back )
-            , swap( _swap )
-            , delete_buffer( _delete_buffer )
-            , poolid_at( _poolid_at )
-            , m_typename( type.name() )
-        {}
-
-        ~AgnosticVector();
-
-        std::function<void*(size_t index)>  at;
-        std::function<size_t()>             size;
-        std::function<void()>               pop_back;
-        std::function<void(size_t, size_t)> swap;
-        std::function<u32_t(size_t)>         poolid_at; // get pool id at index
+        virtual std::type_index type_index() const = 0;
+        virtual const char*     type_name() const = 0;
+        virtual void*  vector() = 0;
+        virtual void*  at(size_t index) = 0;
+        virtual size_t size() const = 0;
+        virtual void   pop_back() = 0;
+        virtual void   swap(size_t, size_t) = 0;
+        virtual size_t elem_size() const = 0;
+        virtual void*  data() = 0;
+        virtual u32_t  poolid_at( size_t _pos ) const = 0;
 
         template<class T, typename ...Args>
         inline T& emplace_back(Args ...args)
@@ -200,14 +137,57 @@ namespace fw
 
         template<class T>
         inline std::vector<T>* get()
-        { CHECK_TYPE(T); return (std::vector<T>*)m_buffer; }
+        {
+            FW_ASSERT(std::type_index(typeid(T)) == this->type_index() );
+            return (std::vector<T>*)this->vector();
+        }
+    };
+
+
+    /** Templated implementation of IPoolVector
+     * Provide a way to deal with typed vector while respecting the IPoolVector interface */
+    template<typename T>
+    class TPoolVector : public IPoolVector
+    {
+    public:
+        TPoolVector(size_t _reserved = 0)
+        { m_vector.reserve( _reserved ); }
+
+        ~TPoolVector() = default;
+
+        void swap(size_t a, size_t b) override
+        { std::swap( m_vector[a], m_vector[b] ); };
+
+        void pop_back() override
+        { m_vector.pop_back(); };
+
+        void* at(size_t index) override
+        { return &m_vector.at(index); };
+
+        size_t size() const override
+        { return m_vector.size(); };
+
+        std::type_index type_index() const override
+        { return m_type_index; }
+
+        const char* type_name() const override
+        { return  m_type_index.name(); }
+
+        void* vector() override
+        { return &m_vector; }
+
+        size_t elem_size() const override
+        { return sizeof(T); }
+
+        void* data() override
+        { return m_vector.data(); }
+
+        u32_t poolid_at(size_t _pos) const override
+        { return (u32_t)m_vector[_pos].poolid(); }
 
     private:
-        const std::function<void()>  delete_buffer;
-        void*                        m_buffer; // std::vector<T>* with T as std::type_index(typeid(T)) == m_type
-        const std::type_index        m_type;
-        const char*                  m_typename;
-#undef CHECK_TYPE
+        std::type_index m_type_index{typeid(T)};
+        std::vector<T>  m_vector;
     };
 
     /**
@@ -216,7 +196,7 @@ namespace fw
      */
     struct Record
     {
-        AgnosticVector* vector;
+        IPoolVector * vector;
         size_t pos;  // Zero-based position of the data in the vector.
     };
 
@@ -254,9 +234,13 @@ namespace fw
         inline T* get(u32_t id)
         {
             static_assert__is_pool_registrable<T>();
+            if( id == PoolID<T>::invalid_id )
+            {
+                return nullptr;
+            }
             FW_ASSERT( id < m_record_by_id.size() );
             Record& record = m_record_by_id[id];
-            u32_t pos = record.pos;
+            const u32_t pos = record.pos;
             if( pos >= record.vector->size() )
             {
                 return nullptr;
@@ -292,15 +276,15 @@ namespace fw
     private:
 
         template<typename T>
-        inline PoolID<T> make_record(T* data, AgnosticVector* vec, size_t pos );
+        inline PoolID<T> make_record(T* data, IPoolVector * vec, size_t pos );
 
         template<typename T>
-        inline AgnosticVector* get_agnostic_vector();
+        inline IPoolVector * get_agnostic_vector();
 
         size_t m_reserved_size;
         u32_t   m_next_id;
         std::vector<Record> m_record_by_id;
-        std::unordered_map<std::type_index, AgnosticVector*> m_vector_by_type;
+        std::unordered_map<std::type_index, IPoolVector *> m_vector_by_type;
     private:
         static Pool* s_current_pool;
     };
@@ -346,7 +330,7 @@ namespace fw
     inline PoolID<T> Pool::create()
     {
         static_assert__is_pool_registrable<T>();
-        AgnosticVector* vector  = get_agnostic_vector<T>();
+        IPoolVector * vector  = get_agnostic_vector<T>();
         LOG_VERBOSE("Pool", "Create '%s' ...\n", fw::type::get<T>()->get_name() );
         T* data = &vector->template emplace_back<T>();
         PoolID<T> id = make_record(data, vector, vector->size()-1 );
@@ -361,14 +345,14 @@ namespace fw
         static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
         FW_ASSERT(m_vector_by_type.find(type_id) == m_vector_by_type.end() );
-        AgnosticVector* agnostic_vector = AgnosticVector::create<T>(m_reserved_size);
+        IPoolVector * agnostic_vector = new TPoolVector<T>(m_reserved_size);
         m_vector_by_type.insert({type_id, agnostic_vector});
         LOG_VERBOSE("Pool", "Init for '%s' OK\n", fw::type::get<T>()->get_name() );
         LOG_FLUSH()
     }
 
     template<typename T>
-    inline AgnosticVector* Pool::get_agnostic_vector()
+    inline IPoolVector * Pool::get_agnostic_vector()
     {
         static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
@@ -385,7 +369,7 @@ namespace fw
     }
 
     template<typename T>
-    inline PoolID<T> Pool::make_record(T* data, AgnosticVector* vec, size_t pos )
+    inline PoolID<T> Pool::make_record(T* data, IPoolVector * vec, size_t pos )
     {
         data->poolid( PoolID<T>{m_record_by_id.size()} );
         m_record_by_id.push_back({ vec, pos });
@@ -418,7 +402,7 @@ namespace fw
         }
         // Delete instance and record_to_delete
         record_to_delete.vector->pop_back();
-        record_to_delete.pos = INVALID_ID;
+        record_to_delete.pos = PoolID<T>::invalid_id;
 
         LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, pos: %zu) ...\n", (u32_t)pool_id, fw::type::get<T>()->get_name(), pos_to_delete);
     }

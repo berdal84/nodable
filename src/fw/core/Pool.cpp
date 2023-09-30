@@ -36,8 +36,3 @@ Pool::~Pool()
         delete each_vec;
     }
 }
-
-AgnosticVector::~AgnosticVector()
-{
-    delete_buffer();
-}

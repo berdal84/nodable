@@ -30,7 +30,7 @@ namespace ndbl
 
         Slot();
         Slot(const Slot& other);
-        Slot(ID8<Slot>::value_t, PoolID<Node>, SlotFlags, ID<Property> = ID<Property>::null, u8_t capacity = 0);
+        Slot(ID8<Slot>::id_t, PoolID<Node>, SlotFlags, ID<Property> = {}, u8_t capacity = 0);
 
         bool operator==(const Slot&) const;
         bool operator!=(const Slot&) const;
