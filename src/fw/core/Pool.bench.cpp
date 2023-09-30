@@ -57,13 +57,13 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
     pool->init_for<DataPool<128>>();
     pool->init_for<DataPool<127>>();
 
-    std::vector<PoolID<DataPool<128>>> ptrs;
-    std::vector<PoolID<DataPool<127>>> ptrs2;
-    ptrs.reserve(COUNT);
+    std::vector<PoolID<DataPool<128>>> ids;
+    std::vector<PoolID<DataPool<127>>> ids2;
+    ids.reserve(COUNT);
     for( auto i = 0; i < COUNT; i++ )
     {
-        ptrs.emplace_back( pool->create<DataPool<128>>() );
-        ptrs2.emplace_back( pool->create<DataPool<127>>() );
+        ids.emplace_back( pool->create<DataPool<128>>() );
+        ids2.emplace_back( pool->create<DataPool<127>>() );
     }
 
     if( USE_VECTOR )
@@ -86,9 +86,17 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
         for ( auto _ : state )
         {
             // benchmark begin
-            for( PoolID<DataPool<128>> id : ptrs )
+
+            // first we dereference all the ids
+            std::array<DataPool<128>*, COUNT> ptrs;
+            for( size_t i = 0; i < COUNT; i++ )
             {
-                auto* each = id.get();
+                ptrs[i] = ids[i].get();
+            }
+
+            // then we iterate (and mutate)
+            for( DataPool<128>* each : ptrs )
+            {
                 each->data[0] = 'X';
                 each->data[63] = 'Y';
                 each->data[127] = 'Z';
