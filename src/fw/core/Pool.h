@@ -371,10 +371,13 @@ namespace fw
     template<typename T>
     inline PoolID<T> Pool::make_record(T* data, IPoolVector * vec, size_t pos )
     {
-        data->poolid( PoolID<T>{m_record_by_id.size()} );
+        size_t next_id = m_record_by_id.size();
+        FW_ASSERT(next_id < ~u32_t{0}) // Last id is reserved for "null" or "invalid"
+        PoolID<T> poolid{(u32_t)next_id};
+        data->poolid(poolid);
         m_record_by_id.push_back({ vec, pos });
         LOG_VERBOSE("Pool", "New record with id %zu (type: %s, index: %zu) ...\n", (u32_t)data->poolid(), fw::type::get<T>()->get_name(), pos );
-        return data->poolid();
+        return poolid;
     }
 
     template<typename T>
