@@ -4,23 +4,34 @@
 
 namespace fw
 {
+    template<typename UnsignedT>
+    struct _invalid_id
+    {
+        static_assert( std::is_unsigned_v<UnsignedT>, "UnsignedT should be unsigned" );
+        static constexpr UnsignedT value = ~UnsignedT(0);
+    };
+
+    template<typename T> constexpr T invalid_id = _invalid_id<T>::value;
+
     /**
      * Templated Identifier
      * @tparam Type to specify a type for static type-checking. void can be used to express "any type".
-     * @tparam IdentifierType internal identifier type.
+     * @tparam UnsignedT internal identifier type.
      */
-    template<typename Type, typename IdentifierType>
+    template<typename Type, typename UnsignedT>
     class TIdentifier
     {
-        static_assert(sizeof(IdentifierType) <= sizeof(u64_t), "IdentifierType should not be greater than 64bits for performance reasons");
+        static_assert( std::is_unsigned_v<UnsignedT>, "UnsignedT should be unsigned" );
+        static_assert(sizeof( UnsignedT ) <= sizeof(u64_t), "IdentifierType should not be greater than 64bits for performance reasons");
     public:
-        using id_t       = IdentifierType;
-        using identity_t = TIdentifier<Type, IdentifierType>;
+        using id_t       = UnsignedT;
+        using identity_t = TIdentifier<Type, UnsignedT>;
+        id_t  m_value;
 
-        static constexpr id_t invalid_id = ~id_t{0};
-        id_t                  m_value    = invalid_id;
+        constexpr TIdentifier()
+        : m_value(invalid_id<id_t>)
+        {}
 
-        constexpr TIdentifier() = default;
         explicit constexpr TIdentifier( id_t _id )
         : m_value(_id)
         {};
@@ -41,7 +52,7 @@ namespace fw
         id_t id() const
         { return m_value; }
 
-        void reset( id_t _id = invalid_id)
+        void reset( id_t _id = invalid_id<id_t> )
         { m_value = _id; }
 
         operator id_t() const
@@ -52,7 +63,7 @@ namespace fw
         { return TIdentifier<OtherType, id_t>{this->m_value}; }
 
         explicit operator bool () const
-        { return this->m_value != invalid_id; }
+        { return this->m_value != invalid_id<id_t>; }
 
         bool operator<(const TIdentifier<Type, id_t>& other ) const
         { return m_value < other.m_value; }

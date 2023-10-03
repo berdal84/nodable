@@ -25,7 +25,7 @@ void Pool::shutdown()
 
 Pool::Pool(size_t reserved_size)
     : m_reserved_size( reserved_size )
-    , m_next_id( 1 ) // Reserve 0 for null
+    , m_first_free_id( invalid_id<u32_t> )
 {
 }
 

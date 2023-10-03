@@ -82,6 +82,25 @@ TEST(Pool, destroy_first )
     Pool::shutdown();
 }
 
+TEST(Pool, destroy_first_and_reuse_id )
+{
+    // prepare
+    Pool* pool = Pool::init(0);
+    pool->init_for<Data>();
+    PoolID<Data> node1 = pool->create<Data>("Toto");
+    PoolID<Data> node2 = pool->create<Data>("Tata");
+
+    // act
+    pool->destroy( node1 );
+    PoolID<Data> node3 = pool->create<Data>("Tutu");
+    PoolID<Data> node4 = pool->create<Data>("Tete");
+
+    // clean
+    EXPECT_EQ((u32_t)node3, 0);
+    EXPECT_EQ((u32_t)node4, 2 );
+    Pool::shutdown();
+}
+
 TEST(Pool, destroy_vector_of_ids )
 {
     size_t n = 200;

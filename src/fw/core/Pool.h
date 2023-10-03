@@ -48,14 +48,13 @@ namespace fw
      * ...
      * ptr->do_that();
      */
-    template<typename Type>
+    template<typename Type = void>
     class PoolID
     {
         friend class Pool;
     public:
         using id_t = u32_t;
-        static PoolID<Type>   null;
-        static constexpr id_t invalid_id = ID32<Type>::invalid_id;
+        static PoolID<Type> null;
 
         ID32<Type> id;
 
@@ -159,7 +158,7 @@ namespace fw
             : IPoolVector(&m_vector, sizeof(T))
         { m_vector.reserve( _reserved ); }
 
-        ~TPoolVector() = default;
+        ~TPoolVector() {};
 
         void swap(size_t a, size_t b) override
         { std::swap( m_vector[a], m_vector[b] ); };
@@ -193,8 +192,9 @@ namespace fw
      */
     struct Record
     {
-        IPoolVector * vector;
-        size_t pos;  // Zero-based position of the data in the vector.
+        IPoolVector* vector{ nullptr};
+        size_t       pos{invalid_id<size_t>}; // Zero-based position of the data in the vector.
+        u32_t        next_id{invalid_id<u32_t>}; // id to the next Record, if pos is invalid it points to the next free id.
     };
 
     /**
@@ -231,11 +231,11 @@ namespace fw
         inline T* get(u32_t id)
         {
             static_assert__is_pool_registrable<T>();
-            if ( id == PoolID<T>::invalid_id )
+            if ( id == invalid_id<u32_t> )
             {
                 return nullptr;
             }
-            const auto [vector, pos] = m_record_by_id[id];
+            const auto [vector, pos, _] = m_record_by_id[id];
             return static_cast<T*>( vector->at( pos ) );
         }
 
@@ -259,7 +259,7 @@ namespace fw
         inline void destroy(T* ptr);
 
         template<typename T>
-        inline void destroy(PoolID<T> pool_id);
+        inline void destroy(PoolID<T> _id );
 
         template<typename ContainerT>
         inline void destroy_all(const ContainerT& ids);
@@ -272,8 +272,19 @@ namespace fw
         template<typename T>
         inline IPoolVector * get_agnostic_vector();
 
+        u32_t generate_id()
+        {
+            if( m_first_free_id != invalid_id<u32_t> )
+            {
+                u32_t id = m_first_free_id;
+                m_first_free_id = m_record_by_id[id].next_id; // update linked-list
+                return id;
+            }
+            return m_record_by_id.size();
+        }
+
         size_t m_reserved_size;
-        u32_t   m_next_id;
+        u32_t  m_first_free_id; // Linked-list of free ids
         std::vector<Record> m_record_by_id;
         std::unordered_map<std::type_index, IPoolVector *> m_vector_by_type;
     private:
@@ -289,12 +300,11 @@ namespace fw
     {
         static_assert__is_pool_registrable<T>();
         std::vector<T*> result;
-        result.reserve(ids.size());
-        for(auto each_id : ids )
+        result.resize(ids.size());
+        IPoolVector* vector = get_agnostic_vector<T>();
+        for(size_t i = 0; i < ids.size(); ++i )
         {
-            T* ptr = get<T>(each_id);
-            FW_ASSERT(ptr != nullptr);
-            result.push_back( ptr );
+            result[i] = (T*)&vector[ m_record_by_id[(u32_t)ids[i]].pos];
         }
         return result;
     }
@@ -362,11 +372,22 @@ namespace fw
     template<typename T>
     inline PoolID<T> Pool::make_record(T* data, IPoolVector * vec, size_t pos )
     {
-        size_t next_id = m_record_by_id.size();
-        FW_ASSERT(next_id < ~u32_t{0}) // Last id is reserved for "null" or "invalid"
-        PoolID<T> poolid{(u32_t)next_id};
+        u32_t next_id = generate_id();
+        FW_ASSERT(next_id < invalid_id<u32_t>) // Last id is reserved for "null" or "invalid"
+        PoolID<T> poolid{next_id};
         data->poolid(poolid);
-        m_record_by_id.push_back({ vec, pos });
+        bool is_new_id = next_id == m_record_by_id.size();
+        if( is_new_id )
+        {
+            m_record_by_id.push_back({ vec, pos });
+        }
+        else
+        {
+            // Otherwise, reuse the Record
+            m_record_by_id[next_id].pos = pos;
+            FW_ASSERT( m_record_by_id[next_id].vector == vec); // should already be set
+            m_record_by_id[next_id].next_id = invalid_id<u32_t>;
+        }
         LOG_VERBOSE("Pool", "New record with id %zu (type: %s, index: %zu) ...\n", (u32_t)data->poolid(), fw::type::get<T>()->get_name(), pos );
         return poolid;
     }
@@ -379,10 +400,10 @@ namespace fw
     }
 
     template<typename T>
-    inline void Pool::destroy(PoolID<T> pool_id)
+    inline void Pool::destroy(PoolID<T> _id )
     {
         static_assert__is_pool_registrable<T>();
-        Record& record_to_delete = m_record_by_id[(u32_t)pool_id];
+        Record& record_to_delete = m_record_by_id[(u32_t)_id];
         size_t  last_pos         = record_to_delete.vector->size() - 1;
         size_t  pos_to_delete    = record_to_delete.pos;
 
@@ -394,11 +415,14 @@ namespace fw
             record_to_delete.vector->swap( record_to_delete.pos, last_pos );
             m_record_by_id[last_poolid].pos = record_to_delete.pos;
         }
-        // Delete instance and record_to_delete
+        // From there, the record to delete is at the vector's back.
         record_to_delete.vector->pop_back();
-        record_to_delete.pos = PoolID<T>::invalid_id;
-
-        LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, pos: %zu) ...\n", (u32_t)pool_id, fw::type::get<T>()->get_name(), pos_to_delete);
+        // But we keep the record in memory to reuse poolid for a new instance
+        record_to_delete.pos = invalid_id<u32_t>;
+        // Update the "free ids" linked-list
+        record_to_delete.next_id = m_first_free_id;
+        m_first_free_id = static_cast<u32_t>( _id );
+        LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, pos: %zu) ...\n", (u32_t) _id, fw::type::get<T>()->get_name(), pos_to_delete);
     }
 
     template<typename ContainerT>
