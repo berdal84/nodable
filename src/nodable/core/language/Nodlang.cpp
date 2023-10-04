@@ -1377,8 +1377,8 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
     {
         while_loop_node = parser_state.graph->create_while_loop();
         parser_state.graph->connect(
-                while_loop_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
                 get_current_scope()->get_owner()->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
+                while_loop_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
         parser_state.scope.push(while_loop_node->get_component<Scope>() );
 

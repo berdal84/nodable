@@ -1,7 +1,8 @@
 #pragma once
-#include "observe/event.h"
-#include "fw/gui/ImGuiEx.h"
 #include "core/Slot.h"
+#include "core/reflection/type.h"
+#include "fw/gui/ImGuiEx.h"
+#include "observe/event.h"
 #include "types.h"
 
 namespace ndbl
@@ -23,7 +24,7 @@ namespace ndbl
         Property*             get_property()const;
         const fw::type*       get_property_type()const;
         bool                  has_node_connected() const;
-        ImVec2 alignment() const;
+        ImVec2                alignment() const;
         Slot&                 slot()const;
         PoolID<Node>          get_node()const;
         PoolID<Node>          adjacent_node() const;

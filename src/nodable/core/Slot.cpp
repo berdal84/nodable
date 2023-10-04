@@ -84,7 +84,8 @@ Slot::operator bool() const
 
 Property* Slot::get_property() const
 {
-    return node->get_prop_at( property );
+    Node* _node = node.get();
+    return _node ? node->get_prop_at( property ) : nullptr;
 }
 
 Node* Slot::get_node() const

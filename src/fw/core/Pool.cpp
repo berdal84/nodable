@@ -4,15 +4,10 @@ using namespace fw;
 
 Pool* Pool::s_current_pool = nullptr;
 
-Pool* Pool::init(size_t reserved_size)
+Pool* Pool::init(size_t _capacity, bool _reuse_ids)
 {
-    if( s_current_pool != nullptr )
-    {
-        LOG_WARNING("Pool", "Pool is already initialized");
-        return s_current_pool;
-    }
-
-    s_current_pool = new Pool(reserved_size);
+    FW_EXPECT( s_current_pool == nullptr, "Should initialize Pool once" )
+    s_current_pool = new Pool( _capacity, _reuse_ids);
     return s_current_pool;
 }
 
@@ -23,16 +18,19 @@ void Pool::shutdown()
     s_current_pool = nullptr;
 }
 
-Pool::Pool(size_t reserved_size)
-    : m_reserved_size( reserved_size )
+Pool::Pool(size_t _capacity, bool _reuse_ids)
+    : m_initial_capacity( _capacity )
+    , m_reuse_ids(_reuse_ids)
     , m_first_free_id( invalid_id<u32_t> )
+    , m_pool_vector_by_type()
+    , m_record_by_id()
 {
 }
 
 Pool::~Pool()
 {
-    for(auto& [_, each_vec] : m_vector_by_type )
+    for(const auto& [type, pool_vector]: m_pool_vector_by_type )
     {
-        delete each_vec;
+        delete pool_vector;
     }
 }

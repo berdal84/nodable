@@ -112,19 +112,19 @@ namespace fw
     class IPoolVector
     {
     public:
-        IPoolVector(void* _vector_ptr, size_t _elem_size)
-        : m_vector_ptr(_vector_ptr), m_elem_size(_elem_size) {}
+        IPoolVector(void* _data_ptr, size_t _elem_size)
+        : m_vector_ptr( _data_ptr )
+        , m_elem_size(_elem_size)
+        {}
 
         virtual ~IPoolVector() {};
-
         virtual std::type_index type_index() const = 0;
         virtual const char*     type_name() const = 0;
-        void*   at(size_t index)
-        { return ((std::vector<char>*)m_vector_ptr)->data() + index * m_elem_size; };
+        virtual void*  at(size_t _pos ) = 0;
+        virtual const void* at(size_t _pos ) const = 0;
         virtual size_t size() const = 0;
         virtual void   pop_back() = 0;
         virtual void   swap(size_t, size_t) = 0;
-        virtual void*  data() = 0;
         virtual u32_t  poolid_at( size_t _pos ) const = 0;
 
         template<class T, typename ...Args>
@@ -137,13 +137,13 @@ namespace fw
 
         template<class T>
         inline std::vector<T>* get()
-        {
-            //FW_ASSERT(std::type_index(typeid(T)) == this->type_index() );
-            return (std::vector<T>*)m_vector_ptr;
-        }
+        { return (std::vector<T>*)m_vector_ptr; }
 
-    private:
-        void* m_vector_ptr{nullptr};
+        template<class T>
+        inline const std::vector<T>* get() const
+        { return (const std::vector<T>*)m_vector_ptr; }
+    protected:
+        void*  m_vector_ptr;
         size_t m_elem_size;
     };
 
@@ -154,14 +154,30 @@ namespace fw
     class TPoolVector : public IPoolVector
     {
     public:
-        TPoolVector(size_t _reserved = 0)
+        TPoolVector(size_t _capacity = 0)
             : IPoolVector(&m_vector, sizeof(T))
-        { m_vector.reserve( _reserved ); }
+            , m_vector()
+            , m_type_index{typeid(T)}
+        {
+            m_vector.reserve( _capacity );
+        }
 
-        ~TPoolVector() {};
+        ~TPoolVector()
+        {};
 
-        void swap(size_t a, size_t b) override
-        { std::swap( m_vector[a], m_vector[b] ); };
+        TPoolVector(const TPoolVector&) = delete;
+        TPoolVector& operator=(const TPoolVector&) = delete;
+        TPoolVector(TPoolVector&&) = delete;
+        TPoolVector& operator=(TPoolVector&&) = delete;
+
+        void* at( size_t _pos ) override
+        { return &m_vector.at( _pos ); };
+
+        const void* at( size_t _pos ) const override
+        { return  &m_vector.at( _pos ); };
+
+        void swap( size_t _a, size_t _b ) override
+        { std::swap( m_vector.at( _a ), m_vector.at( _b ) ); };
 
         void pop_back() override
         { m_vector.pop_back(); };
@@ -175,15 +191,12 @@ namespace fw
         const char* type_name() const override
         { return  m_type_index.name(); }
 
-        void* data() override
-        { return m_vector.data(); }
-
         u32_t poolid_at(size_t _pos) const override
         { return (u32_t)m_vector[_pos].poolid(); }
 
     private:
-        std::type_index m_type_index{typeid(T)};
-        std::vector<T>  m_vector;
+        std::vector<T> m_vector;
+        std::type_index m_type_index;
     };
 
     /**
@@ -210,7 +223,7 @@ namespace fw
     class Pool
     {
     public:
-        static Pool* init(size_t reserved_size = 0);
+        static Pool* init(size_t _capacity = 0, bool _reuse_ids = true);
         static void  shutdown();
         inline static Pool* get_pool()
         {
@@ -219,19 +232,24 @@ namespace fw
 #endif
             return s_current_pool;
         }
-    private: /** for now, lets allow a single Pool at a time (see statics) */
-        Pool(size_t reserved_size);
+    private:
+        Pool(size_t _capacity, bool _reuse_ids);
         ~Pool();
+        /** for now, lets allow a single Pool at a time (see statics) */
+        Pool(const Pool&) = delete;
+        Pool(Pool&&) = delete;
+        Pool& operator=(const Pool&) = delete;
+        Pool& operator=(Pool&&) = delete;
     public:
 
         template<typename T>
-        inline void init_for();
+        inline IPoolVector* init_for();
 
         template<typename T>
         inline T* get(u32_t id)
         {
             static_assert__is_pool_registrable<T>();
-            if ( id == invalid_id<u32_t> )
+            if ( id >= m_record_by_id.size() )
             {
                 return nullptr;
             }
@@ -270,11 +288,11 @@ namespace fw
         inline PoolID<T> make_record(T* data, IPoolVector * vec, size_t pos );
 
         template<typename T>
-        inline IPoolVector * get_agnostic_vector();
+        inline IPoolVector *get_pool_vector();
 
         u32_t generate_id()
         {
-            if( m_first_free_id != invalid_id<u32_t> )
+            if( m_reuse_ids && m_first_free_id != invalid_id<u32_t> )
             {
                 u32_t id = m_first_free_id;
                 m_first_free_id = m_record_by_id[id].next_id; // update linked-list
@@ -283,10 +301,11 @@ namespace fw
             return m_record_by_id.size();
         }
 
-        size_t m_reserved_size;
+        bool   m_reuse_ids;
+        size_t m_initial_capacity;
         u32_t  m_first_free_id; // Linked-list of free ids
         std::vector<Record> m_record_by_id;
-        std::unordered_map<std::type_index, IPoolVector *> m_vector_by_type;
+        std::unordered_map<std::type_index, IPoolVector*> m_pool_vector_by_type;
     private:
         static Pool* s_current_pool;
     };
@@ -299,31 +318,27 @@ namespace fw
     inline std::vector<T*> Pool::get(std::vector<PoolID<T>> ids)
     {
         static_assert__is_pool_registrable<T>();
-        std::vector<T*> result;
-        result.resize(ids.size());
-        IPoolVector* vector = get_agnostic_vector<T>();
+        std::vector<T*> result(ids.size());
+        std::vector<T>* vector = get_pool_vector<T>()->template get<T>();
         for(size_t i = 0; i < ids.size(); ++i )
         {
-            result[i] = (T*)&vector[ m_record_by_id[(u32_t)ids[i]].pos];
+            result[i] = &(*vector)[ m_record_by_id[(u32_t)ids[i]].pos ];
         }
-        return result;
+        return std::move(result);
     }
 
     template<typename T>
     inline std::vector<T>& Pool::get_all()
-    { return *get_agnostic_vector<T>()->template get<T>(); }
+    { return *get_pool_vector<T>()->template get<T>(); }
 
     template<typename T, typename ...Args>
     inline PoolID<T> Pool::create(Args... args)
     {
         static_assert__is_pool_registrable<T>();
-        LOG_VERBOSE("Pool", "Create '%s' (with args) ...\n", fw::type::get<T>()->get_name() );
-        auto*  vec   = get_agnostic_vector<T>();
+        auto*  vec   = get_pool_vector<T>();
         size_t index = vec->size();
         T*     data  = &vec->template emplace_back<T>(args...);
         PoolID<T> id = make_record(data, vec, index );
-        LOG_VERBOSE("Pool", "Create '%s' (with args) OK\n", fw::type::get<T>()->get_name() );
-        LOG_FLUSH();
         return id;
     }
 
@@ -331,40 +346,35 @@ namespace fw
     inline PoolID<T> Pool::create()
     {
         static_assert__is_pool_registrable<T>();
-        IPoolVector * vector  = get_agnostic_vector<T>();
-        LOG_VERBOSE("Pool", "Create '%s' ...\n", fw::type::get<T>()->get_name() );
-        T* data = &vector->template emplace_back<T>();
-        PoolID<T> id = make_record(data, vector, vector->size()-1 );
-        LOG_VERBOSE("Pool", "Create '%s' OK\n", fw::type::get<T>()->get_name() );
-        LOG_FLUSH();
+        IPoolVector* pool_vector = get_pool_vector<T>();
+        T* data = &pool_vector->template emplace_back<T>();
+        PoolID<T> id = make_record(data, pool_vector, pool_vector->size()-1 );
         return id;
     }
 
     template<typename T>
-    inline void Pool::init_for()
+    inline IPoolVector* Pool::init_for()
     {
         static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
-        FW_ASSERT(m_vector_by_type.find(type_id) == m_vector_by_type.end() );
-        IPoolVector * agnostic_vector = new TPoolVector<T>(m_reserved_size);
-        m_vector_by_type.insert({type_id, agnostic_vector});
-        LOG_VERBOSE("Pool", "Init for '%s' OK\n", fw::type::get<T>()->get_name() );
-        LOG_FLUSH()
+        FW_ASSERT( m_pool_vector_by_type.find(type_id) == m_pool_vector_by_type.end() );
+        IPoolVector* new_pool_vector = new TPoolVector<T>( m_initial_capacity );
+        m_pool_vector_by_type.emplace(type_id, new_pool_vector );
+        return new_pool_vector;
     }
 
     template<typename T>
-    inline IPoolVector * Pool::get_agnostic_vector()
+    inline IPoolVector * Pool::get_pool_vector()
     {
         static_assert__is_pool_registrable<T>();
         auto type_id = std::type_index(typeid(T));
         // TODO: use operator[] instead of find() and force user to call init_for<T>() manually
-        auto it = m_vector_by_type.find(type_id);
-        if (it == m_vector_by_type.end())
+        auto it = m_pool_vector_by_type.find( type_id );
+        if ( it == m_pool_vector_by_type.end() )
         {
             LOG_VERBOSE("Pool", "No vector found for '%s'\n", fw::type::get<T>()->get_name() );
             // Not great to do the init here, but required when a type is not handled yet
-            init_for<T>();
-            return get_agnostic_vector<T>();
+            return init_for<T>();
         }
         return it->second;
     }
@@ -379,16 +389,15 @@ namespace fw
         bool is_new_id = next_id == m_record_by_id.size();
         if( is_new_id )
         {
-            m_record_by_id.push_back({ vec, pos });
+            m_record_by_id.push_back({vec, pos, invalid_id<u32_t>});
         }
         else
         {
             // Otherwise, reuse the Record
             m_record_by_id[next_id].pos = pos;
-            FW_ASSERT( m_record_by_id[next_id].vector == vec); // should already be set
+            m_record_by_id[next_id].vector = vec; // type can change, so vector can.
             m_record_by_id[next_id].next_id = invalid_id<u32_t>;
         }
-        LOG_VERBOSE("Pool", "New record with id %zu (type: %s, index: %zu) ...\n", (u32_t)data->poolid(), fw::type::get<T>()->get_name(), pos );
         return poolid;
     }
 
@@ -417,12 +426,16 @@ namespace fw
         }
         // From there, the record to delete is at the vector's back.
         record_to_delete.vector->pop_back();
+        record_to_delete.vector = nullptr;
         // But we keep the record in memory to reuse poolid for a new instance
         record_to_delete.pos = invalid_id<u32_t>;
-        // Update the "free ids" linked-list
-        record_to_delete.next_id = m_first_free_id;
-        m_first_free_id = static_cast<u32_t>( _id );
-        LOG_VERBOSE("Pool", "Destroyed record with id %zu (type: %s, pos: %zu) ...\n", (u32_t) _id, fw::type::get<T>()->get_name(), pos_to_delete);
+
+        if( m_reuse_ids )
+        {
+            // Update the "free ids" linked-list
+            record_to_delete.next_id = m_first_free_id;
+            m_first_free_id = (u32_t)_id;
+        }
     }
 
     template<typename ContainerT>

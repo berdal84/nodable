@@ -16,7 +16,7 @@ TEST(Pool, init_shutdown )
 {
     EXPECT_ANY_THROW( Pool::shutdown() ); // not initialized !
     Pool::init();
-    Pool::init(); // no throw but warning
+    EXPECT_ANY_THROW( Pool::init() ); // twice
     Pool::shutdown();
     EXPECT_ANY_THROW( Pool::shutdown() ); // twice
 }
@@ -131,14 +131,14 @@ TEST(Pool, reserve_size )
 
     // Create n Data and store their address just after creation
     std::vector<Data*> pointers;
-    pointers.reserve(n);
+    pointers.reserve(512);
     for(int i = 0; i < n; ++i)
     {
         pointers.push_back( pool->create<Data>("Data").get() );
     }
 
     // check if addresses are identical
-    auto& data = pool->get_all<Data>();
+    std::vector<Data>& data = pool->get_all<Data>();
     for(int i = 0; i < n; ++i)
     {
         EXPECT_EQ( &data[i], pointers[i] );
@@ -153,5 +153,19 @@ TEST(Pool, reserve_size )
     EXPECT_EQ( &data[n], pointers[n] );
 
     Pool::shutdown();
+}
+
+template<size_t S>
+struct TData {
+    POOL_REGISTRABLE(TData)
+    char data[S];
+};
+
+TEST(PoolVector, create_delete )
+{
+    auto* ptr1 = new TPoolVector<TData<128>>();
+    auto* ptr2 = new TPoolVector<TData<127>>();
+    delete ptr1;
+    delete ptr2;
 }
 

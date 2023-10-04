@@ -21,11 +21,11 @@ TEST_F(Graph_, connect)
     // Prepare
     auto node_1 = graph.create_node();
     auto prop_1 = node_1->add_prop<bool>("prop_1");
-    auto slot_1 = node_1->add_slot( prop_1, SlotFlag_INPUT  );
+    auto slot_1 = node_1->add_slot( prop_1, SlotFlag_OUTPUT   );
 
     auto node_2 = graph.create_node();
     auto prop_2 = node_2->add_prop<bool>("prop_2");
-    auto slot_2 = node_2->add_slot( prop_2, SlotFlag_OUTPUT );
+    auto slot_2 = node_2->add_slot( prop_2, SlotFlag_INPUT );
 
     // Act
     DirectedEdge& edge = *graph.connect_or_merge( &node_1->get_slot( slot_1 ), &node_2->get_slot( slot_2 ) );
@@ -52,7 +52,7 @@ TEST_F(Graph_, disconnect)
     EXPECT_EQ(graph.get_edge_registry().size(), 1);
 
     // Act
-    graph.disconnect(edge, ConnectFlag_::ON );
+    graph.disconnect(edge, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
     // Check
     EXPECT_EQ(graph.get_edge_registry().size() , 0);
@@ -79,7 +79,7 @@ TEST_F(Graph_, clear)
     graph.connect(
             operator_node->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
             instructionNode->find_slot( ROOT_PROPERTY, SlotFlag_INPUT ),
-            ConnectFlag_::ON);
+            ConnectFlag_ALLOW_SIDE_EFFECTS);
 
     EXPECT_FALSE( graph.get_node_registry().empty() );
     EXPECT_FALSE( graph.get_edge_registry().empty() );
@@ -112,12 +112,11 @@ TEST_F(Graph_, create_and_delete_relations)
     EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
     DirectedEdge* edge_1 = graph.connect(
-            node_1->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
-            node_2->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-            ConnectFlag_::OFF );
+            node_1->find_slot( THIS_PROPERTY, SlotFlag_CHILD  ),
+            node_2->find_slot( THIS_PROPERTY, SlotFlag_PARENT ));
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
-    graph.disconnect(*edge_1, ConnectFlag_::OFF );
+    graph.disconnect(*edge_1);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
 
     // Is input of
@@ -125,11 +124,10 @@ TEST_F(Graph_, create_and_delete_relations)
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 0);
     DirectedEdge* edge_2 = graph.connect(
             node_1->find_value_typed_slot( SlotFlag_OUTPUT ),
-            node_2->find_value_typed_slot( SlotFlag_INPUT ),
-            ConnectFlag_::OFF );
+            node_2->find_value_typed_slot( SlotFlag_INPUT ));
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
-    graph.disconnect(*edge_2, ConnectFlag_::OFF );
+    graph.disconnect(*edge_2);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 0);
     EXPECT_EQ(edges.size(), 0);
 }

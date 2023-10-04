@@ -27,12 +27,12 @@ template<size_t COUNT>
 static void mutate_N_instances__enterlaced_with_another_type__using_new(benchmark::State& state)
 {
     std::vector< DataPool<128>* > ptrs;
-    std::vector< DataPool<127>* > ptrs2;
+    std::vector< DataPool<64>* > ptrs2;
     ptrs.reserve( COUNT );
     for( auto i = 0; i < COUNT; i++ )
     {
         ptrs.emplace_back( new DataPool<128>() );
-        ptrs2.emplace_back( new DataPool<127>() );
+        ptrs2.emplace_back( new DataPool<64>() );
     }
     for ( auto _ : state )
     {
@@ -49,30 +49,32 @@ static void mutate_N_instances__enterlaced_with_another_type__using_new(benchmar
     for( auto& each : ptrs2 ) delete each;
 }
 
-template<size_t COUNT, bool USE_VECTOR>
+
+constexpr bool USE_VECTOR = true;
+
+template<size_t COUNT, bool VECTOR>
 static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(benchmark::State& state)
 {
-    Pool::init();
-    Pool* pool = Pool::get_pool();
+    Pool* pool = Pool::init();
     pool->init_for<DataPool<128>>();
-    pool->init_for<DataPool<127>>();
+    pool->init_for<DataPool<64>>();
 
     std::vector<PoolID<DataPool<128>>> ids;
-    std::vector<PoolID<DataPool<127>>> ids2;
-    ids.reserve(COUNT);
+    std::vector<PoolID<DataPool<64>>> ids2;
+
     for( auto i = 0; i < COUNT; i++ )
     {
         ids.emplace_back( pool->create<DataPool<128>>() );
-        ids2.emplace_back( pool->create<DataPool<127>>() );
+        ids2.emplace_back( pool->create<DataPool<64>>() );
     }
 
-    if( USE_VECTOR )
+    if( VECTOR )
     {
-        auto& vector = pool->get_all<DataPool<128>>();
+
         for ( auto _ : state )
         {
             // benchmark begin
-            for( auto& each : vector )
+            for( auto& each : pool->get_all<DataPool<128>>() )
             {
                 each.data[0] = 'X';
                 each.data[63] = 'Y';
@@ -86,17 +88,9 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
         for ( auto _ : state )
         {
             // benchmark begin
-
-            // first we dereference all the ids
-            std::array<DataPool<128>*, COUNT> ptrs;
-            for( size_t i = 0; i < COUNT; i++ )
+            for( PoolID<DataPool<128>>& id : ids )
             {
-                ptrs[i] = ids[i].get();
-            }
-
-            // then we iterate (and mutate)
-            for( DataPool<128>* each : ptrs )
-            {
+                DataPool<128>* each = id.get();
                 each->data[0] = 'X';
                 each->data[63] = 'Y';
                 each->data[127] = 'Z';
@@ -109,8 +103,8 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
 
 #define ENTERLACED( N ) \
 BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_new<N> ); \
-BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, false> ); \
-BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, true> );
+BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, !USE_VECTOR> ); \
+BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, USE_VECTOR> );
 
 ENTERLACED(2)
 ENTERLACED(10)
