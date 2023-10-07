@@ -231,7 +231,7 @@ DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
     }
 
     // case 2: merge non-orphan property
-    if (!in_prop->is_this() && // Never digest a Node (property points to a node)
+    if (!out_prop->is_this() && // Never a Node (property points to a node)
          _out->node->get_type()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
          _in->node->get_type()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
     {
