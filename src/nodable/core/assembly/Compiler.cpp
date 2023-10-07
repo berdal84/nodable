@@ -73,26 +73,13 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
     return true;
 }
 
-void Compiler::compile_slot( const Slot* slot)
+void Compiler::compile_output_slot( const Slot* slot)
 {
     FW_ASSERT(slot != nullptr)
+    FW_ASSERT(slot->flags & SlotFlag_OUTPUT)
     Property* property = slot->get_property();
-
     FW_EXPECT(property != nullptr, "Vertex should contain a valid property id" )
-
-    if ( property->is_this() )
-    {
-        return compile_node((PoolID<Node>)*property->value());
-    }
-
-    if (const Slot* adjacent = slot->first_adjacent().get() )
-    {
-        /*
-         * if the property has an input it means it is not a simple literal value and we have to compile it.
-         * In order to do that, we traverse the syntax tree starting from the node connected to it.
-         */
-        compile_node( adjacent->node );
-    }
+    compile_node( slot->node );
 }
 
 void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
@@ -178,24 +165,20 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
     }
     else
     {
-        // eval inputs
+        // Compile all the outputs connected to each _node inputs.
         for ( const Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
         {
             if( slot->adjacent_count() == 0)
             {
                 continue;
             }
-
-            SlotRef adjacent_slot = slot->first_adjacent();
-
-            // No need to recompile a variable (is compiled once, see compile_variable_node() )
-            if ( adjacent_slot.node->get_type()->is_not_child_of<VariableNode>() )
+            // Compile adjacent_output ( except if node is a Variable which is compiled once, see compile_variable_node() )
+            Slot* adjacent_output = slot->first_adjacent().get();
+            if ( !adjacent_output->node->get_type()->is<VariableNode>() )
             {
-                continue;
+                // Any other slot must be compiled recursively
+                compile_output_slot( adjacent_output );
             }
-
-            // Any other slot must be compiled recursively
-            compile_slot( slot );
         }
 
         // eval node
@@ -325,22 +308,24 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
 
 void assembly::Compiler::compile_instruction(const InstructionNode *instr_node)
 {
-    const Slot& root_slot = instr_node->root_slot();
+    const Slot& instruction_input = instr_node->root_slot();
 
-    // Compiles input
-    compile_slot( &root_slot );
-
-    // If necessary, copy adjacent node's value to rax register
-    Slot* adjacent_slot = root_slot.first_adjacent().get();
-    if( adjacent_slot == nullptr )
+    // Early return if nothing is connected
+    Slot* expression_output = instruction_input.first_adjacent().get();
+    if( expression_output == nullptr )
     {
         return;
     }
-    variant* root_node_value = adjacent_slot->get_node()->get_prop( VALUE_PROPERTY )->value();
+
+    // Compiles input
+    compile_output_slot( expression_output );
+
+    // Add instruction to copy the result in a register
+    variant* root_node_value = expression_output->get_node()->get_prop( VALUE_PROPERTY )->value();
     Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_qword );
     instr->uref.ptr        = root_node_value->data();
     instr->uref.type       = root_node_value->get_type();
-    instr->m_comment       = "de-reference ";
+    instr->m_comment       = "copy root's value ";
     instr->m_comment.append("(");
     instr->m_comment.append(instr->uref.type->get_name());
     instr->m_comment.append(")");
