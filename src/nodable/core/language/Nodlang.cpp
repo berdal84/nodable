@@ -1963,7 +1963,10 @@ std::shared_ptr<const iinvokable> Nodlang::find_function(const func_type* _type)
 
 std::string& Nodlang::serialize_property(std::string& _out, const Property* _property) const
 {
-    return _out.append("serialize_property not implemented");
+    _out.append(_property->token.prefix(), _property->token.prefix_size());
+    serialize_variant(_out, _property->value());
+    _out.append(_property->token.suffix(), _property->token.suffix_size());
+    return _out;
 }
 
 std::shared_ptr<const iinvokable> Nodlang::find_function_exact(const func_type *_signature) const
