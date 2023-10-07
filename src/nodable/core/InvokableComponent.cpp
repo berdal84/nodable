@@ -43,10 +43,12 @@ bool InvokableComponent::update()
     try
     {
         // Gather the variants from argument slots
+        // TODO: consider removing this dynamic allocation
+        //       we could simply dereference each Property within invoke()
         std::vector<fw::variant*> variants;
         for(auto& slot: m_argument_slot )
         {
-            variants.push_back( slot->first_adjacent()->get_property()->value() );
+            variants.push_back( slot->get_property()->value() );
         }
         FW_ASSERT( m_argument_slot.size() == variants.size())
         fw::variant result = m_invokable->invoke( variants );
