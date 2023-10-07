@@ -262,7 +262,7 @@ namespace fw
         { return get<T>(_id.id); }
 
         template<typename T>
-        inline std::vector<T*> get(std::vector<PoolID<T>> ids);
+        inline std::vector<T*> get(const std::vector<PoolID<T>>& ids);
 
         template<typename T>
         inline std::vector<T>& get_all();
@@ -315,14 +315,16 @@ namespace fw
     { return Pool::get_pool()->get<Type>( id.m_value ); }
 
     template<typename T>
-    inline std::vector<T*> Pool::get(std::vector<PoolID<T>> ids)
+    inline std::vector<T*> Pool::get(const std::vector<PoolID<T>>& ids)
     {
         static_assert__is_pool_registrable<T>();
         std::vector<T*> result(ids.size());
-        std::vector<T>* vector = get_pool_vector<T>()->template get<T>();
         for(size_t i = 0; i < ids.size(); ++i )
         {
-            result[i] = &(*vector)[ m_record_by_id[(u32_t)ids[i]].pos ];
+            const auto    record_id = (u32_t)ids[i];
+            const Record& record    = m_record_by_id[record_id];
+
+            result[i] = (T*)record.vector->at(record.pos);
         }
         return std::move(result);
     }
