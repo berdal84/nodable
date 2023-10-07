@@ -222,9 +222,9 @@ DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
     FW_EXPECT( fw::type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
 
     // case 1: merge orphan slot
-    if ( _in->get_node() == nullptr ) // if dependent is orphan
+    if ( _out->get_node() == nullptr ) // if dependent is orphan
     {
-        out_prop->digest( in_prop );
+        in_prop->digest( out_prop );
         delete in_prop;
         // set_dirty(); // no changes on edges/nodes
         return nullptr;
