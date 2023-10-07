@@ -48,7 +48,16 @@ bool InvokableComponent::update()
         std::vector<fw::variant*> variants;
         for(auto& slot: m_argument_slot )
         {
-            variants.push_back( slot->get_property()->value() );
+            Property* property = slot->get_property();
+            Slot*     adjacent = slot->first_adjacent().get();
+            if ( !property->is_ref() || adjacent == nullptr )
+            {
+                variants.push_back( property->value() );
+            }
+            else
+            {
+                variants.push_back( adjacent->get_property()->value() );
+            }
         }
         FW_ASSERT( m_argument_slot.size() == variants.size())
         fw::variant result = m_invokable->invoke( variants );
