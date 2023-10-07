@@ -312,6 +312,9 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
         {
             case SlotFlag_TYPE_HIERARCHICAL:
             {
+                // Ensure to Identify parent and child nodes
+                // - parent node has a CHILD slot
+                // - child node has a PARENT slot
                 Node* parent    = _first->get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
                 Node* new_child = _second->get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
                 FW_ASSERT( parent->has_component<Scope>())
