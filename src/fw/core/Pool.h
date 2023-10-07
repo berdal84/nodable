@@ -26,11 +26,8 @@ public: \
     PoolID<Class> poolid() const { return m_id; }; \
     void poolid(PoolID<Class> _id) { m_id = _id; }
 
-template<typename T>
-void static_assert__is_pool_registrable()
-{
-    static_assert( std::is_same_v<typename T::is_pool_registrable, std::true_type>, "This type is not pool registrable, use POOL_REGISTRABLE macros." );
-}
+#define STATIC_ASSERT__IS_POOL_REGISTRABLE(T) \
+static_assert( std::is_same_v<typename T::is_pool_registrable, std::true_type>, "This type is not pool registrable, use POOL_REGISTRABLE macros." );
 
 namespace fw
 {
@@ -112,39 +109,46 @@ namespace fw
     class IPoolVector
     {
     public:
-        IPoolVector(void* _data_ptr, size_t _elem_size)
+        IPoolVector(void* _data_ptr, size_t _elem_size, std::type_index _type_index)
         : m_vector_ptr( _data_ptr )
         , m_elem_size(_elem_size)
+        , m_type_index(_type_index)
         {}
 
         virtual ~IPoolVector() {};
-        virtual std::type_index type_index() const = 0;
-        virtual const char*     type_name() const = 0;
-        virtual void*  at(size_t _pos ) = 0;
-        virtual const void* at(size_t _pos ) const = 0;
         virtual size_t size() const = 0;
         virtual void   pop_back() = 0;
         virtual void   swap(size_t, size_t) = 0;
         virtual u32_t  poolid_at( size_t _pos ) const = 0;
 
+        inline std::type_index type_index() const
+        { return m_type_index; }
+
+        inline const char* type_name() const
+        { return  m_type_index.name(); }
+
+        inline void* operator[](size_t _pos) const
+        { return (void*)(get<char>().data() + m_elem_size * _pos); }
+
         template<class T, typename ...Args>
         inline T& emplace_back(Args ...args)
-        { return get<T>()->template emplace_back<>( args... ); }
+        { return get<T>().template emplace_back<>( args... ); }
 
         template<class T>
         inline T& emplace_back()
-        { return get<T>()->template emplace_back<>(); }
+        { return get<T>().template emplace_back<>(); }
 
         template<class T>
-        inline std::vector<T>* get()
-        { return (std::vector<T>*)m_vector_ptr; }
+        inline std::vector<T>& get()
+        { return *(std::vector<T>*)m_vector_ptr; }
 
         template<class T>
-        inline const std::vector<T>* get() const
-        { return (const std::vector<T>*)m_vector_ptr; }
+        inline const std::vector<T>& get() const
+        { return *(const std::vector<T>*)m_vector_ptr; }
     protected:
-        void*  m_vector_ptr;
-        size_t m_elem_size;
+        void*           m_vector_ptr;
+        size_t          m_elem_size;
+        std::type_index m_type_index;
     };
 
 
@@ -155,9 +159,8 @@ namespace fw
     {
     public:
         TPoolVector(size_t _capacity = 0)
-            : IPoolVector(&m_vector, sizeof(T))
+            : IPoolVector(&m_vector, sizeof(T), typeid(T))
             , m_vector()
-            , m_type_index{typeid(T)}
         {
             m_vector.reserve( _capacity );
         }
@@ -170,12 +173,6 @@ namespace fw
         TPoolVector(TPoolVector&&) = delete;
         TPoolVector& operator=(TPoolVector&&) = delete;
 
-        void* at( size_t _pos ) override
-        { return &m_vector.at( _pos ); };
-
-        const void* at( size_t _pos ) const override
-        { return  &m_vector.at( _pos ); };
-
         void swap( size_t _a, size_t _b ) override
         { std::swap( m_vector.at( _a ), m_vector.at( _b ) ); };
 
@@ -185,18 +182,11 @@ namespace fw
         size_t size() const override
         { return m_vector.size(); };
 
-        std::type_index type_index() const override
-        { return m_type_index; }
-
-        const char* type_name() const override
-        { return  m_type_index.name(); }
-
         u32_t poolid_at(size_t _pos) const override
         { return (u32_t)m_vector[_pos].poolid(); }
 
     private:
         std::vector<T> m_vector;
-        std::type_index m_type_index;
     };
 
     /**
@@ -248,13 +238,13 @@ namespace fw
         template<typename T>
         inline T* get(u32_t id)
         {
-            static_assert__is_pool_registrable<T>();
+            STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
             if ( id >= m_record_by_id.size() )
             {
                 return nullptr;
             }
             const auto [vector, pos, _] = m_record_by_id[id];
-            return static_cast<T*>( vector->at( pos ) );
+            return (T*)((*vector)[pos]);
         }
 
         template<typename T>
@@ -262,7 +252,10 @@ namespace fw
         { return get<T>(_id.id); }
 
         template<typename T>
-        inline std::vector<T*> get(const std::vector<PoolID<T>>& ids);
+        inline void get(std::vector<T*>& _out, const std::vector<PoolID<T>>& _ids);
+
+        template<typename T>
+        inline std::vector<T*> get(const std::vector<PoolID<T>>& _ids);
 
         template<typename T>
         inline std::vector<T>& get_all();
@@ -288,7 +281,10 @@ namespace fw
         inline PoolID<T> make_record(T* data, IPoolVector * vec, size_t pos );
 
         template<typename T>
-        inline IPoolVector *get_pool_vector();
+        inline IPoolVector* get_pool_vector();
+
+        template<typename T>
+        inline IPoolVector* find_or_init_pool_vector(); // prefer get_pool_vector if you are sure it exists
 
         u32_t generate_id()
         {
@@ -317,27 +313,35 @@ namespace fw
     template<typename T>
     inline std::vector<T*> Pool::get(const std::vector<PoolID<T>>& ids)
     {
-        static_assert__is_pool_registrable<T>();
-        std::vector<T*> result(ids.size());
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
+        std::vector<T*> result(ids.size()); // TODO: remove allocation? Add std::vector<T*>& _out ?
         for(size_t i = 0; i < ids.size(); ++i )
         {
-            const auto    record_id = (u32_t)ids[i];
-            const Record& record    = m_record_by_id[record_id];
-
-            result[i] = (T*)record.vector->at(record.pos);
+            result[i] = get(ids[i]);
         }
         return std::move(result);
     }
 
     template<typename T>
+    inline void Pool::get(std::vector<T*>& _out, const std::vector<PoolID<T>>& ids)
+    {
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
+        FW_ASSERT( ids.size() <= _out.size() );
+        for(size_t i = 0; i < ids.size(); ++i )
+        {
+            _out[i] = get(ids[i]);
+        }
+    }
+
+    template<typename T>
     inline std::vector<T>& Pool::get_all()
-    { return *get_pool_vector<T>()->template get<T>(); }
+    { return get_pool_vector<T>()->template get<T>(); }
 
     template<typename T, typename ...Args>
     inline PoolID<T> Pool::create(Args... args)
     {
-        static_assert__is_pool_registrable<T>();
-        auto*  vec   = get_pool_vector<T>();
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
+        auto*  vec   = find_or_init_pool_vector<T>();
         size_t index = vec->size();
         T*     data  = &vec->template emplace_back<T>(args...);
         PoolID<T> id = make_record(data, vec, index );
@@ -347,8 +351,8 @@ namespace fw
     template<typename T>
     inline PoolID<T> Pool::create()
     {
-        static_assert__is_pool_registrable<T>();
-        IPoolVector* pool_vector = get_pool_vector<T>();
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
+        IPoolVector* pool_vector = find_or_init_pool_vector<T>();
         T* data = &pool_vector->template emplace_back<T>();
         PoolID<T> id = make_record(data, pool_vector, pool_vector->size()-1 );
         return id;
@@ -357,7 +361,7 @@ namespace fw
     template<typename T>
     inline IPoolVector* Pool::init_for()
     {
-        static_assert__is_pool_registrable<T>();
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         auto type_id = std::type_index(typeid(T));
         FW_ASSERT( m_pool_vector_by_type.find(type_id) == m_pool_vector_by_type.end() );
         IPoolVector* new_pool_vector = new TPoolVector<T>( m_initial_capacity );
@@ -368,7 +372,14 @@ namespace fw
     template<typename T>
     inline IPoolVector * Pool::get_pool_vector()
     {
-        static_assert__is_pool_registrable<T>();
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
+        return m_pool_vector_by_type[typeid(T)];
+    }
+
+    template<typename T>
+    inline IPoolVector * Pool::find_or_init_pool_vector()
+    {
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         auto type_id = std::type_index(typeid(T));
         // TODO: use operator[] instead of find() and force user to call init_for<T>() manually
         auto it = m_pool_vector_by_type.find( type_id );
@@ -406,14 +417,14 @@ namespace fw
     template<typename T>
     inline void Pool::destroy(T* ptr)
     {
-        static_assert__is_pool_registrable<T>();
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         destroy(ptr->poolid());
     }
 
     template<typename T>
     inline void Pool::destroy(PoolID<T> _id )
     {
-        static_assert__is_pool_registrable<T>();
+        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         Record& record_to_delete = m_record_by_id[(u32_t)_id];
         size_t  last_pos         = record_to_delete.vector->size() - 1;
         size_t  pos_to_delete    = record_to_delete.pos;

@@ -70,7 +70,6 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
 
     if( VECTOR )
     {
-
         for ( auto _ : state )
         {
             // benchmark begin
@@ -85,12 +84,14 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
     }
     else
     {
+        std::vector<DataPool<128>*> pointers;
         for ( auto _ : state )
         {
             // benchmark begin
-            for( PoolID<DataPool<128>>& id : ids )
+            pointers.resize(ids.size()); // note: we know that this will cost a dynamic alloc once per benchmark and not each call.
+            pool->get(pointers, ids);
+            for( DataPool<128>* each : pointers )
             {
-                DataPool<128>* each = id.get();
                 each->data[0] = 'X';
                 each->data[63] = 'Y';
                 each->data[127] = 'Z';
