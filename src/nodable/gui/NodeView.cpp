@@ -939,7 +939,11 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
     auto inputs   = get_adjacent(SlotFlag_INPUT);
     std::for_each( inputs.begin()  , inputs.end()  , enlarge_to_fit_all);
 
-    fw::ImGuiEx::DebugRect(result_rect.Min, result_rect.Max, IM_COL32( 0, 255, 0, 255 ),4 );
+#ifdef NDBL_DEBUG
+    ImRect screen_rect = result_rect;
+    screen_rect.Translate( get_position(Space_Screen) - get_position(Space_Local) );
+    fw::ImGuiEx::DebugRect(screen_rect.Min, screen_rect.Max, IM_COL32( 0, 255, 0, 60 ), 2 );
+#endif
 
     return result_rect;
 }

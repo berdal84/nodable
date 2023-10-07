@@ -54,8 +54,8 @@ void NodeViewConstraint::apply(float _dt)
             for (auto each_driver: clean_drivers)
             {
                 fw::ImGuiEx::DebugLine(
-                        each_driver->get_position(fw::Space_Local),
-                        each_target->get_position(fw::Space_Local),
+                        each_driver->get_position(fw::Space_Screen),
+                        each_target->get_position(fw::Space_Screen),
                         IM_COL32(0, 0, 255, 30), 1.0f);
             }
         }
