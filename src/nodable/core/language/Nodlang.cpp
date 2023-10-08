@@ -1489,20 +1489,6 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
 
     if (_component.is_operator())
     {
-        /** Serialize an edge optionally wrapped with braces */
-        auto _serialize_edge = [this, &_out](const Slot& slot, bool needs_brackets)
-        {
-            FW_ASSERT(slot.flags == SlotFlag_INPUT)
-            if (!needs_brackets)
-            {
-                serialize_input( _out, slot );
-                return;
-            }
-            serialize_token_t(_out, Token_t::parenthesis_open);
-            serialize_input( _out, slot );
-            serialize_token_t(_out, Token_t::parenthesis_close);
-        };
-
         const std::vector<SlotRef>& args = _component.get_arguments();
         int precedence = get_precedence(_component.get_function());
 
@@ -1512,9 +1498,13 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
             {
                 // Left part of the expression
                 {
+                {
                     auto l_handed_invokable = owner->get_connected_invokable(LEFT_VALUE_PROPERTY);
-                    bool needs_brackets = l_handed_invokable && get_precedence(l_handed_invokable) < precedence;
-                    _serialize_edge( *args[0], needs_brackets );
+                    bool needs_braces = l_handed_invokable && get_precedence(l_handed_invokable) < precedence;
+                    SerializeFlags flags = SerializeFlag_RECURSE
+                                         | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
+                    serialize_input( _out, *args[0], flags );
+                }
                 }
 
                 // Operator
@@ -1529,10 +1519,11 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
 
                 // Right part of the expression
                 {
-                    // TODO: needs_brackets could be deduced if we pass args[1] to the function
                     auto r_handed_invokable = owner->get_connected_invokable(RIGHT_VALUE_PROPERTY);
-                    bool needs_brackets = r_handed_invokable && get_precedence(r_handed_invokable) < precedence;
-                    _serialize_edge( *args[1], needs_brackets );
+                    bool needs_braces = r_handed_invokable && get_precedence(r_handed_invokable) < precedence;
+                    SerializeFlags flags = SerializeFlag_RECURSE
+                                         | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
+                    serialize_input( _out, *args[1], flags );
                 }
                 break;
             }
@@ -1555,8 +1546,10 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
                     _out.append(type->get_identifier());
                 }
 
-                bool has_nested_operator = owner->get_connected_invokable(LEFT_VALUE_PROPERTY);
-                _serialize_edge( *args[0], has_nested_operator );
+                bool needs_braces    = owner->get_connected_invokable(LEFT_VALUE_PROPERTY) != nullptr;
+                SerializeFlags flags = SerializeFlag_RECURSE
+                                     | needs_braces * SerializeFlag_WRAP_WITH_BRACES;
+                serialize_input( _out, *args[0], flags );
                 break;
             }
         }
@@ -1569,7 +1562,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     return _out;
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<SlotRef> inputs) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<SlotRef> &inputs) const
 {
     _out.append(_signature->get_identifier());
     serialize_token_t(_out, Token_t::parenthesis_open);
@@ -1671,30 +1664,39 @@ std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *va
     return _out.append(variant_string);
 }
 
-std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, bool recursively) const
+std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, SerializeFlags _flags ) const
 {
     FW_ASSERT(_slot.flags == SlotFlag_INPUT);
     const Property* property      = _slot.get_property();
     const Slot*     adjacent_slot = _slot.first_adjacent().get();
-    FW_ASSERT( adjacent_slot != nullptr )
+
+    // In case the input slot is not connected we simply serialize the slot's related property
+    if( adjacent_slot == nullptr ) {
+        return serialize_property(_out, _slot.get_property());
+    }
+
     const Property* adjacent_property = adjacent_slot->get_property();
+    FW_ASSERT(adjacent_property != nullptr)
 
     // specific case of a Node*
     if ( adjacent_property->is_this() && adjacent_property->value()->is_initialized() )
     {
-        return serialize_node(_out, (PoolID<const Node>)*adjacent_property->value() );
+        return serialize_node( _out, (PoolID<const Node>) *adjacent_property->value(), _flags );
     }
+
+    if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_open);
 
     if (!adjacent_property->token.is_null())
     {
         _out.append( adjacent_property->token.prefix_to_string()); // FIXME: avoid std::string copy
     }
 
-    if ( auto* variable_node = fw::cast<VariableNode>( _slot.get_node() ) )
+    // If adjacent node is a variable, we only serialize its name (no need for recursion)
+    if ( auto* variable_node = fw::cast<VariableNode>( adjacent_slot->get_node() ) )
     {
-        _out.append( _slot.get_node()->name );
+        _out.append( variable_node->name );
     }
-    else if ( recursively && adjacent_slot )
+    else if ( _flags & SerializeFlag_RECURSE && adjacent_slot )
     {
         serialize_output( _out, *adjacent_slot );
     }
@@ -1707,23 +1709,25 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, bool
     {
         _out.append( adjacent_property->token.suffix_to_string()); // FIXME: avoid std::string copy
     }
+    if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_close);
     return _out;
 }
 
-std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, bool recursively) const
+std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, SerializeFlags _flags) const
 {
     /** This method is work in progress
      * It works only if the given slot is an output of a VALUE_PROPERTY.
      * This means we need to serialize the node itself */
     FW_ASSERT( _slot.flags == SlotFlag_OUTPUT )
     FW_ASSERT( _slot.get_property() == _slot.node->get_prop(VALUE_PROPERTY) )
-    return serialize_node(_out, _slot.node);
+    return serialize_node( _out, _slot.node, _flags );
 }
 
-std::string& Nodlang::serialize_node(std::string &_out, PoolID<const Node> node_id) const
+std::string & Nodlang::serialize_node( std::string &_out, const PoolID<const Node> &node_id, SerializeFlags _flags ) const
 {
     const Node* node = node_id.get();
     FW_ASSERT( node )
+    FW_ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
     if ( node->get_type()->is<InstructionNode>() )
     {
@@ -1775,7 +1779,7 @@ std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) co
     serialize_token(_out, _scope->token_begin);
     for (const PoolID<Node>& child : _scope->get_owner()->children() )
     {
-        serialize_node(_out, child);
+        serialize_node( _out, child);
     }
     return serialize_token(_out, _scope->token_end);
 }
@@ -1785,7 +1789,7 @@ std::string& Nodlang::serialize_instr(std::string &_out, PoolID<const Instructio
     const Slot& root = instruction->root_slot();
     if ( root.adjacent_count() != 0 )
     {
-        serialize_node(_out, root.first_adjacent()->node );
+        serialize_input( _out, root );
     }
 
     return serialize_token(_out, instruction->token_end);
@@ -1936,7 +1940,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const Conditional
         serialize_token(_out, _condStruct->token_else);
         if ( const Scope* else_scope = _condStruct->get_condition_false_scope().get() )
         {
-            serialize_node(_out, else_scope->get_owner() );
+            serialize_node( _out, else_scope->get_owner() );
         }
     }
     return _out;

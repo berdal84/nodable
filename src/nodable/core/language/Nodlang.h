@@ -98,16 +98,23 @@ namespace ndbl{
 
         // Serializer ------------------------------------------------------------------
     public:
+        typedef int SerializeFlags;
+        enum SerializeFlag_ {
+            SerializeFlag_NONE             = 0,
+            SerializeFlag_RECURSE          = 1 << 0,
+            SerializeFlag_WRAP_WITH_BRACES = 1 << 1
+        };
+
         std::string& serialize_invokable(std::string&_out, const InvokableComponent &_component) const;
-        std::string& serialize_func_call(std::string& _out, const fw::func_type *_signature, const std::vector<SlotRef> inputs)const;
+        std::string& serialize_func_call(std::string& _out, const fw::func_type *_signature, const std::vector<SlotRef> &inputs)const;
         std::string& serialize_func_sig(std::string& _out, const fw::func_type*)const;
         std::string& serialize_token_t(std::string& _out, const Token_t&)const;
         std::string& serialize_token(std::string& _out, const Token &) const;
         std::string& serialize_type(std::string& _out, const fw::type*) const;
-        std::string& serialize_input(std::string& _out, const Slot &_slot, bool recursively = true)const;
-        std::string& serialize_output(std::string& _out, const Slot &_slot, bool recursively = true)const;
+        std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_RECURSE )const;
+        std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_RECURSE )const;
         std::string& serialize_instr(std::string& _out, PoolID<const InstructionNode> _instruction)const;
-        std::string& serialize_node(std::string& _out, PoolID<const Node> _node)const;
+        std::string& serialize_node( std::string &_out, const PoolID<const Node> &_node, SerializeFlags _flags = SerializeFlag_RECURSE ) const;
         std::string& serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
         std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;

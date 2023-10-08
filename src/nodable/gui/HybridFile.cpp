@@ -120,7 +120,7 @@ UpdateResult HybridFile::update_text_from_graph(bool isolate_selection)
         return UpdateResult::SUCCES_WITHOUT_CHANGES;
     }
     std::string code;
-    Nodlang::get_instance().serialize_node(code, root_node);
+    Nodlang::get_instance().serialize_node( code, root_node );
     isolate_selection ? view.replace_selected_text(code)
                       : view.replace_text(code);
     return UpdateResult::SUCCESS_WITH_CHANGES;
