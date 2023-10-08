@@ -299,6 +299,13 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
 
     // Insert edge
     SlotFlags type = _first->type();
+    #ifdef NDBL_DEBUG
+        if( type == SlotFlag_TYPE_HIERARCHICAL)
+        {
+            FW_ASSERT( _first->node->get_parent() != _second->node )
+            FW_ASSERT( _first->node != _second->node->get_parent() )
+        }
+    #endif
     auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{*_first, *_second});
 
     // Add cross-references to each end of the edge
@@ -384,8 +391,8 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                 if ( prev_node->has_component<Scope>() )
                 {
                     connect(
-                            prev_node->find_slot( SlotFlag_PARENT ),
-                            next_node->find_slot( SlotFlag_CHILD ));
+                            next_node->find_slot( SlotFlag_PARENT ),
+                            prev_node->find_slot( SlotFlag_CHILD ));
                 }
                 // If next node parent exists, connects next_node as a child too
                 else if ( Node* prev_parent_node = prev_node->get_parent().get() )

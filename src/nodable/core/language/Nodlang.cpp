@@ -638,8 +638,8 @@ PoolID<Node> Nodlang::parse_scope()
         PoolID<Node>  scope_node = parser_state.graph->create_scope();
         PoolID<Scope> scope      = scope_node->get_component<Scope>();
         /*
-         * link scope with parent_scope.
-         * They must be linked in order to find_variables recursively.
+         * If a parent scope exists, we add this new scope as a child of it.
+         * It is necessary to keep nested scopes to help find_variables recursively.
          */
         Scope* parent_scope = get_current_scope().get();
         if (parent_scope)
