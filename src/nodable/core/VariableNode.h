@@ -45,6 +45,8 @@ namespace ndbl
         const fw::variant& operator * () const { return *property()->value(); }
         const fw::variant* operator -> () const { return property()->value(); }
 
+        const Slot &input_slot() const;
+
     public:
         Token  type_token;
         Token  assignment_operator_token;

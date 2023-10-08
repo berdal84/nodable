@@ -26,6 +26,8 @@ namespace ndbl
         SlotRef(const Slot&);
         SlotRef& operator=(const SlotRef& other);
         SlotRef& operator=(SlotRef&& other);
+        Slot& operator * () { return *get(); }
+        const Slot& operator * () const { return *get(); }
         bool operator!=(const SlotRef & other) const;
         bool operator==(const SlotRef & other) const;
         Slot* get() const;

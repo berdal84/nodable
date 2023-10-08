@@ -76,3 +76,8 @@ const Property* VariableNode::property() const
     FW_ASSERT(p != nullptr)
     return p;
 }
+
+const Slot& VariableNode::input_slot() const
+{
+    return *find_slot( m_value_property_id, SlotFlag_INPUT );
+}
