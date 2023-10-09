@@ -609,7 +609,7 @@ PoolID<Node> Nodlang::parse_program()
     PoolID<Scope> program_scope = root->get_component<Scope>();
     parser_state.scope.emplace(program_scope);
 
-    parse_code_block(program_scope);// we do not check if we parsed something empty or not, a program can be empty.
+    parse_code_block();// we do not check if we parsed something empty or not, a program can be empty.
 
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
     FW_ASSERT(program_scope->token_begin.is_null())
@@ -625,96 +625,80 @@ PoolID<Node> Nodlang::parse_program()
 
 PoolID<Node> Nodlang::parse_scope()
 {
-    PoolID<Node> result;
+    auto scope_begin_token = parser_state.ribbon.eat_if(Token_t::scope_begin);
+    if ( !scope_begin_token )
+    {
+        return {};
+    }
 
     start_transaction();
 
-    if (parser_state.ribbon.eat_if(Token_t::scope_begin).is_null())
+    PoolID<Node>  curr_scope_node   = get_current_scope_node();
+    PoolID<Node>  new_scope_node    = parser_state.graph->create_scope();
+    PoolID<Scope> new_scope         = new_scope_node->get_component<Scope>();
+
+    /*
+     * If a parent new_scope exists, we add this new new_scope as a child of it.
+     * It is necessary to keep nested scopes to help find_variables recursively.
+     */
+    if ( curr_scope_node )
     {
+        parser_state.graph->connect(
+                curr_scope_node->find_slot( SlotFlag_CHILD ),
+                new_scope_node->find_slot( SlotFlag_PARENT ),
+                ConnectFlag_ALLOW_SIDE_EFFECTS );
+    }
+
+    parser_state.scope.push( new_scope );
+    parse_code_block();
+    parser_state.scope.pop();
+
+    auto scope_end_token = parser_state.ribbon.eat_if(Token_t::scope_end);
+    if ( !scope_end_token )
+    {
+        parser_state.graph->destroy( new_scope_node );
         rollback_transaction();
+        return {};
     }
-    else
-    {
-        PoolID<Node>  scope_node = parser_state.graph->create_scope();
-        PoolID<Scope> scope      = scope_node->get_component<Scope>();
-        /*
-         * If a parent scope exists, we add this new scope as a child of it.
-         * It is necessary to keep nested scopes to help find_variables recursively.
-         */
-        Scope* parent_scope = get_current_scope().get();
-        if (parent_scope)
-        {
-            PoolID<Node> parent_scope_node = parent_scope->get_owner();
-            parser_state.graph->connect(
-                    parent_scope_node->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-                    scope_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
-                    ConnectFlag_ALLOW_SIDE_EFFECTS );
-        }
 
-        parser_state.scope.emplace(scope);
+    new_scope->token_begin = scope_begin_token;
+    new_scope->token_end   = scope_end_token;
+    commit_transaction();
 
-        scope->token_begin = parser_state.ribbon.get_eaten();
-
-        parse_code_block( get_current_scope() );
-
-        if (parser_state.ribbon.eat_if(Token_t::scope_end).is_null())
-        {
-            parser_state.graph->destroy( scope_node );
-            rollback_transaction();
-            result.reset();
-        }
-        else
-        {
-            scope->token_end = parser_state.ribbon.get_eaten();
-            commit_transaction();
-            result = scope_node->poolid();
-        }
-
-        parser_state.scope.pop();
-    }
-    return result;
+    return new_scope_node;
 }
 
-PoolID<Scope> Nodlang::parse_code_block(PoolID<Scope> curr_scope)
+void Nodlang::parse_code_block()
 {
-    FW_ASSERT(curr_scope);
-
     start_transaction();
 
-    while (parser_state.ribbon.can_eat())
+    bool block_end_reached = false;
+    while ( parser_state.ribbon.can_eat() && !block_end_reached )
     {
-        if ( InstructionNode* instr_node = parse_instr().get() )
+        if ( auto instruction = parse_instr() )
         {
             // Create parent/child connection
-            Slot* out = get_current_scope_node()->find_slot( THIS_PROPERTY, SlotFlag_CHILD );
-            Slot* in  = instr_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT );
-            parser_state.graph->connect( out, in, ConnectFlag_ALLOW_SIDE_EFFECTS );
-            continue;
+            parser_state.graph->connect(
+                    get_current_scope_node()->find_slot( SlotFlag_CHILD ),
+                    instruction->find_slot( SlotFlag_PARENT ),
+                    ConnectFlag_ALLOW_SIDE_EFFECTS );
         }
-
-        if (
+        else if (
             parse_conditional_structure() ||
             parse_for_loop() ||
             parse_while_loop() ||
             parse_scope()
         )
+        {}
+        else
         {
-            continue;
+            block_end_reached = true;
         }
-
-        break;
     }
 
-    if ( curr_scope->get_owner()->children().empty() )
-    {
-        rollback_transaction();
-        return PoolID<Scope>::null;
-    }
-    else
-    {
-        commit_transaction();
-        return curr_scope;
-    }
+    bool is_empty = get_current_scope_node()->children().empty();
+    return  is_empty ? rollback_transaction()
+                     : commit_transaction();
 }
 
 Slot* Nodlang::parse_expression(u8_t _precedence, Slot* _left_override)
@@ -1178,57 +1162,56 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
 
     bool success = false;
     PoolID<InstructionNode>       condition;
-    PoolID<Node>                  scopeIf;
+    PoolID<Node> condition_true_scope_node;
     PoolID<ConditionalStructNode> conditional_struct_node;
     PoolID<ConditionalStructNode> else_cond_struct;
 
     Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
-    if ( if_token.is_null() )
+    if ( !if_token )
     {
         return PoolID<ConditionalStructNode>::null;
     }
 
     conditional_struct_node = parser_state.graph->create_cond_struct();
-    Node* scope_node = get_current_scope()->get_owner().get();
 
     parser_state.graph->connect(
-            scope_node->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-            conditional_struct_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
+            get_current_scope_node()->find_slot( SlotFlag_CHILD ),
+            conditional_struct_node->find_slot( SlotFlag_PARENT ),
             ConnectFlag_ALLOW_SIDE_EFFECTS );
-    parser_state.scope.push(conditional_struct_node->get_component<Scope>()->poolid());
+    parser_state.scope.emplace(conditional_struct_node->get_component<Scope>()->poolid());
 
     conditional_struct_node->token_if  = parser_state.ribbon.get_eaten();
 
-    if (!parser_state.ribbon.eat_if(Token_t::parenthesis_open).is_null())
+    if ( parser_state.ribbon.eat_if(Token_t::parenthesis_open) )
     {
-        bool empty_parenthesis = !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null();
-        if (!empty_parenthesis && (condition = parse_instr()))
+        auto empty_condition = (bool)parser_state.ribbon.eat_if(Token_t::parenthesis_close);
+        if ( !empty_condition && (condition = parse_instr()))
         {
             condition->set_name("Condition");
             condition->set_name("Cond.");
             conditional_struct_node->cond_expr = condition;
             parser_state.graph->connect_or_merge(
-                    condition->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
+                    condition->find_slot( SlotFlag_OUTPUT ),
                     conditional_struct_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
         }
 
-        if ( empty_parenthesis || ( condition.get() && !parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null()))
+        if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
         {
-            scopeIf = parse_scope();
-            if ( scopeIf.get() != nullptr )
+            condition_true_scope_node = parse_scope();
+            if ( condition_true_scope_node )
             {
-                if (!parser_state.ribbon.eat_if(Token_t::keyword_else).is_null())
+                if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
                 {
                     conditional_struct_node->token_else = parser_state.ribbon.get_eaten();
 
-                    /* parse else scope */
-                    if ( parse_scope().get() )
+                    /* parse "else" scope */
+                    if ( parse_scope() )
                     {
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
                         success = true;
                     }
-                        /* (or) parse else if scope */
-                    else if ( parse_conditional_structure().get() )
+                    /* or parse "else if" conditional structure */
+                    else if ( parse_conditional_structure() )
                     {
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
                         success = true;
@@ -1258,12 +1241,15 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
 
     if (success)
     {
+#ifdef NDBL_DEBUG
+        FW_ASSERT( conditional_struct_node->get_condition_true_scope()->get_owner() == condition_true_scope_node )
+#endif
         commit_transaction();
         return conditional_struct_node;
     }
 
     parser_state.graph->destroy( else_cond_struct );
-    parser_state.graph->destroy( scopeIf );
+    parser_state.graph->destroy( condition_true_scope_node );
     parser_state.graph->destroy( condition );
     parser_state.graph->destroy(conditional_struct_node);
     rollback_transaction();
@@ -1282,10 +1268,10 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
     {
         for_loop_node = parser_state.graph->create_for_loop();
         parser_state.graph->connect(
-                get_current_scope()->get_owner()->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-                for_loop_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
+                get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
+                for_loop_node->find_slot( SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.scope.push(for_loop_node->get_component<Scope>()->poolid());
+        parser_state.scope.emplace(for_loop_node->get_component<Scope>()->poolid());
 
         for_loop_node->token_for = token_for;
 
@@ -1297,32 +1283,32 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
         } else
         {
             PoolID<InstructionNode> init_instr = parse_instr();
-            if (!init_instr.get())
+            if (!init_instr)
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
             } else
             {
                 init_instr->set_name("Initialisation");
                 parser_state.graph->connect_or_merge(
-                        init_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
+                        init_instr->find_slot( SlotFlag_OUTPUT ),
                         for_loop_node->find_slot( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
                 for_loop_node->init_instr = init_instr;
 
                 PoolID<InstructionNode> cond_instr = parse_instr();
-                if (!cond_instr.get())
+                if (!cond_instr)
                 {
                     LOG_ERROR("Parser", "Unable to find condition instruction.\n")
                 } else
                 {
                     cond_instr->set_name("Condition");
                     parser_state.graph->connect_or_merge(
-                            cond_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
+                            cond_instr->find_slot( SlotFlag_OUTPUT ),
                             for_loop_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
 
                     for_loop_node->cond_instr = cond_instr;
 
                     PoolID<InstructionNode> iter_instr = parse_instr();
-                    if (!iter_instr.get())
+                    if (!iter_instr)
                     {
                         LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
                     }
@@ -1330,7 +1316,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                     {
                         iter_instr->set_name("Iteration");
                         parser_state.graph->connect_or_merge(
-                                iter_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
+                                iter_instr->find_slot( SlotFlag_OUTPUT ),
                                 for_loop_node->find_slot( ITERATION_PROPERTY, SlotFlag_INPUT ) );
                         for_loop_node->iter_instr = iter_instr;
 
@@ -1338,10 +1324,12 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                         if (close_bracket.is_null())
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
-                        } else if (!parse_scope().get())
+                        }
+                        else if (!parse_scope())
                         {
                             LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
-                        } else
+                        }
+                        else
                         {
                             success = true;
                         }
@@ -1355,7 +1343,8 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
     if (success)
     {
         commit_transaction();
-    } else
+    }
+    else
     {
         rollback_transaction();
         parser_state.graph->destroy( for_loop_node );
@@ -1377,8 +1366,8 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
     {
         while_loop_node = parser_state.graph->create_while_loop();
         parser_state.graph->connect(
-                get_current_scope()->get_owner()->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-                while_loop_node->find_slot( THIS_PROPERTY, SlotFlag_PARENT ),
+                get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
+                while_loop_node->find_slot( SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
         parser_state.scope.push(while_loop_node->get_component<Scope>() );
 
@@ -1395,15 +1384,15 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
             cond_instr->set_name("Condition");
             while_loop_node->cond_instr = cond_instr->poolid();
             parser_state.graph->connect_or_merge(
-                    cond_instr->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
+                    cond_instr->find_slot( SlotFlag_OUTPUT ),
                     while_loop_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
-            if (close_bracket.is_null())
+            if ( close_bracket.is_null() )
             {
                 LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n")
             }
-            else if (!parse_scope().get())
+            else if (!parse_scope())
             {
                 LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n")
             }
@@ -1471,7 +1460,7 @@ Slot* Nodlang::parse_variable_declaration()
         }
 
         commit_transaction();
-        return variable_id->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT );
+        return variable_id->find_slot( SlotFlag_OUTPUT );
     }
 
     rollback_transaction();
@@ -1821,32 +1810,9 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     const Slot& cond_slot = *_for_loop->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT );
     const Slot& iter_slot = *_for_loop->find_slot( ITERATION_PROPERTY, SlotFlag_INPUT );
 
-    const Slot* init_slot_adjacent = init_slot.first_adjacent().get();
-    const Slot* cond_slot_adjacent = cond_slot.first_adjacent().get();
-    const Slot* iter_slot_adjacent = iter_slot.first_adjacent().get();
-
-    if( init_slot_adjacent != nullptr )
-    {
-        Node* adjacent_node = init_slot_adjacent->node.get();
-        if ( adjacent_node->get_type()->is<VariableNode>() )
-        {
-            serialize_variable(_out, fw::cast<VariableNode>(adjacent_node) );
-        }
-        else
-        {
-            serialize_input( _out, *init_slot_adjacent );
-        }
-    }
-
-    if( cond_slot_adjacent != nullptr )
-    {
-        serialize_input( _out, *cond_slot_adjacent );
-    }
-
-    if( iter_slot_adjacent != nullptr )
-    {
-        serialize_input( _out, *iter_slot_adjacent );
-    }
+    serialize_input( _out, init_slot );
+    serialize_input( _out, cond_slot );
+    serialize_input( _out, iter_slot );
 
     serialize_token_t(_out, Token_t::parenthesis_close);
 
@@ -1900,30 +1866,30 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 }
 
 
-std::string &Nodlang::serialize_cond_struct(std::string &_out, const ConditionalStructNode *_condStruct) const
+std::string &Nodlang::serialize_cond_struct(std::string &_out, const ConditionalStructNode *_condition_struct ) const
 {
     // if ...
-    if (_condStruct->token_if.is_null())
+    if ( _condition_struct->token_if.is_null())
     {
         serialize_token_t(_out, Token_t::keyword_if);
     }
     else
     {
-        serialize_token(_out, _condStruct->token_if);
+        serialize_token(_out, _condition_struct->token_if);
     }
 
     // ... ( <condition> )
     serialize_token_t(_out, Token_t::parenthesis_open);
-    if ( PoolID<const InstructionNode> condition = _condStruct->cond_expr )
+    if ( PoolID<const InstructionNode> condition = _condition_struct->cond_expr )
     {
         serialize_instr(_out, condition);
     }
     serialize_token_t(_out, Token_t::parenthesis_close);
 
     // ... ( ... ) <scope>
-    if ( const Scope* ifScope = _condStruct->get_condition_true_scope().get() )
+    if ( PoolID<Scope> scope = _condition_struct->get_condition_true_scope() )
     {
-        serialize_scope(_out, ifScope);
+        serialize_scope(_out, scope.get() );
     }
     else
     {
@@ -1935,10 +1901,10 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const Conditional
     }
 
     // else & else scope
-    if ( !_condStruct->token_else.is_null() )
+    if ( _condition_struct->token_else )
     {
-        serialize_token(_out, _condStruct->token_else);
-        if ( const Scope* else_scope = _condStruct->get_condition_false_scope().get() )
+        serialize_token(_out, _condition_struct->token_else);
+        if ( const Scope* else_scope = _condition_struct->get_condition_false_scope().get() )
         {
             serialize_node( _out, else_scope->get_owner() );
         }

@@ -31,10 +31,10 @@ void ForLoopNode::init()
 
 PoolID<Scope> ForLoopNode::get_condition_true_scope() const
 {
-    return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag::SlotFlag_NEXT, 0);
+    return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag_NEXT, 0);
 }
 
 PoolID<Scope> ForLoopNode::get_condition_false_scope() const
 {
-    return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag::SlotFlag_NEXT, 1);
+    return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag_NEXT, 1);
 }

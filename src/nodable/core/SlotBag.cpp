@@ -32,28 +32,23 @@ const Slot* SlotBag::_find_by_property(ID<Property> property_id, SlotFlags _flag
 
 Slot* SlotBag::find_adjacent_at( SlotFlags flags, u8_t _index ) const
 {
-    size_t count{0};
+    size_t cursor_pos{0};
     for (auto& slot : m_slots)
     {
-        if( (slot & flags) == flags )
+        // Skip any slot not compatible with given flags
+        if( (slot.flags & flags) != flags )
         {
             continue;
         }
 
-        if( count + slot.adjacent.size() < _index )
+        // if the position is in the range of this slot, we return the item
+        size_t local_pos = (size_t)_index - cursor_pos;
+        if ( local_pos < slot.adjacent.size() )
         {
-            count += slot.adjacent.size();
-            continue;
+            return slot.adjacent[local_pos].get();
         }
-
-        for (const auto& edge: slot.adjacent )
-        {
-            if ( count == _index)
-            {
-                return edge.get();
-            }
-            count++;
-        }
+        // increase counter
+        cursor_pos += slot.adjacent.size();
     }
     return nullptr;
 }

@@ -213,6 +213,8 @@ PoolID<Node> NodeFactory::create_program() const
 {
     PoolID<Node> node = create_scope(); // A program is a main scope.
     node->set_name(ICON_FA_FILE_CODE " Program");
+    node->set_slot_capacity(SlotFlag_PREV, 0);
+    node->set_slot_capacity(SlotFlag_PARENT, 0);
 
     m_post_process(node);
     return node;

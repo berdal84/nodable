@@ -27,41 +27,35 @@ Scope::Scope()
 
 PoolID<VariableNode> Scope::find_variable(const std::string &_name)
 {
-    PoolID<VariableNode> result;
-
     /*
      * Try first to find in this scope
      */
-    auto has_name = [&_name](PoolID<VariableNode> _variable ) -> bool
+    auto it = std::find_if(
+            m_variables.begin(),
+            m_variables.end(),
+            [&_name](PoolID<VariableNode> _variable ) -> bool
     {
         return _variable->name == _name;
-    };
+    });
 
-    auto it = std::find_if(m_variables.begin(), m_variables.end(), has_name);
-    if (it != m_variables.end()){
-        result = *it;
-    }
-
-    if ( result.get() != nullptr )
+    if (it != m_variables.end())
     {
-        return result;
+        return *it;
     }
 
     /*
      * In case not found, find recursively
      */
-    Node* owner = m_owner.get();
-    Node* parent = owner->get_parent().get();
-    FW_ASSERT(parent != owner);
-
+    PoolID<Node> parent = m_owner->get_parent();
+    FW_ASSERT(parent != m_owner);
     if ( !parent )
     {
-        return fw::PoolID<Node>::null;
+        return {};
     }
     PoolID<Scope> scope = parent->get_component<Scope>();
     if ( !scope )
     {
-        return PoolID<VariableNode>::null;
+        return {};
     }
     FW_ASSERT(scope != m_id);
     return scope->find_variable( _name );

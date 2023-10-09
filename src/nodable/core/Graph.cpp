@@ -294,18 +294,15 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
         std::swap(_first, _second);
     }
 
+#ifdef NDBL_DEBUG
     FW_ASSERT( _first->flags & SlotFlag_ORDER_FIRST  )
     FW_ASSERT( _second->flags & SlotFlag_ORDER_SECOND )
+    FW_ASSERT( _first->node != _second->node )
+#endif
 
     // Insert edge
     SlotFlags type = _first->type();
-    #ifdef NDBL_DEBUG
-        if( type == SlotFlag_TYPE_HIERARCHICAL)
-        {
-            FW_ASSERT( _first->node->get_parent() != _second->node )
-            FW_ASSERT( _first->node != _second->node->get_parent() )
-        }
-    #endif
+
     auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{*_first, *_second});
 
     // Add cross-references to each end of the edge

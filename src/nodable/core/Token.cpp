@@ -128,7 +128,7 @@ Token::Token(Token&& other)
     *this = std::move( other );
 };
 
-Token& Token::operator=(Token&& other)
+Token& Token::operator=(Token&& other) noexcept
 {
     if( this == &other )
     {
@@ -159,6 +159,8 @@ Token& Token::operator=(Token&& other)
 
 Token& Token::operator=(const Token& other)
 {
+    if( this == &other) return *this;
+
     if( m_is_source_buffer_owned )
     {
         delete[] this->m_source_buffer;

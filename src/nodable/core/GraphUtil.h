@@ -11,8 +11,6 @@ namespace ndbl
     class GraphUtil
     {
     public:
-        static VariableNode* get_connected_variable(const Node*, Property* );
-
         template<typename ComponentT>
         static PoolID<ComponentT> adjacent_component_at(const Node* _node, SlotFlags _flags, u8_t _pos)
         {
@@ -59,7 +57,7 @@ namespace ndbl
             {
                 return adjacent_slot->node;
             }
-            return PoolID<Node>::null;
+            return {};
         }
     };
 }

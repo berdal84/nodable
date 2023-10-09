@@ -76,6 +76,7 @@ namespace ndbl {
         size_t               adjacent_count(SlotFlags )const;
         PoolID<Node>         get_parent() const;
         Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
+        const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
         Slot&                get_slot(ID8<Slot>);
         Slot*                find_slot(ID<Property>, SlotFlags );
         const Slot*          find_slot(ID<Property>, SlotFlags ) const;

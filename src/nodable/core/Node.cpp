@@ -174,6 +174,11 @@ Slot* Node::find_slot(SlotFlags _flags)
     return find_slot( THIS_PROPERTY, _flags );
 }
 
+const Slot* Node::find_slot(SlotFlags _flags) const
+{
+    return find_slot( THIS_PROPERTY, _flags );
+}
+
 Slot& Node::get_slot(ID8<Slot> id)
 {
     return slots[id];
@@ -270,8 +275,7 @@ ID8<Slot> Node::add_slot(ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity
 
 PoolID<Node> Node::get_parent() const
 {
-    const Slot* slot = find_slot( THIS_PROPERTY, SlotFlag_PARENT );
-    return slot->first_adjacent().node;
+    return find_slot( SlotFlag_PARENT )->first_adjacent().node;
 }
 
 Node* Node::last_child()

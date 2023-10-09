@@ -106,8 +106,10 @@ namespace ndbl
             , m_word_size(other.m_word_size)
         {}
         Token(Token&& other);
+        inline explicit operator bool () const
+        { return !this->is_null(); }
         Token& operator=(const Token& other);
-        Token& operator=(Token&&);
+        Token& operator=(Token&&) noexcept;
         ~Token() {
             if( m_is_source_buffer_owned ) delete[] m_source_buffer;
         };

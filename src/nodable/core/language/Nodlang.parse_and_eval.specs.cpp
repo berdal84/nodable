@@ -422,6 +422,33 @@ TEST_F(Parse_and_eval, code_formatting_preserving_04 )
 
 /////////////////////////////////////////////////////////////
 
+TEST_F(Parse_and_eval, parse_serialize_empty_scope )
+{
+    EXPECT_EQ(parse_and_serialize("{}"), "{}");
+}
+
+TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces )
+{
+    EXPECT_EQ(parse_and_serialize("{ }"), "{ }");
+}
+
+TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces_after )
+{
+    EXPECT_EQ(parse_and_serialize("{} "), "{} ");
+}
+
+TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces_before )
+{
+    EXPECT_EQ(parse_and_serialize(" {}"), " {}");
+}
+
+TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces_before_and_after )
+{
+    EXPECT_EQ(parse_and_serialize(" {} "), " {} ");
+}
+
+/////////////////////////////////////////////////////////////
+
 TEST_F(Parse_and_eval, While_loop )
 {
     std::string program =
@@ -526,32 +553,7 @@ TEST_F(Parse_and_eval, parse_serialize_with_post_ribbon_chars )
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-TEST_F(Parse_and_eval, parse_serialize_empty_scope )
-{
-    EXPECT_EQ(parse_and_serialize("{}"), "{}");
-}
-
-TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces )
-{
-    EXPECT_EQ(parse_and_serialize("{ }"), "{ }");
-}
-
-TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces_after )
-{
-    EXPECT_EQ(parse_and_serialize("{} "), "{} ");
-}
-
-TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces_before )
-{
-    EXPECT_EQ(parse_and_serialize(" {}"), " {}");
-}
-
-TEST_F(Parse_and_eval, parse_serialize_empty_scope_with_spaces_before_and_after )
-{
-    EXPECT_EQ(parse_and_serialize(" {} "), " {} ");
-}
+/////////////////////////////////////////////////////////////////////
 
 TEST_F(Parse_and_eval, parse_serialize_empty_program )
 {
