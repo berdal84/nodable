@@ -104,8 +104,8 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
 
 #define ENTERLACED( N ) \
 BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_new<N> ); \
-BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, !USE_VECTOR> ); \
-BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, USE_VECTOR> );
+BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, USE_VECTOR> ); \
+BENCHMARK( mutate_N_instances__enterlaced_with_another_type__using_Pool_create<N, !USE_VECTOR> );
 
 ENTERLACED(2)
 ENTERLACED(10)
