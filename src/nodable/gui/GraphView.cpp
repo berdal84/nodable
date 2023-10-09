@@ -165,12 +165,12 @@ bool GraphView::draw()
         Grid
         Draw X vertical and Y horizontal lines every grid_size pixels
      */
-    const float  grid_size = app.config.ui_graph_grid_size;
-    const float  grid_subdiv_size = app.config.ui_graph_grid_size / app.config.ui_graph_grid_subdivs;
-    const int    vertical_line_count = m_screen_space_content_region.GetSize().x / grid_subdiv_size;
-    const int    horizontal_line_count = m_screen_space_content_region.GetSize().y / grid_subdiv_size;
-    ImColor      grid_color = app.config.ui_graph_grid_color_major;
-    ImColor      grid_color_light = app.config.ui_graph_grid_color_minor;
+    const int    grid_size             = app.config.ui_graph_grid_size;
+    const int    grid_subdiv_size      = app.config.ui_graph_grid_size / app.config.ui_graph_grid_subdivs;
+    const int    vertical_line_count   = int(m_screen_space_content_region.GetSize().x) / grid_subdiv_size;
+    const int    horizontal_line_count = int(m_screen_space_content_region.GetSize().y) / grid_subdiv_size;
+    ImColor      grid_color            = app.config.ui_graph_grid_color_major;
+    ImColor      grid_color_light      = app.config.ui_graph_grid_color_minor;
 
     for(int coord = 0; coord <= vertical_line_count; ++coord)
     {

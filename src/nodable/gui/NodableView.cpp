@@ -643,7 +643,7 @@ void AppView::draw_config_window() {
             ImGui::InputInt("unfold iterations", &config.graph_unfold_iterations, 1, 1000);
             ImGui::ColorEdit4("grid color (major)", &config.ui_graph_grid_color_major.x);
             ImGui::ColorEdit4("grid color (minor)", &config.ui_graph_grid_color_minor.x);
-            ImGui::SliderFloat("grid size", &config.ui_graph_grid_size, 1.0f, 500.0f);
+            ImGui::SliderInt("grid size", &config.ui_graph_grid_size, 1, 500);
             ImGui::SliderInt("grid subdivisions", &config.ui_graph_grid_subdivs, 1, 16);
         }
 

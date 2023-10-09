@@ -177,7 +177,6 @@ namespace fw
             new_buf_size |= new_buf_size >> 4;
             new_buf_size |= new_buf_size >> 8;
             new_buf_size |= new_buf_size >> 16;
-            new_buf_size |= new_buf_size >> 32;
 
             new_buf_size++;
 
