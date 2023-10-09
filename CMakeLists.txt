@@ -24,14 +24,6 @@ include(scripts/cmake/compiler-config.cmake)
 include(scripts/cmake/set-build-ref-variable.cmake)
 
 #include other CMakeLists.txt
-add_subdirectory(libs lib)                # libraries (SDL, lodepng, Dear ImGui, etc.)
-add_subdirectory(src/fw/core)             # core framework
-add_subdirectory(src/fw/gui)              # gui framework (ImGui based)
-add_subdirectory(src/fw/gui-example)      # gui example using framework-gui
-add_subdirectory(src/nodable/core)        # nodable core (static library)
-add_subdirectory(src/nodable/cli)         # nodable command line interface (terminal)
-add_subdirectory(src/nodable/gui)         # nodable gui (gui)
-add_subdirectory(src/nodable/app)         # nodable application
 
 if ( NOT NDBL_SKIP_TESTS)
     enable_testing()
@@ -41,6 +33,15 @@ if ( NOT NDBL_SKIP_TESTS)
     option(BUILD_GMOCK OFF)
     option(INSTALL_GTEST OFF)
 endif()
+
+add_subdirectory(libs lib)                # libraries (SDL, lodepng, Dear ImGui, etc.)
+add_subdirectory(src/fw/core)             # core framework
+add_subdirectory(src/fw/gui)              # gui framework (ImGui based)
+add_subdirectory(src/fw/gui-example)      # gui example using framework-gui
+add_subdirectory(src/nodable/core)        # nodable core (static library)
+add_subdirectory(src/nodable/cli)         # nodable command line interface (terminal)
+add_subdirectory(src/nodable/gui)         # nodable gui (gui)
+add_subdirectory(src/nodable/app)         # nodable application
 
 #  Packaging:
 #===========
