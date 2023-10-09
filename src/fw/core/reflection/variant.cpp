@@ -255,26 +255,29 @@ const type* variant::normalize_type(const type* _type)
 
 void variant::set(const variant& _other)
 {
-    FW_ASSERT( _other.m_type != type::null() )
+    if ( _other.m_type == type::null() )
+    {
+        return;
+    }
     FW_ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
 
-    if(m_type->is<bool>() )
+    if( m_type->is<bool>() )
     {
         set(_other.to<bool>() );
     }
-    else if(m_type->is<double>() )
+    else if( m_type->is<double>() )
     {
         set(_other.to<double>() );
     }
-    else if(m_type->is<i16_t>() )
+    else if( m_type->is<i16_t>() )
     {
         set(_other.to<i16_t>() );
     }
-    else if(m_type->is<i32_t>() )
+    else if( m_type->is<i32_t>() )
     {
         set(_other.to<i32_t>());
     }
-    else if(m_type->is<std::string>() )
+    else if( m_type->is<std::string>() )
     {
         set(_other.to<std::string>());
     }
