@@ -294,7 +294,8 @@ namespace fw
                 m_first_free_id = m_record_by_id[id].next_id; // update linked-list
                 return id;
             }
-            return m_record_by_id.size();
+            FW_ASSERT( m_record_by_id.size() != invalid_id<u32_t> )
+            return (u32_t)m_record_by_id.size();
         }
 
         bool   m_reuse_ids;
