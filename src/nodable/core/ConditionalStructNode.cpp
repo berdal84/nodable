@@ -34,11 +34,11 @@ PoolID<Scope> ConditionalStructNode::get_condition_false_scope() const
     return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag_NEXT, 1);
 }
 
-bool ConditionalStructNode::is_chain() const
+bool ConditionalStructNode::is_chained_with_other_cond_struct() const
 {
-    if( PoolID<Node> node = get_condition_false_scope() )
+    if( auto false_scope = get_condition_false_scope() )
     {
-        return node->get_type()->is_child_of<ConditionalStructNode>();
+        return false_scope->get_owner()->get_type()->is_child_of<ConditionalStructNode>();
     }
     return false;
 }

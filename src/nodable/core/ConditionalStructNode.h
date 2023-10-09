@@ -30,7 +30,7 @@ namespace ndbl
         ConditionalStructNode& operator=(ConditionalStructNode&&) = default;
 
         void init() override;
-        bool is_chain() const; // Check if another conditional structure is connected to the else branch (forming an else if)
+        bool is_chained_with_other_cond_struct() const; // Check if another conditional structure is connected to the else branch (forming an else if)
 
         // implement IConditionalStruct (which is already documented)
 

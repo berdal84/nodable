@@ -289,7 +289,7 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
 
     if ( Scope* false_scope = _cond_node->get_condition_false_scope().get() )
     {
-        if( _cond_node->is_chain() )
+        if( _cond_node->is_chained_with_other_cond_struct() )
         {
             auto* conditional_struct = fw::cast<const ConditionalStructNode>(false_scope->get_owner().get());
             compile_conditional_struct(conditional_struct);
