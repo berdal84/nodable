@@ -436,7 +436,7 @@ void Nodable::on_update()
                 SlotRef tail = event.slot.first;
                 SlotRef head = event.slot.second;
 
-                if (tail.flags & SlotFlag_ORDER_FIRST ) std::swap(tail, head); // guarantee src to be the output
+                if (tail.flags & SlotFlag_ORDER_SECOND ) std::swap(tail, head); // guarantee src to be the output
                 DirectedEdge edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
