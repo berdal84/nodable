@@ -131,6 +131,11 @@ PoolID<Node> SlotView::get_node()const
     return m_slot.node;
 }
 
+ImVec2 SlotView::position()const
+{
+    return m_slot.node->get_component<NodeView>()->get_slot_pos( m_slot );
+}
+
 PoolID<Node> SlotView::get_node()
 {
     return m_slot.node;

@@ -238,8 +238,8 @@ bool GraphView::draw()
         // Draw temporary edge
         if (dragged_slot)
         {
-            ImVec2 src = dragged_slot->alignment();
-            ImVec2 dst = hovered_slot ? hovered_slot->alignment() : ImGui::GetMousePos();
+            ImVec2 src = dragged_slot->position();
+            ImVec2 dst = hovered_slot ? hovered_slot->position() : ImGui::GetMousePos();
 
             bool is_dragging_a_this_slot = dragged_slot->get_property()->is_this();
             if ( is_dragging_a_this_slot )

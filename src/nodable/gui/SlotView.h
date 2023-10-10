@@ -27,6 +27,7 @@ namespace ndbl
         ImVec2                alignment() const;
         Slot&                 slot()const;
         PoolID<Node>          get_node()const;
+        ImVec2                position()const;
         PoolID<Node>          adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
