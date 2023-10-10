@@ -1,4 +1,5 @@
 #pragma once
+#include "Config.h"
 #include "core/Slot.h"
 #include "core/reflection/type.h"
 #include "fw/gui/ImGuiEx.h"
@@ -28,6 +29,7 @@ namespace ndbl
         Slot&                 slot()const;
         PoolID<Node>          get_node()const;
         ImVec2                position()const;
+        ImRect                rect(Config& config)const;
         PoolID<Node>          adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;

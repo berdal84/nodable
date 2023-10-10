@@ -228,7 +228,6 @@ size_t Node::get_slot_count( SlotFlags _flags ) const
 
 Slot* Node::get_first_slot(SlotFlags flags, const fw::type* _type)
 {
-    FW_EXPECT( (flags & SlotFlag_ORDER_MASK ) == flags, "Only compatible with SlotFlag_ACCEPTS_XXXX")
     for(Slot* slot : slots.filter( flags ) )
     {
         if( slot->get_property()->get_type()->equals( _type ) )

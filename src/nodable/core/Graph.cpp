@@ -388,15 +388,15 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                 if ( prev_node->has_component<Scope>() )
                 {
                     connect(
-                            next_node->find_slot( SlotFlag_PARENT ),
-                            prev_node->find_slot( SlotFlag_CHILD ));
+                            prev_node->find_slot( SlotFlag_CHILD ),
+                            next_node->find_slot( SlotFlag_PARENT ));
                 }
                 // If next node parent exists, connects next_node as a child too
                 else if ( Node* prev_parent_node = prev_node->get_parent().get() )
                 {
                     connect(
-                            next_node->find_slot( SlotFlag_PARENT ),
-                            prev_parent_node->find_slot( SlotFlag_CHILD ));
+                            prev_parent_node->find_slot( SlotFlag_CHILD ),
+                            next_node->find_slot( SlotFlag_PARENT ));
                 }
 
                 // Recursively connect all previous_node's parent successors
@@ -406,8 +406,9 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                     while ( current_prev_node_sibling && current_prev_node_sibling->get_parent().get() != nullptr )
                     {
                         connect(
-                                current_prev_node_sibling->find_slot( SlotFlag_PARENT ),
-                                prev_parent_node->find_slot( SlotFlag_CHILD ));
+                                prev_parent_node->find_slot( SlotFlag_CHILD ),
+                                current_prev_node_sibling->find_slot( SlotFlag_PARENT )
+                                );
                         current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
                     }
                 }

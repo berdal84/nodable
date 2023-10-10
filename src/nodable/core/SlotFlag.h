@@ -5,7 +5,7 @@ namespace ndbl
 {
     // Nature of the connection allowed by a given Slot
     typedef i8_t SlotFlags;
-    enum SlotFlag : i8_t // require less bits, but reserve some.
+    enum SlotFlag : i8_t
     {
         SlotFlag_NONE              = 0,
 
@@ -27,4 +27,9 @@ namespace ndbl
         SlotFlag_ORDER_MASK        = SlotFlag_ORDER_SECOND | SlotFlag_ORDER_FIRST,
         SlotFlag_TYPE_MASK         = SlotFlag_TYPE_CODEFLOW | SlotFlag_TYPE_HIERARCHICAL | SlotFlag_TYPE_VALUE,
     };
+
+    static SlotFlags flip_order(SlotFlags flags)
+    {
+        return (i8_t)(flags ^ SlotFlag_ORDER_MASK);
+    }
 }

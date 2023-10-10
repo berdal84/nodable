@@ -1096,7 +1096,7 @@ ImVec2 NodeView::get_slot_pos( const Slot& slot )
          + property_rect.GetSize() * m_slot_views[slot.id].alignment();
 }
 
-ImRect NodeView::get_slot_rect( SlotView& _slot_view, const Config& _config, i8_t _count ) const
+ImRect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _count ) const
 {
     // pick a corner
     ImRect view_rect = get_screen_rect();

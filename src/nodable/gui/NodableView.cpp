@@ -613,8 +613,9 @@ void AppView::draw_config_window() {
             if ( ImGui::CollapsingHeader("slots"))
             {
                 ImGui::SliderFloat("property slot radius", &config.ui_node_propertyslotRadius, 5.0f, 10.0f);
-                ImGui::SliderFloat("node slot padding", &config.ui_node_slot_padding, 0.0f, 100.0f);
-                ImGui::SliderFloat("node slot height", &config.ui_node_slot_height, 2.0f, 100.0f);
+                ImGui::SliderFloat("slot padding", &config.ui_node_slot_padding, 0.0f, 100.0f);
+                ImGui::SliderFloat("slot height", &config.ui_node_slot_height, 2.0f, 100.0f);
+                ImGui::SliderFloat("code flow slot width", &config.ui_node_slot_width, 10.0f, 40.0f);
             }
 
             if ( ImGui::CollapsingHeader("Misc."))
@@ -628,13 +629,13 @@ void AppView::draw_config_window() {
 
         if (ImGui::CollapsingHeader("Wires / Edges"))
         {
-            ImGui::SliderFloat("wire thickness", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("wire roundness", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
-            ImGui::SliderFloat("wire length min", &config.ui_wire_bezier_length_min, 200.0f, 1000.0f);
-            ImGui::SliderFloat("wire length max", &config.ui_wire_bezier_length_max, 200.0f, 1000.0f);
+            ImGui::SliderFloat("thickness", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat("roundness", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
+            ImGui::SliderFloat("fade at length min", &config.ui_wire_bezier_length_min, 200.0f, 1000.0f);
+            ImGui::SliderFloat("invisible at length max", &config.ui_wire_bezier_length_max, 200.0f, 1000.0f);
             ImGui::Separator();
-            ImGui::SliderFloat("wire thickness (flow)", &config.ui_node_slot_width, 10.0f, 20.0f);
             ImGui::ColorEdit4("wire color (flow)", &config.ui_codeFlow_lineColor.x);
+            ImGui::SliderFloat("wire color (flow)", &config.ui_codeFlow_line_width_ratio, 0.1, 1.0);
         }
 
         if (ImGui::CollapsingHeader("Graph"))

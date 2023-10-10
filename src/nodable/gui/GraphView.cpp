@@ -199,34 +199,39 @@ bool GraphView::draw()
     {
         size_t slot_index = 0;
         size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_FIRST );
-        float padding     = 2.0f;
-        float linePadding = 5.0f;
+        float line_width  = app.config.ui_node_slot_width * app.config.ui_codeFlow_line_width_ratio;
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
+
+        // TODO: refactor this using the Slots
+
         for (PoolID<Node> each_successor_node : each_node->successors() )
         {
             NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
 
             if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
-                float node_view_width_min = std::min(each_successor_view->get_rect().GetSize().x, each_view->get_rect().GetSize().x);
-                float line_width = std::min( app.config.ui_node_slot_width, node_view_width_min / float(slot_count) - (padding * 2.0f));
-
                 ImVec2 start = each_view->get_position(fw::Space_Screen, pixel_perfect);
-                start.x -= std::max(each_view->get_size().x * 0.5f, line_width * float(slot_count) * 0.5f);
-                start.x += line_width * 0.5f + float(slot_index) * line_width;
+                start.x -= each_view->get_size().x * 0.5f;
+                start.x += app.config.ui_node_slot_width * 0.5f + float(slot_index) * app.config.ui_node_slot_width;
                 start.y += each_view->get_size().y * 0.5f; // align bottom
                 start.y += app.config.ui_node_slot_height * 0.25f;
 
                 ImVec2 end = each_successor_view->get_position(fw::Space_Screen, pixel_perfect);
                 end.x -= each_successor_view->get_size().x * 0.5f;
-                end.x += line_width * 0.5f;
+                end.x += app.config.ui_node_slot_width * 0.5f;
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
                 end.y -= app.config.ui_node_slot_height * 0.25f;
 
                 ImColor color(app.config.ui_codeFlow_lineColor);
                 ImColor shadowColor(app.config.ui_codeFlow_lineShadowColor);
-                fw::ImGuiEx::DrawVerticalWire(ImGui::GetWindowDrawList(), start, end, color, shadowColor,
-                                               line_width - linePadding * 2.0f, 0.0f);
+                fw::ImGuiEx::DrawVerticalWire(
+                    ImGui::GetWindowDrawList(),
+                    start,
+                    end,
+                    color,
+                    shadowColor,
+                    line_width,
+                    0.0f);
             }
             ++slot_index;
         }
@@ -238,19 +243,16 @@ bool GraphView::draw()
         // Draw temporary edge
         if (dragged_slot)
         {
-            ImVec2 src = dragged_slot->position();
-            ImVec2 dst = hovered_slot ? hovered_slot->position() : ImGui::GetMousePos();
-
-            bool is_dragging_a_this_slot = dragged_slot->get_property()->is_this();
-            if ( is_dragging_a_this_slot )
+            if (  dragged_slot->slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
                 // Thick line
                 fw::ImGuiEx::DrawVerticalWire(
                         ImGui::GetWindowDrawList(),
-                        src, dst,
+                        dragged_slot->rect(app.config).GetCenter(),
+                        hovered_slot ? hovered_slot->rect(app.config).GetCenter(): ImGui::GetMousePos(),
                         app.config.ui_codeFlow_lineColor,
                         app.config.ui_codeFlow_lineShadowColor,
-                        app.config.ui_node_slot_width,
+                        app.config.ui_node_slot_width * app.config.ui_codeFlow_line_width_ratio,
                         0.f // roundness
                 );
             }
@@ -258,9 +260,10 @@ bool GraphView::draw()
             {
                 // Simple line
                 ImGui::GetWindowDrawList()->AddLine(
-                        src, dst,
-                        get_color(Color_BORDER_HIGHLIGHT),
-                        app.config.ui_wire_bezier_thickness
+                    dragged_slot->position(),
+                    hovered_slot ? hovered_slot->position() : ImGui::GetMousePos(),
+                    get_color(Color_BORDER_HIGHLIGHT),
+                    app.config.ui_wire_bezier_thickness
                 );
             }
         }
@@ -432,101 +435,102 @@ bool GraphView::draw()
 	*/
 
 	if ( enable_edition && !isAnyNodeHovered && ImGui::BeginPopupContextWindow(k_context_menu_popup) )
-	{
-		// Title :
-        fw::ImGuiEx::ColoredShadowedText( ImVec2(1,1), ImColor(0.00f, 0.00f, 0.00f, 1.00f), ImColor(1.00f, 1.00f, 1.00f, 0.50f), "Create new node :");
-		ImGui::Separator();
-
-		if ( !dragged_slot )
-		{
-		    draw_invokable_menu(dragged_slot, k_operator_menu_label );
-            draw_invokable_menu(dragged_slot, k_function_menu_label );
-            ImGui::Separator();
-        }
-
-        if ( !dragged_slot)
-        {
-            // If dragging a property we create a VariableNode with the same type.
-            if ( dragged_slot && !dragged_slot->is_this() )
-            {
-                if (ImGui::MenuItem(ICON_FA_DATABASE " Variable"))
-                {
-                    new_node_id = create_variable( dragged_slot->get_property_type(), "var", {});
-                }
-
-                // we allows literal only if connected to variables.
-                // why? behavior when connecting a literal to a non var node is to digest it.
-                if (dragged_slot->get_node()->get_type()->is<VariableNode>()
-                     && ImGui::MenuItem(ICON_FA_FILE "Literal") )
-                {
-                    new_node_id = m_graph->create_literal( dragged_slot->get_property_type() );
-                }
-            }
-            // By not knowing anything, we propose all possible types to the user.
-            else
-            {   
-                if ( ImGui::BeginMenu("Variable") )
-                {
-                    if (ImGui::MenuItem(ICON_FA_DATABASE " Boolean"))
-                        new_node_id = create_variable(fw::type::get<bool>(), "var", {});
-
-                    if (ImGui::MenuItem(ICON_FA_DATABASE " Double"))
-                        new_node_id = create_variable(fw::type::get<double>(), "var", {});
-                    
-                    if (ImGui::MenuItem(ICON_FA_DATABASE " Int (16bits)"))
-                        new_node_id = create_variable(fw::type::get<i16_t>(), "var", {});
-
-                    if (ImGui::MenuItem(ICON_FA_DATABASE " String"))
-                        new_node_id = create_variable(fw::type::get<std::string>(), "var", {});
-
-                    ImGui::EndMenu();
-                }
-
-                if ( ImGui::BeginMenu("Literal") )
-                {
-                    if (ImGui::MenuItem(ICON_FA_FILE " Boolean"))
-                        new_node_id = m_graph->create_literal(fw::type::get<bool>());
-
-                    if (ImGui::MenuItem(ICON_FA_FILE " Double"))
-                        new_node_id = m_graph->create_literal(fw::type::get<double>());
-
-                    if (ImGui::MenuItem(ICON_FA_FILE " Int (16bits)"))
-                        new_node_id = m_graph->create_literal(fw::type::get<i16_t>());
-
-                    if (ImGui::MenuItem(ICON_FA_FILE " String"))
-                        new_node_id = m_graph->create_literal(fw::type::get<std::string>());
-
-                    ImGui::EndMenu();
-                }
-            }
-        }
-
+    {
+        // Title :
+        fw::ImGuiEx::ColoredShadowedText( ImVec2( 1, 1 ), ImColor( 0.00f, 0.00f, 0.00f, 1.00f ), ImColor( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
         ImGui::Separator();
 
-        if( dragged_slot && !dragged_slot->is_this() )
+        if ( !dragged_slot )
         {
-            if ( ImGui::MenuItem(ICON_FA_CODE " Instruction") )
-                new_node_id = create_instr(nullptr);
-            if (ImGui::MenuItem(ICON_FA_CODE " Condition"))
-                new_node_id = m_graph->create_cond_struct();
-            if (ImGui::MenuItem(ICON_FA_CODE " For Loop"))
-                new_node_id = m_graph->create_for_loop();
-            if (ImGui::MenuItem(ICON_FA_CODE " While Loop"))
-                new_node_id = m_graph->create_while_loop();
-
+            draw_invokable_menu( dragged_slot, k_operator_menu_label );
+            draw_invokable_menu( dragged_slot, k_function_menu_label );
             ImGui::Separator();
+        }
 
-            if (ImGui::MenuItem(ICON_FA_CODE " Scope"))
-                new_node_id = m_graph->create_scope();
-
-            ImGui::Separator();
-
-            if (ImGui::MenuItem(ICON_FA_CODE " Program"))
+        if ( dragged_slot )
+        {
+            SlotFlags slot_type = dragged_slot->slot().type();
+            switch ( slot_type )
             {
-                m_graph->clear();
-                new_node_id = m_graph->create_root();
+                case SlotFlag_TYPE_CODEFLOW:
+                {
+                    if ( ImGui::MenuItem( ICON_FA_CODE " Instruction" ) )
+                        new_node_id = create_instr( nullptr );
+                    if ( ImGui::MenuItem( ICON_FA_CODE " Condition" ) )
+                        new_node_id = m_graph->create_cond_struct();
+                    if ( ImGui::MenuItem( ICON_FA_CODE " For Loop" ) )
+                        new_node_id = m_graph->create_for_loop();
+                    if ( ImGui::MenuItem( ICON_FA_CODE " While Loop" ) )
+                        new_node_id = m_graph->create_while_loop();
+
+                    ImGui::Separator();
+
+                    if ( ImGui::MenuItem( ICON_FA_CODE " Scope" ) )
+                        new_node_id = m_graph->create_scope();
+
+                    ImGui::Separator();
+
+                    if ( ImGui::MenuItem( ICON_FA_CODE " Program" ) )
+                    {
+                        m_graph->clear();
+                        new_node_id = m_graph->create_root();
+                    }
+                    break;
+                }
+                default:
+                {
+                    if ( !dragged_slot->is_this() )
+                    {
+                        if ( ImGui::MenuItem( ICON_FA_DATABASE " Variable" ) )
+                        {
+                            new_node_id = create_variable( dragged_slot->get_property_type(), "var", {} );
+                        }
+
+                        // we allow literal only if connected to variables.
+                        // why? behavior when connecting a literal to a non var node is to digest it.
+                        if ( dragged_slot->get_node()->get_type()->is<VariableNode>() && ImGui::MenuItem( ICON_FA_FILE "Literal" ) )
+                        {
+                            new_node_id = m_graph->create_literal( dragged_slot->get_property_type() );
+                        }
+                    }
+                    else
+                    {
+                        if ( ImGui::BeginMenu( "Variable" ) )
+                        {
+                            if ( ImGui::MenuItem( ICON_FA_DATABASE " Boolean" ) )
+                                new_node_id = create_variable( fw::type::get<bool>(), "var", {} );
+
+                            if ( ImGui::MenuItem( ICON_FA_DATABASE " Double" ) )
+                                new_node_id = create_variable( fw::type::get<double>(), "var", {} );
+
+                            if ( ImGui::MenuItem( ICON_FA_DATABASE " Int (16bits)" ) )
+                                new_node_id = create_variable( fw::type::get<i16_t>(), "var", {} );
+
+                            if ( ImGui::MenuItem( ICON_FA_DATABASE " String" ) )
+                                new_node_id = create_variable( fw::type::get<std::string>(), "var", {} );
+
+                            ImGui::EndMenu();
+                        }
+
+                        if ( ImGui::BeginMenu( "Literal" ) )
+                        {
+                            if ( ImGui::MenuItem( ICON_FA_FILE " Boolean" ) )
+                                new_node_id = m_graph->create_literal( fw::type::get<bool>() );
+
+                            if ( ImGui::MenuItem( ICON_FA_FILE " Double" ) )
+                                new_node_id = m_graph->create_literal( fw::type::get<double>() );
+
+                            if ( ImGui::MenuItem( ICON_FA_FILE " Int (16bits)" ) )
+                                new_node_id = m_graph->create_literal( fw::type::get<i16_t>() );
+
+                            if ( ImGui::MenuItem( ICON_FA_FILE " String" ) )
+                                new_node_id = m_graph->create_literal( fw::type::get<std::string>() );
+
+                            ImGui::EndMenu();
+                        }
+                    }
+                }
             }
-                
         }
 
         /*
@@ -539,12 +543,11 @@ bool GraphView::draw()
             // dragging node slot ?
             if ( dragged_slot )
             {
-                SlotFlags    dragged_slot_type    = dragged_slot->slot().type();
-                SlotFlags    complement_slot_type = dragged_slot_type ^ SlotFlag_TYPE_MASK;
-                Slot*        complement_slot      = new_node_id->get_first_slot( complement_slot_type, dragged_slot->get_property()->get_type());
-                ConnectFlags flags                = ConnectFlag_ALLOW_SIDE_EFFECTS
-                                                  | ConnectFlag_ALLOW_SWAP;
-                m_graph->connect( &dragged_slot->slot(), complement_slot, flags );
+                SlotFlags    complementary_flags = flip_order( dragged_slot->slot().flags );
+                Slot*        complementary_slot  = new_node_id->get_first_slot( complementary_flags, dragged_slot->get_property()->get_type());
+                ConnectFlags connect_flags       = ConnectFlag_ALLOW_SIDE_EFFECTS
+                                                 | ConnectFlag_ALLOW_SWAP;
+                m_graph->connect( &dragged_slot->slot(), complementary_slot, connect_flags );
                 SlotView::reset_dragged();
             }
             else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )

@@ -92,7 +92,7 @@ namespace ndbl
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         ImVec2                  get_slot_pos( const Slot& );
-        ImRect                  get_slot_rect( SlotView &_slot_view, const Config &_config, i8_t _count ) const;
+        ImRect                  get_slot_rect( const SlotView &_slot_view, const Config &_config, i8_t _count ) const;
 
     private:
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);

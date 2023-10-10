@@ -49,6 +49,7 @@ namespace ndbl {
         float          ui_node_slot_width;
         ImVec4         ui_codeFlow_lineColor;
         ImVec4         ui_codeFlow_lineShadowColor;
+        float          ui_codeFlow_line_width_ratio;
         ImVec2         ui_toolButton_size;
         float          ui_history_btn_spacing;
         float          ui_history_btn_height;
