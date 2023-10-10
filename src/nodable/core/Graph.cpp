@@ -398,17 +398,15 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                             prev_parent_node->find_slot( SlotFlag_CHILD ),
                             next_node->find_slot( SlotFlag_PARENT ));
                 }
-
                 // Recursively connect all previous_node's parent successors
-                if ( Node* prev_parent_node = prev_node->get_parent().get() )
+                else if ( Node* prev_parent_node = prev_node->get_parent().get() )
                 {
                     Node* current_prev_node_sibling = prev_node->successors().begin()->get();
                     while ( current_prev_node_sibling && current_prev_node_sibling->get_parent().get() != nullptr )
                     {
                         connect(
-                                prev_parent_node->find_slot( SlotFlag_CHILD ),
-                                current_prev_node_sibling->find_slot( SlotFlag_PARENT )
-                                );
+                                current_prev_node_sibling->find_slot( SlotFlag_CHILD ),
+                                prev_parent_node->find_slot( SlotFlag_PARENT ) );
                         current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
                     }
                 }
