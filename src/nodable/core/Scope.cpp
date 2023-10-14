@@ -46,7 +46,7 @@ PoolID<VariableNode> Scope::find_variable(const std::string &_name)
     /*
      * In case not found, find recursively
      */
-    PoolID<Node> parent = m_owner->get_parent();
+    PoolID<Node> parent = m_owner->find_parent();
     FW_ASSERT(parent != m_owner);
     if ( !parent )
     {

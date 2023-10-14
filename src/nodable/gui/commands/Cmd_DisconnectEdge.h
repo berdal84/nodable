@@ -29,7 +29,7 @@ namespace ndbl
         { graph()->disconnect(m_edge, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         void undo() override
-        { graph()->connect( m_edge.tail.get(), m_edge.head.get(), ConnectFlag_ALLOW_SIDE_EFFECTS ); }
+        { graph()->connect( *m_edge.tail, *m_edge.head, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         const char* get_description() const override
         { return m_description.c_str(); }

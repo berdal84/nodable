@@ -844,7 +844,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (Node* parent = node->get_parent().get())
+                if (Node* parent = node->find_parent().get())
                 {
                     parentName = parent->name + (parent->dirty ? " (dirty)" : "");
                 }
@@ -1040,7 +1040,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    Node* parent = _view->m_owner->get_parent().get();
+    Node* parent = _view->m_owner->find_parent().get();
     if ( !parent )
     {
         return _view;

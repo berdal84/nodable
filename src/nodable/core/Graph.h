@@ -25,7 +25,6 @@ namespace ndbl
     {
         ConnectFlag_NONE               = 0,
         ConnectFlag_ALLOW_SIDE_EFFECTS = 1 << 0,
-        ConnectFlag_ALLOW_SWAP = 1 << 1,
     };
 
     /**
@@ -69,10 +68,10 @@ namespace ndbl
 
         // edge related
 
-        DirectedEdge* connect(Slot* _first, Slot*_second, ConnectFlags = ConnectFlag_NONE );
-        DirectedEdge* connect_to_variable(Slot* _out, PoolID<VariableNode> _in );
-        DirectedEdge* connect_to_instruction(Slot* _out, InstructionNode* _in );
-        DirectedEdge* connect_or_merge(Slot* _out, Slot* _in);
+        DirectedEdge* connect(Slot& _first, Slot& _second, ConnectFlags = ConnectFlag_NONE );
+        DirectedEdge* connect_to_variable(Slot& _out, VariableNode& _in );
+        DirectedEdge* connect_to_instruction(Slot& _out, InstructionNode& _in );
+        DirectedEdge* connect_or_merge(Slot& _out, Slot& _in);
         void          disconnect(DirectedEdge, ConnectFlags = ConnectFlag_NONE );
 
     private:

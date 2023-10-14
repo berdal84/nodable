@@ -36,8 +36,6 @@ void VariableNode::init()
     add_slot( SlotFlag_OUTPUT, SLOT_MAX_CAPACITY, m_value_property_id);
 
     add_slot( SlotFlag_PARENT,  1, m_this_property_id );
-    add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY, m_this_property_id );
-    add_slot( SlotFlag_NEXT, 1, m_this_property_id );
     add_slot( SlotFlag_OUTPUT, 1, m_this_property_id );
 }
 

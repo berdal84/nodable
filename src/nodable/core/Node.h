@@ -73,14 +73,12 @@ namespace ndbl {
         std::vector<PoolID<Node>> outputs() const;
         std::vector<PoolID<Node>> predecessors() const;
         void                 set_name(const char*);
-        PoolID<Node>         get_parent() const;
+        PoolID<Node>         find_parent() const;
         size_t               adjacent_count(SlotFlags )const;
         ID8<Slot>            add_slot(SlotFlags, u8_t _capacity);
         ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
         Slot&                get_slot_at(ID8<Slot>);
         size_t               get_slot_count(SlotFlags) const;
-        Slot&                get_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
-        const Slot&          get_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
         Slot&                get_nth_slot(u8_t, SlotFlags );
         Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
         const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot

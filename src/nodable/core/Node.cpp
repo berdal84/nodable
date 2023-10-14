@@ -139,16 +139,6 @@ Property* Node::get_prop_at(ID<Property> id)
     return props.at(id);
 }
 
-Slot& Node::get_slot(SlotFlags _flags)
-{
-    return *find_slot( _flags );
-}
-
-const Slot& Node::get_slot(SlotFlags _flags) const
-{
-    return *find_slot( _flags );
-}
-
 Slot* Node::find_slot(SlotFlags _flags)
 {
     return find_slot_by_name( THIS_PROPERTY, _flags );
@@ -250,7 +240,7 @@ ID8<Slot> Node::add_slot(SlotFlags _flags, u8_t _capacity)
     return slots.add( m_id, m_this_property_id, _flags, _capacity );
 }
 
-PoolID<Node> Node::get_parent() const
+PoolID<Node> Node::find_parent() const
 {
     if ( const Slot* parent_slot = find_slot( SlotFlag_PARENT ) )
     {

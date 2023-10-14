@@ -206,17 +206,17 @@ bool Graph::is_empty() const
     return m_root.get() == nullptr;
 }
 
-DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
+DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
 {
     FW_ASSERT( _in )
     FW_ASSERT( _out )
 
-    Property* in_prop  = _in->get_property();
-    Property* out_prop = _out->get_property();
+    Property* in_prop  = _in.get_property();
+    Property* out_prop = _out.get_property();
 
     // Guards
-    FW_EXPECT( _in->flags == SlotFlag_INPUT,  "tail slot must be a dependent")
-    FW_EXPECT( _out->flags == SlotFlag_OUTPUT, "head slot must be a dependency")
+    FW_EXPECT( _in.flags == SlotFlag_INPUT,  "tail slot must be a dependent")
+    FW_EXPECT( _out.flags == SlotFlag_OUTPUT, "head slot must be a dependency")
     FW_EXPECT( in_prop, "tail property must be defined" )
     FW_EXPECT( out_prop, "head property must be defined" )
     FW_EXPECT( in_prop != out_prop, "Can't connect same properties!" )
@@ -225,7 +225,7 @@ DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
     FW_EXPECT( fw::type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
 
     // case 1: merge orphan slot
-    if ( _out->get_node() == nullptr ) // if dependent is orphan
+    if ( _out.get_node() == nullptr ) // if dependent is orphan
     {
         in_prop->digest( out_prop );
         delete in_prop;
@@ -235,11 +235,11 @@ DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
 
     // case 2: merge non-orphan property
     if (!out_prop->is_this() && // Never a Node (property points to a node)
-         _out->node->get_type()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
-         _in->node->get_type()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
+         _out.node->get_type()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
+         _in.node->get_type()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
     {
         in_prop->digest( out_prop );
-        destroy( _out->node);
+        destroy( _out.node);
         set_dirty(); // a node has been destroyed
         return nullptr;
     }
@@ -265,11 +265,9 @@ void Graph::remove(DirectedEdge edge)
     }
 }
 
-DirectedEdge* Graph::connect_to_instruction(Slot* expression_root, InstructionNode* instruction )
+DirectedEdge* Graph::connect_to_instruction(Slot& expression_root, InstructionNode& instruction )
 {
-    FW_ASSERT(expression_root)
-    FW_ASSERT(instruction)
-    Node* expression_node = expression_root->get_node();
+    Node* expression_node = expression_root.get_node();
 
     if ( auto* variable = fw::cast<VariableNode>( expression_node ) )
     {
@@ -277,41 +275,30 @@ DirectedEdge* Graph::connect_to_instruction(Slot* expression_root, InstructionNo
         // TODO: reconsider this, user should be able to change this  dynamically.
         if( variable->get_declaration_instr() == PoolID<InstructionNode>::null )
         {
-            variable->set_declaration_instr( instruction->poolid());
+            variable->set_declaration_instr( instruction.poolid());
         }
     }
     return connect_or_merge(
-            expression_node->find_slot( SlotFlag_OUTPUT ),
-            &instruction->root_slot() );
+            *expression_node->find_slot( SlotFlag_OUTPUT ),
+            instruction.root_slot() );
 }
 
-DirectedEdge* Graph::connect_to_variable(Slot* _out, PoolID<VariableNode> _variable_in )
+DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable_in )
 {
-    FW_ASSERT(_out)
-    FW_ASSERT(_variable_in)
-    FW_ASSERT( _out->flags == SlotFlag_OUTPUT)
-    return connect_or_merge( _out, _variable_in->find_value_typed_slot( SlotFlag_INPUT ) );
+    FW_ASSERT( _out.flags == SlotFlag_OUTPUT)
+    return connect_or_merge( _out, *_variable_in.find_value_typed_slot( SlotFlag_INPUT ) );
 }
 
-DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
+DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 {
-    FW_ASSERT(_first)
-    FW_ASSERT(_second)
-
-    // When necessary and if allowed, swap slots.
-    if( _second->flags & SlotFlag_ORDER_FIRST && _flags & ConnectFlag_ALLOW_SWAP )
-    {
-        std::swap(_first, _second);
-    }
-
-    FW_ASSERT( _first->flags & SlotFlag_ORDER_FIRST  )
-    FW_ASSERT( _second->flags & SlotFlag_ORDER_SECOND )
-    FW_ASSERT( _first->node != _second->node )
+    FW_ASSERT( _first.flags & SlotFlag_ORDER_FIRST  )
+    FW_ASSERT( _second.flags & SlotFlag_ORDER_SECOND )
+    FW_ASSERT( _first.node != _second.node )
 
     // Insert edge
-    SlotFlags type = _first->type();
+    SlotFlags type = _first.type();
 
-    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{*_first, *_second});
+    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{_first, _second});
 
     // Add cross-references to each end of the edge
     edge.tail->add_adjacent( edge.head );
@@ -327,15 +314,14 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                 // Ensure to Identify parent and child nodes
                 // - parent node has a CHILD slot
                 // - child node has a PARENT slot
-                Node* parent    = _first->get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
-                Node* new_child = _second->get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
+                Node* parent    = _first.get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
+                Node* new_child = _second.get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
                 FW_ASSERT( parent->has_component<Scope>())
-                Slot* parent_next_slot    = parent->find_slot( SlotFlag_NEXT  );
-                Slot* new_child_prev_slot = new_child->find_slot( SlotFlag_PREV );
-                FW_ASSERT(parent_next_slot)
+                Slot& parent_next_slot    = *parent->find_slot( SlotFlag_NEXT  );
+                Slot& new_child_prev_slot = *new_child->find_slot( SlotFlag_PREV );
 
                 // Case 1: Parent accepts a "next" connection.
-                if ( !parent_next_slot->is_full() )
+                if ( !parent_next_slot.is_full() )
                 {
                     connect( parent_next_slot, new_child_prev_slot );
                 }
@@ -368,7 +354,7 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                         std::vector<InstructionNode *> last_instructions = previous_child_scope->get_last_instructions_rec();
                         for (InstructionNode* each_instr: last_instructions )
                         {
-                            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT );
+                            Slot& each_instr_next_slot = *each_instr->find_slot( SlotFlag_NEXT );
                             connect( each_instr_next_slot, new_child_prev_slot );
                         }
                     }
@@ -380,8 +366,8 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                     //
                     else
                     {
-                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT );
-                        FW_ASSERT(!last_sibling_next_slot->is_full())
+                        Slot& last_sibling_next_slot = *previous_child->find_slot( SlotFlag_NEXT );
+                        FW_ASSERT(!last_sibling_next_slot.is_full())
                         connect( last_sibling_next_slot, new_child_prev_slot );
                     }
                 }
@@ -390,32 +376,33 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
 
             case SlotFlag_TYPE_CODEFLOW:
             {
-                Node* prev_node = _first->get_node(); static_assert( SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
-                Node* next_node = _second->get_node(); static_assert( SlotFlag_PREV & SlotFlag_ORDER_SECOND );
+                Node& prev_node = *_first.node; static_assert( SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
+                Node& next_node = *_second.node; static_assert( SlotFlag_PREV & SlotFlag_ORDER_SECOND );
 
                 // If previous node is a scope, connects next_node as child
-                if ( prev_node->has_component<Scope>() )
+                if ( prev_node.has_component<Scope>() )
                 {
                     connect(
-                            prev_node->find_slot( SlotFlag_CHILD ),
-                            next_node->find_slot( SlotFlag_PARENT ));
+                            *prev_node.find_slot( SlotFlag_CHILD ),
+                            *next_node.find_slot( SlotFlag_PARENT ));
                 }
                 // If next node parent exists, connects next_node as a child too
-                else if ( Node* prev_parent_node = prev_node->get_parent().get() )
+                else if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
                 {
                     connect(
-                            prev_parent_node->find_slot( SlotFlag_CHILD ),
-                            next_node->find_slot( SlotFlag_PARENT ));
+                            *prev_parent_node->find_slot( SlotFlag_CHILD ),
+                            *next_node.find_slot( SlotFlag_PARENT ));
                 }
-                // Recursively connect all previous_node's parent successors
-                else if ( Node* prev_parent_node = prev_node->get_parent().get() )
+
+                // Connect siblings
+                if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
                 {
-                    Node* current_prev_node_sibling = prev_node->successors().begin()->get();
-                    while ( current_prev_node_sibling && current_prev_node_sibling->get_parent().get() != nullptr )
+                    Node* current_prev_node_sibling = prev_node.successors()[0].get();
+                    while ( current_prev_node_sibling && current_prev_node_sibling->find_parent() )
                     {
                         connect(
-                                current_prev_node_sibling->find_slot( SlotFlag_CHILD ),
-                                prev_parent_node->find_slot( SlotFlag_PARENT ) );
+                                *current_prev_node_sibling->find_slot( SlotFlag_CHILD ),
+                                *prev_parent_node->find_slot( SlotFlag_PARENT ) );
                         current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
                     }
                 }
@@ -432,8 +419,8 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                 //       v       in         v
                 //    < ... > dependency < ... >    (input)
                 //
-                Token& out_token = _first->get_property()->token; static_assert(SlotFlag_OUTPUT & SlotFlag_ORDER_FIRST);
-                Token& in_token = _second->get_property()->token; static_assert(SlotFlag_INPUT & SlotFlag_ORDER_SECOND);
+                Token& out_token = _first.get_property()->token;  static_assert(SlotFlag_OUTPUT & SlotFlag_ORDER_FIRST);
+                Token& in_token  = _second.get_property()->token; static_assert(SlotFlag_INPUT & SlotFlag_ORDER_SECOND);
 
                 if ( out_token.is_null() || in_token.is_null() )
                 {
@@ -474,12 +461,12 @@ void Graph::disconnect(DirectedEdge _edge, ConnectFlags flags)
         case SlotFlag_TYPE_CODEFLOW:
         {
             Node* successor = _edge.tail.node.get();
-            Node* successor_parent = successor->get_parent().get();
+            Node* successor_parent = successor->find_parent().get();
             if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && successor_parent  )
             {
-                while (successor && successor_parent->poolid() == successor->get_parent() )
+                while (successor && successor_parent->poolid() == successor->find_parent() )
                 {
-                    disconnect({ *successor->find_slot( SlotFlag_PARENT ), *successor->get_parent()->find_slot( SlotFlag_CHILD ) } );
+                    disconnect({ *successor->find_slot( SlotFlag_PARENT ), *successor->find_parent()->find_slot( SlotFlag_CHILD ) } );
                     successor = successor->successors().begin()->get();
                 }
             }

@@ -545,9 +545,15 @@ bool GraphView::draw()
             {
                 SlotFlags    complementary_flags = flip_order( dragged_slot->slot().flags );
                 Slot*        complementary_slot  = new_node_id->find_slot_by_type( complementary_flags, dragged_slot->get_property()->get_type() );
-                ConnectFlags connect_flags       = ConnectFlag_ALLOW_SIDE_EFFECTS
-                                                 | ConnectFlag_ALLOW_SWAP;
-                m_graph->connect( &dragged_slot->slot(), complementary_slot, connect_flags );
+                ConnectFlags connect_flags       = ConnectFlag_ALLOW_SIDE_EFFECTS;
+
+                Slot* out = &dragged_slot->slot();
+                Slot* in  = complementary_slot;
+
+                if( out->flags & SlotFlag_ORDER_SECOND ) std::swap(out, in);
+
+                m_graph->connect( *out, *in, connect_flags );
+
                 SlotView::reset_dragged();
             }
             else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )

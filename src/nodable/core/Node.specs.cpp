@@ -19,16 +19,16 @@ TEST(Node, add_property_double)
 
 typedef ::testing::Core Node_;
 
-TEST_F(Node_, get_parent)
+TEST_F(Node_, find_parent)
 {
     auto parent = graph.create_scope();
     auto child  = graph.create_instr();
 
     graph.connect(
-            parent->find_slot( SlotFlag_CHILD ),
-            child->find_slot( SlotFlag_PARENT )
+            *parent->find_slot( SlotFlag_CHILD ),
+            *child->find_slot( SlotFlag_PARENT )
             );
 
-    EXPECT_TRUE( child->get_parent() );
-    EXPECT_EQ( child->get_parent(), parent );
+    EXPECT_TRUE( child->find_parent() );
+    EXPECT_EQ( child->find_parent(), parent );
 }
