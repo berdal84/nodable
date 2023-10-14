@@ -317,7 +317,7 @@ Slot *Nodlang::parse_token(Token _token)
 
     if (literal)
     {
-        Slot* output_slot = literal->find_slot( VALUE_PROPERTY, SlotFlag_OUTPUT );
+        Slot* output_slot = literal->find_slot_by_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
         output_slot->get_property()->token = std::move(_token);
         return output_slot;
     }
@@ -411,12 +411,12 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     component->token = operator_token;
-    parser_state.graph->connect_or_merge( &_left, binary_op->find_slot( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
-    parser_state.graph->connect_or_merge( right, binary_op->find_slot( RIGHT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    parser_state.graph->connect_or_merge( &_left, binary_op->find_slot_by_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    parser_state.graph->connect_or_merge( right, binary_op->find_slot_by_name( RIGHT_VALUE_PROPERTY, SlotFlag_INPUT ) );
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-    return binary_op->find_slot( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    return binary_op->find_slot_by_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
 }
 
 Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
@@ -477,12 +477,12 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     component = node->get_component<InvokableComponent>();
     component->token = std::move( operator_token );
 
-    parser_state.graph->connect_or_merge( out_atomic, node->find_slot( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    parser_state.graph->connect_or_merge( out_atomic, node->find_slot_by_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
     commit_transaction();
 
-    return node->find_slot( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    return node->find_slot_by_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
 }
 
 Slot* Nodlang::parse_atomic_expression()
@@ -1133,14 +1133,14 @@ Slot* Nodlang::parse_function_call()
     {
         // Connects each results to the corresponding input
         auto& out_slot = result_slots.at(signature_arg.m_index);
-        Slot* in_slot  = fct_node->find_slot( signature_arg.m_name.c_str(), SlotFlag_INPUT );
+        Slot* in_slot  = fct_node->find_slot_by_name( signature_arg.m_name.c_str(), SlotFlag_INPUT );
         parser_state.graph->connect_or_merge( out_slot, in_slot );
     }
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-    return fct_node->find_slot( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    return fct_node->find_slot_by_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
 }
 
 PoolID<Scope> Nodlang::get_current_scope()
@@ -1192,7 +1192,7 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
             conditional_struct_node->cond_expr = condition;
             parser_state.graph->connect_or_merge(
                     condition->find_slot( SlotFlag_OUTPUT ),
-                    conditional_struct_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
+                    conditional_struct_node->find_slot_by_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
         }
 
         if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
@@ -1293,7 +1293,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                 init_instr->set_name("Initialisation");
                 parser_state.graph->connect_or_merge(
                         init_instr->find_slot( SlotFlag_OUTPUT ),
-                        for_loop_node->find_slot( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
+                        for_loop_node->find_slot_by_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
                 for_loop_node->init_instr = init_instr;
 
                 PoolID<InstructionNode> cond_instr = parse_instr();
@@ -1306,7 +1306,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                     cond_instr->set_name("Condition");
                     parser_state.graph->connect_or_merge(
                             cond_instr->find_slot( SlotFlag_OUTPUT ),
-                            for_loop_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
+                            for_loop_node->find_slot_by_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
 
                     for_loop_node->cond_instr = cond_instr;
 
@@ -1320,7 +1320,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                         iter_instr->set_name("Iteration");
                         parser_state.graph->connect_or_merge(
                                 iter_instr->find_slot( SlotFlag_OUTPUT ),
-                                for_loop_node->find_slot( ITERATION_PROPERTY, SlotFlag_INPUT ) );
+                                for_loop_node->find_slot_by_name( ITERATION_PROPERTY, SlotFlag_INPUT ) );
                         for_loop_node->iter_instr = iter_instr;
 
                         Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
@@ -1388,7 +1388,7 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
             while_loop_node->cond_instr = cond_instr->poolid();
             parser_state.graph->connect_or_merge(
                     cond_instr->find_slot( SlotFlag_OUTPUT ),
-                    while_loop_node->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT ) );
+                    while_loop_node->find_slot_by_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
             if ( close_bracket.is_null() )
@@ -1809,9 +1809,9 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
 
     serialize_token_t(_out, Token_t::parenthesis_open);
 
-    const Slot& init_slot = *_for_loop->find_slot( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
-    const Slot& cond_slot = *_for_loop->find_slot( CONDITION_PROPERTY, SlotFlag_INPUT );
-    const Slot& iter_slot = *_for_loop->find_slot( ITERATION_PROPERTY, SlotFlag_INPUT );
+    const Slot& init_slot = *_for_loop->find_slot_by_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
+    const Slot& cond_slot = *_for_loop->find_slot_by_name( CONDITION_PROPERTY, SlotFlag_INPUT );
+    const Slot& iter_slot = *_for_loop->find_slot_by_name( ITERATION_PROPERTY, SlotFlag_INPUT );
 
     serialize_input( _out, init_slot );
     serialize_input( _out, cond_slot );

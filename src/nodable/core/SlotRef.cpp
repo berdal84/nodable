@@ -74,5 +74,5 @@ Slot* SlotRef::get() const
     {
         return nullptr;
     }
-    return &_node->get_slot(id);
+    return &_node->get_slot_at( id );
 }

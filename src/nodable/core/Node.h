@@ -59,9 +59,9 @@ namespace ndbl {
 
         // Code
 
-        Node(std::string  _label = "UnnamedNode");
-        Node(Node&&);
-        Node& operator=(Node&&);
+        explicit Node(std::string  _label = "UnnamedNode");
+        Node(Node&&) noexcept ;
+        Node& operator=(Node&&) noexcept ;
         virtual ~Node() = default;
 
         virtual void init();
@@ -73,35 +73,32 @@ namespace ndbl {
         std::vector<PoolID<Node>> outputs() const;
         std::vector<PoolID<Node>> predecessors() const;
         void                 set_name(const char*);
-        size_t               adjacent_count(SlotFlags )const;
         PoolID<Node>         get_parent() const;
+        size_t               adjacent_count(SlotFlags )const;
+        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity);
+        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
+        Slot&                get_slot_at(ID8<Slot>);
+        size_t               get_slot_count(SlotFlags) const;
+        Slot&                get_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
+        const Slot&          get_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
+        Slot&                get_nth_slot(u8_t, SlotFlags );
         Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
         const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
-        Slot&                get_slot(ID8<Slot>);
         Slot*                find_slot(ID<Property>, SlotFlags );
         const Slot*          find_slot(ID<Property>, SlotFlags ) const;
-        Slot*                find_slot(const char* property_name, SlotFlags );
-        const Slot*          find_slot(const char* property_name, SlotFlags ) const;
-        size_t               get_slot_count(SlotFlags) const;
-        Slot&                find_nth_slot( u8_t, SlotFlags );
-        Slot*                get_first_slot(SlotFlags _way, const fw::type *_type);
-        const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
+        Slot*                find_slot_by_name(const char* property_name, SlotFlags );
+        const Slot*          find_slot_by_name(const char* property_name, SlotFlags ) const;
+        Slot*                find_slot_by_type(SlotFlags _way, const fw::type *_type);
         std::vector<SlotRef> filter_adjacent_slots(SlotFlags) const;
         std::vector<Slot*>   filter_slots(SlotFlags) const;
-        bool                 has_edge_heading(ID<Property>) const;
-        bool                 has_edge_heading(const char* name) const;
+        ID<Property>         add_prop(const fw::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
         Property*            get_prop_at(ID<Property>);
         const Property*      get_prop_at(ID<Property>) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        std::vector<Slot*>   get_slots(const std::vector<ID<Property>>&, SlotFlags) const;
-        std::vector<PoolID<Component>> get_components();
-        ID<Property>         add_prop(const fw::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity);
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
-        Node*                last_child();
+        const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
         bool                 has_input_connected( const ID<Property>& ) const;
-        std::vector<Slot*>   get_all_slots( ID<Property> ) const;
+        std::vector<PoolID<Component>> get_components();
 
         template<typename ValueT>
         ID<Property> add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)
