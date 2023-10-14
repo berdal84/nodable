@@ -123,3 +123,8 @@ SlotFlags Slot::type() const
 {
     return flags & SlotFlag_TYPE_MASK;
 }
+
+bool Slot::empty() const
+{
+    return adjacent.empty();
+}

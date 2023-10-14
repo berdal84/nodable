@@ -997,8 +997,8 @@ void NodeView::set_expanded(bool _expanded)
 
 bool NodeView::should_follow_output(PoolID<const NodeView> output) const
 {
-    auto outputs = get_adjacent(SlotFlag_OUTPUT);
-    return outputs.empty() || outputs[0] == output;
+    Slot* this_out = m_owner->find_slot(SlotFlag_OUTPUT);
+    return !this_out || this_out->empty() || this_out->adjacent_at(0).node == output->m_owner;
 }
 
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)

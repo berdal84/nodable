@@ -47,5 +47,6 @@ namespace ndbl
         void      allow( SlotFlags );
         void      set_capacity(u8_t);
         SlotFlags type() const;
+        bool empty() const;
     };
 }

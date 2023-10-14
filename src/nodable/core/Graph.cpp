@@ -395,7 +395,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 }
 
                 // Connect siblings
-                if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
+                else if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
                 {
                     Node* current_prev_node_sibling = prev_node.successors()[0].get();
                     while ( current_prev_node_sibling && current_prev_node_sibling->find_parent() )
