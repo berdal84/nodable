@@ -55,18 +55,8 @@ void Node::init()
     FW_EXPECT(slots.size() == 0, "Slots should not exist prior to call init()");
 
     // Add a property acting like a "this" for the owner Node.
-    ID<Property> this_property_id = add_prop<PoolID<Node>>( THIS_PROPERTY );
-    FW_ASSERT(this_property_id == THIS_PROPERTY_ID);
-
-    get_prop_at( this_property_id )->set(m_id);
-
-    add_slot( this_property_id, SlotFlag_PREV, 0 );
-    add_slot( this_property_id, SlotFlag_NEXT, 0 );
-
-    add_slot( this_property_id, SlotFlag_PARENT, 1);
-    add_slot( this_property_id, SlotFlag_CHILD, SLOT_MAX_CAPACITY );
-
-    add_slot( this_property_id, SlotFlag_OUTPUT, SLOT_MAX_CAPACITY );
+    m_this_property_id = add_prop<PoolID<Node>>( THIS_PROPERTY );
+    get_prop_at( m_this_property_id )->set(m_id);
 
     m_components.set_owner( m_id );
 }
@@ -181,7 +171,7 @@ const Slot* Node::find_slot(SlotFlags _flags) const
 
 Slot& Node::get_slot(ID8<Slot> id)
 {
-    return slots[id];
+    return slots[id.m_value];
 }
 
 std::vector<PoolID<Node>> Node::outputs() const
@@ -255,26 +245,28 @@ Slot & Node::find_nth_slot( u8_t _n, SlotFlags _flags )
     FW_EXPECT(false, "Not found")
 }
 
-void Node::set_slot_capacity( SlotFlags _way, u8_t _n )
-{
-    Slot* slot = find_slot( THIS_PROPERTY, _way );
-    FW_ASSERT(slot != nullptr)
-    slot->set_capacity( _n );
-}
-
 ID<Property> Node::add_prop(const fw::type *_type, const char *_name, PropertyFlags _flags)
 {
     return props.add(_type, _name, _flags);
 }
 
-ID8<Slot> Node::add_slot(ID<Property> _prop_id, SlotFlags _flags, u8_t _capacity)
+ID8<Slot> Node::add_slot(SlotFlags _flags, u8_t _capacity, ID<Property> _prop_id)
 {
     return slots.add( m_id, _prop_id, _flags, _capacity );
 }
 
+ID8<Slot> Node::add_slot(SlotFlags _flags, u8_t _capacity)
+{
+    return slots.add( m_id, m_this_property_id, _flags, _capacity );
+}
+
 PoolID<Node> Node::get_parent() const
 {
-    return find_slot( SlotFlag_PARENT )->first_adjacent().node;
+    if ( const Slot* parent_slot = find_slot( SlotFlag_PARENT ) )
+    {
+        return parent_slot->first_adjacent().node;
+    }
+    return {};
 }
 
 Node* Node::last_child()

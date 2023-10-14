@@ -205,7 +205,7 @@ bool NodeView::is_selected(PoolID<NodeView> view)
 
 const PropertyView* NodeView::get_property_view( ID<Property> _id )const
 {
-    return &m_property_views.at(_id);
+    return &m_property_views.at((u32_t)_id);
 }
 
 void NodeView::set_position(ImVec2 _position, fw::Space origin)
@@ -1086,14 +1086,14 @@ ImVec2 NodeView::get_slot_pos( const Slot& slot )
 {
     // TODO: use 3x3 matrices to simplify code
 
-    if( slot.type() == SlotFlag_TYPE_VALUE && slot.property == THIS_PROPERTY_ID )
+    if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
     {
         return get_screen_rect().GetCenter()
-             + get_screen_rect().GetSize() * m_slot_views[slot.id].alignment();
+             + get_screen_rect().GetSize() * m_slot_views[(u8_t)slot.id].alignment();
     }
-    ImRect property_rect = m_property_views.at( slot.property ).screen_rect;
+    ImRect property_rect = m_property_views.at( (u32_t)slot.property ).screen_rect;
     return property_rect.GetCenter()
-         + property_rect.GetSize() * m_slot_views[slot.id].alignment();
+         + property_rect.GetSize() * m_slot_views[(u8_t)slot.id].alignment();
 }
 
 ImRect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _count ) const
@@ -1107,7 +1107,7 @@ ImRect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _confi
     ImVec2 size(std::min(_config.ui_node_slot_width,  get_size().x), std::min(_config.ui_node_slot_height, get_size().y));
     ImRect rect(left_corner, left_corner + size);
 
-    rect.Translate( ImVec2(size.x * _count, -rect.GetSize().y * 0.5f) );
+    rect.Translate( ImVec2(size.x * float(_count), -rect.GetSize().y * 0.5f) );
     rect.Expand( ImVec2(- _config.ui_node_slot_padding, 0.0f));
 
     return rect;

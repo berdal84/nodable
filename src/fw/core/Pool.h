@@ -79,7 +79,7 @@ namespace fw
         { return (bool)id; }
 
         inline explicit operator id_t () const
-        { return id; }
+        { return (id_t)id; }
 
         inline PoolID<Type>& operator=(const PoolID<Type> other)
         { id = other.id; return *this; }
@@ -249,7 +249,7 @@ namespace fw
 
         template<typename T>
         inline T* get(PoolID<T> _id)
-        { return get<T>(_id.id); }
+        { return get<T>((id_t)_id); }
 
         template<typename T>
         inline void get(std::vector<T*>& _out, const std::vector<PoolID<T>>& _ids);

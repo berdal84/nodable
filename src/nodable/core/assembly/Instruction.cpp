@@ -27,7 +27,7 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     {
         case Instruction_t::eval_node:
         {
-            result.append(format::hexadecimal(_instr.eval.node.id) );
+            result.append(format::hexadecimal(_instr.eval.node.id.m_value) );
             break;
         }
 
@@ -65,16 +65,16 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
         case Instruction_t::ret: // nothing else to do.
             break;
         case Instruction_t::pop_stack_frame:
-            result.append(format::hexadecimal(_instr.pop.scope.id) );
+            result.append(format::hexadecimal((u32_t)_instr.pop.scope.id) );
             break;
         case Instruction_t::pop_var:
-            result.append(format::hexadecimal(_instr.push.var.id) );
+            result.append(format::hexadecimal((u32_t)_instr.push.var.id) );
             break;
         case Instruction_t::push_stack_frame:
-            result.append(format::hexadecimal(_instr.push.scope.id) );
+            result.append(format::hexadecimal((u32_t)_instr.push.scope.id) );
             break;
         case Instruction_t::push_var:
-            result.append(format::hexadecimal(_instr.push.var.id) );
+            result.append(format::hexadecimal((u32_t)_instr.push.var.id) );
             break;
     }
 

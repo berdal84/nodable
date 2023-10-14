@@ -32,9 +32,13 @@ void VariableNode::init()
     Node::init();
 
     m_value_property_id = add_prop( m_type, VALUE_PROPERTY, PropertyFlag_DEFAULT );
+    add_slot( SlotFlag_INPUT,  1, m_value_property_id);
+    add_slot( SlotFlag_OUTPUT, SLOT_MAX_CAPACITY, m_value_property_id);
 
-    add_slot( m_value_property_id, SlotFlag_INPUT,  1);
-    add_slot( m_value_property_id, SlotFlag_OUTPUT, SLOT_MAX_CAPACITY);
+    add_slot( SlotFlag_PARENT,  1, m_this_property_id );
+    add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY, m_this_property_id );
+    add_slot( SlotFlag_NEXT, 1, m_this_property_id );
+    add_slot( SlotFlag_OUTPUT, 1, m_this_property_id );
 }
 
 PoolID<Scope> VariableNode::get_scope()

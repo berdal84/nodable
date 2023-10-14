@@ -96,9 +96,9 @@ namespace ndbl {
         const Property*      get_prop(const char* _name) const;
         std::vector<Slot*>   get_slots(const std::vector<ID<Property>>&, SlotFlags) const;
         std::vector<PoolID<Component>> get_components();
-        void                 set_slot_capacity(SlotFlags _way, u8_t _n);
         ID<Property>         add_prop(const fw::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
-        ID8<Slot>            add_slot(ID<Property>, SlotFlags, u8_t _capacity = 1);
+        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity);
+        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
         Node*                last_child();
         bool                 has_input_connected( const ID<Property>& ) const;
         std::vector<Slot*>   get_all_slots( ID<Property> ) const;
@@ -119,6 +119,8 @@ namespace ndbl {
         bool has_component() const
         { return m_components.has<ComponentT>(); }
 
+    protected:
+        ID<Property> m_this_property_id;
     private:
         ComponentBag m_components;
     };

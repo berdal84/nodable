@@ -55,7 +55,7 @@ namespace fw
         void reset( id_t _id = invalid_id<id_t> )
         { m_value = _id; }
 
-        operator id_t() const
+        explicit operator id_t() const
         { return this->m_value; }
 
         template<typename OtherType>

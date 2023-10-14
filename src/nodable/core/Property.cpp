@@ -100,5 +100,5 @@ void Property::set_visibility(PropertyFlags _flags)
 
 bool Property::is_this() const
 {
-    return id == THIS_PROPERTY_ID;
+    return id.m_value == 0;
 }

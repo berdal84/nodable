@@ -18,10 +18,12 @@ void ConditionalStructNode::init()
     Node::init();
 
     auto cond_id = add_prop<PoolID<Node>>(CONDITION_PROPERTY, PropertyFlag_VISIBLE);
-    add_slot( cond_id, SlotFlag::SlotFlag_INPUT, 1 );
-
-    set_slot_capacity( SlotFlag_PREV, SLOT_MAX_CAPACITY );
-    set_slot_capacity( SlotFlag_NEXT, 2 );
+    add_slot( SlotFlag::SlotFlag_INPUT, 1, cond_id );
+    add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
+    add_slot( SlotFlag_PARENT, 1);
+    add_slot( SlotFlag_OUTPUT, SLOT_MAX_CAPACITY );
+    add_slot( SlotFlag_NEXT, 2 );
+    add_slot( SlotFlag_CHILD, 2 );
 }
 
 PoolID<Scope> ConditionalStructNode::get_condition_true_scope() const

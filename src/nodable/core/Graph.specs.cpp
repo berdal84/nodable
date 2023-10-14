@@ -21,11 +21,11 @@ TEST_F(Graph_, connect)
     // Prepare
     auto node_1 = graph.create_node();
     auto prop_1 = node_1->add_prop<bool>("prop_1");
-    auto slot_1 = node_1->add_slot( prop_1, SlotFlag_OUTPUT   );
+    auto slot_1 = node_1->add_slot( SlotFlag_OUTPUT, 1, prop_1  );
 
     auto node_2 = graph.create_node();
     auto prop_2 = node_2->add_prop<bool>("prop_2");
-    auto slot_2 = node_2->add_slot( prop_2, SlotFlag_INPUT );
+    auto slot_2 = node_2->add_slot( SlotFlag_INPUT, 1, prop_2 );
 
     // Act
     DirectedEdge& edge = *graph.connect_or_merge( &node_1->get_slot( slot_1 ), &node_2->get_slot( slot_2 ) );
@@ -41,11 +41,11 @@ TEST_F(Graph_, disconnect)
     // Prepare
     auto node_1 = graph.create_node();
     auto prop_1 = node_1->add_prop<bool>("prop_1");
-    auto slot_1 = node_1->add_slot( prop_1, SlotFlag_OUTPUT );
+    auto slot_1 = node_1->add_slot( SlotFlag_OUTPUT, 1, prop_1 );
 
     auto node_2 = graph.create_node();
     auto prop_2 = node_2->add_prop<bool>("prop_2");
-    auto slot_2 = node_2->add_slot( prop_2, SlotFlag_INPUT );
+    auto slot_2 = node_2->add_slot( SlotFlag_INPUT, 1, prop_2 );
 
     EXPECT_EQ(graph.get_edge_registry().size(), 0);
     DirectedEdge& edge = *graph.connect_or_merge( &node_1->get_slot( slot_1 ), &node_2->get_slot( slot_2 ) );
@@ -77,7 +77,7 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph.get_edge_registry().empty() );
 
     graph.connect(
-            operator_node->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
+            operator_node->find_slot( VALUE_PROPERTY, SlotFlag_OUTPUT ),
             instructionNode->find_slot( ROOT_PROPERTY, SlotFlag_INPUT ),
             ConnectFlag_ALLOW_SIDE_EFFECTS);
 
@@ -98,13 +98,11 @@ TEST_F(Graph_, clear)
 TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
-    auto double_type = fw::type::get<double>();
-    PoolID<Scope> scope = graph.create_root()->get_component<Scope>();
     auto& edges = graph.get_edge_registry();
     EXPECT_EQ(edges.size(), 0);
-    auto node_1 = graph.create_variable(double_type, "node_1", scope);
+    auto node_1 = graph.create_scope();
     EXPECT_EQ(edges.size(), 0);
-    auto node_2 = graph.create_variable(double_type, "node_2", scope);
+    auto node_2 = graph.create_instr();
 
     // Act and test
 
@@ -118,16 +116,4 @@ TEST_F(Graph_, create_and_delete_relations)
     EXPECT_EQ(edges.size(), 1);
     graph.disconnect(*edge_1);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
-
-    // Is input of
-    EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 0);
-    DirectedEdge* edge_2 = graph.connect(
-            node_1->find_value_typed_slot( SlotFlag_OUTPUT ),
-            node_2->find_value_typed_slot( SlotFlag_INPUT ));
-    EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 1);
-    EXPECT_EQ(edges.size(), 1);
-    graph.disconnect(*edge_2);
-    EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_VALUE ).size(), 0);
-    EXPECT_EQ(edges.size(), 0);
 }

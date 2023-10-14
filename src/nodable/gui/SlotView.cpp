@@ -32,7 +32,7 @@ void SlotView::draw_slot_circle(
     ImGui::SetCursorScreenPos( _position - ImVec2(_radius * INVISIBLE_BUTTON_SIZE_RATIO ));
 
     // draw a larger invisible button on top of the circle to facilitate click/drag
-    ImGui::PushID(_view.m_slot.id);
+    ImGui::PushID((u8_t)_view.m_slot.id);
     ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO, _radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO ));
     ImGui::PopID();
 
@@ -66,7 +66,7 @@ void SlotView::draw_slot_rectangle(
     ImDrawCornerFlags corner_flags = _view.m_slot.flags & SlotFlag_ORDER_FIRST ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
     ImGui::SetCursorScreenPos( _rect.GetTL());
-    ImGui::PushID(_view.m_slot.id);
+    ImGui::PushID((u8_t)_view.m_slot.id);
     ImGui::InvisibleButton("###", _rect.GetSize());
     ImGui::PopID();
 

@@ -21,12 +21,14 @@ void ForLoopNode::init()
     auto cond_id = add_prop<PoolID<Node>>(CONDITION_PROPERTY,      PropertyFlag_VISIBLE ); // for (   ..   ; <here>  ;   ..   ) { ... }
     auto iter_id = add_prop<PoolID<Node>>(ITERATION_PROPERTY,      PropertyFlag_VISIBLE ); // for (   ..   ;   ..    ; <here> ) { ... }
 
-    add_slot(init_id, SlotFlag::SlotFlag_INPUT, 1);
-    add_slot(cond_id, SlotFlag::SlotFlag_INPUT, 1);
-    add_slot(iter_id, SlotFlag::SlotFlag_INPUT, 1);
+    add_slot( SlotFlag_INPUT, 1, init_id);
+    add_slot( SlotFlag_INPUT, 1, cond_id);
+    add_slot( SlotFlag_INPUT, 1, iter_id);
 
-    set_slot_capacity( SlotFlag_PREV, SLOT_MAX_CAPACITY );
-    set_slot_capacity( SlotFlag_NEXT, 1 );
+    add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
+    add_slot( SlotFlag_NEXT, 2 );
+    add_slot( SlotFlag_CHILD, 2 );
+    add_slot( SlotFlag_PARENT, 1);
 }
 
 PoolID<Scope> ForLoopNode::get_condition_true_scope() const

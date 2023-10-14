@@ -1,5 +1,5 @@
-#include "nodable/core/Node.h"
-#include "Scope.h"
+#include "nodable/core/InstructionNode.h"
+#include "nodable/core/Scope.h"
 #include "core/fixtures/core.h"
 #include <gtest/gtest.h>
 
@@ -21,12 +21,12 @@ typedef ::testing::Core Node_;
 
 TEST_F(Node_, get_parent)
 {
-    auto child  = graph.create_node();
     auto parent = graph.create_scope();
+    auto child  = graph.create_instr();
 
     graph.connect(
-            parent->find_slot( THIS_PROPERTY, SlotFlag_CHILD ),
-            child->find_slot( THIS_PROPERTY, SlotFlag_PARENT )
+            parent->find_slot( SlotFlag_CHILD ),
+            child->find_slot( SlotFlag_PARENT )
             );
 
     EXPECT_TRUE( child->get_parent() );

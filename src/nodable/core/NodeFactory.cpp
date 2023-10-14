@@ -63,6 +63,7 @@ PoolID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type,
 {
     PoolID<Node> node = Pool::get_pool()->create<Node>();
     node->init();
+    node->add_slot(SlotFlag_OUTPUT, 1); // Can be connected to an InstructionNode
 
     if( _is_operator )
     {
@@ -78,7 +79,7 @@ PoolID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type,
 
     // Create a result/value
     auto return_prop_id = node->props.add(_func_type->get_return_type(), VALUE_PROPERTY );
-    node->add_slot( return_prop_id, SlotFlag_OUTPUT, SLOT_MAX_CAPACITY );
+    node->add_slot( SlotFlag_OUTPUT, SLOT_MAX_CAPACITY, return_prop_id);
 
     // Create arguments
     auto args = _func_type->get_args();
@@ -95,7 +96,7 @@ PoolID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type,
             case 1:
             {
                 auto left_prop_id = node->props.add(args[0].m_type, LEFT_VALUE_PROPERTY );
-                node->add_slot( left_prop_id, SlotFlag_INPUT, 1 );
+                node->add_slot( SlotFlag_INPUT, 1, left_prop_id);
                 break;
             }
 
@@ -103,8 +104,8 @@ PoolID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type,
             {
                 auto left_prop_id = node->props.add( args[0].m_type, LEFT_VALUE_PROPERTY );
                 auto right_prop_id = node->props.add( args[1].m_type, RIGHT_VALUE_PROPERTY );
-                node->add_slot( left_prop_id, SlotFlag_INPUT, 1 );
-                node->add_slot( right_prop_id, SlotFlag_INPUT, 1 );
+                node->add_slot( SlotFlag_INPUT, 1, left_prop_id );
+                node->add_slot( SlotFlag_INPUT, 1 , right_prop_id);
                 break;
             }
 
@@ -116,7 +117,7 @@ PoolID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type,
         for (auto& arg : args)
         {
             auto each_prop_id = node->props.add(arg.m_type, arg.m_name.c_str() );
-            node->add_slot( each_prop_id, SlotFlag_INPUT, 1 );
+            node->add_slot( SlotFlag_INPUT, 1, each_prop_id);
         }
     }
 
@@ -162,8 +163,10 @@ PoolID<Node> NodeFactory::create_scope() const
     node->init();
     node->set_name("{} Scope");
 
-    node->set_slot_capacity( SlotFlag_PREV, SLOT_MAX_CAPACITY );
-    node->set_slot_capacity( SlotFlag_NEXT, 1 );
+    node->add_slot( SlotFlag_PARENT, 1 );
+    node->add_slot( SlotFlag_CHILD, SLOT_MAX_CAPACITY );
+    node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
+    node->add_slot( SlotFlag_NEXT, 1 );
 
     PoolID<Scope> scope_id = Pool::get_pool()->create<Scope>();
     node->add_component(scope_id);
@@ -211,11 +214,14 @@ PoolID<WhileLoopNode> NodeFactory::create_while_loop() const
 
 PoolID<Node> NodeFactory::create_program() const
 {
-    PoolID<Node> node = create_scope(); // A program is a main scope.
+    PoolID<Node> node = Pool::get_pool()->create<Node>();
+    node->init();
     node->set_name(ICON_FA_FILE_CODE " Program");
-    node->set_slot_capacity(SlotFlag_PREV, 0);
-    node->set_slot_capacity(SlotFlag_PARENT, 0);
-
+    //node->add_slot( SlotFlag_PARENT, 1 );               // Program is a root
+    //node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY ); //       ...
+    node->add_slot( SlotFlag_CHILD, SLOT_MAX_CAPACITY );
+    node->add_slot( SlotFlag_NEXT, 1 );
+    node->add_component(Pool::get_pool()->create<Scope>() );
     m_post_process(node);
     return node;
 }

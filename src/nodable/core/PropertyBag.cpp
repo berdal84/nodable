@@ -40,7 +40,7 @@ const Property* PropertyBag::_find_first( PropertyFlags _flags, const fw::type *
 {
     auto filter = [this, _flags, _type](const std::pair<const std::string, ID<Property>>& pair) -> bool
     {
-        auto& property = m_properties[pair.second];
+        auto& property = m_properties[(u32_t)pair.second];
         return fw::type::is_implicitly_convertible( property.get_type(), _type)
                && ( property.has_flags( _flags ) );
     };
@@ -54,13 +54,13 @@ const Property* PropertyBag::_find_first( PropertyFlags _flags, const fw::type *
 Property* PropertyBag::find_by_name(const char *_name)
 {
     ID<Property> id = m_properties_by_name.at(_name);
-    return &m_properties[(size_t)id];
+    return &m_properties[(u32_t)id];
 }
 
 const Property* PropertyBag::find_by_name(const char *_name) const
 {
     ID<Property> id = m_properties_by_name.at(_name);
-    return &m_properties[(size_t)id];
+    return &m_properties[(u32_t)id];
 }
 
 Property* PropertyBag::at(ID<Property> property)

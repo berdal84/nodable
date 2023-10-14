@@ -5,7 +5,6 @@ namespace ndbl
     /*
      * some constants to define specific property names
      */
-    static u32_t THIS_PROPERTY_ID{0};
     static const char* THIS_PROPERTY = "this";             // Refers to node's this address.
     static const char* VALUE_PROPERTY = "value";            // Refers to node's value.
     static const char* ROOT_PROPERTY = "root";

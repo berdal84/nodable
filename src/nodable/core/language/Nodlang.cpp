@@ -1280,13 +1280,15 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
         if (open_bracket.is_null())
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
-        } else
+        }
+        else
         {
             PoolID<InstructionNode> init_instr = parse_instr();
             if (!init_instr)
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
-            } else
+            }
+            else
             {
                 init_instr->set_name("Initialisation");
                 parser_state.graph->connect_or_merge(
@@ -1298,7 +1300,8 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                 if (!cond_instr)
                 {
                     LOG_ERROR("Parser", "Unable to find condition instruction.\n")
-                } else
+                }
+                else
                 {
                     cond_instr->set_name("Condition");
                     parser_state.graph->connect_or_merge(

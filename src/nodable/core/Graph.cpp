@@ -208,6 +208,9 @@ bool Graph::is_empty() const
 
 DirectedEdge* Graph::connect_or_merge(Slot* _out, Slot*_in )
 {
+    FW_ASSERT( _in )
+    FW_ASSERT( _out )
+
     Property* in_prop  = _in->get_property();
     Property* out_prop = _out->get_property();
 
@@ -264,6 +267,8 @@ void Graph::remove(DirectedEdge edge)
 
 DirectedEdge* Graph::connect_to_instruction(Slot* expression_root, InstructionNode* instruction )
 {
+    FW_ASSERT(expression_root)
+    FW_ASSERT(instruction)
     Node* expression_node = expression_root->get_node();
 
     if ( auto* variable = fw::cast<VariableNode>( expression_node ) )
@@ -276,29 +281,32 @@ DirectedEdge* Graph::connect_to_instruction(Slot* expression_root, InstructionNo
         }
     }
     return connect_or_merge(
-            expression_node->find_slot( THIS_PROPERTY, SlotFlag_OUTPUT ),
+            expression_node->find_slot( SlotFlag_OUTPUT ),
             &instruction->root_slot() );
 }
 
 DirectedEdge* Graph::connect_to_variable(Slot* _out, PoolID<VariableNode> _variable_in )
 {
-    FW_EXPECT( _out->flags == SlotFlag_OUTPUT, "slot should be an OUTPUT" )
+    FW_ASSERT(_out)
+    FW_ASSERT(_variable_in)
+    FW_ASSERT( _out->flags == SlotFlag_OUTPUT)
     return connect_or_merge( _out, _variable_in->find_value_typed_slot( SlotFlag_INPUT ) );
 }
 
 DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
 {
+    FW_ASSERT(_first)
+    FW_ASSERT(_second)
+
     // When necessary and if allowed, swap slots.
     if( _second->flags & SlotFlag_ORDER_FIRST && _flags & ConnectFlag_ALLOW_SWAP )
     {
         std::swap(_first, _second);
     }
 
-#ifdef NDBL_DEBUG
     FW_ASSERT( _first->flags & SlotFlag_ORDER_FIRST  )
     FW_ASSERT( _second->flags & SlotFlag_ORDER_SECOND )
     FW_ASSERT( _first->node != _second->node )
-#endif
 
     // Insert edge
     SlotFlags type = _first->type();
@@ -341,10 +349,10 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                     PoolID<Node> previous_child = parent->rchildren().at(1);
                     FW_ASSERT( previous_child )
 
-                    // Case 2.a: Connects to all last instructions' "next" slot (in last child's scope).
+                    // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
                     //           parent
                     //             - ...
-                    //             - last child
+                    //             - previous_child
                     //                  - child 0
                     //                     - ...
                     //                     - instr n >->->->->
@@ -354,9 +362,10 @@ DirectedEdge* Graph::connect(Slot* _first, Slot* _second, ConnectFlags _flags)
                     //                  - instr n ->->->->->->
                     //             - new child <-<-<-<-<-<-<-<
                     //
-                    if (auto scope = previous_child->get_component<Scope>().get())
+                    auto previous_child_scope = previous_child->get_component<Scope>().get();
+                    if ( previous_child_scope && !previous_child->get_type()->is<ForLoopNode>() )
                     {
-                        std::vector<InstructionNode *> last_instructions = scope->get_last_instructions_rec();
+                        std::vector<InstructionNode *> last_instructions = previous_child_scope->get_last_instructions_rec();
                         for (InstructionNode* each_instr: last_instructions )
                         {
                             Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT );

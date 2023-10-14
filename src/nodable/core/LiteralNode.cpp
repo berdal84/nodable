@@ -20,6 +20,7 @@ void LiteralNode::init()
             m_type,
             VALUE_PROPERTY,
             PropertyFlag_VISIBLE | PropertyFlag_INITIALIZE | PropertyFlag_DEFINE | PropertyFlag_RESET_VALUE);
-    add_slot(m_value_property_id, SlotFlag::SlotFlag_OUTPUT, 1 );
+    add_slot( SlotFlag::SlotFlag_OUTPUT, 1, m_value_property_id);
+    add_slot( SlotFlag::SlotFlag_OUTPUT, 1, m_this_property_id);
 }
 
