@@ -44,8 +44,3 @@ bool ConditionalStructNode::is_chained_with_other_cond_struct() const
     }
     return false;
 }
-
-const Property* ConditionalStructNode::condition_property() const
-{
-    return get_prop(CONDITION_PROPERTY);
-}

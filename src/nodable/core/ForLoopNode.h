@@ -30,12 +30,9 @@ namespace ndbl
         PoolID<InstructionNode> iter_instr;
 
         void            init() override;
-        const Property* get_init_expr()const { return get_prop(INITIALIZATION_PROPERTY); }
-        const Property* get_iter_expr()const { return get_prop(ITERATION_PROPERTY); }
 
         // implements IConditionalStruct (which is already documented)
 
-        const Property* condition_property()const override { return get_prop(CONDITION_PROPERTY);}
         PoolID<Scope>  get_condition_true_scope()const override;;
         PoolID<Scope>  get_condition_false_scope()const override;;
 

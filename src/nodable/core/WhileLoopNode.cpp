@@ -34,9 +34,3 @@ PoolID<Scope> WhileLoopNode::get_condition_false_scope() const
 {
     return GraphUtil::adjacent_component_at<Scope>(this, SlotFlag_NEXT, 1);
 }
-
-
-const Property* WhileLoopNode::condition_property() const
-{
-    return get_prop(CONDITION_PROPERTY);
-}

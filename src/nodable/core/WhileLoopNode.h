@@ -35,7 +35,6 @@ namespace ndbl
 
         // implements IConditionalStruct (which is already documented)
 
-        const Property* condition_property()const override;
         PoolID<Scope>   get_condition_true_scope()const override;
         PoolID<Scope>   get_condition_false_scope()const override;
 

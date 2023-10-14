@@ -36,7 +36,6 @@ namespace ndbl
 
         PoolID<Scope>   get_condition_true_scope()const override;
         PoolID<Scope>   get_condition_false_scope()const override;
-        const Property* condition_property()const override;
     };
 }
 
