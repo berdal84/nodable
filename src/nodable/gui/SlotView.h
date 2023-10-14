@@ -33,7 +33,6 @@ namespace ndbl
         PoolID<Node>          adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
-        PoolID<Node>          get_node();
         static SlotView*      get_dragged() { return s_dragged; }
         static SlotView*      get_focused() { return s_dragged; }
         static SlotView*      get_hovered() { return s_hovered; }
@@ -44,7 +43,7 @@ namespace ndbl
         static void           reset_hovered(SlotView * slot = nullptr) { s_hovered = slot; }
         static void           behavior(SlotView&, bool _readonly);
         static void           draw_slot_circle( ImDrawList* _draw_list, SlotView& _view,  ImVec2 _position, float _radius, const ImColor &_color, const ImColor &_border_color, const ImColor &_hover_color, bool _readonly );
-        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, ImRect _rect, const ImColor& _color, const ImColor& _border_color, const ImColor& _hover_color, bool _readonly);
+        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, ImRect _rect, const ImColor& _color, const ImColor& _border_color, const ImColor& _hover_color, float _border_radius, bool _readonly);
 
     private:
         Slot&                 m_slot;

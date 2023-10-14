@@ -53,10 +53,9 @@ void SlotView::draw_slot_rectangle(
         const ImColor& _color,
         const ImColor& _border_color,
         const ImColor& _hover_color,
+        float _border_radius,
         bool _readonly)
 {
-    constexpr float   RECTANGLE_ROUNDING_SIZE = 6.0f;
-
     ImVec2 rect_size = _rect.GetSize();
 
     // Return early if rectangle cannot be draw.
@@ -71,8 +70,8 @@ void SlotView::draw_slot_rectangle(
     ImGui::PopID();
 
     ImColor fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hover_color : _color;
-    _draw_list->AddRectFilled( _rect.Min, _rect.Max, fill_color, RECTANGLE_ROUNDING_SIZE, corner_flags );
-    _draw_list->AddRect( _rect.Min, _rect.Max, _border_color, RECTANGLE_ROUNDING_SIZE, corner_flags );
+    _draw_list->AddRectFilled( _rect.Min, _rect.Max, fill_color, _border_radius, corner_flags );
+    _draw_list->AddRect( _rect.Min, _rect.Max, _border_color, _border_radius, corner_flags );
     fw::ImGuiEx::DebugRect( _rect.Min, _rect.Max, ImColor(255,0, 0, 127), 0.0f );
 
     behavior(_view, _readonly);
@@ -139,11 +138,6 @@ ImVec2 SlotView::position()const
 ImRect SlotView::rect(Config& config)const
 {
     return m_slot.node->get_component<NodeView>()->get_slot_rect( *this, config, 0 );
-}
-
-PoolID<Node> SlotView::get_node()
-{
-    return m_slot.node;
 }
 
 void SlotView::drop_behavior(bool &require_new_node, bool _enable_edition)

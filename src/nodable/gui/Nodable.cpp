@@ -70,7 +70,7 @@ Nodable::Nodable()
         // Set common colors
         NodeView *new_view = new_view_id.get();
         new_view->set_color( View::Color_HIGHLIGH, &config.ui_node_highlightedColor );
-        new_view->set_color( View::Color_BORDER, &config.ui_node_borderColor );
+        new_view->set_color( View::Color_BORDER, &config.ui_node_slot_border_color );
         new_view->set_color( View::Color_BORDER_HIGHLIGHT, &config.ui_node_borderHighlightedColor );
         new_view->set_color( View::Color_SHADOW, &config.ui_node_shadowColor );
         new_view->set_color( View::Color_FILL, &config.ui_node_fillColor );

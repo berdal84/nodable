@@ -199,7 +199,7 @@ bool GraphView::draw()
     {
         size_t slot_index = 0;
         size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_FIRST );
-        float line_width  = app.config.ui_node_slot_width * app.config.ui_codeFlow_line_width_ratio;
+        float line_width  = app.config.ui_node_slot_width * app.config.ui_codeflow_thickness_ratio;
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
 
         // TODO: refactor this using the Slots
@@ -222,8 +222,8 @@ bool GraphView::draw()
                 end.y -= each_successor_view->get_size().y * 0.5f; // align top
                 end.y -= app.config.ui_node_slot_height * 0.25f;
 
-                ImColor color(app.config.ui_codeFlow_lineColor);
-                ImColor shadowColor(app.config.ui_codeFlow_lineShadowColor);
+                ImColor color(app.config.ui_codeflow_color );
+                ImColor shadowColor(app.config.ui_codeflow_shadowColor );
                 fw::ImGuiEx::DrawVerticalWire(
                     ImGui::GetWindowDrawList(),
                     start,
@@ -250,9 +250,9 @@ bool GraphView::draw()
                         ImGui::GetWindowDrawList(),
                         dragged_slot->rect(app.config).GetCenter(),
                         hovered_slot ? hovered_slot->rect(app.config).GetCenter(): ImGui::GetMousePos(),
-                        app.config.ui_codeFlow_lineColor,
-                        app.config.ui_codeFlow_lineShadowColor,
-                        app.config.ui_node_slot_width * app.config.ui_codeFlow_line_width_ratio,
+                        app.config.ui_codeflow_color,
+                        app.config.ui_codeflow_shadowColor,
+                        app.config.ui_node_slot_width * app.config.ui_codeflow_thickness_ratio,
                         0.f // roundness
                 );
             }
@@ -310,13 +310,11 @@ bool GraphView::draw()
                 ImVec2 adjacent_slot_pos = adjacent_node_view->get_slot_pos( *adjacent_slot );
 
                 // do not draw long lines between a variable value
-                ImVec4 line_color   = app.config.ui_codeFlow_lineColor;
-                ImVec4 shadow_color = app.config.ui_codeFlow_lineShadowColor;
+                ImVec4 line_color   = app.config.ui_wire_color;
+                ImVec4 shadow_color = app.config.ui_wire_shadowColor;
 
-
-                if (NodeView::is_selected( node_view->poolid()) ||
-                    NodeView::is_selected( adjacent_node_view->poolid())
-                )
+                if ( NodeView::is_selected( node_view->poolid() ) ||
+                     NodeView::is_selected( adjacent_node_view->poolid() ) )
                 {
                     // blink wire colors
                     float blink = 1.f + std::sin(float(app.core.elapsed_time()) * 10.f) * 0.25f;
@@ -329,10 +327,10 @@ bool GraphView::draw()
                     // transparent depending on wire length
                     ImVec2 delta = slot_pos - adjacent_slot_pos;
                     float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-                    if (dist > app.config.ui_wire_bezier_length_min) {
-                        float factor = (dist - app.config.ui_wire_bezier_length_min) /
-                                       (app.config.ui_wire_bezier_length_max -
-                                        app.config.ui_wire_bezier_length_min);
+                    if (dist > app.config.ui_wire_bezier_fade_length_minmax.x )
+                    {
+                        float factor = ( dist - app.config.ui_wire_bezier_fade_length_minmax.x ) /
+                                       ( app.config.ui_wire_bezier_fade_length_minmax.y - app.config.ui_wire_bezier_fade_length_minmax.x );
                         line_color = ImLerp(line_color, ImColor(0, 0, 0, 0), factor);
                         shadow_color = ImLerp(shadow_color, ImColor(0, 0, 0, 0), factor);
                     }
@@ -352,7 +350,6 @@ bool GraphView::draw()
 
                     fw::ImGuiEx::DrawVerticalWire(draw_list, slot_pos, adjacent_slot_pos, line_color, shadow_color, thickness, roundness);
                 }
-
             }
         }
 

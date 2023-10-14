@@ -590,9 +590,9 @@ void AppView::draw_config_window() {
     Config& config = m_app->config;
     if (ImGui::Begin(config.ui_config_window_label))
     {
-        ImGui::Text("Nodable Settings:");
+        ImGui::Text("Nodable Settings");
 
-        if (ImGui::CollapsingHeader("Nodes:", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth))
+        if (ImGui::CollapsingHeader("Nodes", ImGuiTreeNodeFlags_SpanAvailWidth))
         {
             ImGui::Indent();
             if ( ImGui::CollapsingHeader("Colors"))
@@ -604,18 +604,24 @@ void AppView::draw_config_window() {
                 ImGui::ColorEdit4("literal", &config.ui_node_literalColor.x);
                 ImGui::ColorEdit4("function", &config.ui_node_invokableColor.x);
                 ImGui::ColorEdit4("shadow", &config.ui_node_shadowColor.x);
-                ImGui::ColorEdit4("border", &config.ui_node_borderColor.x);
+                ImGui::ColorEdit4("border", &config.ui_node_slot_border_color.x);
                 ImGui::ColorEdit4("border (highlighted)", &config.ui_node_borderHighlightedColor.x);
-                ImGui::ColorEdit4("slot", &config.ui_node_nodeslotColor.x);
-                ImGui::ColorEdit4("slot (hovered)", &config.ui_node_nodeslotHoveredColor.x);
+                ImGui::ColorEdit4("slot", &config.ui_node_slot_color.x);
+                ImGui::ColorEdit4("slot (hovered)", &config.ui_node_slot_hovered_color.x);
             }
 
-            if ( ImGui::CollapsingHeader("slots"))
+            if ( ImGui::CollapsingHeader("Slots"))
             {
-                ImGui::SliderFloat("property slot radius", &config.ui_node_propertyslotRadius, 5.0f, 10.0f);
-                ImGui::SliderFloat("slot padding", &config.ui_node_slot_padding, 0.0f, 100.0f);
-                ImGui::SliderFloat("slot height", &config.ui_node_slot_height, 2.0f, 100.0f);
-                ImGui::SliderFloat("code flow slot width", &config.ui_node_slot_width, 10.0f, 40.0f);
+                ImGui::Text("Property Slots:");
+                ImGui::SliderFloat("slot radius", &config.ui_node_propertyslot_radius, 5.0f, 10.0f);
+
+                ImGui::Separator();
+
+                ImGui::Text("Code Flow Slots:");
+                ImGui::SliderFloat("slot padding##codeflow", &config.ui_node_slot_padding, 0.0f, 100.0f);
+                ImGui::SliderFloat("slot height##codeflow", &config.ui_node_slot_height, 2.0f, 100.0f);
+                ImGui::SliderFloat("slot width##codeflow", &config.ui_node_slot_width, 10.0f, 40.0f);
+                ImGui::SliderFloat("slot radius##codeflow", &config.ui_node_slot_border_radius, 0.0f, 40.0f);
             }
 
             if ( ImGui::CollapsingHeader("Misc."))
@@ -627,15 +633,20 @@ void AppView::draw_config_window() {
             ImGui::Unindent();
         }
 
-        if (ImGui::CollapsingHeader("Wires / Edges"))
+        if (ImGui::CollapsingHeader("Wires / Code Flow"))
         {
-            ImGui::SliderFloat("thickness", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("roundness", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
-            ImGui::SliderFloat("fade at length min", &config.ui_wire_bezier_length_min, 200.0f, 1000.0f);
-            ImGui::SliderFloat("invisible at length max", &config.ui_wire_bezier_length_max, 200.0f, 1000.0f);
+            ImGui::Text("Wires");
+            ImGui::SliderFloat("thickness##wires", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat("roundness##wires", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
+            ImGui::SliderFloat2("fade length min/max##wires", &config.ui_wire_bezier_fade_length_minmax.x, 200.0f, 1000.0f);
+            ImGui::ColorEdit4("color##wires", &config.ui_wire_color.x);
+            ImGui::ColorEdit4("shadow color##wires", &config.ui_wire_shadowColor.x);
+
             ImGui::Separator();
-            ImGui::ColorEdit4("wire color (flow)", &config.ui_codeFlow_lineColor.x);
-            ImGui::SliderFloat("wire color (flow)", &config.ui_codeFlow_line_width_ratio, 0.1, 1.0);
+
+            ImGui::Text("Code Flow");
+            ImGui::ColorEdit4("color##codeflow", &config.ui_codeflow_color.x);
+            ImGui::SliderFloat("thickness (ratio)##codeflow", &config.ui_codeflow_thickness_ratio, 0.1, 1.0);
         }
 
         if (ImGui::CollapsingHeader("Graph"))

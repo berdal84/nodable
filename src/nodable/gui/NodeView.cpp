@@ -289,9 +289,10 @@ bool NodeView::draw()
     // Draw Node slots (in background)
     bool is_slot_hovered = false;
     {
-        ImColor color          = config.ui_node_nodeslotColor;
-        ImColor border_color   = config.ui_node_borderColor;
-        ImColor hover_color    = config.ui_node_nodeslotHoveredColor;
+        ImColor color          = config.ui_node_slot_color;
+        ImColor border_color   = config.ui_node_slot_border_color;
+        float   border_radius  = config.ui_node_slot_border_radius;
+        ImColor hover_color    = config.ui_node_slot_hovered_color;
         ImRect  node_view_rect = get_screen_rect();
 
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
@@ -299,9 +300,9 @@ bool NodeView::draw()
         {
             if( slot_view.slot().capacity && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
-                int& count = count_by_flags[slot_view.slot().flags];
+                i8_t count = count_by_flags[slot_view.slot().flags];
                 ImRect rect = get_slot_rect( slot_view, config, count );
-                SlotView::draw_slot_rectangle( draw_list, slot_view, rect, color, border_color, hover_color, m_edition_enable);
+                SlotView::draw_slot_rectangle( draw_list, slot_view, rect, color, border_color, hover_color, border_radius, m_edition_enable);
                 is_slot_hovered |= ImGui::IsItemHovered();
                 count++;
             }
@@ -330,7 +331,7 @@ bool NodeView::draw()
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
     ImGui::SetCursorScreenPos(node_top_left_corner + config.ui_node_padding); // top left corner + padding in x and y.
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_propertyslotRadius); // add + space for "this" left slot
+	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_propertyslot_radius ); // add + space for "this" left slot
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -374,10 +375,10 @@ bool NodeView::draw()
 
     // Draw Property in/out slots
     {
-        float radius      = config.ui_node_propertyslotRadius;
-        ImColor color     = config.ui_node_nodeslotColor;
-        ImColor borderCol = config.ui_node_borderColor;
-        ImColor hoverCol  = config.ui_node_nodeslotHoveredColor;
+        float radius      = config.ui_node_propertyslot_radius;
+        ImColor color     = config.ui_node_slot_color;
+        ImColor borderCol = config.ui_node_slot_border_color;
+        ImColor hoverCol  = config.ui_node_slot_hovered_color;
 
         for( auto& slot_view: m_slot_views )
         {
