@@ -249,7 +249,7 @@ namespace fw
 
         template<typename T>
         inline T* get(PoolID<T> _id)
-        { return get<T>((id_t)_id); }
+        { return get<T>( (u32_t)_id ); }
 
         template<typename T>
         inline void get(std::vector<T*>& _out, const std::vector<PoolID<T>>& _ids);
