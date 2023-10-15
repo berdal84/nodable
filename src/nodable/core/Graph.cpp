@@ -40,7 +40,7 @@ void Graph::clear()
     m_root.reset();
     for (auto node : node_ids)
     {
-        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name.c_str(), (u32_t)node )
+        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name.c_str(), (u64_t)node )
         destroy(node);
     }
     m_node_registry.clear();

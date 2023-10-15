@@ -15,10 +15,9 @@ namespace ndbl
     public:
         static const SlotRef null;
 
-        PoolID<Node> node;       // 32-bits
-        ID8<Slot>    id;         //  8-bits
-        SlotFlags    flags;      //  8-bits
-        i16_t        unused;     // 16-bits extra
+        PoolID<Node> node;
+        ID8<Slot>    id;
+        SlotFlags    flags;
 
         SlotRef();
         SlotRef(const SlotRef&);
@@ -33,7 +32,4 @@ namespace ndbl
         Slot* get() const;
         Slot* operator->() const;
     };
-
-    static_assert(sizeof(SlotRef) == 8, "SlotRef should not be larger than 64-bits");
-
 } // namespace ndbl

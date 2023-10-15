@@ -8,13 +8,14 @@ add_library(
         STATIC
             log.cpp
             format.cpp
-            system.cpp
             Pool.cpp
+            system.cpp
             reflection/func_type.cpp
             reflection/qword.cpp
             reflection/type.cpp
             reflection/type_register.cpp
-            reflection/variant.cpp async.cpp)
+            reflection/variant.cpp async.cpp
+        )
 
 target_link_libraries(
         framework-core

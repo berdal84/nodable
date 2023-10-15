@@ -48,8 +48,8 @@ TEST(Pool, buffer_resizing )
     pool->init_for<Data>();
     PoolID<Data> node1 = pool->create<Data>("Toto");
     PoolID<Data> node2 = pool->create<Data>("Tata");
-    EXPECT_EQ((u32_t)node1, 0);
-    EXPECT_EQ((u32_t)node2, 1);
+    EXPECT_EQ((u64_t)node1, 0);
+    EXPECT_EQ((u64_t)node2, 1);
     EXPECT_STREQ(node1->name, "Toto");
     EXPECT_STREQ(node2->name, "Tata");
     Pool::shutdown();
@@ -96,8 +96,8 @@ TEST(Pool, destroy_first_and_reuse_id )
     PoolID<Data> node4 = pool->create<Data>("Tete");
 
     // clean
-    EXPECT_EQ((u32_t)node3, 0);
-    EXPECT_EQ((u32_t)node4, 2 );
+    EXPECT_EQ((u64_t)node3, 0);
+    EXPECT_EQ((u64_t)node4, 2 );
     Pool::shutdown();
 }
 

@@ -60,12 +60,14 @@ namespace fw
         T           to()const;
         variant&    operator=(const variant& other);
         explicit operator double&();
+        explicit operator u64_t&();
         explicit operator u32_t&();
         explicit operator i32_t&();
         explicit operator i16_t&();
         explicit operator bool&();
         explicit operator std::string& ();
         explicit operator double() const;
+        explicit operator u64_t() const;
         explicit operator u32_t() const;
         explicit operator i32_t() const;
         explicit operator i16_t() const;
@@ -75,7 +77,7 @@ namespace fw
 
         template<typename T>
         explicit operator PoolID<T> () const
-        { return PoolID<T>{(typename PoolID<T>::id_t)*this}; }
+        { return PoolID<T>{(u64_t)*this}; }
 
         template<typename T>
         T& as() { return (T)*this; }
@@ -96,10 +98,9 @@ namespace fw
     template<typename T>
     void variant::set(PoolID<T> _id)
     {
-        static_assert( std::is_same_v<typename decltype(_id)::id_t, u32_t>, "Accepts only ID<T> using u32_t as identifier type." );
         ensure_is_type(type::get<decltype(_id)>());
         ensure_is_initialized();
-        m_data.u32 = (u32_t)_id;
+        m_data.u64 = (u64_t)_id;
         flag_defined();
     }
 }
