@@ -97,7 +97,6 @@ namespace ndbl
     private:
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
         bool                    _draw_property_view(PropertyView* _view);
-        bool                    is_exposed( ID<Property> _id )const;
         void                    update_labels_from_name(const Node *_node);
         static void             DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) ;
 

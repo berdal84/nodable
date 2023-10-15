@@ -16,7 +16,7 @@ bool    ImGuiEx::s_is_any_tooltip_open      = false;
 float   ImGuiEx::s_tooltip_duration_default = 0.2f;
 float   ImGuiEx::s_tooltip_delay_default    = 0.5f;
 float   ImGuiEx::s_tooltip_delay_elapsed    = 0.0f;
-bool    ImGuiEx::debug = false;
+bool    ImGuiEx::debug                      = false;
 
 ImRect ImGuiEx::GetContentRegion(Space origin)
 {

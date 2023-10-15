@@ -7,6 +7,8 @@ using namespace fw;
 
 ndbl::Config::Config()
 {
+    ui_show_debug_info = false;
+
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
             0xffffffff, // None

@@ -171,6 +171,13 @@ bool AppView::on_draw()
 
             fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_isolate_selection, config.isolate_selection);
 
+            ImGui::Separator();
+
+            if (ImGui::MenuItem("Show debug info", "", m_app->config.ui_show_debug_info )) {
+                m_app->config.ui_show_debug_info = !m_app->config.ui_show_debug_info;
+                fw::ImGuiEx::debug = m_app->config.ui_show_debug_info;
+            }
+
             ImGui::EndMenu();
         }
 
@@ -322,8 +329,15 @@ void AppView::draw_help_window() const {
     ImGui::End();
 }
 
-void AppView::draw_imgui_config_window() const {
-    if (ImGui::Begin(m_app->config.ui_imgui_config_window_label)) {
+void AppView::draw_imgui_config_window() const
+{
+    if( !m_app->config.ui_show_debug_info )
+    {
+        return;
+    }
+
+    if (ImGui::Begin(m_app->config.ui_imgui_config_window_label))
+    {
         ImGui::ShowStyleEditor();
     }
     ImGui::End();
@@ -659,12 +673,8 @@ void AppView::draw_config_window() {
             ImGui::SliderInt("grid subdivisions", &config.ui_graph_grid_subdivs, 1, 16);
         }
 
-        if (ImGui::CollapsingHeader("Debugging"))
+        if ( m_app->config.ui_show_debug_info && ImGui::CollapsingHeader("Pool"))
         {
-            ImGui::Checkbox("fw::ImGuiEx::debug", &fw::ImGuiEx::debug);
-
-            ImGui::NewLine();
-
             ImGui::Text("Pool stats:");
             auto pool = fw::Pool::get_pool();
             ImGui::Text(" - Node.................... %8zu", pool->get_all<Node>().size() );

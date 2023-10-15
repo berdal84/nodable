@@ -742,8 +742,9 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     }
     ImGui::Unindent();
 
-    if ( ImGui::TreeNode("Debug") )
+    if ( Nodable::get_instance().config.ui_show_debug_info )
     {
+        ImGui::Text("Debug info:" );
         // Draw exposed output properties
         if( ImGui::TreeNode("Other Properties") )
         {
@@ -793,7 +794,6 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         }
 
         // Physics Component
-        ImGui::Separator();
         if( ImGui::TreeNode("Physics") )
         {
             Physics* physics_component = node->get_component<Physics>().get();
@@ -807,7 +807,6 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         }
 
         // Scope specific:
-        ImGui::Separator();
         if (Scope* scope = node->get_component<Scope>().get() )
         {
             if( ImGui::TreeNode("Variables") )
@@ -853,7 +852,6 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             }
             ImGui::TreePop();
         }
-        ImGui::TreePop();
     }
     ImGui::Separator();
 }
@@ -883,11 +881,6 @@ void NodeView::constraint_to_rect(NodeView* _view, ImRect _rect)
         _view->set_position(nodeRect.GetCenter(), fw::Space_Local);
 	}
 
-}
-
-bool NodeView::is_exposed( ID<Property> _id )const
-{
-    FW_EXPECT(false, "TODO: implement (Take in consideration that now any property as a view)");
 }
 
 void NodeView::set_view_detail(NodeViewDetail _viewDetail)
