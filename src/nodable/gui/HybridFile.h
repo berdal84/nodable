@@ -55,7 +55,7 @@ namespace ndbl
         inline History*                  get_history() { return &m_history; }
         std::string                      get_text(bool isolate_selection) const;
         void                             set_text(const std::string& text);
-
+        size_t                           size() const;
     private:
 		History                    m_history;
 		Graph*                     m_graph;

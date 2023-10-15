@@ -55,12 +55,14 @@ namespace ndbl
 		void                           set_cursor_position(const TextEditor::Coordinates& _cursorPosition) { m_text_editor.SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        get_cursor_position()const { return m_text_editor.GetCursorPosition(); }
 		void						   set_undo_buffer(TextEditor::IExternalUndoBuffer*);
-        void                           draw_info()const;
+        void                           draw_info_panel()const;
         void                           experimental_clipboard_auto_paste(bool);
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           clear_overlay();
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  ImVec2 position);
+
+        size_t size() const;
 
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
@@ -78,6 +80,5 @@ namespace ndbl
         observe::Observer m_graph_changed_observer;
 
         REFLECT_DERIVED_CLASS()
-
     };
 }

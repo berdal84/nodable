@@ -345,14 +345,17 @@ void AppView::draw_imgui_config_window() const
 
 void AppView::draw_file_info_window() const
 {
-    if ( m_app->current_file )
+    if ( !m_app->current_file )
     {
-        if (ImGui::Begin(m_app->config.ui_file_info_window_label))
-        {
-            m_app->current_file->view.draw_info();
-        }
-        ImGui::End();
+        return;
     }
+
+    if (ImGui::Begin(m_app->config.ui_file_info_window_label))
+    {
+        m_app->current_file->view.draw_info_panel();
+    }
+
+    ImGui::End();
 }
 
 void AppView::draw_node_properties_window()

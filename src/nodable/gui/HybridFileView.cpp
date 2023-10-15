@@ -266,11 +266,14 @@ void HybridFileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) 
 	this->m_text_editor.SetExternalUndoBuffer(_buffer);
 }
 
-void HybridFileView::draw_info() const
+void HybridFileView::draw_info_panel() const
 {
     // Basic information
-    ImGui::Text("Name: %s", m_file.name.c_str());
-    ImGui::Text("Path: %s", m_file.path.string().c_str());
+    ImGui::Text("Current file:");
+    ImGui::Indent();
+    ImGui::TextWrapped("path: %s", m_file.path.string().c_str());
+    ImGui::TextWrapped("size: %0.3f KiB", float(m_file.size()) / 1000.0f );
+    ImGui::Unindent();
     ImGui::NewLine();
 
     // Statistics
@@ -344,4 +347,9 @@ void HybridFileView::clear_overlay()
 void HybridFileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
 {
     m_overlay_data[overlay_type].push_back(overlay_data);
+}
+
+size_t HybridFileView::size() const
+{
+    return m_text_editor.Size();
 }

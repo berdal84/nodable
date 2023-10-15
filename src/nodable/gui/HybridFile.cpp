@@ -173,3 +173,8 @@ UpdateResult HybridFile::update_graph_from_text(bool isolate_selection)
     return UpdateResult::SUCCES_WITHOUT_CHANGES;
 
 }
+
+size_t HybridFile::size() const
+{
+    return view.size();
+}
