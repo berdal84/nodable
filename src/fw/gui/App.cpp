@@ -194,24 +194,6 @@ void App::draw()
     }
 
     SDL_GL_SwapWindow(m_sdl_window);
-
-    if( config.show_fps )
-    {
-        static float dt = 1/60.0f;
-        dt = 0.9f*dt + 0.1f*ImGui::GetIO().DeltaTime; // Smooth value at 10%
-        int fps = 1.f/dt;
-        char title[255];
-        snprintf( title, 255, "%s | %.3f ms, %i fps", config.app_window_label.c_str(), dt, fps);
-        title[254] = '\0';
-        SDL_SetWindowTitle( m_sdl_window, title );
-    }
-
-    // limit frame rate
-    if ( ImGui::GetIO().DeltaTime < config.delta_time_min && config.delta_time_limit)
-    {
-       SDL_Delay((unsigned int)((config.delta_time_min - ImGui::GetIO().DeltaTime) * 1000.f) );
-    }
-
     LOG_VERBOSE("fw::App", "_draw_property_view " OK "\n");
 }
 
@@ -330,10 +312,34 @@ int App::main()
 {
     if (init())
     {
+        u32_t frame_start;
         while (!should_stop)
         {
+            frame_start = SDL_GetTicks();
+
             update();
             draw();
+
+            u32_t frame_time = SDL_GetTicks() - frame_start;
+
+            // limit frame rate
+            if ( config.delta_time_limit && frame_time < config.delta_time_min )
+            {
+                SDL_Delay(config.delta_time_min - frame_time );
+            }
+
+            if( config.show_fps)
+            {
+                static u32_t dt = 1000 / 60;
+                u32_t all_time = SDL_GetTicks() - frame_start;
+                if( all_time <= 0 ) all_time = 1;
+                dt = u32_t(0.9f*float(dt) + 0.1f*float(all_time)); // Smooth value
+                u32_t fps = 1000 / dt;
+                char title[255];
+                snprintf( title, 255, "%s | %i fps (dt %d ms, frame %d ms)", config.app_window_label.c_str(), fps, dt, frame_time );
+                title[254] = '\0';
+                SDL_SetWindowTitle( m_sdl_window, title );
+            }
         }
         shutdown();
         LOG_FLUSH()

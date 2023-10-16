@@ -13,11 +13,11 @@ namespace fw
         Config(const Config&) = delete; // disable copy
 
         std::string           app_window_label         = "Framework View";
-        bool                  vsync                    = true;
+        bool                  vsync                    = false;
         bool                  debug                    = false;
-        bool                  show_fps                 = true;
+        bool                  show_fps                 = false;
         bool                  delta_time_limit         = true;
-        float                 delta_time_min           = 1.0f / 60.0f;
+        u32_t                 delta_time_min           = 1000 / 60; // in ms
         ImColor               background_color         = ImColor(0.f,0.f,0.f);
         ImVec4                button_activeColor       = ImVec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
         ImVec4                button_hoveredColor      = ImVec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
