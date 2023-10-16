@@ -21,7 +21,6 @@ namespace ndbl {
         Config(const Config&) = delete; // Disable copy
 
         TextEditor::Palette ui_text_textEditorPalette{};
-        bool           ui_show_debug_info;
         float          ui_wire_bezier_roundness;
         float          ui_wire_bezier_thickness;
         ImVec2         ui_wire_bezier_fade_length_minmax;
@@ -78,6 +77,6 @@ namespace ndbl {
         bool           isolate_selection;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
-        fw::Config     framework;
+        fw::Config common;
     };
 }

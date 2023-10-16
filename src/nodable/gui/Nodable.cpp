@@ -32,7 +32,7 @@ Nodable *Nodable::s_instance = nullptr;
 
 Nodable::Nodable()
     : current_file(nullptr)
-    , core(config.framework)
+    , core(config.common )
     , view(this)
     , virtual_machine()
 {

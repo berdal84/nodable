@@ -7,8 +7,6 @@ using namespace fw;
 
 ndbl::Config::Config()
 {
-    ui_show_debug_info = false;
-
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
             0xffffffff, // None
@@ -108,16 +106,16 @@ ndbl::Config::Config()
     graph_unfold_iterations               = 100;
 
     // NodableView
-    framework.dockspace_right_ratio       = 0.25f;
-    framework.dockspace_top_size          = 36.f;
-    framework.dockspace_bottom_size       = 100.f;
+    common.dockspace_right_ratio       = 0.25f;
+    common.dockspace_top_size          = 36.f;
+    common.dockspace_bottom_size       = 100.f;
 
     const char *k_paragraph = "Paragraph";
     const char *k_heading   = "Heading 1";
     const char *k_code      = "Code";
     const char *k_tool      = "Tool Button";
 
-    framework.font_manager.text = {
+    common.font_manager.text = {
                                       // id          , font_path                           , size , icons? , icons size
                                       { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
                                       { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
@@ -125,11 +123,11 @@ ndbl::Config::Config()
                                       { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
     };
 
-    framework.font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
-    framework.font_manager.defaults[FontSlot_Heading]   = k_heading;
-    framework.font_manager.defaults[FontSlot_Code]      = k_code;
-    framework.font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
-    framework.font_manager.subsamples                   = 1.0f;
-    framework.font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
-    framework.app_window_label                          = BuildInfo::version_extended;
+    common.font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
+    common.font_manager.defaults[FontSlot_Heading]   = k_heading;
+    common.font_manager.defaults[FontSlot_Code]      = k_code;
+    common.font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
+    common.font_manager.subsamples                   = 1.0f;
+    common.font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
+    common.app_window_label                          = BuildInfo::version_extended;
 }

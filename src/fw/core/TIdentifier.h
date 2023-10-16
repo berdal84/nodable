@@ -8,7 +8,11 @@ namespace fw
     struct _invalid_id
     {
         static_assert( std::is_unsigned_v<UnsignedT>, "UnsignedT should be unsigned" );
+#if NDBL_NO_POOL
+        static constexpr UnsignedT value = 0; // Is an address
+#else
         static constexpr UnsignedT value = ~UnsignedT(0);
+#endif
     };
 
     template<typename T> constexpr T invalid_id = _invalid_id<T>::value;

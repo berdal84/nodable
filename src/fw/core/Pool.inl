@@ -20,7 +20,9 @@ namespace fw
 
     template<typename T>
     inline PoolID<T>::operator bool () const
-    { return (bool)id; }
+    {
+        return id != ID64<T>{};
+    }
 
     template<typename T>
     inline PoolID<T>::operator u64_t () const
@@ -146,7 +148,13 @@ namespace fw
 
     template<typename T>
     inline T* Pool::get(PoolID<T> _id)
-    { return get<T>( (u64_t)_id ); }
+    {
+#if NDBL_NO_POOL
+        return (T*)(u64_t)_id;
+#else
+        return get<T>( (u64_t)_id );
+#endif
+    }
 
     inline u64_t Pool::generate_id()
     {
@@ -162,7 +170,13 @@ namespace fw
 
     template<typename Type>
     inline Type* PoolID<Type>::get() const // Return a pointer to the data from the Pool having an id == this->id
-    { return Pool::get_pool()->get<Type>( id.m_value ); }
+    {
+#ifdef NDBL_NO_POOL
+        return (Type*)(u64_t)id;
+#else
+        return Pool::get_pool()->get<Type>( id.m_value );
+#endif
+    }
 
     template<typename T>
     inline std::vector<T*> Pool::get(const std::vector<PoolID<T>>& ids)
@@ -194,22 +208,36 @@ namespace fw
     template<typename T, typename ...Args>
     inline PoolID<T> Pool::create(Args... args)
     {
+#ifdef NDBL_NO_POOL
+        T* instance = new T(args...);
+        PoolID<T> id{(u64_t)instance};
+        instance->poolid( id );
+        return id;
+#else
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         auto*  vec   = find_or_init_pool_vector<T>();
         size_t index = vec->size();
         T*     data  = &vec->template emplace_back<T>(args...);
         PoolID<T> id = make_record(data, vec, index );
         return id;
+#endif
     }
 
     template<typename T>
     inline PoolID<T> Pool::create()
     {
+#ifdef NDBL_NO_POOL
+        T* instance = new T();
+        PoolID<T> id{(u64_t)instance};
+        instance->poolid( id );
+        return id;
+#else
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         IPoolVector* pool_vector = find_or_init_pool_vector<T>();
         T* data = &pool_vector->template emplace_back<T>();
         PoolID<T> id = make_record(data, pool_vector, pool_vector->size()-1 );
         return id;
+#endif
     }
 
     template<typename T>
@@ -269,15 +297,11 @@ namespace fw
     }
 
     template<typename T>
-    inline void Pool::destroy(T* ptr)
-    {
-        STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
-        destroy(ptr->poolid());
-    }
-
-    template<typename T>
     inline void Pool::destroy(PoolID<T> _id )
     {
+#ifdef NDBL_NO_POOL
+        delete _id.get();
+#else
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         Record& record_to_delete = m_record_by_id[(u64_t)_id];
         size_t  last_pos         = record_to_delete.vector->size() - 1;
@@ -303,6 +327,7 @@ namespace fw
             record_to_delete.next_id = m_first_free_id;
             m_first_free_id = (u64_t)_id;
         }
+#endif
     }
 
     template<typename ContainerT>

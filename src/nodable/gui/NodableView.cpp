@@ -171,17 +171,11 @@ bool AppView::on_draw()
 
             fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_isolate_selection, config.isolate_selection);
 
-            ImGui::Separator();
-
-            if (ImGui::MenuItem("Show debug info", "", m_app->config.ui_show_debug_info )) {
-                m_app->config.ui_show_debug_info = !m_app->config.ui_show_debug_info;
-                fw::ImGuiEx::debug = m_app->config.ui_show_debug_info;
-            }
-
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Run")) {
+        if ( ImGui::BeginMenu("Run") )
+        {
             bool vm_is_debugging = virtual_machine.is_debugging();
 
             if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, vm_is_stopped)) {
@@ -206,8 +200,26 @@ bool AppView::on_draw()
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Developer")) {
-            if (ImGui::BeginMenu("Verbosity")) {
+        if (ImGui::BeginMenu("Developer"))
+        {
+            if ( ImGui::MenuItem("Show debug info", "", m_app->config.common.debug ) )
+            {
+                m_app->config.common.debug = !m_app->config.common.debug;
+                fw::ImGuiEx::debug = m_app->config.common.debug;
+            }
+            if ( ImGui::MenuItem("Show FPS", "", m_app->config.common.show_fps ) )
+            {
+                m_app->config.common.show_fps = !m_app->config.common.show_fps;
+            }
+            if ( ImGui::MenuItem("Limit FPS", "", m_app->config.common.delta_time_limit ) )
+            {
+                m_app->config.common.delta_time_limit = !m_app->config.common.delta_time_limit;
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::BeginMenu("Verbosity"))
+            {
                 auto menu_item_verbosity = [](fw::log::Verbosity _verbosity, const char *_label) {
                     if (ImGui::MenuItem(_label, "", fw::log::get_verbosity() == _verbosity)) {
                         fw::log::set_verbosity(_verbosity);
@@ -331,7 +343,7 @@ void AppView::draw_help_window() const {
 
 void AppView::draw_imgui_config_window() const
 {
-    if( !m_app->config.ui_show_debug_info )
+    if( !m_app->config.common.debug )
     {
         return;
     }
@@ -676,7 +688,7 @@ void AppView::draw_config_window() {
             ImGui::SliderInt("grid subdivisions", &config.ui_graph_grid_subdivs, 1, 16);
         }
 
-        if ( m_app->config.ui_show_debug_info && ImGui::CollapsingHeader("Pool"))
+        if ( m_app->config.common.debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
             auto pool = fw::Pool::get_pool();

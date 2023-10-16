@@ -172,7 +172,6 @@ namespace fw
         template<typename T>          inline std::vector<T>& get_all();
         template<typename T, typename ...Args> inline PoolID<T> create(Args... args);
         template<typename T>          inline PoolID<T> create();
-        template<typename T>          inline void destroy(T* ptr);
         template<typename T>          inline void destroy(PoolID<T> _id );
         template<typename ContainerT> inline void destroy_all(const ContainerT& ids);
 

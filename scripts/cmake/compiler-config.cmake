@@ -31,3 +31,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDBL_DEBUG")
 if(WIN32)
     add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions
 endif()
+
+if (NDBL_NO_POOL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDBL_NO_POOL")
+endif ()

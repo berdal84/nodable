@@ -70,7 +70,7 @@ bool App::init()
     );
 
     m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
-    SDL_GL_SetSwapInterval(1); // Enable vsync
+    SDL_GL_SetSwapInterval(config.vsync ? 1 : 0);
 
     LOG_VERBOSE("fw::App", "gl3w init ...\n");
     gl3wInit();
@@ -195,11 +195,23 @@ void App::draw()
 
     SDL_GL_SwapWindow(m_sdl_window);
 
-    // limit frame rate
-    if (ImGui::GetIO().DeltaTime < config.min_frame_time)
+    if( config.show_fps )
     {
-        SDL_Delay((unsigned int)((config.min_frame_time - ImGui::GetIO().DeltaTime) * 1000.f) );
+        static float dt = 1/60.0f;
+        dt = 0.9f*dt + 0.1f*ImGui::GetIO().DeltaTime; // Smooth value at 10%
+        int fps = 1.f/dt;
+        char title[255];
+        snprintf( title, 255, "%s | %.3f ms, %i fps", config.app_window_label.c_str(), dt, fps);
+        title[254] = '\0';
+        SDL_SetWindowTitle( m_sdl_window, title );
     }
+
+    // limit frame rate
+    if ( ImGui::GetIO().DeltaTime < config.delta_time_min && config.delta_time_limit)
+    {
+       SDL_Delay((unsigned int)((config.delta_time_min - ImGui::GetIO().DeltaTime) * 1000.f) );
+    }
+
     LOG_VERBOSE("fw::App", "_draw_property_view " OK "\n");
 }
 

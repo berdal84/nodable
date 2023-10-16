@@ -742,7 +742,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     }
     ImGui::Unindent();
 
-    if ( Nodable::get_instance().config.ui_show_debug_info )
+    if ( Nodable::get_instance().config.common.debug )
     {
         ImGui::Text("Debug info:" );
         // Draw exposed output properties
