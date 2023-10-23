@@ -113,8 +113,8 @@ void NodeView::set_owner(PoolID<Node> node)
     for(Slot& slot : m_owner->slots.data() )
     {
         ImVec2 alignment;
-
-        switch ( slot.flags )
+        SlotFlags type_and_order_flags = slot.flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
+        switch ( type_and_order_flags )
         {
             case SlotFlag_INPUT:  alignment.y = -0.5f; break;
             case SlotFlag_PREV:   alignment   = { -0.5f, -0.5f}; break;
@@ -127,7 +127,7 @@ void NodeView::set_owner(PoolID<Node> node)
                 FW_EXPECT(false, "unhandled slot flags")
         }
 
-        m_slot_views.emplace_back( SlotView{slot, alignment} );
+        m_slot_views.emplace_back( slot, alignment );
     }
 
     // 3. Update label

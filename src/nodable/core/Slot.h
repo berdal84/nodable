@@ -26,7 +26,6 @@ namespace ndbl
         ID<Property>      property;   // property index (in node's PropertyBag)
         u8_t              capacity;   // adjacent max count
         SlotFlags         flags;
-        std::vector<SlotRef> adjacent;
 
         Slot();
         Slot(const Slot& other);
@@ -45,8 +44,10 @@ namespace ndbl
         void      add_adjacent( const SlotRef& );
         void      remove_adjacent( const SlotRef& );
         void      allow( SlotFlags );
-        void      set_capacity(u8_t);
         SlotFlags type() const;
-        bool empty() const;
+        bool      empty() const;
+        const std::vector<SlotRef>& adjacent() const;
+    private:
+        std::vector<SlotRef> m_adjacent;
     };
 }

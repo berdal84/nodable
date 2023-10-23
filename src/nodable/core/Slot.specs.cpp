@@ -18,7 +18,7 @@ TEST(Slot, operator_equal)
     EXPECT_FALSE(a == d);
 
     Slot e;
-    e.adjacent.push_back({});
+    e.m_adjacent.push_back({});
     EXPECT_TRUE(a == e);
 }
 
@@ -54,7 +54,7 @@ TEST(Slot, operator_non_equal)
     EXPECT_TRUE(a != g);
 
     Slot h;
-    h.adjacent.push_back({});
+    h.m_adjacent.push_back({});
     EXPECT_FALSE(a != h);
 }
 
@@ -65,10 +65,10 @@ TEST(Slot, is_full)
     EXPECT_TRUE(slot.is_full());
 
     slot.capacity = 2;
-    slot.adjacent.push_back({});
+    slot.m_adjacent.push_back({});
     EXPECT_FALSE(slot.is_full());
 
-    slot.adjacent.push_back({});
+    slot.m_adjacent.push_back({});
     EXPECT_TRUE(slot.is_full());
 }
 

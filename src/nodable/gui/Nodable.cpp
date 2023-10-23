@@ -449,7 +449,7 @@ void Nodable::on_update()
                 SlotRef slot = event.slot.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                for( auto adjacent_slot: slot->adjacent )
+                for( const auto& adjacent_slot: slot->adjacent() )
                 {
                     DirectedEdge edge{slot, adjacent_slot};
                     auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(edge);

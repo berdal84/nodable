@@ -154,6 +154,11 @@ Slot& Node::get_slot_at(ID8<Slot> id)
     return slots[id.m_value];
 }
 
+const Slot& Node::get_slot_at(ID8<Slot> id) const
+{
+    return slots[id.m_value];
+}
+
 std::vector<PoolID<Node>> Node::outputs() const
 {
     return filter_adjacent(SlotFlag_OUTPUT);
@@ -254,7 +259,7 @@ std::vector<SlotRef> Node::filter_adjacent_slots( SlotFlags _flags ) const
     std::vector<SlotRef> result;
     for(const Slot* slot : slots.filter(_flags))
     {
-        std::copy(slot->adjacent.begin(), slot->adjacent.end(), result.end());
+        std::copy(slot->adjacent().begin(), slot->adjacent().end(), result.end());
     }
     return result;
 }

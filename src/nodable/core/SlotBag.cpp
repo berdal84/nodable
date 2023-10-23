@@ -10,15 +10,10 @@ size_t SlotBag::count(SlotFlags flags) const
 
 Slot* SlotBag::find_by_property(ID<Property> property_id, SlotFlags _flags)
 {
-    return const_cast<Slot*>( _find_by_property( property_id, _flags ) );
+    return const_cast<Slot*>(  const_cast<const SlotBag*>(this)->find_by_property( property_id, _flags ) );
 }
 
-const Slot* SlotBag::find_by_property(ID<Property> property_id, SlotFlags flags) const
-{
-    return _find_by_property( property_id, flags );
-}
-
-const Slot* SlotBag::_find_by_property(ID<Property> property_id, SlotFlags _flags) const
+const Slot* SlotBag::find_by_property(ID<Property> property_id, SlotFlags _flags) const
 {
     for(auto& slot : m_slots )
     {
@@ -43,12 +38,12 @@ Slot* SlotBag::find_adjacent_at( SlotFlags flags, u8_t _index ) const
 
         // if the position is in the range of this slot, we return the item
         size_t local_pos = (size_t)_index - cursor_pos;
-        if ( local_pos < slot.adjacent.size() )
+        if ( local_pos < slot.adjacent_count() )
         {
-            return slot.adjacent[local_pos].get();
+            return slot.adjacent_at(local_pos).get();
         }
         // increase counter
-        cursor_pos += slot.adjacent.size();
+        cursor_pos += slot.adjacent_count();
     }
     return nullptr;
 }

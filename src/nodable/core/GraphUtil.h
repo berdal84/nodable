@@ -43,7 +43,7 @@ namespace ndbl
             std::vector<PoolID<Node>> result;
             for ( Slot* slot : _node->filter_slots( _flags ) )
             {
-                for( SlotRef& adjacent : slot->adjacent )
+                for( const SlotRef& adjacent : slot->adjacent() )
                 {
                     result.emplace_back( adjacent.node );
                 }

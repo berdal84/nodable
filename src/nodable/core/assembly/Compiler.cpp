@@ -207,9 +207,9 @@ void assembly::Compiler::compile_for_loop(const ForLoopNode* for_loop)
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
 
-    if ( auto true_scope = for_loop->get_condition_true_scope().get() )
+    if ( auto true_scope = for_loop->get_scope_at( Branch_TRUE ) )
     {
-        compile_scope(true_scope);
+        compile_scope(true_scope.get());
 
         // insert end-loop instruction.
         compile_instruction(for_loop->iter_instr.get());
@@ -233,9 +233,9 @@ void assembly::Compiler::compile_while_loop(const WhileLoopNode*while_loop)
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
 
-    if ( Scope* true_scope = while_loop->get_condition_true_scope().get() )
+    if ( auto while_scope = while_loop->get_scope_at(Branch_TRUE) )
     {
-        compile_scope(true_scope);
+        compile_scope( while_scope.get());
 
         // jump back to condition instruction
         auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
@@ -273,11 +273,11 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
 
     Instruction* jump_after_conditional = nullptr;
 
-    if ( Scope* true_scope = _cond_node->get_condition_true_scope().get() )
+    if ( auto true_branch = _cond_node->get_scope_at( Branch_TRUE ) )
     {
-        compile_scope(true_scope);
+        compile_scope( true_branch.get() );
 
-        if ( _cond_node->get_condition_false_scope() )
+        if ( _cond_node->get_scope_at( Branch_FALSE ) )
         {
             jump_after_conditional = m_temp_code->push_instr(Instruction_t::jmp);
             jump_after_conditional->m_comment = "jump after else";
@@ -287,7 +287,7 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
     i64_t next_index = m_temp_code->get_next_index();
     jump_over_true_branch->jmp.offset = next_index - jump_over_true_branch->line;
 
-    if ( Scope* false_scope = _cond_node->get_condition_false_scope().get() )
+    if ( Scope* false_scope = _cond_node->get_scope_at( Branch_FALSE ).get() )
     {
         if( _cond_node->is_chained_with_other_cond_struct() )
         {

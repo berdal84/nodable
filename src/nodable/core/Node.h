@@ -78,6 +78,7 @@ namespace ndbl {
         ID8<Slot>            add_slot(SlotFlags, u8_t _capacity);
         ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
         Slot&                get_slot_at(ID8<Slot>);
+        const Slot&          get_slot_at(ID8<Slot>) const;
         size_t               get_slot_count(SlotFlags) const;
         Slot&                get_nth_slot(u8_t, SlotFlags );
         Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot

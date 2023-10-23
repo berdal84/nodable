@@ -4,8 +4,8 @@
 namespace ndbl
 {
     // Nature of the connection allowed by a given Slot
-    typedef i8_t SlotFlags;
-    enum SlotFlag : i8_t
+    typedef int SlotFlags;
+    enum SlotFlag : int
     {
         SlotFlag_NONE              = 0,
 
@@ -15,6 +15,8 @@ namespace ndbl
         SlotFlag_TYPE_VALUE        = 1 << 2,
         SlotFlag_TYPE_HIERARCHICAL = 1 << 3,
         SlotFlag_TYPE_CODEFLOW     = 1 << 4,
+
+        SlotFlag_IS_NOT_FULL       = 1 << 5,
                                                                                          // primary ----> secondary
                                                                                          //-------------------------
         SlotFlag_OUTPUT            = SlotFlag_TYPE_VALUE        | SlotFlag_ORDER_FIRST,  // output  ---->  ..

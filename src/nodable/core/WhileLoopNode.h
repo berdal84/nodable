@@ -35,9 +35,13 @@ namespace ndbl
 
         // implements IConditionalStruct (which is already documented)
 
-        PoolID<Scope>   get_condition_true_scope()const override;
-        PoolID<Scope>   get_condition_false_scope()const override;
+        PoolID<Scope>  get_scope_at(size_t _pos) const override;
+        Slot&          get_child_slot_at(size_t _pos) override;
+        const Slot&    get_child_slot_at(size_t _pos) const override;
 
+    private:
+        std::array<ID8<Slot>, 2> m_next_slot;
+        std::array<ID8<Slot>, 2> m_child_slot;
         REFLECT_DERIVED_CLASS()
     };
 }

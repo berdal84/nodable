@@ -7,7 +7,7 @@ using namespace ndbl;
 const Slot Slot::null{};
 
 Slot::Slot()
-: flags(SlotFlag::SlotFlag_NONE )
+: flags(SlotFlag::SlotFlag_NONE)
 , capacity(0)
 {}
 
@@ -17,8 +17,9 @@ Slot::Slot(const Slot &other)
 , property(other.property)
 , flags(other.flags)
 , capacity(other.capacity)
-, adjacent(other.adjacent )
-{}
+, m_adjacent(other.m_adjacent )
+{
+}
 
 
 Slot::Slot(
@@ -32,13 +33,18 @@ u8_t         _capacity)
 , flags(_flags)
 , property(_property)
 , capacity(_capacity)
-{}
+{
+    if( capacity != 0 )
+    {
+        flags |= SlotFlag_IS_NOT_FULL;
+    }
+}
 
 SlotRef Slot::first_adjacent() const
 {
-    if (!adjacent.empty())
+    if (!m_adjacent.empty())
     {
-        return adjacent[0];
+        return m_adjacent[0];
     }
     return SlotRef::null;
 }
@@ -46,7 +52,7 @@ SlotRef Slot::first_adjacent() const
 SlotRef Slot::adjacent_at(u8_t pos) const
 {
     u8_t count{0};
-    for (auto& each : adjacent )
+    for (auto& each : m_adjacent )
     {
         if( count == pos )
         {
@@ -69,12 +75,12 @@ bool Slot::operator!=(const Slot& other) const
 
 size_t Slot::adjacent_count() const
 {
-    return adjacent.size();
+    return m_adjacent.size();
 }
 
 bool Slot::is_full() const
 {
-    return adjacent.size() >= capacity;
+    return 0 == (flags & SlotFlag_IS_NOT_FULL);
 }
 
 Slot::operator bool() const
@@ -98,25 +104,24 @@ void Slot::add_adjacent( const SlotRef& _ref)
     FW_EXPECT( _ref != *this, "Reflexive edge not handled" );
     FW_EXPECT( _ref.flags & flags & SlotFlag_TYPE_MASK, "Slot must have common type" );
     FW_EXPECT( !is_full(), "Slot is full" );
-    adjacent.emplace_back(_ref);
+    m_adjacent.emplace_back(_ref);
+    if ( m_adjacent.size() == capacity )
+    {
+        flags &= ~SlotFlag_IS_NOT_FULL; // Make sure IS_NOT_FULL is 0
+    }
 }
 
 void Slot::remove_adjacent( const SlotRef& _ref )
 {
-    auto it = std::find( adjacent.begin(), adjacent.end(), _ref);
-    FW_EXPECT( it != adjacent.end(), "SlotRef not found")
-    adjacent.erase( it );
+    auto it = std::find( m_adjacent.begin(), m_adjacent.end(), _ref);
+    FW_EXPECT( it != m_adjacent.end(), "SlotRef not found")
+    m_adjacent.erase( it );
+    flags |= SlotFlag_IS_NOT_FULL;
 }
 
 void Slot::allow( SlotFlags _flags)
 {
     flags |= _flags;
-}
-
-void Slot::set_capacity( u8_t _capacity )
-{
-    FW_EXPECT( adjacent.empty() || adjacent.size() < _capacity, "Cannot set a capacity below the edge count");
-    capacity = _capacity;
 }
 
 SlotFlags Slot::type() const
@@ -126,5 +131,10 @@ SlotFlags Slot::type() const
 
 bool Slot::empty() const
 {
-    return adjacent.empty();
+    return m_adjacent.empty();
+}
+
+const std::vector<SlotRef>& Slot::adjacent() const
+{
+    return m_adjacent;
 }

@@ -39,7 +39,6 @@ namespace ndbl
         Slot*             find_adjacent_at( SlotFlags, u8_t _index ) const;
         std::vector<Slot*> filter( SlotFlags ) const;
     private:
-        const Slot*       _find_by_property( ID<Property>, SlotFlags _flags ) const;
         std::vector<Slot> m_slots;
     };
 }

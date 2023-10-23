@@ -208,15 +208,13 @@ bool Graph::is_empty() const
 
 DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
 {
+    // Guards
     FW_ASSERT( _in )
     FW_ASSERT( _out )
-
+    FW_ASSERT( _in.flags == (SlotFlag_INPUT | SlotFlag_IS_NOT_FULL))
+    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_IS_NOT_FULL))
     Property* in_prop  = _in.get_property();
     Property* out_prop = _out.get_property();
-
-    // Guards
-    FW_EXPECT( _in.flags == SlotFlag_INPUT,  "tail slot must be a dependent")
-    FW_EXPECT( _out.flags == SlotFlag_OUTPUT, "head slot must be a dependency")
     FW_EXPECT( in_prop, "tail property must be defined" )
     FW_EXPECT( out_prop, "head property must be defined" )
     FW_EXPECT( in_prop != out_prop, "Can't connect same properties!" )
@@ -285,13 +283,14 @@ DirectedEdge* Graph::connect_to_instruction(Slot& expression_root, InstructionNo
 
 DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable_in )
 {
-    FW_ASSERT( _out.flags == SlotFlag_OUTPUT)
+    // Guards
+    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_IS_NOT_FULL))
     return connect_or_merge( _out, *_variable_in.find_value_typed_slot( SlotFlag_INPUT ) );
 }
 
 DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 {
-    FW_ASSERT( _first.flags & SlotFlag_ORDER_FIRST  )
+    FW_ASSERT( _first.flags & SlotFlag_ORDER_FIRST )
     FW_ASSERT( _second.flags & SlotFlag_ORDER_SECOND )
     FW_ASSERT( _first.node != _second.node )
 
@@ -317,7 +316,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 Node* parent    = _first.get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
                 Node* new_child = _second.get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
                 FW_ASSERT( parent->has_component<Scope>())
-                Slot& parent_next_slot    = *parent->find_slot( SlotFlag_NEXT  );
+                Slot& parent_next_slot    = *parent->find_slot( SlotFlag_NEXT );
                 Slot& new_child_prev_slot = *new_child->find_slot( SlotFlag_PREV );
 
                 // Case 1: Parent accepts a "next" connection.
@@ -354,8 +353,9 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                         std::vector<InstructionNode *> last_instructions = previous_child_scope->get_last_instructions_rec();
                         for (InstructionNode* each_instr: last_instructions )
                         {
-                            Slot& each_instr_next_slot = *each_instr->find_slot( SlotFlag_NEXT );
-                            connect( each_instr_next_slot, new_child_prev_slot );
+                            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT );
+                            FW_ASSERT(each_instr_next_slot);
+                            connect( *each_instr_next_slot, new_child_prev_slot );
                         }
                     }
                     // Case 2.b: Connects to last child's "next" slot.
@@ -366,8 +366,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //
                     else
                     {
-                        Slot& last_sibling_next_slot = *previous_child->find_slot( SlotFlag_NEXT );
-                        FW_ASSERT(!last_sibling_next_slot.is_full())
+                        Slot& last_sibling_next_slot = *previous_child->find_slot( SlotFlag_NEXT | SlotFlag_IS_NOT_FULL );
                         connect( last_sibling_next_slot, new_child_prev_slot );
                     }
                 }
@@ -383,14 +382,14 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 if ( prev_node.has_component<Scope>() )
                 {
                     connect(
-                            *prev_node.find_slot( SlotFlag_CHILD ),
+                            *prev_node.find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL),
                             *next_node.find_slot( SlotFlag_PARENT ));
                 }
                 // If next node parent exists, connects next_node as a child too
                 else if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
                 {
                     connect(
-                            *prev_parent_node->find_slot( SlotFlag_CHILD ),
+                            *prev_parent_node->find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL ),
                             *next_node.find_slot( SlotFlag_PARENT ));
                 }
 
@@ -401,7 +400,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     while ( current_prev_node_sibling && current_prev_node_sibling->find_parent() )
                     {
                         connect(
-                                *current_prev_node_sibling->find_slot( SlotFlag_CHILD ),
+                                *current_prev_node_sibling->find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL ),
                                 *prev_parent_node->find_slot( SlotFlag_PARENT ) );
                         current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
                     }
