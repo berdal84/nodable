@@ -668,9 +668,11 @@ void Nodlang::parse_code_block()
     {
         if ( auto instruction = parse_instr() )
         {
+            Slot* child_slot = get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL );
+            FW_ASSERT(child_slot)
             // Create parent/child connection
             parser_state.graph->connect(
-                    *get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL ),
+                    *child_slot,
                     *instruction->find_slot( SlotFlag_PARENT ),
                     ConnectFlag_ALLOW_SIDE_EFFECTS );
         }
@@ -1165,7 +1167,7 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
     conditional_struct_node = parser_state.graph->create_cond_struct();
 
     parser_state.graph->connect(
-            *get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL ),
+            *get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
             *conditional_struct_node->find_slot( SlotFlag_PARENT ),
             ConnectFlag_ALLOW_SIDE_EFFECTS );
     parser_state.scope.emplace(conditional_struct_node->get_component<Scope>()->poolid());

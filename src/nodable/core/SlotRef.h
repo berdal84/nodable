@@ -21,12 +21,13 @@ namespace ndbl
 
         SlotRef();
         SlotRef(const SlotRef&);
-        SlotRef(SlotRef&&);
+        SlotRef(SlotRef&&) noexcept;
         SlotRef(const Slot&);
         SlotRef& operator=(const SlotRef& other);
         SlotRef& operator=(SlotRef&& other);
         Slot& operator * () { return *get(); }
         const Slot& operator * () const { return *get(); }
+        explicit operator bool () const { return node && id; }
         bool operator!=(const SlotRef & other) const;
         bool operator==(const SlotRef & other) const;
         Slot* get() const;

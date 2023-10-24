@@ -16,7 +16,7 @@ namespace ndbl
         SlotFlag_TYPE_HIERARCHICAL = 1 << 3,
         SlotFlag_TYPE_CODEFLOW     = 1 << 4,
 
-        SlotFlag_IS_NOT_FULL       = 1 << 5,
+        SlotFlag_NOT_FULL = 1 << 5,
                                                                                          // primary ----> secondary
                                                                                          //-------------------------
         SlotFlag_OUTPUT            = SlotFlag_TYPE_VALUE        | SlotFlag_ORDER_FIRST,  // output  ---->  ..

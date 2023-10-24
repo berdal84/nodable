@@ -6,11 +6,12 @@ using namespace ndbl;
 
 TEST(Slot, operator_equal)
 {
-    Slot a, b;
+    Slot a;
+    Slot b;
     EXPECT_TRUE(a == b);
 
     Slot c;
-    c.capacity = 2;
+    c.expand_capacity(2);
     EXPECT_TRUE(a == c);
 
     Slot d;
@@ -18,7 +19,8 @@ TEST(Slot, operator_equal)
     EXPECT_FALSE(a == d);
 
     Slot e;
-    e.m_adjacent.push_back({});
+    e.expand_capacity( 1 );
+    e.add_adjacent({});
     EXPECT_TRUE(a == e);
 }
 
@@ -34,7 +36,7 @@ TEST(Slot, operator_non_equal)
     EXPECT_FALSE(a != b);
 
     Slot c;
-    c.capacity = 2;
+    c.expand_capacity(2);
     EXPECT_FALSE(a != c);
 
     Slot d;
@@ -54,7 +56,8 @@ TEST(Slot, operator_non_equal)
     EXPECT_TRUE(a != g);
 
     Slot h;
-    h.m_adjacent.push_back({});
+    h.expand_capacity(1);
+    h.add_adjacent({});
     EXPECT_FALSE(a != h);
 }
 
@@ -64,11 +67,11 @@ TEST(Slot, is_full)
 
     EXPECT_TRUE(slot.is_full());
 
-    slot.capacity = 2;
-    slot.m_adjacent.push_back({});
+    slot.expand_capacity(2);
+    slot.add_adjacent({});
     EXPECT_FALSE(slot.is_full());
 
-    slot.m_adjacent.push_back({});
+    slot.add_adjacent({});
     EXPECT_TRUE(slot.is_full());
 }
 
@@ -76,7 +79,7 @@ TEST(Slot, adjacent_at)
 {
     // prepare
     Slot slot  {1, PoolID<Node>{1}, SlotFlag_PARENT};
-    slot.capacity = 2;
+    slot.expand_capacity(2);
 
     Slot slot_0{2, PoolID<Node>{2}, SlotFlag_CHILD};
     Slot slot_1{3, PoolID<Node>{3}, SlotFlag_CHILD};

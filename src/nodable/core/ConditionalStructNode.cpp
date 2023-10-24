@@ -30,10 +30,10 @@ void ConditionalStructNode::init()
 
 PoolID<Scope> ConditionalStructNode::get_scope_at(size_t _pos) const
 {
-    const Node* next = get_slot_at( m_next_slot.at(_pos) ).first_adjacent()->get_node();
+    SlotRef next = get_slot_at( m_next_slot.at(_pos) ).first_adjacent();
     if ( next )
     {
-        return next->get_component<Scope>();
+        return next.node->get_component<Scope>();
     }
     return {};
 }

@@ -259,7 +259,10 @@ std::vector<SlotRef> Node::filter_adjacent_slots( SlotFlags _flags ) const
     std::vector<SlotRef> result;
     for(const Slot* slot : slots.filter(_flags))
     {
-        std::copy(slot->adjacent().begin(), slot->adjacent().end(), result.end());
+        for( const SlotRef& each : slot->adjacent() )
+        {
+            result.emplace_back( each );
+        }
     }
     return result;
 }

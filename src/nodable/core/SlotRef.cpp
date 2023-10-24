@@ -20,9 +20,9 @@ SlotRef::SlotRef( const SlotRef& other )
 {
 }
 
-SlotRef::SlotRef(SlotRef&& other)
-: node(std::move(other.node))
-, id(std::move(other.id))
+SlotRef::SlotRef(SlotRef&& other) noexcept
+: node(other.node)
+, id(other.id)
 , flags(other.flags)
 {
 }
@@ -41,7 +41,7 @@ bool SlotRef::operator==( const SlotRef &other ) const
 
 bool SlotRef::operator!=( const SlotRef &other ) const
 {
-    return node != other.node || id != other.id;
+    return !node || !id || node != other.node || id != other.id;
 }
 
 SlotRef& SlotRef::operator=(SlotRef&& other)

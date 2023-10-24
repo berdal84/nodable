@@ -24,7 +24,6 @@ namespace ndbl
         ID8<Slot>         id;         // slot index (in node's SlotBag)
         PoolID<Node>      node;       // node id (in fw::Pool)
         ID<Property>      property;   // property index (in node's PropertyBag)
-        u8_t              capacity;   // adjacent max count
         SlotFlags         flags;
 
         Slot();
@@ -33,7 +32,7 @@ namespace ndbl
 
         bool operator==(const Slot&) const;
         bool operator!=(const Slot&) const;
-        operator bool () const;
+        explicit operator bool () const;
 
         Node*     get_node() const;
         SlotRef   first_adjacent() const;
@@ -45,7 +44,10 @@ namespace ndbl
         void      remove_adjacent( const SlotRef& );
         void      allow( SlotFlags );
         SlotFlags type() const;
+        SlotFlags order() const;
         bool      empty() const;
+        size_t    capacity() const;
+        void      expand_capacity(size_t _capacity);
         const std::vector<SlotRef>& adjacent() const;
     private:
         std::vector<SlotRef> m_adjacent;

@@ -211,8 +211,8 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     // Guards
     FW_ASSERT( _in )
     FW_ASSERT( _out )
-    FW_ASSERT( _in.flags == (SlotFlag_INPUT | SlotFlag_IS_NOT_FULL))
-    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_IS_NOT_FULL))
+    FW_ASSERT( _in.flags == (SlotFlag_INPUT | SlotFlag_NOT_FULL ))
+    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
     Property* in_prop  = _in.get_property();
     Property* out_prop = _out.get_property();
     FW_EXPECT( in_prop, "tail property must be defined" )
@@ -284,8 +284,10 @@ DirectedEdge* Graph::connect_to_instruction(Slot& expression_root, InstructionNo
 DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable_in )
 {
     // Guards
-    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_IS_NOT_FULL))
-    return connect_or_merge( _out, *_variable_in.find_value_typed_slot( SlotFlag_INPUT ) );
+    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
+    Slot* input_slot = _variable_in.find_value_typed_slot( SlotFlag_INPUT );
+    FW_ASSERT(input_slot)
+    return connect_or_merge( _out, *input_slot );
 }
 
 DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
@@ -366,7 +368,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //
                     else
                     {
-                        Slot& last_sibling_next_slot = *previous_child->find_slot( SlotFlag_NEXT | SlotFlag_IS_NOT_FULL );
+                        Slot& last_sibling_next_slot = *previous_child->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
                         connect( last_sibling_next_slot, new_child_prev_slot );
                     }
                 }
@@ -382,14 +384,14 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 if ( prev_node.has_component<Scope>() )
                 {
                     connect(
-                            *prev_node.find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL),
+                            *prev_node.find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
                             *next_node.find_slot( SlotFlag_PARENT ));
                 }
                 // If next node parent exists, connects next_node as a child too
                 else if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
                 {
                     connect(
-                            *prev_parent_node->find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL ),
+                            *prev_parent_node->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
                             *next_node.find_slot( SlotFlag_PARENT ));
                 }
 
@@ -400,7 +402,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     while ( current_prev_node_sibling && current_prev_node_sibling->find_parent() )
                     {
                         connect(
-                                *current_prev_node_sibling->find_slot( SlotFlag_CHILD | SlotFlag_IS_NOT_FULL ),
+                                *current_prev_node_sibling->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
                                 *prev_parent_node->find_slot( SlotFlag_PARENT ) );
                         current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
                     }
@@ -439,7 +441,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
     return &edge;
 }
 
-void Graph::disconnect(DirectedEdge _edge, ConnectFlags flags)
+void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
 {
     // find the edge to disconnect
     SlotFlags type = _edge.tail.flags & SlotFlag_TYPE_MASK;
