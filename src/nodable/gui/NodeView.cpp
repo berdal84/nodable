@@ -381,7 +381,7 @@ bool NodeView::draw()
 
         for( auto& slot_view: m_slot_views )
         {
-            if( slot_view.slot().capacity && slot_view.slot().type() == SlotFlag_TYPE_VALUE )
+            if( slot_view.slot().has_flags(SlotFlag_TYPE_VALUE) )
             {
                 ImVec2 screen_pos = get_slot_pos(slot_view.slot());
                 SlotView::draw_slot_circle( draw_list, slot_view, screen_pos, radius, color, borderCol, hoverCol, m_edition_enable );
