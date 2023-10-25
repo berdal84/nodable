@@ -211,8 +211,8 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     // Guards
     FW_ASSERT( _in )
     FW_ASSERT( _out )
-    FW_ASSERT( _in.flags == (SlotFlag_INPUT | SlotFlag_NOT_FULL ))
-    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
+    FW_ASSERT( _in.has_flags( SlotFlag_INPUT | SlotFlag_NOT_FULL ) )
+    FW_ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ) )
     Property* in_prop  = _in.get_property();
     Property* out_prop = _out.get_property();
     FW_EXPECT( in_prop, "tail property must be defined" )
@@ -284,7 +284,7 @@ DirectedEdge* Graph::connect_to_instruction(Slot& expression_root, InstructionNo
 DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable_in )
 {
     // Guards
-    FW_ASSERT( _out.flags == (SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
+    FW_ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
     Slot* input_slot = _variable_in.find_value_typed_slot( SlotFlag_INPUT );
     FW_ASSERT(input_slot)
     return connect_or_merge( _out, *input_slot );
@@ -292,8 +292,8 @@ DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable_in 
 
 DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 {
-    FW_ASSERT( _first.flags & SlotFlag_ORDER_FIRST )
-    FW_ASSERT( _second.flags & SlotFlag_ORDER_SECOND )
+    FW_ASSERT( _first.has_flags( SlotFlag_ORDER_FIRST ) )
+    FW_ASSERT( _second.has_flags( SlotFlag_ORDER_SECOND ) )
     FW_ASSERT( _first.node != _second.node )
 
     // Insert edge

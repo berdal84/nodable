@@ -342,7 +342,7 @@ bool GraphView::draw()
                     float thickness = app.config.ui_wire_bezier_thickness;
                     float roundness = app.config.ui_wire_bezier_roundness;
 
-                    if ( slot->flags & SlotFlag_TYPE_CODEFLOW )
+                    if ( slot->has_flags(SlotFlag_TYPE_CODEFLOW) )
                     {
                         thickness *= 3.0f;
                         roundness *= 0.25f;
@@ -540,14 +540,14 @@ bool GraphView::draw()
             // dragging node slot ?
             if ( dragged_slot )
             {
-                SlotFlags    complementary_flags = flip_order( dragged_slot->slot().flags );
+                SlotFlags    complementary_flags = flip_order( dragged_slot->slot().static_flags() );
                 Slot*        complementary_slot  = new_node_id->find_slot_by_type( complementary_flags, dragged_slot->get_property()->get_type() );
                 ConnectFlags connect_flags       = ConnectFlag_ALLOW_SIDE_EFFECTS;
 
                 Slot* out = &dragged_slot->slot();
                 Slot* in  = complementary_slot;
 
-                if( out->flags & SlotFlag_ORDER_SECOND ) std::swap(out, in);
+                if( out->has_flags(SlotFlag_ORDER_SECOND) ) std::swap(out, in);
 
                 m_graph->connect( *out, *in, connect_flags );
 

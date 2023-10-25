@@ -31,10 +31,10 @@ void WhileLoopNode::init()
 
 PoolID<Scope> WhileLoopNode::get_scope_at(size_t _pos) const
 {
-    const Node* next = get_slot_at( m_next_slot.at(_pos) ).first_adjacent()->get_node();
-    if ( next )
+    const SlotRef adjacent = get_slot_at( m_next_slot.at(_pos) ).first_adjacent();
+    if ( adjacent )
     {
-        return next->get_component<Scope>();
+        return adjacent->get_node()->get_component<Scope>();
     }
     return {};
 }

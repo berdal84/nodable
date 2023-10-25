@@ -103,7 +103,7 @@ TEST(Slot, allows_relation)
 
     EXPECT_TRUE( slot.flags == SlotFlag_NONE );
 
-    slot.allow( SlotFlag_CHILD );
+    slot.set_flags( SlotFlag_CHILD );
 
-    EXPECT_TRUE( slot.flags & SlotFlag_TYPE_HIERARCHICAL );
+    EXPECT_TRUE( slot.has_flags( SlotFlag_TYPE_HIERARCHICAL ) );
 }

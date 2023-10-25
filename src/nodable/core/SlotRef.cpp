@@ -30,7 +30,7 @@ SlotRef::SlotRef(SlotRef&& other) noexcept
 SlotRef::SlotRef( const Slot& slot )
 : id(slot.id)
 , node(slot.node)
-, flags(slot.flags)
+, flags( slot.static_flags() )
 {
 }
 
@@ -75,4 +75,8 @@ Slot* SlotRef::get() const
         return nullptr;
     }
     return &_node->get_slot_at( id );
+}
+SlotFlags SlotRef::slot_type() const
+{
+    return flags & SlotFlag_TYPE_MASK;
 }

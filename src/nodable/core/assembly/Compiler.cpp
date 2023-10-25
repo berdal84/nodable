@@ -76,7 +76,7 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
 void Compiler::compile_output_slot( const Slot* slot)
 {
     FW_ASSERT(slot != nullptr)
-    FW_ASSERT(slot->flags & SlotFlag_OUTPUT)
+    FW_ASSERT(slot->has_flags(SlotFlag_OUTPUT) )
     Property* property = slot->get_property();
     FW_EXPECT(property != nullptr, "Vertex should contain a valid property id" )
     compile_node( slot->node );

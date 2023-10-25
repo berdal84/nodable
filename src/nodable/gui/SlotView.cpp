@@ -62,7 +62,7 @@ void SlotView::draw_slot_rectangle(
     // TODO: Find why size can be zero more (more surprisingly) nan.
     if(rect_size.x == 0.0f || rect_size.y == 0.0f || std::isnan(rect_size.x) || std::isnan(rect_size.y) ) return;
 
-    ImDrawCornerFlags corner_flags = _view.m_slot.flags & SlotFlag_ORDER_FIRST ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
+    ImDrawCornerFlags corner_flags = _view.m_slot.has_flags(SlotFlag_ORDER_FIRST) ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
     ImGui::SetCursorScreenPos( _rect.GetTL());
     ImGui::PushID((u8_t)_view.m_slot.id);
@@ -214,7 +214,7 @@ std::string SlotView::get_tooltip( SlotView& _view )
 {
     std::string property_name{_view.get_property()->get_name()};
 
-    switch ( _view.slot().flags )
+    switch ( _view.slot().static_flags() ) // type and order flags only
     {
         case SlotFlag_INPUT:   return property_name.append(" (in)");
         case SlotFlag_OUTPUT:  return property_name.append(" (out)");

@@ -113,8 +113,7 @@ void NodeView::set_owner(PoolID<Node> node)
     for(Slot& slot : m_owner->slots.data() )
     {
         ImVec2 alignment;
-        SlotFlags type_and_order_flags = slot.flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
-        switch ( type_and_order_flags )
+        switch ( slot.static_flags() ) // type and order flags only
         {
             case SlotFlag_INPUT:  alignment.y = -0.5f; break;
             case SlotFlag_PREV:   alignment   = { -0.5f, -0.5f}; break;
@@ -298,9 +297,9 @@ bool NodeView::draw()
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
         {
-            if( slot_view.slot().capacity && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
+            if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
-                i8_t count = count_by_flags[slot_view.slot().flags];
+                i8_t count = count_by_flags[slot_view.slot().static_flags()];
                 ImRect rect = get_slot_rect( slot_view, config, count );
                 SlotView::draw_slot_rectangle( draw_list, slot_view, rect, color, border_color, hover_color, border_radius, m_edition_enable);
                 is_slot_hovered |= ImGui::IsItemHovered();

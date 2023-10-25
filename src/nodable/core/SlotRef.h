@@ -30,6 +30,7 @@ namespace ndbl
         explicit operator bool () const { return node && id; }
         bool operator!=(const SlotRef & other) const;
         bool operator==(const SlotRef & other) const;
+        SlotFlags slot_type() const;
         Slot* get() const;
         Slot* operator->() const;
     };

@@ -76,7 +76,7 @@ const fw::iinvokable* Node::get_connected_invokable(const char* property_name) c
     const Slot&   slot          = *find_slot_by_name( property_name, SlotFlag_INPUT );
     const SlotRef adjacent_slot = slot.first_adjacent();
 
-    if ( adjacent_slot != SlotRef::null )
+    if ( adjacent_slot )
     {
         if ( auto* invokable = adjacent_slot.node->get_component<InvokableComponent>().get() )
         {
@@ -218,7 +218,7 @@ Slot & Node::get_nth_slot( u8_t _n, SlotFlags _flags )
     u8_t count = 0;
     for( auto& slot : slots.data() )
     {
-        if ( (slot.flags & _flags) == _flags)
+        if ( slot.has_flags(_flags) )
         {
             if( count == _n )
             {

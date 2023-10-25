@@ -17,7 +17,7 @@ const Slot* SlotBag::find_by_property(ID<Property> property_id, SlotFlags _flags
 {
     for(auto& slot : m_slots )
     {
-        if( (slot.flags & _flags) == _flags && slot.property == property_id )
+        if( slot.has_flags(_flags) && slot.property == property_id )
         {
             return &slot;
         }
@@ -25,13 +25,13 @@ const Slot* SlotBag::find_by_property(ID<Property> property_id, SlotFlags _flags
     return nullptr;
 }
 
-Slot* SlotBag::find_adjacent_at( SlotFlags flags, u8_t _index ) const
+Slot* SlotBag::find_adjacent_at( SlotFlags _flags, u8_t _index ) const
 {
     size_t cursor_pos{0};
     for (auto& slot : m_slots)
     {
         // Skip any slot not compatible with given flags
-        if( (slot.flags & flags) != flags )
+        if( !slot.has_flags( _flags ) )
         {
             continue;
         }
@@ -64,7 +64,7 @@ std::vector<Slot*> SlotBag::filter( SlotFlags _flags ) const
     std::vector<Slot*> result;
     for(auto& slot : m_slots)
     {
-        if( (slot.flags & _flags) == _flags )
+        if( slot.has_flags(_flags) )
         {
             result.push_back(const_cast<Slot*>( &slot ));
         }

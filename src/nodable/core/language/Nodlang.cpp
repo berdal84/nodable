@@ -1550,7 +1550,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type
 
     for (const SlotRef& input_slot : inputs)
     {
-        FW_ASSERT( input_slot->flags == SlotFlag_INPUT )
+        FW_ASSERT( input_slot->has_flags(SlotFlag_INPUT) )
         if ( input_slot != inputs.front())
         {
             serialize_token_t(_out, Token_t::list_separator);
@@ -1647,7 +1647,7 @@ std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *va
 
 std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, SerializeFlags _flags ) const
 {
-    FW_ASSERT(_slot.flags == SlotFlag_INPUT);
+    FW_ASSERT( _slot.has_flags( SlotFlag_INPUT ) );
     const Property* property      = _slot.get_property();
     const Slot*     adjacent_slot = _slot.first_adjacent().get();
 
@@ -1699,7 +1699,7 @@ std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, Ser
     /** This method is work in progress
      * It works only if the given slot is an output of a VALUE_PROPERTY.
      * This means we need to serialize the node itself */
-    FW_ASSERT( _slot.flags == SlotFlag_OUTPUT )
+    FW_ASSERT( _slot.has_flags( SlotFlag_OUTPUT ) )
     FW_ASSERT( _slot.get_property() == _slot.node->get_prop(VALUE_PROPERTY) )
     return serialize_node( _out, _slot.node, _flags );
 }

@@ -88,7 +88,7 @@ size_t Slot::adjacent_count() const
 
 bool Slot::is_full() const
 {
-    return 0 == (flags & SlotFlag_NOT_FULL );
+    return !has_flags(SlotFlag_NOT_FULL);
 }
 
 Slot::operator bool() const
@@ -110,7 +110,7 @@ Node* Slot::get_node() const
 void Slot::add_adjacent( const SlotRef& _ref)
 {
     FW_EXPECT( _ref != *this, "Reflexive edge not handled" );
-    FW_EXPECT( _ref->type() == type(), "Slot must have common type" );
+    FW_EXPECT( type() == _ref.slot_type() , "Slot must have common type" );
     FW_EXPECT( m_adjacent.size() < m_adjacent.capacity(), "Slot is full" );
     m_adjacent.emplace_back(_ref);
     if ( m_adjacent.size() == m_adjacent.capacity() )
@@ -127,7 +127,7 @@ void Slot::remove_adjacent( const SlotRef& _ref )
     flags |= SlotFlag_NOT_FULL;
 }
 
-void Slot::allow( SlotFlags _flags)
+void Slot::set_flags( SlotFlags _flags)
 {
     flags |= _flags;
 }
@@ -162,4 +162,14 @@ void Slot::expand_capacity( size_t _capacity )
     FW_EXPECT( m_adjacent.capacity() <= _capacity, "New capacity must be strictly greater than current" );
     m_adjacent.reserve(_capacity);
     flags |= SlotFlag_NOT_FULL;
+}
+
+bool Slot::has_flags( SlotFlags _flags ) const
+{
+    return (flags & _flags) == _flags;
+}
+
+SlotFlags Slot::static_flags() const
+{
+    return flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
 }
