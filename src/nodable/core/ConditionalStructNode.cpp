@@ -22,18 +22,18 @@ void ConditionalStructNode::init()
     add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
     add_slot( SlotFlag_PARENT, 1);
     add_slot( SlotFlag_OUTPUT, SLOT_MAX_CAPACITY );
-    m_next_slot[0] = add_slot( SlotFlag_NEXT, 1, m_this_property_id );
-    m_next_slot[1] = add_slot( SlotFlag_NEXT, 1, m_this_property_id );
-    m_child_slot[0] = add_slot( SlotFlag_CHILD, 1 , m_this_property_id );
-    m_child_slot[1] = add_slot( SlotFlag_CHILD, 1 , m_this_property_id );
+    m_next_slot[Branch_FALSE]  = add_slot( SlotFlag_NEXT, 1, m_this_property_id );
+    m_next_slot[Branch_TRUE]   = add_slot( SlotFlag_NEXT, 1, m_this_property_id );
+    m_child_slot[Branch_FALSE] = add_slot( SlotFlag_CHILD, 1 , m_this_property_id );
+    m_child_slot[Branch_TRUE]  = add_slot( SlotFlag_CHILD, 1 , m_this_property_id );
 }
 
 PoolID<Scope> ConditionalStructNode::get_scope_at(size_t _pos) const
 {
-    SlotRef next = get_slot_at( m_next_slot.at(_pos) ).first_adjacent();
-    if ( next )
+    const Slot& slot = get_child_slot_at(_pos);
+    if ( SlotRef adjacent_slot = slot.first_adjacent() )
     {
-        return next.node->get_component<Scope>();
+        return adjacent_slot.node->get_component<Scope>();
     }
     return {};
 }
