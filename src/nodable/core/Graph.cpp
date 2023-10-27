@@ -318,13 +318,13 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 Node* parent    = _first.get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
                 Node* new_child = _second.get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
                 FW_ASSERT( parent->has_component<Scope>())
-                Slot& parent_next_slot    = *parent->find_slot( SlotFlag_NEXT );
+                Slot* parent_next_slot    = parent->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
                 Slot& new_child_prev_slot = *new_child->find_slot( SlotFlag_PREV );
 
                 // Case 1: Parent accepts a "next" connection.
-                if ( !parent_next_slot.is_full() )
+                if ( parent_next_slot )
                 {
-                    connect( parent_next_slot, new_child_prev_slot );
+                    connect( *parent_next_slot, new_child_prev_slot );
                 }
                 // Case 2: Connects to the last child's "next" slot.
                 //         parent
@@ -350,12 +350,12 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //             - new child <-<-<-<-<-<-<-<
                     //
                     auto previous_child_scope = previous_child->get_component<Scope>().get();
-                    if ( previous_child_scope && !previous_child->get_type()->is<ForLoopNode>() )
+                    if ( previous_child_scope && !previous_child->get_type()->is<IConditionalStruct>() )
                     {
                         std::vector<InstructionNode *> last_instructions = previous_child_scope->get_last_instructions_rec();
                         for (InstructionNode* each_instr: last_instructions )
                         {
-                            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT );
+                            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
                             FW_ASSERT(each_instr_next_slot);
                             connect( *each_instr_next_slot, new_child_prev_slot );
                         }

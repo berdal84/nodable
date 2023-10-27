@@ -195,45 +195,44 @@ bool GraphView::draw()
        Draw Code Flow.
        Code flow is the set of green lines that links  a set of nodes.
      */
+    float line_width  = app.config.ui_node_slot_width * app.config.ui_codeflow_thickness_ratio;
     for( Node* each_node : node_registry )
     {
-        size_t slot_index = 0;
-        size_t slot_count = each_node->get_slot_count( SlotFlag_TYPE_HIERARCHICAL | SlotFlag_ORDER_FIRST );
-        float line_width  = app.config.ui_node_slot_width * app.config.ui_codeflow_thickness_ratio;
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
 
-        // TODO: refactor this using the Slots
-
-        for (PoolID<Node> each_successor_node : each_node->successors() )
+        if ( !each_view )
         {
-            NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
+            continue;
+        }
 
-            if (each_view && each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
+        std::vector<Slot*> slots = each_node->filter_slots(SlotFlag_NEXT);
+        for ( size_t slot_index = 0; slot_index < slots.size(); ++slot_index  )
+        {
+            Slot* slot = slots[slot_index];
+
+            if( slot->empty() )
             {
-                ImVec2 start = each_view->get_position(fw::Space_Screen, pixel_perfect);
-                start.x -= each_view->get_size().x * 0.5f;
-                start.x += app.config.ui_node_slot_width * 0.5f + float(slot_index) * app.config.ui_node_slot_width;
-                start.y += each_view->get_size().y * 0.5f; // align bottom
-                start.y += app.config.ui_node_slot_height * 0.25f;
+                continue;
+            }
 
-                ImVec2 end = each_successor_view->get_position(fw::Space_Screen, pixel_perfect);
-                end.x -= each_successor_view->get_size().x * 0.5f;
-                end.x += app.config.ui_node_slot_width * 0.5f;
-                end.y -= each_successor_view->get_size().y * 0.5f; // align top
-                end.y -= app.config.ui_node_slot_height * 0.25f;
+            SlotRef   adjacent_slot       = slot->first_adjacent();
+            Node*     each_successor_node = adjacent_slot->get_node();
+            NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
 
-                ImColor color(app.config.ui_codeflow_color );
-                ImColor shadowColor(app.config.ui_codeflow_shadowColor );
+            if ( each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
+            {
+                ImRect start = each_view->get_slot_rect( *slot, app.config, slot_index );
+                ImRect end   = each_successor_view->get_slot_rect( *adjacent_slot.get(), app.config, 0 ); // there is only 1 previous slot
+
                 fw::ImGuiEx::DrawVerticalWire(
                     ImGui::GetWindowDrawList(),
-                    start,
-                    end,
-                    color,
-                    shadowColor,
+                    start.GetCenter(),
+                    end.GetCenter(),
+                    app.config.ui_codeflow_color,       // color
+                    app.config.ui_codeflow_shadowColor, // shadowColor,
                     line_width,
                     0.0f);
             }
-            ++slot_index;
         }
     }
 

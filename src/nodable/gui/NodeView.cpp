@@ -299,7 +299,7 @@ bool NodeView::draw()
         {
             if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
-                i8_t count = count_by_flags[slot_view.slot().static_flags()];
+                int& count = count_by_flags[slot_view.slot().static_flags()];
                 ImRect rect = get_slot_rect( slot_view, config, count );
                 SlotView::draw_slot_rectangle( draw_list, slot_view, rect, color, border_color, hover_color, border_radius, m_edition_enable);
                 is_slot_hovered |= ImGui::IsItemHovered();
@@ -1087,6 +1087,11 @@ ImVec2 NodeView::get_slot_pos( const Slot& slot )
     ImRect property_rect = m_property_views.at( (u32_t)slot.property ).screen_rect;
     return property_rect.GetCenter()
          + property_rect.GetSize() * m_slot_views[(u8_t)slot.id].alignment();
+}
+
+ImRect NodeView::get_slot_rect( const Slot& _slot, const Config& _config, i8_t _count ) const
+{
+     return get_slot_rect( m_slot_views[_slot.id.m_value], _config, _count );
 }
 
 ImRect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _count ) const
