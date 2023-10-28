@@ -15,7 +15,6 @@ namespace ndbl
     {
         Branch_FALSE = 0,
         Branch_TRUE = 1,
-        Branch_DEFAULT = Branch_FALSE
     };
 
     /**
