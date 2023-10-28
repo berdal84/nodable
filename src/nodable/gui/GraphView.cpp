@@ -215,14 +215,14 @@ bool GraphView::draw()
                 continue;
             }
 
-            SlotRef   adjacent_slot       = slot->first_adjacent();
-            Node*     each_successor_node = adjacent_slot->get_node();
+            SlotRef   previous_slot = slot->first_adjacent(); // next's adjacent is previous
+            Node*     each_successor_node = previous_slot->get_node();
             NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
 
             if ( each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
             {
                 ImRect start = each_view->get_slot_rect( *slot, app.config, slot_index );
-                ImRect end   = each_successor_view->get_slot_rect( *adjacent_slot.get(), app.config, 0 ); // there is only 1 previous slot
+                ImRect end   = each_successor_view->get_slot_rect( *previous_slot.get(), app.config, 0 ); // there is only 1 previous slot
 
                 fw::ImGuiEx::DrawVerticalWire(
                     ImGui::GetWindowDrawList(),
