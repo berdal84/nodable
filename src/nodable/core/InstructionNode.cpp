@@ -21,10 +21,10 @@ void InstructionNode::init()
 
 Slot& InstructionNode::root_slot()
 {
-    return slots[(u8_t)m_root_slot_id];
+    return m_slots[(u8_t)m_root_slot_id];
 }
 
 const Slot& InstructionNode::root_slot() const
 {
-    return slots[(u8_t)m_root_slot_id];
+    return m_slots[(u8_t)m_root_slot_id];
 }

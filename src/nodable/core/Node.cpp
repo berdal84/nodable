@@ -24,6 +24,7 @@ Node::Node(std::string _label)
 , dirty(true)
 , flagged_to_delete(false)
 , parent_graph( nullptr )
+, m_this_property_id()
 {
 }
 
@@ -32,10 +33,11 @@ Node::Node( Node&& other ) noexcept
 , dirty(other.dirty)
 , flagged_to_delete(other.flagged_to_delete)
 , props(std::move(other.props))
-, slots(std::move(other.slots))
+, m_slots(std::move(other.m_slots))
 , m_components(std::move(other.m_components))
 , m_id( other.m_id )
 , parent_graph( other.parent_graph )
+, m_this_property_id( other.m_this_property_id )
 {
 }
 
@@ -47,8 +49,9 @@ Node& Node::operator=( Node&& other ) noexcept
    dirty             = other.dirty;
    flagged_to_delete = other.flagged_to_delete;
    props             = std::move(other.props);
-   slots             = std::move(other.slots);
+   m_slots           = std::move(other.m_slots);
    m_components      = std::move(other.m_components);
+   m_this_property_id = other.m_this_property_id;
    m_id              = other.m_id;
    parent_graph      = other.parent_graph;
 
@@ -57,7 +60,7 @@ Node& Node::operator=( Node&& other ) noexcept
 
 void Node::init()
 {
-    FW_EXPECT(slots.size() == 0, "Slots should not exist prior to call init()");
+    FW_EXPECT(m_slots.size() == 0, "Slots should not exist prior to call init()");
 
     // Add a property acting like a "this" for the owner Node.
     m_this_property_id = add_prop<PoolID<Node>>( THIS_PROPERTY );
@@ -66,14 +69,14 @@ void Node::init()
     m_components.set_owner( m_id );
 }
 
-size_t Node::adjacent_count(SlotFlags _flags )const
+size_t Node::adjacent_slot_count(SlotFlags _flags )const
 {
     return filter_adjacent_slots( _flags ).size();
 }
 
 const fw::iinvokable* Node::get_connected_invokable(const char* property_name) const
 {
-    const Slot&   slot          = *find_slot_by_name( property_name, SlotFlag_INPUT );
+    const Slot&   slot          = *find_slot_by_property_name( property_name, SlotFlag_INPUT );
     const SlotRef adjacent_slot = slot.first_adjacent();
 
     if ( adjacent_slot )
@@ -97,26 +100,16 @@ std::vector<PoolID<Component>> Node::get_components()
     return m_components.get_all();
 }
 
-const Slot* Node::find_slot_by_name(const char* property_name, SlotFlags desired_way) const
+Slot* Node::find_slot_by_property_name(const char* _property_name, SlotFlags _flags)
+{
+    return const_cast<Slot*>( const_cast<const Node*>(this)->find_slot_by_property_name( _property_name, _flags));
+}
+
+const Slot* Node::find_slot_by_property_name(const char* property_name, SlotFlags desired_way) const
 {
     const Property* property = get_prop(property_name);
-    return find_slot( property->id, desired_way );
-}
-
-Slot* Node::find_slot_by_name(const char* property_name, SlotFlags _flags)
-{
-    const Property* property = get_prop(property_name);
-    return find_slot( property->id, _flags );
-}
-
-const Slot* Node::find_slot(ID<Property> property_id, SlotFlags _flags) const
-{
-    return slots.find_by_property( property_id, _flags );
-}
-
-Slot *Node::find_slot(ID<Property> property_id, SlotFlags _flags)
-{
-    return slots.find_by_property( property_id, _flags );
+    FW_ASSERT(property)
+    return find_slot_by_property_id( property->id, desired_way );
 }
 
 const Property* Node::get_prop(const char *_name) const
@@ -129,34 +122,51 @@ Property* Node::get_prop(const char *_name)
     return props.find_by_name( _name );
 }
 
-const Property* Node::get_prop_at(ID<Property> id) const
+Property* Node::get_prop_at(ID<Property> id)
 {
     return props.at(id);
 }
 
-Property* Node::get_prop_at(ID<Property> id)
+const Property* Node::get_prop_at(ID<Property> id) const
 {
     return props.at(id);
 }
 
 Slot* Node::find_slot(SlotFlags _flags)
 {
-    return find_slot_by_name( THIS_PROPERTY, _flags );
+    return const_cast<Slot*>( const_cast<const Node*>(this)->find_slot(_flags));
 }
 
 const Slot* Node::find_slot(SlotFlags _flags) const
 {
-    return find_slot_by_name( THIS_PROPERTY, _flags );
+    return find_slot_by_property_id( m_this_property_id, _flags );
+}
+
+Slot* Node::find_slot_at(SlotFlags _flags, size_t _position)
+{
+    return const_cast<Slot*>( const_cast<const Node*>(this)->find_slot_at(_flags, _position));
+}
+
+const Slot* Node::find_slot_at(SlotFlags _flags, size_t _position) const
+{
+    for( const Slot& slot : m_slots )
+    {
+        if( slot.has_flags(_flags) && slot.position() == _position && slot.property == m_this_property_id )
+        {
+            return &slot;
+        }
+    }
+    return nullptr;
 }
 
 Slot& Node::get_slot_at(ID8<Slot> id)
 {
-    return slots[id.m_value];
+    return m_slots[id.m_value];
 }
 
 const Slot& Node::get_slot_at(ID8<Slot> id) const
 {
-    return slots[id.m_value];
+    return m_slots[id.m_value];
 }
 
 std::vector<PoolID<Node>> Node::outputs() const
@@ -196,14 +206,9 @@ std::vector<PoolID<Node>> Node::filter_adjacent( SlotFlags _flags ) const
     return GraphUtil::get_adjacent_nodes(this, _flags);
 }
 
-size_t Node::get_slot_count( SlotFlags _flags ) const
+Slot* Node::find_slot_by_property_type(SlotFlags flags, const fw::type* _type)
 {
-    return slots.count( _flags );
-}
-
-Slot* Node::find_slot_by_type(SlotFlags flags, const fw::type* _type)
-{
-    for(Slot* slot : slots.filter( flags ) )
+    for(Slot* slot : filter_slots( flags ) )
     {
         if( slot->get_property()->get_type()->equals( _type ) )
         {
@@ -216,7 +221,7 @@ Slot* Node::find_slot_by_type(SlotFlags flags, const fw::type* _type)
 Slot & Node::get_nth_slot( u8_t _n, SlotFlags _flags )
 {
     u8_t count = 0;
-    for( auto& slot : slots.data() )
+    for( auto& slot : m_slots )
     {
         if ( slot.has_flags(_flags) )
         {
@@ -237,12 +242,14 @@ ID<Property> Node::add_prop(const fw::type *_type, const char *_name, PropertyFl
 
 ID8<Slot> Node::add_slot(SlotFlags _flags, u8_t _capacity, ID<Property> _prop_id)
 {
-    return slots.add( m_id, _prop_id, _flags, _capacity );
+    Slot& slot = m_slots.emplace_back( (u8_t)m_slots.size(), m_id, _flags, _prop_id, _capacity );
+    return slot.id;
 }
 
-ID8<Slot> Node::add_slot(SlotFlags _flags, u8_t _capacity)
+ID8<Slot> Node::add_slot(SlotFlags _flags, u8_t _capacity, size_t _position)
 {
-    return slots.add( m_id, m_this_property_id, _flags, _capacity );
+    Slot& slot = m_slots.emplace_back( (u8_t)m_slots.size(), m_id, _flags, m_this_property_id, _capacity, _position );
+    return slot.id;
 }
 
 PoolID<Node> Node::find_parent() const
@@ -257,7 +264,7 @@ PoolID<Node> Node::find_parent() const
 std::vector<SlotRef> Node::filter_adjacent_slots( SlotFlags _flags ) const
 {
     std::vector<SlotRef> result;
-    for(const Slot* slot : slots.filter(_flags))
+    for(const Slot* slot : filter_slots(_flags))
     {
         for( const SlotRef& each : slot->adjacent() )
         {
@@ -267,13 +274,66 @@ std::vector<SlotRef> Node::filter_adjacent_slots( SlotFlags _flags ) const
     return result;
 }
 
-std::vector<Slot*> Node::filter_slots( SlotFlags _flags) const
-{
-    return slots.filter(_flags);
-}
-
 bool Node::has_input_connected( const ID<Property>& id ) const
 {
-    const Slot* slot = find_slot( id, SlotFlag_INPUT );
+    const Slot* slot = find_slot_by_property_id( id, SlotFlag_INPUT );
     return slot && slot->adjacent_count() > 0;
+}
+
+size_t Node::slot_count(SlotFlags flags) const
+{
+    return filter_slots( flags ).size();
+}
+
+Slot* Node::find_slot_by_property_id(ID<Property> property_id, SlotFlags _flags)
+{
+    return const_cast<Slot*>( const_cast<const Node*>( this )->find_slot_by_property_id( property_id, _flags ) );
+}
+
+const Slot* Node::find_slot_by_property_id(ID<Property> property_id, SlotFlags _flags) const
+{
+    for(auto& slot : m_slots )
+    {
+        if( slot.has_flags(_flags) && slot.property == property_id )
+        {
+            return &slot;
+        }
+    }
+    return nullptr;
+}
+
+Slot* Node::find_adjacent_at( SlotFlags _flags, u8_t _index ) const
+{
+    size_t cursor_pos{0};
+    for (auto& slot : m_slots)
+    {
+        // Skip any slot not compatible with given flags
+        if( !slot.has_flags( _flags ) )
+        {
+            continue;
+        }
+
+        // if the position is in the range of this slot, we return the item
+        size_t local_pos = (size_t)_index - cursor_pos;
+        if ( local_pos < slot.adjacent_count() )
+        {
+            return slot.adjacent_at(local_pos).get();
+        }
+        // increase counter
+        cursor_pos += slot.adjacent_count();
+    }
+    return nullptr;
+}
+
+std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
+{
+    std::vector<Slot*> result;
+    for(auto& slot : m_slots)
+    {
+        if( slot.has_flags(_flags) )
+        {
+            result.push_back(const_cast<Slot*>( &slot ));
+        }
+    }
+    return result;
 }

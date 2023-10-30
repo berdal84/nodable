@@ -51,7 +51,7 @@ bool PropertyView::has_input_connected() const
 
 VariableNode* PropertyView::get_connected_variable() const
 {
-    const Slot* input_slot = get_node()->find_slot( property_id, SlotFlag_INPUT );
+    const Slot* input_slot = get_node()->find_slot_by_property_id( property_id, SlotFlag_INPUT );
     if( !input_slot )
     {
         return nullptr;

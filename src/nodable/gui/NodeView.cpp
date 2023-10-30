@@ -97,7 +97,7 @@ void NodeView::set_owner(PoolID<Node> node)
         {
             m_property_view_this = &property_view;
         }
-        else if ( !m_owner->find_slot( each_prop.id, SlotFlag_OUTPUT ) )
+        else if ( !m_owner->find_slot_by_property_id( each_prop.id, SlotFlag_OUTPUT ) )
         {
             m_property_views_with_input_only.push_back(&property_view);
         }
@@ -110,7 +110,7 @@ void NodeView::set_owner(PoolID<Node> node)
     // 2. Create SlotViews
     //--------------------
     // Create a SlotView per slot
-    for(Slot& slot : m_owner->slots.data() )
+    for(Slot& slot : m_owner->slots() )
     {
         ImVec2 alignment;
         switch ( slot.static_flags() ) // type and order flags only
@@ -541,7 +541,7 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         ImGui::Text("%s %s\n", property->get_type()->get_name(), property->get_name().c_str());
 
         std::string  source_code;
-        if( property->get_type()->is<PoolID<Node>>() || m_owner->find_slot( property->id, SlotFlag_OUTPUT ))
+        if( property->get_type()->is<PoolID<Node>>() || m_owner->find_slot_by_property_id( property->id, SlotFlag_OUTPUT ))
         {
             source_code = Nodlang::get_instance().serialize_node( source_code, m_owner );
         }

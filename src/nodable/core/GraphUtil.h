@@ -53,7 +53,7 @@ namespace ndbl
 
         static PoolID<Node> adjacent_node_at(const Node* _node, SlotFlags _flags, u8_t _pos)
         {
-            if ( Slot* adjacent_slot = _node->slots.find_adjacent_at( _flags, _pos ) )
+            if ( Slot* adjacent_slot = _node->find_adjacent_at( _flags, _pos ) )
             {
                 return adjacent_slot->node;
             }

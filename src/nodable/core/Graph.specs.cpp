@@ -56,8 +56,8 @@ TEST_F(Graph_, disconnect)
 
     // Check
     EXPECT_EQ(graph.get_edge_registry().size() , 0);
-    EXPECT_EQ(node_1->adjacent_count(SlotFlag_OUTPUT), 0);
-    EXPECT_EQ(node_2->adjacent_count(SlotFlag_INPUT) , 0);
+    EXPECT_EQ( node_1->adjacent_slot_count( SlotFlag_OUTPUT ), 0);
+    EXPECT_EQ( node_2->adjacent_slot_count( SlotFlag_INPUT ) , 0);
 }
 
 TEST_F(Graph_, clear)
@@ -77,8 +77,8 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph.get_edge_registry().empty() );
 
     graph.connect(
-            *operator_node->find_slot_by_name( VALUE_PROPERTY, SlotFlag_OUTPUT ),
-            *instructionNode->find_slot_by_name( ROOT_PROPERTY, SlotFlag_INPUT ),
+            *operator_node->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT ),
+            *instructionNode->find_slot_by_property_name( ROOT_PROPERTY, SlotFlag_INPUT ),
             ConnectFlag_ALLOW_SIDE_EFFECTS);
 
     EXPECT_FALSE( graph.get_node_registry().empty() );
@@ -110,8 +110,8 @@ TEST_F(Graph_, create_and_delete_relations)
     EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
     DirectedEdge* edge_1 = graph.connect(
-            *node_1->find_slot_by_name( THIS_PROPERTY, SlotFlag_CHILD ),
-            *node_2->find_slot_by_name( THIS_PROPERTY, SlotFlag_PARENT ));
+            *node_1->find_slot_by_property_name( THIS_PROPERTY, SlotFlag_CHILD ),
+            *node_2->find_slot_by_property_name( THIS_PROPERTY, SlotFlag_PARENT ));
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph.disconnect(*edge_1);

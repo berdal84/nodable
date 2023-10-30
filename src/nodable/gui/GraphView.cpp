@@ -540,7 +540,7 @@ bool GraphView::draw()
             if ( dragged_slot )
             {
                 SlotFlags    complementary_flags = flip_order( dragged_slot->slot().static_flags() );
-                Slot*        complementary_slot  = new_node_id->find_slot_by_type( complementary_flags, dragged_slot->get_property()->get_type() );
+                Slot*        complementary_slot  = new_node_id->find_slot_by_property_type( complementary_flags, dragged_slot->get_property()->get_type() );
                 ConnectFlags connect_flags       = ConnectFlag_ALLOW_SIDE_EFFECTS;
 
                 Slot* out = &dragged_slot->slot();

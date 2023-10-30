@@ -28,7 +28,7 @@ namespace ndbl
 
         Slot();
         Slot(const Slot& other);
-        Slot(ID8<Slot>::id_t, PoolID<Node>, SlotFlags, ID<Property> = {}, u8_t capacity = 1);
+        Slot(ID8<Slot>::id_t, PoolID<Node>, SlotFlags, ID<Property> = {}, u8_t capacity = 1, size_t _position = 0);
 
         bool operator==(const Slot&) const;
         bool operator!=(const Slot&) const;
@@ -42,11 +42,12 @@ namespace ndbl
         bool      is_full() const; // Slots have a capacity
         void      add_adjacent( const SlotRef& );
         void      remove_adjacent( const SlotRef& );
-        void set_flags( SlotFlags _flags );
+        void      set_flags( SlotFlags _flags );
         SlotFlags type() const;
         SlotFlags order() const;
         bool      empty() const;
         size_t    capacity() const;
+        size_t    position() const;
         void      expand_capacity(size_t _capacity);
         const std::vector<SlotRef>& adjacent() const;
         bool      has_flags( SlotFlags flag ) const;
@@ -54,6 +55,7 @@ namespace ndbl
         SlotFlags static_flags() const;
 
     private:
+        size_t               m_position;   // In case multiple Slot exists for the same type and order, we distinguish them with their position.
         std::vector<SlotRef> m_adjacent;
     };
 }

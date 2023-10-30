@@ -14,7 +14,6 @@
 #include "DirectedEdge.h"
 #include "Property.h"
 #include "PropertyBag.h"
-#include "SlotBag.h"
 #include "constants.h"
 
 namespace ndbl {
@@ -45,13 +44,12 @@ namespace ndbl {
 	{
         REFLECT_BASE_CLASS()
         POOL_REGISTRABLE(Node)
-	public:
+    public:
         // Data
 
         std::string       name;
         Graph*            parent_graph;
         PropertyBag       props;
-        SlotBag           slots;
         bool              dirty; // TODO: use flags
         bool              flagged_to_delete; // TODO: use flags
 
@@ -65,31 +63,44 @@ namespace ndbl {
         virtual ~Node() = default;
 
         virtual void init();
+
+        // Slot related
+        //-------------
+
+        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, size_t _position = 0);
+        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
+        void                 set_name(const char*);
+        PoolID<Node>         find_parent() const;
+        size_t               adjacent_slot_count(SlotFlags )const;
+        Slot&                get_slot_at(ID8<Slot>);
+        const Slot&          get_slot_at(ID8<Slot>) const;
+        Slot&                get_nth_slot(u8_t, SlotFlags );
+        std::vector<Slot*>   filter_slots( SlotFlags ) const;
+        std::vector<SlotRef> filter_adjacent_slots(SlotFlags) const;
+        Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
+        const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
+        Slot*                find_slot_at( SlotFlags, size_t _position ); // implicitly THIS_PROPERTY's slot
+        const Slot*          find_slot_at( SlotFlags, size_t _position ) const; // implicitly THIS_PROPERTY's slot
+        Slot*                find_slot_by_property_name(const char* _property_name, SlotFlags );
+        const Slot*          find_slot_by_property_name(const char* property_name, SlotFlags ) const;
+        Slot*                find_slot_by_property_type(SlotFlags _way, const fw::type *_type);
+        Slot*                find_slot_by_property_id( ID<Property>, SlotFlags );
+        const Slot*          find_slot_by_property_id( ID<Property>, SlotFlags ) const;
+        Slot*                find_adjacent_at(SlotFlags, u8_t _index ) const;
+        size_t               slot_count(SlotFlags) const;
+        std::vector<Slot>&   slots() { return m_slots; }
+        const std::vector<Slot>& slots() const { return m_slots; }
         std::vector<PoolID<Node>> filter_adjacent(SlotFlags) const;
         std::vector<PoolID<Node>> successors() const;
-        std::vector<PoolID<Node>> rchildren() const;
+        std::vector<PoolID<Node>> rchildren() const; // reversed children
         std::vector<PoolID<Node>> children() const;
         std::vector<PoolID<Node>> inputs() const;
         std::vector<PoolID<Node>> outputs() const;
         std::vector<PoolID<Node>> predecessors() const;
-        void                 set_name(const char*);
-        PoolID<Node>         find_parent() const;
-        size_t               adjacent_count(SlotFlags )const;
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity);
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
-        Slot&                get_slot_at(ID8<Slot>);
-        const Slot&          get_slot_at(ID8<Slot>) const;
-        size_t               get_slot_count(SlotFlags) const;
-        Slot&                get_nth_slot(u8_t, SlotFlags );
-        Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
-        const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
-        Slot*                find_slot(ID<Property>, SlotFlags );
-        const Slot*          find_slot(ID<Property>, SlotFlags ) const;
-        Slot*                find_slot_by_name(const char* property_name, SlotFlags );
-        const Slot*          find_slot_by_name(const char* property_name, SlotFlags ) const;
-        Slot*                find_slot_by_type(SlotFlags _way, const fw::type *_type);
-        std::vector<SlotRef> filter_adjacent_slots(SlotFlags) const;
-        std::vector<Slot*>   filter_slots(SlotFlags) const;
+
+        // Property related
+        //-----------------
+
         ID<Property>         add_prop(const fw::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
         Property*            get_prop_at(ID<Property>);
         const Property*      get_prop_at(ID<Property>) const;
@@ -97,11 +108,15 @@ namespace ndbl {
         const Property*      get_prop(const char* _name) const;
         const fw::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
         bool                 has_input_connected( const ID<Property>& ) const;
-        std::vector<PoolID<Component>> get_components();
 
         template<typename ValueT>
         ID<Property> add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)
         { return props.add<ValueT>(_name, _flags); }
+
+        // Component related
+        //------------------
+
+        std::vector<PoolID<Component>> get_components();
 
         template<class ComponentT>
         void add_component(PoolID<ComponentT> component)
@@ -116,9 +131,10 @@ namespace ndbl {
         { return m_components.has<ComponentT>(); }
 
     protected:
-        ID<Property> m_this_property_id;
+        ID<Property>      m_this_property_id;
+        std::vector<Slot> m_slots;
     private:
-        ComponentBag m_components;
+        ComponentBag      m_components;
     };
 }
 

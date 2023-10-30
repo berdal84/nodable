@@ -8,6 +8,7 @@ const Slot Slot::null{};
 
 Slot::Slot()
 : flags(SlotFlag::SlotFlag_NONE)
+, m_position(0)
 {
 }
 
@@ -16,13 +17,15 @@ Slot::Slot(
     PoolID<Node>    _node,
     SlotFlags       _flags,
     ID<Property>    _property,
-    u8_t            _capacity
+    u8_t            _capacity,
+    size_t          _position
     )
     : id(_index)
     , node(_node)
     , flags(_flags)
     , property(_property)
     , m_adjacent()
+    , m_position(_position)
 {
     FW_ASSERT( (_flags & SlotFlag_NOT_FULL) == SlotFlag_NONE ) // cannot be set manually
     FW_ASSERT( _capacity > 0 )
@@ -36,6 +39,7 @@ Slot::Slot(const Slot &other)
     , property(other.property)
     , flags(other.flags)
     , m_adjacent(other.m_adjacent)
+    , m_position(other.m_position)
 {
     expand_capacity(other.capacity());
 }
@@ -172,4 +176,9 @@ bool Slot::has_flags( SlotFlags _flags ) const
 SlotFlags Slot::static_flags() const
 {
     return flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
+}
+
+size_t Slot::position() const
+{
+    return m_position;
 }

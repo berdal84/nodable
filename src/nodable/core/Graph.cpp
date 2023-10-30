@@ -318,11 +318,13 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 Node* parent    = _first.get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
                 Node* new_child = _second.get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
                 FW_ASSERT( parent->has_component<Scope>())
-                Slot* parent_next_slot    = parent->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
+
+                Slot* parent_next_slot    = parent->find_slot_at( SlotFlag_NEXT, _first.position() );
+                FW_ASSERT(parent_next_slot)
                 Slot& new_child_prev_slot = *new_child->find_slot( SlotFlag_PREV );
 
-                // Case 1: Parent accepts a "next" connection.
-                if ( parent_next_slot )
+                // Case 1: Parent has only 1 child (the newly connected), we connect it as "next".
+                if ( !parent_next_slot->is_full() )
                 {
                     connect( *parent_next_slot, new_child_prev_slot );
                 }
@@ -368,8 +370,9 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //
                     else
                     {
-                        Slot& last_sibling_next_slot = *previous_child->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
-                        connect( last_sibling_next_slot, new_child_prev_slot );
+                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
+                        FW_ASSERT(last_sibling_next_slot)
+                        connect( *last_sibling_next_slot, new_child_prev_slot );
                     }
                 }
                 break;

@@ -22,7 +22,6 @@ add_library(
         PropertyBag.cpp
         Scope.cpp
         Slot.cpp
-        SlotBag.cpp
         SlotRef.cpp
         Token.cpp
         TokenRibbon.cpp

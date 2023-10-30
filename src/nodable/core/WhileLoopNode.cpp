@@ -22,11 +22,10 @@ void WhileLoopNode::init()
     add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY, m_this_property_id );
     add_slot( SlotFlag_PARENT, 1, m_this_property_id );
 
-    m_next_slot[Branch_TRUE]  = add_slot( SlotFlag_NEXT, 1, m_this_property_id );
-    m_next_slot[Branch_FALSE] = add_slot( SlotFlag_NEXT, 1, m_this_property_id );
-
-    m_child_slot[Branch_TRUE]  = add_slot( SlotFlag_CHILD, 1 , m_this_property_id );
-    m_child_slot[Branch_FALSE] = add_slot( SlotFlag_CHILD, 1 , m_this_property_id );
+    m_next_slot[Branch_FALSE]  = add_slot( SlotFlag_NEXT, 1, Branch_FALSE );
+    m_next_slot[Branch_TRUE]   = add_slot( SlotFlag_NEXT, 1, Branch_TRUE );
+    m_child_slot[Branch_FALSE] = add_slot( SlotFlag_CHILD, 1 , Branch_FALSE );
+    m_child_slot[Branch_TRUE]  = add_slot( SlotFlag_CHILD, 1 , Branch_TRUE );
 }
 
 PoolID<Scope> WhileLoopNode::get_scope_at(size_t _pos) const

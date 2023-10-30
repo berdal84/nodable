@@ -62,7 +62,7 @@ void VariableNode::reset_scope(Scope* _scope)
 
 Slot* VariableNode::find_value_typed_slot( SlotFlags _flags)
 {
-    return find_slot( m_value_property_id, _flags & SlotFlag_ORDER_MASK | SlotFlag_TYPE_VALUE );
+    return find_slot_by_property_id( m_value_property_id, _flags & SlotFlag_ORDER_MASK | SlotFlag_TYPE_VALUE );
 }
 
 Property *VariableNode::property()
@@ -81,5 +81,5 @@ const Property* VariableNode::property() const
 
 const Slot& VariableNode::input_slot() const
 {
-    return *find_slot( m_value_property_id, SlotFlag_INPUT );
+    return *find_slot_by_property_id( m_value_property_id, SlotFlag_INPUT );
 }

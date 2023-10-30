@@ -141,7 +141,7 @@ void NodeFactory::add_invokable_component(PoolID<Node> _node, const fw::func_typ
     _node->add_component(component);
 
     // Bind result property
-    Slot* result_slot = _node->find_slot_by_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    Slot* result_slot = _node->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
     component->bind_result( *result_slot );
 
     // Link arguments

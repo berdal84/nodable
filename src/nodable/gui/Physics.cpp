@@ -123,12 +123,6 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
                 constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
                 constraint.add_driver(each_view->poolid());
                 constraint.add_targets( children );
-
-                if (node_type->is<ForLoopNode>() )
-                {
-                    std::vector<PoolID<NodeView>> successors = each_view->get_adjacent(SlotFlag_NEXT);
-                    constraint.add_targets( successors );
-                }
                 each_physics->add_constraint(constraint);
             }
 
