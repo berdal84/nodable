@@ -140,7 +140,9 @@ bool App::shutdown()
 
     success &= texture_manager.release_all();
 
-    LOG_MESSAGE("fw::App", "Shutting down ImGui_ImplSDL2 ...\n");
+    LOG_MESSAGE("fw::App", "Shutting down OpenGL3 ...\n");
+    ImGui_ImplOpenGL3_Shutdown();
+    LOG_MESSAGE("fw::App", "Shutting down SDL2 ...\n");
     ImGui_ImplSDL2_Shutdown();
     LOG_MESSAGE("fw::App", "Destroying ImGui context ...\n");
     ImGui::DestroyContext    ();
