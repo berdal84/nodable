@@ -42,6 +42,7 @@ ghc::filesystem::path fw::system::get_executable_directory()
     char* path = nullptr;
     int length, dirname_length;
     length = wai_getExecutablePath(nullptr, 0, &dirname_length);
+    ghc::filesystem::path result;
     if (length > 0)
     {
         path = new char[length + 1];
@@ -53,21 +54,19 @@ ghc::filesystem::path fw::system::get_executable_directory()
             path[dirname_length] = '\0';
             LOG_MESSAGE("fw::system", "  dirname: %s\n", path);
             LOG_MESSAGE("fw::system", "  basename: %s\n", path + dirname_length + 1);
-            ghc::filesystem::path result{path};
-            delete path;
-            return result;
+            result = path;
         }
         else
         {
             LOG_ERROR("fw::system", "Unable to get executable path\n");
         }
-        delete path;
+        delete[] path;
     }
     else
     {
         LOG_WARNING("fw::system", "Unable to get executable directory!\n");
     }
-    return "";
+    return result;
 }
 
 void fw::system::console::clear() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
