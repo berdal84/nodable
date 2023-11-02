@@ -31,9 +31,8 @@ using fw::View;
 Nodable *Nodable::s_instance = nullptr;
 
 Nodable::Nodable()
-    : current_file(nullptr)
-    , core(config.common )
-    , view(this)
+    : App(config.common, new NodableView(this) )
+    , current_file(nullptr)
     , virtual_machine()
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
@@ -46,16 +45,6 @@ Nodable::Nodable()
 
     // Bind methods to framework events
     LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
-    using fw::App;
-    core.signal_handler = [this](App::Signal evt) {
-        switch (evt)
-        {
-            case App::Signal_ON_INIT:     on_init(); break;
-            case App::Signal_ON_DRAW:     on_update(); break;
-            case App::Signal_ON_SHUTDOWN: on_shutdown(); break;
-            case App::Signal_ON_UPDATE: break;
-        }
-    };
 
     node_factory.override_post_process_fct( [&]( PoolID<Node> node ) -> void {
         // Code executed after node instantiation
@@ -77,25 +66,25 @@ Nodable::Nodable()
 
         // Set specific colors
         if ( fw::extends<VariableNode>( node.get() ) )
-            {
-                new_view->set_color( View::Color_FILL, &config.ui_node_variableColor );
-            }
+        {
+            new_view->set_color( View::Color_FILL, &config.ui_node_variableColor );
+        }
         else if ( node->has_component<InvokableComponent>() )
-            {
-                new_view->set_color( View::Color_FILL, &config.ui_node_invokableColor );
-            }
+        {
+            new_view->set_color( View::Color_FILL, &config.ui_node_invokableColor );
+        }
         else if ( fw::extends<InstructionNode>( node.get() ) )
-            {
-                new_view->set_color( View::Color_FILL, &config.ui_node_instructionColor );
-            }
+        {
+            new_view->set_color( View::Color_FILL, &config.ui_node_instructionColor );
+        }
         else if ( fw::extends<LiteralNode>( node.get() ) )
-            {
-                new_view->set_color( View::Color_FILL, &config.ui_node_literalColor );
-            }
+        {
+            new_view->set_color( View::Color_FILL, &config.ui_node_literalColor );
+        }
         else if ( fw::extends<IConditional>( node.get() ) )
-            {
-                new_view->set_color( View::Color_FILL, &config.ui_node_condStructColor );
-            }
+        {
+            new_view->set_color( View::Color_FILL, &config.ui_node_condStructColor );
+        }
     } );
 
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
@@ -103,6 +92,7 @@ Nodable::Nodable()
 
 Nodable::~Nodable()
 {
+    delete m_view;
     s_instance = nullptr;
     LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
@@ -112,8 +102,6 @@ bool Nodable::on_init()
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
 
     fw::Pool::init();
-
-    fw::EventManager& event_manager = core.event_manager;
 
     // Bind commands to shortcuts
     using fw::EventType;
@@ -208,17 +196,12 @@ bool Nodable::on_init()
              {SDLK_f, KMOD_LCTRL},
              Condition_ENABLE});
 
-    LOG_VERBOSE("ndbl::App", "events ...\n");
-    signal_handler(Nodable::Signal_ON_INIT);
-    LOG_VERBOSE("ndbl::App", "on_init " OK "\n");
-
     return true;
 }
 
 void Nodable::on_update()
 {
     LOG_VERBOSE("ndbl::App", "on_update ...\n");
-    fw::EventManager& event_manager = core.event_manager;
 
     // 1. Update current file
     if (current_file && !virtual_machine.is_program_running())
@@ -286,7 +269,7 @@ void Nodable::on_update()
 
             case fw::EventType_exit_triggered:
             {
-                core.should_stop = true;
+                should_stop = true;
                 break;
             }
 
@@ -310,7 +293,7 @@ void Nodable::on_update()
             case fw::EventType_browse_file_triggered:
             {
                 std::string path;
-                if( pick_file_path(path, fw::AppView::DIALOG_Browse))
+                if( m_view->pick_file_path(path, fw::AppView::DIALOG_Browse))
                 {
                     open_file(path);
                     break;
@@ -331,7 +314,7 @@ void Nodable::on_update()
                 if (current_file)
                 {
                     std::string path;
-                    if(pick_file_path(path, fw::AppView::DIALOG_SaveAs))
+                    if( m_view->pick_file_path(path, fw::AppView::DIALOG_SaveAs))
                     {
                         save_file_as(path);
                         break;
@@ -351,7 +334,7 @@ void Nodable::on_update()
                     else
                     {
                         std::string path;
-                        if(pick_file_path(path, fw::AppView::DIALOG_SaveAs))
+                        if( m_view->pick_file_path(path, fw::AppView::DIALOG_SaveAs))
                         {
                             save_file_as(path);
                         }
@@ -362,7 +345,7 @@ void Nodable::on_update()
 
             case fw::EventType_show_splashscreen_triggered:
             {
-                core.config.splashscreen = true;
+                config.common.splashscreen = true;
                 break;
             }
              case EventType_frame_selected_node_views:
@@ -504,7 +487,7 @@ HybridFile *Nodable::add_file(HybridFile* _file)
     FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
-    core.event_manager.push(fw::EventType_file_opened);
+    event_manager.push(fw::EventType_file_opened);
     return _file;
 }
 
@@ -644,24 +627,4 @@ Nodable &Nodable::get_instance()
 {
     FW_EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
     return *s_instance;
-}
-
-void Nodable::toggle_fullscreen()
-{
-    core.set_fullscreen(!is_fullscreen() );
-}
-
-bool Nodable::is_fullscreen() const
-{
-    return core.is_fullscreen();
-}
-
-bool Nodable::pick_file_path(std::string &out, fw::AppView::DialogType type)
-{
-    return core.view.pick_file_path(out, type);
-}
-
-int Nodable::main(int argc, char **argv)
-{
-    return core.main();
 }

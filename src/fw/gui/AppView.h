@@ -25,7 +25,7 @@ namespace fw
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
-	class AppView : public View
+	class AppView
 	{
 	public:
         friend App;
@@ -62,20 +62,17 @@ namespace fw
         };
 
         AppView(App *);
-        AppView(const App &) = delete;
-		~AppView() override;
+        AppView(const AppView &) = delete;
+		~AppView();
 
-        enum Signal
-        {
-            Signal_ON_DRAW_MAIN,
-            Signal_ON_DRAW_SPLASHSCREEN_CONTENT,
-            Signal_ON_RESET_LAYOUT
-        };
-        std::function<void(Signal)> signal_handler; // override this function to extend the behavior
+        virtual void       on_init() {};
+        virtual void       on_draw() {};
+        virtual void       on_reset_layout() {};
+        virtual void       on_draw_splashscreen() {};
 
-        bool               draw() override;
+        bool               draw();
         ImGuiID            get_dockspace(Dockspace)const;
-        bool               pick_file_path(std::string& _out_path, DialogType);   // pick a file and store its path in _out_path
+        bool               pick_file_path(std::string& _out_path, DialogType) const;   // pick a file and store its path in _out_path
         void               dock_window(const char* window_name, Dockspace)const; // Must be called ON_RESET_LAYOUT
         void               set_layout_initialized(bool b);
     private:
@@ -84,7 +81,5 @@ namespace fw
         App *               m_app;
         bool                m_is_layout_initialized;
         std::array<ImGuiID, Dockspace_COUNT> m_dockspaces{};
-
-        REFLECT_DERIVED_CLASS()
     };
 }

@@ -13,7 +13,7 @@ using namespace fw;
 
 App *App::s_instance = nullptr;
 
-App::App(Config& _config)
+App::App(Config& _config, AppView* _view)
     : config(_config)
     , should_stop(false)
     , font_manager(_config.font_manager)
@@ -21,9 +21,10 @@ App::App(Config& _config)
     , texture_manager()
     , m_sdl_window(nullptr)
     , m_sdl_gl_context()
-    , view(this)
+    , m_view(_view)
 {
     LOG_VERBOSE("fw::App", "Constructor ...\n");
+    FW_EXPECT( m_view, "View cannot be null");
     FW_EXPECT(s_instance == nullptr, "Only a single fw::App at a time allowed");
     s_instance = this;
     LOG_VERBOSE("fw::App", "Constructor " OK "\n");
@@ -117,7 +118,8 @@ bool App::init()
     }
 
     LOG_VERBOSE("fw::App", "state_changes.emit(ON_INIT) ...\n");
-    signal_handler(Signal_ON_INIT);
+    on_init();
+    m_view->on_init();
     LOG_VERBOSE("fw::App", "init " OK "\n");
     return true;
 }
@@ -127,7 +129,7 @@ void App::update()
     LOG_VERBOSE("fw::App", "update ...\n");
     handle_events();
     LOG_VERBOSE("fw::App", "state_changes.emit(ON_UPDATE) ...\n");
-    signal_handler(Signal_ON_UPDATE);
+    on_update();
     LOG_VERBOSE("fw::App", "update " OK "\n");
 }
 
@@ -151,7 +153,8 @@ bool App::shutdown()
     NFD_Quit();
 
     LOG_VERBOSE("fw::App", "state_changes.emit(App::ON_SHUTDOWN) ...\n");
-    signal_handler(App::Signal_ON_SHUTDOWN);
+    on_shutdown();
+
     LOG_MESSAGE("fw::App", "Shutdown %s\n", success ? OK : KO)
     return success;
 }
@@ -165,8 +168,8 @@ void App::draw()
     ImGuiEx::BeginFrame();
 
     LOG_VERBOSE("fw::App", "state_changes.emit(App::ON_DRAW) ...\n");
-    view.draw();
-    signal_handler(App::Signal_ON_DRAW);
+    m_view->draw();
+    on_draw();
 
     // 3. End frame and Render
     //------------------------
@@ -308,7 +311,7 @@ void App::set_fullscreen(bool b)
     SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-int App::main()
+int App::main(int argc, char *argv[])
 {
     if (init())
     {

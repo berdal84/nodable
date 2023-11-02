@@ -13,8 +13,7 @@ using namespace fw;
 constexpr const char* k_status_window_name = "Messages";
 
 AppView::AppView(App * _app)
-    : View()
-    , m_app(_app)
+    : m_app(_app)
     , m_is_layout_initialized(false)
 {
     LOG_VERBOSE("fw::AppView", "Constructor " OK "\n");
@@ -115,7 +114,7 @@ bool AppView::draw()
             dock_window(k_status_window_name, Dockspace_BOTTOM);
 
             // Run user defined code
-            signal_handler(Signal_ON_RESET_LAYOUT);
+            on_reset_layout();
 
             // Finish the build
             ImGui::DockBuilderFinish(m_dockspaces[Dockspace_ROOT]);
@@ -131,14 +130,14 @@ bool AppView::draw()
         draw_status_window();
 
         // User defined draw
-        signal_handler(Signal_ON_DRAW_MAIN);
+        on_draw();
     }
     ImGui::End(); // Main window
 
     return false;
 }
 
-bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type)
+bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type) const
 {
     nfdchar_t *out_path;
     nfdresult_t result;
@@ -197,7 +196,7 @@ void AppView::draw_splashscreen_window()
 
     if (ImGui::BeginPopupModal(m_app->config.splashscreen_window_label, &m_app->config.splashscreen, flags))
     {
-        signal_handler(Signal_ON_DRAW_SPLASHSCREEN_CONTENT); // run user defined code
+        on_draw_splashscreen();
         ImGui::EndPopup();
     }
 }

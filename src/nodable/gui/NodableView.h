@@ -19,18 +19,22 @@ namespace ndbl
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
-    class AppView
+    class NodableView : public fw::AppView
 	{
 	public:
-		AppView(Nodable*);
-        AppView(const Nodable &) = delete;
-		~AppView();
+        NodableView(Nodable*);
+		~NodableView();
 
     private:
-        bool on_init();
-        bool on_draw();
-        bool on_reset_layout();
-        void on_draw_splashscreen();
+
+        // Override on_xxx methods from base AppView
+
+        void on_init() override;
+        void on_draw() override;
+        void on_draw_splashscreen() override;
+        void on_reset_layout() override;
+
+        // draw_xxx_window
 
         void draw_file_info_window() const;
         void draw_file_window(ImGuiID dockspace_id, bool redock_all, HybridFile *file);

@@ -18,35 +18,23 @@
 namespace ndbl
 {
     // forward declarations
-    class AppView;
+    class NodableView;
 
     // Nodable application
     // - Only a single instance can exist at the same time
     // - Instantiate it as you want (stack or heap)
     // - The instance will be available statically via: App* App::get_instance()
     // - Is based on fw::App, but extends it using composition instead of inheritance
-    class Nodable
+    class Nodable : public fw::App
     {
 	public:
         Nodable();
-        Nodable(const Nodable &) = delete;          // Avoid copy (single instance only)
         ~Nodable();
 
-        enum Signal {
-            Signal_ON_INIT
-        };
-        std::function<void(Signal)>
-                          signal_handler; // override this to customize behavior
-        fw::App           core;           // The underlying framework (we use composition instead of inheritance)
-        Config            config;         // Nodable configuration (includes framework configuration)
+        Config            config;
         NodeFactory       node_factory;
-        AppView           view;
         HybridFile*       current_file;
         VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
-
-        int             main(int argc, char* argv[]);
-        bool            is_fullscreen() const;
-        void            toggle_fullscreen();
 
         // File related:
 
@@ -70,12 +58,12 @@ namespace ndbl
         void            reset_program();
         bool            compile_and_load_program();
 
-        static Nodable &     get_instance();             // singleton pattern
+        static Nodable& get_instance(); // singleton
     private:
-        bool            on_init();
-        bool            on_shutdown();
-        void            on_update();
-        bool            pick_file_path(std::string &out, fw::AppView::DialogType type);
+        bool            on_init() override;
+        bool            on_shutdown() override;
+        void            on_update() override;
+
         static Nodable *   s_instance;
         std::vector<HybridFile*> m_loaded_files;
         u8_t               m_untitled_file_count;

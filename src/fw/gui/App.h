@@ -21,7 +21,7 @@ namespace fw
 	class App
     {
 	public:
-        App(Config&);
+        App(Config&, AppView*);
         App(const App &) = delete;
         ~App();
 
@@ -30,32 +30,32 @@ namespace fw
         EventManager     event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
         bool             should_stop;           // Set this field true to tell the application to stop its main loop the next frame
         Config&          config;                // Application configuration (names, colors, fonts)
-        AppView view;                  // Application View (based on ImGui)
 
-        enum Signal
-        {
-            Signal_ON_INIT,
-            Signal_ON_UPDATE,
-            Signal_ON_DRAW,
-            Signal_ON_SHUTDOWN
-        };
-        std::function<void(Signal)> signal_handler; // override this function to customize behavior
+    protected:
+        AppView*         m_view;                 // non-owned ptr
 
-        int                main();                // Run the main loop
+        // virtual methods user can override
+
+        virtual bool on_init() { return true; };
+        virtual bool on_shutdown() { return true; };
+        virtual void on_update() {};
+        virtual void on_draw() {};
+
+    public:
+        int                main(int argc = 0, char *argv[] = nullptr); // Run the main loop
+        bool               init();     // Initialize the application
+        bool               shutdown(); // Shutdown the application
+        void               update();   // Update the application
+        void               draw();     // Draw the application's view
         double             elapsed_time() const;  // Get the elapsed time in seconds
         void               handle_events();
         bool               is_fullscreen() const;
         void               set_fullscreen(bool b);
         void               save_screenshot(const char*); // Save current view as PNG file to a given path (relative or absolute)
-        bool               init();     // Initialize the application
-        bool               shutdown(); // Shutdown the application
-        void               update();   // Update the application
-        void               draw();     // Draw the application's view
 
         static int         fps();      // get the current frame per second (un-smoothed)
         static ghc::filesystem::path asset_path(const ghc::filesystem::path&); // get asset's absolute path (relative path will be converted)
         static ghc::filesystem::path asset_path(const char*);                  // get asset's absolute path (relative path will be converted)
-
     private:
         const std::chrono::time_point<std::chrono::system_clock>
                         m_start_time = std::chrono::system_clock::now();

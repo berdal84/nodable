@@ -20,8 +20,9 @@
 using namespace ndbl;
 using namespace ndbl::assembly;
 
-AppView::AppView(Nodable * _app)
-    : m_logo(nullptr)
+NodableView::NodableView(Nodable * _app)
+    : fw::AppView(_app)
+    , m_logo(nullptr)
     , m_is_history_dragged(false)
     , m_show_properties_editor(false)
     , m_show_imgui_demo(false)
@@ -30,54 +31,30 @@ AppView::AppView(Nodable * _app)
     , m_app(_app)
 {
     FW_EXPECT(m_app, "should be defined");
-
-    LOG_VERBOSE("ndbl::NodableView", "Constructor ...\n");
-    m_app->signal_handler = [&](Nodable::Signal signal)
-    {
-        if( signal == Nodable::Signal_ON_INIT) on_init();
-    };
-    LOG_VERBOSE("ndbl::NodableView", "Constructor " OK "\n");
 }
 
-AppView::~AppView()
+NodableView::~NodableView()
 {
     LOG_VERBOSE("ndbl::NodableView", "Destructor " OK "\n");
 }
 
-bool AppView::on_init()
+void NodableView::on_init()
 {
     LOG_VERBOSE("ndbl::NodableView", "on_init ...\n");
-    m_app->core.view.signal_handler = [&](fw::AppView::Signal change) {
-        switch (change)
-        {
-            case fw::AppView::Signal_ON_DRAW_MAIN:
-                on_draw();
-                break;
-            case fw::AppView::Signal_ON_DRAW_SPLASHSCREEN_CONTENT:
-                on_draw_splashscreen();
-                break;
-            case fw::AppView::Signal_ON_RESET_LAYOUT:
-                on_reset_layout();
-                break;
-        }
-    };
 
     // Load splashscreen image
     ghc::filesystem::path path = fw::App::asset_path(m_app->config.ui_splashscreen_imagePath);
-    m_logo = m_app->core.texture_manager.load(path.string());
+    m_logo = m_app->texture_manager.load(path.string());
 
     LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
-
-    return true;
 }
 
-bool AppView::on_draw()
+void NodableView::on_draw()
 {
     bool redock_all = true;
 
     HybridFile*       current_file    = m_app->current_file;
-    fw::App &         framework       = m_app->core;
-    fw::EventManager& event_manager   = framework.event_manager;
+    fw::EventManager& event_manager   = m_app->event_manager;
     Config&           config          = m_app->config;
     VirtualMachine&   virtual_machine = m_app->virtual_machine;
 
@@ -158,13 +135,14 @@ bool AppView::on_draw()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Fullscreen", "", m_app->is_fullscreen())) {
-                m_app->toggle_fullscreen();
+            if (ImGui::MenuItem("Fullscreen", "", m_app->is_fullscreen()))
+            {
+                m_app->set_fullscreen( !m_app->is_fullscreen() );
             }
             ImGui::Separator();
 
             if (ImGui::MenuItem("Reset Layout", "")) {
-                m_app->core.view.set_layout_initialized(false);
+                set_layout_initialized(false);
             }
 
             ImGui::Separator();
@@ -257,7 +235,7 @@ bool AppView::on_draw()
 
         if (ImGui::BeginMenu("Help")) {
             if (ImGui::MenuItem("Show Splash Screen", "F1")) {
-                framework.config.splashscreen = true;
+                m_app->config.common.splashscreen = true;
             }
 
             if (ImGui::MenuItem("Browse source code")) {
@@ -281,14 +259,16 @@ bool AppView::on_draw()
 
     if(!m_app->has_files())
     {
-        if( !framework.config.splashscreen )
-            draw_startup_window(framework.view.get_dockspace(fw::AppView::Dockspace_ROOT));
+        if( !m_app->config.common.splashscreen )
+        {
+            draw_startup_window( get_dockspace(fw::AppView::Dockspace_ROOT));
+        }
     }
     else
     {
         draw_toolbar_window();
 
-        auto ds_root = framework.view.get_dockspace(fw::AppView::Dockspace_ROOT);
+        auto ds_root = get_dockspace(fw::AppView::Dockspace_ROOT);
         for (HybridFile *each_file: m_app->get_files())
         {
             draw_file_window(ds_root, redock_all, each_file);
@@ -301,13 +281,12 @@ bool AppView::on_draw()
         draw_node_properties_window();
         draw_help_window();
     }
-    return true;
 }
 
-void AppView::draw_help_window() const {
+void NodableView::draw_help_window() const {
     if (ImGui::Begin(m_app->config.ui_help_window_label))
     {
-        fw::FontManager& font_manager = m_app->core.font_manager;
+        fw::FontManager& font_manager = m_app->font_manager;
         ImGui::PushFont(font_manager.get_font(fw::FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
@@ -341,7 +320,7 @@ void AppView::draw_help_window() const {
     ImGui::End();
 }
 
-void AppView::draw_imgui_config_window() const
+void NodableView::draw_imgui_config_window() const
 {
     if( !m_app->config.common.debug )
     {
@@ -355,7 +334,7 @@ void AppView::draw_imgui_config_window() const
     ImGui::End();
 }
 
-void AppView::draw_file_info_window() const
+void NodableView::draw_file_info_window() const
 {
     if ( !m_app->current_file )
     {
@@ -370,7 +349,7 @@ void AppView::draw_file_info_window() const
     ImGui::End();
 }
 
-void AppView::draw_node_properties_window()
+void NodableView::draw_node_properties_window()
 {
     if (ImGui::Begin(m_app->config.ui_node_properties_window_label))
     {
@@ -383,7 +362,7 @@ void AppView::draw_node_properties_window()
     ImGui::End();
 }
 
-void AppView::draw_virtual_machine_window() {
+void NodableView::draw_virtual_machine_window() {
     if (ImGui::Begin(m_app->config.ui_virtual_machine_window_label))
     {
         auto &vm = m_app->virtual_machine;
@@ -499,14 +478,14 @@ void AppView::draw_virtual_machine_window() {
     ImGui::End();
 }
 
-void AppView::draw_startup_window(ImGuiID dockspace_id) {
+void NodableView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
 
     ImGui::Begin(m_app->config.ui_startup_window_label);
     {
-        fw::FontManager&  font_manager  = m_app->core.font_manager;
-        fw::EventManager& event_manager = m_app->core.event_manager;
+        fw::FontManager&  font_manager  = m_app->font_manager;
+        fw::EventManager& event_manager = m_app->event_manager;
         ImGui::PopStyleColor();
 
         ImVec2 center_area(500.0f, 250.0f);
@@ -566,7 +545,7 @@ void AppView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::End(); // Startup Window
 }
 
-void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, HybridFile *file) {
+void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, HybridFile *file) {
     auto &vm = m_app->virtual_machine;
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
@@ -597,7 +576,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, HybridFile
 
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        ImGui::PushFont(m_app->core.font_manager.get_font(fw::FontSlot_Code));
+        ImGui::PushFont(m_app->font_manager.get_font(fw::FontSlot_Code));
         const ImVec2 &size = ImGui::GetContentRegionAvail();
 
         ImGui::BeginChild("FileView", size, false, 0);
@@ -614,7 +593,7 @@ void AppView::draw_file_window(ImGuiID dockspace_id, bool redock_all, HybridFile
     if (!is_window_open) m_app->close_file(file);
 }
 
-void AppView::draw_config_window() {
+void NodableView::draw_config_window() {
 
     Config& config = m_app->config;
     if (ImGui::Begin(config.ui_config_window_label))
@@ -701,7 +680,7 @@ void AppView::draw_config_window() {
     ImGui::End();
 }
 
-void AppView::on_draw_splashscreen()
+void NodableView::on_draw_splashscreen()
 {
     ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
 
@@ -729,12 +708,12 @@ void AppView::on_draw_splashscreen()
     // close on left/rightmouse btn click
     if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
     {
-        m_app->core.config.splashscreen = false;
+        m_app->config.common.splashscreen = false;
     }
     ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
 }
 
-void AppView::draw_history_bar(History *currentFileHistory) {
+void NodableView::draw_history_bar(History *currentFileHistory) {
     if (ImGui::IsMouseReleased(0)) {
         m_is_history_dragged = false;
     }
@@ -794,7 +773,7 @@ void AppView::draw_history_bar(History *currentFileHistory) {
     ImGui::PopStyleVar();
 }
 
-void AppView::draw_toolbar_window() {
+void NodableView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 5.0f));
@@ -803,13 +782,12 @@ void AppView::draw_toolbar_window() {
     {
         ImGui::PopStyleVar();
         VirtualMachine& vm   = m_app->virtual_machine;
-        fw::Config&     conf = m_app->core.config;
         bool running         = vm.is_program_running();
         bool debugging       = vm.is_debugging();
         bool stopped         = vm.is_program_stopped();
         ImVec2 button_size   = config.ui_toolButton_size;
 
-        ImGui::PushFont(m_app->core.font_manager.get_font(fw::FontSlot_ToolBtn));
+        ImGui::PushFont(m_app->font_manager.get_font(fw::FontSlot_ToolBtn));
         ImGui::BeginGroup();
 
         // compile
@@ -819,7 +797,7 @@ void AppView::draw_toolbar_window() {
         ImGui::SameLine();
 
         // run
-        if (running) ImGui::PushStyleColor(ImGuiCol_Button, conf.button_activeColor);
+        if (running) ImGui::PushStyleColor(ImGuiCol_Button, m_app->config.common.button_activeColor);
 
         if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped) {
             m_app->run_program();
@@ -829,7 +807,7 @@ void AppView::draw_toolbar_window() {
         ImGui::SameLine();
 
         // debug
-        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, conf.button_activeColor);
+        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, m_app->config.common.button_activeColor);
         if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped) {
             m_app->debug_program();
         }
@@ -858,7 +836,7 @@ void AppView::draw_toolbar_window() {
         if (ImGui::Button(
                 config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->core.event_manager.push(EventType_toggle_isolate_selection);
+            m_app->event_manager.push(EventType_toggle_isolate_selection);
         }
         ImGui::SameLine();
         ImGui::EndGroup();
@@ -868,17 +846,16 @@ void AppView::draw_toolbar_window() {
     ImGui::End();
 }
 
-bool AppView::on_reset_layout() {
+void NodableView::on_reset_layout()
+{
     // Dock windows to specific dockspace
     const Config& config  = m_app->config;
-    fw::AppView &    framework = m_app->core.view;
-    framework.dock_window(config.ui_help_window_label             , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_config_window_label         , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_file_info_window_label        , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_node_properties_window_label  , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_virtual_machine_window_label  , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_imgui_config_window_label   , fw::AppView::Dockspace_RIGHT);
-    framework.dock_window(config.ui_toolbar_window_label          , fw::AppView::Dockspace_TOP);
 
-    return true;
+    dock_window(config.ui_help_window_label             , fw::AppView::Dockspace_RIGHT);
+    dock_window(config.ui_config_window_label           , fw::AppView::Dockspace_RIGHT);
+    dock_window(config.ui_file_info_window_label        , fw::AppView::Dockspace_RIGHT);
+    dock_window(config.ui_node_properties_window_label  , fw::AppView::Dockspace_RIGHT);
+    dock_window(config.ui_virtual_machine_window_label  , fw::AppView::Dockspace_RIGHT);
+    dock_window(config.ui_imgui_config_window_label     , fw::AppView::Dockspace_RIGHT);
+    dock_window(config.ui_toolbar_window_label          , fw::AppView::Dockspace_TOP);
 }
