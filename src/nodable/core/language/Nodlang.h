@@ -40,7 +40,7 @@ namespace ndbl{
         using Invokable_vec = std::vector<std::shared_ptr<const fw::iinvokable>>;
 
         explicit Nodlang(bool _strict = false);
-		~Nodlang() = default;
+		~Nodlang();
         static Nodlang& get_instance();
 
         // Parser ---------------------------------------------------------------------
