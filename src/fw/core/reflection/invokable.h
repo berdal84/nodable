@@ -218,12 +218,15 @@ namespace fw {
 
         invokable_static(function_t* _implem, const char* _name)
         : m_function_impl(_implem)
-        , m_function_type(*func_type_builder<function_t>::with_id(_name))
+        , m_function_type(func_type_builder<function_t>::with_id(_name))
         {
             FW_ASSERT(m_function_impl)
         }
 
-        ~invokable_static() override {}
+        ~invokable_static() override
+        {
+            delete m_function_type;
+        }
 
         variant invoke(const std::vector<variant *> &_args = {}) const override
         {
@@ -231,11 +234,11 @@ namespace fw {
             return fw::invoke<return_t, args_t >(m_function_impl, _args);
         }
 
-        const func_type* get_type() const override { return &m_function_type; }
+        const func_type* get_type() const override { return m_function_type; }
 
     private:
         function_t* const m_function_impl;
-        func_type         m_function_type;
+        func_type*        m_function_type;
     };
 
     template<typename T>
