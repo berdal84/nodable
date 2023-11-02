@@ -10,13 +10,12 @@ namespace ndbl
     class TConditionalNode : public Node, public IConditional
     {
     protected:
-        static_assert( BRANCH_COUNT > 0, "Branch count should be strictly positive");
-        std::array<ID8<Slot>, BRANCH_COUNT> m_next_slot_id;
-        std::array<ID8<Slot>, BRANCH_COUNT> m_child_slot_id;
+        static_assert( BRANCH_COUNT > 1, "Branch count should be strictly greater than 1");
+        std::array<ID8<Slot>, BRANCH_COUNT>       m_next_slot_id;
+        std::array<ID8<Slot>, BRANCH_COUNT>       m_child_slot_id;
+        std::array<PoolID<Node>, BRANCH_COUNT-1>  m_condition; // branch_FALSE has no condition
 
     public:
-        PoolID<InstructionNode> cond_instr;
-
         TConditionalNode() = default;
         TConditionalNode( TConditionalNode&&) = default;
         TConditionalNode& operator=( TConditionalNode&&) = default;
@@ -24,8 +23,23 @@ namespace ndbl
         PoolID<Scope> get_scope_at(size_t _branch) const override;
         Slot&         get_child_slot_at(size_t _branch) override;
         const Slot&   get_child_slot_at(size_t _branch) const override;
+        void          set_condition(PoolID<Node> _condition, Branch = Branch_TRUE) override;
+        PoolID<Node>  get_condition(Branch = Branch_TRUE)const override;
         REFLECT_DERIVED_CLASS()
     };
+    template<size_t BRANCH_COUNT>
+    PoolID<Node> TConditionalNode<BRANCH_COUNT>::get_condition( Branch _branch ) const
+    {
+        FW_ASSERT( _branch > 0 && _branch < BRANCH_COUNT-1 ) // branch_FALSE has no condition
+        return m_condition[_branch-1];
+    }
+
+    template<size_t BRANCH_COUNT>
+    void TConditionalNode<BRANCH_COUNT>::set_condition( PoolID<Node> _condition, Branch _branch )
+    {
+        FW_ASSERT( _branch > 0 && _branch < BRANCH_COUNT-1 ) // branch_FALSE has no condition
+        m_condition[_branch-1] = _condition;
+    }
 
     template<size_t BRANCH_COUNT>
     void TConditionalNode<BRANCH_COUNT>::init()

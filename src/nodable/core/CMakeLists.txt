@@ -13,7 +13,6 @@ add_library(
         ForLoopNode.cpp
         Graph.cpp
         GraphUtil.cpp
-        InstructionNode.cpp
         InvokableComponent.cpp
         LiteralNode.cpp
         Node.cpp

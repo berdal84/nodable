@@ -1,4 +1,3 @@
-#include "nodable/core/InstructionNode.h"
 #include "nodable/core/Scope.h"
 #include "core/fixtures/core.h"
 #include <gtest/gtest.h>

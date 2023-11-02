@@ -14,7 +14,6 @@
 #include "commands/Cmd_Group.h"
 #include "core/Slot.h"
 #include "core/DataAccess.h"
-#include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "core/NodeUtils.h"

@@ -24,7 +24,6 @@
 #include "core/ForLoopNode.h"
 #include "core/Graph.h"
 #include "core/IfNode.h"
-#include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "core/Pool.h"
@@ -570,38 +569,35 @@ Slot *Nodlang::parse_parenthesis_expression()
     return result;
 }
 
-PoolID<InstructionNode> Nodlang::parse_instr()
+PoolID<Node> Nodlang::parse_instr()
 {
     start_transaction();
 
     Slot* expression_out = parse_expression();
 
-    if ( expression_out == nullptr)
+    if ( !expression_out )
     {
         LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n")
         rollback_transaction();
-        return PoolID<InstructionNode>::null;
+        return PoolID<Node>::null;
     }
 
-    PoolID<InstructionNode> instr_node = parser_state.graph->create_instr();
-
+    PoolID<Node> instr_node = expression_out->node;
     if (parser_state.ribbon.can_eat())
     {
         Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction);
         if (!expected_end_of_instr_token.is_null())
         {
-            instr_node->token_end = expected_end_of_instr_token;
+            // expected_end_of_instr_token;
+            FW_EXPECT(false, "Not implemented yet, we must store end_of_instr_token somewhere... or should we use value's token?!")
         }
         else if (parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
-            return PoolID<InstructionNode>::null;
+            return PoolID<Node>::null;
         }
     }
-
-    parser_state.graph->connect_to_instruction( *expression_out, *instr_node );
-
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
     return instr_node->poolid();
@@ -1160,10 +1156,10 @@ PoolID<IfNode> Nodlang::parse_conditional_structure()
     start_transaction();
 
     bool success = false;
-    PoolID<InstructionNode>       condition;
-    PoolID<Node> condition_true_scope_node;
-    PoolID<IfNode> conditional_struct_node;
-    PoolID<IfNode> else_cond_struct;
+    PoolID<Node>   condition;
+    PoolID<Node>   condition_true_scope_node;
+    PoolID<IfNode> if_node;
+    PoolID<IfNode> else_node;
 
     Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
     if ( !if_token )
@@ -1171,40 +1167,41 @@ PoolID<IfNode> Nodlang::parse_conditional_structure()
         return PoolID<IfNode>::null;
     }
 
-    conditional_struct_node = parser_state.graph->create_cond_struct();
+    if_node = parser_state.graph->create_cond_struct();
 
     parser_state.graph->connect(
             *get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
-            *conditional_struct_node->find_slot( SlotFlag_PARENT ),
+            *if_node->find_slot( SlotFlag_PARENT ),
             ConnectFlag_ALLOW_SIDE_EFFECTS );
-    parser_state.scope.emplace(conditional_struct_node->get_component<Scope>()->poolid());
+    parser_state.scope.emplace( if_node->get_component<Scope>()->poolid());
 
-    conditional_struct_node->token_if  = parser_state.ribbon.get_eaten();
+    if_node->token_if  = parser_state.ribbon.get_eaten();
 
     if ( parser_state.ribbon.eat_if(Token_t::parenthesis_open) )
     {
-        auto empty_condition = (bool)parser_state.ribbon.eat_if(Token_t::parenthesis_close);
+        auto eaten_parenthesis = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
+        auto empty_condition = (bool)eaten_parenthesis;
         if ( !empty_condition && (condition = parse_instr()))
         {
             condition->set_name("Condition");
             condition->set_name("Cond.");
-            conditional_struct_node->cond_instr = condition;
+            if_node->set_condition(condition);
             parser_state.graph->connect_or_merge(
                     *condition->find_slot( SlotFlag_OUTPUT ),
-                    *conditional_struct_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
+                    *if_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
         }
 
         if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
         {
-            condition_true_scope_node = parse_scope( conditional_struct_node->get_child_slot_at(Branch_TRUE) );
+            condition_true_scope_node = parse_scope( if_node->get_child_slot_at(Branch_TRUE) );
             if ( condition_true_scope_node )
             {
                 if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
                 {
-                    conditional_struct_node->token_else = parser_state.ribbon.get_eaten();
+                    if_node->token_else = parser_state.ribbon.get_eaten();
 
                     /* parse "else" scope */
-                    if ( parse_scope( conditional_struct_node->get_child_slot_at( Branch_FALSE ) ) )
+                    if ( parse_scope( if_node->get_child_slot_at( Branch_FALSE ) ) )
                     {
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
                         success = true;
@@ -1241,13 +1238,13 @@ PoolID<IfNode> Nodlang::parse_conditional_structure()
     if (success)
     {
         commit_transaction();
-        return conditional_struct_node;
+        return if_node;
     }
 
-    parser_state.graph->destroy( else_cond_struct );
+    parser_state.graph->destroy( else_node );
     parser_state.graph->destroy( condition_true_scope_node );
     parser_state.graph->destroy( condition );
-    parser_state.graph->destroy(conditional_struct_node);
+    parser_state.graph->destroy( if_node );
     rollback_transaction();
     return PoolID<IfNode>::null;
 }
@@ -1279,7 +1276,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
         }
         else
         {
-            PoolID<InstructionNode> init_instr = parse_instr();
+            PoolID<Node> init_instr = parse_instr();
             if (!init_instr)
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
@@ -1292,21 +1289,21 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                         *for_loop_node->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
                 for_loop_node->init_instr = init_instr;
 
-                PoolID<InstructionNode> cond_instr = parse_instr();
-                if (!cond_instr)
+                PoolID<Node> condition = parse_instr();
+                if (!condition )
                 {
                     LOG_ERROR("Parser", "Unable to find condition instruction.\n")
                 }
                 else
                 {
-                    cond_instr->set_name("Condition");
+                    condition->set_name("Condition");
                     parser_state.graph->connect_or_merge(
-                            *cond_instr->find_slot( SlotFlag_OUTPUT ),
+                            *condition->find_slot( SlotFlag_OUTPUT ),
                             *for_loop_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
 
-                    for_loop_node->cond_instr = cond_instr;
+                    for_loop_node->set_condition( condition );
 
-                    PoolID<InstructionNode> iter_instr = parse_instr();
+                    PoolID<Node> iter_instr = parse_instr();
                     if (!iter_instr)
                     {
                         LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
@@ -1378,10 +1375,10 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
         {
             LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n")
         }
-        else if( InstructionNode* cond_instr = parse_instr().get())
+        else if( Node* cond_instr = parse_instr().get())
         {
             cond_instr->set_name("Condition");
-            while_loop_node->cond_instr = cond_instr->poolid();
+            while_loop_node->set_condition(cond_instr->poolid());
             parser_state.graph->connect_or_merge(
                     *cond_instr->find_slot( SlotFlag_OUTPUT ),
                     *while_loop_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
@@ -1603,7 +1600,7 @@ std::string &Nodlang::serialize_type(std::string &_out, const fw::type *_type) c
 
 std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const
 {
-    InstructionNode* decl_instr = _node->get_declaration_instr().get();
+    Node* decl_instr = _node->get_declaration_instr().get();
 
     // 1. Serialize variable's type
 

@@ -11,7 +11,6 @@
 #include "core/Graph.h"
 #include "core/IConditional.h"
 #include "core/IfNode.h"
-#include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "core/Scope.h"
@@ -159,9 +158,9 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
             throw std::runtime_error(message);
         }
     }
-    else if ( auto instr_node = fw::cast<const InstructionNode>(_node) )
+    else if ( _node->is_instruction() )
     {
-        compile_instruction(instr_node);
+        compile_instruction(_node);
     }
     else
     {
@@ -196,57 +195,38 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
 
 void assembly::Compiler::compile_for_loop(const ForLoopNode* for_loop)
 {
-    // for_loop init instruction
-    compile_instruction(for_loop->init_instr.get());
-
-    // compile condition and memorise its position
-    u64_t condition_instr_line = m_temp_code->get_next_index();
-    compile_instruction_as_condition(for_loop->cond_instr.get());
-
-    // jump if condition is not true
-    Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
-    skip_true_branch->m_comment = "jump if not equal";
-
-    if ( auto true_scope = for_loop->get_scope_at( Branch_TRUE ) )
-    {
-        compile_scope(true_scope.get());
-
-        // insert end-loop instruction.
-        compile_instruction(for_loop->iter_instr.get());
-
-        // insert jump to condition instructions.
-        auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
-        loop_jump->jmp.offset = math::signed_diff(condition_instr_line, loop_jump->line);
-        loop_jump->m_comment  = "jump back to for";
-    }
-
-    skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
+    return compile_iterative_structure(for_loop, "jump back to \"for\"");
 }
 
-void assembly::Compiler::compile_while_loop(const WhileLoopNode*while_loop)
+void assembly::Compiler::compile_while_loop(const WhileLoopNode* while_loop)
+{
+    return compile_iterative_structure(while_loop, "jump back to \"while\"");
+}
+
+void assembly::Compiler::compile_iterative_structure(const IConditional* _conditional, const char* _comment )
 {
     // compile condition and memorise its position
     u64_t condition_instr_line = m_temp_code->get_next_index();
-    compile_instruction_as_condition(while_loop->cond_instr.get());
+    compile_instruction_as_condition( _conditional->get_condition().get());
 
     // jump if condition is not true
     Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     skip_true_branch->m_comment = "jump if not equal";
 
-    if ( auto while_scope = while_loop->get_scope_at(Branch_TRUE) )
+    if ( auto while_scope = _conditional->get_scope_at(Branch_TRUE) )
     {
         compile_scope( while_scope.get());
 
         // jump back to condition instruction
         auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
         loop_jump->jmp.offset = math::signed_diff(condition_instr_line, loop_jump->line);
-        loop_jump->m_comment  = "jump back to for";
+        loop_jump->m_comment  = _comment;
     }
 
     skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
 }
 
-void assembly::Compiler::compile_instruction_as_condition(const InstructionNode* _instr_node)
+void assembly::Compiler::compile_instruction_as_condition( const Node* _instr_node)
 {
     // compile condition result (must be stored in rax after this line)
     compile_instruction(_instr_node);
@@ -266,7 +246,7 @@ void assembly::Compiler::compile_instruction_as_condition(const InstructionNode*
 
 void assembly::Compiler::compile_conditional_struct(const IfNode* _cond_node)
 {
-    compile_instruction_as_condition(_cond_node->cond_instr.get()); // compile condition instruction, store result, compare
+    compile_instruction_as_condition(_cond_node->get_condition().get()); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     jump_over_true_branch->m_comment   = "conditional jump";
@@ -306,22 +286,14 @@ void assembly::Compiler::compile_conditional_struct(const IfNode* _cond_node)
     }
 }
 
-void assembly::Compiler::compile_instruction(const InstructionNode *instr_node)
+void assembly::Compiler::compile_instruction( const Node* instr_node )
 {
-    const Slot& instruction_input = instr_node->root_slot();
+    // Compile node
+    FW_ASSERT( instr_node->is_instruction() )
+    compile_node( instr_node->poolid() );
 
-    // Early return if nothing is connected
-    Slot* expression_output = instruction_input.first_adjacent().get();
-    if( expression_output == nullptr )
-    {
-        return;
-    }
-
-    // Compiles input
-    compile_output_slot( expression_output );
-
-    // Add instruction to copy the result in a register
-    variant* root_node_value = expression_output->get_node()->get_prop( VALUE_PROPERTY )->value();
+    // Copy node value to a register
+    const variant* root_node_value = instr_node->get_prop( VALUE_PROPERTY )->value();
     Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_qword );
     instr->uref.ptr        = root_node_value->data();
     instr->uref.type       = root_node_value->get_type();

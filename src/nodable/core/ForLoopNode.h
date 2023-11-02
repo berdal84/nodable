@@ -18,8 +18,8 @@ namespace ndbl
     {
     public:
         Token                   token_for;
-        PoolID<InstructionNode> init_instr;
-        PoolID<InstructionNode> iter_instr;
+        PoolID<Node>            init_instr;
+        PoolID<Node>            iter_instr;
         void                    init() override;
         REFLECT_DERIVED_CLASS()
     };

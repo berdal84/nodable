@@ -4,7 +4,6 @@
 #include "fixtures/core.h"
 #include "fw/core/reflection/func_type.h"
 #include "nodable/core/Graph.h"
-#include "nodable/core/InstructionNode.h"
 #include "nodable/core/InvokableComponent.h"
 #include "nodable/core/Node.h"
 #include "nodable/core/NodeFactory.h"

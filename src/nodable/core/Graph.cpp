@@ -4,7 +4,6 @@
 
 #include "DirectedEdge.h"
 #include "IfNode.h"
-#include "InstructionNode.h"
 #include "LiteralNode.h"
 #include "Node.h"
 #include "NodeFactory.h"
@@ -104,14 +103,6 @@ void Graph::remove(PoolID<Node> _node)
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     FW_ASSERT(found != m_node_registry.end());
     m_node_registry.erase(found);
-}
-
-PoolID<InstructionNode> Graph::create_instr()
-{
-    PoolID<InstructionNode> instructionNode = m_factory->create_instr();
-    add(instructionNode);
-
-	return instructionNode;
 }
 
 void Graph::ensure_has_root()
@@ -263,24 +254,6 @@ void Graph::remove(DirectedEdge edge)
     }
 }
 
-DirectedEdge* Graph::connect_to_instruction(Slot& expression_root, InstructionNode& instruction )
-{
-    Node* expression_node = expression_root.get_node();
-
-    if ( auto* variable = fw::cast<VariableNode>( expression_node ) )
-    {
-        // Define variable's declaration instruction ONCE.
-        // TODO: reconsider this, user should be able to change this  dynamically.
-        if( variable->get_declaration_instr() == PoolID<InstructionNode>::null )
-        {
-            variable->set_declaration_instr( instruction.poolid());
-        }
-    }
-    return connect_or_merge(
-            *expression_node->find_slot( SlotFlag_OUTPUT ),
-            instruction.root_slot() );
-}
-
 DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable_in )
 {
     // Guards
@@ -354,8 +327,8 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     auto previous_child_scope = previous_child->get_component<Scope>().get();
                     if ( previous_child_scope && !previous_child->get_type()->is<IConditional>() )
                     {
-                        std::vector<InstructionNode *> last_instructions = previous_child_scope->get_last_instructions_rec();
-                        for (InstructionNode* each_instr: last_instructions )
+                        std::vector<Node*> last_instructions = previous_child_scope->get_last_instructions_rec();
+                        for (Node* each_instr: last_instructions )
                         {
                             Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
                             FW_ASSERT(each_instr_next_slot);

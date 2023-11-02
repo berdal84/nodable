@@ -41,7 +41,6 @@ namespace ndbl
         // node related
 
         PoolID<Node>                    create_root();
-        PoolID<InstructionNode>         create_instr();
         PoolID<VariableNode>            create_variable(const fw::type *_type, const std::string &_name, PoolID<Scope> _scope);
         PoolID<LiteralNode>             create_literal(const fw::type *_type);
         template<typename T>
@@ -51,7 +50,7 @@ namespace ndbl
         PoolID<Node>                    create_abstract_operator(const fw::func_type *_invokable);  // Create a new abstract (without known implementation) operator.
         PoolID<Node>                    create_operator(const fw::iinvokable *_invokable);
         PoolID<Node>                    create_scope();
-        PoolID<IfNode>         create_cond_struct();
+        PoolID<IfNode>                  create_cond_struct();
         PoolID<ForLoopNode>             create_for_loop();
         PoolID<WhileLoopNode>           create_while_loop();
         PoolID<Node>                    create_node();
@@ -70,7 +69,6 @@ namespace ndbl
 
         DirectedEdge* connect(Slot& _first, Slot& _second, ConnectFlags = ConnectFlag_NONE );
         DirectedEdge* connect_to_variable(Slot& _out, VariableNode& _in );
-        DirectedEdge* connect_to_instruction(Slot& _out, InstructionNode& _in );
         DirectedEdge* connect_or_merge(Slot& _out, Slot& _in);
         void          disconnect( const DirectedEdge& _edge, ConnectFlags flags = ConnectFlag_NONE );
 

@@ -16,7 +16,6 @@
 #include "core/ForLoopNode.h"
 #include "core/Graph.h"
 #include "core/IfNode.h"
-#include "core/InstructionNode.h"
 #include "core/LiteralNode.h"
 #include "core/NodeUtils.h"
 #include "core/Scope.h"

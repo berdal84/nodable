@@ -9,7 +9,6 @@
 #include "ForLoopNode.h"
 #include "IScope.h"
 #include "IfNode.h"
-#include "InstructionNode.h"
 #include "VariableNode.h"
 
 using namespace ndbl;
@@ -79,25 +78,28 @@ void Scope::add_variable(PoolID<VariableNode> _variableNode)
     }
 }
 
-void Scope::get_last_instructions_rec(std::vector<InstructionNode*>& _out)
+std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
 {
     std::vector<PoolID<Node>> children = m_owner->children();
 
     if ( children.empty() )
     {
-        return;
+        return _out;
     }
 
     for ( PoolID<Node> child_node_id : children )
     {
         Node* child_node = child_node_id.get();
-        if ( child_node == nullptr ) continue;
-
-        if ( auto* each_instr = fw::cast<InstructionNode>(child_node) )
+        if ( !child_node )
         {
-            if ( children.back().get() == each_instr )
+            continue;
+        };
+
+        if ( child_node->is_instruction() )
+        {
+            if ( children.back().get() == child_node )
             {
-                _out.push_back(each_instr);
+                _out.push_back(child_node);
             }
         }
         else if ( Scope* scope = child_node->get_component<Scope>().get() )
@@ -105,6 +107,7 @@ void Scope::get_last_instructions_rec(std::vector<InstructionNode*>& _out)
             scope->get_last_instructions_rec(_out);
         }
     }
+    return _out;
 }
 
 void Scope::remove_variable(VariableNode* _variable)
@@ -127,9 +130,9 @@ size_t Scope::remove_all_variables()
     m_variables.clear();
     return count;
 }
-std::vector<InstructionNode *> Scope::get_last_instructions_rec()
+
+std::vector<Node*> Scope::get_last_instructions_rec()
 {
-    std::vector<InstructionNode *> result;
-    get_last_instructions_rec(result);
-    return result;
+    std::vector<Node*> result;
+    return get_last_instructions_rec(result);
 }

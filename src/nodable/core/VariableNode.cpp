@@ -1,6 +1,5 @@
 #include "VariableNode.h"
 #include "Property.h"
-#include "InstructionNode.h"
 #include "Scope.h"
 
 using namespace ndbl;

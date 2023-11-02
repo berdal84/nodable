@@ -3,7 +3,6 @@
 #include <fstream>
 #include <utility>
 
-#include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "GraphView.h"

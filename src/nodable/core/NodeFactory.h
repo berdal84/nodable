@@ -33,7 +33,6 @@ namespace ndbl
         ~NodeFactory(){}
 
         PoolID<Node>                  create_program()const;
-        PoolID<InstructionNode>       create_instr()const;
         PoolID<VariableNode>          create_variable(const fw::type *_type, const std::string &_name, PoolID<Scope> _scope)const;
         PoolID<LiteralNode>           create_literal(const fw::type *_type)const;
         PoolID<Node>                  create_abstract_func(const fw::func_type *_signature, bool _is_operator)const;

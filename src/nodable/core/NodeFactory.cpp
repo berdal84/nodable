@@ -23,15 +23,6 @@ NodeFactory::NodeFactory()
 , m_post_process_is_overrided(false)
 {}
 
-PoolID<InstructionNode> NodeFactory::create_instr() const
-{
-    auto node = Pool::get_pool()->create<InstructionNode>();
-    node->init();
-    node->set_name("Instr.");
-    m_post_process(node);
-    return node;
-}
-
 PoolID<VariableNode> NodeFactory::create_variable(const fw::type *_type, const std::string& _name, PoolID<Scope> _scope) const
 {
     // create

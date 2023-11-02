@@ -1,6 +1,5 @@
 #include "GraphUtil.h"
 #include "IfNode.h"
-#include "InstructionNode.h"
 
 using namespace ndbl;
 

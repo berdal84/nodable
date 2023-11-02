@@ -63,6 +63,7 @@ namespace ndbl {
         virtual ~Node() = default;
 
         virtual void init();
+        bool is_instruction() const;
 
         // Slot related
         //-------------

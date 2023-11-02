@@ -1,6 +1,5 @@
 #include "Node.h"
 #include "ForLoopNode.h"
-#include "core/InstructionNode.h"
 #include "core/Scope.h"
 
 #include <utility>
@@ -336,4 +335,9 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
         }
     }
     return result;
+}
+
+bool Node::is_instruction() const
+{
+    FW_EXPECT(false, "Not implemented yet");
 }

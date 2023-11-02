@@ -7,7 +7,6 @@ namespace ndbl
      */
     static const char* THIS_PROPERTY = "this";             // Refers to node's this address.
     static const char* VALUE_PROPERTY = "value";            // Refers to node's value.
-    static const char* ROOT_PROPERTY = "root";
     static const char* LEFT_VALUE_PROPERTY = "L value";          // Refers to node's left-handed value
     static const char* RIGHT_VALUE_PROPERTY = "R value";          // Refers to node's right-handed value
     static const char* INITIALIZATION_PROPERTY = "initialization";   // Refers to iterative node's initialization instruction.

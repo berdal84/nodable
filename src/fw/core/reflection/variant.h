@@ -38,6 +38,7 @@ namespace fw
         variant(variant&&);
         ~variant();
 
+        qword*      data() const { return const_cast<qword*>(&m_data); }
         qword*      data() { return &m_data; }
         bool        is_initialized() const;
         bool        is_defined() const { return m_is_defined; }
