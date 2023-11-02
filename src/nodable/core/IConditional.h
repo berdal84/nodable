@@ -6,6 +6,7 @@ namespace ndbl
 {
     // forward declarations
     class Scope;
+    class Slot;
     class Property;
     class InstructionNode;
     using fw::PoolID;
@@ -20,13 +21,12 @@ namespace ndbl
     /**
      * @interface Interface for any conditional structure node (ex: if/else, for, while, do/while )
      */
-    class IConditionalStruct
+    class IConditional
     {
     public:
-        virtual PoolID<Scope>  get_scope_at(size_t _pos) const = 0;
-        virtual Slot&          get_child_slot_at(size_t _pos) = 0;
-        virtual const Slot&    get_child_slot_at(size_t _pos) const = 0;
-
+        virtual PoolID<Scope>  get_scope_at(size_t _branch) const = 0;
+        virtual Slot&          get_child_slot_at(size_t _branch) = 0;
+        virtual const Slot&    get_child_slot_at(size_t _branch) const = 0;
         REFLECT_BASE_CLASS()
     };
 }

@@ -7,7 +7,7 @@ add_library(
     STATIC
         Component.cpp
         ComponentBag.cpp
-        ConditionalStructNode.cpp
+        IfNode.cpp
         DataAccess.cpp
         DirectedEdge.cpp
         ForLoopNode.cpp

@@ -125,7 +125,7 @@ void NodeViewConstraint::apply(float _dt)
             const fw::type* driver_type = driver->get_owner()->get_type();
 
             if (driver_type->is_child_of<InstructionNode>()
-                || (driver_type->is_child_of<IConditionalStruct>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
+                || (driver_type->is_child_of<IConditional>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
             {
                 // indent
                 start_pos_x = first_driver_pos.x

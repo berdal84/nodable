@@ -51,7 +51,7 @@ namespace ndbl
         PoolID<Node>                    create_abstract_operator(const fw::func_type *_invokable);  // Create a new abstract (without known implementation) operator.
         PoolID<Node>                    create_operator(const fw::iinvokable *_invokable);
         PoolID<Node>                    create_scope();
-        PoolID<ConditionalStructNode>   create_cond_struct();
+        PoolID<IfNode>         create_cond_struct();
         PoolID<ForLoopNode>             create_for_loop();
         PoolID<WhileLoopNode>           create_while_loop();
         PoolID<Node>                    create_node();

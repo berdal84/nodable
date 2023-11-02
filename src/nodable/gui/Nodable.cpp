@@ -92,7 +92,7 @@ Nodable::Nodable()
             {
                 new_view->set_color( View::Color_FILL, &config.ui_node_literalColor );
             }
-        else if ( fw::extends<IConditionalStruct>( node.get() ) )
+        else if ( fw::extends<IConditional>( node.get() ) )
             {
                 new_view->set_color( View::Color_FILL, &config.ui_node_condStructColor );
             }

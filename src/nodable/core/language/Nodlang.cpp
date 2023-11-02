@@ -20,10 +20,10 @@
 #include "fw/core/log.h"
 #include "fw/core/hash.h"
 
-#include "core/ConditionalStructNode.h"
 #include "core/DirectedEdge.h"
 #include "core/ForLoopNode.h"
 #include "core/Graph.h"
+#include "core/IfNode.h"
 #include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
@@ -1147,7 +1147,7 @@ PoolID<Node> Nodlang::get_current_scope_node()
     return parser_state.scope.top()->get_owner();
 }
 
-PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
+PoolID<IfNode> Nodlang::parse_conditional_structure()
 {
     LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
     start_transaction();
@@ -1155,13 +1155,13 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
     bool success = false;
     PoolID<InstructionNode>       condition;
     PoolID<Node> condition_true_scope_node;
-    PoolID<ConditionalStructNode> conditional_struct_node;
-    PoolID<ConditionalStructNode> else_cond_struct;
+    PoolID<IfNode> conditional_struct_node;
+    PoolID<IfNode> else_cond_struct;
 
     Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
     if ( !if_token )
     {
-        return PoolID<ConditionalStructNode>::null;
+        return PoolID<IfNode>::null;
     }
 
     conditional_struct_node = parser_state.graph->create_cond_struct();
@@ -1181,7 +1181,7 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
         {
             condition->set_name("Condition");
             condition->set_name("Cond.");
-            conditional_struct_node->cond_expr = condition;
+            conditional_struct_node->cond_instr = condition;
             parser_state.graph->connect_or_merge(
                     *condition->find_slot( SlotFlag_OUTPUT ),
                     *conditional_struct_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
@@ -1242,7 +1242,7 @@ PoolID<ConditionalStructNode> Nodlang::parse_conditional_structure()
     parser_state.graph->destroy( condition );
     parser_state.graph->destroy(conditional_struct_node);
     rollback_transaction();
-    return PoolID<ConditionalStructNode>::null;
+    return PoolID<IfNode>::null;
 }
 
 PoolID<ForLoopNode> Nodlang::parse_for_loop()
@@ -1715,7 +1715,7 @@ std::string & Nodlang::serialize_node( std::string &_out, const PoolID<const Nod
         return serialize_instr(_out, node_id );
     }
 
-    if ( auto* cond_struct = fw::cast<const ConditionalStructNode>(node ) )
+    if ( auto* cond_struct = fw::cast<const IfNode>(node ) )
     {
         return serialize_cond_struct(_out, cond_struct);
     }
@@ -1858,7 +1858,7 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 }
 
 
-std::string &Nodlang::serialize_cond_struct(std::string &_out, const ConditionalStructNode *_condition_struct ) const
+std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_condition_struct ) const
 {
     // if ...
     if ( _condition_struct->token_if.is_null())
@@ -1872,7 +1872,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const Conditional
 
     // ... ( <condition> )
     serialize_token_t(_out, Token_t::parenthesis_open);
-    if ( PoolID<const InstructionNode> condition = _condition_struct->cond_expr )
+    if ( PoolID<const InstructionNode> condition = _condition_struct->cond_instr )
     {
         serialize_instr(_out, condition);
     }

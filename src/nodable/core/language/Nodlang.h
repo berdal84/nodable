@@ -16,7 +16,7 @@
 namespace ndbl{
 
     // forward declarations
-    class ConditionalStructNode;
+    class IfNode;
     class ForLoopNode;
     class IScope;
     class InstructionNode;
@@ -52,8 +52,8 @@ namespace ndbl{
         PoolID<Node> parse_scope( Slot& _parent_scope_slot );
         PoolID<InstructionNode>       parse_instr();
         Slot*                         parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
-        void parse_code_block(); // Try to parse a code block with the option to create a scope or not (reusing the current one).
-        PoolID<ConditionalStructNode> parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
+        void                          parse_code_block(); // Try to parse a code block with the option to create a scope or not (reusing the current one).
+        PoolID<IfNode>       parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
         PoolID<ForLoopNode>           parse_for_loop();
         PoolID<WhileLoopNode>         parse_while_loop();
         PoolID<Node>                  parse_program();
@@ -118,7 +118,7 @@ namespace ndbl{
         std::string& serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
         std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;
-        std::string& serialize_cond_struct(std::string& _out, const ConditionalStructNode *_condition_struct ) const;
+        std::string& serialize_cond_struct(std::string& _out, const IfNode*_condition_struct ) const;
         std::string& serialize_variant(std::string& _out, const fw::variant*) const;
         std::string& serialize_variable(std::string& _out, const VariableNode*) const;
         std::string& serialize_property(std::string &_out, const Property*) const;

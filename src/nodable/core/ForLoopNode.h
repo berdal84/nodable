@@ -1,9 +1,8 @@
 #pragma once
 
-#include <memory>
+#include "TConditionalNode.h"
 #include "Token.h"
-#include "Node.h" // base class
-#include "IConditionalStruct.h" // interface
+#include <memory>
 
 namespace ndbl
 {
@@ -15,31 +14,13 @@ namespace ndbl
      * @class Represent a conditional and iterative structure "for"
      * for( init_state, condition_expr, iterate_expr ) { ... }
      */
-    class ForLoopNode
-        : public Node
-        , public IConditionalStruct {
+    class ForLoopNode : public TConditionalNode<2>
+    {
     public:
-        ForLoopNode() = default;
-        ForLoopNode(ForLoopNode&& other) = default;
-        ForLoopNode& operator=(ForLoopNode&& other) = default;
-        ~ForLoopNode() = default;
-
-        Token token_for;
+        Token                   token_for;
         PoolID<InstructionNode> init_instr;
-        PoolID<InstructionNode> cond_instr;
         PoolID<InstructionNode> iter_instr;
-
-        void            init() override;
-
-        // implements IConditionalStruct (which is already documented)
-
-        PoolID<Scope>  get_scope_at(size_t _pos) const override;
-        Slot&          get_child_slot_at(size_t _pos) override;
-        const Slot&    get_child_slot_at(size_t _pos) const override;
-
-    private:
-        std::array<ID8<Slot>, 2> m_next_slot;
-        std::array<ID8<Slot>, 2> m_child_slot;
+        void                    init() override;
         REFLECT_DERIVED_CLASS()
     };
 }

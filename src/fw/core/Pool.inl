@@ -42,19 +42,19 @@ namespace fw
 
     template<typename T>
     inline T* PoolID<T>::operator -> ()
-    { return get(); }
+    { FW_ASSERT(*this) return get(); }
 
     template<typename T>
     inline T* PoolID<T>::operator -> () const
-    { return get(); }
+    { FW_ASSERT(*this) return get(); }
 
     template<typename T>
     inline T& PoolID<T>::operator * ()
-    { return *get(); }
+    { FW_ASSERT(*this) return *get(); }
 
     template<typename T>
     inline T& PoolID<T>::operator * () const
-    { return *get(); }
+    { FW_ASSERT(*this) return *get(); }
 
     template<typename T>
     PoolID<T> PoolID<T>::null{};
@@ -174,7 +174,8 @@ namespace fw
 #ifdef NDBL_NO_POOL
         return (Type*)(u64_t)id;
 #else
-        return Pool::get_pool()->get<Type>( id.m_value );
+        if( id ) return Pool::get_pool()->get<Type>( id.m_value );
+        return nullptr;
 #endif
     }
 

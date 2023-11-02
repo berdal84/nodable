@@ -3,14 +3,12 @@
 #include <memory>
 #include "fw/core/reflection/reflection"
 
+#include "TConditionalNode.h"// base class
 #include "Token.h"
-#include "Node.h" // base class
-#include "IConditionalStruct.h" // interface
 
 namespace ndbl
 {
     // forward declarations
-    class Scope;
     class InstructionNode;
 
     /**
@@ -19,29 +17,10 @@ namespace ndbl
      *   // do something
      * }
      */
-    class WhileLoopNode
-        : public Node
-        , public IConditionalStruct {
+    class WhileLoopNode : public TConditionalNode<2> {
     public:
-        Token                   token_while;
-        PoolID<InstructionNode> cond_instr;
-
-        WhileLoopNode() = default;
-        WhileLoopNode(WhileLoopNode&&) = default;
-        WhileLoopNode& operator=(WhileLoopNode&&) = default;
-        ~WhileLoopNode() = default;
-
-        void init() override;
-
-        // implements IConditionalStruct (which is already documented)
-
-        PoolID<Scope>  get_scope_at(size_t _pos) const override;
-        Slot&          get_child_slot_at(size_t _pos) override;
-        const Slot&    get_child_slot_at(size_t _pos) const override;
-
-    private:
-        std::array<ID8<Slot>, 2> m_next_slot;
-        std::array<ID8<Slot>, 2> m_child_slot;
+        Token token_while;
+        WhileLoopNode();
         REFLECT_DERIVED_CLASS()
     };
 }

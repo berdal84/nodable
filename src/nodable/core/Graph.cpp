@@ -2,8 +2,8 @@
 
 #include <algorithm>    // std::find_if
 
-#include "ConditionalStructNode.h"
 #include "DirectedEdge.h"
+#include "IfNode.h"
 #include "InstructionNode.h"
 #include "LiteralNode.h"
 #include "Node.h"
@@ -352,7 +352,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //             - new child <-<-<-<-<-<-<-<
                     //
                     auto previous_child_scope = previous_child->get_component<Scope>().get();
-                    if ( previous_child_scope && !previous_child->get_type()->is<IConditionalStruct>() )
+                    if ( previous_child_scope && !previous_child->get_type()->is<IConditional>() )
                     {
                         std::vector<InstructionNode *> last_instructions = previous_child_scope->get_last_instructions_rec();
                         for (InstructionNode* each_instr: last_instructions )
@@ -496,9 +496,9 @@ PoolID<Node> Graph::create_scope()
     return scopeNode;
 }
 
-PoolID<ConditionalStructNode> Graph::create_cond_struct()
+PoolID<IfNode> Graph::create_cond_struct()
 {
-    PoolID<ConditionalStructNode> condStructNode = m_factory->create_cond_struct();
+    PoolID<IfNode> condStructNode = m_factory->create_cond_struct();
     add(condStructNode);
     return condStructNode;
 }

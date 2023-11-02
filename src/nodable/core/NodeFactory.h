@@ -3,8 +3,8 @@
 #include <memory>     // std::shared_ptr
 #include <functional> // std::function
 
-#include "core/ConditionalStructNode.h"
 #include "core/ForLoopNode.h"
+#include "core/IfNode.h"
 #include "core/WhileLoopNode.h"
 #include "fw/core/reflection/reflection"
 
@@ -18,7 +18,7 @@ namespace ndbl
     class LiteralNode;
     class ForLoopNode;
     class WhileLoopNode;
-    class ConditionalStructNode;
+    class IfNode;
 
     /**
      * @brief The NodeFactory instantiate Nodes. Class take a function to apply after creation.
@@ -39,7 +39,7 @@ namespace ndbl
         PoolID<Node>                  create_abstract_func(const fw::func_type *_signature, bool _is_operator)const;
         PoolID<Node>                  create_func(const fw::iinvokable *_function, bool _is_operator)const;
         PoolID<Node>                  create_scope()const;
-        PoolID<ConditionalStructNode> create_cond_struct()const;
+        PoolID<IfNode> create_cond_struct()const;
         PoolID<ForLoopNode>           create_for_loop()const;
         PoolID<WhileLoopNode>         create_while_loop()const;
         PoolID<Node>                  create_node()const;

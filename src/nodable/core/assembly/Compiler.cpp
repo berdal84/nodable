@@ -7,16 +7,16 @@
 #include "fw/core/assertions.h"
 #include "fw/core/math.h"
 
-#include "core/ConditionalStructNode.h"
 #include "core/ForLoopNode.h"
-#include "core/WhileLoopNode.h"
 #include "core/Graph.h"
-#include "core/IConditionalStruct.h"
+#include "core/IConditional.h"
+#include "core/IfNode.h"
 #include "core/InstructionNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "core/Scope.h"
 #include "core/VariableNode.h"
+#include "core/WhileLoopNode.h"
 
 #include "Register.h"
 #include "Instruction.h"
@@ -137,7 +137,7 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
     FW_ASSERT(node_id)
 
     const Node* _node = node_id.get();
-    if ( _node->get_type()->is_child_of<IConditionalStruct>())
+    if ( _node->get_type()->is_child_of<IConditional>())
     {
         if ( auto for_loop = fw::cast<const ForLoopNode>(_node))
         {
@@ -147,7 +147,7 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
         {
             compile_while_loop(while_loop);
         }
-        else if ( auto cond_struct_node = fw::cast<const ConditionalStructNode>(_node) )
+        else if ( auto cond_struct_node = fw::cast<const IfNode>(_node) )
         {
             compile_conditional_struct(cond_struct_node);
         }
@@ -264,9 +264,9 @@ void assembly::Compiler::compile_instruction_as_condition(const InstructionNode*
     cmp_instr->m_comment = "compare condition with rdx";
 }
 
-void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode* _cond_node)
+void assembly::Compiler::compile_conditional_struct(const IfNode* _cond_node)
 {
-    compile_instruction_as_condition(_cond_node->cond_expr.get()); // compile condition instruction, store result, compare
+    compile_instruction_as_condition(_cond_node->cond_instr.get()); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(Instruction_t::jne);
     jump_over_true_branch->m_comment   = "conditional jump";
@@ -289,9 +289,9 @@ void assembly::Compiler::compile_conditional_struct(const ConditionalStructNode*
 
     if ( Scope* false_scope = _cond_node->get_scope_at( Branch_FALSE ).get() )
     {
-        if( _cond_node->is_chained_with_other_cond_struct() )
+        if( false_scope->get_owner()->get_type()->is<IfNode>() )
         {
-            auto* conditional_struct = fw::cast<const ConditionalStructNode>(false_scope->get_owner().get());
+            auto* conditional_struct = fw::cast<const IfNode>(false_scope->get_owner().get());
             compile_conditional_struct(conditional_struct);
         }
         else

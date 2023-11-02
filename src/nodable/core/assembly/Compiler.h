@@ -6,7 +6,7 @@
 namespace ndbl
 {
     // forward declarations
-    class ConditionalStructNode;
+    class IfNode;
     class ForLoopNode;
     class WhileLoopNode;
     class InstructionNode;
@@ -33,7 +33,7 @@ namespace assembly
         void compile_instruction_as_condition(const InstructionNode*);            // Compile an instruction as a condition.
         void compile_for_loop(const ForLoopNode*);                                // Compile a "for loop" recursively (initial, condition, iterative instructions and inner scope).
         void compile_while_loop(const WhileLoopNode*);                            // Compile a "while loop" recursively (initial, condition, iterative instructions and inner scope).
-        void compile_conditional_struct(const ConditionalStructNode*);            // Compile an "if/else" recursively.
+        void compile_conditional_struct(const IfNode*);            // Compile an "if/else" recursively.
 
         Code* m_temp_code;  // Store the code being compiled, is released when compilation ends.
     };

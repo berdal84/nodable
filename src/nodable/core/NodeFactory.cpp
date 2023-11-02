@@ -4,15 +4,15 @@
 
 #include "fw/core/reflection/reflection"
 
-#include "InstructionNode.h"
-#include "VariableNode.h"
-#include "LiteralNode.h"
-#include "InvokableComponent.h"
-#include "Scope.h"
-#include "ConditionalStructNode.h"
 #include "ForLoopNode.h"
-#include "WhileLoopNode.h"
+#include "IfNode.h"
+#include "InstructionNode.h"
+#include "InvokableComponent.h"
+#include "LiteralNode.h"
 #include "NodeUtils.h"
+#include "Scope.h"
+#include "VariableNode.h"
+#include "WhileLoopNode.h"
 
 using namespace ndbl;
 using fw::Pool;
@@ -176,9 +176,9 @@ PoolID<Node> NodeFactory::create_scope() const
     return node;
 }
 
-PoolID<ConditionalStructNode> NodeFactory::create_cond_struct() const
+PoolID<IfNode> NodeFactory::create_cond_struct() const
 {
-    PoolID<ConditionalStructNode> node = Pool::get_pool()->create<ConditionalStructNode>();
+    PoolID<IfNode> node = Pool::get_pool()->create<IfNode>();
     node->init();
     node->set_name("If");
     node->add_component(Pool::get_pool()->create<Scope>());

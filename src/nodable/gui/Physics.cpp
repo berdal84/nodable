@@ -1,11 +1,11 @@
 #include "Physics.h"
 #include "NodeView.h"
 #include "core/ForLoopNode.h"
-#include "core/IConditionalStruct.h"
+#include "core/GraphUtil.h"
+#include "core/IConditional.h"
 #include "core/Node.h"
 #include "core/NodeUtils.h"
 #include "core/math.h"
-#include "core/GraphUtil.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -102,7 +102,7 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
             //-------------------------------------------------------------------------
 
             std::vector<PoolID<Node>> predecessor_nodes = each_node->predecessors();
-            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditionalStruct>() )
+            if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditional>() )
             {
                 NodeViewConstraint constraint("follow predecessor", ViewConstraint_t::FollowWithChildren);
                 auto predecessor_views = NodeUtils::get_component_ids<NodeView>( predecessor_nodes );
@@ -117,7 +117,7 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
             //------------------------------------------------
 
             std::vector<PoolID<NodeView>> children = each_view->get_adjacent(SlotFlag_CHILD);
-            if(!children.empty() && node_type->is_child_of<IConditionalStruct>() )
+            if(!children.empty() && node_type->is_child_of<IConditional>() )
             {
                 NodeViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
                 constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
