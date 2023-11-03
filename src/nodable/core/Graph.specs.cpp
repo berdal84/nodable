@@ -64,7 +64,7 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph.get_node_registry().empty() );
     EXPECT_TRUE( graph.get_edge_registry().empty() );
 
-    auto             instructionNode = graph.create_instr();
+    auto             variable        = graph.create_variable( fw::type::get<int>(), "var", PoolID<Scope>::null);
     fw::func_type*   fct_type        = fw::func_type_builder<int(int, int)>::with_id("+");
     auto             operator_fct    = nodlang.find_operator_fct_exact(fct_type);
 
@@ -77,7 +77,7 @@ TEST_F(Graph_, clear)
 
     graph.connect(
             *operator_node->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT ),
-            *instructionNode->find_slot_by_property_name( ROOT_PROPERTY, SlotFlag_INPUT ),
+            variable->input_slot(),
             ConnectFlag_ALLOW_SIDE_EFFECTS);
 
     EXPECT_FALSE( graph.get_node_registry().empty() );
@@ -101,7 +101,7 @@ TEST_F(Graph_, create_and_delete_relations)
     EXPECT_EQ(edges.size(), 0);
     auto node_1 = graph.create_scope();
     EXPECT_EQ(edges.size(), 0);
-    auto node_2 = graph.create_instr();
+    auto node_2 = graph.create_node();
 
     // Act and test
 
@@ -109,8 +109,8 @@ TEST_F(Graph_, create_and_delete_relations)
     EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
     DirectedEdge* edge_1 = graph.connect(
-            *node_1->find_slot_by_property_name( THIS_PROPERTY, SlotFlag_CHILD ),
-            *node_2->find_slot_by_property_name( THIS_PROPERTY, SlotFlag_PARENT ));
+            *node_1->find_slot( SlotFlag_CHILD ),
+            *node_2->find_slot( SlotFlag_PARENT ));
     EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph.disconnect(*edge_1);

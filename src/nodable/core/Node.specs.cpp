@@ -21,7 +21,7 @@ typedef ::testing::Core Node_;
 TEST_F(Node_, find_parent)
 {
     auto parent = graph.create_scope();
-    auto child  = graph.create_instr();
+    auto child  = graph.create_node();
 
     graph.connect(
             *parent->find_slot( SlotFlag_CHILD ),

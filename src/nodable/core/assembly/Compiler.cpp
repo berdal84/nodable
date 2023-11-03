@@ -78,7 +78,7 @@ void Compiler::compile_output_slot( const Slot* slot)
     FW_ASSERT(slot->has_flags(SlotFlag_OUTPUT) )
     Property* property = slot->get_property();
     FW_EXPECT(property != nullptr, "Vertex should contain a valid property id" )
-    compile_node( slot->node );
+    compile_node( slot->get_node() );
 }
 
 void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
@@ -107,7 +107,7 @@ void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_re
     // compile content
     for( PoolID<Node> each_node : scope_owner->children() )
     {
-        compile_node(each_node);
+        compile_node( each_node.get() );
     }
 
     // before to pop, we could insert a return value
@@ -131,11 +131,10 @@ void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_re
     }
 }
 
-void assembly::Compiler::compile_node(PoolID<const Node> node_id)
+void assembly::Compiler::compile_node( const Node* _node )
 {
-    FW_ASSERT(node_id)
+    FW_ASSERT( _node )
 
-    const Node* _node = node_id.get();
     if ( _node->get_type()->is_child_of<IConditional>())
     {
         if ( auto for_loop = fw::cast<const ForLoopNode>(_node))
@@ -157,10 +156,6 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
             message.append(" is not handled by the compiler.");
             throw std::runtime_error(message);
         }
-    }
-    else if ( _node->is_instruction() )
-    {
-        compile_instruction(_node);
     }
     else
     {
@@ -189,8 +184,20 @@ void assembly::Compiler::compile_node(PoolID<const Node> node_id)
             instr->eval.node   = _node->poolid();
             instr->m_comment   = _node->name;
         }
-    }
 
+        // For instruction only: Copy node value to a register
+        if( _node->is_instruction() )
+        {
+            const variant* root_node_value = _node->get_prop( VALUE_PROPERTY )->value();
+            Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_qword );
+            instr->uref.ptr        = root_node_value->data();
+            instr->uref.type       = root_node_value->get_type();
+            instr->m_comment       = "copy root's value ";
+            instr->m_comment.append("(");
+            instr->m_comment.append(instr->uref.type->get_name());
+            instr->m_comment.append(")");
+        }
+    }
 }
 
 void assembly::Compiler::compile_for_loop(const ForLoopNode* for_loop)
@@ -229,7 +236,7 @@ void assembly::Compiler::compile_iterative_structure(const IConditional* _condit
 void assembly::Compiler::compile_instruction_as_condition( const Node* _instr_node)
 {
     // compile condition result (must be stored in rax after this line)
-    compile_instruction(_instr_node);
+    compile_node(_instr_node);
 
     // move "true" result to rdx
     Instruction* store_true = m_temp_code->push_instr(Instruction_t::mov);
@@ -284,23 +291,6 @@ void assembly::Compiler::compile_conditional_struct(const IfNode* _cond_node)
             jump_after_conditional->jmp.offset = i64_t(m_temp_code->get_next_index()) - jump_after_conditional->line;
         }
     }
-}
-
-void assembly::Compiler::compile_instruction( const Node* instr_node )
-{
-    // Compile node
-    FW_ASSERT( instr_node->is_instruction() )
-    compile_node( instr_node->poolid() );
-
-    // Copy node value to a register
-    const variant* root_node_value = instr_node->get_prop( VALUE_PROPERTY )->value();
-    Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_qword );
-    instr->uref.ptr        = root_node_value->data();
-    instr->uref.type       = root_node_value->get_type();
-    instr->m_comment       = "copy root's value ";
-    instr->m_comment.append("(");
-    instr->m_comment.append(instr->uref.type->get_name());
-    instr->m_comment.append(")");
 }
 
 const Code* assembly::Compiler::compile_syntax_tree(const Graph* _graph)

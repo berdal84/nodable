@@ -29,12 +29,9 @@ namespace ndbl
 		bool             is_declared()const { return m_is_declared; }
         Property*        property();
         const Property*  property()const;
-        const PoolID<Node> get_declaration_instr()const { return m_declaration_instr; }
         PoolID<Scope>    get_scope();
-        Slot *find_value_typed_slot( SlotFlags _flags );
         void             set_declared(bool b = true) { m_is_declared = b; }
         void             reset_scope(Scope* _scope = nullptr);
-        void             set_declaration_instr(PoolID<Node> _instr) { FW_ASSERT(_instr->is_instruction()); m_declaration_instr = _instr; }
         const fw::type*  type() const;
         fw::variant*     value();
         fw::variant& operator * () { return *property()->value(); }
@@ -42,7 +39,10 @@ namespace ndbl
         const fw::variant& operator * () const { return *property()->value(); }
         const fw::variant* operator -> () const { return property()->value(); }
 
+        Slot       &input_slot();
         const Slot &input_slot() const;
+        Slot       &output_slot();
+        const Slot &output_slot() const;
 
     public:
         Token  type_token;
@@ -52,7 +52,6 @@ namespace ndbl
         ID<Property>            m_value_property_id;
         bool                    m_is_declared;
         const fw::type*         m_type;
-        PoolID<Node>            m_declaration_instr;
         PoolID<Node>            m_scope;
 
 		REFLECT_DERIVED_CLASS()

@@ -119,17 +119,14 @@ void NodeViewConstraint::apply(float _dt)
             // Determine x position start:
             //---------------------------
 
-            ImVec2   first_driver_pos = driver->get_position(fw::Space_Local);
-            float    start_pos_x      = first_driver_pos.x - size_x_total / 2.0f;
-            const fw::type* driver_type = driver->get_owner()->get_type();
+            ImVec2   driver_pos  = driver->get_position(fw::Space_Local);
+            float    start_pos_x = driver_pos.x - size_x_total / 2.0f;
 
-            if (driver_type->is_child_of<InstructionNode>()
-                || (driver_type->is_child_of<IConditional>() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop))
+            // Indent to the right if driver is an instruction
+            if ( driver->get_owner()->is_instruction() )
             {
-                // indent
-                start_pos_x = first_driver_pos.x
-                            + driver->get_size().x / 2.0f
-                            + config.ui_node_spacing;
+                start_pos_x += driver->get_size().x / 2.0f
+                             + config.ui_node_spacing;
             }
 
             // Constraint in row:
@@ -137,7 +134,7 @@ void NodeViewConstraint::apply(float _dt)
             auto node_index = 0;
             for (auto each_target : clean_targets)
             {
-                if (!each_target->pinned() && each_target->is_visible() )
+                if (!each_target->pinned() && each_target->is_visible())
                 {
                     // Compute new position for this input view
                     float y_offset = config.ui_node_spacing
@@ -149,7 +146,7 @@ void NodeViewConstraint::apply(float _dt)
 
                     ImVec2 new_pos;
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
-                    new_pos.y = first_driver_pos.y + y_offset;
+                    new_pos.y = driver_pos.y + y_offset;
 
                     if (each_target->should_follow_output( driver->poolid() ) )
                     {

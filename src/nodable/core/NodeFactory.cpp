@@ -54,6 +54,7 @@ PoolID<Node> NodeFactory::_create_abstract_func(const fw::func_type* _func_type,
 {
     PoolID<Node> node = Pool::get_pool()->create<Node>();
     node->init();
+    node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
     node->add_slot(SlotFlag_OUTPUT, 1); // Can be connected to an InstructionNode
 
     if( _is_operator )
@@ -154,14 +155,11 @@ PoolID<Node> NodeFactory::create_scope() const
     node->init();
     node->set_name("{} Scope");
 
-    node->add_slot( SlotFlag_PARENT, 1 );
     node->add_slot( SlotFlag_CHILD, SLOT_MAX_CAPACITY );
     node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
-    node->add_slot( SlotFlag_NEXT, 1 );
 
     PoolID<Scope> scope_id = Pool::get_pool()->create<Scope>();
     node->add_component(scope_id);
-
     m_post_process(node);
 
     return node;
@@ -173,7 +171,7 @@ PoolID<IfNode> NodeFactory::create_cond_struct() const
     node->init();
     node->set_name("If");
     node->add_component(Pool::get_pool()->create<Scope>());
-
+    node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
 
     return node;
@@ -185,7 +183,7 @@ PoolID<ForLoopNode> NodeFactory::create_for_loop() const
     node->init();
     node->set_name("For");
     node->add_component(Pool::get_pool()->create<Scope>());
-
+    node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
 
     return node;
@@ -197,7 +195,7 @@ PoolID<WhileLoopNode> NodeFactory::create_while_loop() const
     node->init();
     node->set_name("While");
     node->add_component(Pool::get_pool()->create<Scope>());
-
+    node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
 
     return node;
@@ -208,10 +206,7 @@ PoolID<Node> NodeFactory::create_program() const
     PoolID<Node> node = Pool::get_pool()->create<Node>();
     node->init();
     node->set_name(ICON_FA_FILE_CODE " Program");
-    //node->add_slot( SlotFlag_PARENT, 1 );               // Program is a root
-    //node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY ); //       ...
     node->add_slot( SlotFlag_CHILD, SLOT_MAX_CAPACITY );
-    node->add_slot( SlotFlag_NEXT, 1 );
     node->add_component(Pool::get_pool()->create<Scope>() );
     m_post_process(node);
     return node;
@@ -221,6 +216,7 @@ PoolID<Node> NodeFactory::create_node() const
 {
     PoolID<Node> node = Pool::get_pool()->create<Node>();
     node->init();
+    node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
     return node;
 }

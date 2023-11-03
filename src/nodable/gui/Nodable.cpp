@@ -72,7 +72,7 @@ Nodable::Nodable()
         {
             new_view->set_color( View::Color_FILL, &config.ui_node_invokableColor );
         }
-        else if ( fw::extends<InstructionNode>( node.get() ) )
+        else if ( node->is_instruction() )
         {
             new_view->set_color( View::Color_FILL, &config.ui_node_instructionColor );
         }

@@ -113,7 +113,6 @@ namespace ndbl{
         std::string& serialize_type(std::string& _out, const fw::type*) const;
         std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_RECURSE )const;
         std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_RECURSE )const;
-        std::string& serialize_instr(std::string& _out, PoolID<const InstructionNode> _instruction)const;
         std::string& serialize_node( std::string &_out, const PoolID<const Node> &_node, SerializeFlags _flags = SerializeFlag_RECURSE ) const;
         std::string& serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;

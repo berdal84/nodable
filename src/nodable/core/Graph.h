@@ -68,7 +68,7 @@ namespace ndbl
         // edge related
 
         DirectedEdge* connect(Slot& _first, Slot& _second, ConnectFlags = ConnectFlag_NONE );
-        DirectedEdge* connect_to_variable(Slot& _out, VariableNode& _in );
+        DirectedEdge* connect_to_variable(Slot& _out, VariableNode& _variable );
         DirectedEdge* connect_or_merge(Slot& _out, Slot& _in);
         void          disconnect( const DirectedEdge& _edge, ConnectFlags flags = ConnectFlag_NONE );
 

@@ -17,7 +17,6 @@ namespace ndbl
     {
         Branch_FALSE   = 0,
         Branch_TRUE    = 1,
-        Branch_DEFAULT = Branch_FALSE,
     };
 
     /**
@@ -29,8 +28,9 @@ namespace ndbl
         virtual PoolID<Scope>  get_scope_at(Branch _branch) const = 0;
         virtual Slot&          get_child_slot_at(Branch _branch) = 0;
         virtual const Slot&    get_child_slot_at(Branch _branch) const = 0;
-        virtual void           set_condition(PoolID<Node> _cond, Branch = Branch_TRUE);
-        virtual PoolID<Node>   get_condition(Branch = Branch_TRUE)const;
+        virtual Slot&          get_condition_slot(Branch = Branch_TRUE) = 0;
+        virtual const Slot&    get_condition_slot(Branch = Branch_TRUE) const = 0;
+        virtual PoolID<Node>   get_condition(Branch = Branch_TRUE) const = 0;
         REFLECT_BASE_CLASS()
     };
 }

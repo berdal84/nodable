@@ -65,6 +65,9 @@ void Node::init()
     m_this_property_id = add_prop<PoolID<Node>>( THIS_PROPERTY );
     get_prop_at( m_this_property_id )->set(m_id);
 
+    add_slot( SlotFlag_PARENT, 1);
+    add_slot( SlotFlag_NEXT, 1);
+
     m_components.set_owner( m_id );
 }
 
@@ -107,8 +110,11 @@ Slot* Node::find_slot_by_property_name(const char* _property_name, SlotFlags _fl
 const Slot* Node::find_slot_by_property_name(const char* property_name, SlotFlags desired_way) const
 {
     const Property* property = get_prop(property_name);
-    FW_ASSERT(property)
-    return find_slot_by_property_id( property->id, desired_way );
+    if( property )
+    {
+        return find_slot_by_property_id( property->id, desired_way );
+    }
+    return nullptr;
 }
 
 const Property* Node::get_prop(const char *_name) const
@@ -339,5 +345,9 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
 
 bool Node::is_instruction() const
 {
-    FW_EXPECT(false, "Not implemented yet");
+    /**
+     * Having some nodes connect to the value output means this node is inside an expression.
+     */
+    const Slot* prev_slot = find_slot( SlotFlag_PREV );
+    return prev_slot && !prev_slot->empty();
 }

@@ -129,19 +129,6 @@ bool GraphView::draw()
         }	
     };
 
-    auto create_instr = [&]( Scope* _scope ) -> PoolID<InstructionNode>
-    {
-        PoolID<InstructionNode> instr_node = m_graph->create_instr();
-        Token token(Token_t::end_of_instruction, "\n");
-
-        // Set '\n' as prefix
-        token.m_word_start_pos = 1;
-        token.m_word_size = 0;
-
-        instr_node->token_end = token;
-        return instr_node;
-    };
-
     auto create_variable = [&](const fw::type* _type, const char*  _name, PoolID<Scope>  _scope) -> PoolID<VariableNode>
     {
         if( !_scope)
@@ -214,23 +201,25 @@ bool GraphView::draw()
                 continue;
             }
 
-            SlotRef   previous_slot = slot->first_adjacent(); // next's adjacent is previous
-            Node*     each_successor_node = previous_slot->get_node();
-            NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
-
-            if ( each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
+            for( auto adjacent_slot : slot->adjacent() )
             {
-                ImRect start = each_view->get_slot_rect( *slot, app.config, slot_index );
-                ImRect end   = each_successor_view->get_slot_rect( *previous_slot.get(), app.config, 0 ); // there is only 1 previous slot
+                Node* each_successor_node = adjacent_slot->get_node();
+                NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
 
-                fw::ImGuiEx::DrawVerticalWire(
-                    ImGui::GetWindowDrawList(),
-                    start.GetCenter(),
-                    end.GetCenter(),
-                    app.config.ui_codeflow_color,       // color
-                    app.config.ui_codeflow_shadowColor, // shadowColor,
-                    line_width,
-                    0.0f);
+                if ( each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
+                {
+                    ImRect start = each_view->get_slot_rect( *slot, app.config, slot_index );
+                    ImRect end = each_successor_view->get_slot_rect( *adjacent_slot.get(), app.config, 0 );// there is only 1 previous slot
+
+                    fw::ImGuiEx::DrawVerticalWire(
+                            ImGui::GetWindowDrawList(),
+                            start.GetCenter(),
+                            end.GetCenter(),
+                            app.config.ui_codeflow_color,      // color
+                            app.config.ui_codeflow_shadowColor,// shadowColor,
+                            line_width,
+                            0.0f );
+                }
             }
         }
     }
@@ -449,8 +438,6 @@ bool GraphView::draw()
             {
                 case SlotFlag_TYPE_CODEFLOW:
                 {
-                    if ( ImGui::MenuItem( ICON_FA_CODE " Instruction" ) )
-                        new_node_id = create_instr( nullptr );
                     if ( ImGui::MenuItem( ICON_FA_CODE " Condition" ) )
                         new_node_id = m_graph->create_cond_struct();
                     if ( ImGui::MenuItem( ICON_FA_CODE " For Loop" ) )

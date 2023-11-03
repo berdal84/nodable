@@ -33,9 +33,9 @@ void VariableNode::init()
     m_value_property_id = add_prop( m_type, VALUE_PROPERTY, PropertyFlag_DEFAULT );
     add_slot( SlotFlag_INPUT,  1, m_value_property_id);
     add_slot( SlotFlag_OUTPUT, SLOT_MAX_CAPACITY, m_value_property_id);
-
-    add_slot( SlotFlag_PARENT,  1, m_this_property_id );
     add_slot( SlotFlag_OUTPUT, 1, m_this_property_id );
+
+    add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
 }
 
 PoolID<Scope> VariableNode::get_scope()
@@ -59,11 +59,6 @@ void VariableNode::reset_scope(Scope* _scope)
     m_scope = _scope ? _scope->get_owner() : PoolID<Node>{};
 }
 
-Slot* VariableNode::find_value_typed_slot( SlotFlags _flags)
-{
-    return find_slot_by_property_id( m_value_property_id, _flags & SlotFlag_ORDER_MASK | SlotFlag_TYPE_VALUE );
-}
-
 Property *VariableNode::property()
 {
     Property* p = get_prop_at( m_value_property_id );
@@ -78,7 +73,22 @@ const Property* VariableNode::property() const
     return p;
 }
 
+Slot& VariableNode::input_slot()
+{
+    return const_cast<Slot&>( const_cast<const VariableNode*>(this)->input_slot() );
+}
+
 const Slot& VariableNode::input_slot() const
 {
     return *find_slot_by_property_id( m_value_property_id, SlotFlag_INPUT );
+}
+
+Slot& VariableNode::output_slot()
+{
+    return const_cast<Slot&>( const_cast<const VariableNode*>(this)->output_slot() );
+}
+
+const Slot& VariableNode::output_slot() const
+{
+    return *find_slot_by_property_id( m_value_property_id, SlotFlag_OUTPUT );
 }

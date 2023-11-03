@@ -17,10 +17,14 @@ namespace ndbl
     class ForLoopNode : public TConditionalNode<2>
     {
     public:
-        Token                   token_for;
-        PoolID<Node>            init_instr;
-        PoolID<Node>            iter_instr;
-        void                    init() override;
+        Token           token_for;
+        PoolID<Node>    init_instr();
+        PoolID<Node>    iter_instr();
+        void            init() override;
+    private:
+        ID8<Slot>       m_init_slot;
+        ID8<Slot>       m_iter_slot;
+
         REFLECT_DERIVED_CLASS()
     };
 }

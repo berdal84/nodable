@@ -257,32 +257,25 @@ Slot *Nodlang::parse_token(Token _token)
     {
         PoolID<VariableNode> variable = get_current_scope()->find_variable(_token.word_to_string() );
 
-        if ( variable.get() == nullptr)
-        {
-            if (m_strict_mode)
-            {
-                LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token.word_to_string().c_str())
-            }
-            else
-            {
-                /* when strict mode is OFF, we just create a variable with Any type */
-                LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
-                            _token.word_to_string().c_str())
-                variable = parser_state.graph->create_variable(type::null(), _token.word_to_string(), get_current_scope() );
-                variable->property()->token = std::move(_token);
-                variable->set_declared(false);
-            }
-        }
-        else
+        if ( variable )
         {
             FW_ASSERT(variable->is_declared());
         }
-
-        if ( variable.get() != nullptr )
+        else if (m_strict_mode)
         {
-            return variable->find_value_typed_slot( SlotFlag_OUTPUT );
+            LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token.word_to_string().c_str())
         }
-        return nullptr;
+        else
+        {
+            /* when strict mode is OFF, we just create a variable with Any type */
+            LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
+                        _token.word_to_string().c_str())
+            variable = parser_state.graph->create_variable(type::null(), _token.word_to_string(), get_current_scope() );
+            variable->property()->token = std::move(_token);
+            variable->set_declared(false);
+        }
+
+        return variable ? &variable->output_slot() : nullptr;
     }
 
     PoolID<LiteralNode> literal;
@@ -588,8 +581,7 @@ PoolID<Node> Nodlang::parse_instr()
         Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction);
         if (!expected_end_of_instr_token.is_null())
         {
-            // expected_end_of_instr_token;
-            FW_EXPECT(false, "Not implemented yet, we must store end_of_instr_token somewhere... or should we use value's token?!")
+            instr_node->after_token = expected_end_of_instr_token;
         }
         else if (parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
         {
@@ -1185,10 +1177,9 @@ PoolID<IfNode> Nodlang::parse_conditional_structure()
         {
             condition->set_name("Condition");
             condition->set_name("Cond.");
-            if_node->set_condition(condition);
             parser_state.graph->connect_or_merge(
-                    *condition->find_slot( SlotFlag_OUTPUT ),
-                    *if_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
+                    *condition->find_slot(SlotFlag_OUTPUT),
+                    if_node->get_condition_slot());
         }
 
         if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
@@ -1287,7 +1278,6 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                 parser_state.graph->connect_or_merge(
                         *init_instr->find_slot( SlotFlag_OUTPUT ),
                         *for_loop_node->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
-                for_loop_node->init_instr = init_instr;
 
                 PoolID<Node> condition = parse_instr();
                 if (!condition )
@@ -1299,9 +1289,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                     condition->set_name("Condition");
                     parser_state.graph->connect_or_merge(
                             *condition->find_slot( SlotFlag_OUTPUT ),
-                            *for_loop_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
-
-                    for_loop_node->set_condition( condition );
+                            for_loop_node->get_condition_slot() );
 
                     PoolID<Node> iter_instr = parse_instr();
                     if (!iter_instr)
@@ -1313,8 +1301,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                         iter_instr->set_name("Iteration");
                         parser_state.graph->connect_or_merge(
                                 *iter_instr->find_slot( SlotFlag_OUTPUT ),
-                                *for_loop_node->find_slot_by_property_name( ITERATION_PROPERTY, SlotFlag_INPUT ) );
-                        for_loop_node->iter_instr = iter_instr;
+                                for_loop_node->get_condition_slot() );
 
                         Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
                         if (close_bracket.is_null())
@@ -1378,10 +1365,9 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
         else if( Node* cond_instr = parse_instr().get())
         {
             cond_instr->set_name("Condition");
-            while_loop_node->set_condition(cond_instr->poolid());
             parser_state.graph->connect_or_merge(
                     *cond_instr->find_slot( SlotFlag_OUTPUT ),
-                    *while_loop_node->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT ) );
+                    while_loop_node->get_condition_slot() );
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
             if ( close_bracket.is_null() )
@@ -1600,11 +1586,9 @@ std::string &Nodlang::serialize_type(std::string &_out, const fw::type *_type) c
 
 std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const
 {
-    Node* decl_instr = _node->get_declaration_instr().get();
-
     // 1. Serialize variable's type
 
-    if (decl_instr)
+    if ( _node->is_instruction() )
     {
         // If parsed
         if (!_node->type_token.is_null())
@@ -1626,7 +1610,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
 
     const Slot& slot = _node->input_slot();
-    if ( decl_instr && slot.adjacent_count() != 0 )
+    if ( _node->is_instruction() && slot.adjacent_count() != 0 )
     {
         if ( _node->assignment_operator_token.is_null() )
         { _out.append(" = "); }
@@ -1714,49 +1698,41 @@ std::string & Nodlang::serialize_node( std::string &_out, const PoolID<const Nod
     FW_ASSERT( node )
     FW_ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
-    if ( node->get_type()->is<InstructionNode>() )
-    {
-        return serialize_instr(_out, node_id );
-    }
-
     if ( auto* cond_struct = fw::cast<const IfNode>(node ) )
     {
-        return serialize_cond_struct(_out, cond_struct);
+        serialize_cond_struct(_out, cond_struct);
     }
-
-    if ( auto* for_loop = fw::cast<const ForLoopNode>(node ) )
+    else if ( auto* for_loop = fw::cast<const ForLoopNode>(node ) )
     {
-        return serialize_for_loop(_out, for_loop);
+        serialize_for_loop(_out, for_loop);
     }
-
-    if ( auto* while_loop = fw::cast<const WhileLoopNode>(node ) )
+    else if ( auto* while_loop = fw::cast<const WhileLoopNode>(node ) )
     {
-        return serialize_while_loop(_out, while_loop);
+        serialize_while_loop(_out, while_loop);
     }
-
-    if ( auto* scope = node->get_component<Scope>().get() )
+    else if ( auto* scope = node->get_component<Scope>().get() )
     {
-        return serialize_scope(_out, scope);
+        serialize_scope(_out, scope);
     }
-
-    if ( auto* literal = fw::cast<const LiteralNode>(node ) )
+    else if ( auto* literal = fw::cast<const LiteralNode>(node ) )
     {
-        return serialize_property(_out, literal->value());
+        serialize_property(_out, literal->value());
     }
-
-    if ( auto* variable = fw::cast<const VariableNode>(node ) )
+    else if ( auto* variable = fw::cast<const VariableNode>(node ) )
     {
-        return serialize_variable(_out, variable);
+        serialize_variable(_out, variable);
     }
-
-    if (PoolID<InvokableComponent> invokable = node->get_component<InvokableComponent>() )
+    else if (PoolID<InvokableComponent> invokable = node->get_component<InvokableComponent>() )
     {
-        return serialize_invokable(_out, *invokable);
+        serialize_invokable(_out, *invokable);
     }
-
-    std::string message = "Unable to serialize node with type: ";
-    message.append(node->get_type()->get_name());
-    throw std::runtime_error(message);
+    else
+    {
+        std::string message = "Unable to serialize node with type: ";
+        message.append(node->get_type()->get_name());
+        throw std::runtime_error(message);
+    }
+    return serialize_token(_out, node->after_token );
 }
 
 std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
@@ -1767,17 +1743,6 @@ std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) co
         serialize_node( _out, child);
     }
     return serialize_token(_out, _scope->token_end);
-}
-
-std::string& Nodlang::serialize_instr(std::string &_out, PoolID<const InstructionNode> instruction) const
-{
-    const Slot& root = instruction->root_slot();
-    if ( root.adjacent_count() != 0 )
-    {
-        serialize_input( _out, root );
-    }
-
-    return serialize_token(_out, instruction->token_end);
 }
 
 std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) const
@@ -1840,9 +1805,9 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 
     serialize_token_t(_out, Token_t::parenthesis_open);
 
-    if( PoolID<const InstructionNode> condition = _while_loop_node->cond_instr )
+    if( PoolID<Node> condition = _while_loop_node->get_condition() )
     {
-        serialize_instr(_out, condition);
+        serialize_node(_out, condition);
     }
 
     serialize_token_t(_out, Token_t::parenthesis_close);
@@ -1876,9 +1841,9 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
 
     // ... ( <condition> )
     serialize_token_t(_out, Token_t::parenthesis_open);
-    if ( PoolID<const InstructionNode> condition = _condition_struct->cond_instr )
+    if ( PoolID<Node> condition = _condition_struct->get_condition() )
     {
-        serialize_instr(_out, condition);
+        serialize_node(_out, condition);
     }
     serialize_token_t(_out, Token_t::parenthesis_close);
 

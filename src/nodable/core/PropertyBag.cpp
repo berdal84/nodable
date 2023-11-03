@@ -59,8 +59,12 @@ Property* PropertyBag::find_by_name(const char *_name)
 
 const Property* PropertyBag::find_by_name(const char *_name) const
 {
-    ID<Property> id = m_properties_by_name.at(_name);
-    return &m_properties[(u32_t)id];
+    auto it = m_properties_by_name.find(_name);
+    if( it != m_properties_by_name.end())
+    {
+        return &m_properties[it->second.id()];
+    }
+    return nullptr;
 }
 
 Property* PropertyBag::at(ID<Property> property)

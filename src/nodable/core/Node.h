@@ -52,7 +52,7 @@ namespace ndbl {
         PropertyBag       props;
         bool              dirty; // TODO: use flags
         bool              flagged_to_delete; // TODO: use flags
-
+        Token             after_token;
         observe::Event<PoolID<Node>> on_name_change;
 
         // Code

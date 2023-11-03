@@ -254,13 +254,11 @@ void Graph::remove(DirectedEdge edge)
     }
 }
 
-DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable_in )
+DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable )
 {
     // Guards
     FW_ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
-    Slot* input_slot = _variable_in.find_value_typed_slot( SlotFlag_INPUT );
-    FW_ASSERT(input_slot)
-    return connect_or_merge( _out, *input_slot );
+    return connect_or_merge( _out, _variable.input_slot() );
 }
 
 DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
