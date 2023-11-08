@@ -122,7 +122,7 @@ void NodeViewConstraint::apply(float _dt)
             ImVec2   driver_pos  = driver->get_position(fw::Space_Local);
             float    start_pos_x = driver_pos.x;
 
-            if ( driver->get_owner()->is_instruction() )
+            if ( driver->get_owner()->is_instruction() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop )
             {
                 start_pos_x += driver->get_size().x / 2.0f // indented
                              + config.ui_node_spacing;
@@ -149,7 +149,7 @@ void NodeViewConstraint::apply(float _dt)
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
                     new_pos.y = driver_pos.y + y_offset;
 
-                    if (each_target->should_follow_output( driver->poolid() ) )
+                    if ( each_target->should_follow_output( driver->poolid() ) || m_type != ViewConstraint_t::MakeRowAndAlignOnBBoxTop )
                     {
                         auto target_physics = each_target->get_owner()->get_component<Physics>();
                         target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
