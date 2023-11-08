@@ -7,24 +7,11 @@ REGISTER
     registration::push_class<View>("View");
 }
 
-constexpr ImVec4 NULL_COLOR{0.5f, 0.5f, 0.5f, 1.0f};
-
 View::View()
     : m_is_hovered(false)
-    , m_colors({&NULL_COLOR,&NULL_COLOR,&NULL_COLOR,&NULL_COLOR,&NULL_COLOR})
     , m_is_visible(true)
     , m_screen_space_content_region(0.0f, 512.0f) // need to be != 0.0f (cf GraphNodeView frame_all)
 {
-}
-
-void View::set_color(ColorType _type, const ImVec4 * _color)
-{
-	m_colors[_type] = _color;
-}
-
-ImColor View::get_color(ColorType _type) const
-{
-	return  ImColor(*m_colors[_type]);
 }
 
 void View::set_visible(bool _visibility)

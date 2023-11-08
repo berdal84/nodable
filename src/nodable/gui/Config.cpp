@@ -33,8 +33,8 @@ ndbl::Config::Config()
     };
 
     // nodes
-    ui_node_padding                       = 6.0f;
-    ui_node_propertyslot_radius = 5.0f;
+    ui_node_padding                       = { 8.0f, 4.0f, 4.0f, 4.0f };
+    ui_node_propertyslot_radius           = 5.0f;
     ui_node_invokableColor                = ImColor(255, 199, 115);            // light orange
     ui_node_variableColor                 = ImColor( 171, 190, 255);           // blue
     ui_node_instructionColor              = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
@@ -42,11 +42,12 @@ ndbl::Config::Config()
     ui_node_condStructColor               = ImVec4(1.f, 1.f, 1.f, 1.0f);       // white
     ui_node_fillColor                     = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
     ui_node_highlightedColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ui_node_slot_border_color = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_node_slot_border_color             = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_node_borderColor                   = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_borderHighlightedColor        = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_shadowColor                   = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-    ui_node_slot_hovered_color = ImColor(200, 200, 200);
-    ui_node_slot_color = ImColor(127, 127, 127);
+    ui_node_slot_hovered_color            = ImColor(200, 200, 200);
+    ui_node_slot_color                    = ImColor(127, 127, 127);
     ui_node_spacing                       = 30.0f;
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations

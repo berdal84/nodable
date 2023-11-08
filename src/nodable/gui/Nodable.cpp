@@ -55,35 +55,33 @@ Nodable::Nodable()
         node->add_component( new_view_id );
         node->add_component( physics_id );
 
-        // Set common colors
-        NodeView *new_view = new_view_id.get();
-        new_view->set_color( View::Color_HIGHLIGH, &config.ui_node_highlightedColor );
-        new_view->set_color( View::Color_BORDER, &config.ui_node_slot_border_color );
-        new_view->set_color( View::Color_BORDER_HIGHLIGHT, &config.ui_node_borderHighlightedColor );
-        new_view->set_color( View::Color_SHADOW, &config.ui_node_shadowColor );
-        new_view->set_color( View::Color_FILL, &config.ui_node_fillColor );
-
-        // Set specific colors
+        // Set fill_color
+        ImVec4* fill_color;
         if ( fw::extends<VariableNode>( node.get() ) )
         {
-            new_view->set_color( View::Color_FILL, &config.ui_node_variableColor );
+            fill_color = &config.ui_node_variableColor;
         }
         else if ( node->has_component<InvokableComponent>() )
         {
-            new_view->set_color( View::Color_FILL, &config.ui_node_invokableColor );
+            fill_color = &config.ui_node_invokableColor;
         }
         else if ( node->is_instruction() )
         {
-            new_view->set_color( View::Color_FILL, &config.ui_node_instructionColor );
+            fill_color = &config.ui_node_instructionColor;
         }
         else if ( fw::extends<LiteralNode>( node.get() ) )
         {
-            new_view->set_color( View::Color_FILL, &config.ui_node_literalColor );
+            fill_color = &config.ui_node_literalColor;
         }
         else if ( fw::extends<IConditional>( node.get() ) )
         {
-            new_view->set_color( View::Color_FILL, &config.ui_node_condStructColor );
+            fill_color = &config.ui_node_condStructColor;
         }
+        else
+        {
+            fill_color = &config.ui_node_fillColor;
+        }
+        new_view_id->set_color( fill_color );
     } );
 
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");

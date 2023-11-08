@@ -44,12 +44,12 @@ const ImVec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
 NodeView::NodeView()
         : Component()
         , fw::View()
+        , m_colors({})
         , m_position(500.0f, -1.0f)
         , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
         , m_expanded(true)
         , m_pinned(false)
-        , m_border_color_selected(1.0f, 1.0f, 1.0f)
         , m_property_view_this(nullptr)
         , m_edition_enable(true)
         , m_property_views()
@@ -319,18 +319,27 @@ bool NodeView::draw()
 
 
 	// Draw the background of the Group
-    auto border_color = is_selected(m_id) ? m_border_color_selected : get_color(Color_BORDER);
     DrawNodeRect(
             node_top_left_corner, node_top_left_corner + m_size,
-            get_color(Color_FILL), get_color(Color_BORDER_HIGHLIGHT), get_color(Color_SHADOW), border_color,
-            is_selected(m_id), 5.0f, config.ui_node_padding);
+            get_color( Color_FILL ),
+            config.ui_node_borderColor,
+            config.ui_node_shadowColor,
+            is_selected( m_id ) ? config.ui_node_borderHighlightedColor
+                                : node->is_instruction() ? config.ui_node_instructionColor
+                                                         : config.ui_node_borderColor,
+            is_selected( m_id ),
+            5.0f,
+            node->is_instruction() ?  config.ui_node_instructionBorderWidth : config.ui_node_borderWidth );
 
     // Add an invisible just on top of the background to detect mouse hovering
 	ImGui::SetCursorScreenPos(node_top_left_corner);
 	ImGui::InvisibleButton("node", m_size);
     ImGui::SetItemAllowOverlap();
-    ImGui::SetCursorScreenPos(node_top_left_corner + config.ui_node_padding); // top left corner + padding in x and y.
-	ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_propertyslot_radius ); // add + space for "this" left slot
+    ImVec2 new_screen_pos = node_top_left_corner
+                          + ImVec2{config.ui_node_padding.x, config.ui_node_padding.y} // left and top padding.
+                          + ImVec2{config.ui_node_propertyslot_radius, 0.0f}; // space for "this" left slot
+    ImGui::SetCursorScreenPos(new_screen_pos);
+
     bool is_node_hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
@@ -344,7 +353,7 @@ bool NodeView::draw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        fw::ImGuiEx::ShadowedText(ImVec2(1.0f), get_color(Color_BORDER_HIGHLIGHT), label.c_str()); // text with a lighter shadow (encrust effect)
+        fw::ImGuiEx::ShadowedText(ImVec2(1.0f), config.ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
         ImGui::SameLine();
 
@@ -358,19 +367,18 @@ bool NodeView::draw()
         std::for_each( m_property_views_with_input_only.begin(), m_property_views_with_input_only.end(), draw_property_lambda);
         std::for_each( m_property_views_with_output_or_inout.begin(), m_property_views_with_output_or_inout.end(), draw_property_lambda);
 
-
         ImGui::EndGroup();
         ImGui::SameLine();
-
-        ImGui::SetCursorPosX( ImGui::GetCursorPosX() + config.ui_node_padding * 2.0f);
-        ImGui::SetCursorPosY( ImGui::GetCursorPosY() + config.ui_node_padding );
     ImGui::EndGroup();
+    ImVec2 new_size = ImGui::GetItemRectMax()
+                    + ImVec2{config.ui_node_padding.z, config.ui_node_padding.w} // right and bottom padding
+                    - node_top_left_corner;
 
     // Ends the Window
     //----------------
-    ImVec2 node_top_right_corner = ImGui::GetCursorScreenPos();
-    m_size.x = std::max( 1.0f, std::ceil(ImGui::GetItemRectSize().x));
-    m_size.y = std::max( 1.0f, std::ceil(node_top_right_corner.y - node_top_left_corner.y ));
+
+    m_size.x = std::max( 1.0f, std::ceil(new_size.x));
+    m_size.y = std::max( 1.0f, std::ceil(new_size.y));
 
     // Draw Property in/out slots
     {
@@ -454,15 +462,17 @@ bool NodeView::draw()
 
 	return changed;
 }
-void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding)
+
+void NodeView::DrawNodeRect( ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float border_width )
 {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     // Draw the rectangle under everything
     fw::ImGuiEx::DrawRectShadow(rect_min, rect_max, border_radius, 4, ImVec2(1.0f), shadow_col);
-    draw_list->AddRectFilled(rect_min, rect_max, color, border_radius);
-    draw_list->AddRect(rect_min + ImVec2(1.0f), rect_max, border_highlight_col, border_radius);
-    draw_list->AddRect(rect_min, rect_max, border_col, border_radius);
+    ImDrawFlags flags = ImDrawFlags_RoundCornersAll;
+    draw_list->AddRectFilled(rect_min, rect_max, color, border_radius, flags);
+    draw_list->AddRect(rect_min + ImVec2(1.0f), rect_max, border_highlight_col, border_radius, flags, border_width);
+    draw_list->AddRect(rect_min, rect_max, border_col, border_radius, flags, border_width);
 
     // Draw an additional blinking rectangle when selected
     if (selected)
@@ -471,7 +481,6 @@ void NodeView::DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImC
         float offset = 4.0f;
         draw_list->AddRect(rect_min - ImVec2(offset), rect_max + ImVec2(offset), ImColor(1.0f, 1.0f, 1.0f, float(alpha) ), border_radius + offset, ~0, offset / 2.0f);
     }
-
 }
 
 bool NodeView::_draw_property_view(PropertyView* _view)
@@ -1113,4 +1122,14 @@ ImRect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _confi
 std::vector<PoolID<NodeView>> NodeView::get_adjacent(SlotFlags flags) const
 {
     return GraphUtil::adjacent_components<NodeView>(m_owner.get(), flags);
+}
+
+void NodeView::set_color( const ImVec4* _color, ColorType _type )
+{
+    m_colors[_type] = _color;
+}
+
+ImColor NodeView::get_color( ColorType _type ) const
+{
+    return  ImColor(*m_colors[_type]);
 }

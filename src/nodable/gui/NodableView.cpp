@@ -634,9 +634,11 @@ void NodableView::draw_config_window() {
 
             if ( ImGui::CollapsingHeader("Misc."))
             {
-                ImGui::SliderFloat("padding", &config.ui_node_padding, 2.0f, 10.0f);
                 ImGui::SliderFloat("spacing", &config.ui_node_spacing, 10.0f, 50.0f);
                 ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 10.0f);
+                ImGui::SliderFloat4("padding", &config.ui_node_padding.x, 0.0f, 20.0f);
+                ImGui::SliderFloat("border width", &config.ui_node_borderWidth, 0.0f, 10.0f);
+                ImGui::SliderFloat("border width (instructions)", &config.ui_node_instructionBorderWidth, 0.0f, 10.0f);
             }
             ImGui::Unindent();
         }

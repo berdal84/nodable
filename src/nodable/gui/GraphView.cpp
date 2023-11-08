@@ -249,7 +249,7 @@ bool GraphView::draw()
                 ImGui::GetWindowDrawList()->AddLine(
                     dragged_slot->position(),
                     hovered_slot ? hovered_slot->position() : ImGui::GetMousePos(),
-                    get_color(Color_BORDER_HIGHLIGHT),
+                    ImGui::ColorConvertFloat4ToU32(app.config.ui_node_borderHighlightedColor),
                     app.config.ui_wire_bezier_thickness
                 );
             }

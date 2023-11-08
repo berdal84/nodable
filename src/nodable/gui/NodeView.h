@@ -35,6 +35,15 @@ namespace ndbl
 		Default     = Essential
 	};
 
+    /**
+     * Enum to define some color types
+     */
+    enum ColorType
+    {
+        Color_FILL,
+        Color_COUNT
+    };
+
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
@@ -94,12 +103,14 @@ namespace ndbl
         ImVec2                  get_slot_pos( const Slot& );
         ImRect                  get_slot_rect( const Slot& _slot, const Config& _config, i8_t _count ) const;
         ImRect                  get_slot_rect( const SlotView &_slot_view, const Config &_config, i8_t _count ) const;
-
+        void                    set_color( const ImVec4* _color, ColorType _type = Color_FILL );
+        ImColor                 get_color(ColorType _type) const;
     private:
+
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
         bool                    _draw_property_view(PropertyView* _view);
         void                    update_labels_from_name(const Node *_node);
-        static void             DrawNodeRect(ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float padding) ;
+        static void DrawNodeRect( ImVec2 rect_min, ImVec2 rect_max, ImColor color, ImColor border_highlight_col, ImColor shadow_col, ImColor border_col, bool selected, float border_radius, float border_width );
 
         std::string     m_label;
         std::string     m_short_label;
@@ -109,7 +120,7 @@ namespace ndbl
 		ImVec2          m_size;
         bool            m_pinned;
 		float           m_opacity;
-		ImColor         m_border_color_selected;
+        std::array<const ImVec4*, Color_COUNT>           m_colors;
         std::vector<SlotView>                            m_slot_views;
         std::vector<PropertyView>                        m_property_views;
         PropertyView*                                    m_property_view_this;
