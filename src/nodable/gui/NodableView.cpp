@@ -642,7 +642,7 @@ void NodableView::draw_config_window() {
                 ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 10.0f);
                 ImGui::SliderFloat4("padding", &config.ui_node_padding.x, 0.0f, 20.0f);
                 ImGui::SliderFloat("border width", &config.ui_node_borderWidth, 0.0f, 10.0f);
-                ImGui::SliderFloat("border width (instructions)", &config.ui_node_instructionBorderWidth, 0.0f, 10.0f);
+                ImGui::SliderFloat("border width ratio (instructions)", &config.ui_node_instructionBorderRatio, 0.0f, 10.0f);
             }
             ImGui::Unindent();
         }

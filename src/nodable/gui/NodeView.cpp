@@ -329,7 +329,7 @@ bool NodeView::draw()
                                                          : config.ui_node_borderColor,
             is_selected( m_id ),
             5.0f,
-            node->is_instruction() ?  config.ui_node_instructionBorderWidth : config.ui_node_borderWidth );
+            config.ui_node_borderWidth * ( node->is_instruction() ? config.ui_node_instructionBorderRatio : 1.0f) );
 
     // Add an invisible just on top of the background to detect mouse hovering
 	ImGui::SetCursorScreenPos(node_top_left_corner);

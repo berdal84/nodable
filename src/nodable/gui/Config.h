@@ -29,8 +29,8 @@ namespace ndbl {
         ImVec4         ui_wire_shadowColor;
         float          ui_node_propertyslot_radius;
         ImVec4         ui_node_padding; // left, top, right, bottom
-        float          ui_node_instructionBorderWidth;
         float          ui_node_borderWidth;
+        float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth
         ImVec4         ui_node_variableColor;
         ImVec4         ui_node_invokableColor;
         ImVec4         ui_node_instructionColor;

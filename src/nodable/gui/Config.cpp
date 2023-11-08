@@ -38,6 +38,8 @@ void ndbl::Config::reset_default()
     };
 
     // nodes
+    ui_node_borderWidth                   = 2.0f;
+    ui_node_instructionBorderRatio        = 2.0f;
     ui_node_padding                       = { 8.0f, 4.0f, 4.0f, 4.0f };
     ui_node_propertyslot_radius           = 5.0f;
     ui_node_invokableColor                = ImColor(255, 199, 115);            // light orange
