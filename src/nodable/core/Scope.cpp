@@ -87,26 +87,20 @@ std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
         return _out;
     }
 
-    for ( PoolID<Node> child_node_id : children )
+    // Recursive call for nested scopes
+    for( size_t i = 0; i < children.size(); ++i )
     {
-        Node* child_node = child_node_id.get();
-        if ( !child_node )
+        FW_ASSERT(children[i])
+        if ( PoolID<Scope> scope = children[i]->get_component<Scope>() )
         {
-            continue;
-        };
-
-        if ( child_node->is_instruction() )
-        {
-            if ( children.back().get() == child_node )
-            {
-                _out.push_back(child_node);
-            }
+            scope->get_last_instructions_rec(_out); // Recursive call on nested scopes
         }
-        else if ( Scope* scope = child_node->get_component<Scope>().get() )
+        else if ( i == children.size() - 1 && children[i]->is_instruction() ) // last instruction ?
         {
-            scope->get_last_instructions_rec(_out);
+            _out.push_back( children[i].get() ); // Append the last instruction to the result
         }
     }
+
     return _out;
 }
 

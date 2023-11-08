@@ -325,8 +325,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     auto previous_child_scope = previous_child->get_component<Scope>().get();
                     if ( previous_child_scope && !previous_child->get_type()->is<IConditional>() )
                     {
-                        std::vector<Node*> last_instructions = previous_child_scope->get_last_instructions_rec();
-                        for (Node* each_instr: last_instructions )
+                        for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
                         {
                             Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
                             FW_ASSERT(each_instr_next_slot);
