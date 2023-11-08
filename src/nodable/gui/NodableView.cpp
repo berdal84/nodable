@@ -599,6 +599,10 @@ void NodableView::draw_config_window() {
     if (ImGui::Begin(config.ui_config_window_label))
     {
         ImGui::Text("Nodable Settings");
+        if ( ImGui::Button("Reset Settings") )
+        {
+            config.reset_default();
+        }
 
         if (ImGui::CollapsingHeader("Nodes", ImGuiTreeNodeFlags_SpanAvailWidth))
         {

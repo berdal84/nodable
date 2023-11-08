@@ -19,6 +19,7 @@ namespace ndbl {
 
         Config();
         Config(const Config&) = delete; // Disable copy
+        void reset_default();
 
         TextEditor::Palette ui_text_textEditorPalette{};
         float          ui_wire_bezier_roundness;
@@ -80,6 +81,6 @@ namespace ndbl {
         bool           isolate_selection;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
-        fw::Config common;
+        fw::Config     common;
     };
 }
