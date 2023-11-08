@@ -120,13 +120,14 @@ void NodeViewConstraint::apply(float _dt)
             //---------------------------
 
             ImVec2   driver_pos  = driver->get_position(fw::Space_Local);
-            float    start_pos_x = driver_pos.x - size_x_total / 2.0f;
+            float    start_pos_x = driver_pos.x;
 
-            // Indent to the right if driver is an instruction
             if ( driver->get_owner()->is_instruction() )
             {
-                start_pos_x += driver->get_size().x / 2.0f
+                start_pos_x += driver->get_size().x / 2.0f // indented
                              + config.ui_node_spacing;
+            } else {
+                start_pos_x -= size_x_total / 2.0f; // align horizontally on driver_pos.x
             }
 
             // Constraint in row:
