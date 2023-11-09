@@ -47,9 +47,8 @@ namespace ndbl {
         float          ui_node_spacing;
         float          ui_node_speed;
         u8_t           ui_node_animation_subsample_count;
-        float          ui_node_slot_height;
-        float          ui_node_slot_padding;
-        float          ui_node_slot_width;
+        ImVec2         ui_node_slot_size;
+        float ui_node_slot_gap;
         float          ui_node_slot_border_radius;
         ImVec4         ui_codeflow_color;
         ImVec4         ui_codeflow_shadowColor;

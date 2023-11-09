@@ -1102,19 +1102,15 @@ ImRect NodeView::get_slot_rect( const Slot& _slot, const Config& _config, i8_t _
      return get_slot_rect( m_slot_views[_slot.id.m_value], _config, _count );
 }
 
-ImRect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _count ) const
+ImRect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _pos ) const
 {
-    // pick a corner
+    ImRect rect({0.0f, 0.0f }, _config.ui_node_slot_size);
+    rect.TranslateY( -rect.GetSize().y * 0.5f ); // Center vertically
+    rect.TranslateX( _config.ui_node_slot_size.x * float(_pos) // x offset
+                   + _config.ui_node_slot_gap    * float(1+_pos) ); // x gap
+    rect.TranslateY( _slot_view.alignment().y * rect.GetSize().y ); // align top/bottom
     ImRect view_rect = get_screen_rect();
-    ImVec2 left_corner  = _slot_view.alignment() * view_rect.GetSize() // relative position
-                        + view_rect.GetCenter(); // left aligned
-
-    // compute slot size
-    ImVec2 size(std::min(_config.ui_node_slot_width,  get_size().x), std::min(_config.ui_node_slot_height, get_size().y));
-    ImRect rect(left_corner, left_corner + size);
-
-    rect.Translate( ImVec2(size.x * float(_count), -rect.GetSize().y * 0.5f) );
-    rect.Expand( ImVec2(- _config.ui_node_slot_padding, 0.0f));
+    rect.Translate(_slot_view.alignment() * view_rect.GetSize() + view_rect.GetCenter()); // align slot with nodeview
 
     return rect;
 }

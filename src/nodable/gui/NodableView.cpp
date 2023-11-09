@@ -630,9 +630,8 @@ void NodableView::draw_config_window() {
                 ImGui::Separator();
 
                 ImGui::Text("Code Flow Slots:");
-                ImGui::SliderFloat("slot padding##codeflow", &config.ui_node_slot_padding, 0.0f, 100.0f);
-                ImGui::SliderFloat("slot height##codeflow", &config.ui_node_slot_height, 2.0f, 100.0f);
-                ImGui::SliderFloat("slot width##codeflow", &config.ui_node_slot_width, 10.0f, 40.0f);
+                ImGui::SliderFloat2("slot size##codeflow", &config.ui_node_slot_size.x, 2.0f, 100.0f);
+                ImGui::SliderFloat("slot padding##codeflow", &config.ui_node_slot_gap, 0.0f, 100.0f);
                 ImGui::SliderFloat("slot radius##codeflow", &config.ui_node_slot_border_radius, 0.0f, 40.0f);
             }
 

@@ -58,10 +58,9 @@ void ndbl::Config::reset_default()
     ui_node_spacing                       = 30.0f;
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
-    ui_node_slot_height                   = 16.0f;
-    ui_node_slot_padding                  = 2.0f;
+    ui_node_slot_size                     = {20.0f, 8.0f};
+    ui_node_slot_gap = 2.0f;
     ui_node_slot_border_radius            = 4.0f;
-    ui_node_slot_width                    = 20.0f;
 
     // wires
     ui_wire_bezier_roundness              = 0.5f;

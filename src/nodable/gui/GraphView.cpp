@@ -181,7 +181,7 @@ bool GraphView::draw()
        Draw Code Flow.
        Code flow is the set of green lines that links  a set of nodes.
      */
-    float line_width  = app.config.ui_node_slot_width * app.config.ui_codeflow_thickness_ratio;
+    float line_width  = app.config.ui_node_slot_size.x * app.config.ui_codeflow_thickness_ratio;
     for( Node* each_node : node_registry )
     {
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
@@ -239,7 +239,7 @@ bool GraphView::draw()
                         hovered_slot ? hovered_slot->rect(app.config).GetCenter(): ImGui::GetMousePos(),
                         app.config.ui_codeflow_color,
                         app.config.ui_codeflow_shadowColor,
-                        app.config.ui_node_slot_width * app.config.ui_codeflow_thickness_ratio,
+                        app.config.ui_node_slot_size.x * app.config.ui_codeflow_thickness_ratio,
                         0.f // roundness
                 );
             }
