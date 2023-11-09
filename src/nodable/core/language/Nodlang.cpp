@@ -257,22 +257,21 @@ Slot *Nodlang::parse_token(Token _token)
     {
         PoolID<VariableNode> variable = get_current_scope()->find_variable(_token.word_to_string() );
 
-        if ( variable )
+        if( !variable )
         {
-            FW_ASSERT(variable->is_declared());
-        }
-        else if (m_strict_mode)
-        {
-            LOG_ERROR("Parser", "Expecting declaration for symbol %s (strict mode) \n", _token.word_to_string().c_str())
-        }
-        else
-        {
-            /* when strict mode is OFF, we just create a variable with Any type */
-            LOG_WARNING("Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
-                        _token.word_to_string().c_str())
-            variable = parser_state.graph->create_variable(type::null(), _token.word_to_string(), get_current_scope() );
-            variable->property()->token = std::move(_token);
-            variable->set_declared(false);
+            if ( m_strict_mode )
+            {
+                LOG_ERROR( "Parser", "Expecting declaration for symbol %s (strict mode) \n", _token.word_to_string().c_str() )
+            }
+            else
+            {
+                /* when strict mode is OFF, we just create a variable with Any type */
+                LOG_WARNING( "Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
+                             _token.word_to_string().c_str() )
+                variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
+                variable->property()->token = std::move( _token );
+                variable->set_declared( false );
+            }
         }
 
         return variable ? &variable->output_slot() : nullptr;
@@ -1175,8 +1174,6 @@ PoolID<IfNode> Nodlang::parse_conditional_structure()
         auto empty_condition = (bool)eaten_parenthesis;
         if ( !empty_condition && (condition = parse_instr()))
         {
-            condition->set_name("Condition");
-            condition->set_name("Cond.");
             parser_state.graph->connect_or_merge(
                     *condition->find_slot(SlotFlag_OUTPUT),
                     if_node->get_condition_slot());
@@ -1274,7 +1271,6 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
             }
             else
             {
-                init_instr->set_name("Initialisation");
                 parser_state.graph->connect_or_merge(
                         *init_instr->find_slot( SlotFlag_OUTPUT ),
                         *for_loop_node->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
@@ -1286,7 +1282,6 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                 }
                 else
                 {
-                    condition->set_name("Condition");
                     parser_state.graph->connect_or_merge(
                             *condition->find_slot( SlotFlag_OUTPUT ),
                             for_loop_node->get_condition_slot() );
@@ -1298,7 +1293,6 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                     }
                     else
                     {
-                        iter_instr->set_name("Iteration");
                         parser_state.graph->connect_or_merge(
                                 *iter_instr->find_slot( SlotFlag_OUTPUT ),
                                 for_loop_node->get_condition_slot() );
@@ -1364,7 +1358,6 @@ PoolID<WhileLoopNode> Nodlang::parse_while_loop()
         }
         else if( Node* cond_instr = parse_instr().get())
         {
-            cond_instr->set_name("Condition");
             parser_state.graph->connect_or_merge(
                     *cond_instr->find_slot( SlotFlag_OUTPUT ),
                     while_loop_node->get_condition_slot() );

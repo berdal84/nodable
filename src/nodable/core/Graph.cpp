@@ -202,8 +202,10 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     // Guards
     FW_ASSERT( _in )
     FW_ASSERT( _out )
-    FW_ASSERT( _in.has_flags( SlotFlag_INPUT | SlotFlag_NOT_FULL ) )
-    FW_ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ) )
+    FW_ASSERT( _in.has_flags( SlotFlag_INPUT ) )
+    FW_ASSERT( _in.has_flags( SlotFlag_NOT_FULL ) )
+    FW_ASSERT( _out.has_flags( SlotFlag_OUTPUT ) )
+    FW_ASSERT( _out.has_flags( SlotFlag_NOT_FULL ) )
     Property* in_prop  = _in.get_property();
     Property* out_prop = _out.get_property();
     FW_EXPECT( in_prop, "tail property must be defined" )

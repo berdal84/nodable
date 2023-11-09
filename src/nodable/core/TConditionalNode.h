@@ -61,8 +61,8 @@ namespace ndbl
         m_next_slot_id[Branch_TRUE]  = add_slot( SlotFlag_NEXT, 1, Branch_TRUE );
 
         // No condition needed for the first slot
-        auto property_id = add_prop<PoolID<Node>>(CONDITION_PROPERTY, PropertyFlag_VISIBLE);
-        m_condition_slot_id[0] = add_slot( SlotFlag::SlotFlag_INPUT, 1, property_id );
+        auto condition_property = add_prop<PoolID<Node>>(CONDITION_PROPERTY, PropertyFlag_VISIBLE);
+        m_condition_slot_id[0] = add_slot( SlotFlag::SlotFlag_INPUT, 1, condition_property );
 
         m_child_slot_id[Branch_FALSE] = add_slot( SlotFlag_CHILD, 1, Branch_FALSE );
         m_child_slot_id[Branch_TRUE]  = add_slot( SlotFlag_CHILD, 1, Branch_TRUE );
