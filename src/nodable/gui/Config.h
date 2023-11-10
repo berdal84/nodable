@@ -22,7 +22,7 @@ namespace ndbl {
         void reset_default();
 
         TextEditor::Palette ui_text_textEditorPalette{};
-        float          ui_wire_bezier_roundness;
+        ImVec2         ui_wire_bezier_roundness; // {min, max}
         float          ui_wire_bezier_thickness;
         ImVec2         ui_wire_bezier_fade_length_minmax;
         ImVec4         ui_wire_color;

@@ -261,12 +261,12 @@ Slot *Nodlang::parse_token(Token _token)
         {
             if ( m_strict_mode )
             {
-                LOG_ERROR( "Parser", "Expecting declaration for symbol %s (strict mode) \n", _token.word_to_string().c_str() )
+                LOG_ERROR( "Parser", "%s is not declared (strict mode) \n", _token.word_to_string().c_str() )
             }
             else
             {
                 /* when strict mode is OFF, we just create a variable with Any type */
-                LOG_WARNING( "Parser", "Expecting declaration for symbol %s, compilation will fail.\n",
+                LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                              _token.word_to_string().c_str() )
                 variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
                 variable->property()->token = std::move( _token );

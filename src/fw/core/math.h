@@ -11,6 +11,11 @@ namespace fw::math
         return _value;
     }
 
+    static float normalize(float _value, float _min, float _max)
+    {
+        return clamp(_value, _min, _max) / (_max - _min);
+    }
+
     /**
      * Interpolate linearly _source to _target with a _factor (in [0.0f, 1.0f] )
      */

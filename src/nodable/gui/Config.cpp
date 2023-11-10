@@ -59,11 +59,11 @@ void ndbl::Config::reset_default()
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
     ui_node_slot_size                     = {20.0f, 8.0f};
-    ui_node_slot_gap = 2.0f;
-    ui_node_slot_border_radius            = 4.0f;
+    ui_node_slot_gap                      = 2.0f;
+    ui_node_slot_border_radius            = 10.0f;
 
     // wires
-    ui_wire_bezier_roundness              = 0.5f;
+    ui_wire_bezier_roundness              = {0.25f, 1.0f};
     ui_wire_bezier_thickness              = 2.0f;
     ui_wire_bezier_fade_length_minmax     = {300.0f, 1000.0f};
     ui_wire_color                         = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -72,7 +72,7 @@ void ndbl::Config::reset_default()
     // code flow
     ui_codeflow_color                     = ImColor(150, 170, 140); // slightly green
     ui_codeflow_shadowColor               = ImColor(0, 0, 0, 64);
-    ui_codeflow_thickness_ratio           = 0.30f; // relative to ui_node_slot_width
+    ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_node_slot_size.x
 
     // buttons
     ui_toolButton_size                    = ImVec2(0.0f, 25.0f);

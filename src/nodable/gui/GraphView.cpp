@@ -22,6 +22,7 @@
 #include "core/Slot.h"
 #include "core/VariableNode.h"
 #include "core/language/Nodlang.h"
+#include "core/math.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -327,12 +328,18 @@ bool GraphView::draw()
                 if (line_color.w != 0.f)
                 {
                     float thickness = app.config.ui_wire_bezier_thickness;
-                    float roundness = app.config.ui_wire_bezier_roundness;
+                    ImVec2 delta = adjacent_slot_pos - slot_pos;
+                    float roundness = fw::math::lerp(
+                            app.config.ui_wire_bezier_roundness.x, // min
+                            app.config.ui_wire_bezier_roundness.y, // max
+                              1.0f - fw::math::normalize( ImLengthSqr(delta), 100.0f, 10000.0f )
+                            + 1.0f - fw::math::normalize( abs(delta.y), 0.0f, 200.0f)
+                            );
 
                     if ( slot->has_flags(SlotFlag_TYPE_CODEFLOW) )
                     {
                         thickness *= 3.0f;
-                        roundness *= 0.25f;
+                        // roundness *= 0.25f;
                     }
 
                     fw::ImGuiEx::DrawVerticalWire(draw_list, slot_pos, adjacent_slot_pos, line_color, shadow_color, thickness, roundness);

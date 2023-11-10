@@ -650,8 +650,8 @@ void NodableView::draw_config_window() {
         {
             ImGui::Text("Wires");
             ImGui::SliderFloat("thickness##wires", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat("roundness##wires", &config.ui_wire_bezier_roundness, 0.0f, 1.0f);
-            ImGui::SliderFloat2("fade length min/max##wires", &config.ui_wire_bezier_fade_length_minmax.x, 200.0f, 1000.0f);
+            ImGui::SliderFloat2("roundness (min,max)##wires", &config.ui_wire_bezier_roundness.x, 0.0f, 1.0f);
+            ImGui::SliderFloat2("fade length (min,max)##wires", &config.ui_wire_bezier_fade_length_minmax.x, 200.0f, 1000.0f);
             ImGui::ColorEdit4("color##wires", &config.ui_wire_color.x);
             ImGui::ColorEdit4("shadow color##wires", &config.ui_wire_shadowColor.x);
 
