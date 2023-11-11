@@ -1273,7 +1273,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
             {
                 parser_state.graph->connect_or_merge(
                         *init_instr->find_slot( SlotFlag_OUTPUT ),
-                        *for_loop_node->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT ) );
+                        for_loop_node->initialization_slot() );
 
                 PoolID<Node> condition = parse_instr();
                 if (!condition )
@@ -1295,7 +1295,7 @@ PoolID<ForLoopNode> Nodlang::parse_for_loop()
                     {
                         parser_state.graph->connect_or_merge(
                                 *iter_instr->find_slot( SlotFlag_OUTPUT ),
-                                for_loop_node->get_condition_slot() );
+                                for_loop_node->iteration_slot() );
 
                         Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
                         if (close_bracket.is_null())

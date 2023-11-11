@@ -13,21 +13,24 @@ REGISTER
 
 void ForLoopNode::init()
 {
+    // add initialization property and slot
+    auto init_id = add_prop<PoolID<Node>>(INITIALIZATION_PROPERTY, PropertyFlag_VISIBLE );
+    m_initialization_slot = add_slot( SlotFlag_INPUT, 1, init_id);
+
+    // indirectly add condition property and slot
     TConditionalNode::init();
 
-    auto init_id = add_prop<PoolID<Node>>(INITIALIZATION_PROPERTY, PropertyFlag_VISIBLE ); // for ( <here> ;   ..    ;   ..   ) { ... }
-    auto iter_id = add_prop<PoolID<Node>>(ITERATION_PROPERTY,      PropertyFlag_VISIBLE ); // for (   ..   ;   ..    ; <here> ) { ... }
-
-    m_init_slot = add_slot( SlotFlag_INPUT, 1, init_id);
-    m_iter_slot = add_slot( SlotFlag_INPUT, 1, iter_id);
+    // add iteration property and slot
+    auto iter_id = add_prop<PoolID<Node>>(ITERATION_PROPERTY, PropertyFlag_VISIBLE );
+    m_iteration_slot = add_slot( SlotFlag_INPUT, 1, iter_id);
 }
 
-PoolID<Node> ForLoopNode::iter_instr()
+Slot& ForLoopNode::iteration_slot()
 {
-    return ndbl::Node::PoolID<Node>();
+    return get_slot_at( m_iteration_slot );
 }
 
-PoolID<Node> ForLoopNode::init_instr()
+Slot& ForLoopNode::initialization_slot()
 {
-    return ndbl::Node::PoolID<Node>();
+    return get_slot_at( m_initialization_slot );
 }

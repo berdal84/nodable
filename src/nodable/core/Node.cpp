@@ -23,7 +23,7 @@ Node::Node(std::string _label)
 , dirty(true)
 , flagged_to_delete(false)
 , parent_graph( nullptr )
-, m_this_property_id()
+, m_this_property_id( add_prop<PoolID<Node>>( THIS_PROPERTY ) ) // Add a property acting like a "this" for the owner Node.
 {
 }
 
@@ -59,10 +59,6 @@ Node& Node::operator=( Node&& other ) noexcept
 
 void Node::init()
 {
-    FW_EXPECT(m_slots.size() == 0, "Slots should not exist prior to call init()");
-
-    // Add a property acting like a "this" for the owner Node.
-    m_this_property_id = add_prop<PoolID<Node>>( THIS_PROPERTY );
     get_prop_at( m_this_property_id )->set(m_id);
 
     add_slot( SlotFlag_PARENT, 1);

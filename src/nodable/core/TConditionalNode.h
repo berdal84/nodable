@@ -38,7 +38,7 @@ namespace ndbl
     const Slot& TConditionalNode<BRANCH_COUNT>::get_condition_slot( Branch _branch ) const
     {
         FW_ASSERT( _branch > 0 && _branch < BRANCH_COUNT ) // branch_FALSE has no condition
-        return get_slot_at( m_condition_slot_id[_branch - 1] );
+        return get_slot_at( m_condition_slot_id.at(_branch - 1) );
     }
 
     template<size_t BRANCH_COUNT>
