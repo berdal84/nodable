@@ -11,8 +11,8 @@
 using namespace ndbl;
 using namespace fw;
 
-NodeViewConstraint::NodeViewConstraint(const char* _name, ViewConstraint_t _type)
-: m_type(_type)
+NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
+: m_flags(_flags)
 , m_filter(always)
 , m_is_active(true)
 , m_name(_name)
@@ -68,68 +68,49 @@ void NodeViewConstraint::apply(float _dt)
 
     const Config& config = Nodable::get_instance().config;
 
-    switch ( m_type )
+    switch ( m_flags & ConstrainFlag_LAYOUT_MASK )
     {
-        case ViewConstraint_t::AlignOnBBoxLeft:
-        {
-            /*
-             * Align first target's bbox border left with all driver's bbox border right
-             */
-
-            NodeView* target = clean_targets[0];
-
-            if(!target->pinned() && target->is_visible())
-            {
-                ImRect drivers_bbox = NodeView::get_rect(clean_drivers, true);
-                ImVec2 new_position(drivers_bbox.GetCenter()
-                                    - ImVec2(drivers_bbox.GetSize().x * 0.5f
-                                    + config.ui_node_spacing
-                                    + target->get_rect().GetSize().x * 0.5f, 0 ));
-                auto target_physics = target->get_owner()->get_component<Physics>();
-                target_physics->add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
-            }
-            break;
-        }
-
-        case ViewConstraint_t::MakeRowAndAlignOnBBoxTop:
-        case ViewConstraint_t::MakeRowAndAlignOnBBoxBottom:
+        case ConstrainFlag_LAYOUT_MAKE_ROW:
         {
             /*
              * Make a row with targets, and constrain it to be above at the top (or bottom) the driver's bbox
              */
-            NodeView* driver = clean_drivers[0];
+            NodeView*   driver            = clean_drivers[0];
+            const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
+            const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
+            float       size_x_total      = 0.0f;
+            ImVec2      driver_pos        = driver->get_position(fw::Space_Local);
+            ImVec2      start_pos         = driver_pos;
+            const Node& driver_owner      = *driver->get_owner();
+            std::vector<ImVec2> target_sizes;
 
-            // Compute each sizes and size_x_total :
+            // Compute each target_sizes and size_x_total :
             //-----------------------
-
-            float size_x_total = 0.0f;
-            std::vector<ImVec2> sizes;
-            bool recursively = m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxBottom;
-
             for (auto each_target : clean_targets)
             {
                 ImVec2 size;
                 if( !(each_target->pinned() || !each_target->is_visible()) )
                 {
-                    size = each_target->get_rect(recursively).GetSize();
+                    size = each_target->get_rect( align_bbox_bottom ).GetSize();
                 }
-                sizes.push_back(size);
+                target_sizes.push_back(size);
                 size_x_total += size.x;
             }
 
             // Determine x position start:
             //---------------------------
 
-            ImVec2   driver_pos  = driver->get_position(fw::Space_Local);
-            ImVec2   start_pos   = driver_pos;
-
-            if ( driver->get_owner()->is_instruction() && !driver->get_owner()->predecessors().empty()
-                 && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop )
+            // x alignment
+            //
+            // We add an indentation when driver is an instruction without being connected to a predecessor
+            if ( driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom )
             {
-                start_pos.x += driver->get_size().x / 4.0f // indented
+                start_pos.x += driver->get_size().x / 4.0f
                              + config.ui_node_spacing;
+
+            // Otherwise we simply align vertically
             } else {
-                start_pos.x -= size_x_total / 2.0f; // align horizontally on driver_pos.x
+                start_pos.x -= size_x_total / 2.0f;
             }
 
             // Constraint in row:
@@ -137,8 +118,7 @@ void NodeViewConstraint::apply(float _dt)
             auto node_index = 0;
 
             float y_offset = config.ui_node_spacing + driver->get_size().y / 2.0f;
-            float y_sign = m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop ? -1.0f : 1.0f;
-            start_pos.y += y_offset * y_sign;
+            start_pos.y += y_offset * y_direction;
 
             for (auto each_target : clean_targets)
             {
@@ -146,18 +126,18 @@ void NodeViewConstraint::apply(float _dt)
                 {
                     // Compute new position for this input view
                     ImVec2 new_pos(
-                        start_pos.x + sizes[node_index].x / 2.0f + config.ui_node_spacing,
-                        start_pos.y + y_sign * sizes[node_index].y / 2.0f + config.ui_node_spacing
+                        start_pos.x + target_sizes[node_index].x / 2.0f + config.ui_node_spacing,
+                        start_pos.y + y_direction * target_sizes[node_index].y / 2.0f + config.ui_node_spacing
                     );
 
-                    if ( each_target->get_owner()->should_be_constrain_to_follow_output( driver->get_owner() )
-                         || m_type != ViewConstraint_t::MakeRowAndAlignOnBBoxTop
-                       )
+                    const Node& target_owner = *each_target->get_owner();
+                    const bool constrained = target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() );
+                    if ( constrained || align_bbox_bottom )
                     {
-                        auto target_physics = each_target->get_owner()->get_component<Physics>();
+                        auto target_physics = target_owner.get_component<Physics>();
                         target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
-                        start_pos.x += sizes[node_index].x + config.ui_node_spacing;
-                        // start_pos.y += y_sign * (sizes[node_index].y + config.ui_node_spacing);
+                        start_pos.x += target_sizes[node_index].x + config.ui_node_spacing;
+                        // start_pos.y += y_direction * (target_sizes[node_index].y + config.ui_node_spacing);
                     }
                     node_index++;
                 }
@@ -165,28 +145,43 @@ void NodeViewConstraint::apply(float _dt)
             break;
         }
 
-        case ViewConstraint_t::FollowWithChildren:
+        case ConstrainFlag_LAYOUT_DEFAULT:
         {
-            /*
-             * Constrain the target view (and its children) to follow the drivers' bbox
-             */
-
             NodeView* target = clean_targets[0];
             if (!target->pinned() && target->is_visible() )
             {
-                // compute
-                auto drivers_rect = NodeView::get_rect(clean_drivers, false, true);
+                Physics& target_physics = *target->get_owner()->get_component<Physics>();
 
-                auto target_rect  = target->get_rect(true, true);
-                ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
-                ImVec2 new_pos;
-                new_pos.x = drivers_rect.GetCenter().x;
-                new_pos.y = target->get_position(fw::Space_Local).y + target_driver_offset.y + config.ui_node_spacing;
+                if( m_flags & ConstrainFlag_LAYOUT_FOLLOW_WITH_CHILDREN )
+                {
+                    /*
+                    * Constrain the target view (and its children) to follow the drivers' bbox
+                    */
 
-                // apply
-                auto target_physics = target->get_owner()->get_component<Physics>();
-                target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
-                break;
+                    // compute
+                    auto drivers_rect = NodeView::get_rect(clean_drivers, false);
+
+                    auto target_rect  = target->get_rect(true, true);
+                    ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
+                    ImVec2 new_pos;
+                    new_pos.x = drivers_rect.GetCenter().x;
+                    new_pos.y = target->get_position(fw::Space_Local).y + target_driver_offset.y + config.ui_node_spacing;
+
+                    // apply
+                    target_physics.add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
+                }
+                else
+                {
+                    /*
+                     * Align first target's bbox border left with all driver's bbox border right
+                     */
+                    ImRect drivers_bbox = NodeView::get_rect(clean_drivers, true);
+                    ImVec2 new_position(drivers_bbox.GetCenter()
+                                         - ImVec2(drivers_bbox.GetSize().x * 0.5f
+                                         + config.ui_node_spacing
+                                         + target->get_rect().GetSize().x * 0.5f, 0 ));
+                    target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
+                }
             }
         }
     }
@@ -238,7 +233,7 @@ void NodeViewConstraint::draw_view()
 {
     if( ImGui::TreeNode(m_name) )
     {
-        ImGui::Text("Type:     %s", to_string(m_type));
+        ImGui::Text("Type:     %s", to_string( (ConstrainFlag_)m_flags ));
         ImGui::Text("Drivers:  %zu", m_drivers.size());
         ImGui::Text("Targets:  %zu", m_targets.size());
         ImGui::Checkbox("On/Off", &m_is_active);

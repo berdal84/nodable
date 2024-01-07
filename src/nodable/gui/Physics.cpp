@@ -105,7 +105,7 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
             std::vector<PoolID<Node>> predecessor_nodes = each_node->predecessors();
             if (!predecessor_nodes.empty() && predecessor_nodes[0]->get_type()->is_not_child_of<IConditional>() )
             {
-                NodeViewConstraint constraint("follow predecessor", ViewConstraint_t::FollowWithChildren);
+                NodeViewConstraint constraint("follow predecessor", ConstrainFlag_LAYOUT_FOLLOW_WITH_CHILDREN );
                 auto predecessor_views = NodeUtils::get_component_ids<NodeView>( predecessor_nodes );
                 constraint.add_drivers(predecessor_views);
                 constraint.add_target(each_view->poolid());
@@ -120,7 +120,7 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
             std::vector<PoolID<NodeView>> children = each_view->get_adjacent(SlotFlag_CHILD);
             if(!children.empty() && node_type->is_child_of<IConditional>() )
             {
-                NodeViewConstraint constraint("align IConditionalStruct children", ViewConstraint_t::MakeRowAndAlignOnBBoxBottom);
+                NodeViewConstraint constraint("align IConditionalStruct children", ConstrainFlag_LAYOUT_MAKE_ROW | ConstrainFlag_ALIGN_BBOX_BOTTOM);
                 constraint.apply_when(NodeViewConstraint::drivers_are_expanded);
                 constraint.add_driver(each_view->poolid());
                 constraint.add_targets( children );
@@ -132,7 +132,7 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
             std::vector<PoolID<NodeView>> inputs = each_view->get_adjacent(SlotFlag_INPUT);
             if ( !inputs.empty() )
             {
-                NodeViewConstraint constraint("align inputs", ViewConstraint_t::MakeRowAndAlignOnBBoxTop);
+                NodeViewConstraint constraint("align inputs", ConstrainFlag_LAYOUT_MAKE_ROW | ConstrainFlag_ALIGN_BBOX_TOP);
                 constraint.add_driver(each_view->poolid());
                 constraint.add_targets( inputs );
                 each_physics->add_constraint(constraint);
