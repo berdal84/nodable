@@ -92,6 +92,35 @@ void ImGuiEx::ColoredShadowedText(ImVec2 _offset, ImColor _textColor, ImColor _s
     va_end(args);
 }
 
+void ImGuiEx::DrawWire(
+        ImDrawList *draw_list,
+        ImVec2 pos0,
+        ImVec2 pos1,
+        ImVec2 norm0,
+        ImVec2 norm1,
+        ImColor color,
+        ImColor shadowColor,
+        float thickness,
+        float roundness)
+{
+    // Compute tangents
+    float roundedDist = std::sqrt( ImLengthSqr( pos1 - pos0 ) ) * roundness;
+
+    ImVec2 cp0_fill(pos0 + norm0 * roundedDist);
+    ImVec2 cp1_fill(pos1 + norm1 * roundedDist);
+
+    ImVec2 pos_shadow_offset(1.f, 1.f);
+    ImVec2 pos0_shadow(pos0 + pos_shadow_offset);
+    ImVec2 pos1_shadow(pos1 + pos_shadow_offset);
+    ImVec2 cp0_shadow(pos0_shadow + norm0 * roundedDist * 1.05f);
+    ImVec2 cp1_shadow(pos1_shadow + norm1 * roundedDist  * 0.95f);
+
+    // shadow
+    draw_list->AddBezierCurve( pos0_shadow, cp0_shadow, cp1_shadow, pos1_shadow, shadowColor, thickness);
+    // fill
+    draw_list->AddBezierCurve( pos0, cp0_fill, cp1_fill, pos1, color, thickness);
+}
+
 void ImGuiEx::DrawVerticalWire(
         ImDrawList *draw_list,
         ImVec2 pos0,
@@ -101,22 +130,16 @@ void ImGuiEx::DrawVerticalWire(
         float thickness,
         float roundness)
 {
-    // Compute tangents
-    float roundedDist = std::abs(pos1.y - pos0.y) * roundness;
-
-    ImVec2 cp0_fill(pos0.x , pos0.y + roundedDist);
-    ImVec2 cp1_fill(pos1.x , pos1.y - roundedDist);
-
-    ImVec2 pos_shadow_offset(1.f, 1.f);
-    ImVec2 pos0_shadow(pos0 + pos_shadow_offset);
-    ImVec2 pos1_shadow(pos1 + pos_shadow_offset);
-    ImVec2 cp0_shadow(pos0_shadow.x , pos0_shadow.y + roundedDist * 1.05f);
-    ImVec2 cp1_shadow(pos1_shadow.x , pos1_shadow.y - roundedDist * 0.95f);
-
-    // shadow
-    draw_list->AddBezierCurve( pos0_shadow, cp0_shadow, cp1_shadow, pos1_shadow, shadowColor, thickness);
-    // fill
-    draw_list->AddBezierCurve( pos0, cp0_fill, cp1_fill, pos1, color, thickness);
+    DrawWire(
+            draw_list,
+            pos0,
+            pos1,
+            ImVec2(0.0f, 1.0f),
+            ImVec2(0.0f, -1.0f),
+            color,
+            shadowColor,
+            thickness,
+            roundness );
 }
 
 void ImGuiEx::DrawHorizontalWire(

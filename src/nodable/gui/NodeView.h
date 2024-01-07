@@ -102,6 +102,7 @@ namespace ndbl
         ImVec2                  get_slot_pos( const Slot& );
         ImRect                  get_slot_rect( const Slot& _slot, const Config& _config, i8_t _count ) const;
         ImRect                  get_slot_rect( const SlotView &_slot_view, const Config &_config, i8_t _pos ) const;
+        ImVec2                  get_slot_normal( const Slot& slot) const;
         void                    set_color( const ImVec4* _color, ColorType _type = Color_FILL );
         ImColor                 get_color(ColorType _type) const;
     private:

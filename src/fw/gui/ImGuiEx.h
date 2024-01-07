@@ -70,6 +70,17 @@ namespace fw
                 const char *_format,
                 ...);
 
+        static void DrawWire(
+                ImDrawList *draw_list,
+                ImVec2 pos0,
+                ImVec2 pos1,
+                ImVec2 norm0,
+                ImVec2 norm1,
+                ImColor color,
+                ImColor shadowColor,
+                float thickness = 1.0f,
+                float roundness = 0.5f);
+
         static void DrawVerticalWire(
                 ImDrawList *draw_list,
                 ImVec2 pos0,

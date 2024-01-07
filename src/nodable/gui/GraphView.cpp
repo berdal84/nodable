@@ -294,8 +294,10 @@ bool GraphView::draw()
                     continue;
                 }
 
-                ImVec2 slot_pos          = node_view->get_slot_pos( *slot );
-                ImVec2 adjacent_slot_pos = adjacent_node_view->get_slot_pos( *adjacent_slot );
+                ImVec2 slot_pos           = node_view->get_slot_pos( *slot );
+                ImVec2 slot_norm          = node_view->get_slot_normal( *slot );
+                ImVec2 adjacent_slot_pos  = adjacent_node_view->get_slot_pos( *adjacent_slot );
+                ImVec2 adjacent_slot_norm = adjacent_node_view->get_slot_normal( *adjacent_slot );
 
                 // do not draw long lines between a variable value
                 ImVec4 line_color   = app.config.ui_wire_color;
@@ -342,7 +344,10 @@ bool GraphView::draw()
                         // roundness *= 0.25f;
                     }
 
-                    fw::ImGuiEx::DrawVerticalWire(draw_list, slot_pos, adjacent_slot_pos, line_color, shadow_color, thickness, roundness);
+                    fw::ImGuiEx::DrawWire(draw_list,
+                                          slot_pos, adjacent_slot_pos,
+                                          slot_norm, adjacent_slot_norm,
+                                          line_color, shadow_color, thickness, roundness);
                 }
             }
         }

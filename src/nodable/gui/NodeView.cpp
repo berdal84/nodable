@@ -1078,6 +1078,12 @@ bool NodeView::is_dragged() const
     return s_dragged == m_id;
 }
 
+ImVec2 NodeView::get_slot_normal( const Slot& slot ) const
+{
+    // Alignment is usually not a corner, so we don't need to normalize.
+    return m_slot_views[(u8_t)slot.id].alignment();
+}
+
 ImVec2 NodeView::get_slot_pos( const Slot& slot )
 {
     // TODO: use 3x3 matrices to simplify code
