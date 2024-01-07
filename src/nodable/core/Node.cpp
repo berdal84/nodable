@@ -37,6 +37,7 @@ Node::Node( Node&& other ) noexcept
 , m_id( other.m_id )
 , parent_graph( other.parent_graph )
 , m_this_property_id( other.m_this_property_id )
+, after_token(other.after_token)
 {
 }
 
@@ -52,6 +53,7 @@ Node& Node::operator=( Node&& other ) noexcept
    m_components      = std::move(other.m_components);
    m_this_property_id = other.m_this_property_id;
    m_id              = other.m_id;
+   after_token       = std::move(other.after_token);
    parent_graph      = other.parent_graph;
 
    return *this;

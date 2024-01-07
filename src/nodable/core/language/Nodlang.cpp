@@ -1725,7 +1725,11 @@ std::string & Nodlang::serialize_node( std::string &_out, const PoolID<const Nod
         message.append(node->get_type()->get_name());
         throw std::runtime_error(message);
     }
-    return serialize_token(_out, node->after_token );
+    if( !node->after_token.is_null())
+    {
+        serialize_token(_out, node->after_token );
+    }
+    return _out;
 }
 
 std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
