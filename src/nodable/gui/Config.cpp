@@ -38,10 +38,10 @@ void ndbl::Config::reset_default()
     };
 
     // nodes
-    ui_node_borderWidth                   = 2.0f;
+    ui_node_borderWidth                   = 1.0f;
     ui_node_instructionBorderRatio        = 2.0f;
     ui_node_padding                       = { 8.0f, 4.0f, 4.0f, 4.0f };
-    ui_node_propertyslot_radius           = 5.0f;
+    ui_node_propertyslot_radius           = 4.0f;
     ui_node_invokableColor                = ImColor(255, 199, 115);            // light orange
     ui_node_variableColor                 = ImColor( 171, 190, 255);           // blue
     ui_node_instructionColor              = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
@@ -58,9 +58,9 @@ void ndbl::Config::reset_default()
     ui_node_spacing                       = 30.0f;
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
-    ui_node_slot_size                     = {20.0f, 8.0f};
-    ui_node_slot_gap                      = 2.0f;
-    ui_node_slot_border_radius            = 10.0f;
+    ui_node_slot_size                     = {10.f, 10.f};
+    ui_node_slot_gap                      = 4.0f;
+    ui_node_slot_border_radius            = 0.1f;
 
     // wires
     ui_wire_bezier_roundness              = {0.25f, 1.0f};
