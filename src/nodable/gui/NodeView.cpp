@@ -997,9 +997,15 @@ void NodeView::set_expanded(bool _expanded)
     set_children_visible(_expanded, true);
 }
 
-bool NodeView::should_follow_output(PoolID<const NodeView> output) const
+bool NodeView::should_follow_output(PoolID<const NodeView> _output_view ) const
 {
-    return !m_owner->is_instruction();
+    const bool has_no_predecessors = m_owner->predecessors().empty();
+    if( has_no_predecessors )
+    {
+        return true;
+    }
+    const auto& outputs = m_owner->outputs();
+    return outputs.size() == 0 || outputs[0] == _output_view->m_owner; // First output has priority
 }
 
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)
