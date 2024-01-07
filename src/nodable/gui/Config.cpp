@@ -63,7 +63,7 @@ void ndbl::Config::reset_default()
     ui_node_slot_border_radius            = 0.1f;
 
     // wires
-    ui_wire_bezier_roundness              = {0.25f, 1.0f};
+    ui_wire_bezier_roundness              = {0.25f, 2.0f};
     ui_wire_bezier_thickness              = 2.0f;
     ui_wire_bezier_fade_length_minmax     = {300.0f, 1000.0f};
     ui_wire_color                         = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);

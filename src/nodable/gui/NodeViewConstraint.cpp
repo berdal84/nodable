@@ -99,55 +99,56 @@ void NodeViewConstraint::apply(float _dt)
              */
             NodeView* driver = clean_drivers[0];
 
-            // Compute each size_x and size_x_total :
+            // Compute each sizes and size_x_total :
             //-----------------------
 
-            std::vector<float> size_x;
+            float size_x_total = 0.0f;
+            std::vector<ImVec2> sizes;
             bool recursively = m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxBottom;
 
             for (auto each_target : clean_targets)
             {
-                float size = 0.0f;
+                ImVec2 size;
                 if( !(each_target->pinned() || !each_target->is_visible()) )
                 {
-                    size = each_target->get_rect(recursively).GetSize().x;
+                    size = each_target->get_rect(recursively).GetSize();
                 }
-                size_x.push_back(size);
+                sizes.push_back(size);
+                size_x_total += size.x;
             }
-            auto size_x_total = std::accumulate(size_x.begin(), size_x.end(), 0.0f);
 
             // Determine x position start:
             //---------------------------
 
             ImVec2   driver_pos  = driver->get_position(fw::Space_Local);
-            float    start_pos_x = driver_pos.x;
+            ImVec2   start_pos   = driver_pos;
 
-            if ( driver->get_owner()->is_instruction() && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop )
+            if ( driver->get_owner()->is_instruction() && !driver->get_owner()->predecessors().empty()
+                 && m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop )
             {
-                start_pos_x += driver->get_size().x / 2.0f // indented
+                start_pos.x += driver->get_size().x / 4.0f // indented
                              + config.ui_node_spacing;
             } else {
-                start_pos_x -= size_x_total / 2.0f; // align horizontally on driver_pos.x
+                start_pos.x -= size_x_total / 2.0f; // align horizontally on driver_pos.x
             }
 
             // Constraint in row:
             //-------------------
             auto node_index = 0;
+
+            float y_offset = config.ui_node_spacing + driver->get_size().y / 2.0f;
+            float y_sign = m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop ? -1.0f : 1.0f;
+            start_pos.y += y_offset * y_sign;
+
             for (auto each_target : clean_targets)
             {
                 if ( !each_target->pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
-                    float y_offset = config.ui_node_spacing
-                                     + each_target->get_size().y / 2.0f
-                                     + driver->get_size().y / 2.0f;
-
-                    // Flip vertically
-                    if(m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop ) y_offset *= -1.0f;
-
-                    ImVec2 new_pos;
-                    new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
-                    new_pos.y = driver_pos.y + y_offset;
+                    ImVec2 new_pos(
+                        start_pos.x + sizes[node_index].x / 2.0f + config.ui_node_spacing,
+                        start_pos.y + y_sign * sizes[node_index].y / 2.0f + config.ui_node_spacing
+                    );
 
                     if ( each_target->get_owner()->should_be_constrain_to_follow_output( driver->get_owner() )
                          || m_type != ViewConstraint_t::MakeRowAndAlignOnBBoxTop
@@ -155,7 +156,8 @@ void NodeViewConstraint::apply(float _dt)
                     {
                         auto target_physics = each_target->get_owner()->get_component<Physics>();
                         target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
-                        start_pos_x += size_x[node_index] + config.ui_node_spacing;
+                        start_pos.x += sizes[node_index].x + config.ui_node_spacing;
+                        // start_pos.y += y_sign * (sizes[node_index].y + config.ui_node_spacing);
                     }
                     node_index++;
                 }

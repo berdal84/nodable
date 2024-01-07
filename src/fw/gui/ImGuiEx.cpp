@@ -104,7 +104,9 @@ void ImGuiEx::DrawWire(
         float roundness)
 {
     // Compute tangents
-    float roundedDist = std::sqrt( ImLengthSqr( pos1 - pos0 ) ) * roundness;
+    ImVec2 roundedDist(
+        std::abs( pos1.x - pos0.x ) * roundness,
+        std::abs( pos1.y - pos0.y ) * roundness);
 
     ImVec2 cp0_fill(pos0 + norm0 * roundedDist);
     ImVec2 cp1_fill(pos1 + norm1 * roundedDist);
