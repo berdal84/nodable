@@ -99,7 +99,7 @@ void NodeViewConstraint::apply(float _dt)
              */
             NodeView* driver = clean_drivers[0];
 
-            // Compute size_x_total :
+            // Compute each size_x and size_x_total :
             //-----------------------
 
             std::vector<float> size_x;
@@ -135,21 +135,23 @@ void NodeViewConstraint::apply(float _dt)
             auto node_index = 0;
             for (auto each_target : clean_targets)
             {
-                if (!each_target->pinned() && each_target->is_visible())
+                if ( !each_target->pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
                     float y_offset = config.ui_node_spacing
                                      + each_target->get_size().y / 2.0f
                                      + driver->get_size().y / 2.0f;
 
-                    // top or bottom ?
+                    // Flip vertically
                     if(m_type == ViewConstraint_t::MakeRowAndAlignOnBBoxTop ) y_offset *= -1.0f;
 
                     ImVec2 new_pos;
                     new_pos.x = start_pos_x + size_x[node_index] / 2.0f;
                     new_pos.y = driver_pos.y + y_offset;
 
-                    if ( each_target->should_follow_output( driver->poolid() ) || m_type != ViewConstraint_t::MakeRowAndAlignOnBBoxTop )
+                    if ( each_target->get_owner()->should_be_constrain_to_follow_output( driver->get_owner() )
+                         || m_type != ViewConstraint_t::MakeRowAndAlignOnBBoxTop
+                       )
                     {
                         auto target_physics = each_target->get_owner()->get_component<Physics>();
                         target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);

@@ -77,7 +77,6 @@ namespace ndbl
         void                    set_expanded(bool _expanded);
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
         void                    set_children_visible(bool _visible, bool _recursive = false);
-        bool                    should_follow_output(PoolID<const NodeView>) const;
         void                    expand_toggle();
         void                    expand_toggle_rec();
         void                    enable_edition(bool _enable = true) { m_edition_enable = _enable; }

@@ -60,12 +60,13 @@ void Physics::add_force(ImVec2 force, bool _recurse)
 
     if ( !_recurse ) return;
 
-    for (PoolID<NodeView> input_id: m_view->get_adjacent(SlotFlag_INPUT) )
+    for (PoolID<Node> input_id: m_view->get_owner()->inputs() )
     {
-        NodeView* input = input_id.get();
-        if ( !input->pinned() && input->should_follow_output( m_view ))
+        Node& input = *input_id;
+        NodeView& input_view = *input.get_component<NodeView>();
+        if ( !input_view.pinned() && input.should_be_constrain_to_follow_output( m_view->get_owner() ))
         {
-            if(PoolID<Physics> physics_component = input->get_owner()->get_component<Physics>())
+            if(PoolID<Physics> physics_component = input.get_component<Physics>())
             {
                 physics_component->add_force(force, _recurse);
             }

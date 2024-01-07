@@ -343,15 +343,15 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
 
 bool Node::is_instruction() const
 {
-    /* Having some nodes connect to the value output means this node is inside an expression. */
-    const Slot* prev_slot = find_slot( SlotFlag_PREV );
-    if( prev_slot == nullptr)
-    {
-        return false;
-    }
-    if( !prev_slot->empty())
+    if( !predecessors().empty())
     {
         return true;
     }
     return find_slot_by_property_name( THIS_PROPERTY, SlotFlag_OUTPUT | SlotFlag_NOT_FULL) == nullptr;
+}
+
+bool Node::should_be_constrain_to_follow_output( PoolID<const Node> _output ) const
+{
+    const auto& _outputs = outputs();
+    return predecessors().empty() && _outputs.size() >= 1 && _outputs.back() == _output->m_id;
 }

@@ -236,11 +236,11 @@ void NodeView::translate(ImVec2 _delta, bool _recurse)
 
 	if ( !_recurse ) return;
 
-    for(auto each_input_view : get_adjacent(SlotFlag_INPUT)  )
+    for(auto each_input: get_adjacent(SlotFlag_INPUT)  )
     {
-        if ( each_input_view && !each_input_view->m_pinned && each_input_view->should_follow_output( this->m_id ) )
+        if ( each_input && !each_input->m_pinned && each_input->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
-            each_input_view->translate(_delta, true);
+            each_input->translate(_delta, true);
         }
     }
 }
@@ -249,7 +249,7 @@ void NodeView::arrange_recursively(bool _smoothly)
 {
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
-        if ( !each_input->m_pinned && each_input->should_follow_output( this->m_id ))
+        if ( !each_input->m_pinned && each_input->m_owner->should_be_constrain_to_follow_output( this->m_owner ))
         {
             each_input->arrange_recursively();
         }
@@ -928,7 +928,7 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
         NodeView* view = view_id.get();
         if( !view) return;
 
-        if ( view->m_is_visible && !(view->m_pinned && _ignorePinned) && view->should_follow_output( this->m_id ) )
+        if ( view->m_is_visible && !(view->m_pinned && _ignorePinned) && view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
             ImRect child_rect = view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
             fw::ImGuiEx::EnlargeToInclude(result_rect, child_rect);
@@ -997,17 +997,6 @@ void NodeView::set_expanded(bool _expanded)
     set_children_visible(_expanded, true);
 }
 
-bool NodeView::should_follow_output(PoolID<const NodeView> _output_view ) const
-{
-    const bool has_no_predecessors = m_owner->predecessors().empty();
-    if( has_no_predecessors )
-    {
-        return true;
-    }
-    const auto& outputs = m_owner->outputs();
-    return outputs.size() == 0 || outputs[0] == _output_view->m_owner; // First output has priority
-}
-
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
     set_adjacent_visible( SlotFlag_INPUT, _visible, _recursive );
@@ -1023,7 +1012,7 @@ void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recurs
     bool has_not_output = get_adjacent(SlotFlag_OUTPUT).empty();
     for( auto each_child_view : get_adjacent(flags) )
     {
-        if( _visible || has_not_output || each_child_view->should_follow_output( m_id ) )
+        if( _visible || has_not_output || each_child_view->m_owner->should_be_constrain_to_follow_output( m_owner ) )
         {
             if ( _recursive && each_child_view->m_expanded) // propagate only if expanded
             {
