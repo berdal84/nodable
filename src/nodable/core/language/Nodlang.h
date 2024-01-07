@@ -49,11 +49,11 @@ namespace ndbl{
         bool                          parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                         parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                         parse_token(const std::string& _string) const;
-        PoolID<Node> parse_scope( Slot& _parent_scope_slot );
-        PoolID<Node> parse_instr();
+        PoolID<Node>                  parse_scope( Slot& _parent_scope_slot );
+        PoolID<Node>                  parse_instr();
         Slot*                         parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
         void                          parse_code_block(); // Try to parse a code block with the option to create a scope or not (reusing the current one).
-        PoolID<IfNode>       parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
+        PoolID<IfNode>                parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
         PoolID<ForLoopNode>           parse_for_loop();
         PoolID<WhileLoopNode>         parse_while_loop();
         PoolID<Node>                  parse_program();
@@ -75,8 +75,6 @@ namespace ndbl{
 		bool                          is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
         PoolID<Scope>                 get_current_scope();
         PoolID<Node>                  get_current_scope_node();
-        static inline bool            is_letter(char c) { return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'); }
-        static inline bool            is_digit(char c) { return c >= '0' && c <= '9'; }
 
     public:
         struct ParserState

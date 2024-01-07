@@ -14,6 +14,7 @@
 #include <sstream>
 #include <string>
 #include <chrono>
+#include <cctype> // isdigit, isalpha, and isalnum.
 
 #include "fw/core/reflection/reflection"
 #include "fw/core/format.h"
@@ -953,13 +954,13 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
 
     // number (double)
     //     note: we accept zeros as prefix (ex: "0002.15454", or "01012")
-    if ( is_digit(first_char) )
+    if ( std::isdigit(first_char) )
     {
         auto cursor = start_pos + 1;
         Token_t type = Token_t::literal_int;
 
         // integer
-        while (cursor != buffer_size && is_digit(buffer[cursor]))
+        while (cursor != buffer_size && std::isdigit(buffer[cursor]))
         {
             ++cursor;
         }
@@ -967,14 +968,14 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
         // double
         if(cursor + 1 < buffer_size
            && buffer[cursor] == '.'      // has a decimal separator
-            && is_digit(buffer[cursor + 1]) // followed by a digit
+            && std::isdigit(buffer[cursor + 1]) // followed by a digit
            )
         {
             auto local_cursor_decimal_separator = cursor;
             ++cursor;
 
             // decimal portion
-            while (cursor != buffer_size && is_digit(buffer[cursor]))
+            while (cursor != buffer_size && std::isdigit(buffer[cursor]))
             {
                 ++cursor;
             }
@@ -998,11 +999,11 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
     }
 
     // symbol (identifier or keyword)
-    if (is_letter(first_char) || first_char == '_' )
+    if ( std::isalpha(first_char) || first_char == '_' )
     {
         // parse symbol
         auto cursor = start_pos + 1;
-        while (cursor != buffer_size && is_letter(buffer[cursor]) || is_digit(buffer[cursor]) || buffer[cursor] == '_' )
+        while (cursor != buffer_size && std::isalnum(buffer[cursor]) || buffer[cursor] == '_' )
         {
             ++cursor;
         }
