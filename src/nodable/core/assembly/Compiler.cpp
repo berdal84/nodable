@@ -72,13 +72,22 @@ bool assembly::Compiler::is_syntax_tree_valid(const Graph* _graph)
     return true;
 }
 
-void Compiler::compile_output_slot( const Slot* slot)
+void Compiler::compile_input_slot( const Slot& slot)
 {
-    FW_ASSERT(slot != nullptr)
-    FW_ASSERT(slot->has_flags(SlotFlag_OUTPUT) )
-    Property* property = slot->get_property();
+    if( slot.empty() )
+    {
+        return;
+    }
+    FW_ASSERT( slot.adjacent_count() == 1 )
+    compile_output_slot( *slot.first_adjacent() );
+}
+
+void Compiler::compile_output_slot( const Slot& slot)
+{
+    FW_ASSERT(slot.has_flags(SlotFlag_OUTPUT) )
+    Property* property = slot.get_property();
     FW_EXPECT(property != nullptr, "Vertex should contain a valid property id" )
-    compile_node( slot->get_node() );
+    compile_node( slot.get_node() );
 }
 
 void assembly::Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
@@ -171,7 +180,7 @@ void assembly::Compiler::compile_node( const Node* _node )
             if ( !adjacent_output->node->get_type()->is<VariableNode>() )
             {
                 // Any other slot must be compiled recursively
-                compile_output_slot( adjacent_output );
+                compile_output_slot( *adjacent_output );
             }
         }
 
@@ -202,35 +211,55 @@ void assembly::Compiler::compile_node( const Node* _node )
 
 void assembly::Compiler::compile_for_loop(const ForLoopNode* for_loop)
 {
-    return compile_iterative_structure(for_loop, "jump back to \"for\"");
+    // Compile initialization instruction
+    compile_input_slot( for_loop->initialization_slot() );
+
+    // compile condition and memorise its position
+    u64_t conditionInstrLine = m_temp_code->get_next_index();
+    compile_instruction_as_condition( for_loop->get_condition().get() );
+
+    // jump if condition is not true
+    Instruction* skipTrueBranch = m_temp_code->push_instr( Instruction_t::jne );
+    skipTrueBranch->m_comment = "jump true branch";
+
+    if ( auto true_branch = for_loop->get_scope_at( Branch_TRUE ) )
+    {
+        compile_scope( true_branch.get() );
+
+        // Compile iteration instruction
+        compile_input_slot( for_loop->iteration_slot() );
+
+        // jump back to condition instruction
+        auto loopJump = m_temp_code->push_instr( Instruction_t::jmp );
+        loopJump->jmp.offset = math::signed_diff( conditionInstrLine, loopJump->line );
+        loopJump->m_comment = "jump back to \"for\"";
+    }
+
+
+    skipTrueBranch->jmp.offset = m_temp_code->get_next_index() - skipTrueBranch->line;
 }
 
 void assembly::Compiler::compile_while_loop(const WhileLoopNode* while_loop)
 {
-    return compile_iterative_structure(while_loop, "jump back to \"while\"");
-}
-
-void assembly::Compiler::compile_iterative_structure(const IConditional* _conditional, const char* _comment )
-{
     // compile condition and memorise its position
-    u64_t condition_instr_line = m_temp_code->get_next_index();
-    compile_instruction_as_condition( _conditional->get_condition().get());
+    u64_t conditionInstrLine = m_temp_code->get_next_index();
+    compile_instruction_as_condition( while_loop->get_condition().get() );
 
     // jump if condition is not true
-    Instruction* skip_true_branch = m_temp_code->push_instr(Instruction_t::jne);
-    skip_true_branch->m_comment = "jump if not equal";
+    Instruction* skipTrueBranch = m_temp_code->push_instr( Instruction_t::jne );
+    skipTrueBranch->m_comment = "jump if not equal";
 
-    if ( auto while_scope = _conditional->get_scope_at(Branch_TRUE) )
+    if ( auto whileScope = while_loop->get_scope_at( Branch_TRUE ) )
     {
-        compile_scope( while_scope.get());
+        compile_scope( whileScope.get() );
 
         // jump back to condition instruction
-        auto loop_jump = m_temp_code->push_instr(Instruction_t::jmp);
-        loop_jump->jmp.offset = math::signed_diff(condition_instr_line, loop_jump->line);
-        loop_jump->m_comment  = _comment;
+        auto loopJump = m_temp_code->push_instr( Instruction_t::jmp );
+        loopJump->jmp.offset = math::signed_diff( conditionInstrLine, loopJump->line );
+        loopJump->m_comment = "jump back to \"while\"";
     }
 
-    skip_true_branch->jmp.offset = m_temp_code->get_next_index() - skip_true_branch->line;
+    skipTrueBranch->jmp.offset = m_temp_code->get_next_index() - skipTrueBranch->line;
 }
 
 void assembly::Compiler::compile_instruction_as_condition( const Node* _instr_node)

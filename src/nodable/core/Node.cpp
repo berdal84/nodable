@@ -341,9 +341,15 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
 
 bool Node::is_instruction() const
 {
-    /**
-     * Having some nodes connect to the value output means this node is inside an expression.
-     */
+    /* Having some nodes connect to the value output means this node is inside an expression. */
     const Slot* prev_slot = find_slot( SlotFlag_PREV );
-    return prev_slot && !prev_slot->empty();
+    if( prev_slot == nullptr)
+    {
+        return false;
+    }
+    if( !prev_slot->empty())
+    {
+        return true;
+    }
+    return find_slot_by_property_name( THIS_PROPERTY, SlotFlag_OUTPUT | SlotFlag_NOT_FULL) == nullptr;
 }

@@ -21,6 +21,8 @@ namespace ndbl
         void            init() override;
         Slot&           initialization_slot();
         Slot&           iteration_slot();
+        const Slot&     initialization_slot() const;
+        const Slot&     iteration_slot() const;
     private:
         ID8<Slot>       m_initialization_slot;
         ID8<Slot>       m_iteration_slot;

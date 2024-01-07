@@ -34,3 +34,13 @@ Slot& ForLoopNode::initialization_slot()
 {
     return get_slot_at( m_initialization_slot );
 }
+
+const Slot& ForLoopNode::iteration_slot() const
+{
+    return get_slot_at( m_iteration_slot );
+}
+
+const Slot& ForLoopNode::initialization_slot() const
+{
+    return get_slot_at( m_initialization_slot );
+}
