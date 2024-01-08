@@ -80,7 +80,7 @@ void NodeViewConstraint::apply(float _dt)
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
             float       size_x_total      = 0.0f;
             ImVec2      driver_pos        = driver->get_position(fw::Space_Local);
-            ImVec2      start_pos         = driver_pos;
+            ImVec2      cursor_pos        = driver_pos;
             const Node& driver_owner      = *driver->get_owner();
             std::vector<ImVec2> target_sizes;
 
@@ -91,7 +91,7 @@ void NodeViewConstraint::apply(float _dt)
                 ImVec2 size;
                 if( !(each_target->pinned() || !each_target->is_visible()) )
                 {
-                    size = each_target->get_rect( align_bbox_bottom ).GetSize();
+                    size = each_target->get_rect( true ).GetSize();
                 }
                 target_sizes.push_back(size);
                 size_x_total += size.x;
@@ -103,43 +103,48 @@ void NodeViewConstraint::apply(float _dt)
             // x alignment
             //
             // We add an indentation when driver is an instruction without being connected to a predecessor
-            if ( driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom )
+            const bool align_right = driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom;
+            if ( align_right )
             {
-                start_pos.x += driver->get_size().x / 4.0f
+                cursor_pos.x += driver->get_size().x / 4.0f
                              + config.ui_node_spacing;
 
             // Otherwise we simply align vertically
             } else {
-                start_pos.x -= size_x_total / 2.0f;
+                cursor_pos.x -= size_x_total / 2.0f;
             }
 
             // Constraint in row:
             //-------------------
-            auto node_index = 0;
-
-            float y_offset = config.ui_node_spacing + driver->get_size().y / 2.0f;
-            start_pos.y += y_offset * y_direction;
-
-            for (auto each_target : clean_targets)
+            cursor_pos.y   += y_direction * driver->get_size().y / 2.0f;
+            for (int target_index = 0; target_index < clean_targets.size(); target_index++)
             {
+                NodeView* each_target = clean_targets[target_index];
                 if ( !each_target->pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
-                    ImVec2 new_pos(
-                        start_pos.x + target_sizes[node_index].x / 2.0f + config.ui_node_spacing,
-                        start_pos.y + y_direction * target_sizes[node_index].y / 2.0f + config.ui_node_spacing
+                    ImVec2& target_size = target_sizes[target_index];
+
+                    ImVec2 relative_pos(
+                            target_size.x / 2.0f,
+                            y_direction * ( target_size.y / 2.0f + config.ui_node_spacing )
                     );
+
+                    if( align_right )
+                    {
+                        // add a vertical space to avoid having too much wires aligned on x-axis
+                        int reverse_y_spacing = (clean_targets.size() - 1 - target_index) * config.ui_node_spacing * 1.5f;
+                        relative_pos.y += y_direction * reverse_y_spacing;
+                    }
 
                     const Node& target_owner = *each_target->get_owner();
                     const bool constrained = target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() );
                     if ( constrained || align_bbox_bottom )
                     {
                         auto target_physics = target_owner.get_component<Physics>();
-                        target_physics->add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
-                        start_pos.x += target_sizes[node_index].x + config.ui_node_spacing;
-                        // start_pos.y += y_direction * (target_sizes[node_index].y + config.ui_node_spacing);
+                        target_physics->add_force_to_translate_to(cursor_pos + relative_pos + m_offset, config.ui_node_speed, true);
+                        cursor_pos.x += target_size.x + config.ui_node_spacing;
                     }
-                    node_index++;
                 }
             }
             break;
@@ -162,10 +167,11 @@ void NodeViewConstraint::apply(float _dt)
                     auto drivers_rect = NodeView::get_rect(clean_drivers, false);
 
                     auto target_rect  = target->get_rect(true, true);
-                    ImVec2 target_driver_offset(drivers_rect.Max - target_rect.Min);
+                    ImVec2 target_driver_offset = drivers_rect.Max.y - target_rect.Min.y;
                     ImVec2 new_pos;
-                    new_pos.x = drivers_rect.GetCenter().x;
-                    new_pos.y = target->get_position(fw::Space_Local).y + target_driver_offset.y + config.ui_node_spacing;
+                    ImVec2 target_position = target->get_position(fw::Space_Local);
+                    new_pos.x = drivers_rect.GetTL().x + target->get_size().x * 0.5f ;
+                    new_pos.y = target_position.y + target_driver_offset.y + config.ui_node_spacing;
 
                     // apply
                     target_physics.add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);

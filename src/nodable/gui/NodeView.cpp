@@ -910,7 +910,7 @@ ImRect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMul
     {
         ImVec2 local_position = get_position(fw::Space_Local);
         ImRect rect{local_position, local_position};
-        rect.Expand(m_size);
+        rect.Expand(m_size * 0.5f);
 
         return rect;
     }
