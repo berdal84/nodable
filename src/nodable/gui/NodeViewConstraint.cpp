@@ -157,6 +157,8 @@ void NodeViewConstraint::apply(float _dt)
             {
                 Physics& target_physics = *target->get_owner()->get_component<Physics>();
 
+                // TODO: this if/else should be merged (add new flags for ConstrainFlag_ to distinguish)
+
                 if( m_flags & ConstrainFlag_LAYOUT_FOLLOW_WITH_CHILDREN )
                 {
                     /*
