@@ -82,19 +82,19 @@ void NodeViewConstraint::apply(float _dt)
             ImVec2      driver_pos        = driver->get_position(fw::Space_Local);
             ImVec2      cursor_pos        = driver_pos;
             const Node& driver_owner      = *driver->get_owner();
-            std::vector<ImVec2> target_sizes;
+            std::vector<ImRect> target_rects;
 
-            // Compute each target_sizes and size_x_total :
+            // Compute each target_rect and size_x_total :
             //-----------------------
             for (auto each_target : clean_targets)
             {
-                ImVec2 size;
+                ImRect rect;
                 if( !(each_target->pinned() || !each_target->is_visible()) )
                 {
-                    size = each_target->get_rect( true ).GetSize();
+                    rect = each_target->get_rect( true );
                 }
-                target_sizes.push_back(size);
-                size_x_total += size.x;
+                target_rects.push_back(rect);
+                size_x_total += rect.GetWidth();
             }
 
             // Determine x position start:
@@ -123,14 +123,16 @@ void NodeViewConstraint::apply(float _dt)
                 if ( !each_target->pinned() && each_target->is_visible() )
                 {
                     // Compute new position for this input view
-                    ImVec2& target_size = target_sizes[target_index];
+                    ImRect& target_rect = target_rects[target_index];
 
                     ImVec2 relative_pos(
-                            target_size.x / 2.0f,
-                            y_direction * ( target_size.y / 2.0f + config.ui_node_spacing )
+                            target_rect.GetWidth() / 2.0f,
+                            y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
                     );
 
-                    if( align_right )
+                    if ( align_bbox_bottom ) relative_pos += y_direction * config.ui_node_spacing;
+
+                    if( align_right && clean_targets.size() > 1 )
                     {
                         // add a vertical space to avoid having too much wires aligned on x-axis
                         int reverse_y_spacing = (clean_targets.size() - 1 - target_index) * config.ui_node_spacing * 1.5f;
@@ -143,7 +145,7 @@ void NodeViewConstraint::apply(float _dt)
                     {
                         auto target_physics = target_owner.get_component<Physics>();
                         target_physics->add_force_to_translate_to(cursor_pos + relative_pos + m_offset, config.ui_node_speed, true);
-                        cursor_pos.x += target_size.x + config.ui_node_spacing;
+                        cursor_pos.x += target_rect.GetWidth() + config.ui_node_spacing;
                     }
                 }
             }
