@@ -6,13 +6,13 @@
 
 Nodable is split in two [src](./src/README.md):
 - the [nodable](./src/nodable/README.md) project.
-- the [framework](./src/framework/README.md) project.
+- the [framework](./src/fw/README.md) project.
 
 They both rely on external [libraries](./libs/README.md).
 
 ## Prerequisites:
 - System:
-  - Windows 64bits / Linux 64bits / MacOS 10.13+ 
+  - Windows 64bits / Linux 64bits / macOS 10.13+ 
   - CMake 3.14+
   - A C++11 compatible build system*
 - Libraries
@@ -20,7 +20,7 @@ They both rely on external [libraries](./libs/README.md).
     - Under linux `pkg-config` and `libgtk-3-dev` are required. (ex. for Ubuntu: `sudo apt-get install pkg-config libgtk-3-dev`)
       Below, are all the commands to clone, configure, and build nodable from sources.
 
-_*: no help is available here for that particular subject_
+_*no help is available here for that particular subject_
 
 ## Build commands
 
