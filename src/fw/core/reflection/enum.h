@@ -1,15 +1,23 @@
 #pragma once
 
-/***********************************************************************************************************************
-*  TYPE <---> Type enum
-*/
-
 /**
- * The objective of these 3 DEFINES is to:
- * - create a link between a typename and a TypeEnum,
- * - get the link with TypeEnum,
- * - get the link with a typename.
+ * These 3 macros allows to call to_string(E enum) with a given enum E as argument.
+ *
+ * enum class MyEnum {
+ *      MyEnum_A,
+ *      MyEnum_B,
+ *      ...
+ * }
+ *
+ * R_ENUM(MyEnum)
+ * R_ENUM_VALUE(A)
+ * R_ENUM_VALUE(B)
+ * ...
+ * R_ENUM_END()
+ *
+ * const char* str = to_string(MyEnum::A); // str == "A"
  */
+
 #define R_ENUM( Enum ) \
     static const char* to_string(Enum value) \
     {\
