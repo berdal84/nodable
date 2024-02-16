@@ -19,11 +19,12 @@ namespace ndbl
     class Nodable;
     class Graph;
 
-	typedef struct {
-        std::string label;
+	class FunctionMenuItem {
+    public:
+        std::string                       label;
         std::function<PoolID<Node>(void)> create_node_fct;
-        const fw::func_type* function_signature;
-	} FunctionMenuItem;
+        const fw::func_type*              function_signature = nullptr;
+	};
 
     class GraphView: public fw::View
     {

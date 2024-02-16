@@ -74,14 +74,15 @@ bool GraphView::draw()
     */
     auto draw_invokable_menu = [&](
         const SlotView* dragged_slot_view,
-        const std::string& _key) -> void
+        const std::string& _key,
+        const std::multimap<std::string, FunctionMenuItem>& _items) -> void
     {
         char menuLabel[255];
         snprintf( menuLabel, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
 
         if (ImGui::BeginMenu(menuLabel))
         {		
-            auto range = m_contextual_menus.equal_range(_key);
+            auto range = _items.equal_range(_key);
             for (auto it = range.first; it != range.second; it++)
             {
                 FunctionMenuItem menu_item = it->second;
@@ -438,8 +439,32 @@ bool GraphView::draw()
 
         if ( !dragged_slot )
         {
-            draw_invokable_menu( dragged_slot, k_operator_menu_label );
-            draw_invokable_menu( dragged_slot, k_function_menu_label );
+            char search_input[255] = "\0";
+            static std::multimap<std::string, FunctionMenuItem>  filtered_items = m_contextual_menus;
+            ImGui::SetKeyboardFocusHere();
+            if ( ImGui::InputText("Search", search_input, 255) )
+            {
+                // Update contextual menu items from search_input
+                filtered_items.clear();
+                size_t count = 0;
+                for ( auto& each : m_contextual_menus)
+                {
+                    if( each.second.label.compare(0, strlen( search_input ), search_input ) == 0 )
+                    {
+                        filtered_items.insert(each);
+                        if (count < 5)
+                        {
+                            if ( ImGui::Button(each.second.label.c_str()))
+                            {
+                                new_node_id = each.second.create_node_fct()->poolid();
+                            }
+                        }
+                        count++;
+                    }
+                }
+            }
+            draw_invokable_menu( dragged_slot, k_operator_menu_label, filtered_items );
+            draw_invokable_menu( dragged_slot, k_function_menu_label, filtered_items );
             ImGui::Separator();
         }
 
