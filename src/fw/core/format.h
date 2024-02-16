@@ -1,10 +1,12 @@
 #pragma once
 
-#include <string>
+#include "./string.h"
+#include "./types.h"
+#include <cassert>
 #include <cstring>
+#include <string>
+#include <chrono>
 #include <xxhash/xxhash64.h>
-#include <assert.h>
-#include "types.h"
 
 namespace fw
 {
@@ -37,5 +39,6 @@ namespace fw
             return result;
         }
         void limit_trailing_zeros(std::string& str, int _trailing_max);
+        fw::string32 time_point_to_string(const std::chrono::system_clock::time_point&);
     };
 }

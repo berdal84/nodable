@@ -1,10 +1,13 @@
 #pragma once
 
-#include <deque>
-#include <string>
-#include <map>
-#include <chrono>
 #include "./string.h"
+#include "format.h"
+#include <chrono>
+#include <ctime>
+#include <deque>
+#include <iostream>
+#include <map>
+#include <string>
 
 #define RESET   "\033[0m"
 #define BLACK   "\033[30m"      /* Black */
@@ -27,13 +30,13 @@
 #define KO RED "[KO]" RESET      // red colored "[KO]" string.
 #define OK GREEN "[OK]" RESET    // green colored "[OK]" string.
 
-#   define LOG_ERROR(...)   fw::log::push_message( fw::log::Verbosity_Error  , __VA_ARGS__ ); fw::log::flush();
-#   define LOG_WARNING(...) fw::log::push_message( fw::log::Verbosity_Warning, __VA_ARGS__ );
-#   define LOG_MESSAGE(...) fw::log::push_message( fw::log::Verbosity_Message, __VA_ARGS__ );
+#   define LOG_ERROR(...)   fw::log::push_message( fw::log::Verbosity_Error  , ##__VA_ARGS__ ); fw::log::flush();
+#   define LOG_WARNING(...) fw::log::push_message( fw::log::Verbosity_Warning, ##__VA_ARGS__ );
+#   define LOG_MESSAGE(...) fw::log::push_message( fw::log::Verbosity_Message, ##__VA_ARGS__ );
 #   define LOG_FLUSH()      fw::log::flush();
 
 #if NDBL_DEBUG
-#   define LOG_VERBOSE(...) fw::log::push_message( fw::log::Verbosity_Verbose, __VA_ARGS__ );
+#   define LOG_VERBOSE(...) fw::log::push_message( fw::log::Verbosity_Verbose, ##__VA_ARGS__ );
 #else
 #   define LOG_VERBOSE(...)
 #endif
@@ -66,12 +69,6 @@ namespace fw {
             Verbosity     verbosity=Verbosity_DEFAULT; // verbosity level
         };
 
-	private:
-        static std::deque<Message>  s_logs;      // message history
-        static Verbosity            s_verbosity; // global verbosity level
-        static std::map<std::string, Verbosity>& get_verbosity_by_category();
-
-	public:
         static const std::deque<Message>& get_messages(); // Get message history
 	    static void           set_verbosity(const std::string& _category, Verbosity _level) // Set verbosity level for a given category
         { get_verbosity_by_category().insert_or_assign(_category, _level ); }
@@ -85,6 +82,46 @@ namespace fw {
         static Verbosity        get_verbosity(const std::string& _category);            // Get verbosity level for a given category
         inline static Verbosity get_verbosity() { return s_verbosity; }                 // Get global verbosity level
         static void             flush();                                                // Ensure all messages have been printed out
-        static void             push_message(Verbosity, const char* _category, const char* _format, ...); // Push a new message for a given category
+
+        template<typename...Args>
+        static void             push_message(Verbosity _verbosity, const char* _category, const char* _format, Args... args) // Push a new message for a given category
+        {
+            // Print log only if verbosity level allows it
+
+            if (_verbosity <= get_verbosity(_category) )
+            {
+                Message& message = s_logs.emplace_front(); // Store a new message in the front of the queue
+                message.verbosity = _verbosity;
+                message.category  = _category;
+                message.text.append_fmt("[%s|%s|%s] " // Append a formatted prefix with time, verbosity level and category
+                                         , format::time_point_to_string(message.date).c_str()
+                                         , log::to_string(_verbosity)
+                                         , _category );
+
+                message.text.append_fmt(_format, args...); // Fill a buffer with the formatted message
+
+                // Select the appropriate color depending on the verbosity
+                switch (_verbosity)
+                {
+                    case log::Verbosity_Error:   std::cout << RED;      break;
+                    case log::Verbosity_Warning: std::cout << MAGENTA;  break;
+                    default:                     std::cout << RESET;  break;
+                }
+
+                // print the text and reset the color
+                printf("%s" RESET, message.text.c_str());
+
+                // Constraint the queue to have a limited size
+                constexpr size_t max_count = 5000; // a Message is 512 bytes
+                constexpr size_t min_count = 4000; //
+                if (s_logs.size() > max_count ) s_logs.resize(min_count);
+            }
+
+        }
+
+    private:
+        static std::deque<Message>  s_logs;      // message history
+        static Verbosity            s_verbosity; // global verbosity level
+        static std::map<std::string, Verbosity>& get_verbosity_by_category();
     };
 }

@@ -1,8 +1,9 @@
 #pragma once
 
-#include <assert.h>
+#include <cassert>
 #include <cstring> // for memcpy
 #include <memory> // for std::move
+#include <cstdarg> // va_list, va_start, va_end
 
 #include "types.h"
 
@@ -29,7 +30,7 @@ namespace fw
             , m_ptr(nullptr)
         {}
 
-        basic_string(const CharT* str)
+        explicit basic_string(const CharT* str)
             : m_alloc_strategy(alloc_strategy::HEAP)
             , m_length(strlen(str))
             , m_capacity(0)
@@ -47,7 +48,7 @@ namespace fw
             : basic_string(other.c_str())
         {}
 
-        basic_string(basic_string&& other)
+        basic_string(basic_string&& other) noexcept
             : m_alloc_strategy(alloc_strategy::HEAP)
             , m_length(0)
             , m_capacity(0)
@@ -56,14 +57,11 @@ namespace fw
             *this = std::move(other);
         }
 
-        basic_string& operator=(basic_string&& other)
+        basic_string& operator=(basic_string&& other) noexcept
         {
             if( m_alloc_strategy == alloc_strategy::HEAP )
             {
-                if( m_ptr != nullptr)
-                {
-                    delete[] m_ptr;
-                }
+                delete[] m_ptr;
                 m_ptr = other.m_ptr;
                 m_length = other.m_length;
                 m_capacity = other.m_capacity;
@@ -135,10 +133,11 @@ namespace fw
         { return append(str, strlen(str)); }
 
         template<typename ...Args>
-        inline size_t append_fmt(const char* _format, Args... args )
-        {
-            return m_length = vsnprintf(m_ptr+m_length, m_capacity-m_length, _format, args...);
-        }
+        inline size_t append_fmt(const char* _format, Args...args )
+        { return m_length = snprintf(m_ptr+m_length, m_capacity-m_length, _format, args... ); }
+
+        inline size_t append_fmt(const char* _str )
+        { return m_length = snprintf(m_ptr+m_length, m_capacity-m_length, "%s", _str ); }
 
         /** provided to easily switch to/from std::string */
         inline basic_string& push_back(CharT str)
