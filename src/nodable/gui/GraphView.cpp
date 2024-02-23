@@ -37,6 +37,7 @@ GraphView::GraphView(Graph* graph)
     : fw::View()
     , m_graph(graph)
     , m_new_node_desired_position(-1, -1)
+    , m_focus_search_input(false)
 {   
     const Nodlang& language = Nodlang::get_instance();
     for (auto& each_fct : language.get_api())
@@ -56,128 +57,103 @@ GraphView::GraphView(Graph* graph)
     }
 }
 
+/*
+    * Function to draw an invocable menu (operators or functions)
+    */
+PoolID<Node> GraphView::draw_menu(const std::string& _key)
+{
+    char menu_label[255];
+    snprintf( menu_label, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
+
+    if (ImGui::BeginMenu( menu_label ))
+    {
+        SlotView* dragged_slot = SlotView::get_dragged();
+
+        auto range = m_contextual_menus.equal_range(_key);
+        for (auto it = range.first; it != range.second; it++)
+        {
+            FunctionMenuItem menu_item = it->second;
+
+            /*
+             * First  we determine  if the current menu_item points to a function with compatible signature.
+             */
+            bool has_compatible_signature;
+
+            if ( !dragged_slot )
+            {
+                has_compatible_signature = true;
+            }
+            else if ( !dragged_slot->is_this() )
+            {
+                const fw::type* dragged_property_type = dragged_slot->get_property_type();
+
+                if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
+                {
+                    has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
+                }
+                else
+                {
+                    has_compatible_signature = menu_item.function_signature->get_return_type()->equals(dragged_property_type);
+                }
+            }
+
+            /*
+                * Then, since we know signature  compatibility, we add or not a new MenuItem.
+                */
+            if ( has_compatible_signature && ImGui::MenuItem( menu_item.label.c_str() ))
+            {
+                if ( menu_item.create_node_fct  )
+                {
+                    m_new_node_id = menu_item.create_node_fct();
+                }
+                else
+                {
+                    LOG_WARNING("GraphView", "The function associated to the key %s is nullptr",
+                                 menu_item.label.c_str())
+                }
+            }
+        }
+
+        ImGui::EndMenu();
+    }
+
+    return m_new_node_id;
+};
+
+PoolID<VariableNode> GraphView::create_variable(const fw::type* _type, const char*  _name, PoolID<Scope>  _scope)
+{
+    if( !_scope)
+    {
+        _scope = m_graph->get_root()->get_component<Scope>();
+    }
+
+    PoolID<VariableNode> var_node = m_graph->create_variable(_type, _name, _scope );
+    var_node->set_declared(true);
+
+    Token token(Token_t::keyword_operator, " = ");
+    token.m_word_start_pos = 1;
+    token.m_word_size = 1;
+
+    var_node->assignment_operator_token = token;
+    return var_node;
+}
+
 bool GraphView::draw()
 {
+    m_new_node_id.reset();
+
     bool            changed          = false;
     bool            pixel_perfect    = true;
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
-    PoolID<Node>    new_node_id;
     ImVec2          origin           = ImGui::GetCursorScreenPos();
     auto            node_registry    = Pool::get_pool()->get( m_graph->get_node_registry() );
     const SlotView* dragged_slot     = SlotView::get_dragged();
     const SlotView* hovered_slot     = SlotView::get_hovered();
 
-    /*
-    * Function to draw an invocable menu (operators or functions)
-    */
-    auto draw_invokable_menu = [&](
-        const SlotView* dragged_slot_view,
-        const std::string& _key,
-        const std::multimap<std::string, FunctionMenuItem>& _items) -> void
-    {
-        char menuLabel[255];
-        snprintf( menuLabel, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
-
-        if (ImGui::BeginMenu(menuLabel))
-        {		
-            auto range = _items.equal_range(_key);
-            for (auto it = range.first; it != range.second; it++)
-            {
-                FunctionMenuItem menu_item = it->second;
-
-                /*
-                * First  we determine  if the current menu_item points to a function with compatible signature.
-                */
-                bool has_compatible_signature;
-
-                if ( !dragged_slot )
-                {
-                    has_compatible_signature = true;
-                }
-                else if ( !dragged_slot->is_this() )
-                {
-                    const fw::type* dragged_property_type = dragged_slot->get_property_type();
-
-                    if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
-                    {
-                        has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
-                    }
-                    else
-                    {
-                        has_compatible_signature = menu_item.function_signature->get_return_type()->equals(dragged_property_type);
-                    }
-                }
-
-                /*
-                * Then, since we know signature  compatibility, we add or not a new MenuItem.
-                */
-                if ( has_compatible_signature && ImGui::MenuItem( menu_item.label.c_str() ))
-                {
-                    if ( menu_item.create_node_fct  )
-                    {
-                        new_node_id = menu_item.create_node_fct()->poolid();
-                    }
-                    else
-                    {
-                        LOG_WARNING("GraphView", "The function associated to the key %s is nullptr",
-                                    menu_item.label.c_str())
-                    }
-                }
-            }
-
-            ImGui::EndMenu();
-        }	
-    };
-
-    auto create_variable = [&](const fw::type* _type, const char*  _name, PoolID<Scope>  _scope) -> PoolID<VariableNode>
-    {
-        if( !_scope)
-        {
-           _scope = m_graph->get_root()->get_component<Scope>();
-        }
-
-        PoolID<VariableNode> var_node = m_graph->create_variable(_type, _name, _scope );
-        var_node->set_declared(true);
-
-        Token token(Token_t::keyword_operator, " = ");
-        token.m_word_start_pos = 1;
-        token.m_word_size = 1;
-
-        var_node->assignment_operator_token = token;
-        return var_node;
-    };
-
-    /*
-        Grid
-        Draw X vertical and Y horizontal lines every grid_size pixels
-     */
-    const int    grid_size             = app.config.ui_graph_grid_size;
-    const int    grid_subdiv_size      = app.config.ui_graph_grid_size / app.config.ui_graph_grid_subdivs;
-    const int    vertical_line_count   = int(m_screen_space_content_region.GetSize().x) / grid_subdiv_size;
-    const int    horizontal_line_count = int(m_screen_space_content_region.GetSize().y) / grid_subdiv_size;
-    ImColor      grid_color            = app.config.ui_graph_grid_color_major;
-    ImColor      grid_color_light      = app.config.ui_graph_grid_color_minor;
-
-    for(int coord = 0; coord <= vertical_line_count; ++coord)
-    {
-        float pos = m_screen_space_content_region.GetTL().x + float(coord) * grid_subdiv_size;
-        const ImVec2 line_start{pos, m_screen_space_content_region.GetTL().y};
-        const ImVec2 line_end{pos, m_screen_space_content_region.GetBL().y};
-        bool is_major = coord % app.config.ui_graph_grid_subdivs == 0;
-        draw_list->AddLine(line_start, line_end, is_major ? grid_color : grid_color_light);
-    }
-
-    for(int coord = 0; coord <= horizontal_line_count; ++coord)
-    {
-        float pos = m_screen_space_content_region.GetTL().y + float(coord) * grid_subdiv_size;
-        const ImVec2 line_start{m_screen_space_content_region.GetTL().x, pos};
-        const ImVec2 line_end{m_screen_space_content_region.GetBR().x, pos};
-        bool is_major = coord % app.config.ui_graph_grid_subdivs == 0;
-        draw_list->AddLine(line_start, line_end, is_major ? grid_color : grid_color_light);
-    }
-
+    // Draw grid in the background
+    draw_grid( draw_list, app.config );
 
     /*
        Draw Code Flow.
@@ -203,7 +179,7 @@ bool GraphView::draw()
                 continue;
             }
 
-            for( auto adjacent_slot : slot->adjacent() )
+            for( const auto& adjacent_slot : slot->adjacent() )
             {
                 Node* each_successor_node = adjacent_slot->get_node();
                 NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
@@ -211,7 +187,7 @@ bool GraphView::draw()
                 if ( each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
                 {
                     ImRect start = each_view->get_slot_rect( *slot, app.config, slot_index );
-                    ImRect end = each_successor_view->get_slot_rect( *adjacent_slot.get(), app.config, 0 );// there is only 1 previous slot
+                    ImRect end = each_successor_view->get_slot_rect( *adjacent_slot, app.config, 0 );// there is only 1 previous slot
 
                     fw::ImGuiEx::DrawVerticalWire(
                             ImGui::GetWindowDrawList(),
@@ -264,11 +240,7 @@ bool GraphView::draw()
         // Need a need node ?
         if (require_new_node)
         {
-            if (!ImGui::IsPopupOpen(k_context_menu_popup) )
-            {
-                ImGui::OpenPopup(k_context_menu_popup);
-                m_new_node_desired_position = ImGui::GetMousePos() - origin;
-            }
+            open_popup_context_menu();
         }
     }
 
@@ -431,123 +403,103 @@ bool GraphView::draw()
 		Mouse right-click popup menu
 	*/
 
-	if ( enable_edition && !isAnyNodeHovered && ImGui::BeginPopupContextWindow(k_context_menu_popup) )
+    if ( enable_edition && !isAnyNodeHovered && ImGui::IsMouseClicked(1))
     {
+        open_popup_context_menu();
+    }
+
+	if ( ImGui::BeginPopup(k_context_menu_popup) )
+    {
+        m_new_node_desired_position = ImGui::GetMousePos() - origin;
+
         // Title :
         fw::ImGuiEx::ColoredShadowedText( ImVec2( 1, 1 ), ImColor( 0.00f, 0.00f, 0.00f, 1.00f ), ImColor( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
         ImGui::Separator();
 
-        if ( !dragged_slot )
+        if ( draw_search_input( 10 ) )
         {
-            char search_input[255] = "\0";
-            static std::multimap<std::string, FunctionMenuItem>  filtered_items = m_contextual_menus;
-            ImGui::SetKeyboardFocusHere();
-            if ( ImGui::InputText("Search", search_input, 255) )
-            {
-                // Update contextual menu items from search_input
-                filtered_items.clear();
-                size_t count = 0;
-                for ( auto& each : m_contextual_menus)
-                {
-                    if( each.second.label.compare(0, strlen( search_input ), search_input ) == 0 )
-                    {
-                        filtered_items.insert(each);
-                        if (count < 5)
-                        {
-                            if ( ImGui::Button(each.second.label.c_str()))
-                            {
-                                new_node_id = each.second.create_node_fct()->poolid();
-                            }
-                        }
-                        count++;
-                    }
-                }
-            }
-            draw_invokable_menu( dragged_slot, k_operator_menu_label, filtered_items );
-            draw_invokable_menu( dragged_slot, k_function_menu_label, filtered_items );
-            ImGui::Separator();
+            ImGui::CloseCurrentPopup();
         }
 
-        if ( dragged_slot )
+        if ( !dragged_slot )
+        {
+            draw_menu( k_operator_menu_label );
+            draw_menu( k_function_menu_label );
+            ImGui::Separator();
+        }
+        else
         {
             SlotFlags slot_type = dragged_slot->slot().type();
-            switch ( slot_type )
+            if ( slot_type == SlotFlag_TYPE_CODEFLOW)
             {
-                case SlotFlag_TYPE_CODEFLOW:
+                if ( ImGui::MenuItem( ICON_FA_CODE " Condition" ) )
+                    m_new_node_id = m_graph->create_cond_struct();
+                if ( ImGui::MenuItem( ICON_FA_CODE " For Loop" ) )
+                    m_new_node_id = m_graph->create_for_loop();
+                if ( ImGui::MenuItem( ICON_FA_CODE " While Loop" ) )
+                    m_new_node_id = m_graph->create_while_loop();
+
+                ImGui::Separator();
+
+                if ( ImGui::MenuItem( ICON_FA_CODE " Scope" ) )
+                    m_new_node_id = m_graph->create_scope();
+
+                ImGui::Separator();
+
+                if ( ImGui::MenuItem( ICON_FA_CODE " Program" ) )
                 {
-                    if ( ImGui::MenuItem( ICON_FA_CODE " Condition" ) )
-                        new_node_id = m_graph->create_cond_struct();
-                    if ( ImGui::MenuItem( ICON_FA_CODE " For Loop" ) )
-                        new_node_id = m_graph->create_for_loop();
-                    if ( ImGui::MenuItem( ICON_FA_CODE " While Loop" ) )
-                        new_node_id = m_graph->create_while_loop();
-
-                    ImGui::Separator();
-
-                    if ( ImGui::MenuItem( ICON_FA_CODE " Scope" ) )
-                        new_node_id = m_graph->create_scope();
-
-                    ImGui::Separator();
-
-                    if ( ImGui::MenuItem( ICON_FA_CODE " Program" ) )
-                    {
-                        m_graph->clear();
-                        new_node_id = m_graph->create_root();
-                    }
-                    break;
+                    m_graph->clear();
+                    m_new_node_id = m_graph->create_root();
                 }
-                default:
+            }
+            else if ( !dragged_slot->is_this() )
+            {
+                if ( ImGui::MenuItem( ICON_FA_DATABASE " Variable" ) )
                 {
-                    if ( !dragged_slot->is_this() )
-                    {
-                        if ( ImGui::MenuItem( ICON_FA_DATABASE " Variable" ) )
-                        {
-                            new_node_id = create_variable( dragged_slot->get_property_type(), "var", {} );
-                        }
+                    m_new_node_id = create_variable( dragged_slot->get_property_type(), "var", {} );
+                }
 
-                        // we allow literal only if connected to variables.
-                        // why? behavior when connecting a literal to a non var node is to digest it.
-                        if ( dragged_slot->get_node()->get_type()->is<VariableNode>() && ImGui::MenuItem( ICON_FA_FILE "Literal" ) )
-                        {
-                            new_node_id = m_graph->create_literal( dragged_slot->get_property_type() );
-                        }
-                    }
-                    else
-                    {
-                        if ( ImGui::BeginMenu( "Variable" ) )
-                        {
-                            if ( ImGui::MenuItem( ICON_FA_DATABASE " Boolean" ) )
-                                new_node_id = create_variable( fw::type::get<bool>(), "var", {} );
+                // we allow literal only if connected to variables.
+                // why? behavior when connecting a literal to a non var node is to digest it.
+                if ( dragged_slot->get_node()->get_type()->is<VariableNode>() && ImGui::MenuItem( ICON_FA_FILE "Literal" ) )
+                {
+                    m_new_node_id = m_graph->create_literal( dragged_slot->get_property_type() );
+                }
+            }
+            else
+            {
+                if ( ImGui::BeginMenu( "Variable" ) )
+                {
+                    if ( ImGui::MenuItem( ICON_FA_DATABASE " Boolean" ) )
+                        m_new_node_id = create_variable( fw::type::get<bool>(), "var", {} );
 
-                            if ( ImGui::MenuItem( ICON_FA_DATABASE " Double" ) )
-                                new_node_id = create_variable( fw::type::get<double>(), "var", {} );
+                    if ( ImGui::MenuItem( ICON_FA_DATABASE " Double" ) )
+                        m_new_node_id = create_variable( fw::type::get<double>(), "var", {} );
 
-                            if ( ImGui::MenuItem( ICON_FA_DATABASE " Int (16bits)" ) )
-                                new_node_id = create_variable( fw::type::get<i16_t>(), "var", {} );
+                    if ( ImGui::MenuItem( ICON_FA_DATABASE " Int (16bits)" ) )
+                        m_new_node_id = create_variable( fw::type::get<i16_t>(), "var", {} );
 
-                            if ( ImGui::MenuItem( ICON_FA_DATABASE " String" ) )
-                                new_node_id = create_variable( fw::type::get<std::string>(), "var", {} );
+                    if ( ImGui::MenuItem( ICON_FA_DATABASE " String" ) )
+                        m_new_node_id = create_variable( fw::type::get<std::string>(), "var", {} );
 
-                            ImGui::EndMenu();
-                        }
+                    ImGui::EndMenu();
+                }
 
-                        if ( ImGui::BeginMenu( "Literal" ) )
-                        {
-                            if ( ImGui::MenuItem( ICON_FA_FILE " Boolean" ) )
-                                new_node_id = m_graph->create_literal( fw::type::get<bool>() );
+                if ( ImGui::BeginMenu( "Literal" ) )
+                {
+                    if ( ImGui::MenuItem( ICON_FA_FILE " Boolean" ) )
+                        m_new_node_id = m_graph->create_literal( fw::type::get<bool>() );
 
-                            if ( ImGui::MenuItem( ICON_FA_FILE " Double" ) )
-                                new_node_id = m_graph->create_literal( fw::type::get<double>() );
+                    if ( ImGui::MenuItem( ICON_FA_FILE " Double" ) )
+                        m_new_node_id = m_graph->create_literal( fw::type::get<double>() );
 
-                            if ( ImGui::MenuItem( ICON_FA_FILE " Int (16bits)" ) )
-                                new_node_id = m_graph->create_literal( fw::type::get<i16_t>() );
+                    if ( ImGui::MenuItem( ICON_FA_FILE " Int (16bits)" ) )
+                        m_new_node_id = m_graph->create_literal( fw::type::get<i16_t>() );
 
-                            if ( ImGui::MenuItem( ICON_FA_FILE " String" ) )
-                                new_node_id = m_graph->create_literal( fw::type::get<std::string>() );
+                    if ( ImGui::MenuItem( ICON_FA_FILE " String" ) )
+                        m_new_node_id = m_graph->create_literal( fw::type::get<std::string>() );
 
-                            ImGui::EndMenu();
-                        }
-                    }
+                    ImGui::EndMenu();
                 }
             }
         }
@@ -556,14 +508,14 @@ bool GraphView::draw()
         *  In case user has created a new node we need to connect it to the m_graph depending
         *  on if a slot is being dragged and  what is its nature.
         */
-        if ( new_node_id )
+        if ( m_new_node_id )
         {
 
             // dragging node slot ?
             if ( dragged_slot )
             {
                 SlotFlags    complementary_flags = flip_order( dragged_slot->slot().static_flags() );
-                Slot*        complementary_slot  = new_node_id->find_slot_by_property_type( complementary_flags, dragged_slot->get_property()->get_type() );
+                Slot*        complementary_slot  = m_new_node_id->find_slot_by_property_type( complementary_flags, dragged_slot->get_property()->get_type() );
                 ConnectFlags connect_flags       = ConnectFlag_ALLOW_SIDE_EFFECTS;
 
                 Slot* out = &dragged_slot->slot();
@@ -575,16 +527,17 @@ bool GraphView::draw()
 
                 SlotView::reset_dragged();
             }
-            else if (new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
+            else if (m_new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
             {
                 m_graph->ensure_has_root();
                 // m_graph->connect( new_node, m_graph->get_root(), RelType::CHILD  );
             }
 
-            // set new_node's view position
-            if( PoolID<NodeView> view = new_node_id->get_component<NodeView>() )
+            // set new_node's view position, select it
+            if( PoolID<NodeView> view = m_new_node_id->get_component<NodeView>() )
             {
                 view->set_position(m_new_node_desired_position, fw::Space_Local);
+                NodeView::set_selected(view);
             }
 		}
 
@@ -602,6 +555,34 @@ bool GraphView::draw()
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
 
 	return changed;
+}
+
+void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
+{
+    const int    grid_size             = config.ui_graph_grid_size;
+    const int    grid_subdiv_size      = config.ui_graph_grid_size / config.ui_graph_grid_subdivs;
+    const int    vertical_line_count   = int( m_screen_space_content_region.GetSize().x) / grid_subdiv_size;
+    const int    horizontal_line_count = int( m_screen_space_content_region.GetSize().y) / grid_subdiv_size;
+    ImColor      grid_color            = config.ui_graph_grid_color_major;
+    ImColor      grid_color_light      = config.ui_graph_grid_color_minor;
+
+    for(int coord = 0; coord <= vertical_line_count; ++coord)
+    {
+        float pos = m_screen_space_content_region.GetTL().x + float(coord) * float(grid_subdiv_size);
+        const ImVec2 line_start{pos, m_screen_space_content_region.GetTL().y};
+        const ImVec2 line_end{pos, m_screen_space_content_region.GetBL().y};
+        bool is_major = coord % config.ui_graph_grid_subdivs == 0;
+        draw_list->AddLine(line_start, line_end, is_major ? grid_color : grid_color_light);
+    }
+
+    for(int coord = 0; coord <= horizontal_line_count; ++coord)
+    {
+        float pos = m_screen_space_content_region.GetTL().y + float(coord) * float(grid_subdiv_size);
+        const ImVec2 line_start{ m_screen_space_content_region.GetTL().x, pos};
+        const ImVec2 line_end{ m_screen_space_content_region.GetBR().x, pos};
+        bool is_major = coord % config.ui_graph_grid_subdivs == 0;
+        draw_list->AddLine(line_start, line_end, is_major ? grid_color : grid_color_light);
+    }
 }
 
 void GraphView::add_contextual_menu_item(
@@ -733,4 +714,76 @@ void GraphView::translate_view(ImVec2 delta)
 
     // TODO: implement a better solution, storing an offset. And then substract it in draw();
     // m_view_origin += delta;
+}
+
+PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
+{
+    if (m_focus_search_input)
+    {
+        ImGui::SetKeyboardFocusHere();
+        m_focus_search_input = false;
+    }
+
+    // Filter contextual menu items depending on m_search_input (search by label)
+    if ( ImGui::InputText("Search", m_search_input, 255, ImGuiInputTextFlags_EscapeClearsAll))
+    {
+        m_filtered_contextual_menus.clear();
+        if ( m_search_input[0] != '\0' )
+        {
+            for ( auto& [_, menu_item] : m_contextual_menus )
+            {
+                if( menu_item.label.find( m_search_input ) != std::string::npos )
+                {
+                    m_filtered_contextual_menus.push_back(menu_item);
+                    if ( m_filtered_contextual_menus.size() == _result_max_count )
+                    {
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    if ( !m_filtered_contextual_menus.empty() )
+    {
+
+        // When a single item is filtered, pressing enter will press the item's button.
+        if ( m_filtered_contextual_menus.size() == 1)
+        {
+            if ( ImGui::SmallButton( m_filtered_contextual_menus[0].label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
+            {
+                m_new_node_id = m_filtered_contextual_menus[0].create_node_fct();
+            }
+        }
+        else
+        {
+            // Otherwise, user has to move with arrow keys and press enter to trigger the highlighted button.
+            for ( auto& menu_item : m_filtered_contextual_menus )
+            {
+                if ( ImGui::SmallButton( menu_item.label.c_str()) || // User can click on the button...
+                     (ImGui::IsKeyDown( ImGuiKey_Enter ) && ImGui::IsItemFocused() ) // ...or press enter if this item is the first
+                )
+                {
+                    m_new_node_id = menu_item.create_node_fct();
+                }
+            }
+        }
+    }
+    else if ( m_search_input[0] != '\0' )
+    {
+        ImGui::Text("No matches...");
+    }
+
+    return m_new_node_id;
+}
+
+void GraphView::open_popup_context_menu()
+{
+    if (!ImGui::IsPopupOpen(k_context_menu_popup) )
+    {
+        ImGui::OpenPopup(k_context_menu_popup);
+        m_focus_search_input = true;
+        m_search_input[0] = '\0';
+        m_filtered_contextual_menus.clear();
+    }
 }
