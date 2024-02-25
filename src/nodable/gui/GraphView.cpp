@@ -37,28 +37,27 @@ REGISTER
 GraphView::GraphView(Graph* graph)
     : fw::View()
     , m_graph(graph)
-    , m_new_node_desired_position(-1, -1)
-    , m_search_input_should_init(false)
+    , m_context_menu()
 {
 
     // Prepare context menu items
 
     // 1) Blocks
-    add_contextual_menu_item( "1", ICON_FA_CODE " Condition", "condition", [&]() { return m_graph->create_cond_struct(); } );
-    add_contextual_menu_item( "1", ICON_FA_CODE " For Loop", "for loop", [&]() { return m_graph->create_for_loop(); } );
-    add_contextual_menu_item( "1", ICON_FA_CODE " While Loop", "while loop", [&]() { return m_graph->create_while_loop(); } );
-    add_contextual_menu_item( "1", ICON_FA_CODE " Scope", "scope", [&]() { return m_graph->create_scope(); } );
-    add_contextual_menu_item( "1", ICON_FA_CODE " Program", "program scope", [&]() {  m_graph->clear(); return m_graph->create_root(); } );
+    m_context_menu.add_item( "1", ICON_FA_CODE " Condition", "condition", [&]() { return m_graph->create_cond_struct(); } );
+    m_context_menu.add_item( "1", ICON_FA_CODE " For Loop", "for loop", [&]() { return m_graph->create_for_loop(); } );
+    m_context_menu.add_item( "1", ICON_FA_CODE " While Loop", "while loop", [&]() { return m_graph->create_while_loop(); } );
+    m_context_menu.add_item( "1", ICON_FA_CODE " Scope", "scope", [&]() { return m_graph->create_scope(); } );
+    m_context_menu.add_item( "1", ICON_FA_CODE " Program", "program scope", [&]() {  m_graph->clear(); return m_graph->create_root(); } );
     // 2) Variables
-    add_contextual_menu_item( "2", ICON_FA_DATABASE " Boolean Variable", "boolean variable", [&]() { return create_variable( fw::type::get<bool>(), "var", {} ); } );
-    add_contextual_menu_item( "2", ICON_FA_DATABASE " Double Variable", "double variable", [&]() { return create_variable( fw::type::get<double>(), "var", {} ); } );
-    add_contextual_menu_item( "2", ICON_FA_DATABASE " Integer Variable", "integer variable", [&]() { return create_variable( fw::type::get<i16_t>(), "var", {} ); } );
-    add_contextual_menu_item( "2", ICON_FA_DATABASE " String Variable", "string variable", [&]() { return create_variable( fw::type::get<std::string>(), "var", {} ); } );
+    m_context_menu.add_item( "2", ICON_FA_DATABASE " Boolean Variable", "boolean variable", [&]() { return create_variable( fw::type::get<bool>(), "var", {} ); } );
+    m_context_menu.add_item( "2", ICON_FA_DATABASE " Double Variable", "double variable", [&]() { return create_variable( fw::type::get<double>(), "var", {} ); } );
+    m_context_menu.add_item( "2", ICON_FA_DATABASE " Integer Variable", "integer variable", [&]() { return create_variable( fw::type::get<i16_t>(), "var", {} ); } );
+    m_context_menu.add_item( "2", ICON_FA_DATABASE " String Variable", "string variable", [&]() { return create_variable( fw::type::get<std::string>(), "var", {} ); } );
     // 3) Literals
-    add_contextual_menu_item( "3", ICON_FA_FILE " Boolean Literal", "boolean literal", [&]() { return m_graph->create_literal( fw::type::get<bool>() ); } );
-    add_contextual_menu_item( "3", ICON_FA_FILE " Double Literal", "double float literal", [&]() { return m_graph->create_literal( fw::type::get<double>() ); } );
-    add_contextual_menu_item( "3", ICON_FA_FILE " Integer Literal", "integer literal", [&]() { return m_graph->create_literal( fw::type::get<i16_t>()); } );
-    add_contextual_menu_item( "3", ICON_FA_FILE " String Literal", "string literal", [&]() { return m_graph->create_literal( fw::type::get<std::string>()); } );
+    m_context_menu.add_item( "3", ICON_FA_FILE " Boolean Literal", "boolean literal", [&]() { return m_graph->create_literal( fw::type::get<bool>() ); } );
+    m_context_menu.add_item( "3", ICON_FA_FILE " Double Literal", "double float literal", [&]() { return m_graph->create_literal( fw::type::get<double>() ); } );
+    m_context_menu.add_item( "3", ICON_FA_FILE " Integer Literal", "integer literal", [&]() { return m_graph->create_literal( fw::type::get<i16_t>()); } );
+    m_context_menu.add_item( "3", ICON_FA_FILE " String Literal", "string literal", [&]() { return m_graph->create_literal( fw::type::get<std::string>()); } );
     // 4) Functions/Operators from the API
     const Nodlang& language = Nodlang::get_instance();
     for (auto& each_fct : language.get_api())
@@ -74,7 +73,7 @@ GraphView::GraphView(Graph* graph)
         language.serialize_func_sig(label, func_type );
         std::string search_target_string = func_type->get_identifier();
         search_target_string.append(is_operator ? " operator" : " function");
-        add_contextual_menu_item("4", label, search_target_string, create_node, func_type );
+        m_context_menu.add_item("4", label, search_target_string, create_node, func_type );
     }
 }
 
@@ -105,10 +104,12 @@ bool GraphView::draw()
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     Nodable &       app              = Nodable::get_instance();
     const bool      enable_edition   = app.virtual_machine.is_program_stopped();
-    ImVec2          origin           = ImGui::GetCursorScreenPos();
     auto            node_registry    = Pool::get_pool()->get( m_graph->get_node_registry() );
     const SlotView* dragged_slot     = SlotView::get_dragged();
     const SlotView* hovered_slot     = SlotView::get_hovered();
+    bool drop_behavior_requires_a_new_node = false;
+    bool is_any_node_dragged               = false;
+    bool is_any_node_hovered               = false;
 
     // Draw grid in the background
     draw_grid( draw_list, app.config );
@@ -163,16 +164,22 @@ bool GraphView::draw()
     // slot Drag'n Drop
     if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
     {
+        // Get the current dragged slot, or the slot that was dragged when context menu opened
+        const SlotView* _dragged_slot = dragged_slot ? dragged_slot : m_context_menu.dragged_slot;
+
         // Draw temporary edge
-        if (dragged_slot)
+        if ( _dragged_slot )
         {
-            if (  dragged_slot->slot().type() == SlotFlag_TYPE_CODEFLOW )
+            // When dragging, edge follows mouse cursor. Otherwise, it sticks the contextual menu.
+            ImVec2 edge_end = m_context_menu.dragged_slot ? m_context_menu.opened_at_screen_pos : ImGui::GetMousePos();
+
+            if ( _dragged_slot->slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
                 // Thick line
                 fw::ImGuiEx::DrawVerticalWire(
                         ImGui::GetWindowDrawList(),
-                        dragged_slot->rect(app.config).GetCenter(),
-                        hovered_slot ? hovered_slot->rect(app.config).GetCenter(): ImGui::GetMousePos(),
+                        _dragged_slot->rect(app.config).GetCenter(),
+                        hovered_slot ? hovered_slot->rect(app.config).GetCenter(): edge_end,
                         app.config.ui_codeflow_color,
                         app.config.ui_codeflow_shadowColor,
                         app.config.ui_node_slot_size.x * app.config.ui_codeflow_thickness_ratio,
@@ -183,27 +190,18 @@ bool GraphView::draw()
             {
                 // Simple line
                 ImGui::GetWindowDrawList()->AddLine(
-                    dragged_slot->position(),
-                    hovered_slot ? hovered_slot->position() : ImGui::GetMousePos(),
+                        _dragged_slot->position(),
+                    hovered_slot ? hovered_slot->position() : edge_end,
                     ImGui::ColorConvertFloat4ToU32(app.config.ui_node_borderHighlightedColor),
                     app.config.ui_wire_bezier_thickness
                 );
             }
         }
 
-        // Drops ?
-        bool require_new_node   = false;
-        SlotView::drop_behavior(require_new_node, enable_edition);
-
-        // Need a need node ?
-        if (require_new_node)
-        {
-            open_popup_context_menu();
-        }
+        // Determine whether the current dragged SlotView should be dropped or not, and if a new node is required
+        SlotView::drop_behavior( drop_behavior_requires_a_new_node, enable_edition);
     }
 
-	bool isAnyNodeDragged = false;
-	bool isAnyNodeHovered = false;
 	{
         /*
             Wires
@@ -308,13 +306,13 @@ bool GraphView::draw()
                     each_node_view->pinned( true );
                 }
 
-                isAnyNodeDragged |= NodeView::get_dragged() == each_node_view->poolid();
-                isAnyNodeHovered |= each_node_view->is_hovered();
+                is_any_node_dragged |= NodeView::get_dragged() == each_node_view->poolid();
+                is_any_node_hovered |= each_node_view->is_hovered();
             }
 		}
 	}
 
-	isAnyNodeDragged |= SlotView::is_dragging();
+    is_any_node_dragged |= SlotView::is_dragging();
 
 	// Virtual Machine cursor
     if ( app.virtual_machine.is_program_running() )
@@ -343,7 +341,7 @@ bool GraphView::draw()
 	/*
 		Deselection (by double click)
 	*/
-	if ( NodeView::is_any_selected() && !isAnyNodeHovered && ImGui::IsMouseDoubleClicked(0) && ImGui::IsWindowFocused())
+	if ( NodeView::is_any_selected() && !is_any_node_hovered && ImGui::IsMouseDoubleClicked(0) && ImGui::IsWindowFocused())
     {
         NodeView::set_selected({});
     }
@@ -351,41 +349,39 @@ bool GraphView::draw()
 	/*
 		Mouse PAN (global)
 	*/
-	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !isAnyNodeDragged )
+	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !is_any_node_dragged )
     {
         translate_view(ImGui::GetMouseDragDelta());
         ImGui::ResetMouseDragDelta();
     }
 
-	/*
-		Mouse right-click popup menu
-	*/
-
-    if ( enable_edition && !isAnyNodeHovered && ImGui::IsMouseClicked(1))
+	// Decides whether contextual menu should be opened.
+    if ( drop_behavior_requires_a_new_node || (enable_edition && !is_any_node_hovered && ImGui::IsMouseClicked(1) ) )
     {
-        open_popup_context_menu();
+        if ( !ImGui::IsPopupOpen( k_context_menu_popup ) )
+        {
+            ImGui::OpenPopup( k_context_menu_popup );
+            m_context_menu.reset_state( SlotView::get_dragged() );
+            SlotView::reset_dragged();
+        }
     }
 
+    // Defines contextual menu popup (not rendered if popup is closed)
 	if ( ImGui::BeginPopup(k_context_menu_popup) )
     {
-        m_new_node_desired_position = ImGui::GetMousePos() - origin;
-
         // Title :
         fw::ImGuiEx::ColoredShadowedText( ImVec2( 1, 1 ), ImColor( 0.00f, 0.00f, 0.00f, 1.00f ), ImColor( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
         ImGui::Separator();
 
-        if ( draw_search_input( 10 ) )
-        {
-            ImGui::CloseCurrentPopup();
-        }
+        bool search_input_created_a_node = draw_search_input( 10 );
 
         /*
         *  In case user has created a new node we need to connect it to the m_graph depending
         *  on if a slot is being dragged and  what is its nature.
         */
-        if ( m_new_node_id )
+        if ( search_input_created_a_node )
         {
-            if ( !dragged_slot )
+            if ( !m_context_menu.dragged_slot )
             {
                 // Experimental: we try to connect a parent-less child
                 if (m_new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
@@ -397,8 +393,8 @@ bool GraphView::draw()
             else
             {
                 Slot* complementary_slot  = m_new_node_id->find_slot_by_property_type(
-                        get_complementary_flags( dragged_slot->slot().static_flags() ),
-                        dragged_slot->get_property()->get_type()
+                        get_complementary_flags( m_context_menu.dragged_slot->slot().static_flags() ),
+                        m_context_menu.dragged_slot->get_property()->get_type()
                         );
 
                 if ( !complementary_slot )
@@ -408,34 +404,29 @@ bool GraphView::draw()
                 }
                 else
                 {
-                    Slot* out = &dragged_slot->slot();
+                    Slot* out = &m_context_menu.dragged_slot->slot();
                     Slot* in  = complementary_slot;
 
                     if( out->has_flags(SlotFlag_ORDER_SECOND) ) std::swap(out, in);
 
                     m_graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
-
-                    SlotView::reset_dragged();
                 }
 
             }
 
             // set new_node's view position, select it
-            if( PoolID<NodeView> view = m_new_node_id->get_component<NodeView>() )
+            if( auto view = m_new_node_id->get_component<NodeView>() )
             {
-                view->set_position(m_new_node_desired_position, fw::Space_Local);
+                view->set_position(m_context_menu.opened_at_pos, fw::Space_Local);
                 NodeView::set_selected(view);
             }
+
+            ImGui::CloseCurrentPopup();
+            SlotView::reset_dragged();
 		}
-
 		ImGui::EndPopup();
-	}
-
-	// reset dragged if right click
-	if ( ImGui::IsMouseClicked(1) )
-    {
-        ImGui::CloseCurrentPopup();
-        SlotView::reset_dragged();
+	} else {
+        m_context_menu.reset_state();
     }
 
 	// add some empty space
@@ -470,19 +461,6 @@ void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
         bool is_major = coord % config.ui_graph_grid_subdivs == 0;
         draw_list->AddLine(line_start, line_end, is_major ? grid_color : grid_color_light);
     }
-}
-
-void GraphView::add_contextual_menu_item(
-        const std::string& _category,
-        const std::string& _label,
-        std::string _search_target_string,
-        std::function<PoolID<Node>(void)> _function,
-        const fw::func_type * _signature)
-{
-    // Prepare a lower case string for search purposes
-    std::transform(_search_target_string.begin(), _search_target_string.end(), _search_target_string.begin(), [](unsigned char c){ return std::tolower(c); });
-
-	m_contextual_menus.insert( {_category, {_label, _search_target_string, std::move(_function), _signature }} );
 }
 
 bool GraphView::update(float delta_time, i16_t subsample_count)
@@ -607,26 +585,26 @@ void GraphView::translate_view(ImVec2 delta)
     // m_view_origin += delta;
 }
 
-PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
+bool GraphView::draw_search_input( size_t _result_max_count )
 {
-    if ( m_search_input_should_init )
+    if ( m_context_menu.must_be_reset_flag )
     {
-        m_search_input_should_init = false;
+        m_context_menu.must_be_reset_flag = false;
         ImGui::SetKeyboardFocusHere();
 
         // On init, we filter the functions/operators matching with the currently dragged slot
-        m_context_menu_with_compatible_signature.clear();
+        m_context_menu.items_with_compatible_signature.clear();
         SlotView* dragged_slot = SlotView::get_dragged();
         if ( !dragged_slot )
         {
-            for (auto& [_, menu_item] : m_contextual_menus)
+            for (auto& [_, menu_item] : m_context_menu.items_by_category )
             {
-                m_context_menu_with_compatible_signature.push_back( menu_item );
+                m_context_menu.items_with_compatible_signature.push_back( menu_item );
             }
         }
         else
         {
-            for (auto& [_, menu_item] : m_contextual_menus)
+            for (auto& [_, menu_item] : m_context_menu.items_by_category )
             {
                 if ( !dragged_slot->is_this() )
                 {
@@ -639,7 +617,7 @@ PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
 
                     if ( has_compatible_signature )
                     {
-                        m_context_menu_with_compatible_signature.push_back( menu_item );
+                        m_context_menu.items_with_compatible_signature.push_back( menu_item );
                     }
                 }
             }
@@ -647,17 +625,17 @@ PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
     }
 
     // Filter by label
-    if ( ImGui::InputText("Search", m_search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
+    if ( ImGui::InputText("Search", m_context_menu.search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
     {
-        m_context_menu_with_label_matching_search.clear();
-        if ( m_search_input[0] != '\0' )
+        m_context_menu.items_matching_search.clear();
+        if ( m_context_menu.search_input[0] != '\0' )
         {
-            for ( auto& menu_item : m_context_menu_with_compatible_signature )
+            for ( auto& menu_item : m_context_menu.items_with_compatible_signature )
             {
-                if( menu_item.search_target_string.find( m_search_input ) != std::string::npos )
+                if( menu_item.search_target_string.find( m_context_menu.search_input ) != std::string::npos )
                 {
-                    m_context_menu_with_label_matching_search.push_back(menu_item);
-                    if ( m_context_menu_with_label_matching_search.size() == _result_max_count )
+                    m_context_menu.items_matching_search.push_back(menu_item);
+                    if ( m_context_menu.items_matching_search.size() == _result_max_count )
                     {
                         break;
                     }
@@ -666,31 +644,32 @@ PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
         }
     }
 
-    if ( !m_context_menu_with_label_matching_search.empty() )
+    if ( !m_context_menu.items_matching_search.empty() )
     {
         // When a single item is filtered, pressing enter will press the item's button.
-        if ( m_context_menu_with_label_matching_search.size() == 1)
+        if ( m_context_menu.items_matching_search.size() == 1)
         {
-            if ( ImGui::SmallButton( m_context_menu_with_label_matching_search[0].label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
+            if ( ImGui::SmallButton( m_context_menu.items_matching_search[0].label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
             {
-                m_new_node_id = m_context_menu_with_label_matching_search[0].create_node_fct();
+                m_new_node_id = m_context_menu.items_matching_search[0].create_node_fct();
             }
         }
         else
         {
             // Otherwise, user has to move with arrow keys and press enter to trigger the highlighted button.
-            for ( auto& menu_item : m_context_menu_with_label_matching_search )
+            for ( auto& menu_item : m_context_menu.items_matching_search )
             {
                 if ( ImGui::SmallButton( menu_item.label.c_str()) || // User can click on the button...
                      (ImGui::IsKeyDown( ImGuiKey_Enter ) && ImGui::IsItemFocused() ) // ...or press enter if this item is the first
                 )
                 {
                     m_new_node_id = menu_item.create_node_fct();
+                    return true;
                 }
             }
         }
     }
-    else if ( m_search_input[0] != '\0' )
+    else if ( m_context_menu.search_input[0] != '\0' )
     {
         ImGui::Text("No matches...");
     }
@@ -699,16 +678,30 @@ PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
         ImGui::Text("Search for a function by typing its name");
     }
 
-    return m_new_node_id;
+    return false;
 }
 
-void GraphView::open_popup_context_menu()
+void ContextMenuState::reset_state( SlotView* _dragged_slot )
 {
-    if (!ImGui::IsPopupOpen(k_context_menu_popup) )
-    {
-        ImGui::OpenPopup(k_context_menu_popup);
-        m_search_input_should_init = true;
-        m_search_input[0] = '\0';
-        m_context_menu_with_label_matching_search.clear();
-    }
+    must_be_reset_flag   = true;
+    search_input[0]      = '\0';
+    opened_at_pos        = ImGui::GetMousePos() - ImGui::GetCursorScreenPos();
+    opened_at_screen_pos = ImGui::GetMousePos();
+    dragged_slot         = _dragged_slot;
+
+    items_matching_search.clear();
+    items_with_compatible_signature.clear();
+}
+
+void ContextMenuState::add_item(
+        const std::string& _category_key,
+        const std::string& _label,
+        std::string _search_target_string,
+        std::function<PoolID<Node>(void)> _node_factory_fct,
+        const fw::func_type * _signature)
+{
+    // Prepare a lower case string for search purposes
+    std::transform(_search_target_string.begin(), _search_target_string.end(), _search_target_string.begin(), [](unsigned char c){ return std::tolower(c); });
+
+    items_by_category.insert( { _category_key, {_label, _search_target_string, std::move( _node_factory_fct ), _signature }} );
 }
