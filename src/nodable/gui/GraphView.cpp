@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <memory> // std::shared_ptr
+#include <utility>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "core/types.h"
 #include "fw/core/log.h"
@@ -37,88 +38,45 @@ GraphView::GraphView(Graph* graph)
     : fw::View()
     , m_graph(graph)
     , m_new_node_desired_position(-1, -1)
-    , m_focus_search_input(false)
-{   
+    , m_search_input_should_init(false)
+{
+
+    // Prepare context menu items
+
+    // 1) Blocks
+    add_contextual_menu_item( "1", ICON_FA_CODE " Condition", "condition", [&]() { return m_graph->create_cond_struct(); } );
+    add_contextual_menu_item( "1", ICON_FA_CODE " For Loop", "for loop", [&]() { return m_graph->create_for_loop(); } );
+    add_contextual_menu_item( "1", ICON_FA_CODE " While Loop", "while loop", [&]() { return m_graph->create_while_loop(); } );
+    add_contextual_menu_item( "1", ICON_FA_CODE " Scope", "scope", [&]() { return m_graph->create_scope(); } );
+    add_contextual_menu_item( "1", ICON_FA_CODE " Program", "program scope", [&]() {  m_graph->clear(); return m_graph->create_root(); } );
+    // 2) Variables
+    add_contextual_menu_item( "2", ICON_FA_DATABASE " Boolean Variable", "boolean variable", [&]() { return create_variable( fw::type::get<bool>(), "var", {} ); } );
+    add_contextual_menu_item( "2", ICON_FA_DATABASE " Double Variable", "double variable", [&]() { return create_variable( fw::type::get<double>(), "var", {} ); } );
+    add_contextual_menu_item( "2", ICON_FA_DATABASE " Integer Variable", "integer variable", [&]() { return create_variable( fw::type::get<i16_t>(), "var", {} ); } );
+    add_contextual_menu_item( "2", ICON_FA_DATABASE " String Variable", "string variable", [&]() { return create_variable( fw::type::get<std::string>(), "var", {} ); } );
+    // 3) Literals
+    add_contextual_menu_item( "3", ICON_FA_FILE " Boolean Literal", "boolean literal", [&]() { return m_graph->create_literal( fw::type::get<bool>() ); } );
+    add_contextual_menu_item( "3", ICON_FA_FILE " Double Literal", "double float literal", [&]() { return m_graph->create_literal( fw::type::get<double>() ); } );
+    add_contextual_menu_item( "3", ICON_FA_FILE " Integer Literal", "integer literal", [&]() { return m_graph->create_literal( fw::type::get<i16_t>()); } );
+    add_contextual_menu_item( "3", ICON_FA_FILE " String Literal", "string literal", [&]() { return m_graph->create_literal( fw::type::get<std::string>()); } );
+    // 4) Functions/Operators from the API
     const Nodlang& language = Nodlang::get_instance();
     for (auto& each_fct : language.get_api())
     {
-        const fw::func_type* type = each_fct->get_type();
-        bool is_operator = language.find_operator_fct(type) != nullptr;
-
-        auto create_node = [this, each_fct, is_operator]() -> PoolID<Node>
+        const fw::func_type* func_type = each_fct->get_type();
+        bool is_operator = Nodlang::get_instance().find_operator_fct( func_type ) != nullptr;
+        auto create_node = [&]() -> PoolID<Node>
         {
             return m_graph->create_function(each_fct.get(), is_operator);
         };
 
         std::string label;
-        language.serialize_func_sig(label, type);
-        std::string category = is_operator ? k_operator_menu_label : k_function_menu_label;
-        add_contextual_menu_item(category, label, create_node, type);
+        language.serialize_func_sig(label, func_type );
+        std::string search_target_string = func_type->get_identifier();
+        search_target_string.append(is_operator ? " operator" : " function");
+        add_contextual_menu_item("4", label, search_target_string, create_node, func_type );
     }
 }
-
-/*
-    * Function to draw an invocable menu (operators or functions)
-    */
-PoolID<Node> GraphView::draw_menu(const std::string& _key)
-{
-    char menu_label[255];
-    snprintf( menu_label, 255, ICON_FA_CALCULATOR" %s", _key.c_str());
-
-    if (ImGui::BeginMenu( menu_label ))
-    {
-        SlotView* dragged_slot = SlotView::get_dragged();
-
-        auto range = m_contextual_menus.equal_range(_key);
-        for (auto it = range.first; it != range.second; it++)
-        {
-            FunctionMenuItem menu_item = it->second;
-
-            /*
-             * First  we determine  if the current menu_item points to a function with compatible signature.
-             */
-            bool has_compatible_signature;
-
-            if ( !dragged_slot )
-            {
-                has_compatible_signature = true;
-            }
-            else if ( !dragged_slot->is_this() )
-            {
-                const fw::type* dragged_property_type = dragged_slot->get_property_type();
-
-                if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
-                {
-                    has_compatible_signature = menu_item.function_signature->has_an_arg_of_type(dragged_property_type);
-                }
-                else
-                {
-                    has_compatible_signature = menu_item.function_signature->get_return_type()->equals(dragged_property_type);
-                }
-            }
-
-            /*
-                * Then, since we know signature  compatibility, we add or not a new MenuItem.
-                */
-            if ( has_compatible_signature && ImGui::MenuItem( menu_item.label.c_str() ))
-            {
-                if ( menu_item.create_node_fct  )
-                {
-                    m_new_node_id = menu_item.create_node_fct();
-                }
-                else
-                {
-                    LOG_WARNING("GraphView", "The function associated to the key %s is nullptr",
-                                 menu_item.label.c_str())
-                }
-            }
-        }
-
-        ImGui::EndMenu();
-    }
-
-    return m_new_node_id;
-};
 
 PoolID<VariableNode> GraphView::create_variable(const fw::type* _type, const char*  _name, PoolID<Scope>  _scope)
 {
@@ -421,89 +379,6 @@ bool GraphView::draw()
             ImGui::CloseCurrentPopup();
         }
 
-        if ( !dragged_slot )
-        {
-            draw_menu( k_operator_menu_label );
-            draw_menu( k_function_menu_label );
-            ImGui::Separator();
-        }
-        else
-        {
-            SlotFlags slot_type = dragged_slot->slot().type();
-            if ( slot_type == SlotFlag_TYPE_CODEFLOW)
-            {
-                if ( ImGui::MenuItem( ICON_FA_CODE " Condition" ) )
-                    m_new_node_id = m_graph->create_cond_struct();
-                if ( ImGui::MenuItem( ICON_FA_CODE " For Loop" ) )
-                    m_new_node_id = m_graph->create_for_loop();
-                if ( ImGui::MenuItem( ICON_FA_CODE " While Loop" ) )
-                    m_new_node_id = m_graph->create_while_loop();
-
-                ImGui::Separator();
-
-                if ( ImGui::MenuItem( ICON_FA_CODE " Scope" ) )
-                    m_new_node_id = m_graph->create_scope();
-
-                ImGui::Separator();
-
-                if ( ImGui::MenuItem( ICON_FA_CODE " Program" ) )
-                {
-                    m_graph->clear();
-                    m_new_node_id = m_graph->create_root();
-                }
-            }
-            else if ( !dragged_slot->is_this() )
-            {
-                if ( ImGui::MenuItem( ICON_FA_DATABASE " Variable" ) )
-                {
-                    m_new_node_id = create_variable( dragged_slot->get_property_type(), "var", {} );
-                }
-
-                // we allow literal only if connected to variables.
-                // why? behavior when connecting a literal to a non var node is to digest it.
-                if ( dragged_slot->get_node()->get_type()->is<VariableNode>() && ImGui::MenuItem( ICON_FA_FILE "Literal" ) )
-                {
-                    m_new_node_id = m_graph->create_literal( dragged_slot->get_property_type() );
-                }
-            }
-            else
-            {
-                if ( ImGui::BeginMenu( "Variable" ) )
-                {
-                    if ( ImGui::MenuItem( ICON_FA_DATABASE " Boolean" ) )
-                        m_new_node_id = create_variable( fw::type::get<bool>(), "var", {} );
-
-                    if ( ImGui::MenuItem( ICON_FA_DATABASE " Double" ) )
-                        m_new_node_id = create_variable( fw::type::get<double>(), "var", {} );
-
-                    if ( ImGui::MenuItem( ICON_FA_DATABASE " Int (16bits)" ) )
-                        m_new_node_id = create_variable( fw::type::get<i16_t>(), "var", {} );
-
-                    if ( ImGui::MenuItem( ICON_FA_DATABASE " String" ) )
-                        m_new_node_id = create_variable( fw::type::get<std::string>(), "var", {} );
-
-                    ImGui::EndMenu();
-                }
-
-                if ( ImGui::BeginMenu( "Literal" ) )
-                {
-                    if ( ImGui::MenuItem( ICON_FA_FILE " Boolean" ) )
-                        m_new_node_id = m_graph->create_literal( fw::type::get<bool>() );
-
-                    if ( ImGui::MenuItem( ICON_FA_FILE " Double" ) )
-                        m_new_node_id = m_graph->create_literal( fw::type::get<double>() );
-
-                    if ( ImGui::MenuItem( ICON_FA_FILE " Int (16bits)" ) )
-                        m_new_node_id = m_graph->create_literal( fw::type::get<i16_t>() );
-
-                    if ( ImGui::MenuItem( ICON_FA_FILE " String" ) )
-                        m_new_node_id = m_graph->create_literal( fw::type::get<std::string>() );
-
-                    ImGui::EndMenu();
-                }
-            }
-        }
-
         /*
         *  In case user has created a new node we need to connect it to the m_graph depending
         *  on if a slot is being dragged and  what is its nature.
@@ -586,12 +461,16 @@ void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
 }
 
 void GraphView::add_contextual_menu_item(
-        const std::string &_category,
-        const std::string &_label,
+        const std::string& _category,
+        const std::string& _label,
+        std::string _search_target_string,
         std::function<PoolID<Node>(void)> _function,
-        const fw::func_type *_signature)
+        const fw::func_type * _signature)
 {
-	m_contextual_menus.insert( {_category, {_label, _function, _signature }} );
+    // Prepare a lower case string for search purposes
+    std::transform(_search_target_string.begin(), _search_target_string.end(), _search_target_string.begin(), [](unsigned char c){ return std::tolower(c); });
+
+	m_contextual_menus.insert( {_category, {_label, _search_target_string, std::move(_function), _signature }} );
 }
 
 bool GraphView::update(float delta_time, i16_t subsample_count)
@@ -718,24 +597,55 @@ void GraphView::translate_view(ImVec2 delta)
 
 PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
 {
-    if (m_focus_search_input)
+    if ( m_search_input_should_init )
     {
+        m_search_input_should_init = false;
         ImGui::SetKeyboardFocusHere();
-        m_focus_search_input = false;
+
+        // On init, we filter the functions/operators matching with the currently dragged slot
+        m_context_menu_with_compatible_signature.clear();
+        SlotView* dragged_slot = SlotView::get_dragged();
+        if ( !dragged_slot )
+        {
+            for (auto& [_, menu_item] : m_contextual_menus)
+            {
+                m_context_menu_with_compatible_signature.push_back( menu_item );
+            }
+        }
+        else
+        {
+            for (auto& [_, menu_item] : m_contextual_menus)
+            {
+                if ( !dragged_slot->is_this() )
+                {
+                    const fw::type* dragged_property_type = dragged_slot->get_property_type();
+
+                    bool has_compatible_signature =
+                            ! menu_item.function_signature ||
+                            dragged_slot->allows( SlotFlag_ORDER_FIRST ) && menu_item.function_signature->has_an_arg_of_type(dragged_property_type)
+                            || menu_item.function_signature->get_return_type()->equals(dragged_property_type);
+
+                    if ( has_compatible_signature )
+                    {
+                        m_context_menu_with_compatible_signature.push_back( menu_item );
+                    }
+                }
+            }
+        }
     }
 
-    // Filter contextual menu items depending on m_search_input (search by label)
-    if ( ImGui::InputText("Search", m_search_input, 255, ImGuiInputTextFlags_EscapeClearsAll))
+    // Filter by label
+    if ( ImGui::InputText("Search", m_search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
     {
-        m_filtered_contextual_menus.clear();
+        m_context_menu_with_label_matching_search.clear();
         if ( m_search_input[0] != '\0' )
         {
-            for ( auto& [_, menu_item] : m_contextual_menus )
+            for ( auto& menu_item : m_context_menu_with_compatible_signature )
             {
-                if( menu_item.label.find( m_search_input ) != std::string::npos )
+                if( menu_item.search_target_string.find( m_search_input ) != std::string::npos )
                 {
-                    m_filtered_contextual_menus.push_back(menu_item);
-                    if ( m_filtered_contextual_menus.size() == _result_max_count )
+                    m_context_menu_with_label_matching_search.push_back(menu_item);
+                    if ( m_context_menu_with_label_matching_search.size() == _result_max_count )
                     {
                         break;
                     }
@@ -744,21 +654,20 @@ PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
         }
     }
 
-    if ( !m_filtered_contextual_menus.empty() )
+    if ( !m_context_menu_with_label_matching_search.empty() )
     {
-
         // When a single item is filtered, pressing enter will press the item's button.
-        if ( m_filtered_contextual_menus.size() == 1)
+        if ( m_context_menu_with_label_matching_search.size() == 1)
         {
-            if ( ImGui::SmallButton( m_filtered_contextual_menus[0].label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
+            if ( ImGui::SmallButton( m_context_menu_with_label_matching_search[0].label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
             {
-                m_new_node_id = m_filtered_contextual_menus[0].create_node_fct();
+                m_new_node_id = m_context_menu_with_label_matching_search[0].create_node_fct();
             }
         }
         else
         {
             // Otherwise, user has to move with arrow keys and press enter to trigger the highlighted button.
-            for ( auto& menu_item : m_filtered_contextual_menus )
+            for ( auto& menu_item : m_context_menu_with_label_matching_search )
             {
                 if ( ImGui::SmallButton( menu_item.label.c_str()) || // User can click on the button...
                      (ImGui::IsKeyDown( ImGuiKey_Enter ) && ImGui::IsItemFocused() ) // ...or press enter if this item is the first
@@ -773,6 +682,10 @@ PoolID<Node> GraphView::draw_search_input( size_t _result_max_count )
     {
         ImGui::Text("No matches...");
     }
+    else
+    {
+        ImGui::Text("Search for a function by typing its name");
+    }
 
     return m_new_node_id;
 }
@@ -782,8 +695,8 @@ void GraphView::open_popup_context_menu()
     if (!ImGui::IsPopupOpen(k_context_menu_popup) )
     {
         ImGui::OpenPopup(k_context_menu_popup);
-        m_focus_search_input = true;
+        m_search_input_should_init = true;
         m_search_input[0] = '\0';
-        m_filtered_contextual_menus.clear();
+        m_context_menu_with_label_matching_search.clear();
     }
 }
