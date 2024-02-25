@@ -395,11 +395,13 @@ void Nodable::on_update()
             case EventType_select_successor_node_action_triggered:
             {
                 if (!selected_view) break;
-                PoolID<Node> possible_successor = selected_view->get_owner()->successors().front();
-                if (!possible_successor) break;
-                if (PoolID<NodeView> successor_view = possible_successor->get_component<NodeView>() )
+                std::vector<PoolID<Node>> successors = selected_view->get_owner()->successors();
+                if (!successors.empty())
                 {
-                    NodeView::set_selected(successor_view);
+                    if (PoolID<NodeView> successor_view = successors.front()->get_component<NodeView>() )
+                    {
+                        NodeView::set_selected(successor_view);
+                    }
                 }
                 break;
             }

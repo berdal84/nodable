@@ -385,27 +385,39 @@ bool GraphView::draw()
         */
         if ( m_new_node_id )
         {
-
-            // dragging node slot ?
-            if ( dragged_slot )
+            if ( !dragged_slot )
             {
-                SlotFlags    complementary_flags = flip_order( dragged_slot->slot().static_flags() );
-                Slot*        complementary_slot  = m_new_node_id->find_slot_by_property_type( complementary_flags, dragged_slot->get_property()->get_type() );
-                ConnectFlags connect_flags       = ConnectFlag_ALLOW_SIDE_EFFECTS;
-
-                Slot* out = &dragged_slot->slot();
-                Slot* in  = complementary_slot;
-
-                if( out->has_flags(SlotFlag_ORDER_SECOND) ) std::swap(out, in);
-
-                m_graph->connect( *out, *in, connect_flags );
-
-                SlotView::reset_dragged();
+                // Experimental: we try to connect a parent-less child
+                if (m_new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
+                {
+                    m_graph->ensure_has_root();
+                    // m_graph->connect( new_node, m_graph->get_root(), RelType::CHILD  );
+                }
             }
-            else if (m_new_node_id != m_graph->get_root() && app.config.experimental_graph_autocompletion )
+            else
             {
-                m_graph->ensure_has_root();
-                // m_graph->connect( new_node, m_graph->get_root(), RelType::CHILD  );
+                Slot* complementary_slot  = m_new_node_id->find_slot_by_property_type(
+                        get_complementary_flags( dragged_slot->slot().static_flags() ),
+                        dragged_slot->get_property()->get_type()
+                        );
+
+                if ( !complementary_slot )
+                {
+                    // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
+                    LOG_ERROR("GraphView", "unable to connect this node")
+                }
+                else
+                {
+                    Slot* out = &dragged_slot->slot();
+                    Slot* in  = complementary_slot;
+
+                    if( out->has_flags(SlotFlag_ORDER_SECOND) ) std::swap(out, in);
+
+                    m_graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
+
+                    SlotView::reset_dragged();
+                }
+
             }
 
             // set new_node's view position, select it

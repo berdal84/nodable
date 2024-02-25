@@ -213,7 +213,7 @@ Slot* Node::find_slot_by_property_type(SlotFlags flags, const fw::type* _type)
 {
     for(Slot* slot : filter_slots( flags ) )
     {
-        if( slot->get_property()->get_type()->equals( _type ) )
+        if( fw::type::is_implicitly_convertible( slot->get_property()->get_type(), _type ) )
         {
             return slot;
         }

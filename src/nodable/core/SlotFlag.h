@@ -30,7 +30,7 @@ namespace ndbl
         SlotFlag_TYPE_MASK         = SlotFlag_TYPE_CODEFLOW | SlotFlag_TYPE_HIERARCHICAL | SlotFlag_TYPE_VALUE,
     };
 
-    static SlotFlags flip_order(SlotFlags flags)
+    static SlotFlags get_complementary_flags(SlotFlags flags)
     {
         return (i8_t)(flags ^ SlotFlag_ORDER_MASK);
     }
