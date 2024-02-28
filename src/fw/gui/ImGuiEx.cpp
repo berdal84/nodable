@@ -229,10 +229,10 @@ void ImGuiEx::BeginFrame()
 
 void ImGuiEx::MenuItemBindedToEvent(uint16_t type, bool selected, bool enable)
 {
-    auto binded_evt = EventManager::get_instance().get_binded(type);
+    auto binded_evt = EventManager::get_instance().get_action_by_type( type );
     if (ImGui::MenuItem( binded_evt.label.c_str(),   binded_evt.shortcut.to_string().c_str(), selected, enable))
     {
-        EventManager::get_instance().push(binded_evt.event_t);
+        EventManager::get_instance().push_event( binded_evt.event_t );
     }
 }
 

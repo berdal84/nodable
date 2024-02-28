@@ -1873,6 +1873,27 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
 
 // Language definition ------------------------------------------------------------------------------------------------------------
 
+std::shared_ptr<const iinvokable> Nodlang::find_function(const char* _signature_hint) const
+{
+    if (_signature_hint == nullptr)
+    {
+        return nullptr;
+    }
+
+    fw::hash::type hash = fw::hash::hash(_signature_hint);
+    return find_function( hash );
+}
+
+std::shared_ptr<const iinvokable> Nodlang::find_function(fw::hash::type _hash) const
+{
+    auto found = m_functions_by_signature.find(_hash);
+    if ( found != m_functions_by_signature.end())
+    {
+        return found->second;
+    }
+    return nullptr;
+}
+
 std::shared_ptr<const iinvokable> Nodlang::find_function(const func_type* _type) const
 {
     if (!_type)

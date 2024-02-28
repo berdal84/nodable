@@ -29,6 +29,14 @@ using fw::View;
 
 Nodable *Nodable::s_instance = nullptr;
 
+template<typename T>
+static fw::func_type* create_variable_node_signature()
+{ return fw::func_type_builder<T(T)>::with_id("variable"); }
+
+template<typename T>
+static fw::func_type* create_literal_node_signature()
+{ return fw::func_type_builder<T(/*void*/)>::with_id("literal"); }
+
 Nodable::Nodable()
     : App(config.common, new NodableView(this) )
     , current_file(nullptr)
@@ -102,97 +110,126 @@ bool Nodable::on_init()
 
     // Bind commands to shortcuts
     using fw::EventType;
-    event_manager.bind(
-            {"Delete",
-             EventType_delete_node_action_triggered,
-             {SDLK_DELETE, KMOD_NONE},
-             Condition_ENABLE});
-    event_manager.bind(
-            {"Arrange",
-             EventType_arrange_node_action_triggered,
-             {SDLK_a, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager.bind(
-            {"Fold",
-             EventType_toggle_folding_selected_node_action_triggered,
-             {SDLK_x, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager.bind(
-            {"Next",
-             EventType_select_successor_node_action_triggered,
-             {SDLK_n, KMOD_NONE},
-             Condition_ENABLE});
-    event_manager.bind(
-            {ICON_FA_SAVE " Save",
-             fw::EventType_save_file_triggered,
-             {SDLK_s, KMOD_CTRL},
-             Condition_ENABLE});
-    event_manager.bind(
-            {ICON_FA_SAVE " Save as",
-             fw::EventType_save_file_as_triggered,
-             {SDLK_s, KMOD_CTRL},
-             Condition_ENABLE});
-    event_manager.bind(
-            {ICON_FA_TIMES "  Close",
-             fw::EventType_close_file_triggered,
-             {SDLK_w, KMOD_CTRL},
-             Condition_ENABLE});
-    event_manager.bind(
-            {ICON_FA_FOLDER_OPEN " Open",
-             fw::EventType_browse_file_triggered,
-             {SDLK_o, KMOD_CTRL},
-             Condition_ENABLE});
-    event_manager.bind(
-            {ICON_FA_FILE " New",
-             fw::EventType_new_file_triggered,
-             {SDLK_n, KMOD_CTRL},
-             Condition_ENABLE});
-    event_manager.bind(
-            {"Splashscreen",
-             fw::EventType_show_splashscreen_triggered,
-             {SDLK_F1},
-             Condition_ENABLE});
-    event_manager.bind(
-            {ICON_FA_SIGN_OUT_ALT " Exit",
-             fw::EventType_exit_triggered,
-             {SDLK_F4, KMOD_ALT},
-             Condition_ENABLE});
-    event_manager.bind(
-            {"Undo",
-             fw::EventType_undo_triggered,
-             {SDLK_z, KMOD_CTRL},
-             Condition_ENABLE});
-    event_manager.bind(
-            {"Redo",
-             fw::EventType_redo_triggered,
-             {SDLK_y, KMOD_CTRL},
-             Condition_ENABLE});
-    event_manager.bind(
-            {"Isolate",
-             EventType_toggle_isolate_selection,
-             {SDLK_i, KMOD_CTRL},
-             Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR});
-    event_manager.bind(
-            {"Deselect",
-             fw::EventType_none,
-             {0, KMOD_NONE, "Double click on bg"},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager.bind(
-            {"Move Graph",
-             fw::EventType_none,
-             {0, KMOD_NONE, "Drag background"},
-             Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager.bind(
-            {"Frame Selection",
-             EventType_frame_selected_node_views,
-             {SDLK_f, KMOD_NONE},
-             Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR});
-    event_manager.bind(
-            {"Frame All",
-             EventType_frame_all_node_views,
-             {SDLK_f, KMOD_LCTRL},
-             Condition_ENABLE});
+    event_manager.add_action(
+            { "Delete",
+              EventType_delete_node_action_triggered,
+              { SDLK_DELETE, KMOD_NONE },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { "Arrange",
+              EventType_arrange_node_action_triggered,
+              { SDLK_a, KMOD_NONE },
+              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
+    event_manager.add_action(
+            { "Fold",
+              EventType_toggle_folding_selected_node_action_triggered,
+              { SDLK_x, KMOD_NONE },
+              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
+    event_manager.add_action(
+            { "Next",
+              EventType_select_successor_node_action_triggered,
+              { SDLK_n, KMOD_NONE },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { ICON_FA_SAVE " Save",
+              fw::EventType_save_file_triggered,
+              { SDLK_s, KMOD_CTRL },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { ICON_FA_SAVE " Save as",
+              fw::EventType_save_file_as_triggered,
+              { SDLK_s, KMOD_CTRL },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { ICON_FA_TIMES "  Close",
+              fw::EventType_close_file_triggered,
+              { SDLK_w, KMOD_CTRL },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { ICON_FA_FOLDER_OPEN " Open",
+              fw::EventType_browse_file_triggered,
+              { SDLK_o, KMOD_CTRL },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { ICON_FA_FILE " New",
+              fw::EventType_new_file_triggered,
+              { SDLK_n, KMOD_CTRL },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { "Splashscreen",
+              fw::EventType_show_splashscreen_triggered,
+              { SDLK_F1 },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { ICON_FA_SIGN_OUT_ALT " Exit",
+              fw::EventType_exit_triggered,
+              { SDLK_F4, KMOD_ALT },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { "Undo",
+              fw::EventType_undo_triggered,
+              { SDLK_z, KMOD_CTRL },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { "Redo",
+              fw::EventType_redo_triggered,
+              { SDLK_y, KMOD_CTRL },
+              Condition_ENABLE } );
+    event_manager.add_action(
+            { "Isolate",
+              EventType_toggle_isolate_selection,
+              { SDLK_i, KMOD_CTRL },
+              Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR } );
+    event_manager.add_action(
+            { "Deselect",
+              fw::EventType_none,
+              { 0, KMOD_NONE, "Double click on bg" },
+              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
+    event_manager.add_action(
+            { "Move Graph",
+              fw::EventType_none,
+              { 0, KMOD_NONE, "Drag background" },
+              Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
+    event_manager.add_action(
+            { "Frame Selection",
+              EventType_frame_selected_node_views,
+              { SDLK_f, KMOD_NONE },
+              Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
+    event_manager.add_action(
+            { "Frame All",
+              EventType_frame_all_node_views,
+              { SDLK_f, KMOD_LCTRL },
+              Condition_ENABLE } );
 
+    // Prepare context menu items
+    {
+
+        // 1) Blocks
+        event_manager.add_action( { ICON_FA_CODE " Condition", EventType_create_block, {}, Condition_ENABLE } );
+        event_manager.add_action( { ICON_FA_CODE " For Loop", EventType_create_block, {}, Condition_ENABLE } );
+        event_manager.add_action( { ICON_FA_CODE " While Loop", EventType_create_block, {}, Condition_ENABLE } );
+        event_manager.add_action( { ICON_FA_CODE " Scope", EventType_create_block, {}, Condition_ENABLE } );
+        event_manager.add_action( { ICON_FA_CODE " Program", EventType_create_block, {}, Condition_ENABLE } );
+        // 2) Variables
+        event_manager.add_action( { ICON_FA_DATABASE " Boolean Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<bool>()} );
+        event_manager.add_action( { ICON_FA_DATABASE " Double Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<double>() } );
+        event_manager.add_action( { ICON_FA_DATABASE " Integer Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<int>() } );
+        event_manager.add_action( { ICON_FA_DATABASE " String Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<std::string>() } );
+        // 3) Literals
+        event_manager.add_action( { ICON_FA_FILE " Boolean Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<bool>() } );
+        event_manager.add_action( { ICON_FA_FILE " Double Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<double>() } );
+        event_manager.add_action( { ICON_FA_FILE " Integer Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<int>() } );
+        event_manager.add_action( { ICON_FA_FILE " String Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<std::string>() } );
+        // 4) Functions/Operators from the API
+        const Nodlang& language = Nodlang::get_instance();
+        for ( auto& each_fct: language.get_api() )
+        {
+            const fw::func_type* func_type = each_fct->get_type();
+            std::string label;
+            language.serialize_func_sig( label, func_type );
+            event_manager.add_action( { label.c_str(), EventType_create_node, {}, Condition_ENABLE, func_type } );
+        }
+    }
     return true;
 }
 
@@ -219,7 +256,7 @@ void Nodable::on_update()
 
     // shorthand to push all shortcuts to a file view overlay depending on conditions
     auto push_overlay_shortcuts = [&](ndbl::HybridFileView& _view, Condition _condition) -> void {
-        for (const auto& _binded_event: event_manager.get_binded_events())
+        for (const auto& _binded_event: event_manager.get_actions())
         {
             if( (_binded_event.condition & _condition) == _condition)
             {
@@ -442,6 +479,57 @@ void Nodable::on_update()
                 break;
             }
 
+            case EventType_create_node:
+            {
+                const fw::func_type* signature = event.create_node.signature;
+                SlotRef      dragged_slot = event.create_node.dragged;
+                ImVec2       desired_pos  = event.create_node.desired_pos;
+                Graph*       graph        = event.create_node.graph;
+
+                // 1) create the node
+                PoolID<Node> new_node_id  = current_file->get_graph()->create_node( signature ); // TODO: store the type
+
+                // 2) handle connections
+                if ( !dragged_slot )
+                {
+                    // Experimental: we try to connect a parent-less child
+                    if ( new_node_id != graph->get_root() && config.experimental_graph_autocompletion )
+                    {
+                        graph->ensure_has_root();
+                        // m_graph->connect( new_node, m_graph->get_root(), RelType::CHILD  );
+                    }
+                }
+                else
+                {
+                    Slot* complementary_slot = new_node_id->find_slot_by_property_type(
+                            get_complementary_flags( dragged_slot->static_flags() ),
+                            dragged_slot->get_property()->get_type() );
+
+                    if ( !complementary_slot )
+                    {
+                        // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
+                        LOG_ERROR( "GraphView", "unable to connect this node" )
+                    }
+                    else
+                    {
+                        Slot* out = dragged_slot.get();
+                        Slot* in = complementary_slot;
+
+                        if ( out->has_flags( SlotFlag_ORDER_SECOND ) ) std::swap( out, in );
+
+                        graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
+                    }
+                }
+
+                // set new_node's view position, select it
+                if ( auto view = new_node_id->get_component<NodeView>() )
+                {
+                    view->set_position( desired_pos, fw::Space_Local );
+                    NodeView::set_selected( view );
+                }
+                break;
+            }
+
             default:
             {
                 LOG_VERBOSE("App", "Ignoring and event, this case is not handled\n")
@@ -486,7 +574,7 @@ HybridFile *Nodable::add_file(HybridFile* _file)
     FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
-    event_manager.push(fw::EventType_file_opened);
+    event_manager.push_event( fw::EventType_file_opened );
     return _file;
 }
 

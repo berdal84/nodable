@@ -240,31 +240,31 @@ void App::handle_events()
                 // With mode key only
                 if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
-                    for(const auto& _binded_event: event_manager.get_binded_events() )
+                    for(const auto& _action: event_manager.get_actions() )
                     {
                         // first, priority to shortcuts with mod
-                        if ( _binded_event.shortcut.mod != KMOD_NONE
-                            && _binded_event.event_t
-                            && (_binded_event.shortcut.mod & event.key.keysym.mod)
-                            && _binded_event.shortcut.key == event.key.keysym.sym
+                        if ( _action.shortcut.mod != KMOD_NONE
+                            && _action.event_t
+                            && ( _action.shortcut.mod & event.key.keysym.mod)
+                            && _action.shortcut.key == event.key.keysym.sym
                         )
                         {
-                            event_manager.push(_binded_event.event_t);
+                            event_manager.push_event( _action.event_t );
                             break;
                         }
                     }
                 }
                 else // without any mod key
                 {
-                    for(const auto& _binded_event: event_manager.get_binded_events() )
+                    for(const auto& _action: event_manager.get_actions() )
                     {
                         // first, priority to shortcuts with mod
-                        if ( _binded_event.shortcut.mod == KMOD_NONE
-                            && _binded_event.event_t
-                            && _binded_event.shortcut.key == event.key.keysym.sym
+                        if ( _action.shortcut.mod == KMOD_NONE
+                            && _action.event_t
+                            && _action.shortcut.key == event.key.keysym.sym
                         )
                         {
-                            event_manager.push(_binded_event.event_t);
+                            event_manager.push_event( _action.event_t );
                             break;
                         }
                     }

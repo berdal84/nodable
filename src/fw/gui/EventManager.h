@@ -4,9 +4,11 @@
 #include <string>
 #include <future>
 #include <map>
+#include <utility>
 #include <SDL/include/SDL_keycode.h>
 
 #include "core/types.h"
+#include "core/reflection/func_type.h"
 
 namespace fw
 {
@@ -51,12 +53,27 @@ namespace fw
         SimpleEvent common;
     };
 
-    struct BindedEvent
-    {
-        std::string label;
-        u16_t       event_t;
-        Shortcut    shortcut;
-        u16_t       condition;
+    // An action can trigger an event under certain circumstances
+    class Action {
+    public:
+        std::string      label;
+        u16_t            event_t;
+        Shortcut         shortcut;
+        u16_t             condition;
+        const fw::func_type* signature; // If action creates a node, this will point to the signature of if.
+
+        Action(
+                const char* label,
+                u16_t event_t,
+                Shortcut shortcut = {},
+                u16_t condition = {},
+                const fw::func_type* signature = nullptr)
+        : label(label)
+        , event_t(event_t)
+        , shortcut(std::move(shortcut))
+        , condition(condition)
+        , signature(signature)
+        {}
     };
 
     class EventManager
@@ -66,20 +83,20 @@ namespace fw
         EventManager(const EventManager&) = delete;
         ~EventManager();
 
+        void               push_event(EventType _type);
+        void               push_event_delayed(EventType, u64_t); // Push an event with a delay in millisecond
         void               push_event(Event& _event);
         size_t             poll_event(Event& _event);
-        void               push(EventType _type);
-        void               push_async(EventType, u64_t); // Push an event with a delay in millisecond
-        const std::vector<BindedEvent>& get_binded_events() const;
-        void                            bind(const BindedEvent& binded_cmd);
-        const BindedEvent&              get_binded(u16_t type);
+        const std::vector<Action>& get_actions() const;
+        void                       add_action(Action);
+        const Action&              get_action_by_type(u16_t type);
 
-        static EventManager&            get_instance();
+        static EventManager&       get_instance();
 
     private:
-        static EventManager*            s_instance;
-        std::queue<Event>               m_events;
-        std::vector<BindedEvent>        m_binded_events;
-        std::map<u16_t, BindedEvent>    m_binded_events_by_type;
+        static EventManager*       s_instance;
+        std::queue<Event>          m_events;
+        std::vector<Action>        m_actions;
+        std::map<u16_t, Action>    m_actions_by_event_type;
     };
 }

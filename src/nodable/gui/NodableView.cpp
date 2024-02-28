@@ -95,7 +95,7 @@ void NodableView::on_draw()
             auto has_selection = NodeView::is_any_selected();
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped)) {
-                event_manager.push(EventType_delete_node_action_triggered);
+                event_manager.push_event( EventType_delete_node_action_triggered );
             }
 
             fw::ImGuiEx::MenuItemBindedToEvent(EventType_arrange_node_action_triggered, false, has_selection);
@@ -503,10 +503,10 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                event_manager.push(fw::EventType_new_file_triggered);
+                event_manager.push_event( fw::EventType_new_file_triggered );
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                event_manager.push(fw::EventType_browse_file_triggered);
+                event_manager.push_event( fw::EventType_browse_file_triggered );
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -841,7 +841,7 @@ void NodableView::draw_toolbar_window() {
         if (ImGui::Button(
                 config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->event_manager.push(EventType_toggle_isolate_selection);
+            m_app->event_manager.push_event( EventType_toggle_isolate_selection );
         }
         ImGui::SameLine();
         ImGui::EndGroup();

@@ -19,6 +19,8 @@ namespace ndbl
         EventType_node_view_selected,
         EventType_node_view_deselected,
         EventType_frame_all_node_views,
+        EventType_create_node,
+        EventType_create_block,
         EventType_frame_selected_node_views,
         EventType_slot_dropped,
         EventType_slot_disconnected,
@@ -44,6 +46,14 @@ namespace ndbl
         SlotRef       second;
     };
 
+    struct CreateNodeEvent
+    {
+        fw::EventType type;
+        SlotRef       dragged; // The slot being dragged.
+        ImVec2        desired_pos;
+        Graph*        graph = nullptr;
+    };
+
     union Event
     {
         fw::EventType          type;
@@ -52,6 +62,7 @@ namespace ndbl
         NodeViewEvent          node;
         SlotEvent              slot;
         ToggleFoldingEvent     toggle_folding;
+        CreateNodeEvent        create_node;
     };
 
 }// namespace ndbl

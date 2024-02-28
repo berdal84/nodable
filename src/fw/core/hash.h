@@ -7,6 +7,8 @@ namespace fw
 {
     namespace hash
     {
+        using type = size_t;
+
         inline static size_t hash(char* buffer, size_t buf_size, size_t seed = 0)
         { return XXHash32::hash(buffer, buf_size, seed); }
 

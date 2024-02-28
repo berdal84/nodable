@@ -510,3 +510,68 @@ PoolID<LiteralNode> Graph::create_literal(const fw::type *_type)
     add(node);
     return node;
 }
+
+PoolID<Node> Graph::create_node( NodeType _type, const char* _signature_hint )
+{
+    switch ( _type )
+    {
+        /*
+         * TODO: That's not great we have special cases for blocks, variables and literals...
+         *       Can't we simply give a generic signature for both blocks, variables, literals, functions, and operators?
+         *       What if we pass:
+         *       - "bool|int|string|double" for a variable
+         *       - "false|true|0|42|0.1|\"string\"" for a literal
+         *       - "if|for|while|{}" for a block (not sure if we need a BLOCK_PROGRAM)
+         *       This can be made via a PoolID<Node> Nodlang::parse_single_node(const std::string&) method.
+         *
+         */
+        case NodeType_BLOCK_CONDITION:  return create_cond_struct();
+        case NodeType_BLOCK_FOR_LOOP:   return create_for_loop();
+        case NodeType_BLOCK_WHILE_LOOP: return create_while_loop();
+        case NodeType_BLOCK_SCOPE:      return create_scope();
+        case NodeType_BLOCK_PROGRAM:    clear(); return create_root();
+
+        case NodeType_VARIABLE_BOOLEAN: return create_variable_decl<bool>();
+        case NodeType_VARIABLE_DOUBLE:  return create_variable_decl<double>();
+        case NodeType_VARIABLE_INTEGER: return create_variable_decl<int>();
+        case NodeType_VARIABLE_STRING:  return create_variable_decl<std::string>();
+
+        case NodeType_LITERAL_BOOLEAN:  return create_literal<bool>();
+        case NodeType_LITERAL_DOUBLE:   return create_literal<double>();
+        case NodeType_LITERAL_INTEGER:  return create_literal<int>();
+        case NodeType_LITERAL_STRING:   return create_literal<std::string>();
+
+        case NodeType_OPERATOR:
+        case NodeType_FUNCTION:
+        {
+            FW_EXPECT(_signature_hint != nullptr, "_signature_hint is expected when dealing with functions or operators")
+            auto& language = Nodlang::get_instance();
+            // Currently, we handle operators and functions the exact same way
+            const auto invokable = language.find_function(_signature_hint);
+            bool is_operator = language.find_operator_fct( invokable->get_type() ) != nullptr;
+            return create_function(invokable.get(), is_operator);
+        }
+        default:
+            FW_EXPECT( false, "Unhandled NodeType.");
+    }
+}
+
+PoolID<VariableNode> Graph::create_variable_decl(const fw::type* _type, const char*  _name, PoolID<Scope>  _scope)
+{
+    if( !_scope)
+    {
+        _scope = get_root()->get_component<Scope>();
+    }
+
+    // Create variable
+    PoolID<VariableNode> var_node = create_variable(_type, _name, _scope );
+    var_node->set_declared(true);
+    Token token(Token_t::keyword_operator, " = ");
+    token.m_word_start_pos = 1;
+    token.m_word_size = 1;
+    var_node->assignment_operator_token = token;
+
+    // TODO: attach a default Literal?
+
+    return var_node;
+}
