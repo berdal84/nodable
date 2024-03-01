@@ -41,8 +41,7 @@ namespace ndbl
         NodeType_LITERAL_DOUBLE,
         NodeType_LITERAL_INTEGER,
         NodeType_LITERAL_STRING,
-        NodeType_FUNCTION,
-        NodeType_OPERATOR,
+        NodeType_INVOKABLE,
     };
 
     /**

@@ -46,9 +46,9 @@ namespace fw
     public:
         constexpr static EventID id = event_id;
         using payload_t = PayloadT;
-        PayloadT m_payload;
+        PayloadT payload;
         template<typename ...Args>
-        explicit TEvent(Args... args): Event(event_id), m_payload(args...){}
-        [[nodiscard]] void* data() const override { return const_cast<void*>( static_cast<const void*>( &m_payload ) ); }
+        explicit TEvent(Args... args): Event(event_id), payload(args...){}
+        [[nodiscard]] void* data() const override { return const_cast<void*>( static_cast<const void*>( &payload ) ); }
     };
 }

@@ -25,13 +25,19 @@ namespace fw
         void                       dispatch(Event* _event);            // Push an existing event to the queue.
         Event*                     poll_event();                       // Pop the first event in the queue
         const std::vector<Action*>& get_actions() const;               // Get all the actions bound to any event
-        template<typename ActionT, typename ...Args>
-        Action* emplace_action(Args... args)
+        template<typename ActionT>
+        EventManager& register_action( const char* label, Shortcut shortcut = {}, typename ActionT::payload_t&& payload = {} )
         {
             static_assert( std::is_base_of_v<Action, ActionT> );
-            Action* action = new ActionT(args...);
+            Action* action = new ActionT(label, ActionT::event_id, shortcut, payload);
             add_action(action);
-            return action;
+            return *this; // To be able to chain
+        }
+        EventManager& add_action( const char* label, EventID event_id, const Shortcut& shortcut = {} )
+        {
+            auto* action = new Action(label, event_id, shortcut);
+            add_action(action);
+            return *this; // To be able to chain
         }
         template<typename EventT>
         Event* dispatch(const typename EventT::payload_t& payload)

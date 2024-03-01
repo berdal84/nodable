@@ -535,8 +535,7 @@ PoolID<Node> Graph::create_node( NodeType _type, const fw::func_type* _signature
         case NodeType_LITERAL_INTEGER:  return create_literal<int>();
         case NodeType_LITERAL_STRING:   return create_literal<std::string>();
 
-        case NodeType_OPERATOR:
-        case NodeType_FUNCTION:
+        case NodeType_INVOKABLE:
         {
             FW_EXPECT(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             auto& language = Nodlang::get_instance();

@@ -33,13 +33,14 @@ namespace fw
     };
 
     /** Generic action with a custom payload */
-    template<typename PayloadT>
+    template<EventID id, typename PayloadT>
     class TAction : public Action {
     public:
         static_assert( !std::is_same_v<void, PayloadT> );
         static_assert( !std::is_same_v<nullptr_t , PayloadT> );
 
         using payload_t = PayloadT;
+        constexpr static EventID event_id = id;
 
         TAction(
                 const char*  label,

@@ -24,14 +24,15 @@ namespace ndbl
         EventID_REQUEST_TOGGLE_ISOLATE_SELECTION,
         EventID_SLOT_DROPPED,
         EventID_SLOT_DISCONNECTED,
-        EventID_NODE_VIEW_SELECTED,
+        EventID_NODE_SELECTION_CHANGE,
     };
 
-    struct NodeViewEventPayload {
-        PoolID<NodeView> view;
+    struct NodeViewSelectionChangePayload
+    {
+        PoolID<NodeView> new_selection;
+        PoolID<NodeView> old_selection;
     };
-    using NodeViewSelectedEvent = fw::TEvent<EventID_NODE_VIEW_SELECTED, NodeViewEventPayload>;
-    using NodeViewEvent = fw::TEvent<EventID_NODE_VIEW_SELECTED, NodeViewEventPayload>;
+    using NodeViewSelectionChangeEvent = fw::TEvent<EventID_NODE_SELECTION_CHANGE, NodeViewSelectionChangePayload>;
 
     struct ToggleFoldingEventPayload
     {
