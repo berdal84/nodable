@@ -51,7 +51,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
                 graph_view->translate_all( ImVec2(-1000.f, -1000.0f) , views);
 
                 // frame all (33ms delayed)
-                fw::EventManager::get_instance().dispatch_delayed( EventID_REQUEST_FRAME_ALL, 33 );
+                fw::EventManager::get_instance().dispatch_delayed( EventID_REQUEST_FRAME_SELECTION, 33 );
             }
         }
     });

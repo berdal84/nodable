@@ -15,60 +15,71 @@ namespace fw
     };
 
     /** Basic action defining which event has to be triggered when a given shortcut is detected */
-    class BaseAction
+    class IAction
     {
     public:
-        BaseAction(
+        IAction(
                 EventID         event_id,
                 const char*     label,
-                const Shortcut& shortcut = {})
+                const Shortcut& shortcut = {},
+                u64_t           userdata = {}
+            )
             : label(label)
             , event_id(event_id)
             , shortcut(shortcut)
+            , userdata( userdata )
         {}
         std::string        label;
         EventID            event_id;
         Shortcut           shortcut;
-        virtual BaseEvent* make_event() const { return new BaseEvent(event_id); }
+        u64_t              userdata;
+        virtual IEvent* make_event() const { return new IEvent(event_id); }
     };
 
     /** Generic Action to trigger a given EventT */
     template<EventID _event_id>
-    class SimpleAction : public BaseAction
+    class BasicAction : public IAction
     {
     public:
-        explicit SimpleAction( const char*  label, Shortcut shortcut = {} )
-            : BaseAction(event_id, label, shortcut)
+        using event_t = fw::BasicEvent<_event_id>;
+        using event_data_t = typename event_t::data_t;
+        explicit BasicAction(
+                const char*  label,
+                Shortcut     shortcut = {},
+                u64_t        userdata = {}
+        )
+            : IAction(event_id, label, shortcut, userdata)
         {}
     };
 
     /** Generic Action able to make a given EventT from an ActionConfigT */
     template<typename EventT>
-    class CustomAction : public BaseAction
+    class CustomAction : public IAction
     {
     public:
-        static_assert( !std::is_base_of_v<EventT, BaseEvent> );
-        using event_t       = EventT;
+        static_assert( !std::is_base_of_v<EventT, IEvent> );
+        using event_t      = EventT;
         using event_data_t = typename EventT::data_t;
         CustomAction(
                 const char*   label,
-                Shortcut      shortcut = {},
-                event_data_t event_initial_state = {}
+                Shortcut      shortcut,
+                u64_t         userdata,
+                event_data_t  event_initial_state = {}
                 )
-            : BaseAction(EventT::id, label, shortcut)
+            : IAction(EventT::id, label, shortcut, userdata)
             , event_initial_state( event_initial_state )
         {}
         EventT*  make_event() const override { return new EventT( event_initial_state ); }
         event_data_t event_initial_state; // Custom data to attach
     };
 
-    using Action_FileSave        = SimpleAction<EventID_REQUEST_FILE_SAVE>;
-    using Action_FileSaveAs      = SimpleAction<EventID_REQUEST_FILE_SAVE_AS>;
-    using Action_FileClose       = SimpleAction<EventID_REQUEST_FILE_CLOSE>;
-    using Action_FileBrowse      = SimpleAction<EventID_REQUEST_FILE_BROWSE>;
-    using Action_FileNew         = SimpleAction<EventID_REQUEST_FILE_NEW>;
-    using Action_Exit            = SimpleAction<EventID_REQUEST_EXIT>;
-    using Action_Undo            = SimpleAction<EventID_REQUEST_UNDO>;
-    using Action_Redo            = SimpleAction<EventID_REQUEST_REDO>;
+    using Action_FileSave        = BasicAction<EventID_REQUEST_FILE_SAVE>;
+    using Action_FileSaveAs      = BasicAction<EventID_REQUEST_FILE_SAVE_AS>;
+    using Action_FileClose       = BasicAction<EventID_REQUEST_FILE_CLOSE>;
+    using Action_FileBrowse      = BasicAction<EventID_REQUEST_FILE_BROWSE>;
+    using Action_FileNew         = BasicAction<EventID_REQUEST_FILE_NEW>;
+    using Action_Exit            = BasicAction<EventID_REQUEST_EXIT>;
+    using Action_Undo            = BasicAction<EventID_REQUEST_UNDO>;
+    using Action_Redo            = BasicAction<EventID_REQUEST_REDO>;
     using Action_ShowWindow      = CustomAction<Event_ShowWindow>;
 }

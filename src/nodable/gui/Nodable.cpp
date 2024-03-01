@@ -112,8 +112,8 @@ bool Nodable::on_init()
     // Bind commands to shortcuts
     using fw::EventID;
     event_manager.bind<Action_DeleteNode>( "Delete", { SDLK_DELETE, KMOD_NONE } );
-    event_manager.bind<Action_ArrangeNode>( "Arrange", { SDLK_a, KMOD_NONE } /*, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR */ );
-    event_manager.bind<Action_ToggleFolding>( "Fold", { SDLK_x, KMOD_NONE } /*, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR */ );
+    event_manager.bind<Action_ArrangeNode>( "Arrange", { SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    event_manager.bind<Action_ToggleFolding>( "Fold", { SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     event_manager.bind<Action_SelectNext>( "Next", { SDLK_n, KMOD_NONE } );
     event_manager.bind<Action_FileSave>( ICON_FA_SAVE " Save", { SDLK_s, KMOD_CTRL } );
     event_manager.bind<Action_FileSaveAs>( ICON_FA_SAVE " Save as", { SDLK_s, KMOD_CTRL } );
@@ -124,16 +124,16 @@ bool Nodable::on_init()
     event_manager.bind<Action_Exit>( ICON_FA_SIGN_OUT_ALT " Exit", { SDLK_F4, KMOD_ALT } );
     event_manager.bind<Action_Undo>( "Undo", { SDLK_z, KMOD_CTRL } );
     event_manager.bind<Action_Redo>( "Redo", { SDLK_y, KMOD_CTRL } );
-    event_manager.bind<Action_Isolate>( "Isolate", { SDLK_i, KMOD_CTRL } /*, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR */ );
-    event_manager.bind<Action_SelectionChange>("Deselect", { 0, KMOD_NONE, "Double click on bg" } /*, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR }*/ );
-    event_manager.bind<Action_MoveGraph>("Move Graph", { 0, KMOD_NONE, "Drag background" } /*, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR }*/ );
-    event_manager.bind<Action_FrameGraph>("Frame Selection", { SDLK_f, KMOD_NONE } /*, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR }*/ );
+    event_manager.bind<Action_Isolate>( "Isolate", { SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    event_manager.bind<Action_SelectionChange>("Deselect", { 0, KMOD_NONE, "Double click on bg" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    event_manager.bind<Action_MoveGraph>("Move Graph", { 0, KMOD_NONE, "Drag background" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    event_manager.bind<Action_FrameGraph>("Frame Selection", { SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     event_manager.bind<Action_FrameGraph >("Frame All", { SDLK_f, KMOD_LCTRL } );
 
     // Prepare context menu items
     {
         // 1) Blocks
-        event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " Condition", {}, { NodeType_BLOCK_CONDITION } );
+        event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " Condition", {}, NodeType_BLOCK_CONDITION );
         event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " For Loop", {}, NodeType_BLOCK_FOR_LOOP );
         event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " While Loop", {}, NodeType_BLOCK_WHILE_LOOP );
         event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " Scope", {}, NodeType_BLOCK_SCOPE );
@@ -187,26 +187,16 @@ void Nodable::on_update()
 
     // shorthand to push all shortcuts to a file view overlay depending on conditions
     auto push_overlay_shortcuts = [&](ndbl::HybridFileView& _view, Condition _condition) -> void {
-        for (const auto& _action: event_manager.get_actions())
+        for (const auto _action: event_manager.get_actions())
         {
-            if( ( _action.condition & _condition) == _condition)
+            if( ( _action->userdata & _condition) == _condition && (_action->userdata & Condition_HIGHLIGHTED_IN_GRAPH_EDITOR|Condition_HIGHLIGHTED_IN_TEXT_EDITOR) )
             {
-                if ( _action.condition & Condition_HIGHLIGHTED_IN_GRAPH_EDITOR)
-                {
-                    _view.push_overlay(
-                        { _action.label.substr(0, 12),
-                              _action.shortcut.to_string()
-                        }, OverlayType_GRAPH);
-                }
-                if ( _action.condition & Condition_HIGHLIGHTED_IN_TEXT_EDITOR)
-                {
-                    _view.push_overlay(
-                        { _action.label.substr(0,12),
-                              _action.shortcut.to_string()
-                        }, OverlayType_TEXT);
-                }
+                std::string  label        = _action->label.substr(0, 12);
+                std::string  shortcut_str = _action->shortcut.to_string();
+                OverlayType_ overlay_type = _action->userdata & Condition_HIGHLIGHTED_IN_TEXT_EDITOR ? OverlayType_GRAPH
+                                                                                                   : OverlayType_TEXT;
+                _view.push_overlay({label, shortcut_str}, overlay_type);
             }
-
         }
     };
 
@@ -215,8 +205,8 @@ void Nodable::on_update()
     GraphView* graph_view          = current_file ? current_file->get_graph_view() : nullptr;
     History*   curr_file_history   = current_file ? current_file->get_history() : nullptr;
 
-    BaseEvent* event = nullptr;
-    while( (event = event_manager.poll_event()) && event != nullptr )
+    IEvent* event = nullptr;
+    while( (event = event_manager.poll_event()) )
     {
         switch ( event->id )
         {
@@ -315,15 +305,11 @@ void Nodable::on_update()
                 }
                 break;
             }
-             case Event_FrameSelection::id:
-            {
-                if (graph_view) graph_view->frame_selected_node_views();
-                break;
-            }
 
-            case Event_FrameAll::id:
+            case Event_FrameNodeViews::id:
             {
-                if (graph_view) graph_view->frame_all_node_views();
+                auto _event = reinterpret_cast<Event_FrameNodeViews*>( event );
+                _event->data.graph_view->frame(_event->data.mode);
                 break;
             }
 

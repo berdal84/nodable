@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 
+#include "FrameMode.h"
 #include "SlotView.h"
 #include "core/Graph.h"
 #include "fw/core/Pool.h"
@@ -19,7 +20,6 @@ namespace ndbl
         EventID_REQUEST_ARRANGE_HIERARCHY,
         EventID_REQUEST_SELECT_SUCCESSOR,
         EventID_REQUEST_TOGGLE_FOLDING,
-        EventID_REQUEST_FRAME_ALL,
         EventID_REQUEST_CREATE_NODE,
         EventID_REQUEST_CREATE_BLOCK,
         EventID_REQUEST_FRAME_SELECTION,
@@ -30,8 +30,13 @@ namespace ndbl
         EventID_NODE_SELECTION_CHANGE,
     };
 
-    using Event_FrameSelection = fw::SimpleEvent<EventID_REQUEST_FRAME_SELECTION>;
-    using Event_FrameAll       = fw::SimpleEvent<EventID_REQUEST_FRAME_ALL>;
+    class GraphView;
+    struct EventPayload_FrameNodeViews
+    {
+        FrameMode  mode;
+        GraphView* graph_view = nullptr; // Will be deduced my the Nodable if nullptr
+    };
+    using Event_FrameNodeViews = fw::CustomEvent<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
     struct EventPayload_SlotPair {
         SlotRef first;

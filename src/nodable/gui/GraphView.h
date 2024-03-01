@@ -55,6 +55,8 @@ namespace ndbl
         void        translate_all(ImVec2 /* delta */, const std::vector<NodeView*>&);
         void        unfold(); // unfold the graph until it is stabilized
         void        add_action_to_context_menu( Action_CreateNode* _action);
+        void frame( FrameMode mode );
+
     private:
         void        draw_grid( ImDrawList*, const Config& ) const;
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);

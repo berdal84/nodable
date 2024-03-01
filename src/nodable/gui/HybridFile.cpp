@@ -39,7 +39,7 @@ HybridFile::HybridFile(std::string _name)
     m_graph      = new Graph(&Nodable::get_instance().node_factory);
     m_graph_view = new GraphView(m_graph);
 
-    for( BaseAction* action : EventManager::get_instance().get_actions() ) // Fill the "create node" context menu
+    for( IAction* action : EventManager::get_instance().get_actions() ) // Fill the "create node" context menu
     {
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
         {

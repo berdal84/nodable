@@ -503,6 +503,16 @@ void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
     m_create_node_context_menu.items.push_back(_action);
 }
 
+void GraphView::frame( FrameMode mode )
+{
+    // TODO: use an ImRect instead of a FrameMode enum, it will be easier to handle undo/redo
+    if ( mode == FRAME_ALL )
+    {
+        return frame_all_node_views();
+    }
+    return frame_selected_node_views();
+}
+
 Action_CreateNode* CreateNodeContextMenu::draw_search_input( size_t _result_max_count )
 {
     bool validated;
