@@ -15,6 +15,10 @@ EventManager::~EventManager()
 {
     LOG_VERBOSE("fw::EventManager", "Destructor ...\n");
     s_instance = nullptr;
+    for( auto action : m_actions )
+    {
+        delete action;
+    }
     LOG_VERBOSE("fw::EventManager", "Destructor " OK "\n");
 }
 EventManager::EventManager()
@@ -31,54 +35,47 @@ EventManager& EventManager::get_instance()
     return *s_instance;
 }
 
-void EventManager::push_event(Event &_event)
+void EventManager::dispatch(Event* _event)
 {
     m_events.push(_event);
 }
 
-size_t EventManager::poll_event(Event &_event)
+Event* EventManager::poll_event()
 {
-    size_t count = m_events.size();
-
-    if( count )
-    {
-        _event = m_events.front();
-        m_events.pop();
-    }
-
-    return count;
+    return m_events.empty() ? nullptr : m_events.front();
 }
 
-void EventManager::push_event(EventType _type)
+Event* EventManager::dispatch( EventID _event_id )
 {
-    Event simple_event = { _type };
-    push_event(simple_event);
+    auto new_event = new Event{ _event_id };
+    dispatch(new_event );
+    return new_event;
 }
 
-void EventManager::add_action(Action _action )
-{
-    m_actions.push_back( _action );
-    m_actions_by_event_type.insert({ _action.event_t, _action });
-}
-
-const Action& EventManager::get_action_by_type( u16_t type )
+const Action* EventManager::get_action_by_type( u16_t type )
 {
     return m_actions_by_event_type.at(type);
 }
 
-const std::vector<Action>& EventManager::get_actions() const
+const std::vector<Action*>& EventManager::get_actions() const
 {
     return m_actions;
 }
 
-void EventManager::push_event_delayed(EventType type, u64_t delay)
+void EventManager::dispatch_delayed( EventID type, u64_t delay)
 {
     fw::async::get_instance().add_task(
         std::async(std::launch::async, [this, type, delay]() -> void {
             std::this_thread::sleep_for(std::chrono::milliseconds{delay});
-            push_event( type );
+            dispatch( type );
         })
     );
+}
+
+void EventManager::add_action(Action* _action )// Add a new action (can be triggered via shortcut)
+{
+    m_actions.push_back( _action );
+    m_actions_by_event_type.insert({ _action->event_id, _action });
 }
 
 std::string Shortcut::to_string() const

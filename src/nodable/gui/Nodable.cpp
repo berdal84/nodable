@@ -1,5 +1,6 @@
 #include "Nodable.h"
 
+#include "Action.h"
 #include "Condition.h"
 #include "Event.h"
 #include "GraphView.h"
@@ -12,11 +13,11 @@
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DisconnectEdge.h"
 #include "commands/Cmd_Group.h"
-#include "core/Slot.h"
 #include "core/DataAccess.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
 #include "core/NodeUtils.h"
+#include "core/Slot.h"
 #include "core/VariableNode.h"
 #include "fw/core/assertions.h"
 #include "fw/core/system.h"
@@ -109,117 +110,121 @@ bool Nodable::on_init()
     fw::Pool::init();
 
     // Bind commands to shortcuts
-    using fw::EventType;
-    event_manager.add_action(
-            { "Delete",
-              EventType_delete_node_action_triggered,
-              { SDLK_DELETE, KMOD_NONE },
-              Condition_ENABLE } );
+    using fw::EventID;
+    event_manager.emplace_action<CreateNodeAction>(
+        "Delete",
+        EventID_REQUEST_DELETE_NODE,
+        Shortcut{ SDLK_DELETE, KMOD_NONE }
+    );
+
     event_manager.add_action(
             { "Arrange",
-              EventType_arrange_node_action_triggered,
+              EventID_REQUEST_ARRANGE_HIERARCHY,
               { SDLK_a, KMOD_NONE },
               Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
     event_manager.add_action(
             { "Fold",
-              EventType_toggle_folding_selected_node_action_triggered,
+              EventID_REQUEST_TOGGLE_FOLDING,
               { SDLK_x, KMOD_NONE },
               Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
     event_manager.add_action(
             { "Next",
-              EventType_select_successor_node_action_triggered,
+              EventID_REQUEST_SELECT_SUCCESSOR,
               { SDLK_n, KMOD_NONE },
               Condition_ENABLE } );
     event_manager.add_action(
             { ICON_FA_SAVE " Save",
-              fw::EventType_save_file_triggered,
+              fw::EventID_REQUEST_FILE_SAVE,
               { SDLK_s, KMOD_CTRL },
               Condition_ENABLE } );
     event_manager.add_action(
             { ICON_FA_SAVE " Save as",
-              fw::EventType_save_file_as_triggered,
+              fw::EventID_REQUEST_FILE_SAVE_AS,
               { SDLK_s, KMOD_CTRL },
               Condition_ENABLE } );
     event_manager.add_action(
             { ICON_FA_TIMES "  Close",
-              fw::EventType_close_file_triggered,
+              fw::EventID_REQUEST_FILE_CLOSE,
               { SDLK_w, KMOD_CTRL },
               Condition_ENABLE } );
     event_manager.add_action(
             { ICON_FA_FOLDER_OPEN " Open",
-              fw::EventType_browse_file_triggered,
+              fw::EventID_REQUEST_FILE_BROWSE,
               { SDLK_o, KMOD_CTRL },
               Condition_ENABLE } );
     event_manager.add_action(
             { ICON_FA_FILE " New",
-              fw::EventType_new_file_triggered,
+              fw::EventID_REQUEST_FILE_NEW,
               { SDLK_n, KMOD_CTRL },
               Condition_ENABLE } );
     event_manager.add_action(
             { "Splashscreen",
-              fw::EventType_show_splashscreen_triggered,
+              fw::EventID_REQUEST_SHOW_SLASHSCREEN,
               { SDLK_F1 },
               Condition_ENABLE } );
     event_manager.add_action(
             { ICON_FA_SIGN_OUT_ALT " Exit",
-              fw::EventType_exit_triggered,
+              fw::EventID_REQUEST_EXIT,
               { SDLK_F4, KMOD_ALT },
               Condition_ENABLE } );
     event_manager.add_action(
             { "Undo",
-              fw::EventType_undo_triggered,
+              fw::EventID_REQUEST_UNDO,
               { SDLK_z, KMOD_CTRL },
               Condition_ENABLE } );
     event_manager.add_action(
             { "Redo",
-              fw::EventType_redo_triggered,
+              fw::EventID_REQUEST_REDO,
               { SDLK_y, KMOD_CTRL },
               Condition_ENABLE } );
     event_manager.add_action(
             { "Isolate",
-              EventType_toggle_isolate_selection,
+              EventID_REQUEST_TOGGLE_ISOLATE_SELECTION,
               { SDLK_i, KMOD_CTRL },
               Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR } );
     event_manager.add_action(
             { "Deselect",
-              fw::EventType_none,
+              fw::EventID_NONE,
               { 0, KMOD_NONE, "Double click on bg" },
               Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
     event_manager.add_action(
             { "Move Graph",
-              fw::EventType_none,
+              fw::EventID_NONE,
               { 0, KMOD_NONE, "Drag background" },
               Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
     event_manager.add_action(
             { "Frame Selection",
-              EventType_frame_selected_node_views,
+              EventID_REQUEST_FRAME_SELECTION,
               { SDLK_f, KMOD_NONE },
               Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR } );
     event_manager.add_action(
             { "Frame All",
-              EventType_frame_all_node_views,
+              EventID_REQUEST_FRAME_ALL,
               { SDLK_f, KMOD_LCTRL },
               Condition_ENABLE } );
 
     // Prepare context menu items
     {
-
+        static std::vector<CreateNodeAction> actions;
+        {
+            { ICON_FA_CODE " Condition", EventID_REQUEST_CREATE_BLOCK, {}, Condition_ENABLE, { nullptr, NodeType_BLOCK_CONDITION }}
+        };
         // 1) Blocks
-        event_manager.add_action( { ICON_FA_CODE " Condition", EventType_create_block, {}, Condition_ENABLE } );
-        event_manager.add_action( { ICON_FA_CODE " For Loop", EventType_create_block, {}, Condition_ENABLE } );
-        event_manager.add_action( { ICON_FA_CODE " While Loop", EventType_create_block, {}, Condition_ENABLE } );
-        event_manager.add_action( { ICON_FA_CODE " Scope", EventType_create_block, {}, Condition_ENABLE } );
-        event_manager.add_action( { ICON_FA_CODE " Program", EventType_create_block, {}, Condition_ENABLE } );
+        event_manager.add_action<CreateNodeAction>(  );
+        event_manager.add_action( { ICON_FA_CODE " For Loop", EventID_REQUEST_CREATE_BLOCK, {}, Condition_ENABLE } );
+        event_manager.add_action( { ICON_FA_CODE " While Loop", EventID_REQUEST_CREATE_BLOCK, {}, Condition_ENABLE } );
+        event_manager.add_action( { ICON_FA_CODE " Scope", EventID_REQUEST_CREATE_BLOCK, {}, Condition_ENABLE } );
+        event_manager.add_action( { ICON_FA_CODE " Program", EventID_REQUEST_CREATE_BLOCK, {}, Condition_ENABLE } );
         // 2) Variables
-        event_manager.add_action( { ICON_FA_DATABASE " Boolean Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<bool>()} );
-        event_manager.add_action( { ICON_FA_DATABASE " Double Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<double>() } );
-        event_manager.add_action( { ICON_FA_DATABASE " Integer Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<int>() } );
-        event_manager.add_action( { ICON_FA_DATABASE " String Variable", EventType_create_node, {}, Condition_ENABLE, create_variable_node_signature<std::string>() } );
+        event_manager.add_action( { ICON_FA_DATABASE " Boolean Variable", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_variable_node_signature<bool>()} );
+        event_manager.add_action( { ICON_FA_DATABASE " Double Variable", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_variable_node_signature<double>() } );
+        event_manager.add_action( { ICON_FA_DATABASE " Integer Variable", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_variable_node_signature<int>() } );
+        event_manager.add_action( { ICON_FA_DATABASE " String Variable", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_variable_node_signature<std::string>() } );
         // 3) Literals
-        event_manager.add_action( { ICON_FA_FILE " Boolean Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<bool>() } );
-        event_manager.add_action( { ICON_FA_FILE " Double Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<double>() } );
-        event_manager.add_action( { ICON_FA_FILE " Integer Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<int>() } );
-        event_manager.add_action( { ICON_FA_FILE " String Literal", EventType_create_node, {}, Condition_ENABLE, create_literal_node_signature<std::string>() } );
+        event_manager.add_action( { ICON_FA_FILE " Boolean Literal", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_literal_node_signature<bool>() } );
+        event_manager.add_action( { ICON_FA_FILE " Double Literal", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_literal_node_signature<double>() } );
+        event_manager.add_action( { ICON_FA_FILE " Integer Literal", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_literal_node_signature<int>() } );
+        event_manager.add_action( { ICON_FA_FILE " String Literal", EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, create_literal_node_signature<std::string>() } );
         // 4) Functions/Operators from the API
         const Nodlang& language = Nodlang::get_instance();
         for ( auto& each_fct: language.get_api() )
@@ -227,7 +232,7 @@ bool Nodable::on_init()
             const fw::func_type* func_type = each_fct->get_type();
             std::string label;
             language.serialize_func_sig( label, func_type );
-            event_manager.add_action( { label.c_str(), EventType_create_node, {}, Condition_ENABLE, func_type } );
+            event_manager.add_action( { label.c_str(), EventID_REQUEST_CREATE_NODE, {}, Condition_ENABLE, func_type } );
         }
     }
     return true;
@@ -287,11 +292,11 @@ void Nodable::on_update()
     GraphView* graph_view          = current_file ? current_file->get_graph_view() : nullptr;
     History*   curr_file_history   = current_file ? current_file->get_history() : nullptr;
 
-    while(event_manager.poll_event((fw::Event&)event) )
+    while( event_manager.poll_event((fw::Event&)event) )
     {
         switch ( event.type )
         {
-            case EventType_toggle_isolate_selection:
+            case EventID_REQUEST_TOGGLE_ISOLATE_SELECTION:
             {
                 config.isolate_selection = !config.isolate_selection;
                 if(current_file)
@@ -301,30 +306,30 @@ void Nodable::on_update()
                 break;
             }
 
-            case fw::EventType_exit_triggered:
+            case fw::EventID_REQUEST_EXIT:
             {
                 should_stop = true;
                 break;
             }
 
-            case fw::EventType_close_file_triggered:
+            case fw::EventID_REQUEST_FILE_CLOSE:
             {
                 if(current_file) close_file(current_file);
                 break;
             }
-            case fw::EventType_undo_triggered:
+            case fw::EventID_REQUEST_UNDO:
             {
                 if(curr_file_history) curr_file_history->undo();
                 break;
             }
 
-            case fw::EventType_redo_triggered:
+            case fw::EventID_REQUEST_REDO:
             {
                 if(curr_file_history) curr_file_history->redo();
                 break;
             }
 
-            case fw::EventType_browse_file_triggered:
+            case fw::EventID_REQUEST_FILE_BROWSE:
             {
                 std::string path;
                 if( m_view->pick_file_path(path, fw::AppView::DIALOG_Browse))
@@ -337,13 +342,13 @@ void Nodable::on_update()
 
             }
 
-            case fw::EventType_new_file_triggered:
+            case fw::EventID_REQUEST_FILE_NEW:
             {
                 new_file();
                 break;
             }
 
-            case fw::EventType_save_file_as_triggered:
+            case fw::EventID_REQUEST_FILE_SAVE_AS:
             {
                 if (current_file)
                 {
@@ -357,7 +362,7 @@ void Nodable::on_update()
                 break;
             }
 
-            case fw::EventType_save_file_triggered:
+            case fw::EventID_REQUEST_FILE_SAVE:
             {
                 if (current_file)
                 {
@@ -377,30 +382,30 @@ void Nodable::on_update()
                 break;
             }
 
-            case fw::EventType_show_splashscreen_triggered:
+            case fw::EventID_REQUEST_SHOW_SLASHSCREEN:
             {
                 config.common.splashscreen = true;
                 break;
             }
-             case EventType_frame_selected_node_views:
+             case EventID_REQUEST_FRAME_SELECTION:
             {
                 if (graph_view) graph_view->frame_selected_node_views();
                 break;
             }
 
-            case EventType_frame_all_node_views:
+            case EventID_REQUEST_FRAME_ALL:
             {
                 if (graph_view) graph_view->frame_all_node_views();
                 break;
             }
-            case EventType_node_view_selected:
+            case EventID_NODE_VIEW_SELECTED:
             {
                 current_file->view.clear_overlay();
                 push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_SELECTION);
                 LOG_MESSAGE( "App", "NodeView selected\n")
                 break;
             }
-            case fw::EventType_file_opened:
+            case fw::EventID_FILE_OPENED:
             {
                 if (!current_file) break;
                 current_file->view.clear_overlay();
@@ -413,7 +418,7 @@ void Nodable::on_update()
                 push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
-            case EventType_delete_node_action_triggered:
+            case EventID_REQUEST_DELETE_NODE:
             {
                 if ( selected_view && !ImGui::IsAnyItemFocused() )
                 {
@@ -423,13 +428,13 @@ void Nodable::on_update()
                 break;
             }
 
-            case EventType_arrange_node_action_triggered:
+            case EventID_REQUEST_ARRANGE_HIERARCHY:
             {
                 if ( selected_view ) selected_view->arrange_recursively();
                 break;
             }
 
-            case EventType_select_successor_node_action_triggered:
+            case EventID_REQUEST_SELECT_SUCCESSOR:
             {
                 if (!selected_view) break;
                 std::vector<PoolID<Node>> successors = selected_view->get_owner()->successors();
@@ -442,7 +447,7 @@ void Nodable::on_update()
                 }
                 break;
             }
-            case EventType_toggle_folding_selected_node_action_triggered:
+            case EventID_REQUEST_TOGGLE_FOLDING:
             {
                 if ( !selected_view ) break;
                 event.toggle_folding.recursive ? selected_view->expand_toggle_rec()
@@ -450,7 +455,7 @@ void Nodable::on_update()
                 break;
             }
 
-            case EventType_slot_dropped:
+            case EventID_SLOT_DROPPED:
             {
                 SlotRef tail = event.slot.first;
                 SlotRef head = event.slot.second;
@@ -463,7 +468,7 @@ void Nodable::on_update()
                 break;
             }
 
-            case EventType_slot_disconnected:
+            case EventID_SLOT_DISCONNECTED:
             {
                 SlotRef slot = event.slot.first;
 
@@ -479,31 +484,28 @@ void Nodable::on_update()
                 break;
             }
 
-            case EventType_create_node:
+            case EventID_REQUEST_CREATE_NODE:
             {
-                const fw::func_type* signature = event.create_node.signature;
-                SlotRef      dragged_slot = event.create_node.dragged;
-                ImVec2       desired_pos  = event.create_node.desired_pos;
-                Graph*       graph        = event.create_node.graph;
+                auto& evt = event.create_node;
 
                 // 1) create the node
-                PoolID<Node> new_node_id  = current_file->get_graph()->create_node( signature ); // TODO: store the type
+                PoolID<Node> new_node_id  = current_file->get_graph()->create_node( evt.node_type, evt.node_signature );
 
                 // 2) handle connections
-                if ( !dragged_slot )
+                if ( !evt.dragged_slot )
                 {
                     // Experimental: we try to connect a parent-less child
-                    if ( new_node_id != graph->get_root() && config.experimental_graph_autocompletion )
+                    if ( new_node_id != evt.graph->get_root() && config.experimental_graph_autocompletion )
                     {
-                        graph->ensure_has_root();
+                        evt.graph->ensure_has_root();
                         // m_graph->connect( new_node, m_graph->get_root(), RelType::CHILD  );
                     }
                 }
                 else
                 {
                     Slot* complementary_slot = new_node_id->find_slot_by_property_type(
-                            get_complementary_flags( dragged_slot->static_flags() ),
-                            dragged_slot->get_property()->get_type() );
+                            get_complementary_flags( evt.dragged_slot->slot().static_flags() ),
+                            evt.dragged_slot->get_property()->get_type() );
 
                     if ( !complementary_slot )
                     {
@@ -512,19 +514,19 @@ void Nodable::on_update()
                     }
                     else
                     {
-                        Slot* out = dragged_slot.get();
+                        Slot* out = &evt.dragged_slot->slot();
                         Slot* in = complementary_slot;
 
                         if ( out->has_flags( SlotFlag_ORDER_SECOND ) ) std::swap( out, in );
 
-                        graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
+                        evt.graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
                     }
                 }
 
                 // set new_node's view position, select it
                 if ( auto view = new_node_id->get_component<NodeView>() )
                 {
-                    view->set_position( desired_pos, fw::Space_Local );
+                    view->set_position( evt.node_view_local_pos, fw::Space_Local );
                     NodeView::set_selected( view );
                 }
                 break;
@@ -574,7 +576,7 @@ HybridFile *Nodable::add_file(HybridFile* _file)
     FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
-    event_manager.push_event( fw::EventType_file_opened );
+    event_manager.dispatch( fw::EventID_FILE_OPENED );
     return _file;
 }
 

@@ -243,13 +243,12 @@ void App::handle_events()
                     for(const auto& _action: event_manager.get_actions() )
                     {
                         // first, priority to shortcuts with mod
-                        if ( _action.shortcut.mod != KMOD_NONE
-                            && _action.event_t
-                            && ( _action.shortcut.mod & event.key.keysym.mod)
-                            && _action.shortcut.key == event.key.keysym.sym
+                        if ( _action->shortcut.mod != KMOD_NONE
+                            && _action->event_id && ( _action->shortcut.mod & event.key.keysym.mod)
+                            && _action->shortcut.key == event.key.keysym.sym
                         )
                         {
-                            event_manager.push_event( _action.event_t );
+                            event_manager.dispatch( _action->event_id );
                             break;
                         }
                     }
@@ -259,12 +258,11 @@ void App::handle_events()
                     for(const auto& _action: event_manager.get_actions() )
                     {
                         // first, priority to shortcuts with mod
-                        if ( _action.shortcut.mod == KMOD_NONE
-                            && _action.event_t
-                            && _action.shortcut.key == event.key.keysym.sym
+                        if ( _action->shortcut.mod == KMOD_NONE
+                            && _action->event_id && _action->shortcut.key == event.key.keysym.sym
                         )
                         {
-                            event_manager.push_event( _action.event_t );
+                            event_manager.dispatch( _action->event_id );
                             break;
                         }
                     }

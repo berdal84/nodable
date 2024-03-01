@@ -227,12 +227,12 @@ void ImGuiEx::BeginFrame()
     s_is_any_tooltip_open = false;
 }
 
-void ImGuiEx::MenuItemBindedToEvent(uint16_t type, bool selected, bool enable)
+void ImGuiEx::MenuItem(uint16_t type, bool selected, bool enable)
 {
-    auto binded_evt = EventManager::get_instance().get_action_by_type( type );
-    if (ImGui::MenuItem( binded_evt.label.c_str(),   binded_evt.shortcut.to_string().c_str(), selected, enable))
+    const Action* action = EventManager::get_instance().get_action_by_type( type );
+    if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
     {
-        EventManager::get_instance().push_event( binded_evt.event_t );
+        EventManager::get_instance().dispatch( action->event_id );
     }
 }
 

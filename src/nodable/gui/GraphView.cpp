@@ -8,6 +8,7 @@
 #include "fw/core/log.h"
 #include "fw/core/system.h"
 
+#include "Action.h"
 #include "Condition.h"
 #include "Config.h"
 #include "Event.h"
@@ -31,7 +32,7 @@ using namespace ndbl;
 using namespace ndbl::assembly;
 using namespace fw;
 
-const char* k_context_menu_popup = "GraphView.ContextMenu";
+const char* k_context_menu_popup = "GraphView.CreateNodeContextMenu";
 
 REGISTER
 {
@@ -41,16 +42,8 @@ REGISTER
 GraphView::GraphView(Graph* graph)
     : fw::View()
     , m_graph(graph)
-    , m_context_menu()
+    , m_create_node_context_menu()
 {
-    // Fill the contextual menu
-    for( auto& each : EventManager::get_instance().get_actions() )
-    {
-        if( each.event_t == EventType_create_node || each.event_t == EventType_create_block )
-        {
-            m_context_menu.items.push_back( each );
-        }
-    }
 }
 
 bool GraphView::draw()
@@ -121,13 +114,13 @@ bool GraphView::draw()
     if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
     {
         // Get the current dragged slot, or the slot that was dragged when context menu opened
-        const SlotView* _dragged_slot = dragged_slot ? dragged_slot : m_context_menu.dragged_slot;
+        const SlotView* _dragged_slot = dragged_slot ? dragged_slot : m_create_node_context_menu.dragged_slot;
 
         // Draw temporary edge
         if ( _dragged_slot )
         {
             // When dragging, edge follows mouse cursor. Otherwise, it sticks the contextual menu.
-            ImVec2 edge_end = m_context_menu.dragged_slot ? m_context_menu.opened_at_screen_pos : ImGui::GetMousePos();
+            ImVec2 edge_end = m_create_node_context_menu.dragged_slot ? m_create_node_context_menu.opened_at_screen_pos : ImGui::GetMousePos();
 
             if ( _dragged_slot->slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
@@ -317,7 +310,7 @@ bool GraphView::draw()
         if ( !ImGui::IsPopupOpen( k_context_menu_popup ) )
         {
             ImGui::OpenPopup( k_context_menu_popup );
-            m_context_menu.reset_state( SlotView::get_dragged() );
+            m_create_node_context_menu.reset_state( SlotView::get_dragged() );
             SlotView::reset_dragged();
         }
     }
@@ -332,20 +325,21 @@ bool GraphView::draw()
         *  In case user has created a new node we need to connect it to the m_graph depending
         *  on if a slot is being dragged and  what is its nature.
         */
-        if ( fw::Action* action = m_context_menu.draw_search_input( 10 ) )
+        if ( CreateNodeAction* action = m_create_node_context_menu.draw_search_input( 10 ) )
         {
-            ndbl::CreateNodeEvent event{
-                action->event_t,
-                m_context_menu.dragged_slot->slot(),
-                m_context_menu.opened_at_pos,
-                m_graph
-            };
-            EventManager::get_instance().push_event((fw::Event&)event);
+            EventManager::get_instance().dispatch<CreateNodeEvent>({
+                    action->payload.node_type,
+                    action->payload.node_signature,
+                    m_create_node_context_menu.dragged_slot,
+                    m_graph,
+                    m_create_node_context_menu.opened_at_pos
+            });
+
             ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
 	} else {
-        m_context_menu.reset_state();
+        m_create_node_context_menu.reset_state();
     }
 
 	// add some empty space
@@ -504,7 +498,12 @@ void GraphView::translate_view(ImVec2 delta)
     // m_view_origin += delta;
 }
 
-fw::Action* ContextMenu::draw_search_input( size_t _result_max_count )
+void GraphView::add_action_to_context_menu( CreateNodeAction* _action )
+{
+    m_create_node_context_menu.items.push_back(_action);
+}
+
+CreateNodeAction* CreateNodeContextMenu::draw_search_input( size_t _result_max_count )
 {
     bool validated;
 
@@ -533,10 +532,10 @@ fw::Action* ContextMenu::draw_search_input( size_t _result_max_count )
         // When a single item is filtered, pressing enter will press the item's button.
         if ( items_matching_search.size() == 1)
         {
-            Action& action = items_matching_search[0];
-            if ( ImGui::SmallButton( action.label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
+            auto action = items_matching_search.front();
+            if ( ImGui::SmallButton( action->label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
             {
-                return &action;
+                return action;
             }
         }
         else
@@ -551,11 +550,11 @@ fw::Action* ContextMenu::draw_search_input( size_t _result_max_count )
             while( it != items_matching_search.end() && std::distance(items_matching_search.begin(), it) != _result_max_count)
             {
                 auto& action = *it;
-                if ( ImGui::Button( action.label.c_str()) || // User can click on the button...
+                if ( ImGui::Button( action->label.c_str()) || // User can click on the button...
                      (ImGui::IsKeyDown( ImGuiKey_Enter ) && ImGui::IsItemFocused() ) // ...or press enter if this item is the first
                 )
                 {
-                    return &action;
+                    return action;
                 }
                 it++;
             }
@@ -572,7 +571,7 @@ fw::Action* ContextMenu::draw_search_input( size_t _result_max_count )
 
     return nullptr;
 }
-void ContextMenu::update_cache_based_on_signature()
+void CreateNodeContextMenu::update_cache_based_on_signature()
 {
     items_with_compatible_signature.clear();
 
@@ -583,13 +582,13 @@ void ContextMenu::update_cache_based_on_signature()
     }
     else
     {
-        for (auto& menu_item : items )
+        for (auto& action: items )
         {
-            if ( menu_item.event_t == EventType_create_block )
+            if ( action->event_id == EventID_REQUEST_CREATE_BLOCK )
             {
                 if ( dragged_slot->is_this() )
                 {
-                    items_with_compatible_signature.push_back( menu_item );
+                    items_with_compatible_signature.push_back( action );
                 }
             }
             else
@@ -598,34 +597,34 @@ void ContextMenu::update_cache_based_on_signature()
                 {
                     const type* dragged_property_type = dragged_slot->get_property_type();
 
-                        if ( menu_item.signature )
+                        if ( action->payload.node_signature )
                         {
                             if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
                             {
-                                if ( !menu_item.signature->has_an_arg_of_type(dragged_property_type) )
+                                if ( !action->payload.node_signature->has_an_arg_of_type(dragged_property_type) )
                                 {
                                     continue;
                                 }
                             }
-                            else if ( !menu_item.signature->get_return_type()->equals(dragged_property_type) )
+                            else if ( !action->payload.node_signature->get_return_type()->equals(dragged_property_type) )
                             {
                                 continue;
                             }
                         } else {
                             // by default, we accept any item not having a signature
                         }
-                        items_with_compatible_signature.push_back( menu_item );
+                        items_with_compatible_signature.push_back( action );
                     }
             }
         }
     }
 }
-void ContextMenu::update_cache_based_on_user_input( size_t _limit )
+void CreateNodeContextMenu::update_cache_based_on_user_input( size_t _limit )
 {
     items_matching_search.clear();
     for ( auto& menu_item : items_with_compatible_signature )
     {
-        if( menu_item.label.find( search_input ) != std::string::npos )
+        if( menu_item->label.find( search_input ) != std::string::npos )
         {
             items_matching_search.push_back(menu_item);
             if ( items_matching_search.size() == _limit )
@@ -636,7 +635,7 @@ void ContextMenu::update_cache_based_on_user_input( size_t _limit )
     }
 }
 
-void ContextMenu::reset_state( SlotView* _dragged_slot )
+void CreateNodeContextMenu::reset_state( SlotView* _dragged_slot )
 {
     must_be_reset_flag   = true;
     search_input[0]      = '\0';

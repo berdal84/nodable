@@ -511,19 +511,13 @@ PoolID<LiteralNode> Graph::create_literal(const fw::type *_type)
     return node;
 }
 
-PoolID<Node> Graph::create_node( NodeType _type, const char* _signature_hint )
+PoolID<Node> Graph::create_node( NodeType _type, const fw::func_type* _signature )
 {
     switch ( _type )
     {
         /*
-         * TODO: That's not great we have special cases for blocks, variables and literals...
-         *       Can't we simply give a generic signature for both blocks, variables, literals, functions, and operators?
-         *       What if we pass:
-         *       - "bool|int|string|double" for a variable
-         *       - "false|true|0|42|0.1|\"string\"" for a literal
-         *       - "if|for|while|{}" for a block (not sure if we need a BLOCK_PROGRAM)
-         *       This can be made via a PoolID<Node> Nodlang::parse_single_node(const std::string&) method.
-         *
+         * TODO: We could consider narowwing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
+         *       and rely more on _signature (ex: a bool variable could be simply "bool" or "bool bool(bool)")
          */
         case NodeType_BLOCK_CONDITION:  return create_cond_struct();
         case NodeType_BLOCK_FOR_LOOP:   return create_for_loop();
@@ -544,10 +538,10 @@ PoolID<Node> Graph::create_node( NodeType _type, const char* _signature_hint )
         case NodeType_OPERATOR:
         case NodeType_FUNCTION:
         {
-            FW_EXPECT(_signature_hint != nullptr, "_signature_hint is expected when dealing with functions or operators")
+            FW_EXPECT(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             auto& language = Nodlang::get_instance();
             // Currently, we handle operators and functions the exact same way
-            const auto invokable = language.find_function(_signature_hint);
+            const auto invokable = language.find_function(_signature);
             bool is_operator = language.find_operator_fct( invokable->get_type() ) != nullptr;
             return create_function(invokable.get(), is_operator);
         }

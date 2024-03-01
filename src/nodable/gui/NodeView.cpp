@@ -161,23 +161,21 @@ void NodeView::update_labels_from_name(const Node* _node)
 
 void NodeView::set_selected(PoolID<NodeView> new_selection)
 {
+    fw::EventManager& event_manager = fw::EventManager::get_instance();
+
     if( s_selected == new_selection ) return;
 
     // Handle de-selection
     if( s_selected )
     {
-        Event event{ EventType_node_view_deselected };
-        event.node.view = s_selected;
-        fw::EventManager::get_instance().push_event((fw::Event&)event);
+        event_manager.dispatch<NodeViewSelectedEvent>( { s_selected } );
         s_selected.reset();
     }
 
     // Handle selection
     if( new_selection )
     {
-        Event event{ EventType_node_view_selected };
-        event.node.view = new_selection;
-        fw::EventManager::get_instance().push_event((fw::Event&)event);
+        event_manager.dispatch<NodeViewSelectedEvent>( { new_selection });
         s_selected = new_selection;
     }
 }

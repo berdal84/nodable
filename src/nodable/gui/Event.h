@@ -1,5 +1,6 @@
 #pragma once
 #include "SlotView.h"
+#include "core/Graph.h"
 #include "fw/core/Pool.h"
 #include "fw/gui/EventManager.h"
 #include "nodable/core/SlotRef.h"
@@ -10,59 +11,50 @@ namespace ndbl
     class NodeView;
     using fw::PoolID;
 
-    enum EventType_: fw::EventType
+    enum EventID_ : fw::EventID
     {
-        EventType_delete_node_action_triggered = fw::EventType_USER_DEFINED, // operation on nodes
-        EventType_arrange_node_action_triggered,
-        EventType_select_successor_node_action_triggered,
-        EventType_toggle_folding_selected_node_action_triggered,
-        EventType_node_view_selected,
-        EventType_node_view_deselected,
-        EventType_frame_all_node_views,
-        EventType_create_node,
-        EventType_create_block,
-        EventType_frame_selected_node_views,
-        EventType_slot_dropped,
-        EventType_slot_disconnected,
-        EventType_toggle_isolate_selection
+        EventID_REQUEST_DELETE_NODE = fw::EventID_USER_DEFINED, // operation on nodes
+        EventID_REQUEST_ARRANGE_HIERARCHY,
+        EventID_REQUEST_SELECT_SUCCESSOR,
+        EventID_REQUEST_TOGGLE_FOLDING,
+        EventID_REQUEST_FRAME_ALL,
+        EventID_REQUEST_CREATE_NODE,
+        EventID_REQUEST_CREATE_BLOCK,
+        EventID_REQUEST_FRAME_SELECTION,
+        EventID_REQUEST_TOGGLE_ISOLATE_SELECTION,
+        EventID_SLOT_DROPPED,
+        EventID_SLOT_DISCONNECTED,
+        EventID_NODE_VIEW_SELECTED,
     };
 
-    struct NodeViewEvent
-    {
-        fw::EventType    type;
+    struct NodeViewEventPayload {
         PoolID<NodeView> view;
     };
+    using NodeViewSelectedEvent = fw::TEvent<EventID_NODE_VIEW_SELECTED, NodeViewEventPayload>;
+    using NodeViewEvent = fw::TEvent<EventID_NODE_VIEW_SELECTED, NodeViewEventPayload>;
 
-    struct ToggleFoldingEvent
+    struct ToggleFoldingEventPayload
     {
-        fw::EventType type;
-        bool recursive;
+        bool recursive = false;
     };
+    using ToggleFoldingEvent = fw::TEvent<EventID_REQUEST_TOGGLE_FOLDING, ToggleFoldingEventPayload>;
 
-    struct SlotEvent
+    struct SlotEventPayload
     {
-        fw::EventType type;
         SlotRef       first;
         SlotRef       second;
     };
+    using SlotDisconnectedEvent = fw::TEvent<EventID_SLOT_DISCONNECTED, SlotEventPayload>;
+    using SlotDroppedEvent      = fw::TEvent<EventID_SLOT_DROPPED, SlotEventPayload>;
 
-    struct CreateNodeEvent
+    struct CreateNodeEventPayload
     {
-        fw::EventType type;
-        SlotRef       dragged; // The slot being dragged.
-        ImVec2        desired_pos;
-        Graph*        graph = nullptr;
+        NodeType             node_type;            // The note type to create
+        const fw::func_type* node_signature;       // The signature of the node that must be created
+        SlotView*            dragged_slot;         // The slot view being dragged.
+        Graph*               graph = nullptr;      // The graph to create the node into
+        ImVec2               node_view_local_pos;  // The desired position for the new node view
     };
-
-    union Event
-    {
-        fw::EventType          type;
-        fw::Event              event;
-        fw::SimpleEvent        common;
-        NodeViewEvent          node;
-        SlotEvent              slot;
-        ToggleFoldingEvent     toggle_folding;
-        CreateNodeEvent        create_node;
-    };
-
+    using CreateNodeEvent  = fw::TEvent<EventID_REQUEST_CREATE_NODE, CreateNodeEventPayload>;
+    using CreateBlockEvent = fw::TEvent<EventID_REQUEST_CREATE_BLOCK, CreateNodeEventPayload>;
 }// namespace ndbl

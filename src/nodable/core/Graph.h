@@ -58,8 +58,8 @@ namespace ndbl
 
         // node related
 
-        PoolID<Node>                    create_node(); // Create a basic node.
-        PoolID<Node>                    create_node(NodeType, const char* _signature_hint = nullptr); // Create a given node type in a simple way.
+        PoolID<Node>                    create_node(); // Create a raw node.
+        PoolID<Node>                    create_node(NodeType, const fw::func_type* _signature = nullptr); // Create a given node type in a simple way.
         PoolID<Node>                    create_root();
         PoolID<VariableNode>            create_variable(const fw::type *_type, const std::string &_name, PoolID<Scope> _scope);
         PoolID<VariableNode>            create_variable_decl(const fw::type* _type, const char*  _name, PoolID<Scope>  _scope);
