@@ -325,15 +325,15 @@ bool GraphView::draw()
         *  In case user has created a new node we need to connect it to the m_graph depending
         *  on if a slot is being dragged and  what is its nature.
         */
-        if ( CreateNodeAction* action = m_create_node_context_menu.draw_search_input( 10 ) )
+        if ( Action_CreateNode* action = m_create_node_context_menu.draw_search_input( 10 ) )
         {
-            EventManager::get_instance().dispatch<CreateNodeEvent>({
-                    action->payload.node_type,
-                    action->payload.node_signature,
-                    m_create_node_context_menu.dragged_slot,
-                    m_graph,
-                    m_create_node_context_menu.opened_at_pos
-            });
+            // Generate an event from this action, add some info to the state and dispatch it.
+            auto& event_manager = EventManager::get_instance();
+            auto* event = action->make_event();
+            event->data.graph               = m_graph;
+            event->data.dragged_slot        = m_create_node_context_menu.dragged_slot;
+            event->data.node_view_local_pos =  m_create_node_context_menu.opened_at_pos;
+            event_manager.dispatch(event);
 
             ImGui::CloseCurrentPopup();
 		}
@@ -498,12 +498,12 @@ void GraphView::translate_view(ImVec2 delta)
     // m_view_origin += delta;
 }
 
-void GraphView::add_action_to_context_menu( CreateNodeAction* _action )
+void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
 {
     m_create_node_context_menu.items.push_back(_action);
 }
 
-CreateNodeAction* CreateNodeContextMenu::draw_search_input( size_t _result_max_count )
+Action_CreateNode* CreateNodeContextMenu::draw_search_input( size_t _result_max_count )
 {
     bool validated;
 
@@ -597,16 +597,16 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
                 {
                     const type* dragged_property_type = dragged_slot->get_property_type();
 
-                        if ( action->payload.node_signature )
+                        if ( action->event_initial_state.node_signature )
                         {
                             if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
                             {
-                                if ( !action->payload.node_signature->has_an_arg_of_type(dragged_property_type) )
+                                if ( !action->event_initial_state.node_signature->has_an_arg_of_type(dragged_property_type) )
                                 {
                                     continue;
                                 }
                             }
-                            else if ( !action->payload.node_signature->get_return_type()->equals(dragged_property_type) )
+                            else if ( !action->event_initial_state.node_signature->get_return_type()->equals(dragged_property_type) )
                             {
                                 continue;
                             }

@@ -6,23 +6,19 @@
 
 namespace ndbl
 {
+    using fw::SimpleAction;
+    using fw::CustomAction;
 
-    enum class NodeActionType
-    {
-        DELETE,
-        ARRANGE
-    };
-    using NodeAction  = fw::TAction<EventID_REQUEST_DELETE_NODE, NodeActionType>;
+    // Actions specific to Nodable, more actions defined in framework's Action.h
 
-    struct CreateNodeActionPayload
-    {
-        NodeType             node_type;
-        const fw::func_type* node_signature{};
-        SlotView*            dragged_slot{};
-        Graph*               graph{};
-        ImVec2               node_view_local_pos;
-    };
-    using CreateNodeAction = fw::TAction<EventID_REQUEST_CREATE_NODE, CreateNodeActionPayload> ;
-
-    using CreateBlockAction = fw::TAction<EventID_REQUEST_CREATE_BLOCK, NodeType>;
+    using Action_DeleteNode      = SimpleAction<EventID_REQUEST_DELETE_NODE>;
+    using Action_ArrangeNode     = SimpleAction<EventID_REQUEST_ARRANGE_HIERARCHY>;
+    using Action_ToggleFolding   = SimpleAction<EventID_REQUEST_TOGGLE_FOLDING>;
+    using Action_SelectNext      = SimpleAction<EventID_REQUEST_SELECT_SUCCESSOR>;
+    using Action_Isolate         = SimpleAction<EventID_REQUEST_TOGGLE_ISOLATE_SELECTION>;
+    using Action_SelectionChange = SimpleAction<EventID_NODE_SELECTION_CHANGE>;
+    using Action_MoveGraph       = SimpleAction<EventID_REQUEST_MOVE_SELECTION>;
+    using Action_FrameGraph      = SimpleAction<EventID_REQUEST_FRAME_SELECTION>;
+    using Action_CreateBlock     = CustomAction<Event_CreateBlock>;
+    using Action_CreateNode      = CustomAction<Event_CreateNode> ;
 }

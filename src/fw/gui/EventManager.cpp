@@ -35,29 +35,29 @@ EventManager& EventManager::get_instance()
     return *s_instance;
 }
 
-void EventManager::dispatch(Event* _event)
+void EventManager::dispatch( BaseEvent* _event)
 {
     m_events.push(_event);
 }
 
-Event* EventManager::poll_event()
+BaseEvent* EventManager::poll_event()
 {
     return m_events.empty() ? nullptr : m_events.front();
 }
 
-Event* EventManager::dispatch( EventID _event_id )
+BaseEvent* EventManager::dispatch( EventID _event_id )
 {
-    auto new_event = new Event{ _event_id };
+    auto new_event = new BaseEvent{ _event_id };
     dispatch(new_event );
     return new_event;
 }
 
-const Action* EventManager::get_action_by_type( u16_t type )
+const BaseAction* EventManager::get_action_by_type( u16_t type )
 {
     return m_actions_by_event_type.at(type);
 }
 
-const std::vector<Action*>& EventManager::get_actions() const
+const std::vector<BaseAction*>& EventManager::get_actions() const
 {
     return m_actions;
 }
@@ -72,7 +72,7 @@ void EventManager::dispatch_delayed( EventID type, u64_t delay)
     );
 }
 
-void EventManager::add_action(Action* _action )// Add a new action (can be triggered via shortcut)
+void EventManager::add_action( BaseAction* _action )// Add a new action (can be triggered via shortcut)
 {
     m_actions.push_back( _action );
     m_actions_by_event_type.insert({ _action->event_id, _action });

@@ -15,43 +15,60 @@ namespace fw
     };
 
     /** Basic action defining which event has to be triggered when a given shortcut is detected */
-    class Action
+    class BaseAction
     {
     public:
-        Action(
+        BaseAction(
+                EventID         event_id,
                 const char*     label,
-                EventID         event_t,
                 const Shortcut& shortcut = {})
             : label(label)
-            , event_id(event_t)
+            , event_id(event_id)
             , shortcut(shortcut)
         {}
         std::string        label;
         EventID            event_id;
         Shortcut           shortcut;
-        virtual void*      data() const { return nullptr; } // Pointer to custom data
+        virtual BaseEvent* make_event() const { return new BaseEvent(event_id); }
     };
 
-    /** Generic action with a custom payload */
-    template<EventID id, typename PayloadT>
-    class TAction : public Action {
+    /** Generic Action to trigger a given EventT */
+    template<EventID _event_id>
+    class SimpleAction : public BaseAction
+    {
     public:
-        static_assert( !std::is_same_v<void, PayloadT> );
-        static_assert( !std::is_same_v<nullptr_t , PayloadT> );
-
-        using payload_t = PayloadT;
-        constexpr static EventID event_id = id;
-
-        TAction(
-                const char*  label,
-                EventID      event_t,
-                Shortcut     shortcut = {},
-                PayloadT     payload = {}
-                )
-            : Action(label, event_t, shortcut)
-            , payload(payload)
+        explicit SimpleAction( const char*  label, Shortcut shortcut = {} )
+            : BaseAction(event_id, label, shortcut)
         {}
-        [[nodiscard]] void* data() const override { return (void*)const_cast<PayloadT*>( &payload ); }
-        PayloadT payload; // Custom data to attach
     };
+
+    /** Generic Action able to make a given EventT from an ActionConfigT */
+    template<typename EventT>
+    class CustomAction : public BaseAction
+    {
+    public:
+        static_assert( !std::is_base_of_v<EventT, BaseEvent> );
+        using event_t       = EventT;
+        using event_data_t = typename EventT::data_t;
+        CustomAction(
+                const char*   label,
+                Shortcut      shortcut = {},
+                event_data_t event_initial_state = {}
+                )
+            : BaseAction(EventT::id, label, shortcut)
+            , event_initial_state( event_initial_state )
+        {}
+        EventT*  make_event() const override { return new EventT( event_initial_state ); }
+        event_data_t event_initial_state; // Custom data to attach
+    };
+
+    using Action_FileSave        = SimpleAction<EventID_REQUEST_FILE_SAVE>;
+    using Action_FileSaveAs      = SimpleAction<EventID_REQUEST_FILE_SAVE_AS>;
+    using Action_FileClose       = SimpleAction<EventID_REQUEST_FILE_CLOSE>;
+    using Action_FileBrowse      = SimpleAction<EventID_REQUEST_FILE_BROWSE>;
+    using Action_FileNew         = SimpleAction<EventID_REQUEST_FILE_NEW>;
+    using Action_Exit            = SimpleAction<EventID_REQUEST_EXIT>;
+    using Action_Undo            = SimpleAction<EventID_REQUEST_UNDO>;
+    using Action_Redo            = SimpleAction<EventID_REQUEST_REDO>;
+    using Action_ShowWindow      = CustomAction<Event_ShowWindow>;
 }

@@ -22,33 +22,54 @@ namespace fw
         EventID_REQUEST_UNDO,
         EventID_REQUEST_REDO,
         EventID_REQUEST_EXIT,
-        EventID_REQUEST_SHOW_SLASHSCREEN,
+        EventID_REQUEST_SHOW_WINDOW,
 
         EventID_FILE_OPENED,
 
         EventID_USER_DEFINED = 0xff,
     };
 
-
-    /** Basic event, can be extended via TEvent */
-    class Event
+    /** Basic event, can be extended via CustomEvent */
+    class BaseEvent
     {
     public:
         const EventID id;
-        constexpr explicit Event(EventID id): id(id) {}
-        [[nodiscard]] virtual void* data() const { return nullptr; }
+        constexpr explicit BaseEvent(EventID id): id(id) {}
+        virtual ~BaseEvent() = default;
     };
 
-    /** Template to extend Event with a specific payload */
-    template<EventID event_id, typename PayloadT>
-    class TEvent : public fw::Event
+    template<EventID event_id>
+    class SimpleEvent : public fw::BaseEvent
+    {
+    public:
+        using data_t = void;
+        constexpr static EventID id = static_cast<EventID>(event_id);
+
+        SimpleEvent()
+            : BaseEvent(event_id)
+        {}
+    };
+
+    /** Template to extend BaseEvent with a specific payload */
+    template<EventID event_id, typename DataT>
+    class CustomEvent : public fw::BaseEvent
     {
     public:
         constexpr static EventID id = event_id;
-        using payload_t = PayloadT;
-        PayloadT payload;
-        template<typename ...Args>
-        explicit TEvent(Args... args): Event(event_id), payload(args...){}
-        [[nodiscard]] void* data() const override { return const_cast<void*>( static_cast<const void*>( &payload ) ); }
+        using data_t = DataT;
+
+        DataT data;
+
+        CustomEvent( DataT _data = {})
+            : BaseEvent(event_id)
+            , data( _data )
+        {}
     };
+
+    struct EventPayload_ShowWindow
+    {
+        std::string window_id; // String identifying a given  window (user defined)
+        bool        visible;   // Desired state
+    };
+    using Event_ShowWindow = CustomEvent<EventID_REQUEST_SHOW_WINDOW, EventPayload_ShowWindow>;
 }

@@ -229,7 +229,7 @@ void ImGuiEx::BeginFrame()
 
 void ImGuiEx::MenuItem(uint16_t type, bool selected, bool enable)
 {
-    const Action* action = EventManager::get_instance().get_action_by_type( type );
+    const BaseAction* action = EventManager::get_instance().get_action_by_type( type );
     if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
     {
         EventManager::get_instance().dispatch( action->event_id );

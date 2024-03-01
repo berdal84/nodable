@@ -104,9 +104,7 @@ void NodableView::on_draw()
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
-                ToggleFoldingEventPayload payload;
-                payload.recursive = true;
-                event_manager.dispatch<ToggleFoldingEvent>(payload);
+                event_manager.dispatch<Event_ToggleFolding>( { RECURSIVELY } );
             }
             ImGui::EndMenu();
         }

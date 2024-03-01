@@ -85,7 +85,8 @@ void SlotView::behavior(SlotView& _view, bool _readonly)
     {
         if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
         {
-            fw::EventManager::get_instance().dispatch<SlotDisconnectedEvent>( { _view.m_slot } );
+            auto& event_manager = fw::EventManager::get_instance();
+            event_manager.dispatch<Event_SlotDisconnected>({ _view.slot() });
         }
 
         ImGui::EndPopup();
@@ -145,10 +146,8 @@ void SlotView::drop_behavior(bool &require_new_node, bool _enable_edition)
         {
             if ( s_hovered )
             {
-                SlotEventPayload payload;
-                payload.first  = s_dragged->m_slot;
-                payload.second = s_hovered->m_slot;
-                fw::EventManager::get_instance().dispatch<SlotDroppedEvent>(payload);
+                auto& event_manager = fw::EventManager::get_instance();
+                event_manager.dispatch<Event_SlotDropped>({ s_dragged->m_slot, s_hovered->m_slot});
 
                 reset_hovered();
                 reset_dragged();

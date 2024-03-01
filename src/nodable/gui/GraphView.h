@@ -30,11 +30,11 @@ namespace ndbl
         ImVec2                   opened_at_screen_pos = ImVec2(-1,-1); // absolute (screen space)
         SlotView*                dragged_slot         = nullptr;  // The slot being dragged when the context menu opened.
         char                     search_input[255]    = "\0";     // The search input entered by the user.
-        std::vector<CreateNodeAction*> items;                           // All the available items
-        std::vector<CreateNodeAction*> items_with_compatible_signature; // Only the items having a compatible signature (with the slot dragged)
-        std::vector<CreateNodeAction*> items_matching_search;           // Only the items having a compatible signature AND matching the search_input.
+        std::vector<Action_CreateNode*> items;                           // All the available items
+        std::vector<Action_CreateNode*> items_with_compatible_signature; // Only the items having a compatible signature (with the slot dragged)
+        std::vector<Action_CreateNode*> items_matching_search;           // Only the items having a compatible signature AND matching the search_input.
 
-        CreateNodeAction*        draw_search_input( size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
+        Action_CreateNode*        draw_search_input( size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
         void                     reset_state(SlotView* _dragged_slot = nullptr);
         void                     update_cache_based_on_signature();
         void                     update_cache_based_on_user_input( size_t _limit );
@@ -54,7 +54,7 @@ namespace ndbl
         void        frame_selected_node_views();
         void        translate_all(ImVec2 /* delta */, const std::vector<NodeView*>&);
         void        unfold(); // unfold the graph until it is stabilized
-        void        add_action_to_context_menu(CreateNodeAction* _action);
+        void        add_action_to_context_menu( Action_CreateNode* _action);
     private:
         void        draw_grid( ImDrawList*, const Config& ) const;
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
