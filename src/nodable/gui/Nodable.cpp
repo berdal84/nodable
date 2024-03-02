@@ -126,8 +126,8 @@ bool Nodable::on_init()
     event_manager.bind<Action_ToggleIsolate>( "Isolate", Shortcut{ SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
     event_manager.bind<Action_SelectionChange>("Deselect", Shortcut{ 0, KMOD_NONE, "Double click on bg" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     event_manager.bind<Action_MoveGraph>("Move Graph", Shortcut{ 0, KMOD_NONE, "Drag background" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    event_manager.bind<Action_FrameGraph>("Frame Selection", Shortcut{ SDLK_f, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    event_manager.bind<Action_FrameGraph >("Frame All", Shortcut{ SDLK_f, KMOD_LCTRL } );
+    event_manager.bind<Action_FrameSelection>("Frame Selection", Shortcut{ SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{ FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    event_manager.bind<Action_FrameSelection>("Frame All", Shortcut{ SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{ FRAME_ALL } );
 
     // Prepare context menu items
     // 1) Blocks
@@ -303,11 +303,11 @@ void Nodable::on_update()
                 break;
             }
 
-            case Event_FrameNodeViews::id:
+            case Event_FrameSelection::id:
             {
-                auto _event = reinterpret_cast<Event_FrameNodeViews*>( event );
-                FW_ASSERT(_event->data.graph_view);
-                _event->data.graph_view->frame(_event->data.mode);
+                auto _event = reinterpret_cast<Event_FrameSelection*>( event );
+                FW_EXPECT(graph_view, "a graph_view is required");
+                graph_view->frame(_event->data.mode);
                 break;
             }
 

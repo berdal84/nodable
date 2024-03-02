@@ -34,14 +34,11 @@ namespace ndbl
     struct EventPayload_FrameNodeViews
     {
         FrameMode  mode;
-        GraphView* graph_view; // Will be deduced my the Nodable if nullptr
-
-        EventPayload_FrameNodeViews(FrameMode mode, GraphView* graph_view)
+        EventPayload_FrameNodeViews(FrameMode mode)
         : mode(mode)
-        , graph_view(graph_view)
         {}
     };
-    using Event_FrameNodeViews = fw::CustomEvent<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
+    using Event_FrameSelection = fw::CustomEvent<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
     struct EventPayload_SlotPair {
         SlotRef first;

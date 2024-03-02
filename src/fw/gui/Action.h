@@ -37,18 +37,18 @@ namespace fw
     };
 
     /** Generic Action to trigger a given EventT */
-    template<EventID _event_id>
+    template<EventID id>
     class Action : public IAction
     {
     public:
-        using event_t = fw::Event<_event_id>;
+        using event_t = fw::Event<id>;
         using event_data_t = typename event_t::data_t;
         explicit Action(
             const char*  label,
             Shortcut     shortcut = {},
             u64_t        userdata = {}
         )
-            : IAction(event_id, label, shortcut, userdata)
+            : IAction(id, label, shortcut, userdata)
         {}
     };
 

@@ -18,7 +18,7 @@ namespace ndbl
     using Action_ToggleIsolate   = Action<EventID_REQUEST_TOGGLE_ISOLATE>;
     using Action_SelectionChange = Action<EventID_NODE_SELECTION_CHANGE>;
     using Action_MoveGraph       = Action<EventID_REQUEST_MOVE_SELECTION>;
-    using Action_FrameGraph      = Action<EventID_REQUEST_FRAME_SELECTION>;
+    using Action_FrameSelection  = CustomAction<Event_FrameSelection>;
     using Action_CreateBlock     = CustomAction<Event_CreateBlock>;
     using Action_CreateNode      = CustomAction<Event_CreateNode>;
 }

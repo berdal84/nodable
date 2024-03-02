@@ -90,6 +90,7 @@ void EventManager::add_action( IAction* _action )// Add a new action (can be tri
 {
     m_actions.push_back( _action );
     m_actions_by_event_type.emplace( _action->event_id, _action );
+    LOG_MESSAGE("EventManager", "Action '%s' bound to the event_id %i\n", _action->label.c_str(), _action->event_id);
 }
 
 std::string Shortcut::to_string() const

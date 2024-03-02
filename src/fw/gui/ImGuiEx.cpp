@@ -229,9 +229,13 @@ void ImGuiEx::BeginFrame()
 
 void ImGuiEx::MenuItem(EventID id, bool selected, bool enable)
 {
+    // Find the corresponding action
     const IAction* action = EventManager::get_instance().get_action_by_event_id( id );
+
+    // Draw a simple menu item
     if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
     {
+        // Trigger the action
         auto event = action->make_event();
         EventManager::get_instance().dispatch( event );
     }
