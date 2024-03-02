@@ -99,8 +99,7 @@ void NodableView::on_draw()
             }
 
             fw::ImGuiEx::MenuItem( EventID_REQUEST_ARRANGE_HIERARCHY, false, has_selection );
-            fw::ImGuiEx::MenuItem( EventID_REQUEST_TOGGLE_FOLDING, false,
-                                   has_selection );
+            fw::ImGuiEx::MenuItem( EventID_REQUEST_TOGGLE_FOLDING, false,has_selection );
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
@@ -144,7 +143,7 @@ void NodableView::on_draw()
 
             ImGui::Separator();
 
-            fw::ImGuiEx::MenuItem( EventID_REQUEST_TOGGLE_ISOLATE_SELECTION, config.isolate_selection );
+            fw::ImGuiEx::MenuItem( EventID_REQUEST_TOGGLE_ISOLATE, config.isolate_selection );
 
             ImGui::EndMenu();
         }
@@ -838,7 +837,7 @@ void NodableView::draw_toolbar_window() {
         if (ImGui::Button(
                 config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->event_manager.dispatch( EventID_REQUEST_TOGGLE_ISOLATE_SELECTION );
+            m_app->event_manager.dispatch( EventID_REQUEST_TOGGLE_ISOLATE );
         }
         ImGui::SameLine();
         ImGui::EndGroup();

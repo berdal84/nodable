@@ -106,7 +106,7 @@ namespace fw
         static void     EndTooltip();
         static ImRect&  EnlargeToInclude(ImRect& _rect, ImRect _other);
 
-        static void     MenuItem(uint16_t type, bool selected = false, bool enable = true);
+        static void     MenuItem(EventID id, bool selected = false, bool enable = true);
         static void     BulletTextWrapped(const char*);
 
         static ImRect  GetContentRegion(Space);

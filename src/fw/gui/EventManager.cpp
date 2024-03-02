@@ -59,9 +59,16 @@ IEvent* EventManager::dispatch( EventID _event_id )
     return new_event;
 }
 
-const IAction* EventManager::get_action_by_type( u16_t type )
+const IAction* EventManager::get_action_by_event_id(EventID id)
 {
-    return m_actions_by_event_type.at(type);
+    auto found = m_actions_by_event_type.find(id);
+    if ( found == m_actions_by_event_type.end() )
+    {
+        string128 str;
+        str.append_fmt("Unable to find an action bound to EventId %i\n", id);
+        FW_EXPECT(false, str.c_str() );
+    }
+    return found->second;
 }
 
 const std::vector<IAction*>& EventManager::get_actions() const
@@ -69,12 +76,12 @@ const std::vector<IAction*>& EventManager::get_actions() const
     return m_actions;
 }
 
-void EventManager::dispatch_delayed( EventID type, u64_t delay)
+void EventManager::dispatch_delayed(u64_t delay, IEvent* event)
 {
     fw::async::get_instance().add_task(
-        std::async(std::launch::async, [this, type, delay]() -> void {
+        std::async(std::launch::async, [this, event, delay]() -> void {
             std::this_thread::sleep_for(std::chrono::milliseconds{delay});
-            dispatch( type );
+            dispatch(event);
         })
     );
 }
@@ -82,7 +89,7 @@ void EventManager::dispatch_delayed( EventID type, u64_t delay)
 void EventManager::add_action( IAction* _action )// Add a new action (can be triggered via shortcut)
 {
     m_actions.push_back( _action );
-    m_actions_by_event_type.insert({ _action->event_id, _action });
+    m_actions_by_event_type.emplace( _action->event_id, _action );
 }
 
 std::string Shortcut::to_string() const

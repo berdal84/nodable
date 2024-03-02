@@ -227,12 +227,13 @@ void ImGuiEx::BeginFrame()
     s_is_any_tooltip_open = false;
 }
 
-void ImGuiEx::MenuItem(uint16_t type, bool selected, bool enable)
+void ImGuiEx::MenuItem(EventID id, bool selected, bool enable)
 {
-    const IAction* action = EventManager::get_instance().get_action_by_type( type );
+    const IAction* action = EventManager::get_instance().get_action_by_event_id( id );
     if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
     {
-        EventManager::get_instance().dispatch( action->event_id );
+        auto event = action->make_event();
+        EventManager::get_instance().dispatch( event );
     }
 }
 

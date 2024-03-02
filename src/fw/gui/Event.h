@@ -39,13 +39,13 @@ namespace fw
     };
 
     template<EventID event_id>
-    class BasicEvent : public fw::IEvent
+    class Event : public fw::IEvent
     {
     public:
         using data_t = struct {};
         constexpr static EventID id = static_cast<EventID>(event_id);
 
-        BasicEvent()
+        Event()
             : IEvent(event_id)
         {}
     };

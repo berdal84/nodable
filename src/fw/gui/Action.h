@@ -19,34 +19,34 @@ namespace fw
     {
     public:
         IAction(
-                EventID         event_id,
-                const char*     label,
-                const Shortcut& shortcut = {},
-                u64_t           userdata = {}
-            )
-            : label(label)
-            , event_id(event_id)
-            , shortcut(shortcut)
-            , userdata( userdata )
+            EventID         event_id,
+            const char*     label,
+            const Shortcut& shortcut = {},
+            u64_t           userdata = {}
+        )
+        : label(label)
+        , event_id(event_id)
+        , shortcut(shortcut)
+        , userdata(userdata)
         {}
-        std::string        label;
-        EventID            event_id;
-        Shortcut           shortcut;
-        u64_t              userdata;
+        std::string label;
+        EventID     event_id;
+        Shortcut    shortcut;
+        u64_t       userdata;
         virtual IEvent* make_event() const { return new IEvent(event_id); }
     };
 
     /** Generic Action to trigger a given EventT */
     template<EventID _event_id>
-    class BasicAction : public IAction
+    class Action : public IAction
     {
     public:
-        using event_t = fw::BasicEvent<_event_id>;
+        using event_t = fw::Event<_event_id>;
         using event_data_t = typename event_t::data_t;
-        explicit BasicAction(
-                const char*  label,
-                Shortcut     shortcut = {},
-                u64_t        userdata = {}
+        explicit Action(
+            const char*  label,
+            Shortcut     shortcut = {},
+            u64_t        userdata = {}
         )
             : IAction(event_id, label, shortcut, userdata)
         {}
@@ -63,9 +63,9 @@ namespace fw
         CustomAction(
                 const char*   label,
                 Shortcut      shortcut,
-                u64_t         userdata,
-                event_data_t  event_initial_state = {}
-                )
+                event_data_t  event_initial_state = {},
+                u64_t         userdata = {}
+        )
             : IAction(EventT::id, label, shortcut, userdata)
             , event_initial_state( event_initial_state )
         {}
@@ -73,13 +73,13 @@ namespace fw
         event_data_t event_initial_state; // Custom data to attach
     };
 
-    using Action_FileSave        = BasicAction<EventID_REQUEST_FILE_SAVE>;
-    using Action_FileSaveAs      = BasicAction<EventID_REQUEST_FILE_SAVE_AS>;
-    using Action_FileClose       = BasicAction<EventID_REQUEST_FILE_CLOSE>;
-    using Action_FileBrowse      = BasicAction<EventID_REQUEST_FILE_BROWSE>;
-    using Action_FileNew         = BasicAction<EventID_REQUEST_FILE_NEW>;
-    using Action_Exit            = BasicAction<EventID_REQUEST_EXIT>;
-    using Action_Undo            = BasicAction<EventID_REQUEST_UNDO>;
-    using Action_Redo            = BasicAction<EventID_REQUEST_REDO>;
+    using Action_FileSave        = Action<EventID_REQUEST_FILE_SAVE>;
+    using Action_FileSaveAs      = Action<EventID_REQUEST_FILE_SAVE_AS>;
+    using Action_FileClose       = Action<EventID_REQUEST_FILE_CLOSE>;
+    using Action_FileBrowse      = Action<EventID_REQUEST_FILE_BROWSE>;
+    using Action_FileNew         = Action<EventID_REQUEST_FILE_NEW>;
+    using Action_Exit            = Action<EventID_REQUEST_EXIT>;
+    using Action_Undo            = Action<EventID_REQUEST_UNDO>;
+    using Action_Redo            = Action<EventID_REQUEST_REDO>;
     using Action_ShowWindow      = CustomAction<Event_ShowWindow>;
 }

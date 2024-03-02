@@ -24,7 +24,7 @@ namespace ndbl
         EventID_REQUEST_CREATE_BLOCK,
         EventID_REQUEST_FRAME_SELECTION,
         EventID_REQUEST_MOVE_SELECTION,
-        EventID_REQUEST_TOGGLE_ISOLATE_SELECTION,
+        EventID_REQUEST_TOGGLE_ISOLATE,
         EventID_SLOT_DROPPED,
         EventID_SLOT_DISCONNECTED,
         EventID_NODE_SELECTION_CHANGE,
@@ -34,7 +34,12 @@ namespace ndbl
     struct EventPayload_FrameNodeViews
     {
         FrameMode  mode;
-        GraphView* graph_view = nullptr; // Will be deduced my the Nodable if nullptr
+        GraphView* graph_view; // Will be deduced my the Nodable if nullptr
+
+        EventPayload_FrameNodeViews(FrameMode mode, GraphView* graph_view)
+        : mode(mode)
+        , graph_view(graph_view)
+        {}
     };
     using Event_FrameNodeViews = fw::CustomEvent<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
@@ -75,15 +80,22 @@ namespace ndbl
     };
     using NodeViewSelectionChangeEvent = fw::CustomEvent<EventID_NODE_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
 
+    using ToggleIsolateSelectionEvent = fw::Event<EventID_REQUEST_TOGGLE_ISOLATE>;
+
     struct EventPayload_CreateNode
     {
-        NodeType             node_type;            // The note type to create
-        const fw::func_type* node_signature{};       // The signature of the node that must be created
-        SlotView*            dragged_slot{};       // The slot view being dragged.
-        Graph*               graph = nullptr;      // The graph to create the node into
-        ImVec2               node_view_local_pos;  // The desired position for the new node view
+        NodeType             node_type;                // The note type to create
+        const fw::func_type* node_signature;           // The signature of the node that must be created
+        SlotView*            dragged_slot   = nullptr; // The slot view being dragged.
+        Graph*               graph          = nullptr; // The graph to create the node into
+        ImVec2               node_view_local_pos;      // The desired position for the new node view
 
-        EventPayload_CreateNode(NodeType node_type, const fw::func_type* signature = nullptr )
+        explicit EventPayload_CreateNode(NodeType node_type )
+        : node_type(node_type)
+        , node_signature(nullptr)
+        {}
+
+        EventPayload_CreateNode(NodeType node_type, const fw::func_type* signature )
         : node_type(node_type)
         , node_signature(signature)
         {}
