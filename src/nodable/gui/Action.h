@@ -7,18 +7,23 @@
 namespace ndbl
 {
     using fw::Action;
-    using fw::CustomAction;
+    using fw::Event;
 
     // Actions specific to Nodable, more actions defined in framework's Action.h
 
-    using Action_DeleteNode      = Action<EventID_REQUEST_DELETE_NODE>;
-    using Action_ArrangeNode     = Action<EventID_REQUEST_ARRANGE_HIERARCHY>;
-    using Action_ToggleFolding   = Action<EventID_REQUEST_TOGGLE_FOLDING>;
-    using Action_SelectNext      = Action<EventID_REQUEST_SELECT_SUCCESSOR>;
-    using Action_ToggleIsolate   = Action<EventID_REQUEST_TOGGLE_ISOLATE>;
-    using Action_SelectionChange = Action<EventID_NODE_SELECTION_CHANGE>;
-    using Action_MoveGraph       = Action<EventID_REQUEST_MOVE_SELECTION>;
-    using Action_FrameSelection  = CustomAction<Event_FrameSelection>;
-    using Action_CreateBlock     = CustomAction<Event_CreateBlock>;
-    using Action_CreateNode      = CustomAction<Event_CreateNode>;
+    // 1) Basic actions (simple events)
+
+    using Action_DeleteNode      = Action<Event_DeleteNode>;
+    using Action_ArrangeNode     = Action<Event_ArrangeNode>;
+    using Action_ToggleFolding   = Action<Event_ToggleFolding>;
+    using Action_SelectNext      = Action<Event_SelectNext>;
+    using Action_ToggleIsolate   = Action<Event_ToggleIsolate>;
+    using Action_SelectionChange = Action<Event_SelectionChange>;
+    using Action_MoveGraph       = Action<Event_MoveSelection>;
+
+    // 2) Advanced actions (custom events)
+
+    using Action_FrameSelection  = Action<Event_FrameSelection>;
+    using Action_CreateBlock     = Action<Event_CreateBlock>;
+    using Action_CreateNode      = Action<Event_CreateNode>;
 }

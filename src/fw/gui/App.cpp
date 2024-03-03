@@ -18,6 +18,7 @@ App::App(Config& _config, AppView* _view)
     , should_stop(false)
     , font_manager(_config.font_manager)
     , event_manager()
+    , action_manager()
     , texture_manager()
     , m_sdl_window(nullptr)
     , m_sdl_gl_context()
@@ -240,7 +241,7 @@ void App::handle_events()
                 // With mode key only
                 if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
-                    for(const auto& _action: event_manager.get_actions() )
+                    for(const IAction* _action: action_manager.get_actions() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _action->shortcut.mod != KMOD_NONE
@@ -255,7 +256,7 @@ void App::handle_events()
                 }
                 else // without any mod key
                 {
-                    for(const auto& _action: event_manager.get_actions() )
+                    for(const IAction* _action: action_manager.get_actions() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _action->shortcut.mod == KMOD_NONE

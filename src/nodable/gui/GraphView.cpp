@@ -607,16 +607,16 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
                 {
                     const type* dragged_property_type = dragged_slot->get_property_type();
 
-                        if ( action->event_initial_state.node_signature )
+                        if ( action->event_data.node_signature )
                         {
                             if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
                             {
-                                if ( !action->event_initial_state.node_signature->has_an_arg_of_type(dragged_property_type) )
+                                if ( !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type) )
                                 {
                                     continue;
                                 }
                             }
-                            else if ( !action->event_initial_state.node_signature->get_return_type()->equals(dragged_property_type) )
+                            else if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
                             {
                                 continue;
                             }
@@ -629,6 +629,7 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
         }
     }
 }
+
 void CreateNodeContextMenu::update_cache_based_on_user_input( size_t _limit )
 {
     items_matching_search.clear();

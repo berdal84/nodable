@@ -1,6 +1,7 @@
 #pragma once
 #include <utility>
 
+#include "Event.h"
 #include "FrameMode.h"
 #include "SlotView.h"
 #include "core/Graph.h"
@@ -16,19 +17,22 @@ namespace ndbl
 
     enum EventID_ : fw::EventID
     {
-        EventID_REQUEST_DELETE_NODE = fw::EventID_USER_DEFINED, // operation on nodes
-        EventID_REQUEST_ARRANGE_HIERARCHY,
-        EventID_REQUEST_SELECT_SUCCESSOR,
-        EventID_REQUEST_TOGGLE_FOLDING,
+        EventID_DELETE_NODE = fw::EventID_USER_DEFINED, // operation on nodes
+        EventID_ARRANGE_NODE,
+        EventID_SELECT_NEXT,
+        EventID_TOGGLE_FOLDING,
         EventID_REQUEST_CREATE_NODE,
         EventID_REQUEST_CREATE_BLOCK,
         EventID_REQUEST_FRAME_SELECTION,
-        EventID_REQUEST_MOVE_SELECTION,
-        EventID_REQUEST_TOGGLE_ISOLATE,
+        EventID_MOVE_SELECTION,
+        EventID_TOGGLE_ISOLATE,
         EventID_SLOT_DROPPED,
         EventID_SLOT_DISCONNECTED,
-        EventID_NODE_SELECTION_CHANGE,
+        EventID_SELECTION_CHANGE,
     };
+
+    using Event_ToggleIsolate   = fw::Event<EventID_TOGGLE_ISOLATE>;
+    using Event_MoveSelection   = fw::Event<EventID_MOVE_SELECTION>;
 
     class GraphView;
     struct EventPayload_FrameNodeViews
@@ -38,7 +42,7 @@ namespace ndbl
         : mode(mode)
         {}
     };
-    using Event_FrameSelection = fw::CustomEvent<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
+    using Event_FrameSelection = fw::Event<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
     struct EventPayload_SlotPair {
         SlotRef first;
@@ -48,16 +52,16 @@ namespace ndbl
         , second(second)
         {}
     };
-    using Event_SlotDisconnected = fw::CustomEvent<EventID_SLOT_DISCONNECTED, EventPayload_SlotPair>;
-    using Event_SlotDropped      = fw::CustomEvent<EventID_SLOT_DROPPED, EventPayload_SlotPair>;
+    using Event_SlotDisconnected = fw::Event<EventID_SLOT_DISCONNECTED, EventPayload_SlotPair>;
+    using Event_SlotDropped      = fw::Event<EventID_SLOT_DROPPED, EventPayload_SlotPair>;
 
     struct EventPayload_Node
     {
         PoolID<Node> node;
     };
-    using Event_DeleteNode  = fw::CustomEvent<EventID_REQUEST_DELETE_NODE, EventPayload_Node>;
-    using Event_ArrangeNode = fw::CustomEvent<EventID_REQUEST_ARRANGE_HIERARCHY, EventPayload_Node>;
-    using Event_SelectNext  = fw::CustomEvent<EventID_REQUEST_SELECT_SUCCESSOR, EventPayload_Node>;
+    using Event_DeleteNode  = fw::Event<EventID_DELETE_NODE, EventPayload_Node>;
+    using Event_ArrangeNode = fw::Event<EventID_ARRANGE_NODE, EventPayload_Node>;
+    using Event_SelectNext  = fw::Event<EventID_SELECT_NEXT, EventPayload_Node>;
 
     enum ToggleFoldingMode
     {
@@ -68,16 +72,14 @@ namespace ndbl
     {
         ToggleFoldingMode mode;
     };
-    using Event_ToggleFolding = fw::CustomEvent<EventID_REQUEST_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
+    using Event_ToggleFolding = fw::Event<EventID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
 
     struct EventPayload_NodeViewSelectionChange
     {
         PoolID<NodeView> new_selection;
         PoolID<NodeView> old_selection;
     };
-    using NodeViewSelectionChangeEvent = fw::CustomEvent<EventID_NODE_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
-
-    using ToggleIsolateSelectionEvent = fw::Event<EventID_REQUEST_TOGGLE_ISOLATE>;
+    using Event_SelectionChange = fw::Event<EventID_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
 
     struct EventPayload_CreateNode
     {
@@ -97,7 +99,7 @@ namespace ndbl
         , node_signature(signature)
         {}
     };
-    using Event_CreateNode  = fw::CustomEvent<EventID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
-    using Event_CreateBlock = fw::CustomEvent<EventID_REQUEST_CREATE_BLOCK, EventPayload_CreateNode>;
+    using Event_CreateNode  = fw::Event<EventID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
+    using Event_CreateBlock = fw::Event<EventID_REQUEST_CREATE_BLOCK, EventPayload_CreateNode>;
 
 }// namespace ndbl

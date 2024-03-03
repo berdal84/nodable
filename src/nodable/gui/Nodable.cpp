@@ -110,44 +110,44 @@ bool Nodable::on_init()
     fw::Pool::init();
 
     // Bind commands to shortcuts
-    event_manager.bind<Action_DeleteNode>( "Delete", Shortcut{ SDLK_DELETE, KMOD_NONE } );
-    event_manager.bind<Action_ArrangeNode>( "Arrange", Shortcut{ SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    event_manager.bind<Action_ToggleFolding>( "Fold", Shortcut{ SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    event_manager.bind<Action_SelectNext>( "Next", Shortcut{ SDLK_n, KMOD_NONE } );
-    event_manager.bind<Action_FileSave>( ICON_FA_SAVE " Save", Shortcut{ SDLK_s, KMOD_CTRL } );
-    event_manager.bind<Action_FileSaveAs>( ICON_FA_SAVE " Save as", Shortcut{ SDLK_s, KMOD_CTRL } );
-    event_manager.bind<Action_FileClose>( ICON_FA_TIMES "  Close", Shortcut{ SDLK_w, KMOD_CTRL } );
-    event_manager.bind<Action_FileBrowse>( ICON_FA_FOLDER_OPEN " Open", Shortcut{ SDLK_o, KMOD_CTRL } );
-    event_manager.bind<Action_FileNew>( ICON_FA_FILE " New", Shortcut{ SDLK_n, KMOD_CTRL } );
-    event_manager.bind<Action_ShowWindow>( "Splashscreen", Shortcut{ SDLK_F1 }, EventPayload_ShowWindow{ "splashscreen" } );
-    event_manager.bind<Action_Exit>( ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{ SDLK_F4, KMOD_ALT } );
-    event_manager.bind<Action_Undo>( "Undo", Shortcut{ SDLK_z, KMOD_CTRL } );
-    event_manager.bind<Action_Redo>( "Redo", Shortcut{ SDLK_y, KMOD_CTRL } );
-    event_manager.bind<Action_ToggleIsolate>( "Isolate", Shortcut{ SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
-    event_manager.bind<Action_SelectionChange>("Deselect", Shortcut{ 0, KMOD_NONE, "Double click on bg" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    event_manager.bind<Action_MoveGraph>("Move Graph", Shortcut{ 0, KMOD_NONE, "Drag background" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    event_manager.bind<Action_FrameSelection>("Frame Selection", Shortcut{ SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{ FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    event_manager.bind<Action_FrameSelection>("Frame All", Shortcut{ SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{ FRAME_ALL } );
+    action_manager.new_action<Event_DeleteNode>( "Delete", Shortcut{ SDLK_DELETE, KMOD_NONE } );
+    action_manager.new_action<Event_ArrangeNode>( "Arrange", Shortcut{ SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager.new_action<Event_ToggleFolding>( "Fold", Shortcut{ SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager.new_action<Event_SelectNext>( "Next", Shortcut{ SDLK_n, KMOD_NONE } );
+    action_manager.new_action<Event_FileSave>( ICON_FA_SAVE " Save", Shortcut{ SDLK_s, KMOD_CTRL } );
+    action_manager.new_action<Event_FileSaveAs>( ICON_FA_SAVE " Save as", Shortcut{ SDLK_s, KMOD_CTRL } );
+    action_manager.new_action<Event_FileClose>( ICON_FA_TIMES "  Close", Shortcut{ SDLK_w, KMOD_CTRL } );
+    action_manager.new_action<Event_FileBrowse>( ICON_FA_FOLDER_OPEN " Open", Shortcut{ SDLK_o, KMOD_CTRL } );
+    action_manager.new_action<Event_FileNew>( ICON_FA_FILE " New", Shortcut{ SDLK_n, KMOD_CTRL } );
+    action_manager.new_action<Event_ShowWindow>( "Splashscreen", Shortcut{ SDLK_F1 }, EventPayload_ShowWindow{ "splashscreen" } );
+    action_manager.new_action<Event_Exit>( ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{ SDLK_F4, KMOD_ALT } );
+    action_manager.new_action<Event_Undo>( "Undo", Shortcut{ SDLK_z, KMOD_CTRL } );
+    action_manager.new_action<Event_Redo>( "Redo", Shortcut{ SDLK_y, KMOD_CTRL } );
+    action_manager.new_action<Event_ToggleIsolate>( "Isolate", Shortcut{ SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    action_manager.new_action<Event_SelectionChange>( "Deselect", Shortcut{ 0, KMOD_NONE, "Double click on bg" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager.new_action<Event_MoveSelection>( "Move Graph", Shortcut{ 0, KMOD_NONE, "Drag background" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager.new_action<Event_FrameSelection>( "Frame Selection", Shortcut{ SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{ FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager.new_action<Event_FrameSelection>( "Frame All", Shortcut{ SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{ FRAME_ALL } );
 
     // Prepare context menu items
     // 1) Blocks
-    event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_CONDITION} );
-    event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_FOR_LOOP} );
-    event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_WHILE_LOOP} );
-    event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_SCOPE} );
-    event_manager.bind<Action_CreateBlock>( ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_PROGRAM} );
+    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_CONDITION } );
+    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_FOR_LOOP } );
+    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_WHILE_LOOP } );
+    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_SCOPE } );
+    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_PROGRAM } );
 
     // 2) Variables
-    event_manager.bind<Action_CreateNode>( ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    event_manager.bind<Action_CreateNode>( ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    event_manager.bind<Action_CreateNode>( ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    event_manager.bind<Action_CreateNode>( ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
 
     // 3) Literals
-    event_manager.bind<Action_CreateNode>( ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    event_manager.bind<Action_CreateNode>( ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    event_manager.bind<Action_CreateNode>( ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    event_manager.bind<Action_CreateNode>( ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
 
     // 4) Functions/Operators from the API
     const Nodlang& language = Nodlang::get_instance();
@@ -156,7 +156,7 @@ bool Nodable::on_init()
         const fw::func_type* func_type = each_fct->get_type();
         std::string label;
         language.serialize_func_sig( label, func_type );
-        event_manager.bind<Action_CreateNode>( label.c_str(), Shortcut{}, EventPayload_CreateNode{ NodeType_INVOKABLE, func_type } );
+        action_manager.new_action<Event_CreateNode>( label.c_str(), Shortcut{}, EventPayload_CreateNode{ NodeType_INVOKABLE, func_type } );
     }
     return true;
 }
@@ -182,21 +182,6 @@ void Nodable::on_update()
 
     // 2. Handle events
 
-    // shorthand to push all shortcuts to a file view overlay depending on conditions
-    auto push_overlay_shortcuts = [&](ndbl::HybridFileView& _view, Condition _condition) -> void {
-        for (const auto _action: event_manager.get_actions())
-        {
-            if( ( _action->userdata & _condition) == _condition && (_action->userdata & Condition_HIGHLIGHTED_IN_GRAPH_EDITOR|Condition_HIGHLIGHTED_IN_TEXT_EDITOR) )
-            {
-                std::string  label        = _action->label.substr(0, 12);
-                std::string  shortcut_str = _action->shortcut.to_string();
-                OverlayType_ overlay_type = _action->userdata & Condition_HIGHLIGHTED_IN_TEXT_EDITOR ? OverlayType_GRAPH
-                                                                                                   : OverlayType_TEXT;
-                _view.push_overlay({label, shortcut_str}, overlay_type);
-            }
-        }
-    };
-
     // Nodable events
     auto       selected_view       = NodeView::get_selected();
     GraphView* graph_view          = current_file ? current_file->get_graph_view() : nullptr;
@@ -207,7 +192,7 @@ void Nodable::on_update()
     {
         switch ( event->id )
         {
-            case EventID_REQUEST_TOGGLE_ISOLATE:
+            case EventID_TOGGLE_ISOLATE:
             {
                 config.isolate_selection = !config.isolate_selection;
                 if(current_file)
@@ -223,24 +208,24 @@ void Nodable::on_update()
                 break;
             }
 
-            case fw::EventID_REQUEST_FILE_CLOSE:
+            case fw::EventID_FILE_CLOSE:
             {
                 if(current_file) close_file(current_file);
                 break;
             }
-            case fw::EventID_REQUEST_UNDO:
+            case fw::EventID_UNDO:
             {
                 if(curr_file_history) curr_file_history->undo();
                 break;
             }
 
-            case fw::EventID_REQUEST_REDO:
+            case fw::EventID_REDO:
             {
                 if(curr_file_history) curr_file_history->redo();
                 break;
             }
 
-            case fw::EventID_REQUEST_FILE_BROWSE:
+            case fw::EventID_FILE_BROWSE:
             {
                 std::string path;
                 if( m_view->pick_file_path(path, fw::AppView::DIALOG_Browse))
@@ -253,13 +238,13 @@ void Nodable::on_update()
 
             }
 
-            case fw::EventID_REQUEST_FILE_NEW:
+            case fw::EventID_FILE_NEW:
             {
                 new_file();
                 break;
             }
 
-            case fw::EventID_REQUEST_FILE_SAVE_AS:
+            case fw::EventID_FILE_SAVE_AS:
             {
                 if (current_file)
                 {
@@ -273,7 +258,7 @@ void Nodable::on_update()
                 break;
             }
 
-            case fw::EventID_REQUEST_FILE_SAVE:
+            case fw::EventID_FILE_SAVE:
             {
                 if (current_file)
                 {
@@ -311,20 +296,20 @@ void Nodable::on_update()
                 break;
             }
 
-            case NodeViewSelectionChangeEvent::id:
+            case Event_SelectionChange::id:
             {
-                auto _event = reinterpret_cast<NodeViewSelectionChangeEvent*>( event );
-                current_file->view.clear_overlay();
+                auto _event = reinterpret_cast<Event_SelectionChange*>( event );
+
                 Condition_ condition = _event->data.new_selection ? Condition_ENABLE_IF_HAS_SELECTION
                                                                   : Condition_ENABLE_IF_HAS_NO_SELECTION;
-                push_overlay_shortcuts(current_file->view, condition );
+                current_file->view.clear_overlay();
+                current_file->view.refresh_overlay( condition );
                 break;
             }
             case EventID_FILE_OPENED:
             {
-                if (!current_file) break;
                 current_file->view.clear_overlay();
-                push_overlay_shortcuts(current_file->view, Condition_ENABLE_IF_HAS_NO_SELECTION);
+                current_file->view.refresh_overlay( Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
             case Event_DeleteNode::id:

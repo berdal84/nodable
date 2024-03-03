@@ -353,3 +353,18 @@ size_t HybridFileView::size() const
 {
     return m_text_editor.Size();
 }
+
+void HybridFileView::refresh_overlay(Condition _condition )
+{
+    for (const IAction* _action: ActionManager::get_instance().get_actions())
+    {
+        if( ( _action->userdata & _condition) == _condition && (_action->userdata & Condition_HIGHLIGHTED) )
+        {
+            std::string  label        = _action->label.substr(0, 12);
+            std::string  shortcut_str = _action->shortcut.to_string();
+            OverlayType_ overlay_type = _action->userdata & Condition_HIGHLIGHTED_IN_TEXT_EDITOR ? OverlayType_TEXT
+                                                                                                 : OverlayType_GRAPH;
+            push_overlay({label, shortcut_str}, overlay_type);
+        }
+    }
+}

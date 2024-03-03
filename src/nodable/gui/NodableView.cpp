@@ -8,6 +8,7 @@
 #include "core/NodeUtils.h"
 #include "Config.h"
 #include "Event.h"
+#include "Action.h"
 #include "HybridFile.h"
 #include "HybridFileView.h"
 #include "History.h"
@@ -19,6 +20,7 @@
 
 using namespace ndbl;
 using namespace ndbl::assembly;
+using namespace fw;
 
 NodableView::NodableView(Nodable * _app)
     : fw::AppView(_app)
@@ -65,13 +67,13 @@ void NodableView::on_draw()
         if (ImGui::BeginMenu("File")) {
             bool has_file = current_file;
             bool changed = current_file != nullptr && current_file->changed;
-            fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_FILE_NEW );
-            fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_FILE_BROWSE );
+            ImGuiEx::MenuItem<Event_FileNew>();
+            ImGuiEx::MenuItem<Event_FileBrowse>();
             ImGui::Separator();
-            fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_FILE_SAVE_AS, false, has_file );
-            fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_FILE_SAVE, false, has_file && changed );
+            ImGuiEx::MenuItem<Event_FileSaveAs>(false, has_file);
+            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && changed);
             ImGui::Separator();
-            fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_FILE_CLOSE, false, has_file );
+            ImGuiEx::MenuItem<Event_FileClose>(false, has_file);
 
             auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste();
 
@@ -79,27 +81,29 @@ void NodableView::on_draw()
                 current_file->view.experimental_clipboard_auto_paste(!auto_paste);
             }
 
-            fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_EXIT );
+            fw::ImGuiEx::MenuItem<Event_Exit>();
 
             ImGui::EndMenu();
         }
 
         bool vm_is_stopped = virtual_machine.is_program_stopped();
-        if (ImGui::BeginMenu("Edit")) {
-            if (current_file_history) {
-                fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_UNDO );
-                fw::ImGuiEx::MenuItem( fw::EventID_REQUEST_REDO );
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (current_file_history)
+            {
+                ImGuiEx::MenuItem<Event_Undo>();
+                ImGuiEx::MenuItem<Event_Redo>();
                 ImGui::Separator();
             }
 
             auto has_selection = NodeView::is_any_selected();
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped)) {
-                event_manager.dispatch( EventID_REQUEST_DELETE_NODE );
+                event_manager.dispatch( EventID_DELETE_NODE );
             }
 
-            fw::ImGuiEx::MenuItem( EventID_REQUEST_ARRANGE_HIERARCHY, false, has_selection );
-            fw::ImGuiEx::MenuItem( EventID_REQUEST_TOGGLE_FOLDING, false,has_selection );
+            fw::ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
+            fw::ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
@@ -143,7 +147,7 @@ void NodableView::on_draw()
 
             ImGui::Separator();
 
-            fw::ImGuiEx::MenuItem( EventID_REQUEST_TOGGLE_ISOLATE, config.isolate_selection );
+            fw::ImGuiEx::MenuItem<Event_ToggleIsolate>(config.isolate_selection );
 
             ImGui::EndMenu();
         }
@@ -499,10 +503,10 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                event_manager.dispatch( fw::EventID_REQUEST_FILE_NEW );
+                event_manager.dispatch( fw::EventID_FILE_NEW );
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                event_manager.dispatch( fw::EventID_REQUEST_FILE_BROWSE );
+                event_manager.dispatch( fw::EventID_FILE_BROWSE );
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -837,7 +841,7 @@ void NodableView::draw_toolbar_window() {
         if (ImGui::Button(
                 config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->event_manager.dispatch( EventID_REQUEST_TOGGLE_ISOLATE );
+            m_app->event_manager.dispatch( EventID_TOGGLE_ISOLATE );
         }
         ImGui::SameLine();
         ImGui::EndGroup();

@@ -1,5 +1,6 @@
 #pragma once
 #include "core/types.h"
+#include <string>
 
 namespace fw
 {
@@ -12,15 +13,15 @@ namespace fw
     {
         // Declare common event types
 
-        EventID_NONE = 0,
+        EventID_NULL = 0,
 
-        EventID_REQUEST_FILE_SAVE,
-        EventID_REQUEST_FILE_SAVE_AS,
-        EventID_REQUEST_FILE_NEW,
-        EventID_REQUEST_FILE_CLOSE,
-        EventID_REQUEST_FILE_BROWSE,
-        EventID_REQUEST_UNDO,
-        EventID_REQUEST_REDO,
+        EventID_FILE_SAVE,
+        EventID_FILE_SAVE_AS,
+        EventID_FILE_NEW,
+        EventID_FILE_CLOSE,
+        EventID_FILE_BROWSE,
+        EventID_UNDO,
+        EventID_REDO,
         EventID_REQUEST_EXIT,
         EventID_REQUEST_SHOW_WINDOW,
 
@@ -38,38 +39,42 @@ namespace fw
         virtual ~IEvent() = default;
     };
 
-    template<EventID event_id>
+    struct null_data_t {};
+
+    /** Template to extend IEvent with a specific payload */
+    template<EventID id_value, typename DataT = null_data_t>
     class Event : public fw::IEvent
     {
     public:
-        using data_t = struct {};
-        constexpr static EventID id = static_cast<EventID>(event_id);
-
-        Event()
-            : IEvent(event_id)
-        {}
-    };
-
-    /** Template to extend IEvent with a specific payload */
-    template<EventID event_id, typename DataT>
-    class CustomEvent : public fw::IEvent
-    {
-    public:
-        constexpr static EventID id = event_id;
-        using data_t = DataT;
+        constexpr static EventID id = id_value;
+        using data_t = DataT; // type required to construct this Event
 
         DataT data;
 
-        CustomEvent( DataT _data = {})
-            : IEvent(event_id)
+        explicit Event(DataT _data = {})
+            : IEvent(id_value)
             , data( _data )
         {}
     };
 
+    // Below, few basic events (not requiring any payload)
+
+    using Event_NULL            = Event<EventID_NULL>;
+    using Event_FileSave        = Event<EventID_FILE_SAVE>;
+    using Event_FileSaveAs      = Event<EventID_FILE_SAVE_AS>;
+    using Event_FileClose       = Event<EventID_FILE_CLOSE>;
+    using Event_FileBrowse      = Event<EventID_FILE_BROWSE>;
+    using Event_FileNew         = Event<EventID_FILE_NEW>;
+    using Event_Exit            = Event<EventID_REQUEST_EXIT>;
+    using Event_Undo            = Event<EventID_UNDO>;
+    using Event_Redo            = Event<EventID_REDO>;
+
+    // Here, an event requiring the following payload
+
     struct EventPayload_ShowWindow
     {
-        std::string window_id; // String identifying a given  window (user defined)
-        bool        visible;   // Desired state
+        std::string window_id;        // String identifying a given  window (user defined)
+        bool        visible   = true; // Window visibility (desired state)
     };
-    using Event_ShowWindow = CustomEvent<EventID_REQUEST_SHOW_WINDOW, EventPayload_ShowWindow>;
+    using Event_ShowWindow = Event<EventID_REQUEST_SHOW_WINDOW, EventPayload_ShowWindow>;
 }

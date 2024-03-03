@@ -2,6 +2,7 @@
 #include "Event.h"
 #include "core/types.h"
 #include <SDL/include/SDL_keycode.h>
+#include <string>
 
 namespace fw
 {
@@ -14,72 +15,73 @@ namespace fw
         std::string to_string() const;
     };
 
-    /** Basic action defining which event has to be triggered when a given shortcut is detected */
+    /**
+     * The purpose of any IAction is to trigger a given basic event (identified by an EventID)
+     * when a key shortcut is pressed.
+     */
     class IAction
     {
     public:
-        IAction(
+        explicit IAction(
             EventID         event_id,
-            const char*     label,
-            const Shortcut& shortcut = {},
+            const char*     label    = "action",
+            Shortcut&&      shortcut = {},
             u64_t           userdata = {}
         )
         : label(label)
         , event_id(event_id)
-        , shortcut(shortcut)
+        , shortcut(std::move(shortcut))
         , userdata(userdata)
         {}
         std::string label;
         EventID     event_id;
         Shortcut    shortcut;
         u64_t       userdata;
-        virtual IEvent* make_event() const { return new IEvent(event_id); }
+
+        void            trigger() const;    // Trigger action, will dispatch an event with default values
+        virtual IEvent* make_event() const; // Make a new event with default values
     };
 
-    /** Generic Action to trigger a given EventT */
-    template<EventID id>
+    /**
+     * The purpose of an Action is similar to IAction for events requiring some data to be constructed
+     */
+    template<typename EventT>
     class Action : public IAction
     {
     public:
-        using event_t = fw::Event<id>;
-        using event_data_t = typename event_t::data_t;
-        explicit Action(
-            const char*  label,
-            Shortcut     shortcut = {},
-            u64_t        userdata = {}
-        )
-            : IAction(id, label, shortcut, userdata)
-        {}
-    };
+        static_assert( !std::is_base_of_v<EventT, IEvent> ); // Ensure EventT implements IEvent
 
-    /** Generic Action able to make a given EventT from an ActionConfigT */
-    template<typename EventT>
-    class CustomAction : public IAction
-    {
-    public:
-        static_assert( !std::is_base_of_v<EventT, IEvent> );
-        using event_t      = EventT;
-        using event_data_t = typename EventT::data_t;
-        CustomAction(
-                const char*   label,
-                Shortcut      shortcut,
-                event_data_t  event_initial_state = {},
-                u64_t         userdata = {}
-        )
-            : IAction(EventT::id, label, shortcut, userdata)
-            , event_initial_state( event_initial_state )
-        {}
-        EventT*  make_event() const override { return new EventT( event_initial_state ); }
-        event_data_t event_initial_state; // Custom data to attach
-    };
+        using event_t      = EventT;                  // Type of the event triggered by this action
+        using event_data_t = typename EventT::data_t; // Type of the payload for the events triggered by this action
 
-    using Action_FileSave        = Action<EventID_REQUEST_FILE_SAVE>;
-    using Action_FileSaveAs      = Action<EventID_REQUEST_FILE_SAVE_AS>;
-    using Action_FileClose       = Action<EventID_REQUEST_FILE_CLOSE>;
-    using Action_FileBrowse      = Action<EventID_REQUEST_FILE_BROWSE>;
-    using Action_FileNew         = Action<EventID_REQUEST_FILE_NEW>;
-    using Action_Exit            = Action<EventID_REQUEST_EXIT>;
-    using Action_Undo            = Action<EventID_REQUEST_UNDO>;
-    using Action_Redo            = Action<EventID_REQUEST_REDO>;
-    using Action_ShowWindow      = CustomAction<Event_ShowWindow>;
+        event_data_t event_data; // Initial data used when making a new event
+
+        Action(
+            const char* label,
+            Shortcut&&  shortcut
+            )
+            : IAction(EventT::id, label, std::move(shortcut) )
+        {}
+
+        Action(
+            const char*   label, // Text to display for this action
+            Shortcut&&    shortcut, // Shortcut able to trigger this action
+            u64_t         userdata // Custom user data (typically to store flags)
+            )
+            : IAction(EventT::id, label, std::move(shortcut), userdata)
+        {}
+
+        Action(
+            const char*   label, // Text to display for this action
+            Shortcut&&    shortcut, // Shortcut able to trigger this action
+            event_data_t  event_data, // Initial data of a default event
+            u64_t         userdata = {} // Custom user data (typically to store flags)
+        )
+        : IAction(EventT::id, label, std::move(shortcut), userdata)
+        , event_data( event_data )
+        {}
+
+        EventT*  make_event() const override // Make a new event using default event_data
+        { return new EventT( event_data ); }
+    };
 }

@@ -165,19 +165,10 @@ void NodeView::set_selected(PoolID<NodeView> new_selection)
 
     if( s_selected == new_selection ) return;
 
-    // Handle de-selection
-    if( s_selected )
-    {
-        event_manager.dispatch<NodeViewSelectionChangeEvent>( { s_selected } );
-        s_selected.reset();
-    }
+    EventPayload_NodeViewSelectionChange event{ new_selection, s_selected };
+    event_manager.dispatch<Event_SelectionChange>(event);
 
-    // Handle selection
-    if( new_selection )
-    {
-        event_manager.dispatch<NodeViewSelectionChangeEvent>( { new_selection });
-        s_selected = new_selection;
-    }
+    s_selected = new_selection;
 }
 
 PoolID<NodeView> NodeView::get_selected()
