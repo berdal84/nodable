@@ -2,21 +2,22 @@
 
 #include <utility>
 
+#include "Action.h"
+#include "Config.h"
+#include "Event.h"
+#include "History.h"
+#include "HybridFile.h"
+#include "HybridFileView.h"
+#include "Nodable.h"
+#include "NodeView.h"
+#include "Physics.h"
+#include "PropertyView.h"
+#include "build_info.h"
+#include "core/NodeUtils.h"
 #include "fw/core/log.h"
 #include "fw/core/system.h"
 #include "fw/gui/Texture.h"
-#include "core/NodeUtils.h"
-#include "Config.h"
-#include "Event.h"
-#include "Action.h"
-#include "HybridFile.h"
-#include "HybridFileView.h"
-#include "History.h"
-#include "Nodable.h"
-#include "NodeView.h"
-#include "build_info.h"
-#include "Physics.h"
-#include "PropertyView.h"
+#include "gui/ActionManagerView.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -672,6 +673,11 @@ void NodableView::draw_config_window() {
             ImGui::SliderInt("grid subdivisions", &config.ui_graph_grid_subdivs, 1, 16);
         }
 
+        if (ImGui::CollapsingHeader("Shortcuts", ImGuiTreeNodeFlags_SpanAvailWidth))
+        {
+            ActionManagerView::draw(&m_app->action_manager);
+        }
+
         if ( m_app->config.common.debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
@@ -685,37 +691,41 @@ void NodableView::draw_config_window() {
     ImGui::End();
 }
 
-void NodableView::on_draw_splashscreen()
+void NodableView::draw_splashscreen()
 {
-    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-
-    // Image
-    ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-    fw::ImGuiEx::Image(m_logo);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
-
-    // disclaimer
-    ImGui::TextWrapped(
-            "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
-
-    ImGui::NewLine();
-    ImGui::NewLine();
-
-    // credits
-    const char *credit = "by Berdal84";
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
-    ImGui::TextWrapped("%s", credit);
-
-    // build version
-    ImGui::TextWrapped("%s", BuildInfo::version);
-
-    // close on left/rightmouse btn click
-    if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+    if ( AppView::begin_splashscreen() )
     {
-        m_app->config.common.splashscreen = false;
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+        // Image
+        ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
+        fw::ImGuiEx::Image(m_logo);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
+
+        // disclaimer
+        ImGui::TextWrapped(
+                "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
+
+        ImGui::NewLine();
+        ImGui::NewLine();
+
+        // credits
+        const char *credit = "by Berdal84";
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
+        ImGui::TextWrapped("%s", credit);
+
+        // build version
+        ImGui::TextWrapped("%s", BuildInfo::version);
+
+        // close on left/rightmouse btn click
+        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+        {
+            m_app->config.common.splashscreen = false;
+        }
+        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
+        AppView::end_splashscreen();
     }
-    ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
 }
 
 void NodableView::draw_history_bar(History *currentFileHistory) {

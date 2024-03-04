@@ -5,8 +5,8 @@ using namespace fw;
 
 void IAction::trigger() const
 {
-    IEvent* event = make_event();
-    EventManager::get_instance().dispatch( event );
+    EventManager& event_manager = EventManager::get_instance();
+    event_manager.dispatch( make_event() );
 }
 
 IEvent* IAction::make_event() const

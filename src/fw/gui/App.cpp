@@ -339,9 +339,9 @@ int App::main(int argc, char *argv[])
                 if( all_time <= 0 ) all_time = 1;
                 dt = u32_t(0.9f*float(dt) + 0.1f*float(all_time)); // Smooth value
                 u32_t fps = 1000 / dt;
-                char title[255];
-                snprintf( title, 255, "%s | %i fps (dt %d ms, frame %d ms)", config.app_window_label.c_str(), fps, dt, frame_time );
-                title[254] = '\0';
+                char title[256];
+                snprintf( title, 256, "%s | %i fps (dt %d ms, frame %d ms)", config.app_window_label.c_str(), fps, dt, frame_time );
+                title[255] = '\0';
                 SDL_SetWindowTitle( m_sdl_window, title );
             }
         }

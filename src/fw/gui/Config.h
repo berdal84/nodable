@@ -112,6 +112,11 @@ namespace fw
             colors[ImGuiCol_NavWindowingHighlight]  = ImVec4(1.00f, 1.00f, 1.00f, 0.70f);
             colors[ImGuiCol_NavWindowingDimBg]      = ImVec4(0.80f, 0.80f, 0.80f, 0.20f);
             colors[ImGuiCol_ModalWindowDimBg]       = ImVec4(0.20f, 0.20f, 0.20f, 0.55f);
+            colors[ImGuiCol_TableBorderLight]       = ImVec4(0.20f, 0.20f, 0.20f, 0.80f);
+            colors[ImGuiCol_TableBorderStrong]      = ImVec4(0.20f, 0.20f, 0.20f, 0.90f);
+            colors[ImGuiCol_TableHeaderBg]          = ImVec4(0.20f, 0.20f, 0.20f, 0.60f);
+            colors[ImGuiCol_TableRowBg]             = ImVec4(0.20f, 0.20f, 0.20f, 0.40f);
+            colors[ImGuiCol_TableRowBgAlt]          = ImVec4(0.20f, 0.20f, 0.20f, 0.20f);
 
             _style.WindowBorderSize   = 1.0f;
             _style.FrameBorderSize    = 1.0f;

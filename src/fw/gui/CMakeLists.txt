@@ -8,6 +8,7 @@ add_library(
     framework-gui
         Action.cpp
         ActionManager.cpp
+        ActionManagerView.cpp
         App.cpp
         AppView.cpp
         EventManager.cpp
