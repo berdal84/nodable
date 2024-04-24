@@ -19,6 +19,22 @@ NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 {
 }
 
+/** TODO: move this in a class (not NodeViewConstrain) */
+std::vector<ImRect> get_rect(const std::vector<NodeView*>& _in_views)
+{
+    std::vector<ImRect> _out;
+    for (auto each_target : _in_views )
+    {
+        ImRect rect;
+        if( !(each_target->pinned() || !each_target->is_visible()) )
+        {
+            rect = each_target->get_rect( true );
+        }
+        _out.push_back(rect);
+    }
+    return std::move(_out);
+}
+
 void NodeViewConstraint::apply(float _dt)
 {
     // Check if this constrain should apply
@@ -48,24 +64,13 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            float       size_x_total      = 0.0f;
             ImVec2      driver_pos        = driver->get_position(fw::Space_Local);
             ImVec2      cursor_pos        = driver_pos;
             const Node& driver_owner      = *driver->get_owner();
-            std::vector<ImRect> target_rects;
-
-            // Compute each target_rect and size_x_total :
-            //-----------------------
-            for (auto each_target : clean_targets)
-            {
-                ImRect rect;
-                if( !(each_target->pinned() || !each_target->is_visible()) )
-                {
-                    rect = each_target->get_rect( true );
-                }
-                target_rects.push_back(rect);
-                size_x_total += rect.GetWidth();
-            }
+            auto        target_rects = get_rect( clean_targets );
+            float       size_x_total      = 0.0f;
+            std::for_each( target_rects.begin(), target_rects.end(),
+                           [&](auto each ) { size_x_total += each.GetSize().x; });
 
             // Determine x position start:
             //---------------------------
