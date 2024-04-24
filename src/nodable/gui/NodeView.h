@@ -99,12 +99,15 @@ namespace ndbl
         static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
+        static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
         ImVec2                  get_slot_pos( const Slot& );
         ImRect                  get_slot_rect( const Slot& _slot, const Config& _config, i8_t _count ) const;
         ImRect                  get_slot_rect( const SlotView &_slot_view, const Config &_config, i8_t _pos ) const;
         ImVec2                  get_slot_normal( const Slot& slot) const;
         void                    set_color( const ImVec4* _color, ColorType _type = Color_FILL );
         ImColor                 get_color(ColorType _type) const;
+        static bool             none_is_visible( std::vector<NodeView*> vector1 );
+
     private:
 
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);

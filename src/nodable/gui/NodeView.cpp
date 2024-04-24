@@ -1045,6 +1045,18 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
     return parent_view;
 }
 
+std::vector<NodeView*> NodeView::substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recursive)
+{
+    std::vector<NodeView*> out;
+    out.reserve(_in.size()); // Wort but more probable case
+    for(auto each : _in)
+    {
+        auto each_or_substitute = NodeView::substitute_with_parent_if_not_visible(each, _recursive);
+        out.push_back(each_or_substitute);
+    }
+    return std::move(out);
+};
+
 void NodeView::expand_toggle_rec()
 {
     return set_expanded_rec(!m_expanded);
@@ -1118,4 +1130,10 @@ void NodeView::set_color( const ImVec4* _color, ColorType _type )
 ImColor NodeView::get_color( ColorType _type ) const
 {
     return  ImColor(*m_colors[_type]);
+}
+
+bool NodeView::none_is_visible( std::vector<NodeView*> _views )
+{
+    auto is_visible = [](const NodeView* view) { return view->is_visible(); };
+    return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
 }

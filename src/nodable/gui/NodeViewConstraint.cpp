@@ -13,7 +13,7 @@ using namespace fw;
 
 NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 : m_flags(_flags)
-, m_filter(always)
+, m_should_apply(always)
 , m_is_active(true)
 , m_name(_name)
 {
@@ -21,50 +21,20 @@ NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 
 void NodeViewConstraint::apply(float _dt)
 {
-    bool should_apply = m_is_active && m_filter(this);
-    if(!should_apply)
-    {
-        return;
-    }
+    // Check if this constrain should apply
+    if(!m_is_active && m_should_apply(this)) return;
 
-    /*
-     * To get a clean list of node views.
-     * Substitute each not visible view by their respective parent.
-     */
-    auto get_clean = [](std::vector<NodeView*> _in)
-    {
-        std::vector<NodeView*> out;
-        out.reserve(_in.size());
-        for(auto each : _in)
-        {
-            out.push_back(NodeView::substitute_with_parent_if_not_visible(each));
-        }
-        return std::move(out);
-    };
+    // Gather only visible views or their parent (recursively)
+    auto pool = Pool::get_pool();
+    std::vector<NodeView*> clean_drivers = NodeView::substitute_with_parent_if_not_visible( pool->get( m_drivers ), true );
+    std::vector<NodeView*> clean_targets = NodeView::substitute_with_parent_if_not_visible( pool->get( m_targets ), true );
 
-    std::vector<NodeView*> clean_drivers = get_clean( Pool::get_pool()->get( m_drivers ) );
-    std::vector<NodeView*> clean_targets = get_clean( Pool::get_pool()->get( m_targets ) );
+    // If we still have no targets or drivers visible, it's not necessary to go further
+    if ( NodeView::none_is_visible(clean_targets)) return;
+    if ( NodeView::none_is_visible(clean_drivers)) return;
 
-    //debug
-    if( fw::ImGuiEx::debug )
-    {
-        for (auto each_target: clean_targets)
-        {
-            for (auto each_driver: clean_drivers)
-            {
-                fw::ImGuiEx::DebugLine(
-                        each_driver->get_position(fw::Space_Screen),
-                        each_target->get_position(fw::Space_Screen),
-                        IM_COL32(0, 0, 255, 30), 1.0f);
-            }
-        }
-    }
-
-    auto none_is_visible = [](const std::vector<NodeView*>& _views)-> bool {
-        auto is_visible = [](const NodeView* view) { return view->is_visible(); };
-        return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
-    };
-    if (none_is_visible(clean_targets) || none_is_visible(clean_drivers)) return;
+    // To control visually
+    draw_debug_lines( clean_drivers, clean_targets );
 
     const Config& config = Nodable::get_instance().config;
 
@@ -192,6 +162,23 @@ void NodeViewConstraint::apply(float _dt)
                                          + target->get_rect().GetSize().x * 0.5f, 0 ));
                     target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
                 }
+            }
+        }
+    }
+}
+
+void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers,const std::vector<NodeView*>& _targets )
+{
+    if( ImGuiEx::debug )
+    {
+        for (auto each_target: _targets )
+        {
+            for (auto each_driver: _drivers )
+            {
+                ImGuiEx::DebugLine(
+                        each_driver->get_position( Space_Screen),
+                        each_target->get_position( Space_Screen),
+                        IM_COL32(0, 0, 255, 30), 1.0f);
             }
         }
     }
