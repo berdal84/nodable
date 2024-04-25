@@ -21,7 +21,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
     : fw::View()
     , m_text_editor()
     , m_focused_text_changed(false)
-    , m_graph_changed(false)
+    , m_is_graph_dirty(false)
     , m_file(_file)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
@@ -153,7 +153,7 @@ bool HybridFileView::draw()
                                  m_text_editor.IsTextChanged() ||
                                  (app.config.isolate_selection && is_selected_text_modified);
 
-        if (m_text_editor.IsTextChanged())  m_file.changed = true;
+        if (m_text_editor.IsTextChanged())  m_file.is_content_dirty = true;
     }
     ImGui::EndChild();
 
@@ -175,7 +175,7 @@ bool HybridFileView::draw()
         {
             // Draw graph
             View::use_available_region(graph_view);
-            m_graph_changed = graph_view->draw();
+            m_is_graph_dirty = graph_view->draw();
 
             // Draw overlay: shortcuts
             ImRect overlay_rect = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);

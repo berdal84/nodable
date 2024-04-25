@@ -44,10 +44,10 @@ namespace ndbl
 
 		void                           init();
         bool                           draw() override;
-        bool                           changed() const { return m_focused_text_changed || m_graph_changed; }
+        bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
-        bool                           graph_changed() const { return m_graph_changed; }
-        void                           changed(bool b) { m_focused_text_changed = m_graph_changed = b; }
+        bool                           is_graph_dirty() const { return m_is_graph_dirty; }
+        void                           set_dirty(bool b) { m_focused_text_changed = m_is_graph_dirty = b; }
 		void                           set_text(const std::string&);
 		std::string                    get_selected_text()const;
 		std::string                    get_text()const;
@@ -64,13 +64,12 @@ namespace ndbl
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           refresh_overlay(Condition condition);
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  ImVec2 position);
-
-        size_t size() const;
+        size_t                         size() const;
 
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
         bool         m_focused_text_changed;
-        bool         m_graph_changed;
+        bool         m_is_graph_dirty;
 		HybridFile&  m_file;
         std::string  m_text_overlay_window_name;
         std::string  m_graph_overlay_window_name;

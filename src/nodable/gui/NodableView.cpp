@@ -66,19 +66,19 @@ void NodableView::on_draw()
         History* current_file_history = current_file ? current_file->get_history() : nullptr;
 
         if (ImGui::BeginMenu("File")) {
-            bool has_file = current_file;
-            bool changed = current_file != nullptr && current_file->changed;
+            bool has_file = current_file != nullptr;
+            bool is_current_file_content_dirty = current_file != nullptr && current_file->is_content_dirty;
             ImGuiEx::MenuItem<Event_FileNew>();
             ImGuiEx::MenuItem<Event_FileBrowse>();
             ImGui::Separator();
             ImGuiEx::MenuItem<Event_FileSaveAs>(false, has_file);
-            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && changed);
+            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && is_current_file_content_dirty );
             ImGui::Separator();
             ImGuiEx::MenuItem<Event_FileClose>(false, has_file);
 
             auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste();
 
-            if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, has_file ) && current_file ) {
+            if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, has_file ) && has_file ) {
                 current_file->view.experimental_clipboard_auto_paste(!auto_paste);
             }
 
@@ -551,7 +551,7 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, Hybrid
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
-            (file->changed ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
+            (file->is_content_dirty ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;

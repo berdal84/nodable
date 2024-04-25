@@ -615,6 +615,9 @@ PoolID<Node> Nodlang::parse_program()
     parser_state.scope.pop();
     commit_transaction();
 
+    // Avoid an unnecessary serialization of the graph (would happen once after each parsing)
+    parser_state.graph->set_dirty(false);
+
     return root;
 }
 

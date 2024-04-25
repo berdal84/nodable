@@ -17,7 +17,7 @@ using namespace fw;
 
 HybridFile::HybridFile(std::string _name)
         : name(std::move(_name))
-        , changed(true)
+        , is_content_dirty(true)
         , view(*this)
         , m_history(&Nodable::get_instance().config.experimental_hybrid_history)
 {
@@ -64,21 +64,22 @@ HybridFile::~HybridFile()
 
 bool HybridFile::write_to_disk()
 {
-    if(path.empty() )
+    if( path.empty() )
     {
+        LOG_WARNING("File", "No path defined, unable to save file\n");
         return false;
     }
 
-	if (changed)
-	{
-		std::ofstream out_fstream(path.c_str());
-        std::string content = view.get_text();
-        out_fstream.write(content.c_str(), content.size());
-        changed = false;
-        LOG_MESSAGE("File", "%s saved\n", name.c_str());
-	} else {
+	if ( !is_content_dirty )
+    {
         LOG_MESSAGE("File", "Nothing to save\n");
     }
+
+    std::ofstream out_fstream(path.c_str());
+    std::string content = view.get_text();
+    out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
+    is_content_dirty = false;
+    LOG_MESSAGE("File", "%s saved\n", name.c_str());
 
     return true;
 }
@@ -102,7 +103,7 @@ bool HybridFile::load()
     std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
     set_text(content);
 
-    changed = false;
+    is_content_dirty = false;
 
     LOG_MESSAGE("HybridFile", "\"%s\" loaded (%s).\n", name.c_str(), path.c_str())
 
@@ -141,13 +142,16 @@ UpdateResult HybridFile::update()
     //
     bool isolate_selection = Nodable::get_instance().config.isolate_selection;
 
+    // 1) Handle when view changes (graph or text)
+    //--------------------------------------------
+
     if( view.changed() )
     {
-        if( view.focused_text_changed() && !view.graph_changed() )
+        if( view.focused_text_changed() && !view.is_graph_dirty() )
         {
             update_graph_from_text(isolate_selection);
         }
-        else if ( view.graph_changed() )
+        else if ( view.is_graph_dirty() )
         {
             update_text_from_graph(isolate_selection);
         }
@@ -157,10 +161,19 @@ UpdateResult HybridFile::update()
             //       This is not supposed to happens, that's why there is an assert to be aware of is
             FW_ASSERT(false);
         }
-        view.changed(false);
+        view.set_dirty( false );
+        FW_ASSERT( m_graph->is_dirty() == false);
     }
 
-    return  m_graph->update();
+    // 2) Handle when graph (not the graph view) changes
+    //--------------------------------------------------
+
+    if ( m_graph->is_dirty() )
+    {
+        update_text_from_graph(isolate_selection);
+    }
+
+    return  m_graph->update(); // ~ garbage collection
 }
 
 UpdateResult HybridFile::update_graph_from_text(bool isolate_selection)

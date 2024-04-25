@@ -95,6 +95,7 @@ void Graph::add(PoolID<Node> _node)
     FW_ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node->poolid()) == m_node_registry.end())
 	m_node_registry.push_back(_node->poolid());
     _node->parent_graph = this;
+    set_dirty(); // To express this graph changed
     LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->name.c_str(), _node->get_type()->get_name())
 }
 
@@ -103,6 +104,7 @@ void Graph::remove(PoolID<Node> _node)
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     FW_ASSERT(found != m_node_registry.end());
     m_node_registry.erase(found);
+    set_dirty(); // To express this graph changed
 }
 
 void Graph::ensure_has_root()
@@ -254,6 +256,7 @@ void Graph::remove(DirectedEdge edge)
     {
         LOG_WARNING("Graph", "Unable to unregister edge\n")
     }
+    set_dirty(); // To express this graph changed
 }
 
 DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable )
@@ -412,7 +415,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 FW_ASSERT(false);// This connection type is not yet implemented
         }
     }
-    set_dirty();
+    set_dirty(); // To express this graph changed
     return &edge;
 }
 
@@ -458,7 +461,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
             FW_EXPECT(!type, "Not yet implemented yet");
     }
 
-    set_dirty();
+    set_dirty(); // To express this graph changed
 }
 
 PoolID<Node> Graph::create_scope()
