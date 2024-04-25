@@ -286,7 +286,7 @@ bool NodeView::draw()
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
         {
-            if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
+            if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW && (node->is_instruction() || node->can_be_instruction() ) )
             {
                 int& count = count_by_flags[slot_view.slot().static_flags()];
                 ImRect rect = get_slot_rect( slot_view, config, count );

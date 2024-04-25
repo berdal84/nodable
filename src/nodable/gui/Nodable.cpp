@@ -360,7 +360,7 @@ void Nodable::on_update()
                 auto _event = reinterpret_cast<Event_SlotDropped*>(event);
                 SlotRef tail = _event->data.first;
                 SlotRef head = _event->data.second;
-                if (head.flags & SlotFlag_ORDER_SECOND ) std::swap(tail, head); // guarantee src to be the output
+                if (tail.flags & SlotFlag_ORDER_SECOND ) std::swap(tail, head); // guarantee src to be the output
                 DirectedEdge edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);

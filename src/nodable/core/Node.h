@@ -64,6 +64,7 @@ namespace ndbl {
 
         virtual void init();
         bool is_instruction() const;
+        bool can_be_instruction() const;
 
         // Slot related
         //-------------

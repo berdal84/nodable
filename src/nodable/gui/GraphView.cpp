@@ -615,11 +615,15 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
                 break;
 
             default:
-                if ( dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
-                    continue;
 
-                if ( action->event_data.node_signature )
+                if ( dragged_slot->allows(SlotFlag_TYPE_CODEFLOW))
                 {
+                    // we can connect anything to a code flow slot
+                }
+                else if ( action->event_data.node_signature )
+                {
+                    // discard incompatible signatures
+
                     if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) &&
                          !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type)
                        )
@@ -628,8 +632,7 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
                     if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
                         continue;
 
-                } // by default, we accept any item not having a signature
-                break;
+                }
         }
         items_with_compatible_signature.push_back( action );
     }
