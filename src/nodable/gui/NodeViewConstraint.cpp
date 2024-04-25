@@ -64,65 +64,80 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            ImVec2      driver_pos        = driver->get_position(fw::Space_Local);
-            ImVec2      cursor_pos        = driver_pos;
+            ImVec2      virtual_cursor    = driver->get_position(fw::Space_Local);
             const Node& driver_owner      = *driver->get_owner();
             auto        target_rects = get_rect( clean_targets );
-            float       size_x_total      = 0.0f;
-            std::for_each( target_rects.begin(), target_rects.end(),
-                           [&](auto each ) { size_x_total += each.GetSize().x; });
 
-            // Determine x position start:
-            //---------------------------
+            // Determine horizontal alignment
+            //-------------------------------
 
-            // x alignment
-            //
-            // We add an indentation when driver is an instruction without being connected to a predecessor
-            const bool align_right = driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom;
-            if ( align_right )
+            Align halign = Align_CENTER;
+
+            // Align right when driver is an instruction without being connected to a predecessor
+            if ( driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom )
             {
-                cursor_pos.x += driver->get_size().x / 4.0f
-                             + config.ui_node_spacing;
+                halign = Align_END;
+            }
 
-            // Otherwise we simply align vertically
-            } else {
-                cursor_pos.x -= size_x_total / 2.0f;
+            // Determine virtual_cursor.x from alignment
+            //----------------------------------
+
+            switch( halign )
+            {
+                case Align_START:
+                {
+                    FW_EXPECT(false, "not implemented")
+                }
+
+                case Align_END:
+                {
+                    virtual_cursor.x += driver->get_size().x / 4.0f + config.ui_node_spacing;
+                    break;
+                }
+
+                case Align_CENTER:
+                {
+                    float size_x_total = 0.0f;
+                    std::for_each( target_rects.begin(), target_rects.end(),[&](auto each ) { size_x_total += each.GetSize().x; });
+                    virtual_cursor.x -= size_x_total / 2.0f;
+                }
             }
 
             // Constraint in row:
             //-------------------
-            cursor_pos.y   += y_direction * driver->get_size().y / 2.0f;
+            virtual_cursor.y   += y_direction * driver->get_size().y / 2.0f;
             for (int target_index = 0; target_index < clean_targets.size(); target_index++)
             {
                 NodeView* each_target = clean_targets[target_index];
-                if ( !each_target->pinned() && each_target->is_visible() )
+                const Node& target_owner = *each_target->get_owner();
+
+                // Guards
+                if ( !each_target->is_visible() ) continue;
+                if ( each_target->pinned() ) continue;
+                if ( !target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() ) && !align_bbox_bottom ) continue;
+
+                // Compute new position for this input view
+                ImRect& target_rect = target_rects[target_index];
+
+                ImVec2 relative_pos(
+                        target_rect.GetWidth() / 2.0f,
+                        y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
+                );
+
+                if ( align_bbox_bottom ) relative_pos += y_direction * config.ui_node_spacing;
+
+                // Add a vertical space to avoid having too much wires aligned on x-axis
+                // useful for "for" nodes.
+                if( halign == Align_END && clean_targets.size() > 1 )
                 {
-                    // Compute new position for this input view
-                    ImRect& target_rect = target_rects[target_index];
-
-                    ImVec2 relative_pos(
-                            target_rect.GetWidth() / 2.0f,
-                            y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
-                    );
-
-                    if ( align_bbox_bottom ) relative_pos += y_direction * config.ui_node_spacing;
-
-                    if( align_right && clean_targets.size() > 1 )
-                    {
-                        // add a vertical space to avoid having too much wires aligned on x-axis
-                        int reverse_y_spacing = (clean_targets.size() - 1 - target_index) * config.ui_node_spacing * 1.5f;
-                        relative_pos.y += y_direction * reverse_y_spacing;
-                    }
-
-                    const Node& target_owner = *each_target->get_owner();
-                    const bool constrained = target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() );
-                    if ( constrained || align_bbox_bottom )
-                    {
-                        auto target_physics = target_owner.get_component<Physics>();
-                        target_physics->add_force_to_translate_to(cursor_pos + relative_pos + m_offset, config.ui_node_speed, true);
-                        cursor_pos.x += target_rect.GetWidth() + config.ui_node_spacing;
-                    }
+                    float reverse_y_spacing = float(clean_targets.size() - 1 - target_index) * config.ui_node_spacing * 1.5f;
+                    relative_pos.y += y_direction * reverse_y_spacing;
                 }
+
+                auto target_physics = target_owner.get_component<Physics>();
+                target_physics->add_force_to_translate_to( virtual_cursor + relative_pos + m_offset, config.ui_node_speed, true);
+                virtual_cursor.x += target_rect.GetWidth() + config.ui_node_spacing;
+
             }
             break;
         }

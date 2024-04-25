@@ -11,6 +11,17 @@ namespace ndbl {
     class NodeView;
     using fw::PoolID;
 
+    enum Align {
+        Align_START,
+        Align_CENTER,
+        Align_END,
+    };
+
+    enum Direction {
+        Direction_ROW ,
+        Direction_COLUMN,
+    };
+
     typedef int ConstrainFlags;
     enum ConstrainFlag_
     {
