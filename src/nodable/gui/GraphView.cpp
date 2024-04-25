@@ -559,7 +559,7 @@ Action_CreateNode* CreateNodeContextMenu::draw_search_input( size_t _result_max_
             auto it = items_matching_search.begin();
             while( it != items_matching_search.end() && std::distance(items_matching_search.begin(), it) != _result_max_count)
             {
-                auto& action = *it;
+                auto* action = *it;
                 if ( ImGui::Button( action->label.c_str()) || // User can click on the button...
                      (ImGui::IsKeyDown( ImGuiKey_Enter ) && ImGui::IsItemFocused() ) // ...or press enter if this item is the first
                 )
