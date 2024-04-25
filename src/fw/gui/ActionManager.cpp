@@ -56,7 +56,7 @@ const std::vector<IAction*>& ActionManager::get_actions() const
 void ActionManager::add_action( IAction* _action )// Add a new action (can be triggered via shortcut)
 {
     m_actions.push_back( _action );
-    m_actions_by_id.insert({_action->event_id, _action});
+    m_actions_by_id.insert(std::pair{_action->event_id, _action});
     LOG_MESSAGE("ActionManager", "Action '%s' bound to the event_id %i\n", _action->label.c_str(), _action->event_id);
 }
 

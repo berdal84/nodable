@@ -131,11 +131,11 @@ bool Nodable::on_init()
 
     // Prepare context menu items
     // 1) Blocks
-    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_CONDITION } );
-    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_FOR_LOOP } );
-    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_WHILE_LOOP } );
-    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_SCOPE } );
-    action_manager.new_action<Event_CreateBlock>( ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_PROGRAM } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_CONDITION } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_FOR_LOOP } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_WHILE_LOOP } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_SCOPE } );
+    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_PROGRAM } );
 
     // 2) Variables
     action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
@@ -385,7 +385,6 @@ void Nodable::on_update()
                 break;
             }
 
-            case Event_CreateBlock::id:
             case Event_CreateNode::id:
             {
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);

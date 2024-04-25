@@ -100,6 +100,5 @@ namespace ndbl
         {}
     };
     using Event_CreateNode  = fw::Event<EventID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
-    using Event_CreateBlock = fw::Event<EventID_REQUEST_CREATE_BLOCK, EventPayload_CreateNode>;
 
 }// namespace ndbl

@@ -600,40 +600,37 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
 
     for (auto& action: items )
     {
-        // 2.a - items able to create a new block (if/else/scope/for/etc..)
-        //-----------------------------------------------------------------
-
-        if ( action->event_id == EventID_REQUEST_CREATE_BLOCK )
-        {
-            if ( dragged_slot->is_this() )
-            {
-                items_with_compatible_signature.push_back( action );
-            }
-            continue;
-        }
-
-        // 2.b - items able to create a new node (variable/literal/function/etc..)
-        //------------------------------------------------------------------------
-
-        if ( dragged_slot->is_this() ) continue; // A "this" slot cannot be connected to these items
-
         const type* dragged_property_type = dragged_slot->get_property_type();
 
-        if ( action->event_data.node_signature )
+        switch ( action->event_data.node_type )
         {
-            if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
-            {
-                if ( !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type) )
-                {
+            case NodeType_BLOCK_CONDITION:
+            case NodeType_BLOCK_FOR_LOOP:
+            case NodeType_BLOCK_WHILE_LOOP:
+            case NodeType_BLOCK_SCOPE:
+            case NodeType_BLOCK_PROGRAM:
+                // Blocks are only for code flow slots
+                if ( !dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
                     continue;
-                }
-            }
-            else if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
-            {
-                continue;
-            }
-        } // by default, we accept any item not having a signature
+                break;
 
+            default:
+                if ( dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
+                    continue;
+
+                if ( action->event_data.node_signature )
+                {
+                    if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) &&
+                         !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type)
+                       )
+                        continue;
+
+                    if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
+                        continue;
+
+                } // by default, we accept any item not having a signature
+                break;
+        }
         items_with_compatible_signature.push_back( action );
     }
 }

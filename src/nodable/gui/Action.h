@@ -24,6 +24,5 @@ namespace ndbl
     // 2) Advanced actions (custom events)
 
     using Action_FrameSelection  = Action<Event_FrameSelection>;
-    using Action_CreateBlock     = Action<Event_CreateBlock>;
     using Action_CreateNode      = Action<Event_CreateNode>;
 }
