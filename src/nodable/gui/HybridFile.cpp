@@ -162,7 +162,6 @@ UpdateResult HybridFile::update()
             FW_ASSERT(false);
         }
         view.set_dirty( false );
-        FW_ASSERT( m_graph->is_dirty() == false);
     }
 
     // 2) Handle when graph (not the graph view) changes
