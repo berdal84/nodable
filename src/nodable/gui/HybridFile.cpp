@@ -170,7 +170,15 @@ UpdateResult HybridFile::update()
 
     if ( m_graph->is_dirty() )
     {
+        // Refresh text
         update_text_from_graph(isolate_selection);
+
+        // Refresh constraints
+        auto physics_components = NodeUtils::get_components<Physics>( m_graph->get_node_registry() );
+        Physics::destroy_constraints( physics_components );
+        Physics::create_constraints( m_graph->get_node_registry() );
+
+        m_graph->set_dirty(false);
     }
 
     return  m_graph->update(); // ~ garbage collection
@@ -178,7 +186,7 @@ UpdateResult HybridFile::update()
 
 UpdateResult HybridFile::update_graph_from_text(bool isolate_selection)
 {
-    // Destroy all physics' constraints
+    // Destroy all physics constraints
     auto physics_components = NodeUtils::get_components<Physics>( m_graph->get_node_registry() );
     Physics::destroy_constraints( physics_components );
 
@@ -191,7 +199,6 @@ UpdateResult HybridFile::update_graph_from_text(bool isolate_selection)
         return UpdateResult::SUCCESS_WITH_CHANGES;
     }
     return UpdateResult::SUCCES_WITHOUT_CHANGES;
-
 }
 
 size_t HybridFile::size() const

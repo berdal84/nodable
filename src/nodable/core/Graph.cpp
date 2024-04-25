@@ -85,8 +85,6 @@ UpdateResult Graph::update()
 
     }
 
-    set_dirty(false);
-
     return result;
 }
 
