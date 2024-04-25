@@ -585,48 +585,56 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
 {
     items_with_compatible_signature.clear();
 
+    // 1) When NO slot is dragged
+    //---------------------------
+
     if ( !dragged_slot )
     {
         // When no slot is dragged, user can create any node
         items_with_compatible_signature = items;
+        return;
     }
-    else
+
+    // 2) When a slot is dragged
+    //--------------------------
+
+    for (auto& action: items )
     {
-        for (auto& action: items )
+        // 2.a - items able to create a new block (if/else/scope/for/etc..)
+        //-----------------------------------------------------------------
+
+        if ( action->event_id == EventID_REQUEST_CREATE_BLOCK )
         {
-            if ( action->event_id == EventID_REQUEST_CREATE_BLOCK )
+            if ( dragged_slot->is_this() )
             {
-                if ( dragged_slot->is_this() )
+                items_with_compatible_signature.push_back( action );
+            }
+            continue;
+        }
+
+        // 2.b - items able to create a new node (variable/literal/function/etc..)
+        //------------------------------------------------------------------------
+
+        if ( dragged_slot->is_this() ) continue; // A "this" slot cannot be connected to these items
+
+        const type* dragged_property_type = dragged_slot->get_property_type();
+
+        if ( action->event_data.node_signature )
+        {
+            if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
+            {
+                if ( !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type) )
                 {
-                    items_with_compatible_signature.push_back( action );
+                    continue;
                 }
             }
-            else
+            else if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
             {
-                if ( !dragged_slot->is_this() )
-                {
-                    const type* dragged_property_type = dragged_slot->get_property_type();
-
-                        if ( action->event_data.node_signature )
-                        {
-                            if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) )
-                            {
-                                if ( !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type) )
-                                {
-                                    continue;
-                                }
-                            }
-                            else if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
-                            {
-                                continue;
-                            }
-                        } else {
-                            // by default, we accept any item not having a signature
-                        }
-                        items_with_compatible_signature.push_back( action );
-                    }
+                continue;
             }
-        }
+        } // by default, we accept any item not having a signature
+
+        items_with_compatible_signature.push_back( action );
     }
 }
 
