@@ -43,7 +43,7 @@ bool AppView::draw()
     }
 
     // Splashscreen
-    draw_splashscreen_window();
+    draw_splashscreen();
 
     // Setup main window
 
@@ -182,7 +182,15 @@ void AppView::dock_window(const char* window_name, Dockspace dockspace)const
     ImGui::DockBuilderDockWindow(window_name, m_dockspaces[dockspace]);
 }
 
-void AppView::draw_splashscreen_window()
+void AppView::draw_splashscreen()
+{
+    if ( AppView::begin_splashscreen() )
+    {
+        AppView::end_splashscreen();
+    }
+}
+
+bool AppView::begin_splashscreen()
 {
     if (m_app->config.splashscreen && !ImGui::IsPopupOpen(m_app->config.splashscreen_window_label))
     {
@@ -194,14 +202,15 @@ void AppView::draw_splashscreen_window()
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-    if (ImGui::BeginPopupModal(m_app->config.splashscreen_window_label, &m_app->config.splashscreen, flags))
-    {
-        on_draw_splashscreen();
-        ImGui::EndPopup();
-    }
+    return ImGui::BeginPopupModal(m_app->config.splashscreen_window_label, &m_app->config.splashscreen, flags);
 }
 
-void AppView::draw_status_window() const
+void AppView::end_splashscreen()
+{
+    ImGui::EndPopup();
+}
+
+void AppView::draw_status_window()
 {
     if (ImGui::Begin(k_status_window_name))
     {

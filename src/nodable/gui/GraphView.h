@@ -10,8 +10,12 @@
 #include "core/Component.h"  // base class
 #include "core/IScope.h"
 
-#include "types.h"
+#include "Action.h"
+#include "Config.h"
 #include "NodeViewConstraint.h"
+#include "SlotView.h"
+#include "core/Scope.h"
+#include "types.h"
 
 namespace ndbl
 {
@@ -19,11 +23,22 @@ namespace ndbl
     class Nodable;
     class Graph;
 
-	typedef struct {
-        std::string label;
-        std::function<PoolID<Node>(void)> create_node_fct;
-        const fw::func_type* function_signature;
-	} FunctionMenuItem;
+    struct CreateNodeContextMenu
+    {
+        bool                     must_be_reset_flag   = false;
+        ImVec2                   opened_at_pos        = ImVec2(-1,-1); // relative
+        ImVec2                   opened_at_screen_pos = ImVec2(-1,-1); // absolute (screen space)
+        SlotView*                dragged_slot         = nullptr;  // The slot being dragged when the context menu opened.
+        char                     search_input[255]    = "\0";     // The search input entered by the user.
+        std::vector<Action_CreateNode*> items;                           // All the available items
+        std::vector<Action_CreateNode*> items_with_compatible_signature; // Only the items having a compatible signature (with the slot dragged)
+        std::vector<Action_CreateNode*> items_matching_search;           // Only the items having a compatible signature AND matching the search_input.
+
+        Action_CreateNode*        draw_search_input( size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
+        void                     reset_state(SlotView* _dragged_slot = nullptr);
+        void                     update_cache_based_on_signature();
+        void                     update_cache_based_on_user_input( size_t _limit );
+    };
 
     class GraphView: public fw::View
     {
@@ -35,27 +50,21 @@ namespace ndbl
         bool        update();
         bool        update(float /* delta_time */);
         bool        update(float /* delta_time */, i16_t /* subsample_count */);
-		void        add_contextual_menu_item(
-                        const std::string &_category,
-                        const std::string &_label,
-                        std::function<PoolID<Node>(void)> _function,
-                        const fw::func_type *_signature);
         void        frame_all_node_views();
         void        frame_selected_node_views();
         void        translate_all(ImVec2 /* delta */, const std::vector<NodeView*>&);
         void        unfold(); // unfold the graph until it is stabilized
+        void        add_action_to_context_menu( Action_CreateNode* _action);
+        void frame( FrameMode mode );
 
     private:
+        void        draw_grid( ImDrawList*, const Config& ) const;
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
         void        translate_view(ImVec2 vec2);
 
         Graph*      m_graph;
         ImVec2      m_view_origin;
-        ImVec2      m_new_node_desired_position;
-        std::multimap<std::string, FunctionMenuItem> m_contextual_menus;
-        static constexpr const char* k_context_menu_popup = "GraphView.ContextMenu";
-        static constexpr const char* k_operator_menu_label = "Operators";
-        static constexpr const char* k_function_menu_label = "Functions";
+        CreateNodeContextMenu m_create_node_context_menu;
 
 		REFLECT_DERIVED_CLASS()
     };

@@ -11,6 +11,8 @@
 #include "FontManager.h"
 #include "AppView.h"
 #include "TextureManager.h"
+#include "EventManager.h"
+#include "ActionManager.h"
 
 namespace fw
 {
@@ -28,6 +30,7 @@ namespace fw
         TextureManager   texture_manager;       // Manages Texture resources
         FontManager      font_manager;          // Manages Font resources
         EventManager     event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
+        ActionManager    action_manager;        // Manages Events and BindedEvents (shortcuts/button triggered)
         bool             should_stop;           // Set this field true to tell the application to stop its main loop the next frame
         Config&          config;                // Application configuration (names, colors, fonts)
 

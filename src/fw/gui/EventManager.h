@@ -4,61 +4,15 @@
 #include <string>
 #include <future>
 #include <map>
-#include <SDL/include/SDL_keycode.h>
+#include <utility>
 
+#include "Action.h"
+#include "Event.h"
+#include "core/reflection/func_type.h"
 #include "core/types.h"
 
 namespace fw
 {
-    struct Shortcut
-    {
-        SDL_Keycode key         = SDLK_UNKNOWN;    // a key to be pressed
-        SDL_Keymod  mod         = KMOD_NONE;       // modifiers (alt, ctrl, etc.)
-        std::string description;
-        std::string to_string() const;
-    };
-
-
-    // Declare some event types.
-    // EventType can be extended starting at EventType_USER_DEFINED
-    typedef u16_t EventType;
-    enum EventType_ : u16_t
-    {
-        // Declare common event types
-
-        EventType_none = 0,
-        EventType_save_file_triggered,        // operation on files
-        EventType_save_file_as_triggered,
-        EventType_new_file_triggered,
-        EventType_close_file_triggered,
-        EventType_browse_file_triggered,
-        EventType_file_opened,
-        EventType_undo_triggered,            // history
-        EventType_redo_triggered,
-        EventType_exit_triggered,            // general
-        EventType_show_splashscreen_triggered,
-
-        EventType_USER_DEFINED = 0xff,
-    };
-
-    struct SimpleEvent {
-        EventType type;
-    };
-
-    union Event
-    {
-        EventType type;
-        SimpleEvent common;
-    };
-
-    struct BindedEvent
-    {
-        std::string label;
-        u16_t       event_t;
-        Shortcut    shortcut;
-        u16_t       condition;
-    };
-
     class EventManager
     {
     public:
@@ -66,20 +20,39 @@ namespace fw
         EventManager(const EventManager&) = delete;
         ~EventManager();
 
-        void               push_event(Event& _event);
-        size_t             poll_event(Event& _event);
-        void               push(EventType _type);
-        void               push_async(EventType, u64_t); // Push an event with a delay in millisecond
-        const std::vector<BindedEvent>& get_binded_events() const;
-        void                            bind(const BindedEvent& binded_cmd);
-        const BindedEvent&              get_binded(u16_t type);
+        IEvent*                      dispatch(EventID);                  // Create and push a basic event to the queue
+        void                         dispatch(IEvent* _event);           // Push an existing event to the queue.
+        void                         dispatch_delayed(u64_t, IEvent* );  // Does the same as dispatch(Event*) with a delay in millisecond. A delay of 0ms will be processed after a regular dispatch though.
+        IEvent*                      poll_event();                       // Pop the first event in the queue
 
-        static EventManager&            get_instance();
+        template<typename EventT, typename ...Args>
+        void dispatch(Args... args)
+        {
+            static_assert(std::is_base_of_v<IEvent, EventT> );
+            IEvent* event = new EventT(args...);
+            dispatch(event);
+        }
 
+        template<typename EventT>
+        void dispatch_delayed(u64_t delay_in_ms, typename EventT::data_t data)
+        {
+            static_assert(std::is_base_of_v<IEvent, EventT> );
+            IEvent* event = new EventT(data);
+            dispatch_delayed(delay_in_ms, event);
+        }
+
+        template<typename EventT>
+        IEvent* dispatch(typename EventT::data_t&& state = {} )
+        {
+            static_assert( std::is_base_of_v<IEvent, EventT> );
+            auto new_event = new EventT(state);
+            dispatch(new_event);
+            return new_event;
+        }
+
+        static EventManager&        get_instance();
     private:
-        static EventManager*            s_instance;
-        std::queue<Event>               m_events;
-        std::vector<BindedEvent>        m_binded_events;
-        std::map<u16_t, BindedEvent>    m_binded_events_by_type;
+        static EventManager*        s_instance;
+        std::queue<IEvent*>         m_events;
     };
 }

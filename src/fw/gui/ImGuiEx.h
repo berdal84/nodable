@@ -6,9 +6,10 @@
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
+#include "ActionManager.h"
 #include "EventManager.h"
 #include "core/types.h"
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <imgui/imgui_internal.h>
 
 namespace fw
@@ -106,7 +107,17 @@ namespace fw
         static void     EndTooltip();
         static ImRect&  EnlargeToInclude(ImRect& _rect, ImRect _other);
 
-        static void     MenuItemBindedToEvent(uint16_t type, bool selected = false, bool enable = true);
+        template<class EventT>
+        static void MenuItem(bool selected = false, bool enable = true) // Shorthand to get a given action from the manager and draw a MenuItem from it.
+        {
+            const IAction* action = ActionManager::get_instance().get_action_with_id(EventT::id);
+
+            if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
+            {
+                action->trigger();
+            }
+        };
+
         static void     BulletTextWrapped(const char*);
 
         static ImRect  GetContentRegion(Space);

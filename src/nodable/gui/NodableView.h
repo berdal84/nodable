@@ -31,7 +31,7 @@ namespace ndbl
 
         void on_init() override;
         void on_draw() override;
-        void on_draw_splashscreen() override;
+        void draw_splashscreen() override;
         void on_reset_layout() override;
 
         // draw_xxx_window

@@ -11,6 +11,17 @@ namespace ndbl {
     class NodeView;
     using fw::PoolID;
 
+    enum Align {
+        Align_START,
+        Align_CENTER,
+        Align_END,
+    };
+
+    enum Direction {
+        Direction_ROW ,
+        Direction_COLUMN,
+    };
+
     typedef int ConstrainFlags;
     enum ConstrainFlag_
     {
@@ -41,11 +52,12 @@ namespace ndbl {
      */
     class NodeViewConstraint {
     public:
+        // Lambda returning true if this constrain should apply.
         using Filter = std::function<bool(NodeViewConstraint*)>;
 
         NodeViewConstraint(const char* _name, ConstrainFlags );
         void apply(float _dt);
-        void apply_when(const Filter& _lambda) { m_filter = _lambda; }
+        void apply_when(const Filter& _lambda) { m_should_apply = _lambda; }
         void add_target(PoolID<NodeView>);
         void add_driver(PoolID<NodeView>);
         void add_targets(const std::vector<PoolID<NodeView>>&);
@@ -61,9 +73,12 @@ namespace ndbl {
     private:
         const char*       m_name;
         bool              m_is_active;
-        Filter            m_filter; // Lambda returning true if this constrain should apply.
+        Filter            m_should_apply;
         ConstrainFlags    m_flags;
         std::vector<PoolID<NodeView>> m_drivers; // driving the targets
         std::vector<PoolID<NodeView>> m_targets;
+        static void draw_debug_lines(
+                const std::vector<NodeView*>& _drivers,
+                const std::vector<NodeView*>& _targets);
     };
 }

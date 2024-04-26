@@ -161,25 +161,14 @@ void NodeView::update_labels_from_name(const Node* _node)
 
 void NodeView::set_selected(PoolID<NodeView> new_selection)
 {
+    fw::EventManager& event_manager = fw::EventManager::get_instance();
+
     if( s_selected == new_selection ) return;
 
-    // Handle de-selection
-    if( s_selected )
-    {
-        Event event{ EventType_node_view_deselected };
-        event.node.view = s_selected;
-        fw::EventManager::get_instance().push_event((fw::Event&)event);
-        s_selected.reset();
-    }
+    EventPayload_NodeViewSelectionChange event{ new_selection, s_selected };
+    event_manager.dispatch<Event_SelectionChange>(event);
 
-    // Handle selection
-    if( new_selection )
-    {
-        Event event{ EventType_node_view_selected };
-        event.node.view = new_selection;
-        fw::EventManager::get_instance().push_event((fw::Event&)event);
-        s_selected = new_selection;
-    }
+    s_selected = new_selection;
 }
 
 PoolID<NodeView> NodeView::get_selected()
@@ -297,7 +286,7 @@ bool NodeView::draw()
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
         {
-            if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW )
+            if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW && (node->is_instruction() || node->can_be_instruction() ) )
             {
                 int& count = count_by_flags[slot_view.slot().static_flags()];
                 ImRect rect = get_slot_rect( slot_view, config, count );
@@ -1056,6 +1045,18 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
     return parent_view;
 }
 
+std::vector<NodeView*> NodeView::substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recursive)
+{
+    std::vector<NodeView*> out;
+    out.reserve(_in.size()); // Wort but more probable case
+    for(auto each : _in)
+    {
+        auto each_or_substitute = NodeView::substitute_with_parent_if_not_visible(each, _recursive);
+        out.push_back(each_or_substitute);
+    }
+    return std::move(out);
+};
+
 void NodeView::expand_toggle_rec()
 {
     return set_expanded_rec(!m_expanded);
@@ -1129,4 +1130,10 @@ void NodeView::set_color( const ImVec4* _color, ColorType _type )
 ImColor NodeView::get_color( ColorType _type ) const
 {
     return  ImColor(*m_colors[_type]);
+}
+
+bool NodeView::none_is_visible( std::vector<NodeView*> _views )
+{
+    auto is_visible = [](const NodeView* view) { return view->is_visible(); };
+    return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
 }

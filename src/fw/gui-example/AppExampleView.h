@@ -18,12 +18,16 @@ namespace fw
             dock_window( "top", fw::AppView::Dockspace_TOP );
         }
 
-        void on_draw_splashscreen() override
+        void draw_splashscreen() override
         {
-            ImGui::TextWrapped( "Welcome to the framework-gui-example app.\nThis demonstrates how to use the framework-gui library." );
-            ImGui::Separator();
-            ImGui::TextWrapped( "\nFor your information, this is the splashscreen window of the app.\n"
-                                "You can inject your custom code by editing Example::on_draw_splashscreen()\n" );
+            if ( AppView::begin_splashscreen() )
+            {
+                ImGui::TextWrapped( "Welcome to the framework-gui-example app.\nThis demonstrates how to use the framework-gui library." );
+                ImGui::Separator();
+                ImGui::TextWrapped( "\nFor your information, this is the splashscreen window of the app.\n"
+                                    "You can inject your custom code by editing Example::draw_splashscreen()\n" );
+                AppView::end_splashscreen();
+            }
         }
     };
 }

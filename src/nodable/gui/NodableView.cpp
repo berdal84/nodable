@@ -2,23 +2,26 @@
 
 #include <utility>
 
+#include "Action.h"
+#include "Config.h"
+#include "Event.h"
+#include "History.h"
+#include "HybridFile.h"
+#include "HybridFileView.h"
+#include "Nodable.h"
+#include "NodeView.h"
+#include "Physics.h"
+#include "PropertyView.h"
+#include "build_info.h"
+#include "core/NodeUtils.h"
 #include "fw/core/log.h"
 #include "fw/core/system.h"
 #include "fw/gui/Texture.h"
-#include "core/NodeUtils.h"
-#include "Config.h"
-#include "Event.h"
-#include "HybridFile.h"
-#include "HybridFileView.h"
-#include "History.h"
-#include "Nodable.h"
-#include "NodeView.h"
-#include "build_info.h"
-#include "Physics.h"
-#include "PropertyView.h"
+#include "gui/ActionManagerView.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
+using namespace fw;
 
 NodableView::NodableView(Nodable * _app)
     : fw::AppView(_app)
@@ -63,51 +66,49 @@ void NodableView::on_draw()
         History* current_file_history = current_file ? current_file->get_history() : nullptr;
 
         if (ImGui::BeginMenu("File")) {
-            bool has_file = current_file;
-            bool changed = current_file != nullptr && current_file->changed;
-            fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_new_file_triggered);
-            fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_browse_file_triggered);
+            bool has_file = current_file != nullptr;
+            bool is_current_file_content_dirty = current_file != nullptr && current_file->is_content_dirty;
+            ImGuiEx::MenuItem<Event_FileNew>();
+            ImGuiEx::MenuItem<Event_FileBrowse>();
             ImGui::Separator();
-            fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_save_file_as_triggered, false, has_file);
-            fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_save_file_triggered, false, has_file && changed);
+            ImGuiEx::MenuItem<Event_FileSaveAs>(false, has_file);
+            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && is_current_file_content_dirty );
             ImGui::Separator();
-            fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_close_file_triggered, false, has_file);
+            ImGuiEx::MenuItem<Event_FileClose>(false, has_file);
 
             auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste();
 
-            if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, has_file ) && current_file ) {
+            if (ImGui::MenuItem(ICON_FA_COPY        "  Auto-paste clipboard", "", auto_paste, has_file ) && has_file ) {
                 current_file->view.experimental_clipboard_auto_paste(!auto_paste);
             }
 
-            fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_exit_triggered);
+            fw::ImGuiEx::MenuItem<Event_Exit>();
 
             ImGui::EndMenu();
         }
 
         bool vm_is_stopped = virtual_machine.is_program_stopped();
-        if (ImGui::BeginMenu("Edit")) {
-            if (current_file_history) {
-                fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_undo_triggered);
-                fw::ImGuiEx::MenuItemBindedToEvent(fw::EventType_redo_triggered);
+        if (ImGui::BeginMenu("Edit"))
+        {
+            if (current_file_history)
+            {
+                ImGuiEx::MenuItem<Event_Undo>();
+                ImGuiEx::MenuItem<Event_Redo>();
                 ImGui::Separator();
             }
 
             auto has_selection = NodeView::is_any_selected();
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped)) {
-                event_manager.push(EventType_delete_node_action_triggered);
+                event_manager.dispatch( EventID_DELETE_NODE );
             }
 
-            fw::ImGuiEx::MenuItemBindedToEvent(EventType_arrange_node_action_triggered, false, has_selection);
-            fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_folding_selected_node_action_triggered, false,
-                                               has_selection);
+            fw::ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
+            fw::ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
-                Event event{};
-                event.toggle_folding.type = EventType_toggle_folding_selected_node_action_triggered;
-                event.toggle_folding.recursive = true;
-                event_manager.push_event((fw::Event &) event);
+                event_manager.dispatch<Event_ToggleFolding>( { RECURSIVELY } );
             }
             ImGui::EndMenu();
         }
@@ -147,7 +148,7 @@ void NodableView::on_draw()
 
             ImGui::Separator();
 
-            fw::ImGuiEx::MenuItemBindedToEvent(EventType_toggle_isolate_selection, config.isolate_selection);
+            fw::ImGuiEx::MenuItem<Event_ToggleIsolate>(config.isolate_selection );
 
             ImGui::EndMenu();
         }
@@ -503,10 +504,10 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                event_manager.push(fw::EventType_new_file_triggered);
+                event_manager.dispatch( fw::EventID_FILE_NEW );
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                event_manager.push(fw::EventType_browse_file_triggered);
+                event_manager.dispatch( fw::EventID_FILE_BROWSE );
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -550,7 +551,7 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, Hybrid
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
-            (file->changed ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
+            (file->is_content_dirty ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
@@ -672,6 +673,11 @@ void NodableView::draw_config_window() {
             ImGui::SliderInt("grid subdivisions", &config.ui_graph_grid_subdivs, 1, 16);
         }
 
+        if (ImGui::CollapsingHeader("Shortcuts", ImGuiTreeNodeFlags_SpanAvailWidth))
+        {
+            ActionManagerView::draw(&m_app->action_manager);
+        }
+
         if ( m_app->config.common.debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
@@ -685,37 +691,41 @@ void NodableView::draw_config_window() {
     ImGui::End();
 }
 
-void NodableView::on_draw_splashscreen()
+void NodableView::draw_splashscreen()
 {
-    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-
-    // Image
-    ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-    fw::ImGuiEx::Image(m_logo);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
-
-    // disclaimer
-    ImGui::TextWrapped(
-            "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
-
-    ImGui::NewLine();
-    ImGui::NewLine();
-
-    // credits
-    const char *credit = "by Berdal84";
-    ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
-    ImGui::TextWrapped("%s", credit);
-
-    // build version
-    ImGui::TextWrapped("%s", BuildInfo::version);
-
-    // close on left/rightmouse btn click
-    if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+    if ( AppView::begin_splashscreen() )
     {
-        m_app->config.common.splashscreen = false;
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+        // Image
+        ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
+        fw::ImGuiEx::Image(m_logo);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
+
+        // disclaimer
+        ImGui::TextWrapped(
+                "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
+
+        ImGui::NewLine();
+        ImGui::NewLine();
+
+        // credits
+        const char *credit = "by Berdal84";
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
+        ImGui::TextWrapped("%s", credit);
+
+        // build version
+        ImGui::TextWrapped("%s", BuildInfo::version);
+
+        // close on left/rightmouse btn click
+        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+        {
+            m_app->config.common.splashscreen = false;
+        }
+        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
+        AppView::end_splashscreen();
     }
-    ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
 }
 
 void NodableView::draw_history_bar(History *currentFileHistory) {
@@ -841,7 +851,7 @@ void NodableView::draw_toolbar_window() {
         if (ImGui::Button(
                 config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->event_manager.push(EventType_toggle_isolate_selection);
+            m_app->event_manager.dispatch( EventID_TOGGLE_ISOLATE );
         }
         ImGui::SameLine();
         ImGui::EndGroup();

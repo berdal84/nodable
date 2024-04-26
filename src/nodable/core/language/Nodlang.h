@@ -9,6 +9,7 @@
 #include "core/VariableNode.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/system.h"
+#include "fw/core/hash.h"
 
 #include "core/Token.h"
 #include "core/TokenRibbon.h"
@@ -121,7 +122,9 @@ namespace ndbl{
         std::string& serialize_property(std::string &_out, const Property*) const;
 
         // Language definition -------------------------------------------------------------------------
+
     public:
+        invokable_ptr         find_function( const char* _signature ) const;           // Find a function by signature as string (ex:   "int multiply(int,int)" )
         invokable_ptr         find_function(const fw::func_type*) const;               // Find a function by signature (strict first, then cast allowed)
         invokable_ptr         find_function_exact(const fw::func_type*) const;         // Find a function by signature (no cast allowed).
         invokable_ptr         find_function_fallback(const fw::func_type*) const;      // Find a function by signature (casts allowed).
@@ -139,7 +142,8 @@ namespace ndbl{
         int                   get_precedence(const fw::iinvokable*)const;              // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
         template<typename T> void load_library(); // Instantiate a library from its type (uses reflection to get all its static methods).
-
+    private:
+        invokable_ptr         find_function(fw::hash::hash_t  _hash) const;
     private:
         struct {
             std::vector<std::tuple<const char*, Token_t>>                  keywords;
@@ -151,6 +155,7 @@ namespace ndbl{
         operators_vec                                     m_operators;                // the allowed operators (!= implementations).
         Invokable_vec                                     m_operators_impl;           // operators' implementations.
         Invokable_vec                                     m_functions;                // all the functions (including operator's).
+        std::unordered_map<fw::hash::hash_t , std::shared_ptr<const fw::iinvokable>> m_functions_by_signature; // Functions indexed by signature hash
         std::unordered_map<Token_t, char>                 m_single_char_by_keyword;
         std::unordered_map<Token_t, const char*>          m_keyword_by_token_t;       // token_t to string (ex: Token_t::keyword_double => "double").
         std::unordered_map<fw::type::id_t, const char*>   m_keyword_by_type_id;
@@ -158,6 +163,7 @@ namespace ndbl{
         std::unordered_map<size_t, Token_t>               m_token_t_by_keyword;       // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
         std::unordered_map<fw::type::id_t, Token_t>       m_token_t_by_type_id;
         std::unordered_map<Token_t, const fw::type*>      m_type_by_token_t;          // token_t to type. Works only if token_t refers to a type keyword.
+
     };
 
     template<typename T>

@@ -85,8 +85,6 @@ UpdateResult Graph::update()
 
     }
 
-    set_dirty(false);
-
     return result;
 }
 
@@ -95,6 +93,7 @@ void Graph::add(PoolID<Node> _node)
     FW_ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node->poolid()) == m_node_registry.end())
 	m_node_registry.push_back(_node->poolid());
     _node->parent_graph = this;
+    set_dirty(); // To express this graph changed
     LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->name.c_str(), _node->get_type()->get_name())
 }
 
@@ -103,6 +102,7 @@ void Graph::remove(PoolID<Node> _node)
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     FW_ASSERT(found != m_node_registry.end());
     m_node_registry.erase(found);
+    set_dirty(); // To express this graph changed
 }
 
 void Graph::ensure_has_root()
@@ -254,6 +254,7 @@ void Graph::remove(DirectedEdge edge)
     {
         LOG_WARNING("Graph", "Unable to unregister edge\n")
     }
+    set_dirty(); // To express this graph changed
 }
 
 DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable )
@@ -412,7 +413,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 FW_ASSERT(false);// This connection type is not yet implemented
         }
     }
-    set_dirty();
+    set_dirty(); // To express this graph changed
     return &edge;
 }
 
@@ -458,7 +459,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
             FW_EXPECT(!type, "Not yet implemented yet");
     }
 
-    set_dirty();
+    set_dirty(); // To express this graph changed
 }
 
 PoolID<Node> Graph::create_scope()
@@ -509,4 +510,62 @@ PoolID<LiteralNode> Graph::create_literal(const fw::type *_type)
     PoolID<LiteralNode> node = m_factory->create_literal(_type);
     add(node);
     return node;
+}
+
+PoolID<Node> Graph::create_node( NodeType _type, const fw::func_type* _signature )
+{
+    switch ( _type )
+    {
+        /*
+         * TODO: We could consider narowwing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
+         *       and rely more on _signature (ex: a bool variable could be simply "bool" or "bool bool(bool)")
+         */
+        case NodeType_BLOCK_CONDITION:  return create_cond_struct();
+        case NodeType_BLOCK_FOR_LOOP:   return create_for_loop();
+        case NodeType_BLOCK_WHILE_LOOP: return create_while_loop();
+        case NodeType_BLOCK_SCOPE:      return create_scope();
+        case NodeType_BLOCK_PROGRAM:    clear(); return create_root();
+
+        case NodeType_VARIABLE_BOOLEAN: return create_variable_decl<bool>();
+        case NodeType_VARIABLE_DOUBLE:  return create_variable_decl<double>();
+        case NodeType_VARIABLE_INTEGER: return create_variable_decl<int>();
+        case NodeType_VARIABLE_STRING:  return create_variable_decl<std::string>();
+
+        case NodeType_LITERAL_BOOLEAN:  return create_literal<bool>();
+        case NodeType_LITERAL_DOUBLE:   return create_literal<double>();
+        case NodeType_LITERAL_INTEGER:  return create_literal<int>();
+        case NodeType_LITERAL_STRING:   return create_literal<std::string>();
+
+        case NodeType_INVOKABLE:
+        {
+            FW_EXPECT(_signature != nullptr, "_signature is expected when dealing with functions or operators")
+            auto& language = Nodlang::get_instance();
+            // Currently, we handle operators and functions the exact same way
+            const auto invokable = language.find_function(_signature);
+            bool is_operator = language.find_operator_fct( invokable->get_type() ) != nullptr;
+            return create_function(invokable.get(), is_operator);
+        }
+        default:
+            FW_EXPECT( false, "Unhandled NodeType.");
+    }
+}
+
+PoolID<VariableNode> Graph::create_variable_decl(const fw::type* _type, const char*  _name, PoolID<Scope>  _scope)
+{
+    if( !_scope)
+    {
+        _scope = get_root()->get_component<Scope>();
+    }
+
+    // Create variable
+    PoolID<VariableNode> var_node = create_variable(_type, _name, _scope );
+    var_node->set_declared(true);
+    Token token(Token_t::keyword_operator, " = ");
+    token.m_word_start_pos = 1;
+    token.m_word_size = 1;
+    var_node->assignment_operator_token = token;
+
+    // TODO: attach a default Literal?
+
+    return var_node;
 }

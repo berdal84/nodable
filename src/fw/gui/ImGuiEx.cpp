@@ -227,15 +227,6 @@ void ImGuiEx::BeginFrame()
     s_is_any_tooltip_open = false;
 }
 
-void ImGuiEx::MenuItemBindedToEvent(uint16_t type, bool selected, bool enable)
-{
-    auto binded_evt = EventManager::get_instance().get_binded(type);
-    if (ImGui::MenuItem( binded_evt.label.c_str(),   binded_evt.shortcut.to_string().c_str(), selected, enable))
-    {
-        EventManager::get_instance().push(binded_evt.event_t);
-    }
-}
-
 void ImGuiEx::BulletTextWrapped(const char* str)
 {
     ImGui::Bullet(); ImGui::SameLine();

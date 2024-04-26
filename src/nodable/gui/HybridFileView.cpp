@@ -21,7 +21,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
     : fw::View()
     , m_text_editor()
     , m_focused_text_changed(false)
-    , m_graph_changed(false)
+    , m_is_graph_dirty(false)
     , m_file(_file)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
@@ -51,7 +51,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
                 graph_view->translate_all( ImVec2(-1000.f, -1000.0f) , views);
 
                 // frame all (33ms delayed)
-                fw::EventManager::get_instance().push_async(EventType_frame_all_node_views, 33);
+                fw::EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, {FRAME_ALL} );
             }
         }
     });
@@ -153,7 +153,7 @@ bool HybridFileView::draw()
                                  m_text_editor.IsTextChanged() ||
                                  (app.config.isolate_selection && is_selected_text_modified);
 
-        if (m_text_editor.IsTextChanged())  m_file.changed = true;
+        if (m_text_editor.IsTextChanged())  m_file.is_content_dirty = true;
     }
     ImGui::EndChild();
 
@@ -175,7 +175,7 @@ bool HybridFileView::draw()
         {
             // Draw graph
             View::use_available_region(graph_view);
-            m_graph_changed = graph_view->draw();
+            m_is_graph_dirty = graph_view->draw();
 
             // Draw overlay: shortcuts
             ImRect overlay_rect = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
@@ -352,4 +352,19 @@ void HybridFileView::push_overlay(OverlayData overlay_data, OverlayType overlay_
 size_t HybridFileView::size() const
 {
     return m_text_editor.Size();
+}
+
+void HybridFileView::refresh_overlay(Condition _condition )
+{
+    for (const IAction* _action: ActionManager::get_instance().get_actions())
+    {
+        if( ( _action->userdata & _condition) == _condition && (_action->userdata & Condition_HIGHLIGHTED) )
+        {
+            std::string  label        = _action->label.substr(0, 12);
+            std::string  shortcut_str = _action->shortcut.to_string();
+            OverlayType_ overlay_type = _action->userdata & Condition_HIGHLIGHTED_IN_TEXT_EDITOR ? OverlayType_TEXT
+                                                                                                 : OverlayType_GRAPH;
+            push_overlay({label, shortcut_str}, overlay_type);
+        }
+    }
 }

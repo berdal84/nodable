@@ -1,5 +1,10 @@
 #pragma once
+#include <utility>
+
+#include "Event.h"
+#include "FrameMode.h"
 #include "SlotView.h"
+#include "core/Graph.h"
 #include "fw/core/Pool.h"
 #include "fw/gui/EventManager.h"
 #include "nodable/core/SlotRef.h"
@@ -10,48 +15,90 @@ namespace ndbl
     class NodeView;
     using fw::PoolID;
 
-    enum EventType_: fw::EventType
+    enum EventID_ : fw::EventID
     {
-        EventType_delete_node_action_triggered = fw::EventType_USER_DEFINED, // operation on nodes
-        EventType_arrange_node_action_triggered,
-        EventType_select_successor_node_action_triggered,
-        EventType_toggle_folding_selected_node_action_triggered,
-        EventType_node_view_selected,
-        EventType_node_view_deselected,
-        EventType_frame_all_node_views,
-        EventType_frame_selected_node_views,
-        EventType_slot_dropped,
-        EventType_slot_disconnected,
-        EventType_toggle_isolate_selection
+        EventID_DELETE_NODE = fw::EventID_USER_DEFINED, // operation on nodes
+        EventID_ARRANGE_NODE,
+        EventID_SELECT_NEXT,
+        EventID_TOGGLE_FOLDING,
+        EventID_REQUEST_CREATE_NODE,
+        EventID_REQUEST_CREATE_BLOCK,
+        EventID_REQUEST_FRAME_SELECTION,
+        EventID_MOVE_SELECTION,
+        EventID_TOGGLE_ISOLATE,
+        EventID_SLOT_DROPPED,
+        EventID_SLOT_DISCONNECTED,
+        EventID_SELECTION_CHANGE,
     };
 
-    struct NodeViewEvent
-    {
-        fw::EventType    type;
-        PoolID<NodeView> view;
-    };
+    using Event_ToggleIsolate   = fw::Event<EventID_TOGGLE_ISOLATE>;
+    using Event_MoveSelection   = fw::Event<EventID_MOVE_SELECTION>;
 
-    struct ToggleFoldingEvent
+    class GraphView;
+    struct EventPayload_FrameNodeViews
     {
-        fw::EventType type;
-        bool recursive;
+        FrameMode  mode;
+        EventPayload_FrameNodeViews(FrameMode mode)
+        : mode(mode)
+        {}
     };
+    using Event_FrameSelection = fw::Event<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
-    struct SlotEvent
-    {
-        fw::EventType type;
-        SlotRef       first;
-        SlotRef       second;
+    struct EventPayload_SlotPair {
+        SlotRef first;
+        SlotRef second;
+        EventPayload_SlotPair(SlotRef&& first = {}, SlotRef&& second = {})
+        : first(first)
+        , second(second)
+        {}
     };
+    using Event_SlotDisconnected = fw::Event<EventID_SLOT_DISCONNECTED, EventPayload_SlotPair>;
+    using Event_SlotDropped      = fw::Event<EventID_SLOT_DROPPED, EventPayload_SlotPair>;
 
-    union Event
+    struct EventPayload_Node
     {
-        fw::EventType          type;
-        fw::Event              event;
-        fw::SimpleEvent        common;
-        NodeViewEvent          node;
-        SlotEvent              slot;
-        ToggleFoldingEvent     toggle_folding;
+        PoolID<Node> node;
     };
+    using Event_DeleteNode  = fw::Event<EventID_DELETE_NODE, EventPayload_Node>;
+    using Event_ArrangeNode = fw::Event<EventID_ARRANGE_NODE, EventPayload_Node>;
+    using Event_SelectNext  = fw::Event<EventID_SELECT_NEXT, EventPayload_Node>;
+
+    enum ToggleFoldingMode
+    {
+        NON_RECURSIVELY = 0,
+        RECURSIVELY     = 1,
+    };
+    struct EventPayload_ToggleFoldingEvent
+    {
+        ToggleFoldingMode mode;
+    };
+    using Event_ToggleFolding = fw::Event<EventID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
+
+    struct EventPayload_NodeViewSelectionChange
+    {
+        PoolID<NodeView> new_selection;
+        PoolID<NodeView> old_selection;
+    };
+    using Event_SelectionChange = fw::Event<EventID_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
+
+    struct EventPayload_CreateNode
+    {
+        NodeType             node_type;                // The note type to create
+        const fw::func_type* node_signature;           // The signature of the node that must be created
+        SlotView*            dragged_slot   = nullptr; // The slot view being dragged.
+        Graph*               graph          = nullptr; // The graph to create the node into
+        ImVec2               node_view_local_pos;      // The desired position for the new node view
+
+        explicit EventPayload_CreateNode(NodeType node_type )
+        : node_type(node_type)
+        , node_signature(nullptr)
+        {}
+
+        EventPayload_CreateNode(NodeType node_type, const fw::func_type* signature )
+        : node_type(node_type)
+        , node_signature(signature)
+        {}
+    };
+    using Event_CreateNode  = fw::Event<EventID_REQUEST_CREATE_NODE, EventPayload_CreateNode>;
 
 }// namespace ndbl

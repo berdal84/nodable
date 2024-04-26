@@ -27,6 +27,23 @@ namespace ndbl
         ConnectFlag_ALLOW_SIDE_EFFECTS = 1 << 0,
     };
 
+    enum NodeType : u16_t {
+        NodeType_BLOCK_CONDITION,
+        NodeType_BLOCK_FOR_LOOP,
+        NodeType_BLOCK_WHILE_LOOP,
+        NodeType_BLOCK_SCOPE,
+        NodeType_BLOCK_PROGRAM,
+        NodeType_VARIABLE_BOOLEAN,
+        NodeType_VARIABLE_DOUBLE,
+        NodeType_VARIABLE_INTEGER,
+        NodeType_VARIABLE_STRING,
+        NodeType_LITERAL_BOOLEAN,
+        NodeType_LITERAL_DOUBLE,
+        NodeType_LITERAL_INTEGER,
+        NodeType_LITERAL_STRING,
+        NodeType_INVOKABLE,
+    };
+
     /**
      * @brief To manage a graph (nodes and edges)
      */
@@ -40,8 +57,15 @@ namespace ndbl
 
         // node related
 
+        PoolID<Node>                    create_node(); // Create a raw node.
+        PoolID<Node>                    create_node(NodeType, const fw::func_type* _signature = nullptr); // Create a given node type in a simple way.
         PoolID<Node>                    create_root();
         PoolID<VariableNode>            create_variable(const fw::type *_type, const std::string &_name, PoolID<Scope> _scope);
+        PoolID<VariableNode>            create_variable_decl(const fw::type* _type, const char*  _name, PoolID<Scope>  _scope);
+        template<typename T>
+        PoolID<VariableNode> create_variable_decl(const char*  _name = "var", PoolID<Scope> _scope = {})
+        { return create_variable_decl( fw::type::get<T>(), _name, _scope); }
+
         PoolID<LiteralNode>             create_literal(const fw::type *_type);
         template<typename T>
         PoolID<LiteralNode>             create_literal() { return create_literal(fw::type::get<T>()); }
@@ -53,7 +77,6 @@ namespace ndbl
         PoolID<IfNode>                  create_cond_struct();
         PoolID<ForLoopNode>             create_for_loop();
         PoolID<WhileLoopNode>           create_while_loop();
-        PoolID<Node>                    create_node();
         void                            destroy(PoolID<Node> _node);
         void                            ensure_has_root();
         PoolID<Node>                    get_root()const { return m_root; }

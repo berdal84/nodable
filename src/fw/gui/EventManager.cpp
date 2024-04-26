@@ -1,58 +1,16 @@
 #include "EventManager.h"
+#include "core/assertions.h"
+#include "core/async.h"
+#include "core/log.h"
+#include "core/reflection/type.h"
 #include <SDL/include/SDL_keyboard.h>
 #include <future>
 #include <thread>
-#include "core/log.h"
-#include "core/assertions.h"
-#include "core/async.h"
 
 using namespace fw;
 
 EventManager* EventManager::s_instance = nullptr;
 
-void EventManager::push_event(Event &_event)
-{
-    m_events.push(_event);
-}
-
-size_t EventManager::poll_event(Event &_event)
-{
-    size_t count = m_events.size();
-
-    if( count )
-    {
-        _event = m_events.front();
-        m_events.pop();
-    }
-
-    return count;
-}
-
-void EventManager::push(EventType _type)
-{
-    Event simple_event = { _type };
-    push_event(simple_event);
-}
-
-void EventManager::bind(const BindedEvent &binded_cmd)
-{
-    m_binded_events.push_back(binded_cmd);
-    m_binded_events_by_type.insert({binded_cmd.event_t, binded_cmd});
-}
-
-const BindedEvent &EventManager::get_binded(uint16_t type)
-{
-    return m_binded_events_by_type.at(type);
-}
-const std::vector<BindedEvent> &EventManager::get_binded_events() const
-{
-    return m_binded_events;
-}
-EventManager& EventManager::get_instance()
-{
-    FW_EXPECT(s_instance, "No instance found.");
-    return *s_instance;
-}
 EventManager::~EventManager()
 {
     LOG_VERBOSE("fw::EventManager", "Destructor ...\n");
@@ -67,25 +25,42 @@ EventManager::EventManager()
     LOG_VERBOSE("fw::EventManager", "Constructor " OK "\n");
 }
 
-void EventManager::push_async(EventType type, u64_t delay)
+EventManager& EventManager::get_instance()
 {
-    fw::async::get_instance().add_task(
-        std::async(std::launch::async, [this, type, delay]() -> void {
-            std::this_thread::sleep_for(std::chrono::milliseconds{delay});
-            push(type);
-        })
-    );
+    FW_EXPECT(s_instance, "No instance found.");
+    return *s_instance;
 }
 
-
-std::string Shortcut::to_string() const
+void EventManager::dispatch(IEvent* _event)
 {
-    std::string result;
+    m_events.push(_event);
+}
 
-    if (mod & KMOD_CTRL) result += "Ctrl + ";
-    if (mod & KMOD_ALT)  result += "Alt + ";
-    if (key)             result += SDL_GetKeyName(key);
-    if (!description.empty()) result += description;
+IEvent* EventManager::poll_event()
+{
+    if ( m_events.empty() )
+    {
+        return nullptr;
+    }
 
-    return result;
+    IEvent* next_event = m_events.front();
+    m_events.pop();
+    return next_event;
+}
+
+IEvent* EventManager::dispatch( EventID _event_id )
+{
+    auto new_event = new IEvent{ _event_id };
+    dispatch(new_event );
+    return new_event;
+}
+
+void EventManager::dispatch_delayed(u64_t delay, IEvent* event)
+{
+    fw::async::get_instance().add_task(
+        std::async(std::launch::async, [this, event, delay]() -> void {
+            std::this_thread::sleep_for(std::chrono::milliseconds{delay});
+            dispatch(event);
+        })
+    );
 }

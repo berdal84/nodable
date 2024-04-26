@@ -213,7 +213,7 @@ Slot* Node::find_slot_by_property_type(SlotFlags flags, const fw::type* _type)
 {
     for(Slot* slot : filter_slots( flags ) )
     {
-        if( slot->get_property()->get_type()->equals( _type ) )
+        if( fw::type::is_implicitly_convertible( slot->get_property()->get_type(), _type ) )
         {
             return slot;
         }
@@ -354,4 +354,10 @@ bool Node::should_be_constrain_to_follow_output( PoolID<const Node> _output ) co
 {
     const auto& _outputs = outputs();
     return predecessors().empty() && _outputs.size() >= 1 && _outputs.back() == _output->m_id;
+}
+
+bool Node::can_be_instruction() const
+{
+    // TODO: handle case where a variable has inputs/outputs but not connected to the code flow
+    return slot_count(SlotFlag_TYPE_CODEFLOW) > 0 && inputs().empty() && outputs().empty();
 }

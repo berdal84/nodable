@@ -615,6 +615,9 @@ PoolID<Node> Nodlang::parse_program()
     parser_state.scope.pop();
     commit_transaction();
 
+    // Avoid an unnecessary serialization of the graph (would happen once after each parsing)
+    parser_state.graph->set_dirty(false);
+
     return root;
 }
 
@@ -1011,7 +1014,8 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
 
         Token_t type = Token_t::identifier;
 
-        auto keyword_found = m_token_t_by_keyword.find( hash::hash(buffer + start_pos, cursor - start_pos) );
+        auto hash = hash::hash(buffer + start_pos, cursor - start_pos);
+        auto keyword_found = m_token_t_by_keyword.find( hash );
         if (keyword_found != m_token_t_by_keyword.end())
         {
             // a keyword has priority over identifier
@@ -1872,6 +1876,27 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
 }
 
 // Language definition ------------------------------------------------------------------------------------------------------------
+
+std::shared_ptr<const iinvokable> Nodlang::find_function(const char* _signature_hint) const
+{
+    if (_signature_hint == nullptr)
+    {
+        return nullptr;
+    }
+
+    auto hash = fw::hash::hash(_signature_hint);
+    return find_function( hash );
+}
+
+std::shared_ptr<const iinvokable> Nodlang::find_function(fw::hash::hash_t _hash) const
+{
+    auto found = m_functions_by_signature.find(_hash);
+    if ( found != m_functions_by_signature.end())
+    {
+        return found->second;
+    }
+    return nullptr;
+}
 
 std::shared_ptr<const iinvokable> Nodlang::find_function(const func_type* _type) const
 {

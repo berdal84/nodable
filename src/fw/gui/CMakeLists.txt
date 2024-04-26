@@ -6,6 +6,9 @@ ndbl_log_title_header()
 # add imgui executable
 add_library(
     framework-gui
+        Action.cpp
+        ActionManager.cpp
+        ActionManagerView.cpp
         App.cpp
         AppView.cpp
         EventManager.cpp

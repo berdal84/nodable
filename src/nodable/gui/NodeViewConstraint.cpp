@@ -13,58 +13,44 @@ using namespace fw;
 
 NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 : m_flags(_flags)
-, m_filter(always)
+, m_should_apply(always)
 , m_is_active(true)
 , m_name(_name)
 {
 }
 
+/** TODO: move this in a class (not NodeViewConstrain) */
+std::vector<ImRect> get_rect(const std::vector<NodeView*>& _in_views)
+{
+    std::vector<ImRect> _out;
+    for (auto each_target : _in_views )
+    {
+        ImRect rect;
+        if( !(each_target->pinned() || !each_target->is_visible()) )
+        {
+            rect = each_target->get_rect( true );
+        }
+        _out.push_back(rect);
+    }
+    return std::move(_out);
+}
+
 void NodeViewConstraint::apply(float _dt)
 {
-    bool should_apply = m_is_active && m_filter(this);
-    if(!should_apply)
-    {
-        return;
-    }
+    // Check if this constrain should apply
+    if(!m_is_active && m_should_apply(this)) return;
 
-    /*
-     * To get a clean list of node views.
-     * Substitute each not visible view by their respective parent.
-     */
-    auto get_clean = [](std::vector<NodeView*> _in)
-    {
-        std::vector<NodeView*> out;
-        out.reserve(_in.size());
-        for(auto each : _in)
-        {
-            out.push_back(NodeView::substitute_with_parent_if_not_visible(each));
-        }
-        return std::move(out);
-    };
+    // Gather only visible views or their parent (recursively)
+    auto pool = Pool::get_pool();
+    std::vector<NodeView*> clean_drivers = NodeView::substitute_with_parent_if_not_visible( pool->get( m_drivers ), true );
+    std::vector<NodeView*> clean_targets = NodeView::substitute_with_parent_if_not_visible( pool->get( m_targets ), true );
 
-    std::vector<NodeView*> clean_drivers = get_clean( Pool::get_pool()->get( m_drivers ) );
-    std::vector<NodeView*> clean_targets = get_clean( Pool::get_pool()->get( m_targets ) );
+    // If we still have no targets or drivers visible, it's not necessary to go further
+    if ( NodeView::none_is_visible(clean_targets)) return;
+    if ( NodeView::none_is_visible(clean_drivers)) return;
 
-    //debug
-    if( fw::ImGuiEx::debug )
-    {
-        for (auto each_target: clean_targets)
-        {
-            for (auto each_driver: clean_drivers)
-            {
-                fw::ImGuiEx::DebugLine(
-                        each_driver->get_position(fw::Space_Screen),
-                        each_target->get_position(fw::Space_Screen),
-                        IM_COL32(0, 0, 255, 30), 1.0f);
-            }
-        }
-    }
-
-    auto none_is_visible = [](const std::vector<NodeView*>& _views)-> bool {
-        auto is_visible = [](const NodeView* view) { return view->is_visible(); };
-        return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
-    };
-    if (none_is_visible(clean_targets) || none_is_visible(clean_drivers)) return;
+    // To control visually
+    draw_debug_lines( clean_drivers, clean_targets );
 
     const Config& config = Nodable::get_instance().config;
 
@@ -78,76 +64,80 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            float       size_x_total      = 0.0f;
-            ImVec2      driver_pos        = driver->get_position(fw::Space_Local);
-            ImVec2      cursor_pos        = driver_pos;
+            ImVec2      virtual_cursor    = driver->get_position(fw::Space_Local);
             const Node& driver_owner      = *driver->get_owner();
-            std::vector<ImRect> target_rects;
+            auto        target_rects = get_rect( clean_targets );
 
-            // Compute each target_rect and size_x_total :
-            //-----------------------
-            for (auto each_target : clean_targets)
+            // Determine horizontal alignment
+            //-------------------------------
+
+            Align halign = Align_CENTER;
+
+            // Align right when driver is an instruction without being connected to a predecessor
+            if ( driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom )
             {
-                ImRect rect;
-                if( !(each_target->pinned() || !each_target->is_visible()) )
-                {
-                    rect = each_target->get_rect( true );
-                }
-                target_rects.push_back(rect);
-                size_x_total += rect.GetWidth();
+                halign = Align_END;
             }
 
-            // Determine x position start:
-            //---------------------------
+            // Determine virtual_cursor.x from alignment
+            //----------------------------------
 
-            // x alignment
-            //
-            // We add an indentation when driver is an instruction without being connected to a predecessor
-            const bool align_right = driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom;
-            if ( align_right )
+            switch( halign )
             {
-                cursor_pos.x += driver->get_size().x / 4.0f
-                             + config.ui_node_spacing;
+                case Align_START:
+                {
+                    FW_EXPECT(false, "not implemented")
+                }
 
-            // Otherwise we simply align vertically
-            } else {
-                cursor_pos.x -= size_x_total / 2.0f;
+                case Align_END:
+                {
+                    virtual_cursor.x += driver->get_size().x / 4.0f + config.ui_node_spacing;
+                    break;
+                }
+
+                case Align_CENTER:
+                {
+                    float size_x_total = 0.0f;
+                    std::for_each( target_rects.begin(), target_rects.end(),[&](auto each ) { size_x_total += each.GetSize().x; });
+                    virtual_cursor.x -= size_x_total / 2.0f;
+                }
             }
 
             // Constraint in row:
             //-------------------
-            cursor_pos.y   += y_direction * driver->get_size().y / 2.0f;
+            virtual_cursor.y   += y_direction * driver->get_size().y / 2.0f;
             for (int target_index = 0; target_index < clean_targets.size(); target_index++)
             {
                 NodeView* each_target = clean_targets[target_index];
-                if ( !each_target->pinned() && each_target->is_visible() )
+                const Node& target_owner = *each_target->get_owner();
+
+                // Guards
+                if ( !each_target->is_visible() ) continue;
+                if ( each_target->pinned() ) continue;
+                if ( !target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() ) && !align_bbox_bottom ) continue;
+
+                // Compute new position for this input view
+                ImRect& target_rect = target_rects[target_index];
+
+                ImVec2 relative_pos(
+                        target_rect.GetWidth() / 2.0f,
+                        y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
+                );
+
+                if ( align_bbox_bottom ) relative_pos += y_direction * config.ui_node_spacing;
+
+                // Add a vertical space to avoid having too much wires aligned on x-axis
+                // useful for "for" nodes.
+                if( halign == Align_END && clean_targets.size() > 1 )
                 {
-                    // Compute new position for this input view
-                    ImRect& target_rect = target_rects[target_index];
-
-                    ImVec2 relative_pos(
-                            target_rect.GetWidth() / 2.0f,
-                            y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
-                    );
-
-                    if ( align_bbox_bottom ) relative_pos += y_direction * config.ui_node_spacing;
-
-                    if( align_right && clean_targets.size() > 1 )
-                    {
-                        // add a vertical space to avoid having too much wires aligned on x-axis
-                        int reverse_y_spacing = (clean_targets.size() - 1 - target_index) * config.ui_node_spacing * 1.5f;
-                        relative_pos.y += y_direction * reverse_y_spacing;
-                    }
-
-                    const Node& target_owner = *each_target->get_owner();
-                    const bool constrained = target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() );
-                    if ( constrained || align_bbox_bottom )
-                    {
-                        auto target_physics = target_owner.get_component<Physics>();
-                        target_physics->add_force_to_translate_to(cursor_pos + relative_pos + m_offset, config.ui_node_speed, true);
-                        cursor_pos.x += target_rect.GetWidth() + config.ui_node_spacing;
-                    }
+                    float reverse_y_spacing = float(clean_targets.size() - 1 - target_index) * config.ui_node_spacing * 1.5f;
+                    relative_pos.y += y_direction * reverse_y_spacing;
                 }
+
+                auto target_physics = target_owner.get_component<Physics>();
+                target_physics->add_force_to_translate_to( virtual_cursor + relative_pos + m_offset, config.ui_node_speed, true);
+                virtual_cursor.x += target_rect.GetWidth() + config.ui_node_spacing;
+
             }
             break;
         }
@@ -192,6 +182,23 @@ void NodeViewConstraint::apply(float _dt)
                                          + target->get_rect().GetSize().x * 0.5f, 0 ));
                     target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
                 }
+            }
+        }
+    }
+}
+
+void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers,const std::vector<NodeView*>& _targets )
+{
+    if( ImGuiEx::debug )
+    {
+        for (auto each_target: _targets )
+        {
+            for (auto each_driver: _drivers )
+            {
+                ImGuiEx::DebugLine(
+                        each_driver->get_position( Space_Screen),
+                        each_target->get_position( Space_Screen),
+                        IM_COL32(0, 0, 255, 30), 1.0f);
             }
         }
     }
