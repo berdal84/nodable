@@ -620,6 +620,10 @@ void CreateNodeContextMenu::update_cache_based_on_signature()
                 {
                     // we can connect anything to a code flow slot
                 }
+                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->get_property_type()->is<PoolID<Node>>() )
+                {
+                    // we can connect anything to a Node ref input
+                }
                 else if ( action->event_data.node_signature )
                 {
                     // discard incompatible signatures
