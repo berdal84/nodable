@@ -600,13 +600,13 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
     {
         /* Draw the property */
         const fw::type* property_type = property->get_type();
-        bool has_input_connected      = _view->has_input_connected();
+        bool read_only = _view->has_input_connected();
 
         if( property_type->is<i32_t>() )
         {
             auto integer = (i32_t)*property->value();
 
-            if (ImGui::InputInt(label.c_str(), &integer, 0, 0, input_text_flags ) && !has_input_connected )
+            if (ImGui::InputInt(label.c_str(), &integer, 0, 0, input_text_flags ) && !read_only )
             {
                 property->set(integer);
                 changed |= true;
@@ -616,7 +616,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
         {
             auto d = (double)*property->value();
 
-            if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", input_text_flags ) && !has_input_connected )
+            if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", input_text_flags ) && !read_only )
             {
                 property->set(d);
                 changed |= true;
@@ -627,7 +627,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
             char str[255];
             snprintf(str, 255, "%s", (const char*)*property->value() );
 
-            if ( ImGui::InputText(label.c_str(), str, 255, input_text_flags ) && !has_input_connected )
+            if ( ImGui::InputText(label.c_str(), str, 255, input_text_flags ) && !read_only )
             {
                 property->set( std::string(str) );
                 changed |= true;
@@ -635,11 +635,9 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
         }
         else if( property_type->is<bool>() )
         {
-            std::string checkBoxLabel = property->get_name();
-
             auto b = (bool)*property->value();
 
-            if (ImGui::Checkbox(label.c_str(), &b ) && !has_input_connected )
+            if (ImGui::Checkbox(label.c_str(), &b) && !read_only )
             {
                 property->set(b);
                 changed |= true;
