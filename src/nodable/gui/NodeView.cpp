@@ -1020,6 +1020,11 @@ void NodeView::expand_toggle()
 
 NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive)
 {
+    if( _view == nullptr )
+    {
+        return _view;
+    }
+
     if( _view->is_visible() )
     {
         return _view;
@@ -1052,7 +1057,10 @@ std::vector<NodeView*> NodeView::substitute_with_parent_if_not_visible(const std
     for(auto each : _in)
     {
         auto each_or_substitute = NodeView::substitute_with_parent_if_not_visible(each, _recursive);
-        out.push_back(each_or_substitute);
+        if (each_or_substitute)
+        {
+            out.push_back(each_or_substitute);
+        }
     }
     return std::move(out);
 };
