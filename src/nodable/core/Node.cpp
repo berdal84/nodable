@@ -28,17 +28,9 @@ Node::Node(std::string _label)
 }
 
 Node::Node( Node&& other ) noexcept
-: name(std::move(other.name))
-, dirty(other.dirty)
-, flagged_to_delete(other.flagged_to_delete)
-, props(std::move(other.props))
-, m_slots(std::move(other.m_slots))
-, m_components(std::move(other.m_components))
-, m_id( other.m_id )
-, parent_graph( other.parent_graph )
-, m_this_property_id( other.m_this_property_id )
-, after_token(other.after_token)
+: Node()
 {
+    *this = std::move(other);
 }
 
 Node& Node::operator=( Node&& other ) noexcept
@@ -55,6 +47,8 @@ Node& Node::operator=( Node&& other ) noexcept
    m_id              = other.m_id;
    after_token       = std::move(other.after_token);
    parent_graph      = other.parent_graph;
+
+   other.after_token = {};
 
    return *this;
 }

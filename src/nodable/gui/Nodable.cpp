@@ -390,16 +390,54 @@ void Nodable::on_update()
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);
 
                 // 1) create the node
-                PoolID<Node> new_node_id  = current_file->get_graph()->create_node( _event->data.node_type, _event->data.node_signature );
+                Graph* graph = current_file->get_graph();
 
+                if ( !graph->get_root() )
+                {
+                    LOG_ERROR("Nodable", "Unable to create node, no root found on this graph.\n");
+                    continue;
+                }
+
+                PoolID<Node> new_node_id  = graph->create_node( _event->data.node_type, _event->data.node_signature );
+
+                if ( !_event->data.dragged_slot )
+                {
+                    // Insert an end of line and end of instruction
+                    switch ( _event->data.node_type )
+                    {
+                        case NodeType_BLOCK_CONDITION:
+                        case NodeType_BLOCK_FOR_LOOP:
+                        case NodeType_BLOCK_WHILE_LOOP:
+                        case NodeType_BLOCK_SCOPE:
+                        case NodeType_BLOCK_PROGRAM:
+                            new_node_id->after_token = Token::s_end_of_line;
+                            break;
+                        case NodeType_VARIABLE_BOOLEAN:
+                        case NodeType_VARIABLE_DOUBLE:
+                        case NodeType_VARIABLE_INTEGER:
+                        case NodeType_VARIABLE_STRING:
+                            new_node_id->after_token = Token::s_end_of_instruction;
+                            break;
+                        case NodeType_LITERAL_BOOLEAN:
+                        case NodeType_LITERAL_DOUBLE:
+                        case NodeType_LITERAL_INTEGER:
+                        case NodeType_LITERAL_STRING:
+                        case NodeType_INVOKABLE:
+                            break;
+                    }
+                }
                 // 2) handle connections
                 if ( !_event->data.dragged_slot )
                 {
                     // Experimental: we try to connect a parent-less child
-                    if ( new_node_id != _event->data.graph->get_root() && config.experimental_graph_autocompletion )
+                    PoolID<Node> root = graph->get_root();
+                    if ( new_node_id != root && config.experimental_graph_autocompletion )
                     {
-                        _event->data.graph->ensure_has_root();
-                        // m_graph->connect( new_node, m_graph->get_root(), RelType::CHILD  );
+                        graph->connect(
+                            *root->find_slot(SlotFlag_CHILD),
+                            *new_node_id->find_slot(SlotFlag_PARENT),
+                            ConnectFlag_ALLOW_SIDE_EFFECTS
+                        );
                     }
                 }
                 else
@@ -607,8 +645,8 @@ HybridFile *Nodable::new_file()
     name.append(std::to_string(m_untitled_file_count));
     name.append(".cpp");
 
-    HybridFile* file = new HybridFile(ghc::filesystem::path{name});
-    // file->set_text( "// " + name);
+    auto* file = new HybridFile(ghc::filesystem::path{name});
+    file->update_graph_from_text();
 
     return add_file(file);
 }

@@ -143,6 +143,10 @@ namespace fw
             return nullptr;
         }
         const auto [vector, pos, _] = m_record_by_id[id];
+        if ( vector == nullptr)
+        {
+            return nullptr;
+        }
         return (T*)((*vector)[pos]);
     }
 

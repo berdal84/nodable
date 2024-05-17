@@ -4,6 +4,8 @@
 using namespace ndbl;
 
 const Token Token::s_null(Token_t::null);
+const Token Token::s_end_of_line{Token_t::ignore, "\n"};
+const Token Token::s_end_of_instruction{Token_t::ignore, ";\n"};
 
 std::string Token::json() const
 {

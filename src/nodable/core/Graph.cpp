@@ -517,7 +517,7 @@ PoolID<Node> Graph::create_node( NodeType _type, const fw::func_type* _signature
     switch ( _type )
     {
         /*
-         * TODO: We could consider narowwing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
+         * TODO: We could consider narowing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
          *       and rely more on _signature (ex: a bool variable could be simply "bool" or "bool bool(bool)")
          */
         case NodeType_BLOCK_CONDITION:  return create_cond_struct();

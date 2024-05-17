@@ -49,7 +49,7 @@ namespace ndbl
         UpdateResult                     update(); // to call each frame
         bool                             write_to_disk();
         inline Graph*                    get_graph() { return m_graph; }
-        UpdateResult                     update_graph_from_text(bool isolate_selection);
+        UpdateResult                     update_graph_from_text(bool isolate_selection = false);
         UpdateResult                     update_text_from_graph(bool isolate_selection);
         inline GraphView*                get_graph_view() { return m_graph_view; }
         inline History*                  get_history() { return &m_history; }

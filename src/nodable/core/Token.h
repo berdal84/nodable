@@ -132,6 +132,8 @@ namespace ndbl
         std::string json()const;
         bool is_null() const { return m_type == Token_t::null; }
         static const Token s_null; // To act as null Token
+        static const Token s_end_of_line;
+        static const Token s_end_of_instruction;
     };
 }
 static_assert(std::is_move_assignable_v<ndbl::Token>, "Should be move assignable");
