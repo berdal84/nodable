@@ -2,6 +2,10 @@
 # Create a target per library to facilitate usage by nodable targets
 #-------------------------------------------------------------------
 
+# GLM
+#-------------
+add_subdirectory(glm EXCLUDE_FROM_ALL)
+
 # google tests
 #-------------
 add_subdirectory(googletest EXCLUDE_FROM_ALL)

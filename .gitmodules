@@ -28,3 +28,6 @@
 [submodule "libs/google/benchmark"]
 	path = libs/google/benchmark
 	url = https://github.com/google/benchmark.git
+[submodule "libs/glm"]
+	path = libs/glm
+	url = https://github.com/g-truc/glm.git
