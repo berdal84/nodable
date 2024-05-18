@@ -1531,7 +1531,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     return _out;
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type *_signature, const std::vector<SlotRef> &inputs) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const func_type *_signature, const std::vector<SlotRef> &inputs) const
 {
     _out.append(_signature->get_identifier());
     serialize_token_t(_out, Token_t::parenthesis_open);
@@ -1550,7 +1550,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const fw::func_type
     return _out;
 }
 
-std::string &Nodlang::serialize_func_sig(std::string &_out, const fw::func_type *_signature) const
+std::string &Nodlang::serialize_func_sig(std::string &_out, const func_type *_signature) const
 {
     serialize_type(_out, _signature->get_return_type());
     _out.append(" ");
@@ -1577,7 +1577,7 @@ std::string &Nodlang::serialize_token_t(std::string &_out, const Token_t &_type)
     return _out.append(to_string(_type));
 }
 
-std::string &Nodlang::serialize_type(std::string &_out, const fw::type *_type) const
+std::string &Nodlang::serialize_type(std::string &_out, const type *_type) const
 {
     return _out.append(to_string(_type));
 }
@@ -1620,7 +1620,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     return _out;
 }
 
-std::string &Nodlang::serialize_variant(std::string &_out, const fw::variant *variant) const
+std::string &Nodlang::serialize_variant(std::string &_out, const variant *variant) const
 {
     std::string variant_string = variant->to<std::string>();
 
@@ -1659,7 +1659,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     }
 
     // If adjacent node is a variable, we only serialize its name (no need for recursion)
-    if ( auto* variable_node = fw::cast<VariableNode>( adjacent_slot->get_node() ) )
+    if ( auto* variable_node = cast<VariableNode>( adjacent_slot->get_node() ) )
     {
         _out.append( variable_node->name );
     }
@@ -1696,15 +1696,15 @@ std::string & Nodlang::serialize_node( std::string &_out, const PoolID<const Nod
     FW_ASSERT( node )
     FW_ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
-    if ( auto* cond_struct = fw::cast<const IfNode>(node ) )
+    if ( auto* cond_struct = cast<const IfNode>(node ) )
     {
         serialize_cond_struct(_out, cond_struct);
     }
-    else if ( auto* for_loop = fw::cast<const ForLoopNode>(node ) )
+    else if ( auto* for_loop = cast<const ForLoopNode>(node ) )
     {
         serialize_for_loop(_out, for_loop);
     }
-    else if ( auto* while_loop = fw::cast<const WhileLoopNode>(node ) )
+    else if ( auto* while_loop = cast<const WhileLoopNode>(node ) )
     {
         serialize_while_loop(_out, while_loop);
     }
@@ -1712,11 +1712,11 @@ std::string & Nodlang::serialize_node( std::string &_out, const PoolID<const Nod
     {
         serialize_scope(_out, scope);
     }
-    else if ( auto* literal = fw::cast<const LiteralNode>(node ) )
+    else if ( auto* literal = cast<const LiteralNode>(node ) )
     {
         serialize_property(_out, literal->value());
     }
-    else if ( auto* variable = fw::cast<const VariableNode>(node ) )
+    else if ( auto* variable = cast<const VariableNode>(node ) )
     {
         serialize_variable(_out, variable);
     }
@@ -1884,11 +1884,11 @@ std::shared_ptr<const iinvokable> Nodlang::find_function(const char* _signature_
         return nullptr;
     }
 
-    auto hash = fw::hash::hash(_signature_hint);
+    auto hash = hash::hash(_signature_hint);
     return find_function( hash );
 }
 
-std::shared_ptr<const iinvokable> Nodlang::find_function(fw::hash::hash_t _hash) const
+std::shared_ptr<const iinvokable> Nodlang::find_function(hash::hash_t _hash) const
 {
     auto found = m_functions_by_signature.find(_hash);
     if ( found != m_functions_by_signature.end())
@@ -2076,7 +2076,7 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
     }
 }
 
-std::string Nodlang::to_string(const fw::type *_type) const
+std::string Nodlang::to_string(const type *_type) const
 {
     std::string result;
     return to_string(result, _type);

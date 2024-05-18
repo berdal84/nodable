@@ -36,11 +36,11 @@ const char* k_context_menu_popup = "GraphView.CreateNodeContextMenu";
 
 REGISTER
 {
-    fw::registration::push_class<GraphView>("GraphView").extends<fw::View>();
+    registration::push_class<GraphView>("GraphView").extends<View>();
 }
 
 GraphView::GraphView(Graph* graph)
-    : fw::View()
+    : View()
     , m_graph(graph)
     , m_create_node_context_menu()
 {
@@ -94,13 +94,13 @@ bool GraphView::draw()
 
                 if ( each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
                 {
-                    fw::rect start = each_view->get_slot_rect( *slot, app.config, slot_index );
-                    fw::rect end = each_successor_view->get_slot_rect( *adjacent_slot, app.config, 0 );// there is only 1 previous slot
+                    Rect start = each_view->get_slot_rect( *slot, app.config, slot_index );
+                    Rect end = each_successor_view->get_slot_rect( *adjacent_slot, app.config, 0 );// there is only 1 previous slot
 
-                    fw::ImGuiEx::DrawVerticalWire(
+                    ImGuiEx::DrawVerticalWire(
                             ImGui::GetWindowDrawList(),
-                            start.GetCenter(),
-                            end.GetCenter(),
+                            start.get_center(),
+                            end.get_center(),
                             app.config.ui_codeflow_color,      // color
                             app.config.ui_codeflow_shadowColor,// shadowColor,
                             line_width,
@@ -120,17 +120,17 @@ bool GraphView::draw()
         if ( _dragged_slot )
         {
             // When dragging, edge follows mouse cursor. Otherwise, it sticks the contextual menu.
-            fw::vec2 edge_end = m_create_node_context_menu.dragged_slot
+            Vec2 edge_end = m_create_node_context_menu.dragged_slot
                               ? m_create_node_context_menu.opened_at_screen_pos
-                              : (fw::vec2)ImGui::GetMousePos();
+                              : (Vec2)ImGui::GetMousePos();
 
             if ( _dragged_slot->slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
                 // Thick line
-                fw::ImGuiEx::DrawVerticalWire(
+                ImGuiEx::DrawVerticalWire(
                         ImGui::GetWindowDrawList(),
-                        _dragged_slot->rect(app.config).GetCenter(),
-                        hovered_slot ? hovered_slot->rect(app.config).GetCenter(): edge_end,
+                        _dragged_slot->get_rect( app.config ).get_center(),
+                        hovered_slot ? hovered_slot->get_rect( app.config ).get_center(): edge_end,
                         app.config.ui_codeflow_color,
                         app.config.ui_codeflow_shadowColor,
                         app.config.ui_node_slot_size.x * app.config.ui_codeflow_thickness_ratio,
@@ -174,14 +174,14 @@ bool GraphView::draw()
                     continue;
                 }
 
-                fw::vec2 slot_pos           = node_view->get_slot_pos( *slot );
-                fw::vec2 slot_norm          = node_view->get_slot_normal( *slot );
-                fw::vec2 adjacent_slot_pos  = adjacent_node_view->get_slot_pos( *adjacent_slot );
-                fw::vec2 adjacent_slot_norm = adjacent_node_view->get_slot_normal( *adjacent_slot );
+                Vec2 slot_pos           = node_view->get_slot_pos( *slot );
+                Vec2 slot_norm          = node_view->get_slot_normal( *slot );
+                Vec2 adjacent_slot_pos  = adjacent_node_view->get_slot_pos( *adjacent_slot );
+                Vec2 adjacent_slot_norm = adjacent_node_view->get_slot_normal( *adjacent_slot );
 
                 // do not draw long lines between a variable value
-                fw::vec4 line_color   = app.config.ui_wire_color;
-                fw::vec4 shadow_color = app.config.ui_wire_shadowColor;
+                Vec4 line_color   = app.config.ui_wire_color;
+                Vec4 shadow_color = app.config.ui_wire_shadowColor;
 
                 if ( NodeView::is_selected( node_view->poolid() ) ||
                      NodeView::is_selected( adjacent_node_view->poolid() ) )
@@ -195,14 +195,14 @@ bool GraphView::draw()
                 else
                 {
                     // transparent depending on wire length
-                    fw::vec2 delta = slot_pos - adjacent_slot_pos;
+                    Vec2 delta = slot_pos - adjacent_slot_pos;
                     float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
                     if (dist > app.config.ui_wire_bezier_fade_length_minmax.x )
                     {
                         float factor = ( dist - app.config.ui_wire_bezier_fade_length_minmax.x ) /
                                        ( app.config.ui_wire_bezier_fade_length_minmax.y - app.config.ui_wire_bezier_fade_length_minmax.x );
-                        line_color = fw::lerp(line_color, fw::vec4(0, 0, 0, 0), factor);
-                        shadow_color = fw::lerp(shadow_color, fw::vec4(0, 0, 0, 0), factor);
+                        line_color = lerp(line_color, Vec4(0, 0, 0, 0), factor);
+                        shadow_color = lerp(shadow_color, Vec4(0, 0, 0, 0), factor);
                     }
                 }
 
@@ -210,12 +210,12 @@ bool GraphView::draw()
                 if (line_color.w != 0.f)
                 {
                     float thickness = app.config.ui_wire_bezier_thickness;
-                    fw::vec2 delta = adjacent_slot_pos - slot_pos;
-                    float roundness = fw::lerp(
+                    Vec2 delta = adjacent_slot_pos - slot_pos;
+                    float roundness = lerp(
                             app.config.ui_wire_bezier_roundness.x, // min
                             app.config.ui_wire_bezier_roundness.y, // max
-                              1.0f - fw::normalize( ImLengthSqr(delta), 100.0f, 10000.0f )
-                            + 1.0f - fw::normalize( abs(delta.y), 0.0f, 200.0f)
+                              1.0f - normalize( ImLengthSqr(delta), 100.0f, 10000.0f )
+                            + 1.0f - normalize( abs(delta.y), 0.0f, 200.0f)
                             );
 
                     if ( slot->has_flags(SlotFlag_TYPE_CODEFLOW) )
@@ -224,7 +224,7 @@ bool GraphView::draw()
                         // roundness *= 0.25f;
                     }
 
-                    fw::ImGuiEx::DrawWire(draw_list,
+                    ImGuiEx::DrawWire(draw_list,
                                           slot_pos, adjacent_slot_pos,
                                           slot_norm, adjacent_slot_norm,
                                           line_color, shadow_color, thickness, roundness);
@@ -251,7 +251,7 @@ bool GraphView::draw()
                 // dragging
                 if (NodeView::get_dragged() == each_node_view->poolid() && ImGui::IsMouseDragging(0))
                 {
-                    fw::vec2 mouse_drag_delta = ImGui::GetMouseDragDelta();
+                    Vec2 mouse_drag_delta = ImGui::GetMouseDragDelta();
                     each_node_view->translate(mouse_drag_delta, true);
                     ImGui::ResetMouseDragDelta();
                     each_node_view->pinned( true );
@@ -271,21 +271,21 @@ bool GraphView::draw()
         const Node* node = app.virtual_machine.get_next_node();
         if( NodeView* view = node->get_component<NodeView>().get() )
         {
-            fw::vec2 vm_cursor_pos = view->get_position(fw::Space_Screen, pixel_perfect);
+            Vec2 vm_cursor_pos = view->get_position(Space_Screen, pixel_perfect);
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
-            fw::vec2 linePos = vm_cursor_pos + fw::vec2(- 10.0f, 0.5f);
-            linePos += fw::vec2(sin(float(app.elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            Vec2 linePos = vm_cursor_pos + Vec2(- 10.0f, 0.5f);
+            linePos += Vec2(sin(float(app.elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255,255,255);
 
             // arrow ->
-            draw_list->AddLine( (ImVec2)linePos - fw::vec2(1.f, 0.0f), (ImVec2)linePos - fw::vec2(size, 0.0f), color, width);
-            draw_list->AddLine( linePos, (ImVec2)linePos - fw::vec2(size * 0.5f, -size * 0.5f), color, width);
-            draw_list->AddLine( linePos, (ImVec2)linePos - fw::vec2(size * 0.5f, size * 0.5f) , color, width);
+            draw_list->AddLine( (ImVec2)linePos - Vec2(1.f, 0.0f), (ImVec2)linePos - Vec2(size, 0.0f), color, width);
+            draw_list->AddLine( linePos, (ImVec2)linePos - Vec2(size * 0.5f, -size * 0.5f), color, width);
+            draw_list->AddLine( linePos, (ImVec2)linePos - Vec2(size * 0.5f, size * 0.5f) , color, width);
         }
     }
 
@@ -321,7 +321,7 @@ bool GraphView::draw()
 	if ( ImGui::BeginPopup(k_context_menu_popup) )
     {
         // Title :
-        fw::ImGuiEx::ColoredShadowedText( fw::vec2( 1, 1 ), ImColor( 0.00f, 0.00f, 0.00f, 1.00f ), ImColor( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
+        ImGuiEx::ColoredShadowedText( Vec2( 1, 1 ), ImColor( 0.00f, 0.00f, 0.00f, 1.00f ), ImColor( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
         ImGui::Separator();
         /*
         *  In case user has created a new node we need to connect it to the m_graph depending
@@ -354,16 +354,16 @@ void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
 {
     const int    grid_size             = config.ui_graph_grid_size;
     const int    grid_subdiv_size      = config.ui_graph_grid_size / config.ui_graph_grid_subdivs;
-    const int    vertical_line_count   = int( m_screen_space_content_region.GetSize().x) / grid_subdiv_size;
-    const int    horizontal_line_count = int( m_screen_space_content_region.GetSize().y) / grid_subdiv_size;
-    fw::vec4     grid_color            = config.ui_graph_grid_color_major;
-    fw::vec4     grid_color_light      = config.ui_graph_grid_color_minor;
+    const int    vertical_line_count   = int( m_screen_space_content_region.get_size().x) / grid_subdiv_size;
+    const int    horizontal_line_count = int( m_screen_space_content_region.get_size().y) / grid_subdiv_size;
+    Vec4 grid_color            = config.ui_graph_grid_color_major;
+    Vec4 grid_color_light      = config.ui_graph_grid_color_minor;
 
     for(int coord = 0; coord <= vertical_line_count; ++coord)
     {
-        float pos = m_screen_space_content_region.GetTL().x + float(coord) * float(grid_subdiv_size);
-        const fw::vec2 line_start{pos, m_screen_space_content_region.GetTL().y};
-        const fw::vec2 line_end{pos, m_screen_space_content_region.GetBL().y};
+        float pos = m_screen_space_content_region.get_TL().x + float(coord) * float(grid_subdiv_size);
+        const Vec2 line_start{pos, m_screen_space_content_region.get_TL().y};
+        const Vec2 line_end{pos, m_screen_space_content_region.get_BL().y};
         bool is_major = coord % config.ui_graph_grid_subdivs == 0;
         ImColor color{ is_major ? grid_color : grid_color_light };
         draw_list->AddLine(line_start, line_end, color);
@@ -371,9 +371,9 @@ void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
 
     for(int coord = 0; coord <= horizontal_line_count; ++coord)
     {
-        float pos = m_screen_space_content_region.GetTL().y + float(coord) * float(grid_subdiv_size);
-        const fw::vec2 line_start{ m_screen_space_content_region.GetTL().x, pos};
-        const fw::vec2 line_end{ m_screen_space_content_region.GetBR().x, pos};
+        float pos = m_screen_space_content_region.get_TL().y + float(coord) * float(grid_subdiv_size);
+        const Vec2 line_start{ m_screen_space_content_region.get_TL().x, pos};
+        const Vec2 line_end{ m_screen_space_content_region.get_BR().x, pos};
         bool is_major = coord % config.ui_graph_grid_subdivs == 0;
         ImColor color{is_major ? grid_color : grid_color_light};
         draw_list->AddLine(line_start, line_end, color);
@@ -445,28 +445,28 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n")
         return;
     }
-    fw::rect screen = m_screen_space_content_region;
+    Rect screen = m_screen_space_content_region;
 
     // get selection rectangle
-    fw::rect nodes_screen_rect = NodeView::get_rect(_views);
-    nodes_screen_rect.Translate(screen.Min); // convert to screen space
+    Rect nodes_screen_rect = NodeView::get_rect(_views);
+    nodes_screen_rect.translate( screen.Min ); // convert to screen space
 
     // debug
-    fw::ImGuiEx::DebugRect(nodes_screen_rect.Min, nodes_screen_rect.Max, IM_COL32(0, 255, 0, 127 ), 5.0f );
-    fw::ImGuiEx::DebugRect(screen.Min, screen.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
+    ImGuiEx::DebugRect(nodes_screen_rect.Min, nodes_screen_rect.Max, IM_COL32(0, 255, 0, 127 ), 5.0f );
+    ImGuiEx::DebugRect(screen.Min, screen.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
 
     // align
-    fw::vec2 translate_vec;
+    Vec2 translate_vec;
     if (_align_top_left_corner)
     {
         // Align with the top-left corner
-        nodes_screen_rect.Expand(20.0f); // add a padding to avoid alignment too close from the border
-        translate_vec = screen.GetTL() - nodes_screen_rect.GetTL();
+        nodes_screen_rect.expand( Vec2( 20.0f ) ); // add a padding to avoid alignment too close from the border
+        translate_vec = screen.get_TL() - nodes_screen_rect.get_TL();
     }
     else
     {
         // Align the center of the node rectangle with the screen center
-        translate_vec = screen.GetCenter() - nodes_screen_rect.GetCenter();
+        translate_vec = screen.get_center() - nodes_screen_rect.get_center();
     }
 
     // apply the translation
@@ -476,10 +476,10 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     translate_all(translate_vec, all_views);
 
     // debug
-    fw::ImGuiEx::DebugLine(nodes_screen_rect.GetCenter(), (ImVec2)nodes_screen_rect.GetCenter() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
+    ImGuiEx::DebugLine( nodes_screen_rect.get_center(), (ImVec2) nodes_screen_rect.get_center() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
-void GraphView::translate_all(fw::vec2 delta, const std::vector<NodeView*>& _views)
+void GraphView::translate_all( Vec2 delta, const std::vector<NodeView*>& _views)
 {
     for (auto node_view : _views )
     {
@@ -493,7 +493,7 @@ void GraphView::unfold()
     update( config.graph_unfold_dt, config.graph_unfold_iterations );
 }
 
-void GraphView::translate_view(fw::vec2 delta)
+void GraphView::translate_view( Vec2 delta)
 {
     auto views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
     translate_all(delta, views);
@@ -509,7 +509,7 @@ void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
 
 void GraphView::frame( FrameMode mode )
 {
-    // TODO: use an fw::rect instead of a FrameMode enum, it will be easier to handle undo/redo
+    // TODO: use an rect instead of a FrameMode enum, it will be easier to handle undo/redo
     if ( mode == FRAME_ALL )
     {
         return frame_all_node_views();

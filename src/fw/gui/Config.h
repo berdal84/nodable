@@ -21,10 +21,10 @@ namespace fw
         bool                  show_fps                 = false;
         bool                  delta_time_limit         = true;
         u32_t                 delta_time_min           = 1000 / 60; // in ms
-        fw::color             background_color         = fw::color(0.f,0.f,0.f);
-        fw::vec4              button_activeColor       = fw::vec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
-        fw::vec4              button_hoveredColor      = fw::vec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
-        fw::vec4              button_color             = fw::vec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
+        fw::Color background_color         = fw::Color(0.f,0.f,0.f);
+        fw::Vec4 button_activeColor       = fw::Vec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
+        fw::Vec4 button_hoveredColor      = fw::Vec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
+        fw::Vec4 button_color             = fw::Vec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
         const char*           splashscreen_window_label= "##Splashscreen";
         bool                  splashscreen             = true; // hide/show splashscreen
         bool                  imgui_demo               = false;
@@ -33,12 +33,12 @@ namespace fw
         float                 dockspace_right_ratio    = 0.3f;
         size_t                log_tooltip_max_count    = 25;
         std::array<
-                fw::vec4,
+                fw::Vec4,
                 fw::log::Verbosity_COUNT> log_color         {
-                        fw::vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
-                        fw::vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
-                        fw::vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
-                        fw::vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
+                        fw::Vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
+                        fw::Vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
+                        fw::Vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
+                        fw::Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
                 };
         FontManager::Config font_manager{
             {{

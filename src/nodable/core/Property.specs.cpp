@@ -11,7 +11,7 @@ TEST(Property, Type_Boolean)
 
     property.set(true);
     EXPECT_TRUE((bool)*property);
-    EXPECT_EQ(property.get_type(), fw::type::get<bool>());
+    EXPECT_EQ(property.get_type(), type::get<bool>());
 
     property.set(false);
     EXPECT_FALSE((bool)*property);
@@ -27,7 +27,7 @@ TEST(Property, Type_String)
 
     EXPECT_EQ((std::string)*property, str);
     EXPECT_TRUE(property.to<bool>());
-    EXPECT_EQ(property.get_type(), fw::type::get<std::string>());
+    EXPECT_EQ(property.get_type(), type::get<std::string>());
     EXPECT_TRUE(property->is_defined());
 }
 
@@ -37,7 +37,7 @@ TEST(Property, Type_Double)
     property.set((double)50);
 
     EXPECT_EQ((double)50, (double)*property);
-    EXPECT_EQ(property.get_type(), fw::type::get<double>());
+    EXPECT_EQ(property.get_type(), type::get<double>());
     EXPECT_TRUE(property->is_defined());
 }
 
@@ -47,7 +47,7 @@ TEST(Property, Modify_by_reference_using_a_pointer)
     property.set(50.0);
 
     EXPECT_EQ((double)*property, 50.0);
-    EXPECT_EQ(property.get_type(), fw::type::get<double>());
+    EXPECT_EQ(property.get_type(), type::get<double>());
     EXPECT_TRUE(property->is_defined());
 
     double& ref = (double&)*property;
@@ -62,7 +62,7 @@ TEST(Property, Modify_by_reference_using_a_reference)
     Property property_2(50.0);
 
     EXPECT_EQ((double)*property_1, 50.0);
-    EXPECT_EQ(property_1.get_type(), fw::type::get<double>());
+    EXPECT_EQ(property_1.get_type(), type::get<double>());
     EXPECT_TRUE(property_1->is_defined());
 
     auto add_right_to_left = [](double& a, double b) -> double { return  a = a + b; };

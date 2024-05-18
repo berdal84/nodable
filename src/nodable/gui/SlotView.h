@@ -20,16 +20,16 @@ namespace ndbl
     class SlotView
     {
     public:
-        SlotView( Slot& _slot, fw::vec2 _alignment );
+        SlotView( Slot& _slot, fw::Vec2 _alignment );
 
         Property*             get_property()const;
         const fw::type*       get_property_type()const;
         bool                  has_node_connected() const;
-        fw::vec2                alignment() const;
+        fw::Vec2 alignment() const;
         Slot&                 slot()const;
         PoolID<Node>          get_node()const;
-        fw::vec2                position()const;
-        fw::rect                rect(Config& config)const;
+        fw::Vec2 position()const;
+        fw::Rect get_rect(Config& config)const;
         PoolID<Node>          adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
@@ -42,12 +42,12 @@ namespace ndbl
         static void           reset_focused(SlotView * slot = nullptr) { s_focused = slot; }
         static void           reset_hovered(SlotView * slot = nullptr) { s_hovered = slot; }
         static void           behavior(SlotView&, bool _readonly);
-        static void           draw_slot_circle( ImDrawList* _draw_list, SlotView& _view,  fw::vec2 _position, float _radius, const fw::vec4 &_color, const fw::vec4 &_border_color, const fw::vec4 &_hover_color, bool _readonly );
-        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, fw::rect _rect, const fw::vec4& _color, const fw::vec4& _border_color, const fw::vec4& _hover_color, float _border_radius, bool _readonly);
+        static void           draw_slot_circle( ImDrawList* _draw_list, SlotView& _view,  fw::Vec2 _position, float _radius, fw::Vec4 _color, fw::Vec4 _border_color, fw::Vec4 _hover_color, bool _readonly );
+        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, fw::Rect _rect, fw::Vec4 _color, fw::Vec4 _border_color, fw::Vec4 _hover_color, float _border_radius, bool _readonly);
 
     private:
         Slot&                 m_slot;
-        fw::vec2                m_alignment;
+        fw::Vec2 m_alignment;
         static SlotView*      s_focused;
         static SlotView*      s_dragged;
         static SlotView*      s_hovered;

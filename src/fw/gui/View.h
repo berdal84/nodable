@@ -20,11 +20,11 @@ namespace fw
         bool          is_visible()const;                             // check if visible
 		bool          is_hovered()const;                             // check if hovered
 	protected:
-        static void   use_available_region(View* , fw::rect = {});  // update m_xxx_space_content_region with available space or given rectangle
+        static void   use_available_region(View* , fw::Rect = {});  // update m_xxx_space_content_region with available space or given rectangle
         bool     m_is_visible;
 		bool     m_is_hovered;
-        fw::rect   m_screen_space_content_region;  // view rectangle in screen space coordinates
-        fw::rect   m_local_space_content_region;  // view rectangle in window space coordinates
+        fw::Rect m_screen_space_content_region;  // view rectangle in screen space coordinates
+        fw::Rect m_local_space_content_region;  // view rectangle in window space coordinates
 		REFLECT_BASE_CLASS()
     };
 }

@@ -9,91 +9,127 @@
 
 namespace fw
 {
-    class vec2: public glm::vec2
+    class Vec2
     {
     public:
-        using underlying_type = glm::vec2;
-        constexpr vec2(): glm::vec2() {};
-        constexpr vec2(float scalar): vec2(scalar, scalar) {}
-        constexpr vec2(float x, float y): glm::vec2(x, y) {}
-        constexpr vec2(const vec2& vec): glm::vec2(vec) {}
-        constexpr vec2(const glm::vec2& vec): glm::vec2(vec) {}
-        constexpr vec2(const ImVec2& _vec)
-        : glm::vec2(_vec.x, _vec.y)
-        {}
+        float x{};
+        float y{};
+
+        constexpr Vec2() = default;
+        constexpr Vec2(float x, float y): x(x), y(y) {}
+        constexpr Vec2(const Vec2& v): Vec2(v.x, v.y) {}
+        constexpr Vec2(const glm::vec2& v): Vec2(v.x, v.y) {}
+        explicit constexpr Vec2(float scalar): Vec2(scalar, scalar) {}
+        constexpr Vec2(const ImVec2& v) : Vec2(v.x, v.y) {}
 
         operator ImVec2() const
         { return {x, y}; }
 
-        static vec2 round(vec2 _vec)
-        { return (vec2)glm::round((glm::vec2)_vec); }
+        operator glm::vec2() const
+        { return {x, y}; }
 
-        vec2& operator+=(const vec2& other)
-        { underlying_type::operator+=((underlying_type)other); return *this; }
+#define UNARY_OPERATOR(_OP_)                \
+    Vec2& operator _OP_ (const Vec2 & other)\
+        {\
+            x _OP_ other.x;\
+            y _OP_ other.y;\
+            return *this;\
+        }
 
-        vec2& operator*=(const vec2& other)
-        { underlying_type::operator*=((underlying_type)other); return *this; }
+        UNARY_OPERATOR(+=)
+        UNARY_OPERATOR(*=)
+        UNARY_OPERATOR(-=)
+        UNARY_OPERATOR(/=)
+
+#define BINARY_OPERATOR(_OP_)                    \
+    Vec2 operator _OP_ (const Vec2& other) const\
+        { return { x _OP_ other.x, y _OP_ other.y}; }
+
+        BINARY_OPERATOR(+)
+        BINARY_OPERATOR(*)
+        BINARY_OPERATOR(-)
+        BINARY_OPERATOR(/)
+
+        static Vec2 scale( Vec2 v, float magnitude )
+        {
+            v.x *= magnitude;
+            v.y *= magnitude;
+            return v;
+        }
+
+        static Vec2 round( Vec2 _vec)
+        {
+            return glm::round((glm::vec2)_vec);
+        }
     };
 
-    class vec4: public glm::vec4
+    class Vec4
     {
     public:
-        constexpr vec4(): glm::vec4() {};
-        constexpr vec4(float x, float y, float z, float w = 0.0f)
-        : glm::vec4(x, y, z, w)
+        float x{};
+        float y{};
+        float z{};
+        float w{};
+
+        constexpr Vec4() = default;
+        constexpr Vec4(float x, float y, float z, float w = 0.0f)
+        : x(x), y(y), z(z), w(w)
         {}
-        constexpr vec4(const glm::vec4& vec): glm::vec4(vec) {}
+        constexpr Vec4(const glm::vec4& vec): Vec4(vec.x, vec.y, vec.z, vec.w) {}
 
         template<typename VecT>
-        constexpr explicit vec4(const VecT& _vec)
-        : vec4(_vec.x, _vec.y, _vec.z, _vec.w)
+        constexpr explicit Vec4(const VecT& _vec)
+        : Vec4(_vec.x, _vec.y, _vec.z, _vec.w)
         {}
+
+        operator glm::vec4() const
+        { return {x, y, z, w}; }
 
         operator ImVec4() const
         { return {x, y, z, w}; }
     };
 
-    class color : public vec4
+    class Color : public Vec4
     {
     public:
-        color(u8_t r, u8_t g, u8_t b, u8_t a = 255)
-        : vec4(float(r)/255.f, float(g)/255.f, float(b)/255.f, float(a)/255.f)
+        Color(u8_t r, u8_t g, u8_t b, u8_t a = 255)
+        : Vec4(float(r)/255.f, float(g)/255.f, float(b)/255.f, float(a)/255.f)
         {}
     };
 
-    class rect
+    class Rect
     {
     public:
-        fw::vec2 Min;
-        fw::vec2 Max;
+        fw::Vec2 Min;
+        fw::Vec2 Max;
 
-        rect()
+        Rect()
         : Min()
         , Max()
         {};
 
-        rect(fw::vec2 min, fw::vec2 max)
+        Rect(fw::Vec2 min, fw::Vec2 max)
         : Min(min)
         , Max(max)
         {}
 
-        rect(float w, float h)
+        Rect(float w, float h)
         : Min()
         , Max(w, h)
         {}
 
-        rect(const rect& _rect)
+        Rect(const Rect& _rect)
         : Min(_rect.Min)
         , Max(_rect.Max)
         {}
 
-        rect(const ImRect& _rect)
-        : rect(fw::vec2{_rect.Min}, fw::vec2{_rect.Max} )
+        Rect(const ImRect& _rect)
+        : Rect(fw::Vec2{_rect.Min}, fw::Vec2{_rect.Max} )
         {}
 
         template<typename RectT>
-        rect& operator=(const RectT& _rect)
-        { *this = rect{_rect}; return *this; }
+        Rect& operator=(const RectT& _rect)
+        { *this = Rect{_rect}; return *this; }
 
         float GetHeight() const
         { return Max.y - Min.y; }
@@ -101,31 +137,31 @@ namespace fw
         float GetWidth() const
         { return Max.x - Min.x; }
 
-        vec2 GetCenter()
+        Vec2 get_center()
         { return { Min.x + GetWidth() / 2.0f, Min.y + GetHeight() / 2.0f }; }
 
-        vec2 GetTL() const
+        Vec2 get_TL() const
         { return Min; }
 
-        vec2 GetBL() const
+        Vec2 get_BL() const
         { return { Min.x, Max.y }; }
 
-        vec2 GetBR() const
+        Vec2 get_BR() const
         { return Max; }
 
-        vec2 GetTR() const
+        Vec2 get_TR() const
         { return { Max.x, Min.y }; }
 
-        vec2 GetSize() const
+        Vec2 get_size() const
         { return { GetWidth(), GetHeight()}; }
 
-        void TranslateX( float d )
+        void translate_x( float d )
         { Min.x += d; Max.x += d; }
 
-        void TranslateY( float d )
+        void translate_y( float d )
         { Min.y += d; Max.y += d; }
 
-        void Translate( vec2 _delta )
+        void translate( Vec2 _delta )
         {
             Min += _delta;
             Max += _delta;
@@ -134,13 +170,26 @@ namespace fw
         operator ImRect() const
         { return { Min, Max}; }
 
-        void Expand( vec2 size )
-        { assert(false); /* TODO */ }
-        bool Contains( rect rect1 )
-        { assert(false); /* TODO */ }
+        void expand( Vec2 size)
+        {
+            Vec2 half_size = size * Vec2(0.5f);
+            Min -= half_size;
+            Max += half_size;
+        }
 
-        void EnlargeToInclude( rect rect1 )
-        { assert(false); /* TODO */ }
+        bool contains( Rect other )
+        {
+            return Min.x <= other.Min.x && Min.y <= other.Min.y
+                && Max.x >= other.Max.x && Max.y >= other.Max.y;
+        }
+
+        void expand_to_include( Rect other )
+        {
+            Min.x = glm::min( Min.x, other.Min.x );
+            Max.x = glm::max( Max.x, other.Max.x );
+            Min.y = glm::min( Min.y, other.Min.y );
+            Max.y = glm::max( Max.y, other.Max.y );
+        }
     };
 
     static float normalize(float _value, float _min, float _max)
@@ -152,10 +201,10 @@ namespace fw
     inline static float lerp(float _source, float _target, float _factor)
     { return glm::mix(_source, _target, glm::clamp(_factor, 0.0f, 1.0f)); }
 
-    inline static vec2 lerp(vec2 _source, vec2 _target, float _factor)
+    inline static Vec2 lerp( Vec2 _source, Vec2 _target, float _factor)
     { return glm::mix((glm::vec2)_source, (glm::vec2)_target, glm::clamp(_factor, 0.0f, 1.0f)); }
 
-    inline static vec4 lerp(vec4 _source, vec4 _target, float _factor)
+    inline static Vec4 lerp( Vec4 _source, Vec4 _target, float _factor)
     { return glm::mix((glm::vec4)_source, (glm::vec4)_target, glm::clamp(_factor, 0.0f, 1.0f)); }
 
     static i64_t signed_diff(u64_t _left, u64_t _right)

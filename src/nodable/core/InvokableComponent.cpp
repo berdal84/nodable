@@ -7,11 +7,11 @@
 #include "core/VariableNode.h"
 
 using namespace ndbl;
-using fw::ID;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<InvokableComponent>("InvokableComponent").extends<Component>();
+    registration::push_class<InvokableComponent>("InvokableComponent").extends<Component>();
 }
 
 InvokableComponent::InvokableComponent()
@@ -21,7 +21,7 @@ InvokableComponent::InvokableComponent()
     , m_is_operator( false )
 {}
 
-InvokableComponent::InvokableComponent(const fw::func_type* _signature, bool _is_operator, const fw::iinvokable* _invokable)
+InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_operator, const iinvokable* _invokable)
     : Component()
     , m_signature( _signature )
     , m_invokable( nullptr)
@@ -45,7 +45,7 @@ bool InvokableComponent::update()
         // Gather the variants from argument slots
         // TODO: consider removing this dynamic allocation
         //       we could simply dereference each Property within invoke()
-        std::vector<fw::variant*> variants;
+        std::vector<variant*> variants;
         for(auto& slot: m_argument_slot )
         {
             Property* property = slot->get_property();
@@ -60,7 +60,7 @@ bool InvokableComponent::update()
             }
         }
         FW_ASSERT( m_argument_slot.size() == variants.size())
-        fw::variant result = m_invokable->invoke( variants );
+        variant result = m_invokable->invoke( variants );
          m_result_slot->get_property()->set( result);
         for( auto* variant : variants ) variant->flag_defined(true);
     }

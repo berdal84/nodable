@@ -65,7 +65,7 @@ namespace ndbl {
         void add_drivers(const std::vector<PoolID<NodeView>>&);
         void draw_view();
 
-        fw::vec2 m_offset; // offset applied to the constraint
+        fw::Vec2 m_offset; // offset applied to the constraint
 
         static const Filter no_target_expanded;
         static const Filter drivers_are_expanded;

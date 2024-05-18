@@ -2,6 +2,7 @@
 #include "fw/core/reflection/reflection"
 
 using namespace ndbl;
+using namespace fw;
 
 namespace // anonymous, only accessible from this file
 {
@@ -51,7 +52,7 @@ namespace // anonymous, only accessible from this file
 
 REGISTER
 {
-    fw::registration::push_class<Nodlang_biology>("Nodlang_biology")
+    registration::push_class<Nodlang_biology>("Nodlang_biology")
             .add_method(&dna_to_protein, "dna_to_protein", "protein");
 };
 

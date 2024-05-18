@@ -24,7 +24,7 @@ namespace ndbl {
     public:
         ID<Property>     property_id;
         PoolID<NodeView> node_view;
-        fw::rect         screen_rect;
+        fw::Rect screen_rect;
         bool             show_input;
         bool             touched;
 

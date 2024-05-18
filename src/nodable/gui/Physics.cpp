@@ -12,7 +12,7 @@ using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<Physics>("Physics")
+    registration::push_class<Physics>("Physics")
                      .extends<Component>();
 };
 
@@ -47,14 +47,14 @@ void Physics::apply_constraints(float _dt)
     }
 }
 
-void Physics::add_force_to_translate_to(fw::vec2 desiredPos, float _factor, bool _recurse)
+void Physics::add_force_to_translate_to( Vec2 desiredPos, float _factor, bool _recurse)
 {
-    fw::vec2 delta(desiredPos - m_view->get_position());
+    Vec2 delta(desiredPos - m_view->get_position());
     auto factor = std::max(0.0f, _factor);
-    add_force(  delta * factor, _recurse);
+    add_force( Vec2::scale(delta, factor), _recurse);
 }
 
-void Physics::add_force(fw::vec2 force, bool _recurse)
+void Physics::add_force( Vec2 force, bool _recurse)
 {
     m_forces_sum += force;
 
@@ -76,16 +76,16 @@ void Physics::add_force(fw::vec2 force, bool _recurse)
 
 void Physics::apply_forces(float _dt, bool _recurse)
 {
-    float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
+    float magnitude_max  = 1000.0f;
+    float magnitude      = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
+    float friction       = lerp(0.0f, 0.5f, magnitude / magnitude_max);
+    Vec2 avg_forces_sum = Vec2::scale(m_forces_sum + m_last_frame_forces_sum, 0.5f);
+    Vec2 delta          = Vec2::scale(avg_forces_sum,  (1.0f - friction) * _dt);
 
-    constexpr float magnitude_max  = 1000.0f;
-    const float     friction       = fw::lerp(0.0f, 0.5f, magnitude / magnitude_max);
-    const fw::vec2 avg_forces_sum    = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
-
-    m_view->translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
+    m_view->translate( delta , _recurse);
 
     m_last_frame_forces_sum = avg_forces_sum;
-    m_forces_sum            = fw::vec2();
+    m_forces_sum            = Vec2();
 }
 
 void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
@@ -97,7 +97,7 @@ void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
         auto each_physics = each_node->get_component<Physics>();
         if ( each_view )
         {
-            const fw::type* node_type = each_node->get_type();
+            const type* node_type = each_node->get_type();
 
             // Follow predecessor Node(s), except if first predecessor is a Conditional
             //-------------------------------------------------------------------------

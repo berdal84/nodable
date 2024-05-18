@@ -87,7 +87,7 @@ namespace ndbl
         const fw::func_type* node_signature;           // The signature of the node that must be created
         SlotView*            dragged_slot   = nullptr; // The slot view being dragged.
         Graph*               graph          = nullptr; // The graph to create the node into
-        fw::vec2               node_view_local_pos;      // The desired position for the new node view
+        fw::Vec2 node_view_local_pos;      // The desired position for the new node view
 
         explicit EventPayload_CreateNode(NodeType node_type )
         : node_type(node_type)

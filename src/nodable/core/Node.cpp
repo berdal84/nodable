@@ -10,12 +10,11 @@
 #include "InvokableComponent.h"
 
 using namespace ndbl;
-using fw::Pool;
+using namespace fw;
 
 REGISTER
 {
-    using namespace ndbl;
-    fw::registration::push_class<Node>("Node");
+    registration::push_class<Node>("Node");
 }
 
 Node::Node(std::string _label)
@@ -68,7 +67,7 @@ size_t Node::adjacent_slot_count(SlotFlags _flags )const
     return filter_adjacent_slots( _flags ).size();
 }
 
-const fw::iinvokable* Node::get_connected_invokable(const char* property_name) const
+const iinvokable* Node::get_connected_invokable(const char* property_name) const
 {
     const Slot&   slot          = *find_slot_by_property_name( property_name, SlotFlag_INPUT );
     const SlotRef adjacent_slot = slot.first_adjacent();
@@ -203,11 +202,11 @@ std::vector<PoolID<Node>> Node::filter_adjacent( SlotFlags _flags ) const
     return GraphUtil::get_adjacent_nodes(this, _flags);
 }
 
-Slot* Node::find_slot_by_property_type(SlotFlags flags, const fw::type* _type)
+Slot* Node::find_slot_by_property_type(SlotFlags flags, const type* _type)
 {
     for(Slot* slot : filter_slots( flags ) )
     {
-        if( fw::type::is_implicitly_convertible( slot->get_property()->get_type(), _type ) )
+        if( type::is_implicitly_convertible( slot->get_property()->get_type(), _type ) )
         {
             return slot;
         }
@@ -232,7 +231,7 @@ Slot & Node::get_nth_slot( u8_t _n, SlotFlags _flags )
     FW_EXPECT(false, "Not found")
 }
 
-ID<Property> Node::add_prop(const fw::type *_type, const char *_name, PropertyFlags _flags)
+ID<Property> Node::add_prop(const type *_type, const char *_name, PropertyFlags _flags)
 {
     return props.add(_type, _name, _flags);
 }

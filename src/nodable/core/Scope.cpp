@@ -12,11 +12,11 @@
 #include "VariableNode.h"
 
 using namespace ndbl;
-using fw::PoolID;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<Scope>("Scope");
+    registration::push_class<Scope>("Scope");
 }
 
 Scope::Scope()

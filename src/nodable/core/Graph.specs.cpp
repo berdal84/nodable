@@ -13,6 +13,7 @@
 #include "nodable/core/language/Nodlang.h"
 
 using namespace ndbl;
+using namespace fw;
 typedef ::testing::Core Graph_;
 
 TEST_F(Graph_, connect)
@@ -64,8 +65,8 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph.get_node_registry().empty() );
     EXPECT_TRUE( graph.get_edge_registry().empty() );
 
-    auto             variable        = graph.create_variable( fw::type::get<int>(), "var", PoolID<Scope>::null);
-    fw::func_type*   fct_type        = fw::func_type_builder<int(int, int)>::with_id("+");
+    auto             variable        = graph.create_variable( type::get<int>(), "var", PoolID<Scope>::null);
+    func_type*   fct_type        = func_type_builder<int(int, int)>::with_id("+");
     auto             operator_fct    = nodlang.find_operator_fct_exact(fct_type);
 
     EXPECT_TRUE(operator_fct.get() != nullptr);

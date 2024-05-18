@@ -1,10 +1,11 @@
 #include "WhileLoopNode.h"
 
 using namespace ndbl;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<WhileLoopNode>("WhileLoopNode")
+    registration::push_class<WhileLoopNode>("WhileLoopNode")
         .extends<Node>()
         .extends<IConditional>();
 }

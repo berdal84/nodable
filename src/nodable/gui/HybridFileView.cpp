@@ -18,7 +18,7 @@ using namespace ndbl;
 using namespace fw;
 
 HybridFileView::HybridFileView(HybridFile& _file)
-    : fw::View()
+    : View()
     , m_text_editor()
     , m_focused_text_changed(false)
     , m_is_graph_dirty(false)
@@ -48,10 +48,10 @@ HybridFileView::HybridFileView(HybridFile& _file)
 
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 auto views = NodeUtils::get_components<NodeView>( _graph->get_node_registry() );
-                graph_view->translate_all( fw::vec2(-1000.f, -1000.0f) , views);
+                graph_view->translate_all( Vec2(-1000.f, -1000.0f) , views);
 
                 // frame all (33ms delayed)
-                fw::EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, {FRAME_ALL} );
+                EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, {FRAME_ALL} );
             }
         }
     });
@@ -67,11 +67,11 @@ void HybridFileView::init()
 
 bool HybridFileView::draw()
 {
-    const fw::vec2 margin(10.0f, 0.0f);
+    const Vec2 margin(10.0f, 0.0f);
     const Nodable &app       = Nodable::get_instance();
-    fw::vec2 region_available  = ImGui::GetContentRegionAvail() - margin;
-    fw::vec2 text_editor_size  = fw::vec2(m_child1_size, region_available.y);
-    fw::vec2 graph_editor_size = fw::vec2(m_child2_size, region_available.y);
+    Vec2 region_available  = ImGui::GetContentRegionAvail() - margin;
+    Vec2 text_editor_size  = Vec2(m_child1_size, region_available.y);
+    Vec2 graph_editor_size = Vec2(m_child2_size, region_available.y);
 
      // Splitter
     //---------
@@ -83,17 +83,17 @@ bool HybridFileView::draw()
         m_child2_size *= ratio;
     }
 
-    fw::rect splitter_rect{
+    Rect splitter_rect{
             ImGui::GetCursorScreenPos(),
-            ImGui::GetCursorScreenPos() + fw::vec2(4.0f, region_available.y)
+            ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
     };
-    splitter_rect.TranslateX(m_child1_size + 2.0f);
+    splitter_rect.translate_x( m_child1_size + 2.0f );
     ImGui::SplitterBehavior(splitter_rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
 
      // TEXT EDITOR
     //------------
 
-    fw::vec2 text_editor_top_left_corner = ImGui::GetCursorPos();
+    Vec2 text_editor_top_left_corner = ImGui::GetCursorPos();
     ImGui::BeginChild("text_editor", text_editor_size, false);
     {
         auto old_cursor_position = m_text_editor.GetCursorPosition();
@@ -131,10 +131,10 @@ bool HybridFileView::draw()
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
         // overlay
-        fw::rect overlay_rect = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
-        overlay_rect.Expand(-2.f * app.config.ui_overlay_margin); // margin
-        draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, fw::vec2(0, 1));
-        fw::ImGuiEx::DebugRect( overlay_rect.Min, overlay_rect.Max, IM_COL32( 255, 255, 0, 127 ) );
+        Rect overlay_rect = ImGuiEx::GetContentRegion(Space_Screen);
+        overlay_rect.expand( Vec2( -2.f * app.config.ui_overlay_margin ) ); // margin
+        draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
+        ImGuiEx::DebugRect( overlay_rect.Min, overlay_rect.Max, IM_COL32( 255, 255, 0, 127 ) );
 
         if (app.config.experimental_hybrid_history)
         {
@@ -169,7 +169,7 @@ bool HybridFileView::draw()
         LOG_VERBOSE("FileView", "graph_node_view->update()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
         graph_view->update();
-        fw::vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
+        Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
 
         ImGui::BeginChild("graph", graph_editor_size, false, flags);
         {
@@ -178,15 +178,15 @@ bool HybridFileView::draw()
             m_is_graph_dirty = graph_view->draw();
 
             // Draw overlay: shortcuts
-            fw::rect overlay_rect = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
-            overlay_rect.Expand(fw::vec2(-2.0f * app.config.ui_overlay_margin)); // margin
-            draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, fw::vec2(1, 1));
-            fw::ImGuiEx::DebugRect( overlay_rect.Min, overlay_rect.Max, IM_COL32( 255, 255, 0, 127 ) );
+            Rect overlay_rect = ImGuiEx::GetContentRegion(Space_Screen);
+            overlay_rect.expand( Vec2( -2.0f * app.config.ui_overlay_margin ) ); // margin
+            draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
+            ImGuiEx::DebugRect( overlay_rect.Min, overlay_rect.Max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
             if( app.config.isolate_selection )
             {
-                fw::vec2 cursor_pos = graph_editor_top_left_corner + app.config.ui_overlay_margin;
+                Vec2 cursor_pos = graph_editor_top_left_corner + app.config.ui_overlay_margin;
                 ImGui::SetCursorPos(cursor_pos);
                 ImGui::Text("Isolation mode ON");
             }
@@ -311,7 +311,7 @@ void  HybridFileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void HybridFileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, fw::rect rect, fw::vec2 position)
+void HybridFileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, Rect rect, Vec2 position)
 {
     if( overlay_data.empty() ) return;
 
@@ -319,9 +319,9 @@ void HybridFileView::draw_overlay(const char* title, const std::vector<OverlayDa
     ImGui::PushStyleColor(ImGuiCol_WindowBg, app.config.ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, app.config.ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, app.config.ui_overlay_text_color);
-    fw::vec2 win_position = rect.GetTL() + rect.GetSize() * position;
+    Vec2 win_position = rect.get_TL() + rect.get_size() * position;
     ImGui::SetNextWindowPos( win_position, ImGuiCond_Always, position);
-    ImGui::SetNextWindowSize(rect.GetSize(), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize( rect.get_size(), ImGuiCond_Appearing);
     bool show = true;
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;

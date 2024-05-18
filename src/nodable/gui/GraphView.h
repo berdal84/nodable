@@ -26,8 +26,8 @@ namespace ndbl
     struct CreateNodeContextMenu
     {
         bool                     must_be_reset_flag   = false;
-        fw::vec2                   opened_at_pos        = fw::vec2(-1,-1); // relative
-        fw::vec2                   opened_at_screen_pos = fw::vec2(-1,-1); // absolute (screen space)
+        fw::Vec2 opened_at_pos        = fw::Vec2(-1,-1); // relative
+        fw::Vec2 opened_at_screen_pos = fw::Vec2(-1,-1); // absolute (screen space)
         SlotView*                dragged_slot         = nullptr;  // The slot being dragged when the context menu opened.
         char                     search_input[255]    = "\0";     // The search input entered by the user.
         std::vector<Action_CreateNode*> items;                           // All the available items
@@ -52,7 +52,7 @@ namespace ndbl
         bool        update(float /* delta_time */, i16_t /* subsample_count */);
         void        frame_all_node_views();
         void        frame_selected_node_views();
-        void        translate_all(fw::vec2 /* delta */, const std::vector<NodeView*>&);
+        void        translate_all(fw::Vec2 /* delta */, const std::vector<NodeView*>&);
         void        unfold(); // unfold the graph until it is stabilized
         void        add_action_to_context_menu( Action_CreateNode* _action);
         void frame( FrameMode mode );
@@ -60,10 +60,10 @@ namespace ndbl
     private:
         void        draw_grid( ImDrawList*, const Config& ) const;
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
-        void        translate_view(fw::vec2 vec2);
+        void        translate_view(fw::Vec2 vec2);
 
         Graph*      m_graph;
-        fw::vec2      m_view_origin;
+        fw::Vec2 m_view_origin;
         CreateNodeContextMenu m_create_node_context_menu;
 
 		REFLECT_DERIVED_CLASS()

@@ -22,49 +22,49 @@ namespace ndbl {
         void reset_default();
 
         TextEditor::Palette ui_text_textEditorPalette{};
-        fw::vec2       ui_wire_bezier_roundness; // {min, max}
+        fw::Vec2 ui_wire_bezier_roundness; // {min, max}
         float          ui_wire_bezier_thickness;
-        fw::vec2       ui_wire_bezier_fade_length_minmax;
-        fw::vec4       ui_wire_color;
-        fw::vec4       ui_wire_shadowColor;
+        fw::Vec2 ui_wire_bezier_fade_length_minmax;
+        fw::Vec4 ui_wire_color;
+        fw::Vec4 ui_wire_shadowColor;
         float          ui_node_propertyslot_radius;
-        fw::vec4       ui_node_padding; // left, top, right, bottom
+        fw::Vec4 ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth
-        fw::vec4       ui_node_variableColor;
-        fw::vec4       ui_node_invokableColor;
-        fw::vec4       ui_node_instructionColor;
-        fw::vec4       ui_node_literalColor;
-        fw::vec4       ui_node_condStructColor;
-        fw::vec4       ui_node_shadowColor;
-        fw::vec4       ui_node_borderColor;
-        fw::vec4       ui_node_borderHighlightedColor;
-        fw::vec4       ui_node_slot_border_color;
-        fw::vec4       ui_node_highlightedColor;
-        fw::vec4       ui_node_fillColor;
-        fw::vec4       ui_node_slot_color;
-        fw::vec4       ui_node_slot_hovered_color;
+        fw::Vec4 ui_node_variableColor;
+        fw::Vec4 ui_node_invokableColor;
+        fw::Vec4 ui_node_instructionColor;
+        fw::Vec4 ui_node_literalColor;
+        fw::Vec4 ui_node_condStructColor;
+        fw::Vec4 ui_node_shadowColor;
+        fw::Vec4 ui_node_borderColor;
+        fw::Vec4 ui_node_borderHighlightedColor;
+        fw::Vec4 ui_node_slot_border_color;
+        fw::Vec4 ui_node_highlightedColor;
+        fw::Vec4 ui_node_fillColor;
+        fw::Vec4 ui_node_slot_color;
+        fw::Vec4 ui_node_slot_hovered_color;
         float          ui_node_spacing;
         float          ui_node_speed;
         u8_t           ui_node_animation_subsample_count;
-        fw::vec2       ui_node_slot_size;
+        fw::Vec2 ui_node_slot_size;
         float          ui_node_slot_gap;
         float          ui_node_slot_border_radius;
-        fw::vec4       ui_codeflow_color;
-        fw::vec4       ui_codeflow_shadowColor;
+        fw::Vec4 ui_codeflow_color;
+        fw::Vec4 ui_codeflow_shadowColor;
         float          ui_codeflow_thickness_ratio;
-        fw::vec2       ui_toolButton_size;
+        fw::Vec2 ui_toolButton_size;
         float          ui_history_btn_spacing;
         float          ui_history_btn_height;
         float          ui_history_btn_width_max;
         const char*    ui_splashscreen_imagePath;
         float          ui_overlay_margin;
         float          ui_overlay_indent;
-        fw::vec4       ui_overlay_window_bg_golor;
-        fw::vec4       ui_overlay_border_color;
-        fw::vec4       ui_overlay_text_color;
-        fw::vec4       ui_graph_grid_color_major;
-        fw::vec4       ui_graph_grid_color_minor;
+        fw::Vec4 ui_overlay_window_bg_golor;
+        fw::Vec4 ui_overlay_border_color;
+        fw::Vec4 ui_overlay_text_color;
+        fw::Vec4 ui_graph_grid_color_major;
+        fw::Vec4 ui_graph_grid_color_minor;
         i32_t          ui_graph_grid_subdivs;
         i32_t          ui_graph_grid_size;
         const char*    ui_file_info_window_label;

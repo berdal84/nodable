@@ -63,5 +63,5 @@ VariableNode* PropertyView::get_connected_variable() const
         return nullptr;
     }
 
-    return fw::cast<VariableNode>( adjacent_slot->node.get() );
+    return cast<VariableNode>( adjacent_slot->node.get() );
 }

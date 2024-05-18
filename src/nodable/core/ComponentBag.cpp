@@ -8,7 +8,7 @@ void
 ComponentBag::add(PoolID<Component> id)
 {
     Component* component = id.get();
-    const fw::type* type = component->get_type();
+    const type* type = component->get_type();
     std::type_index type_id = type->id();
 
     m_components_by_type.emplace( type_id, id );

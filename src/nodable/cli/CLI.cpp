@@ -8,10 +8,11 @@
 #include "core/language/Nodlang.h"
 
 using namespace ndbl;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<CLI>("CLI")
+    registration::push_class<CLI>("CLI")
         .add_method(&CLI::test_concat_str  , "concat_str")
         .add_method(&CLI::test_return_str  , "return_str")
         .add_method(&CLI::clear            , "clear")
@@ -32,7 +33,7 @@ CLI::CLI()
     , m_graph(&m_factory)
 {
     std::cout << R"(== Nodable command line interface ==)" << std::endl <<
-                 R"(Nodable Copyright (C) 2023 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
+                 R"(Nodable Copyright (C) 2023-2024 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
                  R"(This is free software, and you are welcome to redistribute it under certain conditions.)"
             << std::endl << R"(Feel lost? type "help".)" << std::endl;
 }
@@ -47,8 +48,8 @@ CLI::~CLI()
 
 int CLI::main(int argc, char* argv[])
 {
-    fw::log::set_verbosity(fw::log::Verbosity_Warning);
-    fw::Pool::init();
+    log::set_verbosity(log::Verbosity_Warning);
+    Pool::init();
 
     while (!should_stop())
     {
@@ -56,7 +57,7 @@ int CLI::main(int argc, char* argv[])
     }
 
     m_graph.clear();
-    fw::Pool::shutdown();
+    Pool::shutdown();
     LOG_FLUSH()
     return 0;
 }
@@ -83,12 +84,12 @@ void CLI::update()
     }
 
     // Priority 1: call a static function immediately
-    const fw::type* cli_type = fw::type::get<CLI>();
+    const type* cli_type = type::get<CLI>();
     if( auto static_fct = cli_type->get_static(user_input) )
     {
         try
         {
-            fw::variant result = static_fct->invoke();
+            variant result = static_fct->invoke();
             log_function_call(result, static_fct->get_type());
         }
         catch (std::runtime_error e )
@@ -104,7 +105,7 @@ void CLI::update()
         try
         {
             // then we invoke it
-            fw::variant result = method->invoke((void*)this);
+            variant result = method->invoke((void*)this);
             log_function_call(result, method->get_type());
         }
         catch (std::runtime_error e )
@@ -120,7 +121,7 @@ void CLI::update()
     m_language.parse(m_source_code, &m_graph) && compile() && run();
 }
 
-void CLI::log_function_call(const fw::variant &result, const fw::func_type *type) const
+void CLI::log_function_call(const variant &result, const func_type *type) const
 {
     LOG_MESSAGE("CLI",
                 "CLI::%s() done (result: %s)\n",
@@ -177,7 +178,7 @@ bool CLI::compile()
 void CLI::set_verbose()
 {
     printf("Verbose mode ON\n");
-    fw::log::set_verbosity(fw::log::Verbosity_Verbose);
+    log::set_verbosity(log::Verbosity_Verbose);
 }
 
 int CLI::print_program()
@@ -207,7 +208,7 @@ bool CLI::run()
     if( m_virtual_machine.load_program(m_asm_code) )
     {
         m_virtual_machine.run_program();
-        fw::qword last_result = m_virtual_machine.get_last_result();
+        qword last_result = m_virtual_machine.get_last_result();
 
         printf( "bool: %s | int: %12f | double: %12d | hex: %12s\n"
            , (bool)last_result ? "true" : "false"
@@ -229,7 +230,7 @@ void CLI::help()
 {
     std::vector<std::string> command_names;
 
-    const fw::type* cli_type = fw::type::get<CLI>();
+    const type* cli_type = type::get<CLI>();
 
     for ( auto static_method_type : cli_type->get_static_methods() )
     {
@@ -253,7 +254,7 @@ void CLI::help()
 void CLI::clear()
 {
     m_source_code.clear();
-    fw::system::console::clear();
+    system::console::clear();
     delete m_asm_code;
     m_graph.clear();
     m_virtual_machine.release_program();

@@ -3,6 +3,7 @@
 #include "fw/core/format.h"
 
 using namespace ndbl;
+using namespace fw;
 
 assembly::Code::~Code()
 {
@@ -18,13 +19,13 @@ std::string assembly::Code::to_string(const Code* _code)
 {
     std::string result;
 
-    result.append( fw::format::title("Program begin") );
+    result.append( format::title("Program begin") );
     for( Instruction* each_instruction : _code->m_instructions )
     {
         result.append(Instruction::to_string(*each_instruction) );
         result.append("\n");
     }
-    result.append( fw::format::title("Program end") );
+    result.append( format::title("Program end") );
     return result;
 }
 

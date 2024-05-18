@@ -146,15 +146,15 @@ void assembly::Compiler::compile_node( const Node* _node )
 
     if ( _node->get_type()->is_child_of<IConditional>())
     {
-        if ( auto for_loop = fw::cast<const ForLoopNode>(_node))
+        if ( auto for_loop = cast<const ForLoopNode>(_node))
         {
             compile_for_loop(for_loop);
         }
-        else if ( auto while_loop = fw::cast<const WhileLoopNode>(_node))
+        else if ( auto while_loop = cast<const WhileLoopNode>(_node))
         {
             compile_while_loop(while_loop);
         }
-        else if ( auto cond_struct_node = fw::cast<const IfNode>(_node) )
+        else if ( auto cond_struct_node = cast<const IfNode>(_node) )
         {
             compile_conditional_struct(cond_struct_node);
         }
@@ -185,8 +185,8 @@ void assembly::Compiler::compile_node( const Node* _node )
         }
 
         // eval node
-        bool should_be_evaluated = _node->has_component<InvokableComponent>() || fw::extends<VariableNode>(_node) ||
-                                   fw::extends<LiteralNode>(_node) ;
+        bool should_be_evaluated = _node->has_component<InvokableComponent>() || extends<VariableNode>(_node) ||
+                                   extends<LiteralNode>(_node) ;
         if ( should_be_evaluated )
         {
             Instruction *instr = m_temp_code->push_instr(Instruction_t::eval_node);
@@ -307,7 +307,7 @@ void assembly::Compiler::compile_conditional_struct(const IfNode* _cond_node)
     {
         if( false_scope->get_owner()->get_type()->is<IfNode>() )
         {
-            auto* conditional_struct = fw::cast<const IfNode>(false_scope->get_owner().get());
+            auto* conditional_struct = cast<const IfNode>(false_scope->get_owner().get());
             compile_conditional_struct(conditional_struct);
         }
         else

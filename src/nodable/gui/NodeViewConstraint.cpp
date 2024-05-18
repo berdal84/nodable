@@ -17,12 +17,12 @@ NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 }
 
 /** TODO: move this in a class (not NodeViewConstrain) */
-std::vector<fw::rect> get_rect(const std::vector<NodeView*>& _in_views)
+std::vector<Rect> get_rect(const std::vector<NodeView*>& _in_views)
 {
-    std::vector<fw::rect> _out;
+    std::vector<Rect> _out;
     for (auto each_target : _in_views )
     {
-        fw::rect rect;
+        Rect rect;
         if( !(each_target->pinned() || !each_target->is_visible()) )
         {
             rect = each_target->get_rect( true );
@@ -61,7 +61,7 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            fw::vec2      virtual_cursor    = driver->get_position(fw::Space_Local);
+            Vec2 virtual_cursor    = driver->get_position(Space_Local);
             const Node& driver_owner      = *driver->get_owner();
             auto        target_rects = get_rect( clean_targets );
 
@@ -95,7 +95,7 @@ void NodeViewConstraint::apply(float _dt)
                 case Align_CENTER:
                 {
                     float size_x_total = 0.0f;
-                    std::for_each( target_rects.begin(), target_rects.end(),[&](auto each ) { size_x_total += each.GetSize().x; });
+                    std::for_each( target_rects.begin(), target_rects.end(),[&](auto each ) { size_x_total += each.get_size().x; });
                     virtual_cursor.x -= size_x_total / 2.0f;
                 }
             }
@@ -114,14 +114,14 @@ void NodeViewConstraint::apply(float _dt)
                 if ( !target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() ) && !align_bbox_bottom ) continue;
 
                 // Compute new position for this input view
-                fw::rect& target_rect = target_rects[target_index];
+                Rect& target_rect = target_rects[target_index];
 
-                fw::vec2 relative_pos(
+                Vec2 relative_pos(
                         target_rect.GetWidth() / 2.0f,
                         y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
                 );
 
-                if ( align_bbox_bottom ) relative_pos += y_direction * config.ui_node_spacing;
+                if ( align_bbox_bottom ) relative_pos.y += y_direction * config.ui_node_spacing;
 
                 // Add a vertical space to avoid having too much wires aligned on x-axis
                 // useful for "for" nodes.
@@ -158,11 +158,11 @@ void NodeViewConstraint::apply(float _dt)
                     auto drivers_rect = NodeView::get_rect(clean_drivers, false);
 
                     auto target_rect  = target->get_rect(true, true);
-                    fw::vec2 target_driver_offset = drivers_rect.Max.y - target_rect.Min.y;
-                    fw::vec2 new_pos;
-                    fw::vec2 target_position = target->get_position(fw::Space_Local);
-                    new_pos.x = drivers_rect.GetTL().x + target->get_size().x * 0.5f ;
-                    new_pos.y = target_position.y + target_driver_offset.y + config.ui_node_spacing;
+                    float target_driver_offset = drivers_rect.Max.y - target_rect.Min.y;
+                    Vec2 new_pos;
+                    Vec2 target_position = target->get_position(Space_Local);
+                    new_pos.x = drivers_rect.get_TL().x + target->get_size().x * 0.5f ;
+                    new_pos.y = target_position.y + target_driver_offset + config.ui_node_spacing;
 
                     // apply
                     target_physics.add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
@@ -172,11 +172,11 @@ void NodeViewConstraint::apply(float _dt)
                     /*
                      * Align first target's bbox border left with all driver's bbox border right
                      */
-                    fw::rect drivers_bbox = NodeView::get_rect(clean_drivers, true);
-                    fw::vec2 new_position(drivers_bbox.GetCenter()
-                                         - fw::vec2(drivers_bbox.GetSize().x * 0.5f
+                    Rect drivers_bbox = NodeView::get_rect(clean_drivers, true);
+                    Vec2 new_position( drivers_bbox.get_center()
+                                         - Vec2( drivers_bbox.get_size().x * 0.5f
                                          + config.ui_node_spacing
-                                         + target->get_rect().GetSize().x * 0.5f, 0 ));
+                                         + target->get_rect().get_size().x * 0.5f, 0 ));
                     target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
                 }
             }
