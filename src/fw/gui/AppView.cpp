@@ -221,7 +221,7 @@ void AppView::draw_status_window()
             while (it != messages.rend())
             {
                 auto &each_message = *it;
-                ImGui::TextColored(m_app->config.log_color[each_message.verbosity], "%s", each_message.text.c_str());
+                ImGui::TextColored((ImVec4)m_app->config.log_color[each_message.verbosity], "%s", each_message.text.c_str());
                 ++it;
             }
 

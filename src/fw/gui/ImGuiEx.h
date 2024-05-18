@@ -56,18 +56,18 @@ namespace fw
                 float _borderRadius = 0.0f,
                 int _shadowRadius = 10,
                 ImVec2 _shadowOffset = ImVec2(),
-                ImColor _shadowColor = ImColor(0.0f, 0.0f, 0.0f));
+                ImVec4 _shadowColor = ImVec4(0.0f, 0.0f, 0.0f, 1.f));
 
         static void ShadowedText(
                 ImVec2 _offset,
-                ImColor _shadowColor,
+                ImVec4 _shadowColor,
                 const char *_format,
                 ...);
 
         static void ColoredShadowedText(
                 ImVec2 _offset,
-                ImColor _textColor,
-                ImColor _shadowColor,
+                ImVec4 _textColor,
+                ImVec4 _shadowColor,
                 const char *_format,
                 ...);
 
@@ -77,8 +77,8 @@ namespace fw
                 ImVec2 pos1,
                 ImVec2 norm0,
                 ImVec2 norm1,
-                ImColor color,
-                ImColor shadowColor,
+                ImVec4 color,
+                ImVec4 shadowColor,
                 float thickness = 1.0f,
                 float roundness = 0.5f);
 
@@ -86,8 +86,8 @@ namespace fw
                 ImDrawList *draw_list,
                 ImVec2 pos0,
                 ImVec2 pos1,
-                ImColor color,
-                ImColor shadowColor,
+                ImVec4 color,
+                ImVec4 shadowColor,
                 float thickness = 1.0f,
                 float roundness = 0.5f);
 
@@ -95,8 +95,8 @@ namespace fw
                 ImDrawList *draw_list,
                 ImVec2 pos0,
                 ImVec2 pos1,
-                ImColor color,
-                ImColor shadowColor,
+                ImVec4 color,
+                ImVec4 shadowColor,
                 float thickness = 1.0f,
                 float roundness = 0.5f);
 

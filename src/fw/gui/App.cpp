@@ -183,7 +183,7 @@ void App::draw()
     SDL_GL_MakeCurrent(m_sdl_window, m_sdl_gl_context);
     ImGuiIO& io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    glClearColor(config.background_color.Value.x, config.background_color.Value.y, config.background_color.Value.z, config.background_color.Value.w);
+    glClearColor(config.background_color.x, config.background_color.y, config.background_color.z, config.background_color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 

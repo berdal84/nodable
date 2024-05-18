@@ -24,6 +24,7 @@ target_link_libraries(
             Observe            # event system using observer/observable pattern.
             rapidjson          # read/write json
             xxhash
+            glm                # math
         PRIVATE
             whereami           # get absolute executable/dll directory path
 

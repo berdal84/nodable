@@ -39,7 +39,7 @@ ImRect ImGuiEx::GetContentRegion(Space origin)
     }
 }
 
-void ImGuiEx::DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, float _borderRadius, int _shadowRadius, ImVec2 _shadowOffset, ImColor _shadowColor)
+void ImGuiEx::DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, float _borderRadius, int _shadowRadius, ImVec2 _shadowOffset, ImVec4 _shadowColor)
 {
     ImVec2 itemRectMin(_topLeftCorner.x + _shadowOffset.x, _topLeftCorner.y + _shadowOffset.y);
     ImVec2 itemRectMax(_bottomRightCorner.x + _shadowOffset.x, _bottomRightCorner.y + _shadowOffset.y);
@@ -64,7 +64,7 @@ void ImGuiEx::DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, 
     }
 }
 
-void ImGuiEx::ShadowedText(ImVec2 _offset, ImColor _shadowColor, const char* _format, ...)
+void ImGuiEx::ShadowedText(ImVec2 _offset, ImVec4 _shadowColor, const char* _format, ...)
 {
     // draw first the shadow
     auto p = ImGui::GetCursorPos();
@@ -78,7 +78,7 @@ void ImGuiEx::ShadowedText(ImVec2 _offset, ImColor _shadowColor, const char* _fo
     va_end(args);
 }
 
-void ImGuiEx::ColoredShadowedText(ImVec2 _offset, ImColor _textColor, ImColor _shadowColor, const char* _format, ...)
+void ImGuiEx::ColoredShadowedText(ImVec2 _offset, ImVec4 _textColor, ImVec4 _shadowColor, const char* _format, ...)
 {
     // draw first the shadow
     auto p = ImGui::GetCursorPos();
@@ -98,8 +98,8 @@ void ImGuiEx::DrawWire(
         ImVec2 pos1,
         ImVec2 norm0,
         ImVec2 norm1,
-        ImColor color,
-        ImColor shadowColor,
+        ImVec4 color,
+        ImVec4 shadowColor,
         float thickness,
         float roundness)
 {
@@ -118,17 +118,17 @@ void ImGuiEx::DrawWire(
     ImVec2 cp1_shadow(pos1_shadow + norm1 * roundedDist  * 0.95f);
 
     // shadow
-    draw_list->AddBezierCurve( pos0_shadow, cp0_shadow, cp1_shadow, pos1_shadow, shadowColor, thickness);
+    draw_list->AddBezierCurve( pos0_shadow, cp0_shadow, cp1_shadow, pos1_shadow, ImColor(shadowColor), thickness);
     // fill
-    draw_list->AddBezierCurve( pos0, cp0_fill, cp1_fill, pos1, color, thickness);
+    draw_list->AddBezierCurve( pos0, cp0_fill, cp1_fill, pos1, ImColor(color), thickness);
 }
 
 void ImGuiEx::DrawVerticalWire(
         ImDrawList *draw_list,
         ImVec2 pos0,
         ImVec2 pos1,
-        ImColor color,
-        ImColor shadowColor,
+        ImVec4 color,
+        ImVec4 shadowColor,
         float thickness,
         float roundness)
 {
@@ -148,8 +148,8 @@ void ImGuiEx::DrawHorizontalWire(
         ImDrawList *draw_list,
         ImVec2 pos0,
         ImVec2 pos1,
-        ImColor color,
-        ImColor shadowColor,
+        ImVec4 color,
+        ImVec4 shadowColor,
         float thickness,
         float roundness)
 {
@@ -166,10 +166,10 @@ void ImGuiEx::DrawHorizontalWire(
                                 cp0  + shadowOffset,
                                 cp1  + shadowOffset,
                                 pos1 + shadowOffset,
-                                shadowColor,
+                                ImColor(shadowColor),
                                 thickness); // shadow
 
-    draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, color, thickness); // fill
+    draw_list->AddBezierCurve(pos0, cp0, cp1, pos1, ImColor(color), thickness); // fill
 }
 
 ImRect& ImGuiEx::EnlargeToInclude(ImRect& _rect, ImRect _other)

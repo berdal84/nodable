@@ -231,7 +231,7 @@ void assembly::Compiler::compile_for_loop(const ForLoopNode* for_loop)
 
         // jump back to condition instruction
         auto loopJump = m_temp_code->push_instr( Instruction_t::jmp );
-        loopJump->jmp.offset = math::signed_diff( conditionInstrLine, loopJump->line );
+        loopJump->jmp.offset = signed_diff( conditionInstrLine, loopJump->line );
         loopJump->m_comment = "jump back to \"for\"";
     }
 
@@ -255,7 +255,7 @@ void assembly::Compiler::compile_while_loop(const WhileLoopNode* while_loop)
 
         // jump back to condition instruction
         auto loopJump = m_temp_code->push_instr( Instruction_t::jmp );
-        loopJump->jmp.offset = math::signed_diff( conditionInstrLine, loopJump->line );
+        loopJump->jmp.offset = signed_diff( conditionInstrLine, loopJump->line );
         loopJump->m_comment = "jump back to \"while\"";
     }
 

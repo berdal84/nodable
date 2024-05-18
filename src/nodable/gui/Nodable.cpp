@@ -65,7 +65,7 @@ Nodable::Nodable()
         node->add_component( physics_id );
 
         // Set fill_color
-        ImVec4* fill_color;
+        fw::vec4* fill_color;
         if ( fw::extends<VariableNode>( node.get() ) )
         {
             fill_color = &config.ui_node_variableColor;

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "ImGuiEx.h"
 #include "../core/reflection/reflection"
+#include "ImGuiEx.h"
+#include "core/math.h"
 
 namespace fw
 {
@@ -19,11 +20,11 @@ namespace fw
         bool          is_visible()const;                             // check if visible
 		bool          is_hovered()const;                             // check if hovered
 	protected:
-        static void   use_available_region(View* , ImRect rect = ImRect());  // update m_xxx_space_content_region with available space or given rectangle
+        static void   use_available_region(View* , fw::rect = {});  // update m_xxx_space_content_region with available space or given rectangle
         bool     m_is_visible;
 		bool     m_is_hovered;
-        ImRect   m_screen_space_content_region;  // view rectangle in screen space coordinates
-        ImRect   m_local_space_content_region;  // view rectangle in window space coordinates
+        fw::rect   m_screen_space_content_region;  // view rectangle in screen space coordinates
+        fw::rect   m_local_space_content_region;  // view rectangle in window space coordinates
 		REFLECT_BASE_CLASS()
     };
 }

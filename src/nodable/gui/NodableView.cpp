@@ -578,7 +578,7 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, Hybrid
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
         ImGui::PushFont(m_app->font_manager.get_font(fw::FontSlot_Code));
-        const ImVec2 &size = ImGui::GetContentRegionAvail();
+        const ImVec2 size = ImGui::GetContentRegionAvail();
 
         ImGui::BeginChild("FileView", size, false, 0);
         {
@@ -701,7 +701,7 @@ void NodableView::draw_splashscreen()
         ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
         fw::ImGuiEx::Image(m_logo);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
 
         // disclaimer
         ImGui::TextWrapped(
@@ -742,7 +742,7 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
     float avail_width = ImGui::GetContentRegionAvail().x;
     float btn_width = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(btn_spacing, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
 
     for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++) {
         ImGui::SameLine();
@@ -752,11 +752,11 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
         // Draw an highlighted button for the current history position
         if (cmd_pos == 0) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::Button(label.c_str(), ImVec2(btn_width, btn_height));
+            ImGui::Button(label.c_str(), {btn_width, btn_height});
             ImGui::PopStyleColor();
         } else // or a simple one for other history positions
         {
-            ImGui::Button(label.c_str(), ImVec2(btn_width, btn_height));
+            ImGui::Button(label.c_str(), {btn_width, btn_height});
         }
 
         // Hovered item
@@ -791,7 +791,7 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
 void NodableView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 5.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
     Config& config = m_app->config;
     if (ImGui::Begin(config.ui_toolbar_window_label, NULL, flags ))
     {
@@ -800,7 +800,7 @@ void NodableView::draw_toolbar_window() {
         bool running         = vm.is_program_running();
         bool debugging       = vm.is_debugging();
         bool stopped         = vm.is_program_stopped();
-        ImVec2 button_size   = config.ui_toolButton_size;
+        auto button_size   = config.ui_toolButton_size;
 
         ImGui::PushFont(m_app->font_manager.get_font(fw::FontSlot_ToolBtn));
         ImGui::BeginGroup();

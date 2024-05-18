@@ -2,6 +2,7 @@
 
 #include "core/Node.h"
 #include "core/VariableNode.h"
+#include "core/math.h"
 #include "fw/core/Pool.h"
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -23,7 +24,7 @@ namespace ndbl {
     public:
         ID<Property>     property_id;
         PoolID<NodeView> node_view;
-        ImRect           screen_rect;
+        fw::rect         screen_rect;
         bool             show_input;
         bool             touched;
 

@@ -9,7 +9,7 @@ SlotView *SlotView::s_focused = nullptr;
 SlotView *SlotView::s_dragged = nullptr;
 SlotView *SlotView::s_hovered = nullptr;
 
-SlotView::SlotView( Slot &_slot, ImVec2 _alignment )
+SlotView::SlotView( Slot &_slot, fw::vec2 _alignment )
 : m_slot(_slot)
 , m_alignment(_alignment)
 {
@@ -18,30 +18,31 @@ SlotView::SlotView( Slot &_slot, ImVec2 _alignment )
 void SlotView::draw_slot_circle(
         ImDrawList* _draw_list,
         SlotView& _view,
-        ImVec2 _position,
+        fw::vec2 _position,
         float _radius,
-        const ImColor& _color,
-        const ImColor& _border_color,
-        const ImColor& _hover_color,
+        const fw::vec4& _color,
+        const fw::vec4& _border_color,
+        const fw::vec4& _hover_color,
         bool _readonly)
 {
     constexpr float INVISIBLE_BUTTON_SIZE_RATIO = 1.2f; // 120%
 
     // draw
     //-----
-    ImGui::SetCursorScreenPos( _position - ImVec2(_radius * INVISIBLE_BUTTON_SIZE_RATIO ));
+    fw::vec2 cursor_pos{_position - fw::vec2( _radius * INVISIBLE_BUTTON_SIZE_RATIO)};
+    ImGui::SetCursorScreenPos( cursor_pos);
 
     // draw a larger invisible button on top of the circle to facilitate click/drag
     ImGui::PushID((u8_t)_view.m_slot.id);
-    ImGui::InvisibleButton("###", ImVec2(_radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO, _radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO ));
+    ImGui::InvisibleButton("###", fw::vec2(_radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO, _radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO ));
     ImGui::PopID();
 
     bool is_hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
     // draw the circle
-    _draw_list->AddCircleFilled( _position, _radius, is_hovered ? _hover_color : _color);
-    _draw_list->AddCircle( _position, _radius, _border_color );
-    fw::ImGuiEx::DebugCircle( _position, _radius, _border_color, ImColor(255, 0, 0, 0));
+    _draw_list->AddCircleFilled( _position, _radius, ImColor(is_hovered ? _hover_color : _color));
+    _draw_list->AddCircle( _position, _radius, ImColor(_border_color) );
+    fw::ImGuiEx::DebugCircle( _position, _radius, ImColor(_border_color));
 
     behavior(_view, _readonly);
 }
@@ -49,14 +50,14 @@ void SlotView::draw_slot_circle(
 void SlotView::draw_slot_rectangle(
         ImDrawList* _draw_list,
         SlotView& _view,
-        ImRect _rect,
-        const ImColor& _color,
-        const ImColor& _border_color,
-        const ImColor& _hover_color,
+        fw::rect _rect,
+        const fw::vec4& _color,
+        const fw::vec4& _border_color,
+        const fw::vec4& _hover_color,
         float _border_radius,
         bool _readonly)
 {
-    ImVec2 rect_size = _rect.GetSize();
+    fw::vec2 rect_size = _rect.GetSize();
 
     // Return early if rectangle cannot be draw.
     // TODO: Find why size can be zero more (more surprisingly) nan.
@@ -69,9 +70,9 @@ void SlotView::draw_slot_rectangle(
     ImGui::InvisibleButton("###", _rect.GetSize());
     ImGui::PopID();
 
-    ImColor fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hover_color : _color;
-    _draw_list->AddRectFilled( _rect.Min, _rect.Max, fill_color, _border_radius, corner_flags );
-    _draw_list->AddRect( _rect.Min, _rect.Max, _border_color, _border_radius, corner_flags );
+    fw::vec4 fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hover_color : _color;
+    _draw_list->AddRectFilled( _rect.Min, _rect.Max, ImColor(fill_color), _border_radius, corner_flags );
+    _draw_list->AddRect( _rect.Min, _rect.Max, ImColor(_border_color), _border_radius, corner_flags );
     fw::ImGuiEx::DebugRect( _rect.Min, _rect.Max, ImColor(255,0, 0, 127), 0.0f );
 
     behavior(_view, _readonly);
@@ -128,12 +129,12 @@ PoolID<Node> SlotView::get_node()const
     return m_slot.node;
 }
 
-ImVec2 SlotView::position()const
+fw::vec2 SlotView::position()const
 {
     return m_slot.node->get_component<NodeView>()->get_slot_pos( m_slot );
 }
 
-ImRect SlotView::rect(Config& config)const
+fw::rect SlotView::rect(Config& config)const
 {
     return m_slot.node->get_component<NodeView>()->get_slot_rect( *this, config, 0 );
 }
@@ -170,7 +171,7 @@ const fw::type* SlotView::get_property_type()const
     return property ? property->get_type() : nullptr;
 }
 
-ImVec2 SlotView::alignment() const
+fw::vec2 SlotView::alignment() const
 {
     return m_alignment;
 }

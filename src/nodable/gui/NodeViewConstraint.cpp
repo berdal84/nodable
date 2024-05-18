@@ -1,9 +1,6 @@
 #include "NodeViewConstraint.h"
-
 #include <numeric>
-
 #include "core/ForLoopNode.h"
-
 #include "Nodable.h"
 #include "NodeView.h"
 #include "Physics.h"
@@ -20,12 +17,12 @@ NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 }
 
 /** TODO: move this in a class (not NodeViewConstrain) */
-std::vector<ImRect> get_rect(const std::vector<NodeView*>& _in_views)
+std::vector<fw::rect> get_rect(const std::vector<NodeView*>& _in_views)
 {
-    std::vector<ImRect> _out;
+    std::vector<fw::rect> _out;
     for (auto each_target : _in_views )
     {
-        ImRect rect;
+        fw::rect rect;
         if( !(each_target->pinned() || !each_target->is_visible()) )
         {
             rect = each_target->get_rect( true );
@@ -64,7 +61,7 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            ImVec2      virtual_cursor    = driver->get_position(fw::Space_Local);
+            fw::vec2      virtual_cursor    = driver->get_position(fw::Space_Local);
             const Node& driver_owner      = *driver->get_owner();
             auto        target_rects = get_rect( clean_targets );
 
@@ -117,9 +114,9 @@ void NodeViewConstraint::apply(float _dt)
                 if ( !target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() ) && !align_bbox_bottom ) continue;
 
                 // Compute new position for this input view
-                ImRect& target_rect = target_rects[target_index];
+                fw::rect& target_rect = target_rects[target_index];
 
-                ImVec2 relative_pos(
+                fw::vec2 relative_pos(
                         target_rect.GetWidth() / 2.0f,
                         y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
                 );
@@ -161,9 +158,9 @@ void NodeViewConstraint::apply(float _dt)
                     auto drivers_rect = NodeView::get_rect(clean_drivers, false);
 
                     auto target_rect  = target->get_rect(true, true);
-                    ImVec2 target_driver_offset = drivers_rect.Max.y - target_rect.Min.y;
-                    ImVec2 new_pos;
-                    ImVec2 target_position = target->get_position(fw::Space_Local);
+                    fw::vec2 target_driver_offset = drivers_rect.Max.y - target_rect.Min.y;
+                    fw::vec2 new_pos;
+                    fw::vec2 target_position = target->get_position(fw::Space_Local);
                     new_pos.x = drivers_rect.GetTL().x + target->get_size().x * 0.5f ;
                     new_pos.y = target_position.y + target_driver_offset.y + config.ui_node_spacing;
 
@@ -175,9 +172,9 @@ void NodeViewConstraint::apply(float _dt)
                     /*
                      * Align first target's bbox border left with all driver's bbox border right
                      */
-                    ImRect drivers_bbox = NodeView::get_rect(clean_drivers, true);
-                    ImVec2 new_position(drivers_bbox.GetCenter()
-                                         - ImVec2(drivers_bbox.GetSize().x * 0.5f
+                    fw::rect drivers_bbox = NodeView::get_rect(clean_drivers, true);
+                    fw::vec2 new_position(drivers_bbox.GetCenter()
+                                         - fw::vec2(drivers_bbox.GetSize().x * 0.5f
                                          + config.ui_node_spacing
                                          + target->get_rect().GetSize().x * 0.5f, 0 ));
                     target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);

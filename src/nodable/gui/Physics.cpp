@@ -47,14 +47,14 @@ void Physics::apply_constraints(float _dt)
     }
 }
 
-void Physics::add_force_to_translate_to(ImVec2 desiredPos, float _factor, bool _recurse)
+void Physics::add_force_to_translate_to(fw::vec2 desiredPos, float _factor, bool _recurse)
 {
-    ImVec2 delta(desiredPos - m_view->get_position());
+    fw::vec2 delta(desiredPos - m_view->get_position());
     auto factor = std::max(0.0f, _factor);
-    add_force(delta * factor, _recurse);
+    add_force( fw::magnitude( delta, factor ), _recurse);
 }
 
-void Physics::add_force(ImVec2 force, bool _recurse)
+void Physics::add_force(fw::vec2 force, bool _recurse)
 {
     m_forces_sum += force;
 
@@ -79,13 +79,13 @@ void Physics::apply_forces(float _dt, bool _recurse)
     float magnitude = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
 
     constexpr float magnitude_max  = 1000.0f;
-    const float     friction       = fw::math::lerp (0.0f, 0.5f, magnitude / magnitude_max);
-    const ImVec2 avg_forces_sum      = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
+    const float     friction       = fw::lerp(0.0f, 0.5f, magnitude / magnitude_max);
+    const fw::vec2 avg_forces_sum    = (m_forces_sum + m_last_frame_forces_sum) * 0.5f;
 
     m_view->translate( avg_forces_sum * ( 1.0f - friction) * _dt , _recurse);
 
     m_last_frame_forces_sum = avg_forces_sum;
-    m_forces_sum            = ImVec2();
+    m_forces_sum            = fw::vec2();
 }
 
 void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)

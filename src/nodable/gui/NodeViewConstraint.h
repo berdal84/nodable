@@ -1,9 +1,10 @@
 #pragma once
 
-#include <vector>
-#include "imgui.h"
-#include "core/reflection/reflection"
 #include "core/Pool.h"
+#include "core/math.h"
+#include "core/reflection/reflection"
+#include "imgui.h"
+#include <vector>
 
 namespace ndbl {
 
@@ -64,7 +65,7 @@ namespace ndbl {
         void add_drivers(const std::vector<PoolID<NodeView>>&);
         void draw_view();
 
-        ImVec2 m_offset; // offset applied to the constraint
+        fw::vec2 m_offset; // offset applied to the constraint
 
         static const Filter no_target_expanded;
         static const Filter drivers_are_expanded;

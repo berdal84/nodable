@@ -1,7 +1,10 @@
 #pragma once
+#include "FontManager.h"
+#include "core/math.h"
+#include <glm/glm/vec2.hpp>
+#include <glm/glm/vec4.hpp>
 #include <imgui.h>
 #include <string>
-#include "FontManager.h"
 
 namespace fw
 {
@@ -18,10 +21,10 @@ namespace fw
         bool                  show_fps                 = false;
         bool                  delta_time_limit         = true;
         u32_t                 delta_time_min           = 1000 / 60; // in ms
-        ImColor               background_color         = ImColor(0.f,0.f,0.f);
-        ImVec4                button_activeColor       = ImVec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
-        ImVec4                button_hoveredColor      = ImVec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
-        ImVec4                button_color             = ImVec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
+        fw::color             background_color         = fw::color(0.f,0.f,0.f);
+        fw::vec4              button_activeColor       = fw::vec4(0.98f, 0.73f, 0.29f, 0.95f); // orange
+        fw::vec4              button_hoveredColor      = fw::vec4(0.70f, 0.70f, 0.70f, 0.95f); // light grey
+        fw::vec4              button_color             = fw::vec4(0.50f, 0.50f, 0.50f, 0.63f); // grey
         const char*           splashscreen_window_label= "##Splashscreen";
         bool                  splashscreen             = true; // hide/show splashscreen
         bool                  imgui_demo               = false;
@@ -30,12 +33,12 @@ namespace fw
         float                 dockspace_right_ratio    = 0.3f;
         size_t                log_tooltip_max_count    = 25;
         std::array<
-                ImVec4,
+                fw::vec4,
                 fw::log::Verbosity_COUNT> log_color         {
-                        ImVec4(0.5f, 0.0f, 0.0f, 1.0f), // red
-                        ImVec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
-                        ImVec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
-                        ImVec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
+                        fw::vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
+                        fw::vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
+                        fw::vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
+                        fw::vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
                 };
         FontManager::Config font_manager{
             {{
@@ -83,9 +86,9 @@ namespace fw
             colors[ImGuiCol_CheckMark]              = ImVec4(0.31f, 0.23f, 0.14f, 1.00f);
             colors[ImGuiCol_SliderGrab]             = ImVec4(0.71f, 0.46f, 0.22f, 0.63f);
             colors[ImGuiCol_SliderGrabActive]       = ImVec4(0.71f, 0.46f, 0.22f, 1.00f);
-            colors[ImGuiCol_Button]                 = button_color;
-            colors[ImGuiCol_ButtonHovered]          = button_hoveredColor;
-            colors[ImGuiCol_ButtonActive]           = button_activeColor;
+            colors[ImGuiCol_Button]                 = (ImVec4)button_color;
+            colors[ImGuiCol_ButtonHovered]          = (ImVec4)button_hoveredColor;
+            colors[ImGuiCol_ButtonActive]           = (ImVec4)button_activeColor;
             colors[ImGuiCol_Header]                 = ImVec4(0.70f, 0.70f, 0.70f, 1.00f);
             colors[ImGuiCol_HeaderHovered]          = ImVec4(0.89f, 0.65f, 0.11f, 0.96f);
             colors[ImGuiCol_HeaderActive]           = ImVec4(1.00f, 1.00f, 1.00f, 1.00f);
