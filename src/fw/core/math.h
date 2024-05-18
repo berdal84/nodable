@@ -138,10 +138,10 @@ namespace fw
         { assert(false); /* TODO */ }
         bool Contains( rect rect1 )
         { assert(false); /* TODO */ }
-    };
 
-    vec2 magnitude(vec2 _vec, float _f)
-    { return static_cast<vec2>( _vec * _f ); }
+        void EnlargeToInclude( rect rect1 )
+        { assert(false); /* TODO */ }
+    };
 
     static float normalize(float _value, float _min, float _max)
     { return glm::clamp(_value, _min, _max) / (_max - _min); }

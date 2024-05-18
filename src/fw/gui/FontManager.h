@@ -48,7 +48,7 @@ namespace fw {
 
         FontManager(Config& config): m_config(config), m_fonts(), m_loaded_fonts() {}
         FontManager(const FontManager&) = delete;
-        ~FontManager() { LOG_VERBOSE("fw::FontManager", "Destructor " OK "\n"); };
+        ~FontManager();;
         void        init();
         ImFont*     get_font(FontSlot) const;
         ImFont*     get_font(const char*) const;

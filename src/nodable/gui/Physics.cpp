@@ -51,7 +51,7 @@ void Physics::add_force_to_translate_to(fw::vec2 desiredPos, float _factor, bool
 {
     fw::vec2 delta(desiredPos - m_view->get_position());
     auto factor = std::max(0.0f, _factor);
-    add_force( fw::magnitude( delta, factor ), _recurse);
+    add_force(  delta * factor, _recurse);
 }
 
 void Physics::add_force(fw::vec2 force, bool _recurse)

@@ -7,6 +7,9 @@
 
 using namespace fw;
 
+FontManager::~FontManager()
+{ LOG_VERBOSE("fw::FontManager", "Destructor " OK "\n"); }
+
 void FontManager::init()
 {
     for (const FontConf& each_font : m_config.text)

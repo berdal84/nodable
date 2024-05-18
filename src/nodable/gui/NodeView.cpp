@@ -919,7 +919,7 @@ fw::rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreM
     if ( !_ignoreSelf && m_is_visible )
     {
         fw::rect self_rect = get_rect(false);
-        fw::ImGuiEx::EnlargeToInclude(result_rect, self_rect);
+        result_rect.EnlargeToInclude(self_rect);
     }
 
     auto enlarge_to_fit_all = [&](PoolID<NodeView> view_id)
@@ -930,7 +930,7 @@ fw::rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreM
         if ( view->m_is_visible && !(view->m_pinned && _ignorePinned) && view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
             fw::rect child_rect = view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
-            fw::ImGuiEx::EnlargeToInclude(result_rect, child_rect);
+            result_rect.EnlargeToInclude(child_rect);
         }
     };
 
@@ -974,7 +974,7 @@ fw::rect NodeView::get_rect(
         if ( eachView->m_is_visible )
         {
             auto each_rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
-            fw::ImGuiEx::EnlargeToInclude(rect, each_rect);
+            rect.EnlargeToInclude(each_rect);
         }
     }
     return rect;
