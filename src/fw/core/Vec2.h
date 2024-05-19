@@ -1,5 +1,7 @@
 
 #pragma once
+#include "glm/ext/matrix_float3x3.hpp"
+#include "glm/ext/matrix_transform.hpp"
 #include "imgui/imgui.h"
 #include "types.h"
 #include <cassert>
@@ -27,27 +29,63 @@ namespace fw
         operator glm::vec2() const
         { return { x, y }; }
 
-#define UNARY_OPERATOR( _OP_ )                \
-        Vec2& operator _OP_( const Vec2 & other )\
-        {\
-            x _OP_ other.x;\
-            y _OP_ other.y;\
-            return *this;\
+        Vec2& operator +=( const Vec2 & other )
+        {
+            x += other.x;
+            y += other.y;
+            return *this;
         }
 
-        UNARY_OPERATOR( += )
-        UNARY_OPERATOR( *= )
-        UNARY_OPERATOR( -= )
-        UNARY_OPERATOR( /= )
+        Vec2& operator -=( const Vec2 & other )
+        {
+            x -= other.x;
+            y -= other.y;
+            return *this;
+        }
 
-#define BINARY_OPERATOR( _OP_ )                    \
-        Vec2 operator _OP_( const Vec2& other ) const\
-        { return { x _OP_ other.x, y _OP_ other.y }; }
+        Vec2& operator *=( const Vec2 & other )
+        {
+            x *= other.x;
+            y *= other.y;
+            return *this;
+        }
 
-        BINARY_OPERATOR( +)
-        BINARY_OPERATOR( * )
-        BINARY_OPERATOR( -)
-        BINARY_OPERATOR( / )
+        Vec2& operator /=( const Vec2 & other )
+        {
+            x /= other.x;
+            y /= other.y;
+            return *this;
+        }
+
+        Vec2 operator +( const Vec2& other ) const
+        { return { x + other.x, y + other.y }; }
+
+        Vec2 operator -( const Vec2& other ) const
+        { return { x - other.x, y - other.y }; }
+
+        Vec2 operator *( const Vec2& other ) const
+        { return { x * other.x, y * other.y }; }
+
+        Vec2 operator /( const Vec2& other ) const
+        { return { x / other.x, y / other.y }; }
+
+        Vec2 operator +( float f ) const
+        { return *this + Vec2(f); }
+        
+        Vec2 operator -( float f ) const
+        { return *this - Vec2(f); }
+
+        Vec2 operator /( float f ) const
+        { return *this / Vec2(f); }
+
+        Vec2 operator *( float f ) const
+        { return *this * Vec2(f); }
+
+        Vec2 round() const
+        { return Vec2::round(*this); }
+
+        static float sqrlen(Vec2 v)
+        { return v.x*v.x+v.y*v.y; }
 
         static Vec2 scale( Vec2 v, float magnitude )
         { return v * Vec2(magnitude); }
@@ -57,5 +95,11 @@ namespace fw
 
         inline static Vec2 lerp( Vec2 _source, Vec2 _target, float _factor)
         { return glm::mix((glm::vec2)_source, (glm::vec2)_target, glm::clamp(_factor, 0.0f, 1.0f)); }
+
+        static Vec2 transform(Vec2 v, glm::mat3 m)
+        {
+            auto result = m * glm::vec3(v.x, v.y, 1.f);
+            return {result.x, result.y};
+        }
     };
 }

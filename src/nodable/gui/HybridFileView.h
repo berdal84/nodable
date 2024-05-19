@@ -43,7 +43,7 @@ namespace ndbl
 		~HybridFileView() override = default;
 
 		void                           init();
-        bool                           draw() override;
+        bool                           onDraw() override;
         bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
         bool                           is_graph_dirty() const { return m_is_graph_dirty; }

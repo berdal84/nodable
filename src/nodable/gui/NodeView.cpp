@@ -25,7 +25,8 @@ REGISTER
         .extends<View>();
 }
 
-constexpr Vec2 NODE_VIEW_DEFAULT_SIZE(10.0f, 35.0f);
+constexpr Vec2 DEFAULT_SIZE{10.0f, 35.0f};
+constexpr Vec2 DEFAULT_POS{500.0f, -1.0f};
 
 PoolID<NodeView>   NodeView::s_selected;
 PoolID<NodeView>   NodeView::s_dragged;
@@ -39,8 +40,6 @@ NodeView::NodeView()
         : Component()
         , View()
         , m_colors({})
-        , m_position(500.0f, -1.0f)
-        , m_size(NODE_VIEW_DEFAULT_SIZE)
         , m_opacity(1.0f)
         , m_expanded(true)
         , m_pinned(false)
@@ -48,6 +47,8 @@ NodeView::NodeView()
         , m_edition_enable(true)
         , m_property_views()
 {
+    box.pos(DEFAULT_POS);
+    box.size(DEFAULT_SIZE);
 }
 
 NodeView::~NodeView()
@@ -190,34 +191,9 @@ const PropertyView* NodeView::get_property_view( ID<Property> _id )const
     return &m_property_views.at((u32_t)_id);
 }
 
-void NodeView::set_position( Vec2 _position, Space origin)
-{
-    switch (origin)
-    {
-        case Space_Local: m_position = _position; break;
-        case Space_Screen: m_position = _position - m_screen_space_content_region.tl(); break;
-        default:
-            FW_EXPECT(false, "OriginRef_ case not handled, cannot compute perform set_position(...)")
-    }
-}
-
-Vec2 NodeView::get_position(Space origin, bool round) const
-{
-    // compute position depending on space
-    Vec2 result = m_position;
-    if (origin == Space_Screen) result += m_screen_space_content_region.tl();
-
-    if(round)
-    {
-        return Vec2::round(result);
-    }
-    return result;
-}
-
 void NodeView::translate( Vec2 _delta, bool _recurse)
 {
-    Vec2 current_local_position = get_position(Space_Local);
-    set_position( current_local_position + _delta, Space_Local);
+    View::translate(_delta);
 
 	if ( !_recurse ) return;
 
@@ -264,7 +240,7 @@ bool NodeView::update(float _deltaTime)
 	return true;
 }
 
-bool NodeView::draw()
+bool NodeView::onDraw()
 {
 	bool        changed   = false;
     Node*       node      = m_owner.get();
@@ -276,11 +252,10 @@ bool NodeView::draw()
     // Draw Node slots (in background)
     bool is_slot_hovered = false;
     {
-        Vec4 color          = config.ui_node_slot_color;
-        Vec4 border_color   = config.ui_node_slot_border_color;
-        float    border_radius  = config.ui_node_slot_border_radius;
-        Vec4 hover_color    = config.ui_node_slot_hovered_color;
-        Rect node_view_rect = get_screen_rect();
+        Vec4  color          = config.ui_node_slot_color;
+        Vec4  border_color   = config.ui_node_slot_border_color;
+        float border_radius  = config.ui_node_slot_border_radius;
+        Vec4  hover_color    = config.ui_node_slot_hovered_color;
 
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
@@ -299,31 +274,43 @@ bool NodeView::draw()
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
-    Vec2 halfSize = Vec2::scale(m_size, 0.5f);
-    Vec2 node_screen_center_pos = get_position(Space_Screen, true);
-    Vec2 node_top_left_corner = node_screen_center_pos - halfSize;
-    ImGui::SetCursorScreenPos(node_top_left_corner); // start from th top left corner
+    Rect screen_rect = rect( WORLD_SPACE );
+    ImGui::SetCursorScreenPos(screen_rect.tl() ); // start from th top left corner
 	ImGui::PushID(this);
 
 
 	// Draw the background of the Group
+    Vec4 border_color = config.ui_node_borderColor;
+    if ( is_selected( m_id ) )
+    {
+        border_color = config.ui_node_borderHighlightedColor;
+    }
+    else if (node->is_instruction())
+    {
+        border_color = config.ui_node_instructionColor;
+    }
+
+    float border_width = config.ui_node_borderWidth;
+    if( node->is_instruction() )
+    {
+        border_width *= config.ui_node_instructionBorderRatio;
+    }
+
     DrawNodeRect(
-            node_top_left_corner, node_top_left_corner + m_size,
+            screen_rect,
             get_color( Color_FILL ),
             config.ui_node_borderColor,
             config.ui_node_shadowColor,
-            is_selected( m_id ) ? config.ui_node_borderHighlightedColor
-                                : node->is_instruction() ? config.ui_node_instructionColor
-                                                         : config.ui_node_borderColor,
+            border_color,
             is_selected( m_id ),
             5.0f,
-            config.ui_node_borderWidth * ( node->is_instruction() ? config.ui_node_instructionBorderRatio : 1.0f) );
+            border_width );
 
     // Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorScreenPos(node_top_left_corner);
-	ImGui::InvisibleButton("node", m_size);
+	ImGui::SetCursorScreenPos(screen_rect.tl() );
+	ImGui::InvisibleButton("node", box.size());
     ImGui::SetItemAllowOverlap();
-    Vec2 new_screen_pos = node_top_left_corner
+    Vec2 new_screen_pos = screen_rect.tl()
                           + Vec2{config.ui_node_padding.x, config.ui_node_padding.y} // left and top padding.
                           + Vec2{config.ui_node_propertyslot_radius, 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
@@ -360,17 +347,19 @@ bool NodeView::draw()
     ImGui::EndGroup();
     Vec2 new_size = ImGui::GetItemRectMax()
                     + Vec2{config.ui_node_padding.z, config.ui_node_padding.w} // right and bottom padding
-                    - node_top_left_corner;
+                    - screen_rect.tl();
 
     // Ends the Window
     //----------------
 
-    m_size.x = std::max( 1.0f, std::ceil(new_size.x));
-    m_size.y = std::max( 1.0f, std::ceil(new_size.y));
+    box.size({
+        std::max( 1.0f, std::ceil( new_size.x ) ),
+        std::max( 1.0f, std::ceil( new_size.y ))
+    });
 
     // Draw Property in/out slots
     {
-        float radius      = config.ui_node_propertyslot_radius;
+        float radius   = config.ui_node_propertyslot_radius;
         Vec4 color     = config.ui_node_slot_color;
         Vec4 borderCol = config.ui_node_slot_border_color;
         Vec4 hoverCol  = config.ui_node_slot_hovered_color;
@@ -451,16 +440,25 @@ bool NodeView::draw()
 	return changed;
 }
 
-void NodeView::DrawNodeRect( Vec2 rect_min, Vec2 rect_max, Vec4 color, Vec4 border_highlight_col, Vec4 shadow_col, Vec4 border_col, bool selected, float border_radius, float border_width )
+void NodeView::DrawNodeRect(
+    Rect rect,
+    Vec4 color,
+    Vec4 border_highlight_col,
+    Vec4 shadow_col,
+    Vec4 border_col,
+    bool selected,
+    float border_radius,
+    float border_width
+)
 {
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     // Draw the rectangle under everything
-    ImGuiEx::DrawRectShadow(rect_min, rect_max, border_radius, 4, Vec2(1.0f), shadow_col);
+    ImGuiEx::DrawRectShadow(rect.min, rect.max, border_radius, 4, Vec2(1.0f), shadow_col);
     ImDrawFlags flags = ImDrawFlags_RoundCornersAll;
-    draw_list->AddRectFilled(rect_min, rect_max, ImColor(color), border_radius, flags);
-    draw_list->AddRect( (ImVec2)rect_min + Vec2(1.0f), rect_max, ImColor(border_highlight_col), border_radius, flags, border_width);
-    draw_list->AddRect(rect_min, rect_max, ImColor(border_col), border_radius, flags, border_width);
+    draw_list->AddRectFilled(rect.min, rect.max, ImColor(color), border_radius, flags);
+    draw_list->AddRect( (ImVec2)rect.min + Vec2(1.0f), rect.max, ImColor(border_highlight_col), border_radius, flags, border_width);
+    draw_list->AddRect(rect.min, rect.max, ImColor(border_col), border_radius, flags, border_width);
 
     // Draw an additional blinking rectangle when selected
     if (selected)
@@ -468,8 +466,8 @@ void NodeView::DrawNodeRect( Vec2 rect_min, Vec2 rect_max, Vec4 color, Vec4 bord
         auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
         float offset = 4.0f;
         draw_list->AddRect(
-            (ImVec2)rect_min - Vec2(offset),
-            (ImVec2)rect_max + Vec2(offset),
+            (ImVec2)rect.min - Vec2(offset),
+            (ImVec2)rect.max + Vec2(offset),
             ImColor(1.0f, 1.0f, 1.0f, float(alpha) ),
             border_radius + offset,
             ~0,
@@ -562,8 +560,8 @@ bool NodeView::_draw_property_view(PropertyView* _view)
     // memorize property view rect (screen space)
     // enlarge rect to fit node_view top/bottom
     _view->screen_rect = {
-            Vec2{ImGui::GetItemRectMin().x, get_screen_rect().min.y} ,
-            Vec2{ImGui::GetItemRectMax().x, get_screen_rect().max.y}
+            Vec2{ImGui::GetItemRectMin().x, rect( WORLD_SPACE ).min.y} ,
+            Vec2{ImGui::GetItemRectMax().x, rect( WORLD_SPACE ).max.y}
     };
     ImGuiEx::DebugCircle( _view->screen_rect.center(), 2.5f, ImColor(0,0,0));
 
@@ -659,9 +657,9 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
     return changed;
 }
 
-bool NodeView::is_inside(NodeView* _nodeView, Rect _rect)
+bool NodeView::is_inside(NodeView* _nodeView, Rect _rect, Space _space)
 {
-	return _rect.contains( _nodeView->get_rect() );
+	return _rect.contains( _nodeView->rect(_space) );
 }
 
 void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
@@ -860,28 +858,24 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 void NodeView::constraint_to_rect(NodeView* _view, Rect _rect)
 {
 	
-	if ( !NodeView::is_inside(_view, _rect)) {
+	if ( !NodeView::is_inside(_view, _rect, WORLD_SPACE )) {
 
         _rect.expand( Vec2( -2, -2 ) ); // shrink
 
-		auto nodeRect = _view->get_rect();
-
-		auto newPos = _view->get_position(Space_Local, true);
+		auto nodeRect = _view->rect( WORLD_SPACE );
 
 		auto left  = _rect.min.x - nodeRect.min.x;
 		auto right = _rect.max.x - nodeRect.max.x;
 		auto up    = _rect.min.y - nodeRect.min.y;
 		auto down  = _rect.max.y - nodeRect.max.y;
 
-		     if ( left > 0 ) nodeRect.translate_x( left );
-		else if ( right < 0 )
-            nodeRect.translate_x( right );
+		     if ( left > 0 )  nodeRect.translate_x( left );
+		else if ( right < 0 ) nodeRect.translate_x( right );
 			 
-			 if ( up > 0 ) nodeRect.translate_y( up );
-		else if ( down < 0 )
-            nodeRect.translate_y( down );
+			 if ( up > 0 )  nodeRect.translate_y( up );
+		else if ( down < 0 )nodeRect.translate_y( down );
 
-        _view->set_position( nodeRect.center(), Space_Local);
+        _view->position( nodeRect.center(), PARENT_SPACE );
 	}
 
 }
@@ -903,11 +897,7 @@ Rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMulti
 {
     if( !_recursively)
     {
-        Vec2 local_position = get_position(Space_Local);
-        Rect rect{local_position, local_position};
-        rect.expand( m_size * 0.5f );
-
-        return rect;
+        return View::rect( PARENT_SPACE );
     }
 
     Rect result_rect( Vec2(std::numeric_limits<float>::max()), Vec2(-std::numeric_limits<float>::max()) );
@@ -938,23 +928,11 @@ Rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMulti
 
 #ifdef NDBL_DEBUG
     Rect screen_rect = result_rect;
-    screen_rect.translate( get_position( Space_Screen ) - get_position( Space_Local ) );
+    screen_rect.translate( position( WORLD_SPACE ) - position( PARENT_SPACE ) );
     ImGuiEx::DebugRect(screen_rect.min, screen_rect.max, IM_COL32( 0, 255, 0, 60 ), 2 );
 #endif
 
     return result_rect;
-}
-
-void NodeView::translate_to( Vec2 desiredPos, float _factor, bool _recurse)
-{
-    Vec2 delta(desiredPos - m_position);
-
-    bool isDeltaTooSmall = delta.x * delta.x + delta.y * delta.y < 0.01f;
-    if (!isDeltaTooSmall)
-    {
-        auto factor = std::min(1.0f, _factor);
-        translate(delta * factor, _recurse);
-    }
 }
 
 Rect NodeView::get_rect(
@@ -1076,12 +1054,6 @@ void NodeView::expand_toggle_rec()
     return set_expanded_rec(!m_expanded);
 }
 
-Rect NodeView::get_screen_rect() const
-{
-    Vec2 half_size = m_size / 2.0f;
-    Vec2 screen_pos = get_position(Space_Screen, false);
-    return {screen_pos - half_size, screen_pos + half_size};
-}
 
 bool NodeView::is_any_selected()
 {
@@ -1105,8 +1077,8 @@ Vec2 NodeView::get_slot_pos( const Slot& slot )
 
     if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
     {
-        return get_screen_rect().center()
-             + get_screen_rect().size() * m_slot_views[(u8_t)slot.id].alignment();
+        Rect r = rect( WORLD_SPACE );
+        return r.center() + r.size() * m_slot_views[(u8_t)slot.id].alignment();
     }
     Rect property_rect = m_property_views.at( (u32_t)slot.property ).screen_rect;
     return property_rect.center()
@@ -1120,15 +1092,15 @@ Rect NodeView::get_slot_rect( const Slot& _slot, const Config& _config, i8_t _co
 
 Rect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _pos ) const
 {
-    Rect rect({0.0f, 0.0f }, _config.ui_node_slot_size);
-    rect.translate_y( -rect.size().y * 0.5f ); // Center vertically
-    rect.translate_x( _config.ui_node_slot_size.x * float( _pos )      // x offset
+    Rect result({0.0f, 0.0f }, _config.ui_node_slot_size);
+    result.translate_y( -result.size().y * 0.5f ); // Center vertically
+    result.translate_x( _config.ui_node_slot_size.x * float( _pos )      // x offset
                       + _config.ui_node_slot_gap * float( 1 + _pos ) ); // x gap
-    rect.translate_y( _slot_view.alignment().y * rect.size().y ); // align top/bottom
-    Rect view_rect = get_screen_rect();
-    rect.translate( _slot_view.alignment() * view_rect.size() + view_rect.center() ); // align slot with nodeview
+    result.translate_y( _slot_view.alignment().y * result.size().y ); // align top/bottom
+    Rect view_rect = rect( WORLD_SPACE );
+    result.translate( _slot_view.alignment() * view_rect.size() + view_rect.center() ); // align slot with nodeview
 
-    return rect;
+    return result;
 }
 
 std::vector<PoolID<NodeView>> NodeView::get_adjacent(SlotFlags flags) const

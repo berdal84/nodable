@@ -4,6 +4,7 @@
 
 # GLM
 #-------------
+set(GLM_EXT_INCLUDED on)
 add_subdirectory(glm EXCLUDE_FROM_ALL)
 
 # google tests

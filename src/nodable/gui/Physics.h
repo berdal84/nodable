@@ -21,7 +21,7 @@ namespace  ndbl
         void            add_constraint(NodeViewConstraint&);
         void            apply_constraints(float _dt);
         void            clear_constraints();
-        void            add_force_to_translate_to(fw::Vec2 desiredPos, float _factor, bool _recurse = false);
+        void            add_force_to_translate_to(fw::Vec2 target_pos, float _factor, bool _recurse = false);
         void            add_force(fw::Vec2 force, bool _recurse = false);
         void            apply_forces(float _dt, bool _recurse);
         static void     create_constraints(const std::vector<PoolID<Node>>&);

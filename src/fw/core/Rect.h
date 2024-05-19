@@ -13,18 +13,18 @@ namespace fw
         Rect() = default;
 
         Rect(Vec2 min, Vec2 max)
-            : min(min)
-              , max(max)
+        : min(min)
+        , max(max)
         {}
 
         Rect(float w, float h)
-            : min()
-              , max(w, h)
+        : min()
+        , max(w, h)
         {}
 
         Rect(const Rect& _rect)
-            : min(_rect.min)
-              , max(_rect.max)
+        : min(_rect.min)
+        , max(_rect.max)
         {}
 
         template<typename RectT>
@@ -100,9 +100,6 @@ namespace fw
             min.y = glm::min( min.y, other.min.y );
             max.y = glm::max( max.y, other.max.y );
         }
-
-        bool has_area() const
-        { return height() != 0.f && width() != 0.f; }
     };
 
 }

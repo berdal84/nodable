@@ -47,11 +47,12 @@ void Physics::apply_constraints(float _dt)
     }
 }
 
-void Physics::add_force_to_translate_to( Vec2 desiredPos, float _factor, bool _recurse)
+void Physics::add_force_to_translate_to( Vec2 target_pos, float _factor, bool _recurse)
 {
-    Vec2 delta(desiredPos - m_view->get_position());
+    Vec2 delta( target_pos - m_view->position(WORLD_SPACE));
     auto factor = std::max(0.0f, _factor);
-    add_force( Vec2::scale(delta, factor), _recurse);
+    auto force = Vec2::scale(delta, factor);
+    add_force( force, _recurse);
 }
 
 void Physics::add_force( Vec2 force, bool _recurse)

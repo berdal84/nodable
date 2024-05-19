@@ -8,6 +8,7 @@
 
 #include "ActionManager.h"
 #include "EventManager.h"
+#include "core/Box2D.h"
 #include "core/types.h"
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include <imgui/imgui_internal.h>
@@ -16,12 +17,6 @@ namespace fw
 {
     // forward declarations
     struct Texture;
-
-    // to distinguish the referential of a position
-    enum Space {
-        Space_Local,
-        Space_Screen
-    };
 
     class ImGuiEx
     {

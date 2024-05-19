@@ -20,19 +20,14 @@ bool    ImGuiEx::debug                      = false;
 
 ImRect ImGuiEx::GetContentRegion(Space origin)
 {
+    Rect region{ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax()};
+
      switch (origin) {
-        case Space_Local:
-             return {
-                ImVec2(),
-                ImGui::GetWindowContentRegionMax() - ImGui::GetWindowContentRegionMin()
-             };
-        case Space_Screen: {
-            ImRect rect{
-                    ImGui::GetWindowContentRegionMin(),
-                    ImGui::GetWindowContentRegionMax()
-            };
-            rect.Translate(ImGui::GetWindowPos());
-            return rect;
+        case PARENT_SPACE:
+             return { ImVec2(), region.size() };
+        case WORLD_SPACE: {
+            region.translate(ImGui::GetWindowPos());
+            return region;
         }
         default:
              FW_EXPECT(false,"OriginRef_ case not handled. Cannot compute GetContentRegion(..)")
@@ -52,7 +47,7 @@ void ImGuiEx::DrawRectShadow (ImVec2 _topLeftCorner, ImVec2 _bottomRightCorner, 
     {
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
-        draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(color), borderRadius);
+        draw_list->AddRectFilled(itemRectMin, itemRectMax, ImColor(color));
 
         itemRectMin.x -= 1.0f;
         itemRectMin.y -= 1.0f;

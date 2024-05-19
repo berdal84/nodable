@@ -47,7 +47,7 @@ GraphView::GraphView(Graph* graph)
 {
 }
 
-bool GraphView::draw()
+bool GraphView::onDraw()
 {
     bool            changed          = false;
     bool            pixel_perfect    = true;
@@ -241,7 +241,6 @@ bool GraphView::draw()
             if (each_node_view->is_visible)
             {
                 each_node_view->enable_edition(enable_edition);
-                View::use_available_region(each_node_view);
                 changed |= each_node_view->draw();
 
                 if( app.virtual_machine.is_debugging() && app.virtual_machine.is_next_node( each_node_view->get_owner() ) )
@@ -272,7 +271,7 @@ bool GraphView::draw()
         const Node* node = app.virtual_machine.get_next_node();
         if( NodeView* view = node->get_component<NodeView>().get() )
         {
-            Vec2 vm_cursor_pos = view->get_position(Space_Screen, pixel_perfect);
+            Vec2 vm_cursor_pos = view->position( WORLD_SPACE ).round();
             vm_cursor_pos.x -= view->get_size().x * 0.5f;
 
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
@@ -353,18 +352,19 @@ bool GraphView::draw()
 
 void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
 {
+    Rect area = ImGuiEx::GetContentRegion(WORLD_SPACE);
     const int    grid_size             = config.ui_graph_grid_size;
     const int    grid_subdiv_size      = config.ui_graph_grid_size / config.ui_graph_grid_subdivs;
-    const int    vertical_line_count   = int( m_screen_space_content_region.size().x) / grid_subdiv_size;
-    const int    horizontal_line_count = int( m_screen_space_content_region.size().y) / grid_subdiv_size;
+    const int    vertical_line_count   = int( area.size().x) / grid_subdiv_size;
+    const int    horizontal_line_count = int( area.size().y) / grid_subdiv_size;
     Vec4 grid_color            = config.ui_graph_grid_color_major;
     Vec4 grid_color_light      = config.ui_graph_grid_color_minor;
 
     for(int coord = 0; coord <= vertical_line_count; ++coord)
     {
-        float pos = m_screen_space_content_region.tl().x + float(coord) * float(grid_subdiv_size);
-        const Vec2 line_start{pos, m_screen_space_content_region.tl().y};
-        const Vec2 line_end{pos, m_screen_space_content_region.bl().y};
+        float pos = area.tl().x + float(coord) * float(grid_subdiv_size);
+        const Vec2 line_start{pos, area.tl().y};
+        const Vec2 line_end{pos, area.bl().y};
         bool is_major = coord % config.ui_graph_grid_subdivs == 0;
         ImColor color{ is_major ? grid_color : grid_color_light };
         draw_list->AddLine(line_start, line_end, color);
@@ -372,9 +372,9 @@ void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
 
     for(int coord = 0; coord <= horizontal_line_count; ++coord)
     {
-        float pos = m_screen_space_content_region.tl().y + float(coord) * float(grid_subdiv_size);
-        const Vec2 line_start{ m_screen_space_content_region.tl().x, pos};
-        const Vec2 line_end{ m_screen_space_content_region.br().x, pos};
+        float pos = area.tl().y + float(coord) * float(grid_subdiv_size);
+        const Vec2 line_start{ area.tl().x, pos};
+        const Vec2 line_end{ area.br().x, pos};
         bool is_major = coord % config.ui_graph_grid_subdivs == 0;
         ImColor color{is_major ? grid_color : grid_color_light};
         draw_list->AddLine(line_start, line_end, color);
@@ -446,7 +446,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n")
         return;
     }
-    Rect screen = m_screen_space_content_region;
+    Rect screen = box.rect();
 
     // get selection rectangle
     Rect nodes_screen_rect = NodeView::get_rect(_views);
@@ -667,7 +667,7 @@ void CreateNodeContextMenu::reset_state( SlotView* _dragged_slot )
 {
     must_be_reset_flag   = true;
     search_input[0]      = '\0';
-    opened_at_pos        = (Vec2)ImGui::GetMousePos() - ImGui::GetCursorScreenPos();
+    opened_at_pos        = (Vec2)(ImGui::GetMousePos() - ImGui::GetCursorScreenPos());
     opened_at_screen_pos = ImGui::GetMousePos();
     dragged_slot         = _dragged_slot;
 

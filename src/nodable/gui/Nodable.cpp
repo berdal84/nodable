@@ -464,7 +464,7 @@ void Nodable::on_update()
                 // set new_node's view position, select it
                 if ( auto view = new_node_id->get_component<NodeView>() )
                 {
-                    view->set_position( _event->data.node_view_local_pos, Space_Local );
+                    view->position( _event->data.node_view_local_pos, PARENT_SPACE );
                     NodeView::set_selected( view );
                 }
                 break;

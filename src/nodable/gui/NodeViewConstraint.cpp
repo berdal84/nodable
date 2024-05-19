@@ -61,7 +61,7 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            Vec2 virtual_cursor    = driver->get_position(Space_Local);
+            Vec2        virtual_cursor    = driver->position( PARENT_SPACE );
             const Node& driver_owner      = *driver->get_owner();
             auto        target_rects = get_rect( clean_targets );
 
@@ -160,7 +160,7 @@ void NodeViewConstraint::apply(float _dt)
                     auto target_rect  = target->get_rect(true, true);
                     float target_driver_offset = drivers_rect.max.y - target_rect.min.y;
                     Vec2 new_pos;
-                    Vec2 target_position = target->get_position(Space_Local);
+                    Vec2 target_position = target->position( PARENT_SPACE );
                     new_pos.x = drivers_rect.tl().x + target->get_size().x * 0.5f ;
                     new_pos.y = target_position.y + target_driver_offset + config.ui_node_spacing;
 
@@ -176,7 +176,7 @@ void NodeViewConstraint::apply(float _dt)
                     Vec2 new_position( drivers_bbox.center()
                                          - Vec2( drivers_bbox.size().x * 0.5f
                                          + config.ui_node_spacing
-                                         + target->get_rect().size().x * 0.5f, 0 ));
+                                         + target->rect( WORLD_SPACE ).size().x * 0.5f, 0 ));
                     target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
                 }
             }
@@ -193,9 +193,11 @@ void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers
             for (auto each_driver: _drivers )
             {
                 ImGuiEx::DebugLine(
-                        each_driver->get_position( Space_Screen),
-                        each_target->get_position( Space_Screen),
-                        IM_COL32(0, 0, 255, 30), 1.0f);
+                    each_driver->position( WORLD_SPACE ),
+                    each_target->position( WORLD_SPACE ),
+                    IM_COL32(0, 0, 255, 30),
+                    1.0f
+                );
             }
         }
     }

@@ -9,20 +9,54 @@ REGISTER
 }
 
 View::View()
-    : is_hovered(false)
-    , is_visible(true)
-    , m_screen_space_content_region(0.0f, 512.0f) // need to be != 0.0f (cf GraphNodeView frame_all)
-{}
-
-void View::use_available_region(View* view, const Rect& rect)
+: is_hovered(false)
+, is_visible(true)
+, parent_xform()
+, box()
 {
-    if( rect.has_area() )
+}
+
+void View::position( Vec2 _position, Space origin)
+{
+    if ( origin == WORLD_SPACE )
     {
-        view->m_screen_space_content_region = rect;
+        _position = Vec2::transform(_position, parent_xform.world_matrix());
     }
-    else
+    box.pos(_position);
+}
+
+Vec2 View::position(Space origin) const
+{
+    if ( origin == WORLD_SPACE )
     {
-        view->m_screen_space_content_region = ImGuiEx::GetContentRegion(Space_Screen);
-        view->m_local_space_content_region  = ImGuiEx::GetContentRegion(Space_Local);
+        return Vec2::transform(box.pos(), parent_xform.model_matrix() );
     }
+    return box.pos();
+}
+
+void View::translate( Vec2 _delta)
+{
+    Vec2 new_pos = position( WORLD_SPACE ) + _delta;
+    position( new_pos, WORLD_SPACE );
+}
+
+bool View::draw()
+{
+    // Get the content region's top left corner
+    // This will be used later to convert coordinates between WORLD_SPACE and PARENT_SPACE
+    parent_xform = {};
+    parent_xform.pos(ImGuiEx::GetContentRegion( WORLD_SPACE ).Min);
+
+    return onDraw();
+}
+
+Rect View::rect(Space space) const
+{
+    Vec2 half_size = box.size() / 2.0f;
+    Vec2 screen_pos = position(space);
+    Rect result {
+        screen_pos - half_size,
+        screen_pos + half_size
+    };
+    return result;
 }

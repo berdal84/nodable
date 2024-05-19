@@ -46,7 +46,7 @@ namespace ndbl
 	    GraphView(Graph* graph);
 		~GraphView() override = default;
 
-        bool        draw() override;
+        bool        onDraw() override;
         bool        update();
         bool        update(float /* delta_time */);
         bool        update(float /* delta_time */, i16_t /* subsample_count */);

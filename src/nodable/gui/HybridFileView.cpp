@@ -65,7 +65,7 @@ void HybridFileView::init()
 	m_text_editor.SetPalette(Nodable::get_instance().config.ui_text_textEditorPalette);
 }
 
-bool HybridFileView::draw()
+bool HybridFileView::onDraw()
 {
     const Vec2 margin(10.0f, 0.0f);
     const Nodable &app       = Nodable::get_instance();
@@ -131,7 +131,7 @@ bool HybridFileView::draw()
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
         // overlay
-        Rect overlay_rect = ImGuiEx::GetContentRegion(Space_Screen);
+        Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
         overlay_rect.expand( Vec2( -2.f * app.config.ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
@@ -174,11 +174,10 @@ bool HybridFileView::draw()
         ImGui::BeginChild("graph", graph_editor_size, false, flags);
         {
             // Draw graph
-            View::use_available_region(graph_view);
             m_is_graph_dirty = graph_view->draw();
 
             // Draw overlay: shortcuts
-            Rect overlay_rect = ImGuiEx::GetContentRegion(Space_Screen);
+            Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
             overlay_rect.expand( Vec2( -2.0f * app.config.ui_overlay_margin ) ); // margin
             draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );

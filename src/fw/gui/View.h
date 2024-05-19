@@ -1,7 +1,9 @@
 #pragma once
 
-#include "core/reflection/reflection"
+#include "ImGuiEx.h"
+#include "core/Box2D.h"
 #include "core/Rect.h"
+#include "core/reflection/reflection"
 
 namespace fw
 {
@@ -17,11 +19,15 @@ namespace fw
 
 		View();
 		virtual ~View() = default;
-        virtual bool  draw() = 0;
+        bool          draw();
+        virtual bool  onDraw() = 0;
+        fw::Vec2      position(Space) const; // Get position in a given Space
+        void          position(Vec2 _delta, Space ); // Set position in a given Space
+        Rect          rect(Space) const; // Get rectangle in a given Space
+        void          translate(Vec2 _delta);
 	protected:
-        static void use_available_region(View* , const Rect& = {});  // update m_xxx_space_content_region with available space or given rectangle
-        Rect m_screen_space_content_region;  // view rectangle in screen space coordinates
-        Rect m_local_space_content_region;  // view rectangle in window space coordinates
+        XForm2D parent_xform;
+        Box2D   box; // Screen space Box2D
 		REFLECT_BASE_CLASS()
     };
 }
