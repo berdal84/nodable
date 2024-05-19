@@ -2,14 +2,14 @@
 
 #include "core/Node.h"
 #include "core/VariableNode.h"
-#include "core/math.h"
+#include "core/Rect.h"
 #include "fw/core/Pool.h"
 #include "imgui.h"
 #include "imgui_internal.h"
 #include <unordered_map>
 
-namespace ndbl {
-
+namespace ndbl
+{
     // forward declarations
     class Property;
     class NodeView;
@@ -24,7 +24,7 @@ namespace ndbl {
     public:
         ID<Property>     property_id;
         PoolID<NodeView> node_view;
-        fw::Rect screen_rect;
+        fw::Rect         screen_rect;
         bool             show_input;
         bool             touched;
 

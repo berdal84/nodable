@@ -1,7 +1,7 @@
 #pragma once
 
 #include "core/Pool.h"
-#include "core/math.h"
+#include "core/Vec2.h"
 #include "core/reflection/reflection"
 #include "imgui.h"
 #include <vector>

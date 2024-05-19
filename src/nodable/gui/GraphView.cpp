@@ -201,8 +201,8 @@ bool GraphView::draw()
                     {
                         float factor = ( dist - app.config.ui_wire_bezier_fade_length_minmax.x ) /
                                        ( app.config.ui_wire_bezier_fade_length_minmax.y - app.config.ui_wire_bezier_fade_length_minmax.x );
-                        line_color = lerp(line_color, Vec4(0, 0, 0, 0), factor);
-                        shadow_color = lerp(shadow_color, Vec4(0, 0, 0, 0), factor);
+                        line_color   = Vec4::lerp(line_color, Vec4(0, 0, 0, 0), factor);
+                        shadow_color = Vec4::lerp(shadow_color, Vec4(0, 0, 0, 0), factor);
                     }
                 }
 
