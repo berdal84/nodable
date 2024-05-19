@@ -58,7 +58,7 @@ void SlotView::draw_slot_rectangle(
         float _border_radius,
         bool _readonly)
 {
-    Vec2 rect_size = _rect.get_size();
+    Vec2 rect_size = _rect.size();
 
     // Return early if rectangle cannot be draw.
     // TODO: Find why size can be zero more (more surprisingly) nan.
@@ -66,15 +66,15 @@ void SlotView::draw_slot_rectangle(
 
     ImDrawCornerFlags corner_flags = _view.m_slot.has_flags(SlotFlag_ORDER_FIRST) ? ImDrawCornerFlags_Bot : ImDrawCornerFlags_Top;
 
-    ImGui::SetCursorScreenPos( _rect.get_TL());
+    ImGui::SetCursorScreenPos( _rect.tl());
     ImGui::PushID((u8_t)_view.m_slot.id);
-    ImGui::InvisibleButton("###", _rect.get_size());
+    ImGui::InvisibleButton("###", _rect.size());
     ImGui::PopID();
 
     Vec4 fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hover_color : _color;
-    _draw_list->AddRectFilled( _rect.Min, _rect.Max, ImColor(fill_color), _border_radius, corner_flags );
-    _draw_list->AddRect( _rect.Min, _rect.Max, ImColor(_border_color), _border_radius, corner_flags );
-    ImGuiEx::DebugRect( _rect.Min, _rect.Max, ImColor(255,0, 0, 127), 0.0f );
+    _draw_list->AddRectFilled( _rect.min, _rect.max, ImColor(fill_color), _border_radius, corner_flags );
+    _draw_list->AddRect( _rect.min, _rect.max, ImColor(_border_color), _border_radius, corner_flags );
+    ImGuiEx::DebugRect( _rect.min, _rect.max, ImColor(255,0, 0, 127), 0.0f );
 
     behavior(_view, _readonly);
 }

@@ -31,7 +31,7 @@ bool View::is_hovered() const
 
 void View::use_available_region(View* view, fw::Rect rect)
 {
-    if( rect.GetHeight() == 0 || rect.GetWidth() == 0) {
+    if( rect.height() == 0 || rect.width() == 0) {
         view->m_screen_space_content_region = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
         view->m_local_space_content_region  = fw::ImGuiEx::GetContentRegion(fw::Space_Local);
     } else {

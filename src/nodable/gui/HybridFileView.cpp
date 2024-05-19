@@ -134,7 +134,7 @@ bool HybridFileView::draw()
         Rect overlay_rect = ImGuiEx::GetContentRegion(Space_Screen);
         overlay_rect.expand( Vec2( -2.f * app.config.ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
-        ImGuiEx::DebugRect( overlay_rect.Min, overlay_rect.Max, IM_COL32( 255, 255, 0, 127 ) );
+        ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
         if (app.config.experimental_hybrid_history)
         {
@@ -181,7 +181,7 @@ bool HybridFileView::draw()
             Rect overlay_rect = ImGuiEx::GetContentRegion(Space_Screen);
             overlay_rect.expand( Vec2( -2.0f * app.config.ui_overlay_margin ) ); // margin
             draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
-            ImGuiEx::DebugRect( overlay_rect.Min, overlay_rect.Max, IM_COL32( 255, 255, 0, 127 ) );
+            ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
             if( app.config.isolate_selection )
@@ -319,9 +319,9 @@ void HybridFileView::draw_overlay(const char* title, const std::vector<OverlayDa
     ImGui::PushStyleColor(ImGuiCol_WindowBg, app.config.ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, app.config.ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, app.config.ui_overlay_text_color);
-    Vec2 win_position = rect.get_TL() + rect.get_size() * position;
+    Vec2 win_position = rect.tl() + rect.size() * position;
     ImGui::SetNextWindowPos( win_position, ImGuiCond_Always, position);
-    ImGui::SetNextWindowSize( rect.get_size(), ImGuiCond_Appearing);
+    ImGui::SetNextWindowSize( rect.size(), ImGuiCond_Appearing);
     bool show = true;
     const ImGuiWindowFlags flags = ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_AlwaysAutoResize |
                                    ImGuiWindowFlags_NoFocusOnAppearing | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMouseInputs;

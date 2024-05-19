@@ -95,7 +95,7 @@ void NodeViewConstraint::apply(float _dt)
                 case Align_CENTER:
                 {
                     float size_x_total = 0.0f;
-                    std::for_each( target_rects.begin(), target_rects.end(),[&](auto each ) { size_x_total += each.get_size().x; });
+                    std::for_each( target_rects.begin(), target_rects.end(),[&](auto each ) { size_x_total += each.size().x; });
                     virtual_cursor.x -= size_x_total / 2.0f;
                 }
             }
@@ -117,8 +117,8 @@ void NodeViewConstraint::apply(float _dt)
                 Rect& target_rect = target_rects[target_index];
 
                 Vec2 relative_pos(
-                        target_rect.GetWidth() / 2.0f,
-                        y_direction * (target_rect.GetHeight() / 2.0f + config.ui_node_spacing)
+                        target_rect.width() / 2.0f,
+                        y_direction * ( target_rect.height() / 2.0f + config.ui_node_spacing)
                 );
 
                 if ( align_bbox_bottom ) relative_pos.y += y_direction * config.ui_node_spacing;
@@ -133,7 +133,7 @@ void NodeViewConstraint::apply(float _dt)
 
                 auto target_physics = target_owner.get_component<Physics>();
                 target_physics->add_force_to_translate_to( virtual_cursor + relative_pos + m_offset, config.ui_node_speed, true);
-                virtual_cursor.x += target_rect.GetWidth() + config.ui_node_spacing;
+                virtual_cursor.x += target_rect.width() + config.ui_node_spacing;
 
             }
             break;
@@ -158,10 +158,10 @@ void NodeViewConstraint::apply(float _dt)
                     auto drivers_rect = NodeView::get_rect(clean_drivers, false);
 
                     auto target_rect  = target->get_rect(true, true);
-                    float target_driver_offset = drivers_rect.Max.y - target_rect.Min.y;
+                    float target_driver_offset = drivers_rect.max.y - target_rect.min.y;
                     Vec2 new_pos;
                     Vec2 target_position = target->get_position(Space_Local);
-                    new_pos.x = drivers_rect.get_TL().x + target->get_size().x * 0.5f ;
+                    new_pos.x = drivers_rect.tl().x + target->get_size().x * 0.5f ;
                     new_pos.y = target_position.y + target_driver_offset + config.ui_node_spacing;
 
                     // apply
@@ -173,10 +173,10 @@ void NodeViewConstraint::apply(float _dt)
                      * Align first target's bbox border left with all driver's bbox border right
                      */
                     Rect drivers_bbox = NodeView::get_rect(clean_drivers, true);
-                    Vec2 new_position( drivers_bbox.get_center()
-                                         - Vec2( drivers_bbox.get_size().x * 0.5f
+                    Vec2 new_position( drivers_bbox.center()
+                                         - Vec2( drivers_bbox.size().x * 0.5f
                                          + config.ui_node_spacing
-                                         + target->get_rect().get_size().x * 0.5f, 0 ));
+                                         + target->get_rect().size().x * 0.5f, 0 ));
                     target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
                 }
             }

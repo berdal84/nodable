@@ -201,7 +201,7 @@ void NodeView::set_position( Vec2 _position, Space origin)
     switch (origin)
     {
         case Space_Local: m_position = _position; break;
-        case Space_Screen: m_position = _position - m_screen_space_content_region.get_TL(); break;
+        case Space_Screen: m_position = _position - m_screen_space_content_region.tl(); break;
         default:
             FW_EXPECT(false, "OriginRef_ case not handled, cannot compute perform set_position(...)")
     }
@@ -211,7 +211,7 @@ Vec2 NodeView::get_position(Space origin, bool round) const
 {
     // compute position depending on space
     Vec2 result = m_position;
-    if (origin == Space_Screen) result += m_screen_space_content_region.get_TL();
+    if (origin == Space_Screen) result += m_screen_space_content_region.tl();
 
     if(round)
     {
@@ -568,10 +568,10 @@ bool NodeView::_draw_property_view(PropertyView* _view)
     // memorize property view rect (screen space)
     // enlarge rect to fit node_view top/bottom
     _view->screen_rect = {
-            Vec2{ImGui::GetItemRectMin().x, get_screen_rect().Min.y} ,
-            Vec2{ImGui::GetItemRectMax().x, get_screen_rect().Max.y}
+            Vec2{ImGui::GetItemRectMin().x, get_screen_rect().min.y} ,
+            Vec2{ImGui::GetItemRectMax().x, get_screen_rect().max.y}
     };
-    ImGuiEx::DebugCircle( _view->screen_rect.get_center(), 2.5f, ImColor(0,0,0));
+    ImGuiEx::DebugCircle( _view->screen_rect.center(), 2.5f, ImColor(0,0,0));
 
     return changed;
 }
@@ -874,10 +874,10 @@ void NodeView::constraint_to_rect(NodeView* _view, Rect _rect)
 
 		auto newPos = _view->get_position(Space_Local, true);
 
-		auto left  = _rect.Min.x - nodeRect.Min.x;
-		auto right = _rect.Max.x - nodeRect.Max.x;
-		auto up    = _rect.Min.y - nodeRect.Min.y;
-		auto down  = _rect.Max.y - nodeRect.Max.y;
+		auto left  = _rect.min.x - nodeRect.min.x;
+		auto right = _rect.max.x - nodeRect.max.x;
+		auto up    = _rect.min.y - nodeRect.min.y;
+		auto down  = _rect.max.y - nodeRect.max.y;
 
 		     if ( left > 0 ) nodeRect.translate_x( left );
 		else if ( right < 0 )
@@ -887,7 +887,7 @@ void NodeView::constraint_to_rect(NodeView* _view, Rect _rect)
 		else if ( down < 0 )
             nodeRect.translate_y( down );
 
-        _view->set_position( nodeRect.get_center(), Space_Local);
+        _view->set_position( nodeRect.center(), Space_Local);
 	}
 
 }
@@ -945,7 +945,7 @@ Rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMulti
 #ifdef NDBL_DEBUG
     Rect screen_rect = result_rect;
     screen_rect.translate( get_position( Space_Screen ) - get_position( Space_Local ) );
-    ImGuiEx::DebugRect(screen_rect.Min, screen_rect.Max, IM_COL32( 0, 255, 0, 60 ), 2 );
+    ImGuiEx::DebugRect(screen_rect.min, screen_rect.max, IM_COL32( 0, 255, 0, 60 ), 2 );
 #endif
 
     return result_rect;
@@ -1111,12 +1111,12 @@ Vec2 NodeView::get_slot_pos( const Slot& slot )
 
     if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
     {
-        return get_screen_rect().get_center()
-             + get_screen_rect().get_size() * m_slot_views[(u8_t)slot.id].alignment();
+        return get_screen_rect().center()
+             + get_screen_rect().size() * m_slot_views[(u8_t)slot.id].alignment();
     }
     Rect property_rect = m_property_views.at( (u32_t)slot.property ).screen_rect;
-    return property_rect.get_center()
-         + property_rect.get_size() * m_slot_views[(u8_t)slot.id].alignment();
+    return property_rect.center()
+         + property_rect.size() * m_slot_views[(u8_t)slot.id].alignment();
 }
 
 Rect NodeView::get_slot_rect( const Slot& _slot, const Config& _config, i8_t _count ) const
@@ -1127,12 +1127,12 @@ Rect NodeView::get_slot_rect( const Slot& _slot, const Config& _config, i8_t _co
 Rect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _pos ) const
 {
     Rect rect({0.0f, 0.0f }, _config.ui_node_slot_size);
-    rect.translate_y( -rect.get_size().y * 0.5f ); // Center vertically
+    rect.translate_y( -rect.size().y * 0.5f ); // Center vertically
     rect.translate_x( _config.ui_node_slot_size.x * float( _pos )      // x offset
                       + _config.ui_node_slot_gap * float( 1 + _pos ) ); // x gap
-    rect.translate_y( _slot_view.alignment().y * rect.get_size().y ); // align top/bottom
+    rect.translate_y( _slot_view.alignment().y * rect.size().y ); // align top/bottom
     Rect view_rect = get_screen_rect();
-    rect.translate( _slot_view.alignment() * view_rect.get_size() + view_rect.get_center() ); // align slot with nodeview
+    rect.translate( _slot_view.alignment() * view_rect.size() + view_rect.center() ); // align slot with nodeview
 
     return rect;
 }

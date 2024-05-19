@@ -100,27 +100,24 @@ namespace fw
     class Rect
     {
     public:
-        fw::Vec2 Min;
-        fw::Vec2 Max;
+        fw::Vec2 min;
+        fw::Vec2 max;
 
-        Rect()
-        : Min()
-        , Max()
-        {};
+        Rect() = default;
 
-        Rect(fw::Vec2 min, fw::Vec2 max)
-        : Min(min)
-        , Max(max)
+        Rect(Vec2 min, Vec2 max)
+        : min(min)
+        , max(max)
         {}
 
         Rect(float w, float h)
-        : Min()
-        , Max(w, h)
+        : min()
+        , max(w, h)
         {}
 
         Rect(const Rect& _rect)
-        : Min(_rect.Min)
-        , Max(_rect.Max)
+        : min(_rect.min)
+        , max(_rect.max)
         {}
 
         Rect(const ImRect& _rect)
@@ -131,64 +128,69 @@ namespace fw
         Rect& operator=(const RectT& _rect)
         { *this = Rect{_rect}; return *this; }
 
-        float GetHeight() const
-        { return Max.y - Min.y; }
+        float height() const
+        { return max.y - min.y; }
 
-        float GetWidth() const
-        { return Max.x - Min.x; }
+        float width() const
+        { return max.x - min.x; }
 
-        Vec2 get_center()
-        { return { Min.x + GetWidth() / 2.0f, Min.y + GetHeight() / 2.0f }; }
+        Vec2 center()
+        { return { min.x + width() / 2.0f, min.y + height() / 2.0f }; }
 
-        Vec2 get_TL() const
-        { return Min; }
+        Vec2 tl() const // Top-Left corner
+        { return min; }
 
-        Vec2 get_BL() const
-        { return { Min.x, Max.y }; }
+        Vec2 bl() const // Bottom-Left corner
+        { return { min.x, max.y }; }
 
-        Vec2 get_BR() const
-        { return Max; }
+        Vec2 br() const // Bottom-Right corner
+        { return max; }
 
-        Vec2 get_TR() const
-        { return { Max.x, Min.y }; }
+        Vec2 tr() const // Top-Right corner
+        { return { max.x, min.y }; }
 
-        Vec2 get_size() const
-        { return { GetWidth(), GetHeight()}; }
+        Vec2 size() const
+        { return { width(), height()}; }
 
         void translate_x( float d )
-        { Min.x += d; Max.x += d; }
+        {
+            min.x += d;
+            max.x += d;
+        }
 
         void translate_y( float d )
-        { Min.y += d; Max.y += d; }
+        {
+            min.y += d;
+            max.y += d;
+        }
 
         void translate( Vec2 _delta )
         {
-            Min += _delta;
-            Max += _delta;
+            min += _delta;
+            max += _delta;
         }
 
         operator ImRect() const
-        { return { Min, Max}; }
+        { return { min, max }; }
 
-        void expand( Vec2 size)
+        void expand( Vec2 offset) // Expand rectangle on both x and y axis
         {
-            Vec2 half_size = size * Vec2(0.5f);
-            Min -= half_size;
-            Max += half_size;
+            min -= offset;
+            max += offset;
         }
 
         bool contains( Rect other )
         {
-            return Min.x <= other.Min.x && Min.y <= other.Min.y
-                && Max.x >= other.Max.x && Max.y >= other.Max.y;
+            return min.x <= other.min.x && min.y <= other.min.y
+                && max.x >= other.max.x && max.y >= other.max.y;
         }
 
         void expand_to_include( Rect other )
         {
-            Min.x = glm::min( Min.x, other.Min.x );
-            Max.x = glm::max( Max.x, other.Max.x );
-            Min.y = glm::min( Min.y, other.Min.y );
-            Max.y = glm::max( Max.y, other.Max.y );
+            min.x = glm::min( min.x, other.min.x );
+            max.x = glm::max( max.x, other.max.x );
+            min.y = glm::min( min.y, other.min.y );
+            max.y = glm::max( max.y, other.max.y );
         }
     };
 

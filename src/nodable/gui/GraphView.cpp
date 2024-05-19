@@ -99,8 +99,8 @@ bool GraphView::draw()
 
                     ImGuiEx::DrawVerticalWire(
                             ImGui::GetWindowDrawList(),
-                            start.get_center(),
-                            end.get_center(),
+                            start.center(),
+                            end.center(),
                             app.config.ui_codeflow_color,      // color
                             app.config.ui_codeflow_shadowColor,// shadowColor,
                             line_width,
@@ -129,8 +129,8 @@ bool GraphView::draw()
                 // Thick line
                 ImGuiEx::DrawVerticalWire(
                         ImGui::GetWindowDrawList(),
-                        _dragged_slot->get_rect( app.config ).get_center(),
-                        hovered_slot ? hovered_slot->get_rect( app.config ).get_center(): edge_end,
+                        _dragged_slot->get_rect( app.config ).center(),
+                        hovered_slot ? hovered_slot->get_rect( app.config ).center(): edge_end,
                         app.config.ui_codeflow_color,
                         app.config.ui_codeflow_shadowColor,
                         app.config.ui_node_slot_size.x * app.config.ui_codeflow_thickness_ratio,
@@ -354,16 +354,16 @@ void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
 {
     const int    grid_size             = config.ui_graph_grid_size;
     const int    grid_subdiv_size      = config.ui_graph_grid_size / config.ui_graph_grid_subdivs;
-    const int    vertical_line_count   = int( m_screen_space_content_region.get_size().x) / grid_subdiv_size;
-    const int    horizontal_line_count = int( m_screen_space_content_region.get_size().y) / grid_subdiv_size;
+    const int    vertical_line_count   = int( m_screen_space_content_region.size().x) / grid_subdiv_size;
+    const int    horizontal_line_count = int( m_screen_space_content_region.size().y) / grid_subdiv_size;
     Vec4 grid_color            = config.ui_graph_grid_color_major;
     Vec4 grid_color_light      = config.ui_graph_grid_color_minor;
 
     for(int coord = 0; coord <= vertical_line_count; ++coord)
     {
-        float pos = m_screen_space_content_region.get_TL().x + float(coord) * float(grid_subdiv_size);
-        const Vec2 line_start{pos, m_screen_space_content_region.get_TL().y};
-        const Vec2 line_end{pos, m_screen_space_content_region.get_BL().y};
+        float pos = m_screen_space_content_region.tl().x + float(coord) * float(grid_subdiv_size);
+        const Vec2 line_start{pos, m_screen_space_content_region.tl().y};
+        const Vec2 line_end{pos, m_screen_space_content_region.bl().y};
         bool is_major = coord % config.ui_graph_grid_subdivs == 0;
         ImColor color{ is_major ? grid_color : grid_color_light };
         draw_list->AddLine(line_start, line_end, color);
@@ -371,9 +371,9 @@ void GraphView::draw_grid( ImDrawList* draw_list, const Config& config ) const
 
     for(int coord = 0; coord <= horizontal_line_count; ++coord)
     {
-        float pos = m_screen_space_content_region.get_TL().y + float(coord) * float(grid_subdiv_size);
-        const Vec2 line_start{ m_screen_space_content_region.get_TL().x, pos};
-        const Vec2 line_end{ m_screen_space_content_region.get_BR().x, pos};
+        float pos = m_screen_space_content_region.tl().y + float(coord) * float(grid_subdiv_size);
+        const Vec2 line_start{ m_screen_space_content_region.tl().x, pos};
+        const Vec2 line_end{ m_screen_space_content_region.br().x, pos};
         bool is_major = coord % config.ui_graph_grid_subdivs == 0;
         ImColor color{is_major ? grid_color : grid_color_light};
         draw_list->AddLine(line_start, line_end, color);
@@ -449,11 +449,11 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
 
     // get selection rectangle
     Rect nodes_screen_rect = NodeView::get_rect(_views);
-    nodes_screen_rect.translate( screen.Min ); // convert to screen space
+    nodes_screen_rect.translate( screen.min ); // convert to screen space
 
     // debug
-    ImGuiEx::DebugRect(nodes_screen_rect.Min, nodes_screen_rect.Max, IM_COL32(0, 255, 0, 127 ), 5.0f );
-    ImGuiEx::DebugRect(screen.Min, screen.Max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
+    ImGuiEx::DebugRect(nodes_screen_rect.min, nodes_screen_rect.max, IM_COL32(0, 255, 0, 127 ), 5.0f );
+    ImGuiEx::DebugRect(screen.min, screen.max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
 
     // align
     Vec2 translate_vec;
@@ -461,12 +461,12 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     {
         // Align with the top-left corner
         nodes_screen_rect.expand( Vec2( 20.0f ) ); // add a padding to avoid alignment too close from the border
-        translate_vec = screen.get_TL() - nodes_screen_rect.get_TL();
+        translate_vec = screen.tl() - nodes_screen_rect.tl();
     }
     else
     {
         // Align the center of the node rectangle with the screen center
-        translate_vec = screen.get_center() - nodes_screen_rect.get_center();
+        translate_vec = screen.center() - nodes_screen_rect.center();
     }
 
     // apply the translation
@@ -476,7 +476,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     translate_all(translate_vec, all_views);
 
     // debug
-    ImGuiEx::DebugLine( nodes_screen_rect.get_center(), (ImVec2) nodes_screen_rect.get_center() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
+    ImGuiEx::DebugLine( nodes_screen_rect.center(), (ImVec2) nodes_screen_rect.center() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
 void GraphView::translate_all( Vec2 delta, const std::vector<NodeView*>& _views)
