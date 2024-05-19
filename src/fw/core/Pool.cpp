@@ -1,3 +1,5 @@
 #include "Pool.h"
 
-fw::Pool* fw::Pool::s_current_pool = nullptr;
+using namespace fw;
+
+Pool* Pool::s_current_pool = nullptr;

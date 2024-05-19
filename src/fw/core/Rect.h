@@ -100,6 +100,9 @@ namespace fw
             min.y = glm::min( min.y, other.min.y );
             max.y = glm::max( max.y, other.max.y );
         }
+
+        bool has_area() const
+        { return height() != 0.f && width() != 0.f; }
     };
 
 }

@@ -1,9 +1,8 @@
 #include "FontManager.h"
 
 #include "core/assertions.h"
-#include "core/log.h"
-
 #include "App.h"
+#include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 using namespace fw;
 
@@ -18,7 +17,7 @@ void FontManager::init()
     }
 
     // Assign text_fonts (user might want to change it later, but we need defaults)
-    for( int each_slot = 0; each_slot < fw::FontSlot_COUNT; ++each_slot )
+    for( int each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
     {
         if(auto font = m_config.defaults[each_slot] )
         {

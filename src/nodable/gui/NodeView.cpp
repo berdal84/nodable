@@ -7,16 +7,10 @@
 #include "Physics.h"
 #include "PropertyView.h"
 #include "SlotView.h"
-#include "core/Graph.h"
 #include "core/GraphUtil.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
-#include "core/Pool.h"
-#include "core/Scope.h"
-#include "core/VariableNode.h"
-#include "core/language/Nodlang.h"
 #include "fw/core/math.h"
-#include "fw/core/reflection/registration.h"
 #include <algorithm> // for std::max
 #include <cmath> // for sinus
 #include <vector>
@@ -452,7 +446,7 @@ bool NodeView::draw()
 
     m_owner->dirty |= changed;
 
-    m_is_hovered = is_node_hovered || is_slot_hovered;
+    is_hovered = is_node_hovered || is_slot_hovered;
 
 	return changed;
 }
@@ -918,7 +912,7 @@ Rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMulti
 
     Rect result_rect( Vec2(std::numeric_limits<float>::max()), Vec2(-std::numeric_limits<float>::max()) );
 
-    if ( !_ignoreSelf && m_is_visible )
+    if ( !_ignoreSelf && is_visible )
     {
         Rect self_rect = get_rect(false);
         result_rect.expand_to_include( self_rect );
@@ -929,7 +923,7 @@ Rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMulti
         NodeView* view = view_id.get();
         if( !view) return;
 
-        if ( view->m_is_visible && !(view->m_pinned && _ignorePinned) && view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
+        if ( view->is_visible && !(view->m_pinned && _ignorePinned) && view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
             Rect child_rect = view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
             result_rect.expand_to_include( child_rect );
@@ -973,7 +967,7 @@ Rect NodeView::get_rect(
 
     for (auto eachView : _views)
     {
-        if ( eachView->m_is_visible )
+        if ( eachView->is_visible )
         {
             auto each_rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
             rect.expand_to_include( each_rect );
@@ -1020,7 +1014,7 @@ void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recurs
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child_view->set_visible(_visible);
+            each_child_view->is_visible = _visible;
         }
     }
 }
@@ -1037,7 +1031,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    if( _view->is_visible() )
+    if( _view->is_visible )
     {
         return _view;
     }
@@ -1154,6 +1148,6 @@ Vec4 NodeView::get_color( ColorType _type ) const
 
 bool NodeView::none_is_visible( std::vector<NodeView*> _views )
 {
-    auto is_visible = [](const NodeView* view) { return view->is_visible(); };
+    auto is_visible = [](const NodeView* view) { return view->is_visible; };
     return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
 }

@@ -69,9 +69,9 @@ bool HybridFileView::draw()
 {
     const Vec2 margin(10.0f, 0.0f);
     const Nodable &app       = Nodable::get_instance();
-    Vec2 region_available  = ImGui::GetContentRegionAvail() - margin;
-    Vec2 text_editor_size  = Vec2(m_child1_size, region_available.y);
-    Vec2 graph_editor_size = Vec2(m_child2_size, region_available.y);
+    Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
+    Vec2 text_editor_size {m_child1_size, region_available.y};
+    Vec2 graph_editor_size{m_child2_size, region_available.y};
 
      // Splitter
     //---------
@@ -186,7 +186,7 @@ bool HybridFileView::draw()
             // Draw overlay: isolation mode ON/OFF
             if( app.config.isolate_selection )
             {
-                Vec2 cursor_pos = graph_editor_top_left_corner + app.config.ui_overlay_margin;
+                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2(app.config.ui_overlay_margin);
                 ImGui::SetCursorPos(cursor_pos);
                 ImGui::Text("Isolation mode ON");
             }

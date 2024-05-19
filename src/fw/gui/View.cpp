@@ -1,4 +1,5 @@
 #include "View.h"
+#include "ImGuiEx.h"
 
 using namespace fw;
 
@@ -8,33 +9,20 @@ REGISTER
 }
 
 View::View()
-    : m_is_hovered(false)
-    , m_is_visible(true)
+    : is_hovered(false)
+    , is_visible(true)
     , m_screen_space_content_region(0.0f, 512.0f) // need to be != 0.0f (cf GraphNodeView frame_all)
-{
-}
+{}
 
-void View::set_visible(bool _visibility)
+void View::use_available_region(View* view, const Rect& rect)
 {
-    m_is_visible = _visibility;
-}
-
-bool View::is_visible() const
-{
-    return m_is_visible;
-}
-
-bool View::is_hovered() const
-{
-    return m_is_hovered;
-}
-
-void View::use_available_region(View* view, fw::Rect rect)
-{
-    if( rect.height() == 0 || rect.width() == 0) {
-        view->m_screen_space_content_region = fw::ImGuiEx::GetContentRegion(fw::Space_Screen);
-        view->m_local_space_content_region  = fw::ImGuiEx::GetContentRegion(fw::Space_Local);
-    } else {
+    if( rect.has_area() )
+    {
         view->m_screen_space_content_region = rect;
+    }
+    else
+    {
+        view->m_screen_space_content_region = ImGuiEx::GetContentRegion(Space_Screen);
+        view->m_local_space_content_region  = ImGuiEx::GetContentRegion(Space_Local);
     }
 }

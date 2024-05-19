@@ -38,7 +38,6 @@ target_link_libraries(
         ${CMAKE_DL_LIBS}
         framework-core
         IconFontCppHeaders      # Font Awesome
-        ImGui
         ImGuiColorTextEdit
         OpenGL::GL gl3w         # OpenGL and wrangler
         SDL2-static SDL2main    # SDL2
@@ -46,6 +45,8 @@ target_link_libraries(
         lodepng
         nfd                     # native file dialog - extended
         freetype                # because: https://github.com/ocornut/imgui/tree/master/misc/freetype
+    PRIVATE
+        ImGui
 )
 
 # link APPLE specific libraries

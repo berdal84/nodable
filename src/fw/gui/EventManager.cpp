@@ -57,7 +57,7 @@ IEvent* EventManager::dispatch( EventID _event_id )
 
 void EventManager::dispatch_delayed(u64_t delay, IEvent* event)
 {
-    fw::async::get_instance().add_task(
+    async::get_instance().add_task(
         std::async(std::launch::async, [this, event, delay]() -> void {
             std::this_thread::sleep_for(std::chrono::milliseconds{delay});
             dispatch(event);

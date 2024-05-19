@@ -7,6 +7,7 @@
 #include "core/types.h"
 #include "fw/core/log.h"
 #include "fw/core/system.h"
+#include "fw/gui/ImGuiEx.h"
 
 #include "Action.h"
 #include "Condition.h"
@@ -92,7 +93,7 @@ bool GraphView::draw()
                 Node* each_successor_node = adjacent_slot->get_node();
                 NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
 
-                if ( each_successor_view && each_view->is_visible() && each_successor_view->is_visible() )
+                if ( each_successor_view && each_view->is_visible && each_successor_view->is_visible )
                 {
                     Rect start = each_view->get_slot_rect( *slot, app.config, slot_index );
                     Rect end = each_successor_view->get_slot_rect( *adjacent_slot, app.config, 0 );// there is only 1 previous slot
@@ -169,7 +170,7 @@ bool GraphView::draw()
                 NodeView* node_view          = slot->node->get_component<NodeView>().get();
                 NodeView* adjacent_node_view = adjacent_slot->node->get_component<NodeView>().get();
 
-                if ( !node_view->is_visible() || !adjacent_node_view->is_visible())
+                if ( !node_view->is_visible || !adjacent_node_view->is_visible)
                 {
                     continue;
                 }
@@ -237,7 +238,7 @@ bool GraphView::draw()
         */
 		for ( NodeView* each_node_view : NodeUtils::get_components<NodeView>( m_graph->get_node_registry() ) )
 		{
-            if (each_node_view->is_visible())
+            if (each_node_view->is_visible)
             {
                 each_node_view->enable_edition(enable_edition);
                 View::use_available_region(each_node_view);
@@ -258,7 +259,7 @@ bool GraphView::draw()
                 }
 
                 is_any_node_dragged |= NodeView::get_dragged() == each_node_view->poolid();
-                is_any_node_hovered |= each_node_view->is_hovered();
+                is_any_node_hovered |= each_node_view->is_hovered;
             }
 		}
 	}
@@ -283,9 +284,9 @@ bool GraphView::draw()
             ImColor color = ImColor(255,255,255);
 
             // arrow ->
-            draw_list->AddLine( (ImVec2)linePos - Vec2(1.f, 0.0f), (ImVec2)linePos - Vec2(size, 0.0f), color, width);
-            draw_list->AddLine( linePos, (ImVec2)linePos - Vec2(size * 0.5f, -size * 0.5f), color, width);
-            draw_list->AddLine( linePos, (ImVec2)linePos - Vec2(size * 0.5f, size * 0.5f) , color, width);
+            draw_list->AddLine( linePos - Vec2(1.f, 0.0f), linePos - Vec2(size, 0.0f), color, width);
+            draw_list->AddLine( linePos, linePos - Vec2(size * 0.5f, -size * 0.5f), color, width);
+            draw_list->AddLine( linePos, linePos - Vec2(size * 0.5f, size * 0.5f) , color, width);
         }
     }
 
@@ -666,7 +667,7 @@ void CreateNodeContextMenu::reset_state( SlotView* _dragged_slot )
 {
     must_be_reset_flag   = true;
     search_input[0]      = '\0';
-    opened_at_pos        = ImGui::GetMousePos() - ImGui::GetCursorScreenPos();
+    opened_at_pos        = (Vec2)ImGui::GetMousePos() - ImGui::GetCursorScreenPos();
     opened_at_screen_pos = ImGui::GetMousePos();
     dragged_slot         = _dragged_slot;
 

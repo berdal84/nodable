@@ -23,7 +23,7 @@ std::vector<Rect> get_rect(const std::vector<NodeView*>& _in_views)
     for (auto each_target : _in_views )
     {
         Rect rect;
-        if( !(each_target->pinned() || !each_target->is_visible()) )
+        if( !(each_target->pinned() || !each_target->is_visible) )
         {
             rect = each_target->get_rect( true );
         }
@@ -109,7 +109,7 @@ void NodeViewConstraint::apply(float _dt)
                 const Node& target_owner = *each_target->get_owner();
 
                 // Guards
-                if ( !each_target->is_visible() ) continue;
+                if ( !each_target->is_visible ) continue;
                 if ( each_target->pinned() ) continue;
                 if ( !target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() ) && !align_bbox_bottom ) continue;
 
@@ -142,7 +142,7 @@ void NodeViewConstraint::apply(float _dt)
         case ConstrainFlag_LAYOUT_DEFAULT:
         {
             NodeView* target = clean_targets[0];
-            if (!target->pinned() && target->is_visible() )
+            if (!target->pinned() && target->is_visible )
             {
                 Physics& target_physics = *target->get_owner()->get_component<Physics>();
 
