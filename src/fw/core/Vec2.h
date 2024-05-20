@@ -71,7 +71,7 @@ namespace fw
 
         Vec2 operator +( float f ) const
         { return *this + Vec2(f); }
-        
+
         Vec2 operator -( float f ) const
         { return *this - Vec2(f); }
 
@@ -81,8 +81,8 @@ namespace fw
         Vec2 operator *( float f ) const
         { return *this * Vec2(f); }
 
-        Vec2 round() const
-        { return Vec2::round(*this); }
+        void round()
+        { *this = Vec2::round(*this); }
 
         static float sqrlen(Vec2 v)
         { return v.x*v.x+v.y*v.y; }

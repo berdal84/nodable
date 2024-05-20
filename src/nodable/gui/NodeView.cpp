@@ -347,17 +347,18 @@ bool NodeView::onDraw()
         ImGui::EndGroup();
         ImGui::SameLine();
     ImGui::EndGroup();
-    Vec2 new_size = ImGui::GetItemRectMax();
-    new_size += Vec2{config.ui_node_padding.z, config.ui_node_padding.w}; // right and bottom padding
-    new_size -= screen_rect.tl();
 
     // Ends the Window
     //----------------
 
-    box.size({
-        std::max( 1.0f, std::ceil( new_size.x ) ),
-        std::max( 1.0f, std::ceil( new_size.y ))
-    });
+    // Update box's size according to item's rect
+    Vec2 new_size = ImGui::GetItemRectMax();
+    new_size += Vec2{config.ui_node_padding.z, config.ui_node_padding.w}; // right and bottom padding
+    new_size -= screen_rect.tl();
+    new_size.x = std::max( 1.0f, new_size.x );
+    new_size.y = std::max( 1.0f, new_size.y );
+
+    box.size( Vec2::round(new_size) );
 
     // Draw Property in/out slots
     {
@@ -963,12 +964,7 @@ std::vector<Rect> NodeView::get_rects(const std::vector<NodeView*>& _in_views, S
     std::vector<Rect> rects;
     for (auto each_target : _in_views )
     {
-        Rect rect;
-        if( !(each_target->pinned() || !each_target->is_visible) )
-        {
-            rect = each_target->get_rect(space, flags );
-        }
-        rects.push_back(rect);
+        rects.push_back( each_target->get_rect(space, flags ));
     }
     return std::move( rects );
 }

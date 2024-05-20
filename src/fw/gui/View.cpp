@@ -18,7 +18,7 @@ View::View()
 
 void View::position( Vec2 _position, Space origin)
 {
-    if ( origin == WORLD_SPACE )
+    if ( origin == PARENT_SPACE )
     {
         Vec2 parent_space_pos = Vec2::transform(_position, parent_content_region.world_matrix());
         return box.pos(parent_space_pos);
@@ -28,7 +28,7 @@ void View::position( Vec2 _position, Space origin)
 
 Vec2 View::position(Space origin) const
 {
-    if ( origin == WORLD_SPACE )
+    if ( origin == PARENT_SPACE )
     {
         return Vec2::transform(box.pos(), parent_content_region.model_matrix() );
     }

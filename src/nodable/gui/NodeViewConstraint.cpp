@@ -47,10 +47,16 @@ void NodeViewConstraint::apply(float _dt)
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
             Vec2        virtual_cursor    = driver->position( PARENT_SPACE );
             const Node& driver_owner      = *driver->get_owner();
-            NodeViewFlags flags           = NodeViewFlag_RECURSIVELY
-                                          | NodeViewFlag_IGNORE_PINNED
-                                          | NodeViewFlag_IGNORE_SELF;
+            NodeViewFlags flags           = NodeViewFlag_RECURSIVELY | NodeViewFlag_IGNORE_PINNED;
             auto        target_rects      = NodeView::get_rects( clean_targets, WORLD_SPACE, flags );
+
+            if( config.common.debug )
+            {
+               for(auto& each : target_rects)
+               {
+                   ImGuiEx::DebugRect(each.min, each.max, ImColor(255,255,255));
+               }
+            }
 
             // Determine horizontal alignment
             //-------------------------------

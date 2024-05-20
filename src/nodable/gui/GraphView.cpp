@@ -271,9 +271,8 @@ bool GraphView::onDraw()
         const Node* node = app.virtual_machine.get_next_node();
         if( NodeView* view = node->get_component<NodeView>().get() )
         {
-            Vec2 vm_cursor_pos = view->position( WORLD_SPACE ).round();
-            vm_cursor_pos.x -= view->get_size().x * 0.5f;
-
+            Vec2 left = view->rect( WORLD_SPACE ).left();
+            Vec2 vm_cursor_pos = Vec2::round( left );
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
             Vec2 linePos = vm_cursor_pos + Vec2(- 10.0f, 0.5f);
@@ -471,7 +470,6 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
-    //       See if we can use matrices in the shaders of ImGui...
     auto all_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
     translate_all(all_views, translate_vec, NodeViewFlag_NONE);
 
