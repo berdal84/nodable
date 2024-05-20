@@ -1,6 +1,5 @@
 #pragma once
 #include "XForm2D.h"
-#include <imgui/imgui_internal.h>
 
 namespace fw
 {
@@ -15,12 +14,12 @@ namespace fw
         , m_size(_size)
         {}
 
-        Box2D(const ImRect& r)
+        Box2D(const Rect& r)
         : m_xform()
         , m_size()
         {
-            m_xform.pos(r.GetCenter());
-            m_size = r.GetSize();
+            m_xform.pos(r.center());
+            m_size = r.size();
         }
 
         XForm2D& xform()

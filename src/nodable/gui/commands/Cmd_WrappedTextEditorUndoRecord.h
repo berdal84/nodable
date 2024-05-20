@@ -1,5 +1,6 @@
 #pragma once
 #include "gui/Command.h"
+#include "gui/ImGuiEx.h"
 
 namespace ndbl
 {

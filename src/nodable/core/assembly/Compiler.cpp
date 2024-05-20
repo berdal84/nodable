@@ -17,9 +17,9 @@
 #include "core/VariableNode.h"
 #include "core/WhileLoopNode.h"
 
-#include "Register.h"
 #include "Instruction.h"
-#include "core/Pool.h"
+#include "Register.h"
+#include "fw/core/memory/Pool.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;

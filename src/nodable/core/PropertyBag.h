@@ -3,9 +3,9 @@
 #include <set>
 #include <memory>                 // std::shared_ptr
 
+#include "fw/core/memory/Pool.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/types.h"
-#include "fw/core/Pool.h"
 
 #include "constants.h"
 #include "Property.h"

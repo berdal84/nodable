@@ -1,9 +1,8 @@
 #pragma once
 
-#include "core/Pool.h"
-#include "core/Vec2.h"
-#include "core/reflection/reflection"
-#include "imgui.h"
+#include "fw/core/geometry/Vec2.h"
+#include "fw/core/memory/Pool.h"
+#include "fw/core/reflection/reflection"
 #include <vector>
 
 namespace ndbl {

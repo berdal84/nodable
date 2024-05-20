@@ -2,7 +2,7 @@
 
 #include "PropertyBag.h"
 #include "VariableNode.h"
-#include "fw/core/Pool.h"
+#include "fw/core/memory/Pool.h"
 
 using namespace ndbl;
 using namespace fw;

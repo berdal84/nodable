@@ -27,13 +27,13 @@
 #include "core/IfNode.h"
 #include "core/InvokableComponent.h"
 #include "core/LiteralNode.h"
-#include "core/Pool.h"
 #include "core/Property.h"
 #include "core/Scope.h"
 #include "core/VariableNode.h"
 #include "core/WhileLoopNode.h"
 #include "core/language/Nodlang_biology.h"
 #include "core/language/Nodlang_math.h"
+#include "fw/core/memory/Pool.h"
 
 using namespace ndbl;
 using namespace fw;

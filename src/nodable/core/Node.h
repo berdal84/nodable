@@ -6,9 +6,9 @@
 #include <algorithm>
 
 #include "fw/core/assertions.h"
+#include "fw/core/memory/Pool.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/types.h"
-#include "fw/core/Pool.h"
 
 #include "ComponentBag.h"
 #include "DirectedEdge.h"

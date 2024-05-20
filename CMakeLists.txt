@@ -35,7 +35,7 @@ if ( NOT NDBL_SKIP_TESTS)
     option(INSTALL_GTEST OFF)
 endif()
 
-add_subdirectory(libs lib)                # libraries (SDL, lodepng, Dear ImGui, etc.)
+add_subdirectory(libs lib)                # Add CMakeList for CMake-ready libs
 add_subdirectory(src/fw/core)             # core framework
 add_subdirectory(src/fw/gui)              # gui framework (ImGui based)
 add_subdirectory(src/fw/gui-example)      # gui example using framework-gui

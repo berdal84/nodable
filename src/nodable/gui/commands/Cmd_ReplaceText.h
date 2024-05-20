@@ -1,7 +1,7 @@
 #pragma once
 #include "gui/Command.h"
+#include "gui/ImGuiEx.h"
 #include <string>
-#include <TextEditor.h>
 
 namespace ndbl
 {

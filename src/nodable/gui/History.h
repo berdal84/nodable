@@ -4,8 +4,7 @@
 #include <ctime>
 #include <string>
 #include <memory>
-#include <ImGuiColorTextEdit/TextEditor.h>
-
+#include "fw/gui/ImGuiEx.h"
 #include "fw/core/log.h"
 #include "fw/core/reflection/reflection"
 

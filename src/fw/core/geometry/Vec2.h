@@ -1,12 +1,9 @@
-
 #pragma once
-#include "glm/ext/matrix_float3x3.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "imgui/imgui.h"
-#include "types.h"
-#include <cassert>
-#include <glm/glm/common.hpp>
-#include <glm/glm/vec2.hpp>
+#include <glm/common.hpp>
+#include <glm/ext/matrix_float3x3.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/vec2.hpp>
+#include "core/types.h"
 
 namespace fw
 {
@@ -21,10 +18,6 @@ namespace fw
         constexpr Vec2( const Vec2& v ): Vec2( v.x, v.y ) {}
         constexpr Vec2( const glm::vec2& v ): Vec2( v.x, v.y ) {}
         explicit constexpr Vec2( float scalar ): Vec2( scalar, scalar ) {}
-        constexpr Vec2( const ImVec2& v ): Vec2( v.x, v.y ) {}
-
-        operator ImVec2() const
-        { return { x, y }; }
 
         operator glm::vec2() const
         { return { x, y }; }

@@ -460,7 +460,7 @@ void NodeView::DrawNodeRect(
     ImGuiEx::DrawRectShadow(rect.min, rect.max, border_radius, 4, Vec2(1.0f), shadow_col);
     ImDrawFlags flags = ImDrawFlags_RoundCornersAll;
     draw_list->AddRectFilled(rect.min, rect.max, ImColor(color), border_radius, flags);
-    draw_list->AddRect( (ImVec2)rect.min + Vec2(1.0f), rect.max, ImColor(border_highlight_col), border_radius, flags, border_width);
+    draw_list->AddRect(rect.min + Vec2(1.0f), rect.max, ImColor(border_highlight_col), border_radius, flags, border_width);
     draw_list->AddRect(rect.min, rect.max, ImColor(border_col), border_radius, flags, border_width);
 
     // Draw an additional blinking rectangle when selected
@@ -469,8 +469,8 @@ void NodeView::DrawNodeRect(
         auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
         float offset = 4.0f;
         draw_list->AddRect(
-            (ImVec2)rect.min - Vec2(offset),
-            (ImVec2)rect.max + Vec2(offset),
+            rect.min - Vec2(offset),
+            rect.max + Vec2(offset),
             ImColor(1.0f, 1.0f, 1.0f, float(alpha) ),
             border_radius + offset,
             ~0,

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <imgui/imgui.h>
 #include <SDL/include/SDL.h>
 #include <array>
 #include <map>
@@ -8,6 +7,7 @@
 #include <observe/event.h>
 
 #include "core/types.h"
+#include "ImGuiEx.h"
 #include "EventManager.h"
 #include "View.h"
 #include "Config.h"
@@ -20,7 +20,7 @@ namespace fw
     class History;
     struct Texture;
     class VirtualMachine;
-    struct Config;
+    struct FontManagerConfig;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.

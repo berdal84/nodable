@@ -1,7 +1,7 @@
 #pragma once
 
 #include "fw/core/reflection/reflection"
-#include "fw/core/Pool.h"
+#include "fw/core/memory/Pool.h"
 
 namespace ndbl
 {

@@ -1,6 +1,6 @@
 #pragma once
 #include "Vec2.h"
-#include "imgui/imgui_internal.h" // to provide ImRect conversion
+#include <vector>
 
 namespace fw
 {
@@ -80,9 +80,6 @@ namespace fw
             min += _delta;
             max += _delta;
         }
-
-        operator ImRect() const
-        { return { min, max }; }
 
         void expand( Vec2 offset) // Expand rectangle on both x and y axis
         {

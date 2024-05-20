@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 #include <memory>
-#include <ImGuiColorTextEdit/TextEditor.h>
 
+#include "fw/gui/ImGuiEx.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/types.h"
 #include "fw/gui/Config.h"

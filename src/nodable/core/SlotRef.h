@@ -1,6 +1,6 @@
 #pragma once
 #include "SlotFlag.h"
-#include "fw/core/Pool.h"
+#include "fw/core/memory/Pool.h"
 
 namespace ndbl
 {

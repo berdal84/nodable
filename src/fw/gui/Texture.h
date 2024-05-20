@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Vec2.h"
+#include "core/geometry/Vec2.h"
 #include "core/types.h"
 #include "gl3w/GL/gl3w.h"
 

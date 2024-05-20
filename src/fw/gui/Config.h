@@ -1,16 +1,16 @@
 #pragma once
-#include "FontManager.h"
-#include "core/Vec2.h"
-#include "core/Vec4.h"
+#include "FontManagerConfig.h"
 #include "core/Color.h"
+#include "core/geometry/Vec2.h"
+#include "core/geometry/Vec4.h"
 #include <string>
 
 namespace fw
 {
 
     // Common configuration
-    struct Config {
-
+    struct Config
+    {
         Config() = default;
         Config(const Config&) = delete; // disable copy
 
@@ -39,7 +39,7 @@ namespace fw
                 Vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
                 Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
             };
-        FontManager::Config font_manager{
+        FontManagerConfig font_manager{
             {{
                     "default",                  // id
                     "fonts/CenturyGothic.ttf",  // path
@@ -59,7 +59,7 @@ namespace fw
             },
             1.0f  // subsampling
         };
-        ImVec2 padding        {10.0f,10.0f};
+        Vec2   padding        {10.0f,10.0f};
         bool   antialiased    {true};
         float  window_rounding{0.f};
         float  frame_rounding {3.f};

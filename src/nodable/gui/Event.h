@@ -5,7 +5,7 @@
 #include "FrameMode.h"
 #include "SlotView.h"
 #include "core/Graph.h"
-#include "fw/core/Pool.h"
+#include "fw/core/memory/Pool.h"
 #include "fw/gui/EventManager.h"
 #include "nodable/core/SlotRef.h"
 

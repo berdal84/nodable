@@ -84,11 +84,11 @@ bool HybridFileView::onDraw()
     }
 
     Rect splitter_rect{
-            ImGui::GetCursorScreenPos(),
-            ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
+        ImGui::GetCursorScreenPos(),
+        (Vec2)ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
     };
     splitter_rect.translate_x( m_child1_size + 2.0f );
-    ImGui::SplitterBehavior(splitter_rect, ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
+    ImGui::SplitterBehavior(ImGuiEx::toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
 
      // TEXT EDITOR
     //------------

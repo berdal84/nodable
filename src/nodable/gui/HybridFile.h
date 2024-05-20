@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ImGuiColorTextEdit/TextEditor.h>// for coordinates
-#include <SDL.h>
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>

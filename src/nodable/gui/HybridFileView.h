@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ImGuiColorTextEdit/TextEditor.h>
 #include <observe/observer.h>
 
 #include "fw/core/reflection/reflection"

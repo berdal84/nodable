@@ -3,6 +3,8 @@
 
 ndbl_log_title_header()
 
+set(LIBS ../../../libs)
+
 # add imgui executable
 add_library(
     framework-gui
@@ -14,8 +16,26 @@ add_library(
         EventManager.cpp
         FontManager.cpp
         ImGuiEx.cpp
+        ImGuiExConfig.h
         TextureManager.cpp
-        View.cpp)
+        View.cpp
+        ${ICONFONTCPPHEADERS} # Font Awesome
+        ${LIBS}/imgui/imgui.cpp
+        ${LIBS}/imgui/imgui_demo.cpp
+        ${LIBS}/imgui/imgui_draw.cpp
+        ${LIBS}/imgui/imgui_tables.cpp
+        ${LIBS}/imgui/imgui_widgets.cpp
+        ${LIBS}/imgui/misc/freetype/imgui_freetype.cpp
+        ${LIBS}/imgui/backends/imgui_impl_opengl3.cpp # include backend as-is
+        ${LIBS}/imgui/backends/imgui_impl_sdl.cpp     #          //
+        ${LIBS}/ImGuiColorTextEdit/TextEditor.cpp
+        ${LIBS}/gl3w/GL/gl3w.c # Open GL Wrangler
+        ${LIBS}/gl3w/GL/gl3w.h
+        ${LIBS}/gl3w/GL/gl3w.gcda
+        ${LIBS}/gl3w/GL/gl3w.gcno
+        ${LIBS}/lodepng/lodepng.cpp
+        ${LIBS}/lodepng/lodepng.h
+)
 
 ndbl_log("Looking for libraries ...")
 
@@ -37,16 +57,23 @@ target_link_libraries(
     PUBLIC
         ${CMAKE_DL_LIBS}
         framework-core
-        IconFontCppHeaders      # Font Awesome
-        ImGuiColorTextEdit
-        OpenGL::GL gl3w         # OpenGL and wrangler
+        OpenGL::GL
         SDL2-static SDL2main    # SDL2
         Threads::Threads
-        lodepng
         nfd                     # native file dialog - extended
         freetype                # because: https://github.com/ocornut/imgui/tree/master/misc/freetype
-    PRIVATE
-        ImGui
+)
+
+target_include_directories(
+    framework-gui
+    PUBLIC
+        .
+        ${LIBS}/imgui/
+        ${LIBS}/SDL/include/
+        ${LIBS}/IconFontCppHeaders/
+        ${LIBS}/gl3w
+        ${LIBS}/gl3w/GL
+        ${LIBS}/ImGuiColorTextEdit/
 )
 
 # link APPLE specific libraries
@@ -73,6 +100,7 @@ IF (APPLE)
             ${COCOA_FRAMEWORK} )
 ENDIF()
 
+target_compile_definitions(framework-gui PUBLIC IMGUI_USER_CONFIG="ImGuiExConfig.h") # Override imconfig.h
 set_target_properties(framework-gui PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
 set_target_properties(framework-gui PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 

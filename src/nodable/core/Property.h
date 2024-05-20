@@ -1,9 +1,9 @@
 #pragma once
 
-#include "fw/core/types.h" // for constants and forward declarations
-#include "fw/core/reflection/variant.h"
-#include "fw/core/Pool.h"
 #include "core/Token.h"
+#include "fw/core/memory/Pool.h"
+#include "fw/core/reflection/variant.h"
+#include "fw/core/types.h"// for constants and forward declarations
 
 #include <string>
 #include <vector>

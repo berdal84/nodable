@@ -1,8 +1,8 @@
 #pragma once
-#include <vector>
-#include <unordered_set>
-#include "fw/core/Pool.h"
 #include "Node.h"
+#include "fw/core/memory/Pool.h"
+#include <unordered_set>
+#include <vector>
 
 namespace ndbl
 {

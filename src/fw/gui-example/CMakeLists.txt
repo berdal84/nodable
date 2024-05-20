@@ -3,22 +3,12 @@
 
 ndbl_log_title_header()
 
-# add nodable executable
-add_executable(
-    framework-gui-example
-        WIN32
-        main.cpp
-    )
-
-target_link_libraries(
-    framework-gui-example
-    PUBLIC
-        framework-gui
-        gl3w
-)
-
-set_target_properties(framework-gui-example PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
-set_target_properties(framework-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+# add executable
+set(NAME framework-gui-example)
+add_executable(${NAME} WIN32 main.cpp)
+target_link_libraries(${NAME} PUBLIC framework-gui)
+set_target_properties(${NAME} PROPERTIES POSITION_INDEPENDENT_CODE FALSE)               # required to run well on recent os (ex: ubuntu)
+set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 
 # Installation :
 #===============

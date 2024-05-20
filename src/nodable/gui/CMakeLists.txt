@@ -39,11 +39,8 @@ add_library(
 target_link_libraries(
     nodable-gui
     PUBLIC
-        gl3w
-        framework-gui
         nodable-core
-    PRIVATE
-        ImGuiColorTextEdit
+        framework-gui
 )
 
 target_include_directories(

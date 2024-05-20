@@ -320,7 +320,7 @@ bool GraphView::onDraw()
 	if ( ImGui::BeginPopup(k_context_menu_popup) )
     {
         // Title :
-        ImGuiEx::ColoredShadowedText( Vec2( 1, 1 ), ImColor( 0.00f, 0.00f, 0.00f, 1.00f ), ImColor( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
+        ImGuiEx::ColoredShadowedText( Vec2( 1, 1 ), Color( 0.00f, 0.00f, 0.00f, 1.00f ), Color( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
         ImGui::Separator();
         /*
         *  In case user has created a new node we need to connect it to the m_graph depending
@@ -474,7 +474,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     translate_all( node_views, move, NodeViewFlag_NONE);
 
     // debug
-    ImGuiEx::DebugLine( selection.center(), (ImVec2) selection.center() + move, IM_COL32(255, 0, 0, 255 ), 20.0f);
+    ImGuiEx::DebugLine( selection.center(), selection.center() + move, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
 void GraphView::translate_all(const std::vector<NodeView*>& _views, Vec2 delta, NodeViewFlags flags )

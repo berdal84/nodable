@@ -1,8 +1,8 @@
 #pragma once
 
-#include "ImGuiEx.h"
-#include "core/Box2D.h"
-#include "core/Rect.h"
+#include "ImGuiEx.h" // ImGui with extensions
+#include "core/geometry/Box2D.h"
+#include "core/geometry/Rect.h"
 #include "core/reflection/reflection"
 
 namespace fw

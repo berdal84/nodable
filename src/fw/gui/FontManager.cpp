@@ -1,8 +1,5 @@
 #include "FontManager.h"
-
-#include "core/assertions.h"
 #include "App.h"
-#include "IconFontCppHeaders/IconsFontAwesome5.h"
 
 using namespace fw;
 
@@ -11,7 +8,7 @@ FontManager::~FontManager()
 
 void FontManager::init()
 {
-    for (const FontConf& each_font : m_config.text)
+    for (const FontConfig& each_font : m_config.text)
     {
         load_font(each_font);
     }
@@ -31,7 +28,7 @@ void FontManager::init()
     }
 }
 
-ImFont* FontManager::load_font(const FontConf& text_font)
+ImFont* FontManager::load_font(const FontConfig& text_font)
 {
     FW_EXPECT(m_loaded_fonts.find(text_font.id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
 

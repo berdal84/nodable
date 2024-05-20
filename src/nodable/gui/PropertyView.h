@@ -2,10 +2,8 @@
 
 #include "core/Node.h"
 #include "core/VariableNode.h"
-#include "core/Rect.h"
-#include "fw/core/Pool.h"
-#include "imgui.h"
-#include "imgui_internal.h"
+#include "fw/core/geometry/Rect.h"
+#include "fw/core/memory/Pool.h"
 #include <unordered_map>
 
 namespace ndbl
