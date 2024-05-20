@@ -229,7 +229,7 @@ void ImGuiEx::BulletTextWrapped(const char* str)
 
 void ImGuiEx::DebugRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding, ImDrawFlags flags, float thickness)
 {
-#ifdef NDBL_DEBUG
+#ifdef FW_DEBUG
     if(!debug) return;
     ImDrawList* list = ImGui::GetForegroundDrawList();
     list->AddRect(p_min, p_max, col, rounding, flags, thickness);
@@ -238,7 +238,7 @@ void ImGuiEx::DebugRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, flo
 
 void ImGuiEx::DebugCircle(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness)
 {
-#ifdef NDBL_DEBUG
+#ifdef FW_DEBUG
     if(!debug) return;
     ImDrawList* list = ImGui::GetForegroundDrawList();
     list->AddCircle(center, radius, col, num_segments, thickness);
@@ -247,7 +247,7 @@ void ImGuiEx::DebugCircle(const ImVec2& center, float radius, ImU32 col, int num
 
 void ImGuiEx::DebugLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness)
 {
-#ifdef NDBL_DEBUG
+#ifdef FW_DEBUG
     if(!debug) return;
     ImDrawList* list = ImGui::GetForegroundDrawList();
     list->AddLine(p1, p2, col, thickness);
@@ -256,9 +256,5 @@ void ImGuiEx::DebugLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thi
 
 void ImGuiEx::Image(Texture* _texture)
 {
-    ImVec2 size{
-        (float)_texture->width,
-        (float)_texture->height
-    };
-    ImGui::Image((void *)(intptr_t)_texture->gl_handler, size);
+    ImGui::Image((ImTextureID)_texture->id(), _texture->size());
 }

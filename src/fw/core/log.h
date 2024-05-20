@@ -35,7 +35,7 @@
 #   define LOG_MESSAGE(...) fw::log::push_message( fw::log::Verbosity_Message, ##__VA_ARGS__ );
 #   define LOG_FLUSH()      fw::log::flush();
 
-#if NDBL_DEBUG
+#ifdef FW_DEBUG
 #   define LOG_VERBOSE(...) fw::log::push_message( fw::log::Verbosity_Verbose, ##__VA_ARGS__ );
 #else
 #   define LOG_VERBOSE(...)

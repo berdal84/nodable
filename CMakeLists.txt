@@ -17,7 +17,7 @@ set(NDBL_APP_NAME                    "Nodable")
 set(NDBL_PACKAGE_DIR                 "${CMAKE_CURRENT_LIST_DIR}/out/package")  #                     //
 set(NDBL_CONFIGURED_DIR              "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS                  OFF )
-option(NDBL_NO_POOL                  "Disable Pool (for benchmark only)" OFF )
+option(FW_NO_POOL                  "Disable Pool (for benchmark only)" OFF )
 
 # include *.cmake scripts
 include(scripts/cmake/log.cmake)

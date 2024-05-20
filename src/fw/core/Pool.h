@@ -10,7 +10,7 @@
 #include <vector>
 #include <functional>
 
-#if NDBL_DEBUG
+#ifdef FW_DEBUG
 #include "reflection/type.h"
 #endif
 

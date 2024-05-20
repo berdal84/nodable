@@ -25,13 +25,14 @@ set(CMAKE_CXX_EXTENSIONS          ON)
 # enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-# define NDBL_DEBUG in DEBUG (there is no cross-compiler solution)
+# define DEBUG in DEBUG (there is no cross-compiler solution)
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DFW_DEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DNDBL_DEBUG")
 
 if(WIN32)
     add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions
 endif()
 
-if (NDBL_NO_POOL)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DNDBL_NO_POOL")
+if (FW_NO_POOL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFW_NO_POOL")
 endif ()
