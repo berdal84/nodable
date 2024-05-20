@@ -191,17 +191,19 @@ const PropertyView* NodeView::get_property_view( ID<Property> _id )const
     return &m_property_views.at((u32_t)_id);
 }
 
-void NodeView::translate( Vec2 _delta, bool _recurse)
+void NodeView::translate( Vec2 _delta, NodeViewFlags flags)
 {
     View::translate(_delta);
 
-	if ( !_recurse ) return;
+	if ( !(flags & NodeViewFlag_RECURSIVELY) ) return;
 
     for(auto each_input: get_adjacent(SlotFlag_INPUT)  )
     {
-        if ( each_input && !each_input->m_pinned && each_input->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
+        if( !each_input ) continue;
+        if( each_input->m_pinned && flags & NodeViewFlag_IGNORE_PINNED ) continue;
+        if( each_input->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
-            each_input->translate(_delta, true);
+            each_input->translate(_delta, flags);
         }
     }
 }
@@ -345,9 +347,9 @@ bool NodeView::onDraw()
         ImGui::EndGroup();
         ImGui::SameLine();
     ImGui::EndGroup();
-    Vec2 new_size = ImGui::GetItemRectMax()
-                    + Vec2{config.ui_node_padding.z, config.ui_node_padding.w} // right and bottom padding
-                    - screen_rect.tl();
+    Vec2 new_size = ImGui::GetItemRectMax();
+    new_size += Vec2{config.ui_node_padding.z, config.ui_node_padding.w}; // right and bottom padding
+    new_size -= screen_rect.tl();
 
     // Ends the Window
     //----------------
@@ -659,7 +661,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
 
 bool NodeView::is_inside(NodeView* _nodeView, Rect _rect, Space _space)
 {
-	return _rect.contains( _nodeView->rect(_space) );
+	return Rect::contains(_rect, _nodeView->rect(_space) );
 }
 
 void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
@@ -893,65 +895,82 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
     }
 }
 
-Rect NodeView::get_rect(bool _recursively, bool _ignorePinned, bool _ignoreMultiConstrained, bool _ignoreSelf) const
+Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
 {
-    if( !_recursively)
+    const bool recursively   = flags & NodeViewFlag_RECURSIVELY;
+    const bool ignore_self   = flags & NodeViewFlag_IGNORE_SELF;
+    const bool ignore_pinned = flags & NodeViewFlag_IGNORE_PINNED;
+
+    if( !recursively )
     {
         return View::rect( PARENT_SPACE );
     }
 
-    Rect result_rect( Vec2(std::numeric_limits<float>::max()), Vec2(-std::numeric_limits<float>::max()) );
+    std::vector<Rect> rects;
 
-    if ( !_ignoreSelf && is_visible )
+    if ( !ignore_self && is_visible )
     {
-        Rect self_rect = get_rect(false);
-        result_rect.expand_to_include( self_rect );
+        rects.push_back( get_rect( space ) );
     }
 
-    auto enlarge_to_fit_all = [&](PoolID<NodeView> view_id)
+    auto push_view_rect = [&](PoolID<NodeView> view_id)
     {
         NodeView* view = view_id.get();
         if( !view) return;
-
-        if ( view->is_visible && !(view->m_pinned && _ignorePinned) && view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
+        if( !view->is_visible ) return;
+        if( view->m_pinned && ignore_pinned ) return;
+        if( view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
-            Rect child_rect = view->get_rect(true, _ignorePinned, _ignoreMultiConstrained);
-            result_rect.expand_to_include( child_rect );
+            Rect rect = view->get_rect(space, NodeViewFlag_RECURSIVELY | flags);
+            rects.push_back( rect );
         }
     };
 
     auto children = get_adjacent(SlotFlag_CHILD);
-    std::for_each( children.begin(), children.end(), enlarge_to_fit_all);
+    std::for_each( children.begin(), children.end(), push_view_rect );
 
     auto inputs   = get_adjacent(SlotFlag_INPUT);
-    std::for_each( inputs.begin()  , inputs.end()  , enlarge_to_fit_all);
+    std::for_each( inputs.begin()  , inputs.end()  , push_view_rect );
 
+    Rect result = Rect::bbox(rects);
 #ifdef NDBL_DEBUG
-    Rect screen_rect = result_rect;
+    Rect screen_rect = result;
     screen_rect.translate( position( WORLD_SPACE ) - position( PARENT_SPACE ) );
     ImGuiEx::DebugRect(screen_rect.min, screen_rect.max, IM_COL32( 0, 255, 0, 60 ), 2 );
 #endif
 
-    return result_rect;
+    return result;
 }
 
 Rect NodeView::get_rect(
-        const std::vector<NodeView *> &_views,
-        bool _recursive,
-        bool _ignorePinned,
-        bool _ignoreMultiConstrained)
+    const std::vector<NodeView *> &_views,
+    Space space,
+    NodeViewFlags flags
+)
 {
-    Rect rect( Vec2(std::numeric_limits<float>::max()), Vec2(-std::numeric_limits<float>::max()) );
+    std::vector<Rect> rects;
 
     for (auto eachView : _views)
     {
-        if ( eachView->is_visible )
-        {
-            auto each_rect = eachView->get_rect(_recursive, _ignorePinned, _ignoreMultiConstrained);
-            rect.expand_to_include( each_rect );
-        }
+        rects.push_back( eachView->get_rect(space, flags) );
     }
-    return rect;
+
+    return Rect::bbox( rects );
+}
+
+std::vector<Rect> NodeView::get_rects(const std::vector<NodeView*>& _in_views, Space space, NodeViewFlags flags)
+{
+    std::vector<Rect> rects;
+    for (auto each_target : _in_views )
+    {
+        Rect rect;
+        if( !(each_target->pinned() || !each_target->is_visible) )
+        {
+            rect = each_target->get_rect(space, flags );
+        }
+        rects.push_back(rect);
+    }
+    return std::move( rects );
 }
 
 void NodeView::set_expanded_rec(bool _expanded)

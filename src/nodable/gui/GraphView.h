@@ -12,6 +12,7 @@
 
 #include "Action.h"
 #include "Config.h"
+#include "NodeView.h"
 #include "NodeViewConstraint.h"
 #include "SlotView.h"
 #include "core/Scope.h"
@@ -52,7 +53,7 @@ namespace ndbl
         bool        update(float /* delta_time */, i16_t /* subsample_count */);
         void        frame_all_node_views();
         void        frame_selected_node_views();
-        void        translate_all(fw::Vec2 /* delta */, const std::vector<NodeView*>&);
+        void        translate_all(const std::vector<NodeView*>&, fw::Vec2 delta, NodeViewFlags);
         void        unfold(); // unfold the graph until it is stabilized
         void        add_action_to_context_menu( Action_CreateNode* _action);
         void        frame( FrameMode mode );
@@ -60,10 +61,9 @@ namespace ndbl
     private:
         void        draw_grid( ImDrawList*, const Config& ) const;
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
-        void        translate_view(fw::Vec2 vec2);
+        void        pan(fw::Vec2); // translate content
 
         Graph*      m_graph;
-        fw::Vec2 m_view_origin;
         CreateNodeContextMenu m_create_node_context_menu;
 
 		REFLECT_DERIVED_CLASS()

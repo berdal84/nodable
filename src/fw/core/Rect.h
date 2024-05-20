@@ -42,7 +42,7 @@ namespace fw
         float width() const
         { return max.x - min.x; }
 
-        Vec2 center()
+        Vec2 center() const
         { return { min.x + width() / 2.0f, min.y + height() / 2.0f }; }
 
         Vec2 tl() const // Top-Left corner
@@ -56,6 +56,9 @@ namespace fw
 
         Vec2 tr() const // Top-Right corner
         { return { max.x, min.y }; }
+
+        Vec2 left() const
+        { return center() - Vec2{ width() / 2.f, 0.f }; }
 
         Vec2 size() const
         { return { width(), height()}; }
@@ -87,18 +90,32 @@ namespace fw
             max += offset;
         }
 
-        bool contains( Rect other )
+        static bool contains(const Rect& a, const Rect& b )
         {
-            return min.x <= other.min.x && min.y <= other.min.y
-                && max.x >= other.max.x && max.y >= other.max.y;
+            return a.min.x <= b.min.x && a.min.y <= b.min.y
+                && a.max.x >= b.max.x && a.max.y >= b.max.y;
         }
 
-        void expand_to_include( Rect other )
+        static Rect bbox(const Rect& a, const Rect& b ) // Return a rectangle overlapping the two rectangles
         {
-            min.x = glm::min( min.x, other.min.x );
-            max.x = glm::max( max.x, other.max.x );
-            min.y = glm::min( min.y, other.min.y );
-            max.y = glm::max( max.y, other.max.y );
+            return {
+                 {glm::min( a.min.x, b.min.x ), glm::min( a.min.y, b.min.y )},
+                 {glm::max( a.max.x, b.max.x ), glm::max( a.max.y, b.max.y )}
+            };
+        }
+
+        static Rect bbox( std::vector<Rect> rects ) // Return a rectangle overlapping all the rectangles.
+        {
+            if( rects.empty() )
+            {
+                return {};
+            }
+            Rect result = rects[0];
+            for(auto it = rects.begin() +1; it != rects.end(); it++ )
+            {
+                result = Rect::bbox( result, *it );
+            }
+            return result;
         }
     };
 

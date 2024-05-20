@@ -49,6 +49,12 @@ namespace fw
             return result;
         }
 
+        glm::mat3 world_matrix() const
+        { return m_xform.world_matrix(); }
+
+        glm::mat3 model_matrix() const
+        { return m_xform.model_matrix(); }
+
     private:
         XForm2D m_xform;
         Vec2    m_size;

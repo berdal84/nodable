@@ -1,7 +1,8 @@
 #pragma once
-#include "imgui.h"
-#include "core/Component.h"
 #include "NodeViewConstraint.h"
+#include "core/Component.h"
+#include "core/XForm2D.h"
+
 namespace  ndbl
 {
     // forward declarations
@@ -21,7 +22,7 @@ namespace  ndbl
         void            add_constraint(NodeViewConstraint&);
         void            apply_constraints(float _dt);
         void            clear_constraints();
-        void            add_force_to_translate_to(fw::Vec2 target_pos, float _factor, bool _recurse = false);
+        void            translate_to(fw::Space, fw::Vec2 target_pos, float _factor, bool _recurse = false );
         void            add_force(fw::Vec2 force, bool _recurse = false);
         void            apply_forces(float _dt, bool _recurse);
         static void     create_constraints(const std::vector<PoolID<Node>>&);

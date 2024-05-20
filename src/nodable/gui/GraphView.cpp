@@ -302,7 +302,7 @@ bool GraphView::onDraw()
 	*/
 	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !is_any_node_dragged )
     {
-        translate_view(ImGui::GetMouseDragDelta());
+        pan( ImGui::GetMouseDragDelta() );
         ImGui::ResetMouseDragDelta();
     }
 
@@ -446,45 +446,44 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n")
         return;
     }
-    Rect screen = box.rect();
+    Rect frame = parent_content_region.rect();
 
     // get selection rectangle
-    Rect nodes_screen_rect = NodeView::get_rect(_views);
-    nodes_screen_rect.translate( screen.min ); // convert to screen space
+    Rect selection = NodeView::get_rect(_views, WORLD_SPACE);
 
     // debug
-    ImGuiEx::DebugRect(nodes_screen_rect.min, nodes_screen_rect.max, IM_COL32(0, 255, 0, 127 ), 5.0f );
-    ImGuiEx::DebugRect(screen.min, screen.max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
+    ImGuiEx::DebugRect( selection.min, selection.max, IM_COL32(0, 255, 0, 127 ), 5.0f );
+    ImGuiEx::DebugRect( frame.min, frame.max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
 
     // align
     Vec2 translate_vec;
     if (_align_top_left_corner)
     {
         // Align with the top-left corner
-        nodes_screen_rect.expand( Vec2( 20.0f ) ); // add a padding to avoid alignment too close from the border
-        translate_vec = screen.tl() - nodes_screen_rect.tl();
+        selection.expand( Vec2( 20.0f ) ); // add a padding to avoid alignment too close from the border
+        translate_vec = frame.tl() - selection.tl();
     }
     else
     {
-        // Align the center of the node rectangle with the screen center
-        translate_vec = screen.center() - nodes_screen_rect.center();
+        // Align the center of the node rectangle with the frame center
+        translate_vec = frame.center() - selection.center();
     }
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
     //       See if we can use matrices in the shaders of ImGui...
     auto all_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
-    translate_all(translate_vec, all_views);
+    translate_all(all_views, translate_vec, NodeViewFlag_NONE);
 
     // debug
-    ImGuiEx::DebugLine( nodes_screen_rect.center(), (ImVec2) nodes_screen_rect.center() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
+    ImGuiEx::DebugLine( selection.center(), (ImVec2) selection.center() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
-void GraphView::translate_all( Vec2 delta, const std::vector<NodeView*>& _views)
+void GraphView::translate_all(const std::vector<NodeView*>& _views, Vec2 delta, NodeViewFlags flags )
 {
     for (auto node_view : _views )
     {
-        node_view->translate(delta);
+        node_view->translate(delta, flags);
     }
 }
 
@@ -494,10 +493,10 @@ void GraphView::unfold()
     update( config.graph_unfold_dt, config.graph_unfold_iterations );
 }
 
-void GraphView::translate_view( Vec2 delta)
+void GraphView::pan( Vec2 delta)
 {
     auto views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
-    translate_all(delta, views);
+    translate_all(views, delta, NodeViewFlag_NONE);
 
     // TODO: implement a better solution, storing an offset. And then substract it in draw();
     // m_view_origin += delta;

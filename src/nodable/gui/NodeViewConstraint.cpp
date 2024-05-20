@@ -16,22 +16,6 @@ NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 {
 }
 
-/** TODO: move this in a class (not NodeViewConstrain) */
-std::vector<Rect> get_rect(const std::vector<NodeView*>& _in_views)
-{
-    std::vector<Rect> _out;
-    for (auto each_target : _in_views )
-    {
-        Rect rect;
-        if( !(each_target->pinned() || !each_target->is_visible) )
-        {
-            rect = each_target->get_rect( true );
-        }
-        _out.push_back(rect);
-    }
-    return std::move(_out);
-}
-
 void NodeViewConstraint::apply(float _dt)
 {
     // Check if this constrain should apply
@@ -63,7 +47,10 @@ void NodeViewConstraint::apply(float _dt)
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
             Vec2        virtual_cursor    = driver->position( PARENT_SPACE );
             const Node& driver_owner      = *driver->get_owner();
-            auto        target_rects = get_rect( clean_targets );
+            NodeViewFlags flags           = NodeViewFlag_RECURSIVELY
+                                          | NodeViewFlag_IGNORE_PINNED
+                                          | NodeViewFlag_IGNORE_SELF;
+            auto        target_rects      = NodeView::get_rects( clean_targets, WORLD_SPACE, flags );
 
             // Determine horizontal alignment
             //-------------------------------
@@ -132,9 +119,8 @@ void NodeViewConstraint::apply(float _dt)
                 }
 
                 auto target_physics = target_owner.get_component<Physics>();
-                target_physics->add_force_to_translate_to( virtual_cursor + relative_pos + m_offset, config.ui_node_speed, true);
+                target_physics->translate_to( PARENT_SPACE, virtual_cursor + relative_pos + m_offset, config.ui_node_speed, true );
                 virtual_cursor.x += target_rect.width() + config.ui_node_spacing;
-
             }
             break;
         }
@@ -155,9 +141,12 @@ void NodeViewConstraint::apply(float _dt)
                     */
 
                     // compute
-                    auto drivers_rect = NodeView::get_rect(clean_drivers, false);
+                    auto drivers_rect = NodeView::get_rect(clean_drivers, WORLD_SPACE);
 
-                    auto target_rect  = target->get_rect(true, true);
+                    NodeViewFlags flags = NodeViewFlag_RECURSIVELY
+                                        | NodeViewFlag_IGNORE_PINNED
+                                        | NodeViewFlag_IGNORE_MULTICONSTRAINED;
+                    auto target_rect  = target->get_rect(WORLD_SPACE, flags);
                     float target_driver_offset = drivers_rect.max.y - target_rect.min.y;
                     Vec2 new_pos;
                     Vec2 target_position = target->position( PARENT_SPACE );
@@ -165,19 +154,21 @@ void NodeViewConstraint::apply(float _dt)
                     new_pos.y = target_position.y + target_driver_offset + config.ui_node_spacing;
 
                     // apply
-                    target_physics.add_force_to_translate_to(new_pos + m_offset, config.ui_node_speed, true);
+                    target_physics.translate_to( PARENT_SPACE, new_pos + m_offset, config.ui_node_speed, true );
                 }
                 else
                 {
                     /*
                      * Align first target's bbox border left with all driver's bbox border right
                      */
-                    Rect drivers_bbox = NodeView::get_rect(clean_drivers, true);
-                    Vec2 new_position( drivers_bbox.center()
-                                         - Vec2( drivers_bbox.size().x * 0.5f
-                                         + config.ui_node_spacing
-                                         + target->rect( WORLD_SPACE ).size().x * 0.5f, 0 ));
-                    target_physics.add_force_to_translate_to(new_position + m_offset, config.ui_node_speed);
+                    NodeViewFlags flags = NodeViewFlag_RECURSIVELY
+                                        | NodeViewFlag_IGNORE_PINNED
+                                        | NodeViewFlag_IGNORE_MULTICONSTRAINED;
+                    Rect drivers_bbox = NodeView::get_rect(clean_drivers, WORLD_SPACE, flags);
+                    Vec2 new_position = drivers_bbox.left();
+                    new_position.x += config.ui_node_spacing;
+                    new_position.x += target->rect( WORLD_SPACE ).size().x * 0.5f;
+                    target_physics.translate_to( WORLD_SPACE, new_position + m_offset, config.ui_node_speed );
                 }
             }
         }

@@ -26,8 +26,8 @@ namespace fw
         Rect          rect(Space) const; // Get rectangle in a given Space
         void          translate(Vec2 _delta);
 	protected:
-        XForm2D parent_xform;
-        Box2D   box; // Screen space Box2D
+        Box2D parent_content_region;
+        Box2D box; // Screen space Box2D
 		REFLECT_BASE_CLASS()
     };
 }

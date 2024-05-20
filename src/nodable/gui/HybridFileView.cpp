@@ -48,7 +48,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
 
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 auto views = NodeUtils::get_components<NodeView>( _graph->get_node_registry() );
-                graph_view->translate_all( Vec2(-1000.f, -1000.0f) , views);
+                graph_view->translate_all(views, Vec2(-1000.f, -1000.0f), NodeViewFlag_NONE);
 
                 // frame all (33ms delayed)
                 EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, {FRAME_ALL} );
