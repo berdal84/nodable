@@ -45,21 +45,17 @@ bool View::draw()
 {
     // Get the content region's top left corner
     // This will be used later to convert coordinates between WORLD_SPACE and PARENT_SPACE
-    parent_content_region = {};
-    auto region = ImGuiEx::GetContentRegion( WORLD_SPACE );
-    parent_content_region.pos(region.Min);
-    parent_content_region.size(region.GetSize());
+    parent_content_region = ImGuiEx::GetContentRegion( WORLD_SPACE );
 
     return onDraw();
 }
 
 Rect View::rect(Space space) const
 {
-    Vec2 half_size = box.size() / 2.0f;
-    Vec2 screen_pos = position(space);
-    Rect result {
-        screen_pos - half_size,
-        screen_pos + half_size
-    };
-    return result;
+    Rect r =  box.rect();
+    if( space == PARENT_SPACE)
+    {
+        assert(false);
+    }
+    return r;
 }

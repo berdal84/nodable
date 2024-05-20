@@ -41,10 +41,10 @@ namespace fw
         Vec2 pos() const
         { return m_xform.pos(); }
 
-        Rect rect() const
+        Rect rect() const // pivot as center
         {
-            Rect result;
-            result.expand(m_size * 0.5f);
+            Vec2 half_size = m_size / 2.f;
+            Rect result{-half_size, half_size};
             result.translate(m_xform.pos());
             return result;
         }

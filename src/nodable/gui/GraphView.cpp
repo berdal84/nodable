@@ -455,26 +455,26 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     ImGuiEx::DebugRect( frame.min, frame.max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
 
     // align
-    Vec2 translate_vec;
+    Vec2 move;
     if (_align_top_left_corner)
     {
         // Align with the top-left corner
         selection.expand( Vec2( 20.0f ) ); // add a padding to avoid alignment too close from the border
-        translate_vec = frame.tl() - selection.tl();
+        move = frame.tl() - selection.tl();
     }
     else
     {
         // Align the center of the node rectangle with the frame center
-        translate_vec = frame.center() - selection.center();
+        move = frame.center() - selection.center();
     }
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
-    auto all_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
-    translate_all(all_views, translate_vec, NodeViewFlag_NONE);
+    auto node_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
+    translate_all( node_views, move, NodeViewFlag_NONE);
 
     // debug
-    ImGuiEx::DebugLine( selection.center(), (ImVec2) selection.center() + translate_vec, IM_COL32(255, 0, 0, 255 ), 20.0f);
+    ImGuiEx::DebugLine( selection.center(), (ImVec2) selection.center() + move, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
 void GraphView::translate_all(const std::vector<NodeView*>& _views, Vec2 delta, NodeViewFlags flags )

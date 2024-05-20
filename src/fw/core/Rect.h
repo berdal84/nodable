@@ -43,7 +43,7 @@ namespace fw
         { return max.x - min.x; }
 
         Vec2 center() const
-        { return { min.x + width() / 2.0f, min.y + height() / 2.0f }; }
+        { return min + size() / 2.f; }
 
         Vec2 tl() const // Top-Left corner
         { return min; }
@@ -58,7 +58,7 @@ namespace fw
         { return { max.x, min.y }; }
 
         Vec2 left() const
-        { return center() - Vec2{ width() / 2.f, 0.f }; }
+        { return { min.x, center().y }; }
 
         Vec2 size() const
         { return { width(), height()}; }

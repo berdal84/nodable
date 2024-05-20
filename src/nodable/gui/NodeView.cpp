@@ -904,14 +904,14 @@ Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
 
     if( !recursively )
     {
-        return View::rect( PARENT_SPACE );
+        return View::rect(space);
     }
 
     std::vector<Rect> rects;
 
     if ( !ignore_self && is_visible )
     {
-        rects.push_back( get_rect( space ) );
+        rects.push_back( View::rect(space) );
     }
 
     auto push_view_rect = [&](PoolID<NodeView> view_id)
@@ -922,7 +922,7 @@ Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
         if( view->m_pinned && ignore_pinned ) return;
         if( view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
-            Rect rect = view->get_rect(space, NodeViewFlag_RECURSIVELY | flags);
+            Rect rect = view->get_rect(space, flags);
             rects.push_back( rect );
         }
     };
@@ -934,9 +934,10 @@ Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
     std::for_each( inputs.begin()  , inputs.end()  , push_view_rect );
 
     Rect result = Rect::bbox(rects);
+
 #ifdef NDBL_DEBUG
     Rect screen_rect = result;
-    screen_rect.translate( position( WORLD_SPACE ) - position( PARENT_SPACE ) );
+    screen_rect.translate( position(space) - position(PARENT_SPACE) );
     ImGuiEx::DebugRect(screen_rect.min, screen_rect.max, IM_COL32( 0, 255, 0, 60 ), 2 );
 #endif
 
@@ -953,7 +954,8 @@ Rect NodeView::get_rect(
 
     for (auto eachView : _views)
     {
-        rects.push_back( eachView->get_rect(space, flags) );
+        Rect rect = eachView->get_rect(space, flags);
+        rects.push_back( rect );
     }
 
     return Rect::bbox( rects );

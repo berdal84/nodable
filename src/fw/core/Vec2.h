@@ -75,6 +75,9 @@ namespace fw
         Vec2 operator -( float f ) const
         { return *this - Vec2(f); }
 
+        Vec2 operator -() const
+        { return *this * Vec2(-1.f); }
+
         Vec2 operator /( float f ) const
         { return *this / Vec2(f); }
 

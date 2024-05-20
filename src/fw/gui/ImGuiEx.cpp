@@ -216,7 +216,6 @@ void ImGuiEx::EndFrame()
 
 void ImGuiEx::BeginFrame()
 {
-
     FW_EXPECT(!s_is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
     s_is_in_a_frame = true;
     s_is_any_tooltip_open = false;
@@ -230,23 +229,29 @@ void ImGuiEx::BulletTextWrapped(const char* str)
 
 void ImGuiEx::DebugRect(const ImVec2& p_min, const ImVec2& p_max, ImU32 col, float rounding, ImDrawFlags flags, float thickness)
 {
+#ifdef NDBL_DEBUG
     if(!debug) return;
     ImDrawList* list = ImGui::GetForegroundDrawList();
     list->AddRect(p_min, p_max, col, rounding, flags, thickness);
+#endif
 }
 
 void ImGuiEx::DebugCircle(const ImVec2& center, float radius, ImU32 col, int num_segments, float thickness)
 {
+#ifdef NDBL_DEBUG
     if(!debug) return;
     ImDrawList* list = ImGui::GetForegroundDrawList();
     list->AddCircle(center, radius, col, num_segments, thickness);
+#endif
 }
 
 void ImGuiEx::DebugLine(const ImVec2& p1, const ImVec2& p2, ImU32 col, float thickness)
 {
+#ifdef NDBL_DEBUG
     if(!debug) return;
     ImDrawList* list = ImGui::GetForegroundDrawList();
     list->AddLine(p1, p2, col, thickness);
+#endif
 }
 
 void ImGuiEx::Image(Texture* _texture)
