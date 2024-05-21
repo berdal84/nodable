@@ -38,10 +38,10 @@ namespace ndbl
 
         // File related:
 
-        HybridFile*     open_file(const ghc::filesystem::path&_path);
+        HybridFile*     open_file(const std::filesystem::path&_path);
         HybridFile*     new_file();
         void            save_file(HybridFile *pFile) const;
-        void            save_file_as(const ghc::filesystem::path &_path) const;
+        void            save_file_as(const std::filesystem::path &_path) const;
         HybridFile*     add_file(HybridFile *_file);
         void            close_file(HybridFile*);
         bool            is_current(const HybridFile* _file ) const { return current_file == _file; }

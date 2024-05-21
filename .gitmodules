@@ -10,9 +10,6 @@
 [submodule "libs/Observe"]
 	path = libs/Observe
 	url = https://github.com/berdal84/Observe.git
-[submodule "libs/gulrak/filesystem"]
-	path = libs/gulrak/filesystem
-	url = https://github.com/gulrak/filesystem
 [submodule "libs/SDL"]
 	path = libs/SDL
 	url = https://github.com/libsdl-org/SDL

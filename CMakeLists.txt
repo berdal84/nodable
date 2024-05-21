@@ -82,7 +82,6 @@ add_subdirectory(libs/glm EXCLUDE_FROM_ALL)
 add_subdirectory(libs/freetype EXCLUDE_FROM_ALL)
 set(NFD_PORTAL ON) # use portal instead of gtk, read: https://github.com/btzy/nativefiledialog-extended#using-xdg-desktop-portal-on-linux
 add_subdirectory(libs/nativefiledialog-extended EXCLUDE_FROM_ALL) # target is nfd
-add_subdirectory(libs/gulrak/filesystem EXCLUDE_FROM_ALL) # cpp11 compatible filesystem library.
 add_subdirectory(libs/Observe EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL: we don't want to install it.
 add_subdirectory(libs/SDL EXCLUDE_FROM_ALL) # SDL2
 
@@ -112,7 +111,6 @@ include_directories(
     libs/SDL/include
     libs/gl3w
     libs/gl3w/GL
-    libs/gulrak/filesystem/include
     libs/imgui
     libs/whereami/src
     libs/glm
@@ -175,7 +173,6 @@ add_library(
 target_link_libraries(
     framework-core
     PUBLIC
-        ghc_filesystem # c++ compatible std::filesystem::path like API
         Observe        # event system using observer/observable pattern.
         glm            # math
         Threads::Threads
@@ -274,7 +271,6 @@ target_include_directories(
         src/
         libs/imgui/
         libs/SDL/include/
-        libs/gulrak/filesystem/include/
 )
 
 # link APPLE specific libraries

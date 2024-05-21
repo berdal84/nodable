@@ -254,7 +254,7 @@ void CLI::help()
 void CLI::clear()
 {
     m_source_code.clear();
-    system::console::clear();
+    system::clear_console();
     delete m_asm_code;
     m_graph.clear();
     m_virtual_machine.release_program();

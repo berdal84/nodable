@@ -277,19 +277,18 @@ double App::elapsed_time() const
     return ImGui::GetTime();
 }
 
-ghc::filesystem::path App::asset_path(const ghc::filesystem::path& _path)
+std::filesystem::path App::asset_path(const std::filesystem::path& _path)
 {
-    // If the path is absolute, we use it as-is,
-    // Else we append assets path.
-    if( _path.is_absolute() ) return _path;
-
-    return fw::system::get_executable_directory() / "assets" / _path;
+    FW_ASSERT(!_path.is_absolute())
+    auto executable_dir = fw::system::get_executable_directory();
+    return executable_dir / "assets" / _path;
 }
 
-ghc::filesystem::path App::asset_path(const char* _path)
+std::filesystem::path App::asset_path(const char* _path)
 {
-    const ghc::filesystem::path fs_path{_path};
-    return asset_path(fs_path);
+    std::filesystem::path fs_path{_path};
+    return  fs_path.is_absolute() ? fs_path
+                                  : asset_path(fs_path);
 }
 
 void App::handle_events()

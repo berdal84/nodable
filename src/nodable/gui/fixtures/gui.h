@@ -61,12 +61,12 @@ namespace testing
         void save_screenshot(ndbl::Nodable & app, const char* relative_path)
         {
             LOG_MESSAGE("Test", "Taking screenshot ...\n");
-            ghc::filesystem::path path {relative_path};
+            std::filesystem::path path {relative_path};
             if( path.is_relative() )
             {
-                path = ghc::filesystem::path(fw::system::get_executable_directory()) / "screenshots" / path;
+                path = std::filesystem::path(fw::system::get_executable_directory()) / "screenshots" / path;
             }
-            if (!ghc::filesystem::exists(path.parent_path()))
+            if (!std::filesystem::exists(path.parent_path()))
             {
                 create_directories(path.parent_path());
             }

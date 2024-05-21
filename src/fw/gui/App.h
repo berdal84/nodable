@@ -3,7 +3,8 @@
 #include <future>
 #include <memory>
 #include <string>
-#include <ghc/filesystem.hpp>
+#include <filesystem>
+
 #include <observe/event.h>
 
 #include "fw/core/types.h"
@@ -58,8 +59,8 @@ namespace fw
         void               save_screenshot(const char*); // Save current view as PNG file to a given path (relative or absolute)
 
         static int         fps();      // get the current frame per second (un-smoothed)
-        static ghc::filesystem::path asset_path(const ghc::filesystem::path&); // get asset's absolute path (relative path will be converted)
-        static ghc::filesystem::path asset_path(const char*);                  // get asset's absolute path (relative path will be converted)
+        static std::filesystem::path asset_path(const std::filesystem::path&); // get asset's absolute path (relative path will be converted)
+        static std::filesystem::path asset_path(const char*);            // get asset's absolute path (relative path will be converted)
     private:
         const std::chrono::time_point<std::chrono::system_clock>
                         m_start_time = std::chrono::system_clock::now();

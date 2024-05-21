@@ -15,11 +15,11 @@
 using namespace ndbl;
 using namespace fw;
 
-HybridFile::HybridFile(std::string _name)
-        : name(std::move(_name))
-        , is_content_dirty(true)
-        , view(*this)
-        , m_history(&Nodable::get_instance().config.experimental_hybrid_history)
+HybridFile::HybridFile(const char* _name )
+: name(_name)
+, is_content_dirty(true)
+, view(*this)
+, m_history(&Nodable::get_instance().config.experimental_hybrid_history)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 
@@ -46,12 +46,13 @@ HybridFile::HybridFile(std::string _name)
             m_graph_view->add_action_to_context_menu( create_node_action );
         }
     }
-    
+
     LOG_VERBOSE( "File", "Constructor being called.\n")
 }
 
-HybridFile::HybridFile(const ghc::filesystem::path& _path)
-    : HybridFile(_path.filename().string())
+
+HybridFile::HybridFile(const std::filesystem::path& _path)
+: HybridFile(_path.filename().c_str())
 {
     path = _path;
 }

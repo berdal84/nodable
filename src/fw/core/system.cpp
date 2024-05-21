@@ -7,6 +7,7 @@
 #include "log.h"
 
 using namespace fw;
+using fs_path = std::filesystem::path;
 
 void system::open_url_async(std::string _URL)
 {
@@ -37,12 +38,12 @@ void system::open_url_async(std::string _URL)
     std::thread(open_url, _URL).detach();
 }
 
-ghc::filesystem::path system::get_executable_directory()
+fs_path system::get_executable_directory()
 {
     char* path = nullptr;
     int length, dirname_length;
     length = wai_getExecutablePath(nullptr, 0, &dirname_length);
-    ghc::filesystem::path result;
+    fs_path result;
     if (length > 0)
     {
         path = new char[length + 1];
@@ -69,12 +70,12 @@ ghc::filesystem::path system::get_executable_directory()
     return result;
 }
 
-void system::console::clear() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+void system::clear_console() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
 {
 #if defined _WIN32
     const char* command = "cls";
 #elif defined (__LINUX__) || defined(__gnu_linux__) || defined(__linux__) || defined (__APPLE__)
     const char* command = "clear";
 #endif
-    if(::system(command)) LOG_ERROR("fw::system::console", "Unable to clear console");
+    if(std::system(command)) LOG_ERROR("fw::system::console", "Unable to clear console");
 }

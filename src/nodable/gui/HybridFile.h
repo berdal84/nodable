@@ -34,13 +34,13 @@ namespace ndbl
 	{
 	public:
         observe::Event<Graph*>           graph_changed;
-        ghc::filesystem::path            path;    // file path on disk
+        std::filesystem::path            path;    // file path on disk
         std::string                      name;    // friendly name
         bool                             is_content_dirty; // true if changes needs to be saved
         HybridFileView                   view;
 
-		explicit HybridFile(std::string _name);
-		explicit HybridFile(const ghc::filesystem::path& _path);
+        explicit HybridFile(const char*); // name only
+		explicit HybridFile(const std::filesystem::path& _path); // name will be extracted from path, path will be stored too
         ~HybridFile();
 
         bool                             load();

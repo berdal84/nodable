@@ -494,7 +494,7 @@ bool Nodable::on_shutdown()
     return true;
 }
 
-HybridFile *Nodable::open_file(const ghc::filesystem::path& _path)
+HybridFile *Nodable::open_file(const std::filesystem::path& _path)
 {
     auto file = new HybridFile(App::asset_path(_path) );
 
@@ -530,9 +530,9 @@ void Nodable::save_file(HybridFile* _file) const
     LOG_MESSAGE("ndbl::App", "File saved: %s\n", _file->path.c_str());
 }
 
-void Nodable::save_file_as(const ghc::filesystem::path& _path) const
+void Nodable::save_file_as(const std::filesystem::path& _path) const
 {
-    ghc::filesystem::path absolute_path = App::asset_path(_path);
+    std::filesystem::path absolute_path = App::asset_path(_path);
     current_file->path = absolute_path.string();
     current_file->name = absolute_path.filename().string();
     if( !current_file->write_to_disk() )
@@ -640,11 +640,10 @@ void Nodable::reset_program()
 HybridFile *Nodable::new_file()
 {
     m_untitled_file_count++;
-    std::string name{"Untitled_"};
-    name.append(std::to_string(m_untitled_file_count));
-    name.append(".cpp");
 
-    auto* file = new HybridFile(ghc::filesystem::path{name});
+    string32 name;
+    name.append_fmt("Untitled_%i.cpp", m_untitled_file_count);
+    auto* file = new HybridFile(name.c_str());
     file->update_graph_from_text();
 
     return add_file(file);

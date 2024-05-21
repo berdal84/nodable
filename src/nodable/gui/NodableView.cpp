@@ -46,7 +46,7 @@ void NodableView::on_init()
     LOG_VERBOSE("ndbl::NodableView", "on_init ...\n");
 
     // Load splashscreen image
-    ghc::filesystem::path path = App::asset_path(m_app->config.ui_splashscreen_imagePath);
+    std::filesystem::path path = App::asset_path(m_app->config.ui_splashscreen_imagePath);
     m_logo = m_app->texture_manager.load(path.string());
 
     LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
