@@ -3,14 +3,14 @@
 #include <fstream>
 #include <utility>
 
-#include "core/InvokableComponent.h"
-#include "core/LiteralNode.h"
+#include "nodable/core/NodeUtils.h"
+#include "nodable/core/InvokableComponent.h"
+#include "nodable/core/LiteralNode.h"
 #include "GraphView.h"
 #include "History.h"
 #include "Nodable.h"
 #include "NodeView.h"
 #include "Physics.h"
-#include "core/NodeUtils.h"
 
 using namespace ndbl;
 using namespace fw;

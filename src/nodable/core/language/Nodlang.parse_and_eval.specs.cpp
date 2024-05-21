@@ -3,6 +3,7 @@
 #include "fw/core/log.h"
 
 using namespace ndbl;
+using namespace fw;
 
 typedef ::testing::Core Parse_and_eval;
 
@@ -567,7 +568,7 @@ TEST_F(Parse_and_eval, parse_serialize_empty_program_with_space )
 
 TEST_F(Parse_and_eval, parse_serialize_single_line_program_with_a_comment_before )
 {
-    fw::log::set_verbosity("Parser", fw::log::Verbosity_Verbose);
+    log::set_verbosity("Parser", log::Verbosity_Verbose);
     std::string program =
             "// comment\n"
             "int a = 42;";

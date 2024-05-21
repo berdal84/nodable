@@ -1,8 +1,10 @@
 #pragma once
-#include "Event.h"
-#include "core/types.h"
-#include <SDL/include/SDL_keycode.h>
+
+#include <SDL_keycode.h>
 #include <string>
+
+#include "fw/core/types.h"
+#include "Event.h"
 
 namespace fw
 {

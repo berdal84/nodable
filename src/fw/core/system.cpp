@@ -1,14 +1,14 @@
 #include "system.h"
 
-#include <whereami/src/whereami.h> // to locate executable directory
-#include <cstdlib>                 // for ::system
-#include <thread>                  // for std::thread
+#include <whereami.h> // to locate executable directory
+#include <cstdlib>    // for ::system
+#include <thread>     // for std::thread
 
 #include "log.h"
 
 using namespace fw;
 
-void fw::system::open_url_async(std::string _URL)
+void system::open_url_async(std::string _URL)
 {
     auto open_url = [](std::string _URL)
     {
@@ -37,7 +37,7 @@ void fw::system::open_url_async(std::string _URL)
     std::thread(open_url, _URL).detach();
 }
 
-ghc::filesystem::path fw::system::get_executable_directory()
+ghc::filesystem::path system::get_executable_directory()
 {
     char* path = nullptr;
     int length, dirname_length;
@@ -69,7 +69,7 @@ ghc::filesystem::path fw::system::get_executable_directory()
     return result;
 }
 
-void fw::system::console::clear() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
+void system::console::clear() /* cf: https://stackoverflow.com/questions/6486289/how-can-i-clear-console */
 {
 #if defined _WIN32
     const char* command = "cls";

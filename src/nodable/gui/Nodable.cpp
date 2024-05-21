@@ -26,17 +26,16 @@
 
 using namespace ndbl;
 using namespace fw;
-using fw::View;
 
 Nodable *Nodable::s_instance = nullptr;
 
 template<typename T>
-static fw::func_type* create_variable_node_signature()
-{ return fw::func_type_builder<T(T)>::with_id("variable"); }
+static func_type* create_variable_node_signature()
+{ return func_type_builder<T(T)>::with_id("variable"); }
 
 template<typename T>
-static fw::func_type* create_literal_node_signature()
-{ return fw::func_type_builder<T(/*void*/)>::with_id("literal"); }
+static func_type* create_literal_node_signature()
+{ return func_type_builder<T(/*void*/)>::with_id("literal"); }
 
 Nodable::Nodable()
     : App(config.common, new NodableView(this) )
@@ -45,7 +44,7 @@ Nodable::Nodable()
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
-    fw::type_register::log_statistics();
+    type_register::log_statistics();
 
     // set this instance as s_instance to access it via App::get_instance()
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
@@ -65,8 +64,8 @@ Nodable::Nodable()
         node->add_component( physics_id );
 
         // Set fill_color
-        ImVec4* fill_color;
-        if ( fw::extends<VariableNode>( node.get() ) )
+        Vec4* fill_color;
+        if ( extends<VariableNode>( node.get() ) )
         {
             fill_color = &config.ui_node_variableColor;
         }
@@ -78,11 +77,11 @@ Nodable::Nodable()
         {
             fill_color = &config.ui_node_instructionColor;
         }
-        else if ( fw::extends<LiteralNode>( node.get() ) )
+        else if ( extends<LiteralNode>( node.get() ) )
         {
             fill_color = &config.ui_node_literalColor;
         }
-        else if ( fw::extends<IConditional>( node.get() ) )
+        else if ( extends<IConditional>( node.get() ) )
         {
             fill_color = &config.ui_node_condStructColor;
         }
@@ -107,7 +106,7 @@ bool Nodable::on_init()
 {
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
 
-    fw::Pool::init();
+    Pool::init();
 
     // Bind commands to shortcuts
     action_manager.new_action<Event_DeleteNode>( "Delete", Shortcut{ SDLK_DELETE, KMOD_NONE } );
@@ -153,7 +152,7 @@ bool Nodable::on_init()
     const Nodlang& language = Nodlang::get_instance();
     for ( auto& each_fct: language.get_api() )
     {
-        const fw::func_type* func_type = each_fct->get_type();
+        const func_type* func_type = each_fct->get_type();
         std::string label;
         language.serialize_func_sig( label, func_type );
         action_manager.new_action<Event_CreateNode>( label.c_str(), Shortcut{}, EventPayload_CreateNode{ NodeType_INVOKABLE, func_type } );
@@ -202,33 +201,33 @@ void Nodable::on_update()
                 break;
             }
 
-            case fw::EventID_REQUEST_EXIT:
+            case EventID_REQUEST_EXIT:
             {
                 should_stop = true;
                 break;
             }
 
-            case fw::EventID_FILE_CLOSE:
+            case EventID_FILE_CLOSE:
             {
                 if(current_file) close_file(current_file);
                 break;
             }
-            case fw::EventID_UNDO:
+            case EventID_UNDO:
             {
                 if(curr_file_history) curr_file_history->undo();
                 break;
             }
 
-            case fw::EventID_REDO:
+            case EventID_REDO:
             {
                 if(curr_file_history) curr_file_history->redo();
                 break;
             }
 
-            case fw::EventID_FILE_BROWSE:
+            case EventID_FILE_BROWSE:
             {
                 std::string path;
-                if( m_view->pick_file_path(path, fw::AppView::DIALOG_Browse))
+                if( m_view->pick_file_path(path, AppView::DIALOG_Browse))
                 {
                     open_file(path);
                     break;
@@ -238,18 +237,18 @@ void Nodable::on_update()
 
             }
 
-            case fw::EventID_FILE_NEW:
+            case EventID_FILE_NEW:
             {
                 new_file();
                 break;
             }
 
-            case fw::EventID_FILE_SAVE_AS:
+            case EventID_FILE_SAVE_AS:
             {
                 if (current_file)
                 {
                     std::string path;
-                    if( m_view->pick_file_path(path, fw::AppView::DIALOG_SaveAs))
+                    if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
                     {
                         save_file_as(path);
                         break;
@@ -258,7 +257,7 @@ void Nodable::on_update()
                 break;
             }
 
-            case fw::EventID_FILE_SAVE:
+            case EventID_FILE_SAVE:
             {
                 if (current_file)
                 {
@@ -269,7 +268,7 @@ void Nodable::on_update()
                     else
                     {
                         std::string path;
-                        if( m_view->pick_file_path(path, fw::AppView::DIALOG_SaveAs))
+                        if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
                         {
                             save_file_as(path);
                         }
@@ -465,7 +464,7 @@ void Nodable::on_update()
                 // set new_node's view position, select it
                 if ( auto view = new_node_id->get_component<NodeView>() )
                 {
-                    view->set_position( _event->data.node_view_local_pos, fw::Space_Local );
+                    view->position( _event->data.node_view_local_pos, PARENT_SPACE );
                     NodeView::set_selected( view );
                 }
                 break;
@@ -490,14 +489,14 @@ bool Nodable::on_shutdown()
     }
     LOG_VERBOSE("ndbl::App", "on_shutdown " OK "\n");
 
-    fw::Pool::shutdown();
+    Pool::shutdown();
 
     return true;
 }
 
 HybridFile *Nodable::open_file(const ghc::filesystem::path& _path)
 {
-    auto file = new HybridFile(fw::App::asset_path(_path) );
+    auto file = new HybridFile(App::asset_path(_path) );
 
     if ( !file->load() )
     {
@@ -515,7 +514,7 @@ HybridFile *Nodable::add_file(HybridFile* _file)
     FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
-    event_manager.dispatch( fw::EventID_FILE_OPENED );
+    event_manager.dispatch( EventID_FILE_OPENED );
     return _file;
 }
 
@@ -533,7 +532,7 @@ void Nodable::save_file(HybridFile* _file) const
 
 void Nodable::save_file_as(const ghc::filesystem::path& _path) const
 {
-    ghc::filesystem::path absolute_path = fw::App::asset_path(_path);
+    ghc::filesystem::path absolute_path = App::asset_path(_path);
     current_file->path = absolute_path.string();
     current_file->name = absolute_path.filename().string();
     if( !current_file->write_to_disk() )

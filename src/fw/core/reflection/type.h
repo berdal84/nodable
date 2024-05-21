@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "type_register.h"
-#include "core/assertions.h"
+#include "fw/core/assertions.h"
 
 namespace fw
 {

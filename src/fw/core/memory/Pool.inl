@@ -128,7 +128,7 @@ namespace fw
 
     inline Pool* Pool::get_pool()
     {
-#ifdef NDBL_DEBUG
+#ifdef FW_DEBUG
         FW_EXPECT(s_current_pool != nullptr, "No pool. Did you called Pool::init() ?")
 #endif
         return s_current_pool;
@@ -153,7 +153,7 @@ namespace fw
     template<typename T>
     inline T* Pool::get(PoolID<T> _id)
     {
-#if NDBL_NO_POOL
+#if FW_NO_POOL
         return (T*)(u64_t)_id;
 #else
         return get<T>( (u64_t)_id );
@@ -175,7 +175,7 @@ namespace fw
     template<typename Type>
     inline Type* PoolID<Type>::get() const // Return a pointer to the data from the Pool having an id == this->id
     {
-#ifdef NDBL_NO_POOL
+#ifdef FW_NO_POOL
         return (Type*)(u64_t)id;
 #else
         if( id ) return Pool::get_pool()->get<Type>( id.m_value );
@@ -213,7 +213,7 @@ namespace fw
     template<typename T, typename ...Args>
     inline PoolID<T> Pool::create(Args... args)
     {
-#ifdef NDBL_NO_POOL
+#ifdef FW_NO_POOL
         T* instance = new T(args...);
         PoolID<T> id{(u64_t)instance};
         instance->poolid( id );
@@ -231,7 +231,7 @@ namespace fw
     template<typename T>
     inline PoolID<T> Pool::create()
     {
-#ifdef NDBL_NO_POOL
+#ifdef FW_NO_POOL
         T* instance = new T();
         PoolID<T> id{(u64_t)instance};
         instance->poolid( id );
@@ -304,7 +304,7 @@ namespace fw
     template<typename T>
     inline void Pool::destroy(PoolID<T> _id )
     {
-#ifdef NDBL_NO_POOL
+#ifdef FW_NO_POOL
         delete _id.get();
 #else
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)

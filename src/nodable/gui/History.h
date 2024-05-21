@@ -4,17 +4,16 @@
 #include <ctime>
 #include <string>
 #include <memory>
-#include <ImGuiColorTextEdit/TextEditor.h>
-
+#include "fw/gui/ImGuiEx.h"
 #include "fw/core/log.h"
 #include "fw/core/reflection/reflection"
 
-#include "core/Component.h"
-#include "core/Graph.h"
-#include "core/Property.h"
+#include "nodable/core/Component.h"
+#include "nodable/core/Graph.h"
+#include "nodable/core/Property.h"
 
-#include "Command.h"
-#include "types.h"
+#include "nodable/gui/Command.h"
+#include "nodable/gui/types.h"
 
 namespace ndbl
 {

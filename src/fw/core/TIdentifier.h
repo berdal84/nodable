@@ -8,7 +8,7 @@ namespace fw
     struct _invalid_id
     {
         static_assert( std::is_unsigned_v<UnsignedT>, "UnsignedT should be unsigned" );
-#if NDBL_NO_POOL
+#if FW_NO_POOL
         static constexpr UnsignedT value = 0; // Is an address
 #else
         static constexpr UnsignedT value = ~UnsignedT(0);

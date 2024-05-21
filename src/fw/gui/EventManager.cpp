@@ -1,11 +1,13 @@
 #include "EventManager.h"
-#include "core/assertions.h"
-#include "core/async.h"
-#include "core/log.h"
-#include "core/reflection/type.h"
-#include <SDL/include/SDL_keyboard.h>
+
+#include <SDL_keyboard.h>
 #include <future>
 #include <thread>
+
+#include "fw/core/assertions.h"
+#include "fw/core/async.h"
+#include "fw/core/log.h"
+#include "fw/core/reflection/type.h"
 
 using namespace fw;
 
@@ -57,7 +59,7 @@ IEvent* EventManager::dispatch( EventID _event_id )
 
 void EventManager::dispatch_delayed(u64_t delay, IEvent* event)
 {
-    fw::async::get_instance().add_task(
+    async::get_instance().add_task(
         std::async(std::launch::async, [this, event, delay]() -> void {
             std::this_thread::sleep_for(std::chrono::milliseconds{delay});
             dispatch(event);

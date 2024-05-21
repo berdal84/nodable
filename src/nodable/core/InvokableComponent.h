@@ -4,10 +4,10 @@
 #include "fw/core/types.h"
 #include "fw/core/reflection/reflection"
 
-#include "core/DirectedEdge.h"
-#include "core/Component.h"
-#include "core/Property.h"
-#include "core/Token.h"
+#include "DirectedEdge.h"
+#include "Component.h"
+#include "Property.h"
+#include "Token.h"
 
 namespace ndbl
 {

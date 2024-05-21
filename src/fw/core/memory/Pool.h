@@ -1,6 +1,5 @@
 #pragma once
-#include "TIdentifier.h"
-#include "assertions.h"
+
 #include <algorithm>
 #include <cstdlib>
 #include <set>
@@ -10,8 +9,11 @@
 #include <vector>
 #include <functional>
 
-#if NDBL_DEBUG
-#include "reflection/type.h"
+#include "fw/core/TIdentifier.h"
+#include "fw/core/assertions.h"
+
+#ifdef FW_DEBUG
+#include "fw/core/reflection/type.h"
 #endif
 
 #define POOL_REGISTRABLE( Class ) \

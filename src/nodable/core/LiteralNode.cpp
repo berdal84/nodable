@@ -1,13 +1,14 @@
 #include "LiteralNode.h"
 
 using namespace ndbl;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<LiteralNode>("LiteralNode").extends<Node>();
+    registration::push_class<LiteralNode>("LiteralNode").extends<Node>();
 }
 
-LiteralNode::LiteralNode(const fw::type* _type)
+LiteralNode::LiteralNode(const type* _type)
 : Node()
 , m_type( _type )
 {

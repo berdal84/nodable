@@ -7,14 +7,16 @@
 #include <rapidjson/stringbuffer.h>
 
 #include "fw/core/assertions.h"
-#include "fw/core/Pool.h"
-#include "core/Node.h"
+#include "fw/core/memory/Pool.h"
+
+#include "Node.h"
 
 using namespace ndbl;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<DataAccess>("DataAccess")
+    registration::push_class<DataAccess>("DataAccess")
             .extends<Component>();
 }
 
@@ -30,7 +32,7 @@ bool DataAccess::update()
 		writer.Key(property.get_name().c_str());
 
         auto& value = *property.value();
-    	const fw::type* type = value.get_type();
+    	const type* type = value.get_type();
 
     	     if (type->is<std::string>() ) writer.String((const char*)value);
         else if (type->is<double>() )      writer.Double((double)value);

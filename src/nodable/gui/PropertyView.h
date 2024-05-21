@@ -1,14 +1,15 @@
 #pragma once
 
-#include "core/Node.h"
-#include "core/VariableNode.h"
-#include "fw/core/Pool.h"
-#include "imgui.h"
-#include "imgui_internal.h"
 #include <unordered_map>
 
-namespace ndbl {
+#include "fw/core/geometry/Rect.h"
+#include "fw/core/memory/Pool.h"
 
+#include "nodable/core/Node.h"
+#include "nodable/core/VariableNode.h"
+
+namespace ndbl
+{
     // forward declarations
     class Property;
     class NodeView;
@@ -23,7 +24,7 @@ namespace ndbl {
     public:
         ID<Property>     property_id;
         PoolID<NodeView> node_view;
-        ImRect           screen_rect;
+        fw::Rect         screen_rect;
         bool             show_input;
         bool             touched;
 

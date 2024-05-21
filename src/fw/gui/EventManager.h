@@ -6,10 +6,11 @@
 #include <map>
 #include <utility>
 
+#include "fw/core/reflection/func_type.h"
+#include "fw/core/types.h"
+
 #include "Action.h"
 #include "Event.h"
-#include "core/reflection/func_type.h"
-#include "core/types.h"
 
 namespace fw
 {

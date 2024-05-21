@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ImGuiColorTextEdit/TextEditor.h>
 #include <observe/observer.h>
 
 #include "fw/core/reflection/reflection"
@@ -43,7 +42,7 @@ namespace ndbl
 		~HybridFileView() override = default;
 
 		void                           init();
-        bool                           draw() override;
+        bool                           onDraw() override;
         bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
         bool                           is_graph_dirty() const { return m_is_graph_dirty; }
@@ -63,7 +62,7 @@ namespace ndbl
         void                           clear_overlay();
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           refresh_overlay(Condition condition);
-        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, ImRect rect,  ImVec2 position);
+        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, fw::Rect rect,  fw::Vec2 position);
         size_t                         size() const;
 
     private:

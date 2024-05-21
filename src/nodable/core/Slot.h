@@ -1,7 +1,7 @@
 #pragma once
 #include "SlotFlag.h"
+#include "fw/core/memory/Pool.h"
 #include "fw/core/types.h"
-#include "fw/core/Pool.h"
 #include <vector>
 
 namespace ndbl

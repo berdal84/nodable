@@ -8,6 +8,7 @@
 #include "fw/core/types.h"
 
 using namespace ndbl;
+using namespace fw;
 
 namespace // anonymous, accessible only in that file
 {
@@ -22,7 +23,7 @@ namespace // anonymous, accessible only in that file
     double _secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
     double _sin(double n) { return sin(n); }
     std::string _to_string(bool b) { return b ? "true" : "false"; }
-    std::string _to_string(double n) { return fw::format::number(n); }
+    std::string _to_string(double n) { return format::number(n); }
     std::string _to_string(i32_t i) { return std::to_string(i); }
     std::string _to_string(std::string s) { return s; }
     template<typename T, typename U>
@@ -34,7 +35,7 @@ namespace // anonymous, accessible only in that file
     template<typename T>
     T _plus(T a, T b){ return a + T(b); }
     template<>
-    std::string _plus(std::string left, double right) { return left + fw::format::number(right); }
+    std::string _plus(std::string left, double right) { return left + format::number(right); }
     template<>
     std::string _plus(std::string left, i32_t right) { return left + std::to_string(right); }
     template<typename T, typename U>
@@ -73,7 +74,7 @@ namespace // anonymous, accessible only in that file
 
 REGISTER
 {
-    fw::registration::push_class<Nodlang_math>("Nodlang_math")
+    registration::push_class<Nodlang_math>("Nodlang_math")
         .add_method<double(double, i32_t)> (&_plus, "+", "plus")
         .add_method<double(double, double)>(&_plus, "+", "plus")
         .add_method<i32_t(i32_t, i32_t)>   (&_plus, "+", "plus")

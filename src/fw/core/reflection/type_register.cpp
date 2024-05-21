@@ -1,7 +1,7 @@
 #include "type_register.h"
 #include "type.h"
-#include "core/log.h"
-#include "core/assertions.h"
+#include "fw/core/log.h"
+#include "fw/core/assertions.h"
 
 using namespace fw;
 

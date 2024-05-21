@@ -13,6 +13,7 @@
 #include "language/Nodlang.h"
 
 using namespace ndbl;
+using namespace fw;
 
 Graph::Graph(
     const NodeFactory* _factory
@@ -113,33 +114,33 @@ void Graph::ensure_has_root()
     }
 }
 
-PoolID<VariableNode> Graph::create_variable(const fw::type *_type, const std::string& _name, PoolID<Scope> _scope)
+PoolID<VariableNode> Graph::create_variable(const type *_type, const std::string& _name, PoolID<Scope> _scope)
 {
     PoolID<VariableNode> node = m_factory->create_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
-PoolID<Node> Graph::create_abstract_function(const fw::func_type* _invokable, bool _is_operator)
+PoolID<Node> Graph::create_abstract_function(const func_type* _invokable, bool _is_operator)
 {
     PoolID<Node> node = m_factory->create_abstract_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-PoolID<Node> Graph::create_function(const fw::iinvokable* _invokable, bool _is_operator)
+PoolID<Node> Graph::create_function(const iinvokable* _invokable, bool _is_operator)
 {
     PoolID<Node> node = m_factory->create_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-PoolID<Node> Graph::create_abstract_operator(const fw::func_type* _invokable)
+PoolID<Node> Graph::create_abstract_operator(const func_type* _invokable)
 {
     return create_abstract_function(_invokable, true);
 }
 
-PoolID<Node> Graph::create_operator(const fw::iinvokable* _invokable)
+PoolID<Node> Graph::create_operator(const iinvokable* _invokable)
 {
 	return create_function(_invokable, true);
 }
@@ -168,7 +169,7 @@ void Graph::destroy(PoolID<Node> _id)
     };
 
     // if it is a variable, we remove it from its scope
-    if ( auto* node_variable = fw::cast<VariableNode>(node) )
+    if ( auto* node_variable = cast<VariableNode>(node) )
     {
         if ( IScope* scope = node_variable->get_scope().get() )
         {
@@ -211,9 +212,9 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     FW_EXPECT( in_prop, "tail property must be defined" )
     FW_EXPECT( out_prop, "head property must be defined" )
     FW_EXPECT( in_prop != out_prop, "Can't connect same properties!" )
-    const fw::type* out_type = out_prop->get_type();
-    const fw::type* in_type  = in_prop->get_type();
-    FW_EXPECT( fw::type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
+    const type* out_type = out_prop->get_type();
+    const type* in_type  = in_prop->get_type();
+    FW_EXPECT( type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
 
     // case 1: merge orphan slot
     if ( _out.get_node() == nullptr ) // if dependent is orphan
@@ -505,14 +506,14 @@ PoolID<Node> Graph::create_node()
     return node;
 }
 
-PoolID<LiteralNode> Graph::create_literal(const fw::type *_type)
+PoolID<LiteralNode> Graph::create_literal(const type *_type)
 {
     PoolID<LiteralNode> node = m_factory->create_literal(_type);
     add(node);
     return node;
 }
 
-PoolID<Node> Graph::create_node( NodeType _type, const fw::func_type* _signature )
+PoolID<Node> Graph::create_node( NodeType _type, const func_type* _signature )
 {
     switch ( _type )
     {
@@ -550,7 +551,7 @@ PoolID<Node> Graph::create_node( NodeType _type, const fw::func_type* _signature
     }
 }
 
-PoolID<VariableNode> Graph::create_variable_decl(const fw::type* _type, const char*  _name, PoolID<Scope>  _scope)
+PoolID<VariableNode> Graph::create_variable_decl(const type* _type, const char*  _name, PoolID<Scope>  _scope)
 {
     if( !_scope)
     {

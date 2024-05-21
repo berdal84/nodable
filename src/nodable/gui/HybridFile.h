@@ -1,7 +1,5 @@
 #pragma once
 
-#include <ImGuiColorTextEdit/TextEditor.h>// for coordinates
-#include <SDL.h>
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
@@ -11,11 +9,11 @@
 #include "fw/core/reflection/reflection"
 #include "fw/core/log.h"
 
-#include "core/NodeFactory.h"
-#include "HybridFileView.h"
-#include "History.h"
-#include "Nodable.h"
-#include "types.h"
+#include "nodable/core/NodeFactory.h"
+#include "nodable/gui/HybridFileView.h"
+#include "nodable/gui/History.h"
+#include "nodable/gui/Nodable.h"
+#include "nodable/gui/types.h"
 
 namespace ndbl
 {

@@ -7,9 +7,9 @@
 #include "fw/core/reflection/reflection"
 #include "fw/gui/App.h"
 
-#include "core/VirtualMachine.h"
-#include "core/NodeFactory.h"
-#include "core/language/Nodlang.h"
+#include "nodable/core/VirtualMachine.h"
+#include "nodable/core/NodeFactory.h"
+#include "nodable/core/language/Nodlang.h"
 
 #include "NodableView.h"
 #include "Config.h"

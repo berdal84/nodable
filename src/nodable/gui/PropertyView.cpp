@@ -1,8 +1,9 @@
 #include "PropertyView.h"
+
+#include "nodable/core/language/Nodlang.h"
+#include "nodable/core/Node.h"
 #include "NodeView.h"
 #include "SlotView.h"
-#include "core/language/Nodlang.h"
-#include "nodable/core/Node.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -63,5 +64,5 @@ VariableNode* PropertyView::get_connected_variable() const
         return nullptr;
     }
 
-    return fw::cast<VariableNode>( adjacent_slot->node.get() );
+    return cast<VariableNode>( adjacent_slot->node.get() );
 }

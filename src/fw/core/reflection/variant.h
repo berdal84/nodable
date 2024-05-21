@@ -4,11 +4,11 @@
 #include <array>
 #include <memory> // std::shared_ptr
 
-#include "../types.h"
-#include "../assertions.h"
+#include "fw/core/assertions.h"
+#include "fw/core/types.h"
+#include "fw/core/memory/Pool.h"
 #include "qword.h"
 #include "type.h"
-#include "core/Pool.h"
 
 namespace fw
 {

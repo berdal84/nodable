@@ -3,17 +3,18 @@
 #include "Scope.h"
 
 using namespace ndbl;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<VariableNode>("VariableNode").extends<Node>();
+    registration::push_class<VariableNode>("VariableNode").extends<Node>();
 }
 
 
 VariableNode::VariableNode()
 : Node("Variable")
 , m_is_declared(false)
-, m_type(fw::type::any())
+, m_type(type::any())
 {
 }
 
@@ -44,12 +45,12 @@ PoolID<Scope> VariableNode::get_scope()
     return scope_node ? scope_node->get_component<Scope>() : PoolID<Scope>{};
 }
 
-const fw::type *VariableNode::type() const
+const type *VariableNode::type() const
 {
     return property()->get_type();
 }
 
-fw::variant* VariableNode::value()
+variant* VariableNode::value()
 {
     return property()->value();
 }

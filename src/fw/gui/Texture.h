@@ -1,7 +1,9 @@
 #pragma once
 
-#include "core/types.h"
 #include "gl3w/GL/gl3w.h"
+
+#include "fw/core/geometry/Vec2.h"
+#include "fw/core/types.h"
 
 namespace fw
 {
@@ -21,5 +23,11 @@ namespace fw
         std::vector<unsigned char> buffer; // Image buffer loaded into memory
         u32_t width;                       // in pixels
         u32_t height;                      // in pixels
+
+        Vec2 size() const
+        { return { (float)width, (float)height }; }
+
+        u64_t id() const
+        { return gl_handler; }
     };
 }

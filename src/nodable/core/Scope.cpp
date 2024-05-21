@@ -4,7 +4,7 @@
 #include <algorithm> // for std::find_if
 
 #include "fw/core/log.h"
-#include "fw/core/Pool.h"
+#include "fw/core/memory/Pool.h"
 
 #include "ForLoopNode.h"
 #include "IScope.h"
@@ -12,11 +12,11 @@
 #include "VariableNode.h"
 
 using namespace ndbl;
-using fw::PoolID;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<Scope>("Scope");
+    registration::push_class<Scope>("Scope");
 }
 
 Scope::Scope()

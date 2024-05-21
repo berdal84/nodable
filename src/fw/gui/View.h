@@ -1,7 +1,10 @@
 #pragma once
 
-#include "ImGuiEx.h"
-#include "../core/reflection/reflection"
+#include "fw/core/geometry/Box2D.h"
+#include "fw/core/geometry/Rect.h"
+#include "fw/core/reflection/reflection"
+
+#include "ImGuiEx.h" // ImGui with extensions
 
 namespace fw
 {
@@ -12,18 +15,20 @@ namespace fw
 	class View
 	{
 	public:
+        bool is_visible;
+        bool is_hovered;
+
 		View();
 		virtual ~View() = default;
-        virtual bool  draw() = 0;
-		void          set_visible(bool _visibility);                 // show/hide view
-        bool          is_visible()const;                             // check if visible
-		bool          is_hovered()const;                             // check if hovered
+        bool          draw();
+        virtual bool  onDraw() = 0;
+        fw::Vec2      position(Space) const; // Get position in a given Space
+        void          position(Vec2 _delta, Space ); // Set position in a given Space
+        Rect          rect(Space) const; // Get rectangle in a given Space
+        void          translate(Vec2 _delta);
 	protected:
-        static void   use_available_region(View* , ImRect rect = ImRect());  // update m_xxx_space_content_region with available space or given rectangle
-        bool     m_is_visible;
-		bool     m_is_hovered;
-        ImRect   m_screen_space_content_region;  // view rectangle in screen space coordinates
-        ImRect   m_local_space_content_region;  // view rectangle in window space coordinates
+        Box2D parent_content_region;
+        Box2D box; // Screen space Box2D
 		REFLECT_BASE_CLASS()
     };
 }

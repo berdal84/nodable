@@ -1,5 +1,5 @@
 #include "nodable/core/Scope.h"
-#include "core/fixtures/core.h"
+#include "fixtures/core.h"
 #include <gtest/gtest.h>
 
 using namespace ndbl;

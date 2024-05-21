@@ -2,8 +2,9 @@
 
 #include <nfd.h>
 
-#include "core/log.h"
-#include "core/system.h"
+#include "fw/core/log.h"
+#include "fw/core/system.h"
+
 #include "EventManager.h"
 #include "App.h"
 #include "TextureManager.h"
@@ -214,14 +215,14 @@ void AppView::draw_status_window()
 {
     if (ImGui::Begin(k_status_window_name))
     {
-        if (!fw::log::get_messages().empty())
+        if (!log::get_messages().empty())
         {
-            const std::deque<fw::log::Message> &messages = fw::log::get_messages();
+            const std::deque<log::Message> &messages = log::get_messages();
             auto it = messages.rend() - std::min(m_app->config.log_tooltip_max_count, messages.size());
             while (it != messages.rend())
             {
                 auto &each_message = *it;
-                ImGui::TextColored(m_app->config.log_color[each_message.verbosity], "%s", each_message.text.c_str());
+                ImGui::TextColored((ImVec4)m_app->config.log_color[each_message.verbosity], "%s", each_message.text.c_str());
                 ++it;
             }
 

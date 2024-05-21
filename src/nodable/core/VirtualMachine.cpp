@@ -17,25 +17,25 @@ void CPU::clear_registers()
 {
     for( size_t id = 0; id < std::size( m_register ); ++id )
     {
-        write( (Register)id, fw::qword());
+        write( (Register)id, qword());
     }
 }
 
-fw::qword CPU::read(Register _id)const
+qword CPU::read(Register _id)const
 {
     LOG_VERBOSE("VM::CPU", "read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
-fw::qword& CPU::read_write(Register _id)
+qword& CPU::read_write(Register _id)
 {
     LOG_VERBOSE("VM::CPU", "read_write register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
-void CPU::write(Register _id, fw::qword _data)
+void CPU::write(Register _id, qword _data)
 {
-    fw::qword& mem_dst = read_write(_id);
+    qword& mem_dst = read_write(_id);
     mem_dst = _data;
     LOG_VERBOSE("VM::CPU", "write register %s (value: %s)\n", assembly::to_string(_id), mem_dst.to_string().c_str())
 }
@@ -51,7 +51,7 @@ VirtualMachine::VirtualMachine()
 
 void VirtualMachine::advance_cursor(i64_t _amount)
 {
-    fw::qword eip = m_cpu.read(Register::eip);
+    qword eip = m_cpu.read(Register::eip);
     eip.u64 += _amount;
     m_cpu.write(Register::eip, eip );
 }
@@ -115,9 +115,9 @@ bool VirtualMachine::_stepOver()
     {
         case opcode::cmp:
         {
-            fw::qword left  = m_cpu.read(static_cast<Register>(next_instr->cmp.left.u8));  // dereference registers, get their value
-            fw::qword right = m_cpu.read(static_cast<Register>(next_instr->cmp.right.u8));
-            fw::qword result;
+            qword left  = m_cpu.read(static_cast<Register>(next_instr->cmp.left.u8));  // dereference registers, get their value
+            qword right = m_cpu.read(static_cast<Register>(next_instr->cmp.right.u8));
+            qword result;
             result.set<bool>(left.b == right.b);
             m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
@@ -127,7 +127,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_qword:
         {
-            fw::qword& qword = *next_instr->uref.ptr;
+            qword& qword = *next_instr->uref.ptr;
             m_cpu.write(Register::rax, qword );
 
             const type* ptr_type = next_instr->uref.type;
@@ -231,7 +231,7 @@ bool VirtualMachine::_stepOver()
                 }
             };
 
-            if( auto variable = fw::cast<VariableNode>(node))
+            if( auto variable = cast<VariableNode>(node))
             {
                 // If variable is not initialized, we compute its initial value from its inputs
                 variant* variant = variable->value();
@@ -268,7 +268,7 @@ bool VirtualMachine::_stepOver()
 
         case opcode::jne:
         {
-            fw::qword rax = m_cpu.read(Register::rax);
+            qword rax = m_cpu.read(Register::rax);
             if ( rax.b )
             {
                 advance_cursor();
@@ -353,11 +353,11 @@ void VirtualMachine::debug_program()
 
 bool VirtualMachine::is_there_a_next_instr() const
 {
-    const fw::qword& eip = m_cpu.read(Register::eip);
+    const qword& eip = m_cpu.read(Register::eip);
     return eip.u64 < m_program_asm_code->size();
 }
 
-fw::qword VirtualMachine::get_last_result()const
+qword VirtualMachine::get_last_result()const
 {
     return m_cpu.read(Register::rax);
 }
@@ -381,7 +381,7 @@ bool VirtualMachine::load_program(const Code *_code)
     return m_program_asm_code && m_program_asm_code->size() != 0;
 }
 
-fw::qword VirtualMachine::read_cpu_register(Register _register)const
+qword VirtualMachine::read_cpu_register(Register _register)const
 {
     return m_cpu.read(_register);
 }

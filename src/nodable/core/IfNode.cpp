@@ -2,11 +2,11 @@
 #include "IfNode.h"
 
 using namespace ndbl;
+using namespace fw;
 
 REGISTER
 {
-    using namespace ndbl;
-    fw::registration::push_class<IfNode>("IfNode")
+    registration::push_class<IfNode>("IfNode")
         .extends<Node>()
         .extends<IConditional>();
 }

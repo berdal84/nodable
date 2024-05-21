@@ -3,10 +3,11 @@
 #include "GraphUtil.h"
 
 using namespace ndbl;
+using namespace fw;
 
 REGISTER
 {
-    fw::registration::push_class<ForLoopNode>("ForLoopNode")
+    registration::push_class<ForLoopNode>("ForLoopNode")
         .extends<Node>()
         .extends<IConditional>();
 }

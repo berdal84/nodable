@@ -1,12 +1,13 @@
 #pragma once
 
-#include "./string.h"
-#include "./types.h"
 #include <cassert>
 #include <cstring>
 #include <string>
 #include <chrono>
 #include <xxhash/xxhash64.h>
+
+#include "./string.h"
+#include "types.h"
 
 namespace fw
 {

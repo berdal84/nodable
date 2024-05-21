@@ -1,11 +1,14 @@
 #include "nodable/gui/Nodable.h"
 
+using namespace fw;
+using namespace ndbl;
+
 int main(int argc, char *argv[])
 {
 #ifdef NDBL_DEBUG
-    fw::log::set_verbosity(fw::log::Verbosity_Warning);
-    fw::log::set_verbosity("Pool", fw::log::Verbosity_Verbose);
+    log::set_verbosity(log::Verbosity_Warning);
+    log::set_verbosity("Pool", log::Verbosity_Verbose);
 #endif
-    ndbl::Nodable app;            // Instantiate app
+    Nodable app;                   // Instantiate app
     return app.main(argc, argv);  // Run main loop
 }

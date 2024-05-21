@@ -24,7 +24,7 @@ using namespace ndbl::assembly;
 using namespace fw;
 
 NodableView::NodableView(Nodable * _app)
-    : fw::AppView(_app)
+    : AppView(_app)
     , m_logo(nullptr)
     , m_is_history_dragged(false)
     , m_show_properties_editor(false)
@@ -46,7 +46,7 @@ void NodableView::on_init()
     LOG_VERBOSE("ndbl::NodableView", "on_init ...\n");
 
     // Load splashscreen image
-    ghc::filesystem::path path = fw::App::asset_path(m_app->config.ui_splashscreen_imagePath);
+    ghc::filesystem::path path = App::asset_path(m_app->config.ui_splashscreen_imagePath);
     m_logo = m_app->texture_manager.load(path.string());
 
     LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
@@ -57,7 +57,7 @@ void NodableView::on_draw()
     bool redock_all = true;
 
     HybridFile*       current_file    = m_app->current_file;
-    fw::EventManager& event_manager   = m_app->event_manager;
+    EventManager& event_manager   = m_app->event_manager;
     Config&           config          = m_app->config;
     VirtualMachine&   virtual_machine = m_app->virtual_machine;
 
@@ -82,7 +82,7 @@ void NodableView::on_draw()
                 current_file->view.experimental_clipboard_auto_paste(!auto_paste);
             }
 
-            fw::ImGuiEx::MenuItem<Event_Exit>();
+            ImGuiEx::MenuItem<Event_Exit>();
 
             ImGui::EndMenu();
         }
@@ -103,8 +103,8 @@ void NodableView::on_draw()
                 event_manager.dispatch( EventID_DELETE_NODE );
             }
 
-            fw::ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
-            fw::ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
+            ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
+            ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
@@ -148,7 +148,7 @@ void NodableView::on_draw()
 
             ImGui::Separator();
 
-            fw::ImGuiEx::MenuItem<Event_ToggleIsolate>(config.isolate_selection );
+            ImGuiEx::MenuItem<Event_ToggleIsolate>(config.isolate_selection );
 
             ImGui::EndMenu();
         }
@@ -184,7 +184,7 @@ void NodableView::on_draw()
             if ( ImGui::MenuItem("Show debug info", "", m_app->config.common.debug ) )
             {
                 m_app->config.common.debug = !m_app->config.common.debug;
-                fw::ImGuiEx::debug = m_app->config.common.debug;
+                ImGuiEx::debug = m_app->config.common.debug;
             }
             if ( ImGui::MenuItem("Show FPS", "", m_app->config.common.show_fps ) )
             {
@@ -199,18 +199,18 @@ void NodableView::on_draw()
 
             if (ImGui::BeginMenu("Verbosity"))
             {
-                auto menu_item_verbosity = [](fw::log::Verbosity _verbosity, const char *_label) {
-                    if (ImGui::MenuItem(_label, "", fw::log::get_verbosity() == _verbosity)) {
-                        fw::log::set_verbosity(_verbosity);
+                auto menu_item_verbosity = [](log::Verbosity _verbosity, const char *_label) {
+                    if (ImGui::MenuItem(_label, "", log::get_verbosity() == _verbosity)) {
+                        log::set_verbosity(_verbosity);
                     }
                 };
 
 #ifndef LOG_DISABLE_VERBOSE
-                menu_item_verbosity(fw::log::Verbosity_Verbose, "Verbose");
+                menu_item_verbosity(log::Verbosity_Verbose, "Verbose");
 #endif
-                menu_item_verbosity(fw::log::Verbosity_Message, "Message (default)");
-                menu_item_verbosity(fw::log::Verbosity_Warning, "Warning");
-                menu_item_verbosity(fw::log::Verbosity_Error, "Error");
+                menu_item_verbosity(log::Verbosity_Message, "Message (default)");
+                menu_item_verbosity(log::Verbosity_Warning, "Warning");
+                menu_item_verbosity(log::Verbosity_Error, "Error");
                 ImGui::EndMenu();
             }
 
@@ -224,11 +224,11 @@ void NodableView::on_draw()
 
         if (ImGui::BeginMenu("An issue ?")) {
             if (ImGui::MenuItem("Report on Github.com")) {
-                fw::system::open_url_async("https://github.com/berdal84/Nodable/issues");
+                system::open_url_async("https://github.com/berdal84/Nodable/issues");
             }
 
             if (ImGui::MenuItem("Report by email")) {
-                fw::system::open_url_async("mail:berenger@dalle-cort.fr");
+                system::open_url_async("mail:berenger@dalle-cort.fr");
             }
 
             ImGui::EndMenu();
@@ -240,11 +240,11 @@ void NodableView::on_draw()
             }
 
             if (ImGui::MenuItem("Browse source code")) {
-                fw::system::open_url_async("https://www.github.com/berdal84/nodable");
+                system::open_url_async("https://www.github.com/berdal84/nodable");
             }
 
             if (ImGui::MenuItem("Credits")) {
-                fw::system::open_url_async("https://github.com/berdal84/nodable#credits-");
+                system::open_url_async("https://github.com/berdal84/nodable#credits-");
             }
 
             ImGui::EndMenu();
@@ -262,14 +262,14 @@ void NodableView::on_draw()
     {
         if( !m_app->config.common.splashscreen )
         {
-            draw_startup_window( get_dockspace(fw::AppView::Dockspace_ROOT));
+            draw_startup_window( get_dockspace(AppView::Dockspace_ROOT));
         }
     }
     else
     {
         draw_toolbar_window();
 
-        auto ds_root = get_dockspace(fw::AppView::Dockspace_ROOT);
+        auto ds_root = get_dockspace(AppView::Dockspace_ROOT);
         for (HybridFile *each_file: m_app->get_files())
         {
             draw_file_window(ds_root, redock_all, each_file);
@@ -287,8 +287,8 @@ void NodableView::on_draw()
 void NodableView::draw_help_window() const {
     if (ImGui::Begin(m_app->config.ui_help_window_label))
     {
-        fw::FontManager& font_manager = m_app->font_manager;
-        ImGui::PushFont(font_manager.get_font(fw::FontSlot_Heading));
+        FontManager& font_manager = m_app->font_manager;
+        ImGui::PushFont(font_manager.get_font(FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -298,24 +298,24 @@ void NodableView::draw_help_window() const {
                 "Nodable allows you to edit a program using both text and graph paradigms."
                 "More precisely, it means:"
         );
-        fw::ImGuiEx::BulletTextWrapped("any change on the text will affect the graph");
-        fw::ImGuiEx::BulletTextWrapped("any change (structure or values) on the graph will affect the text");
-        fw::ImGuiEx::BulletTextWrapped(
+        ImGuiEx::BulletTextWrapped("any change on the text will affect the graph");
+        ImGuiEx::BulletTextWrapped("any change (structure or values) on the graph will affect the text");
+        ImGuiEx::BulletTextWrapped(
                 "but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
         ImGui::NewLine();
-        ImGui::PushFont(font_manager.get_font(fw::FontSlot_Heading));
+        ImGui::PushFont(font_manager.get_font(FontSlot_Heading));
         ImGui::Text("Quick start");
         ImGui::PopFont();
         ImGui::NewLine();
         ImGui::TextWrapped("Nodable UI is designed as following:\n");
-        fw::ImGuiEx::BulletTextWrapped("On the left side a (light) text editor allows to edit source code.\n");
-        fw::ImGuiEx::BulletTextWrapped(
+        ImGuiEx::BulletTextWrapped("On the left side a (light) text editor allows to edit source code.\n");
+        ImGuiEx::BulletTextWrapped(
                 "At the center, there is the graph editor where you can create/delete/connect nodes\n");
-        fw::ImGuiEx::BulletTextWrapped(
+        ImGuiEx::BulletTextWrapped(
                 "On the right side (this side) you will find many tabs to manage additional config such as node properties, virtual machine or app properties\n");
-        fw::ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
+        ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
                                        " There, few buttons will serve to compile, run and debug your program.");
-        fw::ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
+        ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
                                        " This bar will display important messages, warning, and errors. You can expand it to get older messages.");
     }
     ImGui::End();
@@ -370,7 +370,7 @@ void NodableView::draw_virtual_machine_window() {
 
         ImGui::Text("Virtual Machine:");
         ImGui::SameLine();
-        fw::ImGuiEx::DrawHelper("%s", "The virtual machine - or interpreter - is a sort of implementation of \n"
+        ImGuiEx::DrawHelper("%s", "The virtual machine - or interpreter - is a sort of implementation of \n"
                                       "an imaginary hardware able to run a set of simple instructions.");
         ImGui::Separator();
 
@@ -381,10 +381,10 @@ void NodableView::draw_virtual_machine_window() {
             ImGui::Indent();
             ImGui::Text("State:         %s", vm.is_program_running() ? "running" : "stopped");
             ImGui::SameLine();
-            fw::ImGuiEx::DrawHelper("%s", "When virtual machine is running, you cannot edit the code or the graph.");
+            ImGuiEx::DrawHelper("%s", "When virtual machine is running, you cannot edit the code or the graph.");
             ImGui::Text("Debug:         %s", vm.is_debugging() ? "ON" : "OFF");
             ImGui::SameLine();
-            fw::ImGuiEx::DrawHelper("%s", "When debugging is ON, you can run a program step by step.");
+            ImGuiEx::DrawHelper("%s", "When debugging is ON, you can run a program step by step.");
             ImGui::Text("Has program:   %s", code ? "YES" : "NO");
             if (code) {
                 ImGui::Text("Program over:  %s", !vm.is_there_a_next_instr() ? "YES" : "NO");
@@ -396,7 +396,7 @@ void NodableView::draw_virtual_machine_window() {
         ImGui::Separator();
         ImGui::Text("CPU:");
         ImGui::SameLine();
-        fw::ImGuiEx::DrawHelper("%s", "This is the virtual machine's CPU"
+        ImGuiEx::DrawHelper("%s", "This is the virtual machine's CPU"
                                       "\nIt contains few registers to store temporary values "
                                       "\nlike instruction pointer, last node's value or last comparison result");
         ImGui::Indent();
@@ -415,13 +415,13 @@ void NodableView::draw_virtual_machine_window() {
 
             draw_register_value(Register::rax);
             ImGui::SameLine();
-            fw::ImGuiEx::DrawHelper("%s", "primary accumulator");
+            ImGuiEx::DrawHelper("%s", "primary accumulator");
             draw_register_value(Register::rdx);
             ImGui::SameLine();
-            fw::ImGuiEx::DrawHelper("%s", "base register");
+            ImGuiEx::DrawHelper("%s", "base register");
             draw_register_value(Register::eip);
             ImGui::SameLine();
-            fw::ImGuiEx::DrawHelper("%s", "instruction pointer");
+            ImGuiEx::DrawHelper("%s", "instruction pointer");
 
             ImGui::Unindent();
         }
@@ -431,19 +431,19 @@ void NodableView::draw_virtual_machine_window() {
         ImGui::Separator();
         ImGui::Text("Memory:");
         ImGui::SameLine();
-        fw::ImGuiEx::DrawHelper("%s", "Virtual Machine Memory.");
+        ImGuiEx::DrawHelper("%s", "Virtual Machine Memory.");
         ImGui::Separator();
         {
             ImGui::Indent();
 
             ImGui::Text("Bytecode:");
             ImGui::SameLine();
-            fw::ImGuiEx::DrawHelper("%s", "The bytecode is the result of the Compilation process."
+            ImGuiEx::DrawHelper("%s", "The bytecode is the result of the Compilation process."
                                           "\nAfter source code has been parsed to a syntax tree, "
                                           "\nthe tree (or graph) is converted by the Compiler to an Assembly-like code.");
             ImGui::Checkbox("Auto-scroll ?", &m_scroll_to_curr_instr);
             ImGui::SameLine();
-            fw::ImGuiEx::DrawHelper("%s", "to scroll automatically to the current instruction");
+            ImGuiEx::DrawHelper("%s", "to scroll automatically to the current instruction");
             ImGui::Separator();
             {
                 ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true);
@@ -458,7 +458,7 @@ void NodableView::draw_virtual_machine_window() {
                             }
                             ImGui::TextColored(ImColor(200, 0, 0), ">%s", str.c_str());
                             ImGui::SameLine();
-                            fw::ImGuiEx::DrawHelper("%s", "This is the next instruction to evaluate");
+                            ImGuiEx::DrawHelper("%s", "This is the next instruction to evaluate");
                         } else {
                             ImGui::Text(" %s", str.c_str());
                         }
@@ -466,7 +466,7 @@ void NodableView::draw_virtual_machine_window() {
                 } else {
                     ImGui::TextWrapped("Nothing loaded, try to compile, run or debug.");
                     ImGui::SameLine();
-                    fw::ImGuiEx::DrawHelper("%s", "To see a compiled program here you need first to:"
+                    ImGuiEx::DrawHelper("%s", "To see a compiled program here you need first to:"
                                                   "\n- Select a piece of code in the text editor"
                                                   "\n- Click on \"Compile\" button."
                                                   "\n- Ensure there is no errors in the status bar (bottom).");
@@ -485,8 +485,8 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
 
     ImGui::Begin(m_app->config.ui_startup_window_label);
     {
-        fw::FontManager&  font_manager  = m_app->font_manager;
-        fw::EventManager& event_manager = m_app->event_manager;
+        FontManager&  font_manager  = m_app->font_manager;
+        EventManager& event_manager = m_app->event_manager;
         ImGui::PopStyleColor();
 
         ImVec2 center_area(500.0f, 250.0f);
@@ -499,15 +499,15 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
         {
             ImGui::Indent(center_area.x * 0.05f);
 
-            ImGui::PushFont(font_manager.get_font(fw::FontSlot_ToolBtn));
+            ImGui::PushFont(font_manager.get_font(FontSlot_ToolBtn));
             ImGui::NewLine();
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                event_manager.dispatch( fw::EventID_FILE_NEW );
+                event_manager.dispatch( EventID_FILE_NEW );
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                event_manager.dispatch( fw::EventID_FILE_BROWSE );
+                event_manager.dispatch( EventID_FILE_BROWSE );
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -530,7 +530,7 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
                 if (i++ % 2) ImGui::SameLine();
                 if (ImGui::Button(label.c_str(), small_btn_size))
                 {
-                    m_app->open_file( fw::App::asset_path(path.c_str()) );
+                    m_app->open_file( App::asset_path(path.c_str()) );
                 }
             }
 
@@ -577,8 +577,8 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, Hybrid
 
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        ImGui::PushFont(m_app->font_manager.get_font(fw::FontSlot_Code));
-        const ImVec2 &size = ImGui::GetContentRegionAvail();
+        ImGui::PushFont(m_app->font_manager.get_font(FontSlot_Code));
+        const ImVec2 size = ImGui::GetContentRegionAvail();
 
         ImGui::BeginChild("FileView", size, false, 0);
         {
@@ -681,7 +681,7 @@ void NodableView::draw_config_window() {
         if ( m_app->config.common.debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
-            auto pool = fw::Pool::get_pool();
+            auto pool = Pool::get_pool();
             ImGui::Text(" - Node.................... %8zu", pool->get_all<Node>().size() );
             ImGui::Text(" - NodeView................ %8zu", pool->get_all<NodeView>().size() );
             ImGui::Text(" - Physics................. %8zu", pool->get_all<Physics>().size() );
@@ -699,9 +699,9 @@ void NodableView::draw_splashscreen()
 
         // Image
         ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-        fw::ImGuiEx::Image(m_logo);
+        ImGuiEx::Image(m_logo);
 
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(50.0f, 30.0f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
 
         // disclaimer
         ImGui::TextWrapped(
@@ -742,7 +742,7 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
     float avail_width = ImGui::GetContentRegionAvail().x;
     float btn_width = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
 
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(btn_spacing, 0));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
 
     for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++) {
         ImGui::SameLine();
@@ -752,11 +752,11 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
         // Draw an highlighted button for the current history position
         if (cmd_pos == 0) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::Button(label.c_str(), ImVec2(btn_width, btn_height));
+            ImGui::Button(label.c_str(), {btn_width, btn_height});
             ImGui::PopStyleColor();
         } else // or a simple one for other history positions
         {
-            ImGui::Button(label.c_str(), ImVec2(btn_width, btn_height));
+            ImGui::Button(label.c_str(), {btn_width, btn_height});
         }
 
         // Hovered item
@@ -768,9 +768,9 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
 
             // Draw command description
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
-            if (fw::ImGuiEx::BeginTooltip()) {
+            if (ImGuiEx::BeginTooltip()) {
                 ImGui::Text("%s", currentFileHistory->get_cmd_description_at(cmd_pos).c_str());
-                fw::ImGuiEx::EndTooltip();
+                ImGuiEx::EndTooltip();
             }
             ImGui::PopStyleVar();
         }
@@ -791,7 +791,7 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
 void NodableView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(5.0f, 5.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
     Config& config = m_app->config;
     if (ImGui::Begin(config.ui_toolbar_window_label, NULL, flags ))
     {
@@ -800,9 +800,9 @@ void NodableView::draw_toolbar_window() {
         bool running         = vm.is_program_running();
         bool debugging       = vm.is_debugging();
         bool stopped         = vm.is_program_stopped();
-        ImVec2 button_size   = config.ui_toolButton_size;
+        auto button_size   = config.ui_toolButton_size;
 
-        ImGui::PushFont(m_app->font_manager.get_font(fw::FontSlot_ToolBtn));
+        ImGui::PushFont(m_app->font_manager.get_font(FontSlot_ToolBtn));
         ImGui::BeginGroup();
 
         // compile
@@ -866,11 +866,11 @@ void NodableView::on_reset_layout()
     // Dock windows to specific dockspace
     const Config& config  = m_app->config;
 
-    dock_window(config.ui_help_window_label             , fw::AppView::Dockspace_RIGHT);
-    dock_window(config.ui_config_window_label           , fw::AppView::Dockspace_RIGHT);
-    dock_window(config.ui_file_info_window_label        , fw::AppView::Dockspace_RIGHT);
-    dock_window(config.ui_node_properties_window_label  , fw::AppView::Dockspace_RIGHT);
-    dock_window(config.ui_virtual_machine_window_label  , fw::AppView::Dockspace_RIGHT);
-    dock_window(config.ui_imgui_config_window_label     , fw::AppView::Dockspace_RIGHT);
-    dock_window(config.ui_toolbar_window_label          , fw::AppView::Dockspace_TOP);
+    dock_window(config.ui_help_window_label             , AppView::Dockspace_RIGHT);
+    dock_window(config.ui_config_window_label           , AppView::Dockspace_RIGHT);
+    dock_window(config.ui_file_info_window_label        , AppView::Dockspace_RIGHT);
+    dock_window(config.ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
+    dock_window(config.ui_virtual_machine_window_label  , AppView::Dockspace_RIGHT);
+    dock_window(config.ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
+    dock_window(config.ui_toolbar_window_label          , AppView::Dockspace_TOP);
 }

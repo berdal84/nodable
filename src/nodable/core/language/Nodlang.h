@@ -6,13 +6,13 @@
 #include <memory>
 #include <exception>
 
-#include "core/VariableNode.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/system.h"
 #include "fw/core/hash.h"
 
-#include "core/Token.h"
-#include "core/TokenRibbon.h"
+#include "nodable/core/VariableNode.h"
+#include "nodable/core/Token.h"
+#include "nodable/core/TokenRibbon.h"
 
 namespace ndbl{
 

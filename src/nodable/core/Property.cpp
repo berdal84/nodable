@@ -2,9 +2,10 @@
 
 #include "PropertyBag.h"
 #include "VariableNode.h"
-#include "fw/core/Pool.h"
+#include "fw/core/memory/Pool.h"
 
 using namespace ndbl;
+using namespace fw;
 
 Property::Property()
     : m_name("Unknown")
@@ -34,7 +35,7 @@ Property::Property(const std::string &s)
 {}
 
 
-Property::Property(const fw::type* _type, PropertyFlags _flags)
+Property::Property(const type* _type, PropertyFlags _flags)
 : Property()
 {
     // handle type
@@ -55,9 +56,9 @@ void Property::digest(Property* _property)
     token = std::move( _property->token );
 }
 
-std::vector<fw::variant*> Property::get(std::vector<Property*> _in_properties )
+std::vector<variant*> Property::get(std::vector<Property*> _in_properties )
 {
-    std::vector<fw::variant*> result;
+    std::vector<variant*> result;
     result.reserve(_in_properties.size());
     for(Property* each_property : _in_properties)
     {
@@ -78,7 +79,7 @@ bool Property::is_ref() const
 
 bool Property::is_type_null() const
 {
-    return get_type()->is<fw::null_t>();
+    return get_type()->is<null_t>();
 }
 
 bool Property::has_flags( PropertyFlags _flags ) const

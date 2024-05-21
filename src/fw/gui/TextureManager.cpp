@@ -1,17 +1,15 @@
 #include "TextureManager.h"
 
-#include "lodepng/lodepng.h"
+#include <gl3w/GL/gl3w.h>
+#include <gl3w/GL/glcorearb.h>
+#include <lodepng/lodepng.h>
+#include <map>
+#include <string>
+#include <vector>
 
-#include "core/log.h"
+#include "fw/core/log.h"
 #include "Texture.h"
-//#include "gl3w/GL/gl3w.h"
-//#include "gl3w/GL/glcorearb.h"
-//#include "lodepng/lodepng.h"
-//#include <iostream>
-//#include <map>
-//#include <string>
-//#include <utility>
-//#include <vector>
+
 using namespace fw;
 
 Texture* TextureManager::load(const std::string& path)

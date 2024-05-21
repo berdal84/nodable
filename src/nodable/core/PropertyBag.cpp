@@ -2,18 +2,18 @@
 #include "Node.h"
 
 using namespace ndbl;
-using fw::ID;
+using namespace fw;
 
 bool PropertyBag::has(const char* _name) const
 {
     return m_properties_by_name.find(_name) != m_properties_by_name.end();
 }
 
-ID<Property> PropertyBag::add(const fw::type* _type, const char* _name, PropertyFlags _flags )
+ID<Property> PropertyBag::add(const type* _type, const char* _name, PropertyFlags _flags )
 {
     FW_ASSERT(!has(_name));
 
-    ID<Property> id = (ID<Property>)m_properties.size(); // we cannot delete a property, so we can count on size() to get a unique id
+    auto id = (ID<Property>)m_properties.size(); // we cannot delete a property, so we can count on size() to get a unique id
 
     // create the property
     Property& new_property = m_properties.emplace_back(_type, _flags);
@@ -26,22 +26,22 @@ ID<Property> PropertyBag::add(const fw::type* _type, const char* _name, Property
     return new_property.id;
 }
 
-const Property* PropertyBag::find_first( PropertyFlags _flags, const fw::type *_type) const
+const Property* PropertyBag::find_first( PropertyFlags _flags, const type *_type) const
 {
     return _find_first( _flags, _type );
 }
 
-Property* PropertyBag::find_first( PropertyFlags _flags, const fw::type *_type)
+Property* PropertyBag::find_first( PropertyFlags _flags, const type *_type)
 {
     return const_cast<Property*>( _find_first( _flags, _type ) );
 }
 
-const Property* PropertyBag::_find_first( PropertyFlags _flags, const fw::type *_type) const
+const Property* PropertyBag::_find_first( PropertyFlags _flags, const type *_type) const
 {
     auto filter = [this, _flags, _type](const std::pair<const std::string, ID<Property>>& pair) -> bool
     {
         auto& property = m_properties[(u32_t)pair.second];
-        return fw::type::is_implicitly_convertible( property.get_type(), _type)
+        return type::is_implicitly_convertible( property.get_type(), _type)
                && ( property.has_flags( _flags ) );
     };
 

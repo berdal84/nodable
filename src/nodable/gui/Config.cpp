@@ -42,19 +42,19 @@ void ndbl::Config::reset_default()
     ui_node_instructionBorderRatio        = 2.0f;
     ui_node_padding                       = { 8.0f, 4.0f, 4.0f, 4.0f };
     ui_node_propertyslot_radius           = 4.0f;
-    ui_node_invokableColor                = ImColor(255, 199, 115);            // light orange
-    ui_node_variableColor                 = ImColor( 171, 190, 255);           // blue
-    ui_node_instructionColor              = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
-    ui_node_literalColor                  = ImVec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-    ui_node_condStructColor               = ImVec4(1.f, 1.f, 1.f, 1.0f);       // white
-    ui_node_fillColor                     = ImVec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
-    ui_node_highlightedColor              = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ui_node_slot_border_color             = ImVec4(0.2f, 0.2f, 0.2f, 1.0f);
-    ui_node_borderColor                   = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-    ui_node_borderHighlightedColor        = ImVec4(1.0f, 1.0f, 1.0f, 0.8f);
-    ui_node_shadowColor                   = ImVec4(0.0f, 0.0f, 0.0f, 0.2f);
-    ui_node_slot_hovered_color            = ImColor(200, 200, 200);
-    ui_node_slot_color                    = ImColor(127, 127, 127);
+    ui_node_invokableColor                = Color(255, 199, 115);            // light orange
+    ui_node_variableColor                 = Color( 171, 190, 255);           // blue
+    ui_node_instructionColor              = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
+    ui_node_literalColor                  = Vec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
+    ui_node_condStructColor               = Vec4(1.f, 1.f, 1.f, 1.0f);       // white
+    ui_node_fillColor                     = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
+    ui_node_highlightedColor              = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_node_slot_border_color             = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_node_borderColor                   = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
+    ui_node_borderHighlightedColor        = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
+    ui_node_shadowColor                   = Vec4(0.0f, 0.0f, 0.0f, 0.2f);
+    ui_node_slot_hovered_color            = Color(200, 200, 200);
+    ui_node_slot_color                    = Color(127, 127, 127);
     ui_node_spacing                       = 30.0f;
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
@@ -66,16 +66,16 @@ void ndbl::Config::reset_default()
     ui_wire_bezier_roundness              = {0.25f, 2.0f};
     ui_wire_bezier_thickness              = 2.0f;
     ui_wire_bezier_fade_length_minmax     = {300.0f, 1000.0f};
-    ui_wire_color                         = ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_wire_color                         = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     ui_wire_shadowColor                   = ui_node_shadowColor;
 
     // code flow
-    ui_codeflow_color                     = ImColor(150, 170, 140); // slightly green
-    ui_codeflow_shadowColor               = ImColor(0, 0, 0, 64);
+    ui_codeflow_color                     = Color(150, 170, 140); // slightly green
+    ui_codeflow_shadowColor               = Color(0, 0, 0, 64);
     ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_node_slot_size.x
 
     // buttons
-    ui_toolButton_size                    = ImVec2(0.0f, 25.0f);
+    ui_toolButton_size                    = Vec2(0.0f, 25.0f);
 
     // history
     ui_history_btn_spacing                = 1.f;
@@ -85,9 +85,9 @@ void ndbl::Config::reset_default()
     // overlay
     ui_overlay_margin                     = 10.0f;
     ui_overlay_indent                     = 5.0f;
-    ui_overlay_window_bg_golor            = ImVec4(0.9f,0.9f,0.9f,0.2f);
-    ui_overlay_border_color               = ImVec4(0,0,0,0);
-    ui_overlay_text_color                 = ImVec4(0,0,0,0.5f);
+    ui_overlay_window_bg_golor            = Vec4(0.9f,0.9f,0.9f,0.2f);
+    ui_overlay_border_color               = Vec4(0,0,0,0);
+    ui_overlay_text_color                 = Vec4(0,0,0,0.5f);
 
     // Window names
     ui_file_info_window_label             = "File";
@@ -100,8 +100,8 @@ void ndbl::Config::reset_default()
     ui_virtual_machine_window_label       = "VM";
 
     // Graph
-    ui_graph_grid_color_major             = ImColor(0, 0, 0, 42);
-    ui_graph_grid_color_minor             = ImColor(0, 0, 0, 17);
+    ui_graph_grid_color_major             = Color(0, 0, 0, 42);
+    ui_graph_grid_color_minor             = Color(0, 0, 0, 17);
     ui_graph_grid_subdivs                 = 4;
     ui_graph_grid_size                    = 100.0f;
 

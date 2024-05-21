@@ -1,21 +1,20 @@
 #include "FontManager.h"
-
-#include "core/assertions.h"
-#include "core/log.h"
-
 #include "App.h"
 
 using namespace fw;
 
+FontManager::~FontManager()
+{ LOG_VERBOSE("fw::FontManager", "Destructor " OK "\n"); }
+
 void FontManager::init()
 {
-    for (const FontConf& each_font : m_config.text)
+    for (const FontConfig& each_font : m_config.text)
     {
         load_font(each_font);
     }
 
     // Assign text_fonts (user might want to change it later, but we need defaults)
-    for( int each_slot = 0; each_slot < fw::FontSlot_COUNT; ++each_slot )
+    for( int each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
     {
         if(auto font = m_config.defaults[each_slot] )
         {
@@ -29,7 +28,7 @@ void FontManager::init()
     }
 }
 
-ImFont* FontManager::load_font(const FontConf& text_font)
+ImFont* FontManager::load_font(const FontConfig& text_font)
 {
     FW_EXPECT(m_loaded_fonts.find(text_font.id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
 
