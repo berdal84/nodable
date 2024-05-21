@@ -54,6 +54,21 @@ add_subdirectory(libs/SDL EXCLUDE_FROM_ALL) # SDL2
 # 1) Nodable
 #===========
 
+ndbl_log("Looking for libraries ...")
+
+find_package(Threads REQUIRED)
+if (NOT Threads_FOUND)
+    ndbl_err("Threads not found")
+endif ()
+
+find_package(OpenGL REQUIRED)
+if (NOT OpenGL_FOUND)
+    ndbl_err("OpenGL not found")
+endif ()
+
+ndbl_log("Threads found: ${Threads_FOUND}")
+ndbl_log("OpenGL found:  ${OpenGL_FOUND}")
+
 # 1.1) Framework Core
 #--------------------
 
@@ -110,6 +125,7 @@ target_link_libraries(
         ghc_filesystem # c++ compatible std::filesystem::path like API
         Observe        # event system using observer/observable pattern.
         glm            # math
+        Threads::Threads
 )
 
 target_include_directories(
@@ -171,28 +187,12 @@ add_library(
     libs/lodepng/lodepng.cpp
 )
 
-ndbl_log("Looking for libraries ...")
-
-find_package(Threads REQUIRED)
-if (NOT Threads_FOUND)
-    ndbl_err("Threads not found")
-endif ()
-
-find_package(OpenGL REQUIRED)
-if (NOT OpenGL_FOUND)
-    ndbl_err("OpenGL not found")
-endif ()
-
-ndbl_log("Threads found: ${Threads_FOUND}")
-ndbl_log("OpenGL found:  ${OpenGL_FOUND}")
-
 target_link_libraries(
     framework-gui
     PUBLIC
         ${CMAKE_DL_LIBS}
         OpenGL::GL
         SDL2-static SDL2main
-        Threads::Threads
         nfd # native file dialog - extended
         freetype # because: https://github.com/ocornut/imgui/tree/master/misc/freetype
         framework-core
