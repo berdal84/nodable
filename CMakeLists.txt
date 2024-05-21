@@ -188,14 +188,13 @@ ndbl_log("OpenGL found:  ${OpenGL_FOUND}")
 
 target_link_libraries(
     framework-gui
-    PRIVATE
+    PUBLIC
         ${CMAKE_DL_LIBS}
         OpenGL::GL
         SDL2-static SDL2main
         Threads::Threads
         nfd # native file dialog - extended
         freetype # because: https://github.com/ocornut/imgui/tree/master/misc/freetype
-    PUBLIC
         framework-core
 )
 
