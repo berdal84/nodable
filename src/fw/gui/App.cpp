@@ -279,7 +279,7 @@ double App::elapsed_time() const
 
 std::filesystem::path App::asset_path(const std::filesystem::path& _path)
 {
-    FW_ASSERT(!_path.is_absolute())
+    FW_EXPECT(!_path.is_absolute(), "_path is not relative, this can't be an asset")
     auto executable_dir = fw::system::get_executable_directory();
     return executable_dir / "assets" / _path;
 }

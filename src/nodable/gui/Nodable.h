@@ -38,6 +38,7 @@ namespace ndbl
 
         // File related:
 
+        HybridFile*     open_asset_file(const std::filesystem::path&_path);
         HybridFile*     open_file(const std::filesystem::path&_path);
         HybridFile*     new_file();
         void            save_file(HybridFile *pFile) const;

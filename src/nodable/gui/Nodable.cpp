@@ -259,19 +259,17 @@ void Nodable::on_update()
 
             case EventID_FILE_SAVE:
             {
-                if (current_file)
+                if (!current_file) break;
+                if( !current_file->path.empty())
                 {
-                    if( !current_file->path.empty())
+                    save_file(current_file);
+                }
+                else
+                {
+                    std::string path;
+                    if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
                     {
-                        save_file(current_file);
-                    }
-                    else
-                    {
-                        std::string path;
-                        if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
-                        {
-                            save_file_as(path);
-                        }
+                        save_file_as(path);
                     }
                 }
                 break;
@@ -494,9 +492,15 @@ bool Nodable::on_shutdown()
     return true;
 }
 
+HybridFile *Nodable::open_asset_file(const std::filesystem::path& _path)
+{
+    std::filesystem::path absolute_path = asset_path(_path);
+    return open_file(absolute_path);
+}
+
 HybridFile *Nodable::open_file(const std::filesystem::path& _path)
 {
-    auto file = new HybridFile(App::asset_path(_path) );
+    auto file = new HybridFile(_path);
 
     if ( !file->load() )
     {
@@ -524,7 +528,7 @@ void Nodable::save_file(HybridFile* _file) const
 
 	if ( !_file->write_to_disk() )
     {
-        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _file->name.c_str(), _file->path.c_str());
+        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _file->filename(), _file->path.c_str());
         return;
     }
     LOG_MESSAGE("ndbl::App", "File saved: %s\n", _file->path.c_str());
@@ -532,13 +536,8 @@ void Nodable::save_file(HybridFile* _file) const
 
 void Nodable::save_file_as(const std::filesystem::path& _path) const
 {
-    std::filesystem::path absolute_path = App::asset_path(_path);
-    current_file->path = absolute_path.string();
-    current_file->name = absolute_path.filename().string();
-    if( !current_file->write_to_disk() )
-    {
-        LOG_ERROR("App", "Unable to save as %s (%s)\n", absolute_path.filename().c_str(), absolute_path.c_str());
-    }
+    current_file->path = _path;
+    current_file->write_to_disk();
 }
 
 void Nodable::close_file(HybridFile* _file)

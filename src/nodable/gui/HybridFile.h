@@ -33,16 +33,15 @@ namespace ndbl
 	class HybridFile
 	{
 	public:
+        HybridFile(const std::filesystem::path& _path);
+        ~HybridFile();
+
         observe::Event<Graph*>           graph_changed;
         std::filesystem::path            path;    // file path on disk
-        std::string                      name;    // friendly name
         bool                             is_content_dirty; // true if changes needs to be saved
         HybridFileView                   view;
 
-        explicit HybridFile(const char*); // name only
-		explicit HybridFile(const std::filesystem::path& _path); // name will be extracted from path, path will be stored too
-        ~HybridFile();
-
+        std::string                      filename() const;
         bool                             load();
         UpdateResult                     update(); // to call each frame
         bool                             write_to_disk();

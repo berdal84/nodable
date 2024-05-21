@@ -523,14 +523,14 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
             int i = 0;
             ImVec2 small_btn_size(btn_size.x, btn_size.y * 0.66f);
 
-            for (auto [text, path]: examples) {
+            for (const auto& [text, path]: examples) {
                 std::string label;
                 label.append(ICON_FA_BOOK" ");
                 label.append(text);
                 if (i++ % 2) ImGui::SameLine();
                 if (ImGui::Button(label.c_str(), small_btn_size))
                 {
-                    m_app->open_file( App::asset_path(path.c_str()) );
+                    m_app->open_asset_file(path.c_str());
                 }
             }
 
@@ -559,7 +559,7 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, Hybrid
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
     bool is_window_open = true;
-    bool visible = ImGui::Begin(file->name.c_str(), &is_window_open, window_flags);
+    bool visible = ImGui::Begin(file->filename().c_str(), &is_window_open, window_flags);
 
     ImGui::PopStyleVar();
     ImGui::PopStyleColor(1);

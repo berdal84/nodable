@@ -15,25 +15,26 @@
 using namespace ndbl;
 using namespace fw;
 
-HybridFile::HybridFile(const char* _name )
-: name(_name)
+HybridFile::HybridFile(const std::filesystem::path& _path )
+: path(std::move(_path))
 , is_content_dirty(true)
 , view(*this)
 , m_history(&Nodable::get_instance().config.experimental_hybrid_history)
 {
-    LOG_VERBOSE( "File", "Constructor being called ...\n")
+    LOG_VERBOSE( "HybridFile", "Constructor being called ...\n")
+    FW_EXPECT(path.has_filename(), "path should have a filename")
 
     // FileView
     view.init();
 
-    LOG_VERBOSE( "File", "View built, creating History ...\n")
+    LOG_VERBOSE( "HybridFile", "View built, creating History ...\n")
 
     // History
     TextEditor*       text_editor     = view.get_text_editor();
     TextEditorBuffer* text_editor_buf = m_history.configure_text_editor_undo_buffer(text_editor);
     view.set_undo_buffer(text_editor_buf);
 
-    LOG_VERBOSE( "File", "History built, creating graph ...\n")
+    LOG_VERBOSE( "HybridFile", "History built, creating graph ...\n")
 
     // Graph
     m_graph      = new Graph(&Nodable::get_instance().node_factory);
@@ -47,14 +48,7 @@ HybridFile::HybridFile(const char* _name )
         }
     }
 
-    LOG_VERBOSE( "File", "Constructor being called.\n")
-}
-
-
-HybridFile::HybridFile(const std::filesystem::path& _path)
-: HybridFile(_path.filename().c_str())
-{
-    path = _path;
+    LOG_VERBOSE( "HybridFile", "Constructor being called.\n")
 }
 
 HybridFile::~HybridFile()
@@ -67,27 +61,27 @@ bool HybridFile::write_to_disk()
 {
     if( path.empty() )
     {
-        LOG_WARNING("File", "No path defined, unable to save file\n");
+        LOG_ERROR("HybridFile", "No path defined, unable to save file\n");
         return false;
     }
 
 	if ( !is_content_dirty )
     {
-        LOG_MESSAGE("File", "Nothing to save\n");
+        LOG_MESSAGE("HybridFile", "Nothing to save\n");
     }
 
     std::ofstream out_fstream(path.c_str());
     std::string content = view.get_text();
     out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
     is_content_dirty = false;
-    LOG_MESSAGE("File", "%s saved\n", name.c_str());
+    LOG_MESSAGE("HybridFile", "%s saved\n", filename() );
 
     return true;
 }
 
 bool HybridFile::load()
 {
-    LOG_MESSAGE("HybridFile", "\"%s\" loading... (%s).\n", name.c_str(), path.c_str())
+    LOG_MESSAGE("HybridFile", "\"%s\" loading... (%s).\n", filename(), path.c_str())
     if(path.empty() )
     {
         LOG_ERROR("HybridFile", "Path is empty \"%s\"\n", path.c_str())
@@ -106,7 +100,7 @@ bool HybridFile::load()
 
     is_content_dirty = false;
 
-    LOG_MESSAGE("HybridFile", "\"%s\" loaded (%s).\n", name.c_str(), path.c_str())
+    LOG_MESSAGE("HybridFile", "\"%s\" loaded (%s).\n", filename(), path.c_str())
 
     return true;
 }
@@ -204,4 +198,9 @@ UpdateResult HybridFile::update_graph_from_text(bool isolate_selection)
 size_t HybridFile::size() const
 {
     return view.size();
+}
+
+std::string HybridFile::filename() const
+{
+    return path.filename();
 }

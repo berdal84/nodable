@@ -26,9 +26,11 @@ HybridFileView::HybridFileView(HybridFile& _file)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
     , m_experimental_clipboard_auto_paste(false)
-    , m_text_overlay_window_name(_file.name + "_text_overlay" )
-    , m_graph_overlay_window_name(_file.name + "_graph_overlay" )
 {
+    std::string overlay_basename{_file.filename()};
+    m_text_overlay_window_name  = overlay_basename + "_text_overlay";
+    m_graph_overlay_window_name = overlay_basename + "_graph_overlay";
+
     m_graph_changed_observer.observe(_file.graph_changed, [this](Graph* _graph)
     {
         LOG_VERBOSE("FileView", "graph changed evt received\n")

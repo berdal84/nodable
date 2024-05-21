@@ -73,7 +73,7 @@ TEST_F(Gui_App, open_file)
     app.config.common.splashscreen = false;
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__0.png");
-    EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
+    EXPECT_TRUE(app.open_asset_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__1.png");
     app.shutdown();
@@ -84,7 +84,7 @@ TEST_F(Gui_App, close_file)
     ndbl::Nodable app;
     app.init();
     app.config.common.splashscreen = false;
-    ndbl::HybridFile* file = app.open_file("./examples/arithmetic.cpp");
+    ndbl::HybridFile* file = app.open_asset_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__0.png");
     app.close_file( file );
@@ -100,16 +100,16 @@ TEST_F(Gui_App, open_examples)
     app.config.common.splashscreen = false;
     app.update();
     save_screenshot(app, "TEST_Gui_App__open_examples__0.png");
-    EXPECT_TRUE(app.open_file("./examples/arithmetic.cpp"));
+    EXPECT_TRUE(app.open_asset_file("./examples/arithmetic.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__1.png");
-    EXPECT_TRUE(app.open_file("./examples/for-loop.cpp"));
+    EXPECT_TRUE(app.open_asset_file("./examples/for-loop.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__2.png");
-    EXPECT_TRUE(app.open_file("./examples/if-else.cpp"));
+    EXPECT_TRUE(app.open_asset_file("./examples/if-else.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__3.png");
-    EXPECT_TRUE(app.open_file("./examples/multi-instructions.cpp"));
+    EXPECT_TRUE(app.open_asset_file("./examples/multi-instructions.cpp"));
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_examples__4.png");
     app.shutdown();
