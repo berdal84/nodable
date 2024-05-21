@@ -1,4 +1,9 @@
-# Nodable's main CMakeLists.txt
+# Project  CMakeLists.txt
+#========================
+
+# include *.cmake scripts
+include(scripts/cmake/log.cmake)
+include(scripts/cmake/set-build-ref-variable.cmake)
 
 # prerequisites:
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
@@ -19,10 +24,38 @@ set(NDBL_CONFIGURED_DIR "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS OFF)
 option(FW_NO_POOL "Disable Pool (for benchmark only)" OFF)
 
-# include *.cmake scripts
-include(scripts/cmake/log.cmake)
-include(scripts/cmake/compiler-config.cmake)
-include(scripts/cmake/set-build-ref-variable.cmake)
+# set a build type to Release by default if not set:
+if ( NOT DEFINED CMAKE_BUILD_TYPE )
+    set( CMAKE_BUILD_TYPE Release)
+endif()
+
+# Get architecture
+if ( NOT ${CMAKE_SIZEOF_VOID_P} MATCHES 8)
+    ndbl_err("A 64bits architecture CPU is required to build this project")
+endif ()
+
+# avoid "unable to run shared libraries" under linux
+include(CheckPIESupported)
+check_pie_supported()
+
+# specify the C++ standard
+set(CMAKE_CXX_STANDARD            17)
+set(CMAKE_CXX_STANDARD_REQUIRED   ON)
+set(CMAKE_CXX_EXTENSIONS          ON)
+
+# enable threads (we have some std::async in ndbl_app)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+
+# Defines FW_DEBUG/NDBL_DEBUG when in Debug
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DFW_DEBUG -DNDBL_DEBUG")
+
+if(WIN32)
+    add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions
+endif()
+
+if (FW_NO_POOL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFW_NO_POOL")
+endif ()
 
 # add subdirectories
 #-------------------
@@ -68,6 +101,21 @@ endif ()
 
 ndbl_log("Threads found: ${Threads_FOUND}")
 ndbl_log("OpenGL found:  ${OpenGL_FOUND}")
+
+# Includes for all (fw and nodable) targets
+include_directories(
+    src
+    libs
+    libs/Observe/include
+    libs/SDL/include
+    libs/gl3w
+    libs/gl3w/GL
+    libs/gulrak/filesystem/include
+    libs/imgui
+    libs/whereami/src
+    libs/glm
+    libs/IconFontCppHeaders
+)
 
 # 1.1) Framework Core
 #--------------------
@@ -117,6 +165,9 @@ add_library(
     src/fw/core/system.cpp
     src/fw/core/system.h
     src/fw/core/types.h
+    # libraries
+    libs/whereami/src/whereami.c
+    libs/whereami/src/whereami.h
 )
 
 target_link_libraries(
@@ -160,17 +211,30 @@ add_library(
     framework-gui
     STATIC
     src/fw/gui/Action.cpp
+    src/fw/gui/Action.h
     src/fw/gui/ActionManager.cpp
+    src/fw/gui/ActionManager.h
     src/fw/gui/ActionManagerView.cpp
+    src/fw/gui/ActionManagerView.h
     src/fw/gui/App.cpp
+    src/fw/gui/App.h
     src/fw/gui/AppView.cpp
+    src/fw/gui/AppView.h
+    src/fw/gui/Config.h
+    src/fw/gui/Event.h
     src/fw/gui/EventManager.cpp
+    src/fw/gui/EventManager.h
     src/fw/gui/FontManager.cpp
+    src/fw/gui/FontManager.h
+    src/fw/gui/FontManagerConfig.h
     src/fw/gui/ImGuiEx.cpp
+    src/fw/gui/ImGuiEx.h
     src/fw/gui/ImGuiExConfig.h
+    src/fw/gui/Texture.h
     src/fw/gui/TextureManager.cpp
+    src/fw/gui/TextureManager.h
     src/fw/gui/View.cpp
-    ${ICONFONTCPPHEADERS} # Font Awesome
+    src/fw/gui/View.h
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
     libs/imgui/imgui_draw.cpp
@@ -382,8 +446,8 @@ ndbl_log(" - NDBL_APP_ASSETS_ABSOLUTE_DIR: ${NDBL_APP_ASSETS_ABSOLUTE_DIR}")
 
 # Configure files
 configure_file(
-src/nodable/gui/build_info.h.in
-${NDBL_CONFIGURED_DIR}/gui/build_info.h
+    src/nodable/gui/build_info.h.in
+    ${NDBL_CONFIGURED_DIR}/gui/build_info.h
 )
 
 add_library(
@@ -414,10 +478,7 @@ target_include_directories(
     nodable-gui
     PRIVATE
         src/nodable/
-        libs/
         ${PROJECT_BINARY_DIR}/configured/ndbl/gui/
-    PUBLIC
-        src/
 )
 
 # define assets
