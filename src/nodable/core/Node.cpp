@@ -1,10 +1,10 @@
 #include "Node.h"
-#include "ForLoopNode.h"
-#include "core/Scope.h"
 
 #include <utility>
 #include <algorithm> // for std::find
 
+#include "ForLoopNode.h"
+#include "Scope.h"
 #include "Graph.h"
 #include "GraphUtil.h"
 #include "InvokableComponent.h"

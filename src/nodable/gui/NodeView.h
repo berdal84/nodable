@@ -10,8 +10,8 @@
 #include "Config.h"
 #include "PropertyView.h"
 #include "SlotView.h"
-#include "core/Component.h"// base class
-#include "core/Property.h"
+#include "nodable/core/Component.h"// base class
+#include "nodable/core/Property.h"
 #include "fw/core/geometry/Box2D.h"
 #include "fw/gui/ImGuiEx.h"
 #include "fw/gui/View.h"

@@ -1,9 +1,9 @@
 #include "NodeViewConstraint.h"
 #include <numeric>
-#include "core/ForLoopNode.h"
-#include "Nodable.h"
-#include "NodeView.h"
-#include "Physics.h"
+#include "nodable/core/ForLoopNode.h"
+#include "nodable/gui/Nodable.h"
+#include "nodable/gui/NodeView.h"
+#include "nodable/gui/Physics.h"
 
 using namespace ndbl;
 using namespace fw;

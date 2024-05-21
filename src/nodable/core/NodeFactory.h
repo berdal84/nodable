@@ -1,13 +1,12 @@
 #pragma once
-
 #include <memory>     // std::shared_ptr
 #include <functional> // std::function
 
-#include "core/ForLoopNode.h"
-#include "core/IfNode.h"
-#include "core/WhileLoopNode.h"
 #include "fw/core/reflection/reflection"
 
+#include "ForLoopNode.h"
+#include "IfNode.h"
+#include "WhileLoopNode.h"
 #include "IScope.h"
 
 namespace ndbl

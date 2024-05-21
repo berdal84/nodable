@@ -1,10 +1,12 @@
 #pragma once
-#include "FontManagerConfig.h"
-#include "gui/ImGuiEx.h"
+
 #include <array>
 #include <map>
 #include <string>
 #include <vector>
+
+#include "FontManagerConfig.h"
+#include "ImGuiEx.h"
 
 namespace fw
 {

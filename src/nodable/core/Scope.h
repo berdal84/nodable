@@ -1,7 +1,7 @@
 #pragma once
 
-#include "core/IScope.h"
-#include "core/Token.h"
+#include "IScope.h"
+#include "Token.h"
 #include "Component.h"
 
 namespace ndbl

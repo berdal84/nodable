@@ -1,8 +1,9 @@
 #include "PropertyView.h"
+
+#include "nodable/core/language/Nodlang.h"
+#include "nodable/core/Node.h"
 #include "NodeView.h"
 #include "SlotView.h"
-#include "core/language/Nodlang.h"
-#include "nodable/core/Node.h"
 
 using namespace ndbl;
 using namespace fw;

@@ -4,7 +4,7 @@
 #include "fw/core/memory/Pool.h"
 #include "fw/core/reflection/func_type.h"
 
-#include "core/VariableNode.h"
+#include "VariableNode.h"
 
 using namespace ndbl;
 using namespace fw;

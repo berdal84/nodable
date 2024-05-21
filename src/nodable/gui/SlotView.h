@@ -1,10 +1,13 @@
 #pragma once
-#include "Config.h"
-#include "core/Slot.h"
-#include "core/reflection/type.h"
+
+#include <observe/event.h>
+
+#include "fw/core/reflection/type.h"
 #include "fw/gui/ImGuiEx.h"
-#include "observe/event.h"
+
+#include "nodable/core/Slot.h"
 #include "types.h"
+#include "Config.h"
 
 namespace ndbl
 {

@@ -1,6 +1,6 @@
 #pragma once
-#include "gui/Command.h"
-#include "gui/ImGuiEx.h"
+#include "fw/gui/ImGuiEx.h"
+#include "nodable/gui/Command.h"
 
 namespace ndbl
 {

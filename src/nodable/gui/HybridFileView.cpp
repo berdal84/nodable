@@ -1,10 +1,10 @@
 #include "HybridFileView.h"
 
-#include "core/Graph.h"
-#include "core/Node.h"
-#include "core/VirtualMachine.h"
-#include "core/language/Nodlang.h"
-#include "core/NodeUtils.h"
+#include "nodable/core/Graph.h"
+#include "nodable/core/Node.h"
+#include "nodable/core/VirtualMachine.h"
+#include "nodable/core/language/Nodlang.h"
+#include "nodable/core/NodeUtils.h"
 
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"

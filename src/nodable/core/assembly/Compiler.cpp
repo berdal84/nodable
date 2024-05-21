@@ -1,4 +1,5 @@
 #include "Compiler.h"
+
 #include <exception>
 #include <iostream>
 
@@ -6,20 +7,20 @@
 #include "fw/core/log.h"
 #include "fw/core/math.h"
 #include "fw/core/string.h"
+#include "fw/core/memory/Pool.h"
 
-#include "core/ForLoopNode.h"
-#include "core/Graph.h"
-#include "core/IConditional.h"
-#include "core/IfNode.h"
-#include "core/InvokableComponent.h"
-#include "core/LiteralNode.h"
-#include "core/Scope.h"
-#include "core/VariableNode.h"
-#include "core/WhileLoopNode.h"
+#include "nodable/core/ForLoopNode.h"
+#include "nodable/core/Graph.h"
+#include "nodable/core/IConditional.h"
+#include "nodable/core/IfNode.h"
+#include "nodable/core/InvokableComponent.h"
+#include "nodable/core/LiteralNode.h"
+#include "nodable/core/Scope.h"
+#include "nodable/core/VariableNode.h"
+#include "nodable/core/WhileLoopNode.h"
 
 #include "Instruction.h"
 #include "Register.h"
-#include "fw/core/memory/Pool.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;

@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <cmath>
 
-#include "core/log.h"
-#include "core/assertions.h"
+#include "fw/core/log.h"
+#include "fw/core/assertions.h"
 
 #include "Texture.h"
 #include "EventManager.h"

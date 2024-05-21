@@ -1,8 +1,9 @@
 #pragma once
-#include "Event.h"
-#include "core/Graph.h"
+
 #include "fw/core/reflection/func_type.h"
 #include "fw/gui/Action.h"
+#include "nodable/core/Graph.h"
+#include "Event.h"
 
 namespace ndbl
 {

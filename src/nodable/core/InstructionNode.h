@@ -4,9 +4,8 @@
 #include <memory>
 
 #include "fw/core/types.h"
-#include "core/Node.h" // base class
-#include "core/Property.h"
-
+#include "Node.h" // base class
+#include "Property.h"
 
 namespace ndbl
 {

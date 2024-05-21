@@ -2,8 +2,9 @@
 
 #include <nfd.h>
 
-#include "core/log.h"
-#include "core/system.h"
+#include "fw/core/log.h"
+#include "fw/core/system.h"
+
 #include "EventManager.h"
 #include "App.h"
 #include "TextureManager.h"

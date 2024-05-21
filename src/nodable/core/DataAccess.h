@@ -2,7 +2,7 @@
 
 #include "fw/core/types.h"
 #include "fw/core/reflection/reflection"
-#include "core/Component.h"
+#include "Component.h"
 
 namespace ndbl
 {

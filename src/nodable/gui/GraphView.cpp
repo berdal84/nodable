@@ -4,7 +4,7 @@
 #include <memory> // std::shared_ptr
 #include <utility>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "core/types.h"
+#include "fw/core/types.h"
 #include "fw/core/log.h"
 #include "fw/core/system.h"
 #include "fw/gui/ImGuiEx.h"

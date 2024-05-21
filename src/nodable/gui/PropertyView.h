@@ -1,10 +1,12 @@
 #pragma once
 
-#include "core/Node.h"
-#include "core/VariableNode.h"
+#include <unordered_map>
+
 #include "fw/core/geometry/Rect.h"
 #include "fw/core/memory/Pool.h"
-#include <unordered_map>
+
+#include "nodable/core/Node.h"
+#include "nodable/core/VariableNode.h"
 
 namespace ndbl
 {

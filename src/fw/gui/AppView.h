@@ -1,12 +1,12 @@
 #pragma once
 
-#include <SDL/include/SDL.h>
+#include <SDL.h>
 #include <array>
 #include <map>
 #include <string>
 #include <observe/event.h>
 
-#include "core/types.h"
+#include "fw/core/types.h"
 #include "ImGuiEx.h"
 #include "EventManager.h"
 #include "View.h"

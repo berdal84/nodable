@@ -1,8 +1,9 @@
 #pragma once
 
-#include "core/geometry/Vec2.h"
-#include "core/types.h"
 #include "gl3w/GL/gl3w.h"
+
+#include "fw/core/geometry/Vec2.h"
+#include "fw/core/types.h"
 
 namespace fw
 {

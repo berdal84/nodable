@@ -1,6 +1,6 @@
 #pragma once
 #include "AppExampleView.h"
-#include "gui/App.h"
+#include "fw/gui/App.h"
 
 namespace fw
 {

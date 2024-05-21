@@ -7,15 +7,15 @@
 #include "fw/gui/View.h"  // base class
 #include "fw/core/reflection/reflection"
 
-#include "core/Component.h"  // base class
-#include "core/IScope.h"
+#include "nodable/core/Component.h"  // base class
+#include "nodable/core/IScope.h"
+#include "nodable/core/Scope.h"
 
 #include "Action.h"
 #include "Config.h"
 #include "NodeView.h"
 #include "NodeViewConstraint.h"
 #include "SlotView.h"
-#include "core/Scope.h"
 #include "types.h"
 
 namespace ndbl

@@ -1,8 +1,8 @@
 #include "system.h"
 
-#include <whereami/src/whereami.h> // to locate executable directory
-#include <cstdlib>                 // for ::system
-#include <thread>                  // for std::thread
+#include <whereami.h> // to locate executable directory
+#include <cstdlib>    // for ::system
+#include <thread>     // for std::thread
 
 #include "log.h"
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "core/geometry/Vec4.h"
+#include "geometry/Vec4.h"
 #include "types.h"
 
 namespace fw

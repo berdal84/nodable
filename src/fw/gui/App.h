@@ -6,7 +6,8 @@
 #include <ghc/filesystem.hpp>
 #include <observe/event.h>
 
-#include "core/types.h"
+#include "fw/core/types.h"
+
 #include "Config.h"
 #include "FontManager.h"
 #include "AppView.h"

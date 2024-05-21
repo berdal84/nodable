@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "core/log.h"
+#include "fw/core/log.h"
 #include "Texture.h"
 
 using namespace fw;

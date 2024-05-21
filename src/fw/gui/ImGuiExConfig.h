@@ -1,8 +1,8 @@
 #pragma once
 
-#include "core/geometry/Vec2.h"
-#include "core/geometry/Vec4.h"
-#include "core/geometry/Box2D.h"
+#include "fw/core/geometry/Vec2.h"
+#include "fw/core/geometry/Vec4.h"
+#include "fw/core/geometry/Box2D.h"
 
 //---- Use stb_truetype to build and rasterize the font atlas (default)
 // The only purpose of this define is if you want force compilation of the stb_truetype backend ALONG with the FreeType backend.

@@ -1,9 +1,11 @@
 #pragma once
+
 #include <glm/common.hpp>
 #include <glm/ext/matrix_float3x3.hpp>
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/vec2.hpp>
-#include "core/types.h"
+
+#include "fw/core/types.h"
 
 namespace fw
 {

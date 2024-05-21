@@ -1,13 +1,15 @@
 #pragma once
 #include <utility>
 
+#include "fw/core/memory/Pool.h"
+#include "fw/gui/EventManager.h"
+
+#include "nodable/core/Graph.h"
+#include "nodable/core/SlotRef.h"
+
 #include "Event.h"
 #include "FrameMode.h"
 #include "SlotView.h"
-#include "core/Graph.h"
-#include "fw/core/memory/Pool.h"
-#include "fw/gui/EventManager.h"
-#include "nodable/core/SlotRef.h"
 
 namespace ndbl
 {

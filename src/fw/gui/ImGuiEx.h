@@ -1,20 +1,18 @@
 #pragma once
 
-// imgui begin
 #include <imgui/imgui.h>
-#include <imgui/misc/freetype/imgui_freetype.h>
 #include <imgui/imgui_internal.h>
 #include <ImGuiColorTextEdit/TextEditor.h>
-// imgui end
+#include <IconFontCppHeaders/IconsFontAwesome5.h>
+
+#include "fw/core/geometry/Rect.h"
+#include "fw/core/geometry/Vec2.h"
+#include "fw/core/geometry/Vec4.h"
+#include "fw/core/geometry/Space.h"
+#include "fw/core/types.h"
 
 #include "ActionManager.h"
 #include "EventManager.h"
-#include "core/geometry/Rect.h"
-#include "core/geometry/Vec2.h"
-#include "core/geometry/Vec4.h"
-#include "core/geometry/Space.h"
-#include "core/types.h"
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
 
 namespace fw
 {

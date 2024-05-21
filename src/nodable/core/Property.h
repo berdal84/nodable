@@ -1,6 +1,6 @@
 #pragma once
 
-#include "core/Token.h"
+#include "nodable/core/Token.h"
 #include "fw/core/memory/Pool.h"
 #include "fw/core/reflection/variant.h"
 #include "fw/core/types.h"// for constants and forward declarations

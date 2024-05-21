@@ -1,8 +1,9 @@
 #pragma once
-#include "NodeViewConstraint.h"
-#include "core/Component.h"
-#include "core/geometry/Space.h"
+
+#include "fw/core/geometry/Space.h"
 #include "fw/core/geometry/XForm2D.h"
+#include "nodable/core/Component.h"
+#include "nodable/gui/NodeViewConstraint.h"
 
 namespace  ndbl
 {

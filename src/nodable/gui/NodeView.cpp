@@ -1,5 +1,14 @@
 #include "NodeView.h"
 
+#include <algorithm> // for std::max
+#include <cmath> // for sinus
+#include <vector>
+
+#include "fw/core/math.h"
+#include "nodable/core/GraphUtil.h"
+#include "nodable/core/InvokableComponent.h"
+#include "nodable/core/LiteralNode.h"
+
 #include "Config.h"
 #include "Event.h"
 #include "Nodable.h"
@@ -7,13 +16,6 @@
 #include "Physics.h"
 #include "PropertyView.h"
 #include "SlotView.h"
-#include "core/GraphUtil.h"
-#include "core/InvokableComponent.h"
-#include "core/LiteralNode.h"
-#include "fw/core/math.h"
-#include <algorithm> // for std::max
-#include <cmath> // for sinus
-#include <vector>
 
 using namespace ndbl;
 using namespace fw;

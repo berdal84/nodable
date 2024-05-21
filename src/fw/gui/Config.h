@@ -1,9 +1,12 @@
 #pragma once
-#include "FontManagerConfig.h"
-#include "core/Color.h"
-#include "core/geometry/Vec2.h"
-#include "core/geometry/Vec4.h"
+
 #include <string>
+
+#include "fw/core/Color.h"
+#include "fw/core/geometry/Vec2.h"
+#include "fw/core/geometry/Vec4.h"
+
+#include "FontManagerConfig.h"
 
 namespace fw
 {
