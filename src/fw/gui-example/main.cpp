@@ -5,7 +5,7 @@ using namespace fw;
 int main(int argc, char *argv[])
 {
     // Override config
-    fw::g_conf().app_window_label = "framework-example - (based on framework-gui library)";
+    fw::g_conf->app_window_label = "framework-example - (based on framework-gui library)";
 
     // Instantiate the application using the predefined configuration
     AppExample app;

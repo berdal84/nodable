@@ -18,6 +18,8 @@
 #include "PropertyView.h"
 #include "SlotView.h"
 #include "fw/gui/Config.h"
+#include "fw/gui/gui.h"
+#include "gui.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -280,27 +282,27 @@ bool NodeView::onDraw()
 
 
 	// Draw the background of the Group
-    Vec4 border_color = g_conf().ui_node_borderColor;
+    Vec4 border_color = g_conf->ui_node_borderColor;
     if ( is_selected( m_id ) )
     {
-        border_color = g_conf().ui_node_borderHighlightedColor;
+        border_color = g_conf->ui_node_borderHighlightedColor;
     }
     else if (node->is_instruction())
     {
-        border_color = g_conf().ui_node_instructionColor;
+        border_color = g_conf->ui_node_instructionColor;
     }
 
-    float border_width = g_conf().ui_node_borderWidth;
+    float border_width = g_conf->ui_node_borderWidth;
     if( node->is_instruction() )
     {
-        border_width *= g_conf().ui_node_instructionBorderRatio;
+        border_width *= g_conf->ui_node_instructionBorderRatio;
     }
 
     DrawNodeRect(
             screen_rect,
             get_color( Color_FILL ),
-            g_conf().ui_node_borderColor,
-            g_conf().ui_node_shadowColor,
+            g_conf->ui_node_borderColor,
+            g_conf->ui_node_shadowColor,
             border_color,
             is_selected( m_id ),
             5.0f,
@@ -311,8 +313,8 @@ bool NodeView::onDraw()
 	ImGui::InvisibleButton("node", box.size());
     ImGui::SetItemAllowOverlap();
     Vec2 new_screen_pos = screen_rect.tl()
-                          + Vec2{ g_conf().ui_node_padding.x, g_conf().ui_node_padding.y} // left and top padding.
-                          + Vec2{ g_conf().ui_slot_radius, 0.0f}; // space for "this" left slot
+                          + Vec2{ g_conf->ui_node_padding.x, g_conf->ui_node_padding.y} // left and top padding.
+                          + Vec2{ g_conf->ui_slot_radius, 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
 
     bool is_node_hovered = ImGui::IsItemHovered();
@@ -328,7 +330,7 @@ bool NodeView::onDraw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        ImGuiEx::ShadowedText( Vec2(1.0f), g_conf().ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
+        ImGuiEx::ShadowedText( Vec2(1.0f), g_conf->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
         ImGui::SameLine();
 
@@ -351,7 +353,7 @@ bool NodeView::onDraw()
 
     // Update box's size according to item's rect
     Vec2 new_size = ImGui::GetItemRectMax();
-    new_size += Vec2{ g_conf().ui_node_padding.z, g_conf().ui_node_padding.w}; // right and bottom padding
+    new_size += Vec2{ g_conf->ui_node_padding.z, g_conf->ui_node_padding.w}; // right and bottom padding
     new_size -= screen_rect.tl();
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
@@ -737,7 +739,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     }
     ImGui::Unindent();
 
-    if ( fw::g_conf().debug )
+    if ( fw::g_conf->debug )
     {
         ImGui::Text("Debug info:" );
         // Draw exposed output properties
@@ -1102,10 +1104,10 @@ Rect NodeView::get_slot_rect( const Slot& _slot, i8_t _count ) const
 
 Rect NodeView::get_slot_rect( const SlotView& _slot_view, i8_t _pos ) const
 {
-    Rect result({0.0f, 0.0f }, g_conf().ui_slot_size );
+    Rect result({0.0f, 0.0f }, g_conf->ui_slot_size );
     result.translate_y( -result.size().y * 0.5f ); // Center vertically
-    result.translate_x( g_conf().ui_slot_size.x * float( _pos )      // x offset
-                      + g_conf().ui_slot_gap * float( 1 + _pos ) ); // x gap
+    result.translate_x( g_conf->ui_slot_size.x * float( _pos )      // x offset
+                      + g_conf->ui_slot_gap * float( 1 + _pos ) ); // x gap
     result.translate_y( _slot_view.alignment().y * result.size().y ); // align top/bottom
     Rect view_rect = rect( WORLD_SPACE );
     result.translate( _slot_view.alignment() * view_rect.size() + view_rect.center() ); // align slot with nodeview

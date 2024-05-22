@@ -1,22 +1,10 @@
 #include "Config.h"
 #include "build_info.h"
-#include "fw/gui/Config.h"
+#include "fw/gui/gui.h"
 
-using namespace ndbl;
 using namespace fw;
 
-ndbl::Config& ndbl::g_conf()
-{
-    static ndbl::Config conf;
-    return conf;
-};
-
 ndbl::Config::Config()
-{
-    reset_default();
-}
-
-void ndbl::Config::reset_default()
 {
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
@@ -88,6 +76,7 @@ void ndbl::Config::reset_default()
     ui_history_btn_spacing                = 1.f;
     ui_history_btn_height                 = 10.f;
     ui_history_btn_width_max              = 20.f;
+    ui_history_size_max                   = 200;
 
     // overlay
     ui_overlay_margin                     = 10.0f;
@@ -120,16 +109,16 @@ void ndbl::Config::reset_default()
     graph_unfold_iterations               = 100;
 
     // NodableView
-    fw::g_conf().dockspace_right_ratio       = 0.25f;
-    fw::g_conf().dockspace_top_size          = 36.f;
-    fw::g_conf().dockspace_bottom_size       = 100.f;
+    fw::g_conf->dockspace_right_ratio       = 0.25f;
+    fw::g_conf->dockspace_top_size          = 36.f;
+    fw::g_conf->dockspace_bottom_size       = 100.f;
 
     const char *k_paragraph = "Paragraph";
     const char *k_heading   = "Heading 1";
     const char *k_code      = "Code";
     const char *k_tool      = "Tool Button";
 
-    fw::g_conf().font_manager.text = {
+    fw::g_conf->font_manager.text = {
         // id          , font_path                           , size , icons? , icons size
         { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
         { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
@@ -137,16 +126,26 @@ void ndbl::Config::reset_default()
         { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
     };
 
-    fw::g_conf().font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
-    fw::g_conf().font_manager.defaults[FontSlot_Heading]   = k_heading;
-    fw::g_conf().font_manager.defaults[FontSlot_Code]      = k_code;
-    fw::g_conf().font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
-    fw::g_conf().font_manager.subsamples                   = 1.0f;
-    fw::g_conf().font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
-    fw::g_conf().app_window_label                          = BuildInfo::version_extended;
+    fw::g_conf->font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
+    fw::g_conf->font_manager.defaults[FontSlot_Heading]   = k_heading;
+    fw::g_conf->font_manager.defaults[FontSlot_Code]      = k_code;
+    fw::g_conf->font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
+    fw::g_conf->font_manager.subsamples                   = 1.0f;
+    fw::g_conf->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
+    fw::g_conf->app_window_label                          = BuildInfo::version_extended;
 }
 
 int ndbl::Config::ui_grid_subdiv_size() const
 {
     return ui_grid_size / ui_grid_subdiv_count;
+}
+
+void ndbl::Config::reset()
+{
+    *this = {};
+}
+
+float ndbl::Config::ui_codeflow_thickness() const
+{
+    return ui_slot_size.x * ui_codeflow_thickness_ratio;
 }

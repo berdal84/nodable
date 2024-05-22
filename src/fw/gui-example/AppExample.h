@@ -2,6 +2,7 @@
 #include "AppExampleView.h"
 #include "fw/gui/App.h"
 #include "fw/gui/Config.h"
+#include "fw/gui/gui.h"
 
 namespace fw
 {
@@ -24,7 +25,7 @@ namespace fw
             {
                 if ( ImGui::BeginMenu( "File" ) )
                 {
-                    if ( ImGui::MenuItem( "Show splashscreen" ) ) g_conf().splashscreen = true;
+                    if ( ImGui::MenuItem( "Show splashscreen" ) ) g_conf->splashscreen = true;
                     if ( ImGui::MenuItem( "Quit" ) ) should_stop = true;
                     ImGui::EndMenu();
                 }
@@ -32,7 +33,7 @@ namespace fw
             }
 
             // do not draw windows when splashscreen is visible
-            if ( g_conf().splashscreen )
+            if ( g_conf->splashscreen )
             {
                 return;
             };
@@ -55,7 +56,6 @@ namespace fw
             }
             ImGui::End();
         }
-
         bool on_init() override
         {
             LOG_MESSAGE( "Example", "My ON_INIT log!\n" );

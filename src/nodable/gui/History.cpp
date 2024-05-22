@@ -1,6 +1,7 @@
 #include "History.h"
 #include "Config.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
+#include "gui.h"
 
 using namespace ndbl;
 
@@ -28,7 +29,7 @@ void History::push_command(std::shared_ptr<AbstractCommand> _cmd, bool _from_tex
      * Ensure not to store too much undo commands.
      * We limit to a certain size, deleting first past commands, then future commands.
      */
-    while ( m_past.size() > g_conf().ui_history_size_max )
+    while ( m_past.size() > g_conf->ui_history_size_max )
     {
         m_past.pop_back();
     }

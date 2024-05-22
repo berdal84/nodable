@@ -39,7 +39,7 @@ namespace ndbl
 
         std::filesystem::path  path;         // file path on disk
         bool                   dirty;        // true if changed since last read/write from/to disk.
-        FileView view;
+        FileView               view;
         History                history;      // history of changes
         Graph*                 graph;        // graphical representation
         observe::Event<Graph*> graph_changed;

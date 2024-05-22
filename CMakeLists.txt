@@ -209,7 +209,7 @@ add_library(
     src/fw/gui/App.h
     src/fw/gui/AppView.cpp
     src/fw/gui/AppView.h
-    src/fw/gui/Config.cpp
+    src/fw/gui/gui.cpp
     src/fw/gui/Config.h
     src/fw/gui/Event.h
     src/fw/gui/EventManager.cpp
@@ -424,6 +424,8 @@ configure_file(
 add_library(
     nodable-gui
     STATIC
+    src/nodable/gui/gui.cpp
+    src/nodable/gui/gui.h
     src/nodable/gui/Config.cpp
     src/nodable/gui/Config.h
     src/nodable/gui/GraphView.cpp

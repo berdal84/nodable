@@ -59,6 +59,7 @@ namespace ndbl
 
         static Nodable& get_instance(); // singleton
     private:
+        void            before_init() override;
         bool            on_init() override;
         bool            on_shutdown() override;
         void            on_update() override;

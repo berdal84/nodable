@@ -17,8 +17,7 @@ namespace ndbl
     struct Config
     {
         Config();
-        void   reset_default();
-        int    ui_grid_subdiv_size() const;
+        void reset();
 
         TextEditor::Palette ui_text_textEditorPalette{};
         fw::Vec2       ui_wire_bezier_roundness; // {min, max}
@@ -54,7 +53,7 @@ namespace ndbl
         fw::Vec4       ui_codeflow_shadowColor;
         float          ui_codeflow_thickness_ratio;
         fw::Vec2       ui_toolButton_size;
-        u64_t          ui_history_size_max;
+        u64_t          ui_history_size_max{};
         float          ui_history_btn_spacing;
         float          ui_history_btn_height;
         float          ui_history_btn_width_max;
@@ -81,7 +80,10 @@ namespace ndbl
         Isolation      isolation;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
-    };
 
-    extern Config& g_conf(); // Global configuration for nodable
+        // Computed values
+
+        int    ui_grid_subdiv_size() const;
+        float  ui_codeflow_thickness() const;
+    };
 }

@@ -39,11 +39,11 @@ namespace ndbl
     class FileView : public fw::View
 	{
 	public:
-		explicit FileView( File& _file);
-        FileView(const File&) = delete;
+		explicit FileView();
+        FileView(const FileView&) = delete;
 		~FileView() override = default;
 
-		void                           init();
+		void                           init( File& _file);
         bool                           onDraw() override;
         bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
@@ -68,7 +68,7 @@ namespace ndbl
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
         bool         m_focused_text_changed;
         bool         m_is_graph_dirty;
-        File&        m_file;
+        File*        m_file;
         std::string  m_text_overlay_window_name;
         std::string  m_graph_overlay_window_name;
 		TextEditor   m_text_editor;

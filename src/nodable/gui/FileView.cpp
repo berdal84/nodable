@@ -14,34 +14,39 @@
 #include "NodeView.h"
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
+#include "gui.h"
 
 using namespace ndbl;
 using namespace fw;
 
-FileView::FileView( File& _file)
+FileView::FileView()
     : View()
     , m_text_editor()
     , m_focused_text_changed(false)
     , m_is_graph_dirty(false)
-    , m_file(_file)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
+    , m_file(nullptr)
     , m_experimental_clipboard_auto_paste(false)
 {
+}
+
+void FileView::init(File& _file)
+{
+    m_file = &_file;
     std::string overlay_basename{_file.filename()};
     m_text_overlay_window_name  = overlay_basename + "_text_overlay";
     m_graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
-    m_graph_changed_observer.observe(_file.graph_changed, [this](Graph* _graph)
-    {
-        LOG_VERBOSE("FileView", "graph changed evt received\n")
+    m_graph_changed_observer.observe(m_file->graph_changed, [this](Graph* _graph) {
+        LOG_VERBOSE( "FileView", "graph changed evt received\n" )
         if ( !_graph->is_empty() )
         {
-            LOG_VERBOSE("FileView", "graph is not empty\n")
+            LOG_VERBOSE( "FileView", "graph is not empty\n" )
             Node* root = _graph->get_root().get();
 
             NodeView* root_node_view = root->get_component<NodeView>().get();
-            GraphView* graph_view = m_file.graph_view;
+            GraphView* graph_view = m_file->graph_view;
 
             // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
@@ -51,21 +56,18 @@ FileView::FileView( File& _file)
 
                 // make sure views are outside viewable rectangle (to avoid flickering)
                 auto views = NodeUtils::get_components<NodeView>( _graph->get_node_registry() );
-                graph_view->translate_all(views, Vec2(-1000.f, -1000.0f), NodeViewFlag_NONE);
+                graph_view->translate_all( views, Vec2( -1000.f, -1000.0f ), NodeViewFlag_NONE );
 
                 // frame all (33ms delayed)
-                EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, {FRAME_ALL} );
+                EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, { FRAME_ALL } );
             }
         }
     });
-}
 
-void FileView::init()
-{
-	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
+    static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
-	m_text_editor.SetPalette( g_conf().ui_text_textEditorPalette);
+	m_text_editor.SetPalette( g_conf->ui_text_textEditorPalette );
 }
 
 bool FileView::onDraw()
@@ -128,20 +130,20 @@ bool FileView::onDraw()
             }
         }
 
-        m_file.history.enable_text_editor(true); // ensure to begin to record history
+        m_file->history.enable_text_editor(true); // ensure to begin to record history
 
         // render text editor
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
         // overlay
         Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
-        overlay_rect.expand( Vec2( -2.f * g_conf().ui_overlay_margin ) ); // margin
+        overlay_rect.expand( Vec2( -2.f * g_conf->ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
-        if ( g_conf().experimental_hybrid_history)
+        if ( g_conf->experimental_hybrid_history)
         {
-            m_file.history.enable_text_editor(false); // avoid recording events caused by graph serialisation
+            m_file->history.enable_text_editor(false); // avoid recording events caused by graph serialisation
         }
 
         auto new_cursor_position = m_text_editor.GetCursorPosition();
@@ -154,17 +156,17 @@ bool FileView::onDraw()
 
         m_focused_text_changed = is_line_text_modified ||
                                  m_text_editor.IsTextChanged() ||
-                                 ( g_conf().isolation && is_selected_text_modified);
+                                 ( g_conf->isolation && is_selected_text_modified);
 
-        if (m_text_editor.IsTextChanged())  m_file.dirty = true;
+        if (m_text_editor.IsTextChanged())  m_file->dirty = true;
     }
     ImGui::EndChild();
 
      // NODE EDITOR
     //-------------
 
-    Graph*     graph      = m_file.graph;
-    GraphView* graph_view = m_file.graph_view;
+    Graph*     graph      = m_file->graph;
+    GraphView* graph_view = m_file->graph_view;
 
     FW_ASSERT(graph);
 
@@ -183,14 +185,14 @@ bool FileView::onDraw()
 
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
-            overlay_rect.expand( Vec2( -2.0f * g_conf().ui_overlay_margin ) ); // margin
+            overlay_rect.expand( Vec2( -2.0f * g_conf->ui_overlay_margin ) ); // margin
             draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
-            if( g_conf().isolation )
+            if( g_conf->isolation )
             {
-                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( g_conf().ui_overlay_margin);
+                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( g_conf->ui_overlay_margin);
                 ImGui::SetCursorPos(cursor_pos);
                 ImGui::Text("Isolation mode ON");
             }
@@ -260,7 +262,7 @@ void FileView::set_text(const std::string& text, Isolation mode)
     {
         m_text_editor.SetText(text);
         // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, text, &m_text_editor);
-        // m_file.get_history()->push_command(cmd);
+        // m_file->get_history()->push_command(cmd);
 
         LOG_MESSAGE("FileView", "Whole text updated from graph.\n")
         LOG_VERBOSE("FileView", "%s \n", text.c_str())
@@ -276,16 +278,16 @@ void FileView::draw_info_panel() const
     // Basic information
     ImGui::Text("Current file:");
     ImGui::Indent();
-    ImGui::TextWrapped("path: %s", m_file.path.string().c_str());
-    ImGui::TextWrapped("size: %0.3f KiB", float(m_file.size()) / 1000.0f );
+    ImGui::TextWrapped("path: %s", m_file->path.string().c_str());
+    ImGui::TextWrapped("size: %0.3f KiB", float(m_file->size()) / 1000.0f );
     ImGui::Unindent();
     ImGui::NewLine();
 
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file.graph->get_node_registry().size());
-    ImGui::Text("Edge count: %zu", m_file.graph->get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file->graph->get_node_registry().size());
+    ImGui::Text("Edge count: %zu", m_file->graph->get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
@@ -320,9 +322,9 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
     if( overlay_data.empty() ) return;
 
     const auto& app = Nodable::get_instance();
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, g_conf().ui_overlay_window_bg_golor);
-    ImGui::PushStyleColor(ImGuiCol_Border, g_conf().ui_overlay_border_color);
-    ImGui::PushStyleColor(ImGuiCol_Text, g_conf().ui_overlay_text_color);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, g_conf->ui_overlay_window_bg_golor);
+    ImGui::PushStyleColor(ImGuiCol_Border, g_conf->ui_overlay_border_color);
+    ImGui::PushStyleColor(ImGuiCol_Text, g_conf->ui_overlay_text_color);
     Vec2 win_position = rect.tl() + rect.size() * position;
     ImGui::SetNextWindowPos( win_position, ImGuiCond_Always, position);
     ImGui::SetNextWindowSize( rect.size(), ImGuiCond_Appearing);
@@ -332,7 +334,7 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 
     if (ImGui::Begin(title, &show, flags) )
     {
-        ImGui::Indent( g_conf().ui_overlay_indent);
+        ImGui::Indent( g_conf->ui_overlay_indent);
         std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
             ImGui::Text("%s:", _data.label.c_str());
             ImGui::SameLine(150);

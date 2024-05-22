@@ -67,6 +67,4 @@ namespace fw
         float  frame_rounding {3.f};
         float  border_size    {1.f};
     };
-
-    Config& g_conf(); // Global configuration for the framework
 }

@@ -28,6 +28,8 @@
 #include "Physics.h"
 #include "SlotView.h"
 #include "fw/gui/Config.h"
+#include "fw/gui/gui.h"
+#include "gui.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -47,6 +49,7 @@ Nodable::Nodable()
     , current_file(nullptr)
     , virtual_machine()
 {
+
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
 
     type_register::log_statistics();
@@ -54,48 +57,6 @@ Nodable::Nodable()
     // set this instance as s_instance to access it via App::get_instance()
     FW_EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
     s_instance = this;
-
-    // Bind methods to framework events
-    LOG_VERBOSE("ndbl::App", "Binding framework ...\n");
-
-    node_factory.override_post_process_fct( [&]( PoolID<Node> node ) -> void {
-        // Code executed after node instantiation
-
-        // add a view with physics
-        auto *pool = Pool::get_pool();
-        PoolID<NodeView> new_view_id = pool->create<NodeView>();
-        PoolID<Physics> physics_id = pool->create<Physics>( new_view_id );
-        node->add_component( new_view_id );
-        node->add_component( physics_id );
-
-        // Set fill_color
-        Vec4* fill_color;
-        if ( extends<VariableNode>( node.get() ) )
-        {
-            fill_color = &g_conf().ui_node_variableColor;
-        }
-        else if ( node->has_component<InvokableComponent>() )
-        {
-            fill_color = &g_conf().ui_node_invokableColor;
-        }
-        else if ( node->is_instruction() )
-        {
-            fill_color = &g_conf().ui_node_instructionColor;
-        }
-        else if ( extends<LiteralNode>( node.get() ) )
-        {
-            fill_color = &g_conf().ui_node_literalColor;
-        }
-        else if ( extends<IConditional>( node.get() ) )
-        {
-            fill_color = &g_conf().ui_node_condStructColor;
-        }
-        else
-        {
-            fill_color = &g_conf().ui_node_fillColor;
-        }
-        new_view_id->set_color( fill_color );
-    } );
 
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 }
@@ -107,11 +68,54 @@ Nodable::~Nodable()
     LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
 
+void Nodable::before_init()
+{
+    ndbl::init();
+}
+
 bool Nodable::on_init()
 {
     LOG_VERBOSE("ndbl::App", "on_init ...\n");
 
-    Pool::init();
+    node_factory.override_post_process_fct( [&]( PoolID<Node> node ) -> void {
+        // Code executed after node instantiation
+
+        // add a view with physics
+        auto* pool = Pool::get_pool();
+        PoolID<NodeView> new_view_id = pool->create<NodeView>();
+        PoolID<Physics> physics_id = pool->create<Physics>( new_view_id );
+        node->add_component( new_view_id );
+        node->add_component( physics_id );
+
+        // Set fill_color
+        Vec4* fill_color;
+        if ( extends<VariableNode>( node.get() ) )
+        {
+            fill_color = &g_conf->ui_node_variableColor;
+        }
+        else if ( node->has_component<InvokableComponent>() )
+        {
+            fill_color = &g_conf->ui_node_invokableColor;
+        }
+        else if ( node->is_instruction() )
+        {
+            fill_color = &g_conf->ui_node_instructionColor;
+        }
+        else if ( extends<LiteralNode>( node.get() ) )
+        {
+            fill_color = &g_conf->ui_node_literalColor;
+        }
+        else if ( extends<IConditional>( node.get() ) )
+        {
+            fill_color = &g_conf->ui_node_condStructColor;
+        }
+        else
+        {
+            fill_color = &g_conf->ui_node_fillColor;
+        }
+        new_view_id->set_color( fill_color );
+    });
+
 
     // Bind commands to shortcuts
     action_manager.new_action<Event_DeleteNode>( "Delete", Shortcut{ SDLK_DELETE, KMOD_NONE } );
@@ -175,13 +179,13 @@ void Nodable::on_update()
         //
         // When history is dirty we update the graph from the text.
         // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if ( current_file->history.is_dirty && !g_conf().experimental_hybrid_history )
+        if ( current_file->history.is_dirty && !g_conf->experimental_hybrid_history )
         {
-            current_file->update_graph_from_text( g_conf().isolation);
+            current_file->update_graph_from_text( g_conf->isolation);
             current_file->history.is_dirty = false;
         }
         // Run the main update loop for the file
-        current_file->update( g_conf().isolation );
+        current_file->update( g_conf->isolation );
     }
 
     // 2. Handle events
@@ -198,10 +202,10 @@ void Nodable::on_update()
         {
             case EventID_TOGGLE_ISOLATION_FLAGS:
             {
-                g_conf().isolation = ~g_conf().isolation;
+                g_conf->isolation = ~g_conf->isolation;
                 if(current_file)
                 {
-                    current_file->update_graph_from_text( g_conf().isolation );
+                    current_file->update_graph_from_text( g_conf->isolation );
                 }
                 break;
             }
@@ -285,7 +289,7 @@ void Nodable::on_update()
                 auto _event = reinterpret_cast<Event_ShowWindow*>(event);
                 if ( _event->data.window_id == "splashscreen" )
                 {
-                    fw::g_conf().splashscreen = _event->data.visible;
+                    fw::g_conf->splashscreen = _event->data.visible;
                 }
                 break;
             }
@@ -433,7 +437,7 @@ void Nodable::on_update()
                 {
                     // Experimental: we try to connect a parent-less child
                     PoolID<Node> root = graph->get_root();
-                    if ( new_node_id != root && g_conf().experimental_graph_autocompletion )
+                    if ( new_node_id != root && g_conf->experimental_graph_autocompletion )
                     {
                         graph->connect(
                             *root->find_slot(SlotFlag_CHILD),
@@ -492,7 +496,7 @@ bool Nodable::on_shutdown()
     }
     LOG_VERBOSE("ndbl::App", "on_shutdown " OK "\n");
 
-    Pool::shutdown();
+    ndbl::shutdown();
 
     return true;
 }
@@ -514,7 +518,7 @@ File* Nodable::open_file(const std::filesystem::path& _path)
         return nullptr;
     }
     add_file(file);
-    file->update_graph_from_text( g_conf().isolation);
+    file->update_graph_from_text( g_conf->isolation);
     return file;
 }
 
@@ -635,7 +639,7 @@ void Nodable::reset_program()
     {
         virtual_machine.stop_program();
     }
-    current_file->update_graph_from_text( g_conf().isolation );
+    current_file->update_graph_from_text( g_conf->isolation );
 }
 
 File*Nodable::new_file()

@@ -39,8 +39,9 @@ namespace fw
 
         // virtual methods user can override
 
-        virtual bool on_init() { return true; };
-        virtual bool on_shutdown() { return true; };
+        virtual void before_init() {};
+        virtual bool on_init() = 0;
+        virtual bool on_shutdown() = 0;
         virtual void on_update() {};
         virtual void on_draw() {};
 
@@ -55,7 +56,7 @@ namespace fw
         bool               is_fullscreen() const;
         void               set_fullscreen(bool b);
         void               save_screenshot(const char*); // Save current view as PNG file to a given path (relative or absolute)
-
+        void               show_splashscreen(bool b);
         static int         fps();      // get the current frame per second (un-smoothed)
         static std::filesystem::path asset_path(const std::filesystem::path&); // get asset's absolute path (relative path will be converted)
         static std::filesystem::path asset_path(const char*);            // get asset's absolute path (relative path will be converted)

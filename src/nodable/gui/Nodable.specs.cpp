@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "fixtures/gui.h"
 #include "fw/gui/Config.h"
+#include "fw/gui/gui.h"
 
 typedef ::testing::Gui Gui_App;
 using namespace ndbl;
@@ -63,7 +64,7 @@ TEST_F(Gui_App, new_file)
 {
     Nodable app;
     app.init();
-    fw::g_conf().splashscreen = false;
+    app.show_splashscreen(false);
     app.new_file();
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__new_file__0.png");
@@ -74,7 +75,7 @@ TEST_F(Gui_App, open_file)
 {
     Nodable app;
     app.init();
-    fw::g_conf().splashscreen = false;
+    app.show_splashscreen(false);
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__0.png");
     EXPECT_TRUE(app.open_asset_file("./examples/arithmetic.cpp"));
@@ -87,7 +88,7 @@ TEST_F(Gui_App, close_file)
 {
     Nodable app;
     app.init();
-    fw::g_conf().splashscreen = false;
+    app.show_splashscreen(false);
     File* file = app.open_asset_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__0.png");
@@ -101,7 +102,7 @@ TEST_F(Gui_App, open_examples)
 {
     Nodable app;
     app.init();
-    fw::g_conf().splashscreen = false;
+    app.show_splashscreen(false);
     app.update();
     save_screenshot(app, "TEST_Gui_App__open_examples__0.png");
     EXPECT_TRUE(app.open_asset_file("./examples/arithmetic.cpp"));

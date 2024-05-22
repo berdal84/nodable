@@ -18,13 +18,13 @@ using namespace fw;
 File::File()
 : path()
 , dirty(true)
-, view(*this)
+, view()
 , history()
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 
     // FileView
-    view.init();
+    view.init(*this);
 
     LOG_VERBOSE( "File", "View built, creating History ...\n")
 
