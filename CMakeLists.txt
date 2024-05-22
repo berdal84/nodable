@@ -24,7 +24,7 @@ set(NDBL_APP_NAME "Nodable")
 set(NDBL_PACKAGE_DIR "${CMAKE_CURRENT_LIST_DIR}/out/package")  #     //
 set(NDBL_CONFIGURED_DIR "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS OFF)
-option(FW_NO_POOL "Disable Pool (for benchmark only)" OFF)
+option(TOOLS_NO_POOL "Disable Pool (for benchmark only)" OFF)
 
 # set a build type to Release by default if not set:
 if ( NOT DEFINED CMAKE_BUILD_TYPE )
@@ -48,15 +48,15 @@ set(CMAKE_CXX_EXTENSIONS          ON)
 # enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 
-# Defines FW_DEBUG/NDBL_DEBUG when in Debug
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DFW_DEBUG -DNDBL_DEBUG")
+# Defines TOOLS_DEBUG/NDBL_DEBUG when in Debug
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DTOOLS_DEBUG -DNDBL_DEBUG")
 
 if(WIN32)
     add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions
 endif()
 
-if (FW_NO_POOL)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DFW_NO_POOL")
+if (TOOLS_NO_POOL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTOOLS_NO_POOL")
 endif ()
 
 # add subdirectories
@@ -103,7 +103,7 @@ endif ()
 ndbl_log("Threads found: ${Threads_FOUND}")
 ndbl_log("OpenGL found:  ${OpenGL_FOUND}")
 
-# Includes for all (fw and nodable) targets
+# Includes for all (tools and nodable) targets
 include_directories(
     src
     libs
@@ -121,110 +121,113 @@ include_directories(
 #--------------------
 
 add_library(
-    framework-core
+    tools-core
     STATIC
     libs/whereami/src/whereami.c
-    src/fw/core/Color.h
-    src/fw/core/TIdentifier.h
-    src/fw/core/assertions.h
-    src/fw/core/async.cpp
-    src/fw/core/async.h
-    src/fw/core/format.cpp
-    src/fw/core/format.h
-    src/fw/core/geometry/Box2D.h
-    src/fw/core/geometry/Rect.h
-    src/fw/core/geometry/Space.h
-    src/fw/core/geometry/Vec2.h
-    src/fw/core/geometry/Vec4.h
-    src/fw/core/geometry/XForm2D.h
-    src/fw/core/hash.h
-    src/fw/core/log.cpp
-    src/fw/core/log.h
-    src/fw/core/math.h
-    src/fw/core/memory/Pool.cpp
-    src/fw/core/memory/Pool.h
-    src/fw/core/reflection/Operator.h
-    src/fw/core/reflection/Operator_t.h
-    src/fw/core/reflection/class.h
-    src/fw/core/reflection/enum.h
-    src/fw/core/reflection/func_type.cpp
-    src/fw/core/reflection/func_type.h
-    src/fw/core/reflection/invokable.h
-    src/fw/core/reflection/qword.cpp
-    src/fw/core/reflection/qword.h
-    src/fw/core/reflection/reflection
-    src/fw/core/reflection/registration.h
-    src/fw/core/reflection/type.cpp
-    src/fw/core/reflection/type.h
-    src/fw/core/reflection/type_register.cpp
-    src/fw/core/reflection/type_register.h
-    src/fw/core/reflection/union.h
-    src/fw/core/reflection/variant.cpp
-    src/fw/core/reflection/variant.h
-    src/fw/core/string.h
-    src/fw/core/system.cpp
-    src/fw/core/system.h
-    src/fw/core/types.h
+    src/tools/core/core.cpp
+    src/tools/core/core.h
+    src/tools/core/Color.h
+    src/tools/core/TIdentifier.h
+    src/tools/core/assertions.h
+    src/tools/core/async.cpp
+    src/tools/core/async.h
+    src/tools/core/format.cpp
+    src/tools/core/format.h
+    src/tools/core/geometry/Box2D.h
+    src/tools/core/geometry/Rect.h
+    src/tools/core/geometry/Space.h
+    src/tools/core/geometry/Vec2.h
+    src/tools/core/geometry/Vec4.h
+    src/tools/core/geometry/XForm2D.h
+    src/tools/core/hash.h
+    src/tools/core/log.cpp
+    src/tools/core/log.h
+    src/tools/core/math.h
+    src/tools/core/memory/Pool.cpp
+    src/tools/core/memory/Pool.h
+    src/tools/core/reflection/Operator.h
+    src/tools/core/reflection/Operator_t.h
+    src/tools/core/reflection/class.h
+    src/tools/core/reflection/enum.h
+    src/tools/core/reflection/func_type.cpp
+    src/tools/core/reflection/func_type.h
+    src/tools/core/reflection/invokable.h
+    src/tools/core/reflection/qword.cpp
+    src/tools/core/reflection/qword.h
+    src/tools/core/reflection/reflection
+    src/tools/core/reflection/registration.h
+    src/tools/core/reflection/type.cpp
+    src/tools/core/reflection/type.h
+    src/tools/core/reflection/type_register.cpp
+    src/tools/core/reflection/type_register.h
+    src/tools/core/reflection/union.h
+    src/tools/core/reflection/variant.cpp
+    src/tools/core/reflection/variant.h
+    src/tools/core/string.h
+    src/tools/core/system.cpp
+    src/tools/core/system.h
+    src/tools/core/types.h
     # libraries
     libs/whereami/src/whereami.c
     libs/whereami/src/whereami.h
 )
 
 target_link_libraries(
-    framework-core
+    tools-core
     PUBLIC
-        Observe        # event system using observer/observable pattern.
-        glm            # math
-        Threads::Threads
+    Observe        # event system using observer/observable pattern.
+    glm            # math
+    Threads::Threads
 )
 
 add_executable(
-    test-framework-core
-    src/fw/core/reflection/reflection.specs.cpp
-    src/fw/core/memory/Pool.specs.cpp
+    test-tools-core
+    src/tools/core/reflection/reflection.specs.cpp
+    src/tools/core/memory/Pool.specs.cpp
 )
 
-target_link_libraries(test-framework-core PUBLIC gtest_main gtest framework-core)
-add_test(NAME test_framework_core COMMAND test-framework-core)
+target_link_libraries(test-tools-core PUBLIC gtest_main gtest tools-core)
+add_test(NAME test_framework_core COMMAND test-tools-core)
 
-add_executable(bench-fw-core-string src/fw/core/string.bench.cpp)
-target_link_libraries(bench-fw-core-string PUBLIC benchmark::benchmark framework-core)
+add_executable(bench-fw-core-string src/tools/core/string.bench.cpp)
+target_link_libraries(bench-fw-core-string PUBLIC benchmark::benchmark tools-core)
 
-add_executable(bench-fw-core-Pool src/fw/core/memory/Pool.bench.cpp)
-target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark framework-core)
+add_executable(bench-fw-core-Pool src/tools/core/memory/Pool.bench.cpp)
+target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark tools-core)
 
 # 1.2) Framework GUI
 #-------------------
 
 add_library(
-    framework-gui
+    tools-gui
     STATIC
-    src/fw/gui/Action.cpp
-    src/fw/gui/Action.h
-    src/fw/gui/ActionManager.cpp
-    src/fw/gui/ActionManager.h
-    src/fw/gui/ActionManagerView.cpp
-    src/fw/gui/ActionManagerView.h
-    src/fw/gui/App.cpp
-    src/fw/gui/App.h
-    src/fw/gui/AppView.cpp
-    src/fw/gui/AppView.h
-    src/fw/gui/gui.cpp
-    src/fw/gui/Config.h
-    src/fw/gui/Event.h
-    src/fw/gui/EventManager.cpp
-    src/fw/gui/EventManager.h
-    src/fw/gui/FontManager.cpp
-    src/fw/gui/FontManager.h
-    src/fw/gui/FontManagerConfig.h
-    src/fw/gui/ImGuiEx.cpp
-    src/fw/gui/ImGuiEx.h
-    src/fw/gui/ImGuiExConfig.h
-    src/fw/gui/Texture.h
-    src/fw/gui/TextureManager.cpp
-    src/fw/gui/TextureManager.h
-    src/fw/gui/View.cpp
-    src/fw/gui/View.h
+    src/tools/gui/Action.cpp
+    src/tools/gui/Action.h
+    src/tools/gui/ActionManager.cpp
+    src/tools/gui/ActionManager.h
+    src/tools/gui/ActionManagerView.cpp
+    src/tools/gui/ActionManagerView.h
+    src/tools/gui/App.cpp
+    src/tools/gui/App.h
+    src/tools/gui/AppView.cpp
+    src/tools/gui/AppView.h
+    src/tools/gui/gui.h
+    src/tools/gui/gui.cpp
+    src/tools/gui/Config.h
+    src/tools/gui/Event.h
+    src/tools/gui/EventManager.cpp
+    src/tools/gui/EventManager.h
+    src/tools/gui/FontManager.cpp
+    src/tools/gui/FontManager.h
+    src/tools/gui/FontManagerConfig.h
+    src/tools/gui/ImGuiEx.cpp
+    src/tools/gui/ImGuiEx.h
+    src/tools/gui/ImGuiExConfig.h
+    src/tools/gui/Texture.h
+    src/tools/gui/TextureManager.cpp
+    src/tools/gui/TextureManager.h
+    src/tools/gui/View.cpp
+    src/tools/gui/View.h
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
     libs/imgui/imgui_draw.cpp
@@ -242,14 +245,14 @@ add_library(
 )
 
 target_link_libraries(
-    framework-gui
+    tools-gui
     PUBLIC
-        ${CMAKE_DL_LIBS}
-        OpenGL::GL
-        SDL2-static SDL2main
-        nfd # native file dialog - extended
-        freetype # because: https://github.com/ocornut/imgui/tree/master/misc/freetype
-        framework-core
+    ${CMAKE_DL_LIBS}
+    OpenGL::GL
+    SDL2-static SDL2main
+    nfd # native file dialog - extended
+    freetype # because: https://github.com/ocornut/imgui/tree/master/misc/freetype
+    tools-core
 )
 
 # link APPLE specific libraries
@@ -258,36 +261,37 @@ IF (APPLE)
 
     find_library(CORE_FOUNDATION_FRAMEWORK CoreFoundation)
     if (NOT CORE_FOUNDATION_FRAMEWORK)
-ndbl_err("CoreFoundation not found")
+        ndbl_err("CoreFoundation not found")
     endif ()
 
     find_library(COCOA_FRAMEWORK Cocoa)
     if (NOT COCOA_FRAMEWORK)
-ndbl_err("Cocoa not found")
+        ndbl_err("Cocoa not found")
     endif ()
 
     ndbl_log("CORE_FOUNDATION_FRAMEWORK: ${CORE_FOUNDATION_FRAMEWORK}")
     ndbl_log("COCOA_FRAMEWORK:   ${COCOA_FRAMEWORK}")
 
     target_link_libraries(
-    framework-gui
-    PUBLIC
-    ${CORE_FOUNDATION_FRAMEWORK}
-    ${COCOA_FRAMEWORK})
+        tools-gui
+        PUBLIC
+        ${CORE_FOUNDATION_FRAMEWORK}
+        ${COCOA_FRAMEWORK}
+    )
 ENDIF ()
 
-target_compile_definitions(framework-gui PUBLIC IMGUI_USER_CONFIG="${CMAKE_CURRENT_LIST_DIR}/src/fw/gui/ImGuiExConfig.h") # Override imconfig.h
-set_target_properties(framework-gui PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
-set_target_properties(framework-gui PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+target_compile_definitions(tools-gui PUBLIC IMGUI_USER_CONFIG="${CMAKE_CURRENT_LIST_DIR}/src/tools/gui/ImGuiExConfig.h") # Override imconfig.h
+set_target_properties(tools-gui PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
+set_target_properties(tools-gui PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 
 # define assets
-set(FW_ASSETS
-"assets/fonts/CenturyGothic.ttf"
-"assets/fonts/fa-solid-900.ttf"
+set(TOOLS_ASSETS
+    "assets/fonts/CenturyGothic.ttf"
+    "assets/fonts/fa-solid-900.ttf"
 )
 
 # copy each file (will dirty the build when file changes)
-foreach (ASSET ${FW_ASSETS})
+foreach (ASSET ${TOOLS_ASSETS})
     configure_file("${ASSET}" "${CMAKE_BINARY_DIR}/${ASSET}" COPYONLY)
 endforeach ()
 
@@ -295,58 +299,60 @@ endforeach ()
 #---------------------------------------
 
 # add executable
-add_executable(framework-gui-example WIN32 src/fw/gui-example/main.cpp)
-target_link_libraries(framework-gui-example PUBLIC framework-gui)
-set_target_properties(framework-gui-example PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
-set_target_properties(framework-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+add_executable(tools-gui-example WIN32 src/tools/gui-example/main.cpp)
+target_link_libraries(tools-gui-example PUBLIC tools-gui)
+set_target_properties(tools-gui-example PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
+set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 
 # Installation :
-# install( TARGETS framework-gui-example RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION .)
+# install( TARGETS tools-gui-example RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE DESTINATION .)
 
 # 2.1) Nodable Core
 #------------------
 
 add_library(
-    nodable-core
+    ndbl-core
     STATIC
-    src/nodable/core/Component.cpp
-    src/nodable/core/ComponentBag.cpp
-    src/nodable/core/IfNode.cpp
-    src/nodable/core/DataAccess.cpp
-    src/nodable/core/DirectedEdge.cpp
-    src/nodable/core/ForLoopNode.cpp
-    src/nodable/core/Graph.cpp
-    src/nodable/core/GraphUtil.cpp
-    src/nodable/core/InvokableComponent.cpp
-    src/nodable/core/LiteralNode.cpp
-    src/nodable/core/Node.cpp
-    src/nodable/core/NodeFactory.cpp
-    src/nodable/core/Property.cpp
-    src/nodable/core/PropertyBag.cpp
-    src/nodable/core/Scope.cpp
-    src/nodable/core/Slot.cpp
-    src/nodable/core/SlotRef.cpp
-    src/nodable/core/Token.cpp
-    src/nodable/core/TokenRibbon.cpp
-    src/nodable/core/VariableNode.cpp
-    src/nodable/core/VirtualMachine.cpp
-    src/nodable/core/WhileLoopNode.cpp
-    src/nodable/core/assembly/Code.cpp
-    src/nodable/core/assembly/Compiler.cpp
-    src/nodable/core/assembly/Instruction.cpp
-    src/nodable/core/language/Nodlang.cpp
-    src/nodable/core/language/Nodlang_biology.cpp
-    src/nodable/core/language/Nodlang_math.cpp
+    src/ndbl/core/core.cpp
+    src/ndbl/core/core.h
+    src/ndbl/core/Component.cpp
+    src/ndbl/core/ComponentBag.cpp
+    src/ndbl/core/IfNode.cpp
+    src/ndbl/core/DataAccess.cpp
+    src/ndbl/core/DirectedEdge.cpp
+    src/ndbl/core/ForLoopNode.cpp
+    src/ndbl/core/Graph.cpp
+    src/ndbl/core/GraphUtil.cpp
+    src/ndbl/core/InvokableComponent.cpp
+    src/ndbl/core/LiteralNode.cpp
+    src/ndbl/core/Node.cpp
+    src/ndbl/core/NodeFactory.cpp
+    src/ndbl/core/Property.cpp
+    src/ndbl/core/PropertyBag.cpp
+    src/ndbl/core/Scope.cpp
+    src/ndbl/core/Slot.cpp
+    src/ndbl/core/SlotRef.cpp
+    src/ndbl/core/Token.cpp
+    src/ndbl/core/TokenRibbon.cpp
+    src/ndbl/core/VariableNode.cpp
+    src/ndbl/core/VirtualMachine.cpp
+    src/ndbl/core/WhileLoopNode.cpp
+    src/ndbl/core/assembly/Code.cpp
+    src/ndbl/core/assembly/Compiler.cpp
+    src/ndbl/core/assembly/Instruction.cpp
+    src/ndbl/core/language/Nodlang.cpp
+    src/ndbl/core/language/Nodlang_biology.cpp
+    src/ndbl/core/language/Nodlang_math.cpp
 )
 
 target_link_libraries(
-    nodable-core
+    ndbl-core
     PUBLIC
-    framework-core
+    tools-core
 )
 
 ndbl_log("Defining install ...")
-set_target_properties(nodable-core PROPERTIES OUTPUT_NAME "core")
+set_target_properties(ndbl-core PROPERTIES OUTPUT_NAME "core")
 
 ndbl_log("NDBL_SKIP_TESTS: ${NDBL_SKIP_TESTS}")
 
@@ -355,25 +361,25 @@ if (NDBL_SKIP_TESTS)
 endif ()
 
 add_executable(
-    test-nodable-core
-    src/nodable/core/Graph.specs.cpp
-    src/nodable/core/Node.specs.cpp
-    src/nodable/core/Property.specs.cpp
-    src/nodable/core/Slot.specs.cpp
-    src/nodable/core/Token.specs.cpp
-    src/nodable/core/language/Nodlang.specs.cpp
-    src/nodable/core/language/Nodlang.tokenize.specs.cpp
-    src/nodable/core/language/Nodlang.parse_function_call.specs.cpp
-    src/nodable/core/language/Nodlang.parse_token.specs.cpp
-    src/nodable/core/VirtualMachine.specs.cpp
-    src/nodable/core/language/Nodlang.parse_and_eval.specs.cpp
+    test-ndbl-core
+    src/ndbl/core/Graph.specs.cpp
+    src/ndbl/core/Node.specs.cpp
+    src/ndbl/core/Property.specs.cpp
+    src/ndbl/core/Slot.specs.cpp
+    src/ndbl/core/Token.specs.cpp
+    src/ndbl/core/language/Nodlang.specs.cpp
+    src/ndbl/core/language/Nodlang.tokenize.specs.cpp
+    src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp
+    src/ndbl/core/language/Nodlang.parse_token.specs.cpp
+    src/ndbl/core/VirtualMachine.specs.cpp
+    src/ndbl/core/language/Nodlang.parse_and_eval.specs.cpp
 )
-target_link_libraries(test-nodable-core PUBLIC gtest_main gtest nodable-core)
-add_test(NAME test_nodable_core COMMAND test-nodable-core)
+target_link_libraries(test-ndbl-core PUBLIC gtest_main gtest ndbl-core)
+add_test(NAME test_ndbl_core COMMAND test-ndbl-core)
 
 # Benchmarks
-add_executable(bench-nodable-core-Nodlang src/nodable/core/language/Nodlang.bench.cpp)
-target_link_libraries(bench-nodable-core-Nodlang PUBLIC benchmark::benchmark nodable-core)
+add_executable(bench-ndbl-core-Nodlang src/ndbl/core/language/Nodlang.bench.cpp)
+target_link_libraries(bench-ndbl-core-Nodlang PUBLIC benchmark::benchmark ndbl-core)
 
 # 2.1) Nodable CLI
 #-----------------
@@ -384,18 +390,18 @@ if (NOT NDBL_CONFIGURED_DIR)
 endif ()
 
 add_executable(
-    nodable-cli
-    src/nodable/cli/main.cpp
-    src/nodable/cli/CLI.cpp
+    ndbl-cli
+    src/ndbl/cli/main.cpp
+    src/ndbl/cli/CLI.cpp
 )
 
-target_link_libraries(nodable-cli PUBLIC nodable-core)
-set_target_properties(nodable-cli PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
-set_target_properties(nodable-cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
-set_target_properties(nodable-cli PROPERTIES OUTPUT_NAME "cli")
+target_link_libraries(ndbl-cli PUBLIC ndbl-core)
+set_target_properties(ndbl-cli PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
+set_target_properties(ndbl-cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+set_target_properties(ndbl-cli PROPERTIES OUTPUT_NAME "cli")
 
 # Installation :
-install(TARGETS nodable-cli DESTINATION . RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
+install(TARGETS ndbl-cli DESTINATION . RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
 
 # 2.1) Nodable GUI
 #------------------
@@ -417,42 +423,42 @@ ndbl_log(" - NDBL_APP_ASSETS_ABSOLUTE_DIR: ${NDBL_APP_ASSETS_ABSOLUTE_DIR}")
 
 # Configure files
 configure_file(
-    src/nodable/gui/build_info.h.in
+    src/ndbl/gui/build_info.h.in
     ${NDBL_CONFIGURED_DIR}/gui/build_info.h
 )
 
 add_library(
-    nodable-gui
+    ndbl-gui
     STATIC
-    src/nodable/gui/gui.cpp
-    src/nodable/gui/gui.h
-    src/nodable/gui/Config.cpp
-    src/nodable/gui/Config.h
-    src/nodable/gui/GraphView.cpp
-    src/nodable/gui/History.cpp
-    src/nodable/gui/File.cpp
-    src/nodable/gui/FileView.cpp
-    src/nodable/gui/Nodable.cpp
-    src/nodable/gui/NodableView.cpp
-    src/nodable/gui/NodeView.cpp
-    src/nodable/gui/NodeViewConstraint.cpp
-    src/nodable/gui/Physics.cpp
-    src/nodable/gui/PropertyView.cpp
-    src/nodable/gui/SlotView.cpp
-    src/nodable/gui/Isolation.h
+    src/ndbl/gui/gui.cpp
+    src/ndbl/gui/gui.h
+    src/ndbl/gui/Config.cpp
+    src/ndbl/gui/Config.h
+    src/ndbl/gui/GraphView.cpp
+    src/ndbl/gui/History.cpp
+    src/ndbl/gui/File.cpp
+    src/ndbl/gui/FileView.cpp
+    src/ndbl/gui/Nodable.cpp
+    src/ndbl/gui/NodableView.cpp
+    src/ndbl/gui/NodeView.cpp
+    src/ndbl/gui/NodeViewConstraint.cpp
+    src/ndbl/gui/Physics.cpp
+    src/ndbl/gui/PropertyView.cpp
+    src/ndbl/gui/SlotView.cpp
+    src/ndbl/gui/Isolation.h
 )
 
 target_link_libraries(
-    nodable-gui
+    ndbl-gui
     PUBLIC
-        nodable-core
-        framework-gui
+    ndbl-core
+    tools-gui
 )
 
 target_include_directories(
-    nodable-gui
+    ndbl-gui
     PUBLIC
-        ${PROJECT_BINARY_DIR}/configured/ndbl/gui/
+    ${PROJECT_BINARY_DIR}/configured/ndbl/gui/
 )
 
 # define assets
@@ -479,19 +485,19 @@ if (NDBL_SKIP_TESTS)
     return()
 endif ()
 
-add_executable(test-nodable-gui src/nodable/gui/Nodable.specs.cpp)
-target_link_libraries(test-nodable-gui PUBLIC gtest_main gtest nodable-gui)
+add_executable(test-ndbl-gui src/ndbl/gui/Nodable.specs.cpp)
+target_link_libraries(test-ndbl-gui PUBLIC gtest_main gtest ndbl-gui)
 
 # GUI tests does not work on every machine (only MacOS in software on GitHub Actions)
 if ($ENV{JETBRAINS_IDE})
     ndbl_log("JETBRAINS_IDE is defined:  Enable Nodable GUI tests (hardware rendering)")
-    add_test(NAME test_nodable_gui COMMAND test-nodable-gui)
+    add_test(NAME test_ndbl_gui COMMAND test-ndbl-gui)
     add_definitions(-D NDBL_GUI_TEST_HUMAN_SPEED)
 elseif (WIN32)
     ndbl_log("Windows detected: Skip Nodable GUI tests")
 elseif (APPLE)
     ndbl_log("Apple detected: Enable Nodable GUI tests (software rendering)")
-    add_test(NAME test_nodable_gui COMMAND test-nodable-gui)
+    add_test(NAME test_ndbl_gui COMMAND test-ndbl-gui)
 elseif (UNIX) # Should be tested after APPLE
     ndbl_log("Linux detected: Skip Nodable GUI tests")
 endif ()
@@ -499,11 +505,11 @@ endif ()
 # 2.1) Nodable App
 #-----------------
 
-add_executable(nodable-app WIN32 src/nodable/app/main.cpp)
-target_link_libraries(nodable-app PUBLIC nodable-gui)
-set_target_properties(nodable-app PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
-set_target_properties(nodable-app PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
-set_target_properties(nodable-app PROPERTIES OUTPUT_NAME "nodable")
+add_executable(ndbl-app WIN32 src/ndbl/app/main.cpp)
+target_link_libraries(ndbl-app PUBLIC ndbl-gui)
+set_target_properties(ndbl-app PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
+set_target_properties(ndbl-app PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
+set_target_properties(ndbl-app PROPERTIES OUTPUT_NAME "nodable")
 
 set(README README.md)
 set(LICENSE LICENSE)
@@ -511,7 +517,7 @@ configure_file("${README}" . COPYONLY)
 configure_file("${LICENSE}" . COPYONLY)
 
 # Installation :
-install(TARGETS nodable-app DESTINATION . RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
+install(TARGETS ndbl-app DESTINATION . RUNTIME PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE)
 install(DIRECTORY assets DESTINATION .)
 install(FILES ${LICENSE} ${README} DESTINATION .)
 

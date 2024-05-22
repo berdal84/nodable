@@ -4,9 +4,9 @@
 
 ## Architecture
 
-Nodable is split in two [src](./src/README.md):
-- the [nodable](./src/nodable/README.md) project.
-- the [framework](./src/fw/README.md) project.
+Nodable sources are split in two folders under [./src](./src/README.md):
+- [./src/ndbl](src/ndbl/README.md) project.
+- [./src/tool](src/tools/README.md) project.
 
 They both rely on external [libraries](./libs/README.md).
 
