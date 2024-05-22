@@ -1,8 +1,8 @@
 #pragma once
-#include "core/DirectedEdge.h"
-#include "core/Graph.h"
-#include "core/Property.h"
-#include "gui/Command.h"
+#include "nodable/core/DirectedEdge.h"
+#include "nodable/core/Graph.h"
+#include "nodable/core/Property.h"
+#include "nodable/gui/Command.h"
 
 namespace ndbl
 {

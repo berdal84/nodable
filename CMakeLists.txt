@@ -178,30 +178,20 @@ target_link_libraries(
         Threads::Threads
 )
 
-target_include_directories(
-    framework-core
-    PUBLIC
-        src/
-        src/fw/
-        libs/
-        libs/Observe/include/
-        libs/whereami/src/
-)
-
 add_executable(
     test-framework-core
     src/fw/core/reflection/reflection.specs.cpp
     src/fw/core/memory/Pool.specs.cpp
 )
 
-target_link_libraries(test-framework-core PRIVATE gtest_main gtest framework-core)
+target_link_libraries(test-framework-core PUBLIC gtest_main gtest framework-core)
 add_test(NAME test_framework_core COMMAND test-framework-core)
 
 add_executable(bench-fw-core-string src/fw/core/string.bench.cpp)
-target_link_libraries(bench-fw-core-string PRIVATE benchmark::benchmark framework-core)
+target_link_libraries(bench-fw-core-string PUBLIC benchmark::benchmark framework-core)
 
 add_executable(bench-fw-core-Pool src/fw/core/memory/Pool.bench.cpp)
-target_link_libraries(bench-fw-core-Pool PRIVATE benchmark::benchmark framework-core)
+target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark framework-core)
 
 # 1.2) Framework GUI
 #-------------------
@@ -219,6 +209,7 @@ add_library(
     src/fw/gui/App.h
     src/fw/gui/AppView.cpp
     src/fw/gui/AppView.h
+    src/fw/gui/Config.cpp
     src/fw/gui/Config.h
     src/fw/gui/Event.h
     src/fw/gui/EventManager.cpp
@@ -261,18 +252,6 @@ target_link_libraries(
         framework-core
 )
 
-target_include_directories(
-    framework-gui
-    PRIVATE
-        src/fw/
-    PUBLIC
-        libs/gl3w/
-        libs/gl3w/GL/
-        src/
-        libs/imgui/
-        libs/SDL/include/
-)
-
 # link APPLE specific libraries
 IF (APPLE)
     ndbl_log("Looking for Apple specific libraries ...")
@@ -292,7 +271,7 @@ ndbl_err("Cocoa not found")
 
     target_link_libraries(
     framework-gui
-    PRIVATE
+    PUBLIC
     ${CORE_FOUNDATION_FRAMEWORK}
     ${COCOA_FRAMEWORK})
 ENDIF ()
@@ -317,7 +296,7 @@ endforeach ()
 
 # add executable
 add_executable(framework-gui-example WIN32 src/fw/gui-example/main.cpp)
-target_link_libraries(framework-gui-example PRIVATE framework-gui)
+target_link_libraries(framework-gui-example PUBLIC framework-gui)
 set_target_properties(framework-gui-example PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
 set_target_properties(framework-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 
@@ -366,12 +345,6 @@ target_link_libraries(
     framework-core
 )
 
-target_include_directories(
-    nodable-core
-    PUBLIC
-    src/nodable/
-)
-
 ndbl_log("Defining install ...")
 set_target_properties(nodable-core PROPERTIES OUTPUT_NAME "core")
 
@@ -395,12 +368,12 @@ add_executable(
     src/nodable/core/VirtualMachine.specs.cpp
     src/nodable/core/language/Nodlang.parse_and_eval.specs.cpp
 )
-target_link_libraries(test-nodable-core PRIVATE gtest_main gtest nodable-core)
+target_link_libraries(test-nodable-core PUBLIC gtest_main gtest nodable-core)
 add_test(NAME test_nodable_core COMMAND test-nodable-core)
 
 # Benchmarks
 add_executable(bench-nodable-core-Nodlang src/nodable/core/language/Nodlang.bench.cpp)
-target_link_libraries(bench-nodable-core-Nodlang PRIVATE benchmark::benchmark nodable-core)
+target_link_libraries(bench-nodable-core-Nodlang PUBLIC benchmark::benchmark nodable-core)
 
 # 2.1) Nodable CLI
 #-----------------
@@ -416,7 +389,7 @@ add_executable(
     src/nodable/cli/CLI.cpp
 )
 
-target_link_libraries(nodable-cli PRIVATE nodable-core)
+target_link_libraries(nodable-cli PUBLIC nodable-core)
 set_target_properties(nodable-cli PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
 set_target_properties(nodable-cli PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
 set_target_properties(nodable-cli PROPERTIES OUTPUT_NAME "cli")
@@ -452,6 +425,7 @@ add_library(
     nodable-gui
     STATIC
     src/nodable/gui/Config.cpp
+    src/nodable/gui/Config.h
     src/nodable/gui/GraphView.cpp
     src/nodable/gui/History.cpp
     src/nodable/gui/File.cpp
@@ -475,8 +449,7 @@ target_link_libraries(
 
 target_include_directories(
     nodable-gui
-    PRIVATE
-        src/nodable/
+    PUBLIC
         ${PROJECT_BINARY_DIR}/configured/ndbl/gui/
 )
 
@@ -505,7 +478,7 @@ if (NDBL_SKIP_TESTS)
 endif ()
 
 add_executable(test-nodable-gui src/nodable/gui/Nodable.specs.cpp)
-target_link_libraries(test-nodable-gui PRIVATE gtest_main gtest nodable-gui)
+target_link_libraries(test-nodable-gui PUBLIC gtest_main gtest nodable-gui)
 
 # GUI tests does not work on every machine (only MacOS in software on GitHub Actions)
 if ($ENV{JETBRAINS_IDE})

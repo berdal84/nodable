@@ -5,8 +5,9 @@
 #include "fw/core/log.h"
 #include "fw/core/system.h"
 
-#include "EventManager.h"
 #include "App.h"
+#include "Config.h"
+#include "EventManager.h"
 #include "TextureManager.h"
 
 using namespace fw;
@@ -37,9 +38,10 @@ bool AppView::draw()
 
     // Show/Hide ImGui Demo Window
     {
-        if (m_app->config.imgui_demo){
+        if ( g_conf().imgui_demo)
+        {
             ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiCond_FirstUseEver); // Normally user code doesn't need/want to call this because positions are saved in .ini file anyway. Here we just want to make the demo initial state a bit more friendly!
-            ImGui::ShowDemoWindow(&m_app->config.imgui_demo);
+            ImGui::ShowDemoWindow(&g_conf().imgui_demo);
         }
     }
 
@@ -92,12 +94,12 @@ bool AppView::draw()
             ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_ROOT] , viewport_size);
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_ROOT]   , ImGuiDir_Down , 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , ImVec2(viewport_size.x, m_app->config.dockspace_bottom_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_BOTTOM] , ImVec2(viewport_size.x, g_conf().dockspace_bottom_size));
 
             ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER]   , ImGuiDir_Up , 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER]);
-            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, m_app->config.dockspace_top_size));
+            ImGui::DockBuilderSetNodeSize(m_dockspaces[Dockspace_TOP] , ImVec2(viewport_size.x, g_conf().dockspace_top_size));
 
-            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, m_app->config.dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], &m_dockspaces[Dockspace_CENTER]);
+            ImGui::DockBuilderSplitNode(m_dockspaces[Dockspace_CENTER] , ImGuiDir_Right, g_conf().dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], &m_dockspaces[Dockspace_CENTER]);
 
             // Configure dockspaces
             ImGui::DockBuilderGetNode(m_dockspaces[Dockspace_CENTER])->HasCloseButton         = false;
@@ -193,9 +195,9 @@ void AppView::draw_splashscreen()
 
 bool AppView::begin_splashscreen()
 {
-    if (m_app->config.splashscreen && !ImGui::IsPopupOpen(m_app->config.splashscreen_window_label))
+    if ( g_conf().splashscreen && !ImGui::IsPopupOpen( g_conf().splashscreen_window_label))
     {
-        ImGui::OpenPopup(m_app->config.splashscreen_window_label);
+        ImGui::OpenPopup( g_conf().splashscreen_window_label);
     }
 
     ImGui::SetNextWindowSizeConstraints(ImVec2(550, 300), ImVec2(550, 50000));
@@ -203,7 +205,7 @@ bool AppView::begin_splashscreen()
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
 
-    return ImGui::BeginPopupModal(m_app->config.splashscreen_window_label, &m_app->config.splashscreen, flags);
+    return ImGui::BeginPopupModal( g_conf().splashscreen_window_label, &g_conf().splashscreen, flags);
 }
 
 void AppView::end_splashscreen()
@@ -218,11 +220,11 @@ void AppView::draw_status_window()
         if (!log::get_messages().empty())
         {
             const std::deque<log::Message> &messages = log::get_messages();
-            auto it = messages.rend() - std::min(m_app->config.log_tooltip_max_count, messages.size());
+            auto it = messages.rend() - std::min( g_conf().log_tooltip_max_count, messages.size());
             while (it != messages.rend())
             {
                 auto &each_message = *it;
-                ImGui::TextColored((ImVec4)m_app->config.log_color[each_message.verbosity], "%s", each_message.text.c_str());
+                ImGui::TextColored((ImVec4) g_conf().log_color[each_message.verbosity], "%s", each_message.text.c_str());
                 ++it;
             }
 

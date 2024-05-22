@@ -1,7 +1,24 @@
 #include "Nodable.h"
 
+#include <algorithm>
+
+#include "fw/core/assertions.h"
+#include "fw/core/system.h"
+#include "fw/gui/EventManager.h"
+#include "nodable/core/DataAccess.h"
+#include "nodable/core/InvokableComponent.h"
+#include "nodable/core/LiteralNode.h"
+#include "nodable/core/NodeUtils.h"
+#include "nodable/core/Slot.h"
+#include "nodable/core/VariableNode.h"
+
+#include "commands/Cmd_ConnectEdge.h"
+#include "commands/Cmd_DisconnectEdge.h"
+#include "commands/Cmd_Group.h"
+
 #include "Action.h"
 #include "Condition.h"
+#include "Config.h"
 #include "Event.h"
 #include "File.h"
 #include "FileView.h"
@@ -10,19 +27,7 @@
 #include "NodeView.h"
 #include "Physics.h"
 #include "SlotView.h"
-#include "commands/Cmd_ConnectEdge.h"
-#include "commands/Cmd_DisconnectEdge.h"
-#include "commands/Cmd_Group.h"
-#include "core/DataAccess.h"
-#include "core/InvokableComponent.h"
-#include "core/LiteralNode.h"
-#include "core/NodeUtils.h"
-#include "core/Slot.h"
-#include "core/VariableNode.h"
-#include "fw/core/assertions.h"
-#include "fw/core/system.h"
-#include "fw/gui/EventManager.h"
-#include <algorithm>
+#include "fw/gui/Config.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -38,7 +43,7 @@ static func_type* create_literal_node_signature()
 { return func_type_builder<T(/*void*/)>::with_id("literal"); }
 
 Nodable::Nodable()
-    : App(config.common, new NodableView(this) )
+    : App( new NodableView(this) )
     , current_file(nullptr)
     , virtual_machine()
 {
@@ -67,27 +72,27 @@ Nodable::Nodable()
         Vec4* fill_color;
         if ( extends<VariableNode>( node.get() ) )
         {
-            fill_color = &config.ui_node_variableColor;
+            fill_color = &g_conf().ui_node_variableColor;
         }
         else if ( node->has_component<InvokableComponent>() )
         {
-            fill_color = &config.ui_node_invokableColor;
+            fill_color = &g_conf().ui_node_invokableColor;
         }
         else if ( node->is_instruction() )
         {
-            fill_color = &config.ui_node_instructionColor;
+            fill_color = &g_conf().ui_node_instructionColor;
         }
         else if ( extends<LiteralNode>( node.get() ) )
         {
-            fill_color = &config.ui_node_literalColor;
+            fill_color = &g_conf().ui_node_literalColor;
         }
         else if ( extends<IConditional>( node.get() ) )
         {
-            fill_color = &config.ui_node_condStructColor;
+            fill_color = &g_conf().ui_node_condStructColor;
         }
         else
         {
-            fill_color = &config.ui_node_fillColor;
+            fill_color = &g_conf().ui_node_fillColor;
         }
         new_view_id->set_color( fill_color );
     } );
@@ -170,13 +175,13 @@ void Nodable::on_update()
         //
         // When history is dirty we update the graph from the text.
         // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if ( current_file->history.is_dirty && !config.experimental_hybrid_history )
+        if ( current_file->history.is_dirty && !g_conf().experimental_hybrid_history )
         {
-            current_file->update_graph_from_text(config.isolation);
+            current_file->update_graph_from_text( g_conf().isolation);
             current_file->history.is_dirty = false;
         }
         // Run the main update loop for the file
-        current_file->update(config.isolation );
+        current_file->update( g_conf().isolation );
     }
 
     // 2. Handle events
@@ -193,10 +198,10 @@ void Nodable::on_update()
         {
             case EventID_TOGGLE_ISOLATION_FLAGS:
             {
-                config.isolation = ~config.isolation;
+                g_conf().isolation = ~g_conf().isolation;
                 if(current_file)
                 {
-                    current_file->update_graph_from_text(config.isolation );
+                    current_file->update_graph_from_text( g_conf().isolation );
                 }
                 break;
             }
@@ -280,7 +285,7 @@ void Nodable::on_update()
                 auto _event = reinterpret_cast<Event_ShowWindow*>(event);
                 if ( _event->data.window_id == "splashscreen" )
                 {
-                    config.common.splashscreen = _event->data.visible;
+                    fw::g_conf().splashscreen = _event->data.visible;
                 }
                 break;
             }
@@ -428,7 +433,7 @@ void Nodable::on_update()
                 {
                     // Experimental: we try to connect a parent-less child
                     PoolID<Node> root = graph->get_root();
-                    if ( new_node_id != root && config.experimental_graph_autocompletion )
+                    if ( new_node_id != root && g_conf().experimental_graph_autocompletion )
                     {
                         graph->connect(
                             *root->find_slot(SlotFlag_CHILD),
@@ -509,7 +514,7 @@ File* Nodable::open_file(const std::filesystem::path& _path)
         return nullptr;
     }
     add_file(file);
-    file->update_graph_from_text(config.isolation);
+    file->update_graph_from_text( g_conf().isolation);
     return file;
 }
 
@@ -630,7 +635,7 @@ void Nodable::reset_program()
     {
         virtual_machine.stop_program();
     }
-    current_file->update_graph_from_text(config.isolation );
+    current_file->update_graph_from_text( g_conf().isolation );
 }
 
 File*Nodable::new_file()

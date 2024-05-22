@@ -1,7 +1,7 @@
 #pragma once
-#include "gui/Command.h"
-#include "core/Node.h"
-#include "core/Graph.h"
+#include "nodable/gui/Command.h"
+#include "nodable/core/Node.h"
+#include "nodable/core/Graph.h"
 
 namespace ndbl
 {

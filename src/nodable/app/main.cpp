@@ -1,3 +1,4 @@
+#include "nodable/gui/Config.h"
 #include "nodable/gui/Nodable.h"
 
 using namespace fw;

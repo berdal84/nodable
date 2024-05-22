@@ -12,7 +12,6 @@
 #include "nodable/core/language/Nodlang.h"
 
 #include "NodableView.h"
-#include "Config.h"
 #include "types.h"
 
 namespace ndbl
@@ -31,19 +30,18 @@ namespace ndbl
         Nodable();
         ~Nodable();
 
-        Config            config;
         NodeFactory       node_factory;
-        File*       current_file;
+        File*             current_file;
         VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
 
         // File related:
 
-        File*     open_asset_file(const std::filesystem::path&_path);
-        File*     open_file(const std::filesystem::path&_path);
-        File*     new_file();
+        File*           open_asset_file(const std::filesystem::path&_path);
+        File*           open_file(const std::filesystem::path&_path);
+        File*           new_file();
         void            save_file( File*pFile) const;
         void            save_file_as(const std::filesystem::path &_path) const;
-        File*     add_file( File*_file);
+        File*           add_file( File*_file);
         void            close_file( File*);
         bool            is_current(const File* _file ) const { return current_file == _file; }
         const std::vector<File*>&

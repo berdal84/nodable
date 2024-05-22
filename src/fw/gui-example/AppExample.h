@@ -1,14 +1,15 @@
 #pragma once
 #include "AppExampleView.h"
 #include "fw/gui/App.h"
+#include "fw/gui/Config.h"
 
 namespace fw
 {
     class AppExample : public fw::App
     {
     public:
-        AppExample(Config& _config)
-            : App(_config, new AppExampleView(this))
+        AppExample()
+        : App(new AppExampleView(this))
         {}
 
         ~AppExample()
@@ -23,7 +24,7 @@ namespace fw
             {
                 if ( ImGui::BeginMenu( "File" ) )
                 {
-                    if ( ImGui::MenuItem( "Show splashscreen" ) ) config.splashscreen = true;
+                    if ( ImGui::MenuItem( "Show splashscreen" ) ) g_conf().splashscreen = true;
                     if ( ImGui::MenuItem( "Quit" ) ) should_stop = true;
                     ImGui::EndMenu();
                 }
@@ -31,7 +32,7 @@ namespace fw
             }
 
             // do not draw windows when splashscreen is visible
-            if ( config.splashscreen )
+            if ( g_conf().splashscreen )
             {
                 return;
             };

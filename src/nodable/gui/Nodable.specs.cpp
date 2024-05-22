@@ -1,39 +1,43 @@
+
+#include "Config.h"
 #include "fixtures/gui.h"
+#include "fw/gui/Config.h"
 
 typedef ::testing::Gui Gui_App;
+using namespace ndbl;
 
 TEST_F(Gui_App, constructor)
 {
-    EXPECT_NO_THROW(ndbl::Nodable app);
+    EXPECT_NO_THROW(Nodable app);
 }
 
 TEST_F(Gui_App, get_instance)
 {
     {
-        EXPECT_ANY_THROW(ndbl::Nodable::get_instance());
-        ndbl::Nodable app;
-        EXPECT_NO_THROW(ndbl::Nodable::get_instance());
+        EXPECT_ANY_THROW(Nodable::get_instance());
+        Nodable app;
+        EXPECT_NO_THROW(Nodable::get_instance());
     }
-    EXPECT_ANY_THROW(ndbl::Nodable::get_instance());
+    EXPECT_ANY_THROW(Nodable::get_instance());
 }
 
 TEST_F(Gui_App, init)
 {
-    ndbl::Nodable app;
+    Nodable app;
     EXPECT_NO_THROW(app.init());
     EXPECT_TRUE(app.shutdown());
 }
 
 TEST_F(Gui_App, shutdown)
 {
-    ndbl::Nodable app;
+    Nodable app;
     EXPECT_TRUE(app.init());
     EXPECT_NO_THROW(app.shutdown());
 }
 
 TEST_F(Gui_App, update)
 {
-    ndbl::Nodable app;
+    Nodable app;
     EXPECT_TRUE(app.init());
     EXPECT_NO_THROW(app.update());
     EXPECT_TRUE(app.shutdown());
@@ -41,7 +45,7 @@ TEST_F(Gui_App, update)
 
 TEST_F(Gui_App, loop_count_1)
 {
-    ndbl::Nodable app;
+    Nodable app;
     EXPECT_TRUE(app.init());
     loop_count(app, 1);
     EXPECT_TRUE(app.shutdown());
@@ -49,7 +53,7 @@ TEST_F(Gui_App, loop_count_1)
 
 TEST_F(Gui_App, loop_duration_5s)
 {
-    ndbl::Nodable app;
+    Nodable app;
     EXPECT_TRUE(app.init());
     loop_duration(app, 5.0);
     EXPECT_TRUE(app.shutdown());
@@ -57,9 +61,9 @@ TEST_F(Gui_App, loop_duration_5s)
 
 TEST_F(Gui_App, new_file)
 {
-    ndbl::Nodable app;
+    Nodable app;
     app.init();
-    app.config.common.splashscreen = false;
+    fw::g_conf().splashscreen = false;
     app.new_file();
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__new_file__0.png");
@@ -68,9 +72,9 @@ TEST_F(Gui_App, new_file)
 
 TEST_F(Gui_App, open_file)
 {
-    ndbl::Nodable app;
+    Nodable app;
     app.init();
-    app.config.common.splashscreen = false;
+    fw::g_conf().splashscreen = false;
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__open_file__0.png");
     EXPECT_TRUE(app.open_asset_file("./examples/arithmetic.cpp"));
@@ -81,10 +85,10 @@ TEST_F(Gui_App, open_file)
 
 TEST_F(Gui_App, close_file)
 {
-    ndbl::Nodable app;
+    Nodable app;
     app.init();
-    app.config.common.splashscreen = false;
-    ndbl::File* file = app.open_asset_file("./examples/arithmetic.cpp");
+    fw::g_conf().splashscreen = false;
+    File* file = app.open_asset_file("./examples/arithmetic.cpp");
     loop_duration(app, 1.0);
     save_screenshot(app, "TEST_Gui_App__close_file__0.png");
     app.close_file( file );
@@ -95,9 +99,9 @@ TEST_F(Gui_App, close_file)
 
 TEST_F(Gui_App, open_examples)
 {
-    ndbl::Nodable app;
+    Nodable app;
     app.init();
-    app.config.common.splashscreen = false;
+    fw::g_conf().splashscreen = false;
     app.update();
     save_screenshot(app, "TEST_Gui_App__open_examples__0.png");
     EXPECT_TRUE(app.open_asset_file("./examples/arithmetic.cpp"));

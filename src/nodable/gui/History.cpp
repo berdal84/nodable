@@ -1,4 +1,5 @@
 #include "History.h"
+#include "Config.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
 
 using namespace ndbl;
@@ -23,12 +24,11 @@ void History::push_command(std::shared_ptr<AbstractCommand> _cmd, bool _from_tex
 
     m_past.push_front(_cmd);
 
-
     /**
      * Ensure not to store too much undo commands.
      * We limit to a certain size, deleting first past commands, then future commands.
      */
-    while ( m_past.size() > m_size_max )
+    while ( m_past.size() > g_conf().ui_history_size_max )
     {
         m_past.pop_back();
     }
@@ -121,6 +121,24 @@ std::pair<int, int> History::get_command_id_range()
 {
     // (begin index, end index)
     return std::make_pair(-(int)m_past.size(), (int)m_future.size());
+}
+
+TextEditorBuffer* History::configure_text_editor_undo_buffer( TextEditor* _textEditor )
+{
+    m_text_editor_buffer.set_text_editor(_textEditor);
+    m_text_editor_buffer.set_history(this);
+    m_text_editor_buffer.set_enable(true);
+    return &m_text_editor_buffer;
+}
+
+size_t History::get_size() const
+{
+    return m_past.size() + m_future.size();
+}
+
+void History::enable_text_editor( bool _val )
+{
+    m_text_editor_buffer.set_enable(_val);
 }
 
 void TextEditorBuffer::AddUndo(TextEditor::UndoRecord& _undoRecord)

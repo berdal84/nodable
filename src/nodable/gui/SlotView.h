@@ -7,7 +7,7 @@
 
 #include "nodable/core/Slot.h"
 #include "types.h"
-#include "Config.h"
+
 
 namespace ndbl
 {
@@ -28,11 +28,11 @@ namespace ndbl
         Property*             get_property()const;
         const fw::type*       get_property_type()const;
         bool                  has_node_connected() const;
-        fw::Vec2 alignment() const;
+        fw::Vec2              alignment() const;
         Slot&                 slot()const;
         PoolID<Node>          get_node()const;
-        fw::Vec2 position()const;
-        fw::Rect get_rect(Config& config)const;
+        fw::Vec2              position()const;
+        fw::Rect              get_rect()const;
         PoolID<Node>          adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
@@ -45,8 +45,8 @@ namespace ndbl
         static void           reset_focused(SlotView * slot = nullptr) { s_focused = slot; }
         static void           reset_hovered(SlotView * slot = nullptr) { s_hovered = slot; }
         static void           behavior(SlotView&, bool _readonly);
-        static void           draw_slot_circle( ImDrawList* _draw_list, SlotView& _view,  fw::Vec2 _position, float _radius, fw::Vec4 _color, fw::Vec4 _border_color, fw::Vec4 _hover_color, bool _readonly );
-        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, fw::Rect _rect, fw::Vec4 _color, fw::Vec4 _border_color, fw::Vec4 _hover_color, float _border_radius, bool _readonly);
+        static void           draw_slot_circle( ImDrawList* _draw_list, SlotView& _view,  fw::Vec2 _position, bool _readonly );
+        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, fw::Rect _rect, bool _readonly);
 
     private:
         Slot&                 m_slot;

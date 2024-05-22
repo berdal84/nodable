@@ -1,22 +1,22 @@
 #include "App.h"
 
-#include "imgui/backends/imgui_impl_sdl.h"
-#include "imgui/backends/imgui_impl_opengl3.h"
-#include "nativefiledialog-extended/src/include/nfd.h"
-#include "gl3w/GL/gl3w.h"
-#include "lodepng/lodepng.h"
-#include "fw/core/system.h"
 #include "AppView.h"
+#include "Config.h"
 #include "ImGuiEx.h"
+#include "fw/core/system.h"
+#include "gl3w/GL/gl3w.h"
+#include "imgui/backends/imgui_impl_opengl3.h"
+#include "imgui/backends/imgui_impl_sdl.h"
+#include "lodepng/lodepng.h"
+#include "nativefiledialog-extended/src/include/nfd.h"
 
 using namespace fw;
 
 App *App::s_instance = nullptr;
 
-App::App(Config& _config, AppView* _view)
-    : config(_config)
-    , should_stop(false)
-    , font_manager(_config.font_manager)
+App::App(AppView* _view)
+    : should_stop(false)
+    , font_manager()
     , event_manager()
     , action_manager()
     , texture_manager()
@@ -60,7 +60,7 @@ bool App::init()
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    m_sdl_window = SDL_CreateWindow(config.app_window_label.c_str(),
+    m_sdl_window = SDL_CreateWindow( g_conf().app_window_label.c_str(),
                                     SDL_WINDOWPOS_CENTERED,
                                     SDL_WINDOWPOS_CENTERED,
                                     800,
@@ -72,7 +72,7 @@ bool App::init()
     );
 
     m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
-    SDL_GL_SetSwapInterval(config.vsync ? 1 : 0);
+    SDL_GL_SetSwapInterval( g_conf().vsync ? 1 : 0);
 
     LOG_VERBOSE("fw::App", "gl3w init ...\n");
     gl3wInit();
@@ -120,9 +120,9 @@ bool App::init()
     colors[ImGuiCol_CheckMark]              = Vec4(0.31f, 0.23f, 0.14f, 1.00f);
     colors[ImGuiCol_SliderGrab]             = Vec4(0.71f, 0.46f, 0.22f, 0.63f);
     colors[ImGuiCol_SliderGrabActive]       = Vec4(0.71f, 0.46f, 0.22f, 1.00f);
-    colors[ImGuiCol_Button]                 = (ImVec4)config.button_color;
-    colors[ImGuiCol_ButtonHovered]          = (ImVec4)config.button_hoveredColor;
-    colors[ImGuiCol_ButtonActive]           = (ImVec4)config.button_activeColor;
+    colors[ImGuiCol_Button]                 = (ImVec4) g_conf().button_color;
+    colors[ImGuiCol_ButtonHovered]          = (ImVec4) g_conf().button_hoveredColor;
+    colors[ImGuiCol_ButtonActive]           = (ImVec4) g_conf().button_activeColor;
     colors[ImGuiCol_Header]                 = Vec4(0.70f, 0.70f, 0.70f, 1.00f);
     colors[ImGuiCol_HeaderHovered]          = Vec4(0.89f, 0.65f, 0.11f, 0.96f);
     colors[ImGuiCol_HeaderActive]           = Vec4(1.00f, 1.00f, 1.00f, 1.00f);
@@ -155,14 +155,14 @@ bool App::init()
     colors[ImGuiCol_TableRowBg]             = Vec4(0.20f, 0.20f, 0.20f, 0.40f);
     colors[ImGuiCol_TableRowBgAlt]          = Vec4(0.20f, 0.20f, 0.20f, 0.20f);
 
-    style.WindowBorderSize   = config.border_size;
-    style.FrameBorderSize    = config.border_size;
-    style.FrameRounding      = config.frame_rounding;
-    style.ChildRounding      = config.frame_rounding;
-    style.WindowRounding     = config.window_rounding;
-    style.AntiAliasedFill    = config.antialiased;
-    style.AntiAliasedLines   = config.antialiased;
-    style.WindowPadding      = config.padding;
+    style.WindowBorderSize   = g_conf().border_size;
+    style.FrameBorderSize    = g_conf().border_size;
+    style.FrameRounding      = g_conf().frame_rounding;
+    style.ChildRounding      = g_conf().frame_rounding;
+    style.WindowRounding     = g_conf().window_rounding;
+    style.AntiAliasedFill    = g_conf().antialiased;
+    style.AntiAliasedLines   = g_conf().antialiased;
+    style.WindowPadding      = g_conf().padding;
 
     //style.ScaleAllSizes(1.25f);
 
@@ -251,7 +251,7 @@ void App::draw()
     SDL_GL_MakeCurrent(m_sdl_window, m_sdl_gl_context);
     ImGuiIO& io = ImGui::GetIO();
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    Vec4& color = config.background_color.value;
+    Vec4& color = g_conf().background_color.value;
     glClearColor( color.x, color.y, color.z, color.w);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
@@ -395,12 +395,12 @@ int App::main(int argc, char *argv[])
             u32_t frame_time = SDL_GetTicks() - frame_start;
 
             // limit frame rate
-            if ( config.delta_time_limit && frame_time < config.delta_time_min )
+            if ( g_conf().delta_time_limit && frame_time < g_conf().delta_time_min )
             {
-                SDL_Delay(config.delta_time_min - frame_time );
+                SDL_Delay( g_conf().delta_time_min - frame_time );
             }
 
-            if( config.show_fps)
+            if( g_conf().show_fps)
             {
                 static u32_t dt = 1000 / 60;
                 u32_t all_time = SDL_GetTicks() - frame_start;
@@ -408,7 +408,7 @@ int App::main(int argc, char *argv[])
                 dt = u32_t(0.9f*float(dt) + 0.1f*float(all_time)); // Smooth value
                 u32_t fps = 1000 / dt;
                 char title[256];
-                snprintf( title, 256, "%s | %i fps (dt %d ms, frame %d ms)", config.app_window_label.c_str(), fps, dt, frame_time );
+                snprintf( title, 256, "%s | %i fps (dt %d ms, frame %d ms)", g_conf().app_window_label.c_str(), fps, dt, frame_time );
                 title[255] = '\0';
                 SDL_SetWindowTitle( m_sdl_window, title );
             }

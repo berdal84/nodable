@@ -9,6 +9,7 @@
 #include "nodable/core/InvokableComponent.h"
 #include "nodable/core/LiteralNode.h"
 
+
 #include "Config.h"
 #include "Event.h"
 #include "Nodable.h"
@@ -16,6 +17,7 @@
 #include "Physics.h"
 #include "PropertyView.h"
 #include "SlotView.h"
+#include "fw/gui/Config.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -248,7 +250,6 @@ bool NodeView::onDraw()
 {
 	bool        changed   = false;
     Node*       node      = m_owner.get();
-	Config&     config    = Nodable::get_instance().config;
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     FW_ASSERT(node != nullptr);
@@ -256,19 +257,14 @@ bool NodeView::onDraw()
     // Draw Node slots (in background)
     bool is_slot_hovered = false;
     {
-        Vec4  color          = config.ui_node_slot_color;
-        Vec4  border_color   = config.ui_node_slot_border_color;
-        float border_radius  = config.ui_node_slot_border_radius;
-        Vec4  hover_color    = config.ui_node_slot_hovered_color;
-
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
         {
             if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW && (node->is_instruction() || node->can_be_instruction() ) )
             {
                 int& count = count_by_flags[slot_view.slot().static_flags()];
-                Rect rect = get_slot_rect( slot_view, config, count );
-                SlotView::draw_slot_rectangle( draw_list, slot_view, rect, color, border_color, hover_color, border_radius, m_edition_enable);
+                Rect rect = get_slot_rect( slot_view, count );
+                SlotView::draw_slot_rectangle( draw_list, slot_view, rect, m_edition_enable);
                 is_slot_hovered |= ImGui::IsItemHovered();
                 count++;
             }
@@ -284,27 +280,27 @@ bool NodeView::onDraw()
 
 
 	// Draw the background of the Group
-    Vec4 border_color = config.ui_node_borderColor;
+    Vec4 border_color = g_conf().ui_node_borderColor;
     if ( is_selected( m_id ) )
     {
-        border_color = config.ui_node_borderHighlightedColor;
+        border_color = g_conf().ui_node_borderHighlightedColor;
     }
     else if (node->is_instruction())
     {
-        border_color = config.ui_node_instructionColor;
+        border_color = g_conf().ui_node_instructionColor;
     }
 
-    float border_width = config.ui_node_borderWidth;
+    float border_width = g_conf().ui_node_borderWidth;
     if( node->is_instruction() )
     {
-        border_width *= config.ui_node_instructionBorderRatio;
+        border_width *= g_conf().ui_node_instructionBorderRatio;
     }
 
     DrawNodeRect(
             screen_rect,
             get_color( Color_FILL ),
-            config.ui_node_borderColor,
-            config.ui_node_shadowColor,
+            g_conf().ui_node_borderColor,
+            g_conf().ui_node_shadowColor,
             border_color,
             is_selected( m_id ),
             5.0f,
@@ -315,8 +311,8 @@ bool NodeView::onDraw()
 	ImGui::InvisibleButton("node", box.size());
     ImGui::SetItemAllowOverlap();
     Vec2 new_screen_pos = screen_rect.tl()
-                          + Vec2{config.ui_node_padding.x, config.ui_node_padding.y} // left and top padding.
-                          + Vec2{config.ui_node_propertyslot_radius, 0.0f}; // space for "this" left slot
+                          + Vec2{ g_conf().ui_node_padding.x, g_conf().ui_node_padding.y} // left and top padding.
+                          + Vec2{ g_conf().ui_slot_radius, 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
 
     bool is_node_hovered = ImGui::IsItemHovered();
@@ -332,7 +328,7 @@ bool NodeView::onDraw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        ImGuiEx::ShadowedText( Vec2(1.0f), config.ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
+        ImGuiEx::ShadowedText( Vec2(1.0f), g_conf().ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
         ImGui::SameLine();
 
@@ -355,7 +351,7 @@ bool NodeView::onDraw()
 
     // Update box's size according to item's rect
     Vec2 new_size = ImGui::GetItemRectMax();
-    new_size += Vec2{config.ui_node_padding.z, config.ui_node_padding.w}; // right and bottom padding
+    new_size += Vec2{ g_conf().ui_node_padding.z, g_conf().ui_node_padding.w}; // right and bottom padding
     new_size -= screen_rect.tl();
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
@@ -364,17 +360,12 @@ bool NodeView::onDraw()
 
     // Draw Property in/out slots
     {
-        float radius   = config.ui_node_propertyslot_radius;
-        Vec4 color     = config.ui_node_slot_color;
-        Vec4 borderCol = config.ui_node_slot_border_color;
-        Vec4 hoverCol  = config.ui_node_slot_hovered_color;
-
         for( auto& slot_view: m_slot_views )
         {
             if( slot_view.slot().has_flags(SlotFlag_TYPE_VALUE) )
             {
                 Vec2 screen_pos = get_slot_pos(slot_view.slot());
-                SlotView::draw_slot_circle( draw_list, slot_view, screen_pos, radius, color, borderCol, hoverCol, m_edition_enable );
+                SlotView::draw_slot_circle( draw_list, slot_view, screen_pos, m_edition_enable );
                 is_slot_hovered |= ImGui::IsItemHovered();
             }
         }
@@ -746,7 +737,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     }
     ImGui::Unindent();
 
-    if ( Nodable::get_instance().config.common.debug )
+    if ( fw::g_conf().debug )
     {
         ImGui::Text("Debug info:" );
         // Draw exposed output properties
@@ -1104,17 +1095,17 @@ Vec2 NodeView::get_slot_pos( const Slot& slot )
          + property_rect.size() * m_slot_views[(u8_t)slot.id].alignment();
 }
 
-Rect NodeView::get_slot_rect( const Slot& _slot, const Config& _config, i8_t _count ) const
+Rect NodeView::get_slot_rect( const Slot& _slot, i8_t _count ) const
 {
-     return get_slot_rect( m_slot_views[_slot.id.m_value], _config, _count );
+     return get_slot_rect( m_slot_views[_slot.id.m_value], _count );
 }
 
-Rect NodeView::get_slot_rect( const SlotView& _slot_view, const Config& _config, i8_t _pos ) const
+Rect NodeView::get_slot_rect( const SlotView& _slot_view, i8_t _pos ) const
 {
-    Rect result({0.0f, 0.0f }, _config.ui_node_slot_size);
+    Rect result({0.0f, 0.0f }, g_conf().ui_slot_size );
     result.translate_y( -result.size().y * 0.5f ); // Center vertically
-    result.translate_x( _config.ui_node_slot_size.x * float( _pos )      // x offset
-                      + _config.ui_node_slot_gap * float( 1 + _pos ) ); // x gap
+    result.translate_x( g_conf().ui_slot_size.x * float( _pos )      // x offset
+                      + g_conf().ui_slot_gap * float( 1 + _pos ) ); // x gap
     result.translate_y( _slot_view.alignment().y * result.size().y ); // align top/bottom
     Rect view_rect = rect( WORLD_SPACE );
     result.translate( _slot_view.alignment() * view_rect.size() + view_rect.center() ); // align slot with nodeview

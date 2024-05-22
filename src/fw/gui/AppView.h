@@ -10,7 +10,6 @@
 #include "ImGuiEx.h"
 #include "EventManager.h"
 #include "View.h"
-#include "Config.h"
 
 namespace fw
 {

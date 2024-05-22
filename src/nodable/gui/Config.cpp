@@ -1,9 +1,15 @@
 #include "Config.h"
 #include "build_info.h"
-#include "types.h"
+#include "fw/gui/Config.h"
 
 using namespace ndbl;
 using namespace fw;
+
+ndbl::Config& ndbl::g_conf()
+{
+    static ndbl::Config conf;
+    return conf;
+};
 
 ndbl::Config::Config()
 {
@@ -41,7 +47,7 @@ void ndbl::Config::reset_default()
     ui_node_borderWidth                   = 1.0f;
     ui_node_instructionBorderRatio        = 2.0f;
     ui_node_padding                       = { 8.0f, 4.0f, 4.0f, 4.0f };
-    ui_node_propertyslot_radius           = 4.0f;
+    ui_slot_radius = 4.0f;
     ui_node_invokableColor                = Color(255, 199, 115);            // light orange
     ui_node_variableColor                 = Color( 171, 190, 255);           // blue
     ui_node_instructionColor              = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
@@ -49,18 +55,19 @@ void ndbl::Config::reset_default()
     ui_node_condStructColor               = Vec4(1.f, 1.f, 1.f, 1.0f);       // white
     ui_node_fillColor                     = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
     ui_node_highlightedColor              = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ui_node_slot_border_color             = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_slot_border_color = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_node_borderColor                   = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_borderHighlightedColor        = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_shadowColor                   = Vec4(0.0f, 0.0f, 0.0f, 0.2f);
-    ui_node_slot_hovered_color            = Color(200, 200, 200);
-    ui_node_slot_color                    = Color(127, 127, 127);
+    ui_slot_hovered_color = Color(200, 200, 200);
+    ui_slot_color = Color(127, 127, 127);
     ui_node_spacing                       = 30.0f;
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
-    ui_node_slot_size                     = {10.f, 10.f};
-    ui_node_slot_gap                      = 4.0f;
-    ui_node_slot_border_radius            = 0.1f;
+    ui_slot_size = {10.f, 10.f};
+    ui_slot_gap = 4.0f;
+    ui_slot_border_radius = 0.1f;
+    ui_slot_invisible_ratio = 1.2f; // 120%
 
     // wires
     ui_wire_bezier_roundness              = {0.25f, 2.0f};
@@ -72,7 +79,7 @@ void ndbl::Config::reset_default()
     // code flow
     ui_codeflow_color                     = Color(150, 170, 140); // slightly green
     ui_codeflow_shadowColor               = Color(0, 0, 0, 64);
-    ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_node_slot_size.x
+    ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_slot_size.x
 
     // buttons
     ui_toolButton_size                    = Vec2(0.0f, 25.0f);
@@ -102,8 +109,8 @@ void ndbl::Config::reset_default()
     // Graph
     ui_graph_grid_color_major             = Color(0, 0, 0, 42);
     ui_graph_grid_color_minor             = Color(0, 0, 0, 17);
-    ui_graph_grid_subdivs                 = 4;
-    ui_graph_grid_size                    = 100.0f;
+    ui_grid_subdiv_count = 4;
+    ui_grid_size = 100.0f;
 
     // Misc.
     experimental_graph_autocompletion     = false;
@@ -113,28 +120,33 @@ void ndbl::Config::reset_default()
     graph_unfold_iterations               = 100;
 
     // NodableView
-    common.dockspace_right_ratio       = 0.25f;
-    common.dockspace_top_size          = 36.f;
-    common.dockspace_bottom_size       = 100.f;
+    fw::g_conf().dockspace_right_ratio       = 0.25f;
+    fw::g_conf().dockspace_top_size          = 36.f;
+    fw::g_conf().dockspace_bottom_size       = 100.f;
 
     const char *k_paragraph = "Paragraph";
     const char *k_heading   = "Heading 1";
     const char *k_code      = "Code";
     const char *k_tool      = "Tool Button";
 
-    common.font_manager.text = {
-                                      // id          , font_path                           , size , icons? , icons size
-                                      { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
-                                      { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
-                                      { k_code       , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
-                                      { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
+    fw::g_conf().font_manager.text = {
+        // id          , font_path                           , size , icons? , icons size
+        { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
+        { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
+        { k_code       , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
+        { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
     };
 
-    common.font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
-    common.font_manager.defaults[FontSlot_Heading]   = k_heading;
-    common.font_manager.defaults[FontSlot_Code]      = k_code;
-    common.font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
-    common.font_manager.subsamples                   = 1.0f;
-    common.font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
-    common.app_window_label                          = BuildInfo::version_extended;
+    fw::g_conf().font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
+    fw::g_conf().font_manager.defaults[FontSlot_Heading]   = k_heading;
+    fw::g_conf().font_manager.defaults[FontSlot_Code]      = k_code;
+    fw::g_conf().font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
+    fw::g_conf().font_manager.subsamples                   = 1.0f;
+    fw::g_conf().font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
+    fw::g_conf().app_window_label                          = BuildInfo::version_extended;
+}
+
+int ndbl::Config::ui_grid_subdiv_size() const
+{
+    return ui_grid_size / ui_grid_subdiv_count;
 }

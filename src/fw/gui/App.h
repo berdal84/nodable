@@ -9,7 +9,6 @@
 
 #include "fw/core/types.h"
 
-#include "Config.h"
 #include "FontManager.h"
 #include "AppView.h"
 #include "TextureManager.h"
@@ -25,7 +24,7 @@ namespace fw
 	class App
     {
 	public:
-        App(Config&, AppView*);
+        App(AppView*);
         App(const App &) = delete;
         ~App();
 
@@ -34,7 +33,6 @@ namespace fw
         EventManager     event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
         ActionManager    action_manager;        // Manages Events and BindedEvents (shortcuts/button triggered)
         bool             should_stop;           // Set this field true to tell the application to stop its main loop the next frame
-        Config&          config;                // Application configuration (names, colors, fonts)
 
     protected:
         AppView*         m_view;                 // non-owned ptr

@@ -12,7 +12,7 @@
 #include "nodable/core/Scope.h"
 
 #include "Action.h"
-#include "Config.h"
+
 #include "NodeView.h"
 #include "NodeViewConstraint.h"
 #include "SlotView.h"
@@ -59,7 +59,7 @@ namespace ndbl
         void        frame( FrameMode mode );
 
     private:
-        void        draw_grid( ImDrawList*, const Config& ) const;
+        void        draw_grid( ImDrawList* ) const;
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
         void        pan(fw::Vec2); // translate content
 

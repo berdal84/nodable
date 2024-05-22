@@ -19,7 +19,7 @@ File::File()
 : path()
 , dirty(true)
 , view(*this)
-, history(&Nodable::get_instance().config.experimental_hybrid_history)
+, history()
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n")
 

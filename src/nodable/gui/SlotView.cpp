@@ -1,7 +1,8 @@
 #include "SlotView.h"
-#include "NodeView.h"
+#include "Config.h"
 #include "Event.h"
 #include "Nodable.h"
+#include "NodeView.h"
 
 using namespace ndbl;
 using namespace fw;
@@ -20,44 +21,45 @@ void SlotView::draw_slot_circle(
         ImDrawList* _draw_list,
         SlotView& _view,
         Vec2 _position,
-        float _radius,
-        Vec4 _color,
-        Vec4 _border_color,
-        Vec4 _hover_color,
         bool _readonly)
 {
-    constexpr float INVISIBLE_BUTTON_SIZE_RATIO = 1.2f; // 120%
+    float invisible_ratio = g_conf().ui_slot_invisible_ratio;
+    float radius          = g_conf().ui_slot_radius;
+    Vec4  color           = g_conf().ui_slot_color;
+    Vec4  border_color    = g_conf().ui_slot_border_color;
+    Vec4  hover_color     = g_conf().ui_slot_hovered_color;
 
     // draw
     //-----
-    Vec2 cursor_pos{_position - Vec2( _radius * INVISIBLE_BUTTON_SIZE_RATIO)};
+    Vec2 cursor_pos{_position - Vec2( radius * invisible_ratio )};
     ImGui::SetCursorScreenPos( cursor_pos);
 
     // draw a larger invisible button on top of the circle to facilitate click/drag
     ImGui::PushID((u8_t)_view.m_slot.id);
-    ImGui::InvisibleButton("###", Vec2(_radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO, _radius * 2.0f * INVISIBLE_BUTTON_SIZE_RATIO ));
+    ImGui::InvisibleButton("###", radius * 2.0f * invisible_ratio, radius * 2.0f * invisible_ratio );
     ImGui::PopID();
 
     bool is_hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
 
     // draw the circle
-    _draw_list->AddCircleFilled( _position, _radius, ImColor(is_hovered ? _hover_color : _color));
-    _draw_list->AddCircle( _position, _radius, ImColor(_border_color) );
-    ImGuiEx::DebugCircle( _position, _radius, ImColor(_border_color));
+    _draw_list->AddCircleFilled( _position, radius, ImColor(is_hovered ? hover_color : color));
+    _draw_list->AddCircle( _position, radius, ImColor(border_color) );
+    ImGuiEx::DebugCircle( _position, radius, ImColor(border_color));
 
     behavior(_view, _readonly);
 }
 
 void SlotView::draw_slot_rectangle(
-        ImDrawList* _draw_list,
-        SlotView& _view,
-        Rect _rect,
-        Vec4 _color,
-        Vec4 _border_color,
-        Vec4 _hover_color,
-        float _border_radius,
-        bool _readonly)
+    ImDrawList* _draw_list,
+    SlotView& _view,
+    Rect _rect,
+    bool _readonly)
 {
+    Vec4  color          = g_conf().ui_slot_color;
+    Vec4  border_color   = g_conf().ui_slot_border_color;
+    float border_radius  = g_conf().ui_slot_border_radius;
+    Vec4  hover_color    = g_conf().ui_slot_hovered_color;
+
     Vec2 rect_size = _rect.size();
 
     // Return early if rectangle cannot be draw.
@@ -71,9 +73,9 @@ void SlotView::draw_slot_rectangle(
     ImGui::InvisibleButton("###", _rect.size());
     ImGui::PopID();
 
-    Vec4 fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? _hover_color : _color;
-    _draw_list->AddRectFilled( _rect.min, _rect.max, ImColor(fill_color), _border_radius, corner_flags );
-    _draw_list->AddRect( _rect.min, _rect.max, ImColor(_border_color), _border_radius, corner_flags );
+    Vec4 fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? hover_color : color;
+    _draw_list->AddRectFilled( _rect.min, _rect.max, ImColor(fill_color), border_radius, corner_flags );
+    _draw_list->AddRect( _rect.min, _rect.max, ImColor(border_color), border_radius, corner_flags );
     ImGuiEx::DebugRect( _rect.min, _rect.max, ImColor(255,0, 0, 127), 0.0f );
 
     behavior(_view, _readonly);
@@ -135,9 +137,9 @@ Vec2 SlotView::position()const
     return m_slot.node->get_component<NodeView>()->get_slot_pos( m_slot );
 }
 
-Rect SlotView::get_rect(Config& config)const
+Rect SlotView::get_rect()const
 {
-    return m_slot.node->get_component<NodeView>()->get_slot_rect( *this, config, 0 );
+    return m_slot.node->get_component<NodeView>()->get_slot_rect( *this, 0 );
 }
 
 void SlotView::drop_behavior(bool &require_new_node, bool _enable_edition)

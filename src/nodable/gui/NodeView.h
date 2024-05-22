@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <observe/observer.h>
 
-#include "Config.h"
 #include "PropertyView.h"
 #include "SlotView.h"
 #include "nodable/core/Component.h"// base class
@@ -105,8 +104,8 @@ namespace ndbl
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
         fw::Vec2                get_slot_pos( const Slot& );
-        fw::Rect                get_slot_rect( const Slot& _slot, const Config& _config, i8_t _count ) const;
-        fw::Rect                get_slot_rect( const SlotView &_slot_view, const Config &_config, i8_t _pos ) const;
+        fw::Rect                get_slot_rect( const Slot& _slot, i8_t _count ) const;
+        fw::Rect                get_slot_rect( const SlotView &_slot_view, i8_t _pos ) const;
         fw::Vec2                get_slot_normal( const Slot& slot) const;
         void                    set_color( const fw::Vec4* _color, ColorType _type = Color_FILL );
         fw::Vec4                get_color(ColorType _type) const;

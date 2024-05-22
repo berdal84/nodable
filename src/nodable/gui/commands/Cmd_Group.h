@@ -1,5 +1,5 @@
 #pragma once
-#include "gui/Command.h"
+#include "nodable/gui/Command.h"
 #include <vector>
 #include <memory>
 

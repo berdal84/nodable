@@ -2,7 +2,13 @@
 
 #include <utility>
 
-#include "Action.h"
+#include "fw/core/log.h"
+#include "fw/core/system.h"
+#include "fw/gui/Texture.h"
+#include "fw/gui/ActionManagerView.h"
+#include "nodable/core/NodeUtils.h"
+
+
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
@@ -13,11 +19,7 @@
 #include "Physics.h"
 #include "PropertyView.h"
 #include "build_info.h"
-#include "core/NodeUtils.h"
-#include "fw/core/log.h"
-#include "fw/core/system.h"
-#include "fw/gui/Texture.h"
-#include "gui/ActionManagerView.h"
+#include "fw/gui/Config.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -46,7 +48,7 @@ void NodableView::on_init()
     LOG_VERBOSE("ndbl::NodableView", "on_init ...\n");
 
     // Load splashscreen image
-    std::filesystem::path path = App::asset_path(m_app->config.ui_splashscreen_imagePath);
+    std::filesystem::path path = App::asset_path( g_conf().ui_splashscreen_imagePath);
     m_logo = m_app->texture_manager.load(path.string());
 
     LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
@@ -56,10 +58,9 @@ void NodableView::on_draw()
 {
     bool redock_all = true;
 
-    File*       current_file    = m_app->current_file;
-    EventManager& event_manager   = m_app->event_manager;
-    Config&           config          = m_app->config;
-    VirtualMachine&   virtual_machine = m_app->virtual_machine;
+    File*           current_file    = m_app->current_file;
+    EventManager&   event_manager   = m_app->event_manager;
+    VirtualMachine& virtual_machine = m_app->virtual_machine;
 
     // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar())
@@ -149,7 +150,7 @@ void NodableView::on_draw()
 
             ImGui::Separator();
 
-            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>(config.isolation );
+            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>( g_conf().isolation );
 
             ImGui::EndMenu();
         }
@@ -182,18 +183,18 @@ void NodableView::on_draw()
 
         if (ImGui::BeginMenu("Developer"))
         {
-            if ( ImGui::MenuItem("Show debug info", "", m_app->config.common.debug ) )
+            if ( ImGui::MenuItem("Show debug info", "", fw::g_conf().debug ) )
             {
-                m_app->config.common.debug = !m_app->config.common.debug;
-                ImGuiEx::debug = m_app->config.common.debug;
+                fw::g_conf().debug = !fw::g_conf().debug;
+                ImGuiEx::debug = fw::g_conf().debug;
             }
-            if ( ImGui::MenuItem("Show FPS", "", m_app->config.common.show_fps ) )
+            if ( ImGui::MenuItem("Show FPS", "", fw::g_conf().show_fps ) )
             {
-                m_app->config.common.show_fps = !m_app->config.common.show_fps;
+                fw::g_conf().show_fps = !fw::g_conf().show_fps;
             }
-            if ( ImGui::MenuItem("Limit FPS", "", m_app->config.common.delta_time_limit ) )
+            if ( ImGui::MenuItem("Limit FPS", "", fw::g_conf().delta_time_limit ) )
             {
-                m_app->config.common.delta_time_limit = !m_app->config.common.delta_time_limit;
+                fw::g_conf().delta_time_limit = !fw::g_conf().delta_time_limit;
             }
 
             ImGui::Separator();
@@ -216,8 +217,8 @@ void NodableView::on_draw()
             }
 
             if (ImGui::BeginMenu("Experimental")) {
-                ImGui::Checkbox("Hybrid history", &config.experimental_hybrid_history);
-                ImGui::Checkbox("Graph auto-completion", &config.experimental_graph_autocompletion);
+                ImGui::Checkbox("Hybrid history", &g_conf().experimental_hybrid_history);
+                ImGui::Checkbox("Graph auto-completion", &g_conf().experimental_graph_autocompletion);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -237,7 +238,7 @@ void NodableView::on_draw()
 
         if (ImGui::BeginMenu("Help")) {
             if (ImGui::MenuItem("Show Splash Screen", "F1")) {
-                m_app->config.common.splashscreen = true;
+                fw::g_conf().splashscreen = true;
             }
 
             if (ImGui::MenuItem("Browse source code")) {
@@ -261,7 +262,7 @@ void NodableView::on_draw()
 
     if(!m_app->has_files())
     {
-        if( !m_app->config.common.splashscreen )
+        if( !fw::g_conf().splashscreen )
         {
             draw_startup_window( get_dockspace(AppView::Dockspace_ROOT));
         }
@@ -286,7 +287,7 @@ void NodableView::on_draw()
 }
 
 void NodableView::draw_help_window() const {
-    if (ImGui::Begin(m_app->config.ui_help_window_label))
+    if (ImGui::Begin( g_conf().ui_help_window_label))
     {
         FontManager& font_manager = m_app->font_manager;
         ImGui::PushFont(font_manager.get_font(FontSlot_Heading));
@@ -324,12 +325,12 @@ void NodableView::draw_help_window() const {
 
 void NodableView::draw_imgui_config_window() const
 {
-    if( !m_app->config.common.debug )
+    if( !fw::g_conf().debug )
     {
         return;
     }
 
-    if (ImGui::Begin(m_app->config.ui_imgui_config_window_label))
+    if (ImGui::Begin( g_conf().ui_imgui_config_window_label))
     {
         ImGui::ShowStyleEditor();
     }
@@ -343,7 +344,7 @@ void NodableView::draw_file_info_window() const
         return;
     }
 
-    if (ImGui::Begin(m_app->config.ui_file_info_window_label))
+    if (ImGui::Begin( g_conf().ui_file_info_window_label))
     {
         m_app->current_file->view.draw_info_panel();
     }
@@ -353,7 +354,7 @@ void NodableView::draw_file_info_window() const
 
 void NodableView::draw_node_properties_window()
 {
-    if (ImGui::Begin(m_app->config.ui_node_properties_window_label))
+    if (ImGui::Begin( g_conf().ui_node_properties_window_label))
     {
         if (NodeView* selected_view = NodeView::get_selected().get())
         {
@@ -365,7 +366,7 @@ void NodableView::draw_node_properties_window()
 }
 
 void NodableView::draw_virtual_machine_window() {
-    if (ImGui::Begin(m_app->config.ui_virtual_machine_window_label))
+    if (ImGui::Begin( g_conf().ui_virtual_machine_window_label))
     {
         auto &vm = m_app->virtual_machine;
 
@@ -484,7 +485,7 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
 
-    ImGui::Begin(m_app->config.ui_startup_window_label);
+    ImGui::Begin( g_conf().ui_startup_window_label);
     {
         FontManager&  font_manager  = m_app->font_manager;
         EventManager& event_manager = m_app->event_manager;
@@ -597,13 +598,12 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
 
 void NodableView::draw_config_window() {
 
-    Config& config = m_app->config;
-    if (ImGui::Begin(config.ui_config_window_label))
+    if (ImGui::Begin( g_conf().ui_config_window_label))
     {
         ImGui::Text("Nodable Settings");
         if ( ImGui::Button("Reset Settings") )
         {
-            config.reset_default();
+            g_conf().reset_default();
         }
 
         if (ImGui::CollapsingHeader("Nodes", ImGuiTreeNodeFlags_SpanAvailWidth))
@@ -611,39 +611,39 @@ void NodableView::draw_config_window() {
             ImGui::Indent();
             if ( ImGui::CollapsingHeader("Colors"))
             {
-                ImGui::ColorEdit4("default", &config.ui_node_fillColor.x);
-                ImGui::ColorEdit4("highlighted", &config.ui_node_highlightedColor.x);
-                ImGui::ColorEdit4("variable", &config.ui_node_variableColor.x);
-                ImGui::ColorEdit4("instruction", &config.ui_node_instructionColor.x);
-                ImGui::ColorEdit4("literal", &config.ui_node_literalColor.x);
-                ImGui::ColorEdit4("function", &config.ui_node_invokableColor.x);
-                ImGui::ColorEdit4("shadow", &config.ui_node_shadowColor.x);
-                ImGui::ColorEdit4("border", &config.ui_node_slot_border_color.x);
-                ImGui::ColorEdit4("border (highlighted)", &config.ui_node_borderHighlightedColor.x);
-                ImGui::ColorEdit4("slot", &config.ui_node_slot_color.x);
-                ImGui::ColorEdit4("slot (hovered)", &config.ui_node_slot_hovered_color.x);
+                ImGui::ColorEdit4("default", &g_conf().ui_node_fillColor.x);
+                ImGui::ColorEdit4("highlighted", &g_conf().ui_node_highlightedColor.x);
+                ImGui::ColorEdit4("variable", &g_conf().ui_node_variableColor.x);
+                ImGui::ColorEdit4("instruction", &g_conf().ui_node_instructionColor.x);
+                ImGui::ColorEdit4("literal", &g_conf().ui_node_literalColor.x);
+                ImGui::ColorEdit4("function", &g_conf().ui_node_invokableColor.x);
+                ImGui::ColorEdit4("shadow", &g_conf().ui_node_shadowColor.x);
+                ImGui::ColorEdit4("border", &g_conf().ui_slot_border_color.x);
+                ImGui::ColorEdit4("border (highlighted)", &g_conf().ui_node_borderHighlightedColor.x);
+                ImGui::ColorEdit4("slot", &g_conf().ui_slot_color.x);
+                ImGui::ColorEdit4("slot (hovered)", &g_conf().ui_slot_hovered_color.x);
             }
 
             if ( ImGui::CollapsingHeader("Slots"))
             {
                 ImGui::Text("Property Slots:");
-                ImGui::SliderFloat("slot radius", &config.ui_node_propertyslot_radius, 5.0f, 10.0f);
+                ImGui::SliderFloat("slot radius", &g_conf().ui_slot_radius, 5.0f, 10.0f);
 
                 ImGui::Separator();
 
                 ImGui::Text("Code Flow Slots:");
-                ImGui::SliderFloat2("slot size##codeflow", &config.ui_node_slot_size.x, 2.0f, 100.0f);
-                ImGui::SliderFloat("slot padding##codeflow", &config.ui_node_slot_gap, 0.0f, 100.0f);
-                ImGui::SliderFloat("slot radius##codeflow", &config.ui_node_slot_border_radius, 0.0f, 40.0f);
+                ImGui::SliderFloat2("slot size##codeflow", &g_conf().ui_slot_size.x, 2.0f, 100.0f);
+                ImGui::SliderFloat("slot padding##codeflow", &g_conf().ui_slot_gap, 0.0f, 100.0f);
+                ImGui::SliderFloat("slot radius##codeflow", &g_conf().ui_slot_border_radius, 0.0f, 40.0f);
             }
 
             if ( ImGui::CollapsingHeader("Misc."))
             {
-                ImGui::SliderFloat("spacing", &config.ui_node_spacing, 10.0f, 50.0f);
-                ImGui::SliderFloat("velocity", &config.ui_node_speed, 1.0f, 10.0f);
-                ImGui::SliderFloat4("padding", &config.ui_node_padding.x, 0.0f, 20.0f);
-                ImGui::SliderFloat("border width", &config.ui_node_borderWidth, 0.0f, 10.0f);
-                ImGui::SliderFloat("border width ratio (instructions)", &config.ui_node_instructionBorderRatio, 0.0f, 10.0f);
+                ImGui::SliderFloat("spacing", &g_conf().ui_node_spacing, 10.0f, 50.0f);
+                ImGui::SliderFloat("velocity", &g_conf().ui_node_speed, 1.0f, 10.0f);
+                ImGui::SliderFloat4("padding", &g_conf().ui_node_padding.x, 0.0f, 20.0f);
+                ImGui::SliderFloat("border width", &g_conf().ui_node_borderWidth, 0.0f, 10.0f);
+                ImGui::SliderFloat("border width ratio (instructions)", &g_conf().ui_node_instructionBorderRatio, 0.0f, 10.0f);
             }
             ImGui::Unindent();
         }
@@ -651,27 +651,27 @@ void NodableView::draw_config_window() {
         if (ImGui::CollapsingHeader("Wires / Code Flow"))
         {
             ImGui::Text("Wires");
-            ImGui::SliderFloat("thickness##wires", &config.ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat2("roundness (min,max)##wires", &config.ui_wire_bezier_roundness.x, 0.0f, 1.0f);
-            ImGui::SliderFloat2("fade length (min,max)##wires", &config.ui_wire_bezier_fade_length_minmax.x, 200.0f, 1000.0f);
-            ImGui::ColorEdit4("color##wires", &config.ui_wire_color.x);
-            ImGui::ColorEdit4("shadow color##wires", &config.ui_wire_shadowColor.x);
+            ImGui::SliderFloat("thickness##wires", &g_conf().ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat2("roundness (min,max)##wires", &g_conf().ui_wire_bezier_roundness.x, 0.0f, 1.0f);
+            ImGui::SliderFloat2("fade length (min,max)##wires", &g_conf().ui_wire_bezier_fade_length_minmax.x, 200.0f, 1000.0f);
+            ImGui::ColorEdit4("color##wires", &g_conf().ui_wire_color.x);
+            ImGui::ColorEdit4("shadow color##wires", &g_conf().ui_wire_shadowColor.x);
 
             ImGui::Separator();
 
             ImGui::Text("Code Flow");
-            ImGui::ColorEdit4("color##codeflow", &config.ui_codeflow_color.x);
-            ImGui::SliderFloat("thickness (ratio)##codeflow", &config.ui_codeflow_thickness_ratio, 0.1, 1.0);
+            ImGui::ColorEdit4("color##codeflow", &g_conf().ui_codeflow_color.x);
+            ImGui::SliderFloat("thickness (ratio)##codeflow", &g_conf().ui_codeflow_thickness_ratio, 0.1, 1.0);
         }
 
         if (ImGui::CollapsingHeader("Graph"))
         {
-            ImGui::InputFloat("unfold delta time", &config.graph_unfold_dt);
-            ImGui::InputInt("unfold iterations", &config.graph_unfold_iterations, 1, 1000);
-            ImGui::ColorEdit4("grid color (major)", &config.ui_graph_grid_color_major.x);
-            ImGui::ColorEdit4("grid color (minor)", &config.ui_graph_grid_color_minor.x);
-            ImGui::SliderInt("grid size", &config.ui_graph_grid_size, 1, 500);
-            ImGui::SliderInt("grid subdivisions", &config.ui_graph_grid_subdivs, 1, 16);
+            ImGui::InputFloat("unfold delta time", &g_conf().graph_unfold_dt);
+            ImGui::InputInt("unfold iterations", &g_conf().graph_unfold_iterations, 1, 1000);
+            ImGui::ColorEdit4("grid color (major)", &g_conf().ui_graph_grid_color_major.x);
+            ImGui::ColorEdit4("grid color (minor)", &g_conf().ui_graph_grid_color_minor.x);
+            ImGui::SliderInt("grid size", &g_conf().ui_grid_size, 1, 500);
+            ImGui::SliderInt("grid subdivisions", &g_conf().ui_grid_subdiv_count, 1, 16);
         }
 
         if (ImGui::CollapsingHeader("Shortcuts", ImGuiTreeNodeFlags_SpanAvailWidth))
@@ -679,7 +679,7 @@ void NodableView::draw_config_window() {
             ActionManagerView::draw(&m_app->action_manager);
         }
 
-        if ( m_app->config.common.debug && ImGui::CollapsingHeader("Pool"))
+        if ( fw::g_conf().debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
             auto pool = Pool::get_pool();
@@ -722,7 +722,7 @@ void NodableView::draw_splashscreen()
         // close on left/rightmouse btn click
         if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
         {
-            m_app->config.common.splashscreen = false;
+            fw::g_conf().splashscreen = false;
         }
         ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
         AppView::end_splashscreen();
@@ -735,10 +735,9 @@ void NodableView::draw_history_bar(History& currentFileHistory)
     {
         m_is_history_dragged = false;
     }
-    Config& config = m_app->config;
-    float btn_spacing = config.ui_history_btn_spacing;
-    float btn_height = config.ui_history_btn_height;
-    float btn_width_max = config.ui_history_btn_width_max;
+    float btn_spacing   = g_conf().ui_history_btn_spacing;
+    float btn_height    = g_conf().ui_history_btn_height;
+    float btn_width_max = g_conf().ui_history_btn_width_max;
 
     size_t historySize = currentFileHistory.get_size();
     std::pair<int, int> history_range = currentFileHistory.get_command_id_range();
@@ -795,15 +794,14 @@ void NodableView::draw_toolbar_window() {
 
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
-    Config& config = m_app->config;
-    if (ImGui::Begin(config.ui_toolbar_window_label, NULL, flags ))
+    if (ImGui::Begin( g_conf().ui_toolbar_window_label, NULL, flags ))
     {
         ImGui::PopStyleVar();
         VirtualMachine& vm   = m_app->virtual_machine;
         bool running         = vm.is_program_running();
         bool debugging       = vm.is_debugging();
         bool stopped         = vm.is_program_stopped();
-        auto button_size   = config.ui_toolButton_size;
+        auto button_size   = g_conf().ui_toolButton_size;
 
         ImGui::PushFont(m_app->font_manager.get_font(FontSlot_ToolBtn));
         ImGui::BeginGroup();
@@ -815,7 +813,7 @@ void NodableView::draw_toolbar_window() {
         ImGui::SameLine();
 
         // run
-        if (running) ImGui::PushStyleColor(ImGuiCol_Button, m_app->config.common.button_activeColor);
+        if (running) ImGui::PushStyleColor(ImGuiCol_Button, fw::g_conf().button_activeColor);
 
         if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped) {
             m_app->run_program();
@@ -825,7 +823,7 @@ void NodableView::draw_toolbar_window() {
         ImGui::SameLine();
 
         // debug
-        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, m_app->config.common.button_activeColor);
+        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, fw::g_conf().button_activeColor);
         if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped) {
             m_app->debug_program();
         }
@@ -852,7 +850,7 @@ void NodableView::draw_toolbar_window() {
 
         // enter isolation mode
         if (ImGui::Button(
-                config.isolation & Isolation_ON ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
+                     g_conf().isolation & Isolation_ON ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
             m_app->event_manager.dispatch( EventID_TOGGLE_ISOLATION_FLAGS );
         }
@@ -867,13 +865,12 @@ void NodableView::draw_toolbar_window() {
 void NodableView::on_reset_layout()
 {
     // Dock windows to specific dockspace
-    const Config& config  = m_app->config;
 
-    dock_window(config.ui_help_window_label             , AppView::Dockspace_RIGHT);
-    dock_window(config.ui_config_window_label           , AppView::Dockspace_RIGHT);
-    dock_window(config.ui_file_info_window_label        , AppView::Dockspace_RIGHT);
-    dock_window(config.ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
-    dock_window(config.ui_virtual_machine_window_label  , AppView::Dockspace_RIGHT);
-    dock_window(config.ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
-    dock_window(config.ui_toolbar_window_label          , AppView::Dockspace_TOP);
+    dock_window( g_conf().ui_help_window_label             , AppView::Dockspace_RIGHT);
+    dock_window( g_conf().ui_config_window_label           , AppView::Dockspace_RIGHT);
+    dock_window( g_conf().ui_file_info_window_label        , AppView::Dockspace_RIGHT);
+    dock_window( g_conf().ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
+    dock_window( g_conf().ui_virtual_machine_window_label  , AppView::Dockspace_RIGHT);
+    dock_window( g_conf().ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
+    dock_window( g_conf().ui_toolbar_window_label          , AppView::Dockspace_TOP);
 }

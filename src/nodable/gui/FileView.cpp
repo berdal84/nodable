@@ -6,6 +6,7 @@
 #include "nodable/core/language/Nodlang.h"
 #include "nodable/core/NodeUtils.h"
 
+
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
@@ -64,7 +65,7 @@ void FileView::init()
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
-	m_text_editor.SetPalette(Nodable::get_instance().config.ui_text_textEditorPalette);
+	m_text_editor.SetPalette( g_conf().ui_text_textEditorPalette);
 }
 
 bool FileView::onDraw()
@@ -134,11 +135,11 @@ bool FileView::onDraw()
 
         // overlay
         Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
-        overlay_rect.expand( Vec2( -2.f * app.config.ui_overlay_margin ) ); // margin
+        overlay_rect.expand( Vec2( -2.f * g_conf().ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
-        if (app.config.experimental_hybrid_history)
+        if ( g_conf().experimental_hybrid_history)
         {
             m_file.history.enable_text_editor(false); // avoid recording events caused by graph serialisation
         }
@@ -153,7 +154,7 @@ bool FileView::onDraw()
 
         m_focused_text_changed = is_line_text_modified ||
                                  m_text_editor.IsTextChanged() ||
-                                 (app.config.isolation && is_selected_text_modified);
+                                 ( g_conf().isolation && is_selected_text_modified);
 
         if (m_text_editor.IsTextChanged())  m_file.dirty = true;
     }
@@ -182,14 +183,14 @@ bool FileView::onDraw()
 
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
-            overlay_rect.expand( Vec2( -2.0f * app.config.ui_overlay_margin ) ); // margin
+            overlay_rect.expand( Vec2( -2.0f * g_conf().ui_overlay_margin ) ); // margin
             draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
-            if( app.config.isolation )
+            if( g_conf().isolation )
             {
-                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2(app.config.ui_overlay_margin);
+                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( g_conf().ui_overlay_margin);
                 ImGui::SetCursorPos(cursor_pos);
                 ImGui::Text("Isolation mode ON");
             }
@@ -319,9 +320,9 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
     if( overlay_data.empty() ) return;
 
     const auto& app = Nodable::get_instance();
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, app.config.ui_overlay_window_bg_golor);
-    ImGui::PushStyleColor(ImGuiCol_Border, app.config.ui_overlay_border_color);
-    ImGui::PushStyleColor(ImGuiCol_Text, app.config.ui_overlay_text_color);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, g_conf().ui_overlay_window_bg_golor);
+    ImGui::PushStyleColor(ImGuiCol_Border, g_conf().ui_overlay_border_color);
+    ImGui::PushStyleColor(ImGuiCol_Text, g_conf().ui_overlay_text_color);
     Vec2 win_position = rect.tl() + rect.size() * position;
     ImGui::SetNextWindowPos( win_position, ImGuiCond_Always, position);
     ImGui::SetNextWindowSize( rect.size(), ImGuiCond_Appearing);
@@ -331,7 +332,7 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 
     if (ImGui::Begin(title, &show, flags) )
     {
-        ImGui::Indent(app.config.ui_overlay_indent);
+        ImGui::Indent( g_conf().ui_overlay_indent);
         std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
             ImGui::Text("%s:", _data.label.c_str());
             ImGui::SameLine(150);
