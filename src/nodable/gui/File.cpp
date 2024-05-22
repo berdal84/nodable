@@ -152,7 +152,7 @@ size_t File::size() const
 
 std::string File::filename() const
 {
-    return path.filename();
+    return path.filename().string();
 }
 
 
