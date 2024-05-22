@@ -1,4 +1,4 @@
-#include "HybridFileView.h"
+#include "FileView.h"
 
 #include "nodable/core/Graph.h"
 #include "nodable/core/Node.h"
@@ -6,18 +6,18 @@
 #include "nodable/core/language/Nodlang.h"
 #include "nodable/core/NodeUtils.h"
 
-#include "commands/Cmd_ReplaceText.h"
-#include "commands/Cmd_WrappedTextEditorUndoRecord.h"
+#include "Config.h"
 #include "Event.h"
-#include "HybridFile.h"
+#include "File.h"
 #include "GraphView.h"
 #include "NodeView.h"
-#include "Config.h"
+#include "commands/Cmd_ReplaceText.h"
+#include "commands/Cmd_WrappedTextEditorUndoRecord.h"
 
 using namespace ndbl;
 using namespace fw;
 
-HybridFileView::HybridFileView(HybridFile& _file)
+FileView::FileView( File& _file)
     : View()
     , m_text_editor()
     , m_focused_text_changed(false)
@@ -40,7 +40,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
             Node* root = _graph->get_root().get();
 
             NodeView* root_node_view = root->get_component<NodeView>().get();
-            GraphView* graph_view = m_file.get_graph_view();
+            GraphView* graph_view = m_file.graph_view;
 
             // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
@@ -59,7 +59,7 @@ HybridFileView::HybridFileView(HybridFile& _file)
     });
 }
 
-void HybridFileView::init()
+void FileView::init()
 {
 	static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
@@ -67,7 +67,7 @@ void HybridFileView::init()
 	m_text_editor.SetPalette(Nodable::get_instance().config.ui_text_textEditorPalette);
 }
 
-bool HybridFileView::onDraw()
+bool FileView::onDraw()
 {
     const Vec2 margin(10.0f, 0.0f);
     const Nodable &app       = Nodable::get_instance();
@@ -127,7 +127,7 @@ bool HybridFileView::onDraw()
             }
         }
 
-        m_file.get_history()->enable_text_editor(true); // ensure to begin to record history
+        m_file.history.enable_text_editor(true); // ensure to begin to record history
 
         // render text editor
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
@@ -140,7 +140,7 @@ bool HybridFileView::onDraw()
 
         if (app.config.experimental_hybrid_history)
         {
-            m_file.get_history()->enable_text_editor(false); // avoid recording events caused by graph serialisation
+            m_file.history.enable_text_editor(false); // avoid recording events caused by graph serialisation
         }
 
         auto new_cursor_position = m_text_editor.GetCursorPosition();
@@ -153,18 +153,20 @@ bool HybridFileView::onDraw()
 
         m_focused_text_changed = is_line_text_modified ||
                                  m_text_editor.IsTextChanged() ||
-                                 (app.config.isolate_selection && is_selected_text_modified);
+                                 (app.config.isolation && is_selected_text_modified);
 
-        if (m_text_editor.IsTextChanged())  m_file.is_content_dirty = true;
+        if (m_text_editor.IsTextChanged())  m_file.dirty = true;
     }
     ImGui::EndChild();
 
      // NODE EDITOR
     //-------------
 
-    Graph*     graph      = m_file.get_graph();
-    GraphView* graph_view = m_file.get_graph_view();
+    Graph*     graph      = m_file.graph;
+    GraphView* graph_view = m_file.graph_view;
+
     FW_ASSERT(graph);
+
     ImGui::SameLine();
     if ( graph_view )
     {
@@ -185,7 +187,7 @@ bool HybridFileView::onDraw()
             ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
             // Draw overlay: isolation mode ON/OFF
-            if( app.config.isolate_selection )
+            if( app.config.isolation )
             {
                 Vec2 cursor_pos = graph_editor_top_left_corner + Vec2(app.config.ui_overlay_margin);
                 ImGui::SetCursorPos(cursor_pos);
@@ -204,14 +206,29 @@ bool HybridFileView::onDraw()
     return changed();
 }
 
-std::string HybridFileView::get_text()const
+std::string FileView::get_text( Isolation mode )const
 {
-	return m_text_editor.GetText();
+    if ( mode == Isolation_OFF )
+    {
+        return m_text_editor.GetText();
+    }
+
+    if ( m_text_editor.HasSelection() )
+    {
+        return m_text_editor.GetSelectedText();
+    }
+
+    return m_text_editor.GetCurrentLineText(); // By default, we consider the current line as the selection
 }
 
-void HybridFileView::replace_selected_text(const std::string &_val)
+void FileView::set_text(const std::string& text, Isolation mode)
 {
-    if (get_selected_text() != _val )
+    if ( get_text(mode) == text )
+    {
+        return;
+    }
+
+    if( mode == Isolation_ON )
     {
         auto start = m_text_editor.GetCursorPosition();
 
@@ -228,7 +245,7 @@ void HybridFileView::replace_selected_text(const std::string &_val)
         }
 
         /* insert text (and select it) */
-        m_text_editor.InsertText(_val, true);
+        m_text_editor.InsertText( text, true);
 
         auto end = m_text_editor.GetCursorPosition();
         if (!hasSelection && start.mLine == end.mLine) // no selection and insert text is still on the same line
@@ -236,39 +253,24 @@ void HybridFileView::replace_selected_text(const std::string &_val)
             m_text_editor.SetSelection(selectionStart, selectionEnd);
         }
         LOG_MESSAGE("FileView", "Selected text updated from graph.\n")
-        LOG_VERBOSE("FileView", "%s \n", _val.c_str())
+        LOG_VERBOSE("FileView", "%s \n", text.c_str())
     }
-}
-
-void HybridFileView::replace_text(const std::string& _content)
-{
-    const std::string current_content = get_text();
-    if (current_content != _content )
+    else
     {
-        set_text(_content);
-        // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, _content, &m_text_editor);
+        m_text_editor.SetText(text);
+        // auto cmd = std::make_shared<Cmd_ReplaceText>(current_content, text, &m_text_editor);
         // m_file.get_history()->push_command(cmd);
 
-        LOG_MESSAGE("FileView", "Selected text updated from graph.\n")
-        LOG_VERBOSE("FileView", "%s \n", _content.c_str())
+        LOG_MESSAGE("FileView", "Whole text updated from graph.\n")
+        LOG_VERBOSE("FileView", "%s \n", text.c_str())
     }
 }
 
-void HybridFileView::set_text(const std::string& _content)
-{
-	m_text_editor.SetText(_content);
-}
-
-std::string HybridFileView::get_selected_text()const
-{
-	return m_text_editor.HasSelection() ? m_text_editor.GetSelectedText() : m_text_editor.GetCurrentLineText();
-}
-
-void HybridFileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
+void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 	this->m_text_editor.SetExternalUndoBuffer(_buffer);
 }
 
-void HybridFileView::draw_info_panel() const
+void FileView::draw_info_panel() const
 {
     // Basic information
     ImGui::Text("Current file:");
@@ -281,8 +283,8 @@ void HybridFileView::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file.get_graph()->get_node_registry().size());
-    ImGui::Text("Edge count: %zu", m_file.get_graph()->get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file.graph->get_node_registry().size());
+    ImGui::Text("Edge count: %zu", m_file.graph->get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
@@ -303,7 +305,7 @@ void HybridFileView::draw_info_panel() const
     }
 }
 
-void  HybridFileView::experimental_clipboard_auto_paste(bool _enable)
+void FileView::experimental_clipboard_auto_paste(bool _enable)
 {
     m_experimental_clipboard_auto_paste = _enable;
     if( _enable )
@@ -312,7 +314,7 @@ void  HybridFileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void HybridFileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, Rect rect, Vec2 position)
+void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, Rect rect, Vec2 position)
 {
     if( overlay_data.empty() ) return;
 
@@ -340,24 +342,24 @@ void HybridFileView::draw_overlay(const char* title, const std::vector<OverlayDa
     ImGui::End();
 }
 
-void HybridFileView::clear_overlay()
+void FileView::clear_overlay()
 {
     std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [&](auto &vec) {
         vec.clear();
     });
 }
 
-void HybridFileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
+void FileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
 {
     m_overlay_data[overlay_type].push_back(overlay_data);
 }
 
-size_t HybridFileView::size() const
+size_t FileView::size() const
 {
     return m_text_editor.Size();
 }
 
-void HybridFileView::refresh_overlay(Condition _condition )
+void FileView::refresh_overlay(Condition _condition )
 {
     for (const IAction* _action: ActionManager::get_instance().get_actions())
     {

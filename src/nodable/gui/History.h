@@ -46,10 +46,13 @@ namespace ndbl
 	public:
 		explicit History(const bool* _experimental_hybrid_history, size_t _sizeMax = 100)
             : m_size_max(_sizeMax)
-            , m_dirty(false)
+            , is_dirty(false)
             , m_experimental_hybrid_history(_experimental_hybrid_history)
         {}
+        History(const History&) = delete;
 		~History();
+
+        bool is_dirty;
 
 		/**
 		 * Push a command and execute it.
@@ -87,14 +90,10 @@ namespace ndbl
 			return &m_text_editor_buffer;
 		}
 
-        bool is_dirty() const { return m_dirty; }
-        void set_dirty(bool _dirty = true) { m_dirty = _dirty; }
-
         /** return the command position range.
          * ex: (-100, 20) if we have 100 commands to undo and 20 to redo */
         std::pair<int, int>  get_command_id_range();
     private:
-        bool                m_dirty;
 	    size_t              m_size_max;
 		TextEditorBuffer    m_text_editor_buffer;
         const bool*         m_experimental_hybrid_history;

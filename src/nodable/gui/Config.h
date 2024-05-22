@@ -4,13 +4,14 @@
 #include <vector>
 #include <memory>
 
-#include "fw/gui/ImGuiEx.h"
+#include "Isolation.h"
 #include "fw/core/reflection/reflection"
 #include "fw/core/types.h"
+#include "fw/gui/AppView.h"
 #include "fw/gui/Config.h"
 #include "fw/gui/FontManager.h"
-#include "fw/gui/AppView.h"
-#include "nodable/gui/types.h"
+#include "fw/gui/ImGuiEx.h"
+#include "types.h"
 
 namespace ndbl {
 
@@ -77,7 +78,7 @@ namespace ndbl {
         const char*    ui_virtual_machine_window_label;
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
-        bool           isolate_selection;
+        Isolation      isolation;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
         fw::Config     common;

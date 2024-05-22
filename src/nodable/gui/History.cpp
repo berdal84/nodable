@@ -42,7 +42,7 @@ void History::undo()
         command_to_undo->undo();
         m_past.pop_front();
         m_future.push_front(command_to_undo);
-        m_dirty = true;
+        is_dirty = true;
     }
 }
 
@@ -54,7 +54,7 @@ void History::redo()
         command_to_redo->redo();
         m_future.pop_front();
         m_past.push_front(command_to_redo);
-        m_dirty = true;
+        is_dirty = true;
 	}
 }
 
@@ -84,7 +84,7 @@ void History::move_cursor(int _move)
         }
 	}
 
-    m_dirty = true;
+    is_dirty = true;
 }
 
 std::string History::get_cmd_description_at(int _cmd_position)

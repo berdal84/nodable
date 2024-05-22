@@ -18,7 +18,7 @@ namespace ndbl
     using Action_ArrangeNode     = Action<Event_ArrangeNode>;
     using Action_ToggleFolding   = Action<Event_ToggleFolding>;
     using Action_SelectNext      = Action<Event_SelectNext>;
-    using Action_ToggleIsolate   = Action<Event_ToggleIsolate>;
+    using Action_ToggleIsolate   = Action<Event_ToggleIsolationFlags>;
     using Action_SelectionChange = Action<Event_SelectionChange>;
     using Action_MoveGraph       = Action<Event_MoveSelection>;
 

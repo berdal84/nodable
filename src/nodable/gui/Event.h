@@ -27,14 +27,14 @@ namespace ndbl
         EventID_REQUEST_CREATE_BLOCK,
         EventID_REQUEST_FRAME_SELECTION,
         EventID_MOVE_SELECTION,
-        EventID_TOGGLE_ISOLATE,
+        EventID_TOGGLE_ISOLATION_FLAGS,
         EventID_SLOT_DROPPED,
         EventID_SLOT_DISCONNECTED,
         EventID_SELECTION_CHANGE,
     };
 
-    using Event_ToggleIsolate   = fw::Event<EventID_TOGGLE_ISOLATE>;
-    using Event_MoveSelection   = fw::Event<EventID_MOVE_SELECTION>;
+    using Event_ToggleIsolationFlags = fw::Event<EventID_TOGGLE_ISOLATION_FLAGS>;
+    using Event_MoveSelection        = fw::Event<EventID_MOVE_SELECTION>;
 
     class GraphView;
     struct EventPayload_FrameNodeViews

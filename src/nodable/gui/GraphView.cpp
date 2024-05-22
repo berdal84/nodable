@@ -323,7 +323,7 @@ bool GraphView::onDraw()
         ImGuiEx::ColoredShadowedText( Vec2( 1, 1 ), Color( 0.00f, 0.00f, 0.00f, 1.00f ), Color( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
         ImGui::Separator();
         /*
-        *  In case user has created a new node we need to connect it to the m_graph depending
+        *  In case user has created a new node we need to connect it to the graph depending
         *  on if a slot is being dragged and  what is its nature.
         */
         if ( Action_CreateNode* action = m_create_node_context_menu.draw_search_input( 10 ) )

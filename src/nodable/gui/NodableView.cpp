@@ -5,9 +5,9 @@
 #include "Action.h"
 #include "Config.h"
 #include "Event.h"
+#include "File.h"
+#include "FileView.h"
 #include "History.h"
-#include "HybridFile.h"
-#include "HybridFileView.h"
 #include "Nodable.h"
 #include "NodeView.h"
 #include "Physics.h"
@@ -56,18 +56,19 @@ void NodableView::on_draw()
 {
     bool redock_all = true;
 
-    HybridFile*       current_file    = m_app->current_file;
+    File*       current_file    = m_app->current_file;
     EventManager& event_manager   = m_app->event_manager;
     Config&           config          = m_app->config;
     VirtualMachine&   virtual_machine = m_app->virtual_machine;
 
     // 1. Draw Menu Bar
-    if (ImGui::BeginMenuBar()) {
-        History* current_file_history = current_file ? current_file->get_history() : nullptr;
+    if (ImGui::BeginMenuBar())
+    {
+        History* current_file_history = current_file ? &current_file->history : nullptr;
 
         if (ImGui::BeginMenu("File")) {
             bool has_file = current_file != nullptr;
-            bool is_current_file_content_dirty = current_file != nullptr && current_file->is_content_dirty;
+            bool is_current_file_content_dirty = current_file != nullptr && current_file->dirty;
             ImGuiEx::MenuItem<Event_FileNew>();
             ImGuiEx::MenuItem<Event_FileBrowse>();
             ImGui::Separator();
@@ -148,7 +149,7 @@ void NodableView::on_draw()
 
             ImGui::Separator();
 
-            ImGuiEx::MenuItem<Event_ToggleIsolate>(config.isolate_selection );
+            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>(config.isolation );
 
             ImGui::EndMenu();
         }
@@ -270,7 +271,7 @@ void NodableView::on_draw()
         draw_toolbar_window();
 
         auto ds_root = get_dockspace(AppView::Dockspace_ROOT);
-        for (HybridFile *each_file: m_app->get_files())
+        for ( File*each_file: m_app->get_files())
         {
             draw_file_window(ds_root, redock_all, each_file);
         }
@@ -546,12 +547,12 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::End(); // Startup Window
 }
 
-void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, HybridFile *file) {
+void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file) {
     auto &vm = m_app->virtual_machine;
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
-            (file->is_content_dirty ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
+            (file->dirty ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
@@ -573,7 +574,7 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, Hybrid
         }
 
         // History bar on top
-        draw_history_bar(file->get_history());
+        draw_history_bar(file->history);
 
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
@@ -728,8 +729,10 @@ void NodableView::draw_splashscreen()
     }
 }
 
-void NodableView::draw_history_bar(History *currentFileHistory) {
-    if (ImGui::IsMouseReleased(0)) {
+void NodableView::draw_history_bar(History& currentFileHistory)
+{
+    if (ImGui::IsMouseReleased(0))
+    {
         m_is_history_dragged = false;
     }
     Config& config = m_app->config;
@@ -737,8 +740,8 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
     float btn_height = config.ui_history_btn_height;
     float btn_width_max = config.ui_history_btn_width_max;
 
-    size_t historySize = currentFileHistory->get_size();
-    std::pair<int, int> history_range = currentFileHistory->get_command_id_range();
+    size_t historySize = currentFileHistory.get_size();
+    std::pair<int, int> history_range = currentFileHistory.get_command_id_range();
     float avail_width = ImGui::GetContentRegionAvail().x;
     float btn_width = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
 
@@ -769,18 +772,18 @@ void NodableView::draw_history_bar(History *currentFileHistory) {
             // Draw command description
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
             if (ImGuiEx::BeginTooltip()) {
-                ImGui::Text("%s", currentFileHistory->get_cmd_description_at(cmd_pos).c_str());
+                ImGui::Text("%s", currentFileHistory.get_cmd_description_at(cmd_pos).c_str());
                 ImGuiEx::EndTooltip();
             }
             ImGui::PopStyleVar();
         }
 
         // When dragging history
-        const auto xMin = ImGui::GetItemRectMin().x;
-        const auto xMax = ImGui::GetItemRectMax().x;
         if (m_is_history_dragged &&
-            ImGui::GetMousePos().x < xMax && ImGui::GetMousePos().x > xMin) {
-            currentFileHistory->move_cursor(cmd_pos); // update history cursor position
+            ImGui::GetMousePos().x > ImGui::GetItemRectMin().x &&
+            ImGui::GetMousePos().x < ImGui::GetItemRectMax().x)
+        {
+            currentFileHistory.move_cursor(cmd_pos); // update history cursor position
         }
 
 
@@ -849,9 +852,9 @@ void NodableView::draw_toolbar_window() {
 
         // enter isolation mode
         if (ImGui::Button(
-                config.isolate_selection ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
+                config.isolation & Isolation_ON ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
                 button_size)) {
-            m_app->event_manager.dispatch( EventID_TOGGLE_ISOLATE );
+            m_app->event_manager.dispatch( EventID_TOGGLE_ISOLATION_FLAGS );
         }
         ImGui::SameLine();
         ImGui::EndGroup();

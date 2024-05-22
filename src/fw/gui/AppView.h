@@ -16,7 +16,6 @@ namespace fw
 {
     // forward declarations
     class App;
-    class File;
     class History;
     struct Texture;
     class VirtualMachine;

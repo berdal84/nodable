@@ -6,12 +6,13 @@
 #include "fw/gui/View.h"
 
 #include "Condition.h"
+#include "Isolation.h"
 #include "types.h"
 
 namespace ndbl
 {
     // forward declarations
-    class HybridFile;
+    class File;
     class IAppCtx;
 
     enum OverlayPos {
@@ -35,11 +36,12 @@ namespace ndbl
         OverlayPos position;
     } OverlayData;
 
-    class HybridFileView : public fw::View
+    class FileView : public fw::View
 	{
 	public:
-		explicit HybridFileView(HybridFile& _file);
-		~HybridFileView() override = default;
+		explicit FileView( File& _file);
+        FileView(const File&) = delete;
+		~FileView() override = default;
 
 		void                           init();
         bool                           onDraw() override;
@@ -47,11 +49,8 @@ namespace ndbl
         bool                           focused_text_changed() const { return m_focused_text_changed; }
         bool                           is_graph_dirty() const { return m_is_graph_dirty; }
         void                           set_dirty(bool b) { m_focused_text_changed = m_is_graph_dirty = b; }
-		void                           set_text(const std::string&);
-		std::string                    get_selected_text()const;
-		std::string                    get_text()const;
-		void                           replace_selected_text(const std::string&);
-        void                           replace_text(const std::string&);
+		std::string                    get_text(Isolation = Isolation_OFF)const;
+        void                           set_text(const std::string&, Isolation mode = Isolation_OFF);
 		TextEditor*					   get_text_editor(){ return &m_text_editor; }
 		void                           set_cursor_position(const TextEditor::Coordinates& _cursorPosition) { m_text_editor.SetCursorPosition(_cursorPosition); }
 		TextEditor::Coordinates        get_cursor_position()const { return m_text_editor.GetCursorPosition(); }
@@ -69,7 +68,7 @@ namespace ndbl
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
         bool         m_focused_text_changed;
         bool         m_is_graph_dirty;
-		HybridFile&  m_file;
+        File&        m_file;
         std::string  m_text_overlay_window_name;
         std::string  m_graph_overlay_window_name;
 		TextEditor   m_text_editor;

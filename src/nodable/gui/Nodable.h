@@ -33,20 +33,20 @@ namespace ndbl
 
         Config            config;
         NodeFactory       node_factory;
-        HybridFile*       current_file;
+        File*       current_file;
         VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
 
         // File related:
 
-        HybridFile*     open_asset_file(const std::filesystem::path&_path);
-        HybridFile*     open_file(const std::filesystem::path&_path);
-        HybridFile*     new_file();
-        void            save_file(HybridFile *pFile) const;
+        File*     open_asset_file(const std::filesystem::path&_path);
+        File*     open_file(const std::filesystem::path&_path);
+        File*     new_file();
+        void            save_file( File*pFile) const;
         void            save_file_as(const std::filesystem::path &_path) const;
-        HybridFile*     add_file(HybridFile *_file);
-        void            close_file(HybridFile*);
-        bool            is_current(const HybridFile* _file ) const { return current_file == _file; }
-        const std::vector<HybridFile*>&
+        File*     add_file( File*_file);
+        void            close_file( File*);
+        bool            is_current(const File* _file ) const { return current_file == _file; }
+        const std::vector<File*>&
                         get_files() const { return m_loaded_files; }
         bool            has_files() const { return !m_loaded_files.empty(); }
 
@@ -66,7 +66,7 @@ namespace ndbl
         void            on_update() override;
 
         static Nodable *   s_instance;
-        std::vector<HybridFile*> m_loaded_files;
+        std::vector<File*> m_loaded_files;
         u8_t               m_untitled_file_count;
 
     };

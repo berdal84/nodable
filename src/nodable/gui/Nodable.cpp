@@ -3,9 +3,9 @@
 #include "Action.h"
 #include "Condition.h"
 #include "Event.h"
+#include "File.h"
+#include "FileView.h"
 #include "GraphView.h"
-#include "HybridFile.h"
-#include "HybridFileView.h"
 #include "NodableView.h"
 #include "NodeView.h"
 #include "Physics.h"
@@ -122,7 +122,7 @@ bool Nodable::on_init()
     action_manager.new_action<Event_Exit>( ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{ SDLK_F4, KMOD_ALT } );
     action_manager.new_action<Event_Undo>( "Undo", Shortcut{ SDLK_z, KMOD_CTRL } );
     action_manager.new_action<Event_Redo>( "Redo", Shortcut{ SDLK_y, KMOD_CTRL } );
-    action_manager.new_action<Event_ToggleIsolate>( "Isolate", Shortcut{ SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    action_manager.new_action<Event_ToggleIsolationFlags>( "Isolate", Shortcut{ SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
     action_manager.new_action<Event_SelectionChange>( "Deselect", Shortcut{ 0, KMOD_NONE, "Double click on bg" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager.new_action<Event_MoveSelection>( "Move Graph", Shortcut{ 0, KMOD_NONE, "Drag background" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager.new_action<Event_FrameSelection>( "Frame Selection", Shortcut{ SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{ FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
@@ -170,33 +170,33 @@ void Nodable::on_update()
         //
         // When history is dirty we update the graph from the text.
         // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if ( current_file->get_history()->is_dirty() && !config.experimental_hybrid_history )
+        if ( current_file->history.is_dirty && !config.experimental_hybrid_history )
         {
-            current_file->update_graph_from_text(config.isolate_selection);
-            current_file->get_history()->set_dirty(false);
+            current_file->update_graph_from_text(config.isolation);
+            current_file->history.is_dirty = false;
         }
         // Run the main update loop for the file
-        current_file->update();
+        current_file->update(config.isolation );
     }
 
     // 2. Handle events
 
     // Nodable events
     auto       selected_view       = NodeView::get_selected();
-    GraphView* graph_view          = current_file ? current_file->get_graph_view() : nullptr;
-    History*   curr_file_history   = current_file ? current_file->get_history() : nullptr;
+    GraphView* graph_view          = current_file ? current_file->graph_view : nullptr;
+    History*   curr_file_history   = current_file ? &current_file->history : nullptr;
 
     IEvent* event = nullptr;
     while( (event = event_manager.poll_event()) )
     {
         switch ( event->id )
         {
-            case EventID_TOGGLE_ISOLATE:
+            case EventID_TOGGLE_ISOLATION_FLAGS:
             {
-                config.isolate_selection = !config.isolate_selection;
+                config.isolation = ~config.isolation;
                 if(current_file)
                 {
-                    current_file->update_graph_from_text(config.isolate_selection);
+                    current_file->update_graph_from_text(config.isolation );
                 }
                 break;
             }
@@ -387,9 +387,9 @@ void Nodable::on_update()
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);
 
                 // 1) create the node
-                Graph* graph = current_file->get_graph();
+                Graph* graph = current_file->graph;
 
-                if ( !graph->get_root() )
+                 if ( !graph->get_root() )
                 {
                     LOG_ERROR("Nodable", "Unable to create node, no root found on this graph.\n");
                     continue;
@@ -480,7 +480,7 @@ void Nodable::on_update()
 bool Nodable::on_shutdown()
 {
     LOG_VERBOSE("ndbl::App", "on_shutdown ...\n");
-    for( HybridFile* each_file : m_loaded_files )
+    for( File* each_file : m_loaded_files )
     {
         LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str())
         delete each_file;
@@ -492,28 +492,28 @@ bool Nodable::on_shutdown()
     return true;
 }
 
-HybridFile *Nodable::open_asset_file(const std::filesystem::path& _path)
+File* Nodable::open_asset_file(const std::filesystem::path& _path)
 {
     std::filesystem::path absolute_path = asset_path(_path);
     return open_file(absolute_path);
 }
 
-HybridFile *Nodable::open_file(const std::filesystem::path& _path)
+File* Nodable::open_file(const std::filesystem::path& _path)
 {
-    auto file = new HybridFile(_path);
+    auto file = new File();
 
-    if ( !file->load() )
+    if ( !File::read( *file, _path ) )
     {
         LOG_ERROR("File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
         delete file;
         return nullptr;
     }
     add_file(file);
-    file->update_graph_from_text(config.isolate_selection);
+    file->update_graph_from_text(config.isolation);
     return file;
 }
 
-HybridFile *Nodable::add_file(HybridFile* _file)
+File*Nodable::add_file( File* _file)
 {
     FW_EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
@@ -522,13 +522,13 @@ HybridFile *Nodable::add_file(HybridFile* _file)
     return _file;
 }
 
-void Nodable::save_file(HybridFile* _file) const
+void Nodable::save_file( File* _file) const
 {
     FW_EXPECT(_file,"file must be defined");
 
-	if ( !_file->write_to_disk() )
+	if ( !File::write(*_file, _file->path) )
     {
-        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _file->filename(), _file->path.c_str());
+        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _file->filename().c_str(), _file->path.c_str());
         return;
     }
     LOG_MESSAGE("ndbl::App", "File saved: %s\n", _file->path.c_str());
@@ -536,11 +536,15 @@ void Nodable::save_file(HybridFile* _file) const
 
 void Nodable::save_file_as(const std::filesystem::path& _path) const
 {
-    current_file->path = _path;
-    current_file->write_to_disk();
+    if ( !File::write(*current_file, _path) )
+    {
+        LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _path.filename().c_str(), _path.c_str());
+        return;
+    }
+    LOG_MESSAGE("ndbl::App", "File saved: %s\n", _path.c_str());
 }
 
-void Nodable::close_file(HybridFile* _file)
+void Nodable::close_file( File* _file)
 {
     // Find and delete the file
     FW_EXPECT(_file, "Cannot close a nullptr File!");
@@ -562,28 +566,21 @@ void Nodable::close_file(HybridFile* _file)
 
 bool Nodable::compile_and_load_program()
 {
-    if ( current_file )
+    if (!current_file || !current_file->graph)
     {
-        const Graph* graph = current_file->get_graph();
-
-        if (graph)
-        {
-            assembly::Compiler compiler;
-            auto asm_code = compiler.compile_syntax_tree(graph);
-
-            if (asm_code)
-            {
-                virtual_machine.release_program();
-
-                if (virtual_machine.load_program(std::move(asm_code)))
-                {
-                    return true;
-                }
-            }
-        }
+        return false;
     }
 
-    return false;
+    assembly::Compiler compiler{};
+    auto asm_code = compiler.compile_syntax_tree(current_file->graph);
+    if (!asm_code)
+    {
+        return false;
+    }
+
+    virtual_machine.release_program();
+    bool loaded = virtual_machine.load_program(asm_code);
+    return loaded;
 }
 
 void Nodable::run_program()
@@ -633,16 +630,17 @@ void Nodable::reset_program()
     {
         virtual_machine.stop_program();
     }
-    current_file->update_graph_from_text(config.isolate_selection);
+    current_file->update_graph_from_text(config.isolation );
 }
 
-HybridFile *Nodable::new_file()
+File*Nodable::new_file()
 {
     m_untitled_file_count++;
 
     string32 name;
     name.append_fmt("Untitled_%i.cpp", m_untitled_file_count);
-    auto* file = new HybridFile(name.c_str());
+    auto* file = new File();
+    file->path = name.c_str();
     file->update_graph_from_text();
 
     return add_file(file);

@@ -108,7 +108,7 @@ void ndbl::Config::reset_default()
     // Misc.
     experimental_graph_autocompletion     = false;
     experimental_hybrid_history           = false;
-    isolate_selection                     = false;
+    isolation = Isolation_OFF;
     graph_unfold_dt                       = 1.5f;
     graph_unfold_iterations               = 100;
 

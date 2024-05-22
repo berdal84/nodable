@@ -454,8 +454,8 @@ add_library(
     src/nodable/gui/Config.cpp
     src/nodable/gui/GraphView.cpp
     src/nodable/gui/History.cpp
-    src/nodable/gui/HybridFile.cpp
-    src/nodable/gui/HybridFileView.cpp
+    src/nodable/gui/File.cpp
+    src/nodable/gui/FileView.cpp
     src/nodable/gui/Nodable.cpp
     src/nodable/gui/NodableView.cpp
     src/nodable/gui/NodeView.cpp
@@ -463,6 +463,7 @@ add_library(
     src/nodable/gui/Physics.cpp
     src/nodable/gui/PropertyView.cpp
     src/nodable/gui/SlotView.cpp
+    src/nodable/gui/Isolation.h
 )
 
 target_link_libraries(
