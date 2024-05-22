@@ -7,8 +7,8 @@ include(scripts/cmake/set-build-ref-variable.cmake)
 
 # prerequisites:
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version") # must be declared BEFORE project
-# 10.9 is earliest version supporting c++11
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # must be declared BEFORE project
+# 10.15 is earliest version supporting c++117
 
 # project declaration
 project("Nodable"
