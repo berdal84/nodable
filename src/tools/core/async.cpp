@@ -1,56 +1,85 @@
 #include "async.h"
+#include "assertions.h"
 #include "log.h"
 #include <future>
 #include <thread>
 #include <vector>
 
 using namespace tools;
+using std::chrono::system_clock;
 
-static constexpr size_t        tasks_reserved_size = 16;
-std::vector<std::future<void>> tasks(tasks_reserved_size);
+async::Config                  g_conf;
+std::vector<std::future<void>> g_tasks;
+bool                           g_is_initialised{false};
 
-void async::delay(const std::function<void(void)>& function, u64_t delay_in_ms )
+void _run_task( std::future<void> && task );
+
+void async::init(Config* user_config)
 {
+    if( user_config != nullptr)
+        g_conf = *user_config;
+
+    EXPECT( g_conf.max_capacity >= g_conf.reserve_size, "[tools::async] can't reserve more space than capacity!" )
+
+    g_tasks.reserve(g_conf.reserve_size );
+    g_is_initialised = true;
+}
+
+void async::run_task(const std::function<void(void)>& function, u64_t delay_in_ms )
+{
+    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init()?");
+    std::chrono::milliseconds d{ delay_in_ms };
+
+    // Create an asynchronous function (task)
     auto task = std::async(std::launch::async, [=]() -> void {
-        std::chrono::milliseconds delay{ delay_in_ms };
-        std::this_thread::sleep_for(delay);
+        std::this_thread::sleep_for(d);
         function();
     });
 
-    // try to reuse a memory space by finding the first future ready (aka done)
-    auto task_iterator = tasks.cbegin();
-    while(task_iterator != tasks.cend())
-    {
-        if( task_iterator->valid() && task_iterator->wait_until(std::chrono::system_clock::time_point::min()) == std::future_status::ready )
-        {
-            tasks.emplace(task_iterator, std::move(task));
-            return;
-        }
-        ++task_iterator;
-    }
-
-    // Feedback in the console when max capacity is reached
-    if(tasks.size() == tasks.capacity())
-    {
-        LOG_WARNING("async", "The task vector is full (capacity %zu). It will be resized by the std ...", tasks.capacity());
-    }
-
-    // if no space is available, we simply push it back
-    tasks.push_back(std::move(task));
+    // Run the task
+    _run_task(std::move(task));
 }
 
-void async::clean_tasks()
+void async::update()
 {
-    auto task_iterator = tasks.cbegin();
-    while(task_iterator != tasks.cend())
+    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init()?");
+    auto task_iterator = g_tasks.cbegin();
+    while(task_iterator != g_tasks.cend())
     {
         if(task_iterator->wait_for(std::chrono::seconds(0)) == std::future_status::ready)
         {
-            task_iterator = tasks.erase(task_iterator);
+            task_iterator = g_tasks.erase(task_iterator);
         }
         else
         {
             ++task_iterator;
         }
     }
+}
+
+void async::shutdown()
+{
+    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init()?");
+    g_is_initialised = false;
+    g_tasks.clear();
+}
+
+void _run_task(std::future<void>&& task)
+{
+    // try to reuse a memory space by finding the first future ready (aka done)
+    auto it = g_tasks.cbegin();
+    while( it != g_tasks.cend())
+    {
+        auto t = system_clock::time_point::min();
+        if( it->valid() && it->wait_until(t) == std::future_status::ready )
+        {
+            g_tasks.emplace( it, std::move(task));
+            return;
+        }
+        ++it;
+    }
+
+    EXPECT( g_tasks.size() < g_conf.max_capacity, "[tools::async] g_tasks buffer is full. Did you call update() frequently? Consider increasing max_capacity when calling init()");
+
+    g_tasks.push_back(std::move(task));
 }

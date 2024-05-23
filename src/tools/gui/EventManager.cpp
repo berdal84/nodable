@@ -55,5 +55,5 @@ IEvent* EventManager::dispatch( EventID _event_id )
 
 void EventManager::dispatch_delayed(u64_t delay, IEvent* event)
 {
-    async::delay( [this, event, delay]() -> void { dispatch( event ); }, delay );
+    async::run_task( [&]() -> void { dispatch(event); }, delay );
 }

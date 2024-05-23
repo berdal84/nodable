@@ -188,7 +188,6 @@ bool App::init()
         LOG_ERROR("tools::App", "Unable to init NFD\n");
     }
 
-    LOG_VERBOSE("tools::App", "state_changes.emit(ON_INIT) ...\n");
     on_init();
     m_view->on_init();
     LOG_VERBOSE("tools::App", "init " OK "\n");
@@ -199,7 +198,7 @@ void App::update()
 {
     LOG_VERBOSE("tools::App", "update ...\n");
     handle_events();
-    LOG_VERBOSE("tools::App", "state_changes.emit(ON_UPDATE) ...\n");
+    async::update();
     on_update();
     LOG_VERBOSE("tools::App", "update " OK "\n");
 }

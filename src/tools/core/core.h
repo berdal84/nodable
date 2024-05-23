@@ -2,6 +2,6 @@
 
 namespace tools
 {
-    void core_init();     // Call before to use tools::core
-    void core_shutdown(); // Undo init()
+    void core_init();     // Call before to use anything in tools/core
+    void core_shutdown(); // Undo core_init()
 }
