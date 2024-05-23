@@ -83,8 +83,8 @@ namespace tools
                 float thickness = 1.0f,
                 float roundness = 0.5f);
 
-        extern void     BeginFrame();
-        extern void     EndFrame();
+        extern void Tooltip_EndFrame();
+        extern void Tooltip_NewFrame();
         extern bool     BeginTooltip(float _delay = TOOLTIP_DELAY_DEFAULT, float _duration = TOOLTIP_DURATION_DEFAULT );
         extern void     EndTooltip();
         extern Rect&    EnlargeToInclude(Rect& _rect, Rect _other);

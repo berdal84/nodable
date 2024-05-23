@@ -22,7 +22,7 @@ namespace tools
 		virtual ~View() = default;
         bool          draw();
         virtual bool  onDraw() = 0;
-        tools::Vec2      position(Space) const; // Get position in a given Space
+        tools::Vec2   position(Space) const; // Get position in a given Space
         void          position(Vec2 _delta, Space ); // Set position in a given Space
         Rect          rect(Space) const; // Get rectangle in a given Space
         void          translate(Vec2 _delta);

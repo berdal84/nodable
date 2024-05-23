@@ -28,8 +28,6 @@
 #include "Physics.h"
 #include "SlotView.h"
 #include "tools/gui/Config.h"
-#include "tools/gui/gui.h"
-#include "gui.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -63,21 +61,25 @@ Nodable::Nodable()
 
 Nodable::~Nodable()
 {
-    delete m_view;
+    delete view;
     s_instance = nullptr;
     LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
 
-void Nodable::before_init()
+void Nodable::init()
 {
-    ndbl::gui_init();
-}
+    LOG_VERBOSE("ndbl::App", "init ...\n");
 
-bool Nodable::on_init()
-{
-    LOG_VERBOSE("ndbl::App", "on_init ...\n");
+    // Initialize a configuration only when necessary
+    // TODO: consider having a unique context per app (see ImGui's context management)
+    if ( tools::get_config() == nullptr) tools::create_config(); // ndbl::create_config requires it
+    if ( ndbl::get_config() == nullptr)  ndbl::create_config();
+    Config* cfg = get_config();
 
-    node_factory.override_post_process_fct( [&]( PoolID<Node> node ) -> void {
+    // Init base class
+    App::init();
+
+    node_factory.override_post_process_fct( [cfg]( PoolID<Node> node ) -> void {
         // Code executed after node instantiation
 
         // add a view with physics
@@ -91,33 +93,33 @@ bool Nodable::on_init()
         Vec4* fill_color;
         if ( extends<VariableNode>( node.get() ) )
         {
-            fill_color = &g_conf->ui_node_variableColor;
+            fill_color = &cfg->ui_node_variableColor;
         }
         else if ( node->has_component<InvokableComponent>() )
         {
-            fill_color = &g_conf->ui_node_invokableColor;
+            fill_color = &cfg->ui_node_invokableColor;
         }
         else if ( node->is_instruction() )
         {
-            fill_color = &g_conf->ui_node_instructionColor;
+            fill_color = &cfg->ui_node_instructionColor;
         }
         else if ( extends<LiteralNode>( node.get() ) )
         {
-            fill_color = &g_conf->ui_node_literalColor;
+            fill_color = &cfg->ui_node_literalColor;
         }
         else if ( extends<IConditional>( node.get() ) )
         {
-            fill_color = &g_conf->ui_node_condStructColor;
+            fill_color = &cfg->ui_node_condStructColor;
         }
         else
         {
-            fill_color = &g_conf->ui_node_fillColor;
+            fill_color = &cfg->ui_node_fillColor;
         }
         new_view_id->set_color( fill_color );
     });
 
-
     // Bind commands to shortcuts
+    auto& action_manager = view->action_manager;
     action_manager.new_action<Event_DeleteNode>( "Delete", Shortcut{ SDLK_DELETE, KMOD_NONE } );
     action_manager.new_action<Event_ArrangeNode>( "Arrange", Shortcut{ SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager.new_action<Event_ToggleFolding>( "Fold", Shortcut{ SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
@@ -166,12 +168,14 @@ bool Nodable::on_init()
         language.serialize_func_sig( label, func_type );
         action_manager.new_action<Event_CreateNode>( label.c_str(), Shortcut{}, EventPayload_CreateNode{ NodeType_INVOKABLE, func_type } );
     }
-    return true;
 }
 
-void Nodable::on_update()
+void Nodable::update()
 {
-    LOG_VERBOSE("ndbl::App", "on_update ...\n");
+    App::update();
+
+    LOG_VERBOSE("ndbl::App", "update ...\n");
+    Config* cfg = get_config();
 
     // 1. Update current file
     if (current_file && !virtual_machine.is_program_running())
@@ -179,13 +183,13 @@ void Nodable::on_update()
         //
         // When history is dirty we update the graph from the text.
         // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if ( current_file->history.is_dirty && !g_conf->experimental_hybrid_history )
+        if ( current_file->history.is_dirty && !cfg->experimental_hybrid_history )
         {
-            current_file->update_graph_from_text( g_conf->isolation);
+            current_file->update_graph_from_text( cfg->isolation);
             current_file->history.is_dirty = false;
         }
         // Run the main update loop for the file
-        current_file->update( g_conf->isolation );
+        current_file->update( cfg->isolation );
     }
 
     // 2. Handle events
@@ -196,16 +200,16 @@ void Nodable::on_update()
     History*   curr_file_history   = current_file ? &current_file->history : nullptr;
 
     IEvent* event = nullptr;
-    while( (event = event_manager.poll_event()) )
+    while( (event = view->event_manager.poll_event()) )
     {
         switch ( event->id )
         {
             case EventID_TOGGLE_ISOLATION_FLAGS:
             {
-                g_conf->isolation = ~g_conf->isolation;
+                cfg->isolation = ~cfg->isolation;
                 if(current_file)
                 {
-                    current_file->update_graph_from_text( g_conf->isolation );
+                    current_file->update_graph_from_text( cfg->isolation );
                 }
                 break;
             }
@@ -236,7 +240,7 @@ void Nodable::on_update()
             case EventID_FILE_BROWSE:
             {
                 std::string path;
-                if( m_view->pick_file_path(path, AppView::DIALOG_Browse))
+                if( view->pick_file_path(path, AppView::DIALOG_Browse))
                 {
                     open_file(path);
                     break;
@@ -257,7 +261,7 @@ void Nodable::on_update()
                 if (current_file)
                 {
                     std::string path;
-                    if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
+                    if( view->pick_file_path(path, AppView::DIALOG_SaveAs))
                     {
                         save_file_as(path);
                         break;
@@ -276,7 +280,7 @@ void Nodable::on_update()
                 else
                 {
                     std::string path;
-                    if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
+                    if( view->pick_file_path(path, AppView::DIALOG_SaveAs))
                     {
                         save_file_as(path);
                     }
@@ -289,7 +293,7 @@ void Nodable::on_update()
                 auto _event = reinterpret_cast<Event_ShowWindow*>(event);
                 if ( _event->data.window_id == "splashscreen" )
                 {
-                    tools::g_conf->splashscreen = _event->data.visible;
+                    view->show_splashscreen = _event->data.visible;
                 }
                 break;
             }
@@ -437,7 +441,7 @@ void Nodable::on_update()
                 {
                     // Experimental: we try to connect a parent-less child
                     PoolID<Node> root = graph->get_root();
-                    if ( new_node_id != root && g_conf->experimental_graph_autocompletion )
+                    if ( new_node_id != root && cfg->experimental_graph_autocompletion )
                     {
                         graph->connect(
                             *root->find_slot(SlotFlag_CHILD),
@@ -483,22 +487,24 @@ void Nodable::on_update()
             }
         }
     }
-    LOG_VERBOSE("ndbl::App", "on_update " OK "\n");
+    LOG_VERBOSE("ndbl::App", "update " OK "\n");
 }
 
-bool Nodable::on_shutdown()
+void Nodable::shutdown()
 {
-    LOG_VERBOSE("ndbl::App", "on_shutdown ...\n");
+    LOG_VERBOSE("ndbl::App", "shutdown ...\n");
+
     for( File* each_file : m_loaded_files )
     {
         LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str())
         delete each_file;
     }
-    LOG_VERBOSE("ndbl::App", "on_shutdown " OK "\n");
+    destroy_config();
 
-    ndbl::gui_shutdown();
+    // Base class
+    App::shutdown();
 
-    return true;
+    LOG_VERBOSE("ndbl::App", "shutdown " OK "\n");
 }
 
 File* Nodable::open_asset_file(const std::filesystem::path& _path)
@@ -510,7 +516,7 @@ File* Nodable::open_asset_file(const std::filesystem::path& _path)
 File* Nodable::open_file(const std::filesystem::path& _path)
 {
     auto file = new File();
-
+    Config* cfg = get_config();
     if ( !File::read( *file, _path ) )
     {
         LOG_ERROR("File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
@@ -518,7 +524,7 @@ File* Nodable::open_file(const std::filesystem::path& _path)
         return nullptr;
     }
     add_file(file);
-    file->update_graph_from_text( g_conf->isolation);
+    file->update_graph_from_text( cfg->isolation);
     return file;
 }
 
@@ -527,7 +533,7 @@ File*Nodable::add_file( File* _file)
     EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
-    event_manager.dispatch( EventID_FILE_OPENED );
+    view->event_manager.dispatch( EventID_FILE_OPENED );
     return _file;
 }
 
@@ -635,11 +641,14 @@ void Nodable::reset_program()
 {
     if(!current_file) return;
 
+    Config* cfg = get_config();
+
     if (virtual_machine.is_program_running() )
     {
         virtual_machine.stop_program();
     }
-    current_file->update_graph_from_text( g_conf->isolation );
+
+    current_file->update_graph_from_text( cfg->isolation );
 }
 
 File*Nodable::new_file()

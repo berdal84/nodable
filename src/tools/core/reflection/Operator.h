@@ -25,4 +25,5 @@ namespace tools
         const int         precedence;
         const Operator_t  type;
     };
-}
+
+}// namespace tools

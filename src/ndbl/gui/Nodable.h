@@ -34,6 +34,12 @@ namespace ndbl
         File*             current_file;
         VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
 
+        // Common
+
+        void            init() override;
+        void            update() override;
+        void            shutdown() override;
+
         // File related:
 
         File*           open_asset_file(const std::filesystem::path&_path);
@@ -59,11 +65,6 @@ namespace ndbl
 
         static Nodable& get_instance(); // singleton
     private:
-        void            before_init() override;
-        bool            on_init() override;
-        bool            on_shutdown() override;
-        void            on_update() override;
-
         static Nodable *   s_instance;
         std::vector<File*> m_loaded_files;
         u8_t               m_untitled_file_count;

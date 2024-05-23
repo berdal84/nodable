@@ -8,9 +8,9 @@
 using namespace tools;
 using std::chrono::system_clock;
 
-async::Config                  g_conf;
-std::vector<std::future<void>> g_tasks;
-bool                           g_is_initialised{false};
+static async::Config                  g_conf;
+static std::vector<std::future<void>> g_tasks;
+static bool                           g_is_initialised{false};
 
 void _run_task( std::future<void> && task );
 

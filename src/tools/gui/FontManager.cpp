@@ -1,7 +1,6 @@
 #include "FontManager.h"
 #include "App.h"
 #include "Config.h"
-#include "gui.h"
 
 using namespace tools;
 
@@ -10,7 +9,8 @@ FontManager::~FontManager()
 
 void FontManager::init()
 {
-    for (const FontConfig& each_font : g_conf->font_manager.text)
+    Config* cfg = get_config();
+    for (const FontConfig& each_font : cfg->font_manager.text)
     {
         load_font(each_font);
     }
@@ -18,7 +18,7 @@ void FontManager::init()
     // Assign text_fonts (user might want to change it later, but we need defaults)
     for( int each_slot = 0; each_slot < FontSlot_COUNT; ++each_slot )
     {
-        if(auto font = g_conf->font_manager.defaults[each_slot] )
+        if(auto font = cfg->font_manager.defaults[each_slot] )
         {
             m_fonts[each_slot] = get_font(font);
         }
@@ -32,6 +32,7 @@ void FontManager::init()
 
 ImFont* FontManager::load_font(const FontConfig& text_font)
 {
+    Config* cfg = get_config();
     EXPECT(m_loaded_fonts.find(text_font.id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
 
     ImFont*   font     = nullptr;
@@ -45,15 +46,15 @@ ImFont* FontManager::load_font(const FontConfig& text_font)
         imfont_cfg.OversampleV = 3;
         std::filesystem::path absolute_path = App::asset_path(text_font.path);
         LOG_VERBOSE("NodableView", "Adding text_font from file ... %s\n", absolute_path.c_str())
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.size * g_conf->font_manager.subsamples, &imfont_cfg);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.size * cfg->font_manager.subsamples, &imfont_cfg);
     }
 
     // Add Icons my merging to previous text_font.
     if (text_font.icons_enable )
     {
-        if(strlen( g_conf->font_manager.icon.path) == 0)
+        if(strlen( cfg->font_manager.icon.path) == 0)
         {
-            LOG_WARNING("NodableView", "g_conf->font_manager.icon.path is empty, icons will be \"?\"\n");
+            LOG_WARNING("NodableView", "config().font_manager.icon.path is empty, icons will be \"?\"\n");
             return font;
         }
 
@@ -66,13 +67,13 @@ ImFont* FontManager::load_font(const FontConfig& text_font)
         imfont_cfg.OversampleH = 2;
         imfont_cfg.OversampleV = 3;
         //imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f;
-        imfont_cfg.GlyphMinAdvanceX = text_font.icons_size  * g_conf->font_manager.subsamples; // monospace to fix text alignment in drop down menus.
-        std::filesystem::path absolute_path = App::asset_path( g_conf->font_manager.icon.path);
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.icons_size * g_conf->font_manager.subsamples, &imfont_cfg, icons_ranges);
+        imfont_cfg.GlyphMinAdvanceX = text_font.icons_size  * cfg->font_manager.subsamples; // monospace to fix text alignment in drop down menus.
+        std::filesystem::path absolute_path = App::asset_path( cfg->font_manager.icon.path);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.icons_size * cfg->font_manager.subsamples, &imfont_cfg, icons_ranges);
         LOG_VERBOSE("NodableView", "Merging icons font ...\n")
     }
 
-    font->Scale = 1.0f / g_conf->font_manager.subsamples;
+    font->Scale = 1.0f / cfg->font_manager.subsamples;
 
     m_loaded_fonts.insert_or_assign(text_font.id, font);
     LOG_MESSAGE("NodableView", "Font %s added: \"%s\"\n", text_font.id, text_font.path )

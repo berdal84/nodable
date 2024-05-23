@@ -39,7 +39,7 @@ namespace testing
         /**
          * run some loops for a given duration
          */
-        static void loop_duration(ndbl::Nodable & app, double duration_in_sec)
+        static void loop_for_x_sec(ndbl::Nodable & app, double duration_in_sec)
         {
             auto start = std::chrono::system_clock::now();
             auto end   = std::chrono::system_clock::now();
@@ -60,16 +60,12 @@ namespace testing
         void save_screenshot(ndbl::Nodable & app, const char* relative_path)
         {
             LOG_MESSAGE("Test", "Taking screenshot ...\n");
-            std::filesystem::path path {relative_path};
-            if( path.is_relative() )
-            {
-                path = tools::system::get_executable_directory() / "screenshots" / path;
-            }
+            auto path = tools::system::get_executable_directory() / "screenshots" / relative_path;
             if (!std::filesystem::exists(path.parent_path()))
             {
                 create_directories(path.parent_path());
             }
-            app.save_screenshot(path.string().c_str());
+            app.view->save_screenshot(path);
         }
     };
 }

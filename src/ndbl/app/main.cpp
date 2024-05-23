@@ -10,6 +10,12 @@ int main(int argc, char *argv[])
     log::set_verbosity(log::Verbosity_Warning);
     log::set_verbosity("Pool", log::Verbosity_Verbose);
 #endif
-    Nodable app;                   // Instantiate app
-    return app.main(argc, argv);  // Run main loop
+    Nodable app;
+    app.init();
+    while ( !app.should_stop )
+    {
+        app.update();
+        app.draw();
+    }
+    app.shutdown();
 }

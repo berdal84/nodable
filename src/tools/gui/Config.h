@@ -16,9 +16,9 @@ namespace tools
         Config() = default;
         Config(const Config&) = delete; // disable copy
 
-        std::string           app_window_label         = "Framework View";
+        const char*           app_default_title        = "Default App Title";
         bool                  vsync                    = false;
-        bool                  debug                    = false;
+        bool                  runtime_debug = false;
         bool                  show_fps                 = false;
         bool                  delta_time_limit         = true;
         u32_t                 delta_time_min           = 1000 / 60; // in ms
@@ -27,7 +27,7 @@ namespace tools
         Vec4                  button_hoveredColor      { 0.70f, 0.70f, 0.70f, 0.95f}; // light grey
         Vec4                  button_color             {0.50f, 0.50f, 0.50f, 0.63f}; // grey
         const char*           splashscreen_window_label= "##Splashscreen";
-        bool                  splashscreen             = true; // hide/show splashscreen
+        bool                  show_splashscreen_default = true;
         bool                  imgui_demo               = false;
         float                 dockspace_bottom_size    = 48.f;
         float                 dockspace_top_size       = 48.f;
@@ -67,4 +67,7 @@ namespace tools
         float  frame_rounding {3.f};
         float  border_size    {1.f};
     };
+    Config* create_config();  // create a new configuration and set it as current
+    void    destroy_config(); // destroy the current configuration
+    Config* get_config();     // Get the current config, create_config() must be called first.
 }

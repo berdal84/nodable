@@ -1,11 +1,36 @@
 #include "Config.h"
 #include "build_info.h"
-#include "tools/gui/gui.h"
+#include "tools/core/Color.h"
+#include "tools/gui/Config.h"
 
 using namespace tools;
 
+ndbl::Config* g_conf{nullptr};
+
+ndbl::Config* ndbl::create_config()
+{
+    ASSERT(g_conf == nullptr);
+    g_conf = new Config();
+    return g_conf;
+}
+
+void ndbl::destroy_config()
+{
+    ASSERT(g_conf != nullptr);
+    delete g_conf;
+    g_conf = nullptr;
+}
+
+ndbl::Config* ndbl::get_config()
+{
+    return g_conf;
+}
+
 ndbl::Config::Config()
 {
+    tools::Config* tools_cfg = tools::get_config();
+    EXPECT(tools_cfg != nullptr, "tools config not initialised");
+
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
             0xffffffff, // None
@@ -43,12 +68,12 @@ ndbl::Config::Config()
     ui_node_condStructColor               = Vec4(1.f, 1.f, 1.f, 1.0f);       // white
     ui_node_fillColor                     = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
     ui_node_highlightedColor              = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ui_slot_border_color = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_node_borderColor                   = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_borderHighlightedColor        = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_shadowColor                   = Vec4(0.0f, 0.0f, 0.0f, 0.2f);
-    ui_slot_hovered_color = Color(200, 200, 200);
-    ui_slot_color = Color(127, 127, 127);
+    ui_slot_hovered_color                 = Color(200, 200, 200);
+    ui_slot_color                         = Color(127, 127, 127);
     ui_node_spacing                       = 30.0f;
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
@@ -109,16 +134,16 @@ ndbl::Config::Config()
     graph_unfold_iterations               = 100;
 
     // NodableView
-    tools::g_conf->dockspace_right_ratio       = 0.25f;
-    tools::g_conf->dockspace_top_size          = 36.f;
-    tools::g_conf->dockspace_bottom_size       = 100.f;
+    tools_cfg->dockspace_right_ratio       = 0.25f;
+    tools_cfg->dockspace_top_size          = 36.f;
+    tools_cfg->dockspace_bottom_size       = 100.f;
 
     const char *k_paragraph = "Paragraph";
     const char *k_heading   = "Heading 1";
     const char *k_code      = "Code";
     const char *k_tool      = "Tool Button";
 
-    tools::g_conf->font_manager.text = {
+    tools_cfg->font_manager.text = {
         // id          , font_path                           , size , icons? , icons size
         { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
         { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
@@ -126,13 +151,13 @@ ndbl::Config::Config()
         { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
     };
 
-    tools::g_conf->font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
-    tools::g_conf->font_manager.defaults[FontSlot_Heading]   = k_heading;
-    tools::g_conf->font_manager.defaults[FontSlot_Code]      = k_code;
-    tools::g_conf->font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
-    tools::g_conf->font_manager.subsamples                   = 1.0f;
-    tools::g_conf->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
-    tools::g_conf->app_window_label                          = BuildInfo::version_extended;
+    tools_cfg->font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
+    tools_cfg->font_manager.defaults[FontSlot_Heading]   = k_heading;
+    tools_cfg->font_manager.defaults[FontSlot_Code]      = k_code;
+    tools_cfg->font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
+    tools_cfg->font_manager.subsamples                   = 1.0f;
+    tools_cfg->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
+    tools_cfg->app_default_title = BuildInfo::version_extended;
 }
 
 int ndbl::Config::ui_grid_subdiv_size() const

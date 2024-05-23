@@ -31,7 +31,6 @@
 #include "PropertyView.h"
 #include "SlotView.h"
 #include "tools/core/Color.h"
-#include "gui.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -53,6 +52,7 @@ GraphView::GraphView(Graph* graph)
 
 bool GraphView::onDraw()
 {
+    Config*         cfg              = get_config();
     bool            changed          = false;
     bool            pixel_perfect    = true;
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
@@ -72,7 +72,7 @@ bool GraphView::onDraw()
        Draw Code Flow.
        Code flow is the set of green lines that links  a set of nodes.
      */
-    float line_width  = g_conf->ui_codeflow_thickness();
+    float line_width  = cfg->ui_codeflow_thickness();
     for( Node* each_node : node_registry )
     {
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
@@ -106,8 +106,8 @@ bool GraphView::onDraw()
                             ImGui::GetWindowDrawList(),
                             start.center(),
                             end.center(),
-                            g_conf->ui_codeflow_color,      // color
-                            g_conf->ui_codeflow_shadowColor,// shadowColor,
+                            cfg->ui_codeflow_color,      // color
+                            cfg->ui_codeflow_shadowColor,// shadowColor,
                             line_width,
                             0.0f );
                 }
@@ -136,9 +136,9 @@ bool GraphView::onDraw()
                         ImGui::GetWindowDrawList(),
                         _dragged_slot->get_rect().center(),
                         hovered_slot ? hovered_slot->get_rect().center(): edge_end,
-                        g_conf->ui_codeflow_color,
-                        g_conf->ui_codeflow_shadowColor,
-                        g_conf->ui_slot_size.x * g_conf->ui_codeflow_thickness_ratio,
+                        cfg->ui_codeflow_color,
+                        cfg->ui_codeflow_shadowColor,
+                        cfg->ui_slot_size.x * cfg->ui_codeflow_thickness_ratio,
                         0.f // roundness
                 );
             }
@@ -148,8 +148,8 @@ bool GraphView::onDraw()
                 ImGui::GetWindowDrawList()->AddLine(
                         _dragged_slot->position(),
                     hovered_slot ? hovered_slot->position() : edge_end,
-                    ImGui::ColorConvertFloat4ToU32( g_conf->ui_node_borderHighlightedColor),
-                        g_conf->ui_wire_bezier_thickness
+                    ImGui::ColorConvertFloat4ToU32( cfg->ui_node_borderHighlightedColor),
+                        cfg->ui_wire_bezier_thickness
                 );
             }
         }
@@ -185,8 +185,8 @@ bool GraphView::onDraw()
                 Vec2 adjacent_slot_norm = adjacent_node_view->get_slot_normal( *adjacent_slot );
 
                 // do not draw long lines between a variable value
-                Vec4 line_color   = g_conf->ui_wire_color;
-                Vec4 shadow_color = g_conf->ui_wire_shadowColor;
+                Vec4 line_color   = cfg->ui_wire_color;
+                Vec4 shadow_color = cfg->ui_wire_shadowColor;
 
                 if ( NodeView::is_selected( node_view->poolid() ) ||
                      NodeView::is_selected( adjacent_node_view->poolid() ) )
@@ -202,10 +202,10 @@ bool GraphView::onDraw()
                     // transparent depending on wire length
                     Vec2 delta = slot_pos - adjacent_slot_pos;
                     float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-                    if (dist > g_conf->ui_wire_bezier_fade_length_minmax.x )
+                    if (dist > cfg->ui_wire_bezier_fade_length_minmax.x )
                     {
-                        float factor = ( dist - g_conf->ui_wire_bezier_fade_length_minmax.x ) /
-                                       ( g_conf->ui_wire_bezier_fade_length_minmax.y - g_conf->ui_wire_bezier_fade_length_minmax.x );
+                        float factor = ( dist - cfg->ui_wire_bezier_fade_length_minmax.x ) /
+                                       ( cfg->ui_wire_bezier_fade_length_minmax.y - cfg->ui_wire_bezier_fade_length_minmax.x );
                         line_color   = Vec4::lerp(line_color, Vec4(0, 0, 0, 0), factor);
                         shadow_color = Vec4::lerp(shadow_color, Vec4(0, 0, 0, 0), factor);
                     }
@@ -214,11 +214,11 @@ bool GraphView::onDraw()
                 // draw the wire if necessary
                 if (line_color.w != 0.f)
                 {
-                    float thickness = g_conf->ui_wire_bezier_thickness;
+                    float thickness = cfg->ui_wire_bezier_thickness;
                     Vec2 delta = adjacent_slot_pos - slot_pos;
                     float roundness = lerp(
-                            g_conf->ui_wire_bezier_roundness.x, // min
-                            g_conf->ui_wire_bezier_roundness.y, // max
+                            cfg->ui_wire_bezier_roundness.x, // min
+                            cfg->ui_wire_bezier_roundness.y, // max
                               1.0f - normalize( ImLengthSqr(delta), 100.0f, 10000.0f )
                             + 1.0f - normalize( abs(delta.y), 0.0f, 200.0f)
                             );
@@ -355,19 +355,20 @@ bool GraphView::onDraw()
 
 void GraphView::draw_grid( ImDrawList* draw_list ) const
 {
+    Config* cfg = get_config();
     Rect area = ImGuiEx::GetContentRegion(WORLD_SPACE);
-    int  grid_subdiv_size      = g_conf->ui_grid_subdiv_size();
+    int  grid_subdiv_size      = cfg->ui_grid_subdiv_size();
     int  vertical_line_count   = int( area.size().x) / grid_subdiv_size;
     int  horizontal_line_count = int( area.size().y) / grid_subdiv_size;
-    Vec4 grid_color            = g_conf->ui_graph_grid_color_major;
-    Vec4 grid_color_light      = g_conf->ui_graph_grid_color_minor;
+    Vec4 grid_color            = cfg->ui_graph_grid_color_major;
+    Vec4 grid_color_light      = cfg->ui_graph_grid_color_minor;
 
     for(int coord = 0; coord <= vertical_line_count; ++coord)
     {
         float pos = area.tl().x + float(coord) * float(grid_subdiv_size);
         Vec2 line_start{pos, area.tl().y};
         Vec2 line_end{pos, area.bl().y};
-        bool is_major = coord % g_conf->ui_grid_subdiv_count == 0;
+        bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
         ImColor color{ is_major ? grid_color : grid_color_light };
         draw_list->AddLine(line_start, line_end, color);
     }
@@ -377,7 +378,7 @@ void GraphView::draw_grid( ImDrawList* draw_list ) const
         float pos = area.tl().y + float(coord) * float(grid_subdiv_size);
         Vec2 line_start{ area.tl().x, pos};
         Vec2 line_end{ area.br().x, pos};
-        bool is_major = coord % g_conf->ui_grid_subdiv_count == 0;
+        bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
         ImColor color{is_major ? grid_color : grid_color_light};
         draw_list->AddLine(line_start, line_end, color);
     }
@@ -418,7 +419,8 @@ bool GraphView::update(float delta_time)
 
 bool GraphView::update()
 {
-    return update( ImGui::GetIO().DeltaTime, g_conf->ui_node_animation_subsample_count );
+    Config* cfg = get_config();
+    return update( ImGui::GetIO().DeltaTime, cfg->ui_node_animation_subsample_count );
 }
 
 void GraphView::frame_all_node_views()
@@ -490,7 +492,8 @@ void GraphView::translate_all(const std::vector<NodeView*>& _views, Vec2 delta, 
 
 void GraphView::unfold()
 {
-    update( g_conf->graph_unfold_dt, g_conf->graph_unfold_iterations );
+    Config* cfg = get_config();
+    update( cfg->graph_unfold_dt, cfg->graph_unfold_iterations );
 }
 
 void GraphView::pan( Vec2 delta)

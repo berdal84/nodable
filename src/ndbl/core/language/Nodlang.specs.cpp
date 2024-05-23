@@ -98,26 +98,26 @@ TEST_F(Language, push_args_template_4)
 
 TEST_F(Language, can_get_add_operator_with_short_identifier )
 {
-    EXPECT_TRUE(nodlang.find_operator("+", Operator_t::Binary));
-    EXPECT_TRUE(nodlang.find_operator("-", Operator_t::Unary));
+    EXPECT_TRUE(app.language.find_operator("+", Operator_t::Binary));
+    EXPECT_TRUE(app.language.find_operator("-", Operator_t::Unary));
 }
 
 TEST_F(Language, can_get_add_operator_with_signature )
 {
     const func_type*  signature = func_type_builder<double(double, double)>::with_id("+");
-    EXPECT_TRUE(nodlang.find_operator_fct(signature));
+    EXPECT_TRUE(app.language.find_operator_fct(signature));
 }
 
 TEST_F(Language, can_get_invert_operator_with_signature )
 {
     const func_type*  signature = func_type_builder<double(double)>::with_id("-");
-    EXPECT_TRUE(nodlang.find_operator_fct(signature));
+    EXPECT_TRUE(app.language.find_operator_fct(signature));
 }
 
 TEST_F(Language, by_ref_assign )
 {
     const func_type*  signature = func_type_builder<double(double &, double)>::with_id("=");
-    auto operator_func = nodlang.find_operator_fct(signature);
+    auto operator_func = app.language.find_operator_fct(signature);
     EXPECT_TRUE(operator_func != nullptr);
 
     // prepare call
@@ -136,20 +136,20 @@ TEST_F(Language, by_ref_assign )
 
 TEST_F(Language, token_t_to_type)
 {
-    EXPECT_EQ(nodlang.get_type(Token_t::keyword_bool)  , type::get<bool>());
-    EXPECT_EQ(nodlang.get_type(Token_t::keyword_double), type::get<double>() );
-    EXPECT_EQ(nodlang.get_type(Token_t::keyword_i16)   , type::get<i16_t>() );
-    EXPECT_EQ(nodlang.get_type(Token_t::keyword_int)   , type::get<int>() );
-    EXPECT_EQ(nodlang.get_type(Token_t::keyword_int)   , type::get<i32_t>() );
-    EXPECT_EQ(nodlang.get_type(Token_t::keyword_string), type::get<std::string>() );
+    EXPECT_EQ(app.language.get_type(Token_t::keyword_bool)  , type::get<bool>());
+    EXPECT_EQ(app.language.get_type(Token_t::keyword_double), type::get<double>() );
+    EXPECT_EQ(app.language.get_type(Token_t::keyword_i16)   , type::get<i16_t>() );
+    EXPECT_EQ(app.language.get_type(Token_t::keyword_int)   , type::get<int>() );
+    EXPECT_EQ(app.language.get_type(Token_t::keyword_int)   , type::get<i32_t>() );
+    EXPECT_EQ(app.language.get_type(Token_t::keyword_string), type::get<std::string>() );
 }
 
 TEST_F(Language, type_to_string)
 {
-    EXPECT_EQ(nodlang.to_string(type::get<bool>())        , "bool" );
-    EXPECT_EQ(nodlang.to_string(type::get<double>())      , "double" );
-    EXPECT_EQ(nodlang.to_string(type::get<i16_t>())       , "i16" );
-    EXPECT_EQ(nodlang.to_string(type::get<int>())         , "int" );
-    EXPECT_EQ(nodlang.to_string(type::get<i32_t>())       , "int" );
-    EXPECT_EQ(nodlang.to_string(type::get<std::string>()) , "string" );
+    EXPECT_EQ(app.language.to_string(type::get<bool>())        , "bool" );
+    EXPECT_EQ(app.language.to_string(type::get<double>())      , "double" );
+    EXPECT_EQ(app.language.to_string(type::get<i16_t>())       , "i16" );
+    EXPECT_EQ(app.language.to_string(type::get<int>())         , "int" );
+    EXPECT_EQ(app.language.to_string(type::get<i32_t>())       , "int" );
+    EXPECT_EQ(app.language.to_string(type::get<std::string>()) , "string" );
 }

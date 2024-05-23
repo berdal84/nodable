@@ -124,8 +124,6 @@ add_library(
     tools-core
     STATIC
     libs/whereami/src/whereami.c
-    src/tools/core/core.cpp
-    src/tools/core/core.h
     src/tools/core/Color.h
     src/tools/core/TIdentifier.h
     src/tools/core/assertions.h
@@ -211,8 +209,7 @@ add_library(
     src/tools/gui/App.h
     src/tools/gui/AppView.cpp
     src/tools/gui/AppView.h
-    src/tools/gui/gui.h
-    src/tools/gui/gui.cpp
+    src/tools/gui/Config.cpp
     src/tools/gui/Config.h
     src/tools/gui/Event.h
     src/tools/gui/EventManager.cpp
@@ -313,8 +310,6 @@ set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
 add_library(
     ndbl-core
     STATIC
-    src/ndbl/core/core.cpp
-    src/ndbl/core/core.h
     src/ndbl/core/Component.cpp
     src/ndbl/core/ComponentBag.cpp
     src/ndbl/core/IfNode.cpp
@@ -343,6 +338,8 @@ add_library(
     src/ndbl/core/language/Nodlang.cpp
     src/ndbl/core/language/Nodlang_biology.cpp
     src/ndbl/core/language/Nodlang_math.cpp
+    src/ndbl/core/NodableHeadless.cpp
+    src/ndbl/core/NodableHeadless.h
 )
 
 target_link_libraries(
@@ -430,8 +427,6 @@ configure_file(
 add_library(
     ndbl-gui
     STATIC
-    src/ndbl/gui/gui.cpp
-    src/ndbl/gui/gui.h
     src/ndbl/gui/Config.cpp
     src/ndbl/gui/Config.h
     src/ndbl/gui/GraphView.cpp

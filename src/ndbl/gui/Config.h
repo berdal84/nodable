@@ -4,12 +4,13 @@
 #include <vector>
 #include <memory>
 
+#include "Isolation.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 #include "tools/gui/AppView.h"
+#include "tools/gui/Config.h"
 #include "tools/gui/FontManager.h"
 #include "tools/gui/ImGuiEx.h"
-#include "Isolation.h"
 #include "types.h"
 
 namespace ndbl
@@ -83,10 +84,14 @@ namespace ndbl
         Isolation      isolation;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
+        tools::Config* tools_cfg;
 
         // Computed values
 
         int    ui_grid_subdiv_size() const;
         float  ui_codeflow_thickness() const;
     };
+    Config* create_config(); // create a new configuration and set it as current
+    void    destroy_config(); // destroy the current configuration
+    Config* get_config(); // Get the current config, create_config() must be called first.
 }

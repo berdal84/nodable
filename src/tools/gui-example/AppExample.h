@@ -2,7 +2,6 @@
 #include "AppExampleView.h"
 #include "tools/gui/App.h"
 #include "tools/gui/Config.h"
-#include "tools/gui/gui.h"
 
 namespace tools
 {
@@ -15,56 +14,28 @@ namespace tools
 
         ~AppExample()
         {
-            delete m_view;
+            delete view;
         }
 
-        void on_draw() override
+        void init() override
         {
-            // Add a simple menu bar
-            if ( ImGui::BeginMainMenuBar() )
-            {
-                if ( ImGui::BeginMenu( "File" ) )
-                {
-                    if ( ImGui::MenuItem( "Show splashscreen" ) ) g_conf->splashscreen = true;
-                    if ( ImGui::MenuItem( "Quit" ) ) should_stop = true;
-                    ImGui::EndMenu();
-                }
-                ImGui::EndMainMenuBar();
-            }
+            LOG_MESSAGE("AppExample", "init() ...\n");
+            App::init();
+            view->set_title("framework-example - (based on framework-gui library)");
 
-            // do not draw windows when splashscreen is visible
-            if ( g_conf->splashscreen )
-            {
-                return;
-            };
+            // custom code here
 
-            if ( ImGui::Begin( "top" ) )
-            {
-                ImGui::TextWrapped( "\"top\" window content" );
-            }
-            ImGui::End();
-
-            if ( ImGui::Begin( "right" ) )
-            {
-                ImGui::TextWrapped( "\"right\" window content" );
-            }
-            ImGui::End();
-
-            if ( ImGui::Begin( "center" ) )
-            {
-                ImGui::TextWrapped( "\"center\" window content" );
-            }
-            ImGui::End();
+            LOG_MESSAGE("AppExample", "init() DONE\n");
         }
-        bool on_init() override
+
+        void shutdown() override
         {
-            LOG_MESSAGE( "Example", "My ON_INIT log!\n" );
-            return true;
-        }
-        bool on_shutdown() override
-        {
-            LOG_MESSAGE( "Example", "My ON_SHUTDOWN log!\n" );
-            return true;
+            LOG_MESSAGE("AppExample", "shutdown() ...\n");
+
+            // custom code here
+
+            App::shutdown();
+            LOG_MESSAGE("AppExample", "shutdown() DONE\n");
         }
     };
 }

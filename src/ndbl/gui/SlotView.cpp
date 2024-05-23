@@ -3,7 +3,6 @@
 #include "Event.h"
 #include "Nodable.h"
 #include "NodeView.h"
-#include "gui.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -24,11 +23,12 @@ void SlotView::draw_slot_circle(
         Vec2 _position,
         bool _readonly)
 {
-    float invisible_ratio = g_conf->ui_slot_invisible_ratio;
-    float radius          = g_conf->ui_slot_radius;
-    Vec4  color           = g_conf->ui_slot_color;
-    Vec4  border_color    = g_conf->ui_slot_border_color;
-    Vec4  hover_color     = g_conf->ui_slot_hovered_color;
+    Config* cfg = get_config();
+    float invisible_ratio = cfg->ui_slot_invisible_ratio;
+    float radius          = cfg->ui_slot_radius;
+    Vec4  color           = cfg->ui_slot_color;
+    Vec4  border_color    = cfg->ui_slot_border_color;
+    Vec4  hover_color     = cfg->ui_slot_hovered_color;
 
     // draw
     //-----
@@ -56,10 +56,11 @@ void SlotView::draw_slot_rectangle(
     Rect _rect,
     bool _readonly)
 {
-    Vec4  color          = g_conf->ui_slot_color;
-    Vec4  border_color   = g_conf->ui_slot_border_color;
-    float border_radius  = g_conf->ui_slot_border_radius;
-    Vec4  hover_color    = g_conf->ui_slot_hovered_color;
+    Config* cfg = get_config();
+    Vec4  color          = cfg->ui_slot_color;
+    Vec4  border_color   = cfg->ui_slot_border_color;
+    float border_radius  = cfg->ui_slot_border_radius;
+    Vec4  hover_color    = cfg->ui_slot_hovered_color;
 
     Vec2 rect_size = _rect.size();
 

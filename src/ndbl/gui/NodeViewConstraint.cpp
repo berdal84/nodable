@@ -1,12 +1,10 @@
 #include "NodeViewConstraint.h"
 #include "Config.h"
-#include "tools/gui/Config.h"
-#include "tools/gui/gui.h"
-#include "gui.h"
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/gui/Nodable.h"
 #include "ndbl/gui/NodeView.h"
 #include "ndbl/gui/Physics.h"
+#include "tools/gui/Config.h"
 #include <numeric>
 
 using namespace ndbl;
@@ -24,6 +22,9 @@ void NodeViewConstraint::apply(float _dt)
 {
     // Check if this constrain should apply
     if(!m_is_active && m_should_apply(this)) return;
+
+    Config* cfg = get_config();
+    tools::Config* tools_cfg = tools::get_config();
 
     // Gather only visible views or their parent (recursively)
     auto pool = Pool::get_pool();
@@ -53,7 +54,7 @@ void NodeViewConstraint::apply(float _dt)
             auto        target_rects      = NodeView::get_rects( clean_targets, WORLD_SPACE, flags );
 
 #ifdef NDBL_DEBUG
-            if( tools::g_conf->debug )
+            if( tools_cfg->runtime_debug )
             {
                for(Rect r : target_rects)
                {
@@ -86,7 +87,7 @@ void NodeViewConstraint::apply(float _dt)
 
                 case Align_END:
                 {
-                    virtual_cursor.x += driver->get_size().x / 4.0f + g_conf->ui_node_spacing;
+                    virtual_cursor.x += driver->get_size().x / 4.0f + cfg->ui_node_spacing;
                     break;
                 }
 
@@ -116,22 +117,22 @@ void NodeViewConstraint::apply(float _dt)
 
                 Vec2 relative_pos(
                         target_rect.width() / 2.0f,
-                        y_direction * ( target_rect.height() / 2.0f + g_conf->ui_node_spacing)
+                        y_direction * ( target_rect.height() / 2.0f + cfg->ui_node_spacing)
                 );
 
-                if ( align_bbox_bottom ) relative_pos.y += y_direction * g_conf->ui_node_spacing;
+                if ( align_bbox_bottom ) relative_pos.y += y_direction * cfg->ui_node_spacing;
 
                 // Add a vertical space to avoid having too much wires aligned on x-axis
                 // useful for "for" nodes.
                 if( halign == Align_END && clean_targets.size() > 1 )
                 {
-                    float reverse_y_spacing = float(clean_targets.size() - 1 - target_index) * g_conf->ui_node_spacing * 1.5f;
+                    float reverse_y_spacing = float(clean_targets.size() - 1 - target_index) * cfg->ui_node_spacing * 1.5f;
                     relative_pos.y += y_direction * reverse_y_spacing;
                 }
 
                 auto target_physics = target_owner.get_component<Physics>();
-                target_physics->translate_to( WORLD_SPACE, virtual_cursor + relative_pos + m_offset, g_conf->ui_node_speed, true );
-                virtual_cursor.x += target_rect.width() + g_conf->ui_node_spacing;
+                target_physics->translate_to( WORLD_SPACE, virtual_cursor + relative_pos + m_offset, cfg->ui_node_speed, true );
+                virtual_cursor.x += target_rect.width() + cfg->ui_node_spacing;
             }
             break;
         }
@@ -162,10 +163,10 @@ void NodeViewConstraint::apply(float _dt)
                     Vec2 new_pos;
                     Vec2 target_position = target->position( WORLD_SPACE );
                     new_pos.x = drivers_rect.tl().x + target->get_size().x * 0.5f ;
-                    new_pos.y = target_position.y + target_driver_offset + g_conf->ui_node_spacing;
+                    new_pos.y = target_position.y + target_driver_offset + cfg->ui_node_spacing;
 
                     // apply
-                    target_physics.translate_to( WORLD_SPACE, new_pos + m_offset, g_conf->ui_node_speed, true );
+                    target_physics.translate_to( WORLD_SPACE, new_pos + m_offset, cfg->ui_node_speed, true );
                 }
                 else
                 {
@@ -177,9 +178,9 @@ void NodeViewConstraint::apply(float _dt)
                                         | NodeViewFlag_IGNORE_MULTICONSTRAINED;
                     Rect drivers_bbox = NodeView::get_rect(clean_drivers, WORLD_SPACE, flags);
                     Vec2 new_position = drivers_bbox.left();
-                    new_position.x += g_conf->ui_node_spacing;
+                    new_position.x += cfg->ui_node_spacing;
                     new_position.x += target->rect( WORLD_SPACE ).size().x * 0.5f;
-                    target_physics.translate_to( WORLD_SPACE, new_position + m_offset, g_conf->ui_node_speed );
+                    target_physics.translate_to( WORLD_SPACE, new_position + m_offset, cfg->ui_node_speed );
                 }
             }
         }

@@ -164,8 +164,6 @@ bool ImGuiEx::BeginTooltip(float _delay, float _duration)
 {
     if ( !ImGui::IsItemHovered() ) return false;
 
-    EXPECT( is_in_a_frame, "Did you forgot to call ImGuiEx::BeginFrame/EndFrame ?");
-
     is_any_tooltip_open = true;
     tooltip_delay_elapsed += ImGui::GetIO().DeltaTime;
 
@@ -187,20 +185,16 @@ void ImGuiEx::EndTooltip()
     ImGui::PopStyleVar(); // ImGuiStyleVar_Alpha
 }
 
-void ImGuiEx::EndFrame()
+void ImGuiEx::Tooltip_EndFrame()
 {
-    EXPECT( is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
     if( !is_any_tooltip_open )
     {
         tooltip_delay_elapsed = 0.f;
     }
-    is_in_a_frame = false;
 }
 
-void ImGuiEx::BeginFrame()
+void ImGuiEx::Tooltip_NewFrame()
 {
-    EXPECT(!is_in_a_frame, "ImGuiEx::BeginFrame/EndFrame mismatch");
-    is_in_a_frame = true;
     is_any_tooltip_open = false;
 }
 

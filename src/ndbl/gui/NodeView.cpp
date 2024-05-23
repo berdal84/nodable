@@ -18,8 +18,6 @@
 #include "PropertyView.h"
 #include "SlotView.h"
 #include "tools/gui/Config.h"
-#include "tools/gui/gui.h"
-#include "gui.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -33,6 +31,7 @@ REGISTER
 
 constexpr Vec2 DEFAULT_SIZE{10.0f, 35.0f};
 constexpr Vec2 DEFAULT_POS{500.0f, -1.0f};
+constexpr Vec4 DEFAULT_COLOR{1.f, 0.f, 0.f};
 
 PoolID<NodeView>   NodeView::s_selected;
 PoolID<NodeView>   NodeView::s_dragged;
@@ -45,7 +44,7 @@ const Vec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
 NodeView::NodeView()
         : Component()
         , View()
-        , m_colors({})
+        , m_colors({&DEFAULT_COLOR})
         , m_opacity(1.0f)
         , m_expanded(true)
         , m_pinned(false)
@@ -250,6 +249,7 @@ bool NodeView::update(float _deltaTime)
 
 bool NodeView::onDraw()
 {
+    Config*     cfg       = get_config();
 	bool        changed   = false;
     Node*       node      = m_owner.get();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -282,27 +282,27 @@ bool NodeView::onDraw()
 
 
 	// Draw the background of the Group
-    Vec4 border_color = g_conf->ui_node_borderColor;
+    Vec4 border_color = cfg->ui_node_borderColor;
     if ( is_selected( m_id ) )
     {
-        border_color = g_conf->ui_node_borderHighlightedColor;
+        border_color = cfg->ui_node_borderHighlightedColor;
     }
     else if (node->is_instruction())
     {
-        border_color = g_conf->ui_node_instructionColor;
+        border_color = cfg->ui_node_instructionColor;
     }
 
-    float border_width = g_conf->ui_node_borderWidth;
+    float border_width = cfg->ui_node_borderWidth;
     if( node->is_instruction() )
     {
-        border_width *= g_conf->ui_node_instructionBorderRatio;
+        border_width *= cfg->ui_node_instructionBorderRatio;
     }
 
     DrawNodeRect(
             screen_rect,
             get_color( Color_FILL ),
-            g_conf->ui_node_borderColor,
-            g_conf->ui_node_shadowColor,
+            cfg->ui_node_borderColor,
+            cfg->ui_node_shadowColor,
             border_color,
             is_selected( m_id ),
             5.0f,
@@ -313,8 +313,8 @@ bool NodeView::onDraw()
 	ImGui::InvisibleButton("node", box.size());
     ImGui::SetItemAllowOverlap();
     Vec2 new_screen_pos = screen_rect.tl()
-                          + Vec2{ g_conf->ui_node_padding.x, g_conf->ui_node_padding.y} // left and top padding.
-                          + Vec2{ g_conf->ui_slot_radius, 0.0f}; // space for "this" left slot
+                          + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
+                          + Vec2{ cfg->ui_slot_radius, 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
 
     bool is_node_hovered = ImGui::IsItemHovered();
@@ -330,7 +330,7 @@ bool NodeView::onDraw()
             //abel.insert(0, "<<");
             label.append(" " ICON_FA_OBJECT_GROUP);
         }
-        ImGuiEx::ShadowedText( Vec2(1.0f), g_conf->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
+        ImGuiEx::ShadowedText( Vec2(1.0f), cfg->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
         ImGui::SameLine();
 
@@ -353,7 +353,7 @@ bool NodeView::onDraw()
 
     // Update box's size according to item's rect
     Vec2 new_size = ImGui::GetItemRectMax();
-    new_size += Vec2{ g_conf->ui_node_padding.z, g_conf->ui_node_padding.w}; // right and bottom padding
+    new_size += Vec2{ cfg->ui_node_padding.z, cfg->ui_node_padding.w}; // right and bottom padding
     new_size -= screen_rect.tl();
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
@@ -662,6 +662,7 @@ bool NodeView::is_inside(NodeView* _nodeView, Rect _rect, Space _space)
 
 void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 {
+    tools::Config* tools_cfg = tools::get_config();
     Node* node = _view->m_owner.get();
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
@@ -739,7 +740,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     }
     ImGui::Unindent();
 
-    if ( tools::g_conf->debug )
+    if ( tools_cfg->runtime_debug )
     {
         ImGui::Text("Debug info:" );
         // Draw exposed output properties
@@ -1104,10 +1105,11 @@ Rect NodeView::get_slot_rect( const Slot& _slot, i8_t _count ) const
 
 Rect NodeView::get_slot_rect( const SlotView& _slot_view, i8_t _pos ) const
 {
-    Rect result({0.0f, 0.0f }, g_conf->ui_slot_size );
+    Config* cfg = get_config();
+    Rect result({0.0f, 0.0f }, cfg->ui_slot_size );
     result.translate_y( -result.size().y * 0.5f ); // Center vertically
-    result.translate_x( g_conf->ui_slot_size.x * float( _pos )      // x offset
-                      + g_conf->ui_slot_gap * float( 1 + _pos ) ); // x gap
+    result.translate_x( cfg->ui_slot_size.x * float( _pos )      // x offset
+                      + cfg->ui_slot_gap * float( 1 + _pos ) ); // x gap
     result.translate_y( _slot_view.alignment().y * result.size().y ); // align top/bottom
     Rect view_rect = rect( WORLD_SPACE );
     result.translate( _slot_view.alignment() * view_rect.size() + view_rect.center() ); // align slot with nodeview
@@ -1122,12 +1124,15 @@ std::vector<PoolID<NodeView>> NodeView::get_adjacent(SlotFlags flags) const
 
 void NodeView::set_color( const Vec4* _color, ColorType _type )
 {
+    ASSERT(_color != nullptr)
     m_colors[_type] = _color;
 }
 
 Vec4 NodeView::get_color( ColorType _type ) const
 {
-    return *m_colors[_type];
+     auto* color = m_colors[_type];
+     EXPECT(color != nullptr, "Did you called set_color(...) ?");
+     return *color;
 }
 
 bool NodeView::none_is_visible( std::vector<NodeView*> _views )

@@ -103,12 +103,12 @@ namespace ndbl
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
-        tools::Vec2                get_slot_pos( const Slot& );
-        tools::Rect                get_slot_rect( const Slot& _slot, i8_t _count ) const;
-        tools::Rect                get_slot_rect( const SlotView &_slot_view, i8_t _pos ) const;
-        tools::Vec2                get_slot_normal( const Slot& slot) const;
+        tools::Vec2             get_slot_pos( const Slot& );
+        tools::Rect             get_slot_rect( const Slot& _slot, i8_t _count ) const;
+        tools::Rect             get_slot_rect( const SlotView &_slot_view, i8_t _pos ) const;
+        tools::Vec2             get_slot_normal( const Slot& slot) const;
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
-        tools::Vec4                get_color(ColorType _type) const;
+        tools::Vec4             get_color(ColorType _type) const;
 
         static bool             none_is_visible( std::vector<NodeView*> vector1 );
 

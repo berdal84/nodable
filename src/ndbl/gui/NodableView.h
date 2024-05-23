@@ -29,8 +29,8 @@ namespace ndbl
 
         // Override on_xxx methods from base AppView
 
-        void on_init() override;
-        void on_draw() override;
+        void init() override;
+        void draw() override;
         void draw_splashscreen() override;
         void on_reset_layout() override;
 
@@ -47,7 +47,7 @@ namespace ndbl
         void draw_toolbar_window();
         void draw_virtual_machine_window();
 
-        tools::Texture*       m_logo;
+        tools::Texture*    m_logo;
         bool               m_is_history_dragged;
         bool               m_show_properties_editor;
         bool               m_show_imgui_demo;

@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <utility>
+#include <filesystem>
 
 namespace tools
 {
@@ -14,7 +15,7 @@ namespace tools
     public:
         TextureManager() {}
         TextureManager(const TextureManager&) = delete;
-        Texture*   load(const std::string &path);           // Get texture from absolute path (resource will be loaded from disk the first call)
+        Texture*   load(const std::filesystem::path &path); // Get texture from absolute path (resource will be loaded from disk the first call)
         bool       release_all();                           // Release all the loaded textures (There is no check if they are still in use)
     private:
         Texture*   load_png_to_gpu(const std::string&);     // Create a texture (loaded to GPU) from a png file path

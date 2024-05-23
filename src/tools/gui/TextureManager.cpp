@@ -7,19 +7,20 @@
 #include <string>
 #include <vector>
 
-#include "tools/core/log.h"
 #include "Texture.h"
+#include "tools/core/log.h"
+#include "tools/core/assertions.h"
 
 using namespace tools;
 
-Texture* TextureManager::load(const std::string& path)
+Texture* TextureManager::load(const std::filesystem::path& path)
 {
     // Return if already exists
     auto tex = m_register.find(path);
     if (tex != m_register.end() )
         return tex->second;
 
-    return load_png_to_gpu(path);
+    return load_png_to_gpu(path.string());
 }
 
 bool TextureManager::release_all()
@@ -55,7 +56,7 @@ Texture *TextureManager::load_png_to_gpu(const std::string &path)
     {
         delete texture;
         LOG_ERROR("TextureManager", "Unable to load png (code %u): %s\n",  error, path.c_str())
-        return nullptr;
+        EXPECT(false, "Unable to load png")
     }
 
     // 2. Load texture to GPU
