@@ -2,6 +2,7 @@
 #include "log.h"
 #include <future>
 #include <thread>
+#include <vector>
 
 using namespace tools;
 
