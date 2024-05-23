@@ -2,11 +2,11 @@
 
 # Projects
 
-### [`./framework`](./fw/README.md)
+### [`./framework`](tools/README.md)
 
 Framework libraries to develop applications (headless or gui) including an example.
 
-### [`./nodable`](./nodable/README.md)
+### [`./nodable`](ndbl/README.md)
 
 Nodable application and libraries.
 
