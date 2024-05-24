@@ -5,10 +5,12 @@
 #include "tools/core/assertions.h"
 #include "tools/core/system.h"
 #include "tools/gui/EventManager.h"
+#include "tools/gui/Config.h"
 #include "ndbl/core/InvokableComponent.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/VariableNode.h"
+#include "ndbl/core/VirtualMachine.h"
 
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DisconnectEdge.h"
@@ -23,7 +25,6 @@
 #include "NodeView.h"
 #include "Physics.h"
 #include "SlotView.h"
-#include "tools/gui/Config.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -31,6 +32,7 @@ using namespace tools;
 Nodable::Nodable()
     : App( new NodableView(this) )
     , current_file(nullptr)
+    , m_untitled_file_count(0)
 {
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
     type_register::log_statistics();

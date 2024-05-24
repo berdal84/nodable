@@ -1,10 +1,8 @@
 #pragma once
 
-#include "tools/core/reflection/reflection"
+#include "tools/core/reflection/enum.h"
 
-namespace ndbl
-{
-namespace assembly
+namespace ndbl::assembly
 {
     /**
      * Enum to identify each register, we try here to follow the x86_64 DASM reference from
@@ -24,5 +22,4 @@ namespace assembly
         R_ENUM_VALUE(rdx)
         R_ENUM_VALUE(eip)
     R_ENUM_END
-} // namespace assembly
-} // namespace nodable
+} // namespace nodable::assembly

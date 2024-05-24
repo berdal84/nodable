@@ -8,8 +8,8 @@
 #include "tools/gui/ActionManagerView.h"
 #include "tools/gui/Config.h"
 #include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/language/Nodlang.h"
 
-#include "Action.h"
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
@@ -18,8 +18,9 @@
 #include "Nodable.h"
 #include "NodeView.h"
 #include "Physics.h"
-#include "PropertyView.h"
 #include "build_info.h"
+#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/assembly/Register.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;

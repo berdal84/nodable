@@ -1,39 +1,28 @@
 #include "GraphView.h"
 
 #include <algorithm>
-#include <memory> // std::shared_ptr
-#include <utility>
-#include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "tools/core/types.h"
 #include "tools/core/log.h"
 #include "tools/core/system.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/core/math.h"
+#include "tools/core/Color.h"
 
-#include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/IfNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/NodeUtils.h"
 #include "ndbl/core/Scope.h"
 #include "ndbl/core/Slot.h"
-#include "ndbl/core/VariableNode.h"
-#include "ndbl/core/language/Nodlang.h"
-
-#include "Action.h"
-#include "Condition.h"
+#include "ndbl/core/VirtualMachine.h"
 
 #include "Config.h"
 #include "Event.h"
 #include "Nodable.h"
 #include "NodeView.h"
 #include "Physics.h"
-#include "PropertyView.h"
 #include "SlotView.h"
-#include "tools/core/Color.h"
 
 using namespace ndbl;
-using namespace ndbl::assembly;
 using namespace tools;
 
 const char* k_context_menu_popup = "GraphView.CreateNodeContextMenu";

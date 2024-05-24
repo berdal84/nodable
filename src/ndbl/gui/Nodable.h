@@ -4,26 +4,13 @@
 #include <memory>
 #include <string>
 
-#include "tools/core/reflection/reflection"
 #include "tools/gui/App.h"
-
-#include "ndbl/core/VirtualMachine.h"
-#include "ndbl/core/NodeFactory.h"
-#include "ndbl/core/language/Nodlang.h"
 
 #include "NodableView.h"
 #include "types.h"
 
 namespace ndbl
 {
-    // forward declarations
-    class NodableView;
-
-    // Nodable application
-    // - Only a single instance can exist at the same time
-    // - Instantiate it as you want (stack or heap)
-    // - The instance will be available statically via: App* App::get_instance()
-    // - Is based on tools::App, but extends it using composition instead of inheritance
     class Nodable : public tools::App
     {
 	public:

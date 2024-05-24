@@ -8,7 +8,7 @@
 #include "ndbl/core/GraphUtil.h"
 #include "ndbl/core/InvokableComponent.h"
 #include "ndbl/core/LiteralNode.h"
-
+#include "ndbl/core/language/Nodlang.h"
 
 #include "Config.h"
 #include "Event.h"
