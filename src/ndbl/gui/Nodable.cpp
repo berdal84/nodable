@@ -30,28 +30,22 @@
 using namespace ndbl;
 using namespace tools;
 
-Nodable::Nodable()
-    : BaseApp( new NodableView(this) )
-    , current_file(nullptr)
-    , m_untitled_file_count(0)
-{
-    type_register::log_statistics();
-}
-
-Nodable::~Nodable()
-{
-    delete view;
-}
-
 void Nodable::init()
 {
     LOG_VERBOSE("ndbl::Nodable", "init ...\n");
 
-    Config* cfg = init_config();
+    type_register::log_statistics();
 
+    BaseAppFlags flags = BaseAppFlag_SKIP_VIEW    // we want to init/shutdown manually
+                       | BaseAppFlag_SKIP_CONFIG; // (same)
+    view = new NodableView(this);
+    BaseApp::init( view, flags );
+
+    Config* cfg = init_config();
     init_language();
     init_virtual_machine();
     init_node_factory();
+    view->init();
 
     get_node_factory()->override_post_process_fct( [cfg]( PoolID<Node> node ) -> void {
         // Code executed after node instantiation
@@ -91,8 +85,6 @@ void Nodable::init()
         }
         new_view_id->set_color( fill_color );
     });
-
-    BaseApp::init();
 
     LOG_VERBOSE("ndbl::Nodable", "init OK\n");
 }
@@ -421,9 +413,6 @@ void Nodable::shutdown()
 {
     LOG_VERBOSE("ndbl::Nodable", "shutdown ...\n");
 
-    // Base class
-    BaseApp::shutdown();
-
     for( File* each_file : m_loaded_files )
     {
         LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str())
@@ -433,6 +422,12 @@ void Nodable::shutdown()
     shutdown_config();
     shutdown_virtual_machine();
     shutdown_node_factory();
+    shutdown_language();
+    view->shutdown();
+    delete view;
+
+    // Base class
+    BaseApp::shutdown();
 
     LOG_VERBOSE("ndbl::Nodable", "shutdown " OK "\n");
 }

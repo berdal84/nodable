@@ -8,33 +8,26 @@ namespace tools
     class AppExample : public tools::BaseApp
     {
     public:
-        AppExample()
-        : BaseApp(new AppExampleView(this))
-        {}
+        AppExample() = default;
+        ~AppExample() override = default;
 
-        ~AppExample()
-        {
-            delete view;
-        }
-
-        void init() override
+        void init()
         {
             LOG_MESSAGE("AppExample", "init() ...\n");
-            BaseApp::init();
-            view->set_title("framework-example - (based on framework-gui library)");
 
-            // custom code here
+            BaseApp::init(new AppExampleView(this));
+            this->view->set_title("framework-example - (based on framework-gui library)");
 
             LOG_MESSAGE("AppExample", "init() DONE\n");
         }
 
-        void shutdown() override
+        void shutdown()
         {
             LOG_MESSAGE("AppExample", "shutdown() ...\n");
 
-            // custom code here
-
             BaseApp::shutdown();
+            delete view;
+
             LOG_MESSAGE("AppExample", "shutdown() DONE\n");
         }
     };

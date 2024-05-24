@@ -10,6 +10,14 @@
 
 namespace tools
 {
+    typedef int BaseAppFlags;
+    enum BaseAppFlag_
+    {
+        BaseAppFlag_DEFAULT     = 0,
+        BaseAppFlag_SKIP_VIEW   = 1 << 0, // Skip View init/shutdown() OFF
+        BaseAppFlag_SKIP_CONFIG = 1 << 1, // Skip Config init/shutdown() OFF
+    };
+
     /*
      * Base Application class
      * See /project/tools/gui-example for usage
@@ -18,20 +26,22 @@ namespace tools
     {
         using fs_path = std::filesystem::path;
 	public:
-        BaseApp(AppView*);
-        BaseApp(const BaseApp&) = delete;
-        ~BaseApp();
+        BaseApp() = default;
+        virtual ~BaseApp() = default;
 
-        bool               should_stop;           // Set this field true to tell the application to stop its main loop the next frame
-        AppView*           view;                 // non-owned ptr
+        bool               should_stop = false;   // Set this field true to tell the application to stop its main loop the next frame
+        AppView*           view        = nullptr; // non-owned ptr, user is responsible for it.
 
-        virtual void       init();
-        virtual void       shutdown();
-        virtual void       update();
-        virtual void       draw(); // Consider overriding AppView::draw instead of App::draw
+        void               init(AppView*, BaseAppFlags = BaseAppFlag_DEFAULT);
+        void               shutdown();
+        void               update();
+        void               draw(); // Consider overriding AppView::draw instead of App::draw
 
         static double      elapsed_time() ;  // Get the elapsed time in seconds
         static fs_path     asset_path(const fs_path&); // get asset's absolute path (relative path will be converted)
         static fs_path     asset_path(const char*); // get asset's absolute path (relative path will be converted)
+
+    private:
+        BaseAppFlags       m_flags{};
     };
 }

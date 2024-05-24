@@ -1,5 +1,4 @@
 
-#include "Config.h"
 #include "fixtures/gui.h"
 #include "tools/gui/Config.h"
 
@@ -8,45 +7,45 @@ using namespace ndbl;
 
 TEST_F(Gui_App, constructor)
 {
-    EXPECT_NO_THROW(Nodable app);
+    Nodable app;
 }
 
 TEST_F(Gui_App, init)
 {
     Nodable app;
-    EXPECT_NO_THROW(app.init());
-    EXPECT_NO_THROW(app.shutdown());
+    app.init();
+    app.shutdown();
 }
 
 TEST_F(Gui_App, shutdown)
 {
     Nodable app;
-    EXPECT_NO_THROW(app.init());
-    EXPECT_NO_THROW(app.shutdown());
+    app.init();
+    app.shutdown();
 }
 
 TEST_F(Gui_App, update)
 {
     Nodable app;
-    EXPECT_NO_THROW(app.init());
-    EXPECT_NO_THROW(app.update());
-    EXPECT_NO_THROW(app.shutdown());
+    app.init();
+    app.update();
+    app.shutdown();
 }
 
 TEST_F(Gui_App, loop_count_1)
 {
     Nodable app;
-    EXPECT_NO_THROW(app.init());
+    app.init();
     loop_count(app, 1);
-    EXPECT_NO_THROW(app.shutdown());
+    app.shutdown();
 }
 
 TEST_F(Gui_App, loop_duration_5s)
 {
     Nodable app;
-    EXPECT_NO_THROW(app.init());
+    app.init();
     loop_for_x_sec( app, 5.0 );
-    EXPECT_NO_THROW(app.shutdown());
+    app.shutdown();
 }
 
 TEST_F(Gui_App, new_file)

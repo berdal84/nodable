@@ -8,39 +8,27 @@
 
 using namespace tools;
 
-static BaseApp*s_instance = nullptr;
-
-BaseApp::BaseApp(AppView* _view)
-    : should_stop(false)
-    , view(_view)
-{
-    LOG_VERBOSE("tools::App", "Constructor ...\n");
-    EXPECT( view, "View cannot be null");
-    EXPECT(s_instance == nullptr, "Only a single tools::App at a time allowed");
-    s_instance = this;
-    LOG_VERBOSE("tools::App", "Constructor " OK "\n");
-}
-
-BaseApp::~BaseApp()
-{
-    LOG_VERBOSE("tools::App", "Destructor ...\n");
-    s_instance = nullptr;
-    LOG_VERBOSE("tools::App", "Destructor " OK "\n");
-}
-
-void BaseApp::init()
+void BaseApp::init(AppView* _view, BaseAppFlags _flags)
 {
     LOG_VERBOSE("tools::App", "init ...\n");
 
-    if ( !tools::has_config())
+    m_flags = _flags;
+
+    if ( ( m_flags & BaseAppFlag_SKIP_CONFIG) == false )
     {
-        tools::init_config();
+        init_config();
     }
 
     init_pool_manager();
     init_task_manager();
     init_texture_manager();
-    view->init();
+
+    if ( ( m_flags & BaseAppFlag_SKIP_VIEW) == false )
+    {
+        EXPECT(_view != nullptr, "View can't be null unless BaseAppFlag_SKIP_VIEW flag is ON")
+        this->view = _view;
+        this->view->init();
+    }
 
     LOG_VERBOSE("tools::App", "init " OK "\n");
 }
@@ -48,19 +36,29 @@ void BaseApp::init()
 void BaseApp::shutdown()
 {
     LOG_MESSAGE("tools::App", "Shutting down ...\n");
-    // n.b: use inverse order of init()
-    view->shutdown();
+
+    if ( (m_flags & BaseAppFlag_SKIP_VIEW ) == false )
+    {
+        ASSERT(this->view != nullptr)
+        this->view->shutdown();
+    }
+
     shutdown_texture_manager();
     shutdown_task_manager();
     shutdown_pool_manager();
-    tools::shutdown_config();
+
+    if ( (m_flags & BaseAppFlag_SKIP_CONFIG ) == false )
+    {
+        shutdown_config();
+    }
+
     LOG_MESSAGE("tools::App", "Shutdown OK\n");
 }
 
 void BaseApp::update()
 {
     LOG_VERBOSE("tools::App", "update ...\n");
-    view->update();
+    this->view->update();
     update_task_manager();
     LOG_VERBOSE("tools::App", "update " OK "\n");
 }

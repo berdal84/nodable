@@ -25,14 +25,14 @@ namespace ndbl
         NodableView(Nodable*);
 		~NodableView();
 
-    private:
-
         // Override on_xxx methods from base AppView
 
         void init() override;
         void draw() override;
         void draw_splashscreen() override;
         void on_reset_layout() override;
+
+    protected:
 
         // draw_xxx_window
 

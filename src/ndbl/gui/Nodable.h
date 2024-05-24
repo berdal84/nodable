@@ -14,16 +14,16 @@ namespace ndbl
     class Nodable : public tools::BaseApp
     {
 	public:
-        Nodable();
-        ~Nodable();
+        Nodable(): tools::BaseApp() {};
+        ~Nodable() {};
 
-        File*           current_file;
+        File*           current_file = nullptr;
 
         // Common
 
-        void            init() override;
-        void            update() override;
-        void            shutdown() override;
+        void            init();
+        void            update();
+        void            shutdown();
 
         // File related:
 
@@ -50,6 +50,6 @@ namespace ndbl
 
     private:
         std::vector<File*> m_loaded_files;
-        u8_t               m_untitled_file_count;
+        u8_t               m_untitled_file_count = 0;
     };
 }
