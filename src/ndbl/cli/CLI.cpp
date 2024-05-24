@@ -79,9 +79,10 @@ void CLI::update()
     }
 
     // Priority 3: append to source code, parse, compile, and run the code;
-    language.serialize_token_t(user_input, Token_t::end_of_instruction);
+    Nodlang* language = get_language();
+    language->serialize_token_t(user_input, Token_t::end_of_instruction);
     m_source_code.append(user_input);
-    language.parse(m_source_code, &graph) && compile() && run();
+    language->parse(m_source_code, graph) && compile() && run();
 }
 
 void CLI::log_function_call(const variant &result, const func_type *type) const
@@ -115,10 +116,10 @@ void CLI::exit_()
 
 bool CLI::serialize()
 {
-    if( PoolID<Node> root = graph.get_root())
+    if( PoolID<Node> root = graph->get_root())
     {
         std::string result;
-        language.serialize_node( result, root );
+        get_language()->serialize_node( result, root );
         std::cout << result << std::endl;
         return true;
     }
@@ -129,7 +130,7 @@ bool CLI::serialize()
 
 bool CLI::compile()
 {
-    m_asm_code = compiler.compile_syntax_tree(&graph);
+    m_asm_code = compiler.compile_syntax_tree(graph);
     if(!m_asm_code)
     {
         LOG_ERROR("CLI", "unable to compile!\n")
@@ -158,7 +159,7 @@ bool CLI::parse()
     // ask for user input
     std::cout << ">>> ";
     std::string parse_in = get_line();
-    return language.parse(parse_in, &graph);
+    return get_language()->parse(parse_in, graph);
 }
 
 bool CLI::run()
@@ -168,10 +169,11 @@ bool CLI::run()
         return false;
     }
 
-    if( vm.load_program(m_asm_code) )
+    VirtualMachine* vm = get_virtual_machine();
+    if( vm->load_program(m_asm_code) )
     {
-        vm.run_program();
-        qword last_result = vm.get_last_result();
+        vm->run_program();
+        qword last_result = vm->get_last_result();
 
         printf( "bool: %s | int: %12f | double: %12d | hex: %12s\n"
            , (bool)last_result ? "true" : "false"
@@ -180,7 +182,7 @@ bool CLI::run()
            , last_result.to_string().c_str()
         );
 
-        return vm.release_program();
+        return vm->release_program();
     }
     else
     {
@@ -219,8 +221,8 @@ void CLI::clear()
     m_source_code.clear();
     system::clear_console();
     delete m_asm_code;
-    graph.clear();
-    vm.release_program();
+    graph->clear();
+    get_virtual_machine()->release_program();
 }
 
 void CLI::init()
@@ -230,5 +232,17 @@ void CLI::init()
 
 void CLI::shutdown()
 {
+    clear();
     NodableHeadless::shutdown();
 }
+
+std::string CLI::test_return_str()
+{
+    return (std::string) get_virtual_machine()->get_last_result();
+}
+
+std::string CLI::test_concat_str(std::string left, std::string right)
+{
+    return left + right;
+}
+

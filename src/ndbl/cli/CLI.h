@@ -38,8 +38,8 @@ namespace ndbl
 
         int          print_program();
 
-        std::string test_return_str() { return (std::string) vm.get_last_result(); }
-        std::string test_concat_str(std::string left, std::string right) { return left + right; }
+        std::string test_return_str();
+        std::string test_concat_str(std::string left, std::string right);
 
     private:
         std::string get_line() const;

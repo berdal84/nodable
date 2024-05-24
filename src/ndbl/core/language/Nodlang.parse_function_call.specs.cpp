@@ -11,13 +11,13 @@ TEST_F(parse_function_call, dna_to_protein)
 {
     // prepare parser
     std::string buffer{"dna_to_protein(\"GATACA\")"};
-    Nodlang::ParserState& parser_state = app.language.parser_state;
+    Nodlang::ParserState& parser_state = language->parser_state;
     parser_state.clear();
     parser_state.set_source_buffer(buffer.data(), buffer.length());
-    parser_state.graph = &app.graph;
+    parser_state.graph = app.graph;
 
     // tokenize
-    app.language.tokenize(buffer);
+    language->tokenize(buffer);
 
     // check
     EXPECT_EQ( parser_state.ribbon.size(), 4);
@@ -27,7 +27,7 @@ TEST_F(parse_function_call, dna_to_protein)
     EXPECT_EQ( parser_state.ribbon.at(3).m_type, Token_t::parenthesis_close);
 
     // parse
-    Slot* function_out = app.language.parse_function_call();
+    Slot* function_out = language->parse_function_call();
 
     // check
     EXPECT_TRUE(function_out);
@@ -40,13 +40,13 @@ TEST_F(parse_function_call, operator_add)
 {
     // prepare parser
     std::string buffer{"42+42"};
-    Nodlang::ParserState& parser_state = app.language.parser_state;
+    Nodlang::ParserState& parser_state = language->parser_state;
     parser_state.clear();
     parser_state.set_source_buffer(buffer.data(), buffer.length());
-    parser_state.graph = &app.graph;
+    parser_state.graph = app.graph;
 
     // tokenize
-    app.language.tokenize(buffer);
+    language->tokenize(buffer);
 
     // check
     EXPECT_EQ( parser_state.ribbon.size(), 3);
@@ -55,7 +55,7 @@ TEST_F(parse_function_call, operator_add)
     EXPECT_EQ( parser_state.ribbon.at(2).m_type, Token_t::literal_int);
 
     // parse
-    Slot* result = app.language.parse_expression();
+    Slot* result = language->parse_expression();
 
     // check
     EXPECT_TRUE(result);
