@@ -12,12 +12,12 @@ NodableHeadless::NodableHeadless()
 void NodableHeadless::init()
 {
     tools::Pool::init();
-    tools::async::init();
+    tools::init_task_manager();
 }
 
 void NodableHeadless::shutdown()
 {
     graph.clear();
     tools::Pool::shutdown();
-    tools::async::shutdown();
+    tools::shutdown_task_manager();
 }

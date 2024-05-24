@@ -5,16 +5,15 @@
 #include <thread>
 #include <vector>
 
-using namespace tools;
 using std::chrono::system_clock;
 
-static async::Config                  g_conf;
+static tools::TaskManagerConfig g_conf;
 static std::vector<std::future<void>> g_tasks;
 static bool                           g_is_initialised{false};
 
 void _run_task( std::future<void> && task );
 
-void async::init(Config* user_config)
+void tools::init_task_manager( TaskManagerConfig* user_config)
 {
     if( user_config != nullptr)
         g_conf = *user_config;
@@ -25,9 +24,9 @@ void async::init(Config* user_config)
     g_is_initialised = true;
 }
 
-void async::run_task(const std::function<void(void)>& function, u64_t delay_in_ms )
+void tools::run_task(const std::function<void(void)>& function, u64_t delay_in_ms )
 {
-    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init()?");
+    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init_task_manager()?");
     std::chrono::milliseconds d{ delay_in_ms };
 
     // Create an asynchronous function (task)
@@ -40,9 +39,9 @@ void async::run_task(const std::function<void(void)>& function, u64_t delay_in_m
     _run_task(std::move(task));
 }
 
-void async::update()
+void tools::update_task_manager()
 {
-    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init()?");
+    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init_task_manager()?");
     auto task_iterator = g_tasks.cbegin();
     while(task_iterator != g_tasks.cend())
     {
@@ -57,9 +56,9 @@ void async::update()
     }
 }
 
-void async::shutdown()
+void tools::shutdown_task_manager()
 {
-    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init()?");
+    EXPECT(g_is_initialised, "[tools::async] must be initialised. Did you call init_task_manager()?");
     g_is_initialised = false;
     g_tasks.clear();
 }

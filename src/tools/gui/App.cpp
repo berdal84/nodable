@@ -36,8 +36,8 @@ void App::init()
     // TODO: consider having a unique context per app (see ImGui's context management)
     if ( tools::get_config() == nullptr) tools::create_config();
 
-    async::init();
     Pool::init();
+    init_task_manager();
     init_texture_manager();
     view->init();
     LOG_VERBOSE("tools::App", "init " OK "\n");
@@ -49,8 +49,8 @@ void App::shutdown()
     // n.b: use inverse order of init()
     view->shutdown();
     shutdown_texture_manager();
+    shutdown_task_manager();
     Pool::shutdown();
-    async::shutdown();
     tools::destroy_config();
     LOG_MESSAGE("tools::App", "Shutdown OK\n");
 }
@@ -59,7 +59,7 @@ void App::update()
 {
     LOG_VERBOSE("tools::App", "update ...\n");
     view->update();
-    async::update();
+    update_task_manager();
     LOG_VERBOSE("tools::App", "update " OK "\n");
 }
 
