@@ -10,14 +10,15 @@ typedef ::testing::Core parse_function_call;
 TEST_F(parse_function_call, dna_to_protein)
 {
     // prepare parser
+    auto* language = app.get_language();
     std::string buffer{"dna_to_protein(\"GATACA\")"};
     Nodlang::ParserState& parser_state = language->parser_state;
     parser_state.clear();
     parser_state.set_source_buffer(buffer.data(), buffer.length());
-    parser_state.graph = app.graph;
+    parser_state.graph = app.get_graph();
 
     // tokenize
-    language->tokenize(buffer);
+    app.get_language()->tokenize(buffer);
 
     // check
     EXPECT_EQ( parser_state.ribbon.size(), 4);
@@ -40,10 +41,11 @@ TEST_F(parse_function_call, operator_add)
 {
     // prepare parser
     std::string buffer{"42+42"};
+    auto* language = app.get_language();
     Nodlang::ParserState& parser_state = language->parser_state;
     parser_state.clear();
     parser_state.set_source_buffer(buffer.data(), buffer.length());
-    parser_state.graph = app.graph;
+    parser_state.graph = app.get_graph();
 
     // tokenize
     language->tokenize(buffer);

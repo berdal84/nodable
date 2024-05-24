@@ -22,7 +22,7 @@ namespace ndbl
         CLI();
         ~CLI();
         void         init() override;
-        void         update();
+        void         update() override;
         void         shutdown() override;
         bool         should_stop() const;
 
@@ -35,21 +35,19 @@ namespace ndbl
         bool         run();
         bool         serialize();
         void         set_verbose();
-
         int          print_program();
 
         std::string test_return_str();
         std::string test_concat_str(std::string left, std::string right);
 
     private:
-        std::string get_line() const;
-        std::string get_word() const;
+        static std::string get_line() ;
+        static std::string get_word() ;
 
         std::string                m_source_code;
         bool                       m_should_stop{false};
         const assembly::Code*      m_asm_code;
         bool                       m_auto_completion{false};
         void log_function_call(const tools::variant &result, const tools::func_type *type) const;
-
     };
 }

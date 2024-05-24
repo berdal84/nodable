@@ -71,7 +71,7 @@ void CLI::update()
             variant result = method->invoke((void*)this);
             log_function_call(result, method->get_type());
         }
-        catch (std::runtime_error e )
+        catch (std::runtime_error& e )
         {
             LOG_ERROR("CLI", "Error: %s\n", e.what() );
         }
@@ -94,14 +94,14 @@ void CLI::log_function_call(const variant &result, const func_type *type) const
                 )
 }
 
-std::string CLI::get_word() const
+std::string CLI::get_word()
 {
     std::string str;
     std::cin >> str;
     return str;
 }
 
-std::string CLI::get_line() const
+std::string CLI::get_line()
 {
     char input_buffer[256];
     std::cin.getline (input_buffer,256);
@@ -116,10 +116,10 @@ void CLI::exit_()
 
 bool CLI::serialize()
 {
-    if( PoolID<Node> root = graph->get_root())
+    if( graph->get_root() )
     {
         std::string result;
-        get_language()->serialize_node( result, root );
+        NodableHeadless::serialize( result );
         std::cout << result << std::endl;
         return true;
     }
@@ -130,7 +130,7 @@ bool CLI::serialize()
 
 bool CLI::compile()
 {
-    m_asm_code = compiler.compile_syntax_tree(graph);
+    m_asm_code = NodableHeadless::compile(graph);
     if(!m_asm_code)
     {
         LOG_ERROR("CLI", "unable to compile!\n")
@@ -159,7 +159,8 @@ bool CLI::parse()
     // ask for user input
     std::cout << ">>> ";
     std::string parse_in = get_line();
-    return get_language()->parse(parse_in, graph);
+    Graph* g = NodableHeadless::parse(parse_in);
+    return g->get_root() != PoolID<Node>::null;
 }
 
 bool CLI::run()
@@ -169,11 +170,10 @@ bool CLI::run()
         return false;
     }
 
-    VirtualMachine* vm = get_virtual_machine();
-    if( vm->load_program(m_asm_code) )
+    if( load_program(m_asm_code) )
     {
-        vm->run_program();
-        qword last_result = vm->get_last_result();
+        run_program();
+        qword last_result = get_last_result();
 
         printf( "bool: %s | int: %12f | double: %12d | hex: %12s\n"
            , (bool)last_result ? "true" : "false"
@@ -182,7 +182,7 @@ bool CLI::run()
            , last_result.to_string().c_str()
         );
 
-        return vm->release_program();
+        return release_program();
     }
     else
     {
@@ -245,4 +245,3 @@ std::string CLI::test_concat_str(std::string left, std::string right)
 {
     return left + right;
 }
-

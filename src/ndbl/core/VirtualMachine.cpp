@@ -408,6 +408,7 @@ VirtualMachine* ndbl::init_virtual_machine()
 void ndbl::shutdown_virtual_machine()
 {
     ASSERT(g_virtual_machine != nullptr)
+    g_virtual_machine->release_program();
     delete g_virtual_machine;
     g_virtual_machine = nullptr;
 }

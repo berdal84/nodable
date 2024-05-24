@@ -20,10 +20,10 @@ typedef ::testing::Core Node_;
 
 TEST_F(Node_, find_parent)
 {
-    auto parent = app.graph->create_scope();
-    auto child  = app.graph->create_node();
+    auto parent = app.get_graph()->create_scope();
+    auto child  = app.get_graph()->create_node();
 
-    app.graph->connect(
+    app.get_graph()->connect(
         *parent->find_slot( SlotFlag_CHILD ),
         *child->find_slot( SlotFlag_PARENT )
     );
