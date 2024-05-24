@@ -89,8 +89,6 @@ void AppView::init()
     //io.WantCaptureKeyboard  = true;
     //io.WantCaptureMouse     = true;
 
-
-
     // Override ImGui's default Style
     // TODO: consider declaring new members in Config rather than modifying values from there.
     //       see colors[ImGuiCol_Button]

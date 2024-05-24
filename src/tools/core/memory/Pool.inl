@@ -99,9 +99,8 @@ namespace tools
 
     ////////////////////////// Pool ///////////////////////////////////////////////////////////
 
-    inline Pool::Pool(size_t _capacity, bool _reuse_ids)
-        : m_initial_capacity( _capacity )
-        , m_reuse_ids(_reuse_ids)
+    inline Pool::Pool( const Config& config )
+        : m_config( config )
         , m_first_free_id( invalid_id<u64_t> )
         , m_pool_vector_by_type()
         , m_record_by_id()
@@ -114,28 +113,6 @@ namespace tools
         {
             delete pool_vector;
         }
-    }
-
-    inline Pool* Pool::init(size_t _capacity, bool _reuse_ids)
-    {
-        EXPECT( s_current_pool == nullptr, "Should initialize Pool once" )
-        s_current_pool = new Pool( _capacity, _reuse_ids);
-        return s_current_pool;
-    }
-
-    inline void Pool::shutdown()
-    {
-        EXPECT(s_current_pool != nullptr, "No current pool. Did you called shutdown more than once?")
-        delete s_current_pool;
-        s_current_pool = nullptr;
-    }
-
-    inline Pool* Pool::get_pool()
-    {
-#ifdef TOOLS_DEBUG
-        EXPECT(s_current_pool != nullptr, "No pool. Did you called Pool::init() ?")
-#endif
-        return s_current_pool;
     }
 
     template<typename T>
@@ -166,7 +143,7 @@ namespace tools
 
     inline u64_t Pool::generate_id()
     {
-        if( m_reuse_ids && m_first_free_id != invalid_id<u64_t> )
+        if( m_config.reuse_ids && m_first_free_id != invalid_id<u64_t> )
         {
             u64_t id = m_first_free_id;
             m_first_free_id = m_record_by_id[id].next_id; // update linked-list
@@ -182,7 +159,7 @@ namespace tools
 #ifdef TOOLS_NO_POOL
         return (Type*)(u64_t)id;
 #else
-        if( id ) return Pool::get_pool()->get<Type>( id.m_value );
+        if( id ) return get_pool()->get<Type>( id.m_value );
         return nullptr;
 #endif
     }
@@ -255,7 +232,7 @@ namespace tools
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         auto type_id = std::type_index(typeid(T));
         ASSERT( m_pool_vector_by_type.find(type_id) == m_pool_vector_by_type.end() );
-        IPoolVector* new_pool_vector = new TPoolVector<T>( m_initial_capacity );
+        IPoolVector* new_pool_vector = new TPoolVector<T>( m_config.reserved_size );
         m_pool_vector_by_type.emplace(type_id, new_pool_vector );
         return new_pool_vector;
     }
@@ -330,7 +307,7 @@ namespace tools
         // But we keep the record in memory to reuse poolid for a new instance
         record_to_delete.pos = invalid_id<u32_t>;
 
-        if( m_reuse_ids )
+        if( m_config.reuse_ids )
         {
             // Update the "free ids" linked-list
             record_to_delete.next_id = m_first_free_id;

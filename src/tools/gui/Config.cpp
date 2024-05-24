@@ -20,3 +20,8 @@ tools::Config* tools::get_config()
 {
     return g_conf;
 }
+
+bool tools::has_config()
+{
+    return g_conf != nullptr;
+}

@@ -91,6 +91,8 @@ namespace ndbl
         int    ui_grid_subdiv_size() const;
         float  ui_codeflow_thickness() const;
     };
+
+    bool    has_config();
     Config* create_config(); // create a new configuration and set it as current
     void    destroy_config(); // destroy the current configuration
     Config* get_config(); // Get the current config, create_config() must be called first.

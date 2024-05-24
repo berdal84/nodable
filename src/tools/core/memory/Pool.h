@@ -162,9 +162,15 @@ namespace tools
     class Pool
     {
     public:
-        inline static Pool* init(size_t _capacity = 0, bool _reuse_ids = true);
-        inline static void  shutdown();
-        inline static Pool* get_pool();
+
+        struct Config
+        {
+            const bool reuse_ids{true}; // for debugging purposes
+            size_t     reserved_size{0};
+        };
+
+        Pool(const Config&);
+        ~Pool();
 
         template<typename T>          inline IPoolVector* init_for();
         template<typename T>          inline T* get(u64_t id);
@@ -176,27 +182,36 @@ namespace tools
         template<typename T>          inline PoolID<T> create();
         template<typename T>          inline void destroy(PoolID<T> _id );
         template<typename ContainerT> inline void destroy_all(const ContainerT& ids);
-
     private:
-        Pool(size_t _capacity, bool _reuse_ids);
-        ~Pool();
-        Pool(const Pool&) = delete;
-        Pool(Pool&&) = delete;
-        Pool& operator=(const Pool&) = delete;
-        Pool& operator=(Pool&&) = delete;
+
         inline u64_t generate_id();
 
         template<typename T>          inline PoolID<T>    make_record(T* data, IPoolVector * vec, size_t pos );
         template<typename T>          inline IPoolVector* get_pool_vector();
         template<typename T>          inline IPoolVector* find_or_init_pool_vector(); // prefer get_pool_vector if you are sure it exists
 
-        bool                                              m_reuse_ids;
-        size_t                                            m_initial_capacity;
+        const Config                                      m_config;
         u64_t                                             m_first_free_id; // Linked-list of free ids
         std::vector<Record>                               m_record_by_id;
         std::unordered_map<std::type_index, IPoolVector*> m_pool_vector_by_type;
-        static Pool*                                      s_current_pool;
     };
+
+    struct PoolManager
+    {
+        struct Config
+        {
+            Pool::Config default_pool_config{};
+        };
+
+        Pool* get_pool(); // Right now there is only 1 Pool, but we should split (1 pool per type)
+        std::vector<Pool> pools{};
+    };
+
+
+    Pool* get_pool();
+    PoolManager* init_pool_manager(PoolManager::Config = {}); // Call this before to use.
+    void shutdown_pool_manager(); // Undo init_task_manager()
+
 } // namespace tools
 
 #include "Pool.inl"

@@ -32,14 +32,16 @@ void App::init()
 {
     LOG_VERBOSE("tools::App", "init ...\n");
 
-    // Initialize a configuration only when necessary
-    // TODO: consider having a unique context per app (see ImGui's context management)
-    if ( tools::get_config() == nullptr) tools::create_config();
+    if ( !tools::has_config())
+    {
+        tools::create_config();
+    }
 
-    Pool::init();
+    init_pool_manager();
     init_task_manager();
     init_texture_manager();
     view->init();
+
     LOG_VERBOSE("tools::App", "init " OK "\n");
 }
 
@@ -50,7 +52,7 @@ void App::shutdown()
     view->shutdown();
     shutdown_texture_manager();
     shutdown_task_manager();
-    Pool::shutdown();
+    shutdown_pool_manager();
     tools::destroy_config();
     LOG_MESSAGE("tools::App", "Shutdown OK\n");
 }

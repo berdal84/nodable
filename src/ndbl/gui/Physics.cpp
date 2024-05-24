@@ -94,7 +94,7 @@ void Physics::apply_forces(float _dt, bool _recurse)
 void Physics::create_constraints(const std::vector<PoolID<Node>>& nodes)
 {
     LOG_VERBOSE("Physics", "create_constraints ...\n");
-    for(Node* each_node: Pool::get_pool()->get( nodes ) )
+    for(Node* each_node: get_pool()->get( nodes ) )
     {
         auto each_view    = each_node->get_component<NodeView>();
         auto each_physics = each_node->get_component<Physics>();

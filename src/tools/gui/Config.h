@@ -67,7 +67,9 @@ namespace tools
         float  frame_rounding {3.f};
         float  border_size    {1.f};
     };
+
+    bool    has_config();
+    Config* get_config();     // Get the current config, create_config() must be called first.
     Config* create_config();  // create a new configuration and set it as current
     void    destroy_config(); // destroy the current configuration
-    Config* get_config();     // Get the current config, create_config() must be called first.
 }

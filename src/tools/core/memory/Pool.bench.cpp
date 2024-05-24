@@ -55,7 +55,9 @@ constexpr bool USE_VECTOR = true;
 template<size_t COUNT, bool VECTOR>
 static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(benchmark::State& state)
 {
-    Pool* pool = Pool::init();
+    PoolManager* pool_manager = init_pool_manager();
+    Pool*        pool         = pool_manager->get_pool();
+
     pool->init_for<DataPool<128>>();
     pool->init_for<DataPool<64>>();
 
@@ -99,7 +101,7 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
             // benchmark end
         }
     }
-    Pool::shutdown();
+    shutdown_pool_manager();
 }
 
 #define ENTERLACED( N ) \

@@ -25,7 +25,7 @@ NodeFactory::NodeFactory()
 PoolID<VariableNode> NodeFactory::create_variable(const type *_type, const std::string& _name, PoolID<Scope> _scope) const
 {
     // create
-    auto node = Pool::get_pool()->create<VariableNode>(_type, _name.c_str());
+    auto node = get_pool()->create<VariableNode>(_type, _name.c_str());
     node->init();
     if( _scope )
     {
@@ -51,7 +51,7 @@ PoolID<Node> NodeFactory::create_abstract_func(const func_type* _signature, bool
 
 PoolID<Node> NodeFactory::_create_abstract_func(const func_type* _func_type, bool _is_operator) const
 {
-    PoolID<Node> node = Pool::get_pool()->create<Node>();
+    PoolID<Node> node = get_pool()->create<Node>();
     node->init();
     node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
     node->add_slot(SlotFlag_OUTPUT, 1); // Can be connected to an InstructionNode
@@ -128,7 +128,7 @@ PoolID<Node> NodeFactory::create_func(const iinvokable* _function, bool _is_oper
 void NodeFactory::add_invokable_component(PoolID<Node> _node, const func_type* _func_type, const iinvokable *_invokable, bool _is_operator) const
 {
     // Create an InvokableComponent with the function.
-    PoolID<InvokableComponent> component = Pool::get_pool()->create<InvokableComponent>(_func_type, _is_operator, _invokable);
+    PoolID<InvokableComponent> component = get_pool()->create<InvokableComponent>(_func_type, _is_operator, _invokable);
     _node->add_component(component);
 
     // Bind result property
@@ -150,14 +150,14 @@ void NodeFactory::add_invokable_component(PoolID<Node> _node, const func_type* _
 
 PoolID<Node> NodeFactory::create_scope() const
 {
-    PoolID<Node> node = Pool::get_pool()->create<Node>();
+    PoolID<Node> node = get_pool()->create<Node>();
     node->init();
     node->set_name("{} Scope");
 
     node->add_slot( SlotFlag_CHILD, SLOT_MAX_CAPACITY );
     node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
 
-    PoolID<Scope> scope_id = Pool::get_pool()->create<Scope>();
+    PoolID<Scope> scope_id = get_pool()->create<Scope>();
     node->add_component(scope_id);
     m_post_process(node);
 
@@ -166,10 +166,10 @@ PoolID<Node> NodeFactory::create_scope() const
 
 PoolID<IfNode> NodeFactory::create_cond_struct() const
 {
-    PoolID<IfNode> node = Pool::get_pool()->create<IfNode>();
+    PoolID<IfNode> node = get_pool()->create<IfNode>();
     node->init();
     node->set_name("If");
-    node->add_component(Pool::get_pool()->create<Scope>());
+    node->add_component(get_pool()->create<Scope>());
     node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
 
@@ -178,10 +178,10 @@ PoolID<IfNode> NodeFactory::create_cond_struct() const
 
 PoolID<ForLoopNode> NodeFactory::create_for_loop() const
 {
-    PoolID<ForLoopNode> node = Pool::get_pool()->create<ForLoopNode>();
+    PoolID<ForLoopNode> node = get_pool()->create<ForLoopNode>();
     node->init();
     node->set_name("For");
-    node->add_component(Pool::get_pool()->create<Scope>());
+    node->add_component(get_pool()->create<Scope>());
     node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
 
@@ -190,10 +190,10 @@ PoolID<ForLoopNode> NodeFactory::create_for_loop() const
 
 PoolID<WhileLoopNode> NodeFactory::create_while_loop() const
 {
-    PoolID<WhileLoopNode> node = Pool::get_pool()->create<WhileLoopNode>();
+    PoolID<WhileLoopNode> node = get_pool()->create<WhileLoopNode>();
     node->init();
     node->set_name("While");
-    node->add_component(Pool::get_pool()->create<Scope>());
+    node->add_component(get_pool()->create<Scope>());
     node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
 
@@ -202,18 +202,18 @@ PoolID<WhileLoopNode> NodeFactory::create_while_loop() const
 
 PoolID<Node> NodeFactory::create_program() const
 {
-    PoolID<Node> node = Pool::get_pool()->create<Node>();
+    PoolID<Node> node = get_pool()->create<Node>();
     node->init();
     node->set_name(ICON_FA_FILE_CODE " Program");
     node->add_slot( SlotFlag_CHILD, SLOT_MAX_CAPACITY );
-    node->add_component(Pool::get_pool()->create<Scope>() );
+    node->add_component(get_pool()->create<Scope>() );
     m_post_process(node);
     return node;
 }
 
 PoolID<Node> NodeFactory::create_node() const
 {
-    PoolID<Node> node = Pool::get_pool()->create<Node>();
+    PoolID<Node> node = get_pool()->create<Node>();
     node->init();
     node->add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
     m_post_process(node);
@@ -222,7 +222,7 @@ PoolID<Node> NodeFactory::create_node() const
 
 PoolID<LiteralNode> NodeFactory::create_literal(const type *_type) const
 {
-    PoolID<LiteralNode> node = Pool::get_pool()->create<LiteralNode>(_type);
+    PoolID<LiteralNode> node = get_pool()->create<LiteralNode>(_type);
     node->init();
     node->set_name("Literal");
     m_post_process(node);
@@ -231,7 +231,7 @@ PoolID<LiteralNode> NodeFactory::create_literal(const type *_type) const
 
 void NodeFactory::destroy_node(PoolID<Node> node) const
 {
-    Pool* pool = Pool::get_pool();
+    Pool* pool = get_pool();
     pool->destroy_all( node->get_components() );
     pool->destroy( node );
 }

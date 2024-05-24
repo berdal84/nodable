@@ -11,13 +11,13 @@ NodableHeadless::NodableHeadless()
 
 void NodableHeadless::init()
 {
-    tools::Pool::init();
+    tools::init_pool_manager();
     tools::init_task_manager();
 }
 
 void NodableHeadless::shutdown()
 {
     graph.clear();
-    tools::Pool::shutdown();
+    tools::shutdown_pool_manager();
     tools::shutdown_task_manager();
 }

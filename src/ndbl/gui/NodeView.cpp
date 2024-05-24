@@ -883,7 +883,7 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
 {
     NodeView::s_view_detail = _viewDetail;
 
-    for( auto& eachView : Pool::get_pool()->get_all<NodeView>())
+    for( auto& eachView : get_pool()->get_all<NodeView>())
     {
         for( auto& property_view : eachView.m_property_views )
         {

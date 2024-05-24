@@ -5,10 +5,8 @@
 #include "tools/core/assertions.h"
 #include "tools/core/system.h"
 #include "tools/gui/EventManager.h"
-#include "ndbl/core/DataAccess.h"
 #include "ndbl/core/InvokableComponent.h"
 #include "ndbl/core/LiteralNode.h"
-#include "ndbl/core/NodeUtils.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/VariableNode.h"
 
@@ -16,12 +14,10 @@
 #include "commands/Cmd_DisconnectEdge.h"
 #include "commands/Cmd_Group.h"
 
-#include "Action.h"
 #include "Condition.h"
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
-#include "FileView.h"
 #include "GraphView.h"
 #include "NodableView.h"
 #include "NodeView.h"
@@ -33,14 +29,6 @@ using namespace ndbl;
 using namespace tools;
 
 Nodable *Nodable::s_instance = nullptr;
-
-template<typename T>
-static func_type* create_variable_node_signature()
-{ return func_type_builder<T(T)>::with_id("variable"); }
-
-template<typename T>
-static func_type* create_literal_node_signature()
-{ return func_type_builder<T(/*void*/)>::with_id("literal"); }
 
 Nodable::Nodable()
     : App( new NodableView(this) )
@@ -70,10 +58,14 @@ void Nodable::init()
 {
     LOG_VERBOSE("ndbl::App", "init ...\n");
 
-    // Initialize a configuration only when necessary
-    // TODO: consider having a unique context per app (see ImGui's context management)
-    if ( tools::get_config() == nullptr) tools::create_config(); // ndbl::create_config requires it
-    if ( ndbl::get_config() == nullptr)  ndbl::create_config();
+    if ( !ndbl::has_config() )
+    {
+        if ( !tools::has_config() )
+        {
+            tools::create_config();
+        }
+        ndbl::create_config();
+    }
     Config* cfg = get_config();
 
     // Init base class
@@ -83,7 +75,7 @@ void Nodable::init()
         // Code executed after node instantiation
 
         // add a view with physics
-        auto* pool = Pool::get_pool();
+        auto* pool = get_pool();
         PoolID<NodeView> new_view_id = pool->create<NodeView>();
         PoolID<Physics> physics_id = pool->create<Physics>( new_view_id );
         node->add_component( new_view_id );
@@ -117,57 +109,6 @@ void Nodable::init()
         }
         new_view_id->set_color( fill_color );
     });
-
-    // Bind commands to shortcuts
-    auto& action_manager = view->action_manager;
-    action_manager.new_action<Event_DeleteNode>( "Delete", Shortcut{ SDLK_DELETE, KMOD_NONE } );
-    action_manager.new_action<Event_ArrangeNode>( "Arrange", Shortcut{ SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_ToggleFolding>( "Fold", Shortcut{ SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_SelectNext>( "Next", Shortcut{ SDLK_n, KMOD_NONE } );
-    action_manager.new_action<Event_FileSave>( ICON_FA_SAVE " Save", Shortcut{ SDLK_s, KMOD_CTRL } );
-    action_manager.new_action<Event_FileSaveAs>( ICON_FA_SAVE " Save as", Shortcut{ SDLK_s, KMOD_CTRL } );
-    action_manager.new_action<Event_FileClose>( ICON_FA_TIMES "  Close", Shortcut{ SDLK_w, KMOD_CTRL } );
-    action_manager.new_action<Event_FileBrowse>( ICON_FA_FOLDER_OPEN " Open", Shortcut{ SDLK_o, KMOD_CTRL } );
-    action_manager.new_action<Event_FileNew>( ICON_FA_FILE " New", Shortcut{ SDLK_n, KMOD_CTRL } );
-    action_manager.new_action<Event_ShowWindow>( "Splashscreen", Shortcut{ SDLK_F1 }, EventPayload_ShowWindow{ "splashscreen" } );
-    action_manager.new_action<Event_Exit>( ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{ SDLK_F4, KMOD_ALT } );
-    action_manager.new_action<Event_Undo>( "Undo", Shortcut{ SDLK_z, KMOD_CTRL } );
-    action_manager.new_action<Event_Redo>( "Redo", Shortcut{ SDLK_y, KMOD_CTRL } );
-    action_manager.new_action<Event_ToggleIsolationFlags>( "Isolate", Shortcut{ SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
-    action_manager.new_action<Event_SelectionChange>( "Deselect", Shortcut{ 0, KMOD_NONE, "Double click on bg" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_MoveSelection>( "Move Graph", Shortcut{ 0, KMOD_NONE, "Drag background" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_FrameSelection>( "Frame Selection", Shortcut{ SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{ FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_FrameSelection>( "Frame All", Shortcut{ SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{ FRAME_ALL } );
-
-    // Prepare context menu items
-    // 1) Blocks
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_CONDITION } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_FOR_LOOP } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_WHILE_LOOP } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_SCOPE } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_PROGRAM } );
-
-    // 2) Variables
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
-
-    // 3) Literals
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
-
-    // 4) Functions/Operators from the API
-    const Nodlang& language = Nodlang::get_instance();
-    for ( auto& each_fct: language.get_api() )
-    {
-        const func_type* func_type = each_fct->get_type();
-        std::string label;
-        language.serialize_func_sig( label, func_type );
-        action_manager.new_action<Event_CreateNode>( label.c_str(), Shortcut{}, EventPayload_CreateNode{ NodeType_INVOKABLE, func_type } );
-    }
 }
 
 void Nodable::update()

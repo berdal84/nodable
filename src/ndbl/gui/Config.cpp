@@ -26,6 +26,11 @@ ndbl::Config* ndbl::get_config()
     return g_conf;
 }
 
+bool ndbl::has_config()
+{
+    return g_conf != nullptr;
+}
+
 ndbl::Config::Config()
 {
     tools::Config* tools_cfg = tools::get_config();
