@@ -181,7 +181,7 @@ bool GraphView::onDraw()
                      NodeView::is_selected( adjacent_node_view->poolid() ) )
                 {
                     // blink wire colors
-                    float blink = 1.f + std::sin(float(App::elapsed_time()) * 10.f) * 0.25f;
+                    float blink = 1.f + std::sin(float( BaseApp::elapsed_time()) * 10.f) * 0.25f;
                     line_color.x *= blink;
                     line_color.y *= blink;
                     line_color.z *= blink;
@@ -269,7 +269,7 @@ bool GraphView::onDraw()
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
             Vec2 linePos = vm_cursor_pos + Vec2(- 10.0f, 0.5f);
-            linePos += Vec2(sin(float(App::elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            linePos += Vec2(sin(float( BaseApp::elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255,255,255);

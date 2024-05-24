@@ -17,7 +17,7 @@
 namespace tools
 {
     // forward declarations
-    class App;
+    class BaseApp;
     class History;
     struct Texture;
     class VirtualMachine;
@@ -29,7 +29,7 @@ namespace tools
 	class AppView
 	{
 	public:
-        friend App;
+        friend BaseApp;
 
         enum DialogType // Helps to configure the file browse dialog
         {
@@ -62,7 +62,7 @@ namespace tools
             Dockspace_COUNT,
         };
 
-        AppView(App *);
+        AppView( BaseApp*);
         AppView(const AppView &) = delete;
 		~AppView();
 
@@ -125,7 +125,7 @@ namespace tools
         SDL_GLContext       m_sdl_gl_context;
         SDL_Window*         m_sdl_window;
         u32_t               m_frame_start_time{};
-        App *               m_app;
+        BaseApp*               m_app;
         std::string         m_title;
         bool                m_is_layout_initialized;
         std::array<ImGuiID, Dockspace_COUNT>

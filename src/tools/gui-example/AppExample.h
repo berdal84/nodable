@@ -1,15 +1,15 @@
 #pragma once
 #include "AppExampleView.h"
-#include "tools/gui/App.h"
+#include "tools/gui/BaseApp.h"
 #include "tools/gui/Config.h"
 
 namespace tools
 {
-    class AppExample : public tools::App
+    class AppExample : public tools::BaseApp
     {
     public:
         AppExample()
-        : App(new AppExampleView(this))
+        : BaseApp(new AppExampleView(this))
         {}
 
         ~AppExample()
@@ -20,7 +20,7 @@ namespace tools
         void init() override
         {
             LOG_MESSAGE("AppExample", "init() ...\n");
-            App::init();
+            BaseApp::init();
             view->set_title("framework-example - (based on framework-gui library)");
 
             // custom code here
@@ -34,7 +34,7 @@ namespace tools
 
             // custom code here
 
-            App::shutdown();
+            BaseApp::shutdown();
             LOG_MESSAGE("AppExample", "shutdown() DONE\n");
         }
     };

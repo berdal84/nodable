@@ -61,7 +61,7 @@ void NodableView::init()
 
     // Load splashscreen image
     Config* cfg = get_config();
-    std::filesystem::path path = App::asset_path( cfg->ui_splashscreen_imagePath );
+    std::filesystem::path path = BaseApp::asset_path( cfg->ui_splashscreen_imagePath );
     m_logo = get_texture_manager()->load(path);
 
     // Add Actions: Bind shortcuts to Events

@@ -9,7 +9,7 @@
 #include "tools/core/log.h"
 #include "tools/core/system.h"
 
-#include "App.h"
+#include "BaseApp.h"
 #include "Config.h"
 #include "EventManager.h"
 
@@ -17,7 +17,7 @@ using namespace tools;
 
 constexpr const char* k_status_window_name = "Messages";
 
-AppView::AppView(App * _app)
+AppView::AppView( BaseApp* _app)
     : m_app(_app)
     , m_is_layout_initialized(false)
     , font_manager()

@@ -1,5 +1,5 @@
 #include "FontManager.h"
-#include "App.h"
+#include "BaseApp.h"
 #include "Config.h"
 
 using namespace tools;
@@ -44,7 +44,7 @@ ImFont* FontManager::load_font(const FontConfig& text_font)
         imfont_cfg.RasterizerMultiply = 1.2f;
         imfont_cfg.OversampleH = 2;
         imfont_cfg.OversampleV = 3;
-        std::filesystem::path absolute_path = App::asset_path(text_font.path);
+        std::filesystem::path absolute_path = BaseApp::asset_path(text_font.path);
         LOG_VERBOSE("NodableView", "Adding text_font from file ... %s\n", absolute_path.c_str())
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.size * cfg->font_manager.subsamples, &imfont_cfg);
     }
@@ -68,7 +68,7 @@ ImFont* FontManager::load_font(const FontConfig& text_font)
         imfont_cfg.OversampleV = 3;
         //imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f;
         imfont_cfg.GlyphMinAdvanceX = text_font.icons_size  * cfg->font_manager.subsamples; // monospace to fix text alignment in drop down menus.
-        std::filesystem::path absolute_path = App::asset_path( cfg->font_manager.icon.path);
+        std::filesystem::path absolute_path = BaseApp::asset_path( cfg->font_manager.icon.path);
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), text_font.icons_size * cfg->font_manager.subsamples, &imfont_cfg, icons_ranges);
         LOG_VERBOSE("NodableView", "Merging icons font ...\n")
     }

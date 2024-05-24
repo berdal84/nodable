@@ -205,8 +205,8 @@ add_library(
     src/tools/gui/ActionManager.h
     src/tools/gui/ActionManagerView.cpp
     src/tools/gui/ActionManagerView.h
-    src/tools/gui/App.cpp
-    src/tools/gui/App.h
+        src/tools/gui/BaseApp.cpp
+        src/tools/gui/BaseApp.h
     src/tools/gui/AppView.cpp
     src/tools/gui/AppView.h
     src/tools/gui/Config.cpp

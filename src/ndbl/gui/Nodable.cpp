@@ -31,7 +31,7 @@ using namespace ndbl;
 using namespace tools;
 
 Nodable::Nodable()
-    : App( new NodableView(this) )
+    : BaseApp( new NodableView(this) )
     , current_file(nullptr)
     , m_untitled_file_count(0)
 {
@@ -92,14 +92,14 @@ void Nodable::init()
         new_view_id->set_color( fill_color );
     });
 
-    App::init();
+    BaseApp::init();
 
     LOG_VERBOSE("ndbl::Nodable", "init OK\n");
 }
 
 void Nodable::update()
 {
-    App::update();
+    BaseApp::update();
 
     LOG_VERBOSE("ndbl::App", "update ...\n");
     Config* cfg = get_config();
@@ -422,7 +422,7 @@ void Nodable::shutdown()
     LOG_VERBOSE("ndbl::Nodable", "shutdown ...\n");
 
     // Base class
-    App::shutdown();
+    BaseApp::shutdown();
 
     for( File* each_file : m_loaded_files )
     {

@@ -1,12 +1,12 @@
 #pragma once
-#include "tools/gui/App.h"
+#include "tools/gui/BaseApp.h"
 
 namespace tools
 {
     class AppExampleView : public tools::AppView
     {
     public:
-        explicit AppExampleView(App* _app)
+        explicit AppExampleView( BaseApp* _app)
             : AppView(_app)
             , m_app(_app)
         {}
@@ -75,6 +75,6 @@ namespace tools
             }
         }
     private:
-        App* m_app;
+        BaseApp* m_app;
     };
 }

@@ -11,16 +11,16 @@
 namespace tools
 {
     /*
-     * Application Framework
-     * See /project/framework/example for usage
+     * Base Application class
+     * See /project/tools/gui-example for usage
      */
-	class App
+	class BaseApp
     {
         using fs_path = std::filesystem::path;
 	public:
-        App(AppView*);
-        App(const App &) = delete;
-        ~App();
+        BaseApp(AppView*);
+        BaseApp(const BaseApp&) = delete;
+        ~BaseApp();
 
         bool               should_stop;           // Set this field true to tell the application to stop its main loop the next frame
         AppView*           view;                 // non-owned ptr

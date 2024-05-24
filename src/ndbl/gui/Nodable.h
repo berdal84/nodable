@@ -4,14 +4,14 @@
 #include <memory>
 #include <string>
 
-#include "tools/gui/App.h"
+#include "tools/gui/BaseApp.h"
 
 #include "NodableView.h"
 #include "types.h"
 
 namespace ndbl
 {
-    class Nodable : public tools::App
+    class Nodable : public tools::BaseApp
     {
 	public:
         Nodable();
