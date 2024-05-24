@@ -13,6 +13,28 @@
 
 using namespace tools;
 
+static TextureManager* g_texture_manager{ nullptr };
+
+TextureManager* tools::init_texture_manager()
+{
+    ASSERT(g_texture_manager == nullptr)
+    g_texture_manager = new TextureManager();
+    return g_texture_manager;
+}
+
+TextureManager* tools::get_texture_manager()
+{
+    return g_texture_manager;
+}
+
+void tools::shutdown_texture_manager()
+{
+    ASSERT(g_texture_manager != nullptr)
+    g_texture_manager->release_all();
+    delete g_texture_manager;
+    g_texture_manager = nullptr;
+}
+
 Texture* TextureManager::load(const std::filesystem::path& path)
 {
     // Return if already exists
@@ -20,7 +42,7 @@ Texture* TextureManager::load(const std::filesystem::path& path)
     if (tex != m_register.end() )
         return tex->second;
 
-    return load_png_to_gpu(path.string());
+    return load_png_to_gpu(path);
 }
 
 bool TextureManager::release_all()
@@ -46,7 +68,7 @@ bool TextureManager::release_all()
     m_register.clear();
     return success;
 }
-Texture *TextureManager::load_png_to_gpu(const std::string &path)
+Texture *TextureManager::load_png_to_gpu(const std::filesystem::path &path)
 {
     auto* texture = new Texture();
 
@@ -74,16 +96,16 @@ Texture *TextureManager::load_png_to_gpu(const std::string &path)
     return texture;
 }
 
-int TextureManager::load_png(const std::string &filename, Texture* texture)
+int TextureManager::load_png(const std::filesystem::path& path, Texture* texture)
 {
-    LOG_MESSAGE("TextureManager", "Loading PNG from disk %s ...\n", filename.c_str());
+    LOG_MESSAGE("TextureManager", "Loading PNG from disk %s ...\n", path.c_str());
     std::vector<unsigned char> buffer;
-    unsigned error = lodepng::load_file(buffer, filename); //load the image file with given filename
+    unsigned error = lodepng::load_file(buffer, path ); //load the image file with given filename
     if (error) {
         LOG_MESSAGE("TextureManager", "Error: %i %s\n", error, lodepng_error_text(error) );
         return 1;
     }
-    LOG_MESSAGE("TextureManager", "Decoding PNG %s ...\n", filename.c_str());
+    LOG_MESSAGE("TextureManager", "Decoding PNG %s ...\n", path.c_str());
     error = lodepng::decode(texture->buffer, (unsigned&)texture->width, (unsigned&)texture->height, buffer); //decode the png
     if (error) {
         LOG_MESSAGE("TextureManager", "Error: %i %s\n", error, lodepng_error_text(error) );

@@ -12,7 +12,6 @@
 #include "App.h"
 #include "Config.h"
 #include "EventManager.h"
-#include "TextureManager.h"
 
 using namespace tools;
 
@@ -22,7 +21,6 @@ AppView::AppView(App * _app)
     : m_app(_app)
     , m_is_layout_initialized(false)
     , font_manager()
-    , texture_manager()
     , m_sdl_window(nullptr)
     , m_sdl_gl_context()
     , action_manager()
@@ -200,7 +198,6 @@ void AppView::init()
 void AppView::shutdown()
 {
     LOG_MESSAGE("tools::AppView", "Shutting down ...\n");
-    EXPECT(texture_manager.release_all(), "Unable to release textures");
     LOG_MESSAGE("tools::AppView", "Shutting down OpenGL3 ...\n");
     ImGui_ImplOpenGL3_Shutdown();
     LOG_MESSAGE("tools::AppView", "Shutting down SDL2 ...\n");

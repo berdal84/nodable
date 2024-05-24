@@ -53,7 +53,7 @@ void NodableView::init()
     // Load splashscreen image
     Config* cfg = get_config();
     std::filesystem::path path = App::asset_path( cfg->ui_splashscreen_imagePath );
-    m_logo = texture_manager.load(path);
+    m_logo = get_texture_manager()->load(path);
 
     LOG_VERBOSE("ndbl::NodableView", "init " OK "\n");
 }

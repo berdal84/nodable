@@ -93,7 +93,6 @@ namespace tools
         //        void     destroy_context() { ... }
         //
 
-        TextureManager     texture_manager;
         FontManager        font_manager;
         EventManager       event_manager;
         ActionManager      action_manager;

@@ -38,6 +38,7 @@ void App::init()
 
     async::init();
     Pool::init();
+    init_texture_manager();
     view->init();
     LOG_VERBOSE("tools::App", "init " OK "\n");
 }
@@ -47,6 +48,7 @@ void App::shutdown()
     LOG_MESSAGE("tools::App", "Shutting down ...\n");
     // n.b: use inverse order of init()
     view->shutdown();
+    shutdown_texture_manager();
     Pool::shutdown();
     async::shutdown();
     tools::destroy_config();

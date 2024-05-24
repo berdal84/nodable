@@ -23,7 +23,7 @@ namespace ndbl
         CPU();
         ~CPU() = default;
         // Read a given register
-        tools::qword     read(Register)const;
+        tools::qword  read(Register)const;
         // Write a word into a given register
         void          write(Register, tools::qword);
         // Clear all registers
