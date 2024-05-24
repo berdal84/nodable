@@ -8,6 +8,8 @@ using namespace ndbl;
 using namespace tools;
 using opcode = ndbl::assembly::Instruction_t;
 
+static VirtualMachine* g_virtual_machine{ nullptr };
+
 CPU::CPU()
 {
     clear_registers();
@@ -389,5 +391,24 @@ qword VirtualMachine::read_cpu_register(Register _register)const
 const Code *VirtualMachine::get_program_asm_code()
 {
     return m_program_asm_code;
+}
+
+VirtualMachine* ndbl::get_virtual_machine()
+{
+    return g_virtual_machine;
+}
+
+VirtualMachine* ndbl::init_virtual_machine()
+{
+    ASSERT(g_virtual_machine == nullptr)
+    g_virtual_machine = new VirtualMachine();
+    return g_virtual_machine;
+}
+
+void ndbl::shutdown_virtual_machine()
+{
+    ASSERT(g_virtual_machine != nullptr)
+    delete g_virtual_machine;
+    g_virtual_machine = nullptr;
 }
 

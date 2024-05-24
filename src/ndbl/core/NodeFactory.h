@@ -50,4 +50,8 @@ namespace ndbl
         bool m_post_process_is_overrided;
         std::function<void(PoolID<Node>)>  m_post_process; // invoked after each node creation, just before to return.
     };
+
+    NodeFactory* get_node_factory();
+    NodeFactory* init_node_factory();
+    void         shutdown_node_factory(); // Undo init_node_factory()
 }

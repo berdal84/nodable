@@ -30,9 +30,7 @@ namespace ndbl
         Nodable();
         ~Nodable();
 
-        NodeFactory       node_factory;
-        File*             current_file;
-        VirtualMachine    virtual_machine;// Virtual Machine to compile/debug/run/pause/... programs
+        File*           current_file;
 
         // Common
 
@@ -63,11 +61,8 @@ namespace ndbl
         void            reset_program();
         bool            compile_and_load_program();
 
-        static Nodable& get_instance(); // singleton
     private:
-        static Nodable *   s_instance;
         std::vector<File*> m_loaded_files;
         u8_t               m_untitled_file_count;
-
     };
 }

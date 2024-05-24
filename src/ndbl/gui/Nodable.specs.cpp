@@ -11,16 +11,6 @@ TEST_F(Gui_App, constructor)
     EXPECT_NO_THROW(Nodable app);
 }
 
-TEST_F(Gui_App, get_instance)
-{
-    {
-        EXPECT_ANY_THROW(Nodable::get_instance());
-        Nodable app;
-        EXPECT_NO_THROW(Nodable::get_instance());
-    }
-    EXPECT_ANY_THROW(Nodable::get_instance());
-}
-
 TEST_F(Gui_App, init)
 {
     Nodable app;

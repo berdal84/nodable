@@ -92,6 +92,10 @@ namespace ndbl
         CPU                   m_cpu;
         const Code*           m_program_asm_code;
     };
+
+    VirtualMachine* get_virtual_machine();
+    VirtualMachine* init_virtual_machine();
+    void            shutdown_virtual_machine(); // Undo init_virtual_machine()
 }
 
 

@@ -53,11 +53,11 @@ GraphView::GraphView(Graph* graph)
 bool GraphView::onDraw()
 {
     Config*         cfg              = get_config();
+    VirtualMachine* virtual_machine  = get_virtual_machine();
     bool            changed          = false;
     bool            pixel_perfect    = true;
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
-    Nodable &       app              = Nodable::get_instance();
-    const bool      enable_edition   = app.virtual_machine.is_program_stopped();
+    const bool      enable_edition   = virtual_machine->is_program_stopped();
     auto            node_registry    = get_pool()->get( m_graph->get_node_registry() );
     const SlotView* dragged_slot     = SlotView::get_dragged();
     const SlotView* hovered_slot     = SlotView::get_hovered();
@@ -192,7 +192,7 @@ bool GraphView::onDraw()
                      NodeView::is_selected( adjacent_node_view->poolid() ) )
                 {
                     // blink wire colors
-                    float blink = 1.f + std::sin(float(app.elapsed_time()) * 10.f) * 0.25f;
+                    float blink = 1.f + std::sin(float(App::elapsed_time()) * 10.f) * 0.25f;
                     line_color.x *= blink;
                     line_color.y *= blink;
                     line_color.z *= blink;
@@ -247,7 +247,7 @@ bool GraphView::onDraw()
                 each_node_view->enable_edition(enable_edition);
                 changed |= each_node_view->draw();
 
-                if( app.virtual_machine.is_debugging() && app.virtual_machine.is_next_node( each_node_view->get_owner() ) )
+                if( virtual_machine->is_debugging() && virtual_machine->is_next_node( each_node_view->get_owner() ) )
                 {
                     ImGui::SetScrollHereY();
                 }
@@ -270,9 +270,9 @@ bool GraphView::onDraw()
     is_any_node_dragged |= SlotView::is_dragging();
 
 	// Virtual Machine cursor
-    if ( app.virtual_machine.is_program_running() )
+    if ( virtual_machine->is_program_running() )
     {
-        const Node* node = app.virtual_machine.get_next_node();
+        const Node* node = virtual_machine->get_next_node();
         if( NodeView* view = node->get_component<NodeView>().get() )
         {
             Vec2 left = view->rect( WORLD_SPACE ).left();
@@ -280,7 +280,7 @@ bool GraphView::onDraw()
             draw_list->AddCircleFilled( vm_cursor_pos, 5.0f, ImColor(255,0,0) );
 
             Vec2 linePos = vm_cursor_pos + Vec2(- 10.0f, 0.5f);
-            linePos += Vec2(sin(float(app.elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
+            linePos += Vec2(sin(float(App::elapsed_time()) * 12.0f ) * 4.0f, 0.f ); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255,255,255);

@@ -74,7 +74,6 @@ bool FileView::onDraw()
 {
     Config* cfg = get_config();
     const Vec2 margin(10.0f, 0.0f);
-    const Nodable &app       = Nodable::get_instance();
     Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
     Vec2 text_editor_size {m_child1_size, region_available.y};
     Vec2 graph_editor_size{m_child2_size, region_available.y};
@@ -106,7 +105,7 @@ bool FileView::onDraw()
         auto old_selected_text = m_text_editor.GetSelectedText();
         auto old_line_text = m_text_editor.GetCurrentLineText();
 
-        bool is_running = app.virtual_machine.is_program_running();
+        bool is_running = get_virtual_machine()->is_program_running();
         auto allow_keyboard = !is_running &&
                               !NodeView::is_any_dragged();
 
@@ -323,7 +322,6 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
     if( overlay_data.empty() ) return;
 
     Config* cfg = get_config();
-    const auto& app = Nodable::get_instance();
     ImGui::PushStyleColor(ImGuiCol_WindowBg, cfg->ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, cfg->ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, cfg->ui_overlay_text_color);

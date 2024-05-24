@@ -17,6 +17,8 @@
 using namespace ndbl;
 using namespace tools;
 
+static NodeFactory* g_node_factory{ nullptr };
+
 NodeFactory::NodeFactory()
 : m_post_process([](PoolID<Node> _node){})
 , m_post_process_is_overrided(false)
@@ -242,3 +244,24 @@ void NodeFactory::override_post_process_fct( NodeFactory::PostProcessFct f)
     m_post_process_is_overrided = true;
     m_post_process              = f;
 }
+
+NodeFactory* ndbl::get_node_factory()
+{
+    return g_node_factory;
+}
+
+NodeFactory* ndbl::init_node_factory()
+{
+    ASSERT(g_node_factory == nullptr)
+    g_node_factory = new NodeFactory();
+    return g_node_factory;
+}
+
+void ndbl::shutdown_node_factory()
+{
+    ASSERT(g_node_factory != nullptr)
+    delete g_node_factory;
+    g_node_factory = nullptr;
+}
+
+

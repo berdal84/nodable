@@ -131,7 +131,7 @@ void NodableView::draw()
     Config*         cfg             = get_config();
     tools::Config*  tools_cfg       = tools::get_config();
     File*           current_file    = m_app->current_file;
-    VirtualMachine& virtual_machine = m_app->virtual_machine;
+    VirtualMachine* virtual_machine = get_virtual_machine();
 
     // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar())
@@ -160,7 +160,7 @@ void NodableView::draw()
             ImGui::EndMenu();
         }
 
-        bool vm_is_stopped = virtual_machine.is_program_stopped();
+        bool vm_is_stopped = virtual_machine->is_program_stopped();
         if (ImGui::BeginMenu("Edit"))
         {
             if (current_file_history)
@@ -228,7 +228,7 @@ void NodableView::draw()
 
         if ( ImGui::BeginMenu("Run") )
         {
-            bool vm_is_debugging = virtual_machine.is_debugging();
+            bool vm_is_debugging = virtual_machine->is_debugging();
 
             if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, vm_is_stopped)) {
                 m_app->run_program();
@@ -449,7 +449,7 @@ void NodableView::draw_virtual_machine_window()
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_virtual_machine_window_label))
     {
-        auto &vm = m_app->virtual_machine;
+        auto* vm = get_virtual_machine();
 
         ImGui::Text("Virtual Machine:");
         ImGui::SameLine();
@@ -457,20 +457,20 @@ void NodableView::draw_virtual_machine_window()
                                       "an imaginary hardware able to run a set of simple instructions.");
         ImGui::Separator();
 
-        const Code *code = vm.get_program_asm_code();
+        const Code *code = vm->get_program_asm_code();
 
         // VM state
         {
             ImGui::Indent();
-            ImGui::Text("State:         %s", vm.is_program_running() ? "running" : "stopped");
+            ImGui::Text("State:         %s", vm->is_program_running() ? "running" : "stopped");
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "When virtual machine is running, you cannot edit the code or the graph.");
-            ImGui::Text("Debug:         %s", vm.is_debugging() ? "ON" : "OFF");
+            ImGui::Text("Debug:         %s", vm->is_debugging() ? "ON" : "OFF");
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "When debugging is ON, you can run a program step by step.");
             ImGui::Text("Has program:   %s", code ? "YES" : "NO");
             if (code) {
-                ImGui::Text("Program over:  %s", !vm.is_there_a_next_instr() ? "YES" : "NO");
+                ImGui::Text("Program over:  %s", !vm->is_there_a_next_instr() ? "YES" : "NO");
             }
             ImGui::Unindent();
         }
@@ -493,7 +493,7 @@ void NodableView::draw_virtual_machine_window()
 
             auto draw_register_value = [&](Register _register) {
                 ImGui::Text("%4s: %12s", assembly::to_string(_register),
-                            vm.read_cpu_register(_register).to_string().c_str());
+                            vm->read_cpu_register(_register).to_string().c_str());
             };
 
             draw_register_value(Register::rax);
@@ -532,11 +532,11 @@ void NodableView::draw_virtual_machine_window()
                 ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true);
 
                 if (code) {
-                    auto current_instr = vm.get_next_instr();
+                    auto current_instr = vm->get_next_instr();
                     for (Instruction *each_instr: code->get_instructions()) {
                         auto str = Instruction::to_string(*each_instr);
                         if (each_instr == current_instr) {
-                            if (m_scroll_to_curr_instr && vm.is_program_running()) {
+                            if (m_scroll_to_curr_instr && vm->is_program_running()) {
                                 ImGui::SetScrollHereY();
                             }
                             ImGui::TextColored(ImColor(200, 0, 0), ">%s", str.c_str());
@@ -628,8 +628,9 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id)
     ImGui::End(); // Startup Window
 }
 
-void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file) {
-    auto &vm = m_app->virtual_machine;
+void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file)
+{
+    VirtualMachine* vm = get_virtual_machine();
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
@@ -887,10 +888,10 @@ void NodableView::draw_toolbar_window()
     if (ImGui::Begin( cfg->ui_toolbar_window_label, NULL, flags ))
     {
         ImGui::PopStyleVar();
-        VirtualMachine& vm   = m_app->virtual_machine;
-        bool running         = vm.is_program_running();
-        bool debugging       = vm.is_debugging();
-        bool stopped         = vm.is_program_stopped();
+        VirtualMachine* vm   = get_virtual_machine();
+        bool running         = vm->is_program_running();
+        bool debugging       = vm->is_debugging();
+        bool stopped         = vm->is_program_stopped();
         auto button_size     = cfg->ui_toolButton_size;
 
         ImGui::PushFont(font_manager.get_font(FontSlot_ToolBtn));
@@ -921,8 +922,8 @@ void NodableView::draw_toolbar_window()
         ImGui::SameLine();
 
         // stepOver
-        if (ImGui::Button(ICON_FA_ARROW_RIGHT " step over", button_size) && vm.is_debugging()) {
-            vm.step_over();
+        if (ImGui::Button(ICON_FA_ARROW_RIGHT " step over", button_size) && vm->is_debugging()) {
+            vm->step_over();
         }
         ImGui::SameLine();
 

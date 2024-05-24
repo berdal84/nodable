@@ -70,7 +70,7 @@ void App::draw()
     view->draw();
 }
 
-double App::elapsed_time() const
+double App::elapsed_time()
 {
     return ImGui::GetTime();
 }

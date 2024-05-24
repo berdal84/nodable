@@ -36,7 +36,7 @@ File::File()
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
     // Graph
-    graph = new Graph(&Nodable::get_instance().node_factory);
+    graph = new Graph(get_node_factory());
     graph_view = new GraphView( graph );
 
     for( IAction* action : ActionManager::get_instance().get_actions() ) // Fill the "create node" context menu

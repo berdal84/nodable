@@ -208,9 +208,9 @@ namespace tools
     };
 
 
-    Pool* get_pool();
+    Pool*        get_pool();
     PoolManager* init_pool_manager(PoolManager::Config = {}); // Call this before to use.
-    void shutdown_pool_manager(); // Undo init_task_manager()
+    void         shutdown_pool_manager(); // Undo init_task_manager()
 
 } // namespace tools
 

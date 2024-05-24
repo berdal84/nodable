@@ -30,8 +30,7 @@ namespace tools
         virtual void       update();
         virtual void       draw(); // Consider overriding AppView::draw instead of App::draw
 
-        double             elapsed_time() const;  // Get the elapsed time in seconds
-
+        static double      elapsed_time() ;  // Get the elapsed time in seconds
         static fs_path     asset_path(const fs_path&); // get asset's absolute path (relative path will be converted)
         static fs_path     asset_path(const char*); // get asset's absolute path (relative path will be converted)
     };

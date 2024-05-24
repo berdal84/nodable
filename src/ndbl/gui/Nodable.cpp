@@ -28,29 +28,19 @@
 using namespace ndbl;
 using namespace tools;
 
-Nodable *Nodable::s_instance = nullptr;
-
 Nodable::Nodable()
     : App( new NodableView(this) )
     , current_file(nullptr)
-    , virtual_machine()
 {
-
     LOG_VERBOSE("ndbl::App", "Constructor ...\n");
-
     type_register::log_statistics();
-
-    // set this instance as s_instance to access it via App::get_instance()
-    EXPECT(s_instance == nullptr, "Can't create two concurrent App. Delete first instance.");
-    s_instance = this;
-
     LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 }
 
 Nodable::~Nodable()
 {
+    LOG_VERBOSE("ndbl::App", "Destructor ...\n");
     delete view;
-    s_instance = nullptr;
     LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
 
@@ -71,7 +61,10 @@ void Nodable::init()
     // Init base class
     App::init();
 
-    node_factory.override_post_process_fct( [cfg]( PoolID<Node> node ) -> void {
+    init_virtual_machine();
+    init_node_factory();
+
+    get_node_factory()->override_post_process_fct( [cfg]( PoolID<Node> node ) -> void {
         // Code executed after node instantiation
 
         // add a view with physics
@@ -119,7 +112,7 @@ void Nodable::update()
     Config* cfg = get_config();
 
     // 1. Update current file
-    if (current_file && !virtual_machine.is_program_running())
+    if (current_file && !get_virtual_machine()->is_program_running())
     {
         //
         // When history is dirty we update the graph from the text.
@@ -440,7 +433,10 @@ void Nodable::shutdown()
         LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str())
         delete each_file;
     }
+
     destroy_config();
+    shutdown_virtual_machine();
+    shutdown_node_factory();
 
     // Base class
     App::shutdown();
@@ -534,8 +530,9 @@ bool Nodable::compile_and_load_program()
         return false;
     }
 
-    virtual_machine.release_program();
-    bool loaded = virtual_machine.load_program(asm_code);
+    VirtualMachine* virtual_machine = get_virtual_machine();
+    virtual_machine->release_program();
+    bool loaded = virtual_machine->load_program(asm_code);
     return loaded;
 }
 
@@ -543,7 +540,7 @@ void Nodable::run_program()
 {
     if (compile_and_load_program() )
     {
-        virtual_machine.run_program();
+        get_virtual_machine()->run_program();
     }
 }
 
@@ -551,20 +548,21 @@ void Nodable::debug_program()
 {
     if (compile_and_load_program() )
     {
-        virtual_machine.debug_program();
+        get_virtual_machine()->debug_program();
     }
 }
 
 void Nodable::step_over_program()
 {
-    virtual_machine.step_over();
-    if (!virtual_machine.is_there_a_next_instr() )
+    VirtualMachine* virtual_machine = get_virtual_machine();
+    virtual_machine->step_over();
+    if (!virtual_machine->is_there_a_next_instr() )
     {
         NodeView::set_selected({});
         return;
     }
 
-    const Node* next_node = virtual_machine.get_next_node();
+    const Node* next_node = virtual_machine->get_next_node();
     if ( !next_node ) return;
 
     if( PoolID<NodeView> next_node_view = next_node->get_component<NodeView>() )
@@ -575,7 +573,7 @@ void Nodable::step_over_program()
 
 void Nodable::stop_program()
 {
-    virtual_machine.stop_program();
+   get_virtual_machine()->stop_program();
 }
 
 void Nodable::reset_program()
@@ -583,10 +581,10 @@ void Nodable::reset_program()
     if(!current_file) return;
 
     Config* cfg = get_config();
-
-    if (virtual_machine.is_program_running() )
+    VirtualMachine* virtual_machine = get_virtual_machine();
+    if (virtual_machine->is_program_running() )
     {
-        virtual_machine.stop_program();
+        virtual_machine->stop_program();
     }
 
     current_file->update_graph_from_text( cfg->isolation );
@@ -603,10 +601,4 @@ File*Nodable::new_file()
     file->update_graph_from_text();
 
     return add_file(file);
-}
-
-Nodable &Nodable::get_instance()
-{
-    EXPECT(s_instance, "No App instance available. Did you forget App app(...) or App* app = new App(...)");
-    return *s_instance;
 }
