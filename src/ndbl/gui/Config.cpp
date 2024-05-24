@@ -7,16 +7,26 @@ using namespace tools;
 
 ndbl::Config* g_conf{nullptr};
 
-ndbl::Config* ndbl::create_config()
+ndbl::Config* ndbl::init_config()
 {
     ASSERT(g_conf == nullptr);
-    g_conf = new Config();
+
+    // Make sure to get a valid tools::Config
+    tools::Config* tools_cfg = tools::get_config();
+    if ( tools_cfg == nullptr )
+    {
+        tools_cfg = tools::init_config();
+    }
+
+    g_conf = new Config(tools_cfg);
+
     return g_conf;
 }
 
-void ndbl::destroy_config()
+void ndbl::shutdown_config()
 {
     ASSERT(g_conf != nullptr);
+    tools::shutdown_config();
     delete g_conf;
     g_conf = nullptr;
 }
@@ -26,14 +36,8 @@ ndbl::Config* ndbl::get_config()
     return g_conf;
 }
 
-bool ndbl::has_config()
+ndbl::Config::Config(tools::Config* tools_cfg)
 {
-    return g_conf != nullptr;
-}
-
-ndbl::Config::Config()
-{
-    tools::Config* tools_cfg = tools::get_config();
     EXPECT(tools_cfg != nullptr, "tools config not initialised");
 
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
@@ -172,7 +176,7 @@ int ndbl::Config::ui_grid_subdiv_size() const
 
 void ndbl::Config::reset()
 {
-    *this = {};
+    *this = { tools_cfg };
 }
 
 float ndbl::Config::ui_codeflow_thickness() const

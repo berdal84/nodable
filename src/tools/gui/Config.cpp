@@ -2,14 +2,14 @@
 
 static tools::Config* g_conf{nullptr};
 
-tools::Config* tools::create_config()
+tools::Config* tools::init_config()
 {
     ASSERT(g_conf == nullptr);
     g_conf = new Config();
     return g_conf;
 }
 
-void tools::destroy_config()
+void tools::shutdown_config()
 {
     ASSERT(g_conf != nullptr);
     delete g_conf;

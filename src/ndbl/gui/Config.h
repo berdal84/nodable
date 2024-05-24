@@ -20,7 +20,7 @@ namespace ndbl
 
     struct Config
     {
-        Config();
+        Config(tools::Config*);
         void reset();
 
         TextEditor::Palette ui_text_textEditorPalette{};
@@ -92,8 +92,7 @@ namespace ndbl
         float  ui_codeflow_thickness() const;
     };
 
-    bool    has_config();
-    Config* create_config(); // create a new configuration and set it as current
-    void    destroy_config(); // destroy the current configuration
+    Config* init_config(); // create a new configuration and set it as current
+    void    shutdown_config(); // do the opposite of init
     Config* get_config(); // Get the current config, create_config() must be called first.
 }

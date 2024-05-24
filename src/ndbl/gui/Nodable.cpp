@@ -35,31 +35,19 @@ Nodable::Nodable()
     , current_file(nullptr)
     , m_untitled_file_count(0)
 {
-    LOG_VERBOSE("ndbl::App", "Constructor ...\n");
     type_register::log_statistics();
-    LOG_VERBOSE("ndbl::App", "Constructor " OK "\n");
 }
 
 Nodable::~Nodable()
 {
-    LOG_VERBOSE("ndbl::App", "Destructor ...\n");
     delete view;
-    LOG_VERBOSE("ndbl::App", "Destructor " OK "\n");
 }
 
 void Nodable::init()
 {
-    LOG_VERBOSE("ndbl::App", "init ...\n");
+    LOG_VERBOSE("ndbl::Nodable", "init ...\n");
 
-    if ( !ndbl::has_config() )
-    {
-        if ( !tools::has_config() )
-        {
-            tools::create_config();
-        }
-        ndbl::create_config();
-    }
-    Config* cfg = get_config();
+    Config* cfg = init_config();
 
     init_language();
     init_virtual_machine();
@@ -106,6 +94,7 @@ void Nodable::init()
 
     App::init();
 
+    LOG_VERBOSE("ndbl::Nodable", "init OK\n");
 }
 
 void Nodable::update()
@@ -430,10 +419,10 @@ void Nodable::update()
 
 void Nodable::shutdown()
 {
+    LOG_VERBOSE("ndbl::Nodable", "shutdown ...\n");
+
     // Base class
     App::shutdown();
-
-    LOG_VERBOSE("ndbl::App", "shutdown ...\n");
 
     for( File* each_file : m_loaded_files )
     {
@@ -441,11 +430,11 @@ void Nodable::shutdown()
         delete each_file;
     }
 
-    destroy_config();
+    shutdown_config();
     shutdown_virtual_machine();
     shutdown_node_factory();
 
-    LOG_VERBOSE("ndbl::App", "shutdown " OK "\n");
+    LOG_VERBOSE("ndbl::Nodable", "shutdown " OK "\n");
 }
 
 File* Nodable::open_asset_file(const std::filesystem::path& _path)

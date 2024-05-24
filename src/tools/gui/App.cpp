@@ -34,7 +34,7 @@ void App::init()
 
     if ( !tools::has_config())
     {
-        tools::create_config();
+        tools::init_config();
     }
 
     init_pool_manager();
@@ -53,7 +53,7 @@ void App::shutdown()
     shutdown_texture_manager();
     shutdown_task_manager();
     shutdown_pool_manager();
-    tools::destroy_config();
+    tools::shutdown_config();
     LOG_MESSAGE("tools::App", "Shutdown OK\n");
 }
 
