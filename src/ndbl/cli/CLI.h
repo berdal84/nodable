@@ -19,35 +19,40 @@ namespace ndbl
     class CLI: public NodableHeadless
     {
     public:
-        CLI();
-        ~CLI();
-        void         init() override;
-        void         update() override;
-        void         shutdown() override;
-        bool         should_stop() const;
 
-        // api
-        void         clear();
-        bool         compile();
-        void         exit_();
-        void         help();
-        bool         parse();
-        bool         run();
-        bool         serialize();
-        void         set_verbose();
-        int          print_program();
+        struct PublicApi
+        {
+            explicit      PublicApi(CLI* cli): m_cli(cli) {}
 
-        std::string test_return_str();
-        std::string test_concat_str(std::string left, std::string right);
+            void          clear();
+            bool          compile();
+            void quit();
+            void          help();
+            bool          parse();
+            bool          run();
+            bool          serialize();
+            void          set_verbose();
+            int           print_program();
+            std::string   test_return_str();
+            std::string   test_concat_str(std::string left, std::string right);
+        private:
+            CLI*          m_cli;
+        };
+
+        PublicApi  api;
+
+        void       init() override;
+        void       update() override;
+        void       shutdown() override;
+        void       clear() override;
+        bool       run();
+
+        CLI(): NodableHeadless(), api(this) {}
+        ~CLI() override = default;
 
     private:
         static std::string get_line() ;
         static std::string get_word() ;
-
-        std::string                m_source_code;
-        bool                       m_should_stop{false};
-        const assembly::Code*      m_asm_code;
-        bool                       m_auto_completion{false};
         void log_function_call(const tools::variant &result, const tools::func_type *type) const;
     };
 }
