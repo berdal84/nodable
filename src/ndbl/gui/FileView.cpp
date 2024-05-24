@@ -294,13 +294,13 @@ void FileView::draw_info_panel() const
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        const Nodlang& language = Nodlang::get_instance();
+        const Nodlang* language = get_language();
 
         ImGui::Columns(1);
-        for(const auto& each_fct : language.get_api() )
+        for(const auto& each_fct : language->get_api() )
         {
             std::string name;
-            language.serialize_func_sig(name, each_fct->get_type());
+            language->serialize_func_sig(name, each_fct->get_type());
             ImGui::Text("%s", name.c_str());
         }
 

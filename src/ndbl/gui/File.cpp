@@ -76,8 +76,7 @@ UpdateResult File::update_text_from_graph( Isolation mode )
     }
 
     std::string code;
-    auto& nodable = Nodlang::get_instance();
-    nodable.serialize_node( code, root_node->poolid() );
+    get_language()->serialize_node( code, root_node->poolid() );
 
     view.set_text( code, mode );
 
@@ -135,7 +134,7 @@ UpdateResult File::update_graph_from_text( Isolation scope)
 
     // Parse source code
     std::string text = get_text(scope);
-    bool parse_ok = Nodlang::get_instance().parse(text, graph );
+    bool parse_ok = get_language()->parse(text, graph );
     if (parse_ok && !graph->is_empty() )
     {
         Physics::create_constraints( graph->get_node_registry() );

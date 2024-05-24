@@ -42,7 +42,6 @@ namespace ndbl{
 
         explicit Nodlang(bool _strict = false);
 		~Nodlang();
-        static Nodlang& get_instance();
 
         // Parser ---------------------------------------------------------------------
         bool                          tokenize(const std::string& _string);       // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
@@ -177,5 +176,9 @@ namespace ndbl{
             add_function(each_static);
         }
     }
+
+    Nodlang* init_language();
+    Nodlang* get_language();
+    void shutdown_language();
 }
 

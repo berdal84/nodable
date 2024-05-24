@@ -105,12 +105,13 @@ void NodableView::init()
     action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
 
     // 4) Functions/Operators from the API
-    const Nodlang& language = Nodlang::get_instance();
-    for ( auto& each_fct: language.get_api() )
+    const Nodlang* language = get_language();
+    EXPECT(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
+    for ( auto& each_fct: language->get_api() )
     {
         const func_type* func_type = each_fct->get_type();
         std::string label;
-        language.serialize_func_sig( label, func_type );
+        language->serialize_func_sig( label, func_type );
         action_manager.new_action<Event_CreateNode>( label.c_str(), Shortcut{}, EventPayload_CreateNode{ NodeType_INVOKABLE, func_type } );
     }
 

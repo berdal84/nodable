@@ -540,10 +540,10 @@ PoolID<Node> Graph::create_node( NodeType _type, const func_type* _signature )
         case NodeType_INVOKABLE:
         {
             EXPECT(_signature != nullptr, "_signature is expected when dealing with functions or operators")
-            auto& language = Nodlang::get_instance();
+            Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
-            const auto invokable = language.find_function(_signature);
-            bool is_operator = language.find_operator_fct( invokable->get_type() ) != nullptr;
+            const auto invokable = language->find_function(_signature);
+            bool is_operator = language->find_operator_fct( invokable->get_type() ) != nullptr;
             return create_function(invokable.get(), is_operator);
         }
         default:

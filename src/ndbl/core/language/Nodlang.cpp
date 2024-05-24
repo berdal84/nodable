@@ -38,6 +38,8 @@
 using namespace ndbl;
 using namespace tools;
 
+static Nodlang* g_language{ nullptr };
+
 //---------------------------------------------------------------------------------------------------------------------------
 // [SECTION] A. Declaration -------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
@@ -2108,11 +2110,6 @@ const type * Nodlang::get_type(Token_t _token) const
     return m_type_by_token_t.find(_token)->second;
 }
 
-Nodlang& Nodlang::get_instance()
-{
-    static Nodlang instance;
-    return instance;
-}
 Token Nodlang::parse_token(const std::string &_string) const
 {
     size_t cursor = 0;
@@ -2163,4 +2160,22 @@ void Nodlang::ParserState::clear()
     {
         scope.pop();
     }
+}
+
+Nodlang* ndbl::init_language()
+{
+    ASSERT(g_language == nullptr)
+    g_language = new Nodlang();
+}
+
+Nodlang* ndbl::get_language()
+{
+    return g_language;
+}
+
+void ndbl::shutdown_language()
+{
+    ASSERT(g_language != nullptr)
+    delete g_language;
+    g_language = nullptr;
 }

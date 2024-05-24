@@ -20,7 +20,11 @@
 // Expect is throwing an exception when expression is false
 #   ifndef EXPECT_
 #   define EXPECT_(expression, message_if_fails )\
-        if(!(expression)) { LOG_FLUSH(); throw std::runtime_error(message_if_fails); }
+if(!(expression)) \
+{ \
+    LOG_FLUSH(); \
+    throw std::runtime_error(message_if_fails); \
+}
 #   endif
 #   define ASSERT(expression) EXPECT_( (expression), "Assertion failed: " #expression" is false" )
 #   define EXPECT(expression, message) EXPECT_( (expression), message )

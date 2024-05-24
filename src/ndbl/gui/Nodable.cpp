@@ -25,6 +25,7 @@
 #include "NodeView.h"
 #include "Physics.h"
 #include "SlotView.h"
+#include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -60,9 +61,7 @@ void Nodable::init()
     }
     Config* cfg = get_config();
 
-    // Init base class
-    App::init();
-
+    init_language();
     init_virtual_machine();
     init_node_factory();
 
@@ -104,6 +103,9 @@ void Nodable::init()
         }
         new_view_id->set_color( fill_color );
     });
+
+    App::init();
+
 }
 
 void Nodable::update()
@@ -428,6 +430,9 @@ void Nodable::update()
 
 void Nodable::shutdown()
 {
+    // Base class
+    App::shutdown();
+
     LOG_VERBOSE("ndbl::App", "shutdown ...\n");
 
     for( File* each_file : m_loaded_files )
@@ -439,9 +444,6 @@ void Nodable::shutdown()
     destroy_config();
     shutdown_virtual_machine();
     shutdown_node_factory();
-
-    // Base class
-    App::shutdown();
 
     LOG_VERBOSE("ndbl::App", "shutdown " OK "\n");
 }

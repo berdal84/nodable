@@ -543,11 +543,11 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         std::string  source_code;
         if( property->get_type()->is<PoolID<Node>>() || m_owner->find_slot_by_property_id( property->id, SlotFlag_OUTPUT ))
         {
-            source_code = Nodlang::get_instance().serialize_node( source_code, m_owner );
+            source_code = get_language()->serialize_node( source_code, m_owner );
         }
         else
         {
-            source_code = Nodlang::get_instance().serialize_property(source_code, property );
+            source_code = get_language()->serialize_property(source_code, property );
         }
 
         ImGui::Text("source: \"%s\"", source_code.c_str());
