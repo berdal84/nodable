@@ -261,10 +261,7 @@ void NodableView::draw()
                 tools_cfg->runtime_debug = !tools_cfg->runtime_debug;
                 ImGuiEx::debug = tools_cfg->runtime_debug;
             }
-            if ( ImGui::MenuItem("Show FPS", "", tools_cfg->show_fps ) )
-            {
-                tools_cfg->show_fps = !tools_cfg->show_fps;
-            }
+
             if ( ImGui::MenuItem("Limit FPS", "", tools_cfg->delta_time_limit ) )
             {
                 tools_cfg->delta_time_limit = !tools_cfg->delta_time_limit;

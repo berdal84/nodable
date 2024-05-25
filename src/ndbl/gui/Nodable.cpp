@@ -34,7 +34,11 @@ void Nodable::init()
 {
     LOG_VERBOSE("ndbl::Nodable", "init ...\n");
 
+#ifdef NDBL_DEBUG
+    log::set_verbosity(log::Verbosity_Warning);
+    log::set_verbosity("Pool", log::Verbosity_Verbose);
     type_register::log_statistics();
+#endif
 
     BaseAppFlags flags = BaseAppFlag_SKIP_VIEW    // we want to init/shutdown manually
                        | BaseAppFlag_SKIP_CONFIG; // (same)

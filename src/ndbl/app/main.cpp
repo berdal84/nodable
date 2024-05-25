@@ -1,14 +1,13 @@
-#include "ndbl/gui/Config.h"
 #include "ndbl/gui/Nodable.h"
+#include "tools/core/memory/MemoryManager.h"
 
 using namespace tools;
 using namespace ndbl;
 
 int main(int argc, char *argv[])
 {
-#ifdef NDBL_DEBUG
-    log::set_verbosity(log::Verbosity_Warning);
-    log::set_verbosity("Pool", log::Verbosity_Verbose);
+#ifdef TOOLS_DEBUG
+    init_memory_manager();
 #endif
     Nodable app;
     app.init();
@@ -18,4 +17,7 @@ int main(int argc, char *argv[])
         app.draw();
     }
     app.shutdown();
+#ifdef TOOLS_DEBUG
+    shutdown_memory_manager();
+#endif
 }

@@ -12,6 +12,7 @@
 #include "BaseApp.h"
 #include "Config.h"
 #include "EventManager.h"
+#include "tools/core/memory/MemoryManager.h"
 
 using namespace tools;
 
@@ -428,8 +429,9 @@ void AppView::end_draw()
         SDL_Delay( cfg->delta_time_min - frame_time );
     }
 
+#ifdef NDBL_DEBUG
     // Update window title with FPS in it (if enabled)
-    if( cfg->show_fps)
+    if( cfg->runtime_debug )
     {
         // compute FPS
         static u32_t dt = 1000 / 60;
@@ -438,14 +440,18 @@ void AppView::end_draw()
         dt = u32_t(0.9f*float(dt) + 0.1f*float(all_time)); // Smooth value
         u32_t fps = 1000 / dt;
 
+        // Memory usage
+        const MemoryStats* mem_stats = tools::get_memory_stats();
+
         // Format nice title
         char title[256];
-        snprintf( title, 256, "%s | %i fps (dt %d ms, frame %d ms)", m_title.c_str(), fps, dt, frame_time );
+        snprintf( title, 256, "%s | %i fps (dt %d ms, frame %d ms) | Mem: %zu B (alloc count: %zu)", m_title.c_str(), fps, dt, frame_time, mem_stats->mem_usage(), mem_stats->alloc_count() );
         title[255] = '\0';
 
         // Update window title
         SDL_SetWindowTitle(m_sdl_window, title);
     }
+#endif
 }
 
 bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type) const

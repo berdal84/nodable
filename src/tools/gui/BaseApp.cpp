@@ -4,6 +4,7 @@
 #include "Config.h"
 #include "ImGuiEx.h"
 #include "tools/core/async.h"
+#include "tools/core/memory/MemoryManager.h"
 #include "tools/core/system.h"
 
 using namespace tools;

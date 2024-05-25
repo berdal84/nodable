@@ -10,7 +10,6 @@ int main(int argc, char *argv[])
 
     // Adjust lo levels
     tools::log::set_verbosity(log::Verbosity_Warning );
-
     // 2) Instantiate and run the app
     //-------------------------------
     ndbl::CLI cli;

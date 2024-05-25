@@ -143,6 +143,7 @@ add_library(
     src/tools/core/math.h
     src/tools/core/memory/Pool.cpp
     src/tools/core/memory/Pool.h
+    src/tools/core/memory/MemoryManager.cpp
     src/tools/core/reflection/Operator.h
     src/tools/core/reflection/Operator_t.h
     src/tools/core/reflection/class.h
@@ -182,6 +183,7 @@ add_executable(
     test-tools-core
     src/tools/core/reflection/reflection.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
+    src/tools/core/memory/MemoryManager.specs.cpp
 )
 
 target_link_libraries(test-tools-core PUBLIC gtest_main gtest tools-core)
@@ -205,8 +207,8 @@ add_library(
     src/tools/gui/ActionManager.h
     src/tools/gui/ActionManagerView.cpp
     src/tools/gui/ActionManagerView.h
-        src/tools/gui/BaseApp.cpp
-        src/tools/gui/BaseApp.h
+    src/tools/gui/BaseApp.cpp
+    src/tools/gui/BaseApp.h
     src/tools/gui/AppView.cpp
     src/tools/gui/AppView.h
     src/tools/gui/Config.cpp

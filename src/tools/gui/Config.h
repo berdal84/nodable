@@ -18,8 +18,7 @@ namespace tools
 
         const char*           app_default_title        = "Default App Title";
         bool                  vsync                    = false;
-        bool                  runtime_debug = false;
-        bool                  show_fps                 = false;
+        bool                  runtime_debug            = false;
         bool                  delta_time_limit         = true;
         u32_t                 delta_time_min           = 1000 / 60; // in ms
         Color                 background_color         {0,0,0};
