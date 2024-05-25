@@ -23,7 +23,7 @@ namespace ndbl
         virtual const Code* compile(Graph*);
         const Code*         compile();
         bool                load_program(const Code*);
-        bool                run_program();
+        bool                run_program() const;
         bool                release_program();
         Nodlang*            get_language() const;
         Graph*              get_graph() const;

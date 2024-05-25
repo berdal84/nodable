@@ -36,17 +36,29 @@ Graph* NodableHeadless::parse( const std::string& code )
     return m_graph;
 }
 
-bool NodableHeadless::run_program()
+bool NodableHeadless::run_program() const
 {
-    get_virtual_machine()->run_program();
+    VirtualMachine* vm = get_virtual_machine();
+    EXPECT(vm != nullptr, "please init a virtual machine")
+
+    try {
+        vm->run_program();
+    }
+    catch ( std::runtime_error& error)
+    {
+        LOG_ERROR("NodableHeadless", "Unable to run the program! %s\n", error.what())
+        return false;
+    }
+
     tools::qword last_result = get_last_result();
 
     printf( "bool: %s | int: %12f | double: %12d | hex: %12s\n"
-            , (bool)last_result ? "true" : "false"
-            , (double)last_result
-            , (i16_t)last_result
-            , last_result.to_string().c_str()
+        , (bool)last_result ? "true" : "false"
+        , (double)last_result
+        , (i16_t)last_result
+        , last_result.to_string().c_str()
     );
+    return true;
 }
 
 const Code* NodableHeadless::compile()
