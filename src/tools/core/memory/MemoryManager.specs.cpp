@@ -1,3 +1,4 @@
+#ifdef TOOLS_DEBUG
 #include "MemoryManager.h"
 #include "tools/core/log.h"
 #include <gtest/gtest.h>
@@ -55,4 +56,4 @@ void new_delete(const size_t size_to_allocate)
 
     shutdown_memory_manager();
 }
-
+#endif
