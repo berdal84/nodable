@@ -1,7 +1,7 @@
-#ifdef TOOLS_DEBUG
 #include "MemoryManager.h"
 #include "tools/core/reflection/reflection"
-#include <new>
+#include <cassert>
+#include <cstdio>
 
 using namespace tools;
 
@@ -31,106 +31,113 @@ namespace tools
     // To insert metadata at the beginning of each allocated area
     struct Header
     {
+        static constexpr size_t IN_USE = 0xF0F0F0F0F0F0F0F0;
+        static constexpr size_t FREED  = ~IN_USE;
+        size_t state{ IN_USE }; // header must ALWAYS start with this
         size_t size;
+        char notes[256]{};
+        explicit Header(size_t size)
+            : size(size)
+        {
+            memset(notes, 0, 256);
+        }
+        bool owned() const
+        { return state == Header::IN_USE; }
+        void set_free()
+        { state = FREED; }
     };
 
-    static constexpr size_t HEADER_SIZE = sizeof(Header);
+    static_assert(sizeof(Header) % 8 == 0);
 
-    Header* get_header(void* data)
+    // Get a pointer to the Header of a given data ptr
+    // Returns nullptr if data was not allocated by us
+    inline Header* get_header(void* data)
     {
-        auto* header = ((Header*)data) - 1;
-        return header;
-    }
-
-    void* get_data(Header* header)
-    {
-        return header + 1;
-    }
-
-    void* allocate(std::size_t data_size = 0 ) noexcept(false)
-    {
-        if( data_size == 0)
+        auto* header = (Header*)((u8_t*)data - sizeof(Header));
+        if( header->owned() )
         {
-            return nullptr;
+            return header;
         }
+        return nullptr;
+    }
+
+    // Get a pointer to the data from a given header
+    inline void* get_data(Header* header)
+    {
+        return (u8_t*)header + sizeof(Header);
+    }
+
+    void* allocate(std::size_t size ) noexcept
+    {
+        size = size == 0 ? 1 : size;
 
         // Allocate a space for the header followed by the data.
         // [<- header ->|<------ data -------------------->]
-        auto* header = (Header*)malloc( HEADER_SIZE + data_size );
-        header->size = data_size;
+
+        size_t block_size = sizeof(Header) + size;
+        auto* header = (Header*)std::malloc( block_size );
+
+        *header = Header{ size };
+
+        void* data = get_data(header);
 
         if ( g_memory_stats )
         {
             g_memory_stats->alloc_sum++;
-            g_memory_stats->mem_alloc_sum += data_size;
+            g_memory_stats->mem_alloc_sum += size;
+#if TOOLS_MEMORY_MANAGER_ENABLE_LOGS
+            printf("%p allocate %zu B \n", data, block_size);
+            fflush(stdout);
+#endif
         }
 
-        void* data = get_data(header);
         return data;
     }
 
-    void deallocate(void* data, std::size_t size = 0 ) noexcept
+    void deallocate(void* data, size_t size) noexcept
     {
-        Header* header = get_header(data);
-
-        if ( g_memory_stats )
+        if( data == nullptr )
         {
-            g_memory_stats->dealloc_sum++;
-            g_memory_stats->freed_mem_sum += header->size;
+            return;
         }
 
-        free(header);
+        void* ptr = data;
+
+        // if owned
+        if ( Header* header = get_header(data) )
+        {
+            ptr = header;
+            if ( g_memory_stats )
+            {
+                g_memory_stats->dealloc_sum++;
+                g_memory_stats->freed_mem_sum += header->size;
+#if TOOLS_MEMORY_MANAGER_ENABLE_LOGS
+                printf( "%p deallocate %zu B\n", header, header->size );
+                fflush( stdout );
+#endif
+            }
+        }
+
+        std::free(ptr);
     }
 }
 
-void* operator new(size_t size)
+void* operator new(size_t size )
 {
     return tools::allocate( size );
 }
 
-void* operator new(size_t size, const std::nothrow_t&) noexcept
+void* operator new[](size_t size )
 {
     return tools::allocate( size );
 }
 
-void* operator new[](size_t size)
+void operator delete (void* ptr) noexcept
 {
-    return tools::allocate( size );
+    return tools::deallocate( ptr, 0 );
 }
 
-void* operator new[](size_t size, const std::nothrow_t&) noexcept
-{
-    return tools::allocate( size );
-}
-
-void operator delete(void* ptr)
-{
-    return tools::deallocate( ptr );
-}
-
-void operator delete(void* ptr, size_t size)
+void operator delete[](void* ptr, size_t size ) noexcept
 {
     return tools::deallocate( ptr, size );
 }
-
-void operator delete(void* ptr, size_t size, const std::nothrow_t&) noexcept
-{
-    return tools::deallocate( ptr, size );
-}
-
-void operator delete[](void* ptr, size_t size)
-{
-    return tools::deallocate( ptr, size );
-}
-
-void operator delete[](void* ptr, size_t size, const std::nothrow_t&) noexcept
-{
-    return tools::deallocate( ptr, size );
-}
-
-void operator delete[](void* ptr)
-{
-    return tools::deallocate( ptr );
-}
-
-#endif

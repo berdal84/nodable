@@ -2166,6 +2166,7 @@ Nodlang* ndbl::init_language()
 {
     ASSERT(g_language == nullptr)
     g_language = new Nodlang();
+    return g_language;
 }
 
 Nodlang* ndbl::get_language()
