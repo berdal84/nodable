@@ -4,10 +4,31 @@
 #include <memory>
 #include <cstddef>
 
-// When set true, any allocation or deallocation will be logged
-#ifndef TOOLS_MEMORY_MANAGER_ENABLE_LOGS
-#define TOOLS_MEMORY_MANAGER_ENABLE_LOGS false
+#ifndef TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS
+#define TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS false
 #endif
+
+#ifndef TOOLS_DEBUG
+#define TOOLS_DEBUG_TRY // Macro disabled when TOOLS_DEBUG is not defined.
+#define TOOLS_DEBUG_CATCH // Macro disabled when TOOLS_DEBUG is not defined.
+#else // TOOLS_DEBUG
+#define TOOLS_DEBUG_TRY     \
+    init_memory_manager(); \
+try
+
+#define TOOLS_DEBUG_CATCH                               \
+    catch(const cpptrace::logic_error& logic_error) \
+{ \
+    logic_error.trace().print_with_snippets(); \
+    exit(1); \
+} \
+catch(const std::exception & std_error) \
+{ \
+    std::cout << std_error.what() << std::endl; \
+    exit(1); \
+} \
+shutdown_memory_manager();
+#endif // TOOLS_DEBUG
 
 namespace tools
 {

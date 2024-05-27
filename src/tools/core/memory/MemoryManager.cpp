@@ -14,6 +14,7 @@ const MemoryStats* tools::get_memory_stats()
 
 const MemoryStats* tools::init_memory_manager()
 {
+    assert(false);
     assert(g_memory_stats == nullptr);
     g_memory_stats = new MemoryStats();
     return g_memory_stats;
@@ -85,7 +86,7 @@ namespace tools
         {
             g_memory_stats->alloc_sum++;
             g_memory_stats->mem_alloc_sum += size;
-#if TOOLS_MEMORY_MANAGER_ENABLE_LOGS
+#if TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS
             printf("%p allocate %zu B \n", data, block_size);
             fflush(stdout);
 #endif
@@ -111,7 +112,7 @@ namespace tools
             {
                 g_memory_stats->dealloc_sum++;
                 g_memory_stats->freed_mem_sum += header->size;
-#if TOOLS_MEMORY_MANAGER_ENABLE_LOGS
+#if TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS
                 printf( "%p deallocate %zu B\n", header, header->size );
                 fflush( stdout );
 #endif

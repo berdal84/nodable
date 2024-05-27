@@ -64,6 +64,14 @@ endif ()
 
 # Libraries: we only add the libraries that have a CMakeList, otherwise we append sources directly.
 
+include(FetchContent)
+FetchContent_Declare(
+        cpptrace
+        GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+        GIT_TAG        v0.5.4 # <HASH or TAG>
+)
+FetchContent_MakeAvailable(cpptrace)
+
 if (NOT NDBL_SKIP_TESTS)
     enable_testing()
     # https://stackoverflow.com/questions/12540970/how-to-make-gtest-build-mdd-instead-of-mtd-by-default-using-cmake
@@ -178,6 +186,7 @@ target_link_libraries(
     Observe        # event system using observer/observable pattern.
     glm            # math
     Threads::Threads
+    cpptrace::cpptrace
 )
 
 add_executable(
