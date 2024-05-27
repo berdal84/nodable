@@ -53,9 +53,6 @@ bool View::draw()
 Rect View::rect(Space space) const
 {
     Rect r =  box.rect();
-    if( space == PARENT_SPACE)
-    {
-        assert(false);
-    }
+    EXPECT(space != PARENT_SPACE, "Not implemented yet");
     return r;
 }

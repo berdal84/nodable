@@ -14,15 +14,14 @@ const MemoryStats* tools::get_memory_stats()
 
 const MemoryStats* tools::init_memory_manager()
 {
-    assert(false);
-    assert(g_memory_stats == nullptr);
+    EXPECT(g_memory_stats == nullptr, "Can't initialize twice");
     g_memory_stats = new MemoryStats();
     return g_memory_stats;
 }
 
 void tools::shutdown_memory_manager()
 {
-    assert(g_memory_stats != nullptr);
+    EXPECT(g_memory_stats != nullptr, "Already shutdown or never initialized?");
     delete g_memory_stats;
     g_memory_stats = nullptr;
 }

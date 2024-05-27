@@ -1,10 +1,13 @@
 #pragma once
-#include "Rect.h"
-#include "Vec2.h"
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_transform_2d.hpp>
 #include <glm/mat3x3.hpp>
 #undef GLM_ENABLE_EXPERIMENTAL
+
+#include "Rect.h"
+#include "Vec2.h"
+#include "tools/core/assertions.h"
 
 namespace tools
 {
@@ -15,7 +18,7 @@ namespace tools
 
         void pos(Vec2 _pos)
         {
-            assert(!std::isnan(_pos.x) && !std::isnan(_pos.y));
+            EXPECT(!std::isnan(_pos.x) && !std::isnan(_pos.y), "Vector can't have NaN coordinates");
             m_pos = _pos;
             m_matrix_are_dirty = true;
         }
