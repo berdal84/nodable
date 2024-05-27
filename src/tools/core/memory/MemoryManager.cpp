@@ -16,13 +16,21 @@ const MemoryStats* tools::init_memory_manager()
 {
     EXPECT(g_memory_stats == nullptr, "Can't initialize twice");
     g_memory_stats = new MemoryStats();
+    ASSERT(g_memory_stats->alloc_count() == 0);
     return g_memory_stats;
 }
 
 void tools::shutdown_memory_manager()
 {
     EXPECT(g_memory_stats != nullptr, "Already shutdown or never initialized?");
-    delete g_memory_stats;
+
+    MemoryStats stats = *g_memory_stats; // copy locally before to delete
+    if(stats.alloc_count() != 0)
+    {
+        LOG_WARNING("tools", "shutdown_memory_manager() - %zu B is still in use (%zu alloc(s))\n", g_memory_stats->mem_usage(), g_memory_stats->alloc_count() )
+    }
+
+    delete g_memory_stats; // this would decrease counters
     g_memory_stats = nullptr;
 }
 
@@ -111,6 +119,7 @@ namespace tools
             {
                 g_memory_stats->dealloc_sum++;
                 g_memory_stats->freed_mem_sum += header->size;
+                header->set_free();
 #if TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS
                 printf( "%p deallocate %zu B\n", header, header->size );
                 fflush( stdout );
