@@ -35,7 +35,7 @@ namespace tools
         public:
             type* m_class;
 
-            push_class(const char* _name )
+            explicit push_class(const char* _name )
             {
                 m_class = const_cast<type*>(type::get<ClassT>());
                 m_class->m_name = _name;

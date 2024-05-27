@@ -34,20 +34,6 @@ namespace tools
         constexpr static const char* name() { return typeid(type).name(); };
     };
 
-
-    /**
-     * @struct Check if a type T is a class or not
-     * @example @code
-     * const my_type_is_a_class = is_class<MyType>::value;
-     */
-    template<typename T>
-    struct is_class
-    {
-        static constexpr bool value = std::is_class<typename remove_pointer<T>::type>::value
-                                      && !std::is_same<any_t, T>::value  // is_class<T>::type::value return true for structs
-                                      && !std::is_same<null_t, T>::value;
-    };
-
     /**
      * @class Type descriptor. Holds meta data corresponding to a given type.
      *
@@ -209,9 +195,9 @@ namespace tools
     type* type::create(const char* _name)
     {
         Flags flags = Flags_NONE;
-        if(std::is_pointer<T>::value) flags += Flags_IS_POINTER;
-        if(std::is_const<T>::value)   flags += Flags_IS_CONST;
-        if( tools::is_class<T>::value)    flags += Flags_IS_CLASS;
+        if(std::is_pointer_v<T>) flags |= Flags_IS_POINTER;
+        if(std::is_const_v<T>)   flags |= Flags_IS_CONST;
+        if(std::is_class_v<T>)   flags |= Flags_IS_CLASS;
 
         return new type(
             get_type_id<T>(),
