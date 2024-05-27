@@ -17,8 +17,11 @@ std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()
 log::Verbosity log::get_verbosity(const std::string& _category)
 {
     std::map<std::string, log::Verbosity>& verbosity_by_category = get_verbosity_by_category();
-    auto pair = verbosity_by_category.find(_category);
-    if (pair != verbosity_by_category.end() ) return pair->second;
+    const auto& pair = verbosity_by_category.find(_category);
+    if (pair != verbosity_by_category.end() )
+    {
+        return pair->second;
+    }
     return s_verbosity;
 }
 
