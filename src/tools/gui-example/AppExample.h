@@ -17,17 +17,36 @@ namespace tools
 
             BaseApp::init(new AppExampleView(this));
             this->view->set_title("framework-example - (based on framework-gui library)");
-
+            //
+            // Your code here
+            //
             LOG_MESSAGE("AppExample", "init() DONE\n");
         }
 
-        void shutdown()
+        void update() override
+        {
+            BaseApp::update();
+            //
+            // Your code here
+            //
+        }
+
+        void draw() override
+        {
+            BaseApp::draw();
+            //
+            // Your code here
+            //
+        }
+
+        void shutdown() override
         {
             LOG_MESSAGE("AppExample", "shutdown() ...\n");
-
             BaseApp::shutdown();
             delete view;
-
+            //
+            // Your code here
+            //
             LOG_MESSAGE("AppExample", "shutdown() DONE\n");
         }
     };
