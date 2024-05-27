@@ -13,7 +13,7 @@
 #define TOOLS_DEBUG_CATCH // Macro disabled when TOOLS_DEBUG is not defined.
 #else // TOOLS_DEBUG
 #define TOOLS_DEBUG_TRY     \
-    init_memory_manager(); \
+    tools::init_memory_manager(); \
 try
 
 #define TOOLS_DEBUG_CATCH                               \
@@ -27,7 +27,7 @@ catch(const std::exception & std_error) \
     std::cout << std_error.what() << std::endl; \
     exit(1); \
 } \
-shutdown_memory_manager();
+tools::shutdown_memory_manager();
 #endif // TOOLS_DEBUG
 
 namespace tools
