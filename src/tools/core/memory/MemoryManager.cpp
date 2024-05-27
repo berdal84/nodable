@@ -1,5 +1,6 @@
 #include "MemoryManager.h"
-#include "tools/core/reflection/reflection"
+
+#include "tools/core/reflection/reflection.h"
 #include <cassert>
 #include <cstdio>
 
@@ -39,20 +40,19 @@ namespace tools
     // To insert metadata at the beginning of each allocated area
     struct Header
     {
-        static constexpr size_t IN_USE = 0xF0F0F0F0F0F0F0F0;
-        static constexpr size_t FREED  = ~IN_USE;
-        size_t state{ IN_USE }; // header must ALWAYS start with this
+        enum State: size_t
+        {
+            State_ALLOCATED = 0xF00012344321000F,
+            State_FREED  = ~State_ALLOCATED
+        };
+        State state{ State_ALLOCATED }; // header must ALWAYS start with this
         size_t size;
-        char notes[256]{};
+        // char notes[256]{};
         explicit Header(size_t size)
             : size(size)
         {
-            memset(notes, 0, 256);
+            // memset(notes, 0, 256);
         }
-        bool owned() const
-        { return state == Header::IN_USE; }
-        void set_free()
-        { state = FREED; }
     };
 
     static_assert(sizeof(Header) % 8 == 0);
@@ -62,7 +62,7 @@ namespace tools
     inline Header* get_header(void* data)
     {
         auto* header = (Header*)((u8_t*)data - sizeof(Header));
-        if( header->owned() )
+        if( header->state == Header::State_ALLOCATED )
         {
             return header;
         }
@@ -93,7 +93,7 @@ namespace tools
         {
             g_memory_stats->alloc_sum++;
             g_memory_stats->mem_alloc_sum += size;
-#if TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS
+#if TOOLS_MEMORY_MANAGER_VERBOSE_LOGS
             printf("%p allocate %zu B \n", data, block_size);
             fflush(stdout);
 #endif
@@ -119,8 +119,8 @@ namespace tools
             {
                 g_memory_stats->dealloc_sum++;
                 g_memory_stats->freed_mem_sum += header->size;
-                header->set_free();
-#if TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS
+                header->state = Header::State_FREED;
+#if TOOLS_MEMORY_MANAGER_VERBOSE_LOGS
                 printf( "%p deallocate %zu B\n", header, header->size );
                 fflush( stdout );
 #endif
@@ -130,6 +130,8 @@ namespace tools
         std::free(ptr);
     }
 }
+
+#if TOOLS_MEMORY_MANAGER_ENABLED
 
 void* operator new(size_t size )
 {
@@ -150,3 +152,4 @@ void operator delete[](void* ptr, size_t size ) noexcept
 {
     return tools::deallocate( ptr, size );
 }
+#endif

@@ -4,30 +4,45 @@
 #include <memory>
 #include <cstddef>
 
-#ifndef TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS
-#define TOOLS_MEMORY_MANAGER_ENABLE_ALLOCATION_DEALLOCATION_LOGS false
+#ifndef TOOLS_MEMORY_MANAGER_ENABLED
+#define TOOLS_MEMORY_MANAGER_ENABLED true
+#endif
+
+#ifndef TOOLS_MEMORY_MANAGER_VERBOSE_LOGS
+#define TOOLS_MEMORY_MANAGER_VERBOSE_LOGS false
 #endif
 
 #ifndef TOOLS_DEBUG
-#define TOOLS_DEBUG_TRY // Macro disabled when TOOLS_DEBUG is not defined.
-#define TOOLS_DEBUG_CATCH // Macro disabled when TOOLS_DEBUG is not defined.
+#define TOOLS_DEBUG_DISABLED_MESSAGE// This macro is disabled when TOOLS_DEBUG is not defined (usually when not compiling in Debug).
+#define try_TOOLS TOOLS_DEBUG_DISABLED_MESSAGE
+#define catch_TOOLS TOOLS_DEBUG_DISABLED_MESSAGE
+#define try_TOOLS_MAIN TOOLS_DEBUG_DISABLED_MESSAGE
+#define catch_TOOLS_MAIN TOOLS_DEBUG_DISABLED_MESSAGE
 #else // TOOLS_DEBUG
-#define TOOLS_DEBUG_TRY     \
-    tools::init_memory_manager(); \
-try
 
-#define TOOLS_DEBUG_CATCH                               \
+#define try_TOOLS \
+    try
+
+#define catch_TOOLS \
     catch(const cpptrace::logic_error& logic_error) \
-{ \
-    logic_error.trace().print_with_snippets(); \
-    exit(1); \
-} \
-catch(const std::exception & std_error) \
-{ \
-    std::cout << std_error.what() << std::endl; \
-    exit(1); \
-} \
-tools::shutdown_memory_manager();
+    { \
+        logic_error.trace().print_with_snippets(); \
+        exit(1); \
+    } \
+    catch(const std::exception & std_error) \
+    { \
+        std::cout << std_error.what() << std::endl; \
+        exit(1); \
+    }
+
+#define try_TOOLS_MAIN \
+    tools::init_memory_manager(); \
+    try_TOOLS
+
+#define catch_TOOLS_MAIN \
+    catch_TOOLS \
+    tools::shutdown_memory_manager();
+
 #endif // TOOLS_DEBUG
 
 namespace tools

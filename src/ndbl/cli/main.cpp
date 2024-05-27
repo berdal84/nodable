@@ -6,7 +6,7 @@ using namespace ndbl;
 
 int main(int argc, char *argv[])
 {
-    TOOLS_DEBUG_TRY
+    try_TOOLS_MAIN
     {
         tools::log::set_verbosity(log::Verbosity_Warning );
 
@@ -18,5 +18,5 @@ int main(int argc, char *argv[])
         }
         cli.shutdown();
     }
-    TOOLS_DEBUG_CATCH
+    catch_TOOLS_MAIN
 }

@@ -6,7 +6,7 @@ using namespace ndbl;
 
 int main(int argc, char *argv[])
 {
-    TOOLS_DEBUG_TRY
+    try_TOOLS_MAIN
     {
         Nodable app;
         app.init();
@@ -17,5 +17,5 @@ int main(int argc, char *argv[])
         }
         app.shutdown();
     }
-    TOOLS_DEBUG_CATCH
+    catch_TOOLS_MAIN
 }
