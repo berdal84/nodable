@@ -1,7 +1,7 @@
 #pragma once
 #include <utility>
 
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include "tools/gui/EventManager.h"
 
 #include "ndbl/core/Graph.h"

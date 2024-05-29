@@ -47,7 +47,7 @@ bool GraphView::onDraw()
     bool            pixel_perfect    = true;
     ImDrawList*     draw_list        = ImGui::GetWindowDrawList();
     const bool      enable_edition   = virtual_machine->is_program_stopped();
-    auto            node_registry    = get_pool()->get( m_graph->get_node_registry() );
+    auto            node_registry    = get_pool_manager()->get_pool()->get( m_graph->get_node_registry() );
     const SlotView* dragged_slot     = SlotView::get_dragged();
     const SlotView* hovered_slot     = SlotView::get_hovered();
     bool drop_behavior_requires_a_new_node = false;

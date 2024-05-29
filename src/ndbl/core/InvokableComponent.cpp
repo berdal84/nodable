@@ -1,7 +1,7 @@
 #include "InvokableComponent.h"
 
 #include "tools/core/log.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include "tools/core/reflection/func_type.h"
 
 #include "VariableNode.h"

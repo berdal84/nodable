@@ -765,7 +765,7 @@ void NodableView::draw_config_window()
         if ( tools_cfg->runtime_debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
-            auto pool = get_pool();
+            auto pool = get_pool_manager()->get_pool();
             ImGui::Text(" - Node.................... %8zu", pool->get_all<Node>().size() );
             ImGui::Text(" - NodeView................ %8zu", pool->get_all<NodeView>().size() );
             ImGui::Text(" - Physics................. %8zu", pool->get_all<Physics>().size() );

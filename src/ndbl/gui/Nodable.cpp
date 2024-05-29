@@ -55,7 +55,7 @@ void Nodable::init()
         // Code executed after node instantiation
 
         // add a view with physics
-        auto* pool = get_pool();
+        auto* pool = get_pool_manager()->get_pool();
         PoolID<NodeView> new_view_id = pool->create<NodeView>();
         PoolID<Physics> physics_id = pool->create<Physics>( new_view_id );
         node->add_component( new_view_id );

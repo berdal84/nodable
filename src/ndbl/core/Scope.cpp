@@ -4,7 +4,7 @@
 #include <algorithm> // for std::find_if
 
 #include "tools/core/log.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 
 #include "ForLoopNode.h"
 #include "IScope.h"

@@ -1,5 +1,5 @@
 #include "Property.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include <gtest/gtest.h>
 
 using namespace ndbl;

@@ -169,7 +169,7 @@ namespace tools
             size_t     reserved_size{0};
         };
 
-        Pool(const Config&);
+        explicit Pool(const Config&);
         ~Pool();
 
         template<typename T>          inline IPoolVector* init_for();
@@ -195,23 +195,4 @@ namespace tools
         std::vector<Record>                               m_record_by_id;
         std::unordered_map<std::type_index, IPoolVector*> m_pool_vector_by_type;
     };
-
-    struct PoolManager
-    {
-        struct Config
-        {
-            Pool::Config default_pool_config{};
-        };
-
-        Pool* get_pool(); // Right now there is only 1 Pool, but we should split (1 pool per type)
-        std::vector<Pool> pools{};
-    };
-
-
-    Pool*        get_pool();
-    PoolManager* init_pool_manager(PoolManager::Config = {}); // Call this before to use.
-    void         shutdown_pool_manager(); // Undo init_task_manager()
-
 } // namespace tools
-
-#include "Pool.inl"

@@ -3,7 +3,7 @@
 #include <unordered_map>
 
 #include "tools/core/geometry/Rect.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 
 #include "ndbl/core/Node.h"
 #include "ndbl/core/VariableNode.h"

@@ -1,4 +1,6 @@
 #pragma once
+#include "Pool.h"
+#include "PoolManager.h"
 
 namespace tools
 {
@@ -159,7 +161,7 @@ namespace tools
 #ifdef TOOLS_NO_POOL
         return (Type*)(u64_t)id;
 #else
-        if( id ) return get_pool()->get<Type>( id.m_value );
+        if( id ) return get_pool_manager()->get_pool()->get<Type>( id.m_value );
         return nullptr;
 #endif
     }
@@ -285,9 +287,6 @@ namespace tools
     template<typename T>
     inline void Pool::destroy(PoolID<T> _id )
     {
-#ifdef TOOLS_NO_POOL
-        delete _id.get();
-#else
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         Record& record_to_delete = m_record_by_id[(u64_t)_id];
         size_t  last_pos         = record_to_delete.vector->size() - 1;
@@ -313,7 +312,6 @@ namespace tools
             record_to_delete.next_id = m_first_free_id;
             m_first_free_id = (u64_t)_id;
         }
-#endif
     }
 
     template<typename ContainerT>

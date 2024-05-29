@@ -1,5 +1,5 @@
 #include "ndbl/gui/Nodable.h"
-#include "tools/core/memory/MemoryManager.h"
+#include "tools/core/memory/memory.h"
 
 using namespace tools;
 using namespace ndbl;

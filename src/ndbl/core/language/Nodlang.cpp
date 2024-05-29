@@ -20,7 +20,7 @@
 #include "tools/core/format.h"
 #include "tools/core/log.h"
 #include "tools/core/hash.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 
 #include "ndbl/core/DirectedEdge.h"
 #include "ndbl/core/ForLoopNode.h"

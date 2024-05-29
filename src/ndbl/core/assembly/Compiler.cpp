@@ -7,7 +7,7 @@
 #include "tools/core/log.h"
 #include "tools/core/math.h"
 #include "tools/core/string.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"

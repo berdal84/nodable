@@ -3,7 +3,7 @@
 #include <set>
 #include <memory>                 // std::shared_ptr
 
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 

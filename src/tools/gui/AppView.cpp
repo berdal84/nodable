@@ -12,7 +12,7 @@
 #include "BaseApp.h"
 #include "Config.h"
 #include "EventManager.h"
-#include "tools/core/memory/MemoryManager.h"
+#include "tools/core/memory/memory.h"
 
 using namespace tools;
 

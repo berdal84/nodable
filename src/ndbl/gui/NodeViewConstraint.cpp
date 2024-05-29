@@ -27,7 +27,7 @@ void NodeViewConstraint::apply(float _dt)
     tools::Config* tools_cfg = tools::get_config();
 
     // Gather only visible views or their parent (recursively)
-    auto pool = get_pool();
+    auto pool = get_pool_manager()->get_pool();
     std::vector<NodeView*> clean_drivers = NodeView::substitute_with_parent_if_not_visible( pool->get( m_drivers ), true );
     std::vector<NodeView*> clean_targets = NodeView::substitute_with_parent_if_not_visible( pool->get( m_targets ), true );
 

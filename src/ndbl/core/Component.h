@@ -1,7 +1,7 @@
 #pragma once
 
 #include "tools/core/reflection/reflection"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 
 namespace ndbl
 {

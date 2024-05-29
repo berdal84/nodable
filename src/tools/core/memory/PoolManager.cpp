@@ -1,13 +1,13 @@
-#include "Pool.h"
+#include "memory.h"
 
 using namespace tools;
 
 static PoolManager* g_manager = nullptr;
 
-Pool* tools::get_pool()
+PoolManager* tools::get_pool_manager()
 {
     ASSERT(g_manager != nullptr)
-    return g_manager->get_pool();
+    return g_manager;
 }
 
 PoolManager* tools::init_pool_manager(PoolManager::Config cfg)

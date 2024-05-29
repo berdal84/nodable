@@ -7,7 +7,7 @@
 #include <rapidjson/stringbuffer.h>
 
 #include "tools/core/assertions.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 
 #include "Node.h"
 

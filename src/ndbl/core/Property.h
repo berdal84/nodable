@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ndbl/core/Token.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include "tools/core/reflection/variant.h"
 #include "tools/core/types.h"// for constants and forward declarations
 
