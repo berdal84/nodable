@@ -20,7 +20,6 @@ void BaseApp::init(AppView* _view, BaseAppFlags _flags)
         init_config();
     }
 
-    init_reflection();
     init_pool_manager();
     init_task_manager();
     init_texture_manager();
@@ -48,7 +47,6 @@ void BaseApp::shutdown()
     shutdown_texture_manager();
     shutdown_task_manager();
     shutdown_pool_manager();
-    shutdown_reflection();
 
     if ( (m_flags & BaseAppFlag_SKIP_CONFIG ) == false )
     {
