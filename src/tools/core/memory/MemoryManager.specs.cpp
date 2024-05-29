@@ -43,9 +43,10 @@ void new_delete(const size_t size_to_allocate)
 
     size_t after_new_memory_usage = stats->mem_usage();
     size_t after_new_alloc_count = stats->alloc_count();
-    size_t expected_alloc_count = size_to_allocate == 0 ? 0 : 1; // no alloc is expected for new char[0]
+    size_t expected_alloc_count = size_to_allocate == 0 ? 0 : 1; // no alloc for char[0]
+    size_t expected_alloc_size = size_to_allocate == 0 ? 0 : size_to_allocate; // same
     EXPECT_EQ( after_new_alloc_count, initial_alloc_count + expected_alloc_count);
-    EXPECT_EQ( after_new_memory_usage, initial_memory_usage + size_to_allocate );
+    EXPECT_EQ( after_new_memory_usage, initial_memory_usage + expected_alloc_size );
 
     delete[] ptr;
 

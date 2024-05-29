@@ -78,7 +78,7 @@ namespace tools
 
     void* allocate(std::size_t size ) noexcept
     {
-        size = size == 0 ? 1 : size;
+        if ( size == 0 ) return nullptr;
 
         // Allocate a space for the header followed by the data.
         // [<- header ->|<------ data -------------------->]
@@ -111,9 +111,10 @@ namespace tools
         }
 
         void* ptr = data;
+        Header* header = get_header(data);
 
         // if owned
-        if ( Header* header = get_header(data) )
+        if ( header != nullptr )
         {
             ptr = header;
             if ( g_memory_stats )
