@@ -45,7 +45,6 @@ namespace tools
      */
     class type
     {
-        friend class registration;
         friend class type_register;
     public:
         using id_t = std::type_index;

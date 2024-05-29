@@ -78,7 +78,7 @@ TEST(Reflection, is_child_of)
     class Base {};
     class Derived: public Base {};
 
-    registration::push_class<Derived>("Derived").extends<Base>();
+    StaticInitializer<Derived>("Derived").extends<Base>();
 
     EXPECT_TRUE(type::get<Derived>()->is_child_of<Base>());
     EXPECT_FALSE(type::get<Base>()->is_child_of<Derived>());

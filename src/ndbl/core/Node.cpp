@@ -12,9 +12,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<Node>("Node");
+    StaticInitializer<Node>("Node");
 }
 
 Node::Node(std::string _label)

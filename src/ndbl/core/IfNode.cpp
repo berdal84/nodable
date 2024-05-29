@@ -4,9 +4,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<IfNode>("IfNode")
+    StaticInitializer<IfNode>("IfNode")
         .extends<Node>()
         .extends<IConditional>();
 }

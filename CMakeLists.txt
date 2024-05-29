@@ -163,7 +163,7 @@ add_library(
     src/tools/core/reflection/qword.cpp
     src/tools/core/reflection/qword.h
     src/tools/core/reflection/reflection
-    src/tools/core/reflection/registration.h
+    src/tools/core/reflection/StaticInitializer.h
     src/tools/core/reflection/type.cpp
     src/tools/core/reflection/type.h
     src/tools/core/reflection/type_register.cpp

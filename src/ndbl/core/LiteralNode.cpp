@@ -3,9 +3,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<LiteralNode>("LiteralNode").extends<Node>();
+    StaticInitializer<LiteralNode>("LiteralNode").extends<Node>();
 }
 
 LiteralNode::LiteralNode(const type* _type)

@@ -5,19 +5,21 @@
 
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push<double>("double");
-    registration::push<std::string>("string");
-    registration::push<bool>("bool");
-    registration::push<void>("void");
-    registration::push<void*>("void*");
-    registration::push< i8_t>("i8");
-    registration::push<i16_t>("int");
-    registration::push<i32_t>("i32");
-    registration::push<i64_t>("i64");
-    registration::push<any_t>("any");
-    registration::push<null_t>("null");
+    // declare some types manually to get friendly names
+
+    StaticInitializer<double>("double");
+    StaticInitializer<std::string>("string");
+    StaticInitializer<bool>("bool");
+    StaticInitializer<void>("void");
+    StaticInitializer<void*>("void*");
+    StaticInitializer< i8_t>("i8");
+    StaticInitializer<i16_t>("int");
+    StaticInitializer<i32_t>("i32");
+    StaticInitializer<i64_t>("i64");
+    StaticInitializer<any_t>("any");
+    StaticInitializer<null_t>("null");
 }
 
 type::type(

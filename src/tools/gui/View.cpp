@@ -3,9 +3,9 @@
 
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<View>("View");
+    StaticInitializer<View>("View");
 }
 
 View::View()

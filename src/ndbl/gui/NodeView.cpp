@@ -22,9 +22,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<NodeView>("NodeView")
+    StaticInitializer<NodeView>("NodeView")
         .extends<Component>()
         .extends<View>();
 }

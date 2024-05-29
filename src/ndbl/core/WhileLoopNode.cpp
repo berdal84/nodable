@@ -3,9 +3,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<WhileLoopNode>("WhileLoopNode")
+    StaticInitializer<WhileLoopNode>("WhileLoopNode")
         .extends<Node>()
         .extends<IConditional>();
 }

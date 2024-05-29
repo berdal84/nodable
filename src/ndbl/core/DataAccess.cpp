@@ -14,9 +14,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<DataAccess>("DataAccess")
+    StaticInitializer<DataAccess>("DataAccess")
             .extends<Component>();
 }
 

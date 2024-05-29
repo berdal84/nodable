@@ -5,9 +5,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<ForLoopNode>("ForLoopNode")
+    StaticInitializer<ForLoopNode>("ForLoopNode")
         .extends<Node>()
         .extends<IConditional>();
 }

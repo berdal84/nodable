@@ -19,7 +19,7 @@ void CLI::init()
 
     // Declare CLI::PublicApi's methods into the reflection system
     using API = CLI::PublicApi;
-    tools::registration::push_class<API>("PublicAPI")
+    tools::StaticInitializer<API>("PublicAPI")
         //                 vvv---- method     vvvvv--- alias
         .add_method(&API::clear            , "clear")
         .add_method(&API::help             , "help")

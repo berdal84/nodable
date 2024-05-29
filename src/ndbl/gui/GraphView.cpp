@@ -27,9 +27,9 @@ using namespace tools;
 
 const char* k_context_menu_popup = "GraphView.CreateNodeContextMenu";
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<GraphView>("GraphView").extends<View>();
+    StaticInitializer<GraphView>("GraphView").extends<View>();
 }
 
 GraphView::GraphView(Graph* graph)

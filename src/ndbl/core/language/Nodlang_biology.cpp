@@ -50,9 +50,9 @@ namespace // anonymous, only accessible from this file
     }
 }
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<Nodlang_biology>("Nodlang_biology")
+    StaticInitializer<Nodlang_biology>("Nodlang_biology")
             .add_method(&dna_to_protein, "dna_to_protein", "protein");
 };
 

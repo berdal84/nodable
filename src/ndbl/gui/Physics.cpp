@@ -12,9 +12,9 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<Physics>("Physics")
+    StaticInitializer<Physics>("Physics")
                      .extends<Component>();
 };
 
