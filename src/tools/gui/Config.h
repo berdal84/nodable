@@ -31,7 +31,7 @@ namespace tools
         float                 dockspace_bottom_size    = 48.f;
         float                 dockspace_top_size       = 48.f;
         float                 dockspace_right_ratio    = 0.3f;
-        size_t                log_tooltip_max_count    = 25;
+        size_t                log_message_display_max_count = 500;
         std::array<
             Vec4,
             log::Verbosity_COUNT> log_color {

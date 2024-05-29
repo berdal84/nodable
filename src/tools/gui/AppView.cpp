@@ -369,14 +369,14 @@ void AppView::begin_draw()
         // Status Window
         if ( ImGui::Begin( k_status_window_name ) )
         {
-            if ( !log::get_logs().empty() )
+            log::MessageDeque& messages = log::get_messages();
+            if ( messages.empty() == false)
             {
-                const std::deque<log::Message>& messages = log::get_logs();
-                auto it = messages.rend() - std::min( cfg->log_tooltip_max_count, messages.size() );
+                u32_t message_to_display_count = std::min(messages.size(), cfg->log_message_display_max_count);
+                auto it = messages.rend() - message_to_display_count;
                 while ( it != messages.rend() )
                 {
-                    auto& eachMessage = *it;
-                    ImGui::TextColored( (ImVec4) cfg->log_color[eachMessage.verbosity], "%s", eachMessage.text.c_str() );
+                    ImGui::TextColored(cfg->log_color[it->verbosity], "%s", it->text.c_str() );
                     ++it;
                 }
 

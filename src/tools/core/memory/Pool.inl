@@ -232,6 +232,7 @@ namespace tools
     inline IPoolVector* Pool::init_for()
     {
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
+        LOG_VERBOSE("Pool", "init_for<%s>() ...\n", tools::type::get<T>()->get_name() );
         auto type_id = std::type_index(typeid(T));
         ASSERT( m_pool_vector_by_type.find(type_id) == m_pool_vector_by_type.end() );
         IPoolVector* new_pool_vector = new TPoolVector<T>( m_config.reserved_size );

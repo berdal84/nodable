@@ -280,7 +280,7 @@ void NodableView::draw()
 #ifndef LOG_DISABLE_VERBOSE
                 menu_item_verbosity(log::Verbosity_Verbose, "Verbose");
 #endif
-                menu_item_verbosity(log::Verbosity_Message, "Message (default)");
+                menu_item_verbosity(log::Verbosity_Message, "Message");
                 menu_item_verbosity(log::Verbosity_Warning, "Warning");
                 menu_item_verbosity(log::Verbosity_Error, "Error");
                 ImGui::EndMenu();

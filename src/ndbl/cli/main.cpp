@@ -8,8 +8,6 @@ int main(int argc, char *argv[])
 {
     try_TOOLS_MAIN
     {
-        tools::log::set_verbosity(log::Verbosity_Warning );
-
         ndbl::CLI cli;
         cli.init();
         while ( !cli.should_stop() )
