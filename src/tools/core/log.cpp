@@ -4,8 +4,18 @@
 
 using namespace tools;
 
-std::deque<log::Message> log::s_logs;
-log::Verbosity           log::s_verbosity = Verbosity_DEFAULT;
+log::Verbosity log::s_verbosity = Verbosity_DEFAULT;
+
+std::deque<log::Message>& log::get_logs()
+{
+    static std::deque<log::Message> logs;
+    return logs;
+}
+
+log::Message& log::create_message()
+{
+    return get_logs().emplace_front(); // Store a new message in the front of the queue
+}
 
 std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()
 {
@@ -39,9 +49,4 @@ const char* log::to_string(log::Verbosity _verbosity)
 void log::flush()
 {
     std::cout << std::flush;
-}
-
-const std::deque<log::Message>& log::get_messages()
-{
-    return s_logs;
 }

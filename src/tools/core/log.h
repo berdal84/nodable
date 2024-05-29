@@ -69,14 +69,16 @@ namespace tools
 
         struct Message
         {
+            using clock_t = std::chrono::time_point<std::chrono::system_clock>;
+
             tools::string256 text{};
-            tools::string32  category{};      // short category name (ex: "Game", "App", etc.)
-            std::chrono::time_point<std::chrono::system_clock>
-                          date = std::chrono::system_clock::now();
-            Verbosity     verbosity=Verbosity_DEFAULT; // verbosity level
+            tools::string32  category{}; // short category name (ex: "Game", "App", etc.)
+            clock_t          date{std::chrono::system_clock::now()};
+            Verbosity        verbosity{Verbosity_DEFAULT}; // verbosity level
         };
 
-        static const std::deque<Message>& get_messages(); // Get message history
+        static std::deque<Message>& get_logs();
+
 	    static void           set_verbosity(const std::string& _category, Verbosity _level) // Set verbosity level for a given category
         { get_verbosity_by_category().insert_or_assign(_category, _level ); }
 
@@ -97,7 +99,7 @@ namespace tools
 
             if (_verbosity <= get_verbosity(_category) )
             {
-                Message& message = s_logs.emplace_front(); // Store a new message in the front of the queue
+                Message& message = create_message();
                 message.verbosity = _verbosity;
                 message.category  = _category;
                 message.text.append_fmt("[%s|%s|%s] " // Append a formatted prefix with time, verbosity level and category
@@ -121,13 +123,13 @@ namespace tools
                 // Constraint the queue to have a limited size
                 constexpr size_t max_count = 5000; // a Message is 512 bytes
                 constexpr size_t min_count = 4000; //
-                if (s_logs.size() > max_count ) s_logs.resize(min_count);
+                if (get_logs().size() > max_count ) get_logs().resize(min_count);
             }
 
         }
 
     private:
-        static std::deque<Message>  s_logs;      // message history
+        static Message&             create_message();
         static Verbosity            s_verbosity; // global verbosity level
         static std::map<std::string, Verbosity>& get_verbosity_by_category();
     };

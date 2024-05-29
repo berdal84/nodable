@@ -369,9 +369,9 @@ void AppView::begin_draw()
         // Status Window
         if ( ImGui::Begin( k_status_window_name ) )
         {
-            if ( !log::get_messages().empty() )
+            if ( !log::get_logs().empty() )
             {
-                const std::deque<log::Message>& messages = log::get_messages();
+                const std::deque<log::Message>& messages = log::get_logs();
                 auto it = messages.rend() - std::min( cfg->log_tooltip_max_count, messages.size() );
                 while ( it != messages.rend() )
                 {

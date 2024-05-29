@@ -19,7 +19,7 @@ TEST(MemoryManager, get_memory_stats )
     shutdown_memory_manager();
 }
 
-void new_delete(size_t size_to_allocate);
+void new_delete(size_t SIZE );
 
 TEST(MemoryManager, new_delete_0char )
 {
@@ -31,7 +31,7 @@ TEST(MemoryManager, new_delete_1char_and_more )
     new_delete(4096);
 }
 
-void new_delete(const size_t size_to_allocate)
+void new_delete(const size_t SIZE )
 {
     init_memory_manager();
     const MemoryStats* stats = get_memory_stats();
@@ -39,12 +39,12 @@ void new_delete(const size_t size_to_allocate)
     size_t initial_memory_usage = stats->mem_usage();
     size_t initial_alloc_count = stats->alloc_count();
 
-    char* ptr = new char[size_to_allocate];
+    char* ptr = new char[SIZE];
 
     size_t after_new_memory_usage = stats->mem_usage();
     size_t after_new_alloc_count = stats->alloc_count();
-    size_t expected_alloc_count = size_to_allocate == 0 ? 0 : 1; // no alloc for char[0]
-    size_t expected_alloc_size = size_to_allocate == 0 ? 0 : size_to_allocate; // same
+    size_t expected_alloc_count = SIZE == 0 ? 0 : 1; // MemoryManager won't allocate 0 bytes, it returns nullptr
+    size_t expected_alloc_size = SIZE == 0 ? 0 : SIZE; // same
     EXPECT_EQ( after_new_alloc_count, initial_alloc_count + expected_alloc_count);
     EXPECT_EQ( after_new_memory_usage, initial_memory_usage + expected_alloc_size );
 
