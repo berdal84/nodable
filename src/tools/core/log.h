@@ -59,7 +59,11 @@ namespace tools
             Verbosity_Message,
             Verbosity_Verbose,
             Verbosity_COUNT,
+#ifdef TOOLS_DEBUG
+            Verbosity_DEFAULT = Verbosity_Verbose
+#else
             Verbosity_DEFAULT = Verbosity_Message
+#endif
         };
         static const char* to_string(Verbosity _verbosity);
 
