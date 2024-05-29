@@ -1,6 +1,7 @@
 #include "MemoryManager.h"
 
-#include "tools/core/reflection/reflection.h"
+#include "tools/core/log.h"
+#include "tools/core/assertions.h"
 #include <cassert>
 #include <cstdio>
 
