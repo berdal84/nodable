@@ -145,7 +145,7 @@ ndbl::Config::Config(tools::Config* tools_cfg)
     // NodableView
     tools_cfg->dockspace_right_ratio       = 0.25f;
     tools_cfg->dockspace_top_size          = 36.f;
-    tools_cfg->dockspace_bottom_size       = 100.f;
+    tools_cfg->dockspace_bottom_size       = 110.f;
 
     const char *k_paragraph = "Paragraph";
     const char *k_heading   = "Heading 1";

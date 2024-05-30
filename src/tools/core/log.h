@@ -61,13 +61,15 @@ namespace tools
 #endif
 
         // Different verbosity levels a message can have
-        enum Verbosity: size_t
+        typedef int Verbosity;
+        enum Verbosity_: int
         {
-            Verbosity_Error,          // highest level (always logged)
+            Verbosity_Error, // lowest level (always logged)
             Verbosity_Warning,
             Verbosity_Message,
-            Verbosity_Verbose,
+            Verbosity_Verbose, // highest level (rarely logged)
             Verbosity_COUNT,
+
 #ifdef TOOLS_DEBUG
             Verbosity_DEFAULT = Verbosity_Verbose
 #else
@@ -122,26 +124,23 @@ namespace tools
     template<typename...Args>
     void log::push_message(Verbosity _verbosity, const char* _category, const char* _format, Args... args)
     {
-        // Print log only if verbosity level allows it
+        // create a message like "[time|verbosity|category] message"
+        Message message;
+        message.verbosity = _verbosity;
+        message.category = _category;
+        // text prefix
+        message.text.append_fmt(
+                "[%s|%s|%s] ",
+                format::time_point_to_string(message.date).c_str(),
+                log::to_string(_verbosity),
+                _category
+                );
+        // text body
+        message.text.append_fmt(_format, args...);
 
-        if (_verbosity <= get_verbosity(_category) )
+        // print if allowed
+        if ( message.verbosity <= s_verbosity )
         {
-            // create a message like "[time|verbosity|category] message"
-
-            Message message;
-            message.verbosity = _verbosity;
-            message.category = _category;
-            // text prefix
-            message.text.append_fmt(
-                    "[%s|%s|%s] ",
-                    format::time_point_to_string(message.date).c_str(),
-                    log::to_string(_verbosity),
-                    _category
-                    );
-
-            // text body
-            message.text.append_fmt(_format, args...);
-
             // Select the appropriate color depending on the verbosity
             switch (_verbosity)
             {
@@ -155,12 +154,12 @@ namespace tools
 
             // add to logs
             get_messages().emplace_front(message);
+        }
 
-            // Constraint the queue to have a limited size
-            if ( get_messages().size() > MESSAGE_MAX_COUNT )
-            {
-                get_messages().resize( MESSAGE_MAX_COUNT / 2 );
-            }
+        // Constraint the queue to have a limited size
+        if ( get_messages().size() > MESSAGE_MAX_COUNT )
+        {
+            get_messages().resize( MESSAGE_MAX_COUNT / 2 );
         }
     }
 

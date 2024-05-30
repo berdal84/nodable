@@ -16,7 +16,7 @@
 
 using namespace tools;
 
-constexpr const char* k_status_window_name = "Messages";
+constexpr const char* k_status_window_name = "Status Bar";
 
 AppView::AppView( BaseApp* _app)
     : m_app(_app)
@@ -367,17 +367,63 @@ void AppView::begin_draw()
         ImGui::DockSpace( get_dockspace( Dockspace_ROOT ) );
 
         // Status Window
-        if ( ImGui::Begin( k_status_window_name ) )
+        log::MessageDeque& messages = log::get_messages();
+        if ( ImGui::Begin( k_status_window_name ) && !messages.empty())
         {
-            log::MessageDeque& messages = log::get_messages();
-            if ( messages.empty() == false)
+            const float line_height = ImGui::GetTextLineHeightWithSpacing();
+            static int verbosity_filter = -1; // all
+
+
+            if ( ImGui::BeginChild("filters", ImVec2(-1, line_height * 1.2f )) )
             {
-                u32_t message_to_display_count = std::min(messages.size(), cfg->log_message_display_max_count);
-                auto it = messages.rend() - message_to_display_count;
-                while ( it != messages.rend() )
+                ImGui::BeginGroup();
+                ImGui::Text("Filter:"); ImGui::SameLine();
+                if ( ImGui::RadioButton("All", verbosity_filter == -1 ) )
+                    verbosity_filter = -1; ImGui::SameLine();
+                if ( ImGui::RadioButton("Debug", verbosity_filter == log::Verbosity_Verbose ) )
+                    verbosity_filter = log::Verbosity_Verbose; ImGui::SameLine();
+                if ( ImGui::RadioButton("Messages", verbosity_filter == log::Verbosity_Message ) )
+                    verbosity_filter = log::Verbosity_Message; ImGui::SameLine();
+                if ( ImGui::RadioButton("Warnings", verbosity_filter == log::Verbosity_Warning ) )
+                    verbosity_filter = log::Verbosity_Warning; ImGui::SameLine();
+                if ( ImGui::RadioButton("Errors", verbosity_filter == log::Verbosity_Error ) )
+                    verbosity_filter = log::Verbosity_Error; ImGui::SameLine();
+                ImGui::EndGroup();
+            }
+            ImGui::EndChild();
+
+            if ( ImGui::BeginChild("messages") )
+            {
+                u32_t message_to_display_count = std::min( messages.size(), cfg->log_message_display_max_count );
+                auto it = messages.rbegin();
+                size_t message_processed_count = 0;
+                size_t message_displayed_count = 0;
+
+                while ( message_displayed_count < message_to_display_count && it != messages.rend() )
                 {
-                    ImGui::TextColored(cfg->log_color[it->verbosity], "%s", it->text.c_str() );
+                    if ( it->verbosity <= verbosity_filter || verbosity_filter == -1 )
+                    {
+                        ImRect line_rect{ ImGui::GetCursorScreenPos(), ImGui::GetCursorScreenPos() };
+                        line_rect.Max.y += line_height;
+                        line_rect.Max.x += 100.0f;
+
+                        if ( ImGui::IsRectVisible( line_rect.Min, line_rect.Max ) )// draw only when line is visible to optimize rendering
+                        {
+                            ImGui::TextColored( cfg->log_color[it->verbosity], "%s", it->text.c_str() );
+                            ++message_displayed_count;
+                        }
+                        else
+                        {
+                            ImGui::NewLine();
+                        }
+                    }
+                    ++message_processed_count;
                     ++it;
+                }
+
+                if ( message_displayed_count == 0 )
+                {
+                    ImGui::Text( "Nothing here..." );
                 }
 
                 if ( !ImGui::IsWindowHovered() )
@@ -385,6 +431,7 @@ void AppView::begin_draw()
                     ImGui::SetScrollHereY();
                 }
             }
+            ImGui::EndChild();
         }
         ImGui::End();// Status Window
     }

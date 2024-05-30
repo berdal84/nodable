@@ -28,7 +28,7 @@ namespace tools
         const char*           splashscreen_window_label= "##Splashscreen";
         bool                  show_splashscreen_default = true;
         bool                  imgui_demo               = false;
-        float                 dockspace_bottom_size    = 48.f;
+        float                 dockspace_bottom_size    = 60.f;
         float                 dockspace_top_size       = 48.f;
         float                 dockspace_right_ratio    = 0.3f;
         size_t                log_message_display_max_count = 500;
