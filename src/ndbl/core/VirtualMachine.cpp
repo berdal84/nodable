@@ -250,9 +250,9 @@ bool VirtualMachine::_stepOver()
             }
 
             // evaluate Invokable Component, could be an operator or a function
-            if( InvokableComponent* invokable = node->get_component<InvokableComponent>().get() )
+            if( auto* invokable = node->get_component<InvokableComponent>().get() )
             {
-                invokable->update();
+                invokable->invoke();
             }
 
             node->dirty = false;

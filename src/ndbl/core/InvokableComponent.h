@@ -19,17 +19,17 @@ namespace ndbl
     {
 	public:
         InvokableComponent();
-		InvokableComponent(const tools::func_type*, bool _is_operator, const tools::iinvokable*);
+		InvokableComponent(const tools::func_type*, bool _is_operator, const tools::IInvokable*);
 		~InvokableComponent() = default;
         InvokableComponent(InvokableComponent&&) = default;
         InvokableComponent& operator=(InvokableComponent&&) = default;
 
         Token token;
-        bool                        update();
+        void                        invoke();
 		void                        bind_arg(size_t _index, SlotRef);
         const std::vector<SlotRef>& get_arguments() const;
 		const tools::func_type*     get_func_type()const { return m_signature; }
-		const tools::iinvokable*    get_function()const { return m_invokable; }
+		const tools::IInvokable*    get_function()const { return m_invokable; }
         void                        bind_result(SlotRef);
         bool                        has_function() const { return m_invokable; };
 		bool                        is_operator()const { return m_is_operator; };
@@ -38,7 +38,7 @@ namespace ndbl
         SlotRef                    m_result_slot;
         std::vector<SlotRef>       m_argument_slot;
         const tools::func_type*    m_signature;
-        const tools::iinvokable*   m_invokable;
+        const tools::IInvokable*   m_invokable;
         bool                       m_is_operator;
 
         REFLECT_DERIVED_CLASS()

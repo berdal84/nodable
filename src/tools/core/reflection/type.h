@@ -13,8 +13,8 @@
 namespace tools
 {
     // forward declarations
-    class iinvokable;
-    class iinvokable_nonstatic;
+    class IInvokable;
+    class IInvokableMethod;
 
     /** Empty structure to act like any type, @related tools::variant class */
     struct any_t{};
@@ -81,15 +81,15 @@ namespace tools
         bool                      equals(const type* other) const { return equals(this, other); }
         void                      add_parent(id_t _parent);
         void                      add_child(id_t _child);
-        void                      add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable);
-        void                      add_method(const std::string& _name, std::shared_ptr<iinvokable_nonstatic> _invokable);
-        const std::unordered_set<std::shared_ptr<iinvokable>>&
+        void                      add_static(const std::string& _name, std::shared_ptr<IInvokable> _invokable);
+        void                      add_method(const std::string& _name, std::shared_ptr<IInvokableMethod> _invokable);
+        const std::unordered_set<std::shared_ptr<IInvokable>>&
                                   get_static_methods()const { return m_static_methods; }
-        const std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>&
+        const std::unordered_set<std::shared_ptr<IInvokableMethod>>&
                                   get_methods()const { return m_methods; }
-        std::shared_ptr<iinvokable>
+        std::shared_ptr<IInvokable>
                                   get_static(const std::string& _name) const;
-        std::shared_ptr<iinvokable_nonstatic>
+        std::shared_ptr<IInvokableMethod>
                                   get_method(const std::string& _name) const;
         template<class T>
         inline bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
@@ -152,10 +152,10 @@ namespace tools
         const id_t m_id;           // ex: T**, T*
         std::unordered_set<id_t> m_parents;
         std::unordered_set<id_t> m_children;
-        std::unordered_set<std::shared_ptr<iinvokable>>                        m_static_methods;
-        std::unordered_map<std::string, std::shared_ptr<iinvokable>>           m_static_methods_by_name;
-        std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>              m_methods;
-        std::unordered_map<std::string, std::shared_ptr<iinvokable_nonstatic>> m_methods_by_name;
+        std::unordered_set<std::shared_ptr<IInvokable>>                    m_static_methods;
+        std::unordered_map<std::string, std::shared_ptr<IInvokable>>       m_static_methods_by_name;
+        std::unordered_set<std::shared_ptr<IInvokableMethod>>              m_methods;
+        std::unordered_map<std::string, std::shared_ptr<IInvokableMethod>> m_methods_by_name;
     };
 
     template<typename T>

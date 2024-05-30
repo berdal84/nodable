@@ -67,7 +67,7 @@ size_t Node::adjacent_slot_count(SlotFlags _flags )const
     return filter_adjacent_slots( _flags ).size();
 }
 
-const iinvokable* Node::get_connected_invokable(const char* property_name) const
+const IInvokable* Node::get_connected_invokable(const char* property_name) const
 {
     const Slot&   slot          = *find_slot_by_property_name( property_name, SlotFlag_INPUT );
     const SlotRef adjacent_slot = slot.first_adjacent();

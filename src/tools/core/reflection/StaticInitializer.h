@@ -1,14 +1,14 @@
 #pragma once
-#include <vector>
-#include "type_register.h"
-#include "type.h"
+#include "Invokable.h"
 #include "func_type.h"
-#include "invokable.h"
+#include "type.h"
+#include "type_register.h"
+#include <vector>
 
 namespace tools
 {
     template<typename T>
-    class invokable_static;
+    class InvokableStaticFunction;
 
     template<typename T>
     struct StaticInitializer
@@ -27,12 +27,12 @@ namespace tools
         {
             static_assert(is_class_v);
             {
-                auto invokable_ = std::make_shared<invokable_static<F>>(_function, _name);
+                auto invokable_ = std::make_shared<InvokableStaticFunction<F>>(_function, _name);
                 m_type->add_static(_name, invokable_);
             }
             if(_alt_name[0] != '\0')
             {
-                auto invokable_ = std::make_shared<invokable_static<F>>(_function, _alt_name);
+                auto invokable_ = std::make_shared<InvokableStaticFunction<F>>(_function, _alt_name);
                 m_type->add_static(_alt_name, invokable_ );
             }
             return *this;
@@ -44,7 +44,7 @@ namespace tools
             static_assert(is_class_v);
             using F = R(C::*)(Ts...);
             {
-                auto invokable_ = std::make_shared<invokable_nonstatic<F> >(_function, _name);
+                auto invokable_ = std::make_shared<InvokableMethod<F> >(_function, _name);
                 m_type->add_method(_name, invokable_);
             }
             return *this;

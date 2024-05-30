@@ -26,7 +26,7 @@ namespace ndbl
 
             void          clear();
             bool          compile();
-            void quit();
+            void          quit();
             void          help();
             bool          parse();
             bool          run();

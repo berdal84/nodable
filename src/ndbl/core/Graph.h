@@ -70,9 +70,9 @@ namespace ndbl
         template<typename T>
         PoolID<LiteralNode>             create_literal() { return create_literal( tools::type::get<T>()); }
         PoolID<Node>                    create_abstract_function(const tools::func_type *_invokable, bool _is_operator = false); // Create and append a new abstract (without known implementation)  function of a given type.
-        PoolID<Node>                    create_function(const tools::iinvokable *_invokable, bool _is_operator = false);
+        PoolID<Node>                    create_function(const tools::IInvokable*_invokable, bool _is_operator = false);
         PoolID<Node>                    create_abstract_operator(const tools::func_type *_invokable);  // Create a new abstract (without known implementation) operator.
-        PoolID<Node>                    create_operator(const tools::iinvokable *_invokable);
+        PoolID<Node>                    create_operator(const tools::IInvokable*_invokable);
         PoolID<Node>                    create_scope();
         PoolID<IfNode>                  create_cond_struct();
         PoolID<ForLoopNode>             create_for_loop();

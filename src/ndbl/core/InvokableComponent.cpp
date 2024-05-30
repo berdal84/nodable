@@ -21,7 +21,7 @@ InvokableComponent::InvokableComponent()
     , m_is_operator( false )
 {}
 
-InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_operator, const iinvokable* _invokable)
+InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_operator, const IInvokable* _invokable)
     : Component()
     , m_signature( _signature )
     , m_invokable( nullptr)
@@ -33,49 +33,46 @@ InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_ope
     m_argument_slot.resize(_signature->get_arg_count());
 }
 
-bool InvokableComponent::update()
+void InvokableComponent::invoke()
 {
     if( !m_invokable )
     {
-        return true;
+        return;
     }
 
-    try
+    // 1) prepare arguments to call the invokable with.
+    //
+    // Some properties do not reference anything, in such case we get their value as-is,
+    // but some properties are referencing a property (like when a variable is connected to an operator), in this case we get the referenced property's value.
+    //
+    std::vector<variant*> args;
+    args.reserve(m_argument_slot.size());
+    for(auto& slot: m_argument_slot )
     {
-        // Gather the variants from argument slots
-        // TODO: consider removing this dynamic allocation
-        //       we could simply dereference each Property within invoke()
-        std::vector<variant*> variants;
-        for(auto& slot: m_argument_slot )
+        Property* property = slot->get_property();
+        Slot*     adjacent = slot->first_adjacent().get();
+        if ( adjacent != nullptr && property->is_ref() )
         {
-            Property* property = slot->get_property();
-            Slot*     adjacent = slot->first_adjacent().get();
-            if ( !property->is_ref() || adjacent == nullptr )
-            {
-                variants.push_back( property->value() );
-            }
-            else
-            {
-                variants.push_back( adjacent->get_property()->value() );
-            }
+            property = adjacent->get_property();
         }
-        ASSERT( m_argument_slot.size() == variants.size())
-        variant result = m_invokable->invoke( variants );
-         m_result_slot->get_property()->set( result);
-        for( auto* variant : variants ) variant->flag_defined(true);
+        args.emplace_back( property->value() );
     }
-    catch (std::exception& err)
+
+    // 2) call the invokable with the arguments
+    variant result_value = m_invokable->invoke( args );
+
+    // 3) copy the result_value to the property's result slot
+    m_result_slot->get_property()->set( result_value );
+
+    // WIP: we temporarily set all the arguments to "defined", this is a hack to deal with lvalue references.
+    //      Ex:  calling T& operator=(T& lvalue, const T& rvalue) might modify lvalue.
+    //
+    // TODO: flag_defined() only when argument is non-const
+    //
+    for( auto* variant : args )
     {
-        LOG_ERROR("InvokableComponent", "Exception thrown updating \"%s\" Component"
-                                        " while updating Node \"%s\"."
-                                        " Reason: %s\n",
-                                        get_type()->get_name(),
-                                        m_owner->name.c_str(),
-                                        err.what()
-                                        )
-        return false;
+        variant->flag_defined(true);
     }
-    return true;
 }
 
 void InvokableComponent::bind_result(SlotRef slot)

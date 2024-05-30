@@ -130,7 +130,7 @@ PoolID<Node> NodeFactory::_create_abstract_func(const func_type* _func_type, boo
     return node;
 }
 
-PoolID<Node> NodeFactory::create_func(const iinvokable* _function, bool _is_operator) const
+PoolID<Node> NodeFactory::create_func(const IInvokable* _function, bool _is_operator) const
 {
     // Create an abstract function node
     const func_type* type = _function->get_type();
@@ -140,7 +140,7 @@ PoolID<Node> NodeFactory::create_func(const iinvokable* _function, bool _is_oper
     return node;
 }
 
-void NodeFactory::add_invokable_component(PoolID<Node> _node, const func_type* _func_type, const iinvokable *_invokable, bool _is_operator) const
+void NodeFactory::add_invokable_component(PoolID<Node> _node, const func_type* _func_type, const IInvokable*_invokable, bool _is_operator) const
 {
     // Create an InvokableComponent with the function.
     PoolID<InvokableComponent> component = create<InvokableComponent>(_func_type, _is_operator, _invokable);

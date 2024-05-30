@@ -59,7 +59,7 @@ void CLI::update()
     {
         try
         {
-            variant result = static_fct->invoke();
+            variant result = static_fct->invoke({});
             log_function_call(result, static_fct->get_type());
         }
         catch (std::runtime_error& e )
@@ -75,7 +75,9 @@ void CLI::update()
         try
         {
             // then we invoke it
-            variant result = method->invoke((void*)this);
+            method->bind(this);
+            variant result = method->invoke({});
+            method->unbind();
             log_function_call(result, method->get_type());
         }
         catch (std::runtime_error& e )
@@ -160,7 +162,7 @@ void CLI::PublicApi::set_verbose()
 
 int CLI::PublicApi::print_program()
 {
-    std::string source_code = m_cli->get_source_code();
+    std::string source_code = m_cli->get_source_code(); // TODO: crash here because the reflection system does not handle virtuals?
     if( source_code.empty() )
     {
         return printf("The current program is empty.\n");
@@ -183,12 +185,12 @@ void CLI::PublicApi::help()
 
     const type* public_api_type = type::get<std::remove_pointer_t<typeof(this)>>();
 
-    for ( auto static_method_type : public_api_type->get_static_methods() )
+    for ( const auto& static_method_type : public_api_type->get_static_methods() )
     {
         command_names.push_back(static_method_type->get_type()->get_identifier() + " (static)" );
     }
 
-    for ( auto method_type : public_api_type->get_methods() )
+    for ( const auto& method_type : public_api_type->get_methods() )
     {
         command_names.push_back(method_type->get_type()->get_identifier());
     }
@@ -196,7 +198,7 @@ void CLI::PublicApi::help()
     std::sort(command_names.begin(), command_names.end());
 
     std::cout << "Command list:" << std::endl;
-    for ( auto each : command_names )
+    for ( const auto& each : command_names )
     {
         std::cout << "  o " << each << std::endl;
     }

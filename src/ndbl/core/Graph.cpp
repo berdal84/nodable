@@ -128,7 +128,7 @@ PoolID<Node> Graph::create_abstract_function(const func_type* _invokable, bool _
     return node;
 }
 
-PoolID<Node> Graph::create_function(const iinvokable* _invokable, bool _is_operator)
+PoolID<Node> Graph::create_function(const IInvokable* _invokable, bool _is_operator)
 {
     PoolID<Node> node = m_factory->create_func(_invokable, _is_operator);
     add(node);
@@ -140,7 +140,7 @@ PoolID<Node> Graph::create_abstract_operator(const func_type* _invokable)
     return create_abstract_function(_invokable, true);
 }
 
-PoolID<Node> Graph::create_operator(const iinvokable* _invokable)
+PoolID<Node> Graph::create_operator(const IInvokable* _invokable)
 {
 	return create_function(_invokable, true);
 }

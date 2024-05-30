@@ -37,8 +37,8 @@ namespace ndbl{
     {
 	public:
         using operators_vec = std::vector<const tools::Operator*>;
-        using invokable_ptr = std::shared_ptr<const tools::iinvokable>;
-        using Invokable_vec = std::vector<std::shared_ptr<const tools::iinvokable>>;
+        using invokable_ptr = std::shared_ptr<const tools::IInvokable>;
+        using Invokable_vec = std::vector<std::shared_ptr<const tools::IInvokable>>;
 
         explicit Nodlang(bool _strict = false);
 		~Nodlang();
@@ -137,8 +137,8 @@ namespace ndbl{
         std::string           to_string(const tools::type *) const;                       // Convert a type to string.
         std::string           to_string(Token_t)const;                                 // Convert a type to a token_t.
         const tools::type*       get_type(Token_t _token)const;                           // Get the type corresponding to a given token_t (must be a type keyword)
-        void                  add_function(std::shared_ptr<const tools::iinvokable>);     // Adds a new function (regular or operator's implementation).
-        int                   get_precedence(const tools::iinvokable*)const;              // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
+        void                  add_function(std::shared_ptr<const tools::IInvokable>);     // Adds a new function (regular or operator's implementation).
+        int                   get_precedence(const tools::IInvokable*)const;              // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
         template<typename T> void load_library(); // Instantiate a library from its type (uses reflection to get all its static methods).
     private:
@@ -154,7 +154,7 @@ namespace ndbl{
         operators_vec                                     m_operators;                // the allowed operators (!= implementations).
         Invokable_vec                                     m_operators_impl;           // operators' implementations.
         Invokable_vec                                     m_functions;                // all the functions (including operator's).
-        std::unordered_map<tools::hash::hash_t , std::shared_ptr<const tools::iinvokable>> m_functions_by_signature; // Functions indexed by signature hash
+        std::unordered_map<tools::hash::hash_t , std::shared_ptr<const tools::IInvokable>> m_functions_by_signature; // Functions indexed by signature hash
         std::unordered_map<Token_t, char>                 m_single_char_by_keyword;
         std::unordered_map<Token_t, const char*>          m_keyword_by_token_t;       // token_t to string (ex: Token_t::keyword_double => "double").
         std::unordered_map<tools::type::id_t, const char*>   m_keyword_by_type_id;

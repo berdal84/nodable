@@ -109,7 +109,7 @@ namespace ndbl
         const Property*      get_prop_at(ID<Property>) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        const tools::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
+        const tools::IInvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
         bool                 has_input_connected( const ID<Property>& ) const;
 
         template<typename ValueT>

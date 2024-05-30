@@ -1,7 +1,7 @@
-#include "reflection"
-#include <stdexcept>   // std::runtime_error
 #include "type.h"
-#include "invokable.h"
+#include "Invokable.h"
+#include "reflection"
+#include <stdexcept>// std::runtime_error
 
 using namespace tools;
 
@@ -133,19 +133,19 @@ void type::add_child(id_t _child)
     m_flags |= Flags_HAS_CHILD;
 }
 
-void type::add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable)
+void type::add_static(const std::string& _name, std::shared_ptr<IInvokable> _invokable)
 {
     m_static_methods.insert(_invokable);
     m_static_methods_by_name.insert({_name, _invokable});
 }
 
-void type::add_method(const std::string &_name, std::shared_ptr<iinvokable_nonstatic> _invokable)
+void type::add_method(const std::string &_name, std::shared_ptr<IInvokableMethod> _invokable)
 {
     m_methods.insert(_invokable);
     m_methods_by_name.insert({_name, _invokable});
 }
 
-std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name) const
+std::shared_ptr<IInvokableMethod> type::get_method(const std::string& _name) const
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )
@@ -155,7 +155,7 @@ std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
     return nullptr;
 }
 
-std::shared_ptr<iinvokable> type::get_static(const std::string& _name)const
+std::shared_ptr<IInvokable> type::get_static(const std::string& _name)const
 {
     auto found = m_static_methods_by_name.find(_name);
     if( found != m_static_methods_by_name.end() )
