@@ -299,14 +299,17 @@ bool GraphView::onDraw()
     }
 
 	// Decides whether contextual menu should be opened.
-    if ( drop_behavior_requires_a_new_node || (enable_edition && !is_any_node_hovered && ImGui::IsMouseClicked(1) ) )
+    bool right_click_on_bg = enable_edition && !is_any_node_hovered && ImGui::IsMouseClicked(1);
+    if ( (drop_behavior_requires_a_new_node || right_click_on_bg) &&
+         !ImGui::IsPopupOpen( k_context_menu_popup )
+         )
     {
-        if ( !ImGui::IsPopupOpen( k_context_menu_popup ) )
+        if ( ImGui::IsWindowHovered() )
         {
             ImGui::OpenPopup( k_context_menu_popup );
-            m_create_node_context_menu.reset_state( SlotView::get_dragged() );
-            SlotView::reset_dragged();
         }
+        m_create_node_context_menu.reset_state( SlotView::get_dragged() );
+        SlotView::reset_dragged();
     }
 
     // Defines contextual menu popup (not rendered if popup is closed)
