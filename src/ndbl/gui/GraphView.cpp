@@ -313,7 +313,7 @@ bool GraphView::onDraw()
 	if ( ImGui::BeginPopup(k_context_menu_popup) )
     {
         // Title :
-        ImGuiEx::ColoredShadowedText( Vec2( 1, 1 ), Color( 0.00f, 0.00f, 0.00f, 1.00f ), Color( 1.00f, 1.00f, 1.00f, 0.50f ), "Create new node :" );
+        ImGuiEx::ColoredShadowedText( Vec2( 1, 1 ), Color( 0, 0, 0, 255 ), Color(255, 255, 255, 127 ), "Create new node :" );
         ImGui::Separator();
         /*
         *  In case user has created a new node we need to connect it to the graph depending
