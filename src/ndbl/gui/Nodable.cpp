@@ -36,51 +36,33 @@ void Nodable::init()
 
     BaseAppFlags flags = BaseAppFlag_SKIP_VIEW    // we want to init/shutdown manually
                        | BaseAppFlag_SKIP_CONFIG; // (same)
-    view = new NodableView(this);
-    BaseApp::init( view, flags );
+    m_view = new NodableView(this);
+    BaseApp::init( m_view, flags );
 
-    Config* cfg = init_config();
-    init_language();
-    init_virtual_machine();
-    init_node_factory();
-    view->init();
+    m_config = init_config();
+    m_language = init_language();
+    m_virtual_machine = init_virtual_machine();
+    m_node_factory = init_node_factory();
+    m_view->init();
 
-    get_node_factory()->override_post_process_fct( [cfg]( PoolID<Node> node ) -> void {
+    get_node_factory()->override_post_process_fct( [this]( PoolID<Node> node ) -> void {
         // Code executed after node instantiation
 
         // add a view with physics
-        auto* pool = get_pool_manager()->get_pool();
+        auto* pool = m_pool_manager->get_pool();
         PoolID<NodeView> new_view_id = pool->create<NodeView>();
         PoolID<Physics> physics_id = pool->create<Physics>( new_view_id );
         node->add_component( new_view_id );
         node->add_component( physics_id );
 
         // Set fill_color
-        Vec4* fill_color;
-        if ( extends<VariableNode>( node.get() ) )
-        {
-            fill_color = &cfg->ui_node_variableColor;
-        }
-        else if ( node->has_component<InvokableComponent>() )
-        {
-            fill_color = &cfg->ui_node_invokableColor;
-        }
-        else if ( node->is_instruction() )
-        {
-            fill_color = &cfg->ui_node_instructionColor;
-        }
-        else if ( extends<LiteralNode>( node.get() ) )
-        {
-            fill_color = &cfg->ui_node_literalColor;
-        }
-        else if ( extends<IConditional>( node.get() ) )
-        {
-            fill_color = &cfg->ui_node_condStructColor;
-        }
-        else
-        {
-            fill_color = &cfg->ui_node_fillColor;
-        }
+        Vec4* fill_color = &m_config->ui_node_fillColor;
+             if ( extends<VariableNode>( node.get() ) )       fill_color = &m_config->ui_node_variableColor;
+        else if ( node->has_component<InvokableComponent>() ) fill_color = &m_config->ui_node_invokableColor;
+        else if ( node->is_instruction() )                    fill_color = &m_config->ui_node_instructionColor;
+        else if ( extends<LiteralNode>( node.get() ) )        fill_color = &m_config->ui_node_literalColor;
+        else if ( extends<IConditional>( node.get() ) )       fill_color = &m_config->ui_node_condStructColor;
+
         new_view_id->set_color( fill_color );
     });
 
@@ -92,21 +74,20 @@ void Nodable::update()
     BaseApp::update();
 
     LOG_VERBOSE("ndbl::App", "update ...\n");
-    Config* cfg = get_config();
 
     // 1. Update current file
-    if (current_file && !get_virtual_machine()->is_program_running())
+    if (current_file && !m_virtual_machine->is_program_running())
     {
         //
         // When history is dirty we update the graph from the text.
         // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if ( current_file->history.is_dirty && !cfg->experimental_hybrid_history )
+        if ( current_file->history.is_dirty && !m_config->experimental_hybrid_history )
         {
-            current_file->update_graph_from_text( cfg->isolation);
+            current_file->update_graph_from_text( m_config->isolation);
             current_file->history.is_dirty = false;
         }
         // Run the main update loop for the file
-        current_file->update( cfg->isolation );
+        current_file->update( m_config->isolation );
     }
 
     // 2. Handle events
@@ -117,16 +98,16 @@ void Nodable::update()
     History*   curr_file_history   = current_file ? &current_file->history : nullptr;
 
     IEvent* event = nullptr;
-    while( (event = view->event_manager.poll_event()) )
+    while( (event = m_view->event_manager.poll_event()) )
     {
         switch ( event->id )
         {
             case EventID_TOGGLE_ISOLATION_FLAGS:
             {
-                cfg->isolation = ~cfg->isolation;
+                m_config->isolation = ~m_config->isolation;
                 if(current_file)
                 {
-                    current_file->update_graph_from_text( cfg->isolation );
+                    current_file->update_graph_from_text( m_config->isolation );
                 }
                 break;
             }
@@ -157,7 +138,7 @@ void Nodable::update()
             case EventID_FILE_BROWSE:
             {
                 std::string path;
-                if( view->pick_file_path(path, AppView::DIALOG_Browse))
+                if( m_view->pick_file_path(path, AppView::DIALOG_Browse))
                 {
                     open_file(path);
                     break;
@@ -175,14 +156,11 @@ void Nodable::update()
 
             case EventID_FILE_SAVE_AS:
             {
-                if (current_file)
+                if (!current_file) break;
+                std::string path;
+                if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
                 {
-                    std::string path;
-                    if( view->pick_file_path(path, AppView::DIALOG_SaveAs))
-                    {
-                        save_file_as(path);
-                        break;
-                    }
+                    save_file_as(path);
                 }
                 break;
             }
@@ -197,7 +175,7 @@ void Nodable::update()
                 else
                 {
                     std::string path;
-                    if( view->pick_file_path(path, AppView::DIALOG_SaveAs))
+                    if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
                     {
                         save_file_as(path);
                     }
@@ -210,7 +188,7 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_ShowWindow*>(event);
                 if ( _event->data.window_id == "splashscreen" )
                 {
-                    view->show_splashscreen = _event->data.visible;
+                    m_view->show_splashscreen = _event->data.visible;
                 }
                 break;
             }
@@ -358,7 +336,7 @@ void Nodable::update()
                 {
                     // Experimental: we try to connect a parent-less child
                     PoolID<Node> root = graph->get_root();
-                    if ( new_node_id != root && cfg->experimental_graph_autocompletion )
+                    if ( new_node_id != root && m_config->experimental_graph_autocompletion )
                     {
                         graph->connect(
                             *root->find_slot(SlotFlag_CHILD),
@@ -421,8 +399,8 @@ void Nodable::shutdown()
     shutdown_virtual_machine();
     shutdown_node_factory();
     shutdown_language();
-    view->shutdown();
-    delete view;
+    m_view->shutdown();
+    delete m_view;
 
     // Base class
     BaseApp::shutdown();
@@ -456,7 +434,7 @@ File*Nodable::add_file( File* _file)
     EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     current_file = _file;
-    view->event_manager.dispatch( EventID_FILE_OPENED );
+    m_view->event_manager.dispatch( EventID_FILE_OPENED );
     return _file;
 }
 
@@ -502,7 +480,7 @@ void Nodable::close_file( File* _file)
     }
 }
 
-bool Nodable::compile_and_load_program()
+bool Nodable::compile_and_load_program() const
 {
     if (!current_file || !current_file->graph)
     {
@@ -516,9 +494,8 @@ bool Nodable::compile_and_load_program()
         return false;
     }
 
-    VirtualMachine* virtual_machine = get_virtual_machine();
-    virtual_machine->release_program();
-    bool loaded = virtual_machine->load_program(asm_code);
+    m_virtual_machine->release_program();
+    bool loaded = m_virtual_machine->load_program(asm_code);
     return loaded;
 }
 
@@ -526,7 +503,7 @@ void Nodable::run_program()
 {
     if (compile_and_load_program() )
     {
-        get_virtual_machine()->run_program();
+        m_virtual_machine->run_program();
     }
 }
 
@@ -534,21 +511,20 @@ void Nodable::debug_program()
 {
     if (compile_and_load_program() )
     {
-        get_virtual_machine()->debug_program();
+        m_virtual_machine->debug_program();
     }
 }
 
 void Nodable::step_over_program()
 {
-    VirtualMachine* virtual_machine = get_virtual_machine();
-    virtual_machine->step_over();
-    if (!virtual_machine->is_there_a_next_instr() )
+    m_virtual_machine->step_over();
+    if (!m_virtual_machine->is_there_a_next_instr() )
     {
         NodeView::set_selected({});
         return;
     }
 
-    const Node* next_node = virtual_machine->get_next_node();
+    const Node* next_node = m_virtual_machine->get_next_node();
     if ( !next_node ) return;
 
     if( PoolID<NodeView> next_node_view = next_node->get_component<NodeView>() )
@@ -559,21 +535,19 @@ void Nodable::step_over_program()
 
 void Nodable::stop_program()
 {
-   get_virtual_machine()->stop_program();
+    m_virtual_machine->stop_program();
 }
 
 void Nodable::reset_program()
 {
     if(!current_file) return;
 
-    Config* cfg = get_config();
-    VirtualMachine* virtual_machine = get_virtual_machine();
-    if (virtual_machine->is_program_running() )
+    if (m_virtual_machine->is_program_running() )
     {
-        virtual_machine->stop_program();
+        m_virtual_machine->stop_program();
     }
 
-    current_file->update_graph_from_text( cfg->isolation );
+    current_file->update_graph_from_text( m_config->isolation );
 }
 
 File*Nodable::new_file()
@@ -587,4 +561,9 @@ File*Nodable::new_file()
     file->update_graph_from_text();
 
     return add_file(file);
+}
+
+NodableView* Nodable::get_view() const
+{
+    return reinterpret_cast<NodableView*>(m_view);
 }

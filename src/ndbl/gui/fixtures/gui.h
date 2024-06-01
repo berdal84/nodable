@@ -67,7 +67,7 @@ namespace testing
             {
                 create_directories(path.parent_path());
             }
-            app.view->save_screenshot(path);
+            app.get_view()->save_screenshot(path);
         }
     };
 }

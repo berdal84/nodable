@@ -33,13 +33,9 @@ namespace tools
         BaseApp() = default;
         virtual ~BaseApp() = default;
 
-    public:    bool should_stop  = false; // Set this field true to tell the application to stop its main loop the next frame
-    public:    AppView* view = nullptr; // non-owned ptr, user is responsible for it.
-    protected: PoolManager* pool_manager = nullptr;
-    protected: TaskManager* task_manager = nullptr;
-    protected: TextureManager* texture_manager = nullptr;
-
     public:
+        bool should_stop  = false; // Set this field true to tell the application to stop its main loop the next frame
+
         virtual void       init(AppView* _view) { init(_view, BaseAppFlag_DEFAULT); }
         virtual void       init(AppView*, BaseAppFlags);
         virtual void       shutdown();
@@ -50,7 +46,12 @@ namespace tools
         static fs_path     asset_path(const fs_path&); // get asset's absolute path (relative path will be converted)
         static fs_path     asset_path(const char*); // get asset's absolute path (relative path will be converted)
 
+    protected:
+        AppView*        m_view = nullptr; // non-owned ptr, user is responsible for it.
+        PoolManager*    m_pool_manager = nullptr;
+        TaskManager*    m_task_manager = nullptr;
+        TextureManager* m_texture_manager = nullptr;
     private:
-        BaseAppFlags       m_flags{};
+        BaseAppFlags    m_flags{};
     };
 }

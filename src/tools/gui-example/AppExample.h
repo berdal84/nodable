@@ -16,7 +16,7 @@ namespace tools
             LOG_MESSAGE("AppExample", "init() ...\n");
 
             BaseApp::init(new AppExampleView(this));
-            this->view->set_title("framework-example - (based on framework-gui library)");
+            this->m_view->set_title("framework-example - (based on framework-gui library)");
             //
             // Your code here
             //
@@ -43,7 +43,7 @@ namespace tools
         {
             LOG_MESSAGE("AppExample", "shutdown() ...\n");
             BaseApp::shutdown();
-            delete view;
+            delete m_view;
             //
             // Your code here
             //

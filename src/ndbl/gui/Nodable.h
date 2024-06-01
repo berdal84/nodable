@@ -6,24 +6,29 @@
 
 #include "tools/gui/BaseApp.h"
 
+#include "Config.h"
 #include "NodableView.h"
 #include "types.h"
 
 namespace ndbl
 {
+    class Nodlang;
+    class VirtualMachine;
+    class NodeFactory;
+
     class Nodable : public tools::BaseApp
     {
 	public:
         Nodable(): tools::BaseApp() {};
-        ~Nodable() {};
+        ~Nodable() override {};
 
         File*           current_file = nullptr;
 
         // Common
 
         void            init();
-        void            update();
-        void            shutdown();
+        void            update() override;
+        void            shutdown() override;
 
         // File related:
 
@@ -46,9 +51,15 @@ namespace ndbl
         void            step_over_program();
         void            stop_program();
         void            reset_program();
-        bool            compile_and_load_program();
+        bool            compile_and_load_program() const;
+
+        NodableView* get_view() const;
 
     private:
+        Config*            m_config { nullptr };
+        Nodlang*           m_language { nullptr };
+        VirtualMachine*    m_virtual_machine  { nullptr };
+        NodeFactory*       m_node_factory { nullptr };
         std::vector<File*> m_loaded_files;
         u8_t               m_untitled_file_count = 0;
     };

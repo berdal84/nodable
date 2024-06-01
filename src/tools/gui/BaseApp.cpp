@@ -20,15 +20,15 @@ void BaseApp::init(AppView* _view, BaseAppFlags _flags)
         init_config();
     }
 
-    pool_manager = init_pool_manager();
-    task_manager = init_task_manager();
-    texture_manager = init_texture_manager();
+    m_pool_manager = init_pool_manager();
+    m_task_manager = init_task_manager();
+    m_texture_manager = init_texture_manager();
 
     if ( ( m_flags & BaseAppFlag_SKIP_VIEW) == false )
     {
         EXPECT(_view != nullptr, "View can't be null unless BaseAppFlag_SKIP_VIEW flag is ON")
-        this->view = _view;
-        this->view->init();
+        this->m_view = _view;
+        this->m_view->init();
     }
 
     LOG_VERBOSE("tools::App", "init " OK "\n");
@@ -40,8 +40,8 @@ void BaseApp::shutdown()
 
     if ( (m_flags & BaseAppFlag_SKIP_VIEW ) == false )
     {
-        ASSERT(this->view != nullptr)
-        this->view->shutdown();
+        ASSERT(this->m_view != nullptr)
+        this->m_view->shutdown();
     }
 
     shutdown_texture_manager();
@@ -59,14 +59,14 @@ void BaseApp::shutdown()
 void BaseApp::update()
 {
     LOG_VERBOSE("tools::App", "update ...\n");
-    view->update();
-    task_manager->update();
+    m_view->update();
+    m_task_manager->update();
     LOG_VERBOSE("tools::App", "update " OK "\n");
 }
 
 void BaseApp::draw()
 {
-    view->draw();
+    m_view->draw();
 }
 
 double BaseApp::elapsed_time()
