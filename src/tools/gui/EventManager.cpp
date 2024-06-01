@@ -1,7 +1,7 @@
 #include "EventManager.h"
 
+#include "tools/core/TaskManager.h"
 #include "tools/core/assertions.h"
-#include "tools/core/async.h"
 #include "tools/core/log.h"
 #include "tools/core/reflection/type.h"
 
@@ -55,5 +55,5 @@ IEvent* EventManager::dispatch( EventID _event_id )
 
 void EventManager::dispatch_delayed(u64_t delay, IEvent* event)
 {
-    run_task( [=]() -> void { dispatch(event); }, delay );
+    get_task_manager()->run_task( [=]() -> void { dispatch(event); }, delay );
 }

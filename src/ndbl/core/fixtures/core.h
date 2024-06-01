@@ -72,7 +72,7 @@ public:
         app.run_program();
 
         // get result
-        return_t result = app.get_result_as<return_t>();
+        return_t result = app.get_last_result_as<return_t>();
 
         app.release_program();
 

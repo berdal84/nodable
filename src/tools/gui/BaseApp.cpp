@@ -3,7 +3,7 @@
 #include "AppView.h"
 #include "Config.h"
 #include "ImGuiEx.h"
-#include "tools/core/async.h"
+#include "tools/core/TaskManager.h"
 #include "tools/core/memory/memory.h"
 #include "tools/core/system.h"
 
@@ -20,9 +20,9 @@ void BaseApp::init(AppView* _view, BaseAppFlags _flags)
         init_config();
     }
 
-    init_pool_manager();
-    init_task_manager();
-    init_texture_manager();
+    pool_manager = init_pool_manager();
+    task_manager = init_task_manager();
+    texture_manager = init_texture_manager();
 
     if ( ( m_flags & BaseAppFlag_SKIP_VIEW) == false )
     {
@@ -59,8 +59,8 @@ void BaseApp::shutdown()
 void BaseApp::update()
 {
     LOG_VERBOSE("tools::App", "update ...\n");
-    this->view->update();
-    update_task_manager();
+    view->update();
+    task_manager->update();
     LOG_VERBOSE("tools::App", "update " OK "\n");
 }
 

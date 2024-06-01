@@ -14,7 +14,7 @@ namespace tools
         std::vector<Pool> pools{};
     };
 
+    [[nodiscard]] PoolManager* init_pool_manager(PoolManager::Config = {}); // Call this before to use get_pool_manager()
     PoolManager* get_pool_manager();
-    PoolManager* init_pool_manager(PoolManager::Config = {}); // Call this before to use.
-    void         shutdown_pool_manager(); // Undo init_task_manager()
+    void shutdown_pool_manager(); // Undo init_task_manager()
 }

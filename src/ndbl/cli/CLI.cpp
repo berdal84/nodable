@@ -3,7 +3,7 @@
 #include <iostream>
 
 #include "ndbl/core/language/Nodlang.h"
-#include "tools/core/async.h"
+#include "tools/core/TaskManager.h"
 #include "tools/core/reflection/reflection"
 
 using namespace ndbl;
@@ -36,7 +36,6 @@ void CLI::init()
 void CLI::shutdown()
 {
     // TODO: implement tools::registration::pop_class<CLI::PublicApi>
-    clear();
     NodableHeadless::shutdown();
     std::cout << "Good bye!" << std::endl;
 }
@@ -101,20 +100,13 @@ void CLI::clear()
     NodableHeadless::clear();
 }
 
-void CLI::log_function_call(const variant &result, const func_type *type) const
+void CLI::log_function_call(const variant &result, const func_type *type)
 {
     LOG_MESSAGE("CLI",
                 "CLI::%s() done (result: %s)\n",
                 type->get_identifier().c_str(),
                 result.is_defined() ? result.to<std::string>().c_str() : "void"
                 )
-}
-
-std::string CLI::get_word()
-{
-    std::string str;
-    std::cin >> str;
-    return str;
 }
 
 std::string CLI::get_line()
@@ -207,16 +199,6 @@ void CLI::PublicApi::help()
 void CLI::PublicApi::clear()
 {
 
-}
-
-std::string CLI::PublicApi::test_return_str()
-{
-    return (std::string) get_virtual_machine()->get_last_result();
-}
-
-std::string CLI::PublicApi::test_concat_str(std::string left, std::string right)
-{
-    return left + right;
 }
 
 bool CLI::run()

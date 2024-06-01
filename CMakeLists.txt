@@ -136,8 +136,8 @@ add_library(
     src/tools/core/Color.h
     src/tools/core/TIdentifier.h
     src/tools/core/assertions.h
-    src/tools/core/async.cpp
-    src/tools/core/async.h
+        src/tools/core/TaskManager.cpp
+        src/tools/core/TaskManager.h
     src/tools/core/format.cpp
     src/tools/core/format.h
     src/tools/core/geometry/Box2D.h

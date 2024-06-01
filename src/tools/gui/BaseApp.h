@@ -10,6 +10,10 @@
 
 namespace tools
 {
+    class PoolManager;
+    class TextureManager;
+    struct TaskManager;
+
     typedef int BaseAppFlags;
     enum BaseAppFlag_
     {
@@ -29,9 +33,13 @@ namespace tools
         BaseApp() = default;
         virtual ~BaseApp() = default;
 
-        bool               should_stop = false;   // Set this field true to tell the application to stop its main loop the next frame
-        AppView*           view        = nullptr; // non-owned ptr, user is responsible for it.
+    public:    bool should_stop  = false; // Set this field true to tell the application to stop its main loop the next frame
+    public:    AppView* view = nullptr; // non-owned ptr, user is responsible for it.
+    protected: PoolManager* pool_manager = nullptr;
+    protected: TaskManager* task_manager = nullptr;
+    protected: TextureManager* texture_manager = nullptr;
 
+    public:
         virtual void       init(AppView* _view) { init(_view, BaseAppFlag_DEFAULT); }
         virtual void       init(AppView*, BaseAppFlags);
         virtual void       shutdown();

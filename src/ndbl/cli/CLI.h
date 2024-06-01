@@ -33,8 +33,6 @@ namespace ndbl
             bool          serialize();
             void          set_verbose();
             int           print_program();
-            std::string   test_return_str();
-            std::string   test_concat_str(std::string left, std::string right);
         private:
             CLI*          m_cli;
         };
@@ -52,7 +50,6 @@ namespace ndbl
 
     private:
         static std::string get_line() ;
-        static std::string get_word() ;
-        void log_function_call(const tools::variant &result, const tools::func_type *type) const;
+        static void log_function_call(const tools::variant &result, const tools::func_type *type) ;
     };
 }
