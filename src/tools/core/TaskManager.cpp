@@ -15,19 +15,17 @@ TaskManager* tools::get_task_manager()
     return g_task_manager;
 }
 
-TaskManager* tools::init_task_manager( TaskManager::Config* user_config)
+TaskManager* tools::init_task_manager(const TaskManager::Config& config)
 {
-    if( user_config != nullptr)
-    {
-        EXPECT( user_config->max_capacity >= user_config->reserve_size, "[tools::async] can't reserve more space than capacity!" )
-    }
-    g_task_manager = new TaskManager(user_config);
+    EXPECT( config.max_capacity >= config.reserve_size, "[tools::init_task_manager] can't reserve more space than capacity!" )
+    g_task_manager = new TaskManager(config);
+    return g_task_manager;
 }
 
-TaskManager::TaskManager( TaskManager::Config* config )
-: m_conf(*config)
+TaskManager::TaskManager(const TaskManager::Config& config )
+: m_conf(config)
 {
-    m_tasks.reserve(config->reserve_size );
+    m_tasks.reserve(m_conf.reserve_size );
 }
 
 void TaskManager::run_task(const std::function<void(void)>& function, u64_t delay_in_ms )
@@ -62,7 +60,7 @@ void TaskManager::update()
 
 void tools::shutdown_task_manager()
 {
-    EXPECT(g_task_manager != nullptr, "[tools::async] must be initialised. Did you call init_task_manager()?");
+    EXPECT(g_task_manager != nullptr, "[tools::shutdown_task_manager] must be initialised. Did you call init_task_manager()?");
     delete g_task_manager;
     g_task_manager = nullptr;
 }
@@ -82,7 +80,7 @@ void TaskManager::run_task(std::future<void>&& task)
         ++it;
     }
 
-    EXPECT( m_tasks.size() < m_conf.max_capacity, "[tools::async] g_tasks buffer is full. Did you call update() frequently? Consider increasing max_capacity when calling init()");
+    EXPECT( m_tasks.size() < m_conf.max_capacity, "[TaskManager::run_task] m_tasks buffer is full. Did you call update() frequently? Consider increasing max_capacity when calling init_task_manager()");
 
     m_tasks.push_back(std::move(task));
 }

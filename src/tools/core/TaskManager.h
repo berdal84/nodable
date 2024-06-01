@@ -30,12 +30,12 @@ namespace tools
         void run_task(const std::function<void(void)>& function, u64_t delay_in_ms ); // Run a new task with a given delay. update() must be called at regular intervals to ensure memory use does not grow too much
         void run_task(std::future<void>&& task);
 
-        explicit TaskManager(Config* config);
+        explicit TaskManager(const Config& config);
         Config m_conf;
         std::vector<std::future<void>> m_tasks;
     };
 
-    [[nodiscard]] TaskManager* init_task_manager( TaskManager::Config* = nullptr ); // Call this before to use.
+    [[nodiscard]] TaskManager* init_task_manager( const TaskManager::Config& config = {} ); // Call this before to use.
     TaskManager* get_task_manager();
     void shutdown_task_manager(); // Undo init_task_manager()
 }
