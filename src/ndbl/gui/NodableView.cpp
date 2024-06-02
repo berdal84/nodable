@@ -256,10 +256,13 @@ void NodableView::draw()
 
         if (ImGui::BeginMenu("Developer"))
         {
-            if ( ImGui::MenuItem("Show debug info", "", tools_cfg->runtime_debug ) )
+            bool debug = get_config()->draw_debug_lines;
+            if ( ImGui::MenuItem("Debug Mode", "", debug ) )
             {
-                tools_cfg->runtime_debug = !tools_cfg->runtime_debug;
-                ImGuiEx::debug = tools_cfg->runtime_debug;
+                debug = !debug;
+                get_config()->tools_cfg->runtime_debug = debug;
+                get_config()->draw_debug_lines = debug;
+                ImGuiEx::set_debug( debug );
             }
 
             if ( ImGui::MenuItem("Limit FPS", "", tools_cfg->delta_time_limit ) )

@@ -278,7 +278,7 @@ void AppView::begin_draw()
     // Begin Frame
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(m_sdl_window);
-    ImGuiEx::Tooltip_NewFrame();
+    ImGuiEx::NewFrame();
     ImGui::NewFrame();
 
     // Setup main window
@@ -445,7 +445,7 @@ void AppView::end_draw()
     ImGui::End();
     ImGui::EndFrame();
     ImGui::Render();
-    ImGuiEx::Tooltip_EndFrame();
+    ImGuiEx::EndFrame();
 
     SDL_GL_MakeCurrent(m_sdl_window, m_sdl_gl_context);
     ImGuiIO& io = ImGui::GetIO();

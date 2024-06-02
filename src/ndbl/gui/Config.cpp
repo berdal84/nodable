@@ -36,10 +36,10 @@ ndbl::Config* ndbl::get_config()
     return g_conf;
 }
 
-ndbl::Config::Config(tools::Config* tools_cfg)
+ndbl::Config::Config(tools::Config* _tools_cfg)
 {
-    EXPECT(tools_cfg != nullptr, "tools config not initialised");
-
+    EXPECT(_tools_cfg != nullptr, "tools config not initialised");
+    tools_cfg = _tools_cfg;
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
             0xffffffff, // None
@@ -95,7 +95,7 @@ ndbl::Config::Config(tools::Config* tools_cfg)
     ui_wire_bezier_roundness              = {0.25f, 2.0f};
     ui_wire_bezier_thickness              = 2.0f;
     ui_wire_bezier_fade_length_minmax     = {300.0f, 1000.0f};
-    ui_wire_color                         = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_wire_color                         = Color(255, 255, 255);
     ui_wire_shadowColor                   = ui_node_shadowColor;
 
     // code flow
@@ -141,6 +141,7 @@ ndbl::Config::Config(tools::Config* tools_cfg)
     isolation = Isolation_OFF;
     graph_unfold_dt                       = 1.5f;
     graph_unfold_iterations               = 100;
+    draw_debug_lines                      = false;
 
     // NodableView
     tools_cfg->dockspace_right_ratio       = 0.25f;
@@ -167,6 +168,7 @@ ndbl::Config::Config(tools::Config* tools_cfg)
     tools_cfg->font_manager.subsamples                   = 1.0f;
     tools_cfg->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
     tools_cfg->app_default_title = BuildInfo::version_extended;
+
 }
 
 int ndbl::Config::ui_grid_subdiv_size() const

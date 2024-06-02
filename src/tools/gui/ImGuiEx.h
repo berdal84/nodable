@@ -13,6 +13,7 @@
 
 #include "ActionManager.h"
 #include "EventManager.h"
+#include "tools/core/geometry/Bezier.h"
 
 namespace tools
 {
@@ -24,67 +25,55 @@ namespace tools
         constexpr float TOOLTIP_DURATION_DEFAULT = 0.2f;
         constexpr float TOOLTIP_DELAY_DEFAULT    = 0.5f;
 
-        static bool  debug = false; // when true, all DebugXXX commands actually draw, otherwise it is skipped
-        static bool  is_in_a_frame = false;
-        static bool  is_any_tooltip_open = false;
-        static float tooltip_delay_elapsed = 0.0f;
+        struct WireStyle
+        {
+            Vec4 color{};
+            Vec4 hover_color{};
+            Vec4 shadow_color{};
+            float thickness{1};
+            float roundness{0.5f};
+        };
+
+        void set_debug( bool debug );
 
         /**
          * Draw a rounded-rectangle shadow
          * TODO: use a low cost method, this one is drawing several rectangle with modulated opacity.
         */
         extern void DrawRectShadow(
-                Vec2 _topLeftCorner,
-                Vec2 _bottomRightCorner,
+                const Vec2& _topLeftCorner,
+                const Vec2& _bottomRightCorner,
                 float _borderRadius = 0.0f,
                 int _shadowRadius = 10,
-                Vec2 _shadowOffset = Vec2(),
-                Vec4 _shadowColor = Vec4(0.0f, 0.0f, 0.0f, 1.f));
+                const Vec2& _shadowOffset = Vec2(),
+                const Vec4& _shadowColor = Vec4(0.0f, 0.0f, 0.0f, 1.f));
 
         extern void ShadowedText(
-                Vec2 _offset,
-                Vec4 _shadowColor,
+                const Vec2& _offset,
+                const Vec4& _shadowColor,
                 const char *_format,
                 ...);
 
         extern void ColoredShadowedText(
-                Vec2 _offset,
-                Vec4 _textColor,
-                Vec4 _shadowColor,
+                const Vec2& _offset,
+                const Vec4& _textColor,
+                const Vec4& _shadowColor,
                 const char *_format,
                 ...);
 
         extern void DrawWire(
-                ImDrawList *draw_list,
-                Vec2 pos0,
-                Vec2 pos1,
-                Vec2 norm0,
-                Vec2 norm1,
-                Vec4 color,
-                Vec4 shadowColor,
-                float thickness = 1.0f,
-                float roundness = 0.5f);
+                ImDrawList* draw_list,
+                const BezierCurveSegment& curve,
+                const WireStyle& style);
 
         extern void DrawVerticalWire(
                 ImDrawList *draw_list,
-                Vec2 pos0,
-                Vec2 pos1,
-                Vec4 color,
-                Vec4 shadowColor,
-                float thickness = 1.0f,
-                float roundness = 0.5f);
+                const Vec2& pos0,
+                const Vec2& pos1,
+                const WireStyle& style);
 
-        extern void DrawHorizontalWire(
-                ImDrawList *draw_list,
-                Vec2 pos0,
-                Vec2 pos1,
-                Vec4 color,
-                Vec4 shadowColor,
-                float thickness = 1.0f,
-                float roundness = 0.5f);
-
-        extern void Tooltip_EndFrame();
-        extern void Tooltip_NewFrame();
+        extern void     EndFrame();
+        extern void     NewFrame();
         extern bool     BeginTooltip(float _delay = TOOLTIP_DELAY_DEFAULT, float _duration = TOOLTIP_DURATION_DEFAULT );
         extern void     EndTooltip();
         extern Rect&    EnlargeToInclude(Rect& _rect, Rect _other);
@@ -124,8 +113,18 @@ namespace tools
         static void DrawHelper(const char* _format, Args... args)
         { DrawHelperEx(0.25f, _format, args...); } // simple "?" test with a tooltip.
 
+        void MultiSegmentLineBehavior(
+                const std::vector<Vec2>* path,
+                Rect bbox,
+                float thickness);
+
         inline ImRect toImGui(Rect r) { return { r.min, r.max }; };
         inline ImVec2 toImGui(Vec2 v) { return { v.x, v.y }; };
         inline ImVec4 toImGui(Vec4 v) { return { v.x, v.y, v.z, v.w }; };
+
+        float CalcSegmentHoverMinDist( float line_thickness );
+        bool IsLastLineHovered();
+        bool IsDraggingWire();
+        void DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness);
     };
 }

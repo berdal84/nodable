@@ -17,6 +17,7 @@ namespace ndbl
 {
     using tools::Vec2;
     using tools::Vec4;
+    using tools::Color;
 
     struct Config
     {
@@ -84,6 +85,7 @@ namespace ndbl
         Isolation      isolation;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
+        bool           draw_debug_lines;
         tools::Config* tools_cfg;
 
         // Computed values

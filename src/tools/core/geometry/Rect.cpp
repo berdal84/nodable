@@ -1,0 +1,54 @@
+#include "Rect.h"
+#include "tools/core/assertions.h"
+
+using namespace tools;
+
+Rect tools::Rect::bbox( std::vector<Vec2> points )
+{
+    ASSERT(points.empty() == false)
+    Rect result{ points[0], points[0] };
+    for ( auto it = points.begin() +1; it != points.end(); it++ )
+    {
+        if      ( it->x < result.min.x ) result.min.x = it->x;
+        else if ( it->x > result.max.x ) result.max.x = it->x;
+        if      ( it->y < result.min.y ) result.min.y = it->y;
+        else if ( it->y > result.max.y ) result.max.y = it->y;
+    }
+    return result;
+}
+
+Rect Rect::bbox( std::vector<Rect> rects )// Return a rectangle overlapping all the rectangles.
+{
+    if( rects.empty() )
+    {
+        return {};
+    }
+    Rect result = rects[0];
+    for(auto it = rects.begin() +1; it != rects.end(); it++ )
+    {
+        result = Rect::bbox( result, *it );
+    }
+    return result;
+}
+
+Rect Rect::bbox( const Rect& a, const Rect& b )// Return a rectangle overlapping the two rectangles
+{
+    return {
+            {glm::min( a.min.x, b.min.x ), glm::min( a.min.y, b.min.y )},
+            {glm::max( a.max.x, b.max.x ), glm::max( a.max.y, b.max.y )}
+    };
+}
+
+bool Rect::contains( const Rect& a, const Rect& b )
+{
+    return a.min.x <= b.min.x && a.min.y <= b.min.y
+           && a.max.x >= b.max.x && a.max.y >= b.max.y;
+}
+
+bool Rect::contains( const Rect& rect, const Vec2& point )
+{
+    return point.x >= rect.min.x &&
+           point.x <= rect.max.x &&
+           point.y >= rect.min.y &&
+           point.y <= rect.max.y;
+}

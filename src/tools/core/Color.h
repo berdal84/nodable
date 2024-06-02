@@ -9,7 +9,8 @@ namespace tools
     public:
         Vec4 value;
 
-        Color( u8_t r, u8_t g, u8_t b, u8_t a = 255 )
+        constexpr Color() = default;
+        constexpr Color( u8_t r, u8_t g, u8_t b, u8_t a = 255 )
         : value(
             float( r ) / 255.f,
             float( g ) / 255.f,
@@ -18,7 +19,7 @@ namespace tools
           )
         {}
 
-        operator Vec4() const
+        constexpr operator Vec4() const
         { return value; }
     };
 }

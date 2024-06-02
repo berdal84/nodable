@@ -53,6 +53,8 @@ bool GraphView::onDraw()
     bool drop_behavior_requires_a_new_node = false;
     bool is_any_node_dragged               = false;
     bool is_any_node_hovered               = false;
+    bool is_any_wire_hovered               = false;
+    bool is_any_wire_dragged               = false;
 
     // Draw grid in the background
     draw_grid( draw_list );
@@ -61,7 +63,15 @@ bool GraphView::onDraw()
        Draw Code Flow.
        Code flow is the set of green lines that links  a set of nodes.
      */
-    float line_width  = cfg->ui_codeflow_thickness();
+
+    const ImGuiEx::WireStyle code_flow_style{
+        cfg->ui_codeflow_color,
+        cfg->ui_codeflow_color, // hover
+        cfg->ui_codeflow_shadowColor,
+        cfg->ui_codeflow_thickness(),
+        0.0f
+    };
+
     for( Node* each_node : node_registry )
     {
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
@@ -95,10 +105,8 @@ bool GraphView::onDraw()
                             ImGui::GetWindowDrawList(),
                             start.center(),
                             end.center(),
-                            cfg->ui_codeflow_color,      // color
-                            cfg->ui_codeflow_shadowColor,// shadowColor,
-                            line_width,
-                            0.0f );
+                            code_flow_style );
+                    is_any_wire_hovered |= ImGuiEx::IsLastLineHovered();
                 }
             }
         }
@@ -113,6 +121,12 @@ bool GraphView::onDraw()
         // Draw temporary edge
         if ( _dragged_slot )
         {
+            ImGuiEx::WireStyle hovered_wire_style;
+            hovered_wire_style.color        = cfg->ui_codeflow_color,
+            hovered_wire_style.shadow_color = cfg->ui_codeflow_shadowColor,
+            hovered_wire_style.thickness    = cfg->ui_slot_size.x * cfg->ui_codeflow_thickness_ratio,
+            hovered_wire_style.roundness    = 0.f;
+
             // When dragging, edge follows mouse cursor. Otherwise, it sticks the contextual menu.
             Vec2 edge_end = m_create_node_context_menu.dragged_slot
                               ? m_create_node_context_menu.opened_at_screen_pos
@@ -125,20 +139,18 @@ bool GraphView::onDraw()
                         ImGui::GetWindowDrawList(),
                         _dragged_slot->get_rect().center(),
                         hovered_slot ? hovered_slot->get_rect().center(): edge_end,
-                        cfg->ui_codeflow_color,
-                        cfg->ui_codeflow_shadowColor,
-                        cfg->ui_slot_size.x * cfg->ui_codeflow_thickness_ratio,
-                        0.f // roundness
+                        hovered_wire_style
                 );
+                is_any_wire_hovered |= ImGuiEx::IsLastLineHovered();
             }
             else
             {
                 // Simple line
                 ImGui::GetWindowDrawList()->AddLine(
-                        _dragged_slot->position(),
+                    _dragged_slot->position(),
                     hovered_slot ? hovered_slot->position() : edge_end,
-                    ImGui::ColorConvertFloat4ToU32( cfg->ui_node_borderHighlightedColor),
-                        cfg->ui_wire_bezier_thickness
+                    ImGui::ColorConvertFloat4ToU32( cfg->ui_node_borderHighlightedColor ),
+                    cfg->ui_wire_bezier_thickness
                 );
             }
         }
@@ -151,10 +163,20 @@ bool GraphView::onDraw()
         /*
             Wires
         */
+        const ImGuiEx::WireStyle default_wire_style{
+            cfg->ui_wire_color,
+            cfg->ui_wire_color, // hover
+            cfg->ui_wire_shadowColor,
+            cfg->ui_wire_bezier_thickness,
+            cfg->ui_wire_bezier_roundness.x // roundness min
+        };
+
         for (auto each_node: node_registry )
         {
             for (const Slot* slot: each_node->filter_slots( SlotFlag_OUTPUT ))
             {
+                ImGuiEx::WireStyle style = default_wire_style;
+
                 Slot* adjacent_slot = slot->first_adjacent().get();
                 if( adjacent_slot == nullptr )
                 {
@@ -172,56 +194,54 @@ bool GraphView::onDraw()
                 Vec2 slot_norm          = node_view->get_slot_normal( *slot );
                 Vec2 adjacent_slot_pos  = adjacent_node_view->get_slot_pos( *adjacent_slot );
                 Vec2 adjacent_slot_norm = adjacent_node_view->get_slot_normal( *adjacent_slot );
+                float linear_dist       = Vec2::distance(slot_pos, adjacent_slot_pos);
+                float linear_dist_half  = linear_dist * 0.5f;
+
+                BezierCurveSegment curve{
+                    slot_pos,
+                    slot_pos + slot_norm * linear_dist_half,
+                    adjacent_slot_pos + adjacent_slot_norm * linear_dist_half,
+                    adjacent_slot_pos
+                };
 
                 // do not draw long lines between a variable value
-                Vec4 line_color   = cfg->ui_wire_color;
-                Vec4 shadow_color = cfg->ui_wire_shadowColor;
-
                 if ( NodeView::is_selected( node_view->poolid() ) ||
                      NodeView::is_selected( adjacent_node_view->poolid() ) )
                 {
                     // blink wire colors
                     float blink = 1.f + std::sin(float( BaseApp::elapsed_time()) * 10.f) * 0.25f;
-                    line_color.x *= blink;
-                    line_color.y *= blink;
-                    line_color.z *= blink;
+                    style.color.w *= blink;
                 }
                 else
                 {
                     // transparent depending on wire length
-                    Vec2 delta = slot_pos - adjacent_slot_pos;
-                    float dist = std::sqrt(delta.x * delta.x + delta.y * delta.y);
-                    if (dist > cfg->ui_wire_bezier_fade_length_minmax.x )
+                    if ( linear_dist > cfg->ui_wire_bezier_fade_length_minmax.x )
                     {
-                        float factor = ( dist - cfg->ui_wire_bezier_fade_length_minmax.x ) /
+                        float factor = ( linear_dist - cfg->ui_wire_bezier_fade_length_minmax.x ) /
                                        ( cfg->ui_wire_bezier_fade_length_minmax.y - cfg->ui_wire_bezier_fade_length_minmax.x );
-                        line_color   = Vec4::lerp(line_color, Vec4(0, 0, 0, 0), factor);
-                        shadow_color = Vec4::lerp(shadow_color, Vec4(0, 0, 0, 0), factor);
+                        style.color        = Vec4::lerp(style.color, Vec4(0, 0, 0, 0), factor);
+                        style.shadow_color = Vec4::lerp(style.shadow_color, Vec4(0, 0, 0, 0), factor);
                     }
                 }
 
                 // draw the wire if necessary
-                if (line_color.w != 0.f)
+                if (style.color.w != 0.f)
                 {
-                    float thickness = cfg->ui_wire_bezier_thickness;
-                    Vec2 delta = adjacent_slot_pos - slot_pos;
-                    float roundness = lerp(
+                    style.roundness = lerp(
                             cfg->ui_wire_bezier_roundness.x, // min
                             cfg->ui_wire_bezier_roundness.y, // max
-                              1.0f - normalize( ImLengthSqr(delta), 100.0f, 10000.0f )
-                            + 1.0f - normalize( abs(delta.y), 0.0f, 200.0f)
-                            );
+                              1.0f - normalize( linear_dist, 100.0f, 10000.0f )
+                            + 1.0f - normalize( linear_dist, 0.0f, 200.0f)
+                    );
 
                     if ( slot->has_flags(SlotFlag_TYPE_CODEFLOW) )
                     {
-                        thickness *= 3.0f;
-                        // roundness *= 0.25f;
+                        style.thickness *= 3.0f;
+                        // style.roundness *= 0.25f;
                     }
 
-                    ImGuiEx::DrawWire(draw_list,
-                                          slot_pos, adjacent_slot_pos,
-                                          slot_norm, adjacent_slot_norm,
-                                          line_color, shadow_color, thickness, roundness);
+                    ImGuiEx::DrawWire(draw_list, curve, style);
+                    is_any_wire_hovered |= ImGuiEx::IsLastLineHovered();
                 }
             }
         }
@@ -289,10 +309,12 @@ bool GraphView::onDraw()
         NodeView::set_selected({});
     }
 
-	/*
-		Mouse PAN (global)
-	*/
-	if (ImGui::IsMouseDragging(0) && ImGui::IsWindowFocused() && !is_any_node_dragged )
+	// Mouse PAN (global)
+    bool is_mouse_dragging_background = ImGui::IsMouseDragging(0) &&
+                                        ImGui::IsWindowFocused() &&
+                                        !is_any_node_dragged &&
+                                        !ImGuiEx::IsDraggingWire();
+	if (is_mouse_dragging_background)
     {
         pan( ImGui::GetMouseDragDelta() );
         ImGui::ResetMouseDragDelta();

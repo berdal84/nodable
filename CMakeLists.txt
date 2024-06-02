@@ -136,12 +136,15 @@ add_library(
     src/tools/core/Color.h
     src/tools/core/TIdentifier.h
     src/tools/core/assertions.h
-        src/tools/core/TaskManager.cpp
-        src/tools/core/TaskManager.h
+    src/tools/core/TaskManager.cpp
+    src/tools/core/TaskManager.h
     src/tools/core/format.cpp
     src/tools/core/format.h
     src/tools/core/geometry/Box2D.h
+    src/tools/core/geometry/Bezier.h
+    src/tools/core/geometry/Bezier.cpp
     src/tools/core/geometry/Rect.h
+    src/tools/core/geometry/Rect.cpp
     src/tools/core/geometry/Space.h
     src/tools/core/geometry/Vec2.h
     src/tools/core/geometry/Vec4.h
@@ -163,7 +166,7 @@ add_library(
     src/tools/core/reflection/enum.h
     src/tools/core/reflection/func_type.cpp
     src/tools/core/reflection/func_type.h
-        src/tools/core/reflection/Invokable.h
+    src/tools/core/reflection/Invokable.h
     src/tools/core/reflection/qword.cpp
     src/tools/core/reflection/qword.h
     src/tools/core/reflection/reflection

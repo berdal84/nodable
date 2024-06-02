@@ -190,7 +190,7 @@ void NodeViewConstraint::apply(float _dt)
 void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers,const std::vector<NodeView*>& _targets )
 {
 #ifdef NDBL_DEBUG
-    if( ImGuiEx::debug && NodeView::is_selected(_drivers[0]->poolid()) )
+    if( get_config()->draw_debug_lines && NodeView::is_selected(_drivers[0]->poolid()) )
     {
         for (auto each_target: _targets )
         {

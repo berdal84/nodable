@@ -79,25 +79,34 @@ namespace tools
         Vec2 operator *( float f ) const
         { return *this * Vec2(f); }
 
-        void round()
+        inline float lensqr() const
+        { return Vec2::lensqr(*this); }
+
+        inline void round()
         { *this = Vec2::round(*this); }
 
-        static float sqrlen(Vec2 v)
+        inline static float lensqr(const Vec2& v)
         { return v.x*v.x+v.y*v.y; }
 
-        static Vec2 scale( Vec2 v, float magnitude )
+        inline static Vec2 scale(const Vec2& v, float magnitude )
         { return v * Vec2(magnitude); }
 
-        static Vec2 round( Vec2 _vec )
-        { return glm::round( (glm::vec2) _vec ); }
+        inline static Vec2 round(const Vec2& v )
+        { return glm::round( (glm::vec2) v ); }
 
         inline static Vec2 lerp( Vec2 _source, Vec2 _target, float _factor)
         { return glm::mix((glm::vec2)_source, (glm::vec2)_target, glm::clamp(_factor, 0.0f, 1.0f)); }
 
-        static Vec2 transform(Vec2 v, glm::mat3 m)
+        inline static Vec2 transform(Vec2 v, glm::mat3 m)
         {
             auto result = m * glm::vec3(v.x, v.y, 1.f);
             return {result.x, result.y};
         }
+
+        inline static float distance( Vec2 a, Vec2 b )
+        { return glm::distance((glm::vec2)a, (glm::vec2)b); }
+
+        inline static const float dot( Vec2 a, Vec2 b )
+        { return glm::dot((glm::vec2)a, (glm::vec2)b); }
     };
 }

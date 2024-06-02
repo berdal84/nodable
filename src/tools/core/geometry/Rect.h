@@ -75,45 +75,28 @@ namespace tools
             max.y += d;
         }
 
-        void translate( Vec2 _delta )
+        void translate(const Vec2& _delta )
         {
             min += _delta;
             max += _delta;
         }
 
-        void expand( Vec2 offset) // Expand rectangle on both x and y axis
+        void expand(const Vec2&  offset) // Expand rectangle on both x and y axis
         {
             min -= offset;
             max += offset;
         }
 
-        static bool contains(const Rect& a, const Rect& b )
-        {
-            return a.min.x <= b.min.x && a.min.y <= b.min.y
-                && a.max.x >= b.max.x && a.max.y >= b.max.y;
-        }
+        static bool contains(const Rect& a, const Rect& b );
 
-        static Rect bbox(const Rect& a, const Rect& b ) // Return a rectangle overlapping the two rectangles
-        {
-            return {
-                 {glm::min( a.min.x, b.min.x ), glm::min( a.min.y, b.min.y )},
-                 {glm::max( a.max.x, b.max.x ), glm::max( a.max.y, b.max.y )}
-            };
-        }
+        static bool contains(const Rect& rect, const Vec2& point );
 
-        static Rect bbox( std::vector<Rect> rects ) // Return a rectangle overlapping all the rectangles.
-        {
-            if( rects.empty() )
-            {
-                return {};
-            }
-            Rect result = rects[0];
-            for(auto it = rects.begin() +1; it != rects.end(); it++ )
-            {
-                result = Rect::bbox( result, *it );
-            }
-            return result;
-        }
+        static Rect bbox(const Rect& a, const Rect& b );
+
+        static Rect bbox(std::vector<Rect> rects );
+
+        static Rect bbox(std::vector<Vec2> points );
+
     };
 
 }
