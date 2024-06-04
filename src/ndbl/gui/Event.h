@@ -33,6 +33,7 @@ namespace ndbl
         EventID_SLOT_DROPPED,
         EventID_SLOT_DISCONNECTED,
         EventID_SELECTION_CHANGE,
+        EventID_DELETE_EDGE,
     };
 
     using Event_ToggleIsolationFlags = tools::Event<EventID_TOGGLE_ISOLATION_FLAGS>;
@@ -63,6 +64,7 @@ namespace ndbl
     {
         PoolID<Node> node;
     };
+    using Event_DeleteEdge  = tools::Event<EventID_DELETE_EDGE, EventPayload_SlotPair>;
     using Event_DeleteNode  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;
     using Event_ArrangeNode = tools::Event<EventID_ARRANGE_NODE, EventPayload_Node>;
     using Event_SelectNext  = tools::Event<EventID_SELECT_NEXT, EventPayload_Node>;

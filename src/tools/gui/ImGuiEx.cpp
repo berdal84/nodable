@@ -15,11 +15,9 @@ using namespace tools;
 
 struct Context
 {
-    bool  debug                 = false;
-    bool  is_any_tooltip_open   = false;
-    float tooltip_delay_elapsed = 0.0f;
-    bool  last_line_hovered     = false;
-    bool  is_dragging_wire      = false;
+    bool    debug                 = false;
+    bool    is_any_tooltip_open   = false;
+    float   tooltip_delay_elapsed = 0.0f;
 };
 
 static Context g_ctx = {};
@@ -99,6 +97,7 @@ void ImGuiEx::ColoredShadowedText(const Vec2& _offset, const Vec4& _textColor, c
 }
 
 void ImGuiEx::DrawWire(
+        ImGuiID id,
         ImDrawList *draw_list,
         const BezierCurveSegment& curve,
         const WireStyle& style
@@ -143,15 +142,16 @@ void ImGuiEx::DrawWire(
     // 3) draw the curve
 
     // Mouse behavior
-    MultiSegmentLineBehavior(&fill_path, BezierCurveSegment::bbox(fill_curve), style.thickness );
+    MultiSegmentLineBehavior(id, &fill_path, BezierCurveSegment::bbox(fill_curve), style.thickness );
 
     // Draw the path
-    if ( ImGuiEx::IsLastLineHovered() )
+    if ( ImGui::GetHoveredID() == id )
         DrawPath(draw_list, &fill_path, style.hover_color, CalcSegmentHoverMinDist(style.thickness) * 2.0f); // outline on hover
     DrawPath(draw_list, &fill_path, style.color, style.thickness);
 }
 
 void ImGuiEx::DrawVerticalWire(
+        ImGuiID id,
         ImDrawList *draw_list,
         const Vec2& pos0,
         const Vec2& pos1,
@@ -165,7 +165,7 @@ void ImGuiEx::DrawVerticalWire(
         pos1 + Vec2(0.0f, -dist_y),
         pos1
     };
-    DrawWire(draw_list, segment, style);
+    DrawWire(id, draw_list, segment, style);
 }
 
 bool ImGuiEx::BeginTooltip(float _delay, float _duration)
@@ -197,15 +197,11 @@ void ImGuiEx::EndFrame()
 {
     if( !g_ctx.is_any_tooltip_open )
         g_ctx.tooltip_delay_elapsed = 0.f;
-
-    if( g_ctx.is_dragging_wire && ImGui::IsMouseReleased(0))
-        g_ctx.is_dragging_wire = false;
 }
 
 void ImGuiEx::NewFrame()
 {
     g_ctx.is_any_tooltip_open = false;
-    g_ctx.last_line_hovered = false;
 }
 
 void ImGuiEx::BulletTextWrapped(const char* str)
@@ -263,12 +259,11 @@ float ImGuiEx::CalcSegmentHoverMinDist(float line_thickness )
 }
 
 void ImGuiEx::MultiSegmentLineBehavior(
+    ImGuiID id,
     const std::vector<Vec2>* path,
     Rect bbox,
     float thickness)
 {
-    g_ctx.last_line_hovered = false;
-
     if ( path->size() == 1) return;
 
     const float hover_min_distance = ImGuiEx::CalcSegmentHoverMinDist(thickness);
@@ -290,17 +285,8 @@ void ImGuiEx::MultiSegmentLineBehavior(
         ++i;
     }
 
-    g_ctx.last_line_hovered = hovered;
-    if( hovered && ImGui::IsMouseDragging(0, 0.f))
-        g_ctx.is_dragging_wire = true;
-}
-
-bool ImGuiEx::IsLastLineHovered()
-{
-    return g_ctx.last_line_hovered;
-}
-
-bool ImGuiEx::IsDraggingWire()
-{
-    return g_ctx.is_dragging_wire;
+    if( hovered )
+    {
+        ImGui::SetHoveredID(id);
+    }
 }

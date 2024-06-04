@@ -42,6 +42,21 @@ namespace ndbl
         void                     update_cache_based_on_user_input( size_t _limit );
     };
 
+    struct WireState
+    {
+        bool is_any_dragged{false};
+        bool is_any_hovered{false};
+        const Slot* hovered_slot_start{ nullptr};
+        const Slot* hovered_slot_end{ nullptr};
+    };
+
+    struct ContextMenuState
+    {
+        WireState             wire{};
+        CreateNodeContextMenu node{};
+    };
+
+
     class GraphView: public tools::View
     {
 	public:
@@ -64,8 +79,8 @@ namespace ndbl
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
         void        pan(Vec2); // translate content
 
-        Graph*      m_graph;
-        CreateNodeContextMenu m_create_node_context_menu;
+        Graph*           m_graph;
+        ContextMenuState m_contextual_menu;
 
 		REFLECT_DERIVED_CLASS()
     };

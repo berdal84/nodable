@@ -35,7 +35,7 @@ REFLECT_STATIC_INIT
 GraphView::GraphView(Graph* graph)
     : View()
     , m_graph(graph)
-    , m_create_node_context_menu()
+    , m_contextual_menu()
 {
 }
 
@@ -53,8 +53,15 @@ bool GraphView::onDraw()
     bool drop_behavior_requires_a_new_node = false;
     bool is_any_node_dragged               = false;
     bool is_any_node_hovered               = false;
-    bool is_any_wire_hovered               = false;
-    bool is_any_wire_dragged               = false;
+    WireState wire_state;
+
+    auto make_wire_id = [](const Slot* ptr1, const Slot* ptr2) -> ImGuiID
+    {
+        string128 id;
+        id.append_fmt("wire %zu->%zu", ptr1, ptr2);
+        return ImGui::GetID(id.c_str());
+    };
+
 
     // Draw grid in the background
     draw_grid( draw_list );
@@ -101,12 +108,19 @@ bool GraphView::onDraw()
                     Rect start = each_view->get_slot_rect( *slot, slot_index );
                     Rect end = each_successor_view->get_slot_rect( *adjacent_slot, 0 );// there is only 1 previous slot
 
+                    ImGuiID id = make_wire_id( slot, adjacent_slot.get());
                     ImGuiEx::DrawVerticalWire(
+                            id,
                             ImGui::GetWindowDrawList(),
                             start.center(),
                             end.center(),
                             code_flow_style );
-                    is_any_wire_hovered |= ImGuiEx::IsLastLineHovered();
+                    if ( ImGui::GetHoveredID() == id)
+                    {
+                        wire_state.is_any_hovered = true;
+                        wire_state.hovered_slot_start = slot;
+                        wire_state.hovered_slot_end = adjacent_slot.get();
+                    }
                 }
             }
         }
@@ -116,7 +130,7 @@ bool GraphView::onDraw()
     if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
     {
         // Get the current dragged slot, or the slot that was dragged when context menu opened
-        const SlotView* _dragged_slot = dragged_slot ? dragged_slot : m_create_node_context_menu.dragged_slot;
+        const SlotView* _dragged_slot = dragged_slot ? dragged_slot : m_contextual_menu.node.dragged_slot;
 
         // Draw temporary edge
         if ( _dragged_slot )
@@ -128,20 +142,22 @@ bool GraphView::onDraw()
             hovered_wire_style.roundness    = 0.f;
 
             // When dragging, edge follows mouse cursor. Otherwise, it sticks the contextual menu.
-            Vec2 edge_end = m_create_node_context_menu.dragged_slot
-                              ? m_create_node_context_menu.opened_at_screen_pos
+            Vec2 edge_end = m_contextual_menu.node.dragged_slot
+                              ? m_contextual_menu.node.opened_at_screen_pos
                               : (Vec2)ImGui::GetMousePos();
 
             if ( _dragged_slot->slot().type() == SlotFlag_TYPE_CODEFLOW )
             {
                 // Thick line
+                string128 id;
+                id.append_fmt("wire %zu->mouse", dragged_slot);
                 ImGuiEx::DrawVerticalWire(
+                        ImGui::GetID(id.c_str()),
                         ImGui::GetWindowDrawList(),
                         _dragged_slot->get_rect().center(),
                         hovered_slot ? hovered_slot->get_rect().center(): edge_end,
                         hovered_wire_style
                 );
-                is_any_wire_hovered |= ImGuiEx::IsLastLineHovered();
             }
             else
             {
@@ -240,8 +256,15 @@ bool GraphView::onDraw()
                         // style.roundness *= 0.25f;
                     }
 
-                    ImGuiEx::DrawWire(draw_list, curve, style);
-                    is_any_wire_hovered |= ImGuiEx::IsLastLineHovered();
+                    ImGuiID id = make_wire_id( slot, adjacent_slot );
+                    ImGuiEx::DrawWire(id, draw_list, curve, style);
+
+                    if ( ImGui::GetHoveredID() == id )
+                    {
+                        wire_state.is_any_hovered     = true;
+                        wire_state.hovered_slot_start = slot;
+                        wire_state.hovered_slot_end   = adjacent_slot;
+                    }
                 }
             }
         }
@@ -313,7 +336,7 @@ bool GraphView::onDraw()
     bool is_mouse_dragging_background = ImGui::IsMouseDragging(0) &&
                                         ImGui::IsWindowFocused() &&
                                         !is_any_node_dragged &&
-                                        !ImGuiEx::IsDraggingWire();
+                                        !wire_state.is_any_dragged;
 	if (is_mouse_dragging_background)
     {
         pan( ImGui::GetMouseDragDelta() );
@@ -329,14 +352,35 @@ bool GraphView::onDraw()
         if ( ImGui::IsWindowHovered() )
         {
             ImGui::OpenPopup( k_context_menu_popup );
+            m_contextual_menu.wire = wire_state;
         }
-        m_create_node_context_menu.reset_state( SlotView::get_dragged() );
+        m_contextual_menu.node.reset_state( SlotView::get_dragged() );
         SlotView::reset_dragged();
     }
 
     // Defines contextual menu popup (not rendered if popup is closed)
 	if ( ImGui::BeginPopup(k_context_menu_popup) )
     {
+
+        // 1) Actions relative to hovered wire
+        if ( m_contextual_menu.wire.is_any_hovered )
+        {
+            if ( ImGui::Button("Delete Edge") )
+            {
+                LOG_MESSAGE("GraphView", "Delete Edge Button clicked!\n");
+                // Generate an event from this action, add some info to the state and dispatch it.
+                auto& event_manager = EventManager::get_instance();
+                auto* event = new Event_DeleteEdge();
+                event->data.first = *m_contextual_menu.wire.hovered_slot_start;
+                event->data.second = *m_contextual_menu.wire.hovered_slot_end;
+                event_manager.dispatch(event);
+
+                ImGui::CloseCurrentPopup();
+            }
+        }
+
+        // 2) Actions relative to node creation
+
         // Title :
         ImGuiEx::ColoredShadowedText( Vec2( 1, 1 ), Color( 0, 0, 0, 255 ), Color(255, 255, 255, 127 ), "Create new node :" );
         ImGui::Separator();
@@ -344,22 +388,20 @@ bool GraphView::onDraw()
         *  In case user has created a new node we need to connect it to the graph depending
         *  on if a slot is being dragged and  what is its nature.
         */
-        if ( Action_CreateNode* action = m_create_node_context_menu.draw_search_input( 10 ) )
+        if ( Action_CreateNode* action = m_contextual_menu.node.draw_search_input( 10 ) )
         {
             // Generate an event from this action, add some info to the state and dispatch it.
             auto& event_manager = EventManager::get_instance();
             auto* event = action->make_event();
             event->data.graph               = m_graph;
-            event->data.dragged_slot        = m_create_node_context_menu.dragged_slot;
-            event->data.node_view_local_pos =  m_create_node_context_menu.opened_at_pos;
+            event->data.dragged_slot        = m_contextual_menu.node.dragged_slot;
+            event->data.node_view_local_pos = m_contextual_menu.node.opened_at_pos;
             event_manager.dispatch(event);
 
             ImGui::CloseCurrentPopup();
 		}
 		ImGui::EndPopup();
-	} else {
-        m_create_node_context_menu.reset_state();
-    }
+	}
 
 	// add some empty space
 	ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
@@ -521,7 +563,7 @@ void GraphView::pan( Vec2 delta)
 
 void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
 {
-    m_create_node_context_menu.items.push_back(_action);
+    m_contextual_menu.node.items.push_back(_action);
 }
 
 void GraphView::frame( FrameMode mode )

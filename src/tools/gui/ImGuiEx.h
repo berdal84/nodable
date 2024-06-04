@@ -62,11 +62,13 @@ namespace tools
                 ...);
 
         extern void DrawWire(
+                ImGuiID id,
                 ImDrawList* draw_list,
                 const BezierCurveSegment& curve,
                 const WireStyle& style);
 
         extern void DrawVerticalWire(
+                ImGuiID id,
                 ImDrawList *draw_list,
                 const Vec2& pos0,
                 const Vec2& pos1,
@@ -114,17 +116,16 @@ namespace tools
         { DrawHelperEx(0.25f, _format, args...); } // simple "?" test with a tooltip.
 
         void MultiSegmentLineBehavior(
+                ImGuiID id,
                 const std::vector<Vec2>* path,
                 Rect bbox,
                 float thickness);
 
-        inline ImRect toImGui(Rect r) { return { r.min, r.max }; };
-        inline ImVec2 toImGui(Vec2 v) { return { v.x, v.y }; };
-        inline ImVec4 toImGui(Vec4 v) { return { v.x, v.y, v.z, v.w }; };
+        inline ImRect toImGui(const Rect& r) { return { r.min, r.max }; };
+        inline ImVec2 toImGui(const Vec2& v) { return { v.x, v.y }; };
+        inline ImVec4 toImGui(const Vec4& v) { return { v.x, v.y, v.z, v.w }; };
 
         float CalcSegmentHoverMinDist( float line_thickness );
-        bool IsLastLineHovered();
-        bool IsDraggingWire();
         void DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness);
     };
 }

@@ -229,6 +229,17 @@ void Nodable::update()
                 break;
             }
 
+            case Event_DeleteEdge::id:
+            {
+                if ( Graph* graph = current_file->graph )
+                {
+                    auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
+                    graph->disconnect({ _event->data.first, _event->data.second });
+                }
+
+                break;
+            }
+
             case Event_ArrangeNode::id:
             {
                 if ( selected_view ) selected_view->arrange_recursively();

@@ -15,6 +15,7 @@ namespace ndbl
     // 1) Basic actions (simple events)
 
     using Action_DeleteNode      = Action<Event_DeleteNode>;
+    using Action_DeleteEdge      = Action<Event_DeleteEdge>;
     using Action_ArrangeNode     = Action<Event_ArrangeNode>;
     using Action_ToggleFolding   = Action<Event_ToggleFolding>;
     using Action_SelectNext      = Action<Event_SelectNext>;
