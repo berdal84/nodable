@@ -1,4 +1,6 @@
 #include "DirectedEdge.h"
+
+#include <utility>
 #include "Slot.h"
 #include "Node.h"
 
@@ -6,21 +8,15 @@ using namespace ndbl;
 
 DirectedEdge DirectedEdge::null{};
 
-DirectedEdge::DirectedEdge()// is equivalent of NULL DirectedEdge
-{}
-
-DirectedEdge::DirectedEdge( const DirectedEdge &other )
-: tail(other.tail)
-, head(other.head)
-{
-}
-
-DirectedEdge::DirectedEdge( SlotRef _tail, SlotRef _head )
+DirectedEdge::DirectedEdge(const SlotRef& _tail, const SlotRef& _head )
 : tail(_tail)
 , head(_head)
 {
-    ASSERT(_tail.flags & SlotFlag_ORDER_FIRST )
-    ASSERT(_head.flags & SlotFlag_ORDER_SECOND )
+    ASSERT(tail.flags & SlotFlag_ORDER_FIRST )
+    ASSERT(head.flags & SlotFlag_ORDER_SECOND )
+    ASSERT(tail->get_node()->parent_graph != nullptr);
+    ASSERT(head->get_node()->parent_graph != nullptr);
+    ASSERT(tail->get_node()->parent_graph == head->get_node()->parent_graph);
 }
 
 bool DirectedEdge::operator!=( const DirectedEdge &other ) const

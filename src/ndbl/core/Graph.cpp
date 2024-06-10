@@ -438,14 +438,21 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     {
         case SlotFlag_TYPE_CODEFLOW:
         {
-            Node* successor = _edge.tail.node.get();
-            Node* successor_parent = successor->find_parent().get();
-            if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && successor_parent  )
+            ASSERT(_edge.head->has_flags(SlotFlag_PREV))
+            Node* next = _edge.head.node.get();
+            Node* next_parent = next->find_parent().get();
+            if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && next_parent )
             {
-                while (successor && successor_parent->poolid() == successor->find_parent() )
+                while ( next && next_parent->poolid() == next->find_parent() )
                 {
-                    disconnect({ *successor->find_slot( SlotFlag_PARENT ), *successor->find_parent()->find_slot( SlotFlag_CHILD ) } );
-                    successor = successor->successors().begin()->get();
+                    disconnect({
+                            *next->find_parent()->find_slot( SlotFlag_CHILD ),
+                            *next->find_slot( SlotFlag_PARENT )
+                    });
+
+                    std::vector<PoolID<Node>> successors = next->successors();
+                    next = successors.begin() != successors.end() ? successors.begin()->get()
+                                                                  : nullptr;
                 }
             }
 

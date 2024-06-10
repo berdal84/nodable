@@ -229,17 +229,6 @@ void Nodable::update()
                 break;
             }
 
-            case Event_DeleteEdge::id:
-            {
-                if ( Graph* graph = current_file->graph )
-                {
-                    auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
-                    graph->disconnect({ _event->data.first, _event->data.second });
-                }
-
-                break;
-            }
-
             case Event_ArrangeNode::id:
             {
                 if ( selected_view ) selected_view->arrange_recursively();
@@ -273,6 +262,7 @@ void Nodable::update()
 
             case Event_SlotDropped::id:
             {
+                ASSERT(curr_file_history != nullptr);
                 auto _event = reinterpret_cast<Event_SlotDropped*>(event);
                 SlotRef tail = _event->data.first;
                 SlotRef head = _event->data.second;
@@ -284,16 +274,29 @@ void Nodable::update()
                 break;
             }
 
+            case Event_DeleteEdge::id:
+            {
+                ASSERT(curr_file_history != nullptr);
+                auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
+                DirectedEdge edge{ _event->data.first, _event->data.second };
+                Graph* graph = _event->data.first->get_node()->parent_graph;
+                auto command = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
+                curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
+                break;
+            }
+
             case Event_SlotDisconnected::id:
             {
+                ASSERT(curr_file_history != nullptr);
                 auto _event = reinterpret_cast<Event_SlotDisconnected*>(event);
                 SlotRef slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
+                Graph* graph = _event->data.first->get_node()->parent_graph;
                 for( const auto& adjacent_slot: slot->adjacent() )
                 {
                     DirectedEdge edge{slot, adjacent_slot};
-                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(edge);
+                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));

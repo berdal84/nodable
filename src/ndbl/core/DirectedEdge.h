@@ -11,9 +11,9 @@ namespace ndbl
         SlotRef tail;
         SlotRef head;
 
-        DirectedEdge();
-        DirectedEdge(const DirectedEdge & other);
-        DirectedEdge(SlotRef _tail, SlotRef _head);
+        DirectedEdge() = default;
+        DirectedEdge(const DirectedEdge & other) = default;
+        DirectedEdge(const SlotRef& _tail, const SlotRef& _head);
 
         DirectedEdge& operator=(const DirectedEdge& other);
         operator bool () const;
