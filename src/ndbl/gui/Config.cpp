@@ -137,8 +137,9 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
 
     // Misc.
     experimental_graph_autocompletion     = false;
-    experimental_hybrid_history           = false;
-    isolation = Isolation_OFF;
+    experimental_hybrid_history           = true;
+    experimental_multi_selection          = true;
+    isolation                             = Isolation_OFF;
     graph_unfold_dt                       = 1.5f;
     graph_unfold_iterations               = 100;
     draw_debug_lines                      = false;

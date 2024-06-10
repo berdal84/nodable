@@ -82,6 +82,7 @@ namespace ndbl
         const char*    ui_virtual_machine_window_label;
         bool           experimental_graph_autocompletion;
         bool           experimental_hybrid_history;
+        bool           experimental_multi_selection;
         Isolation      isolation;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
