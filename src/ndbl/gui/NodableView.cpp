@@ -13,6 +13,7 @@
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
+#include "GraphView.h"
 #include "FileView.h"
 #include "History.h"
 #include "Nodable.h"
@@ -172,11 +173,11 @@ void NodableView::draw()
                 ImGui::Separator();
             }
 
-            auto has_selection = NodeView::is_any_selected();
+            auto has_selection = current_file != nullptr ? !current_file->graph_view->get_selected().empty()
+                                                         : false;
 
-            if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped)) {
+            if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped))
                 event_manager.dispatch( EventID_DELETE_NODE );
-            }
 
             ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
             ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
@@ -289,8 +290,10 @@ void NodableView::draw()
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("Experimental")) {
+            if (ImGui::BeginMenu("Experimental"))
+            {
                 ImGui::Checkbox("Hybrid history", &cfg->experimental_hybrid_history);
+                ImGui::Checkbox("Multi-Selection", &cfg->experimental_multi_selection);
                 ImGui::Checkbox("Graph auto-completion", &cfg->experimental_graph_autocompletion);
                 ImGui::EndMenu();
             }
@@ -437,10 +440,17 @@ void NodableView::draw_node_properties_window()
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
-        if (NodeView* selected_view = NodeView::get_selected().get())
+        auto selected_node_views = m_app->current_file->graph_view->get_selected();
+        if ( selected_node_views.size() == 1 )
         {
             ImGui::Indent(10.0f);
-            NodeView::draw_as_properties_panel(selected_view, &m_show_advanced_node_properties);
+            NodeView* first_node_view = selected_node_views.front().get();
+            NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
+        }
+        else if ( selected_node_views.size() > 1 )
+        {
+            ImGui::Indent(10.0f);
+            ImGui::Text("Multi-Selection");
         }
     }
     ImGui::End();

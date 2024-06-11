@@ -36,14 +36,14 @@ File::File()
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
     // Graph
-    graph = new Graph(get_node_factory());
-    graph_view = new GraphView( graph );
+    graph = new Graph();
+    graph->init(get_node_factory());
 
     for( IAction* action : ActionManager::get_instance().get_actions() ) // Fill the "create node" context menu
     {
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
         {
-            graph_view->add_action_to_context_menu( create_node_action );
+            graph->get_view()->add_action_to_context_menu( create_node_action );
         }
     }
 
@@ -53,7 +53,6 @@ File::File()
 File::~File()
 {
     delete graph;
-    delete graph_view;
 }
 
 std::string File::get_text( Isolation mode) const
@@ -116,9 +115,9 @@ UpdateResult File::update( Isolation flags )
         update_text_from_graph( flags );
 
         // Refresh constraints
-        auto physics_components = NodeUtils::get_components<Physics>( graph->get_node_registry() );
+        auto physics_components = NodeUtils::get_components<Physics>(graph->get_node_registry() );
         Physics::destroy_constraints( physics_components );
-        Physics::create_constraints( graph->get_node_registry() );
+        Physics::create_constraints(graph->get_node_registry() );
 
         graph->set_dirty(false);
     }
@@ -129,7 +128,7 @@ UpdateResult File::update( Isolation flags )
 UpdateResult File::update_graph_from_text( Isolation scope)
 {
     // Destroy all physics constraints
-    auto physics_components = NodeUtils::get_components<Physics>( graph->get_node_registry() );
+    auto physics_components = NodeUtils::get_components<Physics>(graph->get_node_registry() );
     Physics::destroy_constraints( physics_components );
 
     // Parse source code
@@ -137,8 +136,8 @@ UpdateResult File::update_graph_from_text( Isolation scope)
     bool parse_ok = get_language()->parse(text, graph );
     if (parse_ok && !graph->is_empty() )
     {
-        Physics::create_constraints( graph->get_node_registry() );
-        graph_changed.emit( graph );
+        Physics::create_constraints(graph->get_node_registry() );
+        graph_changed.emit(graph );
         return UpdateResult::SUCCESS_WITH_CHANGES;
     }
     return UpdateResult::SUCCES_WITHOUT_CHANGES;

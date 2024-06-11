@@ -107,10 +107,10 @@ bool FileView::onDraw()
 
         bool is_running = get_virtual_machine()->is_program_running();
         auto allow_keyboard = !is_running &&
-                              !NodeView::is_any_dragged();
+                              !m_file->graph_view->is_any_dragged();
 
         auto allow_mouse = !is_running &&
-                           !NodeView::is_any_dragged() &&
+                           !m_file->graph_view->is_any_dragged() &&
                            !ImGui::IsAnyItemHovered() &&
                            !ImGui::IsAnyItemFocused();
 
@@ -165,7 +165,7 @@ bool FileView::onDraw()
      // NODE EDITOR
     //-------------
 
-    Graph*     graph      = m_file->graph;
+    Graph*     graph      = m_file->m_graph;
     GraphView* graph_view = m_file->graph_view;
 
     ASSERT(graph);
@@ -286,8 +286,8 @@ void FileView::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file->graph->get_node_registry().size());
-    ImGui::Text("Edge count: %zu", m_file->graph->get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file->m_graph->get_node_registry().size());
+    ImGui::Text("Edge count: %zu", m_file->m_graph->get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
@@ -317,7 +317,7 @@ void FileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, Rect rect, Vec2 position)
+void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const Rect& rect, const Vec2& position)
 {
     if( overlay_data.empty() ) return;
 

@@ -61,7 +61,7 @@ namespace ndbl
         void                           clear_overlay();
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           refresh_overlay(Condition condition);
-        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, tools::Rect rect, tools::Vec2 position);
+        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
         size_t                         size() const;
 
     private:

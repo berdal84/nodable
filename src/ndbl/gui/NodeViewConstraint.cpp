@@ -1,7 +1,6 @@
 #include "NodeViewConstraint.h"
 #include "Config.h"
 #include "ndbl/core/ForLoopNode.h"
-#include "ndbl/gui/Nodable.h"
 #include "ndbl/gui/NodeView.h"
 #include "ndbl/gui/Physics.h"
 #include "tools/gui/Config.h"
@@ -190,7 +189,7 @@ void NodeViewConstraint::apply(float _dt)
 void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers,const std::vector<NodeView*>& _targets )
 {
 #ifdef NDBL_DEBUG
-    if( get_config()->draw_debug_lines && NodeView::is_selected(_drivers[0]->poolid()) )
+    if( get_config()->draw_debug_lines && _drivers[0]->is_hovered )
     {
         for (auto each_target: _targets )
         {

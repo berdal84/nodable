@@ -41,10 +41,12 @@ namespace ndbl
         bool                   dirty;        // true if changed since last read/write from/to disk.
         FileView               view;
         History                history;      // history of changes
-        Graph*                 graph;        // graphical representation
         observe::Event<Graph*> graph_changed;
-        GraphView*             graph_view;
 
+    private:
+        Graph*                 graph;        // graphical representation
+    public:
+        Graph&                 get_graph() { return *graph; };
         std::string            filename() const;
         UpdateResult           update( Isolation ); // to call each frame
         UpdateResult           update_graph_from_text( Isolation = Isolation_OFF );

@@ -13,7 +13,8 @@ void NodableHeadless::init()
     m_language = init_language();
     m_node_factory = init_node_factory();
     m_virtual_machine = init_virtual_machine();
-    m_graph = new Graph(get_node_factory());
+    m_graph = new Graph();
+    m_graph->init(m_node_factory);
 }
 
 void NodableHeadless::shutdown()

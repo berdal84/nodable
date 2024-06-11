@@ -42,24 +42,37 @@ namespace ndbl
         void                     update_cache_based_on_user_input( size_t _limit );
     };
 
-    struct WireState
+    typedef int SelectionMode;
+    enum SelectionMode_
     {
-        bool is_any_dragged{false};
-        bool is_any_hovered{false};
-        const Slot* hovered_slot_start{ nullptr};
-        const Slot* hovered_slot_end{ nullptr};
+        SelectionMode_ADD     = 0,
+        SelectionMode_REPLACE = 1,
     };
 
-    struct ContextMenuState
+    struct FrameState
     {
-        WireState             wire{};
-        CreateNodeContextMenu node{};
+        bool        is_any_wire_dragged{false};
+        bool        is_any_wire_hovered{false};
+        const Slot* hovered_wire_start{nullptr};
+        const Slot* hovered_wire_end{nullptr};
+        bool        is_any_node_dragged{false};
+        bool        is_any_node_hovered{false};
+        bool slotview_dropped_on_background{false};
+        NodeView*   hovered_node{ nullptr};
     };
 
+    typedef int SlotFlags;
+    enum SlotFlags_
+    {
+        SlotBehavior_READONLY       = 1 << 0,
+        SlotBehavior_ALLOW_DRAGGING = 1 << 1,
+    };
 
     class GraphView: public tools::View
     {
 	public:
+        using NodeViewVec = std::vector<PoolID<NodeView>>;
+
 	    GraphView(Graph* graph);
 		~GraphView() override = default;
 
@@ -73,15 +86,34 @@ namespace ndbl
         void        unfold(); // unfold the graph until it is stabilized
         void        add_action_to_context_menu( Action_CreateNode* _action);
         void        frame( FrameMode mode );
+        void        set_selected(PoolID<NodeView> new_selection, SelectionMode mode);
+        bool        is_any_dragged() const;
+        bool        is_selected(PoolID<NodeView>) const;
+        bool        is_dragged(PoolID<NodeView> ) const;
+        const NodeViewVec& get_selected() const;
+        const NodeViewVec& get_dragged() const;
+
+        void set_hovered_slotview(SlotView *pView);
+
+        SlotView *get_dragged_slotview() const;
+
+        void set_dragged_slotview(SlotView *pView);
+
+        SlotView *get_hovered_slotview() const;
 
     private:
         void        draw_grid( ImDrawList* ) const;
         void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
         void        pan(Vec2); // translate content
 
-        Graph*           m_graph;
-        ContextMenuState m_contextual_menu;
-
+        Graph*      m_graph;
+        CreateNodeContextMenu m_create_node_menu{};
+        FrameState m_last_frame;
+        NodeViewVec m_selected_nodeview;
+        NodeViewVec m_dragged_nodeview;
+        SlotView*   m_hovered_slotview;
+        SlotView*   m_focused_slotview;
+        SlotView*   m_dragged_slotview;
 		REFLECT_DERIVED_CLASS()
     };
 }

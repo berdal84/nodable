@@ -82,8 +82,8 @@ namespace ndbl
 
     struct EventPayload_NodeViewSelectionChange
     {
-        PoolID<NodeView> new_selection;
-        PoolID<NodeView> old_selection;
+        std::vector<PoolID<NodeView>> new_selection;
+        std::vector<PoolID<NodeView>> old_selection;
     };
     using Event_SelectionChange = tools::Event<EventID_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
 

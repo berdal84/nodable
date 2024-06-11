@@ -1,15 +1,9 @@
 #include "SlotView.h"
 #include "Config.h"
 #include "Event.h"
-#include "Nodable.h"
 #include "NodeView.h"
-
 using namespace ndbl;
 using namespace tools;
-
-SlotView *SlotView::s_focused = nullptr;
-SlotView *SlotView::s_dragged = nullptr;
-SlotView *SlotView::s_hovered = nullptr;
 
 SlotView::SlotView(Slot &_slot, Vec2 _alignment )
 : m_slot(_slot)
@@ -20,8 +14,7 @@ SlotView::SlotView(Slot &_slot, Vec2 _alignment )
 void SlotView::draw_slot_circle(
         ImDrawList* _draw_list,
         SlotView& _view,
-        Vec2 _position,
-        bool _readonly)
+        const Vec2& _position)
 {
     Config* cfg = get_config();
     float invisible_ratio = cfg->ui_slot_invisible_ratio;
@@ -46,15 +39,13 @@ void SlotView::draw_slot_circle(
     _draw_list->AddCircleFilled( _position, radius, ImColor(is_hovered ? hover_color : color));
     _draw_list->AddCircle( _position, radius, ImColor(border_color) );
     ImGuiEx::DebugCircle( _position, radius, ImColor(border_color));
-
-    behavior(_view, _readonly);
 }
 
 void SlotView::draw_slot_rectangle(
     ImDrawList* _draw_list,
     SlotView& _view,
-    Rect _rect,
-    bool _readonly)
+    const Rect& _rect
+    )
 {
     Config* cfg = get_config();
     Vec4  color          = cfg->ui_slot_color;
@@ -79,49 +70,6 @@ void SlotView::draw_slot_rectangle(
     _draw_list->AddRectFilled( _rect.min, _rect.max, ImColor(fill_color), border_radius, corner_flags );
     _draw_list->AddRect( _rect.min, _rect.max, ImColor(border_color), border_radius, corner_flags );
     ImGuiEx::DebugRect( _rect.min, _rect.max, ImColor(255,0, 0, 127), 0.0f );
-
-    behavior(_view, _readonly);
-}
-
-void SlotView::behavior(SlotView& _view, bool _readonly)
-{
-    // Handle disconnect
-
-    if ( !_readonly && _view.has_node_connected() && ImGui::BeginPopupContextItem() )
-    {
-        if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
-        {
-            auto& event_manager = EventManager::get_instance();
-            event_manager.dispatch<Event_SlotDisconnected>({ _view.slot() });
-        }
-
-        ImGui::EndPopup();
-    }
-
-    // Handle hover state
-
-    if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
-    {
-        SlotView::reset_hovered(&_view);
-        if( ImGuiEx::BeginTooltip() )
-        {
-            ImGui::Text("%s", SlotView::get_tooltip(_view).c_str() );
-            ImGuiEx::EndTooltip();
-        }
-
-        if ( ImGui::IsMouseDown(0) && !is_dragging() && !NodeView::is_any_dragged())
-        {
-            if ( !_view.slot().is_full() )
-            {
-                reset_dragged( &_view );
-            }
-        }
-    }
-    else if (SlotView::get_hovered() == &_view)
-    {
-        SlotView::reset_hovered();
-    }
-
 }
 
 PoolID<Node> SlotView::adjacent_node() const
@@ -142,32 +90,6 @@ Vec2 SlotView::position()const
 Rect SlotView::get_rect()const
 {
     return m_slot.node->get_component<NodeView>()->get_slot_rect( *this, 0 );
-}
-
-void SlotView::drop_behavior(bool &require_new_node, bool _enable_edition)
-{
-    if ( s_dragged && ImGui::IsMouseReleased(0) )
-    {
-        if ( _enable_edition )
-        {
-            if ( s_hovered )
-            {
-                auto& event_manager = EventManager::get_instance();
-                event_manager.dispatch<Event_SlotDropped>({ s_dragged->m_slot, s_hovered->m_slot});
-
-                reset_hovered();
-                reset_dragged();
-            }
-            else
-            {
-                require_new_node = true;
-            }
-        }
-        else
-        {
-            reset_dragged();
-        }
-    }
 }
 
 const type* SlotView::get_property_type()const
@@ -211,11 +133,11 @@ Property* SlotView::get_property() const
     return m_slot.get_property();
 }
 
-std::string SlotView::get_tooltip( SlotView& _view )
+std::string SlotView::get_tooltip() const
 {
-    std::string property_name{_view.get_property()->get_name()};
+    std::string property_name{get_property()->get_name()};
 
-    switch ( _view.slot().static_flags() ) // type and order flags only
+    switch ( m_slot.static_flags() ) // type and order flags only
     {
         case SlotFlag_INPUT:   return property_name.append(" (in)");
         case SlotFlag_OUTPUT:  return property_name.append(" (out)");

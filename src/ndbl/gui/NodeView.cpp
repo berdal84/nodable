@@ -16,6 +16,7 @@
 #include "NodeViewConstraint.h"
 #include "Physics.h"
 #include "PropertyView.h"
+#include "GraphView.h"
 #include "SlotView.h"
 #include "tools/gui/Config.h"
 
@@ -33,9 +34,6 @@ constexpr Vec2 DEFAULT_SIZE{10.0f, 35.0f};
 constexpr Vec2 DEFAULT_POS{500.0f, -1.0f};
 constexpr Vec4 DEFAULT_COLOR{1.f, 0.f, 0.f};
 
-PoolID<NodeView>   NodeView::s_selected;
-PoolID<NodeView>   NodeView::s_dragged;
-
 // TODO: move those values into the configuration
 NodeViewDetail     NodeView::s_view_detail                       = NodeViewDetail::Default;
 const float        NodeView::s_property_input_size_min           = 10.0f;
@@ -49,17 +47,12 @@ NodeView::NodeView()
         , m_expanded(true)
         , m_pinned(false)
         , m_property_view_this(nullptr)
-        , m_edition_enable(true)
         , m_property_views()
+        , m_is_selected(false)
+        , m_graph(nullptr)
 {
     box.pos(DEFAULT_POS);
     box.size(DEFAULT_SIZE);
-}
-
-NodeView::~NodeView()
-{
-    // deselect
-    if ( s_selected == m_id ) s_selected.reset();
 }
 
 std::string NodeView::get_label()
@@ -75,6 +68,9 @@ std::string NodeView::get_label()
 void NodeView::set_owner(PoolID<Node> node)
 {
     Component::set_owner(node);
+
+    m_graph = node->parent_graph ? node->parent_graph->get_view()
+                                 : nullptr;
 
     if( node == PoolID<Node>::null )
     {
@@ -159,38 +155,6 @@ void NodeView::update_labels_from_name(const Node* _node)
                                                        : m_label.substr(0, label_max_length) + "..";
 }
 
-void NodeView::set_selected(PoolID<NodeView> new_selection)
-{
-    EventManager& event_manager = EventManager::get_instance();
-
-    if( s_selected == new_selection ) return;
-
-    EventPayload_NodeViewSelectionChange event{ new_selection, s_selected };
-    event_manager.dispatch<Event_SelectionChange>(event);
-
-    s_selected = new_selection;
-}
-
-PoolID<NodeView> NodeView::get_selected()
-{
-	return s_selected;
-}
-
-bool NodeView::is_any_dragged()
-{
-	return s_dragged.get() != nullptr;
-}
-
-PoolID<NodeView> NodeView::get_dragged()
-{
-	return s_dragged;
-}
-
-bool NodeView::is_selected(PoolID<NodeView> view)
-{
-	return s_selected == view;
-}
-
 const PropertyView* NodeView::get_property_view( ID<Property> _id )const
 {
     return &m_property_views.at((u32_t)_id);
@@ -257,7 +221,7 @@ bool NodeView::onDraw()
     ASSERT(node != nullptr);
 
     // Draw Node slots (in background)
-    bool is_slot_hovered = false;
+    m_is_any_slot_hovered = false;
     {
         std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
@@ -266,8 +230,8 @@ bool NodeView::onDraw()
             {
                 int& count = count_by_flags[slot_view.slot().static_flags()];
                 Rect rect = get_slot_rect( slot_view, count );
-                SlotView::draw_slot_rectangle( draw_list, slot_view, rect, m_edition_enable);
-                is_slot_hovered |= ImGui::IsItemHovered();
+                SlotView::draw_slot_rectangle( draw_list, slot_view, rect );
+                slot_behavior(slot_view);
                 count++;
             }
         }
@@ -283,7 +247,7 @@ bool NodeView::onDraw()
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( is_selected( m_id ) )
+    if ( m_is_selected )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -304,7 +268,7 @@ bool NodeView::onDraw()
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            is_selected( m_id ),
+            m_is_selected,
             5.0f,
             border_width );
 
@@ -367,73 +331,18 @@ bool NodeView::onDraw()
             if( slot_view.slot().has_flags(SlotFlag_TYPE_VALUE) )
             {
                 Vec2 screen_pos = get_slot_pos(slot_view.slot());
-                SlotView::draw_slot_circle( draw_list, slot_view, screen_pos, m_edition_enable );
-                is_slot_hovered |= ImGui::IsItemHovered();
+                SlotView::draw_slot_circle( draw_list, slot_view, screen_pos );
+                slot_behavior(slot_view);
             }
         }
     }
-
-    // Contextual menu (right click)
-    if ( is_node_hovered && !is_slot_hovered && ImGui::IsMouseReleased(1))
-    {
-        ImGui::OpenPopup("NodeViewContextualMenu");
-    }
-
-    if (ImGui::BeginPopup("NodeViewContextualMenu"))
-    {
-        if( ImGui::MenuItem("Arrange"))
-        {
-            this->arrange_recursively();
-        }
-
-        ImGui::MenuItem("Pinned", "", &m_pinned, true);
-
-		if ( ImGui::MenuItem("Expanded", "", &m_expanded, true) )
-        {
-		    set_expanded(m_expanded);
-        }
-
-        ImGui::Separator();
-
-        if( ImGui::Selectable("Delete", !m_edition_enable ? ImGuiSelectableFlags_Disabled : ImGuiSelectableFlags_None))
-        {
-            node->flagged_to_delete = true;
-        }
-
-        ImGui::EndPopup();
-    }
-
-	// Selection by mouse (left or right click)
-	if ( is_node_hovered && (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1)))
-	{
-        set_selected( m_id );
-    }
-
-	// Mouse dragging
-	if (get_dragged() != m_id )
-	{
-		if( !get_dragged() && !SlotView::get_dragged() && ImGui::IsMouseDown(0) && is_node_hovered && ImGui::IsMouseDragPastThreshold(0))
-        {
-            s_dragged = m_id;
-        }
-	}
-	else if ( ImGui::IsMouseReleased(0))
-	{
-        s_dragged.reset();
-	}		
-
-	// Collapse on/off
-	if( is_node_hovered && ImGui::IsMouseDoubleClicked(0))
-	{
-        expand_toggle();
-	}
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
 
     m_owner->dirty |= changed;
 
-    is_hovered = is_node_hovered || is_slot_hovered;
+    is_hovered = is_node_hovered || m_is_any_slot_hovered;
 
 	return changed;
 }
@@ -960,9 +869,12 @@ Rect NodeView::get_rect(
 std::vector<Rect> NodeView::get_rects(const std::vector<NodeView*>& _in_views, Space space, NodeViewFlags flags)
 {
     std::vector<Rect> rects;
-    for (auto each_target : _in_views )
+    rects.reserve(_in_views.size());
+    size_t i = 0;
+    while( i < _in_views.size() )
     {
-        rects.push_back( each_target->get_rect(space, flags ));
+        rects[i] = _in_views[i]->get_rect(space, flags );
+        ++i;
     }
     return std::move( rects );
 }
@@ -1067,17 +979,6 @@ void NodeView::expand_toggle_rec()
     return set_expanded_rec(!m_expanded);
 }
 
-
-bool NodeView::is_any_selected()
-{
-    return NodeView::get_selected().get() != nullptr;
-}
-
-bool NodeView::is_dragged() const
-{
-    return s_dragged == m_id;
-}
-
 Vec2 NodeView::get_slot_normal( const Slot& slot ) const
 {
     // Alignment is usually not a corner, so we don't need to normalize.
@@ -1139,4 +1040,48 @@ bool NodeView::none_is_visible( std::vector<NodeView*> _views )
 {
     auto is_visible = [](const NodeView* view) { return view->is_visible; };
     return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
+}
+
+void NodeView::slot_behavior(SlotView& _view, SlotFlags flags)
+{
+    m_is_any_slot_hovered |= ImGui::IsItemHovered();
+
+    // Handle disconnect
+
+    bool readonly = ( flags & SlotBehavior_READONLY );
+    if ( !readonly && _view.has_node_connected() && ImGui::BeginPopupContextItem() )
+    {
+        if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
+        {
+            auto& event_manager = EventManager::get_instance();
+            event_manager.dispatch<Event_SlotDisconnected>({ _view.slot() });
+        }
+
+        ImGui::EndPopup();
+    }
+
+    // Handle hover state
+
+    if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
+    {
+        m_graph->set_hovered_slotview(&_view);
+        if( ImGuiEx::BeginTooltip() )
+        {
+            ImGui::Text("%s", _view.get_tooltip().c_str() );
+            ImGuiEx::EndTooltip();
+        }
+
+        bool draggable = flags & SlotBehavior_ALLOW_DRAGGING;
+        if ( draggable &&  ImGui::IsMouseDown(0) && m_graph->get_dragged_slotview() == nullptr )
+        {
+            if ( !_view.slot().is_full() )
+            {
+                m_graph->set_dragged_slotview(&_view);
+            }
+        }
+    }
+    else if ( m_graph->get_hovered_slotview() == &_view )
+    {
+        m_graph->set_hovered_slotview(nullptr);
+    }
 }

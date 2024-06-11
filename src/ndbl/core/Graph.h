@@ -19,6 +19,7 @@ namespace ndbl
     // forward declarations
     class Nodlang;
     class NodeFactory;
+    class GraphView;
 
     typedef int ConnectFlags;
     enum ConnectFlag_
@@ -50,9 +51,10 @@ namespace ndbl
 	class Graph
 	{
 	public:
- 		explicit Graph(const NodeFactory*);
+ 		Graph() = default;
 		~Graph();
 
+        void                        init(NodeFactory* factory);
         UpdateResult                update();
 
         // node related
@@ -80,6 +82,7 @@ namespace ndbl
         void                            destroy(PoolID<Node> _node);
         void                            ensure_has_root();
         PoolID<Node>                    get_root()const { return m_root; }
+        GraphView*                      get_view() const { return m_view; };
         bool                            is_empty() const;
         bool                            is_dirty() const { return m_is_dirty; }
         void                            set_dirty(bool value = true) { m_is_dirty = value; }
@@ -95,6 +98,7 @@ namespace ndbl
         DirectedEdge* connect_or_merge(Slot& _out, Slot& _in);
         void          disconnect( const DirectedEdge& _edge, ConnectFlags flags = ConnectFlag_NONE );
 
+
     private:
         // register management
         void         add(PoolID<Node> _node); // Add a given node to the registry.
@@ -103,8 +107,9 @@ namespace ndbl
 
 		std::vector<PoolID<Node>>               m_node_registry;       // registry to store all the nodes from this graph.
         std::multimap<SlotFlags , DirectedEdge> m_edge_registry;       // registry ot all the edges (directed edges) between the registered nodes' properties.
-        PoolID<Node>       m_root;                // Graph root (main scope), without it a graph cannot be compiled.
-        const NodeFactory* m_factory;             // Node factory (can be headless or not depending on the context: app, unit tests, cli).
-        bool               m_is_dirty;
+        PoolID<Node>       m_root;             // Graph root (main scope), without it a graph cannot be compiled.
+        const NodeFactory* m_factory{nullptr};
+        bool               m_is_dirty{false};
+        GraphView*         m_view{nullptr};
     };
 }
