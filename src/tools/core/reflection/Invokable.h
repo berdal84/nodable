@@ -231,7 +231,7 @@ namespace tools
         { delete m_method_type; }
 
         void bind(void* _instance) override
-        { ASSERT(m_bound_instance != nullptr); m_bound_instance = reinterpret_cast<ClassT*>( _instance );  }
+        { ASSERT(m_bound_instance == nullptr); m_bound_instance = reinterpret_cast<ClassT*>( _instance );  }
 
         void unbind() override
         { m_bound_instance = nullptr; }
