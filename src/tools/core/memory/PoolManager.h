@@ -10,7 +10,7 @@ namespace tools
             Pool::Config default_pool_config{};
         };
 
-        Pool* get_pool(); // Right now there is only 1 Pool, but we should split (1 pool per type)
+        Pool* get_pool(); // Only one Pool for now, but we should be able to have multiple pools (e.g. one per File)
         std::vector<Pool> pools{};
     };
 
