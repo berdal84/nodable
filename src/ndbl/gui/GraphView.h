@@ -25,21 +25,21 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    struct CreateNodeContextMenu
+    class CreateNodeContextMenu
     {
+    public:
+        Action_CreateNode*       draw_search_input(SlotView* _dragged_slot, size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
+        void                     reset_state();
+        void                     add_action(Action_CreateNode*);
+
+    private:
         bool      must_be_reset_flag   = false;
-        Vec2      opened_at_pos        {-1,-1}; // relative
-        Vec2      opened_at_screen_pos {-1,-1}; // absolute (screen space)
-        SlotView* dragged_slot         = nullptr;  // The slot being dragged when the context menu opened.
         char      search_input[255]    = "\0";     // The search input entered by the user.
         std::vector<Action_CreateNode*> items;                           // All the available items
         std::vector<Action_CreateNode*> items_with_compatible_signature; // Only the items having a compatible signature (with the slot dragged)
         std::vector<Action_CreateNode*> items_matching_search;           // Only the items having a compatible signature AND matching the search_input.
-
-        Action_CreateNode*        draw_search_input( size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
-        void                     reset_state(SlotView* _dragged_slot = nullptr);
-        void                     update_cache_based_on_signature();
-        void                     update_cache_based_on_user_input( size_t _limit );
+        void                     update_cache_based_on_signature(SlotView* _dragged_slot);
+        void                     update_cache_based_on_user_input(SlotView* _dragged_slot, size_t _limit );
     };
 
     typedef int SelectionMode;
@@ -49,23 +49,13 @@ namespace ndbl
         SelectionMode_REPLACE = 1,
     };
 
-    struct FrameState
+    enum Tool
     {
-        bool        is_any_wire_dragged{false};
-        bool        is_any_wire_hovered{false};
-        const Slot* hovered_wire_start{nullptr};
-        const Slot* hovered_wire_end{nullptr};
-        bool        is_any_node_dragged{false};
-        bool        is_any_node_hovered{false};
-        bool slotview_dropped_on_background{false};
-        NodeView*   hovered_node{ nullptr};
-    };
-
-    typedef int SlotFlags;
-    enum SlotFlags_
-    {
-        SlotBehavior_READONLY       = 1 << 0,
-        SlotBehavior_ALLOW_DRAGGING = 1 << 1,
+        Tool_NONE = 0,
+        Tool_DEFINE_ROI,
+        Tool_DRAG_NODEVIEWS,
+        Tool_DRAG_ALL,
+        Tool_CREATE_WIRE
     };
 
     class GraphView: public tools::View
@@ -73,47 +63,40 @@ namespace ndbl
 	public:
         using NodeViewVec = std::vector<PoolID<NodeView>>;
 
-	    GraphView(Graph* graph);
+	    explicit GraphView(Graph* graph, View* parent);
 		~GraphView() override = default;
 
-        bool        onDraw() override;
-        bool        update();
-        bool        update(float /* delta_time */);
-        bool        update(float /* delta_time */, i16_t /* subsample_count */);
-        void        frame_all_node_views();
-        void        frame_selected_node_views();
-        void        translate_all(const std::vector<NodeView*>&, Vec2 delta, NodeViewFlags);
-        void        unfold(); // unfold the graph until it is stabilized
+        bool        draw() override;
         void        add_action_to_context_menu( Action_CreateNode* _action);
-        void        frame( FrameMode mode );
-        void        set_selected(PoolID<NodeView> new_selection, SelectionMode mode);
-        bool        is_any_dragged() const;
-        bool        is_selected(PoolID<NodeView>) const;
-        bool        is_dragged(PoolID<NodeView> ) const;
+        void        frame_nodes(FrameMode mode );
+        bool        selection_empty() const;
+        void        reset(); // unfold and frame the whole graph
+        bool        update();
+        bool        has_no_tool_active() const;
+        void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
         const NodeViewVec& get_selected() const;
-        const NodeViewVec& get_dragged() const;
 
-        void set_hovered_slotview(SlotView *pView);
+        REFLECT_DERIVED_CLASS()
 
-        SlotView *get_dragged_slotview() const;
-
-        void set_dragged_slotview(SlotView *pView);
-
-        SlotView *get_hovered_slotview() const;
 
     private:
-        void        draw_grid( ImDrawList* ) const;
-        void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
-        void        pan(Vec2); // translate content
+        void        unfold(); // unfold the graph until it is stabilized
+        bool        update(float dt);
+        bool        update(float dt, u16_t samples);
+        static void translate_all(const std::vector<NodeView*>&, const Vec2& offset, NodeViewFlags);
+        void        translate_all(const Vec2& offset);
+        bool        is_selected(PoolID<NodeView>) const;
+        void        start_drag_nodeviews();
+        void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
+        std::vector<NodeView*> get_all_nodeviews() const;
 
         Graph*      m_graph;
         CreateNodeContextMenu m_create_node_menu{};
-        FrameState  m_last_frame{};
         NodeViewVec m_selected_nodeview;
-        NodeViewVec m_dragged_nodeview;
-        SlotView*   m_hovered_slotview{nullptr};
-        SlotView*   m_focused_slotview{nullptr};
-        SlotView*   m_dragged_slotview{nullptr};
-		REFLECT_DERIVED_CLASS()
+        NodeView*   m_active_nodeview{nullptr};
+        SlotView*   m_active_slotview{nullptr};
+        Tool        m_tool{Tool_NONE};
+
+        void set_tool(Tool tool);
     };
 }

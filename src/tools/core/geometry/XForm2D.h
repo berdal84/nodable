@@ -16,7 +16,7 @@ namespace tools
     public:
         XForm2D(){};
 
-        void pos(Vec2 _pos)
+        void pos(const Vec2& _pos)
         {
             EXPECT(!std::isnan(_pos.x) && !std::isnan(_pos.y), "Vector can't have NaN coordinates");
             m_pos = _pos;
@@ -26,13 +26,13 @@ namespace tools
         Vec2 pos() const
         { return m_pos; }
 
-        glm::mat3 world_matrix() const
+        const glm::mat3& world_matrix() const
         { const_cast<XForm2D*>(this)->update(); return m_world_mat; }
 
-        glm::mat3 model_matrix() const
+        const glm::mat3& model_matrix() const
         { const_cast<XForm2D*>(this)->update(); return m_local_mat; }
 
-        static Vec2 translate( Vec2 p, XForm2D t )
+        static Vec2 translate( const Vec2& p, XForm2D t )
         {
             glm::vec2 result = t.world_matrix() * glm::vec3(p.x, p.y, 1.f);
             return result;

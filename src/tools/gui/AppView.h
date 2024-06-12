@@ -38,19 +38,15 @@ namespace tools
         };
 
         /*
-         * Dockspace: enum to identify dockspaces
-         * ----------------------------------------
-         *                 TOP                    |
-         * ----------------------------------------
-         *                           |            |
-         *                           |            |
-         *            CENTER         |    RIGHT   |
-         *                           |            |
-         *                           |            |
-         *                           |            |
-         * ---------------------------------------|
-         *                   BOTTOM               |
-         * ----------------------------------------
+         * Enum to identify dockspaces
+         *
+         -------------------------------------
+         |                TOP                |
+         |-----------------------------------|
+         |           CENTER         |  RIGHT |
+         |-----------------------------------|
+         |              BOTTOM               |
+         ------------------------------------
          */
         enum Dockspace
         {
@@ -67,35 +63,9 @@ namespace tools
 		~AppView();
 
         bool               show_splashscreen{};
-
-        //
-        // note: those managers could perhaps be stored in a Context struct (e.g. ImGui's context)
-        //
-        // ex:
-        //        // in Context.h
-        //
-        //        struct Context {
-        //            TextureManager     texture_manager;
-        //            FontManager        font_manager;
-        //            EventManager       event_manager;
-        //            ActionManager      action_manager;
-        //        };
-        //
-        //        Context* create_context();
-        //        void     set_context(Context*);
-        //        Context* get_context();
-        //        void     destroy_context(Context*);
-        //
-        //        // in a Context.cpp
-        //        static Context* g_context{nullptr}
-        //        void     set_context(Context*) { ... }
-        //        Context* get_context() { return g_context; }
-        //        void     destroy_context() { ... }
-        //
-
-        FontManager        font_manager;
-        EventManager       event_manager;
-        ActionManager      action_manager;
+        FontManager        font_manager;   // TODO: implement init/shutdown logic (singleton)
+        EventManager       event_manager;  // TODO: implement init/shutdown logic (singleton)
+        ActionManager      action_manager; // TODO: implement init/shutdown logic (singleton)
 
         virtual void       init();
         virtual void       update();

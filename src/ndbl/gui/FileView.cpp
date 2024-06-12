@@ -19,7 +19,7 @@ using namespace ndbl;
 using namespace tools;
 
 FileView::FileView()
-    : View()
+    : View(nullptr) // FileView is a root View
     , m_text_editor()
     , m_focused_text_changed(false)
     , m_is_graph_dirty(false)
@@ -40,28 +40,7 @@ void FileView::init(File& _file)
 
     m_graph_changed_observer.observe(m_file->graph_changed, [](Graph* _graph) {
         LOG_VERBOSE( "FileView", "graph changed evt received\n" )
-        if ( !_graph->is_empty() )
-        {
-            LOG_VERBOSE( "FileView", "graph is not empty\n" )
-            Node* root = _graph->get_root().get();
-
-            NodeView* root_node_view = root->get_component<NodeView>().get();
-            GraphView* graph_view = _graph->get_view();
-
-            // unfold graph (lot of updates) and frame all nodes
-            if ( root_node_view && graph_view )
-            {
-                // visually unfold graph. Does not work super well...
-                graph_view->unfold();
-
-                // make sure views are outside viewable rectangle (to avoid flickering)
-                auto views = NodeUtils::get_components<NodeView>( _graph->get_node_registry() );
-                graph_view->translate_all( views, Vec2( -1000.f, -1000.0f ), NodeViewFlag_NONE );
-
-                // frame all (33ms delayed)
-                EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, { FRAME_ALL } );
-            }
-        }
+        _graph->get_view()->reset();
     });
 
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
@@ -70,8 +49,9 @@ void FileView::init(File& _file)
 	m_text_editor.SetPalette( cfg->ui_text_textEditorPalette );
 }
 
-bool FileView::onDraw()
+bool FileView::draw()
 {
+    View::draw();
     Config* cfg = get_config();
     const Vec2 margin(10.0f, 0.0f);
     Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
@@ -106,11 +86,12 @@ bool FileView::onDraw()
         auto old_line_text = m_text_editor.GetCurrentLineText();
 
         bool is_running = get_virtual_machine()->is_program_running();
+        GraphView* graphview = m_file->get_graph().get_view();
         auto allow_keyboard = !is_running &&
-                              !m_file->get_graph().get_view()->is_any_dragged();
+                              !graphview->has_no_tool_active();
 
         auto allow_mouse = !is_running &&
-                           !m_file->get_graph().get_view()->is_any_dragged() &&
+                           !graphview->has_no_tool_active() &&
                            !ImGui::IsAnyItemHovered() &&
                            !ImGui::IsAnyItemFocused();
 
@@ -136,7 +117,7 @@ bool FileView::onDraw()
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
         // overlay
-        Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
+        Rect overlay_rect = ImGuiEx::GetContentRegion(SCREEN_SPACE );
         overlay_rect.expand( Vec2( -2.f * cfg->ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
@@ -182,7 +163,7 @@ bool FileView::onDraw()
         m_is_graph_dirty = graph_view->draw();
 
         // Draw overlay: shortcuts
-        Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
+        Rect overlay_rect = ImGuiEx::GetContentRegion(SCREEN_SPACE );
         overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
         draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );

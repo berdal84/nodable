@@ -173,7 +173,7 @@ void NodableView::draw()
                 ImGui::Separator();
             }
 
-            auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->get_selected().empty()
+            auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->selection_empty()
                                                          : false;
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped))
@@ -440,17 +440,20 @@ void NodableView::draw_node_properties_window()
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
-        auto selected_node_views = m_app->current_file->get_graph().get_view()->get_selected();
-        if ( selected_node_views.size() == 1 )
+        if( m_app->current_file )
         {
-            ImGui::Indent(10.0f);
-            NodeView* first_node_view = selected_node_views.front().get();
-            NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
-        }
-        else if ( selected_node_views.size() > 1 )
-        {
-            ImGui::Indent(10.0f);
-            ImGui::Text("Multi-Selection");
+            auto selected_nodeviews = m_app->current_file->get_graph().get_view()->get_selected();
+            if (selected_nodeviews.size() == 1)
+            {
+                ImGui::Indent(10.0f);
+                NodeView *first_node_view = selected_nodeviews.front().get();
+                NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
+            }
+            else if (selected_nodeviews.size() > 1)
+            {
+                ImGui::Indent(10.0f);
+                ImGui::Text("Multi-Selection");
+            }
         }
     }
     ImGui::End();

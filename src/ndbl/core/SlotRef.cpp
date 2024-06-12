@@ -30,7 +30,7 @@ SlotRef::SlotRef(SlotRef&& other) noexcept
 SlotRef::SlotRef( const Slot& slot )
 : id(slot.id)
 , node(slot.node)
-, flags( slot.static_flags() )
+, flags(slot.type_and_order() )
 {
 }
 

@@ -54,6 +54,8 @@ namespace ndbl
  		Graph(NodeFactory* factory);
 		~Graph();
 
+        observe::Event<PoolID<Node>> on_add;
+
         void                        set_view(GraphView* view = nullptr);
         UpdateResult                update();
 

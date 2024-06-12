@@ -47,10 +47,10 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            Vec2        virtual_cursor    = driver->position( WORLD_SPACE );
+            Vec2        virtual_cursor    = driver->get_pos(SCREEN_SPACE);
             const Node& driver_owner      = *driver->get_owner();
             NodeViewFlags flags           = NodeViewFlag_IGNORE_PINNED;
-            auto        target_rects      = NodeView::get_rects( clean_targets, WORLD_SPACE, flags );
+            auto        target_rects      = NodeView::get_rects(clean_targets, SCREEN_SPACE, flags );
 
 #ifdef NDBL_DEBUG
             if( tools_cfg->runtime_debug )
@@ -93,7 +93,8 @@ void NodeViewConstraint::apply(float _dt)
                 case Align_CENTER:
                 {
                     float size_x_total = 0.0f;
-                    std::for_each( target_rects.begin(), target_rects.end(),[&](auto each ) { size_x_total += each.size().x; });
+                    for(Rect& r : target_rects)
+                        size_x_total += r.size().x;
                     virtual_cursor.x -= size_x_total / 2.0f;
                 }
             }
@@ -107,7 +108,7 @@ void NodeViewConstraint::apply(float _dt)
                 const Node& target_owner = *each_target->get_owner();
 
                 // Guards
-                if ( !each_target->is_visible ) continue;
+                if ( !each_target->visible ) continue;
                 if ( each_target->pinned() ) continue;
                 if ( !target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() ) && !align_bbox_bottom ) continue;
 
@@ -130,7 +131,7 @@ void NodeViewConstraint::apply(float _dt)
                 }
 
                 auto target_physics = target_owner.get_component<Physics>();
-                target_physics->translate_to( WORLD_SPACE, virtual_cursor + relative_pos + m_offset, cfg->ui_node_speed, true );
+                target_physics->translate_to(SCREEN_SPACE, virtual_cursor + relative_pos + m_offset, cfg->ui_node_speed, true );
                 virtual_cursor.x += target_rect.width() + cfg->ui_node_spacing;
             }
             break;
@@ -139,7 +140,7 @@ void NodeViewConstraint::apply(float _dt)
         case ConstrainFlag_LAYOUT_DEFAULT:
         {
             NodeView* target = clean_targets[0];
-            if (!target->pinned() && target->is_visible )
+            if (!target->pinned() && target->visible )
             {
                 Physics& target_physics = *target->get_owner()->get_component<Physics>();
 
@@ -152,20 +153,20 @@ void NodeViewConstraint::apply(float _dt)
                     */
 
                     // compute
-                    auto drivers_rect = NodeView::get_rect(clean_drivers, WORLD_SPACE);
+                    auto drivers_rect = NodeView::get_rect(clean_drivers, SCREEN_SPACE);
 
                     NodeViewFlags flags = NodeViewFlag_RECURSIVELY
                                         | NodeViewFlag_IGNORE_PINNED
                                         | NodeViewFlag_IGNORE_MULTICONSTRAINED;
-                    auto target_rect  = target->get_rect(WORLD_SPACE, flags);
+                    auto target_rect  = target->get_rect(SCREEN_SPACE, flags);
                     float target_driver_offset = drivers_rect.max.y - target_rect.min.y;
                     Vec2 new_pos;
-                    Vec2 target_position = target->position( WORLD_SPACE );
+                    Vec2 target_position = target->get_pos(SCREEN_SPACE);
                     new_pos.x = drivers_rect.tl().x + target->get_size().x * 0.5f ;
                     new_pos.y = target_position.y + target_driver_offset + cfg->ui_node_spacing;
 
                     // apply
-                    target_physics.translate_to( WORLD_SPACE, new_pos + m_offset, cfg->ui_node_speed, true );
+                    target_physics.translate_to(SCREEN_SPACE, new_pos + m_offset, cfg->ui_node_speed, true );
                 }
                 else
                 {
@@ -175,11 +176,11 @@ void NodeViewConstraint::apply(float _dt)
                     NodeViewFlags flags = NodeViewFlag_RECURSIVELY
                                         | NodeViewFlag_IGNORE_PINNED
                                         | NodeViewFlag_IGNORE_MULTICONSTRAINED;
-                    Rect drivers_bbox = NodeView::get_rect(clean_drivers, WORLD_SPACE, flags);
+                    Rect drivers_bbox = NodeView::get_rect(clean_drivers, SCREEN_SPACE, flags);
                     Vec2 new_position = drivers_bbox.left();
                     new_position.x += cfg->ui_node_spacing;
-                    new_position.x += target->rect( WORLD_SPACE ).size().x * 0.5f;
-                    target_physics.translate_to( WORLD_SPACE, new_position + m_offset, cfg->ui_node_speed );
+                    new_position.x += target->get_rect(SCREEN_SPACE).size().x * 0.5f;
+                    target_physics.translate_to(SCREEN_SPACE, new_position + m_offset, cfg->ui_node_speed );
                 }
             }
         }
@@ -189,15 +190,15 @@ void NodeViewConstraint::apply(float _dt)
 void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers,const std::vector<NodeView*>& _targets )
 {
 #ifdef NDBL_DEBUG
-    if( get_config()->draw_debug_lines && _drivers[0]->is_hovered )
+    if( get_config()->draw_debug_lines && _drivers[0]->hovered )
     {
         for (auto each_target: _targets )
         {
             for (auto each_driver: _drivers )
             {
                 ImGuiEx::DebugLine(
-                    each_driver->position( WORLD_SPACE ),
-                    each_target->position( WORLD_SPACE ),
+                        each_driver->get_pos(SCREEN_SPACE),
+                    each_target->get_pos(SCREEN_SPACE),
                     IM_COL32(0, 0, 255, 30),
                     1.0f
                 );

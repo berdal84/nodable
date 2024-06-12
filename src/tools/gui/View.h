@@ -15,20 +15,26 @@ namespace tools
 	class View
 	{
 	public:
-        bool is_visible;
-        bool is_hovered;
+        bool  visible;
+        bool  hovered;
+        bool  selected;
 
-		View();
+		View(View* parent /*= nullptr*/);
 		virtual ~View() = default;
-        bool          draw();
-        virtual bool  onDraw() = 0;
-        tools::Vec2   position(Space) const; // Get position in a given Space
-        void          position(Vec2 _delta, Space ); // Set position in a given Space
-        Rect          rect(Space) const; // Get rectangle in a given Space
-        void          translate(Vec2 _delta);
-	protected:
-        Box2D parent_content_region;
-        Box2D box; // Screen space Box2D
-		REFLECT_BASE_CLASS()
+        virtual bool  draw();
+        tools::Vec2   get_pos(Space) const;
+        void          set_pos(const Vec2& _delta, Space);
+        Rect          get_rect(Space) const;
+        void          set_size(const Vec2& size);
+        Vec2          get_size() const;
+        View*         get_parent() const;
+        void          translate(const Vec2& _delta);
+        const Rect&   get_content_region(Space) const;
+    private:
+        View* m_parent;
+        Rect  m_content_region; // Space available before to draw
+        Box2D m_box; // store in PARENT_SPACE
+
+        REFLECT_BASE_CLASS()
     };
 }

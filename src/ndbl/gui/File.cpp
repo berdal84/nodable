@@ -37,7 +37,7 @@ File::File()
 
     // Graph
     graph = new Graph(get_node_factory());
-    auto* graph_view = new GraphView(graph);
+    auto* graph_view = new GraphView(graph, &view);
     graph->set_view(graph_view);
 
     for( IAction* action : ActionManager::get_instance().get_actions() ) // Fill the "create node" context menu

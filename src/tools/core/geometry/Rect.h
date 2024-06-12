@@ -12,7 +12,7 @@ namespace tools
 
         Rect() = default;
 
-        Rect(Vec2 min, Vec2 max)
+        Rect(const Vec2& min, const Vec2& max)
         : min(min)
         , max(max)
         {}
@@ -86,6 +86,9 @@ namespace tools
             min -= offset;
             max += offset;
         }
+
+        bool is_inverted() const
+        { return min.x > max.x || min.y > max.y; }
 
         static bool contains(const Rect& a, const Rect& b );
 

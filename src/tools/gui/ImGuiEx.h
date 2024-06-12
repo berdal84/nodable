@@ -67,13 +67,6 @@ namespace tools
                 const BezierCurveSegment& curve,
                 const WireStyle& style);
 
-        extern void DrawVerticalWire(
-                ImGuiID id,
-                ImDrawList *draw_list,
-                const Vec2& pos0,
-                const Vec2& pos1,
-                const WireStyle& style);
-
         extern void     EndFrame();
         extern void     NewFrame();
         extern bool     BeginTooltip(float _delay = TOOLTIP_DELAY_DEFAULT, float _duration = TOOLTIP_DURATION_DEFAULT );

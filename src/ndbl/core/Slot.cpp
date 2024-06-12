@@ -26,6 +26,7 @@ Slot::Slot(
     , property(_property)
     , m_adjacent()
     , m_position(_position)
+    , m_view(nullptr)
 {
     ASSERT( (_flags & SlotFlag_NOT_FULL) == SlotFlag_NONE ) // cannot be set manually
     ASSERT( _capacity > 0 )
@@ -173,7 +174,7 @@ bool Slot::has_flags( SlotFlags _flags ) const
     return (flags & _flags) == _flags;
 }
 
-SlotFlags Slot::static_flags() const
+SlotFlags Slot::type_and_order() const
 {
     return flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
 }
@@ -181,4 +182,9 @@ SlotFlags Slot::static_flags() const
 size_t Slot::position() const
 {
     return m_position;
+}
+
+bool Slot::is_this() const
+{
+    return get_property()->is_this();
 }

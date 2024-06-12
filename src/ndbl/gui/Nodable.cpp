@@ -47,15 +47,6 @@ void Nodable::init()
     m_component_factory = init_component_factory();
     m_view->init();
 
-    // Prepare code to be executed after each node instantiation
-    get_node_factory()->override_post_process_fct( [this]( PoolID<Node> node ) -> void {
-        // add a NodeView with Physics
-        PoolID<NodeView> new_view_id = m_component_factory->create<NodeView>();
-        PoolID<Physics> physics_id   = m_component_factory->create<Physics>( new_view_id );
-        node->add_component( new_view_id );
-        node->add_component( physics_id );
-    });
-
     LOG_VERBOSE("ndbl::Nodable", "init OK\n");
 }
 
@@ -186,7 +177,7 @@ void Nodable::update()
             {
                 auto _event = reinterpret_cast<Event_FrameSelection*>( event );
                 EXPECT(graph_view, "a graph_view is required");
-                graph_view->frame(_event->data.mode);
+                graph_view->frame_nodes(_event->data.mode);
                 break;
             }
 
@@ -235,7 +226,7 @@ void Nodable::update()
                 std::vector<PoolID<Node>> successors = selected[0]->get_owner()->successors();
                 if (!successors.empty())
                     if (PoolID<NodeView> successor_view = successors.front()->get_component<NodeView>() )
-                        graph_view->set_selected(successor_view, SelectionMode_REPLACE);
+                        graph_view->set_selected({successor_view}, SelectionMode_REPLACE); EXPECT(false, "not implemented for multi-selection")
                 break;
             }
 
@@ -308,7 +299,7 @@ void Nodable::update()
 
                 PoolID<Node> new_node_id  = graph.create_node( _event->data.node_type, _event->data.node_signature );
 
-                if ( !_event->data.dragged_slot )
+                if ( !_event->data.active_slotview )
                 {
                     // Insert an end of line and end of instruction
                     switch ( _event->data.node_type )
@@ -335,7 +326,7 @@ void Nodable::update()
                     }
                 }
                 // 2) handle connections
-                if ( !_event->data.dragged_slot )
+                if ( !_event->data.active_slotview )
                 {
                     // Experimental: we try to connect a parent-less child
                     PoolID<Node> root = graph.get_root();
@@ -351,8 +342,8 @@ void Nodable::update()
                 else
                 {
                     Slot* complementary_slot = new_node_id->find_slot_by_property_type(
-                            get_complementary_flags( _event->data.dragged_slot->slot().static_flags() ),
-                            _event->data.dragged_slot->get_property()->get_type() );
+                            get_complementary_flags(_event->data.active_slotview->slot().type_and_order() ),
+                            _event->data.active_slotview->get_property()->get_type() );
 
                     if ( !complementary_slot )
                     {
@@ -361,7 +352,7 @@ void Nodable::update()
                     }
                     else
                     {
-                        Slot* out = &_event->data.dragged_slot->slot();
+                        Slot* out = &_event->data.active_slotview->slot();
                         Slot* in = complementary_slot;
 
                         if ( out->has_flags( SlotFlag_ORDER_SECOND ) ) std::swap( out, in );
@@ -373,8 +364,8 @@ void Nodable::update()
                 // set new_node's view position, select it
                 if ( auto view = new_node_id->get_component<NodeView>() )
                 {
-                    view->position( _event->data.node_view_local_pos, PARENT_SPACE );
-                    graph_view->set_selected( view, SelectionMode_REPLACE );
+                    view->set_pos(_event->data.desired_screen_pos, SCREEN_SPACE);
+                    graph_view->set_selected({view});
                 }
                 break;
             }
@@ -533,10 +524,8 @@ void Nodable::step_over_program()
     const Node* next_node = m_virtual_machine->get_next_node();
     if ( !next_node ) return;
 
-    graph_view->set_selected(
-        next_node->get_component<NodeView>(),
-        SelectionMode_REPLACE
-    );
+    auto view = next_node->get_component<NodeView>();
+    graph_view->set_selected({view});
 }
 
 void Nodable::stop_program()

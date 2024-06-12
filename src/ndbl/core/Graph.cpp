@@ -88,10 +88,12 @@ UpdateResult Graph::update()
 void Graph::add(PoolID<Node> _node)
 {
     ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node->poolid()) == m_node_registry.end())
+
 	m_node_registry.push_back(_node->poolid());
     _node->parent_graph = this;
+    on_add.emit(_node);
     set_dirty(); // To express this graph changed
-    LOG_VERBOSE("Graph", "registerNode %s (%s)\n", _node->name.c_str(), _node->get_type()->get_name())
+    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name.c_str(), _node->get_type()->get_name())
 }
 
 void Graph::remove(PoolID<Node> _node)

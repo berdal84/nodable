@@ -52,7 +52,15 @@ namespace ndbl
         NodeViewFlag_IGNORE_PINNED           = 1 << 1,
         NodeViewFlag_IGNORE_MULTICONSTRAINED = 1 << 2,
         NodeViewFlag_IGNORE_SELF             = 1 << 3,
-        NodeViewFlag_IGNORE_HIDDEN           = 1 << 4
+        NodeViewFlag_IGNORE_HIDDEN           = 1 << 4,
+        NodeViewFlag_IGNORE_SELECTED         = 1 << 5
+    };
+
+    typedef int SlotBehavior;
+    enum SlotBehavior_
+    {
+        SlotBehavior_READONLY       = 1 << 0,
+        SlotBehavior_ALLOW_DRAGGING = 1 << 1,
     };
 
     class GraphView;
@@ -64,23 +72,21 @@ namespace ndbl
 	{
 	public:
         friend class GraphView;
-		NodeView();
-		~NodeView() {};
+		NodeView(View* parent);
+		~NodeView();
         NodeView (NodeView&&) = default;
         NodeView& operator=(NodeView&&) = default;
 
+        inline bool             pinned() const { return m_pinned; }
         std::vector<PoolID<NodeView>> get_adjacent(SlotFlags) const;
-        void                    pinned(bool b) { m_pinned = b; }
-        bool                    pinned() const { return m_pinned; }
-        bool                    onDraw()override;
+        bool                    draw()override;
 		void                    set_owner(PoolID<Node>)override;
         bool                    update(float);
-		void                    translate( tools::Vec2, NodeViewFlags flags );
+		void                    translate( const tools::Vec2&, NodeViewFlags flags );
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
         tools::Rect             get_rect( tools::Space, NodeViewFlags = NodeViewFlag_IGNORE_PINNED | NodeViewFlag_IGNORE_MULTICONSTRAINED) const;
         const PropertyView*     get_property_view( ID<Property> _id )const;
-        inline tools::Vec2      get_size() const { return box.size(); }
         bool                    is_expanded()const { return m_expanded; }
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
@@ -98,17 +104,12 @@ namespace ndbl
         static NodeViewDetail   get_view_detail() { return s_view_detail; }
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
-        tools::Vec2             get_slot_pos( const Slot& );
-        tools::Rect             get_slot_rect( const Slot& _slot, i8_t _count ) const;
-        tools::Rect             get_slot_rect( const SlotView &_slot_view, i8_t _pos ) const;
-        tools::Vec2             get_slot_normal( const Slot& slot) const;
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
         GraphView*              get_graph() const;
         static bool             none_is_visible( std::vector<NodeView*> vector1 );
 
     private:
-        void                    slot_behavior(SlotView& _view);
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
         bool                    _draw_property_view(PropertyView* _view);
         void                    update_labels_from_name(const Node *_node);
@@ -127,12 +128,11 @@ namespace ndbl
         std::string     m_short_label;
         bool            m_expanded;
         bool            m_pinned;
-        bool            m_is_selected;
         float           m_opacity;
-        bool            m_is_any_slot_hovered;
+        SlotView*       m_last_hovered_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
-        std::vector<SlotView>      m_slot_views;
-        std::vector<PropertyView>  m_property_views;
+        std::vector<SlotView*>     m_slot_views;
+        std::vector<PropertyView*> m_property_views;
         PropertyView*              m_property_view_this;
         std::vector<PropertyView*> m_property_views_with_input_only;
         std::vector<PropertyView*> m_property_views_with_output_or_inout;
@@ -141,5 +141,6 @@ namespace ndbl
         static const tools::Vec2   s_property_input_toggle_button_size;
         static NodeViewDetail      s_view_detail;
     REFLECT_DERIVED_CLASS()
+
     };
 }

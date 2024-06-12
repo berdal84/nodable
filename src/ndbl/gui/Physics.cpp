@@ -51,7 +51,7 @@ void Physics::apply_constraints(float _dt)
 
 void Physics::translate_to( tools::Space space, tools::Vec2 target_pos, float _factor, bool _recurse)
 {
-    Vec2 delta( target_pos - m_view->position(space));
+    Vec2 delta( target_pos - m_view->get_pos(space));
     auto factor = std::max(0.0f, _factor);
     auto force = Vec2::scale(delta, factor);
     add_force( force, _recurse);

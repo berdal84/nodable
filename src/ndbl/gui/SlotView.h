@@ -7,32 +7,46 @@
 
 #include "ndbl/core/Slot.h"
 #include "types.h"
+#include "tools/core/geometry/Vec2.h"
+#include "tools/gui/View.h"
 
 
 namespace ndbl
 {
-    class SlotView
+    class NodeView;
+
+    enum ShapeType
+    {
+        ShapeType_CIRCLE,
+        ShapeType_RECTANGLE
+    };
+
+    class SlotView : public tools::View
     {
     public:
-        SlotView( Slot& _slot, tools::Vec2 _alignment );
+        SlotView(
+            PoolID<NodeView> parent,
+            Slot& slot,
+            const tools::Vec2& align,
+            ShapeType shape
+            );
 
+        bool                  draw() override;
         Property*             get_property()const;
         const tools::type*    get_property_type()const;
-        std::string           get_tooltip() const;
+        tools::string64       compute_tooltip() const;
         PoolID<Node>          get_node()const;
-        tools::Rect           get_rect()const;
         bool                  has_node_connected() const;
-        tools::Vec2           alignment() const;
         Slot&                 slot()const;
-        tools::Vec2           position()const;
+        tools::Vec2           normal() const;
         PoolID<Node>          adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
-
-        static void           draw_slot_circle(ImDrawList* _draw_list, SlotView& _view, const tools::Vec2& _position );
-        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, const tools::Rect& _rect );
     private:
-        Slot&                 m_slot;
-        tools::Vec2           m_alignment;
+        u8_t                  m_index;
+        ShapeType             m_shape;
+        PoolID<NodeView>      m_parent;
+        Slot&                 m_slot; // TODO: memory issue, use SlotRef instead
+        tools::Vec2           m_align;
     };
 }

@@ -34,7 +34,7 @@ Rect ImGuiEx::GetContentRegion(Space origin)
      switch (origin) {
         case PARENT_SPACE:
              return { Vec2(), region.size() };
-        case WORLD_SPACE: {
+        case SCREEN_SPACE: {
             region.translate(ImGui::GetWindowPos());
             return region;
         }
@@ -148,24 +148,6 @@ void ImGuiEx::DrawWire(
     if ( ImGui::GetHoveredID() == id )
         DrawPath(draw_list, &fill_path, style.hover_color, CalcSegmentHoverMinDist(style.thickness) * 2.0f); // outline on hover
     DrawPath(draw_list, &fill_path, style.color, style.thickness);
-}
-
-void ImGuiEx::DrawVerticalWire(
-        ImGuiID id,
-        ImDrawList *draw_list,
-        const Vec2& pos0,
-        const Vec2& pos1,
-        const WireStyle& style
-        )
-{
-    float dist_y = pos1.y - pos0.x;
-    BezierCurveSegment segment{
-        pos0,
-        pos0 + Vec2(0.0f, dist_y),
-        pos1 + Vec2(0.0f, -dist_y),
-        pos1
-    };
-    DrawWire(id, draw_list, segment, style);
 }
 
 bool ImGuiEx::BeginTooltip(float _delay, float _duration)

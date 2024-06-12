@@ -39,19 +39,19 @@ NodeViewDetail     NodeView::s_view_detail                       = NodeViewDetai
 const float        NodeView::s_property_input_size_min           = 10.0f;
 const Vec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
 
-NodeView::NodeView()
+NodeView::NodeView(View* parent)
         : NodeComponent()
-        , View()
+        , View(parent)
         , m_colors({&DEFAULT_COLOR})
         , m_opacity(1.0f)
         , m_expanded(true)
         , m_pinned(false)
         , m_property_view_this(nullptr)
         , m_property_views()
-        , m_is_selected(false)
+        , m_last_hovered_slotview(nullptr)
 {
-    box.pos(DEFAULT_POS);
-    box.size(DEFAULT_SIZE);
+    set_pos(DEFAULT_POS, PARENT_SPACE);
+    set_size(DEFAULT_SIZE);
 }
 
 std::string NodeView::get_label()
@@ -73,6 +73,8 @@ void NodeView::set_owner(PoolID<Node> node)
         return;
     }
 
+    Config* cfg = get_config();
+
     // 1. Create Property views
     //-------------------------
 
@@ -82,43 +84,84 @@ void NodeView::set_owner(PoolID<Node> node)
     for (Property& each_prop : node->props )
     {
         // Create view
-        PropertyView& property_view = m_property_views.emplace_back( m_id, each_prop.id);
+        PropertyView* property_view = new PropertyView(m_id, each_prop.id);
+        m_property_views.push_back(property_view);
 
         // Indexing
         if ( each_prop.is_this() )
         {
-            m_property_view_this = &property_view;
+            m_property_view_this = property_view;
         }
         else if ( !m_owner->find_slot_by_property_id( each_prop.id, SlotFlag_OUTPUT ) )
         {
-            m_property_views_with_input_only.push_back(&property_view);
+            m_property_views_with_input_only.push_back(property_view);
         }
         else
         {
-            m_property_views_with_output_or_inout.push_back(&property_view);
+            m_property_views_with_output_or_inout.push_back(property_view);
         }
     }
 
-    // 2. Create SlotViews
-    //--------------------
-    // Create a SlotView per slot
+    // 2. Create a SlotView per slot
+    //------------------------------
+
+    std::unordered_map<SlotFlags, u8_t> next_index_per_type{
+        {SlotFlag_NEXT, 0},
+        {SlotFlag_PREV, 0},
+        {SlotFlag_INPUT, 0},
+        {SlotFlag_OUTPUT, 0},
+        {SlotFlag_CHILD, 0},
+        {SlotFlag_PARENT, 0},
+    };
+
     for(Slot& slot : m_owner->slots() )
     {
-        Vec2 alignment;
-        switch ( slot.static_flags() ) // type and order flags only
+        Vec2      slot_align;
+        ShapeType slot_shape = ShapeType_CIRCLE;
+        SlotFlags slot_type  = slot.type_and_order();
+        u8_t      slot_index = next_index_per_type[slot_type]++;
+
+        switch ( slot_type )
         {
-            case SlotFlag_INPUT:  alignment.y = -0.5f; break;
-            case SlotFlag_PREV:   alignment   = { -0.5f, -0.5f}; break;
-            case SlotFlag_OUTPUT: alignment   = slot.get_property()->is_this() ? Vec2{-0.5f, 0.0f}
-                                                                               : Vec2{ 0.0f, 0.5f}; break;
-            case SlotFlag_NEXT:   alignment   = { -0.5f, 0.5f}; break;
+            case SlotFlag_INPUT:  slot_align.y = -1.f; break;
+            case SlotFlag_PREV:   slot_align   = {-1.f, -1.f}; slot_shape = ShapeType_RECTANGLE; break;
+            case SlotFlag_OUTPUT: slot_align   = slot.is_this() ? Vec2{-1.f, 0.f}
+                                                                : Vec2{ 0.f, 1.f}; break;
+            case SlotFlag_NEXT:   slot_align   = {-1.f, 1.f}; slot_shape = ShapeType_RECTANGLE; break;
             case SlotFlag_CHILD:
-            case SlotFlag_PARENT: break; // won't be displayed, let's keep default alignment (0,0)
+            case SlotFlag_PARENT: break; // skipped
             default:
                 EXPECT(false, "unhandled slot flags")
         }
 
-        m_slot_views.emplace_back( slot, alignment );
+//        {
+//            // TODO: use 3x3 matrices to simplify code
+//            if( m_slot.type() == SlotFlag_TYPE_VALUE && m_slot.get_property()->is_this() )
+//            {
+//                Rect r = m_parent->get_rect(SCREEN_SPACE);
+//                return r.center() + r.size() * m_align * 0.5f;
+//            }
+//            auto property_view = m_parent->get_property_view( m_slot.property );
+//            Rect property_rect = property_view->screen_rect;
+//            return property_rect.center()
+//                   + property_rect.size() * m_align * 0.5f;
+//        }
+
+        const Vec2 half_size = get_size() * 0.5f;
+        const Vec2 slot_half_size = cfg->ui_slot_size * 0.5f;
+
+        // TODO: this code only handle the next/prev slots, we must handle other types (see commented code above)
+        Vec2 pos{0, 0};
+        pos.x += 2.f * cfg->ui_slot_gap + (cfg->ui_slot_size.x + cfg->ui_slot_gap) * float(slot_index);
+        pos.y += slot_align.y * slot_half_size.y;
+        pos   += slot_align * half_size;
+
+        auto* slotview = new SlotView(m_id, slot, slot_align, slot_shape);
+        slotview->set_pos(pos, PARENT_SPACE);
+        slotview->set_size(cfg->ui_slot_size);
+
+        slot.set_view(slotview);
+        m_slot_views.push_back(slotview);
     }
 
     // 3. Update label
@@ -134,7 +177,6 @@ void NodeView::set_owner(PoolID<Node> node)
     // 4. Update fill color
     //---------------------
 
-    Config* cfg = get_config();
     Vec4* fill_color = &cfg->ui_node_fillColor;
     if ( extends<VariableNode>( node.get() ) )            fill_color = &cfg->ui_node_variableColor;
     else if ( node->has_component<InvokableComponent>() ) fill_color = &cfg->ui_node_invokableColor;
@@ -166,10 +208,10 @@ void NodeView::update_labels_from_name(const Node* _node)
 
 const PropertyView* NodeView::get_property_view( ID<Property> _id )const
 {
-    return &m_property_views.at((u32_t)_id);
+    return m_property_views.at((u32_t)_id);
 }
 
-void NodeView::translate( Vec2 _delta, NodeViewFlags flags)
+void NodeView::translate( const Vec2& _delta, NodeViewFlags flags)
 {
     View::translate(_delta);
 
@@ -178,6 +220,7 @@ void NodeView::translate( Vec2 _delta, NodeViewFlags flags)
     for(auto each_input: get_adjacent(SlotFlag_INPUT)  )
     {
         if( !each_input ) continue;
+        if(each_input->selected && flags & NodeViewFlag_IGNORE_SELECTED ) continue;
         if( each_input->m_pinned && flags & NodeViewFlag_IGNORE_PINNED ) continue;
         if( each_input->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
@@ -217,54 +260,59 @@ bool NodeView::update(float _deltaTime)
     {
         lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
     }
+
+    Node* node = m_owner.get();
+
+    for ( SlotView* slot_view : m_slot_views )
+    {
+        slot_view->visible = false;
+
+        const Slot& slot = slot_view->slot();
+        if ( slot.capacity() == 0) continue;
+        if (slot.type() == SlotFlag_TYPE_CODEFLOW  && !node->is_instruction() && !node->can_be_instruction() ) continue;
+
+        slot_view->visible = true;
+    }
 	return true;
 }
 
-bool NodeView::onDraw()
+bool NodeView::draw()
 {
+    View::draw();
+
     Config*     cfg       = get_config();
 	bool        changed   = false;
     Node*       node      = m_owner.get();
-    GraphView*  graph_view = node->parent_graph->get_view();
-    ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     ASSERT(node != nullptr);
 
+    m_last_hovered_slotview = nullptr; // reset every frame
+
     // Draw Node slots (in background)
-    m_is_any_slot_hovered = false;
+    for ( SlotView* slot_view : m_slot_views )
     {
-        std::unordered_map<SlotFlags, i8_t> next_slot_pos_per_type{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
-        for ( SlotView& slot_view : m_slot_views )
-        {
-            const Slot& slot = slot_view.slot();
-            if ( slot.type() != SlotFlag_TYPE_CODEFLOW) continue;
-            if ( slot.capacity() > 0) continue;
-            if ( !node->is_instruction() && !node->can_be_instruction() ) continue;
+        if( slot_view->slot().type() != SlotFlag_TYPE_CODEFLOW ) // TODO: This could be precomputed
+            continue;
 
-            // determine slot position (this could be precomputed)
-            SlotFlags type = slot.static_flags();
-            Rect rect = get_slot_rect(slot_view, next_slot_pos_per_type[type] );
+        if( slot_view->draw() )
+            ASSERT(false) // click not handled yet
 
-            // draw slot
-            SlotView::draw_slot_rectangle( draw_list, slot_view, rect );
-            slot_behavior(slot_view );
-
-            // increment pos
-            ++next_slot_pos_per_type[type];
-        }
+        if( slot_view->hovered )
+            m_last_hovered_slotview = slot_view;
     }
+
 
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
-    Rect screen_rect = rect( WORLD_SPACE );
+    Rect screen_rect = get_rect(SCREEN_SPACE);
     ImGui::SetCursorScreenPos(screen_rect.tl() ); // start from th top left corner
 	ImGui::PushID(this);
 
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( m_is_selected )
+    if ( selected )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -285,48 +333,48 @@ bool NodeView::onDraw()
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            m_is_selected,
+            selected,
             5.0f,
             border_width );
 
     // Add an invisible just on top of the background to detect mouse hovering
 	ImGui::SetCursorScreenPos(screen_rect.tl() );
-	ImGui::InvisibleButton("node", box.size());
+	ImGui::InvisibleButton("node", get_size());
     ImGui::SetItemAllowOverlap();
     Vec2 new_screen_pos = screen_rect.tl()
                           + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
                           + Vec2{ cfg->ui_slot_radius, 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
 
-    bool is_node_hovered = ImGui::IsItemHovered();
+    hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
 	//------------------------
 
     ImGui::BeginGroup();
-        std::string label = get_label().empty() ? " " : get_label();                        // ensure a 1 char width, to be able to grab it
-        if ( !m_expanded )
-        {
-            // symbolize the fact node view is not expanded
-            //abel.insert(0, "<<");
-            label.append(" " ICON_FA_OBJECT_GROUP);
-        }
-        ImGuiEx::ShadowedText( Vec2(1.0f), cfg->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
+    std::string label = get_label().empty() ? " " : get_label();                        // ensure a 1 char width, to be able to grab it
+    if ( !m_expanded )
+    {
+        // symbolize the fact node view is not expanded
+        //abel.insert(0, "<<");
+        label.append(" " ICON_FA_OBJECT_GROUP);
+    }
+    ImGuiEx::ShadowedText( Vec2(1.0f), cfg->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+
+    // draw properties
+    auto draw_property_lambda = [&](PropertyView* view) {
         ImGui::SameLine();
+        changed |= _draw_property_view( view );
+    };
+    std::for_each( m_property_views_with_input_only.begin(), m_property_views_with_input_only.end(), draw_property_lambda);
+    std::for_each( m_property_views_with_output_or_inout.begin(), m_property_views_with_output_or_inout.end(), draw_property_lambda);
 
-        ImGui::BeginGroup();
-
-        // draw properties
-        auto draw_property_lambda = [&](PropertyView* view) {
-            ImGui::SameLine();
-            changed |= _draw_property_view( view );
-        };
-        std::for_each( m_property_views_with_input_only.begin(), m_property_views_with_input_only.end(), draw_property_lambda);
-        std::for_each( m_property_views_with_output_or_inout.begin(), m_property_views_with_output_or_inout.end(), draw_property_lambda);
-
-        ImGui::EndGroup();
-        ImGui::SameLine();
+    ImGui::EndGroup();
+    ImGui::SameLine();
     ImGui::EndGroup();
 
     // Ends the Window
@@ -339,18 +387,19 @@ bool NodeView::onDraw()
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
 
-    box.size( Vec2::round(new_size) );
+    set_size(Vec2::round(new_size));
 
     // Draw Property in/out slots
+    for( SlotView* slot_view: m_slot_views )
     {
-        for( auto& slot_view: m_slot_views )
+        if( !slot_view->slot().has_flags(SlotFlag_TYPE_VALUE) ) // TODO: This could be precomputed
+            continue;
+        if( slot_view->draw() )
+            ASSERT(false) // click not handled yet
+        if( slot_view->hovered )
         {
-            if( slot_view.slot().has_flags(SlotFlag_TYPE_VALUE) )
-            {
-                Vec2 screen_pos = get_slot_pos(slot_view.slot());
-                SlotView::draw_slot_circle( draw_list, slot_view, screen_pos );
-                slot_behavior(slot_view);
-            }
+            m_last_hovered_slotview = slot_view;
+            hovered = true;
         }
     }
 
@@ -358,8 +407,6 @@ bool NodeView::onDraw()
 	ImGui::PopID();
 
     m_owner->dirty |= changed;
-
-    is_hovered = is_node_hovered || m_is_any_slot_hovered;
 
 	return changed;
 }
@@ -484,8 +531,8 @@ bool NodeView::_draw_property_view(PropertyView* _view)
     // memorize property view rect (screen space)
     // enlarge rect to fit node_view top/bottom
     _view->screen_rect = {
-            Vec2{ImGui::GetItemRectMin().x, rect( WORLD_SPACE ).min.y} ,
-            Vec2{ImGui::GetItemRectMax().x, rect( WORLD_SPACE ).max.y}
+            Vec2{ImGui::GetItemRectMin().x, get_rect(SCREEN_SPACE).min.y} ,
+            Vec2{ImGui::GetItemRectMax().x, get_rect(SCREEN_SPACE).max.y}
     };
     ImGuiEx::DebugCircle( _view->screen_rect.center(), 2.5f, ImColor(0,0,0));
 
@@ -583,7 +630,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
 
 bool NodeView::is_inside(NodeView* _nodeView, Rect _rect, Space _space)
 {
-	return Rect::contains(_rect, _nodeView->rect(_space) );
+	return Rect::contains(_rect, _nodeView->get_rect(_space) );
 }
 
 void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
@@ -783,11 +830,11 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 void NodeView::constraint_to_rect(NodeView* _view, Rect _rect)
 {
 	
-	if ( !NodeView::is_inside(_view, _rect, WORLD_SPACE )) {
+	if ( !NodeView::is_inside(_view, _rect, SCREEN_SPACE )) {
 
         _rect.expand( Vec2( -2, -2 ) ); // shrink
 
-		auto nodeRect = _view->rect( WORLD_SPACE );
+		auto nodeRect = _view->get_rect(SCREEN_SPACE);
 
 		auto left  = _rect.min.x - nodeRect.min.x;
 		auto right = _rect.max.x - nodeRect.max.x;
@@ -800,7 +847,7 @@ void NodeView::constraint_to_rect(NodeView* _view, Rect _rect)
 			 if ( up > 0 )  nodeRect.translate_y( up );
 		else if ( down < 0 )nodeRect.translate_y( down );
 
-        _view->position( nodeRect.center(), PARENT_SPACE );
+        _view->set_pos(nodeRect.center(), PARENT_SPACE);
 	}
 
 }
@@ -809,11 +856,11 @@ void NodeView::set_view_detail(NodeViewDetail _viewDetail)
 {
     NodeView::s_view_detail = _viewDetail;
 
-    for( auto& eachView : get_pool_manager()->get_pool()->get_all<NodeView>())
+    for( NodeView& eachView : get_pool_manager()->get_pool()->get_all<NodeView>())
     {
-        for( auto& property_view : eachView.m_property_views )
+        for( PropertyView* property_view : eachView.m_property_views )
         {
-            property_view.reset();
+            property_view->reset();
         }
     }
 }
@@ -823,24 +870,26 @@ Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
     const bool recursively   = flags & NodeViewFlag_RECURSIVELY;
     const bool ignore_self   = flags & NodeViewFlag_IGNORE_SELF;
     const bool ignore_pinned = flags & NodeViewFlag_IGNORE_PINNED;
+    const bool ignore_selected = flags & NodeViewFlag_IGNORE_SELECTED;
 
     if( !recursively )
     {
-        return View::rect(space);
+        return View::get_rect(space);
     }
 
     std::vector<Rect> rects;
 
-    if ( !ignore_self && is_visible )
+    if (!ignore_self && visible )
     {
-        rects.push_back( View::rect(space) );
+        rects.push_back(View::get_rect(space) );
     }
 
     auto push_view_rect = [&](PoolID<NodeView> view_id)
     {
         NodeView* view = view_id.get();
         if( !view) return;
-        if( !view->is_visible ) return;
+        if( !view->visible ) return;
+        if(view->selected && ignore_selected ) return;
         if( view->m_pinned && ignore_pinned ) return;
         if( view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
         {
@@ -859,7 +908,7 @@ Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
 
 #ifdef NDBL_DEBUG
     Rect screen_rect = result;
-    screen_rect.translate( position(space) - position(PARENT_SPACE) );
+    screen_rect.translate(get_pos(space) - get_pos(PARENT_SPACE) );
     ImGuiEx::DebugRect(screen_rect.min, screen_rect.max, IM_COL32( 0, 255, 0, 60 ), 2 );
 #endif
 
@@ -934,7 +983,7 @@ void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recurs
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child_view->is_visible = _visible;
+            each_child_view->visible = _visible;
         }
     }
 }
@@ -951,7 +1000,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    if( _view->is_visible )
+    if( _view->visible )
     {
         return _view;
     }
@@ -996,45 +1045,6 @@ void NodeView::expand_toggle_rec()
     return set_expanded_rec(!m_expanded);
 }
 
-Vec2 NodeView::get_slot_normal( const Slot& slot ) const
-{
-    // Alignment is usually not a corner, so we don't need to normalize.
-    return m_slot_views[(u8_t)slot.id].alignment();
-}
-
-Vec2 NodeView::get_slot_pos( const Slot& slot )
-{
-    // TODO: use 3x3 matrices to simplify code
-
-    if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
-    {
-        Rect r = rect( WORLD_SPACE );
-        return r.center() + r.size() * m_slot_views[(u8_t)slot.id].alignment();
-    }
-    Rect property_rect = m_property_views.at( (u32_t)slot.property ).screen_rect;
-    return property_rect.center()
-         + property_rect.size() * m_slot_views[(u8_t)slot.id].alignment();
-}
-
-Rect NodeView::get_slot_rect( const Slot& _slot, i8_t _count ) const
-{
-     return get_slot_rect( m_slot_views[_slot.id.m_value], _count );
-}
-
-Rect NodeView::get_slot_rect( const SlotView& _slot_view, i8_t _pos ) const
-{
-    Config* cfg = get_config();
-    Rect result({0.0f, 0.0f }, cfg->ui_slot_size );
-    result.translate_y( -result.size().y * 0.5f ); // Center vertically
-    result.translate_x( cfg->ui_slot_size.x * float( _pos )      // x offset
-                      + cfg->ui_slot_gap * float( 1 + _pos ) ); // x gap
-    result.translate_y( _slot_view.alignment().y * result.size().y ); // align top/bottom
-    Rect view_rect = rect( WORLD_SPACE );
-    result.translate( _slot_view.alignment() * view_rect.size() + view_rect.center() ); // align slot with nodeview
-
-    return result;
-}
-
 std::vector<PoolID<NodeView>> NodeView::get_adjacent(SlotFlags flags) const
 {
     return GraphUtil::adjacent_components<NodeView>(m_owner.get(), flags);
@@ -1055,60 +1065,21 @@ Vec4 NodeView::get_color( ColorType _type ) const
 
 bool NodeView::none_is_visible( std::vector<NodeView*> _views )
 {
-    auto is_visible = [](const NodeView* view) { return view->is_visible; };
+    auto is_visible = [](const NodeView* view) { return view->visible; };
     return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
-}
-
-void NodeView::slot_behavior(SlotView& _view)
-{
-    m_is_any_slot_hovered |= ImGui::IsItemHovered();
-
-    GraphView* graph = get_graph();
-    SlotFlags flags = graph->get_hovered_slotview() != nullptr ? SlotBehavior_ALLOW_DRAGGING
-                                                               : SlotBehavior_READONLY;
-
-    // Handle disconnect
-
-    bool readonly = ( flags & SlotBehavior_READONLY );
-    if ( !readonly && _view.has_node_connected() && ImGui::BeginPopupContextItem() )
-    {
-        if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect"))
-        {
-            auto& event_manager = EventManager::get_instance();
-            event_manager.dispatch<Event_SlotDisconnected>({ _view.slot() });
-        }
-
-        ImGui::EndPopup();
-    }
-
-    // Handle hover state
-
-    if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
-    {
-        graph->set_hovered_slotview(&_view);
-        if( ImGuiEx::BeginTooltip() )
-        {
-            ImGui::Text("%s", _view.get_tooltip().c_str() );
-            ImGuiEx::EndTooltip();
-        }
-
-        bool draggable = flags & SlotBehavior_ALLOW_DRAGGING;
-        if ( draggable &&  ImGui::IsMouseDown(0) && graph->get_dragged_slotview() == nullptr )
-        {
-            if ( !_view.slot().is_full() )
-            {
-                graph->set_dragged_slotview(&_view);
-            }
-        }
-    }
-    else if ( graph->get_hovered_slotview() == &_view )
-    {
-        graph->set_hovered_slotview(nullptr);
-    }
 }
 
 GraphView *NodeView::get_graph() const
 {
     ASSERT(m_owner->parent_graph != nullptr)
     return m_owner->parent_graph->get_view();
+}
+
+NodeView::~NodeView()
+{
+    for(auto* each : m_property_views )
+        delete each;
+
+    for(auto* each : m_slot_views )
+        delete each;
 }

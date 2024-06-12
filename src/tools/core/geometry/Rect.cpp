@@ -41,12 +41,21 @@ Rect Rect::bbox( const Rect& a, const Rect& b )// Return a rectangle overlapping
 
 bool Rect::contains( const Rect& a, const Rect& b )
 {
-    return a.min.x <= b.min.x && a.min.y <= b.min.y
-           && a.max.x >= b.max.x && a.max.y >= b.max.y;
+    ASSERT(!a.is_inverted())
+    ASSERT(!b.is_inverted())
+
+    if ( a.min.x <= b.min.x )
+        if ( a.min.y <= b.min.y )
+            if ( a.max.x >= b.max.x )
+                if ( a.max.y >= b.max.y )
+                    return true;
+    return false;
 }
 
 bool Rect::contains( const Rect& rect, const Vec2& point )
 {
+    ASSERT(!rect.is_inverted())
+
     return point.x >= rect.min.x &&
            point.x <= rect.max.x &&
            point.y >= rect.min.y &&

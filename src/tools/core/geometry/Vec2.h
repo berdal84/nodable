@@ -94,19 +94,22 @@ namespace tools
         inline static Vec2 round(const Vec2& v )
         { return glm::round( (glm::vec2) v ); }
 
-        inline static Vec2 lerp( Vec2 _source, Vec2 _target, float _factor)
+        inline static Vec2 lerp( const Vec2& _source, const Vec2& _target, float _factor)
         { return glm::mix((glm::vec2)_source, (glm::vec2)_target, glm::clamp(_factor, 0.0f, 1.0f)); }
 
-        inline static Vec2 transform(Vec2 v, glm::mat3 m)
+        inline static Vec2 transform(const Vec2& v, const glm::mat3& m)
         {
             auto result = m * glm::vec3(v.x, v.y, 1.f);
             return {result.x, result.y};
         }
 
-        inline static float distance( Vec2 a, Vec2 b )
+        inline static float distance( const Vec2& a, const Vec2&  b )
         { return glm::distance((glm::vec2)a, (glm::vec2)b); }
 
-        inline static const float dot( Vec2 a, Vec2 b )
+        inline static const float dot( const Vec2& a, const Vec2&  b )
         { return glm::dot((glm::vec2)a, (glm::vec2)b); }
+
+        inline static  tools::Vec2 normalize(const Vec2& v)
+        { return glm::normalize( (glm::vec2)v ); }
     };
 }

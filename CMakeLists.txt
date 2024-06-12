@@ -12,7 +12,7 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment ve
 
 # project declaration
 project("Nodable"
-        VERSION "0.9"
+        VERSION "1.0"
         LANGUAGES CXX C)
 
 # options/variables
@@ -41,7 +41,7 @@ include(CheckPIESupported)
 check_pie_supported()
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD            17)
+set(CMAKE_CXX_STANDARD            17) # cpp20 uses char8_t instead of const char* for u8"string"...
 set(CMAKE_CXX_STANDARD_REQUIRED   ON)
 set(CMAKE_CXX_EXTENSIONS          ON)
 

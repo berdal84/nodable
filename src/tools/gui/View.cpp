@@ -8,51 +8,80 @@ REFLECT_STATIC_INIT
     StaticInitializer<View>("View");
 }
 
-View::View()
-: is_hovered(false)
-, is_visible(true)
-, parent_content_region()
-, box()
+View::View(View* parent)
+: hovered(false)
+, visible(true)
+, selected(false)
+, m_box()
+, m_parent(parent)
 {
 }
 
-void View::position( Vec2 _position, Space origin)
+void View::set_pos(const Vec2& p, Space space)
 {
-    if ( origin == PARENT_SPACE )
-    {
-        Vec2 parent_space_pos = Vec2::transform(_position, parent_content_region.world_matrix());
-        return box.pos(parent_space_pos);
-    }
-    box.pos(_position);
+    if (space == PARENT_SPACE || m_parent == nullptr )
+        return m_box.set_pos(p);
+
+    Vec2 parent_space_pos = Vec2::transform(p, m_parent->m_box.model_matrix());
+    m_box.set_pos(parent_space_pos);
 }
 
-Vec2 View::position(Space origin) const
+Vec2 View::get_pos(Space space) const
 {
-    if ( origin == PARENT_SPACE )
-    {
-        return Vec2::transform(box.pos(), parent_content_region.model_matrix() );
-    }
-    return box.pos();
+    if (space == PARENT_SPACE || m_parent == nullptr )
+        return m_box.get_pos();
+    return Vec2::transform(m_box.get_pos(), m_parent->m_box.world_matrix() );
 }
 
-void View::translate( Vec2 _delta)
+void View::translate(const Vec2& _delta)
 {
-    Vec2 new_pos = position( WORLD_SPACE ) + _delta;
-    position( new_pos, WORLD_SPACE );
+    m_box.translate( _delta );
+}
+
+Rect View::get_rect(Space space) const
+{
+    if (space == PARENT_SPACE || m_parent == nullptr )
+        return m_box.get_rect();
+
+    Box2D relative_box = Box2D::transform(m_box, m_parent->m_box.world_matrix() );
+    return relative_box.get_rect();
+}
+
+void View::set_size(const Vec2& size)
+{
+    m_box.set_size(size );
+}
+
+Vec2 View::get_size() const
+{
+    return m_box.get_size();
+}
+
+View* View::get_parent() const
+{
+    return m_parent;
 }
 
 bool View::draw()
 {
-    // Get the content region's top left corner
-    // This will be used later to convert coordinates between WORLD_SPACE and PARENT_SPACE
-    parent_content_region = ImGuiEx::GetContentRegion( WORLD_SPACE );
+    m_content_region = ImGuiEx::GetContentRegion(SCREEN_SPACE);
 
-    return onDraw();
+#ifdef TOOLS_DEBUG
+    Rect r = get_rect(SCREEN_SPACE);
+    if ( r.size().lensqr() < 0.1f )
+    {
+        r = m_content_region;
+    }
+    ImGuiEx::DebugRect(r.min, r.max, ImColor(255, 0, 0));     // box
+    ImGuiEx::DebugLine(r.tl(), r.br(), ImColor(255, 0,0, 127));    // diagonal 1
+    ImGuiEx::DebugLine(r.bl(), r.tr(), ImColor(255, 0,0, 127 ));    // diagonal 2
+    ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
+#endif
+    return false;
 }
 
-Rect View::rect(Space space) const
+const Rect &View::get_content_region(Space space) const
 {
-    Rect r =  box.rect();
-    EXPECT(space != PARENT_SPACE, "Not implemented yet");
-    return r;
+    ASSERT(space == SCREEN_SPACE) // Only space handled
+    return m_content_region;
 }

@@ -44,7 +44,7 @@ namespace ndbl
 		~FileView() override = default;
 
 		void                           init( File& _file);
-        bool                           onDraw() override;
+        bool                           draw() override;
         bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
         bool                           is_graph_dirty() const { return m_is_graph_dirty; }
