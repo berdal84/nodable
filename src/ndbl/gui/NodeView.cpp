@@ -26,7 +26,7 @@ using namespace tools;
 REFLECT_STATIC_INIT
 {
     StaticInitializer<NodeView>("NodeView")
-        .extends<Component>()
+        .extends<NodeComponent>()
         .extends<View>();
 }
 
@@ -40,7 +40,7 @@ const float        NodeView::s_property_input_size_min           = 10.0f;
 const Vec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
 
 NodeView::NodeView()
-        : Component()
+        : NodeComponent()
         , View()
         , m_colors({&DEFAULT_COLOR})
         , m_opacity(1.0f)
@@ -49,7 +49,6 @@ NodeView::NodeView()
         , m_property_view_this(nullptr)
         , m_property_views()
         , m_is_selected(false)
-        , m_graph(nullptr)
 {
     box.pos(DEFAULT_POS);
     box.size(DEFAULT_SIZE);
@@ -67,10 +66,7 @@ std::string NodeView::get_label()
 
 void NodeView::set_owner(PoolID<Node> node)
 {
-    Component::set_owner(node);
-
-    m_graph = node->parent_graph ? node->parent_graph->get_view()
-                                 : nullptr;
+    NodeComponent::set_owner(node);
 
     if( node == PoolID<Node>::null )
     {
@@ -134,6 +130,19 @@ void NodeView::set_owner(PoolID<Node> node)
     {
         id->update_labels_from_name(_node.get());
     });
+
+    // 4. Update fill color
+    //---------------------
+
+    Config* cfg = get_config();
+    Vec4* fill_color = &cfg->ui_node_fillColor;
+    if ( extends<VariableNode>( node.get() ) )            fill_color = &cfg->ui_node_variableColor;
+    else if ( node->has_component<InvokableComponent>() ) fill_color = &cfg->ui_node_invokableColor;
+    else if ( node->is_instruction() )                    fill_color = &cfg->ui_node_instructionColor;
+    else if ( extends<LiteralNode>( node.get() ) )        fill_color = &cfg->ui_node_literalColor;
+    else if ( extends<IConditional>( node.get() ) )       fill_color = &cfg->ui_node_condStructColor;
+
+    set_color( fill_color );
 }
 
 void NodeView::update_labels_from_name(const Node* _node)
@@ -216,6 +225,7 @@ bool NodeView::onDraw()
     Config*     cfg       = get_config();
 	bool        changed   = false;
     Node*       node      = m_owner.get();
+    GraphView*  graph_view = node->parent_graph->get_view();
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     ASSERT(node != nullptr);
@@ -223,17 +233,24 @@ bool NodeView::onDraw()
     // Draw Node slots (in background)
     m_is_any_slot_hovered = false;
     {
-        std::unordered_map<SlotFlags, int> count_by_flags{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
+        std::unordered_map<SlotFlags, i8_t> next_slot_pos_per_type{{SlotFlag_NEXT, 0}, {SlotFlag_PREV, 0}};
         for ( SlotView& slot_view : m_slot_views )
         {
-            if( slot_view.slot().capacity() && slot_view.slot().type() == SlotFlag_TYPE_CODEFLOW && (node->is_instruction() || node->can_be_instruction() ) )
-            {
-                int& count = count_by_flags[slot_view.slot().static_flags()];
-                Rect rect = get_slot_rect( slot_view, count );
-                SlotView::draw_slot_rectangle( draw_list, slot_view, rect );
-                slot_behavior(slot_view);
-                count++;
-            }
+            const Slot& slot = slot_view.slot();
+            if ( slot.type() != SlotFlag_TYPE_CODEFLOW) continue;
+            if ( slot.capacity() > 0) continue;
+            if ( !node->is_instruction() && !node->can_be_instruction() ) continue;
+
+            // determine slot position (this could be precomputed)
+            SlotFlags type = slot.static_flags();
+            Rect rect = get_slot_rect(slot_view, next_slot_pos_per_type[type] );
+
+            // draw slot
+            SlotView::draw_slot_rectangle( draw_list, slot_view, rect );
+            slot_behavior(slot_view );
+
+            // increment pos
+            ++next_slot_pos_per_type[type];
         }
     }
 
@@ -662,7 +679,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // Components
         if( ImGui::TreeNode("Components") )
         {
-            for (PoolID<const Component> component : node->get_components() )
+            for (PoolID<const NodeComponent> component : node->get_components() )
             {
                 ImGui::BulletText("%s", component->get_type()->get_name());
             }
@@ -1042,9 +1059,13 @@ bool NodeView::none_is_visible( std::vector<NodeView*> _views )
     return std::find_if(_views.begin(), _views.end(), is_visible) == _views.end();
 }
 
-void NodeView::slot_behavior(SlotView& _view, SlotFlags flags)
+void NodeView::slot_behavior(SlotView& _view)
 {
     m_is_any_slot_hovered |= ImGui::IsItemHovered();
+
+    GraphView* graph = get_graph();
+    SlotFlags flags = graph->get_hovered_slotview() != nullptr ? SlotBehavior_ALLOW_DRAGGING
+                                                               : SlotBehavior_READONLY;
 
     // Handle disconnect
 
@@ -1064,7 +1085,7 @@ void NodeView::slot_behavior(SlotView& _view, SlotFlags flags)
 
     if ( ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) )
     {
-        m_graph->set_hovered_slotview(&_view);
+        graph->set_hovered_slotview(&_view);
         if( ImGuiEx::BeginTooltip() )
         {
             ImGui::Text("%s", _view.get_tooltip().c_str() );
@@ -1072,16 +1093,22 @@ void NodeView::slot_behavior(SlotView& _view, SlotFlags flags)
         }
 
         bool draggable = flags & SlotBehavior_ALLOW_DRAGGING;
-        if ( draggable &&  ImGui::IsMouseDown(0) && m_graph->get_dragged_slotview() == nullptr )
+        if ( draggable &&  ImGui::IsMouseDown(0) && graph->get_dragged_slotview() == nullptr )
         {
             if ( !_view.slot().is_full() )
             {
-                m_graph->set_dragged_slotview(&_view);
+                graph->set_dragged_slotview(&_view);
             }
         }
     }
-    else if ( m_graph->get_hovered_slotview() == &_view )
+    else if ( graph->get_hovered_slotview() == &_view )
     {
-        m_graph->set_hovered_slotview(nullptr);
+        graph->set_hovered_slotview(nullptr);
     }
+}
+
+GraphView *NodeView::get_graph() const
+{
+    ASSERT(m_owner->parent_graph != nullptr)
+    return m_owner->parent_graph->get_view();
 }

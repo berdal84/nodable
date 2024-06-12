@@ -7,7 +7,7 @@
 namespace ndbl
 {
     // forward declarations
-    class Component;
+    class NodeComponent;
 
     /**
      * Static class responsible for create/destroy/attach/remove components

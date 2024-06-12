@@ -15,6 +15,10 @@
 using namespace ndbl;
 using namespace tools;
 
+Graph::Graph(NodeFactory* factory)
+: m_factory(factory)
+{}
+
 Graph::~Graph()
 {
 	clear();
@@ -570,9 +574,8 @@ PoolID<VariableNode> Graph::create_variable_decl(const type* _type, const char* 
     return var_node;
 }
 
-void Graph::init(NodeFactory *factory)
+void Graph::set_view(ndbl::GraphView* view)
 {
-    EXPECT(factory != nullptr, "A factory is required")
-    m_factory = factory;
-    m_view    = new GraphView(this);
+    ASSERT(view != nullptr);
+    m_view = view;
 }

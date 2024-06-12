@@ -11,18 +11,18 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<InvokableComponent>("InvokableComponent").extends<Component>();
+    StaticInitializer<InvokableComponent>("InvokableComponent").extends<NodeComponent>();
 }
 
 InvokableComponent::InvokableComponent()
-    : Component()
+    : NodeComponent()
     , m_signature( nullptr )
     , m_invokable( nullptr )
     , m_is_operator( false )
 {}
 
 InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_operator, const IInvokable* _invokable)
-    : Component()
+    : NodeComponent()
     , m_signature( _signature )
     , m_invokable( nullptr)
     , m_is_operator( _is_operator )

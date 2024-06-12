@@ -38,7 +38,7 @@ void FileView::init(File& _file)
     m_text_overlay_window_name  = overlay_basename + "_text_overlay";
     m_graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
-    m_graph_changed_observer.observe(m_file->graph_changed, [this](Graph* _graph) {
+    m_graph_changed_observer.observe(m_file->graph_changed, [](Graph* _graph) {
         LOG_VERBOSE( "FileView", "graph changed evt received\n" )
         if ( !_graph->is_empty() )
         {
@@ -46,7 +46,7 @@ void FileView::init(File& _file)
             Node* root = _graph->get_root().get();
 
             NodeView* root_node_view = root->get_component<NodeView>().get();
-            GraphView* graph_view = m_file->graph_view;
+            GraphView* graph_view = _graph->get_view();
 
             // unfold graph (lot of updates) and frame all nodes
             if ( root_node_view && graph_view )
@@ -107,10 +107,10 @@ bool FileView::onDraw()
 
         bool is_running = get_virtual_machine()->is_program_running();
         auto allow_keyboard = !is_running &&
-                              !m_file->graph_view->is_any_dragged();
+                              !m_file->get_graph().get_view()->is_any_dragged();
 
         auto allow_mouse = !is_running &&
-                           !m_file->graph_view->is_any_dragged() &&
+                           !m_file->get_graph().get_view()->is_any_dragged() &&
                            !ImGui::IsAnyItemHovered() &&
                            !ImGui::IsAnyItemFocused();
 
@@ -165,46 +165,37 @@ bool FileView::onDraw()
      // NODE EDITOR
     //-------------
 
-    Graph*     graph      = m_file->m_graph;
-    GraphView* graph_view = m_file->graph_view;
+    Graph&     graph      = m_file->get_graph();
+    GraphView* graph_view = graph.get_view();
 
-    ASSERT(graph);
+    ASSERT(graph_view);
 
     ImGui::SameLine();
-    if ( graph_view )
-    {
-        LOG_VERBOSE("FileView", "graph_node_view->update()\n");
-        ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        graph_view->update();
-        Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
+    LOG_VERBOSE("FileView", "graph_node_view->update()\n");
+    ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    graph_view->update();
+    Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
 
-        ImGui::BeginChild("graph", graph_editor_size, false, flags);
+    ImGui::BeginChild("graph", graph_editor_size, false, flags);
+    {
+        // Draw graph
+        m_is_graph_dirty = graph_view->draw();
+
+        // Draw overlay: shortcuts
+        Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
+        overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
+        draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
+        ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
+
+        // Draw overlay: isolation mode ON/OFF
+        if( cfg->isolation )
         {
-            // Draw graph
-            m_is_graph_dirty = graph_view->draw();
-
-            // Draw overlay: shortcuts
-            Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
-            overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
-            draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
-            ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
-
-            // Draw overlay: isolation mode ON/OFF
-            if( cfg->isolation )
-            {
-                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_overlay_margin);
-                ImGui::SetCursorPos(cursor_pos);
-                ImGui::Text("Isolation mode ON");
-            }
+            Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_overlay_margin);
+            ImGui::SetCursorPos(cursor_pos);
+            ImGui::Text("Isolation mode ON");
         }
-        ImGui::EndChild();
-
     }
-    else
-    {
-        ImGui::TextColored(ImColor(255,0,0), "ERROR: Unable to graw Graph View");
-        LOG_ERROR("FileView", "graphNodeView is null\n");
-    }
+    ImGui::EndChild();
 
     return changed();
 }
@@ -286,8 +277,8 @@ void FileView::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file->m_graph->get_node_registry().size());
-    ImGui::Text("Edge count: %zu", m_file->m_graph->get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file->get_graph().get_node_registry().size());
+    ImGui::Text("Edge count: %zu", m_file->get_graph().get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 

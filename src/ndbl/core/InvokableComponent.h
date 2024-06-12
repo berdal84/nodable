@@ -5,7 +5,7 @@
 #include "tools/core/reflection/reflection"
 
 #include "DirectedEdge.h"
-#include "Component.h"
+#include "NodeComponent.h"
 #include "Property.h"
 #include "Token.h"
 
@@ -15,7 +15,7 @@ namespace ndbl
 	  * @brief ComputeFunction extends Compute base to provide a Component that represents a Function.
 	  *        This function has some arguments.
 	  */
-	class InvokableComponent : public Component
+	class InvokableComponent : public NodeComponent
     {
 	public:
         InvokableComponent();
@@ -43,9 +43,9 @@ namespace ndbl
 
         REFLECT_DERIVED_CLASS()
     };
-}
 
-static_assert(std::is_move_assignable_v<ndbl::InvokableComponent>, "Should be move assignable");
-static_assert(std::is_move_constructible_v<ndbl::InvokableComponent>, "Should be move constructible");
+    static_assert(std::is_move_assignable_v<InvokableComponent>);
+    static_assert(std::is_move_constructible_v<InvokableComponent>);
+}
 
 

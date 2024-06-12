@@ -20,7 +20,7 @@ REFLECT_STATIC_INIT
 }
 
 Scope::Scope()
-    : Component()
+    : NodeComponent()
 {
 }
 

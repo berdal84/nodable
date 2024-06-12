@@ -2,11 +2,11 @@
 
 #include "IScope.h"
 #include "Token.h"
-#include "Component.h"
+#include "NodeComponent.h"
 
 namespace ndbl
 {
-    class Scope : public Component, public IScope
+    class Scope : public NodeComponent, public IScope
     {
     public:
         Scope();

@@ -36,8 +36,9 @@ File::File()
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
     // Graph
-    graph = new Graph();
-    graph->init(get_node_factory());
+    graph = new Graph(get_node_factory());
+    auto* graph_view = new GraphView(graph);
+    graph->set_view(graph_view);
 
     for( IAction* action : ActionManager::get_instance().get_actions() ) // Fill the "create node" context menu
     {
@@ -52,6 +53,7 @@ File::File()
 
 File::~File()
 {
+    delete graph->get_view();
     delete graph;
 }
 

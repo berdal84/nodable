@@ -10,11 +10,12 @@
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 
-#include "ComponentBag.h"
+#include "TComponentBag.h"
 #include "DirectedEdge.h"
 #include "Property.h"
 #include "PropertyBag.h"
 #include "constants.h"
+#include "NodeComponent.h"
 
 namespace ndbl
 {
@@ -119,7 +120,7 @@ namespace ndbl
         // Component related
         //------------------
 
-        std::vector<PoolID<Component>> get_components();
+        std::vector<PoolID<NodeComponent>> get_components();
 
         template<class ComponentT>
         void add_component(PoolID<ComponentT> component)
@@ -127,17 +128,17 @@ namespace ndbl
 
         template<class ComponentT>
         PoolID<ComponentT> get_component() const
-        { return m_components.get<ComponentT>(); }
+        { return m_components.get<PoolID<ComponentT>>(); }
 
         template<class ComponentT>
         bool has_component() const
-        { return m_components.has<ComponentT>(); }
+        { return m_components.has<PoolID<ComponentT>>(); }
 
     protected:
         ID<Property>      m_this_property_id;
         std::vector<Slot> m_slots;
     private:
-        ComponentBag      m_components;
+        TComponentBag<PoolID<Node>, PoolID<NodeComponent>> m_components;
     };
 }
 

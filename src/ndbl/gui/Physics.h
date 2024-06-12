@@ -2,7 +2,7 @@
 
 #include "tools/core/geometry/Space.h"
 #include "tools/core/geometry/XForm2D.h"
-#include "ndbl/core/Component.h"
+#include "ndbl/core/NodeComponent.h"
 #include "ndbl/gui/NodeViewConstraint.h"
 
 namespace  ndbl
@@ -12,7 +12,7 @@ namespace  ndbl
     class NodeView;
     using tools::PoolID;
 
-    class Physics : public Component {
+    class Physics : public NodeComponent {
     public:
         bool            is_active;
         std::vector<NodeViewConstraint> constraints;

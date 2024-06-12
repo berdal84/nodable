@@ -8,7 +8,7 @@
 #include "tools/core/log.h"
 #include "tools/core/reflection/reflection"
 
-#include "ndbl/core/Component.h"
+#include "ndbl/core/NodeComponent.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Property.h"
 

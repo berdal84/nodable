@@ -7,7 +7,7 @@
 #include "tools/gui/View.h"  // base class
 #include "tools/core/reflection/reflection"
 
-#include "ndbl/core/Component.h"  // base class
+#include "ndbl/core/NodeComponent.h"  // base class
 #include "ndbl/core/IScope.h"
 #include "ndbl/core/Scope.h"
 
@@ -108,12 +108,12 @@ namespace ndbl
 
         Graph*      m_graph;
         CreateNodeContextMenu m_create_node_menu{};
-        FrameState m_last_frame;
+        FrameState  m_last_frame{};
         NodeViewVec m_selected_nodeview;
         NodeViewVec m_dragged_nodeview;
-        SlotView*   m_hovered_slotview;
-        SlotView*   m_focused_slotview;
-        SlotView*   m_dragged_slotview;
+        SlotView*   m_hovered_slotview{nullptr};
+        SlotView*   m_focused_slotview{nullptr};
+        SlotView*   m_dragged_slotview{nullptr};
 		REFLECT_DERIVED_CLASS()
     };
 }

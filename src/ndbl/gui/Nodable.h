@@ -15,6 +15,7 @@ namespace ndbl
     class Nodlang;
     class VirtualMachine;
     class NodeFactory;
+    class ComponentFactory;
 
     class Nodable : public tools::BaseApp
     {
@@ -60,6 +61,7 @@ namespace ndbl
         Nodlang*           m_language { nullptr };
         VirtualMachine*    m_virtual_machine  { nullptr };
         NodeFactory*       m_node_factory { nullptr };
+        ComponentFactory*  m_component_factory { nullptr };
         std::vector<File*> m_loaded_files;
         u8_t               m_untitled_file_count = 0;
     };

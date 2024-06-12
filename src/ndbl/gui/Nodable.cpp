@@ -26,6 +26,7 @@
 #include "Physics.h"
 #include "SlotView.h"
 #include "ndbl/core/language/Nodlang.h"
+#include "ndbl/core/ComponentFactory.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -43,27 +44,16 @@ void Nodable::init()
     m_language = init_language();
     m_virtual_machine = init_virtual_machine();
     m_node_factory = init_node_factory();
+    m_component_factory = init_component_factory();
     m_view->init();
 
+    // Prepare code to be executed after each node instantiation
     get_node_factory()->override_post_process_fct( [this]( PoolID<Node> node ) -> void {
-        // Code executed after node instantiation
-
-        // add a view with physics
-        auto* pool = m_pool_manager->get_pool();
-        PoolID<NodeView> new_view_id = pool->create<NodeView>();
-        PoolID<Physics> physics_id = pool->create<Physics>( new_view_id );
+        // add a NodeView with Physics
+        PoolID<NodeView> new_view_id = m_component_factory->create<NodeView>();
+        PoolID<Physics> physics_id   = m_component_factory->create<Physics>( new_view_id );
         node->add_component( new_view_id );
         node->add_component( physics_id );
-
-        // Set fill_color
-        Vec4* fill_color = &m_config->ui_node_fillColor;
-             if ( extends<VariableNode>( node.get() ) )       fill_color = &m_config->ui_node_variableColor;
-        else if ( node->has_component<InvokableComponent>() ) fill_color = &m_config->ui_node_invokableColor;
-        else if ( node->is_instruction() )                    fill_color = &m_config->ui_node_instructionColor;
-        else if ( extends<LiteralNode>( node.get() ) )        fill_color = &m_config->ui_node_literalColor;
-        else if ( extends<IConditional>( node.get() ) )       fill_color = &m_config->ui_node_condStructColor;
-
-        new_view_id->set_color( fill_color );
     });
 
     LOG_VERBOSE("ndbl::Nodable", "init OK\n");
@@ -93,7 +83,7 @@ void Nodable::update()
     // 2. Handle events
 
     // Nodable events
-    GraphView* graph_view          = current_file ? current_file->graph_view : nullptr;
+    GraphView* graph_view          = current_file ? current_file->get_graph().get_view() : nullptr;
     History*   curr_file_history   = current_file ? &current_file->history : nullptr;
 
     IEvent* event = nullptr;
@@ -308,15 +298,15 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);
 
                 // 1) create the node
-                Graph* graph = current_file->m_graph;
+                Graph& graph = current_file->get_graph();
 
-                 if ( !graph->get_root() )
+                 if ( !graph.get_root() )
                 {
                     LOG_ERROR("Nodable", "Unable to create node, no root found on this graph.\n");
                     continue;
                 }
 
-                PoolID<Node> new_node_id  = graph->create_node( _event->data.node_type, _event->data.node_signature );
+                PoolID<Node> new_node_id  = graph.create_node( _event->data.node_type, _event->data.node_signature );
 
                 if ( !_event->data.dragged_slot )
                 {
@@ -348,10 +338,10 @@ void Nodable::update()
                 if ( !_event->data.dragged_slot )
                 {
                     // Experimental: we try to connect a parent-less child
-                    PoolID<Node> root = graph->get_root();
+                    PoolID<Node> root = graph.get_root();
                     if ( new_node_id != root && m_config->experimental_graph_autocompletion )
                     {
-                        graph->connect(
+                        graph.connect(
                             *root->find_slot(SlotFlag_CHILD),
                             *new_node_id->find_slot(SlotFlag_PARENT),
                             ConnectFlag_ALLOW_SIDE_EFFECTS
@@ -411,6 +401,7 @@ void Nodable::shutdown()
     shutdown_config();
     shutdown_virtual_machine();
     shutdown_node_factory();
+    shutdown_component_factory();
     shutdown_language();
     m_view->shutdown();
     delete m_view;
@@ -495,13 +486,13 @@ void Nodable::close_file( File* _file)
 
 bool Nodable::compile_and_load_program() const
 {
-    if (!current_file || !current_file->m_graph)
+    if (!current_file)
     {
         return false;
     }
 
     assembly::Compiler compiler{};
-    auto asm_code = compiler.compile_syntax_tree(current_file->m_graph);
+    auto asm_code = compiler.compile_syntax_tree(&current_file->get_graph());
     if (!asm_code)
     {
         return false;
@@ -531,16 +522,18 @@ void Nodable::debug_program()
 void Nodable::step_over_program()
 {
     m_virtual_machine->step_over();
+    GraphView* graph_view = current_file->get_graph().get_view();
+
     if (!m_virtual_machine->is_there_a_next_instr() )
     {
-        current_file->graph_view->set_selected({}, SelectionMode_REPLACE);
+        graph_view->set_selected({}, SelectionMode_REPLACE);
         return;
     }
 
     const Node* next_node = m_virtual_machine->get_next_node();
     if ( !next_node ) return;
 
-    current_file->graph_view->set_selected(
+    graph_view->set_selected(
         next_node->get_component<NodeView>(),
         SelectionMode_REPLACE
     );

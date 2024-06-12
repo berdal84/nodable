@@ -2,14 +2,14 @@
 
 #include "tools/core/types.h"
 #include "tools/core/reflection/reflection"
-#include "Component.h"
+#include "NodeComponent.h"
 
 namespace ndbl
 {
     /**
      * @deprecated Component to handle node read/write from/to disk
      */
-	class DataAccess : public Component
+	class DataAccess : public NodeComponent
 	{
 	public:
 		DataAccess() {};

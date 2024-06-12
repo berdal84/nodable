@@ -173,7 +173,7 @@ void NodableView::draw()
                 ImGui::Separator();
             }
 
-            auto has_selection = current_file != nullptr ? !current_file->graph_view->get_selected().empty()
+            auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->get_selected().empty()
                                                          : false;
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped))
@@ -440,7 +440,7 @@ void NodableView::draw_node_properties_window()
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
-        auto selected_node_views = m_app->current_file->graph_view->get_selected();
+        auto selected_node_views = m_app->current_file->get_graph().get_view()->get_selected();
         if ( selected_node_views.size() == 1 )
         {
             ImGui::Indent(10.0f);

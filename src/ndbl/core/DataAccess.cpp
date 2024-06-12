@@ -17,7 +17,7 @@ using namespace tools;
 REFLECT_STATIC_INIT
 {
     StaticInitializer<DataAccess>("DataAccess")
-            .extends<Component>();
+            .extends<NodeComponent>();
 }
 
 bool DataAccess::update()
@@ -63,7 +63,7 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(PoolID<Component> component : owner->get_components())
+		    for(PoolID<NodeComponent> component : owner->get_components())
 		    {
 		    	writer.Key(component->get_type()->get_name());
 		    	writer.StartObject();

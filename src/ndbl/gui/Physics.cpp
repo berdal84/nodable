@@ -15,11 +15,11 @@ using namespace tools;
 REFLECT_STATIC_INIT
 {
     StaticInitializer<Physics>("Physics")
-                     .extends<Component>();
+                     .extends<NodeComponent>();
 };
 
 Physics::Physics()
-    : Component()
+    : NodeComponent()
     , is_active(true)
 {}
 

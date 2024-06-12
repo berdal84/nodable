@@ -51,10 +51,10 @@ namespace ndbl
 	class Graph
 	{
 	public:
- 		Graph() = default;
+ 		Graph(NodeFactory* factory);
 		~Graph();
 
-        void                        init(NodeFactory* factory);
+        void                        set_view(GraphView* view = nullptr);
         UpdateResult                update();
 
         // node related
@@ -110,6 +110,6 @@ namespace ndbl
         PoolID<Node>       m_root;             // Graph root (main scope), without it a graph cannot be compiled.
         const NodeFactory* m_factory{nullptr};
         bool               m_is_dirty{false};
-        GraphView*         m_view{nullptr};
+        GraphView*         m_view{nullptr}; // non-owned
     };
 }

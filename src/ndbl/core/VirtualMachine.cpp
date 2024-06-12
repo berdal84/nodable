@@ -25,18 +25,21 @@ void CPU::clear_registers()
 
 qword CPU::read(Register _id)const
 {
+    ASSERT(_id < Register::COUNT)
     LOG_VERBOSE("VM::CPU", "read register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
 qword& CPU::read_write(Register _id)
 {
+    ASSERT(_id < Register::COUNT)
     LOG_VERBOSE("VM::CPU", "read_write register %s (value: %s)\n", assembly::to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
 void CPU::write(Register _id, qword _data)
 {
+    ASSERT(_id < Register::COUNT)
     qword& mem_dst = read_write(_id);
     mem_dst = _data;
     LOG_VERBOSE("VM::CPU", "write register %s (value: %s)\n", assembly::to_string(_id), mem_dst.to_string().c_str())

@@ -329,8 +329,8 @@ set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
 add_library(
     ndbl-core
     STATIC
-    src/ndbl/core/Component.cpp
-    src/ndbl/core/ComponentBag.cpp
+    src/ndbl/core/NodeComponent.cpp
+    src/ndbl/core/ComponentFactory.cpp
     src/ndbl/core/IfNode.cpp
     src/ndbl/core/DataAccess.cpp
     src/ndbl/core/DirectedEdge.cpp

@@ -9,7 +9,7 @@
 
 #include "PropertyView.h"
 #include "SlotView.h"
-#include "ndbl/core/Component.h"// base class
+#include "ndbl/core/NodeComponent.h"// base class
 #include "ndbl/core/Property.h"
 #include "tools/core/geometry/Box2D.h"
 #include "tools/gui/ImGuiEx.h"
@@ -60,7 +60,7 @@ namespace ndbl
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
-    class NodeView : public Component, public tools::View
+    class NodeView : public NodeComponent, public tools::View
 	{
 	public:
         friend class GraphView;
@@ -78,9 +78,9 @@ namespace ndbl
 		void                    translate( tools::Vec2, NodeViewFlags flags );
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
-        tools::Rect                get_rect( tools::Space, NodeViewFlags = NodeViewFlag_IGNORE_PINNED | NodeViewFlag_IGNORE_MULTICONSTRAINED) const;
+        tools::Rect             get_rect( tools::Space, NodeViewFlags = NodeViewFlag_IGNORE_PINNED | NodeViewFlag_IGNORE_MULTICONSTRAINED) const;
         const PropertyView*     get_property_view( ID<Property> _id )const;
-        inline tools::Vec2         get_size() const { return box.size(); }
+        inline tools::Vec2      get_size() const { return box.size(); }
         bool                    is_expanded()const { return m_expanded; }
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
@@ -104,11 +104,11 @@ namespace ndbl
         tools::Vec2             get_slot_normal( const Slot& slot) const;
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
-
+        GraphView*              get_graph() const;
         static bool             none_is_visible( std::vector<NodeView*> vector1 );
 
     private:
-        void                    slot_behavior(SlotView& _view, SlotFlags flags);
+        void                    slot_behavior(SlotView& _view);
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
         bool                    _draw_property_view(PropertyView* _view);
         void                    update_labels_from_name(const Node *_node);
@@ -130,7 +130,6 @@ namespace ndbl
         bool            m_is_selected;
         float           m_opacity;
         bool            m_is_any_slot_hovered;
-        GraphView*      m_graph;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
         std::vector<SlotView>      m_slot_views;
         std::vector<PropertyView>  m_property_views;

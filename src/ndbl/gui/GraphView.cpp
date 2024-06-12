@@ -35,8 +35,6 @@ REFLECT_STATIC_INIT
 GraphView::GraphView(Graph* graph)
     : View()
     , m_graph(graph)
-    , m_create_node_menu()
-    , m_last_frame()
 {
 }
 

@@ -88,7 +88,7 @@ void Node::set_name(const char *_label)
     on_name_change.emit(m_id);
 }
 
-std::vector<PoolID<Component>> Node::get_components()
+std::vector<PoolID<NodeComponent>> Node::get_components()
 {
     return m_components.get_all();
 }

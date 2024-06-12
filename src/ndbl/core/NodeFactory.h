@@ -37,12 +37,12 @@ namespace ndbl
         PoolID<Node>                  create_abstract_func(const tools::func_type *_signature, bool _is_operator)const;
         PoolID<Node>                  create_func(const tools::IInvokable*_function, bool _is_operator)const;
         PoolID<Node>                  create_scope()const;
-        PoolID<IfNode> create_cond_struct()const;
+        PoolID<IfNode>                create_cond_struct()const;
         PoolID<ForLoopNode>           create_for_loop()const;
         PoolID<WhileLoopNode>         create_while_loop()const;
         PoolID<Node>                  create_node()const;
         void                          destroy_node(PoolID<Node> node)const;
-        void override_post_process_fct( NodeFactory::PostProcessFct f );
+        void                          override_post_process_fct( NodeFactory::PostProcessFct f );
     private:
         PoolID<Node>                  _create_abstract_func(const tools::func_type *_func_type, bool _is_operator) const; // this do not invoke post_process
         void                          add_invokable_component(PoolID<Node> _node, const tools::func_type *_func_type, const tools::IInvokable*_invokable, bool _is_operator) const;
