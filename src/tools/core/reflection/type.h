@@ -21,6 +21,9 @@ namespace tools
     /** Empty structure to act like a null type, @related tools::variant class */
     struct null_t{};
 
+    template<class T, typename GET_CLASS = decltype(&T::get_class)>
+    constexpr bool IsReflectedClass = std::is_member_function_pointer_v<GET_CLASS>;
+
     /**
      * @struct Removes a pointer from a given type PointerT
      * @example @code
@@ -214,11 +217,11 @@ namespace tools
     bool extends(SourceClass* source_ptr)
     {
         // ensure both classes are reflected
-        static_assert(std::is_member_function_pointer_v<decltype(&SourceClass::get_type)>);
-        static_assert(std::is_member_function_pointer_v<decltype(&PossiblyBaseClass::get_type)>);
+        static_assert(IsReflectedClass<SourceClass>);
+        static_assert(IsReflectedClass<PossiblyBaseClass>);
 
         // check if source_type is a child of possibly_base_class
-        const type* source_type = source_ptr->get_type();
+        const type* source_type = source_ptr->get_class();
         const type* possibly_base_class = type::get<PossiblyBaseClass>();
         return source_type->is_child_of(possibly_base_class->id(), self_check );
     }
@@ -237,6 +240,12 @@ namespace tools
             return static_cast<TargetClass*>(source_ptr);
         }
         return nullptr;
+    }
+
+    template<class T, class>
+    T* cast(T* source_ptr)
+    {
+        return source_ptr;
     }
 
     template<class Type>

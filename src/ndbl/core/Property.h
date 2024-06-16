@@ -19,6 +19,7 @@ namespace ndbl
         PropertyFlag_RESET_VALUE     = 1 << 2,
         PropertyFlag_IS_REF          = 1 << 3,
         PropertyFlag_VISIBLE         = 1 << 4,
+        PropertyFlag_IS_THIS         = 1 << 5,
         PropertyFlag_VISIBILITY_MASK = PropertyFlag_VISIBLE,
         PropertyFlag_DEFAULT         = PropertyFlag_VISIBLE
     };
@@ -32,8 +33,7 @@ namespace ndbl
 	class Property
     {
     public:
-        tools::ID<Property> id;
-        Token            token;
+        Token token;
 
         explicit Property();
         explicit Property(const std::string &);
@@ -81,9 +81,9 @@ namespace ndbl
         bool is_this() const;
 
     private:
-        PropertyFlags m_flags;
-		std::string   m_name;
-        tools::variant   m_variant;
+        PropertyFlags  m_flags;
+		std::string    m_name;
+        tools::variant m_variant;
     };
 
     template<typename T>

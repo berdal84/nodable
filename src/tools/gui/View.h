@@ -19,7 +19,8 @@ namespace tools
         bool  hovered;
         bool  selected;
 
-		View(View* parent /*= nullptr*/);
+		View(): View(nullptr) {}
+		explicit View(View* parent);
 		virtual ~View() = default;
         virtual bool  draw();
         tools::Vec2   get_pos(Space) const;

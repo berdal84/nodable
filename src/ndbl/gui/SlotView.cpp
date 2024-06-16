@@ -6,27 +6,29 @@ using namespace ndbl;
 using namespace tools;
 
 SlotView::SlotView(
-    PoolID<NodeView> parent,
-    Slot& slot,
+    NodeView*   parent,
+    Slot*       slot,
     const Vec2& align,
-    ShapeType shape
+    ShapeType   shape
     )
-: tools::View(parent.get())
+: tools::View(parent)
 , m_slot(slot)
 , m_align(align)
 , m_parent(parent)
 , m_shape(shape)
 {
+    ASSERT(parent != nullptr)
+    ASSERT(slot != nullptr)
 }
 
-PoolID<Node> SlotView::adjacent_node() const
+Node* SlotView::adjacent_node() const
 {
-   return m_slot.first_adjacent().node;
+   return m_slot->first_adjacent()->get_node();
 }
 
-PoolID<Node> SlotView::get_node()const
+Node* SlotView::get_node()const
 {
-    return m_slot.node;
+    return m_slot->get_node();
 }
 
 const type* SlotView::get_property_type()const
@@ -42,27 +44,27 @@ bool SlotView::is_this() const
 
 bool SlotView::allows(SlotFlag flags) const
 {
-    return ( m_slot.flags & flags ) == flags;
+    return m_slot->has_flags(flags);
 }
 
 Slot& SlotView::slot() const
 {
-    return m_slot;
+    return *m_slot;
 }
 
 bool SlotView::has_node_connected() const
 {
-    if ( !m_slot.get_property()->get_type()->is<PoolID<Node>>() )
+    if ( !m_slot->get_property()->get_type()->is<Node*>() )
     {
         return false;
     }
 
-    return m_slot.adjacent_count() != 0;
+    return m_slot->adjacent_count() != 0;
 }
 
 Property* SlotView::get_property() const
 {
-    return m_slot.get_property();
+    return m_slot->get_property();
 }
 
 tools::Vec2 SlotView::normal() const
@@ -108,7 +110,7 @@ bool SlotView::draw()
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
 
-    Rect rect = get_rect(SCREEN_SPACE);
+     Rect rect = get_rect(SCREEN_SPACE);
     Vec2 pos  = rect.center();
 
     switch (m_shape)
@@ -125,7 +127,7 @@ bool SlotView::draw()
             ImGui::SetCursorScreenPos( cursor_pos);
 
             // draw an invisible button (for easy mouse interaction)
-            ImGui::PushID((u8_t)m_slot.id);
+            ImGui::PushID(m_slot);
             ImGui::InvisibleButton("###", Vec2{diameter * invisible_ratio});
             ImGui::PopID();
 
@@ -140,12 +142,12 @@ bool SlotView::draw()
         {
             // draw an invisible button (for easy mouse interaction)
             ImGui::SetCursorScreenPos(rect.tl());
-            ImGui::PushID((u8_t)m_slot.id);
+            ImGui::PushID((u64_t)m_slot);
             ImGui::InvisibleButton("###", rect.size());
             ImGui::PopID();
 
             // draw the rectangle
-            bool bottom = m_slot.has_flags(SlotFlag_ORDER_FIRST);
+            bool bottom = m_slot->has_flags(SlotFlag_ORDER_FIRST);
             ImDrawCornerFlags corner_flags = bottom ? ImDrawCornerFlags_Bot
                                                     : ImDrawCornerFlags_Top;
             Vec4 fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? hover_color : color;

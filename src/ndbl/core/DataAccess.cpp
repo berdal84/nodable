@@ -40,8 +40,7 @@ bool DataAccess::update()
     	else                               writer.Null();
 	};
 
-    Node* owner = m_owner.get();
-    ASSERT( owner != nullptr );
+    ASSERT( m_owner != nullptr );
     writer.StartObject();
     {
     	// Write Properties
@@ -50,9 +49,9 @@ bool DataAccess::update()
     	writer.Key("properties");
     	writer.StartObject();
     	{
-		    for(auto& each_property : owner->props )
+		    for(auto each_property : m_owner->props )
 		    {
-		    	writeProperty( each_property );
+		    	writeProperty( *each_property );
 		    }
 		}
 	    writer.EndObject();
@@ -63,12 +62,12 @@ bool DataAccess::update()
     	writer.Key("components");
     	writer.StartObject();
     	{
-		    for(PoolID<NodeComponent> component : owner->get_components())
+		    for(auto component : m_owner->get_components())
 		    {
-		    	writer.Key(component->get_type()->get_name());
+		    	writer.Key(component->get_class()->get_name());
 		    	writer.StartObject();
 
-		    	// TODO: Save component: how to?
+		    	// TODO: implementation
 
 			    writer.EndObject();
 		    }
@@ -79,7 +78,7 @@ bool DataAccess::update()
     writer.EndObject();
 
     std::string fileName("node_");
-    fileName += owner->name;
+    fileName += m_owner->name;
     fileName += ".json";
 
     std::ofstream outfile ("saves/" +fileName ,std::ofstream::binary);

@@ -9,7 +9,6 @@ namespace ndbl {
 
     // forward declarations
     class NodeView;
-    using tools::PoolID;
 
     enum Align {
         Align_START,
@@ -58,10 +57,10 @@ namespace ndbl {
         NodeViewConstraint(const char* _name, ConstrainFlags );
         void apply(float _dt);
         void apply_when(const Filter& _lambda) { m_should_apply = _lambda; }
-        void add_target(PoolID<NodeView>);
-        void add_driver(PoolID<NodeView>);
-        void add_targets(const std::vector<PoolID<NodeView>>&);
-        void add_drivers(const std::vector<PoolID<NodeView>>&);
+        void add_target(NodeView*);
+        void add_driver(NodeView*);
+        void add_targets(const std::vector<NodeView*>&);
+        void add_drivers(const std::vector<NodeView*>&);
         void draw_view();
 
         tools::Vec2 m_offset; // offset applied to the constraint
@@ -75,8 +74,8 @@ namespace ndbl {
         bool              m_is_active;
         Filter            m_should_apply;
         ConstrainFlags    m_flags;
-        std::vector<PoolID<NodeView>> m_drivers; // driving the targets
-        std::vector<PoolID<NodeView>> m_targets;
+        std::vector<NodeView*> m_drivers; // driving the targets
+        std::vector<NodeView*> m_targets;
         static void draw_debug_lines(
                 const std::vector<NodeView*>& _drivers,
                 const std::vector<NodeView*>& _targets);

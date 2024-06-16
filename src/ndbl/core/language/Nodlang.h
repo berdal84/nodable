@@ -49,14 +49,14 @@ namespace ndbl{
         bool                          parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                         parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                         parse_token(const std::string& _string) const;
-        PoolID<Node>                  parse_scope( Slot& _parent_scope_slot );
-        PoolID<Node>                  parse_instr();
+        Node*                         parse_scope( Slot& _parent_scope_slot );
+        Node*                         parse_instr();
         Slot*                         parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
         void                          parse_code_block(); // Try to parse a code block with the option to create a scope or not (reusing the current one).
-        PoolID<IfNode>                parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
-        PoolID<ForLoopNode>           parse_for_loop();
-        PoolID<WhileLoopNode>         parse_while_loop();
-        PoolID<Node>                  parse_program();
+        IfNode*                       parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
+        ForLoopNode*                  parse_for_loop();
+        WhileLoopNode*                parse_while_loop();
+        Node*                         parse_program();
         Slot*                         parse_function_call();
         Slot*                         parse_parenthesis_expression();
         Slot*                         parse_unary_operator_expression(u8_t _precedence = 0);
@@ -73,8 +73,8 @@ namespace ndbl{
         void                          rollback_transaction(); // Rollback the pending transaction (revert cursor to parse again from the transaction start).
         void                          commit_transaction(); // Commit the pending transaction
 		bool                          is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
-        PoolID<Scope>                 get_current_scope();
-        PoolID<Node>                  get_current_scope_node();
+        Scope*                        get_current_scope();
+        Node*                         get_current_scope_node();
 
     public:
         struct ParserState
@@ -83,7 +83,7 @@ namespace ndbl{
             size_t                    source_buffer_size;
             TokenRibbon               ribbon;
             Graph*                    graph;              // not owned
-            std::stack<PoolID<Scope>> scope;              // nested scopes
+            std::stack<Scope*>        scope;              // nested scopes
 
             ParserState();
             ~ParserState();
@@ -104,14 +104,14 @@ namespace ndbl{
         };
 
         std::string& serialize_invokable(std::string&_out, const InvokableComponent &_component) const;
-        std::string& serialize_func_call(std::string& _out, const tools::func_type *_signature, const std::vector<SlotRef> &inputs)const;
+        std::string& serialize_func_call(std::string& _out, const tools::func_type *_signature, const std::vector<Slot*>& inputs)const;
         std::string& serialize_func_sig(std::string& _out, const tools::func_type*)const;
         std::string& serialize_token_t(std::string& _out, const Token_t&)const;
         std::string& serialize_token(std::string& _out, const Token &) const;
         std::string& serialize_type(std::string& _out, const tools::type*) const;
         std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_RECURSE )const;
         std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_RECURSE )const;
-        std::string& serialize_node( std::string &_out, const PoolID<const Node> &_node, SerializeFlags _flags = SerializeFlag_RECURSE ) const;
+        std::string& serialize_node(std::string &_out, const Node* node, SerializeFlags _flags = SerializeFlag_RECURSE ) const;
         std::string& serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
         std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;
@@ -131,12 +131,12 @@ namespace ndbl{
         invokable_ptr         find_operator_fct_exact(const tools::func_type*) const;     // Find an operator's function by signature (no cast allowed).
         invokable_ptr         find_operator_fct_fallback(const tools::func_type*) const;  // Find an operator's function by signature (casts allowed).
         const tools::Operator*   find_operator(const std::string& , tools::Operator_t) const;// Find an operator by symbol and type (unary, binary or ternary).
-        const Invokable_vec&  get_api()const { return m_functions; }                   // Get all the functions registered in the language. (TODO: why do we store the declared functions here? can't we load them in the VirtualMachine instead?).
+        const Invokable_vec&  get_api()const { return m_functions; }                      // Get all the functions registered in the language. (TODO: why do we store the declared functions here? can't we load them in the VirtualMachine instead?).
         std::string&          to_string(std::string& /*out*/, const tools::type*)const;   // Convert a type to string (by ref).
-        std::string&          to_string(std::string& /*out*/, Token_t)const;           // Convert a type to a token_t (by ref).
+        std::string&          to_string(std::string& /*out*/, Token_t)const;              // Convert a type to a token_t (by ref).
         std::string           to_string(const tools::type *) const;                       // Convert a type to string.
-        std::string           to_string(Token_t)const;                                 // Convert a type to a token_t.
-        const tools::type*       get_type(Token_t _token)const;                           // Get the type corresponding to a given token_t (must be a type keyword)
+        std::string           to_string(Token_t)const;                                    // Convert a type to a token_t.
+        const tools::type*    get_type(Token_t _token)const;                              // Get the type corresponding to a given token_t (must be a type keyword)
         void                  add_function(std::shared_ptr<const tools::IInvokable>);     // Adds a new function (regular or operator's implementation).
         int                   get_precedence(const tools::IInvokable*)const;              // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
@@ -157,11 +157,11 @@ namespace ndbl{
         std::unordered_map<tools::hash::hash_t , std::shared_ptr<const tools::IInvokable>> m_functions_by_signature; // Functions indexed by signature hash
         std::unordered_map<Token_t, char>                 m_single_char_by_keyword;
         std::unordered_map<Token_t, const char*>          m_keyword_by_token_t;       // token_t to string (ex: Token_t::keyword_double => "double").
-        std::unordered_map<tools::type::id_t, const char*>   m_keyword_by_type_id;
+        std::unordered_map<tools::type::id_t, const char*>m_keyword_by_type_id;
         std::unordered_map<char, Token_t>                 m_token_t_by_single_char;
         std::unordered_map<size_t, Token_t>               m_token_t_by_keyword;       // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
-        std::unordered_map<tools::type::id_t, Token_t>       m_token_t_by_type_id;
-        std::unordered_map<Token_t, const tools::type*>      m_type_by_token_t;          // token_t to type. Works only if token_t refers to a type keyword.
+        std::unordered_map<tools::type::id_t, Token_t>    m_token_t_by_type_id;
+        std::unordered_map<Token_t, const tools::type*>   m_type_by_token_t;          // token_t to type. Works only if token_t refers to a type keyword.
 
     };
 

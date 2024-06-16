@@ -1,3 +1,4 @@
+#ifdef TOOLS_POOL_ENABLE
 #include "tools/core/memory/memory.h"
 #include "tools/core/log.h"
 #include <gtest/gtest.h>
@@ -25,8 +26,8 @@ TEST(Pool, create_empty_constructor )
 {
     Pool* pool = init_pool_manager()->get_pool();
     pool->init_for<Data>();
-    PoolID<Data> node = pool->create<Data>();
-    EXPECT_NE(node, PoolID<Data>::null);
+    Data> node = pool->create<Data>();
+    EXPECT_NE(node, Data>::null);
     EXPECT_NE(node.get(), nullptr);
     shutdown_pool_manager();
 }
@@ -35,8 +36,8 @@ TEST(Pool, create_with_args )
 {
     PoolManager* pool_manager = init_pool_manager(); Pool* pool = pool_manager->get_pool();
     pool->init_for<Data>();
-    PoolID<Data> node = pool->create<Data>("Toto");
-    EXPECT_NE(node, PoolID<Data>::null);
+    Data> node = pool->create<Data>("Toto");
+    EXPECT_NE(node, Data>::null);
     EXPECT_NE(node.get(), nullptr);
     EXPECT_STREQ(node->name, "Toto");
     shutdown_pool_manager();
@@ -46,8 +47,8 @@ TEST(Pool, buffer_resizing )
 {
     PoolManager* pool_manager = init_pool_manager(); Pool* pool = pool_manager->get_pool();
     pool->init_for<Data>();
-    PoolID<Data> node1 = pool->create<Data>("Toto");
-    PoolID<Data> node2 = pool->create<Data>("Tata");
+    Data> node1 = pool->create<Data>("Toto");
+    Data> node2 = pool->create<Data>("Tata");
     EXPECT_EQ((u64_t)node1, 0);
     EXPECT_EQ((u64_t)node2, 1);
     EXPECT_STREQ(node1->name, "Toto");
@@ -59,8 +60,8 @@ TEST(Pool, destroy_last )
 {
     PoolManager* pool_manager = init_pool_manager(); Pool* pool = pool_manager->get_pool();
     pool->init_for<Data>();
-    PoolID<Data> data_1 = pool->create<Data>("Toto");
-    PoolID<Data> data_2 = pool->create<Data>("Tata");
+    Data> data_1 = pool->create<Data>("Toto");
+    Data> data_2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
     pool->destroy( data_1 );
     EXPECT_STREQ(data_2->name, "Tata");
@@ -73,8 +74,8 @@ TEST(Pool, destroy_first )
 {
     PoolManager* pool_manager = init_pool_manager(); Pool* pool = pool_manager->get_pool();
     pool->init_for<Data>();
-    PoolID<Data> node1 = pool->create<Data>("Toto");
-    PoolID<Data> node2 = pool->create<Data>("Tata");
+    Data> node1 = pool->create<Data>("Toto");
+    Data> node2 = pool->create<Data>("Tata");
     EXPECT_EQ(pool->get_all<Data>().size(), 2);
     pool->destroy( node1 );
     EXPECT_EQ(pool->get_all<Data>().size(), 1);
@@ -87,13 +88,13 @@ TEST(Pool, destroy_first_and_reuse_id )
     // prepare
     Pool* pool = init_pool_manager()->get_pool();
     pool->init_for<Data>();
-    PoolID<Data> node1 = pool->create<Data>("Toto");
-    PoolID<Data> node2 = pool->create<Data>("Tata");
+    Data> node1 = pool->create<Data>("Toto");
+    Data> node2 = pool->create<Data>("Tata");
 
     // act
     pool->destroy( node1 );
-    PoolID<Data> node3 = pool->create<Data>("Tutu");
-    PoolID<Data> node4 = pool->create<Data>("Tete");
+    Data> node3 = pool->create<Data>("Tutu");
+    Data> node4 = pool->create<Data>("Tete");
 
     // clean
     EXPECT_EQ((u64_t)node3, 0);
@@ -107,7 +108,7 @@ TEST(Pool, destroy_vector_of_ids )
     Pool* pool = init_pool_manager()->get_pool();
     pool->init_for<Data>();
 
-    std::vector<PoolID<Data>> data;
+    std::vector<Data>> data;
     for(int i = 0; i < n; ++i)
     {
         data.push_back( pool->create<Data>("Data") );
@@ -172,3 +173,4 @@ TEST(PoolVector, create_delete )
     delete ptr2;
 }
 
+#endif // #ifdef TOOLS_POOL_ENABLE

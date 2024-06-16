@@ -1,5 +1,11 @@
 #pragma once
 
+#if !TOOLS_POOL_ENABLE
+
+#define POOL_REGISTRABLE( Class ) /* TOOLS_POOL_ENABLE is OFF */
+
+#else
+
 #include <algorithm>
 #include <cstdlib>
 #include <set>
@@ -19,12 +25,12 @@
 #define POOL_REGISTRABLE( Class ) \
 protected: \
     template<typename T> using ID     = ::tools::ID<T>; \
-    template<typename T> using PoolID = ::tools::PoolID<T>; \
-    PoolID<Class> m_id; \
+    template<typename T> using PoolID = ::tools::T>; \
+    Class> m_id; \
 public: \
     using is_pool_registrable = std::true_type; \
-    PoolID<Class> poolid() const { return m_id; }; \
-    void poolid(PoolID<Class> _id) { m_id = _id; }
+    Class> poolid() const { return m_id; }; \
+    void poolid(Class> _id) { m_id = _id; }
 
 #define STATIC_ASSERT__IS_POOL_REGISTRABLE(T) \
 static_assert( std::is_same_v<typename T::is_pool_registrable, std::true_type>, "This type is not pool registrable, use POOL_REGISTRABLE macros." );
@@ -37,7 +43,7 @@ namespace tools
      *
      * Example:
      *
-     * PoolID<Type> id = ...;  // we assume we have a valid id
+     * Type> id = ...;  // we assume we have a valid id
      * id->do_something(); // de-reference from a pool id (cost a bit more) + call a method on the pointer.
      *
      * Type* ptr = id.get(); // de-referencing once before doing lots of calls is faster.
@@ -45,21 +51,20 @@ namespace tools
      * ...
      * ptr->do_that();
      */
-    template<typename T = void>
+    template<typename T = char>
     class PoolID
     {
-        friend class Pool;
     public:
-        static PoolID<T> null;
-        ID64<T>          id;
+        using id_t = typename ID64<T>::id_t; // for extern use only
+        inline static const PoolID<T> null{};
 
-        PoolID() = default;
-        explicit PoolID(u64_t _id);
-        explicit PoolID(const ID<T>& _id);
+        constexpr PoolID() = default;
+        explicit constexpr PoolID(u64_t _id);
+        explicit constexpr PoolID(const ID<T>& _id);
 
         template<typename OtherT>
         PoolID(const PoolID<OtherT>& other)
-        : id(other.id)
+        : m_id(other.id())
         {}
 
         T* get() const; // Return a pointer to the data from the Pool having an id == this->id
@@ -73,7 +78,12 @@ namespace tools
         inline T* operator -> () const;
         inline T& operator *  ();
         inline T& operator *  () const;
+        inline ID64<T> id() const { return m_id; }
+    private:
+        ID64<T> m_id;
     };
+
+    constexpr size_t INVALID_VEC_POS = ~0;
 
     /**
      * Interface for any PoolVector
@@ -81,6 +91,8 @@ namespace tools
     class IPoolVector
     {
     public:
+        using index_t = size_t; // for extern use only
+        static constexpr size_t invalid_index = ~0;
         inline IPoolVector(void* _data_ptr, size_t _elem_size, std::type_index _type_index);
         virtual ~IPoolVector() {};
         virtual size_t size() const = 0;
@@ -144,9 +156,9 @@ namespace tools
      */
     struct Record
     {
-        IPoolVector* vector{ nullptr};
-        size_t       pos{invalid_id<size_t>}; // Zero-based position of the data in the vector.
-        u64_t        next_id{invalid_id<u64_t>}; // id to the next Record, if pos is invalid it points to the next free id.
+        IPoolVector*         vector{ nullptr};
+        IPoolVector::index_t pos{IPoolVector::invalid_index}; // 0-based
+        PoolID<>::id_t       next_id{};
     };
 
     /**
@@ -165,7 +177,7 @@ namespace tools
 
         struct Config
         {
-            const bool reuse_ids{true}; // for debugging purposes
+            bool       reuse_ids{true}; // for debugging purposes
             size_t     reserved_size{0};
         };
 
@@ -184,15 +196,16 @@ namespace tools
         template<typename ContainerT> inline void destroy_all(const ContainerT& ids);
     private:
 
-        inline u64_t generate_id();
+        inline PoolID<>::id_t generate_id();
 
         template<typename T>          inline PoolID<T>    make_record(T* data, IPoolVector * vec, size_t pos );
         template<typename T>          inline IPoolVector* get_pool_vector();
         template<typename T>          inline IPoolVector* find_or_init_pool_vector(); // prefer get_pool_vector if you are sure it exists
 
         const Config                                      m_config;
-        u64_t                                             m_first_free_id; // Linked-list of free ids
+        PoolID<>::id_t                                    m_first_free_id; // Linked-list of free ids
         std::vector<Record>                               m_record_by_id;
         std::unordered_map<std::type_index, IPoolVector*> m_pool_vector_by_type;
     };
 } // namespace tools
+#endif

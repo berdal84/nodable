@@ -10,7 +10,6 @@ namespace ndbl
     class Slot;
     class Property;
     class InstructionNode;
-    using tools::PoolID;
 
     typedef size_t Branch;
     enum Branch_ : size_t
@@ -25,12 +24,12 @@ namespace ndbl
     class IConditional
     {
     public:
-        virtual PoolID<Scope>  get_scope_at(Branch _branch) const = 0;
-        virtual Slot&          get_child_slot_at(Branch _branch) = 0;
-        virtual const Slot&    get_child_slot_at(Branch _branch) const = 0;
-        virtual Slot&          get_condition_slot(Branch = Branch_TRUE) = 0;
-        virtual const Slot&    get_condition_slot(Branch = Branch_TRUE) const = 0;
-        virtual PoolID<Node>   get_condition(Branch = Branch_TRUE) const = 0;
+        virtual Scope*         get_scope_at(Branch) const = 0;
+        virtual Slot&          get_child_slot_at(Branch) = 0;
+        virtual const Slot&    get_child_slot_at(Branch) const = 0;
+        virtual Slot&          get_condition_slot(Branch) = 0;
+        virtual const Slot&    get_condition_slot(Branch) const = 0;
+        virtual Node*          get_condition(Branch) const = 0;
         REFLECT_BASE_CLASS()
     };
 }

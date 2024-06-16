@@ -25,8 +25,8 @@ namespace ndbl
     {
     public:
         SlotView(
-            PoolID<NodeView> parent,
-            Slot& slot,
+            NodeView* parent,
+            Slot* slot,
             const tools::Vec2& align,
             ShapeType shape
             );
@@ -35,18 +35,18 @@ namespace ndbl
         Property*             get_property()const;
         const tools::type*    get_property_type()const;
         tools::string64       compute_tooltip() const;
-        PoolID<Node>          get_node()const;
+        Node*                 get_node()const;
         bool                  has_node_connected() const;
         Slot&                 slot()const;
         tools::Vec2           normal() const;
-        PoolID<Node>          adjacent_node() const;
+        Node*                 adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
     private:
         u8_t                  m_index;
         ShapeType             m_shape;
-        PoolID<NodeView>      m_parent;
-        Slot&                 m_slot; // TODO: memory issue, use SlotRef instead
+        NodeView*             m_parent;
+        Slot*                 m_slot;
         tools::Vec2           m_align;
     };
 }

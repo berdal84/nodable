@@ -50,7 +50,7 @@ void InvokableComponent::invoke()
     for(auto& slot: m_argument_slot )
     {
         Property* property = slot->get_property();
-        Slot*     adjacent = slot->first_adjacent().get();
+        Slot*     adjacent = slot->first_adjacent();
         if ( adjacent != nullptr && property->is_ref() )
         {
             property = adjacent->get_property();
@@ -75,19 +75,21 @@ void InvokableComponent::invoke()
     }
 }
 
-void InvokableComponent::bind_result(SlotRef slot)
+void InvokableComponent::bind_result(Slot* slot)
 {
-    ASSERT(slot.flags & SlotFlag_OUTPUT);
+    ASSERT(slot != nullptr)
+    ASSERT(slot->has_flags(SlotFlag_OUTPUT) );
     m_result_slot = slot;
 }
 
-void InvokableComponent::bind_arg(size_t arg_id, SlotRef slot)
+void InvokableComponent::bind_arg(size_t arg_id, Slot* slot)
 {
-    ASSERT(slot.flags & SlotFlag_INPUT)
+    ASSERT(slot != nullptr)
+    ASSERT(slot->has_flags(SlotFlag_INPUT))
     m_argument_slot[arg_id] = slot;
 }
 
-const std::vector<SlotRef>& InvokableComponent::get_arguments() const
+const std::vector<Slot*>& InvokableComponent::get_arguments() const
 {
     return m_argument_slot;
 }

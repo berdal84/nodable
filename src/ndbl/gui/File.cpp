@@ -69,7 +69,7 @@ void File::set_text(const std::string& text, Isolation mode)
 
 UpdateResult File::update_text_from_graph( Isolation mode )
 {
-    const Node* root_node = graph->get_root().get();
+    const Node* root_node = graph->get_root();
 
     if ( root_node == nullptr )
     {
@@ -77,7 +77,7 @@ UpdateResult File::update_text_from_graph( Isolation mode )
     }
 
     std::string code;
-    get_language()->serialize_node( code, root_node->poolid() );
+    get_language()->serialize_node( code, root_node );
 
     view.set_text( code, mode );
 

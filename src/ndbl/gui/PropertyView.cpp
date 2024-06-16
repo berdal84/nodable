@@ -3,29 +3,16 @@
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/Node.h"
 #include "NodeView.h"
-#include "SlotView.h"
 
 using namespace ndbl;
 using namespace tools;
 
-PropertyView::PropertyView()
-{
-}
-
-PropertyView::PropertyView( PoolID<NodeView> _node_view, ID<Property> _id )
-: property_id(_id)
-, node_view(_node_view)
+PropertyView::PropertyView( NodeView* _node_view, Property* _property )
+: tools::View(_node_view)
+, m_node_view(_node_view)
+, m_property(_property)
 , show_input(false)
 , touched(false)
-{
-}
-
-PropertyView::PropertyView( const PropertyView& other )
-: screen_rect( other.screen_rect )
-, show_input( other.show_input )
-, touched( other.touched )
-, node_view( other.node_view )
-, property_id( other.property_id )
 {
 }
 
@@ -37,32 +24,33 @@ void PropertyView::reset()
 
 Property* PropertyView::get_property() const
 {
-    return get_node()->get_prop_at( property_id );
+    return m_property;
 }
 
 Node* PropertyView::get_node() const
 {
-    return node_view->get_owner().get();
+    return m_node_view->get_owner();
 }
 
 bool PropertyView::has_input_connected() const
 {
-    return get_node()->has_input_connected( property_id );
+    return get_node()->has_input_connected( m_property );
 }
 
 VariableNode* PropertyView::get_connected_variable() const
 {
-    const Slot* input_slot = get_node()->find_slot_by_property_id( property_id, SlotFlag_INPUT );
+    const Slot* input_slot = get_node()->find_slot_by_property( m_property, SlotFlag_INPUT );
     if( !input_slot )
     {
         return nullptr;
     }
 
-    Slot* adjacent_slot = input_slot->first_adjacent().get();
+    Slot* adjacent_slot = input_slot->first_adjacent();
     if( adjacent_slot == nullptr )
     {
         return nullptr;
     }
 
-    return cast<VariableNode>( adjacent_slot->node.get() );
+    return cast<VariableNode>( adjacent_slot->get_node() );
 }
+

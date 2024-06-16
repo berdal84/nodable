@@ -60,8 +60,9 @@ namespace ndbl
 
     class GraphView: public tools::View
     {
+        REFLECT_DERIVED_CLASS()
 	public:
-        using NodeViewVec = std::vector<PoolID<NodeView>>;
+        using NodeViewVec = std::vector<NodeView*>;
 
 	    explicit GraphView(Graph* graph, View* parent);
 		~GraphView() override = default;
@@ -75,17 +76,16 @@ namespace ndbl
         bool        has_no_tool_active() const;
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
         const NodeViewVec& get_selected() const;
-
-        REFLECT_DERIVED_CLASS()
-
+        void        reset_all_properties();
 
     private:
+        void        set_tool(Tool tool);
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
         bool        update(float dt, u16_t samples);
         static void translate_all(const std::vector<NodeView*>&, const Vec2& offset, NodeViewFlags);
         void        translate_all(const Vec2& offset);
-        bool        is_selected(PoolID<NodeView>) const;
+        bool        is_selected(NodeView*) const;
         void        start_drag_nodeviews();
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         std::vector<NodeView*> get_all_nodeviews() const;
@@ -97,6 +97,5 @@ namespace ndbl
         SlotView*   m_active_slotview{nullptr};
         Tool        m_tool{Tool_NONE};
 
-        void set_tool(Tool tool);
     };
 }

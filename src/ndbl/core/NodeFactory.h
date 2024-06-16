@@ -26,29 +26,29 @@ namespace ndbl
      */
     class NodeFactory
     {
-        using PostProcessFct = std::function<void(PoolID<Node>)>;
+        using PostProcessFct = std::function<void(Node*)>;
     public:
         NodeFactory();
         ~NodeFactory(){}
 
-        PoolID<Node>                  create_program()const;
-        PoolID<VariableNode>          create_variable(const tools::type *_type, const std::string &_name, PoolID<Scope> _scope)const;
-        PoolID<LiteralNode>           create_literal(const tools::type *_type)const;
-        PoolID<Node>                  create_abstract_func(const tools::func_type *_signature, bool _is_operator)const;
-        PoolID<Node>                  create_func(const tools::IInvokable*_function, bool _is_operator)const;
-        PoolID<Node>                  create_scope()const;
-        PoolID<IfNode>                create_cond_struct()const;
-        PoolID<ForLoopNode>           create_for_loop()const;
-        PoolID<WhileLoopNode>         create_while_loop()const;
-        PoolID<Node>                  create_node()const;
-        void                          destroy_node(PoolID<Node> node)const;
-        void                          override_post_process_fct( NodeFactory::PostProcessFct f );
+        Node*                  create_program()const;
+        VariableNode*          create_variable(const tools::type *_type, const std::string &_name, Scope* _scope)const;
+        LiteralNode*           create_literal(const tools::type *_type)const;
+        Node*                  create_abstract_func(const tools::func_type *_signature, bool _is_operator)const;
+        Node*                  create_func(const tools::IInvokable*_function, bool _is_operator)const;
+        Node*                  create_scope()const;
+        IfNode*                create_cond_struct()const;
+        ForLoopNode*           create_for_loop()const;
+        WhileLoopNode*         create_while_loop()const;
+        Node*                  create_node()const;
+        void                   destroy_node(Node* node)const;
+        void                   override_post_process_fct( NodeFactory::PostProcessFct f );
     private:
-        PoolID<Node>                  _create_abstract_func(const tools::func_type *_func_type, bool _is_operator) const; // this do not invoke post_process
-        void                          add_invokable_component(PoolID<Node> _node, const tools::func_type *_func_type, const tools::IInvokable*_invokable, bool _is_operator) const;
+        Node*                  create_abstract_func_no_postprocess(const tools::func_type *_func_type, bool _is_operator) const; // this do not invoke post_process
+        void                   add_invokable_component(Node* _node, const tools::func_type *_func_type, const tools::IInvokable*_invokable, bool _is_operator) const;
 
         bool m_post_process_is_overrided;
-        std::function<void(PoolID<Node>)>  m_post_process; // invoked after each node creation, just before to return.
+        std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
     };
 
     NodeFactory* get_node_factory();

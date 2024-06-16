@@ -24,7 +24,7 @@ Scope::Scope()
 {
 }
 
-PoolID<VariableNode> Scope::find_variable(const std::string &_name)
+VariableNode* Scope::find_variable(const std::string &_name)
 {
     /*
      * Try first to find in this scope
@@ -32,7 +32,7 @@ PoolID<VariableNode> Scope::find_variable(const std::string &_name)
     auto it = std::find_if(
             m_variables.begin(),
             m_variables.end(),
-            [&_name](PoolID<VariableNode> _variable ) -> bool
+            [&_name](VariableNode* _variable ) -> bool
     {
         return _variable->name == _name;
     });
@@ -45,24 +45,24 @@ PoolID<VariableNode> Scope::find_variable(const std::string &_name)
     /*
      * In case not found, find recursively
      */
-    PoolID<Node> parent = m_owner->find_parent();
+    Node* parent = m_owner->find_parent();
     ASSERT(parent != m_owner);
     if ( !parent )
     {
         return {};
     }
-    PoolID<Scope> scope = parent->get_component<Scope>();
+    auto* scope = parent->get_component<Scope>();
     if ( !scope )
     {
         return {};
     }
-    ASSERT(scope != m_id);
+    ASSERT(scope != this);
     return scope->find_variable( _name );
 }
 
-void Scope::add_variable(PoolID<VariableNode> _variableNode)
+void Scope::add_variable(VariableNode* _variableNode)
 {
-    if ( find_variable(_variableNode->name).get() != nullptr )
+    if ( find_variable(_variableNode->name) != nullptr )
     {
         LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variableNode->name.c_str())
     }
@@ -80,7 +80,7 @@ void Scope::add_variable(PoolID<VariableNode> _variableNode)
 
 std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
 {
-    std::vector<PoolID<Node>> children = m_owner->children();
+    std::vector<Node*> children = m_owner->children();
 
     if ( children.empty() )
     {
@@ -91,13 +91,13 @@ std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
     for( size_t i = 0; i < children.size(); ++i )
     {
         ASSERT(children[i])
-        if ( PoolID<Scope> scope = children[i]->get_component<Scope>() )
+        if ( Scope* scope = children[i]->get_component<Scope>() )
         {
             scope->get_last_instructions_rec(_out); // Recursive call on nested scopes
         }
         else if ( i == children.size() - 1 && children[i]->is_instruction() ) // last instruction ?
         {
-            _out.push_back( children[i].get() ); // Append the last instruction to the result
+            _out.push_back( children[i] ); // Append the last instruction to the result
         }
     }
 
@@ -107,9 +107,9 @@ std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
 void Scope::remove_variable(VariableNode* _variable)
 {
     ASSERT(_variable != nullptr)
-    ASSERT(_variable->get_scope() == m_id)
-    auto found = std::find(m_variables.begin(), m_variables.end(), _variable->poolid() );
-    ASSERT(found->get() != nullptr);
+    ASSERT(_variable->get_scope() == this)
+    auto found = std::find(m_variables.begin(), m_variables.end(), _variable);
+    ASSERT(found != m_variables.end());
     _variable->reset_scope();
     m_variables.erase( found );
 }
@@ -117,7 +117,7 @@ void Scope::remove_variable(VariableNode* _variable)
 size_t Scope::remove_all_variables()
 {
     size_t count = m_variables.size();
-    for(PoolID<VariableNode> each_variable : m_variables)
+    for(VariableNode* each_variable : m_variables)
     {
         each_variable->reset_scope();
     }
@@ -128,5 +128,6 @@ size_t Scope::remove_all_variables()
 std::vector<Node*> Scope::get_last_instructions_rec()
 {
     std::vector<Node*> result;
-    return get_last_instructions_rec(result);
+    get_last_instructions_rec(result);
+    return result;
 }

@@ -77,16 +77,17 @@ namespace ndbl
         NodeView (NodeView&&) = default;
         NodeView& operator=(NodeView&&) = default;
 
+        Node*                   get_node() const { return m_owner; }
         inline bool             pinned() const { return m_pinned; }
-        std::vector<PoolID<NodeView>> get_adjacent(SlotFlags) const;
+        std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw()override;
-		void                    set_owner(PoolID<Node>)override;
+		void                    set_owner(Node*)override;
         bool                    update(float);
 		void                    translate( const tools::Vec2&, NodeViewFlags flags );
 		void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
         tools::Rect             get_rect( tools::Space, NodeViewFlags = NodeViewFlag_IGNORE_PINNED | NodeViewFlag_IGNORE_MULTICONSTRAINED) const;
-        const PropertyView*     get_property_view( ID<Property> _id )const;
+        const PropertyView*     get_property_view(Property*)const;
         bool                    is_expanded()const { return m_expanded; }
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);

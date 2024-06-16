@@ -54,14 +54,12 @@ namespace ndbl
         bool              dirty; // TODO: use flags
         bool              flagged_to_delete; // TODO: use flags
         Token             after_token;
-        observe::Event<PoolID<Node>> on_name_change;
+        observe::Event<Node*> on_name_change;
 
         // Code
 
         explicit Node(std::string  _label = "UnnamedNode");
-        Node(Node&&) noexcept ;
-        Node& operator=(Node&&) noexcept ;
-        virtual ~Node() = default;
+        virtual ~Node();
 
         virtual void init();
         bool is_instruction() const;
@@ -70,16 +68,16 @@ namespace ndbl
         // Slot related
         //-------------
 
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, size_t _position = 0);
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
+        Slot*                add_slot(SlotFlags, size_t _capacity, size_t _position = 0);
+        Slot*                add_slot(SlotFlags, size_t _capacity, Property*);
         void                 set_name(const char*);
-        PoolID<Node>         find_parent() const;
+        Node*                find_parent() const;
         size_t               adjacent_slot_count(SlotFlags )const;
-        Slot&                get_slot_at(ID8<Slot>);
-        const Slot&          get_slot_at(ID8<Slot>) const;
-        Slot&                get_nth_slot(u8_t, SlotFlags );
+        Slot&                get_slot_at(size_t);
+        const Slot&          get_slot_at(size_t) const;
+        Slot&                get_nth_slot(size_t, SlotFlags );
         std::vector<Slot*>   filter_slots( SlotFlags ) const;
-        std::vector<SlotRef> filter_adjacent_slots(SlotFlags) const;
+        std::vector<Slot*>   filter_adjacent_slots(SlotFlags) const;
         Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
         const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
         Slot*                find_slot_at( SlotFlags, size_t _position ); // implicitly THIS_PROPERTY's slot
@@ -87,60 +85,61 @@ namespace ndbl
         Slot*                find_slot_by_property_name(const char* _property_name, SlotFlags );
         const Slot*          find_slot_by_property_name(const char* property_name, SlotFlags ) const;
         Slot*                find_slot_by_property_type(SlotFlags _way, const tools::type *_type);
-        Slot*                find_slot_by_property_id( ID<Property>, SlotFlags );
-        const Slot*          find_slot_by_property_id( ID<Property>, SlotFlags ) const;
-        Slot*                find_adjacent_at(SlotFlags, u8_t _index ) const;
-        bool should_be_constrain_to_follow_output(PoolID<const Node> _output ) const;
+        Slot*                find_slot_by_property(const Property*, SlotFlags );
+        const Slot*          find_slot_by_property(const Property*, SlotFlags ) const;
+        Slot*                find_adjacent_at(SlotFlags, size_t _index ) const;
+        bool                 should_be_constrain_to_follow_output(const Node* _output ) const;
         size_t               slot_count(SlotFlags) const;
-        std::vector<Slot>&   slots() { return m_slots; }
-        const std::vector<Slot>& slots() const { return m_slots; }
-        std::vector<PoolID<Node>> filter_adjacent(SlotFlags) const;
-        std::vector<PoolID<Node>> successors() const;
-        std::vector<PoolID<Node>> rchildren() const; // reversed children
-        std::vector<PoolID<Node>> children() const;
-        std::vector<PoolID<Node>> inputs() const;
-        std::vector<PoolID<Node>> outputs() const;
-        std::vector<PoolID<Node>> predecessors() const;
+        std::vector<Slot*>&  slots() { return m_slots; }
+        const std::vector<Slot*>& slots() const { return m_slots; }
+        std::vector<Node*> filter_adjacent(SlotFlags) const;
+        std::vector<Node*> successors() const;
+        std::vector<Node*> rchildren() const; // reversed children
+        std::vector<Node*> children() const;
+        std::vector<Node*> inputs() const;
+        std::vector<Node*> outputs() const;
+        std::vector<Node*> predecessors() const;
 
         // Property related
         //-----------------
 
-        ID<Property>         add_prop(const tools::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
-        Property*            get_prop_at(ID<Property>);
-        const Property*      get_prop_at(ID<Property>) const;
+        Property*            add_prop(const tools::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
+        Property*            get_prop_at(size_t);
+        const Property*      get_prop_at(size_t) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
         const tools::IInvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
-        bool                 has_input_connected( const ID<Property>& ) const;
+        bool                 has_input_connected( const Property*) const;
 
         template<typename ValueT>
-        ID<Property> add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)
+        Property* add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)
         { return props.add<ValueT>(_name, _flags); }
 
         // Component related
         //------------------
 
-        std::vector<PoolID<NodeComponent>> get_components();
+        std::vector<NodeComponent*> get_components();
 
-        template<class ComponentT>
-        void add_component(PoolID<ComponentT> component)
+        template<class C>
+        void add_component(C* component)
         { return m_components.add( component ); }
 
-        template<class ComponentT>
-        PoolID<ComponentT> get_component() const
-        { return m_components.get<PoolID<ComponentT>>(); }
+        template<class C>
+        const C* get_component() const
+        { return static_cast<const C*>( m_components.get<C*>() );  }
 
-        template<class ComponentT>
+        template<class C>
+        C* get_component()
+        { return const_cast<C*>( static_cast<const Node*>(this)->get_component<C>() ); }
+
+        template<class C>
         bool has_component() const
-        { return m_components.has<PoolID<ComponentT>>(); }
+        { return m_components.has<C*>(); }
 
     protected:
-        ID<Property>      m_this_property_id;
-        std::vector<Slot> m_slots;
+        Property*          m_this_as_property; // Short had for props.at( 0 )
+        std::vector<Slot*> m_slots;
     private:
-        TComponentBag<PoolID<Node>, PoolID<NodeComponent>> m_components;
+        TComponentBag<NodeComponent*> m_components;
     };
 }
-
-static_assert(std::is_move_assignable_v<ndbl::Node>, "Should be move assignable");
-static_assert(std::is_move_constructible_v<ndbl::Node>, "Should be move constructible");

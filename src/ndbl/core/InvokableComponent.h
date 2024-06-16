@@ -21,31 +21,26 @@ namespace ndbl
         InvokableComponent();
 		InvokableComponent(const tools::func_type*, bool _is_operator, const tools::IInvokable*);
 		~InvokableComponent() = default;
-        InvokableComponent(InvokableComponent&&) = default;
-        InvokableComponent& operator=(InvokableComponent&&) = default;
 
         Token token;
         void                        invoke();
-		void                        bind_arg(size_t _index, SlotRef);
-        const std::vector<SlotRef>& get_arguments() const;
+		void                        bind_arg(size_t _index, Slot*);
+        const std::vector<Slot*>&   get_arguments() const;
 		const tools::func_type*     get_func_type()const { return m_signature; }
 		const tools::IInvokable*    get_function()const { return m_invokable; }
-        void                        bind_result(SlotRef);
+        void                        bind_result(Slot*);
         bool                        has_function() const { return m_invokable; };
 		bool                        is_operator()const { return m_is_operator; };
 
     protected:
-        SlotRef                    m_result_slot;
-        std::vector<SlotRef>       m_argument_slot;
+        Slot*                      m_result_slot;
+        std::vector<Slot*>         m_argument_slot;
         const tools::func_type*    m_signature;
         const tools::IInvokable*   m_invokable;
         bool                       m_is_operator;
 
         REFLECT_DERIVED_CLASS()
     };
-
-    static_assert(std::is_move_assignable_v<InvokableComponent>);
-    static_assert(std::is_move_constructible_v<InvokableComponent>);
 }
 
 

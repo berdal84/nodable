@@ -49,7 +49,7 @@ namespace tools
         {}
 
         basic_string(basic_string&& other) noexcept
-            : m_alloc_strategy(alloc_strategy::HEAP)
+            : m_alloc_strategy(alloc_strategy::NEXT_ALLOC_USE_HEAP)
             , m_length(0)
             , m_capacity(0)
             , m_ptr(nullptr)
@@ -59,6 +59,9 @@ namespace tools
 
         basic_string& operator=(basic_string&& other) noexcept
         {
+            if ( this == &other )
+                return *this;
+
             if( m_alloc_strategy == alloc_strategy::HEAP )
             {
                 delete[] m_ptr;
@@ -80,7 +83,12 @@ namespace tools
 
         basic_string& operator=(const basic_string& other)
         {
-            if( m_capacity < other.m_capacity) m_ptr = expand_capacity_to_fit(other.m_length);
+            if( this == &other)
+                return *this;
+
+            if( m_capacity < other.m_capacity)
+                m_ptr = expand_capacity_to_fit(other.m_length);
+
             memcpy(m_ptr, other.m_ptr, other.m_length);
             m_length = other.m_length;
             m_capacity = other.m_capacity;
@@ -206,7 +214,7 @@ namespace tools
      *
      * Buffer size and string length are stored in an unsigned integer (1 byte)
      */
-    template<typename CharType, size_t STATIC_BUF_SIZE>
+    template<size_t STATIC_BUF_SIZE, typename CharType = char>
     class inline_string : public basic_string<CharType> {
     private:
         static_assert(STATIC_BUF_SIZE >= 8);
@@ -229,10 +237,11 @@ namespace tools
     // Define some aliases
 
     using string    = basic_string<char>;
-    using string8   = inline_string<char, 8>;
-    using string16  = inline_string<char, 16>;
-    using string32  = inline_string<char, 32>;
-    using string64  = inline_string<char, 64>;
-    using string128 = inline_string<char, 128>;
-    using string256 = inline_string<char, 256>;
+    using string8   = inline_string<8>;
+    using string16  = inline_string<16>;
+    using string32  = inline_string<32>;
+    using string64  = inline_string<64>;
+    using string128 = inline_string<128>;
+    using string256 = inline_string<256>;
+    using string512 = inline_string<512>;
 }

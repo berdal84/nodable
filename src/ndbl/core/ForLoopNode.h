@@ -24,9 +24,8 @@ namespace ndbl
         const Slot&     initialization_slot() const;
         const Slot&     iteration_slot() const;
     private:
-        ID8<Slot>       m_initialization_slot;
-        ID8<Slot>       m_iteration_slot;
-
+        Slot*           m_initialization_slot{nullptr};
+        Slot*           m_iteration_slot{nullptr};
         REFLECT_DERIVED_CLASS()
     };
 }

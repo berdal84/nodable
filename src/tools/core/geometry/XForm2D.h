@@ -32,9 +32,9 @@ namespace tools
         const glm::mat3& model_matrix() const
         { const_cast<XForm2D*>(this)->update(); return m_local_mat; }
 
-        static Vec2 translate( const Vec2& p, XForm2D t )
+        static Vec2 translate( const Vec2& p, const XForm2D& xform )
         {
-            glm::vec2 result = t.world_matrix() * glm::vec3(p.x, p.y, 1.f);
+            glm::vec2 result = xform.world_matrix() * glm::vec3(p.x, p.y, 1.f);
             return result;
         }
 

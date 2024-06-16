@@ -7,7 +7,7 @@ namespace ndbl
     class ComponentFactory
     {
     public:
-#ifdef TOOLS_NO_POOL
+#if !TOOLS_POOL_ENABLE
         template<typename Component, typename ...Args>
         Component* create(Args... args)
         {
@@ -17,7 +17,7 @@ namespace ndbl
         }
 #else
         template<typename Component, typename ...Args>
-        tools::PoolID<Component> create(Args... args)
+        tools::Component> create(Args... args)
         {
             auto *pool = tools::get_pool_manager()->get_pool();
             auto instance = pool->create<Component>(args...);

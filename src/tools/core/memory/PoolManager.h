@@ -1,4 +1,5 @@
 #pragma once
+#if TOOLS_POOL_ENABLE
 #include "Pool.h"
 
 namespace tools
@@ -18,3 +19,4 @@ namespace tools
     PoolManager* get_pool_manager();
     void shutdown_pool_manager(); // Undo init_task_manager()
 }
+#endif

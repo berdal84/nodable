@@ -26,9 +26,8 @@ void NodeViewConstraint::apply(float _dt)
     tools::Config* tools_cfg = tools::get_config();
 
     // Gather only visible views or their parent (recursively)
-    auto pool = get_pool_manager()->get_pool();
-    std::vector<NodeView*> clean_drivers = NodeView::substitute_with_parent_if_not_visible( pool->get( m_drivers ), true );
-    std::vector<NodeView*> clean_targets = NodeView::substitute_with_parent_if_not_visible( pool->get( m_targets ), true );
+    std::vector<NodeView*> clean_drivers = NodeView::substitute_with_parent_if_not_visible( m_drivers, true );
+    std::vector<NodeView*> clean_targets = NodeView::substitute_with_parent_if_not_visible( m_targets, true );
 
     // If we still have no targets or drivers visible, it's not necessary to go further
     if ( NodeView::none_is_visible(clean_targets)) return;
@@ -104,13 +103,13 @@ void NodeViewConstraint::apply(float _dt)
             virtual_cursor.y   += y_direction * driver->get_size().y / 2.0f;
             for (int target_index = 0; target_index < clean_targets.size(); target_index++)
             {
-                NodeView* each_target = clean_targets[target_index];
-                const Node& target_owner = *each_target->get_owner();
+                NodeView* each_target  = clean_targets[target_index];
+                Node*     target_owner = each_target->get_owner();
 
                 // Guards
                 if ( !each_target->visible ) continue;
                 if ( each_target->pinned() ) continue;
-                if ( !target_owner.should_be_constrain_to_follow_output( driver_owner.poolid() ) && !align_bbox_bottom ) continue;
+                if ( !target_owner->should_be_constrain_to_follow_output( &driver_owner ) && !align_bbox_bottom ) continue;
 
                 // Compute new position for this input view
                 Rect& target_rect = target_rects[target_index];
@@ -130,7 +129,7 @@ void NodeViewConstraint::apply(float _dt)
                     relative_pos.y += y_direction * reverse_y_spacing;
                 }
 
-                auto target_physics = target_owner.get_component<Physics>();
+                Physics* target_physics = target_owner->get_component<Physics>();
                 target_physics->translate_to(SCREEN_SPACE, virtual_cursor + relative_pos + m_offset, cfg->ui_node_speed, true );
                 virtual_cursor.x += target_rect.width() + cfg->ui_node_spacing;
             }
@@ -208,30 +207,30 @@ void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers
 #endif
 }
 
-void NodeViewConstraint::add_target(PoolID<NodeView> _target)
+void NodeViewConstraint::add_target(NodeView* _target)
 {
     ASSERT( _target );
     m_targets.push_back(_target);
 }
 
-void NodeViewConstraint::add_driver(PoolID<NodeView> _driver)
+void NodeViewConstraint::add_driver(NodeView* _driver)
 {
     ASSERT( _driver );
     m_drivers.push_back(_driver);
 }
 
-void NodeViewConstraint::add_targets(const std::vector<PoolID<NodeView>> &_new_targets)
+void NodeViewConstraint::add_targets(const std::vector<NodeView*> &_new_targets)
 {
     m_targets.insert(m_targets.end(), _new_targets.begin(), _new_targets.end());
 }
 
-void NodeViewConstraint::add_drivers(const std::vector<PoolID<NodeView>> &_new_drivers)
+void NodeViewConstraint::add_drivers(const std::vector<NodeView*> &_new_drivers)
 {
     m_drivers.insert(m_drivers.end(), _new_drivers.begin(), _new_drivers.end());
 }
 
 
-auto not_expanded  = [](PoolID<const NodeView> _view ) { return !_view->is_expanded(); };
+auto not_expanded  = [](const NodeView* _view ) { return !_view->is_expanded(); };
 
 const NodeViewConstraint::Filter
         NodeViewConstraint::always = [](NodeViewConstraint* _constraint){ return true; };

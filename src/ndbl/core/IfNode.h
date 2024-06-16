@@ -24,7 +24,3 @@ namespace ndbl
         REFLECT_DERIVED_CLASS()
     };
 }
-
-
-static_assert(std::is_move_assignable_v<ndbl::IfNode>, "Should be move assignable");
-static_assert(std::is_move_constructible_v<ndbl::IfNode>, "Should be move constructible");

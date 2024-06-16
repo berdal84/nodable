@@ -83,7 +83,7 @@ void VirtualMachine::stop_program()
     {
         m_is_program_running = false;
         m_is_debugging       = false;
-        m_next_node.reset();
+        m_next_node          = {};
         LOG_MESSAGE("VM", "Program stopped\n")
     }
     else
@@ -111,7 +111,7 @@ const Code* VirtualMachine::release_program()
 
 bool VirtualMachine::_stepOver()
 {
-    bool success;
+    bool success{false};
     Instruction* next_instr = get_next_instr();
 
     LOG_MESSAGE("VM", "%s\n", Instruction::to_string(*next_instr).c_str() );
@@ -126,7 +126,6 @@ bool VirtualMachine::_stepOver()
             result.set<bool>(left.b == right.b);
             m_cpu.write(Register::rax, result);       // boolean comparison
             advance_cursor();
-            success = true;
             break;
         }
 
@@ -152,14 +151,6 @@ bool VirtualMachine::_stepOver()
             {
                 LOG_VERBOSE("VM", "i32_t de-referenced: %i\n", qword.i32 );
             }
-            else if(ptr_type->is<ID<Node>>())
-            {
-                LOG_VERBOSE("VM", "ID<Node> de-referenced: %i\n", qword.u32 );
-            }
-            else if(ptr_type->is<PoolID<Node>>())
-            {
-                LOG_VERBOSE("VM", "PoolID<Node> de-referenced: %i\n", qword.u32 );
-            }
             else if(ptr_type->is<std::string>() )
             {
                 LOG_VERBOSE("VM", "pointed string (%p): %s\n", ((std::string*)qword)->c_str() );
@@ -168,13 +159,16 @@ bool VirtualMachine::_stepOver()
             {
                 LOG_VERBOSE("VM", "pointed address: %p\n", qword.ptr );
             }
+            else if(ptr_type->is<Node*>())
+            {
+                LOG_VERBOSE("VM", "Node* de-referenced: %i\n", qword.ptr );
+            }
             else
             {
                 EXPECT(false, "This type is not handled!")
             }
 
             advance_cursor();
-            success = true;
             break;
         }
 
@@ -184,27 +178,27 @@ bool VirtualMachine::_stepOver()
             m_cpu.write(static_cast<Register>(next_instr->mov.dst.u8), next_instr->mov.src);
 
             advance_cursor();
-            success = true;
             break;
         }
 
         case opcode::push_var:
         {
             advance_cursor();
-            VariableNode* variable = next_instr->push.var.get();
-            variable->value()->ensure_is_initialized(false);
-            success = true;
+            VariableNode* variable = next_instr->push.var;
+            variable->get_value()->ensure_is_initialized(false);
             break;
         }
 
         case opcode::pop_var:
         {
             advance_cursor();
-            VariableNode* variable = next_instr->push.var.get();
-            EXPECT(variable->value()->is_initialized(), "Variable should be initialized since it should have been pushed earlier!");
-            variable->value()->reset_value();
-            variable->value()->ensure_is_initialized(false);
-            success = true;
+            VariableNode* variable = next_instr->push.var;
+            ASSERT(variable != nullptr)
+            variant* value = variable->get_value();
+            ASSERT(value != nullptr)
+            EXPECT(value->is_initialized(), "Variable should be initialized since it should have been pushed earlier!");
+            value->reset_value();
+            value->ensure_is_initialized(false);
             break;
         }
 
@@ -212,14 +206,11 @@ bool VirtualMachine::_stepOver()
         case opcode::pop_stack_frame:
         {
             advance_cursor();
-            success = true;
             break;
         }
 
         case opcode::eval_node:
         {
-            Node* node = next_instr->eval.node.get();
-
             auto update_input__by_value_only = [](Node* _node)
             {
                 for(Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
@@ -236,10 +227,10 @@ bool VirtualMachine::_stepOver()
                 }
             };
 
-            if( auto variable = cast<VariableNode>(node))
+            if( auto variable = cast<VariableNode>(next_instr->eval.node))
             {
                 // If variable is not initialized, we compute its initial value from its inputs
-                variant* variant = variable->value();
+                variant* variant = variable->get_value();
                 if( !variant->is_initialized() )
                 {
                     variant->ensure_is_initialized();
@@ -249,40 +240,33 @@ bool VirtualMachine::_stepOver()
             }
             else
             {
-                update_input__by_value_only(node);
+                update_input__by_value_only(next_instr->eval.node);
             }
 
             // evaluate Invokable Component, could be an operator or a function
-            if( auto* invokable = node->get_component<InvokableComponent>().get() )
+            if( auto* invokable = next_instr->eval.node->get_component<InvokableComponent>() )
             {
                 invokable->invoke();
             }
 
-            node->dirty = false;
+            next_instr->eval.node->dirty = false;
             advance_cursor();
-            success = true;
             break;
         }
 
         case opcode::jmp:
         {
             advance_cursor(next_instr->jmp.offset);
-            success = true;
             break;
         }
 
         case opcode::jne:
         {
             qword rax = m_cpu.read(Register::rax);
-            if ( rax.b )
-            {
-                advance_cursor();
-            }
-            else
-            {
-                advance_cursor(next_instr->jmp.offset);
-            }
-            success = true;
+            i64_t offset{1};
+            if ( (bool)rax ) // last comparison result is stored in rax
+                offset = next_instr->jmp.offset; // jump if NOT equal
+            advance_cursor( offset );
             break;
         }
 
@@ -320,8 +304,8 @@ bool VirtualMachine::step_over()
     if( !continue_execution )
     {
         stop_program();
-        m_next_node.reset();
-        m_last_step_next_instr = nullptr;
+        m_next_node            = {};
+        m_last_step_next_instr = {};
     }
     else
     {

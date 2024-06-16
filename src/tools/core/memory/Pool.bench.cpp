@@ -61,8 +61,8 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
     pool->init_for<DataPool<128>>();
     pool->init_for<DataPool<64>>();
 
-    std::vector<PoolID<DataPool<128>>> ids;
-    std::vector<PoolID<DataPool<64>>> ids2;
+    std::vector<DataPool<128>>> ids;
+    std::vector<DataPool<64>>> ids2;
 
     for( auto i = 0; i < COUNT; i++ )
     {

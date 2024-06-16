@@ -1,3 +1,5 @@
+#ifdef TOOLS_POOL_ENABLE
+
 #include "memory.h"
 
 using namespace tools;
@@ -35,3 +37,4 @@ Pool* PoolManager::get_pool()
     ASSERT(!pools.empty())
     return &pools.at(0);
 }
+#endif // #ifdef TOOLS_POOL_ENABLE

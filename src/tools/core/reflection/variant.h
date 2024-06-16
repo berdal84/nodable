@@ -46,8 +46,8 @@ namespace tools
         void        ensure_is_initialized(bool _initialize = true);
         void        flag_defined(bool _defined = true);
         void        reset_value();
-        template<typename T>
-        void        set(PoolID<T> id);
+        template<typename T, typename = std::enable_if< std::is_class_v<T>> >
+        void        set(T* ptr);
         void        set(const std::string& _value);
         void        set(const char* _value);
         void        set(null_t);;
@@ -75,11 +75,8 @@ namespace tools
         explicit operator bool() const;
         explicit operator std::string() const;
         explicit operator const char*() const;
-
-        template<typename T>
-        explicit operator PoolID<T> () const
-        { return PoolID<T>{(u64_t)*this}; }
-
+        template<typename T, typename = std::enable_if< std::is_class_v<T>> >
+        explicit operator T* () const;
         template<typename T>
         T& as() { return (T)*this; }
 
@@ -96,12 +93,20 @@ namespace tools
     };
 
 
-    template<typename T>
-    void variant::set(PoolID<T> _id)
+    template<typename T, typename >
+    void variant::set(T* ptr)
     {
-        ensure_is_type(type::get<decltype(_id)>());
+        ensure_is_type(type::get<T*>());
         ensure_is_initialized();
-        m_data.u64 = (u64_t)_id;
+        m_data.ptr = ptr;
         flag_defined();
     }
+
+    template<typename T, typename >
+    variant::operator T* () const
+    {
+        ASSERT(  m_type->equals( tools::type::get<T*>() ) ); // TODO: should we handle cast from child to parent?
+        return (T*)m_data.ptr;
+    }
+
 }

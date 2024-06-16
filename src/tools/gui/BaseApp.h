@@ -48,7 +48,6 @@ namespace tools
 
     protected:
         AppView*        m_view = nullptr; // non-owned ptr, user is responsible for it.
-        PoolManager*    m_pool_manager = nullptr;
         TaskManager*    m_task_manager = nullptr;
         TextureManager* m_texture_manager = nullptr;
     private:

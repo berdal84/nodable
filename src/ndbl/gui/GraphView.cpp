@@ -41,12 +41,12 @@ GraphView::GraphView(Graph* graph, View* parent)
 
     // When a new node is added
     graph->on_add.connect(
-        [this](PoolID<Node> node) -> void
+        [this](Node* node) -> void
         {
             // Add a NodeView and Physics component
             ComponentFactory* component_factory = get_component_factory();
-            PoolID<NodeView> new_view_id = component_factory->create<NodeView>( this );
-            PoolID<Physics> physics_id   = component_factory->create<Physics>( new_view_id );
+            NodeView* new_view_id = component_factory->create<NodeView>( this );
+            Physics* physics_id   = component_factory->create<Physics>( new_view_id );
             node->add_component( new_view_id );
             node->add_component( physics_id );
         }
@@ -62,7 +62,7 @@ bool GraphView::draw()
     bool            changed                = false;
     ImDrawList*     draw_list              = ImGui::GetWindowDrawList();
     const bool      enable_edition         = virtual_machine->is_program_stopped();
-    auto            node_registry          = get_pool_manager()->get_pool()->get( m_graph->get_node_registry() );
+    std::vector<Node*> node_registry       = m_graph->get_node_registry();
     const ImVec2    mouse_pos              = ImGui::GetMousePos();
     SlotView*       hovered_wire_start     = nullptr;
     SlotView*       hovered_wire_end       = nullptr;
@@ -154,7 +154,7 @@ bool GraphView::draw()
     };
     for( Node* each_node : node_registry ) // TODO: Consider iterating over all the DirectedEdges instead
     {
-        NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>().get() );
+        NodeView *each_view = NodeView::substitute_with_parent_if_not_visible( each_node->get_component<NodeView>() );
 
         if ( !each_view )
         {
@@ -174,7 +174,7 @@ bool GraphView::draw()
             for( const auto& adjacent_slot : slot->adjacent() )
             {
                 Node* each_successor_node = adjacent_slot->get_node();
-                NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>().get() );
+                NodeView* each_successor_view = NodeView::substitute_with_parent_if_not_visible( each_successor_node->get_component<NodeView>() );
 
                 if ( !each_successor_view )
                     continue;
@@ -186,7 +186,7 @@ bool GraphView::draw()
                 SlotView* start = slot->get_view();
                 SlotView* end   = adjacent_slot->get_view();
 
-                ImGuiID id = make_wire_id( slot, adjacent_slot.get());
+                ImGuiID id = make_wire_id( slot, adjacent_slot);
                 Vec2 start_pos = start->get_pos(SCREEN_SPACE);
                 Vec2 end_pos = end->get_pos(SCREEN_SPACE);
                 BezierCurveSegment segment{
@@ -220,13 +220,13 @@ bool GraphView::draw()
         for (const Slot* slot: each_node->filter_slots( SlotFlag_OUTPUT ))
         {
             ImGuiEx::WireStyle style = default_wire_style;
-            Slot* adjacent_slot = slot->first_adjacent().get();
+            Slot* adjacent_slot = slot->first_adjacent();
 
             if( adjacent_slot == nullptr )
                 continue;
 
-            NodeView* node_view          = slot->node->get_component<NodeView>().get();
-            NodeView* adjacent_nodeview = adjacent_slot->node->get_component<NodeView>().get();
+            NodeView* node_view          = slot->get_node()->get_component<NodeView>();
+            NodeView* adjacent_nodeview = adjacent_slot->get_node()->get_component<NodeView>();
 
             if ( !node_view->visible )
                 continue;
@@ -250,8 +250,8 @@ bool GraphView::draw()
             };
 
             // do not draw long lines between a variable value
-            if (is_selected(node_view->poolid()) ||
-                is_selected(adjacent_nodeview->poolid()) )
+            if (is_selected(node_view ) ||
+                is_selected(adjacent_nodeview ) )
             {
                 style.color.w *= wave(0.5f, 1.f, (float)BaseApp::elapsed_time(), 10.f);
             }
@@ -315,8 +315,8 @@ bool GraphView::draw()
 	// Virtual Machine cursor
     if ( virtual_machine->is_program_running() )
     {
-        const Node* node = virtual_machine->get_next_node();
-        if( NodeView* view = node->get_component<NodeView>().get() )
+        Node* node = virtual_machine->get_next_node();
+        if( NodeView* view = node->get_component<NodeView>() )
         {
             Vec2 left = view->get_rect(SCREEN_SPACE).left();
             Vec2 vm_cursor_pos = Vec2::round( left );
@@ -357,7 +357,7 @@ bool GraphView::draw()
                                            ImGui::IsKeyDown(ImGuiKey_RightCtrl);
                     SelectionMode flags = control_pressed ? SelectionMode_ADD
                                                           : SelectionMode_REPLACE;
-                    set_selected({hovered_node->poolid()}, flags);
+                    set_selected({hovered_node}, flags);
                     m_active_nodeview = hovered_node;
                 }
                 else if( ImGui::IsMouseDoubleClicked(0) )
@@ -434,7 +434,7 @@ bool GraphView::draw()
                 {
                     Rect r = nodeview->get_rect(SCREEN_SPACE);
                     if( Rect::contains(roi_rect, r))
-                        nodeview_in_roi.emplace_back(nodeview->m_id);
+                        nodeview_in_roi.emplace_back(nodeview);
                 }
 
                 bool control_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
@@ -463,9 +463,10 @@ bool GraphView::draw()
             if( hovered_node->m_last_hovered_slotview == nullptr ) break;
 
             auto& event_manager = EventManager::get_instance();
-            Slot& src = m_active_slotview->slot();
-            Slot& dst = hovered_node->m_last_hovered_slotview->slot();
-            event_manager.dispatch<Event_SlotDropped>({src, dst});
+            auto event = new Event_SlotDropped();
+            event->data.first  = &m_active_slotview->slot();
+            event->data.second = &hovered_node->m_last_hovered_slotview->slot();
+            event_manager.dispatch(event);
 
             break;
         }
@@ -500,8 +501,8 @@ bool GraphView::draw()
                 // Generate an event from this action, add some info to the state and dispatch it.
                 auto& event_manager = EventManager::get_instance();
                 auto* event = new Event_DeleteEdge();
-                event->data.first = hovered_wire_start->slot();
-                event->data.second = hovered_wire_end->slot();
+                event->data.first = &hovered_wire_start->slot();
+                event->data.second = &hovered_wire_end->slot();
                 event_manager.dispatch(event);
 
                 ImGui::CloseCurrentPopup();
@@ -512,7 +513,7 @@ bool GraphView::draw()
             if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect", nullptr, can_disconnect)  )
             {
                 auto &event_manager = EventManager::get_instance();
-                event_manager.dispatch<Event_SlotDisconnected>({m_active_slotview->slot()});
+                event_manager.dispatch<Event_SlotDisconnected>({&m_active_slotview->slot()});
                 ImGui::CloseCurrentPopup();
             }
 
@@ -701,11 +702,8 @@ void GraphView::frame_nodes(FrameMode mode )
 
         case FRAME_SELECTION_ONLY:
         {
-            if (m_selected_nodeview.empty())
-                return;
-
-            std::vector<NodeView*> views = get_pool_manager()->get_pool()->get(m_selected_nodeview);
-            frame_views(views, false);
+            if ( !m_selected_nodeview.empty())
+                frame_views(m_selected_nodeview, false);
             break;
         }
         default:
@@ -818,7 +816,7 @@ void CreateNodeContextMenu::update_cache_based_on_signature(SlotView* dragged_sl
                 {
                     // we can connect anything to a code flow slot
                 }
-                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->get_property_type()->is<PoolID<Node>>() )
+                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->get_property_type()->is<Node*>() )
                 {
                     // we can connect anything to a Node ref input
                 }
@@ -895,7 +893,7 @@ const GraphView::NodeViewVec& GraphView::get_selected() const
     return m_selected_nodeview;
 }
 
-bool GraphView::is_selected(PoolID<NodeView> view) const
+bool GraphView::is_selected(NodeView* view) const
 {
     return std::find( m_selected_nodeview.begin(), m_selected_nodeview.end(), view) != m_selected_nodeview.end();
 }
@@ -955,4 +953,11 @@ void GraphView::set_tool(Tool tool)
 bool GraphView::has_no_tool_active() const
 {
     return m_tool != Tool_NONE;
+}
+
+void GraphView::reset_all_properties()
+{
+    for( NodeView* each : get_all_nodeviews() )
+        for( PropertyView* property_view : each->m_property_views )
+            property_view->reset();
 }

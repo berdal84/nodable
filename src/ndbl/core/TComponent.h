@@ -7,11 +7,13 @@ namespace ndbl
 {
     ///
     /// Generic template to declare a component for a given OwnerT
-    /// \tparam OwnerT
-    template<class OwnerT>
+    /// \tparam T owner type
+    template<class T>
 	class TComponent
 	{
     public:
+        using OwnerT = T;
+
         static_assert(std::is_default_constructible_v<OwnerT>);
         static_assert(std::is_copy_assignable_v<OwnerT>);
         static_assert(std::is_copy_constructible_v<OwnerT>);

@@ -5,7 +5,6 @@
 #include "tools/gui/EventManager.h"
 
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/SlotRef.h"
 
 #include "Event.h"
 #include "FrameMode.h"
@@ -15,7 +14,6 @@ namespace ndbl
 {
     // forward declaration
     class NodeView;
-    using tools::PoolID;
     using tools::Vec2;
     using tools::func_type;
 
@@ -50,9 +48,9 @@ namespace ndbl
     using Event_FrameSelection = tools::Event<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
     struct EventPayload_SlotPair {
-        SlotRef first;
-        SlotRef second;
-        EventPayload_SlotPair(SlotRef&& first = {}, SlotRef&& second = {})
+        Slot* first;
+        Slot* second;
+        EventPayload_SlotPair(Slot* first = {}, Slot* second = {})
         : first(first)
         , second(second)
         {}
@@ -62,7 +60,7 @@ namespace ndbl
 
     struct EventPayload_Node
     {
-        PoolID<Node> node;
+        Node* node;
     };
     using Event_DeleteEdge  = tools::Event<EventID_DELETE_EDGE, EventPayload_SlotPair>;
     using Event_DeleteNode  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;
@@ -82,8 +80,8 @@ namespace ndbl
 
     struct EventPayload_NodeViewSelectionChange
     {
-        std::vector<PoolID<NodeView>> new_selection;
-        std::vector<PoolID<NodeView>> old_selection;
+        std::vector<NodeView*> new_selection;
+        std::vector<NodeView*> old_selection;
     };
     using Event_SelectionChange = tools::Event<EventID_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
 

@@ -64,11 +64,11 @@ std::string NodeView::get_label()
     return m_label;
 }
 
-void NodeView::set_owner(PoolID<Node> node)
+void NodeView::set_owner(Node* node)
 {
     NodeComponent::set_owner(node);
 
-    if( node == PoolID<Node>::null )
+    if( node == nullptr )
     {
         return;
     }
@@ -81,18 +81,18 @@ void NodeView::set_owner(PoolID<Node> node)
     // Reserve
     m_property_views.reserve( node->props.size() );
 
-    for (Property& each_prop : node->props )
+    for (Property* each_prop : node->props )
     {
         // Create view
-        PropertyView* property_view = new PropertyView(m_id, each_prop.id);
+        PropertyView* property_view = new PropertyView(this, each_prop);
         m_property_views.push_back(property_view);
 
         // Indexing
-        if ( each_prop.is_this() )
+        if ( each_prop->is_this() )
         {
             m_property_view_this = property_view;
         }
-        else if ( !m_owner->find_slot_by_property_id( each_prop.id, SlotFlag_OUTPUT ) )
+        else if ( !get_node()->find_slot_by_property( each_prop, SlotFlag_OUTPUT ) )
         {
             m_property_views_with_input_only.push_back(property_view);
         }
@@ -114,19 +114,19 @@ void NodeView::set_owner(PoolID<Node> node)
         {SlotFlag_PARENT, 0},
     };
 
-    for(Slot& slot : m_owner->slots() )
+    for(Slot* slot : get_node()->slots() )
     {
         Vec2      slot_align;
-        ShapeType slot_shape = ShapeType_CIRCLE;
-        SlotFlags slot_type  = slot.type_and_order();
-        u8_t      slot_index = next_index_per_type[slot_type]++;
+        ShapeType slot_shape         = ShapeType_CIRCLE;
+        SlotFlags slot_type_n_order  = slot->type_and_order();
+        u8_t      slot_index         = next_index_per_type[slot_type_n_order]++;
 
-        switch ( slot_type )
+        switch ( slot_type_n_order )
         {
             case SlotFlag_INPUT:  slot_align.y = -1.f; break;
             case SlotFlag_PREV:   slot_align   = {-1.f, -1.f}; slot_shape = ShapeType_RECTANGLE; break;
-            case SlotFlag_OUTPUT: slot_align   = slot.is_this() ? Vec2{-1.f, 0.f}
-                                                                : Vec2{ 0.f, 1.f}; break;
+            case SlotFlag_OUTPUT: slot_align   = slot->is_this() ? Vec2{-1.f, 0.f}
+                                                                 : Vec2{ 0.f, 1.f}; break;
             case SlotFlag_NEXT:   slot_align   = {-1.f, 1.f}; slot_shape = ShapeType_RECTANGLE; break;
             case SlotFlag_CHILD:
             case SlotFlag_PARENT: break; // skipped
@@ -156,33 +156,32 @@ void NodeView::set_owner(PoolID<Node> node)
         pos.y += slot_align.y * slot_half_size.y;
         pos   += slot_align * half_size;
 
-        auto* slotview = new SlotView(m_id, slot, slot_align, slot_shape);
+        auto* slotview = new SlotView(this, slot, slot_align, slot_shape);
         slotview->set_pos(pos, PARENT_SPACE);
         slotview->set_size(cfg->ui_slot_size);
 
-        slot.set_view(slotview);
+        slot->set_view(slotview);
         m_slot_views.push_back(slotview);
     }
 
     // 3. Update label
     //----------------
 
-    PoolID<NodeView> id = m_id;
-    update_labels_from_name(node.get());
-    node->on_name_change.connect([=](PoolID<Node> _node)
+    update_labels_from_name(node );
+    node->on_name_change.connect([=](Node* _node)
     {
-        id->update_labels_from_name(_node.get());
+        this->update_labels_from_name(_node);
     });
 
     // 4. Update fill color
     //---------------------
 
     Vec4* fill_color = &cfg->ui_node_fillColor;
-    if ( extends<VariableNode>( node.get() ) )            fill_color = &cfg->ui_node_variableColor;
+    if ( extends<VariableNode>( node ) )                  fill_color = &cfg->ui_node_variableColor;
     else if ( node->has_component<InvokableComponent>() ) fill_color = &cfg->ui_node_invokableColor;
     else if ( node->is_instruction() )                    fill_color = &cfg->ui_node_instructionColor;
-    else if ( extends<LiteralNode>( node.get() ) )        fill_color = &cfg->ui_node_literalColor;
-    else if ( extends<IConditional>( node.get() ) )       fill_color = &cfg->ui_node_condStructColor;
+    else if ( extends<LiteralNode>( node ) )              fill_color = &cfg->ui_node_literalColor;
+    else if ( extends<IConditional>( node ) )             fill_color = &cfg->ui_node_condStructColor;
 
     set_color( fill_color );
 }
@@ -195,7 +194,7 @@ void NodeView::update_labels_from_name(const Node* _node)
     m_short_label.clear();
     if ( auto* variable = cast<const VariableNode>(_node) )
     {
-        m_label += variable->type()->get_name();
+        m_label += variable->get_value_type()->get_name();
         m_label += " ";
     }
     m_label += _node->name;
@@ -206,9 +205,12 @@ void NodeView::update_labels_from_name(const Node* _node)
                                                        : m_label.substr(0, label_max_length) + "..";
 }
 
-const PropertyView* NodeView::get_property_view( ID<Property> _id )const
+const PropertyView* NodeView::get_property_view( Property* property )const
 {
-    return m_property_views.at((u32_t)_id);
+    for(PropertyView* view : m_property_views)
+        if ( view->get_property() == property )
+            return view;
+    return nullptr;
 }
 
 void NodeView::translate( const Vec2& _delta, NodeViewFlags flags)
@@ -222,7 +224,7 @@ void NodeView::translate( const Vec2& _delta, NodeViewFlags flags)
         if( !each_input ) continue;
         if(each_input->selected && flags & NodeViewFlag_IGNORE_SELECTED ) continue;
         if( each_input->m_pinned && flags & NodeViewFlag_IGNORE_PINNED ) continue;
-        if( each_input->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
+        if( each_input->get_node()->should_be_constrain_to_follow_output( this->get_node() ) )
         {
             each_input->translate(_delta, flags);
         }
@@ -233,7 +235,7 @@ void NodeView::arrange_recursively(bool _smoothly)
 {
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
-        if ( !each_input->m_pinned && each_input->m_owner->should_be_constrain_to_follow_output( this->m_owner ))
+        if ( !each_input->m_pinned && each_input->get_node()->should_be_constrain_to_follow_output( this->get_node() ))
         {
             each_input->arrange_recursively();
         }
@@ -261,15 +263,13 @@ bool NodeView::update(float _deltaTime)
         lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
     }
 
-    Node* node = m_owner.get();
-
     for ( SlotView* slot_view : m_slot_views )
     {
         slot_view->visible = false;
 
         const Slot& slot = slot_view->slot();
         if ( slot.capacity() == 0) continue;
-        if (slot.type() == SlotFlag_TYPE_CODEFLOW  && !node->is_instruction() && !node->can_be_instruction() ) continue;
+        if (slot.type() == SlotFlag_TYPE_CODEFLOW  && !get_node()->is_instruction() && !get_node()->can_be_instruction() ) continue;
 
         slot_view->visible = true;
     }
@@ -282,7 +282,7 @@ bool NodeView::draw()
 
     Config*     cfg       = get_config();
 	bool        changed   = false;
-    Node*       node      = m_owner.get();
+    Node*       node      = get_node();
 
     ASSERT(node != nullptr);
 
@@ -406,7 +406,7 @@ bool NodeView::draw()
 	ImGui::PopStyleVar();
 	ImGui::PopID();
 
-    m_owner->dirty |= changed;
+    get_node()->dirty |= changed;
 
 	return changed;
 }
@@ -452,7 +452,7 @@ bool NodeView::_draw_property_view(PropertyView* _view)
     bool            changed            = false;
     Property*       property           = _view->get_property();
     bool            is_defined         = property->value()->is_defined();
-    const type* owner_type         = m_owner->get_type();
+    const type*     node_class         = get_node()->get_class();
     VariableNode*   connected_variable = _view->get_connected_variable();
 
     /*
@@ -468,13 +468,13 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         // When untouched, it depends...
 
         // Always show literals (their property don't have input slot)
-        _view->show_input |= owner_type->is<LiteralNode>();
+        _view->show_input |= node_class->is<LiteralNode>();
         // Always show when defined in exhaustive mode
         _view->show_input |= is_defined && s_view_detail == NodeViewDetail::Exhaustive;
         // Always show when connected to a variable
         _view->show_input |= connected_variable != nullptr;
         // Shows variable property only if they are not connected (don't need to show anything, the variable name is already displayed on the node itself)
-        _view->show_input |= is_defined && (owner_type->is<VariableNode>() || !m_owner->has_input_connected(property->id));
+        _view->show_input |= is_defined && (node_class->is<VariableNode>() || !get_node()->has_input_connected(property));
     }
 
     // input
@@ -514,9 +514,9 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         ImGui::Text("%s %s\n", property->get_type()->get_name(), property->get_name().c_str());
 
         std::string  source_code;
-        if( property->get_type()->is<PoolID<Node>>() || m_owner->find_slot_by_property_id( property->id, SlotFlag_OUTPUT ))
+        if( property->get_type()->is<Node*>() || get_node()->find_slot_by_property( property, SlotFlag_OUTPUT ))
         {
-            source_code = get_language()->serialize_node( source_code, m_owner );
+            source_code = get_language()->serialize_node( source_code, get_node() );
         }
         else
         {
@@ -530,11 +530,14 @@ bool NodeView::_draw_property_view(PropertyView* _view)
 
     // memorize property view rect (screen space)
     // enlarge rect to fit node_view top/bottom
-    _view->screen_rect = {
+    Rect rect = {
             Vec2{ImGui::GetItemRectMin().x, get_rect(SCREEN_SPACE).min.y} ,
             Vec2{ImGui::GetItemRectMax().x, get_rect(SCREEN_SPACE).max.y}
     };
-    ImGuiEx::DebugCircle( _view->screen_rect.center(), 2.5f, ImColor(0,0,0));
+    _view->set_pos(rect.center(), SCREEN_SPACE);
+    _view->set_size(rect.size());
+
+    ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
 
     return changed;
 }
@@ -636,7 +639,7 @@ bool NodeView::is_inside(NodeView* _nodeView, Rect _rect, Space _space)
 void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 {
     tools::Config* tools_cfg = tools::get_config();
-    Node* node = _view->m_owner.get();
+    Node* node = _view->get_node();
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
     auto draw_labeled_property_view = [&](PropertyView* _property_view)
@@ -672,7 +675,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     };
 
     ImGui::Text("Name:       \"%s\"" , node->name.c_str());
-    ImGui::Text("Class:      %s"     , node->get_type()->get_name());
+    ImGui::Text("Class:      %s"     , node->get_class()->get_name());
 
     // Draw exposed input properties
     ImGui::Separator();
@@ -726,16 +729,16 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // Components
         if( ImGui::TreeNode("Components") )
         {
-            for (PoolID<const NodeComponent> component : node->get_components() )
+            for (const NodeComponent* component : node->get_components() )
             {
-                ImGui::BulletText("%s", component->get_type()->get_name());
+                ImGui::BulletText("%s", component->get_class()->get_name());
             }
             ImGui::TreePop();
         }
 
         if( ImGui::TreeNode("Slots") )
         {
-            auto draw_node_list = [](const char *label, const std::vector<PoolID<Node>> _nodes )
+            auto draw_node_list = [](const char *label, const std::vector<Node*> _nodes )
             {
                 if( !ImGui::TreeNode(label) )
                 {
@@ -747,7 +750,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                     ImGui::BulletText( "None" );
                 }
 
-                for (const PoolID<Node>& each_node : _nodes )
+                for (const Node* each_node : _nodes )
                 {
                     ImGui::BulletText("- %s", each_node->name.c_str());
                 }
@@ -767,10 +770,10 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // Physics Component
         if( ImGui::TreeNode("Physics") )
         {
-            Physics* physics_component = node->get_component<Physics>().get();
+            auto* physics_component = node->get_component<Physics>();
             ImGui::Checkbox("On/Off", &physics_component->is_active);
             int i = 0;
-            for(NodeViewConstraint& constraint : physics_component->constraints)
+            for(NodeViewConstraint& constraint : physics_component->get_constraints())
             {
                 constraint.draw_view();
             }
@@ -778,7 +781,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         }
 
         // Scope specific:
-        if (Scope* scope = node->get_component<Scope>().get() )
+        if (Scope* scope = node->get_component<Scope>())
         {
             if( ImGui::TreeNode("Variables") )
             {
@@ -815,7 +818,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (Node* parent = node->find_parent().get())
+                if (Node* parent = node->find_parent() )
                 {
                     parentName = parent->name + (parent->dirty ? " (dirty)" : "");
                 }
@@ -855,14 +858,6 @@ void NodeView::constraint_to_rect(NodeView* _view, Rect _rect)
 void NodeView::set_view_detail(NodeViewDetail _viewDetail)
 {
     NodeView::s_view_detail = _viewDetail;
-
-    for( NodeView& eachView : get_pool_manager()->get_pool()->get_all<NodeView>())
-    {
-        for( PropertyView* property_view : eachView.m_property_views )
-        {
-            property_view->reset();
-        }
-    }
 }
 
 Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
@@ -884,14 +879,13 @@ Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
         rects.push_back(View::get_rect(space) );
     }
 
-    auto push_view_rect = [&](PoolID<NodeView> view_id)
+    auto push_view_rect = [&](NodeView* view)
     {
-        NodeView* view = view_id.get();
         if( !view) return;
         if( !view->visible ) return;
-        if(view->selected && ignore_selected ) return;
+        if( view->selected && ignore_selected ) return;
         if( view->m_pinned && ignore_pinned ) return;
-        if( view->m_owner->should_be_constrain_to_follow_output( this->m_owner ) )
+        if( view->get_node()->should_be_constrain_to_follow_output( this->get_node() ) )
         {
             Rect rect = view->get_rect(space, flags);
             rects.push_back( rect );
@@ -948,7 +942,7 @@ std::vector<Rect> NodeView::get_rects(const std::vector<NodeView*>& _in_views, S
 void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
-    for(PoolID<NodeView> each_child_view : get_adjacent(SlotFlag_CHILD) )
+    for(NodeView* each_child_view : get_adjacent(SlotFlag_CHILD) )
     {
         each_child_view->set_expanded_rec(_expanded);
     }
@@ -976,7 +970,7 @@ void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recurs
     bool has_not_output = get_adjacent(SlotFlag_OUTPUT).empty();
     for( auto each_child_view : get_adjacent(flags) )
     {
-        if( _visible || has_not_output || each_child_view->m_owner->should_be_constrain_to_follow_output( m_owner ) )
+        if( _visible || has_not_output || each_child_view->get_node()->should_be_constrain_to_follow_output( get_node() ) )
         {
             if ( _recursive && each_child_view->m_expanded) // propagate only if expanded
             {
@@ -1005,13 +999,13 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    Node* parent = _view->m_owner->find_parent().get();
+    Node* parent = _view->get_node()->find_parent();
     if ( !parent )
     {
         return _view;
     }
 
-    NodeView* parent_view = parent->get_component<NodeView>().get();
+    NodeView* parent_view = parent->get_component<NodeView>();
     if ( !parent_view )
     {
         return _view;
@@ -1045,9 +1039,9 @@ void NodeView::expand_toggle_rec()
     return set_expanded_rec(!m_expanded);
 }
 
-std::vector<PoolID<NodeView>> NodeView::get_adjacent(SlotFlags flags) const
+std::vector<NodeView*> NodeView::get_adjacent(SlotFlags flags) const
 {
-    return GraphUtil::adjacent_components<NodeView>(m_owner.get(), flags);
+    return GraphUtil::adjacent_components<NodeView>(get_node(), flags);
 }
 
 void NodeView::set_color( const Vec4* _color, ColorType _type )
@@ -1071,8 +1065,8 @@ bool NodeView::none_is_visible( std::vector<NodeView*> _views )
 
 GraphView *NodeView::get_graph() const
 {
-    ASSERT(m_owner->parent_graph != nullptr)
-    return m_owner->parent_graph->get_view();
+    ASSERT(get_node()->parent_graph != nullptr)
+    return get_node()->parent_graph->get_view();
 }
 
 NodeView::~NodeView()

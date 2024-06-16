@@ -195,9 +195,11 @@ void NodableView::draw()
 
             ImGui::Separator();
 
-            auto menu_item_node_view_detail = [](NodeViewDetail _detail, const char *_label) {
+            auto menu_item_node_view_detail = [this](NodeViewDetail _detail, const char *_label) {
                 if (ImGui::MenuItem(_label, "", NodeView::get_view_detail() == _detail)) {
                     NodeView::set_view_detail(_detail);
+                    if ( m_app->current_file != nullptr)
+                        m_app->current_file->get_graph().get_view()->reset_all_properties();
                 }
             };
 
@@ -446,7 +448,7 @@ void NodableView::draw_node_properties_window()
             if (selected_nodeviews.size() == 1)
             {
                 ImGui::Indent(10.0f);
-                NodeView *first_node_view = selected_nodeviews.front().get();
+                NodeView *first_node_view = selected_nodeviews.front();
                 NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
             }
             else if (selected_nodeviews.size() > 1)
@@ -778,6 +780,7 @@ void NodableView::draw_config_window()
             ActionManagerView::draw(&action_manager);
         }
 
+#if TOOLS_POOL_ENABLE
         if ( tools_cfg->runtime_debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
@@ -787,6 +790,7 @@ void NodableView::draw_config_window()
             ImGui::Text(" - Physics................. %8zu", pool->get_all<Physics>().size() );
             ImGui::Text(" - Scope................... %8zu", pool->get_all<Scope>().size() );
         }
+#endif
     }
     ImGui::End();
 }

@@ -1,19 +1,22 @@
 #pragma once
+#include <string>
 
-#include "SlotRef.h"
 namespace ndbl
 {
+    // Forward declarations
+    class Slot;
+
     class DirectedEdge
     {
     public:
         static DirectedEdge null;
 
-        SlotRef tail;
-        SlotRef head;
+        Slot* tail;
+        Slot* head;
 
         DirectedEdge() = default;
         DirectedEdge(const DirectedEdge & other) = default;
-        DirectedEdge(const SlotRef& _tail, const SlotRef& _head);
+        DirectedEdge(Slot* _tail, Slot* _head);
 
         DirectedEdge& operator=(const DirectedEdge& other);
         operator bool () const;
@@ -21,5 +24,5 @@ namespace ndbl
         bool operator!=(const DirectedEdge& other) const;
     };
 
-    std::string to_string(const DirectedEdge& edge);
+    std::string to_string(const DirectedEdge& _slot);
 }

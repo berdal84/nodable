@@ -137,7 +137,7 @@ public:
 
     void log_ribbon() const
     {
-        LOG_MESSAGE("fixture::core", "%s\n", get_language()->parser_state.ribbon.to_string().c_str());
+        LOG_MESSAGE("fixture::core", "%s\n\n", get_language()->parser_state.ribbon.to_string().c_str());
     }
 };
 }

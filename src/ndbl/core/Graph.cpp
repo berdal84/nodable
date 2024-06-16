@@ -32,8 +32,8 @@ void Graph::clear()
     }
 
 	LOG_VERBOSE( "Graph", "Clearing graph ...\n")
-    std::vector<PoolID<Node>> node_ids = m_node_registry; // copy to avoid iterator invalidation
-    m_root.reset();
+    std::vector<Node*> node_ids = m_node_registry; // copy to avoid iterator invalidation
+    m_root = nullptr;
     for (auto node : node_ids)
     {
         LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name.c_str(), (u64_t)node )
@@ -66,7 +66,7 @@ UpdateResult Graph::update()
     while (nodeIndex > 0)
     {
         nodeIndex--;
-        PoolID<Node> node = m_node_registry.at(nodeIndex);
+        Node* node = m_node_registry.at(nodeIndex);
 
         if (node->flagged_to_delete)
         {
@@ -85,18 +85,18 @@ UpdateResult Graph::update()
     return result;
 }
 
-void Graph::add(PoolID<Node> _node)
+void Graph::add(Node* _node)
 {
-    ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node->poolid()) == m_node_registry.end())
+    ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node) == m_node_registry.end())
 
-	m_node_registry.push_back(_node->poolid());
+	m_node_registry.push_back(_node);
     _node->parent_graph = this;
     on_add.emit(_node);
     set_dirty(); // To express this graph changed
-    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name.c_str(), _node->get_type()->get_name())
+    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name.c_str(), _node->get_class()->get_name())
 }
 
-void Graph::remove(PoolID<Node> _node)
+void Graph::remove(Node* _node)
 {
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     ASSERT(found != m_node_registry.end());
@@ -112,40 +112,39 @@ void Graph::ensure_has_root()
     }
 }
 
-PoolID<VariableNode> Graph::create_variable(const type *_type, const std::string& _name, PoolID<Scope> _scope)
+VariableNode* Graph::create_variable(const type *_type, const std::string& _name, Scope* _scope)
 {
-    PoolID<VariableNode> node = m_factory->create_variable(_type, _name, _scope);
+    VariableNode* node = m_factory->create_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
-PoolID<Node> Graph::create_abstract_function(const func_type* _invokable, bool _is_operator)
+Node* Graph::create_abstract_function(const func_type* _invokable, bool _is_operator)
 {
-    PoolID<Node> node = m_factory->create_abstract_func(_invokable, _is_operator);
+    Node* node = m_factory->create_abstract_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-PoolID<Node> Graph::create_function(const IInvokable* _invokable, bool _is_operator)
+Node* Graph::create_function(const IInvokable* _invokable, bool _is_operator)
 {
-    PoolID<Node> node = m_factory->create_func(_invokable, _is_operator);
+    Node* node = m_factory->create_func(_invokable, _is_operator);
     add(node);
     return node;
 }
 
-PoolID<Node> Graph::create_abstract_operator(const func_type* _invokable)
+Node* Graph::create_abstract_operator(const func_type* _invokable)
 {
     return create_abstract_function(_invokable, true);
 }
 
-PoolID<Node> Graph::create_operator(const IInvokable* _invokable)
+Node* Graph::create_operator(const IInvokable* _invokable)
 {
 	return create_function(_invokable, true);
 }
 
-void Graph::destroy(PoolID<Node> _id)
+void Graph::destroy(Node* node)
 {
-    Node* node = _id.get();
     if( node == nullptr )
     {
         return;
@@ -155,7 +154,7 @@ void Graph::destroy(PoolID<Node> _id)
     std::vector<DirectedEdge> related_edges;
     for(auto& [_type, each_edge]: m_edge_registry)
     {
-        if( each_edge.tail.node == _id || each_edge.head.node == _id )
+        if( each_edge.tail->get_node() == node || each_edge.head->get_node() == node )
         {
             related_edges.emplace_back(each_edge);
         }
@@ -169,12 +168,12 @@ void Graph::destroy(PoolID<Node> _id)
     // if it is a variable, we remove it from its scope
     if ( auto* node_variable = cast<VariableNode>(node) )
     {
-        if ( IScope* scope = node_variable->get_scope().get() )
+        if ( IScope* scope = node_variable->get_scope() )
         {
             scope->remove_variable(node_variable);
         }
     }
-    else if ( Scope* scope = node->get_component<Scope>().get() )
+    else if ( auto* scope = node->get_component<Scope>() )
     {
         if ( !scope->has_no_variable() )
         {
@@ -183,24 +182,22 @@ void Graph::destroy(PoolID<Node> _id)
     }
 
     // unregister and delete
-    remove(_id);
-    if ( m_root == _id )
+    remove(node);
+    if ( m_root == node )
     {
-        m_root.reset();
+        m_root = {};
     }
-    m_factory->destroy_node(_id);
+    m_factory->destroy_node(node);
 }
 
 bool Graph::is_empty() const
 {
-    return m_root.get() == nullptr;
+    return m_root == nullptr;
 }
 
 DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
 {
     // Guards
-    ASSERT( _in )
-    ASSERT( _out )
     ASSERT( _in.has_flags( SlotFlag_INPUT ) )
     ASSERT( _in.has_flags( SlotFlag_NOT_FULL ) )
     ASSERT( _out.has_flags( SlotFlag_OUTPUT ) )
@@ -225,11 +222,11 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
 
     // case 2: merge non-orphan property
     if (!out_prop->is_this() && // Never a Node (property points to a node)
-         _out.node->get_type()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
-         _in.node->get_type()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
+         _out.get_node()->get_class()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
+         _in.get_node()->get_class()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
     {
         in_prop->digest( out_prop );
-        destroy( _out.node);
+        destroy( _out.get_node());
         set_dirty(); // a node has been destroyed
         return nullptr;
     }
@@ -267,12 +264,12 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 {
     ASSERT( _first.has_flags( SlotFlag_ORDER_FIRST ) )
     ASSERT( _second.has_flags( SlotFlag_ORDER_SECOND ) )
-    ASSERT( _first.node != _second.node )
+    ASSERT(_first.get_node() != _second.get_node() )
 
     // Insert edge
     SlotFlags type = _first.type();
 
-    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{_first, _second});
+    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{&_first, &_second});
 
     // Add cross-references to each end of the edge
     edge.tail->add_adjacent( edge.head );
@@ -308,7 +305,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 //           - new child <-<-<-
                 else
                 {
-                    PoolID<Node> previous_child = parent->rchildren().at(1);
+                    Node* previous_child = parent->rchildren().at(1);
                     ASSERT( previous_child )
 
                     // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
@@ -324,8 +321,8 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //                  - instr n ->->->->->->
                     //             - new child <-<-<-<-<-<-<-<
                     //
-                    auto previous_child_scope = previous_child->get_component<Scope>().get();
-                    if ( previous_child_scope && !previous_child->get_type()->is<IConditional>() )
+                    auto previous_child_scope = previous_child->get_component<Scope>();
+                    if ( previous_child_scope && !previous_child->get_class()->is<IConditional>() )
                     {
                         for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
                         {
@@ -352,8 +349,8 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 
             case SlotFlag_TYPE_CODEFLOW:
             {
-                Node& prev_node = *_first.node; static_assert( SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
-                Node& next_node = *_second.node; static_assert( SlotFlag_PREV & SlotFlag_ORDER_SECOND );
+                Node& prev_node = *_first.get_node(); static_assert(SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
+                Node& next_node = *_second.get_node(); static_assert(SlotFlag_PREV & SlotFlag_ORDER_SECOND );
 
                 // If previous node is a scope, connects next_node as child
                 if ( prev_node.has_component<Scope>() )
@@ -363,7 +360,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                             *next_node.find_slot( SlotFlag_PARENT ));
                 }
                 // If next node parent exists, connects next_node as a child too
-                else if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
+                else if ( Node* prev_parent_node = prev_node.find_parent() )
                 {
                     connect(
                             *prev_parent_node->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
@@ -371,15 +368,15 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 }
 
                 // Connect siblings
-                else if ( PoolID<Node> prev_parent_node = prev_node.find_parent() )
+                else if ( Node* prev_parent_node = prev_node.find_parent() )
                 {
-                    Node* current_prev_node_sibling = prev_node.successors()[0].get();
+                    Node* current_prev_node_sibling = prev_node.successors()[0];
                     while ( current_prev_node_sibling && current_prev_node_sibling->find_parent() )
                     {
                         connect(
                                 *current_prev_node_sibling->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
                                 *prev_parent_node->find_slot( SlotFlag_PARENT ) );
-                        current_prev_node_sibling = current_prev_node_sibling->successors().begin()->get();
+                        current_prev_node_sibling = *current_prev_node_sibling->successors().begin();
                     }
                 }
                 break;
@@ -419,7 +416,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
 {
     // find the edge to disconnect
-    SlotFlags type = _edge.tail.flags & SlotFlag_TYPE_MASK;
+    SlotFlags type = _edge.tail->get_flags() & SlotFlag_TYPE_MASK;
     auto [range_begin, range_end]   = m_edge_registry.equal_range(type);
     auto it = std::find_if( range_begin, range_end, [&](const auto& _pair) -> bool { return _edge == _pair.second; });
     EXPECT( it != m_edge_registry.end(), "Unable to find edge" );
@@ -437,19 +434,19 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
         case SlotFlag_TYPE_CODEFLOW:
         {
             ASSERT(_edge.head->has_flags(SlotFlag_PREV))
-            Node* next = _edge.head.node.get();
-            Node* next_parent = next->find_parent().get();
+            Node* next = _edge.head->get_node();
+            Node* next_parent = next->find_parent();
             if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && next_parent )
             {
-                while ( next && next_parent->poolid() == next->find_parent() )
+                while ( next && next_parent == next->find_parent() )
                 {
                     disconnect({
-                            *next->find_parent()->find_slot( SlotFlag_CHILD ),
-                            *next->find_slot( SlotFlag_PARENT )
+                            next->find_parent()->find_slot( SlotFlag_CHILD ),
+                            next->find_slot( SlotFlag_PARENT )
                     });
 
-                    std::vector<PoolID<Node>> successors = next->successors();
-                    next = successors.begin() != successors.end() ? successors.begin()->get()
+                    std::vector<Node*> successors = next->successors();
+                    next = successors.begin() != successors.end() ? *successors.begin()
                                                                   : nullptr;
                 }
             }
@@ -468,57 +465,57 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     set_dirty(); // To express this graph changed
 }
 
-PoolID<Node> Graph::create_scope()
+Node* Graph::create_scope()
 {
-    PoolID<Node> scopeNode = m_factory->create_scope();
+    Node* scopeNode = m_factory->create_scope();
     add(scopeNode);
     return scopeNode;
 }
 
-PoolID<IfNode> Graph::create_cond_struct()
+IfNode* Graph::create_cond_struct()
 {
-    PoolID<IfNode> condStructNode = m_factory->create_cond_struct();
+    IfNode* condStructNode = m_factory->create_cond_struct();
     add(condStructNode);
     return condStructNode;
 }
 
-PoolID<ForLoopNode> Graph::create_for_loop()
+ForLoopNode* Graph::create_for_loop()
 {
-    PoolID<ForLoopNode> for_loop = m_factory->create_for_loop();
+    ForLoopNode* for_loop = m_factory->create_for_loop();
     add(for_loop);
     return for_loop;
 }
 
-PoolID<WhileLoopNode> Graph::create_while_loop()
+WhileLoopNode* Graph::create_while_loop()
 {
-    PoolID<WhileLoopNode> while_loop = m_factory->create_while_loop();
+    WhileLoopNode* while_loop = m_factory->create_while_loop();
     add(while_loop);
     return while_loop;
 }
 
-PoolID<Node> Graph::create_root()
+Node* Graph::create_root()
 {
-    PoolID<Node> node = m_factory->create_program();
+    Node* node = m_factory->create_program();
     add(node);
     m_root = node;
     return node;
 }
 
-PoolID<Node> Graph::create_node()
+Node* Graph::create_node()
 {
-    PoolID<Node> node = m_factory->create_node();
+    Node* node = m_factory->create_node();
     add(node);
     return node;
 }
 
-PoolID<LiteralNode> Graph::create_literal(const type *_type)
+LiteralNode* Graph::create_literal(const type *_type)
 {
-    PoolID<LiteralNode> node = m_factory->create_literal(_type);
+    LiteralNode* node = m_factory->create_literal(_type);
     add(node);
     return node;
 }
 
-PoolID<Node> Graph::create_node( NodeType _type, const func_type* _signature )
+Node* Graph::create_node( NodeType _type, const func_type* _signature )
 {
     switch ( _type )
     {
@@ -556,7 +553,7 @@ PoolID<Node> Graph::create_node( NodeType _type, const func_type* _signature )
     }
 }
 
-PoolID<VariableNode> Graph::create_variable_decl(const type* _type, const char*  _name, PoolID<Scope>  _scope)
+VariableNode* Graph::create_variable_decl(const type* _type, const char*  _name, Scope*  _scope)
 {
     if( !_scope)
     {
@@ -564,7 +561,7 @@ PoolID<VariableNode> Graph::create_variable_decl(const type* _type, const char* 
     }
 
     // Create variable
-    PoolID<VariableNode> var_node = create_variable(_type, _name, _scope );
+    VariableNode* var_node = create_variable(_type, _name, _scope );
     var_node->set_declared(true);
     Token token(Token_t::keyword_operator, " = ");
     token.m_word_start_pos = 1;

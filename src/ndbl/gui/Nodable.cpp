@@ -203,7 +203,7 @@ void Nodable::update()
                 auto& selected = graph_view->get_selected();
                 if ( !selected.empty() && !ImGui::IsAnyItemFocused() )
                 {
-                    Node* selected_node = selected[0]->get_owner().get();
+                    Node* selected_node = selected[0]->get_owner();
                     selected_node->flagged_to_delete = true;
                 }
                 break;
@@ -223,9 +223,9 @@ void Nodable::update()
                 // TODO: store a ref to the view in the event, use selected as fallback if not present
                 auto& selected = graph_view->get_selected();
                 if (selected.empty()) break;
-                std::vector<PoolID<Node>> successors = selected[0]->get_owner()->successors();
+                std::vector<Node*> successors = selected[0]->get_owner()->successors();
                 if (!successors.empty())
-                    if (PoolID<NodeView> successor_view = successors.front()->get_component<NodeView>() )
+                    if (NodeView* successor_view = successors.front()->get_component<NodeView>() )
                         graph_view->set_selected({successor_view}, SelectionMode_REPLACE); EXPECT(false, "not implemented for multi-selection")
                 break;
             }
@@ -244,9 +244,10 @@ void Nodable::update()
             {
                 ASSERT(curr_file_history != nullptr);
                 auto _event = reinterpret_cast<Event_SlotDropped*>(event);
-                SlotRef tail = _event->data.first;
-                SlotRef head = _event->data.second;
-                if (tail.flags & SlotFlag_ORDER_SECOND ) std::swap(tail, head); // guarantee src to be the output
+                Slot* tail = _event->data.first;
+                Slot* head = _event->data.second;
+                if ( tail->order() == SlotFlag_ORDER_SECOND )
+                    std::swap(tail, head); // guarantee src to be the output
                 DirectedEdge edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
@@ -269,7 +270,7 @@ void Nodable::update()
             {
                 ASSERT(curr_file_history != nullptr);
                 auto _event = reinterpret_cast<Event_SlotDisconnected*>(event);
-                SlotRef slot = _event->data.first;
+                Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 Graph* graph = _event->data.first->get_node()->parent_graph;
@@ -297,7 +298,7 @@ void Nodable::update()
                     continue;
                 }
 
-                PoolID<Node> new_node_id  = graph.create_node( _event->data.node_type, _event->data.node_signature );
+                Node* new_node_id  = graph.create_node( _event->data.node_type, _event->data.node_signature );
 
                 if ( !_event->data.active_slotview )
                 {
@@ -329,7 +330,7 @@ void Nodable::update()
                 if ( !_event->data.active_slotview )
                 {
                     // Experimental: we try to connect a parent-less child
-                    PoolID<Node> root = graph.get_root();
+                    Node* root = graph.get_root();
                     if ( new_node_id != root && m_config->experimental_graph_autocompletion )
                     {
                         graph.connect(
@@ -521,7 +522,7 @@ void Nodable::step_over_program()
         return;
     }
 
-    const Node* next_node = m_virtual_machine->get_next_node();
+    Node* next_node = m_virtual_machine->get_next_node();
     if ( !next_node ) return;
 
     auto view = next_node->get_component<NodeView>();

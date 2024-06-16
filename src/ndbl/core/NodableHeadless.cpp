@@ -8,7 +8,6 @@ using namespace ndbl;
 
 void NodableHeadless::init()
 {
-    m_pool_manager = tools::init_pool_manager();
     m_task_manager = tools::init_task_manager();
     m_language = init_language();
     m_node_factory = init_node_factory();
@@ -20,7 +19,6 @@ void NodableHeadless::shutdown()
 {
     clear();
     delete m_graph;
-    tools::shutdown_pool_manager();
     tools::shutdown_task_manager();
     shutdown_language();
     shutdown_node_factory();

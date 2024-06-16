@@ -8,6 +8,7 @@ namespace ndbl
     class LiteralNode: public Node
     {
     public:
+        using type = tools::type;
 
         LiteralNode() = default;
         explicit LiteralNode(const tools::type*);
@@ -16,11 +17,11 @@ namespace ndbl
         ~LiteralNode() override = default;
 
         void            init() override;
-        Property*       value() { return get_prop_at( m_value_property_id ); }
-        const Property* value() const { return get_prop_at( m_value_property_id ); }
+        Property*       value();
+        const Property* value() const;
     private:
-        ID<Property>       m_value_property_id;
-        const tools::type* m_type;
+        Property*   m_value_property_id;
+        const type* m_type;
         REFLECT_DERIVED_CLASS()
     };
 }

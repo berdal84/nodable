@@ -26,12 +26,13 @@
 #define catch_TOOLS \
     catch(const cpptrace::logic_error& logic_error) \
     { \
-        logic_error.trace().print_with_snippets(); \
+        logic_error.trace().print_with_snippets();  \
+        std::cout << std::flush; \
         exit(1); \
     } \
     catch(const std::exception & std_error) \
     { \
-        std::cout << std_error.what() << std::endl; \
+        std::cout << std_error.what() << std::flush; \
         exit(1); \
     }
 

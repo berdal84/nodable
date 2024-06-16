@@ -10,7 +10,6 @@ namespace ndbl
     class Scope;
     class VariableNode;
     class Node;
-    using tools::PoolID;
 
 namespace assembly
 {
@@ -79,10 +78,10 @@ namespace assembly
     // Push or pop to/from the stack.
     struct Instruction_push_or_pop
     {
-        Instruction_t opcode;            // Instruction_t::push_xxx or Instruction_t::pop_xxx.
+        Instruction_t opcode;      // Instruction_t::push_xxx or Instruction_t::pop_x      xx.
         union {
-            PoolID<VariableNode> var;     // a variable to push/pop.
-            PoolID<const Scope>  scope;   // a scope to push/pop.
+            VariableNode* var;     // a variable to push/pop.
+            const Scope*  scope;   // a scope to push/pop.
         };
     };
 
@@ -90,7 +89,7 @@ namespace assembly
     struct Instruction_eval
     {
         Instruction_t opcode;
-        PoolID<Node>  node; // The node to evaluate.
+        Node*         node; // The node to evaluate.
     };
 
     /**

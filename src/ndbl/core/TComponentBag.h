@@ -6,17 +6,17 @@ namespace ndbl
 {
      /// Store a list of Components* owned by a single owner.
      /// Components* are not owned by this class, see ComponentManager.
-     /// \tparam OwnerT the owner's type
-     /// \tparam ComponentT the component's base type
-    template<typename OwnerT, typename ComponentT>
+     /// \tparam C the component's base type
+    template<typename C>
     class TComponentBag
     {
     private:
+        using OwnerT = typename std::remove_pointer_t<C>::OwnerT;
         OwnerT m_owner;
-        std::vector<ComponentT> m_components;
-        std::unordered_map<size_t, ComponentT> m_components_by_type;
+        std::vector<C> m_components;
+        std::unordered_map<size_t, C> m_components_by_type;
     public:
-        using ConstIterator = typename std::unordered_map<size_t, ComponentT>::const_iterator;
+        using ConstIterator = typename std::unordered_map<size_t, C>::const_iterator;
 
         TComponentBag() = default;
 
@@ -32,7 +32,7 @@ namespace ndbl
         template<typename T>
         void add(T component)
         {
-            static_assert( std::is_assignable_v<T, ComponentT> );
+            static_assert( std::is_convertible_v<T, C> );
 
             auto index =  std::type_index(typeid(T)).hash_code();
             m_components_by_type.emplace( index, component );
@@ -43,7 +43,7 @@ namespace ndbl
         template<typename T>
         void remove(T component)
         {
-            static_assert( std::is_assignable_v<T, ComponentT> );
+            static_assert( std::is_convertible_v<T, C> );
 
             auto found = std::find(m_components.begin(), m_components.end(), component );
             EXPECT(found != m_components.end(), "Component can't be found it those components");
@@ -65,12 +65,12 @@ namespace ndbl
         }
 
         template<typename T>
-        T get()const
+        C get()const
         {
             auto it = find<T>();
             if (it != m_components_by_type.end())
             {
-                return {it->second};
+                return it->second;
             }
             return {};
         }
@@ -81,7 +81,7 @@ namespace ndbl
         inline ConstIterator end() const
         { return m_components_by_type.cend(); }
 
-        inline const std::vector<ComponentT>& get_all()
+        inline const std::vector<C>& get_all()
         { return m_components; }
     };
 }

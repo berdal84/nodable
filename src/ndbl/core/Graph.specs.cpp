@@ -18,20 +18,20 @@ TEST_F(Graph_, connect)
 {
     // Prepare
     Graph* graph = app.get_graph();
-    auto node_1 = graph->create_node();
-    auto prop_1 = node_1->add_prop<bool>("prop_1");
-    auto slot_1 = node_1->add_slot( SlotFlag_OUTPUT, 1, prop_1  );
+    auto* node_1 = graph->create_node();
+    auto* prop_1 = node_1->add_prop<bool>("prop_1");
+    auto* slot_1 = node_1->add_slot( SlotFlag_OUTPUT, 1, prop_1  );
 
-    auto node_2 = graph->create_node();
-    auto prop_2 = node_2->add_prop<bool>("prop_2");
-    auto slot_2 = node_2->add_slot( SlotFlag_INPUT, 1, prop_2 );
+    auto* node_2 = graph->create_node();
+    auto* prop_2 = node_2->add_prop<bool>("prop_2");
+    auto* slot_2 = node_2->add_slot( SlotFlag_INPUT, 1, prop_2 );
 
     // Act
-    DirectedEdge& edge = *graph->connect_or_merge( node_1->get_slot_at( slot_1 ), node_2->get_slot_at( slot_2 ) );
+    DirectedEdge& edge = *graph->connect_or_merge( *slot_1, *slot_2 );
 
     // Verify
-    EXPECT_EQ(edge.tail->get_property(), node_1->get_prop_at( prop_1 ) );
-    EXPECT_EQ(edge.head->get_property(), node_2->get_prop_at( prop_2 ) );
+    EXPECT_EQ(edge.tail->get_property(), prop_1 );
+    EXPECT_EQ(edge.head->get_property(), prop_2 );
     EXPECT_EQ(graph->get_edge_registry().size(), 1);
  }
 
@@ -48,7 +48,7 @@ TEST_F(Graph_, disconnect)
     auto slot_2 = node_2->add_slot( SlotFlag_INPUT, 1, prop_2 );
 
     EXPECT_EQ(graph->get_edge_registry().size(), 0);
-    DirectedEdge& edge = *graph->connect_or_merge( node_1->get_slot_at( slot_1 ), node_2->get_slot_at( slot_2 ) );
+    DirectedEdge& edge = *graph->connect_or_merge( *slot_1, *slot_2 );
     EXPECT_EQ(graph->get_edge_registry().size(), 1);
 
     // Act
@@ -66,7 +66,7 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_node_registry().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
-    auto       variable     = graph->create_variable( type::get<int>(), "var", PoolID<Scope>::null);
+    auto*       variable    = graph->create_variable( type::get<int>(), "var", nullptr);
     func_type* fct_type     = func_type_builder<int(int, int)>::with_id("+");
     auto       operator_fct = app.get_language()->find_operator_fct_exact(fct_type);
 

@@ -43,8 +43,11 @@ Rect View::get_rect(Space space) const
     if (space == PARENT_SPACE || m_parent == nullptr )
         return m_box.get_rect();
 
-    Box2D relative_box = Box2D::transform(m_box, m_parent->m_box.world_matrix() );
-    return relative_box.get_rect();
+    // TODO: We should use Xform, but something is wrong with world/model matrices
+    Rect result        = m_box.get_rect();
+    Vec2 parent_origin = m_parent->get_rect(PARENT_SPACE).center();
+    result.translate( parent_origin );
+    return result;
 }
 
 void View::set_size(const Vec2& size)
@@ -66,6 +69,12 @@ bool View::draw()
 {
     m_content_region = ImGuiEx::GetContentRegion(SCREEN_SPACE);
 
+    if ( m_parent == nullptr)
+    {
+        set_size(m_content_region.size());
+        set_pos(m_content_region.center(), SCREEN_SPACE);
+    }
+
 #ifdef TOOLS_DEBUG
     Rect r = get_rect(SCREEN_SPACE);
     if ( r.size().lensqr() < 0.1f )
@@ -76,6 +85,10 @@ bool View::draw()
     ImGuiEx::DebugLine(r.tl(), r.br(), ImColor(255, 0,0, 127));    // diagonal 1
     ImGuiEx::DebugLine(r.bl(), r.tr(), ImColor(255, 0,0, 127 ));    // diagonal 2
     ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
+
+    // center to parent center
+    if ( m_parent != nullptr)
+         ImGuiEx::DebugLine(m_parent->get_pos(SCREEN_SPACE), r.center(), ImColor(255, 0,255, 127 ), 4.f);
 #endif
     return false;
 }

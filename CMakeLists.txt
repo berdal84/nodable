@@ -24,7 +24,7 @@ set(NDBL_APP_NAME "Nodable")
 set(NDBL_PACKAGE_DIR "${CMAKE_CURRENT_LIST_DIR}/out/package")  #     //
 set(NDBL_CONFIGURED_DIR "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS OFF)
-option(TOOLS_NO_POOL "Disable Pool (for benchmark only)" OFF)
+set(TOOLS_POOL_ENABLE OFF) # Keep OFF until refactor, PoolID<T> is too intrusive.
 
 # set a build type to Release by default if not set:
 if ( NOT DEFINED CMAKE_BUILD_TYPE )
@@ -211,8 +211,10 @@ add_test(NAME test_framework_core COMMAND test-tools-core)
 add_executable(bench-fw-core-string src/tools/core/string.bench.cpp)
 target_link_libraries(bench-fw-core-string PUBLIC benchmark::benchmark tools-core)
 
-add_executable(bench-fw-core-Pool src/tools/core/memory/Pool.bench.cpp)
-target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark tools-core)
+if( TOOLS_POOL_ENABLE )
+    add_executable(bench-fw-core-Pool src/tools/core/memory/Pool.bench.cpp)
+    target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark tools-core)
+endif()
 
 # 1.2) Framework GUI
 #-------------------
@@ -347,7 +349,6 @@ add_library(
     src/ndbl/core/PropertyBag.cpp
     src/ndbl/core/Scope.cpp
     src/ndbl/core/Slot.cpp
-    src/ndbl/core/SlotRef.cpp
     src/ndbl/core/Token.cpp
     src/ndbl/core/TokenRibbon.cpp
     src/ndbl/core/VariableNode.cpp

@@ -4,19 +4,6 @@
 
 namespace tools
 {
-    template<typename UnsignedT>
-    struct _invalid_id
-    {
-        static_assert( std::is_unsigned_v<UnsignedT>, "UnsignedT should be unsigned" );
-#if TOOLS_NO_POOL
-        static constexpr UnsignedT value = 0; // Is an address
-#else
-        static constexpr UnsignedT value = ~UnsignedT(0);
-#endif
-    };
-
-    template<typename T> constexpr T invalid_id = _invalid_id<T>::value;
-
     /**
      * Templated Identifier
      * @tparam Type to specify a type for static type-checking. void can be used to express "any type".
@@ -30,10 +17,11 @@ namespace tools
     public:
         using id_t       = UnsignedT;
         using identity_t = TIdentifier<Type, UnsignedT>;
+        static constexpr id_t null = 0;
         id_t  m_value;
 
         constexpr TIdentifier()
-        : m_value(invalid_id<id_t>)
+        : m_value(null)
         {}
 
         explicit constexpr TIdentifier( id_t _id )
@@ -45,7 +33,7 @@ namespace tools
         {}
 
         template<typename OtherT>
-        explicit TIdentifier(const TIdentifier<OtherT, id_t>& other)
+        explicit constexpr TIdentifier(const TIdentifier<OtherT, id_t>& other)
         : m_value(other.m_value)
         {
             static_assert( std::is_same_v<Type, void> ||
@@ -56,7 +44,7 @@ namespace tools
         id_t id() const
         { return m_value; }
 
-        void reset( id_t _id = invalid_id<id_t> )
+        void reset( id_t _id = null )
         { m_value = _id; }
 
         explicit operator id_t() const
@@ -67,7 +55,7 @@ namespace tools
         { return TIdentifier<OtherType, id_t>{this->m_value}; }
 
         explicit operator bool () const
-        { return this->m_value != invalid_id<id_t>; }
+        { return this->m_value != null; }
 
         bool operator<(const TIdentifier<Type, id_t>& other ) const
         { return m_value < other.m_value; }
@@ -109,10 +97,10 @@ namespace tools
     };
 
     // Shorthand to IDs with 8, 16, 32, or 64 bits.
-    template<typename T> using ID8  = TIdentifier<T, u8_t>;
-    template<typename T> using ID16 = TIdentifier<T, u16_t>;
-    template<typename T> using ID32 = TIdentifier<T, u32_t>;
-    template<typename T> using ID64 = TIdentifier<T, u64_t>;
+    template<typename T = void> using ID8  = TIdentifier<T, u8_t>;
+    template<typename T = void> using ID16 = TIdentifier<T, u16_t>;
+    template<typename T = void> using ID32 = TIdentifier<T, u32_t>;
+    template<typename T = void> using ID64 = TIdentifier<T, u64_t>;
 
     class C {};
     static_assert( sizeof(ID8<C>)  == 1, "should match");

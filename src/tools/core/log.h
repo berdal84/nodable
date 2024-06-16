@@ -94,7 +94,7 @@ namespace tools
 
             string32  category{}; // short category name (ex: "Game", "App", etc.)
             Verbosity verbosity{Verbosity_DEFAULT}; // verbosity level
-            string256 text{};
+            string512 text{};
             clock_t   date{std::chrono::system_clock::now()};
         };
 
@@ -164,7 +164,7 @@ namespace tools
     }
 
 #if TOOLS_DEBUG
-    static_assert( log::MESSAGE_MAX_COUNT * (sizeof(log::Message)) < 200*1000*1000, "Log messages in memory can potentially go above the limits (200MB in DEBUG)" );
+    static_assert( log::MESSAGE_MAX_COUNT * (sizeof(log::Message)) < 400*1000*1000, "Log messages in memory can potentially go above the limits (400MB in DEBUG)" );
 #else
     static_assert( log::MESSAGE_MAX_COUNT * (sizeof(log::Message)) < 2*1000*1000, "Log messages in memory  can potentially go above the limits (2MB in Release)" );
 #endif

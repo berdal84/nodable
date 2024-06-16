@@ -41,15 +41,14 @@ namespace ndbl
         { return ResultT(m_virtual_machine->get_last_result()); }
 
     protected:
-        tools::PoolManager*        m_pool_manager{ nullptr };
-        tools::TaskManager*        m_task_manager{ nullptr };
-        Nodlang*                   m_language{ nullptr };
-        NodeFactory*               m_node_factory{ nullptr };
-        VirtualMachine*            m_virtual_machine{ nullptr };
+        tools::TaskManager*        m_task_manager{};
+        Nodlang*                   m_language{};
+        NodeFactory*               m_node_factory{};
+        VirtualMachine*            m_virtual_machine{};
         bool                       m_should_stop{false};
-        Graph*                     m_graph{nullptr};
+        Graph*                     m_graph{};
         std::string                m_source_code;
-        const assembly::Code*      m_asm_code{nullptr};
+        const assembly::Code*      m_asm_code{};
         bool                       m_auto_completion{false};
         assembly::Compiler         m_compiler{}; // TODO: move this to a global (like VirtualMachine.h)
     };
