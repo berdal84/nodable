@@ -153,6 +153,8 @@ add_library(
     src/tools/core/log.cpp
     src/tools/core/log.h
     src/tools/core/math.h
+    src/tools/core/memory/pointers.h
+    src/tools/core/memory/pointers.cpp
     src/tools/core/memory/memory.h
     src/tools/core/memory/PoolManager.h
     src/tools/core/memory/PoolManager.cpp
