@@ -19,7 +19,7 @@ using namespace ndbl;
 using namespace tools;
 
 FileView::FileView()
-    : View(nullptr) // FileView is a root View
+    : View()
     , m_text_editor()
     , m_focused_text_changed(false)
     , m_is_graph_dirty(false)
@@ -52,6 +52,7 @@ void FileView::init(File& _file)
 bool FileView::draw()
 {
     View::draw();
+
     Config* cfg = get_config();
     const Vec2 margin(10.0f, 0.0f);
     Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;

@@ -1,4 +1,5 @@
 #include "LiteralNode.h"
+#include "Slot.h"
 
 using namespace ndbl;
 using namespace tools;

@@ -6,19 +6,19 @@ using namespace ndbl;
 using namespace tools;
 
 SlotView::SlotView(
-    NodeView*   parent,
     Slot*       slot,
     const Vec2& align,
-    ShapeType   shape
+    ShapeType   shape,
+    size_t      index
     )
-: tools::View(parent)
+: tools::View()
 , m_slot(slot)
 , m_align(align)
-, m_parent(parent)
 , m_shape(shape)
+, m_index(index)
 {
-    ASSERT(parent != nullptr)
     ASSERT(slot != nullptr)
+    slot->set_view(this);
 }
 
 Node* SlotView::adjacent_node() const
@@ -47,7 +47,7 @@ bool SlotView::allows(SlotFlag flags) const
     return m_slot->has_flags(flags);
 }
 
-Slot& SlotView::slot() const
+Slot& SlotView::get_slot() const
 {
     return *m_slot;
 }
@@ -67,14 +67,19 @@ Property* SlotView::get_property() const
     return m_slot->get_property();
 }
 
-tools::Vec2 SlotView::normal() const
+tools::Vec2 SlotView::get_normal() const
 {
     return tools::Vec2::normalize( m_align );
 }
 
+const tools::Vec2& SlotView::get_align() const
+{
+    return m_align;
+}
+
 tools::string64 SlotView::compute_tooltip() const
 {
-    switch (slot().type_and_order())
+    switch (get_slot().type_and_order())
     {
         case SlotFlag_NEXT:   return "next";
         case SlotFlag_PREV:   return "previous";
@@ -84,12 +89,12 @@ tools::string64 SlotView::compute_tooltip() const
             const std::string &prop_name = get_property()->get_name();
             ASSERT(prop_name.length() < 59)
             string64 result;
-            switch (slot().type_and_order())
+            switch (get_slot().type_and_order())
             {
                 case SlotFlag_INPUT:  result.append_fmt("%s (in)",  prop_name.c_str());  break;
                 case SlotFlag_OUTPUT: result.append_fmt("%s (out)", prop_name.c_str());
             }
-            return result;
+            return std::move(result);
     }
 }
 
@@ -110,7 +115,7 @@ bool SlotView::draw()
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
 
-     Rect rect = get_rect(SCREEN_SPACE);
+    Rect rect = get_rect(SCREEN_SPACE);
     Vec2 pos  = rect.center();
 
     switch (m_shape)
@@ -118,12 +123,12 @@ bool SlotView::draw()
         case ShapeType_CIRCLE:
         {
             float invisible_ratio = cfg->ui_slot_invisible_ratio;
-            float radius = cfg->ui_slot_radius;
+            float radius = cfg->ui_slot_circle_radius;
             float diameter = radius * invisible_ratio;
 
             // move cursor to slot to circle's top-left corner bbox
             // TODO: we should be using SlotView's rect top left corner instead
-            Vec2 cursor_pos{ pos - Vec2{diameter}};
+             Vec2 cursor_pos{ pos - Vec2{diameter}};
             ImGui::SetCursorScreenPos( cursor_pos);
 
             // draw an invisible button (for easy mouse interaction)
@@ -164,9 +169,20 @@ bool SlotView::draw()
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        ImGui::Text("%s", compute_tooltip().c_str() );
+        string64 tooltip = compute_tooltip();
+        ImGui::Text("%s", tooltip.c_str() );
         ImGuiEx::EndTooltip();
     }
 
     return ImGui::IsItemClicked();
+}
+
+size_t SlotView::get_index() const
+{
+    return m_index;
+}
+
+ShapeType SlotView::get_shape() const
+{
+    return m_shape;
 };

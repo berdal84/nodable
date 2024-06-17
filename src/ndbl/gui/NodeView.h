@@ -72,7 +72,7 @@ namespace ndbl
 	{
 	public:
         friend class GraphView;
-		NodeView(View* parent);
+		NodeView();
 		~NodeView();
         NodeView (NodeView&&) = default;
         NodeView& operator=(NodeView&&) = default;
@@ -131,6 +131,7 @@ namespace ndbl
         bool            m_pinned;
         float           m_opacity;
         SlotView*       m_last_hovered_slotview;
+        SlotView*       m_last_clicked_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
         std::vector<SlotView*>     m_slot_views;
         std::vector<PropertyView*> m_property_views;

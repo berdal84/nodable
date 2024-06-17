@@ -728,12 +728,12 @@ void NodableView::draw_config_window()
             if ( ImGui::CollapsingHeader("Slots"))
             {
                 ImGui::Text("Property Slots:");
-                ImGui::SliderFloat("slot radius", &cfg->ui_slot_radius, 5.0f, 10.0f);
+                ImGui::SliderFloat("slot radius", &cfg->ui_slot_circle_radius, 5.0f, 10.0f);
 
                 ImGui::Separator();
 
                 ImGui::Text("Code Flow Slots:");
-                ImGui::SliderFloat2("slot size##codeflow", &cfg->ui_slot_size.x, 2.0f, 100.0f);
+                ImGui::SliderFloat2("slot size##codeflow", &cfg->ui_slot_rectangle_size.x, 2.0f, 100.0f);
                 ImGui::SliderFloat("slot padding##codeflow", &cfg->ui_slot_gap, 0.0f, 100.0f);
                 ImGui::SliderFloat("slot radius##codeflow", &cfg->ui_slot_border_radius, 0.0f, 40.0f);
             }
@@ -754,7 +754,7 @@ void NodableView::draw_config_window()
             ImGui::Text("Wires");
             ImGui::SliderFloat("thickness##wires", &cfg->ui_wire_bezier_thickness, 0.5f, 10.0f);
             ImGui::SliderFloat2("roundness (min,max)##wires", &cfg->ui_wire_bezier_roundness.x, 0.0f, 1.0f);
-            ImGui::SliderFloat2("fade length (min,max)##wires", &cfg->ui_wire_bezier_fade_length_minmax.x, 200.0f, 1000.0f);
+            ImGui::SliderFloat2("fade length (min,max in lensqr)##wires", &cfg->ui_wire_bezier_fade_lensqr_range.x, 200.0f, 1000.0f);
             ImGui::ColorEdit4("color##wires", &cfg->ui_wire_color.x);
             ImGui::ColorEdit4("shadow color##wires", &cfg->ui_wire_shadowColor.x);
 

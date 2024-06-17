@@ -25,10 +25,10 @@ namespace ndbl
     {
     public:
         SlotView(
-            NodeView* parent,
             Slot* slot,
             const tools::Vec2& align,
-            ShapeType shape
+            ShapeType shape,
+            size_t index
             );
 
         bool                  draw() override;
@@ -37,15 +37,18 @@ namespace ndbl
         tools::string64       compute_tooltip() const;
         Node*                 get_node()const;
         bool                  has_node_connected() const;
-        Slot&                 slot()const;
-        tools::Vec2           normal() const;
+        Slot&                 get_slot()const;
+        const tools::Vec2&    get_align() const;
+        tools::Vec2           get_normal() const;
         Node*                 adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
+        size_t                get_index() const;
+        ShapeType             get_shape() const;
+
     private:
-        u8_t                  m_index;
+        size_t                m_index;
         ShapeType             m_shape;
-        NodeView*             m_parent;
         Slot*                 m_slot;
         tools::Vec2           m_align;
     };

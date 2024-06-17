@@ -33,8 +33,8 @@ REFLECT_STATIC_INIT
     StaticInitializer<GraphView>("GraphView").extends<View>();
 }
 
-GraphView::GraphView(Graph* graph, View* parent)
-    : View(parent)
+GraphView::GraphView(Graph* graph)
+    : View()
     , m_graph(graph)
 {
     ASSERT(graph)
@@ -45,10 +45,11 @@ GraphView::GraphView(Graph* graph, View* parent)
         {
             // Add a NodeView and Physics component
             ComponentFactory* component_factory = get_component_factory();
-            NodeView* new_view_id = component_factory->create<NodeView>( this );
-            Physics* physics_id   = component_factory->create<Physics>( new_view_id );
-            node->add_component( new_view_id );
-            node->add_component( physics_id );
+            auto nodeview = component_factory->create<NodeView>();
+            this->add_child(nodeview);
+            auto physics  = component_factory->create<Physics>( nodeview );
+            node->add_component( nodeview );
+            node->add_component( physics );
         }
     );
 }
@@ -86,10 +87,10 @@ bool GraphView::draw()
         style.shadow_color = cfg->ui_codeflow_shadowColor,
         style.roundness    = 0.f;
 
-        if ( from->slot().type() == SlotFlag_TYPE_CODEFLOW )
+        if (from->get_slot().type() == SlotFlag_TYPE_CODEFLOW )
         {
             style.color     = cfg->ui_codeflow_color,
-            style.thickness = cfg->ui_slot_size.x * cfg->ui_codeflow_thickness_ratio;
+            style.thickness = cfg->ui_slot_rectangle_size.x * cfg->ui_codeflow_thickness_ratio;
         }
         else
         {
@@ -99,7 +100,7 @@ bool GraphView::draw()
 
         // Draw
 
-        ImGuiID id     = make_wire_id(&m_active_slotview->slot(), nullptr);
+        ImGuiID id     = make_wire_id(&m_active_slotview->get_slot(), nullptr);
         Vec2 start_pos = from->get_pos(SCREEN_SPACE);
 
         BezierCurveSegment segment{
@@ -236,17 +237,18 @@ bool GraphView::draw()
             SlotView* slotview          = slot->get_view();
             SlotView* adjacent_slotview = adjacent_slot->get_view();
 
-            float linear_dist = Vec2::distance(
-                slotview->get_pos(SCREEN_SPACE),
-                adjacent_slotview->get_pos(SCREEN_SPACE)
-            );
-            float linear_dist_half  = linear_dist * 0.5f;
+            const Vec2& start_pos = slotview->get_pos(SCREEN_SPACE);
+            const Vec2& end_pos   = adjacent_slotview->get_pos(SCREEN_SPACE);
+
+            const Vec2 signed_dist = end_pos - start_pos;
+            float lensqr_dist      = signed_dist.lensqr();
+            const Vec2 half_signed_dist = signed_dist * 0.5f;
 
             BezierCurveSegment curve{
-                slotview->get_pos(SCREEN_SPACE),
-                slotview->get_pos(SCREEN_SPACE) + slotview->normal() * linear_dist_half,
-                adjacent_slotview->get_pos(SCREEN_SPACE) + adjacent_slotview->normal() * linear_dist_half,
-                adjacent_slotview->get_pos(SCREEN_SPACE)
+                start_pos,
+                start_pos + half_signed_dist * slotview->get_normal(),
+                end_pos   + half_signed_dist * adjacent_slotview->get_normal(),
+                end_pos
             };
 
             // do not draw long lines between a variable value
@@ -258,10 +260,10 @@ bool GraphView::draw()
             else
             {
                 // transparent depending on wire length
-                if ( linear_dist > cfg->ui_wire_bezier_fade_length_minmax.x )
+                if (lensqr_dist > cfg->ui_wire_bezier_fade_lensqr_range.x )
                 {
-                    float factor = ( linear_dist - cfg->ui_wire_bezier_fade_length_minmax.x ) /
-                                   ( cfg->ui_wire_bezier_fade_length_minmax.y - cfg->ui_wire_bezier_fade_length_minmax.x );
+                    float factor = (lensqr_dist - cfg->ui_wire_bezier_fade_lensqr_range.x ) /
+                                   (cfg->ui_wire_bezier_fade_lensqr_range.y - cfg->ui_wire_bezier_fade_lensqr_range.x );
                     style.color        = Vec4::lerp(style.color, Vec4(0, 0, 0, 0), factor);
                     style.shadow_color = Vec4::lerp(style.shadow_color, Vec4(0, 0, 0, 0), factor);
                 }
@@ -273,8 +275,8 @@ bool GraphView::draw()
                 style.roundness = lerp(
                         cfg->ui_wire_bezier_roundness.x, // min
                         cfg->ui_wire_bezier_roundness.y, // max
-                          1.0f - normalize( linear_dist, 100.0f, 10000.0f )
-                        + 1.0f - normalize( linear_dist, 0.0f, 200.0f)
+                          1.0f - normalize(lensqr_dist, 100.0f, 10000.0f )
+                        + 1.0f - normalize(lensqr_dist, 0.0f, 200.0f)
                 );
 
                 if ( slot->has_flags(SlotFlag_TYPE_CODEFLOW) )
@@ -464,8 +466,8 @@ bool GraphView::draw()
 
             auto& event_manager = EventManager::get_instance();
             auto event = new Event_SlotDropped();
-            event->data.first  = &m_active_slotview->slot();
-            event->data.second = &hovered_node->m_last_hovered_slotview->slot();
+            event->data.first  = &m_active_slotview->get_slot();
+            event->data.second = &hovered_node->m_last_hovered_slotview->get_slot();
             event_manager.dispatch(event);
 
             break;
@@ -501,8 +503,8 @@ bool GraphView::draw()
                 // Generate an event from this action, add some info to the state and dispatch it.
                 auto& event_manager = EventManager::get_instance();
                 auto* event = new Event_DeleteEdge();
-                event->data.first = &hovered_wire_start->slot();
-                event->data.second = &hovered_wire_end->slot();
+                event->data.first = &hovered_wire_start->get_slot();
+                event->data.second = &hovered_wire_end->get_slot();
                 event_manager.dispatch(event);
 
                 ImGui::CloseCurrentPopup();
@@ -513,7 +515,7 @@ bool GraphView::draw()
             if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect", nullptr, can_disconnect)  )
             {
                 auto &event_manager = EventManager::get_instance();
-                event_manager.dispatch<Event_SlotDisconnected>({&m_active_slotview->slot()});
+                event_manager.dispatch<Event_SlotDisconnected>({&m_active_slotview->get_slot()});
                 ImGui::CloseCurrentPopup();
             }
 

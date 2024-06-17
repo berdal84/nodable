@@ -27,14 +27,14 @@ namespace ndbl
         TextEditor::Palette ui_text_textEditorPalette{};
         Vec2           ui_wire_bezier_roundness; // {min, max}
         float          ui_wire_bezier_thickness;
-        Vec2           ui_wire_bezier_fade_length_minmax;
+        Vec2           ui_wire_bezier_fade_lensqr_range;
         Vec4           ui_wire_color;
         Vec4           ui_wire_shadowColor;
-        float          ui_slot_radius;
+        float          ui_slot_circle_radius;
         Vec4           ui_slot_border_color;
         Vec4           ui_slot_color;
         Vec4           ui_slot_hovered_color;
-        Vec2           ui_slot_size;
+        Vec2           ui_slot_rectangle_size;
         float          ui_slot_gap;
         float          ui_slot_border_radius;
         float          ui_slot_invisible_ratio;

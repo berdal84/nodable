@@ -7,36 +7,37 @@
 using namespace ndbl;
 using namespace tools;
 
-Property::Property()
-    : m_name("Unknown")
-    , token(Token::s_null)
-    , m_flags( PropertyFlag_DEFAULT )
+Property::Property(Node* node)
+: m_name("Unknown")
+, m_node(node)
+, token(Token::s_null)
+, m_flags( PropertyFlag_DEFAULT )
 {
 }
 
-Property::Property(double d)
-: Property()
+Property::Property(double d, Node* node)
+: Property(node)
 { m_variant.set(d); }
 
-Property::Property(bool b)
-: Property()
+Property::Property(bool b, Node* node)
+: Property(node)
 { m_variant.set(b); }
 
-Property::Property(int i)
-: Property((double)i)
+Property::Property(int i, Node* node)
+: Property((double)i, node)
 {}
 
-Property::Property(const char *str)
-: Property()
+Property::Property(const char *str, Node* node)
+: Property(node)
 { m_variant.set(str); }
 
-Property::Property(const std::string &s)
-: Property(s.c_str())
+Property::Property(const std::string &s, Node* node)
+: Property(s.c_str(), node)
 {}
 
 
-Property::Property(const type* _type, PropertyFlags _flags)
-: Property()
+Property::Property(const type* _type, PropertyFlags _flags, Node* node)
+: Property(node)
 {
     // handle type
     m_variant.ensure_is_type(_type);

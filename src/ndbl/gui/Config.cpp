@@ -69,7 +69,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_borderWidth                   = 1.0f;
     ui_node_instructionBorderRatio        = 2.0f;
     ui_node_padding                       = { 8.0f, 4.0f, 4.0f, 4.0f };
-    ui_slot_radius = 4.0f;
+    ui_slot_circle_radius = 4.0f;
     ui_node_invokableColor                = Color(255, 199, 115);            // light orange
     ui_node_variableColor                 = Color( 171, 190, 255);           // blue
     ui_node_instructionColor              = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
@@ -86,7 +86,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_spacing                       = 30.0f;
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
-    ui_slot_size = {10.f, 10.f};
+    ui_slot_rectangle_size = {10.f, 10.f};
     ui_slot_gap = 4.0f;
     ui_slot_border_radius = 0.1f;
     ui_slot_invisible_ratio = 1.2f; // 120%
@@ -94,14 +94,14 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     // wires
     ui_wire_bezier_roundness              = {0.25f, 2.0f};
     ui_wire_bezier_thickness              = 2.0f;
-    ui_wire_bezier_fade_length_minmax     = {300.0f, 1000.0f};
+    ui_wire_bezier_fade_lensqr_range     = {300.0f*300.f, 1000.0f*1000.0f};
     ui_wire_color                         = Color(255, 255, 255);
     ui_wire_shadowColor                   = ui_node_shadowColor;
 
     // code flow
     ui_codeflow_color                     = Color(150, 170, 140); // slightly green
     ui_codeflow_shadowColor               = Color(0, 0, 0, 64);
-    ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_slot_size.x
+    ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_slot_rectangle_size.x
 
     // buttons
     ui_toolButton_size                    = Vec2(0.0f, 25.0f);
@@ -184,5 +184,5 @@ void ndbl::Config::reset()
 
 float ndbl::Config::ui_codeflow_thickness() const
 {
-    return ui_slot_size.x * ui_codeflow_thickness_ratio;
+    return ui_slot_rectangle_size.x * ui_codeflow_thickness_ratio;
 }

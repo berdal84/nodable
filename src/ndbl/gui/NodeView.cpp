@@ -39,9 +39,9 @@ NodeViewDetail     NodeView::s_view_detail                       = NodeViewDetai
 const float        NodeView::s_property_input_size_min           = 10.0f;
 const Vec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
 
-NodeView::NodeView(View* parent)
+NodeView::NodeView()
         : NodeComponent()
-        , View(parent)
+        , View()
         , m_colors({&DEFAULT_COLOR})
         , m_opacity(1.0f)
         , m_expanded(true)
@@ -49,6 +49,7 @@ NodeView::NodeView(View* parent)
         , m_property_view_this(nullptr)
         , m_property_views()
         , m_last_hovered_slotview(nullptr)
+        , m_last_clicked_slotview(nullptr)
 {
     set_pos(DEFAULT_POS, PARENT_SPACE);
     set_size(DEFAULT_SIZE);
@@ -84,7 +85,8 @@ void NodeView::set_owner(Node* node)
     for (Property* each_prop : node->props )
     {
         // Create view
-        PropertyView* property_view = new PropertyView(this, each_prop);
+        auto property_view = new PropertyView(each_prop);
+        add_child(property_view);
         m_property_views.push_back(property_view);
 
         // Indexing
@@ -128,39 +130,12 @@ void NodeView::set_owner(Node* node)
             case SlotFlag_OUTPUT: slot_align   = slot->is_this() ? Vec2{-1.f, 0.f}
                                                                  : Vec2{ 0.f, 1.f}; break;
             case SlotFlag_NEXT:   slot_align   = {-1.f, 1.f}; slot_shape = ShapeType_RECTANGLE; break;
-            case SlotFlag_CHILD:
-            case SlotFlag_PARENT: break; // skipped
             default:
-                EXPECT(false, "unhandled slot flags")
+                continue; // skipped
         }
 
-//        {
-//            // TODO: use 3x3 matrices to simplify code
-//            if( m_slot.type() == SlotFlag_TYPE_VALUE && m_slot.get_property()->is_this() )
-//            {
-//                Rect r = m_parent->get_rect(SCREEN_SPACE);
-//                return r.center() + r.size() * m_align * 0.5f;
-//            }
-//            auto property_view = m_parent->get_property_view( m_slot.property );
-//            Rect property_rect = property_view->screen_rect;
-//            return property_rect.center()
-//                   + property_rect.size() * m_align * 0.5f;
-//        }
-
-        const Vec2 half_size = get_size() * 0.5f;
-        const Vec2 slot_half_size = cfg->ui_slot_size * 0.5f;
-
-        // TODO: this code only handle the next/prev slots, we must handle other types (see commented code above)
-        Vec2 pos{0, 0};
-        pos.x += 2.f * cfg->ui_slot_gap + (cfg->ui_slot_size.x + cfg->ui_slot_gap) * float(slot_index);
-        pos.y += slot_align.y * slot_half_size.y;
-        pos   += slot_align * half_size;
-
-        auto* slotview = new SlotView(this, slot, slot_align, slot_shape);
-        slotview->set_pos(pos, PARENT_SPACE);
-        slotview->set_size(cfg->ui_slot_size);
-
-        slot->set_view(slotview);
+        auto* slotview = new SlotView(slot, slot_align, slot_shape, slot_index);
+        this->add_child(slotview);
         m_slot_views.push_back(slotview);
     }
 
@@ -263,15 +238,63 @@ bool NodeView::update(float _deltaTime)
         lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
     }
 
-    for ( SlotView* slot_view : m_slot_views )
+    Config* cfg = get_config();
+    const Vec2 nodeview_halfsize = get_size() * 0.5f;
+
+    for(SlotView* slot_view  : m_slot_views )
     {
         slot_view->visible = false;
 
-        const Slot& slot = slot_view->slot();
-        if ( slot.capacity() == 0) continue;
-        if (slot.type() == SlotFlag_TYPE_CODEFLOW  && !get_node()->is_instruction() && !get_node()->can_be_instruction() ) continue;
+        const Slot& slot = slot_view->get_slot();
+
+        if (slot.capacity() == 0)
+            continue;
+
+        if (slot.type() == SlotFlag_TYPE_CODEFLOW )
+            if (!get_node()->is_instruction())
+                if (!get_node()->can_be_instruction() )
+                    continue;
 
         slot_view->visible = true;
+
+        switch ( slot_view->get_shape())
+        {
+            case ShapeType_CIRCLE:
+            {
+                // Circle are snapped vertically on their property view, except for the "this" property.
+
+                const Vec2 half_size = Vec2(cfg->ui_slot_circle_radius)*0.5f;
+                Rect slot_rect{-half_size, half_size};
+
+                if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
+                {
+                    slot_rect.translate(get_rect(SCREEN_SPACE).center() + slot_view->get_align() * nodeview_halfsize );
+                }
+                else
+                {
+                    auto property_view = get_property_view( slot.get_property() );
+                    Rect property_rect = property_view->get_rect(SCREEN_SPACE);
+                    slot_rect.translate( property_rect.center() + property_rect.size() * slot_view->get_align() * Vec2{0.5f} );
+                }
+                slot_view->set_pos(slot_rect.center(), SCREEN_SPACE);
+                slot_view->set_size(slot_rect.size());
+                break;
+            }
+
+            case ShapeType_RECTANGLE:
+            {
+                // Rectangles are always on top/bottom
+                const Vec2 half_size = cfg->ui_slot_rectangle_size*0.5f;
+                Rect slot_rect{-half_size, half_size};
+                slot_rect.translate(get_pos(SCREEN_SPACE));
+                slot_rect.translate_x( 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(slot_view->get_index()) );
+                slot_rect.translate_y(slot_view->get_align().y * cfg->ui_slot_rectangle_size.y * 0.5f );
+                slot_rect.translate( slot_view->get_align() * nodeview_halfsize );
+                slot_view->set_pos(slot_rect.center(), SCREEN_SPACE);
+                slot_view->set_size(slot_rect.size());
+            }
+        }
+
     }
 	return true;
 }
@@ -287,15 +310,16 @@ bool NodeView::draw()
     ASSERT(node != nullptr);
 
     m_last_hovered_slotview = nullptr; // reset every frame
+    m_last_clicked_slotview = nullptr; // reset every frame
 
     // Draw Node slots (in background)
     for ( SlotView* slot_view : m_slot_views )
     {
-        if( slot_view->slot().type() != SlotFlag_TYPE_CODEFLOW ) // TODO: This could be precomputed
+        if(slot_view->get_slot().type() != SlotFlag_TYPE_CODEFLOW ) // TODO: This could be precomputed
             continue;
 
         if( slot_view->draw() )
-            ASSERT(false) // click not handled yet
+            m_last_clicked_slotview = slot_view;
 
         if( slot_view->hovered )
             m_last_hovered_slotview = slot_view;
@@ -343,7 +367,7 @@ bool NodeView::draw()
     ImGui::SetItemAllowOverlap();
     Vec2 new_screen_pos = screen_rect.tl()
                           + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
-                          + Vec2{ cfg->ui_slot_radius, 0.0f}; // space for "this" left slot
+                          + Vec2{cfg->ui_slot_circle_radius, 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
 
     hovered = ImGui::IsItemHovered();
@@ -392,7 +416,7 @@ bool NodeView::draw()
     // Draw Property in/out slots
     for( SlotView* slot_view: m_slot_views )
     {
-        if( !slot_view->slot().has_flags(SlotFlag_TYPE_VALUE) ) // TODO: This could be precomputed
+        if( !slot_view->get_slot().has_flags(SlotFlag_TYPE_VALUE) ) // TODO: This could be precomputed
             continue;
         if( slot_view->draw() )
             ASSERT(false) // click not handled yet

@@ -25,7 +25,7 @@ Property* PropertyBag::add(const type* _type, const char* _name, PropertyFlags _
 
     // create the property
 
-    auto* new_property = new Property(_type, _flags);
+    auto* new_property = new Property(_type, _flags, m_node);
     new_property->set_name(_name);
 
     m_properties.push_back(new_property);

@@ -64,7 +64,7 @@ namespace ndbl
 	public:
         using NodeViewVec = std::vector<NodeView*>;
 
-	    explicit GraphView(Graph* graph, View* parent);
+	    explicit GraphView(Graph* graph);
 		~GraphView() override = default;
 
         bool        draw() override;

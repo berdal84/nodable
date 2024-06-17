@@ -16,6 +16,8 @@
 #include "PropertyBag.h"
 #include "constants.h"
 #include "NodeComponent.h"
+#include "SlotFlag.h"
+#include "Slot.h"
 
 namespace ndbl
 {

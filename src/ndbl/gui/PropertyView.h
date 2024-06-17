@@ -20,7 +20,7 @@ namespace ndbl
         bool        show_input;
         bool        touched;
 
-        PropertyView( NodeView*, Property* );
+        PropertyView(Property*);
 
         void             reset();
         Property*        get_property() const;
@@ -28,7 +28,6 @@ namespace ndbl
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
     private:
-        NodeView*        m_node_view;
         Property*        m_property;
     };
 }

@@ -7,9 +7,8 @@
 using namespace ndbl;
 using namespace tools;
 
-PropertyView::PropertyView( NodeView* _node_view, Property* _property )
-: tools::View(_node_view)
-, m_node_view(_node_view)
+PropertyView::PropertyView(Property* _property )
+: tools::View()
 , m_property(_property)
 , show_input(false)
 , touched(false)
@@ -29,7 +28,7 @@ Property* PropertyView::get_property() const
 
 Node* PropertyView::get_node() const
 {
-    return m_node_view->get_owner();
+    return m_property->get_node();
 }
 
 bool PropertyView::has_input_connected() const

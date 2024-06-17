@@ -3,16 +3,17 @@
 #include <set>
 #include <memory>                 // std::shared_ptr
 
-#include "tools/core/memory/memory.h"
-#include "tools/core/reflection/reflection"
+#include "tools/core/reflection/type.h"
 #include "tools/core/types.h"
 
 #include "constants.h"
 #include "Property.h"
-#include "Slot.h"
 
 namespace ndbl
 {
+    // forward declarations
+    class Node;
+
     /**
      * @brief The Properties class is a Property* container for a given Node.
      * This class uses several indexes (by address, name, insertion order).
@@ -23,7 +24,7 @@ namespace ndbl
         static constexpr size_t THIS_ID = 0; // id of the "this" Property. A "this" Property points to its owner's ID<Node>
         using iterator = std::vector<Property*>::iterator;
         using const_iterator = std::vector<Property*>::const_iterator;
-        PropertyBag() = default;
+        PropertyBag(Node* node): m_node(node) {};
 		~PropertyBag();
 
         iterator               begin() { return m_properties.begin(); }
@@ -55,6 +56,7 @@ namespace ndbl
 
     private:
         const Property* _find_first( PropertyFlags _flags, const tools::type *_type) const;
+        Node* m_node;
         std::vector<Property*>  m_properties;
         std::map<std::string, Property*> m_properties_by_name;
     };

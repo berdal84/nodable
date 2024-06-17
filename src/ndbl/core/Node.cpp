@@ -22,6 +22,7 @@ Node::Node(std::string _label)
 , dirty(true)
 , flagged_to_delete(false)
 , parent_graph( nullptr )
+, props(this)
 , m_this_as_property(add_prop<Node*>(THIS_PROPERTY, PropertyFlag_IS_THIS ) ) // Add a property acting like a "this" for the owner Node.
 {
     m_this_as_property->set(this);

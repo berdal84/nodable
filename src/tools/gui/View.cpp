@@ -8,56 +8,65 @@ REFLECT_STATIC_INIT
     StaticInitializer<View>("View");
 }
 
-View::View(View* parent)
+View::View()
 : hovered(false)
 , visible(true)
 , selected(false)
-, m_box()
-, m_parent(parent)
+, m_screen_box()
+, m_parent(nullptr)
 {
 }
 
 void View::set_pos(const Vec2& p, Space space)
 {
-    if (space == PARENT_SPACE || m_parent == nullptr )
-        return m_box.set_pos(p);
+    const Vec2 old_pos = m_screen_box.get_pos();
+    if (space == SCREEN_SPACE || m_parent == nullptr )
+    {
+        m_screen_box.set_pos(p);
+    }
+    else
+    {
+        Vec2 screen_space_pos = Vec2::transform(p, m_parent->m_screen_box.world_matrix());
+        m_screen_box.set_pos(screen_space_pos);
+    }
 
-    Vec2 parent_space_pos = Vec2::transform(p, m_parent->m_box.model_matrix());
-    m_box.set_pos(parent_space_pos);
+    if ( m_children.empty() )
+        return;
+
+    const Vec2 delta = m_screen_box.get_pos() - old_pos;
+    for(View* child : m_children)
+        child->translate(delta);
 }
 
 Vec2 View::get_pos(Space space) const
 {
-    if (space == PARENT_SPACE || m_parent == nullptr )
-        return m_box.get_pos();
-    return Vec2::transform(m_box.get_pos(), m_parent->m_box.world_matrix() );
+    if (space == SCREEN_SPACE || m_parent == nullptr )
+        return m_screen_box.get_pos();
+    return Vec2::transform(m_screen_box.get_pos(), m_parent->m_screen_box.model_matrix() );
 }
 
 void View::translate(const Vec2& _delta)
 {
-    m_box.translate( _delta );
+    set_pos(get_pos(SCREEN_SPACE) + _delta, SCREEN_SPACE );
 }
 
 Rect View::get_rect(Space space) const
 {
-    if (space == PARENT_SPACE || m_parent == nullptr )
-        return m_box.get_rect();
+    if (space == SCREEN_SPACE || m_parent == nullptr )
+        return m_screen_box.get_rect();
 
-    // TODO: We should use Xform, but something is wrong with world/model matrices
-    Rect result        = m_box.get_rect();
-    Vec2 parent_origin = m_parent->get_rect(PARENT_SPACE).center();
-    result.translate( parent_origin );
-    return result;
+   Box2D parent_space_box = Box2D::transform(m_screen_box, m_parent->m_screen_box.model_matrix() );
+   return parent_space_box.get_rect();
 }
 
 void View::set_size(const Vec2& size)
 {
-    m_box.set_size(size );
+    m_screen_box.set_size(size);
 }
 
 Vec2 View::get_size() const
 {
-    return m_box.get_size();
+    return m_screen_box.get_size();
 }
 
 View* View::get_parent() const
@@ -71,8 +80,8 @@ bool View::draw()
 
     if ( m_parent == nullptr)
     {
-        set_size(m_content_region.size());
-        set_pos(m_content_region.center(), SCREEN_SPACE);
+        m_screen_box.set_size( m_content_region.size() );
+        m_screen_box.set_pos( m_content_region.center() ); // do not replace by this->set_pos(...)
     }
 
 #ifdef TOOLS_DEBUG
@@ -97,4 +106,10 @@ const Rect &View::get_content_region(Space space) const
 {
     ASSERT(space == SCREEN_SPACE) // Only space handled
     return m_content_region;
+}
+
+void View::add_child(View* view)
+{
+    m_children.push_back(view);
+    view->m_parent = this;
 }

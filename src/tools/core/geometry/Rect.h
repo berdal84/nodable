@@ -100,6 +100,7 @@ namespace tools
 
         static Rect bbox(std::vector<Vec2> points );
 
+        static Rect transform(const Rect &rect, const glm::mat3 &mat);
     };
 
 }
