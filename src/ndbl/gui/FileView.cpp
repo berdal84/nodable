@@ -89,10 +89,10 @@ bool FileView::draw()
         bool is_running = get_virtual_machine()->is_program_running();
         GraphView* graphview = m_file->get_graph().get_view();
         auto allow_keyboard = !is_running &&
-                              !graphview->has_no_tool_active();
+                              !graphview->has_an_active_tool();
 
         auto allow_mouse = !is_running &&
-                           !graphview->has_no_tool_active() &&
+                           !graphview->has_an_active_tool() &&
                            !ImGui::IsAnyItemHovered() &&
                            !ImGui::IsAnyItemFocused();
 
@@ -320,9 +320,8 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 
 void FileView::clear_overlay()
 {
-    std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [&](auto &vec) {
+    for(auto& vec : m_overlay_data )
         vec.clear();
-    });
 }
 
 void FileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)

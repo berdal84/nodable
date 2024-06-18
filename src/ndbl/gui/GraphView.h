@@ -17,6 +17,7 @@
 #include "NodeViewConstraint.h"
 #include "SlotView.h"
 #include "types.h"
+#include "GraphViewTool.h"
 
 namespace ndbl
 {
@@ -49,15 +50,6 @@ namespace ndbl
         SelectionMode_REPLACE = 1,
     };
 
-    enum Tool
-    {
-        Tool_NONE = 0,
-        Tool_DEFINE_ROI,
-        Tool_DRAG_NODEVIEWS,
-        Tool_DRAG_ALL,
-        Tool_CREATE_WIRE
-    };
-
     class GraphView: public tools::View
     {
         REFLECT_DERIVED_CLASS()
@@ -73,29 +65,28 @@ namespace ndbl
         bool        selection_empty() const;
         void        reset(); // unfold and frame the whole graph
         bool        update();
-        bool        has_no_tool_active() const;
+        bool        has_an_active_tool() const;
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
         const NodeViewVec& get_selected() const;
         void        reset_all_properties();
 
     private:
-        void        set_tool(Tool tool);
+        void        reset_tool();
+        void        change_tool(Tool new_tool);
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
         bool        update(float dt, u16_t samples);
         static void translate_all(const std::vector<NodeView*>&, const Vec2& offset, NodeViewFlags);
         void        translate_all(const Vec2& offset);
         bool        is_selected(NodeView*) const;
-        void        start_drag_nodeviews();
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         std::vector<NodeView*> get_all_nodeviews() const;
 
         Graph*      m_graph;
         CreateNodeContextMenu m_create_node_menu{};
         NodeViewVec m_selected_nodeview;
-        NodeView*   m_active_nodeview{nullptr};
-        SlotView*   m_active_slotview{nullptr};
-        Tool        m_tool{Tool_NONE};
-
+        Item        m_focused{};
+        Tool        m_tool{};
+        bool        m_context_menu_open_last_frame{false};
     };
 }

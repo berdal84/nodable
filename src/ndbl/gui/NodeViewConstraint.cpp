@@ -85,7 +85,7 @@ void NodeViewConstraint::apply(float _dt)
 
                 case Align_END:
                 {
-                    virtual_cursor.x += driver->get_size().x / 4.0f + cfg->ui_node_spacing;
+                    virtual_cursor.x += cfg->ui_node_spacing;
                     break;
                 }
 

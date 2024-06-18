@@ -61,3 +61,8 @@ bool Rect::contains( const Rect& rect, const Vec2& point )
            point.y >= rect.min.y &&
            point.y <= rect.max.y;
 }
+
+bool Rect::has_area() const
+{
+    return width() != 0.f && height() != 0.f;
+}

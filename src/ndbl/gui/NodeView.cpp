@@ -30,14 +30,12 @@ REFLECT_STATIC_INIT
         .extends<View>();
 }
 
-constexpr Vec2 DEFAULT_SIZE{10.0f, 35.0f};
-constexpr Vec2 DEFAULT_POS{500.0f, -1.0f};
-constexpr Vec4 DEFAULT_COLOR{1.f, 0.f, 0.f};
-
-// TODO: move those values into the configuration
-NodeViewDetail     NodeView::s_view_detail                       = NodeViewDetail::Default;
-const float        NodeView::s_property_input_size_min           = 10.0f;
-const Vec2 NodeView::s_property_input_toggle_button_size(10.0, 25.0f);
+constexpr Vec2 DEFAULT_SIZE             = Vec2(10.0f, 35.0f);
+constexpr Vec2 DEFAULT_POS              = Vec2(500.0f, -1.0f);
+constexpr Vec4 DEFAULT_COLOR            = Vec4(1.f, 0.f, 0.f);
+constexpr bool PIXEL_PERFECT            = true; // round positions for drawing only
+constexpr float PROPERTY_INPUT_SIZE_MIN = 10.0f;
+constexpr Vec2 PROPERTY_TOGGLE_BTN_SIZE = Vec2(10.0, 25.0f);
 
 NodeView::NodeView()
         : NodeComponent()
@@ -48,7 +46,7 @@ NodeView::NodeView()
         , m_pinned(false)
         , m_property_view_this(nullptr)
         , m_property_views()
-        , m_last_hovered_slotview(nullptr)
+        , m_hovered_slotview(nullptr)
         , m_last_clicked_slotview(nullptr)
 {
     set_pos(DEFAULT_POS, PARENT_SPACE);
@@ -57,7 +55,8 @@ NodeView::NodeView()
 
 std::string NodeView::get_label()
 {
-    if (s_view_detail == NodeViewDetail::Minimalist )
+    Config* cfg = get_config();
+    if (cfg->ui_node_detail == ViewDetail::MINIMALIST )
     {
         // I always add an ICON_FA at the beginning of any node label string (encoded in 4 bytes)
         return m_short_label;
@@ -268,7 +267,7 @@ bool NodeView::update(float _deltaTime)
 
                 if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
                 {
-                    slot_rect.translate(get_rect(SCREEN_SPACE).center() + slot_view->get_align() * nodeview_halfsize );
+                    slot_rect.translate(get_pos(SCREEN_SPACE) + get_size() * slot_view->get_align() * Vec2{0.5f} );
                 }
                 else
                 {
@@ -309,27 +308,23 @@ bool NodeView::draw()
 
     ASSERT(node != nullptr);
 
-    m_last_hovered_slotview = nullptr; // reset every frame
+    m_hovered_slotview      = nullptr; // reset every frame
     m_last_clicked_slotview = nullptr; // reset every frame
 
-    // Draw Node slots (in background)
-    for ( SlotView* slot_view : m_slot_views )
-    {
-        if(slot_view->get_slot().type() != SlotFlag_TYPE_CODEFLOW ) // TODO: This could be precomputed
-            continue;
-
-        if( slot_view->draw() )
-            m_last_clicked_slotview = slot_view;
-
-        if( slot_view->hovered )
-            m_last_hovered_slotview = slot_view;
-    }
-
+    // Draw background slots (rectangles)
+    for( SlotView* slot_view: m_slot_views )
+        if ( slot_view->get_shape() == ShapeType_RECTANGLE)
+            draw_slot(slot_view);
 
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
     Rect screen_rect = get_rect(SCREEN_SPACE);
+    if ( PIXEL_PERFECT )
+    {
+        screen_rect.min = Vec2::round( screen_rect.min );
+        screen_rect.max = Vec2::round( screen_rect.max );
+    }
     ImGui::SetCursorScreenPos(screen_rect.tl() ); // start from th top left corner
 	ImGui::PushID(this);
 
@@ -362,7 +357,7 @@ bool NodeView::draw()
             border_width );
 
     // Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorScreenPos(screen_rect.tl() );
+	ImGui::SetCursorScreenPos(screen_rect.tl());
 	ImGui::InvisibleButton("node", get_size());
     ImGui::SetItemAllowOverlap();
     Vec2 new_screen_pos = screen_rect.tl()
@@ -390,9 +385,10 @@ bool NodeView::draw()
     ImGui::BeginGroup();
 
     // draw properties
-    auto draw_property_lambda = [&](PropertyView* view) {
+    auto draw_property_lambda = [&](PropertyView* view)
+    {
         ImGui::SameLine();
-        changed |= _draw_property_view( view );
+        changed |= _draw_property_view( view, cfg->ui_node_detail );
     };
     std::for_each( m_property_views_with_input_only.begin(), m_property_views_with_input_only.end(), draw_property_lambda);
     std::for_each( m_property_views_with_output_or_inout.begin(), m_property_views_with_output_or_inout.end(), draw_property_lambda);
@@ -413,19 +409,10 @@ bool NodeView::draw()
 
     set_size(Vec2::round(new_size));
 
-    // Draw Property in/out slots
+    // Draw foreground slots (circles)
     for( SlotView* slot_view: m_slot_views )
-    {
-        if( !slot_view->get_slot().has_flags(SlotFlag_TYPE_VALUE) ) // TODO: This could be precomputed
-            continue;
-        if( slot_view->draw() )
-            ASSERT(false) // click not handled yet
-        if( slot_view->hovered )
-        {
-            m_last_hovered_slotview = slot_view;
-            hovered = true;
-        }
-    }
+        if ( slot_view->get_shape() == ShapeType_CIRCLE)
+            draw_slot(slot_view);
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
@@ -471,7 +458,7 @@ void NodeView::DrawNodeRect(
     }
 }
 
-bool NodeView::_draw_property_view(PropertyView* _view)
+bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 {
     bool            changed            = false;
     Property*       property           = _view->get_property();
@@ -494,7 +481,7 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         // Always show literals (their property don't have input slot)
         _view->show_input |= node_class->is<LiteralNode>();
         // Always show when defined in exhaustive mode
-        _view->show_input |= is_defined && s_view_detail == NodeViewDetail::Exhaustive;
+        _view->show_input |= is_defined && _detail == ViewDetail::EXHAUSTIVE;
         // Always show when connected to a variable
         _view->show_input |= connected_variable != nullptr;
         // Shows variable property only if they are not connected (don't need to show anything, the variable name is already displayed on the node itself)
@@ -502,7 +489,7 @@ bool NodeView::_draw_property_view(PropertyView* _view)
     }
 
     // input
-    float input_size = NodeView::s_property_input_toggle_button_size.x;
+    float input_size = PROPERTY_TOGGLE_BTN_SIZE.x;
 
     if ( _view->show_input )
     {
@@ -512,7 +499,7 @@ bool NodeView::_draw_property_view(PropertyView* _view)
         {
             // try to draw an as small as possible input field
             std::string str = connected_variable ? connected_variable->name : property->to<std::string>();
-            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, NodeView::s_property_input_size_min);
+            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, PROPERTY_INPUT_SIZE_MIN);
             ImGui::PushItemWidth(input_size);
         }
         changed = NodeView::draw_property_view(_view, nullptr);
@@ -524,7 +511,7 @@ bool NodeView::_draw_property_view(PropertyView* _view)
     }
     else
     {
-        ImGui::Button("", NodeView::s_property_input_toggle_button_size);
+        ImGui::Button("", PROPERTY_TOGGLE_BTN_SIZE);
 
         if ( ImGui::IsItemClicked(0) )
         {
@@ -879,11 +866,6 @@ void NodeView::constraint_to_rect(NodeView* _view, Rect _rect)
 
 }
 
-void NodeView::set_view_detail(NodeViewDetail _viewDetail)
-{
-    NodeView::s_view_detail = _viewDetail;
-}
-
 Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
 {
     const bool recursively   = flags & NodeViewFlag_RECURSIVELY;
@@ -1100,4 +1082,16 @@ NodeView::~NodeView()
 
     for(auto* each : m_slot_views )
         delete each;
+}
+
+void NodeView::draw_slot(SlotView* slot_view)
+{
+    if( slot_view->draw() )
+        m_last_clicked_slotview = slot_view;
+
+    if( slot_view->hovered )
+    {
+        m_hovered_slotview = slot_view; // last wins
+        hovered = true;
+    }
 }

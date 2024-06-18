@@ -12,6 +12,7 @@
 #include "tools/gui/FontManager.h"
 #include "tools/gui/ImGuiEx.h"
 #include "types.h"
+#include "ViewDetail.h"
 
 namespace ndbl
 {
@@ -54,6 +55,7 @@ namespace ndbl
         Vec4           ui_node_fillColor;
         float          ui_node_speed;
         u8_t           ui_node_animation_subsample_count;
+        ViewDetail     ui_node_detail;
         Vec4           ui_codeflow_color;
         Vec4           ui_codeflow_shadowColor;
         float          ui_codeflow_thickness_ratio;

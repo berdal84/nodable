@@ -15,25 +15,17 @@
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/View.h"
 #include "types.h"
+#include "ViewDetail.h"
 
 namespace ndbl
 {
     // forward declaration
     class Node;
     class Graph;
-    class NodeView;
     class Slot;
     class SlotView;
     class NodeViewConstraint;
-
-	/** We use this enum to identify all NodeView detail modes */
-	enum class NodeViewDetail: unsigned short int
-	{
-		Minimalist  = 0,
-		Essential   = 1,
-		Exhaustive  = 2,
-		Default     = Essential
-	};
+    class GraphView;
 
     /**
      * Enum to define some color types
@@ -56,26 +48,16 @@ namespace ndbl
         NodeViewFlag_IGNORE_SELECTED         = 1 << 5
     };
 
-    typedef int SlotBehavior;
-    enum SlotBehavior_
-    {
-        SlotBehavior_READONLY       = 1 << 0,
-        SlotBehavior_ALLOW_DRAGGING = 1 << 1,
-    };
-
-    class GraphView;
-
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
     class NodeView : public NodeComponent, public tools::View
 	{
+        REFLECT_DERIVED_CLASS()
 	public:
         friend class GraphView;
 		NodeView();
 		~NodeView();
-        NodeView (NodeView&&) = default;
-        NodeView& operator=(NodeView&&) = default;
 
         Node*                   get_node() const { return m_owner; }
         inline bool             pinned() const { return m_pinned; }
@@ -101,8 +83,7 @@ namespace ndbl
         static void             constraint_to_rect(NodeView*, tools::Rect );
         static bool             draw_property_view(PropertyView*, const char* _override_label);
         static void             draw_as_properties_panel(NodeView* _view, bool *_nodes );
-        static void             set_view_detail(NodeViewDetail _viewDetail); // Change view detail globally
-        static NodeViewDetail   get_view_detail() { return s_view_detail; }
+        static void             set_view_detail(ViewDetail _viewDetail); // Change view detail globally
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
@@ -111,8 +92,9 @@ namespace ndbl
         static bool             none_is_visible( std::vector<NodeView*> vector1 );
 
     private:
+        void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
-        bool                    _draw_property_view(PropertyView* _view);
+        bool                    _draw_property_view(PropertyView* _view, ViewDetail detail);
         void                    update_labels_from_name(const Node *_node);
 
         static void DrawNodeRect(
@@ -130,7 +112,7 @@ namespace ndbl
         bool            m_expanded;
         bool            m_pinned;
         float           m_opacity;
-        SlotView*       m_last_hovered_slotview;
+        SlotView*       m_hovered_slotview;
         SlotView*       m_last_clicked_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
         std::vector<SlotView*>     m_slot_views;
@@ -138,11 +120,5 @@ namespace ndbl
         PropertyView*              m_property_view_this;
         std::vector<PropertyView*> m_property_views_with_input_only;
         std::vector<PropertyView*> m_property_views_with_output_or_inout;
-
-        static const float         s_property_input_size_min;
-        static const tools::Vec2   s_property_input_toggle_button_size;
-        static NodeViewDetail      s_view_detail;
-    REFLECT_DERIVED_CLASS()
-
     };
 }

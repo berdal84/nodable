@@ -195,17 +195,21 @@ void NodableView::draw()
 
             ImGui::Separator();
 
-            auto menu_item_node_view_detail = [this](NodeViewDetail _detail, const char *_label) {
-                if (ImGui::MenuItem(_label, "", NodeView::get_view_detail() == _detail)) {
-                    NodeView::set_view_detail(_detail);
+            auto menu_item_node_view_detail = [this, cfg](ViewDetail _detail, const char *_label) {
+                if (ImGui::MenuItem(_label, "", cfg->ui_node_detail == _detail))
+                {
+                    cfg->ui_node_detail = _detail;
                     if ( m_app->current_file != nullptr)
                         m_app->current_file->get_graph().get_view()->reset_all_properties();
                 }
             };
 
-            menu_item_node_view_detail(NodeViewDetail::Minimalist, "Minimalist View");
-            menu_item_node_view_detail(NodeViewDetail::Essential, "Essential View");
-            menu_item_node_view_detail(NodeViewDetail::Exhaustive, "Exhaustive View");
+            ImGui::Text("View Detail:");
+            ImGui::Indent();
+            menu_item_node_view_detail(ViewDetail::MINIMALIST, "Minimalist");
+            menu_item_node_view_detail(ViewDetail::ESSENTIAL,  "Essential");
+            menu_item_node_view_detail(ViewDetail::EXHAUSTIVE, "Exhaustive");
+            ImGui::Unindent();
 
             ImGui::Separator();
             m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS " Show Properties", "",

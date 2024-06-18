@@ -247,7 +247,15 @@ void Nodable::update()
                 Slot* tail = _event->data.first;
                 Slot* head = _event->data.second;
                 if ( tail->order() == SlotFlag_ORDER_SECOND )
-                    std::swap(tail, head); // guarantee src to be the output
+                {
+                    if ( head->order() == SlotFlag_ORDER_SECOND )
+                    {
+                        LOG_ERROR("Nodable", "Unable to connect incompatible edges\n");
+                        break; // but if it still the case, that's because edges are incompatible
+                    }
+                    LOG_VERBOSE("Nodable", "Swapping edges to try to connect them\n");
+                    std::swap(tail, head);
+                }
                 DirectedEdge edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
