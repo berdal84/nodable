@@ -90,6 +90,14 @@ namespace tools
         bool is_inverted() const
         { return min.x > max.x || min.y > max.y; }
 
+        static Rect normalize(const Rect& _rect)
+        {
+            Rect result = _rect;
+            if (result.min.x > result.max.x ) std::swap(result.min.x, result.max.x);
+            if (result.min.y > result.max.y ) std::swap(result.min.y, result.max.y);
+            return result;
+        }
+        
         static bool contains(const Rect& a, const Rect& b );
 
         static bool contains(const Rect& rect, const Vec2& point );

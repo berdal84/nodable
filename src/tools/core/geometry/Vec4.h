@@ -4,16 +4,14 @@
 
 namespace tools
 {
-    class Vec4
+    struct Vec4
     {
-    public:
-        float x{};
-        float y{};
-        float z{};
-        float w{};
+        float x, y, z, w;
 
-        constexpr Vec4() = default;
-        constexpr Vec4(float x, float y, float z, float w = 0.0f)
+        constexpr Vec4()
+        : Vec4(0.f, 0.f, 0.f, 0.f)
+        {};
+        constexpr Vec4(float x, float y, float z, float w = 0.f)
         : x(x), y(y), z(z), w(w)
         {}
 

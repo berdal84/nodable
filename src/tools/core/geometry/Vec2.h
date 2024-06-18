@@ -9,17 +9,14 @@
 
 namespace tools
 {
-    class Vec2
+    struct Vec2
     {
-    public:
-        float x{};
-        float y{};
+        float x, y;
 
-        constexpr Vec2() = default;
-        constexpr Vec2( float x, float y ): x( x ), y( y ) {}
-        constexpr Vec2( const Vec2& v ): Vec2( v.x, v.y ) {}
-        constexpr Vec2( const glm::vec2& v ): Vec2( v.x, v.y ) {}
-        explicit constexpr Vec2( float scalar ): Vec2( scalar, scalar ) {}
+        constexpr Vec2(): x(0.f), y(0.f) {};
+        constexpr Vec2(float x,float y): x(x), y(y) {}
+        constexpr Vec2(const glm::vec2& v): Vec2( v.x, v.y ) {}
+        constexpr Vec2(float scalar): Vec2( scalar, scalar ) {}
 
         operator glm::vec2() const
         { return { x, y }; }
@@ -106,10 +103,16 @@ namespace tools
         inline static float distance( const Vec2& a, const Vec2&  b )
         { return glm::distance((glm::vec2)a, (glm::vec2)b); }
 
-        inline static const float dot( const Vec2& a, const Vec2&  b )
+        inline static float dot( const Vec2& a, const Vec2&  b )
         { return glm::dot((glm::vec2)a, (glm::vec2)b); }
 
-        inline static  tools::Vec2 normalize(const Vec2& v)
+        inline static Vec2 normalize(const Vec2& v)
         { return glm::normalize( (glm::vec2)v ); }
     };
+
+    static_assert(std::is_constructible_v<Vec2>);
+    static_assert(std::is_copy_constructible_v<Vec2>);
+    static_assert(std::is_copy_assignable_v<Vec2>);
+    static_assert(std::is_default_constructible_v<Vec2>);
+    static_assert(std::is_trivially_copyable_v<Vec2>);
 }
