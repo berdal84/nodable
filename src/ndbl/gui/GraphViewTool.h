@@ -20,7 +20,6 @@ namespace ndbl
         ItemType_NONE = 0,
         ItemType_NODEVIEW,
         ItemType_SLOTVIEW,
-        ItemType_POSITION,
         ItemType_EDGE
     };
 

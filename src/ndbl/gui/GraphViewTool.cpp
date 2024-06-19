@@ -259,9 +259,6 @@ void Tool::check_state()
                     break;
                 }
 
-                case ItemType_POSITION:
-                    ASSERT(false) // not handled
-
                 case ItemType_EDGE:
                 {
                     if (ImGui::IsMouseDragging(0, 0.1f) )
@@ -276,7 +273,10 @@ void Tool::check_state()
 
                 case ItemType_NONE:
                 {
-                    if (ImGui::IsMouseDragging(0, 0.1f) && context.focused.type != ItemType_EDGE )
+                    if ( !ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows) )
+                        break;
+
+                    if ( ImGui::IsMouseDragging(0, 0.1f) && context.focused.type != ItemType_EDGE )
                     {
                         State new_state;
                         // Drag (Selection OR region of interest)
@@ -284,6 +284,7 @@ void Tool::check_state()
                             new_state.drag = {};
                         else
                             new_state.roi = {context.mouse_pos};
+
                         return change_state( new_state );
                     }
                     else if (ImGui::IsMouseClicked(0))
