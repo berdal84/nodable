@@ -452,6 +452,8 @@ add_library(
     src/ndbl/gui/Config.cpp
     src/ndbl/gui/Config.h
     src/ndbl/gui/GraphView.cpp
+    src/ndbl/gui/GraphViewTool.cpp
+        src/ndbl/gui/CreateNodeCtxMenu.cpp
     src/ndbl/gui/History.cpp
     src/ndbl/gui/File.cpp
     src/ndbl/gui/FileView.cpp

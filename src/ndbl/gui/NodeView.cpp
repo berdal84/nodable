@@ -1095,3 +1095,8 @@ void NodeView::draw_slot(SlotView* slot_view)
         hovered = true;
     }
 }
+
+void NodeView::set_pinned(bool b)
+{
+    m_pinned = b;
+}

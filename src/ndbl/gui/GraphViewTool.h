@@ -2,16 +2,18 @@
 
 #include <cstring>
 #include <utility>
-#include <vector>
-#include <variant>
-#include <any>
 #include "tools/core/geometry/Vec2.h"
+#include "tools/core/geometry/Rect.h"
+#include "CreateNodeCtxMenu.h"
+
+class ImDrawList;
 
 namespace ndbl
 {
     // Forward declarations
     class NodeView;
     class SlotView;
+    class GraphView;
 
     enum ItemType
     {
@@ -22,66 +24,57 @@ namespace ndbl
         ItemType_EDGE
     };
 
-    struct NodeView_Item
+    struct NodeViewItem
     {
         ItemType type{ItemType_NODEVIEW};
         NodeView* view;
-        NodeView_Item(NodeView* view): view(view) {}
+        NodeViewItem(NodeView* view): view(view) {}
     };
 
-    struct SlotView_Item
+    struct SlotViewItem
     {
         ItemType  type{ItemType_SLOTVIEW};
         SlotView* view;
-        SlotView_Item(SlotView* v): view(v) {}
+        SlotViewItem(SlotView* v): view(v) {}
     };
 
-    struct Edge_Item
+    struct EdgeItem
     {
         ItemType  type{ItemType_EDGE};
         SlotView* tail;
         SlotView* head;
-        Edge_Item(SlotView* tail, SlotView* head): tail(tail), head(head) {}
+        EdgeItem(SlotView* tail, SlotView* head): tail(tail), head(head) {}
     };
 
-    struct Pixel_Item
-    {
-        ItemType    type{ItemType_POSITION};
-        ImVec2      pos{};
-        Pixel_Item() = default;
-        Pixel_Item(tools::Vec2  pos): pos(std::move(pos)) {}
-    };
 
     union Item
     {
-        ItemType      type;
-        NodeView_Item node;
-        SlotView_Item slot;
-        Edge_Item     edge;
-        Pixel_Item    pixel;
+        ItemType     type;
+        NodeViewItem node;
+        SlotViewItem slot;
+        EdgeItem     edge;
 
         Item() { memset(this, 0, sizeof(Item)); }
-        Item(const NodeView_Item& item): Item() { node = item; }
-        Item(const SlotView_Item& item): Item() { slot = item; }
-        Item(const Edge_Item& item): Item() { edge = item; }
-        Item(const Pixel_Item& item): Item() { pixel = item; }
+        Item(const NodeViewItem& item): Item() { node = item; }
+        Item(const SlotViewItem& item): Item() { slot = item; }
+        Item(const EdgeItem& item): Item() { edge = item; }
     };
 
     enum ToolType
     {
-        ToolType_NONE = 0,
-        ToolType_DEFINE_ROI,
+        ToolType_CURSOR = 0,
+        ToolType_ROI,
         ToolType_DRAG,
-        ToolType_CREATE_WIRE
+        ToolType_LINE
     };
 
-    struct ROI_Tool
+    struct ROITool
     {
-        ToolType type{ToolType_DEFINE_ROI};
-        ImVec2   start_pos;
-        ImVec2   end_pos;
+        ToolType    type{ToolType_ROI};
+        tools::Vec2 start_pos;
+        tools::Vec2 end_pos;
 
-        ROI_Tool(const tools::Vec2& pos): start_pos(pos), end_pos(pos) {}
+        ROITool(const tools::Vec2& pos): start_pos(pos), end_pos(pos) {}
 
         tools::Rect get_rect() const
         {
@@ -90,7 +83,7 @@ namespace ndbl
 
     };
 
-    struct DragNodeViews_Tool
+    struct DragTool
     {
         enum class Mode
         {
@@ -100,27 +93,53 @@ namespace ndbl
 
         ToolType type{ToolType_DRAG};
         Mode     mode;
-        DragNodeViews_Tool(Mode mode = Mode::ALL): mode(mode) {}
+        DragTool(Mode mode = Mode::ALL): mode(mode) {}
     };
 
-    struct DrawWire_Tool
+    struct LineTool
     {
-        ToolType       type{ToolType_CREATE_WIRE};
-        SlotView_Item dragged_slot;
-        DrawWire_Tool(const SlotView_Item& from): dragged_slot(from) {}
+        ToolType      type{ToolType_LINE};
+        SlotViewItem dragged_slot;
+        LineTool(const SlotViewItem& from): dragged_slot(from) {}
     };
 
-    union Tool
+    class Tool
     {
-        ToolType           type;
-        ROI_Tool           roi;
-        DragNodeViews_Tool drag;
-        DrawWire_Tool      wire;
+    public:
+        // TODO: consider object oriented approach if it gets too complex
 
-        Tool() { memset(this, 0, sizeof(Tool)); }
+        union State
+        {
+            ToolType  type;
+            ROITool   roi;
+            DragTool  drag;
+            LineTool  wire;
+            State() { memset(this, 0, sizeof(State)); }
+        };
 
-        Tool(const ROI_Tool& t): Tool() { roi = t; }
-        Tool(const DragNodeViews_Tool& t): Tool() { drag = t; }
-        Tool(const DrawWire_Tool& t): Tool() { wire = t; }
+        struct Context
+        {
+            GraphView*  graph_view{nullptr};
+            tools::Vec2 mouse_pos{};
+            tools::Vec2 mouse_pos_snapped{};
+            ImDrawList* draw_list{nullptr};
+            Item        hovered{};
+            Item        focused{};
+            bool        cxt_menu_open_last_frame{false};
+            CreateNodeCtxMenu create_node_ctx_menu;
+            std::vector<NodeView*> selected_nodeview;
+        };
+
+        Tool(Context& ctx): context(ctx) { }
+
+        ToolType tool_type() const;
+        void     tick();
+        void     draw();
+    private:
+        void     reset_state();
+        void     change_state(const State& new_state);
+        void     check_state();
+        Context& context;
+        State    state{};
     };
 }

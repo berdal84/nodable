@@ -26,8 +26,6 @@
 using namespace ndbl;
 using namespace tools;
 
-const char* k_CONTEXT_MENU_POPUP = "GraphView.ContextMenuPopup";
-
 REFLECT_STATIC_INIT
 {
     StaticInitializer<GraphView>("GraphView").extends<View>();
@@ -54,7 +52,49 @@ GraphView::GraphView(Graph* graph)
     );
 }
 
-bool GraphView::draw() {
+
+ImGuiID make_wire_id(const Slot *ptr1, const Slot *ptr2)
+{
+    string128 id;
+    id.append_fmt("wire %zu->%zu", ptr1, ptr2);
+    return ImGui::GetID(id.c_str());
+}
+
+void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
+{
+    EXPECT(from != nullptr, "from slot can't be nullptr")
+
+    Config* cfg = get_config();
+
+    // Style
+
+    ImGuiEx::WireStyle style;
+    style.shadow_color = cfg->ui_codeflow_shadowColor,
+            style.roundness = 0.f;
+
+    if (from->get_slot().type() == SlotFlag_TYPE_CODEFLOW) {
+        style.color = cfg->ui_codeflow_color,
+                style.thickness = cfg->ui_slot_rectangle_size.x * cfg->ui_codeflow_thickness_ratio;
+    } else {
+        style.color = cfg->ui_node_borderHighlightedColor;
+        style.thickness = cfg->ui_wire_bezier_thickness;
+    }
+
+    // Draw
+
+    ImGuiID id = make_wire_id(&from->get_slot(), nullptr);
+    Vec2 start_pos = from->get_pos(SCREEN_SPACE);
+
+    BezierCurveSegment segment{
+            start_pos, start_pos,
+            end_pos, end_pos
+    }; // straight line
+
+    ImGuiEx::DrawWire(id, ImGui::GetWindowDrawList(), segment, style);
+}
+
+bool GraphView::draw()
+{
     View::draw();
 
     Config*         cfg                    = get_config();
@@ -64,44 +104,7 @@ bool GraphView::draw() {
     const bool      enable_edition         = virtual_machine->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
     const ImVec2    mouse_pos              = ImGui::GetMousePos();
-    ImVec2          mouse_pos_snapped      = ImGui::GetMousePos(); // snapped to any hovered slot
     Item            hovered                = Item{};
-
-    auto make_wire_id = [](const Slot *ptr1, const Slot *ptr2) -> ImGuiID {
-        string128 id;
-        id.append_fmt("wire %zu->%zu", ptr1, ptr2);
-        return ImGui::GetID(id.c_str());
-    };
-
-    auto draw_wire_from_slot_to_pos = [&](SlotView *from, const Vec2 &end_pos) -> void {
-        EXPECT(from != nullptr, "from slot can't be nullptr")
-
-        // Style
-
-        ImGuiEx::WireStyle style;
-        style.shadow_color = cfg->ui_codeflow_shadowColor,
-                style.roundness = 0.f;
-
-        if (from->get_slot().type() == SlotFlag_TYPE_CODEFLOW) {
-            style.color = cfg->ui_codeflow_color,
-                    style.thickness = cfg->ui_slot_rectangle_size.x * cfg->ui_codeflow_thickness_ratio;
-        } else {
-            style.color = cfg->ui_node_borderHighlightedColor;
-            style.thickness = cfg->ui_wire_bezier_thickness;
-        }
-
-        // Draw
-
-        ImGuiID id = make_wire_id(&from->get_slot(), nullptr);
-        Vec2 start_pos = from->get_pos(SCREEN_SPACE);
-
-        BezierCurveSegment segment{
-                start_pos, start_pos,
-                end_pos, end_pos
-        }; // straight line
-
-        ImGuiEx::DrawWire(id, draw_list, segment, style);
-    };
 
     auto draw_grid = [](ImDrawList *draw_list) -> void {
         Config *cfg = get_config();
@@ -184,7 +187,7 @@ bool GraphView::draw() {
                 };
                 ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
                 if (ImGui::GetHoveredID() == id)
-                    hovered = Edge_Item{tail, head};
+                    hovered = EdgeItem{tail, head};
             }
         }
     }
@@ -262,7 +265,7 @@ bool GraphView::draw() {
                 ImGuiID id = make_wire_id(&slotview->get_slot(), adjacent_slot);
                 ImGuiEx::DrawWire(id, draw_list, segment, style);
                 if (ImGui::GetHoveredID() == id)
-                    hovered = Edge_Item{slotview, adjacent_slotview};
+                    hovered = EdgeItem{slotview, adjacent_slotview};
             }
         }
     }
@@ -276,7 +279,7 @@ bool GraphView::draw() {
         changed |= nodeview->draw();
 
         if (nodeview->hovered)
-            hovered = NodeView_Item{nodeview};
+            hovered = NodeViewItem{nodeview};
 
         // VM Cursor (scroll to the next node when VM is debugging)
         if (virtual_machine->is_debugging())
@@ -286,7 +289,7 @@ bool GraphView::draw() {
 
     // Hovering a SlotView is always the priority
     if ( hovered.type == ItemType_NODEVIEW && hovered.node.view->m_hovered_slotview != nullptr )
-        hovered = SlotView_Item{hovered.node.view->m_hovered_slotview};
+        hovered = SlotViewItem{hovered.node.view->m_hovered_slotview};
 
     // Virtual Machine cursor
     if (virtual_machine->is_program_running()) {
@@ -309,322 +312,21 @@ bool GraphView::draw() {
         }
     }
 
-    // Update snapped_mouse_pos
-    if (m_focused.type == ItemType_SLOTVIEW && m_focused.slot.view != nullptr)
-        mouse_pos_snapped = m_focused.slot.view->get_pos(SCREEN_SPACE);
-
-    // Tool Update
-    // Here we must not change tool, use Post-Update instead.
-    switch ( m_tool.type )
-    {
-        case ToolType_DRAG:
-        {
-            Vec2 delta = ImGui::GetMouseDragDelta();
-            if (delta.lensqr() < 1) // avoid updating when mouse is static
-                break;
-
-            NodeViewFlags flags = NodeViewFlag_IGNORE_SELECTED | NodeViewFlag_IGNORE_PINNED;
-            if (m_tool.drag.mode == DragNodeViews_Tool::Mode::SELECTION)
-            {
-                for (auto &node_view: m_selected_nodeview )
-                    node_view->translate(delta, flags);
-            }
-            else
-            {
-                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
-                for (auto &node_view: get_all_nodeviews())
-                    node_view->translate(delta, flags);
-            }
-
-            ImGui::ResetMouseDragDelta();
-            break;
-        }
-
-        case ToolType_DEFINE_ROI:
-        {
-            // Update ROI second point
-            m_tool.roi.end_pos = mouse_pos;
-            // Get normalized ROI rectangle
-            Rect roi = m_tool.roi.get_rect();
-            // Expand to avoid null area
-            const int roi_border_width = 2;
-            roi.expand(Vec2{roi_border_width*0.5f});
-            // Draw the ROI rectangle
-            float alpha = wave(0.5f, 0.75f, (float) BaseApp::elapsed_time(), 10.f);
-            draw_list->AddRect(roi.min, roi.max, ImColor(1.f, 1.f, 1.f, alpha), roi_border_width, ImDrawFlags_RoundCornersAll ,roi_border_width );
-            break;
-        }
-
-        case ToolType_CREATE_WIRE: {
-            ASSERT(m_tool.wire.dragged_slot.view != nullptr)
-            if (!ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
-                break;
-            if (!ImGui::IsMouseReleased(0))
-                break;
-
-            if (hovered.type == ItemType_NODEVIEW)
-                ASSERT(false) // not handled, we only handle slotview, implement it?
-
-            if (hovered.type != ItemType_SLOTVIEW) {
-                ImGui::OpenPopup(k_CONTEXT_MENU_POPUP);
-                break;
-            }
-
-            auto &event_manager = EventManager::get_instance();
-            auto event = new Event_SlotDropped();
-            event->data.first = &m_tool.wire.dragged_slot.view->get_slot();
-            event->data.second = &hovered.slot.view->get_slot();
-            event_manager.dispatch(event);
-
-            break;
-        }
-
-        case ToolType_NONE:
-            // nothing to do ...
-            break;
-
-        default:
-            ASSERT(false) // unhandled case. Missing case for a new Tool?
-    }
-
-    // Context menu (draw)
-    if (ImGui::BeginPopup(k_CONTEXT_MENU_POPUP))
-    {
-        bool draw_search_input = false;
-        mouse_pos_snapped = ImGui::GetMousePosOnOpeningCurrentPopup();
-
-        switch (m_focused.type)
-        {
-            case ItemType_SLOTVIEW:
-            {
-                ASSERT(m_focused.slot.view != nullptr)
-
-                // Disconnect focused SlotView?
-                Slot *slot = &m_focused.slot.view->get_slot();
-                bool can_disconnect = slot->empty();
-                if (ImGui::MenuItem(ICON_FA_TRASH " Disconnect", nullptr, can_disconnect)) {
-                    auto &event_manager = EventManager::get_instance();
-                    event_manager.dispatch<Event_SlotDisconnected>({slot});
-                    ImGui::CloseCurrentPopup();
-                }
-                draw_search_input = true;
-                break;
-            }
-
-            case ItemType_EDGE:
-            {
-                ASSERT(m_focused.edge.tail != nullptr)
-                ASSERT(m_focused.edge.head != nullptr)
-
-                // Delete focused Wire?
-                if (ImGui::Button(ICON_FA_TRASH" Delete Edge"))
-                {
-                    LOG_MESSAGE("GraphView", "Delete Edge Button clicked!\n");
-                    // Generate an event from this action, add some info to the state and dispatch it.
-                    auto &event_manager = EventManager::get_instance();
-                    event_manager.dispatch<Event_DeleteEdge>({&m_focused.edge.tail->get_slot(), &m_focused.edge.head->get_slot()});
-                    ImGui::CloseCurrentPopup();
-                }
-                draw_search_input = true;
-                break;
-            }
-
-            case ItemType_NODEVIEW:
-            {
-                ASSERT(m_focused.node.view != nullptr)
-
-                if (ImGui::MenuItem("Arrange"))
-                    m_focused.node.view->arrange_recursively();
-
-                ImGui::MenuItem("Pinned", "", &m_focused.node.view->m_pinned, true);
-
-                if (ImGui::MenuItem("Expanded", "", &m_focused.node.view->m_expanded, true))
-                    m_focused.node.view->set_expanded(m_focused.node.view->m_expanded);
-
-
-                ImGui::Separator();
-
-                auto flags = enable_edition ? ImGuiSelectableFlags_None
-                                            : ImGuiSelectableFlags_Disabled;
-                if (ImGui::Selectable("Delete", flags)) {
-                    m_focused.node.view->get_node()->flagged_to_delete = true;
-                }
-                break;
-            }
-
-            default:
-                ASSERT(false) // Unhandled case, is it a new one?
-
-            case ItemType_NONE:
-                draw_search_input = true;
-                break;
-        }
-
-        // Draw the Node Search Input (advanced search menu)
-        if (draw_search_input)
-        {
-            if( !m_context_menu_open_last_frame )
-            {
-                m_create_node_menu.reset_state();
-            }
-            ImGuiEx::ColoredShadowedText(Vec2(1, 1), Color(0, 0, 0, 255), Color(255, 255, 255, 127),
-                                         "Create new node :");
-            ImGui::Separator();
-            SlotView *slotview = nullptr;
-            if (m_tool.type == ToolType_CREATE_WIRE)
-            {
-                ASSERT(m_tool.wire.dragged_slot.view)
-                slotview = m_tool.wire.dragged_slot.view;
-            }
-            if (Action_CreateNode *triggered_action = m_create_node_menu.draw_search_input(slotview, 10))
-            {
-                // Generate an event from this action, add some info to the state and dispatch it.
-                auto &event_manager = EventManager::get_instance();
-                auto *event = triggered_action->make_event();
-                event->data.graph = m_graph;
-                event->data.active_slotview = slotview;
-                event->data.desired_screen_pos = mouse_pos_snapped;
-                event_manager.dispatch(event);
-                ImGui::CloseCurrentPopup();
-            }
-        }
-        ImGui::EndPopup();
-        m_context_menu_open_last_frame = true;
-    }
+    // Update tool context
+    m_context.mouse_pos  = mouse_pos;
+    m_context.graph_view = this;
+    m_context.hovered    = hovered;
+    m_context.draw_list  = draw_list;
+    bool snap_focused_slotview = m_context.focused.type == ItemType_SLOTVIEW
+                              && m_context.focused.slot.view != nullptr;
+    if ( snap_focused_slotview )
+        m_context.mouse_pos_snapped = m_context.focused.slot.view->get_pos(SCREEN_SPACE);
     else
-    {
-        if (m_context_menu_open_last_frame && m_tool.type != ToolType_NONE)
-            reset_tool();
-        m_context_menu_open_last_frame = false;
-    }
+        m_context.mouse_pos_snapped = mouse_pos;
 
-    // Tool Post-Update
-    // Here we can change tool without breaking anything.
-    switch( m_tool.type )
-    {
-        case ToolType_NONE:
-        {
-            switch (hovered.type)
-            {
-                case ItemType_SLOTVIEW:
-                {
-                    ASSERT(hovered.slot.view != nullptr)
-                    if (ImGui::IsMouseDragging(0, 0.1f))
-                        change_tool(DrawWire_Tool{hovered.slot.view});
-                    else if (ImGui::IsMouseReleased(2))
-                        m_focused = hovered.slot;
-                    break;
-                }
-
-                case ItemType_NODEVIEW: {
-                    ASSERT(hovered.node.view != nullptr)
-
-                    if (ImGui::IsMouseClicked(0) && !hovered.node.view->selected)
-                    {
-                        // Add/Replace selection?
-                        bool control_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-                                               ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-                        SelectionMode flags = control_pressed ? SelectionMode_ADD
-                                                              : SelectionMode_REPLACE;
-                        set_selected({hovered.node.view}, flags);
-                        m_focused = NodeView_Item{hovered.node.view};
-                    }
-                    else if (ImGui::IsMouseDoubleClicked(0))
-                    {
-                        // Expand/Collapse
-                        hovered.node.view->expand_toggle();
-                        m_focused = NodeView_Item{hovered.node.view};
-                    }
-                    else if (ImGui::IsMouseDragging(0) )
-                    {
-                        // Drag current selection
-                        change_tool( DragNodeViews_Tool{DragNodeViews_Tool::Mode::SELECTION} );
-                    }
-                    break;
-                }
-
-                case ItemType_POSITION:
-                    ASSERT(false) // not handled
-
-                case ItemType_EDGE:
-                {
-                    if (ImGui::IsMouseDragging(0, 0.1f) )
-                        m_focused = hovered;
-                    else if ( ImGui::IsMouseClicked(1) )
-                    {
-                        m_focused = hovered;
-                        ImGui::OpenPopup(k_CONTEXT_MENU_POPUP);
-                    }
-                    break;
-                }
-
-                case ItemType_NONE:
-                {
-                    if (ImGui::IsMouseDragging(0, 0.1f) && m_focused.type != ItemType_EDGE )
-                    {
-                        // Drag (Selection OR region of interest)
-                        if (ImGui::IsKeyDown(ImGuiKey_Space))
-                            change_tool( DragNodeViews_Tool{} );
-                        else
-                            change_tool( ROI_Tool{mouse_pos} );
-                    }
-                    else if (ImGui::IsMouseClicked(0))
-                    {
-                        // Deselect All (Click on the background)
-                        set_selected({}, SelectionMode_REPLACE);
-                    }
-                    else if (ImGui::IsMouseReleased(1))
-                    {
-                        // Open Context Menu
-                        m_focused = {};
-                        ImGui::OpenPopup(k_CONTEXT_MENU_POPUP);
-                    }
-                    break;
-                }
-
-                default:
-                    ASSERT(false) // unhandled case. Missing case for a new Tool?
-            }
-            break;
-        }
-
-        case ToolType_DEFINE_ROI:
-        {
-            if (ImGui::IsMouseReleased(0))
-            {
-                // Select the views included in the ROI
-                NodeViewVec nodeview_in_roi;
-                for (NodeView* nodeview: get_all_nodeviews())
-                    if (Rect::contains( m_tool.roi.get_rect(), nodeview->get_rect(SCREEN_SPACE)))
-                        nodeview_in_roi.emplace_back(nodeview);
-
-                bool control_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
-                                       ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-                SelectionMode flags = control_pressed ? SelectionMode_ADD
-                                                      : SelectionMode_REPLACE;
-                set_selected(nodeview_in_roi, flags);
-
-                // Switch back to default tool
-                reset_tool();
-            }
-            break;
-        }
-
-        case ToolType_CREATE_WIRE:
-        {
-            // Draw temp wire
-            draw_wire_from_slot_to_pos(m_tool.wire.dragged_slot.view , mouse_pos_snapped );
-            break;
-        }
-
-        case ToolType_DRAG:
-            if ( !ImGui::IsMouseDragging(0) )
-                reset_tool();
-            break;
-    }
-
-    if ( hovered.type == ItemType_NONE && ImGui::IsMouseReleased(0))
-        m_focused = {};
+    // Update tool state
+    m_tool.tick();
+    m_tool.draw();
 
     // add some empty space
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
@@ -634,11 +336,11 @@ bool GraphView::draw() {
     {
         if ( ImGui::Begin("GraphView debug info" ) )
         {
-            ImGui::Text("m_focused.type: %i", m_focused.type);
-            ImGui::Text("m_tool.type:    %i", m_tool.type);
-            ImGui::Text("hovered.type:   %i", hovered.type);
-            ImGui::Text("mouse_pos:          (%f, %f)", mouse_pos.x, mouse_pos.y);
-            ImGui::Text("mouse_pos_snapped:  (%f, %f)", mouse_pos_snapped.x, mouse_pos_snapped.y);
+            ImGui::Text("m_context.focused.type:       %i", m_context.focused.type);
+            ImGui::Text("m_tool.type:                  %i", m_tool.tool_type());
+            ImGui::Text("m_context.hovered.type:       %i", m_context.hovered.type);
+            ImGui::Text("m_context.mouse_pos:          (%f, %f)", m_context.mouse_pos.x, m_context.mouse_pos.y);
+            ImGui::Text("m_context.mouse_pos (snapped):(%f, %f)", m_context.mouse_pos_snapped.x, m_context.mouse_pos_snapped.y);
         }
         ImGui::End();
     }
@@ -746,7 +448,7 @@ void GraphView::translate_all(const Vec2& delta)
 
 void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
 {
-    m_create_node_menu.add_action(_action);
+    m_context.create_node_ctx_menu.add_action(_action);
 }
 
 void GraphView::frame_nodes(FrameMode mode )
@@ -766,8 +468,8 @@ void GraphView::frame_nodes(FrameMode mode )
 
         case FRAME_SELECTION_ONLY:
         {
-            if ( !m_selected_nodeview.empty())
-                frame_views(m_selected_nodeview, false);
+            if ( !m_context.selected_nodeview.empty())
+                frame_views(m_context.selected_nodeview, false);
             break;
         }
         default:
@@ -775,200 +477,40 @@ void GraphView::frame_nodes(FrameMode mode )
     }
 }
 
-Action_CreateNode* CreateNodeContextMenu::draw_search_input(SlotView* dragged_slot, size_t _result_max_count )
-{
-    if ( must_be_reset_flag )
-    {
-        ImGui::SetKeyboardFocusHere();
-
-        //
-        update_cache_based_on_signature(dragged_slot);
-
-        // Initial search
-        update_cache_based_on_user_input(dragged_slot, 100 );
-
-        // Ensure we reset once
-        must_be_reset_flag = false;
-    }
-
-    // Draw search input and update_cache_based_on_user_input on input change
-    if ( ImGui::InputText("Search", search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
-    {
-        update_cache_based_on_user_input(dragged_slot, 100 );
-    }
-
-    if ( !items_matching_search.empty() )
-    {
-        // When a single item is filtered, pressing enter will press the item's button.
-        if ( items_matching_search.size() == 1)
-        {
-            auto action = items_matching_search.front();
-            if ( ImGui::SmallButton( action->label.c_str()) || ImGui::IsKeyDown( ImGuiKey_Enter ) )
-            {
-                return action;
-            }
-        }
-        else
-        {
-            size_t more = items_matching_search.size() > _result_max_count ? items_matching_search.size() : 0;
-            if ( more )
-            {
-                ImGui::Text("Found %zu result(s)", items_matching_search.size() );
-            }
-            // Otherwise, user has to move with arrow keys and press enter to trigger the highlighted button.
-            auto it = items_matching_search.begin();
-            while( it != items_matching_search.end() && std::distance(items_matching_search.begin(), it) != _result_max_count)
-            {
-                auto* action = *it;
-
-                // User can click on the button...
-                ImGui::Button( action->label.c_str());
-                if( ImGui::IsItemClicked(0) )
-                    return action;
-
-                // ...or press enter if this item is the first
-                if ( ImGui::IsKeyDown( ImGuiKey_Enter ) && ImGui::IsItemFocused() )
-                    return action;
-
-                it++;
-            }
-            if ( more )
-            {
-                ImGui::Text(".. %zu more ..", more );
-            }
-        }
-    }
-    else
-    {
-        ImGui::Text("No matches...");
-    }
-
-    return nullptr;
-}
-void CreateNodeContextMenu::update_cache_based_on_signature(SlotView* dragged_slot)
-{
-    items_with_compatible_signature.clear();
-
-    // 1) When NO slot is dragged
-    //---------------------------
-
-    if ( !dragged_slot )
-    {
-        // When no slot is dragged, user can create any node
-        items_with_compatible_signature = items;
-        return;
-    }
-
-    // 2) When a slot is dragged
-    //--------------------------
-
-    for (auto& action: items )
-    {
-        const type* dragged_property_type = dragged_slot->get_property_type();
-
-        switch ( action->event_data.node_type )
-        {
-            case NodeType_BLOCK_CONDITION:
-            case NodeType_BLOCK_FOR_LOOP:
-            case NodeType_BLOCK_WHILE_LOOP:
-            case NodeType_BLOCK_SCOPE:
-            case NodeType_BLOCK_PROGRAM:
-                // Blocks are only for code flow slots
-                if ( !dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
-                    continue;
-                break;
-
-            default:
-
-                if ( dragged_slot->allows(SlotFlag_TYPE_CODEFLOW))
-                {
-                    // we can connect anything to a code flow slot
-                }
-                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->get_property_type()->is<Node*>() )
-                {
-                    // we can connect anything to a Node ref input
-                }
-                else if ( action->event_data.node_signature )
-                {
-                    // discard incompatible signatures
-
-                    if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) &&
-                         !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type)
-                       )
-                        continue;
-
-                    if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
-                        continue;
-
-                }
-        }
-        items_with_compatible_signature.push_back( action );
-    }
-}
-
-void CreateNodeContextMenu::update_cache_based_on_user_input(SlotView* _dragged_slot, size_t _limit )
-{
-    items_matching_search.clear();
-    for ( auto& menu_item : items_with_compatible_signature )
-    {
-        if( menu_item->label.find( search_input ) != std::string::npos )
-        {
-            items_matching_search.push_back(menu_item);
-            if ( items_matching_search.size() == _limit )
-            {
-                break;
-            }
-        }
-    }
-}
-
-void CreateNodeContextMenu::reset_state()
-{
-    must_be_reset_flag   = true;
-    search_input[0]      = '\0';
-    items_matching_search.clear();
-    items_with_compatible_signature.clear();
-}
-
-void CreateNodeContextMenu::add_action(Action_CreateNode* action)
-{
-    items.push_back(action);
-}
-
 void GraphView::set_selected(const NodeViewVec& views, SelectionMode mode )
 {
-    NodeViewVec curr_selection = m_selected_nodeview;
+    NodeViewVec curr_selection = m_context.selected_nodeview;
     if ( mode == SelectionMode_REPLACE )
     {
-        m_selected_nodeview.clear();
+        m_context.selected_nodeview.clear();
         for(auto& each : curr_selection )
             each->selected = false;
     }
 
     for(auto& each : views)
     {
-        m_selected_nodeview.emplace_back(each);
+        m_context.selected_nodeview.emplace_back(each);
         each->selected = true;
     }
 
-    EventPayload_NodeViewSelectionChange event{ m_selected_nodeview, curr_selection };
+    EventPayload_NodeViewSelectionChange event{ m_context.selected_nodeview, curr_selection };
     EventManager& event_manager = EventManager::get_instance();
     event_manager.dispatch<Event_SelectionChange>(event);
 }
 
 const GraphView::NodeViewVec& GraphView::get_selected() const
 {
-    return m_selected_nodeview;
+    return m_context.selected_nodeview;
 }
 
 bool GraphView::is_selected(NodeView* view) const
 {
-    return std::find( m_selected_nodeview.begin(), m_selected_nodeview.end(), view) != m_selected_nodeview.end();
+    return std::find( m_context.selected_nodeview.begin(), m_context.selected_nodeview.end(), view) != m_context.selected_nodeview.end();
 }
 
 bool GraphView::selection_empty() const
 {
-    return m_selected_nodeview.empty();
+    return m_context.selected_nodeview.empty();
 }
 
 void GraphView::reset()
@@ -993,36 +535,9 @@ std::vector<NodeView*> GraphView::get_all_nodeviews() const
      return NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
 }
 
-void GraphView::change_tool(Tool new_tool)
-{
-    // Note: if this start to grow considerably, consider using a State Machine
-
-    EXPECT(new_tool.type != m_tool.type, "Cannot set same new_tool twice, set none new_tool first.")
-
-    // Initialize GraphView state depending on the new tool
-    switch (new_tool.type)
-    {
-        case ToolType_DRAG:
-        {
-            for(auto& each : m_selected_nodeview)
-            each->m_pinned = true;
-            break;
-        }
-        case ToolType_NONE:
-        case ToolType_CREATE_WIRE:
-        case ToolType_DEFINE_ROI:
-            // nothing...
-            break;
-        default:
-            ASSERT(false) // not handled, is it a new missing case?
-    }
-
-    m_tool = new_tool;
-}
-
 bool GraphView::has_an_active_tool() const
 {
-    return m_tool.type != ToolType_NONE;
+    return m_tool.tool_type() != ToolType_CURSOR;
 }
 
 void GraphView::reset_all_properties()
@@ -1032,7 +547,7 @@ void GraphView::reset_all_properties()
             property_view->reset();
 }
 
-void GraphView::reset_tool()
+Graph *GraphView::get_graph() const
 {
-    change_tool(Tool{});
+    return m_graph;
 }

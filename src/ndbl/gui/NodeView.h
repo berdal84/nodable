@@ -54,13 +54,15 @@ namespace ndbl
     class NodeView : public NodeComponent, public tools::View
 	{
         REFLECT_DERIVED_CLASS()
-	public:
+
+    public:
         friend class GraphView;
 		NodeView();
 		~NodeView();
 
         Node*                   get_node() const { return m_owner; }
         inline bool             pinned() const { return m_pinned; }
+        void                    set_pinned(bool b);
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw()override;
 		void                    set_owner(Node*)override;

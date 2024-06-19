@@ -26,22 +26,7 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    class CreateNodeContextMenu
-    {
-    public:
-        Action_CreateNode*       draw_search_input(SlotView* _dragged_slot, size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
-        void                     reset_state();
-        void                     add_action(Action_CreateNode*);
-
-    private:
-        bool      must_be_reset_flag   = false;
-        char      search_input[255]    = "\0";     // The search input entered by the user.
-        std::vector<Action_CreateNode*> items;                           // All the available items
-        std::vector<Action_CreateNode*> items_with_compatible_signature; // Only the items having a compatible signature (with the slot dragged)
-        std::vector<Action_CreateNode*> items_matching_search;           // Only the items having a compatible signature AND matching the search_input.
-        void                     update_cache_based_on_signature(SlotView* _dragged_slot);
-        void                     update_cache_based_on_user_input(SlotView* _dragged_slot, size_t _limit );
-    };
+    constexpr const char* k_CONTEXT_MENU_POPUP = "GraphView.ContextMenuPopup";
 
     typedef int SelectionMode;
     enum SelectionMode_
@@ -53,7 +38,8 @@ namespace ndbl
     class GraphView: public tools::View
     {
         REFLECT_DERIVED_CLASS()
-	public:
+
+    public:
         using NodeViewVec = std::vector<NodeView*>;
 
 	    explicit GraphView(Graph* graph);
@@ -69,10 +55,11 @@ namespace ndbl
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
         const NodeViewVec& get_selected() const;
         void        reset_all_properties();
+        std::vector<NodeView*> get_all_nodeviews() const;
+        void        draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
+        Graph*      get_graph() const;
 
     private:
-        void        reset_tool();
-        void        change_tool(Tool new_tool);
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
         bool        update(float dt, u16_t samples);
@@ -80,13 +67,9 @@ namespace ndbl
         void        translate_all(const Vec2& offset);
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
-        std::vector<NodeView*> get_all_nodeviews() const;
 
-        Graph*      m_graph;
-        CreateNodeContextMenu m_create_node_menu{};
-        NodeViewVec m_selected_nodeview;
-        Item        m_focused{};
-        Tool        m_tool{};
-        bool        m_context_menu_open_last_frame{false};
+        Graph*        m_graph;
+        Tool::Context m_context{};
+        Tool          m_tool{m_context};
     };
 }
