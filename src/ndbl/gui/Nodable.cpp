@@ -54,8 +54,6 @@ void Nodable::update()
 {
     BaseApp::update();
 
-    LOG_VERBOSE("ndbl::App", "update ...\n");
-
     // 1. Update current file
     if (current_file && !m_virtual_machine->is_program_running())
     {
@@ -385,7 +383,6 @@ void Nodable::update()
             }
         }
     }
-    LOG_VERBOSE("ndbl::App", "update " OK "\n");
 }
 
 void Nodable::shutdown()

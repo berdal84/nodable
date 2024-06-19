@@ -11,7 +11,7 @@ using namespace tools;
 
 void BaseApp::init(AppView* _view, BaseAppFlags _flags)
 {
-    LOG_VERBOSE("tools::App", "init ...\n");
+    LOG_VERBOSE("tools::BaseApp", "init ...\n");
 
     m_flags = _flags;
 
@@ -30,12 +30,12 @@ void BaseApp::init(AppView* _view, BaseAppFlags _flags)
         this->m_view->init();
     }
 
-    LOG_VERBOSE("tools::App", "init " OK "\n");
+    LOG_VERBOSE("tools::BaseApp", "init " OK "\n");
 }
 
 void BaseApp::shutdown()
 {
-    LOG_MESSAGE("tools::App", "Shutting down ...\n");
+    LOG_MESSAGE("tools::BaseApp", "Shutting down ...\n");
 
     if ( (m_flags & BaseAppFlag_SKIP_VIEW ) == false )
     {
@@ -51,15 +51,13 @@ void BaseApp::shutdown()
         shutdown_config();
     }
 
-    LOG_MESSAGE("tools::App", "Shutdown OK\n");
+    LOG_MESSAGE("tools::BaseApp", "Shutdown OK\n");
 }
 
 void BaseApp::update()
 {
-    LOG_VERBOSE("tools::App", "update ...\n");
     m_view->update();
     m_task_manager->update();
-    LOG_VERBOSE("tools::App", "update " OK "\n");
 }
 
 void BaseApp::draw()
