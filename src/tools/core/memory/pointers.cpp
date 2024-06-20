@@ -18,16 +18,33 @@ namespace tools {
     template<class T>
     struct ID
     {
-        ID(const T* raw_ptr): ID(raw_ptr->id) { static_assert(std::is_same_v<decltype(raw_ptr->id), ID<T>>, "T must have a field \"ID<T> id\"" );}
-        ID(const ID& other) : pool(other.pool), id(other.id) {}
-        ID(Pool<T>* pool, size_t id) : id(id) {}
-        operator T *()                   { return pool->get_ptr(*this); }
-        bool operator ==(ID other) const { return id == other.id; }
-        bool operator !=(ID other) const { return id != other.id; }
+        ID(const T* raw_ptr)
+        : ID(raw_ptr->id)
+        { static_assert(std::is_same_v<decltype(raw_ptr->id), ID<T>>, "T must have a field \"ID<T> id\"" );}
+
+        ID(const ID& other)
+        : pool(other.pool)
+        , id(other.id)
+        {}
+
+        ID(Pool<T>* pool, size_t id)
+        : id(id)
+        {}
+
+        operator T *()
+        { return pool->get_ptr(*this); }
+
+        bool operator ==(ID other) const
+        { return id == other.id; }
+
+        bool operator !=(ID other) const
+        { return id != other.id; }
+
         // more operators here ...
 
-        Pool<T>* pool;
         size_t id;
+    private:
+        Pool<T>* pool;
     };
 
     struct Boat{};

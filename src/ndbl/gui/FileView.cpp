@@ -144,7 +144,7 @@ bool FileView::draw()
     }
     ImGui::EndChild();
 
-     // NODE EDITOR
+     // NodeViewItem EDITOR
     //-------------
 
     Graph&     graph      = m_file->get_graph();

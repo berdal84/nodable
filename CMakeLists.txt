@@ -180,6 +180,8 @@ add_library(
     src/tools/core/reflection/union.h
     src/tools/core/reflection/variant.cpp
     src/tools/core/reflection/variant.h
+    src/tools/core/StateMachine.cpp
+    src/tools/core/StateMachine.h
     src/tools/core/string.h
     src/tools/core/system.cpp
     src/tools/core/system.h
@@ -453,7 +455,7 @@ add_library(
     src/ndbl/gui/Config.h
     src/ndbl/gui/GraphView.cpp
     src/ndbl/gui/GraphViewTool.cpp
-        src/ndbl/gui/CreateNodeCtxMenu.cpp
+    src/ndbl/gui/CreateNodeCtxMenu.cpp
     src/ndbl/gui/History.cpp
     src/ndbl/gui/File.cpp
     src/ndbl/gui/FileView.cpp

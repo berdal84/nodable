@@ -18,6 +18,7 @@
 #include "SlotView.h"
 #include "types.h"
 #include "GraphViewTool.h"
+#include "ViewItem.h"
 
 namespace ndbl
 {
@@ -26,7 +27,33 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    constexpr const char* k_CONTEXT_MENU_POPUP = "GraphView.ContextMenuPopup";
+    struct GraphViewToolContext
+    {
+        constexpr static const char* POPUP_NAME = "GraphView.ContextMenuPopup";
+
+        struct ContextMenu
+        {
+            bool              open_last_frame = false;
+            bool              open_this_frame = false;
+            tools::Vec2       mouse_pos       = {};
+            CreateNodeCtxMenu node_menu       = {};
+        };
+
+        ContextMenu context_menu{};
+        tools::Vec2 mouse_pos{};
+        ImDrawList* draw_list{nullptr};
+        ViewItem    hovered{};
+        ViewItem    focused{};
+        std::vector<NodeView*> selected_nodeview;
+        GraphView*  graph_view{nullptr};
+
+        SlotView*   get_focused_slotview() const;
+        tools::Vec2 mouse_pos_snapped() const;
+        bool        begin_context_menu(); // ImGui style:   if ( begin_..() ) { ...code...  end_..() }
+        void        end_context_menu(bool show_search);
+
+        void open_popup() const;
+    };
 
     typedef int SelectionMode;
     enum SelectionMode_
@@ -52,7 +79,9 @@ namespace ndbl
         void        reset(); // unfold and frame the whole graph
         bool        update();
         bool        has_an_active_tool() const;
+        // TODO: move this to state machine ?
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
+        // TODO: move this to state machine ?
         const NodeViewVec& get_selected() const;
         void        reset_all_properties();
         std::vector<NodeView*> get_all_nodeviews() const;
@@ -65,11 +94,12 @@ namespace ndbl
         bool        update(float dt, u16_t samples);
         static void translate_all(const std::vector<NodeView*>&, const Vec2& offset, NodeViewFlags);
         void        translate_all(const Vec2& offset);
+        // // TODO: move this to state machine ?
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
 
-        Graph*        m_graph;
-        Tool::Context m_context{};
-        Tool          m_tool{m_context};
+        Graph*      m_graph;
+        GraphViewToolContext      m_tool_context;
+        GraphViewToolStateMachine m_tool_state_machine;
     };
 }

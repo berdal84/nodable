@@ -34,8 +34,12 @@ REFLECT_STATIC_INIT
 GraphView::GraphView(Graph* graph)
     : View()
     , m_graph(graph)
+    , m_tool_state_machine()
 {
     ASSERT(graph)
+
+    m_tool_state_machine.set_default_state( new CursorTool(m_tool_context) );
+    m_tool_state_machine.start();
 
     // When a new node is added
     graph->on_add.connect(
@@ -104,7 +108,7 @@ bool GraphView::draw()
     const bool      enable_edition         = virtual_machine->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
     const ImVec2    mouse_pos              = ImGui::GetMousePos();
-    Item            hovered                = Item{};
+    ViewItem            hovered{};
 
     auto draw_grid = [](ImDrawList *draw_list) -> void {
         Config *cfg = get_config();
@@ -187,7 +191,7 @@ bool GraphView::draw()
                 };
                 ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
                 if (ImGui::GetHoveredID() == id)
-                    hovered = EdgeItem{tail, head};
+                    hovered = EdgeViewItem{tail, head};
             }
         }
     }
@@ -265,7 +269,7 @@ bool GraphView::draw()
                 ImGuiID id = make_wire_id(&slotview->get_slot(), adjacent_slot);
                 ImGuiEx::DrawWire(id, draw_list, segment, style);
                 if (ImGui::GetHoveredID() == id)
-                    hovered = EdgeItem{slotview, adjacent_slotview};
+                    hovered = EdgeViewItem{slotview, adjacent_slotview};
             }
         }
     }
@@ -288,8 +292,8 @@ bool GraphView::draw()
     }
 
     // Hovering a SlotView is always the priority
-    if ( hovered.type == ItemType_NODEVIEW && hovered.node.view->m_hovered_slotview != nullptr )
-        hovered = SlotViewItem{hovered.node.view->m_hovered_slotview};
+    if (hovered.is<NodeViewItem>() && hovered.get<NodeViewItem>()->m_hovered_slotview != nullptr )
+        hovered = hovered.get<NodeViewItem>()->m_hovered_slotview;
 
     // Virtual Machine cursor
     if (virtual_machine->is_program_running()) {
@@ -313,37 +317,21 @@ bool GraphView::draw()
     }
 
     // Update tool context
-    m_context.mouse_pos  = mouse_pos;
-    m_context.graph_view = this;
-    m_context.hovered    = hovered;
-    m_context.draw_list  = draw_list;
-    bool snap_focused_slotview = m_context.focused.type == ItemType_SLOTVIEW
-                              && m_context.focused.slot.view != nullptr;
-    if ( snap_focused_slotview )
-        m_context.mouse_pos_snapped = m_context.focused.slot.view->get_pos(SCREEN_SPACE);
-    else
-        m_context.mouse_pos_snapped = mouse_pos;
+    GraphViewToolContext& tool_ctx = m_tool_context;
+    tool_ctx.mouse_pos  = mouse_pos;
+    tool_ctx.graph_view = this;
+    tool_ctx.hovered    = hovered;
+    tool_ctx.draw_list  = draw_list;
 
     // Update tool state
-    m_tool.tick();
-    m_tool.draw();
+    m_tool_state_machine.tick();
+
+    // Update focused item (TODO: move this into GraphViewToolContext)
+    if ( tool_ctx.hovered.empty() && ImGui::IsMouseReleased(0))
+        tool_ctx.focused = {};
 
     // add some empty space
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
-
-    // Debug Infos
-    if ( cfg->tools_cfg->runtime_debug )
-    {
-        if ( ImGui::Begin("GraphView debug info" ) )
-        {
-            ImGui::Text("m_context.focused.type:       %i", m_context.focused.type);
-            ImGui::Text("m_tool.type:                  %i", m_tool.tool_type());
-            ImGui::Text("m_context.hovered.type:       %i", m_context.hovered.type);
-            ImGui::Text("m_context.mouse_pos:          (%f, %f)", m_context.mouse_pos.x, m_context.mouse_pos.y);
-            ImGui::Text("m_context.mouse_pos (snapped):(%f, %f)", m_context.mouse_pos_snapped.x, m_context.mouse_pos_snapped.y);
-        }
-        ImGui::End();
-    }
 
 	return changed;
 }
@@ -448,7 +436,7 @@ void GraphView::translate_all(const Vec2& delta)
 
 void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
 {
-    m_context.create_node_ctx_menu.add_action(_action);
+    m_tool_context.context_menu.node_menu.add_action(_action);
 }
 
 void GraphView::frame_nodes(FrameMode mode )
@@ -468,8 +456,8 @@ void GraphView::frame_nodes(FrameMode mode )
 
         case FRAME_SELECTION_ONLY:
         {
-            if ( !m_context.selected_nodeview.empty())
-                frame_views(m_context.selected_nodeview, false);
+            if ( !m_tool_context.selected_nodeview.empty())
+                frame_views(m_tool_context.selected_nodeview, false);
             break;
         }
         default:
@@ -479,38 +467,38 @@ void GraphView::frame_nodes(FrameMode mode )
 
 void GraphView::set_selected(const NodeViewVec& views, SelectionMode mode )
 {
-    NodeViewVec curr_selection = m_context.selected_nodeview;
+    NodeViewVec curr_selection = m_tool_context.selected_nodeview;
     if ( mode == SelectionMode_REPLACE )
     {
-        m_context.selected_nodeview.clear();
+        m_tool_context.selected_nodeview.clear();
         for(auto& each : curr_selection )
             each->selected = false;
     }
 
     for(auto& each : views)
     {
-        m_context.selected_nodeview.emplace_back(each);
+        m_tool_context.selected_nodeview.emplace_back(each);
         each->selected = true;
     }
 
-    EventPayload_NodeViewSelectionChange event{ m_context.selected_nodeview, curr_selection };
+    EventPayload_NodeViewSelectionChange event{ m_tool_context.selected_nodeview, curr_selection };
     EventManager& event_manager = EventManager::get_instance();
     event_manager.dispatch<Event_SelectionChange>(event);
 }
 
 const GraphView::NodeViewVec& GraphView::get_selected() const
 {
-    return m_context.selected_nodeview;
+    return m_tool_context.selected_nodeview;
 }
 
 bool GraphView::is_selected(NodeView* view) const
 {
-    return std::find( m_context.selected_nodeview.begin(), m_context.selected_nodeview.end(), view) != m_context.selected_nodeview.end();
+    return std::find( m_tool_context.selected_nodeview.begin(), m_tool_context.selected_nodeview.end(), view) != m_tool_context.selected_nodeview.end();
 }
 
 bool GraphView::selection_empty() const
 {
-    return m_context.selected_nodeview.empty();
+    return m_tool_context.selected_nodeview.empty();
 }
 
 void GraphView::reset()
@@ -537,7 +525,7 @@ std::vector<NodeView*> GraphView::get_all_nodeviews() const
 
 bool GraphView::has_an_active_tool() const
 {
-    return m_tool.tool_type() != ToolType_CURSOR;
+    return m_tool_state_machine.get_current_state()->id != ToolType_CURSOR;
 }
 
 void GraphView::reset_all_properties()

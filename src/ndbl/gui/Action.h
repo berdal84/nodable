@@ -1,8 +1,6 @@
 #pragma once
 
-#include "tools/core/reflection/func_type.h"
 #include "tools/gui/Action.h"
-#include "ndbl/core/Graph.h"
 #include "Event.h"
 
 namespace ndbl

@@ -30,15 +30,12 @@ static_assert(false, "ASSERT_ is reserved for tools, it should not be defined he
 // Exception ON
 //-------------
 
-#include <stdexcept>
-#include <cpptrace/cpptrace.hpp>
+#include "Exceptions.h"
 
-#ifdef EXPECT_
-static_assert(false, "EXPECT_ is reserved for tools, it should not be defined here.");
-#endif
+#pragma error "EXPECT_ is reserved for tools, it should not be defined here."
 
 #define EXPECT_(expression, message_if_fails )\
-if(!(expression)) { LOG_FLUSH() throw cpptrace::logic_error(message_if_fails); }
+if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
 
 #define ASSERT(expression) EXPECT_( (expression), "Assertion failed: " #expression" is false" )
 #define EXPECT(expression, message) EXPECT_( (expression), message )

@@ -216,10 +216,10 @@ namespace tools
     {
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         LOG_VERBOSE("Pool", "init_for<%s>() ...\n", tools::type::get<T>()->get_name() );
-        auto type_id = std::type_index(typeid(T));
-        ASSERT( m_pool_vector_by_type.find(type_id) == m_pool_vector_by_type.end() );
+        auto id = std::type_index(typeid(T));
+        ASSERT( m_pool_vector_by_type.find(id) == m_pool_vector_by_type.end() );
         IPoolVector* new_pool_vector = new TPoolVector<T>( m_config.reserved_size );
-        m_pool_vector_by_type.emplace(type_id, new_pool_vector );
+        m_pool_vector_by_type.emplace(id, new_pool_vector );
         return new_pool_vector;
     }
 
@@ -234,9 +234,9 @@ namespace tools
     inline IPoolVector * Pool::find_or_init_pool_vector()
     {
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
-        auto type_id = std::type_index(typeid(T));
+        auto id = std::type_index(typeid(T));
         // TODO: use operator[] instead of find() and force user to call init_for<T>() manually
-        auto it = m_pool_vector_by_type.find( type_id );
+        auto it = m_pool_vector_by_type.find( id );
         if ( it == m_pool_vector_by_type.end() )
         {
             LOG_VERBOSE("Pool", "No vector found for '%s'\n", tools::type::get<T>()->get_name() );
