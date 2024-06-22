@@ -20,7 +20,7 @@ NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
 void NodeViewConstraint::apply(float _dt)
 {
     // Check if this constrain should apply
-    if(!m_is_active && m_should_apply(this)) return;
+    if ( !m_is_active || !m_should_apply(this) ) return;
 
     Config* cfg = get_config();
     tools::Config* tools_cfg = tools::get_config();
@@ -46,7 +46,7 @@ void NodeViewConstraint::apply(float _dt)
             NodeView*   driver            = clean_drivers[0];
             const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
             const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            Vec2        virtual_cursor    = driver->get_pos(SCREEN_SPACE);
+            Vec2        cursor    = driver->get_pos(SCREEN_SPACE);
             const Node& driver_owner      = *driver->get_owner();
             NodeViewFlags flags           = NodeViewFlag_IGNORE_PINNED;
             auto        target_rects      = NodeView::get_rects(clean_targets, SCREEN_SPACE, flags );
@@ -73,7 +73,7 @@ void NodeViewConstraint::apply(float _dt)
                 halign = Align_END;
             }
 
-            // Determine virtual_cursor.x from alignment
+            // Determine cursor.x from alignment
             //----------------------------------
 
             switch( halign )
@@ -85,22 +85,21 @@ void NodeViewConstraint::apply(float _dt)
 
                 case Align_END:
                 {
-                    virtual_cursor.x += cfg->ui_node_spacing;
+                    cursor.x += cfg->ui_node_spacing * 4;
                     break;
                 }
 
                 case Align_CENTER:
                 {
                     float size_x_total = 0.0f;
-                    for(Rect& r : target_rects)
-                        size_x_total += r.size().x;
-                    virtual_cursor.x -= size_x_total / 2.0f;
+                    for(Rect& each : target_rects)
+                        size_x_total += each.size().x;
                 }
             }
 
             // Constraint in row:
             //-------------------
-            virtual_cursor.y   += y_direction * driver->get_size().y / 2.0f;
+            cursor.y += y_direction * driver->get_size().y / 2.0f;
             for (int target_index = 0; target_index < clean_targets.size(); target_index++)
             {
                 NodeView* each_target  = clean_targets[target_index];
@@ -115,7 +114,7 @@ void NodeViewConstraint::apply(float _dt)
                 Rect& target_rect = target_rects[target_index];
 
                 Vec2 relative_pos(
-                        target_rect.width() / 2.0f,
+                        0.0f,
                         y_direction * ( target_rect.height() / 2.0f + cfg->ui_node_spacing)
                 );
 
@@ -130,8 +129,8 @@ void NodeViewConstraint::apply(float _dt)
                 }
 
                 Physics* target_physics = target_owner->get_component<Physics>();
-                target_physics->translate_to(SCREEN_SPACE, virtual_cursor + relative_pos + m_offset, cfg->ui_node_speed, true );
-                virtual_cursor.x += target_rect.width() + cfg->ui_node_spacing;
+                target_physics->translate_to(SCREEN_SPACE, cursor + relative_pos + m_offset, cfg->ui_node_speed, true );
+                cursor.x += target_rect.width() + cfg->ui_node_spacing;
             }
             break;
         }
