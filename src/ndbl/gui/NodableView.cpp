@@ -744,7 +744,7 @@ void NodableView::draw_config_window()
 
             if ( ImGui::CollapsingHeader("Misc."))
             {
-                ImGui::SliderFloat("spacing", &cfg->ui_node_spacing, 10.0f, 50.0f);
+                ImGui::SliderFloat2("spacing vert./horiz.", &cfg->ui_node_spacing.x, 10.0f, 50.0f);
                 ImGui::SliderFloat("velocity", &cfg->ui_node_speed, 1.0f, 10.0f);
                 ImGui::SliderFloat4("padding", &cfg->ui_node_padding.x, 0.0f, 20.0f);
                 ImGui::SliderFloat("border width", &cfg->ui_node_borderWidth, 0.0f, 10.0f);

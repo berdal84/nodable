@@ -39,7 +39,7 @@ namespace ndbl
         float          ui_slot_gap;
         float          ui_slot_border_radius;
         float          ui_slot_invisible_ratio;
-        float          ui_node_spacing;
+        Vec2           ui_node_spacing; // horizontal, vertical
         Vec4           ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth

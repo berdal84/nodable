@@ -83,7 +83,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_shadowColor                   = Vec4(0.0f, 0.0f, 0.0f, 0.2f);
     ui_slot_hovered_color                 = Color(200, 200, 200);
     ui_slot_color                         = Color(127, 127, 127);
-    ui_node_spacing                       = 30.0f;
+    ui_node_spacing                       = Vec2(50.0f, 30.f);
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
     ui_node_detail                        = ViewDetail::ESSENTIAL;

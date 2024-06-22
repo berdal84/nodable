@@ -181,6 +181,8 @@ void Nodable::update()
 
             case Event_SelectionChange::id:
             {
+                if ( current_file == nullptr )
+                    break;
                 auto _event = reinterpret_cast<Event_SelectionChange*>( event );
 
                 Condition_ condition = _event->data.new_selection.empty() ? Condition_ENABLE_IF_HAS_NO_SELECTION
@@ -191,6 +193,7 @@ void Nodable::update()
             }
             case EventID_FILE_OPENED:
             {
+                ASSERT( current_file != nullptr )
                 current_file->view.clear_overlay();
                 current_file->view.refresh_overlay( Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
