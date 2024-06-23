@@ -8,8 +8,10 @@
 
 #include "EventManager.h"
 #include "Texture.h"
-#include "tools/core/Color.h"
-#include "tools/core/geometry/Segment.h"
+#include "Color.h"
+#include "tools/gui/geometry/Segment.h"
+
+#define DEBUG_BEZIER_ENABLE 0
 
 using namespace tools;
 
@@ -106,29 +108,20 @@ void ImGuiEx::DrawWire(
     if ( style.color.z == 0)
         return;
 
-    constexpr Vec2 shadow_offset{ 1.f, 1.f };
-
-    // Soften normals depending on point distance and roundness
-    float smooth_factor = Vec2::distance( curve.p1, curve.p4 ) * style.roundness;
-
     // 1) determine curves for fill and shadow
 
     // Line
-    BezierCurveSegment fill_curve = curve;
-    fill_curve.p2 = Vec2::lerp( curve.p1, curve.p2, smooth_factor);
-    fill_curve.p3 = Vec2::lerp( curve.p4, curve.p3, smooth_factor);
-
     // Generate curve
     std::vector<Vec2> fill_path;
-    BezierCurveSegment::tesselate(&fill_path, fill_curve);
+    BezierCurveSegment::tesselate(&fill_path, curve);
 
     if ( fill_path.size() == 1) return;
 
     // Shadow
-    BezierCurveSegment shadow_curve = fill_curve;
-    shadow_curve.translate(shadow_offset);
-    shadow_curve.p2 = Vec2::lerp( curve.p1, curve.p2, smooth_factor * 1.05f);
-    shadow_curve.p3 = Vec2::lerp( curve.p4, curve.p3, smooth_factor * 0.95f);
+    BezierCurveSegment shadow_curve = curve;
+    shadow_curve.translate({ 1.f, 1.f });
+    shadow_curve.p2 = curve.p2 + Vec2(0.f, 10.f);
+    shadow_curve.p3 = curve.p3 + Vec2(0.f, 10.f);
 
     // Generate curve
     std::vector<Vec2> shadow_path;
@@ -142,7 +135,7 @@ void ImGuiEx::DrawWire(
     // 3) draw the curve
 
     // Mouse behavior
-    MultiSegmentLineBehavior(id, &fill_path, BezierCurveSegment::bbox(fill_curve), style.thickness );
+    MultiSegmentLineBehavior(id, &fill_path, BezierCurveSegment::bbox(curve), style.thickness );
 
     // Draw the path
     if ( ImGui::GetHoveredID() == id )
@@ -252,8 +245,9 @@ void ImGuiEx::MultiSegmentLineBehavior(
     bbox.expand(Vec2{hover_min_distance});
     const Vec2 mouse_pos = ImGui::GetMousePos();
 
+#if DEBUG_BEZIER_ENABLE
     DebugRect(bbox.min, bbox.max, ImColor(0,255,127));
-
+#endif
     // bbox vs point
     if ( !Rect::contains( bbox, mouse_pos ) ) return;
 

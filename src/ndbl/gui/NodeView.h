@@ -11,7 +11,7 @@
 #include "SlotView.h"
 #include "ndbl/core/NodeComponent.h"// base class
 #include "ndbl/core/Property.h"
-#include "tools/core/geometry/Box2D.h"
+#include "tools/gui/geometry/Box.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/View.h"
 #include "types.h"

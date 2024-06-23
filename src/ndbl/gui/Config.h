@@ -11,6 +11,7 @@
 #include "tools/gui/Config.h"
 #include "tools/gui/FontManager.h"
 #include "tools/gui/ImGuiEx.h"
+#include "tools/gui/Size.h"
 #include "types.h"
 #include "ViewDetail.h"
 
@@ -19,6 +20,7 @@ namespace ndbl
     using tools::Vec2;
     using tools::Vec4;
     using tools::Color;
+
 
     struct Config
     {
@@ -31,7 +33,8 @@ namespace ndbl
         Vec2           ui_wire_bezier_fade_lensqr_range;
         Vec4           ui_wire_color;
         Vec4           ui_wire_shadowColor;
-        float          ui_slot_circle_radius;
+        float          ui_slot_circle_radius_base;
+        float          ui_slot_circle_radius(tools::Size = tools::Size_DEFAULT);
         Vec4           ui_slot_border_color;
         Vec4           ui_slot_color;
         Vec4           ui_slot_hovered_color;
@@ -39,7 +42,8 @@ namespace ndbl
         float          ui_slot_gap;
         float          ui_slot_border_radius;
         float          ui_slot_invisible_ratio;
-        Vec2           ui_node_spacing; // horizontal, vertical
+        Vec2           ui_node_gap_base; // horizontal, vertical
+        Vec2           ui_node_gap(tools::Size = tools::Size_DEFAULT);
         Vec4           ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth
@@ -59,6 +63,7 @@ namespace ndbl
         Vec4           ui_codeflow_color;
         Vec4           ui_codeflow_shadowColor;
         float          ui_codeflow_thickness_ratio;
+        float          ui_codeflow_thickness() const;
         Vec2           ui_toolButton_size;
         u64_t          ui_history_size_max{};
         float          ui_history_btn_spacing;
@@ -73,6 +78,7 @@ namespace ndbl
         Vec4           ui_graph_grid_color_major;
         Vec4           ui_graph_grid_color_minor;
         i32_t          ui_grid_subdiv_count;
+        int            ui_grid_subdiv_size() const;
         i32_t          ui_grid_size;
         const char*    ui_file_info_window_label;
         const char*    ui_help_window_label;
@@ -90,11 +96,6 @@ namespace ndbl
         i32_t          graph_unfold_iterations;
         bool           draw_debug_lines;
         tools::Config* tools_cfg;
-
-        // Computed values
-
-        int    ui_grid_subdiv_size() const;
-        float  ui_codeflow_thickness() const;
     };
 
     Config* init_config(); // create a new configuration and set it as current

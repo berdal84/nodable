@@ -5,15 +5,15 @@
 #include <ImGuiColorTextEdit/TextEditor.h>
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
-#include "tools/core/geometry/Rect.h"
-#include "tools/core/geometry/Vec2.h"
-#include "tools/core/geometry/Vec4.h"
-#include "tools/core/geometry/Space.h"
+#include "tools/gui/geometry/Rect.h"
+#include "tools/gui/geometry/Vec2.h"
+#include "tools/gui/geometry/Vec4.h"
+#include "tools/gui/geometry/Space.h"
 #include "tools/core/types.h"
 
 #include "ActionManager.h"
 #include "EventManager.h"
-#include "tools/core/geometry/Bezier.h"
+#include "tools/gui/geometry/Bezier.h"
 
 namespace tools
 {
@@ -113,10 +113,6 @@ namespace tools
                 const std::vector<Vec2>* path,
                 Rect bbox,
                 float thickness);
-
-        inline ImRect toImGui(const Rect& r) { return { r.min, r.max }; };
-        inline ImVec2 toImGui(const Vec2& v) { return { v.x, v.y }; };
-        inline ImVec4 toImGui(const Vec4& v) { return { v.x, v.y, v.z, v.w }; };
 
         float CalcSegmentHoverMinDist( float line_thickness );
         void DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness);

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "tools/core/geometry/Space.h"
-#include "tools/core/geometry/XForm2D.h"
+#include "tools/gui/geometry/Space.h"
+#include "tools/gui/geometry/XForm2D.h"
 #include "ndbl/core/NodeComponent.h"
 #include "ndbl/gui/NodeViewConstraint.h"
 
@@ -19,8 +19,8 @@ namespace  ndbl
         void            add_constraint(NodeViewConstraint&);
         void            apply_constraints(float _dt);
         void            clear_constraints();
-        void            translate_to( tools::Space, tools::Vec2 target_pos, float _factor, bool _recurse = false );
         void            add_force( tools::Vec2 force, bool _recurse = false);
+        void            add_force_to_move_to(tools::Vec2 _target_pos, tools::Space _space, float _factor, bool _recurse);
         void            apply_forces(float _dt, bool _recurse);
         std::vector<NodeViewConstraint>& get_constraints() { return m_constraints; };
         const std::vector<NodeViewConstraint>& get_constraints() const { return m_constraints; };

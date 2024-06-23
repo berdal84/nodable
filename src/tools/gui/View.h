@@ -1,9 +1,9 @@
 #pragma once
 
-#include "tools/core/geometry/Box2D.h"
-#include "tools/core/geometry/Rect.h"
 #include "tools/core/reflection/reflection"
-
+#include "geometry/Box.h"
+#include "geometry/Rect.h"
+#include "geometry/Space.h"
 #include "ImGuiEx.h" // ImGui with extensions
 
 namespace tools
@@ -34,7 +34,7 @@ namespace tools
     private:
         View* m_parent;
         Rect  m_content_region; // Space available before to draw
-        Box2D m_screen_box; // stored in SCREEN_SPACE
+        Box m_screen_box; // stored in SCREEN_SPACE
         std::vector<View*> m_children;
 
         REFLECT_BASE_CLASS()

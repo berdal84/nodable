@@ -6,7 +6,7 @@
 #include "tools/core/system.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/core/math.h"
-#include "tools/core/Color.h"
+#include "tools/gui/Color.h"
 
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/LiteralNode.h"
@@ -108,7 +108,7 @@ bool GraphView::draw()
     const bool      enable_edition         = virtual_machine->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
     const ImVec2    mouse_pos              = ImGui::GetMousePos();
-    ViewItem            hovered{};
+    ViewItem        hovered{};
 
     auto draw_grid = [](ImDrawList *draw_list) -> void {
         Config *cfg = get_config();
@@ -120,18 +120,18 @@ bool GraphView::draw()
         Vec4 grid_color_light = cfg->ui_graph_grid_color_minor;
 
         for (int coord = 0; coord <= vertical_line_count; ++coord) {
-            float pos = area.tl().x + float(coord) * float(grid_subdiv_size);
-            Vec2 line_start{pos, area.tl().y};
-            Vec2 line_end{pos, area.bl().y};
+            float pos = area.top_left().x + float(coord) * float(grid_subdiv_size);
+            Vec2 line_start{pos, area.top_left().y};
+            Vec2 line_end{pos, area.bottom_left().y};
             bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
             ImColor color{is_major ? grid_color : grid_color_light};
             draw_list->AddLine(line_start, line_end, color);
         }
 
         for (int coord = 0; coord <= horizontal_line_count; ++coord) {
-            float pos = area.tl().y + float(coord) * float(grid_subdiv_size);
-            Vec2 line_start{area.tl().x, pos};
-            Vec2 line_end{area.br().x, pos};
+            float pos = area.top_left().y + float(coord) * float(grid_subdiv_size);
+            Vec2 line_start{area.top_left().x, pos};
+            Vec2 line_end{area.bottom_right().x, pos};
             bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
             ImColor color{is_major ? grid_color : grid_color_light};
             draw_list->AddLine(line_start, line_end, color);
@@ -190,7 +190,7 @@ bool GraphView::draw()
                         head_pos,
                 };
                 ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
-                if (ImGui::GetHoveredID() == id)
+                if (ImGui::GetHoveredID() == id && hovered.empty())
                     hovered = EdgeViewItem{tail, head};
             }
         }
@@ -220,20 +220,23 @@ bool GraphView::draw()
             if (!adjacent_nodeview->visible)
                 continue;
 
-            SlotView *slotview = slot->get_view();
-            SlotView *adjacent_slotview = adjacent_slot->get_view();
+            SlotView* slotview = slot->get_view();
+            SlotView* adjacent_slotview = adjacent_slot->get_view();
 
-            const Vec2 &start_pos = slotview->get_pos(SCREEN_SPACE);
-            const Vec2 &end_pos = adjacent_slotview->get_pos(SCREEN_SPACE);
+            const Vec2 start_pos = slotview->get_pos(SCREEN_SPACE);
+            const Vec2 end_pos = adjacent_slotview->get_pos(SCREEN_SPACE);
 
             const Vec2 signed_dist = end_pos - start_pos;
             float lensqr_dist = signed_dist.lensqr();
-            const Vec2 half_signed_dist = signed_dist * 0.5f;
+
+            float roundness = 20.f;
+            if ( signed_dist.y < 0.f )
+                roundness = 100.f;
 
             BezierCurveSegment segment{
                     start_pos,
-                    start_pos + half_signed_dist * slotview->get_normal(),
-                    end_pos + half_signed_dist * adjacent_slotview->get_normal(),
+                    start_pos + slotview->get_normal() * roundness,
+                    end_pos + adjacent_slotview->get_normal() * roundness,
                     end_pos
             };
 
@@ -252,23 +255,18 @@ bool GraphView::draw()
             }
 
             // draw the wire if necessary
-            if (style.color.w != 0.f) {
-                style.roundness = lerp(
-                        cfg->ui_wire_bezier_roundness.x, // min
-                        cfg->ui_wire_bezier_roundness.y, // max
-                        1.0f - normalize(lensqr_dist, 100.0f, 10000.0f)
-                        + 1.0f - normalize(lensqr_dist, 0.0f, 200.0f)
-                );
-
-                if (slot->has_flags(SlotFlag_TYPE_CODEFLOW)) {
+            if (style.color.w != 0.f)
+            {
+                 if (slot->has_flags(SlotFlag_TYPE_CODEFLOW))
+                 {
                     style.thickness *= 3.0f;
                     // style.roundness *= 0.25f;
-                }
+                 }
 
                 // TODO: this block is repeated twice
                 ImGuiID id = make_wire_id(&slotview->get_slot(), adjacent_slot);
                 ImGuiEx::DrawWire(id, draw_list, segment, style);
-                if (ImGui::GetHoveredID() == id)
+                if (ImGui::GetHoveredID() == id && hovered.empty())
                     hovered = EdgeViewItem{slotview, adjacent_slotview};
             }
         }
@@ -282,7 +280,7 @@ bool GraphView::draw()
 
         changed |= nodeview->draw();
 
-        if (nodeview->hovered)
+        if (nodeview->hovered) // no check if something else is hovered, last node always win against an edge
             hovered = NodeViewItem{nodeview};
 
         // VM Cursor (scroll to the next node when VM is debugging)
@@ -290,10 +288,6 @@ bool GraphView::draw()
             if (virtual_machine->is_next_node(nodeview->get_owner()))
                 ImGui::SetScrollHereY();
     }
-
-    // Hovering a SlotView is always the priority
-    if (hovered.is<NodeViewItem>() && hovered.get<NodeViewItem>()->m_hovered_slotview != nullptr )
-        hovered = hovered.get<NodeViewItem>()->m_hovered_slotview;
 
     // Virtual Machine cursor
     if (virtual_machine->is_program_running()) {
@@ -388,17 +382,13 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     // Get views' bbox
     Rect views_bbox = NodeView::get_rect(_views, SCREEN_SPACE);
 
-    // debug
-    ImGuiEx::DebugRect(views_bbox.min, views_bbox.max, IM_COL32(0, 255, 0, 127 ), 5.0f );
-    ImGuiEx::DebugRect( frame.min, frame.max, IM_COL32( 255, 255, 0, 127 ), 5.0f );
-
     // align
     Vec2 move;
     if (_align_top_left_corner)
     {
         // Align with the top-left corner
         views_bbox.expand(Vec2(20.0f ) ); // add a padding to avoid alignment too close from the border
-        move = frame.tl() - views_bbox.tl();
+        move = frame.top_left() - views_bbox.top_left();
     }
     else
     {
@@ -410,9 +400,6 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
     auto node_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
     translate_all(node_views, move, NodeViewFlag_NONE);
-
-    // debug
-    ImGuiEx::DebugLine(views_bbox.center(), views_bbox.center() + move, IM_COL32(255, 0, 0, 255 ), 20.0f);
 }
 
 void GraphView::translate_all(const std::vector<NodeView*>& _views, const Vec2& delta, NodeViewFlags flags )

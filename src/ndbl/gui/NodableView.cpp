@@ -705,62 +705,72 @@ void NodableView::draw_config_window()
 
     if (ImGui::Begin( cfg->ui_config_window_label))
     {
+        const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
+
         ImGui::Text("Nodable Settings");
         if ( ImGui::Button("Reset Settings") )
         {
             cfg->reset();
         }
 
-        if (ImGui::CollapsingHeader("Nodes", ImGuiTreeNodeFlags_SpanAvailWidth))
+        if (ImGui::CollapsingHeader("Sizes", flags ))
+        {
+            ImGui::SliderFloat("size factor SM", &cfg->tools_cfg->size_factor[Size_SM], 0.0f, 5.0f);
+            ImGui::SliderFloat("size factor MD", &cfg->tools_cfg->size_factor[Size_MD], 0.0f, 5.0f);
+            ImGui::SliderFloat("size factor LR", &cfg->tools_cfg->size_factor[Size_LG], 0.0f, 5.0f);
+            ImGui::SliderFloat("size factor XL", &cfg->tools_cfg->size_factor[Size_XL], 0.0f, 5.0f);
+        }
+
+        if (ImGui::CollapsingHeader("Nodes", flags ))
         {
             ImGui::Indent();
-            if ( ImGui::CollapsingHeader("Colors"))
+            if ( ImGui::CollapsingHeader("Colors", flags ))
             {
-                ImGui::ColorEdit4("default", &cfg->ui_node_fillColor.x);
-                ImGui::ColorEdit4("highlighted", &cfg->ui_node_highlightedColor.x);
-                ImGui::ColorEdit4("variable", &cfg->ui_node_variableColor.x);
-                ImGui::ColorEdit4("instruction", &cfg->ui_node_instructionColor.x);
-                ImGui::ColorEdit4("literal", &cfg->ui_node_literalColor.x);
-                ImGui::ColorEdit4("function", &cfg->ui_node_invokableColor.x);
-                ImGui::ColorEdit4("shadow", &cfg->ui_node_shadowColor.x);
-                ImGui::ColorEdit4("border", &cfg->ui_slot_border_color.x);
+                ImGui::ColorEdit4("default"     , &cfg->ui_node_fillColor.x);
+                ImGui::ColorEdit4("highlighted" , &cfg->ui_node_highlightedColor.x);
+                ImGui::ColorEdit4("variable"    , &cfg->ui_node_variableColor.x);
+                ImGui::ColorEdit4("instruction" , &cfg->ui_node_instructionColor.x);
+                ImGui::ColorEdit4("literal"     , &cfg->ui_node_literalColor.x);
+                ImGui::ColorEdit4("function"    , &cfg->ui_node_invokableColor.x);
+                ImGui::ColorEdit4("shadow"      , &cfg->ui_node_shadowColor.x);
+                ImGui::ColorEdit4("border"      , &cfg->ui_slot_border_color.x);
                 ImGui::ColorEdit4("border (highlighted)", &cfg->ui_node_borderHighlightedColor.x);
-                ImGui::ColorEdit4("slot", &cfg->ui_slot_color.x);
-                ImGui::ColorEdit4("slot (hovered)", &cfg->ui_slot_hovered_color.x);
+                ImGui::ColorEdit4("slot"                , &cfg->ui_slot_color.x);
+                ImGui::ColorEdit4("slot (hovered)"      , &cfg->ui_slot_hovered_color.x);
             }
 
-            if ( ImGui::CollapsingHeader("Slots"))
+            if ( ImGui::CollapsingHeader("Slots", flags ))
             {
                 ImGui::Text("Property Slots:");
-                ImGui::SliderFloat("slot radius", &cfg->ui_slot_circle_radius, 5.0f, 10.0f);
+                ImGui::SliderFloat("slot radius", &cfg->ui_slot_circle_radius_base, 5.0f, 10.0f);
 
                 ImGui::Separator();
 
                 ImGui::Text("Code Flow Slots:");
-                ImGui::SliderFloat2("slot size##codeflow", &cfg->ui_slot_rectangle_size.x, 2.0f, 100.0f);
-                ImGui::SliderFloat("slot padding##codeflow", &cfg->ui_slot_gap, 0.0f, 100.0f);
-                ImGui::SliderFloat("slot radius##codeflow", &cfg->ui_slot_border_radius, 0.0f, 40.0f);
+                ImGui::SliderFloat2("slot size##codeflow"   , &cfg->ui_slot_rectangle_size.x, 2.0f, 100.0f);
+                ImGui::SliderFloat("slot padding##codeflow" , &cfg->ui_slot_gap, 0.0f, 100.0f);
+                ImGui::SliderFloat("slot radius##codeflow"  , &cfg->ui_slot_border_radius, 0.0f, 40.0f);
             }
 
-            if ( ImGui::CollapsingHeader("Misc."))
+            if ( ImGui::CollapsingHeader("Misc.", flags ))
             {
-                ImGui::SliderFloat2("spacing vert./horiz.", &cfg->ui_node_spacing.x, 10.0f, 50.0f);
-                ImGui::SliderFloat("velocity", &cfg->ui_node_speed, 1.0f, 10.0f);
-                ImGui::SliderFloat4("padding", &cfg->ui_node_padding.x, 0.0f, 20.0f);
+                ImGui::SliderFloat2("gap base (x and y-axis)", &cfg->ui_node_gap_base.x, 0.0f, 400.0f);
+                ImGui::SliderFloat("velocity" , &cfg->ui_node_speed, 1.0f, 10.0f);
+                ImGui::SliderFloat4("padding" , &cfg->ui_node_padding.x, 0.0f, 20.0f);
                 ImGui::SliderFloat("border width", &cfg->ui_node_borderWidth, 0.0f, 10.0f);
                 ImGui::SliderFloat("border width ratio (instructions)", &cfg->ui_node_instructionBorderRatio, 0.0f, 10.0f);
             }
             ImGui::Unindent();
         }
 
-        if (ImGui::CollapsingHeader("Wires / Code Flow"))
+        if (ImGui::CollapsingHeader("Wires / Code Flow", flags ))
         {
             ImGui::Text("Wires");
-            ImGui::SliderFloat("thickness##wires", &cfg->ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat2("roundness (min,max)##wires", &cfg->ui_wire_bezier_roundness.x, 0.0f, 1.0f);
-            ImGui::SliderFloat2("fade length (min,max in lensqr)##wires", &cfg->ui_wire_bezier_fade_lensqr_range.x, 200.0f, 1000.0f);
-            ImGui::ColorEdit4("color##wires", &cfg->ui_wire_color.x);
-            ImGui::ColorEdit4("shadow color##wires", &cfg->ui_wire_shadowColor.x);
+            ImGui::SliderFloat("thickness", &cfg->ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat2("roundness (min,max)", &cfg->ui_wire_bezier_roundness.x, 0.0f, 1.0f);
+            ImGui::SliderFloat2("fade length (min,max in lensqr)", &cfg->ui_wire_bezier_fade_lensqr_range.x, 0.0f, 100000.0f);
+            ImGui::ColorEdit4("color", &cfg->ui_wire_color.x);
+            ImGui::ColorEdit4("shadow color", &cfg->ui_wire_shadowColor.x);
 
             ImGui::Separator();
 
@@ -769,7 +779,7 @@ void NodableView::draw_config_window()
             ImGui::SliderFloat("thickness (ratio)##codeflow", &cfg->ui_codeflow_thickness_ratio, 0.1, 1.0);
         }
 
-        if (ImGui::CollapsingHeader("Graph"))
+        if (ImGui::CollapsingHeader("Graph", flags ))
         {
             ImGui::InputFloat("unfold delta time", &cfg->graph_unfold_dt);
             ImGui::InputInt("unfold iterations", &cfg->graph_unfold_iterations, 1, 1000);
@@ -779,7 +789,7 @@ void NodableView::draw_config_window()
             ImGui::SliderInt("grid subdivisions", &cfg->ui_grid_subdiv_count, 1, 16);
         }
 
-        if (ImGui::CollapsingHeader("Shortcuts", ImGuiTreeNodeFlags_SpanAvailWidth))
+        if (ImGui::CollapsingHeader("Shortcuts", flags ))
         {
             ActionManagerView::draw(&action_manager);
         }

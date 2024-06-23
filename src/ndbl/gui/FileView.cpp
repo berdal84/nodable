@@ -1,5 +1,6 @@
 #include "FileView.h"
 
+#include "tools/gui/ImGuiTypeConvert.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/VirtualMachine.h"
@@ -74,7 +75,7 @@ bool FileView::draw()
         (Vec2)ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
     };
     splitter_rect.translate_x( m_child1_size + 2.0f );
-    ImGui::SplitterBehavior(ImGuiEx::toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
+    ImGui::SplitterBehavior(toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
 
      // TEXT EDITOR
     //------------
@@ -298,7 +299,7 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
     ImGui::PushStyleColor(ImGuiCol_WindowBg, cfg->ui_overlay_window_bg_golor);
     ImGui::PushStyleColor(ImGuiCol_Border, cfg->ui_overlay_border_color);
     ImGui::PushStyleColor(ImGuiCol_Text, cfg->ui_overlay_text_color);
-    Vec2 win_position = rect.tl() + rect.size() * position;
+    Vec2 win_position = rect.top_left() + rect.size() * position;
     ImGui::SetNextWindowPos( win_position, ImGuiCond_Always, position);
     ImGui::SetNextWindowSize( rect.size(), ImGuiCond_Appearing);
     bool show = true;

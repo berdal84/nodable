@@ -316,18 +316,17 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
 
 bool Node::is_instruction() const
 {
-    if( !predecessors().empty())
-    {
+    bool connected_to_codeflow = predecessors().size() + successors().size() > 0;
+    if(connected_to_codeflow)
         return true;
-    }
-    // TODO: we should search by address since we know m_this_as_property
-    return find_slot_by_property_name( THIS_PROPERTY, SlotFlag_OUTPUT | SlotFlag_NOT_FULL) == nullptr;
+
+    return find_slot_by_property( m_this_as_property, SlotFlag_OUTPUT | SlotFlag_NOT_FULL) == nullptr;
 }
 
 bool Node::should_be_constrain_to_follow_output( const Node* _output ) const
 {
     const auto& _outputs = outputs();
-    return predecessors().empty() && _outputs.size() >= 1 && _outputs.back() == _output;
+    return predecessors().empty() && !_outputs.empty() && _outputs.back() == _output;
 }
 
 bool Node::can_be_instruction() const

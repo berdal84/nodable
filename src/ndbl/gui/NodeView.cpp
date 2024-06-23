@@ -20,6 +20,10 @@
 #include "SlotView.h"
 #include "tools/gui/Config.h"
 
+#ifdef NDBL_DEBUG
+#define DEBUG_DRAW 0
+#endif
+
 using namespace ndbl;
 using namespace tools;
 
@@ -124,11 +128,27 @@ void NodeView::set_owner(Node* node)
 
         switch ( slot_type_n_order )
         {
-            case SlotFlag_INPUT:  slot_align.y = -1.f; break;
-            case SlotFlag_PREV:   slot_align   = {-1.f, -1.f}; slot_shape = ShapeType_RECTANGLE; break;
-            case SlotFlag_OUTPUT: slot_align   = slot->is_this() ? Vec2{-1.f, 0.f}
-                                                                 : Vec2{ 0.f, 1.f}; break;
-            case SlotFlag_NEXT:   slot_align   = {-1.f, 1.f}; slot_shape = ShapeType_RECTANGLE; break;
+            case SlotFlag_INPUT:
+                slot_align = TOP;
+                break;
+
+            case SlotFlag_PREV:
+                slot_align = TOP_LEFT;
+                slot_shape = ShapeType_RECTANGLE;
+                break;
+
+            case SlotFlag_OUTPUT:
+                if (slot->is_this())
+                    slot_align = LEFT;
+                else
+                    slot_align = BOTTOM;
+                break;
+
+            case SlotFlag_NEXT:
+                slot_align = BOTTOM_LEFT;
+                slot_shape = ShapeType_RECTANGLE;
+                break;
+
             default:
                 continue; // skipped
         }
@@ -151,12 +171,12 @@ void NodeView::set_owner(Node* node)
     //---------------------
 
     Vec4* fill_color = &cfg->ui_node_fillColor;
-    if ( extends<VariableNode>( node ) )                  fill_color = &cfg->ui_node_variableColor;
-    else if ( node->has_component<InvokableComponent>() ) fill_color = &cfg->ui_node_invokableColor;
+
+         if ( node->has_component<InvokableComponent>() ) fill_color = &cfg->ui_node_invokableColor;
     else if ( node->is_instruction() )                    fill_color = &cfg->ui_node_instructionColor;
     else if ( extends<LiteralNode>( node ) )              fill_color = &cfg->ui_node_literalColor;
     else if ( extends<IConditional>( node ) )             fill_color = &cfg->ui_node_condStructColor;
-
+    else if ( extends<VariableNode>( node ) )             fill_color = &cfg->ui_node_variableColor;
     set_color( fill_color );
 }
 
@@ -262,7 +282,7 @@ bool NodeView::update(float _deltaTime)
             {
                 // Circle are snapped vertically on their property view, except for the "this" property.
 
-                const Vec2 half_size = Vec2(cfg->ui_slot_circle_radius)*0.5f;
+                const Vec2 half_size{ cfg->ui_slot_circle_radius() };
                 Rect slot_rect{-half_size, half_size};
 
                 if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
@@ -325,7 +345,7 @@ bool NodeView::draw()
         screen_rect.min = Vec2::round( screen_rect.min );
         screen_rect.max = Vec2::round( screen_rect.max );
     }
-    ImGui::SetCursorScreenPos(screen_rect.tl() ); // start from th top left corner
+    ImGui::SetCursorScreenPos(screen_rect.top_left() ); // start from th top left corner
 	ImGui::PushID(this);
 
 
@@ -357,12 +377,12 @@ bool NodeView::draw()
             border_width );
 
     // Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorScreenPos(screen_rect.tl());
+	ImGui::SetCursorScreenPos(screen_rect.top_left());
 	ImGui::InvisibleButton("node", get_size());
     ImGui::SetItemAllowOverlap();
-    Vec2 new_screen_pos = screen_rect.tl()
+    Vec2 new_screen_pos = screen_rect.top_left()
                           + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
-                          + Vec2{cfg->ui_slot_circle_radius, 0.0f}; // space for "this" left slot
+                          + Vec2{cfg->ui_slot_circle_radius(), 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
 
     hovered = ImGui::IsItemHovered();
@@ -403,7 +423,7 @@ bool NodeView::draw()
     // Update box's size according to item's rect
     Vec2 new_size = ImGui::GetItemRectMax();
     new_size += Vec2{ cfg->ui_node_padding.z, cfg->ui_node_padding.w}; // right and bottom padding
-    new_size -= screen_rect.tl();
+    new_size -= screen_rect.top_left();
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
 
@@ -548,8 +568,9 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     _view->set_pos(rect.center(), SCREEN_SPACE);
     _view->set_size(rect.size());
 
+#if DEBUG_DRAW
     ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
-
+#endif
     return changed;
 }
 
@@ -730,6 +751,8 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     if ( tools_cfg->runtime_debug )
     {
         ImGui::Text("Debug info:" );
+        ImGui::Text("can_be_instruction(): %i", node->can_be_instruction() );
+        ImGui::Text("is_instruction():     %i", node->is_instruction() );
         // Draw exposed output properties
         if( ImGui::TreeNode("Other Properties") )
         {
@@ -786,7 +809,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             int i = 0;
             for(NodeViewConstraint& constraint : physics_component->get_constraints())
             {
-                constraint.draw_view();
+                constraint.draw_ui();
             }
             ImGui::TreePop();
         }
@@ -906,7 +929,7 @@ Rect NodeView::get_rect(Space space, NodeViewFlags flags) const
 
     Rect result = Rect::bbox(rects);
 
-#ifdef NDBL_DEBUG
+#if DEBUG_DRAW
     Rect screen_rect = result;
     screen_rect.translate(get_pos(space) - get_pos(PARENT_SPACE) );
     ImGuiEx::DebugRect(screen_rect.min, screen_rect.max, IM_COL32( 0, 255, 0, 60 ), 2 );
@@ -921,15 +944,16 @@ Rect NodeView::get_rect(
     NodeViewFlags flags
 )
 {
-    std::vector<Rect> rects;
-
-    for (auto eachView : _views)
+    Rect result;
+    for (size_t i = 0; i < _views.size(); ++i)
     {
-        Rect rect = eachView->get_rect(space, flags);
-        rects.push_back( rect );
+        Rect rect = _views[i]->get_rect(space, flags);
+        if ( i == 0 )
+            result = rect;
+        else
+            result = Rect::merge(result, rect);
     }
-
-    return Rect::bbox( rects );
+    return result;
 }
 
 std::vector<Rect> NodeView::get_rects(const std::vector<NodeView*>& _in_views, Space space, NodeViewFlags flags)

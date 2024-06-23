@@ -1,83 +1,62 @@
 #pragma once
 
-#include "tools/core/geometry/Vec2.h"
+#include "tools/gui/geometry/Vec2.h"
 #include "tools/core/memory/memory.h"
-#include "tools/core/reflection/reflection"
+#include "NodeView.h"
+#include "tools/gui/Size.h"
 #include <vector>
+#include <functional>
 
-namespace ndbl {
-
+namespace ndbl
+{
     // forward declarations
     class NodeView;
 
-    enum Align {
-        Align_START,
-        Align_CENTER,
-        Align_END,
-    };
-
-    enum Direction {
-        Direction_ROW ,
-        Direction_COLUMN,
-    };
-
-    typedef int ConstrainFlags;
-    enum ConstrainFlag_
+    class NodeViewConstraint
     {
-        ConstrainFlag_LAYOUT_DEFAULT              = 1 << 0,
-        ConstrainFlag_LAYOUT_MAKE_ROW             = 1 << 1,
-        ConstrainFlag_ALIGN_BBOX_LEFT             = 1 << 2,
-        ConstrainFlag_ALIGN_BBOX_TOP              = 1 << 3,
-        ConstrainFlag_ALIGN_BBOX_BOTTOM           = 1 << 4,
-        ConstrainFlag_LAYOUT_FOLLOW_WITH_CHILDREN = ConstrainFlag_LAYOUT_DEFAULT | ConstrainFlag_ALIGN_BBOX_BOTTOM,
-        ConstrainFlag_ALIGN_MASK                  = ConstrainFlag_ALIGN_BBOX_LEFT
-                                                  | ConstrainFlag_ALIGN_BBOX_TOP
-                                                  | ConstrainFlag_ALIGN_BBOX_BOTTOM,
-        ConstrainFlag_LAYOUT_MASK                 = ConstrainFlag_LAYOUT_MAKE_ROW | ConstrainFlag_LAYOUT_DEFAULT,
-    };
-
-    R_ENUM( ConstrainFlag_ )
-    R_ENUM_VALUE( ConstrainFlag_LAYOUT_MAKE_ROW )
-    R_ENUM_VALUE(ConstrainFlag_LAYOUT_FOLLOW_WITH_CHILDREN)
-    R_ENUM_VALUE(ConstrainFlag_ALIGN_BBOX_LEFT)
-    R_ENUM_VALUE(ConstrainFlag_ALIGN_BBOX_TOP)
-    R_ENUM_VALUE(ConstrainFlag_ALIGN_BBOX_BOTTOM)
-    R_ENUM_VALUE(ConstrainFlag_ALIGN_MASK)
-    R_ENUM_VALUE(ConstrainFlag_LAYOUT_MASK)
-    R_ENUM_END
-
-    /**
-     * A class to abstract a constraint between some NodeView
-     */
-    class NodeViewConstraint {
     public:
-        // Lambda returning true if this constrain should apply.
-        using Filter = std::function<bool(NodeViewConstraint*)>;
+        typedef void(NodeViewConstraint::*Constrain)(float _dt);
+        typedef bool(NodeViewConstraint::*Rule)(void);
 
-        NodeViewConstraint(const char* _name, ConstrainFlags );
-        void apply(float _dt);
-        void apply_when(const Filter& _lambda) { m_should_apply = _lambda; }
-        void add_target(NodeView*);
-        void add_driver(NodeView*);
-        void add_targets(const std::vector<NodeView*>&);
-        void add_drivers(const std::vector<NodeView*>&);
-        void draw_view();
+        static const Rule no_target_expanded;
+        static const Rule drivers_are_expanded;
 
-        tools::Vec2 m_offset; // offset applied to the constraint
+        NodeViewConstraint(
+            const char *_name,
+            Constrain constrain,
+            Rule rule = &NodeViewConstraint::rule_always
+        )
+        : name(_name)
+        , constrain(constrain)
+        {}
 
-        static const Filter no_target_expanded;
-        static const Filter drivers_are_expanded;
-        static const Filter always;
+        void update(float _dt);
 
-    private:
-        const char*       m_name;
-        bool              m_is_active;
-        Filter            m_should_apply;
-        ConstrainFlags    m_flags;
-        std::vector<NodeView*> m_drivers; // driving the targets
-        std::vector<NodeView*> m_targets;
-        static void draw_debug_lines(
-                const std::vector<NodeView*>& _drivers,
-                const std::vector<NodeView*>& _targets);
+        void constrain_one_to_one(float _dt);
+        void constrain_one_to_many_as_a_row(float _dt);
+        void constrain_many_to_one(float _dt);
+
+        bool rule_always() { return true; };
+        bool rule_no_target_expanded();
+        bool rule_drivers_are_expanded();
+
+        static std::vector<NodeView*> clean(std::vector<NodeView*> &views);
+        void draw_ui();
+
+        const char*   name;
+
+        Constrain     constrain      = nullptr ;
+        bool          enabled        = true;
+        Rule          should_apply   = &NodeViewConstraint::rule_always;
+        NodeViewFlags leader_flags   = NodeViewFlag_IGNORE_PINNED;
+        NodeViewFlags follower_flags = NodeViewFlag_IGNORE_PINNED;
+        bool          recurse_followers = false;
+        tools::Vec2   leader_pivot   =  tools::RIGHT;
+        tools::Vec2   follower_pivot =  tools::LEFT;
+        tools::Vec2   row_direction  =  tools::RIGHT;
+        tools::Vec2   gap_direction  =  tools::CENTER;
+        tools::Size   gap_size       = tools::Size_DEFAULT;
+        std::vector<NodeView*> leader;
+        std::vector<NodeView*> follower;
     };
 }

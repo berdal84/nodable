@@ -1,6 +1,6 @@
 #include "Config.h"
 #include "build_info.h"
-#include "tools/core/Color.h"
+#include "tools/gui/Color.h"
 #include "tools/gui/Config.h"
 
 using namespace tools;
@@ -69,7 +69,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_borderWidth                   = 1.0f;
     ui_node_instructionBorderRatio        = 2.0f;
     ui_node_padding                       = Vec4{ 8.0f, 4.0f, 4.0f, 4.0f };
-    ui_slot_circle_radius                 = 4.0f;
+    ui_slot_circle_radius_base            = 4.0f;
     ui_node_invokableColor                = Color(255, 199, 115);            // light orange
     ui_node_variableColor                 = Color( 171, 190, 255);           // blue
     ui_node_instructionColor              = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
@@ -83,7 +83,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_shadowColor                   = Vec4(0.0f, 0.0f, 0.0f, 0.2f);
     ui_slot_hovered_color                 = Color(200, 200, 200);
     ui_slot_color                         = Color(127, 127, 127);
-    ui_node_spacing                       = Vec2(50.0f, 30.f);
+    ui_node_gap_base                      = Vec2(40.0f, 40.f);
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
     ui_node_detail                        = ViewDetail::ESSENTIAL;
@@ -186,4 +186,14 @@ void ndbl::Config::reset()
 float ndbl::Config::ui_codeflow_thickness() const
 {
     return ui_slot_rectangle_size.x * ui_codeflow_thickness_ratio;
+}
+
+Vec2 ndbl::Config::ui_node_gap(Size size)
+{
+    return ui_node_gap_base * tools_cfg->size_factor[size];
+}
+
+float ndbl::Config::ui_slot_circle_radius(tools::Size size)
+{
+    return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
 }

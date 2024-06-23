@@ -1,8 +1,8 @@
 #pragma once
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/matrix_transform_2d.hpp>
-#include <glm/mat3x3.hpp>
+#include "glm/glm/gtx/matrix_transform_2d.hpp"
+#include "glm/glm/mat3x3.hpp"
 #undef GLM_ENABLE_EXPERIMENTAL
 
 #include "Rect.h"

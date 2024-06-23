@@ -2,11 +2,12 @@
 
 #include <string>
 
-#include "tools/core/Color.h"
-#include "tools/core/geometry/Vec2.h"
-#include "tools/core/geometry/Vec4.h"
+#include "Color.h"
+#include "geometry/Vec2.h"
+#include "geometry/Vec4.h"
 
 #include "FontManagerConfig.h"
+#include "Size.h"
 
 namespace tools
 {
@@ -14,7 +15,6 @@ namespace tools
     struct Config
     {
         Config() = default;
-        Config(const Config&) = delete; // disable copy
 
         const char*           app_default_title        = "Default App Title";
         bool                  vsync                    = false;
@@ -32,15 +32,21 @@ namespace tools
         float                 dockspace_top_size       = 48.f;
         float                 dockspace_right_ratio    = 0.3f;
         size_t                log_message_display_max_count = 500;
-        std::array<
-            Vec4,
-            log::Verbosity_COUNT> log_color {
-                Vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
-                Vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
-                Vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
-                Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
-            };
-        FontManagerConfig font_manager{
+        std::array<float, Size_COUNT>  size_factor= {
+            0.5f, // SM
+            1.0f,
+            1.25f,
+            2.0f, // LG
+        };
+        std::array<Vec4, log::Verbosity_COUNT> log_color
+        {
+            Vec4(0.5f, 0.0f, 0.0f, 1.0f), // red
+            Vec4(0.5f, 0.0f, 0.5f, 1.0f), // violet
+            Vec4(0.5f, 0.5f, 0.5f, 1.0f), // grey
+            Vec4(0.0f, 0.5f, 0.0f, 1.0f)  // green
+        };
+        FontManagerConfig font_manager
+        {
             {{
                     "default",                  // id
                     "fonts/CenturyGothic.ttf",  // path

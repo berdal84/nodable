@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "Event.h"
 #include "NodeView.h"
+
 using namespace ndbl;
 using namespace tools;
 
@@ -123,7 +124,7 @@ bool SlotView::draw()
     Vec2 pos  = rect.center();
 
     // draw an invisible button (for easy mouse interaction)
-    ImGui::SetCursorScreenPos(rect.tl());
+    ImGui::SetCursorScreenPos(rect.top_left());
     ImGui::PushID(m_slot);
     ImGui::InvisibleButton("###", rect.size() * cfg->ui_slot_invisible_ratio);
     ImGui::PopID();
@@ -134,7 +135,7 @@ bool SlotView::draw()
     {
         case ShapeType_CIRCLE:
         {
-            float r = cfg->ui_slot_circle_radius;
+            float r = cfg->ui_slot_circle_radius();
 
             Vec4 fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? hover_color : color;
             draw_list->AddCircleFilled(pos, r, ImColor(fill_color));

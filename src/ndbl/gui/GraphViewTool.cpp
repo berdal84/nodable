@@ -4,7 +4,7 @@
 #include "imgui.h"
 #include "NodeView.h"
 #include "GraphView.h"
-#include "tools/core/Color.h"
+#include "tools/gui/Color.h"
 #include "Config.h"
 
 using namespace ndbl;
@@ -68,7 +68,7 @@ Transition CursorToolToDragToolSelection_Transition =
         {
             if (ImGui::IsMouseClicked(0) && !current_tool->m_context.hovered.get<NodeViewItem>()->selected || ImGui::IsMouseDoubleClicked(0))
                 return false;
-            else if (ImGui::IsMouseDragging(0))
+            else if (ImGui::IsMouseDragging(0, 0.1f))
                 return true;
         }
         return false;
@@ -132,6 +132,22 @@ Transition ROIToolToCursorTool_Transition
     }
 };
 
+Transition LineToolToCursorTool_Transition
+{
+        [](const State* curr_tool)
+        {
+            if (curr_tool->id == ToolType_LINE )
+                if (ImGui::IsMouseReleased(0))
+                    return true;
+            return false;
+        },
+
+        [](State* curr_state)
+        {
+            auto *current_tool = (GraphViewTool *) curr_state;
+            return new CursorTool(current_tool->m_context);
+        }
+};
 
 //-----------------------------------------------------------------------------
 
@@ -405,6 +421,7 @@ GraphViewToolStateMachine::GraphViewToolStateMachine()
     add_transition(&ROIToolToCursorTool_Transition);
     add_transition(&DragToolToCursorTool_Transition);
     add_transition(&CursorToolToROITool_Transition);
+    add_transition(&LineToolToCursorTool_Transition);
 }
 
 void GraphViewToolStateMachine::tick()

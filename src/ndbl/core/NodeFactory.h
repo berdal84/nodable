@@ -20,7 +20,7 @@ namespace ndbl
     class IfNode;
 
     /**
-     * @brief The NodeFactory instantiate Nodes. Class take a function to apply after creation.
+     * @brief The NodeFactory instantiate Nodes. Class take a function to update after creation.
      *
      * By default post processing function does nothing. It can be used to add a NodeView, log messages, etc.
      */

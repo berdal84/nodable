@@ -7,7 +7,7 @@
 
 #include "ndbl/core/Slot.h"
 #include "types.h"
-#include "tools/core/geometry/Vec2.h"
+#include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/View.h"
 
 

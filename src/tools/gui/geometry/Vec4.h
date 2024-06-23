@@ -1,6 +1,6 @@
 #pragma once
-#include <glm/common.hpp>
-#include <glm/vec4.hpp>
+#include "glm/glm/common.hpp"
+#include "glm/glm/vec4.hpp"
 
 namespace tools
 {

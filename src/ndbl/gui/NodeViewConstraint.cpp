@@ -4,258 +4,124 @@
 #include "ndbl/gui/NodeView.h"
 #include "ndbl/gui/Physics.h"
 #include "tools/gui/Config.h"
+#include "tools/core/math.h"
 #include <numeric>
 
 using namespace ndbl;
 using namespace tools;
 
-NodeViewConstraint::NodeViewConstraint(const char* _name, ConstrainFlags _flags)
-: m_flags(_flags)
-, m_should_apply(always)
-, m_is_active(true)
-, m_name(_name)
+#ifdef NDBL_DEBUG
+#define DEBUG_DRAW 0
+#endif
+
+void NodeViewConstraint::update(float _dt)
 {
+    ASSERT(should_apply != nullptr)
+    ASSERT(constrain != nullptr)
+
+    if ( !enabled)
+        return;
+
+    if ( !(this->*should_apply)() )
+        return;
+
+    (this->*constrain)(_dt);
 }
 
-void NodeViewConstraint::apply(float _dt)
+void NodeViewConstraint::constrain_one_to_one(float _dt)
 {
-    // Check if this constrain should apply
-    if ( !m_is_active || !m_should_apply(this) ) return;
+    ASSERT(leader.size() == 1)
+    ASSERT(follower.size() == 1)
+
+    std::vector<NodeView*> clean_follower = NodeViewConstraint::clean(follower);
+    if( clean_follower.empty() )
+        return;
+
+    const Box leader_box   = leader[0]->get_rect(SCREEN_SPACE, leader_flags );
+    const Box old_follower_box_noflags = clean_follower[0]->get_rect(SCREEN_SPACE, SlotFlag_NONE );
+    const Box old_follower_box = clean_follower[0]->get_rect(SCREEN_SPACE, follower_flags );
+
+    // Move the current node box close to the previous, by following the align_item vector.
+
+    Box new_follower_box = Box::align(leader_box, leader_pivot , old_follower_box_noflags, follower_pivot );
+
+    Vec2 gap = gap_direction * get_config()->ui_node_gap(gap_size);
+    new_follower_box.translate(gap);
+
+    // follower bbox with no flags and flags may differ, we need to apply an offset in that case.
+    Vec2 offset = Vec2::distance(old_follower_box.get_pivot(follower_pivot),old_follower_box_noflags.get_pivot(follower_pivot));
+    new_follower_box.translate(offset*gap_direction);
+
+    // Use the Physics component to apply a force to translate to the box
+    auto* physics_component = follower[0]->get_node()->get_component<Physics>();
+    Config* cfg = get_config();
+    physics_component->add_force_to_move_to(new_follower_box.get_pos(), SCREEN_SPACE, cfg->ui_node_speed, true);
+}
+
+void NodeViewConstraint::constrain_one_to_many_as_a_row(float _dt)
+{
+    ASSERT(leader.size() == 1)
+    ASSERT(follower.size() > 0)
 
     Config* cfg = get_config();
-    tools::Config* tools_cfg = tools::get_config();
+    std::vector<NodeView*> clean_follower = NodeViewConstraint::clean(follower);
+    if( clean_follower.empty() )
+        return;
 
-    // Gather only visible views or their parent (recursively)
-    std::vector<NodeView*> clean_drivers = NodeView::substitute_with_parent_if_not_visible( m_drivers, true );
-    std::vector<NodeView*> clean_targets = NodeView::substitute_with_parent_if_not_visible( m_targets, true );
-
-    // If we still have no targets or drivers visible, it's not necessary to go further
-    if ( NodeView::none_is_visible(clean_targets)) return;
-    if ( NodeView::none_is_visible(clean_drivers)) return;
-
-    // To control visually
-    draw_debug_lines( clean_drivers, clean_targets );
-
-    switch ( m_flags & ConstrainFlag_LAYOUT_MASK )
+    // Form a row with each view box
+    std::vector<Box> old_box;
+    std::vector<Box> new_box;
+    Vec2 gap_items = row_direction * get_config()->ui_node_gap(gap_size);
+    for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        case ConstrainFlag_LAYOUT_MAKE_ROW:
+        Box box = clean_follower[i]->get_rect(SCREEN_SPACE, follower_flags );
+        old_box.push_back(box);
+
+        bool is_first = i == 0;
+        if ( is_first )
         {
-            /*
-             * Make a row with targets, and constrain it to be above at the top (or bottom) the driver's bbox
-             */
-            NodeView*   driver            = clean_drivers[0];
-            const bool  align_bbox_bottom = m_flags & ConstrainFlag_ALIGN_BBOX_BOTTOM;
-            const float y_direction       = align_bbox_bottom ? 1.0f : -1.0f;
-            Vec2        cursor    = driver->get_pos(SCREEN_SPACE);
-            const Node& driver_owner      = *driver->get_owner();
-            NodeViewFlags flags           = NodeViewFlag_IGNORE_PINNED;
-            auto        target_rects      = NodeView::get_rects(clean_targets, SCREEN_SPACE, flags );
-
-#ifdef NDBL_DEBUG
-            if( tools_cfg->runtime_debug )
-            {
-               for(Rect r : target_rects)
-               {
-                   r.expand(Vec2(4.f));
-                   ImGuiEx::DebugRect(r.min, r.max, ImColor(255,127,127), 4.f);
-               }
-            }
-#endif
-
-            // Determine horizontal alignment
-            //-------------------------------
-
-            Align halign = Align_CENTER;
-
-            // Align right when driver is an instruction without being connected to a predecessor
-            if ( driver_owner.is_instruction() && !driver_owner.predecessors().empty() && not align_bbox_bottom )
-            {
-                halign = Align_END;
-            }
-
-            // Determine cursor.x from alignment
-            //----------------------------------
-
-            switch( halign )
-            {
-                case Align_START:
-                {
-                    EXPECT(false, "not implemented")
-                }
-
-                case Align_END:
-                {
-                    cursor.x += cfg->ui_node_spacing.x;
-                    break;
-                }
-
-                case Align_CENTER:
-                {
-                    float size_x_total = 0.0f;
-                    for(Rect& each : target_rects)
-                        size_x_total += each.size().x;
-                }
-            }
-
-            // Constraint in row:
-            //-------------------
-            cursor.y += y_direction * driver->get_size().y / 2.0f;
-            for (int target_index = 0; target_index < clean_targets.size(); target_index++)
-            {
-                NodeView* each_target  = clean_targets[target_index];
-                Node*     target_owner = each_target->get_owner();
-
-                // Guards
-                if ( !each_target->visible ) continue;
-                if ( each_target->pinned() ) continue;
-                if ( !target_owner->should_be_constrain_to_follow_output( &driver_owner ) && !align_bbox_bottom ) continue;
-
-                // Compute new position for this input view
-                Rect& target_rect = target_rects[target_index];
-
-                Vec2 relative_pos(
-                        (target_index > 1 ? cfg->ui_node_spacing.x : 0.f),
-                        y_direction * ( target_rect.height() / 2.0f + cfg->ui_node_spacing.y)
-                );
-
-                if ( align_bbox_bottom ) relative_pos.y += y_direction * cfg->ui_node_spacing.y;
-
-                // Add a vertical space to avoid having too much wires aligned on x-axis
-                // useful for "for" nodes.
-                if( halign == Align_END && clean_targets.size() > 1 )
-                {
-                    float reverse_y_spacing = float(clean_targets.size() - 1 - target_index) * cfg->ui_node_spacing.y;
-                    relative_pos.y += y_direction * reverse_y_spacing;
-                }
-
-                Physics* target_physics = target_owner->get_component<Physics>();
-                target_physics->translate_to(SCREEN_SPACE, cursor + relative_pos + m_offset, cfg->ui_node_speed, true );
-                cursor.x += target_rect.width() ;
-            }
-            break;
+            // First box is aligned with the leader
+            const Box leader_box = leader[0]->get_rect(SCREEN_SPACE, leader_flags );
+            box = Box::align(leader_box, leader_pivot, box, follower_pivot);
+            Vec2 gap = gap_direction * get_config()->ui_node_gap(gap_size);
+            box.translate(gap);
+        }
+        else
+        {
+            // i+1 box is aligned with the i
+            box = Box::align(new_box.back(), row_direction, box, -row_direction);
+            // There is a gap between each box
+            box.translate(gap_items);
         }
 
-        case ConstrainFlag_LAYOUT_DEFAULT:
-        {
-            NodeView* target = clean_targets[0];
-            if (!target->pinned() && target->visible )
-            {
-                Physics& target_physics = *target->get_owner()->get_component<Physics>();
+        new_box.emplace_back(box);
+    }
 
-                // TODO: this if/else should be merged (add new flags for ConstrainFlag_ to distinguish)
-
-                if( m_flags & ConstrainFlag_LAYOUT_FOLLOW_WITH_CHILDREN )
-                {
-                    /*
-                    * Constrain the target view (and its children) to follow the drivers' bbox
-                    */
-
-                    // compute
-                    auto drivers_rect = NodeView::get_rect(clean_drivers, SCREEN_SPACE);
-
-                    NodeViewFlags flags = NodeViewFlag_RECURSIVELY
-                                        | NodeViewFlag_IGNORE_PINNED
-                                        | NodeViewFlag_IGNORE_MULTICONSTRAINED;
-                    auto target_rect  = target->get_rect(SCREEN_SPACE, flags);
-                    float target_driver_offset = drivers_rect.max.y - target_rect.min.y;
-                    Vec2 new_pos;
-                    Vec2 target_position = target->get_pos(SCREEN_SPACE);
-                    new_pos.x = drivers_rect.tl().x + target->get_size().x * 0.5f ;
-                    new_pos.y = target_position.y + target_driver_offset + cfg->ui_node_spacing.y;
-
-                    // apply
-                    target_physics.translate_to(SCREEN_SPACE, new_pos + m_offset, cfg->ui_node_speed, true );
-                }
-                else
-                {
-                    /*
-                     * Align first target's bbox border left with all driver's bbox border right
-                     */
-                    NodeViewFlags flags = NodeViewFlag_RECURSIVELY
-                                        | NodeViewFlag_IGNORE_PINNED
-                                        | NodeViewFlag_IGNORE_MULTICONSTRAINED;
-                    Rect drivers_bbox = NodeView::get_rect(clean_drivers, SCREEN_SPACE, flags);
-                    Vec2 new_position = drivers_bbox.left();
-                    new_position.x += cfg->ui_node_spacing.x;
-                    new_position.x += target->get_rect(SCREEN_SPACE).size().x * 0.5f;
-                    target_physics.translate_to(SCREEN_SPACE, new_position + m_offset, cfg->ui_node_speed );
-                }
-            }
-        }
+    for(size_t i = 0; i < clean_follower.size(); i++)
+    {
+        auto* physics_component = clean_follower[i]->get_node()->get_component<Physics>();
+        ImGuiEx::DebugLine(old_box[i].get_pos(), new_box[i].get_pos(), ImColor(0,255,0), 4.f); // green line to symbolize the desired path
+        physics_component->add_force_to_move_to(new_box[i].get_pos(), SCREEN_SPACE, cfg->ui_node_speed, true);
     }
 }
 
-void NodeViewConstraint::draw_debug_lines(const std::vector<NodeView*>& _drivers,const std::vector<NodeView*>& _targets )
+std::vector<NodeView *> NodeViewConstraint::clean(std::vector<NodeView *> &views)
 {
-#ifdef NDBL_DEBUG
-    if( get_config()->draw_debug_lines && _drivers[0]->hovered )
+    std::vector<NodeView *> result;
+    for(auto* view : views)
     {
-        for (auto each_target: _targets )
-        {
-            for (auto each_driver: _drivers )
-            {
-                ImGuiEx::DebugLine(
-                        each_driver->get_pos(SCREEN_SPACE),
-                    each_target->get_pos(SCREEN_SPACE),
-                    IM_COL32(0, 0, 255, 30),
-                    1.0f
-                );
-            }
-        }
+        if (view->visible)
+            if (!view->pinned())
+                result.push_back(view);
     }
-#endif
+    return result;
 }
 
-void NodeViewConstraint::add_target(NodeView* _target)
+void NodeViewConstraint::draw_ui()
 {
-    ASSERT( _target );
-    m_targets.push_back(_target);
-}
-
-void NodeViewConstraint::add_driver(NodeView* _driver)
-{
-    ASSERT( _driver );
-    m_drivers.push_back(_driver);
-}
-
-void NodeViewConstraint::add_targets(const std::vector<NodeView*> &_new_targets)
-{
-    m_targets.insert(m_targets.end(), _new_targets.begin(), _new_targets.end());
-}
-
-void NodeViewConstraint::add_drivers(const std::vector<NodeView*> &_new_drivers)
-{
-    m_drivers.insert(m_drivers.end(), _new_drivers.begin(), _new_drivers.end());
-}
-
-
-auto not_expanded  = [](const NodeView* _view ) { return !_view->is_expanded(); };
-
-const NodeViewConstraint::Filter
-        NodeViewConstraint::always = [](NodeViewConstraint* _constraint){ return true; };
-
-const NodeViewConstraint::Filter
-        NodeViewConstraint::no_target_expanded = [](const NodeViewConstraint* _constraint)
-{
-    return std::find_if(_constraint->m_targets.cbegin(), _constraint->m_targets.cend(), not_expanded)
-           == _constraint->m_targets.cend();
-};
-
-const NodeViewConstraint::Filter
-        NodeViewConstraint::drivers_are_expanded = [](const NodeViewConstraint* _constraint)
-{
-    return std::find_if(_constraint->m_drivers.cbegin(), _constraint->m_drivers.cend(), not_expanded)
-           == _constraint->m_drivers.cend();
-};
-
-void NodeViewConstraint::draw_view()
-{
-    if( ImGui::TreeNode(m_name) )
+    if( ImGui::TreeNode(name) )
     {
-        ImGui::Text("Type:     %s", to_string( (ConstrainFlag_)m_flags ));
-        ImGui::Text("Drivers:  %zu", m_drivers.size());
-        ImGui::Text("Targets:  %zu", m_targets.size());
-        ImGui::Checkbox("On/Off", &m_is_active);
+        ImGui::Checkbox("enabled", &enabled);
         ImGui::TreePop();
     }
 }

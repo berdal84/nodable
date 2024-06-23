@@ -1,8 +1,8 @@
 #pragma once
 
 #include <cstring>
-#include "tools/core/geometry/Vec2.h"
-#include "tools/core/geometry/Rect.h"
+#include "tools/gui/geometry/Vec2.h"
+#include "tools/gui/geometry/Rect.h"
 #include "CreateNodeCtxMenu.h"
 #include "tools/core/StateMachine.h"
 

@@ -26,17 +26,21 @@ Rect Rect::bbox( std::vector<Rect> rects )// Return a rectangle overlapping all 
     Rect result = rects[0];
     for(auto it = rects.begin() +1; it != rects.end(); it++ )
     {
-        result = Rect::bbox( result, *it );
+        result = Rect::merge(result, *it);
     }
     return result;
 }
 
-Rect Rect::bbox( const Rect& a, const Rect& b )// Return a rectangle overlapping the two rectangles
+Rect Rect::merge(const Rect& a, const Rect& b )// Return a rectangle overlapping the two rectangles
 {
-    return {
-            {glm::min( a.min.x, b.min.x ), glm::min( a.min.y, b.min.y )},
-            {glm::max( a.max.x, b.max.x ), glm::max( a.max.y, b.max.y )}
-    };
+    ASSERT(!a.is_inverted())
+    ASSERT(!b.is_inverted())
+    Rect result;
+    result.min.x = glm::min( a.min.x, b.min.x );
+    result.min.y = glm::min( a.min.y, b.min.y );
+    result.max.x = glm::max( a.max.x, b.max.x );
+    result.max.y = glm::max( a.max.y, b.max.y );
+    return result;
 }
 
 bool Rect::contains( const Rect& a, const Rect& b )
@@ -60,9 +64,4 @@ bool Rect::contains( const Rect& rect, const Vec2& point )
            point.x <= rect.max.x &&
            point.y >= rect.min.y &&
            point.y <= rect.max.y;
-}
-
-bool Rect::has_area() const
-{
-    return width() != 0.f && height() != 0.f;
 }
