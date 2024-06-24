@@ -21,7 +21,7 @@ namespace  ndbl
         void            clear_constraints();
         void            add_force( tools::Vec2 force, bool _recurse = false);
         void            add_force_to_move_to(tools::Vec2 _target_pos, tools::Space _space, float _factor, bool _recurse);
-        void            apply_forces(float _dt, bool _recurse);
+        void            apply_forces(float _dt);
         std::vector<NodeViewConstraint>& get_constraints() { return m_constraints; };
         const std::vector<NodeViewConstraint>& get_constraints() const { return m_constraints; };
         static void     create_constraints(const std::vector<Node*>&);

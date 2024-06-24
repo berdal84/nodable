@@ -48,7 +48,7 @@ GraphView::GraphView(Graph* graph)
             // Add a NodeView and Physics component
             ComponentFactory* component_factory = get_component_factory();
             auto nodeview = component_factory->create<NodeView>();
-            this->add_child(nodeview);
+            this->add_child(nodeview->base_view());
             auto physics  = component_factory->create<Physics>( nodeview );
             node->add_component( nodeview );
             node->add_component( physics );
@@ -158,10 +158,12 @@ bool GraphView::draw()
         }
 
         std::vector<Slot *> slots = each_node->filter_slots(SlotFlag_NEXT);
-        for (size_t slot_index = 0; slot_index < slots.size(); ++slot_index) {
+        for (size_t slot_index = 0; slot_index < slots.size(); ++slot_index)
+        {
             Slot *slot = slots[slot_index];
 
-            if (slot->empty()) {
+            if (slot->empty())
+            {
                 continue;
             }
 
@@ -170,11 +172,11 @@ bool GraphView::draw()
                 NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible(
                         each_successor_node->get_component<NodeView>());
 
-                if (!each_successor_view)
+                if ( each_successor_view == nullptr )
                     continue;
-                if (!each_view->visible)
+                if ( each_view->visible() == false )
                     continue;
-                if (!each_successor_view->visible)
+                if ( each_successor_view->visible() == false )
                     continue;
 
                 SlotView *tail = slot->get_view();
@@ -215,9 +217,9 @@ bool GraphView::draw()
             NodeView *node_view = slot->get_node()->get_component<NodeView>();
             NodeView *adjacent_nodeview = adjacent_slot->get_node()->get_component<NodeView>();
 
-            if (!node_view->visible)
+            if ( node_view->visible() == false )
                 continue;
-            if (!adjacent_nodeview->visible)
+            if ( adjacent_nodeview->visible() == false )
                 continue;
 
             SlotView* slotview = slot->get_view();
@@ -275,12 +277,12 @@ bool GraphView::draw()
     // Draw NodeViews
     for (NodeView *nodeview: get_all_nodeviews())
     {
-        if (!nodeview->visible)
+        if ( nodeview->visible() == false )
             continue;
 
         changed |= nodeview->draw();
 
-        if (nodeview->hovered) // no check if something else is hovered, last node always win against an edge
+        if ( nodeview->hovered() ) // no check if something else is hovered, last node always win against an edge
             hovered = NodeViewItem{nodeview};
 
         // VM Cursor (scroll to the next node when VM is debugging)
@@ -350,7 +352,7 @@ bool GraphView::update(float delta_time)
     // 1.3 Apply forces (translate views)
     for(auto physics_component : physics_components)
     {
-        physics_component->apply_forces(delta_time, false);
+        physics_component->apply_forces(delta_time);
     }
 
     // 2. Update NodeViews
@@ -380,45 +382,32 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     Rect frame = get_content_region(SCREEN_SPACE);
 
     // Get views' bbox
-    Rect views_bbox = NodeView::get_rect(_views, SCREEN_SPACE);
+    Rect views_bbox = NodeView::get_rect(_views, SCREEN_SPACE );
 
     // align
-    Vec2 move;
+    Vec2 delta;
     if (_align_top_left_corner)
     {
         // Align with the top-left corner
         views_bbox.expand(Vec2(20.0f ) ); // add a padding to avoid alignment too close from the border
-        move = frame.top_left() - views_bbox.top_left();
+        delta = frame.top_left() - views_bbox.top_left();
     }
     else
     {
         // Align the center of the node rectangle with the frame center
-        move = frame.center() - views_bbox.center();
+        delta = frame.center() - views_bbox.center();
     }
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
     auto node_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
-    translate_all(node_views, move, NodeViewFlag_NONE);
-}
-
-void GraphView::translate_all(const std::vector<NodeView*>& _views, const Vec2& delta, NodeViewFlags flags )
-{
-    for (auto node_view : _views )
-    {
-        node_view->translate(delta, flags);
-    }
+    NodeView::translate(get_all_nodeviews(), delta);
 }
 
 void GraphView::unfold()
 {
     Config* cfg = get_config();
     update( cfg->graph_unfold_dt, cfg->graph_unfold_iterations );
-}
-
-void GraphView::translate_all(const Vec2& delta)
-{
-    translate_all(get_all_nodeviews(), delta, NodeViewFlag_NONE);
 }
 
 void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
@@ -459,13 +448,13 @@ void GraphView::set_selected(const NodeViewVec& views, SelectionMode mode )
     {
         m_tool_context.selected_nodeview.clear();
         for(auto& each : curr_selection )
-            each->selected = false;
+            each->set_selected(false);
     }
 
     for(auto& each : views)
     {
         m_tool_context.selected_nodeview.emplace_back(each);
-        each->selected = true;
+        each->set_selected();
     }
 
     EventPayload_NodeViewSelectionChange event{ m_tool_context.selected_nodeview, curr_selection };
@@ -497,8 +486,8 @@ void GraphView::reset()
     unfold();
 
     // make sure views are outside viewable rectangle (to avoid flickering)
-    auto views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
-    translate_all(views, Vec2(-1000.f, -1000.0f), NodeViewFlag_NONE);
+    Vec2 far_outside = Vec2(-1000.f, -1000.0f);
+    NodeView::translate(get_all_nodeviews(), far_outside);
 
     // frame all (33ms delayed to ensure layout is correct)
     auto& event_manager = EventManager::get_instance();

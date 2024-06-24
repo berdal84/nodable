@@ -74,15 +74,15 @@ void Physics::add_force( Vec2 force, bool _recurse)
     }
 }
 
-void Physics::apply_forces(float _dt, bool _recurse)
+void Physics::apply_forces(float _dt)
 {
     float magnitude_max  = 1000.0f;
     float magnitude      = std::sqrt(m_forces_sum.x * m_forces_sum.x + m_forces_sum.y * m_forces_sum.y );
     float friction       = lerp(0.0f, 0.5f, magnitude / magnitude_max);
-    Vec2 avg_forces_sum = Vec2::scale(m_forces_sum + m_last_frame_forces_sum, 0.5f);
-    Vec2 delta          = Vec2::scale(avg_forces_sum,  (1.0f - friction) * _dt);
+    Vec2  avg_forces_sum = Vec2::scale(m_forces_sum + m_last_frame_forces_sum, 0.5f);
+    Vec2  delta          = Vec2::scale(avg_forces_sum,  (1.0f - friction) * _dt);
 
-    m_view->translate( delta , _recurse);
+    m_view->translate( delta );
 
     m_last_frame_forces_sum = avg_forces_sum;
     m_forces_sum            = Vec2();
@@ -107,7 +107,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
             NodeViewConstraint constraint("Position below previous", &NodeViewConstraint::constrain_one_to_one);
             constraint.leader         = {previous_nodes[0]->get_component<NodeView>()};
             constraint.follower       = {curr_nodeview};
-            constraint.follower_flags = NodeViewFlag_RECURSIVELY | NodeViewFlag_IGNORE_MULTICONSTRAINED | NodeViewFlag_IGNORE_PINNED;
+            constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
 
             // left edge aligned
             constraint.leader_pivot   = BOTTOM_LEFT;
@@ -131,7 +131,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
             constraint.leader_pivot   = BOTTOM;
             constraint.follower       = children;
             constraint.follower_pivot = TOP;
-            constraint.follower_flags = NodeViewFlag_RECURSIVELY;
+            constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
             constraint.gap_size       = tools::Size_SM;
             constraint.gap_direction  = RIGHT;
             physics_component->add_constraint(constraint);

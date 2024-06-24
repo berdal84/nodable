@@ -92,8 +92,6 @@ namespace ndbl
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
         bool        update(float dt, u16_t samples);
-        static void translate_all(const std::vector<NodeView*>&, const Vec2& offset, NodeViewFlags);
-        void        translate_all(const Vec2& offset);
         // // TODO: move this to state machine ?
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);

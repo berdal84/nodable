@@ -37,9 +37,9 @@ void NodeViewConstraint::constrain_one_to_one(float _dt)
     if( clean_follower.empty() )
         return;
 
-    const Box leader_box   = leader[0]->get_rect(SCREEN_SPACE, leader_flags );
-    const Box old_follower_box_noflags = clean_follower[0]->get_rect(SCREEN_SPACE, SlotFlag_NONE );
-    const Box old_follower_box = clean_follower[0]->get_rect(SCREEN_SPACE, follower_flags );
+    const Box leader_box   = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
+    const Box old_follower_box_noflags = clean_follower[0]->get_rect_ex(SCREEN_SPACE, SlotFlag_NONE);
+    const Box old_follower_box = clean_follower[0]->get_rect_ex(SCREEN_SPACE, follower_flags);
 
     // Move the current node box close to the previous, by following the align_item vector.
 
@@ -74,14 +74,14 @@ void NodeViewConstraint::constrain_one_to_many_as_a_row(float _dt)
     Vec2 gap_items = row_direction * get_config()->ui_node_gap(gap_size);
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        Box box = clean_follower[i]->get_rect(SCREEN_SPACE, follower_flags );
+        Box box = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
         old_box.push_back(box);
 
         bool is_first = i == 0;
         if ( is_first )
         {
             // First box is aligned with the leader
-            const Box leader_box = leader[0]->get_rect(SCREEN_SPACE, leader_flags );
+            const Box leader_box = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
             box = Box::align(leader_box, leader_pivot, box, follower_pivot);
             Vec2 gap = gap_direction * get_config()->ui_node_gap(gap_size);
             box.translate(gap);
@@ -110,7 +110,7 @@ std::vector<NodeView *> NodeViewConstraint::clean(std::vector<NodeView *> &views
     std::vector<NodeView *> result;
     for(auto* view : views)
     {
-        if (view->visible)
+        if (view->visible())
             if (!view->pinned())
                 result.push_back(view);
     }

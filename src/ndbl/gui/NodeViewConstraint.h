@@ -48,8 +48,8 @@ namespace ndbl
         Constrain     constrain      = nullptr ;
         bool          enabled        = true;
         Rule          should_apply   = &NodeViewConstraint::rule_always;
-        NodeViewFlags leader_flags   = NodeViewFlag_IGNORE_PINNED;
-        NodeViewFlags follower_flags = NodeViewFlag_IGNORE_PINNED;
+        NodeViewFlags leader_flags   = NodeViewFlag_WITH_PINNED;
+        NodeViewFlags follower_flags = NodeViewFlag_WITH_PINNED;
         bool          recurse_followers = false;
         tools::Vec2   leader_pivot   =  tools::RIGHT;
         tools::Vec2   follower_pivot =  tools::LEFT;

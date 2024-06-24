@@ -66,9 +66,11 @@ Transition CursorToolToDragToolSelection_Transition =
 
         if ( current_tool->m_context.hovered.is<NodeViewItem>() )
         {
-            if (ImGui::IsMouseClicked(0) && !current_tool->m_context.hovered.get<NodeViewItem>()->selected || ImGui::IsMouseDoubleClicked(0))
-                return false;
-            else if (ImGui::IsMouseDragging(0, 0.1f))
+            if (ImGui::IsMouseClicked(0))
+                if (!current_tool->m_context.hovered.get<NodeViewItem>()->selected() )
+                    if (ImGui::IsMouseDoubleClicked(0))
+                        return false;
+            if (ImGui::IsMouseDragging(0, 0.1f))
                 return true;
         }
         return false;
@@ -163,17 +165,17 @@ void DragTool::on_tick()
     if (delta.lensqr() < 1) // avoid updating when mouse is static
         return;
 
-    NodeViewFlags flags = NodeViewFlag_IGNORE_SELECTED | NodeViewFlag_IGNORE_PINNED;
+    NodeViewFlags flags = NodeViewFlag_EXCLUDE_UNSELECTED;
     if ( m_mode == DragTool::Mode::SELECTION )
     {
         for (auto &node_view: m_context.graph_view->get_selected() )
-            node_view->translate(delta, flags);
+            node_view->translate_ex(delta, flags);
     }
     else
     {
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
         for (auto &node_view: m_context.graph_view->get_all_nodeviews()) // TODO: if get_all_nodeviews() was returning a reference, we could merge the if/else branches
-            node_view->translate(delta, flags);
+            node_view->translate_ex(delta, flags);
     }
 
     ImGui::ResetMouseDragDelta();
