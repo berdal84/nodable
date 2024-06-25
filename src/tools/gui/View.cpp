@@ -51,7 +51,7 @@ Vec2 View::get_pos(Space space) const
 
 void View::translate(const Vec2& _delta)
 {
-    set_pos(get_pos(SCREEN_SPACE) + _delta, SCREEN_SPACE );
+    set_pos(get_pos() + _delta);
 }
 
 Rect View::get_rect(Space space) const

@@ -1885,7 +1885,7 @@ std::shared_ptr<const IInvokable> Nodlang::find_function(const char* _signature_
     return find_function( hash );
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_function(hash::hash_t _hash) const
+std::shared_ptr<const IInvokable> Nodlang::find_function(u32_t _hash) const
 {
     auto found = m_functions_by_signature.find(_hash);
     if ( found != m_functions_by_signature.end())

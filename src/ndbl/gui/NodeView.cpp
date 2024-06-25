@@ -297,15 +297,15 @@ bool NodeView::update(float _deltaTime)
 
                 if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
                 {
-                    slot_rect.translate(m_base_view.get_pos(SCREEN_SPACE) + m_base_view.get_size() * slot_view->get_align() * Vec2{0.5f} );
+                    slot_rect.translate(m_base_view.get_pos() + m_base_view.get_size() * slot_view->get_align() * Vec2{0.5f} );
                 }
                 else
                 {
                     auto property_view = get_property_view( slot.get_property() );
-                    Rect property_rect = property_view->get_rect(SCREEN_SPACE);
+                    Rect property_rect = property_view->get_rect();
                     slot_rect.translate( property_rect.center() + property_rect.size() * slot_view->get_align() * Vec2{0.5f} );
                 }
-                slot_view->set_pos(slot_rect.center(), SCREEN_SPACE);
+                slot_view->set_pos(slot_rect.center());
                 slot_view->set_size(slot_rect.size());
                 break;
             }
@@ -315,11 +315,11 @@ bool NodeView::update(float _deltaTime)
                 // Rectangles are always on top/bottom
                 const Vec2 half_size = cfg->ui_slot_rectangle_size*0.5f;
                 Rect slot_rect{-half_size, half_size};
-                slot_rect.translate(m_base_view.get_pos(SCREEN_SPACE));
+                slot_rect.translate(m_base_view.get_pos());
                 slot_rect.translate_x( 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(slot_view->get_index()) );
                 slot_rect.translate_y(slot_view->get_align().y * cfg->ui_slot_rectangle_size.y * 0.5f );
                 slot_rect.translate( slot_view->get_align() * nodeview_halfsize );
-                slot_view->set_pos(slot_rect.center(), SCREEN_SPACE);
+                slot_view->set_pos(slot_rect.center());
                 slot_view->set_size(slot_rect.size());
             }
         }
@@ -572,10 +572,10 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     // memorize property view rect (screen space)
     // enlarge rect to fit node_view top/bottom
     Rect rect = {
-            Vec2{ImGui::GetItemRectMin().x, m_base_view.get_rect(SCREEN_SPACE).min.y} ,
-            Vec2{ImGui::GetItemRectMax().x, m_base_view.get_rect(SCREEN_SPACE).max.y}
+            Vec2{ImGui::GetItemRectMin().x, m_base_view.get_rect().min.y} ,
+            Vec2{ImGui::GetItemRectMax().x, m_base_view.get_rect().max.y}
     };
-    _view->set_pos(rect.center(), SCREEN_SPACE);
+    _view->set_pos(rect.center());
     _view->set_size(rect.size());
 
 #if DEBUG_DRAW

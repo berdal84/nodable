@@ -22,16 +22,15 @@ namespace tools
 		explicit View();
 		virtual ~View() = default;
         virtual bool  draw();
-        tools::Vec2   get_pos(Space) const;
-        void          set_pos(const Vec2&, Space);
-
-        virtual Rect  get_rect(Space) const;
+        tools::Vec2   get_pos(Space = SCREEN_SPACE) const;
+        void          set_pos(const Vec2&, Space = SCREEN_SPACE);
+        Rect          get_rect(Space = SCREEN_SPACE) const;
         void          set_size(const Vec2&);
         Vec2          get_size() const;
         View*         get_parent() const;
         void          add_child(View* view);
         void          translate(const Vec2& delta);
-        const Rect&   get_content_region(Space) const;
+        const Rect&   get_content_region(Space = SCREEN_SPACE) const;
     private:
         View*         m_parent;
         Rect          m_content_region; // Space available before to draw

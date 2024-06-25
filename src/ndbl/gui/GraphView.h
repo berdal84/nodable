@@ -16,8 +16,9 @@
 #include "NodeView.h"
 #include "SlotView.h"
 #include "types.h"
-#include "GraphViewTool.h"
 #include "ViewItem.h"
+#include "tools/core/StateMachine.h"
+#include "CreateNodeCtxMenu.h"
 
 namespace ndbl
 {
@@ -26,8 +27,54 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    struct GraphViewToolContext
+    enum SelectionMode
     {
+        SelectionMode_ADD     = 0,
+        SelectionMode_REPLACE = 1,
+    };
+
+    class GraphView
+    {
+        REFLECT_BASE_CLASS()
+    public:
+        typedef std::vector<NodeView*> NodeViewVec;
+        typedef tools::StateMachine    StateMachine;
+
+	    explicit GraphView(Graph* graph);
+		~GraphView() = default;
+
+        bool        draw();
+        void        add_action_to_context_menu( Action_CreateNode* _action);
+        void        frame_nodes(FrameMode mode );
+        bool        selection_empty() const;
+        void        reset(); // unfold and frame the whole graph
+        bool        update();
+        bool        has_an_active_tool() const;
+        void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
+        const NodeViewVec& get_selected() const;
+        void        reset_all_properties();
+        std::vector<NodeView*> get_all_nodeviews() const;
+        static void        draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
+        Graph*      get_graph() const;
+        tools::View* base() { return &base_view; };
+    private:
+        void        unfold(); // unfold the graph until it is stabilized
+        bool        update(float dt);
+        bool        update(float dt, u16_t samples);
+        bool        is_selected(NodeView*) const;
+        void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
+        SlotView*   get_focused_slotview() const;
+        tools::Vec2 mouse_pos_snapped() const;
+        bool        begin_context_menu(); // ImGui style:   if ( begin_..() ) { ...code...  end_..() }
+        void        end_context_menu(bool show_search);
+        void        open_popup() const;
+
+        tools::View base_view;
+        Graph*      m_graph;
+
+        // Tool State Machine & States
+        //============================
+
         constexpr static const char* POPUP_NAME = "GraphView.ContextMenuPopup";
 
         struct ContextMenu
@@ -38,65 +85,29 @@ namespace ndbl
             CreateNodeCtxMenu node_menu       = {};
         };
 
-        ContextMenu context_menu{};
-        tools::Vec2 mouse_pos{};
-        ImDrawList* draw_list{nullptr};
-        ViewItem    hovered{};
-        ViewItem    focused{};
-        std::vector<NodeView*> selected_nodeview;
-        GraphView*  graph_view{nullptr};
+        ContextMenu            m_context_menu{};
+        ViewItem               m_hovered{};
+        ViewItem               m_focused{};
+        std::vector<NodeView*> m_selected_nodeview;
 
-        SlotView*   get_focused_slotview() const;
-        tools::Vec2 mouse_pos_snapped() const;
-        bool        begin_context_menu(); // ImGui style:   if ( begin_..() ) { ...code...  end_..() }
-        void        end_context_menu(bool show_search);
+        // Tools State Machine
+        //--------------------
 
-        void open_popup() const;
-    };
+        // The data (for some states)
 
-    typedef int SelectionMode;
-    enum SelectionMode_
-    {
-        SelectionMode_ADD     = 0,
-        SelectionMode_REPLACE = 1,
-    };
+        tools::StateMachine    m_state_machine;
+        tools::Vec2            m_roi_state_start_pos;
+        tools::Vec2            m_roi_state_end_pos;
+        SlotView*              m_line_state_dragged_slotview{};
 
-    class GraphView: public tools::View
-    {
-        REFLECT_DERIVED_CLASS()
+        // The behavior
 
-    public:
-        using NodeViewVec = std::vector<NodeView*>;
-
-	    explicit GraphView(Graph* graph);
-		~GraphView() override = default;
-
-        bool        draw() override;
-        void        add_action_to_context_menu( Action_CreateNode* _action);
-        void        frame_nodes(FrameMode mode );
-        bool        selection_empty() const;
-        void        reset(); // unfold and frame the whole graph
-        bool        update();
-        bool        has_an_active_tool() const;
-        // TODO: move this to state machine ?
-        void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
-        // TODO: move this to state machine ?
-        const NodeViewVec& get_selected() const;
-        void        reset_all_properties();
-        std::vector<NodeView*> get_all_nodeviews() const;
-        void        draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
-        Graph*      get_graph() const;
-
-    private:
-        void        unfold(); // unfold the graph until it is stabilized
-        bool        update(float dt);
-        bool        update(float dt, u16_t samples);
-        // // TODO: move this to state machine ?
-        bool        is_selected(NodeView*) const;
-        void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
-
-        Graph*      m_graph;
-        GraphViewToolContext      m_tool_context;
-        GraphViewToolStateMachine m_tool_state_machine;
+        void cursor_state_tick();
+        void roi_state_enter();
+        void roi_state_tick();
+        void drag_state_enter();
+        void drag_state_tick();
+        void view_pan_state_tick();
+        void line_state_tick();
     };
 }

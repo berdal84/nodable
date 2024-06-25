@@ -133,7 +133,7 @@ add_library(
     tools-core
     STATIC
     libs/whereami/src/whereami.c
-        src/tools/gui/Color.h
+    src/tools/gui/Color.h
     src/tools/core/TIdentifier.h
     src/tools/core/assertions.h
     src/tools/core/TaskManager.cpp
@@ -180,7 +180,6 @@ add_library(
     # libraries
     libs/whereami/src/whereami.c
     libs/whereami/src/whereami.h
-        src/tools/gui/geometry/Box.cpp
 )
 
 target_link_libraries(
@@ -252,6 +251,7 @@ add_library(
     src/tools/gui/TextureManager.h
     src/tools/gui/View.cpp
     src/tools/gui/View.h
+    src/tools/gui/ImGuiTypeConvert.h
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
     libs/imgui/imgui_draw.cpp
@@ -266,7 +266,6 @@ add_library(
     libs/gl3w/GL/gl3w.gcda
     libs/gl3w/GL/gl3w.gcno
     libs/lodepng/lodepng.cpp
-        src/tools/gui/ImGuiTypeConvert.h
 )
 
 target_link_libraries(
@@ -457,7 +456,6 @@ add_library(
     src/ndbl/gui/Config.cpp
     src/ndbl/gui/Config.h
     src/ndbl/gui/GraphView.cpp
-    src/ndbl/gui/GraphViewTool.cpp
     src/ndbl/gui/CreateNodeCtxMenu.cpp
     src/ndbl/gui/History.cpp
     src/ndbl/gui/File.cpp
@@ -465,7 +463,7 @@ add_library(
     src/ndbl/gui/Nodable.cpp
     src/ndbl/gui/NodableView.cpp
     src/ndbl/gui/NodeView.cpp
-        src/ndbl/gui/Physics.cpp
+    src/ndbl/gui/Physics.cpp
     src/ndbl/gui/PropertyView.cpp
     src/ndbl/gui/SlotView.cpp
     src/ndbl/gui/Isolation.h

@@ -142,7 +142,7 @@ namespace ndbl{
 
         template<typename T> void load_library(); // Instantiate a library from its type (uses reflection to get all its static methods).
     private:
-        invokable_ptr         find_function( tools::hash::hash_t  _hash) const;
+        invokable_ptr         find_function(u32_t _hash) const;
     private:
         struct {
             std::vector<std::tuple<const char*, Token_t>>                  keywords;
@@ -154,7 +154,7 @@ namespace ndbl{
         operators_vec                                     m_operators;                // the allowed operators (!= implementations).
         Invokable_vec                                     m_operators_impl;           // operators' implementations.
         Invokable_vec                                     m_functions;                // all the functions (including operator's).
-        std::unordered_map<tools::hash::hash_t , std::shared_ptr<const tools::IInvokable>> m_functions_by_signature; // Functions indexed by signature hash
+        std::unordered_map<u32_t , std::shared_ptr<const tools::IInvokable>> m_functions_by_signature; // Functions indexed by signature hash
         std::unordered_map<Token_t, char>                 m_single_char_by_keyword;
         std::unordered_map<Token_t, const char*>          m_keyword_by_token_t;       // token_t to string (ex: Token_t::keyword_double => "double").
         std::unordered_map<tools::type::id_t, const char*>m_keyword_by_type_id;

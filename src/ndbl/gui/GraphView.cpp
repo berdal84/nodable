@@ -22,24 +22,50 @@
 #include "Physics.h"
 #include "SlotView.h"
 #include "ndbl/core/ComponentFactory.h"
+#include "tools/core/StateMachine.h"
 
 using namespace ndbl;
 using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<GraphView>("GraphView").extends<View>();
+    StaticInitializer<GraphView>("GraphView");
 }
 
-GraphView::GraphView(Graph* graph)
-    : View()
-    , m_graph(graph)
-    , m_tool_state_machine()
-{
-    ASSERT(graph)
+// Tool names
+constexpr const char* CURSOR_STATE = "Cursor Tool";
+constexpr const char* ROI_STATE    = "Selection Tool";
+constexpr const char* DRAG_STATE   = "Drag Node Tool";
+constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
+constexpr const char* LINE_STATE   = "Line Tool";
 
-    m_tool_state_machine.set_default_state( new CursorTool(m_tool_context) );
-    m_tool_state_machine.start();
+GraphView::GraphView(Graph* graph)
+: m_graph(graph)
+, m_state_machine(this)
+, base_view()
+{
+    ASSERT(graph != nullptr)
+
+    m_state_machine.add_state(CURSOR_STATE);
+    m_state_machine.bind_tick(CURSOR_STATE, &GraphView::cursor_state_tick);
+    m_state_machine.set_default_state(CURSOR_STATE);
+
+    m_state_machine.add_state(ROI_STATE);
+    m_state_machine.bind_enter(ROI_STATE, &GraphView::roi_state_enter);
+    m_state_machine.bind_tick(ROI_STATE, &GraphView::roi_state_tick);
+
+    m_state_machine.add_state(DRAG_STATE);
+    m_state_machine.bind_enter(DRAG_STATE, &GraphView::drag_state_enter);
+    m_state_machine.bind_tick(DRAG_STATE, &GraphView::drag_state_tick);
+
+    m_state_machine.add_state(VIEW_PAN_STATE);
+    m_state_machine.bind_tick(VIEW_PAN_STATE, &GraphView::view_pan_state_tick);
+
+    m_state_machine.add_state(LINE_STATE);
+    m_state_machine.bind_tick(LINE_STATE, &GraphView::line_state_tick);
+
+
+    m_state_machine.start();
 
     // When a new node is added
     graph->on_add.connect(
@@ -48,7 +74,7 @@ GraphView::GraphView(Graph* graph)
             // Add a NodeView and Physics component
             ComponentFactory* component_factory = get_component_factory();
             auto nodeview = component_factory->create<NodeView>();
-            this->add_child(nodeview->base_view());
+            base_view.add_child(nodeview->base_view());
             auto physics  = component_factory->create<Physics>( nodeview );
             node->add_component( nodeview );
             node->add_component( physics );
@@ -87,7 +113,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     // Draw
 
     ImGuiID id = make_wire_id(&from->get_slot(), nullptr);
-    Vec2 start_pos = from->get_pos(SCREEN_SPACE);
+    Vec2 start_pos = from->get_pos();
 
     BezierCurveSegment segment{
             start_pos, start_pos,
@@ -99,47 +125,44 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 
 bool GraphView::draw()
 {
-    View::draw();
+    base_view.draw();
 
     Config*         cfg                    = get_config();
     VirtualMachine* virtual_machine        = get_virtual_machine();
     bool            changed                = false;
     ImDrawList*     draw_list              = ImGui::GetWindowDrawList();
+    ViewItem        hovered                = {};
     const bool      enable_edition         = virtual_machine->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
-    const ImVec2    mouse_pos              = ImGui::GetMousePos();
-    ViewItem        hovered{};
 
-    auto draw_grid = [](ImDrawList *draw_list) -> void {
-        Config *cfg = get_config();
-        Rect area = ImGuiEx::GetContentRegion(SCREEN_SPACE);
-        int grid_subdiv_size = cfg->ui_grid_subdiv_size();
-        int vertical_line_count = int(area.size().x) / grid_subdiv_size;
-        int horizontal_line_count = int(area.size().y) / grid_subdiv_size;
-        Vec4 grid_color = cfg->ui_graph_grid_color_major;
-        Vec4 grid_color_light = cfg->ui_graph_grid_color_minor;
+    // Draw Grid
+    Rect area = ImGuiEx::GetContentRegion(SCREEN_SPACE);
+    int  grid_subdiv_size  = cfg->ui_grid_subdiv_size();
+    int  grid_vline_count  = int(area.size().x) / grid_subdiv_size;
+    int  grid_hline_count  = int(area.size().y) / grid_subdiv_size;
+    Vec4& grid_color       = cfg->ui_graph_grid_color_major;
+    Vec4& grid_color_light = cfg->ui_graph_grid_color_minor;
 
-        for (int coord = 0; coord <= vertical_line_count; ++coord) {
-            float pos = area.top_left().x + float(coord) * float(grid_subdiv_size);
-            Vec2 line_start{pos, area.top_left().y};
-            Vec2 line_end{pos, area.bottom_left().y};
-            bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
-            ImColor color{is_major ? grid_color : grid_color_light};
-            draw_list->AddLine(line_start, line_end, color);
-        }
+    for (int coord = 0; coord <= grid_vline_count; ++coord)
+    {
+        float pos = area.top_left().x + float(coord) * float(grid_subdiv_size);
+        Vec2 line_start{pos, area.top_left().y};
+        Vec2 line_end{pos, area.bottom_left().y};
+        bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
+        ImColor color{is_major ? grid_color : grid_color_light};
+        draw_list->AddLine(line_start, line_end, color);
+    }
 
-        for (int coord = 0; coord <= horizontal_line_count; ++coord) {
-            float pos = area.top_left().y + float(coord) * float(grid_subdiv_size);
-            Vec2 line_start{area.top_left().x, pos};
-            Vec2 line_end{area.bottom_right().x, pos};
-            bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
-            ImColor color{is_major ? grid_color : grid_color_light};
-            draw_list->AddLine(line_start, line_end, color);
-        }
-    };
-
-    // Background Grid
-    draw_grid(draw_list);
+    for (int coord = 0; coord <= grid_hline_count; ++coord)
+    {
+        float pos = area.top_left().y + float(coord) * float(grid_subdiv_size);
+        Vec2 line_start{area.top_left().x, pos};
+        Vec2 line_end{area.bottom_right().x, pos};
+        bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
+        ImColor color{is_major ? grid_color : grid_color_light};
+        draw_list->AddLine(line_start, line_end, color);
+    }
+    // Draw Grid (end)
 
     // Draw Wires (code flow ONLY)
     const ImGuiEx::WireStyle code_flow_style{
@@ -183,8 +206,8 @@ bool GraphView::draw()
                 SlotView *head = adjacent_slot->get_view();
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = tail->get_pos(SCREEN_SPACE);
-                Vec2 head_pos = head->get_pos(SCREEN_SPACE);
+                Vec2 tail_pos = tail->get_pos();
+                Vec2 head_pos = head->get_pos();
                 BezierCurveSegment segment{
                         tail_pos,
                         tail_pos,
@@ -206,16 +229,18 @@ bool GraphView::draw()
             cfg->ui_wire_bezier_thickness,
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
-    for (auto each_node: node_registry) {
-        for (const Slot *slot: each_node->filter_slots(SlotFlag_OUTPUT)) {
+    for (auto each_node: node_registry)
+    {
+        for (const Slot *slot: each_node->filter_slots(SlotFlag_OUTPUT))
+        {
             ImGuiEx::WireStyle style = default_wire_style;
             Slot *adjacent_slot = slot->first_adjacent();
 
             if (adjacent_slot == nullptr)
                 continue;
 
-            NodeView *node_view = slot->get_node()->get_component<NodeView>();
-            NodeView *adjacent_nodeview = adjacent_slot->get_node()->get_component<NodeView>();
+            auto *node_view         = slot->get_node()->get_component<NodeView>();
+            auto *adjacent_nodeview = adjacent_slot->get_node()->get_component<NodeView>();
 
             if ( node_view->visible() == false )
                 continue;
@@ -225,8 +250,8 @@ bool GraphView::draw()
             SlotView* slotview = slot->get_view();
             SlotView* adjacent_slotview = adjacent_slot->get_view();
 
-            const Vec2 start_pos = slotview->get_pos(SCREEN_SPACE);
-            const Vec2 end_pos = adjacent_slotview->get_pos(SCREEN_SPACE);
+            const Vec2 start_pos = slotview->get_pos();
+            const Vec2 end_pos = adjacent_slotview->get_pos();
 
             const Vec2 signed_dist = end_pos - start_pos;
             float lensqr_dist = signed_dist.lensqr();
@@ -244,11 +269,15 @@ bool GraphView::draw()
 
             // do not draw long lines between a variable value
             if (is_selected(node_view) ||
-                is_selected(adjacent_nodeview)) {
+                is_selected(adjacent_nodeview))
+            {
                 style.color.w *= wave(0.5f, 1.f, (float) BaseApp::elapsed_time(), 10.f);
-            } else {
+            }
+            else
+            {
                 // transparent depending on wire length
-                if (lensqr_dist > cfg->ui_wire_bezier_fade_lensqr_range.x) {
+                if (lensqr_dist > cfg->ui_wire_bezier_fade_lensqr_range.x)
+                {
                     float factor = (lensqr_dist - cfg->ui_wire_bezier_fade_lensqr_range.x) /
                                    (cfg->ui_wire_bezier_fade_lensqr_range.y - cfg->ui_wire_bezier_fade_lensqr_range.x);
                     style.color = Vec4::lerp(style.color, Vec4(0, 0, 0, 0), factor);
@@ -312,19 +341,28 @@ bool GraphView::draw()
         }
     }
 
-    // Update tool context
-    GraphViewToolContext& tool_ctx = m_tool_context;
-    tool_ctx.mouse_pos  = mouse_pos;
-    tool_ctx.graph_view = this;
-    tool_ctx.hovered    = hovered;
-    tool_ctx.draw_list  = draw_list;
+    m_hovered = hovered;
+    m_state_machine.tick();
 
-    // Update tool state
-    m_tool_state_machine.tick();
+    // Debug Infos
+    Config *cfg1 = get_config();
+    if (cfg1->tools_cfg->runtime_debug)
+    {
+        if (ImGui::Begin("GraphViewToolStateMachine"))
+        {
+            ImGui::Text("current_tool:         %s", m_state_machine.get_current_state_name());
+            ImGui::Text("m_focused.type:       %i", (int) m_focused.index());
+            ImGui::Text("m_hovered.type:       %i", (int) m_hovered.index());
+            Vec2 mouse_pos = ImGui::GetMousePos();
+            ImGui::Text("m_mouse_pos:          (%f, %f)", mouse_pos.x, mouse_pos.y);
+            ImGui::Text("m_mouse_pos (snapped):(%f, %f)", mouse_pos_snapped().x, mouse_pos_snapped().y);
+        }
+        ImGui::End();
+    }
 
     // Update focused item (TODO: move this into GraphViewToolContext)
-    if ( tool_ctx.hovered.empty() && ImGui::IsMouseReleased(0))
-        tool_ctx.focused = {};
+    if ( m_hovered.empty() && ImGui::IsMouseReleased(0))
+        m_focused = {};
 
     // add some empty space
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
@@ -379,7 +417,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         return;
     }
 
-    Rect frame = get_content_region(SCREEN_SPACE);
+    Rect frame = base_view.get_content_region(SCREEN_SPACE);
 
     // Get views' bbox
     Rect views_bbox = NodeView::get_rect(_views, SCREEN_SPACE );
@@ -412,7 +450,7 @@ void GraphView::unfold()
 
 void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
 {
-    m_tool_context.context_menu.node_menu.add_action(_action);
+    m_context_menu.node_menu.add_action(_action);
 }
 
 void GraphView::frame_nodes(FrameMode mode )
@@ -432,8 +470,8 @@ void GraphView::frame_nodes(FrameMode mode )
 
         case FRAME_SELECTION_ONLY:
         {
-            if ( !m_tool_context.selected_nodeview.empty())
-                frame_views(m_tool_context.selected_nodeview, false);
+            if ( !m_selected_nodeview.empty())
+                frame_views(m_selected_nodeview, false);
             break;
         }
         default:
@@ -443,38 +481,38 @@ void GraphView::frame_nodes(FrameMode mode )
 
 void GraphView::set_selected(const NodeViewVec& views, SelectionMode mode )
 {
-    NodeViewVec curr_selection = m_tool_context.selected_nodeview;
+    NodeViewVec curr_selection = m_selected_nodeview;
     if ( mode == SelectionMode_REPLACE )
     {
-        m_tool_context.selected_nodeview.clear();
+        m_selected_nodeview.clear();
         for(auto& each : curr_selection )
             each->set_selected(false);
     }
 
     for(auto& each : views)
     {
-        m_tool_context.selected_nodeview.emplace_back(each);
+        m_selected_nodeview.emplace_back(each);
         each->set_selected();
     }
 
-    EventPayload_NodeViewSelectionChange event{ m_tool_context.selected_nodeview, curr_selection };
+    EventPayload_NodeViewSelectionChange event{ m_selected_nodeview, curr_selection };
     EventManager& event_manager = EventManager::get_instance();
     event_manager.dispatch<Event_SelectionChange>(event);
 }
 
 const GraphView::NodeViewVec& GraphView::get_selected() const
 {
-    return m_tool_context.selected_nodeview;
+    return m_selected_nodeview;
 }
 
 bool GraphView::is_selected(NodeView* view) const
 {
-    return std::find( m_tool_context.selected_nodeview.begin(), m_tool_context.selected_nodeview.end(), view) != m_tool_context.selected_nodeview.end();
+    return std::find( m_selected_nodeview.begin(), m_selected_nodeview.end(), view) != m_selected_nodeview.end();
 }
 
 bool GraphView::selection_empty() const
 {
-    return m_tool_context.selected_nodeview.empty();
+    return m_selected_nodeview.empty();
 }
 
 void GraphView::reset()
@@ -501,7 +539,7 @@ std::vector<NodeView*> GraphView::get_all_nodeviews() const
 
 bool GraphView::has_an_active_tool() const
 {
-    return m_tool_state_machine.get_current_state()->id != ToolType_CURSOR;
+    return !m_state_machine.has_default_state();
 }
 
 void GraphView::reset_all_properties()
@@ -514,4 +552,265 @@ void GraphView::reset_all_properties()
 Graph *GraphView::get_graph() const
 {
     return m_graph;
+}
+
+//-----------------------------------------------------------------------------
+
+tools::Vec2 GraphView::mouse_pos_snapped() const
+{
+    if ( m_context_menu.open_this_frame )
+        return m_context_menu.mouse_pos;
+    if ( m_hovered.is<SlotViewItem>() )
+        return m_hovered.get<SlotViewItem>()->get_pos();
+    return ImGui::GetMousePos();
+}
+
+bool GraphView::begin_context_menu()
+{
+    // Context menu (draw)
+    m_context_menu.open_last_frame = m_context_menu.open_this_frame;
+    m_context_menu.open_this_frame = false;
+    bool open = ImGui::BeginPopup(GraphView::POPUP_NAME);
+    if (open)
+    {
+        m_context_menu.mouse_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
+    }
+    m_context_menu.open_this_frame = open;
+    return open;
+}
+
+void GraphView::end_context_menu(bool show_search)
+{
+    if ( show_search )
+    {
+        if( !m_context_menu.open_last_frame )
+            m_context_menu.node_menu.reset_state();
+
+        ImGuiEx::ColoredShadowedText( Vec2(1, 1), Color(0, 0, 0, 255), Color(255, 255, 255, 127), "Create new node :");
+        ImGui::Separator();
+
+        SlotView* focused_slotview = get_focused_slotview();
+        if (Action_CreateNode *triggered_action = m_context_menu.node_menu.draw_search_input( focused_slotview, 10))
+        {
+            // Generate an event from this action, add some info to the state and dispatch it.
+            auto& event_manager            = EventManager::get_instance();
+            auto event                     = triggered_action->make_event();
+            event->data.graph              = get_graph();
+            event->data.active_slotview    = focused_slotview;
+            event->data.desired_screen_pos = m_context_menu.mouse_pos;
+            event_manager.dispatch(event);
+            ImGui::CloseCurrentPopup();
+        }
+    }
+    ImGui::EndPopup();
+}
+
+SlotView *GraphView::get_focused_slotview() const
+{
+    if( m_focused.is<SlotViewItem>() )
+        return m_focused.get<SlotViewItem>();
+    return nullptr;
+}
+
+void GraphView::open_popup() const
+{
+    ImGui::OpenPopup(POPUP_NAME);
+}
+
+//-----------------------------------------------------------------------------
+
+void GraphView::drag_state_enter()
+{
+    for(auto& each : m_selected_nodeview)
+        each->set_pinned();
+}
+
+void GraphView::drag_state_tick()
+{
+    Vec2 delta = ImGui::GetMouseDragDelta();
+    for (auto &node_view: get_selected() )
+        node_view->translate(delta);
+
+    ImGui::ResetMouseDragDelta();
+
+    if ( ImGui::IsMouseReleased(0) )
+        m_state_machine.exit_state();
+}
+
+
+//-----------------------------------------------------------------------------
+
+void GraphView::view_pan_state_tick()
+{
+    // The code is very similar to drag_state_tick, however it should not be. Indeed, we hack a little here
+    // by translating all the nodes instead of translating the graphview content...
+
+    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
+
+    Vec2 delta = ImGui::GetMouseDragDelta();
+    for (auto &node_view: get_all_nodeviews() )
+        node_view->translate(delta);
+
+    ImGui::ResetMouseDragDelta();
+
+    if ( ImGui::IsMouseReleased(0) )
+        m_state_machine.exit_state();
+}
+
+//-----------------------------------------------------------------------------
+
+void GraphView::cursor_state_tick()
+{
+    if ( !ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
+        return;
+
+    if ( m_hovered.is<SlotViewItem>() )
+    {
+        if (ImGui::IsMouseReleased(2))
+        {
+            m_focused = m_hovered;
+        }
+        else if (ImGui::IsMouseDragging(0, 0.1f))
+        {
+            m_state_machine.exit_state();
+        }
+    }
+    else if ( m_hovered.is<NodeViewItem>() )
+    {
+        if ( ImGui::IsMouseReleased(0) )
+        {
+            // TODO: handle remove!
+            // Add/Remove/Replace selection
+            SelectionMode flags = SelectionMode_REPLACE;
+            if ( ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl) )
+                flags = SelectionMode_ADD;
+            std::vector<NodeView*> new_selection{m_hovered.get<NodeViewItem>()};
+            set_selected(new_selection, flags);
+            m_focused = m_hovered;
+        }
+        else if ( ImGui::IsMouseDoubleClicked(0) )
+        {
+            m_hovered.get<NodeViewItem>()->expand_toggle();
+            m_focused = m_hovered;
+        }
+        else if ( ImGui::IsMouseDragging(0) )
+        {
+            if ( !m_hovered.get<NodeViewItem>()->selected() )
+                set_selected({m_hovered.get<NodeViewItem>()});
+            m_state_machine.change_state(DRAG_STATE);
+        }
+    }
+    else if ( m_hovered.is<EdgeViewItem>() )
+    {
+        if (ImGui::IsMouseDragging(0, 0.1f) )
+            m_focused = m_hovered;
+        else if ( ImGui::IsMouseClicked(1) )
+        {
+            m_focused = m_hovered;
+            ImGui::OpenPopup(GraphView::POPUP_NAME);
+        }
+    }
+    else if ( m_hovered.empty() )
+    {
+        if (ImGui::IsMouseClicked(0))
+        {
+            // Deselect All (Click on the background)
+            set_selected({}, SelectionMode_REPLACE);
+        }
+        else if (ImGui::IsMouseReleased(1))
+        {
+            ImGui::OpenPopup(GraphView::POPUP_NAME);
+        }
+        else if (ImGui::IsMouseDragging(0) )
+        {
+            if ( ImGui::IsKeyDown(ImGuiKey_Space) )
+            {
+                m_state_machine.change_state(VIEW_PAN_STATE);
+            }
+            else
+            {
+                m_state_machine.change_state(ROI_STATE);
+            }
+        }
+        m_focused = {};
+    }
+
+    if ( begin_context_menu() )
+    {
+        bool show_search = m_hovered.empty();
+        end_context_menu(show_search);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+void GraphView::line_state_tick()
+{
+    if ( !ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
+        return;
+    ASSERT(m_line_state_dragged_slotview != nullptr)
+
+    // Draw temp wire
+    draw_wire_from_slot_to_pos(m_line_state_dragged_slotview , mouse_pos_snapped() );
+
+    // Open popup to create a new node when dropped over background
+    if (ImGui::IsMouseReleased(0))
+    {
+        if ( m_hovered.is<SlotViewItem>() )
+        {
+            auto &event_manager = EventManager::get_instance();
+            auto event = new Event_SlotDropped();
+            event->data.first = &m_line_state_dragged_slotview->get_slot();
+            event->data.second = &m_hovered.get<SlotViewItem>()->get_slot();
+            event_manager.dispatch(event);
+        }
+        else
+        {
+            open_popup();
+        }
+        m_state_machine.exit_state();
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+
+void GraphView::roi_state_enter()
+{
+    m_roi_state_start_pos = ImGui::GetMousePos();
+    m_roi_state_end_pos   = ImGui::GetMousePos();;
+}
+
+void GraphView::roi_state_tick()
+{
+    m_roi_state_end_pos = ImGui::GetMousePos();
+
+    // Get normalized ROI rectangle
+    Rect roi = Rect::normalize({m_roi_state_start_pos, m_roi_state_end_pos});
+
+    // Expand to avoid null area
+    const int roi_border_width = 2;
+    roi.expand(Vec2{roi_border_width*0.5f});
+
+    // Draw the ROI rectangle
+    float alpha = wave(0.5f, 0.75f, (float) BaseApp::elapsed_time(), 10.f);
+    auto* draw_list = ImGui::GetWindowDrawList();
+    draw_list->AddRect(roi.min, roi.max, ImColor(1.f, 1.f, 1.f, alpha), roi_border_width, ImDrawFlags_RoundCornersAll , roi_border_width );
+
+    if (ImGui::IsMouseReleased(0))
+    {
+        // Select the views included in the ROI
+        std::vector<NodeView*> nodeview_in_roi;
+        for (NodeView* nodeview: get_all_nodeviews())
+        {
+            if (Rect::contains(roi, nodeview->get_rect(SCREEN_SPACE)))
+                nodeview_in_roi.emplace_back(nodeview);
+        }
+        bool control_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
+                               ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+        SelectionMode flags = control_pressed ? SelectionMode_ADD : SelectionMode_REPLACE;
+        set_selected(nodeview_in_roi, flags);
+
+        m_state_machine.exit_state();
+    }
 }
