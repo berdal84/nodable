@@ -153,20 +153,25 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         {
             Physics::Constraint constraint("Align many inputs above", &Physics::Constraint::constrain_one_to_many_as_a_row);
 
-            constraint.leader         = {curr_nodeview};
-            constraint.leader_pivot   = TOP_LEFT;
+            auto* leader = curr_nodeview;
+            constraint.leader         = {leader};
+            constraint.leader_pivot   = TOP;
             constraint.follower       = filtered_inputs;
-            constraint.follower_pivot = BOTTOM_LEFT;
-
+            constraint.follower_pivot = BOTTOM;
+            //constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
             constraint.gap_size       = tools::Size_SM;
             constraint.gap_direction  = TOP;
 
-            constraint.row_direction  = RIGHT;
+            if ( filtered_inputs.size() >= 2 )
+            {
+                constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
+            }
 
-            if ( constraint.leader[0]->get_node()->is_instruction())
+            if ( leader->get_node()->predecessors().size() + leader->get_node()->successors().size() != 0 )
             {
                 constraint.follower_pivot = BOTTOM_LEFT;
                 constraint.leader_pivot   = TOP_RIGHT;
+                constraint.row_direction  = RIGHT;
             }
 
             physics_component->add_constraint(constraint);
