@@ -12,8 +12,6 @@
 
 #include "Config.h"
 #include "Event.h"
-#include "Nodable.h"
-#include "NodeViewConstraint.h"
 #include "Physics.h"
 #include "PropertyView.h"
 #include "GraphView.h"
@@ -818,10 +816,13 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         {
             auto* physics_component = node->get_component<Physics>();
             ImGui::Checkbox("On/Off", &physics_component->is_active);
-            int i = 0;
-            for(NodeViewConstraint& constraint : physics_component->get_constraints())
+            for(Physics::Constraint& constraint : physics_component->get_constraints())
             {
-                constraint.draw_ui();
+                if (ImGui::TreeNode(constraint.name))
+                {
+                    ImGui::Checkbox("enabled", &constraint.enabled);
+                    ImGui::TreePop();
+                }
             }
             ImGui::TreePop();
         }

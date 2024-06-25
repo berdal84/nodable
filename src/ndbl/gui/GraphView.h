@@ -14,7 +14,6 @@
 #include "Action.h"
 
 #include "NodeView.h"
-#include "NodeViewConstraint.h"
 #include "SlotView.h"
 #include "types.h"
 #include "GraphViewTool.h"

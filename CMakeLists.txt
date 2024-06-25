@@ -465,8 +465,7 @@ add_library(
     src/ndbl/gui/Nodable.cpp
     src/ndbl/gui/NodableView.cpp
     src/ndbl/gui/NodeView.cpp
-    src/ndbl/gui/NodeViewConstraint.cpp
-    src/ndbl/gui/Physics.cpp
+        src/ndbl/gui/Physics.cpp
     src/ndbl/gui/PropertyView.cpp
     src/ndbl/gui/SlotView.cpp
     src/ndbl/gui/Isolation.h
