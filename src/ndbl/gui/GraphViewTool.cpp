@@ -59,19 +59,19 @@ Transition CursorToolToDragToolSelection_Transition =
 {
     [](const State* curr_state)
     {
-        if (curr_state->id != ToolType_CURSOR )
-            return false;
-
-        auto* current_tool = (GraphViewTool*)curr_state;
-
-        if ( current_tool->m_context.hovered.is<NodeViewItem>() )
+        if (curr_state->id == ToolType_CURSOR )
         {
-            if (ImGui::IsMouseClicked(0))
-                if (!current_tool->m_context.hovered.get<NodeViewItem>()->selected() )
-                    if (ImGui::IsMouseDoubleClicked(0))
-                        return false;
-            if (ImGui::IsMouseDragging(0, 0.1f))
-                return true;
+            auto& ctx = ((GraphViewTool*)curr_state)->m_context;
+            ViewItem& hovered = ctx.hovered;
+
+            if ( hovered.is<NodeViewItem>())
+                if ( ImGui::IsMouseDragging(0) )
+                    if (ImGui::IsMouseDown(0))
+                    {
+                        if ( !hovered.get<NodeViewItem>()->selected() )
+                            ctx.graph_view->set_selected({hovered.get<NodeViewItem>()});
+                        return true;
+                    }
         }
         return false;
     },
@@ -107,7 +107,7 @@ Transition DragToolToCursorTool_Transition
     [](const State* curr_tool)
     {
         if (curr_tool->id == ToolType_DRAG )
-            return !ImGui::IsMouseDragging(0);
+            return !ImGui::IsMouseDown(0);
         return false;
     },
     [](State* curr_state)
@@ -156,7 +156,7 @@ Transition LineToolToCursorTool_Transition
 void DragTool::on_enter()
 {
     for(auto& each : m_context.selected_nodeview)
-        each->set_pinned(true);
+        each->set_pinned();
 }
 
 void DragTool::on_tick()
@@ -165,17 +165,16 @@ void DragTool::on_tick()
     if (delta.lensqr() < 1) // avoid updating when mouse is static
         return;
 
-    NodeViewFlags flags = NodeViewFlag_EXCLUDE_UNSELECTED;
     if ( m_mode == DragTool::Mode::SELECTION )
     {
         for (auto &node_view: m_context.graph_view->get_selected() )
-            node_view->translate_ex(delta, flags);
+            node_view->translate(delta);
     }
     else
     {
         ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
         for (auto &node_view: m_context.graph_view->get_all_nodeviews()) // TODO: if get_all_nodeviews() was returning a reference, we could merge the if/else branches
-            node_view->translate_ex(delta, flags);
+            node_view->translate(delta);
     }
 
     ImGui::ResetMouseDragDelta();
@@ -202,14 +201,13 @@ void CursorTool::on_tick()
     }
     else if ( m_context.hovered.is<NodeViewItem>() )
     {
-        if (ImGui::IsMouseClicked(0) )
+        if ( ImGui::IsMouseReleased(0) )
         {
             // TODO: handle remove!
             // Add/Remove/Replace selection
             SelectionMode flags = SelectionMode_REPLACE;
             if ( ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl) )
                 flags = SelectionMode_ADD;
-
             std::vector<NodeView*> new_selection{m_context.hovered.get<NodeViewItem>()};
             m_context.graph_view->set_selected(new_selection, flags);
             m_context.focused = m_context.hovered;
