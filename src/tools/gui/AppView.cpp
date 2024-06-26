@@ -21,7 +21,6 @@ constexpr const char* k_status_window_name = "Status Bar";
 AppView::AppView( BaseApp* _app)
     : m_app(_app)
     , m_is_layout_initialized(false)
-    , font_manager()
     , m_sdl_window(nullptr)
     , m_sdl_gl_context()
     , action_manager()
@@ -165,7 +164,7 @@ void AppView::init()
     //style.ScaleAllSizes(1.25f);
 
     // load fonts
-    font_manager.init();
+    m_font_manager = init_font_manager();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -196,6 +195,7 @@ void AppView::init()
 
 void AppView::shutdown()
 {
+    shutdown_font_manager();
     LOG_MESSAGE("tools::AppView", "Shutting down ...\n");
     LOG_MESSAGE("tools::AppView", "Shutting down OpenGL3 ...\n");
     ImGui_ImplOpenGL3_Shutdown();
@@ -302,7 +302,7 @@ void AppView::begin_draw()
     {
         ImGui::PopStyleVar( 3 );
 
-        ImGui::SetCurrentFont( font_manager.get_font( FontSlot_Paragraph ) );
+        ImGui::SetCurrentFont(m_font_manager->get_font(FontSlot_Paragraph ) );
 
         // Show/Hide ImGui Demo Window
         if ( cfg->imgui_demo )

@@ -4,25 +4,28 @@
 #include <map>
 #include <string>
 #include <vector>
-
 #include "FontManagerConfig.h"
-#include "ImGuiEx.h"
+#include "imgui.h" // for ImFont
 
 namespace tools
 {
     class FontManager
     {
     public:
-        FontManager(): m_fonts(), m_loaded_fonts() {}
-        FontManager(const FontManager&) = delete;
-        ~FontManager();;
-        void        init();
         ImFont*     get_font(FontSlot) const;
         ImFont*     get_font(const char*) const;
+        void        init(const FontManagerConfig* config);
     private:
         ImFont*     load_font(const FontConfig&);
-        std::array<ImFont*, FontSlot_COUNT>  m_fonts;        // Required fonts
-        std::map<std::string, ImFont*>       m_loaded_fonts; // Available fonts
+        const FontManagerConfig*             m_config = nullptr; // will be assigned by init()
+        std::array<ImFont*, FontSlot_COUNT>  m_fonts  = {nullptr, nullptr, nullptr, nullptr}; // Font required, user can get_font by name or by slot
+        std::map<std::string, ImFont*>       m_loaded_fonts; // All the fonts loaded in memory
     };
+
+    // singleton-like global functions
+
+    FontManager* init_font_manager(); // call once, or call shutdown before
+    FontManager* get_font_manager(); // require to call init first
+    void         shutdown_font_manager(); // undo init
 }
 

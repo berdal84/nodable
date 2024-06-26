@@ -14,7 +14,7 @@ namespace tools
 
     enum FontSlot
     {
-        FontSlot_Paragraph,
+        FontSlot_Paragraph = 0,
         FontSlot_Heading,
         FontSlot_Code,
         FontSlot_ToolBtn,

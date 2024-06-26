@@ -376,7 +376,7 @@ void NodableView::draw_help_window() const
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_help_window_label))
     {
-        ImGui::PushFont(font_manager.get_font(FontSlot_Heading));
+        ImGui::PushFont(m_font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -391,7 +391,7 @@ void NodableView::draw_help_window() const
         ImGuiEx::BulletTextWrapped(
                 "but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
         ImGui::NewLine();
-        ImGui::PushFont(font_manager.get_font(FontSlot_Heading));
+        ImGui::PushFont(m_font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Quick start");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -602,7 +602,7 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id)
         {
             ImGui::Indent(center_area.x * 0.05f);
 
-            ImGui::PushFont(font_manager.get_font(FontSlot_ToolBtn));
+            ImGui::PushFont(m_font_manager->get_font(FontSlot_ToolBtn));
             ImGui::NewLine();
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
@@ -681,7 +681,7 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
 
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        ImGui::PushFont(font_manager.get_font(FontSlot_Code));
+        ImGui::PushFont(m_font_manager->get_font(FontSlot_Code));
         const ImVec2 size = ImGui::GetContentRegionAvail();
 
         ImGui::BeginChild("FileView", size, false, 0);
@@ -927,7 +927,7 @@ void NodableView::draw_toolbar_window()
         bool stopped         = vm->is_program_stopped();
         auto button_size     = cfg->ui_toolButton_size;
 
-        ImGui::PushFont(font_manager.get_font(FontSlot_ToolBtn));
+        ImGui::PushFont(m_font_manager->get_font(FontSlot_ToolBtn));
         ImGui::BeginGroup();
 
         // compile

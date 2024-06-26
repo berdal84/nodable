@@ -63,7 +63,6 @@ namespace tools
 		~AppView();
 
         bool               show_splashscreen{};
-        FontManager        font_manager;   // TODO: implement init/shutdown logic (singleton)
         EventManager       event_manager;  // TODO: implement init/shutdown logic (singleton)
         ActionManager      action_manager; // TODO: implement init/shutdown logic (singleton)
 
@@ -83,6 +82,7 @@ namespace tools
         void               set_title( const char* string );
 
     protected:
+        FontManager*       m_font_manager;
         void               begin_draw();
         void               end_draw();
         bool               begin_splashscreen();
