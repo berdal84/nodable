@@ -67,11 +67,10 @@ void Nodable::update()
     // 2. Handle events
 
     // Nodable events
-    GraphView* graph_view          = m_current_file ? m_current_file->get_graph().get_view() : nullptr;
-    History*   curr_file_history   = m_current_file ? &m_current_file->history : nullptr;
-
-    IEvent* event = nullptr;
-    EventManager* event_manager = get_event_manager();
+    IEvent*       event = nullptr;
+    EventManager* event_manager     = get_event_manager();
+    GraphView*    graph_view        = m_current_file ? m_current_file->get_graph().get_view() : nullptr; // TODO: should be included in the event
+    History*      curr_file_history = m_current_file ? &m_current_file->history : nullptr; // TODO: should be included in the event
     while( (event = event_manager->poll_event()) )
     {
         switch ( event->id )
@@ -208,6 +207,7 @@ void Nodable::update()
 
             case Event_ArrangeNode::id:
             {
+                // TODO: views should be included in the event
                 for(auto& each_selected_view: graph_view->get_selected())
                 {
                     each_selected_view->arrange_recursively();
@@ -217,7 +217,7 @@ void Nodable::update()
 
             case Event_SelectNext::id:
             {
-                // TODO: store a ref to the view in the event, use selected as fallback if not present
+                // TODO: views should be included in the event
                 auto& selected = graph_view->get_selected();
                 if (selected.empty()) break;
                 std::vector<Node*> successors = selected[0]->get_owner()->successors();
@@ -229,6 +229,7 @@ void Nodable::update()
 
             case Event_ToggleFolding::id:
             {
+                // TODO: views should be included in the event
                 auto& selected = graph_view->get_selected();
                 if ( selected.empty() ) break;
                 auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
@@ -295,6 +296,7 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);
 
                 // 1) create the node
+                // TODO: graph ptr should be included in the event
                 Graph& graph = m_current_file->get_graph();
 
                  if ( !graph.get_root() )
@@ -303,7 +305,7 @@ void Nodable::update()
                     continue;
                 }
 
-                Node* new_node_id  = graph.create_node( _event->data.node_type, _event->data.node_signature );
+                Node* new_node  = graph.create_node(_event->data.node_type, _event->data.node_signature );
 
                 if ( !_event->data.active_slotview )
                 {
@@ -315,13 +317,13 @@ void Nodable::update()
                         case NodeType_BLOCK_WHILE_LOOP:
                         case NodeType_BLOCK_SCOPE:
                         case NodeType_BLOCK_PROGRAM:
-                            new_node_id->after_token = Token::s_end_of_line;
+                            new_node->after_token = Token::s_end_of_line;
                             break;
                         case NodeType_VARIABLE_BOOLEAN:
                         case NodeType_VARIABLE_DOUBLE:
                         case NodeType_VARIABLE_INTEGER:
                         case NodeType_VARIABLE_STRING:
-                            new_node_id->after_token = Token::s_end_of_instruction;
+                            new_node->after_token = Token::s_end_of_instruction;
                             break;
                         case NodeType_LITERAL_BOOLEAN:
                         case NodeType_LITERAL_DOUBLE:
@@ -336,18 +338,18 @@ void Nodable::update()
                 {
                     // Experimental: we try to connect a parent-less child
                     Node* root = graph.get_root();
-                    if ( new_node_id != root && m_config->experimental_graph_autocompletion )
+                    if (new_node != root && m_config->experimental_graph_autocompletion )
                     {
                         graph.connect(
                             *root->find_slot(SlotFlag_CHILD),
-                            *new_node_id->find_slot(SlotFlag_PARENT),
+                            *new_node->find_slot(SlotFlag_PARENT),
                             ConnectFlag_ALLOW_SIDE_EFFECTS
                         );
                     }
                 }
                 else
                 {
-                    Slot* complementary_slot = new_node_id->find_slot_by_property_type(
+                    Slot* complementary_slot = new_node->find_slot_by_property_type(
                             get_complementary_flags(_event->data.active_slotview->get_slot().type_and_order() ),
                             _event->data.active_slotview->get_property()->get_type() );
 
@@ -368,10 +370,10 @@ void Nodable::update()
                 }
 
                 // set new_node's view position, select it
-                if ( auto view = new_node_id->get_component<NodeView>() )
+                if ( auto view = new_node->get_component<NodeView>() )
                 {
                     view->set_pos(_event->data.desired_screen_pos, SCREEN_SPACE);
-                    graph_view->set_selected({view});
+                    graph.get_view()->set_selected({view});
                 }
                 break;
             }
@@ -589,12 +591,11 @@ void Nodable::set_current_file(File* file)
         return;
     }
 
-    
     // TODO:
-    //  - unload current file for example...
-    //  - keep the last N files loaded ?
+    //  - unload current file?
+    //  - keep the last N files loaded?
     //  - save graph to a temp file to restore it later without using memory and altering original source file?
-    EXPECT(false, "This case is not handled yet. Check if we need to do something specific and remove this")
     // close_file(m_current_file); ??
+
     m_current_file = file;
 }
