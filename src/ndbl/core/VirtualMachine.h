@@ -8,14 +8,13 @@
 namespace ndbl
 {
     /*
-     * In this classes/struct/enum we try to follow as much as possible the x86_64 DASM reference
+     * In these classes/struct/enum we try to follow as much as possible the x86_64 DASM reference
      * (https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html)
-     * We do it in order to be maybe one day compatible, for now it is just to be inspired by something solid.
+     * We do it just to be inspired by something solid, but it's NOT at all compatible.
     */
-
-    using Code        = assembly::Code;
-    using Instruction = assembly::Instruction;
-    using Register    = assembly::Register;
+    typedef assembly::Code        Code;
+    typedef assembly::Instruction Instruction;
+    typedef assembly::Register    Register;
 
     class CPU
     {
@@ -93,9 +92,10 @@ namespace ndbl
         const Code*           m_program_asm_code;
     };
 
+    [[nodiscard]]
+    VirtualMachine* init_virtual_machine(); // note: store ptr, you'll need it to shut it down.
     VirtualMachine* get_virtual_machine();
-    VirtualMachine* init_virtual_machine();
-    void shutdown_virtual_machine(VirtualMachine *pMachine); // Undo init_virtual_machine()
+    void            shutdown_virtual_machine(VirtualMachine*); // Undo init_virtual_machine()
 }
 
 

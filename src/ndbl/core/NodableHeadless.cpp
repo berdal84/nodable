@@ -38,7 +38,7 @@ Graph* NodableHeadless::parse( const std::string& code )
 
 bool NodableHeadless::run_program() const
 {
-    EXPECT(m_virtual_machine != nullptr, "please init_ex a virtual machine")
+    EXPECT(m_virtual_machine != nullptr, "Did you call init() ?")
 
     try {
         m_virtual_machine->run_program();

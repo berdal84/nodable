@@ -131,25 +131,25 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_qword:
         {
-            qword& qword = *next_instr->uref.ptr;
-            m_cpu.write(Register::rax, qword );
+            qword* qword = next_instr->uref.ptr;
+            m_cpu.write(Register::rax, *qword );
 
             const type* ptr_type = next_instr->uref.type;
             if(ptr_type->is<bool>() )
             {
-                LOG_VERBOSE("VM", "bool dereferenced: %b\n", qword.b);
+                LOG_VERBOSE("VM", "bool dereferenced: %b\n", qword->b);
             }
             else if(ptr_type->is<double>() )
             {
-                LOG_VERBOSE("VM", "double dereferenced: %d\n", qword.d );
+                LOG_VERBOSE("VM", "double dereferenced: %d\n", qword->d );
             }
             else if(ptr_type->is<i16_t>() )
             {
-                LOG_VERBOSE("VM", "i16_t de-referenced: %i\n", qword.i16 );
+                LOG_VERBOSE("VM", "i16_t de-referenced: %i\n", qword->i16 );
             }
             else if(ptr_type->is<i32_t>() )
             {
-                LOG_VERBOSE("VM", "i32_t de-referenced: %i\n", qword.i32 );
+                LOG_VERBOSE("VM", "i32_t de-referenced: %i\n", qword->i32 );
             }
             else if(ptr_type->is<std::string>() )
             {
@@ -157,11 +157,11 @@ bool VirtualMachine::_stepOver()
             }
             else if(ptr_type->is<void *>() )
             {
-                LOG_VERBOSE("VM", "pointed address: %p\n", qword.ptr );
+                LOG_VERBOSE("VM", "pointed address: %p\n", qword->ptr );
             }
             else if(ptr_type->is<Node*>())
             {
-                LOG_VERBOSE("VM", "Node* de-referenced: %i\n", qword.ptr );
+                LOG_VERBOSE("VM", "Node* de-referenced: %i\n", qword->ptr );
             }
             else
             {

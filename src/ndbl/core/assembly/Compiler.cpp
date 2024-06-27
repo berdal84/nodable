@@ -201,10 +201,9 @@ void assembly::Compiler::compile_node( const Node* _node )
             Instruction* instr     = m_temp_code->push_instr( Instruction_t::deref_qword );
             instr->uref.ptr        = root_node_value->data();
             instr->uref.type       = root_node_value->get_type();
-            instr->m_comment       = "copy root's value ";
-            instr->m_comment.append("(");
-            instr->m_comment.append(instr->uref.type->get_name());
-            instr->m_comment.append(")");
+            instr->m_comment       = "copy root's value (";
+            instr->m_comment      += root_node_value->get_type()->get_name();
+            instr->m_comment      += ")";
         }
     }
 }
