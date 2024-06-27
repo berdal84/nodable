@@ -14,6 +14,19 @@ TEST_F(Virtual_Machine, variable_1 )
 TEST_F(Virtual_Machine, Cond_1)
 {
     std::string program =
+        "if(false)"
+        "{"
+        "   return(0);"
+        "}"
+        "return(1);";
+
+
+    EXPECT_EQ(eval<i32_t>(program), 1);
+}
+
+TEST_F(Virtual_Machine, Cond_2)
+{
+    std::string program =
             "int bob   = 50;"
             "int alice = 10;"
             "int val;"
@@ -30,7 +43,7 @@ TEST_F(Virtual_Machine, Cond_1)
     EXPECT_EQ(eval<i32_t>(program), 50);
 }
 
-TEST_F(Virtual_Machine, Cond_2)
+TEST_F(Virtual_Machine, Cond_3)
 {
     std::string program =
             "int bob   = 0;"
