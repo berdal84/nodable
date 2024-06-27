@@ -15,7 +15,7 @@ class Core : public Test
 {
 public:
     NodableHeadless app;
-    Nodlang*        language{ nullptr};
+    Nodlang*        language{ nullptr}; // shorthand for app.get_language()
 
     Core()
     {
