@@ -41,13 +41,10 @@ File::File()
     graph->set_view(graph_view);
     view.add_child(graph_view->base());
 
-    for( IAction* action : ActionManager::get_instance().get_actions() ) // Fill the "create node" context menu
-    {
+    // Fill the "create node" context menu
+    for( IAction* action : get_action_manager()->get_actions() )
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
-        {
             graph->get_view()->add_action_to_context_menu( create_node_action );
-        }
-    }
 
     LOG_VERBOSE( "File", "Constructor being called.\n")
 }

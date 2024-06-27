@@ -9,8 +9,9 @@ tools::Config* tools::init_config()
     return g_conf;
 }
 
-void tools::shutdown_config()
+void tools::shutdown_config(Config* _config)
 {
+    ASSERT(g_conf == _config);
     ASSERT(g_conf != nullptr);
     delete g_conf;
     g_conf = nullptr;

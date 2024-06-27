@@ -271,7 +271,7 @@ bool GraphView::draw()
             if (is_selected(node_view) ||
                 is_selected(adjacent_nodeview))
             {
-                style.color.w *= wave(0.5f, 1.f, (float) BaseApp::elapsed_time(), 10.f);
+                style.color.w *= wave(0.5f, 1.f, (float) App::get_time(), 10.f);
             }
             else
             {
@@ -329,7 +329,7 @@ bool GraphView::draw()
             draw_list->AddCircleFilled(vm_cursor_pos, 5.0f, ImColor(255, 0, 0));
 
             Vec2 linePos = vm_cursor_pos + Vec2(-10.0f, 0.5f);
-            linePos += Vec2(sin(float(BaseApp::elapsed_time()) * 12.0f) * 4.0f, 0.f); // wave
+            linePos += Vec2(sin(float(App::get_time()) * 12.0f) * 4.0f, 0.f); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255, 255, 255);
@@ -496,8 +496,7 @@ void GraphView::set_selected(const NodeViewVec& views, SelectionMode mode )
     }
 
     EventPayload_NodeViewSelectionChange event{ m_selected_nodeview, curr_selection };
-    EventManager& event_manager = EventManager::get_instance();
-    event_manager.dispatch<Event_SelectionChange>(event);
+    get_event_manager()->dispatch<Event_SelectionChange>(event);
 }
 
 const GraphView::NodeViewVec& GraphView::get_selected() const
@@ -528,8 +527,7 @@ void GraphView::reset()
     NodeView::translate(get_all_nodeviews(), far_outside);
 
     // frame all (33ms delayed to ensure layout is correct)
-    auto& event_manager = EventManager::get_instance();
-    event_manager.dispatch_delayed<Event_FrameSelection>( 33, { FRAME_ALL } );
+    get_event_manager()->dispatch_delayed<Event_FrameSelection>( 33, { FRAME_ALL } );
 }
 
 std::vector<NodeView*> GraphView::get_all_nodeviews() const
@@ -593,12 +591,11 @@ void GraphView::end_context_menu(bool show_search)
         if (Action_CreateNode *triggered_action = m_context_menu.node_menu.draw_search_input( focused_slotview, 10))
         {
             // Generate an event from this action, add some info to the state and dispatch it.
-            auto& event_manager            = EventManager::get_instance();
             auto event                     = triggered_action->make_event();
             event->data.graph              = get_graph();
             event->data.active_slotview    = focused_slotview;
             event->data.desired_screen_pos = m_context_menu.mouse_pos;
-            event_manager.dispatch(event);
+            get_event_manager()->dispatch(event);
             ImGui::CloseCurrentPopup();
         }
     }
@@ -758,11 +755,10 @@ void GraphView::line_state_tick()
     {
         if ( m_hovered.is<SlotViewItem>() )
         {
-            auto &event_manager = EventManager::get_instance();
             auto event = new Event_SlotDropped();
             event->data.first = &m_line_state_dragged_slotview->get_slot();
             event->data.second = &m_hovered.get<SlotViewItem>()->get_slot();
-            event_manager.dispatch(event);
+            get_event_manager()->dispatch(event);
         }
         else
         {
@@ -793,7 +789,7 @@ void GraphView::roi_state_tick()
     roi.expand(Vec2{roi_border_width*0.5f});
 
     // Draw the ROI rectangle
-    float alpha = wave(0.5f, 0.75f, (float) BaseApp::elapsed_time(), 10.f);
+    float alpha = wave(0.5f, 0.75f, (float) App::get_time(), 10.f);
     auto* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(roi.min, roi.max, ImColor(1.f, 1.f, 1.f, alpha), roi_border_width, ImDrawFlags_RoundCornersAll , roi_border_width );
 

@@ -132,38 +132,43 @@ include_directories(
 add_library(
     tools-core
     STATIC
-    libs/whereami/src/whereami.c
-    src/tools/gui/Color.h
+    src/tools/core/Event.h
+    src/tools/core/EventManager.cpp
+    src/tools/core/EventManager.h
+    src/tools/core/StateMachine.cpp
+    src/tools/core/StateMachine.h
     src/tools/core/TIdentifier.h
-    src/tools/core/assertions.h
+    src/tools/core/TaskManager.cpp
     src/tools/core/TaskManager.cpp
     src/tools/core/TaskManager.h
+    src/tools/core/TaskManager.h
+    src/tools/core/assertions.h
     src/tools/core/format.cpp
     src/tools/core/format.h
     src/tools/core/hash.h
     src/tools/core/log.cpp
     src/tools/core/log.h
     src/tools/core/math.h
-    src/tools/core/memory/pointers.h
-    src/tools/core/memory/pointers.cpp
-    src/tools/core/memory/memory.h
-    src/tools/core/memory/PoolManager.h
-    src/tools/core/memory/PoolManager.cpp
+    src/tools/core/memory/MemoryManager.cpp
+    src/tools/core/memory/MemoryManager.h
     src/tools/core/memory/Pool.h
     src/tools/core/memory/Pool.inl
-    src/tools/core/memory/MemoryManager.h
-    src/tools/core/memory/MemoryManager.cpp
+    src/tools/core/memory/PoolManager.cpp
+    src/tools/core/memory/PoolManager.h
+    src/tools/core/memory/memory.h
+    src/tools/core/memory/pointers.cpp
+    src/tools/core/memory/pointers.h
+    src/tools/core/reflection/Invokable.h
     src/tools/core/reflection/Operator.h
     src/tools/core/reflection/Operator_t.h
+    src/tools/core/reflection/StaticInitializer.h
     src/tools/core/reflection/class.h
     src/tools/core/reflection/enum.h
     src/tools/core/reflection/func_type.cpp
     src/tools/core/reflection/func_type.h
-    src/tools/core/reflection/Invokable.h
     src/tools/core/reflection/qword.cpp
     src/tools/core/reflection/qword.h
     src/tools/core/reflection/reflection
-    src/tools/core/reflection/StaticInitializer.h
     src/tools/core/reflection/type.cpp
     src/tools/core/reflection/type.h
     src/tools/core/reflection/type_register.cpp
@@ -171,12 +176,11 @@ add_library(
     src/tools/core/reflection/union.h
     src/tools/core/reflection/variant.cpp
     src/tools/core/reflection/variant.h
-    src/tools/core/StateMachine.cpp
-    src/tools/core/StateMachine.h
     src/tools/core/string.h
     src/tools/core/system.cpp
     src/tools/core/system.h
     src/tools/core/types.h
+    src/tools/gui/Color.h
     # libraries
     libs/whereami/src/whereami.c
     libs/whereami/src/whereami.h
@@ -231,15 +235,12 @@ add_library(
     src/tools/gui/ActionManager.h
     src/tools/gui/ActionManagerView.cpp
     src/tools/gui/ActionManagerView.h
-    src/tools/gui/BaseApp.cpp
-    src/tools/gui/BaseApp.h
+    src/tools/gui/App.cpp
+    src/tools/gui/App.h
     src/tools/gui/AppView.cpp
     src/tools/gui/AppView.h
     src/tools/gui/Config.cpp
     src/tools/gui/Config.h
-    src/tools/gui/Event.h
-    src/tools/gui/EventManager.cpp
-    src/tools/gui/EventManager.h
     src/tools/gui/FontManager.cpp
     src/tools/gui/FontManager.h
     src/tools/gui/FontManagerConfig.h
@@ -323,7 +324,15 @@ endforeach ()
 #---------------------------------------
 
 # add executable
-add_executable(tools-gui-example WIN32 src/tools/gui-example/main.cpp)
+add_executable(
+    tools-gui-example
+    WIN32
+    src/tools/gui-example/main.cpp
+    src/tools/gui-example/AppExample.cpp
+    src/tools/gui-example/AppExample.h
+    src/tools/gui-example/AppExampleView.cpp
+    src/tools/gui-example/AppExampleView.h
+)
 target_link_libraries(tools-gui-example PUBLIC tools-gui)
 set_target_properties(tools-gui-example PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
 set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio

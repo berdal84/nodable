@@ -23,10 +23,10 @@ ndbl::Config* ndbl::init_config()
     return g_conf;
 }
 
-void ndbl::shutdown_config()
+void ndbl::shutdown_config(Config* config)
 {
-    ASSERT(g_conf != nullptr);
-    tools::shutdown_config();
+    ASSERT(g_conf == config); // singleton
+    tools::shutdown_config(g_conf->tools_cfg);
     delete g_conf;
     g_conf = nullptr;
 }

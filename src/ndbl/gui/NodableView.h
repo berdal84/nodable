@@ -12,25 +12,29 @@ namespace ndbl
 {
     // forward declarations
     class History;
-    struct Texture;
     class File;
     class Nodable;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
 	*/
-    class NodableView : public tools::AppView
+    class NodableView
 	{
 	public:
-        NodableView(Nodable*);
-		~NodableView();
 
-        // Override on_xxx methods from base AppView
+        typedef tools::AppView::DialogType DialogType;
 
-        void init() override;
-        void draw() override;
-        void draw_splashscreen() override;
-        void on_reset_layout() override;
+        // Common
+
+        void init(Nodable*);
+        void shutdown();
+        void draw();
+        void show_splashscreen(bool b);
+        bool is_fullscreen() const;
+        void toggle_fullscreen();
+        bool pick_file_path(std::string& _out_path, DialogType) const;
+        void save_screenshot(std::filesystem::path&) const;
+        inline tools::AppView* get_base_view_handle() { return &m_base_view; }
 
     protected:
 
@@ -47,12 +51,13 @@ namespace ndbl
         void draw_toolbar_window();
         void draw_virtual_machine_window();
 
-        tools::Texture*    m_logo;
-        bool               m_is_history_dragged;
-        bool               m_show_properties_editor;
-        bool               m_show_imgui_demo;
-        bool               m_show_advanced_node_properties;
-        bool               m_scroll_to_curr_instr;
-        Nodable *          m_app;
+        tools::Texture*    m_logo                    = nullptr;
+        bool               m_is_history_dragged      = false;
+        bool               m_show_properties_editor  = false;
+        bool               m_show_imgui_demo         = false;
+        bool               m_show_advanced_node_properties = false;
+        bool               m_scroll_to_curr_instr = true;
+        Nodable*           m_app                  = nullptr;
+        tools::AppView     m_base_view; // wrapped
     };
 }

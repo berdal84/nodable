@@ -95,7 +95,7 @@ namespace ndbl
 
     VirtualMachine* get_virtual_machine();
     VirtualMachine* init_virtual_machine();
-    void            shutdown_virtual_machine(); // Undo init_virtual_machine()
+    void shutdown_virtual_machine(VirtualMachine *pMachine); // Undo init_virtual_machine()
 }
 
 

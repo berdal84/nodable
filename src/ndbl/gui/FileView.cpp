@@ -337,7 +337,7 @@ size_t FileView::size() const
 
 void FileView::refresh_overlay(Condition _condition )
 {
-    for (const IAction* _action: ActionManager::get_instance().get_actions())
+    for (const IAction* _action: get_action_manager()->get_actions())
     {
         if( ( _action->userdata & _condition) == _condition && (_action->userdata & Condition_HIGHLIGHTED) )
         {

@@ -55,8 +55,8 @@ public:
     void TearDown(const ::benchmark::State& state)
     {
         delete graph;
-        shutdown_node_factory();
-        shutdown_language();
+        shutdown_node_factory(nullptr);
+        shutdown_language(nullptr);
     }
 
     inline std::string get_random_double_as_string()

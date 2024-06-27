@@ -98,7 +98,8 @@ namespace ndbl
         tools::Config* tools_cfg;
     };
 
+    [[nodiscard]]
     Config* init_config(); // create a new configuration and set it as current
-    void    shutdown_config(); // do the opposite of init
+    void    shutdown_config(Config*); // do the opposite of init
     Config* get_config(); // Get the current config, create_config() must be called first.
 }

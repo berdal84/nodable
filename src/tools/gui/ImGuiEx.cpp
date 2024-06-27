@@ -6,7 +6,7 @@
 #include "tools/core/log.h"
 #include "tools/core/assertions.h"
 
-#include "EventManager.h"
+#include "tools/core/EventManager.h"
 #include "Texture.h"
 #include "Color.h"
 #include "tools/gui/geometry/Segment.h"

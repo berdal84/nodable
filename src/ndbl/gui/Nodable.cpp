@@ -4,13 +4,14 @@
 
 #include "tools/core/assertions.h"
 #include "tools/core/system.h"
-#include "tools/gui/EventManager.h"
-#include "tools/gui/Config.h"
+#include "tools/core/EventManager.h"
+
 #include "ndbl/core/InvokableComponent.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Slot.h"
-#include "ndbl/core/VariableNode.h"
 #include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/language/Nodlang.h"
+#include "ndbl/core/ComponentFactory.h"
 
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DisconnectEdge.h"
@@ -23,82 +24,77 @@
 #include "GraphView.h"
 #include "NodableView.h"
 #include "NodeView.h"
-#include "Physics.h"
 #include "SlotView.h"
-#include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/ComponentFactory.h"
 
 using namespace ndbl;
 using namespace tools;
 
 void Nodable::init()
 {
-    LOG_VERBOSE("ndbl::Nodable", "init ...\n");
-
-    BaseAppFlags flags = BaseAppFlag_SKIP_VIEW    // we want to init/shutdown manually
-                       | BaseAppFlag_SKIP_CONFIG; // (same)
-    m_view = new NodableView(this);
-    BaseApp::init( m_view, flags );
+    LOG_VERBOSE("ndbl::Nodable", "init_ex ...\n");
 
     m_config = init_config();
-    m_language = init_language();
-    m_virtual_machine = init_virtual_machine();
-    m_node_factory = init_node_factory();
+    m_view = new NodableView();
+    m_base_app.init_ex(m_view->get_base_view_handle(), m_config->tools_cfg ); // the pointers are owned by this class, base app just use them.
+    m_language          = init_language();
+    m_virtual_machine   = init_virtual_machine();
+    m_node_factory      = init_node_factory();
     m_component_factory = init_component_factory();
-    m_view->init();
+    m_view->init(this); // must be last
 
-    LOG_VERBOSE("ndbl::Nodable", "init OK\n");
+    LOG_VERBOSE("ndbl::Nodable", "init_ex OK\n");
 }
 
 void Nodable::update()
 {
-    BaseApp::update();
+    m_base_app.update();
 
     // 1. Update current file
-    if (current_file && !m_virtual_machine->is_program_running())
+    if (m_current_file && !m_virtual_machine->is_program_running())
     {
         //
         // When history is dirty we update the graph from the text.
         // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if ( current_file->history.is_dirty && !m_config->experimental_hybrid_history )
+        if (m_current_file->history.is_dirty && !m_config->experimental_hybrid_history )
         {
-            current_file->update_graph_from_text( m_config->isolation);
-            current_file->history.is_dirty = false;
+            m_current_file->update_graph_from_text(m_config->isolation);
+            m_current_file->history.is_dirty = false;
         }
         // Run the main update loop for the file
-        current_file->update( m_config->isolation );
+        m_current_file->update(m_config->isolation );
     }
 
     // 2. Handle events
 
     // Nodable events
-    GraphView* graph_view          = current_file ? current_file->get_graph().get_view() : nullptr;
-    History*   curr_file_history   = current_file ? &current_file->history : nullptr;
+    GraphView* graph_view          = m_current_file ? m_current_file->get_graph().get_view() : nullptr;
+    History*   curr_file_history   = m_current_file ? &m_current_file->history : nullptr;
 
     IEvent* event = nullptr;
-    while( (event = m_view->event_manager.poll_event()) )
+    EventManager* event_manager = get_event_manager();
+    while( (event = event_manager->poll_event()) )
     {
         switch ( event->id )
         {
             case EventID_TOGGLE_ISOLATION_FLAGS:
             {
                 m_config->isolation = ~m_config->isolation;
-                if(current_file)
+                if(m_current_file)
                 {
-                    current_file->update_graph_from_text( m_config->isolation );
+                    m_current_file->update_graph_from_text(m_config->isolation );
                 }
                 break;
             }
 
             case EventID_REQUEST_EXIT:
             {
-                should_stop = true;
+                m_base_app.request_stop();
                 break;
             }
 
             case EventID_FILE_CLOSE:
             {
-                if(current_file) close_file(current_file);
+                if(m_current_file) close_file(m_current_file);
                 break;
             }
             case EventID_UNDO:
@@ -134,7 +130,7 @@ void Nodable::update()
 
             case EventID_FILE_SAVE_AS:
             {
-                if (!current_file) break;
+                if (!m_current_file) break;
                 std::string path;
                 if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
                 {
@@ -145,10 +141,10 @@ void Nodable::update()
 
             case EventID_FILE_SAVE:
             {
-                if (!current_file) break;
-                if( !current_file->path.empty())
+                if (!m_current_file) break;
+                if( !m_current_file->path.empty())
                 {
-                    save_file(current_file);
+                    save_file(m_current_file);
                 }
                 else
                 {
@@ -166,7 +162,7 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_ShowWindow*>(event);
                 if ( _event->data.window_id == "splashscreen" )
                 {
-                    m_view->show_splashscreen = _event->data.visible;
+                    m_view->show_splashscreen(_event->data.visible);
                 }
                 break;
             }
@@ -181,21 +177,21 @@ void Nodable::update()
 
             case Event_SelectionChange::id:
             {
-                if ( current_file == nullptr )
+                if (m_current_file == nullptr )
                     break;
                 auto _event = reinterpret_cast<Event_SelectionChange*>( event );
 
                 Condition_ condition = _event->data.new_selection.empty() ? Condition_ENABLE_IF_HAS_NO_SELECTION
                                                                           : Condition_ENABLE_IF_HAS_SELECTION;
-                current_file->view.clear_overlay();
-                current_file->view.refresh_overlay( condition );
+                m_current_file->view.clear_overlay();
+                m_current_file->view.refresh_overlay(condition );
                 break;
             }
             case EventID_FILE_OPENED:
             {
-                ASSERT( current_file != nullptr )
-                current_file->view.clear_overlay();
-                current_file->view.refresh_overlay( Condition_ENABLE_IF_HAS_NO_SELECTION );
+                ASSERT(m_current_file != nullptr )
+                m_current_file->view.clear_overlay();
+                m_current_file->view.refresh_overlay(Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
             case Event_DeleteNode::id:
@@ -299,7 +295,7 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);
 
                 // 1) create the node
-                Graph& graph = current_file->get_graph();
+                Graph& graph = m_current_file->get_graph();
 
                  if ( !graph.get_root() )
                 {
@@ -398,47 +394,48 @@ void Nodable::shutdown()
         delete each_file;
     }
 
-    shutdown_config();
-    shutdown_virtual_machine();
-    shutdown_node_factory();
-    shutdown_component_factory();
-    shutdown_language();
+    // shutdown managers & co.
+    shutdown_virtual_machine(m_virtual_machine);
+    shutdown_node_factory(m_node_factory);
+    shutdown_component_factory(m_component_factory);
+    shutdown_language(m_language);
     m_view->shutdown();
-    delete m_view;
+    m_base_app.shutdown();
+    shutdown_config(m_config);
 
-    // Base class
-    BaseApp::shutdown();
+    delete m_view;
 
     LOG_VERBOSE("ndbl::Nodable", "shutdown " OK "\n");
 }
 
 File* Nodable::open_asset_file(const std::filesystem::path& _path)
 {
-    std::filesystem::path absolute_path = asset_path(_path);
+    std::filesystem::path absolute_path = App::asset_path(_path);
     return open_file(absolute_path);
 }
 
 File* Nodable::open_file(const std::filesystem::path& _path)
 {
-    auto file = new File();
-    Config* cfg = get_config();
-    if ( !File::read( *file, _path ) )
+    File* file = new File();
+
+    if ( File::read( *file, _path ) )
     {
-        LOG_ERROR("File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
-        delete file;
-        return nullptr;
+        add_file(file);
+        file->update_graph_from_text( m_config->isolation );
+        return file;
     }
-    add_file(file);
-    file->update_graph_from_text( cfg->isolation);
-    return file;
+
+    delete file;
+    LOG_ERROR("File", "Unable to open file %s (%s)\n", _path.filename().c_str(), _path.c_str());
+    return nullptr;
 }
 
-File*Nodable::add_file( File* _file)
+File* Nodable::add_file( File* _file)
 {
     EXPECT(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
-    current_file = _file;
-    m_view->event_manager.dispatch( EventID_FILE_OPENED );
+    m_current_file = _file;
+    get_event_manager()->dispatch( EventID_FILE_OPENED );
     return _file;
 }
 
@@ -456,7 +453,7 @@ void Nodable::save_file( File* _file) const
 
 void Nodable::save_file_as(const std::filesystem::path& _path) const
 {
-    if ( !File::write(*current_file, _path) )
+    if ( !File::write(*m_current_file, _path) )
     {
         LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _path.filename().c_str(), _path.c_str());
         return;
@@ -476,23 +473,23 @@ void Nodable::close_file( File* _file)
     // Switch to the next file if possible
     if ( it != m_loaded_files.end() )
     {
-        current_file = *it;
+        m_current_file = *it;
     }
     else
     {
-        current_file = nullptr;
+        m_current_file = nullptr;
     }
 }
 
 bool Nodable::compile_and_load_program() const
 {
-    if (!current_file)
+    if (!m_current_file)
     {
         return false;
     }
 
     assembly::Compiler compiler{};
-    auto asm_code = compiler.compile_syntax_tree(&current_file->get_graph());
+    auto asm_code = compiler.compile_syntax_tree(&m_current_file->get_graph());
     if (!asm_code)
     {
         return false;
@@ -522,7 +519,7 @@ void Nodable::debug_program()
 void Nodable::step_over_program()
 {
     m_virtual_machine->step_over();
-    GraphView* graph_view = current_file->get_graph().get_view();
+    GraphView* graph_view = m_current_file->get_graph().get_view();
 
     if (!m_virtual_machine->is_there_a_next_instr() )
     {
@@ -544,14 +541,14 @@ void Nodable::stop_program()
 
 void Nodable::reset_program()
 {
-    if(!current_file) return;
+    if(!m_current_file) return;
 
     if (m_virtual_machine->is_program_running() )
     {
         m_virtual_machine->stop_program();
     }
 
-    current_file->update_graph_from_text( m_config->isolation );
+    m_current_file->update_graph_from_text(m_config->isolation );
 }
 
 File*Nodable::new_file()
@@ -570,4 +567,34 @@ File*Nodable::new_file()
 NodableView* Nodable::get_view() const
 {
     return reinterpret_cast<NodableView*>(m_view);
+}
+
+bool Nodable::should_stop() const
+{
+    return m_base_app.should_stop();
+}
+
+void Nodable::draw()
+{
+    // we have our own view, so we bypass base App
+    // m_base_app.draw();
+    m_view->draw();
+}
+
+void Nodable::set_current_file(File* file)
+{
+    if ( m_current_file == nullptr )
+    {
+        m_current_file = file;
+        return;
+    }
+
+    
+    // TODO:
+    //  - unload current file for example...
+    //  - keep the last N files loaded ?
+    //  - save graph to a temp file to restore it later without using memory and altering original source file?
+    EXPECT(false, "This case is not handled yet. Check if we need to do something specific and remove this")
+    // close_file(m_current_file); ??
+    m_current_file = file;
 }

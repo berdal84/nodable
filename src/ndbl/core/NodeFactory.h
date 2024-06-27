@@ -53,5 +53,5 @@ namespace ndbl
 
     NodeFactory* get_node_factory();
     NodeFactory* init_node_factory();
-    void         shutdown_node_factory(); // Undo init_node_factory()
+    void shutdown_node_factory(NodeFactory *pFactory); // Undo init_node_factory()
 }

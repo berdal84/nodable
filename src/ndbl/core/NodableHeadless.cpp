@@ -8,9 +8,9 @@ using namespace ndbl;
 
 void NodableHeadless::init()
 {
-    m_task_manager = tools::init_task_manager();
-    m_language = init_language();
-    m_node_factory = init_node_factory();
+    m_task_manager    = tools::init_task_manager();
+    m_language        = init_language();
+    m_node_factory    = init_node_factory();
     m_virtual_machine = init_virtual_machine();
     m_graph = new Graph(m_node_factory);
 }
@@ -19,10 +19,10 @@ void NodableHeadless::shutdown()
 {
     clear();
     delete m_graph;
-    tools::shutdown_task_manager();
-    shutdown_language();
-    shutdown_node_factory();
-    shutdown_virtual_machine();
+    tools::shutdown_task_manager(m_task_manager);
+    shutdown_language(m_language);
+    shutdown_node_factory(m_node_factory);
+    shutdown_virtual_machine(m_virtual_machine);
 }
 
 std::string& NodableHeadless::serialize( std::string& out ) const
@@ -38,7 +38,7 @@ Graph* NodableHeadless::parse( const std::string& code )
 
 bool NodableHeadless::run_program() const
 {
-    EXPECT(m_virtual_machine != nullptr, "please init a virtual machine")
+    EXPECT(m_virtual_machine != nullptr, "please init_ex a virtual machine")
 
     try {
         m_virtual_machine->run_program();

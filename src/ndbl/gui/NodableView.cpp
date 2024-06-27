@@ -4,24 +4,26 @@
 
 #include "tools/core/log.h"
 #include "tools/core/system.h"
-#include "tools/gui/Texture.h"
 #include "tools/gui/ActionManagerView.h"
 #include "tools/gui/Config.h"
+#include "tools/gui/Texture.h"
+#include "tools/gui/TextureManager.h"
+#include "tools/gui/AppView.h"
+
 #include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/assembly/Register.h"
 #include "ndbl/core/language/Nodlang.h"
 
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
-#include "GraphView.h"
 #include "FileView.h"
+#include "GraphView.h"
 #include "History.h"
 #include "Nodable.h"
 #include "NodeView.h"
-#include "Physics.h"
 #include "build_info.h"
-#include "ndbl/core/VirtualMachine.h"
-#include "ndbl/core/assembly/Register.h"
 
 using namespace ndbl;
 using namespace ndbl::assembly;
@@ -35,77 +37,101 @@ template<typename T>
 static func_type* create_literal_node_signature()
 { return func_type_builder<T(/*void*/)>::with_id("literal"); }
 
-NodableView::NodableView(Nodable * _app)
-    : AppView(_app)
-    , m_logo(nullptr)
-    , m_is_history_dragged(false)
-    , m_show_properties_editor(false)
-    , m_show_imgui_demo(false)
-    , m_show_advanced_node_properties(false)
-    , m_scroll_to_curr_instr(true)
-    , m_app(_app)
-{
-    EXPECT(m_app, "should be defined");
-}
-
-NodableView::~NodableView()
-{
-    LOG_VERBOSE("ndbl::NodableView", "Destructor " OK "\n");
-}
-
-void NodableView::init()
+void NodableView::init(Nodable * _app)
 {
     LOG_VERBOSE("ndbl::NodableView", "init ...\n");
+    m_app = _app;
+    // Initialize wrapped view and inject some code ...
+    tools::App* base_app = _app->get_base_app_handle();
+    ASSERT(base_app != nullptr)
+    m_base_view.init(base_app);
+    m_base_view.on_draw_splashscreen.connect([&](AppView* view){
 
-    // Initialize parent class
-    AppView::init();
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+        // Image
+        ImGui::SameLine((ImGui::GetContentRegionAvail().x - (float)m_logo->width) * 0.5f); // center img
+        ImGuiEx::Image(m_logo);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
+
+        // disclaimer
+        ImGui::TextWrapped("DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
+
+        ImGui::NewLine();
+        ImGui::NewLine();
+
+        // credits
+        const char *credit = "by Berdal84";
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
+        ImGui::TextWrapped("%s", credit);
+
+        // build version
+        ImGui::TextWrapped("%s", BuildInfo::version);
+
+        // close on left/rightmouse btn click
+        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+        {
+            view->show_splashscreen = false;
+        }
+        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
+    });
+    m_base_view.on_layout_reset.connect([](AppView* view){
+        auto* cfg = get_config();
+        // Dock windows to specific dockspace
+        view->dock_window( cfg->ui_help_window_label             , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_virtual_machine_window_label  , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP);
+    });
 
     // Load splashscreen image
     Config* cfg = get_config();
-    std::filesystem::path path = BaseApp::asset_path( cfg->ui_splashscreen_imagePath );
+    std::filesystem::path path = App::asset_path(cfg->ui_splashscreen_imagePath );
     m_logo = get_texture_manager()->load(path);
 
-    // Add Actions: Bind shortcuts to Events
-    action_manager.new_action<Event_DeleteNode>( "Delete", Shortcut{ SDLK_DELETE, KMOD_NONE } );
-    action_manager.new_action<Event_ArrangeNode>( "Arrange", Shortcut{ SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_ToggleFolding>( "Fold", Shortcut{ SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_SelectNext>( "Next", Shortcut{ SDLK_n, KMOD_NONE } );
-    action_manager.new_action<Event_FileSave>( ICON_FA_SAVE " Save", Shortcut{ SDLK_s, KMOD_CTRL } );
-    action_manager.new_action<Event_FileSaveAs>( ICON_FA_SAVE " Save as", Shortcut{ SDLK_s, KMOD_CTRL } );
-    action_manager.new_action<Event_FileClose>( ICON_FA_TIMES "  Close", Shortcut{ SDLK_w, KMOD_CTRL } );
-    action_manager.new_action<Event_FileBrowse>( ICON_FA_FOLDER_OPEN " Open", Shortcut{ SDLK_o, KMOD_CTRL } );
-    action_manager.new_action<Event_FileNew>( ICON_FA_FILE " New", Shortcut{ SDLK_n, KMOD_CTRL } );
-    action_manager.new_action<Event_ShowWindow>( "Splashscreen", Shortcut{ SDLK_F1 }, EventPayload_ShowWindow{ "splashscreen" } );
-    action_manager.new_action<Event_Exit>( ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{ SDLK_F4, KMOD_ALT } );
-    action_manager.new_action<Event_Undo>( "Undo", Shortcut{ SDLK_z, KMOD_CTRL } );
-    action_manager.new_action<Event_Redo>( "Redo", Shortcut{ SDLK_y, KMOD_CTRL } );
-    action_manager.new_action<Event_ToggleIsolationFlags>( "Isolate", Shortcut{ SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
-    action_manager.new_action<Event_SelectionChange>( "Deselect", Shortcut{ 0, KMOD_NONE, "Click on background" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_MoveSelection>( "Drag whole graph", Shortcut{ SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_FrameSelection>( "Frame Selection", Shortcut{ SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{ FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
-    action_manager.new_action<Event_FrameSelection>( "Frame All", Shortcut{ SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{ FRAME_ALL } );
-
-    // Prepare context menu items
-    // 1) Blocks
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_CONDITION } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_FOR_LOOP } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_WHILE_LOOP } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_SCOPE } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{ NodeType_BLOCK_PROGRAM } );
-
-    // 2) Variables
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{ NodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
-
-    // 3) Literals
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    action_manager.new_action<Event_CreateNode>( ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{ NodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
-
-    // 4) Functions/Operators from the API
+    // Add a bunch of new actions
+    tools::ActionManager* action_manager = get_action_manager();
+    ASSERT(action_manager != nullptr) // initialized by base_view
+    // (With shortcut)
+    action_manager->new_action<Event_DeleteNode>("Delete", Shortcut{SDLK_DELETE, KMOD_NONE } );
+    action_manager->new_action<Event_ArrangeNode>("Arrange", Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_ToggleFolding>("Fold", Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_SelectNext>("Next", Shortcut{SDLK_n, KMOD_NONE } );
+    action_manager->new_action<Event_FileSave>(ICON_FA_SAVE " Save", Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager->new_action<Event_FileSaveAs>(ICON_FA_SAVE " Save as", Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager->new_action<Event_FileClose>(ICON_FA_TIMES "  Close", Shortcut{SDLK_w, KMOD_CTRL } );
+    action_manager->new_action<Event_FileBrowse>(ICON_FA_FOLDER_OPEN " Open", Shortcut{SDLK_o, KMOD_CTRL } );
+    action_manager->new_action<Event_FileNew>(ICON_FA_FILE " New", Shortcut{SDLK_n, KMOD_CTRL } );
+    action_manager->new_action<Event_ShowWindow>("Splashscreen", Shortcut{SDLK_F1 }, EventPayload_ShowWindow{"splashscreen" } );
+    action_manager->new_action<Event_Exit>(ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{SDLK_F4, KMOD_ALT } );
+    action_manager->new_action<Event_Undo>("Undo", Shortcut{SDLK_z, KMOD_CTRL } );
+    action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
+    action_manager->new_action<Event_ToggleIsolationFlags>("Isolate", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    action_manager->new_action<Event_SelectionChange>("Deselect", Shortcut{0, KMOD_NONE, "Click on background" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{FRAME_ALL } );
+    // (to create block nodes)
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_CONDITION } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_FOR_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_WHILE_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_SCOPE } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_PROGRAM } );
+    // (to create variables)
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    //(to create literals)
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    // (to create functions/operators from the API)
     const Nodlang* language = get_language();
     EXPECT(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
     for ( auto& each_fct: language->get_api() )
@@ -113,35 +139,41 @@ void NodableView::init()
         const func_type* func_type = each_fct->get_type();
         std::string label;
         language->serialize_func_sig( label, func_type );
-        action_manager.new_action<Event_CreateNode>( label.c_str(), Shortcut{}, EventPayload_CreateNode{ NodeType_INVOKABLE, func_type } );
+        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{NodeType_INVOKABLE, func_type } );
     }
 
-    LOG_VERBOSE("ndbl::NodableView", "init " OK "\n");
+    LOG_VERBOSE("ndbl::NodableView", "init_ex " OK "\n");
+}
+
+void NodableView::shutdown()
+{
+    // We could do this there, but the base view is responsible for shutdow the texture manager we used, so all textures will be released.
+    // get_texture_manager()->release(m_logo);
+
+    m_base_view.shutdown();
 }
 
 void NodableView::draw()
 {
-    EXPECT(m_logo != nullptr, "Logo is nullptr, did you call init() ?")
+    EXPECT(m_logo != nullptr, "Logo is nullptr, did you call init_ex() ?")
 
-    // 1) Draw parent class
-    //---------------------
-    AppView::begin_draw();
-
-    // 2) Draw this
-    //-------------
-
-    bool            redock_all      = true;
+    // note: we draw this view nested in base view's begin/end (similar to ImGui API).
+    m_base_view.begin_draw();
+    
+    EventManager*   event_manager   = get_event_manager();
     Config*         cfg             = get_config();
-    tools::Config*  tools_cfg       = tools::get_config();
-    File*           current_file    = m_app->current_file;
     VirtualMachine* virtual_machine = get_virtual_machine();
+    tools::Config*  tools_cfg       = tools::get_config();
+    bool            redock_all      = true;
+    File*           current_file    = m_app->get_current_file();
 
     // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
 
-        if (ImGui::BeginMenu("File")) {
+        if (ImGui::BeginMenu("File"))
+        {
             bool has_file = current_file != nullptr;
             bool is_current_file_content_dirty = current_file != nullptr && current_file->dirty;
             ImGuiEx::MenuItem<Event_FileNew>();
@@ -177,14 +209,14 @@ void NodableView::draw()
                                                          : false;
 
             if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped))
-                event_manager.dispatch( EventID_DELETE_NODE );
+                event_manager->dispatch( EventID_DELETE_NODE );
 
             ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
             ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
-                event_manager.dispatch<Event_ToggleFolding>( { RECURSIVELY } );
+                event_manager->dispatch<Event_ToggleFolding>( { RECURSIVELY } );
             }
             ImGui::EndMenu();
         }
@@ -195,12 +227,12 @@ void NodableView::draw()
 
             ImGui::Separator();
 
-            auto menu_item_node_view_detail = [this, cfg](ViewDetail _detail, const char *_label) {
+            auto menu_item_node_view_detail = [current_file, cfg](ViewDetail _detail, const char *_label) {
                 if (ImGui::MenuItem(_label, "", cfg->ui_node_detail == _detail))
                 {
                     cfg->ui_node_detail = _detail;
-                    if ( m_app->current_file != nullptr)
-                        m_app->current_file->get_graph().get_view()->reset_all_properties();
+                    if (current_file != nullptr)
+                        current_file->get_graph().get_view()->reset_all_properties();
                 }
             };
 
@@ -220,12 +252,13 @@ void NodableView::draw()
 
             if (ImGui::MenuItem("Fullscreen", "", is_fullscreen()))
             {
-                set_fullscreen( !is_fullscreen() );
+                toggle_fullscreen();
             }
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Reset Layout", "")) {
-                set_layout_initialized(false);
+            if (ImGui::MenuItem("Reset Layout", ""))
+            {
+                m_base_view.reset_layout();
             }
 
             ImGui::Separator();
@@ -318,16 +351,20 @@ void NodableView::draw()
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("Show Splash Screen", "F1")) {
-                show_splashscreen = true;
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("Show Splash Screen", "F1"))
+            {
+                m_base_view.show_splashscreen = true;
             }
 
-            if (ImGui::MenuItem("Browse source code")) {
+            if (ImGui::MenuItem("Browse source code"))
+            {
                 system::open_url_async("https://www.github.com/berdal84/nodable");
             }
 
-            if (ImGui::MenuItem("Credits")) {
+            if (ImGui::MenuItem("Credits"))
+            {
                 system::open_url_async("https://github.com/berdal84/nodable#credits-");
             }
 
@@ -342,17 +379,17 @@ void NodableView::draw()
 
     if(!m_app->has_files())
     {
-        bool show_startup_window = !show_splashscreen;
+        bool show_startup_window = !m_base_view.show_splashscreen;
         if( show_startup_window )
         {
-            draw_startup_window( get_dockspace(AppView::Dockspace_ROOT));
+            draw_startup_window( m_base_view.get_dockspace(AppView::Dockspace_ROOT));
         }
     }
     else
     {
         draw_toolbar_window();
 
-        auto ds_root = get_dockspace(AppView::Dockspace_ROOT);
+        auto ds_root = m_base_view.get_dockspace(AppView::Dockspace_ROOT);
         for ( File*each_file: m_app->get_files())
         {
             draw_file_window(ds_root, redock_all, each_file);
@@ -366,9 +403,8 @@ void NodableView::draw()
         draw_help_window();
     }
 
-    // 3) End parent class
-    //---------------------
-    AppView::end_draw();
+    // end the drawing
+    m_base_view.end_draw();
 }
 
 void NodableView::draw_help_window() const
@@ -376,7 +412,8 @@ void NodableView::draw_help_window() const
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_help_window_label))
     {
-        ImGui::PushFont(m_font_manager->get_font(FontSlot_Heading));
+        FontManager* font_manager = get_font_manager();
+        ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -391,7 +428,7 @@ void NodableView::draw_help_window() const
         ImGuiEx::BulletTextWrapped(
                 "but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
         ImGui::NewLine();
-        ImGui::PushFont(m_font_manager->get_font(FontSlot_Heading));
+        ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Quick start");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -427,7 +464,8 @@ void NodableView::draw_imgui_config_window() const
 
 void NodableView::draw_file_info_window() const
 {
-    if ( !m_app->current_file )
+    File* current_file = m_app->get_current_file();
+    if ( current_file == nullptr )
     {
         return;
     }
@@ -435,7 +473,7 @@ void NodableView::draw_file_info_window() const
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_file_info_window_label))
     {
-        m_app->current_file->view.draw_info_panel();
+        current_file->view.draw_info_panel();
     }
 
     ImGui::End();
@@ -446,9 +484,12 @@ void NodableView::draw_node_properties_window()
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
-        if( m_app->current_file )
+        if( File* current_file = m_app->get_current_file() )
         {
-            auto selected_nodeviews = m_app->current_file->get_graph().get_view()->get_selected();
+            GraphView*             graph_view         = current_file->get_graph().get_view(); // Graph can't be null
+            ASSERT(graph_view != nullptr)
+            std::vector<NodeView*> selected_nodeviews = graph_view->get_selected();
+
             if (selected_nodeviews.size() == 1)
             {
                 ImGui::Indent(10.0f);
@@ -590,6 +631,9 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id)
     Config* cfg = get_config();
     ImGui::Begin( cfg->ui_startup_window_label);
     {
+        FontManager*  font_manager  = get_font_manager();
+        EventManager* event_manager = get_event_manager();
+
         ImGui::PopStyleColor();
 
         ImVec2 center_area(500.0f, 250.0f);
@@ -602,15 +646,15 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id)
         {
             ImGui::Indent(center_area.x * 0.05f);
 
-            ImGui::PushFont(m_font_manager->get_font(FontSlot_ToolBtn));
+            ImGui::PushFont(font_manager->get_font(FontSlot_ToolBtn));
             ImGui::NewLine();
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                event_manager.dispatch( EventID_FILE_NEW );
+                event_manager->dispatch( EventID_FILE_NEW );
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                event_manager.dispatch( EventID_FILE_BROWSE );
+                event_manager->dispatch( EventID_FILE_BROWSE );
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -672,8 +716,9 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
     {
         const bool is_current_file = m_app->is_current(file);
 
-        if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
-            m_app->current_file = file;
+        if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
+        {
+            m_app->set_current_file(file);
         }
 
         // History bar on top
@@ -681,7 +726,8 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
 
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        ImGui::PushFont(m_font_manager->get_font(FontSlot_Code));
+        FontManager*  font_manager  = get_font_manager();
+        ImGui::PushFont(font_manager->get_font(FontSlot_Code));
         const ImVec2 size = ImGui::GetContentRegionAvail();
 
         ImGui::BeginChild("FileView", size, false, 0);
@@ -791,7 +837,8 @@ void NodableView::draw_config_window()
 
         if (ImGui::CollapsingHeader("Shortcuts", flags ))
         {
-            ActionManagerView::draw(&action_manager);
+            ActionManager*  action_manager = get_action_manager();
+            draw_action_manager_ui(action_manager);
         }
 
 #if TOOLS_POOL_ENABLE
@@ -807,45 +854,6 @@ void NodableView::draw_config_window()
 #endif
     }
     ImGui::End();
-}
-
-void NodableView::draw_splashscreen()
-{
-    if ( AppView::begin_splashscreen() )
-    {
-        auto* tools_cfg = tools::get_config();
-
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-
-        // Image
-        ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-        ImGuiEx::Image(m_logo);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
-
-        // disclaimer
-        ImGui::TextWrapped(
-                "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
-
-        ImGui::NewLine();
-        ImGui::NewLine();
-
-        // credits
-        const char *credit = "by Berdal84";
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
-        ImGui::TextWrapped("%s", credit);
-
-        // build version
-        ImGui::TextWrapped("%s", BuildInfo::version);
-
-        // close on left/rightmouse btn click
-        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
-        {
-            show_splashscreen = false;
-        }
-        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
-        AppView::end_splashscreen();
-    }
 }
 
 void NodableView::draw_history_bar(History& currentFileHistory)
@@ -920,6 +928,9 @@ void NodableView::draw_toolbar_window()
 
     if (ImGui::Begin( cfg->ui_toolbar_window_label, NULL, flags ))
     {
+        FontManager*  font_manager  = get_font_manager();
+        EventManager* event_manager = get_event_manager();
+
         ImGui::PopStyleVar();
         VirtualMachine* vm   = get_virtual_machine();
         bool running         = vm->is_program_running();
@@ -927,7 +938,7 @@ void NodableView::draw_toolbar_window()
         bool stopped         = vm->is_program_stopped();
         auto button_size     = cfg->ui_toolButton_size;
 
-        ImGui::PushFont(m_font_manager->get_font(FontSlot_ToolBtn));
+        ImGui::PushFont(font_manager->get_font(FontSlot_ToolBtn));
         ImGui::BeginGroup();
 
         // compile
@@ -976,7 +987,7 @@ void NodableView::draw_toolbar_window()
         bool isolation_on = cfg->isolation & Isolation_ON;
         if (ImGui::Button(isolation_on ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
         {
-            event_manager.dispatch( EventID_TOGGLE_ISOLATION_FLAGS );
+            event_manager->dispatch( EventID_TOGGLE_ISOLATION_FLAGS );
         }
         ImGui::SameLine();
         ImGui::EndGroup();
@@ -986,17 +997,27 @@ void NodableView::draw_toolbar_window()
     ImGui::End();
 }
 
-void NodableView::on_reset_layout()
+bool NodableView::is_fullscreen() const
 {
-    auto* cfg = get_config();
+    return m_base_view.is_fullscreen();
+}
 
-    // Dock windows to specific dockspace
+void NodableView::toggle_fullscreen()
+{
+    m_base_view.set_fullscreen( !is_fullscreen() );
+}
 
-    dock_window( cfg->ui_help_window_label             , AppView::Dockspace_RIGHT);
-    dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT);
-    dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
-    dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
-    dock_window( cfg->ui_virtual_machine_window_label  , AppView::Dockspace_RIGHT);
-    dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
-    dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP);
+bool NodableView::pick_file_path(std::string& _out_path, tools::AppView::DialogType _type) const
+{
+    return m_base_view.pick_file_path(_out_path, _type);
+}
+
+void NodableView::show_splashscreen(bool b)
+{
+    m_base_view.show_splashscreen = b;
+}
+
+void NodableView::save_screenshot(std::filesystem::path& _path) const
+{
+    m_base_view.save_screenshot(_path);
 }

@@ -27,8 +27,9 @@ TextureManager* tools::get_texture_manager()
     return g_texture_manager;
 }
 
-void tools::shutdown_texture_manager()
+void tools::shutdown_texture_manager(TextureManager* texture_manager)
 {
+    ASSERT(g_texture_manager == texture_manager)
     ASSERT(g_texture_manager != nullptr)
     g_texture_manager->release_all();
     delete g_texture_manager;

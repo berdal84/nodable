@@ -387,13 +387,14 @@ VirtualMachine* ndbl::get_virtual_machine()
 
 VirtualMachine* ndbl::init_virtual_machine()
 {
-    ASSERT(g_virtual_machine == nullptr)
+    ASSERT(g_virtual_machine == nullptr) // singleton
     g_virtual_machine = new VirtualMachine();
     return g_virtual_machine;
 }
 
-void ndbl::shutdown_virtual_machine()
+void ndbl::shutdown_virtual_machine(VirtualMachine* _virtual_machine)
 {
+    ASSERT(g_virtual_machine == _virtual_machine) // singleton
     ASSERT(g_virtual_machine != nullptr)
     g_virtual_machine->release_program();
     delete g_virtual_machine;

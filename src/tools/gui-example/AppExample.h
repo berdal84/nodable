@@ -1,53 +1,28 @@
 #pragma once
-#include "AppExampleView.h"
-#include "tools/gui/BaseApp.h"
+#include "tools/gui/App.h"
 #include "tools/gui/Config.h"
+#include "AppExampleView.h"
 
 namespace tools
 {
-    class AppExample : public tools::BaseApp
+    // forward declaration
+    class AppExampleView;
+    
+    class AppExample
     {
+        friend AppExampleView;
     public:
-        AppExample() = default;
-        ~AppExample() override = default;
+        void        init();
+        void        update();
+        void        draw();
+        void        shutdown();
+        inline bool should_stop() const { return m_base_app.should_stop(); };
+        inline App* base_app_handle() { return &m_base_app; }
+    private:
+        void        request_stop();
 
-        void init()
-        {
-            LOG_MESSAGE("AppExample", "init() ...\n");
-
-            BaseApp::init(new AppExampleView(this));
-            this->m_view->set_title("framework-example - (based on framework-gui library)");
-            //
-            // Your code here
-            //
-            LOG_MESSAGE("AppExample", "init() DONE\n");
-        }
-
-        void update() override
-        {
-            BaseApp::update();
-            //
-            // Your code here
-            //
-        }
-
-        void draw() override
-        {
-            BaseApp::draw();
-            //
-            // Your code here
-            //
-        }
-
-        void shutdown() override
-        {
-            LOG_MESSAGE("AppExample", "shutdown() ...\n");
-            BaseApp::shutdown();
-            delete m_view;
-            //
-            // Your code here
-            //
-            LOG_MESSAGE("AppExample", "shutdown() DONE\n");
-        }
+        App             m_base_app; // wrapped
+        AppExampleView  m_view;
+        Config*         m_config = nullptr;
     };
 }

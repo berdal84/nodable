@@ -1,12 +1,14 @@
 #include "Action.h"
-#include "EventManager.h"
+#include "tools/core/EventManager.h"
+#include "tools/core/assertions.h"
 
 using namespace tools;
 
 void IAction::trigger() const
 {
-    EventManager& event_manager = EventManager::get_instance();
-    event_manager.dispatch( make_event() );
+    EventManager* event_manager = get_event_manager();
+    ASSERT(event_manager != nullptr)
+    event_manager->dispatch( make_event() );
 }
 
 IEvent* IAction::make_event() const

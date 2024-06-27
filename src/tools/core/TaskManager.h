@@ -35,7 +35,11 @@ namespace tools
         std::vector<std::future<void>> m_tasks;
     };
 
-    [[nodiscard]] TaskManager* init_task_manager( const TaskManager::Config& config = {} ); // Call this before to use.
+    // Globals to init/get/shutdown the task manager
+
+    [[nodiscard]]
+    TaskManager* init_task_manager( const TaskManager::Config& config = {} ); // Note: make sure you store the ptr since you need it to shut it down.
     TaskManager* get_task_manager();
-    void shutdown_task_manager(); // Undo init_task_manager()
+    void         shutdown_task_manager(TaskManager* ); // Undo init_task_manager()
 }
+

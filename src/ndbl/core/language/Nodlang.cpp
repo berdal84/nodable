@@ -2169,8 +2169,9 @@ Nodlang* ndbl::get_language()
     return g_language;
 }
 
-void ndbl::shutdown_language()
+void ndbl::shutdown_language(Nodlang* _language)
 {
+    ASSERT(g_language == _language) // singleton for now
     ASSERT(g_language != nullptr)
     delete g_language;
     g_language = nullptr;

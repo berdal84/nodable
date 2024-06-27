@@ -4,48 +4,51 @@
 #include <memory>
 #include <string>
 
-#include "tools/gui/BaseApp.h"
+#include "tools/gui/App.h"
 
 #include "Config.h"
-#include "NodableView.h"
 #include "types.h"
 
 namespace ndbl
 {
+    // forward declarations
     class Nodlang;
     class VirtualMachine;
     class NodeFactory;
     class ComponentFactory;
+    class NodableView;
+    class File;
 
-    class Nodable : public tools::BaseApp
+    class Nodable
     {
 	public:
-        Nodable(): tools::BaseApp() {};
-        ~Nodable() override {};
-
-        File*           current_file = nullptr;
-
         // Common
 
         void            init();
-        void            update() override;
-        void            shutdown() override;
+        void            update();
+        void            draw();
+        void            shutdown();
+        bool            should_stop() const;
+        NodableView*    get_view() const;
+        tools::App*     get_base_app_handle() { return &m_base_app; }
 
-        // File related:
+        // Files
 
-        File*           open_asset_file(const std::filesystem::path&_path);
-        File*           open_file(const std::filesystem::path&_path);
+        File*           open_asset_file(const std::filesystem::path&);
+        File*           open_file(const std::filesystem::path&);
         File*           new_file();
-        void            save_file( File*pFile) const;
-        void            save_file_as(const std::filesystem::path &_path) const;
-        File*           add_file( File*_file);
-        void            close_file( File*);
-        bool            is_current(const File* _file ) const { return current_file == _file; }
+        void            save_file(File*) const;
+        void            set_current_file(File*);
+        void            save_file_as(const std::filesystem::path&) const;
+        File*           add_file(File*);
+        void            close_file(File*);
+        File*           get_current_file() { return m_current_file; };
+        bool            is_current(const File* _file) const { return m_current_file == _file; }
         const std::vector<File*>&
                         get_files() const { return m_loaded_files; }
         bool            has_files() const { return !m_loaded_files.empty(); }
 
-        // Virtual Machine related:
+        // Virtual Machine
 
         void            run_program();
         void            debug_program();
@@ -54,15 +57,16 @@ namespace ndbl
         void            reset_program();
         bool            compile_and_load_program() const;
 
-        NodableView* get_view() const;
-
     private:
-        Config*            m_config { nullptr };
-        Nodlang*           m_language { nullptr };
-        VirtualMachine*    m_virtual_machine  { nullptr };
-        NodeFactory*       m_node_factory { nullptr };
-        ComponentFactory*  m_component_factory { nullptr };
-        std::vector<File*> m_loaded_files;
+        tools::App         m_base_app;
+        NodableView*       m_view              = nullptr;
+        Config*            m_config            = nullptr;
+        File*              m_current_file      = nullptr;
+        Nodlang*           m_language          = nullptr;
+        VirtualMachine*    m_virtual_machine   = nullptr;
+        NodeFactory*       m_node_factory      = nullptr;
+        ComponentFactory*  m_component_factory = nullptr;
         u8_t               m_untitled_file_count = 0;
+        std::vector<File*> m_loaded_files;
     };
 }

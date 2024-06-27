@@ -2,6 +2,8 @@
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 
+#include <utility>
+
 #include "tools/core/reflection/reflection"
 
 #include "ForLoopNode.h"
@@ -250,6 +252,11 @@ Node* NodeFactory::create_node() const
     return node;
 }
 
+void NodeFactory::destroy_node(Node* node) const
+{
+    destroy(node);
+}
+
 LiteralNode* NodeFactory::create_literal(const type *_type) const
 {
     auto node = create<LiteralNode>(_type);
@@ -259,11 +266,11 @@ LiteralNode* NodeFactory::create_literal(const type *_type) const
     return node;
 }
 
-void NodeFactory::override_post_process_fct( NodeFactory::PostProcessFct f)
+void NodeFactory::override_post_process_fct( NodeFactory::PostProcessFct _function)
 {
     EXPECT( m_post_process_is_overrided == false, "Cannot override post process function more than once." );
     m_post_process_is_overrided = true;
-    m_post_process              = f;
+    m_post_process              = std::move(_function);
 }
 
 NodeFactory* ndbl::get_node_factory()
@@ -273,19 +280,16 @@ NodeFactory* ndbl::get_node_factory()
 
 NodeFactory* ndbl::init_node_factory()
 {
-    ASSERT(g_node_factory == nullptr)
+    ASSERT(g_node_factory == nullptr) // singleton
     g_node_factory = new NodeFactory();
     return g_node_factory;
 }
 
-void ndbl::shutdown_node_factory()
+void ndbl::shutdown_node_factory(NodeFactory* _factor)
 {
+    ASSERT(g_node_factory == _factor)  // singleton
     ASSERT(g_node_factory != nullptr)
     delete g_node_factory;
     g_node_factory = nullptr;
 }
 
-void NodeFactory::destroy_node(Node* node) const
-{
-    destroy(node);
-}

@@ -7,35 +7,36 @@
 #include "tools/core/TaskManager.h"
 #include "tools/core/assertions.h"
 #include "tools/core/log.h"
-#include "tools/core/reflection/type.h"
 
 using namespace tools;
 
-ActionManager* ActionManager::s_instance = nullptr;
+ActionManager* g_action_manager = nullptr;
 
-ActionManager::ActionManager()
+ActionManager* tools::init_action_manager()
 {
-    LOG_VERBOSE("tools::ActionManager", "Constructor ...\n");
-    EXPECT(!s_instance, "cannot have two instances at a time");
-    s_instance = this;
-    LOG_VERBOSE("tools::ActionManager", "Constructor " OK "\n");
+    EXPECT(g_action_manager == nullptr, "Cannot be called twice")
+    g_action_manager = new ActionManager();
+    return g_action_manager;
+}
+
+ActionManager* tools::get_action_manager()
+{
+    EXPECT(g_action_manager != nullptr, "event manager can't be found. Did you call init ?")
+    return g_action_manager;
+}
+
+void tools::shutdown_action_manager(ActionManager* _action_manager)
+{
+    ASSERT(_action_manager == g_action_manager)
+    ASSERT(g_action_manager != nullptr)
+    delete g_action_manager;
+    g_action_manager = nullptr;
 }
 
 ActionManager::~ActionManager()
 {
-    LOG_VERBOSE("tools::ActionManager", "Destructor ...\n");
-    s_instance = nullptr;
-    for( auto action : m_actions )
-    {
+    for(auto* action : m_actions )
         delete action;
-    }
-    LOG_VERBOSE("tools::ActionManager", "Destructor " OK "\n");
-}
-
-ActionManager& ActionManager::get_instance()
-{
-    EXPECT(s_instance, "No instance found.");
-    return *s_instance;
 }
 
 const IAction* ActionManager::get_action_with_id(EventID id)

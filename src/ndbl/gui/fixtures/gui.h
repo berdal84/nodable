@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "ndbl/gui/Nodable.h"
+#include "ndbl/gui/NodableView.h"
 #include "tools/core/system.h"
 
 #include <thread>

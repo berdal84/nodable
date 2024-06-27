@@ -76,5 +76,5 @@ namespace tools
     bool    has_config();
     Config* get_config();     // Get the current config, create_config() must be called first.
     Config* init_config();  // create a new configuration and set it as current
-    void shutdown_config(); // destroy the current configuration
+    void shutdown_config(Config *pConfig); // destroy the current configuration
 }

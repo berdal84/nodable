@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     {
         Nodable app;
         app.init();
-        while ( !app.should_stop )
+        while ( !app.should_stop() )
         {
             app.update();
             app.draw();

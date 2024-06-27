@@ -24,7 +24,8 @@ namespace tools
         std::map<std::string, Texture*> m_register;         // Texture storage (absolute path => Texture*)
     };
 
-    TextureManager* init_texture_manager();
+    [[nodiscard]]
+    TextureManager* init_texture_manager(); // note: pointer must be stored since it is required to shut it down
     TextureManager* get_texture_manager();
-    void shutdown_texture_manager();
+    void            shutdown_texture_manager(TextureManager*);
 }

@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
         AppExample app;
         app.init();
 
-        while( !app.should_stop )
+        while( !app.should_stop() )
         {
             app.update();
             app.draw();

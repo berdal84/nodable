@@ -12,7 +12,7 @@ namespace ndbl
 
     /**
      * @class Represent a conditional and iterative structure "for"
-     * for( <init>; <condition>; <iteration> ) { ... }
+     * for( <init_ex>; <condition>; <iteration> ) { ... }
      */
     class ForLoopNode : public TConditionalNode<2>
     {

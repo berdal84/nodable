@@ -2,43 +2,33 @@
 
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl.h>
-#include <lodepng/lodepng.h>
+#include <lodepng/lodepng.h> // to save screenshot as PNG
 #include <nfd.h>
 #include <gl3w.h>
 
 #include "tools/core/log.h"
 #include "tools/core/system.h"
-
-#include "BaseApp.h"
-#include "Config.h"
-#include "EventManager.h"
+#include "tools/core/EventManager.h"
 #include "tools/core/memory/memory.h"
+#include "tools/gui/TextureManager.h"
+#include "tools/gui/FontManager.h"
+
+#include "App.h"
+#include "Config.h"
 
 using namespace tools;
 
 constexpr const char* k_status_window_name = "Status Bar";
 
-AppView::AppView( BaseApp* _app)
-    : m_app(_app)
-    , m_is_layout_initialized(false)
-    , m_sdl_window(nullptr)
-    , m_sdl_gl_context()
-    , action_manager()
-    , m_frame_start_time()
-    , show_splashscreen(true)
+void AppView::init(App* _app)
 {
-    LOG_VERBOSE("tools::AppView", "Constructor " OK "\n");
-}
-
-AppView::~AppView()
-{
-    LOG_VERBOSE("tools::AppView", "Destructor " OK "\n");
-}
-
-
-void AppView::init()
-{
+    ASSERT(_app != nullptr)
+    m_app = _app;
     Config* cfg = get_config();
+
+    m_texture_manager = init_texture_manager();
+    m_event_manager   = init_event_manager();
+    m_action_manager  = init_action_manager();
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -73,11 +63,11 @@ void AppView::init()
     m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
     SDL_GL_SetSwapInterval((int)cfg->vsync);
 
-    LOG_VERBOSE("tools::App", "gl3w init ...\n");
+    LOG_VERBOSE("tools::App", "gl3w init_ex ...\n");
     gl3wInit();
 
     // Setup Dear ImGui binding
-    LOG_VERBOSE("tools::App", "ImGui init ...\n");
+    LOG_VERBOSE("tools::App", "ImGui init_ex ...\n");
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
@@ -176,17 +166,17 @@ void AppView::init()
     // Setup Platform/Renderer bindings
     if( !ImGui_ImplSDL2_InitForOpenGL(m_sdl_window, m_sdl_gl_context) )
     {
-        LOG_ERROR("tools::App", "Unable to init NFD\n");
+        LOG_ERROR("tools::App", "Unable to init_ex NFD\n");
         EXPECT(false, "Unable to initialize NFD");
     }
     if( !ImGui_ImplOpenGL3_Init(/* default glsl_version*/) )
     {
-        LOG_ERROR("tools::App", "Unable to init NFD\n");
+        LOG_ERROR("tools::App", "Unable to init_ex NFD\n");
         EXPECT(false, "Unable to initialize NFD");
     }
     if (NFD_Init() != NFD_OKAY)
     {
-        LOG_ERROR("tools::App", "Unable to init NFD\n");
+        LOG_ERROR("tools::App", "Unable to init_ex NFD\n");
         EXPECT(false, "Unable to initialize NFD");
     }
 
@@ -195,8 +185,12 @@ void AppView::init()
 
 void AppView::shutdown()
 {
-    shutdown_font_manager();
     LOG_MESSAGE("tools::AppView", "Shutting down ...\n");
+    LOG_MESSAGE("tools::AppView", "Shutting down managers ...\n");
+    shutdown_action_manager(m_action_manager);
+    shutdown_event_manager(m_event_manager);
+    shutdown_font_manager(m_font_manager);
+    shutdown_texture_manager(m_texture_manager);
     LOG_MESSAGE("tools::AppView", "Shutting down OpenGL3 ...\n");
     ImGui_ImplOpenGL3_Shutdown();
     LOG_MESSAGE("tools::AppView", "Shutting down SDL2 ...\n");
@@ -225,49 +219,46 @@ void AppView::update()
         {
             case SDL_WINDOWEVENT:
                 if( event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    m_app->should_stop = true;
+                    m_app->request_stop();
                 break;
             case SDL_KEYDOWN:
 
-                // With mode key only
+
                 if( event.key.keysym.mod & (KMOD_CTRL | KMOD_ALT) )
                 {
-                    for(const IAction* _action: action_manager.get_actions() )
+                    // Test all the shortcuts with Ctrl or Alt modifiers
+
+                    for(const IAction* _action: m_action_manager->get_actions() )
                     {
                         // first, priority to shortcuts with mod
-                        if ( _action->shortcut.mod != KMOD_NONE
-                             && _action->event_id && ( _action->shortcut.mod & event.key.keysym.mod)
-                             && _action->shortcut.key == event.key.keysym.sym
-                        )
-                        {
-                            event_manager.dispatch( _action->event_id );
-                            break;
-                        }
+                        if ( _action->shortcut.mod != KMOD_NONE)
+                            if ( _action->event_id )
+                                if ( _action->shortcut.mod & event.key.keysym.mod ) // same mod
+                                     if ( _action->shortcut.key == event.key.keysym.sym) // same key
+                                    {
+                                        m_event_manager->dispatch(_action->event_id );
+                                        break;
+                                    }
                     }
                 }
-                else // without any mod key
+                else
                 {
-                    for(const IAction* _action: action_manager.get_actions() )
+                    // Test all other shortcuts
+
+                    for(const IAction* _action: m_action_manager->get_actions() )
                     {
-                        // first, priority to shortcuts with mod
-                        if ( _action->shortcut.mod == KMOD_NONE
-                             && _action->event_id && _action->shortcut.key == event.key.keysym.sym
-                        )
-                        {
-                            event_manager.dispatch( _action->event_id );
-                            break;
-                        }
+                        if ( _action->shortcut.mod == KMOD_NONE )
+                            if ( _action->event_id )
+                                if ( _action->shortcut.key == event.key.keysym.sym)
+                                    {
+                                        m_event_manager->dispatch(_action->event_id );
+                                        break;
+                                    }
                     }
                 }
                 break;
         }
     }
-}
-
-void AppView::draw()
-{
-    begin_draw();
-    end_draw();
 }
 
 void AppView::begin_draw()
@@ -354,8 +345,8 @@ void AppView::begin_draw()
             // Dock windows
             dock_window( k_status_window_name, Dockspace_BOTTOM );
 
-            // Run user defined code
-            on_reset_layout();
+            // Possibly execute some user-defined code
+            on_layout_reset.emit(this);
 
             // Finish the build
             ImGui::DockBuilderFinish( m_dockspaces[Dockspace_ROOT] );
@@ -531,11 +522,6 @@ bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type) co
     }
 }
 
-void AppView::set_layout_initialized(bool b)
-{
-    m_is_layout_initialized = b;
-}
-
 ImGuiID AppView::get_dockspace(Dockspace dockspace)const
 {
     return m_dockspaces[dockspace];
@@ -548,14 +534,6 @@ void AppView::dock_window(const char* window_name, Dockspace dockspace)const
 
 void AppView::draw_splashscreen()
 {
-    if ( AppView::begin_splashscreen() )
-    {
-        AppView::end_splashscreen();
-    }
-}
-
-bool AppView::begin_splashscreen()
-{
     Config* cfg = get_config();
     if ( show_splashscreen && !ImGui::IsPopupOpen( cfg->splashscreen_window_label))
     {
@@ -566,13 +544,11 @@ bool AppView::begin_splashscreen()
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, ImVec2(0.5f, 0.5f));
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
-
-    return ImGui::BeginPopupModal( cfg->splashscreen_window_label, &show_splashscreen, flags);
-}
-
-void AppView::end_splashscreen()
-{
-    ImGui::EndPopup();
+    if ( ImGui::BeginPopupModal( cfg->splashscreen_window_label, &show_splashscreen, flags) )
+    {
+        on_draw_splashscreen.emit(this);
+        ImGui::EndPopup();
+    }
 }
 
 std::vector<unsigned char> AppView::take_screenshot() const
@@ -628,4 +604,9 @@ void AppView::set_title( const char* title )
 {
     m_title = title;
     SDL_SetWindowTitle( m_sdl_window, title );
+}
+
+void AppView::reset_layout()
+{
+    m_is_layout_initialized = false;
 }

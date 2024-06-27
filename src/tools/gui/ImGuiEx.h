@@ -12,7 +12,7 @@
 #include "tools/core/types.h"
 
 #include "ActionManager.h"
-#include "EventManager.h"
+#include "tools/core/EventManager.h"
 #include "tools/gui/geometry/Bezier.h"
 
 namespace tools
@@ -82,7 +82,8 @@ namespace tools
         template<class EventT>
         static void MenuItem(bool selected = false, bool enable = true) // Shorthand to get a given action from the manager and draw a MenuItem from it.
         {
-            const IAction* action = ActionManager::get_instance().get_action_with_id(EventT::id);
+            ActionManager* action_manager = get_action_manager();
+            const IAction* action = action_manager->get_action_with_id(EventT::id);
 
             if (ImGui::MenuItem( action->label.c_str(), action->shortcut.to_string().c_str(), selected, enable))
             {

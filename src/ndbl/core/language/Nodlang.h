@@ -179,6 +179,6 @@ namespace ndbl{
 
     Nodlang* init_language();
     Nodlang* get_language();
-    void shutdown_language();
+    void shutdown_language(Nodlang *pNodlang);
 }
 

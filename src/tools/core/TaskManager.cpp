@@ -58,8 +58,9 @@ void TaskManager::update()
     }
 }
 
-void tools::shutdown_task_manager()
+void tools::shutdown_task_manager(TaskManager* task_manager)
 {
+    ASSERT(task_manager  == g_task_manager)
     EXPECT(g_task_manager != nullptr, "[tools::shutdown_task_manager] must be initialised. Did you call init_task_manager()?");
     delete g_task_manager;
     g_task_manager = nullptr;

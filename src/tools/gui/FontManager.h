@@ -24,8 +24,9 @@ namespace tools
 
     // singleton-like global functions
 
-    FontManager* init_font_manager(); // call once, or call shutdown before
+    [[nodiscard]]
+    FontManager* init_font_manager(); // note: store the pointer to shut it down later
     FontManager* get_font_manager(); // require to call init first
-    void         shutdown_font_manager(); // undo init
+    void         shutdown_font_manager(FontManager*); // undo init
 }
 

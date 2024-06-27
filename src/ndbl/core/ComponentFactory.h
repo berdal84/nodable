@@ -32,7 +32,9 @@ namespace ndbl
         } stats{};
     };
 
+
+    [[nodiscard]]
+    ComponentFactory* init_component_factory(); // note: store the ptr, you need it to shut it down
     ComponentFactory* get_component_factory();
-    ComponentFactory* init_component_factory();
-    void shutdown_component_factory();
+    void              shutdown_component_factory(ComponentFactory* factory); // undo init()
 }
