@@ -22,7 +22,7 @@ namespace ndbl
         PropertyFlag_RESET_VALUE     = 1 << 2,
         PropertyFlag_IS_REF          = 1 << 3,
         PropertyFlag_VISIBLE         = 1 << 4,
-        PropertyFlag_IS_THIS         = 1 << 5,
+        PropertyFlag_IS_THIS         = 1 << 5, // Property pointing this Property's parent Node (stored as void* in variant).
         PropertyFlag_VISIBILITY_MASK = PropertyFlag_VISIBLE,
         PropertyFlag_DEFAULT         = PropertyFlag_VISIBLE
     };
@@ -65,9 +65,13 @@ namespace ndbl
         const tools::type*           get_type()const { return value()->get_type(); }
         PropertyFlags                get_visibility()const { return m_flags & PropertyFlag_VISIBILITY_MASK; }
         PropertyFlags                flags()const { return m_flags; }
-        void                         ensure_is_initialized(bool b);
+        void                         init_mem() { m_variant.init_mem(); }
+        void                         release_mem() { m_variant.release_mem(); }
         void                         flag_as_reference();
         bool                         is_ref() const;
+        bool                         is_type(const tools::type *_type) const;
+        bool                         is_type_null() const;
+        bool                         is_this() const;
         tools::variant*              value()     { return &m_variant; }
         const tools::variant*        value()const{ return &m_variant; }
 
@@ -78,9 +82,6 @@ namespace ndbl
 
         template<typename T>
         T as() const { return value()->as<T>(); }
-
-        bool is_type_null() const;
-        bool is_this() const;
 
     private:
         Node*          m_node;

@@ -185,7 +185,11 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
-            variable->get_value()->ensure_is_initialized(false);
+            ASSERT(variable != nullptr)
+            variant* value = variable->get_value();
+            ASSERT(value != nullptr)
+            if ( value->is_initialized() ) // We are talking about variable's value, not the variable itself.
+                value->release_mem();
             break;
         }
 
@@ -196,9 +200,9 @@ bool VirtualMachine::_stepOver()
             ASSERT(variable != nullptr)
             variant* value = variable->get_value();
             ASSERT(value != nullptr)
-            EXPECT(value->is_initialized(), "Variable should be initialized since it should have been pushed earlier!");
-            value->reset_value();
-            value->ensure_is_initialized(false);
+            ASSERT(value->is_initialized()); // We are talking about variable's value, not the variable itself.
+            value->clear_data();
+            value->release_mem(); // Revert variable's data to initial state, because VariableNodes (and all nodes) can be reused for multiple executions.
             break;
         }
 
@@ -206,6 +210,7 @@ bool VirtualMachine::_stepOver()
         case opcode::pop_stack_frame:
         {
             advance_cursor();
+            ASSERT(false) // not implemented, currently we use VariableNode's data instead of a dedicated stack/heap.
             break;
         }
 
@@ -233,7 +238,7 @@ bool VirtualMachine::_stepOver()
                 variant* variant = variable->get_value();
                 if( !variant->is_initialized() )
                 {
-                    variant->ensure_is_initialized();
+                    variant->init_mem();
                     variant->flag_defined();
                     update_input__by_value_only(variable);
                 }

@@ -40,13 +40,14 @@ Property::Property(const type* _type, PropertyFlags _flags, Node* node)
 : Property(node)
 {
     // handle type
-    m_variant.ensure_is_type(_type);
+    if ( !m_variant.is_type(_type) )
+        m_variant.change_type(_type);
 
     // handle flags
     m_flags = _flags;
-    if ( m_flags & PropertyFlag_INITIALIZE )  m_variant.ensure_is_initialized();
+    if ( m_flags & PropertyFlag_INITIALIZE )  m_variant.init_mem();
     if ( m_flags & PropertyFlag_DEFINE )      m_variant.flag_defined();
-    if ( m_flags & PropertyFlag_RESET_VALUE ) m_variant.reset_value();
+    if ( m_flags & PropertyFlag_RESET_VALUE ) m_variant.clear_data();
 }
 
 
@@ -66,11 +67,6 @@ std::vector<variant*> Property::get(std::vector<Property*> _in_properties )
         result.push_back(each_property->value() );
     }
     return result;
-}
-
-void Property::ensure_is_initialized(bool b)
-{
-    value()->ensure_is_initialized(b);
 }
 
 bool Property::is_ref() const
@@ -103,4 +99,9 @@ void Property::set_visibility(PropertyFlags _flags)
 bool Property::is_this() const
 {
     return m_flags & PropertyFlag_IS_THIS;
+}
+
+bool Property::is_type(const tools::type *_type) const
+{
+    return m_variant.is_type(_type );
 }

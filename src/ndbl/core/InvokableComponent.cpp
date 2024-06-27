@@ -16,15 +16,11 @@ REFLECT_STATIC_INIT
 
 InvokableComponent::InvokableComponent()
     : NodeComponent()
-    , m_signature( nullptr )
-    , m_invokable( nullptr )
-    , m_is_operator( false )
 {}
 
 InvokableComponent::InvokableComponent(const func_type* _signature, bool _is_operator, const IInvokable* _invokable)
     : NodeComponent()
     , m_signature( _signature )
-    , m_invokable( nullptr)
     , m_is_operator( _is_operator )
     , token( Token_t::identifier, _signature->get_identifier().c_str() )
 {
@@ -59,20 +55,22 @@ void InvokableComponent::invoke()
     }
 
     // 2) call the invokable with the arguments
-    variant result_value = m_invokable->invoke( args );
+    const variant result_value = m_invokable->invoke( args );
 
     // 3) copy the result_value to the property's result slot
     m_result_slot->get_property()->set( result_value );
 
-    // WIP: we temporarily set all the arguments to "defined", this is a hack to deal with lvalue references.
-    //      Ex:  calling T& operator=(T& lvalue, const T& rvalue) might modify lvalue.
-    //
-    // TODO: flag_defined() only when argument is non-const
-    //
-    for( auto* variant : args )
-    {
-        variant->flag_defined(true);
-    }
+    // Hack:
+    //  Here we manually set to "defined" each of the argument variants.
+    //  We have to do it because we are not assigning the variant's data ourselves, it happens within
+    //  the m_invokable->invoke( args ) call which lead to a native CPP function call (where variant concepts are
+    //  not present.
+    //  We know of course that the invoke call will imply to assign a new value to result_value variant.
+    //  But, we also have to deal with more complicated cases like references. In such case, the variant can be mutated
+    //  from the outside.
+    //  By consequences, I choose to set the defined flag for all the arguments.
+    for(variant* each : args )
+        each->flag_defined();
 }
 
 void InvokableComponent::bind_result(Slot* slot)

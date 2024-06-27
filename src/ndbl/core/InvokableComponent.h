@@ -33,14 +33,12 @@ namespace ndbl
 		bool                        is_operator()const { return m_is_operator; };
 
     protected:
-        Slot*                      m_result_slot;
+        Slot*                      m_result_slot   = nullptr;
+        const tools::func_type*    m_signature     = nullptr;
+        const tools::IInvokable*   m_invokable     = nullptr;
+        bool                       m_is_operator   = false;
         std::vector<Slot*>         m_argument_slot;
-        const tools::func_type*    m_signature;
-        const tools::IInvokable*   m_invokable;
-        bool                       m_is_operator;
 
         REFLECT_DERIVED_CLASS()
     };
 }
-
-

@@ -1646,7 +1646,9 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     // specific case of a Node*
     if ( adjacent_property->is_this() && adjacent_property->value()->is_initialized() )
     {
-        return serialize_node( _out, adjacent_property->value()->as<Node*>(), _flags );
+        auto* node = (Node*)adjacent_property->value()->as<void*>();
+        ASSERT(node != nullptr)
+        return serialize_node( _out, node, _flags );
     }
 
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_open);

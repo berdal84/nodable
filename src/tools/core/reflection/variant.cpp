@@ -3,317 +3,320 @@
 
 using namespace tools;
 
+variant::variant()
+{}
+
 variant::~variant()
 {
-    ensure_is_initialized(false);
+    release_mem();
 }
 
+variant::variant(
+    const variant& other
+)
+: m_type_id(other.m_type_id)
+{
+    set(other);
+}
 
 template<>
 void* variant::to<void*>()const
 {
-    if( !m_is_defined)
-    {
-        return nullptr;
-    }
-
-    if ( m_type->is_ptr())
+    if(is_defined() && m_type_id == Type_pointer )
     {
         return m_data.ptr;
     }
-    return nullptr;
+    return {};
 }
 
 template<>
 u64_t variant::to<u64_t>()const
 {
-    if( !m_is_defined)
-    {
-        return u64_t(0);
-    }
+    if( !is_defined())
+        if(m_type_id & (Type_u64 | Type_u32))
+            return {};
     return m_data.u64;
 }
 
 template<>
 double variant::to<double>()const
 {
-    if( !m_is_defined)
+    if( !is_defined() )
     {
-        return 0.0;
+        return {};
     }
 
-    if(m_type->is<std::string>() )  return stod(*(std::string*)m_data.ptr);
-    if(m_type->is<double>() )       return m_data.d;
-    if(m_type->is<i16_t>() )        return double(m_data.i16);
-    if(m_type->is<i32_t>() )        return double(m_data.i32);
-    if(m_type->is<bool>() )         return double(m_data.b);
-
-    ASSERT(false) // this case is not handled
-
+    switch (m_type_id)
+    {
+        case Type_string:  return stod(*(std::string*)m_data.ptr);
+        case Type_double:  return m_data.d;
+        case Type_i16:     return double(m_data.i16);
+        case Type_i32:     return double(m_data.i32);
+        case Type_bool:    return double(m_data.b);
+        default:
+            ASSERT(false) // this case is not handled
+    }
 }
 
 template<>
 i16_t variant::to<i16_t>()const
 {
-    if( !m_is_defined)
+    if( !is_defined() )
     {
-        return 0;
+        return {};
     }
 
-    if(m_type->is<std::string>() )  return stoi(*(std::string*)m_data.ptr );
-    if(m_type->is<double>() )       return i16_t(m_data.d);
-    if(m_type->is<i16_t>() )        return m_data.i16;
-    if(m_type->is<i32_t>() )        return (i16_t)m_data.i32;
-    if(m_type->is<bool>() )         return i16_t(m_data.b);
-
-    ASSERT(false) // this case is not handled
+    switch (m_type_id)
+    {
+        case Type_string:  return (i16_t)stoi(*(std::string*)m_data.ptr);
+        case Type_double:  return (i16_t)m_data.d;
+        case Type_i16:     return m_data.i16;
+        case Type_i32:     return (i16_t)m_data.i32;
+        case Type_bool:    return (i16_t)m_data.b;
+        default:
+            ASSERT(false) // this case is not handled
+    }
 }
 
 template<>
 i32_t variant::to<i32_t>()const
 {
-    if( !m_is_defined)
+    if( !is_defined() )
     {
-        return 0;
+        return {};
     }
 
-    if(m_type->is<std::string>() )  return stoi(*(std::string*)m_data.ptr );
-    if(m_type->is<double>() )       return i16_t(m_data.d);
-    if(m_type->is<i16_t>() )        return m_data.i16;
-    if(m_type->is<i32_t>() )        return m_data.i32;
-    if(m_type->is<bool>() )         return i16_t(m_data.b);
-
-    ASSERT(false) // this case is not handled
+    switch (m_type_id)
+    {
+        case Type_string:  return stoi(*(std::string*)m_data.ptr );
+        case Type_double:  return i16_t(m_data.d);
+        case Type_i16:     return m_data.i16;
+        case Type_i32:     return m_data.i32;
+        case Type_bool:    return i16_t(m_data.b);
+        default:
+            ASSERT(false) // this case is not handled
+    }
 }
 
 template<>
 bool variant::to<bool>()const
 {
-    if( !m_is_defined)
+    if( !is_defined() )
     {
-        return false;
+        return {};
     }
 
-    if(m_type->is<std::string>() )  return !((std::string*)m_data.ptr)->empty();
-    if(m_type->is<double>() )       return m_data.d != 0.0;
-    if(m_type->is<i16_t>() )        return m_data.i16 != 0;
-    if(m_type->is<i32_t>() )        return m_data.i32 != 0;
-    if(m_type->is<bool>() )         return m_data.b;
-    if(m_type->is<void *>() )       return m_data.ptr;
-    EXPECT(false,"Case not handled!")
+    switch (m_type_id)
+    {
+        case Type_string: return !((std::string*)m_data.ptr)->empty();
+        case Type_double: return (bool)m_data.d;
+        case Type_i16:    return (bool)m_data.i16;
+        case Type_i32:    return (bool)m_data.i32;
+        case Type_bool:   return m_data.b;
+        default:
+            ASSERT(false) // this case is not handled
+    }
 }
 
 template<>
 std::string variant::to<std::string>()const
 {
-    if( !m_is_initialized || !m_is_defined)
+    if( !is_defined() )
     {
         return "";
     }
 
-    if(m_type->is<std::string>() )  return *(std::string*)m_data.ptr;
-    if(m_type->is<i16_t>() )        return std::to_string(m_data.i16);
-    if(m_type->is<i32_t>() )        return std::to_string(m_data.i32);
-    if(m_type->is<double>() )       return format::number(m_data.d);
-    if(m_type->is<bool>() )         return m_data.b ? "true" : "false";
-
-    return format::hexadecimal(m_data.u64);
-}
-
-const type* variant::get_type() const
-{
-	return m_type;
+    switch (m_type_id)
+    {
+        case Type_string: return *(std::string*)m_data.ptr;
+        case Type_double: return std::to_string(m_data.i16);
+        case Type_i16:    return std::to_string(m_data.i32);
+        case Type_i32:    return format::number(m_data.d);
+        case Type_bool:   return m_data.b ? "true" : "false";
+        default:
+            // return format::hexadecimal(m_data.u64); // this code was found there, probably a mistake
+            ASSERT(false) // this case is not handled
+    }
 }
 
 void variant::set(const std::string& _value)
 {
-    ensure_is_type( type::get<std::string>() );
-    ensure_is_initialized(true);
-    std::string* str = (std::string*)m_data.ptr;
-    str->clear();
-    str->append(_value);
+    set(_value.c_str());
+}
+
+void variant::set(void* ptr)
+{
+    auto* type = type::get<void*>();
+    if ( !is_type(type) )
+        change_type(type);
+
+    if ( !is_initialized() )
+        init_mem();
+
+    m_data.ptr = ptr;
     flag_defined();
 }
 
 void variant::set(const char* _value)
 {
-    set(std::string{_value});
+    auto* type = type::get<std::string>();
+    if ( !is_type(type) )
+        change_type(type);
+
+    if ( !is_initialized() )
+        init_mem();
+
+    auto* str = (std::string*)m_data.ptr;
+    str->assign(_value);
+    flag_defined();
 }
 
 void variant::set(double _value)
 {
-    ensure_is_type(type::get<double>());
-    ensure_is_initialized();
+    auto* type = type::get<double>();
+    if ( !is_type(type) )
+        change_type(type);
+
+    if ( !is_initialized() )
+        init_mem();
+
     m_data.set<double>(_value);
     flag_defined();
 }
 
 void variant::set(i16_t _value)
 {
-    ensure_is_type(type::get<i16_t>());
-    ensure_is_initialized();
+    auto* type = type::get<i16_t>();
+    if ( !is_type(type) )
+        change_type(type);
+
+    if ( !is_initialized() )
+        init_mem();
+
     m_data.set<i16_t>(_value);
     flag_defined();
 }
 
 void variant::set(i32_t _value)
 {
-    ensure_is_type(type::get<i32_t>());
-    ensure_is_initialized();
+    auto* type = type::get<i32_t>();
+    if ( !is_type(type) )
+        change_type(type);
+
+    if ( !is_initialized() )
+        init_mem();
+
     m_data.set<i32_t>(_value);
     flag_defined();
 }
 
 void variant::set(bool _value)
 {
-    ensure_is_type(type::get<bool>());
-    ensure_is_initialized();
+    auto* type = type::get<bool>();
+    if ( !is_type(type) )
+        change_type(type);
+
+    if ( !is_initialized() )
+        init_mem();
+
     m_data.set<bool>(_value);
     flag_defined();
 }
 
-bool variant::is_initialized()const
+void variant::clear_data()
 {
-	return m_is_initialized;
-}
+    EXPECT( m_flags & Flag_IS_MEM_INITIALIZED, "Variant: cannot reset value, variant not initialized!");
 
-void variant::reset_value()
-{
-    EXPECT(m_is_initialized, "Variant: cannot reset value, variant not intialized!");
-
-    if(m_type->is<std::string>() )
+    if ( m_type_id == Type_string)
     {
         ((std::string*)m_data.ptr)->clear();
-    }
-    else if( m_type->is_ptr() )
-    {
-        m_data.reset();
-    }
-}
-
-void variant::ensure_is_initialized(bool _initialize)
-{
-    if(_initialize == m_is_initialized) return;
-
-    if ( _initialize )
-    {
-        if(m_type->is<std::string>() )
-        {
-            m_data.ptr = new std::string();
-        }
-    }
-    else
-    {
-        if (m_type->is<std::string>() )
-        {
-            delete ((std::string*)m_data.ptr);
-            m_data.ptr = nullptr;
-        }
-    }
-
-    m_is_defined     = false; // from external point of view
-    m_is_initialized = _initialize;
-}
-
-void variant::ensure_is_type(const type* _type)
-{
-    const type* new_type = normalize_type(_type);
-
-    if( new_type->equals(m_type) )
-    {
         return;
     }
-    else if( !m_type_change_allowed )
-    {
-        EXPECT( m_type->any_of({type::null(), type::any()}), "variant's type should not change (or be null or any)" );
-    }
-    m_type = new_type;
+    m_data.reset();
 }
 
-void variant::flag_defined(bool _value )
+void variant::init_mem()
 {
-    EXPECT(m_type != type::null(), "Variant: Unable to ensure variant is defined because its type is null!");
-    EXPECT(m_is_initialized, "Variant: Unable to ensure variant is defined because it is not initialized!");
+    ASSERT( (m_flags & Flag_IS_MEM_INITIALIZED) == false );
+
+    if( m_type_id == Type_string )
+    {
+        // std::string is the only class we handle the instantiation, we use otherwise pointers to allocated memory
+        m_data.ptr = new std::string();
+    }
+
+    m_flags &= ~Flag_IS_DATA_DEFINED;    // set flag to 0
+    m_flags |=  Flag_IS_MEM_INITIALIZED; // set flag to 1
+}
+
+void variant::release_mem()
+{
+    ASSERT( (m_flags & Flag_IS_MEM_INITIALIZED) == true );
+
+    if (m_type_id == Type_string )
+    {
+        // std::string is the only class we handle the instantiation, we use otherwise pointers to allocated memory
+        delete ((std::string*)m_data.ptr);
+        m_data.ptr = nullptr;
+    }
+
+    m_flags &= ~Flag_IS_DATA_DEFINED;    // set flag to 0
+    m_flags &= ~Flag_IS_MEM_INITIALIZED; // set flag to 0
+}
+
+void variant::change_type(const type* _type)
+{
+    if( (m_flags & Flag_ALLOWS_TYPE_CHANGE) == 0)
+    {
+        ASSERT(m_type->any_of({type::null(), type::any()})); // Only null or any types can change when Flag_ALLOWS_TYPE_CHANGE is OFF.
+    }
+    m_type = _type; // Enum allows to speed up our switch/case    
+    auto* normalized_type = _type->is_ptr() ? type::get<void*>() : _type; // Convert to internal enum:
+    ASSERT( normalized_type->equals(m_type) == false ) // It's not a change, use is_type(const type*) first
+    m_type_id = type_to_enum(normalized_type);
+}
+
+// TODO: should we name this flag_assigned() ?
+void variant::flag_defined()
+{
+    EXPECT(m_type_id != Type_null, "Cannot set defined a variant having a null type.");
+    EXPECT(is_initialized(),       "Variant needs to be initialized first.");
 
     /*
      * Like in c/cpp, a memory space can be initialized (ex: int i;) but not defined by the user.
      * That's why is_defined is just a flag. By switching that flag, user will see the value.
      * Usually this flag is turned on when variant is set.
      */
-    m_is_defined = _value;
-}
-
-const type* variant::normalize_type(const type* _type)
-{
-    if(_type->is_ptr())
-    {
-        return type::get<void*>();
-    }
-
-    return _type;
+    m_flags |= Flag_IS_DATA_DEFINED;
 }
 
 void variant::set(const variant& _other)
 {
-    if ( _other.m_type == type::null() )
-    {
+    if (_other.m_type_id == Type_null )
         return;
-    }
-    ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
 
-    if( m_type->is<bool>() )
+    if ( _other.m_type_id == m_type_id )
     {
-        set(_other.to<bool>() );
-    }
-    else if( m_type->is<double>() )
-    {
-        set(_other.to<double>() );
-    }
-    else if( m_type->is<i16_t>() )
-    {
-        set(_other.to<i16_t>() );
-    }
-    else if( m_type->is<i32_t>() )
-    {
-        set(_other.to<i32_t>());
-    }
-    else if( m_type->is<std::string>() )
-    {
-        set(_other.to<std::string>());
-    }
-    else if( m_type->equals( _other.m_type ) )
-    {
-        ensure_is_initialized();
+        if( !is_initialized() )
+            init_mem();
+        else
+            clear_data();
         m_data = _other.m_data;
         flag_defined();
+        return;
     }
-    else
+
+    ASSERT(type::is_implicitly_convertible(_other.m_type, m_type));
+    switch ( _other.m_type_id )
     {
-        EXPECT(false, "Variant: missing type case for operator=");
+        Type_bool:        return set(_other.to<bool>() );
+        Type_double:      return set(_other.to<double>() );
+        Type_i16:         return set(_other.to<i16_t>() );
+        Type_i32:         return set(_other.to<i32_t>() );
+        Type_string:      return set(_other.to<std::string>());
+        default:
+            EXPECT(false, "Variant: missing type case for operator=");
     }
-}
-
-variant::variant(const variant& other)
-    : m_type(other.m_type)
-    , m_is_initialized(false)
-    , m_is_defined(false)
-    , m_type_change_allowed(false)
-{
-    set(other);
-}
-
-variant::variant(variant&& other)
-{
-    // move to this
-    ensure_is_type(other.m_type);
-    ensure_is_initialized( other.m_is_initialized);
-    m_is_defined = other.m_is_defined;
-    m_data = other.m_data;
-
-    // clear other
-    other.m_data.reset();
-    other.m_is_initialized = false;
-    other.m_is_defined = false;
 }
 
 variant& variant::operator=(const variant &other)
@@ -324,96 +327,47 @@ variant& variant::operator=(const variant &other)
 
 void variant::set(null_t)
 {
-    ensure_is_type(type::null());
-    m_is_defined = false;
+    change_type(type::null());
+    m_flags &= ~Flag_IS_DATA_DEFINED;
 }
 
-variant::operator std::string& ()
+// by reference
+
+variant::operator std::string& ()     { ASSERT(is_initialized()) return *((std::string*)m_data.ptr);}
+variant::operator bool& ()            { ASSERT(is_initialized())    return m_data.b;}
+variant::operator i16_t& ()           { ASSERT(is_initialized())    return m_data.i16;}
+variant::operator i32_t& ()           { ASSERT(is_initialized())    return m_data.i32;}
+variant::operator u32_t& ()           { ASSERT(is_initialized())    return m_data.u32;}
+variant::operator u64_t& ()           { ASSERT(is_initialized())    return m_data.u64;}
+variant::operator double& ()          { ASSERT(is_initialized())    return m_data.d;}
+
+// by value
+
+variant::operator std::string() const { ASSERT(is_initialized())    return *((std::string*)m_data.ptr);}
+variant::operator bool () const       { ASSERT(is_initialized())    return m_data.b;}
+variant::operator i16_t () const      { ASSERT(is_initialized())    return m_data.i16;}
+variant::operator i32_t () const      { ASSERT(is_initialized())    return m_data.i32;}
+variant::operator u32_t () const      { ASSERT(is_initialized())    return m_data.u32;}
+variant::operator u64_t () const      { ASSERT(is_initialized())    return m_data.u64;}
+variant::operator double () const     { ASSERT(is_initialized())    return m_data.d;}
+variant::operator const char*() const { ASSERT(is_initialized())    return ((std::string*)m_data.ptr)->c_str();}
+variant::operator void*() const       { ASSERT(m_type_id == Type_pointer );    return m_data.ptr;}
+
+variant::Type variant::type_to_enum(const tools::type* _type)
 {
-    ASSERT(m_is_initialized)
-    return *((std::string*)m_data.ptr);
+    if( _type->is<bool>() )        return Type_bool;
+    if( _type->is<double>() )      return Type_double;
+    if( _type->is<i16_t>() )       return Type_i16;
+    if( _type->is<i32_t>() )       return Type_i32;
+    if( _type->is<std::string>() ) return Type_string;
+    if( _type->is_ptr() )          return Type_pointer;
+    if( _type->is<any_t>() )       return Type_any;
+    if( _type->is<null_t>() )      return Type_null;
+    ASSERT( !_type->is<const char*>() ) // use std::string instead
+    ASSERT(false) // Unhandled type;
 }
 
-variant::operator bool& ()
+bool variant::is_type(const tools::type* _type) const
 {
-    ASSERT(m_is_initialized)
-    return m_data.b;
-}
-
-variant::operator i16_t& ()
-{
-    ASSERT(m_is_initialized)
-    return m_data.i16;
-}
-
-variant::operator i32_t& ()
-{
-    ASSERT(m_is_initialized)
-    return m_data.i32;
-}
-
-variant::operator u32_t& ()
-{
-    ASSERT(m_is_initialized)
-    return m_data.u32;
-}
-
-variant::operator u64_t& ()
-{
-    ASSERT(m_is_initialized)
-    return m_data.u64;
-}
-
-variant::operator double& ()
-{
-    ASSERT(m_is_initialized)
-    return m_data.d;
-}
-
-variant::operator std::string() const
-{
-    ASSERT(m_is_initialized)
-    return *((std::string*)m_data.ptr);
-}
-
-variant::operator bool () const
-{
-    ASSERT(m_is_initialized)
-    return m_data.b;
-}
-
-variant::operator i16_t () const
-{
-    ASSERT(m_is_initialized)
-    return m_data.i16;
-}
-
-variant::operator i32_t () const
-{
-    ASSERT(m_is_initialized)
-    return m_data.i32;
-}
-
-variant::operator u32_t () const
-{
-    ASSERT(m_is_initialized)
-    return m_data.u32;
-}
-
-variant::operator u64_t () const
-{
-    ASSERT(m_is_initialized)
-    return m_data.u64;
-}
-
-variant::operator double () const
-{
-    ASSERT(m_is_initialized)
-    return m_data.d;
-}
-
-variant::operator const char*() const
-{
-    ASSERT(m_is_initialized)
-    return ((std::string*)m_data.ptr)->c_str();
+    return m_type_id == type_to_enum(_type); // compare the internal Type enum values
 }
