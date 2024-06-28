@@ -72,13 +72,13 @@ void ImGuiEx::DrawRectShadow (const Vec2& _topLeftCorner, const Vec2& _bottomRig
 
 void ImGuiEx::ShadowedText(const Vec2& _offset, const Vec4& _shadowColor, const char* _format, ...)
 {
-    // draw first the shadow
-    auto p = ImGui::GetCursorPos();
-    ImGui::SetCursorPos(Vec2(p.x + _offset.x, p.y + _offset.y));
-
     va_list args;
     va_start(args, _format);
+    auto p = ImGui::GetCursorPos();
+    // shadow
+    ImGui::SetCursorPos(Vec2(p.x + _offset.x, p.y + _offset.y));
     ImGui::TextColored(_shadowColor, _format, args);
+    // text
     ImGui::SetCursorPos(p);
     ImGui::Text(_format, args);
     va_end(args);

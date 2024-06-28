@@ -340,3 +340,15 @@ Node::~Node()
     for(auto* each : m_slots)
         delete each;
 }
+
+bool Node::is_unary_operator() const
+{
+    auto* invokable_component = get_component<InvokableComponent>();
+    return invokable_component != nullptr && invokable_component->is_operator() && invokable_component->get_arguments().size() == 1;
+}
+
+bool Node::is_binary_operator() const
+{
+    auto* invokable_component = get_component<InvokableComponent>();
+    return invokable_component != nullptr && invokable_component->is_operator() && invokable_component->get_arguments().size() == 2;
+}

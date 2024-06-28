@@ -180,15 +180,15 @@ void NodeView::set_owner(Node* node)
 void NodeView::update_labels_from_name(const Node* _node)
 {
     // Label
+    m_label = _node->name;
 
-    m_label.clear();
-    m_short_label.clear();
-    if ( auto* variable = cast<const VariableNode>(_node) )
+    // Append type and assign symbol for VariableNode
+    const auto* node_as_variable = cast<const VariableNode>(_node);
+    if ( node_as_variable != nullptr )
     {
-        m_label += variable->get_value_type()->get_name();
-        m_label += " ";
+        std::string type = node_as_variable->get_value_type()->get_name();
+        m_label = type + " " + m_label + " ="; // VariableNode also symbolize the first assignment operator
     }
-    m_label += _node->name;
 
     // Short label
     constexpr size_t label_max_length = 10;
@@ -408,6 +408,12 @@ bool NodeView::draw()
         //abel.insert(0, "<<");
         label.append(" " ICON_FA_OBJECT_GROUP);
     }
+
+    if ( node->is_binary_operator() )
+    {
+        label = "";
+    }
+    // Label is displayed first unless node is an operator
     ImGuiEx::ShadowedText( Vec2(1.0f), cfg->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
     ImGui::SameLine();
@@ -415,10 +421,18 @@ bool NodeView::draw()
     ImGui::BeginGroup();
 
     // draw properties
+    size_t count = 0;
     auto draw_property_lambda = [&](PropertyView* view)
     {
         ImGui::SameLine();
         changed |= _draw_property_view( view, cfg->ui_node_detail );
+
+        // for binary operators, label is displayed between the two first properties
+        if ( count == 0 && node->is_binary_operator() )
+        {
+            ImGui::SameLine(); ImGui::Text("%s", get_label().c_str() );
+        }
+        count++;
     };
     std::for_each( m_property_views_with_input_only.begin(), m_property_views_with_input_only.end(), draw_property_lambda);
     std::for_each( m_property_views_with_output_or_inout.begin(), m_property_views_with_output_or_inout.end(), draw_property_lambda);

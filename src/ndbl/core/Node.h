@@ -45,8 +45,6 @@ namespace ndbl
 	*/
     class Node
 	{
-        REFLECT_BASE_CLASS()
-        POOL_REGISTRABLE(Node)
     public:
         // Data
 
@@ -65,6 +63,8 @@ namespace ndbl
 
         virtual void init();
         bool is_instruction() const;
+        bool is_unary_operator() const;
+        bool is_binary_operator() const;
         bool can_be_instruction() const;
 
         // Slot related
@@ -143,5 +143,8 @@ namespace ndbl
         std::vector<Slot*> m_slots;
     private:
         TComponentBag<NodeComponent*> m_components;
+
+        REFLECT_BASE_CLASS()
+        POOL_REGISTRABLE(Node)
     };
 }
