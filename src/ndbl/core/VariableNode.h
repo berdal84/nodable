@@ -25,6 +25,7 @@ namespace ndbl
 
         void             init() override;
 		bool             is_declared()const { return m_is_declared; }
+        bool             is_initialized() const { return m_is_initialized; };
         Property*        property();
         const Property*  property()const;
         Scope*           get_scope();
@@ -35,12 +36,17 @@ namespace ndbl
         tools::variant& operator * () { return *property()->value(); }
         tools::variant* operator -> () { return property()->value(); }
         const tools::variant& operator * () const { return *property()->value(); }
-        const tools::variant* operator -> () const { return property()->value(); }
 
+        const tools::variant* operator -> () const { return property()->value(); }
         Slot       &input_slot();
         const Slot &input_slot() const;
         Slot       &output_slot();
+
         const Slot &output_slot() const;
+
+        void initialize();
+
+        void deinitialize();
 
     public:
         Token  type_token;
@@ -48,9 +54,10 @@ namespace ndbl
         Token  identifier_token;
     private:
         Property*   m_value_property{};
-        bool        m_is_declared;
-        const tools::type* m_type;
+        bool        m_is_declared    = false;
+        bool        m_is_initialized = false;
         Node*       m_scope{};
+        const tools::type* m_type;
 
 		REFLECT_DERIVED_CLASS()
     };

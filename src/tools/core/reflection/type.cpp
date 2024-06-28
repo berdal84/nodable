@@ -167,5 +167,6 @@ std::shared_ptr<IInvokable> type::get_static(const std::string& _name)const
 
 bool type::equals(const type *left, const type *right)
 {
-    return left->m_id == right->m_id;
+    ASSERT(left != nullptr)
+    return right != nullptr && left->m_id == right->m_id;
 }

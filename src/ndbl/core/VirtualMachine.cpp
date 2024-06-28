@@ -137,31 +137,27 @@ bool VirtualMachine::_stepOver()
             const type* ptr_type = next_instr->uref.type;
             if(ptr_type->is<bool>() )
             {
-                LOG_VERBOSE("VM", "bool dereferenced: %b\n", qword->b);
+                LOG_VERBOSE("VM", "deref_qword bool: %b\n", qword->b);
             }
             else if(ptr_type->is<double>() )
             {
-                LOG_VERBOSE("VM", "double dereferenced: %d\n", qword->d );
+                LOG_VERBOSE("VM", "deref_qword double: %d\n", qword->d );
             }
             else if(ptr_type->is<i16_t>() )
             {
-                LOG_VERBOSE("VM", "i16_t de-referenced: %i\n", qword->i16 );
+                LOG_VERBOSE("VM", "deref_qword i16_t: %i\n", qword->i16 );
             }
             else if(ptr_type->is<i32_t>() )
             {
-                LOG_VERBOSE("VM", "i32_t de-referenced: %i\n", qword->i32 );
+                LOG_VERBOSE("VM", "deref_qword i32_t: %i\n", qword->i32 );
             }
             else if(ptr_type->is<std::string>() )
             {
-                LOG_VERBOSE("VM", "pointed string (%p): %s\n", ((std::string*)qword)->c_str() );
+                LOG_VERBOSE("VM", "deref_qword std::string* (%p): %s\n", qword->ptr, ((std::string*)qword)->c_str() );
             }
             else if(ptr_type->is<void *>() )
             {
-                LOG_VERBOSE("VM", "pointed address: %p\n", qword->ptr );
-            }
-            else if(ptr_type->is<Node*>())
-            {
-                LOG_VERBOSE("VM", "Node* de-referenced: %i\n", qword->ptr );
+                LOG_VERBOSE("VM", "deref_qword Node* (%p): %s\n", qword->ptr, ((Node*)qword->ptr)->name.c_str() );
             }
             else
             {
@@ -185,11 +181,10 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
-            ASSERT(variable != nullptr)
-            variant* value = variable->get_value();
-            ASSERT(value != nullptr)
-            if ( value->is_initialized() ) // We are talking about variable's value, not the variable itself.
-                value->release_mem();
+            ASSERT( !variable->is_initialized() )
+            //
+            // TODO: implement a stack/heap
+            //
             break;
         }
 
@@ -197,12 +192,11 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
-            ASSERT(variable != nullptr)
-            variant* value = variable->get_value();
-            ASSERT(value != nullptr)
-            ASSERT(value->is_initialized()); // We are talking about variable's value, not the variable itself.
-            value->clear_data();
-            value->release_mem(); // Revert variable's data to initial state, because VariableNodes (and all nodes) can be reused for multiple executions.
+            if( variable->is_initialized() )
+                variable->deinitialize();
+            //
+            // TODO: implement a stack/heap
+            //
             break;
         }
 
@@ -210,7 +204,9 @@ bool VirtualMachine::_stepOver()
         case opcode::pop_stack_frame:
         {
             advance_cursor();
-            ASSERT(false) // not implemented, currently we use VariableNode's data instead of a dedicated stack/heap.
+            //
+            // not implemented, currently we use VariableNode's data instead of a dedicated stack/heap.
+            //
             break;
         }
 
@@ -221,9 +217,8 @@ bool VirtualMachine::_stepOver()
                 for(Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
                 {
                     if( slot->adjacent_count() == 0)
-                    {
                         continue;
-                    }
+
                     Property* property = slot->get_property();
                     if( !property->is_ref() )
                     {
@@ -234,12 +229,9 @@ bool VirtualMachine::_stepOver()
 
             if( auto variable = cast<VariableNode>(next_instr->eval.node))
             {
-                // If variable is not initialized, we compute its initial value from its inputs
-                variant* variant = variable->get_value();
-                if( !variant->is_initialized() )
+                if( !variable->is_initialized() )
                 {
-                    variant->init_mem();
-                    variant->flag_defined();
+                    variable->initialize();
                     update_input__by_value_only(variable);
                 }
             }
@@ -269,7 +261,7 @@ bool VirtualMachine::_stepOver()
         {
             qword rax = m_cpu.read(Register::rax);
             i64_t offset{1};
-            if ( (bool)rax ) // last comparison result is stored in rax
+            if ( rax.b ) // last comparison result is stored in rax
                 offset = next_instr->jmp.offset; // jump if NOT equal
             advance_cursor( offset );
             break;

@@ -95,3 +95,19 @@ const Slot& VariableNode::output_slot() const
 {
     return *find_slot_by_property(m_value_property, SlotFlag_OUTPUT );
 }
+
+void VariableNode::initialize()
+{
+    variant* variant = get_value();
+    if ( !variant->is_initialized() )
+        variant->init_mem();
+    m_is_initialized = true;
+}
+
+void VariableNode::deinitialize()
+{
+    variant* variant = get_value();
+    if ( variant->is_initialized() )
+        variant->release_mem();
+    m_is_initialized = false;
+}

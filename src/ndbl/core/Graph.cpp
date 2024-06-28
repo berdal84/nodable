@@ -32,14 +32,14 @@ void Graph::clear()
     }
 
 	LOG_VERBOSE( "Graph", "Clearing graph ...\n")
-    std::vector<Node*> node_ids = m_node_registry; // copy to avoid iterator invalidation
     m_root = nullptr;
-    for (auto node : node_ids)
+    while ( !m_node_registry.empty() )
     {
+        Node* node = m_node_registry[0];
         LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name.c_str(), (u64_t)node )
         destroy(node);
     }
-    m_node_registry.clear();
+
 #ifdef NDBL_DEBUG
     if ( !m_edge_registry.empty() )
     {

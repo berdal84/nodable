@@ -16,12 +16,12 @@ TEST_F(Virtual_Machine, Cond_1)
     std::string program =
         "if(false)"
         "{"
-        "   return(0);"
+        "   return(13);"
         "}"
-        "return(1);";
+        "return(42);";
 
 
-    EXPECT_EQ(eval<i32_t>(program), 1);
+    EXPECT_EQ(eval<i32_t>(program), 42);
 }
 
 TEST_F(Virtual_Machine, Cond_2)
