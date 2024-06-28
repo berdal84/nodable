@@ -60,7 +60,7 @@ public:
         {
             throw std::runtime_error("Compiler was not able to compile program's graph.");
         }
-        std::cout << assembly::Code::to_string(asm_code) << std::flush;
+        std::cout << Code::to_string(asm_code) << std::flush;
 
         // load
         if (!app.load_program(asm_code))

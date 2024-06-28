@@ -5,7 +5,7 @@
 using namespace ndbl;
 using namespace tools;
 
-assembly::Code::~Code()
+Code::~Code()
 {
     for( auto each : m_instructions )
     {
@@ -15,7 +15,7 @@ assembly::Code::~Code()
     m_instructions.resize(0);
 }
 
-std::string assembly::Code::to_string(const Code* _code)
+std::string Code::to_string(const Code* _code)
 {
     std::string result;
 

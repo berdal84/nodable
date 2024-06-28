@@ -6,7 +6,7 @@
 using namespace ndbl;
 using namespace tools;
 
-std::string assembly::Instruction::to_string(const Instruction& _instr)
+std::string Instruction::to_string(const Instruction& _instr)
 {
     std::string result;
     result.reserve(80); // to fit with terminals
@@ -18,20 +18,20 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
     result.append( " : " );
 
     // append instruction type
-    result.append(assembly::to_string(_instr.opcode));
+    result.append(ndbl::OpCode_to_string(_instr.opcode));
 
     result.resize(25, ' ');
 
     // optionally append parameters
     switch ( _instr.opcode )
     {
-        case Instruction_t::eval_node:
+        case OpCode_eval_node:
         {
             result.append(format::address(_instr.eval.node) );
             break;
         }
 
-        case Instruction_t::deref_qword:
+        case OpCode_deref_qword:
         {
             result.append(format::address( _instr.uref.ptr ));
             result.append(", *");
@@ -39,15 +39,15 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
             break;
         }
 
-        case Instruction_t::mov:
+        case OpCode_mov:
         {
-            result.append(assembly::to_string(static_cast<Register>(_instr.mov.dst.u8) ));
+            result.append(Register_to_string(_instr.mov.dst.u8));
             result.append(", ");
             result.append(qword::to_string(_instr.mov.src ));
             break;
         }
 
-        case Instruction_t::cmp:
+        case OpCode_cmp:
         {
             result.append(qword::to_string(_instr.cmp.left ));
             result.append(", ");
@@ -55,25 +55,25 @@ std::string assembly::Instruction::to_string(const Instruction& _instr)
             break;
         }
 
-        case Instruction_t::jne:
-        case Instruction_t::jmp:
+        case OpCode_jne:
+        case OpCode_jmp:
         {
             result.append(std::to_string( _instr.jmp.offset ) );
             break;
         }
 
-        case Instruction_t::ret: // nothing else to do.
+        case OpCode_ret: // nothing else to do.
             break;
-        case Instruction_t::pop_stack_frame:
+        case OpCode_pop_stack_frame:
             result.append(format::address(_instr.pop.scope) );
             break;
-        case Instruction_t::pop_var:
+        case OpCode_pop_var:
             result.append(format::address(_instr.push.var) );
             break;
-        case Instruction_t::push_stack_frame:
+        case OpCode_push_stack_frame:
             result.append(format::address(_instr.push.scope) );
             break;
-        case Instruction_t::push_var:
+        case OpCode_push_var:
             result.append(format::address(_instr.push.var) );
             break;
     }

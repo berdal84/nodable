@@ -367,9 +367,9 @@ add_library(
     src/ndbl/core/VariableNode.cpp
     src/ndbl/core/VirtualMachine.cpp
     src/ndbl/core/WhileLoopNode.cpp
-    src/ndbl/core/assembly/Code.cpp
-    src/ndbl/core/assembly/Compiler.cpp
-    src/ndbl/core/assembly/Instruction.cpp
+        src/ndbl/core/Code.cpp
+        src/ndbl/core/Compiler.cpp
+        src/ndbl/core/Instruction.cpp
     src/ndbl/core/language/Nodlang.cpp
     src/ndbl/core/language/Nodlang_biology.cpp
     src/ndbl/core/language/Nodlang_math.cpp

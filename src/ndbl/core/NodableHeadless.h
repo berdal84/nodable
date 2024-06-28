@@ -2,7 +2,7 @@
 
 #include <string>
 #include "VirtualMachine.h"
-#include "ndbl/core/assembly/Compiler.h"
+#include "Compiler.h"
 
 namespace tools
 {
@@ -48,9 +48,9 @@ namespace ndbl
         bool                       m_should_stop{false};
         Graph*                     m_graph{};
         std::string                m_source_code;
-        const assembly::Code*      m_asm_code{};
+        const Code*                m_asm_code{};
         bool                       m_auto_completion{false};
-        assembly::Compiler         m_compiler{}; // TODO: move this to a global (like VirtualMachine.h)
+        Compiler                   m_compiler{}; // TODO: move this to a global (like VirtualMachine.h)
     };
 }
 

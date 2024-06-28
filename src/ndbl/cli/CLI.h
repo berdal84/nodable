@@ -8,7 +8,7 @@
 #include "ndbl/core/NodableHeadless.h"
 #include "ndbl/core/NodeFactory.h"
 #include "ndbl/core/VirtualMachine.h"
-#include "ndbl/core/assembly/Compiler.h"
+#include "ndbl/core/Compiler.h"
 #include "ndbl/core/language/Nodlang.h"
 
 namespace ndbl

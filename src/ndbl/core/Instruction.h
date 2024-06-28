@@ -11,48 +11,47 @@ namespace ndbl
     class VariableNode;
     class Node;
 
-namespace assembly
-{
     // list possible instruction's operation types
-    enum class Instruction_t : u8_t
+    typedef u8_t OpCode;
+    enum OpCode_ : u8_t
     {
-        cmp,                   // comparison.
-        eval_node,             // node evaluation.
-        jmp,                   // unconditional jump.
-        jne,                   // conditional jump.
-        mov,                   // move or copy memory.
-        deref_qword,         // pool::ID<T> de-referencing.
-        pop_stack_frame,       // ends the current stack frame.
-        pop_var,               // pop a variable from the stack.
-        push_stack_frame,      // starts a new stack frame within the current.
-        push_var,              // push a variable to the stack.
-        ret                    // return value.
+        OpCode_cmp,              // comparison.
+        OpCode_eval_node,        // node evaluation.
+        OpCode_jmp,              // unconditional jump.
+        OpCode_jne,              // conditional jump.
+        OpCode_mov,              // move or copy memory.
+        OpCode_deref_qword,      // qword ptr de-referencing.
+        OpCode_pop_stack_frame,  // ends the current stack frame.
+        OpCode_pop_var,          // pop a variable from the stack.
+        OpCode_push_stack_frame, // starts a new stack frame within the current.
+        OpCode_push_var,         // push a variable to the stack.
+        OpCode_ret               // return value.
     };
 
-    R_ENUM(Instruction_t)
-    R_ENUM_VALUE(mov)
-    R_ENUM_VALUE( deref_qword )
-    R_ENUM_VALUE(eval_node)
-    R_ENUM_VALUE(push_var)
-    R_ENUM_VALUE(pop_var)
-    R_ENUM_VALUE(push_stack_frame)
-    R_ENUM_VALUE(pop_stack_frame)
-    R_ENUM_VALUE(jmp)
-    R_ENUM_VALUE(jne)
-    R_ENUM_VALUE(ret)
-    R_ENUM_VALUE(cmp)
-    R_ENUM_END
+    REFLECT_ENUM(OpCode)
+    REFLECT_ENUM_VALUE(OpCode_mov)
+    REFLECT_ENUM_VALUE(OpCode_deref_qword )
+    REFLECT_ENUM_VALUE(OpCode_eval_node)
+    REFLECT_ENUM_VALUE(OpCode_push_var)
+    REFLECT_ENUM_VALUE(OpCode_pop_var)
+    REFLECT_ENUM_VALUE(OpCode_push_stack_frame)
+    REFLECT_ENUM_VALUE(OpCode_pop_stack_frame)
+    REFLECT_ENUM_VALUE(OpCode_jmp)
+    REFLECT_ENUM_VALUE(OpCode_jne)
+    REFLECT_ENUM_VALUE(OpCode_ret)
+    REFLECT_ENUM_VALUE(OpCode_cmp)
+    REFLECT_ENUM_END
 
     // Unconditional jump
     struct Instruction_jmp
     {
-        Instruction_t opcode;
+        OpCode opcode;
         i64_t         offset;    // offset relative to the current instruction pointer.
     };
 
     struct Instruction_mov
     {
-        Instruction_t opcode;
+        OpCode opcode;
         tools::qword  dst;       // source memory
         tools::qword  src;       // destination memory
     };
@@ -60,7 +59,7 @@ namespace assembly
     // Un-reference a pointer to a given type
     struct Instruction_uref
     {
-        Instruction_t       opcode;
+        OpCode       opcode;
         const tools::qword* ptr;
         const tools::type*  type; // pointed data's type.
     };
@@ -70,7 +69,7 @@ namespace assembly
     {
         using qword = tools::qword;
 
-        Instruction_t opcode;
+        OpCode opcode;
         qword  left;     // the left operand.
         qword  right;    // the right operand.
     };
@@ -78,7 +77,7 @@ namespace assembly
     // Push or pop to/from the stack.
     struct Instruction_push_or_pop
     {
-        Instruction_t opcode;      // Instruction_t::push_xxx or Instruction_t::pop_x      xx.
+        OpCode opcode;
         union {
             VariableNode* var;     // a variable to push/pop.
             const Scope*  scope;   // a scope to push/pop.
@@ -88,7 +87,7 @@ namespace assembly
     // Evaluates a given node
     struct Instruction_eval
     {
-        Instruction_t opcode;
+        OpCode opcode;
         Node*         node; // The node to evaluate.
     };
 
@@ -100,16 +99,16 @@ namespace assembly
      */
     struct Instruction
     {
-        Instruction(Instruction_t _opcode, size_t _line)
-                : opcode(_opcode)
-                , line(_line)
+        Instruction(OpCode _opcode, size_t _line)
+            : opcode(_opcode)
+            , line(_line)
         {}
 
         size_t line;                                        // line index (zero-based position in the code)
 
         // all the possible instructions
         union {
-            Instruction_t           opcode;                 // simple operation
+            OpCode           opcode;                 // simple operation
             Instruction_mov         mov;                    // copy data
             Instruction_uref        uref;                   // un-reference
             Instruction_jmp         jmp;                    // jump to
@@ -121,5 +120,5 @@ namespace assembly
         std::string m_comment;                              // optional comment.
         static std::string to_string(const Instruction&);   // Convert the instruction to a nice looking string.
     };
-} // namespace assembly
-} // namespace nodable
+
+} // namespace ndbl

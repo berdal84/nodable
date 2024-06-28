@@ -368,18 +368,18 @@ TEST_F(Parse_and_eval, decl_var_and_assign_bool)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(Parse_and_eval, multi_instruction_single_line )
+TEST_F(Parse_and_eval, multi_InstructionType_single_line )
 {
     EXPECT_EQ(eval<int>("int a = 5;int b = 2 * 5;"), 10 );
 }
 
-TEST_F(Parse_and_eval, multi_instruction_multi_line_01 )
+TEST_F(Parse_and_eval, multi_InstructionType_multi_line_01 )
 {
     const std::string source_code = "double a = 5.0;\ndouble b = 2.0 * a;";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);
 }
 
-TEST_F(Parse_and_eval, multi_instruction_multi_line_02 )
+TEST_F(Parse_and_eval, multi_InstructionType_multi_line_02 )
 {
     const std::string source_code = "double a = 5.0;double b = 2.0 * a;\ndouble c = 33.0 + 5.0;";
     EXPECT_EQ(parse_eval_and_serialize(source_code), source_code);

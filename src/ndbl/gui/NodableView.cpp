@@ -12,7 +12,7 @@
 
 #include "ndbl/core/NodeUtils.h"
 #include "ndbl/core/VirtualMachine.h"
-#include "ndbl/core/assembly/Register.h"
+#include "ndbl/core/Register.h"
 #include "ndbl/core/language/Nodlang.h"
 
 #include "Config.h"
@@ -26,7 +26,6 @@
 #include "build_info.h"
 
 using namespace ndbl;
-using namespace ndbl::assembly;
 using namespace tools;
 
 template<typename T>
@@ -550,21 +549,20 @@ void NodableView::draw_virtual_machine_window()
             ImGui::Text("registers:");
             ImGui::Separator();
 
-            using assembly::Register;
             ImGui::Indent();
 
             auto draw_register_value = [&](Register _register) {
-                ImGui::Text("%4s: %12s", assembly::to_string(_register),
+                ImGui::Text("%4s: %12s", Register_to_string(_register),
                             vm->read_cpu_register(_register).to_string().c_str());
             };
 
-            draw_register_value(Register::rax);
+            draw_register_value(Register_rax);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "primary accumulator");
-            draw_register_value(Register::rdx);
+            draw_register_value(Register_rdx);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "base register");
-            draw_register_value(Register::eip);
+            draw_register_value(Register_eip);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "instruction pointer");
 

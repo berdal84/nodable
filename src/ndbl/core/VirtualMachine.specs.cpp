@@ -233,6 +233,7 @@ TEST_F(Virtual_Machine, integers)
 
 TEST_F(Virtual_Machine, while_loop)
 {
+    tools::log::set_verbosity(tools::log::Verbosity_Message);
     std::string program =
             "int i = 0;"
             "while(i < 42){"

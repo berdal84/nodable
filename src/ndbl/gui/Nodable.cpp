@@ -490,7 +490,7 @@ bool Nodable::compile_and_load_program() const
         return false;
     }
 
-    assembly::Compiler compiler{};
+    Compiler compiler{};
     auto asm_code = compiler.compile_syntax_tree(&m_current_file->get_graph());
     if (!asm_code)
     {

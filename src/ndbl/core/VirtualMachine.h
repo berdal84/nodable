@@ -2,8 +2,8 @@
 
 #include "tools/core/types.h"
 
-#include "assembly/Compiler.h"
-#include "assembly/Register.h"
+#include "Compiler.h"
+#include "Register.h"
 
 namespace ndbl
 {
@@ -12,10 +12,6 @@ namespace ndbl
      * (https://www.cs.uaf.edu/2017/fall/cs301/reference/x86_64.html)
      * We do it just to be inspired by something solid, but it's NOT at all compatible.
     */
-    typedef assembly::Code        Code;
-    typedef assembly::Instruction Instruction;
-    typedef assembly::Register    Register;
-
     class CPU
     {
     public:
@@ -32,11 +28,11 @@ namespace ndbl
         // Read a given register by reference with write mode
         tools::qword&    read_write(Register);
         // Store all registers
-        tools::qword     m_register[Register::COUNT];
+        tools::qword     m_register[Register_COUNT];
     };
 
     /**
-     * The VirtualMachine is able to run the assembly::Code produced by the assembly::Compiler
+     * The VirtualMachine is able to run the Code produced by the Compiler
      * The term VirtualMachine is maybe not adequate, it is closer to an interpreter in fact,
      * but I found it more clear.
     */
