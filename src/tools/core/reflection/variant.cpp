@@ -12,12 +12,55 @@ variant::~variant()
         release_mem();
 }
 
-variant::variant(
-    const variant& other
-)
-: m_type(other.m_type)
+variant::variant(const std::string& val)
+: variant(val.c_str())
+{}
+
+variant::variant(const char* val)
+: m_type(Type_string)
 {
-    set(other);
+    init_mem();
+    *(std::string*)m_data.ptr = val;
+    flag_defined();
+}
+
+variant::variant(double val)
+: m_type(Type_double)
+{
+    m_data.d = val;
+    flag_defined();
+}
+
+variant::variant(i16_t val)
+: m_type(Type_i16)
+{
+    m_data.i16 = val;
+    flag_defined();
+}
+
+variant::variant(i32_t val)
+: m_type(Type_i32)
+{
+    m_data.i32 = val;
+    flag_defined();
+}
+
+variant::variant(bool val)
+: m_type(Type_bool)
+{
+    m_data.b = val;
+    flag_defined();
+}
+
+variant::variant(null_t val)
+: m_type(Type_null)
+{
+    // set_defined() // when a variant has null type, we consider it as "not defined"
+}
+
+variant::variant(const variant& other)
+{
+    *this = other;
 }
 
 template<>
@@ -49,11 +92,11 @@ double variant::to<double>()const
 
     switch (m_type)
     {
-        case Type_string:  return stod(*(std::string*)m_data.ptr);
+        case Type_bool:    return double(m_data.b);
         case Type_double:  return m_data.d;
         case Type_i16:     return double(m_data.i16);
         case Type_i32:     return double(m_data.i32);
-        case Type_bool:    return double(m_data.b);
+        case Type_string:  return stod(*(std::string*)m_data.ptr);
         default:
             ASSERT(false) // this case is not handled
     }
@@ -69,11 +112,11 @@ i16_t variant::to<i16_t>()const
 
     switch (m_type)
     {
-        case Type_string:  return (i16_t)stoi(*(std::string*)m_data.ptr);
+        case Type_bool:    return (i16_t)m_data.b;
         case Type_double:  return (i16_t)m_data.d;
         case Type_i16:     return m_data.i16;
         case Type_i32:     return (i16_t)m_data.i32;
-        case Type_bool:    return (i16_t)m_data.b;
+        case Type_string:  return (i16_t)stoi(*(std::string*)m_data.ptr);
         default:
             ASSERT(false) // this case is not handled
     }
@@ -89,11 +132,11 @@ i32_t variant::to<i32_t>()const
 
     switch (m_type)
     {
-        case Type_string:  return stoi(*(std::string*)m_data.ptr );
+        case Type_bool:    return i32_t(m_data.b);
         case Type_double:  return i32_t(m_data.d);
         case Type_i16:     return m_data.i16;
         case Type_i32:     return m_data.i32;
-        case Type_bool:    return i32_t(m_data.b);
+        case Type_string:  return stoi(*(std::string*)m_data.ptr );
         default:
             ASSERT(false) // this case is not handled
     }
@@ -109,11 +152,11 @@ bool variant::to<bool>()const
 
     switch (m_type)
     {
-        case Type_string: return !((std::string*)m_data.ptr)->empty();
+        case Type_bool:   return m_data.b;
         case Type_double: return (bool)m_data.d;
         case Type_i16:    return (bool)m_data.i16;
         case Type_i32:    return (bool)m_data.i32;
-        case Type_bool:   return m_data.b;
+        case Type_string: return !((std::string*)m_data.ptr)->empty();
         default:
             ASSERT(false) // this case is not handled
     }
@@ -129,11 +172,11 @@ std::string variant::to<std::string>()const
 
     switch (m_type)
     {
-        case Type_string: return *(std::string*)m_data.ptr;
+        case Type_bool:   return m_data.b ? "true" : "false";
         case Type_double: return format::number(m_data.d);
         case Type_i16:    return std::to_string(m_data.i16);
         case Type_i32:    return std::to_string(m_data.i32);
-        case Type_bool:   return m_data.b ? "true" : "false";
+        case Type_string: return *(std::string*)m_data.ptr;
         default:
             // return format::hexadecimal(m_data.u64); // this code was found there, probably a mistake
             ASSERT(false) // this case is not handled
@@ -312,36 +355,36 @@ variant& variant::operator=(const variant &other)
 
 // by reference
 
-variant::operator std::string& ()     { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return *((std::string*)m_data.ptr);}
 variant::operator bool& ()            { return m_data.b;}
+variant::operator double& ()          { return m_data.d;}
 variant::operator i16_t& ()           { return m_data.i16;}
 variant::operator i32_t& ()           { return m_data.i32;}
+variant::operator std::string& ()     { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return *((std::string*)m_data.ptr);}
 //variant::operator u32_t& ()         { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u32;}
 //variant::operator u64_t& ()         { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u64;}
-variant::operator double& ()          { return m_data.d;}
 
 // by value
 
-variant::operator std::string() const { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return *((std::string*)m_data.ptr);}
 variant::operator bool () const       { return m_data.b;}
+variant::operator const char*() const { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return ((std::string*)m_data.ptr)->c_str();}
+variant::operator double () const     { return m_data.d;}
 variant::operator i16_t () const      { return m_data.i16;}
 variant::operator i32_t () const      { return m_data.i32;}
+variant::operator std::string() const { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return *((std::string*)m_data.ptr);}
 //variant::operator u32_t () const      { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u32;}
 //variant::operator u64_t () const      { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u64;}
-variant::operator double () const     { return m_data.d;}
-variant::operator const char*() const { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return ((std::string*)m_data.ptr)->c_str();}
 variant::operator void*() const       { return m_data.ptr;}
 
 variant::Type variant::type_to_enum(const tools::type* _type)
 {
+    if( _type->is<any_t>() )       return Type_any;
     if( _type->is<bool>() )        return Type_bool;
     if( _type->is<double>() )      return Type_double;
     if( _type->is<i16_t>() )       return Type_i16;
     if( _type->is<i32_t>() )       return Type_i32;
+    if( _type->is<null_t>() )      return Type_null;
     if( _type->is<std::string>() ) return Type_string;
     if( _type->is_ptr() )          return Type_ptr;
-    if( _type->is<any_t>() )       return Type_any;
-    if( _type->is<null_t>() )      return Type_null;
     ASSERT( !_type->is<const char*>() ) // use std::string instead
     ASSERT(false) // Unhandled type;
 }
@@ -350,16 +393,16 @@ const tools::type* variant::enum_to_type(Type _type)
 {
     switch ( _type )
     {
-        case Type_null:    return type::get<null_t>();
         case Type_any:     return type::get<any_t>();
         case Type_bool:    return type::get<bool>();
         case Type_double:  return type::get<double>();
-//        case Type_u64:     return type::get<u64_t>();
-//        case Type_u32:     return type::get<u32_t>();
-        case Type_i32:     return type::get<i32_t>();
         case Type_i16:     return type::get<i16_t>();
-        case Type_string:  return type::get<std::string>();
+        case Type_i32:     return type::get<i32_t>();
+        case Type_null:    return type::get<null_t>();
         case Type_ptr: return type::get<void*>();
+        case Type_string:  return type::get<std::string>();
+//        case Type_u32:     return type::get<u32_t>();
+//        case Type_u64:     return type::get<u64_t>();
         default:
             ASSERT(false) // unhandled type
     }

@@ -21,18 +21,18 @@ namespace tools
         variant();
         ~variant();
         variant(const variant& other);
-        variant(const std::string& val) { set(val); }
-        variant(const char* val) { set(val); }
-        variant(double val) { set(val); }
-        variant(i16_t val) { set(val); }
-        variant(i32_t val) { set(val); }
-        variant(bool val) { set(val); }
-        variant(null_t val) { set(val); }
+        variant(const std::string& val);
+        variant(const char* val);
+        variant(double val);
+        variant(i16_t val) ;
+        variant(i32_t val);
+        variant(bool val);
+        variant(null_t val);
 
         void        init_mem();
         void        release_mem(); // undo init_mem()
-        bool        is_type(const tools::type*) const;
         bool        is_initialized() const;
+        bool        is_type(const tools::type*) const;
         bool        is_defined() const;
         void        change_type(const type* _type);
         void        flag_defined();
