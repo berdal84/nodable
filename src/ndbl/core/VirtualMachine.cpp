@@ -131,7 +131,9 @@ bool VirtualMachine::_stepOver()
 
         case opcode::deref_qword:
         {
-            qword* qword = next_instr->uref.ptr;
+            // TODO: code is WTH because of a lack of stack/heap
+
+            const qword* qword = next_instr->uref.ptr;
             m_cpu.write(Register::rax, *qword );
 
             const type* ptr_type = next_instr->uref.type;

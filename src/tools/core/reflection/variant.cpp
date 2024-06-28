@@ -374,3 +374,18 @@ bool variant::is_initialized() const
 {
     return m_type != Type_string || m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY; // only strings are heap allocated
 }
+
+const type *variant::get_type() const
+{
+    return enum_to_type(m_type);
+}
+
+bool variant::is_defined() const
+{
+    return m_flags & Flag_IS_DATA_DEFINED;
+}
+
+const qword *variant::data() const
+{
+    return &m_data;
+}

@@ -21,24 +21,19 @@ namespace tools
         variant();
         ~variant();
         variant(const variant& other);
+        variant(const std::string& val) { set(val); }
+        variant(const char* val) { set(val); }
+        variant(double val) { set(val); }
+        variant(i16_t val) { set(val); }
+        variant(i32_t val) { set(val); }
+        variant(bool val) { set(val); }
+        variant(null_t val) { set(val); }
 
-#define CONSTRUCTOR(type) variant(type val) { set(val); }
-        CONSTRUCTOR(const std::string&)
-        CONSTRUCTOR(const char*)
-        CONSTRUCTOR(double)
-        CONSTRUCTOR(i16_t)
-        CONSTRUCTOR(i32_t)
-        CONSTRUCTOR(bool)
-        CONSTRUCTOR(null_t)
-#undef CONSTRUCTOR
-
-        qword*      data() const { return const_cast<qword*>(&m_data); }
-        qword*      data() { return &m_data; }
         void        init_mem();
         void        release_mem(); // undo init_mem()
         bool        is_type(const tools::type*) const;
         bool        is_initialized() const;
-        bool        is_defined() const { return m_flags & Flag_IS_DATA_DEFINED; }
+        bool        is_defined() const;
         void        change_type(const type* _type);
         void        flag_defined();
         void        clear_data();
@@ -51,7 +46,8 @@ namespace tools
         void        set(i16_t);
         void        set(i32_t);
         void        set(const variant&);
-        const type* get_type()const { return enum_to_type(m_type); }
+        const type* get_type()const;
+        const qword*data() const; // get ptr to underlying data (qword)
         template<typename T>
         T           to()const;
         variant&    operator=(const variant& other);

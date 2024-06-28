@@ -60,9 +60,9 @@ namespace assembly
     // Un-reference a pointer to a given type
     struct Instruction_uref
     {
-        Instruction_t      opcode;
-        tools::qword*      ptr;
-        const tools::type* type; // pointed data's type.
+        Instruction_t       opcode;
+        const tools::qword* ptr;
+        const tools::type*  type; // pointed data's type.
     };
 
     // Compare two operands (test if equals)
