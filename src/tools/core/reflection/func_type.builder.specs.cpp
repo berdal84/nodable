@@ -1,20 +1,14 @@
 #include <gtest/gtest.h>
-
-#include "ndbl/core/fixtures/core.h"
-#include "tools/core/reflection/Invokable.h"
-
-using namespace ndbl;
+#include "tools/core/reflection/func_type.h"
 using namespace tools;
 
-typedef testing::Core Language;
-
-TEST_F(Language, no_arg_fct)
+TEST(func_type_builder, no_arg_fct)
 {
     auto no_arg_fct = func_type_builder<bool()>::with_id("fct");
     EXPECT_EQ(no_arg_fct->get_arg_count(), 0);
 }
 
-TEST_F(Language, push_single_arg)
+TEST(func_type_builder, push_single_arg)
 {
     func_type* single_arg_fct = func_type_builder<bool(double)>::with_id("fct");
 
@@ -23,7 +17,7 @@ TEST_F(Language, push_single_arg)
     EXPECT_EQ(single_arg_fct->get_args().at(0).m_type, type::get<double>());
 }
 
-TEST_F(Language, push_two_args)
+TEST(func_type_builder, push_two_args)
 {
     auto two_arg_fct = func_type_builder<bool(double, double)>::with_id("fct");
 
@@ -33,7 +27,7 @@ TEST_F(Language, push_two_args)
     EXPECT_EQ(two_arg_fct->get_args().at(1).m_type, type::get<double>());
 }
 
-TEST_F(Language, match_check_for_arg_count)
+TEST(func_type_builder, match_check_for_arg_count)
 {
     func_type* single_arg_fct = func_type_builder<bool(bool)>::with_id("fct");
     func_type* two_arg_fct    = func_type_builder<bool(bool, bool)>::with_id("fct");
@@ -42,7 +36,7 @@ TEST_F(Language, match_check_for_arg_count)
     EXPECT_EQ(single_arg_fct->is_compatible(two_arg_fct), false);
 }
 
-TEST_F(Language, match_check_identifier)
+TEST(func_type_builder, match_check_identifier)
 {
     func_type* two_arg_fct          = func_type_builder<bool(bool, bool)>::with_id("fct");
     func_type* two_arg_fct_modified = func_type_builder<bool()>::with_id("fct");
@@ -54,7 +48,7 @@ TEST_F(Language, match_check_identifier)
     EXPECT_EQ(two_arg_fct_modified->is_compatible(two_arg_fct), false);
 }
 
-TEST_F(Language, match_check_absence_of_arg)
+TEST(func_type_builder, match_check_absence_of_arg)
 {
     func_type* two_arg_fct              = func_type_builder<bool(bool, bool)>::with_id("fct");
     func_type* two_arg_fct_without_args = func_type_builder<bool()>::with_id("fct");
@@ -63,7 +57,7 @@ TEST_F(Language, match_check_absence_of_arg)
     EXPECT_EQ(two_arg_fct_without_args->is_compatible(two_arg_fct), false);
 }
 
-TEST_F(Language, push_args_template_0)
+TEST(func_type_builder, push_args_template_0)
 {
     auto ref = func_type_builder<bool()>::with_id("fct");
     auto fct = func_type_builder<bool()>::with_id("fct");
@@ -75,7 +69,7 @@ TEST_F(Language, push_args_template_0)
     EXPECT_EQ(fct->get_arg_count(), 0);
 }
 
-TEST_F(Language, push_args_template_1)
+TEST(func_type_builder, push_args_template_1)
 {
     auto ref = func_type_builder<bool(double, double)>::with_id("fct");
     auto fct = func_type_builder<bool()>::with_id("fct");
@@ -86,7 +80,7 @@ TEST_F(Language, push_args_template_1)
     EXPECT_EQ(fct->get_arg_count(), 2);
 }
 
-TEST_F(Language, push_args_template_4)
+TEST(func_type_builder, push_args_template_4)
 {
     auto ref = func_type_builder<bool(double, double, double, double)>::with_id("fct");
     auto fct = func_type_builder<bool()>::with_id("fct");
@@ -94,62 +88,4 @@ TEST_F(Language, push_args_template_4)
 
     EXPECT_EQ(ref->is_compatible(fct), true);
     EXPECT_EQ(fct->get_arg_count(), 4);
-}
-
-TEST_F(Language, can_get_add_operator_with_short_identifier )
-{
-    EXPECT_TRUE(language->find_operator("+", Operator_t::Binary));
-    EXPECT_TRUE(language->find_operator("-", Operator_t::Unary));
-}
-
-TEST_F(Language, can_get_add_operator_with_signature )
-{
-    const func_type*  signature = func_type_builder<double(double, double)>::with_id("+");
-    EXPECT_TRUE(language->find_operator_fct(signature));
-}
-
-TEST_F(Language, can_get_invert_operator_with_signature )
-{
-    const func_type*  signature = func_type_builder<double(double)>::with_id("-");
-    EXPECT_TRUE(language->find_operator_fct(signature));
-}
-
-TEST_F(Language, by_ref_assign )
-{
-    const func_type*  signature = func_type_builder<double(double &, double)>::with_id("=");
-    auto operator_func = language->find_operator_fct(signature);
-    EXPECT_TRUE(operator_func != nullptr);
-
-    // prepare call
-    variant left(50.0);
-    variant right(200.0);
-    variant result(0.0);
-    std::vector<variant*> args{&left, &right};
-
-    // call
-    result = operator_func->invoke(args);
-
-    //check
-    EXPECT_DOUBLE_EQ((double)left, 200.0);
-    EXPECT_DOUBLE_EQ((double)result, 200.0);
-}
-
-TEST_F(Language, token_t_to_type)
-{
-    EXPECT_EQ(language->get_type(Token_t::keyword_bool)  , type::get<bool>());
-    EXPECT_EQ(language->get_type(Token_t::keyword_double), type::get<double>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_i16)   , type::get<i16_t>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<int>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<i32_t>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_string), type::get<std::string>() );
-}
-
-TEST_F(Language, type_to_string)
-{
-    EXPECT_EQ(language->to_string(type::get<bool>())        , "bool" );
-    EXPECT_EQ(language->to_string(type::get<double>())      , "double" );
-    EXPECT_EQ(language->to_string(type::get<i16_t>())       , "i16" );
-    EXPECT_EQ(language->to_string(type::get<int>())         , "int" );
-    EXPECT_EQ(language->to_string(type::get<i32_t>())       , "int" );
-    EXPECT_EQ(language->to_string(type::get<std::string>()) , "string" );
 }

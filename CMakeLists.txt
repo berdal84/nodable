@@ -198,6 +198,7 @@ target_link_libraries(
 add_executable(
     test-tools-core
     src/tools/core/reflection/reflection.specs.cpp
+    src/tools/core/reflection/func_type.builder.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
     src/tools/core/memory/MemoryManager.specs.cpp
 )
@@ -395,14 +396,15 @@ add_executable(
     test-ndbl-core
     src/ndbl/core/Graph.specs.cpp
     src/ndbl/core/Node.specs.cpp
-        src/ndbl/core/Slot.specs.cpp
+    src/ndbl/core/Slot.specs.cpp
     src/ndbl/core/Token.specs.cpp
-    src/ndbl/core/language/Nodlang.specs.cpp
+    src/ndbl/core/language/Nodlang.basics.specs.cpp
     src/ndbl/core/language/Nodlang.tokenize.specs.cpp
     src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp
     src/ndbl/core/language/Nodlang.parse_token.specs.cpp
+    src/ndbl/core/language/Nodlang.parse_and_serialize.specs.cpp
     src/ndbl/core/VirtualMachine.specs.cpp
-    src/ndbl/core/language/Nodlang.parse_and_eval.specs.cpp
+    src/ndbl/core/VirtualMachine.parse_eval_and_serialize.specs.cpp
 )
 target_link_libraries(test-ndbl-core PUBLIC gtest_main gtest ndbl-core)
 add_test(NAME test_ndbl_core COMMAND test-ndbl-core)

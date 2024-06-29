@@ -4,11 +4,11 @@
 
 using namespace ndbl;
 
-typedef ::testing::Core tokenize;
+typedef ::testing::Core Language_tokenize;
 
 //////////////////////////// Identifiers ///////////////////////////////////////////////////////////////////////////////
 
-TEST_F(tokenize, identifiers_can_start_by_a_keyword)
+TEST_F(Language_tokenize, identifiers_can_start_by_a_keyword)
 {
     std::string code{"int if_myvar_includes_a_keyword;"};
     language->tokenize(code);
@@ -20,7 +20,7 @@ TEST_F(tokenize, identifiers_can_start_by_a_keyword)
 
 //////////////////////////// Prefix / Suffix ///////////////////////////////////////////////////////////////////////////
 
-TEST_F(tokenize, identifiers_should_not_have_prefix_or_suffix)
+TEST_F(Language_tokenize, identifiers_should_not_have_prefix_or_suffix)
 {
     std::string code{"int my_var ;"};
     language->tokenize(code);
@@ -31,7 +31,7 @@ TEST_F(tokenize, identifiers_should_not_have_prefix_or_suffix)
     EXPECT_EQ(token.suffix_to_string(), "");
 }
 
-TEST_F(tokenize, operator_suffix_and_prefix)
+TEST_F(Language_tokenize, operator_suffix_and_prefix)
 {
     std::string code{"int my_var = 42"};
     language->tokenize(code);
@@ -42,7 +42,7 @@ TEST_F(tokenize, operator_suffix_and_prefix)
     EXPECT_EQ(token.suffix_to_string(), " ");
 }
 
-TEST_F(tokenize, operator_suffix)
+TEST_F(Language_tokenize, operator_suffix)
 {
     std::string code = "int my_var= 42";
     language->tokenize(code);
@@ -53,7 +53,7 @@ TEST_F(tokenize, operator_suffix)
     EXPECT_EQ(token.suffix_to_string(), " ");
 }
 
-TEST_F(tokenize, operator_prefix)
+TEST_F(Language_tokenize, operator_prefix)
 {
     std::string code = "int my_var =42";
     language->tokenize(code);
@@ -65,7 +65,7 @@ TEST_F(tokenize, operator_prefix)
 }
 
 
-TEST_F(tokenize, add_pow2of2_and_integer )
+TEST_F(Language_tokenize, add_pow2of2_and_integer )
 {
     std::string code = "pow(2,2) + 1";
     language->tokenize(code);

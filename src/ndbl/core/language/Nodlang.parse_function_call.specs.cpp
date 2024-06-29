@@ -5,9 +5,9 @@
 
 using namespace ndbl;
 
-typedef ::testing::Core parse_function_call;
+typedef ::testing::Core Language_parse_function_call;
 
-TEST_F(parse_function_call, dna_to_protein)
+TEST_F(Language_parse_function_call, dna_to_protein)
 {
     // prepare parser
     auto* language = app.get_language();
@@ -36,7 +36,7 @@ TEST_F(parse_function_call, dna_to_protein)
     EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
 }
 
-TEST_F(parse_function_call, operator_add)
+TEST_F(Language_parse_function_call, operator_add)
 {
     // prepare parser
     std::string buffer{"42+42"};
