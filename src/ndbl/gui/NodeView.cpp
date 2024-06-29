@@ -178,20 +178,18 @@ void NodeView::set_owner(Node* node)
 void NodeView::update_labels_from_name(const Node* _node)
 {
     // Label
-    m_label = _node->name;
-
-    // Append type and assign symbol for VariableNode
-    const auto* node_as_variable = cast<const VariableNode>(_node);
-    if ( node_as_variable != nullptr )
-    {
-        std::string type = node_as_variable->get_value_type()->get_name();
-        m_label = type + " " + m_label + " ="; // VariableNode also symbolize the first assignment operator
-    }
+    // For a variable, label must be the type
+    if ( _node->type() == NodeType_VARIABLE )
+        m_label = reinterpret_cast<const VariableNode*>(_node)->get_value_type()->get_name();
+    else
+        m_label = _node->name;
 
     // Short label
     constexpr size_t label_max_length = 10;
-    m_short_label = m_label.size() <= label_max_length ? m_label
-                                                       : m_label.substr(0, label_max_length) + "..";
+    if ( m_label.size() <= label_max_length )
+        m_short_label = m_label;
+    else
+        m_short_label = m_label.substr(0, label_max_length) + "..";
 }
 
 const PropertyView* NodeView::get_property_view( Property* property )const
@@ -635,7 +633,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
     }
     else
     {
-        snprintf(str, 255, "%s", property->token.word() );
+        snprintf(str, 255, "%s", property->token.word_to_string().c_str() );
 
         ImGuiInputTextFlags flags = ( _view->has_input_connected() * ImGuiInputTextFlags_ReadOnly);
         if ( ImGui::InputText(label.c_str(), str, 255, flags ) )
