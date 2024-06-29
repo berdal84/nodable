@@ -273,7 +273,7 @@ Slot *Nodlang::parse_token(Token _token)
                              _token.word_to_string().c_str() )
                 variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
                 variable->property()->token = std::move(_token );
-                variable->flag_declared(false);
+                variable->set_flags(VariableFlag_DECLARED);
             }
         }
 
@@ -1413,7 +1413,7 @@ Slot* Nodlang::parse_variable_declaration()
     {
         const type* variable_type = get_type(type_token.m_type);
         VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), get_current_scope() );
-        variable_node->flag_declared(true);
+        variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->type_token = type_token;
         variable_node->identifier_token.move_prefixsuffix( &identifier_token );
         variable_node->property()->token = identifier_token;
@@ -1454,7 +1454,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     const func_type* type  = _component.get_func_type();
     const Node*      owner = _component.get_owner();
 
-    if (_component.has_flags())
+    if (_component.has_flags(InvokableFlag_IS_OPERATOR))
     {
         const std::vector<Slot*>& args = _component.get_arguments();
         int precedence = get_precedence(_component.get_function());
@@ -1644,11 +1644,12 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     ASSERT(adjacent_property != nullptr)
 
     // specific case of a Node*
-    if ( adjacent_property->is_this() && adjacent_property->value()->is_mem_initialized() )
+    if ( adjacent_property->is_this())
     {
-        auto* node = (Node*)adjacent_property->value()->as<void*>();
-        ASSERT(node != nullptr)
-        return serialize_node( _out, node, _flags );
+        if ( auto* node = (Node*)adjacent_property->value()->as<void*>() )
+        {
+            return serialize_node( _out, node, _flags );
+        }
     }
 
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_open);

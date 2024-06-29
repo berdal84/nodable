@@ -17,6 +17,7 @@
 #include "GraphView.h"
 #include "SlotView.h"
 #include "tools/gui/Config.h"
+#include "ndbl/core/VirtualMachine.h"
 
 #ifdef NDBL_DEBUG
 #define DEBUG_DRAW 0
@@ -506,9 +507,10 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 {
     bool            changed            = false;
     Property*       property           = _view->get_property();
-    bool            is_defined         = property->value()->is_defined();
     const type*     node_class         = get_node()->get_class();
     VariableNode*   connected_variable = _view->get_connected_variable();
+    bool            was_evaluated      = !get_node()->has_component<InvokableComponent>()
+                                       || get_node()->get_component<InvokableComponent>()->has_flags(InvokableFlag_WAS_INVOKED);
 
     /*
      * Handle input visibility
@@ -516,7 +518,11 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     if ( _view->touched )
     {
         // When touched, we show the input if the value is defined (can be edited).
-        _view->show_input &= is_defined;
+        _view->show_input &= was_evaluated;
+    }
+    else if ( _detail == ViewDetail::MINIMALIST)
+    {
+        _view->show_input = false;
     }
     else
     {
@@ -525,11 +531,15 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
         // Always show literals (their property don't have input slot)
         _view->show_input |= node_class->is<LiteralNode>();
         // Always show when defined in exhaustive mode
-        _view->show_input |= is_defined && _detail == ViewDetail::EXHAUSTIVE;
+        _view->show_input |= _detail == ViewDetail::EXHAUSTIVE;
+        _view->show_input |= was_evaluated;
         // Always show when connected to a variable
         _view->show_input |= connected_variable != nullptr;
         // Shows variable property only if they are not connected (don't need to show anything, the variable name is already displayed on the node itself)
-        _view->show_input |= is_defined && (node_class->is<VariableNode>() || !get_node()->has_input_connected(property));
+        _view->show_input |= node_class->is<VariableNode>() && cast<VariableNode>(get_node())->has_flags(VariableFlag_INITIALIZED);
+        // Always show properties that have an input slot free
+        if (auto* slot = get_node()->find_slot_by_property(property, SlotFlag_INPUT))
+            _view->show_input |= !slot->is_full();
     }
 
     // input
@@ -626,10 +636,6 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
         ImGui::PopStyleColor();
 
     }
-    else if( !property->value()->is_mem_initialized() )
-    {
-        ImGui::LabelText(label.c_str(), "uninitialized");
-    }
     else
     {
         /* Draw the property */
@@ -713,14 +719,9 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         if ( ImGuiEx::BeginTooltip() )
         {
             const auto variant = property->value();
-            ImGui::Text("initialized: %s,\n"
-                        "defined:     %s,\n"
-                        "Source token:\n"
+            ImGui::Text("Source token:\n"
                         "%s\n",
-                        variant->is_mem_initialized() ? "true" : "false",
-                        variant->is_defined()     ? "true" : "false",
-                         property->token.json().c_str()
-                        );
+                        property->token.json().c_str());
             ImGuiEx::EndTooltip();
         }
         // input

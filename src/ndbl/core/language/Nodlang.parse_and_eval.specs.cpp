@@ -136,7 +136,7 @@ TEST_F(Parse_and_eval, complex_parenthesis_04)
 
 TEST_F(Parse_and_eval, unexisting_function)
 {
-    EXPECT_ANY_THROW(eval<double>("pow_unexisting(5)") );
+    EXPECT_EQ( eval<double>("pow_unexisting(5)"), u64_t{} ); // qword default is 64bits to zero.
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

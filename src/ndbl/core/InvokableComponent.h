@@ -14,9 +14,10 @@ namespace ndbl
     typedef int InvokableFlags;
     enum InvokableFlag_
     {
-        InvokableFlag_NONE = 0,
-        InvokableFlag_IS_OPERATOR  = 1 << 0,
-        InvokableFlag_WAS_EVALUATED = 1 << 1,
+        InvokableFlag_NONE          = 0,
+        InvokableFlag_IS_OPERATOR   = 1 << 0,
+        InvokableFlag_IS_INVOKABLE  = 1 << 1,
+        InvokableFlag_WAS_INVOKED   = 1 << 2,
     };
 
 	/**

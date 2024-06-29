@@ -48,7 +48,7 @@ void CPU::write(Register _id, qword _data)
 VirtualMachine::VirtualMachine()
     : m_is_debugging(false)
     , m_is_program_running(false)
-    , m_program_asm_code(nullptr)
+    , m_code(nullptr)
 {
 
 }
@@ -62,11 +62,12 @@ void VirtualMachine::advance_cursor(i64_t _amount)
 
 void VirtualMachine::run_program()
 {
-    ASSERT(m_program_asm_code);
+    ASSERT(m_code);
     LOG_MESSAGE("VM", "Running program ...\n")
     m_is_program_running = true;
 
     m_cpu.clear_registers();
+    clean_graph();
 
     while( is_there_a_next_instr() && get_next_instr()->opcode != OpCode_ret )
     {
@@ -103,8 +104,8 @@ const Code* VirtualMachine::release_program()
     LOG_VERBOSE("VM", "registers cleared\n")
 
     LOG_VERBOSE("VM", "program released\n")
-    const Code* copy = m_program_asm_code;
-    m_program_asm_code = nullptr;
+    const Code* copy = m_code;
+    m_code = nullptr;
     return copy;
 }
 
@@ -158,7 +159,11 @@ bool VirtualMachine::_stepOver()
             }
             else if(ptr_type->is<void *>() )
             {
-                LOG_VERBOSE("VM", "deref_qword Node* (%p): %s\n", qword->ptr, ((Node*)qword->ptr)->name.c_str() );
+                LOG_VERBOSE("VM", "deref_qword void* (aka Node*) (%p): %s\n", qword->ptr, ((Node*)qword->ptr)->name.c_str() );
+            }
+            else if(ptr_type->is<any_t>() )
+            {
+                LOG_VERBOSE("VM", "deref_qword any_t (%p)\n", qword->ptr );
             }
             else
             {
@@ -182,7 +187,9 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
-            ASSERT( !variable->has_flags(VariableFlag_INITIALIZED) )
+            ASSERT(variable->has_flags(VariableFlag_DECLARED) == false)
+            ASSERT(variable->has_flags(VariableFlag_INITIALIZED) == false)
+            variable->set_flags(VariableFlag_DECLARED);
             //
             // TODO: implement a stack/heap
             //
@@ -193,6 +200,8 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
+            ASSERT(variable->has_flags(VariableFlag_DECLARED))
+            variable->clear_flags(VariableFlag_DECLARED);
             if(variable->has_flags(VariableFlag_INITIALIZED) ) // Might not have been initialized, check needed.
                 variable->clear_flags(VariableFlag_INITIALIZED);
             //
@@ -243,9 +252,9 @@ bool VirtualMachine::_stepOver()
 
             // evaluate Invokable Component, could be an operator or a function
             auto* invokable = next_instr->eval.node->get_component<InvokableComponent>();
-            if( invokable != nullptr )
+            if( invokable != nullptr && invokable->has_flags(InvokableFlag_IS_INVOKABLE))
             {
-                ASSERT(invokable->has_flags(InvokableFlag_WAS_EVALUATED) == false ) // flag should have been reset
+                ASSERT( !invokable->has_flags(InvokableFlag_WAS_INVOKED) ) // flag should have been reset
                 invokable->invoke();
             }
 
@@ -332,18 +341,19 @@ bool VirtualMachine::step_over()
 
 void VirtualMachine::debug_program()
 {
-    ASSERT(m_program_asm_code);
+    ASSERT(m_code);
     m_is_debugging = true;
     m_is_program_running = true;
     m_cpu.clear_registers();
-    m_next_node = m_program_asm_code->get_meta_data().root_node;
+    clean_graph();
+    m_next_node = m_code->get_meta_data().graph->get_root();
     LOG_MESSAGE("VM", "Debugging program ...\n")
 }
 
 bool VirtualMachine::is_there_a_next_instr() const
 {
     const qword& eip = m_cpu.read(Register_eip);
-    return eip.u64 < m_program_asm_code->size();
+    return eip.u64 < m_code->size();
 }
 
 qword VirtualMachine::get_last_result()const
@@ -355,7 +365,7 @@ Instruction* VirtualMachine::get_next_instr() const
 {
     if ( is_there_a_next_instr() )
     {
-        return m_program_asm_code->get_instruction_at(m_cpu.read(Register_eip).u32);
+        return m_code->get_instruction_at(m_cpu.read(Register_eip).u32);
     }
     return nullptr;
 }
@@ -363,11 +373,11 @@ Instruction* VirtualMachine::get_next_instr() const
 bool VirtualMachine::load_program(const Code *_code)
 {
     ASSERT(!m_is_program_running)   // dev must stop before to load program.
-    ASSERT(!m_program_asm_code)     // dev must unload before to load.
+    ASSERT(!m_code)     // dev must unload before to load.
 
-    m_program_asm_code = _code;
+    m_code = _code;
 
-    return m_program_asm_code && m_program_asm_code->size() != 0;
+    return m_code && m_code->size() != 0;
 }
 
 qword VirtualMachine::read_cpu_register(Register _register)const
@@ -377,7 +387,22 @@ qword VirtualMachine::read_cpu_register(Register _register)const
 
 const Code *VirtualMachine::get_program_asm_code()
 {
-    return m_program_asm_code;
+    return m_code;
+}
+
+void VirtualMachine::clean_graph()
+{
+    // note: ideally, we should not rely on nodes at this point, but the compiler and the virtual machine
+    //       are not able to do it yet.
+    for(Node* node : m_code->get_meta_data().graph->get_node_registry() )
+    {
+        // Invokable components
+        if (auto* invokable = node->get_component<InvokableComponent>() )
+            invokable->clear_flags(InvokableFlag_WAS_INVOKED);
+            // Variables
+        else if (auto* variable = cast<VariableNode>(node))
+            variable->clear_flags(VariableFlag_INITIALIZED | VariableFlag_DECLARED);
+    }
 }
 
 VirtualMachine* ndbl::get_virtual_machine()

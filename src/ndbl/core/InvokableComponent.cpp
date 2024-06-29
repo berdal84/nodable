@@ -30,17 +30,18 @@ InvokableComponent::InvokableComponent(
 , m_invokable(_invokable)
 {
     EXPECT(_signature != nullptr, "Signature must be defined!")
-    EXPECT((m_flags & InvokableFlag_WAS_EVALUATED) == 0, "This flag is not allowed here")
+    EXPECT((m_flags & InvokableFlag_WAS_INVOKED) == 0, "This flag is not allowed here")
+    EXPECT((m_flags & InvokableFlag_IS_INVOKABLE) == 0, "This flag is not allowed here")
+
+    if ( m_invokable != nullptr )
+        m_flags |= InvokableFlag_IS_INVOKABLE;
+
     m_argument_slot.resize(_signature->get_arg_count());
 }
 
 void InvokableComponent::invoke()
 {
-    ASSERT(m_invokable != nullptr) // Can't we remove the 3 lines below?
-    if( !m_invokable )
-    {
-        return;
-    }
+    ASSERT(m_flags & InvokableFlag_IS_INVOKABLE) // use has_flags(InvokableFlag_IS_INVOKABLE) before to call
 
     // Prepare arguments to call the invokable with.
     //
@@ -67,7 +68,7 @@ void InvokableComponent::invoke()
     m_result_slot->get_property()->set( result_value );
 
     // Flag as evaluated!
-    m_flags |= InvokableFlag_WAS_EVALUATED;
+    m_flags |= InvokableFlag_WAS_INVOKED;
 }
 
 void InvokableComponent::bind_result(Slot* slot)

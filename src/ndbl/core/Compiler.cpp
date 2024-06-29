@@ -25,8 +25,8 @@
 using namespace ndbl;
 using namespace tools;
 
-Code::Code( Node* root )
-: m_meta_data({root})
+Code::Code(const Graph* graph )
+: m_meta_data({graph})
 {}
 
 Instruction* Code::push_instr(OpCode _type)
@@ -324,7 +324,7 @@ const Code* Compiler::compile_syntax_tree(const Graph* _graph)
 {
     if (is_syntax_tree_valid(_graph))
     {
-        m_temp_code = new Code( _graph->get_root() );
+        m_temp_code = new Code( _graph );
 
         try
         {

@@ -85,7 +85,9 @@ namespace ndbl
         bool                  m_is_debugging;
         Instruction*          m_last_step_next_instr;
         CPU                   m_cpu;
-        const Code*           m_program_asm_code;
+        const Code*           m_code;
+
+        void clean_graph();
     };
 
     [[nodiscard]]
