@@ -11,7 +11,6 @@
 
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/IConditional.h"
 #include "ndbl/core/IfNode.h"
 #include "ndbl/core/InvokableComponent.h"
 #include "ndbl/core/LiteralNode.h"
@@ -144,26 +143,17 @@ void Compiler::compile_node( const Node* _node )
 {
     ASSERT( _node )
 
-    if ( _node->get_class()->is_child_of<IConditional>())
+    if (_node->type() == NodeType_BLOCK_FOR_LOOP )
     {
-        if ( auto for_loop = cast<const ForLoopNode>(_node))
-        {
-            compile_for_loop(for_loop);
-        }
-        else if ( auto while_loop = cast<const WhileLoopNode>(_node))
-        {
-            compile_while_loop(while_loop);
-        }
-        else if ( auto cond_struct_node = cast<const IfNode>(_node) )
-        {
-            compile_conditional_struct(cond_struct_node);
-        }
-        else
-        {
-            string256 message;
-            message.append_fmt("The class %s is not handled by the compiler.", _node->get_class()->get_name() );
-            throw std::runtime_error(message.c_str());
-        }
+        compile_for_loop( cast<const ForLoopNode>(_node) );
+    }
+    else if ( auto while_loop = cast<const WhileLoopNode>(_node))
+    {
+        compile_while_loop(while_loop);
+    }
+    else if ( auto cond_struct_node = cast<const IfNode>(_node) )
+    {
+        compile_conditional_struct(cond_struct_node);
     }
     else
     {
@@ -215,13 +205,13 @@ void Compiler::compile_for_loop(const ForLoopNode* for_loop)
 
     // compile condition and memorise its position
     u64_t conditionInstrLine = m_temp_code->get_next_index();
-    compile_instruction_as_condition(for_loop->get_condition(Branch_TRUE));
+    compile_instruction_as_condition(for_loop->condition(Branch_TRUE));
 
     // jump if condition is not true
     Instruction* skipTrueBranch = m_temp_code->push_instr(OpCode_jne );
     skipTrueBranch->m_comment = "jump true branch";
 
-    if ( auto true_branch = for_loop->get_scope_at( Branch_TRUE ) )
+    if ( auto true_branch = for_loop->scope_at( Branch_TRUE ) )
     {
         compile_scope( true_branch );
 
@@ -242,13 +232,13 @@ void Compiler::compile_while_loop(const WhileLoopNode* while_loop)
 {
     // compile condition and memorise its position
     u64_t conditionInstrLine = m_temp_code->get_next_index();
-    compile_instruction_as_condition(while_loop->get_condition(Branch_TRUE));
+    compile_instruction_as_condition(while_loop->condition(Branch_TRUE));
 
     // jump if condition is not true
     Instruction* skipTrueBranch = m_temp_code->push_instr(OpCode_jne );
     skipTrueBranch->m_comment = "jump if not equal";
 
-    if ( auto whileScope = while_loop->get_scope_at( Branch_TRUE ) )
+    if ( auto whileScope = while_loop->scope_at( Branch_TRUE ) )
     {
         compile_scope( whileScope );
 
@@ -281,18 +271,18 @@ void Compiler::compile_instruction_as_condition(const Node* _instr_node)
 
 void Compiler::compile_conditional_struct(const IfNode* _cond_node)
 {
-    compile_instruction_as_condition(_cond_node->get_condition(Branch_TRUE)); // compile condition instruction, store result, compare
+    compile_instruction_as_condition(_cond_node->condition(Branch_TRUE)); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(OpCode_jne);
     jump_over_true_branch->m_comment   = "conditional jump";
 
     Instruction* jump_after_conditional = nullptr;
 
-    if ( auto true_branch = _cond_node->get_scope_at( Branch_TRUE ) )
+    if ( auto true_branch = _cond_node->scope_at( Branch_TRUE ) )
     {
         compile_scope( true_branch );
 
-        if ( _cond_node->get_scope_at( Branch_FALSE ) )
+        if ( _cond_node->scope_at( Branch_FALSE ) )
         {
             jump_after_conditional = m_temp_code->push_instr(OpCode_jmp);
             jump_after_conditional->m_comment = "jump after else";
@@ -302,7 +292,7 @@ void Compiler::compile_conditional_struct(const IfNode* _cond_node)
     i64_t next_index = m_temp_code->get_next_index();
     jump_over_true_branch->jmp.offset = next_index - jump_over_true_branch->line;
 
-    if ( Scope* false_scope = _cond_node->get_scope_at( Branch_FALSE ) )
+    if ( Scope* false_scope = _cond_node->scope_at( Branch_FALSE ) )
     {
         if( false_scope->get_owner()->get_class()->is<IfNode>() )
         {

@@ -1105,12 +1105,12 @@ IfNode* Nodlang::parse_conditional_structure()
         {
             parser_state.graph->connect_or_merge(
                     *condition->find_slot(SlotFlag_OUTPUT),
-                    if_node->get_condition_slot(Branch_TRUE));
+                    if_node->condition_slot(Branch_TRUE));
         }
 
         if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
         {
-            condition_true_scope_node = parse_scope( if_node->get_child_slot_at(Branch_TRUE) );
+            condition_true_scope_node = parse_scope( if_node->child_slot_at(Branch_TRUE) );
             if ( condition_true_scope_node )
             {
                 if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
@@ -1118,7 +1118,7 @@ IfNode* Nodlang::parse_conditional_structure()
                     if_node->token_else = parser_state.ribbon.get_eaten();
 
                     /* parse "else" scope */
-                    if ( parse_scope( if_node->get_child_slot_at( Branch_FALSE ) ) )
+                    if ( parse_scope( if_node->child_slot_at( Branch_FALSE ) ) )
                     {
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
                         success = true;
@@ -1213,7 +1213,7 @@ ForLoopNode* Nodlang::parse_for_loop()
                 {
                     parser_state.graph->connect_or_merge(
                             *condition->find_slot( SlotFlag_OUTPUT ),
-                            for_loop_node->get_condition_slot(Branch_TRUE) );
+                            for_loop_node->condition_slot(Branch_TRUE) );
 
                     Node* iter_instr = parse_instr();
                     if (!iter_instr)
@@ -1231,7 +1231,7 @@ ForLoopNode* Nodlang::parse_for_loop()
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
                         }
-                        else if (!parse_scope( for_loop_node->get_child_slot_at( Branch_TRUE ) ) )
+                        else if (!parse_scope( for_loop_node->child_slot_at( Branch_TRUE ) ) )
                         {
                             LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
                         }
@@ -1289,14 +1289,14 @@ WhileLoopNode* Nodlang::parse_while_loop()
         {
             parser_state.graph->connect_or_merge(
                     *cond_instr->find_slot( SlotFlag_OUTPUT ),
-                    while_loop_node->get_condition_slot(Branch_TRUE) );
+                    while_loop_node->condition_slot(Branch_TRUE) );
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
             if ( close_bracket.is_null() )
             {
                 LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n")
             }
-            else if (!parse_scope( while_loop_node->get_child_slot_at( Branch_TRUE ) ) )
+            else if (!parse_scope( while_loop_node->child_slot_at( Branch_TRUE ) ) )
             {
                 LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n")
             }
@@ -1689,7 +1689,7 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     serialize_token_t(_out, Token_t::parenthesis_close);
 
     // if scope
-    if ( auto scope = _for_loop->get_scope_at( Branch_TRUE ) )
+    if ( auto scope = _for_loop->scope_at( Branch_TRUE ) )
     {
         serialize_scope(_out, scope );
     }
@@ -1716,7 +1716,7 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 
     serialize_token_t(_out, Token_t::parenthesis_open);
 
-    if( Node* condition = _while_loop_node->get_condition(Branch_TRUE) )
+    if( Node* condition = _while_loop_node->condition(Branch_TRUE) )
     {
         serialize_node(_out, condition);
     }
@@ -1724,7 +1724,7 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
     serialize_token_t(_out, Token_t::parenthesis_close);
 
     // if scope
-    if ( auto scope = _while_loop_node->get_scope_at( Branch_TRUE ) )
+    if ( auto scope = _while_loop_node->scope_at( Branch_TRUE ) )
     {
         serialize_scope(_out, scope );
     }
@@ -1752,14 +1752,14 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
 
     // ... ( <condition> )
     serialize_token_t(_out, Token_t::parenthesis_open);
-    if ( Node* condition = _condition_struct->get_condition(Branch_TRUE) )
+    if ( Node* condition = _condition_struct->condition(Branch_TRUE) )
     {
         serialize_node(_out, condition);
     }
     serialize_token_t(_out, Token_t::parenthesis_close);
 
     // ... ( ... ) <scope>
-    if ( Scope* scope = _condition_struct->get_scope_at( Branch_TRUE ) )
+    if ( Scope* scope = _condition_struct->scope_at( Branch_TRUE ) )
     {
         serialize_scope(_out, scope );
     }
@@ -1776,7 +1776,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
     if ( _condition_struct->token_else )
     {
         serialize_token(_out, _condition_struct->token_else);
-        if ( const Scope* else_scope = _condition_struct->get_scope_at( Branch_FALSE ) )
+        if ( const Scope* else_scope = _condition_struct->scope_at( Branch_FALSE ) )
         {
             serialize_node( _out, else_scope->get_owner() );
         }

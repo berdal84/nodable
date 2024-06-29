@@ -323,7 +323,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //             - new child <-<-<-<-<-<-<-<
                     //
                     auto previous_child_scope = previous_child->get_component<Scope>();
-                    if ( previous_child_scope && !previous_child->get_class()->is<IConditional>() )
+                    if ( previous_child_scope && !previous_child->is_conditional() )
                     {
                         for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
                         {

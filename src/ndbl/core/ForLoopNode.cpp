@@ -7,23 +7,23 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<ForLoopNode>("ForLoopNode")
-        .extends<Node>()
-        .extends<IConditional>();
+    StaticInitializer<ForLoopNode>("ForLoopNode").extends<Node>();
 }
 
 void ForLoopNode::init(const std::string& _name)
 {
-    // add initialization property and slot
-    auto init_id = add_prop<Node*>(INITIALIZATION_PROPERTY );
-    m_initialization_slot = add_slot( SlotFlag_INPUT, 1, init_id);
+    Node::init(NodeType_BLOCK_FOR_LOOP, _name);
 
-    // indirectly add condition property and slot
-    TConditionalNode::init(NodeType_BLOCK_FOR_LOOP, _name);
+    // add conditions (properties and slots)
+    m_wrapped_conditional.init(this);
+
+    // add initialization property and slot
+    auto* init_prop = add_prop<Node*>(INITIALIZATION_PROPERTY );
+    m_initialization_slot = add_slot( SlotFlag_INPUT, 1, init_prop);
 
     // add iteration property and slot
-    auto iter_id = add_prop<Node*>(ITERATION_PROPERTY );
-    m_iteration_slot = add_slot( SlotFlag_INPUT, 1, iter_id);
+    auto iter_prop = add_prop<Node*>(ITERATION_PROPERTY );
+    m_iteration_slot = add_slot( SlotFlag_INPUT, 1, iter_prop);
 }
 
 Slot& ForLoopNode::iteration_slot()

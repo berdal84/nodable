@@ -232,7 +232,7 @@ WhileLoopNode* NodeFactory::create_while_loop() const
 Node* NodeFactory::create_program() const
 {
     Node* node = create<Node>();
-    node->init(NodeType_BLOCK_PROGRAM, ICON_FA_FILE_CODE " Program");
+    node->init(NodeType_BLOCK_SCOPE, ICON_FA_FILE_CODE " Program");
     node->add_slot( SlotFlag_CHILD, Slot::MAX_CAPACITY );
     node->add_component(create<Scope>() );
     m_post_process(node);
@@ -242,7 +242,7 @@ Node* NodeFactory::create_program() const
 Node* NodeFactory::create_node() const
 {
     Node* node = create<Node>();
-    node->init(NodeType_NONE, "");
+    node->init(NodeType_DEFAULT, "");
     node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
     m_post_process(node);
     return node;

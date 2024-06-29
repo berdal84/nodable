@@ -4,7 +4,6 @@
 #include "tools/core/math.h"
 #include "tools/gui/Config.h"
 #include "ndbl/core/GraphUtil.h"
-#include "ndbl/core/IConditional.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/VariableNode.h"
 #include "ndbl/gui/NodeView.h"
@@ -98,7 +97,6 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         ASSERT(curr_nodeview != nullptr )
 
         auto physics_component = node->get_component<Physics>();
-        const type* node_type = node->get_class();
 
         // If current view has a single predecessor, we follow it
         //
@@ -125,7 +123,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         //------------------------------------------------
 
         std::vector<NodeView*> children = curr_nodeview->get_adjacent(SlotFlag_CHILD);
-        if( node_type->is_child_of<IConditional>() && children.size() > 1)
+        if( node->is_conditional() && children.size() > 1)
         {
             Physics::Constraint constraint("Align conditional children in a row", &Physics::Constraint::constrain_one_to_many_as_a_row);
             constraint.leader         = {curr_nodeview};

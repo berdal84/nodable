@@ -26,11 +26,11 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
 
         switch ( action->event_data.node_type )
         {
-            case NodeType_BLOCK_CONDITION:
-            case NodeType_BLOCK_FOR_LOOP:
-            case NodeType_BLOCK_WHILE_LOOP:
-            case NodeType_BLOCK_SCOPE:
-            case NodeType_BLOCK_PROGRAM:
+            case CreateNodeType_BLOCK_CONDITION:
+            case CreateNodeType_BLOCK_FOR_LOOP:
+            case CreateNodeType_BLOCK_WHILE_LOOP:
+            case CreateNodeType_BLOCK_SCOPE:
+            case CreateNodeType_BLOCK_PROGRAM:
                 // Blocks are only for code flow slots
                 if ( !dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
                     continue;

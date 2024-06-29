@@ -770,14 +770,19 @@ void NodableView::draw_config_window()
             ImGui::Indent();
             if ( ImGui::CollapsingHeader("Colors", flags ))
             {
-                ImGui::ColorEdit4("default"     , &cfg->ui_node_fillColor.x);
-                ImGui::ColorEdit4("highlighted" , &cfg->ui_node_highlightedColor.x);
-                ImGui::ColorEdit4("variable"    , &cfg->ui_node_variableColor.x);
-                ImGui::ColorEdit4("instruction" , &cfg->ui_node_instructionColor.x);
-                ImGui::ColorEdit4("literal"     , &cfg->ui_node_literalColor.x);
-                ImGui::ColorEdit4("function"    , &cfg->ui_node_invokableColor.x);
-                ImGui::ColorEdit4("shadow"      , &cfg->ui_node_shadowColor.x);
-                ImGui::ColorEdit4("border"      , &cfg->ui_slot_border_color.x);
+                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[NodeType_DEFAULT].x );
+                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[NodeType_BLOCK_CONDITION].x );
+                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[NodeType_BLOCK_FOR_LOOP].x );
+                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[NodeType_BLOCK_WHILE_LOOP].x );
+                ImGui::ColorEdit4("scope"       , &cfg->ui_node_fill_color[NodeType_BLOCK_SCOPE].x );
+                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[NodeType_VARIABLE].x );
+                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[NodeType_LITERAL].x );
+                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[NodeType_FUNCTION].x );
+                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[NodeType_OPERATOR].x );
+                ImGui::Separator();
+                ImGui::ColorEdit4("highlighted"         , &cfg->ui_node_highlightedColor.x);
+                ImGui::ColorEdit4("shadow"              , &cfg->ui_node_shadowColor.x);
+                ImGui::ColorEdit4("border"              , &cfg->ui_slot_border_color.x);
                 ImGui::ColorEdit4("border (highlighted)", &cfg->ui_node_borderHighlightedColor.x);
                 ImGui::ColorEdit4("slot"                , &cfg->ui_slot_color.x);
                 ImGui::ColorEdit4("slot (hovered)"      , &cfg->ui_slot_hovered_color.x);

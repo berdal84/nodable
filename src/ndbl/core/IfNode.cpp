@@ -6,15 +6,13 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<IfNode>("IfNode")
-        .extends<Node>()
-        .extends<IConditional>();
+    StaticInitializer<IfNode>("IfNode").extends<Node>();
 }
 
-IfNode::IfNode() {}
 
 void IfNode::init(const std::string&_name)
 {
-    TConditionalNode::init(NodeType_BLOCK_CONDITION, _name);
+    Node::init(NodeType_BLOCK_CONDITION, _name);
+    m_wrapped_conditional.init(this);
 }
 // required to link static code above

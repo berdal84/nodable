@@ -4,7 +4,6 @@
 #include <vector>
 #include <memory>
 
-#include "Isolation.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 #include "tools/gui/AppView.h"
@@ -12,8 +11,12 @@
 #include "tools/gui/FontManager.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/Size.h"
+
+#include "ndbl/core/NodeType.h"
+
 #include "types.h"
 #include "ViewDetail.h"
+#include "Isolation.h"
 
 namespace ndbl
 {
@@ -47,16 +50,12 @@ namespace ndbl
         Vec4           ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth
-        Vec4           ui_node_variableColor;
-        Vec4           ui_node_invokableColor;
         Vec4           ui_node_instructionColor;
-        Vec4           ui_node_literalColor;
-        Vec4           ui_node_condStructColor;
+        std::array<Vec4,NodeType_COUNT> ui_node_fill_color;
         Vec4           ui_node_shadowColor;
         Vec4           ui_node_borderColor;
         Vec4           ui_node_borderHighlightedColor;
         Vec4           ui_node_highlightedColor;
-        Vec4           ui_node_fillColor;
         float          ui_node_speed;
         u8_t           ui_node_animation_subsample_count;
         ViewDetail     ui_node_detail;

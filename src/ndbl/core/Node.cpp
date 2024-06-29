@@ -17,6 +17,12 @@ REFLECT_STATIC_INIT
     StaticInitializer<Node>("Node");
 }
 
+Node::~Node()
+{
+    for(auto* each : m_slots)
+        delete each;
+}
+
 void Node::init(NodeType _type, const std::string& _label)
 {
     props.init(this);
@@ -170,7 +176,7 @@ std::vector<Node*> Node::filter_adjacent( SlotFlags _flags ) const
     return GraphUtil::get_adjacent_nodes(this, _flags);
 }
 
-Slot* Node::find_slot_by_property_type(SlotFlags flags, const type* _type)
+Slot* Node::find_slot_by_property_type(SlotFlags flags, const tools::type* _type)
 {
     for(Slot* slot : filter_slots( flags ) )
     {
@@ -199,7 +205,7 @@ Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
     EXPECT(false, "Not found")
 }
 
-Property* Node::add_prop(const type *_type, const char *_name, PropertyFlags _flags)
+Property* Node::add_prop(const tools::type* _type, const char *_name, PropertyFlags _flags)
 {
     return props.add(_type, _name, _flags);
 }
@@ -327,32 +333,31 @@ bool Node::can_be_instruction() const
     return slot_count(SlotFlag_TYPE_CODEFLOW) > 0 && inputs().empty() && outputs().empty();
 }
 
-Node::~Node()
-{
-    for(auto* each : m_slots)
-        delete each;
-}
-
 bool Node::is_unary_operator() const
 {
-    // TODO: can't we set a flag once?
-
-    auto* invokable_component = get_component<InvokableComponent>();
-    if ( invokable_component != nullptr )
-        if ( invokable_component->has_flags(InvokableFlag_IS_OPERATOR) )
-            if ( invokable_component->get_arguments().size() == 1 )
-                return true;
+    if ( m_flags & NodeType_OPERATOR )
+        if ( get_component<InvokableComponent>()->get_func_type()->get_arg_count() == 1 )
+            return true;
     return false;
 }
 
 bool Node::is_binary_operator() const
 {
-    // TODO: can't we set a flag once?
-
-    auto* invokable_component = get_component<InvokableComponent>();
-    if ( invokable_component != nullptr )
-        if ( invokable_component->has_flags(InvokableFlag_IS_OPERATOR) )
-            if ( invokable_component->get_arguments().size() == 2 )
-                return true;
+    if ( m_flags & NodeType_OPERATOR )
+        if ( get_component<InvokableComponent>()->get_func_type()->get_arg_count() == 2 )
+            return true;
     return false;
+}
+
+bool Node::is_conditional() const
+{
+    switch ( m_type )
+    {
+        case NodeType_BLOCK_FOR_LOOP:
+        case NodeType_BLOCK_WHILE_LOOP:
+        case NodeType_BLOCK_CONDITION:
+            return true;
+        default:
+            return false;
+    };
 }

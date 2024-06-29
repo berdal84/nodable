@@ -18,6 +18,7 @@
 #include "NodeComponent.h"
 #include "SlotFlag.h"
 #include "Slot.h"
+#include "NodeType.h"
 
 namespace ndbl
 {
@@ -33,26 +34,11 @@ namespace ndbl
         SUCCESS_WITH_CHANGES,
     };
 
-    typedef int NodeType;
-    enum NodeType_
-    {
-        NodeType_BLOCK_CONDITION,
-        NodeType_BLOCK_FOR_LOOP,
-        NodeType_BLOCK_WHILE_LOOP,
-        NodeType_BLOCK_SCOPE,
-        NodeType_BLOCK_PROGRAM,
-        NodeType_VARIABLE,
-        NodeType_LITERAL,
-        NodeType_FUNCTION,
-        NodeType_OPERATOR,
-        NodeType_COUNT,
-        NodeType_NONE = ~0,
-    };
-
     typedef int NodeFlags;
     enum NodeFlag_
     {
         NodeFlag_NONE                = 0,
+        NodeFlag_DEFAULT             = NodeFlag_NONE,
         NodeFlag_IS_DIRTY            = 1 << 0,
         NodeFlag_TO_DELETE           = 1 << 1,
         NodeFlag_ALL                 = ~NodeFlag_NONE,
@@ -84,7 +70,8 @@ namespace ndbl
         Node() = default;
         virtual ~Node();
 
-        virtual void init(NodeType type, const std::string& name);
+        void         init(NodeType type, const std::string& name);
+        NodeType     type() const { return m_type; }
         bool         is_instruction() const;
         bool         is_unary_operator() const;
         bool         is_binary_operator() const;
@@ -164,9 +151,11 @@ namespace ndbl
         bool has_component() const
         { return m_components.has<C*>(); }
 
+        bool is_conditional() const;
+
     protected:
-        NodeType           m_type             = NodeType_NONE;
-        NodeFlags          m_flags            = NodeFlag_NONE;
+        NodeType           m_type             = NodeType_DEFAULT;
+        NodeFlags          m_flags            = NodeFlag_DEFAULT;
         Property*          m_this_as_property = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
     private:

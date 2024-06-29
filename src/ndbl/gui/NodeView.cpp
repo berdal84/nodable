@@ -168,14 +168,11 @@ void NodeView::set_owner(Node* node)
     // 4. Update fill color
     //---------------------
 
-    Vec4* fill_color = &cfg->ui_node_fillColor;
-
-         if ( node->has_component<InvokableComponent>() ) fill_color = &cfg->ui_node_invokableColor;
-    else if ( node->is_instruction() )                    fill_color = &cfg->ui_node_instructionColor;
-    else if ( extends<LiteralNode>( node ) )              fill_color = &cfg->ui_node_literalColor;
-    else if ( extends<IConditional>( node ) )             fill_color = &cfg->ui_node_condStructColor;
-    else if ( extends<VariableNode>( node ) )             fill_color = &cfg->ui_node_variableColor;
-    set_color( fill_color );
+    // note: We pass color by address to be able to change the color dynamically
+    if ( node->is_instruction() ) // this is dynamic
+        set_color( &cfg->ui_node_instructionColor );
+    else
+        set_color( &cfg->ui_node_fill_color[node->type()] );
 }
 
 void NodeView::update_labels_from_name(const Node* _node)
