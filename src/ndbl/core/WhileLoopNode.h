@@ -21,6 +21,7 @@ namespace ndbl
     public:
         Token token_while;
         WhileLoopNode();
+        void init(const std::string& _name) { TConditionalNode::init(NodeType_BLOCK_WHILE_LOOP, _name); }
         REFLECT_DERIVED_CLASS()
     };
 }

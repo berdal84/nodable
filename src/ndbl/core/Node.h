@@ -33,6 +33,30 @@ namespace ndbl
         SUCCESS_WITH_CHANGES,
     };
 
+    typedef int NodeType;
+    enum NodeType_
+    {
+        NodeType_BLOCK_CONDITION,
+        NodeType_BLOCK_FOR_LOOP,
+        NodeType_BLOCK_WHILE_LOOP,
+        NodeType_BLOCK_SCOPE,
+        NodeType_BLOCK_PROGRAM,
+        NodeType_VARIABLE,
+        NodeType_LITERAL,
+        NodeType_FUNCTION,
+        NodeType_OPERATOR,
+        NodeType_COUNT,
+        NodeType_NONE = ~0,
+    };
+
+    typedef int NodeFlags;
+    enum NodeFlag_
+    {
+        NodeFlag_NONE                = 0,
+        NodeFlag_IS_DIRTY            = 1 << 0,
+        NodeFlag_TO_DELETE           = 1 << 1,
+        NodeFlag_ALL                 = ~NodeFlag_NONE,
+    };
 	/**
 		The role of this class is to provide connectable Objects as Nodes.
 
@@ -46,26 +70,28 @@ namespace ndbl
     class Node
 	{
     public:
+
+
         // Data
 
         std::string       name;
-        Graph*            parent_graph;
         PropertyBag       props;
-        bool              dirty; // TODO: use flags
-        bool              flagged_to_delete; // TODO: use flags
         Token             after_token;
+        Graph*            parent_graph = nullptr;
         observe::Event<Node*> on_name_change;
 
         // Code
-
-        explicit Node(std::string  _label = "UnnamedNode");
+        Node() = default;
         virtual ~Node();
 
-        virtual void init();
-        bool is_instruction() const;
-        bool is_unary_operator() const;
-        bool is_binary_operator() const;
-        bool can_be_instruction() const;
+        virtual void init(NodeType type, const std::string& name);
+        bool         is_instruction() const;
+        bool         is_unary_operator() const;
+        bool         is_binary_operator() const;
+        bool         can_be_instruction() const;
+        bool         has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
+        void         set_flags(NodeFlags flags) { m_flags |= flags; }
+        void         clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
 
         // Slot related
         //-------------
@@ -105,7 +131,7 @@ namespace ndbl
         // Property related
         //-----------------
 
-        Property*            add_prop(const tools::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
+        Property*            add_prop(const tools::type*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
         Property*            get_prop_at(size_t);
         const Property*      get_prop_at(size_t) const;
         Property*            get_prop(const char* _name);
@@ -114,7 +140,7 @@ namespace ndbl
         bool                 has_input_connected( const Property*) const;
 
         template<typename ValueT>
-        Property* add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)
+        Property* add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_NONE)
         { return props.add<ValueT>(_name, _flags); }
 
         // Component related
@@ -139,7 +165,9 @@ namespace ndbl
         { return m_components.has<C*>(); }
 
     protected:
-        Property*          m_this_as_property; // Short had for props.at( 0 )
+        NodeType           m_type             = NodeType_NONE;
+        NodeFlags          m_flags            = NodeFlag_NONE;
+        Property*          m_this_as_property = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
     private:
         TComponentBag<NodeComponent*> m_components;

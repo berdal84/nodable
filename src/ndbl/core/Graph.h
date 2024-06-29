@@ -28,21 +28,22 @@ namespace ndbl
         ConnectFlag_ALLOW_SIDE_EFFECTS = 1 << 0,
     };
 
-    enum NodeType : u16_t {
-        NodeType_BLOCK_CONDITION,
-        NodeType_BLOCK_FOR_LOOP,
-        NodeType_BLOCK_WHILE_LOOP,
-        NodeType_BLOCK_SCOPE,
-        NodeType_BLOCK_PROGRAM,
-        NodeType_VARIABLE_BOOLEAN,
-        NodeType_VARIABLE_DOUBLE,
-        NodeType_VARIABLE_INTEGER,
-        NodeType_VARIABLE_STRING,
-        NodeType_LITERAL_BOOLEAN,
-        NodeType_LITERAL_DOUBLE,
-        NodeType_LITERAL_INTEGER,
-        NodeType_LITERAL_STRING,
-        NodeType_INVOKABLE,
+    enum CreateNodeType
+    {
+        CreateNodeType_BLOCK_CONDITION,
+        CreateNodeType_BLOCK_FOR_LOOP,
+        CreateNodeType_BLOCK_WHILE_LOOP,
+        CreateNodeType_BLOCK_SCOPE,
+        CreateNodeType_BLOCK_PROGRAM,
+        CreateNodeType_VARIABLE_BOOLEAN,
+        CreateNodeType_VARIABLE_DOUBLE,
+        CreateNodeType_VARIABLE_INTEGER,
+        CreateNodeType_VARIABLE_STRING,
+        CreateNodeType_LITERAL_BOOLEAN,
+        CreateNodeType_LITERAL_DOUBLE,
+        CreateNodeType_LITERAL_INTEGER,
+        CreateNodeType_LITERAL_STRING,
+        CreateNodeType_INVOKABLE,
     };
 
     /**
@@ -56,13 +57,13 @@ namespace ndbl
 
         observe::Event<Node*> on_add;
 
-        void                        set_view(GraphView* view = nullptr);
-        UpdateResult                update();
+        void                     set_view(GraphView* view = nullptr);
+        UpdateResult             update();
 
         // node related
 
         Node*                    create_node(); // Create a raw node.
-        Node*                    create_node(NodeType, const tools::func_type* _signature = nullptr); // Create a given node type in a simple way.
+        Node*                    create_node(CreateNodeType, const tools::func_type* _signature = nullptr); // Create a given node type in a simple way.
         Node*                    create_root();
         VariableNode*            create_variable(const tools::type *_type, const std::string &_name, Scope* _scope);
         VariableNode*            create_variable_decl(const tools::type* _type, const char*  _name, Scope*  _scope);

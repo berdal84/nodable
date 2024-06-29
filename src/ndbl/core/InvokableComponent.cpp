@@ -41,34 +41,36 @@ InvokableComponent::InvokableComponent(
 
 void InvokableComponent::invoke()
 {
-    ASSERT(m_flags & InvokableFlag_IS_INVOKABLE) // use has_flags(InvokableFlag_IS_INVOKABLE) before to call
-
-    // Prepare arguments to call the invokable with.
-    //
-    // Some properties do not reference anything, in such case we get their value as-is,
-    // but some properties are referencing a property (like when a variable is connected to an operator), in this case we get the referenced property's value.
-    //
-    std::vector<variant*> args;
-    args.reserve(m_argument_slot.size());
-    for(auto& slot: m_argument_slot )
-    {
-        Property* property = slot->get_property();
-        Slot*     adjacent = slot->first_adjacent();
-        if ( adjacent != nullptr && property->is_ref() )
-        {
-            property = adjacent->get_property();
-        }
-        args.emplace_back( property->value() );
-    }
-
-    // Call the invokable with the arguments
-    const variant result_value = m_invokable->invoke( args );
-
-    // Copy the result_value to the property's result slot
-    m_result_slot->get_property()->set( result_value );
-
-    // Flag as evaluated!
-    m_flags |= InvokableFlag_WAS_INVOKED;
+    ASSERT(false) // THis code should be moved to the VirtualMachine (push args + exec native function on it)
+//
+//    ASSERT(m_flags & InvokableFlag_IS_INVOKABLE) // use has_flags(InvokableFlag_IS_INVOKABLE) before to call
+//
+//    // Prepare arguments to call the invokable with.
+//    //
+//    // Some properties do not reference anything, in such case we get their value as-is,
+//    // but some properties are referencing a property (like when a variable is connected to an operator), in this case we get the referenced property's value.
+//    //
+//    std::vector<variant*> args;
+//    args.reserve(m_argument_slot.size());
+//    for(auto& slot: m_argument_slot )
+//    {
+//        Property* property = slot->get_property();
+//        Slot*     adjacent = slot->first_adjacent();
+//        if ( adjacent != nullptr && property->has_flags(PropertyFlag_IS_REF) )
+//        {
+//            property = adjacent->get_property();
+//        }
+//        args.emplace_back( property->value() );
+//    }
+//
+//    // Call the invokable with the arguments
+//    const variant result_value = m_invokable->invoke( args );
+//
+//    // Copy the result_value to the property's result slot
+//    m_result_slot->get_property()->set( result_value );
+//
+//    // Flag as evaluated!
+//    m_flags |= InvokableFlag_WAS_INVOKED;
 }
 
 void InvokableComponent::bind_result(Slot* slot)

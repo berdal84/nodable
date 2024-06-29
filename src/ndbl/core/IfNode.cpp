@@ -11,4 +11,10 @@ REFLECT_STATIC_INIT
         .extends<IConditional>();
 }
 
-IfNode::IfNode() {} // required to link static code above
+IfNode::IfNode() {}
+
+void IfNode::init(const std::string&_name)
+{
+    TConditionalNode::init(NodeType_BLOCK_CONDITION, _name);
+}
+// required to link static code above

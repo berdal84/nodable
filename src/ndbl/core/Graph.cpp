@@ -68,15 +68,14 @@ UpdateResult Graph::update()
         nodeIndex--;
         Node* node = m_node_registry.at(nodeIndex);
 
-        if (node->flagged_to_delete)
+        if (node->has_flags(NodeFlag_TO_DELETE))
         {
             destroy(node);
             result = UpdateResult::SUCCESS_WITH_CHANGES;
         }
-        else if (node->dirty)
+        else if (node->has_flags(NodeFlag_IS_DIRTY))
         {
-            // TODO: dirty seems to be ignored, why do we need this? It this the remains of a refactor?
-            node->dirty = false;
+            node->clear_flags(NodeFlag_IS_DIRTY);
             result = UpdateResult::SUCCESS_WITH_CHANGES;
         }
 
@@ -125,23 +124,23 @@ Node* Graph::create_abstract_function(const func_type* _invokable, bool _is_oper
     add(node);
     return node;
 }
-
-Node* Graph::create_function(const IInvokable* _invokable, bool _is_operator)
-{
-    Node* node = m_factory->create_func(_invokable, _is_operator);
-    add(node);
-    return node;
-}
+//
+//Node* Graph::create_function(const IInvokable* _invokable, bool _is_operator)
+//{
+//    Node* node = m_factory->create_func(_invokable, _is_operator);
+//    add(node);
+//    return node;
+//}
 
 Node* Graph::create_abstract_operator(const func_type* _invokable)
 {
     return create_abstract_function(_invokable, true);
 }
-
-Node* Graph::create_operator(const IInvokable* _invokable)
-{
-	return create_function(_invokable, true);
-}
+//
+//Node* Graph::create_operator(const IInvokable* _invokable)
+//{
+//	return create_function(_invokable, true);
+//}
 
 void Graph::destroy(Node* node)
 {
@@ -207,9 +206,11 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     EXPECT( in_prop, "tail property must be defined" )
     EXPECT( out_prop, "head property must be defined" )
     EXPECT( in_prop != out_prop, "Can't connect same properties!" )
-    const type* out_type = out_prop->get_type();
-    const type* in_type  = in_prop->get_type();
-    EXPECT( type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
+
+    // now graph is abstract
+//    const type* out_type = out_prop->get_type();
+//    const type* in_type  = in_prop->get_type();
+//    EXPECT( type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
 
     // case 1: merge orphan slot
     if ( _out.get_node() == nullptr ) // if dependent is orphan
@@ -221,7 +222,7 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     }
 
     // case 2: merge non-orphan property
-    if (!out_prop->is_this() && // Never a Node (property points to a node)
+    if (!out_prop->has_flags(PropertyFlag_IS_THIS) && // Never a Node (property points to a node)
          _out.get_node()->get_class()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
          _in.get_node()->get_class()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
     {
@@ -515,7 +516,7 @@ LiteralNode* Graph::create_literal(const type *_type)
     return node;
 }
 
-Node* Graph::create_node( NodeType _type, const func_type* _signature )
+Node* Graph::create_node( CreateNodeType _type, const func_type* _signature )
 {
     switch ( _type )
     {
@@ -523,33 +524,33 @@ Node* Graph::create_node( NodeType _type, const func_type* _signature )
          * TODO: We could consider narowing the enum to few cases (BLOCK, VARIABLE, LITERAL, OPERATOR, FUNCTION)
          *       and rely more on _signature (ex: a bool variable could be simply "bool" or "bool bool(bool)")
          */
-        case NodeType_BLOCK_CONDITION:  return create_cond_struct();
-        case NodeType_BLOCK_FOR_LOOP:   return create_for_loop();
-        case NodeType_BLOCK_WHILE_LOOP: return create_while_loop();
-        case NodeType_BLOCK_SCOPE:      return create_scope();
-        case NodeType_BLOCK_PROGRAM:    clear(); return create_root();
+        case CreateNodeType_BLOCK_CONDITION:  return create_cond_struct();
+        case CreateNodeType_BLOCK_FOR_LOOP:   return create_for_loop();
+        case CreateNodeType_BLOCK_WHILE_LOOP: return create_while_loop();
+        case CreateNodeType_BLOCK_SCOPE:      return create_scope();
+        case CreateNodeType_BLOCK_PROGRAM:    clear(); return create_root();
 
-        case NodeType_VARIABLE_BOOLEAN: return create_variable_decl<bool>();
-        case NodeType_VARIABLE_DOUBLE:  return create_variable_decl<double>();
-        case NodeType_VARIABLE_INTEGER: return create_variable_decl<int>();
-        case NodeType_VARIABLE_STRING:  return create_variable_decl<std::string>();
+        case CreateNodeType_VARIABLE_BOOLEAN: return create_variable_decl<bool>();
+        case CreateNodeType_VARIABLE_DOUBLE:  return create_variable_decl<double>();
+        case CreateNodeType_VARIABLE_INTEGER: return create_variable_decl<int>();
+        case CreateNodeType_VARIABLE_STRING:  return create_variable_decl<std::string>();
 
-        case NodeType_LITERAL_BOOLEAN:  return create_literal<bool>();
-        case NodeType_LITERAL_DOUBLE:   return create_literal<double>();
-        case NodeType_LITERAL_INTEGER:  return create_literal<int>();
-        case NodeType_LITERAL_STRING:   return create_literal<std::string>();
+        case CreateNodeType_LITERAL_BOOLEAN:  return create_literal<bool>();
+        case CreateNodeType_LITERAL_DOUBLE:   return create_literal<double>();
+        case CreateNodeType_LITERAL_INTEGER:  return create_literal<int>();
+        case CreateNodeType_LITERAL_STRING:   return create_literal<std::string>();
 
-        case NodeType_INVOKABLE:
+        case CreateNodeType_INVOKABLE:
         {
             EXPECT(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
             const auto invokable = language->find_function(_signature);
             bool is_operator = language->find_operator_fct( invokable->get_type() ) != nullptr;
-            return create_function(invokable.get(), is_operator);
+            return create_abstract_function( invokable->get_type(), is_operator);
         }
         default:
-            EXPECT( false, "Unhandled NodeType.");
+            EXPECT( false, "Unhandled CreateNodeType.");
     }
 }
 

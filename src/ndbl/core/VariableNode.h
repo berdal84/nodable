@@ -18,7 +18,8 @@ namespace ndbl
     {
         VariableFlag_NONE = 0,
         VariableFlag_DECLARED    = 1 << 0,
-        VariableFlag_INITIALIZED = 1 << 1
+        VariableFlag_INITIALIZED = 1 << 1,
+        VariableFlag_ALL         = ~VariableFlag_NONE
     };
 
 	/**
@@ -28,43 +29,30 @@ namespace ndbl
 	class VariableNode : public Node
     {
 	public:
-        typedef tools::type    type;
-        typedef tools::variant variant;
-
-		VariableNode();
-		explicit VariableNode(const tools::type *, const char* identifier);
 		~VariableNode() override {};
 
-        void             init() override;
-        bool             has_flags(VariableFlags flags)const { return (m_flags & flags) == flags; };
-        void             set_flags(VariableFlags flags) { m_flags |= flags; }
-        void             clear_flags(VariableFlags flags) { m_flags &= ~flags; }
-        Property*        property();
-        const Property*  property()const;
-        Scope*           get_scope();
-        void             reset_scope(Scope* _scope = nullptr);
-        const tools::type*get_value_type() const;
-        variant*         get_value();
-
-        variant& operator * () { return *property()->value(); }
-        variant* operator -> () { return property()->value(); }
-        const variant& operator * () const { return *property()->value(); }
-        const variant* operator -> () const { return property()->value(); }
-
-        Slot       &input_slot();
-        const Slot &input_slot() const;
-        Slot       &output_slot();
-        const Slot &output_slot() const;
+        void               init(const tools::type* _val_type, const char* _identifier);
+        bool               has_vflags(VariableFlags flags)const { return (m_vflags & flags) == flags; };
+        void               set_vflags(VariableFlags flags) { m_vflags |= flags; }
+        void               clear_vflags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
+        Property*          property();
+        const Property*    property() const;
+        Scope*             get_scope();
+        void               reset_scope(Scope* _scope = nullptr);
+        Slot&              input_slot();
+        const Slot&        input_slot() const;
+        Slot&              output_slot();
+        const Slot&        output_slot() const;
+        const tools::type* get_value_type() const;
 
     public:
-        Token  type_token;
-        Token  assignment_operator_token;
-        Token  identifier_token;
+        Token              type_token                = Token::s_null;
+        Token              assignment_operator_token = Token::s_null;
+        Token              identifier_token          = Token::s_null;
     private:
-        Property*          m_value_property{};
-        VariableFlags      m_flags = VariableFlag_NONE;
-        Node*              m_scope = nullptr;
-        const tools::type* m_type  = tools::type::any();
+        Property*          m_value  = nullptr;
+        VariableFlags      m_vflags = VariableFlag_NONE;
+        Node*              m_scope  = nullptr;
 
 		REFLECT_DERIVED_CLASS()
     };

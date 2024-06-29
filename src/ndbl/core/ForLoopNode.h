@@ -18,7 +18,7 @@ namespace ndbl
     {
     public:
         Token           token_for;
-        void            init() override;
+        void            init(const std::string& _name);
         Slot&           initialization_slot();
         Slot&           iteration_slot();
         const Slot&     initialization_slot() const;

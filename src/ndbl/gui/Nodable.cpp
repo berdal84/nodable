@@ -200,7 +200,7 @@ void Nodable::update()
                 if ( !selected.empty() && !ImGui::IsAnyItemFocused() )
                 {
                     Node* selected_node = selected[0]->get_owner();
-                    selected_node->flagged_to_delete = true;
+                    selected_node->set_flags(NodeFlag_TO_DELETE);
                 }
                 break;
             }
@@ -312,24 +312,24 @@ void Nodable::update()
                     // Insert an end of line and end of instruction
                     switch ( _event->data.node_type )
                     {
-                        case NodeType_BLOCK_CONDITION:
-                        case NodeType_BLOCK_FOR_LOOP:
-                        case NodeType_BLOCK_WHILE_LOOP:
-                        case NodeType_BLOCK_SCOPE:
-                        case NodeType_BLOCK_PROGRAM:
+                        case CreateNodeType_BLOCK_CONDITION:
+                        case CreateNodeType_BLOCK_FOR_LOOP:
+                        case CreateNodeType_BLOCK_WHILE_LOOP:
+                        case CreateNodeType_BLOCK_SCOPE:
+                        case CreateNodeType_BLOCK_PROGRAM:
                             new_node->after_token = Token::s_end_of_line;
                             break;
-                        case NodeType_VARIABLE_BOOLEAN:
-                        case NodeType_VARIABLE_DOUBLE:
-                        case NodeType_VARIABLE_INTEGER:
-                        case NodeType_VARIABLE_STRING:
+                        case CreateNodeType_VARIABLE_BOOLEAN:
+                        case CreateNodeType_VARIABLE_DOUBLE:
+                        case CreateNodeType_VARIABLE_INTEGER:
+                        case CreateNodeType_VARIABLE_STRING:
                             new_node->after_token = Token::s_end_of_instruction;
                             break;
-                        case NodeType_LITERAL_BOOLEAN:
-                        case NodeType_LITERAL_DOUBLE:
-                        case NodeType_LITERAL_INTEGER:
-                        case NodeType_LITERAL_STRING:
-                        case NodeType_INVOKABLE:
+                        case CreateNodeType_LITERAL_BOOLEAN:
+                        case CreateNodeType_LITERAL_DOUBLE:
+                        case CreateNodeType_LITERAL_INTEGER:
+                        case CreateNodeType_LITERAL_STRING:
+                        case CreateNodeType_INVOKABLE:
                             break;
                     }
                 }

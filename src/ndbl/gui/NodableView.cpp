@@ -115,21 +115,21 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{FRAME_ALL } );
     // (to create block nodes)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_CONDITION } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_FOR_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_WHILE_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{NodeType_BLOCK_PROGRAM } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_CONDITION } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_FOR_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_WHILE_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_SCOPE } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_PROGRAM } );
     // (to create variables)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{NodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
     //(to create literals)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{NodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
     // (to create functions/operators from the API)
     const Nodlang* language = get_language();
     EXPECT(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
@@ -138,7 +138,7 @@ void NodableView::init(Nodable * _app)
         const func_type* func_type = each_fct->get_type();
         std::string label;
         language->serialize_func_sig( label, func_type );
-        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{NodeType_INVOKABLE, func_type } );
+        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_INVOKABLE, func_type } );
     }
 
     LOG_VERBOSE("ndbl::NodableView", "init_ex " OK "\n");

@@ -17,22 +17,14 @@ REFLECT_STATIC_INIT
     StaticInitializer<Node>("Node");
 }
 
-Node::Node(std::string _label)
-: name(std::move(_label))
-, dirty(true)
-, flagged_to_delete(false)
-, parent_graph( nullptr )
-, props(this)
-, m_this_as_property(add_prop<Node*>(THIS_PROPERTY, PropertyFlag_IS_THIS ) ) // Add a property acting like a "this" for the owner Node.
+void Node::init(NodeType _type, const std::string& _label)
 {
-    m_this_as_property->set(this);
-}
-
-void Node::init()
-{
+    props.init(this);
+    m_this_as_property = add_prop<Node*>(THIS_PROPERTY, PropertyFlag_IS_THIS );
     add_slot( SlotFlag_PARENT, 1);
     add_slot( SlotFlag_NEXT, 1);
-
+    name   = _label;
+    m_type = _type;
     m_components.set_owner( this );
 }
 
@@ -343,6 +335,8 @@ Node::~Node()
 
 bool Node::is_unary_operator() const
 {
+    // TODO: can't we set a flag once?
+
     auto* invokable_component = get_component<InvokableComponent>();
     if ( invokable_component != nullptr )
         if ( invokable_component->has_flags(InvokableFlag_IS_OPERATOR) )
@@ -353,6 +347,8 @@ bool Node::is_unary_operator() const
 
 bool Node::is_binary_operator() const
 {
+    // TODO: can't we set a flag once?
+
     auto* invokable_component = get_component<InvokableComponent>();
     if ( invokable_component != nullptr )
         if ( invokable_component->has_flags(InvokableFlag_IS_OPERATOR) )

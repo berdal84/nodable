@@ -40,7 +40,7 @@ const type* SlotView::get_property_type()const
 
 bool SlotView::is_this() const
 {
-    return get_property()->is_this();
+    return get_property()->has_flags(PropertyFlag_IS_THIS);
 }
 
 bool SlotView::allows(SlotFlag flags) const

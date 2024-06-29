@@ -40,10 +40,10 @@ T* create(Args... args)
 #endif
 }
 
-void destroy(Node* node)
+void NodeFactory::destroy_node(Node* node) const
 {
 #if !TOOLS_POOL_ENABLE
-    delete node;
+        delete node;
 #else
     PoolManager* manager = get_pool_manager();
     ASSERT( manager != nullptr )
@@ -57,8 +57,8 @@ void destroy(Node* node)
 VariableNode* NodeFactory::create_variable(const type *_type, const std::string& _name, Scope* _scope) const
 {
     // create
-    auto node = create<VariableNode>(_type, _name.c_str());
-    node->init();
+    auto node = create<VariableNode>();
+    node->init(_type, _name.c_str());
     if( _scope )
     {
         _scope->add_variable( node );
@@ -84,7 +84,8 @@ Node* NodeFactory::create_abstract_func(const func_type* _signature, bool _is_op
 Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_func_type, bool _is_operator) const
 {
     Node* node = create<Node>();
-    node->init();
+    NodeType node_type = _is_operator ? NodeType_OPERATOR : NodeType_FUNCTION;
+    node->init(node_type, "");
     node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY );
     node->add_slot(SlotFlag_OUTPUT, 1); // Can be connected to an InstructionNode
 
@@ -94,7 +95,7 @@ Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_
     }
     else
     {
-        std::string id = _func_type->get_identifier();
+        const std::string& id   = _func_type->get_identifier();
         std::string label       = id + "()";
         std::string short_label = id.substr(0, 2) + "..()"; // ------- improve, not great.
         node->set_name(label.c_str());
@@ -146,17 +147,17 @@ Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_
 
     return node;
 }
-
-Node* NodeFactory::create_func(const IInvokable* _function, bool _is_operator) const
-{
-    // Create an abstract function node
-    const func_type* type = _function->get_type();
-    Node* node = create_abstract_func_no_postprocess(type, _is_operator);
-    add_invokable_component(node, type, _function, _is_operator);
-    m_post_process(node);
-    return node;
-}
-
+//
+//Node* NodeFactory::create_func(const IInvokable* _function, bool _is_operator) const
+//{
+//    // Create an abstract function node
+//    const func_type* type = _function->get_type();
+//    Node* node = create_abstract_func_no_postprocess(type, _is_operator);
+//    add_invokable_component(node, type, _function, _is_operator);
+//    m_post_process(node);
+//    return node;
+//}
+//
 void NodeFactory::add_invokable_component(Node* _node, const func_type* _func_type, const IInvokable*_invokable, bool _is_operator) const
 {
     // Create an InvokableComponent with the function.
@@ -174,7 +175,7 @@ void NodeFactory::add_invokable_component(Node* _node, const func_type* _func_ty
         Slot& arg_slot = _node->get_nth_slot( index, SlotFlag_INPUT );
         if ( args[index].m_by_reference )
         {
-            arg_slot.get_property()->flag_as_reference();  // to handle by reference function args
+            arg_slot.get_property()->set_flags(PropertyFlag_IS_REF);  // to handle by reference function args
         }
         component->bind_arg(index, &arg_slot );
     }
@@ -183,8 +184,7 @@ void NodeFactory::add_invokable_component(Node* _node, const func_type* _func_ty
 Node* NodeFactory::create_scope() const
 {
     Node* node = create<Node>();
-    node->init();
-    node->set_name("{} Scope");
+    node->init(NodeType_BLOCK_SCOPE, "{} Scope");
 
     node->add_slot( SlotFlag_CHILD, Slot::MAX_CAPACITY );
     node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY );
@@ -199,8 +199,7 @@ Node* NodeFactory::create_scope() const
 IfNode* NodeFactory::create_cond_struct() const
 {
     auto* node = create<IfNode>();
-    node->init();
-    node->set_name("If");
+    node->init("If");
     node->add_component(create<Scope>());
     node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
     m_post_process(node);
@@ -211,8 +210,7 @@ IfNode* NodeFactory::create_cond_struct() const
 ForLoopNode* NodeFactory::create_for_loop() const
 {
     auto node = create<ForLoopNode>();
-    node->init();
-    node->set_name("For");
+    node->init("For");
     node->add_component(create<Scope>());
     node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
     m_post_process(node);
@@ -223,8 +221,7 @@ ForLoopNode* NodeFactory::create_for_loop() const
 WhileLoopNode* NodeFactory::create_while_loop() const
 {
     auto node = create<WhileLoopNode>();
-    node->init();
-    node->set_name("While");
+    node->init("While");
     node->add_component(create<Scope>());
     node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
     m_post_process(node);
@@ -235,8 +232,7 @@ WhileLoopNode* NodeFactory::create_while_loop() const
 Node* NodeFactory::create_program() const
 {
     Node* node = create<Node>();
-    node->init();
-    node->set_name(ICON_FA_FILE_CODE " Program");
+    node->init(NodeType_BLOCK_PROGRAM, ICON_FA_FILE_CODE " Program");
     node->add_slot( SlotFlag_CHILD, Slot::MAX_CAPACITY );
     node->add_component(create<Scope>() );
     m_post_process(node);
@@ -246,22 +242,16 @@ Node* NodeFactory::create_program() const
 Node* NodeFactory::create_node() const
 {
     Node* node = create<Node>();
-    node->init();
+    node->init(NodeType_NONE, "");
     node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
     m_post_process(node);
     return node;
 }
 
-void NodeFactory::destroy_node(Node* node) const
-{
-    destroy(node);
-}
-
 LiteralNode* NodeFactory::create_literal(const type *_type) const
 {
-    auto node = create<LiteralNode>(_type);
-    node->init();
-    node->set_name("Literal");
+    auto node = create<LiteralNode>();
+    node->init(_type, "Literal");
     m_post_process(node);
     return node;
 }

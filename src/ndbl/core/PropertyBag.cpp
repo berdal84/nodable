@@ -4,16 +4,6 @@
 using namespace ndbl;
 using namespace tools;
 
-PropertyBag::~PropertyBag()
-{
-    for(auto* each : m_properties)
-        delete each;
-#ifdef NDBL_DEBUG
-    m_properties.clear();
-    m_properties_by_name.clear();
-#endif
-}
-
 bool PropertyBag::has(const char* _name) const
 {
     return m_properties_by_name.find(_name) != m_properties_by_name.end();
@@ -21,11 +11,13 @@ bool PropertyBag::has(const char* _name) const
 
 Property* PropertyBag::add(const type* _type, const char* _name, PropertyFlags _flags )
 {
+    EXPECT(m_owner != nullptr, "PropertyBag must be initialized")
     ASSERT(!has(_name));
 
     // create the property
 
-    auto* new_property = new Property(_type, _flags, m_node);
+    auto* new_property = new Property();
+    new_property->init(_type, _flags, m_owner);
     new_property->set_name(_name);
 
     m_properties.push_back(new_property);

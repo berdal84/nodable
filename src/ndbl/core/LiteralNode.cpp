@@ -9,33 +9,23 @@ REFLECT_STATIC_INIT
     StaticInitializer<LiteralNode>("LiteralNode").extends<Node>();
 }
 
-LiteralNode::LiteralNode(const type* _type)
-: Node()
-, m_type( _type )
-, m_value_property(nullptr)
+void LiteralNode::init(const type* _type, const std::string& _name)
 {
-}
-
-void LiteralNode::init()
-{
-    Node::init();
-
-    m_value_property = props.add(m_type, VALUE_PROPERTY, PropertyFlag_VISIBLE);
+    Node::init(NodeType_LITERAL, _name);
+    m_type = _type;
+    m_value_property = props.add(m_type, VALUE_PROPERTY);
     add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_value_property);
     add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_this_as_property);
 
     add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
 }
 
-Property *LiteralNode::value()
+Slot& LiteralNode::output_slot()
 {
-    ASSERT(m_value_property != nullptr)
-    return m_value_property;
+    return const_cast<Slot&>( const_cast<const LiteralNode*>(this)->output_slot() );
 }
 
-const Property *LiteralNode::value() const
+const Slot& LiteralNode::output_slot() const
 {
-    ASSERT(m_value_property != nullptr)
-    return m_value_property;
+    return *find_slot_by_property(m_value_property, SlotFlag_OUTPUT );
 }
-

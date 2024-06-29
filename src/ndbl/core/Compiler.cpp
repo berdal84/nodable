@@ -196,13 +196,14 @@ void Compiler::compile_node( const Node* _node )
         // For instruction only: Copy node value to a register
         if( _node->is_instruction() )
         {
-            const variant* root_node_value = _node->get_prop( VALUE_PROPERTY )->value();
-            Instruction* instr     = m_temp_code->push_instr(OpCode_deref_qword );
-            instr->uref.ptr        = root_node_value->data();
-            instr->uref.type       = root_node_value->get_type();
-            instr->m_comment       = "copy root's value (";
-            instr->m_comment      += root_node_value->get_type()->get_name();
-            instr->m_comment      += ")";
+            ASSERT(false) // not implemented! use vmem
+            //const variant* root_node_value = _node->get_prop( VALUE_PROPERTY )->value();
+//            Instruction* instr     = m_temp_code->push_instr(OpCode_deref_qword );
+//            instr->uref.ptr        = root_node_value->data();
+//            instr->uref.type       = root_node_value->get_type();
+//            instr->m_comment       = "copy root's value (";
+//            instr->m_comment      += root_node_value->get_type()->get_name();
+//            instr->m_comment      += ")";
         }
     }
 }

@@ -116,7 +116,6 @@ namespace ndbl{
         std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
         std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;
         std::string& serialize_cond_struct(std::string& _out, const IfNode*_condition_struct ) const;
-        std::string& serialize_variant(std::string& _out, const tools::variant*) const;
         std::string& serialize_variable(std::string& _out, const VariableNode*) const;
         std::string& serialize_property(std::string &_out, const Property*) const;
 

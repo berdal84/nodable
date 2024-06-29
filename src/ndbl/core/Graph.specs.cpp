@@ -71,9 +71,7 @@ TEST_F(Graph_, clear)
     auto       operator_fct = app.get_language()->find_operator_fct_exact(fct_type);
 
     EXPECT_TRUE(operator_fct.get() != nullptr);
-    auto operator_node = graph->create_operator(operator_fct.get());
-    operator_node->get_prop(LEFT_VALUE_PROPERTY)->set(2);
-    operator_node->get_prop(RIGHT_VALUE_PROPERTY)->set(2);
+    auto operator_node = graph->create_abstract_operator(fct_type);
 
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 

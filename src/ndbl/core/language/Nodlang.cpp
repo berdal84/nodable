@@ -227,7 +227,7 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
     auto &nodes = parser_state.graph->get_node_registry();
     for (auto eachNode: nodes)
     {
-        eachNode->dirty = false;
+        eachNode->clear_flags(NodeFlag_IS_DIRTY);
     }
 
     LOG_MESSAGE("Parser", "Program tree updated in %.3f ms.\n", duration_cast<duration<double>>(high_resolution_clock::now() - parse_begin).count()*1000.0 )
@@ -260,71 +260,44 @@ Slot *Nodlang::parse_token(Token _token)
     {
         VariableNode* variable = get_current_scope()->find_variable(_token.word_to_string() );
 
-        if( !variable )
+        if( variable != nullptr )
+            return &variable->output_slot();
+
+        if ( !m_strict_mode )
         {
-            if ( m_strict_mode )
-            {
-                LOG_ERROR( "Parser", "%s is not declared (strict mode) \n", _token.word_to_string().c_str() )
-            }
-            else
-            {
-                /* when strict mode is OFF, we just create a variable with Any type */
-                LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
-                             _token.word_to_string().c_str() )
-                variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
-                variable->property()->token = std::move(_token );
-                variable->set_flags(VariableFlag_DECLARED);
-            }
+            /* when strict mode is OFF, we just create a variable with Any type */
+            LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
+                         _token.word_to_string().c_str() )
+            variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
+            variable->property()->token = std::move(_token );
+            variable->set_flags(VariableFlag_DECLARED);
+            return &variable->output_slot();
         }
 
-        return variable ? &variable->output_slot() : nullptr;
+        LOG_ERROR( "Parser", "%s is not declared (strict mode) \n", _token.word_to_string().c_str() )
+        return nullptr;
     }
 
     LiteralNode* literal{};
 
     switch (_token.m_type)
     {
-        case Token_t::literal_bool:
-        {
-            literal = parser_state.graph->create_literal<bool>();
-            literal->value()->set(to_bool(_token.word_to_string())); // FIXME: avoid std::string copy
-            break;
-        }
-
-        case Token_t::literal_int:
-        {
-            literal = parser_state.graph->create_literal<i32_t>();
-            i32_t value = stoi((_token.word_to_string())); // FIXME: avoid std::string copy
-            literal->value()->set( value );
-            break;
-        }
-
-        case Token_t::literal_double:
-        {
-            literal = parser_state.graph->create_literal<double>();
-            literal->value()->set(to_double(_token.word_to_string())); // FIXME: avoid std::string copy
-            break;
-        }
-
-        case Token_t::literal_string:
-        {
-            literal = parser_state.graph->create_literal<std::string>();
-            literal->value()->set(to_unquoted_string(_token.word_to_string()));
-            break;
-        }
-
-        default:;
+        case Token_t::literal_bool:   literal = parser_state.graph->create_literal<bool>();        break;
+        case Token_t::literal_int:    literal = parser_state.graph->create_literal<i32_t>();       break;
+        case Token_t::literal_double: literal = parser_state.graph->create_literal<double>();      break;
+        case Token_t::literal_string: literal = parser_state.graph->create_literal<std::string>(); break;
+        default:
+            break; // we don't want to throw
     }
 
-    if (literal)
+    if ( literal == nullptr)
     {
-        Slot* output_slot = literal->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
-        output_slot->get_property()->token = std::move(_token);
-        return output_slot;
+        LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str())
+        return nullptr;
     }
 
-    LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str())
-    return nullptr;
+    literal->value()->token = std::move(_token);
+    return &literal->output_slot();
 }
 
 Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
@@ -389,27 +362,8 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
             right->get_property()->get_type());
 
     InvokableComponent* component;
-    Node* binary_op{};
-
-    if (auto invokable = find_operator_fct(type))
-    {
-        // concrete operator
-        binary_op = parser_state.graph->create_operator(invokable.get());
-        component = binary_op->get_component<InvokableComponent>();
-        delete type;
-    }
-    else if (type)
-    {
-        // abstract operator
-        binary_op = parser_state.graph->create_abstract_operator(type);
-        component = binary_op->get_component<InvokableComponent>();
-    }
-    else
-    {
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " no signature\n")
-        rollback_transaction();
-        return nullptr;
-    }
+    Node* binary_op = parser_state.graph->create_abstract_operator(type); // always abstract
+    component       = binary_op->get_component<InvokableComponent>();
 
     component->token = operator_token;
     parser_state.graph->connect_or_merge( _left, *binary_op->find_slot_by_property_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
@@ -463,18 +417,7 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     type->push_args( out_atomic->get_property()->get_type());
 
     InvokableComponent* component{};
-    Node* node{};
-
-    if (auto invokable = find_operator_fct(type))
-    {
-        node = parser_state.graph->create_operator(invokable.get());
-        delete type;
-    }
-    else
-    {
-        node = parser_state.graph->create_abstract_operator(type);
-    }
-
+    Node* node = parser_state.graph->create_abstract_operator(type);
     component = node->get_component<InvokableComponent>();
     component->token = std::move( operator_token );
 
@@ -1099,28 +1042,8 @@ Slot* Nodlang::parse_function_call()
 
     // Find the prototype in the language library
     std::shared_ptr<const IInvokable> invokable = find_function(&signature);
+    Node* fct_node = parser_state.graph->create_abstract_function(&signature);
 
-    Node* fct_node{};
-    if (invokable)
-    {
-        /*
-         * If we found a function matching signature, we create a node with that function.
-         * The node will be able to be evaluated.
-         *
-         * TODO: remove this method, the parser should not check if function exist or not.
-         *       this role is for the Compiler.
-         */
-        fct_node = parser_state.graph->create_function(invokable.get());
-    }
-    else
-    {
-        /*
-         * If we DO NOT found a function matching signature, we create an abstract function.
-         * The node will NOT be able to be evaluated.
-         */
-        fct_node = parser_state.graph->create_abstract_function(&signature);
-    }
-    ASSERT(fct_node != nullptr)
     for ( FuncArg& signature_arg : signature.get_args() )
     {
         // Connects each results to the corresponding input
@@ -1422,8 +1345,9 @@ Slot* Nodlang::parse_variable_declaration()
         if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word() == '=')
         {
             Slot* expression_out = parse_expression();
-            if (expression_out != nullptr &&
-                type::is_implicitly_convertible(expression_out->get_property()->get_type(), variable_type ) )
+            if (expression_out != nullptr //&&
+                // type::is_implicitly_convertible(expression_out->get_property()->get_type(), variable_type )
+                )
             {
                 parser_state.graph->connect_to_variable( *expression_out, *variable_node );
                 variable_node->assignment_operator_token = operator_token;
@@ -1618,17 +1542,6 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     return _out;
 }
 
-std::string &Nodlang::serialize_variant(std::string &_out, const variant *variant) const
-{
-    std::string variant_string = variant->to<std::string>();
-
-    if (variant->get_type()->is<std::string>())
-    {
-        return _out.append('"' + variant_string + '"');
-    }
-    return _out.append(variant_string);
-}
-
 std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, SerializeFlags _flags ) const
 {
     ASSERT( _slot.has_flags( SlotFlag_INPUT ) );
@@ -1644,13 +1557,9 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     ASSERT(adjacent_property != nullptr)
 
     // specific case of a Node*
-    if ( adjacent_property->is_this())
-    {
-        if ( auto* node = (Node*)adjacent_property->value()->as<void*>() )
-        {
+    if ( adjacent_property->has_flags(PropertyFlag_IS_THIS))
+        if ( Node* node = adjacent_property->get_owner() )
             return serialize_node( _out, node, _flags );
-        }
-    }
 
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_open);
 
@@ -1670,7 +1579,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     }
     else
     {
-        serialize_variant(_out, adjacent_property->value() );
+        serialize_property(_out, adjacent_property );
     }
 
     if (!adjacent_property->token.is_null())
@@ -1911,10 +1820,7 @@ std::shared_ptr<const IInvokable> Nodlang::find_function(const func_type* _type)
 
 std::string& Nodlang::serialize_property(std::string& _out, const Property* _property) const
 {
-    _out.append(_property->token.prefix(), _property->token.prefix_size());
-    serialize_variant(_out, _property->value());
-    _out.append(_property->token.suffix(), _property->token.suffix_size());
-    return _out;
+    return serialize_token(_out, _property->token);
 }
 
 std::shared_ptr<const IInvokable> Nodlang::find_function_exact(const func_type *_signature) const

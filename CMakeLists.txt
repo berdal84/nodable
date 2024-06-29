@@ -349,7 +349,6 @@ add_library(
     src/ndbl/core/NodeComponent.cpp
     src/ndbl/core/ComponentFactory.cpp
     src/ndbl/core/IfNode.cpp
-    src/ndbl/core/DataAccess.cpp
     src/ndbl/core/DirectedEdge.cpp
     src/ndbl/core/ForLoopNode.cpp
     src/ndbl/core/Graph.cpp
@@ -367,9 +366,9 @@ add_library(
     src/ndbl/core/VariableNode.cpp
     src/ndbl/core/VirtualMachine.cpp
     src/ndbl/core/WhileLoopNode.cpp
-        src/ndbl/core/Code.cpp
-        src/ndbl/core/Compiler.cpp
-        src/ndbl/core/Instruction.cpp
+    src/ndbl/core/Code.cpp
+    src/ndbl/core/Compiler.cpp
+    src/ndbl/core/Instruction.cpp
     src/ndbl/core/language/Nodlang.cpp
     src/ndbl/core/language/Nodlang_biology.cpp
     src/ndbl/core/language/Nodlang_math.cpp
@@ -396,8 +395,7 @@ add_executable(
     test-ndbl-core
     src/ndbl/core/Graph.specs.cpp
     src/ndbl/core/Node.specs.cpp
-    src/ndbl/core/Property.specs.cpp
-    src/ndbl/core/Slot.specs.cpp
+        src/ndbl/core/Slot.specs.cpp
     src/ndbl/core/Token.specs.cpp
     src/ndbl/core/language/Nodlang.specs.cpp
     src/ndbl/core/language/Nodlang.tokenize.specs.cpp

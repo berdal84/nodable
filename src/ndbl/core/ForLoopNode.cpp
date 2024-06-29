@@ -12,17 +12,17 @@ REFLECT_STATIC_INIT
         .extends<IConditional>();
 }
 
-void ForLoopNode::init()
+void ForLoopNode::init(const std::string& _name)
 {
     // add initialization property and slot
-    auto init_id = add_prop<Node*>(INITIALIZATION_PROPERTY, PropertyFlag_VISIBLE );
+    auto init_id = add_prop<Node*>(INITIALIZATION_PROPERTY );
     m_initialization_slot = add_slot( SlotFlag_INPUT, 1, init_id);
 
     // indirectly add condition property and slot
-    TConditionalNode::init();
+    TConditionalNode::init(NodeType_BLOCK_FOR_LOOP, _name);
 
     // add iteration property and slot
-    auto iter_id = add_prop<Node*>(ITERATION_PROPERTY, PropertyFlag_VISIBLE );
+    auto iter_id = add_prop<Node*>(ITERATION_PROPERTY );
     m_iteration_slot = add_slot( SlotFlag_INPUT, 1, iter_id);
 }
 

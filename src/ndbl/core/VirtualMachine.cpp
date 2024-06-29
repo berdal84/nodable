@@ -198,12 +198,13 @@ bool VirtualMachine::_stepOver()
 
         case OpCode_pop_var:
         {
-            advance_cursor();
-            VariableNode* variable = next_instr->push.var;
-            ASSERT(variable->has_flags(VariableFlag_DECLARED))
-            variable->clear_flags(VariableFlag_DECLARED);
-            if(variable->has_flags(VariableFlag_INITIALIZED) ) // Might not have been initialized, check needed.
-                variable->clear_flags(VariableFlag_INITIALIZED);
+            ASSERT(false) // not implemented!
+//            advance_cursor();
+//            VariableNode* variable = next_instr->push.var;
+//            ASSERT(variable->has_vflags(VariableFlag_DECLARED))
+//            variable->clear_vflags(VariableFlag_DECLARED);
+//            if(variable->has_vflags(VariableFlag_INITIALIZED) ) // Might not have been initialized, check needed.
+//                variable->clear_vflags(VariableFlag_INITIALIZED);
             //
             // TODO: implement a stack/heap
             //
@@ -230,9 +231,11 @@ bool VirtualMachine::_stepOver()
                         continue;
 
                     Property* property = slot->get_property();
-                    if( !property->is_ref() )
+                    if( !property->has_flags(PropertyFlag_IS_REF) )
                     {
-                        *property->value() = *slot->first_adjacent()->get_property()->value();
+                        ASSERT(false)// not implemented!
+                        //*property->value() = *slot->first_adjacent()->get_property()->value();
+                        // TODO: copy by value in vmem
                     }
                 }
             };
@@ -258,7 +261,9 @@ bool VirtualMachine::_stepOver()
                 invokable->invoke();
             }
 
-            next_instr->eval.node->dirty = false;
+            ASSERT(false) // we should have a set of all the node traversed, no need to mutate the note itself for that.
+            next_instr->eval.node->clear_flags(NodeFlag_IS_DIRTY);
+
             advance_cursor();
             break;
         }

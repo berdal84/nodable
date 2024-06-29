@@ -17,9 +17,7 @@ namespace ndbl
 
     public:
         TConditionalNode() = default;
-        TConditionalNode( TConditionalNode&&) = default;
-        TConditionalNode& operator=( TConditionalNode&&) = default;
-        void          init() override;
+        void          init(NodeType _type, const std::string& _name) override;
         Scope*        get_scope_at(Branch _branch) const override;
         Slot&         get_child_slot_at(Branch _branch) override;
         const Slot&   get_child_slot_at(Branch _branch) const override;
@@ -49,11 +47,11 @@ namespace ndbl
     }
 
     template<size_t BRANCH_COUNT>
-    void TConditionalNode<BRANCH_COUNT>::init()
+    void TConditionalNode<BRANCH_COUNT>::init(NodeType _type, const std::string&  _name)
     {
         static_assert( BRANCH_COUNT == 2, "Currently only implemented for 2 branches" );
 
-        Node::init();
+        Node::init(_type, _name);
 
         add_slot( SlotFlag_OUTPUT, Slot::MAX_CAPACITY );
 
@@ -62,7 +60,7 @@ namespace ndbl
         m_next_slot[Branch_TRUE]  = add_slot(SlotFlag_NEXT, 1, Branch_TRUE );
 
         // No condition needed for the first slot
-        auto condition_property = add_prop<Node*>(CONDITION_PROPERTY, PropertyFlag_VISIBLE);
+        auto condition_property = add_prop<Node*>(CONDITION_PROPERTY);
         m_condition_slot[0] = add_slot(SlotFlag::SlotFlag_INPUT, 1, condition_property );
 
         m_child_slot[Branch_FALSE] = add_slot(SlotFlag_CHILD, 1, Branch_FALSE );

@@ -28,7 +28,7 @@ Property* PropertyView::get_property() const
 
 Node* PropertyView::get_node() const
 {
-    return m_property->get_node();
+    return m_property->get_owner();
 }
 
 bool PropertyView::has_input_connected() const

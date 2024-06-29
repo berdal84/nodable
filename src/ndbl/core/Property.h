@@ -14,14 +14,13 @@ namespace ndbl
     class Node;
 
     typedef int PropertyFlags;
-    enum PropertyFlag
+    enum PropertyFlag_
     {
         PropertyFlag_NONE            = 0,
         PropertyFlag_IS_REF          = 1 << 0,
-        PropertyFlag_VISIBLE         = 1 << 1,
+        PropertyFlag_IS_PRIVATE      = 1 << 1,
         PropertyFlag_IS_THIS         = 1 << 2, // Property pointing this Property's parent Node (stored as void* in variant).
-        PropertyFlag_VISIBILITY_MASK = PropertyFlag_VISIBLE,
-        PropertyFlag_DEFAULT         = PropertyFlag_VISIBLE
+        PropertyFlag_ALL             = ~PropertyFlag_NONE,
     };
 
     /**
@@ -35,56 +34,20 @@ namespace ndbl
     public:
         Token token;
 
-        explicit Property(Node* = nullptr);
-        explicit Property(const std::string &, Node*  = nullptr);
-        explicit Property(int, Node* = nullptr);
-        explicit Property(bool, Node* = nullptr);
-        explicit Property(double, Node* = nullptr);
-        explicit Property(const char *, Node* = nullptr);
-        explicit Property(const tools::type *_type, PropertyFlags _flags, Node* = nullptr);
-        ~Property() = default;
-
-        tools::variant*              operator->() { return value(); }
-        const tools::variant*        operator->() const { return value(); }
-        tools::variant&              operator*() { return *value(); }
-        const tools::variant&        operator*() const { return *value(); }
-        template<typename T> T       to()const { return value()->to<T>(); }
-
-        void                         digest(Property *_property);
-        bool                         has_flags( PropertyFlags _flags )const;
-        void                         set_name(const char* _name) { m_name = _name; }
-        void                         set(const Property& _other) { value()->set(_other.m_variant); }
-        template<typename T>void     set(T _value);
-		void                         set_visibility(PropertyFlags);
-        Node*                        get_node()const { return m_node; }
-        const std::string&           get_name()const { return m_name; }
-        const tools::type*           get_type()const { return value()->get_type(); }
-        PropertyFlags                get_visibility()const { return m_flags & PropertyFlag_VISIBILITY_MASK; }
-        PropertyFlags                flags()const { return m_flags; }
-        void                         flag_as_reference();
-        bool                         is_ref() const;
-        bool                         is_type(const tools::type *_type) const;
-        bool                         is_type_null() const;
-        bool                         is_this() const;
-        tools::variant*              value()     { return &m_variant; }
-        const tools::variant*        value()const{ return &m_variant; }
-
-		static std::vector<tools::variant*> get(std::vector<Property *> _in_properties);
-
-        template<typename T>
-        T& as() { return value()->as<T>(); }
-
-        template<typename T>
-        T as() const { return value()->as<T>(); }
-
+        void               init(const tools::type*, PropertyFlags, Node*); // must be called once before use
+        void               digest(Property *_property);
+        bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
+        void               set_flags(PropertyFlags flags) { m_flags |= flags; }
+        void               clear_flags(PropertyFlags flags = PropertyFlag_ALL) { m_flags &= ~flags; }
+        void               set_name(const char* _name) { m_name = _name; }
+        Node*              get_owner()const { return m_owner; }
+        const std::string& get_name()const { return m_name; }
+        const tools::type* get_type()const { return m_type; }
+        bool               is_type(const tools::type* other) const;
     private:
-        Node*          m_node;
-        PropertyFlags  m_flags;
-		std::string    m_name;
-        tools::variant m_variant;
+        Node*              m_owner = nullptr;
+        PropertyFlags      m_flags = PropertyFlag_NONE;
+        const tools::type* m_type  = nullptr;
+        std::string        m_name;
     };
-
-    template<typename T>
-    void Property::set(T _value)
-    { value()->set( _value ); }
 }

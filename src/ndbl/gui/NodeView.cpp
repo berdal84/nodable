@@ -91,7 +91,7 @@ void NodeView::set_owner(Node* node)
         m_property_views.push_back(property_view);
 
         // Indexing
-        if ( each_prop->is_this() )
+        if ( each_prop->has_flags(PropertyFlag_IS_THIS) )
         {
             m_property_view_this = property_view;
         }
@@ -296,7 +296,7 @@ bool NodeView::update(float _deltaTime)
                 const Vec2 half_size{ cfg->ui_slot_circle_radius() };
                 Rect slot_rect{-half_size, half_size};
 
-                if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->is_this() )
+                if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->has_flags(PropertyFlag_IS_THIS) )
                 {
                     slot_rect.translate(m_base_view.get_pos() + m_base_view.get_size() * slot_view->get_align() * Vec2{0.5f} );
                 }
@@ -462,7 +462,8 @@ bool NodeView::draw()
 	ImGui::PopStyleVar();
 	ImGui::PopID();
 
-    get_node()->dirty |= changed;
+    if ( changed )
+        get_node()->set_flags( NodeFlag_IS_DIRTY );
 
 	return changed;
 }
@@ -552,7 +553,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
         if ( limit_size )
         {
             // try to draw an as small as possible input field
-            std::string str = connected_variable ? connected_variable->name : property->to<std::string>();
+            std::string str = connected_variable ? connected_variable->name : property->token.word_to_string();
             input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, PROPERTY_INPUT_SIZE_MIN);
             ImGui::PushItemWidth(input_size);
         }
@@ -624,69 +625,26 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
         label.append("##" + property->get_name());
     }
 
-    auto input_text_flags = ImGuiInputTextFlags_None;
-
+    char str[255];
     if( const VariableNode* variable = _view->get_connected_variable() ) // if is a ref to a variable, we just draw variable name
     {
-        char str[255];
         snprintf(str, 255, "%s", variable->name.c_str() );
 
+        // variable name wrapped by a colored frame
         ImGui::PushStyleColor(ImGuiCol_FrameBg, variable->get_component<NodeView>()->get_color(Color_FILL) );
-        ImGui::InputText(label.c_str(), str, 255, input_text_flags );
+        ImGui::InputText(label.c_str(), str, 255 );
         ImGui::PopStyleColor();
 
     }
     else
     {
-        /* Draw the property */
-        const type* property_type = property->get_type();
-        bool read_only = _view->has_input_connected();
+        snprintf(str, 255, "%s", property->token.word() );
 
-        if( property_type->is<i32_t>() )
+        ImGuiInputTextFlags flags = ( _view->has_input_connected() * ImGuiInputTextFlags_ReadOnly);
+        if ( ImGui::InputText(label.c_str(), str, 255, flags ) )
         {
-            auto integer = (i32_t)*property->value();
-
-            if (ImGui::InputInt(label.c_str(), &integer, 0, 0, input_text_flags ) && !read_only )
-            {
-                property->set(integer);
-                changed |= true;
-            }
-        }
-        else if( property_type->is<double>() )
-        {
-            auto d = (double)*property->value();
-
-            if (ImGui::InputDouble(label.c_str(), &d, 0.0F, 0.0F, "%g", input_text_flags ) && !read_only )
-            {
-                property->set(d);
-                changed |= true;
-            }
-        }
-        else if( property_type->is<std::string>() )
-        {
-            char str[255];
-            snprintf(str, 255, "%s", (const char*)*property->value() );
-
-            if ( ImGui::InputText(label.c_str(), str, 255, input_text_flags ) && !read_only )
-            {
-                property->set( std::string(str) );
-                changed |= true;
-            }
-        }
-        else if( property_type->is<bool>() )
-        {
-            auto b = (bool)*property->value();
-
-            if (ImGui::Checkbox(label.c_str(), &b) && !read_only )
-            {
-                property->set(b);
-                changed |= true;
-            }
-        }
-        else
-        {
-            auto property_as_string = (*property )->to<std::string>();
-            ImGui::Text( "%s", property_as_string.c_str());
+            ASSERT(false) // TODO: implem. Override token's word (keep prefix/suffix)
+            changed |= true;
         }
     }
 
@@ -718,17 +676,14 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            const auto variant = property->value();
-            ImGui::Text("Source token:\n"
-                        "%s\n",
-                        property->token.json().c_str());
+            ImGui::Text("Source token:\n %s\n", property->token.json().c_str());
             ImGuiEx::EndTooltip();
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         bool edited = NodeView::draw_property_view(_property_view, nullptr);
-        node->dirty |= edited;
-
+        if ( edited )
+            node->set_flags( NodeFlag_IS_DIRTY );
     };
 
     ImGui::Text("Name:       \"%s\"" , node->name.c_str());
@@ -848,9 +803,9 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             if( ImGui::TreeNode("Variables") )
             {
                 auto vars = scope->variables();
-                for (auto eachVar : vars)
+                for (auto var : vars)
                 {
-                    ImGui::BulletText("%s: %s", eachVar->name.c_str(), eachVar->property()->to<std::string>().c_str());
+                    ImGui::BulletText("%s: %s", var->name.c_str(), var->property()->token.word());
                 }
                 ImGui::TreePop();
             }
@@ -860,7 +815,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         {
             // dirty state
             ImGui::Separator();
-            bool b = node->dirty;
+            bool b = node->has_flags(NodeFlag_IS_DIRTY);
             ImGui::Checkbox("Is dirty ?", &b);
 
             // Parent graph
@@ -882,7 +837,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
                 if (Node* parent = node->find_parent() )
                 {
-                    parentName = parent->name + (parent->dirty ? " (dirty)" : "");
+                    parentName = parent->name + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
                 }
                 ImGui::Text("Parent node is \"%s\"", parentName.c_str());
             }

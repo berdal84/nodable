@@ -21,6 +21,7 @@ namespace ndbl
         Token token_if;   // Example: { prefix: "", word: "if", suffix: " "}
         Token token_else; // Example: { prefix: " ", word: "else", suffix: " "}
         IfNode();
+        void init(const std::string& _name);
         REFLECT_DERIVED_CLASS()
     };
 }

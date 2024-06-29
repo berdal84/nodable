@@ -22,41 +22,34 @@ namespace ndbl
     {
     public:
         static constexpr size_t THIS_ID = 0; // id of the "this" Property. A "this" Property points to its owner's ID<Node>
-        using iterator = std::vector<Property*>::iterator;
-        using const_iterator = std::vector<Property*>::const_iterator;
-        PropertyBag(Node* node): m_node(node) {};
-		~PropertyBag();
+        typedef std::vector<Property*>::iterator       iterator;
+        typedef std::vector<Property*>::const_iterator const_iterator;
 
-        iterator               begin() { return m_properties.begin(); }
-        iterator               end() { return m_properties.end(); }
-        const_iterator         begin() const { return m_properties.begin(); }
-        const_iterator         end() const { return m_properties.end(); }
-        size_t                 size() const;
-        bool                   has(const char*) const;
-        Property*              at( size_t pos );
-        const Property*        at( size_t pos ) const;
-        Property*              find_by_name(const char* _name);
-        const Property*        find_by_name(const char* _name) const;
-        Property*              find_first( PropertyFlags, const tools::type* );
-        const Property*        find_first( PropertyFlags, const tools::type* ) const;
-        Property*              find_id_from_name(const char*) const;
-        Property*              get_this();
-        const Property*        get_this() const;
-        Property*              add( const tools::type* _type,
-                                    const char *_name,
-                                    PropertyFlags = PropertyFlag_DEFAULT );
+        void             init(Node* owner) { m_owner = owner; }
+        iterator         begin() { return m_properties.begin(); }
+        iterator         end() { return m_properties.end(); }
+        const_iterator   begin() const { return m_properties.begin(); }
+        const_iterator   end() const { return m_properties.end(); }
+        size_t           size() const;
+        bool             has(const char*) const;
+        Property*        at( size_t pos );
+        const Property*  at( size_t pos ) const;
+        Property*        find_by_name(const char* _name);
+        const Property*  find_by_name(const char* _name) const;
+        Property*        find_first( PropertyFlags, const tools::type* );
+        const Property*  find_first( PropertyFlags, const tools::type* ) const;
+        Property*        find_id_from_name(const char*) const;
+        Property*        get_this();
+        const Property*  get_this() const;
+        Property*        add( const tools::type* _type, const char *_name, PropertyFlags = PropertyFlag_NONE );
 
         template<typename T>
-        Property* add(
-            const char* _name,
-            PropertyFlags _flags = PropertyFlag_DEFAULT  )
-        {
-            return add( tools::type::get<T>(), _name, _flags);
-        }
+        Property* add( const char* _name, PropertyFlags _flags = PropertyFlag_NONE )
+        { return add( tools::type::get<T>(), _name, _flags); }
 
     private:
         const Property* _find_first( PropertyFlags _flags, const tools::type *_type) const;
-        Node* m_node;
+        Node*                   m_owner;
         std::vector<Property*>  m_properties;
         std::map<std::string, Property*> m_properties_by_name;
     };
