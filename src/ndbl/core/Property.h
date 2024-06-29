@@ -57,16 +57,13 @@ namespace ndbl
         bool                         has_flags( PropertyFlags _flags )const;
         void                         set_name(const char* _name) { m_name = _name; }
         void                         set(const Property& _other) { value()->set(_other.m_variant); }
-        template<typename T>
-        void set(T _value);
+        template<typename T>void     set(T _value);
 		void                         set_visibility(PropertyFlags);
         Node*                        get_node()const { return m_node; }
         const std::string&           get_name()const { return m_name; }
         const tools::type*           get_type()const { return value()->get_type(); }
         PropertyFlags                get_visibility()const { return m_flags & PropertyFlag_VISIBILITY_MASK; }
         PropertyFlags                flags()const { return m_flags; }
-        void                         init_mem() { m_variant.init_mem(); }
-        void                         release_mem() { m_variant.release_mem(); }
         void                         flag_as_reference();
         bool                         is_ref() const;
         bool                         is_type(const tools::type *_type) const;

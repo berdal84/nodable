@@ -99,7 +99,7 @@ const Slot& VariableNode::output_slot() const
 void VariableNode::initialize()
 {
     variant* variant = get_value();
-    if ( !variant->is_initialized() )
+    if ( !variant->is_mem_initialized() )
         variant->init_mem();
     m_is_initialized = true;
 }
@@ -107,7 +107,7 @@ void VariableNode::initialize()
 void VariableNode::deinitialize()
 {
     variant* variant = get_value();
-    if ( variant->is_initialized() )
+    if (variant->is_mem_initialized() )
         variant->release_mem();
     m_is_initialized = false;
 }

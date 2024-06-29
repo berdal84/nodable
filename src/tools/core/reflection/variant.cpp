@@ -21,35 +21,30 @@ variant::variant(const char* val)
 {
     init_mem();
     *(std::string*)m_data.ptr = val;
-    flag_defined();
 }
 
 variant::variant(double val)
 : m_type(Type_double)
 {
     m_data.d = val;
-    flag_defined();
 }
 
 variant::variant(i16_t val)
 : m_type(Type_i16)
 {
     m_data.i16 = val;
-    flag_defined();
 }
 
 variant::variant(i32_t val)
 : m_type(Type_i32)
 {
     m_data.i32 = val;
-    flag_defined();
 }
 
 variant::variant(bool val)
 : m_type(Type_bool)
 {
     m_data.b = val;
-    flag_defined();
 }
 
 variant::variant(null_t val)
@@ -66,7 +61,7 @@ variant::variant(const variant& other)
 template<>
 void* variant::to<void*>()const
 {
-    if(is_defined() && m_type == Type_ptr )
+    if( m_type == Type_ptr )
     {
         return m_data.ptr;
     }
@@ -74,22 +69,8 @@ void* variant::to<void*>()const
 }
 
 template<>
-u64_t variant::to<u64_t>()const
-{
-    if( (m_flags & Flag_IS_DATA_DEFINED) == 0)
-        if(m_type == Type_i16 || m_type == Type_i32) // i8 and i64 are not handled
-            return {};
-    return m_data.u64;
-}
-
-template<>
 double variant::to<double>()const
 {
-    if( (m_flags & Flag_IS_DATA_DEFINED) == 0 )
-    {
-        return {};
-    }
-
     switch (m_type)
     {
         case Type_bool:    return double(m_data.b);
@@ -105,11 +86,6 @@ double variant::to<double>()const
 template<>
 i16_t variant::to<i16_t>()const
 {
-    if( (m_flags & Flag_IS_DATA_DEFINED) == 0 )
-    {
-        return {};
-    }
-
     switch (m_type)
     {
         case Type_bool:    return (i16_t)m_data.b;
@@ -125,11 +101,6 @@ i16_t variant::to<i16_t>()const
 template<>
 i32_t variant::to<i32_t>()const
 {
-    if( (m_flags & Flag_IS_DATA_DEFINED) == 0 )
-    {
-        return {};
-    }
-
     switch (m_type)
     {
         case Type_bool:    return i32_t(m_data.b);
@@ -145,11 +116,6 @@ i32_t variant::to<i32_t>()const
 template<>
 bool variant::to<bool>()const
 {
-    if( (m_flags & Flag_IS_DATA_DEFINED) == 0 )
-    {
-        return {};
-    }
-
     switch (m_type)
     {
         case Type_bool:   return m_data.b;
@@ -165,11 +131,6 @@ bool variant::to<bool>()const
 template<>
 std::string variant::to<std::string>()const
 {
-    if( (m_flags & Flag_IS_DATA_DEFINED) == 0 )
-    {
-        return "";
-    }
-
     switch (m_type)
     {
         case Type_bool:   return m_data.b ? "true" : "false";
@@ -193,7 +154,6 @@ void variant::set(void* ptr)
     if (m_type != Type_ptr)
         change_type(Type_ptr);
     m_data.ptr = ptr;
-    flag_defined();
 }
 
 void variant::set(const char* _value)
@@ -205,7 +165,6 @@ void variant::set(const char* _value)
         init_mem();
 
     *(std::string*)m_data.ptr = _value;
-    flag_defined();
 }
 
 void variant::set(double _value)
@@ -214,7 +173,6 @@ void variant::set(double _value)
     if ( m_type != Type_double )
         change_type(Type_double);
     m_data.set<double>(_value);
-    flag_defined();
 }
 
 void variant::set(i16_t _value)
@@ -222,7 +180,6 @@ void variant::set(i16_t _value)
     if ( m_type != Type_i16 )
         change_type(Type_i16);
     m_data.i16 = _value;
-    flag_defined();
 }
 
 void variant::set(i32_t _value)
@@ -231,7 +188,6 @@ void variant::set(i32_t _value)
     if ( !is_type(type) )
         change_type(type);
     m_data.i32 = _value;
-    flag_defined();
 }
 
 void variant::set(bool _value)
@@ -240,7 +196,6 @@ void variant::set(bool _value)
     if ( !is_type(type) )
         change_type(type);
     m_data.b = _value;
-    flag_defined();
 }
 
 void variant::set(null_t)
@@ -273,7 +228,6 @@ void variant::init_mem()
         m_data.ptr = new std::string();
     }
 
-    m_flags &= ~Flag_IS_DATA_DEFINED;    // set flag to 0
     m_flags |=  Flag_OWNS_HEAP_ALLOCATED_MEMORY; // set flag to 1
 }
 
@@ -287,13 +241,13 @@ void variant::release_mem()
         m_data.ptr = nullptr;
     }
     m_flags &= ~Flag_OWNS_HEAP_ALLOCATED_MEMORY; // set flags to 0
-    m_flags &= ~Flag_IS_DATA_DEFINED; // set flags to 0
 }
 
 void variant::change_type(const type* _type)
 {
     auto* normalized_type = _type->is_ptr() ? type::get<void*>() : _type; // normalize any pointer to void*
     change_type( type_to_enum(normalized_type) );
+    init_mem();
 }
 
 void variant::change_type(Type new_type)
@@ -309,24 +263,9 @@ void variant::change_type(Type new_type)
     m_type = new_type; // Enum allows to speed up our switch/case
 }
 
-// TODO: should we name this flag_assigned() ?
-void variant::flag_defined()
-{
-    EXPECT(m_type != Type_null, "Cannot set defined a variant having a null type.");
-    EXPECT( m_type != Type_string || m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY, "type string require to init_mem");
-
-    /*
-     * Like in c/cpp, a memory space can be initialized (ex: int i;) but not defined by the user.
-     * That's why is_defined is just a flag. By switching that flag, user will see the value.
-     * Usually this flag is turned on when variant is set.
-     */
-    m_flags |= Flag_IS_DATA_DEFINED;
-}
-
 variant& variant::operator=(const variant &other)
 {
-    if (other.m_type == Type_null )
-        return *this;
+    ASSERT(other.m_type != Type_null );
 
     // copy
     if (other.m_type == m_type )
@@ -335,7 +274,6 @@ variant& variant::operator=(const variant &other)
             set( *((std::string*)other.m_data.ptr) );
         else
             m_data = other.m_data;
-        flag_defined();
         return *this;
     }
 
@@ -359,20 +297,16 @@ variant::operator bool& ()            { return m_data.b;}
 variant::operator double& ()          { return m_data.d;}
 variant::operator i16_t& ()           { return m_data.i16;}
 variant::operator i32_t& ()           { return m_data.i32;}
-variant::operator std::string& ()     { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return *((std::string*)m_data.ptr);}
-//variant::operator u32_t& ()         { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u32;}
-//variant::operator u64_t& ()         { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u64;}
+variant::operator std::string& ()     { return *((std::string*)m_data.ptr);}
 
 // by value
 
 variant::operator bool () const       { return m_data.b;}
-variant::operator const char*() const { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return ((std::string*)m_data.ptr)->c_str();}
+variant::operator const char*() const { return ((std::string*)m_data.ptr)->c_str();}
 variant::operator double () const     { return m_data.d;}
 variant::operator i16_t () const      { return m_data.i16;}
 variant::operator i32_t () const      { return m_data.i32;}
-variant::operator std::string() const { ASSERT((m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY)) return *((std::string*)m_data.ptr);}
-//variant::operator u32_t () const      { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u32;}
-//variant::operator u64_t () const      { ASSERT((m_flags & Flag_IS_MEM_INITIALIZED)) return m_data.u64;}
+variant::operator std::string() const { return *((std::string*)m_data.ptr);}
 variant::operator void*() const       { return m_data.ptr;}
 
 variant::Type variant::type_to_enum(const tools::type* _type)
@@ -399,10 +333,8 @@ const tools::type* variant::enum_to_type(Type _type)
         case Type_i16:     return type::get<i16_t>();
         case Type_i32:     return type::get<i32_t>();
         case Type_null:    return type::get<null_t>();
-        case Type_ptr: return type::get<void*>();
+        case Type_ptr:     return type::get<void*>();
         case Type_string:  return type::get<std::string>();
-//        case Type_u32:     return type::get<u32_t>();
-//        case Type_u64:     return type::get<u64_t>();
         default:
             ASSERT(false) // unhandled type
     }
@@ -413,19 +345,16 @@ bool variant::is_type(const tools::type* _type) const
     return m_type == type_to_enum(_type); // compare the internal Type enum values
 }
 
-bool variant::is_initialized() const
+bool variant::is_mem_initialized() const
 {
-    return m_type != Type_string || m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY; // only strings are heap allocated
+    if ( m_type != Type_string ) // only strings are heap allocated
+        return true;
+    return m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY;
 }
 
 const type *variant::get_type() const
 {
     return enum_to_type(m_type);
-}
-
-bool variant::is_defined() const
-{
-    return m_flags & Flag_IS_DATA_DEFINED;
 }
 
 const qword *variant::data() const

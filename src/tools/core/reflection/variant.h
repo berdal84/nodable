@@ -20,6 +20,7 @@ namespace tools
     public:
         variant();
         ~variant();
+
         variant(const variant& other);
         variant(const std::string& val);
         variant(const char* val);
@@ -29,14 +30,6 @@ namespace tools
         variant(bool val);
         variant(null_t val);
 
-        void        init_mem();
-        void        release_mem(); // undo init_mem()
-        bool        is_initialized() const;
-        bool        is_type(const tools::type*) const;
-        bool        is_defined() const;
-        void        change_type(const type* _type);
-        void        flag_defined();
-        void        clear_data();
         void        set(void* ptr);
         void        set(const std::string& _value);
         void        set(const char* _value);
@@ -46,21 +39,23 @@ namespace tools
         void        set(i16_t);
         void        set(i32_t);
         void        set(const variant&);
+
         const type* get_type()const;
+        bool        is_type(const tools::type*) const;
+        void        change_type(const type* _type);
+
+        void        clear_data();
         const qword*data() const; // get ptr to underlying data (qword)
+
         template<typename T>
         T           to()const;
         variant&    operator=(const variant& other);
         explicit operator double&();
-//        explicit operator u64_t&();
-//        explicit operator u32_t&();
         explicit operator i32_t&();
         explicit operator i16_t&();
         explicit operator bool&();
         explicit operator std::string& ();
         explicit operator double() const;
-//        explicit operator u64_t() const;
-//        explicit operator u32_t() const;
         explicit operator i32_t() const;
         explicit operator i16_t() const;
         explicit operator bool() const;
@@ -80,31 +75,26 @@ namespace tools
             Type_any, // "similar" to TypeScript's any.
             Type_bool,
             Type_double,
-            // Type_u8,
-            // Type_u16,
-            // Type_u32,
-            // Type_u64,
-            // Type_i8,
             Type_i16,
             Type_i32,
-            // Type_i64,
             Type_string,
-            Type_ptr,
-
-            Type_COUNT,
-
+            Type_ptr
         };
-        void                      change_type(Type new_type);
+
+        void change_type(Type new_type);
+        void init_mem();
+        void release_mem(); // undo init_mem()
+        bool is_mem_initialized() const;
+
         static Type               type_to_enum(const tools::type*) ;
         static const tools::type* enum_to_type(Type) ;
 
         typedef int Flags;
         enum Flag_
         {
-            Flag_NONE               = 0,
-            Flag_IS_DATA_DEFINED    = 1,      // True when user assigned a value to the variant's data
-            Flag_OWNS_HEAP_ALLOCATED_MEMORY      = 1 << 1, // True when dynamically allocated memory is owned by this variant (ex: a std::string*)
-            Flag_ALLOWS_TYPE_CHANGE = 1 << 2  // True if variant's type can change over time, by default its strict (type can be set once).
+            Flag_NONE                       = 0,
+            Flag_OWNS_HEAP_ALLOCATED_MEMORY = 1 << 0, // True when dynamically allocated memory is owned by this variant (ex: a std::string*)
+            Flag_ALLOWS_TYPE_CHANGE         = 1 << 1  // True if variant's type can change over time, by default its strict (type can be set once).
         };
 
         Type          m_type  = Type_any;

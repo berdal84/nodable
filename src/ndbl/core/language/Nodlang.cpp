@@ -1644,7 +1644,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     ASSERT(adjacent_property != nullptr)
 
     // specific case of a Node*
-    if ( adjacent_property->is_this() && adjacent_property->value()->is_initialized() )
+    if ( adjacent_property->is_this() && adjacent_property->value()->is_mem_initialized() )
     {
         auto* node = (Node*)adjacent_property->value()->as<void*>();
         ASSERT(node != nullptr)

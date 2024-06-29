@@ -626,7 +626,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
         ImGui::PopStyleColor();
 
     }
-    else if( !property->value()->is_initialized() )
+    else if( !property->value()->is_mem_initialized() )
     {
         ImGui::LabelText(label.c_str(), "uninitialized");
     }
@@ -717,7 +717,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                         "defined:     %s,\n"
                         "Source token:\n"
                         "%s\n",
-                        variant->is_initialized() ? "true" : "false",
+                        variant->is_mem_initialized() ? "true" : "false",
                         variant->is_defined()     ? "true" : "false",
                          property->token.json().c_str()
                         );
