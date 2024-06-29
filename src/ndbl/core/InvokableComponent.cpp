@@ -14,21 +14,21 @@ REFLECT_STATIC_INIT
     StaticInitializer<InvokableComponent>("InvokableComponent").extends<NodeComponent>();
 }
 
-InvokableComponent::InvokableComponent()
-    : NodeComponent()
-{}
-
-InvokableComponent::InvokableComponent(
+void InvokableComponent::init(
     const func_type*  _signature,
     InvokableFlags    _flags,
     const IInvokable* _invokable
 )
-: NodeComponent()
-, m_signature( _signature )
-, token( Token_t::identifier, _signature->get_identifier().c_str() )
-, m_flags(_flags)
-, m_invokable(_invokable)
 {
+
+    m_signature = _signature;
+    m_flags     = _flags;
+    m_invokable = _invokable;
+    token = {
+        Token_t::identifier,
+        _signature->get_identifier().c_str()
+    };
+
     EXPECT(_signature != nullptr, "Signature must be defined!")
     EXPECT((m_flags & InvokableFlag_WAS_INVOKED) == 0, "This flag is not allowed here")
     EXPECT((m_flags & InvokableFlag_IS_INVOKABLE) == 0, "This flag is not allowed here")

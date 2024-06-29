@@ -161,7 +161,8 @@ Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_
 void NodeFactory::add_invokable_component(Node* _node, const func_type* _func_type, const IInvokable*_invokable, bool _is_operator) const
 {
     // Create an InvokableComponent with the function.
-    auto* component = create<InvokableComponent>(_func_type, _is_operator, _invokable);
+    auto* component = create<InvokableComponent>();
+    component->init(_func_type, _is_operator, _invokable);
     _node->add_component(component);
 
     // Bind result property

@@ -37,13 +37,7 @@ namespace tools
     class func_type
     {
     public:
-        func_type(std::string _id);
-        ~func_type() {};
-
-        template <typename... T>
-        void push_args(T&&... args)
-        { int dummy[] = { 0, ((void) push_arg(std::forward<T>(args)),0)... }; }
-
+        void                           set_identifier(const std::string& _identifier) { m_identifier = _identifier; }
         void                           push_arg(const type* _type, bool _by_reference = false);
         bool                           has_an_arg_of_type(const type* type)const;
         bool                           is_exactly(const func_type* _other)const;
@@ -57,7 +51,7 @@ namespace tools
     private:
         std::string          m_identifier;
         std::vector<FuncArg> m_args;
-        const type*          m_return_type;
+        const type*          m_return_type = type::null();
 
     public:
 
@@ -121,8 +115,8 @@ namespace tools
         {
             EXPECT( !m_id.empty(), "No identifier specified! use with_id()" );
 
-            func_type* signature = new func_type(m_id);
-
+            func_type* signature = new func_type();
+            signature->set_identifier(std::move(m_id));
             signature->set_return_type(type::get<T>());
             signature->push_args<std::tuple<Args...>>();
 

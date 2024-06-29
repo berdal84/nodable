@@ -27,11 +27,8 @@ namespace ndbl
 	class InvokableComponent : public NodeComponent
     {
 	public:
-        InvokableComponent();
-		InvokableComponent(const tools::func_type*, InvokableFlags _flags, const tools::IInvokable*);
-		~InvokableComponent() = default;
-
         Token token;
+        void                        init(const tools::func_type*, InvokableFlags _flags, const tools::IInvokable*);
         void                        invoke();
 		void                        bind_arg(size_t _index, Slot*);
         const std::vector<Slot*>&   get_arguments() const;

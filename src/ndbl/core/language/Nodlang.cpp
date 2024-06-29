@@ -355,11 +355,11 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     // Create a function signature according to ltype, rtype and operator word
-    func_type *type = new func_type(ope->identifier);
+    func_type *type = new func_type();
+    type->set_identifier(ope->identifier);
     type->set_return_type(type::any());
-    type->push_args(
-            _left.get_property()->get_type(),
-            right->get_property()->get_type());
+    type->push_arg( _left.get_property()->get_type());
+    type->push_arg(right->get_property()->get_type());
 
     InvokableComponent* component;
     Node* binary_op = parser_state.graph->create_abstract_operator(type); // always abstract
@@ -412,9 +412,10 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Create a function signature
-    auto* type = new func_type(operator_token.word_to_string());  // FIXME: avoid std::string copy
+    auto* type = new func_type();  // FIXME: avoid std::string copy
+    type->set_identifier(operator_token.word_to_string());
     type->set_return_type(type::any());
-    type->push_args( out_atomic->get_property()->get_type());
+    type->push_arg( out_atomic->get_property()->get_type());
 
     InvokableComponent* component{};
     Node* node = parser_state.graph->create_abstract_operator(type);
@@ -1011,7 +1012,8 @@ Slot* Nodlang::parse_function_call()
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    func_type signature(fct_id);
+    func_type signature;
+    signature.set_identifier(fct_id);
     signature.set_return_type(type::any());
 
     bool parsingError = false;
@@ -1605,6 +1607,8 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
     ASSERT( node )
     ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
+    // TODO: use switch on node->type()
+    //
     if ( auto* cond_struct = cast<const IfNode>(node ) )
     {
         serialize_cond_struct(_out, cond_struct);

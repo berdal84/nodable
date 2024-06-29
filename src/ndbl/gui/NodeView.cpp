@@ -575,14 +575,10 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
         ImGui::Text("%s %s\n", property->get_type()->get_name(), property->get_name().c_str());
 
         std::string  source_code;
-        if( property->get_type()->is<Node*>() || get_node()->find_slot_by_property( property, SlotFlag_OUTPUT ))
-        {
-            source_code = get_language()->serialize_node( source_code, get_node() );
-        }
+        if( property->has_flags(PropertyFlag_IS_THIS) || get_node()->find_slot_by_property( property, SlotFlag_OUTPUT ))
+            get_language()->serialize_node( source_code, get_node() );
         else
-        {
-            source_code = get_language()->serialize_property(source_code, property );
-        }
+            get_language()->serialize_property(source_code, property );
 
         ImGui::Text("source: \"%s\"", source_code.c_str());
 

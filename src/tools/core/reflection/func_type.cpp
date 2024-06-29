@@ -4,12 +4,6 @@
 
 using namespace tools;
 
-func_type::func_type(std::string _id)
-    : m_identifier(_id)
-    , m_return_type(type::null())
-{
-}
-
 void func_type::push_arg(const type* _type, bool _by_reference)
 {
    auto index = (u8_t)m_args.size();

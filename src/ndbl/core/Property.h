@@ -37,8 +37,8 @@ namespace ndbl
         void               init(const tools::type*, PropertyFlags, Node*); // must be called once before use
         void               digest(Property *_property);
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
-        void               set_flags(PropertyFlags flags) { m_flags |= flags; }
-        void               clear_flags(PropertyFlags flags = PropertyFlag_ALL) { m_flags &= ~flags; }
+     // void               set_flags(PropertyFlags flags) { m_flags |= flags; }
+     // void               clear_flags(PropertyFlags flags = PropertyFlag_ALL) { m_flags &= ~flags; }
         void               set_name(const char* _name) { m_name = _name; }
         Node*              get_owner()const { return m_owner; }
         const std::string& get_name()const { return m_name; }
