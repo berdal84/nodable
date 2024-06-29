@@ -11,15 +11,23 @@
 
 namespace ndbl
 {
+    typedef int InvokableFlags;
+    enum InvokableFlag_
+    {
+        InvokableFlag_NONE = 0,
+        InvokableFlag_IS_OPERATOR  = 1 << 0,
+        InvokableFlag_WAS_EVALUATED = 1 << 1,
+    };
+
 	/**
 	  * @brief ComputeFunction extends Compute base to provide a Component that represents a Function.
-	  *        This function has some arguments.
+	  *        This function has_flags some arguments.
 	  */
 	class InvokableComponent : public NodeComponent
     {
 	public:
         InvokableComponent();
-		InvokableComponent(const tools::func_type*, bool _is_operator, const tools::IInvokable*);
+		InvokableComponent(const tools::func_type*, InvokableFlags _flags, const tools::IInvokable*);
 		~InvokableComponent() = default;
 
         Token token;
@@ -30,13 +38,14 @@ namespace ndbl
 		const tools::IInvokable*    get_function()const { return m_invokable; }
         void                        bind_result(Slot*);
         bool                        has_function() const { return m_invokable; };
-		bool                        is_operator()const { return m_is_operator; };
-
+		bool                        has_flags(InvokableFlags flags)const { return (m_flags & flags) == flags; };
+        void                        set_flags(InvokableFlags flags) { m_flags |= flags; }
+        void                        clear_flags(InvokableFlags flags) { m_flags &= ~flags; }
     protected:
+        InvokableFlags             m_flags         = InvokableFlag_NONE;
         Slot*                      m_result_slot   = nullptr;
         const tools::func_type*    m_signature     = nullptr;
         const tools::IInvokable*   m_invokable     = nullptr;
-        bool                       m_is_operator   = false;
         std::vector<Slot*>         m_argument_slot;
 
         REFLECT_DERIVED_CLASS()

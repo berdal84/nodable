@@ -102,11 +102,7 @@ void CLI::clear()
 
 void CLI::log_function_call(const variant &result, const func_type *type)
 {
-    LOG_MESSAGE("CLI",
-                "CLI::%s() done (result: %s)\n",
-                type->get_identifier().c_str(),
-                result.is_defined() ? result.to<std::string>().c_str() : "void"
-                )
+    LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n",type->get_identifier().c_str(), result.to<std::string>().c_str())
 }
 
 std::string CLI::get_line()

@@ -12,6 +12,15 @@
 
 namespace ndbl
 {
+
+    typedef int VariableFlags;
+    enum VariableFlags_
+    {
+        VariableFlag_NONE = 0,
+        VariableFlag_DECLARED    = 1 << 0,
+        VariableFlag_INITIALIZED = 1 << 1
+    };
+
 	/**
 		@brief VariableNode is a Node having a single Property and is identifiable by a name.
 		The wrapped Property's name is Node::VALUE_MEMBER_NAME and can be linked to other properties.
@@ -19,45 +28,43 @@ namespace ndbl
 	class VariableNode : public Node
     {
 	public:
+        typedef tools::type    type;
+        typedef tools::variant variant;
+
 		VariableNode();
 		explicit VariableNode(const tools::type *, const char* identifier);
 		~VariableNode() override {};
 
         void             init() override;
-		bool             is_declared()const { return m_is_declared; }
-        bool             is_initialized() const { return m_is_initialized; };
+        bool             has_flags(VariableFlags flags)const { return (m_flags & flags) == flags; };
+        void             set_flags(VariableFlags flags) { m_flags |= flags; }
+        void             clear_flags(VariableFlags flags) { m_flags &= ~flags; }
         Property*        property();
         const Property*  property()const;
         Scope*           get_scope();
-        void             set_declared(bool b = true) { m_is_declared = b; }
         void             reset_scope(Scope* _scope = nullptr);
-        const tools::type*  get_value_type() const;
-        tools::variant*     get_value();
-        tools::variant& operator * () { return *property()->value(); }
-        tools::variant* operator -> () { return property()->value(); }
-        const tools::variant& operator * () const { return *property()->value(); }
+        const tools::type*get_value_type() const;
+        variant*         get_value();
 
-        const tools::variant* operator -> () const { return property()->value(); }
+        variant& operator * () { return *property()->value(); }
+        variant* operator -> () { return property()->value(); }
+        const variant& operator * () const { return *property()->value(); }
+        const variant* operator -> () const { return property()->value(); }
+
         Slot       &input_slot();
         const Slot &input_slot() const;
         Slot       &output_slot();
-
         const Slot &output_slot() const;
-
-        void initialize();
-
-        void deinitialize();
 
     public:
         Token  type_token;
         Token  assignment_operator_token;
         Token  identifier_token;
     private:
-        Property*   m_value_property{};
-        bool        m_is_declared    = false;
-        bool        m_is_initialized = false;
-        Node*       m_scope{};
-        const tools::type* m_type;
+        Property*          m_value_property{};
+        VariableFlags      m_flags = VariableFlag_NONE;
+        Node*              m_scope = nullptr;
+        const tools::type* m_type  = tools::type::any();
 
 		REFLECT_DERIVED_CLASS()
     };

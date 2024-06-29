@@ -344,11 +344,19 @@ Node::~Node()
 bool Node::is_unary_operator() const
 {
     auto* invokable_component = get_component<InvokableComponent>();
-    return invokable_component != nullptr && invokable_component->is_operator() && invokable_component->get_arguments().size() == 1;
+    if ( invokable_component != nullptr )
+        if ( invokable_component->has_flags(InvokableFlag_IS_OPERATOR) )
+            if ( invokable_component->get_arguments().size() == 1 )
+                return true;
+    return false;
 }
 
 bool Node::is_binary_operator() const
 {
     auto* invokable_component = get_component<InvokableComponent>();
-    return invokable_component != nullptr && invokable_component->is_operator() && invokable_component->get_arguments().size() == 2;
+    if ( invokable_component != nullptr )
+        if ( invokable_component->has_flags(InvokableFlag_IS_OPERATOR) )
+            if ( invokable_component->get_arguments().size() == 2 )
+                return true;
+    return false;
 }

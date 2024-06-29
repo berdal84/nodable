@@ -50,7 +50,7 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
 
             for( auto each_variable : variables )
             {
-                if( !each_variable->is_declared() )
+                if( !each_variable->has_flags(VariableFlag_DECLARED) )
                 {
                     LOG_ERROR("Compiler", "Syntax error: \"%s\" is not declared.\n", each_variable->name.c_str() );
                     return false;

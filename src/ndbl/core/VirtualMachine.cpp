@@ -182,7 +182,7 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
-            ASSERT( !variable->is_initialized() )
+            ASSERT( !variable->has_flags(VariableFlag_INITIALIZED) )
             //
             // TODO: implement a stack/heap
             //
@@ -193,8 +193,8 @@ bool VirtualMachine::_stepOver()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
-            if( variable->is_initialized() )
-                variable->deinitialize();
+            if(variable->has_flags(VariableFlag_INITIALIZED) ) // Might not have been initialized, check needed.
+                variable->clear_flags(VariableFlag_INITIALIZED);
             //
             // TODO: implement a stack/heap
             //
@@ -230,9 +230,9 @@ bool VirtualMachine::_stepOver()
 
             if( auto variable = cast<VariableNode>(next_instr->eval.node))
             {
-                if( !variable->is_initialized() )
+                if( !variable->has_flags(VariableFlag_INITIALIZED) )
                 {
-                    variable->initialize();
+                    variable->set_flags(VariableFlag_INITIALIZED);
                     update_input__by_value_only(variable);
                 }
             }
@@ -242,8 +242,10 @@ bool VirtualMachine::_stepOver()
             }
 
             // evaluate Invokable Component, could be an operator or a function
-            if( auto* invokable = next_instr->eval.node->get_component<InvokableComponent>() )
+            auto* invokable = next_instr->eval.node->get_component<InvokableComponent>();
+            if( invokable != nullptr )
             {
+                ASSERT(invokable->has_flags(InvokableFlag_WAS_EVALUATED) == false ) // flag should have been reset
                 invokable->invoke();
             }
 

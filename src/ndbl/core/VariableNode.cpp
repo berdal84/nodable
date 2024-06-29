@@ -13,15 +13,11 @@ REFLECT_STATIC_INIT
 
 VariableNode::VariableNode()
 : Node("Variable")
-, m_is_declared(false)
-, m_type(type::any())
-{
-}
+{}
 
 VariableNode::VariableNode(const tools::type *_type, const char* identifier)
 : Node("Variable")
 , identifier_token( Token_t::identifier )
-, m_is_declared( false )
 , m_type( _type )
 {
     set_name(identifier);
@@ -96,18 +92,3 @@ const Slot& VariableNode::output_slot() const
     return *find_slot_by_property(m_value_property, SlotFlag_OUTPUT );
 }
 
-void VariableNode::initialize()
-{
-    variant* variant = get_value();
-    if ( !variant->is_mem_initialized() )
-        variant->init_mem();
-    m_is_initialized = true;
-}
-
-void VariableNode::deinitialize()
-{
-    variant* variant = get_value();
-    if (variant->is_mem_initialized() )
-        variant->release_mem();
-    m_is_initialized = false;
-}

@@ -65,7 +65,7 @@ VariableNode* NodeFactory::create_variable(const type *_type, const std::string&
     }
     else
     {
-        LOG_WARNING("HeadlessNodeFactory", "Variable %s has been created without defining its scope.\n", _name.c_str())
+        LOG_WARNING("HeadlessNodeFactory", "Variable %s has_flags been created without defining its scope.\n", _name.c_str())
     }
 
     m_post_process(node);

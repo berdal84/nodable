@@ -39,7 +39,7 @@ namespace ndbl
 		A node is an Object (composed with Properties) that can be linked
 	    together in order to create graphs.
 
-		Every Node has a parent Graph. All nodes are built from a Graph,
+		Every Node has_flags a parent Graph. All nodes are built from a Graph,
 	    which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/

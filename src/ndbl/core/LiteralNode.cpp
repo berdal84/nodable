@@ -12,6 +12,7 @@ REFLECT_STATIC_INIT
 LiteralNode::LiteralNode(const type* _type)
 : Node()
 , m_type( _type )
+, m_value_property(nullptr)
 {
 }
 
@@ -19,11 +20,8 @@ void LiteralNode::init()
 {
     Node::init();
 
-    m_value_property_id = props.add(
-            m_type,
-            VALUE_PROPERTY,
-            PropertyFlag_VISIBLE | PropertyFlag_INITIALIZE | PropertyFlag_DEFINE | PropertyFlag_RESET_VALUE);
-    add_slot( SlotFlag::SlotFlag_OUTPUT, 1, m_value_property_id);
+    m_value_property = props.add(m_type, VALUE_PROPERTY, PropertyFlag_VISIBLE);
+    add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_value_property);
     add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_this_as_property);
 
     add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
@@ -31,13 +29,13 @@ void LiteralNode::init()
 
 Property *LiteralNode::value()
 {
-    ASSERT(m_value_property_id != nullptr)
-    return m_value_property_id;
+    ASSERT(m_value_property != nullptr)
+    return m_value_property;
 }
 
 const Property *LiteralNode::value() const
 {
-    ASSERT(m_value_property_id != nullptr)
-    return m_value_property_id;
+    ASSERT(m_value_property != nullptr)
+    return m_value_property;
 }
 

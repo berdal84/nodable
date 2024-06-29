@@ -35,21 +35,14 @@ Property::Property(const std::string &s, Node* node)
 : Property(s.c_str(), node)
 {}
 
-
 Property::Property(const type* _type, PropertyFlags _flags, Node* node)
 : Property(node)
 {
-    // handle type
     if ( !m_variant.is_type(_type) )
         m_variant.change_type(_type);
 
-    // handle flags
     m_flags = _flags;
-    if ( m_flags & PropertyFlag_INITIALIZE )  m_variant.init_mem();
-    if ( m_flags & PropertyFlag_DEFINE )      m_variant.flag_defined();
-    if ( m_flags & PropertyFlag_RESET_VALUE ) m_variant.clear_data();
 }
-
 
 void Property::digest(Property* _property)
 {

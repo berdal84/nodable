@@ -582,7 +582,7 @@ void NodableView::draw_virtual_machine_window()
             ImGui::Text("Bytecode:");
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "The bytecode is the result of the Compilation process."
-                                          "\nAfter source code has been parsed to a syntax tree, "
+                                          "\nAfter source code has_flags been parsed to a syntax tree, "
                                           "\nthe tree (or graph) is converted by the Compiler to an Assembly-like code.");
             ImGui::Checkbox("Auto-scroll ?", &m_scroll_to_curr_instr);
             ImGui::SameLine();

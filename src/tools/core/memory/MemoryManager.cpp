@@ -16,7 +16,7 @@ const MemoryStats* tools::get_memory_stats()
 
 const MemoryStats* tools::init_memory_manager()
 {
-    EXPECT(g_memory_stats == nullptr, "Can't initialize twice");
+    EXPECT(g_memory_stats == nullptr, "Can't flag_initialized twice");
     g_memory_stats = new MemoryStats();
     ASSERT(g_memory_stats->alloc_count() == 0);
     return g_memory_stats;

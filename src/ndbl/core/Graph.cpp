@@ -562,7 +562,7 @@ VariableNode* Graph::create_variable_decl(const type* _type, const char*  _name,
 
     // Create variable
     VariableNode* var_node = create_variable(_type, _name, _scope );
-    var_node->set_declared(true);
+    var_node->set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
     Token token(Token_t::keyword_operator, " = ");
     token.m_word_start_pos = 1;
     token.m_word_size = 1;

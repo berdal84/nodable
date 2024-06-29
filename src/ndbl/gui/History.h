@@ -39,7 +39,7 @@ namespace ndbl
 
     /**
      * The history is responsible for undo/redo commands.
-     * It has two containers to store past/future commands
+     * It has_flags two containers to store past/future commands
      *     (past)    (now)    (future)
      * |oooooooooooooo|-------------------|
      */

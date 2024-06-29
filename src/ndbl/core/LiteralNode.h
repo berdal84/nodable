@@ -12,15 +12,13 @@ namespace ndbl
 
         LiteralNode() = default;
         explicit LiteralNode(const tools::type*);
-        LiteralNode(LiteralNode&&) = default;
-        LiteralNode& operator=(LiteralNode&&) = default;
         ~LiteralNode() override = default;
 
         void            init() override;
         Property*       value();
         const Property* value() const;
     private:
-        Property*   m_value_property_id;
+        Property*   m_value_property;
         const type* m_type;
         REFLECT_DERIVED_CLASS()
     };

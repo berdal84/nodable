@@ -17,12 +17,9 @@ namespace ndbl
     enum PropertyFlag
     {
         PropertyFlag_NONE            = 0,
-        PropertyFlag_INITIALIZE      = 1 << 0,
-        PropertyFlag_DEFINE          = 1 << 1,
-        PropertyFlag_RESET_VALUE     = 1 << 2,
-        PropertyFlag_IS_REF          = 1 << 3,
-        PropertyFlag_VISIBLE         = 1 << 4,
-        PropertyFlag_IS_THIS         = 1 << 5, // Property pointing this Property's parent Node (stored as void* in variant).
+        PropertyFlag_IS_REF          = 1 << 0,
+        PropertyFlag_VISIBLE         = 1 << 1,
+        PropertyFlag_IS_THIS         = 1 << 2, // Property pointing this Property's parent Node (stored as void* in variant).
         PropertyFlag_VISIBILITY_MASK = PropertyFlag_VISIBLE,
         PropertyFlag_DEFAULT         = PropertyFlag_VISIBLE
     };
