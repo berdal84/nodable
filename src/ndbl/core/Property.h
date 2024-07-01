@@ -37,7 +37,7 @@ namespace ndbl
         Node*              get_owner()const { return m_owner; }
         const tools::type* get_type()const { return m_type; }
         bool               is_type(const tools::type* other) const;
-        void               set_token(Token& _token) { m_token = _token; }
+        void               set_token(const Token& _token) { m_token = _token; }
         Token&             get_token() { return m_token; }
         const Token&       get_token() const { return m_token; }
 

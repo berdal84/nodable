@@ -44,13 +44,18 @@ namespace ndbl
         Slot&              output_slot();
         const Slot&        output_slot() const;
         const tools::type* get_value_type() const;
-
-    public:
-        Token              type_token                = Token::s_null;
-        Token              assignment_operator_token = Token::s_null;
-        Token              identifier_token          = Token::s_null;
+        const Token&       get_type_token() const { return m_type_token; }
+        const Token&       get_identifier_token() const { return m_identifier->get_token(); }
+        Token&             get_identifier_token() { return m_identifier->get_token(); }
+        const Token&       get_operator_token() const { return m_operator_token; }
+        void               set_type_token(const Token& tok) { m_type_token = tok; }
+        void               set_identifier_token(const Token& tok) { m_identifier->set_token(tok); }
+        void               set_operator_token(const Token& tok) { m_operator_token = tok; }
     private:
-        Property*          m_value  = nullptr;
+        Token              m_type_token       = Token::s_null; // [int] var  =   42
+        Property*          m_identifier       = nullptr;       //  int [var] =   42
+        Token              m_operator_token   = Token::s_null; //  int  var [=]  42
+        Property*          m_value            = nullptr;       //  int  var  =  [42]
         VariableFlags      m_vflags = VariableFlag_NONE;
         Node*              m_scope  = nullptr;
 

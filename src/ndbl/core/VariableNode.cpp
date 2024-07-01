@@ -14,7 +14,10 @@ void VariableNode::init(const tools::type* _val_type, const char* _identifier)
 {
     // Init node
     Node::init(NodeType_VARIABLE, _identifier);
-    identifier_token = Token_t::identifier; // has an identifier!
+
+    // Init identifier property
+    m_identifier = add_prop(_val_type, IDENTIFIER_PROPERTY );
+    m_identifier->set_token(Token_t::identifier);
 
     // Init value property
     m_value = add_prop(_val_type, VALUE_PROPERTY );

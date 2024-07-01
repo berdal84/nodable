@@ -1332,7 +1332,7 @@ Slot* Nodlang::parse_variable_declaration()
 
     start_transaction();
 
-    Token type_token = parser_state.ribbon.eat();
+    Token type_token       = parser_state.ribbon.eat();
     Token identifier_token = parser_state.ribbon.eat();
 
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
@@ -1340,9 +1340,8 @@ Slot* Nodlang::parse_variable_declaration()
         const type* variable_type = get_type(type_token.m_type);
         VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), get_current_scope() );
         variable_node->set_flags(VariableFlag_DECLARED);
-        variable_node->type_token = type_token;
-        variable_node->identifier_token.take_prefix_suffix_from(&identifier_token);
-        variable_node->property()->set_token( identifier_token );
+        variable_node->set_type_token( type_token );
+        variable_node->set_identifier_token( identifier_token );
         // try to parse assignment
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
         if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word() == '=')
@@ -1353,7 +1352,7 @@ Slot* Nodlang::parse_variable_declaration()
                 )
             {
                 parser_state.graph->connect_to_variable( *expression_out, *variable_node );
-                variable_node->assignment_operator_token = operator_token;
+                variable_node->set_operator_token( operator_token );
             }
             else
             {
@@ -1515,9 +1514,9 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     if ( _node->is_instruction() )
     {
         // If parsed
-        if (!_node->type_token.is_null())
+        if (!_node->get_type_token().is_null())
         {
-            serialize_token(_out, _node->type_token);
+            serialize_token(_out, _node->get_type_token());
         }
         else // If created in the graph by the user
         {
@@ -1527,7 +1526,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     }
 
     // 2. Serialize variable identifier
-    serialize_token(_out, _node->get_value()->get_token() );
+    serialize_token( _out, _node->get_identifier_token() );
 
     // 3. Initialisation
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
@@ -1535,10 +1534,10 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     const Slot& slot = _node->input_slot();
     if ( _node->is_instruction() && slot.adjacent_count() != 0 )
     {
-        if ( _node->assignment_operator_token.is_null() )
-        { _out.append(" = "); }
+        if ( _node->get_operator_token().is_null() )
+            _out.append(" = ");
         else
-        { _out.append(_node->assignment_operator_token.buffer_to_string()); }
+            _out.append(_node->get_operator_token().buffer_to_string());
 
         serialize_output( _out, *slot.first_adjacent() );
     }

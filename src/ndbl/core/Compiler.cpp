@@ -49,9 +49,9 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
 
             for( auto each_variable : variables )
             {
-                if( !each_variable->has_flags(VariableFlag_DECLARED) )
+                if( each_variable->get_scope() == nullptr )
                 {
-                    LOG_ERROR("Compiler", "Syntax error: \"%s\" is not declared.\n", each_variable->get_name().c_str() );
+                    LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_variable->get_name().c_str() );
                     return false;
                 }
             }
@@ -62,7 +62,7 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
         {
             if ( !component->has_function() )
             {
-                LOG_ERROR("Compiler", "Syntax error: \"%s\" is not a function available.\n", each_node->get_name().c_str() );
+                LOG_ERROR("Compiler", "\"%s\" is not a function available.\n", each_node->get_name().c_str() );
                 return false;
             }
         }

@@ -567,7 +567,7 @@ VariableNode* Graph::create_variable_decl(const type* _type, const char*  _name,
     Token token(Token_t::keyword_operator, " = ");
     token.m_word_start_pos = 1;
     token.m_word_length = 1;
-    var_node->assignment_operator_token = token;
+    var_node->set_operator_token( token );
 
     // TODO: attach a default Literal?
 
