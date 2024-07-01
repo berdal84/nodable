@@ -159,7 +159,7 @@ bool VirtualMachine::_stepOver()
             }
             else if(ptr_type->is<void *>() )
             {
-                LOG_VERBOSE("VM", "deref_qword void* (aka Node*) (%p): %s\n", qword->ptr, ((Node*)qword->ptr)->name.c_str() );
+                LOG_VERBOSE("VM", "deref_qword void* (aka Node*) (%p): %s\n", qword->ptr, ((Node*)qword->ptr)->get_name().c_str() );
             }
             else if(ptr_type->is<any_t>() )
             {

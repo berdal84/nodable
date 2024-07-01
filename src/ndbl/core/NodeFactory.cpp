@@ -102,7 +102,7 @@ Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_
     }
 
     // Create a result/value
-    auto return_prop_id = node->props.add(_func_type->get_return_type(), VALUE_PROPERTY );
+    auto return_prop_id = node->add_prop(_func_type->get_return_type(), VALUE_PROPERTY );
     node->add_slot( SlotFlag_OUTPUT, Slot::MAX_CAPACITY, return_prop_id);
 
     // Create arguments
@@ -119,17 +119,17 @@ Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_
         {
             case 1:
             {
-                auto left_prop_id = node->props.add(args[0].m_type, LEFT_VALUE_PROPERTY );
-                node->add_slot( SlotFlag_INPUT, 1, left_prop_id);
+                auto prop = node->add_prop(args[0].m_type, LEFT_VALUE_PROPERTY );
+                node->add_slot(SlotFlag_INPUT, 1, prop);
                 break;
             }
 
             case 2:
             {
-                auto left_prop_id = node->props.add( args[0].m_type, LEFT_VALUE_PROPERTY );
-                auto right_prop_id = node->props.add( args[1].m_type, RIGHT_VALUE_PROPERTY );
-                node->add_slot( SlotFlag_INPUT, 1, left_prop_id );
-                node->add_slot( SlotFlag_INPUT, 1 , right_prop_id);
+                auto left_prop  = node->add_prop(args[0].m_type, LEFT_VALUE_PROPERTY );
+                auto right_prop = node->add_prop(args[1].m_type, RIGHT_VALUE_PROPERTY );
+                node->add_slot(SlotFlag_INPUT, 1, left_prop );
+                node->add_slot(SlotFlag_INPUT, 1, right_prop);
                 break;
             }
 
@@ -140,7 +140,7 @@ Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_
     {
         for (auto& arg : args)
         {
-            auto each_prop_id = node->props.add(arg.m_type, arg.m_name.c_str() );
+            auto each_prop_id = node->add_prop(arg.m_type, arg.m_name.c_str() );
             node->add_slot( SlotFlag_INPUT, 1, each_prop_id);
         }
     }

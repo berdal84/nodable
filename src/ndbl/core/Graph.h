@@ -75,9 +75,9 @@ namespace ndbl
         template<typename T>
         LiteralNode*             create_literal() { return create_literal( tools::type::get<T>()); }
         Node*                    create_abstract_function(const tools::func_type *_invokable, bool _is_operator = false); // Create and append a new abstract (without known implementation)  function of a given type.
-        Node*                    create_function(const tools::IInvokable*_invokable, bool _is_operator = false);
+        //Node*                    create_function(const tools::IInvokable*_invokable, bool _is_operator = false);
         Node*                    create_abstract_operator(const tools::func_type *_invokable);  // Create a new abstract (without known implementation) operator.
-        Node*                    create_operator(const tools::IInvokable*_invokable);
+        //Node*                    create_operator(const tools::IInvokable*_invokable);
         Node*                    create_scope();
         IfNode*                  create_cond_struct();
         ForLoopNode*             create_for_loop();

@@ -71,17 +71,6 @@ bool Slot::is_full() const
     return !has_flags(SlotFlag_NOT_FULL);
 }
 
-Property* Slot::get_property() const
-{
-    ASSERT(m_property != nullptr)
-    return m_property;
-}
-
-Node* Slot::get_node() const
-{
-    return m_node;
-}
-
 void Slot::add_adjacent(Slot* _other)
 {
     ASSERT(_other != nullptr);

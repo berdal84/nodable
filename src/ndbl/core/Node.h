@@ -56,29 +56,30 @@ namespace ndbl
     class Node
 	{
     public:
-
-
-        // Data
-
-        std::string       name;
-        PropertyBag       props;
-        Token             after_token;
-        Graph*            parent_graph = nullptr;
-        observe::Event<Node*> on_name_change;
-
+        friend Graph;
+        
         // Code
         Node() = default;
         virtual ~Node();
 
-        void         init(NodeType type, const std::string& name);
-        NodeType     type() const { return m_type; }
-        bool         is_instruction() const;
-        bool         is_unary_operator() const;
-        bool         is_binary_operator() const;
-        bool         can_be_instruction() const;
-        bool         has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
-        void         set_flags(NodeFlags flags) { m_flags |= flags; }
-        void         clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
+        void                 init(NodeType type, const std::string& name);
+        NodeType             type() const { return m_type; }
+        bool                 is_conditional() const;
+        bool                 is_instruction() const;
+        bool                 is_unary_operator() const;
+        bool                 is_binary_operator() const;
+        bool                 can_be_instruction() const;
+        bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
+        void                 set_flags(NodeFlags flags) { m_flags |= flags; }
+        void                 clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
+        Graph*               get_parent_graph() { return m_parent_graph; }
+        const Graph*         get_parent_graph() const { return m_parent_graph; }
+        const std::string&   get_name() const { return m_name; };
+        Token&               get_suffix() { return m_suffix; };
+        const Token&         get_suffix() const { return m_suffix; };
+        void                 set_suffix(const Token& token);
+        const PropertyBag&   get_props() const;
+        observe::Event<Node*>& on_name_change() { return m_on_name_change; };
 
         // Slot related
         //-------------
@@ -107,13 +108,13 @@ namespace ndbl
         size_t               slot_count(SlotFlags) const;
         std::vector<Slot*>&  slots() { return m_slots; }
         const std::vector<Slot*>& slots() const { return m_slots; }
-        std::vector<Node*> filter_adjacent(SlotFlags) const;
-        std::vector<Node*> successors() const;
-        std::vector<Node*> rchildren() const; // reversed children
-        std::vector<Node*> children() const;
-        std::vector<Node*> inputs() const;
-        std::vector<Node*> outputs() const;
-        std::vector<Node*> predecessors() const;
+        std::vector<Node*>   filter_adjacent(SlotFlags) const;
+        std::vector<Node*>   successors() const;
+        std::vector<Node*>   rchildren() const; // reversed children
+        std::vector<Node*>   children() const;
+        std::vector<Node*>   inputs() const;
+        std::vector<Node*>   outputs() const;
+        std::vector<Node*>   predecessors() const;
 
         // Property related
         //-----------------
@@ -128,7 +129,7 @@ namespace ndbl
 
         template<typename ValueT>
         Property* add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_NONE)
-        { return props.add<ValueT>(_name, _flags); }
+        { return m_props.add<ValueT>(_name, _flags); }
 
         // Component related
         //------------------
@@ -151,13 +152,17 @@ namespace ndbl
         bool has_component() const
         { return m_components.has<C*>(); }
 
-        bool is_conditional() const;
-
     protected:
+
+        std::string        m_name;
+        PropertyBag        m_props;
+        Token              m_suffix;
+        Graph*             m_parent_graph     = nullptr;
         NodeType           m_type             = NodeType_DEFAULT;
         NodeFlags          m_flags            = NodeFlag_DEFAULT;
         Property*          m_this_as_property = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
+        observe::Event<Node*> m_on_name_change;
     private:
         TComponentBag<NodeComponent*> m_components;
 

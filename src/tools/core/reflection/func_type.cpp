@@ -62,3 +62,9 @@ bool func_type::has_an_arg_of_type(const type* _type) const
     auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type->equals(_type); } );
     return found != m_args.end();
 }
+
+void func_type::set_identifier(const std::string &_identifier)
+{
+    ASSERT(_identifier.size() < 50);
+    m_identifier = _identifier;
+}

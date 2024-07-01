@@ -36,7 +36,7 @@ void Graph::clear()
     while ( !m_node_registry.empty() )
     {
         Node* node = m_node_registry[0];
-        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name.c_str(), (u64_t)node )
+        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->get_name().c_str(), (u64_t)node )
         destroy(node);
     }
 
@@ -89,10 +89,10 @@ void Graph::add(Node* _node)
     ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node) == m_node_registry.end())
 
 	m_node_registry.push_back(_node);
-    _node->parent_graph = this;
+    _node->m_parent_graph = this;
     on_add.emit(_node);
     set_dirty(); // To express this graph changed
-    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name.c_str(), _node->get_class()->get_name())
+    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->get_name().c_str(), _node->get_class()->get_name())
 }
 
 void Graph::remove(Node* _node)
@@ -386,15 +386,15 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
             {
                 // Clear in_token and transfer out_token prefix/suffix/type
                 //
-                //   <prefix> dependent <suffix>    (output)
+                //   <prefix> dependent <suffix>    (first)
                 //       |       out        |
                 //       |        |         |
                 //       |        |         |
                 //       v       in         v
-                //    < ... > dependency < ... >    (input)
+                //    < ... > dependency < ... >    (second)
                 //
-                Token& out_token = _first.get_property()->token;  static_assert(SlotFlag_OUTPUT & SlotFlag_ORDER_FIRST);
-                Token& in_token  = _second.get_property()->token; static_assert(SlotFlag_INPUT & SlotFlag_ORDER_SECOND);
+                Token& out_token = _first.get_property()->get_token();  static_assert(SlotFlag_OUTPUT & SlotFlag_ORDER_FIRST);
+                Token& in_token  = _second.get_property()->get_token(); static_assert(SlotFlag_INPUT & SlotFlag_ORDER_SECOND);
 
                 if ( out_token.is_null() || in_token.is_null() )
                 {
@@ -403,7 +403,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 
                 in_token.clear();
                 in_token.m_type = out_token.m_type;
-                in_token.move_prefixsuffix( &out_token );
+                in_token.take_prefix_suffix_from( &out_token );
                 break;
             }
             default:

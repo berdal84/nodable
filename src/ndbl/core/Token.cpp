@@ -21,7 +21,7 @@ std::string Token::json() const
     return result;
 }
 
-void Token::move_prefixsuffix(Token* source)
+void Token::take_prefix_suffix_from(Token* source)
 {
     if( m_is_source_buffer_owned ) delete[] m_source_buffer;
 
@@ -101,6 +101,7 @@ std::string Token::word_to_string()const
 {
     if( has_buffer() )
     {
+        ASSERT(m_word_size < 50) // are you sure?
         return std::string{ word(), m_word_size};
     }
     return {};
@@ -187,4 +188,4 @@ Token& Token::operator=(const Token& other)
     }
 
     return *this;
-};
+}

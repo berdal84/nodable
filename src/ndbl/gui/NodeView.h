@@ -73,7 +73,6 @@ namespace ndbl
         std::string             get_label();
         tools::Rect             get_rect(tools::Space space) const;
         tools::Rect             get_rect_ex(tools::Space, NodeViewFlags) const;
-        const PropertyView*     get_property_view(Property*)const;
         bool                    expanded()const { return m_expanded; }
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
@@ -126,7 +125,7 @@ namespace ndbl
         SlotView*       m_last_clicked_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
         std::vector<SlotView*>     m_slot_views;
-        std::vector<PropertyView*> m_property_views;
+        std::unordered_map<const Property*, PropertyView*> m_property_views;
         PropertyView*              m_property_view_this;
         std::vector<PropertyView*> m_property_views_with_input_only;
         std::vector<PropertyView*> m_property_views_with_output_or_inout;

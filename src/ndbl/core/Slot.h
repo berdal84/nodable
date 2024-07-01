@@ -28,12 +28,13 @@ namespace ndbl
             size_t position = 0
         );
 
-        Node*     get_node() const;
+        Node*     get_node() const { return m_node; }
         SlotView* get_view() const { return m_view; }
         void      set_view(SlotView* view) { m_view = view; }
         Slot*     first_adjacent() const;
         Slot*     adjacent_at(u8_t ) const;
-        Property* get_property() const; // Dereference the property corresponding to this Slot.
+        Property* get_property() { return m_property; }
+        const Property* get_property() const { return m_property; }
         size_t    adjacent_count() const;
         bool      is_full() const; // Slots have a capacity
         void      add_adjacent(Slot*);

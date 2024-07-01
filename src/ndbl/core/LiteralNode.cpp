@@ -13,7 +13,7 @@ void LiteralNode::init(const type* _type, const std::string& _name)
 {
     Node::init(NodeType_LITERAL, _name);
     m_type = _type;
-    m_value_property = props.add(m_type, VALUE_PROPERTY);
+    m_value_property = m_props.add(m_type, VALUE_PROPERTY);
     add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_value_property);
     add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_this_as_property);
 

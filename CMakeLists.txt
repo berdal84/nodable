@@ -210,7 +210,8 @@ add_executable(bench-fw-core-string src/tools/core/string.bench.cpp)
 target_link_libraries(bench-fw-core-string PUBLIC benchmark::benchmark tools-core)
 
 if( TOOLS_POOL_ENABLE )
-    add_executable(bench-fw-core-Pool src/tools/core/memory/Pool.bench.cpp)
+    add_executable(bench-fw-core-Pool src/tools/core/memory/Pool.bench.cpp
+        NAMING.md)
     target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark tools-core)
 endif()
 

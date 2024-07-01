@@ -269,7 +269,7 @@ Slot *Nodlang::parse_token(Token _token)
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() )
             variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
-            variable->property()->token = std::move(_token );
+            variable->property()->set_token( _token );
             variable->set_flags(VariableFlag_DECLARED);
             return &variable->output_slot();
         }
@@ -296,7 +296,7 @@ Slot *Nodlang::parse_token(Token _token)
         return nullptr;
     }
 
-    literal->value()->token = std::move(_token);
+    literal->value()->set_token( _token );
     return &literal->output_slot();
 }
 
@@ -412,7 +412,7 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Create a function signature
-    auto* type = new func_type();  // FIXME: avoid std::string copy
+    auto* type = new func_type();
     type->set_identifier(operator_token.word_to_string());
     type->set_return_type(type::any());
     type->push_arg( out_atomic->get_property()->get_type());
@@ -527,7 +527,7 @@ Node* Nodlang::parse_instr()
         Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction);
         if (!expected_end_of_instr_token.is_null())
         {
-            instr_node->after_token = expected_end_of_instr_token;
+            instr_node->set_suffix( expected_end_of_instr_token );
         }
         else if (parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
         {
@@ -994,7 +994,8 @@ Slot* Nodlang::parse_function_call()
     {
         fct_id = token_0.word_to_string();
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
-    } else// Try to parse operator like (ex: operator==(..,..))
+    }
+    else// Try to parse operator like (ex: operator==(..,..))
     {
         Token token_2 = parser_state.ribbon.eat();// eat a "supposed open bracket>
 
@@ -1012,9 +1013,9 @@ Slot* Nodlang::parse_function_call()
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    func_type signature;
-    signature.set_identifier(fct_id);
-    signature.set_return_type(type::any());
+    func_type* signature = new func_type();
+    signature->set_identifier(fct_id);
+    signature->set_return_type(type::any());
 
     bool parsingError = false;
     while (!parsingError && parser_state.ribbon.can_eat() &&
@@ -1024,7 +1025,7 @@ Slot* Nodlang::parse_function_call()
         if ( expression_out != nullptr )
         {
             result_slots.push_back( expression_out );
-            signature.push_arg( expression_out->get_property()->get_type() );
+            signature->push_arg( expression_out->get_property()->get_type() );
             parser_state.ribbon.eat_if(Token_t::list_separator);
         }
         else
@@ -1043,10 +1044,10 @@ Slot* Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    std::shared_ptr<const IInvokable> invokable = find_function(&signature);
-    Node* fct_node = parser_state.graph->create_abstract_function(&signature);
+    std::shared_ptr<const IInvokable> invokable = find_function(signature);
+    Node* fct_node = parser_state.graph->create_abstract_function(signature);
 
-    for ( FuncArg& signature_arg : signature.get_args() )
+    for ( FuncArg& signature_arg : signature->get_args() )
     {
         // Connects each results to the corresponding input
         Slot* out_slot = result_slots.at(signature_arg.m_index);
@@ -1340,8 +1341,8 @@ Slot* Nodlang::parse_variable_declaration()
         VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), get_current_scope() );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->type_token = type_token;
-        variable_node->identifier_token.move_prefixsuffix( &identifier_token );
-        variable_node->property()->token = identifier_token;
+        variable_node->identifier_token.take_prefix_suffix_from(&identifier_token);
+        variable_node->property()->set_token( identifier_token );
         // try to parse assignment
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
         if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word() == '=')
@@ -1457,7 +1458,8 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
 
 std::string &Nodlang::serialize_func_call(std::string &_out, const func_type *_signature, const std::vector<Slot*> &inputs) const
 {
-    _out.append(_signature->get_identifier());
+    auto& identifier = _signature->get_identifier();
+    _out.append( identifier );
     serialize_token_t(_out, Token_t::parenthesis_open);
 
     for (const Slot* input_slot : inputs)
@@ -1526,7 +1528,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
 
     // 2. Serialize variable identifier
 
-    _out.append(_node->name);
+    _out.append( _node->get_name() );
 
     // 3. Initialisation
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
@@ -1565,15 +1567,15 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
 
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_open);
 
-    if (!adjacent_property->token.is_null())
+    if (!adjacent_property->get_token().is_null())
     {
-        _out.append( adjacent_property->token.prefix_to_string()); // FIXME: avoid std::string copy
+        _out.append( adjacent_property->get_token().prefix_to_string()); // FIXME: avoid std::string copy
     }
 
     // If adjacent node is a variable, we only serialize its name (no need for recursion)
     if ( auto* variable_node = cast<VariableNode>( adjacent_slot->get_node() ) )
     {
-        _out.append( variable_node->name );
+        _out.append( variable_node->get_name() );
     }
     else if ( _flags & SerializeFlag_RECURSE && adjacent_slot )
     {
@@ -1584,9 +1586,9 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
         serialize_property(_out, adjacent_property );
     }
 
-    if (!adjacent_property->token.is_null())
+    if (!adjacent_property->get_token().is_null())
     {
-        _out.append( adjacent_property->token.suffix_to_string()); // FIXME: avoid std::string copy
+        _out.append( adjacent_property->get_token().suffix_to_string()); // FIXME: avoid std::string copy
     }
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_close);
     return _out;
@@ -1643,11 +1645,8 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
         message.append(node->get_class()->get_name());
         throw std::runtime_error(message);
     }
-    if( !node->after_token.is_null())
-    {
-        serialize_token(_out, node->after_token );
-    }
-    return _out;
+
+    return serialize_token(_out, node->get_suffix() );
 }
 
 std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
@@ -1824,7 +1823,7 @@ std::shared_ptr<const IInvokable> Nodlang::find_function(const func_type* _type)
 
 std::string& Nodlang::serialize_property(std::string& _out, const Property* _property) const
 {
-    return serialize_token(_out, _property->token);
+    return serialize_token(_out, _property->get_token());
 }
 
 std::shared_ptr<const IInvokable> Nodlang::find_function_exact(const func_type *_signature) const

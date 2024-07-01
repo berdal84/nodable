@@ -266,7 +266,7 @@ void Nodable::update()
                 ASSERT(curr_file_history != nullptr);
                 auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
                 DirectedEdge edge{ _event->data.first, _event->data.second };
-                Graph* graph = _event->data.first->get_node()->parent_graph;
+                Graph* graph = _event->data.first->get_node()->get_parent_graph();
                 auto command = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
                 break;
@@ -279,7 +279,7 @@ void Nodable::update()
                 Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                Graph* graph = _event->data.first->get_node()->parent_graph;
+                Graph* graph = _event->data.first->get_node()->get_parent_graph();
                 for( const auto& adjacent_slot: slot->adjacent() )
                 {
                     DirectedEdge edge{slot, adjacent_slot};
@@ -317,13 +317,13 @@ void Nodable::update()
                         case CreateNodeType_BLOCK_WHILE_LOOP:
                         case CreateNodeType_BLOCK_SCOPE:
                         case CreateNodeType_BLOCK_PROGRAM:
-                            new_node->after_token = Token::s_end_of_line;
+                            new_node->set_suffix( Token::s_end_of_line );
                             break;
                         case CreateNodeType_VARIABLE_BOOLEAN:
                         case CreateNodeType_VARIABLE_DOUBLE:
                         case CreateNodeType_VARIABLE_INTEGER:
                         case CreateNodeType_VARIABLE_STRING:
-                            new_node->after_token = Token::s_end_of_instruction;
+                            new_node->set_suffix( Token::s_end_of_instruction );
                             break;
                         case CreateNodeType_LITERAL_BOOLEAN:
                         case CreateNodeType_LITERAL_DOUBLE:

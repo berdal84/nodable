@@ -18,7 +18,7 @@ void Property::init(const type* _type, PropertyFlags _flags, Node* _owner)
 
 void Property::digest(Property* _property)
 {
-    token = std::move( _property->token );
+    m_token = std::move( _property->m_token );
 }
 
 bool Property::is_type(const tools::type* other) const

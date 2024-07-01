@@ -26,18 +26,16 @@ Scope::Scope()
 
 VariableNode* Scope::find_variable(const std::string &_name)
 {
+    auto has_name = [&_name](VariableNode* _variable ) -> bool
+    {
+        return _variable->get_name() == _name;
+    };
+
     /*
      * Try first to find in this scope
      */
-    auto it = std::find_if(
-            m_variables.begin(),
-            m_variables.end(),
-            [&_name](VariableNode* _variable ) -> bool
-    {
-        return _variable->name == _name;
-    });
-
-    if (it != m_variables.end())
+    auto it = std::find_if(m_variables.begin(), m_variables.end(), has_name);
+    if ( it != m_variables.end() )
     {
         return *it;
     }
@@ -62,17 +60,17 @@ VariableNode* Scope::find_variable(const std::string &_name)
 
 void Scope::add_variable(VariableNode* _variableNode)
 {
-    if ( find_variable(_variableNode->name) != nullptr )
+    if ( find_variable(_variableNode->get_name()) != nullptr )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variableNode->name.c_str())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variableNode->get_name().c_str())
     }
     else if ( _variableNode->get_scope() )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variableNode->name.c_str())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variableNode->get_name().c_str())
     }
     else
     {
-        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variableNode->name.c_str() )
+        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variableNode->get_name().c_str() )
         m_variables.push_back(_variableNode);
         _variableNode->reset_scope(this);
     }

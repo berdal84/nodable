@@ -81,21 +81,21 @@ void NodeView::set_owner(Node* node)
     //-------------------------
 
     // Reserve
-    m_property_views.reserve( node->props.size() );
+    m_property_views.reserve( node->get_props().size() );
 
-    for (Property* each_prop : node->props )
+    for (Property* property : node->get_props() )
     {
         // Create view
-        auto property_view = new PropertyView(each_prop);
+        auto property_view = new PropertyView(property);
         m_base_view.add_child(property_view);
-        m_property_views.push_back(property_view);
+        m_property_views.emplace(property, property_view);
 
         // Indexing
-        if ( each_prop->has_flags(PropertyFlag_IS_THIS) )
+        if ( property->has_flags(PropertyFlag_IS_THIS) )
         {
             m_property_view_this = property_view;
         }
-        else if ( !get_node()->find_slot_by_property( each_prop, SlotFlag_OUTPUT ) )
+        else if ( !get_node()->find_slot_by_property(property, SlotFlag_OUTPUT ) )
         {
             m_property_views_with_input_only.push_back(property_view);
         }
@@ -160,7 +160,7 @@ void NodeView::set_owner(Node* node)
     //----------------
 
     update_labels_from_name(node );
-    node->on_name_change.connect([=](Node* _node)
+    node->on_name_change().connect([=](Node* _node)
     {
         this->update_labels_from_name(_node);
     });
@@ -182,7 +182,7 @@ void NodeView::update_labels_from_name(const Node* _node)
     if ( _node->type() == NodeType_VARIABLE )
         m_label = reinterpret_cast<const VariableNode*>(_node)->get_value_type()->get_name();
     else
-        m_label = _node->name;
+        m_label = _node->get_name();
 
     // Short label
     constexpr size_t label_max_length = 10;
@@ -190,14 +190,6 @@ void NodeView::update_labels_from_name(const Node* _node)
         m_short_label = m_label;
     else
         m_short_label = m_label.substr(0, label_max_length) + "..";
-}
-
-const PropertyView* NodeView::get_property_view( Property* property )const
-{
-    for(PropertyView* view : m_property_views)
-        if ( view->get_property() == property )
-            return view;
-    return nullptr;
 }
 
 void NodeView::translate(const tools::Vec2 &_delta)
@@ -297,7 +289,7 @@ bool NodeView::update(float _deltaTime)
                 }
                 else
                 {
-                    auto property_view = get_property_view( slot.get_property() );
+                    auto property_view = m_property_views.at( slot.get_property() );
                     Rect property_rect = property_view->get_rect();
                     slot_rect.translate( property_rect.center() + property_rect.size() * slot_view->get_align() * Vec2{0.5f} );
                 }
@@ -548,7 +540,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
         if ( limit_size )
         {
             // try to draw an as small as possible input field
-            std::string str = connected_variable ? connected_variable->name : property->token.word_to_string();
+            std::string str = connected_variable ? connected_variable->get_name() : property->get_token().word_to_string();
             input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, PROPERTY_INPUT_SIZE_MIN);
             ImGui::PushItemWidth(input_size);
         }
@@ -619,7 +611,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
     char str[255];
     if( const VariableNode* variable = _view->get_connected_variable() ) // if is a ref to a variable, we just draw variable name
     {
-        snprintf(str, 255, "%s", variable->name.c_str() );
+        snprintf(str, 255, "%s", variable->get_name().c_str() );
 
         // variable name wrapped by a colored frame
         ImGui::PushStyleColor(ImGuiCol_FrameBg, variable->get_component<NodeView>()->get_color(Color_FILL) );
@@ -629,7 +621,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
     }
     else
     {
-        snprintf(str, 255, "%s", property->token.word_to_string().c_str() );
+        snprintf(str, 255, "%s", property->get_token().word_to_string().c_str() );
 
         ImGuiInputTextFlags flags = ( _view->has_input_connected() * ImGuiInputTextFlags_ReadOnly);
         if ( ImGui::InputText(label.c_str(), str, 255, flags ) )
@@ -667,7 +659,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            ImGui::Text("Source token:\n %s\n", property->token.json().c_str());
+            ImGui::Text("Source token:\n %s\n", property->get_token().json().c_str());
             ImGuiEx::EndTooltip();
         }
         // input
@@ -677,7 +669,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             node->set_flags( NodeFlag_IS_DIRTY );
     };
 
-    ImGui::Text("Name:       \"%s\"" , node->name.c_str());
+    ImGui::Text("Name:       \"%s\"" , node->get_name().c_str());
     ImGui::Text("Class:      %s"     , node->get_class()->get_name());
 
     // Draw exposed input properties
@@ -757,7 +749,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
                 for (const Node* each_node : _nodes )
                 {
-                    ImGui::BulletText("- %s", each_node->name.c_str());
+                    ImGui::BulletText("- %s", each_node->get_name().c_str());
                 }
 
                 ImGui::TreePop();
@@ -796,7 +788,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 auto vars = scope->variables();
                 for (auto var : vars)
                 {
-                    ImGui::BulletText("%s: %s", var->name.c_str(), var->property()->token.word());
+                    ImGui::BulletText("%s: %s", var->get_name().c_str(), var->property()->get_token().word());
                 }
                 ImGui::TreePop();
             }
@@ -813,7 +805,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (Graph* parent_graph = node->parent_graph)
+                if (Graph* parent_graph = node->get_parent_graph())
                 {
                     parentName = "Graph";
                     parentName.append( parent_graph->is_dirty() ? " (dirty)" : "");
@@ -828,7 +820,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
                 if (Node* parent = node->find_parent() )
                 {
-                    parentName = parent->name + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
+                    parentName = parent->get_name() + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
                 }
                 ImGui::Text("Parent node is \"%s\"", parentName.c_str());
             }
@@ -1067,13 +1059,13 @@ Vec4 NodeView::get_color( ColorType _type ) const
 
 GraphView *NodeView::get_graph() const
 {
-    ASSERT(get_node()->parent_graph != nullptr)
-    return get_node()->parent_graph->get_view();
+    ASSERT(get_node()->get_parent_graph() != nullptr)
+    return get_node()->get_parent_graph()->get_view();
 }
 
 NodeView::~NodeView()
 {
-    for(auto* each : m_property_views )
+    for(auto& [_, each] : m_property_views )
         delete each;
 
     for(auto* each : m_slot_views )

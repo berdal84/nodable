@@ -25,11 +25,11 @@ Node::~Node()
 
 void Node::init(NodeType _type, const std::string& _label)
 {
-    props.init(this);
+    m_props.init(this);
     m_this_as_property = add_prop<Node*>(THIS_PROPERTY, PropertyFlag_IS_THIS );
     add_slot( SlotFlag_PARENT, 1);
     add_slot( SlotFlag_NEXT, 1);
-    name   = _label;
+    m_name = _label;
     m_type = _type;
     m_components.set_owner( this );
 }
@@ -56,8 +56,8 @@ const IInvokable* Node::get_connected_invokable(const char* property_name) const
 
 void Node::set_name(const char *_label)
 {
-    name = _label;
-    on_name_change.emit(this);
+    m_name = _label;
+    m_on_name_change.emit(this);
 }
 
 std::vector<NodeComponent*> Node::get_components()
@@ -82,22 +82,22 @@ const Slot* Node::find_slot_by_property_name(const char* property_name, SlotFlag
 
 const Property* Node::get_prop(const char *_name) const
 {
-    return props.find_by_name( _name );
+    return m_props.find_by_name( _name );
 }
 
 Property* Node::get_prop(const char *_name)
 {
-    return props.find_by_name( _name );
+    return m_props.find_by_name( _name );
 }
 
 Property* Node::get_prop_at(size_t pos)
 {
-    return props.at(pos);
+    return m_props.at(pos);
 }
 
 const Property* Node::get_prop_at(size_t pos) const
 {
-    return props.at(pos);
+    return m_props.at(pos);
 }
 
 Slot* Node::find_slot(SlotFlags _flags)
@@ -207,7 +207,7 @@ Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
 
 Property* Node::add_prop(const tools::type* _type, const char *_name, PropertyFlags _flags)
 {
-    return props.add(_type, _name, _flags);
+    return m_props.add(_type, _name, _flags);
 }
 
 Slot* Node::add_slot(SlotFlags _flags, size_t _capacity, Property* _property)
@@ -360,4 +360,14 @@ bool Node::is_conditional() const
         default:
             return false;
     };
+}
+
+void Node::set_suffix(const Token& token)
+{
+    m_suffix = token;
+}
+
+const PropertyBag& Node::get_props() const
+{
+    return m_props;
 }
