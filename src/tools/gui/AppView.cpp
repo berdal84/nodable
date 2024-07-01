@@ -250,10 +250,11 @@ void AppView::update()
                         if ( _action->shortcut.mod == KMOD_NONE )
                             if ( _action->event_id )
                                 if ( _action->shortcut.key == event.key.keysym.sym)
-                                    {
-                                        m_event_manager->dispatch(_action->event_id );
-                                        break;
-                                    }
+                                {
+                                    IEvent* event_to_dispatch = _action->make_event();
+                                    m_event_manager->dispatch( event_to_dispatch );
+                                    break;
+                                }
                     }
                 }
                 break;

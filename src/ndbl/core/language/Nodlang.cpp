@@ -1571,9 +1571,9 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     }
 
     // If adjacent node is a variable, we only serialize its name (no need for recursion)
-    if ( auto* variable_node = cast<VariableNode>( adjacent_slot->get_node() ) )
+    if ( adjacent_slot->get_node()->type() == NodeType_VARIABLE )
     {
-        _out.append( variable_node->get_name() );
+        _out.append( static_cast<const VariableNode*>(adjacent_slot->get_node())->get_identifier_token().word() );
     }
     else if ( _flags & SerializeFlag_RECURSE && adjacent_slot )
     {
