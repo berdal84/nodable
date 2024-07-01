@@ -17,7 +17,7 @@
 #include "GraphView.h"
 #include "SlotView.h"
 #include "tools/gui/Config.h"
-#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/Interpreter.h"
 
 #ifdef NDBL_DEBUG
 #define DEBUG_DRAW 0

@@ -3,7 +3,7 @@
 #include "tools/gui/ImGuiTypeConvert.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
-#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/NodeUtils.h"
 
@@ -87,7 +87,7 @@ bool FileView::draw()
         auto old_selected_text = m_text_editor.GetSelectedText();
         auto old_line_text = m_text_editor.GetCurrentLineText();
 
-        bool is_running = get_virtual_machine()->is_program_running();
+        bool is_running = get_interpreter()->is_program_running();
         GraphView* graphview = m_file->get_graph().get_view();
         auto allow_keyboard = !is_running &&
                               !graphview->has_an_active_tool();
@@ -124,7 +124,7 @@ bool FileView::draw()
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
-        if ( cfg->experimental_hybrid_history)
+        if ( cfg->flags & ConfigFlag_EXPERIMENTAL_MULTI_SELECTION )
         {
             m_file->history.enable_text_editor(false); // avoid recording events caused by graph serialisation
         }

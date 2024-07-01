@@ -13,7 +13,7 @@ namespace ndbl
 {
     // forward declarations
     class Nodlang;
-    class VirtualMachine;
+    class Interpreter;
     class NodeFactory;
     class ComponentFactory;
     class NodableView;
@@ -63,7 +63,7 @@ namespace ndbl
         Config*            m_config            = nullptr;
         File*              m_current_file      = nullptr;
         Nodlang*           m_language          = nullptr;
-        VirtualMachine*    m_virtual_machine   = nullptr;
+        Interpreter*       m_interpreter       = nullptr;
         NodeFactory*       m_node_factory      = nullptr;
         ComponentFactory*  m_component_factory = nullptr;
         u8_t               m_untitled_file_count = 0;

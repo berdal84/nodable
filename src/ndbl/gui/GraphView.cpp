@@ -13,7 +13,7 @@
 #include "ndbl/core/NodeUtils.h"
 #include "ndbl/core/Scope.h"
 #include "ndbl/core/Slot.h"
-#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/Interpreter.h"
 
 #include "Config.h"
 #include "Event.h"
@@ -128,11 +128,11 @@ bool GraphView::draw()
     base_view.draw();
 
     Config*         cfg                    = get_config();
-    VirtualMachine* virtual_machine        = get_virtual_machine();
+    Interpreter* interpreter        = get_interpreter();
     bool            changed                = false;
     ImDrawList*     draw_list              = ImGui::GetWindowDrawList();
     ViewItem        hovered                = {};
-    const bool      enable_edition         = virtual_machine->is_program_stopped();
+    const bool      enable_edition         = interpreter->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
 
     // Draw Grid
@@ -315,20 +315,22 @@ bool GraphView::draw()
             hovered = NodeViewItem{nodeview};
 
         // VM Cursor (scroll to the next node when VM is debugging)
-        if (virtual_machine->is_debugging())
-            if (virtual_machine->is_next_node(nodeview->get_owner()))
+        if (interpreter->is_debugging())
+            if (interpreter->is_next_node(nodeview->get_owner()))
                 ImGui::SetScrollHereY();
     }
 
     // Virtual Machine cursor
-    if (virtual_machine->is_program_running()) {
-        Node *node = virtual_machine->get_next_node();
-        if (auto *view = node->get_component<NodeView>()) {
+    if (interpreter->is_program_running())
+    {
+        Node *node = interpreter->get_next_node();
+        if (auto *view = node->get_component<NodeView>())
+        {
             Vec2 left = view->get_rect(SCREEN_SPACE).left();
-            Vec2 vm_cursor_pos = Vec2::round(left);
-            draw_list->AddCircleFilled(vm_cursor_pos, 5.0f, ImColor(255, 0, 0));
+            Vec2 interpreter_cursor_pos = Vec2::round(left);
+            draw_list->AddCircleFilled(interpreter_cursor_pos, 5.0f, ImColor(255, 0, 0));
 
-            Vec2 linePos = vm_cursor_pos + Vec2(-10.0f, 0.5f);
+            Vec2 linePos = interpreter_cursor_pos + Vec2(-10.0f, 0.5f);
             linePos += Vec2(sin(float(App::get_time()) * 12.0f) * 4.0f, 0.f); // wave
             float size = 20.0f;
             float width = 2.0f;

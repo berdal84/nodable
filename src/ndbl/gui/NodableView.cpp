@@ -11,7 +11,7 @@
 #include "tools/gui/AppView.h"
 
 #include "ndbl/core/NodeUtils.h"
-#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/Interpreter.h"
 #include "ndbl/core/Register.h"
 #include "ndbl/core/language/Nodlang.h"
 
@@ -82,7 +82,7 @@ void NodableView::init(Nodable * _app)
         view->dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT);
         view->dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
         view->dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
-        view->dock_window( cfg->ui_virtual_machine_window_label  , AppView::Dockspace_RIGHT);
+        view->dock_window(cfg->ui_interpreter_window_label  , AppView::Dockspace_RIGHT);
         view->dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
         view->dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP);
     });
@@ -161,7 +161,7 @@ void NodableView::draw()
     
     EventManager*   event_manager   = get_event_manager();
     Config*         cfg             = get_config();
-    VirtualMachine* virtual_machine = get_virtual_machine();
+    Interpreter*    interpreter     = get_interpreter();
     tools::Config*  tools_cfg       = tools::get_config();
     bool            redock_all      = true;
     File*           current_file    = m_app->get_current_file();
@@ -194,7 +194,7 @@ void NodableView::draw()
             ImGui::EndMenu();
         }
 
-        bool vm_is_stopped = virtual_machine->is_program_stopped();
+        bool interpreter_is_stopped = interpreter->is_program_stopped();
         if (ImGui::BeginMenu("Edit"))
         {
             if (current_file_history)
@@ -207,7 +207,7 @@ void NodableView::draw()
             auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->selection_empty()
                                                          : false;
 
-            if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped))
+            if (ImGui::MenuItem("Delete", "Del.", false, has_selection && interpreter_is_stopped))
                 event_manager->dispatch( EventID_DELETE_NODE );
 
             ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
@@ -269,25 +269,25 @@ void NodableView::draw()
 
         if ( ImGui::BeginMenu("Run") )
         {
-            bool vm_is_debugging = virtual_machine->is_debugging();
+            bool interpreter_is_debugging = interpreter->is_debugging();
 
-            if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, interpreter_is_stopped)) {
                 m_app->run_program();
             }
 
-            if (ImGui::MenuItem(ICON_FA_BUG" Debug", "", false, vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_BUG" Debug", "", false, interpreter_is_stopped)) {
                 m_app->debug_program();
             }
 
-            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over", "", false, vm_is_debugging)) {
+            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over", "", false, interpreter_is_debugging)) {
                 m_app->step_over_program();
             }
 
-            if (ImGui::MenuItem(ICON_FA_STOP" Stop", "", false, !vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_STOP" Stop", "", false, !interpreter_is_stopped)) {
                 m_app->stop_program();
             }
 
-            if (ImGui::MenuItem(ICON_FA_UNDO " Reset", "", false, vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_UNDO " Reset", "", false, interpreter_is_stopped)) {
                 m_app->reset_program();
             }
             ImGui::EndMenu();
@@ -295,13 +295,14 @@ void NodableView::draw()
 
         if (ImGui::BeginMenu("Developer"))
         {
-            bool debug = get_config()->draw_debug_lines;
+            bool debug = get_config()->flags & ConfigFlag_DRAW_DEBUG_LINES;
+            Config* cfg = get_config();
             if ( ImGui::MenuItem("Debug Mode", "", debug ) )
             {
-                debug = !debug;
-                get_config()->tools_cfg->runtime_debug = debug;
-                get_config()->draw_debug_lines = debug;
-                ImGuiEx::set_debug( debug );
+                cfg->tools_cfg->runtime_debug = !debug;
+                cfg->clear_flags( ConfigFlag_DRAW_DEBUG_LINES );
+                cfg->set_flags( !debug * ConfigFlag_DRAW_DEBUG_LINES);
+                ImGuiEx::set_debug( !debug );
             }
 
             if ( ImGui::MenuItem("Limit FPS", "", tools_cfg->delta_time_limit ) )
@@ -330,9 +331,21 @@ void NodableView::draw()
 
             if (ImGui::BeginMenu("Experimental"))
             {
-                ImGui::Checkbox("Hybrid history", &cfg->experimental_hybrid_history);
-                ImGui::Checkbox("Multi-Selection", &cfg->experimental_multi_selection);
-                ImGui::Checkbox("Graph auto-completion", &cfg->experimental_graph_autocompletion);
+                auto checkbox_flag = [&](const char* label, ConfigFlag_ flag )
+                {
+                    bool enabled = cfg->has_flags(flag);
+                    if ( ImGui::Checkbox(label, &enabled) )
+                    {
+                        if ( !enabled )
+                            cfg->clear_flags(flag);
+                        else
+                            cfg->set_flags(flag);
+                    }
+                };
+                checkbox_flag("Hybrid history",        ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY);
+                checkbox_flag("Multi-Selection",       ConfigFlag_EXPERIMENTAL_MULTI_SELECTION);
+                checkbox_flag("Graph auto-completion", ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION);
+                checkbox_flag("Interpreter",           ConfigFlag_EXPERIMENTAL_INTERPRETER);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -394,7 +407,9 @@ void NodableView::draw()
             draw_file_window(ds_root, redock_all, each_file);
         }
 
-        draw_virtual_machine_window();
+        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) )
+            draw_interpreter_window();
+
         draw_config_window();
         draw_imgui_config_window();
         draw_file_info_window();
@@ -436,7 +451,7 @@ void NodableView::draw_help_window() const
         ImGuiEx::BulletTextWrapped(
                 "At the center, there is the graph editor where you can create/delete/connect nodes\n");
         ImGuiEx::BulletTextWrapped(
-                "On the right side (this side) you will find many tabs to manage additional config such as node properties, virtual machine or app properties\n");
+                "On the right side (this side) you will find many tabs to manage additional config such as node, interpreter, or app properties\n");
         ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
                                        " There, few buttons will serve to compile, run and debug your program.");
         ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
@@ -505,33 +520,33 @@ void NodableView::draw_node_properties_window()
     ImGui::End();
 }
 
-void NodableView::draw_virtual_machine_window()
+void NodableView::draw_interpreter_window()
 {
     Config* cfg = get_config();
-    if (ImGui::Begin( cfg->ui_virtual_machine_window_label))
+    if (ImGui::Begin( cfg->ui_interpreter_window_label))
     {
-        auto* vm = get_virtual_machine();
+        auto* interpreter = get_interpreter();
 
-        ImGui::Text("Virtual Machine:");
+        ImGui::Text("Interpreter:");
         ImGui::SameLine();
-        ImGuiEx::DrawHelper("%s", "The virtual machine - or interpreter - is a sort of implementation of \n"
-                                      "an imaginary hardware able to run a set of simple instructions.");
+        ImGuiEx::DrawHelper("%s", "The interpreter is a sort of implementation of \n"
+                                  "an imaginary hardware able to run a set of simple instructions. This is still WIP.");
         ImGui::Separator();
 
-        const Code *code = vm->get_program_asm_code();
+        const Code *code = interpreter->get_program_asm_code();
 
         // VM state
         {
             ImGui::Indent();
-            ImGui::Text("State:         %s", vm->is_program_running() ? "running" : "stopped");
+            ImGui::Text("State:         %s", interpreter->is_program_running() ? "running" : "stopped");
             ImGui::SameLine();
-            ImGuiEx::DrawHelper("%s", "When virtual machine is running, you cannot edit the code or the graph.");
-            ImGui::Text("Debug:         %s", vm->is_debugging() ? "ON" : "OFF");
+            ImGuiEx::DrawHelper("%s", "When the interpreter is running, you cannot edit the code or the graph.");
+            ImGui::Text("Debug:         %s", interpreter->is_debugging() ? "ON" : "OFF");
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "When debugging is ON, you can run a program step by step.");
             ImGui::Text("Has program:   %s", code ? "YES" : "NO");
             if (code) {
-                ImGui::Text("Program over:  %s", !vm->is_there_a_next_instr() ? "YES" : "NO");
+                ImGui::Text("Program over:  %s", !interpreter->is_there_a_next_instr() ? "YES" : "NO");
             }
             ImGui::Unindent();
         }
@@ -540,9 +555,9 @@ void NodableView::draw_virtual_machine_window()
         ImGui::Separator();
         ImGui::Text("CPU:");
         ImGui::SameLine();
-        ImGuiEx::DrawHelper("%s", "This is the virtual machine's CPU"
-                                      "\nIt contains few registers to store temporary values "
-                                      "\nlike instruction pointer, last node's value or last comparison result");
+        ImGuiEx::DrawHelper("%s", "This is the interpreter's CPU"
+                                  "\nIt contains few registers to store temporary values "
+                                  "\nlike instruction pointer, last node's value or last comparison result");
         ImGui::Indent();
         {
             ImGui::Separator();
@@ -553,7 +568,7 @@ void NodableView::draw_virtual_machine_window()
 
             auto draw_register_value = [&](Register _register) {
                 ImGui::Text("%4s: %12s", Register_to_string(_register),
-                            vm->read_cpu_register(_register).to_string().c_str());
+                            interpreter->read_cpu_register(_register).to_string().c_str());
             };
 
             draw_register_value(Register_rax);
@@ -574,7 +589,7 @@ void NodableView::draw_virtual_machine_window()
         ImGui::Separator();
         ImGui::Text("Memory:");
         ImGui::SameLine();
-        ImGuiEx::DrawHelper("%s", "Virtual Machine Memory.");
+        ImGuiEx::DrawHelper("%s", "Memory.");
         ImGui::Separator();
         {
             ImGui::Indent();
@@ -592,11 +607,11 @@ void NodableView::draw_virtual_machine_window()
                 ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true);
 
                 if (code) {
-                    auto current_instr = vm->get_next_instr();
+                    auto current_instr = interpreter->get_next_instr();
                     for (Instruction *each_instr: code->get_instructions()) {
                         auto str = Instruction::to_string(*each_instr);
                         if (each_instr == current_instr) {
-                            if (m_scroll_to_curr_instr && vm->is_program_running()) {
+                            if (m_scroll_to_curr_instr && interpreter->is_program_running()) {
                                 ImGui::SetScrollHereY();
                             }
                             ImGui::TextColored(ImColor(200, 0, 0), ">%s", str.c_str());
@@ -693,7 +708,7 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id)
 
 void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file)
 {
-    VirtualMachine* vm = get_virtual_machine();
+    Interpreter* interpreter = get_interpreter();
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
@@ -877,23 +892,26 @@ void NodableView::draw_history_bar(History& currentFileHistory)
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
 
-    for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++) {
+    for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
+    {
         ImGui::SameLine();
 
         std::string label("##" + std::to_string(cmd_pos));
 
-        // Draw an highlighted button for the current history position
+        // Draw a highlighted button for the current history position
         if (cmd_pos == 0) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
             ImGui::Button(label.c_str(), {btn_width, btn_height});
             ImGui::PopStyleColor();
-        } else // or a simple one for other history positions
+        }
+        else // or a simple one for other history positions
         {
             ImGui::Button(label.c_str(), {btn_width, btn_height});
         }
 
         // Hovered item
-        if (ImGui::IsItemHovered()) {
+        if (ImGui::IsItemHovered())
+        {
             if (ImGui::IsMouseDown(0)) // hovered + mouse down
             {
                 m_is_history_dragged = true;
@@ -901,7 +919,8 @@ void NodableView::draw_history_bar(History& currentFileHistory)
 
             // Draw command description
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
-            if (ImGuiEx::BeginTooltip()) {
+            if (ImGuiEx::BeginTooltip())
+            {
                 ImGui::Text("%s", currentFileHistory.get_cmd_description_at(cmd_pos).c_str());
                 ImGuiEx::EndTooltip();
             }
@@ -927,61 +946,64 @@ void NodableView::draw_toolbar_window()
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
 
     auto* cfg = get_config();
-    auto* tools_cfg = tools::get_config();
 
-    if (ImGui::Begin( cfg->ui_toolbar_window_label, NULL, flags ))
+    if ( ImGui::Begin( cfg->ui_toolbar_window_label, NULL, flags ) )
     {
         FontManager*  font_manager  = get_font_manager();
         EventManager* event_manager = get_event_manager();
+        const Vec2&   button_size   = cfg->ui_toolButton_size;
 
         ImGui::PopStyleVar();
-        VirtualMachine* vm   = get_virtual_machine();
-        bool running         = vm->is_program_running();
-        bool debugging       = vm->is_debugging();
-        bool stopped         = vm->is_program_stopped();
-        auto button_size     = cfg->ui_toolButton_size;
-
         ImGui::PushFont(font_manager->get_font(FontSlot_ToolBtn));
         ImGui::BeginGroup();
 
-        // compile
-        if (ImGui::Button(ICON_FA_DATABASE " compile", button_size) && stopped) {
-            m_app->compile_and_load_program();
+        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) )
+        {
+            Interpreter* interpreter = get_interpreter();
+            bool running             = interpreter->is_program_running();
+            bool debugging           = interpreter->is_debugging();
+            bool stopped             = interpreter->is_program_stopped();
+
+
+            // compile
+            if (ImGui::Button(ICON_FA_DATABASE " compile", button_size) && stopped) {
+                m_app->compile_and_load_program();
+            }
+            ImGui::SameLine();
+
+            // run
+            if (running) ImGui::PushStyleColor(ImGuiCol_Button, cfg->tools_cfg->button_activeColor);
+
+            if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped) {
+                m_app->run_program();
+            }
+            if (running) ImGui::PopStyleColor();
+
+            ImGui::SameLine();
+
+            // debug
+            if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, cfg->tools_cfg->button_activeColor);
+            if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped) {
+                m_app->debug_program();
+            }
+            if (debugging) ImGui::PopStyleColor();
+            ImGui::SameLine();
+
+            // stepOver
+            if (ImGui::Button(ICON_FA_ARROW_RIGHT " step over", button_size) && interpreter->is_debugging()) {
+                interpreter->debug_step_over();
+            }
+            ImGui::SameLine();
+
+            // stop
+            if (ImGui::Button(ICON_FA_STOP " stop", button_size) && !stopped) {
+                m_app->stop_program();
+            }
+            ImGui::SameLine();
         }
-        ImGui::SameLine();
-
-        // run
-        if (running) ImGui::PushStyleColor(ImGuiCol_Button, tools_cfg->button_activeColor);
-
-        if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped) {
-            m_app->run_program();
-        }
-        if (running) ImGui::PopStyleColor();
-
-        ImGui::SameLine();
-
-        // debug
-        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, tools_cfg->button_activeColor);
-        if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped) {
-            m_app->debug_program();
-        }
-        if (debugging) ImGui::PopStyleColor();
-        ImGui::SameLine();
-
-        // stepOver
-        if (ImGui::Button(ICON_FA_ARROW_RIGHT " step over", button_size) && vm->is_debugging()) {
-            vm->step_over();
-        }
-        ImGui::SameLine();
-
-        // stop
-        if (ImGui::Button(ICON_FA_STOP " stop", button_size) && !stopped) {
-            m_app->stop_program();
-        }
-        ImGui::SameLine();
 
         // reset
-        if (ImGui::Button(ICON_FA_UNDO " reset graph", button_size)) {
+        if (ImGui::Button(ICON_FA_UNDO " regen. graph", button_size)) {
             m_app->reset_program();
         }
         ImGui::SameLine();

@@ -1,5 +1,5 @@
 #include "NodableHeadless.h"
-#include "VirtualMachine.h"
+#include "Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "tools/core/memory/PoolManager.h"
 #include "tools/core/TaskManager.h"
@@ -11,7 +11,7 @@ void NodableHeadless::init()
     m_task_manager    = tools::init_task_manager();
     m_language        = init_language();
     m_node_factory    = init_node_factory();
-    m_virtual_machine = init_virtual_machine();
+    m_interpreter     = init_interpreter();
     m_graph = new Graph(m_node_factory);
 }
 
@@ -22,7 +22,7 @@ void NodableHeadless::shutdown()
     tools::shutdown_task_manager(m_task_manager);
     shutdown_language(m_language);
     shutdown_node_factory(m_node_factory);
-    shutdown_virtual_machine(m_virtual_machine);
+    shutdown_interpreter(m_interpreter);
 }
 
 std::string& NodableHeadless::serialize( std::string& out ) const
@@ -38,10 +38,10 @@ Graph* NodableHeadless::parse( const std::string& code )
 
 bool NodableHeadless::run_program() const
 {
-    EXPECT(m_virtual_machine != nullptr, "Did you call init() ?")
+    EXPECT(m_interpreter != nullptr, "Did you call init() ?")
 
     try {
-        m_virtual_machine->run_program();
+        m_interpreter->run_program();
     }
     catch ( std::runtime_error& error)
     {
@@ -74,7 +74,7 @@ const Code* NodableHeadless::compile(Graph* _graph)
 
 bool NodableHeadless::load_program(const Code* code)
 {
-    return m_virtual_machine->load_program(code);
+    return m_interpreter->load_program(code);
 }
 
 Nodlang* NodableHeadless::get_language() const
@@ -89,12 +89,12 @@ Graph* NodableHeadless::get_graph() const
 
 bool NodableHeadless::release_program()
 {
-    return m_virtual_machine->release_program();
+    return m_interpreter->release_program();
 }
 
 tools::qword NodableHeadless::get_last_result() const
 {
-    return m_virtual_machine->get_last_result();
+    return m_interpreter->get_last_result();
 }
 
 void NodableHeadless::update()

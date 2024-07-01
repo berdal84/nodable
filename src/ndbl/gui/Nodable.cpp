@@ -9,7 +9,7 @@
 #include "ndbl/core/InvokableComponent.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Slot.h"
-#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/ComponentFactory.h"
 
@@ -37,7 +37,7 @@ void Nodable::init()
     m_view = new NodableView();
     m_base_app.init_ex(m_view->get_base_view_handle(), m_config->tools_cfg ); // the pointers are owned by this class, base app just use them.
     m_language          = init_language();
-    m_virtual_machine   = init_virtual_machine();
+    m_interpreter       = init_interpreter();
     m_node_factory      = init_node_factory();
     m_component_factory = init_component_factory();
     m_view->init(this); // must be last
@@ -50,12 +50,12 @@ void Nodable::update()
     m_base_app.update();
 
     // 1. Update current file
-    if (m_current_file && !m_virtual_machine->is_program_running())
+    if (m_current_file && !m_interpreter->is_program_running())
     {
         //
         // When history is dirty we update the graph from the text.
         // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if (m_current_file->history.is_dirty && !m_config->experimental_hybrid_history )
+        if (m_current_file->history.is_dirty && !m_config->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
         {
             m_current_file->update_graph_from_text(m_config->isolation);
             m_current_file->history.is_dirty = false;
@@ -338,7 +338,7 @@ void Nodable::update()
                 {
                     // Experimental: we try to connect a parent-less child
                     Node* root = graph.get_root();
-                    if (new_node != root && m_config->experimental_graph_autocompletion )
+                    if (new_node != root && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
                         graph.connect(
                             *root->find_slot(SlotFlag_CHILD),
@@ -397,7 +397,7 @@ void Nodable::shutdown()
     }
 
     // shutdown managers & co.
-    shutdown_virtual_machine(m_virtual_machine);
+    shutdown_interpreter(m_interpreter);
     shutdown_node_factory(m_node_factory);
     shutdown_component_factory(m_component_factory);
     shutdown_language(m_language);
@@ -497,8 +497,8 @@ bool Nodable::compile_and_load_program() const
         return false;
     }
 
-    m_virtual_machine->release_program();
-    bool loaded = m_virtual_machine->load_program(asm_code);
+    m_interpreter->release_program();
+    bool loaded = m_interpreter->load_program(asm_code);
     return loaded;
 }
 
@@ -506,7 +506,7 @@ void Nodable::run_program()
 {
     if (compile_and_load_program() )
     {
-        m_virtual_machine->run_program();
+        m_interpreter->run_program();
     }
 }
 
@@ -514,22 +514,22 @@ void Nodable::debug_program()
 {
     if (compile_and_load_program() )
     {
-        m_virtual_machine->debug_program();
+        m_interpreter->debug_program();
     }
 }
 
 void Nodable::step_over_program()
 {
-    m_virtual_machine->step_over();
+    m_interpreter->debug_step_over();
     GraphView* graph_view = m_current_file->get_graph().get_view();
 
-    if (!m_virtual_machine->is_there_a_next_instr() )
+    if (!m_interpreter->is_there_a_next_instr() )
     {
         graph_view->set_selected({}, SelectionMode_REPLACE);
         return;
     }
 
-    Node* next_node = m_virtual_machine->get_next_node();
+    Node* next_node = m_interpreter->get_next_node();
     if ( !next_node ) return;
 
     auto view = next_node->get_component<NodeView>();
@@ -538,16 +538,16 @@ void Nodable::step_over_program()
 
 void Nodable::stop_program()
 {
-    m_virtual_machine->stop_program();
+    m_interpreter->stop_program();
 }
 
 void Nodable::reset_program()
 {
     if(!m_current_file) return;
 
-    if (m_virtual_machine->is_program_running() )
+    if (m_interpreter->is_program_running() )
     {
-        m_virtual_machine->stop_program();
+        m_interpreter->stop_program();
     }
 
     m_current_file->update_graph_from_text(m_config->isolation );

@@ -5,29 +5,29 @@
 using namespace ndbl;
 using namespace tools;
 
-typedef ::testing::Core Virtual_Machine;
+typedef ::testing::Core Interpreter_;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(Virtual_Machine, decl_var_and_assign_string)
+TEST_F(Interpreter_, decl_var_and_assign_string)
 {
     std::string program = R"(string s = "coucou";)";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(Virtual_Machine, decl_var_and_assign_double)
+TEST_F(Interpreter_, decl_var_and_assign_double)
 {
     std::string program = "double d = 15.0;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(Virtual_Machine, decl_var_and_assign_int)
+TEST_F(Interpreter_, decl_var_and_assign_int)
 {
     std::string program = "int s = 10;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(Virtual_Machine, decl_var_and_assign_bool)
+TEST_F(Interpreter_, decl_var_and_assign_bool)
 {
     std::string program = "bool b = true;";
     EXPECT_EQ(parse_and_serialize(program), program);
@@ -35,34 +35,34 @@ TEST_F(Virtual_Machine, decl_var_and_assign_bool)
 
 /////////////////////////////////////////////////////////////
 
-TEST_F(Virtual_Machine, parse_serialize_empty_scope )
+TEST_F(Interpreter_, parse_serialize_empty_scope )
 {
     EXPECT_EQ(parse_and_serialize("{}"), "{}");
 }
 
-TEST_F(Virtual_Machine, parse_serialize_empty_scope_with_spaces )
+TEST_F(Interpreter_, parse_serialize_empty_scope_with_spaces )
 {
     EXPECT_EQ(parse_and_serialize("{ }"), "{ }");
 }
 
-TEST_F(Virtual_Machine, parse_serialize_empty_scope_with_spaces_after )
+TEST_F(Interpreter_, parse_serialize_empty_scope_with_spaces_after )
 {
     EXPECT_EQ(parse_and_serialize("{} "), "{} ");
 }
 
-TEST_F(Virtual_Machine, parse_serialize_empty_scope_with_spaces_before )
+TEST_F(Interpreter_, parse_serialize_empty_scope_with_spaces_before )
 {
     EXPECT_EQ(parse_and_serialize(" {}"), " {}");
 }
 
-TEST_F(Virtual_Machine, parse_serialize_empty_scope_with_spaces_before_and_after )
+TEST_F(Interpreter_, parse_serialize_empty_scope_with_spaces_before_and_after )
 {
     EXPECT_EQ(parse_and_serialize(" {} "), " {} ");
 }
 
 /////////////////////////////////////////////////////////////
 
-TEST_F(Virtual_Machine, While_loop )
+TEST_F(Interpreter_, While_loop )
 {
     std::string program =
             "int i = 0;"
@@ -75,7 +75,7 @@ TEST_F(Virtual_Machine, While_loop )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(Virtual_Machine, Conditional_Structures_IF )
+TEST_F(Interpreter_, Conditional_Structures_IF )
 {
     std::string program =
             "double bob   = 10;"
@@ -87,7 +87,7 @@ TEST_F(Virtual_Machine, Conditional_Structures_IF )
     EXPECT_EQ( parse_and_serialize(program), program);
 }
 
-TEST_F(Virtual_Machine, Conditional_Structures_IF_ELSE )
+TEST_F(Interpreter_, Conditional_Structures_IF_ELSE )
 {
     std::string program =
             "double bob   = 10;"
@@ -102,7 +102,7 @@ TEST_F(Virtual_Machine, Conditional_Structures_IF_ELSE )
     EXPECT_EQ( parse_and_serialize(program), program);
 }
 
-TEST_F(Virtual_Machine, Conditional_Structures_IF_ELSE_IF )
+TEST_F(Interpreter_, Conditional_Structures_IF_ELSE_IF )
 {
     std::string program =
             "double bob   = 10;"
@@ -121,13 +121,13 @@ TEST_F(Virtual_Machine, Conditional_Structures_IF_ELSE_IF )
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(Virtual_Machine, parse_serialize_with_undeclared_variables )
+TEST_F(Interpreter_, parse_serialize_with_undeclared_variables )
 {
     const std::string program = "double a = b + c * r - z;";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(Virtual_Machine, parse_serialize_with_undeclared_variables_in_conditional )
+TEST_F(Interpreter_, parse_serialize_with_undeclared_variables_in_conditional )
 {
     const std::string program = "if(a==b){}";
     EXPECT_EQ(parse_and_serialize(program), program);
@@ -135,17 +135,17 @@ TEST_F(Virtual_Machine, parse_serialize_with_undeclared_variables_in_conditional
 
 /////////////////////////////////////////////////////////////////////
 
-TEST_F(Virtual_Machine, parse_serialize_empty_program )
+TEST_F(Interpreter_, parse_serialize_empty_program )
 {
     EXPECT_EQ(parse_and_serialize(""), "");
 }
 
-TEST_F(Virtual_Machine, parse_serialize_empty_program_with_space )
+TEST_F(Interpreter_, parse_serialize_empty_program_with_space )
 {
     EXPECT_EQ(parse_and_serialize(" "), " ");
 }
 
-TEST_F(Virtual_Machine, parse_serialize_single_line_program_with_a_comment_before )
+TEST_F(Interpreter_, parse_serialize_single_line_program_with_a_comment_before )
 {
     log::set_verbosity("Parser", log::Verbosity_Verbose);
     std::string program =
@@ -154,7 +154,7 @@ TEST_F(Virtual_Machine, parse_serialize_single_line_program_with_a_comment_befor
     EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(Virtual_Machine, parse_serialize_single_program_line_with_two_sigle_line_comments_and_a_space )
+TEST_F(Interpreter_, parse_serialize_single_program_line_with_two_sigle_line_comments_and_a_space )
 {
     std::string program =
             "// first line\n"
@@ -165,7 +165,7 @@ TEST_F(Virtual_Machine, parse_serialize_single_program_line_with_two_sigle_line_
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(Virtual_Machine, parse_serialize_binary_expression_with_funtion )
+TEST_F(Interpreter_, parse_serialize_binary_expression_with_funtion )
 {
     std::string program = "int i = pow(2,2) + 1";
     EXPECT_EQ(parse_and_serialize(program), program); // should not be "int i = (pow(2,2))+ 1"

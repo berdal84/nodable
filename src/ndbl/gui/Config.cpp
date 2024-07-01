@@ -136,7 +136,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_config_window_label                = "Settings";
     ui_startup_window_label               = "Startup";
     ui_toolbar_window_label               = "Toolbar";
-    ui_virtual_machine_window_label       = "VM";
+    ui_interpreter_window_label       = "VM";
 
     // Graph
     ui_graph_grid_color_major             = Color(0, 0, 0, 42);
@@ -145,13 +145,11 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_grid_size = 100.0f;
 
     // Misc.
-    experimental_graph_autocompletion     = false;
-    experimental_hybrid_history           = true;
-    experimental_multi_selection          = true;
+    flags                                 = ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY
+                                          | ConfigFlag_EXPERIMENTAL_MULTI_SELECTION;
     isolation                             = Isolation_OFF;
     graph_unfold_dt                       = 1.5f;
     graph_unfold_iterations               = 100;
-    draw_debug_lines                      = false;
 
     // NodableView
     tools_cfg->dockspace_right_ratio       = 0.25f;

@@ -366,7 +366,7 @@ add_library(
     src/ndbl/core/Token.cpp
     src/ndbl/core/TokenRibbon.cpp
     src/ndbl/core/VariableNode.cpp
-    src/ndbl/core/VirtualMachine.cpp
+    src/ndbl/core/Interpreter.cpp
     src/ndbl/core/WhileLoopNode.cpp
     src/ndbl/core/Code.cpp
     src/ndbl/core/Compiler.cpp
@@ -404,8 +404,8 @@ add_executable(
     src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp
     src/ndbl/core/language/Nodlang.parse_token.specs.cpp
     src/ndbl/core/language/Nodlang.parse_and_serialize.specs.cpp
-    src/ndbl/core/VirtualMachine.specs.cpp
-    src/ndbl/core/VirtualMachine.parse_eval_and_serialize.specs.cpp
+    src/ndbl/core/Interpreter.specs.cpp
+    src/ndbl/core/Interpreter.parse_eval_and_serialize.specs.cpp
 )
 target_link_libraries(test-ndbl-core PUBLIC gtest_main gtest ndbl-core)
 add_test(NAME test_ndbl_core COMMAND test-ndbl-core)

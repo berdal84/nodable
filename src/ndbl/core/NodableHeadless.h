@@ -1,7 +1,7 @@
 #pragma once
 
 #include <string>
-#include "VirtualMachine.h"
+#include "Interpreter.h"
 #include "Compiler.h"
 
 namespace tools
@@ -38,19 +38,19 @@ namespace ndbl
 
         template<typename ResultT>
         ResultT get_last_result_as()
-        { return ResultT(m_virtual_machine->get_last_result()); }
+        { return ResultT(m_interpreter->get_last_result()); }
 
     protected:
-        tools::TaskManager*        m_task_manager{};
-        Nodlang*                   m_language{};
-        NodeFactory*               m_node_factory{};
-        VirtualMachine*            m_virtual_machine{};
-        bool                       m_should_stop{false};
-        Graph*                     m_graph{};
-        std::string                m_source_code;
-        const Code*                m_asm_code{};
-        bool                       m_auto_completion{false};
-        Compiler                   m_compiler{}; // TODO: move this to a global (like VirtualMachine.h)
+        tools::TaskManager* m_task_manager{};
+        Nodlang*            m_language{};
+        NodeFactory*        m_node_factory{};
+        Interpreter*        m_interpreter{};
+        bool                m_should_stop{false};
+        Graph*              m_graph{};
+        std::string         m_source_code;
+        const Code*         m_asm_code{};
+        bool                m_auto_completion{false};
+        Compiler            m_compiler{}; // TODO: move this to a global (like VirtualMachine.h)
     };
 }
 

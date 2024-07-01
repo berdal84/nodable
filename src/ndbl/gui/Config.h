@@ -24,6 +24,16 @@ namespace ndbl
     using tools::Vec4;
     using tools::Color;
 
+    typedef int ConfigFlags;
+    enum ConfigFlag_
+    {
+        ConfigFlag_NONE                              = 0,
+        ConfigFlag_DRAW_DEBUG_LINES                  = 1 << 0,
+        ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION = 1 << 1,
+        ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY       = 1 << 2,
+        ConfigFlag_EXPERIMENTAL_MULTI_SELECTION      = 1 << 3,
+        ConfigFlag_EXPERIMENTAL_INTERPRETER          = 1 << 4,
+    };
 
     struct Config
     {
@@ -86,15 +96,16 @@ namespace ndbl
         const char*    ui_config_window_label;
         const char*    ui_startup_window_label;
         const char*    ui_toolbar_window_label ;
-        const char*    ui_virtual_machine_window_label;
-        bool           experimental_graph_autocompletion;
-        bool           experimental_hybrid_history;
-        bool           experimental_multi_selection;
+        const char*    ui_interpreter_window_label;
         Isolation      isolation;
         float          graph_unfold_dt;
         i32_t          graph_unfold_iterations;
-        bool           draw_debug_lines;
+        ConfigFlags    flags;
         tools::Config* tools_cfg;
+
+        bool has_flags(ConfigFlags _flags)const { return (flags & _flags) == _flags; };
+        void set_flags(ConfigFlags _flags) { flags |= _flags; }
+        void clear_flags(ConfigFlags _flags) { flags &= ~_flags; }
     };
 
     [[nodiscard]]

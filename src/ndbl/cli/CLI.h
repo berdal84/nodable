@@ -7,7 +7,7 @@
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/NodableHeadless.h"
 #include "ndbl/core/NodeFactory.h"
-#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/Interpreter.h"
 #include "ndbl/core/Compiler.h"
 #include "ndbl/core/language/Nodlang.h"
 

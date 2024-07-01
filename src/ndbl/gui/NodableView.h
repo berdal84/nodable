@@ -49,7 +49,7 @@ namespace ndbl
         void draw_config_window();
         void draw_startup_window(ImGuiID dockspace_id);
         void draw_toolbar_window();
-        void draw_virtual_machine_window();
+        void draw_interpreter_window();
 
         tools::Texture*    m_logo                    = nullptr;
         bool               m_is_history_dragged      = false;
