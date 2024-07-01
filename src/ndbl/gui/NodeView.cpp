@@ -608,25 +608,29 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
         label.append("##" + property->get_name());
     }
 
-    char str[255];
+    char input_buffer[255];
     if( const VariableNode* variable = _view->get_connected_variable() ) // if is a ref to a variable, we just draw variable name
     {
-        snprintf(str, 255, "%s", variable->get_name().c_str() );
+        snprintf(input_buffer, 255, "%s", variable->get_name().c_str() );
 
         // variable name wrapped by a colored frame
         ImGui::PushStyleColor(ImGuiCol_FrameBg, variable->get_component<NodeView>()->get_color(Color_FILL) );
-        ImGui::InputText(label.c_str(), str, 255 );
+        ImGui::InputText(label.c_str(), input_buffer, 255 );
         ImGui::PopStyleColor();
 
     }
     else
     {
-        snprintf(str, 255, "%s", property->get_token().word_to_string().c_str() );
+        snprintf(input_buffer, 255, "%s", property->get_token().word_to_string().c_str() );
 
-        ImGuiInputTextFlags flags = ( _view->has_input_connected() * ImGuiInputTextFlags_ReadOnly);
-        if ( ImGui::InputText(label.c_str(), str, 255, flags ) )
+        ImGuiInputTextFlags flags = 0;
+        if ( _view->has_input_connected() ) // theoretically, the input field should be hidden, but just in case
+            if ( _view->get_node()->type() != NodeType_VARIABLE ) // we can always edit a variable name
+                flags |= ImGuiInputTextFlags_ReadOnly;
+
+        if ( ImGui::InputText(label.c_str(), input_buffer, 255, flags ) )
         {
-            ASSERT(false) // TODO: implem. Override token's word (keep prefix/suffix)
+            property->get_token().replace_word(input_buffer);
             changed |= true;
         }
     }

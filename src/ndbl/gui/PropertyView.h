@@ -12,7 +12,7 @@ namespace ndbl
     class VariableNode;
 
     /**
-     * Simple struct to store a property view state
+     * Simple struct to store a get_value view state
      */
     class PropertyView : public tools::View
     {

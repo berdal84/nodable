@@ -13,7 +13,7 @@
 namespace tools
 {
     /**
-     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data property)
+     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data get_value)
      */
 	class variant
     {

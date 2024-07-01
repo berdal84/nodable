@@ -35,7 +35,7 @@ Scope* VariableNode::get_scope()
 
 const type *VariableNode::get_value_type() const
 {
-    return property()->get_type();
+    return get_value()->get_type();
 }
 
 void VariableNode::reset_scope(Scope* _scope)
@@ -52,7 +52,7 @@ Property* VariableNode::property()
     return m_value;
 }
 
-const Property* VariableNode::property() const
+const Property* VariableNode::get_value() const
 {
     ASSERT(m_value != nullptr)
     return m_value;

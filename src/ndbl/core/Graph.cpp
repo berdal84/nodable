@@ -203,8 +203,8 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     ASSERT( _out.has_flags( SlotFlag_NOT_FULL ) )
     Property* in_prop  = _in.get_property();
     Property* out_prop = _out.get_property();
-    EXPECT( in_prop, "tail property must be defined" )
-    EXPECT( out_prop, "head property must be defined" )
+    EXPECT( in_prop, "tail get_value must be defined" )
+    EXPECT( out_prop, "head get_value must be defined" )
     EXPECT( in_prop != out_prop, "Can't connect same properties!" )
 
     // now graph is abstract
@@ -566,7 +566,7 @@ VariableNode* Graph::create_variable_decl(const type* _type, const char*  _name,
     var_node->set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
     Token token(Token_t::keyword_operator, " = ");
     token.m_word_start_pos = 1;
-    token.m_word_size = 1;
+    token.m_word_length = 1;
     var_node->assignment_operator_token = token;
 
     // TODO: attach a default Literal?

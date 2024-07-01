@@ -22,7 +22,7 @@ std::string TokenRibbon::to_string()const
 
     // get the total buffer sizes (but won't be exact, some token are serialized dynamically)
     for (const Token& each_token : m_tokens)
-        buffer_size += each_token.m_buffer_size;
+        buffer_size += each_token.m_string_length;
 
     out.reserve(buffer_size);
     out.append("[<TokenRibbon start>]\n");
@@ -114,10 +114,10 @@ void TokenRibbon::clear()
 {
     m_tokens.clear();
     m_prefix.m_type             = m_suffix.m_type             = Token_t::ignore;
-    m_prefix.m_buffer_start_pos = m_suffix.m_buffer_start_pos = 0;
-    m_prefix.m_buffer_size      = m_suffix.m_buffer_size      = 0;
+    m_prefix.m_string_start_pos = m_suffix.m_string_start_pos = 0;
+    m_prefix.m_string_length      = m_suffix.m_string_length      = 0;
     m_prefix.m_word_start_pos   = m_suffix.m_word_start_pos   = 0;
-    m_prefix.m_word_size        = m_suffix.m_word_size        = 0;
+    m_prefix.m_word_length        = m_suffix.m_word_length        = 0;
     while(!m_transaction.empty())
     {
         m_transaction.pop();

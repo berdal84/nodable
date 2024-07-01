@@ -715,7 +715,7 @@ bool Nodlang::is_syntax_valid()
                     LOG_ERROR("Parser",
                               "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n",
                               parser_state.ribbon.concat_token_buffers(token->m_index, -10).c_str(),
-                              token->m_buffer_start_pos
+                              token->m_string_start_pos
                           )
                     success = false;
                 }
@@ -764,8 +764,8 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
         if( new_token.m_type == Token_t::ignore)
         {
             if( ignored_chars_size == 0)
-                ignored_chars_start_pos = new_token.m_buffer_start_pos;
-            ignored_chars_size += new_token.m_buffer_size;
+                ignored_chars_start_pos = new_token.m_string_start_pos;
+            ignored_chars_size += new_token.m_string_length;
             LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.buffer_to_string().c_str())
         }
         else // handle ignored_chars_accumulator then push the token in the ribbon and handle ignored_chars_accumulator
@@ -779,17 +779,17 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
                     Token& last_token = parser_state.ribbon.back();
                      if ( allow_to_attach_suffix(last_token.m_type) )
                     {
-                        last_token.m_buffer_size += ignored_chars_size;
+                        last_token.m_string_length += ignored_chars_size;
                     }
                     else if (!new_token.is_null())
                     {
-                        new_token.m_buffer_start_pos = ignored_chars_start_pos;
-                        new_token.m_buffer_size += ignored_chars_size;
+                        new_token.m_string_start_pos = ignored_chars_start_pos;
+                        new_token.m_string_length += ignored_chars_size;
                     }
                 }
                 else
                 {
-                    parser_state.ribbon.prefix().m_buffer_size += ignored_chars_size;
+                    parser_state.ribbon.prefix().m_string_length += ignored_chars_size;
                 }
                 ignored_chars_size = 0;
             }
@@ -805,8 +805,8 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
     {
         LOG_VERBOSE("Parser", "Found ignored chars after tokenize, adding to the ribbon suffix...\n");
         Token& suffix = parser_state.ribbon.suffix();
-        suffix.m_buffer_start_pos = ignored_chars_start_pos;
-        suffix.m_buffer_size = ignored_chars_size;
+        suffix.m_string_start_pos = ignored_chars_start_pos;
+        suffix.m_string_length = ignored_chars_size;
         ignored_chars_start_pos = 0;
         ignored_chars_size = 0;
     }
@@ -1404,7 +1404,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
                 // Operator
                 if (!_component.token.is_null())
                 {
-                    _out.append(_component.token.buffer(), _component.token.m_buffer_size);
+                    _out.append(_component.token.buffer(), _component.token.m_string_length);
                 }
                 else
                 {
@@ -1521,14 +1521,13 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
         }
         else // If created in the graph by the user
         {
-            serialize_type(_out, _node->property()->get_type());
+            serialize_type(_out, _node->get_value()->get_type());
             _out.append(" ");
         }
     }
 
     // 2. Serialize variable identifier
-
-    _out.append( _node->get_name() );
+    serialize_token(_out, _node->get_value()->get_token() );
 
     // 3. Initialisation
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
@@ -1663,7 +1662,7 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
 {
     if (!_token.is_null() && _token.has_buffer())
     {
-        _out.append(_token.buffer(), _token.m_buffer_size);
+        _out.append(_token.buffer(), _token.m_string_length);
     }
     return _out;
 }

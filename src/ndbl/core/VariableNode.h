@@ -36,7 +36,7 @@ namespace ndbl
         void               set_vflags(VariableFlags flags) { m_vflags |= flags; }
         void               clear_vflags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
         Property*          property();
-        const Property*    property() const;
+        const Property*    get_value() const;
         Scope*             get_scope();
         void               reset_scope(Scope* _scope = nullptr);
         Slot&              input_slot();
