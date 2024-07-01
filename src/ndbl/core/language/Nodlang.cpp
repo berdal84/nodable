@@ -1608,41 +1608,33 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
     ASSERT( node )
     ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
-    // TODO: use switch on node->type()
-    //
-    if ( auto* cond_struct = cast<const IfNode>(node ) )
+    switch ( node->type() )
     {
-        serialize_cond_struct(_out, cond_struct);
-    }
-    else if ( auto* for_loop = cast<const ForLoopNode>(node ) )
-    {
-        serialize_for_loop(_out, for_loop);
-    }
-    else if ( auto* while_loop = cast<const WhileLoopNode>(node ) )
-    {
-        serialize_while_loop(_out, while_loop);
-    }
-    else if ( auto* scope = node->get_component<Scope>() )
-    {
-        serialize_scope(_out, scope);
-    }
-    else if ( auto* literal = cast<const LiteralNode>(node ) )
-    {
-        serialize_property(_out, literal->value());
-    }
-    else if ( auto* variable = cast<const VariableNode>(node ) )
-    {
-        serialize_variable(_out, variable);
-    }
-    else if (auto* invokable = node->get_component<InvokableComponent>() )
-    {
-        serialize_invokable(_out, *invokable);
-    }
-    else
-    {
-        std::string message = "Unable to serialize node with type: ";
-        message.append(node->get_class()->get_name());
-        throw std::runtime_error(message);
+        case NodeType_BLOCK_CONDITION:
+            serialize_cond_struct(_out, static_cast<const IfNode*>(node) );
+            break;
+        case NodeType_BLOCK_FOR_LOOP:
+            serialize_for_loop(_out, static_cast<const ForLoopNode*>(node) );
+            break;
+        case NodeType_BLOCK_WHILE_LOOP:
+            serialize_while_loop(_out, static_cast<const WhileLoopNode*>(node) );
+            break;
+        case NodeType_LITERAL:
+            serialize_property(_out, static_cast<const LiteralNode*>(node)->value());
+            break;
+        case NodeType_VARIABLE:
+            serialize_variable(_out, static_cast<const VariableNode*>(node));
+            break;
+        case NodeType_BLOCK_SCOPE:
+            serialize_scope(_out, node->get_component<Scope>() );
+            break;
+        case NodeType_FUNCTION:
+            [[fallthrough]];
+        case NodeType_OPERATOR:
+            serialize_invokable(_out, *node->get_component<InvokableComponent>() );
+            break;
+        default:
+            EXPECT(false, "Unhandled NodeType, can't serialize");
     }
 
     return serialize_token(_out, node->get_suffix() );
