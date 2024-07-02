@@ -29,7 +29,15 @@ namespace ndbl{
     class Property;
     class VariableNode;
 
-	/**
+    typedef int SerializeFlags;
+    enum SerializeFlag_
+    {
+        SerializeFlag_NONE             = 0,
+        SerializeFlag_RECURSE          = 1 << 0,
+        SerializeFlag_WRAP_WITH_BRACES = 1 << 1
+    };
+
+    /**
 	 * @class Nodlang is Nodable's language.
 	 * This class allows to parse, serialize, and define Nodlang language.
 	 */
@@ -96,22 +104,15 @@ namespace ndbl{
 
         // Serializer ------------------------------------------------------------------
     public:
-        typedef int SerializeFlags;
-        enum SerializeFlag_ {
-            SerializeFlag_NONE             = 0,
-            SerializeFlag_RECURSE          = 1 << 0,
-            SerializeFlag_WRAP_WITH_BRACES = 1 << 1
-        };
-
         std::string& serialize_invokable(std::string&_out, const InvokableComponent &_component) const;
         std::string& serialize_func_call(std::string& _out, const tools::func_type *_signature, const std::vector<Slot*>& inputs)const;
         std::string& serialize_func_sig(std::string& _out, const tools::func_type*)const;
         std::string& serialize_token_t(std::string& _out, const Token_t&)const;
         std::string& serialize_token(std::string& _out, const Token &) const;
         std::string& serialize_type(std::string& _out, const tools::type*) const;
-        std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_RECURSE )const;
-        std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_RECURSE )const;
-        std::string& serialize_node(std::string &_out, const Node* node, SerializeFlags _flags = SerializeFlag_RECURSE ) const;
+        std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_NONE )const;
+        std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_NONE )const;
+        std::string& serialize_node(std::string &_out, const Node* node, SerializeFlags _flags = SerializeFlag_NONE ) const;
         std::string& serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
         std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;

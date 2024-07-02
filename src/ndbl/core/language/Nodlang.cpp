@@ -269,7 +269,7 @@ Slot *Nodlang::parse_token(Token _token)
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() )
             variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
-            variable->property()->set_token( _token );
+            variable->set_identifier_token( _token );
             variable->set_flags(VariableFlag_DECLARED);
             return &variable->output_slot();
         }
@@ -1468,7 +1468,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const func_type *_s
         {
             serialize_token_t(_out, Token_t::list_separator);
         }
-        serialize_input( _out, *input_slot );
+        serialize_input( _out, *input_slot, SerializeFlag_RECURSE );
     }
 
     serialize_token_t(_out, Token_t::parenthesis_close);
@@ -1539,7 +1539,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
         else
             _out.append(_node->get_operator_token().buffer_to_string());
 
-        serialize_output( _out, *slot.first_adjacent() );
+        serialize_input( _out, slot, SerializeFlag_RECURSE );
     }
     return _out;
 }
@@ -1551,9 +1551,8 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     const Slot*     adjacent_slot = _slot.first_adjacent();
 
     // In case the input slot is not connected we simply serialize the slot's related property
-    if( adjacent_slot == nullptr ) {
+    if( adjacent_slot == nullptr )
         return serialize_property(_out, _slot.get_property());
-    }
 
     const Property* adjacent_property = adjacent_slot->get_property();
     ASSERT(adjacent_property != nullptr)
@@ -1563,21 +1562,21 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
         if ( Node* node = adjacent_property->get_owner() )
             return serialize_node( _out, node, _flags );
 
-    if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_open);
+    if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
+        serialize_token_t(_out, Token_t::parenthesis_open);
 
     if (!adjacent_property->get_token().is_null())
-    {
         _out.append( adjacent_property->get_token().prefix_to_string()); // FIXME: avoid std::string copy
-    }
 
     // If adjacent node is a variable, we only serialize its name (no need for recursion)
     if ( adjacent_slot->get_node()->type() == NodeType_VARIABLE )
     {
-        _out.append( static_cast<const VariableNode*>(adjacent_slot->get_node())->get_identifier_token().word() );
+        auto* variable = static_cast<const VariableNode*>(adjacent_slot->get_node());
+        _out.append( variable->get_identifier_token().word_to_string() );
     }
     else if ( _flags & SerializeFlag_RECURSE && adjacent_slot )
     {
-        serialize_output( _out, *adjacent_slot );
+        serialize_output( _out, *adjacent_slot, SerializeFlag_RECURSE );
     }
     else
     {
@@ -1588,7 +1587,10 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     {
         _out.append( adjacent_property->get_token().suffix_to_string()); // FIXME: avoid std::string copy
     }
-    if ( _flags & SerializeFlag_WRAP_WITH_BRACES ) serialize_token_t(_out, Token_t::parenthesis_close);
+
+    if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
+        serialize_token_t(_out, Token_t::parenthesis_close);
+
     return _out;
 }
 
@@ -1644,7 +1646,7 @@ std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) co
     serialize_token(_out, _scope->token_begin);
     for (const Node* child : _scope->get_owner()->children() )
     {
-        serialize_node( _out, child);
+        serialize_node( _out, child, SerializeFlag_RECURSE );
     }
     return serialize_token(_out, _scope->token_end);
 }
@@ -1675,9 +1677,9 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     const Slot& cond_slot = *_for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
     const Slot& iter_slot = *_for_loop->find_slot_by_property_name( ITERATION_PROPERTY, SlotFlag_INPUT );
 
-    serialize_input( _out, init_slot );
-    serialize_input( _out, cond_slot );
-    serialize_input( _out, iter_slot );
+    serialize_input( _out, init_slot, SerializeFlag_RECURSE );
+    serialize_input( _out, cond_slot, SerializeFlag_RECURSE );
+    serialize_input( _out, iter_slot, SerializeFlag_RECURSE );
 
     serialize_token_t(_out, Token_t::parenthesis_close);
 
@@ -1711,7 +1713,7 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 
     if( Node* condition = _while_loop_node->condition(Branch_TRUE) )
     {
-        serialize_node(_out, condition);
+        serialize_node(_out, condition, SerializeFlag_RECURSE);
     }
 
     serialize_token_t(_out, Token_t::parenthesis_close);
@@ -1747,7 +1749,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
     serialize_token_t(_out, Token_t::parenthesis_open);
     if ( Node* condition = _condition_struct->condition(Branch_TRUE) )
     {
-        serialize_node(_out, condition);
+        serialize_node(_out, condition, SerializeFlag_RECURSE);
     }
     serialize_token_t(_out, Token_t::parenthesis_close);
 
@@ -1771,7 +1773,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
         serialize_token(_out, _condition_struct->token_else);
         if ( const Scope* else_scope = _condition_struct->scope_at( Branch_FALSE ) )
         {
-            serialize_node( _out, else_scope->get_owner() );
+            serialize_node( _out, else_scope->get_owner(), SerializeFlag_RECURSE );
         }
     }
     return _out;

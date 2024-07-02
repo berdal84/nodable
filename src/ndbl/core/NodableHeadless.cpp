@@ -3,6 +3,7 @@
 #include "ndbl/core/language/Nodlang.h"
 #include "tools/core/memory/PoolManager.h"
 #include "tools/core/TaskManager.h"
+#include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
 
@@ -27,7 +28,7 @@ void NodableHeadless::shutdown()
 
 std::string& NodableHeadless::serialize( std::string& out ) const
 {
-    return m_language->serialize_node( out, m_graph->get_root() );
+    return m_language->serialize_node( out, m_graph->get_root(), SerializeFlag_RECURSE );
 }
 
 Graph* NodableHeadless::parse( const std::string& code )

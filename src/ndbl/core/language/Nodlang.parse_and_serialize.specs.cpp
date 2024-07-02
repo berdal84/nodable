@@ -9,6 +9,22 @@ typedef ::testing::Core Language_parse_and_serialize;
 
 /////////////////////////////////////////////////////////////
 
+TEST_F(Language_parse_and_serialize, parse_serialize_variable_declaration )
+{
+    const char* code = "int i = 42;";
+    EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
+}
+
+/////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced )
+{
+    const char* code = "int i = 42; int j = i;";
+    EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
+}
+
+/////////////////////////////////////////////////////////////
+
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope )
 {
     EXPECT_EQ(parse_and_serialize("{}"), "{}");
