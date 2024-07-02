@@ -568,7 +568,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 
         std::string  source_code;
         if( property->has_flags(PropertyFlag_IS_THIS) || get_node()->find_slot_by_property( property, SlotFlag_OUTPUT ))
-            get_language()->serialize_node( source_code, get_node() );
+            get_language()->serialize_node( source_code, get_node(), SerializeFlag_RECURSE );
         else
             get_language()->serialize_property(source_code, property );
 

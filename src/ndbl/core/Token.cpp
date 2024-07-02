@@ -201,14 +201,15 @@ void Token::replace_word(std::string str)
     {
         //TODO: use logarithmic buffer? (with buffer size > string length)
         const size_t new_string_length = prefix_size() + str.length() + suffix_size();
-        char*        new_buffer        = new char[new_string_length];
+        char*        new_buffer        = new char[new_string_length+1];
 
         memcpy(new_buffer                               , prefix()    , prefix_size());
         memcpy(new_buffer + prefix_size()               , str.c_str() , str.length());
         memcpy(new_buffer + prefix_size() + str.length(), suffix()    , suffix_size());
+        new_buffer[new_string_length] = '\0';
 
         if ( m_is_buffer_owned )
-            delete m_buffer;
+            delete[] m_buffer;
 
         m_buffer          = new_buffer;
         m_word_length     = str.length();
