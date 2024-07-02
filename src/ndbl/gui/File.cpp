@@ -75,7 +75,7 @@ UpdateResult File::update_text_from_graph( Isolation mode )
     }
 
     std::string code;
-    get_language()->serialize_node( code, root_node );
+    get_language()->serialize_node( code, root_node, SerializeFlag_RECURSE );
 
     view.set_text( code, mode );
 
