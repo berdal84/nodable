@@ -32,7 +32,7 @@ void VariableNode::init(const tools::type* _val_type, const char* _identifier)
 Scope* VariableNode::get_scope()
 {
     if (m_scope != nullptr)
-        m_scope->get_component<Scope>();
+        return m_scope->get_component<Scope>(); // TODO: Scope should NOT be a Node, that's a nonsense.
     return {};
 }
 

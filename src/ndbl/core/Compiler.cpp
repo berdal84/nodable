@@ -37,7 +37,8 @@ Instruction* Code::push_instr(OpCode _type)
 
 bool Compiler::is_syntax_tree_valid(const Graph* _graph)
 {
-    if( _graph->is_empty()) return false;
+    if( _graph->is_empty())
+        return false;
 
     const std::vector<Node*>& nodes = _graph->get_node_registry();
     for( auto each_node : nodes )
@@ -184,7 +185,7 @@ void Compiler::compile_node( const Node* _node )
         // For instruction only: Copy node value to a register
         if( _node->is_instruction() )
         {
-            ASSERT(false) // not implemented! use vmem
+            EXPECT(false, "not implemented! use vmem")
             //const variant* root_node_value = _node->get_prop( VALUE_PROPERTY )->value();
 //            Instruction* instr     = m_temp_code->push_instr(OpCode_deref_qword );
 //            instr->uref.ptr        = root_node_value->data();

@@ -1337,8 +1337,10 @@ Slot* Nodlang::parse_variable_declaration()
 
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
-        const type* variable_type = get_type(type_token.m_type);
-        VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), get_current_scope() );
+        const type*   variable_type = get_type(type_token.m_type);
+        auto*         scope         = get_current_scope();
+        ASSERT(scope != nullptr ) // There must always be a scope!
+        VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->set_type_token( type_token );
         variable_node->set_identifier_token( identifier_token );
