@@ -98,13 +98,13 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
 
         auto physics_component = node->get_component<Physics>();
 
-        // If current view has a single predecessor, we follow it
+        // If current view has a single predecessor, we follow it, except if it is a conditional node
         //
-        std::vector<Node*> previous_nodes = node->predecessors();
-        if ( previous_nodes.size() == 1 )
+        std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_PREV);
+        if ( previous_nodes.size() == 1 && !previous_nodes[0]->get_node()->is_conditional() )
         {
             Physics::Constraint constraint("Position below previous", &Physics::Constraint::constrain_one_to_one);
-            constraint.leader         = {previous_nodes[0]->get_component<NodeView>()};
+            constraint.leader         = {previous_nodes[0]};
             constraint.follower       = {curr_nodeview};
             constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
 
@@ -122,17 +122,18 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         // Align in row Conditional Struct Node's children
         //------------------------------------------------
 
-        std::vector<NodeView*> children = curr_nodeview->get_adjacent(SlotFlag_CHILD);
-        if( node->is_conditional() && children.size() > 1)
+        std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_NEXT);
+        if( node->is_conditional() && next.size() > 1 )
         {
             Physics::Constraint constraint("Align conditional children in a row", &Physics::Constraint::constrain_one_to_many_as_a_row);
             constraint.leader         = {curr_nodeview};
-            constraint.leader_pivot   = BOTTOM;
-            constraint.follower       = children;
-            constraint.follower_pivot = TOP;
+            constraint.leader_pivot   = BOTTOM_LEFT;
+            //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
+            constraint.follower       = next;
+            constraint.follower_pivot = TOP_LEFT;
             constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
             constraint.gap_size       = tools::Size_SM;
-            constraint.gap_direction  = RIGHT;
+            constraint.gap_direction  = BOTTOM;
             physics_component->add_constraint(constraint);
         }
 
@@ -245,10 +246,11 @@ void Physics::Constraint::constrain_one_to_many_as_a_row(float _dt)
     // Form a row with each view box
     std::vector<Box> old_box;
     std::vector<Box> new_box;
-    Vec2 gap_items = row_direction * get_config()->ui_node_gap(gap_size);
+    Vec2 row_items_gap = row_direction * get_config()->ui_node_gap(gap_size);
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        Box box = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
+        Box box         = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
+        Box box_noflags = clean_follower[i]->get_rect_ex(SCREEN_SPACE, NodeViewFlag_NONE);
         old_box.push_back(box);
 
         bool is_first = i == 0;
@@ -259,13 +261,14 @@ void Physics::Constraint::constrain_one_to_many_as_a_row(float _dt)
             box = Box::align(leader_box, leader_pivot, box, follower_pivot);
             Vec2 gap = gap_direction * get_config()->ui_node_gap(gap_size);
             box.translate(gap);
+            box.translate(box.get_pivot(follower_pivot) - box_noflags.get_pivot(follower_pivot));
         }
         else
         {
             // i+1 box is aligned with the i
             box = Box::align(new_box.back(), row_direction, box, -row_direction);
             // There is a gap between each box
-            box.translate(gap_items);
+            box.translate(row_items_gap);
         }
 
         new_box.emplace_back(box);

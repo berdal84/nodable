@@ -200,19 +200,19 @@ void Token::replace_word(std::string str)
     else
     {
         //TODO: use logarithmic buffer? (with buffer size > string length)
-        size_t new_buffer_size = prefix_size() + str.length() + suffix_size();
-        char*  new_buffer      = new char(new_buffer_size);
+        const size_t new_string_length = prefix_size() + str.length() + suffix_size();
+        char*        new_buffer        = new char[new_string_length];
 
-        memcpy(new_buffer, prefix(), prefix_size());
-        memcpy(new_buffer, str.c_str(), str.length());
-        memcpy(new_buffer, suffix(), suffix_size());
+        memcpy(new_buffer                               , prefix()    , prefix_size());
+        memcpy(new_buffer + prefix_size()               , str.c_str() , str.length());
+        memcpy(new_buffer + prefix_size() + str.length(), suffix()    , suffix_size());
 
         if ( m_is_buffer_owned )
             delete m_buffer;
 
         m_buffer          = new_buffer;
         m_word_length     = str.length();
-        m_string_length   = new_buffer_size;
+        m_string_length   = new_string_length;
         m_is_buffer_owned = true;
     }
 }
