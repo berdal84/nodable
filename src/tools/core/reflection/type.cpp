@@ -23,17 +23,26 @@ REFLECT_STATIC_INIT
 }
 
 type::type(
-        id_t _id,
+    id_t _id,
     id_t _primitive_id,
     const char* _name,
     const char* _compiler_name,
     Flags _flags)
-    : m_id(_id)
-    , m_primitive_id(_primitive_id)
-    , m_name(_name)
-    , m_compiler_name(_compiler_name)
-    , m_flags(_flags)
+: m_id(_id)
+, m_primitive_id(_primitive_id)
+, m_name(_name)
+, m_compiler_name(_compiler_name)
+, m_flags(_flags)
 {
+}
+
+type::~type()
+{
+    for (auto* each : m_methods )
+        delete each;
+
+    for (auto* each : m_static_methods )
+        delete each;
 }
 
 const type* type::any()
@@ -133,19 +142,19 @@ void type::add_child(id_t _child)
     m_flags |= Flags_HAS_CHILD;
 }
 
-void type::add_static(const std::string& _name, std::shared_ptr<IInvokable> _invokable)
+void type::add_static(const std::string& _name, const IInvokable* _invokable)
 {
     m_static_methods.insert(_invokable);
     m_static_methods_by_name.insert({_name, _invokable});
 }
 
-void type::add_method(const std::string &_name, std::shared_ptr<IInvokableMethod> _invokable)
+void type::add_method(const std::string &_name, const IInvokableMethod* _invokable)
 {
     m_methods.insert(_invokable);
     m_methods_by_name.insert({_name, _invokable});
 }
 
-std::shared_ptr<IInvokableMethod> type::get_method(const std::string& _name) const
+const IInvokableMethod* type::get_method(const std::string& _name) const
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )
@@ -155,7 +164,7 @@ std::shared_ptr<IInvokableMethod> type::get_method(const std::string& _name) con
     return nullptr;
 }
 
-std::shared_ptr<IInvokable> type::get_static(const std::string& _name)const
+const IInvokable* type::get_static(const std::string& _name)const
 {
     auto found = m_static_methods_by_name.find(_name);
     if( found != m_static_methods_by_name.end() )

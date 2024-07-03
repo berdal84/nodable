@@ -2,6 +2,7 @@
 #include <string>
 #include "tools/core/format.h"
 #include "Register.h"
+#include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -27,7 +28,9 @@ std::string Instruction::to_string(const Instruction& _instr)
     {
         case OpCode_eval_node:
         {
-            result.append(format::address(_instr.eval.node) );
+            std::string signature;
+            get_language()->serialize_func_sig(signature, _instr.eval.invokable->get_type());
+            result.append(signature);
             break;
         }
 

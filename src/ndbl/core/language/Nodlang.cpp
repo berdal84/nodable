@@ -148,9 +148,10 @@ Nodlang::Nodlang(bool _strict)
 Nodlang::~Nodlang()
 {
     for(const Operator* each : m_operators )
-    {
         delete each;
-    }
+
+//    for(const IInvokable* each : m_functions ) // static and member functions are owned by their respective tools::type<T>
+//        delete each;
 }
 //---------------------------------------------------------------------------------------------------------------------------
 // [SECTION] B. Parser ------------------------------------------------------------------------------------------------------
@@ -1044,7 +1045,7 @@ Slot* Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    std::shared_ptr<const IInvokable> invokable = find_function(signature);
+    const IInvokable* invokable = find_function(signature);
     Node* fct_node = parser_state.graph->create_abstract_function(signature);
 
     for ( FuncArg& signature_arg : signature->get_args() )
@@ -1783,7 +1784,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
 
 // Language definition ------------------------------------------------------------------------------------------------------------
 
-std::shared_ptr<const IInvokable> Nodlang::find_function(const char* _signature_hint) const
+const IInvokable* Nodlang::find_function(const char* _signature_hint) const
 {
     if (_signature_hint == nullptr)
     {
@@ -1794,7 +1795,7 @@ std::shared_ptr<const IInvokable> Nodlang::find_function(const char* _signature_
     return find_function( hash );
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_function(u32_t _hash) const
+const IInvokable* Nodlang::find_function(u32_t _hash) const
 {
     auto found = m_functions_by_signature.find(_hash);
     if ( found != m_functions_by_signature.end())
@@ -1804,7 +1805,7 @@ std::shared_ptr<const IInvokable> Nodlang::find_function(u32_t _hash) const
     return nullptr;
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_function(const func_type* _type) const
+const IInvokable* Nodlang::find_function(const func_type* _type) const
 {
     if (!_type)
     {
@@ -1820,9 +1821,9 @@ std::string& Nodlang::serialize_property(std::string& _out, const Property* _pro
     return serialize_token(_out, _property->get_token());
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_function_exact(const func_type *_signature) const
+const IInvokable* Nodlang::find_function_exact(const func_type *_signature) const
 {
-    auto is_exactly = [&](std::shared_ptr<const IInvokable> fct) {
+    auto is_exactly = [&](const IInvokable* fct) {
         return fct->get_type()->is_exactly(_signature);
     };
 
@@ -1836,10 +1837,10 @@ std::shared_ptr<const IInvokable> Nodlang::find_function_exact(const func_type *
     return nullptr;
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_function_fallback(const func_type *_type) const
+const IInvokable* Nodlang::find_function_fallback(const func_type *_type) const
 {
 
-    auto is_compatible = [&](std::shared_ptr<const IInvokable> _invokable) {
+    auto is_compatible = [&](const IInvokable* _invokable) {
         return _type->is_compatible(_invokable->get_type());
     };
 
@@ -1853,14 +1854,14 @@ std::shared_ptr<const IInvokable> Nodlang::find_function_fallback(const func_typ
     return nullptr;
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_operator_fct_exact(const func_type *_type) const
+const IInvokable* Nodlang::find_operator_fct_exact(const func_type *_type) const
 {
     if (!_type)
     {
         return nullptr;
     }
 
-    auto is_exactly = [&](std::shared_ptr<const IInvokable> _invokable) {
+    auto is_exactly = [&](const IInvokable* _invokable) {
         return _type->is_exactly(_invokable->get_type());
     };
 
@@ -1874,7 +1875,7 @@ std::shared_ptr<const IInvokable> Nodlang::find_operator_fct_exact(const func_ty
     return nullptr;
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_operator_fct(const func_type *_type) const
+const IInvokable* Nodlang::find_operator_fct(const func_type *_type) const
 {
     if (!_type)
     {
@@ -1885,10 +1886,10 @@ std::shared_ptr<const IInvokable> Nodlang::find_operator_fct(const func_type *_t
     return exact;
 }
 
-std::shared_ptr<const IInvokable> Nodlang::find_operator_fct_fallback(const func_type *_type) const
+const IInvokable* Nodlang::find_operator_fct_fallback(const func_type *_type) const
 {
 
-    auto is_compatible = [&](std::shared_ptr<const IInvokable> _invokable) {
+    auto is_compatible = [&](const IInvokable* _invokable) {
         return _type->is_compatible(_invokable->get_type());
     };
 
@@ -1902,7 +1903,7 @@ std::shared_ptr<const IInvokable> Nodlang::find_operator_fct_fallback(const func
     return nullptr;
 }
 
-void Nodlang::add_function(std::shared_ptr<const IInvokable> _invokable)
+void Nodlang::add_function(const IInvokable* _invokable)
 {
     m_functions.push_back(_invokable);
 

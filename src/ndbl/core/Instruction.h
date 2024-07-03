@@ -87,8 +87,8 @@ namespace ndbl
     // Evaluates a given node
     struct Instruction_eval
     {
-        OpCode opcode;
-        Node*         node; // The node to evaluate.
+        OpCode                   opcode;
+        const tools::IInvokable* invokable;
     };
 
     /**
@@ -104,11 +104,11 @@ namespace ndbl
             , line(_line)
         {}
 
-        size_t line;                                        // line index (zero-based position in the code)
+        size_t      line;                                   // line index (zero-based position in the code)
 
         // all the possible instructions
         union {
-            OpCode           opcode;                 // simple operation
+            OpCode                  opcode;                 // simple operation
             Instruction_mov         mov;                    // copy data
             Instruction_uref        uref;                   // un-reference
             Instruction_jmp         jmp;                    // jump to

@@ -214,48 +214,42 @@ bool Interpreter::step_over()
 
         case OpCode_eval_node:
         {
-            auto update_input__by_value_only = [](Node* _node)
-            {
-                for(Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
-                {
-                    if( slot->adjacent_count() == 0)
-                        continue;
+//            auto update_input__by_value_only = [](Node* _node)
+//            {
+//                for(Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
+//                {
+//                    if( slot->adjacent_count() == 0)
+//                        continue;
+//
+//                    Property* property = slot->get_property();
+//                    if( !property->has_flags(PropertyFlag_IS_REF) )
+//                    {
+//                        ASSERT(false)// not implemented!
+//                        //*property->value() = *slot->first_adjacent()->get_property()->value();
+//                        // TODO: copy by value in vmem
+//                    }
+//                }
+//            };
+//
+//            if( auto variable = cast<VariableNode>(next_instr->eval.node))
+//            {
+//                if( !variable->has_flags(VariableFlag_INITIALIZED) )
+//                {
+//                    variable->set_flags(VariableFlag_INITIALIZED);
+//                    update_input__by_value_only(variable);
+//                }
+//            }
+//            else
+//            {
+//                update_input__by_value_only(next_instr->eval.node);
+//            }
 
-                    Property* property = slot->get_property();
-                    if( !property->has_flags(PropertyFlag_IS_REF) )
-                    {
-                        ASSERT(false)// not implemented!
-                        //*property->value() = *slot->first_adjacent()->get_property()->value();
-                        // TODO: copy by value in vmem
-                    }
-                }
-            };
 
-            if( auto variable = cast<VariableNode>(next_instr->eval.node))
-            {
-                if( !variable->has_flags(VariableFlag_INITIALIZED) )
-                {
-                    variable->set_flags(VariableFlag_INITIALIZED);
-                    update_input__by_value_only(variable);
-                }
-            }
-            else
-            {
-                update_input__by_value_only(next_instr->eval.node);
-            }
-
-            // evaluate Invokable Component, could be an operator or a function
-            auto* invokable = next_instr->eval.node->get_component<InvokableComponent>();
-            if( invokable != nullptr && invokable->has_flags(InvokableFlag_IS_INVOKABLE))
-            {
-                ASSERT( !invokable->has_flags(InvokableFlag_WAS_INVOKED) ) // flag should have been reset
-                invokable->invoke();
-            }
-
-            ASSERT(false) // we should have a set of all the node traversed, no need to mutate the note itself for that.
-            next_instr->eval.node->clear_flags(NodeFlag_IS_DIRTY);
-
+            const std::vector<variant*> args{}; // TODO: read arguments from the stack
+            next_instr->eval.invokable->invoke( args );
             advance_cursor();
+            EXPECT(false, "not implemented yet")
+
             break;
         }
 
@@ -322,7 +316,8 @@ bool Interpreter::debug_step_over()
         {
             case OpCode_eval_node:
             {
-                m_next_node = next_instr->eval.node;
+                EXPECT(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a node reference in the instruction")
+//                m_next_node = next_instr->eval.invokable;
                 break;
             }
 

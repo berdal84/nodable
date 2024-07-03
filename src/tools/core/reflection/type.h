@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <string>
 #include <typeinfo>
-#include <memory>
 #include <vector>
 
 #include "type_register.h"
@@ -71,7 +70,7 @@ namespace tools
 
         type(const type&) = delete; // a type must be unique
         type(type&&) = delete;
-        ~type() = default;
+        ~type();
 
         id_t                      id() const { return m_id; }
         const char*               get_name() const { return m_name; };
@@ -84,16 +83,14 @@ namespace tools
         bool                      equals(const type* other) const { return equals(this, other); }
         void                      add_parent(id_t _parent);
         void                      add_child(id_t _child);
-        void                      add_static(const std::string& _name, std::shared_ptr<IInvokable> _invokable);
-        void                      add_method(const std::string& _name, std::shared_ptr<IInvokableMethod> _invokable);
-        const std::unordered_set<std::shared_ptr<IInvokable>>&
+        void                      add_static(const std::string& _name, const IInvokable* _invokable);
+        void                      add_method(const std::string& _name, const IInvokableMethod* _invokable);
+        const std::unordered_set<const IInvokable*>&
                                   get_static_methods()const { return m_static_methods; }
-        const std::unordered_set<std::shared_ptr<IInvokableMethod>>&
+        const std::unordered_set<const IInvokableMethod*>&
                                   get_methods()const { return m_methods; }
-        std::shared_ptr<IInvokable>
-                                  get_static(const std::string& _name) const;
-        std::shared_ptr<IInvokableMethod>
-                                  get_method(const std::string& _name) const;
+        const IInvokable*         get_static(const std::string& _name) const;
+        const IInvokableMethod*   get_method(const std::string& _name) const;
         template<class T>
         inline bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
         template<class T>
@@ -155,10 +152,10 @@ namespace tools
         const id_t m_id;           // ex: T**, T*
         std::unordered_set<id_t> m_parents;
         std::unordered_set<id_t> m_children;
-        std::unordered_set<std::shared_ptr<IInvokable>>                    m_static_methods;
-        std::unordered_map<std::string, std::shared_ptr<IInvokable>>       m_static_methods_by_name;
-        std::unordered_set<std::shared_ptr<IInvokableMethod>>              m_methods;
-        std::unordered_map<std::string, std::shared_ptr<IInvokableMethod>> m_methods_by_name;
+        std::unordered_set<const IInvokable*>                    m_static_methods;
+        std::unordered_map<std::string, const IInvokable*>       m_static_methods_by_name;
+        std::unordered_set<const IInvokableMethod*>              m_methods;
+        std::unordered_map<std::string, const IInvokableMethod*> m_methods_by_name;
     };
 
     template<typename T>

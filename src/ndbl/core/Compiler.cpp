@@ -20,6 +20,7 @@
 
 #include "Instruction.h"
 #include "Register.h"
+#include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -142,57 +143,56 @@ void Compiler::compile_node( const Node* _node )
 {
     ASSERT( _node )
 
-    if (_node->type() == NodeType_BLOCK_FOR_LOOP )
+    switch (_node->type())
     {
-        compile_for_loop( cast<const ForLoopNode>(_node) );
-    }
-    else if ( auto while_loop = cast<const WhileLoopNode>(_node))
-    {
-        compile_while_loop(while_loop);
-    }
-    else if ( auto cond_struct_node = cast<const IfNode>(_node) )
-    {
-        compile_conditional_struct(cond_struct_node);
-    }
-    else
-    {
-        // Compile all the outputs connected to each _node inputs.
-        for ( const Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
+        case NodeType_BLOCK_FOR_LOOP:
+            compile_for_loop(static_cast<const ForLoopNode*>(_node));
+            break;
+        case NodeType_BLOCK_WHILE_LOOP:
+            compile_while_loop(static_cast<const WhileLoopNode*>(_node));
+            break;
+        case NodeType_BLOCK_CONDITION:
+            compile_conditional_struct(static_cast<const IfNode*>(_node));
+            break;
+        default:
         {
-            if( slot->adjacent_count() == 0)
+            // Compile all the outputs connected to each _node inputs.
+            for ( const Slot* slot: _node->filter_slots( SlotFlag_INPUT ) )
             {
-                continue;
+                if( slot->adjacent_count() == 0)
+                {
+                    continue;
+                }
+                // Compile adjacent_output ( except if node is a Variable which is compiled once, see compile_variable_node() )
+                Slot* adjacent_output = slot->first_adjacent();
+                if ( !adjacent_output->get_node()->get_class()->is<VariableNode>() )
+                {
+                    // Any other slot must be compiled recursively
+                    compile_output_slot( *adjacent_output );
+                }
             }
-            // Compile adjacent_output ( except if node is a Variable which is compiled once, see compile_variable_node() )
-            Slot* adjacent_output = slot->first_adjacent();
-            if ( !adjacent_output->get_node()->get_class()->is<VariableNode>() )
+
+            // eval node
+
+            switch (_node->type())
             {
-                // Any other slot must be compiled recursively
-                compile_output_slot( *adjacent_output );
+                case NodeType_FUNCTION:
+                case NodeType_OPERATOR:
+                {
+                    Instruction* instr = m_temp_code->push_instr(OpCode_eval_node);
+                    auto* invokable_component = _node->get_component<InvokableComponent>();
+                    ASSERT(invokable_component != nullptr)
+                    const IInvokable* invokable = get_language()->find_function( invokable_component->get_func_type() );
+                    ASSERT(invokable != nullptr)
+                    instr->eval.invokable = invokable;
+                    instr->m_comment = _node->get_name();
+                    break;
+                }
+                case NodeType_LITERAL:
+                case NodeType_VARIABLE:
+                    EXPECT(false, "not implemented yet")
             }
-        }
 
-        // eval node
-        bool should_be_evaluated = _node->has_component<InvokableComponent>() || extends<VariableNode>(_node) ||
-                                   extends<LiteralNode>(_node) ;
-        if ( should_be_evaluated )
-        {
-            Instruction *instr = m_temp_code->push_instr(OpCode_eval_node);
-            instr->eval.node   = const_cast<Node*>(_node); // TODO: ideally we should not reference nodes in the compiled code. Currently, code is interpreted (we "could consider" nodes like system call in asm)
-            instr->m_comment   = _node->get_name();
-        }
-
-        // For instruction only: Copy node value to a register
-        if( _node->is_instruction() )
-        {
-            EXPECT(false, "not implemented! use vmem")
-            //const variant* root_node_value = _node->get_prop( VALUE_PROPERTY )->value();
-//            Instruction* instr     = m_temp_code->push_instr(OpCode_deref_qword );
-//            instr->uref.ptr        = root_node_value->data();
-//            instr->uref.type       = root_node_value->get_type();
-//            instr->m_comment       = "copy root's value (";
-//            instr->m_comment      += root_node_value->get_type()->get_name();
-//            instr->m_comment      += ")";
         }
     }
 }
