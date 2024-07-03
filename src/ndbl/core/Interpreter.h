@@ -48,6 +48,8 @@ namespace ndbl
         tools::qword          read_cpu_register(Register _register) const; // Read a given CPU register
         const Code *          get_program_asm_code(); // Get current program ptr
         bool                  is_next_node(const Node* _node)const { return m_next_node == _node; } // Check if a given Node is the next to be executed
+        bool                  was_visited(const Node *) const;
+
     private:
         void                  advance_cursor(i64_t _amount = 1);// Advance the instruction pointer of a given amount
         bool                  step_over(); // Step over common code (for both "run" and "debug" modes)
@@ -56,8 +58,9 @@ namespace ndbl
         bool                  m_is_program_running   = false;
         bool                  m_is_debugging         = false;
         const Code*           m_code                 = nullptr;
-        Node*                 m_next_node            = nullptr;
+        const Node*           m_next_node            = nullptr;
         Instruction*          m_last_step_next_instr = nullptr;
+        std::set<const Node*> m_visited_nodes;
     };
 
     [[nodiscard]]

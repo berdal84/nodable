@@ -57,6 +57,8 @@ void Interpreter::run_program()
     LOG_MESSAGE("Interpreter", "Running program ...\n")
     m_is_program_running = true;
     m_cpu.clear_registers();
+    m_visited_nodes.clear();
+    m_next_node = nullptr;
 
     while( is_there_a_next_instr() && get_next_instr()->opcode != OpCode_ret )
     {
@@ -334,7 +336,9 @@ void Interpreter::debug_program()
     m_is_debugging = true;
     m_is_program_running = true;
     m_cpu.clear_registers();
+    m_visited_nodes.clear();
     m_next_node = m_code->get_meta_data().graph->get_root();
+
     LOG_MESSAGE("Interpreter", "Debugging program ...\n")
 }
 
@@ -376,6 +380,11 @@ qword Interpreter::read_cpu_register(Register _register)const
 const Code *Interpreter::get_program_asm_code()
 {
     return m_code;
+}
+
+bool Interpreter::was_visited(const Node* node) const
+{
+    return m_visited_nodes.find(node) != m_visited_nodes.end();
 }
 
 Interpreter* ndbl::get_interpreter()

@@ -497,18 +497,14 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     Property*       property           = _view->get_property();
     const type*     node_class         = get_node()->get_class();
     VariableNode*   connected_variable = _view->get_connected_variable();
-    bool was_evaluated = false;
-    VERIFY(false, "was_evaluated is not implemented. TODO: query the current interpreter")
-//    bool            was_evaluated      = !get_node()->has_component<InvokableNode>()
-//                                       || get_node()->get_component<InvokableNode>()->has_flags(InvokableFlag_WAS_INVOKED);
+    bool            was_visited_by_interpreter = get_interpreter()->was_visited(get_node());
 
     /*
      * Handle input visibility
      */
     if ( _view->touched )
     {
-        // When touched, we show the input if the value is defined (can be edited).
-        _view->show_input &= was_evaluated;
+        _view->show_input &= was_visited_by_interpreter;
     }
     else if ( _detail == ViewDetail::MINIMALIST)
     {
@@ -522,7 +518,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
         _view->show_input |= node_class->is<LiteralNode>();
         // Always show when defined in exhaustive mode
         _view->show_input |= _detail == ViewDetail::EXHAUSTIVE;
-        _view->show_input |= was_evaluated;
+        _view->show_input |= was_visited_by_interpreter;
         // Always show when connected to a variable
         _view->show_input |= connected_variable != nullptr;
         // Shows variable property only if they are not connected (don't need to show anything, the variable name is already displayed on the node itself)
