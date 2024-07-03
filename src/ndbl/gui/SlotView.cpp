@@ -155,7 +155,7 @@ bool SlotView::draw()
             break;
         }
         default:
-            EXPECT(false, "Unhandled case")
+            VERIFY(false, "Unhandled case")
     }
 
     if ( ImGuiEx::BeginTooltip() )

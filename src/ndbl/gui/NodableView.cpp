@@ -132,7 +132,7 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
     // (to create functions/operators from the API)
     const Nodlang* language = get_language();
-    EXPECT(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
+    VERIFY(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
     for ( auto& func_type: language->get_api() )
     {
         std::string label;
@@ -153,7 +153,7 @@ void NodableView::shutdown()
 
 void NodableView::draw()
 {
-    EXPECT(m_logo != nullptr, "Logo is nullptr, did you call init_ex() ?")
+    VERIFY(m_logo != nullptr, "Logo is nullptr, did you call init_ex() ?")
 
     // note: we draw this view nested in base view's begin/end (similar to ImGui API).
     m_base_view.begin_draw();

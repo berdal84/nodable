@@ -224,7 +224,7 @@ variant CLI::invoke_static(const FuncType* _func_type, std::vector<variant>&& _a
 {
     variant result;
 
-    EXPECT(false, "not implemented yet")
+    VERIFY(false, "not implemented yet")
 
     log_function_call(result, _func_type);
     return result;
@@ -234,7 +234,7 @@ variant CLI::invoke_method(const FuncType* _func_type, std::vector<variant>&& _a
 {
     variant result;
 
-    EXPECT(false, "not implemented yet")
+    VERIFY(false, "not implemented yet")
 
     log_function_call(result, _func_type);
     return result;

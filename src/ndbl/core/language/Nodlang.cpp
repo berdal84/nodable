@@ -1611,7 +1611,7 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
             serialize_invokable(_out, static_cast<const InvokableNode*>(node) );
             break;
         default:
-            EXPECT(false, "Unhandled NodeType, can't serialize");
+            VERIFY(false, "Unhandled NodeType, can't serialize");
     }
 
     return serialize_token(_out, node->get_suffix() );
@@ -1947,7 +1947,7 @@ int Nodlang::get_precedence( const tools::FuncType* _func_type) const
 
 const type * Nodlang::get_type(Token_t _token) const
 {
-    EXPECT(is_a_type_keyword(_token), "_token_t is not a type keyword!");
+    VERIFY(is_a_type_keyword(_token), "_token_t is not a type keyword!");
     return m_type_by_token_t.find(_token)->second;
 }
 

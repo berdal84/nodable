@@ -39,7 +39,7 @@ Graph* NodableHeadless::parse( const std::string& code )
 
 bool NodableHeadless::run_program() const
 {
-    EXPECT(m_interpreter != nullptr, "Did you call init() ?")
+    VERIFY(m_interpreter != nullptr, "Did you call init() ?")
 
     try {
         m_interpreter->run_program();

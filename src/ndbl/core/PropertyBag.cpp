@@ -11,7 +11,7 @@ bool PropertyBag::has(const char* _name) const
 
 Property* PropertyBag::add(const type* _type, const char* _name, PropertyFlags _flags )
 {
-    EXPECT(m_owner != nullptr, "PropertyBag must be initialized")
+    VERIFY(m_owner != nullptr, "PropertyBag must be initialized")
     ASSERT(!has(_name));
 
     // create the property

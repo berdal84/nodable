@@ -22,7 +22,7 @@ Slot::Slot(
 , m_property(_property)
 , m_position(_position)
 {
-    EXPECT( !has_flags(SlotFlag_NOT_FULL), "SlotFlag_NOT_FULL is for readonly use" )
+    VERIFY(!has_flags(SlotFlag_NOT_FULL), "SlotFlag_NOT_FULL is for readonly use" )
     ASSERT( _capacity > 0 )
     m_adjacent.reserve(_capacity);
     m_flags |= SlotFlag_NOT_FULL;
@@ -74,9 +74,9 @@ bool Slot::is_full() const
 void Slot::add_adjacent(Slot* _other)
 {
     ASSERT(_other != nullptr);
-    EXPECT(_other != this, "Reflexive edge not handled" );
-    EXPECT(type() == _other->type() , "Slot must have common type" );
-    EXPECT( m_adjacent.size() < m_adjacent.capacity(), "Slot is full" );
+    VERIFY(_other != this, "Reflexive edge not handled" );
+    VERIFY(type() == _other->type() , "Slot must have common type" );
+    VERIFY(m_adjacent.size() < m_adjacent.capacity(), "Slot is full" );
     m_adjacent.emplace_back(_other);
     if ( m_adjacent.size() == m_adjacent.capacity() )
     {
@@ -87,7 +87,7 @@ void Slot::add_adjacent(Slot* _other)
 void Slot::remove_adjacent(Slot* _other)
 {
     auto it = std::find(m_adjacent.begin(), m_adjacent.end(), _other);
-    EXPECT( it != m_adjacent.end(), "Slot* not found")
+    VERIFY(it != m_adjacent.end(), "Slot* not found")
     m_adjacent.erase( it );
     m_flags |= SlotFlag_NOT_FULL;
 }
@@ -124,7 +124,7 @@ size_t Slot::capacity() const
 
 void Slot::expand_capacity( size_t _capacity )
 {
-    EXPECT( m_adjacent.capacity() <= _capacity, "New capacity must be strictly greater than current" );
+    VERIFY(m_adjacent.capacity() <= _capacity, "New capacity must be strictly greater than current" );
     m_adjacent.reserve(_capacity);
     m_flags |= SlotFlag_NOT_FULL;
 }

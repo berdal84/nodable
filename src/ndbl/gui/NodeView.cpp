@@ -498,7 +498,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     const type*     node_class         = get_node()->get_class();
     VariableNode*   connected_variable = _view->get_connected_variable();
     bool was_evaluated = false;
-    EXPECT(false, "was_evaluated is not implemented. TODO: query the current interpreter")
+    VERIFY(false, "was_evaluated is not implemented. TODO: query the current interpreter")
 //    bool            was_evaluated      = !get_node()->has_component<InvokableNode>()
 //                                       || get_node()->get_component<InvokableNode>()->has_flags(InvokableFlag_WAS_INVOKED);
 
@@ -1059,7 +1059,7 @@ void NodeView::set_color( const Vec4* _color, ColorType _type )
 Vec4 NodeView::get_color( ColorType _type ) const
 {
      auto* color = m_colors[_type];
-     EXPECT(color != nullptr, "Did you called set_color(...) ?");
+     VERIFY(color != nullptr, "Did you called set_color(...) ?");
      return *color;
 }
 

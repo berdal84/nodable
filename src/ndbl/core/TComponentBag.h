@@ -46,7 +46,7 @@ namespace ndbl
             static_assert( std::is_convertible_v<T, C> );
 
             auto found = std::find(m_components.begin(), m_components.end(), component );
-            EXPECT(found != m_components.end(), "Component can't be found it those components");
+            VERIFY(found != m_components.end(), "Component can't be found it those components");
             auto index =  std::type_index( typeid(T) ).hash_code();
             m_components_by_type.erase( index );
             m_components.erase(found);

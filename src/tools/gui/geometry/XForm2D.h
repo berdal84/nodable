@@ -18,7 +18,7 @@ namespace tools
 
         void pos(const Vec2& _pos)
         {
-            EXPECT(!std::isnan(_pos.x) && !std::isnan(_pos.y), "Vector can't have NaN coordinates");
+            VERIFY(!std::isnan(_pos.x) && !std::isnan(_pos.y), "Vector can't have NaN coordinates");
             m_pos = _pos;
             m_matrix_are_dirty = true;
         }

@@ -34,7 +34,7 @@ void AppView::init(App* _app)
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
     {
         LOG_ERROR( "tools::App", "SDL Error: %s\n", SDL_GetError());
-        EXPECT(false, "Unable to flag_initialized SDL");
+        VERIFY(false, "Unable to flag_initialized SDL");
     }
 
     // Setup window
@@ -167,17 +167,17 @@ void AppView::init(App* _app)
     if( !ImGui_ImplSDL2_InitForOpenGL(m_sdl_window, m_sdl_gl_context) )
     {
         LOG_ERROR("tools::App", "Unable to init_ex NFD\n");
-        EXPECT(false, "Unable to flag_initialized NFD");
+        VERIFY(false, "Unable to flag_initialized NFD");
     }
     if( !ImGui_ImplOpenGL3_Init(/* default glsl_version*/) )
     {
         LOG_ERROR("tools::App", "Unable to init_ex NFD\n");
-        EXPECT(false, "Unable to flag_initialized NFD");
+        VERIFY(false, "Unable to flag_initialized NFD");
     }
     if (NFD_Init() != NFD_OKAY)
     {
         LOG_ERROR("tools::App", "Unable to init_ex NFD\n");
-        EXPECT(false, "Unable to flag_initialized NFD");
+        VERIFY(false, "Unable to flag_initialized NFD");
     }
 
     show_splashscreen = cfg->show_splashscreen_default;

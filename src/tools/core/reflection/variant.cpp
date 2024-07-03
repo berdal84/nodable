@@ -210,7 +210,7 @@ void variant::set(const variant& _other)
 
 void variant::clear_data()
 {
-    EXPECT(m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY, "Variant: cannot reset value, variant not initialized!");
+    VERIFY(m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY, "Variant: cannot reset value, variant not initialized!");
 
     if (m_type == Type_string)
     {
@@ -286,7 +286,7 @@ variant& variant::operator=(const variant &other)
         case Type_i32:    this->set(other.to<i32_t>() ); break;
         case Type_string: this->set(other.to<std::string>()); break;
         default:
-            EXPECT(false, "Variant: missing type case for operator=");
+            VERIFY(false, "Variant: missing type case for operator=");
     }
     return *this;
 }

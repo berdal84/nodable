@@ -79,7 +79,7 @@ Texture *TextureManager::load_png_to_gpu(const std::filesystem::path &path)
     {
         delete texture;
         LOG_ERROR("TextureManager", "Unable to load png (code %u): %s\n",  error, path.c_str())
-        EXPECT(false, "Unable to load png")
+        VERIFY(false, "Unable to load png")
     }
 
     // 2. Load texture to GPU

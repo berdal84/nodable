@@ -38,7 +38,7 @@ ndbl::Config* ndbl::get_config()
 
 ndbl::Config::Config(tools::Config* _tools_cfg)
 {
-    EXPECT(_tools_cfg != nullptr, "tools config not initialised");
+    VERIFY(_tools_cfg != nullptr, "tools config not initialised");
     tools_cfg = _tools_cfg;
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {

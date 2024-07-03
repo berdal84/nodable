@@ -17,7 +17,7 @@ TaskManager* tools::get_task_manager()
 
 TaskManager* tools::init_task_manager(const TaskManager::Config& config)
 {
-    EXPECT( config.max_capacity >= config.reserve_size, "[tools::init_task_manager] can't reserve more space than capacity!" )
+    VERIFY(config.max_capacity >= config.reserve_size, "[tools::init_task_manager] can't reserve more space than capacity!" )
     g_task_manager = new TaskManager(config);
     return g_task_manager;
 }
@@ -61,7 +61,7 @@ void TaskManager::update()
 void tools::shutdown_task_manager(TaskManager* task_manager)
 {
     ASSERT(task_manager  == g_task_manager)
-    EXPECT(g_task_manager != nullptr, "[tools::shutdown_task_manager] must be initialised. Did you call init_task_manager()?");
+    VERIFY(g_task_manager != nullptr, "[tools::shutdown_task_manager] must be initialised. Did you call init_task_manager()?");
     delete g_task_manager;
     g_task_manager = nullptr;
 }
@@ -81,7 +81,7 @@ void TaskManager::run_task(std::future<void>&& task)
         ++it;
     }
 
-    EXPECT( m_tasks.size() < m_conf.max_capacity, "[TaskManager::run_task] m_tasks buffer is full. Did you call update() frequently? Consider increasing max_capacity when calling init_task_manager()");
+    VERIFY(m_tasks.size() < m_conf.max_capacity, "[TaskManager::run_task] m_tasks buffer is full. Did you call update() frequently? Consider increasing max_capacity when calling init_task_manager()");
 
     m_tasks.push_back(std::move(task));
 }

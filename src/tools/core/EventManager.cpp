@@ -9,14 +9,14 @@ EventManager* g_event_manager = nullptr;
 
 EventManager* tools::init_event_manager()
 {
-    EXPECT(g_event_manager == nullptr, "Cannot be called twice") // singleton
+    VERIFY(g_event_manager == nullptr, "Cannot be called twice") // singleton
     g_event_manager = new EventManager();
     return g_event_manager;
 }
 
 EventManager* tools::get_event_manager()
 {
-    EXPECT(g_event_manager != nullptr, "event manager can't be found. Did you call init_ex ?")
+    VERIFY(g_event_manager != nullptr, "event manager can't be found. Did you call init_ex ?")
     return g_event_manager;
 }
 

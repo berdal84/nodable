@@ -23,7 +23,7 @@ static_assert(false, "ASSERT_ is reserved for tools, it should not be defined he
 
 #define ASSERT_(expression) LOG_FLUSH(); assert((expression))
 #define ASSERT(expression)          ASSERT_( expression );
-#define EXPECT(expression, message) ASSERT_( expression ) && message;
+#define VERIFY(expression, message) ASSERT_( expression ) && message;
 
 #else // NOEXCEPT
 
@@ -32,13 +32,13 @@ static_assert(false, "ASSERT_ is reserved for tools, it should not be defined he
 
 #include "Exceptions.h"
 
-#pragma error "EXPECT_ is reserved for tools, it should not be defined here."
+#pragma error "VERIFY_ is reserved for tools, it should not be defined here."
 
-#define EXPECT_(expression, message_if_fails )\
+#define VERIFY_(expression, message_if_fails )\
 if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
 
-#define ASSERT(expression) EXPECT_( (expression), "Assertion failed: " #expression" is false" )
-#define EXPECT(expression, message) EXPECT_( (expression), message )
+#define ASSERT(expression) VERIFY_( (expression), "Assertion failed: " #expression" is false" )
+#define VERIFY(expression, message) VERIFY_( (expression), message )
 
 #endif // !NOEXCEPT
 

@@ -156,7 +156,7 @@ bool Interpreter::step_over()
             }
             else
             {
-                EXPECT(false, "This type is not handled!")
+                VERIFY(false, "This type is not handled!")
             }
 
             advance_cursor();
@@ -246,7 +246,7 @@ bool Interpreter::step_over()
             const std::vector<variant*> args{}; // TODO: read arguments from the stack
             next_instr->call.func_type; // TODO: call from stack
             advance_cursor();
-            EXPECT(false, "not implemented yet")
+            VERIFY(false, "not implemented yet")
 
             break;
         }
@@ -314,7 +314,7 @@ bool Interpreter::debug_step_over()
         {
             case OpCode_call:
             {
-                EXPECT(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a node reference in the instruction")
+                VERIFY(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a node reference in the instruction")
 //                m_next_node = next_instr->eval.invokable;
                 break;
             }

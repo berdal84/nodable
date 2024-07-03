@@ -38,7 +38,7 @@ namespace tools
     template <std::size_t TUPLE_SIZE, typename ElementT>
     auto VectorToTuple(const std::vector<ElementT>& in_vector) // Convert a vector to a tuple,
     {
-        EXPECT(in_vector.size() == TUPLE_SIZE, "Vector should have the expected size");
+        VERIFY(in_vector.size() == TUPLE_SIZE, "Vector should have the expected size");
         return VectorToTupleEx( in_vector, std::make_index_sequence<TUPLE_SIZE>() );
     }
 
@@ -152,7 +152,7 @@ namespace tools
     {
         using Args = typename FunctionTrait<F>::args_t;
         constexpr size_t N = std::tuple_size_v<Args>;
-        EXPECT(_args.size() == N, "Wrong number of arguments");
+        VERIFY(_args.size() == N, "Wrong number of arguments");
         if constexpr ( std::is_void_v< typename std::result_of<F> > )
         {
             CastAndApply( _function, VectorToTuple<N>( _args ));
@@ -168,7 +168,7 @@ namespace tools
     {
         using Args = typename FunctionTrait<MethodPtrT>::args_t;
         constexpr size_t N = std::tuple_size_v<Args>;
-        EXPECT(_args.size() == N, "Wrong number of arguments");
+        VERIFY(_args.size() == N, "Wrong number of arguments");
         if constexpr ( std::is_void_v< typename FunctionTrait<MethodPtrT>::result_t > )
         {
             CastAndApply(_method, _instance, VectorToTuple<N>( _args ));
@@ -223,7 +223,7 @@ namespace tools
 
         variant invoke( void* _instance, const std::vector<variant*>& _args ) const override
         {
-            EXPECT(_instance != nullptr, "An instance is required!");
+            VERIFY(_instance != nullptr, "An instance is required!");
             return tools::Apply( m_method_pointer, _instance, _args );
         };
 

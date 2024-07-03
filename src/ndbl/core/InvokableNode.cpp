@@ -18,7 +18,7 @@ void InvokableNode::init(NodeType _type, const FuncType*  _func_type )
 {
     Node::init(_type, _func_type->get_identifier());
 
-    EXPECT(_func_type != nullptr, "Signature must be defined!")
+    VERIFY(_func_type != nullptr, "Signature must be defined!")
     m_func_type = _func_type;
     m_identifier_token = {
         Token_t::identifier,
@@ -44,7 +44,7 @@ void InvokableNode::init(NodeType _type, const FuncType*  _func_type )
             break;
         }
         default:
-            EXPECT(false, "Type not allowed")
+            VERIFY(false, "Type not allowed")
     }
 
     // Create a result/value
@@ -55,8 +55,8 @@ void InvokableNode::init(NodeType _type, const FuncType*  _func_type )
     if ( _type == NodeType_OPERATOR )
     {
         size_t count = _func_type->get_arg_count();
-        EXPECT(count != 0, "An operator cannot have zero argument");
-        EXPECT(count < 3, "An operator cannot have more than 2 arguments");
+        VERIFY(count != 0, "An operator cannot have zero argument");
+        VERIFY(count < 3, "An operator cannot have more than 2 arguments");
     }
 
     for (size_t i = 0; i < get_arg_slots().size(); i++ )

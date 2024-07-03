@@ -111,7 +111,7 @@ namespace tools
 
         FuncType* construct()
         {
-            EXPECT( !m_id.empty(), "No identifier specified! use with_id()" );
+            VERIFY(!m_id.empty(), "No identifier specified! use with_id()" );
 
             FuncType* signature = new FuncType();
             signature->set_identifier(m_id);

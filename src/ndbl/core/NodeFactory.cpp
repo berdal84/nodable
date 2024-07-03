@@ -159,7 +159,7 @@ LiteralNode* NodeFactory::create_literal(const type *_type) const
 
 void NodeFactory::override_post_process_fct( NodeFactory::PostProcessFct _function)
 {
-    EXPECT( m_post_process_is_overrided == false, "Cannot override post process function more than once." );
+    VERIFY(m_post_process_is_overrided == false, "Cannot override post process function more than once." );
     m_post_process_is_overrided = true;
     m_post_process              = std::move(_function);
 }

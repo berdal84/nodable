@@ -196,7 +196,7 @@ Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
             count++;
         }
     }
-    EXPECT(false, "Not found")
+    VERIFY(false, "Not found")
 }
 
 Property* Node::add_prop(const tools::type* _type, const char *_name, PropertyFlags _flags)

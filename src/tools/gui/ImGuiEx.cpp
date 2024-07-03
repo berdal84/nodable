@@ -41,7 +41,7 @@ Rect ImGuiEx::GetContentRegion(Space origin)
             return region;
         }
         default:
-            EXPECT(false,"OriginRef_ case not handled. Cannot compute GetContentRegion(..)")
+            VERIFY(false, "OriginRef_ case not handled. Cannot compute GetContentRegion(..)")
     }
 }
 

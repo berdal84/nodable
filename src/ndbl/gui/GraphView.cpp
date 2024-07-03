@@ -92,7 +92,7 @@ ImGuiID make_wire_id(const Slot *ptr1, const Slot *ptr2)
 
 void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 {
-    EXPECT(from != nullptr, "from slot can't be nullptr")
+    VERIFY(from != nullptr, "from slot can't be nullptr")
 
     Config* cfg = get_config();
 
@@ -477,7 +477,7 @@ void GraphView::frame_nodes(FrameMode mode )
             break;
         }
         default:
-            EXPECT(false, "unhandled case!")
+            VERIFY(false, "unhandled case!")
     }
 }
 

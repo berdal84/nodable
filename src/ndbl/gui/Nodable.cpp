@@ -169,7 +169,7 @@ void Nodable::update()
             case Event_FrameSelection::id:
             {
                 auto _event = reinterpret_cast<Event_FrameSelection*>( event );
-                EXPECT(graph_view, "a graph_view is required");
+                VERIFY(graph_view, "a graph_view is required");
                 graph_view->frame_nodes(_event->data.mode);
                 break;
             }
@@ -223,7 +223,7 @@ void Nodable::update()
                 std::vector<Node*> successors = selected[0]->get_owner()->successors();
                 if (!successors.empty())
                     if (NodeView* successor_view = successors.front()->get_component<NodeView>() )
-                        graph_view->set_selected({successor_view}, SelectionMode_REPLACE); EXPECT(false, "not implemented for multi-selection")
+                        graph_view->set_selected({successor_view}, SelectionMode_REPLACE); VERIFY(false, "not implemented for multi-selection")
                 break;
             }
 
@@ -431,7 +431,7 @@ File* Nodable::open_file(const std::filesystem::path& _path)
 
 File* Nodable::add_file( File* _file)
 {
-    EXPECT(_file, "File is nullptr");
+    VERIFY(_file, "File is nullptr");
     m_loaded_files.push_back( _file );
     m_current_file = _file;
     get_event_manager()->dispatch( EventID_FILE_OPENED );
@@ -440,7 +440,7 @@ File* Nodable::add_file( File* _file)
 
 void Nodable::save_file( File* _file) const
 {
-    EXPECT(_file,"file must be defined");
+    VERIFY(_file, "file must be defined");
 
 	if ( !File::write(*_file, _file->path) )
     {
@@ -463,9 +463,9 @@ void Nodable::save_file_as(const std::filesystem::path& _path) const
 void Nodable::close_file( File* _file)
 {
     // Find and delete the file
-    EXPECT(_file, "Cannot close a nullptr File!");
+    VERIFY(_file, "Cannot close a nullptr File!");
     auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
-    EXPECT(it != m_loaded_files.end(), "Unable to find the file in the loaded_files");
+    VERIFY(it != m_loaded_files.end(), "Unable to find the file in the loaded_files");
     it = m_loaded_files.erase(it);
     delete _file;
 

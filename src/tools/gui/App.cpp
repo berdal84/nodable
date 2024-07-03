@@ -29,10 +29,10 @@ void App::init()
 void App::init_ex(AppView* _view, Config* _config)
 {
     // Guards
-    EXPECT(m_view == nullptr, "A view already exist. Did you call init twice?")
-    EXPECT(m_config == nullptr, "A config already exist. Did you call init twice?")
-    EXPECT(_config != nullptr, "You must provide a config")
-    EXPECT(_view != nullptr, "You must provide a view")
+    VERIFY(m_view == nullptr, "A view already exist. Did you call init twice?")
+    VERIFY(m_config == nullptr, "A config already exist. Did you call init twice?")
+    VERIFY(_config != nullptr, "You must provide a config")
+    VERIFY(_view != nullptr, "You must provide a view")
 
     // Store existing data
     m_view   = _view;
@@ -87,7 +87,7 @@ double App::get_time()
 
 std::filesystem::path App::asset_path(const fs_path& _path)
 {
-    EXPECT(!_path.is_absolute(), "_path is not relative, this can't be an asset")
+    VERIFY(!_path.is_absolute(), "_path is not relative, this can't be an asset")
     fs_path executable_dir = system::get_executable_directory();
     return executable_dir / "assets" / _path;
 }

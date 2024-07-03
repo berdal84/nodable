@@ -120,7 +120,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, tokenize__some_code_to_graph)(benchmark::Stat
 
     for (auto _ : state)
     {
-        EXPECT(language->tokenize(code), "parse failed");
+        VERIFY(language->tokenize(code), "parse failed");
     }
 }
 

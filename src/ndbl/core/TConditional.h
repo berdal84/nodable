@@ -46,8 +46,8 @@ namespace ndbl
     template<size_t BRANCH_COUNT>
     const Slot& TConditional<BRANCH_COUNT>::get_condition_slot(Branch _branch ) const
     {
-        EXPECT( _branch != Branch_FALSE, "Branch_FALSE has_flags no condition, use Branch_TRUE or any number greater than 0" )
-        EXPECT( _branch < BRANCH_COUNT, "branch does not exist" )
+        VERIFY(_branch != Branch_FALSE, "Branch_FALSE has_flags no condition, use Branch_TRUE or any number greater than 0" )
+        VERIFY(_branch < BRANCH_COUNT, "branch does not exist" )
         return *m_condition_slot.at(_branch - 1);
     }
 

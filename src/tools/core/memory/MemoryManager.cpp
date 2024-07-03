@@ -16,7 +16,7 @@ const MemoryStats* tools::get_memory_stats()
 
 const MemoryStats* tools::init_memory_manager()
 {
-    EXPECT(g_memory_stats == nullptr, "Can't flag_initialized twice");
+    VERIFY(g_memory_stats == nullptr, "Can't flag_initialized twice");
     g_memory_stats = new MemoryStats();
     ASSERT(g_memory_stats->alloc_count() == 0);
     return g_memory_stats;
@@ -24,7 +24,7 @@ const MemoryStats* tools::init_memory_manager()
 
 void tools::shutdown_memory_manager()
 {
-    EXPECT(g_memory_stats != nullptr, "Already shutdown or never initialized?");
+    VERIFY(g_memory_stats != nullptr, "Already shutdown or never initialized?");
 
     MemoryStats stats = *g_memory_stats; // copy locally before to delete
     if(stats.alloc_count() != 0)

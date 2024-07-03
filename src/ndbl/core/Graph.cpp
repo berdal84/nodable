@@ -193,9 +193,9 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     ASSERT( _out.has_flags( SlotFlag_NOT_FULL ) )
     Property* in_prop  = _in.get_property();
     Property* out_prop = _out.get_property();
-    EXPECT( in_prop, "tail get_value must be defined" )
-    EXPECT( out_prop, "head get_value must be defined" )
-    EXPECT( in_prop != out_prop, "Can't connect same properties!" )
+    VERIFY(in_prop, "tail get_value must be defined" )
+    VERIFY(out_prop, "head get_value must be defined" )
+    VERIFY(in_prop != out_prop, "Can't connect same properties!" )
 
     // now graph is abstract
 //    const type* out_type = out_prop->get_type();
@@ -410,7 +410,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     SlotFlags type = _edge.tail->get_flags() & SlotFlag_TYPE_MASK;
     auto [range_begin, range_end]   = m_edge_registry.equal_range(type);
     auto it = std::find_if( range_begin, range_end, [&](const auto& _pair) -> bool { return _edge == _pair.second; });
-    EXPECT( it != m_edge_registry.end(), "Unable to find edge" );
+    VERIFY(it != m_edge_registry.end(), "Unable to find edge" );
 
     // erase it from the registry
     m_edge_registry.erase(it);
@@ -450,7 +450,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
             // None
             break;
         default:
-            EXPECT(!type, "Not yet implemented yet");
+            VERIFY(!type, "Not yet implemented yet");
     }
 
     set_dirty(); // To express this graph changed
@@ -532,7 +532,7 @@ Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
 
         case CreateNodeType_INVOKABLE:
         {
-            EXPECT(_signature != nullptr, "_signature is expected when dealing with functions or operators")
+            VERIFY(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
             const FuncType* func_type = language->find_function(_signature);
@@ -542,7 +542,7 @@ Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
             return create_function(func_type);
         }
         default:
-            EXPECT( false, "Unhandled CreateNodeType.");
+            VERIFY(false, "Unhandled CreateNodeType.");
     }
 }
 

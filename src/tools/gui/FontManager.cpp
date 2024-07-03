@@ -8,10 +8,10 @@ static FontManager* g_font_manager = nullptr;
 
 FontManager* tools::init_font_manager()
 {
-    EXPECT(g_font_manager == nullptr, "init_ex called twice?")
+    VERIFY(g_font_manager == nullptr, "init_ex called twice?")
     g_font_manager = new FontManager();
     Config* cfg = get_config();
-    EXPECT(cfg != nullptr, "Unable to get the configuration. Did you init_ex the config?")
+    VERIFY(cfg != nullptr, "Unable to get the configuration. Did you init_ex the config?")
     g_font_manager->init(&cfg->font_manager);
     return g_font_manager;
 }
@@ -30,7 +30,7 @@ void tools::shutdown_font_manager(FontManager* _manager)
 
 void FontManager::init(const FontManagerConfig* config)
 {
-    EXPECT(m_config == nullptr, "init_ex() must be called ONCE");
+    VERIFY(m_config == nullptr, "init_ex() must be called ONCE");
     m_config = config;
 
     for (const FontConfig& text_font : config->text)
@@ -55,8 +55,8 @@ void FontManager::init(const FontManagerConfig* config)
 
 ImFont* FontManager::load_font(const FontConfig& font_config)
 {
-    EXPECT(m_config != nullptr, "init_ex() must be called first");
-    EXPECT(m_loaded_fonts.find(font_config.id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
+    VERIFY(m_config != nullptr, "init_ex() must be called first");
+    VERIFY(m_loaded_fonts.find(font_config.id) == m_loaded_fonts.end(), "use of same key for different fonts is not allowed");
 
     ImFont*   font     = nullptr;
     auto&     io       = ImGui::GetIO();
@@ -105,13 +105,13 @@ ImFont* FontManager::load_font(const FontConfig& font_config)
 
 ImFont* FontManager::get_font(FontSlot slot) const
 {
-    EXPECT(m_config != nullptr, "init_ex() must be called first");
+    VERIFY(m_config != nullptr, "init_ex() must be called first");
     return m_fonts[slot];
 }
 
 ImFont* FontManager::get_font(const char *id)const
 {
-    EXPECT(m_config != nullptr, "init_ex() must be called first");
+    VERIFY(m_config != nullptr, "init_ex() must be called first");
     return m_loaded_fonts.at(id );
 }
 

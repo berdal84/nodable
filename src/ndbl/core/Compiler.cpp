@@ -200,7 +200,7 @@ void Compiler::compile_node( const Node* _node )
                     Instruction*         instr          = m_temp_code->push_instr(OpCode_call);
                     const InvokableNode* invokable_node = static_cast<const InvokableNode*>(_node);
                     const FuncType*      func_type      = get_language()->find_function( invokable_node->get_func_type() ); // Get exact OR fallback function (in case of arg cast)
-                    EXPECT(func_type != nullptr, "Unable to find this function")
+                    VERIFY(func_type != nullptr, "Unable to find this function")
 
                     instr->call.func_type = func_type;
                     instr->m_comment      = "Call: ";
@@ -210,7 +210,7 @@ void Compiler::compile_node( const Node* _node )
                 }
                 case NodeType_LITERAL:
                 case NodeType_VARIABLE:
-                    EXPECT(false, "not implemented yet")
+                    VERIFY(false, "not implemented yet")
             }
 
         }

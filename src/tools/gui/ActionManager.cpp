@@ -14,14 +14,14 @@ ActionManager* g_action_manager = nullptr;
 
 ActionManager* tools::init_action_manager()
 {
-    EXPECT(g_action_manager == nullptr, "Cannot be called twice")
+    VERIFY(g_action_manager == nullptr, "Cannot be called twice")
     g_action_manager = new ActionManager();
     return g_action_manager;
 }
 
 ActionManager* tools::get_action_manager()
 {
-    EXPECT(g_action_manager != nullptr, "event manager can't be found. Did you call init ?")
+    VERIFY(g_action_manager != nullptr, "event manager can't be found. Did you call init ?")
     return g_action_manager;
 }
 
@@ -46,7 +46,7 @@ const IAction* ActionManager::get_action_with_id(EventID id)
     {
         string128 str;
         str.append_fmt("Unable to find an action bound to EventId %i\n", id);
-        EXPECT(false, str.c_str() );
+        VERIFY(false, str.c_str() );
     }
     return found->second;
 }
