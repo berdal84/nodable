@@ -16,7 +16,7 @@ namespace ndbl
     enum OpCode_ : u8_t
     {
         OpCode_cmp,              // comparison.
-        OpCode_eval_node,        // node evaluation.
+        OpCode_call,        // node evaluation.
         OpCode_jmp,              // unconditional jump.
         OpCode_jne,              // conditional jump.
         OpCode_mov,              // move or copy memory.
@@ -31,7 +31,7 @@ namespace ndbl
     REFLECT_ENUM(OpCode)
     REFLECT_ENUM_VALUE(OpCode_mov)
     REFLECT_ENUM_VALUE(OpCode_deref_qword )
-    REFLECT_ENUM_VALUE(OpCode_eval_node)
+    REFLECT_ENUM_VALUE(OpCode_call)
     REFLECT_ENUM_VALUE(OpCode_push_var)
     REFLECT_ENUM_VALUE(OpCode_pop_var)
     REFLECT_ENUM_VALUE(OpCode_push_stack_frame)
@@ -87,8 +87,8 @@ namespace ndbl
     // Evaluates a given node
     struct Instruction_eval
     {
-        OpCode                   opcode;
-        const tools::IInvokable* invokable;
+        OpCode                 opcode;
+        const tools::FuncType* func_type;
     };
 
     /**
@@ -115,7 +115,7 @@ namespace ndbl
             Instruction_cmp         cmp;                    // compare
             Instruction_push_or_pop push;                   // push to stack
             Instruction_push_or_pop pop;                    // pop from stack
-            Instruction_eval        eval;                   // evaluates
+            Instruction_eval        call;                   // evaluates
         };
         std::string m_comment;                              // optional comment.
         static std::string to_string(const Instruction&);   // Convert the instruction to a nice looking string.

@@ -6,7 +6,7 @@
 #include <map>
 #include <utility>
 
-#include "tools/core/reflection/func_type.h"
+#include "tools/core/reflection/FuncType.h"
 #include "tools/core/Event.h"
 #include "tools/core/types.h"
 

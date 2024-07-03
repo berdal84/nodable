@@ -49,7 +49,6 @@ namespace ndbl
         const Code *          get_program_asm_code(); // Get current program ptr
         bool                  is_next_node(const Node* _node)const { return m_next_node == _node; } // Check if a given Node is the next to be executed
     private:
-        void                  clean_graph();
         void                  advance_cursor(i64_t _amount = 1);// Advance the instruction pointer of a given amount
         bool                  step_over(); // Step over common code (for both "run" and "debug" modes)
 

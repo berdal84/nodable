@@ -124,7 +124,7 @@ namespace ndbl
         const Property*      get_prop_at(size_t) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        const tools::IInvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
+        const tools::FuncType* get_connected_function_type(const char *property_name) const; //
         bool                 has_input_connected( const Property*) const;
 
         template<typename ValueT>
@@ -168,5 +168,7 @@ namespace ndbl
 
         REFLECT_BASE_CLASS()
         POOL_REGISTRABLE(Node)
+
+        bool is_invokable() const;
     };
 }

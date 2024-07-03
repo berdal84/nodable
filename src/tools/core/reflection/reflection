@@ -6,7 +6,7 @@
 #include "StaticInitializer.h"
 #include "class.h"
 #include "enum.h"
-#include "func_type.h"
+#include "FuncType.h"
 #include "type.h"
 #include "type_register.h"
 #include "union.h"

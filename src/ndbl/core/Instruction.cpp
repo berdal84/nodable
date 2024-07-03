@@ -26,10 +26,10 @@ std::string Instruction::to_string(const Instruction& _instr)
     // optionally append parameters
     switch ( _instr.opcode )
     {
-        case OpCode_eval_node:
+        case OpCode_call:
         {
             std::string signature;
-            get_language()->serialize_func_sig(signature, _instr.eval.invokable->get_type());
+            get_language()->serialize_func_sig(signature, _instr.call.func_type );
             result.append(signature);
             break;
         }

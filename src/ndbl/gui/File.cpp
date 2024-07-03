@@ -3,7 +3,7 @@
 #include <fstream>
 
 #include "ndbl/core/NodeUtils.h"
-#include "ndbl/core/InvokableComponent.h"
+#include "ndbl/core/InvokableNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/language/Nodlang.h"
 

@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "ndbl/core/fixtures/core.h"
-#include "tools/core/reflection/func_type.h"
+#include "tools/core/reflection/FuncType.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -16,34 +16,22 @@ TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 
 TEST_F(Language_basics, can_get_add_operator_with_signature )
 {
-    const func_type*  signature = func_type_builder<double(double, double)>::with_id("+");
+    const FuncType*  signature = FuncTypeBuilder<double(double, double)>::with_id("+");
     EXPECT_TRUE(language->find_operator_fct(signature));
 }
 
 TEST_F(Language_basics, can_get_invert_operator_with_signature )
 {
-    const func_type*  signature = func_type_builder<double(double)>::with_id("-");
+    const FuncType*  signature = FuncTypeBuilder<double(double)>::with_id("-");
     EXPECT_TRUE(language->find_operator_fct(signature));
 }
 
 TEST_F(Language_basics, by_ref_assign )
 {
-    const func_type*  signature = func_type_builder<double(double &, double)>::with_id("=");
+    const FuncType*  signature = FuncTypeBuilder<double(double &, double)>::with_id("=");
     auto operator_func = language->find_operator_fct(signature);
     EXPECT_TRUE(operator_func != nullptr);
-
-    // prepare call
-    variant left(50.0);
-    variant right(200.0);
-    variant result(0.0);
-    std::vector<variant*> args{&left, &right};
-
-    // call
-    result = operator_func->invoke(args);
-
-    //check
-    EXPECT_DOUBLE_EQ((double)left, 200.0);
-    EXPECT_DOUBLE_EQ((double)result, 200.0);
+    EXPECT_TRUE(operator_func->get_args()[0].m_by_reference);
 }
 
 TEST_F(Language_basics, token_t_to_type)

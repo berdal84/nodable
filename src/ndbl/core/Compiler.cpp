@@ -12,7 +12,7 @@
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/IfNode.h"
-#include "ndbl/core/InvokableComponent.h"
+#include "ndbl/core/InvokableNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Scope.h"
 #include "ndbl/core/VariableNode.h"
@@ -41,31 +41,49 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
     if( _graph->is_empty())
         return false;
 
+    const Nodlang* language = get_language();
     const std::vector<Node*>& nodes = _graph->get_node_registry();
     for( auto each_node : nodes )
     {
-        // Check for undeclared variables
-        if( auto scope = each_node->get_component<Scope>() )
+        switch ( each_node->type() )
         {
-            const std::vector<VariableNode*>& variables = scope->variables();
-
-            for( auto each_variable : variables )
+            case NodeType_BLOCK_SCOPE:
             {
-                if( each_variable->get_scope() == nullptr )
+                auto scope = each_node->get_component<Scope>();
+                const std::vector<VariableNode*>& variables = scope->variables();
+
+                for( auto each_variable : variables )
                 {
-                    LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_variable->get_name().c_str() );
+                    if( each_variable->get_scope() == nullptr )
+                    {
+                        LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_variable->get_name().c_str() );
+                        return false;
+                    }
+                }
+                break;
+            }
+
+            case NodeType_OPERATOR:
+            {
+                auto* invokable = static_cast<const InvokableNode*>(each_node);
+                if ( !language->find_operator_fct(invokable->get_func_type()) )
+                {
+                    std::string signature;
+                    language->serialize_func_sig(signature, invokable->get_func_type());
+                    LOG_ERROR("Compiler", "Operator is not declared: %s\n", signature.c_str());
                     return false;
                 }
             }
-        }
-
-        // Check for undeclared functions
-        if( auto component = each_node->get_component<const InvokableComponent>() )
-        {
-            if ( !component->has_function() )
+            case NodeType_FUNCTION:
             {
-                LOG_ERROR("Compiler", "\"%s\" is not a function available.\n", each_node->get_name().c_str() );
-                return false;
+                auto* invokable = static_cast<const InvokableNode*>(each_node);
+                if ( !language->find_function(invokable->get_func_type()) )
+                {
+                    std::string signature;
+                    language->serialize_func_sig(signature, invokable->get_func_type());
+                    LOG_ERROR("Compiler", "Function is not declared: %s\n", signature.c_str());
+                    return false;
+                }
             }
         }
     }
@@ -179,13 +197,15 @@ void Compiler::compile_node( const Node* _node )
                 case NodeType_FUNCTION:
                 case NodeType_OPERATOR:
                 {
-                    Instruction* instr = m_temp_code->push_instr(OpCode_eval_node);
-                    auto* invokable_component = _node->get_component<InvokableComponent>();
-                    ASSERT(invokable_component != nullptr)
-                    const IInvokable* invokable = get_language()->find_function( invokable_component->get_func_type() );
-                    ASSERT(invokable != nullptr)
-                    instr->eval.invokable = invokable;
-                    instr->m_comment = _node->get_name();
+                    Instruction*         instr          = m_temp_code->push_instr(OpCode_call);
+                    const InvokableNode* invokable_node = static_cast<const InvokableNode*>(_node);
+                    const FuncType*      func_type      = get_language()->find_function( invokable_node->get_func_type() ); // Get exact OR fallback function (in case of arg cast)
+                    EXPECT(func_type != nullptr, "Unable to find this function")
+
+                    instr->call.func_type = func_type;
+                    instr->m_comment      = "Call: ";
+                    get_language()->serialize_func_sig(instr->m_comment, func_type);
+
                     break;
                 }
                 case NodeType_LITERAL:

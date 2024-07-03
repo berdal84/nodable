@@ -1,9 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "tools/core/reflection/func_type.h"
+#include "tools/core/reflection/FuncType.h"
 
 #include "Graph.h"
-#include "InvokableComponent.h"
+#include "InvokableNode.h"
 #include "Node.h"
 #include "Scope.h"
 #include "DirectedEdge.h"
@@ -66,12 +66,12 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_node_registry().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
-    auto*       variable    = graph->create_variable( type::get<int>(), "var", nullptr);
-    func_type* fct_type     = func_type_builder<int(int, int)>::with_id("+");
-    auto       operator_fct = app.get_language()->find_operator_fct_exact(fct_type);
+    VariableNode*   variable     = graph->create_variable( type::get<int>(), "var", nullptr);
+    const FuncType* fct_type     = FuncTypeBuilder<int(int, int)>::with_id("+");
+    const FuncType* operator_fct = app.get_language()->find_operator_fct_exact(fct_type);
 
-    EXPECT_TRUE(operator_fct.get() != nullptr);
-    auto operator_node = graph->create_abstract_operator(fct_type);
+    EXPECT_TRUE(operator_fct != nullptr);
+    auto operator_node = graph->create_operator(fct_type);
 
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 

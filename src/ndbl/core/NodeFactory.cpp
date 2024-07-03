@@ -8,7 +8,7 @@
 
 #include "ForLoopNode.h"
 #include "IfNode.h"
-#include "InvokableComponent.h"
+#include "InvokableNode.h"
 #include "LiteralNode.h"
 #include "NodeUtils.h"
 #include "Scope.h"
@@ -73,113 +73,13 @@ VariableNode* NodeFactory::create_variable(const type *_type, const std::string&
     return node;
 }
 
-Node* NodeFactory::create_abstract_func(const func_type* _signature, bool _is_operator) const
+InvokableNode* NodeFactory::create_function(const tools::FuncType *_func_type, bool _is_operator) const
 {
-    Node* node = create_abstract_func_no_postprocess(_signature, _is_operator);
-    add_invokable_component(node, _signature, nullptr, _is_operator );
+    auto* node = create<InvokableNode>();
+    NodeType node_type = _is_operator ? NodeType_OPERATOR : NodeType_FUNCTION;
+    node->init(node_type, _func_type);
     m_post_process(node);
     return node;
-}
-
-Node* NodeFactory::create_abstract_func_no_postprocess(const tools::func_type *_func_type, bool _is_operator) const
-{
-    Node* node = create<Node>();
-    NodeType node_type = _is_operator ? NodeType_OPERATOR : NodeType_FUNCTION;
-    node->init(node_type, "");
-    node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY );
-    node->add_slot(SlotFlag_OUTPUT, 1); // Can be connected to an InstructionNode
-
-    if( _is_operator )
-    {
-        node->set_name(_func_type->get_identifier().c_str());
-    }
-    else
-    {
-        const std::string& id   = _func_type->get_identifier();
-        std::string label       = id + "()";
-        std::string short_label = id.substr(0, 2) + "..()"; // ------- improve, not great.
-        node->set_name(label.c_str());
-    }
-
-    // Create a result/value
-    auto return_prop_id = node->add_prop(_func_type->get_return_type(), VALUE_PROPERTY );
-    node->add_slot( SlotFlag_OUTPUT, Slot::MAX_CAPACITY, return_prop_id);
-
-    // Create arguments
-    auto args = _func_type->get_args();
-
-    if( _is_operator ) // rename arguments
-    {
-        size_t count = _func_type->get_arg_count();
-
-        EXPECT( count != 0 , "An operator cannot have zero argument" );
-        EXPECT( count < 3  , "An operator cannot have more than 2 arguments" );
-
-        switch ( count )
-        {
-            case 1:
-            {
-                auto prop = node->add_prop(args[0].m_type, LEFT_VALUE_PROPERTY );
-                node->add_slot(SlotFlag_INPUT, 1, prop);
-                break;
-            }
-
-            case 2:
-            {
-                auto left_prop  = node->add_prop(args[0].m_type, LEFT_VALUE_PROPERTY );
-                auto right_prop = node->add_prop(args[1].m_type, RIGHT_VALUE_PROPERTY );
-                node->add_slot(SlotFlag_INPUT, 1, left_prop );
-                node->add_slot(SlotFlag_INPUT, 1, right_prop);
-                break;
-            }
-
-            default: /* no warning */ ;
-        }
-    }
-    else
-    {
-        for (auto& arg : args)
-        {
-            auto each_prop_id = node->add_prop(arg.m_type, arg.m_name.c_str() );
-            node->add_slot( SlotFlag_INPUT, 1, each_prop_id);
-        }
-    }
-
-    return node;
-}
-//
-//Node* NodeFactory::create_func(const IInvokable* _function, bool _is_operator) const
-//{
-//    // Create an abstract function node
-//    const func_type* type = _function->get_type();
-//    Node* node = create_abstract_func_no_postprocess(type, _is_operator);
-//    add_invokable_component(node, type, _function, _is_operator);
-//    m_post_process(node);
-//    return node;
-//}
-//
-void NodeFactory::add_invokable_component(Node* _node, const func_type* _func_type, const IInvokable*_invokable, bool _is_operator) const
-{
-    // Create an InvokableComponent with the function.
-    auto* component = create<InvokableComponent>();
-    component->init(_func_type, _is_operator, _invokable);
-    _node->add_component(component);
-
-    // Bind result property
-    Slot* result_slot = _node->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
-    component->bind_result( result_slot );
-
-    // Link arguments
-    auto args = _func_type->get_args();
-    for (u8_t index = 0; index < (u8_t)args.size(); index++)
-    {
-        Slot& arg_slot = _node->get_nth_slot( index, SlotFlag_INPUT );
-        if ( args[index].m_by_reference )
-        {
-            arg_slot.get_property()->set_flags(PropertyFlag_IS_REF);  // to handle by reference function args
-        }
-        component->bind_arg(index, &arg_slot );
-    }
 }
 
 Node* NodeFactory::create_scope() const

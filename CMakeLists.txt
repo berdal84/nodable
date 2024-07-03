@@ -165,7 +165,7 @@ add_library(
     src/tools/core/reflection/class.h
     src/tools/core/reflection/enum.h
     src/tools/core/reflection/func_type.cpp
-    src/tools/core/reflection/func_type.h
+    src/tools/core/reflection/FuncType.h
     src/tools/core/reflection/qword.cpp
     src/tools/core/reflection/qword.h
     src/tools/core/reflection/reflection
@@ -355,7 +355,7 @@ add_library(
     src/ndbl/core/ForLoopNode.cpp
     src/ndbl/core/Graph.cpp
     src/ndbl/core/GraphUtil.cpp
-    src/ndbl/core/InvokableComponent.cpp
+    src/ndbl/core/InvokableNode.cpp
     src/ndbl/core/LiteralNode.cpp
     src/ndbl/core/Node.cpp
     src/ndbl/core/NodeFactory.cpp

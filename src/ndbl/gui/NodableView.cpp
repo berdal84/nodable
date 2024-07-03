@@ -29,12 +29,12 @@ using namespace ndbl;
 using namespace tools;
 
 template<typename T>
-static func_type* create_variable_node_signature()
-{ return func_type_builder<T(T)>::with_id("variable"); }
+static FuncType* create_variable_node_signature()
+{ return FuncTypeBuilder<T(T)>::with_id("variable"); }
 
 template<typename T>
-static func_type* create_literal_node_signature()
-{ return func_type_builder<T(/*void*/)>::with_id("literal"); }
+static FuncType* create_literal_node_signature()
+{ return FuncTypeBuilder<T(/*void*/)>::with_id("literal"); }
 
 void NodableView::init(Nodable * _app)
 {
@@ -133,9 +133,8 @@ void NodableView::init(Nodable * _app)
     // (to create functions/operators from the API)
     const Nodlang* language = get_language();
     EXPECT(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
-    for ( auto& each_fct: language->get_api() )
+    for ( auto& func_type: language->get_api() )
     {
-        const func_type* func_type = each_fct->get_type();
         std::string label;
         language->serialize_func_sig( label, func_type );
         action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_INVOKABLE, func_type } );

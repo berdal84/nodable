@@ -58,8 +58,7 @@ void CLI::update()
     {
         try
         {
-            variant result = static_fct->invoke({});
-            log_function_call(result, static_fct->get_type());
+            variant result = invoke_static(static_fct, {});
         }
         catch (std::runtime_error& e )
         {
@@ -74,10 +73,7 @@ void CLI::update()
         try
         {
             // then we invoke it
-            method->bind(this);
-            variant result = method->invoke({});
-            method->unbind();
-            log_function_call(result, method->get_type());
+            variant result = invoke_method(method, {});
         }
         catch (std::runtime_error& e )
         {
@@ -100,7 +96,7 @@ void CLI::clear()
     NodableHeadless::clear();
 }
 
-void CLI::log_function_call(const variant &result, const func_type *type)
+void CLI::log_function_call(const variant &result, const FuncType *type)
 {
     LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n",type->get_identifier().c_str(), result.to<std::string>().c_str())
 }
@@ -175,12 +171,12 @@ void CLI::PublicApi::help()
 
     for ( const auto& static_method_type : public_api_type->get_static_methods() )
     {
-        command_names.push_back(static_method_type->get_type()->get_identifier() + " (static)" );
+        command_names.push_back(static_method_type->get_identifier() + " (static)" );
     }
 
     for ( const auto& method_type : public_api_type->get_methods() )
     {
-        command_names.push_back(method_type->get_type()->get_identifier());
+        command_names.push_back(method_type->get_identifier());
     }
 
     std::sort(command_names.begin(), command_names.end());
@@ -222,4 +218,24 @@ bool CLI::run()
 bool CLI::PublicApi::run()
 {
     return m_cli->run();
+}
+
+variant CLI::invoke_static(const FuncType* _func_type, std::vector<variant>&& _args) const
+{
+    variant result;
+
+    EXPECT(false, "not implemented yet")
+
+    log_function_call(result, _func_type);
+    return result;
+}
+
+variant CLI::invoke_method(const FuncType* _func_type, std::vector<variant>&& _args) const
+{
+    variant result;
+
+    EXPECT(false, "not implemented yet")
+
+    log_function_call(result, _func_type);
+    return result;
 }

@@ -34,14 +34,14 @@ namespace tools
      * Class to store a function signature.
      * We can check if two function signature are matching using this->match(other)
      */
-    class func_type
+    class FuncType
     {
     public:
         void                           set_identifier(const std::string& _identifier);
         void                           push_arg(const type* _type, bool _by_reference = false);
         bool                           has_an_arg_of_type(const type* type)const;
-        bool                           is_exactly(const func_type* _other)const;
-        bool                           is_compatible(const func_type* _other)const;
+        bool                           is_exactly(const FuncType* _other)const;
+        bool                           is_compatible(const FuncType* _other)const;
         const std::string&             get_identifier()const { return m_identifier; };
         std::vector<FuncArg>&          get_args() { return m_args;};
         const std::vector<FuncArg>&    get_args()const { return m_args;};
@@ -60,7 +60,7 @@ namespace tools
         template<class Tuple, std::size_t N> // push N+1 arguments
         struct arg_pusher
         {
-            static void push_into(func_type *_signature)
+            static void push_into(FuncType *_signature)
             {
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
@@ -72,7 +72,7 @@ namespace tools
         template<class Tuple>  // push 1 arguments
         struct arg_pusher<Tuple, 1>
         {
-            static void push_into(func_type *_signature)
+            static void push_into(FuncType *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
                 _signature->push_arg( type::get<T>(), std::is_reference<T>::value );
@@ -89,11 +89,10 @@ namespace tools
         // empty function when pushing an empty arguments
         template<typename... Args, std::enable_if_t<std::tuple_size_v<Args...> == 0, int> = 0>
         void push_args(){}
-
     };
 
     template<typename T>
-    struct func_type_builder;
+    struct FuncTypeBuilder;
 
     /**
      * Builder to create function/operator signatures for a given language
@@ -106,15 +105,15 @@ namespace tools
      *                                                                  .with_language(lang_ptr).build();
      */
     template<typename T, typename ...Args>
-    struct func_type_builder<T(Args...)>
+    struct FuncTypeBuilder<T(Args...)>
     {
         std::string m_id;
 
-        func_type* construct()
+        FuncType* construct()
         {
             EXPECT( !m_id.empty(), "No identifier specified! use with_id()" );
 
-            func_type* signature = new func_type();
+            FuncType* signature = new FuncType();
             signature->set_identifier(m_id);
             signature->set_return_type(type::get<T>());
             signature->push_args<std::tuple<Args...>>();
@@ -122,9 +121,9 @@ namespace tools
             return signature;
         }
 
-        static func_type* with_id(const std::string& _id)
+        static FuncType* with_id(const std::string& _id)
         {
-            func_type_builder<T(Args...)> builder;
+            FuncTypeBuilder<T(Args...)> builder;
             builder.m_id = _id;
             return builder.construct();
         }
@@ -132,7 +131,7 @@ namespace tools
     };
 
     template<typename T, typename C, typename ...Args>
-    struct func_type_builder<T(C::*)(Args...)> : func_type_builder<T(Args...)> {};
+    struct FuncTypeBuilder<T(C::*)(Args...)> : FuncTypeBuilder<T(Args...)> {};
 
 
 }

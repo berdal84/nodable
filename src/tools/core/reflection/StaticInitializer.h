@@ -1,6 +1,6 @@
 #pragma once
 #include "Invokable.h"
-#include "func_type.h"
+#include "FuncType.h"
 #include "type.h"
 #include "type_register.h"
 #include <vector>
@@ -14,7 +14,6 @@ namespace tools
     struct StaticInitializer
     {
         type* m_type;
-        constexpr static bool is_class_v = std::is_class_v<T>;
 
         explicit StaticInitializer(const char* _name )
         {
@@ -25,35 +24,29 @@ namespace tools
         template<typename F>
         StaticInitializer& add_method(F* _function, const char* _name, const char* _alt_name = "" )
         {
-            static_assert(is_class_v);
-            {
-                auto invokable_ = new InvokableStaticFunction<F>(_function, _name);
-                m_type->add_static(_name, invokable_);
-            }
+            static_assert(std::is_class_v<T>);
+            auto* func_type = FuncTypeBuilder<F>::with_id(_name );
+            m_type->add_static(_name, func_type);
+
             if(_alt_name[0] != '\0')
-            {
-                auto invokable_ = new InvokableStaticFunction<F>(_function, _alt_name);
-                m_type->add_static(_alt_name, invokable_ );
-            }
+                m_type->add_static(_alt_name, func_type );
+
             return *this;
         }
 
         template<typename R, typename C, typename ...Ts>
-        StaticInitializer& add_method(R(C::*_function)(Ts...), const char* _name ) // non static
+        StaticInitializer& add_method(R(C::*func_ptr)(Ts...), const char* _name ) // non static
         {
-            static_assert(is_class_v);
-            using F = R(C::*)(Ts...);
-            {
-                auto invokable_ = new InvokableMethod<F>(_function, _name);
-                m_type->add_method(_name, invokable_);
-            }
+            static_assert(std::is_class_v<T>);
+            auto* func_type = FuncTypeBuilder<R(C::*)(Ts...)>::with_id(_name );
+            m_type->add_method(_name, func_type);
             return *this;
         }
 
         template<typename BaseClassT>
         StaticInitializer& extends()
         {
-            static_assert(is_class_v);
+            static_assert(std::is_class_v<T>);
             static_assert(std::is_base_of_v<BaseClassT, T>);
 
             type* base_class = const_cast<type*>(type::get<BaseClassT>()); // get or create

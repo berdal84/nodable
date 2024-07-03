@@ -590,7 +590,7 @@ void GraphView::end_context_menu(bool show_search)
         ImGui::Separator();
 
         SlotView* focused_slotview = get_focused_slotview();
-        if (Action_CreateNode *triggered_action = m_context_menu.node_menu.draw_search_input( focused_slotview, 10))
+        if (Action_CreateNode* triggered_action = m_context_menu.node_menu.draw_search_input( focused_slotview, 10))
         {
             // Generate an event from this action, add some info to the state and dispatch it.
             auto event                     = triggered_action->make_event();

@@ -12,8 +12,7 @@
 namespace tools
 {
     // forward declarations
-    class IInvokable;
-    class IInvokableMethod;
+    class FuncType;
 
     /** Empty structure to act like any type, @related tools::variant class */
     struct any_t{};
@@ -59,6 +58,7 @@ namespace tools
             Flags_IS_POINTER = 1u << 2,
             Flags_HAS_PARENT = 1u << 3,
             Flags_HAS_CHILD  = 1u << 4,
+            Flags_IS_MEMBER_PTR = 1u << 5,
         };
 
         type(
@@ -83,14 +83,14 @@ namespace tools
         bool                      equals(const type* other) const { return equals(this, other); }
         void                      add_parent(id_t _parent);
         void                      add_child(id_t _child);
-        void                      add_static(const std::string& _name, const IInvokable* _invokable);
-        void                      add_method(const std::string& _name, const IInvokableMethod* _invokable);
-        const std::unordered_set<const IInvokable*>&
+        void                      add_static(const std::string& _name, const FuncType*);
+        void                      add_method(const std::string& _name, const FuncType*);
+        const std::unordered_set<const FuncType*>&
                                   get_static_methods()const { return m_static_methods; }
-        const std::unordered_set<const IInvokableMethod*>&
+        const std::unordered_set<const FuncType*>&
                                   get_methods()const { return m_methods; }
-        const IInvokable*         get_static(const std::string& _name) const;
-        const IInvokableMethod*   get_method(const std::string& _name) const;
+        const FuncType*           get_static(const std::string& _name) const;
+        const FuncType*           get_method(const std::string& _name) const;
         template<class T>
         inline bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
         template<class T>
@@ -152,10 +152,10 @@ namespace tools
         const id_t m_id;           // ex: T**, T*
         std::unordered_set<id_t> m_parents;
         std::unordered_set<id_t> m_children;
-        std::unordered_set<const IInvokable*>                    m_static_methods;
-        std::unordered_map<std::string, const IInvokable*>       m_static_methods_by_name;
-        std::unordered_set<const IInvokableMethod*>              m_methods;
-        std::unordered_map<std::string, const IInvokableMethod*> m_methods_by_name;
+        std::unordered_set<const FuncType*>              m_static_methods;
+        std::unordered_map<std::string, const FuncType*> m_static_methods_by_name;
+        std::unordered_set<const FuncType*>              m_methods;
+        std::unordered_map<std::string, const FuncType*> m_methods_by_name;
     };
 
     template<typename T>
@@ -197,6 +197,7 @@ namespace tools
         if(std::is_pointer_v<T>) flags |= Flags_IS_POINTER;
         if(std::is_const_v<T>)   flags |= Flags_IS_CONST;
         if(std::is_class_v<T>)   flags |= Flags_IS_CLASS;
+        if(std::is_member_pointer_v<T>) flags |= Flags_IS_MEMBER_PTR;
 
         return new type(
             get_type_id<T>(),

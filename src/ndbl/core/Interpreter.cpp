@@ -1,7 +1,7 @@
 #include "Interpreter.h"
 
 #include <string>
-#include "InvokableComponent.h"
+#include "InvokableNode.h"
 #include "VariableNode.h"
 
 using namespace ndbl;
@@ -56,9 +56,7 @@ void Interpreter::run_program()
     ASSERT(m_code);
     LOG_MESSAGE("Interpreter", "Running program ...\n")
     m_is_program_running = true;
-
     m_cpu.clear_registers();
-    clean_graph();
 
     while( is_there_a_next_instr() && get_next_instr()->opcode != OpCode_ret )
     {
@@ -212,7 +210,7 @@ bool Interpreter::step_over()
             break;
         }
 
-        case OpCode_eval_node:
+        case OpCode_call:
         {
 //            auto update_input__by_value_only = [](Node* _node)
 //            {
@@ -246,7 +244,7 @@ bool Interpreter::step_over()
 
 
             const std::vector<variant*> args{}; // TODO: read arguments from the stack
-            next_instr->eval.invokable->invoke( args );
+            next_instr->call.func_type; // TODO: call from stack
             advance_cursor();
             EXPECT(false, "not implemented yet")
 
@@ -286,7 +284,7 @@ bool Interpreter::debug_step_over()
 {
     auto must_break = [&]() -> bool {
         return
-                get_next_instr()->opcode == OpCode_eval_node
+                get_next_instr()->opcode == OpCode_call
                && m_last_step_next_instr != get_next_instr();
     };
 
@@ -314,7 +312,7 @@ bool Interpreter::debug_step_over()
 
         switch ( next_instr->opcode )
         {
-            case OpCode_eval_node:
+            case OpCode_call:
             {
                 EXPECT(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a node reference in the instruction")
 //                m_next_node = next_instr->eval.invokable;
@@ -336,7 +334,6 @@ void Interpreter::debug_program()
     m_is_debugging = true;
     m_is_program_running = true;
     m_cpu.clear_registers();
-    clean_graph();
     m_next_node = m_code->get_meta_data().graph->get_root();
     LOG_MESSAGE("Interpreter", "Debugging program ...\n")
 }
@@ -379,21 +376,6 @@ qword Interpreter::read_cpu_register(Register _register)const
 const Code *Interpreter::get_program_asm_code()
 {
     return m_code;
-}
-
-void Interpreter::clean_graph()
-{
-    // note: ideally, we should not rely on nodes at this point, but the compiler and the interpreter
-    //       are not able to do it yet.
-    for(Node* node : m_code->get_meta_data().graph->get_node_registry() )
-    {
-        // Invokable components
-        if (auto* invokable = node->get_component<InvokableComponent>() )
-            invokable->clear_flags(InvokableFlag_WAS_INVOKED);
-            // Variables
-        else if (auto* variable = cast<VariableNode>(node))
-            variable->clear_flags(VariableFlag_INITIALIZED | VariableFlag_DECLARED);
-    }
 }
 
 Interpreter* ndbl::get_interpreter()

@@ -26,7 +26,7 @@
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/IfNode.h"
-#include "ndbl/core/InvokableComponent.h"
+#include "ndbl/core/InvokableNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Property.h"
 #include "ndbl/core/Scope.h"
@@ -356,19 +356,16 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     // Create a function signature according to ltype, rtype and operator word
-    func_type *type = new func_type();
+    FuncType *type = new FuncType();
     type->set_identifier(ope->identifier);
     type->set_return_type(type::any());
     type->push_arg( _left.get_property()->get_type());
     type->push_arg(right->get_property()->get_type());
 
-    InvokableComponent* component;
-    Node* binary_op = parser_state.graph->create_abstract_operator(type); // always abstract
-    component       = binary_op->get_component<InvokableComponent>();
-
-    component->token = operator_token;
-    parser_state.graph->connect_or_merge( _left, *binary_op->find_slot_by_property_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
-    parser_state.graph->connect_or_merge( *right, *binary_op->find_slot_by_property_name( RIGHT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    InvokableNode* binary_op = parser_state.graph->create_operator(type);
+    binary_op->set_identifier_token( operator_token );
+    parser_state.graph->connect_or_merge( _left, *binary_op->get_lvalue());
+    parser_state.graph->connect_or_merge( *right, *binary_op->get_rvalue() );
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
@@ -413,15 +410,13 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Create a function signature
-    auto* type = new func_type();
+    auto* type = new FuncType();
     type->set_identifier(operator_token.word_to_string());
     type->set_return_type(type::any());
     type->push_arg( out_atomic->get_property()->get_type());
 
-    InvokableComponent* component{};
-    Node* node = parser_state.graph->create_abstract_operator(type);
-    component = node->get_component<InvokableComponent>();
-    component->token = std::move( operator_token );
+    InvokableNode* node = parser_state.graph->create_operator(type);
+    node->set_identifier_token( operator_token );
 
     parser_state.graph->connect_or_merge( *out_atomic, *node->find_slot_by_property_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
 
@@ -1014,7 +1009,7 @@ Slot* Nodlang::parse_function_call()
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    func_type* signature = new func_type();
+    FuncType* signature = new FuncType();
     signature->set_identifier(fct_id);
     signature->set_return_type(type::any());
 
@@ -1045,8 +1040,7 @@ Slot* Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    const IInvokable* invokable = find_function(signature);
-    Node* fct_node = parser_state.graph->create_abstract_function(signature);
+    Node* fct_node = parser_state.graph->create_function(signature);
 
     for ( FuncArg& signature_arg : signature->get_args() )
     {
@@ -1378,45 +1372,35 @@ Slot* Nodlang::parse_variable_declaration()
 // [SECTION] C. Serializer --------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComponent& _component) const
+std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableNode* _node) const
 {
-    const func_type* type  = _component.get_func_type();
-    const Node*      owner = _component.get_owner();
-
-    if (_component.has_flags(InvokableFlag_IS_OPERATOR))
+    if ( _node->type() == NodeType_OPERATOR )
     {
-        const std::vector<Slot*>& args = _component.get_arguments();
-        int precedence = get_precedence(_component.get_function());
+        const std::vector<Slot*>& args = _node->get_arg_slots();
+        int precedence = get_precedence(_node->get_func_type());
 
-        switch (type->get_arg_count())
+        const FuncType* func_type  = _node->get_func_type();
+        switch (func_type->get_arg_count())
         {
             case 2:
             {
                 // Left part of the expression
                 {
-                {
-                    auto l_handed_invokable = owner->get_connected_invokable(LEFT_VALUE_PROPERTY);
-                    bool needs_braces = l_handed_invokable && get_precedence(l_handed_invokable) < precedence;
+                    const FuncType* l_func_type = _node->get_connected_function_type(LEFT_VALUE_PROPERTY);
+                    bool needs_braces = l_func_type && get_precedence(l_func_type) < precedence;
                     SerializeFlags flags = SerializeFlag_RECURSE
                                          | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
                     serialize_input( _out, *args[0], flags );
                 }
-                }
 
                 // Operator
-                if (!_component.token.is_null())
-                {
-                    _out.append(_component.token.buffer(), _component.token.m_string_length);
-                }
-                else
-                {
-                    _out.append(type->get_identifier());
-                }
+                ASSERT(!_node->get_identifier_token().is_null())
+                _out.append( _node->get_identifier_token().word_to_string() );
 
                 // Right part of the expression
                 {
-                    auto r_handed_invokable = owner->get_connected_invokable(RIGHT_VALUE_PROPERTY);
-                    bool needs_braces = r_handed_invokable && get_precedence(r_handed_invokable) < precedence;
+                    const FuncType* r_func_type = _node->get_connected_function_type(RIGHT_VALUE_PROPERTY);
+                    bool needs_braces = r_func_type && get_precedence(r_func_type) < precedence;
                     SerializeFlags flags = SerializeFlag_RECURSE
                                          | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
                     serialize_input( _out, *args[1], flags );
@@ -1428,21 +1412,10 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                // Operator
-                const Token& token = _component.token;
+                ASSERT(!_node->get_identifier_token().is_null())
+                serialize_token(_out, _node->get_identifier_token());
 
-                if (!token.is_null())
-                {
-                    _out.append( token.prefix(), token.prefix_size());
-                    _out.append(type->get_identifier());
-                    _out.append( token.suffix(), token.suffix_size());
-                }
-                else
-                {
-                    _out.append(type->get_identifier());
-                }
-
-                bool needs_braces    = owner->get_connected_invokable(LEFT_VALUE_PROPERTY) != nullptr;
+                bool needs_braces    = _node->get_connected_function_type(LEFT_VALUE_PROPERTY) != nullptr;
                 SerializeFlags flags = SerializeFlag_RECURSE
                                      | needs_braces * SerializeFlag_WRAP_WITH_BRACES;
                 serialize_input( _out, *args[0], flags );
@@ -1452,13 +1425,13 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableComp
     }
     else
     {
-        serialize_func_call(_out, type, _component.get_arguments());
+        serialize_func_call(_out, _node->get_func_type(), _node->get_arg_slots());
     }
 
     return _out;
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const func_type *_signature, const std::vector<Slot*> &inputs) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const FuncType *_signature, const std::vector<Slot*> &inputs) const
 {
     auto& identifier = _signature->get_identifier();
     _out.append( identifier );
@@ -1478,7 +1451,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const func_type *_s
     return _out;
 }
 
-std::string &Nodlang::serialize_func_sig(std::string &_out, const func_type *_signature) const
+std::string &Nodlang::serialize_func_sig(std::string &_out, const FuncType *_signature) const
 {
     serialize_type(_out, _signature->get_return_type());
     _out.append(" ");
@@ -1635,7 +1608,7 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
         case NodeType_FUNCTION:
             [[fallthrough]];
         case NodeType_OPERATOR:
-            serialize_invokable(_out, *node->get_component<InvokableComponent>() );
+            serialize_invokable(_out, static_cast<const InvokableNode*>(node) );
             break;
         default:
             EXPECT(false, "Unhandled NodeType, can't serialize");
@@ -1784,7 +1757,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
 
 // Language definition ------------------------------------------------------------------------------------------------------------
 
-const IInvokable* Nodlang::find_function(const char* _signature_hint) const
+const FuncType* Nodlang::find_function(const char* _signature_hint) const
 {
     if (_signature_hint == nullptr)
     {
@@ -1795,7 +1768,7 @@ const IInvokable* Nodlang::find_function(const char* _signature_hint) const
     return find_function( hash );
 }
 
-const IInvokable* Nodlang::find_function(u32_t _hash) const
+const FuncType* Nodlang::find_function(u32_t _hash) const
 {
     auto found = m_functions_by_signature.find(_hash);
     if ( found != m_functions_by_signature.end())
@@ -1805,7 +1778,7 @@ const IInvokable* Nodlang::find_function(u32_t _hash) const
     return nullptr;
 }
 
-const IInvokable* Nodlang::find_function(const func_type* _type) const
+const FuncType* Nodlang::find_function(const FuncType* _type) const
 {
     if (!_type)
     {
@@ -1821,108 +1794,76 @@ std::string& Nodlang::serialize_property(std::string& _out, const Property* _pro
     return serialize_token(_out, _property->get_token());
 }
 
-const IInvokable* Nodlang::find_function_exact(const func_type *_signature) const
+const FuncType* Nodlang::find_function_exact(const FuncType* _other_type) const
 {
-    auto is_exactly = [&](const IInvokable* fct) {
-        return fct->get_type()->is_exactly(_signature);
-    };
+    for(auto* func_type : m_functions)
+        if ( func_type->is_exactly(_other_type) )
+            return func_type;
+    return nullptr;
+}
 
-    auto it = std::find_if(m_functions.begin(), m_functions.end(), is_exactly);
+const FuncType* Nodlang::find_function_fallback(const FuncType* _other_type) const
+{
+    for(auto* func_type : m_functions)
+        if ( func_type->is_compatible(_other_type) )
+            return func_type;
+    return nullptr;
+}
 
-    if (it != m_functions.end())
-    {
-        return *it;
-    }
+const FuncType* Nodlang::find_operator_fct_exact(const FuncType* _other_type) const
+{
+    if (!_other_type)
+        return nullptr;
+
+    for(auto* func_type : m_operators_impl)
+        if ( func_type->is_exactly(_other_type) )
+            return func_type;
 
     return nullptr;
 }
 
-const IInvokable* Nodlang::find_function_fallback(const func_type *_type) const
-{
-
-    auto is_compatible = [&](const IInvokable* _invokable) {
-        return _type->is_compatible(_invokable->get_type());
-    };
-
-    auto found = std::find_if(m_functions.cbegin(), m_functions.cend(), is_compatible);
-
-    if (found != m_functions.end())
-    {
-        return *found;
-    }
-
-    return nullptr;
-}
-
-const IInvokable* Nodlang::find_operator_fct_exact(const func_type *_type) const
+const FuncType* Nodlang::find_operator_fct(const FuncType *_type) const
 {
     if (!_type)
     {
         return nullptr;
     }
-
-    auto is_exactly = [&](const IInvokable* _invokable) {
-        return _type->is_exactly(_invokable->get_type());
-    };
-
-    auto found = std::find_if(m_operators_impl.cbegin(), m_operators_impl.cend(), is_exactly);
-
-    if (found != m_operators_impl.end())
-    {
-        return *found;
-    }
-
-    return nullptr;
+    const FuncType* exact_type = find_operator_fct_exact(_type);
+    if (exact_type != nullptr)
+        return exact_type;
+    return find_operator_fct_fallback(_type);
 }
 
-const IInvokable* Nodlang::find_operator_fct(const func_type *_type) const
+const FuncType* Nodlang::find_operator_fct_fallback(const FuncType* _other_type) const
 {
-    if (!_type)
-    {
+    if (!_other_type)
         return nullptr;
-    }
-    auto exact = find_operator_fct_exact(_type);
-    if (!exact) return find_operator_fct_fallback(_type);
-    return exact;
-}
 
-const IInvokable* Nodlang::find_operator_fct_fallback(const func_type *_type) const
-{
-
-    auto is_compatible = [&](const IInvokable* _invokable) {
-        return _type->is_compatible(_invokable->get_type());
-    };
-
-    auto found = std::find_if(m_operators_impl.cbegin(), m_operators_impl.cend(), is_compatible);
-
-    if (found != m_operators_impl.end())
-    {
-        return *found;
-    }
+    for(auto* func_type : m_operators_impl)
+        if ( func_type->is_compatible(_other_type) )
+            return func_type;
 
     return nullptr;
 }
 
-void Nodlang::add_function(const IInvokable* _invokable)
+void Nodlang::add_function(const FuncType* _func_type)
 {
-    m_functions.push_back(_invokable);
-
-    const func_type *type = _invokable->get_type();
+    m_functions.push_back(_func_type);
 
     std::string type_as_string;
-    serialize_func_sig(type_as_string, type);
+    serialize_func_sig(type_as_string, _func_type);
 
     // Stops if no operator having the same identifier and argument count is found
-    if (!find_operator(type->get_identifier(), static_cast<Operator_t>(type->get_arg_count())))
+    if (!find_operator(_func_type->get_identifier(), static_cast<Operator_t>(_func_type->get_arg_count())))
     {
         LOG_VERBOSE("Nodlang", "add function: %s (in m_functions)\n", type_as_string.c_str());
         return;
     }
 
     // Register the invokable as an operator implementation
-    auto found = std::find(m_operators_impl.begin(), m_operators_impl.end(), _invokable);
+    auto found = std::find(m_operators_impl.begin(), m_operators_impl.end(), _func_type);
     ASSERT(found == m_operators_impl.end())
-    m_operators_impl.push_back(_invokable);
+    m_operators_impl.push_back(_func_type);
     LOG_VERBOSE("Nodlang", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str());
 }
 
@@ -1992,13 +1933,12 @@ std::string Nodlang::to_string(Token_t _token) const
     return to_string(result, _token);
 }
 
-int Nodlang::get_precedence(const IInvokable* _invokable) const
+int Nodlang::get_precedence( const tools::FuncType* _func_type) const
 {
-    if (!_invokable)
+    if (!_func_type)
         return std::numeric_limits<int>::min(); // default
 
-    const func_type* type = _invokable->get_type();
-    const Operator* operator_ptr = find_operator(type->get_identifier(), static_cast<Operator_t>(type->get_arg_count()));
+    const Operator* operator_ptr = find_operator(_func_type->get_identifier(), static_cast<Operator_t>(_func_type->get_arg_count()));
 
     if (operator_ptr)
         return operator_ptr->precedence;
@@ -2008,7 +1948,6 @@ int Nodlang::get_precedence(const IInvokable* _invokable) const
 const type * Nodlang::get_type(Token_t _token) const
 {
     EXPECT(is_a_type_keyword(_token), "_token_t is not a type keyword!");
-    return m_type_by_token_t.find(_token)->second;
     return m_type_by_token_t.find(_token)->second;
 }
 

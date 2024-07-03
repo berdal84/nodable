@@ -7,7 +7,7 @@
 #include "tools/core/types.h"
 #include "variant.h"
 #include "type.h"
-#include "func_type.h"
+#include "FuncType.h"
 #include "function_traits.h"
 
 namespace tools
@@ -17,7 +17,7 @@ namespace tools
     {
     public:
         virtual ~IInvokable() = default;
-        virtual const func_type* get_type() const = 0;
+        virtual const FuncType* get_type() const = 0;
         virtual variant invoke(const std::vector<variant *> &_args) const = 0;
     };
 
@@ -25,10 +25,8 @@ namespace tools
     {
     public:
         virtual ~IInvokableMethod() = default;
-        virtual const func_type* get_type() const = 0;
-        virtual void bind(void* _instance) = 0; // Bind a given instance to the invokable
-        virtual void unbind() = 0;
-        virtual variant invoke(const std::vector<variant *> &_args) const = 0; // call the invokable on the currently bound instance, with the given arguments.
+        virtual const FuncType* get_type() const = 0;
+        virtual variant invoke(void* _instance, const std::vector<variant *> &_args) const = 0;
     };
 
     template <typename ElementT, std::size_t... Indices>
@@ -188,61 +186,48 @@ namespace tools
         static_assert( std::is_function_v<FunctionT> );
         static_assert( !std::is_member_function_pointer_v<FunctionT> );
 
-        InvokableStaticFunction(FunctionT* _function_pointer, const char* _name)
+        InvokableStaticFunction(const FuncType* _function_type, const FunctionT* _function_pointer)
             : m_function_pointer( _function_pointer )
-            , m_function_type(func_type_builder<FunctionT>::with_id(_name))
+            , m_function_type(_function_type)
         { ASSERT( m_function_pointer ) }
-
-        ~InvokableStaticFunction() override
-        { delete m_function_type; }
 
         variant invoke(const std::vector<variant *> &_args) const override
         { return tools::Apply( m_function_pointer, _args ); }
 
-        const func_type* get_type() const override
+        const FuncType* get_type() const override
         { return m_function_type; }
 
     private:
-        FunctionT* const m_function_pointer;
-        func_type*       m_function_type;
+        const FunctionT* m_function_pointer;
+        const FuncType* m_function_type;
     };
 
     /**
      * wrapper for NON STATIC methods ONLY
      */
     template<typename MethodT>
-    class InvokableMethod : public IInvokableMethod// WIP...
+    class InvokableMethod : public IInvokableMethod
     {
         using ClassT = typename FunctionTrait<MethodT>::class_t;
         static_assert( std::is_void_v<typename FunctionTrait<MethodT>::class_t> == false );
         static_assert( FunctionTrait<MethodT>::is_member_function );
 
-        const func_type* m_method_type;
+        const FuncType* m_method_type;
         MethodT          m_method_pointer;
-        ClassT*          m_bound_instance{ nullptr };
 
     public:
-        InvokableMethod( MethodT _method_pointer, const char* _name )
+        InvokableMethod(const FuncType* _method_type, MethodT _method_pointer )
             : m_method_pointer( _method_pointer )
-            , m_method_type( func_type_builder<MethodT>::with_id( _name ) )
+            , m_method_type( _method_type )
         { ASSERT( m_method_pointer ) }
 
-        ~InvokableMethod() override
-        { delete m_method_type; }
-
-        void bind(void* _instance) override
-        { ASSERT(m_bound_instance == nullptr); m_bound_instance = reinterpret_cast<ClassT*>( _instance );  }
-
-        void unbind() override
-        { m_bound_instance = nullptr; }
-
-        variant invoke( const std::vector<variant*>& _args ) const override
+        variant invoke( void* _instance, const std::vector<variant*>& _args ) const override
         {
-            EXPECT(m_bound_instance != nullptr, "No instance bound. Call bind() prior to call invoke()");
-            return tools::Apply( m_method_pointer, m_bound_instance, _args );
+            EXPECT(_instance != nullptr, "An instance is required!");
+            return tools::Apply( m_method_pointer, _instance, _args );
         };
 
-        const func_type* get_type() const override
+        const FuncType* get_type() const override
         { return m_method_type; };
     };
 

@@ -118,29 +118,19 @@ VariableNode* Graph::create_variable(const type *_type, const std::string& _name
 	return node;
 }
 
-Node* Graph::create_abstract_function(const func_type* _invokable, bool _is_operator)
+InvokableNode* Graph::create_function(const FuncType* _type)
 {
-    Node* node = m_factory->create_abstract_func(_invokable, _is_operator);
+    InvokableNode* node = m_factory->create_function(_type, false);
     add(node);
     return node;
 }
-//
-//Node* Graph::create_function(const IInvokable* _invokable, bool _is_operator)
-//{
-//    Node* node = m_factory->create_func(_invokable, _is_operator);
-//    add(node);
-//    return node;
-//}
 
-Node* Graph::create_abstract_operator(const func_type* _invokable)
+InvokableNode* Graph::create_operator(const FuncType* _type)
 {
-    return create_abstract_function(_invokable, true);
+    InvokableNode* node = m_factory->create_function(_type, true);
+    add(node);
+    return node;
 }
-//
-//Node* Graph::create_operator(const IInvokable* _invokable)
-//{
-//	return create_function(_invokable, true);
-//}
 
 void Graph::destroy(Node* node)
 {
@@ -516,7 +506,7 @@ LiteralNode* Graph::create_literal(const type *_type)
     return node;
 }
 
-Node* Graph::create_node( CreateNodeType _type, const func_type* _signature )
+Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
 {
     switch ( _type )
     {
@@ -545,9 +535,11 @@ Node* Graph::create_node( CreateNodeType _type, const func_type* _signature )
             EXPECT(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
-            const auto invokable = language->find_function(_signature);
-            bool is_operator = language->find_operator_fct( invokable->get_type() ) != nullptr;
-            return create_abstract_function( invokable->get_type(), is_operator);
+            const FuncType* func_type = language->find_function(_signature);
+            bool is_operator = language->find_operator_fct( func_type ) != nullptr;
+            if ( is_operator )
+                return create_operator(func_type);
+            return create_function(func_type);
         }
         default:
             EXPECT( false, "Unhandled CreateNodeType.");

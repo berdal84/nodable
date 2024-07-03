@@ -1,7 +1,7 @@
 #include "../fixtures/core.h"
 #include <gtest/gtest.h>
 #include "tools/core/log.h"
-#include "ndbl/core/InvokableComponent.h"
+#include "ndbl/core/InvokableNode.h"
 
 using namespace ndbl;
 
@@ -32,8 +32,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
 
     // check
     EXPECT_TRUE(function_out);
-    Node* invokable_node = function_out->get_node();
-    EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
+    EXPECT_TRUE(function_out->get_node()->type() == NodeType_FUNCTION);
 }
 
 TEST_F(Language_parse_function_call, operator_add)
@@ -60,6 +59,5 @@ TEST_F(Language_parse_function_call, operator_add)
 
     // check
     EXPECT_TRUE(result);
-    Node* invokable_node = result->get_node();
-    EXPECT_TRUE(invokable_node->has_component<InvokableComponent>());
+    EXPECT_TRUE(result->get_node()->type() == NodeType_OPERATOR);
 }

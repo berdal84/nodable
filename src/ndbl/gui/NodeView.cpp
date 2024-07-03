@@ -6,7 +6,7 @@
 
 #include "tools/core/math.h"
 #include "ndbl/core/GraphUtil.h"
-#include "ndbl/core/InvokableComponent.h"
+#include "ndbl/core/InvokableNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/language/Nodlang.h"
 
@@ -497,8 +497,10 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     Property*       property           = _view->get_property();
     const type*     node_class         = get_node()->get_class();
     VariableNode*   connected_variable = _view->get_connected_variable();
-    bool            was_evaluated      = !get_node()->has_component<InvokableComponent>()
-                                       || get_node()->get_component<InvokableComponent>()->has_flags(InvokableFlag_WAS_INVOKED);
+    bool was_evaluated = false;
+    EXPECT(false, "was_evaluated is not implemented. TODO: query the current interpreter")
+//    bool            was_evaluated      = !get_node()->has_component<InvokableNode>()
+//                                       || get_node()->get_component<InvokableNode>()->has_flags(InvokableFlag_WAS_INVOKED);
 
     /*
      * Handle input visibility

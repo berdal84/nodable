@@ -1,13 +1,10 @@
 #include "Node.h"
 
-#include <utility>
 #include <algorithm> // for std::find
 
-#include "ForLoopNode.h"
 #include "Scope.h"
 #include "Graph.h"
 #include "GraphUtil.h"
-#include "InvokableComponent.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -39,18 +36,15 @@ size_t Node::adjacent_slot_count(SlotFlags _flags )const
     return filter_adjacent_slots( _flags ).size();
 }
 
-const IInvokable* Node::get_connected_invokable(const char* property_name) const
+const FuncType* Node::get_connected_function_type(const char* property_name) const
 {
     const Slot& slot          = *find_slot_by_property_name( property_name, SlotFlag_INPUT );
     const Slot* adjacent_slot = slot.first_adjacent();
 
     if ( adjacent_slot )
-    {
-        if ( auto* invokable = adjacent_slot->get_node()->get_component<InvokableComponent>() )
-        {
-            return invokable->get_function();
-        }
-    }
+        if ( adjacent_slot->get_node()->is_invokable() )
+            return static_cast<const InvokableNode*>(adjacent_slot->get_node())->get_func_type();
+
     return nullptr;
 }
 
@@ -335,16 +329,16 @@ bool Node::can_be_instruction() const
 
 bool Node::is_unary_operator() const
 {
-    if ( m_flags & NodeType_OPERATOR )
-        if ( get_component<InvokableComponent>()->get_func_type()->get_arg_count() == 1 )
+    if ( m_type == NodeType_OPERATOR )
+        if ( static_cast<const InvokableNode*>(this)->get_func_type()->get_arg_count() == 1 )
             return true;
     return false;
 }
 
 bool Node::is_binary_operator() const
 {
-    if ( m_flags & NodeType_OPERATOR )
-        if ( get_component<InvokableComponent>()->get_func_type()->get_arg_count() == 2 )
+    if ( m_type == NodeType_OPERATOR )
+        if ( static_cast<const InvokableNode*>(this)->get_func_type()->get_arg_count() == 2 )
             return true;
     return false;
 }
@@ -370,4 +364,9 @@ void Node::set_suffix(const Token& token)
 const PropertyBag& Node::get_props() const
 {
     return m_props;
+}
+
+bool Node::is_invokable() const
+{
+    return m_type == NodeType_OPERATOR || m_type == NodeType_FUNCTION;
 }

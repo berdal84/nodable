@@ -6,7 +6,7 @@
 #include "tools/core/system.h"
 #include "tools/core/EventManager.h"
 
-#include "ndbl/core/InvokableComponent.h"
+#include "ndbl/core/InvokableNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/Interpreter.h"
@@ -296,16 +296,13 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);
 
                 // 1) create the node
-                // TODO: graph ptr should be included in the event
-                Graph& graph = m_current_file->get_graph();
-
-                 if ( !graph.get_root() )
+                 if ( !_event->data.graph->get_root() )
                 {
                     LOG_ERROR("Nodable", "Unable to create node, no root found on this graph.\n");
                     continue;
                 }
 
-                Node* new_node  = graph.create_node(_event->data.node_type, _event->data.node_signature );
+                Node* new_node  = _event->data.graph->create_node( _event->data.node_type, _event->data.node_signature );
 
                 if ( !_event->data.active_slotview )
                 {
@@ -337,10 +334,10 @@ void Nodable::update()
                 if ( !_event->data.active_slotview )
                 {
                     // Experimental: we try to connect a parent-less child
-                    Node* root = graph.get_root();
+                    Node* root = _event->data.graph->get_root();
                     if (new_node != root && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
-                        graph.connect(
+                        _event->data.graph->connect(
                             *root->find_slot(SlotFlag_CHILD),
                             *new_node->find_slot(SlotFlag_PARENT),
                             ConnectFlag_ALLOW_SIDE_EFFECTS
@@ -373,7 +370,7 @@ void Nodable::update()
                 if ( auto view = new_node->get_component<NodeView>() )
                 {
                     view->set_pos(_event->data.desired_screen_pos, SCREEN_SPACE);
-                    graph.get_view()->set_selected({view});
+                    _event->data.graph->get_view()->set_selected({view});
                 }
                 break;
             }
