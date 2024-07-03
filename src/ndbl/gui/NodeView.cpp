@@ -495,7 +495,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 {
     bool            changed            = false;
     Property*       property           = _view->get_property();
-    const type*     node_class         = get_node()->get_class();
+    NodeType        node_type          = get_node()->type();
     VariableNode*   connected_variable = _view->get_connected_variable();
     bool            was_visited_by_interpreter = get_interpreter()->was_visited(get_node());
 
@@ -510,19 +510,22 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     {
         _view->show_input = false;
     }
+    else if (_detail == ViewDetail::EXHAUSTIVE)
+    {
+        _view->show_input = true;
+    }
     else
     {
         // When untouched, it depends...
 
         // Always show literals (their property don't have input slot)
-        _view->show_input |= node_class->is<LiteralNode>();
-        // Always show when defined in exhaustive mode
-        _view->show_input |= _detail == ViewDetail::EXHAUSTIVE;
+        _view->show_input |= node_type == NodeType_LITERAL;
+        // Always show variable properties
+        _view->show_input |= node_type == NodeType_VARIABLE;
+        // During debugging we want to see everything if we visited this node
         _view->show_input |= was_visited_by_interpreter;
         // Always show when connected to a variable
         _view->show_input |= connected_variable != nullptr;
-        // Shows variable property only if they are not connected (don't need to show anything, the variable name is already displayed on the node itself)
-        _view->show_input |= node_class->is<VariableNode>() && cast<VariableNode>(get_node())->has_flags(VariableFlag_INITIALIZED);
         // Always show properties that have an input slot free
         if (auto* slot = get_node()->find_slot_by_property(property, SlotFlag_INPUT))
             _view->show_input |= !slot->is_full();

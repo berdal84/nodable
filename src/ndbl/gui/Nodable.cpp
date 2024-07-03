@@ -526,10 +526,11 @@ void Nodable::step_over_program()
         return;
     }
 
-    Node* next_node = m_interpreter->get_next_node();
-    if ( !next_node ) return;
+    const Node* next_node = m_interpreter->get_next_node();
+    if ( !next_node )
+        return;
 
-    auto view = next_node->get_component<NodeView>();
+    NodeView* view = next_node->get_component<NodeView>();
     graph_view->set_selected({view});
 }
 

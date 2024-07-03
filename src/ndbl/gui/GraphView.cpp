@@ -323,8 +323,8 @@ bool GraphView::draw()
     // Virtual Machine cursor
     if (interpreter->is_program_running())
     {
-        Node *node = interpreter->get_next_node();
-        if (auto *view = node->get_component<NodeView>())
+        const Node* node = interpreter->get_next_node();
+        if (const NodeView* view = node->get_component<NodeView>())
         {
             Vec2 left = view->get_rect(SCREEN_SPACE).left();
             Vec2 interpreter_cursor_pos = Vec2::round(left);

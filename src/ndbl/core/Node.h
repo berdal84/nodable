@@ -141,8 +141,8 @@ namespace ndbl
         { return m_components.add( component ); }
 
         template<class C>
-        const C* get_component() const
-        { return static_cast<const C*>( m_components.get<C*>() );  }
+        C* get_component() const
+        { return static_cast<C*>( m_components.get<C*>() );  }
 
         template<class C>
         C* get_component()

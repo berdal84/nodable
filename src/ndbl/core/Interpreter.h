@@ -41,7 +41,7 @@ namespace ndbl
         inline bool           is_program_running() const{ return m_is_program_running; }
         inline bool           is_debugging() const{ return m_is_debugging; }
         inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
-        inline Node*          get_next_node() const {return m_next_node; } // Get the next node to be executed. Works in debug mode only.
+        inline const Node*    get_next_node() const {return m_next_node; } // Get the next node to be executed. Works in debug mode only.
         tools::qword          get_last_result() const; // Get the last instruction's result
         bool                  is_there_a_next_instr() const; // Check if there is a next instruction (internally check instruction pointer's position)
         Instruction*          get_next_instr() const; // Get the next instruction to execute
@@ -55,8 +55,8 @@ namespace ndbl
         bool                  step_over(); // Step over common code (for both "run" and "debug" modes)
 
         CPU                   m_cpu;
-        bool                  m_is_program_running   = false;
-        bool                  m_is_debugging         = false;
+        bool                  m_is_program_running   = false; // TODO: use StateMachine
+        bool                  m_is_debugging         = false; // TODO: use StateMachine
         const Code*           m_code                 = nullptr;
         const Node*           m_next_node            = nullptr;
         Instruction*          m_last_step_next_instr = nullptr;
