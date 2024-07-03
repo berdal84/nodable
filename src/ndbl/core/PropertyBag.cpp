@@ -17,8 +17,7 @@ Property* PropertyBag::add(const type* _type, const char* _name, PropertyFlags _
     // create the property
 
     auto* new_property = new Property();
-    new_property->init(_type, _flags, m_owner);
-    new_property->set_name(_name);
+    new_property->init(_type, _flags, m_owner, _name);
 
     m_properties.push_back(new_property);
     // Index by name

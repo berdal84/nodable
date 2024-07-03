@@ -7,13 +7,14 @@
 using namespace ndbl;
 using namespace tools;
 
-void Property::init(const type* _type, PropertyFlags _flags, Node* _owner)
+void Property::init(const type* _type, PropertyFlags _flags, Node* _owner, const char* _name)
 {
     VERIFY(m_type == nullptr, "must be initialized once")
     VERIFY(_type != nullptr, "type can't be nullptr")
     m_type  = _type;
     m_flags = _flags;
     m_owner = _owner;
+    m_name  = _name;
 }
 
 void Property::digest(Property* _property)

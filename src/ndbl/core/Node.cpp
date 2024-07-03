@@ -38,8 +38,9 @@ size_t Node::adjacent_slot_count(SlotFlags _flags )const
 
 const FuncType* Node::get_connected_function_type(const char* property_name) const
 {
-    const Slot& slot          = *find_slot_by_property_name( property_name, SlotFlag_INPUT );
-    const Slot* adjacent_slot = slot.first_adjacent();
+    const Slot* slot = find_slot_by_property_name( property_name, SlotFlag_INPUT );
+    VERIFY(slot!= nullptr, "Unable to find input slot for this property name")
+    const Slot* adjacent_slot = slot->first_adjacent();
 
     if ( adjacent_slot )
         if ( adjacent_slot->get_node()->is_invokable() )

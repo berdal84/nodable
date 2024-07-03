@@ -43,6 +43,7 @@ namespace tools
         bool                           is_exactly(const FuncType* _other)const;
         bool                           is_compatible(const FuncType* _other)const;
         const std::string&             get_identifier()const { return m_identifier; };
+        const FuncArg&                 get_arg(size_t i) const { return m_args[i]; }
         std::vector<FuncArg>&          get_args() { return m_args;};
         const std::vector<FuncArg>&    get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }

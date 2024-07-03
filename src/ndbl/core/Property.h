@@ -27,12 +27,12 @@ namespace ndbl
 	class Property
     {
     public:
-        void               init(const tools::type*, PropertyFlags, Node*); // must be called once before use
+        void               init(const tools::type*, PropertyFlags, Node*, const char* _name); // must be called once before use
         void               digest(Property *_property);
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
         void               set_flags(PropertyFlags flags) { m_flags |= flags; }
         void               clear_flags(PropertyFlags flags = PropertyFlag_ALL) { m_flags &= ~flags; }
-        void               set_name(const char* _name) { m_name = _name; }
+        //void               set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
         const std::string& get_name()const { return m_name; }
         Node*              get_owner()const { return m_owner; }
         const tools::type* get_type()const { return m_type; }

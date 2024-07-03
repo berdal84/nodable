@@ -1394,8 +1394,8 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableNode
                 }
 
                 // Operator
-                ASSERT(!_node->get_identifier_token().is_null())
-                _out.append( _node->get_identifier_token().word_to_string() );
+                VERIFY(!_node->get_identifier_token().is_null(), "identifier token should have been assigned in parse_function_call")
+                serialize_token( _out, _node->get_identifier_token() );
 
                 // Right part of the expression
                 {
