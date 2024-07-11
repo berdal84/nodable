@@ -259,20 +259,21 @@ Slot *Nodlang::parse_token(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
     {
-        VariableNode* variable = get_current_scope()->find_variable(_token.word_to_string() );
+        std::string identifier = _token.word_to_string();
+        VariableNode* existing_variable = get_current_scope()->find_variable(identifier );
 
-        if( variable != nullptr )
-            return &variable->output_slot();
+        if( existing_variable != nullptr )
+            return &existing_variable->output_slot();
 
         if ( !m_strict_mode )
         {
             /* when strict mode is OFF, we just create a variable with Any type */
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() )
-            variable = parser_state.graph->create_variable( type::null(), _token.word_to_string(), get_current_scope() );
-            variable->set_identifier_token( _token );
-            variable->set_flags(VariableFlag_DECLARED);
-            return &variable->output_slot();
+            existing_variable = parser_state.graph->create_variable(type::null(), _token.word_to_string(), get_current_scope() );
+            existing_variable->set_identifier_token(_token );
+            existing_variable->set_flags(VariableFlag_DECLARED);
+            return &existing_variable->output_slot();
         }
 
         LOG_ERROR( "Parser", "%s is not declared (strict mode) \n", _token.word_to_string().c_str() )

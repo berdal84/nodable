@@ -312,9 +312,9 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //                  - instr n ->->->->->->
                     //             - new child <-<-<-<-<-<-<-<
                     //
-                    auto previous_child_scope = previous_child->get_component<Scope>();
-                    if ( previous_child_scope && !previous_child->is_conditional() )
+                    if ( previous_child->type() == NodeType_BLOCK_SCOPE )
                     {
+                        auto previous_child_scope = previous_child->get_component<Scope>();
                         for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
                         {
                             Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
@@ -330,8 +330,8 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //
                     else
                     {
-                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
-                        ASSERT(last_sibling_next_slot)
+                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT );
+                        VERIFY(last_sibling_next_slot->is_full() == false, "Unable to find a slot to connect the next node")
                         connect( *last_sibling_next_slot, new_child_prev_slot );
                     }
                 }

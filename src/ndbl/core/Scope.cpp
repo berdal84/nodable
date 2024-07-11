@@ -24,55 +24,40 @@ Scope::Scope()
 {
 }
 
-VariableNode* Scope::find_variable(const std::string &_name)
+VariableNode* Scope::find_variable(const std::string &_identifier)
 {
-    auto has_name = [&_name](VariableNode* _variable ) -> bool
-    {
-        return _variable->get_name() == _name;
-    };
+    // Try first to find in this scope
+    for(auto it = m_variables.begin(); it < m_variables.end(); it++)
+        if ( (*it)->get_identifier() == _identifier )
+            return *it;
 
-    /*
-     * Try first to find in this scope
-     */
-    auto it = std::find_if(m_variables.begin(), m_variables.end(), has_name);
-    if ( it != m_variables.end() )
-    {
-        return *it;
-    }
-
-    /*
-     * In case not found, find recursively
-     */
+    // In case not found, find recursively
     Node* parent = m_owner->find_parent();
     ASSERT(parent != m_owner);
     if ( !parent )
-    {
-        return {};
-    }
+        return nullptr;
     auto* scope = parent->get_component<Scope>();
     if ( !scope )
-    {
-        return {};
-    }
+        return nullptr;
     ASSERT(scope != this);
-    return scope->find_variable( _name );
+    return scope->find_variable( _identifier );
 }
 
-void Scope::add_variable(VariableNode* _variableNode)
+void Scope::add_variable(VariableNode* _variable)
 {
-    if ( find_variable(_variableNode->get_name()) != nullptr )
+    if (find_variable(_variable->get_identifier()) != nullptr )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variableNode->get_name().c_str())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variable->get_identifier().c_str())
     }
-    else if ( _variableNode->get_scope() )
+    else if ( _variable->get_scope() )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variableNode->get_name().c_str())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variable->get_identifier().c_str())
     }
     else
     {
-        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variableNode->get_name().c_str() )
-        m_variables.push_back(_variableNode);
-        _variableNode->reset_scope(this);
+        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variable->get_identifier().c_str() )
+        m_variables.push_back(_variable);
+        _variable->reset_scope(this);
     }
 }
 

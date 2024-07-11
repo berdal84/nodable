@@ -21,7 +21,7 @@ namespace ndbl
         void                    add_variable(VariableNode*) override ;
         void                    remove_variable(VariableNode *_variable)override;
         size_t                  remove_all_variables() override;
-        VariableNode*           find_variable(const std::string &_name) override ;
+        VariableNode*           find_variable(const std::string& _identifier) override ;
         const VariableNodeVec&  variables()const override { return m_variables; };
 
     private:

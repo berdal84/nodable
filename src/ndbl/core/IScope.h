@@ -24,7 +24,7 @@ namespace ndbl
         virtual bool                   has_no_variable()const = 0;                              // Check if scope is empty
         virtual void                   remove_variable(VariableNode *) = 0;                     // Remove a given variable fom this scope.
         virtual size_t                 remove_all_variables() = 0;                              // Remove all variables from this scope.
-        virtual VariableNode*          find_variable(const std::string &_name) = 0;             // Find a variable by name (identifier).
+        virtual VariableNode*          find_variable(const std::string& _identifier) = 0;       // Find a variable by identifier.
         virtual const VariableNodeVec& variables()const = 0;                                    // Get all the variables of this scope.
     };
 }

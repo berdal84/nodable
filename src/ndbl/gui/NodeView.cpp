@@ -180,7 +180,7 @@ void NodeView::update_labels_from_name(const Node* _node)
     // Label
     // For a variable, label must be the type
     if ( _node->type() == NodeType_VARIABLE )
-        m_label = reinterpret_cast<const VariableNode*>(_node)->get_value_type()->get_name();
+        m_label = reinterpret_cast<const VariableNode *>(_node)->get_type()->get_name();
     else
         m_label = _node->get_name();
 
@@ -541,8 +541,13 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
         if ( limit_size )
         {
             // try to draw an as small as possible input field
-            std::string str = connected_variable ? connected_variable->get_name() : property->get_token().word_to_string();
-            input_size = 5.0f + std::max(ImGui::CalcTextSize(str.c_str()).x, PROPERTY_INPUT_SIZE_MIN);
+            std::string str;
+            if ( connected_variable )
+                str = connected_variable->get_identifier();
+            else
+                str = property->get_token().word_to_string();
+            float text_width = ImGui::CalcTextSize(str.c_str()).x;
+            input_size = 5.0f + std::max(text_width, PROPERTY_INPUT_SIZE_MIN);
             ImGui::PushItemWidth(input_size);
         }
         changed = NodeView::draw_property_view(_view, nullptr);
@@ -612,7 +617,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
     char input_buffer[255];
     if( const VariableNode* variable = _view->get_connected_variable() ) // if is a ref to a variable, we just draw variable name
     {
-        snprintf(input_buffer, 255, "%s", variable->get_name().c_str() );
+        snprintf(input_buffer, 255, "%s", variable->get_identifier().c_str() );
 
         // variable name wrapped by a colored frame
         ImGui::PushStyleColor(ImGuiCol_FrameBg, variable->get_component<NodeView>()->get_color(Color_FILL) );
@@ -631,7 +636,8 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
 
         if ( ImGui::InputText(label.c_str(), input_buffer, 255, flags ) )
         {
-            property->get_token().replace_word(input_buffer);
+            std::string new_word = input_buffer;
+            property->get_token().replace_word( new_word );
             changed |= true;
         }
     }
