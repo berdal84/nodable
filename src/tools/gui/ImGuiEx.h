@@ -80,7 +80,7 @@ namespace tools
         extern void     Image(Texture*);
 
         template<class EventT>
-        static void MenuItem(bool selected = false, bool enable = true) // Shorthand to get a given action from the manager and draw a MenuItem from it.
+        static void MenuItem_EventTrigger(bool selected = false, bool enable = true) // Shorthand to get a given action from the manager and draw a MenuItem from it.
         {
             ActionManager* action_manager = get_action_manager();
             const IAction* action = action_manager->get_action_with_id(EventT::id);

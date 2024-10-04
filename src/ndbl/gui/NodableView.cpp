@@ -176,13 +176,13 @@ void NodableView::draw()
         {
             bool has_file = current_file != nullptr;
             bool is_current_file_content_dirty = current_file != nullptr && current_file->dirty;
-            ImGuiEx::MenuItem<Event_FileNew>();
-            ImGuiEx::MenuItem<Event_FileBrowse>();
+            ImGuiEx::MenuItem_EventTrigger<Event_FileNew>();
+            ImGuiEx::MenuItem_EventTrigger<Event_FileBrowse>();
             ImGui::Separator();
-            ImGuiEx::MenuItem<Event_FileSaveAs>(false, has_file);
-            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && is_current_file_content_dirty);
+            ImGuiEx::MenuItem_EventTrigger<Event_FileSaveAs>(false, has_file);
+            ImGuiEx::MenuItem_EventTrigger<Event_FileSave>(false, has_file && is_current_file_content_dirty);
             ImGui::Separator();
-            ImGuiEx::MenuItem<Event_FileClose>(false, has_file);
+            ImGuiEx::MenuItem_EventTrigger<Event_FileClose>(false, has_file);
 
             auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste();
 
@@ -190,7 +190,7 @@ void NodableView::draw()
                 current_file->view.experimental_clipboard_auto_paste(!auto_paste);
             }
 
-            ImGuiEx::MenuItem<Event_Exit>();
+            ImGuiEx::MenuItem_EventTrigger<Event_Exit>();
 
             ImGui::EndMenu();
         }
@@ -200,8 +200,8 @@ void NodableView::draw()
         {
             if (current_file_history)
             {
-                ImGuiEx::MenuItem<Event_Undo>();
-                ImGuiEx::MenuItem<Event_Redo>();
+                ImGuiEx::MenuItem_EventTrigger<Event_Undo>();
+                ImGuiEx::MenuItem_EventTrigger<Event_Redo>();
                 ImGui::Separator();
             }
             if (ImGui::MenuItem("Delete Node", "Del.", false, has_selection && interpreter_is_stopped))
@@ -255,7 +255,7 @@ void NodableView::draw()
 
         if (ImGui::BeginMenu("Code"))
         {
-            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>(cfg->isolation);
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->isolation);
             ImGui::EndMenu();
         }
 
@@ -265,8 +265,8 @@ void NodableView::draw()
             if (ImGui::MenuItem("Reset", NULL, false, interpreter_is_stopped))
                 event_manager->dispatch( EventID_RESET_GRAPH );
 
-            ImGuiEx::MenuItem<Event_ArrangeNode>(false, has_selection);
-            ImGuiEx::MenuItem<Event_ToggleFolding>(false, has_selection);
+            ImGuiEx::MenuItem_EventTrigger<Event_ArrangeNode>(false, has_selection);
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleFolding>(false, has_selection);
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
             {
@@ -275,7 +275,7 @@ void NodableView::draw()
 
             ImGui::Separator();
 
-            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>(cfg->isolation);
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->isolation);
 
             ImGui::EndMenu();
         }
