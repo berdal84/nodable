@@ -191,29 +191,33 @@ Token& Token::operator=(const Token& other)
     return *this;
 }
 
-void Token::replace_word(std::string str)
+void Token::replace_word(std::string new_word)
 {
-    if (m_is_buffer_owned && m_word_length == str.length() )
+    // Optimization: when buffer is owned and word has same length, we avoid to reallocate memory
+    if (m_is_buffer_owned && m_word_length == new_word.length()  )
     {
-        memcpy( word(), str.c_str(), str.length() );
+        memcpy(word(), new_word.c_str(), new_word.length());
+        return;
     }
-    else
-    {
-        //TODO: use logarithmic buffer? (with buffer size > string length)
-        const size_t new_string_length = prefix_size() + str.length() + suffix_size();
-        char*        new_buffer        = new char[new_string_length+1];
 
-        memcpy(new_buffer                               , prefix()    , prefix_size());
-        memcpy(new_buffer + prefix_size()               , str.c_str() , str.length());
-        memcpy(new_buffer + prefix_size() + str.length(), suffix()    , suffix_size());
-        new_buffer[new_string_length] = '\0';
+    //TODO: use logarithmic buffer? (with buffer size > string length)
+    const size_t new_string_length    = prefix_size() + new_word.length() + suffix_size();
+    char*        new_buffer           = new char[new_string_length+1];
+    size_t       new_string_start_pos = 0;
+    size_t       new_word_start_pos   = prefix_size();
 
-        if ( m_is_buffer_owned )
-            delete[] m_buffer;
+    memcpy(new_buffer                                    , prefix()         , prefix_size());
+    memcpy(new_buffer + prefix_size()                    , new_word.c_str() , new_word.length());
+    memcpy(new_buffer + prefix_size() + new_word.length(), suffix()         , suffix_size());
+    new_buffer[new_string_length] = '\0';
 
-        m_buffer          = new_buffer;
-        m_word_length     = str.length();
-        m_string_length   = new_string_length;
-        m_is_buffer_owned = true;
-    }
+    if ( m_is_buffer_owned )
+        delete[] m_buffer;
+
+    m_buffer           = new_buffer;
+    m_word_length      = new_word.length();
+    m_string_length    = new_string_length;
+    m_string_start_pos = new_string_start_pos;
+    m_word_start_pos   = new_word_start_pos;
+    m_is_buffer_owned  = true;
 }

@@ -135,7 +135,7 @@ namespace ndbl
         static const Token s_end_of_line;
         static const Token s_end_of_instruction;
 
-        void replace_word(std::string basicString);
+        void replace_word(std::string new_word);
     };
 }
 static_assert(std::is_move_assignable_v<ndbl::Token>, "Should be move assignable");
