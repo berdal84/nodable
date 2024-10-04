@@ -600,47 +600,46 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 
 bool NodeView::draw_property_view(PropertyView* _view, const char* _override_label)
 {
-    bool      changed  = false;
-    Property* property = _view->get_property();
+    char                input_buffer[256];
+    bool                changed  = false;
+    Property*           property = _view->get_property();
+    ImGuiInputTextFlags flags    = 0;
+    const VariableNode* connected_variable = _view->get_connected_variable();
+    std::string         label;
 
     // Create a label (everything after ## will not be displayed)
-    std::string label;
     if ( _override_label != nullptr )
-    {
         label.append(_override_label);
-    }
     else
-    {
         label.append("##" + property->get_name());
-    }
 
-    char input_buffer[255];
-    if( const VariableNode* variable = _view->get_connected_variable() ) // if is a ref to a variable, we just draw variable name
+    if( connected_variable != nullptr ) // variable name wrapped by a frame colored like the node
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, connected_variable->get_component<NodeView>()->get_color(Color_FILL) );
+
+    if( connected_variable != nullptr ) // When connected to a variable, we simply use variable's identifier as read-only input
     {
-        snprintf(input_buffer, 255, "%s", variable->get_identifier().c_str() );
-
-        // variable name wrapped by a colored frame
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, variable->get_component<NodeView>()->get_color(Color_FILL) );
-        ImGui::InputText(label.c_str(), input_buffer, 255 );
-        ImGui::PopStyleColor();
-
+        auto variable_identifier = connected_variable->get_identifier();
+        snprintf(input_buffer, 255, "%s", connected_variable->get_identifier().c_str() );
+        flags |= ImGuiInputTextFlags_ReadOnly;
     }
     else
     {
-        snprintf(input_buffer, 255, "%s", property->get_token().word_to_string().c_str() );
-
-        ImGuiInputTextFlags flags = 0;
-        if ( _view->has_input_connected() ) // theoretically, the input field should be hidden, but just in case
-            if ( _view->get_node()->type() != NodeType_VARIABLE ) // we can always edit a variable name
-                flags |= ImGuiInputTextFlags_ReadOnly;
-
-        if ( ImGui::InputText(label.c_str(), input_buffer, 255, flags ) )
-        {
-            std::string new_word = input_buffer;
-            property->get_token().replace_word( new_word );
-            changed |= true;
-        }
+        auto curr_value = property->get_token().word_to_string();
+        snprintf(input_buffer, 255, "%s", curr_value.c_str() );
     }
+
+    if ( _view->has_input_connected() )
+        if ( _view->get_node()->type() != NodeType_VARIABLE )
+            flags |= ImGuiInputTextFlags_ReadOnly; // Read-only when an input is connected, except if it is a variable identifier!
+
+    if ( ImGui::InputText(label.c_str(), input_buffer, 255, flags ) )
+    {
+        property->get_token().replace_word( input_buffer );
+        changed |= true;
+    }
+
+    if( connected_variable != nullptr ) // variable name wrapped by a colored frame
+        ImGui::PopStyleColor();
 
     return changed;
 }
@@ -908,7 +907,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
     auto inputs   = get_adjacent(SlotFlag_INPUT);
     std::for_each(inputs.begin()  , inputs.end()  , visit );
 
-    Rect result = Rect::bbox(rects);
+    Rect result = Rect::bbox(&rects);
 
 #if DEBUG_DRAW
     Rect screen_rect = result;
