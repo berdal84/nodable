@@ -266,36 +266,31 @@ void NodableView::draw()
             ImGui::EndMenu();
         }
 
-        if ( ImGui::BeginMenu("Run") )
+        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) && ImGui::BeginMenu("Interpreter") )
         {
             bool interpreter_is_debugging = interpreter->is_debugging();
 
-            if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, interpreter_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, interpreter_is_stopped))
                 m_app->run_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_BUG" Debug", "", false, interpreter_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_BUG" Debug", "", false, interpreter_is_stopped))
                 m_app->debug_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over", "", false, interpreter_is_debugging)) {
+            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over", "", false, interpreter_is_debugging))
                 m_app->step_over_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_STOP" Stop", "", false, !interpreter_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_STOP" Stop", "", false, !interpreter_is_stopped))
                 m_app->stop_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_UNDO " Reset", "", false, interpreter_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_UNDO " Reset", "", false, interpreter_is_stopped))
                 m_app->reset_program();
-            }
+
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Developer"))
         {
-            bool debug = get_config()->flags & ConfigFlag_DRAW_DEBUG_LINES;
-            Config* cfg = get_config();
+            bool debug = cfg->flags & ConfigFlag_DRAW_DEBUG_LINES;
             if ( ImGui::MenuItem("Debug Mode", "", debug ) )
             {
                 cfg->tools_cfg->runtime_debug = !debug;
