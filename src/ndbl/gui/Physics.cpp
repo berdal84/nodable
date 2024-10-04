@@ -246,21 +246,20 @@ void Physics::Constraint::constrain_one_to_many_as_a_row(float _dt)
     // Form a row with each view box
     std::vector<Box> old_box;
     std::vector<Box> new_box;
-    Vec2 row_items_gap = row_direction * get_config()->ui_node_gap(gap_size);
+    const Vec2 gap = get_config()->ui_node_gap(gap_size);
+
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
         Box box         = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
         Box box_noflags = clean_follower[i]->get_rect_ex(SCREEN_SPACE, NodeViewFlag_NONE);
         old_box.push_back(box);
 
-        bool is_first = i == 0;
-        if ( is_first )
+        if ( i == 0 )
         {
             // First box is aligned with the leader
             const Box leader_box = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
             box = Box::align(leader_box, leader_pivot, box, follower_pivot);
-            Vec2 gap = gap_direction * get_config()->ui_node_gap(gap_size);
-            box.translate(gap);
+            box.translate(gap * gap_direction);
             box.translate(box.get_pivot(follower_pivot) - box_noflags.get_pivot(follower_pivot));
         }
         else
@@ -268,7 +267,7 @@ void Physics::Constraint::constrain_one_to_many_as_a_row(float _dt)
             // i+1 box is aligned with the i
             box = Box::align(new_box.back(), row_direction, box, -row_direction);
             // There is a gap between each box
-            box.translate(row_items_gap);
+            box.translate( gap * row_direction );
         }
 
         new_box.emplace_back(box);

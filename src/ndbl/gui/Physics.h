@@ -23,11 +23,11 @@ namespace  ndbl
             typedef bool(Constraint::*Rule)(void);
 
             Constraint(
-                const char *_name,
-                Constrain constrain,
-                Rule rule = &Constraint::rule_always
+                const char* name,
+                Constrain   constrain,
+                Rule        rule = &Constraint::rule_always
             )
-            : name(_name)
+            : name(name)
             , constrain(constrain)
             , should_apply(rule)
             {}
