@@ -388,6 +388,9 @@ void Nodable::update()
                 LOG_VERBOSE("App", "Ignoring and event, this case is not handled\n")
             }
         }
+
+        // clean memory
+        delete event;
     }
 }
 
