@@ -75,6 +75,14 @@ void Nodable::update()
     {
         switch ( event->id )
         {
+            case EventID_RESET_GRAPH:
+            {
+                if ( !m_interpreter->is_program_stopped() )
+                    m_interpreter->stop_program();
+                m_current_file->update_graph_from_text( m_config->isolation );
+                break;
+            }
+
             case EventID_TOGGLE_ISOLATION_FLAGS:
             {
                 m_config->isolation = ~m_config->isolation;

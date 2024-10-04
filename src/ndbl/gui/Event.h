@@ -32,6 +32,7 @@ namespace ndbl
         EventID_SLOT_DISCONNECTED,
         EventID_SELECTION_CHANGE,
         EventID_DELETE_EDGE,
+        EventID_RESET_GRAPH,
     };
 
     using Event_ToggleIsolationFlags = tools::Event<EventID_TOGGLE_ISOLATION_FLAGS>;

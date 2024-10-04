@@ -109,7 +109,7 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_Exit>(ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{SDLK_F4, KMOD_ALT } );
     action_manager->new_action<Event_Undo>("Undo", Shortcut{SDLK_z, KMOD_CTRL } );
     action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
-    action_manager->new_action<Event_ToggleIsolationFlags>("Isolate", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    action_manager->new_action<Event_ToggleIsolationFlags>("Isolation", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
     action_manager->new_action<Event_SelectionChange>("Deselect", Shortcut{0, KMOD_NONE, "Click on background" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
@@ -169,6 +169,8 @@ void NodableView::draw()
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
+        auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->selection_empty()
+                                                     : false;
 
         if (ImGui::BeginMenu("File"))
         {
@@ -178,7 +180,7 @@ void NodableView::draw()
             ImGuiEx::MenuItem<Event_FileBrowse>();
             ImGui::Separator();
             ImGuiEx::MenuItem<Event_FileSaveAs>(false, has_file);
-            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && is_current_file_content_dirty );
+            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && is_current_file_content_dirty);
             ImGui::Separator();
             ImGuiEx::MenuItem<Event_FileClose>(false, has_file);
 
@@ -202,24 +204,14 @@ void NodableView::draw()
                 ImGuiEx::MenuItem<Event_Redo>();
                 ImGui::Separator();
             }
-
-            auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->selection_empty()
-                                                         : false;
-
-            if (ImGui::MenuItem("Delete", "Del.", false, has_selection && interpreter_is_stopped))
+            if (ImGui::MenuItem("Delete Node", "Del.", false, has_selection && interpreter_is_stopped))
                 event_manager->dispatch( EventID_DELETE_NODE );
 
-            ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
-            ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
-
-            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
-            {
-                event_manager->dispatch<Event_ToggleFolding>( { RECURSIVELY } );
-            }
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("View")) {
+        if (ImGui::BeginMenu("View"))
+        {
             //auto frame = ImGui::MenuItem("Frame All", "F");
             redock_all |= ImGui::MenuItem("Redock documents");
 
@@ -258,10 +250,32 @@ void NodableView::draw()
             {
                 m_base_view.reset_layout();
             }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Code"))
+        {
+            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>(cfg->isolation);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Graph"))
+        {
+
+            if (ImGui::MenuItem("Reset", NULL, false, interpreter_is_stopped))
+                event_manager->dispatch( EventID_RESET_GRAPH );
+
+            ImGuiEx::MenuItem<Event_ArrangeNode>(false, has_selection);
+            ImGuiEx::MenuItem<Event_ToggleFolding>(false, has_selection);
+
+            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
+            {
+                event_manager->dispatch<Event_ToggleFolding>( { RECURSIVELY } );
+            }
 
             ImGui::Separator();
 
-            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>( cfg->isolation );
+            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>(cfg->isolation);
 
             ImGui::EndMenu();
         }
@@ -998,7 +1012,7 @@ void NodableView::draw_toolbar_window()
 
         // reset
         if (ImGui::Button(ICON_FA_UNDO " regen. graph", button_size)) {
-            m_app->reset_program();
+            event_manager->dispatch( EventID_RESET_GRAPH );
         }
         ImGui::SameLine();
 
