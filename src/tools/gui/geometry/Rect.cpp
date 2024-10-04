@@ -3,11 +3,12 @@
 
 using namespace tools;
 
-Rect tools::Rect::bbox( std::vector<Vec2> points )
+Rect tools::Rect::bbox(const std::vector<Vec2>* points )
 {
-    ASSERT(points.empty() == false)
-    Rect result{ points[0], points[0] };
-    for ( auto it = points.begin() +1; it != points.end(); it++ )
+    ASSERT(points->empty() == false)
+    Vec2 first = points->front();
+    Rect result{ first, first };
+    for ( auto it = points->begin() + 1; it != points->end(); it++ )
     {
         if      ( it->x < result.min.x ) result.min.x = it->x;
         else if ( it->x > result.max.x ) result.max.x = it->x;
@@ -17,17 +18,15 @@ Rect tools::Rect::bbox( std::vector<Vec2> points )
     return result;
 }
 
-Rect Rect::bbox( std::vector<Rect> rects )// Return a rectangle overlapping all the rectangles.
+Rect Rect::bbox(const std::vector<Rect>* rects )// Return a rectangle overlapping all the rectangles.
 {
-    if( rects.empty() )
-    {
+    if( rects->empty() )
         return {};
-    }
-    Rect result = rects[0];
-    for(auto it = rects.begin() +1; it != rects.end(); it++ )
-    {
-        result = Rect::merge(result, *it);
-    }
+    if ( rects->size() == 1 )
+        return rects->front();
+    Rect result = rects->front();
+    for(auto i = 1; i < rects->size(); ++i )
+        result = Rect::merge(result, (*rects)[i] );
     return result;
 }
 

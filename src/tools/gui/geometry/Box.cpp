@@ -25,6 +25,9 @@ Box Box::align(
     ImGuiEx::DebugLine(follower_pos, follower_pos + delta, color, 2.f);
     // dot at the destination
     ImGuiEx::DebugCircle(leader_pos, 2.f, color, 0, 4.f);
+    // Boxes
+    ImGuiEx::DebugRect(leader.get_rect().min, leader.get_rect().max, ImColor(255,0,0, 127) );
+    ImGuiEx::DebugRect(follower.get_rect().min, follower.get_rect().max, ImColor(0,255,0, 127) );
 #endif
 
     Box aligned_follower = follower;

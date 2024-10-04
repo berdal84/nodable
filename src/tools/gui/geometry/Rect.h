@@ -114,9 +114,9 @@ namespace tools
 
         static Rect merge(const Rect& a, const Rect& b );
 
-        static Rect bbox(std::vector<Rect> rects );
+        static Rect bbox(const std::vector<Rect>* rects );
 
-        static Rect bbox(std::vector<Vec2> points );
+        static Rect bbox(const std::vector<Vec2>* points );
 
         static Rect transform(const Rect &rect, const glm::mat3 &mat);
 
