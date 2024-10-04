@@ -373,29 +373,8 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 break;
             }
             case SlotFlag_TYPE_VALUE:
-            {
-                // Clear in_token and transfer out_token prefix/suffix/type
-                //
-                //   <prefix> dependent <suffix>    (first)
-                //       |       out        |
-                //       |        |         |
-                //       |        |         |
-                //       v       in         v
-                //    < ... > dependency < ... >    (second)
-                //
-                Token& out_token = _first.get_property()->get_token();  static_assert(SlotFlag_OUTPUT & SlotFlag_ORDER_FIRST);
-                Token& in_token  = _second.get_property()->get_token(); static_assert(SlotFlag_INPUT & SlotFlag_ORDER_SECOND);
-
-                if ( out_token.is_null() || in_token.is_null() )
-                {
-                    break;
-                }
-
-                in_token.clear();
-                in_token.m_type = out_token.m_type;
-                in_token.take_prefix_suffix_from( &out_token );
+                // Nothing to do in such case
                 break;
-            }
             default:
                 ASSERT(false);// This connection type is not yet implemented
         }
