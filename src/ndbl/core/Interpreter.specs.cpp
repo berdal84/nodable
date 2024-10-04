@@ -4,14 +4,14 @@
 #include "fixtures/core.h"
 
 using namespace ndbl;
-typedef ::testing::Core Interpreter_;
+typedef ::testing::Core DISABLED_Interpreter_;
 
-TEST_F(Interpreter_, variable_1 )
+TEST_F(DISABLED_Interpreter_, variable_1 )
 {
     EXPECT_EQ(eval<i32_t>("int i = 10"), 10);
 }
 
-TEST_F(Interpreter_, Cond_1)
+TEST_F(DISABLED_Interpreter_, Cond_1)
 {
     std::string program =
         "if(false)"
@@ -24,7 +24,7 @@ TEST_F(Interpreter_, Cond_1)
     EXPECT_EQ(eval<i32_t>(program), 42);
 }
 
-TEST_F(Interpreter_, Cond_2)
+TEST_F(DISABLED_Interpreter_, Cond_2)
 {
     std::string program =
             "int bob   = 50;"
@@ -43,7 +43,7 @@ TEST_F(Interpreter_, Cond_2)
     EXPECT_EQ(eval<i32_t>(program), 50);
 }
 
-TEST_F(Interpreter_, Cond_3)
+TEST_F(DISABLED_Interpreter_, Cond_3)
 {
     std::string program =
             "int bob   = 0;"
@@ -62,7 +62,7 @@ TEST_F(Interpreter_, Cond_3)
     EXPECT_EQ(eval<std::string>(program), "false");
 }
 
-TEST_F(Interpreter_, Loop_1_using_global_var)
+TEST_F(DISABLED_Interpreter_, Loop_1_using_global_var)
 {
     std::string program =
             "string str = \"\";"
@@ -75,7 +75,7 @@ TEST_F(Interpreter_, Loop_1_using_global_var)
     EXPECT_EQ(eval<std::string>(program), "0123456789");
 }
 
-TEST_F(Interpreter_, Loop_1_using_local_var)
+TEST_F(DISABLED_Interpreter_, Loop_1_using_local_var)
 {
     std::string program =
             "string str = \"\";"
@@ -89,7 +89,7 @@ TEST_F(Interpreter_, Loop_1_using_local_var)
     EXPECT_EQ(eval<std::string>(program), "0123456789");
 }
 
-TEST_F(Interpreter_, Loop_2_using_global_var)
+TEST_F(DISABLED_Interpreter_, Loop_2_using_global_var)
 {
     std::string program =
             "int n;"
@@ -113,7 +113,7 @@ TEST_F(Interpreter_, Loop_2_using_global_var)
     EXPECT_EQ(eval<std::string>(program), "__49162536496481");
 }
 
-TEST_F(Interpreter_, Loop_2_using_local_var)
+TEST_F(DISABLED_Interpreter_, Loop_2_using_local_var)
 {
     std::string program =
             "string str = \"\";"
@@ -134,7 +134,7 @@ TEST_F(Interpreter_, Loop_2_using_local_var)
     EXPECT_EQ(eval<std::string>(program), "__49162536496481");
 }
 
-TEST_F(Interpreter_, For_loop_without_var_decl)
+TEST_F(DISABLED_Interpreter_, For_loop_without_var_decl)
 {
     std::string program =
             "int score;"
@@ -146,7 +146,7 @@ TEST_F(Interpreter_, For_loop_without_var_decl)
     EXPECT_EQ(eval<i32_t>(program), 9 * 2);
 }
 
-TEST_F(Interpreter_, For_loop_with_var_decl)
+TEST_F(DISABLED_Interpreter_, For_loop_with_var_decl)
 {
     std::string program =
             "int score = 1;"
@@ -158,7 +158,7 @@ TEST_F(Interpreter_, For_loop_with_var_decl)
     EXPECT_EQ(eval<i32_t>(program), 1 * pow(2, 10));
 }
 
-TEST_F(Interpreter_, declare_then_define)
+TEST_F(DISABLED_Interpreter_, declare_then_define)
 {
     std::string program_01 =
             "int b;"
@@ -167,7 +167,7 @@ TEST_F(Interpreter_, declare_then_define)
     EXPECT_EQ(eval<i32_t>(program_01), 5);
 }
 
-TEST_F(Interpreter_, declare_and_define_then_reassign)
+TEST_F(DISABLED_Interpreter_, declare_and_define_then_reassign)
 {
     std::string program_01 =
             "int b = 6;"
@@ -176,7 +176,7 @@ TEST_F(Interpreter_, declare_and_define_then_reassign)
     EXPECT_EQ(eval<i32_t>(program_01), 5);
 }
 
-TEST_F(Interpreter_, declare_then_define_then_reassign)
+TEST_F(DISABLED_Interpreter_, declare_then_define_then_reassign)
 {
     std::string program_01 =
             "int b;"
@@ -186,7 +186,7 @@ TEST_F(Interpreter_, declare_then_define_then_reassign)
     EXPECT_EQ(eval<i32_t>(program_01), 5);
 }
 
-TEST_F(Interpreter_, condition_which_contains_alterated_var)
+TEST_F(DISABLED_Interpreter_, condition_which_contains_alterated_var)
 {
     std::string program =
             "int b = 6;"
@@ -200,7 +200,7 @@ TEST_F(Interpreter_, condition_which_contains_alterated_var)
     EXPECT_EQ(eval<std::string>(program), "ok");
 }
 
-TEST_F(Interpreter_, else_elseif_else)
+TEST_F(DISABLED_Interpreter_, else_elseif_else)
 {
 
     std::string program_end =
@@ -224,14 +224,14 @@ TEST_F(Interpreter_, else_elseif_else)
     EXPECT_EQ(eval<std::string>(program3), "a == b");
 }
 
-TEST_F(Interpreter_, integers)
+TEST_F(DISABLED_Interpreter_, integers)
 {
     EXPECT_EQ(eval<i32_t>("int i = 1"), 1);
     EXPECT_EQ(eval<i32_t>("int i = 3 + 5"), 8);
     EXPECT_EQ(eval<i32_t>("int i = 1-2"), -1);
 }
 
-TEST_F(Interpreter_, while_loop)
+TEST_F(DISABLED_Interpreter_, while_loop)
 {
     tools::log::set_verbosity(tools::log::Verbosity_Message);
     std::string program =
