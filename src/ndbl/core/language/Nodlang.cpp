@@ -607,7 +607,7 @@ void Nodlang::parse_code_block()
     bool block_end_reached = false;
     while ( parser_state.ribbon.can_eat() && !block_end_reached )
     {
-        if ( auto instruction = parse_instr() )
+        if ( Node* instruction = parse_instr() )
         {
             Slot* child_slot = get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL );
             ASSERT(child_slot)

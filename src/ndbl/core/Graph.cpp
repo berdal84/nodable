@@ -155,8 +155,9 @@ void Graph::destroy(Node* node)
     };
 
     // if it is a variable, we remove it from its scope
-    if ( auto* node_variable = cast<VariableNode>(node) )
+    if ( node->type() == NodeType_VARIABLE )
     {
+        VariableNode* node_variable = cast<VariableNode>(node);
         if ( IScope* scope = node_variable->get_scope() )
         {
             scope->remove_variable(node_variable);
@@ -312,7 +313,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //                  - instr n ->->->->->->
                     //             - new child <-<-<-<-<-<-<-<
                     //
-                    if ( previous_child->type() == NodeType_BLOCK_SCOPE )
+                    if ( previous_child->has_component<Scope>() )
                     {
                         auto previous_child_scope = previous_child->get_component<Scope>();
                         for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
@@ -330,8 +331,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                     //
                     else
                     {
-                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT );
-                        VERIFY(last_sibling_next_slot->is_full() == false, "Unable to find a slot to connect the next node")
+                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
                         connect( *last_sibling_next_slot, new_child_prev_slot );
                     }
                 }
