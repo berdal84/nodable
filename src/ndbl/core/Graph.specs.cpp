@@ -67,11 +67,11 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
     VariableNode*   variable     = graph->create_variable( type::get<int>(), "var", nullptr);
-    const FuncType* fct_type     = FuncTypeBuilder<int(int, int)>::with_id("+");
-    const FuncType* operator_fct = app.get_language()->find_operator_fct_exact(fct_type);
+    FuncType        fct_type     = FuncTypeBuilder<int(int, int)>("+").construct();
+    const FuncType* operator_fct = app.get_language()->find_operator_fct_exact(&fct_type);
 
     EXPECT_TRUE(operator_fct != nullptr);
-    auto operator_node = graph->create_operator(fct_type);
+    auto operator_node = graph->create_operator(std::move(fct_type));
 
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
@@ -89,8 +89,6 @@ TEST_F(Graph_, clear)
     // test
     EXPECT_TRUE( graph->get_node_registry().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
-
-    delete fct_type;
 }
 
 

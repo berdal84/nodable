@@ -118,16 +118,16 @@ VariableNode* Graph::create_variable(const type *_type, const std::string& _name
 	return node;
 }
 
-InvokableNode* Graph::create_function(const FuncType* _type)
+InvokableNode* Graph::create_function(FuncType&& _type)
 {
-    InvokableNode* node = m_factory->create_function(_type, false);
+    InvokableNode* node = m_factory->create_function(std::move(_type), NodeType_FUNCTION);
     add(node);
     return node;
 }
 
-InvokableNode* Graph::create_operator(const FuncType* _type)
+InvokableNode* Graph::create_operator(FuncType&& _type)
 {
-    InvokableNode* node = m_factory->create_function(_type, true);
+    InvokableNode* node = m_factory->create_function(std::move(_type), NodeType_OPERATOR);
     add(node);
     return node;
 }
@@ -514,11 +514,11 @@ Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
             VERIFY(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
-            const FuncType* func_type = language->find_function(_signature);
-            bool is_operator = language->find_operator_fct( func_type ) != nullptr;
+            FuncType func_type = *language->find_function(_signature);
+            bool is_operator = language->find_operator_fct( &func_type ) != nullptr;
             if ( is_operator )
-                return create_operator(func_type);
-            return create_function(func_type);
+                return create_operator(std::move(func_type));
+            return create_function(std::move(func_type));
         }
         default:
             VERIFY(false, "Unhandled CreateNodeType.");

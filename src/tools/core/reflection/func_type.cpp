@@ -13,10 +13,14 @@ void FuncType::push_arg(const type* _type, bool _by_reference)
 
 bool FuncType::is_exactly(const FuncType* _other)const
 {
-    if ( this == _other )                        return true;
-    if ( m_args.size() != _other->m_args.size()) return false;
-    if ( m_identifier != _other->m_identifier )  return false;
-    if ( m_args.empty() )                        return true;
+    if ( this == _other )
+        return true;
+    if ( m_args.size() != _other->m_args.size())
+        return false;
+    if ( !m_identifier.equals(_other->m_identifier) )
+        return false;
+    if ( m_args.empty() )
+        return true;
 
     size_t i = 0;
     while( i < m_args.size() )
@@ -35,10 +39,14 @@ bool FuncType::is_exactly(const FuncType* _other)const
 
 bool FuncType::is_compatible(const FuncType* _other)const
 {
-    if ( this == _other )                        return true;
-    if ( m_args.size() != _other->m_args.size()) return false;
-    if ( m_identifier != _other->m_identifier )  return false;
-    if ( m_args.empty() )                        return true;
+    if ( this == _other )
+        return true;
+    if ( m_args.size() != _other->m_args.size())
+        return false;
+    if ( !m_identifier.equals(_other->m_identifier) )
+        return false;
+    if ( m_args.empty() )
+        return true;
 
     size_t i = 0;
     while( i < m_args.size() )
@@ -65,6 +73,7 @@ bool FuncType::has_an_arg_of_type(const type* _type) const
 
 void FuncType::set_identifier(const std::string &_identifier)
 {
-    ASSERT(_identifier.size() < 50);
-    m_identifier = _identifier;
+    VERIFY(_identifier.size() < m_identifier.capacity(), "Identifier is too long");
+    m_identifier.clear();
+    m_identifier.append(_identifier.c_str());
 }

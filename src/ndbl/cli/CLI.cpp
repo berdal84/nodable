@@ -98,7 +98,7 @@ void CLI::clear()
 
 void CLI::log_function_call(const variant &result, const FuncType *type)
 {
-    LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n",type->get_identifier().c_str(), result.to<std::string>().c_str())
+    LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n",type->get_identifier(), result.to<std::string>().c_str())
 }
 
 std::string CLI::get_line()
@@ -171,7 +171,10 @@ void CLI::PublicApi::help()
 
     for ( const auto& static_method_type : public_api_type->get_static_methods() )
     {
-        command_names.push_back(static_method_type->get_identifier() + " (static)" );
+        std::string command_name;
+        command_name.append(static_method_type->get_identifier());
+        command_name.append(" (static)");
+        command_names.push_back(command_name);
     }
 
     for ( const auto& method_type : public_api_type->get_methods() )

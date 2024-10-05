@@ -16,20 +16,20 @@ TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 
 TEST_F(Language_basics, can_get_add_operator_with_signature )
 {
-    const FuncType*  signature = FuncTypeBuilder<double(double, double)>::with_id("+");
-    EXPECT_TRUE(language->find_operator_fct(signature));
+    const FuncType  signature = FuncTypeBuilder<double(double, double)>("+").construct();
+    EXPECT_TRUE(language->find_operator_fct(&signature));
 }
 
 TEST_F(Language_basics, can_get_invert_operator_with_signature )
 {
-    const FuncType*  signature = FuncTypeBuilder<double(double)>::with_id("-");
-    EXPECT_TRUE(language->find_operator_fct(signature));
+    const FuncType  signature = FuncTypeBuilder<double(double)>("-").construct();
+    EXPECT_TRUE(language->find_operator_fct(&signature));
 }
 
 TEST_F(Language_basics, by_ref_assign )
 {
-    const FuncType*  signature = FuncTypeBuilder<double(double &, double)>::with_id("=");
-    auto operator_func = language->find_operator_fct(signature);
+    const FuncType  signature = FuncTypeBuilder<double(double &, double)>("=").construct();
+    auto operator_func = language->find_operator_fct(&signature);
     EXPECT_TRUE(operator_func != nullptr);
     EXPECT_TRUE(operator_func->get_args()[0].m_by_reference);
 }

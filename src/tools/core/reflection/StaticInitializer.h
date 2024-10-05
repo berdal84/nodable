@@ -22,10 +22,11 @@ namespace tools
         }
 
         template<typename F>
-        StaticInitializer& add_method(F* _function, const char* _name, const char* _alt_name = "" )
+        StaticInitializer& add_method(F*, const char* _name, const char* _alt_name = "" )
         {
             static_assert(std::is_class_v<T>);
-            auto* func_type = FuncTypeBuilder<F>::with_id(_name );
+            FuncTypeBuilder<F> builder{ _name };
+            const FuncType* func_type = builder.make_instance();
             m_type->add_static(_name, func_type);
 
             if(_alt_name[0] != '\0')
@@ -38,8 +39,8 @@ namespace tools
         StaticInitializer& add_method(R(C::*func_ptr)(Ts...), const char* _name ) // non static
         {
             static_assert(std::is_class_v<T>);
-            auto* func_type = FuncTypeBuilder<R(C::*)(Ts...)>::with_id(_name );
-            m_type->add_method(_name, func_type);
+            FuncTypeBuilder<R(C::*)(Ts...)> builder{ _name };
+            m_type->add_method(_name, builder.make_instance());
             return *this;
         }
 

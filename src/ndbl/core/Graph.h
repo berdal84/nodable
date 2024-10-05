@@ -75,8 +75,8 @@ namespace ndbl
         LiteralNode*             create_literal(const tools::type *_type);
         template<typename T>
         LiteralNode*             create_literal() { return create_literal( tools::type::get<T>()); }
-        InvokableNode*           create_function(const tools::FuncType*);
-        InvokableNode*           create_operator(const tools::FuncType*);
+        InvokableNode*           create_function(tools::FuncType&&);
+        InvokableNode*           create_operator(tools::FuncType&&);
         Node*                    create_scope();
         IfNode*                  create_cond_struct();
         ForLoopNode*             create_for_loop();

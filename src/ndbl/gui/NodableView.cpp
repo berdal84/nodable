@@ -30,11 +30,10 @@ using namespace tools;
 
 template<typename T>
 static FuncType* create_variable_node_signature()
-{ return FuncTypeBuilder<T(T)>::with_id("variable"); }
-
-template<typename T>
-static FuncType* create_literal_node_signature()
-{ return FuncTypeBuilder<T(/*void*/)>::with_id("literal"); }
+{
+    static FuncType type = FuncTypeBuilder<T(T)>{ "variable" }.construct();
+    return &type;
+}
 
 void NodableView::init(Nodable * _app)
 {

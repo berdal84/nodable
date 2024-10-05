@@ -4,8 +4,6 @@
 #include "tools/core/memory/memory.h"
 #include "tools/core/reflection/FuncType.h"
 
-#include "VariableNode.h"
-
 using namespace ndbl;
 using namespace tools;
 
@@ -14,19 +12,17 @@ REFLECT_STATIC_INIT
     StaticInitializer<InvokableNode>("InvokableNode").extends<Node>();
 }
 
-void InvokableNode::init(NodeType _type, const FuncType*  _func_type )
+void InvokableNode::init(NodeType _type, tools::FuncType&& _func_type )
 {
-    VERIFY(_func_type != nullptr, "Signature must be defined!")
-
-    Node::init(_type, _func_type->get_identifier());
+    Node::init(_type, _func_type.get_identifier());
 
     m_func_type = _func_type;
     m_identifier_token = {
         Token_t::identifier,
-        _func_type->get_identifier().c_str()
+        _func_type.get_identifier()
     };
-    m_argument_slot.resize(_func_type->get_arg_count());
-    m_argument_props.resize(_func_type->get_arg_count());
+    m_argument_slot.resize(_func_type.get_arg_count());
+    m_argument_props.resize(_func_type.get_arg_count());
 
     add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY );
     add_slot(SlotFlag_OUTPUT, 1);
@@ -34,11 +30,11 @@ void InvokableNode::init(NodeType _type, const FuncType*  _func_type )
     switch ( _type )
     {
         case NodeType_OPERATOR:
-            set_name(_func_type->get_identifier().c_str());
+            set_name(_func_type.get_identifier());
             break;
         case NodeType_FUNCTION:
         {
-            const std::string& id   = _func_type->get_identifier();
+            const std::string& id   = _func_type.get_identifier();
             std::string label       = id + "()";
             std::string short_label = id.substr(0, 2) + "..()"; // ------- improve, not great.
             set_name(label.c_str());
@@ -49,19 +45,19 @@ void InvokableNode::init(NodeType _type, const FuncType*  _func_type )
     }
 
     // Create a result/value
-    Property* value = add_prop(_func_type->get_return_type(), VALUE_PROPERTY );
+    Property* value = add_prop(_func_type.get_return_type(), VALUE_PROPERTY );
     add_slot(SlotFlag_OUTPUT, Slot::MAX_CAPACITY, value);
 
     // Create arguments
     if ( _type == NodeType_OPERATOR )
     {
-        VERIFY(_func_type->get_arg_count() >= 1, "An operator must have one argument minimum");
-        VERIFY(_func_type->get_arg_count() <= 2, "An operator cannot have more than 2 arguments");
+        VERIFY(_func_type.get_arg_count() >= 1, "An operator must have one argument minimum");
+        VERIFY(_func_type.get_arg_count() <= 2, "An operator cannot have more than 2 arguments");
     }
 
-    for (size_t i = 0; i < _func_type->get_arg_count(); i++ )
+    for (size_t i = 0; i < _func_type.get_arg_count(); i++ )
     {
-        const FuncArg& arg  = _func_type->get_arg(i);
+        const FuncArg& arg  = _func_type.get_arg(i);
 
         const char* name;
         // TODO: this could be done in the NodeView instead...

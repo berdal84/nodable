@@ -357,13 +357,13 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     // Create a function signature according to ltype, rtype and operator word
-    FuncType *type = new FuncType();
-    type->set_identifier(ope->identifier);
-    type->set_return_type(type::any());
-    type->push_arg( _left.get_property()->get_type());
-    type->push_arg(right->get_property()->get_type());
+    FuncType type;
+    type.set_identifier(ope->identifier);
+    type.set_return_type(type::any());
+    type.push_arg( _left.get_property()->get_type());
+    type.push_arg(right->get_property()->get_type());
 
-    InvokableNode* binary_op = parser_state.graph->create_operator(type);
+    InvokableNode* binary_op = parser_state.graph->create_operator(std::move(type));
     binary_op->set_identifier_token( operator_token );
     parser_state.graph->connect_or_merge( _left, *binary_op->get_lvalue());
     parser_state.graph->connect_or_merge( *right, *binary_op->get_rvalue() );
@@ -411,12 +411,12 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Create a function signature
-    auto* type = new FuncType();
-    type->set_identifier(operator_token.word_to_string());
-    type->set_return_type(type::any());
-    type->push_arg( out_atomic->get_property()->get_type());
+    FuncType type;
+    type.set_identifier(operator_token.word_to_string());
+    type.set_return_type(type::any());
+    type.push_arg( out_atomic->get_property()->get_type());
 
-    InvokableNode* node = parser_state.graph->create_operator(type);
+    InvokableNode* node = parser_state.graph->create_operator(std::move(type));
     node->set_identifier_token( operator_token );
 
     parser_state.graph->connect_or_merge( *out_atomic, *node->find_slot_by_property_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
@@ -1010,9 +1010,9 @@ Slot* Nodlang::parse_function_call()
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    FuncType* signature = new FuncType();
-    signature->set_identifier(fct_id);
-    signature->set_return_type(type::any());
+    FuncType signature;
+    signature.set_identifier(fct_id);
+    signature.set_return_type(type::any());
 
     bool parsingError = false;
     while (!parsingError && parser_state.ribbon.can_eat() &&
@@ -1022,7 +1022,7 @@ Slot* Nodlang::parse_function_call()
         if ( expression_out != nullptr )
         {
             result_slots.push_back( expression_out );
-            signature->push_arg( expression_out->get_property()->get_type() );
+            signature.push_arg( expression_out->get_property()->get_type() );
             parser_state.ribbon.eat_if(Token_t::list_separator);
         }
         else
@@ -1041,9 +1041,9 @@ Slot* Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    Node* fct_node = parser_state.graph->create_function(signature);
+    InvokableNode* fct_node = parser_state.graph->create_function(std::move(signature));
 
-    for ( FuncArg& signature_arg : signature->get_args() )
+    for ( const FuncArg& signature_arg : fct_node->get_func_type()->get_args() )
     {
         // Connects each results to the corresponding input
         Slot* out_slot = result_slots.at(signature_arg.m_index);
@@ -1434,8 +1434,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableNode
 
 std::string &Nodlang::serialize_func_call(std::string &_out, const FuncType *_signature, const std::vector<Slot*> &inputs) const
 {
-    auto& identifier = _signature->get_identifier();
-    _out.append( identifier );
+    _out.append( _signature->get_identifier() );
     serialize_token_t(_out, Token_t::parenthesis_open);
 
     for (const Slot* input_slot : inputs)

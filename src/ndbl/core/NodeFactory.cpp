@@ -43,7 +43,9 @@ T* create(Args... args)
 void NodeFactory::destroy_node(Node* node) const
 {
 #if !TOOLS_POOL_ENABLE
-        delete node;
+    for(auto each_component : node->get_components() )
+        delete each_component;
+    delete node;
 #else
     PoolManager* manager = get_pool_manager();
     ASSERT( manager != nullptr )
@@ -73,11 +75,11 @@ VariableNode* NodeFactory::create_variable(const type *_type, const std::string&
     return node;
 }
 
-InvokableNode* NodeFactory::create_function(const tools::FuncType *_func_type, bool _is_operator) const
+InvokableNode* NodeFactory::create_function(tools::FuncType&& _func_type, NodeType _node_type) const
 {
     auto* node = create<InvokableNode>();
-    NodeType node_type = _is_operator ? NodeType_OPERATOR : NodeType_FUNCTION;
-    node->init(node_type, _func_type);
+    ASSERT( _node_type == NodeType_OPERATOR || _node_type == NodeType_FUNCTION )
+    node->init(_node_type, std::move(_func_type));
     m_post_process(node);
     return node;
 }

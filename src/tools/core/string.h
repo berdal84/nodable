@@ -166,6 +166,10 @@ namespace tools
             if( m_ptr != nullptr) m_ptr[0] = 0;
         }
 
+        bool equals(const basic_string& other) const {
+            return m_length == other.m_length && strcmp(c_str(), other.c_str()) == 0;
+        }
+
     private:
         /**
          * Expand the buffer to the closest power of two of the desired size.

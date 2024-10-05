@@ -42,7 +42,7 @@ namespace tools
         bool                           has_an_arg_of_type(const type* type)const;
         bool                           is_exactly(const FuncType* _other)const;
         bool                           is_compatible(const FuncType* _other)const;
-        const std::string&             get_identifier()const { return m_identifier; };
+        const char*                    get_identifier()const { return m_identifier.c_str(); };
         const FuncArg&                 get_arg(size_t i) const { return m_args[i]; }
         std::vector<FuncArg>&          get_args() { return m_args;};
         const std::vector<FuncArg>&    get_args()const { return m_args;};
@@ -50,7 +50,7 @@ namespace tools
         const type*                    get_return_type() const { return m_return_type; }
         void                           set_return_type(const type* _type) { m_return_type = _type; };
     private:
-        std::string          m_identifier;
+        tools::string64      m_identifier;
         std::vector<FuncArg> m_args;
         const type*          m_return_type = type::null();
 
@@ -100,33 +100,39 @@ namespace tools
      * @tparam T is the function's return type
      * @tparam Args is the function's argument(s) type
      *
-     * usage: Signature* sig = signature-builder<double(double,double)>::signature()
-     *                                                                  .with_id("+")
-     *                                                                  .as_operator()
-     *                                                                  .with_language(lang_ptr).build();
+     * usage: auto* sig = FuncTypeBuilder<double(double,double)>("+");
      */
     template<typename T, typename ...Args>
     struct FuncTypeBuilder<T(Args...)>
     {
         std::string m_id;
 
-        FuncType* construct()
+        FuncTypeBuilder(const char* id)
+        : m_id(id)
         {
             VERIFY(!m_id.empty(), "No identifier specified! use with_id()" );
-
-            FuncType* signature = new FuncType();
-            signature->set_identifier(m_id);
-            signature->set_return_type(type::get<T>());
-            signature->push_args<std::tuple<Args...>>();
-
-            return signature;
         }
 
-        static FuncType* with_id(const std::string& _id)
+        FuncType* decorate(FuncType* type)
         {
-            FuncTypeBuilder<T(Args...)> builder;
-            builder.m_id = _id;
-            return builder.construct();
+            type->set_identifier(m_id);
+            type->set_return_type(type::get<T>());
+            type->push_args<std::tuple<Args...>>();
+            return type;
+        }
+
+        FuncType* make_instance()
+        {
+            auto* type = new FuncType();
+            decorate(type);
+            return type;
+        }
+
+        FuncType construct()
+        {
+            FuncType type;
+            decorate(&type);
+            return std::move(type);
         }
 
     };
