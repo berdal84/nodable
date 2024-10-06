@@ -7,47 +7,29 @@ using namespace tools;
 
 typedef ::testing::Core Language_parse_and_serialize;
 
-/////////////////////////////////////////////////////////////
 
-TEST_F(Language_parse_and_serialize, parse_serialize_variable_declaration )
+TEST_F(Language_parse_and_serialize, decl_var_and_assign_string)
 {
-    const char* code = "int i = 42;";
-    EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
+    std::string program = R"(string s = "coucou";)";
+    EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-/////////////////////////////////////////////////////////////
-
-TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced )
+TEST_F(Language_parse_and_serialize, decl_var_and_assign_double)
 {
-    const char* code = "int i = 42; int j = i;";
-    EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
+    std::string program = "double d = 15.0;";
+    EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-/////////////////////////////////////////////////////////////
-
-TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope )
+TEST_F(Language_parse_and_serialize, decl_var_and_assign_int)
 {
-    EXPECT_EQ(parse_and_serialize("{}"), "{}");
+    std::string program = "int s = 10;";
+    EXPECT_EQ(parse_and_serialize(program), program);
 }
 
-TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces )
+TEST_F(Language_parse_and_serialize, decl_var_and_assign_bool)
 {
-    EXPECT_EQ(parse_and_serialize("{ }"), "{ }");
-}
-
-TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_after )
-{
-    EXPECT_EQ(parse_and_serialize("{} "), "{} ");
-}
-
-TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_before )
-{
-    EXPECT_EQ(parse_and_serialize(" {}"), " {}");
-}
-
-TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_before_and_after )
-{
-    EXPECT_EQ(parse_and_serialize(" {} "), " {} ");
+    std::string program = "bool b = true;";
+    EXPECT_EQ(parse_and_serialize(program), program);
 }
 
 /////////////////////////////////////////////////////////////
@@ -160,3 +142,48 @@ TEST_F(Language_parse_and_serialize, parse_serialize_binary_expression_with_funt
     std::string program = "int i = pow(2,2) + 1";
     EXPECT_EQ(parse_and_serialize(program), program); // should not be "int i = (pow(2,2))+ 1"
 }
+
+/////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize, parse_serialize_variable_declaration )
+{
+    const char* code = "int i = 42;";
+    EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
+}
+
+/////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced )
+{
+    const char* code = "int i = 42; int j = i;";
+    EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
+}
+
+/////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope )
+{
+    EXPECT_EQ(parse_and_serialize("{}"), "{}");
+}
+
+TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces )
+{
+    EXPECT_EQ(parse_and_serialize("{ }"), "{ }");
+}
+
+TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_after )
+{
+    EXPECT_EQ(parse_and_serialize("{} "), "{} ");
+}
+
+TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_before )
+{
+    EXPECT_EQ(parse_and_serialize(" {}"), " {}");
+}
+
+TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_before_and_after )
+{
+    EXPECT_EQ(parse_and_serialize(" {} "), " {} ");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
