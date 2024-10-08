@@ -103,7 +103,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_PREV);
         if ( !previous_nodes.empty() && !previous_nodes[0]->get_node()->is_conditional() )
         {
-            Physics::Constraint constraint("Position below previous", &Physics::Constraint::constrain_one_to_many_as_row);
+            Physics::Constraint constraint("Position below previous", &Physics::Constraint::constrain_1_to_N_as_row);
             constraint.leader         = previous_nodes;
             //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
             constraint.follower       = {curr_nodeview};
@@ -129,18 +129,19 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         //------------------------------------------------
 
         std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_NEXT);
-        if( node->is_conditional() && next.size() > 1 )
+        if( node->is_conditional() && next.size() >= 1 )
         {
             Physics::Constraint constraint("Align conditional children in a row",
-                                           &Physics::Constraint::constrain_many_to_one_as_a_row);
+                                           &Physics::Constraint::constrain_N_to_1_as_a_row);
             constraint.leader         = {curr_nodeview};
             constraint.leader_pivot   = BOTTOM_LEFT;
-            //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
+            constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
             constraint.follower       = next;
             constraint.follower_pivot = TOP_LEFT;
             constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
             constraint.gap_size       = tools::Size_SM;
             constraint.gap_direction  = BOTTOM;
+            constraint.row_direction  = RIGHT;
             physics_component->add_constraint(constraint);
         }
 
@@ -158,7 +159,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         if(filtered_inputs.size() > 0 )
         {
             Physics::Constraint constraint("Align many inputs above",
-                                           &Physics::Constraint::constrain_many_to_one_as_a_row);
+                                           &Physics::Constraint::constrain_N_to_1_as_a_row);
 
             auto* leader = curr_nodeview;
             constraint.leader         = {leader};
@@ -211,7 +212,7 @@ void Physics::Constraint::update(float _dt)
     (this->*constrain)(_dt);
 }
 
-void Physics::Constraint::constrain_one_to_many_as_row(float _dt)
+void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
 {
     // This type of constrain is designed to make a single NodeView to follow many others
 
@@ -237,7 +238,7 @@ void Physics::Constraint::constrain_one_to_many_as_row(float _dt)
     physics_component->add_force_to_move_to( desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
 }
 
-void Physics::Constraint::constrain_many_to_one_as_a_row(float _dt)
+void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
 {
     ASSERT(leader.size() == 1)
     ASSERT(follower.size() > 0)
@@ -262,15 +263,15 @@ void Physics::Constraint::constrain_many_to_one_as_a_row(float _dt)
             // First box is aligned with the leader
             const Box leader_box = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
             delta[i] = Box::diff(leader_box, leader_pivot, box[i], follower_pivot);
+            delta[i] += gap * gap_direction;
         }
         else
         {
             // i+1 box is aligned with the i
             delta[i] = Box::diff( box[i-1] , row_direction, box[i], -row_direction);
+            delta[i] += gap * row_direction;
             delta[i] -= delta[i-1]; //
         }
-
-        delta[i] += gap * gap_direction; // there is always a gap
     }
 
     for(size_t i = 0; i < clean_follower.size(); i++)

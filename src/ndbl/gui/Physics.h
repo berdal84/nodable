@@ -34,8 +34,8 @@ namespace  ndbl
 
             void update(float _dt);
 
-            void constrain_one_to_many_as_row(float _dt);
-            void constrain_many_to_one_as_a_row(float _dt);
+            void constrain_1_to_N_as_row(float _dt);
+            void constrain_N_to_1_as_a_row(float _dt);
             //void constrain_many_to_one(float _dt);
 
             bool rule_always() { return true; };
