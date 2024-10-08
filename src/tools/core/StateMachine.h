@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <unordered_map>
 #include "types.h"
 #include "tools/core/reflection/function_traits.h"
 #include "tools/core/assertions.h"
