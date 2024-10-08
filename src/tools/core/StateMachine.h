@@ -25,7 +25,6 @@ namespace tools
         const char*   name;
         Delegate      enter     = [](void*) {};
         Delegate      tick      = [](void*) {};
-        Delegate      post_tick = [](void*) {};
         Delegate      leave     = [](void*) {};
     };
 
@@ -51,9 +50,6 @@ namespace tools
 
         template<typename TMember>
         void bind_tick(const char* name, TMember member_ptr);
-
-        template<typename TMember>
-        void bind_post_tick(const char* name, TMember member_ptr);
 
         template<typename TMember>
         void bind_leave(const char* name, TMember member_ptr);
@@ -92,7 +88,6 @@ namespace tools
 
     DECLARE_BIND(enter)
     DECLARE_BIND(tick)
-    DECLARE_BIND(post_tick)
     DECLARE_BIND(leave)
 
 #undef DECLARE_BIND

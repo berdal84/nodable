@@ -41,7 +41,6 @@ void StateMachine::tick()
     m_current_state->leave(m_context_ptr);
     m_current_state = m_next_state;
     m_current_state->enter(m_context_ptr);
-    m_current_state->post_tick(m_context_ptr); // TODO: this is a relic of the past, remove it
     m_next_state = nullptr;
 }
 
