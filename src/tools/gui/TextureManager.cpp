@@ -101,7 +101,7 @@ int TextureManager::load_png(const Path& path, Texture* texture)
 {
     LOG_MESSAGE("TextureManager", "Loading PNG from disk %s ...\n", path.c_str());
     std::vector<unsigned char> buffer;
-    unsigned error = lodepng::load_file(buffer, path.c_str() ); //load the image file with given filename
+    unsigned error = lodepng::load_file(buffer, path.string() ); //load the image file with given filename
     if (error) {
         LOG_MESSAGE("TextureManager", "Error: %i %s\n", error, lodepng_error_text(error) );
         return 1;

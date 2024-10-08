@@ -167,7 +167,7 @@ bool File::write( File& file, const tools::Path& path)
         LOG_MESSAGE("File", "Nothing to save\n");
     }
 
-    std::ofstream out_fstream(path.c_str());
+    std::ofstream out_fstream(path.string());
     std::string content = file.get_text();
     out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
     file.dirty = false;
@@ -186,7 +186,7 @@ bool File::read( File& file, const tools::Path& path)
         return false;
     }
 
-    std::ifstream file_stream(path.c_str());
+    std::ifstream file_stream(path.string());
     if (!file_stream.is_open())
     {
         LOG_ERROR("File", "Unable to load \"%s\"\n", path.c_str())
