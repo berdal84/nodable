@@ -2,7 +2,7 @@
 
 #include <SDL.h>
 #include <array>
-#include <filesystem>
+#include "tools/core/FileSystem.h"
 #include <map>
 #include <observe/event.h>
 #include <string>
@@ -66,9 +66,9 @@ namespace tools
         void        shutdown();
         void        draw_splashscreen(); // If needed, use begin/end_splashscreen static methods to override this. Ex: if ( AppView::begin_splashscreen(m_app->config) ) { /* your code here */; AppView::end_splashscreen(); }
         ImGuiID     get_dockspace(Dockspace)const;
-        bool        pick_file_path(std::string& _out_path, DialogType) const;   // pick a file and store its path in _out_path
+        bool        pick_file_path(tools::Path& _out_path, DialogType) const; // pick a file and store its path in _out_path
         static int  fps();      // get the current frame per second (un-smoothed)
-        void        save_screenshot(std::filesystem::path) const; // Save an LCT_RGBA PNG image to path
+        void        save_screenshot(tools::Path) const; // Save an LCT_RGBA PNG image to path
         bool        is_fullscreen() const;
         void        set_fullscreen( bool b );
         void        set_title( const char* string );

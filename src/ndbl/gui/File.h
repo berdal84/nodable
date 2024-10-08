@@ -37,7 +37,7 @@ namespace ndbl
         File();
         ~File();
 
-        std::filesystem::path  path;         // file path on disk
+        tools::Path  path;         // file path on disk
         bool                   dirty;        // true if changed since last read/write from/to disk.
         FileView               view;
         History                history;      // history of changes
@@ -55,8 +55,8 @@ namespace ndbl
         void                   set_text(const std::string& text, Isolation = Isolation_OFF );
         size_t                 size() const;
 
-        static bool            read( File& file, const std::filesystem::path& source ); // Read an File from a given path and update file's path.
-        static bool            write( File& file, const std::filesystem::path& dest );  // Write an File to a given path and update file's path.
+        static bool            read( File& file, const tools::Path& source ); // Read an File from a given path and update file's path.
+        static bool            write( File& file, const tools::Path& dest );  // Write an File to a given path and update file's path.
 
     };
 }

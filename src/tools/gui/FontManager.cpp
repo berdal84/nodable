@@ -67,9 +67,9 @@ ImFont* FontManager::load_font(const FontConfig& font_config)
         imfont_cfg.RasterizerMultiply = 1.2f;
         imfont_cfg.OversampleH = 2;
         imfont_cfg.OversampleV = 3;
-        std::filesystem::path absolute_path = App::asset_path(font_config.path);
+        tools::Path absolute_path = App::get_absolute_asset_path(font_config.path);
         LOG_VERBOSE("NodableView", "Adding text_font from file ... %s\n", absolute_path.c_str())
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), font_config.size * m_config->subsamples, &imfont_cfg);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.c_str(), font_config.size * m_config->subsamples, &imfont_cfg);
     }
 
     // Add Icons my merging to previous text_font.
@@ -91,8 +91,8 @@ ImFont* FontManager::load_font(const FontConfig& font_config)
         imfont_cfg.OversampleV = 3;
         //imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f;
         imfont_cfg.GlyphMinAdvanceX = font_config.icons_size * m_config->subsamples; // monospace to fix text alignment in drop down menus.
-        std::filesystem::path absolute_path = App::asset_path(m_config->icon.path);
-        font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), font_config.icons_size * m_config->subsamples, &imfont_cfg, icons_ranges);
+        tools::Path absolute_path = App::get_absolute_asset_path(m_config->icon.path);
+        font = io.Fonts->AddFontFromFileTTF(absolute_path.c_str(), font_config.icons_size * m_config->subsamples, &imfont_cfg, icons_ranges);
         LOG_VERBOSE("NodableView", "Merging icons font ...\n")
     }
 

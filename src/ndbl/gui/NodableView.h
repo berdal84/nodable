@@ -32,8 +32,8 @@ namespace ndbl
         void show_splashscreen(bool b);
         bool is_fullscreen() const;
         void toggle_fullscreen();
-        bool pick_file_path(std::string& _out_path, DialogType) const;
-        void save_screenshot(std::filesystem::path&) const;
+        bool pick_file_path(tools::Path& _out_path, DialogType) const;
+        void save_screenshot(tools::Path&) const;
         inline tools::AppView* get_base_view_handle() { return &m_base_view; }
 
     protected:

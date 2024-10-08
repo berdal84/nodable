@@ -2,7 +2,7 @@
 
 #include "tools/core/TaskManager.h"
 #include "tools/core/memory/memory.h"
-#include "tools/core/system.h"
+#include "tools/core/System.h"
 
 #include "AppView.h"
 #include "Config.h"
@@ -85,16 +85,18 @@ double App::get_time()
     return ImGui::GetTime();
 }
 
-std::filesystem::path App::asset_path(const fs_path& _path)
+
+Path& App::make_absolute(Path& _path)
 {
-    VERIFY(!_path.is_absolute(), "_path is not relative, this can't be an asset")
-    fs_path executable_dir = system::get_executable_directory();
-    return executable_dir / "assets" / _path;
+    if ( _path.is_absolute() )
+        return _path;
+    _path = Path::get_executable_path().parent_path() / "assets" / _path;
+    return _path;
 }
 
-std::filesystem::path App::asset_path(const char* _path)
+Path App::get_absolute_asset_path(const char* _str)
 {
-    fs_path fs_path{_path};
-    return  fs_path.is_absolute() ? fs_path
-                                  : asset_path(fs_path);
+    Path asset_path{_str};
+    App::make_absolute(asset_path);
+    return asset_path;
 }

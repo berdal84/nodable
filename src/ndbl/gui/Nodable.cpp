@@ -3,7 +3,7 @@
 #include <algorithm>
 
 #include "tools/core/assertions.h"
-#include "tools/core/system.h"
+#include "tools/core/System.h"
 #include "tools/core/EventManager.h"
 
 #include "ndbl/core/InvokableNode.h"
@@ -118,7 +118,7 @@ void Nodable::update()
 
             case EventID_FILE_BROWSE:
             {
-                std::string path;
+                Path path;
                 if( m_view->pick_file_path(path, AppView::DIALOG_Browse))
                 {
                     open_file(path);
@@ -137,12 +137,15 @@ void Nodable::update()
 
             case EventID_FILE_SAVE_AS:
             {
-                if (!m_current_file) break;
-                std::string path;
-                if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
+                if (m_current_file != nullptr)
                 {
-                    save_file_as(path);
+                    Path path;
+                    if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
+                    {
+                        save_file_as(m_current_file, path);
+                    }
                 }
+
                 break;
             }
 
@@ -155,10 +158,10 @@ void Nodable::update()
                 }
                 else
                 {
-                    std::string path;
+                    Path path;
                     if( m_view->pick_file_path(path, AppView::DIALOG_SaveAs))
                     {
-                        save_file_as(path);
+                        save_file_as(m_current_file, path);
                     }
                 }
                 break;
@@ -418,13 +421,17 @@ void Nodable::shutdown()
     LOG_VERBOSE("ndbl::Nodable", "shutdown " OK "\n");
 }
 
-File* Nodable::open_asset_file(const std::filesystem::path& _path)
+File* Nodable::open_asset_file(const tools::Path& _path)
 {
-    std::filesystem::path absolute_path = App::asset_path(_path);
-    return open_file(absolute_path);
+    if ( _path.is_absolute() )
+        return open_file(_path);
+
+    Path path = _path;
+    App::make_absolute(path);
+    return open_file(path);
 }
 
-File* Nodable::open_file(const std::filesystem::path& _path)
+File* Nodable::open_file(const tools::Path& _path)
 {
     File* file = new File();
 
@@ -461,9 +468,9 @@ void Nodable::save_file( File* _file) const
     LOG_MESSAGE("ndbl::App", "File saved: %s\n", _file->path.c_str());
 }
 
-void Nodable::save_file_as(const std::filesystem::path& _path) const
+void Nodable::save_file_as(File* _file, const tools::Path& _path) const
 {
-    if ( !File::write(*m_current_file, _path) )
+    if ( !File::write(*_file, _path) )
     {
         LOG_ERROR("ndbl::App", "Unable to save %s (%s)\n", _path.filename().c_str(), _path.c_str());
         return;

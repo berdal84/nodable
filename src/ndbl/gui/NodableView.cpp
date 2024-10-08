@@ -3,7 +3,7 @@
 #include <utility>
 
 #include "tools/core/log.h"
-#include "tools/core/system.h"
+#include "tools/core/System.h"
 #include "tools/gui/ActionManagerView.h"
 #include "tools/gui/Config.h"
 #include "tools/gui/Texture.h"
@@ -88,7 +88,7 @@ void NodableView::init(Nodable * _app)
 
     // Load splashscreen image
     Config* cfg = get_config();
-    std::filesystem::path path = App::asset_path(cfg->ui_splashscreen_imagePath );
+    tools::Path path = App::get_absolute_asset_path(cfg->ui_splashscreen_imagePath );
     m_logo = get_texture_manager()->load(path);
 
     // Add a bunch of new actions
@@ -360,11 +360,11 @@ void NodableView::draw()
 
         if (ImGui::BeginMenu("An issue ?")) {
             if (ImGui::MenuItem("Report on Github.com")) {
-                system::open_url_async("https://github.com/berdal84/nodable/issues");
+                System::open_url_async("https://github.com/berdal84/nodable/issues");
             }
 
             if (ImGui::MenuItem("Report by email")) {
-                system::open_url_async("mail:berenger@42borgata.com");
+                System::open_url_async("mail:berenger@42borgata.com");
             }
 
             ImGui::EndMenu();
@@ -379,12 +379,12 @@ void NodableView::draw()
 
             if (ImGui::MenuItem("Browse source code"))
             {
-                system::open_url_async("https://www.github.com/berdal84/nodable");
+                System::open_url_async("https://www.github.com/berdal84/nodable");
             }
 
             if (ImGui::MenuItem("Credits"))
             {
-                system::open_url_async("https://github.com/berdal84/nodable#credits-");
+                System::open_url_async("https://github.com/berdal84/nodable#credits-");
             }
 
             ImGui::EndMenu();
@@ -1039,7 +1039,7 @@ void NodableView::toggle_fullscreen()
     m_base_view.set_fullscreen( !is_fullscreen() );
 }
 
-bool NodableView::pick_file_path(std::string& _out_path, tools::AppView::DialogType _type) const
+bool NodableView::pick_file_path(Path& _out_path, tools::AppView::DialogType _type) const
 {
     return m_base_view.pick_file_path(_out_path, _type);
 }
@@ -1049,7 +1049,7 @@ void NodableView::show_splashscreen(bool b)
     m_base_view.show_splashscreen = b;
 }
 
-void NodableView::save_screenshot(std::filesystem::path& _path) const
+void NodableView::save_screenshot(tools::Path& _path) const
 {
     m_base_view.save_screenshot(_path);
 }

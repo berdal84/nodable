@@ -34,12 +34,12 @@ namespace ndbl
 
         // Files
 
-        File*           open_asset_file(const std::filesystem::path&);
-        File*           open_file(const std::filesystem::path&);
+        File*           open_asset_file(const tools::Path&);
+        File*           open_file(const tools::Path&);
         File*           new_file();
         void            save_file(File*) const;
         void            set_current_file(File*);
-        void            save_file_as(const std::filesystem::path&) const;
+        void            save_file_as(File*, const tools::Path&) const;
         File*           add_file(File*);
         void            close_file(File*);
         File*           get_current_file() { return m_current_file; };

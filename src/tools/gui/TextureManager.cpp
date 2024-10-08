@@ -36,10 +36,10 @@ void tools::shutdown_texture_manager(TextureManager* texture_manager)
     g_texture_manager = nullptr;
 }
 
-Texture* TextureManager::load(const std::filesystem::path& path)
+Texture* TextureManager::load(const Path& path)
 {
     // Return if already exists
-    auto tex = m_register.find(path);
+    auto tex = m_register.find(path.string());
     if (tex != m_register.end() )
         return tex->second;
 
@@ -69,7 +69,7 @@ bool TextureManager::release_all()
     m_register.clear();
     return success;
 }
-Texture *TextureManager::load_png_to_gpu(const std::filesystem::path &path)
+Texture *TextureManager::load_png_to_gpu(const Path &path)
 {
     auto* texture = new Texture();
 
@@ -91,17 +91,17 @@ Texture *TextureManager::load_png_to_gpu(const std::filesystem::path &path)
         return nullptr;
     }
 
-    m_register.insert({path, texture});
+    m_register.emplace(path.string(), texture);
     LOG_MESSAGE("TextureManager", "File loaded to GPU: %s\n", path.c_str())
 
     return texture;
 }
 
-int TextureManager::load_png(const std::filesystem::path& path, Texture* texture)
+int TextureManager::load_png(const Path& path, Texture* texture)
 {
     LOG_MESSAGE("TextureManager", "Loading PNG from disk %s ...\n", path.c_str());
     std::vector<unsigned char> buffer;
-    unsigned error = lodepng::load_file(buffer, path ); //load the image file with given filename
+    unsigned error = lodepng::load_file(buffer, path.c_str() ); //load the image file with given filename
     if (error) {
         LOG_MESSAGE("TextureManager", "Error: %i %s\n", error, lodepng_error_text(error) );
         return 1;

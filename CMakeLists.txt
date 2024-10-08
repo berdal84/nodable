@@ -177,8 +177,10 @@ add_library(
     src/tools/core/reflection/variant.cpp
     src/tools/core/reflection/variant.h
     src/tools/core/string.h
-    src/tools/core/system.cpp
-    src/tools/core/system.h
+    src/tools/core/System.cpp
+    src/tools/core/System.h
+    src/tools/core/FileSystem.cpp
+    src/tools/core/FileSystem.h
     src/tools/core/types.h
     src/tools/gui/Color.h
     # libraries

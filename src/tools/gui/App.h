@@ -3,7 +3,7 @@
 #include <future>
 #include <memory>
 #include <string>
-#include <filesystem>
+#include "tools/core/FileSystem.h"
 #include <observe/event.h>
 #include "tools/core/types.h"
 #include "AppView.h"
@@ -20,7 +20,6 @@ namespace tools
      */
 	class App
     {
-        typedef std::filesystem::path fs_path; // alias
 	public:
         void           init(); // default init, an AppView and a Config will be created internally
         void           init_ex(AppView* , Config*); // extended init, allows to provide an existing AppView and/or Config.
@@ -31,9 +30,8 @@ namespace tools
         inline void    request_stop() { m_flags |= Flag_SHOULD_STOP; }
 
         static double  get_time() ;  // Get the elapsed time in seconds
-        static fs_path asset_path(const fs_path&); // get asset's absolute path (relative path will be converted)
-        static fs_path asset_path(const char*); // get asset's absolute path (relative path will be converted)
-
+        static Path&   make_absolute(Path &_path); // return an absolute asset path given a relative asset path
+        static Path    get_absolute_asset_path(const char* _relative_path); // return an absolute asset path given a relative asset path
     protected:
         typedef int Flags;
         enum Flag_

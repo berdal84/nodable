@@ -7,7 +7,7 @@
 #include <gl3w.h>
 
 #include "tools/core/log.h"
-#include "tools/core/system.h"
+#include "tools/core/System.h"
 #include "tools/core/EventManager.h"
 #include "tools/core/memory/memory.h"
 #include "tools/gui/TextureManager.h"
@@ -493,26 +493,26 @@ void AppView::end_draw()
 #endif
 }
 
-bool AppView::pick_file_path(std::string& _out_path, DialogType _dialog_type) const
+bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const
 {
-    nfdchar_t *out_path;
+    nfdchar_t *picked_path;
     nfdresult_t result;
 
     switch( _dialog_type )
     {
         case DIALOG_SaveAs:
-            result = NFD_SaveDialog(&out_path, nullptr, 0, nullptr, nullptr);
+            result = NFD_SaveDialog(&picked_path, nullptr, 0, nullptr, nullptr);
             break;
         case DIALOG_Browse:
-            result = NFD_OpenDialog(&out_path, nullptr, 0, nullptr);
+            result = NFD_OpenDialog(&picked_path, nullptr, 0, nullptr);
             break;
     }
 
     switch (result)
     {
         case NFD_OKAY:
-            _out_path = out_path;
-            NFD_FreePath(out_path);
+            _out_path = picked_path;
+            NFD_FreePath(picked_path);
             return true;
         case NFD_CANCEL:
             LOG_MESSAGE("tools::AppView", "User pressed cancel.");
@@ -593,7 +593,7 @@ int AppView::fps()
     return (int)ImGui::GetIO().Framerate;
 }
 
-void AppView::save_screenshot( std::filesystem::path path) const
+void AppView::save_screenshot( tools::Path path) const
 {
     std::vector<unsigned char> out = take_screenshot();
     LOG_MESSAGE("tools::App", "Save screenshot ...\n");

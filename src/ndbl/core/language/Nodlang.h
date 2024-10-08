@@ -6,7 +6,7 @@
 #include <exception>
 
 #include "tools/core/reflection/reflection"
-#include "tools/core/system.h"
+#include "tools/core/System.h"
 #include "tools/core/hash.h"
 
 #include "ndbl/core/VariableNode.h"

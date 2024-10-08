@@ -2,7 +2,7 @@
 
 #include "ndbl/gui/Nodable.h"
 #include "ndbl/gui/NodableView.h"
-#include "tools/core/system.h"
+#include "tools/core/System.h"
 
 #include <thread>
 
@@ -63,10 +63,10 @@ namespace testing
         void save_screenshot(ndbl::Nodable & app, const char* relative_path)
         {
             LOG_MESSAGE("Test", "Taking screenshot ...\n");
-            auto path = tools::system::get_executable_directory() / "screenshots" / relative_path;
-            if (!std::filesystem::exists(path.parent_path()))
+            auto path = tools::Path::get_executable_path().parent_path() / "screenshots" / relative_path;
+            if (!tools::Path::exists(path.parent_path()))
             {
-                create_directories(path.parent_path());
+                tools::Path::create_directories(path.parent_path());
             }
             app.get_view()->save_screenshot(path);
         }

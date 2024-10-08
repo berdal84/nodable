@@ -92,7 +92,7 @@ void CLI::update()
 
 void CLI::clear()
 {
-    system::clear_console();
+    System::clear_console();
     NodableHeadless::clear();
 }
 

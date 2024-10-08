@@ -154,7 +154,7 @@ std::string File::filename() const
 }
 
 
-bool File::write( File& file, const std::filesystem::path& path)
+bool File::write( File& file, const tools::Path& path)
 {
     if( path.empty() )
     {
@@ -177,7 +177,7 @@ bool File::write( File& file, const std::filesystem::path& path)
     return true;
 }
 
-bool File::read( File& file, const std::filesystem::path& path)
+bool File::read( File& file, const tools::Path& path)
 {
     LOG_MESSAGE("File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str())
     if(path.empty() )
@@ -186,7 +186,7 @@ bool File::read( File& file, const std::filesystem::path& path)
         return false;
     }
 
-    std::ifstream file_stream(path);
+    std::ifstream file_stream(path.c_str());
     if (!file_stream.is_open())
     {
         LOG_ERROR("File", "Unable to load \"%s\"\n", path.c_str())
