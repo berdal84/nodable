@@ -18,7 +18,7 @@ namespace tools
         Path(const std::filesystem::path& str)
         : m_path(str)
         {}
-        const char*  c_str()const;
+        const std::filesystem::path::value_type* c_str()const;
         std::string  string()const;
         bool         is_absolute() const;
         bool         is_relative() const;

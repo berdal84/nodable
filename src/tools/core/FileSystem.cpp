@@ -4,7 +4,7 @@
 
 using namespace tools;
 
-const char* Path::c_str() const
+const std::filesystem::path::value_type* Path::c_str() const
 {
     return m_path.c_str();
 }
