@@ -2,8 +2,17 @@
 Nodable Change log :
 ====================
 
-Author: Bérenger Dalle-Cort, 2017-2023
+Author: Bérenger Dalle-Cort, 2017-2024
 
+### v1.0:
+    - graph is now always abstract
+    - interpreter (build, run, debug etc) is disabled by default and is considered out of scope, but can be enabled via the Developer>Experimental menu,
+    - improved the Graph user interface to create graph more easily,
+    - implemented an optimized StateMachine to simplify code (it avoids an OOP version of it! Thanks to Rémi ;)),
+    - refactor the whole app (uses init/get/shutdown pattern for managers),
+    - fix memory leaks,
+    - targets macox12 instead of 10.5 (Github does not support it),
+    
 ### v0.9:
     - fix graph creation (ForLoopNode / WhileLoopNode)
     - add WhileLoopNode
