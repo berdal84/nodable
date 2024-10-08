@@ -53,7 +53,7 @@ void CLI::update()
     }
 
     // Priority 1: call a static function immediately
-    const type* api_type = type::get<typeof(api)>();
+    const type* api_type = type::get<PublicApi>();
     if( auto static_fct = api_type->get_static(user_input) )
     {
         try
@@ -167,7 +167,7 @@ void CLI::PublicApi::help()
 {
     std::vector<std::string> command_names;
 
-    const type* public_api_type = type::get<std::remove_pointer_t<typeof(this)>>();
+    const type* public_api_type = type::get<PublicApi>();
 
     for ( const auto& static_method_type : public_api_type->get_static_methods() )
     {
