@@ -17,4 +17,5 @@ int main(int argc, char *argv[])
         cli.shutdown();
     }
     catch_TOOLS_MAIN
+    return 0;
 }

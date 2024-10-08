@@ -18,4 +18,5 @@ int main(int argc, char *argv[])
         app.shutdown();
     }
     catch_TOOLS_MAIN
+    return 0;
 }
