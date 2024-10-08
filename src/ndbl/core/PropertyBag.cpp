@@ -101,3 +101,9 @@ size_t PropertyBag::size() const
 {
     return m_properties.size();
 }
+
+PropertyBag::~PropertyBag()
+{
+    for(Property* each_property : m_properties)
+        delete each_property;
+}

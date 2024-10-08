@@ -25,6 +25,7 @@ namespace ndbl
         typedef std::vector<Property*>::iterator       iterator;
         typedef std::vector<Property*>::const_iterator const_iterator;
 
+        ~PropertyBag();
         void             init(Node* owner) { m_owner = owner; }
         iterator         begin() { return m_properties.begin(); }
         iterator         end() { return m_properties.end(); }
