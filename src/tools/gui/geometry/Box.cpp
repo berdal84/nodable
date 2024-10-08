@@ -7,7 +7,7 @@
 
 using namespace tools;
 
-Box Box::align(
+Vec2 Box::diff(
     const Box & leader,
     const Vec2& leader_pivot,
     const Box & follower,
@@ -30,9 +30,7 @@ Box Box::align(
     ImGuiEx::DebugRect(follower.get_rect().min, follower.get_rect().max, ImColor(0,255,0, 127) );
 #endif
 
-    Box aligned_follower = follower;
-    aligned_follower.translate( delta );
-    return aligned_follower;
+    return delta;
 }
 
 Vec2 Box::get_pivot(const Vec2 &pivot) const

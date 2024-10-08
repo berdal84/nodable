@@ -101,16 +101,22 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         // If current view has a single predecessor, we follow it, except if it is a conditional node
         //
         std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_PREV);
-        if ( previous_nodes.size() == 1 && !previous_nodes[0]->get_node()->is_conditional() )
+        if ( !previous_nodes.empty() && !previous_nodes[0]->get_node()->is_conditional() )
         {
-            Physics::Constraint constraint("Position below previous", &Physics::Constraint::constrain_one_to_one);
-            constraint.leader         = {previous_nodes[0]};
+            Physics::Constraint constraint("Position below previous", &Physics::Constraint::constrain_one_to_many_as_row);
+            constraint.leader         = previous_nodes;
+            //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
             constraint.follower       = {curr_nodeview};
             constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
 
-            // left edge aligned
-            constraint.leader_pivot   = BOTTOM_LEFT;
-            constraint.follower_pivot = TOP_LEFT;
+            constraint.leader_pivot   = BOTTOM;
+            constraint.follower_pivot = TOP;
+
+            if ( constraint.leader.size() == 1)
+            {
+                constraint.leader_pivot   += LEFT;
+                constraint.follower_pivot += LEFT;
+            }
 
             // vertical gap
             constraint.gap_size       = tools::Size_MD;
@@ -125,7 +131,8 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_NEXT);
         if( node->is_conditional() && next.size() > 1 )
         {
-            Physics::Constraint constraint("Align conditional children in a row", &Physics::Constraint::constrain_one_to_many_as_a_row);
+            Physics::Constraint constraint("Align conditional children in a row",
+                                           &Physics::Constraint::constrain_many_to_one_as_a_row);
             constraint.leader         = {curr_nodeview};
             constraint.leader_pivot   = BOTTOM_LEFT;
             //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
@@ -150,7 +157,8 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         }
         if(filtered_inputs.size() > 0 )
         {
-            Physics::Constraint constraint("Align many inputs above", &Physics::Constraint::constrain_one_to_many_as_a_row);
+            Physics::Constraint constraint("Align many inputs above",
+                                           &Physics::Constraint::constrain_many_to_one_as_a_row);
 
             auto* leader = curr_nodeview;
             constraint.leader         = {leader};
@@ -203,37 +211,33 @@ void Physics::Constraint::update(float _dt)
     (this->*constrain)(_dt);
 }
 
-void Physics::Constraint::constrain_one_to_one(float _dt)
+void Physics::Constraint::constrain_one_to_many_as_row(float _dt)
 {
-    ASSERT(leader.size() == 1)
-    ASSERT(follower.size() == 1)
+    // This type of constrain is designed to make a single NodeView to follow many others
+
+    VERIFY(!leader.empty(), "No leader found!")
+    VERIFY(follower.size() == 1, "This is a one to many relationship, a single follower only is allowed")
 
     std::vector<NodeView*> clean_follower = Physics::Constraint::clean(follower);
     if( clean_follower.empty() )
         return;
 
-    const Box leader_box   = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
-    const Box old_follower_box_noflags = clean_follower[0]->get_rect_ex(SCREEN_SPACE, SlotFlag_NONE);
-    const Box old_follower_box = clean_follower[0]->get_rect_ex(SCREEN_SPACE, follower_flags);
+    const NodeView* _follower      = clean_follower[0];
+    const Box leaders_box          = NodeView::get_rect(leader, SCREEN_SPACE, leader_flags);
+    const Box follower_box         = _follower->get_rect_ex(SCREEN_SPACE, follower_flags);
 
-    // Move the current node box close to the previous, by following the align_item vector.
+    // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
+    Vec2 delta = Box::diff(leaders_box, leader_pivot , follower_box, follower_pivot );
+    delta += gap_direction * get_config()->ui_node_gap(gap_size);
 
-    Box new_follower_box = Box::align(leader_box, leader_pivot , old_follower_box_noflags, follower_pivot );
-
-    Vec2 gap = gap_direction * get_config()->ui_node_gap(gap_size);
-    new_follower_box.translate(gap);
-
-    // follower bbox with no flags and flags may differ, we need to apply an offset in that case.
-    Vec2 offset = Vec2::distance(old_follower_box.get_pivot(follower_pivot),old_follower_box_noflags.get_pivot(follower_pivot));
-    new_follower_box.translate(offset*gap_direction);
-
-    // Use the Physics component to apply a force to translate to the box
-    auto* physics_component = follower[0]->get_node()->get_component<Physics>();
+    // Apply a force to translate to the (single) follower
+    auto* physics_component = _follower->get_node()->get_component<Physics>();
     Config* cfg = get_config();
-    physics_component->add_force_to_move_to(new_follower_box.get_pos(), SCREEN_SPACE, cfg->ui_node_speed, true);
+    Vec2 desired_pos = _follower->get_pos(SCREEN_SPACE) + delta;
+    physics_component->add_force_to_move_to( desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
 }
 
-void Physics::Constraint::constrain_one_to_many_as_a_row(float _dt)
+void Physics::Constraint::constrain_many_to_one_as_a_row(float _dt)
 {
     ASSERT(leader.size() == 1)
     ASSERT(follower.size() > 0)
@@ -244,40 +248,36 @@ void Physics::Constraint::constrain_one_to_many_as_a_row(float _dt)
         return;
 
     // Form a row with each view box
-    std::vector<Box> old_box;
-    std::vector<Box> new_box;
+    std::vector<Box>  box(follower.size());
+    std::vector<Vec2> delta(follower.size());
     const Vec2 gap = get_config()->ui_node_gap(gap_size);
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        Box box         = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
-        Box box_noflags = clean_follower[i]->get_rect_ex(SCREEN_SPACE, NodeViewFlag_NONE);
-        old_box.push_back(box);
+        box[i] = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
 
+        // Determine the delta required to snap the current follower with either the leaders or the previous follower.
         if ( i == 0 )
         {
             // First box is aligned with the leader
             const Box leader_box = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
-            box = Box::align(leader_box, leader_pivot, box, follower_pivot);
-            box.translate(gap * gap_direction);
-            box.translate(box.get_pivot(follower_pivot) - box_noflags.get_pivot(follower_pivot));
+            delta[i] = Box::diff(leader_box, leader_pivot, box[i], follower_pivot);
         }
         else
         {
             // i+1 box is aligned with the i
-            box = Box::align(new_box.back(), row_direction, box, -row_direction);
-            // There is a gap between each box
-            box.translate( gap * row_direction );
+            delta[i] = Box::diff( box[i-1] , row_direction, box[i], -row_direction);
+            delta[i] -= delta[i-1]; //
         }
 
-        new_box.emplace_back(box);
+        delta[i] += gap * gap_direction; // there is always a gap
     }
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
         auto* physics_component = clean_follower[i]->get_node()->get_component<Physics>();
-        ImGuiEx::DebugLine(old_box[i].get_pos(), new_box[i].get_pos(), ImColor(0,255,0), 4.f); // green line to symbolize the desired path
-        physics_component->add_force_to_move_to(new_box[i].get_pos(), SCREEN_SPACE, cfg->ui_node_speed, true);
+        Vec2 desired_pos = clean_follower[i]->get_pos(SCREEN_SPACE) + delta[i];
+        physics_component->add_force_to_move_to(desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
     }
 }
 

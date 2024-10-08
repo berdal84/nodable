@@ -81,8 +81,8 @@ namespace tools
         static Box  transform(const Box& box, const glm::mat3& mat);
         Vec2        get_pivot(const Vec2& pivot) const;
 
-        // Return a follower box aligned on a given leader
-        static Box align(
+        // Return the delta between two Box pivots on a given axis
+        static Vec2 diff(
                 const Box&  leader,
                 const Vec2& leader_pivot,
                 const Box&  follower,
