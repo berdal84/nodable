@@ -1,9 +1,7 @@
 #include "TaskManager.h"
 #include "assertions.h"
 #include "log.h"
-#include <future>
-#include <thread>
-#include <vector>
+#include <thread> // for std::this_thread::sleep_for
 
 using std::chrono::system_clock;
 using namespace tools;
