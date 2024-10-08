@@ -12,6 +12,16 @@
 
 namespace ndbl
 {
+
+    typedef int VariableFlags;
+    enum VariableFlags_
+    {
+        VariableFlag_NONE = 0,
+        VariableFlag_DECLARED    = 1 << 0,
+        VariableFlag_INITIALIZED = 1 << 1,
+        VariableFlag_ALL         = ~VariableFlag_NONE
+    };
+
 	/**
 		@brief VariableNode is a Node having a single Property and is identifiable by a name.
 		The wrapped Property's name is Node::VALUE_MEMBER_NAME and can be linked to other properties.
@@ -19,44 +29,36 @@ namespace ndbl
 	class VariableNode : public Node
     {
 	public:
-		VariableNode();
-        VariableNode(VariableNode&&) = default;
-		explicit VariableNode(const tools::type *, const char* identifier);
-		~VariableNode() override = default;
-        VariableNode& operator=(VariableNode&&) = default;
+		~VariableNode() override {};
 
-        void             init() override;
-		bool             is_declared()const { return m_is_declared; }
-        Property*        property();
-        const Property*  property()const;
-        PoolID<Scope>    get_scope();
-        void             set_declared(bool b = true) { m_is_declared = b; }
-        void             reset_scope(Scope* _scope = nullptr);
-        const tools::type*  type() const;
-        tools::variant*     value();
-        tools::variant& operator * () { return *property()->value(); }
-        tools::variant* operator -> () { return property()->value(); }
-        const tools::variant& operator * () const { return *property()->value(); }
-        const tools::variant* operator -> () const { return property()->value(); }
-
-        Slot       &input_slot();
-        const Slot &input_slot() const;
-        Slot       &output_slot();
-        const Slot &output_slot() const;
-
-    public:
-        Token  type_token;
-        Token  assignment_operator_token;
-        Token  identifier_token;
+        void               init(const tools::type* _type, const char* _identifier);
+        bool               has_vflags(VariableFlags flags)const { return (m_vflags & flags) == flags; };
+        void               set_vflags(VariableFlags flags) { m_vflags |= flags; }
+        void               clear_vflags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
+        Property*          property();
+        const Property*    get_value() const;
+        Scope*             get_scope();
+        void               reset_scope(Scope* _scope = nullptr);
+        Slot&              input_slot(); // input slot for variable initialisation
+        const Slot&        input_slot() const; // input slot for variable initialisation
+        Slot&              output_slot(); // output slot to reference this variable
+        const Slot&        output_slot() const; // output slot to reference this variable
+        const tools::type* get_type() const { return m_identifier->get_type(); }
+        const Token&       get_type_token() const { return m_type_token; }
+        std::string        get_identifier() const { return get_identifier_token().word_to_string(); }
+        const Token&       get_identifier_token() const { return m_identifier->get_token(); }
+        Token&             get_identifier_token() { return m_identifier->get_token(); }
+        const Token&       get_operator_token() const { return m_operator_token; }
+        void               set_type_token(const Token& tok) { m_type_token = tok; }
+        void               set_identifier_token(const Token& tok) { m_identifier->set_token(tok); }
+        void               set_operator_token(const Token& tok) { m_operator_token = tok; }
     private:
-        ID<Property>            m_value_property_id;
-        bool                    m_is_declared;
-        const tools::type*         m_type;
-        PoolID<Node>            m_scope;
+        Token              m_type_token       = Token::s_null; // [int] var  =
+        Property*          m_identifier       = nullptr;       //  int [var] =
+        Token              m_operator_token   = Token::s_null; //  int  var [=]
+        VariableFlags      m_vflags = VariableFlag_NONE;
+        Node*              m_scope  = nullptr;
 
 		REFLECT_DERIVED_CLASS()
     };
 }
-
-static_assert(std::is_move_assignable_v<ndbl::VariableNode>, "Should be move assignable");
-static_assert(std::is_move_constructible_v<ndbl::VariableNode>, "Should be move constructible");

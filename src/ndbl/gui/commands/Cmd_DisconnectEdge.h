@@ -9,8 +9,9 @@ namespace ndbl
     class Cmd_DisconnectEdge : public AbstractCommand
     {
     public:
-        Cmd_DisconnectEdge(DirectedEdge _edge)
+        explicit Cmd_DisconnectEdge(DirectedEdge _edge, Graph* _graph)
         : m_edge(_edge)
+        , m_graph(_graph)
         {
             char str[200];
             snprintf(str
@@ -18,27 +19,25 @@ namespace ndbl
                     , "DisconnectEdge\n"
                       " - tail: \"%s\"\n"
                       " - head: \"%s\"\n"
-                    , _edge.tail.node->name.c_str()
-                    , _edge.head.node->name.c_str() );
+                    , _edge.tail->get_node()->get_name().c_str()
+                    , _edge.head->get_node()->get_name().c_str() );
             m_description.append(str);
         }
 
         ~Cmd_DisconnectEdge() override = default;
 
         void execute() override
-        { graph()->disconnect(m_edge, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
+        { m_graph->disconnect(m_edge, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         void undo() override
-        { graph()->connect( *m_edge.tail, *m_edge.head, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
+        { m_graph->connect( *m_edge.tail, *m_edge.head, ConnectFlag_ALLOW_SIDE_EFFECTS ); }
 
         const char* get_description() const override
         { return m_description.c_str(); }
 
     private:
-        Graph* graph()
-        { return m_edge.head.node->parent_graph; }
-
         std::string  m_description;
         DirectedEdge m_edge;
+        Graph*       m_graph;
     };
 }

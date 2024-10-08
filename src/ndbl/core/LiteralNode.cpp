@@ -1,30 +1,31 @@
 #include "LiteralNode.h"
+#include "Slot.h"
 
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<LiteralNode>("LiteralNode").extends<Node>();
+    StaticInitializer<LiteralNode>("LiteralNode").extends<Node>();
 }
 
-LiteralNode::LiteralNode(const type* _type)
-: Node()
-, m_type( _type )
+void LiteralNode::init(const type* _type, const std::string& _name)
 {
+    Node::init(NodeType_LITERAL, _name);
+    m_type = _type;
+    m_value_property = m_props.add(m_type, VALUE_PROPERTY);
+    add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_value_property);
+    add_slot(SlotFlag::SlotFlag_OUTPUT, 1, m_this_as_property);
+
+    add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
 }
 
-void LiteralNode::init()
+Slot& LiteralNode::output_slot()
 {
-    Node::init();
-
-    m_value_property_id = props.add(
-            m_type,
-            VALUE_PROPERTY,
-            PropertyFlag_VISIBLE | PropertyFlag_INITIALIZE | PropertyFlag_DEFINE | PropertyFlag_RESET_VALUE);
-    add_slot( SlotFlag::SlotFlag_OUTPUT, 1, m_value_property_id);
-    add_slot( SlotFlag::SlotFlag_OUTPUT, 1, m_this_property_id);
-
-    add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY);
+    return const_cast<Slot&>( const_cast<const LiteralNode*>(this)->output_slot() );
 }
 
+const Slot& LiteralNode::output_slot() const
+{
+    return *find_slot_by_property(m_value_property, SlotFlag_OUTPUT );
+}

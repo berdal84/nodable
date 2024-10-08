@@ -1,11 +1,10 @@
 #pragma once
 #include <utility>
 
-#include "tools/core/memory/Pool.h"
-#include "tools/gui/EventManager.h"
+#include "tools/core/memory/memory.h"
+#include "tools/core/EventManager.h"
 
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/SlotRef.h"
 
 #include "Event.h"
 #include "FrameMode.h"
@@ -15,9 +14,8 @@ namespace ndbl
 {
     // forward declaration
     class NodeView;
-    using tools::PoolID;
     using tools::Vec2;
-    using tools::func_type;
+    using tools::FuncType;
 
     enum EventID_ : tools::EventID
     {
@@ -33,6 +31,8 @@ namespace ndbl
         EventID_SLOT_DROPPED,
         EventID_SLOT_DISCONNECTED,
         EventID_SELECTION_CHANGE,
+        EventID_DELETE_EDGE,
+        EventID_RESET_GRAPH,
     };
 
     using Event_ToggleIsolationFlags = tools::Event<EventID_TOGGLE_ISOLATION_FLAGS>;
@@ -49,9 +49,9 @@ namespace ndbl
     using Event_FrameSelection = tools::Event<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
     struct EventPayload_SlotPair {
-        SlotRef first;
-        SlotRef second;
-        EventPayload_SlotPair(SlotRef&& first = {}, SlotRef&& second = {})
+        Slot* first;
+        Slot* second;
+        EventPayload_SlotPair(Slot* first = {}, Slot* second = {})
         : first(first)
         , second(second)
         {}
@@ -61,8 +61,9 @@ namespace ndbl
 
     struct EventPayload_Node
     {
-        PoolID<Node> node;
+        Node* node;
     };
+    using Event_DeleteEdge  = tools::Event<EventID_DELETE_EDGE, EventPayload_SlotPair>;
     using Event_DeleteNode  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;
     using Event_ArrangeNode = tools::Event<EventID_ARRANGE_NODE, EventPayload_Node>;
     using Event_SelectNext  = tools::Event<EventID_SELECT_NEXT, EventPayload_Node>;
@@ -80,25 +81,27 @@ namespace ndbl
 
     struct EventPayload_NodeViewSelectionChange
     {
-        PoolID<NodeView> new_selection;
-        PoolID<NodeView> old_selection;
+        std::vector<NodeView*> new_selection;
+        std::vector<NodeView*> old_selection;
     };
     using Event_SelectionChange = tools::Event<EventID_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
 
     struct EventPayload_CreateNode
     {
-        NodeType             node_type;                // The note type to create
-        const func_type*     node_signature;           // The signature of the node that must be created
-        SlotView*            dragged_slot   = nullptr; // The slot view being dragged.
-        Graph*               graph          = nullptr; // The graph to create the node into
-        Vec2                 node_view_local_pos;      // The desired position for the new node view
+        CreateNodeType       node_type;          // The note type to create
+        const FuncType*      node_signature;     // The signature of the node that must be created
+        SlotView*            active_slotview;    // The slot view being dragged.
+        Graph*               graph;              // The graph to create the node into
+        Vec2                 desired_screen_pos; // The desired position for the new node view
 
-        explicit EventPayload_CreateNode(NodeType node_type )
+        explicit EventPayload_CreateNode(CreateNodeType node_type )
         : node_type(node_type)
         , node_signature(nullptr)
+        , active_slotview(nullptr)
+        , graph(nullptr)
         {}
 
-        EventPayload_CreateNode(NodeType node_type, const tools::func_type* signature )
+        EventPayload_CreateNode(CreateNodeType node_type, const tools::FuncType* signature )
         : node_type(node_type)
         , node_signature(signature)
         {}

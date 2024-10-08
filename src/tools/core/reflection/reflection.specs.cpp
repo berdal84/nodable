@@ -58,27 +58,12 @@ TEST(Reflection, is_ptr)
     EXPECT_TRUE(type::is_ptr(type::get<bool*>()));
 }
 
-TEST(Reflection, variant_and_id)
-{
-    // prepare
-    struct A {};
-    PoolID<A> id{42};
-    variant value;
-
-    // act
-    value.set( id );
-
-    // check
-    EXPECT_TRUE( value.get_type()->equals( type::get<PoolID<A>>() ) );
-    EXPECT_EQ( id, (PoolID<A>)value );
-}
-
 TEST(Reflection, is_child_of)
 {
     class Base {};
     class Derived: public Base {};
 
-    registration::push_class<Derived>("Derived").extends<Base>();
+    StaticInitializer<Derived>("Derived").extends<Base>();
 
     EXPECT_TRUE(type::get<Derived>()->is_child_of<Base>());
     EXPECT_FALSE(type::get<Base>()->is_child_of<Derived>());

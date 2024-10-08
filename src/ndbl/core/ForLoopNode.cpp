@@ -5,43 +5,47 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<ForLoopNode>("ForLoopNode")
-        .extends<Node>()
-        .extends<IConditional>();
+    StaticInitializer<ForLoopNode>("ForLoopNode").extends<Node>();
 }
 
-void ForLoopNode::init()
+void ForLoopNode::init(const std::string& _name)
 {
-    // add initialization property and slot
-    auto init_id = add_prop<PoolID<Node>>(INITIALIZATION_PROPERTY, PropertyFlag_VISIBLE );
-    m_initialization_slot = add_slot( SlotFlag_INPUT, 1, init_id);
+    Node::init(NodeType_BLOCK_FOR_LOOP, _name);
 
-    // indirectly add condition property and slot
-    TConditionalNode::init();
+    // add conditions (properties and slots)
+    m_wrapped_conditional.init(this);
+
+    // add initialization property and slot
+    auto* init_prop = add_prop<Node*>(INITIALIZATION_PROPERTY );
+    m_initialization_slot = add_slot( SlotFlag_INPUT, 1, init_prop);
 
     // add iteration property and slot
-    auto iter_id = add_prop<PoolID<Node>>(ITERATION_PROPERTY, PropertyFlag_VISIBLE );
-    m_iteration_slot = add_slot( SlotFlag_INPUT, 1, iter_id);
+    auto iter_prop = add_prop<Node*>(ITERATION_PROPERTY );
+    m_iteration_slot = add_slot( SlotFlag_INPUT, 1, iter_prop);
 }
 
 Slot& ForLoopNode::iteration_slot()
 {
-    return get_slot_at( m_iteration_slot );
+    ASSERT(m_iteration_slot)
+    return *m_iteration_slot;
 }
 
 Slot& ForLoopNode::initialization_slot()
 {
-    return get_slot_at( m_initialization_slot );
+    ASSERT(m_initialization_slot)
+    return *m_initialization_slot;
 }
 
 const Slot& ForLoopNode::iteration_slot() const
 {
-    return get_slot_at( m_iteration_slot );
+    ASSERT(m_iteration_slot)
+    return *m_iteration_slot;
 }
 
 const Slot& ForLoopNode::initialization_slot() const
 {
-    return get_slot_at( m_initialization_slot );
+    ASSERT(m_initialization_slot)
+    return *m_initialization_slot;
 }

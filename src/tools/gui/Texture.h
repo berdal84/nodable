@@ -2,7 +2,7 @@
 
 #include "gl3w/GL/gl3w.h"
 
-#include "tools/core/geometry/Vec2.h"
+#include "tools/gui/geometry/Vec2.h"
 #include "tools/core/types.h"
 
 namespace tools

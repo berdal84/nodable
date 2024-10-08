@@ -46,16 +46,17 @@ public:
 
     void SetUp(const ::benchmark::State& state)
     {
-        language = &ndbl::Nodlang::get_instance();
-        factory  = new NodeFactory();
+        language = init_language();;
+        factory  = init_node_factory();
         graph    = new Graph(factory);
         log::set_verbosity(log::Verbosity_Error);
     }
 
     void TearDown(const ::benchmark::State& state)
     {
-        delete factory;
         delete graph;
+        shutdown_node_factory(nullptr);
+        shutdown_language(nullptr);
     }
 
     inline std::string get_random_double_as_string()
@@ -119,7 +120,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, tokenize__some_code_to_graph)(benchmark::Stat
 
     for (auto _ : state)
     {
-        EXPECT(language->tokenize(code), "parse failed");
+        VERIFY(language->tokenize(code), "parse failed");
     }
 }
 

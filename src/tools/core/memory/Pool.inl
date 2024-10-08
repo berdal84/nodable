@@ -1,44 +1,47 @@
 #pragma once
+#ifdef TOOLS_POOL_ENABLE
+#include "Pool.h"
+#include "PoolManager.h"
 
 namespace tools
 {
     //////////////////////////// PoolID ////////////////////////////////////////////
 
     template<typename T>
-    inline PoolID<T>::PoolID(u64_t _id)
-        : id(_id)
+    constexpr PoolID<T>::PoolID(u64_t _id)
+        : m_id(_id)
     {}
 
     template<typename T>
-    inline PoolID<T>::PoolID(const ID<T>& _id)
-        : id(_id)
+    constexpr PoolID<T>::PoolID(const ID<T>& _id)
+        : m_id(_id)
     {}
 
     template<typename T>
     inline void PoolID<T>::reset()
-    { id.reset(); }
+    { m_id.reset(); }
 
     template<typename T>
     inline PoolID<T>::operator bool () const
     {
-        return id != ID64<T>{};
+        return *this != null;
     }
 
     template<typename T>
     inline PoolID<T>::operator u64_t () const
-    { return (u64_t)id; }
+    { return (u64_t)m_id; }
 
     template<typename T>
     inline PoolID<T>& PoolID<T>::operator=(const PoolID<T> other)
-    { id = other.id; return *this; }
+    { m_id = other.m_id; return *this; }
 
     template<typename T>
     inline bool PoolID<T>::operator==(const PoolID<T>& other) const
-    { return id == other.id; }
+    { return m_id == other.m_id; }
 
     template<typename T>
     inline bool PoolID<T>::operator!=(const PoolID<T>& other) const
-    { return id != other.id; }
+    { return m_id != other.m_id; }
 
     template<typename T>
     inline T* PoolID<T>::operator -> ()
@@ -58,11 +61,8 @@ namespace tools
     template<typename T>
     inline T& PoolID<T>::operator * () const
     {
-        ASSERT(*this) return *get(); }
-
-    template<typename T>
-    PoolID<T> PoolID<T>::null{};
-
+        ASSERT(*this) return *get();
+    }
 
     ////////////////////////// IPoolVector /////////////////////////////////////////////////////
 
@@ -99,10 +99,9 @@ namespace tools
 
     ////////////////////////// Pool ///////////////////////////////////////////////////////////
 
-    inline Pool::Pool(size_t _capacity, bool _reuse_ids)
-        : m_initial_capacity( _capacity )
-        , m_reuse_ids(_reuse_ids)
-        , m_first_free_id( invalid_id<u64_t> )
+    inline Pool::Pool( const Config& config )
+        : m_config( config )
+        , m_first_free_id( 1 ) // Zero is reserved. ?>{} == 0 == nullptr
         , m_pool_vector_by_type()
         , m_record_by_id()
     {
@@ -114,28 +113,6 @@ namespace tools
         {
             delete pool_vector;
         }
-    }
-
-    inline Pool* Pool::init(size_t _capacity, bool _reuse_ids)
-    {
-        EXPECT( s_current_pool == nullptr, "Should initialize Pool once" )
-        s_current_pool = new Pool( _capacity, _reuse_ids);
-        return s_current_pool;
-    }
-
-    inline void Pool::shutdown()
-    {
-        EXPECT(s_current_pool != nullptr, "No current pool. Did you called shutdown more than once?")
-        delete s_current_pool;
-        s_current_pool = nullptr;
-    }
-
-    inline Pool* Pool::get_pool()
-    {
-#ifdef TOOLS_DEBUG
-        EXPECT(s_current_pool != nullptr, "No pool. Did you called Pool::init() ?")
-#endif
-        return s_current_pool;
     }
 
     template<typename T>
@@ -157,39 +134,36 @@ namespace tools
     template<typename T>
     inline T* Pool::get(PoolID<T> _id)
     {
-#if TOOLS_NO_POOL
-        return (T*)(u64_t)_id;
-#else
         return get<T>( (u64_t)_id );
-#endif
     }
 
     inline u64_t Pool::generate_id()
     {
-        if( m_reuse_ids && m_first_free_id != invalid_id<u64_t> )
+        if( m_config.reuse_ids && m_first_free_id != 0)
         {
             u64_t id = m_first_free_id;
             m_first_free_id = m_record_by_id[id].next_id; // update linked-list
             return id;
         }
-        ASSERT( m_record_by_id.size() != invalid_id<u64_t> )
+        ASSERT( m_record_by_id.size() != IPoolVector::invalid_index )
         return (u64_t)m_record_by_id.size();
     }
 
     template<typename Type>
     inline Type* PoolID<Type>::get() const // Return a pointer to the data from the Pool having an id == this->id
     {
-#ifdef TOOLS_NO_POOL
-        return (Type*)(u64_t)id;
-#else
-        if( id ) return Pool::get_pool()->get<Type>( id.m_value );
-        return nullptr;
-#endif
+        if( *this == null )
+            return nullptr;
+
+        Pool* pool = get_pool_manager()->get_pool();
+        ASSERT(pool!=nullptr);
+        return pool->get<Type>( m_id.m_value );
     }
 
     template<typename T>
     inline std::vector<T*> Pool::get(const std::vector<PoolID<T>>& ids)
     {
+        // TODO: we should implement a custom PoolVector<T> instead.
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         std::vector<T*> result(ids.size()); // TODO: remove allocation? Add std::vector<T*>& _out ?
         for(size_t i = 0; i < ids.size(); ++i )
@@ -202,6 +176,8 @@ namespace tools
     template<typename T>
     inline void Pool::get(std::vector<T*>& _out, const std::vector<PoolID<T>>& ids)
     {
+        // TODO: we should implement a custom PoolVector<T> instead.
+
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         ASSERT( ids.size() <= _out.size() );
         for(size_t i = 0; i < ids.size(); ++i )
@@ -217,46 +193,33 @@ namespace tools
     template<typename T, typename ...Args>
     inline PoolID<T> Pool::create(Args... args)
     {
-#ifdef TOOLS_NO_POOL
-        T* instance = new T(args...);
-        PoolID<T> id{(u64_t)instance};
-        instance->poolid( id );
-        return id;
-#else
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         auto*  vec   = find_or_init_pool_vector<T>();
         size_t index = vec->size();
         T*     data  = &vec->template emplace_back<T>(args...);
         PoolID<T> id = make_record(data, vec, index );
         return id;
-#endif
     }
 
     template<typename T>
     inline PoolID<T> Pool::create()
     {
-#ifdef TOOLS_NO_POOL
-        T* instance = new T();
-        PoolID<T> id{(u64_t)instance};
-        instance->poolid( id );
-        return id;
-#else
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         IPoolVector* pool_vector = find_or_init_pool_vector<T>();
         T* data = &pool_vector->template emplace_back<T>();
         PoolID<T> id = make_record(data, pool_vector, pool_vector->size()-1 );
         return id;
-#endif
     }
 
     template<typename T>
     inline IPoolVector* Pool::init_for()
     {
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
-        auto type_id = std::type_index(typeid(T));
-        ASSERT( m_pool_vector_by_type.find(type_id) == m_pool_vector_by_type.end() );
-        IPoolVector* new_pool_vector = new TPoolVector<T>( m_initial_capacity );
-        m_pool_vector_by_type.emplace(type_id, new_pool_vector );
+        LOG_VERBOSE("Pool", "init_for<%s>() ...\n", tools::type::get<T>()->get_name() );
+        auto id = std::type_index(typeid(T));
+        ASSERT( m_pool_vector_by_type.find(id) == m_pool_vector_by_type.end() );
+        IPoolVector* new_pool_vector = new TPoolVector<T>( m_config.reserved_size );
+        m_pool_vector_by_type.emplace(id, new_pool_vector );
         return new_pool_vector;
     }
 
@@ -271,9 +234,9 @@ namespace tools
     inline IPoolVector * Pool::find_or_init_pool_vector()
     {
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
-        auto type_id = std::type_index(typeid(T));
+        auto id = std::type_index(typeid(T));
         // TODO: use operator[] instead of find() and force user to call init_for<T>() manually
-        auto it = m_pool_vector_by_type.find( type_id );
+        auto it = m_pool_vector_by_type.find( id );
         if ( it == m_pool_vector_by_type.end() )
         {
             LOG_VERBOSE("Pool", "No vector found for '%s'\n", tools::type::get<T>()->get_name() );
@@ -286,21 +249,21 @@ namespace tools
     template<typename T>
     inline PoolID<T> Pool::make_record(T* data, IPoolVector * vec, size_t pos )
     {
-        u32_t next_id = generate_id();
-        ASSERT(next_id < invalid_id<u32_t>) // Last id is reserved for "null" or "invalid"
+        u64_t next_id = generate_id();
+        ASSERT(next_id < IPoolVector::invalid_index) // Last id is reserved for "null" or "invalid"
         PoolID<T> poolid{next_id};
         data->poolid(poolid);
         bool is_new_id = next_id == m_record_by_id.size();
         if( is_new_id )
         {
-            m_record_by_id.push_back({vec, pos, invalid_id<u32_t>});
+            m_record_by_id.push_back({vec, pos, IPoolVector::invalid_index});
         }
         else
         {
             // Otherwise, reuse the Record
             m_record_by_id[next_id].pos = pos;
             m_record_by_id[next_id].vector = vec; // type can change, so vector can.
-            m_record_by_id[next_id].next_id = invalid_id<u32_t>;
+            m_record_by_id[next_id].next_id = IPoolVector::invalid_index;
         }
         return poolid;
     }
@@ -308,9 +271,7 @@ namespace tools
     template<typename T>
     inline void Pool::destroy(PoolID<T> _id )
     {
-#ifdef TOOLS_NO_POOL
-        delete _id.get();
-#else
+        ASSERT(_id != PoolID<T>::null_v);
         STATIC_ASSERT__IS_POOL_REGISTRABLE(T)
         Record& record_to_delete = m_record_by_id[(u64_t)_id];
         size_t  last_pos         = record_to_delete.vector->size() - 1;
@@ -328,15 +289,14 @@ namespace tools
         record_to_delete.vector->pop_back();
         record_to_delete.vector = nullptr;
         // But we keep the record in memory to reuse poolid for a new instance
-        record_to_delete.pos = invalid_id<u32_t>;
+        record_to_delete.pos = INVALID_VEC_POS;
 
-        if( m_reuse_ids )
+        if( m_config.reuse_ids )
         {
             // Update the "free ids" linked-list
             record_to_delete.next_id = m_first_free_id;
             m_first_free_id = (u64_t)_id;
         }
-#endif
     }
 
     template<typename ContainerT>
@@ -348,3 +308,4 @@ namespace tools
         }
     }
 } // namespace tools
+#endif // TOOLS_POOL_ENABLE

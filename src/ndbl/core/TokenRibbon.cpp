@@ -17,44 +17,63 @@ Token & TokenRibbon::push(Token &_token)
 
 std::string TokenRibbon::to_string()const
 {
-    std::string out_buffer;
+    std::string out;
     size_t buffer_size = 0;
 
     // get the total buffer sizes (but won't be exact, some token are serialized dynamically)
     for (const Token& each_token : m_tokens)
-    {
-        buffer_size += each_token.m_buffer_size;
-    }
-    out_buffer.reserve(buffer_size);
+        buffer_size += each_token.m_string_length;
 
-    out_buffer.append("[<begin>]\n");
+    out.reserve(buffer_size);
+    out.append("[<TokenRibbon start>]\n");
+
     for (const Token& each_token : m_tokens)
     {
+        tools::string256 line;
         size_t index = each_token.m_index;
 
         // Set a color to identify tokens that are inside current transaction
         if (!m_transaction.empty() && index >= m_transaction.top() && index < m_cursor )
         {
-            out_buffer.append(YELLOW);
+            line.append(YELLOW);
         }
 
-        if (index == m_cursor ) out_buffer.append(BOLDGREEN);
-        out_buffer.append("[\"");
-        if (each_token.has_buffer()) out_buffer.append(each_token.buffer(), each_token.prefix_size());
-        out_buffer.append("\", \"");
-        if (each_token.has_buffer()) out_buffer.append(each_token.word(), each_token.word_size());
-        out_buffer.append("\", \"");
-        if (each_token.has_buffer()) out_buffer.append(each_token.suffix(), each_token.suffix_size());
-        out_buffer.append("\"]");
-        if (index == m_cursor )    out_buffer.append(RESET);
-        out_buffer.push_back('\n');
+        if (index == m_cursor )
+            line.append(BOLDGREEN);
+
+        line.append_fmt("[%4llu]", index);
+
+        line.append("[\"");
+
+        if (each_token.has_buffer())
+            line.append(each_token.buffer(), each_token.prefix_size());
+
+        line.append("\", \"");
+
+        if (each_token.has_buffer())
+            line.append(each_token.word(), each_token.word_size());
+
+        line.append("\", \"");
+
+        if (each_token.has_buffer())
+            line.append(each_token.suffix(), each_token.suffix_size());
+
+        line.append("\"]");
+
+        if (index == m_cursor )
+            line.append(RESET);
+
+        line.push_back('\n');
+
+        out.append(line.c_str() );
     }
 
-    if (m_tokens.size() == m_cursor ) out_buffer.append(GREEN);
-    out_buffer.append("[<eol>]");
-    out_buffer.append(RESET);
+    if (m_tokens.size() == m_cursor )
+        out.append(GREEN);
+    out.append("[<TokenRibbon end>]");
+    out.append(RESET"\n");
 
-    return out_buffer;
+    return out;
 }
 
 Token TokenRibbon::eat_if(Token_t expectedType)
@@ -95,10 +114,10 @@ void TokenRibbon::clear()
 {
     m_tokens.clear();
     m_prefix.m_type             = m_suffix.m_type             = Token_t::ignore;
-    m_prefix.m_buffer_start_pos = m_suffix.m_buffer_start_pos = 0;
-    m_prefix.m_buffer_size      = m_suffix.m_buffer_size      = 0;
+    m_prefix.m_string_start_pos = m_suffix.m_string_start_pos = 0;
+    m_prefix.m_string_length      = m_suffix.m_string_length      = 0;
     m_prefix.m_word_start_pos   = m_suffix.m_word_start_pos   = 0;
-    m_prefix.m_word_size        = m_suffix.m_word_size        = 0;
+    m_prefix.m_word_length        = m_suffix.m_word_length        = 0;
     while(!m_transaction.empty())
     {
         m_transaction.pop();

@@ -3,70 +3,47 @@
 #include <future>
 #include <memory>
 #include <string>
-#include <filesystem>
-
+#include "tools/core/FileSystem.h"
 #include <observe/event.h>
-
 #include "tools/core/types.h"
-
-#include "FontManager.h"
 #include "AppView.h"
-#include "TextureManager.h"
-#include "EventManager.h"
-#include "ActionManager.h"
 
 namespace tools
 {
+    class PoolManager;
+    struct TaskManager;
+    struct Config;
+
     /*
-     * Application Framework
-     * See /project/framework/example for usage
+     * Application class
+     * Written to be wrapped. See /src/tools/gui-example for usage.
      */
 	class App
     {
 	public:
-        App(AppView*);
-        App(const App &) = delete;
-        ~App();
+        void           init(); // default init, an AppView and a Config will be created internally
+        void           init_ex(AppView* , Config*); // extended init, allows to provide an existing AppView and/or Config.
+        void           shutdown();
+        void           update();
+        void           draw(); // Consider overriding AppView::draw instead of App::draw
+        inline bool    should_stop() const { return m_flags & Flag_SHOULD_STOP; }
+        inline void    request_stop() { m_flags |= Flag_SHOULD_STOP; }
 
-        TextureManager   texture_manager;       // Manages Texture resources
-        FontManager      font_manager;          // Manages Font resources
-        EventManager     event_manager;         // Manages Events and BindedEvents (shortcuts/button triggered)
-        ActionManager    action_manager;        // Manages Events and BindedEvents (shortcuts/button triggered)
-        bool             should_stop;           // Set this field true to tell the application to stop its main loop the next frame
-
+        static double  get_time() ;  // Get the elapsed time in seconds
+        static Path&   make_absolute(Path &_path); // return an absolute asset path given a relative asset path
+        static Path    get_absolute_asset_path(const char* _relative_path); // return an absolute asset path given a relative asset path
     protected:
-        AppView*         m_view;                 // non-owned ptr
-
-        // virtual methods user can override
-
-        virtual void before_init() {};
-        virtual bool on_init() = 0;
-        virtual bool on_shutdown() = 0;
-        virtual void on_update() {};
-        virtual void on_draw() {};
-
-    public:
-        int                main(int argc = 0, char *argv[] = nullptr); // Run the main loop
-        bool               init();     // Initialize the application
-        bool               shutdown(); // Shutdown the application
-        void               update();   // Update the application
-        void               draw();     // Draw the application's view
-        double             elapsed_time() const;  // Get the elapsed time in seconds
-        void               handle_events();
-        bool               is_fullscreen() const;
-        void               set_fullscreen(bool b);
-        void               save_screenshot(const char*); // Save current view as PNG file to a given path (relative or absolute)
-        void               show_splashscreen(bool b);
-        static int         fps();      // get the current frame per second (un-smoothed)
-        static std::filesystem::path asset_path(const std::filesystem::path&); // get asset's absolute path (relative path will be converted)
-        static std::filesystem::path asset_path(const char*);            // get asset's absolute path (relative path will be converted)
-    private:
-        const std::chrono::time_point<std::chrono::system_clock>
-                        m_start_time = std::chrono::system_clock::now();
-        SDL_GLContext   m_sdl_gl_context;
-        SDL_Window*     m_sdl_window;
-
-        static App *     s_instance;
-
+        typedef int Flags;
+        enum Flag_
+        {
+            Flag_NONE               = 0,
+            Flag_OWNS_CONFIG_MEMORY = 1 << 0, // Since some data (view and config) might be owned or not, those flags are there to keep track of it.
+            Flag_OWNS_VIEW_MEMORY   = 1 << 1, // ... same ...
+            Flag_SHOULD_STOP        = 1 << 2  // when set, app will stop next frame.
+        };
+        Flags           m_flags           = Flag_NONE;
+        Config*         m_config          = nullptr; // owned or not depending on m_flags
+        AppView*        m_view            = nullptr; // owned or not depending on m_flags
+        TaskManager*    m_task_manager    = nullptr;
     };
 }

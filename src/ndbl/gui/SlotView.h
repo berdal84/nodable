@@ -7,53 +7,49 @@
 
 #include "ndbl/core/Slot.h"
 #include "types.h"
+#include "tools/gui/geometry/Vec2.h"
+#include "tools/gui/View.h"
 
 
 namespace ndbl
 {
-    enum Side
+    class NodeView;
+
+    enum ShapeType
     {
-        Side_TOP = 0,
-        Side_BOTTOM,
-        Side_LEFT,
-        Side_RIGHT,
-        Side_COUNT
+        ShapeType_CIRCLE,
+        ShapeType_RECTANGLE
     };
 
-    class SlotView
+    class SlotView : public tools::View
     {
     public:
-        SlotView( Slot& _slot, tools::Vec2 _alignment );
+        SlotView(
+            Slot* slot,
+            const tools::Vec2& align,
+            ShapeType shape,
+            size_t index
+            );
 
+        bool                  draw() override;
         Property*             get_property()const;
-        const tools::type*       get_property_type()const;
+        const tools::type*    get_property_type()const;
+        tools::string64       compute_tooltip() const;
+        Node*                 get_node()const;
         bool                  has_node_connected() const;
-        tools::Vec2              alignment() const;
-        Slot&                 slot()const;
-        PoolID<Node>          get_node()const;
-        tools::Vec2              position()const;
-        tools::Rect              get_rect()const;
-        PoolID<Node>          adjacent_node() const;
+        Slot&                 get_slot()const;
+        const tools::Vec2&    get_align() const;
+        tools::Vec2           get_normal() const;
+        Node*                 adjacent_node() const;
         bool                  is_this() const;
         bool                  allows(SlotFlag) const;
-        static SlotView*      get_dragged() { return s_dragged; }
-        static SlotView*      get_focused() { return s_dragged; }
-        static SlotView*      get_hovered() { return s_hovered; }
-        static bool           is_dragging() { return s_dragged; }
-        static void           drop_behavior(bool& require_new_node, bool _enable_edition);
-        static void           reset_dragged(SlotView * slot = nullptr) { s_dragged = slot; }
-        static void           reset_focused(SlotView * slot = nullptr) { s_focused = slot; }
-        static void           reset_hovered(SlotView * slot = nullptr) { s_hovered = slot; }
-        static void           behavior(SlotView&, bool _readonly);
-        static void           draw_slot_circle( ImDrawList* _draw_list, SlotView& _view, tools::Vec2 _position, bool _readonly );
-        static void           draw_slot_rectangle(ImDrawList* _draw_list, SlotView& _view, tools::Rect _rect, bool _readonly);
+        size_t                get_index() const;
+        ShapeType             get_shape() const;
 
     private:
-        Slot&                 m_slot;
-        tools::Vec2 m_alignment;
-        static SlotView*      s_focused;
-        static SlotView*      s_dragged;
-        static SlotView*      s_hovered;
-        static std::string get_tooltip( SlotView &view );
+        size_t                m_index;
+        ShapeType             m_shape;
+        Slot*                 m_slot;
+        tools::Vec2           m_align;
     };
 }

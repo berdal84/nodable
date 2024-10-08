@@ -8,7 +8,7 @@
 #include "tools/core/log.h"
 #include "tools/core/reflection/reflection"
 
-#include "ndbl/core/Component.h"
+#include "ndbl/core/NodeComponent.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Property.h"
 
@@ -39,7 +39,7 @@ namespace ndbl
 
     /**
      * The history is responsible for undo/redo commands.
-     * It has two containers to store past/future commands
+     * It has_flags two containers to store past/future commands
      *     (past)    (now)    (future)
      * |oooooooooooooo|-------------------|
      */

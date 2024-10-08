@@ -9,7 +9,7 @@
     template<typename T> const T& get() const;
 
 /**
-* call this once per property in your *.cpp file or out of the union
+* call this once per get_value in your *.cpp file or out of the union
 */
 #define R_UNION_MEMBER_DEFINITION(U, M) /* U: Union, M: Union property */  \
     template<>\

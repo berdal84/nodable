@@ -1,15 +1,23 @@
 #include "AppExample.h"
+#include "tools/core/memory/MemoryManager.h"
 
 using namespace tools;
 
 int main(int argc, char *argv[])
 {
-    // Override config
-    tools::g_conf->app_window_label = "framework-example - (based on framework-gui library)";
+    try_TOOLS_MAIN
+    {
+        // Instantiate the application using the predefined configuration
+        AppExample app;
+        app.init();
 
-    // Instantiate the application using the predefined configuration
-    AppExample app;
-
-    // Run the main loop until user closes the app or a crash happens...
-    return app.main(argc, argv);
+        while( !app.should_stop() )
+        {
+            app.update();
+            app.draw();
+        }
+        app.shutdown();
+    }
+    catch_TOOLS_MAIN
+    return 0;
 }

@@ -2,8 +2,8 @@
 
 #include <string>
 #include <cstring> // for memset
+#include <cassert>
 
-#include "tools/core/assertions.h"
 #include "tools/core/types.h"
 #include "union.h"
 

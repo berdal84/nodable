@@ -4,7 +4,6 @@
 #include <unordered_map>
 #include <string>
 #include <typeinfo>
-#include <memory>
 #include <vector>
 
 #include "type_register.h"
@@ -13,13 +12,15 @@
 namespace tools
 {
     // forward declarations
-    class iinvokable;
-    class iinvokable_nonstatic;
+    class FuncType;
 
     /** Empty structure to act like any type, @related tools::variant class */
     struct any_t{};
     /** Empty structure to act like a null type, @related tools::variant class */
     struct null_t{};
+
+    template<class T, typename GET_CLASS = decltype(&T::get_class)>
+    constexpr bool IsReflectedClass = std::is_member_function_pointer_v<GET_CLASS>;
 
     /**
      * @struct Removes a pointer from a given type PointerT
@@ -34,20 +35,6 @@ namespace tools
         constexpr static const char* name() { return typeid(type).name(); };
     };
 
-
-    /**
-     * @struct Check if a type T is a class or not
-     * @example @code
-     * const my_type_is_a_class = is_class<MyType>::value;
-     */
-    template<typename T>
-    struct is_class
-    {
-        static constexpr bool value = std::is_class<typename remove_pointer<T>::type>::value
-                                      && !std::is_same<any_t, T>::value  // is_class<T>::type::value return true for structs
-                                      && !std::is_same<null_t, T>::value;
-    };
-
     /**
      * @class Type descriptor. Holds meta data corresponding to a given type.
      *
@@ -59,7 +46,6 @@ namespace tools
      */
     class type
     {
-        friend class registration;
         friend class type_register;
     public:
         using id_t = std::type_index;
@@ -72,6 +58,7 @@ namespace tools
             Flags_IS_POINTER = 1u << 2,
             Flags_HAS_PARENT = 1u << 3,
             Flags_HAS_CHILD  = 1u << 4,
+            Flags_IS_MEMBER_PTR = 1u << 5,
         };
 
         type(
@@ -83,7 +70,7 @@ namespace tools
 
         type(const type&) = delete; // a type must be unique
         type(type&&) = delete;
-        ~type() = default;
+        ~type();
 
         id_t                      id() const { return m_id; }
         const char*               get_name() const { return m_name; };
@@ -96,16 +83,14 @@ namespace tools
         bool                      equals(const type* other) const { return equals(this, other); }
         void                      add_parent(id_t _parent);
         void                      add_child(id_t _child);
-        void                      add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable);
-        void                      add_method(const std::string& _name, std::shared_ptr<iinvokable_nonstatic> _invokable);
-        const std::unordered_set<std::shared_ptr<iinvokable>>&
+        void                      add_static(const std::string& _name, const FuncType*);
+        void                      add_method(const std::string& _name, const FuncType*);
+        const std::unordered_set<const FuncType*>&
                                   get_static_methods()const { return m_static_methods; }
-        const std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>&
+        const std::unordered_set<const FuncType*>&
                                   get_methods()const { return m_methods; }
-        std::shared_ptr<iinvokable>
-                                  get_static(const std::string& _name) const;
-        std::shared_ptr<iinvokable_nonstatic>
-                                  get_method(const std::string& _name) const;
+        const FuncType*           get_static(const std::string& _name) const;
+        const FuncType*           get_method(const std::string& _name) const;
         template<class T>
         inline bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
         template<class T>
@@ -167,10 +152,10 @@ namespace tools
         const id_t m_id;           // ex: T**, T*
         std::unordered_set<id_t> m_parents;
         std::unordered_set<id_t> m_children;
-        std::unordered_set<std::shared_ptr<iinvokable>>                        m_static_methods;
-        std::unordered_map<std::string, std::shared_ptr<iinvokable>>           m_static_methods_by_name;
-        std::unordered_set<std::shared_ptr<iinvokable_nonstatic>>              m_methods;
-        std::unordered_map<std::string, std::shared_ptr<iinvokable_nonstatic>> m_methods_by_name;
+        std::unordered_set<const FuncType*>              m_static_methods;
+        std::unordered_map<std::string, const FuncType*> m_static_methods_by_name;
+        std::unordered_set<const FuncType*>              m_methods;
+        std::unordered_map<std::string, const FuncType*> m_methods_by_name;
     };
 
     template<typename T>
@@ -209,9 +194,10 @@ namespace tools
     type* type::create(const char* _name)
     {
         Flags flags = Flags_NONE;
-        if(std::is_pointer<T>::value) flags += Flags_IS_POINTER;
-        if(std::is_const<T>::value)   flags += Flags_IS_CONST;
-        if( tools::is_class<T>::value)    flags += Flags_IS_CLASS;
+        if(std::is_pointer_v<T>) flags |= Flags_IS_POINTER;
+        if(std::is_const_v<T>)   flags |= Flags_IS_CONST;
+        if(std::is_class_v<T>)   flags |= Flags_IS_CLASS;
+        if(std::is_member_pointer_v<T>) flags |= Flags_IS_MEMBER_PTR;
 
         return new type(
             get_type_id<T>(),
@@ -229,11 +215,11 @@ namespace tools
     bool extends(SourceClass* source_ptr)
     {
         // ensure both classes are reflected
-        static_assert(std::is_member_function_pointer_v<decltype(&SourceClass::get_type)>);
-        static_assert(std::is_member_function_pointer_v<decltype(&PossiblyBaseClass::get_type)>);
+        static_assert(IsReflectedClass<SourceClass>);
+        static_assert(IsReflectedClass<PossiblyBaseClass>);
 
         // check if source_type is a child of possibly_base_class
-        const type* source_type = source_ptr->get_type();
+        const type* source_type = source_ptr->get_class();
         const type* possibly_base_class = type::get<PossiblyBaseClass>();
         return source_type->is_child_of(possibly_base_class->id(), self_check );
     }
@@ -252,6 +238,12 @@ namespace tools
             return static_cast<TargetClass*>(source_ptr);
         }
         return nullptr;
+    }
+
+    template<class T, class>
+    T* cast(T* source_ptr)
+    {
+        return source_ptr;
     }
 
     template<class Type>

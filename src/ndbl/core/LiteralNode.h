@@ -8,20 +8,21 @@ namespace ndbl
     class LiteralNode: public Node
     {
     public:
+        typedef tools::type type;
+        Token               token;
 
-        LiteralNode() = default;
-        explicit LiteralNode(const tools::type*);
-        LiteralNode(LiteralNode&&) = default;
-        LiteralNode& operator=(LiteralNode&&) = default;
-        ~LiteralNode() override = default;
+        LiteralNode() {};
+        ~LiteralNode() override {};
 
-        void            init() override;
-        Property*       value() { return get_prop_at( m_value_property_id ); }
-        const Property* value() const { return get_prop_at( m_value_property_id ); }
+        void            init(const type* _type, const std::string& _name);
+        Property*       value()       { ASSERT(m_value_property != nullptr); return m_value_property; }
+        const Property* value() const { ASSERT(m_value_property != nullptr); return m_value_property; }
+        Slot&           output_slot();
+        const Slot&     output_slot() const;
+
     private:
-        ID<Property>       m_value_property_id;
-        const tools::type* m_type;
+        Property*       m_value_property = nullptr;
+        const type*     m_type = nullptr;
         REFLECT_DERIVED_CLASS()
     };
 }
-

@@ -50,81 +50,122 @@ namespace tools
 	class log
     {
     public:
+        struct Message;
+        using MessageDeque = std::deque<Message>;
+
+        // note: when size max is reached, half of the queue is cleared.
+#ifdef TOOLS_DEBUG
+        static constexpr size_t MESSAGE_MAX_COUNT = 500000; // n.b 1 Message == 368 bytes
+#else
+        static constexpr size_t MESSAGE_MAX_COUNT = 1000;
+#endif
 
         // Different verbosity levels a message can have
-        enum Verbosity: size_t
+        typedef int Verbosity;
+        enum Verbosity_: int
         {
-            Verbosity_Error,          // highest level (always logged)
+            Verbosity_Error, // lowest level (always logged)
             Verbosity_Warning,
             Verbosity_Message,
-            Verbosity_Verbose,
+            Verbosity_Verbose, // highest level (rarely logged)
             Verbosity_COUNT,
+
+#ifdef TOOLS_DEBUG
+            Verbosity_DEFAULT = Verbosity_Verbose
+#else
             Verbosity_DEFAULT = Verbosity_Message
+#endif
         };
-        static const char* to_string(Verbosity _verbosity);
+
+        static constexpr const char* to_string(log::Verbosity _verbosity)
+        {
+            switch (_verbosity)
+            {
+                case Verbosity_Error:   return  "ERR";
+                case Verbosity_Warning: return  "WRN";
+                case Verbosity_Message: return  "MSG";
+                default:                return  "VRB";
+            }
+        }
 
         struct Message
         {
-            tools::string256 text{};
-            tools::string32  category{};      // short category name (ex: "Game", "App", etc.)
-            std::chrono::time_point<std::chrono::system_clock>
-                          date = std::chrono::system_clock::now();
-            Verbosity     verbosity=Verbosity_DEFAULT; // verbosity level
+            using clock_t = std::chrono::time_point<std::chrono::system_clock>;
+
+            string32  category{}; // short category name (ex: "Game", "App", etc.)
+            Verbosity verbosity{Verbosity_DEFAULT}; // verbosity level
+            string512 text{};
+            clock_t   date{std::chrono::system_clock::now()};
         };
 
-        static const std::deque<Message>& get_messages(); // Get message history
-	    static void           set_verbosity(const std::string& _category, Verbosity _level) // Set verbosity level for a given category
-        { get_verbosity_by_category().insert_or_assign(_category, _level ); }
-
-	    inline static void    set_verbosity(Verbosity _level)                           // Set global verbosity level (for all categories)
-        {
-            s_verbosity = _level;
-            get_verbosity_by_category().clear(); // ensure no overrides remains
-        }
-
-        static Verbosity        get_verbosity(const std::string& _category);            // Get verbosity level for a given category
-        inline static Verbosity get_verbosity() { return s_verbosity; }                 // Get global verbosity level
-        static void             flush();                                                // Ensure all messages have been printed out
+        static MessageDeque&    get_messages();
+	    static void             set_verbosity(const std::string& _category, Verbosity _level); // Set verbosity level for a given category
+	    static void             set_verbosity(Verbosity _level);                               // Set global verbosity level (for all categories)
+        static Verbosity        get_verbosity(const std::string& _category); // Get verbosity level for a given category
+        static Verbosity        get_verbosity();                             // Get global verbosity level
+        static void             flush();                                     // Ensure all messages have been printed out
 
         template<typename...Args>
-        static void             push_message(Verbosity _verbosity, const char* _category, const char* _format, Args... args) // Push a new message for a given category
-        {
-            // Print log only if verbosity level allows it
-
-            if (_verbosity <= get_verbosity(_category) )
-            {
-                Message& message = s_logs.emplace_front(); // Store a new message in the front of the queue
-                message.verbosity = _verbosity;
-                message.category  = _category;
-                message.text.append_fmt("[%s|%s|%s] " // Append a formatted prefix with time, verbosity level and category
-                                         , format::time_point_to_string(message.date).c_str()
-                                         , log::to_string(_verbosity)
-                                         , _category );
-
-                message.text.append_fmt(_format, args...); // Fill a buffer with the formatted message
-
-                // Select the appropriate color depending on the verbosity
-                switch (_verbosity)
-                {
-                    case log::Verbosity_Error:   std::cout << RED;      break;
-                    case log::Verbosity_Warning: std::cout << MAGENTA;  break;
-                    default:                     std::cout << RESET;  break;
-                }
-
-                // print the text and reset the color
-                printf("%s" RESET, message.text.c_str());
-
-                // Constraint the queue to have a limited size
-                constexpr size_t max_count = 5000; // a Message is 512 bytes
-                constexpr size_t min_count = 4000; //
-                if (s_logs.size() > max_count ) s_logs.resize(min_count);
-            }
-
-        }
+        static void push_message(
+                Verbosity _verbosity,
+                const char* _category,
+                const char* _format,
+                Args... args); // Push a new message for a given category
 
     private:
-        static std::deque<Message>  s_logs;      // message history
         static Verbosity            s_verbosity; // global verbosity level
         static std::map<std::string, Verbosity>& get_verbosity_by_category();
     };
+
+    //
+    // template declarations
+    //
+
+    template<typename...Args>
+    void log::push_message(Verbosity _verbosity, const char* _category, const char* _format, Args... args)
+    {
+        // create a message like "[time|verbosity|category] message"
+        Message message;
+        message.verbosity = _verbosity;
+        message.category = _category;
+        // text prefix
+        message.text.append_fmt(
+                "[%s|%s|%s] ",
+                format::time_point_to_string(message.date).c_str(),
+                log::to_string(_verbosity),
+                _category
+                );
+        // text body
+        message.text.append_fmt(_format, args...);
+
+        // print if allowed
+        if ( message.verbosity <= s_verbosity )
+        {
+            // Select the appropriate color depending on the verbosity
+            switch (_verbosity)
+            {
+                case log::Verbosity_Error:   std::cout << RED;      break;
+                case log::Verbosity_Warning: std::cout << MAGENTA;  break;
+                default:                     std::cout << RESET;  break;
+            }
+
+            // print the text and reset the color
+            printf("%s" RESET, message.text.c_str());
+
+            // add to logs
+            get_messages().emplace_front(message);
+        }
+
+        // Constraint the queue to have a limited size
+        if ( get_messages().size() > MESSAGE_MAX_COUNT )
+        {
+            get_messages().resize( MESSAGE_MAX_COUNT / 2 );
+        }
+    }
+
+#if TOOLS_DEBUG
+    static_assert( log::MESSAGE_MAX_COUNT * (sizeof(log::Message)) < 400*1000*1000, "Log messages in memory can potentially go above the limits (400MB in DEBUG)" );
+#else
+    static_assert( log::MESSAGE_MAX_COUNT * (sizeof(log::Message)) < 2*1000*1000, "Log messages in memory  can potentially go above the limits (2MB in Release)" );
+#endif
 }

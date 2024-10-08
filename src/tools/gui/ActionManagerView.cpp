@@ -1,10 +1,7 @@
 #include "ActionManagerView.h"
-#include "ActionManager.h"
 #include "ImGuiEx.h"
 
-using namespace tools;
-
-void ActionManagerView::draw(ActionManager* manager)
+void tools::draw_action_manager_ui(ActionManager* manager)
 {
     if ( ImGui::BeginTable("Actions", 2) )
     {

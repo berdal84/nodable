@@ -8,7 +8,7 @@ using namespace tools;
 type* type_register::get(std::type_index index)
 {
     auto found = by_index().find(index);
-    EXPECT(found != by_index().end(), "reflection: type not found!")
+    VERIFY(found != by_index().end(), "reflection: type not found!")
     return found->second;
 }
 
@@ -37,9 +37,11 @@ void type_register::insert(type* _type)
 
 type* type_register::merge(type* existing, const type* other)
 {
-    LOG_VERBOSE("reflection", "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n"
-    , existing->m_name, existing->m_compiler_name
-    , other->m_name, other->m_compiler_name
+    LOG_VERBOSE(
+        __FILE__,
+        "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n",
+        existing->m_name, existing->m_compiler_name,
+        other->m_name, other->m_compiler_name
     )
     if( existing->m_name[0] == '\0' )
     {

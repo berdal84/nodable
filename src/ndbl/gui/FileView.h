@@ -44,7 +44,7 @@ namespace ndbl
 		~FileView() override = default;
 
 		void                           init( File& _file);
-        bool                           onDraw() override;
+        bool                           draw() override;
         bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
         bool                           is_graph_dirty() const { return m_is_graph_dirty; }
@@ -61,7 +61,7 @@ namespace ndbl
         void                           clear_overlay();
         void                           push_overlay(OverlayData, OverlayType) ;
         void                           refresh_overlay(Condition condition);
-        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, tools::Rect rect, tools::Vec2 position);
+        void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
         size_t                         size() const;
 
     private:

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ndbl/core/Token.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include "tools/core/reflection/variant.h"
 #include "tools/core/types.h"// for constants and forward declarations
 
@@ -10,83 +10,42 @@
 
 namespace ndbl
 {
+    // forward declarations
+    class Node;
+
     typedef int PropertyFlags;
-    enum PropertyFlag
+    enum PropertyFlag_
     {
         PropertyFlag_NONE            = 0,
-        PropertyFlag_INITIALIZE      = 1 << 0,
-        PropertyFlag_DEFINE          = 1 << 1,
-        PropertyFlag_RESET_VALUE     = 1 << 2,
-        PropertyFlag_IS_REF          = 1 << 3,
-        PropertyFlag_VISIBLE         = 1 << 4,
-        PropertyFlag_VISIBILITY_MASK = PropertyFlag_VISIBLE,
-        PropertyFlag_DEFAULT         = PropertyFlag_VISIBLE
+        PropertyFlag_IS_REF          = 1 << 0,
+        PropertyFlag_IS_PRIVATE      = 1 << 1,
+        PropertyFlag_IS_THIS         = 1 << 2, // Property pointing this Property's parent Node (stored as void* in variant).
+        PropertyFlag_ALL             = ~PropertyFlag_NONE,
     };
 
-    /**
-     * @class The class store a value (as a variant) and is owned by a PropertyGroup
-     *
-     * A property is like a property in OOP, you can set its visibility, type, and value.
-     * In Nodable, a property can also be connected (see DirectedEdge) to another property is they "way" allows it.
-     */
+    // Property wraps a Token including extra information such as: name, owner (Node), and some flags.
 	class Property
     {
     public:
-        tools::ID<Property> id;
-        Token            token;
-
-        explicit Property();
-        explicit Property(const std::string &);
-        explicit Property(int);
-        explicit Property(bool);
-        explicit Property(double);
-        explicit Property(const char *);
-        explicit Property(const tools::type *_type, PropertyFlags _flags);
-        ~Property() = default;
-
-        tools::variant*                 operator->() { return value(); }
-        const tools::variant*           operator->() const { return value(); }
-        tools::variant&                 operator*() { return *value(); }
-        const tools::variant&           operator*() const { return *value(); }
-        template<typename T> T       to()const { return value()->to<T>(); }
-
-        void digest(Property *_property);
-        bool has_flags( PropertyFlags _flags )const;
-        void set_name(const char* _name) { m_name = _name; }
-        void set(const Property& _other) { value()->set(_other.m_variant); }
-        template<typename T>
-        void set(T _value);
-		void set_visibility(PropertyFlags);
-
-        const std::string&           get_name()const { return m_name; }
-        const tools::type*              get_type()const { return value()->get_type(); }
-        PropertyFlags                get_visibility()const { return m_flags & PropertyFlag_VISIBILITY_MASK; }
-        PropertyFlags                flags()const { return m_flags; }
-        void                         ensure_is_initialized(bool b);
-        void                         flag_as_reference();
-        bool                         is_ref() const;
-        tools::variant*                 value()     { return &m_variant; }
-        const tools::variant*           value()const{ return &m_variant; }
-
-		static std::vector<tools::variant*> get(std::vector<Property *> _in_properties);
-
-        template<typename T>
-        T& as() { return value()->as<T>(); }
-
-        template<typename T>
-        T as() const { return value()->as<T>(); }
-
-        bool is_type_null() const;
-
-        bool is_this() const;
+        void               init(const tools::type*, PropertyFlags, Node*, const char* _name); // must be called once before use
+        void               digest(Property *_property);
+        bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
+        void               set_flags(PropertyFlags flags) { m_flags |= flags; }
+        void               clear_flags(PropertyFlags flags = PropertyFlag_ALL) { m_flags &= ~flags; }
+        //void               set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
+        const std::string& get_name()const { return m_name; }
+        Node*              get_owner()const { return m_owner; }
+        const tools::type* get_type()const { return m_type; }
+        bool               is_type(const tools::type* other) const;
+        void               set_token(const Token& _token) { m_token = _token; }
+        Token&             get_token() { return m_token; }
+        const Token&       get_token() const { return m_token; }
 
     private:
-        PropertyFlags m_flags;
-		std::string   m_name;
-        tools::variant   m_variant;
+        Node*              m_owner = nullptr;
+        PropertyFlags      m_flags = PropertyFlag_NONE;
+        const tools::type* m_type  = nullptr;
+        std::string        m_name;
+        Token              m_token;
     };
-
-    template<typename T>
-    void Property::set(T _value)
-    { value()->set( _value ); }
 }

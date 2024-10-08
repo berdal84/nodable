@@ -3,82 +3,185 @@
 #include <utility>
 
 #include "tools/core/log.h"
-#include "tools/core/system.h"
-#include "tools/gui/Texture.h"
+#include "tools/core/System.h"
 #include "tools/gui/ActionManagerView.h"
-#include "ndbl/core/NodeUtils.h"
+#include "tools/gui/Config.h"
+#include "tools/gui/Texture.h"
+#include "tools/gui/TextureManager.h"
+#include "tools/gui/AppView.h"
 
+#include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/Interpreter.h"
+#include "ndbl/core/Register.h"
+#include "ndbl/core/language/Nodlang.h"
 
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
 #include "FileView.h"
+#include "GraphView.h"
 #include "History.h"
 #include "Nodable.h"
 #include "NodeView.h"
-#include "Physics.h"
-#include "PropertyView.h"
 #include "build_info.h"
-#include "tools/gui/Config.h"
-#include "tools/gui/gui.h"
-#include "gui.h"
 
 using namespace ndbl;
-using namespace ndbl::assembly;
 using namespace tools;
 
-NodableView::NodableView(Nodable * _app)
-    : AppView(_app)
-    , m_logo(nullptr)
-    , m_is_history_dragged(false)
-    , m_show_properties_editor(false)
-    , m_show_imgui_demo(false)
-    , m_show_advanced_node_properties(false)
-    , m_scroll_to_curr_instr(true)
-    , m_app(_app)
+template<typename T>
+static FuncType* create_variable_node_signature()
 {
-    EXPECT(m_app, "should be defined");
+    static FuncType type = FuncTypeBuilder<T(T)>{ "variable" }.construct();
+    return &type;
 }
 
-NodableView::~NodableView()
+void NodableView::init(Nodable * _app)
 {
-    LOG_VERBOSE("ndbl::NodableView", "Destructor " OK "\n");
-}
+    LOG_VERBOSE("ndbl::NodableView", "init ...\n");
+    m_app = _app;
+    // Initialize wrapped view and inject some code ...
+    tools::App* base_app = _app->get_base_app_handle();
+    ASSERT(base_app != nullptr)
+    m_base_view.init(base_app);
+    m_base_view.on_draw_splashscreen.connect([&](AppView* view){
 
-void NodableView::on_init()
-{
-    LOG_VERBOSE("ndbl::NodableView", "on_init ...\n");
+        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+        // Image
+        ImGui::SameLine((ImGui::GetContentRegionAvail().x - (float)m_logo->width) * 0.5f); // center img
+        ImGuiEx::Image(m_logo);
+
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
+
+        // disclaimer
+        ImGui::TextWrapped("DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
+
+        ImGui::NewLine();
+        ImGui::NewLine();
+
+        // credits
+        const char *credit = "by Berdal84";
+        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
+        ImGui::TextWrapped("%s", credit);
+
+        // build version
+        ImGui::TextWrapped("%s", BuildInfo::version);
+
+        // close on left/rightmouse btn click
+        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+        {
+            view->show_splashscreen = false;
+        }
+        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
+    });
+    m_base_view.on_layout_reset.connect([](AppView* view){
+        auto* cfg = get_config();
+        // Dock windows to specific dockspace
+        view->dock_window( cfg->ui_help_window_label             , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
+        view->dock_window(cfg->ui_interpreter_window_label  , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
+        view->dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP);
+    });
 
     // Load splashscreen image
-    std::filesystem::path path = App::asset_path( g_conf->ui_splashscreen_imagePath );
-    m_logo = m_app->texture_manager.load(path.string());
+    Config* cfg = get_config();
+    tools::Path path = App::get_absolute_asset_path(cfg->ui_splashscreen_imagePath );
+    m_logo = get_texture_manager()->load(path);
 
-    LOG_VERBOSE("ndbl::NodableView", "on_init " OK "\n");
+    // Add a bunch of new actions
+    tools::ActionManager* action_manager = get_action_manager();
+    ASSERT(action_manager != nullptr) // initialized by base_view
+    // (With shortcut)
+    action_manager->new_action<Event_DeleteNode>("Delete", Shortcut{SDLK_DELETE, KMOD_NONE } );
+    action_manager->new_action<Event_ArrangeNode>("Arrange", Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_ToggleFolding>("Fold", Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_SelectNext>("Next", Shortcut{SDLK_n, KMOD_NONE } );
+    action_manager->new_action<Event_FileSave>(ICON_FA_SAVE " Save", Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager->new_action<Event_FileSaveAs>(ICON_FA_SAVE " Save as", Shortcut{SDLK_s, KMOD_CTRL } );
+    action_manager->new_action<Event_FileClose>(ICON_FA_TIMES "  Close", Shortcut{SDLK_w, KMOD_CTRL } );
+    action_manager->new_action<Event_FileBrowse>(ICON_FA_FOLDER_OPEN " Open", Shortcut{SDLK_o, KMOD_CTRL } );
+    action_manager->new_action<Event_FileNew>(ICON_FA_FILE " New", Shortcut{SDLK_n, KMOD_CTRL } );
+    action_manager->new_action<Event_ShowWindow>("Splashscreen", Shortcut{SDLK_F1 }, EventPayload_ShowWindow{"splashscreen" } );
+    action_manager->new_action<Event_Exit>(ICON_FA_SIGN_OUT_ALT " Exit", Shortcut{SDLK_F4, KMOD_ALT } );
+    action_manager->new_action<Event_Undo>("Undo", Shortcut{SDLK_z, KMOD_CTRL } );
+    action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
+    action_manager->new_action<Event_ToggleIsolationFlags>("Isolation", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
+    action_manager->new_action<Event_SelectionChange>("Deselect", Shortcut{0, KMOD_NONE, "Click on background" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{FRAME_ALL } );
+    // (to create block nodes)
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_CONDITION } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_FOR_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_WHILE_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_SCOPE } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_PROGRAM } );
+    // (to create variables)
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    //(to create literals)
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    // (to create functions/operators from the API)
+    const Nodlang* language = get_language();
+    VERIFY(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
+    for ( auto& func_type: language->get_api() )
+    {
+        std::string label;
+        language->serialize_func_sig( label, func_type );
+        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_INVOKABLE, func_type } );
+    }
+
+    LOG_VERBOSE("ndbl::NodableView", "init_ex " OK "\n");
 }
 
-void NodableView::on_draw()
+void NodableView::shutdown()
 {
-    bool redock_all = true;
+    // We could do this there, but the base view is responsible for shutdow the texture manager we used, so all textures will be released.
+    // get_texture_manager()->release(m_logo);
 
-    File*           current_file    = m_app->current_file;
-    EventManager&   event_manager   = m_app->event_manager;
-    VirtualMachine& virtual_machine = m_app->virtual_machine;
+    m_base_view.shutdown();
+}
+
+void NodableView::draw()
+{
+    VERIFY(m_logo != nullptr, "Logo is nullptr, did you call init_ex() ?")
+
+    // note: we draw this view nested in base view's begin/end (similar to ImGui API).
+    m_base_view.begin_draw();
+    
+    EventManager*   event_manager   = get_event_manager();
+    Config*         cfg             = get_config();
+    Interpreter*    interpreter     = get_interpreter();
+    tools::Config*  tools_cfg       = tools::get_config();
+    bool            redock_all      = true;
+    File*           current_file    = m_app->get_current_file();
 
     // 1. Draw Menu Bar
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
+        auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->selection_empty()
+                                                     : false;
 
-        if (ImGui::BeginMenu("File")) {
+        if (ImGui::BeginMenu("File"))
+        {
             bool has_file = current_file != nullptr;
             bool is_current_file_content_dirty = current_file != nullptr && current_file->dirty;
-            ImGuiEx::MenuItem<Event_FileNew>();
-            ImGuiEx::MenuItem<Event_FileBrowse>();
+            ImGuiEx::MenuItem_EventTrigger<Event_FileNew>();
+            ImGuiEx::MenuItem_EventTrigger<Event_FileBrowse>();
             ImGui::Separator();
-            ImGuiEx::MenuItem<Event_FileSaveAs>(false, has_file);
-            ImGuiEx::MenuItem<Event_FileSave>(false, has_file && is_current_file_content_dirty );
+            ImGuiEx::MenuItem_EventTrigger<Event_FileSaveAs>(false, has_file);
+            ImGuiEx::MenuItem_EventTrigger<Event_FileSave>(false, has_file && is_current_file_content_dirty);
             ImGui::Separator();
-            ImGuiEx::MenuItem<Event_FileClose>(false, has_file);
+            ImGuiEx::MenuItem_EventTrigger<Event_FileClose>(false, has_file);
 
             auto auto_paste = has_file && current_file->view.experimental_clipboard_auto_paste();
 
@@ -86,52 +189,48 @@ void NodableView::on_draw()
                 current_file->view.experimental_clipboard_auto_paste(!auto_paste);
             }
 
-            ImGuiEx::MenuItem<Event_Exit>();
+            ImGuiEx::MenuItem_EventTrigger<Event_Exit>();
 
             ImGui::EndMenu();
         }
 
-        bool vm_is_stopped = virtual_machine.is_program_stopped();
+        bool interpreter_is_stopped = interpreter->is_program_stopped();
         if (ImGui::BeginMenu("Edit"))
         {
             if (current_file_history)
             {
-                ImGuiEx::MenuItem<Event_Undo>();
-                ImGuiEx::MenuItem<Event_Redo>();
+                ImGuiEx::MenuItem_EventTrigger<Event_Undo>();
+                ImGuiEx::MenuItem_EventTrigger<Event_Redo>();
                 ImGui::Separator();
             }
+            if (ImGui::MenuItem("Delete Node", "Del.", false, has_selection && interpreter_is_stopped))
+                event_manager->dispatch( EventID_DELETE_NODE );
 
-            auto has_selection = NodeView::is_any_selected();
-
-            if (ImGui::MenuItem("Delete", "Del.", false, has_selection && vm_is_stopped)) {
-                event_manager.dispatch( EventID_DELETE_NODE );
-            }
-
-            ImGuiEx::MenuItem<Event_ArrangeNode>( false, has_selection );
-            ImGuiEx::MenuItem<Event_ToggleFolding>( false,has_selection );
-
-            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
-            {
-                event_manager.dispatch<Event_ToggleFolding>( { RECURSIVELY } );
-            }
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("View")) {
+        if (ImGui::BeginMenu("View"))
+        {
             //auto frame = ImGui::MenuItem("Frame All", "F");
             redock_all |= ImGui::MenuItem("Redock documents");
 
             ImGui::Separator();
 
-            auto menu_item_node_view_detail = [](NodeViewDetail _detail, const char *_label) {
-                if (ImGui::MenuItem(_label, "", NodeView::get_view_detail() == _detail)) {
-                    NodeView::set_view_detail(_detail);
+            auto menu_item_node_view_detail = [current_file, cfg](ViewDetail _detail, const char *_label) {
+                if (ImGui::MenuItem(_label, "", cfg->ui_node_detail == _detail))
+                {
+                    cfg->ui_node_detail = _detail;
+                    if (current_file != nullptr)
+                        current_file->get_graph().get_view()->reset_all_properties();
                 }
             };
 
-            menu_item_node_view_detail(NodeViewDetail::Minimalist, "Minimalist View");
-            menu_item_node_view_detail(NodeViewDetail::Essential, "Essential View");
-            menu_item_node_view_detail(NodeViewDetail::Exhaustive, "Exhaustive View");
+            ImGui::Text("View Detail:");
+            ImGui::Indent();
+            menu_item_node_view_detail(ViewDetail::MINIMALIST, "Minimalist");
+            menu_item_node_view_detail(ViewDetail::ESSENTIAL,  "Essential");
+            menu_item_node_view_detail(ViewDetail::EXHAUSTIVE, "Exhaustive");
+            ImGui::Unindent();
 
             ImGui::Separator();
             m_show_properties_editor = ImGui::MenuItem(ICON_FA_COGS " Show Properties", "",
@@ -140,63 +239,82 @@ void NodableView::on_draw()
 
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Fullscreen", "", m_app->is_fullscreen()))
+            if (ImGui::MenuItem("Fullscreen", "", is_fullscreen()))
             {
-                m_app->set_fullscreen( !m_app->is_fullscreen() );
+                toggle_fullscreen();
             }
             ImGui::Separator();
 
-            if (ImGui::MenuItem("Reset Layout", "")) {
-                set_layout_initialized(false);
+            if (ImGui::MenuItem("Reset Layout", ""))
+            {
+                m_base_view.reset_layout();
+            }
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Code"))
+        {
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->isolation);
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Graph"))
+        {
+
+            if (ImGui::MenuItem("Reset", NULL, false, interpreter_is_stopped))
+                event_manager->dispatch( EventID_RESET_GRAPH );
+
+            ImGuiEx::MenuItem_EventTrigger<Event_ArrangeNode>(false, has_selection);
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleFolding>(false, has_selection);
+
+            if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
+            {
+                event_manager->dispatch<Event_ToggleFolding>( { RECURSIVELY } );
             }
 
             ImGui::Separator();
 
-            ImGuiEx::MenuItem<Event_ToggleIsolationFlags>( g_conf->isolation );
+            ImGuiEx::MenuItem_EventTrigger<Event_ToggleIsolationFlags>(cfg->isolation);
 
             ImGui::EndMenu();
         }
 
-        if ( ImGui::BeginMenu("Run") )
+        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) && ImGui::BeginMenu("Interpreter") )
         {
-            bool vm_is_debugging = virtual_machine.is_debugging();
+            bool interpreter_is_debugging = interpreter->is_debugging();
 
-            if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_PLAY" Run", "", false, interpreter_is_stopped))
                 m_app->run_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_BUG" Debug", "", false, vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_BUG" Debug", "", false, interpreter_is_stopped))
                 m_app->debug_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over", "", false, vm_is_debugging)) {
+            if (ImGui::MenuItem(ICON_FA_ARROW_RIGHT" Step Over", "", false, interpreter_is_debugging))
                 m_app->step_over_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_STOP" Stop", "", false, !vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_STOP" Stop", "", false, !interpreter_is_stopped))
                 m_app->stop_program();
-            }
 
-            if (ImGui::MenuItem(ICON_FA_UNDO " Reset", "", false, vm_is_stopped)) {
+            if (ImGui::MenuItem(ICON_FA_UNDO " Reset", "", false, interpreter_is_stopped))
                 m_app->reset_program();
-            }
+
             ImGui::EndMenu();
         }
 
         if (ImGui::BeginMenu("Developer"))
         {
-            if ( ImGui::MenuItem("Show debug info", "", tools::g_conf->debug ) )
+            bool debug = cfg->flags & ConfigFlag_DRAW_DEBUG_LINES;
+            if ( ImGui::MenuItem("Debug Mode", "", debug ) )
             {
-                tools::g_conf->debug = !tools::g_conf->debug;
-                ImGuiEx::debug = tools::g_conf->debug;
+                cfg->tools_cfg->runtime_debug = !debug;
+                cfg->clear_flags( ConfigFlag_DRAW_DEBUG_LINES );
+                cfg->set_flags( !debug * ConfigFlag_DRAW_DEBUG_LINES);
+                ImGuiEx::set_debug( !debug );
             }
-            if ( ImGui::MenuItem("Show FPS", "", tools::g_conf->show_fps ) )
+
+            if ( ImGui::MenuItem("Limit FPS", "", tools_cfg->delta_time_limit ) )
             {
-                tools::g_conf->show_fps = !tools::g_conf->show_fps;
-            }
-            if ( ImGui::MenuItem("Limit FPS", "", tools::g_conf->delta_time_limit ) )
-            {
-                tools::g_conf->delta_time_limit = !tools::g_conf->delta_time_limit;
+                tools_cfg->delta_time_limit = !tools_cfg->delta_time_limit;
             }
 
             ImGui::Separator();
@@ -212,15 +330,29 @@ void NodableView::on_draw()
 #ifndef LOG_DISABLE_VERBOSE
                 menu_item_verbosity(log::Verbosity_Verbose, "Verbose");
 #endif
-                menu_item_verbosity(log::Verbosity_Message, "Message (default)");
+                menu_item_verbosity(log::Verbosity_Message, "Message");
                 menu_item_verbosity(log::Verbosity_Warning, "Warning");
                 menu_item_verbosity(log::Verbosity_Error, "Error");
                 ImGui::EndMenu();
             }
 
-            if (ImGui::BeginMenu("Experimental")) {
-                ImGui::Checkbox("Hybrid history", &g_conf->experimental_hybrid_history);
-                ImGui::Checkbox("Graph auto-completion", &g_conf->experimental_graph_autocompletion);
+            if (ImGui::BeginMenu("Experimental"))
+            {
+                auto checkbox_flag = [&](const char* label, ConfigFlag_ flag )
+                {
+                    bool enabled = cfg->has_flags(flag);
+                    if ( ImGui::Checkbox(label, &enabled) )
+                    {
+                        if ( !enabled )
+                            cfg->clear_flags(flag);
+                        else
+                            cfg->set_flags(flag);
+                    }
+                };
+                checkbox_flag("Hybrid history",        ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY);
+                checkbox_flag("Multi-Selection",       ConfigFlag_EXPERIMENTAL_MULTI_SELECTION);
+                checkbox_flag("Graph auto-completion", ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION);
+                checkbox_flag("Interpreter",           ConfigFlag_EXPERIMENTAL_INTERPRETER);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -228,27 +360,31 @@ void NodableView::on_draw()
 
         if (ImGui::BeginMenu("An issue ?")) {
             if (ImGui::MenuItem("Report on Github.com")) {
-                system::open_url_async("https://github.com/berdal84/Nodable/issues");
+                System::open_url_async("https://github.com/berdal84/nodable/issues");
             }
 
             if (ImGui::MenuItem("Report by email")) {
-                system::open_url_async("mail:berenger@dalle-cort.fr");
+                System::open_url_async("mail:berenger@42borgata.com");
             }
 
             ImGui::EndMenu();
         }
 
-        if (ImGui::BeginMenu("Help")) {
-            if (ImGui::MenuItem("Show Splash Screen", "F1")) {
-                tools::g_conf->splashscreen = true;
+        if (ImGui::BeginMenu("Help"))
+        {
+            if (ImGui::MenuItem("Show Splash Screen", "F1"))
+            {
+                m_base_view.show_splashscreen = true;
             }
 
-            if (ImGui::MenuItem("Browse source code")) {
-                system::open_url_async("https://www.github.com/berdal84/nodable");
+            if (ImGui::MenuItem("Browse source code"))
+            {
+                System::open_url_async("https://www.github.com/berdal84/nodable");
             }
 
-            if (ImGui::MenuItem("Credits")) {
-                system::open_url_async("https://github.com/berdal84/nodable#credits-");
+            if (ImGui::MenuItem("Credits"))
+            {
+                System::open_url_async("https://github.com/berdal84/nodable#credits-");
             }
 
             ImGui::EndMenu();
@@ -260,39 +396,45 @@ void NodableView::on_draw()
     // 2. Draw windows
     // All draw_xxx_window() are ImGui windows docked to a dockspace (defined in on_reset_layout() )
 
-
-
     if(!m_app->has_files())
     {
-        if( !tools::g_conf->splashscreen )
+        bool show_startup_window = !m_base_view.show_splashscreen;
+        if( show_startup_window )
         {
-            draw_startup_window( get_dockspace(AppView::Dockspace_ROOT));
+            draw_startup_window( m_base_view.get_dockspace(AppView::Dockspace_ROOT));
         }
     }
     else
     {
         draw_toolbar_window();
 
-        auto ds_root = get_dockspace(AppView::Dockspace_ROOT);
+        auto ds_root = m_base_view.get_dockspace(AppView::Dockspace_ROOT);
         for ( File*each_file: m_app->get_files())
         {
             draw_file_window(ds_root, redock_all, each_file);
         }
 
-        draw_virtual_machine_window();
+        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) )
+            draw_interpreter_window();
+
         draw_config_window();
         draw_imgui_config_window();
         draw_file_info_window();
         draw_node_properties_window();
         draw_help_window();
     }
+
+    // end the drawing
+    m_base_view.end_draw();
 }
 
-void NodableView::draw_help_window() const {
-    if (ImGui::Begin( g_conf->ui_help_window_label))
+void NodableView::draw_help_window() const
+{
+    Config* cfg = get_config();
+    if (ImGui::Begin( cfg->ui_help_window_label))
     {
-        FontManager& font_manager = m_app->font_manager;
-        ImGui::PushFont(font_manager.get_font(FontSlot_Heading));
+        FontManager* font_manager = get_font_manager();
+        ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Welcome to Nodable!");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -307,7 +449,7 @@ void NodableView::draw_help_window() const {
         ImGuiEx::BulletTextWrapped(
                 "but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
         ImGui::NewLine();
-        ImGui::PushFont(font_manager.get_font(FontSlot_Heading));
+        ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Quick start");
         ImGui::PopFont();
         ImGui::NewLine();
@@ -316,7 +458,7 @@ void NodableView::draw_help_window() const {
         ImGuiEx::BulletTextWrapped(
                 "At the center, there is the graph editor where you can create/delete/connect nodes\n");
         ImGuiEx::BulletTextWrapped(
-                "On the right side (this side) you will find many tabs to manage additional config such as node properties, virtual machine or app properties\n");
+                "On the right side (this side) you will find many tabs to manage additional config such as node, interpreter, or app properties\n");
         ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
                                        " There, few buttons will serve to compile, run and debug your program.");
         ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
@@ -327,12 +469,14 @@ void NodableView::draw_help_window() const {
 
 void NodableView::draw_imgui_config_window() const
 {
-    if( !tools::g_conf->debug )
+    Config* cfg = get_config();
+    tools::Config* tools_cfg = tools::get_config();
+    if( !tools_cfg->runtime_debug )
     {
         return;
     }
 
-    if (ImGui::Begin( g_conf->ui_imgui_config_window_label))
+    if (ImGui::Begin( cfg->ui_imgui_config_window_label))
     {
         ImGui::ShowStyleEditor();
     }
@@ -341,14 +485,16 @@ void NodableView::draw_imgui_config_window() const
 
 void NodableView::draw_file_info_window() const
 {
-    if ( !m_app->current_file )
+    File* current_file = m_app->get_current_file();
+    if ( current_file == nullptr )
     {
         return;
     }
 
-    if (ImGui::Begin( g_conf->ui_file_info_window_label))
+    Config* cfg = get_config();
+    if (ImGui::Begin( cfg->ui_file_info_window_label))
     {
-        m_app->current_file->view.draw_info_panel();
+        current_file->view.draw_info_panel();
     }
 
     ImGui::End();
@@ -356,42 +502,58 @@ void NodableView::draw_file_info_window() const
 
 void NodableView::draw_node_properties_window()
 {
-    if (ImGui::Begin( g_conf->ui_node_properties_window_label))
+    Config* cfg = get_config();
+    if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
-        if (NodeView* selected_view = NodeView::get_selected().get())
+        if( File* current_file = m_app->get_current_file() )
         {
-            ImGui::Indent(10.0f);
-            NodeView::draw_as_properties_panel(selected_view, &m_show_advanced_node_properties);
+            GraphView*             graph_view         = current_file->get_graph().get_view(); // Graph can't be null
+            ASSERT(graph_view != nullptr)
+            std::vector<NodeView*> selected_nodeviews = graph_view->get_selected();
+
+            if (selected_nodeviews.size() == 1)
+            {
+                ImGui::Indent(10.0f);
+                NodeView *first_node_view = selected_nodeviews.front();
+                NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
+            }
+            else if (selected_nodeviews.size() > 1)
+            {
+                ImGui::Indent(10.0f);
+                ImGui::Text("Multi-Selection");
+            }
         }
     }
     ImGui::End();
 }
 
-void NodableView::draw_virtual_machine_window() {
-    if (ImGui::Begin( g_conf->ui_virtual_machine_window_label))
+void NodableView::draw_interpreter_window()
+{
+    Config* cfg = get_config();
+    if (ImGui::Begin( cfg->ui_interpreter_window_label))
     {
-        auto &vm = m_app->virtual_machine;
+        auto* interpreter = get_interpreter();
 
-        ImGui::Text("Virtual Machine:");
+        ImGui::Text("Interpreter:");
         ImGui::SameLine();
-        ImGuiEx::DrawHelper("%s", "The virtual machine - or interpreter - is a sort of implementation of \n"
-                                      "an imaginary hardware able to run a set of simple instructions.");
+        ImGuiEx::DrawHelper("%s", "The interpreter is a sort of implementation of \n"
+                                  "an imaginary hardware able to run a set of simple instructions. This is still WIP.");
         ImGui::Separator();
 
-        const Code *code = vm.get_program_asm_code();
+        const Code *code = interpreter->get_program_asm_code();
 
         // VM state
         {
             ImGui::Indent();
-            ImGui::Text("State:         %s", vm.is_program_running() ? "running" : "stopped");
+            ImGui::Text("State:         %s", interpreter->is_program_running() ? "running" : "stopped");
             ImGui::SameLine();
-            ImGuiEx::DrawHelper("%s", "When virtual machine is running, you cannot edit the code or the graph.");
-            ImGui::Text("Debug:         %s", vm.is_debugging() ? "ON" : "OFF");
+            ImGuiEx::DrawHelper("%s", "When the interpreter is running, you cannot edit the code or the graph.");
+            ImGui::Text("Debug:         %s", interpreter->is_debugging() ? "ON" : "OFF");
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "When debugging is ON, you can run a program step by step.");
             ImGui::Text("Has program:   %s", code ? "YES" : "NO");
             if (code) {
-                ImGui::Text("Program over:  %s", !vm.is_there_a_next_instr() ? "YES" : "NO");
+                ImGui::Text("Program over:  %s", !interpreter->is_there_a_next_instr() ? "YES" : "NO");
             }
             ImGui::Unindent();
         }
@@ -400,30 +562,29 @@ void NodableView::draw_virtual_machine_window() {
         ImGui::Separator();
         ImGui::Text("CPU:");
         ImGui::SameLine();
-        ImGuiEx::DrawHelper("%s", "This is the virtual machine's CPU"
-                                      "\nIt contains few registers to store temporary values "
-                                      "\nlike instruction pointer, last node's value or last comparison result");
+        ImGuiEx::DrawHelper("%s", "This is the interpreter's CPU"
+                                  "\nIt contains few registers to store temporary values "
+                                  "\nlike instruction pointer, last node's value or last comparison result");
         ImGui::Indent();
         {
             ImGui::Separator();
             ImGui::Text("registers:");
             ImGui::Separator();
 
-            using assembly::Register;
             ImGui::Indent();
 
             auto draw_register_value = [&](Register _register) {
-                ImGui::Text("%4s: %12s", assembly::to_string(_register),
-                            vm.read_cpu_register(_register).to_string().c_str());
+                ImGui::Text("%4s: %12s", Register_to_string(_register),
+                            interpreter->read_cpu_register(_register).to_string().c_str());
             };
 
-            draw_register_value(Register::rax);
+            draw_register_value(Register_rax);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "primary accumulator");
-            draw_register_value(Register::rdx);
+            draw_register_value(Register_rdx);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "base register");
-            draw_register_value(Register::eip);
+            draw_register_value(Register_eip);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "instruction pointer");
 
@@ -435,7 +596,7 @@ void NodableView::draw_virtual_machine_window() {
         ImGui::Separator();
         ImGui::Text("Memory:");
         ImGui::SameLine();
-        ImGuiEx::DrawHelper("%s", "Virtual Machine Memory.");
+        ImGuiEx::DrawHelper("%s", "Memory.");
         ImGui::Separator();
         {
             ImGui::Indent();
@@ -443,7 +604,7 @@ void NodableView::draw_virtual_machine_window() {
             ImGui::Text("Bytecode:");
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "The bytecode is the result of the Compilation process."
-                                          "\nAfter source code has been parsed to a syntax tree, "
+                                          "\nAfter source code has_flags been parsed to a syntax tree, "
                                           "\nthe tree (or graph) is converted by the Compiler to an Assembly-like code.");
             ImGui::Checkbox("Auto-scroll ?", &m_scroll_to_curr_instr);
             ImGui::SameLine();
@@ -453,11 +614,11 @@ void NodableView::draw_virtual_machine_window() {
                 ImGui::BeginChild("AssemblyCodeChild", ImGui::GetContentRegionAvail(), true);
 
                 if (code) {
-                    auto current_instr = vm.get_next_instr();
+                    auto current_instr = interpreter->get_next_instr();
                     for (Instruction *each_instr: code->get_instructions()) {
                         auto str = Instruction::to_string(*each_instr);
                         if (each_instr == current_instr) {
-                            if (m_scroll_to_curr_instr && vm.is_program_running()) {
+                            if (m_scroll_to_curr_instr && interpreter->is_program_running()) {
                                 ImGui::SetScrollHereY();
                             }
                             ImGui::TextColored(ImColor(200, 0, 0), ">%s", str.c_str());
@@ -483,14 +644,16 @@ void NodableView::draw_virtual_machine_window() {
     ImGui::End();
 }
 
-void NodableView::draw_startup_window(ImGuiID dockspace_id) {
+void NodableView::draw_startup_window(ImGuiID dockspace_id)
+{
     ImGui::SetNextWindowDockID(dockspace_id, ImGuiCond_Always);
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.3f, 0.3f, 0.3f, 1.f));
-
-    ImGui::Begin( g_conf->ui_startup_window_label);
+    Config* cfg = get_config();
+    ImGui::Begin( cfg->ui_startup_window_label);
     {
-        FontManager&  font_manager  = m_app->font_manager;
-        EventManager& event_manager = m_app->event_manager;
+        FontManager*  font_manager  = get_font_manager();
+        EventManager* event_manager = get_event_manager();
+
         ImGui::PopStyleColor();
 
         ImVec2 center_area(500.0f, 250.0f);
@@ -503,15 +666,15 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
         {
             ImGui::Indent(center_area.x * 0.05f);
 
-            ImGui::PushFont(font_manager.get_font(FontSlot_ToolBtn));
+            ImGui::PushFont(font_manager->get_font(FontSlot_ToolBtn));
             ImGui::NewLine();
 
             ImVec2 btn_size(center_area.x * 0.44f, 40.0f);
             if (ImGui::Button(ICON_FA_FILE" New File", btn_size))
-                event_manager.dispatch( EventID_FILE_NEW );
+                event_manager->dispatch( EventID_FILE_NEW );
             ImGui::SameLine();
             if (ImGui::Button(ICON_FA_FOLDER_OPEN" Open ...", btn_size))
-                event_manager.dispatch( EventID_FILE_BROWSE );
+                event_manager->dispatch( EventID_FILE_BROWSE );
 
             ImGui::NewLine();
             ImGui::Separator();
@@ -550,8 +713,9 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id) {
     ImGui::End(); // Startup Window
 }
 
-void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file) {
-    auto &vm = m_app->virtual_machine;
+void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file)
+{
+    Interpreter* interpreter = get_interpreter();
 
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags =
@@ -572,8 +736,9 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
     {
         const bool is_current_file = m_app->is_current(file);
 
-        if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) {
-            m_app->current_file = file;
+        if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
+        {
+            m_app->set_current_file(file);
         }
 
         // History bar on top
@@ -581,7 +746,8 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
 
         // File View in the middle
         ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        ImGui::PushFont(m_app->font_manager.get_font(FontSlot_Code));
+        FontManager*  font_manager  = get_font_manager();
+        ImGui::PushFont(font_manager->get_font(FontSlot_Code));
         const ImVec2 size = ImGui::GetContentRegionAvail();
 
         ImGui::BeginChild("FileView", size, false, 0);
@@ -598,137 +764,121 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
     if (!is_window_open) m_app->close_file(file);
 }
 
-void NodableView::draw_config_window() {
+void NodableView::draw_config_window()
+{
+    auto* cfg = get_config();
+    auto* tools_cfg = tools::get_config();
 
-    if (ImGui::Begin( g_conf->ui_config_window_label))
+    if (ImGui::Begin( cfg->ui_config_window_label))
     {
+        const ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_SpanAvailWidth;
+
         ImGui::Text("Nodable Settings");
         if ( ImGui::Button("Reset Settings") )
         {
-            g_conf->reset();
+            cfg->reset();
         }
 
-        if (ImGui::CollapsingHeader("Nodes", ImGuiTreeNodeFlags_SpanAvailWidth))
+        if (ImGui::CollapsingHeader("Sizes", flags ))
+        {
+            ImGui::SliderFloat("size factor SM", &cfg->tools_cfg->size_factor[Size_SM], 0.0f, 5.0f);
+            ImGui::SliderFloat("size factor MD", &cfg->tools_cfg->size_factor[Size_MD], 0.0f, 5.0f);
+            ImGui::SliderFloat("size factor LR", &cfg->tools_cfg->size_factor[Size_LG], 0.0f, 5.0f);
+            ImGui::SliderFloat("size factor XL", &cfg->tools_cfg->size_factor[Size_XL], 0.0f, 5.0f);
+        }
+
+        if (ImGui::CollapsingHeader("Nodes", flags ))
         {
             ImGui::Indent();
-            if ( ImGui::CollapsingHeader("Colors"))
+            if ( ImGui::CollapsingHeader("Colors", flags ))
             {
-                ImGui::ColorEdit4("default", &g_conf->ui_node_fillColor.x);
-                ImGui::ColorEdit4("highlighted", &g_conf->ui_node_highlightedColor.x);
-                ImGui::ColorEdit4("variable", &g_conf->ui_node_variableColor.x);
-                ImGui::ColorEdit4("instruction", &g_conf->ui_node_instructionColor.x);
-                ImGui::ColorEdit4("literal", &g_conf->ui_node_literalColor.x);
-                ImGui::ColorEdit4("function", &g_conf->ui_node_invokableColor.x);
-                ImGui::ColorEdit4("shadow", &g_conf->ui_node_shadowColor.x);
-                ImGui::ColorEdit4("border", &g_conf->ui_slot_border_color.x);
-                ImGui::ColorEdit4("border (highlighted)", &g_conf->ui_node_borderHighlightedColor.x);
-                ImGui::ColorEdit4("slot", &g_conf->ui_slot_color.x);
-                ImGui::ColorEdit4("slot (hovered)", &g_conf->ui_slot_hovered_color.x);
+                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[NodeType_DEFAULT].x );
+                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[NodeType_BLOCK_CONDITION].x );
+                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[NodeType_BLOCK_FOR_LOOP].x );
+                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[NodeType_BLOCK_WHILE_LOOP].x );
+                ImGui::ColorEdit4("scope"       , &cfg->ui_node_fill_color[NodeType_BLOCK_SCOPE].x );
+                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[NodeType_VARIABLE].x );
+                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[NodeType_LITERAL].x );
+                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[NodeType_FUNCTION].x );
+                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[NodeType_OPERATOR].x );
+                ImGui::Separator();
+                ImGui::ColorEdit4("highlighted"         , &cfg->ui_node_highlightedColor.x);
+                ImGui::ColorEdit4("shadow"              , &cfg->ui_node_shadowColor.x);
+                ImGui::ColorEdit4("border"              , &cfg->ui_slot_border_color.x);
+                ImGui::ColorEdit4("border (highlighted)", &cfg->ui_node_borderHighlightedColor.x);
+                ImGui::ColorEdit4("slot"                , &cfg->ui_slot_color.x);
+                ImGui::ColorEdit4("slot (hovered)"      , &cfg->ui_slot_hovered_color.x);
             }
 
-            if ( ImGui::CollapsingHeader("Slots"))
+            if ( ImGui::CollapsingHeader("Slots", flags ))
             {
                 ImGui::Text("Property Slots:");
-                ImGui::SliderFloat("slot radius", &g_conf->ui_slot_radius, 5.0f, 10.0f);
+                ImGui::SliderFloat("slot radius", &cfg->ui_slot_circle_radius_base, 5.0f, 10.0f);
 
                 ImGui::Separator();
 
                 ImGui::Text("Code Flow Slots:");
-                ImGui::SliderFloat2("slot size##codeflow", &g_conf->ui_slot_size.x, 2.0f, 100.0f);
-                ImGui::SliderFloat("slot padding##codeflow", &g_conf->ui_slot_gap, 0.0f, 100.0f);
-                ImGui::SliderFloat("slot radius##codeflow", &g_conf->ui_slot_border_radius, 0.0f, 40.0f);
+                ImGui::SliderFloat2("slot size##codeflow"   , &cfg->ui_slot_rectangle_size.x, 2.0f, 100.0f);
+                ImGui::SliderFloat("slot padding##codeflow" , &cfg->ui_slot_gap, 0.0f, 100.0f);
+                ImGui::SliderFloat("slot radius##codeflow"  , &cfg->ui_slot_border_radius, 0.0f, 40.0f);
             }
 
-            if ( ImGui::CollapsingHeader("Misc."))
+            if ( ImGui::CollapsingHeader("Misc.", flags ))
             {
-                ImGui::SliderFloat("spacing", &g_conf->ui_node_spacing, 10.0f, 50.0f);
-                ImGui::SliderFloat("velocity", &g_conf->ui_node_speed, 1.0f, 10.0f);
-                ImGui::SliderFloat4("padding", &g_conf->ui_node_padding.x, 0.0f, 20.0f);
-                ImGui::SliderFloat("border width", &g_conf->ui_node_borderWidth, 0.0f, 10.0f);
-                ImGui::SliderFloat("border width ratio (instructions)", &g_conf->ui_node_instructionBorderRatio, 0.0f, 10.0f);
+                ImGui::SliderFloat2("gap base (x and y-axis)", &cfg->ui_node_gap_base.x, 0.0f, 400.0f);
+                ImGui::SliderFloat("velocity" , &cfg->ui_node_speed, 1.0f, 10.0f);
+                ImGui::SliderFloat4("padding" , &cfg->ui_node_padding.x, 0.0f, 20.0f);
+                ImGui::SliderFloat("border width", &cfg->ui_node_borderWidth, 0.0f, 10.0f);
+                ImGui::SliderFloat("border width ratio (instructions)", &cfg->ui_node_instructionBorderRatio, 0.0f, 10.0f);
             }
             ImGui::Unindent();
         }
 
-        if (ImGui::CollapsingHeader("Wires / Code Flow"))
+        if (ImGui::CollapsingHeader("Wires / Code Flow", flags ))
         {
             ImGui::Text("Wires");
-            ImGui::SliderFloat("thickness##wires", &g_conf->ui_wire_bezier_thickness, 0.5f, 10.0f);
-            ImGui::SliderFloat2("roundness (min,max)##wires", &g_conf->ui_wire_bezier_roundness.x, 0.0f, 1.0f);
-            ImGui::SliderFloat2("fade length (min,max)##wires", &g_conf->ui_wire_bezier_fade_length_minmax.x, 200.0f, 1000.0f);
-            ImGui::ColorEdit4("color##wires", &g_conf->ui_wire_color.x);
-            ImGui::ColorEdit4("shadow color##wires", &g_conf->ui_wire_shadowColor.x);
+            ImGui::SliderFloat("thickness", &cfg->ui_wire_bezier_thickness, 0.5f, 10.0f);
+            ImGui::SliderFloat2("roundness (min,max)", &cfg->ui_wire_bezier_roundness.x, 0.0f, 1.0f);
+            ImGui::SliderFloat2("fade length (min,max in lensqr)", &cfg->ui_wire_bezier_fade_lensqr_range.x, 0.0f, 100000.0f);
+            ImGui::ColorEdit4("color", &cfg->ui_wire_color.x);
+            ImGui::ColorEdit4("shadow color", &cfg->ui_wire_shadowColor.x);
 
             ImGui::Separator();
 
             ImGui::Text("Code Flow");
-            ImGui::ColorEdit4("color##codeflow", &g_conf->ui_codeflow_color.x);
-            ImGui::SliderFloat("thickness (ratio)##codeflow", &g_conf->ui_codeflow_thickness_ratio, 0.1, 1.0);
+            ImGui::ColorEdit4("color##codeflow", &cfg->ui_codeflow_color.x);
+            ImGui::SliderFloat("thickness (ratio)##codeflow", &cfg->ui_codeflow_thickness_ratio, 0.1, 1.0);
         }
 
-        if (ImGui::CollapsingHeader("Graph"))
+        if (ImGui::CollapsingHeader("Graph", flags ))
         {
-            ImGui::InputFloat("unfold delta time", &g_conf->graph_unfold_dt);
-            ImGui::InputInt("unfold iterations", &g_conf->graph_unfold_iterations, 1, 1000);
-            ImGui::ColorEdit4("grid color (major)", &g_conf->ui_graph_grid_color_major.x);
-            ImGui::ColorEdit4("grid color (minor)", &g_conf->ui_graph_grid_color_minor.x);
-            ImGui::SliderInt("grid size", &g_conf->ui_grid_size, 1, 500);
-            ImGui::SliderInt("grid subdivisions", &g_conf->ui_grid_subdiv_count, 1, 16);
+            ImGui::InputFloat("unfold delta time", &cfg->graph_unfold_dt);
+            ImGui::InputInt("unfold iterations", &cfg->graph_unfold_iterations, 1, 1000);
+            ImGui::ColorEdit4("grid color (major)", &cfg->ui_graph_grid_color_major.x);
+            ImGui::ColorEdit4("grid color (minor)", &cfg->ui_graph_grid_color_minor.x);
+            ImGui::SliderInt("grid size", &cfg->ui_grid_size, 1, 500);
+            ImGui::SliderInt("grid subdivisions", &cfg->ui_grid_subdiv_count, 1, 16);
         }
 
-        if (ImGui::CollapsingHeader("Shortcuts", ImGuiTreeNodeFlags_SpanAvailWidth))
+        if (ImGui::CollapsingHeader("Shortcuts", flags ))
         {
-            ActionManagerView::draw(&m_app->action_manager);
+            ActionManager*  action_manager = get_action_manager();
+            draw_action_manager_ui(action_manager);
         }
 
-        if ( tools::g_conf->debug && ImGui::CollapsingHeader("Pool"))
+#if TOOLS_POOL_ENABLE
+        if ( tools_cfg->runtime_debug && ImGui::CollapsingHeader("Pool"))
         {
             ImGui::Text("Pool stats:");
-            auto pool = Pool::get_pool();
+            auto pool = get_pool_manager()->get_pool();
             ImGui::Text(" - Node.................... %8zu", pool->get_all<Node>().size() );
             ImGui::Text(" - NodeView................ %8zu", pool->get_all<NodeView>().size() );
             ImGui::Text(" - Physics................. %8zu", pool->get_all<Physics>().size() );
             ImGui::Text(" - Scope................... %8zu", pool->get_all<Scope>().size() );
         }
+#endif
     }
     ImGui::End();
-}
-
-void NodableView::draw_splashscreen()
-{
-    if ( AppView::begin_splashscreen() )
-    {
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-
-        // Image
-        ImGui::SameLine((ImGui::GetContentRegionAvail().x - m_logo->width) * 0.5f); // center img
-        ImGuiEx::Image(m_logo);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
-
-        // disclaimer
-        ImGui::TextWrapped(
-                "DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
-
-        ImGui::NewLine();
-        ImGui::NewLine();
-
-        // credits
-        const char *credit = "by Berdal84";
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
-        ImGui::TextWrapped("%s", credit);
-
-        // build version
-        ImGui::TextWrapped("%s", BuildInfo::version);
-
-        // close on left/rightmouse btn click
-        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
-        {
-            tools::g_conf->splashscreen = false;
-        }
-        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
-        AppView::end_splashscreen();
-    }
 }
 
 void NodableView::draw_history_bar(History& currentFileHistory)
@@ -737,9 +887,10 @@ void NodableView::draw_history_bar(History& currentFileHistory)
     {
         m_is_history_dragged = false;
     }
-    float btn_spacing   = g_conf->ui_history_btn_spacing;
-    float btn_height    = g_conf->ui_history_btn_height;
-    float btn_width_max = g_conf->ui_history_btn_width_max;
+    auto* cfg           = get_config();
+    float btn_spacing   = cfg->ui_history_btn_spacing;
+    float btn_height    = cfg->ui_history_btn_height;
+    float btn_width_max = cfg->ui_history_btn_width_max;
 
     size_t historySize = currentFileHistory.get_size();
     std::pair<int, int> history_range = currentFileHistory.get_command_id_range();
@@ -748,23 +899,26 @@ void NodableView::draw_history_bar(History& currentFileHistory)
 
     ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
 
-    for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++) {
+    for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
+    {
         ImGui::SameLine();
 
         std::string label("##" + std::to_string(cmd_pos));
 
-        // Draw an highlighted button for the current history position
+        // Draw a highlighted button for the current history position
         if (cmd_pos == 0) {
             ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
             ImGui::Button(label.c_str(), {btn_width, btn_height});
             ImGui::PopStyleColor();
-        } else // or a simple one for other history positions
+        }
+        else // or a simple one for other history positions
         {
             ImGui::Button(label.c_str(), {btn_width, btn_height});
         }
 
         // Hovered item
-        if (ImGui::IsItemHovered()) {
+        if (ImGui::IsItemHovered())
+        {
             if (ImGui::IsMouseDown(0)) // hovered + mouse down
             {
                 m_is_history_dragged = true;
@@ -772,7 +926,8 @@ void NodableView::draw_history_bar(History& currentFileHistory)
 
             // Draw command description
             ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
-            if (ImGuiEx::BeginTooltip()) {
+            if (ImGuiEx::BeginTooltip())
+            {
                 ImGui::Text("%s", currentFileHistory.get_cmd_description_at(cmd_pos).c_str());
                 ImGuiEx::EndTooltip();
             }
@@ -792,69 +947,79 @@ void NodableView::draw_history_bar(History& currentFileHistory)
     ImGui::PopStyleVar();
 }
 
-void NodableView::draw_toolbar_window() {
-
+void NodableView::draw_toolbar_window()
+{
     ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, {5.0f, 5.0f});
-    if (ImGui::Begin( g_conf->ui_toolbar_window_label, NULL, flags ))
-    {
-        ImGui::PopStyleVar();
-        VirtualMachine& vm   = m_app->virtual_machine;
-        bool running         = vm.is_program_running();
-        bool debugging       = vm.is_debugging();
-        bool stopped         = vm.is_program_stopped();
-        auto button_size     = g_conf->ui_toolButton_size;
 
-        ImGui::PushFont(m_app->font_manager.get_font(FontSlot_ToolBtn));
+    auto* cfg = get_config();
+
+    if ( ImGui::Begin( cfg->ui_toolbar_window_label, NULL, flags ) )
+    {
+        FontManager*  font_manager  = get_font_manager();
+        EventManager* event_manager = get_event_manager();
+        const Vec2&   button_size   = cfg->ui_toolButton_size;
+
+        ImGui::PopStyleVar();
+        ImGui::PushFont(font_manager->get_font(FontSlot_ToolBtn));
         ImGui::BeginGroup();
 
-        // compile
-        if (ImGui::Button(ICON_FA_DATABASE " compile", button_size) && stopped) {
-            m_app->compile_and_load_program();
+        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) )
+        {
+            Interpreter* interpreter = get_interpreter();
+            bool running             = interpreter->is_program_running();
+            bool debugging           = interpreter->is_debugging();
+            bool stopped             = interpreter->is_program_stopped();
+
+
+            // compile
+            if (ImGui::Button(ICON_FA_DATABASE " compile", button_size) && stopped) {
+                m_app->compile_and_load_program();
+            }
+            ImGui::SameLine();
+
+            // run
+            if (running) ImGui::PushStyleColor(ImGuiCol_Button, cfg->tools_cfg->button_activeColor);
+
+            if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped) {
+                m_app->run_program();
+            }
+            if (running) ImGui::PopStyleColor();
+
+            ImGui::SameLine();
+
+            // debug
+            if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, cfg->tools_cfg->button_activeColor);
+            if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped) {
+                m_app->debug_program();
+            }
+            if (debugging) ImGui::PopStyleColor();
+            ImGui::SameLine();
+
+            // stepOver
+            if (ImGui::Button(ICON_FA_ARROW_RIGHT " step over", button_size) && interpreter->is_debugging()) {
+                interpreter->debug_step_over();
+            }
+            ImGui::SameLine();
+
+            // stop
+            if (ImGui::Button(ICON_FA_STOP " stop", button_size) && !stopped) {
+                m_app->stop_program();
+            }
+            ImGui::SameLine();
         }
-        ImGui::SameLine();
-
-        // run
-        if (running) ImGui::PushStyleColor(ImGuiCol_Button, tools::g_conf->button_activeColor);
-
-        if (ImGui::Button(ICON_FA_PLAY " run", button_size) && stopped) {
-            m_app->run_program();
-        }
-        if (running) ImGui::PopStyleColor();
-
-        ImGui::SameLine();
-
-        // debug
-        if (debugging) ImGui::PushStyleColor(ImGuiCol_Button, tools::g_conf->button_activeColor);
-        if (ImGui::Button(ICON_FA_BUG " debug", button_size) && stopped) {
-            m_app->debug_program();
-        }
-        if (debugging) ImGui::PopStyleColor();
-        ImGui::SameLine();
-
-        // stepOver
-        if (ImGui::Button(ICON_FA_ARROW_RIGHT " step over", button_size) && vm.is_debugging()) {
-            vm.step_over();
-        }
-        ImGui::SameLine();
-
-        // stop
-        if (ImGui::Button(ICON_FA_STOP " stop", button_size) && !stopped) {
-            m_app->stop_program();
-        }
-        ImGui::SameLine();
 
         // reset
-        if (ImGui::Button(ICON_FA_UNDO " reset graph", button_size)) {
-            m_app->reset_program();
+        if (ImGui::Button(ICON_FA_UNDO " regen. graph", button_size)) {
+            event_manager->dispatch( EventID_RESET_GRAPH );
         }
         ImGui::SameLine();
 
         // enter isolation mode
-        if (ImGui::Button(
-                     g_conf->isolation & Isolation_ON ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF",
-                button_size)) {
-            m_app->event_manager.dispatch( EventID_TOGGLE_ISOLATION_FLAGS );
+        bool isolation_on = cfg->isolation & Isolation_ON;
+        if (ImGui::Button(isolation_on ? ICON_FA_CROP " isolation mode: ON " : ICON_FA_CROP " isolation mode: OFF", button_size))
+        {
+            event_manager->dispatch( EventID_TOGGLE_ISOLATION_FLAGS );
         }
         ImGui::SameLine();
         ImGui::EndGroup();
@@ -864,15 +1029,27 @@ void NodableView::draw_toolbar_window() {
     ImGui::End();
 }
 
-void NodableView::on_reset_layout()
+bool NodableView::is_fullscreen() const
 {
-    // Dock windows to specific dockspace
+    return m_base_view.is_fullscreen();
+}
 
-    dock_window( g_conf->ui_help_window_label             , AppView::Dockspace_RIGHT);
-    dock_window( g_conf->ui_config_window_label           , AppView::Dockspace_RIGHT);
-    dock_window( g_conf->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
-    dock_window( g_conf->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
-    dock_window( g_conf->ui_virtual_machine_window_label  , AppView::Dockspace_RIGHT);
-    dock_window( g_conf->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
-    dock_window( g_conf->ui_toolbar_window_label          , AppView::Dockspace_TOP);
+void NodableView::toggle_fullscreen()
+{
+    m_base_view.set_fullscreen( !is_fullscreen() );
+}
+
+bool NodableView::pick_file_path(Path& _out_path, tools::AppView::DialogType _type) const
+{
+    return m_base_view.pick_file_path(_out_path, _type);
+}
+
+void NodableView::show_splashscreen(bool b)
+{
+    m_base_view.show_splashscreen = b;
+}
+
+void NodableView::save_screenshot(tools::Path& _path) const
+{
+    m_base_view.save_screenshot(_path);
 }

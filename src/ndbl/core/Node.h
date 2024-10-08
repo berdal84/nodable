@@ -6,15 +6,19 @@
 #include <algorithm>
 
 #include "tools/core/assertions.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 
-#include "ComponentBag.h"
+#include "TComponentBag.h"
 #include "DirectedEdge.h"
 #include "Property.h"
 #include "PropertyBag.h"
 #include "constants.h"
+#include "NodeComponent.h"
+#include "SlotFlag.h"
+#include "Slot.h"
+#include "NodeType.h"
 
 namespace ndbl
 {
@@ -30,55 +34,66 @@ namespace ndbl
         SUCCESS_WITH_CHANGES,
     };
 
+    typedef int NodeFlags;
+    enum NodeFlag_
+    {
+        NodeFlag_NONE                = 0,
+        NodeFlag_DEFAULT             = NodeFlag_NONE,
+        NodeFlag_IS_DIRTY            = 1 << 0,
+        NodeFlag_TO_DELETE           = 1 << 1,
+        NodeFlag_ALL                 = ~NodeFlag_NONE,
+    };
 	/**
 		The role of this class is to provide connectable Objects as Nodes.
 
 		A node is an Object (composed with Properties) that can be linked
 	    together in order to create graphs.
 
-		Every Node has a parent Graph. All nodes are built from a Graph,
+		Every Node has_flags a parent Graph. All nodes are built from a Graph,
 	    which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/
     class Node
 	{
-        REFLECT_BASE_CLASS()
-        POOL_REGISTRABLE(Node)
     public:
-        // Data
-
-        std::string       name;
-        Graph*            parent_graph;
-        PropertyBag       props;
-        bool              dirty; // TODO: use flags
-        bool              flagged_to_delete; // TODO: use flags
-        Token             after_token;
-        observe::Event<PoolID<Node>> on_name_change;
-
+        friend Graph;
+        
         // Code
+        Node() = default;
+        virtual ~Node();
 
-        explicit Node(std::string  _label = "UnnamedNode");
-        Node(Node&&) noexcept ;
-        Node& operator=(Node&&) noexcept ;
-        virtual ~Node() = default;
-
-        virtual void init();
-        bool is_instruction() const;
-        bool can_be_instruction() const;
+        void                 init(NodeType type, const std::string& name);
+        NodeType             type() const { return m_type; }
+        bool                 is_conditional() const;
+        bool                 is_instruction() const;
+        bool                 is_unary_operator() const;
+        bool                 is_binary_operator() const;
+        bool                 can_be_instruction() const;
+        bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
+        void                 set_flags(NodeFlags flags) { m_flags |= flags; }
+        void                 clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
+        Graph*               get_parent_graph() { return m_parent_graph; }
+        const Graph*         get_parent_graph() const { return m_parent_graph; }
+        const std::string&   get_name() const { return m_name; };
+        Token&               get_suffix() { return m_suffix; };
+        const Token&         get_suffix() const { return m_suffix; };
+        void                 set_suffix(const Token& token);
+        const PropertyBag&   get_props() const;
+        observe::Event<Node*>& on_name_change() { return m_on_name_change; };
 
         // Slot related
         //-------------
 
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, size_t _position = 0);
-        ID8<Slot>            add_slot(SlotFlags, u8_t _capacity, ID<Property>);
+        Slot*                add_slot(SlotFlags, size_t _capacity, size_t _position = 0);
+        Slot*                add_slot(SlotFlags, size_t _capacity, Property*);
         void                 set_name(const char*);
-        PoolID<Node>         find_parent() const;
+        Node*                find_parent() const;
         size_t               adjacent_slot_count(SlotFlags )const;
-        Slot&                get_slot_at(ID8<Slot>);
-        const Slot&          get_slot_at(ID8<Slot>) const;
-        Slot&                get_nth_slot(u8_t, SlotFlags );
+        Slot&                get_slot_at(size_t);
+        const Slot&          get_slot_at(size_t) const;
+        Slot&                get_nth_slot(size_t, SlotFlags );
         std::vector<Slot*>   filter_slots( SlotFlags ) const;
-        std::vector<SlotRef> filter_adjacent_slots(SlotFlags) const;
+        std::vector<Slot*>   filter_adjacent_slots(SlotFlags) const;
         Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
         const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
         Slot*                find_slot_at( SlotFlags, size_t _position ); // implicitly THIS_PROPERTY's slot
@@ -86,60 +101,74 @@ namespace ndbl
         Slot*                find_slot_by_property_name(const char* _property_name, SlotFlags );
         const Slot*          find_slot_by_property_name(const char* property_name, SlotFlags ) const;
         Slot*                find_slot_by_property_type(SlotFlags _way, const tools::type *_type);
-        Slot*                find_slot_by_property_id( ID<Property>, SlotFlags );
-        const Slot*          find_slot_by_property_id( ID<Property>, SlotFlags ) const;
-        Slot*                find_adjacent_at(SlotFlags, u8_t _index ) const;
-        bool should_be_constrain_to_follow_output(PoolID<const Node> _output ) const;
+        Slot*                find_slot_by_property(const Property*, SlotFlags );
+        const Slot*          find_slot_by_property(const Property*, SlotFlags ) const;
+        Slot*                find_adjacent_at(SlotFlags, size_t _index ) const;
+        bool                 should_be_constrain_to_follow_output(const Node* _output ) const;
         size_t               slot_count(SlotFlags) const;
-        std::vector<Slot>&   slots() { return m_slots; }
-        const std::vector<Slot>& slots() const { return m_slots; }
-        std::vector<PoolID<Node>> filter_adjacent(SlotFlags) const;
-        std::vector<PoolID<Node>> successors() const;
-        std::vector<PoolID<Node>> rchildren() const; // reversed children
-        std::vector<PoolID<Node>> children() const;
-        std::vector<PoolID<Node>> inputs() const;
-        std::vector<PoolID<Node>> outputs() const;
-        std::vector<PoolID<Node>> predecessors() const;
+        std::vector<Slot*>&  slots() { return m_slots; }
+        const std::vector<Slot*>& slots() const { return m_slots; }
+        std::vector<Node*>   filter_adjacent(SlotFlags) const;
+        std::vector<Node*>   successors() const;
+        std::vector<Node*>   rchildren() const; // reversed children
+        std::vector<Node*>   children() const;
+        std::vector<Node*>   inputs() const;
+        std::vector<Node*>   outputs() const;
+        std::vector<Node*>   predecessors() const;
 
         // Property related
         //-----------------
 
-        ID<Property>         add_prop(const tools::type*, const char* /* name */, PropertyFlags = PropertyFlag_DEFAULT);
-        Property*            get_prop_at(ID<Property>);
-        const Property*      get_prop_at(ID<Property>) const;
+        Property*            add_prop(const tools::type*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
+        Property*            get_prop_at(size_t);
+        const Property*      get_prop_at(size_t) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        const tools::iinvokable*get_connected_invokable(const char *property_name) const; // TODO: can't remember to understand why I needed this...
-        bool                 has_input_connected( const ID<Property>& ) const;
+        const tools::FuncType* get_connected_function_type(const char *property_name) const; //
+        bool                 has_input_connected( const Property*) const;
 
         template<typename ValueT>
-        ID<Property> add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_DEFAULT)
-        { return props.add<ValueT>(_name, _flags); }
+        Property* add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_NONE)
+        { return m_props.add<ValueT>(_name, _flags); }
 
         // Component related
         //------------------
 
-        std::vector<PoolID<Component>> get_components();
+        std::vector<NodeComponent*> get_components();
 
-        template<class ComponentT>
-        void add_component(PoolID<ComponentT> component)
+        template<class C>
+        void add_component(C* component)
         { return m_components.add( component ); }
 
-        template<class ComponentT>
-        PoolID<ComponentT> get_component() const
-        { return m_components.get<ComponentT>(); }
+        template<class C>
+        C* get_component() const
+        { return static_cast<C*>( m_components.get<C*>() );  }
 
-        template<class ComponentT>
+        template<class C>
+        C* get_component()
+        { return const_cast<C*>( static_cast<const Node*>(this)->get_component<C>() ); }
+
+        template<class C>
         bool has_component() const
-        { return m_components.has<ComponentT>(); }
+        { return m_components.has<C*>(); }
 
     protected:
-        ID<Property>      m_this_property_id;
-        std::vector<Slot> m_slots;
+
+        std::string        m_name;
+        PropertyBag        m_props;
+        Token              m_suffix;
+        Graph*             m_parent_graph     = nullptr;
+        NodeType           m_type             = NodeType_DEFAULT;
+        NodeFlags          m_flags            = NodeFlag_DEFAULT;
+        Property*          m_this_as_property = nullptr; // Short had for props.at( 0 )
+        std::vector<Slot*> m_slots;
+        observe::Event<Node*> m_on_name_change;
     private:
-        ComponentBag      m_components;
+        TComponentBag<NodeComponent*> m_components;
+
+        REFLECT_BASE_CLASS()
+        POOL_REGISTRABLE(Node)
+
+        bool is_invokable() const;
     };
 }
-
-static_assert(std::is_move_assignable_v<ndbl::Node>, "Should be move assignable");
-static_assert(std::is_move_constructible_v<ndbl::Node>, "Should be move constructible");

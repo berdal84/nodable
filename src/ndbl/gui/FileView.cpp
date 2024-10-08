@@ -1,8 +1,9 @@
 #include "FileView.h"
 
+#include "tools/gui/ImGuiTypeConvert.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/Node.h"
-#include "ndbl/core/VirtualMachine.h"
+#include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/NodeUtils.h"
 
@@ -14,7 +15,6 @@
 #include "NodeView.h"
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
-#include "gui.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -33,47 +33,29 @@ FileView::FileView()
 
 void FileView::init(File& _file)
 {
+    Config* cfg = get_config();
     m_file = &_file;
     std::string overlay_basename{_file.filename()};
     m_text_overlay_window_name  = overlay_basename + "_text_overlay";
     m_graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
-    m_graph_changed_observer.observe(m_file->graph_changed, [this](Graph* _graph) {
+    m_graph_changed_observer.observe(m_file->graph_changed, [](Graph* _graph) {
         LOG_VERBOSE( "FileView", "graph changed evt received\n" )
-        if ( !_graph->is_empty() )
-        {
-            LOG_VERBOSE( "FileView", "graph is not empty\n" )
-            Node* root = _graph->get_root().get();
-
-            NodeView* root_node_view = root->get_component<NodeView>().get();
-            GraphView* graph_view = m_file->graph_view;
-
-            // unfold graph (lot of updates) and frame all nodes
-            if ( root_node_view && graph_view )
-            {
-                // visually unfold graph. Does not work super well...
-                graph_view->unfold();
-
-                // make sure views are outside viewable rectangle (to avoid flickering)
-                auto views = NodeUtils::get_components<NodeView>( _graph->get_node_registry() );
-                graph_view->translate_all( views, Vec2( -1000.f, -1000.0f ), NodeViewFlag_NONE );
-
-                // frame all (33ms delayed)
-                EventManager::get_instance().dispatch_delayed<Event_FrameSelection>( 33, { FRAME_ALL } );
-            }
-        }
+        _graph->get_view()->reset();
     });
 
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
-	m_text_editor.SetPalette( g_conf->ui_text_textEditorPalette );
+	m_text_editor.SetPalette( cfg->ui_text_textEditorPalette );
 }
 
-bool FileView::onDraw()
+bool FileView::draw()
 {
+    View::draw();
+
+    Config* cfg = get_config();
     const Vec2 margin(10.0f, 0.0f);
-    const Nodable &app       = Nodable::get_instance();
     Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
     Vec2 text_editor_size {m_child1_size, region_available.y};
     Vec2 graph_editor_size{m_child2_size, region_available.y};
@@ -93,7 +75,7 @@ bool FileView::onDraw()
         (Vec2)ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
     };
     splitter_rect.translate_x( m_child1_size + 2.0f );
-    ImGui::SplitterBehavior(ImGuiEx::toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
+    ImGui::SplitterBehavior(toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
 
      // TEXT EDITOR
     //------------
@@ -105,12 +87,13 @@ bool FileView::onDraw()
         auto old_selected_text = m_text_editor.GetSelectedText();
         auto old_line_text = m_text_editor.GetCurrentLineText();
 
-        bool is_running = app.virtual_machine.is_program_running();
+        bool is_running = get_interpreter()->is_program_running();
+        GraphView* graphview = m_file->get_graph().get_view();
         auto allow_keyboard = !is_running &&
-                              !NodeView::is_any_dragged();
+                              !graphview->has_an_active_tool();
 
         auto allow_mouse = !is_running &&
-                           !NodeView::is_any_dragged() &&
+                           !graphview->has_an_active_tool() &&
                            !ImGui::IsAnyItemHovered() &&
                            !ImGui::IsAnyItemFocused();
 
@@ -136,12 +119,12 @@ bool FileView::onDraw()
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
         // overlay
-        Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
-        overlay_rect.expand( Vec2( -2.f * g_conf->ui_overlay_margin ) ); // margin
+        Rect overlay_rect = ImGuiEx::GetContentRegion(SCREEN_SPACE );
+        overlay_rect.expand( Vec2( -2.f * cfg->ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
 
-        if ( g_conf->experimental_hybrid_history)
+        if ( cfg->flags & ConfigFlag_EXPERIMENTAL_MULTI_SELECTION )
         {
             m_file->history.enable_text_editor(false); // avoid recording events caused by graph serialisation
         }
@@ -156,55 +139,46 @@ bool FileView::onDraw()
 
         m_focused_text_changed = is_line_text_modified ||
                                  m_text_editor.IsTextChanged() ||
-                                 ( g_conf->isolation && is_selected_text_modified);
+                                 ( cfg->isolation && is_selected_text_modified);
 
         if (m_text_editor.IsTextChanged())  m_file->dirty = true;
     }
     ImGui::EndChild();
 
-     // NODE EDITOR
+     // NodeViewItem EDITOR
     //-------------
 
-    Graph*     graph      = m_file->graph;
-    GraphView* graph_view = m_file->graph_view;
+    Graph&     graph      = m_file->get_graph();
+    GraphView* graph_view = graph.get_view();
 
-    ASSERT(graph);
+    ASSERT(graph_view);
 
     ImGui::SameLine();
-    if ( graph_view )
-    {
-        LOG_VERBOSE("FileView", "graph_node_view->update()\n");
-        ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-        graph_view->update();
-        Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
+    LOG_VERBOSE("FileView", "graph_node_view->update()\n");
+    ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    graph_view->update();
+    Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
 
-        ImGui::BeginChild("graph", graph_editor_size, false, flags);
+    ImGui::BeginChild("graph", graph_editor_size, false, flags);
+    {
+        // Draw graph
+        m_is_graph_dirty = graph_view->draw();
+
+        // Draw overlay: shortcuts
+        Rect overlay_rect = ImGuiEx::GetContentRegion(SCREEN_SPACE );
+        overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
+        draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
+        ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
+
+        // Draw overlay: isolation mode ON/OFF
+        if( cfg->isolation )
         {
-            // Draw graph
-            m_is_graph_dirty = graph_view->draw();
-
-            // Draw overlay: shortcuts
-            Rect overlay_rect = ImGuiEx::GetContentRegion( WORLD_SPACE );
-            overlay_rect.expand( Vec2( -2.0f * g_conf->ui_overlay_margin ) ); // margin
-            draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
-            ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
-
-            // Draw overlay: isolation mode ON/OFF
-            if( g_conf->isolation )
-            {
-                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( g_conf->ui_overlay_margin);
-                ImGui::SetCursorPos(cursor_pos);
-                ImGui::Text("Isolation mode ON");
-            }
+            Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_overlay_margin);
+            ImGui::SetCursorPos(cursor_pos);
+            ImGui::Text("Isolation mode ON");
         }
-        ImGui::EndChild();
-
     }
-    else
-    {
-        ImGui::TextColored(ImColor(255,0,0), "ERROR: Unable to graw Graph View");
-        LOG_ERROR("FileView", "graphNodeView is null\n");
-    }
+    ImGui::EndChild();
 
     return changed();
 }
@@ -286,21 +260,21 @@ void FileView::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file->graph->get_node_registry().size());
-    ImGui::Text("Edge count: %zu", m_file->graph->get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file->get_graph().get_node_registry().size());
+    ImGui::Text("Edge count: %zu", m_file->get_graph().get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
     // Language browser (list functions/operators)
     if (ImGui::TreeNode("Language"))
     {
-        const Nodlang& language = Nodlang::get_instance();
+        const Nodlang* language = get_language();
 
         ImGui::Columns(1);
-        for(const auto& each_fct : language.get_api() )
+        for(const FuncType* each_fct : language->get_api() )
         {
             std::string name;
-            language.serialize_func_sig(name, each_fct->get_type());
+            language->serialize_func_sig(name, each_fct);
             ImGui::Text("%s", name.c_str());
         }
 
@@ -317,15 +291,15 @@ void FileView::experimental_clipboard_auto_paste(bool _enable)
     }
 }
 
-void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, Rect rect, Vec2 position)
+void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const Rect& rect, const Vec2& position)
 {
     if( overlay_data.empty() ) return;
 
-    const auto& app = Nodable::get_instance();
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, g_conf->ui_overlay_window_bg_golor);
-    ImGui::PushStyleColor(ImGuiCol_Border, g_conf->ui_overlay_border_color);
-    ImGui::PushStyleColor(ImGuiCol_Text, g_conf->ui_overlay_text_color);
-    Vec2 win_position = rect.tl() + rect.size() * position;
+    Config* cfg = get_config();
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, cfg->ui_overlay_window_bg_golor);
+    ImGui::PushStyleColor(ImGuiCol_Border, cfg->ui_overlay_border_color);
+    ImGui::PushStyleColor(ImGuiCol_Text, cfg->ui_overlay_text_color);
+    Vec2 win_position = rect.top_left() + rect.size() * position;
     ImGui::SetNextWindowPos( win_position, ImGuiCond_Always, position);
     ImGui::SetNextWindowSize( rect.size(), ImGuiCond_Appearing);
     bool show = true;
@@ -334,7 +308,7 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 
     if (ImGui::Begin(title, &show, flags) )
     {
-        ImGui::Indent( g_conf->ui_overlay_indent);
+        ImGui::Indent( cfg->ui_overlay_indent);
         std::for_each(overlay_data.begin(), overlay_data.end(), [](const OverlayData& _data) {
             ImGui::Text("%s:", _data.label.c_str());
             ImGui::SameLine(150);
@@ -347,9 +321,8 @@ void FileView::draw_overlay(const char* title, const std::vector<OverlayData>& o
 
 void FileView::clear_overlay()
 {
-    std::for_each(m_overlay_data.begin(), m_overlay_data.end(), [&](auto &vec) {
+    for(auto& vec : m_overlay_data )
         vec.clear();
-    });
 }
 
 void FileView::push_overlay(OverlayData overlay_data, OverlayType overlay_type)
@@ -364,7 +337,7 @@ size_t FileView::size() const
 
 void FileView::refresh_overlay(Condition _condition )
 {
-    for (const IAction* _action: ActionManager::get_instance().get_actions())
+    for (const IAction* _action: get_action_manager()->get_actions())
     {
         if( ( _action->userdata & _condition) == _condition && (_action->userdata & Condition_HIGHLIGHTED) )
         {

@@ -7,15 +7,39 @@
 #include <string>
 #include <vector>
 
-#include "tools/core/log.h"
 #include "Texture.h"
+#include "tools/core/log.h"
+#include "tools/core/assertions.h"
 
 using namespace tools;
 
-Texture* TextureManager::load(const std::string& path)
+static TextureManager* g_texture_manager{ nullptr };
+
+TextureManager* tools::init_texture_manager()
+{
+    ASSERT(g_texture_manager == nullptr)
+    g_texture_manager = new TextureManager();
+    return g_texture_manager;
+}
+
+TextureManager* tools::get_texture_manager()
+{
+    return g_texture_manager;
+}
+
+void tools::shutdown_texture_manager(TextureManager* texture_manager)
+{
+    ASSERT(g_texture_manager == texture_manager)
+    ASSERT(g_texture_manager != nullptr)
+    g_texture_manager->release_all();
+    delete g_texture_manager;
+    g_texture_manager = nullptr;
+}
+
+Texture* TextureManager::load(const Path& path)
 {
     // Return if already exists
-    auto tex = m_register.find(path);
+    auto tex = m_register.find(path.string());
     if (tex != m_register.end() )
         return tex->second;
 
@@ -45,7 +69,7 @@ bool TextureManager::release_all()
     m_register.clear();
     return success;
 }
-Texture *TextureManager::load_png_to_gpu(const std::string &path)
+Texture *TextureManager::load_png_to_gpu(const Path &path)
 {
     auto* texture = new Texture();
 
@@ -55,7 +79,7 @@ Texture *TextureManager::load_png_to_gpu(const std::string &path)
     {
         delete texture;
         LOG_ERROR("TextureManager", "Unable to load png (code %u): %s\n",  error, path.c_str())
-        return nullptr;
+        VERIFY(false, "Unable to load png")
     }
 
     // 2. Load texture to GPU
@@ -67,22 +91,22 @@ Texture *TextureManager::load_png_to_gpu(const std::string &path)
         return nullptr;
     }
 
-    m_register.insert({path, texture});
+    m_register.emplace(path.string(), texture);
     LOG_MESSAGE("TextureManager", "File loaded to GPU: %s\n", path.c_str())
 
     return texture;
 }
 
-int TextureManager::load_png(const std::string &filename, Texture* texture)
+int TextureManager::load_png(const Path& path, Texture* texture)
 {
-    LOG_MESSAGE("TextureManager", "Loading PNG from disk %s ...\n", filename.c_str());
+    LOG_MESSAGE("TextureManager", "Loading PNG from disk %s ...\n", path.c_str());
     std::vector<unsigned char> buffer;
-    unsigned error = lodepng::load_file(buffer, filename); //load the image file with given filename
+    unsigned error = lodepng::load_file(buffer, path.string() ); //load the image file with given filename
     if (error) {
         LOG_MESSAGE("TextureManager", "Error: %i %s\n", error, lodepng_error_text(error) );
         return 1;
     }
-    LOG_MESSAGE("TextureManager", "Decoding PNG %s ...\n", filename.c_str());
+    LOG_MESSAGE("TextureManager", "Decoding PNG %s ...\n", path.c_str());
     error = lodepng::decode(texture->buffer, (unsigned&)texture->width, (unsigned&)texture->height, buffer); //decode the png
     if (error) {
         LOG_MESSAGE("TextureManager", "Error: %i %s\n", error, lodepng_error_text(error) );

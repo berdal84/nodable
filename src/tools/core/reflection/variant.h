@@ -6,79 +6,62 @@
 
 #include "tools/core/assertions.h"
 #include "tools/core/types.h"
-#include "tools/core/memory/Pool.h"
+#include "tools/core/memory/memory.h"
 #include "qword.h"
 #include "type.h"
 
 namespace tools
 {
     /**
-     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data property)
+     * @brief This class can hold several types such as: bool, double, std::string, etc.. (see m_data get_value)
      */
-	class variant {
+	class variant
+    {
     public:
-        variant()
-            : m_is_initialized(false)
-            , m_is_defined(false)
-            , m_type(type::any())
-            , m_type_change_allowed(false) // for now, variant can change type once
-        {}
-
-#define CONSTRUCTOR(type) variant(type val): variant() { set(val); }
-        CONSTRUCTOR(const std::string&)
-        CONSTRUCTOR(const char*)
-        CONSTRUCTOR(double)
-        CONSTRUCTOR(i16_t)
-        CONSTRUCTOR(i32_t)
-        CONSTRUCTOR(bool)
-        CONSTRUCTOR(null_t)
-#undef CONSTRUCTOR
-
-        variant(const variant&);
-        variant(variant&&);
+        variant();
         ~variant();
 
-        qword*      data() const { return const_cast<qword*>(&m_data); }
-        qword*      data() { return &m_data; }
-        bool        is_initialized() const;
-        bool        is_defined() const { return m_is_defined; }
-        void        ensure_is_type(const type* _type);
-        void        ensure_is_initialized(bool _initialize = true);
-        void        flag_defined(bool _defined = true);
-        void        reset_value();
-        template<typename T>
-        void        set(PoolID<T> id);
+        variant(const variant& other);
+        variant(const std::string& val);
+        variant(const char* val);
+        variant(double val);
+        variant(i16_t val) ;
+        variant(i32_t val);
+        variant(bool val);
+        variant(null_t val);
+
+        void        set(void* ptr);
         void        set(const std::string& _value);
         void        set(const char* _value);
-        void        set(null_t);;
+        void        set(null_t);
         void        set(double);
         void        set(bool);
         void        set(i16_t);
         void        set(i32_t);
         void        set(const variant&);
+
         const type* get_type()const;
+        bool        is_type(const tools::type*) const;
+        void        change_type(const type* _type);
+
+        void        clear_data();
+        const qword*data() const; // get ptr to underlying data (qword)
+
         template<typename T>
         T           to()const;
         variant&    operator=(const variant& other);
         explicit operator double&();
-        explicit operator u64_t&();
-        explicit operator u32_t&();
         explicit operator i32_t&();
         explicit operator i16_t&();
         explicit operator bool&();
         explicit operator std::string& ();
         explicit operator double() const;
-        explicit operator u64_t() const;
-        explicit operator u32_t() const;
         explicit operator i32_t() const;
         explicit operator i16_t() const;
         explicit operator bool() const;
         explicit operator std::string() const;
         explicit operator const char*() const;
-
-        template<typename T>
-        explicit operator PoolID<T> () const
-        { return PoolID<T>{(u64_t)*this}; }
+        explicit operator void* () const;
 
         template<typename T>
         T& as() { return (T)*this; }
@@ -86,22 +69,36 @@ namespace tools
         template<typename T>
         T as() const { return (T)*this; }
     private:
-	    static const type* normalize_type(const type *_type);
+        enum Type // Internal Type enum to speedup switch/cases
+        {
+            Type_null = 0,
+            Type_any, // "similar" to TypeScript's any.
+            Type_bool,
+            Type_double,
+            Type_i16,
+            Type_i32,
+            Type_string,
+            Type_ptr
+        };
 
-        bool        m_is_defined;
-        bool        m_is_initialized;
-        const type* m_type;
-        bool        m_type_change_allowed;
-        qword       m_data;
+        void change_type(Type new_type);
+        void init_mem();
+        void release_mem(); // undo init_mem()
+        bool is_mem_initialized() const;
+
+        static Type               type_to_enum(const tools::type*) ;
+        static const tools::type* enum_to_type(Type) ;
+
+        typedef int Flags;
+        enum Flag_
+        {
+            Flag_NONE                       = 0,
+            Flag_OWNS_HEAP_ALLOCATED_MEMORY = 1 << 0, // True when dynamically allocated memory is owned by this variant (ex: a std::string*)
+            Flag_ALLOWS_TYPE_CHANGE         = 1 << 1  // True if variant's type can change over time, by default its strict (type can be set once).
+        };
+
+        Type          m_type  = Type_any;
+        Flags         m_flags = Flag_NONE;
+        qword         m_data  = {};
     };
-
-
-    template<typename T>
-    void variant::set(PoolID<T> _id)
-    {
-        ensure_is_type(type::get<decltype(_id)>());
-        ensure_is_initialized();
-        m_data.u64 = (u64_t)_id;
-        flag_defined();
-    }
 }

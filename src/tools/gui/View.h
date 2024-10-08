@@ -1,9 +1,9 @@
 #pragma once
 
-#include "tools/core/geometry/Box2D.h"
-#include "tools/core/geometry/Rect.h"
 #include "tools/core/reflection/reflection"
-
+#include "geometry/Box.h"
+#include "geometry/Rect.h"
+#include "geometry/Space.h"
 #include "ImGuiEx.h" // ImGui with extensions
 
 namespace tools
@@ -15,20 +15,28 @@ namespace tools
 	class View
 	{
 	public:
-        bool is_visible;
-        bool is_hovered;
+        bool  visible;
+        bool  hovered;
+        bool  selected;
 
-		View();
+		explicit View();
 		virtual ~View() = default;
-        bool          draw();
-        virtual bool  onDraw() = 0;
-        tools::Vec2      position(Space) const; // Get position in a given Space
-        void          position(Vec2 _delta, Space ); // Set position in a given Space
-        Rect          rect(Space) const; // Get rectangle in a given Space
-        void          translate(Vec2 _delta);
-	protected:
-        Box2D parent_content_region;
-        Box2D box; // Screen space Box2D
-		REFLECT_BASE_CLASS()
+        virtual bool  draw();
+        tools::Vec2   get_pos(Space = SCREEN_SPACE) const;
+        void          set_pos(const Vec2&, Space = SCREEN_SPACE);
+        Rect          get_rect(Space = SCREEN_SPACE) const;
+        void          set_size(const Vec2&);
+        Vec2          get_size() const;
+        View*         get_parent() const;
+        void          add_child(View* view);
+        void          translate(const Vec2& delta);
+        const Rect&   get_content_region(Space = SCREEN_SPACE) const;
+    private:
+        View*         m_parent;
+        Rect          m_content_region; // Space available before to draw
+        Box           m_screen_box; // stored in SCREEN_SPACE
+        std::vector<View*> m_children;
+
+        REFLECT_BASE_CLASS()
     };
 }

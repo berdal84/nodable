@@ -5,8 +5,5 @@ namespace tools
     // Forward declaration
     class ActionManager;
 
-    class ActionManagerView
-    {
-    public: static void draw(ActionManager* manager);
-    };
+    void draw_action_manager_ui(ActionManager* manager);
 }

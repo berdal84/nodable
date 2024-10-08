@@ -7,12 +7,12 @@ include(scripts/cmake/set-build-ref-variable.cmake)
 
 # prerequisites:
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.15" CACHE STRING "Minimum OS X deployment version") # must be declared BEFORE project
-# 10.15 is earliest version supporting c++117
+set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum OS X deployment version") # must be declared BEFORE project
+# GitHub Actions does not support v11
 
 # project declaration
 project("Nodable"
-        VERSION "0.9"
+        VERSION "1.0"
         LANGUAGES CXX C)
 
 # options/variables
@@ -24,7 +24,7 @@ set(NDBL_APP_NAME "Nodable")
 set(NDBL_PACKAGE_DIR "${CMAKE_CURRENT_LIST_DIR}/out/package")  #     //
 set(NDBL_CONFIGURED_DIR "${PROJECT_BINARY_DIR}/configured/ndbl")
 set(NDBL_SKIP_TESTS OFF)
-option(TOOLS_NO_POOL "Disable Pool (for benchmark only)" OFF)
+set(TOOLS_POOL_ENABLE OFF) # Keep OFF until refactor, PoolID<T> is too intrusive.
 
 # set a build type to Release by default if not set:
 if ( NOT DEFINED CMAKE_BUILD_TYPE )
@@ -41,7 +41,7 @@ include(CheckPIESupported)
 check_pie_supported()
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD            17)
+set(CMAKE_CXX_STANDARD            17) # cpp20 uses char8_t instead of const char* for u8"string"...
 set(CMAKE_CXX_STANDARD_REQUIRED   ON)
 set(CMAKE_CXX_EXTENSIONS          ON)
 
@@ -63,6 +63,14 @@ endif ()
 #-------------------
 
 # Libraries: we only add the libraries that have a CMakeList, otherwise we append sources directly.
+
+include(FetchContent)
+FetchContent_Declare(
+        cpptrace
+        GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+        GIT_TAG        v0.5.4 # <HASH or TAG>
+)
+FetchContent_MakeAvailable(cpptrace)
 
 if (NOT NDBL_SKIP_TESTS)
     enable_testing()
@@ -117,45 +125,50 @@ include_directories(
     libs/IconFontCppHeaders
 )
 
+
 # 1.1) Framework Core
 #--------------------
 
 add_library(
     tools-core
     STATIC
-    libs/whereami/src/whereami.c
-    src/tools/core/core.cpp
-    src/tools/core/core.h
-    src/tools/core/Color.h
+    src/tools/core/Event.h
+    src/tools/core/EventManager.cpp
+    src/tools/core/EventManager.h
+    src/tools/core/StateMachine.cpp
+    src/tools/core/StateMachine.h
     src/tools/core/TIdentifier.h
+    src/tools/core/TaskManager.cpp
+    src/tools/core/TaskManager.cpp
+    src/tools/core/TaskManager.h
+    src/tools/core/TaskManager.h
     src/tools/core/assertions.h
-    src/tools/core/async.cpp
-    src/tools/core/async.h
     src/tools/core/format.cpp
     src/tools/core/format.h
-    src/tools/core/geometry/Box2D.h
-    src/tools/core/geometry/Rect.h
-    src/tools/core/geometry/Space.h
-    src/tools/core/geometry/Vec2.h
-    src/tools/core/geometry/Vec4.h
-    src/tools/core/geometry/XForm2D.h
     src/tools/core/hash.h
     src/tools/core/log.cpp
     src/tools/core/log.h
     src/tools/core/math.h
-    src/tools/core/memory/Pool.cpp
+    src/tools/core/memory/MemoryManager.cpp
+    src/tools/core/memory/MemoryManager.h
     src/tools/core/memory/Pool.h
+    src/tools/core/memory/Pool.inl
+    src/tools/core/memory/PoolManager.cpp
+    src/tools/core/memory/PoolManager.h
+    src/tools/core/memory/memory.h
+    src/tools/core/memory/pointers.cpp
+    src/tools/core/memory/pointers.h
+    src/tools/core/reflection/Invokable.h
     src/tools/core/reflection/Operator.h
     src/tools/core/reflection/Operator_t.h
+    src/tools/core/reflection/StaticInitializer.h
     src/tools/core/reflection/class.h
     src/tools/core/reflection/enum.h
     src/tools/core/reflection/func_type.cpp
-    src/tools/core/reflection/func_type.h
-    src/tools/core/reflection/invokable.h
+    src/tools/core/reflection/FuncType.h
     src/tools/core/reflection/qword.cpp
     src/tools/core/reflection/qword.h
     src/tools/core/reflection/reflection
-    src/tools/core/reflection/registration.h
     src/tools/core/reflection/type.cpp
     src/tools/core/reflection/type.h
     src/tools/core/reflection/type_register.cpp
@@ -164,9 +177,12 @@ add_library(
     src/tools/core/reflection/variant.cpp
     src/tools/core/reflection/variant.h
     src/tools/core/string.h
-    src/tools/core/system.cpp
-    src/tools/core/system.h
+    src/tools/core/System.cpp
+    src/tools/core/System.h
+    src/tools/core/FileSystem.cpp
+    src/tools/core/FileSystem.h
     src/tools/core/types.h
+    src/tools/gui/Color.h
     # libraries
     libs/whereami/src/whereami.c
     libs/whereami/src/whereami.h
@@ -178,12 +194,15 @@ target_link_libraries(
     Observe        # event system using observer/observable pattern.
     glm            # math
     Threads::Threads
+    cpptrace::cpptrace
 )
 
 add_executable(
     test-tools-core
     src/tools/core/reflection/reflection.specs.cpp
+    src/tools/core/reflection/func_type.builder.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
+    src/tools/core/memory/MemoryManager.specs.cpp
 )
 
 target_link_libraries(test-tools-core PUBLIC gtest_main gtest tools-core)
@@ -192,8 +211,11 @@ add_test(NAME test_framework_core COMMAND test-tools-core)
 add_executable(bench-fw-core-string src/tools/core/string.bench.cpp)
 target_link_libraries(bench-fw-core-string PUBLIC benchmark::benchmark tools-core)
 
-add_executable(bench-fw-core-Pool src/tools/core/memory/Pool.bench.cpp)
-target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark tools-core)
+if( TOOLS_POOL_ENABLE )
+    add_executable(bench-fw-core-Pool src/tools/core/memory/Pool.bench.cpp
+        NAMING.md)
+    target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark tools-core)
+endif()
 
 # 1.2) Framework GUI
 #-------------------
@@ -201,6 +223,16 @@ target_link_libraries(bench-fw-core-Pool PUBLIC benchmark::benchmark tools-core)
 add_library(
     tools-gui
     STATIC
+    src/tools/gui/geometry/Box.h
+    src/tools/gui/geometry/Box.cpp
+    src/tools/gui/geometry/Bezier.h
+    src/tools/gui/geometry/Bezier.cpp
+    src/tools/gui/geometry/Rect.h
+    src/tools/gui/geometry/Rect.cpp
+    src/tools/gui/geometry/Space.h
+    src/tools/gui/geometry/Vec2.h
+    src/tools/gui/geometry/Vec4.h
+    src/tools/gui/geometry/XForm2D.h
     src/tools/gui/Action.cpp
     src/tools/gui/Action.h
     src/tools/gui/ActionManager.cpp
@@ -211,12 +243,8 @@ add_library(
     src/tools/gui/App.h
     src/tools/gui/AppView.cpp
     src/tools/gui/AppView.h
-    src/tools/gui/gui.h
-    src/tools/gui/gui.cpp
+    src/tools/gui/Config.cpp
     src/tools/gui/Config.h
-    src/tools/gui/Event.h
-    src/tools/gui/EventManager.cpp
-    src/tools/gui/EventManager.h
     src/tools/gui/FontManager.cpp
     src/tools/gui/FontManager.h
     src/tools/gui/FontManagerConfig.h
@@ -228,6 +256,7 @@ add_library(
     src/tools/gui/TextureManager.h
     src/tools/gui/View.cpp
     src/tools/gui/View.h
+    src/tools/gui/ImGuiTypeConvert.h
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp
     libs/imgui/imgui_draw.cpp
@@ -299,7 +328,15 @@ endforeach ()
 #---------------------------------------
 
 # add executable
-add_executable(tools-gui-example WIN32 src/tools/gui-example/main.cpp)
+add_executable(
+    tools-gui-example
+    WIN32
+    src/tools/gui-example/main.cpp
+    src/tools/gui-example/AppExample.cpp
+    src/tools/gui-example/AppExample.h
+    src/tools/gui-example/AppExampleView.cpp
+    src/tools/gui-example/AppExampleView.h
+)
 target_link_libraries(tools-gui-example PUBLIC tools-gui)
 set_target_properties(tools-gui-example PROPERTIES POSITION_INDEPENDENT_CODE FALSE)       # required to run well on recent os (ex: ubuntu)
 set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${BUILD_PATH}") # fix working directory for visual studio
@@ -313,17 +350,14 @@ set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
 add_library(
     ndbl-core
     STATIC
-    src/ndbl/core/core.cpp
-    src/ndbl/core/core.h
-    src/ndbl/core/Component.cpp
-    src/ndbl/core/ComponentBag.cpp
+    src/ndbl/core/NodeComponent.cpp
+    src/ndbl/core/ComponentFactory.cpp
     src/ndbl/core/IfNode.cpp
-    src/ndbl/core/DataAccess.cpp
     src/ndbl/core/DirectedEdge.cpp
     src/ndbl/core/ForLoopNode.cpp
     src/ndbl/core/Graph.cpp
     src/ndbl/core/GraphUtil.cpp
-    src/ndbl/core/InvokableComponent.cpp
+    src/ndbl/core/InvokableNode.cpp
     src/ndbl/core/LiteralNode.cpp
     src/ndbl/core/Node.cpp
     src/ndbl/core/NodeFactory.cpp
@@ -331,18 +365,19 @@ add_library(
     src/ndbl/core/PropertyBag.cpp
     src/ndbl/core/Scope.cpp
     src/ndbl/core/Slot.cpp
-    src/ndbl/core/SlotRef.cpp
     src/ndbl/core/Token.cpp
     src/ndbl/core/TokenRibbon.cpp
     src/ndbl/core/VariableNode.cpp
-    src/ndbl/core/VirtualMachine.cpp
+    src/ndbl/core/Interpreter.cpp
     src/ndbl/core/WhileLoopNode.cpp
-    src/ndbl/core/assembly/Code.cpp
-    src/ndbl/core/assembly/Compiler.cpp
-    src/ndbl/core/assembly/Instruction.cpp
+    src/ndbl/core/Code.cpp
+    src/ndbl/core/Compiler.cpp
+    src/ndbl/core/Instruction.cpp
     src/ndbl/core/language/Nodlang.cpp
     src/ndbl/core/language/Nodlang_biology.cpp
     src/ndbl/core/language/Nodlang_math.cpp
+    src/ndbl/core/NodableHeadless.cpp
+    src/ndbl/core/NodableHeadless.h
 )
 
 target_link_libraries(
@@ -364,15 +399,14 @@ add_executable(
     test-ndbl-core
     src/ndbl/core/Graph.specs.cpp
     src/ndbl/core/Node.specs.cpp
-    src/ndbl/core/Property.specs.cpp
     src/ndbl/core/Slot.specs.cpp
     src/ndbl/core/Token.specs.cpp
-    src/ndbl/core/language/Nodlang.specs.cpp
+    src/ndbl/core/language/Nodlang.basics.specs.cpp
     src/ndbl/core/language/Nodlang.tokenize.specs.cpp
     src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp
     src/ndbl/core/language/Nodlang.parse_token.specs.cpp
-    src/ndbl/core/VirtualMachine.specs.cpp
-    src/ndbl/core/language/Nodlang.parse_and_eval.specs.cpp
+    src/ndbl/core/language/Nodlang.parse_and_serialize.specs.cpp
+    src/ndbl/core/Interpreter.specs.cpp
 )
 target_link_libraries(test-ndbl-core PUBLIC gtest_main gtest ndbl-core)
 add_test(NAME test_ndbl_core COMMAND test-ndbl-core)
@@ -430,18 +464,16 @@ configure_file(
 add_library(
     ndbl-gui
     STATIC
-    src/ndbl/gui/gui.cpp
-    src/ndbl/gui/gui.h
     src/ndbl/gui/Config.cpp
     src/ndbl/gui/Config.h
     src/ndbl/gui/GraphView.cpp
+    src/ndbl/gui/CreateNodeCtxMenu.cpp
     src/ndbl/gui/History.cpp
     src/ndbl/gui/File.cpp
     src/ndbl/gui/FileView.cpp
     src/ndbl/gui/Nodable.cpp
     src/ndbl/gui/NodableView.cpp
     src/ndbl/gui/NodeView.cpp
-    src/ndbl/gui/NodeViewConstraint.cpp
     src/ndbl/gui/Physics.cpp
     src/ndbl/gui/PropertyView.cpp
     src/ndbl/gui/SlotView.cpp

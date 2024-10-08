@@ -7,16 +7,18 @@
 #include "tools/gui/View.h"  // base class
 #include "tools/core/reflection/reflection"
 
-#include "ndbl/core/Component.h"  // base class
+#include "ndbl/core/NodeComponent.h"  // base class
 #include "ndbl/core/IScope.h"
 #include "ndbl/core/Scope.h"
 
 #include "Action.h"
 
 #include "NodeView.h"
-#include "NodeViewConstraint.h"
 #include "SlotView.h"
 #include "types.h"
+#include "ViewItem.h"
+#include "tools/core/StateMachine.h"
+#include "CreateNodeCtxMenu.h"
 
 namespace ndbl
 {
@@ -25,48 +27,87 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    struct CreateNodeContextMenu
+    enum SelectionMode
     {
-        bool      must_be_reset_flag   = false;
-        Vec2      opened_at_pos        {-1,-1}; // relative
-        Vec2      opened_at_screen_pos {-1,-1}; // absolute (screen space)
-        SlotView* dragged_slot         = nullptr;  // The slot being dragged when the context menu opened.
-        char      search_input[255]    = "\0";     // The search input entered by the user.
-        std::vector<Action_CreateNode*> items;                           // All the available items
-        std::vector<Action_CreateNode*> items_with_compatible_signature; // Only the items having a compatible signature (with the slot dragged)
-        std::vector<Action_CreateNode*> items_matching_search;           // Only the items having a compatible signature AND matching the search_input.
-
-        Action_CreateNode*        draw_search_input( size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
-        void                     reset_state(SlotView* _dragged_slot = nullptr);
-        void                     update_cache_based_on_signature();
-        void                     update_cache_based_on_user_input( size_t _limit );
+        SelectionMode_ADD     = 0,
+        SelectionMode_REPLACE = 1,
     };
 
-    class GraphView: public tools::View
+    class GraphView
     {
-	public:
-	    GraphView(Graph* graph);
-		~GraphView() override = default;
+        REFLECT_BASE_CLASS()
+    public:
+        typedef std::vector<NodeView*> NodeViewVec;
+        typedef tools::StateMachine    StateMachine;
 
-        bool        onDraw() override;
-        bool        update();
-        bool        update(float /* delta_time */);
-        bool        update(float /* delta_time */, i16_t /* subsample_count */);
-        void        frame_all_node_views();
-        void        frame_selected_node_views();
-        void        translate_all(const std::vector<NodeView*>&, Vec2 delta, NodeViewFlags);
-        void        unfold(); // unfold the graph until it is stabilized
+	    explicit GraphView(Graph* graph);
+		~GraphView() = default;
+
+        bool        draw();
         void        add_action_to_context_menu( Action_CreateNode* _action);
-        void        frame( FrameMode mode );
-
+        void        frame_nodes(FrameMode mode );
+        bool        selection_empty() const;
+        void        reset(); // unfold and frame the whole graph
+        bool        update();
+        bool        has_an_active_tool() const;
+        void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
+        const NodeViewVec& get_selected() const;
+        void        reset_all_properties();
+        std::vector<NodeView*> get_all_nodeviews() const;
+        static void        draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
+        Graph*      get_graph() const;
+        tools::View* base() { return &base_view; };
     private:
-        void        draw_grid( ImDrawList* ) const;
-        void        frame_views(const std::vector<NodeView *> &_views, bool _align_top_left_corner);
-        void        pan(Vec2); // translate content
+        void        unfold(); // unfold the graph until it is stabilized
+        bool        update(float dt);
+        bool        update(float dt, u16_t samples);
+        bool        is_selected(NodeView*) const;
+        void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
+        SlotView*   get_focused_slotview() const;
+        tools::Vec2 mouse_pos_snapped() const;
+        bool        begin_context_menu(); // ImGui style:   if ( begin_..() ) { ...code...  end_..() }
+        void        end_context_menu(bool show_search);
+        void        open_popup() const;
 
+        tools::View base_view;
         Graph*      m_graph;
-        CreateNodeContextMenu m_create_node_context_menu;
 
-		REFLECT_DERIVED_CLASS()
+        // Tool State Machine & States
+        //============================
+
+        constexpr static const char* POPUP_NAME = "GraphView.ContextMenuPopup";
+
+        struct ContextMenu
+        {
+            bool              open_last_frame = false;
+            bool              open_this_frame = false;
+            tools::Vec2       mouse_pos       = {};
+            CreateNodeCtxMenu node_menu       = {};
+        };
+
+        ContextMenu            m_context_menu{};
+        ViewItem               m_hovered{};
+        ViewItem               m_focused{};
+        std::vector<NodeView*> m_selected_nodeview;
+
+        // Tools State Machine
+        //--------------------
+
+        // The data (for some states)
+
+        tools::StateMachine    m_state_machine;
+        tools::Vec2            m_roi_state_start_pos;
+        tools::Vec2            m_roi_state_end_pos;
+        SlotView*              m_line_state_dragged_slotview{};
+
+        // The behavior
+
+        void cursor_state_tick();
+        void roi_state_enter();
+        void roi_state_tick();
+        void drag_state_enter();
+        void drag_state_tick();
+        void view_pan_state_tick();
+        void line_state_tick();
     };
 }

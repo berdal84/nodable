@@ -1,11 +1,15 @@
 #include "log.h"
 
-#include <iostream>
-
 using namespace tools;
 
-std::deque<log::Message> log::s_logs;
-log::Verbosity           log::s_verbosity = Verbosity_DEFAULT;
+log::Verbosity log::s_verbosity = Verbosity_DEFAULT;
+
+
+log::MessageDeque& log::get_messages()
+{
+    static std::deque<log::Message> logs;
+    return logs;
+}
 
 std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()
 {
@@ -14,31 +18,34 @@ std::map<std::string, log::Verbosity>& log::get_verbosity_by_category()
     return verbosity_by_category;
 }
 
+void log::set_verbosity(const std::string& _category, Verbosity _level)
+{
+    get_verbosity_by_category().insert_or_assign(_category, _level );
+}
+
+void log::set_verbosity(Verbosity _level)
+{
+    s_verbosity = _level;
+    get_verbosity_by_category().clear(); // ensure no overrides remains
+}
+
 log::Verbosity log::get_verbosity(const std::string& _category)
 {
     std::map<std::string, log::Verbosity>& verbosity_by_category = get_verbosity_by_category();
-    auto pair = verbosity_by_category.find(_category);
-    if (pair != verbosity_by_category.end() ) return pair->second;
+    const auto& pair = verbosity_by_category.find(_category);
+    if (pair != verbosity_by_category.end() )
+    {
+        return pair->second;
+    }
     return s_verbosity;
 }
 
-const char* log::to_string(log::Verbosity _verbosity)
+log::Verbosity log::get_verbosity()
 {
-    switch (_verbosity)
-    {
-        case Verbosity_Error:   return  "ERR";
-        case Verbosity_Warning: return  "WRN";
-        case Verbosity_Message: return  "MSG";
-        default:                return  "VRB";
-    }
+    return s_verbosity;
 }
 
 void log::flush()
 {
     std::cout << std::flush;
-}
-
-const std::deque<log::Message>& log::get_messages()
-{
-    return s_logs;
 }

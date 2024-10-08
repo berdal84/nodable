@@ -5,73 +5,53 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<VariableNode>("VariableNode").extends<Node>();
+    StaticInitializer<VariableNode>("VariableNode").extends<Node>();
 }
 
-
-VariableNode::VariableNode()
-: Node("Variable")
-, m_is_declared(false)
-, m_type(type::any())
+void VariableNode::init(const tools::type* _type, const char* _identifier)
 {
+    // Init node
+    Node::init(NodeType_VARIABLE, "Variable");
+
+    // Init identifier property
+    m_identifier = add_prop(_type, VALUE_PROPERTY );
+    m_identifier->set_token({Token_t::identifier, _identifier });
+
+    // Init Slots
+    add_slot(SlotFlag_INPUT, 1, m_identifier); // to connect an initialization expression
+    add_slot(SlotFlag_OUTPUT, Slot::MAX_CAPACITY, m_identifier); // can be connected by reference
+    // add_slot(SlotFlag_OUTPUT, Slot::MAX_CAPACITY, m_value);   // CANNOT be connected by value
+    add_slot(SlotFlag_OUTPUT, 1, m_this_as_property );
+    add_slot(SlotFlag_PREV, Slot::MAX_CAPACITY );
 }
 
-VariableNode::VariableNode(const tools::type *_type, const char* identifier)
-: Node("Variable")
-, identifier_token( Token_t::identifier )
-, m_is_declared( false )
-, m_type( _type )
+Scope* VariableNode::get_scope()
 {
-    set_name(identifier);
-}
-
-void VariableNode::init()
-{
-    Node::init();
-
-    m_value_property_id = add_prop( m_type, VALUE_PROPERTY, PropertyFlag_DEFAULT );
-    add_slot( SlotFlag_INPUT,  1, m_value_property_id);
-    add_slot( SlotFlag_OUTPUT, SLOT_MAX_CAPACITY, m_value_property_id);
-    add_slot( SlotFlag_OUTPUT, 1, m_this_property_id );
-
-    add_slot( SlotFlag_PREV, SLOT_MAX_CAPACITY );
-}
-
-PoolID<Scope> VariableNode::get_scope()
-{
-    Node* scope_node = m_scope.get();
-    return scope_node ? scope_node->get_component<Scope>() : PoolID<Scope>{};
-}
-
-const type *VariableNode::type() const
-{
-    return property()->get_type();
-}
-
-variant* VariableNode::value()
-{
-    return property()->value();
+    if (m_scope != nullptr)
+        return m_scope->get_component<Scope>(); // TODO: Scope should NOT be a Node, that's a nonsense.
+    return {};
 }
 
 void VariableNode::reset_scope(Scope* _scope)
 {
-    m_scope = _scope ? _scope->get_owner() : PoolID<Node>{};
+    if( _scope != nullptr )
+        m_scope = _scope->get_owner();
+    else
+        m_scope = {};
 }
 
-Property *VariableNode::property()
+Property* VariableNode::property()
 {
-    Property* p = get_prop_at( m_value_property_id );
-    ASSERT(p != nullptr)
-    return p;
+    ASSERT(m_identifier != nullptr)
+    return m_identifier;
 }
 
-const Property* VariableNode::property() const
+const Property* VariableNode::get_value() const
 {
-    const Property* p = get_prop_at( m_value_property_id );
-    ASSERT(p != nullptr)
-    return p;
+    ASSERT(m_identifier != nullptr)
+    return m_identifier;
 }
 
 Slot& VariableNode::input_slot()
@@ -81,7 +61,7 @@ Slot& VariableNode::input_slot()
 
 const Slot& VariableNode::input_slot() const
 {
-    return *find_slot_by_property_id( m_value_property_id, SlotFlag_INPUT );
+    return *find_slot_by_property(m_identifier, SlotFlag_INPUT );
 }
 
 Slot& VariableNode::output_slot()
@@ -91,5 +71,6 @@ Slot& VariableNode::output_slot()
 
 const Slot& VariableNode::output_slot() const
 {
-    return *find_slot_by_property_id( m_value_property_id, SlotFlag_OUTPUT );
+    return *find_slot_by_property(m_identifier, SlotFlag_OUTPUT );
 }
+

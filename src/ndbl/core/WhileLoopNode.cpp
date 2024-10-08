@@ -3,11 +3,13 @@
 using namespace ndbl;
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push_class<WhileLoopNode>("WhileLoopNode")
-        .extends<Node>()
-        .extends<IConditional>();
+    StaticInitializer<WhileLoopNode>("WhileLoopNode").extends<Node>();
 }
 
-WhileLoopNode::WhileLoopNode() {} // required to link static code above
+void WhileLoopNode::init(const std::string &_name)
+{
+    Node::init(NodeType_BLOCK_WHILE_LOOP, _name);
+    m_wrapped_conditional.init(this);
+}

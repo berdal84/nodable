@@ -11,9 +11,9 @@ namespace tools
         Ternary = 3,             // Ternary (ex: "<condition> ? <true> : <false> )
     };
 
-    R_ENUM(Operator_t)
-    R_ENUM_VALUE(Unary)
-    R_ENUM_VALUE(Binary)
-    R_ENUM_VALUE(Ternary)
-    R_ENUM_END
+    REFLECT_ENUM_CLASS(Operator_t)
+    REFLECT_ENUM_CLASS_VALUE(Unary)
+    REFLECT_ENUM_CLASS_VALUE(Binary)
+    REFLECT_ENUM_CLASS_VALUE(Ternary)
+    REFLECT_ENUM_CLASS_END
 }

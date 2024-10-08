@@ -14,19 +14,19 @@ namespace tools
 
     enum FontSlot
     {
-        FontSlot_Paragraph,
+        FontSlot_Paragraph = 0,
         FontSlot_Heading,
         FontSlot_Code,
         FontSlot_ToolBtn,
         FontSlot_COUNT
     };
 
-    R_ENUM(FontSlot)
-    R_ENUM_VALUE(FontSlot_Paragraph)
-    R_ENUM_VALUE(FontSlot_Heading)
-    R_ENUM_VALUE(FontSlot_Code)
-    R_ENUM_VALUE(FontSlot_ToolBtn)
-    R_ENUM_END
+    REFLECT_ENUM(FontSlot)
+    REFLECT_ENUM_VALUE(FontSlot_Paragraph)
+    REFLECT_ENUM_VALUE(FontSlot_Heading)
+    REFLECT_ENUM_VALUE(FontSlot_Code)
+    REFLECT_ENUM_VALUE(FontSlot_ToolBtn)
+    REFLECT_ENUM_END
 
     struct FontManagerConfig
     {

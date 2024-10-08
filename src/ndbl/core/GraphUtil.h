@@ -4,7 +4,7 @@
 
 namespace ndbl
 {
-#define IS_COMPONENT_GUARD(Class) static_assert(std::is_base_of_v<Component, Class>, "Class is not a Component");
+#define IS_COMPONENT_GUARD(Class) static_assert(std::is_base_of_v<NodeComponent, Class>, "Class is not a Component");
     class VariableNode;
 
     // Static functions to make life easier with graph related stuff
@@ -12,10 +12,10 @@ namespace ndbl
     {
     public:
         template<typename ComponentT>
-        static PoolID<ComponentT> adjacent_component_at(const Node* _node, SlotFlags _flags, u8_t _pos)
+        static ComponentT* adjacent_component_at(const Node* _node, SlotFlags _flags, u8_t _pos)
         {
             IS_COMPONENT_GUARD(ComponentT)
-            if( Node* adjacent_node = adjacent_node_at(_node, _flags, _pos).get() )
+            if( Node* adjacent_node = adjacent_node_at(_node, _flags, _pos) )
             {
                 return adjacent_node->get_component<ComponentT>();
             }
@@ -23,14 +23,14 @@ namespace ndbl
         }
 
         template<typename ComponentT>
-        static std::vector<PoolID<ComponentT>> adjacent_components(const Node* _node, SlotFlags _flags)
+        static std::vector<ComponentT*> adjacent_components(const Node* _node, SlotFlags _flags)
         {
             IS_COMPONENT_GUARD(ComponentT)
-            std::vector<PoolID<ComponentT>> result;
+            std::vector<ComponentT*> result;
             auto adjacent_nodes = get_adjacent_nodes( _node, _flags );
             for(auto adjacent_node : adjacent_nodes )
             {
-                if( PoolID<ComponentT> component = adjacent_node->get_component<ComponentT>() )
+                if( ComponentT* component = adjacent_node->get_component<ComponentT>() )
                 {
                     result.push_back( component );
                 }
@@ -38,24 +38,24 @@ namespace ndbl
             return result;
         }
 
-        static  std::vector<PoolID<Node>> get_adjacent_nodes(const Node* _node, SlotFlags _flags)
+        static  std::vector<Node*> get_adjacent_nodes(const Node* _node, SlotFlags _flags)
         {
-            std::vector<PoolID<Node>> result;
+            std::vector<Node*> result;
             for ( Slot* slot : _node->filter_slots( _flags ) )
             {
-                for( const SlotRef& adjacent : slot->adjacent() )
+                for( const Slot* adjacent : slot->adjacent() )
                 {
-                    result.emplace_back( adjacent.node );
+                    result.emplace_back( adjacent->get_node() );
                 }
             }
             return result;
         }
 
-        static PoolID<Node> adjacent_node_at(const Node* _node, SlotFlags _flags, u8_t _pos)
+        static Node* adjacent_node_at(const Node* _node, SlotFlags _flags, u8_t _pos)
         {
             if ( Slot* adjacent_slot = _node->find_adjacent_at( _flags, _pos ) )
             {
-                return adjacent_slot->node;
+                return adjacent_slot->get_node();
             }
             return {};
         }

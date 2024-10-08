@@ -1,41 +1,33 @@
 #pragma once
 
 #include <unordered_map>
-
-#include "tools/core/geometry/Rect.h"
-#include "tools/core/memory/Pool.h"
-
-#include "ndbl/core/Node.h"
-#include "ndbl/core/VariableNode.h"
+#include "tools/gui/View.h"
 
 namespace ndbl
 {
     // forward declarations
     class Property;
     class NodeView;
-    using tools::ID;
-    using tools::PoolID;
+    class Node;
+    class VariableNode;
 
     /**
-     * Simple struct to store a property view state
+     * Simple struct to store a get_value view state
      */
-    class PropertyView
+    class PropertyView : public tools::View
     {
     public:
-        ID<Property>     property_id;
-        PoolID<NodeView> node_view;
-        tools::Rect         screen_rect;
-        bool             show_input;
-        bool             touched;
+        bool        show_input;
+        bool        touched;
 
-        PropertyView();
-        PropertyView( PoolID<NodeView> _node_view, ID<Property> _id );
-        PropertyView (const PropertyView&);
+        PropertyView(Property*);
 
         void             reset();
         Property*        get_property() const;
         Node*            get_node() const;
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
+    private:
+        Property*        m_property;
     };
 }

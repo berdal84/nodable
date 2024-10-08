@@ -1,37 +1,48 @@
-#include "reflection"
-#include <stdexcept>   // std::runtime_error
 #include "type.h"
-#include "invokable.h"
+#include "Invokable.h"
+#include "reflection"
+#include <stdexcept>// std::runtime_error
 
 using namespace tools;
 
-REGISTER
+REFLECT_STATIC_INIT
 {
-    registration::push<double>("double");
-    registration::push<std::string>("string");
-    registration::push<bool>("bool");
-    registration::push<void>("void");
-    registration::push<void*>("void*");
-    registration::push< i8_t>("i8");
-    registration::push<i16_t>("int");
-    registration::push<i32_t>("i32");
-    registration::push<i64_t>("i64");
-    registration::push<any_t>("any");
-    registration::push<null_t>("null");
+    // declare some types manually to get friendly names
+
+    StaticInitializer<double>("double");
+    StaticInitializer<std::string>("string");
+    StaticInitializer<bool>("bool");
+    StaticInitializer<void>("void");
+    StaticInitializer<void*>("void*");
+    StaticInitializer< i8_t>("i8");
+    StaticInitializer<i16_t>("int");
+    StaticInitializer<i32_t>("i32");
+    StaticInitializer<i64_t>("i64");
+    StaticInitializer<any_t>("any");
+    StaticInitializer<null_t>("null");
 }
 
 type::type(
-        id_t _id,
+    id_t _id,
     id_t _primitive_id,
     const char* _name,
     const char* _compiler_name,
     Flags _flags)
-    : m_id(_id)
-    , m_primitive_id(_primitive_id)
-    , m_name(_name)
-    , m_compiler_name(_compiler_name)
-    , m_flags(_flags)
+: m_id(_id)
+, m_primitive_id(_primitive_id)
+, m_name(_name)
+, m_compiler_name(_compiler_name)
+, m_flags(_flags)
 {
+}
+
+type::~type()
+{
+    for (auto* each : m_methods )
+        delete each;
+
+    for (auto* each : m_static_methods )
+        delete each;
 }
 
 const type* type::any()
@@ -131,19 +142,19 @@ void type::add_child(id_t _child)
     m_flags |= Flags_HAS_CHILD;
 }
 
-void type::add_static(const std::string& _name, std::shared_ptr<iinvokable> _invokable)
+void type::add_static(const std::string& _name, const FuncType* _func_type)
 {
-    m_static_methods.insert(_invokable);
-    m_static_methods_by_name.insert({_name, _invokable});
+    m_static_methods.insert(_func_type);
+    m_static_methods_by_name.insert({_name, _func_type});
 }
 
-void type::add_method(const std::string &_name, std::shared_ptr<iinvokable_nonstatic> _invokable)
+void type::add_method(const std::string& _name, const FuncType* _func_type)
 {
-    m_methods.insert(_invokable);
-    m_methods_by_name.insert({_name, _invokable});
+    m_methods.insert(_func_type);
+    m_methods_by_name.insert({_name, _func_type});
 }
 
-std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name) const
+const FuncType* type::get_method(const std::string& _name) const
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )
@@ -153,7 +164,7 @@ std::shared_ptr<iinvokable_nonstatic> type::get_method(const std::string& _name)
     return nullptr;
 }
 
-std::shared_ptr<iinvokable> type::get_static(const std::string& _name)const
+const FuncType* type::get_static(const std::string& _name)const
 {
     auto found = m_static_methods_by_name.find(_name);
     if( found != m_static_methods_by_name.end() )
@@ -165,5 +176,6 @@ std::shared_ptr<iinvokable> type::get_static(const std::string& _name)const
 
 bool type::equals(const type *left, const type *right)
 {
-    return left->m_id == right->m_id;
+    ASSERT(left != nullptr)
+    return right != nullptr && left->m_id == right->m_id;
 }

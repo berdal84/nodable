@@ -1,11 +1,45 @@
 #include "Config.h"
 #include "build_info.h"
-#include "tools/gui/gui.h"
+#include "tools/gui/Color.h"
+#include "tools/gui/Config.h"
 
 using namespace tools;
 
-ndbl::Config::Config()
+ndbl::Config* g_conf{nullptr};
+
+ndbl::Config* ndbl::init_config()
 {
+    ASSERT(g_conf == nullptr);
+
+    // Make sure to get a valid tools::Config
+    tools::Config* tools_cfg = tools::get_config();
+    if ( tools_cfg == nullptr )
+    {
+        tools_cfg = tools::init_config();
+    }
+
+    g_conf = new Config(tools_cfg);
+
+    return g_conf;
+}
+
+void ndbl::shutdown_config(Config* config)
+{
+    ASSERT(g_conf == config); // singleton
+    tools::shutdown_config(g_conf->tools_cfg);
+    delete g_conf;
+    g_conf = nullptr;
+}
+
+ndbl::Config* ndbl::get_config()
+{
+    return g_conf;
+}
+
+ndbl::Config::Config(tools::Config* _tools_cfg)
+{
+    VERIFY(_tools_cfg != nullptr, "tools config not initialised");
+    tools_cfg = _tools_cfg;
     ui_splashscreen_imagePath       = "images/nodable-logo-xs.png";
     ui_text_textEditorPalette       = {
             0xffffffff, // None
@@ -34,40 +68,49 @@ ndbl::Config::Config()
     // nodes
     ui_node_borderWidth                   = 1.0f;
     ui_node_instructionBorderRatio        = 2.0f;
-    ui_node_padding                       = { 8.0f, 4.0f, 4.0f, 4.0f };
-    ui_slot_radius = 4.0f;
-    ui_node_invokableColor                = Color(255, 199, 115);            // light orange
-    ui_node_variableColor                 = Color( 171, 190, 255);           // blue
-    ui_node_instructionColor              = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
-    ui_node_literalColor                  = Vec4(0.75f, 0.75f, 0.75f, 1.0f); // light grey
-    ui_node_condStructColor               = Vec4(1.f, 1.f, 1.f, 1.0f);       // white
-    ui_node_fillColor                     = Vec4(0.7f, 0.9f, 0.7f, 1.0f);    // green
+    ui_node_padding                       = Vec4{ 8.0f, 4.0f, 4.0f, 4.0f };
+    ui_slot_circle_radius_base            = 4.0f;
+    ui_node_fill_color = {
+        Color(255, 255, 255), // NodeType_DEFAULT
+        Color(255, 255, 255), // NodeType_BLOCK_CONDITION
+        Color(255, 255, 255), // NodeType_BLOCK_FOR_LOOP
+        Color(255, 255, 255), // NodeType_BLOCK_WHILE_LOOP
+        Color(255, 255, 255), // NodeType_BLOCK_SCOPE
+        Color(171, 190, 255), // NodeType_VARIABLE
+        Color(200, 200, 200), // NodeType_LITERAL
+        Color(255, 199, 115), // NodeType_FUNCTION
+        Color(255, 199, 115)  // NodeType_OPERATOR
+    };
+
+    ui_node_instructionColor              = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green
     ui_node_highlightedColor              = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-    ui_slot_border_color = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_node_borderColor                   = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_borderHighlightedColor        = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_shadowColor                   = Vec4(0.0f, 0.0f, 0.0f, 0.2f);
-    ui_slot_hovered_color = Color(200, 200, 200);
-    ui_slot_color = Color(127, 127, 127);
-    ui_node_spacing                       = 30.0f;
+
+    ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
+    ui_slot_hovered_color                 = Color(200, 200, 200);
+    ui_slot_color                         = Color(127, 127, 127);
+    ui_node_gap_base                      = Vec2(40.0f, 40.f);
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
-    ui_slot_size = {10.f, 10.f};
-    ui_slot_gap = 4.0f;
-    ui_slot_border_radius = 0.1f;
-    ui_slot_invisible_ratio = 1.2f; // 120%
+    ui_node_detail                        = ViewDetail::ESSENTIAL;
+    ui_slot_rectangle_size                = Vec2{10.f, 10.f};
+    ui_slot_gap                           = 4.0f;
+    ui_slot_border_radius                 = 0.1f;
+    ui_slot_invisible_ratio               = 2.f; // 200%
 
     // wires
-    ui_wire_bezier_roundness              = {0.25f, 2.0f};
+    ui_wire_bezier_roundness              = Vec2{0.25f, 2.0f};
     ui_wire_bezier_thickness              = 2.0f;
-    ui_wire_bezier_fade_length_minmax     = {300.0f, 1000.0f};
-    ui_wire_color                         = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    ui_wire_bezier_fade_lensqr_range      = {300.0f*300.f, 1000.0f*1000.0f};
+    ui_wire_color                         = Color(255, 255, 255);
     ui_wire_shadowColor                   = ui_node_shadowColor;
 
     // code flow
     ui_codeflow_color                     = Color(150, 170, 140); // slightly green
     ui_codeflow_shadowColor               = Color(0, 0, 0, 64);
-    ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_slot_size.x
+    ui_codeflow_thickness_ratio           = 0.45f; // relative to ui_slot_rectangle_size.x
 
     // buttons
     ui_toolButton_size                    = Vec2(0.0f, 25.0f);
@@ -93,7 +136,7 @@ ndbl::Config::Config()
     ui_config_window_label                = "Settings";
     ui_startup_window_label               = "Startup";
     ui_toolbar_window_label               = "Toolbar";
-    ui_virtual_machine_window_label       = "VM";
+    ui_interpreter_window_label       = "VM";
 
     // Graph
     ui_graph_grid_color_major             = Color(0, 0, 0, 42);
@@ -102,23 +145,23 @@ ndbl::Config::Config()
     ui_grid_size = 100.0f;
 
     // Misc.
-    experimental_graph_autocompletion     = false;
-    experimental_hybrid_history           = false;
-    isolation = Isolation_OFF;
+    flags                                 = ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY
+                                          | ConfigFlag_EXPERIMENTAL_MULTI_SELECTION;
+    isolation                             = Isolation_OFF;
     graph_unfold_dt                       = 1.5f;
     graph_unfold_iterations               = 100;
 
     // NodableView
-    tools::g_conf->dockspace_right_ratio       = 0.25f;
-    tools::g_conf->dockspace_top_size          = 36.f;
-    tools::g_conf->dockspace_bottom_size       = 100.f;
+    tools_cfg->dockspace_right_ratio       = 0.25f;
+    tools_cfg->dockspace_top_size          = 36.f;
+    tools_cfg->dockspace_bottom_size       = 110.f;
 
     const char *k_paragraph = "Paragraph";
     const char *k_heading   = "Heading 1";
     const char *k_code      = "Code";
     const char *k_tool      = "Tool Button";
 
-    tools::g_conf->font_manager.text = {
+    tools_cfg->font_manager.text = {
         // id          , font_path                           , size , icons? , icons size
         { k_paragraph  , "fonts/JetBrainsMono-Regular.ttf"   , 16.0f, true   , 16.0f      },
         { k_heading    , "fonts/JetBrainsMono-Bold.ttf"      , 20.0f, true   , 20.0f      },
@@ -126,13 +169,14 @@ ndbl::Config::Config()
         { k_tool       , "fonts/JetBrainsMono-Medium.ttf"    , 16.0f, true   , 16.0f      }
     };
 
-    tools::g_conf->font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
-    tools::g_conf->font_manager.defaults[FontSlot_Heading]   = k_heading;
-    tools::g_conf->font_manager.defaults[FontSlot_Code]      = k_code;
-    tools::g_conf->font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
-    tools::g_conf->font_manager.subsamples                   = 1.0f;
-    tools::g_conf->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
-    tools::g_conf->app_window_label                          = BuildInfo::version_extended;
+    tools_cfg->font_manager.defaults[FontSlot_Paragraph] = k_paragraph;
+    tools_cfg->font_manager.defaults[FontSlot_Heading]   = k_heading;
+    tools_cfg->font_manager.defaults[FontSlot_Code]      = k_code;
+    tools_cfg->font_manager.defaults[FontSlot_ToolBtn]   = k_tool;
+    tools_cfg->font_manager.subsamples                   = 1.0f;
+    tools_cfg->font_manager.icon                         = {"Icons", "fonts/fa-solid-900.ttf" };
+    tools_cfg->app_default_title = BuildInfo::version_extended;
+
 }
 
 int ndbl::Config::ui_grid_subdiv_size() const
@@ -142,10 +186,20 @@ int ndbl::Config::ui_grid_subdiv_size() const
 
 void ndbl::Config::reset()
 {
-    *this = {};
+    *this = { tools_cfg };
 }
 
 float ndbl::Config::ui_codeflow_thickness() const
 {
-    return ui_slot_size.x * ui_codeflow_thickness_ratio;
+    return ui_slot_rectangle_size.x * ui_codeflow_thickness_ratio;
+}
+
+Vec2 ndbl::Config::ui_node_gap(Size size)
+{
+    return ui_node_gap_base * tools_cfg->size_factor[size];
+}
+
+float ndbl::Config::ui_slot_circle_radius(tools::Size size)
+{
+    return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
 }
