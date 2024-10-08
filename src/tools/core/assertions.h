@@ -32,7 +32,9 @@ static_assert(false, "ASSERT_ is reserved for tools, it should not be defined he
 
 #include "Exceptions.h"
 
-#pragma error "VERIFY_ is reserved for tools, it should not be defined here."
+#ifdef VERIFY_
+static_assert(false, "VERIFY_ is reserved for tools, it should not be defined here.")
+#endif
 
 #define VERIFY_(expression, message_if_fails )\
 if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
