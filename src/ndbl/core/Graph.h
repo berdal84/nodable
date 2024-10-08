@@ -109,7 +109,7 @@ namespace ndbl
 
 		std::vector<Node*>               m_node_registry;        // registry to store all the nodes from this graph.
         std::multimap<SlotFlags , DirectedEdge> m_edge_registry; // registry ot all the edges (directed edges) between the registered nodes' properties.
-        Node*              m_root;             // Graph root (main scope), without it a graph cannot be compiled.
+        Node*              m_root{nullptr};             // Graph root (main scope), without it a graph cannot be compiled.
         const NodeFactory* m_factory{nullptr};
         bool               m_is_dirty{false};
         GraphView*         m_view{nullptr};    // non-owned

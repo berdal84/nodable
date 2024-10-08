@@ -26,7 +26,7 @@ Graph::~Graph()
 
 void Graph::clear()
 {
-    if ( !m_root && m_node_registry.empty() && m_edge_registry.empty() )
+    if ( m_root == nullptr && m_node_registry.empty() && m_edge_registry.empty() )
     {
         return;
     }

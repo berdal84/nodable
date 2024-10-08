@@ -55,6 +55,15 @@ NodeView::NodeView()
     m_base_view.set_size(DEFAULT_SIZE);
 }
 
+NodeView::~NodeView()
+{
+    for(auto& [_, each] : m_property_views )
+        delete each;
+
+    for(auto* each : m_slot_views )
+        delete each;
+}
+
 std::string NodeView::get_label()
 {
     Config* cfg = get_config();
@@ -1071,15 +1080,6 @@ GraphView *NodeView::get_graph() const
 {
     ASSERT(get_node()->get_parent_graph() != nullptr)
     return get_node()->get_parent_graph()->get_view();
-}
-
-NodeView::~NodeView()
-{
-    for(auto& [_, each] : m_property_views )
-        delete each;
-
-    for(auto* each : m_slot_views )
-        delete each;
 }
 
 void NodeView::draw_slot(SlotView* slot_view)

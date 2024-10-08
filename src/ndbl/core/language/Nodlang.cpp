@@ -1262,7 +1262,7 @@ ForLoopNode* Nodlang::parse_for_loop()
 WhileLoopNode* Nodlang::parse_while_loop()
 {
     bool success = false;
-    WhileLoopNode* while_loop_node;
+    WhileLoopNode* while_loop_node = nullptr;
     start_transaction();
 
     Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while);
