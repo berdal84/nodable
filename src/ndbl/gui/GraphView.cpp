@@ -346,6 +346,12 @@ bool GraphView::draw()
     m_hovered = hovered;
     m_state_machine.tick();
 
+    if ( begin_context_menu() )
+    {
+        bool show_search = m_hovered.empty();
+        end_context_menu(show_search);
+    }
+
     // Debug Infos
     Config *cfg1 = get_config();
     if (cfg1->tools_cfg->runtime_debug)
@@ -732,12 +738,6 @@ void GraphView::cursor_state_tick()
             }
         }
         m_focused = {};
-    }
-
-    if ( begin_context_menu() )
-    {
-        bool show_search = m_hovered.empty();
-        end_context_menu(show_search);
     }
 }
 
