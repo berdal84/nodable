@@ -102,9 +102,7 @@ tools::string64 SlotView::compute_tooltip() const
 bool SlotView::draw()
 {
     if( !visible )
-    {
         return false;
-    };
 
     View::draw();
 
@@ -129,6 +127,7 @@ bool SlotView::draw()
     ImGui::InvisibleButton("###", rect.size() * cfg->ui_slot_invisible_ratio);
     ImGui::PopID();
     hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    Vec4 fill_color = hovered ? hover_color : color;
 
     // draw shape
     switch (m_shape)
@@ -136,8 +135,6 @@ bool SlotView::draw()
         case ShapeType_CIRCLE:
         {
             float r = cfg->ui_slot_circle_radius();
-
-            Vec4 fill_color = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly) ? hover_color : color;
             draw_list->AddCircleFilled(pos, r, ImColor(fill_color));
             draw_list->AddCircle(pos, r, ImColor(border_color) );
             break;
@@ -148,8 +145,6 @@ bool SlotView::draw()
             bool bottom = m_slot->has_flags(SlotFlag_ORDER_FIRST);
             ImDrawCornerFlags corner_flags = bottom ? ImDrawCornerFlags_Bot
                                                     : ImDrawCornerFlags_Top;
-            hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
-            Vec4 fill_color = hovered ? hover_color : color;
             draw_list->AddRectFilled(rect.min, rect.max, ImColor(fill_color), border_radius, corner_flags );
             draw_list->AddRect(rect.min, rect.max, ImColor(border_color), border_radius, corner_flags );
             break;

@@ -62,6 +62,7 @@ GraphView::GraphView(Graph* graph)
     m_state_machine.bind_tick(VIEW_PAN_STATE, &GraphView::view_pan_state_tick);
 
     m_state_machine.add_state(LINE_STATE);
+    m_state_machine.bind_enter(LINE_STATE, &GraphView::line_state_enter);
     m_state_machine.bind_tick(LINE_STATE, &GraphView::line_state_tick);
 
 
@@ -126,12 +127,11 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 bool GraphView::draw()
 {
     base_view.draw();
-
+    m_hovered = {};
     Config*         cfg                    = get_config();
-    Interpreter* interpreter        = get_interpreter();
+    Interpreter*    interpreter            = get_interpreter();
     bool            changed                = false;
     ImDrawList*     draw_list              = ImGui::GetWindowDrawList();
-    ViewItem        hovered                = {};
     const bool      enable_edition         = interpreter->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
 
@@ -215,8 +215,8 @@ bool GraphView::draw()
                         head_pos,
                 };
                 ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
-                if (ImGui::GetHoveredID() == id && hovered.empty())
-                    hovered = EdgeViewItem{tail, head};
+                if (ImGui::GetHoveredID() == id && m_hovered.empty() )
+                    m_hovered = {tail, head};
             }
         }
     }
@@ -297,8 +297,8 @@ bool GraphView::draw()
                 // TODO: this block is repeated twice
                 ImGuiID id = make_wire_id(&slotview->get_slot(), adjacent_slot);
                 ImGuiEx::DrawWire(id, draw_list, segment, style);
-                if (ImGui::GetHoveredID() == id && hovered.empty())
-                    hovered = EdgeViewItem{slotview, adjacent_slotview};
+                if (ImGui::GetHoveredID() == id && m_hovered.empty())
+                    m_hovered = {slotview, adjacent_slotview};
             }
         }
     }
@@ -312,7 +312,14 @@ bool GraphView::draw()
         changed |= nodeview->draw();
 
         if ( nodeview->hovered() ) // no check if something else is hovered, last node always win against an edge
-            hovered = NodeViewItem{nodeview};
+        {
+            if ( nodeview->m_hovered_slotview != nullptr)
+            {
+                m_hovered = {nodeview->m_hovered_slotview};
+            }
+            else
+                m_hovered = {nodeview};
+        }
 
         // VM Cursor (scroll to the next node when VM is debugging)
         if (interpreter->is_debugging())
@@ -343,7 +350,6 @@ bool GraphView::draw()
         }
     }
 
-    m_hovered = hovered;
     m_state_machine.tick();
 
     if ( begin_context_menu() )
@@ -359,8 +365,8 @@ bool GraphView::draw()
         if (ImGui::Begin("GraphViewToolStateMachine"))
         {
             ImGui::Text("current_tool:         %s", m_state_machine.get_current_state_name());
-            ImGui::Text("m_focused.type:       %i", (int) m_focused.index());
-            ImGui::Text("m_hovered.type:       %i", (int) m_hovered.index());
+            ImGui::Text("m_focused.type:       %i", m_focused.type );
+            ImGui::Text("m_hovered.type:       %i", m_hovered.type );
             Vec2 mouse_pos = ImGui::GetMousePos();
             ImGui::Text("m_mouse_pos:          (%f, %f)", mouse_pos.x, mouse_pos.y);
             ImGui::Text("m_mouse_pos (snapped):(%f, %f)", mouse_pos_snapped().x, mouse_pos_snapped().y);
@@ -566,8 +572,9 @@ tools::Vec2 GraphView::mouse_pos_snapped() const
 {
     if ( m_context_menu.open_this_frame )
         return m_context_menu.mouse_pos;
-    if ( m_hovered.is<SlotViewItem>() )
-        return m_hovered.get<SlotViewItem>()->get_pos();
+    if ( m_hovered.type == ViewItemType_NODE )
+        if ( m_hovered.nodeview->m_hovered_slotview != nullptr )
+            return m_hovered.nodeview->m_hovered_slotview->get_pos();
     return ImGui::GetMousePos();
 }
 
@@ -612,8 +619,8 @@ void GraphView::end_context_menu(bool show_search)
 
 SlotView *GraphView::get_focused_slotview() const
 {
-    if( m_focused.is<SlotViewItem>() )
-        return m_focused.get<SlotViewItem>();
+    if( m_focused.type == ViewItemType_SLOT )
+        return m_focused.slotview;
     return nullptr;
 }
 
@@ -666,97 +673,108 @@ void GraphView::view_pan_state_tick()
 
 void GraphView::cursor_state_tick()
 {
-    if ( !ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
-        return;
-
-    if ( m_hovered.is<NodeViewItem>() )
+    switch (m_hovered.type)
     {
-        if ( m_hovered.get<NodeViewItem>()->m_hovered_slotview != nullptr )
+        case ViewItemType_SLOT:
         {
-            if ( ImGui::IsMouseDragging(0) )
+            if ( ImGui::IsMouseDown(0) )
             {
-                m_line_state_dragged_slotview = m_hovered.get<NodeViewItem>()->m_hovered_slotview;
+                m_line_state_dragged_slotview = m_hovered.slotview;
                 m_state_machine.change_state(LINE_STATE);
             }
+            break;
         }
-        else if ( ImGui::IsMouseReleased(0) )
+
+        case ViewItemType_NODE:
         {
-            // TODO: handle remove!
-            // Add/Remove/Replace selection
-            SelectionMode flags = SelectionMode_REPLACE;
-            if ( ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl) )
-                flags = SelectionMode_ADD;
-            std::vector<NodeView*> new_selection{m_hovered.get<NodeViewItem>()};
-            set_selected(new_selection, flags);
-            m_focused = m_hovered;
-        }
-        else if ( ImGui::IsMouseDoubleClicked(0) )
-        {
-            m_hovered.get<NodeViewItem>()->expand_toggle();
-            m_focused = m_hovered;
-        }
-        else if ( ImGui::IsMouseDragging(0) )
-        {
-            if ( !m_hovered.get<NodeViewItem>()->selected() )
-                set_selected({m_hovered.get<NodeViewItem>()});
-            m_state_machine.change_state(DRAG_STATE);
-        }
-    }
-    else if ( m_hovered.is<EdgeViewItem>() )
-    {
-        if (ImGui::IsMouseDragging(0, 0.1f) )
-            m_focused = m_hovered;
-        else if ( ImGui::IsMouseClicked(1) )
-        {
-            m_focused = m_hovered;
-            ImGui::OpenPopup(GraphView::POPUP_NAME);
-        }
-    }
-    else if ( m_hovered.empty() )
-    {
-        if (ImGui::IsMouseClicked(0))
-        {
-            // Deselect All (Click on the background)
-            set_selected({}, SelectionMode_REPLACE);
-        }
-        else if (ImGui::IsMouseReleased(1))
-        {
-            ImGui::OpenPopup(GraphView::POPUP_NAME);
-        }
-        else if (ImGui::IsMouseDragging(0) )
-        {
-            if ( ImGui::IsKeyDown(ImGuiKey_Space) )
+            VERIFY(m_hovered.nodeview->m_hovered_slotview == nullptr, "This should not be allowed")
+
+            if ( ImGui::IsMouseReleased(0) )
             {
-                m_state_machine.change_state(VIEW_PAN_STATE);
+                // TODO: handle remove!
+                // Add/Remove/Replace selection
+                SelectionMode flags = SelectionMode_REPLACE;
+                if ( ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl) )
+                    flags = SelectionMode_ADD;
+                set_selected({m_hovered.nodeview}, flags);
+                m_focused = m_hovered;
             }
-            else
+            else if ( ImGui::IsMouseDoubleClicked(0) )
             {
-                m_state_machine.change_state(ROI_STATE);
+                m_hovered.nodeview->expand_toggle();
+                m_focused = m_hovered;
             }
+            else if ( ImGui::IsMouseDragging(0) )
+            {
+                if ( !m_hovered.nodeview->selected() )
+                    set_selected({m_hovered.nodeview});
+                m_state_machine.change_state(DRAG_STATE);
+            }
+            break;
         }
-        m_focused = {};
+
+        case ViewItemType_EDGE:
+        {
+            if (ImGui::IsMouseDragging(0, 0.1f) )
+                m_focused = m_hovered;
+            else if ( ImGui::IsMouseClicked(1) )
+            {
+                m_focused = m_hovered;
+                ImGui::OpenPopup(GraphView::POPUP_NAME);
+            }
+            break;
+        }
+
+        case ViewItemType_NULL:
+        {
+            if (ImGui::IsMouseClicked(0))
+            {
+                // Deselect All (Click on the background)
+                set_selected({}, SelectionMode_REPLACE);
+            }
+            else if (ImGui::IsMouseReleased(1))
+            {
+                ImGui::OpenPopup(GraphView::POPUP_NAME);
+            }
+            else if (ImGui::IsMouseDragging(0) )
+            {
+                if ( ImGui::IsKeyDown(ImGuiKey_Space) )
+                {
+                    m_state_machine.change_state(VIEW_PAN_STATE);
+                }
+                else
+                {
+                    m_state_machine.change_state(ROI_STATE);
+                }
+            }
+            break;
+        }
+
+        default:
+            VERIFY(false, "Unhandled case, must be implemented!")
     }
 }
 
 //-----------------------------------------------------------------------------
 
+void GraphView::line_state_enter()
+{
+    VERIFY(m_line_state_dragged_slotview != nullptr, "This member must be set prior to swich to this state")
+}
+
 void GraphView::line_state_tick()
 {
-    if ( !ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
-        return;
-    ASSERT(m_line_state_dragged_slotview != nullptr)
-
     // Draw temp wire
     draw_wire_from_slot_to_pos(m_line_state_dragged_slotview , mouse_pos_snapped() );
 
     // Open popup to create a new node when dropped over background
     if (ImGui::IsMouseReleased(0))
     {
-        if ( m_hovered.is<SlotViewItem>() )
+        if ( m_hovered.type == ViewItemType_SLOT )
         {
             auto event = new Event_SlotDropped();
             event->data.first = &m_line_state_dragged_slotview->get_slot();
-            event->data.second = &m_hovered.get<SlotViewItem>()->get_slot();
+            event->data.second = &m_hovered.slotview->get_slot();
             get_event_manager()->dispatch(event);
         }
         else

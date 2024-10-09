@@ -108,6 +108,7 @@ namespace ndbl
         void drag_state_enter();
         void drag_state_tick();
         void view_pan_state_tick();
+        void line_state_enter();
         void line_state_tick();
     };
 }

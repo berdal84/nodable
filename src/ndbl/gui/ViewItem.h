@@ -9,34 +9,53 @@ namespace ndbl
     class SlotView;
     class NodeView;
 
-    // possible items
-    using  EdgeViewItem = std::pair<SlotView*, SlotView*>;
-    using  SlotViewItem = SlotView*;
-    using  NodeViewItem = NodeView*;
-
-    // ViewItem is able to hold different ViewItems
-    class ViewItem
+    enum ViewItemType
     {
-    public:
-        template<typename T>
-        bool is() const
-        { return std::holds_alternative<T>(data); }
+        ViewItemType_NULL = 0,
+        ViewItemType_SLOT,
+        ViewItemType_EDGE,
+        ViewItemType_NODE,
+    };
 
-        template<typename T>
-        T get() const
-        { return std::get<T>(data); }
+    // Simple structure to store a NodeView, a SlotView, an Edge, or nothing.
+    struct ViewItem
+    {
+        ViewItemType type  = ViewItemType_NULL;
+
+        union
+        {
+            struct {
+                void *ptr1;
+                void *ptr2;
+            } raw_data;
+
+            NodeView* nodeview;
+            SlotView* slotview;
+            struct {
+                SlotView* slot[2];
+            } edge;
+        };
+
+        ViewItem()
+        : raw_data({nullptr, nullptr})
+        {}
+
+        ViewItem(SlotView* slotview)
+        : type(ViewItemType_SLOT)
+        , raw_data({slotview, nullptr})
+        {}
+
+        ViewItem(NodeView* nodeview)
+        : type(ViewItemType_NODE)
+        , raw_data({nodeview, nullptr})
+        {}
+
+        ViewItem(SlotView* edge_start, SlotView* edge_end)
+        : type(ViewItemType_EDGE)
+        , raw_data({edge_start, edge_end})
+        {}
 
         bool empty() const
-        { return std::holds_alternative<Empty>(data); }
-
-        template<typename T>
-        ViewItem& operator=(T value)
-        { data = value; return *this; }
-
-        size_t index() const
-        { return data.index(); }
-    private:
-        struct Empty {};
-        std::variant<Empty, SlotViewItem, EdgeViewItem, NodeViewItem> data = Empty{};
+        { return type == ViewItemType_NULL; }
     };
 }

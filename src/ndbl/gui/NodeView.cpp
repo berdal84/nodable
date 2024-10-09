@@ -386,13 +386,12 @@ bool NodeView::draw()
     // Add an invisible just on top of the background to detect mouse hovering
 	ImGui::SetCursorScreenPos(screen_rect.top_left());
 	ImGui::InvisibleButton("node", m_base_view.get_size());
+    bool is_rect_hovered = ImGui::IsItemHovered();
     ImGui::SetItemAllowOverlap();
     Vec2 new_screen_pos = screen_rect.top_left()
                           + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
                           + Vec2{cfg->ui_slot_circle_radius(), 0.0f}; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
-
-    m_base_view.hovered = ImGui::IsItemHovered();
 
 	// Draw the window content
 	//------------------------
@@ -460,6 +459,8 @@ bool NodeView::draw()
 
     if ( changed )
         get_node()->set_flags( NodeFlag_IS_DIRTY );
+
+    m_base_view.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
 
 	return changed;
 }
@@ -1090,7 +1091,6 @@ void NodeView::draw_slot(SlotView* slot_view)
     if( slot_view->hovered )
     {
         m_hovered_slotview = slot_view; // last wins
-        m_base_view.hovered = true;
     }
 }
 
