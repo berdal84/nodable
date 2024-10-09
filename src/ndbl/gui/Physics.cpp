@@ -233,6 +233,8 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
 
     // Apply a force to translate to the (single) follower
     auto* physics_component = _follower->get_node()->get_component<Physics>();
+    if( !physics_component )
+        return;
     Config* cfg = get_config();
     Vec2 desired_pos = _follower->get_pos(SCREEN_SPACE) + delta;
     physics_component->add_force_to_move_to( desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
@@ -277,6 +279,8 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
         auto* physics_component = clean_follower[i]->get_node()->get_component<Physics>();
+        if( !physics_component )
+            continue;
         Vec2 desired_pos = clean_follower[i]->get_pos(SCREEN_SPACE) + delta[i];
         physics_component->add_force_to_move_to(desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
     }
