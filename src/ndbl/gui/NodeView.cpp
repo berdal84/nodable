@@ -90,7 +90,9 @@ void NodeView::set_owner(Node* node)
     //-------------------------
 
     // Reserve
-    m_property_views.reserve( node->get_props().size() );
+    for(auto& [_, property_view] : m_property_views)
+        delete property_view;
+    m_property_views.clear();
 
     for (Property* property : node->get_props() )
     {
@@ -125,6 +127,10 @@ void NodeView::set_owner(Node* node)
         {SlotFlag_CHILD, 0},
         {SlotFlag_PARENT, 0},
     };
+
+    for(auto* each : m_slot_views )
+        delete each;
+    m_slot_views.clear();
 
     for(Slot* slot : get_node()->slots() )
     {
