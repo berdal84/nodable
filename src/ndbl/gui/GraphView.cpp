@@ -727,6 +727,9 @@ void GraphView::cursor_state_tick()
 
         case ViewItemType_NULL:
         {
+            if ( !ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
+                return;
+
             if (ImGui::IsMouseClicked(0))
             {
                 // Deselect All (Click on the background)
