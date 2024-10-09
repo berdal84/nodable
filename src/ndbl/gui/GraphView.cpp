@@ -669,20 +669,17 @@ void GraphView::cursor_state_tick()
     if ( !ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
         return;
 
-    if ( m_hovered.is<SlotViewItem>() )
+    if ( m_hovered.is<NodeViewItem>() )
     {
-        if (ImGui::IsMouseReleased(2))
+        if ( m_hovered.get<NodeViewItem>()->m_hovered_slotview != nullptr )
         {
-            m_focused = m_hovered;
+            if ( ImGui::IsMouseDragging(0) )
+            {
+                m_line_state_dragged_slotview = m_hovered.get<NodeViewItem>()->m_hovered_slotview;
+                m_state_machine.change_state(LINE_STATE);
+            }
         }
-        else if (ImGui::IsMouseDragging(0, 0.1f))
-        {
-            m_state_machine.exit_state();
-        }
-    }
-    else if ( m_hovered.is<NodeViewItem>() )
-    {
-        if ( ImGui::IsMouseReleased(0) )
+        else if ( ImGui::IsMouseReleased(0) )
         {
             // TODO: handle remove!
             // Add/Remove/Replace selection
