@@ -54,7 +54,11 @@ namespace ndbl
     template<size_t BRANCH_COUNT>
     Node* TConditional<BRANCH_COUNT>::get_condition(Branch _branch ) const
     {
-        return get_condition_slot(_branch).first_adjacent()->get_node();
+        // Try to return the adjacent node connected to this branch
+        Slot* adjacent = get_condition_slot(_branch).first_adjacent();
+        if( adjacent != nullptr)
+            return adjacent->get_node();
+        return nullptr;
     }
 
     template<size_t BRANCH_COUNT>

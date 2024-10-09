@@ -21,6 +21,8 @@ namespace ndbl
         REFLECT_BASE_CLASS()
 
     public:
+        virtual ~TComponent(){}
+
         OwnerT get_owner()const
         { return m_owner; }
 
