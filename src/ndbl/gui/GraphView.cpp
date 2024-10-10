@@ -32,12 +32,14 @@ REFLECT_STATIC_INIT
     StaticInitializer<GraphView>("GraphView");
 }
 
+// Popup name
+constexpr const char* CONTEXT_POPUP    = "GraphView.ContextMenuPopup";
 // Tool names
-constexpr const char* CURSOR_STATE = "Cursor Tool";
-constexpr const char* ROI_STATE    = "Selection Tool";
-constexpr const char* DRAG_STATE   = "Drag Node Tool";
+constexpr const char* CURSOR_STATE     = "Cursor Tool";
+constexpr const char* ROI_STATE        = "Selection Tool";
+constexpr const char* DRAG_STATE       = "Drag Node Tool";
 constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
-constexpr const char* LINE_STATE   = "Line Tool";
+constexpr const char* LINE_STATE       = "Line Tool";
 
 GraphView::GraphView(Graph* graph)
 : m_graph(graph)
@@ -64,6 +66,7 @@ GraphView::GraphView(Graph* graph)
     m_state_machine.add_state(LINE_STATE);
     m_state_machine.bind_enter(LINE_STATE, &GraphView::line_state_enter);
     m_state_machine.bind_tick(LINE_STATE, &GraphView::line_state_tick);
+    m_state_machine.bind_leave(LINE_STATE, &GraphView::line_state_leave);
 
 
     m_state_machine.start();
@@ -352,15 +355,8 @@ bool GraphView::draw()
 
     m_state_machine.tick();
 
-    if ( begin_context_menu() )
-    {
-        bool show_search = m_hovered.empty();
-        end_context_menu(show_search);
-    }
-
     // Debug Infos
-    Config *cfg1 = get_config();
-    if (cfg1->tools_cfg->runtime_debug)
+    if (cfg->tools_cfg->runtime_debug)
     {
         if (ImGui::Begin("GraphViewToolStateMachine"))
         {
@@ -369,14 +365,9 @@ bool GraphView::draw()
             ImGui::Text("m_hovered.type:       %i", m_hovered.type );
             Vec2 mouse_pos = ImGui::GetMousePos();
             ImGui::Text("m_mouse_pos:          (%f, %f)", mouse_pos.x, mouse_pos.y);
-            ImGui::Text("m_mouse_pos (snapped):(%f, %f)", mouse_pos_snapped().x, mouse_pos_snapped().y);
         }
         ImGui::End();
     }
-
-    // Update focused item (TODO: move this into GraphViewToolContext)
-    if ( m_hovered.empty() && ImGui::IsMouseReleased(0))
-        m_focused = {};
 
     // add some empty space
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
@@ -462,9 +453,9 @@ void GraphView::unfold()
     update( cfg->graph_unfold_dt, cfg->graph_unfold_iterations );
 }
 
-void GraphView::add_action_to_context_menu( Action_CreateNode* _action )
+void GraphView::add_action_to_node_menu(Action_CreateNode* _action )
 {
-    m_context_menu.node_menu.add_action(_action);
+    m_create_node_menu.add_action(_action);
 }
 
 void GraphView::frame_nodes(FrameMode mode )
@@ -568,65 +559,21 @@ Graph *GraphView::get_graph() const
 
 //-----------------------------------------------------------------------------
 
-tools::Vec2 GraphView::mouse_pos_snapped() const
+void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview)
 {
-    if ( m_context_menu.open_this_frame )
-        return m_context_menu.mouse_pos;
-    if ( m_hovered.type == ViewItemType_NODE )
-        if ( m_hovered.nodeview->m_hovered_slotview != nullptr )
-            return m_hovered.nodeview->m_hovered_slotview->get_pos();
-    return ImGui::GetMousePos();
-}
+    ImGuiEx::ColoredShadowedText( Vec2(1, 1), Color(0, 0, 0, 255), Color(255, 255, 255, 127), "Create new node :");
+    ImGui::Separator();
 
-bool GraphView::begin_context_menu()
-{
-    // Context menu (draw)
-    m_context_menu.open_last_frame = m_context_menu.open_this_frame;
-    m_context_menu.open_this_frame = false;
-    bool open = ImGui::BeginPopup(GraphView::POPUP_NAME);
-    if (open)
+    if (Action_CreateNode* triggered_action = menu.draw_search_input( dragged_slotview, 10))
     {
-        m_context_menu.mouse_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
+        // Generate an event from this action, add some info to the state and dispatch it.
+        auto event                     = triggered_action->make_event();
+        event->data.graph              = get_graph();
+        event->data.active_slotview    = dragged_slotview;
+        event->data.desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
+        get_event_manager()->dispatch(event);
+        ImGui::CloseCurrentPopup();
     }
-    m_context_menu.open_this_frame = open;
-    return open;
-}
-
-void GraphView::end_context_menu(bool show_search)
-{
-    if ( show_search )
-    {
-        if( !m_context_menu.open_last_frame )
-            m_context_menu.node_menu.reset_state();
-
-        ImGuiEx::ColoredShadowedText( Vec2(1, 1), Color(0, 0, 0, 255), Color(255, 255, 255, 127), "Create new node :");
-        ImGui::Separator();
-
-        SlotView* focused_slotview = get_focused_slotview();
-        if (Action_CreateNode* triggered_action = m_context_menu.node_menu.draw_search_input( focused_slotview, 10))
-        {
-            // Generate an event from this action, add some info to the state and dispatch it.
-            auto event                     = triggered_action->make_event();
-            event->data.graph              = get_graph();
-            event->data.active_slotview    = focused_slotview;
-            event->data.desired_screen_pos = m_context_menu.mouse_pos;
-            get_event_manager()->dispatch(event);
-            ImGui::CloseCurrentPopup();
-        }
-    }
-    ImGui::EndPopup();
-}
-
-SlotView *GraphView::get_focused_slotview() const
-{
-    if( m_focused.type == ViewItemType_SLOT )
-        return m_focused.slotview;
-    return nullptr;
-}
-
-void GraphView::open_popup() const
-{
-    ImGui::OpenPopup(POPUP_NAME);
 }
 
 //-----------------------------------------------------------------------------
@@ -677,9 +624,9 @@ void GraphView::cursor_state_tick()
     {
         case ViewItemType_SLOT:
         {
-            if ( ImGui::IsMouseDown(0) )
+            if (ImGui::IsMouseDragging(0, 0.f))
             {
-                m_line_state_dragged_slotview = m_hovered.slotview;
+                m_focused = m_hovered;
                 m_state_machine.change_state(LINE_STATE);
             }
             break;
@@ -687,26 +634,24 @@ void GraphView::cursor_state_tick()
 
         case ViewItemType_NODE:
         {
-            VERIFY(m_hovered.nodeview->m_hovered_slotview == nullptr, "This should not be allowed")
-
-            if ( ImGui::IsMouseReleased(0) )
+            if (ImGui::IsMouseReleased(0) )
             {
                 // TODO: handle remove!
                 // Add/Remove/Replace selection
                 SelectionMode flags = SelectionMode_REPLACE;
-                if ( ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl) )
+                if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl))
                     flags = SelectionMode_ADD;
                 set_selected({m_hovered.nodeview}, flags);
                 m_focused = m_hovered;
             }
-            else if ( ImGui::IsMouseDoubleClicked(0) )
+            else if (ImGui::IsMouseDoubleClicked(0))
             {
                 m_hovered.nodeview->expand_toggle();
                 m_focused = m_hovered;
             }
-            else if ( ImGui::IsMouseDragging(0) )
+            else if (ImGui::IsMouseDragging(0))
             {
-                if ( !m_hovered.nodeview->selected() )
+                if (!m_hovered.nodeview->selected())
                     set_selected({m_hovered.nodeview});
                 m_state_machine.change_state(DRAG_STATE);
             }
@@ -715,46 +660,45 @@ void GraphView::cursor_state_tick()
 
         case ViewItemType_EDGE:
         {
-            if (ImGui::IsMouseDragging(0, 0.1f) )
+            if (ImGui::IsMouseDragging(0, 0.1f))
                 m_focused = m_hovered;
-            else if ( ImGui::IsMouseClicked(1) )
+            else if (ImGui::IsMouseClicked(1))
             {
                 m_focused = m_hovered;
-                ImGui::OpenPopup(GraphView::POPUP_NAME);
+                ImGui::OpenPopup(CONTEXT_POPUP);
             }
             break;
         }
 
         case ViewItemType_NULL:
         {
-            if ( !ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
-                return;
+            if ( ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
+            {
+                if (ImGui::IsMouseClicked(0))
+                    set_selected({}, SelectionMode_REPLACE); // Deselect All (Click on the background)
+                else if (ImGui::IsMouseReleased(0))
+                    m_focused = {};
+                else if (ImGui::IsMouseClicked(1))
+                    ImGui::OpenPopup(CONTEXT_POPUP);
+                else if (ImGui::IsMouseDragging(0))
+                    m_state_machine.change_state(ImGui::IsKeyDown(ImGuiKey_Space) ? VIEW_PAN_STATE : ROI_STATE);
+            }
 
-            if (ImGui::IsMouseClicked(0))
-            {
-                // Deselect All (Click on the background)
-                set_selected({}, SelectionMode_REPLACE);
-            }
-            else if (ImGui::IsMouseReleased(1))
-            {
-                ImGui::OpenPopup(GraphView::POPUP_NAME);
-            }
-            else if (ImGui::IsMouseDragging(0) )
-            {
-                if ( ImGui::IsKeyDown(ImGuiKey_Space) )
-                {
-                    m_state_machine.change_state(VIEW_PAN_STATE);
-                }
-                else
-                {
-                    m_state_machine.change_state(ROI_STATE);
-                }
-            }
             break;
         }
 
         default:
             VERIFY(false, "Unhandled case, must be implemented!")
+    }
+
+    if ( ImGui::BeginPopup(CONTEXT_POPUP) )
+    {
+        if ( ImGui::IsWindowAppearing())
+            m_create_node_menu.flag_to_be_reset();
+
+        if ( m_hovered.empty() )
+            draw_create_node_context_menu(m_create_node_menu);
+        ImGui::EndPopup();
     }
 }
 
@@ -762,32 +706,63 @@ void GraphView::cursor_state_tick()
 
 void GraphView::line_state_enter()
 {
-    VERIFY(m_line_state_dragged_slotview != nullptr, "This member must be set prior to swich to this state")
+    ASSERT(m_focused.type == ViewItemType_SLOT)
+    ASSERT(m_focused.slotview != nullptr)
 }
 
 void GraphView::line_state_tick()
 {
-    // Draw temp wire
-    draw_wire_from_slot_to_pos(m_line_state_dragged_slotview , mouse_pos_snapped() );
+    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->get_pos()
+                                                                 : Vec2{ImGui::GetMousePos()};
 
-    // Open popup to create a new node when dropped over background
-    if (ImGui::IsMouseReleased(0))
+    // Contextual menu
+    if ( ImGui::BeginPopup(CONTEXT_POPUP) )
     {
-        if ( m_hovered.type == ViewItemType_SLOT )
-        {
-            auto event = new Event_SlotDropped();
-            event->data.first = &m_line_state_dragged_slotview->get_slot();
-            event->data.second = &m_hovered.slotview->get_slot();
-            get_event_manager()->dispatch(event);
-        }
-        else
-        {
-            open_popup();
-        }
-        m_state_machine.exit_state();
+        mouse_pos_snapped = ImGui::GetMousePosOnOpeningCurrentPopup();
+
+        if ( ImGui::IsWindowAppearing() )
+            m_create_node_menu.flag_to_be_reset();
+
+        if ( m_hovered.empty() )
+            draw_create_node_context_menu(m_create_node_menu, m_focused.slotview);
+
+        if ( ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
+            m_state_machine.exit_state();
+
+        ImGui::EndPopup();
     }
+    else if ( ImGui::IsMouseReleased(0) )
+    {
+        switch (m_hovered.type)
+        {
+            case ViewItemType_SLOT:
+            {
+                auto event = new Event_SlotDropped();
+                event->data.first  = &m_focused.slotview->get_slot();
+                event->data.second = &m_hovered.slotview->get_slot();
+                get_event_manager()->dispatch(event);
+                m_state_machine.exit_state();
+                break;
+            }
+
+            case ViewItemType_EDGE:
+            case ViewItemType_NODE:
+            case ViewItemType_NULL: // ...on background
+            {
+                ImGui::OpenPopup(CONTEXT_POPUP);
+                break;
+            }
+        }
+    }
+
+    // Draw a temporary wire from focused/dragged slotview to the mouse cursor
+    draw_wire_from_slot_to_pos(m_focused.slotview, mouse_pos_snapped );
 }
 
+void GraphView::line_state_leave()
+{
+    m_focused = {};
+}
 
 //-----------------------------------------------------------------------------
 

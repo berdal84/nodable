@@ -31,9 +31,11 @@ namespace ndbl
 
             NodeView* nodeview;
             SlotView* slotview;
+
             struct {
                 SlotView* slot[2];
             } edge;
+
         };
 
         ViewItem()

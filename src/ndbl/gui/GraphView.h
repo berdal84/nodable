@@ -44,7 +44,7 @@ namespace ndbl
 		~GraphView() = default;
 
         bool        draw();
-        void        add_action_to_context_menu( Action_CreateNode* _action);
+        void        add_action_to_node_menu(Action_CreateNode* _action);
         void        frame_nodes(FrameMode mode );
         bool        selection_empty() const;
         void        reset(); // unfold and frame the whole graph
@@ -58,37 +58,20 @@ namespace ndbl
         Graph*      get_graph() const;
         tools::View* base() { return &base_view; };
     private:
+        CreateNodeCtxMenu      m_create_node_menu = {};
+        ViewItem               m_hovered{};
+        ViewItem               m_focused{};
+        std::vector<NodeView*> m_selected_nodeview;
+
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
         bool        update(float dt, u16_t samples);
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
-        SlotView*   get_focused_slotview() const;
-        tools::Vec2 mouse_pos_snapped() const;
-        bool        begin_context_menu(); // ImGui style:   if ( begin_..() ) { ...code...  end_..() }
-        void        end_context_menu(bool show_search);
-        void        open_popup() const;
+        void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
 
         tools::View base_view;
         Graph*      m_graph;
-
-        // Tool State Machine & States
-        //============================
-
-        constexpr static const char* POPUP_NAME = "GraphView.ContextMenuPopup";
-
-        struct ContextMenu
-        {
-            bool              open_last_frame = false;
-            bool              open_this_frame = false;
-            tools::Vec2       mouse_pos       = {};
-            CreateNodeCtxMenu node_menu       = {};
-        };
-
-        ContextMenu            m_context_menu{};
-        ViewItem               m_hovered{};
-        ViewItem               m_focused{};
-        std::vector<NodeView*> m_selected_nodeview;
 
         // Tools State Machine
         //--------------------
@@ -98,7 +81,6 @@ namespace ndbl
         tools::StateMachine    m_state_machine;
         tools::Vec2            m_roi_state_start_pos;
         tools::Vec2            m_roi_state_end_pos;
-        SlotView*              m_line_state_dragged_slotview{};
 
         // The behavior
 
@@ -110,5 +92,6 @@ namespace ndbl
         void view_pan_state_tick();
         void line_state_enter();
         void line_state_tick();
+        void line_state_leave();
     };
 }
