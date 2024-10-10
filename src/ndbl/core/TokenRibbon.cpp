@@ -46,17 +46,17 @@ std::string TokenRibbon::to_string()const
         line.append("[\"");
 
         if (each_token.has_buffer())
-            line.append(each_token.buffer(), each_token.prefix_size());
+            line.append(each_token.prefix_ptr(), each_token.prefix_size());
 
         line.append("\", \"");
 
         if (each_token.has_buffer())
-            line.append(each_token.word(), each_token.word_size());
+            line.append(each_token.word_ptr(), each_token.word_size());
 
         line.append("\", \"");
 
         if (each_token.has_buffer())
-            line.append(each_token.suffix(), each_token.suffix_size());
+            line.append(each_token.suffix_ptr(), each_token.suffix_size());
 
         line.append("\"]");
 

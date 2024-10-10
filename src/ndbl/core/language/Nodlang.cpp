@@ -1342,7 +1342,7 @@ Slot* Nodlang::parse_variable_declaration()
         variable_node->set_identifier_token( identifier_token );
         // try to parse assignment
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
-        if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word() == '=')
+        if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word_ptr() == '=')
         {
             Slot* expression_out = parse_expression();
             if (expression_out != nullptr //&&
@@ -1631,7 +1631,7 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
 {
     if (!_token.is_null() && _token.has_buffer())
     {
-        _out.append(_token.buffer(), _token.m_string_length);
+        _out.append(_token.string_ptr(), _token.string_size());
     }
     return _out;
 }
