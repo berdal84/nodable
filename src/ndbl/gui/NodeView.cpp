@@ -650,7 +650,7 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
 
     if ( ImGui::InputText(label.c_str(), input_buffer, 255, flags ) )
     {
-        property->get_token().replace_word( input_buffer );
+        property->get_token().word_replace(input_buffer);
         changed |= true;
     }
 
@@ -739,7 +739,8 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
     if ( tools_cfg->runtime_debug )
     {
-        ImGui::Text("Debug info:" );
+        ImGui::Text("DEBUG INFO:" );
+        ImGui::Text("Suffix token:\n       %s\n" , node->get_suffix().json().c_str());
         ImGui::Text("can_be_instruction(): %i", node->can_be_instruction() );
         ImGui::Text("is_instruction():     %i", node->is_instruction() );
         // Draw exposed output properties
@@ -814,7 +815,8 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 auto vars = scope->variables();
                 for (auto var : vars)
                 {
-                    ImGui::BulletText("%s: %s", var->get_name().c_str(), var->property()->get_token().word());
+                    std::string value = var->property()->get_token().word_to_string();
+                    ImGui::BulletText("%s: %s", var->get_name().c_str(), value.c_str() );
                 }
                 ImGui::TreePop();
             }

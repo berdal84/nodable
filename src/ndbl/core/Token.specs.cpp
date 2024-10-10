@@ -12,12 +12,30 @@ TEST(Token, empty_constructor)
     EXPECT_EQ(token.buffer_to_string(), "");
  }
 
-TEST(Token, constructor__with_owned_buffer)
+TEST(Token, constructor__with_const_char_ptr)
 {
     Token token(Token_t::identifier, "toto");
     EXPECT_EQ(token.prefix_to_string(), "");
     EXPECT_EQ(token.word_to_string(), "toto");
     EXPECT_EQ(token.suffix_to_string(), "");
+    EXPECT_EQ(token.buffer_to_string(), "toto");
+    EXPECT_EQ(token.m_is_buffer_owned, false);
+}
+
+TEST(Token, suffix_append_from_stack)
+{
+    //                          >|--|<
+    const char* toto = "// test\ntoto";
+    Token token(Token_t::identifier, const_cast<char*>(toto), 8, 4 );
+
+    EXPECT_EQ(token.prefix_to_string(), "");
+    EXPECT_EQ(token.m_is_buffer_owned, false);
+
+    token.suffix_append(";\n");
+
+    EXPECT_EQ(token.suffix_to_string(), ";\n");
+    EXPECT_EQ(token.buffer_to_string(), "toto;\n");
+    EXPECT_EQ(token.m_word_start_pos, 0);
     EXPECT_EQ(token.m_is_buffer_owned, true);
 }
 
@@ -68,7 +86,7 @@ TEST(Token, replace_word__same_length)
     EXPECT_FALSE(source.m_is_buffer_owned);
 
     // act
-    source.replace_word("TOTO");
+    source.word_replace("TOTO");
 
     // post-check
     EXPECT_EQ(source.buffer_to_string(), "<prefix>TOTO<suffix>");
@@ -87,7 +105,7 @@ TEST(Token, replace_word__larger)
     EXPECT_FALSE(source.m_is_buffer_owned);
 
     // act
-    source.replace_word("2048");
+    source.word_replace("2048");
 
     // post-check
     EXPECT_EQ(source.buffer_to_string(), "<prefix>2048<suffix>");
@@ -107,7 +125,7 @@ TEST(Token, replace_word__smaller)
     EXPECT_FALSE(source.m_is_buffer_owned);
 
     // act
-    source.replace_word("0");
+    source.word_replace("0");
 
     // post-check
     EXPECT_EQ(source.buffer_to_string(), "<prefix>0<suffix>");

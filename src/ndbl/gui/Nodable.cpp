@@ -315,32 +315,30 @@ void Nodable::update()
 
                 Node* new_node  = _event->data.graph->create_node( _event->data.node_type, _event->data.node_signature );
 
-                if ( !_event->data.active_slotview )
+                // Insert an end of line and end of instruction
+                switch ( _event->data.node_type )
                 {
-                    // Insert an end of line and end of instruction
-                    switch ( _event->data.node_type )
-                    {
-                        case CreateNodeType_BLOCK_CONDITION:
-                        case CreateNodeType_BLOCK_FOR_LOOP:
-                        case CreateNodeType_BLOCK_WHILE_LOOP:
-                        case CreateNodeType_BLOCK_SCOPE:
-                        case CreateNodeType_BLOCK_PROGRAM:
-                            new_node->set_suffix( Token::s_end_of_line );
-                            break;
-                        case CreateNodeType_VARIABLE_BOOLEAN:
-                        case CreateNodeType_VARIABLE_DOUBLE:
-                        case CreateNodeType_VARIABLE_INTEGER:
-                        case CreateNodeType_VARIABLE_STRING:
-                            new_node->set_suffix( Token::s_end_of_instruction );
-                            break;
-                        case CreateNodeType_LITERAL_BOOLEAN:
-                        case CreateNodeType_LITERAL_DOUBLE:
-                        case CreateNodeType_LITERAL_INTEGER:
-                        case CreateNodeType_LITERAL_STRING:
-                        case CreateNodeType_INVOKABLE:
-                            break;
-                    }
+                    case CreateNodeType_BLOCK_CONDITION:
+                    case CreateNodeType_BLOCK_FOR_LOOP:
+                    case CreateNodeType_BLOCK_WHILE_LOOP:
+                    case CreateNodeType_BLOCK_SCOPE:
+                    case CreateNodeType_BLOCK_PROGRAM:
+                        new_node->set_suffix( Token::s_end_of_line );
+                        break;
+                    case CreateNodeType_VARIABLE_BOOLEAN:
+                    case CreateNodeType_VARIABLE_DOUBLE:
+                    case CreateNodeType_VARIABLE_INTEGER:
+                    case CreateNodeType_VARIABLE_STRING:
+                        new_node->set_suffix( Token::s_end_of_instruction );
+                        break;
+                    case CreateNodeType_LITERAL_BOOLEAN:
+                    case CreateNodeType_LITERAL_DOUBLE:
+                    case CreateNodeType_LITERAL_INTEGER:
+                    case CreateNodeType_LITERAL_STRING:
+                    case CreateNodeType_INVOKABLE:
+                        break;
                 }
+
                 // 2) handle connections
                 if ( !_event->data.active_slotview )
                 {
@@ -371,9 +369,20 @@ void Nodable::update()
                         Slot* out = &_event->data.active_slotview->get_slot();
                         Slot* in = complementary_slot;
 
-                        if ( out->has_flags( SlotFlag_ORDER_SECOND ) ) std::swap( out, in );
+                        if ( out->has_flags( SlotFlag_ORDER_SECOND ) )
+                            std::swap( out, in );
 
                         _event->data.graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
+
+                        // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
+                        Node* out_node = out->get_node();
+                        if ( out_node->is_instruction() && out->type() == SlotFlag_TYPE_CODEFLOW )
+                        {
+                            Token& token = out_node->get_suffix();
+                            std::string buffer = token.buffer_to_string();
+                            if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
+                                token.suffix_append("\n");
+                        }
                     }
                 }
 

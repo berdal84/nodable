@@ -17,7 +17,8 @@ void VariableNode::init(const tools::type* _type, const char* _identifier)
 
     // Init identifier property
     m_identifier = add_prop(_type, VALUE_PROPERTY );
-    m_identifier->set_token({Token_t::identifier, _identifier });
+    m_identifier->set_token({Token_t::identifier});
+    m_identifier->get_token().word_replace(_identifier); // might come from std::string::c_str()
 
     // Init Slots
     add_slot(SlotFlag_INPUT, 1, m_identifier); // to connect an initialization expression

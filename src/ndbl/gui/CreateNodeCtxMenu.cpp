@@ -80,12 +80,9 @@ void CreateNodeCtxMenu::update_cache_based_on_user_input(SlotView* _dragged_slot
     }
 }
 
-void CreateNodeCtxMenu::reset_state()
+void CreateNodeCtxMenu::flag_to_be_reset()
 {
     must_be_reset_flag   = true;
-    search_input[0]      = '\0';
-    items_matching_search.clear();
-    items_with_compatible_signature.clear();
 }
 
 void CreateNodeCtxMenu::add_action(Action_CreateNode* action)
@@ -98,6 +95,10 @@ Action_CreateNode* CreateNodeCtxMenu::draw_search_input(SlotView* dragged_slot, 
 {
     if ( must_be_reset_flag )
     {
+        search_input[0]      = '\0';
+        items_matching_search.clear();
+        items_with_compatible_signature.clear();
+
         ImGui::SetKeyboardFocusHere();
 
         //

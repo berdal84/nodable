@@ -3,21 +3,35 @@
 
 using namespace ndbl;
 
-const Token Token::s_null(Token_t::null);
-const Token Token::s_end_of_line{Token_t::ignore, "\n"};
-const Token Token::s_end_of_instruction{Token_t::ignore, ";\n"};
+const Token Token::s_null               = {Token_t::null};
+const Token Token::s_end_of_line        = {Token_t::ignore, "\n"};
+const Token Token::s_end_of_instruction = {Token_t::ignore, ";\n"};
 
 std::string Token::json() const
 {
     std::string result;
+    result.reserve(m_string_length);
+
     result.append("{ ");
-    result.append("word: \"" + word_to_string() + "\"" );
-    result.append( ", charIndex: " + std::to_string(m_string_start_pos) );
-    result.append(", prefix: \"" + prefix_to_string() + "\""  );
-    result.append(", suffix: \"" + suffix_to_string() + "\""  );
-    result.append(", word: \"" + word_to_string() + "\""  );
-    result.append( ", token_type: \"" + std::to_string((int)m_type) + "\"");
+
+    result.append("word: \"" );
+    result.append(word_ptr(), word_size());
+    result.append("\"" );
+
+    result.append(", charIndex: " + std::to_string(m_string_start_pos) );
+
+    result.append(", prefix: \""  );
+    result.append(prefix_ptr(), prefix_size());
+    result.append("\""  );
+
+    result.append(", suffix: \""  );
+    result.append(suffix_ptr(), suffix_size());
+    result.append("\""  );
+
+    result.append(", token_type: \"" + std::to_string((int)m_type) + "\"");
+
     result.append(" }");
+
     return result;
 }
 
@@ -42,20 +56,20 @@ void Token::take_prefix_suffix_from(Token* source)
     // copy prefix from source
     if( size_t prefix_size = source->prefix_size())
     {
-        memcpy(m_buffer, source->buffer(), prefix_size);
+        memcpy(m_buffer, source->string_ptr(), prefix_size);
         m_word_start_pos = prefix_size;
     }
 
     // reassign word
     if( m_word_length )
     {
-        memcpy(word(), word_copy.data(), m_word_length);
+        memcpy(word_ptr(), word_copy.data(), m_word_length);
     }
 
     // copy suffix from source
     if( size_t suffix_size = source->suffix_size())
     {
-        memcpy(suffix(), source->suffix(), suffix_size);
+        memcpy(suffix_ptr(), source->suffix_ptr(), suffix_size);
     }
 
     // Remove prefix and suffix on the source
@@ -86,14 +100,14 @@ void Token::set_source_buffer(char *_buffer, size_t pos, size_t size)
 
     m_buffer = _buffer;
     m_string_start_pos = m_word_start_pos = pos;
-    m_string_length = m_word_length = size;
+    m_string_length    = m_word_length = size;
 }
 
 std::string Token::prefix_to_string()const
 {
     if( has_buffer() )
     {
-        return std::string{ prefix(), prefix_size()};
+        return std::string{prefix_ptr(), prefix_size()};
     }
     return {};
 }
@@ -103,7 +117,7 @@ std::string Token::word_to_string()const
     if( has_buffer() )
     {
         ASSERT(m_word_length < 50) // are you sure?
-        return std::string{word(), m_word_length};
+        return std::string{word_ptr(), m_word_length};
     }
     return {};
 }
@@ -112,7 +126,7 @@ std::string Token::suffix_to_string()const
 {
     if( has_buffer() )
     {
-        return std::string{ suffix(), suffix_size()};
+        return std::string{suffix_ptr(), suffix_size()};
     }
     return {};
 }
@@ -121,7 +135,7 @@ std::string Token::buffer_to_string() const
 {
     if (has_buffer())
     {
-        return {buffer(), m_string_length };
+        return {string_ptr(), m_string_length };
     }
     return {};
 }
@@ -191,33 +205,54 @@ Token& Token::operator=(const Token& other)
     return *this;
 }
 
-void Token::replace_word(std::string new_word)
+void Token::word_replace(const char* new_word)
 {
     // Optimization: when buffer is owned and word has same length, we avoid to reallocate memory
-    if (m_is_buffer_owned && m_word_length == new_word.length()  )
+    const size_t new_word_len = strlen(new_word);
+    if (m_is_buffer_owned && m_word_length == new_word_len  )
     {
-        memcpy(word(), new_word.c_str(), new_word.length());
+        memcpy(word_ptr(), new_word, new_word_len);
         return;
     }
 
     //TODO: use logarithmic buffer? (with buffer size > string length)
-    const size_t new_string_length    = prefix_size() + new_word.length() + suffix_size();
+    const size_t new_string_length    = prefix_size() + new_word_len + suffix_size();
     char*        new_buffer           = new char[new_string_length+1];
     size_t       new_string_start_pos = 0;
     size_t       new_word_start_pos   = prefix_size();
 
-    memcpy(new_buffer                                    , prefix()         , prefix_size());
-    memcpy(new_buffer + prefix_size()                    , new_word.c_str() , new_word.length());
-    memcpy(new_buffer + prefix_size() + new_word.length(), suffix()         , suffix_size());
+    memcpy(new_buffer                                , prefix_ptr() , prefix_size() );
+    memcpy(new_buffer + prefix_size()                , new_word     , new_word_len  );
+    memcpy(new_buffer + prefix_size() + new_word_len , suffix_ptr() , suffix_size() );
     new_buffer[new_string_length] = '\0';
 
     if ( m_is_buffer_owned )
         delete[] m_buffer;
 
     m_buffer           = new_buffer;
-    m_word_length      = new_word.length();
+    m_word_length      = new_word_len;
     m_string_length    = new_string_length;
     m_string_start_pos = new_string_start_pos;
     m_word_start_pos   = new_word_start_pos;
     m_is_buffer_owned  = true;
+}
+
+void Token::suffix_append(const char* str)
+{
+    const size_t str_len = strlen(str);
+    char*        buf     = new char[m_string_length + str_len];
+
+    memcpy(buf, m_buffer + m_string_start_pos, m_string_length); // copy original buffer
+    memcpy(buf + m_string_length, str, str_len); // append str
+
+    if ( m_is_buffer_owned )
+    {
+        delete[] m_buffer;
+    }
+
+    m_buffer           = buf;
+    m_is_buffer_owned  = true;
+    m_word_start_pos   = m_word_start_pos - m_string_start_pos;
+    m_string_start_pos = 0;
+    m_string_length    += str_len;
 }
