@@ -57,9 +57,9 @@ void StateMachine::stop()
     m_started = false;
 }
 
-State* StateMachine::add_state(const char *name)
+State* StateMachine::add_state(const char* _name)
 {
-    auto* state = new State(name);
+    auto* state = new State(_name);
     add_state(state);
     return state;
 }
