@@ -48,7 +48,7 @@ namespace ndbl
         : m_type(_type)
         {}
 
-        Token(Token_t _type, const char* _word)
+        Token(Token_t _type, const char* const _word)
             : Token(_type)
         {
             m_buffer          = const_cast<char*>(_word);
