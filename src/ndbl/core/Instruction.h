@@ -87,8 +87,8 @@ namespace ndbl
     // Evaluates a given node
     struct Instruction_eval
     {
-        OpCode                 opcode;
-        const tools::FuncType* func_type;
+        OpCode                   opcode;
+        const tools::IInvokable* invokable;
     };
 
     /**

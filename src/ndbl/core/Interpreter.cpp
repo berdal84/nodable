@@ -244,11 +244,11 @@ bool Interpreter::step_over()
 //                update_input__by_value_only(next_instr->eval.node);
 //            }
 
-
-            const std::vector<variant*> args{}; // TODO: read arguments from the stack
-            next_instr->call.func_type; // TODO: call from stack
-            advance_cursor();
             VERIFY(false, "not implemented yet")
+            // const std::vector<variant*> args = TODO: get args from stack
+            // next_instr->call.invokable->invoke(args);
+
+            advance_cursor();
 
             break;
         }

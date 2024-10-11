@@ -132,11 +132,11 @@ void NodableView::init(Nodable * _app)
     // (to create functions/operators from the API)
     const Nodlang* language = get_language();
     VERIFY(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
-    for ( auto& func_type: language->get_api() )
+    for ( const IInvokable* invokable: language->get_api() )
     {
         std::string label;
-        language->serialize_func_sig( label, func_type );
-        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_INVOKABLE, func_type } );
+        language->serialize_invokable_sig( label, invokable );
+        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_INVOKABLE, invokable->get_sig() } );
     }
 
     LOG_VERBOSE("ndbl::NodableView", "init_ex " OK "\n");

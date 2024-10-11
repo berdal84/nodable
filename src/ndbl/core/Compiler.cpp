@@ -197,14 +197,12 @@ void Compiler::compile_node( const Node* _node )
                 case NodeType_FUNCTION:
                 case NodeType_OPERATOR:
                 {
-                    Instruction*         instr          = m_temp_code->push_instr(OpCode_call);
-                    const InvokableNode* invokable_node = static_cast<const InvokableNode*>(_node);
-                    const FuncType*      func_type      = get_language()->find_function( invokable_node->get_func_type() ); // Get exact OR fallback function (in case of arg cast)
-                    VERIFY(func_type != nullptr, "Unable to find this function")
+                    Instruction*      instr     = m_temp_code->push_instr(OpCode_call);
+                    const FuncType*   func_type = static_cast<const InvokableNode*>(_node)->get_func_type();
 
-                    instr->call.func_type = func_type;
-                    instr->m_comment      = "Call: ";
-                    get_language()->serialize_func_sig(instr->m_comment, func_type);
+                    const IInvokable* invokable = get_language()->find_function( func_type ); // Get exact OR fallback function (in case of arg cast)
+                    VERIFY(invokable != nullptr, "Unable to find this function")
+                    instr->call.invokable = invokable;
 
                     break;
                 }

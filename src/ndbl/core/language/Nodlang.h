@@ -100,6 +100,7 @@ namespace ndbl{
         // Serializer ------------------------------------------------------------------
     public:
         std::string& serialize_invokable(std::string&_out, const InvokableNode*) const;
+        std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
         std::string& serialize_func_call(std::string& _out, const tools::FuncType *_signature, const std::vector<Slot*>& inputs)const;
         std::string& serialize_func_sig(std::string& _out, const tools::FuncType*)const;
         std::string& serialize_token_t(std::string& _out, const Token_t&)const;
@@ -117,27 +118,27 @@ namespace ndbl{
 
         // Language definition -------------------------------------------------------------------------
 
+    private:
+        const tools::IInvokable* find_function(u32_t _hash) const;
     public:
-        const tools::FuncType* find_function(const char* _signature ) const;           // Find a function by signature as string (ex:   "int multiply(int,int)" )
-        const tools::FuncType* find_function(const tools::FuncType*) const;               // Find a function by signature (strict first, then cast allowed)
-        const tools::FuncType* find_function_exact(const tools::FuncType*) const;         // Find a function by signature (no cast allowed).
-        const tools::FuncType* find_function_fallback(const tools::FuncType*) const;      // Find a function by signature (casts allowed).
-        const tools::FuncType* find_operator_fct(const tools::FuncType*) const;           // Find an operator's function by signature (strict first, then cast allowed)
-        const tools::FuncType* find_operator_fct_exact(const tools::FuncType*) const;     // Find an operator's function by signature (no cast allowed).
-        const tools::FuncType* find_operator_fct_fallback(const tools::FuncType*) const;  // Find an operator's function by signature (casts allowed).
+        const tools::IInvokable* find_function(const char* _signature ) const;           // Find a function by signature as string (ex:   "int multiply(int,int)" )
+        const tools::IInvokable* find_function(const tools::FuncType*) const;               // Find a function by signature (strict first, then cast allowed)
+        const tools::IInvokable* find_function_exact(const tools::FuncType*) const;         // Find a function by signature (no cast allowed).
+        const tools::IInvokable* find_function_fallback(const tools::FuncType*) const;      // Find a function by signature (casts allowed).
+        const tools::IInvokable* find_operator_fct(const tools::FuncType*) const;           // Find an operator's function by signature (strict first, then cast allowed)
+        const tools::IInvokable* find_operator_fct_exact(const tools::FuncType*) const;     // Find an operator's function by signature (no cast allowed).
+        const tools::IInvokable* find_operator_fct_fallback(const tools::FuncType*) const;  // Find an operator's function by signature (casts allowed).
         const tools::Operator* find_operator(const std::string& , tools::Operator_t) const;// Find an operator by symbol and type (unary, binary or ternary).
-        const std::vector<const tools::FuncType*>& get_api()const { return m_functions; } // Get all the functions registered in the language.
+        const std::vector<const tools::IInvokable*>& get_api()const { return m_functions; } // Get all the functions registered in the language.
         std::string&          to_string(std::string& /*out*/, const tools::type*)const;   // Convert a type to string (by ref).
         std::string&          to_string(std::string& /*out*/, Token_t)const;              // Convert a type to a token_t (by ref).
         std::string           to_string(const tools::type *) const;                       // Convert a type to string.
         std::string           to_string(Token_t)const;                                    // Convert a type to a token_t.
         const tools::type*    get_type(Token_t _token)const;                              // Get the type corresponding to a given token_t (must be a type keyword)
-        void                  add_function(const tools::FuncType*);                       // Adds a new function (regular or operator's implementation).
+        void                  add_function(const tools::IInvokable*);                     // Adds a new function (regular or operator's implementation).
         int                   get_precedence(const tools::FuncType*)const;                // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
         template<typename T> void load_library(); // Instantiate a library from its type (uses reflection to get all its static methods).
-    private:
-        const tools::FuncType* find_function(u32_t _hash) const;
     private:
         struct {
             std::vector<std::tuple<const char*, Token_t>>                  keywords;
@@ -147,9 +148,9 @@ namespace ndbl{
         } m_definition; // language definition
 
         std::vector<const tools::Operator*>               m_operators;                // the allowed operators (!= implementations).
-        std::vector<const tools::FuncType*>               m_operators_impl;           // operators' implementations.
-        std::vector<const tools::FuncType*>               m_functions;                // all the functions (including operator's).
-        std::unordered_map<u32_t , const tools::FuncType*> m_functions_by_signature; // Functions indexed by signature hash
+        std::vector<const tools::IInvokable*>             m_operators_impl;           // operators' implementations.
+        std::vector<const tools::IInvokable*>             m_functions;                // all the functions (including operator's).
+        std::unordered_map<u32_t , const tools::IInvokable*> m_functions_by_signature; // Functions indexed by signature hash
         std::unordered_map<Token_t, char>                 m_single_char_by_keyword;
         std::unordered_map<Token_t, const char*>          m_keyword_by_token_t;       // token_t to string (ex: Token_t::keyword_double => "double").
         std::unordered_map<tools::type::id_t, const char*>m_keyword_by_type_id;
@@ -166,9 +167,9 @@ namespace ndbl{
         T library; // Libraries are static and this will force static code to run. TODO: add load/release methods
 
         auto type = tools::type::get<T>();
-        for(auto& each_static : type->get_static_methods())
+        for(const tools::IInvokable* method : type->get_statics())
         {
-            add_function(each_static);
+            add_function(method);
         }
     }
 

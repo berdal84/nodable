@@ -142,19 +142,19 @@ void type::add_child(id_t _child)
     m_flags |= Flags_HAS_CHILD;
 }
 
-void type::add_static(const std::string& _name, const FuncType* _func_type)
+void type::add_static(const char* _name, const IInvokable* _func_type)
 {
     m_static_methods.insert(_func_type);
     m_static_methods_by_name.insert({_name, _func_type});
 }
 
-void type::add_method(const std::string& _name, const FuncType* _func_type)
+void type::add_method(const char* _name, const IInvokableMethod* _func_type)
 {
     m_methods.insert(_func_type);
     m_methods_by_name.insert({_name, _func_type});
 }
 
-const FuncType* type::get_method(const std::string& _name) const
+const IInvokableMethod* type::get_method(const char* _name) const
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )
@@ -164,7 +164,7 @@ const FuncType* type::get_method(const std::string& _name) const
     return nullptr;
 }
 
-const FuncType* type::get_static(const std::string& _name)const
+const IInvokable* type::get_static(const char*  _name)const
 {
     auto found = m_static_methods_by_name.find(_name);
     if( found != m_static_methods_by_name.end() )

@@ -271,10 +271,10 @@ void FileView::draw_info_panel() const
         const Nodlang* language = get_language();
 
         ImGui::Columns(1);
-        for(const FuncType* each_fct : language->get_api() )
+        for(const IInvokable* invokable : language->get_api() )
         {
             std::string name;
-            language->serialize_func_sig(name, each_fct);
+            language->serialize_invokable_sig(name, invokable );
             ImGui::Text("%s", name.c_str());
         }
 

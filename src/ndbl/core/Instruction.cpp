@@ -28,9 +28,7 @@ std::string Instruction::to_string(const Instruction& _instr)
     {
         case OpCode_call:
         {
-            std::string signature;
-            get_language()->serialize_func_sig(signature, _instr.call.func_type );
-            result.append(signature);
+            get_language()->serialize_invokable_sig( result, _instr.call.invokable );
             break;
         }
 

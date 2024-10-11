@@ -514,11 +514,11 @@ Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
             VERIFY(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
-            FuncType func_type = *language->find_function(_signature);
-            bool is_operator = language->find_operator_fct( &func_type ) != nullptr;
+            FuncType signature = *language->find_function(_signature)->get_sig();
+            bool is_operator = language->find_operator_fct( &signature ) != nullptr;
             if ( is_operator )
-                return create_operator(std::move(func_type));
-            return create_function(std::move(func_type));
+                return create_operator(std::move(signature));
+            return create_function(std::move(signature));
         }
         default:
             VERIFY(false, "Unhandled CreateNodeType.");

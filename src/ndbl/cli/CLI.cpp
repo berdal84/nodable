@@ -54,11 +54,11 @@ void CLI::update()
 
     // Priority 1: call a static function immediately
     const type* api_type = type::get<PublicApi>();
-    if( auto static_fct = api_type->get_static(user_input) )
+    if( auto static_fct = api_type->get_static(user_input.c_str()) )
     {
         try
         {
-            variant result = invoke_static(static_fct, {});
+            variant result = static_fct->invoke({});
         }
         catch (std::runtime_error& e )
         {
@@ -68,12 +68,12 @@ void CLI::update()
     }
 
     // Priority 2: try to call a CLI method immediately
-    if( auto method = api_type->get_method(user_input) )
+    if( auto method = api_type->get_method(user_input.c_str()) )
     {
         try
         {
             // then we invoke it
-            variant result = invoke_method(method, {});
+            variant result = method->invoke(&api, {});
         }
         catch (std::runtime_error& e )
         {
@@ -169,17 +169,16 @@ void CLI::PublicApi::help()
 
     const type* public_api_type = type::get<PublicApi>();
 
-    for ( const auto& static_method_type : public_api_type->get_static_methods() )
+    for ( const IInvokable* invokable : public_api_type->get_statics() )
     {
-        std::string command_name;
-        command_name.append(static_method_type->get_identifier());
-        command_name.append(" (static)");
-        command_names.push_back(command_name);
+        std::string identifier = invokable->get_sig()->get_identifier();
+        command_names.emplace_back( identifier + " (static)");
     }
 
-    for ( const auto& method_type : public_api_type->get_methods() )
+    for ( const IInvokableMethod* invokable : public_api_type->get_methods() )
     {
-        command_names.push_back(method_type->get_identifier());
+        std::string identifier = invokable->get_sig()->get_identifier();
+        command_names.emplace_back( identifier );
     }
 
     std::sort(command_names.begin(), command_names.end());
