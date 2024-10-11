@@ -9,7 +9,7 @@ bool PropertyBag::has(const char* _name) const
     return m_properties_by_name.find(_name) != m_properties_by_name.end();
 }
 
-Property* PropertyBag::add(const type* _type, const char* _name, PropertyFlags _flags )
+Property* PropertyBag::add(const TypeDesc* _type, const char* _name, PropertyFlags _flags )
 {
     VERIFY(m_owner != nullptr, "PropertyBag must be initialized")
     ASSERT(!has(_name));
@@ -26,22 +26,22 @@ Property* PropertyBag::add(const type* _type, const char* _name, PropertyFlags _
     return new_property;
 }
 
-const Property* PropertyBag::find_first( PropertyFlags _flags, const type *_type) const
+const Property* PropertyBag::find_first( PropertyFlags _flags, const TypeDesc *_type) const
 {
     return _find_first( _flags, _type );
 }
 
-Property* PropertyBag::find_first( PropertyFlags _flags, const type *_type)
+Property* PropertyBag::find_first( PropertyFlags _flags, const TypeDesc *_type)
 {
     return const_cast<Property*>( _find_first( _flags, _type ) );
 }
 
-const Property* PropertyBag::_find_first( PropertyFlags _flags, const type *_type) const
+const Property* PropertyBag::_find_first( PropertyFlags _flags, const TypeDesc *_type) const
 {
     auto filter = [_flags, _type](const std::pair<const std::string, Property*>& pair) -> bool
     {
         auto* property = pair.second;
-        return type::is_implicitly_convertible( property->get_type(), _type)
+        return type::is_implicitly_convertible(property->get_type(), _type)
                && ( property->has_flags( _flags ) );
     };
 

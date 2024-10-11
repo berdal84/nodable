@@ -16,7 +16,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<Scope>("Scope");
+    type::Initializer<Scope>("Scope");
 }
 
 Scope::Scope()

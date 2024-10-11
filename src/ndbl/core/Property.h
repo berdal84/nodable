@@ -27,7 +27,7 @@ namespace ndbl
 	class Property
     {
     public:
-        void               init(const tools::type*, PropertyFlags, Node*, const char* _name); // must be called once before use
+        void               init(const tools::TypeDesc*, PropertyFlags, Node*, const char* _name); // must be called once before use
         void               digest(Property *_property);
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
         void               set_flags(PropertyFlags flags) { m_flags |= flags; }
@@ -35,8 +35,8 @@ namespace ndbl
         //void               set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
         const std::string& get_name()const { return m_name; }
         Node*              get_owner()const { return m_owner; }
-        const tools::type* get_type()const { return m_type; }
-        bool               is_type(const tools::type* other) const;
+        const tools::TypeDesc* get_type()const { return m_type; }
+        bool               is_type(const tools::TypeDesc* other) const;
         void               set_token(const Token& _token) { m_token = _token; }
         Token&             get_token() { return m_token; }
         const Token&       get_token() const { return m_token; }
@@ -44,7 +44,7 @@ namespace ndbl
     private:
         Node*              m_owner = nullptr;
         PropertyFlags      m_flags = PropertyFlag_NONE;
-        const tools::type* m_type  = nullptr;
+        const tools::TypeDesc* m_type  = nullptr;
         std::string        m_name;
         Token              m_token;
     };

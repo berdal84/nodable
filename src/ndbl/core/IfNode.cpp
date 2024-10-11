@@ -6,7 +6,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<IfNode>("IfNode").extends<Node>();
+    type::Initializer<IfNode>("IfNode").extends<Node>();
 }
 
 

@@ -7,10 +7,10 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<VariableNode>("VariableNode").extends<Node>();
+    type::Initializer<VariableNode>("VariableNode").extends<Node>();
 }
 
-void VariableNode::init(const tools::type* _type, const char* _identifier)
+void VariableNode::init(const tools::TypeDesc* _type, const char* _identifier)
 {
     // Init node
     Node::init(NodeType_VARIABLE, "Variable");

@@ -6,7 +6,7 @@
 #include <cstddef>
 #include "tools/core/types.h"
 #include "variant.h"
-#include "type.h"
+#include "Type.h"
 #include "FuncType.h"
 #include "function_traits.h"
 
@@ -17,7 +17,7 @@ namespace tools
     {
     public:
         virtual ~IInvokable() = default;
-        virtual const FuncType* get_type() const = 0;
+        virtual const FuncType* get_sig() const = 0;
         virtual variant invoke(const std::vector<variant *> &_args) const = 0;
     };
 
@@ -25,7 +25,7 @@ namespace tools
     {
     public:
         virtual ~IInvokableMethod() = default;
-        virtual const FuncType* get_type() const = 0;
+        virtual const FuncType* get_sig() const = 0;
         virtual variant invoke(void* _instance, const std::vector<variant *> &_args) const = 0;
     };
 
@@ -188,18 +188,18 @@ namespace tools
 
         InvokableStaticFunction(const FuncType* _function_type, const FunctionT* _function_pointer)
             : m_function_pointer( _function_pointer )
-            , m_function_type(_function_type)
+            , m_function_signature(_function_type)
         { ASSERT( m_function_pointer ) }
 
         variant invoke(const std::vector<variant *> &_args) const override
         { return tools::Apply( m_function_pointer, _args ); }
 
-        const FuncType* get_type() const override
-        { return m_function_type; }
+        const FuncType* get_sig() const override
+        { return m_function_signature; }
 
     private:
         const FunctionT* m_function_pointer;
-        const FuncType* m_function_type;
+        const FuncType*  m_function_signature;
     };
 
     /**
@@ -212,23 +212,23 @@ namespace tools
         static_assert( std::is_void_v<typename FunctionTrait<MethodT>::class_t> == false );
         static_assert( FunctionTrait<MethodT>::is_member_function );
 
-        const FuncType* m_method_type;
-        MethodT          m_method_pointer;
+        const FuncType* m_method_signature;
+        MethodT         m_method_pointer;
 
     public:
         InvokableMethod(const FuncType* _method_type, MethodT _method_pointer )
             : m_method_pointer( _method_pointer )
-            , m_method_type( _method_type )
+            , m_method_signature(_method_type )
         { ASSERT( m_method_pointer ) }
 
         variant invoke( void* _instance, const std::vector<variant*>& _args ) const override
         {
             VERIFY(_instance != nullptr, "An instance is required!");
-            return tools::Apply( m_method_pointer, _instance, _args );
+            return tools::Apply( m_method_pointer, (ClassT*)_instance, _args );
         };
 
-        const FuncType* get_type() const override
-        { return m_method_type; };
+        const FuncType* get_sig() const override
+        { return m_method_signature; };
     };
 
 }

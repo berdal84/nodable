@@ -7,7 +7,7 @@
 using namespace ndbl;
 using namespace tools;
 
-void Property::init(const type* _type, PropertyFlags _flags, Node* _owner, const char* _name)
+void Property::init(const TypeDesc* _type, PropertyFlags _flags, Node* _owner, const char* _name)
 {
     VERIFY(m_type == nullptr, "must be initialized once")
     VERIFY(_type != nullptr, "type can't be nullptr")
@@ -22,7 +22,7 @@ void Property::digest(Property* _property)
     m_token = std::move( _property->m_token );
 }
 
-bool Property::is_type(const tools::type* other) const
+bool Property::is_type(const TypeDesc* other) const
 {
     return m_type->equals( other );
 }

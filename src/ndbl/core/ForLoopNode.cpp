@@ -7,7 +7,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<ForLoopNode>("ForLoopNode").extends<Node>();
+    type::Initializer<ForLoopNode>("ForLoopNode").extends<Node>();
 }
 
 void ForLoopNode::init(const std::string& _name)

@@ -2,7 +2,7 @@
 
 #include <observe/event.h>
 
-#include "tools/core/reflection/type.h"
+#include "tools/core/reflection/Type.h"
 #include "tools/gui/ImGuiEx.h"
 
 #include "ndbl/core/Slot.h"
@@ -33,7 +33,7 @@ namespace ndbl
 
         bool                  draw() override;
         Property*             get_property()const;
-        const tools::type*    get_property_type()const;
+        const tools::TypeDesc*get_property_type()const;
         tools::string64       compute_tooltip() const;
         Node*                 get_node()const;
         bool                  has_node_connected() const;

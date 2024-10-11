@@ -2,9 +2,9 @@
 #include <functional>
 #include <unordered_map>
 #include "types.h"
-#include "tools/core/reflection/function_traits.h"
 #include "tools/core/assertions.h"
 #include "tools/core/hash.h"
+#include "tools/core/Delegate.h"
 
 #ifdef TOOLS_DEBUG
 #define TOOLS_DEBUG_STATE_MACHINE 0
@@ -12,20 +12,19 @@
 
 namespace tools
 {
-
     struct State
     {
-        // Wrapped member function pointer, can be called for a given instance_ptr
-        typedef std::function<void(void* context_ptr)> Delegate; // TODO: perf, avoid using std::function
+        const char*     name;
+        Delegate_NoArgs enter;
+        Delegate_NoArgs tick;
+        Delegate_NoArgs leave;
 
-        State(const char* name)
-        :  name(name)
-        {}
-
-        const char*   name;
-        Delegate      enter     = [](void*) {};
-        Delegate      tick      = [](void*) {};
-        Delegate      leave     = [](void*) {};
+        State(const char* _name)
+        : name(_name)
+        , enter()
+        , tick()
+        , leave()
+        {};
     };
 
     // from a current state, return a new state or nullptr
@@ -45,14 +44,9 @@ namespace tools
         bool         has_default_state() const { return m_current_state == m_default_state; }
         State*       add_state(const char* name);
 
-        template<typename TMember>
-        void bind_enter(const char* name, TMember member_ptr);
-
-        template<typename TMember>
-        void bind_tick(const char* name, TMember member_ptr);
-
-        template<typename TMember>
-        void bind_leave(const char* name, TMember member_ptr);
+        template<typename MemberT> void bind_tick(const char* name, MemberT member)  { get_state(name)->tick  = DelegateFactory::create(member); }
+        template<typename MemberT> void bind_enter(const char* name, MemberT member) { get_state(name)->enter = DelegateFactory::create(member); }
+        template<typename MemberT> void bind_leave(const char* name, MemberT member) { get_state(name)->leave = DelegateFactory::create(member); }
 
         void change_state(const char* name);
         void exit_state();
@@ -74,24 +68,6 @@ namespace tools
         std::unordered_map<u32_t, State*> m_state; // u32_t is state.name hash
         // std::vector<Transition> m_transitions{};
     };
-
-#define DECLARE_BIND( DELEGATE_NAME ) \
-    template<typename TMember>\
-    void StateMachine::bind_##DELEGATE_NAME(const char* name, TMember member_ptr)\
-    {\
-        using T = typename FunctionTrait<TMember>::class_t;\
-        State* state = get_state(name);\
-        state->DELEGATE_NAME = [member_ptr](void* context_ptr) {\
-            return (((T*)context_ptr)->*member_ptr)();\
-        };\
-    }
-
-    DECLARE_BIND(enter)
-    DECLARE_BIND(tick)
-    DECLARE_BIND(leave)
-
-#undef DECLARE_BIND
-
 
 // Not necessary until we need a state hierachy
 //    template<typename TMember>

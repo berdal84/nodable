@@ -243,7 +243,7 @@ void variant::release_mem()
     m_flags &= ~Flag_OWNS_HEAP_ALLOCATED_MEMORY; // set flags to 0
 }
 
-void variant::change_type(const type* _type)
+void variant::change_type(const TypeDesc* _type)
 {
     auto* normalized_type = _type->is_ptr() ? type::get<void*>() : _type; // normalize any pointer to void*
     change_type( type_to_enum(normalized_type) );
@@ -309,7 +309,7 @@ variant::operator i32_t () const      { return m_data.i32;}
 variant::operator std::string() const { return *((std::string*)m_data.ptr);}
 variant::operator void*() const       { return m_data.ptr;}
 
-variant::Type variant::type_to_enum(const tools::type* _type)
+variant::Type variant::type_to_enum(const tools::TypeDesc* _type)
 {
     if( _type->is<any_t>() )       return Type_any;
     if( _type->is<bool>() )        return Type_bool;
@@ -323,7 +323,7 @@ variant::Type variant::type_to_enum(const tools::type* _type)
     ASSERT(false) // Unhandled type;
 }
 
-const tools::type* variant::enum_to_type(Type _type)
+const tools::TypeDesc* variant::enum_to_type(Type _type)
 {
     switch ( _type )
     {
@@ -340,7 +340,7 @@ const tools::type* variant::enum_to_type(Type _type)
     }
 }
 
-bool variant::is_type(const tools::type* _type) const
+bool variant::is_type(const tools::TypeDesc* _type) const
 {
     return m_type == type_to_enum(_type); // compare the internal Type enum values
 }
@@ -352,7 +352,7 @@ bool variant::is_mem_initialized() const
     return m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY;
 }
 
-const type *variant::get_type() const
+const TypeDesc* variant::get_type() const
 {
     return enum_to_type(m_type);
 }

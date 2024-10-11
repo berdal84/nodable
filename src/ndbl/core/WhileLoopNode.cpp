@@ -5,7 +5,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<WhileLoopNode>("WhileLoopNode").extends<Node>();
+    type::Initializer<WhileLoopNode>("WhileLoopNode").extends<Node>();
 }
 
 void WhileLoopNode::init(const std::string &_name)

@@ -31,7 +31,7 @@ TEST_F(Language_basics, by_ref_assign )
     const FuncType  signature = FuncTypeBuilder<double(double &, double)>("=").construct();
     auto operator_func = language->find_operator_fct(&signature);
     EXPECT_TRUE(operator_func != nullptr);
-    EXPECT_TRUE(operator_func->get_args()[0].m_by_reference);
+    EXPECT_TRUE(operator_func->get_sig()->get_args()[0].m_by_reference);
 }
 
 TEST_F(Language_basics, token_t_to_type)

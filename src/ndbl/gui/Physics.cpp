@@ -18,7 +18,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<Physics>("Physics")
+    type::Initializer<Physics>("Physics")
                      .extends<NodeComponent>();
 };
 

@@ -52,7 +52,7 @@ namespace // anonymous, only accessible from this file
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<Nodlang_biology>("Nodlang_biology")
+    type::Initializer<Nodlang_biology>("Nodlang_biology")
             .add_method(&dna_to_protein, "dna_to_protein", "protein");
 };
 

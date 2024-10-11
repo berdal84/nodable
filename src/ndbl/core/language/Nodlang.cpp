@@ -76,11 +76,11 @@ Nodlang::Nodlang(bool _strict)
 
     m_definition.types =
     {
-         { "bool",   Token_t::keyword_bool,    type::get<bool>()},
-         { "string", Token_t::keyword_string,  type::get<std::string>()},
-         { "double", Token_t::keyword_double,  type::get<double>()},
-         { "i16",    Token_t::keyword_i16,     type::get<i16_t>()},
-         { "int",    Token_t::keyword_int,     type::get<i32_t>()}
+         { "bool",   Token_t::keyword_bool,   type::get<bool>()},
+         { "string", Token_t::keyword_string, type::get<std::string>()},
+         { "double", Token_t::keyword_double, type::get<double>()},
+         { "i16",    Token_t::keyword_i16,    type::get<i16_t>()},
+         { "int",    Token_t::keyword_int,    type::get<i32_t>()}
     };
 
     m_definition.operators =
@@ -1333,8 +1333,8 @@ Slot* Nodlang::parse_variable_declaration()
 
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
-        const type*   variable_type = get_type(type_token.m_type);
-        auto*         scope         = get_current_scope();
+        const TypeDesc* variable_type = get_type(type_token.m_type);
+        auto*           scope         = get_current_scope();
         ASSERT(scope != nullptr ) // There must always be a scope!
         VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope );
         variable_node->set_flags(VariableFlag_DECLARED);
@@ -1451,6 +1451,11 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const FuncType *_si
     return _out;
 }
 
+std::string &Nodlang::serialize_invokable_sig(std::string &_out, const IInvokable* _invokable) const
+{
+    return serialize_func_sig(_out, _invokable->get_sig());
+}
+
 std::string &Nodlang::serialize_func_sig(std::string &_out, const FuncType *_signature) const
 {
     serialize_type(_out, _signature->get_return_type());
@@ -1478,7 +1483,7 @@ std::string &Nodlang::serialize_token_t(std::string &_out, const Token_t &_type)
     return _out.append(to_string(_type));
 }
 
-std::string &Nodlang::serialize_type(std::string &_out, const type *_type) const
+std::string &Nodlang::serialize_type(std::string &_out, const TypeDesc* _type) const
 {
     return _out.append(to_string(_type));
 }
@@ -1757,7 +1762,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
 
 // Language definition ------------------------------------------------------------------------------------------------------------
 
-const FuncType* Nodlang::find_function(const char* _signature_hint) const
+const IInvokable* Nodlang::find_function(const char* _signature_hint) const
 {
     if (_signature_hint == nullptr)
     {
@@ -1768,7 +1773,7 @@ const FuncType* Nodlang::find_function(const char* _signature_hint) const
     return find_function( hash );
 }
 
-const FuncType* Nodlang::find_function(u32_t _hash) const
+const tools::IInvokable* Nodlang::find_function(u32_t _hash) const
 {
     auto found = m_functions_by_signature.find(_hash);
     if ( found != m_functions_by_signature.end())
@@ -1778,7 +1783,7 @@ const FuncType* Nodlang::find_function(u32_t _hash) const
     return nullptr;
 }
 
-const FuncType* Nodlang::find_function(const FuncType* _type) const
+const tools::IInvokable* Nodlang::find_function(const FuncType* _type) const
 {
     if (!_type)
     {
@@ -1794,76 +1799,74 @@ std::string& Nodlang::serialize_property(std::string& _out, const Property* _pro
     return serialize_token(_out, _property->get_token());
 }
 
-const FuncType* Nodlang::find_function_exact(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_function_exact(const FuncType* _other_type) const
 {
-    for(auto* func_type : m_functions)
-        if ( func_type->is_exactly(_other_type) )
-            return func_type;
+    for(auto* invokable : m_functions)
+        if ( invokable->get_sig()->is_exactly(_other_type) )
+            return invokable;
     return nullptr;
 }
 
-const FuncType* Nodlang::find_function_fallback(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_function_fallback(const FuncType* _other_type) const
 {
-    for(auto* func_type : m_functions)
-        if ( func_type->is_compatible(_other_type) )
-            return func_type;
+    for(auto* invokable : m_functions)
+        if ( invokable->get_sig()->is_compatible(_other_type) )
+            return invokable;
     return nullptr;
 }
 
-const FuncType* Nodlang::find_operator_fct_exact(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_operator_fct_exact(const FuncType* _other_type) const
 {
     if (!_other_type)
         return nullptr;
 
-    for(auto* func_type : m_operators_impl)
-        if ( func_type->is_exactly(_other_type) )
-            return func_type;
+    for(auto* invokable : m_operators_impl)
+        if ( invokable->get_sig()->is_exactly(_other_type) )
+            return invokable;
 
     return nullptr;
 }
 
-const FuncType* Nodlang::find_operator_fct(const FuncType *_type) const
+const tools::IInvokable* Nodlang::find_operator_fct(const FuncType *_type) const
 {
     if (!_type)
     {
         return nullptr;
     }
-    const FuncType* exact_type = find_operator_fct_exact(_type);
-    if (exact_type != nullptr)
-        return exact_type;
+    const tools::IInvokable* invokable = find_operator_fct_exact(_type);
+    if (invokable != nullptr)
+        return invokable;
     return find_operator_fct_fallback(_type);
 }
 
-const FuncType* Nodlang::find_operator_fct_fallback(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_operator_fct_fallback(const FuncType* _other_type) const
 {
     if (!_other_type)
         return nullptr;
 
-    for(auto* func_type : m_operators_impl)
-        if ( func_type->is_compatible(_other_type) )
-            return func_type;
+    for(auto* invokable : m_operators_impl)
+        if ( invokable->get_sig()->is_compatible(_other_type) )
+            return invokable;
 
     return nullptr;
 }
 
-void Nodlang::add_function(const FuncType* _func_type)
+void Nodlang::add_function(const tools::IInvokable* _invokable)
 {
-    m_functions.push_back(_func_type);
+    m_functions.push_back(_invokable);
 
     std::string type_as_string;
-    serialize_func_sig(type_as_string, _func_type);
+    serialize_func_sig(type_as_string, _invokable->get_sig());
 
     // Stops if no operator having the same identifier and argument count is found
-    if (!find_operator(_func_type->get_identifier(), static_cast<Operator_t>(_func_type->get_arg_count())))
+    if (!find_operator(_invokable->get_sig()->get_identifier(), static_cast<Operator_t>(_invokable->get_sig()->get_arg_count())))
     {
         LOG_VERBOSE("Nodlang", "add function: %s (in m_functions)\n", type_as_string.c_str());
         return;
     }
 
     // Register the invokable as an operator implementation
-    auto found = std::find(m_operators_impl.begin(), m_operators_impl.end(), _func_type);
-    ASSERT(found == m_operators_impl.end())
-    m_operators_impl.push_back(_func_type);
+    m_operators_impl.push_back(_invokable);
     LOG_VERBOSE("Nodlang", "add operator: %s (in m_functions and m_operator_implems)\n", type_as_string.c_str());
 }
 
@@ -1881,7 +1884,7 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
     return nullptr;
 }
 
-std::string &Nodlang::to_string(std::string &_out, const type *_type) const
+std::string &Nodlang::to_string(std::string &_out, const TypeDesc* _type) const
 {
     auto found = m_keyword_by_type_id.find(_type->id());
     if (found != m_keyword_by_type_id.cend())
@@ -1921,7 +1924,7 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
     }
 }
 
-std::string Nodlang::to_string(const type *_type) const
+std::string Nodlang::to_string(const TypeDesc* _type) const
 {
     std::string result;
     return to_string(result, _type);
@@ -1945,7 +1948,7 @@ int Nodlang::get_precedence( const tools::FuncType* _func_type) const
     return std::numeric_limits<int>::max();
 }
 
-const type * Nodlang::get_type(Token_t _token) const
+const TypeDesc* Nodlang::get_type(Token_t _token) const
 {
     VERIFY(is_a_type_keyword(_token), "_token_t is not a type keyword!");
     return m_type_by_token_t.find(_token)->second;

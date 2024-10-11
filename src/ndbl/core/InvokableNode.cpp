@@ -9,7 +9,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<InvokableNode>("InvokableNode").extends<Node>();
+    type::Initializer<InvokableNode>("InvokableNode").extends<Node>();
 }
 
 void InvokableNode::init(NodeType _type, tools::FuncType&& _func_type )
