@@ -25,15 +25,21 @@ REFLECT_STATIC_INIT
 TypeDesc::TypeDesc(
     std::type_index _id,
     std::type_index _primitive_id,
-    const char* _name,
-    const char* _compiler_name,
-    Flags _flags)
+    const char*     _name,
+    const char*     _compiler_name,
+    TypeFlags       _flags)
 : m_id(_id)
 , m_primitive_id(_primitive_id)
 , m_name(_name)
 , m_compiler_name(_compiler_name)
 , m_flags(_flags)
 {
+}
+
+bool type::equals(const TypeDesc* left, const TypeDesc* right)
+{
+    ASSERT(left != nullptr)
+    return right != nullptr && left->id() == right->id();
 }
 
 const TypeDesc* type::any()
@@ -50,30 +56,29 @@ const TypeDesc* type::null()
 
 bool type::is_implicitly_convertible(const TypeDesc* _src, const TypeDesc* _dst )
 {
+    return _src->is_implicitly_convertible(_dst);
+}
+
+bool TypeDesc::is_implicitly_convertible(const TypeDesc* _dst ) const
+{
     if( _dst->is_const() )
-    {
         return false;
-    }
-    else if (
-        (_src->equals(_dst))
-        ||
-        (!_src->is_ptr() && !_dst->is_ptr() && _src->m_primitive_id == _dst->m_primitive_id)
-    )
-    {
+
+    if (this->equals(_dst))
         return true;
-    }
-    else if(_src->is<any_t>() || _dst->is<any_t>() ) // We allow cast to unknown type
-    {
+
+    if (!this->is_ptr() && !_dst->is_ptr() && this->m_primitive_id == _dst->m_primitive_id)
         return true;
-    }
+
+    if( this->is<any_t>() || _dst->is<any_t>() ) // We allow cast to unknown type
+        return true;
 
     return
         // Allows specific casts:
-        //        from                 to
-        _src->is<i16_t>() && _dst->is<i32_t>()  ||
-        _src->is<i16_t>() && _dst->is<double>() ||
-        _src->is<i32_t>() && _dst->is<double>()
-    ;
+        //  from                 to
+        this->is<i16_t>() && _dst->is<i32_t>()  ||
+        this->is<i16_t>() && _dst->is<double>() ||
+        this->is<i32_t>() && _dst->is<double>();
 }
 
 bool TypeDesc::any_of(std::vector<const TypeDesc*> types) const
@@ -84,25 +89,20 @@ bool TypeDesc::any_of(std::vector<const TypeDesc*> types) const
     return false;
 }
 
-bool type::equals(const TypeDesc* left, const TypeDesc* right)
-{
-    ASSERT(left != nullptr)
-    return right != nullptr && left->m_id == right->m_id;
-}
-
 ClassDesc::ClassDesc(
     std::type_index _id,
     std::type_index _primitive_id,
     const char*     _name,
     const char*     _compiler_name,
-    Flags           _flags)
+    TypeFlags       _flags)
 : TypeDesc(
     _id,
     _primitive_id,
     _name,
     _compiler_name,
-    _flags | Flags_IS_CLASS )
-{}
+    _flags | TypeFlag_IS_CLASS )
+{
+}
 
 ClassDesc::~ClassDesc()
 {
@@ -150,13 +150,13 @@ bool ClassDesc::is_child_of(std::type_index _possible_parent_id, bool _selfCheck
 void ClassDesc::add_parent(std::type_index parent)
 {
     m_parents.insert(parent);
-    m_flags |= Flags_HAS_PARENT;
+    m_flags |= TypeFlag_HAS_PARENT;
 }
 
 void ClassDesc::add_child(std::type_index _child)
 {
     m_children.insert( _child );
-    m_flags |= Flags_HAS_CHILD;
+    m_flags |= TypeFlag_HAS_CHILD;
 }
 
 void ClassDesc::add_static(const char* _name, const IInvokable* _func_type)

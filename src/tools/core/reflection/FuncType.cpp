@@ -55,7 +55,7 @@ bool FuncType::is_compatible(const FuncType* _other)const
         const TypeDesc* other_arg_t = _other->m_args[i].m_type;
 
         if ( !arg_t->equals(other_arg_t) &&
-             !type::is_implicitly_convertible(other_arg_t, arg_t))
+             !other_arg_t->is_implicitly_convertible(arg_t) )
         {
             return false;
         }

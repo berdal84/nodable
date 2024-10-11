@@ -4,7 +4,6 @@
 #include "Operator.h"
 #include "Operator_t.h"
 #include "StaticInitializer.h"
-#include "class.h"
 #include "enum.h"
 #include "FuncType.h"
 #include "Type.h"

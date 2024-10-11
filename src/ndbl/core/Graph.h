@@ -8,7 +8,6 @@
 #include "ndbl/core/Node.h"
 #include "ndbl/core/NodeFactory.h"
 #include "ndbl/core/WhileLoopNode.h"
-#include "tools/core/reflection/class.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 
