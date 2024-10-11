@@ -3,7 +3,7 @@
 #include "Invokable.h"
 #include "Operator.h"
 #include "Operator_t.h"
-#include "StaticInitializer.h"
+#include "Initializer.h"
 #include "enum.h"
 #include "FuncType.h"
 #include "Type.h"

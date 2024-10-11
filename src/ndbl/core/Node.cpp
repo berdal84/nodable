@@ -11,7 +11,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<Node>("Node");
+    type::Initializer<Node>("Node");
 }
 
 Node::~Node()

@@ -29,7 +29,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<GraphView>("GraphView");
+    type::Initializer<GraphView>("GraphView");
 }
 
 // Popup name

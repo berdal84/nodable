@@ -63,7 +63,7 @@ TEST(Reflection, is_child_of)
     class Base {};
     class Derived: public Base {};
 
-    StaticInitializer<Derived>("Derived").extends<Base>();
+    type::Initializer<Derived>("Derived").extends<Base>();
 
     EXPECT_TRUE(type::get_class<Derived>()->is_child_of<Base>());
     EXPECT_FALSE(type::get_class<Base>()->is_child_of<Derived>());

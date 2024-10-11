@@ -161,7 +161,7 @@ add_library(
     src/tools/core/reflection/Invokable.h
     src/tools/core/reflection/Operator.h
     src/tools/core/reflection/Operator_t.h
-    src/tools/core/reflection/StaticInitializer.h
+    src/tools/core/reflection/Initializer.h
     src/tools/core/reflection/enum.h
     src/tools/core/reflection/FuncType.cpp
     src/tools/core/reflection/FuncType.h

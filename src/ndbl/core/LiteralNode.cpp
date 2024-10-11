@@ -6,7 +6,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<LiteralNode>("LiteralNode").extends<Node>();
+    type::Initializer<LiteralNode>("LiteralNode").extends<Node>();
 }
 
 void LiteralNode::init(const TypeDesc* _type, const std::string& _name)

@@ -9,7 +9,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<View>("View");
+    type::Initializer<View>("View");
 }
 
 View::View()

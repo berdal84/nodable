@@ -6,5 +6,5 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<NodeComponent>("NodeComponent");
+    type::Initializer<NodeComponent>("NodeComponent");
 }

@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include "tools/core/format.h"
-#include "tools/core/reflection/StaticInitializer.h"
+#include "tools/core/reflection/Initializer.h"
 #include "tools/core/types.h"
 
 using namespace ndbl;
@@ -74,7 +74,7 @@ namespace // anonymous, accessible only in that file
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<Nodlang_math>("Nodlang_math")
+    type::Initializer<Nodlang_math>("Nodlang_math")
         .add_method<double(double, i32_t)> (&_plus, "+", "plus")
         .add_method<double(double, double)>(&_plus, "+", "plus")
         .add_method<i32_t(i32_t, i32_t)>   (&_plus, "+", "plus")

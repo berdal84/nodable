@@ -28,7 +28,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    StaticInitializer<NodeView>("NodeView")
+    type::Initializer<NodeView>("NodeView")
         .extends<NodeComponent>();
 }
 

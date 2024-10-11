@@ -9,17 +9,17 @@ REFLECT_STATIC_INIT
 {
     // declare some types manually to get friendly names
 
-    StaticInitializer<double>("double");
-    StaticInitializer<std::string>("string");
-    StaticInitializer<bool>("bool");
-    StaticInitializer<void>("void");
-    StaticInitializer<void*>("void*");
-    StaticInitializer< i8_t>("i8");
-    StaticInitializer<i16_t>("int");
-    StaticInitializer<i32_t>("i32");
-    StaticInitializer<i64_t>("i64");
-    StaticInitializer<any_t>("any");
-    StaticInitializer<null_t>("null");
+    type::Initializer<double>("double");
+    type::Initializer<std::string>("string");
+    type::Initializer<bool>("bool");
+    type::Initializer<void>("void");
+    type::Initializer<void*>("void*");
+    type::Initializer< i8_t>("i8");
+    type::Initializer<i16_t>("int");
+    type::Initializer<i32_t>("i32");
+    type::Initializer<i64_t>("i64");
+    type::Initializer<any_t>("any");
+    type::Initializer<null_t>("null");
 }
 
 TypeDesc::TypeDesc(
