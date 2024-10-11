@@ -66,13 +66,13 @@ namespace ndbl
         Node*                    create_node(); // Create a raw node.
         Node*                    create_node(CreateNodeType, const tools::FuncType* _signature = nullptr); // Create a given node type in a simple way.
         Node*                    create_root();
-        VariableNode*            create_variable(const tools::type *_type, const std::string &_name, Scope* _scope);
-        VariableNode*            create_variable_decl(const tools::type* _type, const char*  _name, Scope*  _scope);
+        VariableNode*            create_variable(const tools::TypeDesc *_type, const std::string &_name, Scope* _scope);
+        VariableNode*            create_variable_decl(const tools::TypeDesc* _type, const char*  _name, Scope*  _scope);
         template<typename T>
         VariableNode* create_variable_decl(const char*  _name = "var", Scope* _scope = {})
-        { return create_variable_decl( tools::type::get<T>(), _name, _scope); }
+        { return create_variable_decl(tools::type::get<T>(), _name, _scope); }
 
-        LiteralNode*             create_literal(const tools::type *_type);
+        LiteralNode*             create_literal(const tools::TypeDesc *_type);
         template<typename T>
         LiteralNode*             create_literal() { return create_literal( tools::type::get<T>()); }
         InvokableNode*           create_function(tools::FuncType&&);

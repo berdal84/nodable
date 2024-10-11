@@ -127,7 +127,7 @@ bool Interpreter::step_over()
             const qword* qword = next_instr->uref.ptr;
             m_cpu.write(Register_rax, *qword );
 
-            const type* ptr_type = next_instr->uref.type;
+            const TypeDesc* ptr_type = next_instr->uref.type;
             if(ptr_type->is<bool>() )
             {
                 LOG_VERBOSE("Interpreter", "deref_qword bool: %b\n", qword->b);

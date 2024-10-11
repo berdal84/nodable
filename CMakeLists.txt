@@ -164,15 +164,15 @@ add_library(
     src/tools/core/reflection/StaticInitializer.h
     src/tools/core/reflection/class.h
     src/tools/core/reflection/enum.h
-    src/tools/core/reflection/func_type.cpp
+    src/tools/core/reflection/FuncType.cpp
     src/tools/core/reflection/FuncType.h
     src/tools/core/reflection/qword.cpp
     src/tools/core/reflection/qword.h
     src/tools/core/reflection/reflection
-    src/tools/core/reflection/type.cpp
-    src/tools/core/reflection/type.h
-    src/tools/core/reflection/type_register.cpp
-    src/tools/core/reflection/type_register.h
+    src/tools/core/reflection/Type.cpp
+    src/tools/core/reflection/Type.h
+    src/tools/core/reflection/TypeRegister.cpp
+    src/tools/core/reflection/TypeRegister.h
     src/tools/core/reflection/union.h
     src/tools/core/reflection/variant.cpp
     src/tools/core/reflection/variant.h
@@ -200,7 +200,7 @@ target_link_libraries(
 add_executable(
     test-tools-core
     src/tools/core/reflection/reflection.specs.cpp
-    src/tools/core/reflection/func_type.builder.specs.cpp
+    src/tools/core/reflection/FuncType.builder.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
     src/tools/core/memory/MemoryManager.specs.cpp
 )

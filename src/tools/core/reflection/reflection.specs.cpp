@@ -54,8 +54,8 @@ TEST(Reflection, is_convertible__incompatible_types)
 
 TEST(Reflection, is_ptr)
 {
-    EXPECT_FALSE(type::is_ptr(type::get<bool>()));
-    EXPECT_TRUE(type::is_ptr(type::get<bool*>()));
+    EXPECT_FALSE( type::get<bool>()->is_ptr() );
+    EXPECT_TRUE( type::get<bool*>()->is_ptr() );
 }
 
 TEST(Reflection, is_child_of)
@@ -65,7 +65,7 @@ TEST(Reflection, is_child_of)
 
     StaticInitializer<Derived>("Derived").extends<Base>();
 
-    EXPECT_TRUE(type::get<Derived>()->is_child_of<Base>());
-    EXPECT_FALSE(type::get<Base>()->is_child_of<Derived>());
+    EXPECT_TRUE(type::get_class<Derived>()->is_child_of<Base>());
+    EXPECT_FALSE(type::get_class<Base>()->is_child_of<Derived>());
 }
 

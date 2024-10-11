@@ -59,9 +59,9 @@ namespace ndbl
     // Un-reference a pointer to a given type
     struct Instruction_uref
     {
-        OpCode       opcode;
-        const tools::qword* ptr;
-        const tools::type*  type; // pointed data's type.
+        OpCode                 opcode;
+        const tools::qword*    ptr;
+        const tools::TypeDesc* type; // pointed data's type.
     };
 
     // Compare two operands (test if equals)

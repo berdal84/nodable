@@ -171,11 +171,11 @@ std::vector<Node*> Node::filter_adjacent( SlotFlags _flags ) const
     return GraphUtil::get_adjacent_nodes(this, _flags);
 }
 
-Slot* Node::find_slot_by_property_type(SlotFlags flags, const tools::type* _type)
+Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDesc* _type)
 {
     for(Slot* slot : filter_slots( flags ) )
     {
-        if( type::is_implicitly_convertible( slot->get_property()->get_type(), _type ) )
+        if( type::is_implicitly_convertible(slot->get_property()->get_type(), _type ) )
         {
             return slot;
         }
@@ -200,7 +200,7 @@ Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
     VERIFY(false, "Not found")
 }
 
-Property* Node::add_prop(const tools::type* _type, const char *_name, PropertyFlags _flags)
+Property* Node::add_prop(const TypeDesc* _type, const char *_name, PropertyFlags _flags)
 {
     return m_props.add(_type, _name, _flags);
 }

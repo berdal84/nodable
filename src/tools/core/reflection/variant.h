@@ -8,7 +8,7 @@
 #include "tools/core/types.h"
 #include "tools/core/memory/memory.h"
 #include "qword.h"
-#include "type.h"
+#include "Type.h"
 
 namespace tools
 {
@@ -40,9 +40,9 @@ namespace tools
         void        set(i32_t);
         void        set(const variant&);
 
-        const type* get_type()const;
-        bool        is_type(const tools::type*) const;
-        void        change_type(const type* _type);
+        const TypeDesc* get_type()const;
+        bool        is_type(const TypeDesc*) const;
+        void        change_type(const TypeDesc* _type);
 
         void        clear_data();
         const qword*data() const; // get ptr to underlying data (qword)
@@ -86,8 +86,8 @@ namespace tools
         void release_mem(); // undo init_mem()
         bool is_mem_initialized() const;
 
-        static Type               type_to_enum(const tools::type*) ;
-        static const tools::type* enum_to_type(Type) ;
+        static Type                   type_to_enum(const TypeDesc*) ;
+        static const tools::TypeDesc* enum_to_type(Type) ;
 
         typedef int Flags;
         enum Flag_

@@ -66,7 +66,7 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_node_registry().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
-    VariableNode*     variable  = graph->create_variable( type::get<int>(), "var", nullptr);
+    VariableNode*     variable  = graph->create_variable(type::get<int>(), "var", nullptr);
     FuncType          fct_type  = FuncTypeBuilder<int(int, int)>("+").construct();
     const IInvokable* invokable = app.get_language()->find_operator_fct_exact(&fct_type);
 

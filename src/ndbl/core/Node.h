@@ -100,7 +100,7 @@ namespace ndbl
         const Slot*          find_slot_at( SlotFlags, size_t _position ) const; // implicitly THIS_PROPERTY's slot
         Slot*                find_slot_by_property_name(const char* _property_name, SlotFlags );
         const Slot*          find_slot_by_property_name(const char* property_name, SlotFlags ) const;
-        Slot*                find_slot_by_property_type(SlotFlags _way, const tools::type *_type);
+        Slot*                find_slot_by_property_type(SlotFlags _way, const tools::TypeDesc *_type);
         Slot*                find_slot_by_property(const Property*, SlotFlags );
         const Slot*          find_slot_by_property(const Property*, SlotFlags ) const;
         Slot*                find_adjacent_at(SlotFlags, size_t _index ) const;
@@ -119,7 +119,7 @@ namespace ndbl
         // Property related
         //-----------------
 
-        Property*            add_prop(const tools::type*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
+        Property*            add_prop(const tools::TypeDesc*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
         Property*            get_prop_at(size_t);
         const Property*      get_prop_at(size_t) const;
         Property*            get_prop(const char* _name);

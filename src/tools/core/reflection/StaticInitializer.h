@@ -1,8 +1,8 @@
 #pragma once
 #include "Invokable.h"
 #include "FuncType.h"
-#include "type.h"
-#include "type_register.h"
+#include "Type.h"
+#include "TypeRegister.h"
 #include <vector>
 
 namespace tools
@@ -10,15 +10,30 @@ namespace tools
     template<typename T>
     class InvokableStaticFunction;
 
+    template<typename T, bool IS_CLASS = std::is_class_v<T>>
+    struct StaticInitializer;
+
+
     template<typename T>
-    struct StaticInitializer
+    struct StaticInitializer<T, false>
     {
-        type* m_type;
+        TypeDesc *m_type;
+
+        explicit StaticInitializer(const char *_name) {
+            TypeDesc *type = type::create<T>(_name);
+            m_type = TypeRegister::insert_or_merge(type);
+        }
+    };
+
+    template<typename T>
+    struct StaticInitializer<T, true>
+    {
+        ClassDesc* m_class;
 
         explicit StaticInitializer(const char* _name )
         {
-            type* type = type::create<T>(_name);
-            m_type = type_register::insert_or_merge(type);
+            TypeDesc* type = type::create<T>(_name);
+            m_class = (ClassDesc*)TypeRegister::insert_or_merge(type);
         }
 
         template<typename F>
@@ -28,10 +43,10 @@ namespace tools
             FuncTypeBuilder<F> builder{ _name };
             auto* invokable = new InvokableStaticFunction<F>(builder.make_instance(), func_ptr);
 
-            m_type->add_static(_name, invokable);
+            m_class->add_static(_name, invokable);
 
             if(_alt_name[0] != '\0')
-                m_type->add_static(_alt_name, invokable );
+                m_class->add_static(_alt_name, invokable );
 
             return *this;
         }
@@ -42,7 +57,7 @@ namespace tools
             static_assert(std::is_class_v<T>);
             FuncTypeBuilder<R(C::*)(Ts...)> builder{ _name };
             auto* invokable = new InvokableMethod<R(C::*)(Ts...)>( builder.make_instance() , func_ptr);
-            m_type->add_method(_name, invokable );
+            m_class->add_method(_name, invokable );
             return *this;
         }
 
@@ -52,9 +67,9 @@ namespace tools
             static_assert(std::is_class_v<T>);
             static_assert(std::is_base_of_v<BaseClassT, T>);
 
-            type* base_class = const_cast<type*>(type::get<BaseClassT>()); // get or create
-            m_type->add_parent( base_class->id() );
-            base_class->add_child( m_type->id() );
+            auto base_class = const_cast<ClassDesc*>( type::get_class<BaseClassT>() ); // get or create
+            m_class->add_parent( base_class->id() );
+            base_class->add_child( m_class->id() );
             return *this;
         }
     };

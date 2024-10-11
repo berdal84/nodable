@@ -6,7 +6,7 @@
 #include <cstddef>
 #include "tools/core/types.h"
 #include "variant.h"
-#include "type.h"
+#include "Type.h"
 #include "FuncType.h"
 #include "function_traits.h"
 

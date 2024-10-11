@@ -7,7 +7,6 @@
 #include "LiteralNode.h"
 #include "Node.h"
 #include "NodeFactory.h"
-#include "NodeUtils.h"
 #include "Scope.h"
 #include "VariableNode.h"
 #include "language/Nodlang.h"
@@ -111,7 +110,7 @@ void Graph::ensure_has_root()
     }
 }
 
-VariableNode* Graph::create_variable(const type *_type, const std::string& _name, Scope* _scope)
+VariableNode* Graph::create_variable(const TypeDesc *_type, const std::string& _name, Scope* _scope)
 {
     VariableNode* node = m_factory->create_variable(_type, _name, _scope);
     add(node);
@@ -478,7 +477,7 @@ Node* Graph::create_node()
     return node;
 }
 
-LiteralNode* Graph::create_literal(const type *_type)
+LiteralNode* Graph::create_literal(const TypeDesc *_type)
 {
     LiteralNode* node = m_factory->create_literal(_type);
     add(node);
@@ -525,7 +524,7 @@ Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
     }
 }
 
-VariableNode* Graph::create_variable_decl(const type* _type, const char*  _name, Scope*  _scope)
+VariableNode* Graph::create_variable_decl(const TypeDesc* _type, const char*  _name, Scope*  _scope)
 {
     if( !_scope)
     {

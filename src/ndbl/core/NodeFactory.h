@@ -33,8 +33,8 @@ namespace ndbl
         ~NodeFactory(){}
 
         Node*                  create_program()const;
-        VariableNode*          create_variable(const tools::type *_type, const std::string &_name, Scope* _scope)const;
-        LiteralNode*           create_literal(const tools::type *_type)const;
+        VariableNode*          create_variable(const tools::TypeDesc *_type, const std::string &_name, Scope* _scope)const;
+        LiteralNode*           create_literal(const tools::TypeDesc *_type)const;
         InvokableNode*         create_function(tools::FuncType&&, NodeType node_type = NodeType_FUNCTION)const;
         Node*                  create_scope()const;
         IfNode*                create_cond_struct()const;

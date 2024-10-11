@@ -6,7 +6,7 @@
 #include <typeinfo>
 #include <vector>
 
-#include "type_register.h"
+#include "TypeRegister.h"
 #include "tools/core/assertions.h"
 
 namespace tools
@@ -15,6 +15,8 @@ namespace tools
     class FuncType;
     class IInvokable;
     class IInvokableMethod;
+    class TypeDesc;
+    class ClassDesc;
 
     /** Empty structure to act like any type, @related tools::variant class */
     struct any_t{};
@@ -37,20 +39,8 @@ namespace tools
         constexpr static const char* name() { return typeid(type).name(); };
     };
 
-    /**
-     * @class Type descriptor. Holds meta data corresponding to a given type.
-     *
-     * @example @code
-     * // Will get or create the type descriptor for MyType
-     * const type* t = type::get<MyType>();
-     * // Checks if two type descriptors are the same
-     * bool equals = t->is<MyType>(): // is true
-     */
-    class type
+    struct type
     {
-        friend class type_register;
-    public:
-        using id_t = std::type_index;
         typedef u8_t Flags;
         enum Flags_ : u8_t
         {
@@ -63,57 +53,24 @@ namespace tools
             Flags_IS_MEMBER_PTR = 1u << 5,
         };
 
-        type(
-                id_t _id,
-                id_t _primitive_id,
-                const char* _name,
-                const char* _compiler_name,
-                Flags _flags);
-
-        type(const type&) = delete; // a type must be unique
-        type(type&&) = delete;
-        ~type();
-
-        id_t                      id() const { return m_id; }
-        const char*               get_name() const { return m_name; };
-        bool                      is_class() const { return m_flags & Flags_IS_CLASS; }
-        bool                      any_of(std::vector<const type*> args)const;
-        bool                      has_parent() const { return m_flags & Flags_HAS_PARENT; }
-        bool                      is_ptr() const { return m_flags & Flags_IS_POINTER; }
-        bool                      is_const() const { return m_flags & Flags_IS_CONST; }
-        bool                      is_child_of(std::type_index _possible_parent_id, bool _selfCheck = true) const;
-        bool                      equals(const type* other) const { return equals(this, other); }
-        void                      add_parent(id_t _parent);
-        void                      add_child(id_t _child);
-        void                      add_static(const char* _name, const IInvokable*);
-        void                      add_method(const char* _name, const IInvokableMethod*);
-        const std::unordered_set<const IInvokable*>&
-                                  get_statics()const { return m_static_methods; }
-        const std::unordered_set<const IInvokableMethod*>&
-                                  get_methods()const { return m_methods; }
-        const IInvokable*         get_static(const char* _name) const;
-        const IInvokableMethod*   get_method(const char* _name) const;
-        template<class T>
-        inline bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
-        template<class T>
-        inline bool               is_not_child_of() const { return !is_child_of<T>(); }
-        template<typename T>
-        bool                      is() const;
-
         // static
 
-        static bool               is_ptr(const type* type) { return type->is_ptr(); }
-        static bool               is_implicitly_convertible(const type* _src, const type* _dst);
-        static bool               equals(const type* left, const type* right);
-        template<typename T>
-        static const type*        get();
+        static bool               is_implicitly_convertible(const TypeDesc* _src, const TypeDesc* _dst);
+        static bool               equals(const TypeDesc* left, const TypeDesc* right);
 
+        template<typename T>
+        static const TypeDesc*    get();
+        template<typename T>
+        static const ClassDesc*   get_class(T* ptr);
+        template<typename T>
+        static const ClassDesc*   get_class();
+        
         template<class ...Types>
         struct get_all
         {
             using tuple = std::tuple<Types...>;
             static constexpr size_t size = std::tuple_size_v<tuple>;
-            using result_t = std::array<const tools::type*, size>;
+            using result_t = std::array<const tools::TypeDesc*, size>;
 
             static result_t types()
             {
@@ -140,32 +97,149 @@ namespace tools
         };
 
         template<typename T>
-        static type*              create(const char* _name = "");
+        static TypeDesc*          create(const char* _name = "");
         template<typename T>
-        static const type*        get(T value) { return get<T>(); }
-        static const type*        any();
-        static const type*        null();
+        static const TypeDesc*    get(T value) { return get<T>(); }
+        static const TypeDesc*    any();
+        static const TypeDesc*    null();
+    };
+
+    /**
+     * @class Type descriptor. Holds meta data corresponding to a given type.
+     *
+     * @example @code
+     * // Will get or create the type descriptor for MyType
+     * const type* t = type::get<MyType>();
+     * // Checks if two type descriptors are the same
+     * bool equals = t->is<MyType>(): // is true
+     */
+    class TypeDesc
+    {
+        friend class  TypeRegister;
+        friend struct type;
+    public:
+        typedef u8_t Flags;
+        enum Flags_ : u8_t
+        {
+            Flags_NONE       = 0u,
+            Flags_IS_CLASS   = 1u,
+            Flags_IS_CONST   = 1u << 1,
+            Flags_IS_POINTER = 1u << 2,
+            Flags_HAS_PARENT = 1u << 3,
+            Flags_HAS_CHILD  = 1u << 4,
+            Flags_IS_MEMBER_PTR = 1u << 5,
+        };
+
+        TypeDesc(
+            std::type_index _id,
+            std::type_index _primitive_id,
+            const char*     _name,
+            const char*     _compiler_name,
+            Flags _flags);
+
+        TypeDesc(const TypeDesc&) = delete; // a type must be unique
+        TypeDesc(TypeDesc&&) = delete;
+        virtual ~TypeDesc() {};
+
+        std::type_index           id() const { return m_id; }
+        const char*               get_name() const { return m_name; };
+        bool                      is_class() const { return m_flags & Flags_IS_CLASS; }
+        bool                      any_of(std::vector<const TypeDesc*> args)const;
+        bool                      has_parent() const { return m_flags & Flags_HAS_PARENT; }
+        bool                      is_ptr() const { return m_flags & Flags_IS_POINTER; }
+        bool                      is_const() const { return m_flags & Flags_IS_CONST; }
+        bool                      equals(const TypeDesc* other) const { return type::equals(this, other); }
+        template<typename T>
+        bool                      is() const;
 
     protected:
         const char* m_name;
         const char* m_compiler_name;
         Flags       m_flags;
-        const id_t m_primitive_id; // ex: T
-        const id_t m_id;           // ex: T**, T*
-        std::unordered_set<id_t> m_parents;
-        std::unordered_set<id_t> m_children;
-        std::unordered_set<const IInvokable*>              m_static_methods;
-        std::unordered_map<std::string, const IInvokable*> m_static_methods_by_name;
+        const std::type_index m_primitive_id; // ex: T
+        const std::type_index m_id;           // ex: T**, T*
+    };
+
+    class ClassDesc : public TypeDesc
+    {
+        friend class TypeRegister;
+    public:
+
+        ClassDesc(
+            std::type_index _id,
+            std::type_index _primitive_id,
+            const char*     _name,
+            const char*     _compiler_name,
+            Flags           _flags);
+
+        ClassDesc(const ClassDesc&) = delete; // a type must be unique
+        ClassDesc(ClassDesc&&) = delete;
+        ~ClassDesc();
+
+        bool                      is_child_of(std::type_index _possible_parent_id, bool _selfCheck = true) const;
+        void                      add_parent(std::type_index _parent);
+        void                      add_child(std::type_index _child);
+        void                      add_static(const char* _name, const IInvokable*);
+        void                      add_method(const char* _name, const IInvokableMethod*);
+        const std::unordered_set<const IInvokable*>&
+        get_statics()const { return m_static_methods; }
+        const std::unordered_set<const IInvokableMethod*>&
+        get_methods()const { return m_methods; }
+        const IInvokable*         get_static(const char* _name) const;
+        const IInvokableMethod*   get_method(const char* _name) const;
+        template<class T>
+        inline bool               is_child_of() const { return is_child_of(std::type_index(typeid(T)), true); }
+        template<class T>
+        inline bool               is_not_child_of() const { return !is_child_of<T>(); }
+
+        // static
+
+        template<class ...Types>
+        struct get_all
+        {
+            using tuple = std::tuple<Types...>;
+            static constexpr size_t size = std::tuple_size_v<tuple>;
+            using result_t = std::array<const tools::TypeDesc*, size>;
+
+            static result_t types()
+            {
+                result_t output{};
+                return extract_type_at<size - 1>(output);
+            }
+
+        private:
+            template<size_t N, typename std::enable_if_t<N!=0, bool> = 0 >
+            static result_t& extract_type_at(result_t& output)
+            {
+                using element_t = std::tuple_element_t<N, tuple>;
+                output[N] = tools::type::get<element_t>();
+                return extract_type_at<N - 1>(output);
+            }
+
+            template<size_t N, typename std::enable_if_t<N==0, bool> = 0 >
+            static result_t& extract_type_at(result_t& output)
+            {
+                using element_t = std::tuple_element_t<0, tuple>;
+                output[0] = tools::type::get<element_t>();
+                return output;
+            }
+        };
+
+    protected:
+        std::unordered_set<std::type_index>                      m_parents;
+        std::unordered_set<std::type_index>                      m_children;
+        std::unordered_set<const IInvokable*>                    m_static_methods;
+        std::unordered_map<std::string, const IInvokable*>       m_static_methods_by_name;
         std::unordered_set<const IInvokableMethod*>              m_methods;
         std::unordered_map<std::string, const IInvokableMethod*> m_methods_by_name;
     };
 
     template<typename T>
-    type::id_t get_type_id()
+    std::type_index get_type_id()
     { return std::type_index(typeid(T)); }
 
     template<typename T>
-    type::id_t get_primitive_type_id()
+    std::type_index get_primitive_type_id()
     { return get_type_id<typename remove_pointer<T>::type>(); }
 
     template<typename T>
@@ -173,41 +247,54 @@ namespace tools
     { return typeid(T).name(); }
 
     template<typename T>
-    bool type::is() const
-    { return equals(this, get<T>()); }
+    bool TypeDesc::is() const
+    { return type::equals(this, type::get<T>()); }
 
     template<typename T>
-    const type* type::get()
+    const ClassDesc* type::get_class()
     {
-        type::id_t id = get_type_id<T>();
+        static_assert( std::is_class_v<T> );
+        return (const ClassDesc*)get<T>();
+    }
 
-        if ( type_register::has(id) )
+    template<typename T>
+    const ClassDesc* type::get_class(T* ptr)
+    {
+        static_assert( std::is_class_v<T> );
+        return (const ClassDesc*)get<T>();
+    }
+
+    template<typename T>
+    const TypeDesc* type::get()
+    {
+        auto id = get_type_id<T>();
+
+        if ( TypeRegister::has(id) )
         {
-            return type_register::get(id);
+            return TypeRegister::get(id);
         }
 
-        type* type = create<T>();
-        type_register::insert(type);
+        TypeDesc* type = create<T>();
+        TypeRegister::insert(type);
 
         return type;
     }
 
     template<typename T>
-    type* type::create(const char* _name)
+    TypeDesc* type::create(const char* _name)
     {
         Flags flags = Flags_NONE;
-        if(std::is_pointer_v<T>) flags |= Flags_IS_POINTER;
-        if(std::is_const_v<T>)   flags |= Flags_IS_CONST;
-        if(std::is_class_v<T>)   flags |= Flags_IS_CLASS;
+        if(std::is_pointer_v<T>)        flags |= Flags_IS_POINTER;
+        if(std::is_const_v<T>)          flags |= Flags_IS_CONST;
         if(std::is_member_pointer_v<T>) flags |= Flags_IS_MEMBER_PTR;
 
-        return new type(
-            get_type_id<T>(),
-            get_primitive_type_id<T>(),
-            _name,
-            get_type_compiler_name<T>(),
-            flags
-        );
+        std::type_index id            = get_type_id<T>();
+        std::type_index primitive_id  = get_primitive_type_id<T>();
+        const char*     compiler_name = get_type_compiler_name<T>();
+
+        if constexpr ( std::is_class_v<T> )
+            return new ClassDesc(id, primitive_id, _name, compiler_name, flags | Flags_IS_CLASS);
+        return new TypeDesc(id, primitive_id, _name, compiler_name, flags );
     }
 
     /**
@@ -221,8 +308,8 @@ namespace tools
         static_assert(IsReflectedClass<PossiblyBaseClass>);
 
         // check if source_type is a child of possibly_base_class
-        const type* source_type = source_ptr->get_class();
-        const type* possibly_base_class = type::get<PossiblyBaseClass>();
+        const ClassDesc* source_type         = source_ptr->get_class();
+        const TypeDesc*  possibly_base_class = type::get<PossiblyBaseClass>();
         return source_type->is_child_of(possibly_base_class->id(), self_check );
     }
 

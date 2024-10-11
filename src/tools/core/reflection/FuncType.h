@@ -4,7 +4,7 @@
 #include <vector>
 #include <tuple>
 #include <memory>
-#include "type.h"
+#include "Type.h"
 
 namespace tools
 {
@@ -16,7 +16,7 @@ namespace tools
      */
     struct FuncArg
     {
-        FuncArg(u8_t index, const type* _type, bool _by_reference, const std::string& _name)
+        FuncArg(u8_t index, const TypeDesc* _type, bool _by_reference, const std::string& _name)
             : m_index( index)
             , m_type(_type)
             , m_by_reference(_by_reference)
@@ -24,10 +24,10 @@ namespace tools
         {
         }
 
-        u8_t        m_index;
-        const type* m_type;
-        bool        m_by_reference;
-        std::string m_name;
+        u8_t            m_index;
+        const TypeDesc* m_type;
+        bool            m_by_reference;
+        std::string     m_name;
     };
 
     /*
@@ -38,8 +38,8 @@ namespace tools
     {
     public:
         void                           set_identifier(const std::string& _identifier);
-        void                           push_arg(const type* _type, bool _by_reference = false);
-        bool                           has_an_arg_of_type(const type* type)const;
+        void                           push_arg(const TypeDesc* _type, bool _by_reference = false);
+        bool                           has_an_arg_of_type(const TypeDesc* type)const;
         bool                           is_exactly(const FuncType* _other)const;
         bool                           is_compatible(const FuncType* _other)const;
         const char*                    get_identifier()const { return m_identifier.c_str(); };
@@ -47,12 +47,12 @@ namespace tools
         std::vector<FuncArg>&          get_args() { return m_args;};
         const std::vector<FuncArg>&    get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
-        const type*                    get_return_type() const { return m_return_type; }
-        void                           set_return_type(const type* _type) { m_return_type = _type; };
+        const TypeDesc*                get_return_type() const { return m_return_type; }
+        void                           set_return_type(const TypeDesc* _type) { m_return_type = _type; };
     private:
         tools::string64      m_identifier;
         std::vector<FuncArg> m_args;
-        const type*          m_return_type = type::null();
+        const TypeDesc*      m_return_type = type::null();
 
     public:
 
@@ -66,7 +66,7 @@ namespace tools
                 arg_pusher<Tuple, N - 1>::push_into(_signature);
 
                 using T = std::tuple_element_t<N-1, Tuple>;
-                _signature->push_arg( type::get<T>(), std::is_reference<T>::value );
+                _signature->push_arg(type::get<T>(), std::is_reference<T>::value );
             }
         };
 
@@ -76,7 +76,7 @@ namespace tools
             static void push_into(FuncType *_signature)
             {
                 using T = std::tuple_element_t<0, Tuple>;
-                _signature->push_arg( type::get<T>(), std::is_reference<T>::value );
+                _signature->push_arg(type::get<T>(), std::is_reference<T>::value );
             };
         };
 

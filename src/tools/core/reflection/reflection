@@ -7,6 +7,6 @@
 #include "class.h"
 #include "enum.h"
 #include "FuncType.h"
-#include "type.h"
-#include "type_register.h"
+#include "Type.h"
+#include "TypeRegister.h"
 #include "union.h"

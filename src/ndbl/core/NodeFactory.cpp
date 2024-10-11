@@ -56,7 +56,7 @@ void NodeFactory::destroy_node(Node* node) const
 #endif
 }
 
-VariableNode* NodeFactory::create_variable(const type *_type, const std::string& _name, Scope* _scope) const
+VariableNode* NodeFactory::create_variable(const TypeDesc* _type, const std::string& _name, Scope* _scope) const
 {
     // create
     auto node = create<VariableNode>();
@@ -151,7 +151,7 @@ Node* NodeFactory::create_node() const
     return node;
 }
 
-LiteralNode* NodeFactory::create_literal(const type *_type) const
+LiteralNode* NodeFactory::create_literal(const TypeDesc *_type) const
 {
     auto node = create<LiteralNode>();
     node->init(_type, "Literal");
