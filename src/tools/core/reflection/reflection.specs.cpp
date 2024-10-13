@@ -72,6 +72,6 @@ TEST(Reflection, is_child_of)
 TEST(Reflection, by_reference)
 {
    ;
-   auto descriptor = FunctionDescriptor::create<void(double& d)>("function");
+   auto descriptor = FunctionDescriptor::construct<void(double &d)>("function");
    EXPECT_TRUE( descriptor.get_arg(0).m_by_reference );
 }

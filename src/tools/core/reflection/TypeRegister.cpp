@@ -49,8 +49,8 @@ TypeDescriptor* TypeRegister::merge(TypeDescriptor* existing, const TypeDescript
     LOG_VERBOSE(
         __FILE__,
         "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n",
-        existing->m_name, existing->m_compiler_name,
-        other->m_name, other->m_compiler_name
+        existing->m_name.c_str(), existing->m_compiler_name,
+        other->m_name.c_str(), other->m_compiler_name
     )
     if( existing->m_name[0] == '\0' )
     {
@@ -76,7 +76,7 @@ void TypeRegister::log_statistics()
 
     for ( const auto& [type_hash, type] : by_index() )
     {
-        LOG_MESSAGE("reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name, type->m_compiler_name );
+        LOG_MESSAGE("reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name.c_str(), type->m_compiler_name );
     }
 
     LOG_MESSAGE("reflection", "Logging done.\n");

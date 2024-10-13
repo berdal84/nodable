@@ -27,7 +27,7 @@ namespace tools
 
             explicit Initializer(const char *_name)
             {
-                TypeDescriptor *type = type::create<T>(_name);
+                TypeDescriptor *type = TypeDescriptor::create<T>(_name);
                 m_type = TypeRegister::insert_or_merge(type);
             }
         };
@@ -41,7 +41,7 @@ namespace tools
 
             explicit Initializer(const char *_name)
             {
-                TypeDescriptor *type = type::create<T>(_name);
+                TypeDescriptor *type = ClassDescriptor::create<T>(_name);
                 m_class = (ClassDescriptor *) TypeRegister::insert_or_merge(type);
             }
 
@@ -68,6 +68,7 @@ namespace tools
             template<typename BaseClassT>
             Initializer &extends()
             {
+                static_assert(std::is_class_v<BaseClassT>);
                 static_assert(std::is_base_of_v<BaseClassT, T>);
 
                 auto base_class = const_cast<ClassDescriptor *>( type::get_class<BaseClassT>()); // get or create

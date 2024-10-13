@@ -16,19 +16,19 @@ TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 
 TEST_F(Language_basics, can_get_add_operator_with_signature )
 {
-    const FunctionDescriptor descriptor = FunctionDescriptor::create<double(double, double)>("+");
+    const FunctionDescriptor descriptor = FunctionDescriptor::construct<double(double, double)>("+");
     EXPECT_TRUE(language->find_operator_fct(&descriptor));
 }
 
 TEST_F(Language_basics, can_get_invert_operator_with_signature )
 {
-    const FunctionDescriptor descriptor = FunctionDescriptor::create<double(double)>("-");
+    const FunctionDescriptor descriptor = FunctionDescriptor::construct<double(double)>("-");
     EXPECT_TRUE(language->find_operator_fct(&descriptor));
 }
 
 TEST_F(Language_basics, by_ref_assign )
 {
-    const FunctionDescriptor descriptor = FunctionDescriptor::create<double(double&, double)>("=");
+    const FunctionDescriptor descriptor = FunctionDescriptor::construct<double(double &, double)>("=");
 
     EXPECT_TRUE(descriptor.get_args()[0].m_by_reference);
 

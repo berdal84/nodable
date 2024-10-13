@@ -4,13 +4,13 @@ using namespace tools;
 
 TEST(FunctionDescriptor, no_arg_fct)
 {
-    const FunctionDescriptor f = FunctionDescriptor::create<bool()>("fct");
+    const FunctionDescriptor f = FunctionDescriptor::construct<bool()>("fct");
     EXPECT_EQ(f.get_arg_count(), 0);
 }
 
 TEST(FunctionDescriptor, push_single_arg)
 {
-    const FunctionDescriptor f = FunctionDescriptor::create<bool(double)>("fct");
+    const FunctionDescriptor f = FunctionDescriptor::construct<bool(double)>("fct");
 
     EXPECT_EQ(f.get_arg_count(), 1);
     EXPECT_TRUE(f.get_return_type()->is<bool>());
@@ -19,7 +19,7 @@ TEST(FunctionDescriptor, push_single_arg)
 
 TEST(FunctionDescriptor, push_two_args)
 {
-    const FunctionDescriptor f = FunctionDescriptor::create<bool(double)>("fct");
+    const FunctionDescriptor f = FunctionDescriptor::construct<bool(double)>("fct");
 
     EXPECT_EQ(f.get_arg_count(), 1);
     EXPECT_TRUE(f.get_return_type()->is<bool>());
@@ -29,8 +29,8 @@ TEST(FunctionDescriptor, push_two_args)
 
 TEST(FunctionDescriptor, match_check_for_arg_count)
 {
-    const FunctionDescriptor f = FunctionDescriptor::create<bool(bool)>("fct");
-    const FunctionDescriptor g = FunctionDescriptor::create<bool(bool, bool)>("fct");
+    const FunctionDescriptor f = FunctionDescriptor::construct<bool(bool)>("fct");
+    const FunctionDescriptor g = FunctionDescriptor::construct<bool(bool, bool)>("fct");
 
     EXPECT_EQ(g.is_compatible(&f), false);
     EXPECT_EQ(f.is_compatible(&g), false);
@@ -38,8 +38,8 @@ TEST(FunctionDescriptor, match_check_for_arg_count)
 
 TEST(FunctionDescriptor, push_args_template_0)
 {
-    const FunctionDescriptor  f = FunctionDescriptor::create<bool()>("fct");
-    FunctionDescriptor        g = FunctionDescriptor::create<bool()>("fct");
+    const FunctionDescriptor  f = FunctionDescriptor::construct<bool()>("fct");
+    FunctionDescriptor        g = FunctionDescriptor::construct<bool()>("fct");
 
     using ZeroArgs = std::tuple<>;
     g.push_args<ZeroArgs>();
@@ -50,8 +50,8 @@ TEST(FunctionDescriptor, push_args_template_0)
 
 TEST(FunctionDescriptor, push_args_template_1)
 {
-    const FunctionDescriptor f = FunctionDescriptor::create<bool(double, double)>("fct");
-    FunctionDescriptor       g = FunctionDescriptor::create<bool()>("fct");
+    const FunctionDescriptor f = FunctionDescriptor::construct<bool(double, double)>("fct");
+    FunctionDescriptor       g = FunctionDescriptor::construct<bool()>("fct");
 
     g.push_args< std::tuple<double, double> >();
 
@@ -61,8 +61,8 @@ TEST(FunctionDescriptor, push_args_template_1)
 
 TEST(FunctionDescriptor, push_args_template_4)
 {
-    const FunctionDescriptor f = FunctionDescriptor::create<bool(double, double, double, double)>("fct");
-    FunctionDescriptor       g = FunctionDescriptor::create<bool()>("fct");
+    const FunctionDescriptor f = FunctionDescriptor::construct<bool(double, double, double, double)>("fct");
+    FunctionDescriptor       g = FunctionDescriptor::construct<bool()>("fct");
 
     g.push_args< std::tuple<double, double, double, double> >();
 

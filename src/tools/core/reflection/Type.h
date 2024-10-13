@@ -76,10 +76,10 @@ namespace tools
         const TypeDescriptor*    any();
         const TypeDescriptor*    null();
 
-        template<typename T> std::type_index    id();
-        template<typename T> std::type_index    primitive_id();
-        template<typename T> const char*        compiler_name();
-        template<typename T> TypeFlags          flags();
+        template<typename T> std::type_index    get_id();
+        template<typename T> std::type_index    get_primitive_id();
+        template<typename T> const char*        get_compiler_name();
+        template<typename T> TypeFlags          get_flags();
         template<typename T> const TypeDescriptor*    get();
         template<typename T> const ClassDescriptor*   get_class(T* ptr);
         template<typename T> const ClassDescriptor*   get_class();
@@ -117,18 +117,6 @@ namespace tools
 //            }
 //        };
     };
-
-    template<typename T>
-    std::type_index type::id()
-    { return std::type_index(typeid(T)); }
-
-    template<typename T>
-    std::type_index type::primitive_id()
-    { return id<typename remove_pointer<T>::type>(); }
-
-    template<typename T>
-    const char* type::compiler_name()
-    { return typeid(T).name(); }
 
     /**
      * @class TypeDesc (type descriptor) holds meta data relative to a given type.
@@ -189,8 +177,8 @@ namespace tools
     {
     public:
 
-        template<typename T> static FunctionDescriptor* create_new(const char* _name);
-        template<typename T> static FunctionDescriptor create(const char* _name);
+        template<typename T> static FunctionDescriptor* create(const char* _name);
+        template<typename T> static FunctionDescriptor construct(const char* _name);
 
         FunctionDescriptor(std::type_index _id, std::type_index _primitive_id): TypeDescriptor(_id, _primitive_id) {}
 
@@ -207,7 +195,7 @@ namespace tools
         std::vector<FuncArg>&          get_args() { return m_args;};
         const std::vector<FuncArg>&    get_args()const { return m_args;};
         size_t                         get_arg_count() const { return m_args.size(); }
-        const TypeDescriptor*                get_return_type() const { return m_return_type; }
+        const TypeDescriptor*          get_return_type() const { return m_return_type; }
         void                           set_return_type(const TypeDescriptor* _type) { m_return_type = _type; };
     private:
         template<typename T> static void init(FunctionDescriptor*, const char* _name);
@@ -215,32 +203,6 @@ namespace tools
         std::vector<FuncArg> m_args;
         const TypeDescriptor*      m_return_type = type::null();
     };
-
-    template<int N, typename ArgsAsTuple>
-    void FunctionDescriptor::push_nth_arg()
-    {
-        using NTH_ARG = std::tuple_element_t<N, ArgsAsTuple>;
-        const TypeDescriptor* type_descriptor = type::get<NTH_ARG>();
-        push_arg(type_descriptor, std::is_reference_v<NTH_ARG>);
-    }
-
-    template<typename ...Args>
-    void FunctionDescriptor::push_args()
-    {
-        constexpr size_t ARG_COUNT = std::tuple_size_v<Args...>;
-        static_assert(ARG_COUNT <= 8, "maximum 8 arguments can be pushed at once");
-
-        // note: I duplicate instead of using template recursion hell. :)
-
-        if constexpr (ARG_COUNT > 0 ) push_nth_arg<0, Args...>();
-        if constexpr (ARG_COUNT > 1 ) push_nth_arg<1, Args...>();
-        if constexpr (ARG_COUNT > 2 ) push_nth_arg<2, Args...>();
-        if constexpr (ARG_COUNT > 3 ) push_nth_arg<3, Args...>();
-        if constexpr (ARG_COUNT > 4 ) push_nth_arg<4, Args...>();
-        if constexpr (ARG_COUNT > 5 ) push_nth_arg<5, Args...>();
-        if constexpr (ARG_COUNT > 6 ) push_nth_arg<6, Args...>();
-        if constexpr (ARG_COUNT > 7 ) push_nth_arg<7, Args...>();
-    }
 
     /**
      * @class ClassDesc (class descriptor) holds meta data relative to a given class.
@@ -286,17 +248,57 @@ namespace tools
     };
 
     template<typename T>
+    std::type_index type::get_id()
+    { return std::type_index(typeid(T)); }
+
+    template<typename T>
+    std::type_index type::get_primitive_id()
+    { return type::get_id<typename remove_pointer<T>::type>(); }
+
+    template<typename T>
+    const char* type::get_compiler_name()
+    { return typeid(T).name(); }
+
+    template<int N, typename ArgsAsTuple>
+    void FunctionDescriptor::push_nth_arg()
+    {
+        using NTH_ARG = std::tuple_element_t<N, ArgsAsTuple>;
+        const TypeDescriptor* type_descriptor = type::get<NTH_ARG>();
+        push_arg(type_descriptor, std::is_reference_v<NTH_ARG>);
+    }
+
+    template<typename ...Args>
+    void FunctionDescriptor::push_args()
+    {
+        constexpr size_t ARG_COUNT = std::tuple_size_v<Args...>;
+        static_assert(ARG_COUNT <= 8, "maximum 8 arguments can be pushed at once");
+
+        // note: I duplicate instead of using template recursion hell. :)
+
+        if constexpr (ARG_COUNT > 0 ) push_nth_arg<0, Args...>();
+        if constexpr (ARG_COUNT > 1 ) push_nth_arg<1, Args...>();
+        if constexpr (ARG_COUNT > 2 ) push_nth_arg<2, Args...>();
+        if constexpr (ARG_COUNT > 3 ) push_nth_arg<3, Args...>();
+        if constexpr (ARG_COUNT > 4 ) push_nth_arg<4, Args...>();
+        if constexpr (ARG_COUNT > 5 ) push_nth_arg<5, Args...>();
+        if constexpr (ARG_COUNT > 6 ) push_nth_arg<6, Args...>();
+        if constexpr (ARG_COUNT > 7 ) push_nth_arg<7, Args...>();
+    }
+
+    template<typename T>
     bool TypeDescriptor::is() const
     { return type::equals(this, type::get<T>()); }
 
     template<typename T>
     TypeDescriptor* TypeDescriptor::create(const char* _name)
     {
-        TypeDescriptor* descriptor = new TypeDescriptor(type::id<T>(), type::primitive_id<T>() );
+        static_assert( std::is_class_v<T> == false );
+
+        TypeDescriptor* descriptor = new TypeDescriptor(type::get_id<T>(), type::get_primitive_id<T>() );
 
         descriptor->m_name          = _name;
-        descriptor->m_compiler_name = type::compiler_name<T>();
-        descriptor->m_flags         = type::flags<T>();
+        descriptor->m_compiler_name = type::get_compiler_name<T>();
+        descriptor->m_flags         = type::get_flags<T>();
 
         return descriptor;
     }
@@ -304,11 +306,13 @@ namespace tools
     template<typename T>
     ClassDescriptor* ClassDescriptor::create(const char* _name)
     {
-        ClassDescriptor* descriptor = new ClassDescriptor(type::id<T>(), type::primitive_id<T>() );
+        static_assert( std::is_class_v<T> );
+
+        ClassDescriptor* descriptor = new ClassDescriptor(type::get_id<T>(), type::get_primitive_id<T>() );
 
         descriptor->m_name          = _name;
-        descriptor->m_compiler_name = type::compiler_name<T>();
-        descriptor->m_flags         = type::flags<T>();
+        descriptor->m_compiler_name = type::get_compiler_name<T>();
+        descriptor->m_flags         = type::get_flags<T>();
 
         return descriptor;
     }
@@ -317,8 +321,8 @@ namespace tools
     void FunctionDescriptor::init(FunctionDescriptor* _descriptor, const char* _name)
     {
         _descriptor->m_name          = _name;
-        _descriptor->m_compiler_name = type::compiler_name<T>();
-        _descriptor->m_flags         = type::flags<T>();
+        _descriptor->m_compiler_name = type::get_compiler_name<T>();
+        _descriptor->m_flags         = type::get_flags<T>();
         _descriptor->m_return_type   = type::get<typename FunctionTrait<T>::result_t >();
 
         using Args = typename FunctionTrait<T>::args_t;
@@ -327,17 +331,17 @@ namespace tools
     }
 
     template<typename T>
-    FunctionDescriptor FunctionDescriptor::create(const char* _name)
+    FunctionDescriptor FunctionDescriptor::construct(const char* _name)
     {
-        FunctionDescriptor descriptor(type::id<T>(), type::primitive_id<T>());
+        FunctionDescriptor descriptor(type::get_id<T>(), type::get_primitive_id<T>());
         FunctionDescriptor::init<T>(&descriptor, _name);
         return descriptor;
     }
 
     template<typename T>
-    FunctionDescriptor* FunctionDescriptor::create_new(const char* _name)
+    FunctionDescriptor* FunctionDescriptor::create(const char* _name)
     {
-        FunctionDescriptor* descriptor = new FunctionDescriptor(type::id<T>(), type::primitive_id<T>());
+        FunctionDescriptor* descriptor = new FunctionDescriptor(type::get_id<T>(), type::get_primitive_id<T>());
         FunctionDescriptor::init<T>(descriptor, _name);
         return descriptor;
     }
@@ -359,21 +363,21 @@ namespace tools
     template<typename T>
     const TypeDescriptor* type::get()
     {
-        auto id = type::id<T>();
+        auto id = type::get_id<T>();
 
         if ( TypeRegister::has(id) )
         {
             return TypeRegister::get(id);
         }
 
-        TypeDescriptor* descriptor = create<T>();
+        TypeDescriptor* descriptor = type::create<T>();
         TypeRegister::insert(descriptor);
 
         return descriptor;
     }
 
     template<typename T>
-    TypeFlags type::flags()
+    TypeFlags type::get_flags()
     {
         return  (TypeFlag_IS_POINTER    * std::is_pointer_v<T>)
               | (TypeFlag_IS_CONST      * std::is_const_v<T>)
@@ -385,10 +389,11 @@ namespace tools
     TypeDescriptor* type::create(const char* _name)
     {
         if constexpr ( std::is_member_function_pointer_v<T> || std::is_function_v<T>)
-            return FunctionDescriptor::create_new<T>(_name);
+            return FunctionDescriptor::create<T>(_name);
         if constexpr ( std::is_class_v<T> )
             return ClassDescriptor::create<T>(_name);
-        return TypeDescriptor::create<T>(_name);
+        else
+            return TypeDescriptor::create<T>(_name);
     }
 
     /**
@@ -428,15 +433,4 @@ namespace tools
     {
         return source_ptr;
     }
-
-    template<class Type>
-    constexpr bool has_get_type = std::is_member_pointer<decltype(&Type::get_type)>::value;
-
-    template<class DerivedT, class BaseT>
-    struct is_base_of
-    {
-        static_assert( tools::has_get_type<BaseT>, "BaseT must have polymorphic reflection");
-        static_assert( tools::has_get_type<DerivedT>, "DerivedT must have polymorphic reflection");
-        static constexpr bool value = std::is_same_v<DerivedT, BaseT> || std::is_base_of_v<DerivedT, BaseT>;
-    };
 }
