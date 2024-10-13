@@ -22,7 +22,7 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
 
     for (auto& action: items )
     {
-        const TypeDesc* dragged_property_type = dragged_slot->get_property_type();
+        const TypeDescriptor* dragged_property_type = dragged_slot->get_property_type();
 
         switch ( action->event_data.node_type )
         {

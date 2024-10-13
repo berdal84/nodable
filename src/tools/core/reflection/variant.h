@@ -40,9 +40,9 @@ namespace tools
         void        set(i32_t);
         void        set(const variant&);
 
-        const TypeDesc* get_type()const;
-        bool        is_type(const TypeDesc*) const;
-        void        change_type(const TypeDesc* _type);
+        const TypeDescriptor* get_type()const;
+        bool        is_type(const TypeDescriptor*) const;
+        void        change_type(const TypeDescriptor* _type);
 
         void        clear_data();
         const qword*data() const; // get ptr to underlying data (qword)
@@ -86,8 +86,8 @@ namespace tools
         void release_mem(); // undo init_mem()
         bool is_mem_initialized() const;
 
-        static Type                   type_to_enum(const TypeDesc*) ;
-        static const tools::TypeDesc* enum_to_type(Type) ;
+        static Type                   type_to_enum(const TypeDescriptor*) ;
+        static const tools::TypeDescriptor* enum_to_type(Type) ;
 
         typedef int Flags;
         enum Flag_

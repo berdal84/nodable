@@ -12,7 +12,6 @@
 #include "tools/core/types.h"
 
 #include "IScope.h"
-#include "tools/core/reflection/FuncType.h"
 
 namespace ndbl
 {
@@ -43,7 +42,7 @@ namespace ndbl
         CreateNodeType_LITERAL_DOUBLE,
         CreateNodeType_LITERAL_INTEGER,
         CreateNodeType_LITERAL_STRING,
-        CreateNodeType_INVOKABLE,
+        CreateNodeType_FUNCTION,
     };
 
     /**
@@ -63,19 +62,19 @@ namespace ndbl
         // node related
 
         Node*                    create_node(); // Create a raw node.
-        Node*                    create_node(CreateNodeType, const tools::FuncType* _signature = nullptr); // Create a given node type in a simple way.
+        Node*                    create_node(CreateNodeType, const tools::FunctionDescriptor* _signature = nullptr); // Create a given node type in a simple way.
         Node*                    create_root();
-        VariableNode*            create_variable(const tools::TypeDesc *_type, const std::string &_name, Scope* _scope);
-        VariableNode*            create_variable_decl(const tools::TypeDesc* _type, const char*  _name, Scope*  _scope);
+        VariableNode*            create_variable(const tools::TypeDescriptor *_type, const std::string &_name, Scope* _scope);
+        VariableNode*            create_variable_decl(const tools::TypeDescriptor* _type, const char*  _name, Scope*  _scope);
         template<typename T>
         VariableNode* create_variable_decl(const char*  _name = "var", Scope* _scope = {})
         { return create_variable_decl(tools::type::get<T>(), _name, _scope); }
 
-        LiteralNode*             create_literal(const tools::TypeDesc *_type);
+        LiteralNode*             create_literal(const tools::TypeDescriptor *_type);
         template<typename T>
         LiteralNode*             create_literal() { return create_literal( tools::type::get<T>()); }
-        InvokableNode*           create_function(tools::FuncType&&);
-        InvokableNode*           create_operator(tools::FuncType&&);
+        FunctionNode*           create_function(const tools::FunctionDescriptor*);
+        FunctionNode*           create_operator(const tools::FunctionDescriptor*);
         Node*                    create_scope();
         IfNode*                  create_cond_struct();
         ForLoopNode*             create_for_loop();

@@ -12,7 +12,7 @@
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/IfNode.h"
-#include "ndbl/core/InvokableNode.h"
+#include "ndbl/core/FunctionNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Scope.h"
 #include "ndbl/core/VariableNode.h"
@@ -65,7 +65,7 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
 
             case NodeType_OPERATOR:
             {
-                auto* invokable = static_cast<const InvokableNode*>(each_node);
+                auto* invokable = static_cast<const FunctionNode*>(each_node);
                 if ( !language->find_operator_fct(invokable->get_func_type()) )
                 {
                     std::string signature;
@@ -76,7 +76,7 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
             }
             case NodeType_FUNCTION:
             {
-                auto* invokable = static_cast<const InvokableNode*>(each_node);
+                auto* invokable = static_cast<const FunctionNode*>(each_node);
                 if ( !language->find_function(invokable->get_func_type()) )
                 {
                     std::string signature;
@@ -198,7 +198,7 @@ void Compiler::compile_node( const Node* _node )
                 case NodeType_OPERATOR:
                 {
                     Instruction*      instr     = m_temp_code->push_instr(OpCode_call);
-                    const FuncType*   func_type = static_cast<const InvokableNode*>(_node)->get_func_type();
+                    const FunctionDescriptor*   func_type = static_cast<const FunctionNode*>(_node)->get_func_type();
 
                     const IInvokable* invokable = get_language()->find_function( func_type ); // Get exact OR fallback function (in case of arg cast)
                     VERIFY(invokable != nullptr, "Unable to find this function")
@@ -345,7 +345,7 @@ const Code* Compiler::compile_syntax_tree(const Graph* _graph)
         {
             delete m_temp_code;
             m_temp_code = nullptr;
-            LOG_ERROR("Compiler", "Unable to create assembly code for program. Reason: %s\n", e.what());
+            LOG_ERROR("Compiler", "Unable to create_new assembly code for program. Reason: %s\n", e.what());
         }
         return m_temp_code;
     }

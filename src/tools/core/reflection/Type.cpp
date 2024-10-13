@@ -3,6 +3,9 @@
 #include "reflection"
 #include <stdexcept>// std::runtime_error
 
+#include <algorithm> // find_if
+#include "Operator.h"
+
 using namespace tools;
 
 REFLECT_STATIC_INIT
@@ -22,44 +25,30 @@ REFLECT_STATIC_INIT
     type::Initializer<null_t>("null");
 }
 
-TypeDesc::TypeDesc(
-    std::type_index _id,
-    std::type_index _primitive_id,
-    const char*     _name,
-    const char*     _compiler_name,
-    TypeFlags       _flags)
-: m_id(_id)
-, m_primitive_id(_primitive_id)
-, m_name(_name)
-, m_compiler_name(_compiler_name)
-, m_flags(_flags)
-{
-}
-
-bool type::equals(const TypeDesc* left, const TypeDesc* right)
+bool type::equals(const TypeDescriptor* left, const TypeDescriptor* right)
 {
     ASSERT(left != nullptr)
     return right != nullptr && left->id() == right->id();
 }
 
-const TypeDesc* type::any()
+const TypeDescriptor* type::any()
 {
-    static const TypeDesc* any  = type::get<any_t>();
+    static const TypeDescriptor* any  = type::get<any_t>();
     return any;
 }
 
-const TypeDesc* type::null()
+const TypeDescriptor* type::null()
 {
-    static const TypeDesc* null  = type::get<null_t>();
+    static const TypeDescriptor* null  = type::get<null_t>();
     return null;
 }
 
-bool type::is_implicitly_convertible(const TypeDesc* _src, const TypeDesc* _dst )
+bool type::is_implicitly_convertible(const TypeDescriptor* _src, const TypeDescriptor* _dst )
 {
     return _src->is_implicitly_convertible(_dst);
 }
 
-bool TypeDesc::is_implicitly_convertible(const TypeDesc* _dst ) const
+bool TypeDescriptor::is_implicitly_convertible(const TypeDescriptor* _dst ) const
 {
     if( _dst->is_const() )
         return false;
@@ -81,7 +70,7 @@ bool TypeDesc::is_implicitly_convertible(const TypeDesc* _dst ) const
         this->is<i32_t>() && _dst->is<double>();
 }
 
-bool TypeDesc::any_of(std::vector<const TypeDesc*> types) const
+bool TypeDescriptor::any_of(std::vector<const TypeDescriptor*> types) const
 {
     for ( auto each : types )
         if(equals(each))
@@ -89,22 +78,7 @@ bool TypeDesc::any_of(std::vector<const TypeDesc*> types) const
     return false;
 }
 
-ClassDesc::ClassDesc(
-    std::type_index _id,
-    std::type_index _primitive_id,
-    const char*     _name,
-    const char*     _compiler_name,
-    TypeFlags       _flags)
-: TypeDesc(
-    _id,
-    _primitive_id,
-    _name,
-    _compiler_name,
-    _flags | TypeFlag_IS_CLASS )
-{
-}
-
-ClassDesc::~ClassDesc()
+ClassDescriptor::~ClassDescriptor()
 {
     for (auto* each : m_methods )
         delete each;
@@ -114,7 +88,7 @@ ClassDesc::~ClassDesc()
 }
 
 
-bool ClassDesc::is_child_of(std::type_index _possible_parent_id, bool _selfCheck) const
+bool ClassDescriptor::is_child_of(std::type_index _possible_parent_id, bool _selfCheck) const
 {
     if (_selfCheck && m_id == _possible_parent_id )
     {
@@ -147,31 +121,31 @@ bool ClassDesc::is_child_of(std::type_index _possible_parent_id, bool _selfCheck
     return false;
 };
 
-void ClassDesc::add_parent(std::type_index parent)
+void ClassDescriptor::add_parent(std::type_index parent)
 {
     m_parents.insert(parent);
     m_flags |= TypeFlag_HAS_PARENT;
 }
 
-void ClassDesc::add_child(std::type_index _child)
+void ClassDescriptor::add_child(std::type_index _child)
 {
     m_children.insert( _child );
     m_flags |= TypeFlag_HAS_CHILD;
 }
 
-void ClassDesc::add_static(const char* _name, const IInvokable* _func_type)
+void ClassDescriptor::add_static(const char* _name, const IInvokable* _func_type)
 {
     m_static_methods.insert(_func_type);
     m_static_methods_by_name.insert({_name, _func_type});
 }
 
-void ClassDesc::add_method(const char* _name, const IInvokableMethod* _func_type)
+void ClassDescriptor::add_method(const char* _name, const IInvokableMethod* _func_type)
 {
     m_methods.insert(_func_type);
     m_methods_by_name.insert({_name, _func_type});
 }
 
-const IInvokableMethod* ClassDesc::get_method(const char* _name) const
+const IInvokableMethod* ClassDescriptor::get_method(const char* _name) const
 {
     auto found = m_methods_by_name.find(_name);
     if( found != m_methods_by_name.end() )
@@ -181,7 +155,7 @@ const IInvokableMethod* ClassDesc::get_method(const char* _name) const
     return nullptr;
 }
 
-const IInvokable* ClassDesc::get_static(const char*  _name)const
+const IInvokable* ClassDescriptor::get_static(const char*  _name)const
 {
     auto found = m_static_methods_by_name.find(_name);
     if( found != m_static_methods_by_name.end() )
@@ -191,3 +165,72 @@ const IInvokable* ClassDesc::get_static(const char*  _name)const
     return nullptr;
 }
 
+void FunctionDescriptor::push_arg(const TypeDescriptor* _type, bool _by_reference)
+{
+    auto next_index    = (u8_t)m_args.size();
+    auto& arg          = m_args.emplace_back();
+    arg.m_index        = next_index;
+    arg.m_type         = _type;
+    arg.m_by_reference = _by_reference;
+    arg.m_name         = "arg_" + std::to_string(arg.m_index);
+}
+
+bool FunctionDescriptor::is_exactly(const FunctionDescriptor* _other)const
+{
+    if ( this == _other )
+        return true;
+    if ( m_args.size() != _other->m_args.size())
+        return false;
+    if ( m_name != _other->m_name )
+        return false;
+    if ( m_args.empty() )
+        return true;
+
+    size_t i = 0;
+    while( i < m_args.size() )
+    {
+        const TypeDescriptor* arg_t       = m_args[i].m_type;
+        const TypeDescriptor* other_arg_t = _other->m_args[i].m_type;
+
+        if ( !arg_t->equals(other_arg_t) )
+        {
+            return false;
+        }
+        i++;
+    }
+    return true;
+}
+
+bool FunctionDescriptor::is_compatible(const FunctionDescriptor* _other)const
+{
+    if ( this == _other )
+        return true;
+    if ( m_args.size() != _other->m_args.size())
+        return false;
+    if ( m_name != _other->m_name )
+        return false;
+    if ( m_args.empty() )
+        return true;
+
+    size_t i = 0;
+    while( i < m_args.size() )
+    {
+        const TypeDescriptor* arg_t       = m_args[i].m_type;
+        const TypeDescriptor* other_arg_t = _other->m_args[i].m_type;
+
+        if ( !arg_t->equals(other_arg_t) &&
+             !other_arg_t->is_implicitly_convertible(arg_t) )
+        {
+            return false;
+        }
+        i++;
+    }
+    return true;
+
+}
+
+bool FunctionDescriptor::has_an_arg_of_type(const TypeDescriptor* _type) const
+{
+    auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type->equals(_type); } );
+    return found != m_args.end();
+}

@@ -9,7 +9,7 @@ REFLECT_STATIC_INIT
     type::Initializer<LiteralNode>("LiteralNode").extends<Node>();
 }
 
-void LiteralNode::init(const TypeDesc* _type, const std::string& _name)
+void LiteralNode::init(const TypeDescriptor* _type, const std::string& _name)
 {
     Node::init(NodeType_LITERAL, _name);
     m_type = _type;

@@ -33,7 +33,7 @@ namespace ndbl
 
         bool                  draw() override;
         Property*             get_property()const;
-        const tools::TypeDesc*get_property_type()const;
+        const tools::TypeDescriptor*get_property_type()const;
         tools::string64       compute_tooltip() const;
         Node*                 get_node()const;
         bool                  has_node_connected() const;

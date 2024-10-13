@@ -29,10 +29,10 @@ using namespace ndbl;
 using namespace tools;
 
 template<typename T>
-static FuncType* create_variable_node_signature()
+static FunctionDescriptor* create_variable_node_signature()
 {
-    static FuncType type = FuncTypeBuilder<T(T)>{ "variable" }.construct();
-    return &type;
+    static FunctionDescriptor descriptor = FunctionDescriptor::create<T(T)>("variable");
+    return &descriptor;
 }
 
 void NodableView::init(Nodable * _app)
@@ -136,7 +136,7 @@ void NodableView::init(Nodable * _app)
     {
         std::string label;
         language->serialize_invokable_sig( label, invokable );
-        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_INVOKABLE, invokable->get_sig() } );
+        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_FUNCTION, invokable->get_sig() } );
     }
 
     LOG_VERBOSE("ndbl::NodableView", "init_ex " OK "\n");
@@ -456,7 +456,7 @@ void NodableView::draw_help_window() const
         ImGui::TextWrapped("Nodable UI is designed as following:\n");
         ImGuiEx::BulletTextWrapped("On the left side a (light) text editor allows to edit source code.\n");
         ImGuiEx::BulletTextWrapped(
-                "At the center, there is the graph editor where you can create/delete/connect nodes\n");
+                "At the center, there is the graph editor where you can create_new/delete/connect nodes\n");
         ImGuiEx::BulletTextWrapped(
                 "On the right side (this side) you will find many tabs to manage additional config such as node, interpreter, or app properties\n");
         ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."

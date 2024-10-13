@@ -37,19 +37,19 @@ namespace ndbl
         const Property*  at( size_t pos ) const;
         Property*        find_by_name(const char* _name);
         const Property*  find_by_name(const char* _name) const;
-        Property*        find_first( PropertyFlags, const tools::TypeDesc* );
-        const Property*  find_first( PropertyFlags, const tools::TypeDesc* ) const;
+        Property*        find_first( PropertyFlags, const tools::TypeDescriptor* );
+        const Property*  find_first( PropertyFlags, const tools::TypeDescriptor* ) const;
         Property*        find_id_from_name(const char*) const;
         Property*        get_this();
         const Property*  get_this() const;
-        Property*        add(const tools::TypeDesc* _type, const char *_name, PropertyFlags = PropertyFlag_NONE );
+        Property*        add(const tools::TypeDescriptor* _type, const char *_name, PropertyFlags = PropertyFlag_NONE );
 
         template<typename T>
         Property* add( const char* _name, PropertyFlags _flags = PropertyFlag_NONE )
         { return add(tools::type::get<T>(), _name, _flags); }
 
     private:
-        const Property* _find_first( PropertyFlags _flags, const tools::TypeDesc *_type) const;
+        const Property* _find_first( PropertyFlags _flags, const tools::TypeDescriptor *_type) const;
         Node*                   m_owner;
         std::vector<Property*>  m_properties;
         std::map<std::string, Property*> m_properties_by_name;

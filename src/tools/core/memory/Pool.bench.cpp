@@ -66,8 +66,8 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
 
     for( auto i = 0; i < COUNT; i++ )
     {
-        ids.emplace_back( pool->create<DataPool<128>>() );
-        ids2.emplace_back( pool->create<DataPool<64>>() );
+        ids.emplace_back(pool->create_new<DataPool<128>>() );
+        ids2.emplace_back(pool->create_new<DataPool<64>>() );
     }
 
     if( VECTOR )

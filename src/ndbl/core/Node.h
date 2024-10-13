@@ -47,10 +47,10 @@ namespace ndbl
 		The role of this class is to provide connectable Objects as Nodes.
 
 		A node is an Object (composed with Properties) that can be linked
-	    together in order to create graphs.
+	    together in order to create_new graphs.
 
 		Every Node has_flags a parent Graph. All nodes are built from a Graph,
-	    which first create an instance of this class (or derived) and then
+	    which first create_new an instance of this class (or derived) and then
 		add some Component on it.
 	*/
     class Node
@@ -100,7 +100,7 @@ namespace ndbl
         const Slot*          find_slot_at( SlotFlags, size_t _position ) const; // implicitly THIS_PROPERTY's slot
         Slot*                find_slot_by_property_name(const char* _property_name, SlotFlags );
         const Slot*          find_slot_by_property_name(const char* property_name, SlotFlags ) const;
-        Slot*                find_slot_by_property_type(SlotFlags _way, const tools::TypeDesc *_type);
+        Slot*                find_slot_by_property_type(SlotFlags _way, const tools::TypeDescriptor *_type);
         Slot*                find_slot_by_property(const Property*, SlotFlags );
         const Slot*          find_slot_by_property(const Property*, SlotFlags ) const;
         Slot*                find_adjacent_at(SlotFlags, size_t _index ) const;
@@ -119,12 +119,12 @@ namespace ndbl
         // Property related
         //-----------------
 
-        Property*            add_prop(const tools::TypeDesc*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
+        Property*            add_prop(const tools::TypeDescriptor*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
         Property*            get_prop_at(size_t);
         const Property*      get_prop_at(size_t) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
-        const tools::FuncType* get_connected_function_type(const char *property_name) const; //
+        const tools::FunctionDescriptor* get_connected_function_type(const char *property_name) const; //
         bool                 has_input_connected( const Property*) const;
 
         template<typename ValueT>

@@ -49,10 +49,10 @@ namespace ndbl
         ~CLI() override = default;
 
     private:
-        tools::variant invoke_static(const tools::FuncType* _func_type, std::vector<tools::variant>&& _args) const;
-        tools::variant invoke_method(const tools::FuncType* _func_type, std::vector<tools::variant>&& _args) const;
+        tools::variant invoke_static(const tools::FunctionDescriptor* _func_type, std::vector<tools::variant>&& _args) const;
+        tools::variant invoke_method(const tools::FunctionDescriptor* _func_type, std::vector<tools::variant>&& _args) const;
 
         static std::string get_line() ;
-        static void log_function_call(const tools::variant &result, const tools::FuncType *type) ;
+        static void log_function_call(const tools::variant &result, const tools::FunctionDescriptor *type) ;
     };
 }

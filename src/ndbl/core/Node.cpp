@@ -36,7 +36,7 @@ size_t Node::adjacent_slot_count(SlotFlags _flags )const
     return filter_adjacent_slots( _flags ).size();
 }
 
-const FuncType* Node::get_connected_function_type(const char* property_name) const
+const FunctionDescriptor* Node::get_connected_function_type(const char* property_name) const
 {
     const Slot* slot = find_slot_by_property_name( property_name, SlotFlag_INPUT );
     VERIFY(slot!= nullptr, "Unable to find input slot for this property name")
@@ -44,7 +44,7 @@ const FuncType* Node::get_connected_function_type(const char* property_name) con
 
     if ( adjacent_slot )
         if ( adjacent_slot->get_node()->is_invokable() )
-            return static_cast<const InvokableNode*>(adjacent_slot->get_node())->get_func_type();
+            return static_cast<const FunctionNode*>(adjacent_slot->get_node())->get_func_type();
 
     return nullptr;
 }
@@ -171,7 +171,7 @@ std::vector<Node*> Node::filter_adjacent( SlotFlags _flags ) const
     return GraphUtil::get_adjacent_nodes(this, _flags);
 }
 
-Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDesc* _type)
+Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _type)
 {
     for(Slot* slot : filter_slots( flags ) )
     {
@@ -200,7 +200,7 @@ Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
     VERIFY(false, "Not found")
 }
 
-Property* Node::add_prop(const TypeDesc* _type, const char *_name, PropertyFlags _flags)
+Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, PropertyFlags _flags)
 {
     return m_props.add(_type, _name, _flags);
 }
@@ -331,7 +331,7 @@ bool Node::can_be_instruction() const
 bool Node::is_unary_operator() const
 {
     if ( m_type == NodeType_OPERATOR )
-        if ( static_cast<const InvokableNode*>(this)->get_func_type()->get_arg_count() == 1 )
+        if (static_cast<const FunctionNode*>(this)->get_func_type()->get_arg_count() == 1 )
             return true;
     return false;
 }
@@ -339,7 +339,7 @@ bool Node::is_unary_operator() const
 bool Node::is_binary_operator() const
 {
     if ( m_type == NodeType_OPERATOR )
-        if ( static_cast<const InvokableNode*>(this)->get_func_type()->get_arg_count() == 2 )
+        if (static_cast<const FunctionNode*>(this)->get_func_type()->get_arg_count() == 2 )
             return true;
     return false;
 }

@@ -110,23 +110,23 @@ void Graph::ensure_has_root()
     }
 }
 
-VariableNode* Graph::create_variable(const TypeDesc *_type, const std::string& _name, Scope* _scope)
+VariableNode* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, Scope* _scope)
 {
     VariableNode* node = m_factory->create_variable(_type, _name, _scope);
     add(node);
 	return node;
 }
 
-InvokableNode* Graph::create_function(FuncType&& _type)
+FunctionNode* Graph::create_function(const FunctionDescriptor* _type)
 {
-    InvokableNode* node = m_factory->create_function(std::move(_type), NodeType_FUNCTION);
+    FunctionNode* node = m_factory->create_function(_type, NodeType_FUNCTION);
     add(node);
     return node;
 }
 
-InvokableNode* Graph::create_operator(FuncType&& _type)
+FunctionNode* Graph::create_operator(const FunctionDescriptor* _type)
 {
-    InvokableNode* node = m_factory->create_function(std::move(_type), NodeType_OPERATOR);
+    FunctionNode* node = m_factory->create_function(_type, NodeType_OPERATOR);
     add(node);
     return node;
 }
@@ -477,14 +477,14 @@ Node* Graph::create_node()
     return node;
 }
 
-LiteralNode* Graph::create_literal(const TypeDesc *_type)
+LiteralNode* Graph::create_literal(const TypeDescriptor *_type)
 {
     LiteralNode* node = m_factory->create_literal(_type);
     add(node);
     return node;
 }
 
-Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
+Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signature )
 {
     switch ( _type )
     {
@@ -508,23 +508,23 @@ Node* Graph::create_node( CreateNodeType _type, const FuncType* _signature )
         case CreateNodeType_LITERAL_INTEGER:  return create_literal<int>();
         case CreateNodeType_LITERAL_STRING:   return create_literal<std::string>();
 
-        case CreateNodeType_INVOKABLE:
+        case CreateNodeType_FUNCTION:
         {
             VERIFY(_signature != nullptr, "_signature is expected when dealing with functions or operators")
             Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
-            FuncType signature = *language->find_function(_signature)->get_sig();
-            bool is_operator = language->find_operator_fct( &signature ) != nullptr;
+            const FunctionDescriptor* signature = language->find_function(_signature)->get_sig();
+            bool is_operator = language->find_operator_fct( signature ) != nullptr;
             if ( is_operator )
-                return create_operator(std::move(signature));
-            return create_function(std::move(signature));
+                return create_operator(signature);
+            return create_function(signature);
         }
         default:
             VERIFY(false, "Unhandled CreateNodeType.");
     }
 }
 
-VariableNode* Graph::create_variable_decl(const TypeDesc* _type, const char*  _name, Scope*  _scope)
+VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const char*  _name, Scope*  _scope)
 {
     if( !_scope)
     {

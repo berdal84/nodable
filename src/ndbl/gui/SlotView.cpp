@@ -32,7 +32,7 @@ Node* SlotView::get_node()const
     return m_slot->get_node();
 }
 
-const TypeDesc* SlotView::get_property_type()const
+const TypeDescriptor* SlotView::get_property_type()const
 {
     Property* property = get_property();
     return property ? property->get_type() : nullptr;

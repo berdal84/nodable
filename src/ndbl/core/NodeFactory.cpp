@@ -8,7 +8,7 @@
 
 #include "ForLoopNode.h"
 #include "IfNode.h"
-#include "InvokableNode.h"
+#include "FunctionNode.h"
 #include "LiteralNode.h"
 #include "NodeUtils.h"
 #include "Scope.h"
@@ -56,7 +56,7 @@ void NodeFactory::destroy_node(Node* node) const
 #endif
 }
 
-VariableNode* NodeFactory::create_variable(const TypeDesc* _type, const std::string& _name, Scope* _scope) const
+VariableNode* NodeFactory::create_variable(const TypeDescriptor* _type, const std::string& _name, Scope* _scope) const
 {
     // create
     auto node = create<VariableNode>();
@@ -75,11 +75,11 @@ VariableNode* NodeFactory::create_variable(const TypeDesc* _type, const std::str
     return node;
 }
 
-InvokableNode* NodeFactory::create_function(tools::FuncType&& _func_type, NodeType _node_type) const
+FunctionNode* NodeFactory::create_function(const FunctionDescriptor* _func_type, NodeType _node_type) const
 {
-    auto* node = create<InvokableNode>();
+    auto* node = create<FunctionNode>();
     ASSERT( _node_type == NodeType_OPERATOR || _node_type == NodeType_FUNCTION )
-    node->init(_node_type, std::move(_func_type));
+    node->init(_node_type, _func_type);
     m_post_process(node);
     return node;
 }
@@ -151,7 +151,7 @@ Node* NodeFactory::create_node() const
     return node;
 }
 
-LiteralNode* NodeFactory::create_literal(const TypeDesc *_type) const
+LiteralNode* NodeFactory::create_literal(const TypeDescriptor *_type) const
 {
     auto node = create<LiteralNode>();
     node->init(_type, "Literal");
