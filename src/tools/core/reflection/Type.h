@@ -56,16 +56,16 @@ namespace tools
         constexpr static const char* name() { return typeid(type).name(); };
     };
 
-    typedef u8_t TypeFlags;
-    enum TypeFlag_ : u8_t
+    typedef int TypeFlags;
+    enum TypeFlag_ : int
     {
-        TypeFlag_NONE       = 0u,
-        TypeFlag_IS_CLASS   = 1u,
-        TypeFlag_IS_CONST   = 1u << 1,
-        TypeFlag_IS_POINTER = 1u << 2,
-        TypeFlag_HAS_PARENT = 1u << 3,
-        TypeFlag_HAS_CHILD  = 1u << 4,
-        TypeFlag_IS_MEMBER_PTR = 1u << 5,
+        TypeFlag_NONE          = 0,
+        TypeFlag_IS_CLASS      = 1 << 0,
+        TypeFlag_IS_CONST      = 1 << 1,
+        TypeFlag_IS_POINTER    = 1 << 2,
+        TypeFlag_IS_MEMBER_PTR = 1 << 3,
+        TypeFlag_HAS_PARENT    = 1 << 5,
+        TypeFlag_HAS_CHILD     = 1 << 6
     };
 
     // Type utilities
@@ -163,10 +163,9 @@ namespace tools
      */
     struct FuncArg
     {
-        u8_t                  m_index;
-        const TypeDescriptor* m_type;
-        bool                  m_by_reference;
-        std::string           m_name;
+        const TypeDescriptor* type;
+        bool                  pass_by_ref;
+        std::string           name;
     };
 
     /*
@@ -186,10 +185,10 @@ namespace tools
         void                           push_nth_arg();
         template<typename ...Args>
         void                           push_args();
-        void                           push_arg(const TypeDescriptor* _type, bool _by_reference = false);
-        bool                           has_an_arg_of_type(const TypeDescriptor* type)const;
-        bool                           is_exactly(const FunctionDescriptor* _other)const;
-        bool                           is_compatible(const FunctionDescriptor* _other)const;
+        void                           push_arg(const TypeDescriptor* _type, bool _pass_by_ref = false);
+        bool                           has_an_arg_of_type(const TypeDescriptor*)const;
+        bool                           is_exactly(const FunctionDescriptor*)const;
+        bool                           is_compatible(const FunctionDescriptor*)const;
         const char*                    get_identifier()const { return m_name.c_str(); };
         const FuncArg&                 get_arg(size_t i) const { return m_args[i]; }
         std::vector<FuncArg>&          get_args() { return m_args;};
@@ -263,8 +262,7 @@ namespace tools
     void FunctionDescriptor::push_nth_arg()
     {
         using NTH_ARG = std::tuple_element_t<N, ArgsAsTuple>;
-        const TypeDescriptor* type_descriptor = type::get<NTH_ARG>();
-        push_arg(type_descriptor, std::is_reference_v<NTH_ARG>);
+        push_arg( type::get<NTH_ARG>(), std::is_reference_v<NTH_ARG> );
     }
 
     template<typename ...Args>

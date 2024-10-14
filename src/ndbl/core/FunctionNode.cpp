@@ -70,12 +70,12 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
         }
         else
         {
-            name = arg.m_name.c_str();
+            name = arg.name.c_str();
         }
 
-        Property* property  = add_prop(arg.m_type, name );
+        Property* property  = add_prop(arg.type, name );
 
-        if ( arg.m_by_reference )
+        if ( arg.pass_by_ref )
             property->set_flags(PropertyFlag_IS_REF);
 
         m_argument_slot[i]  = add_slot(SlotFlag_INPUT, 1, property);

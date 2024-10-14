@@ -14,7 +14,7 @@ TEST(FunctionDescriptor, push_single_arg)
 
     EXPECT_EQ(f.get_arg_count(), 1);
     EXPECT_TRUE(f.get_return_type()->is<bool>());
-    EXPECT_TRUE(f.get_args().at(0).m_type->is<double>() );
+    EXPECT_TRUE(f.get_args().at(0).type->is<double>() );
 }
 
 TEST(FunctionDescriptor, push_two_args)
@@ -23,8 +23,8 @@ TEST(FunctionDescriptor, push_two_args)
 
     EXPECT_EQ(f.get_arg_count(), 1);
     EXPECT_TRUE(f.get_return_type()->is<bool>());
-    EXPECT_TRUE(f.get_args().at(0).m_type->is<double>() );
-    EXPECT_TRUE(f.get_args().at(0).m_type->is<double>() );
+    EXPECT_TRUE(f.get_args().at(0).type->is<double>() );
+    EXPECT_TRUE(f.get_args().at(0).type->is<double>() );
 }
 
 TEST(FunctionDescriptor, match_check_for_arg_count)

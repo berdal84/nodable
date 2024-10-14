@@ -165,14 +165,13 @@ const IInvokable* ClassDescriptor::get_static(const char*  _name)const
     return nullptr;
 }
 
-void FunctionDescriptor::push_arg(const TypeDescriptor* _type, bool _by_reference)
+void FunctionDescriptor::push_arg( const TypeDescriptor* _type, bool _pass_by_ref )
 {
-    auto next_index    = (u8_t)m_args.size();
-    auto& arg          = m_args.emplace_back();
-    arg.m_index        = next_index;
-    arg.m_type         = _type;
-    arg.m_by_reference = _by_reference;
-    arg.m_name         = "arg_" + std::to_string(arg.m_index);
+    size_t index     = m_args.size();
+    FuncArg& arg     = m_args.emplace_back();
+    arg.type         = _type;
+    arg.name         = "arg_" + std::to_string( index );
+    arg.pass_by_ref  = _pass_by_ref;
 }
 
 bool FunctionDescriptor::is_exactly(const FunctionDescriptor* _other)const
@@ -189,8 +188,8 @@ bool FunctionDescriptor::is_exactly(const FunctionDescriptor* _other)const
     size_t i = 0;
     while( i < m_args.size() )
     {
-        const TypeDescriptor* arg_t       = m_args[i].m_type;
-        const TypeDescriptor* other_arg_t = _other->m_args[i].m_type;
+        const TypeDescriptor* arg_t       = m_args[i].type;
+        const TypeDescriptor* other_arg_t = _other->m_args[i].type;
 
         if ( !arg_t->equals(other_arg_t) )
         {
@@ -215,8 +214,8 @@ bool FunctionDescriptor::is_compatible(const FunctionDescriptor* _other)const
     size_t i = 0;
     while( i < m_args.size() )
     {
-        const TypeDescriptor* arg_t       = m_args[i].m_type;
-        const TypeDescriptor* other_arg_t = _other->m_args[i].m_type;
+        const TypeDescriptor* arg_t       = m_args[i].type;
+        const TypeDescriptor* other_arg_t = _other->m_args[i].type;
 
         if ( !arg_t->equals(other_arg_t) &&
              !other_arg_t->is_implicitly_convertible(arg_t) )
@@ -231,6 +230,6 @@ bool FunctionDescriptor::is_compatible(const FunctionDescriptor* _other)const
 
 bool FunctionDescriptor::has_an_arg_of_type(const TypeDescriptor* _type) const
 {
-    auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.m_type->equals(_type); } );
+    auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.type->equals(_type); } );
     return found != m_args.end();
 }

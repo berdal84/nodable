@@ -1037,12 +1037,10 @@ Slot* Nodlang::parse_function_call()
     // Find the prototype in the language library
     FunctionNode* fct_node = parser_state.graph->create_function(std::move(signature));
 
-    for ( const FuncArg& signature_arg : fct_node->get_func_type()->get_args() )
+    for ( int i = 0; i < fct_node->get_arg_slots().size(); i++ )
     {
         // Connects each results to the corresponding input
-        Slot* out_slot = result_slots.at(signature_arg.m_index);
-        Slot* in_slot  = fct_node->find_slot_by_property_name( signature_arg.m_name.c_str(), SlotFlag_INPUT );
-        parser_state.graph->connect_or_merge( *out_slot, *in_slot );
+        parser_state.graph->connect_or_merge( *result_slots.at(i), *fct_node->get_arg_slot(i) );
     }
 
     commit_transaction();
@@ -1465,7 +1463,7 @@ std::string &Nodlang::serialize_func_sig(std::string &_out, const FunctionDescri
             serialize_token_t(_out, Token_t::list_separator);
             _out.append(" ");
         }
-        serialize_type(_out, it->m_type);
+        serialize_type(_out, it->type);
     }
 
     serialize_token_t(_out, Token_t::parenthesis_close);

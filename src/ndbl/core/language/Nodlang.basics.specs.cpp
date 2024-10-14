@@ -29,13 +29,10 @@ TEST_F(Language_basics, can_get_invert_operator_with_signature )
 TEST_F(Language_basics, by_ref_assign )
 {
     const FunctionDescriptor descriptor = FunctionDescriptor::construct<double(double &, double)>("=");
-
-    EXPECT_TRUE(descriptor.get_args()[0].m_by_reference);
-
     const IInvokable* invokable  = language->find_operator_fct(&descriptor);
 
     EXPECT_TRUE(invokable != nullptr);
-    EXPECT_TRUE(invokable->get_sig()->get_args()[0].m_by_reference);
+    EXPECT_TRUE(invokable->get_sig()->get_arg(0).pass_by_ref);
 }
 
 TEST_F(Language_basics, token_t_to_type)
