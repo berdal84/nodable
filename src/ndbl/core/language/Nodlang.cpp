@@ -357,7 +357,7 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     // Create a function signature according to ltype, rtype and operator word
-    FunctionDescriptor* type = FunctionDescriptor::create<any_t()>(ope->identifier.c_str());
+    FunctionDescriptor* type = FunctionDescriptor::create<any()>(ope->identifier.c_str());
     type->push_arg( _left.get_property()->get_type());
     type->push_arg(right->get_property()->get_type());
 
@@ -409,7 +409,7 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Create a function signature
-    FunctionDescriptor* type = FunctionDescriptor::create<any_t()>(operator_token.word_to_string().c_str());
+    FunctionDescriptor* type = FunctionDescriptor::create<any()>(operator_token.word_to_string().c_str());
     type->push_arg( out_atomic->get_property()->get_type());
 
     FunctionNode* node = parser_state.graph->create_operator(std::move(type));
@@ -1006,7 +1006,7 @@ Slot* Nodlang::parse_function_call()
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    FunctionDescriptor* signature = FunctionDescriptor::create<any_t()>(fct_id.c_str());
+    FunctionDescriptor* signature = FunctionDescriptor::create<any()>(fct_id.c_str());
 
     bool parsingError = false;
     while (!parsingError && parser_state.ribbon.can_eat() &&

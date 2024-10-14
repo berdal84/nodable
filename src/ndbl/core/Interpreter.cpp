@@ -152,7 +152,7 @@ bool Interpreter::step_over()
             {
                 LOG_VERBOSE("Interpreter", "deref_qword void* (aka Node*) (%p): %s\n", qword->ptr, ((Node*)qword->ptr)->get_name().c_str() );
             }
-            else if(ptr_type->is<any_t>() )
+            else if(ptr_type->is<any>() )
             {
                 LOG_VERBOSE("Interpreter", "deref_qword any_t (%p)\n", qword->ptr );
             }

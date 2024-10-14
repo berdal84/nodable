@@ -21,8 +21,8 @@ REFLECT_STATIC_INIT
     type::Initializer<i16_t>("int");
     type::Initializer<i32_t>("i32");
     type::Initializer<i64_t>("i64");
-    type::Initializer<any_t>("any");
-    type::Initializer<null_t>("null");
+    type::Initializer<any>("any");
+    type::Initializer<null>("null");
 }
 
 bool type::equals(const TypeDescriptor* left, const TypeDescriptor* right)
@@ -33,14 +33,14 @@ bool type::equals(const TypeDescriptor* left, const TypeDescriptor* right)
 
 const TypeDescriptor* type::any()
 {
-    static const TypeDescriptor* any  = type::get<any_t>();
-    return any;
+    static const TypeDescriptor* descriptor  = type::get<tools::any>();
+    return descriptor;
 }
 
 const TypeDescriptor* type::null()
 {
-    static const TypeDescriptor* null  = type::get<null_t>();
-    return null;
+    static const TypeDescriptor* descriptor  = type::get<tools::null>();
+    return descriptor;
 }
 
 bool type::is_implicitly_convertible(const TypeDescriptor* _src, const TypeDescriptor* _dst )
@@ -59,7 +59,7 @@ bool TypeDescriptor::is_implicitly_convertible(const TypeDescriptor* _dst ) cons
     if (!this->is_ptr() && !_dst->is_ptr() && this->m_primitive_id == _dst->m_primitive_id)
         return true;
 
-    if( this->is<any_t>() || _dst->is<any_t>() ) // We allow cast to unknown type
+    if(this->is<any>() || _dst->is<any>() ) // We allow cast to unknown type
         return true;
 
     return

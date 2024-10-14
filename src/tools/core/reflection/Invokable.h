@@ -155,7 +155,7 @@ namespace tools
         if constexpr ( std::is_void_v< typename std::result_of<F> > )
         {
             CastAndApply( _function, VectorToTuple<N>( _args ));
-            return null_t{};
+            return null{};
         } else {
             return CastAndApply( _function, VectorToTuple<N>( _args ));
         }
@@ -171,7 +171,7 @@ namespace tools
         if constexpr ( std::is_void_v< typename FunctionTrait<MethodPtrT>::result_t > )
         {
             CastAndApply(_method, _instance, VectorToTuple<N>( _args ));
-            return null_t{};
+            return null{};
         } else {
             return CastAndApply(_method, _instance, VectorToTuple<N>( _args ));
         }

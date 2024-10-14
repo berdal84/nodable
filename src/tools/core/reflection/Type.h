@@ -33,11 +33,10 @@ namespace tools
     class IInvokableMethod;
     class TypeDescriptor;
     class ClassDescriptor;
+    class Operator;
 
-    /** Empty structure to act like any type, @related tools::variant class */
-    struct any_t{};
-    /** Empty structure to act like a null type, @related tools::variant class */
-    struct null_t{};
+    struct any{};  // Similar to TypeScript's any type
+    struct null{}; // Similar ............... unknown type
 
     // Return true if T is reflected
     template<class T, typename GET_CLASS = decltype(&T::get_class)>
@@ -85,37 +84,6 @@ namespace tools
         template<typename T> const ClassDescriptor*   get_class();
         template<typename T> TypeDescriptor*          create(const char* _name = "");
         template<typename T> const TypeDescriptor*    get(T value) { return get<T>(); }
-        
-//        template<class ...Types>
-//        struct get_all
-//        {
-//            using tuple = std::tuple<Types...>;
-//            static constexpr size_t size = std::tuple_size_v<tuple>;
-//            using result_t = std::array<const tools::TypeDesc*, size>;
-//
-//            static result_t types()
-//            {
-//                result_t output{};
-//                return extract_type_at<size - 1>(output);
-//            }
-//
-//        private:
-//            template<size_t N, typename std::enable_if_t<N!=0, bool> = 0 >
-//            static result_t& extract_type_at(result_t& output)
-//            {
-//                using element_t = std::tuple_element_t<N, tuple>;
-//                output[N] = tools::type::get<element_t>();
-//                return extract_type_at<N - 1>(output);
-//            }
-//
-//            template<size_t N, typename std::enable_if_t<N==0, bool> = 0 >
-//            static result_t& extract_type_at(result_t& output)
-//            {
-//                using element_t = std::tuple_element_t<0, tuple>;
-//                output[0] = tools::type::get<element_t>();
-//                return output;
-//            }
-//        };
     };
 
     /**
@@ -154,9 +122,6 @@ namespace tools
         std::type_index m_primitive_id; // ex: int
         std::type_index m_id;           // ex: int**, int*
     };
-
-    // forward declarations
-    class Operator;
 
     /*
      * Simple object to store a named function argument

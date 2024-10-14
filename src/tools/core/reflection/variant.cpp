@@ -47,7 +47,7 @@ variant::variant(bool val)
     m_data.b = val;
 }
 
-variant::variant(null_t val)
+variant::variant(null val)
 : m_type(Type_null)
 {
     // set_defined() // when a variant has null type, we consider it as "not defined"
@@ -198,7 +198,7 @@ void variant::set(bool _value)
     m_data.b = _value;
 }
 
-void variant::set(null_t)
+void variant::set(null)
 {
     change_type(type::null());
 }
@@ -311,12 +311,12 @@ variant::operator void*() const       { return m_data.ptr;}
 
 variant::Type variant::type_to_enum(const tools::TypeDescriptor* _type)
 {
-    if( _type->is<any_t>() )       return Type_any;
+    if( _type->is<any>() )       return Type_any;
     if( _type->is<bool>() )        return Type_bool;
     if( _type->is<double>() )      return Type_double;
     if( _type->is<i16_t>() )       return Type_i16;
     if( _type->is<i32_t>() )       return Type_i32;
-    if( _type->is<null_t>() )      return Type_null;
+    if( _type->is<null>() )      return Type_null;
     if( _type->is<std::string>() ) return Type_string;
     if( _type->is_ptr() )          return Type_ptr;
     ASSERT( !_type->is<const char*>() ) // use std::string instead
@@ -327,12 +327,12 @@ const tools::TypeDescriptor* variant::enum_to_type(Type _type)
 {
     switch ( _type )
     {
-        case Type_any:     return type::get<any_t>();
+        case Type_any:     return type::get<any>();
         case Type_bool:    return type::get<bool>();
         case Type_double:  return type::get<double>();
         case Type_i16:     return type::get<i16_t>();
         case Type_i32:     return type::get<i32_t>();
-        case Type_null:    return type::get<null_t>();
+        case Type_null:    return type::get<null>();
         case Type_ptr:     return type::get<void*>();
         case Type_string:  return type::get<std::string>();
         default:

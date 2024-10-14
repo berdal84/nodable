@@ -28,12 +28,12 @@ namespace tools
         variant(i16_t val) ;
         variant(i32_t val);
         variant(bool val);
-        variant(null_t val);
+        variant(null val);
 
         void        set(void* ptr);
         void        set(const std::string& _value);
         void        set(const char* _value);
-        void        set(null_t);
+        void        set(null);
         void        set(double);
         void        set(bool);
         void        set(i16_t);
