@@ -20,7 +20,7 @@ namespace ndbl{
     class ForLoopNode;
     class IScope;
     class InstructionNode;
-    class InvokableNode;
+    class FunctionNode;
     class Scope;
     class WhileLoopNode;
     class Graph;
@@ -99,13 +99,13 @@ namespace ndbl{
 
         // Serializer ------------------------------------------------------------------
     public:
-        std::string& serialize_invokable(std::string&_out, const InvokableNode*) const;
+        std::string& serialize_invokable(std::string&_out, const FunctionNode*) const;
         std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
-        std::string& serialize_func_call(std::string& _out, const tools::FuncType *_signature, const std::vector<Slot*>& inputs)const;
-        std::string& serialize_func_sig(std::string& _out, const tools::FuncType*)const;
+        std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, const std::vector<Slot*>& inputs)const;
+        std::string& serialize_func_sig(std::string& _out, const tools::FunctionDescriptor*)const;
         std::string& serialize_token_t(std::string& _out, const Token_t&)const;
         std::string& serialize_token(std::string& _out, const Token &) const;
-        std::string& serialize_type(std::string& _out, const tools::TypeDesc*) const;
+        std::string& serialize_type(std::string& _out, const tools::TypeDescriptor*) const;
         std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_NONE )const;
         std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_NONE )const;
         std::string& serialize_node(std::string &_out, const Node* node, SerializeFlags _flags = SerializeFlag_NONE ) const;
@@ -122,27 +122,27 @@ namespace ndbl{
         const tools::IInvokable* find_function(u32_t _hash) const;
     public:
         const tools::IInvokable* find_function(const char* _signature ) const;           // Find a function by signature as string (ex:   "int multiply(int,int)" )
-        const tools::IInvokable* find_function(const tools::FuncType*) const;               // Find a function by signature (strict first, then cast allowed)
-        const tools::IInvokable* find_function_exact(const tools::FuncType*) const;         // Find a function by signature (no cast allowed).
-        const tools::IInvokable* find_function_fallback(const tools::FuncType*) const;      // Find a function by signature (casts allowed).
-        const tools::IInvokable* find_operator_fct(const tools::FuncType*) const;           // Find an operator's function by signature (strict first, then cast allowed)
-        const tools::IInvokable* find_operator_fct_exact(const tools::FuncType*) const;     // Find an operator's function by signature (no cast allowed).
-        const tools::IInvokable* find_operator_fct_fallback(const tools::FuncType*) const;  // Find an operator's function by signature (casts allowed).
+        const tools::IInvokable* find_function(const tools::FunctionDescriptor*) const;               // Find a function by signature (strict first, then cast allowed)
+        const tools::IInvokable* find_function_exact(const tools::FunctionDescriptor*) const;         // Find a function by signature (no cast allowed).
+        const tools::IInvokable* find_function_fallback(const tools::FunctionDescriptor*) const;      // Find a function by signature (casts allowed).
+        const tools::IInvokable* find_operator_fct(const tools::FunctionDescriptor*) const;           // Find an operator's function by signature (strict first, then cast allowed)
+        const tools::IInvokable* find_operator_fct_exact(const tools::FunctionDescriptor*) const;     // Find an operator's function by signature (no cast allowed).
+        const tools::IInvokable* find_operator_fct_fallback(const tools::FunctionDescriptor*) const;  // Find an operator's function by signature (casts allowed).
         const tools::Operator* find_operator(const std::string& , tools::Operator_t) const;// Find an operator by symbol and type (unary, binary or ternary).
         const std::vector<const tools::IInvokable*>& get_api()const { return m_functions; } // Get all the functions registered in the language.
-        std::string&          to_string(std::string& /*out*/, const tools::TypeDesc*)const;   // Convert a type to string (by ref).
+        std::string&          to_string(std::string& /*out*/, const tools::TypeDescriptor*)const;   // Convert a type to string (by ref).
         std::string&          to_string(std::string& /*out*/, Token_t)const;              // Convert a type to a token_t (by ref).
-        std::string           to_string(const tools::TypeDesc *) const;                       // Convert a type to string.
+        std::string           to_string(const tools::TypeDescriptor *) const;                       // Convert a type to string.
         std::string           to_string(Token_t)const;                                    // Convert a type to a token_t.
-        const tools::TypeDesc*    get_type(Token_t _token)const;                              // Get the type corresponding to a given token_t (must be a type keyword)
+        const tools::TypeDescriptor*    get_type(Token_t _token)const;                              // Get the type corresponding to a given token_t (must be a type keyword)
         void                  add_function(const tools::IInvokable*);                     // Adds a new function (regular or operator's implementation).
-        int                   get_precedence(const tools::FuncType*)const;                // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
+        int                   get_precedence(const tools::FunctionDescriptor*)const;                // Get the precedence of a given function (precedence may vary because function could be an operator implementation).
 
         template<typename T> void load_library(); // Instantiate a library from its type (uses reflection to get all its static methods).
     private:
         struct {
             std::vector<std::tuple<const char*, Token_t>>                  keywords;
-            std::vector<std::tuple<const char*, Token_t, const tools::TypeDesc*>> types;
+            std::vector<std::tuple<const char*, Token_t, const tools::TypeDescriptor*>> types;
             std::vector<std::tuple<const char*, tools::Operator_t, int>>      operators;
             std::vector<std::tuple<char, Token_t>>                         chars;
         } m_definition; // language definition
@@ -157,7 +157,7 @@ namespace ndbl{
         std::unordered_map<char, Token_t>                 m_token_t_by_single_char;
         std::unordered_map<size_t, Token_t>               m_token_t_by_keyword;       // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
         std::unordered_map<std::type_index, Token_t>      m_token_t_by_type_id;
-        std::unordered_map<Token_t, const tools::TypeDesc*>   m_type_by_token_t;          // token_t to type. Works only if token_t refers to a type keyword.
+        std::unordered_map<Token_t, const tools::TypeDescriptor*>   m_type_by_token_t;          // token_t to type. Works only if token_t refers to a type keyword.
 
     };
 

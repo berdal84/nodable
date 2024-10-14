@@ -163,8 +163,6 @@ add_library(
     src/tools/core/reflection/Operator_t.h
     src/tools/core/reflection/Initializer.h
     src/tools/core/reflection/enum.h
-    src/tools/core/reflection/FuncType.cpp
-    src/tools/core/reflection/FuncType.h
     src/tools/core/reflection/qword.cpp
     src/tools/core/reflection/qword.h
     src/tools/core/reflection/reflection
@@ -199,7 +197,7 @@ target_link_libraries(
 add_executable(
     test-tools-core
     src/tools/core/reflection/reflection.specs.cpp
-    src/tools/core/reflection/FuncType.builder.specs.cpp
+    src/tools/core/reflection/Type.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
     src/tools/core/memory/MemoryManager.specs.cpp
 )
@@ -356,7 +354,7 @@ add_library(
     src/ndbl/core/ForLoopNode.cpp
     src/ndbl/core/Graph.cpp
     src/ndbl/core/GraphUtil.cpp
-    src/ndbl/core/InvokableNode.cpp
+    src/ndbl/core/FunctionNode.cpp
     src/ndbl/core/LiteralNode.cpp
     src/ndbl/core/Node.cpp
     src/ndbl/core/NodeFactory.cpp

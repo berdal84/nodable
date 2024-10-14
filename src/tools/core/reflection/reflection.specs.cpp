@@ -69,3 +69,9 @@ TEST(Reflection, is_child_of)
     EXPECT_FALSE(type::get_class<Base>()->is_child_of<Derived>());
 }
 
+TEST(Reflection, by_reference)
+{
+   ;
+   auto descriptor = FunctionDescriptor::construct<void(double &d)>("function");
+   EXPECT_TRUE( descriptor.get_arg(0).m_by_reference );
+}

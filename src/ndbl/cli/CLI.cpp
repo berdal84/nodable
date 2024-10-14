@@ -53,7 +53,7 @@ void CLI::update()
     }
 
     // Priority 1: call a static function immediately
-    const ClassDesc* api_class = type::get_class<PublicApi>();
+    const ClassDescriptor* api_class = type::get_class<PublicApi>();
     if( auto static_fct = api_class->get_static(user_input.c_str()) )
     {
         try
@@ -96,7 +96,7 @@ void CLI::clear()
     NodableHeadless::clear();
 }
 
-void CLI::log_function_call(const variant &result, const FuncType *type)
+void CLI::log_function_call(const variant &result, const FunctionDescriptor *type)
 {
     LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n",type->get_identifier(), result.to<std::string>().c_str())
 }
@@ -167,7 +167,7 @@ void CLI::PublicApi::help()
 {
     std::vector<std::string> command_names;
 
-    const ClassDesc* api_class = type::get_class<PublicApi>();
+    const ClassDescriptor* api_class = type::get_class<PublicApi>();
 
     for ( const IInvokable* invokable : api_class->get_statics() )
     {
@@ -222,7 +222,7 @@ bool CLI::PublicApi::run()
     return m_cli->run();
 }
 
-variant CLI::invoke_static(const FuncType* _func_type, std::vector<variant>&& _args) const
+variant CLI::invoke_static(const FunctionDescriptor* _func_type, std::vector<variant>&& _args) const
 {
     variant result;
 
@@ -232,7 +232,7 @@ variant CLI::invoke_static(const FuncType* _func_type, std::vector<variant>&& _a
     return result;
 }
 
-variant CLI::invoke_method(const FuncType* _func_type, std::vector<variant>&& _args) const
+variant CLI::invoke_method(const FunctionDescriptor* _func_type, std::vector<variant>&& _args) const
 {
     variant result;
 

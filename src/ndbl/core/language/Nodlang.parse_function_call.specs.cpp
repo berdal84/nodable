@@ -1,7 +1,7 @@
 #include "../fixtures/core.h"
 #include <gtest/gtest.h>
 #include "tools/core/log.h"
-#include "ndbl/core/InvokableNode.h"
+#include "ndbl/core/FunctionNode.h"
 
 using namespace ndbl;
 

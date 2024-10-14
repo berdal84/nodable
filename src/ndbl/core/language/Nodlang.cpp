@@ -26,7 +26,7 @@
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/IfNode.h"
-#include "ndbl/core/InvokableNode.h"
+#include "ndbl/core/FunctionNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Property.h"
 #include "ndbl/core/Scope.h"
@@ -357,13 +357,11 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     // Create a function signature according to ltype, rtype and operator word
-    FuncType type;
-    type.set_identifier(ope->identifier);
-    type.set_return_type(type::any());
-    type.push_arg( _left.get_property()->get_type());
-    type.push_arg(right->get_property()->get_type());
+    FunctionDescriptor* type = FunctionDescriptor::create<any_t()>(ope->identifier.c_str());
+    type->push_arg( _left.get_property()->get_type());
+    type->push_arg(right->get_property()->get_type());
 
-    InvokableNode* binary_op = parser_state.graph->create_operator(std::move(type));
+    FunctionNode* binary_op = parser_state.graph->create_operator(std::move(type));
     binary_op->set_identifier_token( operator_token );
     parser_state.graph->connect_or_merge( _left, *binary_op->get_lvalue());
     parser_state.graph->connect_or_merge( *right, *binary_op->get_rvalue() );
@@ -411,12 +409,10 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Create a function signature
-    FuncType type;
-    type.set_identifier(operator_token.word_to_string());
-    type.set_return_type(type::any());
-    type.push_arg( out_atomic->get_property()->get_type());
+    FunctionDescriptor* type = FunctionDescriptor::create<any_t()>(operator_token.word_to_string().c_str());
+    type->push_arg( out_atomic->get_property()->get_type());
 
-    InvokableNode* node = parser_state.graph->create_operator(std::move(type));
+    FunctionNode* node = parser_state.graph->create_operator(std::move(type));
     node->set_identifier_token( operator_token );
 
     parser_state.graph->connect_or_merge( *out_atomic, *node->find_slot_by_property_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
@@ -1010,9 +1006,7 @@ Slot* Nodlang::parse_function_call()
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    FuncType signature;
-    signature.set_identifier(fct_id);
-    signature.set_return_type(type::any());
+    FunctionDescriptor* signature = FunctionDescriptor::create<any_t()>(fct_id.c_str());
 
     bool parsingError = false;
     while (!parsingError && parser_state.ribbon.can_eat() &&
@@ -1022,7 +1016,7 @@ Slot* Nodlang::parse_function_call()
         if ( expression_out != nullptr )
         {
             result_slots.push_back( expression_out );
-            signature.push_arg( expression_out->get_property()->get_type() );
+            signature->push_arg( expression_out->get_property()->get_type() );
             parser_state.ribbon.eat_if(Token_t::list_separator);
         }
         else
@@ -1041,7 +1035,7 @@ Slot* Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    InvokableNode* fct_node = parser_state.graph->create_function(std::move(signature));
+    FunctionNode* fct_node = parser_state.graph->create_function(std::move(signature));
 
     for ( const FuncArg& signature_arg : fct_node->get_func_type()->get_args() )
     {
@@ -1333,7 +1327,7 @@ Slot* Nodlang::parse_variable_declaration()
 
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
-        const TypeDesc* variable_type = get_type(type_token.m_type);
+        const TypeDescriptor* variable_type = get_type(type_token.m_type);
         auto*           scope         = get_current_scope();
         ASSERT(scope != nullptr ) // There must always be a scope!
         VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope );
@@ -1373,21 +1367,21 @@ Slot* Nodlang::parse_variable_declaration()
 // [SECTION] C. Serializer --------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableNode* _node) const
+std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode* _node) const
 {
     if ( _node->type() == NodeType_OPERATOR )
     {
         const std::vector<Slot*>& args = _node->get_arg_slots();
         int precedence = get_precedence(_node->get_func_type());
 
-        const FuncType* func_type  = _node->get_func_type();
+        const FunctionDescriptor* func_type  = _node->get_func_type();
         switch (func_type->get_arg_count())
         {
             case 2:
             {
                 // Left part of the expression
                 {
-                    const FuncType* l_func_type = _node->get_connected_function_type(LEFT_VALUE_PROPERTY);
+                    const FunctionDescriptor* l_func_type = _node->get_connected_function_type(LEFT_VALUE_PROPERTY);
                     bool needs_braces = l_func_type && get_precedence(l_func_type) < precedence;
                     SerializeFlags flags = SerializeFlag_RECURSE
                                          | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
@@ -1400,7 +1394,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableNode
 
                 // Right part of the expression
                 {
-                    const FuncType* r_func_type = _node->get_connected_function_type(RIGHT_VALUE_PROPERTY);
+                    const FunctionDescriptor* r_func_type = _node->get_connected_function_type(RIGHT_VALUE_PROPERTY);
                     bool needs_braces = r_func_type && get_precedence(r_func_type) < precedence;
                     SerializeFlags flags = SerializeFlag_RECURSE
                                          | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
@@ -1432,7 +1426,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const InvokableNode
     return _out;
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const FuncType *_signature, const std::vector<Slot*> &inputs) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescriptor *_signature, const std::vector<Slot*> &inputs) const
 {
     _out.append( _signature->get_identifier() );
     serialize_token_t(_out, Token_t::parenthesis_open);
@@ -1456,7 +1450,7 @@ std::string &Nodlang::serialize_invokable_sig(std::string &_out, const IInvokabl
     return serialize_func_sig(_out, _invokable->get_sig());
 }
 
-std::string &Nodlang::serialize_func_sig(std::string &_out, const FuncType *_signature) const
+std::string &Nodlang::serialize_func_sig(std::string &_out, const FunctionDescriptor *_signature) const
 {
     serialize_type(_out, _signature->get_return_type());
     _out.append(" ");
@@ -1483,7 +1477,7 @@ std::string &Nodlang::serialize_token_t(std::string &_out, const Token_t &_type)
     return _out.append(to_string(_type));
 }
 
-std::string &Nodlang::serialize_type(std::string &_out, const TypeDesc* _type) const
+std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor* _type) const
 {
     return _out.append(to_string(_type));
 }
@@ -1613,7 +1607,7 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
         case NodeType_FUNCTION:
             [[fallthrough]];
         case NodeType_OPERATOR:
-            serialize_invokable(_out, static_cast<const InvokableNode*>(node) );
+            serialize_invokable(_out, static_cast<const FunctionNode*>(node) );
             break;
         default:
             VERIFY(false, "Unhandled NodeType, can't serialize");
@@ -1783,7 +1777,7 @@ const tools::IInvokable* Nodlang::find_function(u32_t _hash) const
     return nullptr;
 }
 
-const tools::IInvokable* Nodlang::find_function(const FuncType* _type) const
+const tools::IInvokable* Nodlang::find_function(const FunctionDescriptor* _type) const
 {
     if (!_type)
     {
@@ -1799,7 +1793,7 @@ std::string& Nodlang::serialize_property(std::string& _out, const Property* _pro
     return serialize_token(_out, _property->get_token());
 }
 
-const tools::IInvokable* Nodlang::find_function_exact(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_function_exact(const FunctionDescriptor* _other_type) const
 {
     for(auto* invokable : m_functions)
         if ( invokable->get_sig()->is_exactly(_other_type) )
@@ -1807,7 +1801,7 @@ const tools::IInvokable* Nodlang::find_function_exact(const FuncType* _other_typ
     return nullptr;
 }
 
-const tools::IInvokable* Nodlang::find_function_fallback(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_function_fallback(const FunctionDescriptor* _other_type) const
 {
     for(auto* invokable : m_functions)
         if ( invokable->get_sig()->is_compatible(_other_type) )
@@ -1815,7 +1809,7 @@ const tools::IInvokable* Nodlang::find_function_fallback(const FuncType* _other_
     return nullptr;
 }
 
-const tools::IInvokable* Nodlang::find_operator_fct_exact(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_operator_fct_exact(const FunctionDescriptor* _other_type) const
 {
     if (!_other_type)
         return nullptr;
@@ -1827,7 +1821,7 @@ const tools::IInvokable* Nodlang::find_operator_fct_exact(const FuncType* _other
     return nullptr;
 }
 
-const tools::IInvokable* Nodlang::find_operator_fct(const FuncType *_type) const
+const tools::IInvokable* Nodlang::find_operator_fct(const FunctionDescriptor *_type) const
 {
     if (!_type)
     {
@@ -1839,7 +1833,7 @@ const tools::IInvokable* Nodlang::find_operator_fct(const FuncType *_type) const
     return find_operator_fct_fallback(_type);
 }
 
-const tools::IInvokable* Nodlang::find_operator_fct_fallback(const FuncType* _other_type) const
+const tools::IInvokable* Nodlang::find_operator_fct_fallback(const FunctionDescriptor* _other_type) const
 {
     if (!_other_type)
         return nullptr;
@@ -1884,7 +1878,7 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
     return nullptr;
 }
 
-std::string &Nodlang::to_string(std::string &_out, const TypeDesc* _type) const
+std::string &Nodlang::to_string(std::string &_out, const TypeDescriptor* _type) const
 {
     auto found = m_keyword_by_type_id.find(_type->id());
     if (found != m_keyword_by_type_id.cend())
@@ -1924,7 +1918,7 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
     }
 }
 
-std::string Nodlang::to_string(const TypeDesc* _type) const
+std::string Nodlang::to_string(const TypeDescriptor* _type) const
 {
     std::string result;
     return to_string(result, _type);
@@ -1936,7 +1930,7 @@ std::string Nodlang::to_string(Token_t _token) const
     return to_string(result, _token);
 }
 
-int Nodlang::get_precedence( const tools::FuncType* _func_type) const
+int Nodlang::get_precedence( const tools::FunctionDescriptor* _func_type) const
 {
     if (!_func_type)
         return std::numeric_limits<int>::min(); // default
@@ -1948,7 +1942,7 @@ int Nodlang::get_precedence( const tools::FuncType* _func_type) const
     return std::numeric_limits<int>::max();
 }
 
-const TypeDesc* Nodlang::get_type(Token_t _token) const
+const TypeDescriptor* Nodlang::get_type(Token_t _token) const
 {
     VERIFY(is_a_type_keyword(_token), "_token_t is not a type keyword!");
     return m_type_by_token_t.find(_token)->second;

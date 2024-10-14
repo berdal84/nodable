@@ -6,7 +6,7 @@
 #include "tools/core/System.h"
 #include "tools/core/EventManager.h"
 
-#include "ndbl/core/InvokableNode.h"
+#include "ndbl/core/FunctionNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/Interpreter.h"
@@ -309,7 +309,7 @@ void Nodable::update()
                 // 1) create the node
                  if ( !_event->data.graph->get_root() )
                 {
-                    LOG_ERROR("Nodable", "Unable to create node, no root found on this graph.\n");
+                    LOG_ERROR("Nodable", "Unable to create_new node, no root found on this graph.\n");
                     continue;
                 }
 
@@ -335,7 +335,7 @@ void Nodable::update()
                     case CreateNodeType_LITERAL_DOUBLE:
                     case CreateNodeType_LITERAL_INTEGER:
                     case CreateNodeType_LITERAL_STRING:
-                    case CreateNodeType_INVOKABLE:
+                    case CreateNodeType_FUNCTION:
                         break;
                 }
 

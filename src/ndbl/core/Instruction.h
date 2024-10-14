@@ -61,7 +61,7 @@ namespace ndbl
     {
         OpCode                 opcode;
         const tools::qword*    ptr;
-        const tools::TypeDesc* type; // pointed data's type.
+        const tools::TypeDescriptor* type; // pointed data's type.
     };
 
     // Compare two operands (test if equals)

@@ -99,7 +99,7 @@ namespace ndbl
             , m_word_start_pos(other.m_word_start_pos)
             , m_word_length(other.m_word_length)
         {
-            VERIFY(other.m_is_buffer_owned == false, "Can't construct a Token from an owned const char*")
+            VERIFY(other.m_is_buffer_owned == false, "Can't create a Token from an owned const char*")
         }
 
         Token(Token&& other);

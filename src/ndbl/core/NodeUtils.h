@@ -10,7 +10,7 @@ namespace ndbl
     class NodeComponent;
 
     /**
-     * Static class responsible for create/destroy/attach/remove components
+     * Static class responsible for create_new/destroy/attach/remove components
      * All Components are owned by the manager.
      * Therefore new / delete are handled by this class.
      */

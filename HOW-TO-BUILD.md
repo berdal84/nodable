@@ -38,5 +38,5 @@ Few details about the commands above:
 
 - `--recurse-submodules` is important when cloning since *Nodable* needs other git repositories to be built.
 - `--branch v<major>.<minor>.<patch>` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish. Browse [tags list](https://github.com/berdal84/nodable/tags).
-- `--target install` is to create a clean `out/app` directory with only the necessary files to run the software.
+- `--target install` is to create_new a clean `out/app` directory with only the necessary files to run the software.
 

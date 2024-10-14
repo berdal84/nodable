@@ -10,7 +10,7 @@ REFLECT_STATIC_INIT
     type::Initializer<VariableNode>("VariableNode").extends<Node>();
 }
 
-void VariableNode::init(const tools::TypeDesc* _type, const char* _identifier)
+void VariableNode::init(const tools::TypeDescriptor* _type, const char* _identifier)
 {
     // Init node
     Node::init(NodeType_VARIABLE, "Variable");

@@ -15,7 +15,7 @@ namespace ndbl
     // forward declaration
     class NodeView;
     using tools::Vec2;
-    using tools::FuncType;
+    using tools::FunctionDescriptor;
 
     enum EventID_ : tools::EventID
     {
@@ -89,7 +89,7 @@ namespace ndbl
     struct EventPayload_CreateNode
     {
         CreateNodeType       node_type;          // The note type to create
-        const FuncType*      node_signature;     // The signature of the node that must be created
+        const FunctionDescriptor*      node_signature;     // The signature of the node that must be created
         SlotView*            active_slotview;    // The slot view being dragged.
         Graph*               graph;              // The graph to create the node into
         Vec2                 desired_screen_pos; // The desired position for the new node view
@@ -101,7 +101,7 @@ namespace ndbl
         , graph(nullptr)
         {}
 
-        EventPayload_CreateNode(CreateNodeType node_type, const tools::FuncType* signature )
+        EventPayload_CreateNode(CreateNodeType node_type, const tools::FunctionDescriptor* signature )
         : node_type(node_type)
         , node_signature(signature)
         {}

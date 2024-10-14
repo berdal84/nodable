@@ -9,22 +9,22 @@
 namespace tools
 {
     // forward declaration
-    class TypeDesc;
-    class ClassDesc;
+    class TypeDescriptor;
+    class ClassDescriptor;
 
     /**
      * structure to help register types
      */
     struct TypeRegister
     {
-        static std::unordered_map<std::type_index, TypeDesc*>& by_index();
-        static TypeDesc* get(std::type_index);
-        static ClassDesc* get_class(std::type_index);
-        static bool      has(const TypeDesc*);
+        static std::unordered_map<std::type_index, TypeDescriptor*>& by_index();
+        static TypeDescriptor* get(std::type_index);
+        static ClassDescriptor* get_class(std::type_index);
+        static bool      has(const TypeDescriptor*);
         static bool      has(std::type_index);
-        static TypeDesc* insert(TypeDesc*);
-        static TypeDesc* merge(TypeDesc* existing, const TypeDesc* other);
-        static TypeDesc* insert_or_merge(TypeDesc*);
+        static TypeDescriptor* insert(TypeDescriptor*);
+        static TypeDescriptor* merge(TypeDescriptor* existing, const TypeDescriptor* other);
+        static TypeDescriptor* insert_or_merge(TypeDescriptor*);
         static void      log_statistics();
 
     };

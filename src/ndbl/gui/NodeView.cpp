@@ -6,7 +6,7 @@
 
 #include "tools/core/math.h"
 #include "ndbl/core/GraphUtil.h"
-#include "ndbl/core/InvokableNode.h"
+#include "ndbl/core/FunctionNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/language/Nodlang.h"
 

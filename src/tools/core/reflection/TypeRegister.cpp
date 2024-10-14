@@ -5,29 +5,29 @@
 
 using namespace tools;
 
-TypeDesc* TypeRegister::get(std::type_index index)
+TypeDescriptor* TypeRegister::get(std::type_index index)
 {
     auto found = by_index().find(index);
     VERIFY(found != by_index().end(), "reflection: type not found!")
     return found->second;
 }
 
-ClassDesc* TypeRegister::get_class(std::type_index index)
+ClassDescriptor* TypeRegister::get_class(std::type_index index)
 {
-    TypeDesc* type = get(index);
+    TypeDescriptor* type = get(index);
     if ( type->is_class() )
-        return static_cast<ClassDesc*>( type );
+        return static_cast<ClassDescriptor*>( type );
     return nullptr;
 }
 
-std::unordered_map<std::type_index, TypeDesc*>& TypeRegister::by_index()
+std::unordered_map<std::type_index, TypeDescriptor*>& TypeRegister::by_index()
 {
-    static std::unordered_map<std::type_index, TypeDesc*> meta_type_register_by_typeid;
+    static std::unordered_map<std::type_index, TypeDescriptor*> meta_type_register_by_typeid;
     return meta_type_register_by_typeid;
 }
 
 
-bool TypeRegister::has(const TypeDesc* _type)
+bool TypeRegister::has(const TypeDescriptor* _type)
 {
     return by_index().find(_type->id()) != by_index().end();
 }
@@ -38,19 +38,19 @@ bool TypeRegister::has(std::type_index index)
     return found != by_index().end();
 }
 
-TypeDesc* TypeRegister::insert(TypeDesc* _type)
+TypeDescriptor* TypeRegister::insert(TypeDescriptor* _type)
 {
     by_index().insert({_type->id(), _type});
     return _type;
 }
 
-TypeDesc* TypeRegister::merge(TypeDesc* existing, const TypeDesc* other)
+TypeDescriptor* TypeRegister::merge(TypeDescriptor* existing, const TypeDescriptor* other)
 {
     LOG_VERBOSE(
         __FILE__,
         "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n",
-        existing->m_name, existing->m_compiler_name,
-        other->m_name, other->m_compiler_name
+        existing->m_name.c_str(), existing->m_compiler_name,
+        other->m_name.c_str(), other->m_compiler_name
     )
     if( existing->m_name[0] == '\0' )
     {
@@ -59,8 +59,8 @@ TypeDesc* TypeRegister::merge(TypeDesc* existing, const TypeDesc* other)
 
     if ( existing->is_class() )
     {
-        auto* existing_class = reinterpret_cast<ClassDesc*>(existing);
-        auto* other_class    = reinterpret_cast<const ClassDesc*>(other);
+        auto* existing_class = reinterpret_cast<ClassDescriptor*>(existing);
+        auto* other_class    = reinterpret_cast<const ClassDescriptor*>(other);
 
         existing_class->m_children.insert(other_class->m_children.begin(), other_class->m_children.end() );
         existing_class->m_parents.insert(other_class->m_parents.begin(), other_class->m_parents.end() );
@@ -76,17 +76,17 @@ void TypeRegister::log_statistics()
 
     for ( const auto& [type_hash, type] : by_index() )
     {
-        LOG_MESSAGE("reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name, type->m_compiler_name );
+        LOG_MESSAGE("reflection", " %-16llu %-25s %-60s\n", type_hash, type->m_name.c_str(), type->m_compiler_name );
     }
 
     LOG_MESSAGE("reflection", "Logging done.\n");
 }
 
-TypeDesc* TypeRegister::insert_or_merge(TypeDesc* possibly_existing_type)
+TypeDescriptor* TypeRegister::insert_or_merge(TypeDescriptor* possibly_existing_type)
 {
     if( has(possibly_existing_type->id()) )
     {
-        TypeDesc* existing_type = get(possibly_existing_type->id());
+        TypeDescriptor* existing_type = get(possibly_existing_type->id());
         return merge(existing_type, possibly_existing_type);
     }
     return insert(possibly_existing_type);
