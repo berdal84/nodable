@@ -621,7 +621,8 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
         && connected_slot
         && connected_slot->get_property()->get_token().m_type == Token_t::identifier)
     {
-        VERIFY(property_token.m_type != Token_t::null, "A connected property should never be from type Token_t::null")
+        if ( property_token.m_type != Token_t::null )
+            LOG_WARNING("NodeView", "A connected property should never be from type Token_t::null")
 
         char buf[256];
         const Token &connected_property_token = connected_slot->get_property()->get_token();
