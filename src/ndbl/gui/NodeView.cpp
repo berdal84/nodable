@@ -621,6 +621,8 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
         && connected_slot
         && connected_slot->get_property()->get_token().m_type == Token_t::identifier)
     {
+        VERIFY(property_token.m_type != Token_t::null, "A connected property should never be from type Token_t::null")
+
         char buf[256];
         const Token &connected_property_token = connected_slot->get_property()->get_token();
         snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
@@ -706,7 +708,6 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
             break;
         }
 
-        case Token_t::null: // TODO: we should not doing this, is an error in the parser needs to be fixed. Some properties remains null after being connected.
         case Token_t::literal_string:
         {
             char buf[256];
@@ -720,6 +721,10 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
             break;
         }
 
+        case Token_t::null:
+        {
+            break;
+        }
         default:
         {
             ASSERT(false) // Not implemented yet!

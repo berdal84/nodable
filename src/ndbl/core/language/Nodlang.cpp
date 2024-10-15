@@ -368,6 +368,9 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
 
     FunctionNode* binary_op = parser_state.graph->create_operator(type);
     binary_op->set_identifier_token( operator_token );
+    binary_op->get_lvalue()->get_property()->get_token().m_type = _left.get_property()->get_token().m_type;
+    binary_op->get_rvalue()->get_property()->get_token().m_type = right->get_property()->get_token().m_type;
+
     parser_state.graph->connect_or_merge( _left, *binary_op->get_lvalue());
     parser_state.graph->connect_or_merge( *right, *binary_op->get_rvalue() );
 
@@ -417,8 +420,9 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     FunctionDescriptor* type = FunctionDescriptor::create<any()>(operator_token.word_to_string().c_str());
     type->push_arg( out_atomic->get_property()->get_type());
 
-    FunctionNode* node = parser_state.graph->create_operator(std::move(type));
+    FunctionNode* node = parser_state.graph->create_operator(type);
     node->set_identifier_token( operator_token );
+    node->get_lvalue()->get_property()->get_token().m_type = out_atomic->get_property()->get_token().m_type;
 
     parser_state.graph->connect_or_merge( *out_atomic, *node->find_slot_by_property_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
 
