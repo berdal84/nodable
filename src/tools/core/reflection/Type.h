@@ -58,13 +58,15 @@ namespace tools
     typedef int TypeFlags;
     enum TypeFlag_ : int
     {
-        TypeFlag_NONE          = 0,
-        TypeFlag_IS_CLASS      = 1 << 0,
-        TypeFlag_IS_CONST      = 1 << 1,
-        TypeFlag_IS_POINTER    = 1 << 2,
-        TypeFlag_IS_MEMBER_PTR = 1 << 3,
-        TypeFlag_HAS_PARENT    = 1 << 5,
-        TypeFlag_HAS_CHILD     = 1 << 6
+        TypeFlag_NONE              = 0,
+        TypeFlag_IS_CLASS          = 1 << 0,
+        TypeFlag_IS_CONST          = 1 << 1,
+        TypeFlag_IS_POINTER        = 1 << 2,
+        TypeFlag_IS_MEMBER_PTR     = 1 << 3,
+        TypeFlag_HAS_PARENT        = 1 << 5,
+        TypeFlag_HAS_CHILD         = 1 << 6,
+        TypeFlag_IS_INTEGRAL       = 1 << 7,
+        TypeFlag_IS_FLOATING_POINT = 1 << 8
     };
 
     // Type utilities
@@ -111,6 +113,8 @@ namespace tools
         bool                      has_parent() const { return m_flags & TypeFlag_HAS_PARENT; }
         bool                      is_ptr() const { return m_flags & TypeFlag_IS_POINTER; }
         bool                      is_const() const { return m_flags & TypeFlag_IS_CONST; }
+        bool                      is_integer() const { return m_flags & TypeFlag_IS_INTEGRAL; }
+        bool                      is_floating_point() const { return m_flags & TypeFlag_IS_FLOATING_POINT; }
         bool                      equals(const TypeDescriptor* other) const { return type::equals(this, other); }
         template<typename T>
         bool                      is() const;
@@ -345,6 +349,8 @@ namespace tools
         return  (TypeFlag_IS_POINTER    * std::is_pointer_v<T>)
               | (TypeFlag_IS_CONST      * std::is_const_v<T>)
               | (TypeFlag_IS_MEMBER_PTR * std::is_member_pointer_v<T>)
+              | (TypeFlag_IS_INTEGRAL   * std::is_integral_v<T>)
+              | (TypeFlag_IS_FLOATING_POINT * std::is_floating_point_v<T>)
               | (TypeFlag_IS_CLASS      * std::is_class_v<T>);
     }
 

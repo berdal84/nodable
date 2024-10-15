@@ -70,6 +70,8 @@ namespace ndbl{
         bool                          to_bool(const std::string& );
         std::string                   to_unquoted_string(const std::string& _quoted_str);
         double                        to_double(const std::string& );
+        int                           to_int(const std::string& );
+
     private:
         bool                          allow_to_attach_suffix(Token_t type) const;
         void                          start_transaction(); // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
@@ -99,6 +101,9 @@ namespace ndbl{
 
         // Serializer ------------------------------------------------------------------
     public:
+        std::string& serialize_bool(std::string& _out, bool b) const;
+        std::string& serialize_int(std::string& _out, int i) const;
+        std::string& serialize_double(std::string& _out, double d) const;
         std::string& serialize_invokable(std::string&_out, const FunctionNode*) const;
         std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
         std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, const std::vector<Slot*>& inputs)const;

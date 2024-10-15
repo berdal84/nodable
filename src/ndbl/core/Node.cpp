@@ -299,7 +299,7 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
     std::vector<Slot*> result;
     for(auto& slot : m_slots)
     {
-        if( slot->has_flags(_flags) )
+        if( slot && slot->has_flags(_flags) )
         {
             result.push_back(const_cast<Slot*>(slot));
         }

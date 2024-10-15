@@ -93,7 +93,7 @@ namespace ndbl
         static std::vector<tools::Rect>   get_rects( const std::vector<NodeView*>& _in_views, tools::Space space, NodeViewFlags flags = NodeViewFlag_NONE);
         static bool             is_inside(NodeView*, const tools::Rect&, tools::Space);
         static void             constraint_to_rect(NodeView*, const tools::Rect& );
-        static bool             draw_property_view(PropertyView*, const char* _override_label);
+        static bool             draw_property_view(PropertyView*, bool compact_mode = false, const char* _override_label = nullptr);
         static void             draw_as_properties_panel(NodeView* _view, bool *_nodes );
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
@@ -114,6 +114,7 @@ namespace ndbl
             float border_radius,
             float border_width
         );
+        static float calc_input_width(const char* text);
 
         tools::View     m_base_view; // uses View by Composition
         std::string     m_label;
@@ -131,5 +132,6 @@ namespace ndbl
         std::vector<PropertyView*> m_property_views_with_output_or_inout;
 
         REFLECT_DERIVED_CLASS()
+
     };
 }

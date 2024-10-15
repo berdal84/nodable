@@ -69,3 +69,35 @@ TEST(FunctionDescriptor, push_args_template_4)
     EXPECT_EQ(f.is_compatible(&g), true);
     EXPECT_EQ(g.get_arg_count(), 4);
 }
+
+TEST(TypeDescriptor, is_integer)
+{
+    EXPECT_TRUE( type::get<i8_t>()->is_integer() );
+    EXPECT_TRUE( type::get<i16_t>()->is_integer() );
+    EXPECT_TRUE( type::get<i32_t>()->is_integer() );
+    EXPECT_TRUE( type::get<i64_t>()->is_integer() );
+    EXPECT_TRUE( type::get<u8_t>()->is_integer() );
+    EXPECT_TRUE( type::get<u16_t>()->is_integer() );
+    EXPECT_TRUE( type::get<u32_t>()->is_integer() );
+    EXPECT_TRUE( type::get<u64_t>()->is_integer() );
+
+    EXPECT_FALSE( type::get<double>()->is_integer() );
+    EXPECT_FALSE( type::get<float>()->is_integer() );
+    EXPECT_FALSE( type::get<std::string>()->is_integer() );
+}
+
+TEST(TypeDescriptor, is_floating_point)
+{
+    EXPECT_TRUE( type::get<double>()->is_floating_point() );
+    EXPECT_TRUE( type::get<float>()->is_floating_point() );
+
+    EXPECT_FALSE( type::get<i8_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<i16_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<i32_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<i64_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<u8_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<u16_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<u32_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<u64_t>()->is_floating_point() );
+    EXPECT_FALSE( type::get<std::string>()->is_integer() );
+}

@@ -10,6 +10,7 @@ namespace ndbl
     class NodeView;
     class Node;
     class VariableNode;
+    class Slot;
 
     /**
      * Simple struct to store a get_value view state
@@ -25,6 +26,7 @@ namespace ndbl
         void             reset();
         Property*        get_property() const;
         Node*            get_node() const;
+        Slot*            get_connected_slot() const;
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
     private:

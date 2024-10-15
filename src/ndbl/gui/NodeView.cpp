@@ -36,6 +36,7 @@ constexpr Vec2 DEFAULT_SIZE             = Vec2(10.0f, 35.0f);
 constexpr Vec2 DEFAULT_POS              = Vec2(500.0f, -1.0f);
 constexpr Vec4 DEFAULT_COLOR            = Vec4(1.f, 0.f, 0.f);
 constexpr bool PIXEL_PERFECT            = true; // round positions for drawing only
+constexpr float PROPERTY_INPUT_PADDING  = 5.0f;
 constexpr float PROPERTY_INPUT_SIZE_MIN = 10.0f;
 constexpr Vec2 PROPERTY_TOGGLE_BTN_SIZE = Vec2(10.0, 25.0f);
 
@@ -552,26 +553,8 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 
     if ( _view->show_input )
     {
-        bool limit_size = !property->get_type()->is<bool>();
-
-        if ( limit_size )
-        {
-            // try to draw an as small as possible input field
-            std::string str;
-            if ( connected_variable )
-                str = connected_variable->get_identifier();
-            else
-                str = property->get_token().word_to_string();
-            float text_width = ImGui::CalcTextSize(str.c_str()).x;
-            input_size = 5.0f + std::max(text_width, PROPERTY_INPUT_SIZE_MIN);
-            ImGui::PushItemWidth(input_size);
-        }
-        changed = NodeView::draw_property_view(_view, nullptr);
-
-        if ( limit_size )
-        {
-            ImGui::PopItemWidth();
-        }
+        const bool compact_mode = true;
+        changed = NodeView::draw_property_view(_view, compact_mode, nullptr);
     }
     else
     {
@@ -614,13 +597,12 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     return changed;
 }
 
-bool NodeView::draw_property_view(PropertyView* _view, const char* _override_label)
+bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const char* _override_label)
 {
-    char                input_buffer[256];
-    bool                changed  = false;
-    Property*           property = _view->get_property();
-    ImGuiInputTextFlags flags    = 0;
-    const VariableNode* connected_variable = _view->get_connected_variable();
+    Property*           property       = _view->get_property();
+    Token&              property_token = property->get_token();
+    const Slot*         connected_slot = _view->get_connected_slot();
+    ImGuiInputTextFlags flags          = ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
     std::string         label;
 
     // Create a label (everything after ## will not be displayed)
@@ -629,35 +611,130 @@ bool NodeView::draw_property_view(PropertyView* _view, const char* _override_lab
     else
         label.append("##" + property->get_name());
 
-    if( connected_variable != nullptr ) // variable name wrapped by a frame colored like the node
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, connected_variable->get_component<NodeView>()->get_color(Color_FILL) );
+    //
+    // Strategy:
+    // 1) if property is connected to an identifier, we just display the value in an InputText (as read-only)
+    // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
-    if( connected_variable != nullptr ) // When connected to a variable, we simply use variable's identifier as read-only input
+    // 1
+    if ( property->get_owner()->type() != NodeType_VARIABLE
+        && connected_slot
+        && connected_slot->get_property()->get_token().m_type == Token_t::identifier)
     {
-        auto variable_identifier = connected_variable->get_identifier();
-        snprintf(input_buffer, 255, "%s", connected_variable->get_identifier().c_str() );
-        flags |= ImGuiInputTextFlags_ReadOnly;
-    }
-    else
-    {
-        auto curr_value = property->get_token().word_to_string();
-        snprintf(input_buffer, 255, "%s", curr_value.c_str() );
-    }
-
-    if ( _view->has_input_connected() )
-        if ( _view->get_node()->type() != NodeType_VARIABLE )
-            flags |= ImGuiInputTextFlags_ReadOnly; // Read-only when an input is connected, except if it is a variable identifier!
-
-    if ( ImGui::InputText(label.c_str(), input_buffer, 255, flags ) )
-    {
-        property->get_token().word_replace(input_buffer);
-        changed |= true;
-    }
-
-    if( connected_variable != nullptr ) // variable name wrapped by a colored frame
+        char buf[256];
+        const Token &connected_property_token = connected_slot->get_property()->get_token();
+        snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
+                 connected_property_token.word_ptr());
+        float w = calc_input_width(buf);
+        ImGui::PushItemWidth(w);
+        ImGui::PushStyleColor(ImGuiCol_FrameBg,
+                              connected_slot->get_node()->get_component<NodeView>()->get_color(Color_FILL));
+        if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags)) {
+            // is ReadOnly
+        }
         ImGui::PopStyleColor();
+        ImGui::PopItemWidth();
+        return false;
+    }
+
+    // 2)
+
+    // Common
+    bool changed = false;
+
+    if ( _compact_mode )
+    {
+        std::string token_word = property_token.word_to_string();
+        float w = calc_input_width(token_word.c_str());
+        ImGui::PushItemWidth(w);
+    }
+
+    // Per type
+    switch ( property_token.m_type )
+    {
+        case Token_t::identifier:
+        {
+            char buf[256];
+            snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
+            flags = 0; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
+            if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
+            {
+                property_token.word_replace(buf);
+                changed = true;
+            }
+            break;
+        }
+
+        case Token_t::literal_double:
+        {
+            double value = get_language()->to_double(property_token.word_to_string());
+
+            if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags)) {
+                std::string str;
+                get_language()->serialize_double(str, value);
+                property_token.word_replace(str.c_str());
+                changed = true;
+            }
+            break;
+        }
+
+        case Token_t::literal_int:
+        {
+            i32_t value = get_language()->to_int( property_token.word_to_string() );
+
+            if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
+            {
+                std::string str;
+                get_language()->serialize_int(str, value);
+                property_token.word_replace(str.c_str());
+                changed = true;
+            }
+            break;
+        }
+
+        case Token_t::literal_bool:
+        {
+            bool value = get_language()->to_bool( property_token.word_to_string() );
+
+            if (ImGui::Checkbox(label.c_str(), &value))
+            {
+                std::string str;
+                get_language()->serialize_bool(str, value);
+                property_token.word_replace(str.c_str());
+                changed = true;
+            }
+            break;
+        }
+
+        case Token_t::null: // TODO: we should not doing this, is an error in the parser needs to be fixed. Some properties remains null after being connected.
+        case Token_t::literal_string:
+        {
+            char buf[256];
+            snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
+
+            if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
+            {
+                property_token.word_replace(buf);
+                changed = true;
+            }
+            break;
+        }
+
+        default:
+        {
+            ASSERT(false) // Not implemented yet!
+        }
+    }
+
+    if ( _compact_mode )
+        ImGui::PopItemWidth();
 
     return changed;
+}
+
+float NodeView::calc_input_width(const char *buf)
+{
+    return PROPERTY_INPUT_PADDING + std::max(ImGui::CalcTextSize(buf).x, PROPERTY_INPUT_SIZE_MIN);
 }
 
 bool NodeView::is_inside(NodeView* _other, const Rect& _rect, Space _space)
@@ -690,7 +767,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        bool edited = NodeView::draw_property_view(_property_view, nullptr);
+        bool edited = NodeView::draw_property_view(_property_view, false, nullptr);
         if ( edited )
             node->set_flags( NodeFlag_IS_DIRTY );
     };

@@ -255,6 +255,11 @@ double Nodlang::to_double(const std::string &_str)
     return stod(_str);
 }
 
+int Nodlang::to_int(const std::string &_str)
+{
+    return stoi(_str);
+}
+
 Slot *Nodlang::parse_token(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
@@ -361,7 +366,7 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     type->push_arg( _left.get_property()->get_type());
     type->push_arg(right->get_property()->get_type());
 
-    FunctionNode* binary_op = parser_state.graph->create_operator(std::move(type));
+    FunctionNode* binary_op = parser_state.graph->create_operator(type);
     binary_op->set_identifier_token( operator_token );
     parser_state.graph->connect_or_merge( _left, *binary_op->get_lvalue());
     parser_state.graph->connect_or_merge( *right, *binary_op->get_rvalue() );
@@ -1630,6 +1635,24 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
     {
         _out.append(_token.string_ptr(), _token.string_size());
     }
+    return _out;
+}
+
+std::string& Nodlang::serialize_bool(std::string& _out, bool b) const
+{
+    _out.append( b ? "true" : "false");
+    return _out;
+}
+
+std::string& Nodlang::serialize_int(std::string& _out, int i) const
+{
+    _out.append( std::to_string(i) );
+    return _out;
+}
+
+std::string& Nodlang::serialize_double(std::string& _out, double d) const
+{
+    _out.append( std::to_string(d) );
     return _out;
 }
 

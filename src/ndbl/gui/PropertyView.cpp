@@ -36,19 +36,20 @@ bool PropertyView::has_input_connected() const
     return get_node()->has_input_connected( m_property );
 }
 
-VariableNode* PropertyView::get_connected_variable() const
+Slot* PropertyView::get_connected_slot() const
 {
     const Slot* input_slot = get_node()->find_slot_by_property( m_property, SlotFlag_INPUT );
     if( !input_slot )
-    {
         return nullptr;
-    }
 
-    Slot* adjacent_slot = input_slot->first_adjacent();
-    if( adjacent_slot == nullptr )
-    {
+    return input_slot->first_adjacent();
+}
+
+VariableNode* PropertyView::get_connected_variable() const
+{
+    Slot* adjacent_slot = get_connected_slot();
+    if( !adjacent_slot )
         return nullptr;
-    }
 
     return cast<VariableNode>( adjacent_slot->get_node() );
 }
