@@ -159,6 +159,12 @@ TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced )
     EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
 }
 
+TEST_F(Language_parse_and_serialize, parse_serialize_variable_referenced2 )
+{
+    const char* code = "int i = 42; i;";
+    EXPECT_STREQ(parse_and_serialize(code).c_str(), code);
+}
+
 /////////////////////////////////////////////////////////////
 
 TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope )

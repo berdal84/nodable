@@ -38,6 +38,7 @@ namespace ndbl
         Property*          property();
         const Property*    get_value() const;
         Scope*             get_scope();
+        const Scope*       get_scope() const;
         void               reset_scope(Scope* _scope = nullptr);
         Slot&              input_slot(); // input slot for variable initialisation
         const Slot&        input_slot() const; // input slot for variable initialisation

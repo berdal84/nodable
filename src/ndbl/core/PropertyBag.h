@@ -43,6 +43,7 @@ namespace ndbl
         Property*        get_this();
         const Property*  get_this() const;
         Property*        add(const tools::TypeDescriptor* _type, const char *_name, PropertyFlags = PropertyFlag_NONE );
+        Property*        add(Property* property);
 
         template<typename T>
         Property* add( const char* _name, PropertyFlags _flags = PropertyFlag_NONE )

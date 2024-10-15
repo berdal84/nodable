@@ -60,7 +60,6 @@ namespace ndbl
         Vec4           ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth
-        Vec4           ui_node_instructionColor;
         std::array<Vec4,NodeType_COUNT> ui_node_fill_color;
         Vec4           ui_node_shadowColor;
         Vec4           ui_node_borderColor;

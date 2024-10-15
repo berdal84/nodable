@@ -10,6 +10,7 @@
 #include "Scope.h"
 #include "VariableNode.h"
 #include "language/Nodlang.h"
+#include "VariableRefNode.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -522,6 +523,13 @@ Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signa
         default:
             VERIFY(false, "Unhandled CreateNodeType.");
     }
+}
+
+VariableRefNode* Graph::create_variable_ref(const VariableNode* variable)
+{
+    VariableRefNode* node = m_factory->create_variable_ref(variable);
+    add(node);
+    return node;
 }
 
 VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const char*  _name, Scope*  _scope)

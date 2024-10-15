@@ -27,6 +27,7 @@ namespace ndbl{
     class Node;
     class Property;
     class VariableNode;
+    class VariableRefNode;
 
     typedef int SerializeFlags;
     enum SerializeFlag_
@@ -119,6 +120,7 @@ namespace ndbl{
         std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;
         std::string& serialize_cond_struct(std::string& _out, const IfNode*_condition_struct ) const;
         std::string& serialize_variable(std::string& _out, const VariableNode*) const;
+        std::string& serialize_variable_ref(std::string &_out, const VariableRefNode *_node) const;
         std::string& serialize_property(std::string &_out, const Property*) const;
 
         // Language definition -------------------------------------------------------------------------

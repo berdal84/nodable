@@ -70,23 +70,25 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_instructionBorderRatio        = 2.0f;
     ui_node_padding                       = Vec4{ 8.0f, 4.0f, 4.0f, 4.0f };
     ui_slot_circle_radius_base            = 4.0f;
-    ui_node_fill_color = {
-        Color(255, 255, 255), // NodeType_DEFAULT
-        Color(255, 255, 255), // NodeType_BLOCK_CONDITION
-        Color(255, 255, 255), // NodeType_BLOCK_FOR_LOOP
-        Color(255, 255, 255), // NodeType_BLOCK_WHILE_LOOP
-        Color(255, 255, 255), // NodeType_BLOCK_SCOPE
-        Color(171, 190, 255), // NodeType_VARIABLE
-        Color(200, 200, 200), // NodeType_LITERAL
-        Color(255, 199, 115), // NodeType_FUNCTION
-        Color(255, 199, 115)  // NodeType_OPERATOR
-    };
 
-    ui_node_instructionColor              = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green
     ui_node_highlightedColor              = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     ui_node_borderColor                   = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_borderHighlightedColor        = Vec4(1.0f, 1.0f, 1.0f, 0.8f);
     ui_node_shadowColor                   = Vec4(0.0f, 0.0f, 0.0f, 0.2f);
+
+    auto node_defaultColor = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green
+    ui_node_fill_color = {
+        node_defaultColor, // NodeType_DEFAULT
+        node_defaultColor, // NodeType_BLOCK_CONDITION
+        node_defaultColor, // NodeType_BLOCK_FOR_LOOP
+        node_defaultColor, // NodeType_BLOCK_WHILE_LOOP
+        node_defaultColor, // NodeType_BLOCK_SCOPE
+        Color(171, 190, 255), // NodeType_VARIABLE
+        Color(171, 190, 255), // NodeType_VARIABLE_REF
+        Color(200, 200, 200), // NodeType_LITERAL
+        Color(255, 199, 115), // NodeType_FUNCTION
+        Color(255, 199, 115)  // NodeType_OPERATOR
+    };
 
     ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_slot_hovered_color                 = Color(200, 200, 200);

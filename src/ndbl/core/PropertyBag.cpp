@@ -9,6 +9,15 @@ bool PropertyBag::has(const char* _name) const
     return m_properties_by_name.find(_name) != m_properties_by_name.end();
 }
 
+Property* PropertyBag::add(Property* property)
+{
+    m_properties.push_back(property);
+    // Index by name
+    m_properties_by_name.insert({property->get_name(), property});
+
+    return property;
+}
+
 Property* PropertyBag::add(const TypeDescriptor* _type, const char* _name, PropertyFlags _flags )
 {
     VERIFY(m_owner != nullptr, "PropertyBag must be initialized")
@@ -19,11 +28,7 @@ Property* PropertyBag::add(const TypeDescriptor* _type, const char* _name, Prope
     auto* new_property = new Property();
     new_property->init(_type, _flags, m_owner, _name);
 
-    m_properties.push_back(new_property);
-    // Index by name
-    m_properties_by_name.insert({_name, new_property});
-
-    return new_property;
+    return add(new_property);
 }
 
 const Property* PropertyBag::find_first( PropertyFlags _flags, const TypeDescriptor *_type) const

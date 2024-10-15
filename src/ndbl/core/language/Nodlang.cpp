@@ -31,6 +31,7 @@
 #include "ndbl/core/Property.h"
 #include "ndbl/core/Scope.h"
 #include "ndbl/core/VariableNode.h"
+#include "ndbl/core/VariableRefNode.h"
 #include "ndbl/core/WhileLoopNode.h"
 #include "ndbl/core/language/Nodlang_biology.h"
 #include "ndbl/core/language/Nodlang_math.h"
@@ -524,6 +525,18 @@ Node* Nodlang::parse_instr()
     }
 
     Node* instr_node = expression_out->get_node();
+
+    // wraps variable as a VariableRefNode
+    // This is necessary to avoid connecting multiple times the same VariableNode to a parent
+    if ( instr_node->type() == NodeType_VARIABLE )
+    {
+        auto variable = static_cast<VariableNode*>( instr_node );
+        bool has_parent = variable->find_parent() != nullptr;
+        if ( has_parent )
+            instr_node = parser_state.graph->create_variable_ref( variable );
+    }
+
+    // Handle suffix
     if (parser_state.ribbon.can_eat())
     {
         Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction);
@@ -538,8 +551,10 @@ Node* Nodlang::parse_instr()
             return {};
         }
     }
+
     LOG_VERBOSE("Parser", "parse instruction " OK "\n")
     commit_transaction();
+
     return instr_node;
 }
 
@@ -1489,6 +1504,11 @@ std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor* _t
     return _out.append(to_string(_type));
 }
 
+std::string& Nodlang::serialize_variable_ref(std::string &_out, const VariableRefNode *_node) const
+{
+    return serialize_token( _out, _node->get_value()->get_token() );
+}
+
 std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const
 {
     // 1. Serialize variable's type
@@ -1607,6 +1627,9 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
             break;
         case NodeType_VARIABLE:
             serialize_variable(_out, static_cast<const VariableNode*>(node));
+            break;
+        case NodeType_VARIABLE_REF:
+            serialize_variable_ref(_out, static_cast<const VariableRefNode*>(node));
             break;
         case NodeType_BLOCK_SCOPE:
             serialize_scope(_out, node->get_component<Scope>() );

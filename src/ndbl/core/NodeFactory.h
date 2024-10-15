@@ -9,6 +9,7 @@
 #include "WhileLoopNode.h"
 #include "IScope.h"
 #include "FunctionNode.h"
+#include "VariableRefNode.h"
 
 namespace ndbl
 {
@@ -19,6 +20,7 @@ namespace ndbl
     class ForLoopNode;
     class WhileLoopNode;
     class IfNode;
+    class VariableRefNode;
 
     /**
      * @brief The NodeFactory instantiate Nodes. Class take a function to update after creation.
@@ -34,6 +36,7 @@ namespace ndbl
 
         Node*                  create_program()const;
         VariableNode*          create_variable(const tools::TypeDescriptor *_type, const std::string &_name, Scope* _scope)const;
+        VariableRefNode*       create_variable_ref(const VariableNode*) const;
         LiteralNode*           create_literal(const tools::TypeDescriptor *_type)const;
         FunctionNode*          create_function(const tools::FunctionDescriptor*, NodeType node_type = NodeType_FUNCTION)const;
         Node*                  create_scope()const;
@@ -43,6 +46,7 @@ namespace ndbl
         Node*                  create_node()const;
         void                   destroy_node(Node* node)const;
         void                   override_post_process_fct(PostProcessFct f);
+
     private:
         bool m_post_process_is_overrided;
         std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.

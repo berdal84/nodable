@@ -75,6 +75,14 @@ VariableNode* NodeFactory::create_variable(const TypeDescriptor* _type, const st
     return node;
 }
 
+VariableRefNode* NodeFactory::create_variable_ref(const VariableNode* _variable) const
+{
+    auto node = create<VariableRefNode>();
+    node->init(_variable);
+    m_post_process(node);
+    return node;
+}
+
 FunctionNode* NodeFactory::create_function(const FunctionDescriptor* _func_type, NodeType _node_type) const
 {
     auto* node = create<FunctionNode>();

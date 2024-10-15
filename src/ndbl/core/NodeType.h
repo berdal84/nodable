@@ -13,6 +13,7 @@ namespace ndbl
         NodeType_BLOCK_WHILE_LOOP,
         NodeType_BLOCK_SCOPE,
         NodeType_VARIABLE,
+        NodeType_VARIABLE_REF,
         NodeType_LITERAL,
         NodeType_FUNCTION,
         NodeType_OPERATOR,

@@ -197,10 +197,7 @@ void NodeView::set_owner(Node* node)
     //---------------------
 
     // note: We pass color by address to be able to change the color dynamically
-    if ( node->is_instruction() ) // this is dynamic
-        set_color( &cfg->ui_node_instructionColor );
-    else
-        set_color( &cfg->ui_node_fill_color[node->type()] );
+    set_color( &cfg->ui_node_fill_color[node->type()] );
 }
 
 void NodeView::update_labels_from_name(const Node* _node)
@@ -397,7 +394,7 @@ bool NodeView::draw()
     }
     else if (node->is_instruction())
     {
-        border_color = cfg->ui_node_instructionColor;
+        border_color = cfg->ui_node_fill_color[NodeType_DEFAULT];
     }
 
     float border_width = cfg->ui_node_borderWidth;
