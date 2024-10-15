@@ -445,12 +445,9 @@ bool NodeView::draw()
         label = "";
     }
     // Label is displayed first unless node is an operator
-    ImGui::SameLine(); ImGuiEx::ShadowedText( Vec2(0.5f), cfg->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
-    if ( node->type() == NodeType_FUNCTION )
-    {
-        ImGui::SameLine(); ImGui::Text("(");
-    }
+    const char* format = node->type() == NodeType_FUNCTION ? "%s(" : "%s";
+    ImGui::SameLine(); ImGui::Text( format, label.c_str() );
 
     if ( node->type() == NodeType_OPERATOR )
     {
