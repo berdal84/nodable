@@ -392,9 +392,7 @@ bool NodeView::draw()
 
     // Add an invisible just on top of the background to detect mouse hovering
 	ImGui::SetCursorScreenPos(screen_rect.top_left());
-	ImGui::InvisibleButton("node", m_base_view.get_size());
-    bool is_rect_hovered = ImGui::IsItemHovered();
-    ImGui::SetItemAllowOverlap();
+    bool is_rect_hovered = !ImGui::IsAnyItemHovered() && ImGui::IsMouseHoveringRect(screen_rect.min, screen_rect.max);
     Vec2 new_screen_pos = screen_rect.top_left()
                           + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
                           + Vec2{cfg->ui_slot_circle_radius(), 0.0f}; // space for "this" left slot
@@ -697,12 +695,13 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
 
         case Token_t::literal_bool:
         {
-            bool value = get_language()->to_bool( property_token.word_to_string() );
+            auto str = property_token.word_to_string();
+            bool b = get_language()->to_bool( str );
 
-            if (ImGui::Checkbox(label.c_str(), &value))
+            if (ImGui::Checkbox(label.c_str(), &b))
             {
-                std::string str;
-                get_language()->serialize_bool(str, value);
+                str.clear();
+                get_language()->serialize_bool(str, b);
                 property_token.word_replace(str.c_str());
                 changed = true;
             }
