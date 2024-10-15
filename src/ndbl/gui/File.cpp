@@ -125,15 +125,16 @@ UpdateResult File::update( Isolation flags )
     return graph->update(); // ~ garbage collection
 }
 
-UpdateResult File::update_graph_from_text( Isolation scope)
+UpdateResult File::update_graph_from_text( Isolation isolation_mode)
 {
     // Destroy all physics constraints
     auto physics_components = NodeUtils::get_components<Physics>(graph->get_node_registry() );
     Physics::destroy_constraints( physics_components );
 
     // Parse source code
-    std::string text = get_text(scope);
-    bool parse_ok = get_language()->parse(text, graph );
+    // note: File owns the parsed text buffer
+    parsed_text = get_text(isolation_mode);
+    bool parse_ok = get_language()->parse(parsed_text, graph );
     if (parse_ok && !graph->is_empty() )
     {
         Physics::create_constraints(graph->get_node_registry() );

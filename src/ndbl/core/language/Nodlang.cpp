@@ -118,7 +118,7 @@ Nodlang::Nodlang(bool _strict)
 
     for( auto [keyword, token_t] : m_definition.keywords)
     {
-        m_token_t_by_keyword.insert({hash::hash(keyword), token_t});
+        m_token_t_by_keyword.insert({hash::hash_cstr(keyword), token_t});
         m_keyword_by_token_t.insert({token_t, keyword});
     }
 
@@ -126,7 +126,7 @@ Nodlang::Nodlang(bool _strict)
     {
         m_keyword_by_token_t.insert({token_t, keyword});
         m_keyword_by_type_id.insert({type->id(), keyword});
-        m_token_t_by_keyword.insert({hash::hash(keyword), token_t});
+        m_token_t_by_keyword.insert({hash::hash_cstr(keyword), token_t});
         m_token_t_by_type_id.insert({type->id(), token_t});
         m_type_by_token_t.insert({token_t, type});
     }
@@ -745,7 +745,7 @@ bool Nodlang::tokenize(const std::string& _string)
     return tokenize(const_cast<char*>(_string.data()), _string.length());
 }
 
-bool Nodlang::tokenize(char* buffer, size_t buffer_size)
+bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
 {
     size_t global_cursor = 0;
     size_t ignored_chars_start_pos = 0;
@@ -815,7 +815,7 @@ bool Nodlang::tokenize(char* buffer, size_t buffer_size)
     return true;
 }
 
-Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_cursor) const
+Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& global_cursor) const
 {
     const size_t                  start_pos  = global_cursor;
     const std::string::value_type first_char = buffer[start_pos];
@@ -847,7 +847,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
 
             ++cursor;
             global_cursor = cursor;
-            return Token{Token_t::ignore, buffer, start_pos, cursor - start_pos};
+            return Token{Token_t::ignore, const_cast<char*>(buffer), start_pos, cursor - start_pos};
         }
     }
 
@@ -857,7 +857,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
     {
         ++global_cursor;
         const Token_t type = single_char_found->second;
-        return Token{type, buffer, start_pos, 1};
+        return Token{type, const_cast<char*>(buffer), start_pos, 1};
     }
 
     // operators
@@ -871,11 +871,11 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
             if (cursor != buffer_size && (second_char == '>' || second_char == '=')) {
                 ++cursor;
                 global_cursor = cursor;
-                return Token{Token_t::operator_, buffer, start_pos, cursor - start_pos};
+                return Token{Token_t::operator_, const_cast<char*>(buffer), start_pos, cursor - start_pos};
             }
             // "="
             global_cursor++;
-            return Token{Token_t::operator_, buffer, start_pos, 1};
+            return Token{Token_t::operator_, const_cast<char*>(buffer), start_pos, 1};
         }
 
         case '!':
@@ -899,7 +899,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
                 // <operator>
                 global_cursor++;
             }
-            return Token{Token_t::operator_, buffer, start_pos, cursor - start_pos};
+            return Token{Token_t::operator_, const_cast<char*>(buffer), start_pos, cursor - start_pos};
         }
     }
 
@@ -933,7 +933,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
             type = Token_t::literal_double;
         }
         global_cursor = cursor;
-        return Token{type, buffer, start_pos, cursor - start_pos};
+        return Token{type, const_cast<char*>(buffer), start_pos, cursor - start_pos};
     }
 
     // double-quoted string
@@ -946,7 +946,7 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
         }
         ++cursor;
         global_cursor = cursor;
-        return Token{Token_t::literal_string, buffer, start_pos, cursor - start_pos};
+        return Token{Token_t::literal_string, const_cast<char*>(buffer), start_pos, cursor - start_pos};
     }
 
     // symbol (identifier or keyword)
@@ -962,14 +962,14 @@ Token Nodlang::parse_token(char* buffer, size_t buffer_size, size_t& global_curs
 
         Token_t type = Token_t::identifier;
 
-        auto hash = hash::hash(buffer + start_pos, cursor - start_pos);
+        auto hash = hash::hash( buffer + start_pos, cursor - start_pos );
         auto keyword_found = m_token_t_by_keyword.find( hash );
         if (keyword_found != m_token_t_by_keyword.end())
         {
             // a keyword has priority over identifier
             type = keyword_found->second;
         }
-        return Token{type, buffer, start_pos, cursor - start_pos};
+        return Token{type, const_cast<char*>(buffer), start_pos, cursor - start_pos};
     }
     return Token::s_null;
 }
@@ -1788,7 +1788,7 @@ const IInvokable* Nodlang::find_function(const char* _signature_hint) const
         return nullptr;
     }
 
-    auto hash = hash::hash(_signature_hint);
+    auto hash = hash::hash_cstr(_signature_hint);
     return find_function( hash );
 }
 
@@ -1994,7 +1994,7 @@ Nodlang::ParserState::ParserState()
 
 Nodlang::ParserState::~ParserState()
 {
-    delete[] source_buffer;
+    // delete[] source_buffer; NOT owned!
 }
 
 void Nodlang::ParserState::set_source_buffer(const char *str, size_t size)
@@ -2002,12 +2002,7 @@ void Nodlang::ParserState::set_source_buffer(const char *str, size_t size)
     ASSERT(source_buffer == nullptr); // should call clear() before
     ASSERT(str != nullptr);
 
-    if( size != 0 )
-    {
-        LOG_VERBOSE("ParserState", "Copying source buffer (%i bytes) ...\n", size);
-        source_buffer = new char[size];
-        memcpy(source_buffer, str, size);
-    }
+    source_buffer      = str;
     source_buffer_size = size;
     ribbon.set_source_buffer(source_buffer);
 }
@@ -2016,7 +2011,6 @@ void Nodlang::ParserState::clear()
 {
     graph = nullptr;
     ribbon.clear();
-    delete[] source_buffer;
     source_buffer      = nullptr;
     source_buffer_size = 0;
     while(!scope.empty())

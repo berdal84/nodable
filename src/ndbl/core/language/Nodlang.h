@@ -48,9 +48,9 @@ namespace ndbl{
 
         // Parser ---------------------------------------------------------------------
         bool                          tokenize(const std::string& _string);       // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
-        bool                          tokenize(char* buffer, size_t buffer_size); // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
+        bool                          tokenize(const char* buffer, size_t buffer_size); // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
         bool                          parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
-        Token                         parse_token(char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
+        Token                         parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                         parse_token(const std::string& _string) const;
         Node*                         parse_scope( Slot& _parent_scope_slot );
         Node*                         parse_instr();
@@ -84,10 +84,10 @@ namespace ndbl{
     public:
         struct ParserState
         {
-            char*                     source_buffer;      // owned
+            const char*               source_buffer;      // NOT owned
             size_t                    source_buffer_size;
             TokenRibbon               ribbon;
-            Graph*                    graph;              // not owned
+            Graph*                    graph;              // NOT owned
             std::stack<Scope*>        scope;              // nested scopes
 
             ParserState();

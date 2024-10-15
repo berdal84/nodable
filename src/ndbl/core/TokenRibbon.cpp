@@ -125,10 +125,11 @@ void TokenRibbon::clear()
     m_cursor = 0;
 }
 
-void TokenRibbon::set_source_buffer(char* _buffer)
+void TokenRibbon::set_source_buffer(const char* const_buffer)
 {
-    m_prefix.set_source_buffer(_buffer);
-    m_suffix.set_source_buffer(_buffer);
+    auto buffer = const_cast<char*>(const_buffer);
+    m_prefix.set_source_buffer(buffer);
+    m_suffix.set_source_buffer(buffer);
 }
 
 bool TokenRibbon::can_eat(size_t count) const

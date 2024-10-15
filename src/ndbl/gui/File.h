@@ -45,6 +45,7 @@ namespace ndbl
 
     private:
         Graph*                 graph;        // graphical representation
+        std::string            parsed_text;  // last parsed text buffer
     public:
         Graph&                 get_graph() { return *graph; };
         std::string            filename() const;

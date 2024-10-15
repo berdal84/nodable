@@ -34,7 +34,7 @@ namespace ndbl
         inline Token&       prefix() { return m_prefix; }
         inline const Token& peek()const { return m_tokens[m_cursor]; }
         Token&              push(Token&);
-        void                set_source_buffer(char* buffer); // Set the source buffer (usually shared with by all Tokens)
+        void                set_source_buffer(const char* buffer); // Set the source buffer (usually shared with by all Tokens)
         inline Token&       suffix() { return m_suffix; }
         inline size_t       size()const { return m_tokens.size(); }
         std::string         to_string() const; // Generate a colored string highlighting the current and past tokens
