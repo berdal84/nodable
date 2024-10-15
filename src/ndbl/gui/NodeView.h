@@ -126,10 +126,13 @@ namespace ndbl
         SlotView*       m_last_clicked_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
         std::vector<SlotView*>     m_slot_views;
-        std::unordered_map<const Property*, PropertyView*> m_property_views;
+        std::unordered_map<const Property*, PropertyView*> m_property_views__all;
         PropertyView*              m_property_view_this;
-        std::vector<PropertyView*> m_property_views_with_input_only;
-        std::vector<PropertyView*> m_property_views_with_output_or_inout;
+        std::vector<PropertyView*> m_property_views__in_strictly;
+        std::vector<PropertyView*> m_property_views__out_strictly;
+        std::vector<PropertyView*> m_property_views__inout_strictly;
+        std::vector<PropertyView*> m_property_views__out;
+        std::vector<PropertyView*> m_property_views__in;
 
         REFLECT_DERIVED_CLASS()
 

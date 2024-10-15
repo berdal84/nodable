@@ -48,7 +48,7 @@ NodeView::NodeView()
         , m_expanded(true)
         , m_pinned(false)
         , m_property_view_this(nullptr)
-        , m_property_views()
+        , m_property_views__all()
         , m_hovered_slotview(nullptr)
         , m_last_clicked_slotview(nullptr)
 {
@@ -58,7 +58,7 @@ NodeView::NodeView()
 
 NodeView::~NodeView()
 {
-    for(auto& [_, each] : m_property_views )
+    for(auto& [_, each] : m_property_views__all )
         delete each;
 
     for(auto* each : m_slot_views )
@@ -91,30 +91,42 @@ void NodeView::set_owner(Node* node)
     //-------------------------
 
     // Reserve
-    for(auto& [_, property_view] : m_property_views)
+    for(auto& [_, property_view] : m_property_views__all)
         delete property_view;
-    m_property_views.clear();
+
+    m_property_views__all.clear();
+    m_property_views__out_strictly.clear();
+    m_property_views__inout_strictly.clear();
+    m_property_views__in_strictly.clear();
+    m_property_views__in.clear();
+    m_property_views__out.clear();
 
     for (Property* property : node->get_props() )
     {
         // Create view
         auto property_view = new PropertyView(property);
         m_base_view.add_child(property_view);
-        m_property_views.emplace(property, property_view);
+        m_property_views__all.emplace(property, property_view);
 
         // Indexing
         if ( property->has_flags(PropertyFlag_IS_THIS) )
         {
             m_property_view_this = property_view;
+            continue;
         }
-        else if ( !get_node()->find_slot_by_property(property, SlotFlag_OUTPUT ) )
-        {
-            m_property_views_with_input_only.push_back(property_view);
-        }
-        else
-        {
-            m_property_views_with_output_or_inout.push_back(property_view);
-        }
+
+        bool has_in  = get_node()->find_slot_by_property(property, SlotFlag_INPUT );
+        bool has_out = get_node()->find_slot_by_property(property, SlotFlag_OUTPUT );
+
+        if ( has_in)  m_property_views__in.push_back(property_view);
+        if ( has_out) m_property_views__out.push_back(property_view);
+
+        if ( has_in && has_out )
+            m_property_views__inout_strictly.push_back(property_view);
+        else if ( has_in )
+            m_property_views__in_strictly.push_back(property_view);
+        else if ( has_out )
+            m_property_views__out_strictly.push_back(property_view);
     }
 
     // 2. Create a SlotView per slot
@@ -305,7 +317,7 @@ bool NodeView::update(float _deltaTime)
                 }
                 else
                 {
-                    auto property_view = m_property_views.at( slot.get_property() );
+                    auto property_view = m_property_views__all.at(slot.get_property() );
                     Rect property_rect = property_view->get_rect();
                     slot_rect.translate( property_rect.center() + property_rect.size() * slot_view->get_align() * Vec2{0.5f} );
                 }
@@ -339,6 +351,20 @@ bool NodeView::draw()
     Config*     cfg       = get_config();
 	bool        changed   = false;
     Node*       node      = get_node();
+
+    auto draw_properties = [&](const std::vector<PropertyView*>& views)
+    {
+        if ( views.empty() )
+            return;
+
+        ImGui::BeginGroup();
+        for(auto view : views)
+        {
+            ImGui::SameLine();
+            changed |= _draw_property_view( view, cfg->ui_node_detail );
+        }
+        ImGui::EndGroup();
+    };
 
     ASSERT(node != nullptr);
 
@@ -402,6 +428,10 @@ bool NodeView::draw()
 	//------------------------
 
     ImGui::BeginGroup();
+    ImGui::Dummy({1.f, 1.f}); // Without this, drawing doesn't work (size issues), TODO: understand why and remove this
+
+    ImGui::SameLine(); draw_properties(m_property_views__out_strictly);
+
     std::string label = get_label().empty() ? " " : get_label();                        // ensure a 1 char width, to be able to grab it
     if ( !m_expanded )
     {
@@ -415,31 +445,45 @@ bool NodeView::draw()
         label = "";
     }
     // Label is displayed first unless node is an operator
-    ImGuiEx::ShadowedText( Vec2(1.0f), cfg->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
+    ImGui::SameLine(); ImGuiEx::ShadowedText( Vec2(0.5f), cfg->ui_node_borderHighlightedColor, label.c_str()); // text with a lighter shadow (encrust effect)
 
-    ImGui::SameLine();
-
-    ImGui::BeginGroup();
-
-    // draw properties
-    size_t count = 0;
-    auto draw_property_lambda = [&](PropertyView* view)
+    if ( node->type() == NodeType_FUNCTION )
     {
+        ImGui::SameLine(); ImGui::Text("(");
+    }
+
+    if ( node->type() == NodeType_OPERATOR )
+    {
+        // TODO: handle unary and ternary operators
         ImGui::SameLine();
-        changed |= _draw_property_view( view, cfg->ui_node_detail );
-
-        // for binary operators, label is displayed between the two first properties
-        if ( count == 0 && node->is_binary_operator() )
+        ImGui::BeginGroup();
+        size_t count = 0;
+        for(auto view : m_property_views__in)
         {
-            ImGui::SameLine(); ImGui::Text("%s", get_label().c_str() );
-        }
-        count++;
-    };
-    std::for_each( m_property_views_with_input_only.begin(), m_property_views_with_input_only.end(), draw_property_lambda);
-    std::for_each( m_property_views_with_output_or_inout.begin(), m_property_views_with_output_or_inout.end(), draw_property_lambda);
+            ImGui::SameLine();
+            changed |= _draw_property_view( view, cfg->ui_node_detail );
 
-    ImGui::EndGroup();
-    ImGui::SameLine();
+            // Append the operator label between the first and the second operator
+            if (count == 0 && node->is_binary_operator() )
+            {
+                ImGui::SameLine(); ImGui::Text("%s", get_label().c_str() );
+            }
+            count++;
+        }
+        ImGui::EndGroup();
+    }
+    else
+    {
+        ImGui::SameLine(); draw_properties(m_property_views__in_strictly);
+        ImGui::SameLine(); draw_properties(m_property_views__inout_strictly);
+    }
+
+    if ( node->type() == NodeType_FUNCTION )
+    {
+        ImGui::SameLine(); ImGui::Text(")");
+    }
+
+
     ImGui::EndGroup();
 
     // Ends the Window
@@ -547,8 +591,6 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     }
 
     // input
-    float input_size = PROPERTY_TOGGLE_BTN_SIZE.x;
-
     if ( _view->show_input )
     {
         const bool compact_mode = true;
@@ -781,43 +823,34 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     ImGui::Text("Class:      %s"     , node->get_class()->get_name());
 
     // Draw exposed input properties
-    ImGui::Separator();
-    ImGui::Text("Input(s):" );
-    ImGui::Separator();
-    ImGui::Indent();
-    if( _view->m_property_views_with_input_only.empty() )
-    {
-        ImGui::Text("None.");
-        ImGui::Separator();
-    }
-    else
-    {
-        for (auto& property_view : _view->m_property_views_with_input_only )
-        {
-            draw_labeled_property_view( property_view );
-            ImGui::Separator();
-        }
-    }
-    ImGui::Unindent();
 
-    // Draw exposed output properties
-    ImGui::Text("Output(s):" );
-    ImGui::Separator();
-    ImGui::Indent();
-    if( _view->m_property_views_with_output_or_inout.empty() )
+    auto draw_properties = [&](const char* title, const std::vector<PropertyView*>& views)
     {
-        ImGui::Text("None.");
+        ImGui::Text("%s:", title);
         ImGui::Separator();
-    }
-    else
-    {
-        for (auto& each_property_view: _view->m_property_views_with_output_or_inout )
+        ImGui::Indent();
+        if( views.empty() )
         {
-            draw_labeled_property_view( each_property_view );
+            ImGui::Text("None.");
             ImGui::Separator();
         }
-    }
-    ImGui::Unindent();
+        else
+        {
+            for (auto& property_view : views )
+            {
+                draw_labeled_property_view( property_view );
+                ImGui::Separator();
+            }
+        }
+        ImGui::Unindent();
+    };
+
+    ImGui::Separator();
+    draw_properties("Inputs(s)", _view->m_property_views__in_strictly);
+    draw_properties("In/Out(s)", _view->m_property_views__inout_strictly);
+    ImGui::Separator();
+    draw_properties("Output(s)", _view->m_property_views__out_strictly);
+    ImGui::Separator();
 
     if ( tools_cfg->runtime_debug )
     {

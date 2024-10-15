@@ -74,13 +74,15 @@ void ImGuiEx::ShadowedText(const Vec2& _offset, const Vec4& _shadowColor, const 
 {
     va_list args;
     va_start(args, _format);
-    auto p = ImGui::GetCursorPos();
+    ImGui::BeginGroup();
     // shadow
-    ImGui::SetCursorPos(Vec2(p.x + _offset.x, p.y + _offset.y));
+    auto p = ImGui::GetCursorScreenPos();
+    ImGui::SetCursorScreenPos(Vec2(p.x + _offset.x, p.y + _offset.y));
     ImGui::TextColored(_shadowColor, _format, args);
     // text
-    ImGui::SetCursorPos(p);
+    ImGui::SetCursorScreenPos(p);
     ImGui::Text(_format, args);
+    ImGui::EndGroup();
     va_end(args);
 }
 

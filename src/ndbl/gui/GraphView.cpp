@@ -548,7 +548,7 @@ bool GraphView::has_an_active_tool() const
 void GraphView::reset_all_properties()
 {
     for( NodeView* each : get_all_nodeviews() )
-        for( auto& [_, property_view] : each->m_property_views )
+        for( auto& [_, property_view] : each->m_property_views__all )
             property_view->reset();
 }
 

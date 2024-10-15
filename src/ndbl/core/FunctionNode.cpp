@@ -35,8 +35,8 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
         case NodeType_FUNCTION:
         {
             const std::string& id   = _func_type->get_identifier();
-            std::string label       = id + "()";
-            std::string short_label = id.substr(0, 2) + "..()"; // ------- improve, not great.
+            std::string label       = id; // We add dynamically the brackets (see NodeView)
+            std::string short_label = id.substr(0, 2) + "..";
             set_name(label.c_str());
             break;
         }
