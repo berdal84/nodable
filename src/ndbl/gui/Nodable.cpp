@@ -234,7 +234,7 @@ void Nodable::update()
                 std::vector<Node*> successors = selected[0]->get_owner()->successors();
                 if (!successors.empty())
                     if (NodeView* successor_view = successors.front()->get_component<NodeView>() )
-                        graph_view->set_selected({successor_view}, SelectionMode_REPLACE); VERIFY(false, "not implemented for multi-selection")
+                        graph_view->set_selected({successor_view}, SelectionMode_REPLACE);
                 break;
             }
 
