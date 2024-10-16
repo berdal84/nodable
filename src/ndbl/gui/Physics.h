@@ -66,7 +66,7 @@ namespace  ndbl
         void            apply_constraints(float _dt);
         void            clear_constraints();
         void            add_force( tools::Vec2 force, bool _recurse = false);
-        void            add_force_to_move_to(tools::Vec2 _target_pos, tools::Space _space, float _factor, bool _recurse);
+        void            add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space = 0);
         void            apply_forces(float _dt);
         std::vector<Constraint>& get_constraints() { return m_constraints; };
         const std::vector<Constraint>& get_constraints() const { return m_constraints; };

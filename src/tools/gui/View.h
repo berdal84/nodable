@@ -30,13 +30,13 @@ namespace tools
         View*         get_parent() const;
         void          add_child(View* view);
         void          translate(const Vec2& delta);
-        const Rect&   get_content_region(Space = SCREEN_SPACE) const;
+        Rect          get_content_region(Space = SCREEN_SPACE) const;
     private:
         View*         m_parent;
-        Rect          m_content_region; // Space available before to draw
-        Box           m_screen_box; // stored in SCREEN_SPACE
+        Rect          m_content_region; // Space available before to draw (in PARENT_SPACE)
+        Box           m_box; // in PARENT_SPACE
         std::vector<View*> m_children;
-
+        Vec2          m_window_pos; // in SCREEN_SPACE
         REFLECT_BASE_CLASS()
     };
 }

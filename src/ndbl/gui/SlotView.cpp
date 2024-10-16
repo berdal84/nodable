@@ -114,7 +114,7 @@ bool SlotView::draw()
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
 
-    Rect rect = get_rect(SCREEN_SPACE);
+    Rect rect = get_rect(DEFAULT_SPACE);
 
     if ( !rect.has_area() )
         return false;

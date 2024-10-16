@@ -3,10 +3,13 @@
 namespace tools
 {
     // to distinguish the referential of a position
-    enum Space
+    typedef int Space;
+    enum Space_: int
     {
-        PARENT_SPACE,
-        SCREEN_SPACE
+        DEFAULT_SPACE = 0,
+        SCREEN_SPACE  = DEFAULT_SPACE,
+        LOCAL_SPACE   = 1,
+        PARENT_SPACE  = 2,
     };
 
 }

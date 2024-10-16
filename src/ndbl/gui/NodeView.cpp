@@ -310,7 +310,7 @@ bool NodeView::update(float _deltaTime)
 
                 if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->has_flags(PropertyFlag_IS_THIS) )
                 {
-                    slot_rect.translate(m_base_view.get_pos() + m_base_view.get_size() * slot_view->get_align() * Vec2{0.5f} );
+                    slot_rect.translate( m_base_view.get_pos() + m_base_view.get_size() * slot_view->get_align() * Vec2{0.5f} );
                 }
                 else
                 {
@@ -376,7 +376,8 @@ bool NodeView::draw()
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
-    Rect screen_rect = m_base_view.get_rect(SCREEN_SPACE);
+    Rect screen_rect = m_base_view.get_rect();
+    screen_rect.translate( ImGui::GetWindowPos() );
     if ( PIXEL_PERFECT )
     {
         screen_rect.min = Vec2::round( screen_rect.min );
@@ -970,12 +971,12 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)
 {
 	
-	if ( !NodeView::is_inside(_view, _rect, SCREEN_SPACE ))
+	if ( !NodeView::is_inside(_view, _rect ))
     {
         Rect shrinked_rect = _rect;
         shrinked_rect.expand( Vec2( -2, -2 ) ); // shrink
 
-		auto view_rect = _view->m_base_view.get_rect(SCREEN_SPACE);
+		auto view_rect = _view->m_base_view.get_rect();
 
 		auto left  = _rect.min.x - view_rect.min.x;
 		auto right = _rect.max.x - view_rect.max.x;

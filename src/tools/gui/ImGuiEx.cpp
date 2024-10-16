@@ -31,15 +31,18 @@ void ImGuiEx::set_debug( bool value )
 
 Rect ImGuiEx::GetContentRegion(Space origin)
 {
-    Rect region{ImGui::GetWindowContentRegionMin(), ImGui::GetWindowContentRegionMax()};
-
-     switch (origin) {
-        case PARENT_SPACE:
-             return { Vec2(), region.size() };
-        case SCREEN_SPACE: {
-            region.translate(ImGui::GetWindowPos());
-            return region;
-        }
+    switch (origin)
+    {
+        case LOCAL_SPACE:
+            return {
+                ImGui::GetWindowContentRegionMin(),
+                ImGui::GetWindowContentRegionMax()
+            };
+        case SCREEN_SPACE:
+            return {
+                ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin(),
+                ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMax()
+            };
         default:
             VERIFY(false, "OriginRef_ case not handled. Cannot compute GetContentRegion(..)")
     }

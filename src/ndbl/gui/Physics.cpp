@@ -50,7 +50,7 @@ void Physics::apply_constraints(float _dt)
     }
 }
 
-void Physics::add_force_to_move_to(tools::Vec2 _target_pos, tools::Space _space, float _factor, bool _recurse)
+void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
 {
     Vec2 delta   = _target_pos - m_view->get_pos(_space);
     float factor = std::max(0.0f, _factor);
@@ -224,8 +224,8 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
         return;
 
     const NodeView* _follower      = clean_follower[0];
-    const Box leaders_box          = NodeView::get_rect(leader, SCREEN_SPACE, leader_flags);
-    const Box follower_box         = _follower->get_rect_ex(SCREEN_SPACE, follower_flags);
+    const Box leaders_box          = NodeView::get_rect(leader, DEFAULT_SPACE, leader_flags);
+    const Box follower_box         = _follower->get_rect_ex(DEFAULT_SPACE, follower_flags);
 
     // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
     Vec2 delta = Box::diff(leaders_box, leader_pivot , follower_box, follower_pivot );
@@ -236,8 +236,8 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
     if( !physics_component )
         return;
     Config* cfg = get_config();
-    Vec2 desired_pos = _follower->get_pos(SCREEN_SPACE) + delta;
-    physics_component->add_force_to_move_to( desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
+    Vec2 desired_pos = _follower->get_pos() + delta;
+    physics_component->add_force_to_move_to( desired_pos, cfg->ui_node_speed, true);
 }
 
 void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
@@ -257,13 +257,13 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        box[i] = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
+        box[i] = clean_follower[i]->get_rect_ex(DEFAULT_SPACE, follower_flags);
 
         // Determine the delta required to snap the current follower with either the leaders or the previous follower.
         if ( i == 0 )
         {
             // First box is aligned with the leader
-            const Box leader_box = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
+            const Box leader_box = leader[0]->get_rect_ex(DEFAULT_SPACE, leader_flags);
             delta[i] = Box::diff(leader_box, leader_pivot, box[i], follower_pivot);
             delta[i] += gap * gap_direction;
         }
@@ -281,8 +281,8 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
         auto* physics_component = clean_follower[i]->get_node()->get_component<Physics>();
         if( !physics_component )
             continue;
-        Vec2 desired_pos = clean_follower[i]->get_pos(SCREEN_SPACE) + delta[i];
-        physics_component->add_force_to_move_to(desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
+        Vec2 desired_pos = clean_follower[i]->get_pos() + delta[i];
+        physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true);
     }
 }
 

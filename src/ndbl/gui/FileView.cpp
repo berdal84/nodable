@@ -119,7 +119,7 @@ bool FileView::draw()
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
         // overlay
-        Rect overlay_rect = ImGuiEx::GetContentRegion(SCREEN_SPACE );
+        Rect overlay_rect = ImGuiEx::GetContentRegion();
         overlay_rect.expand( Vec2( -2.f * cfg->ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
@@ -165,7 +165,7 @@ bool FileView::draw()
         m_is_graph_dirty = graph_view->draw();
 
         // Draw overlay: shortcuts
-        Rect overlay_rect = ImGuiEx::GetContentRegion(SCREEN_SPACE );
+        Rect overlay_rect = ImGuiEx::GetContentRegion();
         overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
         draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );

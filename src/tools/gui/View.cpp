@@ -16,61 +16,101 @@ View::View()
 : hovered(false)
 , visible(true)
 , selected(false)
-, m_screen_box()
+, m_box()
 , m_parent(nullptr)
 {
 }
 
 void View::set_pos(const Vec2& p, Space space)
 {
-    const Vec2 old_pos = m_screen_box.get_pos();
-    if (space == SCREEN_SPACE || m_parent == nullptr )
+    const Vec2 old_pos = m_box.get_pos();
+
+    switch ( space )
     {
-        m_screen_box.set_pos(p);
-    }
-    else
-    {
-        Vec2 screen_space_pos = Vec2::transform(p, m_parent->m_screen_box.world_matrix());
-        m_screen_box.set_pos(screen_space_pos);
+        case PARENT_SPACE:
+        {
+            if ( m_parent == nullptr)
+            {
+                m_box.set_pos(p);
+                break;
+            }
+            Vec2 parent_space_pos = Vec2::transform(p, m_parent->m_box.world_matrix());
+            m_box.set_pos(parent_space_pos );
+            break;
+        }
+        case SCREEN_SPACE:
+            return set_pos(p - m_window_pos, PARENT_SPACE);
+        case LOCAL_SPACE:
+            return set_pos(get_pos(PARENT_SPACE) + p, PARENT_SPACE);
     }
 
     if ( m_children.empty() )
         return;
 
-    const Vec2 delta = m_screen_box.get_pos() - old_pos;
+    const Vec2 delta = m_box.get_pos() - old_pos;
     for(View* child : m_children)
-        child->translate(delta);
+        child->translate(delta); // TODO: use isDirty pattern instead. Positions must be relative to parent.
 }
 
 Vec2 View::get_pos(Space space) const
 {
-    if (space == SCREEN_SPACE || m_parent == nullptr )
-        return m_screen_box.get_pos();
-    return Vec2::transform(m_screen_box.get_pos(), m_parent->m_screen_box.model_matrix() );
+    switch (space)
+    {
+        case LOCAL_SPACE:
+            return m_box.get_pos();
+        case PARENT_SPACE:
+            if ( m_parent == nullptr )
+                return m_box.get_pos();
+            return Vec2::transform(
+                    m_box.get_pos(),
+                    m_parent->m_box.model_matrix());
+        case SCREEN_SPACE:
+            return m_window_pos + get_pos(PARENT_SPACE);
+        default:
+            ASSERT(false) // not handled yet
+    }
 }
 
 void View::translate(const Vec2& _delta)
 {
-    set_pos(get_pos() + _delta);
+    Vec2 new_pos = get_pos( PARENT_SPACE ) + _delta;
+    set_pos( new_pos, PARENT_SPACE);
 }
 
 Rect View::get_rect(Space space) const
 {
-    if (space == SCREEN_SPACE || m_parent == nullptr )
-        return m_screen_box.get_rect();
-
-   Box parent_space_box = Box::transform(m_screen_box, m_parent->m_screen_box.model_matrix() );
-   return parent_space_box.get_rect();
+    switch (space)
+    {
+        case LOCAL_SPACE:
+            return m_box.get_rect();
+        case PARENT_SPACE:
+        {
+            if (m_parent == nullptr)
+                return m_box.get_rect();
+            Box parent_space_box = Box::transform(m_box, m_parent->m_box.model_matrix());
+            return parent_space_box.get_rect();
+        }
+        case SCREEN_SPACE:
+        {
+            Rect r = get_rect(PARENT_SPACE);
+            return {
+                m_window_pos + r.min,
+                m_window_pos + r.max,
+            };
+        }
+        default:
+            ASSERT(false) // Not implemented yet
+    }
 }
 
 void View::set_size(const Vec2& size)
 {
-    m_screen_box.set_size(size);
+    m_box.set_size(size);
 }
 
 Vec2 View::get_size() const
 {
-    return m_screen_box.get_size();
+    return m_box.get_size();
 }
 
 View* View::get_parent() const
@@ -80,12 +120,13 @@ View* View::get_parent() const
 
 bool View::draw()
 {
-    m_content_region = ImGuiEx::GetContentRegion(SCREEN_SPACE);
+    m_content_region = ImGuiEx::GetContentRegion();
+    m_window_pos     = ImGui::GetWindowPos();
 
     if ( m_parent == nullptr)
     {
-        m_screen_box.set_size( m_content_region.size() );
-        m_screen_box.set_pos( m_content_region.center() ); // do not replace by this->set_pos(...)
+        m_box.set_size(m_content_region.size() );
+        m_box.set_pos(m_content_region.center() ); // do not replace by this->set_pos(...)
     }
 
 #if DEBUG_DRAW
@@ -106,9 +147,13 @@ bool View::draw()
     return false;
 }
 
-const Rect &View::get_content_region(Space space) const
+Rect View::get_content_region(Space space) const
 {
-    ASSERT(space == SCREEN_SPACE) // Only space handled
+    if ( space == SCREEN_SPACE )
+        return {
+            m_window_pos + m_content_region.min,
+            m_window_pos + m_content_region.max
+        };
     return m_content_region;
 }
 

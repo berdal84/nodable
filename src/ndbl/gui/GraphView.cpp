@@ -117,7 +117,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     // Draw
 
     ImGuiID id = make_wire_id(&from->get_slot(), nullptr);
-    Vec2 start_pos = from->get_pos();
+    Vec2 start_pos = from->get_pos(SCREEN_SPACE);
 
     BezierCurveSegment segment{
             start_pos, start_pos,
@@ -171,7 +171,8 @@ bool GraphView::draw()
                 continue;
             }
 
-            for (const auto &adjacent_slot: slot->adjacent()) {
+            for (const auto &adjacent_slot: slot->adjacent())
+            {
                 Node *each_successor_node = adjacent_slot->get_node();
                 NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible(
                         each_successor_node->get_component<NodeView>());
@@ -187,8 +188,8 @@ bool GraphView::draw()
                 SlotView *head = adjacent_slot->get_view();
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = tail->get_pos();
-                Vec2 head_pos = head->get_pos();
+                Vec2 tail_pos = tail->get_pos(SCREEN_SPACE);
+                Vec2 head_pos = head->get_pos(SCREEN_SPACE);
                 BezierCurveSegment segment{
                         tail_pos,
                         tail_pos,
@@ -231,8 +232,8 @@ bool GraphView::draw()
                 SlotView* slotview          = slot->get_view();
                 SlotView* adjacent_slotview = adjacent_slot->get_view();
 
-                const Vec2 start_pos = slotview->get_pos();
-                const Vec2 end_pos = adjacent_slotview->get_pos();
+                const Vec2 start_pos = slotview->get_pos(SCREEN_SPACE);
+                const Vec2 end_pos = adjacent_slotview->get_pos(SCREEN_SPACE);
 
                 const Vec2 signed_dist = end_pos - start_pos;
                 float lensqr_dist = signed_dist.lensqr();
@@ -315,7 +316,7 @@ bool GraphView::draw()
         const Node* node = interpreter->get_next_node();
         if (const NodeView* view = node->get_component<NodeView>())
         {
-            Vec2 left = view->get_rect(SCREEN_SPACE).left();
+            Vec2 left = view->get_rect().left();
             Vec2 interpreter_cursor_pos = Vec2::round(left);
             draw_list->AddCircleFilled(interpreter_cursor_pos, 5.0f, ImColor(255, 0, 0));
 
@@ -401,10 +402,10 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         return;
     }
 
-    Rect frame = base_view.get_content_region(SCREEN_SPACE);
+    Rect frame = base_view.get_content_region();
 
     // Get views' bbox
-    Rect views_bbox = NodeView::get_rect(_views, SCREEN_SPACE );
+    Rect views_bbox = NodeView::get_rect(_views);
 
     // align
     Vec2 delta;
@@ -691,7 +692,7 @@ void GraphView::line_state_enter()
 
 void GraphView::line_state_tick()
 {
-    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->get_pos()
+    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->get_pos(SCREEN_SPACE)
                                                                  : Vec2{ImGui::GetMousePos()};
 
     // Contextual menu
@@ -773,7 +774,7 @@ void GraphView::roi_state_tick()
         std::vector<NodeView*> nodeview_in_roi;
         for (NodeView* nodeview: get_all_nodeviews())
         {
-            if (Rect::contains(roi, nodeview->get_rect(SCREEN_SPACE)))
+            if (Rect::contains(roi, nodeview->get_rect()))
                 nodeview_in_roi.emplace_back(nodeview);
         }
         bool control_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||

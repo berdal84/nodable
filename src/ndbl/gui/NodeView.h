@@ -71,7 +71,7 @@ namespace ndbl
         void                    translate_ex(const tools::Vec2&, NodeViewFlags flags);
         void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
-        tools::Rect             get_rect(tools::Space space) const;
+        tools::Rect             get_rect(tools::Space space = tools::SCREEN_SPACE) const;
         tools::Rect             get_rect_ex(tools::Space, NodeViewFlags) const;
         bool                    expanded()const { return m_expanded; }
         void                    set_expanded_rec(bool _expanded);
@@ -83,15 +83,15 @@ namespace ndbl
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
         GraphView*              get_graph() const;
-        void                    set_pos(tools::Vec2 pos, tools::Space space) { return m_base_view.set_pos(pos, space); }
-        tools::Vec2             get_pos(tools::Space space) const { return m_base_view.get_pos(space); }
+        void                    set_pos(tools::Vec2 pos, tools::Space space = tools::SCREEN_SPACE) { return m_base_view.set_pos(pos, space); }
+        tools::Vec2             get_pos(tools::Space space = tools::SCREEN_SPACE) const { return m_base_view.get_pos(space); }
         tools::View*            base_view() { return &m_base_view; }
         bool                    hovered() const { return m_base_view.hovered; }
         void                    set_selected(bool b = true) { m_base_view.selected = b; };
 
-        static tools::Rect      get_rect(const std::vector<NodeView *> &_views, tools::Space, NodeViewFlags = NodeViewFlag_NONE);
-        static std::vector<tools::Rect>   get_rects( const std::vector<NodeView*>& _in_views, tools::Space space, NodeViewFlags flags = NodeViewFlag_NONE);
-        static bool             is_inside(NodeView*, const tools::Rect&, tools::Space);
+        static tools::Rect      get_rect(const std::vector<NodeView *> &_views, tools::Space = tools::SCREEN_SPACE, NodeViewFlags = NodeViewFlag_NONE);
+        static std::vector<tools::Rect>   get_rects( const std::vector<NodeView*>& _in_views, tools::Space space = tools::SCREEN_SPACE, NodeViewFlags flags = NodeViewFlag_NONE);
+        static bool             is_inside(NodeView*, const tools::Rect&, tools::Space = tools::SCREEN_SPACE);
         static void             constraint_to_rect(NodeView*, const tools::Rect& );
         static bool             draw_property_view(PropertyView*, bool compact_mode = false, const char* _override_label = nullptr);
         static void             draw_as_properties_panel(NodeView* _view, bool *_nodes );

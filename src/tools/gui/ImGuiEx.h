@@ -73,7 +73,7 @@ namespace tools
         extern void     EndTooltip();
         extern Rect&    EnlargeToInclude(Rect& _rect, Rect _other);
         extern void     BulletTextWrapped(const char*);
-        extern Rect     GetContentRegion(Space);
+        extern Rect     GetContentRegion(Space = DEFAULT_SPACE);
         extern void     DebugRect(const Vec2& p_min, const Vec2& p_max, ImU32 col, float rounding = 0.f, ImDrawFlags flags = 0, float thickness = 1.f);
         extern void     DebugCircle(const Vec2& center, float radius, ImU32 col, int num_segments = 0, float thickness = 1.0f);
         extern void     DebugLine(const Vec2& p1, const Vec2& p2, ImU32 col, float thickness = 1.0f);
