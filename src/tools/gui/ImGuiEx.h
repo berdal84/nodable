@@ -118,6 +118,6 @@ namespace tools
         float CalcSegmentHoverMinDist( float line_thickness );
         void DrawPath(ImDrawList* draw_list, const std::vector<Vec2>* path, const Vec4& color, float thickness);
 
-        void Grid(const Rect& area, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color);
+        void Grid(float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color);
     };
 }

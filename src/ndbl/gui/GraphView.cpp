@@ -140,7 +140,6 @@ bool GraphView::draw()
 
     // Draw Grid
     ImGuiEx::Grid(
-            ImGuiEx::GetContentRegion(SCREEN_SPACE),
             cfg->ui_grid_size,
             cfg->ui_grid_subdiv_count,
             ImGui::GetColorU32(cfg->ui_graph_grid_color_major),
