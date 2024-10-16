@@ -181,11 +181,6 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
 
 }
 
-int ndbl::Config::ui_grid_subdiv_size() const
-{
-    return ui_grid_size / ui_grid_subdiv_count;
-}
-
 void ndbl::Config::reset()
 {
     *this = { tools_cfg };

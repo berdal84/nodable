@@ -268,3 +268,55 @@ void ImGuiEx::MultiSegmentLineBehavior(
         ImGui::SetHoveredID(id);
     }
 }
+
+void ImGuiEx::Grid(const Rect& area, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color)
+{
+    ImDrawList* draw_list   = ImGui::GetWindowDrawList();
+    const Vec2  origin      = area.top_left(); // TODO: instead of using this as the grid origin, we could have an additional parameter, it would avoid grid to slid when the view is resized on the left
+    const float subdiv_size = grid_size / float(subdiv_count);
+
+    Vec2  line_start;
+    int   line_count;
+    Vec2  line_len;
+    Vec2  line_dir;
+    Vec2  line_distrib_dir;
+
+    enum AXIS: int
+    {
+        AXIS_HORIZONTAL = 0,
+        AXIS_VERTICAL,
+        AXIS_COUNT
+    };
+
+    for (int axis = 0; axis < AXIS_COUNT; ++axis)
+    {
+        if ( axis == AXIS_HORIZONTAL )
+        {
+            line_count       = (int)(area.height() / subdiv_size);
+            line_len         = area.width();
+            line_dir         = X_AXIS;
+            line_distrib_dir = Y_AXIS;
+        }
+        else
+        {
+            line_count       = (int) (area.width() / subdiv_size);
+            line_len         = area.height();
+            line_dir         = Y_AXIS;
+            line_distrib_dir = X_AXIS;
+        }
+
+
+        for (int line_index = 0; line_index < line_count; ++line_index)
+        {
+             // Distribute along line_distrib_dir
+            const float line_scalar_pos = float(line_index) * subdiv_size;
+            line_start = origin + line_distrib_dir * line_scalar_pos;
+
+            // Determine color (every subdiv_count lines are major)
+            ImU32& line_color = line_index % subdiv_count == 0 ? major_color : minor_color;
+
+            // Add the line (will be drawn later)
+            draw_list->AddLine(line_start, line_start + line_dir * line_len, line_color );
+        }
+    }
+}

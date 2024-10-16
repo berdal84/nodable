@@ -86,7 +86,6 @@ namespace ndbl
         Vec4           ui_graph_grid_color_major;
         Vec4           ui_graph_grid_color_minor;
         i32_t          ui_grid_subdiv_count;
-        int            ui_grid_subdiv_size() const;
         i32_t          ui_grid_size;
         const char*    ui_file_info_window_label;
         const char*    ui_help_window_label;

@@ -139,33 +139,12 @@ bool GraphView::draw()
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
 
     // Draw Grid
-    Rect area = ImGuiEx::GetContentRegion(SCREEN_SPACE);
-    int  grid_subdiv_size  = cfg->ui_grid_subdiv_size();
-    int  grid_vline_count  = int(area.size().x) / grid_subdiv_size;
-    int  grid_hline_count  = int(area.size().y) / grid_subdiv_size;
-    Vec4& grid_color       = cfg->ui_graph_grid_color_major;
-    Vec4& grid_color_light = cfg->ui_graph_grid_color_minor;
-
-    for (int coord = 0; coord <= grid_vline_count; ++coord)
-    {
-        float pos = area.top_left().x + float(coord) * float(grid_subdiv_size);
-        Vec2 line_start{pos, area.top_left().y};
-        Vec2 line_end{pos, area.bottom_left().y};
-        bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
-        ImColor color{is_major ? grid_color : grid_color_light};
-        draw_list->AddLine(line_start, line_end, color);
-    }
-
-    for (int coord = 0; coord <= grid_hline_count; ++coord)
-    {
-        float pos = area.top_left().y + float(coord) * float(grid_subdiv_size);
-        Vec2 line_start{area.top_left().x, pos};
-        Vec2 line_end{area.bottom_right().x, pos};
-        bool is_major = coord % cfg->ui_grid_subdiv_count == 0;
-        ImColor color{is_major ? grid_color : grid_color_light};
-        draw_list->AddLine(line_start, line_end, color);
-    }
-    // Draw Grid (end)
+    ImGuiEx::Grid(
+            ImGuiEx::GetContentRegion(SCREEN_SPACE),
+            cfg->ui_grid_size,
+            cfg->ui_grid_subdiv_count,
+            ImGui::GetColorU32(cfg->ui_graph_grid_color_major),
+            ImGui::GetColorU32(cfg->ui_graph_grid_color_minor));
 
     // Draw Wires (code flow ONLY)
     const ImGuiEx::WireStyle code_flow_style{
