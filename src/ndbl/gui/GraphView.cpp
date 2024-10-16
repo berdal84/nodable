@@ -175,7 +175,7 @@ bool GraphView::draw()
             cfg->ui_codeflow_thickness(),
             0.0f
     };
-    for (Node *each_node: node_registry) // TODO: Consider iterating over all the DirectedEdges instead
+    for (Node *each_node: node_registry)
     {
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible(each_node->get_component<NodeView>());
 
@@ -236,72 +236,73 @@ bool GraphView::draw()
     {
         for (const Slot *slot: each_node->filter_slots(SlotFlag_OUTPUT))
         {
-            ImGuiEx::WireStyle style = default_wire_style;
-            Slot *adjacent_slot = slot->first_adjacent();
-
-            if (adjacent_slot == nullptr)
-                continue;
-
-            auto *node_view         = slot->get_node()->get_component<NodeView>();
-            auto *adjacent_nodeview = adjacent_slot->get_node()->get_component<NodeView>();
-
-            if ( node_view->visible() == false )
-                continue;
-            if ( adjacent_nodeview->visible() == false )
-                continue;
-
-            SlotView* slotview = slot->get_view();
-            SlotView* adjacent_slotview = adjacent_slot->get_view();
-
-            const Vec2 start_pos = slotview->get_pos();
-            const Vec2 end_pos = adjacent_slotview->get_pos();
-
-            const Vec2 signed_dist = end_pos - start_pos;
-            float lensqr_dist = signed_dist.lensqr();
-
-            float roundness = 20.f;
-            if ( signed_dist.y < 0.f )
-                roundness = 100.f;
-
-            BezierCurveSegment segment{
-                    start_pos,
-                    start_pos + slotview->get_normal() * roundness,
-                    end_pos + adjacent_slotview->get_normal() * roundness,
-                    end_pos
-            };
-
-            // do not draw long lines between a variable value
-            if (is_selected(node_view) ||
-                is_selected(adjacent_nodeview))
+            for(const Slot* adjacent_slot : slot->adjacent())
             {
-                style.color.w *= wave(0.5f, 1.f, (float) App::get_time(), 10.f);
-            }
-            else
-            {
-                // transparent depending on wire length
-                if (lensqr_dist > cfg->ui_wire_bezier_fade_lensqr_range.x)
+                if (adjacent_slot == nullptr)
+                    continue;
+
+                auto *node_view         = slot->get_node()->get_component<NodeView>();
+                auto *adjacent_nodeview = adjacent_slot->get_node()->get_component<NodeView>();
+
+                if ( node_view->visible() == false )
+                    continue;
+                if ( adjacent_nodeview->visible() == false )
+                    continue;
+
+                ImGuiEx::WireStyle style    = default_wire_style;
+                SlotView* slotview          = slot->get_view();
+                SlotView* adjacent_slotview = adjacent_slot->get_view();
+
+                const Vec2 start_pos = slotview->get_pos();
+                const Vec2 end_pos = adjacent_slotview->get_pos();
+
+                const Vec2 signed_dist = end_pos - start_pos;
+                float lensqr_dist = signed_dist.lensqr();
+
+                float roundness = 20.f;
+                if ( signed_dist.y < 0.f )
+                    roundness = 100.f;
+
+                BezierCurveSegment segment{
+                        start_pos,
+                        start_pos + slotview->get_normal() * roundness,
+                        end_pos + adjacent_slotview->get_normal() * roundness,
+                        end_pos
+                };
+
+                // do not draw long lines between a variable value
+                if (is_selected(node_view) ||
+                    is_selected(adjacent_nodeview))
                 {
-                    float factor = (lensqr_dist - cfg->ui_wire_bezier_fade_lensqr_range.x) /
-                                   (cfg->ui_wire_bezier_fade_lensqr_range.y - cfg->ui_wire_bezier_fade_lensqr_range.x);
-                    style.color = Vec4::lerp(style.color, Vec4(0, 0, 0, 0), factor);
-                    style.shadow_color = Vec4::lerp(style.shadow_color, Vec4(0, 0, 0, 0), factor);
+                    style.color.w *= wave(0.5f, 1.f, (float) App::get_time(), 10.f);
                 }
-            }
+                else
+                {
+                    // transparent depending on wire length
+                    if (lensqr_dist > cfg->ui_wire_bezier_fade_lensqr_range.x)
+                    {
+                        float factor = (lensqr_dist - cfg->ui_wire_bezier_fade_lensqr_range.x) /
+                                       (cfg->ui_wire_bezier_fade_lensqr_range.y - cfg->ui_wire_bezier_fade_lensqr_range.x);
+                        style.color = Vec4::lerp(style.color, Vec4(0, 0, 0, 0), factor);
+                        style.shadow_color = Vec4::lerp(style.shadow_color, Vec4(0, 0, 0, 0), factor);
+                    }
+                }
 
-            // draw the wire if necessary
-            if (style.color.w != 0.f)
-            {
-                 if (slot->has_flags(SlotFlag_TYPE_CODEFLOW))
-                 {
-                    style.thickness *= 3.0f;
-                    // style.roundness *= 0.25f;
-                 }
+                // draw the wire if necessary
+                if (style.color.w != 0.f)
+                {
+                     if (slot->has_flags(SlotFlag_TYPE_CODEFLOW))
+                     {
+                        style.thickness *= 3.0f;
+                        // style.roundness *= 0.25f;
+                     }
 
-                // TODO: this block is repeated twice
-                ImGuiID id = make_wire_id(&slotview->get_slot(), adjacent_slot);
-                ImGuiEx::DrawWire(id, draw_list, segment, style);
-                if (ImGui::GetHoveredID() == id && m_hovered.empty())
-                    m_hovered = {slotview, adjacent_slotview};
+                    // TODO: this block is repeated twice
+                    ImGuiID id = make_wire_id(&slotview->get_slot(), adjacent_slot);
+                    ImGuiEx::DrawWire(id, draw_list, segment, style);
+                    if (ImGui::GetHoveredID() == id && m_hovered.empty())
+                        m_hovered = {slotview, adjacent_slotview};
+                }
             }
         }
     }
