@@ -66,7 +66,7 @@ namespace ndbl
         Node*                    create_node(CreateNodeType, const tools::FunctionDescriptor* _signature = nullptr); // Create a given node type in a simple way.
         Node*                    create_root();
         VariableNode*            create_variable(const tools::TypeDescriptor *_type, const std::string &_name, Scope* _scope);
-        VariableRefNode*         create_variable_ref(const VariableNode*);
+        VariableRefNode*         create_variable_ref(const tools::TypeDescriptor* _type);
         VariableNode*            create_variable_decl(const tools::TypeDescriptor* _type, const char*  _name, Scope*  _scope);
         template<typename T>
         VariableNode* create_variable_decl(const char*  _name = "var", Scope* _scope = {})

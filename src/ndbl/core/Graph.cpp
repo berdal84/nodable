@@ -525,9 +525,9 @@ Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signa
     }
 }
 
-VariableRefNode* Graph::create_variable_ref(const VariableNode* variable)
+VariableRefNode* Graph::create_variable_ref(const TypeDescriptor* _type)
 {
-    VariableRefNode* node = m_factory->create_variable_ref(variable);
+    VariableRefNode* node = m_factory->create_variable_ref(_type);
     add(node);
     return node;
 }

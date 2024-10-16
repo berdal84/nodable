@@ -531,9 +531,14 @@ Node* Nodlang::parse_instr()
     if ( instr_node->type() == NodeType_VARIABLE )
     {
         auto variable = static_cast<VariableNode*>( instr_node );
-        bool has_parent = variable->find_parent() != nullptr;
-        if ( has_parent )
-            instr_node = parser_state.graph->create_variable_ref( variable );
+        bool is_orphan = variable->find_parent() == nullptr;
+        if ( !is_orphan )
+        {
+            const TypeDescriptor* variable_type = variable->get_type();
+            VariableRefNode* ref = parser_state.graph->create_variable_ref( variable_type );
+            parser_state.graph->connect( *expression_out, *ref->get_input_slot(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+            instr_node = ref; // override
+        }
     }
 
     // Handle suffix
@@ -1504,9 +1509,9 @@ std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor* _t
     return _out.append(to_string(_type));
 }
 
-std::string& Nodlang::serialize_variable_ref(std::string &_out, const VariableRefNode *_node) const
+std::string& Nodlang::serialize_variable_ref(std::string &_out, const VariableRefNode* _node) const
 {
-    return serialize_token( _out, _node->get_value()->get_token() );
+    return serialize_token( _out, _node->get_identifier_token() );
 }
 
 std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const

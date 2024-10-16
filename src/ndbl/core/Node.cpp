@@ -200,13 +200,6 @@ Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
     VERIFY(false, "Not found")
 }
 
-Property* Node::add_prop_copy(const Property* property)
-{
-    Property* new_property = m_props.add(property->get_type(), property->get_name().c_str(), property->get_flags() );
-    new_property->set_token( property->get_token() );
-    return new_property;
-}
-
 Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, PropertyFlags _flags)
 {
     return m_props.add(_type, _name, _flags);

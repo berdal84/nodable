@@ -119,7 +119,6 @@ namespace ndbl
         // Property related
         //-----------------
 
-        Property*            add_prop_copy(const Property* property);
         Property*            add_prop(const tools::TypeDescriptor*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
         Property*            get_prop_at(size_t);
         const Property*      get_prop_at(size_t) const;
