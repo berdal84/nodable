@@ -1,7 +1,7 @@
 #pragma once
 
 #include <unordered_map>
-#include "tools/gui/View.h"
+#include "tools/gui/ViewState.h"
 
 namespace ndbl
 {
@@ -13,9 +13,9 @@ namespace ndbl
     class Slot;
 
     /**
-     * Simple struct to store a get_value view state
+     * Simple struct to store a get_value view state_handle
      */
-    class PropertyView : public tools::View
+    class PropertyView
     {
     public:
         bool        show_input;
@@ -29,7 +29,13 @@ namespace ndbl
         Slot*            get_connected_slot() const;
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
+        tools::ViewState* get_state() { return &m_state; }
+        tools::Rect      get_rect() const;
+        void             set_pos(tools::Vec2 vec2);
+        void             set_size(tools::Vec2 vec2);
+
     private:
-        Property*        m_property;
+        Property*            m_property;
+        tools::ViewState m_state;
     };
 }

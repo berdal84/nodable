@@ -44,7 +44,6 @@ constexpr const char* LINE_STATE       = "Line Tool";
 GraphView::GraphView(Graph* graph)
 : m_graph(graph)
 , m_state_machine(this)
-, base_view()
 {
     ASSERT(graph != nullptr)
 
@@ -78,7 +77,7 @@ GraphView::GraphView(Graph* graph)
             // Add a NodeView and Physics component
             ComponentFactory* component_factory = get_component_factory();
             auto nodeview = component_factory->create<NodeView>();
-            base_view.add_child(nodeview->base_view());
+            m_base_view.add_child(nodeview->base_view());
             auto physics  = component_factory->create<Physics>( nodeview );
             node->add_component( nodeview );
             node->add_component( physics );
@@ -129,7 +128,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 
 bool GraphView::draw()
 {
-    base_view.draw();
+    m_base_view.begin_draw();
     m_hovered = {};
     Config*         cfg                    = get_config();
     Interpreter*    interpreter            = get_interpreter();
@@ -402,7 +401,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         return;
     }
 
-    Rect frame = base_view.get_content_region();
+    Rect frame = m_base_view.get_content_region();
 
     // Get views' bbox
     Rect views_bbox = NodeView::get_rect(_views);

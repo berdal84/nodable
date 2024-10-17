@@ -13,7 +13,7 @@
 #include "ndbl/core/Property.h"
 #include "tools/gui/geometry/Box.h"
 #include "tools/gui/ImGuiEx.h"
-#include "tools/gui/View.h"
+#include "tools/gui/ViewState.h"
 #include "types.h"
 #include "ViewDetail.h"
 
@@ -59,9 +59,9 @@ namespace ndbl
 		~NodeView();
 
         Node*                   get_node() const { return m_owner; }
-        bool                    selected() const { return  m_base_view.selected; };
+        bool                    selected() const { return  m_state.selected; };
         inline bool             pinned() const { return m_pinned; }
-        bool                    visible() const { return m_base_view.visible; };
+        bool                    visible() const { return m_state.visible; };
         void                    set_pinned(bool b = true ) { m_pinned = b; }
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw();
@@ -83,11 +83,11 @@ namespace ndbl
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
         GraphView*              get_graph() const;
-        void                    set_pos(tools::Vec2 pos, tools::Space space = tools::SCREEN_SPACE) { return m_base_view.set_pos(pos, space); }
-        tools::Vec2             get_pos(tools::Space space = tools::SCREEN_SPACE) const { return m_base_view.get_pos(space); }
-        tools::View*            base_view() { return &m_base_view; }
-        bool                    hovered() const { return m_base_view.hovered; }
-        void                    set_selected(bool b = true) { m_base_view.selected = b; };
+        void                    set_pos(tools::Vec2 pos, tools::Space space = tools::SCREEN_SPACE) { return m_state.set_pos(pos, space); }
+        tools::Vec2             get_pos(tools::Space space = tools::SCREEN_SPACE) const { return m_state.get_pos(space); }
+        tools::ViewState*            base_view() { return &m_state; }
+        bool                    hovered() const { return m_state.hovered; }
+        void                    set_selected(bool b = true) { m_state.selected = b; };
 
         static tools::Rect      get_rect(const std::vector<NodeView *> &_views, tools::Space = tools::SCREEN_SPACE, NodeViewFlags = NodeViewFlag_NONE);
         static std::vector<tools::Rect>   get_rects( const std::vector<NodeView*>& _in_views, tools::Space space = tools::SCREEN_SPACE, NodeViewFlags flags = NodeViewFlag_NONE);
@@ -116,7 +116,7 @@ namespace ndbl
         );
         static float calc_input_width(const char* text);
 
-        tools::View     m_base_view; // uses View by Composition
+        tools::ViewState     m_state; // uses View by Composition
         std::string     m_label;
         std::string     m_short_label;
         bool            m_expanded;

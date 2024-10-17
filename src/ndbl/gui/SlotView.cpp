@@ -12,8 +12,7 @@ SlotView::SlotView(
     ShapeType   shape,
     size_t      index
     )
-: tools::View()
-, m_slot(slot)
+: m_slot(slot)
 , m_align(align)
 , m_shape(shape)
 , m_index(index)
@@ -101,10 +100,8 @@ tools::string64 SlotView::compute_tooltip() const
 
 bool SlotView::draw()
 {
-    if( !visible )
+    if ( !m_state.begin_draw() )
         return false;
-
-    View::draw();
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -114,7 +111,7 @@ bool SlotView::draw()
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
 
-    Rect rect = get_rect(DEFAULT_SPACE);
+    Rect rect = m_state.get_rect(DEFAULT_SPACE);
 
     if ( !rect.has_area() )
         return false;
@@ -126,8 +123,8 @@ bool SlotView::draw()
     ImGui::PushID(m_slot);
     ImGui::InvisibleButton("###", rect.size() * cfg->ui_slot_invisible_ratio);
     ImGui::PopID();
-    hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
-    Vec4 fill_color = hovered ? hover_color : color;
+    m_state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    Vec4 fill_color = m_state.hovered ? hover_color : color;
 
     // draw shape
     switch (m_shape)
@@ -171,4 +168,29 @@ size_t SlotView::get_index() const
 ShapeType SlotView::get_shape() const
 {
     return m_shape;
-};
+}
+
+Vec2 SlotView::get_pos(tools::Space_ space) const
+{
+    return m_state.get_pos(space );
+}
+
+ViewState *SlotView::state_handle()
+{
+    return &m_state;
+}
+
+void SlotView::set_pos(tools::Vec2 pos)
+{
+    m_state.set_pos(pos );
+}
+
+void SlotView::set_size(tools::Vec2 size )
+{
+    m_state.set_size(size );
+}
+
+bool SlotView::is_hovered() const
+{
+    return m_state.hovered;
+}

@@ -1,4 +1,4 @@
-#include "View.h"
+#include "ViewState.h"
 #include "ImGuiEx.h"
 
 #ifdef TOOLS_DEBUG
@@ -9,10 +9,10 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    type::Initializer<View>("View");
+    type::Initializer<ViewState>("View");
 }
 
-View::View()
+ViewState::ViewState()
 : hovered(false)
 , visible(true)
 , selected(false)
@@ -21,7 +21,7 @@ View::View()
 {
 }
 
-void View::set_pos(const Vec2& p, Space space)
+void ViewState::set_pos(const Vec2& p, Space space)
 {
     const Vec2 old_pos = m_box.get_pos();
 
@@ -48,11 +48,11 @@ void View::set_pos(const Vec2& p, Space space)
         return;
 
     const Vec2 delta = m_box.get_pos() - old_pos;
-    for(View* child : m_children)
+    for(ViewState* child : m_children)
         child->translate(delta); // TODO: use isDirty pattern instead. Positions must be relative to parent.
 }
 
-Vec2 View::get_pos(Space space) const
+Vec2 ViewState::get_pos(Space space) const
 {
     switch (space)
     {
@@ -71,13 +71,13 @@ Vec2 View::get_pos(Space space) const
     }
 }
 
-void View::translate(const Vec2& _delta)
+void ViewState::translate(const Vec2& _delta)
 {
     Vec2 new_pos = get_pos( PARENT_SPACE ) + _delta;
     set_pos( new_pos, PARENT_SPACE);
 }
 
-Rect View::get_rect(Space space) const
+Rect ViewState::get_rect(Space space) const
 {
     switch (space)
     {
@@ -103,23 +103,26 @@ Rect View::get_rect(Space space) const
     }
 }
 
-void View::set_size(const Vec2& size)
+void ViewState::set_size(const Vec2& size)
 {
     m_box.set_size(size);
 }
 
-Vec2 View::get_size() const
+Vec2 ViewState::get_size() const
 {
     return m_box.get_size();
 }
 
-View* View::get_parent() const
+ViewState* ViewState::get_parent() const
 {
     return m_parent;
 }
 
-bool View::draw()
+bool ViewState::begin_draw()
 {
+    if ( !visible )
+        return false;
+
     m_content_region = ImGuiEx::GetContentRegion();
     m_window_pos     = ImGui::GetWindowPos();
 
@@ -144,20 +147,29 @@ bool View::draw()
     if ( m_parent != nullptr)
          ImGuiEx::DebugLine(m_parent->get_pos(SCREEN_SPACE), r.center(), ImColor(255, 0,255, 127 ), 4.f);
 #endif
-    return false;
+    return true;
 }
 
-Rect View::get_content_region(Space space) const
+Rect ViewState::get_content_region(Space space) const
 {
-    if ( space == SCREEN_SPACE )
-        return {
-            m_window_pos + m_content_region.min,
-            m_window_pos + m_content_region.max
-        };
-    return m_content_region;
+    switch ( space )
+    {
+        case LOCAL_SPACE:
+            return {
+                Vec2{},
+                m_content_region.max - m_content_region.min
+            };
+        case PARENT_SPACE:
+            return m_content_region;
+        case SCREEN_SPACE:
+            return {
+                m_window_pos + m_content_region.min,
+                m_window_pos + m_content_region.max
+            };
+    }
 }
 
-void View::add_child(View* view)
+void ViewState::add_child(ViewState* view)
 {
     m_children.push_back(view);
     view->m_parent = this;

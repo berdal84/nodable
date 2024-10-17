@@ -8,7 +8,7 @@
 #include "ndbl/core/Slot.h"
 #include "types.h"
 #include "tools/gui/geometry/Vec2.h"
-#include "tools/gui/View.h"
+#include "tools/gui/ViewState.h"
 
 
 namespace ndbl
@@ -21,7 +21,7 @@ namespace ndbl
         ShapeType_RECTANGLE
     };
 
-    class SlotView : public tools::View
+    class SlotView
     {
     public:
         SlotView(
@@ -31,7 +31,7 @@ namespace ndbl
             size_t index
             );
 
-        bool                  draw() override;
+        bool                  draw();
         Property*             get_property()const;
         const tools::TypeDescriptor*get_property_type()const;
         tools::string64       compute_tooltip() const;
@@ -45,11 +45,21 @@ namespace ndbl
         bool                  allows(SlotFlag) const;
         size_t                get_index() const;
         ShapeType             get_shape() const;
+        tools::Vec2           get_pos(tools::Space_ space) const;
+        tools::ViewState*     state_handle();
+        void                  set_visible(bool b) { m_state.visible = b; }
+
+        void set_pos(tools::Vec2 vec2);
+
+        void set_size(tools::Vec2 vec2);
+
+        bool is_hovered() const;
 
     private:
         size_t                m_index;
         ShapeType             m_shape;
         Slot*                 m_slot;
         tools::Vec2           m_align;
+        tools::ViewState      m_state;
     };
 }

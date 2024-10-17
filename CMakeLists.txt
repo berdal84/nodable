@@ -251,8 +251,8 @@ add_library(
     src/tools/gui/Texture.h
     src/tools/gui/TextureManager.cpp
     src/tools/gui/TextureManager.h
-    src/tools/gui/View.cpp
-    src/tools/gui/View.h
+    src/tools/gui/ViewState.cpp
+    src/tools/gui/ViewState.h
     src/tools/gui/ImGuiTypeConvert.h
     libs/imgui/imgui.cpp
     libs/imgui/imgui_demo.cpp

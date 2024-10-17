@@ -447,7 +447,7 @@ void NodableView::draw_help_window() const
         ImGuiEx::BulletTextWrapped("any change on the text will affect the graph");
         ImGuiEx::BulletTextWrapped("any change (structure or values) on the graph will affect the text");
         ImGuiEx::BulletTextWrapped(
-                "but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
+                "but keep in mind the state_handle is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
         ImGui::NewLine();
         ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Quick start");

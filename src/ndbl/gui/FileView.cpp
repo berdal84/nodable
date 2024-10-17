@@ -20,8 +20,7 @@ using namespace ndbl;
 using namespace tools;
 
 FileView::FileView()
-    : View()
-    , m_text_editor()
+    : m_text_editor()
     , m_focused_text_changed(false)
     , m_is_graph_dirty(false)
     , m_child1_size(0.3f)
@@ -52,7 +51,8 @@ void FileView::init(File& _file)
 
 bool FileView::draw()
 {
-    View::draw();
+    if ( !m_base_view.begin_draw() )
+        return true;
 
     Config* cfg = get_config();
     const Vec2 margin(10.0f, 0.0f);
@@ -348,4 +348,9 @@ void FileView::refresh_overlay(Condition _condition )
             push_overlay({label, shortcut_str}, overlay_type);
         }
     }
+}
+
+void FileView::add_child(tools::ViewState* child)
+{
+    m_base_view.add_child( child );
 }

@@ -42,7 +42,6 @@ constexpr Vec2 PROPERTY_TOGGLE_BTN_SIZE = Vec2(10.0, 25.0f);
 
 NodeView::NodeView()
         : NodeComponent()
-        , m_base_view()
         , m_colors({&DEFAULT_COLOR})
         , m_opacity(1.0f)
         , m_expanded(true)
@@ -52,8 +51,8 @@ NodeView::NodeView()
         , m_hovered_slotview(nullptr)
         , m_last_clicked_slotview(nullptr)
 {
-    m_base_view.set_pos(DEFAULT_POS, PARENT_SPACE);
-    m_base_view.set_size(DEFAULT_SIZE);
+    m_state.set_pos(DEFAULT_POS, PARENT_SPACE);
+    m_state.set_size(DEFAULT_SIZE);
 }
 
 NodeView::~NodeView()
@@ -105,7 +104,7 @@ void NodeView::set_owner(Node* node)
     {
         // Create view
         auto property_view = new PropertyView(property);
-        m_base_view.add_child(property_view);
+        m_state.add_child(property_view->get_state() );
         m_property_views__all.emplace(property, property_view);
 
         // Indexing
@@ -180,7 +179,7 @@ void NodeView::set_owner(Node* node)
         }
 
         auto* slotview = new SlotView(slot, slot_align, slot_shape, slot_index);
-        m_base_view.add_child(slotview);
+        m_state.add_child(slotview->state_handle() );
         m_slot_views.push_back(slotview);
     }
 
@@ -219,21 +218,21 @@ void NodeView::update_labels_from_name(const Node* _node)
 
 void NodeView::translate(const tools::Vec2 &_delta)
 {
-    m_base_view.translate(_delta);
+    m_state.translate(_delta);
 }
 
 void NodeView::translate_ex(const tools::Vec2 &_delta, NodeViewFlags flags)
 {
     ASSERT(flags != NodeViewFlag_NONE ) // You are using translate_ex with no flags?
 
-    m_base_view.translate(_delta);
+    m_state.translate(_delta);
 
     for(auto each_input: get_adjacent(SlotFlag_INPUT)  )
     {
         if( !each_input )
             continue;
 
-        if( !each_input->m_base_view.selected  )
+        if( !each_input->m_state.selected  )
             if( flags & NodeViewFlag_EXCLUDE_UNSELECTED )
                 continue;
 
@@ -281,11 +280,11 @@ bool NodeView::update(float _deltaTime)
     }
 
     Config* cfg = get_config();
-    const Vec2 nodeview_halfsize = m_base_view.get_size() * 0.5f;
+    const Vec2 nodeview_halfsize = m_state.get_size() * 0.5f;
 
     for(SlotView* slot_view  : m_slot_views )
     {
-        slot_view->visible = false;
+        slot_view->set_visible( false );
 
         const Slot& slot = slot_view->get_slot();
 
@@ -297,7 +296,7 @@ bool NodeView::update(float _deltaTime)
                 if (!get_node()->can_be_instruction() )
                     continue;
 
-        slot_view->visible = true;
+        slot_view->set_visible( true );
 
         switch ( slot_view->get_shape())
         {
@@ -310,7 +309,7 @@ bool NodeView::update(float _deltaTime)
 
                 if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->has_flags(PropertyFlag_IS_THIS) )
                 {
-                    slot_rect.translate( m_base_view.get_pos() + m_base_view.get_size() * slot_view->get_align() * Vec2{0.5f} );
+                    slot_rect.translate(m_state.get_pos() + m_state.get_size() * slot_view->get_align() * Vec2{0.5f} );
                 }
                 else
                 {
@@ -328,7 +327,7 @@ bool NodeView::update(float _deltaTime)
                 // Rectangles are always on top/bottom
                 const Vec2 half_size = cfg->ui_slot_rectangle_size*0.5f;
                 Rect slot_rect{-half_size, half_size};
-                slot_rect.translate(m_base_view.get_pos());
+                slot_rect.translate(m_state.get_pos());
                 slot_rect.translate_x( 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(slot_view->get_index()) );
                 slot_rect.translate_y(slot_view->get_align().y * cfg->ui_slot_rectangle_size.y * 0.5f );
                 slot_rect.translate( slot_view->get_align() * nodeview_halfsize );
@@ -343,7 +342,7 @@ bool NodeView::update(float _deltaTime)
 
 bool NodeView::draw()
 {
-    m_base_view.draw();
+    m_state.begin_draw();
 
     Config*     cfg       = get_config();
 	bool        changed   = false;
@@ -376,7 +375,7 @@ bool NodeView::draw()
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
-    Rect screen_rect = m_base_view.get_rect();
+    Rect screen_rect = m_state.get_rect();
     screen_rect.translate( ImGui::GetWindowPos() );
     if ( PIXEL_PERFECT )
     {
@@ -389,7 +388,7 @@ bool NodeView::draw()
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( m_base_view.selected )
+    if ( m_state.selected )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -410,7 +409,7 @@ bool NodeView::draw()
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            m_base_view.selected,
+            m_state.selected,
             5.0f,
             border_width );
 
@@ -491,7 +490,7 @@ bool NodeView::draw()
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
 
-    m_base_view.set_size(Vec2::round(new_size));
+    m_state.set_size(Vec2::round(new_size));
 
     // Draw foreground slots (circles)
     for( SlotView* slot_view: m_slot_views )
@@ -504,7 +503,7 @@ bool NodeView::draw()
     if ( changed )
         get_node()->set_flags( NodeFlag_IS_DIRTY );
 
-    m_base_view.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
+    m_state.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
 
 	return changed;
 }
@@ -620,8 +619,8 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     // memorize property view rect (screen space)
     // enlarge rect to fit node_view top/bottom
     Rect rect = {
-            Vec2{ImGui::GetItemRectMin().x, m_base_view.get_rect().min.y} ,
-            Vec2{ImGui::GetItemRectMax().x, m_base_view.get_rect().max.y}
+        Vec2{ImGui::GetItemRectMin().x, m_state.get_rect().min.y},
+        Vec2{ImGui::GetItemRectMax().x, m_state.get_rect().max.y}
     };
     _view->set_pos(rect.center());
     _view->set_size(rect.size());
@@ -781,7 +780,7 @@ float NodeView::calc_input_width(const char *buf)
 
 bool NodeView::is_inside(NodeView* _other, const Rect& _rect, Space _space)
 {
-	return Rect::contains(_rect, _other->m_base_view.get_rect(_space) );
+	return Rect::contains(_rect, _other->m_state.get_rect(_space) );
 }
 
 void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
@@ -976,7 +975,7 @@ void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)
         Rect shrinked_rect = _rect;
         shrinked_rect.expand( Vec2( -2, -2 ) ); // shrink
 
-		auto view_rect = _view->m_base_view.get_rect();
+		auto view_rect = _view->m_state.get_rect();
 
 		auto left  = _rect.min.x - view_rect.min.x;
 		auto right = _rect.max.x - view_rect.max.x;
@@ -989,19 +988,19 @@ void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)
 			 if ( up > 0 )  view_rect.translate_y(up );
 		else if ( down < 0 )view_rect.translate_y(down );
 
-        _view->m_base_view.set_pos(view_rect.center(), PARENT_SPACE);
+        _view->m_state.set_pos(view_rect.center(), PARENT_SPACE);
 	}
 
 }
 
 Rect NodeView::get_rect(Space space) const
 {
-    return m_base_view.get_rect(space);
+    return m_state.get_rect(space);
 }
 
 Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 {
-    Rect this_rect = m_base_view.get_rect(space);
+    Rect this_rect = m_state.get_rect(space);
     if( (flags & NodeViewFlag_WITH_RECURSION) == 0 )
     {
         return this_rect;
@@ -1009,16 +1008,16 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 
     std::vector<Rect> rects;
 
-    if ( m_base_view.visible )
+    if ( m_state.visible )
         rects.push_back( this_rect );
 
     auto visit = [&](NodeView* view)
     {
         if( !view )
             return;
-        if( !view->m_base_view.visible )
+        if( !view->m_state.visible )
             return;
-        if(view->m_base_view.selected && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
+        if(view->m_state.selected && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
             return;
         if( view->m_pinned && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
@@ -1115,7 +1114,7 @@ void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recurs
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child_view->m_base_view.visible = _visible;
+            each_child_view->m_state.visible = _visible;
         }
     }
 }
@@ -1132,7 +1131,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    if( _view->m_base_view.visible )
+    if( _view->m_state.visible )
     {
         return _view;
     }
@@ -1206,7 +1205,7 @@ void NodeView::draw_slot(SlotView* slot_view)
     if( slot_view->draw() )
         m_last_clicked_slotview = slot_view;
 
-    if( slot_view->hovered )
+    if( slot_view->is_hovered() )
     {
         m_hovered_slotview = slot_view; // last wins
     }
