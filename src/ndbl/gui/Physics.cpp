@@ -52,7 +52,7 @@ void Physics::apply_constraints(float _dt)
 
 void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
 {
-    Vec2 delta   = _target_pos - m_view->get_pos(_space);
+    Vec2 delta   = _target_pos - m_view->xform()->get_pos(_space);
     float factor = std::max(0.0f, _factor);
     Vec2 force   = Vec2::scale(delta, factor);
     add_force( force, _recurse);
@@ -81,8 +81,9 @@ void Physics::apply_forces(float _dt)
     float lensqr_max       = std::pow(100, 4);
     float friction_coef    = lerp(0.0f, 0.5f, m_forces_sum.lensqr() / lensqr_max);
     Vec2  soften_force_sum = Vec2::lerp(m_last_frame_forces_sum, m_forces_sum, 0.95f);
+    Vec2  delta            = soften_force_sum * (1.0f - friction_coef) * _dt;
 
-    m_view->translate(soften_force_sum * (1.0f - friction_coef) * _dt );
+    m_view->xform()->translate( delta );
 
     m_last_frame_forces_sum = soften_force_sum;
     m_forces_sum            = Vec2();
@@ -236,7 +237,7 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
     if( !physics_component )
         return;
     Config* cfg = get_config();
-    Vec2 desired_pos = _follower->get_pos() + delta;
+    Vec2 desired_pos = _follower->xform()->get_pos() + delta;
     physics_component->add_force_to_move_to( desired_pos, cfg->ui_node_speed, true);
 }
 
@@ -281,7 +282,7 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
         auto* physics_component = clean_follower[i]->get_node()->get_component<Physics>();
         if( !physics_component )
             continue;
-        Vec2 desired_pos = clean_follower[i]->get_pos() + delta[i];
+        Vec2 desired_pos = clean_follower[i]->xform()->get_pos() + delta[i];
         physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true);
     }
 }

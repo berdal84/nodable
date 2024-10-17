@@ -26,7 +26,7 @@ namespace ndbl
     class Graph;
 
     /**
-     * Distinguish between all possible update result
+     * Distinguish between all possible update_world_matrix result
      */
     enum class UpdateResult
     {

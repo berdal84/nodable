@@ -1,6 +1,6 @@
 # Framework
 
-A minimalist framework to use as base for nodable development. The idea is to keep separate the generic functionalities from
+A minimalist framework to use as view_state for nodable development. The idea is to keep separate the generic functionalities from
 the nodable application in order to reuse it for several apps (one day...).
 
 ### `./core`

@@ -28,7 +28,7 @@ void History::push_command(std::shared_ptr<AbstractCommand> _cmd, bool _from_tex
 
     /**
      * Ensure not to store too much undo commands.
-     * We limit to a certain size, deleting first past commands, then future commands.
+     * We limit to a certain set_size, deleting first past commands, then future commands.
      */
     while ( m_past.size() > cfg->ui_history_size_max )
     {

@@ -15,7 +15,7 @@ namespace tools
 
         constexpr Vec2(): x(0.f), y(0.f) {};
         constexpr Vec2(int x, int y): x((float)x), y((float)y) {}
-        constexpr Vec2(float x,float y): x(x), y(y) {}
+        constexpr Vec2(float x, float y): x(x), y(y) {}
         constexpr Vec2(const glm::vec2& v): Vec2( v.x, v.y ) {}
         constexpr Vec2(float scalar): Vec2( scalar, scalar ) {}
 
@@ -88,6 +88,9 @@ namespace tools
 
         constexpr static Vec2 scale(const Vec2& v, float magnitude )
         { return v * Vec2(magnitude); }
+
+        bool operator==(const Vec2& other) const
+        { return this->x == other.x && this->y == other.y; }
 
         static Vec2 round(const Vec2& v )
         { return glm::round( (glm::vec2) v ); }

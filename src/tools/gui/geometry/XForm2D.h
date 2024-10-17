@@ -1,58 +1,53 @@
 #pragma once
-
-#define GLM_ENABLE_EXPERIMENTAL
-#include "glm/glm/gtx/matrix_transform_2d.hpp"
 #include "glm/glm/mat3x3.hpp"
-#undef GLM_ENABLE_EXPERIMENTAL
-
 #include "Rect.h"
 #include "Vec2.h"
 #include "tools/core/assertions.h"
+#include "Transform2D.h"
+#include "Space.h"
 
 namespace tools
 {
-    class XForm2D
+    // Axis
+
+    constexpr static Vec2 X_AXIS         = {1.f, 0.f};
+    constexpr static Vec2 Y_AXIS         = {0.f, 1.f};
+    constexpr static Vec2 XY_AXIS        = X_AXIS + Y_AXIS;
+
+    // Pivots
+
+    constexpr static Vec2 CENTER         = {0.f, 0.f};
+    constexpr static Vec2 BOTTOM         = Y_AXIS;
+    constexpr static Vec2 TOP            = -Y_AXIS;
+    constexpr static Vec2 RIGHT          = X_AXIS;
+    constexpr static Vec2 LEFT           = -X_AXIS;
+    constexpr static Vec2 TOP_LEFT       = LEFT + TOP;
+    constexpr static Vec2 TOP_RIGHT      = RIGHT + TOP;
+    constexpr static Vec2 BOTTOM_LEFT    = LEFT + BOTTOM;
+    constexpr static Vec2 BOTTOM_RIGHT   = RIGHT + BOTTOM;
+
+    struct XForm2D
     {
-    public:
         XForm2D(){};
+        ~XForm2D();
+        void                  set_pos(const Vec2 &_pos, Space = PARENT_SPACE);
+        void                  translate(const Vec2& delta, Space = PARENT_SPACE );
+        Vec2                  get_pos(Space = PARENT_SPACE) const;
+        const glm::mat3&      get_world_matrix() const;
+        const glm::mat3&      get_world_matrix_inv() const;
+        void                  set_world_transform_dirty();
+        void                  add_child(XForm2D*);
+        void                  remove_child(XForm2D* existing_child);
+        void                  remove_all_children();
+        XForm2D*              get_parent();
+        void                  update_world_matrix();
+        static Vec2           translate( const Vec2& p, const XForm2D& xform );
 
-        void pos(const Vec2& _pos)
-        {
-            VERIFY(!std::isnan(_pos.x) && !std::isnan(_pos.y), "Vector can't have NaN coordinates");
-            m_pos = _pos;
-            m_matrix_are_dirty = true;
-        }
-
-        Vec2 pos() const
-        { return m_pos; }
-
-        const glm::mat3& world_matrix() const
-        { const_cast<XForm2D*>(this)->update(); return m_world_mat; }
-
-        const glm::mat3& model_matrix() const
-        { const_cast<XForm2D*>(this)->update(); return m_local_mat; }
-
-        static Vec2 translate( const Vec2& p, const XForm2D& xform )
-        {
-            glm::vec2 result = xform.world_matrix() * glm::vec3(p.x, p.y, 1.f);
-            return result;
-        }
-
-    private:
-        bool      m_matrix_are_dirty{true};
-        glm::vec2 m_pos{0.f, 0.f};
-        glm::mat3 m_world_mat{1.f};
-        glm::mat3 m_local_mat{1.f};
-
-        void update()
-        {
-            if ( !m_matrix_are_dirty )
-                return;
-
-            glm::mat3 m = glm::translate( glm::mat3{}, m_pos);
-            m_local_mat = glm::inverse( m_world_mat );
-
-            m_matrix_are_dirty = false;
-        }
+        XForm2D*              _parent = nullptr;
+        std::vector<XForm2D*> _children;
+        Transform2D           _transform; // local transform, relative to the parent
+        glm::mat3             _world_matrix = {1.f}; // update only on-demand when m_world_matrix_dirty is set.
+        glm::mat3             _world_matrix_inv = {1.f}; // update only on-demand when m_world_matrix_dirty is set.
+        bool                  _world_matrix_dirty = true;
     };
 }

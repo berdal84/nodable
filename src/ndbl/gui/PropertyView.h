@@ -30,12 +30,11 @@ namespace ndbl
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
         tools::ViewState* get_state() { return &m_state; }
-        tools::Rect      get_rect() const;
-        void             set_pos(tools::Vec2 vec2);
-        void             set_size(tools::Vec2 vec2);
+        tools::Box*      box() { return &m_state.box; };
+        tools::XForm2D*  xform() { return &m_state.box.xform; };
 
     private:
-        Property*            m_property;
+        Property*        m_property;
         tools::ViewState m_state;
     };
 }

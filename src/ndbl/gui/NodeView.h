@@ -67,7 +67,6 @@ namespace ndbl
         bool                    draw();
         void                    set_owner(Node*)override;
         bool                    update(float);
-        void                    translate( const tools::Vec2&);
         void                    translate_ex(const tools::Vec2&, NodeViewFlags flags);
         void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
@@ -83,9 +82,10 @@ namespace ndbl
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
         GraphView*              get_graph() const;
-        void                    set_pos(tools::Vec2 pos, tools::Space space = tools::SCREEN_SPACE) { return m_state.set_pos(pos, space); }
-        tools::Vec2             get_pos(tools::Space space = tools::SCREEN_SPACE) const { return m_state.get_pos(space); }
-        tools::ViewState*            base_view() { return &m_state; }
+        tools::Box*             box() { return &m_state.box; }
+        const tools::XForm2D*   xform() const { return &m_state.box.xform; }
+        tools::XForm2D*         xform() { return &m_state.box.xform; }
+        tools::ViewState*       base_view() { return &m_state; }
         bool                    hovered() const { return m_state.hovered; }
         void                    set_selected(bool b = true) { m_state.selected = b; };
 
@@ -99,6 +99,8 @@ namespace ndbl
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
         static void             translate(const std::vector<NodeView*>&, const tools::Vec2& delta);
     private:
+        void                    add_child(PropertyView*);
+        void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
         bool                    _draw_property_view(PropertyView* _view, ViewDetail detail);
@@ -116,7 +118,7 @@ namespace ndbl
         );
         static float calc_input_width(const char* text);
 
-        tools::ViewState     m_state; // uses View by Composition
+        tools::ViewState m_state; // uses View by Composition
         std::string     m_label;
         std::string     m_short_label;
         bool            m_expanded;
@@ -135,6 +137,5 @@ namespace ndbl
         std::vector<PropertyView*> m_property_views__in;
 
         REFLECT_DERIVED_CLASS()
-
     };
 }

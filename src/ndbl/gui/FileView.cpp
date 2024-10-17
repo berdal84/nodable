@@ -51,7 +51,7 @@ void FileView::init(File& _file)
 
 bool FileView::draw()
 {
-    if ( !m_base_view.begin_draw() )
+    if ( !m_view_state.begin_draw() )
         return true;
 
     Config* cfg = get_config();
@@ -154,7 +154,7 @@ bool FileView::draw()
     ASSERT(graph_view);
 
     ImGui::SameLine();
-    LOG_VERBOSE("FileView", "graph_node_view->update()\n");
+    LOG_VERBOSE("FileView", "graph_node_view->update_world_matrix()\n");
     ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     graph_view->update();
     Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
@@ -253,7 +253,7 @@ void FileView::draw_info_panel() const
     ImGui::Text("Current file:");
     ImGui::Indent();
     ImGui::TextWrapped("path: %s", m_file->path.string().c_str());
-    ImGui::TextWrapped("size: %0.3f KiB", float(m_file->size()) / 1000.0f );
+    ImGui::TextWrapped("set_size: %0.3f KiB", float(m_file->size()) / 1000.0f );
     ImGui::Unindent();
     ImGui::NewLine();
 
@@ -352,5 +352,5 @@ void FileView::refresh_overlay(Condition _condition )
 
 void FileView::add_child(tools::ViewState* child)
 {
-    m_base_view.add_child( child );
+    m_view_state.box.xform.add_child( child->xform() );
 }

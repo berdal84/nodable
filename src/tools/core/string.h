@@ -172,7 +172,7 @@ namespace tools
 
     private:
         /**
-         * Expand the buffer to the closest power of two of the desired size.
+         * Expand the buffer to the closest power of two of the desired set_size.
          */
         CharT* expand_capacity_to_fit(size_t desired_capacity)
         {
@@ -216,7 +216,7 @@ namespace tools
      * Stack allocated string.
      * Switches to dynamic allocations when stack buffer is too small.
      *
-     * Buffer size and string length are stored in an unsigned integer (1 byte)
+     * Buffer set_size and string length are stored in an unsigned integer (1 byte)
      */
     template<size_t STATIC_BUF_SIZE, typename CharType = char>
     class inline_string : public basic_string<CharType> {

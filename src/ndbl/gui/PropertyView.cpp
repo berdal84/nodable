@@ -52,19 +52,3 @@ VariableNode* PropertyView::get_connected_variable() const
 
     return cast<VariableNode>( adjacent_slot->get_node() );
 }
-
-Rect PropertyView::get_rect() const
-{
-    return m_state.get_rect();
-}
-
-void PropertyView::set_pos(Vec2 pos)
-{
-    m_state.set_pos( pos );
-}
-
-void PropertyView::set_size(Vec2 size)
-{
-    m_state.set_size( size );
-}
-

@@ -90,7 +90,7 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
         for ( auto _ : state )
         {
             // benchmark begin
-            pointers.resize(ids.size()); // note: we know that this will cost a dynamic alloc once per benchmark and not each call.
+            pointers.resize(ids.set_size()); // note: we know that this will cost a dynamic alloc once per benchmark and not each call.
             pool->get(pointers, ids);
             for( DataPool<128>* each : pointers )
             {

@@ -389,7 +389,7 @@ void Nodable::update()
                 // set new_node's view position, select it
                 if ( auto view = new_node->get_component<NodeView>() )
                 {
-                    view->set_pos(_event->data.desired_screen_pos);
+                    view->xform()->set_pos(_event->data.desired_screen_pos);
                     _event->data.graph->get_view()->set_selected({view});
                 }
                 break;

@@ -54,9 +54,10 @@ namespace ndbl
         const NodeViewVec& get_selected() const;
         void        reset_all_properties();
         std::vector<NodeView*> get_all_nodeviews() const;
-        static void        draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
-        Graph*      get_graph() const;
-        tools::ViewState* base() { return &m_base_view; };
+        static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
+        Graph*            get_graph() const;
+        void              add_child(NodeView*);
+        tools::ViewState* view_state() { return &m_view_state; };
     private:
         CreateNodeCtxMenu      m_create_node_menu = {};
         ViewItem               m_hovered{};
@@ -70,7 +71,7 @@ namespace ndbl
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
 
-        tools::ViewState m_base_view;
+        tools::ViewState m_view_state;
         Graph*               m_graph;
 
         // Tools State Machine
@@ -93,5 +94,6 @@ namespace ndbl
         void line_state_enter();
         void line_state_tick();
         void line_state_leave();
+
     };
 }

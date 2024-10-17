@@ -63,7 +63,7 @@ namespace ndbl
 		void    undo();
 		void    redo();
 		void    clear();
-		size_t  get_size()const; /** To get the size of the history (command count) */
+		size_t  get_size()const; /** To get the set_size of the history (command count) */
 		void                move_cursor(int _pos); /** Move time cursor to past (negative value) or future (positive value). */
 		std::string         get_cmd_description_at(int _cmd_position);
 		TextEditorBuffer*   configure_text_editor_undo_buffer(TextEditor* _textEditor); /** To get the special buffer for TextEditor */

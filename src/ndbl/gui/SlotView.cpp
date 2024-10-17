@@ -111,7 +111,7 @@ bool SlotView::draw()
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
 
-    Rect rect = m_state.get_rect(DEFAULT_SPACE);
+    Rect rect = m_state.box.get_rect( PARENT_SPACE );
 
     if ( !rect.has_area() )
         return false;
@@ -170,24 +170,9 @@ ShapeType SlotView::get_shape() const
     return m_shape;
 }
 
-Vec2 SlotView::get_pos(tools::Space_ space) const
-{
-    return m_state.get_pos(space );
-}
-
 ViewState *SlotView::state_handle()
 {
     return &m_state;
-}
-
-void SlotView::set_pos(tools::Vec2 pos)
-{
-    m_state.set_pos(pos );
-}
-
-void SlotView::set_size(tools::Vec2 size )
-{
-    m_state.set_size(size );
 }
 
 bool SlotView::is_hovered() const

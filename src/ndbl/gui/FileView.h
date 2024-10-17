@@ -80,7 +80,7 @@ namespace ndbl
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste;
         observe::Observer   m_graph_changed_observer;
-        tools::ViewState m_base_view;
+        tools::ViewState m_view_state;
 
         REFLECT_BASE_CLASS()
     };

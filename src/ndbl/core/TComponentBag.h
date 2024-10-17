@@ -6,7 +6,7 @@ namespace ndbl
 {
      /// Store a list of Components* owned by a single owner.
      /// Components* are not owned by this class, see ComponentManager.
-     /// \tparam C the component's base type
+     /// \tparam C the component's view_state type
     template<typename C>
     class TComponentBag
     {

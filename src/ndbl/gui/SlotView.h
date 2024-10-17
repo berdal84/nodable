@@ -42,18 +42,16 @@ namespace ndbl
         tools::Vec2           get_normal() const;
         Node*                 adjacent_node() const;
         bool                  is_this() const;
+        bool                  is_hovered() const;
         bool                  allows(SlotFlag) const;
         size_t                get_index() const;
         ShapeType             get_shape() const;
-        tools::Vec2           get_pos(tools::Space_ space) const;
         tools::ViewState*     state_handle();
         void                  set_visible(bool b) { m_state.visible = b; }
-
-        void set_pos(tools::Vec2 vec2);
-
-        void set_size(tools::Vec2 vec2);
-
-        bool is_hovered() const;
+        tools::XForm2D*       xform() { return &m_state.box.xform; }
+        const tools::XForm2D* xform() const { return &m_state.box.xform; }
+        tools::Box*           box() { return &m_state.box; }
+        const tools::Box*     box() const { return &m_state.box; }
 
     private:
         size_t                m_index;

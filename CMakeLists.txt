@@ -195,15 +195,16 @@ target_link_libraries(
 )
 
 add_executable(
-    test-tools-core
+    test-tools
+    src/tools/gui/geometry/XForm2D.specs.cpp
     src/tools/core/reflection/reflection.specs.cpp
     src/tools/core/reflection/Type.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
     src/tools/core/memory/MemoryManager.specs.cpp
 )
 
-target_link_libraries(test-tools-core PUBLIC gtest_main gtest tools-core)
-add_test(NAME test_framework_core COMMAND test-tools-core)
+target_link_libraries(test-tools PUBLIC gtest_main gtest tools-core tools-gui)
+add_test(NAME test_tools COMMAND test-tools)
 
 add_executable(bench-fw-core-string src/tools/core/string.bench.cpp)
 target_link_libraries(bench-fw-core-string PUBLIC benchmark::benchmark tools-core)
@@ -230,6 +231,9 @@ add_library(
     src/tools/gui/geometry/Vec2.h
     src/tools/gui/geometry/Vec4.h
     src/tools/gui/geometry/XForm2D.h
+    src/tools/gui/geometry/XForm2D.cpp
+    src/tools/gui/geometry/Transform2D.h
+    src/tools/gui/geometry/Transform2D.cpp
     src/tools/gui/Action.cpp
     src/tools/gui/Action.h
     src/tools/gui/ActionManager.cpp

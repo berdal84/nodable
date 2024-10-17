@@ -7,6 +7,54 @@
 
 using namespace tools;
 
+Box::Box(const Rect &r)
+: xform()
+{
+    xform.set_pos(r.center());
+    set_size(r.size());
+}
+
+Box::Box(
+        XForm2D _xform,
+        const Vec2 &_size
+)
+: xform(_xform)
+{
+    set_size(_size);
+}
+
+Vec2 Box::pivot(const Vec2& pivot, Space space) const
+{
+    return xform.get_pos(space) + _half_size * pivot;
+}
+
+Box Box::transform(const Box &box, const glm::mat3 &mat)
+{
+    ASSERT(false) // do we need the code below ??
+
+    Box result = box;
+    // Translate box position (box shape is relative to it)
+    result.xform.set_pos(Vec2::transform(box.xform.get_pos(), mat));
+    return result;
+}
+
+Rect Box::get_rect(Space space) const
+{
+    return {pivot(TOP_LEFT, space), pivot(BOTTOM_RIGHT, space)};
+}
+
+Vec2 Box::size() const
+{
+    return _half_size * 2.0f;
+}
+
+void Box::set_size(const Vec2& size)
+{
+    ASSERT(size.x >= 0) // Area cannot be zero
+    ASSERT(size.y >= 0) //
+    _half_size = size * 0.5f;
+}
+
 Vec2 Box::diff(
     const Box & leader,
     const Vec2& leader_pivot,
@@ -15,8 +63,8 @@ Vec2 Box::diff(
     const Vec2& axis
     )
 {
-    Vec2 follower_pos = follower.get_pivot(follower_pivot);
-    Vec2 leader_pos   = leader.get_pivot(leader_pivot);
+    Vec2 follower_pos = follower.pivot(follower_pivot);
+    Vec2 leader_pos   = leader.pivot(leader_pivot);
     Vec2 delta        = (leader_pos - follower_pos) * axis;
 
 #if TOOLS_BOX_DEBUG
@@ -31,17 +79,4 @@ Vec2 Box::diff(
 #endif
 
     return delta;
-}
-
-Vec2 Box::get_pivot(const Vec2 &pivot) const
-{
-    return m_xform.pos() + m_half_size * pivot;
-}
-
-Box Box::transform(const Box &box, const glm::mat3 &mat)
-{
-    Box result = box;
-    // Translate box position (box shape is relative to it)
-    result.set_pos( Vec2::transform( box.get_pos(), mat ) );
-    return result;
 }
