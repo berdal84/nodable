@@ -13,7 +13,7 @@ void NodableHeadless::init()
     m_language        = init_language();
     m_node_factory    = init_node_factory();
     m_interpreter     = init_interpreter();
-    m_graph = new Graph(m_node_factory);
+    m_graph           = new Graph(m_node_factory);
 }
 
 void NodableHeadless::shutdown()

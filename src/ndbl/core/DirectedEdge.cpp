@@ -14,9 +14,9 @@ DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
 {
     ASSERT(tail->get_flags() & SlotFlag_ORDER_FIRST )
     ASSERT(head->get_flags() & SlotFlag_ORDER_SECOND )
-    ASSERT(tail->get_node()->get_parent_graph() != nullptr);
-    ASSERT(head->get_node()->get_parent_graph() != nullptr);
-    ASSERT(tail->get_node()->get_parent_graph() == head->get_node()->get_parent_graph() );
+    ASSERT(tail->node()->get_parent_graph() != nullptr);
+    ASSERT(head->node()->get_parent_graph() != nullptr);
+    ASSERT(tail->node()->get_parent_graph() == head->node()->get_parent_graph() );
 }
 
 bool DirectedEdge::operator!=( const DirectedEdge &other ) const
@@ -49,7 +49,7 @@ std::string ndbl::to_string(const DirectedEdge& _edge)
     auto serialize_slot_ref = [&result](const Slot* _slot) -> void
     {
         result.append("[node: ");
-        result.append( std::to_string((u64_t)_slot->get_node()));
+        result.append( std::to_string((u64_t) _slot->node()));
         result.append(" (slot: ");
         result.append( std::to_string((u64_t)_slot));
 

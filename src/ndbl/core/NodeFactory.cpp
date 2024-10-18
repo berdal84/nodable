@@ -97,8 +97,10 @@ Node* NodeFactory::create_scope() const
     Node* node = create<Node>();
     node->init(NodeType_BLOCK_SCOPE, "{} Scope");
 
-    node->add_slot( SlotFlag_CHILD, Slot::MAX_CAPACITY );
-    node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY );
+    node->add_slot(node->value(), SlotFlag_PARENT, 1);
+    node->add_slot(node->value(), SlotFlag_NEXT, 1);
+    node->add_slot(node->value(), SlotFlag_CHILD, Slot::MAX_CAPACITY);
+    node->add_slot(node->value(), SlotFlag_PREV, Slot::MAX_CAPACITY);
 
     auto* scope = create<Scope>();
     node->add_component(scope);
@@ -111,8 +113,7 @@ IfNode* NodeFactory::create_cond_struct() const
 {
     auto* node = create<IfNode>();
     node->init("If");
-    node->add_component(create<Scope>());
-    node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
+
     m_post_process(node);
 
     return node;
@@ -122,8 +123,7 @@ ForLoopNode* NodeFactory::create_for_loop() const
 {
     auto node = create<ForLoopNode>();
     node->init("For");
-    node->add_component(create<Scope>());
-    node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
+
     m_post_process(node);
 
     return node;
@@ -133,8 +133,7 @@ WhileLoopNode* NodeFactory::create_while_loop() const
 {
     auto node = create<WhileLoopNode>();
     node->init("While");
-    node->add_component(create<Scope>());
-    node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
+
     m_post_process(node);
 
     return node;
@@ -144,7 +143,9 @@ Node* NodeFactory::create_program() const
 {
     Node* node = create<Node>();
     node->init(NodeType_BLOCK_SCOPE, ICON_FA_FILE_CODE " Program");
-    node->add_slot( SlotFlag_CHILD, Slot::MAX_CAPACITY );
+    node->add_slot(node->value(), SlotFlag_PARENT, 1);
+    node->add_slot(node->value(), SlotFlag_NEXT, 1);
+    node->add_slot(node->value(), SlotFlag_CHILD, Slot::MAX_CAPACITY);
     node->add_component(create<Scope>() );
     m_post_process(node);
     return node;
@@ -154,7 +155,9 @@ Node* NodeFactory::create_node() const
 {
     Node* node = create<Node>();
     node->init(NodeType_DEFAULT, "");
-    node->add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY);
+    node->add_slot( node->value(), SlotFlag_PARENT, 1);
+    node->add_slot( node->value(), SlotFlag_NEXT, 1);
+    node->add_slot( node->value(), SlotFlag_PREV, Slot::MAX_CAPACITY);
     m_post_process(node);
     return node;
 }

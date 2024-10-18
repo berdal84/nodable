@@ -63,9 +63,6 @@ namespace ndbl
         void                           refresh_overlay(Condition condition);
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
         size_t                         size() const;
-
-        void add_child(tools::ViewState *pView);
-
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
         bool         m_focused_text_changed;
@@ -80,7 +77,6 @@ namespace ndbl
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste;
         observe::Observer   m_graph_changed_observer;
-        tools::ViewState m_view_state;
 
         REFLECT_BASE_CLASS()
     };

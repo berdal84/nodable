@@ -23,12 +23,12 @@ SlotView::SlotView(
 
 Node* SlotView::adjacent_node() const
 {
-   return m_slot->first_adjacent()->get_node();
+   return m_slot->first_adjacent()->node();
 }
 
 Node* SlotView::get_node()const
 {
-    return m_slot->get_node();
+    return m_slot->node();
 }
 
 const TypeDescriptor* SlotView::get_property_type()const
@@ -86,8 +86,11 @@ tools::string64 SlotView::compute_tooltip() const
         case SlotFlag_PARENT: return "parent";
         case SlotFlag_CHILD:  return "children";
         default:
-            const std::string &prop_name = get_property()->get_name();
-            ASSERT(prop_name.length() < 59)
+            std::string prop_name;
+
+            if ( get_property() )
+                prop_name = get_property()->name();
+
             string64 result;
             switch (get_slot().type_and_order())
             {
@@ -100,8 +103,11 @@ tools::string64 SlotView::compute_tooltip() const
 
 bool SlotView::draw()
 {
-    if ( !m_state.begin_draw() )
+    m_view_state.box.draw_debug_info();
+
+    if ( !m_view_state.visible )
         return false;
+
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
@@ -110,21 +116,18 @@ bool SlotView::draw()
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
-
-    Rect rect = m_state.box.get_rect( PARENT_SPACE );
+    Rect rect            = m_view_state.box.get_rect(WORLD_SPACE );
 
     if ( !rect.has_area() )
         return false;
-
-    Vec2 pos  = rect.center();
 
     // draw an invisible button (for easy mouse interaction)
     ImGui::SetCursorScreenPos(rect.top_left());
     ImGui::PushID(m_slot);
     ImGui::InvisibleButton("###", rect.size() * cfg->ui_slot_invisible_ratio);
     ImGui::PopID();
-    m_state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
-    Vec4 fill_color = m_state.hovered ? hover_color : color;
+    m_view_state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    Vec4 fill_color = m_view_state.hovered ? hover_color : color;
 
     // draw shape
     switch (m_shape)
@@ -132,8 +135,8 @@ bool SlotView::draw()
         case ShapeType_CIRCLE:
         {
             float r = cfg->ui_slot_circle_radius();
-            draw_list->AddCircleFilled(pos, r, ImColor(fill_color));
-            draw_list->AddCircle(pos, r, ImColor(border_color) );
+            draw_list->AddCircleFilled( rect.center(), r, ImColor(fill_color));
+            draw_list->AddCircle( rect.center(), r, ImColor(border_color) );
             break;
         }
         case ShapeType_RECTANGLE:
@@ -172,10 +175,10 @@ ShapeType SlotView::get_shape() const
 
 ViewState *SlotView::state_handle()
 {
-    return &m_state;
+    return &m_view_state;
 }
 
 bool SlotView::is_hovered() const
 {
-    return m_state.hovered;
+    return m_view_state.hovered;
 }

@@ -3,7 +3,7 @@
 #include "Rect.h"
 #include "Vec2.h"
 #include "tools/core/assertions.h"
-#include "Transform2D.h"
+#include "TRSTransform2D.h"
 #include "Space.h"
 
 namespace tools
@@ -26,26 +26,36 @@ namespace tools
     constexpr static Vec2 BOTTOM_LEFT    = LEFT + BOTTOM;
     constexpr static Vec2 BOTTOM_RIGHT   = RIGHT + BOTTOM;
 
-    struct XForm2D
+    /**
+     * Very simple spatial node in 2D.
+     * A scene graph can be create by creating parent/child links.
+     * Currently, we can only set and get the position (not implemented in TRSTransform2D)
+     */
+    struct SpatialNode2D
     {
-        XForm2D(){};
-        ~XForm2D();
-        void                  set_pos(const Vec2 &_pos, Space = PARENT_SPACE);
-        void                  translate(const Vec2& delta, Space = PARENT_SPACE );
-        Vec2                  get_pos(Space = PARENT_SPACE) const;
+        SpatialNode2D(){};
+        ~SpatialNode2D();
+        void                  set_pos(const Vec2 &_pos);
+        void                  set_pos(const Vec2 &_pos, Space);
+        // void                  set_rotate(float angle);
+        // void                  rotate(float angle);
+        // void                  set_scale(const tools::Vec2& scale);
+        // void                  scale(const tools::Vec2& scale);
+        Vec2                  get_pos() const;
+        Vec2                  get_pos(Space) const;
+        void                  translate(const tools::Vec2& delta);
         const glm::mat3&      get_world_matrix() const;
         const glm::mat3&      get_world_matrix_inv() const;
         void                  set_world_transform_dirty();
-        void                  add_child(XForm2D*);
-        void                  remove_child(XForm2D* existing_child);
+        void                  add_child(SpatialNode2D*);
+        void                  remove_child(SpatialNode2D* existing_child);
         void                  remove_all_children();
-        XForm2D*              get_parent();
+        SpatialNode2D*        get_parent();
         void                  update_world_matrix();
-        static Vec2           translate( const Vec2& p, const XForm2D& xform );
 
-        XForm2D*              _parent = nullptr;
-        std::vector<XForm2D*> _children;
-        Transform2D           _transform; // local transform, relative to the parent
+        SpatialNode2D*              _parent = nullptr;
+        std::vector<SpatialNode2D*> _children;
+        TRSTransform2D        _transform; // local transform, relative to the parent
         glm::mat3             _world_matrix = {1.f}; // update only on-demand when m_world_matrix_dirty is set.
         glm::mat3             _world_matrix_inv = {1.f}; // update only on-demand when m_world_matrix_dirty is set.
         bool                  _world_matrix_dirty = true;

@@ -18,23 +18,30 @@ namespace ndbl
     class PropertyView
     {
     public:
+
+        // TODO: the two following vars could go into a struct FormViewState (wrapping a ViewState)
+
         bool        show_input;
         bool        touched;
 
         PropertyView(Property*);
 
-        void             reset();
+        void             reset(); // TODO: this could be in a struct FormViewState (wrapping a ViewState)
         Property*        get_property() const;
         Node*            get_node() const;
         Slot*            get_connected_slot() const;
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
-        tools::ViewState* get_state() { return &m_state; }
-        tools::Box*      box() { return &m_state.box; };
-        tools::XForm2D*  xform() { return &m_state.box.xform; };
+
+        inline const tools::ViewState*     view_state() const { return &m_view_state; };
+        inline tools::ViewState*           view_state() { return &m_view_state; };
+        inline const tools::BoxShape2D*    box() const { return &m_view_state.box; };
+        inline tools::BoxShape2D*          box() { return &m_view_state.box; };
+        inline tools::SpatialNode2D*       xform() { return &m_view_state.box.xform; };
+        inline const tools::SpatialNode2D* xform()const  { return &m_view_state.box.xform; };
 
     private:
         Property*        m_property;
-        tools::ViewState m_state;
+        tools::ViewState m_view_state;
     };
 }

@@ -1,8 +1,8 @@
-#include "Bezier.h"
+#include "BezierCurveSegment2D.h"
 
 using namespace tools;
 
-static void PathBezierCubicCurveToCasteljau( std::vector<Vec2>* path, const BezierCurveSegment& curv, float tess_tol, int level )
+static void PathBezierCubicCurveToCasteljau(std::vector<Vec2>* path, const BezierCurveSegment2D& curv, float tess_tol, int level )
 {
     float dx = curv.p4.x - curv.p1.x;
     float dy = curv.p4.y - curv.p1.y;
@@ -22,12 +22,12 @@ static void PathBezierCubicCurveToCasteljau( std::vector<Vec2>* path, const Bezi
         float x123 = (x12 + x23) * 0.5f, y123 = (y12 + y23) * 0.5f;
         float x234 = (x23 + x34) * 0.5f, y234 = (y23 + y34) * 0.5f;
         float x1234 = (x123 + x234) * 0.5f, y1234 = (y123 + y234) * 0.5f;
-        PathBezierCubicCurveToCasteljau(path, BezierCurveSegment{curv.p1.x, curv.p1.y, x12, y12, x123, y123, x1234, y1234}, tess_tol, level + 1);
-        PathBezierCubicCurveToCasteljau(path, BezierCurveSegment{x1234, y1234, x234, y234, x34, y34, curv.p4.x, curv.p4.y}, tess_tol, level + 1);
+        PathBezierCubicCurveToCasteljau(path, BezierCurveSegment2D{curv.p1.x, curv.p1.y, x12, y12, x123, y123, x1234, y1234}, tess_tol, level + 1);
+        PathBezierCubicCurveToCasteljau(path, BezierCurveSegment2D{x1234, y1234, x234, y234, x34, y34, curv.p4.x, curv.p4.y}, tess_tol, level + 1);
     }
 }
 
-static Vec2 BezierCubicCalc( const BezierCurveSegment& curve, float t )
+static Vec2 BezierCubicCalc(const BezierCurveSegment2D& curve, float t )
 {
     float u = 1.0f - t;
     float w1 = u * u * u;
@@ -40,7 +40,7 @@ static Vec2 BezierCubicCalc( const BezierCurveSegment& curve, float t )
     };
 }
 
-std::vector<Vec2>* BezierCurveSegment::tesselate( std::vector<Vec2>* path, const BezierCurveSegment& curve, int num_segments, float curve_tesselation_tol )
+std::vector<Vec2>* BezierCurveSegment2D::tesselate(std::vector<Vec2>* path, const BezierCurveSegment2D& curve, int num_segments, float curve_tesselation_tol )
 {
     path->push_back(curve.p1);
     if (num_segments == 0)
@@ -57,7 +57,7 @@ std::vector<Vec2>* BezierCurveSegment::tesselate( std::vector<Vec2>* path, const
     return path;
 }
 
-Rect BezierCurveSegment::bbox( const tools::BezierCurveSegment& segment )
+Rect BezierCurveSegment2D::bbox(const tools::BezierCurveSegment2D& segment )
 {
     const std::vector<Vec2> points{ segment.p1, segment.p2, segment.p3, segment.p4};
     return Rect::bbox(&points);

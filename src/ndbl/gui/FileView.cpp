@@ -33,13 +33,13 @@ FileView::FileView()
 void FileView::init(File& _file)
 {
     Config* cfg = get_config();
+
     m_file = &_file;
     std::string overlay_basename{_file.filename()};
     m_text_overlay_window_name  = overlay_basename + "_text_overlay";
     m_graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
     m_graph_changed_observer.observe(m_file->graph_changed, [](Graph* _graph) {
-        LOG_VERBOSE( "FileView", "graph changed evt received\n" )
         _graph->get_view()->reset();
     });
 
@@ -51,9 +51,6 @@ void FileView::init(File& _file)
 
 bool FileView::draw()
 {
-    if ( !m_view_state.begin_draw() )
-        return true;
-
     Config* cfg = get_config();
     const Vec2 margin(10.0f, 0.0f);
     Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
@@ -119,7 +116,7 @@ bool FileView::draw()
         m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
 
         // overlay
-        Rect overlay_rect = ImGuiEx::GetContentRegion();
+        Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
         overlay_rect.expand( Vec2( -2.f * cfg->ui_overlay_margin ) ); // margin
         draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
@@ -165,7 +162,7 @@ bool FileView::draw()
         m_is_graph_dirty = graph_view->draw();
 
         // Draw overlay: shortcuts
-        Rect overlay_rect = ImGuiEx::GetContentRegion();
+        Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
         overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
         draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
         ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
@@ -348,9 +345,4 @@ void FileView::refresh_overlay(Condition _condition )
             push_overlay({label, shortcut_str}, overlay_type);
         }
     }
-}
-
-void FileView::add_child(tools::ViewState* child)
-{
-    m_view_state.box.xform.add_child( child->xform() );
 }

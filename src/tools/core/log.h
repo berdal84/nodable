@@ -71,7 +71,7 @@ namespace tools
             Verbosity_COUNT,
 
 #ifdef TOOLS_DEBUG
-            Verbosity_DEFAULT = Verbosity_Verbose
+            Verbosity_DEFAULT = Verbosity_Message
 #else
             Verbosity_DEFAULT = Verbosity_Message
 #endif

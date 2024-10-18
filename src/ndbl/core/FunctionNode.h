@@ -16,8 +16,8 @@ namespace ndbl
 		const tools::FunctionDescriptor*      get_func_type()const { return m_func_type; }
         const Token&                get_identifier_token() const { return m_identifier_token; }
         void                        set_identifier_token(const Token& tok) { m_identifier_token = tok; }
-        Slot*                       get_lvalue() const { return m_argument_slot[0]; }
-        Slot*                       get_rvalue() const { return m_argument_slot[1]; }
+        Slot*                       lvalue_in() const { return m_argument_slot[0]; }
+        Slot*                       rvalue_in() const { return m_argument_slot[1]; }
     protected:
         Token                       m_identifier_token = Token::s_null;
         const tools::FunctionDescriptor*      m_func_type; // not owned

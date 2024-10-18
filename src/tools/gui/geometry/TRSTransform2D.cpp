@@ -1,4 +1,4 @@
-#include "Transform2D.h"
+#include "TRSTransform2D.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm/gtx/matrix_transform_2d.hpp"
@@ -8,7 +8,7 @@
 
 using namespace tools;
 
-void Transform2D::set_position(const Vec2& p)
+void TRSTransform2D::set_position(const Vec2& p)
 {
     ASSERT(!std::isnan(p.x));
     ASSERT(!std::isnan(p.x));
@@ -16,31 +16,31 @@ void Transform2D::set_position(const Vec2& p)
     _matrix_dirty = true;
 }
 
-void Transform2D::set_rotation_z(float angle)
-{
-    _rotation_z   = angle;
-    _matrix_dirty = true;
-}
+//void Transform2D::set_rotation_z(float angle)
+//{
+//    _rotation_z   = angle;
+//    _matrix_dirty = true;
+//}
+//
+//void Transform2D::set_scale(const Vec2& scale)
+//{
+//    _scale        = scale;
+//    _matrix_dirty = true;
+//}
 
-void Transform2D::set_scale(const Vec2& scale)
+const glm::mat3 &TRSTransform2D::get_matrix() const
 {
-    _scale        = scale;
-    _matrix_dirty = true;
-}
-
-const glm::mat3 &Transform2D::get_matrix() const
-{
-    const_cast<Transform2D*>(this)->_update_matrix();
+    const_cast<TRSTransform2D*>(this)->_update_matrix();
     return _matrix;
 }
 
-const glm::mat3 &Transform2D::get_matrix_inv() const
+const glm::mat3 &TRSTransform2D::get_matrix_inv() const
 {
-    const_cast<Transform2D*>(this)->_update_matrix();
+    const_cast<TRSTransform2D*>(this)->_update_matrix();
     return _matrix_inv;
 }
 
-void Transform2D::_update_matrix()
+void TRSTransform2D::_update_matrix()
 {
     if ( !_matrix_dirty )
         return;

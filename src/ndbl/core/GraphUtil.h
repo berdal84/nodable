@@ -45,7 +45,7 @@ namespace ndbl
             {
                 for( const Slot* adjacent : slot->adjacent() )
                 {
-                    result.emplace_back( adjacent->get_node() );
+                    result.emplace_back(adjacent->node() );
                 }
             }
             return result;
@@ -55,7 +55,7 @@ namespace ndbl
         {
             if ( Slot* adjacent_slot = _node->find_adjacent_at( _flags, _pos ) )
             {
-                return adjacent_slot->get_node();
+                return adjacent_slot->node();
             }
             return {};
         }

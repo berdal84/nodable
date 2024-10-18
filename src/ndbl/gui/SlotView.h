@@ -47,17 +47,17 @@ namespace ndbl
         size_t                get_index() const;
         ShapeType             get_shape() const;
         tools::ViewState*     state_handle();
-        void                  set_visible(bool b) { m_state.visible = b; }
-        tools::XForm2D*       xform() { return &m_state.box.xform; }
-        const tools::XForm2D* xform() const { return &m_state.box.xform; }
-        tools::Box*           box() { return &m_state.box; }
-        const tools::Box*     box() const { return &m_state.box; }
+        void                  set_visible(bool b) { m_view_state.visible = b; }
+        tools::SpatialNode2D*       xform() { return &m_view_state.box.xform; }
+        const tools::SpatialNode2D* xform() const { return &m_view_state.box.xform; }
+        tools::BoxShape2D*           box() { return &m_view_state.box; }
+        const tools::BoxShape2D*     box() const { return &m_view_state.box; }
 
     private:
         size_t                m_index;
         ShapeType             m_shape;
         Slot*                 m_slot;
         tools::Vec2           m_align;
-        tools::ViewState      m_state;
+        tools::ViewState      m_view_state;
     };
 }

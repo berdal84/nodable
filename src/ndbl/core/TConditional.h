@@ -31,7 +31,6 @@ namespace ndbl
         Slot&         get_condition_slot(Branch);
 
     private:
-        Node* m_node = nullptr;
         std::array<Slot*, BRANCH_COUNT>    m_next_slot;
         std::array<Slot*, BRANCH_COUNT>    m_child_slot;
         std::array<Slot*, BRANCH_COUNT-1>  m_condition_slot; // branch_FALSE has no condition
@@ -57,7 +56,7 @@ namespace ndbl
         // Try to return the adjacent node connected to this branch
         Slot* adjacent = get_condition_slot(_branch).first_adjacent();
         if( adjacent != nullptr)
-            return adjacent->get_node();
+            return adjacent->node();
         return nullptr;
     }
 
@@ -66,20 +65,22 @@ namespace ndbl
     {
         static_assert( BRANCH_COUNT == 2, "Currently only implemented for 2 branches" );
         ASSERT(node != nullptr)
-        m_node = node;
-        m_node->add_slot( SlotFlag_OUTPUT, Slot::MAX_CAPACITY );
+
+        node->add_slot(node->value(), SlotFlag_PARENT, 1);
+        node->add_slot(node->value(), SlotFlag_PREV  , Slot::MAX_CAPACITY);
+        node->add_component( new Scope() );
+        node->add_slot(node->value(), SlotFlag_OUTPUT, Slot::MAX_CAPACITY);
 
         // A default NEXT branch exists.
-        m_next_slot[Branch_FALSE] = m_node->find_slot(SlotFlag_NEXT );
-        m_next_slot[Branch_TRUE]  = m_node->add_slot(SlotFlag_NEXT, 1, Branch_TRUE );
+        m_next_slot[Branch_FALSE] = node->add_slot(node->value(), SlotFlag_NEXT, 1, Branch_FALSE);
+        m_next_slot[Branch_TRUE]  = node->add_slot(node->value(), SlotFlag_NEXT, 1, Branch_TRUE);
 
         // No condition needed for the first slot
-        auto condition_property = m_node->add_prop<Node*>(CONDITION_PROPERTY);
-        m_condition_slot[0]     = m_node->add_slot(SlotFlag::SlotFlag_INPUT, 1, condition_property );
+        auto condition_property = node->add_prop<Node*>(CONDITION_PROPERTY);
+        m_condition_slot[0]     = node->add_slot(condition_property, SlotFlag_INPUT, 1);
 
-        m_child_slot[Branch_FALSE] = m_node->add_slot(SlotFlag_CHILD, 1, Branch_FALSE );
-        m_child_slot[Branch_TRUE]  = m_node->add_slot(SlotFlag_CHILD, 1, Branch_TRUE );
-
+        m_child_slot[Branch_FALSE] = node->add_slot(node->value(), SlotFlag_CHILD, 1, Branch_FALSE);
+        m_child_slot[Branch_TRUE]  = node->add_slot(node->value(), SlotFlag_CHILD, 1, Branch_TRUE);
     }
 
     template<size_t BRANCH_COUNT>
@@ -95,7 +96,7 @@ namespace ndbl
         ASSERT(_branch < BRANCH_COUNT )
         if ( Slot* adjacent_slot = m_child_slot[_branch]->first_adjacent() )
         {
-            return adjacent_slot->get_node()->get_component<Scope>();
+            return adjacent_slot->node()->get_component<Scope>();
         }
         return {};
     }

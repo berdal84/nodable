@@ -9,7 +9,7 @@
 #include "tools/core/EventManager.h"
 #include "Texture.h"
 #include "Color.h"
-#include "tools/gui/geometry/Segment.h"
+#include "tools/gui/geometry/LineSegment2D.h"
 
 #define DEBUG_BEZIER_ENABLE 0
 
@@ -33,18 +33,18 @@ Rect ImGuiEx::GetContentRegion(Space origin)
 {
     switch (origin)
     {
-        case LOCAL_SPACE:
+        case PARENT_SPACE:
             return {
                 ImGui::GetWindowContentRegionMin(),
                 ImGui::GetWindowContentRegionMax()
             };
-        case SCREEN_SPACE:
+        case WORLD_SPACE:
             return {
                 ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin(),
                 ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMax()
             };
         default:
-            VERIFY(false, "OriginRef_ case not handled. Cannot compute GetContentRegion(..)")
+            VERIFY(false, "This space is not allowed")
     }
 }
 
@@ -106,7 +106,7 @@ void ImGuiEx::ColoredShadowedText(const Vec2& _offset, const Vec4& _textColor, c
 void ImGuiEx::DrawWire(
         ImGuiID id,
         ImDrawList *draw_list,
-        const BezierCurveSegment& curve,
+        const BezierCurveSegment2D& curve,
         const WireStyle& style
      )
 {
@@ -118,19 +118,19 @@ void ImGuiEx::DrawWire(
     // Line
     // Generate curve
     std::vector<Vec2> fill_path;
-    BezierCurveSegment::tesselate(&fill_path, curve);
+    BezierCurveSegment2D::tesselate(&fill_path, curve);
 
     if ( fill_path.size() == 1) return;
 
     // Shadow
-    BezierCurveSegment shadow_curve = curve;
+    BezierCurveSegment2D shadow_curve = curve;
     shadow_curve.translate({ 1.f, 1.f });
     shadow_curve.p2 = curve.p2 + Vec2(0.f, 10.f);
     shadow_curve.p3 = curve.p3 + Vec2(0.f, 10.f);
 
     // Generate curve
     std::vector<Vec2> shadow_path;
-    BezierCurveSegment::tesselate(&shadow_path, shadow_curve);
+    BezierCurveSegment2D::tesselate(&shadow_path, shadow_curve);
 
     // 2) draw the shadow
 
@@ -140,7 +140,7 @@ void ImGuiEx::DrawWire(
     // 3) draw the curve
 
     // Mouse behavior
-    MultiSegmentLineBehavior(id, &fill_path, BezierCurveSegment::bbox(curve), style.thickness );
+    MultiSegmentLineBehavior(id, &fill_path, BezierCurveSegment2D::bbox(curve), style.thickness );
 
     // Draw the path
     if ( ImGui::GetHoveredID() == id )
@@ -261,7 +261,7 @@ void ImGuiEx::MultiSegmentLineBehavior(
     bool hovered = false;
     while( hovered == false && i < path->size() - 1 )
     {
-        const float mouse_distance = LineSegment::point_minimum_distance( LineSegment{(*path)[i], (*path)[i+1]}, mouse_pos );
+        const float mouse_distance = LineSegment2D::point_minimum_distance(LineSegment2D{(*path)[i], (*path)[i + 1]}, mouse_pos );
         hovered = mouse_distance < hover_min_distance;
         ++i;
     }

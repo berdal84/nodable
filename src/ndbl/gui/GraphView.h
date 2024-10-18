@@ -63,6 +63,8 @@ namespace ndbl
         ViewItem               m_hovered{};
         ViewItem               m_focused{};
         std::vector<NodeView*> m_selected_nodeview;
+        tools::ViewState       m_view_state;
+        Graph*                 m_graph;
 
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
@@ -70,9 +72,6 @@ namespace ndbl
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
-
-        tools::ViewState m_view_state;
-        Graph*               m_graph;
 
         // Tools State Machine
         //--------------------

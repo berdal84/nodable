@@ -6,15 +6,15 @@
 
 namespace tools
 {
-    // To edit easily position/rotation/scale and get the matrix3x3 representation
-    struct Transform2D
+    // To edit easily position (/rotation/scale) and get the matrix3x3 representation
+    struct TRSTransform2D
     {
         void             set_position(const Vec2& p);
-        void             set_rotation_z(float degrees);
-        void             set_scale(const Vec2& p);
+        //void             set_rotation_z(float degrees);
+        //void             set_scale(const Vec2& p);
         Vec2             get_position() const { return _position; }
-        Vec2             get_rotation_z() const { return _rotation_z; }
-        Vec2             get_scale() const { return _scale; };
+        //Vec2             get_rotation_z() const { return _rotation_z; }
+        //Vec2             get_scale() const { return _scale; };
         const glm::mat3& get_matrix() const; // "const": in reality, m_matrix might be updated, but we consider it as a simple cache.
         const glm::mat3& get_matrix_inv() const; // same..
 

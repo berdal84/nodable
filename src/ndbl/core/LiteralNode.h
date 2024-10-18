@@ -13,15 +13,10 @@ namespace ndbl
         LiteralNode() {};
         ~LiteralNode() override {};
 
-        void            init(const tools::TypeDescriptor* _type, const std::string& _name);
-        Property*       value()       { ASSERT(m_value_property != nullptr); return m_value_property; }
-        const Property* value() const { ASSERT(m_value_property != nullptr); return m_value_property; }
-        Slot&           output_slot();
-        const Slot&     output_slot() const;
+        void init(const tools::TypeDescriptor* _type, const std::string& _name);
 
     private:
-        Property*              m_value_property = nullptr;
-        const tools::TypeDescriptor* m_type           = nullptr;
+        const tools::TypeDescriptor* m_type = nullptr;
         REFLECT_DERIVED_CLASS()
     };
 }

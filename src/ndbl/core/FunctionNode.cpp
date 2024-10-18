@@ -24,9 +24,6 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
     m_argument_slot.resize(_func_type->get_arg_count());
     m_argument_props.resize(_func_type->get_arg_count());
 
-    add_slot( SlotFlag_PREV, Slot::MAX_CAPACITY );
-    add_slot(SlotFlag_OUTPUT, 1);
-
     switch ( _type )
     {
         case NodeType_OPERATOR:
@@ -45,8 +42,12 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
     }
 
     // Create a result/value
-    Property* value = add_prop(_func_type->get_return_type(), VALUE_PROPERTY );
-    add_slot(SlotFlag_OUTPUT, Slot::MAX_CAPACITY, value);
+    m_value->set_type( _func_type->get_return_type() );
+
+    add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY );
+    add_slot(m_value, SlotFlag_PARENT, 1);
+    add_slot(m_value, SlotFlag_NEXT,   1);
+    add_slot(m_value, SlotFlag_PREV,   Slot::MAX_CAPACITY );
 
     // Create arguments
     if ( _type == NodeType_OPERATOR )
@@ -78,7 +79,7 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
         if ( arg.pass_by_ref )
             property->set_flags(PropertyFlag_IS_REF);
 
-        m_argument_slot[i]  = add_slot(SlotFlag_INPUT, 1, property);
+        m_argument_slot[i]  = add_slot(property, SlotFlag_INPUT, 1);
         m_argument_props[i] = property;
     }
 }

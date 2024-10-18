@@ -104,7 +104,7 @@ void Compiler::compile_input_slot( const Slot& slot)
 void Compiler::compile_output_slot( const Slot& slot)
 {
     ASSERT(slot.has_flags(SlotFlag_OUTPUT) )
-    compile_node( slot.get_node() );
+    compile_node(slot.node() );
 }
 
 void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
@@ -183,7 +183,7 @@ void Compiler::compile_node( const Node* _node )
                 }
                 // Compile adjacent_output ( except if node is a Variable which is compiled once, see compile_variable_node() )
                 Slot* adjacent_output = slot->first_adjacent();
-                if ( !adjacent_output->get_node()->get_class()->is<VariableNode>() )
+                if ( !adjacent_output->node()->get_class()->is<VariableNode>() )
                 {
                     // Any other slot must be compiled recursively
                     compile_output_slot( *adjacent_output );

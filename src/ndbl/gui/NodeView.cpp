@@ -46,11 +46,11 @@ NodeView::NodeView()
     , m_opacity(1.0f)
     , m_expanded(true)
     , m_pinned(false)
-    , m_property_view_this(nullptr)
+    , m_value_view(nullptr)
     , m_property_views__all()
     , m_hovered_slotview(nullptr)
     , m_last_clicked_slotview(nullptr)
-    , m_state(DEFAULT_SIZE.x, DEFAULT_SIZE.y)
+    , m_view_state(DEFAULT_SIZE.x, DEFAULT_SIZE.y)
 {
 }
 
@@ -101,30 +101,41 @@ void NodeView::set_owner(Node* node)
 
     for (Property* property : node->get_props() )
     {
+        switch ( node->type() )
+        {
+            case NodeType_FUNCTION:
+            case NodeType_OPERATOR:
+                // we don't need to actually see this view for now
+                if ( property == node->value() )
+                    continue;
+        }
+
         // Create view
-        auto property_view = new PropertyView(property);
-        add_child( property_view );
-        m_property_views__all.emplace(property, property_view);
+        auto new_view = new PropertyView(property);
+        add_child( new_view );
 
         // Indexing
-        if ( property->has_flags(PropertyFlag_IS_THIS) )
+        if ( property == node->value() )
         {
-            m_property_view_this = property_view;
-            continue;
+            m_value_view = new_view;
         }
 
         bool has_in  = get_node()->find_slot_by_property(property, SlotFlag_INPUT );
         bool has_out = get_node()->find_slot_by_property(property, SlotFlag_OUTPUT );
 
-        if ( has_in)  m_property_views__in.push_back(property_view);
-        if ( has_out) m_property_views__out.push_back(property_view);
+        if ( has_in)
+            m_property_views__in.push_back(new_view);
+        if ( has_out)
+            m_property_views__out.push_back(new_view);
 
         if ( has_in && has_out )
-            m_property_views__inout_strictly.push_back(property_view);
+            m_property_views__inout_strictly.push_back(new_view);
         else if ( has_in )
-            m_property_views__in_strictly.push_back(property_view);
+            m_property_views__in_strictly.push_back(new_view);
         else if ( has_out )
-            m_property_views__out_strictly.push_back(property_view);
+            m_property_views__out_strictly.push_back(new_view);
+
+        m_property_views__all.emplace(property, new_view);
     }
 
     // 2. Create a SlotView per slot
@@ -162,10 +173,7 @@ void NodeView::set_owner(Node* node)
                 break;
 
             case SlotFlag_OUTPUT:
-                if (slot->is_this())
-                    slot_align = LEFT;
-                else
-                    slot_align = BOTTOM;
+                slot_align = BOTTOM;
                 break;
 
             case SlotFlag_NEXT:
@@ -213,32 +221,6 @@ void NodeView::update_labels_from_name(const Node* _node)
         m_short_label = m_label;
     else
         m_short_label = m_label.substr(0, label_max_length) + "..";
-}
-
-void NodeView::translate_ex(const tools::Vec2 &_delta, NodeViewFlags flags)
-{
-    ASSERT(flags != NodeViewFlag_NONE ) // You are using translate_ex with no flags?
-
-    xform()->translate( _delta );
-
-    for(auto each_input: get_adjacent(SlotFlag_INPUT)  )
-    {
-        if( !each_input )
-            continue;
-
-        if( !each_input->m_state.selected  )
-            if( flags & NodeViewFlag_EXCLUDE_UNSELECTED )
-                continue;
-
-        if( each_input->m_pinned )
-            if((flags & NodeViewFlag_WITH_PINNED) == 0)
-                continue;
-
-        if( each_input->get_node()->should_be_constrain_to_follow_output( this->get_node() ) )
-        {
-            each_input->translate_ex(_delta, flags);
-        }
-    }
 }
 
 void NodeView::arrange_recursively(bool _smoothly)
@@ -297,37 +279,40 @@ bool NodeView::update(float _deltaTime)
             case ShapeType_CIRCLE:
             {
                 // Circle are snapped vertically on their property view, except for the "this" property.
+                Vec2 new_pos;
+                const Vec2          alignment     = slot_view->get_align();
+                const PropertyView* property_view = find_property_view( slot.get_property() );
 
-                const Vec2 half_size{ cfg->ui_slot_circle_radius() };
-                Rect slot_rect{-half_size, half_size};
-
-                if( slot.type() == SlotFlag_TYPE_VALUE && slot.get_property()->has_flags(PropertyFlag_IS_THIS) )
+                if( property_view != nullptr )
                 {
-                    Vec2 delta = box()->xform.get_pos() + box()->size() * slot_view->get_align() * Vec2{0.5f};
-                    slot_rect.translate( delta );
+                    // Align horizontally on the property
+                    new_pos.x = property_view->xform()->get_pos(WORLD_SPACE).x;
+
+                    // Align vertically on the node edge
+                    new_pos.y = box()->pivot( alignment, WORLD_SPACE ).y;
                 }
                 else
                 {
-                    auto property_view = m_property_views__all.at(slot.get_property() );
-                    Rect property_rect = property_view->box()->get_rect();
-                    slot_rect.translate( property_rect.center() + property_rect.size() * slot_view->get_align() * Vec2{0.5f} );
+                    new_pos = box()->pivot( alignment, WORLD_SPACE );
                 }
-                slot_view->xform()->set_pos(slot_rect.center());
-                slot_view->box()->set_size(slot_rect.size());
+
+                slot_view->xform()->set_pos( new_pos, WORLD_SPACE );
+                slot_view->box()->set_size( { cfg->ui_slot_circle_radius() } );
+
                 break;
             }
 
             case ShapeType_RECTANGLE:
             {
                 // Rectangles are always on top/bottom
-                const Vec2 half_size = cfg->ui_slot_rectangle_size*0.5f;
-                Rect slot_rect{-half_size, half_size};
-                slot_rect.translate(xform()->get_pos());
-                slot_rect.translate_x( 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(slot_view->get_index()) );
-                slot_rect.translate_y(slot_view->get_align().y * cfg->ui_slot_rectangle_size.y * 0.5f );
-                slot_rect.translate( slot_view->get_align() * nodeview_halfsize );
-                slot_view->xform()->set_pos(slot_rect.center());
-                slot_view->box()->set_size(slot_rect.size());
+                Vec2 slot_pos{};
+
+                slot_pos.x += 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(slot_view->get_index());
+                slot_pos.y += slot_view->get_align().y * cfg->ui_slot_rectangle_size.y * 0.5f;
+                slot_pos   += slot_view->get_align() * nodeview_halfsize;
+
+                slot_view->xform()->set_pos( slot_pos );
+                slot_view->box()->set_size( cfg->ui_slot_rectangle_size );
             }
         }
 
@@ -337,7 +322,10 @@ bool NodeView::update(float _deltaTime)
 
 bool NodeView::draw()
 {
-    m_state.begin_draw();
+    m_view_state.box.draw_debug_info();
+
+    if ( !m_view_state.visible )
+        return false;
 
     Config*     cfg       = get_config();
 	bool        changed   = false;
@@ -370,20 +358,20 @@ bool NodeView::draw()
 	// Begin the window
 	//-----------------
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
-    Rect screen_rect = box()->get_rect(SCREEN_SPACE);
-    screen_rect.translate( ImGui::GetWindowPos() );
+    Rect screen_rect = get_rect(WORLD_SPACE);
+
     if ( PIXEL_PERFECT )
     {
-        screen_rect.min = Vec2::round( screen_rect.min );
-        screen_rect.max = Vec2::round( screen_rect.max );
+        screen_rect.min.round();
+        screen_rect.max.round();
     }
-    ImGui::SetCursorScreenPos(screen_rect.top_left() ); // start from th top left corner
+    ImGui::SetCursorScreenPos( screen_rect.top_left() ); // start from th top left corner
 	ImGui::PushID(this);
 
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( m_state.selected )
+    if ( m_view_state.selected )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -404,7 +392,7 @@ bool NodeView::draw()
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            m_state.selected,
+            m_view_state.selected,
             5.0f,
             border_width );
 
@@ -413,7 +401,7 @@ bool NodeView::draw()
     bool is_rect_hovered = !ImGui::IsAnyItemHovered() && ImGui::IsMouseHoveringRect(screen_rect.min, screen_rect.max);
     Vec2 new_screen_pos = screen_rect.top_left()
                           + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
-                          + Vec2{cfg->ui_slot_circle_radius(), 0.0f}; // space for "this" left slot
+                          ; // space for "this" left slot
     ImGui::SetCursorScreenPos(new_screen_pos);
 
 	// Draw the window content
@@ -422,54 +410,68 @@ bool NodeView::draw()
     ImGui::BeginGroup();
     ImGui::Dummy({1.f, 1.f}); // Without this, drawing doesn't work (size issues), TODO: understand why and remove this
 
-    ImGui::SameLine(); draw_properties(m_property_views__out_strictly);
+    // We currently don't need to see these property, unnecessary complexity
+    // ImGui::SameLine(); draw_properties(m_property_views__out_strictly);
 
-    std::string label = get_label().empty() ? " " : get_label();                        // ensure a 1 char width, to be able to grab it
+    std::string pre_label;
+    std::vector<std::string> operator_label(1); // for binary (and ternary when implemented) operators
+    std::string post_label;
+
+    switch ( node->type() )
+    {
+        case NodeType_OPERATOR:
+            if (node->is_unary_operator())
+                pre_label = get_label();
+            else if (node->is_binary_operator())
+                operator_label[0] = get_label();
+            break;
+        default:
+            pre_label = get_label();
+            break;
+        case NodeType_FUNCTION:
+            pre_label = get_label() + "(";
+            post_label = ")";
+            break;
+    }
+
     if ( !m_expanded )
+        pre_label.append(" " ICON_FA_OBJECT_GROUP);
+
+    // Draw the pre_label when necessary
+    if ( !pre_label.empty() )
     {
-        // symbolize the fact node view is not expanded
-        //abel.insert(0, "<<");
-        label.append(" " ICON_FA_OBJECT_GROUP);
+        ImGui::SameLine(); ImGui::Text("%s", pre_label.c_str() );
     }
 
-    if ( node->is_binary_operator() )
-    {
-        label = "";
-    }
-    // Label is displayed first unless node is an operator
-
-    const char* format = node->type() == NodeType_FUNCTION ? "%s(" : "%s";
-    ImGui::SameLine(); ImGui::Text( format, label.c_str() );
-
-    if ( node->type() == NodeType_OPERATOR )
-    {
-        // TODO: handle unary and ternary operators
-        ImGui::SameLine();
-        ImGui::BeginGroup();
-        size_t count = 0;
-        for(auto view : m_property_views__in)
-        {
-            ImGui::SameLine();
-            changed |= _draw_property_view( view, cfg->ui_node_detail );
-
-            // Append the operator label between the first and the second operator
-            if (count == 0 && node->is_binary_operator() )
-            {
-                ImGui::SameLine(); ImGui::Text("%s", get_label().c_str() );
-            }
-            count++;
-        }
-        ImGui::EndGroup();
-    }
-    else
+    // Draw the properties depending on node type
+    if ( node->type() != NodeType_OPERATOR )
     {
         ImGui::SameLine(); draw_properties(m_property_views__in_strictly);
         ImGui::SameLine(); draw_properties(m_property_views__inout_strictly);
     }
-
-    if ( node->type() == NodeType_FUNCTION )
+    else
     {
-        ImGui::SameLine(); ImGui::Text(")");
+        // TODO: handle ternary operators
+        ImGui::SameLine();
+        ImGui::BeginGroup();
+
+        for(size_t i = 0; i < m_property_views__in.size(); i++)
+        {
+            ImGui::SameLine();
+            changed |= _draw_property_view( m_property_views__in[i], cfg->ui_node_detail );
+
+            // draw inner label when necessary
+            if ( i < operator_label.size() && !operator_label[i].empty() )
+            {
+                ImGui::SameLine(); ImGui::Text("%s", operator_label[i].c_str() );
+            }
+        }
+        ImGui::EndGroup();
+    }
+
+    if ( !post_label.empty() )
+    {
+        ImGui::SameLine(); ImGui::Text("%s", post_label.c_str());
     }
 
 
@@ -498,7 +500,7 @@ bool NodeView::draw()
     if ( changed )
         get_node()->set_flags( NodeFlag_IS_DIRTY );
 
-    m_state.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
+    m_view_state.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
 
 	return changed;
 }
@@ -598,7 +600,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        ImGui::Text("%s %s\n", property->get_type()->get_name(), property->get_name().c_str());
+        ImGui::Text("%s %s\n", property->get_type()->get_name(), property->name().c_str());
 
         std::string  source_code;
         if( property->has_flags(PropertyFlag_IS_THIS) || get_node()->find_slot_by_property( property, SlotFlag_OUTPUT ))
@@ -611,14 +613,11 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
         ImGuiEx::EndTooltip();
     }
 
-    // memorize property view rect (screen space)
-    // enlarge rect to fit node_view top/bottom
-    Rect rect = {
-        Vec2{ImGui::GetItemRectMin().x, box()->get_rect().min.y},
-        Vec2{ImGui::GetItemRectMax().x, box()->get_rect().max.y}
-    };
-    xform()->set_pos(rect.center());
-    box()->set_size(rect.size());
+    // Memorize new size and position fo this property
+    const Vec2 new_size = ImGui::GetItemRectSize();
+    const Vec2 new_pos  = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
+    _view->box()->set_pos( new_pos, WORLD_SPACE ); // GetItemRectMin is in SCREEN_SPACE
+    _view->box()->set_size( new_size );
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
@@ -629,7 +628,7 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const char* _override_label)
 {
     Property*           property       = _view->get_property();
-    Token&              property_token = property->get_token();
+    Token&              property_token = property->token();
     const Slot*         connected_slot = _view->get_connected_slot();
     ImGuiInputTextFlags flags          = ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
     std::string         label;
@@ -638,7 +637,7 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
     if ( _override_label != nullptr )
         label.append(_override_label);
     else
-        label.append("##" + property->get_name());
+        label.append("##" + property->name());
 
     //
     // Strategy:
@@ -646,21 +645,21 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if ( property->get_owner()->type() != NodeType_VARIABLE
+    if (property->owner()->type() != NodeType_VARIABLE
         && connected_slot
-        && connected_slot->get_property()->get_token().m_type == Token_t::identifier)
+        && connected_slot->get_property()->token().m_type == Token_t::identifier)
     {
         if ( property_token.m_type != Token_t::null )
             LOG_WARNING("NodeView", "A connected property should never be from type Token_t::null")
 
         char buf[256];
-        const Token &connected_property_token = connected_slot->get_property()->get_token();
+        const Token &connected_property_token = connected_slot->get_property()->token();
         snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
                  connected_property_token.word_ptr());
         float w = calc_input_width(buf);
         ImGui::PushItemWidth(w);
         ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                              connected_slot->get_node()->get_component<NodeView>()->get_color(Color_FILL));
+                              connected_slot->node()->get_component<NodeView>()->get_color(Color_FILL));
         if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags)) {
             // is ReadOnly
         }
@@ -791,14 +790,14 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         ImGui::SetNextItemWidth(labelColumnWidth);
         ImGui::Text(
                 "%s (%s): ",
-                property->get_name().c_str(),
+                property->name().c_str(),
                 property->get_type()->get_name());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
         if ( ImGuiEx::BeginTooltip() )
         {
-            ImGui::Text("Source token:\n %s\n", property->get_token().json().c_str());
+            ImGui::Text("Source token:\n %s\n", property->token().json().c_str());
             ImGuiEx::EndTooltip();
         }
         // input
@@ -850,7 +849,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         // Draw exposed output properties
         if( ImGui::TreeNode("Other Properties") )
         {
-            draw_labeled_property_view( _view->m_property_view_this );
+            draw_labeled_property_view( _view->m_value_view );
             ImGui::TreePop();
         }
 
@@ -916,11 +915,10 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         {
             if( ImGui::TreeNode("Variables") )
             {
-                auto vars = scope->variables();
-                for (auto var : vars)
+                for (VariableNode* variable : scope->variables())
                 {
-                    std::string value = var->property()->get_token().word_to_string();
-                    ImGui::BulletText("%s: %s", var->get_name().c_str(), value.c_str() );
+                    std::string value = variable->value()->token().word_to_string();
+                    ImGui::BulletText("%s: %s", variable->get_name().c_str(), value.c_str() );
                 }
                 ImGui::TreePop();
             }
@@ -990,29 +988,26 @@ void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)
 
 Rect NodeView::get_rect(Space space) const
 {
-    return m_state.box.get_rect(space);
+    return m_view_state.box.get_rect(space);
 }
 
 Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 {
-    Rect this_rect = m_state.box.get_rect(space);
     if( (flags & NodeViewFlag_WITH_RECURSION) == 0 )
-    {
-        return this_rect;
-    }
+        return this->get_rect(space);
 
     std::vector<Rect> rects;
 
-    if ( m_state.visible )
-        rects.push_back( this_rect );
+    if ( m_view_state.visible )
+        rects.push_back( this->get_rect(space) );
 
     auto visit = [&](NodeView* view)
     {
         if( !view )
             return;
-        if( !view->m_state.visible )
+        if( !view->m_view_state.visible )
             return;
-        if(view->m_state.selected && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
+        if(view->m_view_state.selected && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
             return;
         if( view->m_pinned && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
@@ -1109,7 +1104,7 @@ void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recurs
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child_view->m_state.visible = _visible;
+            each_child_view->m_view_state.visible = _visible;
         }
     }
 }
@@ -1126,7 +1121,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    if( _view->m_state.visible )
+    if( _view->m_view_state.visible )
     {
         return _view;
     }
@@ -1218,10 +1213,20 @@ void NodeView::translate(const std::vector<NodeView*>& _views, const Vec2& delta
 void NodeView::add_child(PropertyView* view)
 {
     xform()->add_child( view->xform() );
+    view->xform()->set_pos({0.f, 0.f}, PARENT_SPACE);
 }
 
 void NodeView::add_child(SlotView* view)
 {
     xform()->add_child( view->xform() );
+    view->xform()->set_pos({0.f, 0.f}, PARENT_SPACE);
+}
+
+PropertyView *NodeView::find_property_view(const Property* property)
+{
+    auto found = m_property_views__all.find( property );
+    if ( found != m_property_views__all.end() )
+        return found->second;
+    return nullptr;
 }
 

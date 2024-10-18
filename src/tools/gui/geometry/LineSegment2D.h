@@ -3,7 +3,7 @@
 
 namespace tools
 {
-    struct LineSegment
+    struct LineSegment2D
     {
         Vec2 p1;
         Vec2 p2;
@@ -11,7 +11,7 @@ namespace tools
         float sqrlen() const
         { return Vec2::lensqr( p2 - p1 ); }
 
-        static float point_minimum_distance(const LineSegment& segment, const Vec2& point )
+        static float point_minimum_distance(const LineSegment2D& segment, const Vec2& point )
         {
             // Adapted from https://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
 

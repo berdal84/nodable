@@ -196,7 +196,7 @@ target_link_libraries(
 
 add_executable(
     test-tools
-    src/tools/gui/geometry/XForm2D.specs.cpp
+    src/tools/gui/geometry/SpatialNode2D.specs.cpp
     src/tools/core/reflection/reflection.specs.cpp
     src/tools/core/reflection/Type.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
@@ -221,19 +221,19 @@ endif()
 add_library(
     tools-gui
     STATIC
-    src/tools/gui/geometry/Box.h
-    src/tools/gui/geometry/Box.cpp
-    src/tools/gui/geometry/Bezier.h
-    src/tools/gui/geometry/Bezier.cpp
+    src/tools/gui/geometry/BoxShape2D.h
+    src/tools/gui/geometry/BoxShape2D.cpp
+    src/tools/gui/geometry/BezierCurveSegment2D.h
+    src/tools/gui/geometry/BezierCurveSegment2D.cpp
     src/tools/gui/geometry/Rect.h
     src/tools/gui/geometry/Rect.cpp
     src/tools/gui/geometry/Space.h
     src/tools/gui/geometry/Vec2.h
     src/tools/gui/geometry/Vec4.h
-    src/tools/gui/geometry/XForm2D.h
-    src/tools/gui/geometry/XForm2D.cpp
-    src/tools/gui/geometry/Transform2D.h
-    src/tools/gui/geometry/Transform2D.cpp
+    src/tools/gui/geometry/SpatialNode2D.h
+    src/tools/gui/geometry/SpatialNode2D.cpp
+    src/tools/gui/geometry/TRSTransform2D.h
+    src/tools/gui/geometry/TRSTransform2D.cpp
     src/tools/gui/Action.cpp
     src/tools/gui/Action.h
     src/tools/gui/ActionManager.cpp

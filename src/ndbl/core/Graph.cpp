@@ -143,7 +143,7 @@ void Graph::destroy(Node* node)
     std::vector<DirectedEdge> related_edges;
     for(auto& [_type, each_edge]: m_edge_registry)
     {
-        if( each_edge.tail->get_node() == node || each_edge.head->get_node() == node )
+        if(each_edge.tail->node() == node || each_edge.head->node() == node )
         {
             related_edges.emplace_back(each_edge);
         }
@@ -204,7 +204,7 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
 //    EXPECT( type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
 
     // case 1: merge orphan slot
-    if ( _out.get_node() == nullptr ) // if dependent is orphan
+    if (_out.node() == nullptr ) // if dependent is orphan
     {
         in_prop->digest( out_prop );
         delete in_prop;
@@ -212,18 +212,17 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
         return nullptr;
     }
 
-    // case 2: merge non-orphan property
-    if (!out_prop->has_flags(PropertyFlag_IS_THIS) && // Never a Node (property points to a node)
-         _out.get_node()->get_class()->is_child_of<LiteralNode>() && // allow to digest literals because having a node per literal is too verbose
-         _in.get_node()->get_class()->is_not_child_of<VariableNode>()) // except variables (we don't want to see the literal value in the variable node, we want the current value)
-    {
-        in_prop->digest( out_prop );
-        destroy( _out.get_node());
-        set_dirty(); // a node has been destroyed
-        return nullptr;
-    }
+    // case 2: merge literals when not connected to a variable
+    if (_out.node()->type() == NodeType_LITERAL )
+        if (_in.node()->type() != NodeType_VARIABLE )
+        {
+            in_prop->digest( out_prop );
+            destroy(_out.node());
+            set_dirty(); // a node has been destroyed
+            return nullptr;
+        }
 
-    // Connect (case 3)
+    // Connect (case 4)
     set_dirty();
     return connect( _out, _in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 }
@@ -249,14 +248,14 @@ DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable )
 {
     // Guards
     ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
-    return connect_or_merge( _out, _variable.input_slot() );
+    return connect_or_merge( _out, *_variable.value_in() );
 }
 
 DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 {
     ASSERT( _first.has_flags( SlotFlag_ORDER_FIRST ) )
     ASSERT( _second.has_flags( SlotFlag_ORDER_SECOND ) )
-    ASSERT(_first.get_node() != _second.get_node() )
+    ASSERT(_first.node() != _second.node() )
 
     // Insert edge
     SlotFlags type = _first.type();
@@ -277,8 +276,8 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 // Ensure to Identify parent and child nodes
                 // - parent node has a CHILD slot
                 // - child node has a PARENT slot
-                Node* parent    = _first.get_node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
-                Node* new_child = _second.get_node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
+                Node* parent    = _first.node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
+                Node* new_child = _second.node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
                 ASSERT( parent->has_component<Scope>())
 
                 Slot* parent_next_slot    = parent->find_slot_at( SlotFlag_NEXT, _first.position() );
@@ -340,8 +339,8 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 
             case SlotFlag_TYPE_CODEFLOW:
             {
-                Node& prev_node = *_first.get_node(); static_assert(SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
-                Node& next_node = *_second.get_node(); static_assert(SlotFlag_PREV & SlotFlag_ORDER_SECOND );
+                Node& prev_node = *_first.node(); static_assert(SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
+                Node& next_node = *_second.node(); static_assert(SlotFlag_PREV & SlotFlag_ORDER_SECOND );
 
                 // If previous node is a scope, connects next_node as child
                 if ( prev_node.has_component<Scope>() )
@@ -404,7 +403,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
         case SlotFlag_TYPE_CODEFLOW:
         {
             ASSERT(_edge.head->has_flags(SlotFlag_PREV))
-            Node* next = _edge.head->get_node();
+            Node* next = _edge.head->node();
             Node* next_parent = next->find_parent();
             if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && next_parent )
             {

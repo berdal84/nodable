@@ -11,6 +11,7 @@ PropertyView::PropertyView(Property* _property )
 : m_property(_property)
 , show_input(false)
 , touched(false)
+, m_view_state(10.f, 10.f)
 {
 }
 
@@ -27,7 +28,7 @@ Property* PropertyView::get_property() const
 
 Node* PropertyView::get_node() const
 {
-    return m_property->get_owner();
+    return m_property->owner();
 }
 
 bool PropertyView::has_input_connected() const
@@ -50,5 +51,5 @@ VariableNode* PropertyView::get_connected_variable() const
     if( !adjacent_slot )
         return nullptr;
 
-    return cast<VariableNode>( adjacent_slot->get_node() );
+    return cast<VariableNode>(adjacent_slot->node() );
 }

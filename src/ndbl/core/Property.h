@@ -32,15 +32,16 @@ namespace ndbl
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
         void               set_flags(PropertyFlags flags) { m_flags |= flags; }
         void               clear_flags(PropertyFlags flags = PropertyFlag_ALL) { m_flags &= ~flags; }
-        //void               set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
-        PropertyFlags      get_flags()const { return m_flags; }
-        const std::string& get_name()const { return m_name; }
-        Node*              get_owner()const { return m_owner; }
+        //void             set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
+        PropertyFlags      flags()const { return m_flags; }
+        const std::string& name()const { return m_name; }
+        Node*              owner()const { return m_owner; }
         const tools::TypeDescriptor* get_type()const { return m_type; }
         bool               is_type(const tools::TypeDescriptor* other) const;
+        void               set_type(const tools::TypeDescriptor *pDescriptor);
         void               set_token(const Token& _token) { m_token = _token; }
-        Token&             get_token() { return m_token; }
-        const Token&       get_token() const { return m_token; }
+        Token&             token() { return m_token; }
+        const Token&       token() const { return m_token; }
 
     private:
         Node*              m_owner = nullptr;

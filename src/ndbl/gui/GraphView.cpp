@@ -103,7 +103,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 
     ImGuiEx::WireStyle style;
     style.shadow_color = cfg->ui_codeflow_shadowColor,
-            style.roundness = 0.f;
+    style.roundness    = 0.f;
 
     if (from->get_slot().type() == SlotFlag_TYPE_CODEFLOW) {
         style.color = cfg->ui_codeflow_color,
@@ -116,9 +116,9 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     // Draw
 
     ImGuiID id = make_wire_id(&from->get_slot(), nullptr);
-    Vec2 start_pos = from->xform()->get_pos(SCREEN_SPACE);
+    Vec2 start_pos = from->xform()->get_pos(WORLD_SPACE);
 
-    BezierCurveSegment segment{
+    BezierCurveSegment2D segment{
             start_pos, start_pos,
             end_pos, end_pos
     }; // straight line
@@ -128,8 +128,18 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 
 bool GraphView::draw()
 {
-    m_view_state.begin_draw();
+    if ( !m_view_state.visible )
+        return false;
+
+    // Ensure view state fit with content region
+    // (n.b. we could also implement a struct RootViewState wrapping ViewState)
+    Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE );
+    m_view_state.box.set_size( region.size() );
+    m_view_state.box.xform.set_pos( region.center() ); // children will be relative to the center
+    m_view_state.box.draw_debug_info();
+
     m_hovered = {};
+
     Config*         cfg                    = get_config();
     Interpreter*    interpreter            = get_interpreter();
     bool            changed                = false;
@@ -172,9 +182,9 @@ bool GraphView::draw()
 
             for (const auto &adjacent_slot: slot->adjacent())
             {
-                Node *each_successor_node = adjacent_slot->get_node();
-                NodeView *each_successor_view = NodeView::substitute_with_parent_if_not_visible(
-                        each_successor_node->get_component<NodeView>());
+                Node*     each_successor_node  = adjacent_slot->node();
+                NodeView* possibly_hidden_view = each_successor_node->get_component<NodeView>();
+                NodeView* each_successor_view  = NodeView::substitute_with_parent_if_not_visible(possibly_hidden_view);
 
                 if ( each_successor_view == nullptr )
                     continue;
@@ -187,9 +197,9 @@ bool GraphView::draw()
                 SlotView *head = adjacent_slot->get_view();
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = tail->xform()->get_pos(SCREEN_SPACE);
-                Vec2 head_pos = head->xform()->get_pos(SCREEN_SPACE);
-                BezierCurveSegment segment{
+                Vec2 tail_pos = tail->xform()->get_pos(WORLD_SPACE);
+                Vec2 head_pos = head->xform()->get_pos(WORLD_SPACE);
+                BezierCurveSegment2D segment{
                         tail_pos,
                         tail_pos,
                         head_pos,
@@ -219,8 +229,8 @@ bool GraphView::draw()
                 if (adjacent_slot == nullptr)
                     continue;
 
-                auto *node_view         = slot->get_node()->get_component<NodeView>();
-                auto *adjacent_nodeview = adjacent_slot->get_node()->get_component<NodeView>();
+                auto *node_view         = slot->node()->get_component<NodeView>();
+                auto *adjacent_nodeview = adjacent_slot->node()->get_component<NodeView>();
 
                 if ( node_view->visible() == false )
                     continue;
@@ -231,8 +241,8 @@ bool GraphView::draw()
                 SlotView* slotview          = slot->get_view();
                 SlotView* adjacent_slotview = adjacent_slot->get_view();
 
-                const Vec2 start_pos = slotview->xform()->get_pos(SCREEN_SPACE);
-                const Vec2 end_pos = adjacent_slotview->xform()->get_pos(SCREEN_SPACE);
+                const Vec2 start_pos = slotview->xform()->get_pos(WORLD_SPACE);
+                const Vec2 end_pos = adjacent_slotview->xform()->get_pos(WORLD_SPACE);
 
                 const Vec2 signed_dist = end_pos - start_pos;
                 float lensqr_dist = signed_dist.lensqr();
@@ -241,7 +251,7 @@ bool GraphView::draw()
                 if ( signed_dist.y < 0.f )
                     roundness = 100.f;
 
-                BezierCurveSegment segment{
+                BezierCurveSegment2D segment{
                         start_pos,
                         start_pos + slotview->get_normal() * roundness,
                         end_pos + adjacent_slotview->get_normal() * roundness,
@@ -401,8 +411,6 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         return;
     }
 
-    Rect frame = m_view_state.get_content_region();
-
     // Get views' bbox
     Rect views_bbox = NodeView::get_rect(_views);
 
@@ -412,12 +420,12 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     {
         // Align with the top-left corner
         views_bbox.expand(Vec2(20.0f ) ); // add a padding to avoid alignment too close from the border
-        delta = frame.top_left() - views_bbox.top_left();
+        delta = m_view_state.box.pivot(TOP_LEFT) - views_bbox.top_left();
     }
     else
     {
         // Align the center of the node rectangle with the frame center
-        delta = frame.center() - views_bbox.center();
+        delta = m_view_state.box.pivot(CENTER) - views_bbox.center();
     }
 
     // apply the translation
@@ -691,7 +699,7 @@ void GraphView::line_state_enter()
 
 void GraphView::line_state_tick()
 {
-    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->xform()->get_pos(SCREEN_SPACE)
+    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->xform()->get_pos(WORLD_SPACE)
                                                                  : Vec2{ImGui::GetMousePos()};
 
     // Contextual menu

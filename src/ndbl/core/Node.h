@@ -68,6 +68,7 @@ namespace ndbl
         bool                 is_instruction() const;
         bool                 is_unary_operator() const;
         bool                 is_binary_operator() const;
+        bool                 is_invokable() const;
         bool                 can_be_instruction() const;
         bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
         void                 set_flags(NodeFlags flags) { m_flags |= flags; }
@@ -80,12 +81,17 @@ namespace ndbl
         void                 set_suffix(const Token& token);
         const PropertyBag&   get_props() const;
         observe::Event<Node*>& on_name_change() { return m_on_name_change; };
+        const Property*      value() const { return m_value; }
+        Property*            value() { return m_value; }
+        Slot*                value_in();
+        const Slot*          value_in() const;
+        Slot*                value_out();
+        const Slot*          value_out() const;
 
         // Slot related
         //-------------
 
-        Slot*                add_slot(SlotFlags, size_t _capacity, size_t _position = 0);
-        Slot*                add_slot(SlotFlags, size_t _capacity, Property*);
+        Slot*                add_slot(Property *, SlotFlags, size_t _capacity, size_t _position = 0);
         void                 set_name(const char*);
         Node*                find_parent() const;
         size_t               adjacent_slot_count(SlotFlags )const;
@@ -98,8 +104,8 @@ namespace ndbl
         const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
         Slot*                find_slot_at( SlotFlags, size_t _position ); // implicitly THIS_PROPERTY's slot
         const Slot*          find_slot_at( SlotFlags, size_t _position ) const; // implicitly THIS_PROPERTY's slot
-        Slot*                find_slot_by_property_name(const char* _property_name, SlotFlags );
-        const Slot*          find_slot_by_property_name(const char* property_name, SlotFlags ) const;
+        Slot*                find_slot_by_property_name(const char* name, SlotFlags );
+        const Slot*          find_slot_by_property_name(const char* name, SlotFlags ) const;
         Slot*                find_slot_by_property_type(SlotFlags _way, const tools::TypeDescriptor *_type);
         Slot*                find_slot_by_property(const Property*, SlotFlags );
         const Slot*          find_slot_by_property(const Property*, SlotFlags ) const;
@@ -160,7 +166,7 @@ namespace ndbl
         Graph*             m_parent_graph     = nullptr;
         NodeType           m_type             = NodeType_DEFAULT;
         NodeFlags          m_flags            = NodeFlag_DEFAULT;
-        Property*          m_this_as_property = nullptr; // Short had for props.at( 0 )
+        Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
         observe::Event<Node*> m_on_name_change;
     private:
@@ -168,7 +174,5 @@ namespace ndbl
 
         REFLECT_BASE_CLASS()
         POOL_REGISTRABLE(Node)
-
-        bool is_invokable() const;
     };
 }

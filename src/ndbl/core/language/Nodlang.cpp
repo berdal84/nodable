@@ -261,25 +261,29 @@ int Nodlang::to_int(const std::string &_str)
     return stoi(_str);
 }
 
-Slot *Nodlang::parse_token(Token _token)
+Slot* Nodlang::parse_token(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
     {
         std::string identifier = _token.word_to_string();
-        VariableNode* existing_variable = get_current_scope()->find_variable(identifier );
 
-        if( existing_variable != nullptr )
-            return &existing_variable->output_slot();
+        if( VariableNode* existing_variable = get_current_scope()->find_variable(identifier ) )
+        {
+            // Insert a VariableNodeRef
+            VariableRefNode* ref = parser_state.graph->create_variable_ref( existing_variable->value()->get_type() );
+            ref->value()->set_token( _token );
+            parser_state.graph->connect( *existing_variable->value_out(), *ref->value_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+            return ref->value_out();
+        }
 
         if ( !m_strict_mode )
         {
-            /* when strict mode is OFF, we just create a variable with Any type */
+            // Insert a VariableNodeRef with "any" type
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() )
-            existing_variable = parser_state.graph->create_variable(type::null(), _token.word_to_string(), get_current_scope() );
-            existing_variable->set_identifier_token(_token );
-            existing_variable->set_flags(VariableFlag_DECLARED);
-            return &existing_variable->output_slot();
+            VariableRefNode* ref = parser_state.graph->create_variable_ref(type::any());
+            ref->value()->set_token(_token );
+            return ref->value_out();
         }
 
         LOG_ERROR( "Parser", "%s is not declared (strict mode) \n", _token.word_to_string().c_str() )
@@ -305,7 +309,7 @@ Slot *Nodlang::parse_token(Token _token)
     }
 
     literal->value()->set_token( _token );
-    return &literal->output_slot();
+    return literal->value_out();
 }
 
 Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
@@ -369,15 +373,15 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
 
     FunctionNode* binary_op = parser_state.graph->create_operator(type);
     binary_op->set_identifier_token( operator_token );
-    binary_op->get_lvalue()->get_property()->get_token().m_type = _left.get_property()->get_token().m_type;
-    binary_op->get_rvalue()->get_property()->get_token().m_type = right->get_property()->get_token().m_type;
+    binary_op->lvalue_in()->get_property()->token().m_type = _left.get_property()->token().m_type;
+    binary_op->rvalue_in()->get_property()->token().m_type = right->get_property()->token().m_type;
 
-    parser_state.graph->connect_or_merge( _left, *binary_op->get_lvalue());
-    parser_state.graph->connect_or_merge( *right, *binary_op->get_rvalue() );
+    parser_state.graph->connect_or_merge( _left, *binary_op->lvalue_in());
+    parser_state.graph->connect_or_merge( *right, *binary_op->rvalue_in() );
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
-    return binary_op->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    return binary_op->value_out();
 }
 
 Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
@@ -423,14 +427,14 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
 
     FunctionNode* node = parser_state.graph->create_operator(type);
     node->set_identifier_token( operator_token );
-    node->get_lvalue()->get_property()->get_token().m_type = out_atomic->get_property()->get_token().m_type;
+    node->lvalue_in()->get_property()->token().m_type = out_atomic->get_property()->token().m_type;
 
-    parser_state.graph->connect_or_merge( *out_atomic, *node->find_slot_by_property_name( LEFT_VALUE_PROPERTY, SlotFlag_INPUT ) );
+    parser_state.graph->connect_or_merge( *out_atomic, *node->lvalue_in() );
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
     commit_transaction();
 
-    return node->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    return node->value_out();
 }
 
 Slot* Nodlang::parse_atomic_expression()
@@ -524,22 +528,7 @@ Node* Nodlang::parse_instr()
         return {};
     }
 
-    Node* instr_node = expression_out->get_node();
-
-    // wraps variable as a VariableRefNode
-    // This is necessary to avoid connecting multiple times the same VariableNode to a parent
-    if ( instr_node->type() == NodeType_VARIABLE )
-    {
-        auto variable = static_cast<VariableNode*>( instr_node );
-        bool is_orphan = variable->find_parent() == nullptr;
-        if ( !is_orphan )
-        {
-            const TypeDescriptor* variable_type = variable->get_type();
-            VariableRefNode* ref = parser_state.graph->create_variable_ref( variable_type );
-            parser_state.graph->connect( *expression_out, *ref->get_input_slot(), ConnectFlag_ALLOW_SIDE_EFFECTS );
-            instr_node = ref; // override
-        }
-    }
+    Node* instr_node = expression_out->node();
 
     // Handle suffix
     if (parser_state.ribbon.can_eat())
@@ -1075,7 +1064,7 @@ Slot* Nodlang::parse_function_call()
     commit_transaction();
     LOG_VERBOSE("Parser", "parse function call... " OK "\n")
 
-    return fct_node->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT );
+    return fct_node->value_out();
 }
 
 Scope* Nodlang::get_current_scope()
@@ -1518,18 +1507,15 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
 {
     // 1. Serialize variable's type
 
-    if ( _node->is_instruction() )
+    // If parsed
+    if (!_node->get_type_token().is_null())
     {
-        // If parsed
-        if (!_node->get_type_token().is_null())
-        {
-            serialize_token(_out, _node->get_type_token());
-        }
-        else // If created in the graph by the user
-        {
-            serialize_type(_out, _node->get_value()->get_type());
-            _out.append(" ");
-        }
+        serialize_token(_out, _node->get_type_token());
+    }
+    else // If created in the graph by the user
+    {
+        serialize_type(_out, _node->value()->get_type());
+        _out.append(" ");
     }
 
     // 2. Serialize variable identifier
@@ -1538,15 +1524,15 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     // 3. Initialisation
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
 
-    const Slot& slot = _node->input_slot();
-    if ( _node->is_instruction() && slot.adjacent_count() != 0 )
+    const Slot* slot = _node->value_in();
+    if ( slot->adjacent_count() != 0 )
     {
         if ( _node->get_operator_token().is_null() )
             _out.append(" = ");
         else
             _out.append(_node->get_operator_token().buffer_to_string());
 
-        serialize_input( _out, slot, SerializeFlag_RECURSE );
+        serialize_input( _out, *slot, SerializeFlag_RECURSE );
     }
     return _out;
 }
@@ -1554,8 +1540,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
 std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, SerializeFlags _flags ) const
 {
     ASSERT( _slot.has_flags( SlotFlag_INPUT ) );
-    const Property* property      = _slot.get_property();
-    const Slot*     adjacent_slot = _slot.first_adjacent();
+    const Slot* adjacent_slot = _slot.first_adjacent();
 
     // In case the input slot is not connected we simply serialize the slot's related property
     if( adjacent_slot == nullptr )
@@ -1566,33 +1551,29 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
 
     // specific case of a Node*
     if ( adjacent_property->has_flags(PropertyFlag_IS_THIS))
-        if ( Node* node = adjacent_property->get_owner() )
+        if ( Node* node = adjacent_property->owner() )
             return serialize_node( _out, node, _flags );
 
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
         serialize_token_t(_out, Token_t::parenthesis_open);
 
-    if (!adjacent_property->get_token().is_null())
-        _out.append( adjacent_property->get_token().prefix_to_string()); // FIXME: avoid std::string copy
+    if (!adjacent_property->token().is_null())
+        _out.append(adjacent_property->token().prefix_to_string()); // FIXME: avoid std::string copy
 
     // If adjacent node is a variable, we only serialize its name (no need for recursion)
-    if ( adjacent_slot->get_node()->type() == NodeType_VARIABLE )
+    if (adjacent_slot->node()->type() == NodeType_VARIABLE )
     {
-        auto* variable = static_cast<const VariableNode*>(adjacent_slot->get_node());
+        auto* variable = static_cast<const VariableNode*>(adjacent_slot->node());
         _out.append( variable->get_identifier_token().word_to_string() );
     }
-    else if ( _flags & SerializeFlag_RECURSE && adjacent_slot )
+    else if ( _flags & SerializeFlag_RECURSE )
     {
         serialize_output( _out, *adjacent_slot, SerializeFlag_RECURSE );
     }
-    else
-    {
-        serialize_property(_out, adjacent_property );
-    }
 
-    if (!adjacent_property->get_token().is_null())
+    if (!adjacent_property->token().is_null())
     {
-        _out.append( adjacent_property->get_token().suffix_to_string()); // FIXME: avoid std::string copy
+        _out.append(adjacent_property->token().suffix_to_string()); // FIXME: avoid std::string copy
     }
 
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
@@ -1607,8 +1588,8 @@ std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, Ser
      * It works only if the given slot is an output of a VALUE_PROPERTY.
      * This means we need to serialize the node itself */
     ASSERT( _slot.has_flags( SlotFlag_OUTPUT ) )
-    ASSERT( _slot.get_property() == _slot.get_node()->get_prop(VALUE_PROPERTY) )
-    return serialize_node(_out, _slot.get_node(), _flags );
+    ASSERT( _slot.get_property() == _slot.node()->get_prop(DEFAULT_PROPERTY) )
+    return serialize_node(_out, _slot.node(), _flags );
 }
 
 std::string & Nodlang::serialize_node(std::string &_out, const Node* node, SerializeFlags _flags ) const
@@ -1784,7 +1765,7 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
     // ... ( ... ) <scope>
     if ( Scope* scope = _condition_struct->scope_at( Branch_TRUE ) )
     {
-        serialize_scope(_out, scope );
+        serialize_scope( _out, scope );
     }
     else
     {
@@ -1843,7 +1824,7 @@ const tools::IInvokable* Nodlang::find_function(const FunctionDescriptor* _type)
 
 std::string& Nodlang::serialize_property(std::string& _out, const Property* _property) const
 {
-    return serialize_token(_out, _property->get_token());
+    return serialize_token(_out, _property->token());
 }
 
 const tools::IInvokable* Nodlang::find_function_exact(const FunctionDescriptor* _other_type) const

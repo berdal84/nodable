@@ -277,7 +277,7 @@ void Nodable::update()
                 ASSERT(curr_file_history != nullptr);
                 auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
                 DirectedEdge edge{ _event->data.first, _event->data.second };
-                Graph* graph = _event->data.first->get_node()->get_parent_graph();
+                Graph* graph = _event->data.first->node()->get_parent_graph();
                 auto command = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
                 break;
@@ -290,7 +290,7 @@ void Nodable::update()
                 Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                Graph* graph = _event->data.first->get_node()->get_parent_graph();
+                Graph* graph = _event->data.first->node()->get_parent_graph();
                 for( const auto& adjacent_slot: slot->adjacent() )
                 {
                     DirectedEdge edge{slot, adjacent_slot};
@@ -375,7 +375,7 @@ void Nodable::update()
                         _event->data.graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        Node* out_node = out->get_node();
+                        Node* out_node = out->node();
                         if ( out_node->is_instruction() && out->type() == SlotFlag_TYPE_CODEFLOW )
                         {
                             Token& token = out_node->get_suffix();
@@ -389,7 +389,7 @@ void Nodable::update()
                 // set new_node's view position, select it
                 if ( auto view = new_node->get_component<NodeView>() )
                 {
-                    view->xform()->set_pos(_event->data.desired_screen_pos);
+                    view->xform()->set_pos(_event->data.desired_screen_pos, WORLD_SPACE);
                     _event->data.graph->get_view()->set_selected({view});
                 }
                 break;
