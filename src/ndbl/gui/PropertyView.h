@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 #include "tools/gui/ViewState.h"
+#include "ViewDetail.h"
 
 namespace ndbl
 {
@@ -19,14 +20,13 @@ namespace ndbl
     {
     public:
 
-        // TODO: the two following vars could go into a struct FormViewState (wrapping a ViewState)
-
         bool        show_input;
         bool        touched;
 
         PropertyView(Property*);
 
-        void             reset(); // TODO: this could be in a struct FormViewState (wrapping a ViewState)
+        bool             draw(ViewDetail); // return true when changed
+        void             reset();
         Property*        get_property() const;
         Node*            get_node() const;
         Slot*            get_connected_slot() const;
@@ -40,6 +40,9 @@ namespace ndbl
         inline tools::SpatialNode2D*       xform() { return &m_view_state.box.xform; };
         inline const tools::SpatialNode2D* xform()const  { return &m_view_state.box.xform; };
 
+    private: static float calc_input_width(const char* text);
+    public:  static bool  draw_input(PropertyView*, bool _compact_mode, const char* _override_label);
+    public:  static bool  draw_all(const std::vector<PropertyView*>&, ViewDetail);
     private:
         Property*        m_property;
         tools::ViewState m_view_state;

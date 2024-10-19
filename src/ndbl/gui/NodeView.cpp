@@ -36,9 +36,6 @@ constexpr Vec2 DEFAULT_SIZE             = Vec2(10.0f, 35.0f);
 constexpr Vec2 DEFAULT_POS              = Vec2(500.0f, -1.0f);
 constexpr Vec4 DEFAULT_COLOR            = Vec4(1.f, 0.f, 0.f);
 constexpr bool PIXEL_PERFECT            = true; // round positions for drawing only
-constexpr float PROPERTY_INPUT_PADDING  = 5.0f;
-constexpr float PROPERTY_INPUT_SIZE_MIN = 12.0f;
-constexpr Vec2 PROPERTY_TOGGLE_BTN_SIZE = Vec2(12.0, 22.0f);
 
 NodeView::NodeView()
     : NodeComponent()
@@ -312,20 +309,6 @@ bool NodeView::draw()
 	bool        changed   = false;
     Node*       node      = get_node();
 
-    auto draw_properties = [&](const std::vector<PropertyView*>& views)
-    {
-        if ( views.empty() )
-            return;
-
-        ImGui::BeginGroup();
-        for(auto view : views)
-        {
-            ImGui::SameLine();
-            changed |= _draw_property_view( view, cfg->ui_node_detail );
-        }
-        ImGui::EndGroup();
-    };
-
     ASSERT(node != nullptr);
 
     m_hovered_slotview      = nullptr; // reset every frame
@@ -427,9 +410,9 @@ bool NodeView::draw()
     // Draw the properties depending on node type
     if ( node->type() != NodeType_OPERATOR )
     {
-        ImGui::SameLine(); draw_properties(m_property_views__in_strictly);
-        ImGui::SameLine(); draw_properties(m_property_views__inout_strictly);
-        ImGui::SameLine(); draw_properties(m_property_views__out_strictly);
+        ImGui::SameLine(); PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
+        ImGui::SameLine(); PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
+        ImGui::SameLine(); PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
     }
     else
     {
@@ -440,7 +423,8 @@ bool NodeView::draw()
         for(size_t i = 0; i < m_property_views__in.size(); i++)
         {
             ImGui::SameLine();
-            changed |= _draw_property_view( m_property_views__in[i], cfg->ui_node_detail );
+            PropertyView* property_view = m_property_views__in[i];
+            changed |= property_view->draw( cfg->ui_node_detail );
 
             // draw inner label when necessary
             if ( i < operator_label.size() && !operator_label[i].empty() )
@@ -523,251 +507,12 @@ void NodeView::DrawNodeRect(
     }
 }
 
-bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
-{
-    bool            changed            = false;
-    Property*       property           = _view->get_property();
-    NodeType        node_type          = get_node()->type();
-    bool            was_visited_by_interpreter = get_interpreter()->was_visited(get_node());
-
-    /*
-     * Handle input visibility
-     */
-    if ( _view->touched )
-    {
-        _view->show_input &= was_visited_by_interpreter;
-    }
-    else if ( _detail == ViewDetail::MINIMALIST)
-    {
-        _view->show_input = false;
-    }
-    else if (_detail == ViewDetail::EXHAUSTIVE)
-    {
-        _view->show_input = true;
-    }
-    else
-    {
-        // When untouched, it depends...
-
-        _view->show_input |= node_type == NodeType_LITERAL;
-        _view->show_input |= node_type == NodeType_VARIABLE;
-        _view->show_input |= node_type == NodeType_VARIABLE_REF;
-
-        // During debugging we want to see everything if we visited this node
-        _view->show_input |= was_visited_by_interpreter;
-        // Always show when connected to a variable
-        if ( const Slot* connected_slot = _view->get_connected_slot() )
-            switch ( connected_slot->node()->type() )
-            {
-                case NodeType_VARIABLE:
-                case NodeType_VARIABLE_REF:
-                    _view->show_input |= true;
-            }
-
-        // Always show properties that have an input slot free
-        if (auto* slot = get_node()->find_slot_by_property(property, SlotFlag_INPUT))
-            _view->show_input |= !slot->is_full();
-    }
-
-    // input
-    if ( _view->show_input )
-    {
-        const bool compact_mode = true;
-        changed = NodeView::draw_property_view(_view, compact_mode, nullptr);
-    }
-    else
-    {
-        ImGui::Button("", PROPERTY_TOGGLE_BTN_SIZE);
-
-        if ( ImGui::IsItemClicked(0) )
-        {
-            _view->show_input = !_view->show_input;
-            _view->touched = true;
-        }
-    }
-
-    if ( ImGuiEx::BeginTooltip() )
-    {
-        ImGui::Text("%s %s\n", property->get_type()->get_name(), property->name().c_str());
-
-        std::string  source_code;
-        if( property == get_node()->value() || get_node()->find_slot_by_property( property, SlotFlag_OUTPUT ))
-            get_language()->_serialize_node( source_code, get_node(), SerializeFlag_RECURSE );
-        else
-            get_language()->serialize_property(source_code, property );
-
-        ImGui::Text("source: \"%s\"", source_code.c_str());
-
-        ImGuiEx::EndTooltip();
-    }
-
-    // Memorize new size and position fo this property
-    const Vec2 new_size = ImGui::GetItemRectSize();
-    const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
-    _view->box()->set_pos( new_pos, WORLD_SPACE ); // GetItemRectMin is in SCREEN_SPACE
-    _view->box()->set_size({new_size.x, box()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
-
-#if DEBUG_DRAW
-    ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
-#endif
-    return changed;
-}
-
-bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const char* _override_label)
-{
-    Property*           property       = _view->get_property();
-    Token&              property_token = property->token();
-    const Slot*         connected_slot = _view->get_connected_slot();
-    ImGuiInputTextFlags flags          = ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
-    std::string         label;
-
-    // Create a label (everything after ## will not be displayed)
-    if ( _override_label != nullptr )
-        label.append(_override_label);
-    else
-        label.append("##" + property->name());
-
-    //
-    // Strategy:
-    // 1) if property is connected to an identifier, we just display the value in an InputText (as read-only)
-    // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
-
-    // 1
-    if (property->owner()->type() != NodeType_VARIABLE)
-        if ( connected_slot != nullptr )
-            switch (connected_slot->node()->type())
-            {
-                case NodeType_VARIABLE:
-                case NodeType_VARIABLE_REF:
-                {
-                    char buf[256];
-                    const Token &connected_property_token = connected_slot->property()->token();
-                    snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
-                             connected_property_token.word_ptr());
-                    float w = calc_input_width(buf);
-                    ImGui::PushItemWidth(w);
-                    ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                                          connected_slot->node()->get_component<NodeView>()->get_color(Color_FILL));
-                    if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
-                    {
-                        // is ReadOnly
-                    }
-                    ImGui::PopStyleColor();
-                    ImGui::PopItemWidth();
-                    return false;
-                }
-            }
-
-    // 2)
-
-    // Common
-    bool changed = false;
-
-    if ( _compact_mode )
-    {
-        std::string token_word = property_token.word_to_string();
-        float w = calc_input_width(token_word.c_str());
-        ImGui::PushItemWidth(w);
-    }
-
-    // Per type
-    switch ( property_token.m_type )
-    {
-        case Token_t::identifier:
-        {
-            char buf[256];
-            snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
-            flags = 0; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
-            if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
-            {
-                property_token.word_replace(buf);
-                changed = true;
-            }
-            break;
-        }
-
-        case Token_t::literal_double:
-        {
-            double value = get_language()->to_double(property_token.word_to_string());
-
-            if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags)) {
-                std::string str;
-                get_language()->serialize_double(str, value);
-                property_token.word_replace(str.c_str());
-                changed = true;
-            }
-            break;
-        }
-
-        case Token_t::literal_int:
-        {
-            i32_t value = get_language()->to_int( property_token.word_to_string() );
-
-            if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
-            {
-                std::string str;
-                get_language()->serialize_int(str, value);
-                property_token.word_replace(str.c_str());
-                changed = true;
-            }
-            break;
-        }
-
-        case Token_t::literal_bool:
-        {
-            auto str = property_token.word_to_string();
-            bool b = get_language()->to_bool( str );
-
-            if (ImGui::Checkbox(label.c_str(), &b))
-            {
-                str.clear();
-                get_language()->serialize_bool(str, b);
-                property_token.word_replace(str.c_str());
-                changed = true;
-            }
-            break;
-        }
-
-        case Token_t::literal_string:
-        {
-            char buf[256];
-            snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
-
-            if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
-            {
-                property_token.word_replace(buf);
-                changed = true;
-            }
-            break;
-        }
-
-        case Token_t::null:
-        {
-            break;
-        }
-        default:
-        {
-            ASSERT(false) // Not implemented yet!
-        }
-    }
-
-    if ( _compact_mode )
-        ImGui::PopItemWidth();
-
-    return changed;
-}
-
-float NodeView::calc_input_width(const char *buf)
-{
-    return PROPERTY_INPUT_PADDING + std::max(ImGui::CalcTextSize(buf).x, PROPERTY_INPUT_SIZE_MIN);
-}
-
 bool NodeView::is_inside(NodeView* _other, const Rect& _rect, Space _space)
 {
 	return Rect::contains(_rect, _other->box()->get_rect(_space) );
 }
 
-void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
+void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 {
     tools::Config* tools_cfg = tools::get_config();
     Node* node = _view->get_node();
@@ -792,7 +537,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        bool edited = NodeView::draw_property_view(_property_view, false, nullptr);
+        bool edited = PropertyView::draw_input(_property_view, !_show_advanced, nullptr);
         if ( edited )
             node->set_flags( NodeFlag_IS_DIRTY );
     };

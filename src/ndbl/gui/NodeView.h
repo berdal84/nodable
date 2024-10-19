@@ -92,8 +92,7 @@ namespace ndbl
         static std::vector<tools::Rect>   get_rects(const std::vector<NodeView*>& _in_views, tools::Space space = tools::WORLD_SPACE, NodeViewFlags flags = NodeViewFlag_NONE);
         static bool             is_inside(NodeView*, const tools::Rect&, tools::Space = tools::WORLD_SPACE);
         static void             constraint_to_rect(NodeView*, const tools::Rect& );
-        static bool             draw_property_view(PropertyView*, bool compact_mode = false, const char* _override_label = nullptr);
-        static void             draw_as_properties_panel(NodeView* _view, bool *_nodes );
+        static void             draw_as_properties_panel(NodeView* _view, bool* _show_advanced );
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
         static void             translate(const std::vector<NodeView*>&, const tools::Vec2& delta);
@@ -103,7 +102,6 @@ namespace ndbl
         void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
-        bool                    _draw_property_view(PropertyView* _view, ViewDetail detail);
         void                    update_labels_from_name(const Node *_node);
 
         static void DrawNodeRect(
@@ -116,7 +114,7 @@ namespace ndbl
             float border_radius,
             float border_width
         );
-        static float calc_input_width(const char* text);
+
 
         tools::ViewState m_view_state; // uses View by Composition
         std::string     m_label;
