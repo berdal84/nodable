@@ -13,7 +13,7 @@ namespace ndbl
     class Slot;
 
     /**
-     * Simple struct to store a get_value view state_handle
+     * Simple struct to store a get_value view state
      */
     class PropertyView
     {

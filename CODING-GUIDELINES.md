@@ -52,18 +52,20 @@ When we add a getter/setter for a given member, we do the following:
 class SomeClass
 {
 public:
-    int  get_value() const { return m_value; }
+    int& value() { return m_value; }
+    int  value() const { return m_value; }
     void set_value(int val) { m_value = val; }
 private:
-    int m_value;
+    int m_value; // or _value
 ```
 
-However, if value is computed (no setter):
+When a value is computed only, and if that computation is not trivial, we do:
 ```c++
 class SomeClass
 {
 public:
-    int value() const { /* computed value */; }
+    int calc_sum() const { ... }
+    int compute_sum() const { ... } // or
 ```
 
 ## Nesting

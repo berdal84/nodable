@@ -145,63 +145,70 @@ void NodeView::set_owner(Node* node)
     // 2. Create a SlotView per slot
     //------------------------------
 
-    std::unordered_map<SlotFlags, u8_t> next_index_per_type{
-        {SlotFlag_NEXT, 0},
-        {SlotFlag_PREV, 0},
-        {SlotFlag_INPUT, 0},
-        {SlotFlag_OUTPUT, 0},
-        {SlotFlag_CHILD, 0},
-        {SlotFlag_PARENT, 0},
-    };
-
     for(auto* each : m_slot_views )
         delete each;
     m_slot_views.clear();
 
+    static const std::unordered_map<SlotFlags, ShapeType> shape_per_type
+    {
+        { SlotFlag_TYPE_CODEFLOW    , ShapeType_RECTANGLE },
+        { SlotFlag_TYPE_VALUE       , ShapeType_CIRCLE },
+        { SlotFlag_TYPE_HIERARCHICAL, ShapeType_NONE },
+    };
+
+    static const std::unordered_map<SlotFlags, Vec2> align_per_type
+    {
+        { SlotFlag_INPUT  , TOP },
+        { SlotFlag_OUTPUT , BOTTOM },
+        { SlotFlag_PREV   , TOP_LEFT },
+        { SlotFlag_NEXT   , BOTTOM_LEFT }
+    };
+
+    std::unordered_map<SlotFlags, u8_t> count_per_type
+    {
+        { SlotFlag_NEXT   , 0 },
+        { SlotFlag_PREV   , 0 },
+        { SlotFlag_INPUT  , 0 },
+        { SlotFlag_OUTPUT , 0 }
+    };
+
+    // Create a view per slot
     for(Slot* slot : get_node()->slots() )
     {
-        Vec2      slot_align;
-        ShapeType slot_shape;
-        SlotFlags slot_type_n_order  = slot->type_and_order();
-        u8_t      slot_index         = next_index_per_type[slot_type_n_order]++;
+        // We don't want to see hierarchical slots
+        if ( slot->type() == SlotFlag_TYPE_HIERARCHICAL )
+            continue;
 
-        switch ( slot_type_n_order )
+        const Vec2&      alignment = align_per_type.at(slot->type_and_order());
+        const ShapeType& shape     = shape_per_type.at(slot->type());
+        const u8_t       index     = count_per_type[slot->type_and_order()]++;
+
+        auto* view = new SlotView(slot, alignment, shape, index);
+        add_child( view );
+    }
+
+    // Adjust some slot views
+    switch ( node->type() )
+    {
+        case NodeType_VARIABLE:
         {
-            case SlotFlag_INPUT:
-                slot_shape = ShapeType_CIRCLE;
-                slot_align = TOP;
-                break;
-
-            case SlotFlag_PREV:
-                slot_align = TOP_LEFT;
-                slot_shape = ShapeType_RECTANGLE;
-                break;
-
-            case SlotFlag_OUTPUT:
-                switch (slot->node()->type())
+            auto variable = static_cast<VariableNode*>( node );
+            if ( Slot* decl_out = variable->decl_out() )
+                if ( SlotView* view = decl_out->view() )
                 {
-                    case NodeType_FUNCTION:
-                    case NodeType_OPERATOR:
-                        slot_align = LEFT;
-                        break;
-                    default:
-                        slot_align = BOTTOM;
+                    view->set_align(LEFT);
+                    view->set_shape(ShapeType_RECTANGLE);
                 }
-                slot_shape = ShapeType_CIRCLE;
-                break;
-
-            case SlotFlag_NEXT:
-                slot_align = BOTTOM_LEFT;
-                slot_shape = ShapeType_RECTANGLE;
-                break;
-
-            default:
-                continue; // skipped
+            break;
         }
-
-        auto* slotview = new SlotView(slot, slot_align, slot_shape, slot_index);
-        add_child(slotview);
-        m_slot_views.push_back(slotview);
+        case NodeType_FUNCTION:
+            auto function = static_cast<FunctionNode*>( node );
+            if ( Slot* value_out = function->value_out() )
+                if ( SlotView* view = value_out->view() )
+                {
+                    view->set_align(LEFT);
+                }
+            break;
     }
 
     // 3. Update label
@@ -276,7 +283,7 @@ bool NodeView::update(float _deltaTime)
     {
         slot_view->set_visible( false );
 
-        const Slot& slot = slot_view->get_slot();
+        const Slot& slot = slot_view->slot();
 
 
 
@@ -294,13 +301,13 @@ bool NodeView::update(float _deltaTime)
 
         slot_view->set_visible( true );
 
-        switch ( slot_view->get_shape())
+        switch (slot_view->shape())
         {
             case ShapeType_CIRCLE:
             {
                 // Circle are snapped vertically on their property view, except for the "this" property.
                 Vec2 new_pos;
-                const Vec2          alignment     = slot_view->get_align();
+                const Vec2          alignment     = slot_view->alignment();
                 const PropertyView* property_view = find_property_view( slot.get_property() );
 
                 if( property_view != nullptr )
@@ -327,9 +334,10 @@ bool NodeView::update(float _deltaTime)
                 // Rectangles are always on top/bottom
                 Vec2 slot_pos{};
 
-                slot_pos.x += 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(slot_view->get_index());
-                slot_pos.y += slot_view->get_align().y * cfg->ui_slot_rectangle_size.y * 0.5f;
-                slot_pos   += slot_view->get_align() * nodeview_halfsize;
+                slot_pos.x += 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(
+                        slot_view->index());
+                slot_pos.y += slot_view->alignment().y * cfg->ui_slot_rectangle_size.y * 0.5f;
+                slot_pos   += slot_view->alignment() * nodeview_halfsize;
 
                 slot_view->xform()->set_pos( slot_pos );
                 slot_view->box()->set_size( cfg->ui_slot_rectangle_size );
@@ -372,7 +380,7 @@ bool NodeView::draw()
 
     // Draw background slots (rectangles)
     for( SlotView* slot_view: m_slot_views )
-        if ( slot_view->get_shape() == ShapeType_RECTANGLE)
+        if (slot_view->shape() == ShapeType_RECTANGLE)
             draw_slot(slot_view);
 
 	// Begin the window
@@ -512,7 +520,7 @@ bool NodeView::draw()
 
     // Draw foreground slots (circles)
     for( SlotView* slot_view: m_slot_views )
-        if ( slot_view->get_shape() == ShapeType_CIRCLE)
+        if (slot_view->shape() == ShapeType_CIRCLE)
             draw_slot(slot_view);
 
 	ImGui::PopStyleVar();
@@ -1249,6 +1257,7 @@ void NodeView::add_child(SlotView* view)
 {
     xform()->add_child( view->xform() );
     view->xform()->set_pos({0.f, 0.f}, PARENT_SPACE);
+    m_slot_views.push_back( view );
 }
 
 PropertyView *NodeView::find_property_view(const Property* property)

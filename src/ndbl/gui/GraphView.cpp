@@ -105,7 +105,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     style.shadow_color = cfg->ui_codeflow_shadowColor,
     style.roundness    = 0.f;
 
-    if (from->get_slot().type() == SlotFlag_TYPE_CODEFLOW) {
+    if (from->slot().type() == SlotFlag_TYPE_CODEFLOW) {
         style.color = cfg->ui_codeflow_color,
                 style.thickness = cfg->ui_slot_rectangle_size.x * cfg->ui_codeflow_thickness_ratio;
     } else {
@@ -115,7 +115,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 
     // Draw
 
-    ImGuiID id = make_wire_id(&from->get_slot(), nullptr);
+    ImGuiID id = make_wire_id(&from->slot(), nullptr);
     Vec2 start_pos = from->xform()->get_pos(WORLD_SPACE);
 
     BezierCurveSegment2D segment{
@@ -193,8 +193,8 @@ bool GraphView::draw()
                 if ( each_successor_view->visible() == false )
                     continue;
 
-                SlotView *tail = slot->get_view();
-                SlotView *head = adjacent_slot->get_view();
+                SlotView *tail = slot->view();
+                SlotView *head = adjacent_slot->view();
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
                 Vec2 tail_pos = tail->xform()->get_pos(WORLD_SPACE);
@@ -243,8 +243,8 @@ bool GraphView::draw()
                     continue;
 
                 ImGuiEx::WireStyle style    = default_wire_style;
-                SlotView* slotview          = slot->get_view();
-                SlotView* adjacent_slotview = adjacent_slot->get_view();
+                SlotView* slotview          = slot->view();
+                SlotView* adjacent_slotview = adjacent_slot->view();
 
                 const Vec2 start_pos = slotview->xform()->get_pos(WORLD_SPACE);
                 const Vec2 end_pos = adjacent_slotview->xform()->get_pos(WORLD_SPACE);
@@ -258,8 +258,8 @@ bool GraphView::draw()
 
                 BezierCurveSegment2D segment{
                         start_pos,
-                        start_pos + slotview->get_normal() * roundness,
-                        end_pos + adjacent_slotview->get_normal() * roundness,
+                        start_pos + slotview->normal() * roundness,
+                        end_pos + adjacent_slotview->normal() * roundness,
                         end_pos
                 };
 
@@ -291,7 +291,7 @@ bool GraphView::draw()
                      }
 
                     // TODO: this block is repeated twice
-                    ImGuiID id = make_wire_id(&slotview->get_slot(), adjacent_slot);
+                    ImGuiID id = make_wire_id(&slotview->slot(), adjacent_slot);
                     ImGuiEx::DrawWire(id, draw_list, segment, style);
                     if (ImGui::GetHoveredID() == id && m_hovered.empty())
                         m_hovered = {slotview, adjacent_slotview};
@@ -730,8 +730,8 @@ void GraphView::line_state_tick()
             case ViewItemType_SLOT:
             {
                 auto event = new Event_SlotDropped();
-                event->data.first  = &m_focused.slotview->get_slot();
-                event->data.second = &m_hovered.slotview->get_slot();
+                event->data.first  = &m_focused.slotview->slot();
+                event->data.second = &m_hovered.slotview->slot();
                 get_event_manager()->dispatch(event);
                 m_state_machine.exit_state();
                 break;

@@ -356,8 +356,8 @@ void Nodable::update()
                 else
                 {
                     Slot* complementary_slot = new_node->find_slot_by_property_type(
-                            get_complementary_flags(_event->data.active_slotview->get_slot().type_and_order() ),
-                            _event->data.active_slotview->get_property()->get_type() );
+                            get_complementary_flags(_event->data.active_slotview->slot().type_and_order() ),
+                            _event->data.active_slotview->property()->get_type() );
 
                     if ( !complementary_slot )
                     {
@@ -366,7 +366,7 @@ void Nodable::update()
                     }
                     else
                     {
-                        Slot* out = &_event->data.active_slotview->get_slot();
+                        Slot* out = &_event->data.active_slotview->slot();
                         Slot* in = complementary_slot;
 
                         if ( out->has_flags( SlotFlag_ORDER_SECOND ) )

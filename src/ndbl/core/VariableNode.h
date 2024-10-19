@@ -47,12 +47,21 @@ namespace ndbl
         void               set_type_token(const Token& tok) { m_type_token = tok; }
         void               set_identifier_token(const Token& tok) { m_value->set_token(tok); }
         void               set_operator_token(const Token& tok) { m_operator_token = tok; }
+
+        // Aliases
+
+        Slot*              decl_out() { return m_as_declaration_slot; }
+        const Slot*        decl_out() const { return m_as_declaration_slot; }
+        Slot*              ref_out() { return m_as_reference_slot; }
+        const Slot*        ref_out() const { return m_as_reference_slot; }
+
     private:
         Token              m_type_token       = Token::s_null; // [int] var  =
         Token              m_operator_token   = Token::s_null; //  int  var [=]
-        VariableFlags      m_vflags = VariableFlag_NONE;
-        Node*              m_scope  = nullptr;
-
+        VariableFlags      m_vflags           = VariableFlag_NONE;
+        Node*              m_scope            = nullptr;
+        Slot*              m_as_declaration_slot = nullptr;
+        Slot*              m_as_reference_slot   = nullptr;
 		REFLECT_DERIVED_CLASS()
     };
 }

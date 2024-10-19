@@ -67,7 +67,7 @@ namespace ndbl{
         Slot*                         parse_binary_operator_expression(u8_t _precedence, Slot& _left);
         Slot*                         parse_atomic_expression();
         Slot*                         parse_expression(u8_t _precedence = 0, Slot* _left_override = nullptr);
-        Slot*                         parse_token(Token _token);
+        Slot*                         token_to_slot(Token _token);
         bool                          to_bool(const std::string& );
         std::string                   to_unquoted_string(const std::string& _quoted_str);
         double                        to_double(const std::string& );

@@ -22,10 +22,12 @@ void VariableNode::init(const tools::TypeDescriptor* _type, const char* _identif
 
     // Init Slots
     add_slot(m_value, SlotFlag_INPUT, 1); // to connect an initialization expression
-    add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY); // can be connected by reference
     add_slot(m_value, SlotFlag_PARENT, 1);
     add_slot(m_value, SlotFlag_NEXT, 1);
     add_slot(m_value, SlotFlag_PREV, Slot::MAX_CAPACITY);
+
+    m_as_reference_slot   = add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY ); // as reference
+    m_as_declaration_slot = add_slot(m_value, SlotFlag_OUTPUT, 1); // as declaration
 }
 
 Scope* VariableNode::get_scope()
@@ -49,4 +51,3 @@ void VariableNode::reset_scope(Scope* _scope)
     else
         m_scope = {};
 }
-

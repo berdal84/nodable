@@ -29,7 +29,7 @@ namespace ndbl
         );
 
         Node*     node() const { return m_node; }
-        SlotView* get_view() const { return m_view; }
+        SlotView* view() const { return m_view; }
         void      set_view(SlotView* view) { m_view = view; }
         Slot*     first_adjacent() const;
         Slot*     adjacent_at(u8_t ) const;

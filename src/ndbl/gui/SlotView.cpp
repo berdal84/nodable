@@ -26,20 +26,21 @@ Node* SlotView::adjacent_node() const
    return m_slot->first_adjacent()->node();
 }
 
-Node* SlotView::get_node()const
+Node* SlotView::node()const
 {
     return m_slot->node();
 }
 
-const TypeDescriptor* SlotView::get_property_type()const
+const TypeDescriptor* SlotView::property_type()const
 {
-    Property* property = get_property();
-    return property ? property->get_type() : nullptr;
+    if ( Property* p = property() )
+        return p->get_type();
+    return nullptr;
 }
 
 bool SlotView::is_this() const
 {
-    return get_property()->has_flags(PropertyFlag_IS_THIS);
+    return property()->has_flags(PropertyFlag_IS_THIS);
 }
 
 bool SlotView::allows(SlotFlag flags) const
@@ -47,7 +48,7 @@ bool SlotView::allows(SlotFlag flags) const
     return m_slot->has_flags(flags);
 }
 
-Slot& SlotView::get_slot() const
+Slot& SlotView::slot() const
 {
     return *m_slot;
 }
@@ -62,24 +63,24 @@ bool SlotView::has_node_connected() const
     return m_slot->adjacent_count() != 0;
 }
 
-Property* SlotView::get_property() const
+Property* SlotView::property() const
 {
     return m_slot->get_property();
 }
 
-tools::Vec2 SlotView::get_normal() const
+tools::Vec2 SlotView::normal() const
 {
     return tools::Vec2::normalize( m_align );
 }
 
-const tools::Vec2& SlotView::get_align() const
+const tools::Vec2& SlotView::alignment() const
 {
     return m_align;
 }
 
 tools::string64 SlotView::compute_tooltip() const
 {
-    switch (get_slot().type_and_order())
+    switch (slot().type_and_order())
     {
         case SlotFlag_NEXT:   return "next";
         case SlotFlag_PREV:   return "previous";
@@ -88,11 +89,11 @@ tools::string64 SlotView::compute_tooltip() const
         default:
             std::string prop_name;
 
-            if ( get_property() )
-                prop_name = get_property()->name();
+            if (property() )
+                prop_name = property()->name();
 
             string64 result;
-            switch (get_slot().type_and_order())
+            switch (slot().type_and_order())
             {
                 case SlotFlag_INPUT:  result.append_fmt("%s (in)",  prop_name.c_str());  break;
                 case SlotFlag_OUTPUT: result.append_fmt("%s (out)", prop_name.c_str());
@@ -163,17 +164,17 @@ bool SlotView::draw()
     return ImGui::IsItemClicked();
 }
 
-size_t SlotView::get_index() const
+size_t SlotView::index() const
 {
     return m_index;
 }
 
-ShapeType SlotView::get_shape() const
+ShapeType SlotView::shape() const
 {
     return m_shape;
 }
 
-ViewState *SlotView::state_handle()
+ViewState *SlotView::state()
 {
     return &m_view_state;
 }
@@ -186,4 +187,9 @@ bool SlotView::is_hovered() const
 void SlotView::set_align(const tools::Vec2 align)
 {
     m_align = align;
+}
+
+void SlotView::set_shape(ShapeType shape)
+{
+    m_shape = shape;
 }

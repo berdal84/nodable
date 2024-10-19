@@ -261,7 +261,7 @@ int Nodlang::to_int(const std::string &_str)
     return stoi(_str);
 }
 
-Slot* Nodlang::parse_token(Token _token)
+Slot* Nodlang::token_to_slot(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
     {
@@ -269,11 +269,7 @@ Slot* Nodlang::parse_token(Token _token)
 
         if( VariableNode* existing_variable = get_current_scope()->find_variable(identifier ) )
         {
-            // Insert a VariableNodeRef
-            VariableRefNode* ref = parser_state.graph->create_variable_ref( existing_variable->value()->get_type() );
-            ref->value()->set_token( _token );
-            parser_state.graph->connect( *existing_variable->value_out(), *ref->value_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
-            return ref->value_out();
+            return existing_variable->ref_out();
         }
 
         if ( !m_strict_mode )
@@ -457,7 +453,7 @@ Slot* Nodlang::parse_atomic_expression()
         return nullptr;
     }
 
-    if ( Slot* result = parse_token(token) )
+    if ( Slot* result = token_to_slot(token) )
     {
         commit_transaction();
         LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n")
