@@ -281,36 +281,35 @@ bool NodeView::update(float _deltaTime)
 
     for(SlotView* slot_view  : m_slot_views )
     {
-        slot_view->set_visible( false );
-
         const Slot& slot = slot_view->slot();
 
+        if ( slot.capacity() == 0)
+        {
+            slot_view->set_visible( false );
+        }
+        else if (slot.type() == SlotFlag_TYPE_CODEFLOW )
+        {
+            bool desired_visibility = get_node()->is_instruction() || get_node()->can_be_instruction();
+            slot_view->set_visible( desired_visibility );
+        }
+        else
+        {
+            slot_view->set_visible( true );
+        }
 
-
-        if (slot.capacity() == 0)
+        if ( !slot_view->state()->visible )
             continue;
 
-        if (slot.type() == SlotFlag_TYPE_CODEFLOW )
-            if (!get_node()->is_instruction())
-                if (!get_node()->can_be_instruction() )
-                    continue;
-
-        if (slot.has_flags(SlotFlag_OUTPUT) )
-            if (Slot* adjacent = slot.first_adjacent() )
-                slot_view->set_align( adjacent->node()->is_instruction() ? LEFT : BOTTOM + Vec2{-0.5f, 0.f} );
-
-        slot_view->set_visible( true );
-
-        switch (slot_view->shape())
+        switch ( slot_view->shape() )
         {
+            case ShapeType_NONE:
+                continue;
             case ShapeType_CIRCLE:
             {
-                // Circle are snapped vertically on their property view, except for the "this" property.
-                Vec2 new_pos;
-                const Vec2          alignment     = slot_view->alignment();
-                const PropertyView* property_view = find_property_view( slot.get_property() );
+                Vec2       new_pos;
+                const Vec2 alignment = slot_view->alignment();
 
-                if( property_view != nullptr )
+                if( const PropertyView* property_view = find_property_view( slot.get_property() ) )
                 {
                     // Align horizontally on the property
                     new_pos.x = property_view->xform()->get_pos(WORLD_SPACE).x;
@@ -325,13 +324,12 @@ bool NodeView::update(float _deltaTime)
 
                 slot_view->xform()->set_pos( new_pos, WORLD_SPACE );
                 slot_view->box()->set_size( { cfg->ui_slot_circle_radius() } );
-
                 break;
             }
 
             case ShapeType_RECTANGLE:
             {
-                // Rectangles are always on top/bottom
+                // note: Rectangles are always aligned on top/bottom
                 Vec2 slot_pos{};
 
                 slot_pos.x += 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(
@@ -341,7 +339,10 @@ bool NodeView::update(float _deltaTime)
 
                 slot_view->xform()->set_pos( slot_pos );
                 slot_view->box()->set_size( cfg->ui_slot_rectangle_size );
+                break;
             }
+            default:
+                VERIFY(false, "ShapeType not handled yet")
         }
 
     }
