@@ -232,15 +232,19 @@ bool GraphView::draw()
                 auto *node_view         = slot->node()->get_component<NodeView>();
                 auto *adjacent_nodeview = adjacent_slot->node()->get_component<NodeView>();
 
-                // Do not draw variable--->ref wires, except when one of them is selected
-                if ( each_node->type() == NodeType_VARIABLE && adjacent_slot->node()->type() == NodeType_VARIABLE_REF )
-                    if ( !node_view->selected() && !adjacent_nodeview->selected() )
-                        continue;
-
                 if ( !node_view->visible() )
                     continue;
                 if ( !adjacent_nodeview->visible() )
                     continue;
+
+                // Skip variable--->ref wires in certain cases
+                if ( each_node->type() == NodeType_VARIABLE ) // from a variable
+                {
+                    auto variable = static_cast<VariableNode*>( each_node );
+                    if ( slot == variable->ref_out() ) // from a reference slot (can't be a declaration link)
+                        if ( !node_view->selected() && !adjacent_nodeview->selected() )
+                            continue;
+                }
 
                 ImGuiEx::WireStyle style    = default_wire_style;
                 SlotView* slotview          = slot->view();
@@ -729,6 +733,8 @@ void GraphView::line_state_tick()
         {
             case ViewItemType_SLOT:
             {
+                if ( m_focused.slotview == m_hovered.slotview )
+                    break;
                 auto event = new Event_SlotDropped();
                 event->data.first  = &m_focused.slotview->slot();
                 event->data.second = &m_hovered.slotview->slot();

@@ -255,6 +255,7 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_SlotDropped*>(event);
                 Slot* tail = _event->data.first;
                 Slot* head = _event->data.second;
+                ASSERT(head != tail)
                 if ( tail->order() == SlotFlag_ORDER_SECOND )
                 {
                     if ( head->order() == SlotFlag_ORDER_SECOND )

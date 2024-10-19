@@ -75,10 +75,10 @@ VariableNode* NodeFactory::create_variable(const TypeDescriptor* _type, const st
     return node;
 }
 
-VariableRefNode* NodeFactory::create_variable_ref(const TypeDescriptor* _type) const
+VariableRefNode* NodeFactory::create_variable_ref() const
 {
     auto node = create<VariableRefNode>();
-    node->init(_type);
+    node->init();
     m_post_process(node);
     return node;
 }

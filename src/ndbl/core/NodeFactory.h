@@ -36,7 +36,7 @@ namespace ndbl
 
         Node*                  create_program()const;
         VariableNode*          create_variable(const tools::TypeDescriptor *_type, const std::string &_name, Scope* _scope)const;
-        VariableRefNode*       create_variable_ref(const tools::TypeDescriptor* _type) const;
+        VariableRefNode*       create_variable_ref() const;
         LiteralNode*           create_literal(const tools::TypeDescriptor *_type)const;
         FunctionNode*          create_function(const tools::FunctionDescriptor*, NodeType node_type = NodeType_FUNCTION)const;
         Node*                  create_scope()const;

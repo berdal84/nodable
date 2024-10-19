@@ -10,16 +10,16 @@ namespace ndbl
     class VariableRefNode : public Node
     {
     public:
-        void init(const tools::TypeDescriptor* _type)
+
+        void init()
         {
-            ASSERT(_type != nullptr)
             Node::init(NodeType_VARIABLE_REF, "");
 
             // Set name
             //set_name("Ref.");
 
             // Init identifier property
-            m_value->set_type(_type);
+            m_value->set_type(tools::type::any());
             m_value->set_token({Token_t::identifier});
 
             // Init Slots
@@ -30,14 +30,21 @@ namespace ndbl
             add_slot(m_value, SlotFlag_OUTPUT, 1); // ref can be connected once
         }
 
+        void set_variable(VariableNode* v)
+        {
+            m_value->set_type( v->get_type() );
+            m_value->token().word_replace( v->get_identifier().c_str() );
+
+            // Ensure this node name gets updated when variable's name changes
+            v->on_name_change().connect([this](Node* _node) {
+                auto name = static_cast<VariableNode*>( _node )->get_identifier();
+                this->m_value->token().word_replace( name.c_str() );
+            });
+        }
+
         const Token& get_identifier_token() const
         {
-            const Slot* adjacent_slot = value_in()->first_adjacent();
-
-            if ( adjacent_slot == nullptr )
-                return value()->token(); // In some cases ref are not connected to an existing variable
-
-            return adjacent_slot->node()->value()->token();
+            return m_value->token();
         }
     };
 }

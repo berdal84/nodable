@@ -40,8 +40,8 @@ namespace ndbl
         bool               is_type(const tools::TypeDescriptor* other) const;
         void               set_type(const tools::TypeDescriptor *pDescriptor);
         void               set_token(const Token& _token) { m_token = _token; }
-        Token&             token() { return m_token; }
-        const Token&       token() const { return m_token; }
+        inline Token&      token() { return m_token; }
+        inline const Token&token() const { return m_token; }
 
     private:
         Node*              m_owner = nullptr;

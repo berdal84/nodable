@@ -26,8 +26,8 @@ void VariableNode::init(const tools::TypeDescriptor* _type, const char* _identif
     add_slot(m_value, SlotFlag_NEXT, 1);
     add_slot(m_value, SlotFlag_PREV, Slot::MAX_CAPACITY);
 
-    m_as_reference_slot   = add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY ); // as reference
     m_as_declaration_slot = add_slot(m_value, SlotFlag_OUTPUT, 1); // as declaration
+    m_as_reference_slot   = add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY ); // as reference
 }
 
 Scope* VariableNode::get_scope()
