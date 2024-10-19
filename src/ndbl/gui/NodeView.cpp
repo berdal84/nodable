@@ -360,19 +360,17 @@ bool NodeView::draw()
             5.0f,
             border_width );
 
-    // Add an invisible just on top of the background to detect mouse hovering
-	ImGui::SetCursorScreenPos(screen_rect.top_left());
     bool is_rect_hovered = !ImGui::IsAnyItemHovered() && ImGui::IsMouseHoveringRect(screen_rect.min, screen_rect.max);
-    Vec2 new_screen_pos = screen_rect.top_left()
-                          + Vec2{ cfg->ui_node_padding.x, cfg->ui_node_padding.y} // left and top padding.
-                          ; // space for "this" left slot
-    ImGui::SetCursorScreenPos(new_screen_pos);
 
 	// Draw the window content
 	//------------------------
 
+    ImGui::SetCursorScreenPos( screen_rect.top_left() );
     ImGui::BeginGroup();
-    ImGui::Dummy({1.f, 1.f}); // Without this, drawing doesn't work (size issues), TODO: understand why and remove this
+    ImGui::SetCursorPosX( ImGui::GetCursorPosX() + cfg->ui_node_padding.x );
+    ImGui::SetCursorPosY( ImGui::GetCursorPosY() + cfg->ui_node_padding.y );
+    ImGui::AlignTextToFramePadding(); // text and other elements will be well aligned
+    ImGui::Dummy({1.f});
 
     // We currently don't need to see these property, unnecessary complexity
     // ImGui::SameLine(); draw_properties(m_property_views__out_strictly);
@@ -410,20 +408,18 @@ bool NodeView::draw()
     // Draw the properties depending on node type
     if ( node->type() != NodeType_OPERATOR )
     {
-        ImGui::SameLine(); PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
-        ImGui::SameLine(); PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
-        ImGui::SameLine(); PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
+        PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
+        PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
+        //PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
     }
     else
     {
         // TODO: handle ternary operators
-        ImGui::SameLine();
-        ImGui::BeginGroup();
 
         for(size_t i = 0; i < m_property_views__in.size(); i++)
         {
-            ImGui::SameLine();
             PropertyView* property_view = m_property_views__in[i];
+            ImGui::SameLine();
             changed |= property_view->draw( cfg->ui_node_detail );
 
             // draw inner label when necessary
@@ -432,7 +428,7 @@ bool NodeView::draw()
                 ImGui::SameLine(); ImGui::Text("%s", operator_label[i].c_str() );
             }
         }
-        ImGui::EndGroup();
+
     }
 
     if ( !post_label.empty() )
@@ -447,9 +443,9 @@ bool NodeView::draw()
     //----------------
 
     // Update box's size according to item's rect
-    Vec2 new_size = ImGui::GetItemRectMax();
+    Vec2 new_size = ImGui::GetItemRectSize();
+
     new_size += Vec2{ cfg->ui_node_padding.z, cfg->ui_node_padding.w}; // right and bottom padding
-    new_size -= screen_rect.top_left();
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
 

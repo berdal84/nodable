@@ -310,13 +310,11 @@ bool PropertyView::draw_all(const std::vector<PropertyView *>& views, ViewDetail
 
     if ( !views.empty() )
     {
-        ImGui::BeginGroup();
         for(auto view : views)
         {
             ImGui::SameLine();
             changed |= view->draw( _detail );
         }
-        ImGui::EndGroup();
     }
 
     return changed;
