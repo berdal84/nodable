@@ -69,7 +69,6 @@ namespace ndbl
         node->add_slot(node->value(), SlotFlag_PARENT, 1);
         node->add_slot(node->value(), SlotFlag_PREV  , Slot::MAX_CAPACITY);
         node->add_component( new Scope() );
-        node->add_slot(node->value(), SlotFlag_OUTPUT, Slot::MAX_CAPACITY);
 
         // A default NEXT branch exists.
         m_next_slot[Branch_FALSE] = node->add_slot(node->value(), SlotFlag_NEXT, 1, Branch_FALSE);

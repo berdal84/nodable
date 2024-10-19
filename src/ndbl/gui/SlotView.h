@@ -53,6 +53,8 @@ namespace ndbl
         tools::BoxShape2D*           box() { return &m_view_state.box; }
         const tools::BoxShape2D*     box() const { return &m_view_state.box; }
 
+        void set_align(const tools::Vec2 vec2);
+
     private:
         size_t                m_index;
         ShapeType             m_shape;

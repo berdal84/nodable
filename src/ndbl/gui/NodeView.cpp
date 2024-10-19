@@ -37,8 +37,8 @@ constexpr Vec2 DEFAULT_POS              = Vec2(500.0f, -1.0f);
 constexpr Vec4 DEFAULT_COLOR            = Vec4(1.f, 0.f, 0.f);
 constexpr bool PIXEL_PERFECT            = true; // round positions for drawing only
 constexpr float PROPERTY_INPUT_PADDING  = 5.0f;
-constexpr float PROPERTY_INPUT_SIZE_MIN = 10.0f;
-constexpr Vec2 PROPERTY_TOGGLE_BTN_SIZE = Vec2(10.0, 25.0f);
+constexpr float PROPERTY_INPUT_SIZE_MIN = 12.0f;
+constexpr Vec2 PROPERTY_TOGGLE_BTN_SIZE = Vec2(12.0, 22.0f);
 
 NodeView::NodeView()
     : NodeComponent()
@@ -105,8 +105,12 @@ void NodeView::set_owner(Node* node)
         {
             case NodeType_FUNCTION:
             case NodeType_OPERATOR:
+            case NodeType_BLOCK_FOR_LOOP:
+            case NodeType_BLOCK_CONDITION:
+            case NodeType_BLOCK_SCOPE:
+            case NodeType_BLOCK_WHILE_LOOP:
                 // we don't need to actually see this view for now
-                if ( property == node->value() )
+                if ( property->has_flags(PropertyFlag_IS_THIS) )
                     continue;
         }
 
@@ -157,13 +161,14 @@ void NodeView::set_owner(Node* node)
     for(Slot* slot : get_node()->slots() )
     {
         Vec2      slot_align;
-        ShapeType slot_shape         = ShapeType_CIRCLE;
+        ShapeType slot_shape;
         SlotFlags slot_type_n_order  = slot->type_and_order();
         u8_t      slot_index         = next_index_per_type[slot_type_n_order]++;
 
         switch ( slot_type_n_order )
         {
             case SlotFlag_INPUT:
+                slot_shape = ShapeType_CIRCLE;
                 slot_align = TOP;
                 break;
 
@@ -173,7 +178,16 @@ void NodeView::set_owner(Node* node)
                 break;
 
             case SlotFlag_OUTPUT:
-                slot_align = BOTTOM;
+                switch (slot->node()->type())
+                {
+                    case NodeType_FUNCTION:
+                    case NodeType_OPERATOR:
+                        slot_align = LEFT;
+                        break;
+                    default:
+                        slot_align = BOTTOM;
+                }
+                slot_shape = ShapeType_CIRCLE;
                 break;
 
             case SlotFlag_NEXT:
@@ -264,6 +278,8 @@ bool NodeView::update(float _deltaTime)
 
         const Slot& slot = slot_view->get_slot();
 
+
+
         if (slot.capacity() == 0)
             continue;
 
@@ -271,6 +287,10 @@ bool NodeView::update(float _deltaTime)
             if (!get_node()->is_instruction())
                 if (!get_node()->can_be_instruction() )
                     continue;
+
+        if (slot.has_flags(SlotFlag_OUTPUT) )
+            if (Slot* adjacent = slot.first_adjacent() )
+                slot_view->set_align( adjacent->node()->is_instruction() ? LEFT : BOTTOM + Vec2{-0.5f, 0.f} );
 
         slot_view->set_visible( true );
 
@@ -448,6 +468,7 @@ bool NodeView::draw()
     {
         ImGui::SameLine(); draw_properties(m_property_views__in_strictly);
         ImGui::SameLine(); draw_properties(m_property_views__inout_strictly);
+        ImGui::SameLine(); draw_properties(m_property_views__out_strictly);
     }
     else
     {
@@ -546,7 +567,6 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     bool            changed            = false;
     Property*       property           = _view->get_property();
     NodeType        node_type          = get_node()->type();
-    VariableNode*   connected_variable = _view->get_connected_variable();
     bool            was_visited_by_interpreter = get_interpreter()->was_visited(get_node());
 
     /*
@@ -568,14 +588,21 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
     {
         // When untouched, it depends...
 
-        // Always show literals (their property don't have input slot)
         _view->show_input |= node_type == NodeType_LITERAL;
-        // Always show variable properties
         _view->show_input |= node_type == NodeType_VARIABLE;
+        _view->show_input |= node_type == NodeType_VARIABLE_REF;
+
         // During debugging we want to see everything if we visited this node
         _view->show_input |= was_visited_by_interpreter;
         // Always show when connected to a variable
-        _view->show_input |= connected_variable != nullptr;
+        if ( const Slot* connected_slot = _view->get_connected_slot() )
+            switch ( connected_slot->node()->type() )
+            {
+                case NodeType_VARIABLE:
+                case NodeType_VARIABLE_REF:
+                    _view->show_input |= true;
+            }
+
         // Always show properties that have an input slot free
         if (auto* slot = get_node()->find_slot_by_property(property, SlotFlag_INPUT))
             _view->show_input |= !slot->is_full();
@@ -645,28 +672,30 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if (property->owner()->type() != NodeType_VARIABLE
-        && connected_slot
-        && connected_slot->get_property()->token().m_type == Token_t::identifier)
-    {
-        if ( property_token.m_type != Token_t::null )
-            LOG_WARNING("NodeView", "A connected property should never be from type Token_t::null")
-
-        char buf[256];
-        const Token &connected_property_token = connected_slot->get_property()->token();
-        snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
-                 connected_property_token.word_ptr());
-        float w = calc_input_width(buf);
-        ImGui::PushItemWidth(w);
-        ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                              connected_slot->node()->get_component<NodeView>()->get_color(Color_FILL));
-        if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags)) {
-            // is ReadOnly
-        }
-        ImGui::PopStyleColor();
-        ImGui::PopItemWidth();
-        return false;
-    }
+    if (property->owner()->type() != NodeType_VARIABLE)
+        if ( connected_slot != nullptr )
+            switch (connected_slot->node()->type())
+            {
+                case NodeType_VARIABLE:
+                case NodeType_VARIABLE_REF:
+                {
+                    char buf[256];
+                    const Token &connected_property_token = connected_slot->get_property()->token();
+                    snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
+                             connected_property_token.word_ptr());
+                    float w = calc_input_width(buf);
+                    ImGui::PushItemWidth(w);
+                    ImGui::PushStyleColor(ImGuiCol_FrameBg,
+                                          connected_slot->node()->get_component<NodeView>()->get_color(Color_FILL));
+                    if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
+                    {
+                        // is ReadOnly
+                    }
+                    ImGui::PopStyleColor();
+                    ImGui::PopItemWidth();
+                    return false;
+                }
+            }
 
     // 2)
 

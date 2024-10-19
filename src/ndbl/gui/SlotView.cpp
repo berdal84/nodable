@@ -182,3 +182,8 @@ bool SlotView::is_hovered() const
 {
     return m_view_state.hovered;
 }
+
+void SlotView::set_align(const tools::Vec2 align)
+{
+    m_align = align;
+}
