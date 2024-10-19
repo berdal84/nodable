@@ -98,6 +98,10 @@ void NodeView::set_owner(Node* node)
 
     for (Property* property : node->props() )
     {
+        // Create view
+        auto new_view = new PropertyView(property);
+        add_child( new_view );
+
         switch ( node->type() )
         {
             case NodeType_FUNCTION:
@@ -108,12 +112,8 @@ void NodeView::set_owner(Node* node)
             case NodeType_BLOCK_WHILE_LOOP:
                 // we don't need to actually see this view for now
                 if ( property->has_flags(PropertyFlag_IS_THIS) )
-                    continue;
+                    new_view->view_state()->visible = false;
         }
-
-        // Create view
-        auto new_view = new PropertyView(property);
-        add_child( new_view );
 
         // Indexing
         if ( property == node->value() )
@@ -192,7 +192,7 @@ void NodeView::set_owner(Node* node)
             case SlotFlag_TYPE_VALUE:
             {
                 const PropertyView* property_view = find_property_view( view->property() );
-                if ( property_view != nullptr )
+                if ( property_view != nullptr && property_view->view_state()->visible )
                     view->set_align_ref( property_view->box() );
             }
         }
@@ -386,6 +386,7 @@ bool NodeView::draw()
                 pre_label = get_label();
             else if (node->is_binary_operator())
                 operator_label[0] = get_label();
+            // else if (node->is_ternary_operator()
             break;
         default:
             pre_label = get_label();
@@ -410,12 +411,10 @@ bool NodeView::draw()
     {
         PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
         PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
-        //PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
+        PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
     }
     else
     {
-        // TODO: handle ternary operators
-
         for(size_t i = 0; i < m_property_views__in.size(); i++)
         {
             PropertyView* property_view = m_property_views__in[i];
@@ -428,7 +427,6 @@ bool NodeView::draw()
                 ImGui::SameLine(); ImGui::Text("%s", operator_label[i].c_str() );
             }
         }
-
     }
 
     if ( !post_label.empty() )
