@@ -26,6 +26,8 @@ BoxShape2D::BoxShape2D(
 
 Vec2 BoxShape2D::pivot(const Vec2& pivot, Space space) const
 {
+    if ( space == LOCAL_SPACE )
+        return _half_size * pivot;
     return xform.get_pos(space) + _half_size * pivot;
 }
 

@@ -103,7 +103,7 @@ const Slot* Node::find_slot_at(SlotFlags _flags, size_t _position) const
 {
     for( const Slot* slot : m_slots )
     {
-        if( slot->has_flags(_flags) && slot->position() == _position && slot->get_property() == m_value )
+        if( slot->has_flags(_flags) && slot->position() == _position && slot->property() == m_value )
         {
             return slot;
         }

@@ -47,7 +47,7 @@ namespace ndbl
         Vec4           ui_wire_color;
         Vec4           ui_wire_shadowColor;
         float          ui_slot_circle_radius_base;
-        float          ui_slot_circle_radius(tools::Size = tools::Size_DEFAULT);
+        float          ui_slot_circle_radius(tools::Size = tools::Size_DEFAULT) const;
         Vec4           ui_slot_border_color;
         Vec4           ui_slot_color;
         Vec4           ui_slot_hovered_color;
@@ -56,7 +56,7 @@ namespace ndbl
         float          ui_slot_border_radius;
         float          ui_slot_invisible_ratio;
         Vec2           ui_node_gap_base; // horizontal, vertical
-        Vec2           ui_node_gap(tools::Size = tools::Size_DEFAULT);
+        Vec2           ui_node_gap(tools::Size = tools::Size_DEFAULT) const;
         Vec4           ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth

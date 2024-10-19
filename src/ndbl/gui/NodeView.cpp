@@ -179,12 +179,26 @@ void NodeView::set_owner(Node* node)
         if ( slot->type() == SlotFlag_TYPE_HIERARCHICAL )
             continue;
 
-        const Vec2&      alignment = align_per_type.at(slot->type_and_order());
-        const ShapeType& shape     = shape_per_type.at(slot->type());
-        const u8_t       index     = count_per_type[slot->type_and_order()]++;
+        const Vec2&      alignment     = align_per_type.at(slot->type_and_order());
+        const ShapeType& shape         = shape_per_type.at(slot->type());
+        const u8_t       index         = count_per_type[slot->type_and_order()]++;
 
-        auto* view = new SlotView(slot, alignment, shape, index);
+        auto* view = new SlotView( slot, alignment, shape, index, this->box() );
         add_child( view );
+    }
+
+    // Make sure inputs/outputs are aligned with the property views (if present) and not the node's view.
+    for(auto view : m_slot_views)
+    {
+        switch ( view->slot().type() )
+        {
+            case SlotFlag_TYPE_VALUE:
+            {
+                const PropertyView* property_view = find_property_view( view->property() );
+                if ( property_view != nullptr )
+                    view->set_align_ref( property_view->box() );
+            }
+        }
     }
 
     // Adjust some slot views
@@ -194,21 +208,28 @@ void NodeView::set_owner(Node* node)
         {
             auto variable = static_cast<VariableNode*>( node );
             if ( Slot* decl_out = variable->decl_out() )
-                if ( SlotView* view = decl_out->view() )
+            {
+                if (SlotView *view = decl_out->view())
                 {
-                    view->set_align(LEFT);
-                    view->set_shape(ShapeType_RECTANGLE);
+                    view->set_align( LEFT );
+                    view->set_align_ref( this->box() );
                 }
+            }
             break;
         }
         case NodeType_FUNCTION:
+        {
             auto function = static_cast<FunctionNode*>( node );
             if ( Slot* value_out = function->value_out() )
-                if ( SlotView* view = value_out->view() )
+            {
+                if (SlotView *view = value_out->view())
                 {
-                    view->set_align(LEFT);
+                    view->set_align({-0.75, 1.f}); // bottom-left, with a margin
+                    view->set_align_ref( this->box() );
                 }
+            }
             break;
+        }
     }
 
     // 3. Update label
@@ -272,80 +293,11 @@ void NodeView::arrange_recursively(bool _smoothly)
 bool NodeView::update(float _deltaTime)
 {
     if(m_opacity != 1.0f)
-    {
         lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
-    }
-
-    Config* cfg = get_config();
-    const Vec2 nodeview_halfsize = box()->_half_size;
 
     for(SlotView* slot_view  : m_slot_views )
-    {
-        const Slot& slot = slot_view->slot();
+        slot_view->update( _deltaTime );
 
-        if ( slot.capacity() == 0)
-        {
-            slot_view->set_visible( false );
-        }
-        else if (slot.type() == SlotFlag_TYPE_CODEFLOW )
-        {
-            bool desired_visibility = get_node()->is_instruction() || get_node()->can_be_instruction();
-            slot_view->set_visible( desired_visibility );
-        }
-        else
-        {
-            slot_view->set_visible( true );
-        }
-
-        if ( !slot_view->state()->visible )
-            continue;
-
-        switch ( slot_view->shape() )
-        {
-            case ShapeType_NONE:
-                continue;
-            case ShapeType_CIRCLE:
-            {
-                Vec2       new_pos;
-                const Vec2 alignment = slot_view->alignment();
-
-                if( const PropertyView* property_view = find_property_view( slot.get_property() ) )
-                {
-                    // Align horizontally on the property
-                    new_pos.x = property_view->xform()->get_pos(WORLD_SPACE).x;
-
-                    // Align vertically on the node edge
-                    new_pos.y = box()->pivot( alignment, WORLD_SPACE ).y;
-                }
-                else
-                {
-                    new_pos = box()->pivot( alignment, WORLD_SPACE );
-                }
-
-                slot_view->xform()->set_pos( new_pos, WORLD_SPACE );
-                slot_view->box()->set_size( { cfg->ui_slot_circle_radius() } );
-                break;
-            }
-
-            case ShapeType_RECTANGLE:
-            {
-                // note: Rectangles are always aligned on top/bottom
-                Vec2 slot_pos{};
-
-                slot_pos.x += 2.f * cfg->ui_slot_gap + (cfg->ui_slot_rectangle_size.x + cfg->ui_slot_gap) * float(
-                        slot_view->index());
-                slot_pos.y += slot_view->alignment().y * cfg->ui_slot_rectangle_size.y * 0.5f;
-                slot_pos   += slot_view->alignment() * nodeview_halfsize;
-
-                slot_view->xform()->set_pos( slot_pos );
-                slot_view->box()->set_size( cfg->ui_slot_rectangle_size );
-                break;
-            }
-            default:
-                VERIFY(false, "ShapeType not handled yet")
-        }
-
-    }
 	return true;
 }
 
@@ -651,9 +603,9 @@ bool NodeView::_draw_property_view(PropertyView* _view, ViewDetail _detail)
 
     // Memorize new size and position fo this property
     const Vec2 new_size = ImGui::GetItemRectSize();
-    const Vec2 new_pos  = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
+    const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
     _view->box()->set_pos( new_pos, WORLD_SPACE ); // GetItemRectMin is in SCREEN_SPACE
-    _view->box()->set_size( new_size );
+    _view->box()->set_size({new_size.x, box()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
@@ -689,7 +641,7 @@ bool NodeView::draw_property_view(PropertyView* _view, bool _compact_mode, const
                 case NodeType_VARIABLE_REF:
                 {
                     char buf[256];
-                    const Token &connected_property_token = connected_slot->get_property()->token();
+                    const Token &connected_property_token = connected_slot->property()->token();
                     snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
                              connected_property_token.word_ptr());
                     float w = calc_input_width(buf);

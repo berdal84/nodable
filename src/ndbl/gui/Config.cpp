@@ -191,12 +191,12 @@ float ndbl::Config::ui_codeflow_thickness() const
     return ui_slot_rectangle_size.x * ui_codeflow_thickness_ratio;
 }
 
-Vec2 ndbl::Config::ui_node_gap(Size size)
+Vec2 ndbl::Config::ui_node_gap(Size size) const
 {
     return ui_node_gap_base * tools_cfg->size_factor[size];
 }
 
-float ndbl::Config::ui_slot_circle_radius(tools::Size size)
+float ndbl::Config::ui_slot_circle_radius(tools::Size size) const
 {
     return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
 }

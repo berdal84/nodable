@@ -26,10 +26,11 @@ namespace ndbl
     {
     public:
         SlotView(
-            Slot* slot,
-            const tools::Vec2& align,
-            ShapeType shape,
-            size_t index
+            Slot*              slot,
+            const tools::Vec2& alignment,
+            ShapeType          shape,
+            size_t             index,
+            const tools::BoxShape2D* alignment_ref
             );
 
         bool                  draw();
@@ -39,7 +40,6 @@ namespace ndbl
         Node*                 node()const;
         bool                  has_node_connected() const;
         Slot&                 slot()const;
-        const tools::Vec2&    alignment() const;
         tools::Vec2           normal() const;
         Node*                 adjacent_node() const;
         bool                  is_this() const;
@@ -50,6 +50,7 @@ namespace ndbl
         void                  set_visible(bool b) { m_view_state.visible = b; }
         void                  set_align(const tools::Vec2 vec2);
         void                  set_shape(ShapeType type);
+        void                  set_align_ref(const tools::BoxShape2D*);
 
         // aliases
 
@@ -59,11 +60,15 @@ namespace ndbl
         tools::BoxShape2D*          box() { return &m_view_state.box; }
         const tools::BoxShape2D*    box() const { return &m_view_state.box; }
 
+
+        void update(float dt);
+
     private:
         size_t                m_index;
         ShapeType             m_shape;
         Slot*                 m_slot;
-        tools::Vec2           m_align;
+        const tools::BoxShape2D* m_alignment_ref;
+        tools::Vec2           m_alignment;
         tools::ViewState      m_view_state;
     };
 }

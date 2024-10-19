@@ -1551,7 +1551,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     ASSERT( _slot.has_flags( SlotFlag_INPUT ) );
 
     const Slot*     adjacent_slot     = _slot.first_adjacent();
-    const Property* adjacent_property = adjacent_slot != nullptr ? adjacent_slot->get_property()
+    const Property* adjacent_property = adjacent_slot != nullptr ? adjacent_slot->property()
                                                                  : nullptr;
     // Append open brace?
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
@@ -1560,7 +1560,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     if ( adjacent_property == nullptr )
     {
         // Simply serialize this property
-        serialize_property(_out, _slot.get_property());
+        serialize_property(_out, _slot.property());
     }
     else
     {

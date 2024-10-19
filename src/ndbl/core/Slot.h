@@ -34,7 +34,7 @@ namespace ndbl
         Slot*     first_adjacent() const;
         Slot*     adjacent_at(u8_t ) const;
         Property* get_property() { return m_property; }
-        const Property* get_property() const { return m_property; }
+        const Property* property() const { return m_property; }
         size_t    adjacent_count() const;
         bool      is_full() const; // Slots have a capacity
         void      add_adjacent(Slot*);

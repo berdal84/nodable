@@ -10,12 +10,14 @@ SlotView::SlotView(
     Slot*       slot,
     const Vec2& align,
     ShapeType   shape,
-    size_t      index
+    size_t      index,
+    const BoxShape2D* alignment_ref
     )
 : m_slot(slot)
-, m_align(align)
+, m_alignment(align)
 , m_shape(shape)
 , m_index(index)
+, m_alignment_ref(alignment_ref)
 {
     ASSERT(slot != nullptr)
     slot->set_view(this);
@@ -70,12 +72,7 @@ Property* SlotView::property() const
 
 tools::Vec2 SlotView::normal() const
 {
-    return tools::Vec2::normalize( m_align );
-}
-
-const tools::Vec2& SlotView::alignment() const
-{
-    return m_align;
+    return tools::Vec2::normalize(m_alignment );
 }
 
 tools::string64 SlotView::compute_tooltip() const
@@ -186,10 +183,67 @@ bool SlotView::is_hovered() const
 
 void SlotView::set_align(const tools::Vec2 align)
 {
-    m_align = align;
+    m_alignment = align;
 }
 
 void SlotView::set_shape(ShapeType shape)
 {
     m_shape = shape;
+}
+
+void SlotView::set_align_ref(const tools::BoxShape2D* align_ref)
+{
+    m_alignment_ref = align_ref;
+}
+
+void SlotView::update(float dt)
+{
+    if ( m_slot->capacity() == 0)
+    {
+        m_view_state.visible = false;
+    }
+    else if (m_slot->type() == SlotFlag_TYPE_CODEFLOW )
+    {
+        // A code flow slot has to be hidden when cannot be an instruction or is not
+        bool desired_visibility = node()->is_instruction() || node()->can_be_instruction();
+        m_view_state.visible = desired_visibility;
+    }
+    else
+    {
+        m_view_state.visible = true;
+    }
+
+    if ( !m_view_state.visible )
+        return;
+
+    const Config* cfg = get_config();
+    if ( m_slot->type() == SlotFlag_TYPE_CODEFLOW )
+    {
+        // Align the code flow slots like that (example at top-left corner)
+        //
+        // [0][1]...[n-1]
+        // ---------------------
+        // |  Box              |
+        // ---------------------
+        //
+        const Vec2  size  = cfg->ui_slot_rectangle_size;
+        const float gap   = cfg->ui_slot_gap;
+        const float dir_x = -m_alignment.x;
+
+        const Vec2 pos = m_alignment_ref->pivot(m_alignment, WORLD_SPACE ) // Starts from the right corner
+                       + Vec2( dir_x * gap * float(m_index + 2), 0.f) // horizontal gaps (2 initial, then 1 per slot)
+                       + Vec2( dir_x * size.x * float(m_index), 0.f) // jump to index
+                       + Vec2(0.f, m_alignment.y * size.y * 0.5f); // align edge vertically
+
+        box()->xform.set_pos( pos, WORLD_SPACE ); // relative to NodeView's
+        box()->set_size( size );
+    }
+    else
+    {
+        // Align view
+        const Vec2 size = cfg->ui_slot_circle_radius();
+        const Vec2 pos  = m_alignment_ref->pivot( m_alignment, WORLD_SPACE);
+        box()->xform.set_pos( pos, WORLD_SPACE );
+        box()->set_size( size );
+    }
 }
