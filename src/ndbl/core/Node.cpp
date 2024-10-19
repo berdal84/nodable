@@ -84,16 +84,6 @@ Property* Node::get_prop(const char *_name)
     return m_props.find_by_name( _name );
 }
 
-Property* Node::get_prop_at(size_t pos)
-{
-    return m_props.at(pos);
-}
-
-const Property* Node::get_prop_at(size_t pos) const
-{
-    return m_props.at(pos);
-}
-
 Slot* Node::find_slot(SlotFlags _flags)
 {
     return const_cast<Slot*>( const_cast<const Node*>(this)->find_slot(_flags));
@@ -121,13 +111,13 @@ const Slot* Node::find_slot_at(SlotFlags _flags, size_t _position) const
     return nullptr;
 }
 
-Slot& Node::get_slot_at(size_t pos)
+Slot& Node::slot_at(size_t pos)
 {
     ASSERT(m_slots.size() < pos)
     return *m_slots[pos];
 }
 
-const Slot& Node::get_slot_at(size_t pos) const
+const Slot& Node::slot_at(size_t pos) const
 {
     ASSERT(m_slots.size() < pos)
     return *m_slots[pos];
@@ -182,7 +172,7 @@ Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _t
     return nullptr;
 }
 
-Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
+Slot& Node::nth_slot(size_t _n, SlotFlags _flags )
 {
     size_t count = 0;
     for( auto& slot : m_slots )
@@ -358,7 +348,7 @@ void Node::set_suffix(const Token& token)
     m_suffix = token;
 }
 
-const PropertyBag& Node::get_props() const
+const PropertyBag& Node::props() const
 {
     return m_props;
 }

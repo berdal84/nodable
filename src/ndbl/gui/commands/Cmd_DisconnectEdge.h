@@ -19,8 +19,8 @@ namespace ndbl
                     , "DisconnectEdge\n"
                       " - tail: \"%s\"\n"
                       " - head: \"%s\"\n"
-                    , _edge.tail->node()->get_name().c_str()
-                    , _edge.head->node()->get_name().c_str() );
+                    , _edge.tail->node()->name().c_str()
+                    , _edge.head->node()->name().c_str() );
             m_description.append(str);
         }
 

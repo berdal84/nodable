@@ -36,7 +36,7 @@ void Graph::clear()
     while ( !m_node_registry.empty() )
     {
         Node* node = m_node_registry[0];
-        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->get_name().c_str(), (u64_t)node )
+        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name().c_str(), (u64_t)node )
         destroy(node);
     }
 
@@ -89,10 +89,10 @@ void Graph::add(Node* _node)
     ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node) == m_node_registry.end())
 
 	m_node_registry.push_back(_node);
-    _node->m_parent_graph = this;
+    _node->m_graph = this;
     on_add.emit(_node);
     set_dirty(); // To express this graph changed
-    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->get_name().c_str(), _node->get_class()->get_name())
+    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name().c_str(), _node->get_class()->get_name())
 }
 
 void Graph::remove(Node* _node)

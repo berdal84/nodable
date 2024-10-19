@@ -232,9 +232,14 @@ bool GraphView::draw()
                 auto *node_view         = slot->node()->get_component<NodeView>();
                 auto *adjacent_nodeview = adjacent_slot->node()->get_component<NodeView>();
 
-                if ( node_view->visible() == false )
+                // Do not draw variable--->ref wires, except when one of them is selected
+                if ( each_node->type() == NodeType_VARIABLE && adjacent_slot->node()->type() == NodeType_VARIABLE_REF )
+                    if ( !node_view->selected() && !adjacent_nodeview->selected() )
+                        continue;
+
+                if ( !node_view->visible() )
                     continue;
-                if ( adjacent_nodeview->visible() == false )
+                if ( !adjacent_nodeview->visible() )
                     continue;
 
                 ImGuiEx::WireStyle style    = default_wire_style;

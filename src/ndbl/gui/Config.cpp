@@ -68,7 +68,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     // nodes
     ui_node_borderWidth                   = 1.0f;
     ui_node_instructionBorderRatio        = 2.0f;
-    ui_node_padding                       = Vec4{ 10.0f, 5.0f, 10.0f, 5.0f };
+    ui_node_padding                       = Vec4{ 3.0f, 5.0f, 10.0f, 5.0f };
     ui_slot_circle_radius_base            = 4.0f;
 
     ui_node_highlightedColor              = Vec4(1.0f, 1.0f, 1.0f, 1.0f);

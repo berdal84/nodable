@@ -16,7 +16,7 @@ namespace ndbl
             Node::init(NodeType_VARIABLE_REF, "");
 
             // Set name
-            set_name("Ref.");
+            //set_name("Ref.");
 
             // Init identifier property
             m_value->set_type(_type);

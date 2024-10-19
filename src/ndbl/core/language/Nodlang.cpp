@@ -1629,7 +1629,7 @@ std::string & Nodlang::serialize_node(std::string &_out, const Node* node, Seria
             VERIFY(false, "Unhandled NodeType, can't serialize");
     }
 
-    return serialize_token(_out, node->get_suffix() );
+    return serialize_token(_out, node->suffix() );
 }
 
 std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const

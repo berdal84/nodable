@@ -99,7 +99,7 @@ void NodeView::set_owner(Node* node)
     m_property_views__in.clear();
     m_property_views__out.clear();
 
-    for (Property* property : node->get_props() )
+    for (Property* property : node->props() )
     {
         switch ( node->type() )
         {
@@ -213,7 +213,7 @@ void NodeView::update_labels_from_name(const Node* _node)
     if ( _node->type() == NodeType_VARIABLE )
         m_label = reinterpret_cast<const VariableNode *>(_node)->get_type()->get_name();
     else
-        m_label = _node->get_name();
+        m_label = _node->name();
 
     // Short label
     constexpr size_t label_max_length = 10;
@@ -807,7 +807,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             node->set_flags( NodeFlag_IS_DIRTY );
     };
 
-    ImGui::Text("Name:       \"%s\"" , node->get_name().c_str());
+    ImGui::Text("Name:       \"%s\"" , node->name().c_str());
     ImGui::Text("Class:      %s"     , node->get_class()->get_name());
 
     // Draw exposed input properties
@@ -843,7 +843,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
     if ( tools_cfg->runtime_debug )
     {
         ImGui::Text("DEBUG INFO:" );
-        ImGui::Text("Suffix token:\n       %s\n" , node->get_suffix().json().c_str());
+        ImGui::Text("Suffix token:\n       %s\n" , node->suffix().json().c_str());
         ImGui::Text("can_be_instruction(): %i", node->can_be_instruction() );
         ImGui::Text("is_instruction():     %i", node->is_instruction() );
         // Draw exposed output properties
@@ -879,7 +879,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
                 for (const Node* each_node : _nodes )
                 {
-                    ImGui::BulletText("- %s", each_node->get_name().c_str());
+                    ImGui::BulletText("- %s", each_node->name().c_str());
                 }
 
                 ImGui::TreePop();
@@ -918,7 +918,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
                 for (VariableNode* variable : scope->variables())
                 {
                     std::string value = variable->value()->token().word_to_string();
-                    ImGui::BulletText("%s: %s", variable->get_name().c_str(), value.c_str() );
+                    ImGui::BulletText("%s: %s", variable->name().c_str(), value.c_str() );
                 }
                 ImGui::TreePop();
             }
@@ -935,7 +935,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (Graph* parent_graph = node->get_parent_graph())
+                if (Graph* parent_graph = node->graph())
                 {
                     parentName = "Graph";
                     parentName.append( parent_graph->is_dirty() ? " (dirty)" : "");
@@ -950,7 +950,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool *_show_advanced)
 
                 if (Node* parent = node->find_parent() )
                 {
-                    parentName = parent->get_name() + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
+                    parentName = parent->name() + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
                 }
                 ImGui::Text("Parent node is \"%s\"", parentName.c_str());
             }
@@ -1186,8 +1186,8 @@ Vec4 NodeView::get_color( ColorType _type ) const
 
 GraphView *NodeView::get_graph() const
 {
-    ASSERT(get_node()->get_parent_graph() != nullptr)
-    return get_node()->get_parent_graph()->get_view();
+    ASSERT(get_node()->graph() != nullptr)
+    return get_node()->graph()->get_view();
 }
 
 void NodeView::draw_slot(SlotView* slot_view)

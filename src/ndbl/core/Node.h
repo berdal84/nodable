@@ -73,13 +73,13 @@ namespace ndbl
         bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
         void                 set_flags(NodeFlags flags) { m_flags |= flags; }
         void                 clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
-        Graph*               get_parent_graph() { return m_parent_graph; }
-        const Graph*         get_parent_graph() const { return m_parent_graph; }
-        const std::string&   get_name() const { return m_name; };
-        Token&               get_suffix() { return m_suffix; };
-        const Token&         get_suffix() const { return m_suffix; };
+        Graph*               graph() { return m_graph; }
+        const Graph*         graph() const { return m_graph; }
+        const std::string&   name() const { return m_name; };
+        Token&               suffix() { return m_suffix; };
+        const Token&         suffix() const { return m_suffix; };
         void                 set_suffix(const Token& token);
-        const PropertyBag&   get_props() const;
+        const PropertyBag&   props() const;
         observe::Event<Node*>& on_name_change() { return m_on_name_change; };
         const Property*      value() const { return m_value; }
         Property*            value() { return m_value; }
@@ -95,15 +95,15 @@ namespace ndbl
         void                 set_name(const char*);
         Node*                find_parent() const;
         size_t               adjacent_slot_count(SlotFlags )const;
-        Slot&                get_slot_at(size_t);
-        const Slot&          get_slot_at(size_t) const;
-        Slot&                get_nth_slot(size_t, SlotFlags );
+        Slot&                slot_at(size_t);
+        const Slot&          slot_at(size_t) const;
+        Slot&                nth_slot(size_t, SlotFlags );
         std::vector<Slot*>   filter_slots( SlotFlags ) const;
         std::vector<Slot*>   filter_adjacent_slots(SlotFlags) const;
-        Slot*                find_slot( SlotFlags ); // implicitly THIS_PROPERTY's slot
-        const Slot*          find_slot( SlotFlags ) const; // implicitly THIS_PROPERTY's slot
-        Slot*                find_slot_at( SlotFlags, size_t _position ); // implicitly THIS_PROPERTY's slot
-        const Slot*          find_slot_at( SlotFlags, size_t _position ) const; // implicitly THIS_PROPERTY's slot
+        Slot*                find_slot( SlotFlags ); // implicitly DEFAULT_PROPERTY's slot
+        const Slot*          find_slot( SlotFlags ) const; // implicitly DEFAULT_PROPERTY's slot
+        Slot*                find_slot_at( SlotFlags, size_t _position ); // implicitly DEFAULT_PROPERTY's slot
+        const Slot*          find_slot_at( SlotFlags, size_t _position ) const; // implicitly DEFAULT_PROPERTY's slot
         Slot*                find_slot_by_property_name(const char* name, SlotFlags );
         const Slot*          find_slot_by_property_name(const char* name, SlotFlags ) const;
         Slot*                find_slot_by_property_type(SlotFlags _way, const tools::TypeDescriptor *_type);
@@ -126,8 +126,6 @@ namespace ndbl
         //-----------------
 
         Property*            add_prop(const tools::TypeDescriptor*, const char* /* name */, PropertyFlags = PropertyFlag_NONE);
-        Property*            get_prop_at(size_t);
-        const Property*      get_prop_at(size_t) const;
         Property*            get_prop(const char* _name);
         const Property*      get_prop(const char* _name) const;
         const tools::FunctionDescriptor* get_connected_function_type(const char *property_name) const; //
@@ -163,9 +161,9 @@ namespace ndbl
         std::string        m_name;
         PropertyBag        m_props;
         Token              m_suffix;
-        Graph*             m_parent_graph     = nullptr;
-        NodeType           m_type             = NodeType_DEFAULT;
-        NodeFlags          m_flags            = NodeFlag_DEFAULT;
+        Graph*             m_graph = nullptr;
+        NodeType           m_type  = NodeType_DEFAULT;
+        NodeFlags          m_flags = NodeFlag_DEFAULT;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
         observe::Event<Node*> m_on_name_change;
