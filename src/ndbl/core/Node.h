@@ -110,7 +110,6 @@ namespace ndbl
         Slot*                find_slot_by_property(const Property*, SlotFlags );
         const Slot*          find_slot_by_property(const Property*, SlotFlags ) const;
         Slot*                find_adjacent_at(SlotFlags, size_t _index ) const;
-        bool                 should_be_constrain_to_follow_output(const Node* _output ) const;
         size_t               slot_count(SlotFlags) const;
         std::vector<Slot*>&  slots() { return m_slots; }
         const std::vector<Slot*>& slots() const { return m_slots; }

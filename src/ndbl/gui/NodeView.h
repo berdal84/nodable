@@ -101,7 +101,7 @@ namespace ndbl
         void                    add_child(PropertyView*);
         void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
-        void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
+        void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
         void                    update_labels_from_name(const Node *_node);
 
         static void DrawNodeRect(

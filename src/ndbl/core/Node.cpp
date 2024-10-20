@@ -302,12 +302,6 @@ bool Node::is_instruction() const
     return false;
 }
 
-bool Node::should_be_constrain_to_follow_output( const Node* _output ) const
-{
-    const auto _outputs = outputs();
-    return predecessors().empty() && !_outputs.empty() && _outputs.back() == _output;
-}
-
 bool Node::can_be_instruction() const
 {
     // TODO: handle case where a variable has inputs/outputs but not connected to the code flow

@@ -64,14 +64,13 @@ void Physics::add_force( Vec2 force, bool _recurse)
 
     if ( !_recurse ) return;
 
-    for (Node* input_id: m_view->get_owner()->inputs() )
+    for (Node* input_node: m_view->get_owner()->inputs() )
     {
-        Node& input = *input_id;
-        NodeView& input_view = *input.get_component<NodeView>();
+        NodeView* input_view = input_node->get_component<NodeView>();
 
-        if ( !input_view.pinned())
-            if ( input.should_be_constrain_to_follow_output( m_view->get_owner() ))
-                if(auto* physics_component = input.get_component<Physics>())
+        if ( !input_view->pinned())
+            if ( Constraint::should_follow_output( input_node, m_view->get_owner() ))
+                if(auto* physics_component = input_node->get_component<Physics>())
                     physics_component->add_force(force, _recurse);
     }
 }
@@ -104,7 +103,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_PREV);
         if ( !previous_nodes.empty() && !previous_nodes[0]->get_node()->is_conditional() )
         {
-            Physics::Constraint constraint("Position below previous", &Physics::Constraint::constrain_1_to_N_as_row);
+            Constraint constraint("Position below previous", &Constraint::constrain_1_to_N_as_row);
             constraint.leader         = previous_nodes;
             //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
             constraint.follower       = {curr_nodeview};
@@ -132,8 +131,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_NEXT);
         if( node->is_conditional() && next.size() >= 1 )
         {
-            Physics::Constraint constraint("Align conditional children in a row",
-                                           &Physics::Constraint::constrain_N_to_1_as_a_row);
+            Constraint constraint("Align conditional children in a row", &Constraint::constrain_N_to_1_as_a_row);
             constraint.leader         = {curr_nodeview};
             constraint.leader_pivot   = BOTTOM_LEFT;
             constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
@@ -153,14 +151,14 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         std::vector<NodeView*> filtered_inputs;
         for(auto* view : inputs)
         {
-            if ( view->get_node()->predecessors().empty() )
-                if ( view->get_node()->should_be_constrain_to_follow_output( curr_nodeview->get_node() ) )
+            Node* _node = view->get_node();
+            if ( _node->predecessors().empty() )
+                if ( Constraint::should_follow_output( _node, curr_nodeview->get_node() ) )
                     filtered_inputs.push_back(view);
         }
         if(filtered_inputs.size() > 0 )
         {
-            Physics::Constraint constraint("Align many inputs above",
-                                           &Physics::Constraint::constrain_N_to_1_as_a_row);
+            Constraint constraint("Align many inputs above", &Constraint::constrain_N_to_1_as_a_row);
 
             auto* leader = curr_nodeview;
             constraint.leader         = {leader};
@@ -302,3 +300,18 @@ std::vector<NodeView *> Physics::Constraint::clean(std::vector<NodeView *> &view
     return result;
 }
 
+bool Physics::Constraint::should_follow_output(const Node* node, const Node* output_node )
+{
+    const auto _outputs = node->outputs();
+
+    if ( node->is_instruction() )
+        return false;
+
+    if ( _outputs.empty() )
+        return false;
+
+    if ( _outputs.front() == output_node )
+        return true;
+
+    return false;
+}

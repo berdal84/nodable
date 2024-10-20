@@ -56,7 +56,8 @@ namespace  ndbl
             std::vector<NodeView*> leader;
             std::vector<NodeView*> follower;
 
-            static std::vector<NodeView*> clean(std::vector<NodeView*> &views);
+            static std::vector<NodeView*> clean( std::vector<NodeView*>& );
+            static bool should_follow_output(const Node* node, const Node* output_node );
         };
 
         bool            is_active;

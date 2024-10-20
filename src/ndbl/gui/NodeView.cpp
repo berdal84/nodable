@@ -266,10 +266,9 @@ void NodeView::arrange_recursively(bool _smoothly)
 {
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
-        if ( !each_input->m_pinned && each_input->get_node()->should_be_constrain_to_follow_output( this->get_node() ))
-        {
-            each_input->arrange_recursively();
-        }
+        if ( !each_input->m_pinned )
+            if ( Physics::Constraint::should_follow_output( each_input->get_node(), this->get_node() ) )
+                each_input->arrange_recursively();
     }
 
     for (auto each_child: get_adjacent(SlotFlag_CHILD)  )
@@ -740,7 +739,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
             return;
         if( view->m_pinned && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
-        if( view->get_node()->should_be_constrain_to_follow_output( this->get_node() ) )
+        if( Physics::Constraint::should_follow_output( view->get_node(), this->get_node() ) )
         {
             Rect rect = view->get_rect_ex(space, flags);
             rects.push_back( rect );
@@ -813,22 +812,22 @@ void NodeView::set_expanded(bool _expanded)
 
 void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
-    set_adjacent_visible( SlotFlag_INPUT, _visible, _recursive );
+    set_adjacent_visible( SlotFlag_INPUT, _visible, NodeViewFlag_WITH_RECURSION * _recursive );
 }
 
 void NodeView::set_children_visible(bool _visible, bool _recursive)
 {
-    set_adjacent_visible( SlotFlag_CHILD, _visible, _recursive );
+    set_adjacent_visible( SlotFlag_CHILD, _visible, NodeViewFlag_WITH_RECURSION * _recursive );
 }
 
-void NodeView::set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive)
+void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeViewFlags node_flags)
 {
     bool has_not_output = get_adjacent(SlotFlag_OUTPUT).empty();
-    for( auto each_child_view : get_adjacent(flags) )
+    for( auto each_child_view : get_adjacent(slot_flags) )
     {
-        if( _visible || has_not_output || each_child_view->get_node()->should_be_constrain_to_follow_output( get_node() ) )
+        if( _visible || has_not_output || Physics::Constraint::should_follow_output( each_child_view->get_node(), this->get_node() ) )
         {
-            if ( _recursive && each_child_view->m_expanded ) // propagate only if expanded
+            if ( (node_flags & NodeViewFlag_WITH_RECURSION) && each_child_view->m_expanded ) // propagate only if expanded
             {
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
