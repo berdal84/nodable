@@ -10,7 +10,7 @@
 
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/LiteralNode.h"
-#include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/Utils.h"
 #include "ndbl/core/Scope.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/Interpreter.h"
@@ -384,7 +384,7 @@ bool GraphView::update(float delta_time, u16_t subsample_count)
 bool GraphView::update(float delta_time)
 {
     // 1. Update Physics Components
-    std::vector<Physics*> physics_components = NodeUtils::get_components<Physics>( m_graph->get_node_registry() );
+    std::vector<Physics*> physics_components = Utils::get_components<Physics>( m_graph->get_node_registry() );
     // 1.1 Apply constraints (but apply no translation, we want to be sure order does no matter)
     for (auto physics_component : physics_components)
     {
@@ -397,7 +397,7 @@ bool GraphView::update(float delta_time)
     }
 
     // 2. Update NodeViews
-    std::vector<NodeView*> nodeview_components = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
+    std::vector<NodeView*> nodeview_components = Utils::get_components<NodeView>( m_graph->get_node_registry() );
     for (auto eachView : nodeview_components)
     {
         eachView->update(delta_time);
@@ -439,7 +439,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
-    auto node_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
+    auto node_views = Utils::get_components<NodeView>( m_graph->get_node_registry() );
     NodeView::translate(get_all_nodeviews(), delta);
 }
 
@@ -533,7 +533,7 @@ void GraphView::reset()
 
 std::vector<NodeView*> GraphView::get_all_nodeviews() const
 {
-     return NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
+     return Utils::get_components<NodeView>( m_graph->get_node_registry() );
 }
 
 bool GraphView::has_an_active_tool() const

@@ -357,7 +357,7 @@ add_library(
     src/ndbl/core/DirectedEdge.cpp
     src/ndbl/core/ForLoopNode.cpp
     src/ndbl/core/Graph.cpp
-    src/ndbl/core/GraphUtil.cpp
+    src/ndbl/core/Utils.cpp
     src/ndbl/core/FunctionNode.cpp
     src/ndbl/core/LiteralNode.cpp
     src/ndbl/core/Node.cpp

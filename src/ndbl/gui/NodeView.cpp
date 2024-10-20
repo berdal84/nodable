@@ -5,7 +5,7 @@
 #include <vector>
 
 #include "tools/core/math.h"
-#include "ndbl/core/GraphUtil.h"
+#include "ndbl/core/Utils.h"
 #include "ndbl/core/FunctionNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/language/Nodlang.h"
@@ -338,13 +338,13 @@ bool NodeView::draw()
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
-    else if (node->is_instruction())
+    else if ( Utils::is_instruction( node ) )
     {
         border_color = cfg->ui_node_fill_color[NodeType_DEFAULT];
     }
 
     float border_width = cfg->ui_node_borderWidth;
-    if( node->is_instruction() )
+    if( Utils::is_instruction( node ) )
     {
         border_width *= cfg->ui_node_instructionBorderRatio;
     }
@@ -381,9 +381,9 @@ bool NodeView::draw()
     switch ( node->type() )
     {
         case NodeType_OPERATOR:
-            if (node->is_unary_operator())
+            if ( Utils::is_unary_operator( node ) )
                 pre_label = get_label();
-            else if (node->is_binary_operator())
+            else if ( Utils::is_binary_operator( node ) )
                 operator_label[0] = get_label();
             // else if (node->is_ternary_operator()
             break;
@@ -572,8 +572,8 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
     {
         ImGui::Text("DEBUG INFO:" );
         ImGui::Text("Suffix token:\n       %s\n" , node->suffix().json().c_str());
-        ImGui::Text("can_be_instruction(): %i", node->can_be_instruction() );
-        ImGui::Text("is_instruction():     %i", node->is_instruction() );
+        ImGui::Text("can_be_instruction(): %i"   , Utils::can_be_instruction( node ) );
+        ImGui::Text("is_instruction():     %i"   , Utils::is_instruction( node ));
         // Draw exposed output properties
         if( ImGui::TreeNode("Other Properties") )
         {
@@ -896,7 +896,7 @@ void NodeView::expand_toggle_rec()
 
 std::vector<NodeView*> NodeView::get_adjacent(SlotFlags flags) const
 {
-    return GraphUtil::adjacent_components<NodeView>(get_node(), flags);
+    return Utils::adjacent_components<NodeView>(get_node(), flags);
 }
 
 void NodeView::set_color( const Vec4* _color, ColorType _type )

@@ -5,7 +5,7 @@
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/Utils.h"
 
 
 #include "Config.h"

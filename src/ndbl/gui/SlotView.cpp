@@ -2,6 +2,7 @@
 #include "Config.h"
 #include "Event.h"
 #include "NodeView.h"
+#include "ndbl/core/Utils.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -205,7 +206,7 @@ void SlotView::update(float dt)
     else if (m_slot->type() == SlotFlag_TYPE_CODEFLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
-        bool desired_visibility = node()->is_instruction() || node()->can_be_instruction();
+        bool desired_visibility = Utils::is_instruction( node() ) || Utils::can_be_instruction( node() );
         m_view_state.visible = desired_visibility;
     }
     else

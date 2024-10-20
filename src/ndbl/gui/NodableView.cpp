@@ -10,7 +10,7 @@
 #include "tools/gui/TextureManager.h"
 #include "tools/gui/AppView.h"
 
-#include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/Utils.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/Register.h"
 #include "ndbl/core/language/Nodlang.h"

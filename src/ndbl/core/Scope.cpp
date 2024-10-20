@@ -10,6 +10,7 @@
 #include "IScope.h"
 #include "IfNode.h"
 #include "VariableNode.h"
+#include "Utils.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -78,7 +79,7 @@ std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
         {
             scope->get_last_instructions_rec(_out); // Recursive call on nested scopes
         }
-        else if ( i == children.size() - 1 && children[i]->is_instruction() ) // last instruction ?
+        else if ( i == children.size() - 1 && Utils::is_instruction( children[i] ) ) // last instruction ?
         {
             _out.push_back( children[i] ); // Append the last instruction to the result
         }

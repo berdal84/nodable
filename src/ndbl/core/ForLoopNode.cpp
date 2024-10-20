@@ -1,6 +1,6 @@
 #include "ForLoopNode.h"
 #include "Node.h"
-#include "GraphUtil.h"
+#include "Utils.h"
 
 using namespace ndbl;
 using namespace tools;

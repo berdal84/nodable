@@ -2,7 +2,7 @@
 
 #include <fstream>
 
-#include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/Utils.h"
 #include "ndbl/core/FunctionNode.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/language/Nodlang.h"
@@ -114,7 +114,7 @@ UpdateResult File::update( Isolation flags )
         update_text_from_graph( flags );
 
         // Refresh constraints
-        auto physics_components = NodeUtils::get_components<Physics>(graph->get_node_registry() );
+        auto physics_components = Utils::get_components<Physics>(graph->get_node_registry() );
         Physics::destroy_constraints( physics_components );
         Physics::create_constraints(graph->get_node_registry() );
 
@@ -127,7 +127,7 @@ UpdateResult File::update( Isolation flags )
 UpdateResult File::update_graph_from_text( Isolation isolation_mode)
 {
     // Destroy all physics constraints
-    auto physics_components = NodeUtils::get_components<Physics>(graph->get_node_registry() );
+    auto physics_components = Utils::get_components<Physics>(graph->get_node_registry() );
     Physics::destroy_constraints( physics_components );
 
     // Parse source code

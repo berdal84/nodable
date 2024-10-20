@@ -10,7 +10,7 @@
 #include "IfNode.h"
 #include "FunctionNode.h"
 #include "LiteralNode.h"
-#include "NodeUtils.h"
+#include "Utils.h"
 #include "Scope.h"
 #include "VariableNode.h"
 #include "WhileLoopNode.h"

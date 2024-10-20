@@ -4,7 +4,7 @@
 
 #include "Scope.h"
 #include "Graph.h"
-#include "GraphUtil.h"
+#include "Utils.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -157,7 +157,7 @@ std::vector<Node*> Node::successors() const
 
 std::vector<Node*> Node::filter_adjacent( SlotFlags _flags ) const
 {
-    return GraphUtil::get_adjacent_nodes(this, _flags);
+    return Utils::get_adjacent_nodes(this, _flags);
 }
 
 Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _type)
@@ -291,51 +291,6 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
     return result;
 }
 
-bool Node::is_instruction() const
-{
-    if ( auto* slot = find_slot(SlotFlag_PREV) )
-        if ( slot->adjacent_count() > 0 )
-            return true;
-    if ( auto* slot = find_slot(SlotFlag_NEXT) )
-        if ( slot->adjacent_count() > 0 )
-            return true;
-    return false;
-}
-
-bool Node::can_be_instruction() const
-{
-    // TODO: handle case where a variable has inputs/outputs but not connected to the code flow
-    return slot_count(SlotFlag_TYPE_CODEFLOW) > 0 && inputs().empty() && outputs().empty();
-}
-
-bool Node::is_unary_operator() const
-{
-    if ( m_type == NodeType_OPERATOR )
-        if (static_cast<const FunctionNode*>(this)->get_func_type()->get_arg_count() == 1 )
-            return true;
-    return false;
-}
-
-bool Node::is_binary_operator() const
-{
-    if ( m_type == NodeType_OPERATOR )
-        if (static_cast<const FunctionNode*>(this)->get_func_type()->get_arg_count() == 2 )
-            return true;
-    return false;
-}
-
-bool Node::is_conditional() const
-{
-    switch ( m_type )
-    {
-        case NodeType_BLOCK_FOR_LOOP:
-        case NodeType_BLOCK_WHILE_LOOP:
-        case NodeType_BLOCK_CONDITION:
-            return true;
-        default:
-            return false;
-    };
-}
 
 void Node::set_suffix(const Token& token)
 {

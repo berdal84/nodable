@@ -3,7 +3,7 @@
 #include <numeric>
 #include "tools/core/math.h"
 #include "tools/gui/Config.h"
-#include "ndbl/core/GraphUtil.h"
+#include "ndbl/core/Utils.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/VariableNode.h"
 #include "ndbl/gui/NodeView.h"
@@ -101,7 +101,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         // If current view has a single predecessor, we follow it, except if it is a conditional node
         //
         std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_PREV);
-        if ( !previous_nodes.empty() && !previous_nodes[0]->get_node()->is_conditional() )
+        if ( !previous_nodes.empty() && !Utils::is_conditional( previous_nodes[0]->get_node() ) )
         {
             Constraint constraint("Position below previous", &Constraint::constrain_1_to_N_as_row);
             constraint.leader         = previous_nodes;
@@ -129,7 +129,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         //------------------------------------------------
 
         std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_NEXT);
-        if( node->is_conditional() && next.size() >= 1 )
+        if( Utils::is_conditional( node ) && next.size() >= 1 )
         {
             Constraint constraint("Align conditional children in a row", &Constraint::constrain_N_to_1_as_a_row);
             constraint.leader         = {curr_nodeview};
@@ -302,16 +302,18 @@ std::vector<NodeView *> Physics::Constraint::clean(std::vector<NodeView *> &view
 
 bool Physics::Constraint::should_follow_output(const Node* node, const Node* output_node )
 {
-    const auto _outputs = node->outputs();
+    ASSERT(node)
+    ASSERT(output_node)
 
-    if ( node->is_instruction() )
-        return false;
+    // Instruction should never follow an output (they must stick to the codeflow)
+    if ( !Utils::is_instruction( node ) )
+        return Utils::is_first_output(node, output_node);
 
-    if ( _outputs.empty() )
-        return false;
-
-    if ( _outputs.front() == output_node )
-        return true;
+    // However, variables can be declared inlined (like in an if condition:  "if (int i = 0) {...}" )
+    // In that case we want the variable to follow the output.
+    if( node->type() == NodeType_VARIABLE )
+        if ( auto adjacent = static_cast<const VariableNode*>( node )->decl_out()->first_adjacent() )
+            return adjacent->node() == output_node;
 
     return false;
 }

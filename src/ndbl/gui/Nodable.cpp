@@ -25,6 +25,7 @@
 #include "NodableView.h"
 #include "NodeView.h"
 #include "SlotView.h"
+#include "ndbl/core/Utils.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -377,7 +378,7 @@ void Nodable::update()
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                         Node* out_node = out->node();
-                        if ( out_node->is_instruction() && out->type() == SlotFlag_TYPE_CODEFLOW )
+                        if ( Utils::is_instruction( out_node ) && out->type() == SlotFlag_TYPE_CODEFLOW )
                         {
                             Token& token = out_node->suffix();
                             std::string buffer = token.buffer_to_string();

@@ -49,8 +49,8 @@ namespace ndbl
 		A node is an Object (composed with Properties) that can be linked
 	    together in order to create_new graphs.
 
-		Every Node has_flags a parent Graph. All nodes are built from a Graph,
-	    which first create_new an instance of this class (or derived) and then
+		Every Node has a parent Graph. All nodes are built from a Graph,
+	    which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/
     class Node
@@ -64,12 +64,7 @@ namespace ndbl
 
         void                 init(NodeType type, const std::string& name);
         NodeType             type() const { return m_type; }
-        bool                 is_conditional() const;
-        bool                 is_instruction() const;
-        bool                 is_unary_operator() const;
-        bool                 is_binary_operator() const;
         bool                 is_invokable() const;
-        bool                 can_be_instruction() const;
         bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
         void                 set_flags(NodeFlags flags) { m_flags |= flags; }
         void                 clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
