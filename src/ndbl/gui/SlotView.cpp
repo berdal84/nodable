@@ -22,8 +22,11 @@ SlotView::SlotView(
 , m_direction()
 {
     ASSERT(slot != nullptr)
+
     slot->set_view(this);
+
     update_direction_from_alignment();
+    update_size_from_shape();
 }
 
 Node* SlotView::adjacent_node() const
@@ -134,7 +137,7 @@ bool SlotView::draw()
     {
         case ShapeType_CIRCLE:
         {
-            float r = cfg->ui_slot_circle_radius();
+            float r = box()->size().x;
             draw_list->AddCircleFilled( rect.center(), r, ImColor(fill_color));
             draw_list->AddCircle( rect.center(), r, ImColor(border_color) );
             break;
@@ -197,6 +200,7 @@ void SlotView::set_alignment(const tools::Vec2 new_alignment)
 void SlotView::set_shape(ShapeType shape)
 {
     m_shape = shape;
+    update_size_from_shape();
 }
 
 void SlotView::set_align_ref(const tools::BoxShape2D* align_ref)
@@ -237,7 +241,7 @@ void SlotView::update(float dt)
         // |  Box              |
         // ---------------------
         //
-        const Vec2  size  = cfg->ui_slot_rectangle_size;
+        const Vec2  size  = box()->size();
         const float gap   = cfg->ui_slot_gap;
         const float dir_x = -m_alignment.x;
 
@@ -247,14 +251,11 @@ void SlotView::update(float dt)
                        + Vec2(0.f, m_alignment.y * size.y * 0.5f); // align edge vertically
 
         box()->xform.set_pos( pos, WORLD_SPACE ); // relative to NodeView's
-        box()->set_size( size );
     }
     else if ( m_alignment_ref != nullptr )
     {
-        const Vec2 size = cfg->ui_slot_circle_radius();
         const Vec2 pos  = m_alignment_ref->pivot( m_alignment, WORLD_SPACE);
         box()->xform.set_pos( pos, WORLD_SPACE );
-        box()->set_size( size );
     }
     else
     {
@@ -265,4 +266,15 @@ void SlotView::update(float dt)
 void SlotView::update_direction_from_alignment()
 {
     m_direction = Vec2::normalize( m_alignment );
+}
+
+void SlotView::update_size_from_shape()
+{
+    switch ( m_shape )
+    {
+        case ShapeType_CIRCLE:
+            return box()->set_size({ get_config()->ui_slot_circle_radius() });
+        default:
+            return box()->set_size( get_config()->ui_slot_rectangle_size );
+    }
 }

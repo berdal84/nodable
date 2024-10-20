@@ -73,5 +73,6 @@ namespace ndbl
         tools::Vec2           m_direction; // cached
         tools::ViewState      m_view_state;
 
+        void update_size_from_shape();
     };
 }
