@@ -15,6 +15,7 @@
 
 #include "App.h"
 #include "Config.h"
+#include "tools/core/math.h"
 
 using namespace tools;
 
@@ -208,8 +209,6 @@ void AppView::shutdown()
 
 void AppView::update()
 {
-    m_frame_start_time = SDL_GetTicks();
-
     SDL_Event event;
     while (SDL_PollEvent(&event))
     {
@@ -461,36 +460,25 @@ void AppView::end_draw()
 
     SDL_GL_SwapWindow(m_sdl_window);
 
-    // limit frame rate
-    u32_t frame_time = SDL_GetTicks() - m_frame_start_time;
-    if ( cfg->delta_time_limit && frame_time < cfg->delta_time_min )
-    {
-        SDL_Delay( cfg->delta_time_min - frame_time );
-    }
+    // compute fps
+    const u32_t fps = compute_fps(m_last_frame_ticks, cfg->fps_limit);
+    m_last_frame_ticks = SDL_GetTicks64();
 
-#ifdef NDBL_DEBUG
-    // Update window title with FPS in it (if enabled)
-    if( cfg->runtime_debug )
-    {
-        // compute FPS
-        static u32_t dt = 1000 / 60;
-        u32_t all_time = SDL_GetTicks() - m_frame_start_time;
-        if( all_time <= 0 ) all_time = 1;
-        dt = u32_t(0.9f*float(dt) + 0.1f*float(all_time)); // Smooth value
-        u32_t fps = 1000 / dt;
+    // Format nice title
+    char title[256];
+    snprintf( title, 256, "%s | %4u fps ", m_title.c_str(), fps );
+    title[255] = '\0';
 
-        // Memory usage
-        const MemoryStats* mem_stats = tools::get_memory_stats();
+    // Update window title
+    SDL_SetWindowTitle(m_sdl_window, title);
+}
 
-        // Format nice title
-        char title[256];
-        snprintf( title, 256, "%s | %i fps (dt %d ms, frame %d ms) | Mem: %zu B (alloc count: %zu)", m_title.c_str(), fps, dt, frame_time, mem_stats->mem_usage(), mem_stats->alloc_count() );
-        title[255] = '\0';
-
-        // Update window title
-        SDL_SetWindowTitle(m_sdl_window, title);
-    }
-#endif
+u32_t AppView::compute_fps(const u64_t last_frame, const u32_t default_val) const
+{
+    u64_t dt = SDL_GetTicks64() - last_frame;
+    if ( dt == 0 )
+        return default_val;
+    return 1000 / dt;
 }
 
 bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const

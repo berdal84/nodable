@@ -321,9 +321,9 @@ void NodableView::draw()
                 ImGuiEx::set_debug( !debug );
             }
 
-            if ( ImGui::MenuItem("Limit FPS", "", tools_cfg->delta_time_limit ) )
+            if ( ImGui::MenuItem("Limit FPS", "", tools_cfg->fps_limit_on ) )
             {
-                tools_cfg->delta_time_limit = !tools_cfg->delta_time_limit;
+                tools_cfg->fps_limit_on = !tools_cfg->fps_limit_on;
             }
 
             ImGui::Separator();

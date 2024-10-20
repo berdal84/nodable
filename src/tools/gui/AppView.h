@@ -10,6 +10,7 @@
 #include "tools/core/types.h"
 #include "ImGuiEx.h"
 #include "observe/event.h"
+#include "Config.h"
 
 namespace tools
 {
@@ -77,6 +78,8 @@ namespace tools
         std::vector<unsigned char> take_screenshot() const;
 
     private:
+        u32_t compute_fps(const u64_t last_frame, const u32_t default_val) const;
+
         std::string         m_title;
         TextureManager*     m_texture_manager  = nullptr;
         FontManager*        m_font_manager     = nullptr;
@@ -84,12 +87,12 @@ namespace tools
         ActionManager*      m_action_manager   = nullptr;
         SDL_GLContext       m_sdl_gl_context   = nullptr;
         SDL_Window*         m_sdl_window       = nullptr;
-        u32_t               m_frame_start_time = 0;
+        float               m_smooth_fps       = 60.f;
+        u64_t               m_last_frame_ticks = 0;
         App*                m_app              = nullptr;
         bool                m_is_layout_initialized = false;
         std::array<ImGuiID, Dockspace_COUNT>
                             m_dockspaces{};
-        const std::chrono::time_point<std::chrono::system_clock>
-                            m_start_time = std::chrono::system_clock::now();
+
     };
 }

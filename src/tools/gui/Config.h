@@ -19,8 +19,8 @@ namespace tools
         const char*           app_default_title        = "Default App Title";
         bool                  vsync                    = false;
         bool                  runtime_debug            = false;
-        bool                  delta_time_limit         = true;
-        u32_t                 delta_time_min           = 1000 / 60; // in ms
+        bool                  fps_limit_on             = true;
+        u32_t                 fps_limit                = 60;
         Color                 background_color         {0,0,0};
         Vec4                  button_activeColor       { 0.98f, 0.73f, 0.29f, 0.95f}; // orange
         Vec4                  button_hoveredColor      { 0.70f, 0.70f, 0.70f, 0.95f}; // light grey
