@@ -739,8 +739,9 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
     if ( m_view_state.visible )
         rects.push_back( this->get_rect(space) );
 
-    auto visit = [&](NodeView* view)
+    auto visit = [&](Node* node)
     {
+        NodeView* view = node->get_component<NodeView>();
         if( !view )
             return;
         if( !view->m_view_state.visible )
@@ -756,11 +757,11 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         }
     };
 
-    auto children = get_adjacent(SlotFlag_CHILD);
+    const std::vector<Node*>& children = get_node()->children();
     std::for_each(children.begin(), children.end(), visit );
 
-    auto inputs   = get_adjacent(SlotFlag_INPUT);
-    std::for_each(inputs.begin()  , inputs.end()  , visit );
+    const std::vector<Node*>& inputs = get_node()->inputs();
+    std::for_each(inputs.begin(), inputs.end()  , visit );
 
     Rect result = Rect::bbox(&rects);
 
