@@ -9,6 +9,7 @@
 #include "DirectedEdge.h"
 
 #include "fixtures/core.h"
+#include "Utils.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -108,12 +109,12 @@ TEST_F(Graph_, create_and_delete_relations)
 
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
+    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
     DirectedEdge* edge_1 = graph->connect(
             *node_1->find_slot( SlotFlag_CHILD ),
             *node_2->find_slot( SlotFlag_PARENT ));
-    EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
+    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph->disconnect(*edge_1);
-    EXPECT_EQ( node_2->filter_adjacent( SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
+    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
 }

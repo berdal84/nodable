@@ -263,8 +263,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
     auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{&_first, &_second});
 
     // Add cross-references to each end of the edge
-    edge.tail->add_adjacent( edge.head );
-    edge.head->add_adjacent( edge.tail );
+    Slot::connect_bidirectionally(edge.tail, edge.head);
 
     // Handle side effects
     if (_flags & ConnectFlag_ALLOW_SIDE_EFFECTS )
@@ -296,7 +295,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 //           - new child <-<-<-
                 else
                 {
-                    Node* previous_child = parent->rchildren().at(1);
+                    Node* previous_child = *(parent->children().rbegin() + 1);
                     ASSERT( previous_child )
 
                     // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
@@ -394,8 +393,8 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     m_edge_registry.erase(it);
 
     // update tail/head slots accordingly
-    _edge.tail->remove_adjacent( _edge.head );
-    _edge.head->remove_adjacent( _edge.tail );
+    _edge.tail->_remove_adjacent(_edge.head);
+    _edge.head->_remove_adjacent(_edge.tail);
 
     // disconnect effectively
     switch ( type )

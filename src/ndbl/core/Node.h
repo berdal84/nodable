@@ -108,13 +108,14 @@ namespace ndbl
         size_t               slot_count(SlotFlags) const;
         std::vector<Slot*>&  slots() { return m_slots; }
         const std::vector<Slot*>& slots() const { return m_slots; }
-        std::vector<Node*>   filter_adjacent(SlotFlags) const;
-        std::vector<Node*>   successors() const;
-        std::vector<Node*>   rchildren() const; // reversed children
-        std::vector<Node*>   children() const;
-        std::vector<Node*>   inputs() const;
-        std::vector<Node*>   outputs() const;
-        std::vector<Node*>   predecessors() const;
+
+        // cached adjacent nodes accessors
+
+        inline const std::vector<Node*>& successors() const { return m_adjacent_nodes_cache.get( SlotFlag_PREV); }
+        inline const std::vector<Node*>& children() const { return m_adjacent_nodes_cache.get( SlotFlag_CHILD ); }
+        inline const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
+        inline const std::vector<Node*>& outputs() const { return m_adjacent_nodes_cache.get( SlotFlag_OUTPUT ); }
+        inline const std::vector<Node*>& predecessors() const { return m_adjacent_nodes_cache.get( SlotFlag_PREV ); }
 
         // Property related
         //-----------------
@@ -150,6 +151,8 @@ namespace ndbl
         bool has_component() const
         { return m_components.has<C*>(); }
 
+        void set_adjacent_cache_dirty();
+
     protected:
 
         std::string        m_name;
@@ -160,6 +163,17 @@ namespace ndbl
         NodeFlags          m_flags = NodeFlag_DEFAULT;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
+
+        struct AdjacentNodesCache
+        {
+            const std::vector<Node*>& get(SlotFlags flags) const;
+            void                      set_dirty() { _cache.clear(); }
+            const Node* _node;
+            std::unordered_map<SlotFlags, std::vector<Node*>> _cache;
+        };
+
+        AdjacentNodesCache m_adjacent_nodes_cache = {this};
+
         observe::Event<Node*> m_on_name_change;
     private:
         TComponentBag<NodeComponent*> m_components;

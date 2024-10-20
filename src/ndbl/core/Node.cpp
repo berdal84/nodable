@@ -123,43 +123,6 @@ const Slot& Node::slot_at(size_t pos) const
     return *m_slots[pos];
 }
 
-std::vector<Node*> Node::outputs() const
-{
-    return filter_adjacent(SlotFlag_OUTPUT);
-}
-
-std::vector<Node*> Node::inputs() const
-{
-    return filter_adjacent(SlotFlag_INPUT);
-}
-
-std::vector<Node*> Node::predecessors() const
-{
-    return filter_adjacent(SlotFlag_PREV);
-}
-
-std::vector<Node*> Node::rchildren() const
-{
-    auto v = children();
-    std::reverse( v.begin(), v.end() );
-    return v;
-}
-
-std::vector<Node*> Node::children() const
-{
-    return filter_adjacent(SlotFlag_CHILD);
-}
-
-std::vector<Node*> Node::successors() const
-{
-    return filter_adjacent(SlotFlag_NEXT);
-}
-
-std::vector<Node*> Node::filter_adjacent( SlotFlags _flags ) const
-{
-    return Utils::get_adjacent_nodes(this, _flags);
-}
-
 Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _type)
 {
     for(Slot* slot : filter_slots( flags ) )
@@ -325,4 +288,37 @@ Slot* Node::value_in()
 const Slot* Node::value_in() const
 {
     return find_slot_by_property(m_value, SlotFlag_INPUT );
+}
+
+void Node::set_adjacent_cache_dirty()
+{
+    m_adjacent_nodes_cache.set_dirty();
+}
+
+const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
+{
+#ifdef NDBL_DEBUG
+    static size_t update_count = 0;
+    static size_t read_count   = 0;
+#endif
+
+    if ( _cache.find(flags) == _cache.end() )
+    {
+        auto _this = const_cast<AdjacentNodesCache*>(this);
+        _this->_cache.insert_or_assign(flags, Utils::get_adjacent_nodes( _node, flags ) );
+
+#ifdef NDBL_DEBUG
+        update_count++;
+#endif
+    }
+#ifdef NDBL_DEBUG
+    else
+        read_count++;
+#endif
+
+#ifdef NDBL_DEBUG
+    LOG_MESSAGE("AdjacentNodesCache", "%i reads for %i updates)\n", read_count, update_count);
+#endif
+
+    return _cache.at(flags);
 }

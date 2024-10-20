@@ -6,43 +6,43 @@ using namespace ndbl;
 const Slot Slot::null{};
 
 Slot::Slot()
-: m_flags(SlotFlag::SlotFlag_NONE)
+: _flags(SlotFlag::SlotFlag_NONE)
 {
 }
 
 Slot::Slot(
-    Node*     _node,
-    SlotFlags _flags,
-    Property* _property,
-    size_t    _capacity,
-    size_t    _position
+    Node*     node,
+    SlotFlags flags,
+    Property* property,
+    size_t    capacity,
+    size_t    position
     )
-: m_node(_node)
-, m_flags(_flags)
-, m_property(_property)
-, m_position(_position)
+: _node(node)
+, _flags(flags)
+, _property(property)
+, _position(position)
 {
     VERIFY(!has_flags(SlotFlag_NOT_FULL), "SlotFlag_NOT_FULL is for readonly use" )
-    ASSERT( _capacity > 0 )
-    m_adjacent.reserve(_capacity);
-    m_flags |= SlotFlag_NOT_FULL;
+    ASSERT( capacity > 0 )
+    _adjacent.reserve(capacity);
+    _flags |= SlotFlag_NOT_FULL;
 }
 
 Slot::Slot(const Slot &other)
-: m_node(other.m_node)
-, m_property(other.m_property)
-, m_flags(other.m_flags)
-, m_adjacent(other.m_adjacent)
-, m_position(other.m_position)
+: _node(other._node)
+, _property(other._property)
+, _flags(other._flags)
+, _adjacent(other._adjacent)
+, _position(other._position)
 {
     expand_capacity(other.capacity());
 }
 
 Slot* Slot::first_adjacent() const
 {
-    if (!m_adjacent.empty())
+    if (!_adjacent.empty())
     {
-        return m_adjacent[0];
+        return _adjacent[0];
     }
     return nullptr;
 }
@@ -50,7 +50,7 @@ Slot* Slot::first_adjacent() const
 Slot* Slot::adjacent_at(u8_t pos) const
 {
     u8_t count{0};
-    for (auto& each : m_adjacent )
+    for (auto& each : _adjacent )
     {
         if( count == pos )
         {
@@ -63,7 +63,7 @@ Slot* Slot::adjacent_at(u8_t pos) const
 
 size_t Slot::adjacent_count() const
 {
-    return m_adjacent.size();
+    return _adjacent.size();
 }
 
 bool Slot::is_full() const
@@ -71,80 +71,96 @@ bool Slot::is_full() const
     return !has_flags(SlotFlag_NOT_FULL);
 }
 
-void Slot::add_adjacent(Slot* _other)
+void Slot::_add_adjacent(Slot* other)
 {
-    ASSERT(_other != nullptr);
-    VERIFY(_other != this, "Reflexive edge not handled" );
-    VERIFY(type() == _other->type() , "Slot must have common type" );
-    VERIFY(m_adjacent.size() < m_adjacent.capacity(), "Slot is full" );
-    m_adjacent.emplace_back(_other);
-    if ( m_adjacent.size() == m_adjacent.capacity() )
+    ASSERT(other != nullptr);
+    VERIFY(other != this, "Reflexive edge not handled" );
+    VERIFY(type() == other->type() , "Slot must have common type" );
+    VERIFY(_adjacent.size() < _adjacent.capacity(), "Slot is full" );
+    _adjacent.emplace_back( other );
+    if (_adjacent.size() == _adjacent.capacity() )
     {
-        m_flags &= ~SlotFlag_NOT_FULL; // Make sure IS_NOT_FULL is 0
+        _flags &= ~SlotFlag_NOT_FULL; // Make sure IS_NOT_FULL is 0
     }
 }
 
-void Slot::remove_adjacent(Slot* _other)
+void Slot::_remove_adjacent(Slot* other)
 {
-    auto it = std::find(m_adjacent.begin(), m_adjacent.end(), _other);
-    VERIFY(it != m_adjacent.end(), "Slot* not found")
-    m_adjacent.erase( it );
-    m_flags |= SlotFlag_NOT_FULL;
+    auto it = std::find(_adjacent.begin(), _adjacent.end(), other);
+    VERIFY(it != _adjacent.end(), "Slot* not found")
+    _adjacent.erase(it );
+    _flags |= SlotFlag_NOT_FULL;
 }
 
-void Slot::set_flags( SlotFlags _flags)
+void Slot::set_flags( SlotFlags flags)
 {
-    m_flags |= _flags;
+    _flags |= flags;
 }
 
 SlotFlags Slot::type() const
 {
-    return m_flags & SlotFlag_TYPE_MASK;
+    return _flags & SlotFlag_TYPE_MASK;
 }
 
 SlotFlags Slot::order() const
 {
-    return m_flags & SlotFlag_ORDER_MASK;
+    return _flags & SlotFlag_ORDER_MASK;
 }
 
 bool Slot::empty() const
 {
-    return m_adjacent.empty();
+    return _adjacent.empty();
 }
 
 const std::vector<Slot*>& Slot::adjacent() const
 {
-    return m_adjacent;
+    return _adjacent;
 }
 
 size_t Slot::capacity() const
 {
-    return m_adjacent.capacity();
+    return _adjacent.capacity();
 }
 
-void Slot::expand_capacity( size_t _capacity )
+void Slot::expand_capacity( size_t capacity )
 {
-    VERIFY(m_adjacent.capacity() <= _capacity, "New capacity must be strictly greater than current" );
-    m_adjacent.reserve(_capacity);
-    m_flags |= SlotFlag_NOT_FULL;
+    VERIFY(_adjacent.capacity() <= capacity, "New capacity must be strictly greater than current" );
+    _adjacent.reserve(capacity);
+    _flags |= SlotFlag_NOT_FULL;
 }
 
-bool Slot::has_flags( SlotFlags _flags ) const
+bool Slot::has_flags( SlotFlags flags ) const
 {
-    return (m_flags & _flags) == _flags;
+    return (_flags & flags) == flags;
 }
 
 SlotFlags Slot::type_and_order() const
 {
-    return m_flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
+    return _flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
 }
 
 size_t Slot::position() const
 {
-    return m_position;
+    return _position;
 }
 
 SlotFlags Slot::flags() const
 {
-    return m_flags;
+    return _flags;
+}
+
+void Slot::connect_bidirectionally(Slot* tail, Slot* head)
+{
+    ASSERT( tail != head)
+    ASSERT( head != nullptr )
+    ASSERT( tail != nullptr )
+
+    tail->_add_adjacent(head);
+    head->_add_adjacent(tail);
+
+    if ( head->_node != nullptr )
+        head->_node->set_adjacent_cache_dirty();
+
+    if ( tail->_node != nullptr )
+        tail->_node->set_adjacent_cache_dirty();
 }
