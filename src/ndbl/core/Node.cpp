@@ -297,28 +297,11 @@ void Node::set_adjacent_cache_dirty()
 
 const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
 {
-#ifdef NDBL_DEBUG
-    static size_t update_count = 0;
-    static size_t read_count   = 0;
-#endif
-
     if ( _cache.find(flags) == _cache.end() )
     {
         auto _this = const_cast<AdjacentNodesCache*>(this);
         _this->_cache.insert_or_assign(flags, Utils::get_adjacent_nodes( _node, flags ) );
-
-#ifdef NDBL_DEBUG
-        update_count++;
-#endif
     }
-#ifdef NDBL_DEBUG
-    else
-        read_count++;
-#endif
-
-#ifdef NDBL_DEBUG
-    LOG_MESSAGE("AdjacentNodesCache", "%i reads for %i updates)\n", read_count, update_count);
-#endif
 
     return _cache.at(flags);
 }
