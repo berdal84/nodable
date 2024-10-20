@@ -68,7 +68,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     // nodes
     ui_node_borderWidth                   = 1.0f;
     ui_node_instructionBorderRatio        = 2.0f;
-    ui_node_padding                       = Vec4{ 8.0f, 4.0f, 4.0f, 4.0f };
+    ui_node_padding                       = Vec4{ 3.0f, 5.0f, 10.0f, 5.0f };
     ui_slot_circle_radius_base            = 4.0f;
 
     ui_node_highlightedColor              = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -191,12 +191,12 @@ float ndbl::Config::ui_codeflow_thickness() const
     return ui_slot_rectangle_size.x * ui_codeflow_thickness_ratio;
 }
 
-Vec2 ndbl::Config::ui_node_gap(Size size)
+Vec2 ndbl::Config::ui_node_gap(Size size) const
 {
     return ui_node_gap_base * tools_cfg->size_factor[size];
 }
 
-float ndbl::Config::ui_slot_circle_radius(tools::Size size)
+float ndbl::Config::ui_slot_circle_radius(tools::Size size) const
 {
     return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
 }

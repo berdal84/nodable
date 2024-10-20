@@ -32,7 +32,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
 
     // check
     EXPECT_TRUE(function_out);
-    EXPECT_TRUE(function_out->get_node()->type() == NodeType_FUNCTION);
+    EXPECT_TRUE(function_out->node()->type() == NodeType_FUNCTION);
 }
 
 TEST_F(Language_parse_function_call, operator_add)
@@ -59,5 +59,5 @@ TEST_F(Language_parse_function_call, operator_add)
 
     // check
     EXPECT_TRUE(result);
-    EXPECT_TRUE(result->get_node()->type() == NodeType_OPERATOR);
+    EXPECT_TRUE(result->node()->type() == NodeType_OPERATOR);
 }

@@ -37,7 +37,7 @@ namespace tools
     template <std::size_t TUPLE_SIZE, typename ElementT>
     auto VectorToTuple(const std::vector<ElementT>& in_vector) // Convert a vector to a tuple,
     {
-        VERIFY(in_vector.size() == TUPLE_SIZE, "Vector should have the expected size");
+        VERIFY(in_vector.size() == TUPLE_SIZE, "Vector should have the expected set_size");
         return VectorToTupleEx( in_vector, std::make_index_sequence<TUPLE_SIZE>() );
     }
 

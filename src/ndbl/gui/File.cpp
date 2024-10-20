@@ -39,7 +39,6 @@ File::File()
     graph = new Graph(get_node_factory());
     auto* graph_view = new GraphView(graph);
     graph->set_view(graph_view);
-    view.add_child(graph_view->base());
 
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
@@ -75,7 +74,7 @@ UpdateResult File::update_text_from_graph( Isolation mode )
     }
 
     std::string code;
-    get_language()->serialize_node( code, root_node, SerializeFlag_RECURSE );
+    get_language()->_serialize_node( code, root_node, SerializeFlag_RECURSE );
 
     view.set_text( code, mode );
 

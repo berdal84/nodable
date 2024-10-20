@@ -144,11 +144,6 @@ size_t Slot::position() const
     return m_position;
 }
 
-bool Slot::is_this() const
-{
-    return get_property()->has_flags(PropertyFlag_IS_THIS);
-}
-
 SlotFlags Slot::get_flags() const
 {
     return m_flags;

@@ -56,7 +56,7 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
                 {
                     if( each_variable->get_scope() == nullptr )
                     {
-                        LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_variable->get_name().c_str() );
+                        LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_variable->name().c_str() );
                         return false;
                     }
                 }
@@ -104,7 +104,7 @@ void Compiler::compile_input_slot( const Slot& slot)
 void Compiler::compile_output_slot( const Slot& slot)
 {
     ASSERT(slot.has_flags(SlotFlag_OUTPUT) )
-    compile_node( slot.get_node() );
+    compile_node(slot.node() );
 }
 
 void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
@@ -118,7 +118,7 @@ void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
         Instruction *instr  = m_temp_code->push_instr(OpCode_push_stack_frame);
         instr->push.scope = _scope;
         char str[64];
-        snprintf(str, 64, "%s's scope", scope_owner->get_name().c_str());
+        snprintf(str, 64, "%s's scope", scope_owner->name().c_str());
         instr->m_comment = str;
     }
 
@@ -127,7 +127,7 @@ void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     {
         Instruction* instr   = m_temp_code->push_instr(OpCode_push_var);
         instr->push.var      = each_variable;
-        instr->m_comment     = each_variable->get_name();
+        instr->m_comment     = each_variable->name();
     }
 
     // compile content
@@ -147,13 +147,13 @@ void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     {
         Instruction *instr   = m_temp_code->push_instr(OpCode_pop_var);
         instr->push.var      = each_variable;
-        instr->m_comment     = each_variable->get_name();
+        instr->m_comment     = each_variable->name();
     }
 
     {
         Instruction *instr = m_temp_code->push_instr(OpCode_pop_stack_frame);
         instr->pop.scope   = _scope;
-        instr->m_comment   = scope_owner->get_name() + "'s scope";
+        instr->m_comment   = scope_owner->name() + "'s scope";
     }
 }
 
@@ -183,7 +183,7 @@ void Compiler::compile_node( const Node* _node )
                 }
                 // Compile adjacent_output ( except if node is a Variable which is compiled once, see compile_variable_node() )
                 Slot* adjacent_output = slot->first_adjacent();
-                if ( !adjacent_output->get_node()->get_class()->is<VariableNode>() )
+                if ( !adjacent_output->node()->get_class()->is<VariableNode>() )
                 {
                     // Any other slot must be compiled recursively
                     compile_output_slot( *adjacent_output );

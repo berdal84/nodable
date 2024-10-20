@@ -14,16 +14,15 @@ void ForLoopNode::init(const std::string& _name)
 {
     Node::init(NodeType_BLOCK_FOR_LOOP, _name);
 
-    // add conditions (properties and slots)
     m_wrapped_conditional.init(this);
 
     // add initialization property and slot
     auto* init_prop = add_prop<Node*>(INITIALIZATION_PROPERTY );
-    m_initialization_slot = add_slot( SlotFlag_INPUT, 1, init_prop);
+    m_initialization_slot = add_slot(init_prop, SlotFlag_INPUT, 1);
 
     // add iteration property and slot
     auto iter_prop = add_prop<Node*>(ITERATION_PROPERTY );
-    m_iteration_slot = add_slot( SlotFlag_INPUT, 1, iter_prop);
+    m_iteration_slot = add_slot(iter_prop, SlotFlag_INPUT, 1);
 }
 
 Slot& ForLoopNode::iteration_slot()

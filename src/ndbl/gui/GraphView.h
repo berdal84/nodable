@@ -4,7 +4,7 @@
 #include <string>
 #include <functional>
 
-#include "tools/gui/View.h"  // base class
+#include "tools/gui/ViewState.h"  // base class
 #include "tools/core/reflection/reflection"
 
 #include "ndbl/core/NodeComponent.h"  // base class
@@ -54,14 +54,17 @@ namespace ndbl
         const NodeViewVec& get_selected() const;
         void        reset_all_properties();
         std::vector<NodeView*> get_all_nodeviews() const;
-        static void        draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
-        Graph*      get_graph() const;
-        tools::View* base() { return &base_view; };
+        static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
+        Graph*            get_graph() const;
+        void              add_child(NodeView*);
+        tools::ViewState* view_state() { return &m_view_state; };
     private:
         CreateNodeCtxMenu      m_create_node_menu = {};
         ViewItem               m_hovered{};
         ViewItem               m_focused{};
         std::vector<NodeView*> m_selected_nodeview;
+        tools::ViewState       m_view_state;
+        Graph*                 m_graph;
 
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
@@ -69,9 +72,6 @@ namespace ndbl
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
-
-        tools::View base_view;
-        Graph*      m_graph;
 
         // Tools State Machine
         //--------------------
@@ -93,5 +93,6 @@ namespace ndbl
         void line_state_enter();
         void line_state_tick();
         void line_state_leave();
+
     };
 }

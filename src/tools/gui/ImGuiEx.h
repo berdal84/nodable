@@ -13,7 +13,7 @@
 
 #include "ActionManager.h"
 #include "tools/core/EventManager.h"
-#include "tools/gui/geometry/Bezier.h"
+#include "tools/gui/geometry/BezierCurveSegment2D.h"
 
 namespace tools
 {
@@ -64,7 +64,7 @@ namespace tools
         extern void DrawWire(
                 ImGuiID id,
                 ImDrawList* draw_list,
-                const BezierCurveSegment& curve,
+                const BezierCurveSegment2D& curve,
                 const WireStyle& style);
 
         extern void     EndFrame();

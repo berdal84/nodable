@@ -13,7 +13,7 @@ void NodableHeadless::init()
     m_language        = init_language();
     m_node_factory    = init_node_factory();
     m_interpreter     = init_interpreter();
-    m_graph = new Graph(m_node_factory);
+    m_graph           = new Graph(m_node_factory);
 }
 
 void NodableHeadless::shutdown()
@@ -28,7 +28,7 @@ void NodableHeadless::shutdown()
 
 std::string& NodableHeadless::serialize( std::string& out ) const
 {
-    return m_language->serialize_node( out, m_graph->get_root(), SerializeFlag_RECURSE );
+    return m_language->_serialize_node( out, m_graph->get_root(), SerializeFlag_RECURSE );
 }
 
 Graph* NodableHeadless::parse( const std::string& code )

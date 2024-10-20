@@ -55,7 +55,7 @@ namespace ndbl
 		 * Push a command and execute it.
 		 * In some cases the command may not be added to the history or executed, check definition.
 		 * @param _from_text_editor should not be set except if command comes from TextEditor.
-		 *                          This flag is here to handle legacy history mode (text based) and
+		 *                          This flag is here to state legacy history mode (text based) and
 		 *                          hybrid mode (Text/Graph).
 		 */
 		void    push_command(std::shared_ptr<AbstractCommand>, bool _from_text_editor = false);
@@ -63,7 +63,7 @@ namespace ndbl
 		void    undo();
 		void    redo();
 		void    clear();
-		size_t  get_size()const; /** To get the size of the history (command count) */
+		size_t  get_size()const; /** To get the set_size of the history (command count) */
 		void                move_cursor(int _pos); /** Move time cursor to past (negative value) or future (positive value). */
 		std::string         get_cmd_description_at(int _cmd_position);
 		TextEditorBuffer*   configure_text_editor_undo_buffer(TextEditor* _textEditor); /** To get the special buffer for TextEditor */

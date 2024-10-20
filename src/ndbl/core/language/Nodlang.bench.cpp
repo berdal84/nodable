@@ -94,7 +94,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_operator)(benchmark::St
     size_t id = 0;
     for (auto _ : state)
     {
-        language->parse_token( operations.at(id++ % operations.size()) );
+        language->parse_token(operations.at(id++ % operations.size()));
     }
 }
 
@@ -104,7 +104,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_char)(benchmark::State&
     size_t id = 0;
     for (auto _ : state)
     {
-        language->parse_token( chars.at(id++ % chars.size() ));
+        language->parse_token(chars.at(id++ % chars.size()));
     }
 }
 
@@ -131,7 +131,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_keyword)(benchmark::Sta
     size_t id = 0;
     for (auto _ : state)
     {
-        language->parse_token( chars.at(id++ % chars.size() ));
+        language->parse_token(chars.at(id++ % chars.size()));
     }
 }
 
@@ -142,7 +142,7 @@ BENCHMARK_DEFINE_F(NodlangFixture, parse_token__a_single_identifier_starting_wit
     size_t id = 0;
     for (auto _ : state)
     {
-        language->parse_token( chars.at(id++ % chars.size() ));
+        language->parse_token(chars.at(id++ % chars.size()));
     }
 }
 

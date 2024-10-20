@@ -5,8 +5,7 @@ namespace ndbl
     /*
      * some constants to define specific property names
      */
-    static const char* THIS_PROPERTY           = "this";             // Refers to node's this address.
-    static const char* VALUE_PROPERTY          = "value";            // Refers to node's value.
+    static const char* DEFAULT_PROPERTY        = "value";            // Refers to node's default property, usually its output.
     static const char* LEFT_VALUE_PROPERTY     = "L value";          // Refers to node's left-handed value
     static const char* RIGHT_VALUE_PROPERTY    = "R value";          // Refers to node's right-handed value
     static const char* INITIALIZATION_PROPERTY = "initialization";   // Refers to iterative node's initialization instruction.

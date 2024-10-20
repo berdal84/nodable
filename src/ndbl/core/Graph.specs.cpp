@@ -20,11 +20,11 @@ TEST_F(Graph_, connect)
     Graph* graph = app.get_graph();
     auto* node_1 = graph->create_node();
     auto* prop_1 = node_1->add_prop<bool>("prop_1");
-    auto* slot_1 = node_1->add_slot( SlotFlag_OUTPUT, 1, prop_1  );
+    auto* slot_1 = node_1->add_slot(prop_1, SlotFlag_OUTPUT, 1);
 
     auto* node_2 = graph->create_node();
     auto* prop_2 = node_2->add_prop<bool>("prop_2");
-    auto* slot_2 = node_2->add_slot( SlotFlag_INPUT, 1, prop_2 );
+    auto* slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
 
     // Act
     DirectedEdge& edge = *graph->connect_or_merge( *slot_1, *slot_2 );
@@ -41,11 +41,11 @@ TEST_F(Graph_, disconnect)
     Graph* graph = app.get_graph();
     auto node_1 = graph->create_node();
     auto prop_1 = node_1->add_prop<bool>("prop_1");
-    auto slot_1 = node_1->add_slot( SlotFlag_OUTPUT, 1, prop_1 );
+    auto slot_1 = node_1->add_slot(prop_1, SlotFlag_OUTPUT, 1);
 
     auto node_2 = graph->create_node();
     auto prop_2 = node_2->add_prop<bool>("prop_2");
-    auto slot_2 = node_2->add_slot( SlotFlag_INPUT, 1, prop_2 );
+    auto slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
 
     EXPECT_EQ(graph->get_edge_registry().size(), 0);
     DirectedEdge& edge = *graph->connect_or_merge( *slot_1, *slot_2 );
@@ -76,8 +76,8 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
     graph->connect(
-            *operator_node->find_slot_by_property_name( VALUE_PROPERTY, SlotFlag_OUTPUT ),
-            variable->input_slot(),
+            *operator_node->value_out(),
+            *variable->value_in(),
             ConnectFlag_ALLOW_SIDE_EFFECTS);
 
     EXPECT_FALSE( graph->get_node_registry().empty() );

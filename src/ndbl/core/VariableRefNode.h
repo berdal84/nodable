@@ -10,36 +10,41 @@ namespace ndbl
     class VariableRefNode : public Node
     {
     public:
-        void init(const tools::TypeDescriptor* _type)
+
+        void init()
         {
             Node::init(NodeType_VARIABLE_REF, "");
-            ASSERT(_type != nullptr)
 
             // Set name
-            set_name("Ref.");
+            //set_name("Ref.");
 
             // Init identifier property
-            Property* new_value = add_prop(_type, VALUE_PROPERTY );
-            new_value->set_token({Token_t::identifier});
+            m_value->set_type(tools::type::any());
+            m_value->set_token({Token_t::identifier});
 
             // Init Slots
-            m_input_slot = add_slot(SlotFlag_INPUT, 1, new_value );
-            add_slot(SlotFlag_PREV, Slot::MAX_CAPACITY );
+            add_slot(m_value, SlotFlag_PARENT, 1);
+            add_slot(m_value, SlotFlag_NEXT, 1);
+            add_slot(m_value, SlotFlag_PREV, Slot::MAX_CAPACITY);
+            add_slot(m_value, SlotFlag_INPUT, 1);
+            add_slot(m_value, SlotFlag_OUTPUT, 1); // ref can be connected once
         }
 
-        Slot* get_input_slot()
+        void set_variable(VariableNode* v)
         {
-            return m_input_slot;
+            m_value->set_type( v->get_type() );
+            m_value->token().word_replace( v->get_identifier().c_str() );
+
+            // Ensure this node name gets updated when variable's name changes
+            v->on_name_change().connect([this](Node* _node) {
+                auto name = static_cast<VariableNode*>( _node )->get_identifier();
+                this->m_value->token().word_replace( name.c_str() );
+            });
         }
 
         const Token& get_identifier_token() const
         {
-            const Slot* adjacent_slot = m_input_slot->first_adjacent();
-            const VariableNode* variable = static_cast<const VariableNode*>( adjacent_slot->get_node() );
-            return variable->get_identifier_token(); // This node's m_value's token cannot be edited, plus we have to return VariableNode's (may have been changed)
+            return m_value->token();
         }
-
-    private:
-        Slot* m_input_slot = nullptr; // The property connected to the m_variable's value Property.
     };
 }

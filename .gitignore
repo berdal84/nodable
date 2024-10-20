@@ -60,7 +60,7 @@ _screenshots/
 /build
 /nodable/install/
 /bin/
-/cmake-build-**
+/cmake-**
 /.idea
 .gitconfig
 .cache

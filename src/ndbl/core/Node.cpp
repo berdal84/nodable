@@ -23,9 +23,8 @@ Node::~Node()
 void Node::init(NodeType _type, const std::string& _label)
 {
     m_props.init(this);
-    m_this_as_property = add_prop<Node*>(THIS_PROPERTY, PropertyFlag_IS_THIS );
-    add_slot( SlotFlag_PARENT, 1);
-    add_slot( SlotFlag_NEXT, 1);
+    m_value = add_prop<null>(DEFAULT_PROPERTY, PropertyFlag_IS_THIS );
+
     m_name = _label;
     m_type = _type;
     m_components.set_owner( this );
@@ -43,8 +42,8 @@ const FunctionDescriptor* Node::get_connected_function_type(const char* property
     const Slot* adjacent_slot = slot->first_adjacent();
 
     if ( adjacent_slot )
-        if ( adjacent_slot->get_node()->is_invokable() )
-            return static_cast<const FunctionNode*>(adjacent_slot->get_node())->get_func_type();
+        if (adjacent_slot->node()->is_invokable() )
+            return static_cast<const FunctionNode*>(adjacent_slot->node())->get_func_type();
 
     return nullptr;
 }
@@ -85,16 +84,6 @@ Property* Node::get_prop(const char *_name)
     return m_props.find_by_name( _name );
 }
 
-Property* Node::get_prop_at(size_t pos)
-{
-    return m_props.at(pos);
-}
-
-const Property* Node::get_prop_at(size_t pos) const
-{
-    return m_props.at(pos);
-}
-
 Slot* Node::find_slot(SlotFlags _flags)
 {
     return const_cast<Slot*>( const_cast<const Node*>(this)->find_slot(_flags));
@@ -102,7 +91,7 @@ Slot* Node::find_slot(SlotFlags _flags)
 
 const Slot* Node::find_slot(SlotFlags _flags) const
 {
-    return find_slot_by_property(m_this_as_property, _flags );
+    return find_slot_by_property(m_value, _flags );
 }
 
 Slot* Node::find_slot_at(SlotFlags _flags, size_t _position)
@@ -114,7 +103,7 @@ const Slot* Node::find_slot_at(SlotFlags _flags, size_t _position) const
 {
     for( const Slot* slot : m_slots )
     {
-        if( slot->has_flags(_flags) && slot->position() == _position && slot->get_property() == m_this_as_property )
+        if( slot->has_flags(_flags) && slot->position() == _position && slot->property() == m_value )
         {
             return slot;
         }
@@ -122,13 +111,13 @@ const Slot* Node::find_slot_at(SlotFlags _flags, size_t _position) const
     return nullptr;
 }
 
-Slot& Node::get_slot_at(size_t pos)
+Slot& Node::slot_at(size_t pos)
 {
     ASSERT(m_slots.size() < pos)
     return *m_slots[pos];
 }
 
-const Slot& Node::get_slot_at(size_t pos) const
+const Slot& Node::slot_at(size_t pos) const
 {
     ASSERT(m_slots.size() < pos)
     return *m_slots[pos];
@@ -183,7 +172,7 @@ Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _t
     return nullptr;
 }
 
-Slot& Node::get_nth_slot( size_t _n, SlotFlags _flags )
+Slot& Node::nth_slot(size_t _n, SlotFlags _flags )
 {
     size_t count = 0;
     for( auto& slot : m_slots )
@@ -205,16 +194,11 @@ Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, Propert
     return m_props.add(_type, _name, _flags);
 }
 
-Slot* Node::add_slot(SlotFlags _flags, size_t _capacity, Property* _property)
+Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, size_t _position)
 {
-    Slot* slot = new Slot(this, _flags, _property, _capacity);
-    m_slots.push_back(slot);
-    return slot;
-}
-
-Slot*  Node::add_slot(SlotFlags _flags, size_t _capacity, size_t _position)
-{
-    Slot* slot = new Slot(this, _flags, m_this_as_property, _capacity, _position);
+    ASSERT( _property != nullptr )
+    ASSERT(_property->owner() == this)
+    Slot* slot = new Slot(this, _flags, _property, _capacity, _position);
     m_slots.push_back(slot);
     return slot;
 }
@@ -226,7 +210,7 @@ Node* Node::find_parent() const
         Slot* adjacent_slot = parent_slot->first_adjacent();
         if(adjacent_slot == nullptr)
             return {};
-        return adjacent_slot->get_node();
+        return adjacent_slot->node();
     }
     return {};
 }
@@ -309,16 +293,18 @@ std::vector<Slot*> Node::filter_slots( SlotFlags _flags ) const
 
 bool Node::is_instruction() const
 {
-    bool connected_to_codeflow = predecessors().size() + successors().size() > 0;
-    if(connected_to_codeflow)
-        return true;
-
-    return find_slot_by_property( m_this_as_property, SlotFlag_OUTPUT | SlotFlag_NOT_FULL) == nullptr;
+    if ( auto* slot = find_slot(SlotFlag_PREV) )
+        if ( slot->adjacent_count() > 0 )
+            return true;
+    if ( auto* slot = find_slot(SlotFlag_NEXT) )
+        if ( slot->adjacent_count() > 0 )
+            return true;
+    return false;
 }
 
 bool Node::should_be_constrain_to_follow_output( const Node* _output ) const
 {
-    const auto& _outputs = outputs();
+    const auto _outputs = outputs();
     return predecessors().empty() && !_outputs.empty() && _outputs.back() == _output;
 }
 
@@ -362,7 +348,7 @@ void Node::set_suffix(const Token& token)
     m_suffix = token;
 }
 
-const PropertyBag& Node::get_props() const
+const PropertyBag& Node::props() const
 {
     return m_props;
 }
@@ -370,4 +356,24 @@ const PropertyBag& Node::get_props() const
 bool Node::is_invokable() const
 {
     return m_type == NodeType_OPERATOR || m_type == NodeType_FUNCTION;
+}
+
+Slot* Node::value_out()
+{
+    return const_cast<Slot*>( find_slot_by_property(m_value, SlotFlag_OUTPUT ) );
+}
+
+const Slot* Node::value_out() const
+{
+    return find_slot_by_property(m_value, SlotFlag_OUTPUT );
+}
+
+Slot* Node::value_in()
+{
+    return const_cast<Slot*>( find_slot_by_property(m_value, SlotFlag_INPUT ) );
+}
+
+const Slot* Node::value_in() const
+{
+    return find_slot_by_property(m_value, SlotFlag_INPUT );
 }

@@ -13,7 +13,7 @@ using namespace ndbl;
 using namespace tools;
 
 #ifdef NDBL_DEBUG
-#define DEBUG_DRAW 0
+#define DEBUG_DRAW 1
 #endif
 
 REFLECT_STATIC_INIT
@@ -50,9 +50,9 @@ void Physics::apply_constraints(float _dt)
     }
 }
 
-void Physics::add_force_to_move_to(tools::Vec2 _target_pos, tools::Space _space, float _factor, bool _recurse)
+void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
 {
-    Vec2 delta   = _target_pos - m_view->get_pos(_space);
+    Vec2 delta   = _target_pos - m_view->xform()->get_pos(_space);
     float factor = std::max(0.0f, _factor);
     Vec2 force   = Vec2::scale(delta, factor);
     add_force( force, _recurse);
@@ -81,8 +81,9 @@ void Physics::apply_forces(float _dt)
     float lensqr_max       = std::pow(100, 4);
     float friction_coef    = lerp(0.0f, 0.5f, m_forces_sum.lensqr() / lensqr_max);
     Vec2  soften_force_sum = Vec2::lerp(m_last_frame_forces_sum, m_forces_sum, 0.95f);
+    Vec2  delta            = soften_force_sum * (1.0f - friction_coef) * _dt;
 
-    m_view->translate(soften_force_sum * (1.0f - friction_coef) * _dt );
+    m_view->xform()->translate( delta );
 
     m_last_frame_forces_sum = soften_force_sum;
     m_forces_sum            = Vec2();
@@ -223,21 +224,23 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
     if( clean_follower.empty() )
         return;
 
+    Config* cfg = get_config();
     const NodeView* _follower      = clean_follower[0];
-    const Box leaders_box          = NodeView::get_rect(leader, SCREEN_SPACE, leader_flags);
-    const Box follower_box         = _follower->get_rect_ex(SCREEN_SPACE, follower_flags);
+    const BoxShape2D leaders_box          = NodeView::get_rect(leader, WORLD_SPACE, leader_flags);
+    const BoxShape2D follower_box         = _follower->get_rect_ex(WORLD_SPACE, follower_flags);
 
     // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
-    Vec2 delta = Box::diff(leaders_box, leader_pivot , follower_box, follower_pivot );
-    delta += gap_direction * get_config()->ui_node_gap(gap_size);
+    Vec2 delta = BoxShape2D::diff(leaders_box, leader_pivot , follower_box, follower_pivot );
+    delta += gap_direction * cfg->ui_node_gap(gap_size);
 
     // Apply a force to translate to the (single) follower
     auto* physics_component = _follower->get_node()->get_component<Physics>();
     if( !physics_component )
         return;
-    Config* cfg = get_config();
-    Vec2 desired_pos = _follower->get_pos(SCREEN_SPACE) + delta;
-    physics_component->add_force_to_move_to( desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
+
+    Vec2 current_pos = _follower->xform()->get_pos(WORLD_SPACE);
+    Vec2 desired_pos = current_pos + delta;
+    physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
 
 void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
@@ -251,26 +254,26 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
         return;
 
     // Form a row with each view box
-    std::vector<Box>  box(follower.size());
+    std::vector<BoxShape2D>  box(follower.size());
     std::vector<Vec2> delta(follower.size());
-    const Vec2 gap = get_config()->ui_node_gap(gap_size);
+    const Vec2        gap = cfg->ui_node_gap(gap_size);
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        box[i] = clean_follower[i]->get_rect_ex(SCREEN_SPACE, follower_flags);
+        box[i] = clean_follower[i]->get_rect_ex(WORLD_SPACE, follower_flags);
 
         // Determine the delta required to snap the current follower with either the leaders or the previous follower.
         if ( i == 0 )
         {
             // First box is aligned with the leader
-            const Box leader_box = leader[0]->get_rect_ex(SCREEN_SPACE, leader_flags);
-            delta[i] = Box::diff(leader_box, leader_pivot, box[i], follower_pivot);
+            const BoxShape2D leader_box = leader[0]->get_rect_ex(WORLD_SPACE, leader_flags);
+            delta[i] = BoxShape2D::diff(leader_box, leader_pivot, box[i], follower_pivot);
             delta[i] += gap * gap_direction;
         }
         else
         {
             // i+1 box is aligned with the i
-            delta[i] = Box::diff( box[i-1] , row_direction, box[i], -row_direction);
+            delta[i] = BoxShape2D::diff(box[i - 1] , row_direction, box[i], -row_direction);
             delta[i] += gap * row_direction;
             delta[i] -= delta[i-1]; //
         }
@@ -281,8 +284,9 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
         auto* physics_component = clean_follower[i]->get_node()->get_component<Physics>();
         if( !physics_component )
             continue;
-        Vec2 desired_pos = clean_follower[i]->get_pos(SCREEN_SPACE) + delta[i];
-        physics_component->add_force_to_move_to(desired_pos, SCREEN_SPACE, cfg->ui_node_speed, true);
+        Vec2 current_pos = clean_follower[i]->xform()->get_pos(WORLD_SPACE);
+        Vec2 desired_pos = current_pos + delta[i];
+        physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
     }
 }
 

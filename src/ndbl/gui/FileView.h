@@ -3,7 +3,7 @@
 #include <observe/observer.h>
 
 #include "tools/core/reflection/reflection"
-#include "tools/gui/View.h"
+#include "tools/gui/ViewState.h"
 
 #include "Condition.h"
 #include "Isolation.h"
@@ -36,15 +36,15 @@ namespace ndbl
         OverlayPos position;
     } OverlayData;
 
-    class FileView : public tools::View
+    class FileView
 	{
 	public:
 		explicit FileView();
         FileView(const FileView&) = delete;
-		~FileView() override = default;
+		~FileView() = default;
 
 		void                           init( File& _file);
-        bool                           draw() override;
+        bool                           draw();
         bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
         bool                           is_graph_dirty() const { return m_is_graph_dirty; }
@@ -63,7 +63,6 @@ namespace ndbl
         void                           refresh_overlay(Condition condition);
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
         size_t                         size() const;
-
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
         bool         m_focused_text_changed;
@@ -77,8 +76,8 @@ namespace ndbl
         std::string  m_experimental_clipboard_curr;
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste;
-        observe::Observer m_graph_changed_observer;
+        observe::Observer   m_graph_changed_observer;
 
-        REFLECT_DERIVED_CLASS()
+        REFLECT_BASE_CLASS()
     };
 }

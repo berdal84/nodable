@@ -79,7 +79,7 @@ void TaskManager::run_task(std::future<void>&& task)
         ++it;
     }
 
-    VERIFY(m_tasks.size() < m_conf.max_capacity, "[TaskManager::run_task] m_tasks buffer is full. Did you call update() frequently? Consider increasing max_capacity when calling init_task_manager()");
+    VERIFY(m_tasks.size() < m_conf.max_capacity, "[TaskManager::run_task] m_tasks buffer is full. Did you call update_world_matrix() frequently? Consider increasing max_capacity when calling init_task_manager()");
 
     m_tasks.push_back(std::move(task));
 }

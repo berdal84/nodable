@@ -67,7 +67,7 @@ namespace ndbl{
         Slot*                         parse_binary_operator_expression(u8_t _precedence, Slot& _left);
         Slot*                         parse_atomic_expression();
         Slot*                         parse_expression(u8_t _precedence = 0, Slot* _left_override = nullptr);
-        Slot*                         parse_token(Token _token);
+        Slot*                         token_to_slot(Token _token);
         bool                          to_bool(const std::string& );
         std::string                   to_unquoted_string(const std::string& _quoted_str);
         double                        to_double(const std::string& );
@@ -114,7 +114,7 @@ namespace ndbl{
         std::string& serialize_type(std::string& _out, const tools::TypeDescriptor*) const;
         std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_NONE )const;
         std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_NONE )const;
-        std::string& serialize_node(std::string &_out, const Node* node, SerializeFlags _flags = SerializeFlag_NONE ) const;
+        std::string& _serialize_node(std::string &_out, const Node* node, SerializeFlags _flags = SerializeFlag_NONE ) const;
         std::string& serialize_scope(std::string& _out, const Scope *_scope)const;
         std::string& serialize_for_loop(std::string& _out, const ForLoopNode *_for_loop)const;
         std::string& serialize_while_loop(std::string& _out, const WhileLoopNode *_while_loop_node)const;

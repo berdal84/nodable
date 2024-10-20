@@ -35,31 +35,33 @@ namespace ndbl
         bool               has_vflags(VariableFlags flags)const { return (m_vflags & flags) == flags; };
         void               set_vflags(VariableFlags flags) { m_vflags |= flags; }
         void               clear_vflags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
-        Property*          property();
-        const Property*    get_value() const;
         Scope*             get_scope();
         const Scope*       get_scope() const;
         void               reset_scope(Scope* _scope = nullptr);
-        Slot&              input_slot(); // input slot for variable initialisation
-        const Slot&        input_slot() const; // input slot for variable initialisation
-        Slot&              output_slot(); // output slot to reference this variable
-        const Slot&        output_slot() const; // output slot to reference this variable
-        const tools::TypeDescriptor* get_type() const { return m_identifier->get_type(); }
+        const tools::TypeDescriptor* get_type() const { return m_value->get_type(); }
         const Token&       get_type_token() const { return m_type_token; }
         std::string        get_identifier() const { return get_identifier_token().word_to_string(); }
-        const Token&       get_identifier_token() const { return m_identifier->get_token(); }
-        Token&             get_identifier_token() { return m_identifier->get_token(); }
+        const Token&       get_identifier_token() const { return m_value->token(); }
+        Token&             get_identifier_token() { return m_value->token(); }
         const Token&       get_operator_token() const { return m_operator_token; }
         void               set_type_token(const Token& tok) { m_type_token = tok; }
-        void               set_identifier_token(const Token& tok) { m_identifier->set_token(tok); }
+        void               set_identifier_token(const Token& tok) { m_value->set_token(tok); }
         void               set_operator_token(const Token& tok) { m_operator_token = tok; }
+
+        // Aliases
+
+        Slot*              decl_out() { return m_as_declaration_slot; }
+        const Slot*        decl_out() const { return m_as_declaration_slot; }
+        Slot*              ref_out() { return m_as_reference_slot; }
+        const Slot*        ref_out() const { return m_as_reference_slot; }
+
     private:
         Token              m_type_token       = Token::s_null; // [int] var  =
-        Property*          m_identifier       = nullptr;       //  int [var] =
         Token              m_operator_token   = Token::s_null; //  int  var [=]
-        VariableFlags      m_vflags = VariableFlag_NONE;
-        Node*              m_scope  = nullptr;
-
+        VariableFlags      m_vflags           = VariableFlag_NONE;
+        Node*              m_scope            = nullptr;
+        Slot*              m_as_declaration_slot = nullptr;
+        Slot*              m_as_reference_slot   = nullptr;
 		REFLECT_DERIVED_CLASS()
     };
 }

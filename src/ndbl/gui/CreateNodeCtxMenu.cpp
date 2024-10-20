@@ -22,7 +22,7 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
 
     for (auto& action: items )
     {
-        const TypeDescriptor* dragged_property_type = dragged_slot->get_property_type();
+        const TypeDescriptor* dragged_property_type = dragged_slot->property_type();
 
         switch ( action->event_data.node_type )
         {
@@ -42,7 +42,7 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
                 {
                     // we can connect anything to a code flow slot
                 }
-                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->get_property_type()->is<Node*>() )
+                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->property_type()->is<Node*>() )
                 {
                     // we can connect anything to a Node ref input
                 }

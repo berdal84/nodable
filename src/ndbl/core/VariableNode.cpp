@@ -16,16 +16,18 @@ void VariableNode::init(const tools::TypeDescriptor* _type, const char* _identif
     Node::init(NodeType_VARIABLE, "Variable");
 
     // Init identifier property
-    m_identifier = add_prop(_type, VALUE_PROPERTY );
-    m_identifier->set_token({Token_t::identifier});
-    m_identifier->get_token().word_replace(_identifier); // might come from std::string::c_str()
+    m_value->set_type(_type);
+    m_value->set_token({Token_t::identifier});
+    m_value->token().word_replace(_identifier); // might come from std::string::c_str()
 
     // Init Slots
-    add_slot(SlotFlag_INPUT, 1, m_identifier); // to connect an initialization expression
-    add_slot(SlotFlag_OUTPUT, Slot::MAX_CAPACITY, m_identifier); // can be connected by reference
-    // add_slot(SlotFlag_OUTPUT, Slot::MAX_CAPACITY, m_value);   // CANNOT be connected by value
-    add_slot(SlotFlag_OUTPUT, 1, m_this_as_property );
-    add_slot(SlotFlag_PREV, Slot::MAX_CAPACITY );
+    add_slot(m_value, SlotFlag_INPUT, 1); // to connect an initialization expression
+    add_slot(m_value, SlotFlag_PARENT, 1);
+    add_slot(m_value, SlotFlag_NEXT, 1);
+    add_slot(m_value, SlotFlag_PREV, Slot::MAX_CAPACITY);
+
+    m_as_declaration_slot = add_slot(m_value, SlotFlag_OUTPUT, 1); // as declaration
+    m_as_reference_slot   = add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY ); // as reference
 }
 
 Scope* VariableNode::get_scope()
@@ -49,36 +51,3 @@ void VariableNode::reset_scope(Scope* _scope)
     else
         m_scope = {};
 }
-
-Property* VariableNode::property()
-{
-    ASSERT(m_identifier != nullptr)
-    return m_identifier;
-}
-
-const Property* VariableNode::get_value() const
-{
-    ASSERT(m_identifier != nullptr)
-    return m_identifier;
-}
-
-Slot& VariableNode::input_slot()
-{
-    return const_cast<Slot&>( const_cast<const VariableNode*>(this)->input_slot() );
-}
-
-const Slot& VariableNode::input_slot() const
-{
-    return *find_slot_by_property(m_identifier, SlotFlag_INPUT );
-}
-
-Slot& VariableNode::output_slot()
-{
-    return const_cast<Slot&>( const_cast<const VariableNode*>(this)->output_slot() );
-}
-
-const Slot& VariableNode::output_slot() const
-{
-    return *find_slot_by_property(m_identifier, SlotFlag_OUTPUT );
-}
-

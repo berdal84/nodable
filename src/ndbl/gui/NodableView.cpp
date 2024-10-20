@@ -583,7 +583,7 @@ void NodableView::draw_interpreter_window()
             ImGuiEx::DrawHelper("%s", "primary accumulator");
             draw_register_value(Register_rdx);
             ImGui::SameLine();
-            ImGuiEx::DrawHelper("%s", "base register");
+            ImGuiEx::DrawHelper("%s", "view_state register");
             draw_register_value(Register_eip);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "instruction pointer");
@@ -781,10 +781,10 @@ void NodableView::draw_config_window()
 
         if (ImGui::CollapsingHeader("Sizes", flags ))
         {
-            ImGui::SliderFloat("size factor SM", &cfg->tools_cfg->size_factor[Size_SM], 0.0f, 5.0f);
-            ImGui::SliderFloat("size factor MD", &cfg->tools_cfg->size_factor[Size_MD], 0.0f, 5.0f);
-            ImGui::SliderFloat("size factor LR", &cfg->tools_cfg->size_factor[Size_LG], 0.0f, 5.0f);
-            ImGui::SliderFloat("size factor XL", &cfg->tools_cfg->size_factor[Size_XL], 0.0f, 5.0f);
+            ImGui::SliderFloat("set_size factor SM", &cfg->tools_cfg->size_factor[Size_SM], 0.0f, 5.0f);
+            ImGui::SliderFloat("set_size factor MD", &cfg->tools_cfg->size_factor[Size_MD], 0.0f, 5.0f);
+            ImGui::SliderFloat("set_size factor LR", &cfg->tools_cfg->size_factor[Size_LG], 0.0f, 5.0f);
+            ImGui::SliderFloat("set_size factor XL", &cfg->tools_cfg->size_factor[Size_XL], 0.0f, 5.0f);
         }
 
         if (ImGui::CollapsingHeader("Nodes", flags ))
@@ -818,14 +818,14 @@ void NodableView::draw_config_window()
                 ImGui::Separator();
 
                 ImGui::Text("Code Flow Slots:");
-                ImGui::SliderFloat2("slot size##codeflow"   , &cfg->ui_slot_rectangle_size.x, 2.0f, 100.0f);
+                ImGui::SliderFloat2("slot set_size##codeflow"   , &cfg->ui_slot_rectangle_size.x, 2.0f, 100.0f);
                 ImGui::SliderFloat("slot padding##codeflow" , &cfg->ui_slot_gap, 0.0f, 100.0f);
                 ImGui::SliderFloat("slot radius##codeflow"  , &cfg->ui_slot_border_radius, 0.0f, 40.0f);
             }
 
             if ( ImGui::CollapsingHeader("Misc.", flags ))
             {
-                ImGui::SliderFloat2("gap base (x and y-axis)", &cfg->ui_node_gap_base.x, 0.0f, 400.0f);
+                ImGui::SliderFloat2("gap view_state (x and y-axis)", &cfg->ui_node_gap_base.x, 0.0f, 400.0f);
                 ImGui::SliderFloat("velocity" , &cfg->ui_node_speed, 1.0f, 10.0f);
                 ImGui::SliderFloat4("padding" , &cfg->ui_node_padding.x, 0.0f, 20.0f);
                 ImGui::SliderFloat("border width", &cfg->ui_node_borderWidth, 0.0f, 10.0f);
@@ -856,7 +856,7 @@ void NodableView::draw_config_window()
             ImGui::InputInt("unfold iterations", &cfg->graph_unfold_iterations, 1, 1000);
             ImGui::ColorEdit4("grid color (major)", &cfg->ui_graph_grid_color_major.x);
             ImGui::ColorEdit4("grid color (minor)", &cfg->ui_graph_grid_color_minor.x);
-            ImGui::SliderInt("grid size", &cfg->ui_grid_size, 1, 500);
+            ImGui::SliderInt("grid set_size", &cfg->ui_grid_size, 1, 500);
             ImGui::SliderInt("grid subdivisions", &cfg->ui_grid_subdiv_count, 1, 16);
         }
 

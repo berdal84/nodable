@@ -13,7 +13,7 @@ Property* PropertyBag::add(Property* property)
 {
     m_properties.push_back(property);
     // Index by name
-    m_properties_by_name.insert({property->get_name(), property});
+    m_properties_by_name.insert({property->name(), property});
 
     return property;
 }

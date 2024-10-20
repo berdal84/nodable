@@ -26,3 +26,8 @@ bool Property::is_type(const TypeDescriptor* other) const
 {
     return m_type->equals( other );
 }
+
+void Property::set_type(const tools::TypeDescriptor* type)
+{
+    m_type = type;
+}
