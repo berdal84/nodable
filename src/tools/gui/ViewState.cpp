@@ -8,7 +8,7 @@
 using namespace tools;
 
 ViewState::ViewState()
-: ViewState(100.f, 100.f)
+: ViewState(1.f, 1.f)
 {
 }
 

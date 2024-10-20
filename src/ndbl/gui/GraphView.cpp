@@ -511,8 +511,8 @@ void GraphView::reset()
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
     NodeView::translate(get_all_nodeviews(), far_outside);
 
-    // frame all (33ms delayed to ensure layout is correct)
-    get_event_manager()->dispatch_delayed<Event_FrameSelection>( 33, { FRAME_ALL } );
+    // frame all (100ms delayed to ensure layout is correct)
+    get_event_manager()->dispatch_delayed<Event_FrameSelection>( 100, { FRAME_ALL } );
 }
 
 std::vector<NodeView*> GraphView::get_all_nodeviews() const

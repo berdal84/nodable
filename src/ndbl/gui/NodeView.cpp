@@ -32,10 +32,8 @@ REFLECT_STATIC_INIT
         .extends<NodeComponent>();
 }
 
-constexpr Vec2 DEFAULT_SIZE             = Vec2(10.0f, 35.0f);
-constexpr Vec2 DEFAULT_POS              = Vec2(500.0f, -1.0f);
-constexpr Vec4 DEFAULT_COLOR            = Vec4(1.f, 0.f, 0.f);
-constexpr bool PIXEL_PERFECT            = true; // round positions for drawing only
+constexpr Vec4 DEFAULT_COLOR = Vec4(1.f, 0.f, 0.f);
+#define PIXEL_PERFECT true // round positions for drawing only
 
 NodeView::NodeView()
     : NodeComponent()
@@ -47,7 +45,7 @@ NodeView::NodeView()
     , m_property_views__all()
     , m_hovered_slotview(nullptr)
     , m_last_clicked_slotview(nullptr)
-    , m_view_state(DEFAULT_SIZE.x, DEFAULT_SIZE.y)
+    , m_view_state(10.0f, 35.0f)
 {
 }
 
@@ -323,11 +321,11 @@ bool NodeView::draw()
 	ImGui::PushStyleVar(ImGuiStyleVar_Alpha, m_opacity);
     Rect screen_rect = get_rect(WORLD_SPACE);
 
-    if ( PIXEL_PERFECT )
-    {
+#if PIXEL_PERFECT
         screen_rect.min.round();
         screen_rect.max.round();
-    }
+#endif
+
     ImGui::SetCursorScreenPos( screen_rect.top_left() ); // start from th top left corner
 	ImGui::PushID(this);
 
