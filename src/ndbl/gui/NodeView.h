@@ -9,7 +9,7 @@
 
 #include "PropertyView.h"
 #include "SlotView.h"
-#include "ndbl/core/NodeComponent.h"// base class
+#include "ndbl/core/ASTNodeComponent.h"// base class
 #include "ndbl/core/Property.h"
 #include "tools/gui/geometry/BoxShape2D.h"
 #include "tools/gui/ImGuiEx.h"
@@ -20,8 +20,8 @@
 namespace ndbl
 {
     // forward declaration
-    class Node;
-    class Graph;
+    class ASTNode;
+    class ASTGraph;
     class Slot;
     class SlotView;
     class NodeViewConstraint;
@@ -51,21 +51,21 @@ namespace ndbl
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
-    class NodeView : public NodeComponent
+    class NodeView : public ASTNodeComponent
 	{
     public:
         friend class GraphView;
 		NodeView();
 		~NodeView();
 
-        Node*                   get_node() const { return m_owner; }
+        ASTNode*                   get_node() const { return m_owner; }
         bool                    selected() const { return  m_view_state.selected; };
         inline bool             pinned() const { return m_pinned; }
         bool                    visible() const { return m_view_state.visible; };
         void                    set_pinned(bool b = true ) { m_pinned = b; }
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw();
-        void                    set_owner(Node*)override;
+        void                    set_owner(ASTNode*)override;
         bool                    update(float);
         void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
@@ -102,7 +102,7 @@ namespace ndbl
         void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags flags, bool _visible, bool _recursive);
-        void                    update_labels_from_name(const Node *_node);
+        void                    update_labels_from_name(const ASTNode *_node);
 
         static void DrawNodeRect(
                 tools::Rect rect,

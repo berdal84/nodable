@@ -78,16 +78,16 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
 
     auto node_defaultColor = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green
     ui_node_fill_color = {
-        node_defaultColor, // NodeType_DEFAULT
-        node_defaultColor, // NodeType_BLOCK_CONDITION
-        node_defaultColor, // NodeType_BLOCK_FOR_LOOP
-        node_defaultColor, // NodeType_BLOCK_WHILE_LOOP
-        node_defaultColor, // NodeType_BLOCK_SCOPE
-        Color(171, 190, 255), // NodeType_VARIABLE
-        Color(171, 190, 255), // NodeType_VARIABLE_REF
-        Color(200, 200, 200), // NodeType_LITERAL
-        Color(255, 199, 115), // NodeType_FUNCTION
-        Color(255, 199, 115)  // NodeType_OPERATOR
+        node_defaultColor, // ASTNodeType_DEFAULT
+        node_defaultColor, // ASTNodeType_BLOCK_CONDITION
+        node_defaultColor, // ASTNodeType_BLOCK_FOR_LOOP
+        node_defaultColor, // ASTNodeType_BLOCK_WHILE_LOOP
+        node_defaultColor, // ASTNodeType_BLOCK_SCOPE
+        Color(171, 190, 255), // ASTNodeType_VARIABLE
+        Color(171, 190, 255), // ASTNodeType_VARIABLE_REF
+        Color(200, 200, 200), // ASTNodeType_LITERAL
+        Color(255, 199, 115), // ASTNodeType_FUNCTION
+        Color(255, 199, 115)  // ASTNodeType_OPERATOR
     };
 
     ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);

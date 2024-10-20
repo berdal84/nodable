@@ -5,9 +5,9 @@
 #include <vector>
 
 #include "tools/core/math.h"
-#include "ndbl/core/GraphUtil.h"
-#include "ndbl/core/FunctionNode.h"
-#include "ndbl/core/LiteralNode.h"
+#include "ndbl/core/ASTUtils.h"
+#include "ndbl/core/ASTFunctionNode.h"
+#include "ndbl/core/ASTLiteralNode.h"
 #include "ndbl/core/language/Nodlang.h"
 
 #include "Config.h"
@@ -29,7 +29,7 @@ using namespace tools;
 REFLECT_STATIC_INIT
 {
     type::Initializer<NodeView>("NodeView")
-        .extends<NodeComponent>();
+        .extends<ASTNodeComponent>();
 }
 
 constexpr Vec2 DEFAULT_SIZE             = Vec2(10.0f, 35.0f);
@@ -38,7 +38,7 @@ constexpr Vec4 DEFAULT_COLOR            = Vec4(1.f, 0.f, 0.f);
 constexpr bool PIXEL_PERFECT            = true; // round positions for drawing only
 
 NodeView::NodeView()
-    : NodeComponent()
+    : ASTNodeComponent()
     , m_colors({&DEFAULT_COLOR})
     , m_opacity(1.0f)
     , m_expanded(true)
@@ -71,9 +71,9 @@ std::string NodeView::get_label()
     return m_label;
 }
 
-void NodeView::set_owner(Node* node)
+void NodeView::set_owner(ASTNode* node)
 {
-    NodeComponent::set_owner(node);
+    ASTNodeComponent::set_owner(node);
 
     if( node == nullptr )
     {
@@ -104,12 +104,12 @@ void NodeView::set_owner(Node* node)
 
         switch ( node->type() )
         {
-            case NodeType_FUNCTION:
-            case NodeType_OPERATOR:
-            case NodeType_BLOCK_FOR_LOOP:
-            case NodeType_BLOCK_CONDITION:
-            case NodeType_BLOCK_SCOPE:
-            case NodeType_BLOCK_WHILE_LOOP:
+            case ASTNodeType_FUNCTION:
+            case ASTNodeType_OPERATOR:
+            case ASTNodeType_BLOCK_FOR_LOOP:
+            case ASTNodeType_BLOCK_CONDITION:
+            case ASTNodeType_BLOCK_SCOPE:
+            case ASTNodeType_BLOCK_WHILE_LOOP:
                 // we don't need to actually see this view for now
                 if ( property->has_flags(PropertyFlag_IS_THIS) )
                     new_view->view_state()->visible = false;
@@ -201,9 +201,9 @@ void NodeView::set_owner(Node* node)
     // Adjust some slot views
     switch ( node->type() )
     {
-        case NodeType_VARIABLE:
+        case ASTNodeType_VARIABLE:
         {
-            auto variable = static_cast<VariableNode*>( node );
+            auto variable = static_cast<ASTVariableNode*>( node );
             if ( Slot* decl_out = variable->decl_out() )
             {
                 if (SlotView *view = decl_out->view())
@@ -214,9 +214,9 @@ void NodeView::set_owner(Node* node)
             }
             break;
         }
-        case NodeType_FUNCTION:
+        case ASTNodeType_FUNCTION:
         {
-            auto function = static_cast<FunctionNode*>( node );
+            auto function = static_cast<ASTFunctionNode*>( node );
             if ( Slot* value_out = function->value_out() )
             {
                 if (SlotView *view = value_out->view())
@@ -233,7 +233,7 @@ void NodeView::set_owner(Node* node)
     //----------------
 
     update_labels_from_name(node );
-    node->on_name_change().connect([=](Node* _node)
+    node->on_name_change().connect([=](ASTNode* _node)
     {
         this->update_labels_from_name(_node);
     });
@@ -245,12 +245,12 @@ void NodeView::set_owner(Node* node)
     set_color( &cfg->ui_node_fill_color[node->type()] );
 }
 
-void NodeView::update_labels_from_name(const Node* _node)
+void NodeView::update_labels_from_name(const ASTNode* _node)
 {
     // Label
     // For a variable, label must be the type
-    if ( _node->type() == NodeType_VARIABLE )
-        m_label = reinterpret_cast<const VariableNode *>(_node)->get_type()->get_name();
+    if ( _node->type() == ASTNodeType_VARIABLE )
+        m_label = reinterpret_cast<const ASTVariableNode *>(_node)->get_type()->get_name();
     else
         m_label = _node->name();
 
@@ -307,7 +307,7 @@ bool NodeView::draw()
 
     Config*     cfg       = get_config();
 	bool        changed   = false;
-    Node*       node      = get_node();
+    ASTNode*       node      = get_node();
 
     ASSERT(node != nullptr);
 
@@ -341,7 +341,7 @@ bool NodeView::draw()
     }
     else if (node->is_instruction())
     {
-        border_color = cfg->ui_node_fill_color[NodeType_DEFAULT];
+        border_color = cfg->ui_node_fill_color[ASTNodeType_DEFAULT];
     }
 
     float border_width = cfg->ui_node_borderWidth;
@@ -381,7 +381,7 @@ bool NodeView::draw()
 
     switch ( node->type() )
     {
-        case NodeType_OPERATOR:
+        case ASTNodeType_OPERATOR:
             if (node->is_unary_operator())
                 pre_label = get_label();
             else if (node->is_binary_operator())
@@ -391,7 +391,7 @@ bool NodeView::draw()
         default:
             pre_label = get_label();
             break;
-        case NodeType_FUNCTION:
+        case ASTNodeType_FUNCTION:
             pre_label = get_label() + "(";
             post_label = ")";
             break;
@@ -407,7 +407,7 @@ bool NodeView::draw()
     }
 
     // Draw the properties depending on node type
-    if ( node->type() != NodeType_OPERATOR )
+    if ( node->type() != ASTNodeType_OPERATOR )
     {
         PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
         PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
@@ -509,7 +509,7 @@ bool NodeView::is_inside(NodeView* _other, const Rect& _rect, Space _space)
 void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 {
     tools::Config* tools_cfg = tools::get_config();
-    Node* node = _view->get_node();
+    ASTNode* node = _view->get_node();
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
     auto draw_labeled_property_view = [&](PropertyView* _property_view)
@@ -585,7 +585,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         // Components
         if( ImGui::TreeNode("Components") )
         {
-            for (const NodeComponent* component : node->get_components() )
+            for (const ASTNodeComponent* component : node->get_components() )
             {
                 ImGui::BulletText("%s", component->get_class()->get_name());
             }
@@ -594,7 +594,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
         if( ImGui::TreeNode("Slots") )
         {
-            auto draw_node_list = [](const char *label, const std::vector<Node*> _nodes )
+            auto draw_node_list = [](const char *label, const std::vector<ASTNode*> _nodes )
             {
                 if( !ImGui::TreeNode(label) )
                 {
@@ -606,7 +606,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
                     ImGui::BulletText( "None" );
                 }
 
-                for (const Node* each_node : _nodes )
+                for (const ASTNode* each_node : _nodes )
                 {
                     ImGui::BulletText("- %s", each_node->name().c_str());
                 }
@@ -640,11 +640,11 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         }
 
         // Scope specific:
-        if (Scope* scope = node->get_component<Scope>())
+        if (ASTScope* scope = node->get_component<ASTScope>())
         {
             if( ImGui::TreeNode("Variables") )
             {
-                for (VariableNode* variable : scope->variables())
+                for (ASTVariableNode* variable : scope->variables())
                 {
                     std::string value = variable->value()->token().word_to_string();
                     ImGui::BulletText("%s: %s", variable->name().c_str(), value.c_str() );
@@ -664,7 +664,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (Graph* parent_graph = node->graph())
+                if (ASTGraph* parent_graph = node->graph())
                 {
                     parentName = "Graph";
                     parentName.append( parent_graph->is_dirty() ? " (dirty)" : "");
@@ -677,7 +677,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (Node* parent = node->find_parent() )
+                if (ASTNode* parent = node->find_parent() )
                 {
                     parentName = parent->name() + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
                 }
@@ -855,7 +855,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    Node* parent = _view->get_node()->find_parent();
+    ASTNode* parent = _view->get_node()->find_parent();
     if ( !parent )
     {
         return _view;
@@ -897,7 +897,7 @@ void NodeView::expand_toggle_rec()
 
 std::vector<NodeView*> NodeView::get_adjacent(SlotFlags flags) const
 {
-    return GraphUtil::adjacent_components<NodeView>(get_node(), flags);
+    return ASTUtils::adjacent_components<NodeView>(get_node(), flags);
 }
 
 void NodeView::set_color( const Vec4* _color, ColorType _type )

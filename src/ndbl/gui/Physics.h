@@ -2,17 +2,17 @@
 
 #include "tools/gui/geometry/Space.h"
 #include "tools/gui/geometry/SpatialNode2D.h"
-#include "ndbl/core/NodeComponent.h"
+#include "ndbl/core/ASTNodeComponent.h"
 #include "tools/gui/Size.h"
 #include "NodeView.h"
 
 namespace  ndbl
 {
     // forward declarations
-    class Node;
+    class ASTNode;
     class NodeView;
 
-    class Physics : public NodeComponent
+    class Physics : public ASTNodeComponent
     {
     public:
 
@@ -71,7 +71,7 @@ namespace  ndbl
         std::vector<Constraint>& get_constraints() { return m_constraints; };
         const std::vector<Constraint>& get_constraints() const { return m_constraints; };
 
-        static void     create_constraints(const std::vector<Node*>&);
+        static void     create_constraints(const std::vector<ASTNode*>&);
         static void     destroy_constraints(std::vector<Physics *> &physics_components);
     private:
         NodeView*   m_view;

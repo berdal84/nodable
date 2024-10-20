@@ -2,7 +2,7 @@
 
 #include <string>
 #include "Interpreter.h"
-#include "Compiler.h"
+#include "ASTCompiler.h"
 
 namespace tools
 {
@@ -12,7 +12,7 @@ namespace tools
 
 namespace ndbl
 {
-    class Graph;
+    class ASTGraph;
 
     class NodableHeadless
     {
@@ -25,14 +25,14 @@ namespace ndbl
         virtual void        clear();
         bool                should_stop() const;
         virtual std::string& serialize( std::string& out ) const;
-        virtual Graph*      parse( const std::string& in );
-        virtual const Code* compile(Graph*);
+        virtual ASTGraph*      parse(const std::string& in );
+        virtual const Code* compile(ASTGraph*);
         const Code*         compile();
         bool                load_program(const Code*);
         bool                run_program() const;
         bool                release_program();
         Nodlang*            get_language() const;
-        Graph*              get_graph() const;
+        ASTGraph*              get_graph() const;
         tools::qword        get_last_result() const;
         const std::string&  get_source_code() const;
 
@@ -43,14 +43,14 @@ namespace ndbl
     protected:
         tools::TaskManager* m_task_manager{};
         Nodlang*            m_language{};
-        NodeFactory*        m_node_factory{};
+        ASTNodeFactory*        m_node_factory{};
         Interpreter*        m_interpreter{};
         bool                m_should_stop{false};
-        Graph*              m_graph{};
+        ASTGraph*              m_graph{};
         std::string         m_source_code;
         const Code*         m_asm_code{};
         bool                m_auto_completion{false};
-        Compiler            m_compiler{}; // TODO: move this to a global (like VirtualMachine.h)
+        ASTCompiler            m_compiler{}; // TODO: move this to a global (like VirtualMachine.h)
     };
 }
 

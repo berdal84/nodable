@@ -28,7 +28,7 @@ namespace tools
 
     /**
      * Very simple spatial node in 2D.
-     * A scene graph can be create by creating parent/child links.
+     * A scene graph can be new_node by creating parent/child links.
      * Currently, we can only set and get the position (not implemented in TRSTransform2D)
      */
     struct SpatialNode2D

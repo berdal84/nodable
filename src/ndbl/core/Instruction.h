@@ -7,9 +7,9 @@
 namespace ndbl
 {
     // forward declarations
-    class Scope;
-    class VariableNode;
-    class Node;
+    class ASTScope;
+    class ASTVariableNode;
+    class ASTNode;
 
     // list possible instruction's operation types
     typedef u8_t OpCode;
@@ -79,8 +79,8 @@ namespace ndbl
     {
         OpCode opcode;
         union {
-            VariableNode* var;     // a variable to push/pop.
-            const Scope*  scope;   // a scope to push/pop.
+            ASTVariableNode* var;     // a variable to push/pop.
+            const ASTScope*  scope;   // a scope to push/pop.
         };
     };
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "ndbl/core/Token.h"
+#include "ndbl/core/ASTToken.h"
 #include "tools/core/memory/memory.h"
 #include "tools/core/reflection/variant.h"
 #include "tools/core/types.h"// for constants and forward declarations
@@ -11,7 +11,7 @@
 namespace ndbl
 {
     // forward declarations
-    class Node;
+    class ASTNode;
 
     typedef int PropertyFlags;
     enum PropertyFlag_
@@ -27,7 +27,7 @@ namespace ndbl
 	class Property
     {
     public:
-        void               init(const tools::TypeDescriptor*, PropertyFlags, Node*, const char* _name); // must be called once before use
+        void               init(const tools::TypeDescriptor*, PropertyFlags, ASTNode*, const char* _name); // must be called once before use
         void               digest(Property *_property);
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
         void               set_flags(PropertyFlags flags) { m_flags |= flags; }
@@ -35,19 +35,19 @@ namespace ndbl
         //void             set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
         PropertyFlags      flags()const { return m_flags; }
         const std::string& name()const { return m_name; }
-        Node*              owner()const { return m_owner; }
+        ASTNode*              owner()const { return m_owner; }
         const tools::TypeDescriptor* get_type()const { return m_type; }
         bool               is_type(const tools::TypeDescriptor* other) const;
         void               set_type(const tools::TypeDescriptor *pDescriptor);
-        void               set_token(const Token& _token) { m_token = _token; }
-        inline Token&      token() { return m_token; }
-        inline const Token&token() const { return m_token; }
+        void               set_token(const ASTToken& _token) { m_token = _token; }
+        inline ASTToken&      token() { return m_token; }
+        inline const ASTToken&token() const { return m_token; }
 
     private:
-        Node*              m_owner = nullptr;
+        ASTNode*              m_owner = nullptr;
         PropertyFlags      m_flags = PropertyFlag_NONE;
         const tools::TypeDescriptor* m_type  = nullptr;
         std::string        m_name;
-        Token              m_token;
+        ASTToken              m_token;
     };
 }

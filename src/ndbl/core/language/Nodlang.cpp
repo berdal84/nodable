@@ -23,16 +23,16 @@
 #include "tools/core/memory/memory.h"
 
 #include "ndbl/core/DirectedEdge.h"
-#include "ndbl/core/ForLoopNode.h"
-#include "ndbl/core/Graph.h"
-#include "ndbl/core/IfNode.h"
-#include "ndbl/core/FunctionNode.h"
-#include "ndbl/core/LiteralNode.h"
+#include "ndbl/core/ASTForLoopNode.h"
+#include "ndbl/core/ASTGraph.h"
+#include "ndbl/core/ASTConditionalNode.h"
+#include "ndbl/core/ASTFunctionNode.h"
+#include "ndbl/core/ASTLiteralNode.h"
 #include "ndbl/core/Property.h"
-#include "ndbl/core/Scope.h"
-#include "ndbl/core/VariableNode.h"
-#include "ndbl/core/VariableRefNode.h"
-#include "ndbl/core/WhileLoopNode.h"
+#include "ndbl/core/ASTScope.h"
+#include "ndbl/core/ASTVariableNode.h"
+#include "ndbl/core/ASTVariableRefNode.h"
+#include "ndbl/core/ASTWhileLoopNode.h"
 #include "ndbl/core/language/Nodlang_biology.h"
 #include "ndbl/core/language/Nodlang_math.h"
 
@@ -53,35 +53,35 @@ Nodlang::Nodlang(bool _strict)
     //-------------------------
     m_definition.chars =
     {
-        { '(',    Token_t::parenthesis_open},
-        { ')',    Token_t::parenthesis_close},
-        { '{',    Token_t::scope_begin},
-        { '}',    Token_t::scope_end},
-        { '\n',   Token_t::ignore},
-        { '\t',   Token_t::ignore},
-        { ' ',    Token_t::ignore},
-        { ';',    Token_t::end_of_instruction},
-        { ',',    Token_t::list_separator}
+        { '(',  TokenType::parenthesis_open},
+        { ')',  TokenType::parenthesis_close},
+        { '{',  TokenType::scope_begin},
+        { '}',  TokenType::scope_end},
+        { '\n', TokenType::ignore},
+        { '\t', TokenType::ignore},
+        { ' ',  TokenType::ignore},
+        { ';',  TokenType::end_of_instruction},
+        { ',',  TokenType::list_separator}
     };
 
     m_definition.keywords =
     {
-         { "if",   Token_t::keyword_if },
-         { "for",  Token_t::keyword_for },
-         { "while",  Token_t::keyword_while },
-         { "else", Token_t::keyword_else },
-         { "true", Token_t::literal_bool },
-         { "false",    Token_t::literal_bool },
-         { "operator", Token_t::keyword_operator },
+         { "if",       TokenType::keyword_if },
+         { "for",      TokenType::keyword_for },
+         { "while",    TokenType::keyword_while },
+         { "else",     TokenType::keyword_else },
+         { "true",     TokenType::literal_bool },
+         { "false",    TokenType::literal_bool },
+         { "operator", TokenType::keyword_operator },
     };
 
     m_definition.types =
     {
-         { "bool",   Token_t::keyword_bool,   type::get<bool>()},
-         { "string", Token_t::keyword_string, type::get<std::string>()},
-         { "double", Token_t::keyword_double, type::get<double>()},
-         { "i16",    Token_t::keyword_i16,    type::get<i16_t>()},
-         { "int",    Token_t::keyword_int,    type::get<i32_t>()}
+         { "bool",   TokenType::keyword_bool,   type::get<bool>()},
+         { "string", TokenType::keyword_string, type::get<std::string>()},
+         { "double", TokenType::keyword_double, type::get<double>()},
+         { "i16",    TokenType::keyword_i16,    type::get<i16_t>()},
+         { "int",    TokenType::keyword_int,    type::get<i32_t>()}
     };
 
     m_definition.operators =
@@ -173,7 +173,7 @@ void Nodlang::commit_transaction()
     parser_state.ribbon.transaction_commit();
 }
 
-bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
+bool Nodlang::parse(const std::string &_source_code, ASTGraph *_graphNode)
 {
     using namespace std::chrono;
     high_resolution_clock::time_point parse_begin = high_resolution_clock::now();
@@ -199,7 +199,7 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
     high_resolution_clock::time_point tokenize_end = high_resolution_clock::now();
     LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "tokenize()",  duration_cast<duration<double>>( tokenize_end - parse_begin).count() * 1000.0)
 
-    Node* program = parse_program();
+    ASTNode* program = parse_program();
 
     high_resolution_clock::time_point parse_program_end = high_resolution_clock::now();
     LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "parse_program()", duration_cast<duration<double>>(parse_program_end - tokenize_end).count() * 1000.0)
@@ -215,7 +215,7 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
         parser_state.graph->clear();
         LOG_WARNING("Parser", "Unable to generate a full program tree.\n")
         LOG_MESSAGE("Parser", "%s", format::title("TokenRibbon").c_str());
-        for (const Token& each_token : parser_state.ribbon)
+        for (const ASTToken& each_token : parser_state.ribbon)
         {
             LOG_MESSAGE("Parser", "token idx %i: %s\n", each_token.m_index, each_token.json().c_str());
         }
@@ -261,13 +261,13 @@ int Nodlang::to_int(const std::string &_str)
     return stoi(_str);
 }
 
-Slot* Nodlang::token_to_slot(Token _token)
+Slot* Nodlang::token_to_slot(ASTToken _token)
 {
-    if (_token.m_type == Token_t::identifier)
+    if (_token.m_type == TokenType::identifier)
     {
         std::string identifier = _token.word_to_string();
 
-        if( VariableNode* existing_variable = get_current_scope()->find_variable(identifier ) )
+        if( ASTVariableNode* existing_variable = get_current_scope()->find_variable(identifier ) )
         {
             return existing_variable->ref_out();
         }
@@ -277,7 +277,7 @@ Slot* Nodlang::token_to_slot(Token _token)
             // Insert a VariableNodeRef with "any" type
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() )
-            VariableRefNode* ref = parser_state.graph->create_variable_ref();
+            ASTVariableRefNode* ref = parser_state.graph->create_variable_ref();
             ref->value()->set_token(_token );
             return ref->value_out();
         }
@@ -286,14 +286,14 @@ Slot* Nodlang::token_to_slot(Token _token)
         return nullptr;
     }
 
-    LiteralNode* literal{};
+    ASTLiteralNode* literal{};
 
     switch (_token.m_type)
     {
-        case Token_t::literal_bool:   literal = parser_state.graph->create_literal<bool>();        break;
-        case Token_t::literal_int:    literal = parser_state.graph->create_literal<i32_t>();       break;
-        case Token_t::literal_double: literal = parser_state.graph->create_literal<double>();      break;
-        case Token_t::literal_string: literal = parser_state.graph->create_literal<std::string>(); break;
+        case TokenType::literal_bool: literal = parser_state.graph->create_literal<bool>();        break;
+        case TokenType::literal_int: literal = parser_state.graph->create_literal<i32_t>();       break;
+        case TokenType::literal_double: literal = parser_state.graph->create_literal<double>();      break;
+        case TokenType::literal_string: literal = parser_state.graph->create_literal<std::string>(); break;
         default:
             break; // we don't want to throw
     }
@@ -320,12 +320,12 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     }
 
     start_transaction();
-    const Token operator_token = parser_state.ribbon.eat();
-    const Token operand_token  = parser_state.ribbon.peek();
+    const ASTToken operator_token = parser_state.ribbon.eat();
+    const ASTToken operand_token  = parser_state.ribbon.peek();
 
     // Structure check
-    const bool isValid = operator_token.m_type == Token_t::operator_ &&
-                         operand_token.m_type != Token_t::operator_;
+    const bool isValid = operator_token.m_type == TokenType::operator_ &&
+                         operand_token.m_type != TokenType::operator_;
 
     if (!isValid)
     {
@@ -367,7 +367,7 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     type->push_arg( _left.get_property()->get_type());
     type->push_arg(right->get_property()->get_type());
 
-    FunctionNode* binary_op = parser_state.graph->create_operator(type);
+    ASTFunctionNode* binary_op = parser_state.graph->create_operator(type);
     binary_op->set_identifier_token( operator_token );
     binary_op->lvalue_in()->get_property()->token().m_type = _left.get_property()->token().m_type;
     binary_op->rvalue_in()->get_property()->token().m_type = right->get_property()->token().m_type;
@@ -392,10 +392,10 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     start_transaction();
-    Token operator_token = parser_state.ribbon.eat();
+    ASTToken operator_token = parser_state.ribbon.eat();
 
     // Check if we get an operator first
-    if (operator_token.m_type != Token_t::operator_)
+    if (operator_token.m_type != TokenType::operator_)
     {
         rollback_transaction();
         LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
@@ -421,7 +421,7 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     FunctionDescriptor* type = FunctionDescriptor::create<any()>(operator_token.word_to_string().c_str());
     type->push_arg( out_atomic->get_property()->get_type());
 
-    FunctionNode* node = parser_state.graph->create_operator(type);
+    ASTFunctionNode* node = parser_state.graph->create_operator(type);
     node->set_identifier_token( operator_token );
     node->lvalue_in()->get_property()->token().m_type = out_atomic->get_property()->token().m_type;
 
@@ -444,9 +444,9 @@ Slot* Nodlang::parse_atomic_expression()
     }
 
     start_transaction();
-    Token token = parser_state.ribbon.eat();
+    ASTToken token = parser_state.ribbon.eat();
 
-    if (token.m_type == Token_t::operator_)
+    if (token.m_type == TokenType::operator_)
     {
         LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
         rollback_transaction();
@@ -478,8 +478,8 @@ Slot *Nodlang::parse_parenthesis_expression()
     }
 
     start_transaction();
-    Token currentToken = parser_state.ribbon.eat();
-    if (currentToken.m_type != Token_t::parenthesis_open)
+    ASTToken currentToken = parser_state.ribbon.eat();
+    if (currentToken.m_type != TokenType::parenthesis_open)
     {
         LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
         rollback_transaction();
@@ -489,8 +489,8 @@ Slot *Nodlang::parse_parenthesis_expression()
     Slot* result = parse_expression();
     if ( result != nullptr )
     {
-        Token token = parser_state.ribbon.eat();
-        if (token.m_type != Token_t::parenthesis_close)
+        ASTToken token = parser_state.ribbon.eat();
+        if (token.m_type != TokenType::parenthesis_close)
         {
             LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
             LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n",
@@ -511,7 +511,7 @@ Slot *Nodlang::parse_parenthesis_expression()
     return result;
 }
 
-Node* Nodlang::parse_instr()
+ASTNode* Nodlang::parse_instr()
 {
     start_transaction();
 
@@ -525,15 +525,15 @@ Node* Nodlang::parse_instr()
     }
 
     // Get output node
-    Node* output_node = expression_out->node();
-    if ( expression_out->node()->type() == NodeType_VARIABLE )
+    ASTNode* output_node = expression_out->node();
+    if ( expression_out->node()->type() == ASTNodeType_VARIABLE )
     {
         // Special case, when node is a variable
         // we want to create a reference if variable was declared somewhere else
-        auto variable = static_cast<VariableNode*>( expression_out->node() );
+        auto variable = static_cast<ASTVariableNode*>( expression_out->node() );
         if ( variable->find_parent() != nullptr )
         {
-            VariableRefNode* ref = parser_state.graph->create_variable_ref();
+            ASTVariableRefNode* ref = parser_state.graph->create_variable_ref();
             ref->set_variable( variable );
             output_node = ref;
         }
@@ -542,12 +542,12 @@ Node* Nodlang::parse_instr()
     // Handle suffix
     if (parser_state.ribbon.can_eat())
     {
-        Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction);
+        ASTToken expected_end_of_instr_token = parser_state.ribbon.eat_if(TokenType::end_of_instruction);
         if (!expected_end_of_instr_token.is_null())
         {
             output_node->set_suffix(expected_end_of_instr_token );
         }
-        else if (parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
+        else if (parser_state.ribbon.peek().m_type != TokenType::parenthesis_close)
         {
             LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
             rollback_transaction();
@@ -561,13 +561,13 @@ Node* Nodlang::parse_instr()
     return output_node;
 }
 
-Node* Nodlang::parse_program()
+ASTNode* Nodlang::parse_program()
 {
     start_transaction();
 
     parser_state.graph->clear();
-    Node* root = parser_state.graph->create_root();
-    Scope* program_scope = root->get_component<Scope>();
+    ASTNode* root = parser_state.graph->create_root();
+    ASTScope* program_scope = root->get_component<ASTScope>();
     parser_state.scope.emplace(program_scope);
 
     parse_code_block();// we do not check if we parsed something empty or not, a program can be empty.
@@ -587,9 +587,9 @@ Node* Nodlang::parse_program()
     return root;
 }
 
-Node* Nodlang::parse_scope( Slot& _parent_scope_slot )
+ASTNode* Nodlang::parse_scope(Slot& _parent_scope_slot )
 {
-    auto scope_begin_token = parser_state.ribbon.eat_if(Token_t::scope_begin);
+    auto scope_begin_token = parser_state.ribbon.eat_if(TokenType::scope_begin);
     if ( !scope_begin_token )
     {
         return {};
@@ -597,9 +597,9 @@ Node* Nodlang::parse_scope( Slot& _parent_scope_slot )
 
     start_transaction();
 
-    Node*  curr_scope_node   = get_current_scope_node();
-    Node*  new_scope_node    = parser_state.graph->create_scope();
-    Scope* new_scope         = new_scope_node->get_component<Scope>();
+    ASTNode*  curr_scope_node   = get_current_scope_node();
+    ASTNode*  new_scope_node    = parser_state.graph->create_scope();
+    ASTScope* new_scope         = new_scope_node->get_component<ASTScope>();
 
     // Handle nested scopes
     parser_state.graph->connect( _parent_scope_slot, *new_scope_node->find_slot( SlotFlag_PARENT ), ConnectFlag_ALLOW_SIDE_EFFECTS );
@@ -608,7 +608,7 @@ Node* Nodlang::parse_scope( Slot& _parent_scope_slot )
     parse_code_block();
     parser_state.scope.pop();
 
-    auto scope_end_token = parser_state.ribbon.eat_if(Token_t::scope_end);
+    auto scope_end_token = parser_state.ribbon.eat_if(TokenType::scope_end);
     if ( !scope_end_token )
     {
         parser_state.graph->destroy( new_scope_node );
@@ -630,7 +630,7 @@ void Nodlang::parse_code_block()
     bool block_end_reached = false;
     while ( parser_state.ribbon.can_eat() && !block_end_reached )
     {
-        if ( Node* instruction = parse_instr() )
+        if ( ASTNode* instruction = parse_instr() )
         {
             Slot* child_slot = get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL );
             ASSERT(child_slot)
@@ -723,12 +723,12 @@ bool Nodlang::is_syntax_valid()
     {
         switch (token->m_type)
         {
-            case Token_t::parenthesis_open:
+            case TokenType::parenthesis_open:
             {
                 opened++;
                 break;
             }
-            case Token_t::parenthesis_close:
+            case TokenType::parenthesis_close:
             {
                 if (opened <= 0)
                 {
@@ -770,7 +770,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
     size_t ignored_chars_size = 0;
     while (global_cursor != buffer_size )
     {
-        Token new_token = parse_token(buffer, buffer_size, global_cursor);
+        ASTToken new_token = parse_token(buffer, buffer_size, global_cursor);
 
         if (new_token.is_null())
         {
@@ -781,7 +781,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
         }
 
         // accumulate ignored chars (see else case to know why)
-        if( new_token.m_type == Token_t::ignore)
+        if(new_token.m_type == TokenType::ignore)
         {
             if( ignored_chars_size == 0)
                 ignored_chars_start_pos = new_token.m_string_start_pos;
@@ -796,7 +796,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
             {
                 if (!parser_state.ribbon.empty())
                 {
-                    Token& last_token = parser_state.ribbon.back();
+                    ASTToken& last_token = parser_state.ribbon.back();
                      if ( allow_to_attach_suffix(last_token.m_type) )
                     {
                         last_token.m_string_length += ignored_chars_size;
@@ -824,7 +824,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
     if (ignored_chars_size != 0)
     {
         LOG_VERBOSE("Parser", "Found ignored chars after tokenize, adding to the ribbon suffix...\n");
-        Token& suffix = parser_state.ribbon.suffix();
+        ASTToken& suffix = parser_state.ribbon.suffix();
         suffix.m_string_start_pos = ignored_chars_start_pos;
         suffix.m_string_length = ignored_chars_size;
         ignored_chars_start_pos = 0;
@@ -833,7 +833,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
     return true;
 }
 
-Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& global_cursor) const
+ASTToken Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& global_cursor) const
 {
     const size_t                  start_pos  = global_cursor;
     const std::string::value_type first_char = buffer[start_pos];
@@ -865,7 +865,7 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
 
             ++cursor;
             global_cursor = cursor;
-            return Token{Token_t::ignore, const_cast<char*>(buffer), start_pos, cursor - start_pos};
+            return ASTToken{TokenType::ignore, const_cast<char*>(buffer), start_pos, cursor - start_pos};
         }
     }
 
@@ -874,8 +874,8 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
     if( single_char_found != m_token_t_by_single_char.end() )
     {
         ++global_cursor;
-        const Token_t type = single_char_found->second;
-        return Token{type, const_cast<char*>(buffer), start_pos, 1};
+        const TokenType type = single_char_found->second;
+        return ASTToken{type, const_cast<char*>(buffer), start_pos, 1};
     }
 
     // operators
@@ -889,11 +889,11 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
             if (cursor != buffer_size && (second_char == '>' || second_char == '=')) {
                 ++cursor;
                 global_cursor = cursor;
-                return Token{Token_t::operator_, const_cast<char*>(buffer), start_pos, cursor - start_pos};
+                return ASTToken{TokenType::operator_, const_cast<char*>(buffer), start_pos, cursor - start_pos};
             }
             // "="
             global_cursor++;
-            return Token{Token_t::operator_, const_cast<char*>(buffer), start_pos, 1};
+            return ASTToken{TokenType::operator_, const_cast<char*>(buffer), start_pos, 1};
         }
 
         case '!':
@@ -917,7 +917,7 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
                 // <operator>
                 global_cursor++;
             }
-            return Token{Token_t::operator_, const_cast<char*>(buffer), start_pos, cursor - start_pos};
+            return ASTToken{TokenType::operator_, const_cast<char*>(buffer), start_pos, cursor - start_pos};
         }
     }
 
@@ -926,7 +926,7 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
     if ( std::isdigit(first_char) )
     {
         auto cursor = start_pos + 1;
-        Token_t type = Token_t::literal_int;
+        TokenType type = TokenType::literal_int;
 
         // integer
         while (cursor != buffer_size && std::isdigit(buffer[cursor]))
@@ -948,10 +948,10 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
             {
                 ++cursor;
             }
-            type = Token_t::literal_double;
+            type = TokenType::literal_double;
         }
         global_cursor = cursor;
-        return Token{type, const_cast<char*>(buffer), start_pos, cursor - start_pos};
+        return ASTToken{type, const_cast<char*>(buffer), start_pos, cursor - start_pos};
     }
 
     // double-quoted string
@@ -964,7 +964,7 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
         }
         ++cursor;
         global_cursor = cursor;
-        return Token{Token_t::literal_string, const_cast<char*>(buffer), start_pos, cursor - start_pos};
+        return ASTToken{TokenType::literal_string, const_cast<char*>(buffer), start_pos, cursor - start_pos};
     }
 
     // symbol (identifier or keyword)
@@ -978,7 +978,7 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
         }
         global_cursor = cursor;
 
-        Token_t type = Token_t::identifier;
+        TokenType type = TokenType::identifier;
 
         auto hash = hash::hash( buffer + start_pos, cursor - start_pos );
         auto keyword_found = m_token_t_by_keyword.find( hash );
@@ -987,9 +987,9 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
             // a keyword has priority over identifier
             type = keyword_found->second;
         }
-        return Token{type, const_cast<char*>(buffer), start_pos, cursor - start_pos};
+        return ASTToken{type, const_cast<char*>(buffer), start_pos, cursor - start_pos};
     }
-    return Token::s_null;
+    return ASTToken::s_null;
 }
 
 Slot* Nodlang::parse_function_call()
@@ -1007,19 +1007,19 @@ Slot* Nodlang::parse_function_call()
 
     // Try to parse regular function: function(...)
     std::string fct_id;
-    Token token_0 = parser_state.ribbon.eat();
-    Token token_1 = parser_state.ribbon.eat();
-    if (token_0.m_type == Token_t::identifier &&
-        token_1.m_type == Token_t::parenthesis_open)
+    ASTToken token_0 = parser_state.ribbon.eat();
+    ASTToken token_1 = parser_state.ribbon.eat();
+    if (token_0.m_type == TokenType::identifier &&
+        token_1.m_type == TokenType::parenthesis_open)
     {
         fct_id = token_0.word_to_string();
         LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
     }
     else// Try to parse operator like (ex: operator==(..,..))
     {
-        Token token_2 = parser_state.ribbon.eat();// eat a "supposed open bracket>
+        ASTToken token_2 = parser_state.ribbon.eat();// eat a "supposed open bracket>
 
-        if (token_0.m_type == Token_t::keyword_operator && token_1.m_type == Token_t::operator_ && token_2.m_type == Token_t::parenthesis_open)
+        if (token_0.m_type == TokenType::keyword_operator && token_1.m_type == TokenType::operator_ && token_2.m_type == TokenType::parenthesis_open)
         {
             fct_id = token_1.word_to_string();// operator
             LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
@@ -1037,14 +1037,14 @@ Slot* Nodlang::parse_function_call()
 
     bool parsingError = false;
     while (!parsingError && parser_state.ribbon.can_eat() &&
-            parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
+           parser_state.ribbon.peek().m_type != TokenType::parenthesis_close)
     {
         Slot* expression_out = parse_expression();
         if ( expression_out != nullptr )
         {
             result_slots.push_back( expression_out );
             signature->push_arg( expression_out->get_property()->get_type() );
-            parser_state.ribbon.eat_if(Token_t::list_separator);
+            parser_state.ribbon.eat_if(TokenType::list_separator);
         }
         else
         {
@@ -1053,7 +1053,7 @@ Slot* Nodlang::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if (parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null())
+    if (parser_state.ribbon.eat_if(TokenType::parenthesis_close).is_null())
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
         rollback_transaction();
@@ -1062,7 +1062,7 @@ Slot* Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    FunctionNode* fct_node = parser_state.graph->create_function(std::move(signature));
+    ASTFunctionNode* fct_node = parser_state.graph->create_function(std::move(signature));
 
     for ( int i = 0; i < fct_node->get_arg_slots().size(); i++ )
     {
@@ -1076,30 +1076,30 @@ Slot* Nodlang::parse_function_call()
     return fct_node->value_out();
 }
 
-Scope* Nodlang::get_current_scope()
+ASTScope* Nodlang::get_current_scope()
 {
     ASSERT( parser_state.scope.top() );
     return parser_state.scope.top();
 }
 
-Node* Nodlang::get_current_scope_node()
+ASTNode* Nodlang::get_current_scope_node()
 {
     ASSERT( parser_state.scope.top() );
     return parser_state.scope.top()->get_owner();
 }
 
-IfNode* Nodlang::parse_conditional_structure()
+ASTConditionalNode* Nodlang::parse_conditional_structure()
 {
     LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
     start_transaction();
 
     bool success = false;
-    Node*   condition = nullptr;
-    Node*   condition_true_scope_node = nullptr;
-    IfNode* if_node   = nullptr;
-    IfNode* else_node = nullptr;
+    ASTNode*   condition = nullptr;
+    ASTNode*   condition_true_scope_node = nullptr;
+    ASTConditionalNode* if_node   = nullptr;
+    ASTConditionalNode* else_node = nullptr;
 
-    Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
+    ASTToken if_token = parser_state.ribbon.eat_if(TokenType::keyword_if);
     if ( !if_token )
     {
         return nullptr;
@@ -1111,13 +1111,13 @@ IfNode* Nodlang::parse_conditional_structure()
             *get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
             *if_node->find_slot( SlotFlag_PARENT ),
             ConnectFlag_ALLOW_SIDE_EFFECTS );
-    parser_state.scope.emplace( if_node->get_component<Scope>() );
+    parser_state.scope.emplace( if_node->get_component<ASTScope>() );
 
     if_node->token_if  = parser_state.ribbon.get_eaten();
 
-    if ( parser_state.ribbon.eat_if(Token_t::parenthesis_open) )
+    if ( parser_state.ribbon.eat_if(TokenType::parenthesis_open) )
     {
-        auto eaten_parenthesis = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
+        auto eaten_parenthesis = parser_state.ribbon.eat_if(TokenType::parenthesis_close);
         auto empty_condition = (bool)eaten_parenthesis;
         if ( !empty_condition && (condition = parse_instr()))
         {
@@ -1126,12 +1126,12 @@ IfNode* Nodlang::parse_conditional_structure()
                     if_node->condition_slot(Branch_TRUE));
         }
 
-        if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
+        if ( empty_condition || condition && parser_state.ribbon.eat_if(TokenType::parenthesis_close) )
         {
             condition_true_scope_node = parse_scope( if_node->child_slot_at(Branch_TRUE) );
             if ( condition_true_scope_node )
             {
-                if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
+                if ( parser_state.ribbon.eat_if(TokenType::keyword_else) )
                 {
                     if_node->token_else = parser_state.ribbon.get_eaten();
 
@@ -1184,13 +1184,13 @@ IfNode* Nodlang::parse_conditional_structure()
     return nullptr;
 }
 
-ForLoopNode* Nodlang::parse_for_loop()
+ASTForLoopNode* Nodlang::parse_for_loop()
 {
     bool success = false;
-    ForLoopNode* for_loop_node{};
+    ASTForLoopNode* for_loop_node{};
     start_transaction();
 
-    Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for);
+    ASTToken token_for = parser_state.ribbon.eat_if(TokenType::keyword_for);
 
     if (!token_for.is_null())
     {
@@ -1199,19 +1199,19 @@ ForLoopNode* Nodlang::parse_for_loop()
                 *get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
                 *for_loop_node->find_slot( SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.scope.push(for_loop_node->get_component<Scope>());
+        parser_state.scope.push(for_loop_node->get_component<ASTScope>());
 
         for_loop_node->token_for = token_for;
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
-        Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
+        ASTToken open_bracket = parser_state.ribbon.eat_if(TokenType::parenthesis_open);
         if (open_bracket.is_null())
         {
             LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
         }
         else
         {
-            Node* init_instr = parse_instr();
+            ASTNode* init_instr = parse_instr();
             if (!init_instr)
             {
                 LOG_ERROR("Parser", "Unable to find initial instruction.\n")
@@ -1222,7 +1222,7 @@ ForLoopNode* Nodlang::parse_for_loop()
                         *init_instr->find_slot( SlotFlag_OUTPUT ),
                         for_loop_node->initialization_slot() );
 
-                Node* condition = parse_instr();
+                ASTNode* condition = parse_instr();
                 if (!condition )
                 {
                     LOG_ERROR("Parser", "Unable to find condition instruction.\n")
@@ -1233,7 +1233,7 @@ ForLoopNode* Nodlang::parse_for_loop()
                             *condition->find_slot( SlotFlag_OUTPUT ),
                             for_loop_node->condition_slot(Branch_TRUE) );
 
-                    Node* iter_instr = parse_instr();
+                    ASTNode* iter_instr = parse_instr();
                     if (!iter_instr)
                     {
                         LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
@@ -1244,7 +1244,7 @@ ForLoopNode* Nodlang::parse_for_loop()
                                 *iter_instr->find_slot( SlotFlag_OUTPUT ),
                                 for_loop_node->iteration_slot() );
 
-                        Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
+                        ASTToken close_bracket = parser_state.ribbon.eat_if(TokenType::parenthesis_close);
                         if (close_bracket.is_null())
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
@@ -1278,13 +1278,13 @@ ForLoopNode* Nodlang::parse_for_loop()
     return for_loop_node;
 }
 
-WhileLoopNode* Nodlang::parse_while_loop()
+ASTWhileLoopNode* Nodlang::parse_while_loop()
 {
     bool success = false;
-    WhileLoopNode* while_loop_node = nullptr;
+    ASTWhileLoopNode* while_loop_node = nullptr;
     start_transaction();
 
-    Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while);
+    ASTToken token_while = parser_state.ribbon.eat_if(TokenType::keyword_while);
 
     if (!token_while.is_null())
     {
@@ -1293,23 +1293,23 @@ WhileLoopNode* Nodlang::parse_while_loop()
                 *get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
                 *while_loop_node->find_slot( SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.scope.push(while_loop_node->get_component<Scope>() );
+        parser_state.scope.push(while_loop_node->get_component<ASTScope>() );
 
         while_loop_node->token_while = token_while;
 
         LOG_VERBOSE("Parser", "parse WHILE (...) { /* block */ }\n")
-        Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
+        ASTToken open_bracket = parser_state.ribbon.eat_if(TokenType::parenthesis_open);
         if (open_bracket.is_null())
         {
             LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n")
         }
-        else if( Node* cond_instr = parse_instr() )
+        else if( ASTNode* cond_instr = parse_instr() )
         {
             parser_state.graph->connect_or_merge(
                     *cond_instr->find_slot( SlotFlag_OUTPUT ),
                     while_loop_node->condition_slot(Branch_TRUE) );
 
-            Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
+            ASTToken close_bracket = parser_state.ribbon.eat_if(TokenType::parenthesis_close);
             if ( close_bracket.is_null() )
             {
                 LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n")
@@ -1347,20 +1347,20 @@ Slot* Nodlang::parse_variable_declaration()
 
     start_transaction();
 
-    Token type_token       = parser_state.ribbon.eat();
-    Token identifier_token = parser_state.ribbon.eat();
+    ASTToken type_token       = parser_state.ribbon.eat();
+    ASTToken identifier_token = parser_state.ribbon.eat();
 
-    if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
+    if (type_token.is_keyword_type() && identifier_token.m_type == TokenType::identifier)
     {
         const TypeDescriptor* variable_type = get_type(type_token.m_type);
         auto*           scope         = get_current_scope();
         ASSERT(scope != nullptr ) // There must always be a scope!
-        VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope );
+        ASTVariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->set_type_token( type_token );
         variable_node->set_identifier_token( identifier_token );
         // try to parse assignment
-        Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
+        ASTToken operator_token = parser_state.ribbon.eat_if(TokenType::operator_);
         if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word_ptr() == '=')
         {
             Slot* expression_out = parse_expression();
@@ -1392,9 +1392,9 @@ Slot* Nodlang::parse_variable_declaration()
 // [SECTION] C. Serializer --------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode* _node) const
+std::string &Nodlang::serialize_invokable(std::string &_out, const ASTFunctionNode* _node) const
 {
-    if ( _node->type() == NodeType_OPERATOR )
+    if ( _node->type() == ASTNodeType_OPERATOR )
     {
         const std::vector<Slot*>& args = _node->get_arg_slots();
         int precedence = get_precedence(_node->get_func_type());
@@ -1454,19 +1454,19 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
 std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescriptor *_signature, const std::vector<Slot*> &inputs) const
 {
     _out.append( _signature->get_identifier() );
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, TokenType::parenthesis_open);
 
     for (const Slot* input_slot : inputs)
     {
         ASSERT( input_slot->has_flags(SlotFlag_INPUT) )
         if ( input_slot != inputs.front())
         {
-            serialize_token_t(_out, Token_t::list_separator);
+            serialize_token_t(_out, TokenType::list_separator);
         }
         serialize_input( _out, *input_slot, SerializeFlag_RECURSE );
     }
 
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, TokenType::parenthesis_close);
     return _out;
 }
 
@@ -1480,24 +1480,24 @@ std::string &Nodlang::serialize_func_sig(std::string &_out, const FunctionDescri
     serialize_type(_out, _signature->get_return_type());
     _out.append(" ");
     _out.append(_signature->get_identifier());
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, TokenType::parenthesis_open);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
         {
-            serialize_token_t(_out, Token_t::list_separator);
+            serialize_token_t(_out, TokenType::list_separator);
             _out.append(" ");
         }
         serialize_type(_out, it->type);
     }
 
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, TokenType::parenthesis_close);
     return _out;
 }
 
-std::string &Nodlang::serialize_token_t(std::string &_out, const Token_t &_type) const
+std::string &Nodlang::serialize_token_t(std::string &_out, const TokenType &_type) const
 {
     return _out.append(to_string(_type));
 }
@@ -1507,12 +1507,12 @@ std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor* _t
     return _out.append(to_string(_type));
 }
 
-std::string& Nodlang::serialize_variable_ref(std::string &_out, const VariableRefNode* _node) const
+std::string& Nodlang::serialize_variable_ref(std::string &_out, const ASTVariableRefNode* _node) const
 {
     return serialize_token( _out, _node->get_identifier_token() );
 }
 
-std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *_node) const
+std::string& Nodlang::serialize_variable(std::string &_out, const ASTVariableNode *_node) const
 {
     // 1. Serialize variable's type
 
@@ -1555,7 +1555,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
                                                                  : nullptr;
     // Append open brace?
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
-        serialize_token_t(_out, Token_t::parenthesis_open);
+        serialize_token_t(_out, TokenType::parenthesis_open);
 
     if ( adjacent_property == nullptr )
     {
@@ -1566,7 +1566,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     {
         VERIFY( _flags & SerializeFlag_RECURSE, "Why would you call serialize_input without RECURSE flag?")
         // Append token prefix?
-        if (const Token& adjacent_token = adjacent_property->token())
+        if (const ASTToken& adjacent_token = adjacent_property->token())
             if ( !adjacent_token.is_null() )
                 _out.append( adjacent_token.prefix_ptr(), adjacent_token.prefix_size() );
 
@@ -1574,14 +1574,14 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
         serialize_output( _out, *adjacent_slot, SerializeFlag_RECURSE );
 
         // Append token suffix?
-        if (const Token& adjacent_token = adjacent_property->token())
+        if (const ASTToken& adjacent_token = adjacent_property->token())
             if ( !adjacent_token.is_null() )
                 _out.append( adjacent_token.suffix_ptr(), adjacent_token.suffix_size() );
     }
 
     // Append close brace?
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
-        serialize_token_t(_out, Token_t::parenthesis_close);
+        serialize_token_t(_out, TokenType::parenthesis_close);
 
     return _out;
 }
@@ -1593,44 +1593,44 @@ std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, Ser
         return _serialize_node(_out, _slot.node(), _flags );
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
-    ASSERT( _slot.node()->type() == NodeType_VARIABLE ) // Can't be another type
-    auto variable = static_cast<const VariableNode*>( _slot.node() );
+    ASSERT( _slot.node()->type() == ASTNodeType_VARIABLE ) // Can't be another type
+    auto variable = static_cast<const ASTVariableNode*>( _slot.node() );
     ASSERT( &_slot == variable->ref_out() ) // Can't be another slot
     return _out.append( variable->get_identifier() );
 }
 
-std::string & Nodlang::_serialize_node(std::string &_out, const Node* node, SerializeFlags _flags ) const
+std::string & Nodlang::_serialize_node(std::string &_out, const ASTNode* node, SerializeFlags _flags ) const
 {
     ASSERT( node )
     ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
     switch ( node->type() )
     {
-        case NodeType_BLOCK_CONDITION:
-            serialize_cond_struct(_out, static_cast<const IfNode*>(node) );
+        case ASTNodeType_BLOCK_CONDITION:
+            serialize_cond_struct(_out, static_cast<const ASTConditionalNode*>(node) );
             break;
-        case NodeType_BLOCK_FOR_LOOP:
-            serialize_for_loop(_out, static_cast<const ForLoopNode*>(node) );
+        case ASTNodeType_BLOCK_FOR_LOOP:
+            serialize_for_loop(_out, static_cast<const ASTForLoopNode*>(node) );
             break;
-        case NodeType_BLOCK_WHILE_LOOP:
-            serialize_while_loop(_out, static_cast<const WhileLoopNode*>(node) );
+        case ASTNodeType_BLOCK_WHILE_LOOP:
+            serialize_while_loop(_out, static_cast<const ASTWhileLoopNode*>(node) );
             break;
-        case NodeType_LITERAL:
-            serialize_property(_out, static_cast<const LiteralNode*>(node)->value());
+        case ASTNodeType_LITERAL:
+            serialize_property(_out, static_cast<const ASTLiteralNode*>(node)->value());
             break;
-        case NodeType_VARIABLE:
-            serialize_variable(_out, static_cast<const VariableNode*>(node));
+        case ASTNodeType_VARIABLE:
+            serialize_variable(_out, static_cast<const ASTVariableNode*>(node));
             break;
-        case NodeType_VARIABLE_REF:
-            serialize_variable_ref(_out, static_cast<const VariableRefNode*>(node));
+        case ASTNodeType_VARIABLE_REF:
+            serialize_variable_ref(_out, static_cast<const ASTVariableRefNode*>(node));
             break;
-        case NodeType_BLOCK_SCOPE:
-            serialize_scope(_out, node->get_component<Scope>() );
+        case ASTNodeType_BLOCK_SCOPE:
+            serialize_scope(_out, node->get_component<ASTScope>() );
             break;
-        case NodeType_FUNCTION:
+        case ASTNodeType_FUNCTION:
             [[fallthrough]];
-        case NodeType_OPERATOR:
-            serialize_invokable(_out, static_cast<const FunctionNode*>(node) );
+        case ASTNodeType_OPERATOR:
+            serialize_invokable(_out, static_cast<const ASTFunctionNode*>(node) );
             break;
         default:
             VERIFY(false, "Unhandled NodeType, can't serialize");
@@ -1639,17 +1639,17 @@ std::string & Nodlang::_serialize_node(std::string &_out, const Node* node, Seri
     return serialize_token(_out, node->suffix() );
 }
 
-std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
+std::string &Nodlang::serialize_scope(std::string &_out, const ASTScope *_scope) const
 {
     serialize_token(_out, _scope->token_begin);
-    for (const Node* child : _scope->get_owner()->children() )
+    for (const ASTNode* child : _scope->get_owner()->children() )
     {
         _serialize_node( _out, child, SerializeFlag_RECURSE );
     }
     return serialize_token(_out, _scope->token_end);
 }
 
-std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) const
+std::string &Nodlang::serialize_token(std::string& _out, const ASTToken& _token) const
 {
     if (!_token.is_null() && _token.has_buffer())
     {
@@ -1676,18 +1676,18 @@ std::string& Nodlang::serialize_double(std::string& _out, double d) const
     return _out;
 }
 
-std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_for_loop) const
+std::string &Nodlang::serialize_for_loop(std::string &_out, const ASTForLoopNode *_for_loop) const
 {
     if( _for_loop->token_for.is_null())
     {
-        serialize_token_t(_out, Token_t::keyword_for);
+        serialize_token_t(_out, TokenType::keyword_for);
     }
     else
     {
         serialize_token(_out, _for_loop->token_for);
     }
 
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_token_t(_out, TokenType::parenthesis_open);
 
     const Slot& init_slot = *_for_loop->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
     const Slot& cond_slot = *_for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
@@ -1697,7 +1697,7 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     serialize_input( _out, cond_slot, SerializeFlag_RECURSE );
     serialize_input( _out, iter_slot, SerializeFlag_RECURSE );
 
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_token_t(_out, TokenType::parenthesis_close);
 
     // if scope
     if ( auto scope = _for_loop->scope_at( Branch_TRUE ) )
@@ -1713,12 +1713,12 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     return _out;
 }
 
-std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode *_while_loop_node) const
+std::string &Nodlang::serialize_while_loop(std::string &_out, const ASTWhileLoopNode *_while_loop_node) const
 {
 
     if( _while_loop_node->token_while.is_null())
     {
-        serialize_token_t(_out, Token_t::keyword_while);
+        serialize_token_t(_out, TokenType::keyword_while);
     }
     else
     {
@@ -1744,12 +1744,12 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 }
 
 
-std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_condition_struct ) const
+std::string &Nodlang::serialize_cond_struct(std::string &_out, const ASTConditionalNode*_condition_struct ) const
 {
     // if ...
     if ( _condition_struct->token_if.is_null())
     {
-        serialize_token_t(_out, Token_t::keyword_if);
+        serialize_token_t(_out, TokenType::keyword_if);
     }
     else
     {
@@ -1762,24 +1762,24 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
     serialize_input(_out, _condition_struct->condition_slot(Branch_TRUE), flags );
 
     // ... ( ... ) <scope>
-    if ( Scope* scope = _condition_struct->scope_at( Branch_TRUE ) )
+    if ( ASTScope* scope = _condition_struct->scope_at(Branch_TRUE ) )
     {
         serialize_scope( _out, scope );
     }
     else
     {
         // When scope is undefined, serialized a fake one
-        serialize_token_t(_out, Token_t::end_of_line);
-        serialize_token_t(_out, Token_t::scope_begin);
-        serialize_token_t(_out, Token_t::end_of_line);
-        serialize_token_t(_out, Token_t::scope_end);
+        serialize_token_t(_out, TokenType::end_of_line);
+        serialize_token_t(_out, TokenType::scope_begin);
+        serialize_token_t(_out, TokenType::end_of_line);
+        serialize_token_t(_out, TokenType::scope_end);
     }
 
     // else & else scope
     if ( _condition_struct->token_else )
     {
         serialize_token(_out, _condition_struct->token_else);
-        if ( const Scope* else_scope = _condition_struct->scope_at( Branch_FALSE ) )
+        if ( const ASTScope* else_scope = _condition_struct->scope_at(Branch_FALSE ) )
         {
             _serialize_node( _out, else_scope->get_owner(), SerializeFlag_RECURSE );
         }
@@ -1921,14 +1921,14 @@ std::string &Nodlang::to_string(std::string &_out, const TypeDescriptor* _type) 
     return _out;
 }
 
-std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
+std::string &Nodlang::to_string(std::string &_out, TokenType _token_t) const
 {
     switch (_token_t)
     {
-        case Token_t::end_of_line:     return _out.append("\n"); // TODO: handle all platforms
-        case Token_t::ignore:          return _out.append("ignore");
-        case Token_t::operator_:       return _out.append("operator");
-        case Token_t::identifier:      return _out.append("identifier");
+        case TokenType::end_of_line:     return _out.append("\n"); // TODO: handle all platforms
+        case TokenType::ignore:          return _out.append("ignore");
+        case TokenType::operator_:       return _out.append("operator");
+        case TokenType::identifier:      return _out.append("identifier");
         default:
         {
             {
@@ -1957,7 +1957,7 @@ std::string Nodlang::to_string(const TypeDescriptor* _type) const
     return to_string(result, _type);
 }
 
-std::string Nodlang::to_string(Token_t _token) const
+std::string Nodlang::to_string(TokenType _token) const
 {
     std::string result;
     return to_string(result, _token);
@@ -1975,23 +1975,23 @@ int Nodlang::get_precedence( const tools::FunctionDescriptor* _func_type) const
     return std::numeric_limits<int>::max();
 }
 
-const TypeDescriptor* Nodlang::get_type(Token_t _token) const
+const TypeDescriptor* Nodlang::get_type(TokenType _token) const
 {
     VERIFY(is_a_type_keyword(_token), "_token_t is not a type keyword!");
     return m_type_by_token_t.find(_token)->second;
 }
 
-Token Nodlang::parse_token(const std::string &_string) const
+ASTToken Nodlang::parse_token(const std::string &_string) const
 {
     size_t cursor = 0;
     return parse_token( const_cast<char*>(_string.data()), _string.length(), cursor);
 }
 
-bool Nodlang::allow_to_attach_suffix(Token_t type) const
+bool Nodlang::allow_to_attach_suffix(TokenType type) const
 {
-    return    type != Token_t::identifier          // identifiers must stay clean because they are reused
-              && type != Token_t::parenthesis_open    // ")" are lost when creating AST
-              && type != Token_t::parenthesis_close;  // "(" are lost when creating AST
+    return type != TokenType::identifier          // identifiers must stay clean because they are reused
+              && type != TokenType::parenthesis_open    // ")" are lost when creating AST
+              && type != TokenType::parenthesis_close;  // "(" are lost when creating AST
 }
 
 Nodlang::ParserState::ParserState()

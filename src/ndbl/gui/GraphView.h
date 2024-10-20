@@ -7,9 +7,9 @@
 #include "tools/gui/ViewState.h"  // base class
 #include "tools/core/reflection/reflection"
 
-#include "ndbl/core/NodeComponent.h"  // base class
-#include "ndbl/core/IScope.h"
-#include "ndbl/core/Scope.h"
+#include "ndbl/core/ASTNodeComponent.h"  // base class
+#include "ndbl/core/ASTScopeInterface.h"
+#include "ndbl/core/ASTScope.h"
 
 #include "Action.h"
 
@@ -24,7 +24,7 @@ namespace ndbl
 {
     // forward declarations
     class Nodable;
-    class Graph;
+    class ASTGraph;
     using tools::Vec2;
 
     enum SelectionMode
@@ -40,7 +40,7 @@ namespace ndbl
         typedef std::vector<NodeView*> NodeViewVec;
         typedef tools::StateMachine    StateMachine;
 
-	    explicit GraphView(Graph* graph);
+	    explicit GraphView(ASTGraph* graph);
 		~GraphView() = default;
 
         bool        draw();
@@ -55,7 +55,7 @@ namespace ndbl
         void        reset_all_properties();
         std::vector<NodeView*> get_all_nodeviews() const;
         static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
-        Graph*            get_graph() const;
+        ASTGraph*            get_graph() const;
         void              add_child(NodeView*);
         tools::ViewState* view_state() { return &m_view_state; };
     private:
@@ -64,7 +64,7 @@ namespace ndbl
         ViewItem               m_focused{};
         std::vector<NodeView*> m_selected_nodeview;
         tools::ViewState       m_view_state;
-        Graph*                 m_graph;
+        ASTGraph*                 m_graph;
 
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);

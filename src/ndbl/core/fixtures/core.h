@@ -48,7 +48,7 @@ public:
         static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving this scope)");
 
         // parse
-        Graph* graph = app.parse(_source_code);
+        ASTGraph* graph = app.parse(_source_code);
         if (!graph->get_root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
@@ -84,7 +84,7 @@ public:
         LOG_MESSAGE("core", "parse_compile_run_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        Graph* graph = app.parse(_source_code);
+        ASTGraph* graph = app.parse(_source_code);
         if (!graph->get_root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
@@ -121,7 +121,7 @@ public:
         LOG_VERBOSE("core", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        Graph* graph = app.parse(_source_code);
+        ASTGraph* graph = app.parse(_source_code);
         if (!graph->get_root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");

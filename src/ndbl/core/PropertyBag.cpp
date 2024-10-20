@@ -1,5 +1,5 @@
 #include "PropertyBag.h"
-#include "Node.h"
+#include "ASTNode.h"
 
 using namespace ndbl;
 using namespace tools;

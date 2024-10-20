@@ -1,8 +1,8 @@
 #include <benchmark/benchmark.h>
 #include <random>
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/Graph.h"
-#include "ndbl/core/NodeFactory.h"
+#include "ndbl/core/ASTGraph.h"
+#include "ndbl/core/ASTNodeFactory.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/string.h"
 
@@ -33,8 +33,8 @@ using namespace tools;
 class NodlangFixture : public benchmark::Fixture {
 public:
     Nodlang*           language;
-    NodeFactory*       factory;
-    Graph*             graph;
+    ASTNodeFactory*       factory;
+    ASTGraph*             graph;
     std::random_device random_device;  // Will be used to obtain a seed for the random number engine
     std::mt19937       generator; // Standard mersenne_twister_engine
     std::uniform_real_distribution<double> distribution;
@@ -48,7 +48,7 @@ public:
     {
         language = init_language();;
         factory  = init_node_factory();
-        graph    = new Graph(factory);
+        graph    = new ASTGraph(factory);
         log::set_verbosity(log::Verbosity_Error);
     }
 

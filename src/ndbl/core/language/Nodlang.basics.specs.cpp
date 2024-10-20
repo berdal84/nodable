@@ -37,12 +37,12 @@ TEST_F(Language_basics, by_ref_assign )
 
 TEST_F(Language_basics, token_t_to_type)
 {
-    EXPECT_EQ(language->get_type(Token_t::keyword_bool)  , type::get<bool>());
-    EXPECT_EQ(language->get_type(Token_t::keyword_double), type::get<double>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_i16)   , type::get<i16_t>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<int>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<i32_t>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_string), type::get<std::string>() );
+    EXPECT_EQ(language->get_type(TokenType::keyword_bool)  , type::get<bool>());
+    EXPECT_EQ(language->get_type(TokenType::keyword_double), type::get<double>() );
+    EXPECT_EQ(language->get_type(TokenType::keyword_i16)   , type::get<i16_t>() );
+    EXPECT_EQ(language->get_type(TokenType::keyword_int)   , type::get<int>() );
+    EXPECT_EQ(language->get_type(TokenType::keyword_int)   , type::get<i32_t>() );
+    EXPECT_EQ(language->get_type(TokenType::keyword_string), type::get<std::string>() );
 }
 
 TEST_F(Language_basics, type_to_string)

@@ -10,7 +10,7 @@
 #include "tools/gui/TextureManager.h"
 #include "tools/gui/AppView.h"
 
-#include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/Register.h"
 #include "ndbl/core/language/Nodlang.h"
@@ -114,21 +114,21 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{FRAME_ALL } );
     // (to create block nodes)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_CONDITION } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_FOR_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_WHILE_LOOP } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_PROGRAM } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Condition", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_BLOCK_CONDITION } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_BLOCK_FOR_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_BLOCK_WHILE_LOOP } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_BLOCK_SCOPE } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Program", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_BLOCK_PROGRAM } );
     // (to create variables)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Integer Variable", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_VARIABLE_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " String Variable", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_VARIABLE_STRING, create_variable_node_signature<std::string>() } );
     //(to create literals)
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Boolean Literal", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_LITERAL_BOOLEAN, create_variable_node_signature<bool>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Double Literal", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_LITERAL_DOUBLE, create_variable_node_signature<double>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " Integer Literal", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_LITERAL_INTEGER, create_variable_node_signature<int>() } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
     // (to create functions/operators from the API)
     const Nodlang* language = get_language();
     VERIFY(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
@@ -136,7 +136,7 @@ void NodableView::init(Nodable * _app)
     {
         std::string label;
         language->serialize_invokable_sig( label, invokable );
-        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateNodeType_FUNCTION, invokable->get_sig() } );
+        action_manager->new_action<Event_CreateNode>(label.c_str(), Shortcut{}, EventPayload_CreateNode{CreateASTNodeType_FUNCTION, invokable->get_sig() } );
     }
 
     LOG_VERBOSE("ndbl::NodableView", "init_ex " OK "\n");
@@ -792,15 +792,15 @@ void NodableView::draw_config_window()
             ImGui::Indent();
             if ( ImGui::CollapsingHeader("Colors", flags ))
             {
-                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[NodeType_DEFAULT].x );
-                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[NodeType_BLOCK_CONDITION].x );
-                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[NodeType_BLOCK_FOR_LOOP].x );
-                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[NodeType_BLOCK_WHILE_LOOP].x );
-                ImGui::ColorEdit4("scope"       , &cfg->ui_node_fill_color[NodeType_BLOCK_SCOPE].x );
-                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[NodeType_VARIABLE].x );
-                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[NodeType_LITERAL].x );
-                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[NodeType_FUNCTION].x );
-                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[NodeType_OPERATOR].x );
+                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[ASTNodeType_DEFAULT].x );
+                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_CONDITION].x );
+                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_FOR_LOOP].x );
+                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_WHILE_LOOP].x );
+                ImGui::ColorEdit4("scope"       , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_SCOPE].x );
+                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[ASTNodeType_VARIABLE].x );
+                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[ASTNodeType_LITERAL].x );
+                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[ASTNodeType_FUNCTION].x );
+                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[ASTNodeType_OPERATOR].x );
                 ImGui::Separator();
                 ImGui::ColorEdit4("highlighted"         , &cfg->ui_node_highlightedColor.x);
                 ImGui::ColorEdit4("shadow"              , &cfg->ui_node_shadowColor.x);

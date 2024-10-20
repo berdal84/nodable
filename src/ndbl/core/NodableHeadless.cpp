@@ -13,7 +13,7 @@ void NodableHeadless::init()
     m_language        = init_language();
     m_node_factory    = init_node_factory();
     m_interpreter     = init_interpreter();
-    m_graph           = new Graph(m_node_factory);
+    m_graph           = new ASTGraph(m_node_factory);
 }
 
 void NodableHeadless::shutdown()
@@ -31,7 +31,7 @@ std::string& NodableHeadless::serialize( std::string& out ) const
     return m_language->_serialize_node( out, m_graph->get_root(), SerializeFlag_RECURSE );
 }
 
-Graph* NodableHeadless::parse( const std::string& code )
+ASTGraph* NodableHeadless::parse(const std::string& code )
 {
     m_language->parse(code, m_graph );
     return m_graph;
@@ -63,14 +63,14 @@ bool NodableHeadless::run_program() const
 
 const Code* NodableHeadless::compile()
 {
-    m_asm_code = m_compiler.compile_syntax_tree(m_graph);
+    m_asm_code = m_compiler.compile_ast(m_graph);
     return m_asm_code;
 }
 
-const Code* NodableHeadless::compile(Graph* _graph)
+const Code* NodableHeadless::compile(ASTGraph* _graph)
 {
     ASSERT(_graph != nullptr)
-    return m_compiler.compile_syntax_tree(_graph);
+    return m_compiler.compile_ast(_graph);
 }
 
 bool NodableHeadless::load_program(const Code* code)
@@ -83,7 +83,7 @@ Nodlang* NodableHeadless::get_language() const
     return m_language;
 }
 
-Graph* NodableHeadless::get_graph() const
+ASTGraph* NodableHeadless::get_graph() const
 {
     return m_graph;
 }

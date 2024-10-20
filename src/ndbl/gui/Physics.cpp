@@ -3,9 +3,9 @@
 #include <numeric>
 #include "tools/core/math.h"
 #include "tools/gui/Config.h"
-#include "ndbl/core/GraphUtil.h"
-#include "ndbl/core/Node.h"
-#include "ndbl/core/VariableNode.h"
+#include "ndbl/core/ASTUtils.h"
+#include "ndbl/core/ASTNode.h"
+#include "ndbl/core/ASTVariableNode.h"
 #include "ndbl/gui/NodeView.h"
 #include "Config.h"
 
@@ -19,11 +19,11 @@ using namespace tools;
 REFLECT_STATIC_INIT
 {
     type::Initializer<Physics>("Physics")
-                     .extends<NodeComponent>();
+                     .extends<ASTNodeComponent>();
 };
 
 Physics::Physics(NodeView* view)
-: NodeComponent()
+: ASTNodeComponent()
 , is_active(true)
 , m_view(view)
 {
@@ -64,9 +64,9 @@ void Physics::add_force( Vec2 force, bool _recurse)
 
     if ( !_recurse ) return;
 
-    for (Node* input_id: m_view->get_owner()->inputs() )
+    for (ASTNode* input_id: m_view->get_owner()->inputs() )
     {
-        Node& input = *input_id;
+        ASTNode& input = *input_id;
         NodeView& input_view = *input.get_component<NodeView>();
 
         if ( !input_view.pinned())
@@ -89,10 +89,10 @@ void Physics::apply_forces(float _dt)
     m_forces_sum            = Vec2();
 }
 
-void Physics::create_constraints(const std::vector<Node*>& nodes)
+void Physics::create_constraints(const std::vector<ASTNode*>& nodes)
 {
     LOG_VERBOSE("Physics", "create_constraints ...\n");
-    for(Node* node: nodes )
+    for(ASTNode* node: nodes )
     {
         auto curr_nodeview = node->get_component<NodeView>();
         ASSERT(curr_nodeview != nullptr )

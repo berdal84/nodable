@@ -1,11 +1,11 @@
 #include "FileView.h"
 
 #include "tools/gui/ImGuiTypeConvert.h"
-#include "ndbl/core/Graph.h"
-#include "ndbl/core/Node.h"
+#include "ndbl/core/ASTGraph.h"
+#include "ndbl/core/ASTNode.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/NodeUtils.h"
+#include "ndbl/core/ASTUtils.h"
 
 
 #include "Config.h"
@@ -39,7 +39,7 @@ void FileView::init(File& _file)
     m_text_overlay_window_name  = overlay_basename + "_text_overlay";
     m_graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
-    m_graph_changed_observer.observe(m_file->graph_changed, [](Graph* _graph) {
+    m_graph_changed_observer.observe(m_file->graph_changed, [](ASTGraph* _graph) {
         _graph->get_view()->reset();
     });
 
@@ -145,7 +145,7 @@ bool FileView::draw()
      // NodeViewItem EDITOR
     //-------------
 
-    Graph&     graph      = m_file->get_graph();
+    ASTGraph&     graph      = m_file->get_graph();
     GraphView* graph_view = graph.get_view();
 
     ASSERT(graph_view);

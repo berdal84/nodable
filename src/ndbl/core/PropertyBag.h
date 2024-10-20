@@ -12,7 +12,7 @@
 namespace ndbl
 {
     // forward declarations
-    class Node;
+    class ASTNode;
 
     /**
      * @brief The Properties class is a Property* container for a given Node.
@@ -26,7 +26,7 @@ namespace ndbl
         typedef std::vector<Property*>::const_iterator const_iterator;
 
         ~PropertyBag();
-        void             init(Node* owner) { m_owner = owner; }
+        void             init(ASTNode* owner) { m_owner = owner; }
         iterator         begin() { return m_properties.begin(); }
         iterator         end() { return m_properties.end(); }
         const_iterator   begin() const { return m_properties.begin(); }
@@ -51,7 +51,7 @@ namespace ndbl
 
     private:
         const Property* _find_first( PropertyFlags _flags, const tools::TypeDescriptor *_type) const;
-        Node*                   m_owner;
+        ASTNode*                   m_owner;
         std::vector<Property*>  m_properties;
         std::map<std::string, Property*> m_properties_by_name;
     };

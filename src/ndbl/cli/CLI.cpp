@@ -83,7 +83,7 @@ void CLI::update()
     }
 
     // Priority 3: append to source code, parse, compile, and run the code;
-    get_language()->serialize_token_t(user_input, Token_t::end_of_instruction);
+    get_language()->serialize_token_t(user_input, TokenType::end_of_instruction);
     m_source_code.append(user_input);
     parse(m_source_code) &&
     compile() &&
@@ -159,7 +159,7 @@ bool CLI::PublicApi::parse()
     // ask for user input
     std::cout << ">>> ";
     std::string parse_in = get_line();
-    Graph* graph = m_cli->parse(parse_in);
+    ASTGraph* graph = m_cli->parse(parse_in);
     return graph;
 }
 

@@ -1,7 +1,7 @@
 #include "PropertyView.h"
 
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/Node.h"
+#include "ndbl/core/ASTNode.h"
 #include "ndbl/core/Interpreter.h"
 #include "NodeView.h"
 
@@ -31,7 +31,7 @@ Property* PropertyView::get_property() const
     return m_property;
 }
 
-Node* PropertyView::get_node() const
+ASTNode* PropertyView::get_node() const
 {
     return m_property->owner();
 }
@@ -50,13 +50,13 @@ Slot* PropertyView::get_connected_slot() const
     return input_slot->first_adjacent();
 }
 
-VariableNode* PropertyView::get_connected_variable() const
+ASTVariableNode* PropertyView::get_connected_variable() const
 {
     Slot* adjacent_slot = get_connected_slot();
     if( !adjacent_slot )
         return nullptr;
 
-    return cast<VariableNode>(adjacent_slot->node() );
+    return cast<ASTVariableNode>(adjacent_slot->node() );
 }
 
 bool PropertyView::draw(ViewDetail _detail)
@@ -68,8 +68,8 @@ bool PropertyView::draw(ViewDetail _detail)
 
     bool            changed            = false;
     Property*       property           = get_property();
-    Node*           node               = get_node();
-    NodeType        node_type          = node->type();
+    ASTNode*           node               = get_node();
+    ASTNodeType        node_type          = node->type();
     bool            was_visited_by_interpreter = get_interpreter()->was_visited( node );
 
     /*
@@ -91,9 +91,9 @@ bool PropertyView::draw(ViewDetail _detail)
     {
         // When untouched, it depends...
 
-        show_input |= node_type == NodeType_LITERAL;
-        show_input |= node_type == NodeType_VARIABLE;
-        show_input |= node_type == NodeType_VARIABLE_REF;
+        show_input |= node_type == ASTNodeType_LITERAL;
+        show_input |= node_type == ASTNodeType_VARIABLE;
+        show_input |= node_type == ASTNodeType_VARIABLE_REF;
 
         // During debugging we want to see everything if we visited this node
         show_input |= was_visited_by_interpreter;
@@ -101,8 +101,8 @@ bool PropertyView::draw(ViewDetail _detail)
         if ( const Slot* connected_slot = get_connected_slot() )
             switch ( connected_slot->node()->type() )
             {
-                case NodeType_VARIABLE:
-                case NodeType_VARIABLE_REF:
+                case ASTNodeType_VARIABLE:
+                case ASTNodeType_VARIABLE_REF:
                     show_input |= true;
             }
 
@@ -163,7 +163,7 @@ float PropertyView::calc_input_width(const char *buf)
 bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const char* _override_label)
 {
     Property*           property       = _view->get_property();
-    Token&              property_token = property->token();
+    ASTToken&              property_token = property->token();
     const Slot*         connected_slot = _view->get_connected_slot();
     ImGuiInputTextFlags flags          = ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
     std::string         label;
@@ -180,15 +180,15 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if (property->owner()->type() != NodeType_VARIABLE)
+    if (property->owner()->type() != ASTNodeType_VARIABLE)
         if ( connected_slot != nullptr )
             switch (connected_slot->node()->type())
             {
-                case NodeType_VARIABLE:
-                case NodeType_VARIABLE_REF:
+                case ASTNodeType_VARIABLE:
+                case ASTNodeType_VARIABLE_REF:
                 {
                     char buf[256];
-                    const Token &connected_property_token = connected_slot->property()->token();
+                    const ASTToken &connected_property_token = connected_slot->property()->token();
                     snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
                              connected_property_token.word_ptr());
                     float w = calc_input_width(buf);
@@ -220,7 +220,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
     // Per type
     switch ( property_token.m_type )
     {
-        case Token_t::identifier:
+        case TokenType::identifier:
         {
             char buf[256];
             snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
@@ -233,7 +233,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             break;
         }
 
-        case Token_t::literal_double:
+        case TokenType::literal_double:
         {
             double value = get_language()->to_double(property_token.word_to_string());
 
@@ -246,7 +246,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             break;
         }
 
-        case Token_t::literal_int:
+        case TokenType::literal_int:
         {
             i32_t value = get_language()->to_int( property_token.word_to_string() );
 
@@ -260,7 +260,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             break;
         }
 
-        case Token_t::literal_bool:
+        case TokenType::literal_bool:
         {
             auto str = property_token.word_to_string();
             bool b = get_language()->to_bool( str );
@@ -275,7 +275,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             break;
         }
 
-        case Token_t::literal_string:
+        case TokenType::literal_string:
         {
             char buf[256];
             snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
@@ -288,7 +288,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             break;
         }
 
-        case Token_t::null:
+        case TokenType::null:
         {
             break;
         }

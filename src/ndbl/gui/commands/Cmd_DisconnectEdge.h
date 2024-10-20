@@ -1,6 +1,6 @@
 #pragma once
 #include "ndbl/core/DirectedEdge.h"
-#include "ndbl/core/Graph.h"
+#include "ndbl/core/ASTGraph.h"
 #include "ndbl/core/Property.h"
 #include "ndbl/gui/Command.h"
 
@@ -9,7 +9,7 @@ namespace ndbl
     class Cmd_DisconnectEdge : public AbstractCommand
     {
     public:
-        explicit Cmd_DisconnectEdge(DirectedEdge _edge, Graph* _graph)
+        explicit Cmd_DisconnectEdge(DirectedEdge _edge, ASTGraph* _graph)
         : m_edge(_edge)
         , m_graph(_graph)
         {
@@ -38,6 +38,6 @@ namespace ndbl
     private:
         std::string  m_description;
         DirectedEdge m_edge;
-        Graph*       m_graph;
+        ASTGraph*       m_graph;
     };
 }

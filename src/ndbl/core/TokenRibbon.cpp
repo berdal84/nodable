@@ -3,12 +3,12 @@
 #include "tools/core/log.h"
 #include "tools/core/assertions.h"
 
-#include "Token_t.h"
-#include "Token.h"
+#include "TokenType.h"
+#include "ASTToken.h"
 
 using namespace ndbl;
 
-Token & TokenRibbon::push(Token &_token)
+ASTToken & TokenRibbon::push(ASTToken &_token)
 {
     _token.m_index = m_tokens.size();
     m_tokens.push_back(_token);
@@ -21,13 +21,13 @@ std::string TokenRibbon::to_string()const
     size_t buffer_size = 0;
 
     // get the total buffer sizes (but won't be exact, some token are serialized dynamically)
-    for (const Token& each_token : m_tokens)
+    for (const ASTToken& each_token : m_tokens)
         buffer_size += each_token.m_string_length;
 
     out.reserve(buffer_size);
     out.append("[<TokenRibbon start>]\n");
 
-    for (const Token& each_token : m_tokens)
+    for (const ASTToken& each_token : m_tokens)
     {
         tools::string256 line;
         size_t index = each_token.m_index;
@@ -76,16 +76,16 @@ std::string TokenRibbon::to_string()const
     return out;
 }
 
-Token TokenRibbon::eat_if(Token_t expectedType)
+ASTToken TokenRibbon::eat_if(TokenType expectedType)
 {
     if (can_eat() && peek().m_type == expectedType )
     {
         return eat();
     }
-    return Token::s_null;
+    return ASTToken::s_null;
 }
 
-Token TokenRibbon::eat()
+ASTToken TokenRibbon::eat()
 {
     LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_cursor, peek().buffer_to_string().c_str() )
     return m_tokens.at(m_cursor++);
@@ -113,7 +113,7 @@ void TokenRibbon::transaction_commit()
 void TokenRibbon::clear()
 {
     m_tokens.clear();
-    m_prefix.m_type             = m_suffix.m_type             = Token_t::ignore;
+    m_prefix.m_type             = m_suffix.m_type             = TokenType::ignore;
     m_prefix.m_string_start_pos = m_suffix.m_string_start_pos = 0;
     m_prefix.m_string_length      = m_suffix.m_string_length      = 0;
     m_prefix.m_word_start_pos   = m_suffix.m_word_start_pos   = 0;
@@ -147,7 +147,7 @@ std::string TokenRibbon::concat_token_buffers(size_t pos, int size)
     int step_done_count = 0;
     while( idx > 0 && idx < m_tokens.size() && step_done_count <= step_count )
     {
-        Token* token = &m_tokens[idx];
+        ASTToken* token = &m_tokens[idx];
         result = step > 0 ? result + token->buffer_to_string() : token->buffer_to_string() + result;
 
         idx += step;

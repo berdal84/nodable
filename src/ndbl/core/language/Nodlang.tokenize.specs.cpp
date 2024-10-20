@@ -13,9 +13,9 @@ TEST_F(Language_tokenize, identifiers_can_start_by_a_keyword)
     std::string code{"int if_myvar_includes_a_keyword;"};
     language->tokenize(code);
     log_ribbon();
-    Token token = language->parser_state.ribbon.at(1);
+    ASTToken token = language->parser_state.ribbon.at(1);
     EXPECT_EQ(token.word_to_string(), "if_myvar_includes_a_keyword");
-    EXPECT_EQ(token.m_type, Token_t::identifier);
+    EXPECT_EQ(token.m_type, TokenType::identifier);
 }
 
 //////////////////////////// Prefix / Suffix ///////////////////////////////////////////////////////////////////////////
@@ -25,7 +25,7 @@ TEST_F(Language_tokenize, identifiers_should_not_have_prefix_or_suffix)
     std::string code{"int my_var ;"};
     language->tokenize(code);
     log_ribbon();
-    Token token = language->parser_state.ribbon.at(1);
+    ASTToken token = language->parser_state.ribbon.at(1);
     EXPECT_EQ(token.word_to_string(), "my_var");
     EXPECT_EQ(token.prefix_to_string(), "");
     EXPECT_EQ(token.suffix_to_string(), "");
@@ -36,7 +36,7 @@ TEST_F(Language_tokenize, operator_suffix_and_prefix)
     std::string code{"int my_var = 42"};
     language->tokenize(code);
     log_ribbon();
-    Token token = language->parser_state.ribbon.at(2);
+    ASTToken token = language->parser_state.ribbon.at(2);
     EXPECT_EQ(token.buffer_to_string(), " = ");
     EXPECT_EQ(token.prefix_to_string(), " ");
     EXPECT_EQ(token.suffix_to_string(), " ");
@@ -47,7 +47,7 @@ TEST_F(Language_tokenize, operator_suffix)
     std::string code = "int my_var= 42";
     language->tokenize(code);
     log_ribbon();
-    Token token = language->parser_state.ribbon.at(2);
+    ASTToken token = language->parser_state.ribbon.at(2);
     EXPECT_EQ(token.buffer_to_string(), "= ");
     EXPECT_EQ(token.prefix_to_string(), "");
     EXPECT_EQ(token.suffix_to_string(), " ");
@@ -58,7 +58,7 @@ TEST_F(Language_tokenize, operator_prefix)
     std::string code = "int my_var =42";
     language->tokenize(code);
     log_ribbon();
-    Token token = language->parser_state.ribbon.at(2);
+    ASTToken token = language->parser_state.ribbon.at(2);
     EXPECT_EQ(token.buffer_to_string(), " =");
     EXPECT_EQ(token.prefix_to_string(), " ");
     EXPECT_EQ(token.suffix_to_string(), "");

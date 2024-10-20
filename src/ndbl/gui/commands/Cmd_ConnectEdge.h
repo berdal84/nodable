@@ -1,7 +1,7 @@
 #pragma once
 #include "ndbl/gui/Command.h"
-#include "ndbl/core/Node.h"
-#include "ndbl/core/Graph.h"
+#include "ndbl/core/ASTNode.h"
+#include "ndbl/core/ASTGraph.h"
 
 namespace ndbl
 {
@@ -38,6 +38,6 @@ namespace ndbl
     private:
         std::string   m_description;
         DirectedEdge  m_edge;
-        Graph*        m_graph;
+        ASTGraph*        m_graph;
     };
 }

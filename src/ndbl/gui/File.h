@@ -10,7 +10,7 @@
 #include "tools/core/log.h"
 
 #include "Isolation.h"
-#include "ndbl/core/NodeFactory.h"
+#include "ndbl/core/ASTNodeFactory.h"
 #include "ndbl/gui/FileView.h"
 #include "ndbl/gui/History.h"
 #include "ndbl/gui/Nodable.h"
@@ -19,8 +19,8 @@
 namespace ndbl
 {
     // forward declarations
-    class Node;
-    class Graph;
+    class ASTNode;
+    class ASTGraph;
     class GraphView;
     class History;
     
@@ -41,13 +41,13 @@ namespace ndbl
         bool                   dirty;        // true if changed since last read/write from/to disk.
         FileView               view;
         History                history;      // history of changes
-        observe::Event<Graph*> graph_changed;
+        observe::Event<ASTGraph*> graph_changed;
 
     private:
-        Graph*                 graph;        // graphical representation
+        ASTGraph*                 graph;        // graphical representation
         std::string            parsed_text;  // last parsed text buffer
     public:
-        Graph&                 get_graph() { return *graph; };
+        ASTGraph&                 get_graph() { return *graph; };
         std::string            filename() const;
         UpdateResult           update( Isolation ); // to call each frame
         UpdateResult           update_graph_from_text( Isolation = Isolation_OFF );

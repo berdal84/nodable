@@ -37,11 +37,11 @@ namespace ndbl
         Property*             property()const;
         const tools::TypeDescriptor* property_type()const;
         tools::string64       compute_tooltip() const;
-        Node*                 node()const;
+        ASTNode*                 node()const;
         bool                  has_node_connected() const;
         Slot&                 slot()const;
         tools::Vec2           normal() const;
-        Node*                 adjacent_node() const;
+        ASTNode*                 adjacent_node() const;
         bool                  is_this() const;
         bool                  is_hovered() const;
         bool                  allows(SlotFlag) const;

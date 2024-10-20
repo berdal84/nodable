@@ -1,5 +1,5 @@
 #include "Slot.h"
-#include "Node.h"
+#include "ASTNode.h"
 
 using namespace ndbl;
 
@@ -11,11 +11,11 @@ Slot::Slot()
 }
 
 Slot::Slot(
-    Node*     _node,
-    SlotFlags _flags,
-    Property* _property,
-    size_t    _capacity,
-    size_t    _position
+        ASTNode*     _node,
+        SlotFlags _flags,
+        Property* _property,
+        size_t    _capacity,
+        size_t    _position
     )
 : m_node(_node)
 , m_flags(_flags)

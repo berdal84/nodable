@@ -8,10 +8,10 @@
 #include "tools/core/math.h"
 #include "tools/gui/Color.h"
 
-#include "ndbl/core/Graph.h"
-#include "ndbl/core/LiteralNode.h"
-#include "ndbl/core/NodeUtils.h"
-#include "ndbl/core/Scope.h"
+#include "ndbl/core/ASTGraph.h"
+#include "ndbl/core/ASTLiteralNode.h"
+#include "ndbl/core/ASTUtils.h"
+#include "ndbl/core/ASTScope.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/Interpreter.h"
 
@@ -21,7 +21,7 @@
 #include "NodeView.h"
 #include "Physics.h"
 #include "SlotView.h"
-#include "ndbl/core/ComponentFactory.h"
+#include "ndbl/core/ASTComponentFactory.h"
 #include "tools/core/StateMachine.h"
 
 using namespace ndbl;
@@ -41,7 +41,7 @@ constexpr const char* DRAG_STATE       = "Drag Node Tool";
 constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
 constexpr const char* LINE_STATE       = "Line Tool";
 
-GraphView::GraphView(Graph* graph)
+GraphView::GraphView(ASTGraph* graph)
 : m_graph(graph)
 , m_state_machine(this)
 {
@@ -72,10 +72,10 @@ GraphView::GraphView(Graph* graph)
 
     // When a new node is added
     graph->on_add.connect(
-        [this](Node* node) -> void
+        [this](ASTNode* node) -> void
         {
             // Add a NodeView and Physics component
-            ComponentFactory* component_factory = get_component_factory();
+            ASTComponentFactory* component_factory = get_component_factory();
             auto nodeview = component_factory->create<NodeView>();
             add_child(nodeview);
             auto physics  = component_factory->create<Physics>( nodeview );
@@ -145,7 +145,7 @@ bool GraphView::draw()
     bool            changed                = false;
     ImDrawList*     draw_list              = ImGui::GetWindowDrawList();
     const bool      enable_edition         = interpreter->is_program_stopped();
-    std::vector<Node*> node_registry       = m_graph->get_node_registry();
+    std::vector<ASTNode*> node_registry       = m_graph->get_node_registry();
 
     // Draw Grid
     ImGuiEx::Grid(
@@ -162,7 +162,7 @@ bool GraphView::draw()
             cfg->ui_codeflow_thickness(),
             0.0f
     };
-    for (Node *each_node: node_registry)
+    for (ASTNode *each_node: node_registry)
     {
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible(each_node->get_component<NodeView>());
 
@@ -182,7 +182,7 @@ bool GraphView::draw()
 
             for (const auto &adjacent_slot: slot->adjacent())
             {
-                Node*     each_successor_node  = adjacent_slot->node();
+                ASTNode*     each_successor_node  = adjacent_slot->node();
                 NodeView* possibly_hidden_view = each_successor_node->get_component<NodeView>();
                 NodeView* each_successor_view  = NodeView::substitute_with_parent_if_not_visible(possibly_hidden_view);
 
@@ -238,9 +238,9 @@ bool GraphView::draw()
                     continue;
 
                 // Skip variable--->ref wires in certain cases
-                if ( each_node->type() == NodeType_VARIABLE ) // from a variable
+                if ( each_node->type() == ASTNodeType_VARIABLE ) // from a variable
                 {
-                    auto variable = static_cast<VariableNode*>( each_node );
+                    auto variable = static_cast<ASTVariableNode*>( each_node );
                     if ( slot == variable->ref_out() ) // from a reference slot (can't be a declaration link)
                         if ( !node_view->selected() && !adjacent_nodeview->selected() )
                             continue;
@@ -331,7 +331,7 @@ bool GraphView::draw()
     // Virtual Machine cursor
     if (interpreter->is_program_running())
     {
-        const Node* node = interpreter->get_next_node();
+        const ASTNode* node = interpreter->get_next_node();
         if (const NodeView* view = node->get_component<NodeView>())
         {
             Vec2 left = view->get_rect().left();
@@ -384,7 +384,7 @@ bool GraphView::update(float delta_time, u16_t subsample_count)
 bool GraphView::update(float delta_time)
 {
     // 1. Update Physics Components
-    std::vector<Physics*> physics_components = NodeUtils::get_components<Physics>( m_graph->get_node_registry() );
+    std::vector<Physics*> physics_components = ASTUtils::get_components<Physics>(m_graph->get_node_registry() );
     // 1.1 Apply constraints (but apply no translation, we want to be sure order does no matter)
     for (auto physics_component : physics_components)
     {
@@ -397,7 +397,7 @@ bool GraphView::update(float delta_time)
     }
 
     // 2. Update NodeViews
-    std::vector<NodeView*> nodeview_components = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
+    std::vector<NodeView*> nodeview_components = ASTUtils::get_components<NodeView>(m_graph->get_node_registry() );
     for (auto eachView : nodeview_components)
     {
         eachView->update(delta_time);
@@ -439,7 +439,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, we could translate a Camera.
-    auto node_views = NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
+    auto node_views = ASTUtils::get_components<NodeView>(m_graph->get_node_registry() );
     NodeView::translate(get_all_nodeviews(), delta);
 }
 
@@ -533,7 +533,7 @@ void GraphView::reset()
 
 std::vector<NodeView*> GraphView::get_all_nodeviews() const
 {
-     return NodeUtils::get_components<NodeView>( m_graph->get_node_registry() );
+     return ASTUtils::get_components<NodeView>(m_graph->get_node_registry() );
 }
 
 bool GraphView::has_an_active_tool() const
@@ -548,7 +548,7 @@ void GraphView::reset_all_properties()
             property_view->reset();
 }
 
-Graph *GraphView::get_graph() const
+ASTGraph *GraphView::get_graph() const
 {
     return m_graph;
 }

@@ -351,28 +351,28 @@ set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
 add_library(
     ndbl-core
     STATIC
-    src/ndbl/core/NodeComponent.cpp
-    src/ndbl/core/ComponentFactory.cpp
-    src/ndbl/core/IfNode.cpp
+    src/ndbl/core/ASTNodeComponent.cpp
+    src/ndbl/core/ASTComponentFactory.cpp
+    src/ndbl/core/ASTConditionalNode.cpp
     src/ndbl/core/DirectedEdge.cpp
-    src/ndbl/core/ForLoopNode.cpp
-    src/ndbl/core/Graph.cpp
-    src/ndbl/core/GraphUtil.cpp
-    src/ndbl/core/FunctionNode.cpp
-    src/ndbl/core/LiteralNode.cpp
-    src/ndbl/core/Node.cpp
-    src/ndbl/core/NodeFactory.cpp
+    src/ndbl/core/ASTForLoopNode.cpp
+    src/ndbl/core/ASTGraph.cpp
+    src/ndbl/core/ASTUtils.cpp
+    src/ndbl/core/ASTFunctionNode.cpp
+    src/ndbl/core/ASTLiteralNode.cpp
+    src/ndbl/core/ASTNode.cpp
+    src/ndbl/core/ASTNodeFactory.cpp
     src/ndbl/core/Property.cpp
     src/ndbl/core/PropertyBag.cpp
-    src/ndbl/core/Scope.cpp
+    src/ndbl/core/ASTScope.cpp
     src/ndbl/core/Slot.cpp
-    src/ndbl/core/Token.cpp
+    src/ndbl/core/ASTToken.cpp
     src/ndbl/core/TokenRibbon.cpp
-    src/ndbl/core/VariableNode.cpp
+    src/ndbl/core/ASTVariableNode.cpp
     src/ndbl/core/Interpreter.cpp
-    src/ndbl/core/WhileLoopNode.cpp
+    src/ndbl/core/ASTWhileLoopNode.cpp
     src/ndbl/core/Code.cpp
-    src/ndbl/core/Compiler.cpp
+    src/ndbl/core/ASTCompiler.cpp
     src/ndbl/core/Instruction.cpp
     src/ndbl/core/language/Nodlang.cpp
     src/ndbl/core/language/Nodlang_biology.cpp
@@ -398,8 +398,8 @@ endif ()
 
 add_executable(
     test-ndbl-core
-    src/ndbl/core/Graph.specs.cpp
-    src/ndbl/core/Node.specs.cpp
+    src/ndbl/core/ASTGraph.specs.cpp
+    src/ndbl/core/ASTNode.specs.cpp
     src/ndbl/core/Slot.specs.cpp
     src/ndbl/core/Token.specs.cpp
     src/ndbl/core/language/Nodlang.basics.specs.cpp

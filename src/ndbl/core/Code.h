@@ -7,7 +7,7 @@
 namespace ndbl
 {
     // forward declarations
-    class Graph;
+    class ASTGraph;
 
     /**
      * @class Instructions container with some extra meta data
@@ -17,10 +17,10 @@ namespace ndbl
         typedef std::vector<Instruction*> Instructions; // TODO: switch to a std::vector<Instruction> to iterate faster on this data.
         struct MetaData
         {
-            const Graph* graph;
+            const ASTGraph* graph;
         };
     public:
-        Code(const Graph* _root);
+        Code(const ASTGraph* _root);
         ~Code();
 
         Instruction*               push_instr(OpCode);                                                            // Push back a new instruction to the code

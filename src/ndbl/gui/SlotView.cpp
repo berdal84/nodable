@@ -23,12 +23,12 @@ SlotView::SlotView(
     slot->set_view(this);
 }
 
-Node* SlotView::adjacent_node() const
+ASTNode* SlotView::adjacent_node() const
 {
    return m_slot->first_adjacent()->node();
 }
 
-Node* SlotView::node()const
+ASTNode* SlotView::node()const
 {
     return m_slot->node();
 }
@@ -57,7 +57,7 @@ Slot& SlotView::slot() const
 
 bool SlotView::has_node_connected() const
 {
-    if ( !m_slot->get_property()->get_type()->is<Node*>() )
+    if ( !m_slot->get_property()->get_type()->is<ASTNode*>() )
     {
         return false;
     }

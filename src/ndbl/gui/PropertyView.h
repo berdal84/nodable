@@ -9,8 +9,8 @@ namespace ndbl
     // forward declarations
     class Property;
     class NodeView;
-    class Node;
-    class VariableNode;
+    class ASTNode;
+    class ASTVariableNode;
     class Slot;
 
     /**
@@ -28,9 +28,9 @@ namespace ndbl
         bool             draw(ViewDetail); // return true when changed
         void             reset();
         Property*        get_property() const;
-        Node*            get_node() const;
+        ASTNode*            get_node() const;
         Slot*            get_connected_slot() const;
-        VariableNode*    get_connected_variable() const;
+        ASTVariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
 
         inline const tools::ViewState*     view_state() const { return &m_view_state; };

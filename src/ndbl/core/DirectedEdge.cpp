@@ -2,7 +2,7 @@
 
 #include <utility>
 #include "Slot.h"
-#include "Node.h"
+#include "ASTNode.h"
 
 using namespace ndbl;
 

@@ -2,9 +2,9 @@
 
 #include <fstream>
 
-#include "ndbl/core/NodeUtils.h"
-#include "ndbl/core/FunctionNode.h"
-#include "ndbl/core/LiteralNode.h"
+#include "ndbl/core/ASTUtils.h"
+#include "ndbl/core/ASTFunctionNode.h"
+#include "ndbl/core/ASTLiteralNode.h"
 #include "ndbl/core/language/Nodlang.h"
 
 #include "GraphView.h"
@@ -36,7 +36,7 @@ File::File()
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
     // Graph
-    graph = new Graph(get_node_factory());
+    graph = new ASTGraph(get_node_factory());
     auto* graph_view = new GraphView(graph);
     graph->set_view(graph_view);
 
@@ -66,7 +66,7 @@ void File::set_text(const std::string& text, Isolation mode)
 
 UpdateResult File::update_text_from_graph( Isolation mode )
 {
-    const Node* root_node = graph->get_root();
+    const ASTNode* root_node = graph->get_root();
 
     if ( root_node == nullptr )
     {
@@ -114,7 +114,7 @@ UpdateResult File::update( Isolation flags )
         update_text_from_graph( flags );
 
         // Refresh constraints
-        auto physics_components = NodeUtils::get_components<Physics>(graph->get_node_registry() );
+        auto physics_components = ASTUtils::get_components<Physics>(graph->get_node_registry() );
         Physics::destroy_constraints( physics_components );
         Physics::create_constraints(graph->get_node_registry() );
 
@@ -127,7 +127,7 @@ UpdateResult File::update( Isolation flags )
 UpdateResult File::update_graph_from_text( Isolation isolation_mode)
 {
     // Destroy all physics constraints
-    auto physics_components = NodeUtils::get_components<Physics>(graph->get_node_registry() );
+    auto physics_components = ASTUtils::get_components<Physics>(graph->get_node_registry() );
     Physics::destroy_constraints( physics_components );
 
     // Parse source code

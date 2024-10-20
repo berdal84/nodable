@@ -6,12 +6,12 @@
 #include "tools/core/System.h"
 #include "tools/core/EventManager.h"
 
-#include "ndbl/core/FunctionNode.h"
-#include "ndbl/core/LiteralNode.h"
+#include "ndbl/core/ASTFunctionNode.h"
+#include "ndbl/core/ASTLiteralNode.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/ComponentFactory.h"
+#include "ndbl/core/ASTComponentFactory.h"
 
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DisconnectEdge.h"
@@ -210,7 +210,7 @@ void Nodable::update()
                 auto& selected = graph_view->get_selected();
                 if ( !selected.empty() && !ImGui::IsAnyItemFocused() )
                 {
-                    Node* selected_node = selected[0]->get_owner();
+                    ASTNode* selected_node = selected[0]->get_owner();
                     selected_node->set_flags(NodeFlag_TO_DELETE);
                 }
                 break;
@@ -231,7 +231,7 @@ void Nodable::update()
                 // TODO: views should be included in the event
                 auto& selected = graph_view->get_selected();
                 if (selected.empty()) break;
-                std::vector<Node*> successors = selected[0]->get_owner()->successors();
+                std::vector<ASTNode*> successors = selected[0]->get_owner()->successors();
                 if (!successors.empty())
                     if (NodeView* successor_view = successors.front()->get_component<NodeView>() )
                         graph_view->set_selected({successor_view}, SelectionMode_REPLACE);
@@ -278,7 +278,7 @@ void Nodable::update()
                 ASSERT(curr_file_history != nullptr);
                 auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
                 DirectedEdge edge{ _event->data.first, _event->data.second };
-                Graph* graph = _event->data.first->node()->graph();
+                ASTGraph* graph = _event->data.first->node()->graph();
                 auto command = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
                 break;
@@ -291,7 +291,7 @@ void Nodable::update()
                 Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                Graph* graph = _event->data.first->node()->graph();
+                ASTGraph* graph = _event->data.first->node()->graph();
                 for( const auto& adjacent_slot: slot->adjacent() )
                 {
                     DirectedEdge edge{slot, adjacent_slot};
@@ -314,29 +314,29 @@ void Nodable::update()
                     continue;
                 }
 
-                Node* new_node  = _event->data.graph->create_node( _event->data.node_type, _event->data.node_signature );
+                ASTNode* new_node  = _event->data.graph->create_node(_event->data.node_type, _event->data.node_signature );
 
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )
                 {
-                    case CreateNodeType_BLOCK_CONDITION:
-                    case CreateNodeType_BLOCK_FOR_LOOP:
-                    case CreateNodeType_BLOCK_WHILE_LOOP:
-                    case CreateNodeType_BLOCK_SCOPE:
-                    case CreateNodeType_BLOCK_PROGRAM:
-                        new_node->set_suffix( Token::s_end_of_line );
+                    case CreateASTNodeType_BLOCK_CONDITION:
+                    case CreateASTNodeType_BLOCK_FOR_LOOP:
+                    case CreateASTNodeType_BLOCK_WHILE_LOOP:
+                    case CreateASTNodeType_BLOCK_SCOPE:
+                    case CreateASTNodeType_BLOCK_PROGRAM:
+                        new_node->set_suffix(ASTToken::s_end_of_line );
                         break;
-                    case CreateNodeType_VARIABLE_BOOLEAN:
-                    case CreateNodeType_VARIABLE_DOUBLE:
-                    case CreateNodeType_VARIABLE_INTEGER:
-                    case CreateNodeType_VARIABLE_STRING:
-                        new_node->set_suffix( Token::s_end_of_instruction );
+                    case CreateASTNodeType_VARIABLE_BOOLEAN:
+                    case CreateASTNodeType_VARIABLE_DOUBLE:
+                    case CreateASTNodeType_VARIABLE_INTEGER:
+                    case CreateASTNodeType_VARIABLE_STRING:
+                        new_node->set_suffix(ASTToken::s_end_of_instruction );
                         break;
-                    case CreateNodeType_LITERAL_BOOLEAN:
-                    case CreateNodeType_LITERAL_DOUBLE:
-                    case CreateNodeType_LITERAL_INTEGER:
-                    case CreateNodeType_LITERAL_STRING:
-                    case CreateNodeType_FUNCTION:
+                    case CreateASTNodeType_LITERAL_BOOLEAN:
+                    case CreateASTNodeType_LITERAL_DOUBLE:
+                    case CreateASTNodeType_LITERAL_INTEGER:
+                    case CreateASTNodeType_LITERAL_STRING:
+                    case CreateASTNodeType_FUNCTION:
                         break;
                 }
 
@@ -344,7 +344,7 @@ void Nodable::update()
                 if ( !_event->data.active_slotview )
                 {
                     // Experimental: we try to connect a parent-less child
-                    Node* root = _event->data.graph->get_root();
+                    ASTNode* root = _event->data.graph->get_root();
                     if (new_node != root && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
                         _event->data.graph->connect(
@@ -376,10 +376,10 @@ void Nodable::update()
                         _event->data.graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        Node* out_node = out->node();
+                        ASTNode* out_node = out->node();
                         if ( out_node->is_instruction() && out->type() == SlotFlag_TYPE_CODEFLOW )
                         {
-                            Token& token = out_node->suffix();
+                            ASTToken& token = out_node->suffix();
                             std::string buffer = token.buffer_to_string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
                                 token.suffix_append("\n");
@@ -515,8 +515,8 @@ bool Nodable::compile_and_load_program() const
         return false;
     }
 
-    Compiler compiler{};
-    auto asm_code = compiler.compile_syntax_tree(&m_current_file->get_graph());
+    ASTCompiler compiler{};
+    auto asm_code = compiler.compile_ast(&m_current_file->get_graph());
     if (!asm_code)
     {
         return false;
@@ -554,7 +554,7 @@ void Nodable::step_over_program()
         return;
     }
 
-    const Node* next_node = m_interpreter->get_next_node();
+    const ASTNode* next_node = m_interpreter->get_next_node();
     if ( !next_node )
         return;
 

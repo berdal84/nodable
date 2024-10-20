@@ -7,7 +7,7 @@
 namespace ndbl
 {
     // Forward declaration
-    class Node;
+    class ASTNode;
     class Property;
     class NodeView;
     class SlotView;
@@ -21,14 +21,14 @@ namespace ndbl
         Slot();
         Slot(const Slot& other);
         Slot(
-            Node* owner,
-            SlotFlags flags,
-            Property* prop = nullptr,
-            size_t capacity = 1,
-            size_t position = 0
+                ASTNode* owner,
+                SlotFlags flags,
+                Property* prop = nullptr,
+                size_t capacity = 1,
+                size_t position = 0
         );
 
-        Node*     node() const { return m_node; }
+        ASTNode*     node() const { return m_node; }
         SlotView* view() const { return m_view; }
         void      set_view(SlotView* view) { m_view = view; }
         Slot*     first_adjacent() const;
@@ -54,7 +54,7 @@ namespace ndbl
 
     private:
         size_t    m_position{}; // In case multiple Slot exists for the same type and order, we distinguish them with their position.
-        Node*     m_node{};     // parent node
+        ASTNode*     m_node{};     // parent node
         Property* m_property{}; // parent node's property
         SlotFlags m_flags;
         std::vector<Slot*> m_adjacent;

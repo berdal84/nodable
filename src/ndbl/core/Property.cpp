@@ -1,13 +1,13 @@
 #include "Property.h"
 
 #include "PropertyBag.h"
-#include "VariableNode.h"
+#include "ASTVariableNode.h"
 #include "tools/core/memory/memory.h"
 
 using namespace ndbl;
 using namespace tools;
 
-void Property::init(const TypeDescriptor* _type, PropertyFlags _flags, Node* _owner, const char* _name)
+void Property::init(const TypeDescriptor* _type, PropertyFlags _flags, ASTNode* _owner, const char* _name)
 {
     VERIFY(m_type == nullptr, "must be initialized once")
     VERIFY(_type != nullptr, "type can't be nullptr")

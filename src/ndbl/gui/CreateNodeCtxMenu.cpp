@@ -26,11 +26,11 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
 
         switch ( action->event_data.node_type )
         {
-            case CreateNodeType_BLOCK_CONDITION:
-            case CreateNodeType_BLOCK_FOR_LOOP:
-            case CreateNodeType_BLOCK_WHILE_LOOP:
-            case CreateNodeType_BLOCK_SCOPE:
-            case CreateNodeType_BLOCK_PROGRAM:
+            case CreateASTNodeType_BLOCK_CONDITION:
+            case CreateASTNodeType_BLOCK_FOR_LOOP:
+            case CreateASTNodeType_BLOCK_WHILE_LOOP:
+            case CreateASTNodeType_BLOCK_SCOPE:
+            case CreateASTNodeType_BLOCK_PROGRAM:
                 // Blocks are only for code flow slots
                 if ( !dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
                     continue;
@@ -42,7 +42,7 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
                 {
                     // we can connect anything to a code flow slot
                 }
-                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->property_type()->is<Node*>() )
+                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->property_type()->is<ASTNode*>() )
                 {
                     // we can connect anything to a Node ref input
                 }
