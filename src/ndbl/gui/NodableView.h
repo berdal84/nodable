@@ -27,6 +27,7 @@ namespace ndbl
         // Common
 
         void init(Nodable*);
+        void update();
         void shutdown();
         void draw();
         void show_splashscreen(bool b);
@@ -59,5 +60,6 @@ namespace ndbl
         bool               m_scroll_to_curr_instr = true;
         Nodable*           m_app                  = nullptr;
         tools::AppView     m_base_view; // wrapped
+
     };
 }

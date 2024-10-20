@@ -49,6 +49,7 @@ void Nodable::init()
 void Nodable::update()
 {
     m_base_app.update();
+    m_view->update();
 
     // 1. Update current file
     if (m_current_file && !m_interpreter->is_program_running())

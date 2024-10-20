@@ -92,7 +92,8 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
 
     ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_slot_hovered_color                 = Color(200, 200, 200);
-    ui_slot_color                         = Color(127, 127, 127);
+    ui_slot_color_light                   = Color(255, 255, 255);
+    ui_slot_color_dark                    = Color(127, 127, 127);
     ui_node_gap_base                      = Vec2(40.0f, 40.f);
     ui_node_speed                         = 20.0f;
     ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
@@ -199,4 +200,12 @@ Vec2 ndbl::Config::ui_node_gap(Size size) const
 float ndbl::Config::ui_slot_circle_radius(tools::Size size) const
 {
     return ui_slot_circle_radius_base * tools_cfg->size_factor[size];
+}
+
+Vec4& ndbl::Config::ui_slot_color(ndbl::SlotFlags slot_flags)
+{
+    if ( (slot_flags & SlotFlag_INPUT) == SlotFlag_INPUT )
+        return ui_slot_color_light;
+
+    return ui_slot_color_dark;
 }

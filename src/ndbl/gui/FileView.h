@@ -38,23 +38,24 @@ namespace ndbl
 
     class FileView
 	{
-	public:
-		explicit FileView();
+    public:
+        explicit FileView();
         FileView(const FileView&) = delete;
 		~FileView() = default;
 
-		void                           init( File& _file);
+        void                           update(float d);
+        void                           init( File& _file);
         bool                           draw();
         bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
         bool                           focused_text_changed() const { return m_focused_text_changed; }
         bool                           is_graph_dirty() const { return m_is_graph_dirty; }
         void                           set_dirty(bool b) { m_focused_text_changed = m_is_graph_dirty = b; }
-		std::string                    get_text(Isolation = Isolation_OFF)const;
+        std::string                    get_text(Isolation = Isolation_OFF)const;
         void                           set_text(const std::string&, Isolation mode = Isolation_OFF);
-		TextEditor*					   get_text_editor(){ return &m_text_editor; }
-		void                           set_cursor_position(const TextEditor::Coordinates& _cursorPosition) { m_text_editor.SetCursorPosition(_cursorPosition); }
-		TextEditor::Coordinates        get_cursor_position()const { return m_text_editor.GetCursorPosition(); }
-		void						   set_undo_buffer(TextEditor::IExternalUndoBuffer*);
+        TextEditor*					   get_text_editor(){ return &m_text_editor; }
+        void                           set_cursor_position(const TextEditor::Coordinates& _cursorPosition) { m_text_editor.SetCursorPosition(_cursorPosition); }
+        TextEditor::Coordinates        get_cursor_position()const { return m_text_editor.GetCursorPosition(); }
+        void						   set_undo_buffer(TextEditor::IExternalUndoBuffer*);
         void                           draw_info_panel()const;
         void                           experimental_clipboard_auto_paste(bool);
         bool                           experimental_clipboard_auto_paste()const { return m_experimental_clipboard_auto_paste; }
@@ -63,6 +64,7 @@ namespace ndbl
         void                           refresh_overlay(Condition condition);
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
         size_t                         size() const;
+
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
         bool         m_focused_text_changed;

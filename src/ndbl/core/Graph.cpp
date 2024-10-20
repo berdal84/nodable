@@ -385,7 +385,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
 {
     // find the edge to disconnect
-    SlotFlags type = _edge.tail->get_flags() & SlotFlag_TYPE_MASK;
+    SlotFlags type = _edge.tail->flags() & SlotFlag_TYPE_MASK;
     auto [range_begin, range_end]   = m_edge_registry.equal_range(type);
     auto it = std::find_if( range_begin, range_end, [&](const auto& _pair) -> bool { return _edge == _pair.second; });
     VERIFY(it != m_edge_registry.end(), "Unable to find edge" );

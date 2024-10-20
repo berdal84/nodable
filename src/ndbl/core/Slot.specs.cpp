@@ -46,7 +46,7 @@ TEST(Slot, allows_relation)
     // prepare
     Slot slot;
 
-    EXPECT_TRUE(slot.get_flags() == SlotFlag_NONE );
+    EXPECT_TRUE(slot.flags() == SlotFlag_NONE );
 
     slot.set_flags( SlotFlag_CHILD );
 

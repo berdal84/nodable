@@ -12,8 +12,8 @@ DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
 : tail(_tail)
 , head(_head)
 {
-    ASSERT(tail->get_flags() & SlotFlag_ORDER_FIRST )
-    ASSERT(head->get_flags() & SlotFlag_ORDER_SECOND )
+    ASSERT(tail->flags() & SlotFlag_ORDER_FIRST )
+    ASSERT(head->flags() & SlotFlag_ORDER_SECOND )
     ASSERT(tail->node()->graph() != nullptr);
     ASSERT(head->node()->graph() != nullptr);
     ASSERT(tail->node()->graph() == head->node()->graph() );
@@ -53,7 +53,7 @@ std::string ndbl::to_string(const DirectedEdge& _edge)
         result.append(" (slot: ");
         result.append( std::to_string((u64_t)_slot));
 
-        switch ( _slot->get_flags() )
+        switch (_slot->flags() )
         {
             case SlotFlag_CHILD:   result.append(", CHILD");  break;
             case SlotFlag_PARENT:  result.append(", PARENT"); break;
@@ -66,7 +66,7 @@ std::string ndbl::to_string(const DirectedEdge& _edge)
 
     serialize_slot_ref(_edge.tail);
 
-    auto type = _edge.tail->get_flags() & SlotFlag_TYPE_MASK;
+    auto type = _edge.tail->flags() & SlotFlag_TYPE_MASK;
     // TODO: enable reflection on SLotFlag_XXX
     switch ( type )
     {

@@ -208,7 +208,7 @@ void NodeView::set_owner(Node* node)
             {
                 if (SlotView *view = decl_out->view())
                 {
-                    view->set_align( LEFT );
+                    view->set_alignment(LEFT);
                     view->set_align_ref( this->box() );
                 }
             }
@@ -221,8 +221,8 @@ void NodeView::set_owner(Node* node)
             {
                 if (SlotView *view = value_out->view())
                 {
-                    view->set_align({-0.75, 1.f}); // bottom-left, with a margin
-                    view->set_align_ref( this->box() );
+                    view->set_direction( BOTTOM );
+                    view->set_align_ref( nullptr );
                 }
             }
             break;
@@ -286,13 +286,13 @@ void NodeView::arrange_recursively(bool _smoothly)
     m_pinned = false;
 }
 
-bool NodeView::update(float _deltaTime)
+bool NodeView::update(float dt)
 {
     if(m_opacity != 1.0f)
-        lerp(m_opacity, 1.0f, 10.0f * _deltaTime);
+        lerp(m_opacity, 1.0f, 10.0f * dt);
 
     for(SlotView* slot_view  : m_slot_views )
-        slot_view->update( _deltaTime );
+        slot_view->update( dt );
 
 	return true;
 }
@@ -400,9 +400,21 @@ bool NodeView::draw()
         pre_label.append(" " ICON_FA_OBJECT_GROUP);
 
     // Draw the pre_label when necessary
-    if ( !pre_label.empty() )
-    {
-        ImGui::SameLine(); ImGui::Text("%s", pre_label.c_str() );
+    if ( !pre_label.empty() ) {
+        ImGui::SameLine();
+        ImGui::Text("%s", pre_label.c_str());
+
+        // Update slot_view_out to be positioned below the pre_label
+
+        if ( node->type() == NodeType_FUNCTION )
+            if (Slot *slot_out = node->value_out())
+                if (SlotView *slot_view_out = slot_out->view())
+                {
+                    const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
+                    const float y = box()->pivot(BOTTOM, WORLD_SPACE).y;
+                    slot_view_out->xform()->set_pos({x, y}, WORLD_SPACE);
+                    slot_view_out->set_direction(BOTTOM);
+                }
     }
 
     // Draw the properties depending on node type

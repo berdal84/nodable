@@ -153,7 +153,7 @@ bool FileView::draw()
     ImGui::SameLine();
     LOG_VERBOSE("FileView", "graph_node_view->update_world_matrix()\n");
     ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-    graph_view->update();
+
     Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
 
     ImGui::BeginChild("graph", graph_editor_size, false, flags);
@@ -345,4 +345,10 @@ void FileView::refresh_overlay(Condition _condition )
             push_overlay({label, shortcut_str}, overlay_type);
         }
     }
+}
+
+void FileView::update(float dt)
+{
+    const size_t samples = get_config()->ui_node_animation_subsample_count;
+    m_file->get_graph().get_view()->update( dt, samples );
 }

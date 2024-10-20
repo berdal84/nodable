@@ -50,7 +50,7 @@ namespace ndbl
         bool      has_flags( SlotFlags flag ) const;
         SlotFlags type_and_order() const;
         bool      is_this() const;
-        SlotFlags get_flags() const;
+        SlotFlags flags() const;
 
     private:
         size_t    m_position{}; // In case multiple Slot exists for the same type and order, we distinguish them with their position.

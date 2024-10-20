@@ -144,7 +144,7 @@ size_t Slot::position() const
     return m_position;
 }
 
-SlotFlags Slot::get_flags() const
+SlotFlags Slot::flags() const
 {
     return m_flags;
 }

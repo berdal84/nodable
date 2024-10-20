@@ -35,6 +35,15 @@ static FunctionDescriptor* create_variable_node_signature()
     return &descriptor;
 }
 
+void NodableView::update()
+{
+    if( File* current_file = m_app->get_current_file() )
+    {
+        auto dt = ImGui::GetIO().DeltaTime;
+        current_file->view.update( dt );
+    }
+}
+
 void NodableView::init(Nodable * _app)
 {
     LOG_VERBOSE("ndbl::NodableView", "init ...\n");
@@ -806,7 +815,8 @@ void NodableView::draw_config_window()
                 ImGui::ColorEdit4("shadow"              , &cfg->ui_node_shadowColor.x);
                 ImGui::ColorEdit4("border"              , &cfg->ui_slot_border_color.x);
                 ImGui::ColorEdit4("border (highlighted)", &cfg->ui_node_borderHighlightedColor.x);
-                ImGui::ColorEdit4("slot"                , &cfg->ui_slot_color.x);
+                ImGui::ColorEdit4("slot (in)"           , &cfg->ui_slot_color_light.x);
+                ImGui::ColorEdit4("slot (out)"          , &cfg->ui_slot_color_dark.x);
                 ImGui::ColorEdit4("slot (hovered)"      , &cfg->ui_slot_hovered_color.x);
             }
 

@@ -48,7 +48,7 @@ namespace ndbl
         void        frame_nodes(FrameMode mode );
         bool        selection_empty() const;
         void        reset(); // unfold and frame the whole graph
-        bool        update();
+        bool        update(float dt, u16_t samples);
         bool        has_an_active_tool() const;
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
         const NodeViewVec& get_selected() const;
@@ -68,7 +68,6 @@ namespace ndbl
 
         void        unfold(); // unfold the graph until it is stabilized
         bool        update(float dt);
-        bool        update(float dt, u16_t samples);
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );

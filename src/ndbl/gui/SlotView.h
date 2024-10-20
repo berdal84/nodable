@@ -33,6 +33,7 @@ namespace ndbl
             const tools::BoxShape2D* alignment_ref
             );
 
+        void                  update(float dt);
         bool                  draw();
         Property*             property()const;
         const tools::TypeDescriptor* property_type()const;
@@ -40,7 +41,7 @@ namespace ndbl
         Node*                 node()const;
         bool                  has_node_connected() const;
         Slot&                 slot()const;
-        tools::Vec2           normal() const;
+        tools::Vec2           direction() const;
         Node*                 adjacent_node() const;
         bool                  is_this() const;
         bool                  is_hovered() const;
@@ -48,7 +49,8 @@ namespace ndbl
         size_t                index() const;
         ShapeType             shape() const;
         void                  set_visible(bool b) { m_view_state.visible = b; }
-        void                  set_align(const tools::Vec2 vec2);
+        void                  set_direction(const tools::Vec2);
+        void                  set_alignment(const tools::Vec2);
         void                  set_shape(ShapeType type);
         void                  set_align_ref(const tools::BoxShape2D*);
 
@@ -60,15 +62,16 @@ namespace ndbl
         tools::BoxShape2D*          box() { return &m_view_state.box; }
         const tools::BoxShape2D*    box() const { return &m_view_state.box; }
 
-
-        void update(float dt);
-
     private:
+        void update_direction_from_alignment();
+
         size_t                m_index;
         ShapeType             m_shape;
         Slot*                 m_slot;
         const tools::BoxShape2D* m_alignment_ref;
         tools::Vec2           m_alignment;
+        tools::Vec2           m_direction; // cached
         tools::ViewState      m_view_state;
+
     };
 }

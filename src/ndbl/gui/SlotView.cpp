@@ -19,9 +19,11 @@ SlotView::SlotView(
 , m_shape(shape)
 , m_index(index)
 , m_alignment_ref(alignment_ref)
+, m_direction()
 {
     ASSERT(slot != nullptr)
     slot->set_view(this);
+    update_direction_from_alignment();
 }
 
 Node* SlotView::adjacent_node() const
@@ -71,12 +73,12 @@ Property* SlotView::property() const
     return m_slot->get_property();
 }
 
-tools::Vec2 SlotView::normal() const
+Vec2 SlotView::direction() const
 {
-    return tools::Vec2::normalize(m_alignment );
+    return m_direction;
 }
 
-tools::string64 SlotView::compute_tooltip() const
+string64 SlotView::compute_tooltip() const
 {
     switch (slot().type_and_order())
     {
@@ -107,11 +109,10 @@ bool SlotView::draw()
     if ( !m_view_state.visible )
         return false;
 
-
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
 
     Config* cfg          = get_config();
-    Vec4  color          = cfg->ui_slot_color;
+    Vec4  color          = cfg->ui_slot_color( m_slot->flags() );
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
@@ -125,7 +126,7 @@ bool SlotView::draw()
     ImGui::PushID(m_slot);
     ImGui::InvisibleButton("###", rect.size() * cfg->ui_slot_invisible_ratio);
     ImGui::PopID();
-    m_view_state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    m_view_state.hovered = ImGui::IsItemHovered();
     Vec4 fill_color = m_view_state.hovered ? hover_color : color;
 
     // draw shape
@@ -182,9 +183,15 @@ bool SlotView::is_hovered() const
     return m_view_state.hovered;
 }
 
-void SlotView::set_align(const tools::Vec2 align)
+void SlotView::set_direction(const tools::Vec2 new_direction)
 {
-    m_alignment = align;
+    m_direction = new_direction;
+}
+
+void SlotView::set_alignment(const tools::Vec2 new_alignment)
+{
+    m_alignment = new_alignment;
+    update_direction_from_alignment();
 }
 
 void SlotView::set_shape(ShapeType shape)
@@ -199,6 +206,9 @@ void SlotView::set_align_ref(const tools::BoxShape2D* align_ref)
 
 void SlotView::update(float dt)
 {
+    // 1) Update visibility
+    //---------------------
+
     if ( m_slot->capacity() == 0)
     {
         m_view_state.visible = false;
@@ -214,8 +224,8 @@ void SlotView::update(float dt)
         m_view_state.visible = true;
     }
 
-    if ( !m_view_state.visible )
-        return;
+    // 2) Update position
+    //-------------------
 
     const Config* cfg = get_config();
     if ( m_slot->type() == SlotFlag_TYPE_CODEFLOW )
@@ -239,12 +249,20 @@ void SlotView::update(float dt)
         box()->xform.set_pos( pos, WORLD_SPACE ); // relative to NodeView's
         box()->set_size( size );
     }
-    else
+    else if ( m_alignment_ref != nullptr )
     {
-        // Align view
         const Vec2 size = cfg->ui_slot_circle_radius();
         const Vec2 pos  = m_alignment_ref->pivot( m_alignment, WORLD_SPACE);
         box()->xform.set_pos( pos, WORLD_SPACE );
         box()->set_size( size );
     }
+    else
+    {
+        // positioned manually
+    }
+}
+
+void SlotView::update_direction_from_alignment()
+{
+    m_direction = Vec2::normalize( m_alignment );
 }

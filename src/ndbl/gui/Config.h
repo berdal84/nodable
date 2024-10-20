@@ -17,6 +17,7 @@
 #include "types.h"
 #include "ViewDetail.h"
 #include "Isolation.h"
+#include "ndbl/core/SlotFlag.h"
 
 namespace ndbl
 {
@@ -49,7 +50,9 @@ namespace ndbl
         float          ui_slot_circle_radius_base;
         float          ui_slot_circle_radius(tools::Size = tools::Size_DEFAULT) const;
         Vec4           ui_slot_border_color;
-        Vec4           ui_slot_color;
+        Vec4           ui_slot_color_light;
+        Vec4           ui_slot_color_dark;
+        Vec4&          ui_slot_color(SlotFlags slot_flags);
         Vec4           ui_slot_hovered_color;
         Vec2           ui_slot_rectangle_size;
         float          ui_slot_gap;
