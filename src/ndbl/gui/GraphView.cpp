@@ -46,26 +46,25 @@ GraphView::GraphView(Graph* graph)
 , m_state_machine(this)
 {
     ASSERT(graph != nullptr)
-
     m_state_machine.add_state(CURSOR_STATE);
-    m_state_machine.bind_tick(CURSOR_STATE, &GraphView::cursor_state_tick);
+    m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
     m_state_machine.set_default_state(CURSOR_STATE);
 
     m_state_machine.add_state(ROI_STATE);
-    m_state_machine.bind_enter(ROI_STATE, &GraphView::roi_state_enter);
-    m_state_machine.bind_tick(ROI_STATE, &GraphView::roi_state_tick);
+    m_state_machine.bind<&GraphView::roi_state_enter>(ROI_STATE, When::OnEnter);
+    m_state_machine.bind<&GraphView::roi_state_tick>(ROI_STATE, When::OnTick);
 
     m_state_machine.add_state(DRAG_STATE);
-    m_state_machine.bind_enter(DRAG_STATE, &GraphView::drag_state_enter);
-    m_state_machine.bind_tick(DRAG_STATE, &GraphView::drag_state_tick);
+    m_state_machine.bind<&GraphView::drag_state_enter>(DRAG_STATE, When::OnEnter);
+    m_state_machine.bind<&GraphView::drag_state_tick>(DRAG_STATE, When::OnTick);
 
     m_state_machine.add_state(VIEW_PAN_STATE);
-    m_state_machine.bind_tick(VIEW_PAN_STATE, &GraphView::view_pan_state_tick);
+    m_state_machine.bind<&GraphView::view_pan_state_tick>(VIEW_PAN_STATE, When::OnTick);
 
     m_state_machine.add_state(LINE_STATE);
-    m_state_machine.bind_enter(LINE_STATE, &GraphView::line_state_enter);
-    m_state_machine.bind_tick(LINE_STATE, &GraphView::line_state_tick);
-    m_state_machine.bind_leave(LINE_STATE, &GraphView::line_state_leave);
+    m_state_machine.bind<&GraphView::line_state_enter>(LINE_STATE, When::OnEnter);
+    m_state_machine.bind<&GraphView::line_state_tick>(LINE_STATE, When::OnTick);
+    m_state_machine.bind<&GraphView::line_state_leave>(LINE_STATE, When::OnLeave);
 
 
     m_state_machine.start();
