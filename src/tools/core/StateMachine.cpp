@@ -31,16 +31,16 @@ void StateMachine::tick()
 #endif
 
     ASSERT(m_current_state != nullptr)
-    m_current_state->tick(m_context_ptr);
+    m_current_state->delegate[OnTick].call();
 
     // Early return if no transition is found
     if ( m_next_state == nullptr )
         return;
 
     // Switch to next_state
-    m_current_state->leave(m_context_ptr);
+    m_current_state->delegate[OnLeave].call();
     m_current_state = m_next_state;
-    m_current_state->enter(m_context_ptr);
+    m_current_state->delegate[OnEnter].call();
     m_next_state = nullptr;
 }
 
@@ -59,7 +59,8 @@ void StateMachine::stop()
 
 State* StateMachine::add_state(const char* _name)
 {
-    auto* state = new State(_name);
+    auto* state = new State();
+    state->name = _name;
     add_state(state);
     return state;
 }
