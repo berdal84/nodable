@@ -37,11 +37,9 @@ static FunctionDescriptor* create_variable_node_signature()
 
 void NodableView::update()
 {
+    float dt = m_base_view.delta_time();
     if( File* current_file = m_app->get_current_file() )
-    {
-        auto dt = ImGui::GetIO().DeltaTime;
         current_file->view.update( dt );
-    }
 }
 
 void NodableView::init(Nodable * _app)

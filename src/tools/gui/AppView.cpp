@@ -428,6 +428,14 @@ void AppView::begin_draw()
     }
 }
 
+float compute_fps(u32_t start, u32_t end, float default_val)
+{
+    u32_t dt = end - start;
+    if ( dt == 0 )
+        return default_val;
+    return 1000.f / dt;
+}
+
 void AppView::end_draw()
 {
     Config* cfg = get_config();
@@ -460,25 +468,29 @@ void AppView::end_draw()
 
     SDL_GL_SwapWindow(m_sdl_window);
 
+    // slow down fps?
+    u32_t delta = SDL_GetTicks() - m_last_frame_ticks;
+    if ( cfg->fps_limit_on && delta < cfg->dt_cap )
+    {
+        u32_t delay = cfg->dt_cap - delta;
+        if(delay > 6) // Skip 6ms delays, SDL_Delay has no guarantee to be precise
+            SDL_Delay( delay );
+    }
+
     // compute fps
-    const u32_t fps = compute_fps(m_last_frame_ticks, cfg->fps_limit);
-    m_last_frame_ticks = SDL_GetTicks64();
+    auto instant_fps   = compute_fps(m_last_frame_ticks, SDL_GetTicks(), cfg->fps_limit);
+    m_last_frame_fps   = lerp( m_last_frame_fps, (float)instant_fps, 1.f / 20.f); // smooth the last n frames
+    u32_t last_frame_ticks = m_last_frame_ticks;
+    m_last_frame_dt    = last_frame_ticks - m_last_frame_ticks;
+    m_last_frame_ticks = SDL_GetTicks();
 
     // Format nice title
     char title[256];
-    snprintf( title, 256, "%s | %4u fps ", m_title.c_str(), fps );
+    snprintf(title, 256, "%s | %4.0ffps %s", m_title.c_str(), m_last_frame_fps, cfg->fps_limit_on ? "" : "unlimited!");
     title[255] = '\0';
 
     // Update window title
     SDL_SetWindowTitle(m_sdl_window, title);
-}
-
-u32_t AppView::compute_fps(const u64_t last_frame, const u32_t default_val) const
-{
-    u64_t dt = SDL_GetTicks64() - last_frame;
-    if ( dt == 0 )
-        return default_val;
-    return 1000 / dt;
 }
 
 bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const

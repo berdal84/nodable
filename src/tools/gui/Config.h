@@ -20,7 +20,8 @@ namespace tools
         bool                  vsync                    = false;
         bool                  runtime_debug            = false;
         bool                  fps_limit_on             = true;
-        u32_t                 fps_limit                = 60;
+        float                 fps_limit                = 60;
+        u32_t                 dt_cap                   = 1000 / 60; // in ms
         Color                 background_color         {0,0,0};
         Vec4                  button_activeColor       { 0.98f, 0.73f, 0.29f, 0.95f}; // orange
         Vec4                  button_hoveredColor      { 0.70f, 0.70f, 0.70f, 0.95f}; // light grey

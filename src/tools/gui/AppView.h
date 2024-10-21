@@ -76,10 +76,8 @@ namespace tools
         void        dock_window(const char* window_name, Dockspace)const; // Must be called within on_reset_layout
         void        reset_layout();
         std::vector<unsigned char> take_screenshot() const;
-
+        float       delta_time() const { return 1.f / m_last_frame_fps; }
     private:
-        u32_t compute_fps(const u64_t last_frame, const u32_t default_val) const;
-
         std::string         m_title;
         TextureManager*     m_texture_manager  = nullptr;
         FontManager*        m_font_manager     = nullptr;
@@ -87,8 +85,9 @@ namespace tools
         ActionManager*      m_action_manager   = nullptr;
         SDL_GLContext       m_sdl_gl_context   = nullptr;
         SDL_Window*         m_sdl_window       = nullptr;
-        float               m_smooth_fps       = 60.f;
-        u64_t               m_last_frame_ticks = 0;
+        u32_t               m_last_frame_ticks = 0;
+        u32_t               m_last_frame_dt    = 1000 / 30;
+        float               m_last_frame_fps   = 30.f;
         App*                m_app              = nullptr;
         bool                m_is_layout_initialized = false;
         std::array<ImGuiID, Dockspace_COUNT>
