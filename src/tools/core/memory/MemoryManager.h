@@ -20,6 +20,7 @@
 #define catch_TOOLS_MAIN TOOLS_DEBUG_DISABLED_MESSAGE
 #else // TOOLS_DEBUG
 
+#include <cpptrace/cpptrace.hpp>
 #define try_TOOLS \
     try
 

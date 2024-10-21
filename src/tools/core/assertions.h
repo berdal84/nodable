@@ -6,6 +6,8 @@
 
 #if TOOLS_ASSERTIONS_ENABLE
 
+#define TOOLS_NOEXCEPT NOEXCEPT
+
 // TOOLS_ASSERTIONS_ENABLE ON
 //----------------------------
 
@@ -15,17 +17,17 @@
 // Exception OFF
 //--------------
 
-#if NOEXCEPT
+#if TOOLS_NOEXCEPT
 
 #ifdef ASSERT_
 static_assert(false, "ASSERT_ is reserved for tools, it should not be defined here.");
 #endif
 
-#define ASSERT_(expression) LOG_FLUSH(); assert((expression))
+#define ASSERT_(expression)         LOG_FLUSH(); assert((expression))
 #define ASSERT(expression)          ASSERT_( expression );
-#define VERIFY(expression, message) ASSERT_( expression ) && message;
+#define VERIFY(expression, message) ASSERT_( (expression) && message );
 
-#else // NOEXCEPT
+#else // TOOLS_NOEXCEPT
 
 // Exception ON
 //-------------
@@ -42,7 +44,7 @@ if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
 #define ASSERT(expression) VERIFY_( (expression), "Assertion failed: " #expression" is false" )
 #define VERIFY(expression, message) VERIFY_( (expression), message )
 
-#endif // !NOEXCEPT
+#endif // !TOOLS_NOEXCEPT
 
 #else // TOOLS_ASSERTIONS_ENABLE
 

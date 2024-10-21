@@ -1,5 +1,6 @@
 #include "pointers.h"
 #include "tools/core/assertions.h"
+#include <vector> // might be included by assertions in some cases
 
 namespace tools {
 
