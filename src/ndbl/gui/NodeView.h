@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <cmath> // round()
 #include <algorithm>
-#include <observe/observer.h>
 
 #include "PropertyView.h"
 #include "SlotView.h"
@@ -102,7 +101,7 @@ namespace ndbl
         void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
-        void                    update_labels_from_name(const Node *_node);
+        void                    update_labels_from_name(const char*);
 
         static void DrawNodeRect(
                 tools::Rect rect,

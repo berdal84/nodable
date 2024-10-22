@@ -1,6 +1,5 @@
 #pragma once
 
-#include <observe/event.h>
 #include <string>
 #include <memory>
 #include <algorithm>
@@ -62,6 +61,8 @@ namespace ndbl
         Node() = default;
         virtual ~Node();
 
+        SIGNAL(on_name_change, const char *);
+
         void                 init(NodeType type, const std::string& name);
         NodeType             type() const { return m_type; }
         bool                 is_invokable() const;
@@ -75,7 +76,6 @@ namespace ndbl
         const Token&         suffix() const { return m_suffix; };
         void                 set_suffix(const Token& token);
         const PropertyBag&   props() const;
-        observe::Event<Node*>& on_name_change() { return m_on_name_change; };
         const Property*      value() const { return m_value; }
         Property*            value() { return m_value; }
         Slot*                value_in();
@@ -172,8 +172,6 @@ namespace ndbl
         };
 
         AdjacentNodesCache m_adjacent_nodes_cache = {this};
-
-        observe::Event<Node*> m_on_name_change;
     private:
         TComponentBag<NodeComponent*> m_components;
 

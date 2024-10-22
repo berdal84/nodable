@@ -58,6 +58,8 @@ namespace ndbl
         Graph*            get_graph() const;
         void              add_child(NodeView*);
         tools::ViewState* view_state() { return &m_view_state; };
+        void              _on_add_node(Node* node);
+        void              _on_graph_changed();
     private:
         CreateNodeCtxMenu      m_create_node_menu = {};
         ViewItem               m_hovered{};

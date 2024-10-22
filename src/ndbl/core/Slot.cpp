@@ -158,8 +158,8 @@ void Slot::connect_bidirectionally(Slot* tail, Slot* head)
     tail->_add_adjacent(head);
     head->_add_adjacent(tail);
 
-    tail->on_change.call(Event_Add, head);
-    head->on_change.call(Event_Add, tail);
+    tail->on_change_signal.call(Event_Add, head);
+    head->on_change_signal.call(Event_Add, tail);
 }
 
 void Slot::disconnect_bidirectionally(Slot *tail, Slot *head)
@@ -171,6 +171,6 @@ void Slot::disconnect_bidirectionally(Slot *tail, Slot *head)
     tail->_remove_adjacent(head);
     head->_remove_adjacent(tail);
 
-    tail->on_change.call(Event_Remove, head);
-    head->on_change.call(Event_Remove, tail);
+    tail->on_change_signal.call(Event_Remove, head);
+    head->on_change_signal.call(Event_Remove, tail);
 }

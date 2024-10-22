@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
-#include <observe/event.h>
 #include <string>
 
 #include "tools/core/reflection/reflection"
@@ -37,21 +36,20 @@ namespace ndbl
         File();
         ~File();
 
-        tools::Path  path;         // file path on disk
-        bool                   dirty;        // true if changed since last read/write from/to disk.
+        tools::Path            path; // file path on disk
+        bool                   dirty; // true if changed since last read/write from/to disk.
         FileView               view;
-        History                history;      // history of changes
-        observe::Event<Graph*> graph_changed;
+        History                history; // history of changes
 
     private:
-        Graph*                 graph;        // graphical representation
-        std::string            parsed_text;  // last parsed text buffer
+        Graph*                 _graph; // graphical representation
+        std::string            parsed_text; // last parsed text buffer
     public:
-        Graph&                 get_graph() { return *graph; };
+        Graph&                 graph() { return *_graph; };
         std::string            filename() const;
-        UpdateResult           update( Isolation ); // to call each frame
-        UpdateResult           update_graph_from_text( Isolation = Isolation_OFF );
-        UpdateResult           update_text_from_graph( Isolation = Isolation_OFF );
+        void                   update( Isolation ); // to call each frame
+        void                   update_graph_from_text( Isolation = Isolation_OFF );
+        void                   update_text_from_graph( Isolation = Isolation_OFF );
         std::string            get_text( Isolation = Isolation_OFF ) const;
         void                   set_text(const std::string& text, Isolation = Isolation_OFF );
         size_t                 size() const;

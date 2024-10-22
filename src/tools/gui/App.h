@@ -4,7 +4,6 @@
 #include <memory>
 #include <string>
 #include "tools/core/FileSystem.h"
-#include <observe/event.h>
 #include "tools/core/types.h"
 #include "AppView.h"
 

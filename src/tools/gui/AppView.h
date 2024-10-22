@@ -4,13 +4,11 @@
 #include <array>
 #include "tools/core/FileSystem.h"
 #include <map>
-#include <observe/event.h>
 #include <string>
-
 #include "tools/core/types.h"
 #include "ImGuiEx.h"
-#include "observe/event.h"
 #include "Config.h"
+#include "tools/core/Signals.h"
 
 namespace tools
 {
@@ -57,9 +55,10 @@ namespace tools
             Dockspace_COUNT,
         };
 
+        SIGNAL(on_reset_layout); // add custom code during layout reset
+        SIGNAL(on_draw_splashscreen_content); // to insert custom code into the splashscreen window
+
         bool        show_splashscreen = true; // flag to show/hide splashscreen
-        observe::Event<AppView*> on_layout_reset;
-        observe::Event<AppView*> on_draw_splashscreen; // to inject some code within the splashscreen
         void        init(App*);
         void        update();
         void        begin_draw();

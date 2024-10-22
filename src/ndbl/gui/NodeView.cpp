@@ -230,11 +230,8 @@ void NodeView::set_owner(Node* node)
     // 3. Update label
     //----------------
 
-    update_labels_from_name(node );
-    node->on_name_change().connect([=](Node* _node)
-    {
-        this->update_labels_from_name(_node);
-    });
+    update_labels_from_name(node->name().c_str());
+    CONNECT(node->on_name_change_signal, NodeView::update_labels_from_name);
 
     // 4. Update fill color
     //---------------------
@@ -243,14 +240,14 @@ void NodeView::set_owner(Node* node)
     set_color( &cfg->ui_node_fill_color[node->type()] );
 }
 
-void NodeView::update_labels_from_name(const Node* _node)
+void NodeView::update_labels_from_name(const char* _name)
 {
     // Label
     // For a variable, label must be the type
-    if ( _node->type() == NodeType_VARIABLE )
-        m_label = reinterpret_cast<const VariableNode *>(_node)->get_type()->get_name();
+    if ( get_node()->type() == NodeType_VARIABLE )
+        m_label = reinterpret_cast<const VariableNode *>(get_node())->get_type()->get_name();
     else
-        m_label = _node->name();
+        m_label = _name;
 
     // Short label
     constexpr size_t label_max_length = 10;

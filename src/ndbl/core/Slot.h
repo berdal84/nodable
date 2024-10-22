@@ -1,9 +1,8 @@
 #pragma once
 #include "SlotFlag.h"
+#include "tools/core/Signals.h"
 #include "tools/core/memory/memory.h"
 #include "tools/core/types.h"
-//#include "observe/event.h"
-#include "tools/core/Delegate.h"
 #include <vector>
 
 namespace ndbl
@@ -62,8 +61,9 @@ namespace ndbl
         void      _add_adjacent(Slot*);
         void      _remove_adjacent(Slot*);
 
-        tools::Delegate<void, Event, Slot*> on_change; // assign your own delegate once here, it will be called when this Slot changes
-        //observe::Event<Event, Slot*> on_change;
+        // assign your own delegate once here, it will be called when this Slot changes
+        SIGNAL(on_change, Event, Slot*);
+
         size_t    _position = 0; // In case multiple Slot exists for the same type and order, we distinguish them with their position.
         Node*     _node     = nullptr; // parent node
         Property* _property = nullptr; // parent node's property

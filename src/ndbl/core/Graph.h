@@ -55,7 +55,8 @@ namespace ndbl
  		Graph(NodeFactory* factory);
 		~Graph();
 
-        observe::Event<Node*> on_add;
+        SIGNAL(changed);
+        SIGNAL(add_node, Node*);
 
         void                     set_view(GraphView* view = nullptr);
         UpdateResult             update();
@@ -75,8 +76,8 @@ namespace ndbl
         LiteralNode*             create_literal(const tools::TypeDescriptor *_type);
         template<typename T>
         LiteralNode*             create_literal() { return create_literal( tools::type::get<T>()); }
-        FunctionNode*           create_function(const tools::FunctionDescriptor*);
-        FunctionNode*           create_operator(const tools::FunctionDescriptor*);
+        FunctionNode*            create_function(const tools::FunctionDescriptor*);
+        FunctionNode*            create_operator(const tools::FunctionDescriptor*);
         Node*                    create_scope();
         IfNode*                  create_cond_struct();
         ForLoopNode*             create_for_loop();

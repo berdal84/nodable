@@ -90,7 +90,7 @@ void Graph::add(Node* _node)
 
 	m_node_registry.push_back(_node);
     _node->m_graph = this;
-    on_add.emit(_node);
+    add_node_signal.call(_node);
     set_dirty(); // To express this graph changed
     LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name().c_str(), _node->get_class()->get_name())
 }

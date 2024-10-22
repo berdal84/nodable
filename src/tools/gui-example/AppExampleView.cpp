@@ -15,22 +15,28 @@ void AppExampleView::init(AppExample *_app)
     // Initialize our base view
     m_base_view.init(_app->base_app_handle() );
     m_base_view.set_title("AppExample default title - (you can change this title from " __FILE__ ")");
-    // Inject some code to draw a custom content for the splashscreen
-    m_base_view.on_draw_splashscreen.connect([&](AppView* view) {
-        ImGui::TextWrapped( "Welcome to the Tools GUI Example App.\nThis demonstrates how to use the Tools GUI library." );
-        ImGui::Separator();
-        ImGui::TextWrapped( "\nFor your information, this is the splashscreen window of the app.\n"
-                            "You can inject your custom code by editing in " __FILE__ "\n"
-                            "You can close it to see the default layout of the application." );
-    });
-    // Inject some code to reset the layout
-    m_base_view.on_layout_reset.connect([&](AppView* view) {
-        // Bind each window to a dockspace
-        view->dock_window( CENTER_WINDOW, AppView::Dockspace_CENTER );
-        view->dock_window( RIGHT_WINDOW,  AppView::Dockspace_RIGHT );
-        view->dock_window( TOP_WINDOW,    AppView::Dockspace_TOP );
-    });
+
+    // Change behavior by connecting signals with our custom methods
+    CONNECT(m_base_view.on_draw_splashscreen_content_signal, AppExampleView::_draw_splashscreen_content);
+    CONNECT(m_base_view.on_reset_layout_signal,              AppExampleView::_reset_layout);
 }
+
+void AppExampleView::_draw_splashscreen_content()
+{
+    ImGui::TextWrapped( "Welcome to the Tools GUI Example App.\nThis demonstrates how to use the Tools GUI library." );
+    ImGui::Separator();
+    ImGui::TextWrapped( "\nFor your information, this is the splashscreen window of the app.\n"
+    "You can inject your custom code by editing in " __FILE__ "\n"
+    "You can close it to see the default layout of the application." );
+}
+
+void AppExampleView::_reset_layout()
+{
+    // Bind each window to a dockspace
+    m_base_view.dock_window( CENTER_WINDOW, AppView::Dockspace_CENTER );
+    m_base_view.dock_window( RIGHT_WINDOW,  AppView::Dockspace_RIGHT );
+    m_base_view.dock_window( TOP_WINDOW,    AppView::Dockspace_TOP );
+};
 
 void AppExampleView::shutdown()
 {

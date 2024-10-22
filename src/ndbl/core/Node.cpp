@@ -51,7 +51,7 @@ const FunctionDescriptor* Node::get_connected_function_type(const char* property
 void Node::set_name(const char *_label)
 {
     m_name = _label;
-    m_on_name_change.emit(this);
+    on_name_change_signal.call(_label);
 }
 
 std::vector<NodeComponent*> Node::get_components()
@@ -142,7 +142,7 @@ Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, Propert
 
 void Node::on_slot_change(Slot::Event event, Slot* slot)
 {
-    LOG_MESSAGE("Node", "Slot event: %i, %p\n", event, slot);
+    // LOG_MESSAGE("Node", "Slot event: %i, %p\n", event, slot);
     this->m_adjacent_nodes_cache.set_dirty();
 }
 
@@ -154,7 +154,7 @@ Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, si
     m_slots.push_back(slot);
 
     // listen to events to clear cache
-    slot->on_change = Delegate<void, Slot::Event, Slot*>::from_method<&Node::on_slot_change>(this);
+    CONNECT(slot->on_change_signal, Node::on_slot_change);
 
     // Update property to slots index
     const size_t key = (size_t)_property;

@@ -39,10 +39,6 @@ void FileView::init(File& _file)
     m_text_overlay_window_name  = overlay_basename + "_text_overlay";
     m_graph_overlay_window_name = overlay_basename + "_graph_overlay";
 
-    m_graph_changed_observer.observe(m_file->graph_changed, [](Graph* _graph) {
-        _graph->get_view()->reset();
-    });
-
     static auto lang = TextEditor::LanguageDefinition::CPlusPlus();
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
@@ -85,7 +81,7 @@ bool FileView::draw()
         auto old_line_text = m_text_editor.GetCurrentLineText();
 
         bool is_running = get_interpreter()->is_program_running();
-        GraphView* graphview = m_file->get_graph().get_view();
+        GraphView* graphview = m_file->graph().get_view();
         auto allow_keyboard = !is_running &&
                               !graphview->has_an_active_tool();
 
@@ -145,7 +141,7 @@ bool FileView::draw()
      // NodeViewItem EDITOR
     //-------------
 
-    Graph&     graph      = m_file->get_graph();
+    Graph&     graph      = m_file->graph();
     GraphView* graph_view = graph.get_view();
 
     ASSERT(graph_view);
@@ -257,8 +253,8 @@ void FileView::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file->get_graph().get_node_registry().size());
-    ImGui::Text("Edge count: %zu", m_file->get_graph().get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file->graph().get_node_registry().size());
+    ImGui::Text("Edge count: %zu", m_file->graph().get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
@@ -349,7 +345,7 @@ void FileView::refresh_overlay(Condition _condition )
 
 void FileView::update(float dt)
 {
-    GraphView* graph_view = m_file->get_graph().get_view();
+    GraphView* graph_view = m_file->graph().get_view();
     ASSERT(graph_view != nullptr);
     graph_view->update(dt);
 }

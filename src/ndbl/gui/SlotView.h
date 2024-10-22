@@ -1,7 +1,5 @@
 #pragma once
 
-#include <observe/event.h>
-
 #include "tools/core/reflection/Type.h"
 #include "tools/gui/ImGuiEx.h"
 

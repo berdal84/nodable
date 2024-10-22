@@ -1,6 +1,5 @@
 #pragma once
 
-#include <observe/observer.h>
 
 #include "tools/core/reflection/reflection"
 #include "tools/gui/ViewState.h"
@@ -14,6 +13,7 @@ namespace ndbl
     // forward declarations
     class File;
     class IAppCtx;
+    class Graph;
 
     enum OverlayPos {
         OverlayPos_Top,
@@ -78,7 +78,6 @@ namespace ndbl
         std::string  m_experimental_clipboard_curr;
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste;
-        observe::Observer   m_graph_changed_observer;
 
         REFLECT_BASE_CLASS()
     };

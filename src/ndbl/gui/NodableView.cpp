@@ -50,48 +50,9 @@ void NodableView::init(Nodable * _app)
     tools::App* base_app = _app->get_base_app_handle();
     ASSERT(base_app != nullptr);
     m_base_view.init(base_app);
-    m_base_view.on_draw_splashscreen.connect([&](AppView* view){
 
-        ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
-
-        // Image
-        ImGui::SameLine((ImGui::GetContentRegionAvail().x - (float)m_logo->width) * 0.5f); // center img
-        ImGuiEx::Image(m_logo);
-
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
-
-        // disclaimer
-        ImGui::TextWrapped("DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
-
-        ImGui::NewLine();
-        ImGui::NewLine();
-
-        // credits
-        const char *credit = "by Berdal84";
-        ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
-        ImGui::TextWrapped("%s", credit);
-
-        // build version
-        ImGui::TextWrapped("%s", BuildInfo::version);
-
-        // close on left/rightmouse btn click
-        if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
-        {
-            view->show_splashscreen = false;
-        }
-        ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
-    });
-    m_base_view.on_layout_reset.connect([](AppView* view){
-        auto* cfg = get_config();
-        // Dock windows to specific dockspace
-        view->dock_window( cfg->ui_help_window_label             , AppView::Dockspace_RIGHT);
-        view->dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT);
-        view->dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
-        view->dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
-        view->dock_window(cfg->ui_interpreter_window_label  , AppView::Dockspace_RIGHT);
-        view->dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
-        view->dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP);
-    });
+    CONNECT(m_base_view.on_reset_layout_signal, NodableView::_on_reset_layout);
+    CONNECT(m_base_view.on_draw_splashscreen_content_signal, NodableView::_on_draw_splashscreen_content);
 
     // Load splashscreen image
     Config* cfg = get_config();
@@ -149,6 +110,51 @@ void NodableView::init(Nodable * _app)
     LOG_VERBOSE("ndbl::NodableView", "init_ex " OK "\n");
 }
 
+void NodableView::_on_draw_splashscreen_content()
+{
+    ImGui::SetMouseCursor(ImGuiMouseCursor_Hand);
+
+    // Image
+    ImGui::SameLine((ImGui::GetContentRegionAvail().x - (float)m_logo->width) * 0.5f); // center img
+    ImGuiEx::Image(m_logo);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, {50.0f, 30.0f});
+
+    // disclaimer
+    ImGui::TextWrapped("DISCLAIMER: This software is a prototype, do not expect too much from it. Use at your own risk.");
+
+    ImGui::NewLine();
+    ImGui::NewLine();
+
+    // credits
+    const char *credit = "by Berdal84";
+    ImGui::SameLine(ImGui::GetContentRegionAvail().x - ImGui::CalcTextSize(credit).x);
+    ImGui::TextWrapped("%s", credit);
+
+    // build version
+    ImGui::TextWrapped("%s", BuildInfo::version);
+
+    // close on left/rightmouse btn click
+    if (ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1))
+    {
+        m_base_view.show_splashscreen = false;
+    }
+    ImGui::PopStyleVar(); // ImGuiStyleVar_FramePadding
+}
+
+void NodableView::_on_reset_layout()
+{
+    auto* cfg = get_config();
+    // Dock windows to specific dockspace
+    m_base_view.dock_window( cfg->ui_help_window_label             , AppView::Dockspace_RIGHT);
+    m_base_view.dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT);
+    m_base_view.dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
+    m_base_view.dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
+    m_base_view.dock_window(cfg->ui_interpreter_window_label  , AppView::Dockspace_RIGHT);
+    m_base_view.dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
+    m_base_view.dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP);
+};
+
 void NodableView::shutdown()
 {
     // We could do this there, but the base view is responsible for shutdow the texture manager we used, so all textures will be released.
@@ -175,7 +181,7 @@ void NodableView::draw()
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
-        auto has_selection = current_file != nullptr ? !current_file->get_graph().get_view()->selection_empty()
+        auto has_selection = current_file != nullptr ? !current_file->graph().get_view()->selection_empty()
                                                      : false;
 
         if (ImGui::BeginMenu("File"))
@@ -228,7 +234,7 @@ void NodableView::draw()
                 {
                     cfg->ui_node_detail = _detail;
                     if (current_file != nullptr)
-                        current_file->get_graph().get_view()->reset_all_properties();
+                        current_file->graph().get_view()->reset_all_properties();
                 }
             };
 
@@ -514,7 +520,7 @@ void NodableView::draw_node_properties_window()
     {
         if( File* current_file = m_app->get_current_file() )
         {
-            GraphView*             graph_view         = current_file->get_graph().get_view(); // Graph can't be null
+            GraphView*             graph_view         = current_file->graph().get_view(); // Graph can't be null
             ASSERT(graph_view != nullptr);
             std::vector<NodeView*> selected_nodeviews = graph_view->get_selected();
 

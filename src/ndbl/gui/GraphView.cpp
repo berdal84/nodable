@@ -66,24 +66,27 @@ GraphView::GraphView(Graph* graph)
     m_state_machine.bind<&GraphView::line_state_tick>(LINE_STATE, When::OnTick);
     m_state_machine.bind<&GraphView::line_state_leave>(LINE_STATE, When::OnLeave);
 
-
     m_state_machine.start();
 
-    // When a new node is added
-    graph->on_add.connect(
-        [this](Node* node) -> void
-        {
-            // Add a NodeView and Physics component
-            ComponentFactory* component_factory = get_component_factory();
-            auto nodeview = component_factory->create<NodeView>();
-            add_child(nodeview);
-            auto physics  = component_factory->create<Physics>( nodeview );
-            node->add_component( nodeview );
-            node->add_component( physics );
-        }
-    );
+    CONNECT(graph->add_node_signal, GraphView::_on_add_node );
+    CONNECT(graph->changed_signal, GraphView::_on_graph_changed);
 }
 
+void GraphView::_on_add_node(Node* node)
+{
+    // Add a NodeView and Physics component
+    ComponentFactory* component_factory = get_component_factory();
+    auto nodeview = component_factory->create<NodeView>();
+    add_child(nodeview);
+    auto physics  = component_factory->create<Physics>( nodeview );
+    node->add_component( nodeview );
+    node->add_component( physics );
+}
+
+void GraphView::_on_graph_changed()
+{
+    m_graph->get_view()->reset();
+}
 
 ImGuiID make_wire_id(const Slot *ptr1, const Slot *ptr2)
 {

@@ -36,22 +36,22 @@ File::File()
     LOG_VERBOSE( "File", "History built, creating graph ...\n")
 
     // Graph
-    graph = new Graph(get_node_factory());
-    auto* graph_view = new GraphView(graph);
-    graph->set_view(graph_view);
+    _graph = new Graph(get_node_factory());
+    auto* graph_view = new GraphView(_graph);
+    _graph->set_view(graph_view);
 
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
-            graph->get_view()->add_action_to_node_menu(create_node_action);
+            _graph->get_view()->add_action_to_node_menu(create_node_action);
 
     LOG_VERBOSE( "File", "Constructor being called.\n")
 }
 
 File::~File()
 {
-    delete graph->get_view();
-    delete graph;
+    delete _graph->get_view();
+    delete _graph;
 }
 
 std::string File::get_text( Isolation mode) const
@@ -64,24 +64,22 @@ void File::set_text(const std::string& text, Isolation mode)
     view.set_text( text, mode );
 }
 
-UpdateResult File::update_text_from_graph( Isolation mode )
+void File::update_text_from_graph( Isolation mode )
 {
-    const Node* root_node = graph->get_root();
+    const Node* root_node = _graph->get_root();
 
     if ( root_node == nullptr )
     {
-        return UpdateResult::SUCCES_WITHOUT_CHANGES;
+        return;
     }
 
     std::string code;
     get_language()->_serialize_node( code, root_node, SerializeFlag_RECURSE );
 
     view.set_text( code, mode );
-
-    return UpdateResult::SUCCESS_WITH_CHANGES;
 }
 
-UpdateResult File::update( Isolation flags )
+void File::update( Isolation flags )
 {
     // 1) Handle when view changes (graph or text)
     //--------------------------------------------
@@ -92,55 +90,51 @@ UpdateResult File::update( Isolation flags )
         {
             update_graph_from_text( flags );
         }
-        else if ( view.is_graph_dirty() )
-        {
-            update_text_from_graph( flags );
-        }
         else
         {
             // TODO: The case where both focused_text and graph changed is not handled yet
             //       This is not supposed to happens, that's why there is an assert to be aware of is
-            ASSERT(false);
+            ASSERT( view.is_graph_dirty() );
+            update_text_from_graph( flags );
         }
+
         view.set_dirty( false );
     }
 
     // 2) Handle when graph (not the graph view) changes
     //--------------------------------------------------
 
-    if ( graph->is_dirty() )
+    if ( _graph->is_dirty() )
     {
         // Refresh text
         update_text_from_graph( flags );
 
         // Refresh constraints
-        auto physics_components = Utils::get_components<Physics>(graph->get_node_registry() );
+        auto physics_components = Utils::get_components<Physics>(_graph->get_node_registry() );
         Physics::destroy_constraints( physics_components );
-        Physics::create_constraints(graph->get_node_registry() );
+        Physics::create_constraints(_graph->get_node_registry() );
 
-        graph->set_dirty(false);
+        _graph->set_dirty(false);
     }
 
-    return graph->update(); // ~ garbage collection
+    _graph->update(); // ~ garbage collection
 }
 
-UpdateResult File::update_graph_from_text( Isolation isolation_mode)
+void File::update_graph_from_text( Isolation isolation_mode)
 {
     // Destroy all physics constraints
-    auto physics_components = Utils::get_components<Physics>(graph->get_node_registry() );
+    auto physics_components = Utils::get_components<Physics>(_graph->get_node_registry() );
     Physics::destroy_constraints( physics_components );
 
     // Parse source code
     // note: File owns the parsed text buffer
     parsed_text = get_text(isolation_mode);
-    bool parse_ok = get_language()->parse(parsed_text, graph );
-    if (parse_ok && !graph->is_empty() )
+    bool parse_ok = get_language()->parse(parsed_text, _graph );
+    if (parse_ok && !_graph->is_empty() )
     {
-        Physics::create_constraints(graph->get_node_registry() );
-        graph_changed.emit(graph );
-        return UpdateResult::SUCCESS_WITH_CHANGES;
+        Physics::create_constraints(_graph->get_node_registry() );
+        _graph->changed_signal.call();
     }
-    return UpdateResult::SUCCES_WITHOUT_CHANGES;
 }
 
 size_t File::size() const

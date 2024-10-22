@@ -71,7 +71,7 @@ void Nodable::update()
     // Nodable events
     IEvent*       event = nullptr;
     EventManager* event_manager     = get_event_manager();
-    GraphView*    graph_view        = m_current_file ? m_current_file->get_graph().get_view() : nullptr; // TODO: should be included in the event
+    GraphView*    graph_view        = m_current_file ? m_current_file->graph().get_view() : nullptr; // TODO: should be included in the event
     History*      curr_file_history = m_current_file ? &m_current_file->history : nullptr; // TODO: should be included in the event
     while( (event = event_manager->poll_event()) )
     {
@@ -518,7 +518,7 @@ bool Nodable::compile_and_load_program() const
     }
 
     Compiler compiler{};
-    auto asm_code = compiler.compile_syntax_tree(&m_current_file->get_graph());
+    auto asm_code = compiler.compile_syntax_tree(&m_current_file->graph());
     if (!asm_code)
     {
         return false;
@@ -548,7 +548,7 @@ void Nodable::debug_program()
 void Nodable::step_over_program()
 {
     m_interpreter->debug_step_over();
-    GraphView* graph_view = m_current_file->get_graph().get_view();
+    GraphView* graph_view = m_current_file->graph().get_view();
 
     if (!m_interpreter->is_there_a_next_instr() )
     {
