@@ -12,6 +12,7 @@
 #include "ndbl/core/VariableNode.h"
 #include "ndbl/core/Token.h"
 #include "ndbl/core/TokenRibbon.h"
+#include "tools/core/Optional.h"
 
 namespace ndbl{
 
@@ -53,21 +54,21 @@ namespace ndbl{
         bool                          parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                         parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                         parse_token(const std::string& _string) const;
-        Node*                         parse_scope( Slot& _parent_scope_slot );
-        Node*                         parse_instr();
-        Slot*                         parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
+        tools::Optional<Node*>          parse_scope(tools::Optional<Slot*> _parent_scope_slot );
+        tools::Optional<Node*>          parse_instr();
+        tools::Optional<Slot*>          parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
         void                          parse_code_block(); // Try to parse a code block with the option to create a scope or not (reusing the current one).
-        IfNode*                       parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
-        ForLoopNode*                  parse_for_loop();
-        WhileLoopNode*                parse_while_loop();
-        Node*                         parse_program();
-        Slot*                         parse_function_call();
-        Slot*                         parse_parenthesis_expression();
-        Slot*                         parse_unary_operator_expression(u8_t _precedence = 0);
-        Slot*                         parse_binary_operator_expression(u8_t _precedence, Slot& _left);
-        Slot*                         parse_atomic_expression();
-        Slot*                         parse_expression(u8_t _precedence = 0, Slot* _left_override = nullptr);
-        Slot*                         token_to_slot(Token _token);
+        tools::Optional<IfNode*>        parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
+        tools::Optional<ForLoopNode*>   parse_for_loop();
+        tools::Optional<WhileLoopNode*> parse_while_loop();
+        tools::Optional<Node*>          parse_program();
+        tools::Optional<Slot*>          parse_function_call();
+        tools::Optional<Slot*>          parse_parenthesis_expression();
+        tools::Optional<Slot*>          parse_unary_operator_expression(u8_t _precedence = 0);
+        tools::Optional<Slot*>          parse_binary_operator_expression(u8_t _precedence, tools::Optional<Slot*> _left);
+        tools::Optional<Slot*>          parse_atomic_expression();
+        tools::Optional<Slot*>          parse_expression(u8_t _precedence = 0, tools::Optional<Slot*> _left_override = nullptr);
+        tools::Optional<Slot*>          token_to_slot(Token _token);
         bool                          to_bool(const std::string& );
         std::string                   to_unquoted_string(const std::string& _quoted_str);
         double                        to_double(const std::string& );
@@ -79,8 +80,8 @@ namespace ndbl{
         void                          rollback_transaction(); // Rollback the pending transaction (revert cursor to parse again from the transaction start).
         void                          commit_transaction(); // Commit the pending transaction
 		bool                          is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
-        Scope*                        get_current_scope();
-        Node*                         get_current_scope_node();
+        tools::Optional<Scope*>         get_current_scope();
+        tools::Optional<Node*>          get_current_scope_node();
 
     public:
         struct ParserState
