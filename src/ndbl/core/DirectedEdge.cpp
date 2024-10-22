@@ -14,9 +14,9 @@ DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
 {
     ASSERT(tail->flags() & SlotFlag_ORDER_FIRST );
     ASSERT(head->flags() & SlotFlag_ORDER_SECOND );
-    ASSERT(tail->node()->graph() != nullptr);
-    ASSERT(head->node()->graph() != nullptr);
-    ASSERT(tail->node()->graph() == head->node()->graph() );
+    ASSERT(tail->node->graph() != nullptr);
+    ASSERT(head->node->graph() != nullptr);
+    ASSERT(tail->node->graph() == head->node->graph() );
 }
 
 bool DirectedEdge::operator!=( const DirectedEdge &other ) const

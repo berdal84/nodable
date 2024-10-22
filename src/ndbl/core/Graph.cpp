@@ -193,8 +193,8 @@ DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
     ASSERT( _out.has_flags( SlotFlag_OUTPUT ) );
     ASSERT( _out.has_flags( SlotFlag_NOT_FULL ) );
     VERIFY(_in.property, "tail get_value must be defined" );
-    VERIFY(__out.property, "head get_value must be defined" );
-    VERIFY(_in.property != __out.property, "Can't connect same properties!" );
+    VERIFY(_out.property, "head get_value must be defined" );
+    VERIFY(_in.property != _out.property, "Can't connect same properties!" );
 
     // now graph is abstract
 //    const type* out_type = __out.property->get_type();
@@ -253,7 +253,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 {
     ASSERT( _first.has_flags( SlotFlag_ORDER_FIRST ) );
     ASSERT( _second.has_flags( SlotFlag_ORDER_SECOND ) );
-    ASSERT(_first.node() != _second.node() );
+    ASSERT(_first.node != _second.node );
 
     // Insert edge
     SlotFlags type = _first.type();

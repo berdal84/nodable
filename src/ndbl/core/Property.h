@@ -18,8 +18,7 @@ namespace ndbl
     {
         PropertyFlag_NONE            = 0,
         PropertyFlag_IS_REF          = 1 << 0,
-        PropertyFlag_IS_PRIVATE      = 1 << 1,
-        PropertyFlag_IS_THIS         = 1 << 2, // Property pointing this Property's parent Node (stored as void* in variant).
+        PropertyFlag_IS_NODE_VALUE   = 1 << 1,
         PropertyFlag_ALL             = ~PropertyFlag_NONE,
     };
 
@@ -49,6 +48,6 @@ namespace ndbl
         PropertyFlags      m_flags = PropertyFlag_NONE;
         const tools::TypeDescriptor* m_type  = nullptr;
         std::string        m_name;
-        Token              m_token = { Token_t::any };
+        Token              m_token = { Token_t::null };
     };
 }

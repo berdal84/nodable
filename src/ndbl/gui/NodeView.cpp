@@ -151,7 +151,7 @@ void NodeView::set_owner(Node* node)
             case NodeType_BLOCK_SCOPE:
             case NodeType_BLOCK_WHILE_LOOP:
                 // we don't need to actually see this view for now
-                if ( property->has_flags(PropertyFlag_IS_THIS) )
+                if ( property->has_flags(PropertyFlag_IS_NODE_VALUE) )
                     new_view->view_state()->visible = false;
         }
 

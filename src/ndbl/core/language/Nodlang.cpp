@@ -1593,7 +1593,7 @@ std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, Ser
         return _serialize_node(_out, _slot.node, _flags );
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
-    ASSERT( _slot.node()->type() == NodeType_VARIABLE ); // Can't be another type
+    ASSERT( _slot.node->type() == NodeType_VARIABLE ); // Can't be another type
     auto variable = static_cast<const VariableNode*>( _slot.node );
     ASSERT( &_slot == variable->ref_out() ); // Can't be another slot
     return _out.append( variable->get_identifier() );

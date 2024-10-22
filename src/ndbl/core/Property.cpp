@@ -34,10 +34,13 @@ void Property::init_token()
     {
         m_token = { Token_t::literal_bool, "false" };
     }
+    else if ( m_type == type::get<std::string>() )
+    {
+        m_token = { Token_t::literal_string, "" };
+    }
     else
     {
-        VERIFY(( _type == type::get<std::string>() ), "Should be a string");
-        m_token = { Token_t::literal_string, "" };
+        VERIFY(( m_type == type::get<null>() ), "Should be a null");
     }
 }
 
