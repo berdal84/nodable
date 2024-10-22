@@ -67,6 +67,7 @@ namespace ndbl
         bool                 update();
         NodeType             type() const { return m_type; }
         bool                 is_invokable() const;
+        bool                 is_root() const;
         bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
         void                 set_flags(NodeFlags flags) { m_flags |= flags; }
         void                 clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }

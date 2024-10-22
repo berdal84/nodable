@@ -83,7 +83,7 @@ bool Graph::update()
     }
 
     if ( changed )
-        on_change_signal.call();
+        on_update_signal.call();
 
     return changed;
 }
@@ -94,8 +94,11 @@ void Graph::add(Node* _node)
 
 	m_node_registry.push_back(_node);
     _node->m_graph = this;
-    add_node_signal.call(_node);
-    set_dirty(); // To express this graph changed
+
+    on_add_signal.call(_node);
+
+    set_dirty();
+
     LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name().c_str(), _node->get_class()->get_name())
 }
 
@@ -104,7 +107,10 @@ void Graph::remove(Node* _node)
     auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
     ASSERT(found != m_node_registry.end());
     m_node_registry.erase(found);
-    set_dirty(); // To express this graph changed
+
+    on_remove_signal.call(_node);
+
+    set_dirty();
 }
 
 void Graph::ensure_has_root()

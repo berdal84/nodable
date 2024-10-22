@@ -142,7 +142,7 @@ WhileLoopNode* NodeFactory::create_while_loop() const
 Node* NodeFactory::create_program() const
 {
     Node* node = create<Node>();
-    node->init(NodeType_BLOCK_SCOPE, ICON_FA_FILE_CODE " Program");
+    node->init(NodeType_BLOCK_SCOPE, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
     node->add_slot(node->value(), SlotFlag_PARENT, 1);
     node->add_slot(node->value(), SlotFlag_NEXT, 1);
     node->add_slot(node->value(), SlotFlag_CHILD, Slot::MAX_CAPACITY);

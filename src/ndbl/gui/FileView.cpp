@@ -131,10 +131,9 @@ bool FileView::draw()
                                      new_cursor_position.mLine == old_cursor_position.mLine;
         auto is_selected_text_modified = new_cursor_position != old_cursor_position;
 
-        is_graph_dirty =
-                is_line_text_modified
-                || m_text_editor.IsTextChanged()
-                || ( cfg->isolation && is_selected_text_modified);
+        is_graph_dirty |= is_line_text_modified;
+        is_graph_dirty |= m_text_editor.IsTextChanged();
+        is_graph_dirty |= ( cfg->isolation && is_selected_text_modified);
     }
     ImGui::EndChild();
 
@@ -155,7 +154,7 @@ bool FileView::draw()
     ImGui::BeginChild("graph", graph_editor_size, false, flags);
     {
         // Draw graph
-        is_text_dirty = graph_view->draw();
+        is_text_dirty |= graph_view->draw();
 
         // Draw overlay: shortcuts
         Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );

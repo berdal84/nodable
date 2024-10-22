@@ -66,8 +66,8 @@ GraphView::GraphView(Graph* graph)
 
     m_state_machine.start();
 
-    CONNECT(graph->add_node_signal, GraphView::decorate );
-    CONNECT(graph->on_change_signal, GraphView::reset_physics);
+    CONNECT(graph->on_add_signal, GraphView::decorate );
+    CONNECT(graph->on_update_signal, GraphView::reset_physics);
     CONNECT(graph->on_reset_signal, GraphView::reset);
 }
 

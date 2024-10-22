@@ -87,7 +87,11 @@ std::string NodeView::get_label()
         case NodeType_BLOCK_SCOPE:
         {
             if ( minimalist )
+            {
+                if ( get_node()->is_root())
+                    return get_node()->name().substr(0,6); // 4 char for the icon
                 return "{}";
+            }
             return get_node()->name();
         }
         case NodeType_BLOCK_CONDITION:

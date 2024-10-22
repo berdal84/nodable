@@ -56,8 +56,9 @@ namespace ndbl
 		~Graph();
 
         SIGNAL(on_reset);
-        SIGNAL(on_change);
-        SIGNAL(add_node, Node*);
+        SIGNAL(on_update);
+        SIGNAL(on_add   , Node*);
+        SIGNAL(on_remove, Node*);
 
         void                     set_view(GraphView* view = nullptr);
         bool                     update();
