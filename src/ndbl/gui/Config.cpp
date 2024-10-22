@@ -212,7 +212,7 @@ Vec4& ndbl::Config::ui_slot_color(ndbl::SlotFlags slot_flags)
 
 u16_t ndbl::Config::ui_node_physics_sample_count(float dt) const
 {
-    ASSERT( dt >= 0.f)
+    ASSERT( dt >= 0.f);
     const u16_t n_samples = (u16_t)(dt * ui_node_physics_frequency);
     if ( n_samples == 0 ) // When frame rate is too slow, we could be in that case
         return 1;

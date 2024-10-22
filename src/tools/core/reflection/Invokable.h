@@ -188,7 +188,7 @@ namespace tools
         InvokableStaticFunction(const char* _name, const FunctionT* _function_pointer)
             : m_function_pointer( _function_pointer )
             , m_function_signature(FunctionDescriptor::create<FunctionT>(_name) )
-        { ASSERT( m_function_pointer ) }
+        { ASSERT( m_function_pointer ); }
 
         variant invoke(const std::vector<variant *> &_args) const override
         { return tools::Apply( m_function_pointer, _args ); }
@@ -218,7 +218,7 @@ namespace tools
         InvokableMethod(const char* _name, MethodT _method_pointer )
             : m_method_pointer( _method_pointer )
             , m_method_signature(FunctionDescriptor::create<MethodT>(_name) )
-        { ASSERT( m_method_pointer ) }
+        { ASSERT( m_method_pointer ); }
 
         variant invoke( void* _instance, const std::vector<variant*>& _args ) const override
         {

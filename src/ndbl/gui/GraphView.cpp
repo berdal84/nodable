@@ -45,7 +45,7 @@ GraphView::GraphView(Graph* graph)
 : m_graph(graph)
 , m_state_machine(this)
 {
-    ASSERT(graph != nullptr)
+    ASSERT(graph != nullptr);
     m_state_machine.add_state(CURSOR_STATE);
     m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
     m_state_machine.set_default_state(CURSOR_STATE);
@@ -94,7 +94,7 @@ ImGuiID make_wire_id(const Slot *ptr1, const Slot *ptr2)
 
 void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 {
-    VERIFY(from != nullptr, "from slot can't be nullptr")
+    VERIFY(from != nullptr, "from slot can't be nullptr");
 
     Config* cfg = get_config();
 
@@ -364,7 +364,7 @@ bool GraphView::draw()
 
 void GraphView::_update(float dt, u16_t subsample_count)
 {
-    ASSERT(subsample_count !=0 )
+    ASSERT(subsample_count !=0 );
     const float subsample_dt = dt / float(subsample_count);
     for(u16_t i = 0; i < subsample_count; i++)
         _update( subsample_dt );
@@ -461,7 +461,7 @@ void GraphView::frame_nodes(FrameMode mode )
             break;
         }
         default:
-            VERIFY(false, "unhandled case!")
+            VERIFY(false, "unhandled case!");
     }
 }
 
@@ -669,7 +669,7 @@ void GraphView::cursor_state_tick()
         }
 
         default:
-            VERIFY(false, "Unhandled case, must be implemented!")
+            VERIFY(false, "Unhandled case, must be implemented!");
     }
 
     if ( ImGui::BeginPopup(CONTEXT_POPUP) )
@@ -687,8 +687,8 @@ void GraphView::cursor_state_tick()
 
 void GraphView::line_state_enter()
 {
-    ASSERT(m_focused.type == ViewItemType_SLOT)
-    ASSERT(m_focused.slotview != nullptr)
+    ASSERT(m_focused.type == ViewItemType_SLOT);
+    ASSERT(m_focused.slotview != nullptr);
 }
 
 void GraphView::line_state_tick()

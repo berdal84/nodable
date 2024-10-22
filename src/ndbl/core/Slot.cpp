@@ -22,8 +22,8 @@ Slot::Slot(
 , _property(property)
 , _position(position)
 {
-    VERIFY(!has_flags(SlotFlag_NOT_FULL), "SlotFlag_NOT_FULL is for readonly use" )
-    ASSERT( capacity > 0 )
+    VERIFY(!has_flags(SlotFlag_NOT_FULL), "SlotFlag_NOT_FULL is for readonly use" );
+    ASSERT( capacity > 0 );
     _adjacent.reserve(capacity);
     _flags |= SlotFlag_NOT_FULL;
 }
@@ -87,7 +87,7 @@ void Slot::_add_adjacent(Slot* other)
 void Slot::_remove_adjacent(Slot* other)
 {
     auto it = std::find(_adjacent.begin(), _adjacent.end(), other);
-    VERIFY(it != _adjacent.end(), "Slot* not found")
+    VERIFY(it != _adjacent.end(), "Slot* not found");
     _adjacent.erase(it );
     _flags |= SlotFlag_NOT_FULL;
 }
@@ -151,9 +151,9 @@ SlotFlags Slot::flags() const
 
 void Slot::connect_bidirectionally(Slot* tail, Slot* head)
 {
-    ASSERT( tail != head)
-    ASSERT( head != nullptr )
-    ASSERT( tail != nullptr )
+    ASSERT( tail != head);
+    ASSERT( head != nullptr );
+    ASSERT( tail != nullptr );
 
     tail->_add_adjacent(head);
     head->_add_adjacent(tail);

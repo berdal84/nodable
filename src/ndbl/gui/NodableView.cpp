@@ -48,7 +48,7 @@ void NodableView::init(Nodable * _app)
     m_app = _app;
     // Initialize wrapped view and inject some code ...
     tools::App* base_app = _app->get_base_app_handle();
-    ASSERT(base_app != nullptr)
+    ASSERT(base_app != nullptr);
     m_base_view.init(base_app);
     m_base_view.on_draw_splashscreen.connect([&](AppView* view){
 
@@ -100,7 +100,7 @@ void NodableView::init(Nodable * _app)
 
     // Add a bunch of new actions
     tools::ActionManager* action_manager = get_action_manager();
-    ASSERT(action_manager != nullptr) // initialized by base_view
+    ASSERT(action_manager != nullptr); // initialized by base_view
     // (With shortcut)
     action_manager->new_action<Event_DeleteNode>("Delete", Shortcut{SDLK_DELETE, KMOD_NONE } );
     action_manager->new_action<Event_ArrangeNode>("Arrange", Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
@@ -138,7 +138,7 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_CreateNode>(ICON_FA_FILE " String Literal", Shortcut{}, EventPayload_CreateNode{CreateNodeType_LITERAL_STRING, create_variable_node_signature<std::string>() } );
     // (to create functions/operators from the API)
     const Nodlang* language = get_language();
-    VERIFY(language != nullptr, "NodableView: language is null. Did you call init_language() ?")
+    VERIFY(language != nullptr, "NodableView: language is null. Did you call init_language() ?");
     for ( const IInvokable* invokable: language->get_api() )
     {
         std::string label;
@@ -159,7 +159,7 @@ void NodableView::shutdown()
 
 void NodableView::draw()
 {
-    VERIFY(m_logo != nullptr, "Logo is nullptr, did you call init_ex() ?")
+    VERIFY(m_logo != nullptr, "Logo is nullptr, did you call init_ex() ?");
 
     // note: we draw this view nested in base view's begin/end (similar to ImGui API).
     m_base_view.begin_draw();
@@ -515,7 +515,7 @@ void NodableView::draw_node_properties_window()
         if( File* current_file = m_app->get_current_file() )
         {
             GraphView*             graph_view         = current_file->get_graph().get_view(); // Graph can't be null
-            ASSERT(graph_view != nullptr)
+            ASSERT(graph_view != nullptr);
             std::vector<NodeView*> selected_nodeviews = graph_view->get_selected();
 
             if (selected_nodeviews.size() == 1)

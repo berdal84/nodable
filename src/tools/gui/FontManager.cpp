@@ -8,10 +8,10 @@ static FontManager* g_font_manager = nullptr;
 
 FontManager* tools::init_font_manager()
 {
-    VERIFY(g_font_manager == nullptr, "init_ex called twice?")
+    VERIFY(g_font_manager == nullptr, "init_ex called twice?");
     g_font_manager = new FontManager();
     Config* cfg = get_config();
-    VERIFY(cfg != nullptr, "Unable to get the configuration. Did you init_ex the config?")
+    VERIFY(cfg != nullptr, "Unable to get the configuration. Did you init_ex the config?");
     g_font_manager->init(&cfg->font_manager);
     return g_font_manager;
 }
@@ -23,7 +23,7 @@ FontManager* tools::get_font_manager()
 
 void tools::shutdown_font_manager(FontManager* _manager)
 {
-    ASSERT(g_font_manager == _manager) // singleton
+    ASSERT(g_font_manager == _manager); // singleton
     delete g_font_manager;
     g_font_manager = nullptr;
 }

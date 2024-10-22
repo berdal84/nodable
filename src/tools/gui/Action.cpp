@@ -7,7 +7,7 @@ using namespace tools;
 void IAction::trigger() const
 {
     EventManager* event_manager = get_event_manager();
-    ASSERT(event_manager != nullptr)
+    ASSERT(event_manager != nullptr);
     event_manager->dispatch( make_event() );
 }
 

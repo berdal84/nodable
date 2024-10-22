@@ -38,7 +38,7 @@ size_t Node::adjacent_slot_count(SlotFlags _flags )const
 const FunctionDescriptor* Node::get_connected_function_type(const char* property_name) const
 {
     const Slot* slot = find_slot_by_property_name( property_name, SlotFlag_INPUT );
-    VERIFY(slot!= nullptr, "Unable to find input slot for this property name")
+    VERIFY(slot!= nullptr, "Unable to find input slot for this property name");
     const Slot* adjacent_slot = slot->first_adjacent();
 
     if ( adjacent_slot )
@@ -113,13 +113,13 @@ const Slot* Node::find_slot_at(SlotFlags _flags, size_t _position) const
 
 Slot& Node::slot_at(size_t pos)
 {
-    ASSERT(m_slots.size() < pos)
+    ASSERT(m_slots.size() < pos);
     return *m_slots[pos];
 }
 
 const Slot& Node::slot_at(size_t pos) const
 {
-    ASSERT(m_slots.size() < pos)
+    ASSERT(m_slots.size() < pos);
     return *m_slots[pos];
 }
 
@@ -149,7 +149,7 @@ Slot& Node::nth_slot(size_t _n, SlotFlags _flags )
             count++;
         }
     }
-    VERIFY(false, "Not found")
+    VERIFY(false, "Not found");
 }
 
 Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, PropertyFlags _flags)
@@ -159,8 +159,8 @@ Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, Propert
 
 Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, size_t _position)
 {
-    ASSERT( _property != nullptr )
-    ASSERT(_property->owner() == this)
+    ASSERT( _property != nullptr );
+    ASSERT(_property->owner() == this);
     Slot* slot = new Slot(this, _flags, _property, _capacity, _position);
     m_slots.push_back(slot);
     return slot;

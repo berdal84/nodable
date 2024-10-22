@@ -135,7 +135,7 @@ Nodlang::Nodlang(bool _strict)
     for( auto [keyword, operator_t, precedence] : m_definition.operators)
     {
         const Operator *op = new Operator(keyword, operator_t, precedence);
-        ASSERT(std::find(m_operators.begin(), m_operators.end(), op) == m_operators.end())
+        ASSERT(std::find(m_operators.begin(), m_operators.end(), op) == m_operators.end());
         m_operators.push_back(op);
     }
 
@@ -573,8 +573,8 @@ Node* Nodlang::parse_program()
     parse_code_block();// we do not check if we parsed something empty or not, a program can be empty.
 
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
-    ASSERT(program_scope->token_begin.is_null())
-    ASSERT(program_scope->token_end.is_null())
+    ASSERT(program_scope->token_begin.is_null());
+    ASSERT(program_scope->token_end.is_null());
     program_scope->token_begin = parser_state.ribbon.prefix();
     program_scope->token_end = parser_state.ribbon.suffix();
 
@@ -633,7 +633,7 @@ void Nodlang::parse_code_block()
         if ( Node* instruction = parse_instr() )
         {
             Slot* child_slot = get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL );
-            ASSERT(child_slot)
+            ASSERT(child_slot);
             // Create parent/child connection
             parser_state.graph->connect(
                     *child_slot,
@@ -1354,7 +1354,7 @@ Slot* Nodlang::parse_variable_declaration()
     {
         const TypeDescriptor* variable_type = get_type(type_token.m_type);
         auto*           scope         = get_current_scope();
-        ASSERT(scope != nullptr ) // There must always be a scope!
+        ASSERT(scope != nullptr ); // There must always be a scope!
         VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->set_type_token( type_token );
@@ -1414,7 +1414,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
                 }
 
                 // Operator
-                VERIFY(!_node->get_identifier_token().is_null(), "identifier token should have been assigned in parse_function_call")
+                VERIFY(!_node->get_identifier_token().is_null(), "identifier token should have been assigned in parse_function_call");
                 serialize_token( _out, _node->get_identifier_token() );
 
                 // Right part of the expression
@@ -1432,7 +1432,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                ASSERT(!_node->get_identifier_token().is_null())
+                ASSERT(!_node->get_identifier_token().is_null());
                 serialize_token(_out, _node->get_identifier_token());
 
                 bool needs_braces    = _node->get_connected_function_type(LEFT_VALUE_PROPERTY) != nullptr;
@@ -1458,7 +1458,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescr
 
     for (const Slot* input_slot : inputs)
     {
-        ASSERT( input_slot->has_flags(SlotFlag_INPUT) )
+        ASSERT( input_slot->has_flags(SlotFlag_INPUT) );
         if ( input_slot != inputs.front())
         {
             serialize_token_t(_out, Token_t::list_separator);
@@ -1564,7 +1564,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     }
     else
     {
-        VERIFY( _flags & SerializeFlag_RECURSE, "Why would you call serialize_input without RECURSE flag?")
+        VERIFY( _flags & SerializeFlag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
         // Append token prefix?
         if (const Token& adjacent_token = adjacent_property->token())
             if ( !adjacent_token.is_null() )
@@ -1593,15 +1593,15 @@ std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, Ser
         return _serialize_node(_out, _slot.node(), _flags );
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
-    ASSERT( _slot.node()->type() == NodeType_VARIABLE ) // Can't be another type
+    ASSERT( _slot.node()->type() == NodeType_VARIABLE ); // Can't be another type
     auto variable = static_cast<const VariableNode*>( _slot.node() );
-    ASSERT( &_slot == variable->ref_out() ) // Can't be another slot
+    ASSERT( &_slot == variable->ref_out() ); // Can't be another slot
     return _out.append( variable->get_identifier() );
 }
 
 std::string & Nodlang::_serialize_node(std::string &_out, const Node* node, SerializeFlags _flags ) const
 {
-    ASSERT( node )
+    ASSERT( node );
     ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
     switch ( node->type() )
@@ -2029,7 +2029,7 @@ void Nodlang::ParserState::clear()
 
 Nodlang* ndbl::init_language()
 {
-    ASSERT(g_language == nullptr)
+    ASSERT(g_language == nullptr);
     g_language = new Nodlang();
     return g_language;
 }
@@ -2041,8 +2041,8 @@ Nodlang* ndbl::get_language()
 
 void ndbl::shutdown_language(Nodlang* _language)
 {
-    ASSERT(g_language == _language) // singleton for now
-    ASSERT(g_language != nullptr)
+    ASSERT(g_language == _language); // singleton for now
+    ASSERT(g_language != nullptr);
     delete g_language;
     g_language = nullptr;
 }

@@ -50,7 +50,7 @@ namespace tools
 
             // Find the state
             State* state = get_state(name);
-            ASSERT(state != nullptr)
+            ASSERT(state != nullptr);
 
             // Override the delegate
             state->delegate[when] = Delegate_NoArgs::from_method<TMethod>(m_context_ptr);

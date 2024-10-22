@@ -97,21 +97,21 @@ void Compiler::compile_input_slot( const Slot& slot)
     {
         return;
     }
-    ASSERT( slot.adjacent_count() == 1 )
+    ASSERT( slot.adjacent_count() == 1 );
     compile_output_slot( *slot.first_adjacent() );
 }
 
 void Compiler::compile_output_slot( const Slot& slot)
 {
-    ASSERT(slot.has_flags(SlotFlag_OUTPUT) )
+    ASSERT(slot.has_flags(SlotFlag_OUTPUT) );
     compile_node(slot.node() );
 }
 
 void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
 {
-    ASSERT(_scope)
+    ASSERT(_scope);
     const Node* scope_owner = _scope->get_owner();
-    ASSERT(scope_owner)
+    ASSERT(scope_owner);
 
     // call push_stack_frame
     {
@@ -159,7 +159,7 @@ void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
 
 void Compiler::compile_node( const Node* _node )
 {
-    ASSERT( _node )
+    ASSERT( _node );
 
     switch (_node->type())
     {
@@ -201,14 +201,14 @@ void Compiler::compile_node( const Node* _node )
                     const FunctionDescriptor*   func_type = static_cast<const FunctionNode*>(_node)->get_func_type();
 
                     const IInvokable* invokable = get_language()->find_function( func_type ); // Get exact OR fallback function (in case of arg cast)
-                    VERIFY(invokable != nullptr, "Unable to find this function")
+                    VERIFY(invokable != nullptr, "Unable to find this function");
                     instr->call.invokable = invokable;
 
                     break;
                 }
                 case NodeType_LITERAL:
                 case NodeType_VARIABLE:
-                    VERIFY(false, "not implemented yet")
+                    VERIFY(false, "not implemented yet");
             }
 
         }
@@ -337,7 +337,7 @@ const Code* Compiler::compile_syntax_tree(const Graph* _graph)
         try
         {
             Scope* scope = _graph->get_root()->get_component<Scope>();
-            ASSERT(scope)
+            ASSERT(scope);
             compile_scope(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");
         }

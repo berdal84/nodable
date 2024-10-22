@@ -73,11 +73,11 @@ void test()
 {
     // Usage #1:
     Ptr<Boat> boat = new Boat();
-    ASSERT(boat != nullptr)
+    ASSERT(boat != nullptr);
 
     // Usage #2:
 
     Pool<Plane> pool{};
     Ptr<Plane> plane = pool.create();
-    ASSERT(plane != nullptr)
+    ASSERT(plane != nullptr);
 }

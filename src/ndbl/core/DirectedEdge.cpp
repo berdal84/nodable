@@ -12,8 +12,8 @@ DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
 : tail(_tail)
 , head(_head)
 {
-    ASSERT(tail->flags() & SlotFlag_ORDER_FIRST )
-    ASSERT(head->flags() & SlotFlag_ORDER_SECOND )
+    ASSERT(tail->flags() & SlotFlag_ORDER_FIRST );
+    ASSERT(head->flags() & SlotFlag_ORDER_SECOND );
     ASSERT(tail->node()->graph() != nullptr);
     ASSERT(head->node()->graph() != nullptr);
     ASSERT(tail->node()->graph() == head->node()->graph() );
@@ -80,7 +80,7 @@ std::string ndbl::to_string(const DirectedEdge& _edge)
             result.append(" >==(HIERARCHY)==> ");
             break;
         default:
-            ASSERT(false) // unhandled type?
+            ASSERT(false); // unhandled type?
     }
 
     serialize_slot_ref(_edge.head);

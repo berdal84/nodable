@@ -37,7 +37,7 @@ void tools::SpatialNode2D::set_pos(const Vec2& desired_pos, Space desired_space 
             break;
         }
         default:
-            ASSERT( false ) // Not implemented yet
+            ASSERT( false ); // Not implemented yet
     }
 }
 
@@ -74,8 +74,8 @@ tools::Vec2 tools::SpatialNode2D::get_pos(Space space) const
     switch ( space )
     {
         default:
-            VERIFY( space != LOCAL_SPACE, "Are you sure this is what you want to do? It would return Vec2(0.f,0.f) ")
-            VERIFY( false, "This space is not handled")
+            VERIFY( space != LOCAL_SPACE, "Are you sure this is what you want to do? It would return Vec2(0.f,0.f) ");
+            VERIFY( false, "This space is not handled");
 
         case PARENT_SPACE:
             return get_pos(); // is default
@@ -109,7 +109,7 @@ tools::SpatialNode2D *tools::SpatialNode2D::get_parent()
 
 void tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child)
 {
-    ASSERT( new_child != nullptr )
+    ASSERT( new_child != nullptr );
     this->_children.push_back(new_child);
     new_child->_parent = this; // by not changing child's matrix, we preserve parent space coords, xform might move on global space
     new_child->set_world_transform_dirty();
@@ -125,7 +125,7 @@ void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* existing_child)
             existing_child->set_world_transform_dirty();
             return;
         }
-    ASSERT(false) // Unable to find child
+    ASSERT(false); // Unable to find child
 }
 
 void tools::SpatialNode2D::remove_all_children()

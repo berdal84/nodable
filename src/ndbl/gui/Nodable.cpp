@@ -201,7 +201,7 @@ void Nodable::update()
             }
             case EventID_FILE_OPENED:
             {
-                ASSERT(m_current_file != nullptr )
+                ASSERT(m_current_file != nullptr );
                 m_current_file->view.clear_overlay();
                 m_current_file->view.refresh_overlay(Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
@@ -257,7 +257,7 @@ void Nodable::update()
                 auto _event = reinterpret_cast<Event_SlotDropped*>(event);
                 Slot* tail = _event->data.first;
                 Slot* head = _event->data.second;
-                ASSERT(head != tail)
+                ASSERT(head != tail);
                 if ( tail->order() == SlotFlag_ORDER_SECOND )
                 {
                     if ( head->order() == SlotFlag_ORDER_SECOND )

@@ -350,6 +350,6 @@ void FileView::refresh_overlay(Condition _condition )
 void FileView::update(float dt)
 {
     GraphView* graph_view = m_file->get_graph().get_view();
-    ASSERT(graph_view != nullptr)
+    ASSERT(graph_view != nullptr);
     graph_view->update(dt);
 }

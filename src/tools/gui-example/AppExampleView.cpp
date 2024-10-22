@@ -40,7 +40,7 @@ void AppExampleView::shutdown()
 
 void AppExampleView::draw()
 {
-    VERIFY(m_app != nullptr, "Did you call init_ex? m_app should not be null.")
+    VERIFY(m_app != nullptr, "Did you call init_ex? m_app should not be null.");
     m_base_view.begin_draw();
 
     // Add a simple menu bar

@@ -116,7 +116,7 @@ std::string Token::word_to_string()const
 {
     if( has_buffer() )
     {
-        ASSERT(m_word_length < 50) // are you sure?
+        ASSERT(m_word_length < 50); // are you sure?
         return std::string{word_ptr(), m_word_length};
     }
     return {};

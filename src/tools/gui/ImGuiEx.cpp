@@ -44,8 +44,9 @@ Rect ImGuiEx::GetContentRegion(Space origin)
                 ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMax()
             };
         default:
-            VERIFY(false, "This space is not allowed")
+            VERIFY(false, "This space is not allowed");
     }
+    return GetContentRegion(PARENT_SPACE);
 }
 
 void ImGuiEx::DrawRectShadow (const Vec2& _topLeftCorner, const Vec2& _bottomRightCorner, float _borderRadius, int _shadowRadius, const Vec2& _shadowOffset, const Vec4& _shadowColor)

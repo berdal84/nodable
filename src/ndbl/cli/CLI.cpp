@@ -226,7 +226,7 @@ variant CLI::invoke_static(const FunctionDescriptor* _func_type, std::vector<var
 {
     variant result;
 
-    VERIFY(false, "not implemented yet")
+    VERIFY(false, "not implemented yet");
 
     log_function_call(result, _func_type);
     return result;
@@ -236,7 +236,7 @@ variant CLI::invoke_method(const FunctionDescriptor* _func_type, std::vector<var
 {
     variant result;
 
-    VERIFY(false, "not implemented yet")
+    VERIFY(false, "not implemented yet");
 
     log_function_call(result, _func_type);
     return result;

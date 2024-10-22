@@ -24,21 +24,21 @@ void CPU::clear_registers()
 
 qword CPU::read(Register _id)const
 {
-    ASSERT(_id < Register_COUNT)
+    ASSERT(_id < Register_COUNT);
     LOG_VERBOSE("CPU", "read register %s (value: %s)\n", Register_to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
 qword& CPU::read_write(Register _id)
 {
-    ASSERT(_id < Register_COUNT)
+    ASSERT(_id < Register_COUNT);
     LOG_VERBOSE("CPU", "read_write register %s (value: %s)\n", Register_to_string(_id), m_register[_id].to_string().c_str() )
     return m_register[_id];
 }
 
 void CPU::write(Register _id, qword _data)
 {
-    ASSERT(_id < Register_COUNT)
+    ASSERT(_id < Register_COUNT);
     qword& mem_dst = read_write(_id);
     mem_dst = _data;
     LOG_VERBOSE("CPU", "write register %s (value: %s)\n", Register_to_string(_id), mem_dst.to_string().c_str())
@@ -159,7 +159,7 @@ bool Interpreter::step_over()
             }
             else
             {
-                VERIFY(false, "This type is not handled!")
+                VERIFY(false, "This type is not handled!");
             }
 
             advance_cursor();
@@ -179,8 +179,8 @@ bool Interpreter::step_over()
         {
             advance_cursor();
             VariableNode* variable = next_instr->push.var;
-            ASSERT(variable->has_flags(VariableFlag_DECLARED) == false)
-            ASSERT(variable->has_flags(VariableFlag_INITIALIZED) == false)
+            ASSERT(variable->has_flags(VariableFlag_DECLARED) == false);
+            ASSERT(variable->has_flags(VariableFlag_INITIALIZED) == false);
             variable->set_flags(VariableFlag_DECLARED);
             //
             // TODO: implement a stack/heap
@@ -190,7 +190,7 @@ bool Interpreter::step_over()
 
         case OpCode_pop_var:
         {
-            ASSERT(false) // not implemented!
+            ASSERT(false); // not implemented!
 //            advance_cursor();
 //            VariableNode* variable = next_instr->push.var;
 //            ASSERT(variable->has_vflags(VariableFlag_DECLARED))
@@ -245,7 +245,7 @@ bool Interpreter::step_over()
 //                update_input__by_value_only(next_instr->eval.node);
 //            }
 
-            VERIFY(false, "not implemented yet")
+            VERIFY(false, "not implemented yet");
             // const std::vector<variant*> args = TODO: get args from stack
             // next_instr->call.invokable->invoke(args);
 
@@ -317,7 +317,7 @@ bool Interpreter::debug_step_over()
         {
             case OpCode_call:
             {
-                VERIFY(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a node reference in the instruction")
+                VERIFY(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a node reference in the instruction");
 //                m_next_node = next_instr->eval.invokable;
                 break;
             }
@@ -365,8 +365,8 @@ Instruction* Interpreter::get_next_instr() const
 
 bool Interpreter::load_program(const Code *_code)
 {
-    ASSERT(!m_is_program_running)   // dev must stop before to load program.
-    ASSERT(!m_code)     // dev must unload before to load.
+    ASSERT(!m_is_program_running);  // dev must stop before to load program.
+    ASSERT(!m_code);     // dev must unload before to load.
 
     m_code = _code;
 
@@ -395,15 +395,15 @@ Interpreter* ndbl::get_interpreter()
 
 Interpreter* ndbl::init_interpreter()
 {
-    ASSERT(g_interpreter == nullptr) // singleton
+    ASSERT(g_interpreter == nullptr); // singleton
     g_interpreter = new Interpreter();
     return g_interpreter;
 }
 
 void ndbl::shutdown_interpreter(Interpreter* _interpreter)
 {
-    ASSERT(g_interpreter == _interpreter) // singleton
-    ASSERT(g_interpreter != nullptr)
+    ASSERT(g_interpreter == _interpreter); // singleton
+    ASSERT(g_interpreter != nullptr);
     g_interpreter->release_program();
     delete g_interpreter;
     g_interpreter = nullptr;

@@ -8,7 +8,7 @@ using namespace tools;
 TypeDescriptor* TypeRegister::get(std::type_index index)
 {
     auto found = by_index().find(index);
-    VERIFY(found != by_index().end(), "reflection: type not found!")
+    VERIFY(found != by_index().end(), "reflection: type not found!");
     return found->second;
 }
 

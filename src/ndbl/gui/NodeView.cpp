@@ -910,7 +910,7 @@ std::vector<NodeView*> NodeView::get_adjacent(SlotFlags flags) const
 
 void NodeView::set_color( const Vec4* _color, ColorType _type )
 {
-    ASSERT(_color != nullptr)
+    ASSERT(_color != nullptr);
     m_colors[_type] = _color;
 }
 
@@ -923,7 +923,7 @@ Vec4 NodeView::get_color( ColorType _type ) const
 
 GraphView *NodeView::get_graph() const
 {
-    ASSERT(get_node()->graph() != nullptr)
+    ASSERT(get_node()->graph() != nullptr);
     return get_node()->graph()->get_view();
 }
 

@@ -23,7 +23,7 @@ constexpr const char* k_status_window_name = "Status Bar";
 
 void AppView::init(App* _app)
 {
-    ASSERT(_app != nullptr)
+    ASSERT(_app != nullptr);
     m_app = _app;
     Config* cfg = get_config();
 

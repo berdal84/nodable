@@ -45,8 +45,8 @@ namespace ndbl
     template<size_t BRANCH_COUNT>
     const Slot& TConditional<BRANCH_COUNT>::get_condition_slot(Branch _branch ) const
     {
-        VERIFY(_branch != Branch_FALSE, "Branch_FALSE has_flags no condition, use Branch_TRUE or any number greater than 0" )
-        VERIFY(_branch < BRANCH_COUNT, "branch does not exist" )
+        VERIFY(_branch != Branch_FALSE, "Branch_FALSE has_flags no condition, use Branch_TRUE or any number greater than 0" );
+        VERIFY(_branch < BRANCH_COUNT, "branch does not exist" );
         return *m_condition_slot.at(_branch - 1);
     }
 
@@ -64,7 +64,7 @@ namespace ndbl
     void TConditional<BRANCH_COUNT>::init(Node* node)
     {
         static_assert( BRANCH_COUNT == 2, "Currently only implemented for 2 branches" );
-        ASSERT(node != nullptr)
+        ASSERT(node != nullptr);
 
         node->add_slot(node->value(), SlotFlag_PARENT, 1);
         node->add_slot(node->value(), SlotFlag_PREV  , Slot::MAX_CAPACITY);
@@ -85,14 +85,14 @@ namespace ndbl
     template<size_t BRANCH_COUNT>
     const Slot& TConditional<BRANCH_COUNT>::get_child_slot_at(Branch _branch ) const
     {
-        ASSERT(_branch < BRANCH_COUNT )
+        ASSERT(_branch < BRANCH_COUNT );
         return *m_child_slot[_branch];
     }
 
     template<size_t BRANCH_COUNT>
     Scope* TConditional<BRANCH_COUNT>::get_scope_at(Branch _branch ) const
     {
-        ASSERT(_branch < BRANCH_COUNT )
+        ASSERT(_branch < BRANCH_COUNT );
         if ( Slot* adjacent_slot = m_child_slot[_branch]->first_adjacent() )
         {
             return adjacent_slot->node()->get_component<Scope>();

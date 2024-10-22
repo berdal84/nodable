@@ -145,7 +145,7 @@ namespace tools
             m_first_free_id = m_record_by_id[id].next_id; // update linked-list
             return id;
         }
-        ASSERT( m_record_by_id.size() != IPoolVector::invalid_index )
+        ASSERT( m_record_by_id.size() != IPoolVector::invalid_index );
         return (u64_t)m_record_by_id.size();
     }
 

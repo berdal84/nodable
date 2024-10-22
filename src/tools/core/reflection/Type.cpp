@@ -27,7 +27,7 @@ REFLECT_STATIC_INIT
 
 bool type::equals(const TypeDescriptor* left, const TypeDescriptor* right)
 {
-    ASSERT(left != nullptr)
+    ASSERT(left != nullptr);
     return right != nullptr && left->id() == right->id();
 }
 

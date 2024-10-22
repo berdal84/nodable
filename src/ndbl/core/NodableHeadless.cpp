@@ -39,7 +39,7 @@ Graph* NodableHeadless::parse( const std::string& code )
 
 bool NodableHeadless::run_program() const
 {
-    VERIFY(m_interpreter != nullptr, "Did you call init() ?")
+    VERIFY(m_interpreter != nullptr, "Did you call init() ?");
 
     try {
         m_interpreter->run_program();
@@ -69,7 +69,7 @@ const Code* NodableHeadless::compile()
 
 const Code* NodableHeadless::compile(Graph* _graph)
 {
-    ASSERT(_graph != nullptr)
+    ASSERT(_graph != nullptr);
     return m_compiler.compile_syntax_tree(_graph);
 }
 

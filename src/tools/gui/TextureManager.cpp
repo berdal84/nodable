@@ -17,7 +17,7 @@ static TextureManager* g_texture_manager{ nullptr };
 
 TextureManager* tools::init_texture_manager()
 {
-    ASSERT(g_texture_manager == nullptr)
+    ASSERT(g_texture_manager == nullptr);
     g_texture_manager = new TextureManager();
     return g_texture_manager;
 }
@@ -29,8 +29,8 @@ TextureManager* tools::get_texture_manager()
 
 void tools::shutdown_texture_manager(TextureManager* texture_manager)
 {
-    ASSERT(g_texture_manager == texture_manager)
-    ASSERT(g_texture_manager != nullptr)
+    ASSERT(g_texture_manager == texture_manager);
+    ASSERT(g_texture_manager != nullptr);
     g_texture_manager->release_all();
     delete g_texture_manager;
     g_texture_manager = nullptr;
@@ -78,8 +78,8 @@ Texture *TextureManager::load_png_to_gpu(const Path &path)
     if ( error )
     {
         delete texture;
-        LOG_ERROR("TextureManager", "Unable to load png (code %u): %s\n",  error, path.c_str())
-        VERIFY(false, "Unable to load png")
+        LOG_ERROR("TextureManager", "Unable to load png (code %u): %s\n",  error, path.c_str());
+        VERIFY(false, "Unable to load png");
     }
 
     // 2. Load texture to GPU

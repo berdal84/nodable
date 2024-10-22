@@ -38,7 +38,7 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
             break;
         }
         default:
-            VERIFY(false, "Type not allowed")
+            VERIFY(false, "Type not allowed");
     }
 
     // Create a result/value

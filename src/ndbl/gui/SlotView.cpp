@@ -21,7 +21,7 @@ SlotView::SlotView(
 , m_alignment_ref(alignment_ref)
 , m_direction()
 {
-    ASSERT(slot != nullptr)
+    ASSERT(slot != nullptr);
 
     slot->set_view(this);
 
@@ -153,7 +153,7 @@ bool SlotView::draw()
             break;
         }
         default:
-            VERIFY(false, "Unhandled case")
+            VERIFY(false, "Unhandled case");
     }
 
     if ( ImGuiEx::BeginTooltip() )

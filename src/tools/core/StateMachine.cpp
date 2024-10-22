@@ -12,8 +12,8 @@ StateMachine::~StateMachine()
 void StateMachine::set_default_state(const char* name)
 {
     State* state = get_state(name);
-    VERIFY(state != nullptr, "Can't find state")
-    VERIFY(m_default_state == nullptr, "This method must be called once")
+    VERIFY(state != nullptr, "Can't find state");
+    VERIFY(m_default_state == nullptr, "This method must be called once");
     m_default_state = state;
 }
 
@@ -30,7 +30,7 @@ void StateMachine::tick()
     }
 #endif
 
-    ASSERT(m_current_state != nullptr)
+    ASSERT(m_current_state != nullptr);
     m_current_state->delegate[OnTick].call();
 
     // Early return if no transition is found
@@ -46,14 +46,14 @@ void StateMachine::tick()
 
 void StateMachine::start()
 {
-    VERIFY(m_started == false, "StateMachine is already started")
+    VERIFY(m_started == false, "StateMachine is already started");
     m_started = true;
     m_current_state = m_default_state;
 }
 
 void StateMachine::stop()
 {
-    VERIFY(m_started == true, "StateMachine is not started")
+    VERIFY(m_started == true, "StateMachine is not started");
     m_started = false;
 }
 
@@ -68,19 +68,19 @@ State* StateMachine::add_state(const char* _name)
 void StateMachine::add_state(State* state)
 {
     u32_t key = hash::hash_cstr(state->name);
-    VERIFY(m_state.find(key) == m_state.end(), "State name already exists")
+    VERIFY(m_state.find(key) == m_state.end(), "State name already exists");
     m_state.insert({key, state});
 }
 
 void StateMachine::change_state(State* state)
 {
-    VERIFY(m_next_state == nullptr, "Can't change twice within a single tick")
+    VERIFY(m_next_state == nullptr, "Can't change twice within a single tick");
     m_next_state = state;
 }
 
 void StateMachine::exit_state()
 {
-    VERIFY(m_current_state != m_default_state, "Default state can't be exited!")
+    VERIFY(m_current_state != m_default_state, "Default state can't be exited!");
     change_state(m_default_state);
 }
 
@@ -95,6 +95,6 @@ State *StateMachine::get_state(const char *name)
 void StateMachine::change_state(const char *name)
 {
     State* state = get_state(name);
-    VERIFY(state != nullptr, "Unable to find state")
+    VERIFY(state != nullptr, "Unable to find state");
     change_state(state);
 }

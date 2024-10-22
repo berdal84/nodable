@@ -15,7 +15,7 @@ TaskManager* tools::get_task_manager()
 
 TaskManager* tools::init_task_manager(const TaskManager::Config& config)
 {
-    VERIFY(config.max_capacity >= config.reserve_size, "[tools::init_task_manager] can't reserve more space than capacity!" )
+    VERIFY(config.max_capacity >= config.reserve_size, "[tools::init_task_manager] can't reserve more space than capacity!" );
     g_task_manager = new TaskManager(config);
     return g_task_manager;
 }
@@ -58,7 +58,7 @@ void TaskManager::update()
 
 void tools::shutdown_task_manager(TaskManager* task_manager)
 {
-    ASSERT(task_manager  == g_task_manager)
+    ASSERT(task_manager  == g_task_manager);
     VERIFY(g_task_manager != nullptr, "[tools::shutdown_task_manager] must be initialised. Did you call init_task_manager()?");
     delete g_task_manager;
     g_task_manager = nullptr;

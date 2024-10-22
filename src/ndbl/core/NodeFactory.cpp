@@ -32,9 +32,9 @@ T* create(Args... args)
     return new T(args...);
 #else
     PoolManager* manager = get_pool_manager();
-    ASSERT( manager != nullptr )
+    ASSERT( manager != nullptr );
     Pool* pool = manager->get_pool();
-    ASSERT( pool != nullptr )
+    ASSERT( pool != nullptr );
     PoolID<T> node_id = pool->create<T>(args...);
     return node_id.get();
 #endif
@@ -86,7 +86,7 @@ VariableRefNode* NodeFactory::create_variable_ref() const
 FunctionNode* NodeFactory::create_function(const FunctionDescriptor* _func_type, NodeType _node_type) const
 {
     auto* node = create<FunctionNode>();
-    ASSERT( _node_type == NodeType_OPERATOR || _node_type == NodeType_FUNCTION )
+    ASSERT( _node_type == NodeType_OPERATOR || _node_type == NodeType_FUNCTION );
     node->init(_node_type, _func_type);
     m_post_process(node);
     return node;
@@ -184,15 +184,15 @@ NodeFactory* ndbl::get_node_factory()
 
 NodeFactory* ndbl::init_node_factory()
 {
-    ASSERT(g_node_factory == nullptr) // singleton
+    ASSERT(g_node_factory == nullptr); // singleton
     g_node_factory = new NodeFactory();
     return g_node_factory;
 }
 
 void ndbl::shutdown_node_factory(NodeFactory* _factor)
 {
-    ASSERT(g_node_factory == _factor)  // singleton
-    ASSERT(g_node_factory != nullptr)
+    ASSERT(g_node_factory == _factor);  // singleton
+    ASSERT(g_node_factory != nullptr);
     delete g_node_factory;
     g_node_factory = nullptr;
 }

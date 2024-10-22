@@ -43,8 +43,8 @@ Vec2 BoxShape2D::size() const
 
 void BoxShape2D::set_size(const Vec2& size)
 {
-    ASSERT(size.x >= 0) // Area cannot be zero
-    ASSERT(size.y >= 0) //
+    ASSERT(size.x >= 0); // Area cannot be zero
+    ASSERT(size.y >= 0); //
     _half_size = size * 0.5f;
 }
 

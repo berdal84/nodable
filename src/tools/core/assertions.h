@@ -19,13 +19,8 @@
 
 #if TOOLS_NOEXCEPT
 
-#ifdef ASSERT_
-static_assert(false, "ASSERT_ is reserved for tools, it should not be defined here.");
-#endif
-
-#define ASSERT_(expression)         LOG_FLUSH(); assert((expression))
-#define ASSERT(expression)          ASSERT_( expression );
-#define VERIFY(expression, message) ASSERT_( (expression) && message );
+#define ASSERT(expression)          assert( (expression) )
+#define VERIFY(expression, message) assert( (expression) )
 
 #else // TOOLS_NOEXCEPT
 
@@ -42,7 +37,7 @@ static_assert(false, "VERIFY_ is reserved for tools, it should not be defined he
 if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
 
 #define ASSERT(expression) VERIFY_( (expression), "Assertion failed: " #expression" is false" )
-#define VERIFY(expression, message) VERIFY_( (expression), message );
+#define VERIFY(expression, message) VERIFY_( (expression), message )
 
 #endif // !TOOLS_NOEXCEPT
 
@@ -52,7 +47,7 @@ if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
 //----------------------------
 
 // Disable the macros completely
-#define ASSERT(...);
-#define VERIFY(...);
+#define ASSERT(...)
+#define VERIFY(...)
 
 #endif // TOOLS_ASSERTIONS_ENABLE

@@ -29,10 +29,10 @@ void App::init()
 void App::init_ex(AppView* _view, Config* _config)
 {
     // Guards
-    VERIFY(m_view == nullptr, "A view already exist. Did you call init twice?")
-    VERIFY(m_config == nullptr, "A config already exist. Did you call init twice?")
-    VERIFY(_config != nullptr, "You must provide a config")
-    VERIFY(_view != nullptr, "You must provide a view")
+    VERIFY(m_view == nullptr, "A view already exist. Did you call init twice?");
+    VERIFY(m_config == nullptr, "A config already exist. Did you call init twice?");
+    VERIFY(_config != nullptr, "You must provide a config");
+    VERIFY(_view != nullptr, "You must provide a view");
 
     // Store existing data
     m_view   = _view;
@@ -55,7 +55,7 @@ void App::shutdown()
     // Optionally shutdown config
     if (m_flags & Flag_OWNS_CONFIG_MEMORY )
     {
-        ASSERT(m_config != nullptr)
+        ASSERT(m_config != nullptr);
         shutdown_config(m_config);
     }
 

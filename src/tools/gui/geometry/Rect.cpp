@@ -5,7 +5,7 @@ using namespace tools;
 
 Rect tools::Rect::bbox(const std::vector<Vec2>* points )
 {
-    ASSERT(points->empty() == false)
+    ASSERT(points->empty() == false);
     Vec2 first = points->front();
     Rect result{ first, first };
     for ( auto it = points->begin() + 1; it != points->end(); it++ )
@@ -32,8 +32,8 @@ Rect Rect::bbox(const std::vector<Rect>* rects )// Return a rectangle overlappin
 
 Rect Rect::merge(const Rect& a, const Rect& b )// Return a rectangle overlapping the two rectangles
 {
-    ASSERT(!a.is_inverted())
-    ASSERT(!b.is_inverted())
+    ASSERT(!a.is_inverted());
+    ASSERT(!b.is_inverted());
     Rect result;
     result.min.x = glm::min( a.min.x, b.min.x );
     result.min.y = glm::min( a.min.y, b.min.y );
@@ -44,8 +44,8 @@ Rect Rect::merge(const Rect& a, const Rect& b )// Return a rectangle overlapping
 
 bool Rect::contains( const Rect& a, const Rect& b )
 {
-    ASSERT(!a.is_inverted())
-    ASSERT(!b.is_inverted())
+    ASSERT(!a.is_inverted());
+    ASSERT(!b.is_inverted());
 
     if ( a.min.x <= b.min.x )
         if ( a.min.y <= b.min.y )
@@ -57,7 +57,7 @@ bool Rect::contains( const Rect& a, const Rect& b )
 
 bool Rect::contains( const Rect& rect, const Vec2& point )
 {
-    ASSERT(!rect.is_inverted())
+    ASSERT(!rect.is_inverted());
 
     return point.x >= rect.min.x &&
            point.x <= rect.max.x &&

@@ -79,8 +79,9 @@ double variant::to<double>()const
         case Type_i32:     return double(m_data.i32);
         case Type_string:  return stod(*(std::string*)m_data.ptr);
         default:
-            ASSERT(false) // this case is not handled
+            ASSERT(false); // this case is not handled
     }
+    return {};
 }
 
 template<>
@@ -94,8 +95,9 @@ i16_t variant::to<i16_t>()const
         case Type_i32:     return (i16_t)m_data.i32;
         case Type_string:  return (i16_t)stoi(*(std::string*)m_data.ptr);
         default:
-            ASSERT(false) // this case is not handled
+            ASSERT(false); // this case is not handled
     }
+    return {};
 }
 
 template<>
@@ -109,8 +111,9 @@ i32_t variant::to<i32_t>()const
         case Type_i32:     return m_data.i32;
         case Type_string:  return stoi(*(std::string*)m_data.ptr );
         default:
-            ASSERT(false) // this case is not handled
+            ASSERT(false); // this case is not handled
     }
+    return {};
 }
 
 template<>
@@ -124,8 +127,9 @@ bool variant::to<bool>()const
         case Type_i32:    return (bool)m_data.i32;
         case Type_string: return !((std::string*)m_data.ptr)->empty();
         default:
-            ASSERT(false) // this case is not handled
+            ASSERT(false); // this case is not handled
     }
+    return {};
 }
 
 template<>
@@ -140,7 +144,8 @@ std::string variant::to<std::string>()const
         case Type_string: return *(std::string*)m_data.ptr;
         default:
             // return format::hexadecimal(m_data.u64); // this code was found there, probably a mistake
-            ASSERT(false) // this case is not handled
+            ASSERT(false); // this case is not handled
+            return {};
     }
 }
 
@@ -169,7 +174,6 @@ void variant::set(const char* _value)
 
 void variant::set(double _value)
 {
-    auto* type = type::get<double>();
     if ( m_type != Type_double )
         change_type(Type_double);
     m_data.set<double>(_value);
@@ -255,9 +259,9 @@ void variant::change_type(Type new_type)
     // Guards when a type is already set (changing type has some rules)
     if(m_type != Type_null )
     {
-        ASSERT( ( (m_flags & Flag_ALLOWS_TYPE_CHANGE) == 0) || (m_type == Type_null || m_type == Type_any) ) // Only null or any types can change when Flag_ALLOWS_TYPE_CHANGE is OFF.
+        ASSERT( ( (m_flags & Flag_ALLOWS_TYPE_CHANGE) == 0) || (m_type == Type_null || m_type == Type_any) ); // Only null or any types can change when Flag_ALLOWS_TYPE_CHANGE is OFF.
     }
-    ASSERT(new_type != m_type) // It's not a change, use is_type(const type*) first
+    ASSERT(new_type != m_type); // It's not a change, use is_type(const type*) first
     if (m_flags & Flag_OWNS_HEAP_ALLOCATED_MEMORY )
         release_mem();
     m_type = new_type; // Enum allows to speed up our switch/case
@@ -319,8 +323,9 @@ variant::Type variant::type_to_enum(const tools::TypeDescriptor* _type)
     if( _type->is<null>() )      return Type_null;
     if( _type->is<std::string>() ) return Type_string;
     if( _type->is_ptr() )          return Type_ptr;
-    ASSERT( !_type->is<const char*>() ) // use std::string instead
-    ASSERT(false) // Unhandled type;
+    ASSERT( !_type->is<const char*>() ); // use std::string instead
+    ASSERT(false); // Unhandled type;
+    return {};
 }
 
 const tools::TypeDescriptor* variant::enum_to_type(Type _type)
@@ -336,8 +341,9 @@ const tools::TypeDescriptor* variant::enum_to_type(Type _type)
         case Type_ptr:     return type::get<void*>();
         case Type_string:  return type::get<std::string>();
         default:
-            ASSERT(false) // unhandled type
+            ASSERT(false); // unhandled type
     }
+    return {};
 }
 
 bool variant::is_type(const tools::TypeDescriptor* _type) const

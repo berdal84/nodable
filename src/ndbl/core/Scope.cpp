@@ -74,7 +74,7 @@ std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
     // Recursive call for nested scopes
     for( size_t i = 0; i < children.size(); ++i )
     {
-        ASSERT(children[i])
+        ASSERT(children[i]);
         if ( Scope* scope = children[i]->get_component<Scope>() )
         {
             scope->get_last_instructions_rec(_out); // Recursive call on nested scopes
@@ -90,8 +90,8 @@ std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
 
 void Scope::remove_variable(VariableNode* _variable)
 {
-    ASSERT(_variable != nullptr)
-    ASSERT(_variable->get_scope() == this)
+    ASSERT(_variable != nullptr);
+    ASSERT(_variable->get_scope() == this);
     auto found = std::find(m_variables.begin(), m_variables.end(), _variable);
     ASSERT(found != m_variables.end());
     _variable->reset_scope();

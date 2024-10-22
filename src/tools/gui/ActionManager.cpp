@@ -14,21 +14,21 @@ ActionManager* g_action_manager = nullptr;
 
 ActionManager* tools::init_action_manager()
 {
-    VERIFY(g_action_manager == nullptr, "Cannot be called twice")
+    VERIFY(g_action_manager == nullptr, "Cannot be called twice");
     g_action_manager = new ActionManager();
     return g_action_manager;
 }
 
 ActionManager* tools::get_action_manager()
 {
-    VERIFY(g_action_manager != nullptr, "event manager can't be found. Did you call init ?")
+    VERIFY(g_action_manager != nullptr, "event manager can't be found. Did you call init ?");
     return g_action_manager;
 }
 
 void tools::shutdown_action_manager(ActionManager* _action_manager)
 {
-    ASSERT(_action_manager == g_action_manager)
-    ASSERT(g_action_manager != nullptr)
+    ASSERT(_action_manager == g_action_manager);
+    ASSERT(g_action_manager != nullptr);
     delete g_action_manager;
     g_action_manager = nullptr;
 }

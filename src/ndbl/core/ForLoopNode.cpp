@@ -28,24 +28,24 @@ void ForLoopNode::init(const std::string& _name)
 
 Slot& ForLoopNode::iteration_slot()
 {
-    ASSERT(m_iteration_slot)
+    ASSERT(m_iteration_slot);
     return *m_iteration_slot;
 }
 
 Slot& ForLoopNode::initialization_slot()
 {
-    ASSERT(m_initialization_slot)
+    ASSERT(m_initialization_slot);
     return *m_initialization_slot;
 }
 
 const Slot& ForLoopNode::iteration_slot() const
 {
-    ASSERT(m_iteration_slot)
+    ASSERT(m_iteration_slot);
     return *m_iteration_slot;
 }
 
 const Slot& ForLoopNode::initialization_slot() const
 {
-    ASSERT(m_initialization_slot)
+    ASSERT(m_initialization_slot);
     return *m_initialization_slot;
 }

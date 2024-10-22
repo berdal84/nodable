@@ -20,7 +20,7 @@ Property* PropertyBag::add(Property* property)
 
 Property* PropertyBag::add(const TypeDescriptor* _type, const char* _name, PropertyFlags _flags )
 {
-    VERIFY(m_owner != nullptr, "PropertyBag must be initialized")
+    VERIFY(m_owner != nullptr, "PropertyBag must be initialized");
     ASSERT(!has(_name));
 
     // create the property
@@ -88,7 +88,7 @@ Property* PropertyBag::find_id_from_name(const char *_name) const
         if( name == _name)
             return property;
     }
-    ASSERT(false)
+    ASSERT(false);
     return nullptr;
 }
 

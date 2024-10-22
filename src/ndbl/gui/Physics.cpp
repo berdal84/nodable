@@ -27,7 +27,7 @@ Physics::Physics(NodeView* view)
 , is_active(true)
 , m_view(view)
 {
-    ASSERT(view != nullptr)
+    ASSERT(view != nullptr);
 }
 
 void Physics::clear_constraints()
@@ -94,7 +94,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
     for(Node* node: nodes )
     {
         auto curr_nodeview = node->get_component<NodeView>();
-        ASSERT(curr_nodeview != nullptr )
+        ASSERT(curr_nodeview != nullptr );
 
         auto physics_component = node->get_component<Physics>();
 
@@ -199,8 +199,8 @@ void Physics::destroy_constraints(std::vector<Physics*> &physics_components)
 
 void Physics::Constraint::update(float _dt)
 {
-    ASSERT(should_apply != nullptr)
-    ASSERT(constrain != nullptr)
+    ASSERT(should_apply != nullptr);
+    ASSERT(constrain != nullptr);
 
     if ( !enabled)
         return;
@@ -215,8 +215,8 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
 {
     // This type of constrain is designed to make a single NodeView to follow many others
 
-    VERIFY(!leader.empty(), "No leader found!")
-    VERIFY(follower.size() == 1, "This is a one to many relationship, a single follower only is allowed")
+    VERIFY(!leader.empty(), "No leader found!");
+    VERIFY(follower.size() == 1, "This is a one to many relationship, a single follower only is allowed");
 
     std::vector<NodeView*> clean_follower = Physics::Constraint::clean(follower);
     if( clean_follower.empty() )
@@ -243,8 +243,8 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
 
 void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
 {
-    ASSERT(leader.size() == 1)
-    ASSERT(follower.size() > 0)
+    ASSERT(leader.size() == 1);
+    ASSERT(follower.size() > 0);
 
     Config* cfg = get_config();
     std::vector<NodeView*> clean_follower = Physics::Constraint::clean(follower);
@@ -302,8 +302,8 @@ std::vector<NodeView *> Physics::Constraint::clean(std::vector<NodeView *> &view
 
 bool Physics::Constraint::should_follow_output(const Node* node, const Node* output_node )
 {
-    ASSERT(node)
-    ASSERT(output_node)
+    ASSERT(node);
+    ASSERT(output_node);
 
     // Instruction should never follow an output (they must stick to the codeflow)
     if ( !Utils::is_instruction( node ) )

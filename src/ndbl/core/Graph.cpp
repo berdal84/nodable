@@ -86,7 +86,7 @@ UpdateResult Graph::update()
 
 void Graph::add(Node* _node)
 {
-    ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node) == m_node_registry.end())
+    ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node) == m_node_registry.end());
 
 	m_node_registry.push_back(_node);
     _node->m_graph = this;
@@ -188,15 +188,15 @@ bool Graph::is_empty() const
 DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
 {
     // Guards
-    ASSERT( _in.has_flags( SlotFlag_INPUT ) )
-    ASSERT( _in.has_flags( SlotFlag_NOT_FULL ) )
-    ASSERT( _out.has_flags( SlotFlag_OUTPUT ) )
-    ASSERT( _out.has_flags( SlotFlag_NOT_FULL ) )
+    ASSERT( _in.has_flags( SlotFlag_INPUT ) );
+    ASSERT( _in.has_flags( SlotFlag_NOT_FULL ) );
+    ASSERT( _out.has_flags( SlotFlag_OUTPUT ) );
+    ASSERT( _out.has_flags( SlotFlag_NOT_FULL ) );
     Property* in_prop  = _in.get_property();
     Property* out_prop = _out.get_property();
-    VERIFY(in_prop, "tail get_value must be defined" )
-    VERIFY(out_prop, "head get_value must be defined" )
-    VERIFY(in_prop != out_prop, "Can't connect same properties!" )
+    VERIFY(in_prop, "tail get_value must be defined" );
+    VERIFY(out_prop, "head get_value must be defined" );
+    VERIFY(in_prop != out_prop, "Can't connect same properties!" );
 
     // now graph is abstract
 //    const type* out_type = out_prop->get_type();
@@ -247,15 +247,15 @@ void Graph::remove(DirectedEdge edge)
 DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable )
 {
     // Guards
-    ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ))
+    ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ));
     return connect_or_merge( _out, *_variable.value_in() );
 }
 
 DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
 {
-    ASSERT( _first.has_flags( SlotFlag_ORDER_FIRST ) )
-    ASSERT( _second.has_flags( SlotFlag_ORDER_SECOND ) )
-    ASSERT(_first.node() != _second.node() )
+    ASSERT( _first.has_flags( SlotFlag_ORDER_FIRST ) );
+    ASSERT( _second.has_flags( SlotFlag_ORDER_SECOND ) );
+    ASSERT(_first.node() != _second.node() );
 
     // Insert edge
     SlotFlags type = _first.type();
@@ -277,10 +277,10 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 // - child node has a PARENT slot
                 Node* parent    = _first.node();  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
                 Node* new_child = _second.node(); static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
-                ASSERT( parent->has_component<Scope>())
+                ASSERT( parent->has_component<Scope>());
 
                 Slot* parent_next_slot    = parent->find_slot_at( SlotFlag_NEXT, _first.position() );
-                ASSERT(parent_next_slot)
+                ASSERT(parent_next_slot);
                 Slot& new_child_prev_slot = *new_child->find_slot( SlotFlag_PREV );
 
                 // Case 1: Parent has only 1 child (the newly connected), we connect it as "next".
@@ -296,7 +296,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 else
                 {
                     Node* previous_child = *(parent->children().rbegin() + 1);
-                    ASSERT( previous_child )
+                    ASSERT( previous_child );
 
                     // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
                     //           parent
@@ -401,7 +401,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     {
         case SlotFlag_TYPE_CODEFLOW:
         {
-            ASSERT(_edge.head->has_flags(SlotFlag_PREV))
+            ASSERT(_edge.head->has_flags(SlotFlag_PREV));
             Node* next = _edge.head->node();
             Node* next_parent = next->find_parent();
             if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && next_parent )
@@ -509,7 +509,7 @@ Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signa
 
         case CreateNodeType_FUNCTION:
         {
-            VERIFY(_signature != nullptr, "_signature is expected when dealing with functions or operators")
+            VERIFY(_signature != nullptr, "_signature is expected when dealing with functions or operators");
             Nodlang* language = get_language();
             // Currently, we handle operators and functions the exact same way
             const FunctionDescriptor* signature = language->find_function(_signature)->get_sig();
@@ -520,6 +520,7 @@ Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signa
         }
         default:
             VERIFY(false, "Unhandled CreateNodeType.");
+            return nullptr;
     }
 }
 

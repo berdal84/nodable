@@ -293,9 +293,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             break;
         }
         default:
-        {
-            ASSERT(false) // Not implemented yet!
-        }
+            ASSERT(false); // Not implemented yet!
     }
 
     if ( _compact_mode )
