@@ -34,13 +34,13 @@ namespace ndbl
             size_t    position = 0
         );
 
-        Node*     node() const { return _node; }
-        SlotView* view() const { return _view; }
+        inline Node* node() const { return _node; }
+        inline SlotView* view() const { return _view; }
+        inline const Property* property() const { return _property; }
         void      set_view(SlotView* view) { _view = view; }
         Slot*     first_adjacent() const;
         Slot*     adjacent_at(u8_t ) const;
         Property* get_property() { return _property; }
-        const Property* property() const { return _property; }
         size_t    adjacent_count() const;
         bool      is_full() const; // Slots have a capacity
         void      set_flags( SlotFlags _flags );

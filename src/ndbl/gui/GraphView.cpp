@@ -281,9 +281,9 @@ bool GraphView::draw()
                     // Determine control points
                     float roundness = lerp(0.f, 10.f, lensqr_dist / 100.f );
                     cp1 = p1;
-                    cp2 = p2 + slot_view_in->direction() * roundness;
-                    if ( slot_view_out->direction().y > 0.f ) // round out when direction is bottom
-                        cp1 += slot_view_out->direction() * roundness;
+                    cp2 = p2 + slot_view_in->direction * roundness;
+                    if ( slot_view_out->direction.y > 0.f ) // round out when direction is bottom
+                        cp1 += slot_view_out->direction * roundness;
 
                     BezierCurveSegment2D segment{p1, cp1, cp2, p2};
 

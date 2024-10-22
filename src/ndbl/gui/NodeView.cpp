@@ -191,7 +191,7 @@ void NodeView::set_owner(Node* node)
             {
                 const PropertyView* property_view = find_property_view( view->property() );
                 if ( property_view != nullptr && property_view->view_state()->visible )
-                    view->set_align_ref( property_view->box() );
+                    view->alignment_ref = property_view->box();
             }
         }
     }
@@ -207,7 +207,7 @@ void NodeView::set_owner(Node* node)
                 if (SlotView *view = decl_out->view())
                 {
                     view->set_alignment(LEFT);
-                    view->set_align_ref( this->box() );
+                    view->alignment_ref = this->box();
                 }
             }
             break;
@@ -219,8 +219,8 @@ void NodeView::set_owner(Node* node)
             {
                 if (SlotView *view = value_out->view())
                 {
-                    view->set_direction( BOTTOM );
-                    view->set_align_ref( nullptr );
+                    view->direction     = BOTTOM;
+                    view->alignment_ref = nullptr;
                 }
             }
             break;
@@ -308,7 +308,7 @@ bool NodeView::draw()
 
     // Draw background slots (rectangles)
     for( SlotView* slot_view: m_slot_views )
-        if (slot_view->shape() == ShapeType_RECTANGLE)
+        if (slot_view->shape == ShapeType_RECTANGLE)
             draw_slot(slot_view);
 
 	// Begin the window
@@ -406,7 +406,7 @@ bool NodeView::draw()
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
                     const float y = box()->pivot(BOTTOM, WORLD_SPACE).y;
                     slot_view_out->xform()->set_pos({x, y}, WORLD_SPACE);
-                    slot_view_out->set_direction(BOTTOM);
+                    slot_view_out->direction = BOTTOM;
                 }
     }
 
@@ -455,7 +455,7 @@ bool NodeView::draw()
 
     // Draw foreground slots (circles)
     for( SlotView* slot_view: m_slot_views )
-        if (slot_view->shape() == ShapeType_CIRCLE)
+        if (slot_view->shape == ShapeType_CIRCLE)
             draw_slot(slot_view);
 
 	ImGui::PopStyleVar();
@@ -929,7 +929,7 @@ void NodeView::draw_slot(SlotView* slot_view)
     if( slot_view->draw() )
         m_last_clicked_slotview = slot_view;
 
-    if( slot_view->is_hovered() )
+    if( slot_view->state.hovered )
     {
         m_hovered_slotview = slot_view; // last wins
     }
