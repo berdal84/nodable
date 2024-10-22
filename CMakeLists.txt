@@ -90,7 +90,6 @@ add_subdirectory(libs/glm EXCLUDE_FROM_ALL)
 add_subdirectory(libs/freetype EXCLUDE_FROM_ALL)
 set(NFD_PORTAL ON) # use portal instead of gtk, read: https://github.com/btzy/nativefiledialog-extended#using-xdg-desktop-portal-on-linux
 add_subdirectory(libs/nativefiledialog-extended EXCLUDE_FROM_ALL) # target is nfd
-add_subdirectory(libs/Observe EXCLUDE_FROM_ALL) # EXCLUDE_FROM_ALL: we don't want to install it.
 add_subdirectory(libs/SDL EXCLUDE_FROM_ALL) # SDL2
 
 # 1) Nodable
@@ -188,8 +187,7 @@ add_library(
 target_link_libraries(
     tools-core
     PUBLIC
-    Observe        # event system using observer/observable pattern.
-    glm            # math
+    glm # math
     Threads::Threads
     cpptrace::cpptrace
 )

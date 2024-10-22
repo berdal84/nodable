@@ -7,9 +7,6 @@
 [submodule "libs/ImGuiColorTextEdit"]
 	path = libs/ImGuiColorTextEdit
 	url = ../ImGuiColorTextEdit
-[submodule "libs/Observe"]
-	path = libs/Observe
-	url = https://github.com/berdal84/Observe.git
 [submodule "libs/SDL"]
 	path = libs/SDL
 	url = https://github.com/libsdl-org/SDL
