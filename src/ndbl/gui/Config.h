@@ -57,7 +57,7 @@ namespace ndbl
         Vec2           ui_slot_rectangle_size;
         float          ui_slot_gap;
         float          ui_slot_border_radius;
-        float          ui_slot_invisible_ratio;
+        float          ui_slot_invisible_btn_expand_size;
         Vec2           ui_node_gap_base; // horizontal, vertical
         Vec2           ui_node_gap(tools::Size = tools::Size_DEFAULT) const;
         Vec4           ui_node_padding; // left, top, right, bottom

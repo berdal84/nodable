@@ -101,7 +101,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_slot_rectangle_size                = Vec2{10.f, 10.f};
     ui_slot_gap                           = 4.0f;
     ui_slot_border_radius                 = 0.1f;
-    ui_slot_invisible_ratio               = 2.f; // 200%
+    ui_slot_invisible_btn_expand_size              = 4.f; // +4px
 
     // wires
     ui_wire_bezier_roundness              = Vec2{0.25f, 2.0f};

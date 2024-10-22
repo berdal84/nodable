@@ -80,9 +80,9 @@ bool SlotView::draw()
     // draw an invisible button (for easy mouse interaction)
     ImGui::SetCursorScreenPos(rect.top_left());
     ImGui::PushID(slot);
-    ImGui::InvisibleButton("###", rect.size() * cfg->ui_slot_invisible_ratio);
+    ImGui::InvisibleButton("###", rect.size() + cfg->ui_slot_invisible_btn_expand_size);
     ImGui::PopID();
-    state.hovered = ImGui::IsItemHovered();
+    state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
     Vec4 fill_color = state.hovered ? hover_color : color;
 
     // draw shape
