@@ -6,7 +6,7 @@
 
 #if TOOLS_ASSERTIONS_ENABLE
 
-#define TOOLS_NOEXCEPT NOEXCEPT
+#define TOOLS_NOEXCEPT !TOOLS_DEBUG
 
 // TOOLS_ASSERTIONS_ENABLE ON
 //----------------------------
@@ -52,7 +52,7 @@ if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
 //----------------------------
 
 // Disable the macros completely
-#define ASSERT(...)
-#define EXPECT(...)
+#define ASSERT(...);
+#define VERIFY(...);
 
 #endif // TOOLS_ASSERTIONS_ENABLE
