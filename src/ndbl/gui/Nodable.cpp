@@ -200,46 +200,46 @@ void Nodable::update()
             }
             case Event_DeleteNode::id:
             {
-                // TODO: store a ref to the view in the event, use selected as fallback if not present
-                auto& selected = graph_view->get_selected();
-                if ( !selected.empty() && !ImGui::IsAnyItemFocused() )
-                {
-                    Node* selected_node = selected[0]->get_owner();
-                    selected_node->set_flags(NodeFlag_TO_DELETE);
-                }
+                if ( graph_view )
+                    for(NodeView* view : graph_view->get_selected())
+                        view->get_node()->set_flags(NodeFlag_TO_DELETE);
                 break;
             }
 
             case Event_ArrangeNode::id:
             {
-                // TODO: views should be included in the event
-                for(auto& each_selected_view: graph_view->get_selected())
-                {
-                    each_selected_view->arrange_recursively();
-                };
+                if ( graph_view )
+                    for(NodeView* view : graph_view->get_selected())
+                        view->arrange_recursively();
                 break;
             }
 
             case Event_SelectNext::id:
             {
-                // TODO: views should be included in the event
-                auto& selected = graph_view->get_selected();
-                if (selected.empty()) break;
-                std::vector<Node*> successors = selected[0]->get_owner()->successors();
-                if (!successors.empty())
-                    if (NodeView* successor_view = successors.front()->get_component<NodeView>() )
-                        graph_view->set_selected({successor_view}, SelectionMode_REPLACE);
+                if (graph_view && !graph_view->get_selected().empty())
+                {
+                    std::vector<NodeView*> successors;
+                    if (!graph_view->get_selected().empty())
+                        for(NodeView* view : graph_view->get_selected() )
+                            for (NodeView* successor : Utils::get_components<NodeView>( view->get_node()->successors() ) )
+                                successors.push_back( successor );
+
+                    graph_view->set_selected(successors, SelectionMode_REPLACE);
+                }
+
                 break;
             }
 
             case Event_ToggleFolding::id:
             {
-                // TODO: views should be included in the event
-                auto& selected = graph_view->get_selected();
-                if ( selected.empty() ) break;
-                auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
-                _event->data.mode == RECURSIVELY ? selected[0]->expand_toggle_rec()
-                                                 : selected[0]->expand_toggle();
+                if ( graph_view && !graph_view->selection_empty() )
+                    for(NodeView* view : graph_view->get_selected())
+                    {
+                        auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
+                        _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()
+                                                         : view->expand_toggle();
+                    }
+
                 break;
             }
 
