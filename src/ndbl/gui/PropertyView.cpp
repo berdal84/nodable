@@ -281,6 +281,8 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
         }
 
         case Token_t::literal_string:
+        case Token_t::any:
+        case Token_t::null:
         {
             char buf[256];
             snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
