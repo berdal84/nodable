@@ -67,9 +67,10 @@ std::string NodeView::get_label()
     switch ( get_node()->type() )
     {
         case NodeType_VARIABLE:
+        case NodeType_VARIABLE_REF:
         {
             if (minimalist)
-                return "&";
+                return "";
             auto variable = reinterpret_cast<const VariableNode *>(get_node());
             return variable->get_type()->get_name();
         }

@@ -631,7 +631,7 @@ void GraphView::cursor_state_tick()
                 m_hovered.nodeview->expand_toggle();
                 m_focused = m_hovered;
             }
-            else if (ImGui::IsMouseDragging(0))
+            else if (ImGui::IsMouseDragging(0, 0.f))
             {
                 if (!m_hovered.nodeview->selected())
                     set_selected({m_hovered.nodeview});
