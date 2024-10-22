@@ -97,7 +97,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_node_gap_base                      = Vec2(40.0f, 40.f);
     ui_node_speed                         = 20.0f;
     ui_node_physics_frequency             = 120.f;
-    ui_node_detail                        = ViewDetail::ESSENTIAL;
+    ui_node_detail                        = ViewDetail::NORMAL;
     ui_slot_rectangle_size                = Vec2{10.f, 10.f};
     ui_slot_gap                           = 4.0f;
     ui_slot_border_radius                 = 0.1f;

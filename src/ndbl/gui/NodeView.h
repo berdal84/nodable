@@ -101,7 +101,6 @@ namespace ndbl
         void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
-        void                    update_labels_from_name(const char*);
 
         static void DrawNodeRect(
                 tools::Rect rect,
@@ -116,8 +115,6 @@ namespace ndbl
 
 
         tools::ViewState m_view_state; // uses View by Composition
-        std::string     m_label;
-        std::string     m_short_label;
         bool            m_expanded;
         bool            m_pinned;
         float           m_opacity;

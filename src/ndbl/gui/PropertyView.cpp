@@ -4,6 +4,7 @@
 #include "ndbl/core/Node.h"
 #include "ndbl/core/Interpreter.h"
 #include "NodeView.h"
+#include "Config.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -14,7 +15,7 @@ constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 
 PropertyView::PropertyView(Property* _property )
 : m_property(_property)
-, show_input(false)
+, show(false)
 , touched(false)
 , m_view_state(10.f, 10.f)
 {
@@ -23,7 +24,7 @@ PropertyView::PropertyView(Property* _property )
 void PropertyView::reset()
 {
     touched    = false;
-    show_input = false;
+    show = false;
 }
 
 Property* PropertyView::get_property() const
@@ -75,57 +76,61 @@ bool PropertyView::draw(ViewDetail _detail)
     /*
      * Handle input visibility
      */
-    if ( touched )
+    if ( _detail == ViewDetail::MINIMALIST )
     {
-        show_input &= was_visited_by_interpreter;
-    }
-    else if ( _detail == ViewDetail::MINIMALIST)
-    {
-        show_input = false;
-    }
-    else if (_detail == ViewDetail::EXHAUSTIVE)
-    {
-        show_input = true;
+        this->show = false;
+        this->show |= node_type == NodeType_VARIABLE;
+        this->show |= node_type == NodeType_VARIABLE_REF;
     }
     else
     {
         // When untouched, it depends...
 
-        show_input |= node_type == NodeType_LITERAL;
-        show_input |= node_type == NodeType_VARIABLE;
-        show_input |= node_type == NodeType_VARIABLE_REF;
+        this->show |= node_type == NodeType_LITERAL;
+        this->show |= node_type == NodeType_VARIABLE;
+        this->show |= node_type == NodeType_VARIABLE_REF;
 
         // During debugging we want to see everything if we visited this node
-        show_input |= was_visited_by_interpreter;
+        this->show |= was_visited_by_interpreter;
         // Always show when connected to a variable
         if ( const Slot* connected_slot = get_connected_slot() )
             switch ( connected_slot->node->type() )
             {
                 case NodeType_VARIABLE:
                 case NodeType_VARIABLE_REF:
-                    show_input |= true;
+                    this->show |= true;
             }
 
         // Always show properties that have an input slot free
         if (auto* slot = node->find_slot_by_property(property, SlotFlag_INPUT))
-            show_input |= !slot->is_full();
+            this->show |= !slot->is_full();
+
+        this->show |= this->touched;
     }
 
     // input
-    if ( show_input )
+    if ( this->show )
     {
         const bool compact_mode = true;
         changed = PropertyView::draw_input(this, compact_mode, nullptr);
+
+        if ( ImGui::IsItemFocused() )
+        {
+            this->show    = false;
+            this->touched = false;
+        }
     }
     else
     {
-        ImGui::Button("", PROPERTY_TOGGLE_BTN_SIZE);
+        ImGui::Button("", { 8.f, 24.f} );
 
         if ( ImGui::IsItemClicked(0) )
         {
-            show_input = !show_input;
-            touched    = true;
+            get_config()->ui_node_detail = ViewDetail::NORMAL;
+            this->touched = true;
+            this->show    = true;
         }
+
     }
 
     if ( ImGuiEx::BeginTooltip() )

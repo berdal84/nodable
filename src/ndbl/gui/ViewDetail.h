@@ -6,7 +6,6 @@ namespace ndbl
     enum class ViewDetail: i8_t
     {
         MINIMALIST = 0,
-        ESSENTIAL,
-        EXHAUSTIVE
+        NORMAL,
     };
 }

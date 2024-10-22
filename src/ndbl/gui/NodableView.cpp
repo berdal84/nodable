@@ -241,8 +241,7 @@ void NodableView::draw()
             ImGui::Text("View Detail:");
             ImGui::Indent();
             menu_item_node_view_detail(ViewDetail::MINIMALIST, "Minimalist");
-            menu_item_node_view_detail(ViewDetail::ESSENTIAL,  "Essential");
-            menu_item_node_view_detail(ViewDetail::EXHAUSTIVE, "Exhaustive");
+            menu_item_node_view_detail(ViewDetail::NORMAL,     "Normal");
             ImGui::Unindent();
 
             ImGui::Separator();

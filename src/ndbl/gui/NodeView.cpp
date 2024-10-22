@@ -61,12 +61,54 @@ NodeView::~NodeView()
 std::string NodeView::get_label()
 {
     Config* cfg = get_config();
-    if (cfg->ui_node_detail == ViewDetail::MINIMALIST )
+
+    bool minimalist = cfg->ui_node_detail == ViewDetail::MINIMALIST;
+
+    switch ( get_node()->type() )
     {
-        // I always add an ICON_FA at the beginning of any node label string (encoded in 4 bytes)
-        return m_short_label;
+        case NodeType_VARIABLE:
+        {
+            if (minimalist)
+                return "&";
+            auto variable = reinterpret_cast<const VariableNode *>(get_node());
+            return variable->get_type()->get_name();
+        }
+        case NodeType_OPERATOR:
+        {
+            return get_node()->name();
+        }
+        case NodeType_FUNCTION:
+        {
+            if ( minimalist )
+                return "f(x)";
+            return get_node()->name();
+        }
+        case NodeType_BLOCK_SCOPE:
+        {
+            if ( minimalist )
+                return "{}";
+            return get_node()->name();
+        }
+        case NodeType_BLOCK_CONDITION:
+        {
+            if ( minimalist )
+                return "?";
+            return get_node()->name();
+        }
+        case NodeType_BLOCK_FOR_LOOP:
+        {
+            if ( minimalist )
+                return "for";
+            return get_node()->name();
+        }
+        default:
+        {
+            if ( minimalist )
+                return get_node()->name().substr(0, 3) + ".";
+            return get_node()->name();
+        }
     }
-    return m_label;
+
 }
 
 void NodeView::set_owner(Node* node)
@@ -228,34 +270,11 @@ void NodeView::set_owner(Node* node)
         }
     }
 
-    // 3. Update label
-    //----------------
-
-    update_labels_from_name(node->name().c_str());
-    CONNECT(node->on_name_change_signal, NodeView::update_labels_from_name);
-
-    // 4. Update fill color
+    // 3. Update fill color
     //---------------------
 
     // note: We pass color by address to be able to change the color dynamically
     set_color( &cfg->ui_node_fill_color[node->type()] );
-}
-
-void NodeView::update_labels_from_name(const char* _name)
-{
-    // Label
-    // For a variable, label must be the type
-    if ( get_node()->type() == NodeType_VARIABLE )
-        m_label = reinterpret_cast<const VariableNode *>(get_node())->get_type()->get_name();
-    else
-        m_label = _name;
-
-    // Short label
-    constexpr size_t label_max_length = 10;
-    if ( m_label.size() <= label_max_length )
-        m_short_label = m_label;
-    else
-        m_short_label = m_label.substr(0, label_max_length) + "..";
 }
 
 void NodeView::arrange_recursively(bool _smoothly)
@@ -385,8 +404,14 @@ bool NodeView::draw()
             pre_label = get_label();
             break;
         case NodeType_FUNCTION:
-            pre_label = get_label() + "(";
-            post_label = ")";
+            pre_label = get_label();
+            post_label = "";
+
+            if ( cfg->ui_node_detail != ViewDetail::MINIMALIST)
+            {
+                pre_label.push_back('(');
+                post_label.push_back(')');
+            }
             break;
     }
 

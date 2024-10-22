@@ -20,7 +20,7 @@ namespace ndbl
     {
     public:
 
-        bool        show_input;
+        bool        show;
         bool        touched;
 
         PropertyView(Property*);
