@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include "tools/core/assertions.h"
 #include "tools/core/reflection/FunctionTraits.h"
 
 namespace tools
@@ -53,7 +54,7 @@ namespace tools
         inline static R _method_caller(void* object_ptr, Args... args)
         {
             T* p = static_cast<T*>(object_ptr);
-            VERIFY(p != nullptr, "object_ptr is null, did you provided it?")
+            VERIFY(p != nullptr, "object_ptr is null, did you provided it?");
             return (p->*TMethod)(args...); // The trick is here, the method IS A TYPE!
         }
     };

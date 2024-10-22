@@ -42,7 +42,7 @@ static_assert(false, "VERIFY_ is reserved for tools, it should not be defined he
 if(!(expression)) { LOG_FLUSH() throw tools::runtime_error(message_if_fails); }
 
 #define ASSERT(expression) VERIFY_( (expression), "Assertion failed: " #expression" is false" )
-#define VERIFY(expression, message) VERIFY_( (expression), message )
+#define VERIFY(expression, message) VERIFY_( (expression), message );
 
 #endif // !TOOLS_NOEXCEPT
 
