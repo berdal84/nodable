@@ -284,15 +284,13 @@ void NodeView::arrange_recursively(bool _smoothly)
     m_pinned = false;
 }
 
-bool NodeView::update(float dt)
+void NodeView::update(float dt)
 {
     if(m_opacity != 1.0f)
         lerp(m_opacity, 1.0f, 10.0f * dt);
 
     for(SlotView* slot_view  : m_slot_views )
         slot_view->update( dt );
-
-	return true;
 }
 
 bool NodeView::draw()

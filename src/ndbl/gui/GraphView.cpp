@@ -362,37 +362,35 @@ bool GraphView::draw()
 	return changed;
 }
 
-bool GraphView::update(float delta_time, u16_t subsample_count)
+void GraphView::_update(float dt, u16_t subsample_count)
 {
-    const float subsample_delta_time = delta_time / float(subsample_count);
+    ASSERT(subsample_count !=0 )
+    const float subsample_dt = dt / float(subsample_count);
     for(u16_t i = 0; i < subsample_count; i++)
-        update( subsample_delta_time );
-    return true;
+        _update( subsample_dt );
 }
 
-bool GraphView::update(float delta_time)
+void GraphView::_update(float dt)
 {
     // 1. Update Physics Components
     std::vector<Physics*> physics_components = Utils::get_components<Physics>( m_graph->get_node_registry() );
     // 1.1 Apply constraints (but apply no translation, we want to be sure order does no matter)
     for (auto physics_component : physics_components)
     {
-        physics_component->apply_constraints(delta_time);
+        physics_component->apply_constraints(dt);
     }
     // 1.3 Apply forces (translate views)
     for(auto physics_component : physics_components)
     {
-        physics_component->apply_forces(delta_time);
+        physics_component->apply_forces(dt);
     }
 
     // 2. Update NodeViews
     std::vector<NodeView*> nodeview_components = Utils::get_components<NodeView>( m_graph->get_node_registry() );
     for (auto eachView : nodeview_components)
     {
-        eachView->update(delta_time);
+        eachView->update(dt);
     }
-
-    return true;
 }
 
 void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_top_left_corner)
@@ -428,8 +426,12 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
 
 void GraphView::unfold()
 {
-    Config* cfg = get_config();
-    update( cfg->graph_unfold_dt, cfg->graph_unfold_iterations );
+    const Config* cfg = get_config();
+
+    float dt      = cfg->graph_unfold_duration;
+    u16_t samples = cfg->graph_unfold_subsamples;
+
+    _update(dt, samples);
 }
 
 void GraphView::add_action_to_node_menu(Action_CreateNode* _action )
@@ -790,4 +792,10 @@ void GraphView::roi_state_tick()
 void GraphView::add_child(NodeView* view)
 {
     m_view_state.box.xform.add_child( view->xform() );
+}
+
+void GraphView::update(float dt)
+{
+    u16_t samples = get_config()->ui_node_physics_sample_count(dt);
+    _update(dt, samples);
 }

@@ -43,12 +43,12 @@ namespace ndbl
 	    explicit GraphView(Graph* graph);
 		~GraphView() = default;
 
+        void        update(float dt);
         bool        draw();
         void        add_action_to_node_menu(Action_CreateNode* _action);
         void        frame_nodes(FrameMode mode );
         bool        selection_empty() const;
         void        reset(); // unfold and frame the whole graph
-        bool        update(float dt, u16_t samples);
         bool        has_an_active_tool() const;
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
         const NodeViewVec& get_selected() const;
@@ -67,7 +67,8 @@ namespace ndbl
         Graph*                 m_graph;
 
         void        unfold(); // unfold the graph until it is stabilized
-        bool        update(float dt);
+        void        _update(float dt, u16_t samples);
+        void        _update(float dt);
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );

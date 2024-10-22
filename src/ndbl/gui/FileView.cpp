@@ -349,6 +349,7 @@ void FileView::refresh_overlay(Condition _condition )
 
 void FileView::update(float dt)
 {
-    const size_t samples = get_config()->ui_node_animation_subsample_count;
-    m_file->get_graph().get_view()->update( dt, samples );
+    GraphView* graph_view = m_file->get_graph().get_view();
+    ASSERT(graph_view != nullptr)
+    graph_view->update(dt);
 }

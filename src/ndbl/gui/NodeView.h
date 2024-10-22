@@ -66,7 +66,7 @@ namespace ndbl
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw();
         void                    set_owner(Node*)override;
-        bool                    update(float);
+        void                    update(float);
         void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
         tools::Rect             get_rect(tools::Space space = tools::WORLD_SPACE) const;

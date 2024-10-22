@@ -860,8 +860,8 @@ void NodableView::draw_config_window()
 
         if (ImGui::CollapsingHeader("Graph", flags ))
         {
-            ImGui::InputFloat("unfold delta time", &cfg->graph_unfold_dt);
-            ImGui::InputInt("unfold iterations", &cfg->graph_unfold_iterations, 1, 1000);
+            ImGui::InputFloat("unfold delta time", &cfg->graph_unfold_duration);
+            ImGui::InputInt("unfold iterations", &cfg->graph_unfold_subsamples, 1, 1000);
             ImGui::ColorEdit4("grid color (major)", &cfg->ui_graph_grid_color_major.x);
             ImGui::ColorEdit4("grid color (minor)", &cfg->ui_graph_grid_color_minor.x);
             ImGui::SliderInt("grid set_size", &cfg->ui_grid_size, 1, 500);

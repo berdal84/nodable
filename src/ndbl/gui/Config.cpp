@@ -96,7 +96,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_slot_color_dark                    = Color(127, 127, 127);
     ui_node_gap_base                      = Vec2(40.0f, 40.f);
     ui_node_speed                         = 20.0f;
-    ui_node_animation_subsample_count     = 4;  // 60fps * 4 gives virtually 240Fps for the animations
+    ui_node_physics_frequency             = 120.f;
     ui_node_detail                        = ViewDetail::ESSENTIAL;
     ui_slot_rectangle_size                = Vec2{10.f, 10.f};
     ui_slot_gap                           = 4.0f;
@@ -151,8 +151,8 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     flags                                 = ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY
                                           | ConfigFlag_EXPERIMENTAL_MULTI_SELECTION;
     isolation                             = Isolation_OFF;
-    graph_unfold_dt                       = 1.5f;
-    graph_unfold_iterations               = 100;
+    graph_unfold_duration                 = 1.5f;
+    graph_unfold_subsamples               = 50;
 
     // NodableView
     tools_cfg->dockspace_right_ratio       = 0.25f;
@@ -208,4 +208,13 @@ Vec4& ndbl::Config::ui_slot_color(ndbl::SlotFlags slot_flags)
         return ui_slot_color_light;
 
     return ui_slot_color_dark;
+}
+
+u16_t ndbl::Config::ui_node_physics_sample_count(float dt) const
+{
+    ASSERT( dt >= 0.f)
+    const u16_t n_samples = (u16_t)(dt * ui_node_physics_frequency);
+    if ( n_samples == 0 ) // When frame rate is too slow, we could be in that case
+        return 1;
+    return n_samples;
 }
