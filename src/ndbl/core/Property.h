@@ -28,6 +28,7 @@ namespace ndbl
     {
     public:
         void               init(const tools::TypeDescriptor*, PropertyFlags, Node*, const char* _name); // must be called once before use
+        void               init_token();
         void               digest(Property *_property);
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
         void               set_flags(PropertyFlags flags) { m_flags |= flags; }
@@ -48,6 +49,6 @@ namespace ndbl
         PropertyFlags      m_flags = PropertyFlag_NONE;
         const tools::TypeDescriptor* m_type  = nullptr;
         std::string        m_name;
-        Token              m_token;
+        Token              m_token = { Token_t::any };
     };
 }

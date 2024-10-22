@@ -40,7 +40,7 @@ namespace ndbl
         size_t      m_string_length    = 0; //     size of ...
         size_t      m_word_start_pos   = 0; // position of the token's word (without prefix/suffix) in m_source_buffer
         size_t      m_word_length      = 0; //     size of ...
-        Token_t     m_type             = Token_t::null;
+        Token_t     m_type             = Token_t::any;
 
         Token() {}
 

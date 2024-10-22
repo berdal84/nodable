@@ -15,6 +15,30 @@ void Property::init(const TypeDescriptor* _type, PropertyFlags _flags, Node* _ow
     m_flags = _flags;
     m_owner = _owner;
     m_name  = _name;
+    init_token();
+}
+
+void Property::init_token()
+{
+    // Initialize a default Token
+    // it is required to display a default value
+    if ( m_type == type::get<double>() )
+    {
+        m_token = { Token_t::literal_double, "0.0" };
+    }
+    else if ( m_type == type::get<i16_t>() )
+    {
+        m_token = { Token_t::keyword_i16, "0" };
+    }
+    else if ( m_type == type::get<bool>() )
+    {
+        m_token = { Token_t::literal_bool, "false" };
+    }
+    else
+    {
+        VERIFY(( _type == type::get<std::string>() ), "Should be a string");
+        m_token = { Token_t::literal_string, "" };
+    }
 }
 
 void Property::digest(Property* _property)
@@ -29,5 +53,8 @@ bool Property::is_type(const TypeDescriptor* other) const
 
 void Property::set_type(const tools::TypeDescriptor* type)
 {
+    bool change = type != m_type;
     m_type = type;
+    if (change)
+        init_token();
 }

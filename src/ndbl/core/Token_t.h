@@ -38,7 +38,7 @@ namespace ndbl {
         scope_end ,
         end_of_instruction,
         end_of_line,
-
+        any,
         COUNT,
     };
 

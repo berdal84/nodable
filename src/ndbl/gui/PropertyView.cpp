@@ -287,11 +287,6 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             }
             break;
         }
-
-        case Token_t::null:
-        {
-            break;
-        }
         default:
             ASSERT(false); // Not implemented yet!
     }
