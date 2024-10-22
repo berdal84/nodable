@@ -135,23 +135,6 @@ Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _t
     return nullptr;
 }
 
-Slot& Node::nth_slot(size_t _n, SlotFlags _flags )
-{
-    size_t count = 0;
-    for( auto& slot : m_slots )
-    {
-        if ( slot->has_flags(_flags) )
-        {
-            if( count == _n )
-            {
-                return *slot;
-            }
-            count++;
-        }
-    }
-    VERIFY(false, "Not found");
-}
-
 Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, PropertyFlags _flags)
 {
     return m_props.add(_type, _name, _flags);

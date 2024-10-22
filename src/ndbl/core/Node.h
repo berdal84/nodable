@@ -92,7 +92,6 @@ namespace ndbl
         size_t               adjacent_slot_count(SlotFlags )const;
         Slot&                slot_at(size_t);
         const Slot&          slot_at(size_t) const;
-        Slot&                nth_slot(size_t, SlotFlags );
         std::vector<Slot*>   filter_slots( SlotFlags ) const;
         std::vector<Slot*>   filter_adjacent_slots(SlotFlags) const;
         Slot*                find_slot( SlotFlags ); // implicitly DEFAULT_PROPERTY's slot
