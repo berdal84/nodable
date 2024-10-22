@@ -49,7 +49,7 @@ std::string ndbl::to_string(const DirectedEdge& _edge)
     auto serialize_slot_ref = [&result](const Slot* _slot) -> void
     {
         result.append("[node: ");
-        result.append( std::to_string((u64_t) _slot->node()));
+        result.append( std::to_string((u64_t) _slot->node));
         result.append(" (slot: ");
         result.append( std::to_string((u64_t)_slot));
 

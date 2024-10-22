@@ -280,7 +280,7 @@ void Nodable::update()
                 ASSERT(curr_file_history != nullptr);
                 auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
                 DirectedEdge edge{ _event->data.first, _event->data.second };
-                Graph* graph = _event->data.first->node()->graph();
+                Graph* graph = _event->data.first->node->graph();
                 auto command = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
                 break;
@@ -293,7 +293,7 @@ void Nodable::update()
                 Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
-                Graph* graph = _event->data.first->node()->graph();
+                Graph* graph = _event->data.first->node->graph();
                 for( const auto& adjacent_slot: slot->adjacent() )
                 {
                     DirectedEdge edge{slot, adjacent_slot};
@@ -359,7 +359,7 @@ void Nodable::update()
                 else
                 {
                     Slot* complementary_slot = new_node->find_slot_by_property_type(
-                            get_complementary_flags(_event->data.active_slotview->slot().type_and_order() ),
+                            get_complementary_flags(_event->data.active_slotview->slot->type_and_order() ),
                             _event->data.active_slotview->property()->get_type() );
 
                     if ( !complementary_slot )
@@ -369,8 +369,8 @@ void Nodable::update()
                     }
                     else
                     {
-                        Slot* out = &_event->data.active_slotview->slot();
-                        Slot* in = complementary_slot;
+                        Slot* out = _event->data.active_slotview->slot;
+                        Slot* in  = complementary_slot;
 
                         if ( out->has_flags( SlotFlag_ORDER_SECOND ) )
                             std::swap( out, in );
@@ -378,10 +378,9 @@ void Nodable::update()
                         _event->data.graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        Node* out_node = out->node();
-                        if ( Utils::is_instruction( out_node ) && out->type() == SlotFlag_TYPE_CODEFLOW )
+                        if ( Utils::is_instruction( out->node ) && out->type() == SlotFlag_TYPE_CODEFLOW )
                         {
-                            Token& token = out_node->suffix();
+                            Token& token = out->node->suffix();
                             std::string buffer = token.buffer_to_string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
                                 token.suffix_append("\n");

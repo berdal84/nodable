@@ -185,7 +185,7 @@ void NodeView::set_owner(Node* node)
     // Make sure inputs/outputs are aligned with the property views (if present) and not the node's view.
     for(auto view : m_slot_views)
     {
-        switch ( view->slot().type() )
+        switch ( view->slot->type() )
         {
             case SlotFlag_TYPE_VALUE:
             {
@@ -204,9 +204,10 @@ void NodeView::set_owner(Node* node)
             auto variable = static_cast<VariableNode*>( node );
             if ( Slot* decl_out = variable->decl_out() )
             {
-                if (SlotView *view = decl_out->view())
+                if (SlotView *view = decl_out->view)
                 {
-                    view->set_alignment(LEFT);
+                    view->alignment = LEFT;
+                    view->update_direction_from_alignment();
                     view->alignment_ref = this->box();
                 }
             }
@@ -217,7 +218,7 @@ void NodeView::set_owner(Node* node)
             auto function = static_cast<FunctionNode*>( node );
             if ( Slot* value_out = function->value_out() )
             {
-                if (SlotView *view = value_out->view())
+                if (SlotView *view = value_out->view)
                 {
                     view->direction     = BOTTOM;
                     view->alignment_ref = nullptr;
@@ -401,7 +402,7 @@ bool NodeView::draw()
 
         if ( node->type() == NodeType_FUNCTION )
             if (Slot *slot_out = node->value_out())
-                if (SlotView *slot_view_out = slot_out->view())
+                if (SlotView *slot_view_out = slot_out->view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
                     const float y = box()->pivot(BOTTOM, WORLD_SPACE).y;

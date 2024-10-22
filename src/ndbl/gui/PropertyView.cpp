@@ -56,7 +56,7 @@ VariableNode* PropertyView::get_connected_variable() const
     if( !adjacent_slot )
         return nullptr;
 
-    return cast<VariableNode>(adjacent_slot->node() );
+    return cast<VariableNode>(adjacent_slot->node);
 }
 
 bool PropertyView::draw(ViewDetail _detail)
@@ -99,7 +99,7 @@ bool PropertyView::draw(ViewDetail _detail)
         show_input |= was_visited_by_interpreter;
         // Always show when connected to a variable
         if ( const Slot* connected_slot = get_connected_slot() )
-            switch ( connected_slot->node()->type() )
+            switch ( connected_slot->node->type() )
             {
                 case NodeType_VARIABLE:
                 case NodeType_VARIABLE_REF:
@@ -182,19 +182,19 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
     // 1
     if (property->owner()->type() != NodeType_VARIABLE)
         if ( connected_slot != nullptr )
-            switch (connected_slot->node()->type())
+            switch (connected_slot->node->type())
             {
                 case NodeType_VARIABLE:
                 case NodeType_VARIABLE_REF:
                 {
                     char buf[256];
-                    const Token &connected_property_token = connected_slot->property()->token();
+                    const Token &connected_property_token = connected_slot->property->token();
                     snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
                              connected_property_token.word_ptr());
                     float w = calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                                          connected_slot->node()->get_component<NodeView>()->get_color(Color_FILL));
+                                          connected_slot->node->get_component<NodeView>()->get_color(Color_FILL));
                     if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
                     {
                         // is ReadOnly

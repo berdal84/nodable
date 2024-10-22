@@ -3,7 +3,6 @@
 #include <algorithm>
 #include "tools/core/types.h"
 #include "tools/core/log.h"
-#include "tools/core/System.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/core/math.h"
 #include "tools/gui/Color.h"
@@ -11,7 +10,6 @@
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/LiteralNode.h"
 #include "ndbl/core/Utils.h"
-#include "ndbl/core/Scope.h"
 #include "ndbl/core/Slot.h"
 #include "ndbl/core/Interpreter.h"
 
@@ -107,7 +105,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     style.shadow_color = cfg->ui_codeflow_shadowColor,
     style.roundness    = 0.f;
 
-    if (from->slot().type() == SlotFlag_TYPE_CODEFLOW) {
+    if (from->slot->type() == SlotFlag_TYPE_CODEFLOW) {
         style.color = cfg->ui_codeflow_color,
                 style.thickness = cfg->ui_slot_rectangle_size.x * cfg->ui_codeflow_thickness_ratio;
     } else {
@@ -117,7 +115,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 
     // Draw
 
-    ImGuiID id = make_wire_id(&from->slot(), nullptr);
+    ImGuiID id = make_wire_id(from->slot, nullptr);
     Vec2 start_pos = from->xform()->get_pos(WORLD_SPACE);
 
     BezierCurveSegment2D segment{
@@ -184,7 +182,7 @@ bool GraphView::draw()
 
             for (const auto &adjacent_slot: slot->adjacent())
             {
-                Node*     each_successor_node  = adjacent_slot->node();
+                Node*     each_successor_node  = adjacent_slot->node;
                 NodeView* possibly_hidden_view = each_successor_node->get_component<NodeView>();
                 NodeView* each_successor_view  = NodeView::substitute_with_parent_if_not_visible(possibly_hidden_view);
 
@@ -195,8 +193,8 @@ bool GraphView::draw()
                 if ( each_successor_view->visible() == false )
                     continue;
 
-                SlotView *tail = slot->view();
-                SlotView *head = adjacent_slot->view();
+                SlotView* tail = slot->view;
+                SlotView* head = adjacent_slot->view;
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
                 Vec2 tail_pos = tail->xform()->get_pos(WORLD_SPACE);
@@ -231,8 +229,8 @@ bool GraphView::draw()
                 if (slot_in == nullptr)
                     continue;
 
-                auto *node_view_out = slot_out->node()->get_component<NodeView>();
-                auto *node_view_in  = slot_in->node()->get_component<NodeView>();
+                auto *node_view_out = slot_out->node->get_component<NodeView>();
+                auto *node_view_in  = slot_in->node->get_component<NodeView>();
 
                 if ( !node_view_out->visible() )
                     continue;
@@ -250,8 +248,8 @@ bool GraphView::draw()
 
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
 
-                SlotView* slot_view_out = slot_out->view();
-                SlotView* slot_view_in  = slot_in->view();
+                SlotView* slot_view_out = slot_out->view;
+                SlotView* slot_view_in  = slot_in->view;
 
                 p1 = slot_view_out->xform()->get_pos(WORLD_SPACE);
                 p2 = slot_view_in->xform()->get_pos(WORLD_SPACE);
@@ -287,7 +285,7 @@ bool GraphView::draw()
 
                     BezierCurveSegment2D segment{p1, cp1, cp2, p2};
 
-                    ImGuiID id = make_wire_id(&slot_view_out->slot(), slot_in);
+                    ImGuiID id = make_wire_id(slot_view_out->slot, slot_in);
                     ImGuiEx::DrawWire(id, draw_list, segment, style);
                     if (ImGui::GetHoveredID() == id && m_hovered.empty())
                         m_hovered = {slot_view_out, slot_view_in};
@@ -724,8 +722,8 @@ void GraphView::line_state_tick()
                 if ( m_focused.slotview == m_hovered.slotview )
                     break;
                 auto event = new Event_SlotDropped();
-                event->data.first  = &m_focused.slotview->slot();
-                event->data.second = &m_hovered.slotview->slot();
+                event->data.first  = m_focused.slotview->slot;
+                event->data.second = m_hovered.slotview->slot;
                 get_event_manager()->dispatch(event);
                 m_state_machine.exit_state();
                 break;

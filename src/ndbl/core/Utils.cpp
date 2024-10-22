@@ -10,7 +10,7 @@ std::vector<Node*> Utils::get_adjacent_nodes(const Node* _node, SlotFlags _flags
     {
         for( const Slot* adjacent : slot->adjacent() )
         {
-            result.emplace_back(adjacent->node() );
+            result.emplace_back(adjacent->node );
         }
     }
     return result;
@@ -20,7 +20,7 @@ Node* Utils::adjacent_node_at(const Node* _node, SlotFlags _flags, u8_t _pos)
 {
     if ( Slot* adjacent_slot = _node->find_adjacent_at( _flags, _pos ) )
     {
-        return adjacent_slot->node();
+        return adjacent_slot->node;
     }
     return {};
 }

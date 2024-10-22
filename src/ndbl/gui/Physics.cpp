@@ -319,7 +319,7 @@ bool Physics::Constraint::should_follow_output(const Node* node, const Node* out
     {
         auto variable = static_cast<const VariableNode*>( node );
         if ( auto adjacent = variable->decl_out()->first_adjacent() )
-            return adjacent->node() == output_node;
+            return adjacent->node == output_node;
 
     }
 

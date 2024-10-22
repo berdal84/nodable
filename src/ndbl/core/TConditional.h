@@ -56,7 +56,7 @@ namespace ndbl
         // Try to return the adjacent node connected to this branch
         Slot* adjacent = get_condition_slot(_branch).first_adjacent();
         if( adjacent != nullptr)
-            return adjacent->node();
+            return adjacent->node;
         return nullptr;
     }
 
@@ -95,7 +95,7 @@ namespace ndbl
         ASSERT(_branch < BRANCH_COUNT );
         if ( Slot* adjacent_slot = m_child_slot[_branch]->first_adjacent() )
         {
-            return adjacent_slot->node()->get_component<Scope>();
+            return adjacent_slot->node->get_component<Scope>();
         }
         return {};
     }

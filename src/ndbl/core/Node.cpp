@@ -42,8 +42,8 @@ const FunctionDescriptor* Node::get_connected_function_type(const char* property
     const Slot* adjacent_slot = slot->first_adjacent();
 
     if ( adjacent_slot )
-        if (adjacent_slot->node()->is_invokable() )
-            return static_cast<const FunctionNode*>(adjacent_slot->node())->get_func_type();
+        if (adjacent_slot->node->is_invokable() )
+            return static_cast<const FunctionNode*>(adjacent_slot->node)->get_func_type();
 
     return nullptr;
 }
@@ -103,7 +103,7 @@ const Slot* Node::find_slot_at(SlotFlags _flags, size_t _position) const
 {
     for( const Slot* slot : m_slots )
     {
-        if( slot->has_flags(_flags) && slot->position() == _position && slot->property() == m_value )
+        if( slot->has_flags(_flags) && slot->position == _position && slot->property == m_value )
         {
             return slot;
         }
@@ -127,7 +127,7 @@ Slot* Node::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _t
 {
     for(Slot* slot : filter_slots( flags ) )
     {
-        if( type::is_implicitly_convertible(slot->get_property()->get_type(), _type ) )
+        if( type::is_implicitly_convertible(slot->property->get_type(), _type ) )
         {
             return slot;
         }

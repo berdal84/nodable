@@ -31,8 +31,8 @@ TEST_F(Graph_, connect)
     DirectedEdge& edge = *graph->connect_or_merge( *slot_1, *slot_2 );
 
     // Verify
-    EXPECT_EQ(edge.tail->get_property(), prop_1 );
-    EXPECT_EQ(edge.head->get_property(), prop_2 );
+    EXPECT_EQ(edge.tail->property, prop_1 );
+    EXPECT_EQ(edge.head->property, prop_2 );
     EXPECT_EQ(graph->get_edge_registry().size(), 1);
  }
 

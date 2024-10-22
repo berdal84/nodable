@@ -6,7 +6,10 @@ using namespace ndbl;
 const Slot Slot::null{};
 
 Slot::Slot()
-: _flags(SlotFlag::SlotFlag_NONE)
+: node(nullptr)
+, _flags(SlotFlag_NONE)
+, property(nullptr)
+, position(0)
 {
 }
 
@@ -17,10 +20,10 @@ Slot::Slot(
     size_t    capacity,
     size_t    position
     )
-: _node(node)
+: node(node)
 , _flags(flags)
-, _property(property)
-, _position(position)
+, property(property)
+, position(position)
 {
     VERIFY(!has_flags(SlotFlag_NOT_FULL), "SlotFlag_NOT_FULL is for readonly use" );
     ASSERT( capacity > 0 );
@@ -29,22 +32,13 @@ Slot::Slot(
 }
 
 Slot::Slot(const Slot &other)
-: _node(other._node)
-, _property(other._property)
+: node(other.node)
+, property(other.property)
 , _flags(other._flags)
 , _adjacent(other._adjacent)
-, _position(other._position)
+, position(other.position)
 {
     expand_capacity(other.capacity());
-}
-
-Slot* Slot::first_adjacent() const
-{
-    if (!_adjacent.empty())
-    {
-        return _adjacent[0];
-    }
-    return nullptr;
 }
 
 Slot* Slot::adjacent_at(u8_t pos) const
@@ -59,16 +53,6 @@ Slot* Slot::adjacent_at(u8_t pos) const
         ++count;
     }
     return nullptr;
-}
-
-size_t Slot::adjacent_count() const
-{
-    return _adjacent.size();
-}
-
-bool Slot::is_full() const
-{
-    return !has_flags(SlotFlag_NOT_FULL);
 }
 
 void Slot::_add_adjacent(Slot* other)
@@ -92,61 +76,11 @@ void Slot::_remove_adjacent(Slot* other)
     _flags |= SlotFlag_NOT_FULL;
 }
 
-void Slot::set_flags( SlotFlags flags)
-{
-    _flags |= flags;
-}
-
-SlotFlags Slot::type() const
-{
-    return _flags & SlotFlag_TYPE_MASK;
-}
-
-SlotFlags Slot::order() const
-{
-    return _flags & SlotFlag_ORDER_MASK;
-}
-
-bool Slot::empty() const
-{
-    return _adjacent.empty();
-}
-
-const std::vector<Slot*>& Slot::adjacent() const
-{
-    return _adjacent;
-}
-
-size_t Slot::capacity() const
-{
-    return _adjacent.capacity();
-}
-
 void Slot::expand_capacity( size_t capacity )
 {
     VERIFY(_adjacent.capacity() <= capacity, "New capacity must be strictly greater than current" );
     _adjacent.reserve(capacity);
     _flags |= SlotFlag_NOT_FULL;
-}
-
-bool Slot::has_flags( SlotFlags flags ) const
-{
-    return (_flags & flags) == flags;
-}
-
-SlotFlags Slot::type_and_order() const
-{
-    return _flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK);
-}
-
-size_t Slot::position() const
-{
-    return _position;
-}
-
-SlotFlags Slot::flags() const
-{
-    return _flags;
 }
 
 void Slot::connect_bidirectionally(Slot* tail, Slot* head)
