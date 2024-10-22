@@ -150,9 +150,8 @@ namespace ndbl
         bool has_component() const
         { return m_components.has<C*>(); }
 
-        void set_adjacent_cache_dirty();
-
     protected:
+        void on_slot_change(Slot::Event event, Slot *slot);
 
         std::string        m_name;
         PropertyBag        m_props;
@@ -180,5 +179,6 @@ namespace ndbl
 
         REFLECT_BASE_CLASS()
         POOL_REGISTRABLE(Node)
+
     };
 }

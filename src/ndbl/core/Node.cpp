@@ -140,12 +140,21 @@ Property* Node::add_prop(const TypeDescriptor* _type, const char *_name, Propert
     return m_props.add(_type, _name, _flags);
 }
 
+void Node::on_slot_change(Slot::Event event, Slot* slot)
+{
+    LOG_MESSAGE("Node", "Slot event: %i, %p\n", event, slot);
+    this->m_adjacent_nodes_cache.set_dirty();
+}
+
 Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, size_t _position)
 {
     ASSERT( _property != nullptr );
     ASSERT(_property->owner() == this);
     Slot* slot = new Slot(this, _flags, _property, _capacity, _position);
     m_slots.push_back(slot);
+
+    // listen to events to clear cache
+    slot->on_change = Delegate<void, Slot::Event, Slot*>::from_method<&Node::on_slot_change>(this);
 
     // Update property to slots index
     const size_t key = (size_t)_property;
@@ -264,11 +273,6 @@ Slot* Node::value_in()
 const Slot* Node::value_in() const
 {
     return find_slot_by_property(m_value, SlotFlag_INPUT );
-}
-
-void Node::set_adjacent_cache_dirty()
-{
-    m_adjacent_nodes_cache.set_dirty();
 }
 
 Node* Node::parent() const

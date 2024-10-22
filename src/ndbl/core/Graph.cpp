@@ -392,9 +392,8 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     // erase it from the registry
     m_edge_registry.erase(it);
 
-    // update tail/head slots accordingly
-    _edge.tail->_remove_adjacent(_edge.head);
-    _edge.head->_remove_adjacent(_edge.tail);
+    // disconnect the slots
+    Slot::disconnect_bidirectionally(_edge.head, _edge.tail);
 
     // disconnect effectively
     switch ( type )
