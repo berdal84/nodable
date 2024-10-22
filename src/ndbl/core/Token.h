@@ -143,6 +143,7 @@ namespace ndbl
         void        take_prefix_suffix_from(Token *source); // Transfer the prefix and suffix of a given token to this token
         void        set_source_buffer(char* _buffer, size_t pos = 0, size_t size = 0);
         std::string json()const;
+        bool        empty() const { return string_size() == 0; }
         bool        is_null() const { return m_type == Token_t::null; }
         void        word_replace(const char* new_word);
         void        suffix_append(const char* str);

@@ -30,6 +30,10 @@ void Property::init_token()
     {
         m_token = { Token_t::keyword_i16, "0" };
     }
+    else if ( m_type == type::get<int>() )
+    {
+        m_token = { Token_t::keyword_int, "0" };
+    }
     else if ( m_type == type::get<bool>() )
     {
         m_token = { Token_t::literal_bool, "false" };
@@ -38,9 +42,9 @@ void Property::init_token()
     {
         m_token = { Token_t::literal_string, "" };
     }
-    else
+    else if ( m_type == type::get<any>() )
     {
-        VERIFY(( m_type == type::get<null>() ), "Should be a null");
+        m_token = { Token_t::any, "" };
     }
 }
 

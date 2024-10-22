@@ -573,8 +573,8 @@ Node* Nodlang::parse_program()
     parse_code_block();// we do not check if we parsed something empty or not, a program can be empty.
 
     // Add ignored chars pre/post token to the main scope begin/end token prefix/suffix.
-    ASSERT(program_scope->token_begin.is_null());
-    ASSERT(program_scope->token_end.is_null());
+    ASSERT(program_scope->token_begin.empty());
+    ASSERT(program_scope->token_end.empty());
     program_scope->token_begin = parser_state.ribbon.prefix();
     program_scope->token_end = parser_state.ribbon.suffix();
 
