@@ -33,7 +33,7 @@ VariableNode* Scope::find_variable(const std::string &_identifier)
             return *it;
 
     // In case not found, find recursively
-    Node* parent = m_owner->find_parent();
+    Node* parent = m_owner->parent();
     ASSERT(parent != m_owner);
     if ( !parent )
         return nullptr;

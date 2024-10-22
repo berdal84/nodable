@@ -146,19 +146,15 @@ Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, si
     ASSERT(_property->owner() == this);
     Slot* slot = new Slot(this, _flags, _property, _capacity, _position);
     m_slots.push_back(slot);
-    return slot;
-}
 
-Node* Node::find_parent() const
-{
-    if ( const Slot* parent_slot = find_slot( SlotFlag_PARENT ) )
-    {
-        Slot* adjacent_slot = parent_slot->first_adjacent();
-        if(adjacent_slot == nullptr)
-            return {};
-        return adjacent_slot->node();
-    }
-    return {};
+    // Update property to slots index
+    const size_t key = (size_t)_property;
+    if (m_slots_by_property.find(key) != m_slots_by_property.end() )
+        m_slots_by_property.at(key).push_back(slot );
+    else
+        m_slots_by_property.emplace(key, std::vector<Slot*>{slot});
+
+    return slot;
 }
 
 std::vector<Slot*> Node::filter_adjacent_slots( SlotFlags _flags ) const
@@ -188,16 +184,13 @@ Slot* Node::find_slot_by_property(const Property* property_id, SlotFlags _flags)
     return const_cast<Slot*>( const_cast<const Node*>( this )->find_slot_by_property( property_id, _flags ) );
 }
 
-const Slot* Node::find_slot_by_property(const Property* ptr, SlotFlags _flags) const
+const Slot* Node::find_slot_by_property(const Property* property_ptr, SlotFlags _flags) const
 {
-    //TODO: We may want to switch from a vector to an unordered/ordered map with pointer address as hash
-    for(auto& slot : m_slots )
-    {
-        if( slot->has_flags(_flags) && slot->get_property() == ptr )
-        {
-            return slot;
-        }
-    }
+    const size_t key = (size_t)property_ptr;
+    if (m_slots_by_property.find(key) != m_slots_by_property.end() )
+        for( Slot* slot : m_slots_by_property.at(key) )
+            if( slot->has_flags(_flags) )
+                return slot;
     return nullptr;
 }
 
@@ -276,6 +269,14 @@ const Slot* Node::value_in() const
 void Node::set_adjacent_cache_dirty()
 {
     m_adjacent_nodes_cache.set_dirty();
+}
+
+Node* Node::parent() const
+{
+    auto parents = m_adjacent_nodes_cache.get( SlotFlag_PARENT );
+    if ( parents.size() == 1)
+        return parents[0];
+    return nullptr;
 }
 
 const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const

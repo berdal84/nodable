@@ -16,6 +16,6 @@ TEST_F(Node_, find_parent)
         *child->find_slot( SlotFlag_PARENT )
     );
 
-    EXPECT_TRUE( child->find_parent() );
-    EXPECT_EQ( child->find_parent(), parent );
+    EXPECT_TRUE( child->parent() );
+    EXPECT_EQ( child->parent(), parent );
 }

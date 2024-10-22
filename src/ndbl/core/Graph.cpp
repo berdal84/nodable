@@ -349,7 +349,7 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                             *next_node.find_slot( SlotFlag_PARENT ));
                 }
                 // If next node parent exists, connects next_node as a child too
-                else if ( Node* prev_parent_node = prev_node.find_parent() )
+                else if ( Node* prev_parent_node = prev_node.parent() )
                 {
                     connect(
                             *prev_parent_node->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
@@ -357,10 +357,10 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
                 }
 
                 // Connect siblings
-                else if ( Node* prev_parent_node = prev_node.find_parent() )
+                else if ( Node* prev_parent_node = prev_node.parent() )
                 {
                     Node* current_prev_node_sibling = prev_node.successors()[0];
-                    while ( current_prev_node_sibling && current_prev_node_sibling->find_parent() )
+                    while ( current_prev_node_sibling && current_prev_node_sibling->parent() )
                     {
                         connect(
                                 *current_prev_node_sibling->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
@@ -403,13 +403,13 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
         {
             ASSERT(_edge.head->has_flags(SlotFlag_PREV));
             Node* next = _edge.head->node();
-            Node* next_parent = next->find_parent();
+            Node* next_parent = next->parent();
             if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && next_parent )
             {
-                while ( next && next_parent == next->find_parent() )
+                while ( next && next_parent == next->parent() )
                 {
                     disconnect({
-                            next->find_parent()->find_slot( SlotFlag_CHILD ),
+                            next->parent()->find_slot( SlotFlag_CHILD ),
                             next->find_slot( SlotFlag_PARENT )
                     });
 

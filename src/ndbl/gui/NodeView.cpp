@@ -168,7 +168,7 @@ void NodeView::set_owner(Node* node)
     };
 
     // Create a view per slot
-    for(Slot* slot : get_node()->slots() )
+    for( Slot* slot : get_node()->slots() )
     {
         // We don't want to see hierarchical slots
         if ( slot->type() == SlotFlag_TYPE_HIERARCHICAL )
@@ -684,7 +684,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
             {
                 std::string parentName = "NULL";
 
-                if (Node* parent = node->find_parent() )
+                if (Node* parent = node->parent() )
                 {
                     parentName = parent->name() + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
                 }
@@ -863,7 +863,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    Node* parent = _view->get_node()->find_parent();
+    Node* parent = _view->get_node()->parent();
     if ( !parent )
     {
         return _view;

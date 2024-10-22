@@ -302,18 +302,26 @@ std::vector<NodeView *> Physics::Constraint::clean(std::vector<NodeView *> &view
 
 bool Physics::Constraint::should_follow_output(const Node* node, const Node* output_node )
 {
-    ASSERT(node);
-    ASSERT(output_node);
+    ASSERT(node != nullptr);
+    ASSERT(output_node != nullptr);
 
     // Instruction should never follow an output (they must stick to the codeflow)
     if ( !Utils::is_instruction( node ) )
-        return Utils::is_first_output(node, output_node);
+    {
+        VERIFY( !node->outputs().empty(), "You should call this method knowing that other is in node's outputs, which means the vector is not empty.");
+        const bool is_first_element = node->outputs().front() == output_node;
+        return is_first_element;
+    }
 
     // However, variables can be declared inlined (like in an if condition:  "if (int i = 0) {...}" )
     // In that case we want the variable to follow the output.
     if( node->type() == NodeType_VARIABLE )
-        if ( auto adjacent = static_cast<const VariableNode*>( node )->decl_out()->first_adjacent() )
+    {
+        auto variable = static_cast<const VariableNode*>( node );
+        if ( auto adjacent = variable->decl_out()->first_adjacent() )
             return adjacent->node() == output_node;
+
+    }
 
     return false;
 }

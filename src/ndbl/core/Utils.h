@@ -19,14 +19,12 @@ namespace ndbl
         static std::vector<C*> adjacent_components(const Node*, SlotFlags);
 
         std::vector<Node*> get_adjacent_nodes(const Node*, SlotFlags);
-        Node* adjacent_node_at(const Node*, SlotFlags, u8_t pos);
-
-        bool is_instruction(const Node* node);
-        bool can_be_instruction(const Node* node);
-        bool is_unary_operator(const Node* node);
-        bool is_binary_operator(const Node* node);
-        bool is_conditional(const Node* node);
-        bool is_first_output(const Node *node, const Node *output_node);
+        Node*              adjacent_node_at(const Node*, SlotFlags, u8_t pos);
+        bool               is_instruction(const Node*);
+        bool               can_be_instruction(const Node*);
+        bool               is_unary_operator(const Node*);
+        bool               is_binary_operator(const Node*);
+        bool               is_conditional(const Node*);
     }
 
     template<class C>

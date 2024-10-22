@@ -88,7 +88,6 @@ namespace ndbl
 
         Slot*                add_slot(Property *, SlotFlags, size_t _capacity, size_t _position = 0);
         void                 set_name(const char*);
-        Node*                find_parent() const;
         size_t               adjacent_slot_count(SlotFlags )const;
         Slot&                slot_at(size_t);
         const Slot&          slot_at(size_t) const;
@@ -110,6 +109,7 @@ namespace ndbl
 
         // cached adjacent nodes accessors
 
+        Node* parent() const;
         inline const std::vector<Node*>& successors() const { return m_adjacent_nodes_cache.get( SlotFlag_PREV); }
         inline const std::vector<Node*>& children() const { return m_adjacent_nodes_cache.get( SlotFlag_CHILD ); }
         inline const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
@@ -162,6 +162,7 @@ namespace ndbl
         NodeFlags          m_flags = NodeFlag_DEFAULT;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
+        std::unordered_map<size_t,  std::vector<Slot*>> m_slots_by_property; // property's hash to Slots
 
         struct AdjacentNodesCache
         {

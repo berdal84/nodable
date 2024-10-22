@@ -72,15 +72,3 @@ bool Utils::is_conditional(const Node* node)
             return false;
     };
 }
-
-bool Utils::is_first_output(const Node *node, const Node *output_node)
-{
-    const auto outputs = node->outputs();
-    if ( outputs.empty() )
-        return false;
-
-    if ( outputs.front() == output_node )
-        return true;
-
-    return false;
-}

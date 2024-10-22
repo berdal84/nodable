@@ -531,7 +531,7 @@ Node* Nodlang::parse_instr()
         // Special case, when node is a variable
         // we want to create a reference if variable was declared somewhere else
         auto variable = static_cast<VariableNode*>( expression_out->node() );
-        if ( variable->find_parent() != nullptr )
+        if ( variable->parent() != nullptr )
         {
             VariableRefNode* ref = parser_state.graph->create_variable_ref();
             ref->set_variable( variable );
