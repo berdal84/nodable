@@ -48,6 +48,7 @@ namespace ndbl
         void        add_action_to_node_menu(Action_CreateNode* _action);
         void        frame_nodes(FrameMode mode );
         bool        selection_empty() const;
+        void        reset_physics();
         void        reset(); // unfold and frame the whole graph
         bool        has_an_active_tool() const;
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
@@ -58,8 +59,7 @@ namespace ndbl
         Graph*            get_graph() const;
         void              add_child(NodeView*);
         tools::ViewState* view_state() { return &m_view_state; };
-        void              _on_add_node(Node* node);
-        void              _on_graph_changed();
+        void              decorate(Node* node);
     private:
         CreateNodeCtxMenu      m_create_node_menu = {};
         ViewItem               m_hovered{};

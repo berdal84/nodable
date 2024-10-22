@@ -440,9 +440,9 @@ bool NodeView::draw()
     // Draw the properties depending on node type
     if ( node->type() != NodeType_OPERATOR )
     {
-        PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
-        PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
-        PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
     }
     else
     {
@@ -537,13 +537,14 @@ bool NodeView::is_inside(NodeView* _other, const Rect& _rect, Space _space)
 	return Rect::contains(_rect, _other->box()->get_rect(_space) );
 }
 
-void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
+bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 {
+    bool changed = false;
     tools::Config* tools_cfg = tools::get_config();
     Node* node = _view->get_node();
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
-    auto draw_labeled_property_view = [&](PropertyView* _property_view)
+    auto draw_labeled_property_view = [&](PropertyView* _property_view) -> bool
     {
         Property*property = _property_view->get_property();
         // label (<name> (<type>): )
@@ -562,9 +563,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        bool edited = PropertyView::draw_input(_property_view, !_show_advanced, nullptr);
-        if ( edited )
-            node->set_flags( NodeFlag_IS_DIRTY );
+        return PropertyView::draw_input(_property_view, !_show_advanced, nullptr);
     };
 
     ImGui::Text("Name:       \"%s\"" , node->name().c_str());
@@ -572,8 +571,9 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
     // Draw exposed input properties
 
-    auto draw_properties = [&](const char* title, const std::vector<PropertyView*>& views)
+    auto draw_properties = [&](const char* title, const std::vector<PropertyView*>& views) -> bool
     {
+        bool changed = false;
         ImGui::Text("%s:", title);
         ImGui::Separator();
         ImGui::Indent();
@@ -586,18 +586,19 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         {
             for (auto& property_view : views )
             {
-                draw_labeled_property_view( property_view );
+                changed |= draw_labeled_property_view( property_view );
                 ImGui::Separator();
             }
         }
         ImGui::Unindent();
+        return changed;
     };
 
     ImGui::Separator();
-    draw_properties("Inputs(s)", _view->m_property_views__in_strictly);
-    draw_properties("In/Out(s)", _view->m_property_views__inout_strictly);
+    changed |= draw_properties("Inputs(s)", _view->m_property_views__in_strictly);
+    changed |= draw_properties("In/Out(s)", _view->m_property_views__inout_strictly);
     ImGui::Separator();
-    draw_properties("Output(s)", _view->m_property_views__out_strictly);
+    changed |= draw_properties("Output(s)", _view->m_property_views__out_strictly);
     ImGui::Separator();
 
     if ( tools_cfg->runtime_debug )
@@ -609,7 +610,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         // Draw exposed output properties
         if( ImGui::TreeNode("Other Properties") )
         {
-            draw_labeled_property_view( _view->m_value_view );
+            changed |= draw_labeled_property_view( _view->m_value_view );
             ImGui::TreePop();
         }
 
@@ -718,6 +719,7 @@ void NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         }
     }
     ImGui::Separator();
+    return changed;
 }
 
 void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)

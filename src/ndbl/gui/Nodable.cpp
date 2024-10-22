@@ -54,16 +54,8 @@ void Nodable::update()
     // 1. Update current file
     if (m_current_file && !m_interpreter->is_program_running())
     {
-        //
-        // When history is dirty we update the graph from the text.
-        // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-        if (m_current_file->history.is_dirty && !m_config->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
-        {
-            m_current_file->update_graph_from_text(m_config->isolation);
-            m_current_file->history.is_dirty = false;
-        }
-        // Run the main update loop for the file
-        m_current_file->update(m_config->isolation );
+        m_current_file->isolation = m_config->isolation; // might change
+        m_current_file->update();
     }
 
     // 2. Handle events
@@ -81,7 +73,7 @@ void Nodable::update()
             {
                 if ( !m_interpreter->is_program_stopped() )
                     m_interpreter->stop_program();
-                m_current_file->update_graph_from_text( m_config->isolation );
+                m_current_file->update_graph_from_text();
                 break;
             }
 
@@ -90,7 +82,7 @@ void Nodable::update()
                 m_config->isolation = ~m_config->isolation;
                 if(m_current_file)
                 {
-                    m_current_file->update_graph_from_text(m_config->isolation );
+                    m_current_file->update_graph_from_text();
                 }
                 break;
             }
@@ -301,7 +293,6 @@ void Nodable::update()
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
-
                 break;
             }
 
@@ -449,7 +440,7 @@ File* Nodable::open_file(const tools::Path& _path)
     if ( File::read( *file, _path ) )
     {
         add_file(file);
-        file->update_graph_from_text( m_config->isolation );
+        file->update_graph_from_text();
         return file;
     }
 
@@ -577,7 +568,7 @@ void Nodable::reset_program()
         m_interpreter->stop_program();
     }
 
-    m_current_file->update_graph_from_text(m_config->isolation );
+    m_current_file->reset();
 }
 
 File*Nodable::new_file()

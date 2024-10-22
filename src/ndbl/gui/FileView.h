@@ -1,6 +1,5 @@
 #pragma once
 
-
 #include "tools/core/reflection/reflection"
 #include "tools/gui/ViewState.h"
 
@@ -43,13 +42,12 @@ namespace ndbl
         FileView(const FileView&) = delete;
 		~FileView() = default;
 
+        bool is_text_dirty;
+        bool is_graph_dirty;
+
         void                           update(float d);
         void                           init( File& _file);
         bool                           draw();
-        bool                           changed() const { return m_focused_text_changed || m_is_graph_dirty; }
-        bool                           focused_text_changed() const { return m_focused_text_changed; }
-        bool                           is_graph_dirty() const { return m_is_graph_dirty; }
-        void                           set_dirty(bool b) { m_focused_text_changed = m_is_graph_dirty = b; }
         std::string                    get_text(Isolation = Isolation_OFF)const;
         void                           set_text(const std::string&, Isolation mode = Isolation_OFF);
         TextEditor*					   get_text_editor(){ return &m_text_editor; }
@@ -67,8 +65,6 @@ namespace ndbl
 
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
-        bool         m_focused_text_changed;
-        bool         m_is_graph_dirty;
         File*        m_file;
         std::string  m_text_overlay_window_name;
         std::string  m_graph_overlay_window_name;

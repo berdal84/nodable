@@ -283,6 +283,17 @@ Node* Node::parent() const
     return nullptr;
 }
 
+bool Node::update()
+{
+    //
+    // some code here
+    //
+
+    clear_flags(NodeFlag_IS_DIRTY);
+
+    return true;
+}
+
 const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
 {
     if ( _cache.find(flags) == _cache.end() )

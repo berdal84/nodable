@@ -175,16 +175,12 @@ void Nodlang::commit_transaction()
 
 bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
 {
-    using namespace std::chrono;
-    high_resolution_clock::time_point parse_begin = high_resolution_clock::now();
-
     parser_state.clear();
     parser_state.set_source_buffer(_source_code.c_str(), _source_code.size());
     parser_state.graph = _graphNode;
 
     LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _source_code.c_str())
     LOG_MESSAGE("Parser", "Tokenization ...\n")
-
 
     if (!tokenize(parser_state.source_buffer, parser_state.source_buffer_size))
     {
@@ -196,13 +192,7 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
         return false;
     }
 
-    high_resolution_clock::time_point tokenize_end = high_resolution_clock::now();
-    LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "tokenize()",  duration_cast<duration<double>>( tokenize_end - parse_begin).count() * 1000.0)
-
     Node* program = parse_program();
-
-    high_resolution_clock::time_point parse_program_end = high_resolution_clock::now();
-    LOG_MESSAGE("Parser", "%16s == %.3f ms\n", "parse_program()", duration_cast<duration<double>>(parse_program_end - tokenize_end).count() * 1000.0)
 
     if ( program == nullptr )
     {
@@ -224,17 +214,7 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
         LOG_ERROR("Parser", "Couldn't parse token %llu and above: %s\n", curr_token.m_index, curr_token.json().c_str())
         return false;
     }
-
-    // We unset dirty, since we did a lot of connections but we don't want any update now
-    auto &nodes = parser_state.graph->get_node_registry();
-    for (auto eachNode: nodes)
-    {
-        eachNode->clear_flags(NodeFlag_IS_DIRTY);
-    }
-
-    LOG_MESSAGE("Parser", "Program tree updated in %.3f ms.\n", duration_cast<duration<double>>(high_resolution_clock::now() - parse_begin).count()*1000.0 )
-    LOG_VERBOSE("Parser", "Source code: <expr>%s</expr>\"\n", _source_code.c_str())
-
+    parser_state.graph->set_dirty();
     return true;
 }
 
@@ -581,8 +561,7 @@ Node* Nodlang::parse_program()
     parser_state.scope.pop();
     commit_transaction();
 
-    // Avoid an unnecessary serialization of the graph (would happen once after each parsing)
-    parser_state.graph->set_dirty(false);
+    parser_state.graph->on_reset_signal.call();
 
     return root;
 }

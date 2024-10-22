@@ -56,9 +56,12 @@ void Graph::clear()
     LOG_VERBOSE("Graph", "Graph cleared.\n")
 }
 
-UpdateResult Graph::update()
+bool Graph::update()
 {
-    UpdateResult result = UpdateResult::SUCCES_WITHOUT_CHANGES;
+    if ( !m_is_dirty )
+        return false;
+
+    bool changed = false;
 
     // Delete (flagged Nodes) / Check if dirty
     auto nodeIndex = m_node_registry.size();
@@ -71,17 +74,18 @@ UpdateResult Graph::update()
         if (node->has_flags(NodeFlag_TO_DELETE))
         {
             destroy(node);
-            result = UpdateResult::SUCCESS_WITH_CHANGES;
+            changed = true;
         }
-        else if (node->has_flags(NodeFlag_IS_DIRTY))
+        else if ( node->has_flags(NodeFlag_IS_DIRTY) )
         {
-            node->clear_flags(NodeFlag_IS_DIRTY);
-            result = UpdateResult::SUCCESS_WITH_CHANGES;
+            changed = node->update();
         }
-
     }
 
-    return result;
+    if ( changed )
+        on_change_signal.call();
+
+    return changed;
 }
 
 void Graph::add(Node* _node)

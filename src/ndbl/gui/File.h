@@ -40,22 +40,23 @@ namespace ndbl
         bool                   dirty; // true if changed since last read/write from/to disk.
         FileView               view;
         History                history; // history of changes
-
+        Isolation              isolation = Isolation_OFF;
     private:
         Graph*                 _graph; // graphical representation
         std::string            parsed_text; // last parsed text buffer
     public:
         Graph&                 graph() { return *_graph; };
         std::string            filename() const;
-        void                   update( Isolation ); // to call each frame
-        void                   update_graph_from_text( Isolation = Isolation_OFF );
-        void                   update_text_from_graph( Isolation = Isolation_OFF );
-        std::string            get_text( Isolation = Isolation_OFF ) const;
-        void                   set_text(const std::string& text, Isolation = Isolation_OFF );
+        void                   update(); // to call each frame
+        void                   update_graph_from_text();
+        void                   update_text_from_graph();
+        std::string            get_text() const;
+        void                   set_text(const std::string& text);
         size_t                 size() const;
 
         static bool            read( File& file, const tools::Path& source ); // Read an File from a given path and update file's path.
         static bool            write( File& file, const tools::Path& dest );  // Write an File to a given path and update file's path.
 
+        void reset();
     };
 }

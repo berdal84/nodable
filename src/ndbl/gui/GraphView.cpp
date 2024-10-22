@@ -66,24 +66,22 @@ GraphView::GraphView(Graph* graph)
 
     m_state_machine.start();
 
-    CONNECT(graph->add_node_signal, GraphView::_on_add_node );
-    CONNECT(graph->changed_signal, GraphView::_on_graph_changed);
+    CONNECT(graph->add_node_signal, GraphView::decorate );
+    CONNECT(graph->on_change_signal, GraphView::reset_physics);
+    CONNECT(graph->on_reset_signal, GraphView::reset);
 }
 
-void GraphView::_on_add_node(Node* node)
+void GraphView::decorate(Node* node)
 {
-    // Add a NodeView and Physics component
     ComponentFactory* component_factory = get_component_factory();
+
     auto nodeview = component_factory->create<NodeView>();
-    add_child(nodeview);
     auto physics  = component_factory->create<Physics>( nodeview );
+
     node->add_component( nodeview );
     node->add_component( physics );
-}
 
-void GraphView::_on_graph_changed()
-{
-    m_graph->get_view()->reset();
+    add_child( nodeview );
 }
 
 ImGuiID make_wire_id(const Slot *ptr1, const Slot *ptr2)
@@ -128,6 +126,8 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
 
 bool GraphView::draw()
 {
+    bool changed = false;
+
     if ( !m_view_state.visible )
         return false;
 
@@ -142,7 +142,7 @@ bool GraphView::draw()
 
     Config*         cfg                    = get_config();
     Interpreter*    interpreter            = get_interpreter();
-    bool            changed                = false;
+
     ImDrawList*     draw_list              = ImGui::GetWindowDrawList();
     const bool      enable_edition         = interpreter->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
@@ -501,6 +501,13 @@ bool GraphView::selection_empty() const
     return m_selected_nodeview.empty();
 }
 
+void GraphView::reset_physics()
+{
+    auto physics_components = Utils::get_components<Physics>(m_graph->get_node_registry() );
+    Physics::destroy_constraints( physics_components );
+    Physics::create_constraints(m_graph->get_node_registry() );
+}
+
 void GraphView::reset()
 {
     if ( m_graph->is_empty() )
@@ -512,6 +519,9 @@ void GraphView::reset()
     // make sure views are outside viewable rectangle (to avoid flickering)
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
     NodeView::translate(get_all_nodeviews(), far_outside);
+
+    // physics
+    reset_physics();
 
     // frame all (100ms delayed to ensure layout is correct)
     get_event_manager()->dispatch_delayed<Event_FrameSelection>( 100, { FRAME_ALL } );

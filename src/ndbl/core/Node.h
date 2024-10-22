@@ -64,6 +64,7 @@ namespace ndbl
         SIGNAL(on_name_change, const char *);
 
         void                 init(NodeType type, const std::string& name);
+        bool                 update();
         NodeType             type() const { return m_type; }
         bool                 is_invokable() const;
         bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
@@ -158,7 +159,7 @@ namespace ndbl
         Token              m_suffix;
         Graph*             m_graph = nullptr;
         NodeType           m_type  = NodeType_DEFAULT;
-        NodeFlags          m_flags = NodeFlag_DEFAULT;
+        NodeFlags          m_flags = NodeFlag_IS_DIRTY;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
         std::unordered_map<size_t,  std::vector<Slot*>> m_slots_by_property; // property's hash to Slots
@@ -177,6 +178,5 @@ namespace ndbl
 
         REFLECT_BASE_CLASS()
         POOL_REGISTRABLE(Node)
-
     };
 }

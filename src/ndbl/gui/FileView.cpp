@@ -15,14 +15,15 @@
 #include "NodeView.h"
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
+#include "Physics.h"
 
 using namespace ndbl;
 using namespace tools;
 
 FileView::FileView()
     : m_text_editor()
-    , m_focused_text_changed(false)
-    , m_is_graph_dirty(false)
+    , is_graph_dirty(false)
+    , is_text_dirty(false)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
     , m_file(nullptr)
@@ -130,11 +131,10 @@ bool FileView::draw()
                                      new_cursor_position.mLine == old_cursor_position.mLine;
         auto is_selected_text_modified = new_cursor_position != old_cursor_position;
 
-        m_focused_text_changed = is_line_text_modified ||
-                                 m_text_editor.IsTextChanged() ||
-                                 ( cfg->isolation && is_selected_text_modified);
-
-        if (m_text_editor.IsTextChanged())  m_file->dirty = true;
+        is_graph_dirty =
+                is_line_text_modified
+                || m_text_editor.IsTextChanged()
+                || ( cfg->isolation && is_selected_text_modified);
     }
     ImGui::EndChild();
 
@@ -155,7 +155,7 @@ bool FileView::draw()
     ImGui::BeginChild("graph", graph_editor_size, false, flags);
     {
         // Draw graph
-        m_is_graph_dirty = graph_view->draw();
+        is_text_dirty = graph_view->draw();
 
         // Draw overlay: shortcuts
         Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
@@ -173,7 +173,7 @@ bool FileView::draw()
     }
     ImGui::EndChild();
 
-    return changed();
+    return is_graph_dirty || is_text_dirty;
 }
 
 std::string FileView::get_text( Isolation mode )const
@@ -348,4 +348,21 @@ void FileView::update(float dt)
     GraphView* graph_view = m_file->graph().get_view();
     ASSERT(graph_view != nullptr);
     graph_view->update(dt);
+
+    if( is_text_dirty )
+    {
+        m_file->update_text_from_graph();
+        is_text_dirty = false;
+
+        // Refresh constraints
+        auto physics_components = Utils::get_components<Physics>(m_file->graph().get_node_registry() );
+        Physics::destroy_constraints( physics_components );
+        Physics::create_constraints(m_file->graph().get_node_registry() );
+    }
+    else if( is_graph_dirty )
+    {
+        m_file->update_graph_from_text();
+        is_graph_dirty = false;
+    }
+    is_text_dirty |= m_file->graph().update(); // ~ garbage collection
 }

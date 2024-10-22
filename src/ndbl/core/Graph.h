@@ -55,11 +55,12 @@ namespace ndbl
  		Graph(NodeFactory* factory);
 		~Graph();
 
-        SIGNAL(changed);
+        SIGNAL(on_reset);
+        SIGNAL(on_change);
         SIGNAL(add_node, Node*);
 
         void                     set_view(GraphView* view = nullptr);
-        UpdateResult             update();
+        bool                     update();
 
         // node related
 

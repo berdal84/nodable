@@ -54,17 +54,17 @@ File::~File()
     delete _graph;
 }
 
-std::string File::get_text( Isolation mode) const
+std::string File::get_text() const
 {
-    return view.get_text( mode );
+    return view.get_text(isolation);
 }
 
-void File::set_text(const std::string& text, Isolation mode)
+void File::set_text(const std::string& text)
 {
-    view.set_text( text, mode );
+    view.set_text( text, isolation );
 }
 
-void File::update_text_from_graph( Isolation mode )
+void File::update_text_from_graph()
 {
     const Node* root_node = _graph->get_root();
 
@@ -76,51 +76,22 @@ void File::update_text_from_graph( Isolation mode )
     std::string code;
     get_language()->_serialize_node( code, root_node, SerializeFlag_RECURSE );
 
-    view.set_text( code, mode );
+    view.set_text( code, isolation );
 }
 
-void File::update( Isolation flags )
+void File::update()
 {
-    // 1) Handle when view changes (graph or text)
-    //--------------------------------------------
-
-    if( view.changed() )
+    //
+    // When history is dirty we update the graph from the text.
+    // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
+    if (history.is_dirty && !get_config()->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
     {
-        if( view.focused_text_changed() && !view.is_graph_dirty() )
-        {
-            update_graph_from_text( flags );
-        }
-        else
-        {
-            // TODO: The case where both focused_text and graph changed is not handled yet
-            //       This is not supposed to happens, that's why there is an assert to be aware of is
-            ASSERT( view.is_graph_dirty() );
-            update_text_from_graph( flags );
-        }
-
-        view.set_dirty( false );
+        update_graph_from_text();
+        history.is_dirty = false;
     }
-
-    // 2) Handle when graph (not the graph view) changes
-    //--------------------------------------------------
-
-    if ( _graph->is_dirty() )
-    {
-        // Refresh text
-        update_text_from_graph( flags );
-
-        // Refresh constraints
-        auto physics_components = Utils::get_components<Physics>(_graph->get_node_registry() );
-        Physics::destroy_constraints( physics_components );
-        Physics::create_constraints(_graph->get_node_registry() );
-
-        _graph->set_dirty(false);
-    }
-
-    _graph->update(); // ~ garbage collection
 }
 
-void File::update_graph_from_text( Isolation isolation_mode)
+void File::update_graph_from_text()
 {
     // Destroy all physics constraints
     auto physics_components = Utils::get_components<Physics>(_graph->get_node_registry() );
@@ -128,13 +99,8 @@ void File::update_graph_from_text( Isolation isolation_mode)
 
     // Parse source code
     // note: File owns the parsed text buffer
-    parsed_text = get_text(isolation_mode);
-    bool parse_ok = get_language()->parse(parsed_text, _graph );
-    if (parse_ok && !_graph->is_empty() )
-    {
-        Physics::create_constraints(_graph->get_node_registry() );
-        _graph->changed_signal.call();
-    }
+    parsed_text = get_text();
+    get_language()->parse(parsed_text, _graph );
 }
 
 size_t File::size() const
@@ -195,4 +161,9 @@ bool File::read( File& file, const tools::Path& path)
     LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", path.filename().c_str(), path.c_str())
 
     return true;
+}
+
+void File::reset()
+{
+    update_graph_from_text();
 }

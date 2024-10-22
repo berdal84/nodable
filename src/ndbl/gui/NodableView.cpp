@@ -426,13 +426,14 @@ void NodableView::draw()
             draw_file_window(ds_root, redock_all, each_file);
         }
 
-        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) )
-            draw_interpreter_window();
-
+        draw_file_info_window();
         draw_config_window();
         draw_imgui_config_window();
-        draw_file_info_window();
-        draw_node_properties_window();
+
+        if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) )
+            draw_interpreter_window();
+        if ( draw_node_properties_window() )
+            m_app->get_current_file()->view.is_text_dirty = true;
         draw_help_window();
     }
 
@@ -512,8 +513,9 @@ void NodableView::draw_file_info_window() const
     ImGui::End();
 }
 
-void NodableView::draw_node_properties_window()
+bool NodableView::draw_node_properties_window()
 {
+    bool changed = false;
     Config* cfg = get_config();
     if (ImGui::Begin( cfg->ui_node_properties_window_label))
     {
@@ -527,7 +529,7 @@ void NodableView::draw_node_properties_window()
             {
                 ImGui::Indent(10.0f);
                 NodeView *first_node_view = selected_nodeviews.front();
-                NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
+                changed |= NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
             }
             else if (selected_nodeviews.size() > 1)
             {
@@ -537,6 +539,7 @@ void NodableView::draw_node_properties_window()
         }
     }
     ImGui::End();
+    return changed;
 }
 
 void NodableView::draw_interpreter_window()

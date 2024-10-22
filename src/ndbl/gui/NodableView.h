@@ -47,7 +47,7 @@ namespace ndbl
         void draw_help_window() const;
         void draw_history_bar(History&);
         void draw_imgui_config_window() const;
-        void draw_node_properties_window();
+        bool draw_node_properties_window();
         void draw_config_window();
         void draw_startup_window(ImGuiID dockspace_id);
         void draw_toolbar_window();
