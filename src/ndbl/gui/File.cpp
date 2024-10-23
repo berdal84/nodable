@@ -54,16 +54,6 @@ File::~File()
     delete _graph;
 }
 
-std::string File::get_text() const
-{
-    return view.get_text(isolation);
-}
-
-void File::set_text(const std::string& text)
-{
-    view.set_text( text, isolation );
-}
-
 void File::update_text_from_graph()
 {
     const Node* root_node = _graph->get_root();
@@ -76,7 +66,7 @@ void File::update_text_from_graph()
     std::string code;
     get_language()->_serialize_node( code, root_node, SerializeFlag_RECURSE );
 
-    view.set_text( code, isolation );
+    view.set_text(code, _isolation );
 }
 
 void File::update()
@@ -93,14 +83,12 @@ void File::update()
 
 void File::update_graph_from_text()
 {
-    // Destroy all physics constraints
-    auto physics_components = Utils::get_components<Physics>(_graph->get_node_registry() );
-    Physics::destroy_constraints( physics_components );
-
     // Parse source code
     // note: File owns the parsed text buffer
-    parsed_text = get_text();
-    get_language()->parse(parsed_text, _graph );
+    std::string result;
+    result = view.get_text(_isolation);
+    _parsed_text = result;
+    get_language()->parse(_parsed_text, _graph );
 }
 
 size_t File::size() const
@@ -112,7 +100,6 @@ std::string File::filename() const
 {
     return path.filename().string();
 }
-
 
 bool File::write( File& file, const tools::Path& path)
 {
@@ -128,7 +115,9 @@ bool File::write( File& file, const tools::Path& path)
     }
 
     std::ofstream out_fstream(path.string());
-    std::string content = file.get_text();
+    std::string result;
+    result = file.view.get_text(file._isolation);
+    std::string content = result;
     out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
     file.dirty = false;
     file.path = path;
@@ -154,7 +143,7 @@ bool File::read( File& file, const tools::Path& path)
     }
 
     std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
-    file.set_text(content);
+    file.view.set_text(content, file._isolation);
     file.dirty = false;
     file.path = path;
 
@@ -166,4 +155,17 @@ bool File::read( File& file, const tools::Path& path)
 void File::reset()
 {
     update_graph_from_text();
+}
+
+void File::set_isolation(Isolation isolation)
+{
+    if ( _isolation == isolation )
+        return;
+
+    _isolation   = isolation;
+    _parsed_text = view.get_text(_isolation);
+
+    // when isolation changes, the text has the priority over the graph.
+    view.is_graph_dirty = true;
+    view.is_text_dirty  = false;
 }
