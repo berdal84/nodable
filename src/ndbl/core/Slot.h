@@ -49,12 +49,8 @@ namespace ndbl
         inline bool       empty() const{return _adjacent.empty();}
         inline size_t     capacity() const{return _adjacent.capacity(); }
         inline bool       is_full() const {return !has_flags(SlotFlag_NOT_FULL);}
-
-        static void       connect_bidirectionally(Slot* tail, Slot* head);
-        static void       disconnect_bidirectionally(Slot* tail, Slot* head);
-
-        void              _add_adjacent(Slot*);
-        void              _remove_adjacent(Slot*);
+        void              add_adjacent(Slot*);
+        void              remove_adjacent(Slot*);
 
         const size_t     position; // In case multiple Slot exists for the same type and order, we distinguish them with their position.
         Node* const      node; // parent node

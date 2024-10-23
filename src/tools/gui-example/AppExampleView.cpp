@@ -17,8 +17,8 @@ void AppExampleView::init(AppExample *_app)
     m_base_view.set_title("AppExample default title - (you can change this title from " __FILE__ ")");
 
     // Change behavior by connecting signals with our custom methods
-    CONNECT(m_base_view.on_draw_splashscreen_content_signal, AppExampleView::_draw_splashscreen_content);
-    CONNECT(m_base_view.on_reset_layout_signal,              AppExampleView::_reset_layout);
+    CONNECT(m_base_view.on_draw_splashscreen_content, &AppExampleView::_draw_splashscreen_content);
+    CONNECT(m_base_view.on_reset_layout,              &AppExampleView::_reset_layout);
 }
 
 void AppExampleView::_draw_splashscreen_content()

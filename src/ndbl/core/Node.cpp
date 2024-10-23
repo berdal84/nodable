@@ -51,7 +51,7 @@ const FunctionDescriptor* Node::get_connected_function_type(const char* property
 void Node::set_name(const char *_label)
 {
     m_name = _label;
-    on_name_change_signal.call(_label);
+    on_name_change.emit(_label);
 }
 
 std::vector<NodeComponent*> Node::get_components()
@@ -154,7 +154,7 @@ Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, si
     m_slots.push_back(slot);
 
     // listen to events to clear cache
-    CONNECT(slot->on_change_signal, Node::on_slot_change);
+    CONNECT(slot->on_change, &Node::on_slot_change);
 
     // Update property to slots index
     const size_t key = (size_t)_property;

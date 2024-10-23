@@ -83,7 +83,7 @@ bool Graph::update()
     }
 
     if ( changed )
-        on_update_signal.call();
+        on_update.emit();
 
     return changed;
 }
@@ -95,7 +95,7 @@ void Graph::add(Node* _node)
 	m_node_registry.push_back(_node);
     _node->m_graph = this;
 
-    on_add_signal.call(_node);
+    on_add.emit(_node);
 
     set_dirty();
 
@@ -108,7 +108,7 @@ void Graph::remove(Node* _node)
     ASSERT(found != m_node_registry.end());
     m_node_registry.erase(found);
 
-    on_remove_signal.call(_node);
+    on_remove.emit(_node);
 
     set_dirty();
 }
@@ -271,7 +271,14 @@ DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
     auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{&_first, &_second});
 
     // Add cross-references to each end of the edge
-    Slot::connect_bidirectionally(edge.tail, edge.head);
+    Slot *tail = edge.tail;
+    Slot *head = edge.head;
+    ASSERT(tail != head);
+    ASSERT(head != nullptr);
+    ASSERT(tail != nullptr);
+
+    tail->add_adjacent(head);
+    head->add_adjacent(tail);
 
     // Handle side effects
     if (_flags & ConnectFlag_ALLOW_SIDE_EFFECTS )
@@ -401,7 +408,14 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     m_edge_registry.erase(it);
 
     // disconnect the slots
-    Slot::disconnect_bidirectionally(_edge.head, _edge.tail);
+    Slot *tail = _edge.head;
+    Slot *head = _edge.tail;
+    ASSERT(tail != head);
+    ASSERT(head != nullptr);
+    ASSERT(tail != nullptr);
+
+    tail->remove_adjacent(head);
+    head->remove_adjacent(tail);
 
     // disconnect effectively
     switch ( type )
