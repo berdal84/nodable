@@ -87,26 +87,26 @@ Token TokenRibbon::eat_if(Token_t expectedType)
 
 Token TokenRibbon::eat()
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_cursor, peek().buffer_to_string().c_str() )
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_cursor, peek().buffer_to_string().c_str() );
     return m_tokens.at(m_cursor++);
 }
 
 void TokenRibbon::transaction_start()
 {
     m_transaction.push(m_cursor);
-    LOG_VERBOSE("Parser", "Start Transaction (idx %i)\n", m_cursor)
+    LOG_VERBOSE("Parser", "Start Transaction (idx %i)\n", m_cursor);
 }
 
 void TokenRibbon::transaction_rollback()
 {
     m_cursor = m_transaction.top();
-    LOG_VERBOSE("Parser", "Rollback transaction (idx %i)\n", m_cursor)
+    LOG_VERBOSE("Parser", "Rollback transaction (idx %i)\n", m_cursor);
     m_transaction.pop();
 }
 
 void TokenRibbon::transaction_commit()
 {
-    LOG_VERBOSE("Parser", "Commit transaction (idx %i)\n", m_cursor)
+    LOG_VERBOSE("Parser", "Commit transaction (idx %i)\n", m_cursor);
     m_transaction.pop();
 }
 

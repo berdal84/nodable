@@ -398,7 +398,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
 {
     if (_views.empty())
     {
-        LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n")
+        LOG_VERBOSE("GraphView", "Unable to frame views vector. Reason: is empty.\n");
         return;
     }
 

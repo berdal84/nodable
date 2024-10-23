@@ -57,11 +57,11 @@ bool TextureManager::release_all()
             if( GL_NO_ERROR != glGetError())
             {
                 success = false;
-                LOG_WARNING("TextureManager", "Unable to release: %s (code: %i)\n", key.c_str(), glGetError())
+                LOG_WARNING("TextureManager", "Unable to release: %s (code: %i)\n", key.c_str(), glGetError());
             }
             else
             {
-                LOG_MESSAGE("TextureManager", "Released %s\n", key.c_str())
+                LOG_MESSAGE("TextureManager", "Released %s\n", key.c_str());
             }
         }
         delete texture;
@@ -87,12 +87,12 @@ Texture *TextureManager::load_png_to_gpu(const Path &path)
     if ( error )
     {
         delete texture;
-        LOG_ERROR("TextureManager", "Unable to load texture to GPU (code %u): %s\n",  error, path.c_str())
+        LOG_ERROR("TextureManager", "Unable to load texture to GPU (code %u): %s\n",  error, path.c_str());
         return nullptr;
     }
 
     m_register.emplace(path.string(), texture);
-    LOG_MESSAGE("TextureManager", "File loaded to GPU: %s\n", path.c_str())
+    LOG_MESSAGE("TextureManager", "File loaded to GPU: %s\n", path.c_str());
 
     return texture;
 }

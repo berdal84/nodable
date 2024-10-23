@@ -31,12 +31,12 @@ void Graph::clear()
         return;
     }
 
-	LOG_VERBOSE( "Graph", "Clearing graph ...\n")
+	LOG_VERBOSE( "Graph", "Clearing graph ...\n");
     m_root = nullptr;
     while ( !m_node_registry.empty() )
     {
         Node* node = m_node_registry[0];
-        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name().c_str(), (u64_t)node )
+        LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name().c_str(), (u64_t)node );
         destroy(node);
     }
 
@@ -53,7 +53,7 @@ void Graph::clear()
     }
 #endif
 
-    LOG_VERBOSE("Graph", "Graph cleared.\n")
+    LOG_VERBOSE("Graph", "Graph cleared.\n");
 }
 
 bool Graph::update()
@@ -99,7 +99,7 @@ void Graph::add(Node* _node)
 
     set_dirty();
 
-    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name().c_str(), _node->get_class()->get_name())
+    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name().c_str(), _node->get_class()->get_name());
 }
 
 void Graph::remove(Node* _node)
@@ -247,7 +247,7 @@ void Graph::remove(DirectedEdge edge)
     }
     else
     {
-        LOG_WARNING("Graph", "Unable to unregister edge\n")
+        LOG_WARNING("Graph", "Unable to unregister edge\n");
     }
     set_dirty(); // To express this graph changed
 }

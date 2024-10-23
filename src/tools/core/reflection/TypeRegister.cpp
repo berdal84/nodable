@@ -51,7 +51,7 @@ TypeDescriptor* TypeRegister::merge(TypeDescriptor* existing, const TypeDescript
         "Merge existing: \"%s\" (%s), with: \"%s\" (%s)\n",
         existing->m_name.c_str(), existing->m_compiler_name,
         other->m_name.c_str(), other->m_compiler_name
-    )
+    );
     if( existing->m_name[0] == '\0' )
     {
         existing->m_name = other->m_name;
@@ -72,7 +72,7 @@ TypeDescriptor* TypeRegister::merge(TypeDescriptor* existing, const TypeDescript
 void TypeRegister::log_statistics()
 {
     LOG_MESSAGE("reflection", "Logging reflected types ...\n");
-    LOG_MESSAGE("reflection", " %-16s %-25s %-60s\n", "-- type hash --", "-- user name --", "-- compiler name --" )
+    LOG_MESSAGE("reflection", " %-16s %-25s %-60s\n", "-- type hash --", "-- user name --", "-- compiler name --" );
 
     for ( const auto& [type_hash, type] : by_index() )
     {

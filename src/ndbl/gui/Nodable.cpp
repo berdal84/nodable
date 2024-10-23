@@ -356,7 +356,7 @@ void Nodable::update()
                     if ( !complementary_slot )
                     {
                         // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
-                        LOG_ERROR( "GraphView", "unable to connect this node" )
+                        LOG_ERROR( "GraphView", "unable to connect this node" );
                     }
                     else
                     {
@@ -390,7 +390,7 @@ void Nodable::update()
 
             default:
             {
-                LOG_VERBOSE("App", "Ignoring and event, this case is not handled\n")
+                LOG_VERBOSE("App", "Ignoring and event, this case is not handled\n");
             }
         }
 
@@ -405,7 +405,7 @@ void Nodable::shutdown()
 
     for( File* each_file : m_loaded_files )
     {
-        LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str())
+        LOG_VERBOSE("ndbl::App", "Delete file %s ...\n", each_file->path.c_str());
         delete each_file;
     }
 

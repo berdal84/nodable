@@ -48,15 +48,15 @@ void Scope::add_variable(VariableNode* _variable)
 {
     if (find_variable(_variable->get_identifier()) != nullptr )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variable->get_identifier().c_str())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variable->get_identifier().c_str());
     }
     else if ( _variable->get_scope() )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variable->get_identifier().c_str())
+        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variable->get_identifier().c_str());
     }
     else
     {
-        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variable->get_identifier().c_str() )
+        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variable->get_identifier().c_str() );
         m_variables.push_back(_variable);
         _variable->reset_scope(this);
     }
