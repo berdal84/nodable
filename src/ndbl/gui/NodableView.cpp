@@ -157,6 +157,9 @@ void NodableView::_on_reset_layout()
 
 void NodableView::shutdown()
 {
+    DISCONNECT(m_base_view.on_reset_layout);
+    DISCONNECT(m_base_view.on_draw_splashscreen_content);
+
     // We could do this there, but the base view is responsible for shutdow the texture manager we used, so all textures will be released.
     // get_texture_manager()->release(m_logo);
 

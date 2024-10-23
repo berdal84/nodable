@@ -62,6 +62,7 @@ namespace ndbl
         Node*              m_scope            = nullptr;
         Slot*              m_as_declaration_slot = nullptr;
         Slot*              m_as_reference_slot   = nullptr;
+
 		REFLECT_DERIVED_CLASS()
     };
 }

@@ -71,6 +71,13 @@ GraphView::GraphView(Graph* graph)
     CONNECT(graph->on_reset  , &GraphView::reset);
 }
 
+GraphView::~GraphView()
+{
+    DISCONNECT(m_graph->on_add);
+    DISCONNECT(m_graph->on_update);
+    DISCONNECT(m_graph->on_reset);
+}
+
 void GraphView::decorate(Node* node)
 {
     ComponentFactory* component_factory = get_component_factory();
@@ -822,3 +829,4 @@ void GraphView::update(float dt)
     for(size_t i = 0; i < sample_count; ++i)
         _update(sample_dt);
 }
+

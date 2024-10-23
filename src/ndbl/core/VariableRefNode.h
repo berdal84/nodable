@@ -11,6 +11,11 @@ namespace ndbl
     {
     public:
 
+        ~VariableRefNode()
+        {
+            clear_variable();
+        }
+
         void init()
         {
             Node::init(NodeType_VARIABLE_REF, "");
@@ -30,23 +35,41 @@ namespace ndbl
             add_slot(m_value, SlotFlag_OUTPUT, 1); // ref can be connected once
         }
 
-        void on_variable_name_change(const char* name)
+        inline void on_variable_name_change(const char* name)
         {
             m_value->token().word_replace( name );
         }
 
         void set_variable(VariableNode* variable)
         {
-            m_value->set_type( variable->get_type() );
-            m_value->token().word_replace(variable->get_identifier().c_str() );
+            VERIFY( m_variable == nullptr, "Can't call twice");
 
-            // Ensure this node name gets updated when variable's name changes
-            CONNECT( variable->on_name_change, &VariableRefNode::on_variable_name_change );
+            m_variable = variable;
+            m_value->set_type( m_variable->get_type() );
+            m_value->token().word_replace( m_variable->get_identifier().c_str() );
+
+            // bind signals
+            CONNECT( m_variable->on_name_change, &VariableRefNode::on_variable_name_change );
+            CONNECT( m_variable->on_destroy, &VariableRefNode::clear_variable );
         }
 
-        const Token& get_identifier_token() const
+        void clear_variable()
         {
-            return m_value->token();
+            if ( m_variable == nullptr )
+                return;
+
+            // unbind signals
+            DISCONNECT(m_variable->on_destroy);
+            DISCONNECT(m_variable->on_name_change);
+
+            m_variable = nullptr;
         }
+
+        inline const Token& get_identifier_token() const
+        {
+            return m_value->token(); // when parsed, this token may be a bit different from m_variable's (trailing ignored characters)
+        }
+    private:
+        VariableNode* m_variable = nullptr;
     };
 }

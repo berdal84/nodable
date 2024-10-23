@@ -40,6 +40,9 @@ void AppExampleView::_reset_layout()
 
 void AppExampleView::shutdown()
 {
+    DISCONNECT(m_base_view.on_draw_splashscreen_content);
+    DISCONNECT(m_base_view.on_reset_layout);
+
     // Here we undo what we did in init()
     m_base_view.shutdown(); // base view will release its resources
 }
