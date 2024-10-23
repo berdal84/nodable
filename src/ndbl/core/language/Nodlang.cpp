@@ -255,7 +255,7 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
         if ( !m_strict_mode )
         {
             // Insert a VariableNodeRef with "any" type
-            LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will failure.\n",
+            LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() )
             VariableRefNode* ref = parser_state.graph->create_variable_ref();
             ref->value()->set_token(_token );
@@ -288,11 +288,11 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
     return literal->value_out();
 }
 
-Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Optional<Slot*> _left)
+Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot* _left)
 {
     LOG_VERBOSE("Parser", "parse binary operation expr...\n")
     LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
-    VERIFY(_left.has_value(), "It is required that _left is not empty")
+    ASSERT(_left != nullptr);
 
     if (!parser_state.ribbon.can_eat(2))
     {
@@ -567,7 +567,7 @@ Optional<Node*> Nodlang::parse_program()
     return root;
 }
 
-Optional<Node*> Nodlang::parse_scope(Optional<Slot*> _parent_scope_slot )
+Optional<Node*> Nodlang::parse_scope(Slot* _parent_scope_slot )
 {
     auto scope_begin_token = parser_state.ribbon.eat_if(Token_t::scope_begin);
     if ( !scope_begin_token )
@@ -575,7 +575,7 @@ Optional<Node*> Nodlang::parse_scope(Optional<Slot*> _parent_scope_slot )
         return {};
     }
 
-    VERIFY(_parent_scope_slot.has_value(), "Required!")
+    VERIFY(_parent_scope_slot != nullptr, "Required!");
 
     start_transaction();
 
@@ -680,7 +680,7 @@ Optional<Slot*> Nodlang::parse_expression(u8_t _precedence, Optional<Slot*> _lef
 		Get the right-handed operand
 	*/
     LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n")
-    Optional<Slot*> expression_out = parse_binary_operator_expression(_precedence, left);
+    Optional<Slot*> expression_out = parse_binary_operator_expression( _precedence, left.value() );
     if ( expression_out )
     {
         if (!parser_state.ribbon.can_eat())
@@ -1257,7 +1257,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
     else
     {
         rollback_transaction();
-        parser_state.graph->destroy(_temp_for_loop_node.value() );
+        parser_state.graph->destroy( _temp_for_loop_node.value_or_null() );
     }
 
     return result;
@@ -1319,7 +1319,7 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
     else
     {
         rollback_transaction();
-        parser_state.graph->destroy( _temp_while_loop_node.value() );
+        parser_state.graph->destroy( _temp_while_loop_node.value_or_null() );
     }
 
     return result;
