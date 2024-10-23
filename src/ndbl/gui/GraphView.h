@@ -41,7 +41,7 @@ namespace ndbl
         typedef tools::StateMachine    StateMachine;
 
 	    explicit GraphView(Graph* graph);
-		~GraphView() = default;
+		~GraphView();
 
         void        update(float dt);
         bool        draw();

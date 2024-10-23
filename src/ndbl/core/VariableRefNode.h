@@ -11,6 +11,12 @@ namespace ndbl
     {
     public:
 
+        ~VariableRefNode()
+        {
+            if ( m_variable != nullptr )
+                DISCONNECT(m_variable->on_name_change);
+        }
+
         void init()
         {
             Node::init(NodeType_VARIABLE_REF, "");
@@ -37,16 +43,20 @@ namespace ndbl
 
         void set_variable(VariableNode* variable)
         {
-            m_value->set_type( variable->get_type() );
-            m_value->token().word_replace(variable->get_identifier().c_str() );
+            VERIFY( m_variable != nullptr, "Can't call twice");
+            m_variable = variable;
+            m_value->set_type( m_variable->get_type() );
+            m_value->token().word_replace( m_variable->get_identifier().c_str() );
 
             // Ensure this node name gets updated when variable's name changes
-            CONNECT( variable->on_name_change, &VariableRefNode::on_variable_name_change );
+            CONNECT( m_variable->on_name_change, &VariableRefNode::on_variable_name_change );
         }
 
         const Token& get_identifier_token() const
         {
             return m_value->token();
         }
+    private:
+        VariableNode* m_variable = nullptr;
     };
 }
