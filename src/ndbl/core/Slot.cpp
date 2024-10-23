@@ -55,7 +55,7 @@ Slot* Slot::adjacent_at(u8_t pos) const
     return nullptr;
 }
 
-void Slot::_add_adjacent(Slot* other)
+void Slot::add_adjacent(Slot* other)
 {
     ASSERT(other != nullptr);
     VERIFY(other != this, "Reflexive edge not handled" );
@@ -66,14 +66,16 @@ void Slot::_add_adjacent(Slot* other)
     {
         _flags &= ~SlotFlag_NOT_FULL; // Make sure IS_NOT_FULL is 0
     }
+    on_change.emit(Event_Add, other);
 }
 
-void Slot::_remove_adjacent(Slot* other)
+void Slot::remove_adjacent(Slot* other)
 {
     auto it = std::find(_adjacent.begin(), _adjacent.end(), other);
     VERIFY(it != _adjacent.end(), "Slot* not found");
     _adjacent.erase(it );
     _flags |= SlotFlag_NOT_FULL;
+    on_change.emit(Event_Remove, other);
 }
 
 void Slot::expand_capacity( size_t capacity )
@@ -83,28 +85,3 @@ void Slot::expand_capacity( size_t capacity )
     _flags |= SlotFlag_NOT_FULL;
 }
 
-void Slot::connect_bidirectionally(Slot* tail, Slot* head)
-{
-    ASSERT( tail != head);
-    ASSERT( head != nullptr );
-    ASSERT( tail != nullptr );
-
-    tail->_add_adjacent(head);
-    head->_add_adjacent(tail);
-
-    tail->on_change_signal.call(Event_Add, head);
-    head->on_change_signal.call(Event_Add, tail);
-}
-
-void Slot::disconnect_bidirectionally(Slot *tail, Slot *head)
-{
-    ASSERT( tail != head);
-    ASSERT( head != nullptr );
-    ASSERT( tail != nullptr );
-
-    tail->_remove_adjacent(head);
-    head->_remove_adjacent(tail);
-
-    tail->on_change_signal.call(Event_Remove, head);
-    head->on_change_signal.call(Event_Remove, tail);
-}

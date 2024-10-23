@@ -13,10 +13,10 @@ TEST(Slot, is_full)
     EXPECT_TRUE(slot.is_full());
 
     slot.expand_capacity(2);
-    slot._add_adjacent(&other1);
+    slot.add_adjacent(&other1);
     EXPECT_FALSE(slot.is_full());
 
-    slot._add_adjacent(&other2);
+    slot.add_adjacent(&other2);
     EXPECT_TRUE(slot.is_full());
 }
 
@@ -29,8 +29,8 @@ TEST(Slot, adjacent_at)
     Slot slot_0{nullptr, SlotFlag_CHILD};
     Slot slot_1{nullptr, SlotFlag_CHILD};
 
-    slot._add_adjacent(&slot_0);
-    slot._add_adjacent(&slot_1);
+    slot.add_adjacent(&slot_0);
+    slot.add_adjacent(&slot_1);
 
     // act
     Slot* adjacent_slot_0 = slot.adjacent_at( 0 );

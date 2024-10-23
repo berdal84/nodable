@@ -562,7 +562,7 @@ Optional<Node*> Nodlang::parse_program()
     parser_state.scope.pop();
     commit_transaction();
 
-    parser_state.graph->on_reset_signal.call();
+    parser_state.graph->on_reset.emit();
 
     return root;
 }

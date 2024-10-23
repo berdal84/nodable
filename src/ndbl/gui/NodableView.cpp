@@ -51,8 +51,8 @@ void NodableView::init(Nodable * _app)
     ASSERT(base_app != nullptr);
     m_base_view.init(base_app);
 
-    CONNECT(m_base_view.on_reset_layout_signal, NodableView::_on_reset_layout);
-    CONNECT(m_base_view.on_draw_splashscreen_content_signal, NodableView::_on_draw_splashscreen_content);
+    CONNECT(m_base_view.on_reset_layout              , &NodableView::_on_reset_layout);
+    CONNECT(m_base_view.on_draw_splashscreen_content , &NodableView::_on_draw_splashscreen_content);
 
     // Load splashscreen image
     Config* cfg = get_config();

@@ -41,7 +41,7 @@ namespace ndbl
             m_value->token().word_replace(variable->get_identifier().c_str() );
 
             // Ensure this node name gets updated when variable's name changes
-            CONNECT( variable->on_name_change_signal, VariableRefNode::on_variable_name_change);
+            CONNECT( variable->on_name_change, &VariableRefNode::on_variable_name_change );
         }
 
         const Token& get_identifier_token() const
