@@ -54,7 +54,7 @@ void Nodable::update()
     // 1. Update current file
     if (m_current_file && !m_interpreter->is_program_running())
     {
-        m_current_file->isolation = m_config->isolation; // might change
+        m_current_file->set_isolation( m_config->isolation ); // might change
         m_current_file->update();
     }
 

@@ -69,7 +69,7 @@ namespace ndbl
         Graph*                 m_graph;
 
         void        unfold(); // unfold the graph until it is stabilized
-        void        _update(float dt, u16_t samples);
+        void        _update(float dt, u16_t iterations);
         void        _update(float dt);
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
