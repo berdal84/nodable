@@ -25,14 +25,14 @@ void CPU::clear_registers()
 qword CPU::read(Register _id)const
 {
     ASSERT(_id < Register_COUNT);
-    LOG_VERBOSE("CPU", "read register %s (value: %s)\n", Register_to_string(_id), m_register[_id].to_string().c_str() )
+    LOG_VERBOSE("CPU", "read register %s (value: %s)\n", Register_to_string(_id), m_register[_id].to_string().c_str() );
     return m_register[_id];
 }
 
 qword& CPU::read_write(Register _id)
 {
     ASSERT(_id < Register_COUNT);
-    LOG_VERBOSE("CPU", "read_write register %s (value: %s)\n", Register_to_string(_id), m_register[_id].to_string().c_str() )
+    LOG_VERBOSE("CPU", "read_write register %s (value: %s)\n", Register_to_string(_id), m_register[_id].to_string().c_str() );
     return m_register[_id];
 }
 
@@ -41,7 +41,7 @@ void CPU::write(Register _id, qword _data)
     ASSERT(_id < Register_COUNT);
     qword& mem_dst = read_write(_id);
     mem_dst = _data;
-    LOG_VERBOSE("CPU", "write register %s (value: %s)\n", Register_to_string(_id), mem_dst.to_string().c_str())
+    LOG_VERBOSE("CPU", "write register %s (value: %s)\n", Register_to_string(_id), mem_dst.to_string().c_str());
 }
 
 void Interpreter::advance_cursor(i64_t _amount)
@@ -54,7 +54,7 @@ void Interpreter::advance_cursor(i64_t _amount)
 void Interpreter::run_program()
 {
     ASSERT(m_code);
-    LOG_MESSAGE("Interpreter", "Running program ...\n")
+    LOG_MESSAGE("Interpreter", "Running program ...\n");
     m_is_program_running = true;
     m_cpu.clear_registers();
     m_visited_nodes.clear();
@@ -65,7 +65,7 @@ void Interpreter::run_program()
         step_over();
     }
     stop_program();
-    LOG_MESSAGE("Interpreter", "Program terminated\n")
+    LOG_MESSAGE("Interpreter", "Program terminated\n");
 }
 
 void Interpreter::stop_program()
@@ -75,11 +75,11 @@ void Interpreter::stop_program()
         m_is_program_running = false;
         m_is_debugging       = false;
         m_next_node          = {};
-        LOG_MESSAGE("Interpreter", "Program stopped\n")
+        LOG_MESSAGE("Interpreter", "Program stopped\n");
     }
     else
     {
-        LOG_ERROR("Interpreter", "stop_program() failed, program is not running\n")
+        LOG_ERROR("Interpreter", "stop_program() failed, program is not running\n");
     }
 }
 
@@ -92,9 +92,9 @@ const Code* Interpreter::release_program()
     }
 
     m_cpu.clear_registers(); // will also clear reset instruction pointer (stored in a register Register_eip)
-    LOG_VERBOSE("Interpreter", "registers cleared\n")
+    LOG_VERBOSE("Interpreter", "registers cleared\n");
 
-    LOG_VERBOSE("Interpreter", "program released\n")
+    LOG_VERBOSE("Interpreter", "program released\n");
     const Code* copy = m_code;
     m_code = nullptr;
     return copy;
@@ -325,7 +325,7 @@ bool Interpreter::debug_step_over()
             default:
                 break;
         }
-        LOG_MESSAGE("Interpreter", "Step over (current line %#1llx)\n", next_instr->line)
+        LOG_MESSAGE("Interpreter", "Step over (current line %#1llx)\n", next_instr->line);
     }
 
     return continue_execution;
@@ -340,7 +340,7 @@ void Interpreter::debug_program()
     m_visited_nodes.clear();
     m_next_node = m_code->get_meta_data().graph->get_root();
 
-    LOG_MESSAGE("Interpreter", "Debugging program ...\n")
+    LOG_MESSAGE("Interpreter", "Debugging program ...\n");
 }
 
 bool Interpreter::is_there_a_next_instr() const

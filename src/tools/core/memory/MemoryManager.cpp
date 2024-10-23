@@ -29,7 +29,7 @@ void tools::shutdown_memory_manager()
     MemoryStats stats = *g_memory_stats; // copy locally before to delete
     if(stats.alloc_count() != 0)
     {
-        LOG_WARNING("tools", "shutdown_memory_manager() - %zu B is still in use (%zu alloc(s))\n", g_memory_stats->mem_usage(), g_memory_stats->alloc_count() )
+        LOG_WARNING("tools", "shutdown_memory_manager() - %zu B is still in use (%zu alloc(s))\n", g_memory_stats->mem_usage(), g_memory_stats->alloc_count() );
     }
 
     delete g_memory_stats; // this would decrease counters

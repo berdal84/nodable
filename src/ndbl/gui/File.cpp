@@ -21,19 +21,19 @@ File::File()
 , view()
 , history()
 {
-    LOG_VERBOSE( "File", "Constructor being called ...\n")
+    LOG_VERBOSE( "File", "Constructor being called ...\n");
 
     // FileView
     view.init(*this);
 
-    LOG_VERBOSE( "File", "View built, creating History ...\n")
+    LOG_VERBOSE( "File", "View built, creating History ...\n");
 
     // History
     TextEditor*       text_editor     = view.get_text_editor();
     TextEditorBuffer* text_editor_buf = history.configure_text_editor_undo_buffer(text_editor);
     view.set_undo_buffer(text_editor_buf);
 
-    LOG_VERBOSE( "File", "History built, creating graph ...\n")
+    LOG_VERBOSE( "File", "History built, creating graph ...\n");
 
     // Graph
     _graph = new Graph(get_node_factory());
@@ -45,7 +45,7 @@ File::File()
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
             _graph->get_view()->add_action_to_node_menu(create_node_action);
 
-    LOG_VERBOSE( "File", "Constructor being called.\n")
+    LOG_VERBOSE( "File", "Constructor being called.\n");
 }
 
 File::~File()
@@ -139,17 +139,17 @@ bool File::write( File& file, const tools::Path& path)
 
 bool File::read( File& file, const tools::Path& path)
 {
-    LOG_MESSAGE("File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str())
+    LOG_MESSAGE("File", "\"%s\" loading... (%s).\n", path.filename().c_str(), path.c_str());
     if(path.empty() )
     {
-        LOG_ERROR("File", "Path is empty \"%s\"\n", path.c_str())
+        LOG_ERROR("File", "Path is empty \"%s\"\n", path.c_str());
         return false;
     }
 
     std::ifstream file_stream(path.string());
     if (!file_stream.is_open())
     {
-        LOG_ERROR("File", "Unable to load \"%s\"\n", path.c_str())
+        LOG_ERROR("File", "Unable to load \"%s\"\n", path.c_str());
         return false;
     }
 
@@ -158,7 +158,7 @@ bool File::read( File& file, const tools::Path& path)
     file.dirty = false;
     file.path = path;
 
-    LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", path.filename().c_str(), path.c_str())
+    LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", path.filename().c_str(), path.c_str());
 
     return true;
 }

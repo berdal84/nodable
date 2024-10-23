@@ -32,13 +32,13 @@
 
 #   define LOG_ERROR(...)                                                    \
     tools::log::push_message( tools::log::Verbosity_Error  , ##__VA_ARGS__ ); \
-    tools::log::flush();
-#   define LOG_WARNING(...) tools::log::push_message( tools::log::Verbosity_Warning, ##__VA_ARGS__ );
-#   define LOG_MESSAGE(...) tools::log::push_message( tools::log::Verbosity_Message, ##__VA_ARGS__ );
-#   define LOG_FLUSH() tools::log::flush();
+    tools::log::flush()
+#   define LOG_WARNING(...) tools::log::push_message( tools::log::Verbosity_Warning, ##__VA_ARGS__ )
+#   define LOG_MESSAGE(...) tools::log::push_message( tools::log::Verbosity_Message, ##__VA_ARGS__ )
+#   define LOG_FLUSH() tools::log::flush()
 
 #ifdef TOOLS_DEBUG
-#   define LOG_VERBOSE(...) tools::log::push_message( tools::log::Verbosity_Verbose, ##__VA_ARGS__ );
+#   define LOG_VERBOSE(...) tools::log::push_message( tools::log::Verbosity_Verbose, ##__VA_ARGS__ )
 #else
 #   define LOG_VERBOSE(...)
 #endif

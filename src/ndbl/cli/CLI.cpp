@@ -98,7 +98,7 @@ void CLI::clear()
 
 void CLI::log_function_call(const variant &result, const FunctionDescriptor *type)
 {
-    LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n",type->get_identifier(), result.to<std::string>().c_str())
+    LOG_MESSAGE("CLI", "CLI::%s() done (result: %s)\n",type->get_identifier(), result.to<std::string>().c_str());
 }
 
 std::string CLI::get_line()
@@ -124,7 +124,7 @@ bool CLI::PublicApi::serialize()
         return true;
     }
 
-    LOG_WARNING("CLI", "unable to serialize! Are you sure you entered an expression earlier?\n")
+    LOG_WARNING("CLI", "unable to serialize! Are you sure you entered an expression earlier?\n");
     return false;
 }
 
@@ -132,7 +132,7 @@ bool CLI::PublicApi::compile()
 {
     if( m_cli->compile() == nullptr)
     {
-        LOG_ERROR("CLI", "unable to compile!\n")
+        LOG_ERROR("CLI", "unable to compile!\n");
         return false;
     }
     return true;
@@ -204,13 +204,13 @@ bool CLI::run()
 
     if( !load_program(m_asm_code) )
     {
-        LOG_ERROR("CLI", "Unable to run program!\n")
+        LOG_ERROR("CLI", "Unable to run program!\n");
         return false;
     }
 
     if( !run_program() )
     {
-        LOG_ERROR("CLI", "Unable to run program!\n")
+        LOG_ERROR("CLI", "Unable to run program!\n");
         return false;
     }
 

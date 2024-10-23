@@ -24,15 +24,6 @@ namespace ndbl
     // forward declarations
     class Graph;
 
-    /**
-     * Distinguish between all possible update_world_matrix result
-     */
-    enum class UpdateResult
-    {
-        SUCCES_WITHOUT_CHANGES,
-        SUCCESS_WITH_CHANGES,
-    };
-
     typedef int NodeFlags;
     enum NodeFlag_
     {

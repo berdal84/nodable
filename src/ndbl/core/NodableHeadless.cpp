@@ -46,7 +46,7 @@ bool NodableHeadless::run_program() const
     }
     catch ( std::runtime_error& error)
     {
-        LOG_ERROR("NodableHeadless", "Unable to run the program! %s\n", error.what())
+        LOG_ERROR("NodableHeadless", "Unable to run the program! %s\n", error.what());
         return false;
     }
 

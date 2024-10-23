@@ -179,8 +179,8 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
     parser_state.set_source_buffer(_source_code.c_str(), _source_code.size());
     parser_state.graph = _graphNode;
 
-    LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _source_code.c_str())
-    LOG_MESSAGE("Parser", "Tokenization ...\n")
+    LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", _source_code.c_str());
+    LOG_MESSAGE("Parser", "Tokenization ...\n");
 
     if (!tokenize(parser_state.source_buffer, parser_state.source_buffer_size))
     {
@@ -192,18 +192,18 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
         return false;
     }
 
-    Node* program = parse_program();
+    Optional<Node*> program = parse_program();
 
-    if ( program == nullptr )
+    if ( !program )
     {
-        LOG_WARNING("Parser", "Unable to generate program tree.\n")
+        LOG_WARNING("Parser", "Unable to generate program tree.\n");
         return false;
     }
 
     if (parser_state.ribbon.can_eat())
     {
         parser_state.graph->clear();
-        LOG_WARNING("Parser", "Unable to generate a full program tree.\n")
+        LOG_WARNING("Parser", "Unable to generate a full program tree.\n");
         LOG_MESSAGE("Parser", "%s", format::title("TokenRibbon").c_str());
         for (const Token& each_token : parser_state.ribbon)
         {
@@ -211,7 +211,7 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
         }
         LOG_MESSAGE("Parser", "%s", format::title("TokenRibbon end").c_str());
         auto curr_token = parser_state.ribbon.peek();
-        LOG_ERROR("Parser", "Couldn't parse token %llu and above: %s\n", curr_token.m_index, curr_token.json().c_str())
+        LOG_ERROR("Parser", "Couldn't parse token %llu and above: %s\n", curr_token.m_index, curr_token.json().c_str());
         return false;
     }
     parser_state.graph->set_dirty();
@@ -241,7 +241,7 @@ int Nodlang::to_int(const std::string &_str)
     return stoi(_str);
 }
 
-Slot* Nodlang::token_to_slot(Token _token)
+Optional<Slot*> Nodlang::token_to_slot(Token _token)
 {
     if (_token.m_type == Token_t::identifier)
     {
@@ -256,13 +256,13 @@ Slot* Nodlang::token_to_slot(Token _token)
         {
             // Insert a VariableNodeRef with "any" type
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
-                         _token.word_to_string().c_str() )
+                         _token.word_to_string().c_str() );
             VariableRefNode* ref = parser_state.graph->create_variable_ref();
             ref->value()->set_token(_token );
             return ref->value_out();
         }
 
-        LOG_ERROR( "Parser", "%s is not declared (strict mode) \n", _token.word_to_string().c_str() )
+        LOG_ERROR( "Parser", "%s is not declared (strict mode) \n", _token.word_to_string().c_str() );
         return nullptr;
     }
 
@@ -280,7 +280,7 @@ Slot* Nodlang::token_to_slot(Token _token)
 
     if ( literal == nullptr)
     {
-        LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str())
+        LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str());
         return nullptr;
     }
 
@@ -288,14 +288,15 @@ Slot* Nodlang::token_to_slot(Token _token)
     return literal->value_out();
 }
 
-Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
+Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot* _left)
 {
-    LOG_VERBOSE("Parser", "parse binary operation expr...\n")
-    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
+    LOG_VERBOSE("Parser", "parse binary operation expr...\n");
+    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str());
+    ASSERT(_left != nullptr);
 
     if (!parser_state.ribbon.can_eat(2))
     {
-        LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n")
+        LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n");
         return nullptr;
     }
 
@@ -310,7 +311,7 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     if (!isValid)
     {
         rollback_transaction();
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n")
+        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n");
         return nullptr;
     }
 
@@ -318,7 +319,7 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     const Operator *ope = find_operator(word, Operator_t::Binary);
     if (ope == nullptr)
     {
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", word.c_str())
+        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", word.c_str());
         rollback_transaction();
         return nullptr;
     }
@@ -326,48 +327,48 @@ Slot *Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot& _left)
     // Precedence check
     if (ope->precedence <= _precedence && _precedence > 0)
     {// always update the first operation if they have the same precedence or less.
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n")
+        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n");
         rollback_transaction();
         return nullptr;
     }
 
 
     // Parse right expression
-    Slot* right = parse_expression(ope->precedence);
+    Optional<Slot*> right = parse_expression(ope->precedence);
 
-    if ( right == nullptr )
+    if ( !right )
     {
-        LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n")
+        LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
         rollback_transaction();
         return nullptr;
     }
 
     // Create a function signature according to ltype, rtype and operator word
     FunctionDescriptor* type = FunctionDescriptor::create<any()>(ope->identifier.c_str());
-    type->push_arg( _left.property->get_type());
+    type->push_arg( _left->property->get_type());
     type->push_arg(right->property->get_type());
 
     FunctionNode* binary_op = parser_state.graph->create_operator(type);
     binary_op->set_identifier_token( operator_token );
-    binary_op->lvalue_in()->property->token().m_type = _left.property->token().m_type;
+    binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
     binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
 
-    parser_state.graph->connect_or_merge( _left, *binary_op->lvalue_in());
+    parser_state.graph->connect_or_merge( *_left, *binary_op->lvalue_in());
     parser_state.graph->connect_or_merge( *right, *binary_op->rvalue_in() );
 
     commit_transaction();
-    LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n")
+    LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
     return binary_op->value_out();
 }
 
-Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
+Optional<Slot*> Nodlang::parse_unary_operator_expression(u8_t _precedence)
 {
-    LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n")
-    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
+    LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n");
+    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str());
 
     if (!parser_state.ribbon.can_eat(2))
     {
-        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n")
+        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n");
         return nullptr;
     }
 
@@ -378,21 +379,21 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
     if (operator_token.m_type != Token_t::operator_)
     {
         rollback_transaction();
-        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n")
+        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n");
         return nullptr;
     }
 
     // Parse expression after the operator
-    Slot* out_atomic = parse_atomic_expression();
+    Optional<Slot*> out_atomic = parse_atomic_expression();
 
-    if ( out_atomic == nullptr )
+    if ( !out_atomic )
     {
         out_atomic = parse_parenthesis_expression();
     }
 
-    if ( out_atomic == nullptr )
+    if ( !out_atomic )
     {
-        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n")
+        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n");
         rollback_transaction();
         return nullptr;
     }
@@ -407,19 +408,19 @@ Slot *Nodlang::parse_unary_operator_expression(u8_t _precedence)
 
     parser_state.graph->connect_or_merge( *out_atomic, *node->lvalue_in() );
 
-    LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n")
+    LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
     commit_transaction();
 
     return node->value_out();
 }
 
-Slot* Nodlang::parse_atomic_expression()
+Optional<Slot*> Nodlang::parse_atomic_expression()
 {
-    LOG_VERBOSE("Parser", "parse atomic expr... \n")
+    LOG_VERBOSE("Parser", "parse atomic expr... \n");
 
     if (!parser_state.ribbon.can_eat())
     {
-        LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n")
+        LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n");
         return nullptr;
     }
 
@@ -428,32 +429,32 @@ Slot* Nodlang::parse_atomic_expression()
 
     if (token.m_type == Token_t::operator_)
     {
-        LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n")
+        LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
         rollback_transaction();
         return nullptr;
     }
 
-    if ( Slot* result = token_to_slot(token) )
+    if ( Optional<Slot*> result = token_to_slot(token) )
     {
         commit_transaction();
-        LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n")
+        LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n");
         return result;
     }
 
     rollback_transaction();
-    LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n")
+    LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n");
 
     return nullptr;
 }
 
-Slot *Nodlang::parse_parenthesis_expression()
+Optional<Slot*> Nodlang::parse_parenthesis_expression()
 {
-    LOG_VERBOSE("Parser", "parse parenthesis expr...\n")
-    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
+    LOG_VERBOSE("Parser", "parse parenthesis expr...\n");
+    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str());
 
     if (!parser_state.ribbon.can_eat())
     {
-        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n")
+        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n");
         return nullptr;
     }
 
@@ -461,45 +462,45 @@ Slot *Nodlang::parse_parenthesis_expression()
     Token currentToken = parser_state.ribbon.eat();
     if (currentToken.m_type != Token_t::parenthesis_open)
     {
-        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n")
+        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
         rollback_transaction();
         return nullptr;
     }
 
-    Slot* result = parse_expression();
-    if ( result != nullptr )
+    Optional<Slot*> result = parse_expression();
+    if ( result )
     {
         Token token = parser_state.ribbon.eat();
         if (token.m_type != Token_t::parenthesis_close)
         {
-            LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
+            LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str());
             LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n",
-                        token.word_to_string().c_str())
+                        token.word_to_string().c_str());
             rollback_transaction();
         }
         else
         {
-            LOG_VERBOSE("Parser", "parse parenthesis expr..." OK "\n")
+            LOG_VERBOSE("Parser", "parse parenthesis expr..." OK "\n");
             commit_transaction();
         }
     }
     else
     {
-        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n")
+        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n");
         rollback_transaction();
     }
     return result;
 }
 
-Node* Nodlang::parse_instr()
+Optional<Node*> Nodlang::parse_instr()
 {
     start_transaction();
 
-    Slot* expression_out = parse_expression();
+    Optional<Slot*> expression_out = parse_expression();
 
     if ( !expression_out )
     {
-        LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n")
+        LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n");
         rollback_transaction();
         return {};
     }
@@ -529,19 +530,19 @@ Node* Nodlang::parse_instr()
         }
         else if (parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
         {
-            LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n")
+            LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n");
             rollback_transaction();
             return {};
         }
     }
 
-    LOG_VERBOSE("Parser", "parse instruction " OK "\n")
+    LOG_VERBOSE("Parser", "parse instruction " OK "\n");
     commit_transaction();
 
     return output_node;
 }
 
-Node* Nodlang::parse_program()
+Optional<Node*> Nodlang::parse_program()
 {
     start_transaction();
 
@@ -566,7 +567,7 @@ Node* Nodlang::parse_program()
     return root;
 }
 
-Node* Nodlang::parse_scope( Slot& _parent_scope_slot )
+Optional<Node*> Nodlang::parse_scope(Slot* _parent_scope_slot )
 {
     auto scope_begin_token = parser_state.ribbon.eat_if(Token_t::scope_begin);
     if ( !scope_begin_token )
@@ -574,23 +575,25 @@ Node* Nodlang::parse_scope( Slot& _parent_scope_slot )
         return {};
     }
 
+    VERIFY(_parent_scope_slot != nullptr, "Required!");
+
     start_transaction();
 
-    Node*  curr_scope_node   = get_current_scope_node();
-    Node*  new_scope_node    = parser_state.graph->create_scope();
-    Scope* new_scope         = new_scope_node->get_component<Scope>();
+    Optional<Node*>  curr_scope_node   = get_current_scope_node();
+    Optional<Node*>  new_scope_node    = parser_state.graph->create_scope();
+    Optional<Scope*> new_scope         = new_scope_node->get_component<Scope>();
 
     // Handle nested scopes
-    parser_state.graph->connect( _parent_scope_slot, *new_scope_node->find_slot( SlotFlag_PARENT ), ConnectFlag_ALLOW_SIDE_EFFECTS );
+    parser_state.graph->connect( *_parent_scope_slot, *new_scope_node->find_slot( SlotFlag_PARENT ), ConnectFlag_ALLOW_SIDE_EFFECTS );
 
-    parser_state.scope.push( new_scope );
+    parser_state.scope.push( new_scope.value() );
     parse_code_block();
     parser_state.scope.pop();
 
     auto scope_end_token = parser_state.ribbon.eat_if(Token_t::scope_end);
     if ( !scope_end_token )
     {
-        parser_state.graph->destroy( new_scope_node );
+        parser_state.graph->destroy( new_scope_node.value() );
         rollback_transaction();
         return {};
     }
@@ -609,7 +612,7 @@ void Nodlang::parse_code_block()
     bool block_end_reached = false;
     while ( parser_state.ribbon.can_eat() && !block_end_reached )
     {
-        if ( Node* instruction = parse_instr() )
+        if (Optional<Node*> instruction = parse_instr() )
         {
             Slot* child_slot = get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL );
             ASSERT(child_slot);
@@ -623,7 +626,7 @@ void Nodlang::parse_code_block()
             parse_conditional_structure() ||
             parse_for_loop() ||
             parse_while_loop() ||
-            parse_scope( *get_current_scope_node()->find_slot( SlotFlag_CHILD ) ) )
+            parse_scope( get_current_scope_node()->find_slot( SlotFlag_CHILD ) ) )
         {}
         else
         {
@@ -636,21 +639,21 @@ void Nodlang::parse_code_block()
                      : commit_transaction();
 }
 
-Slot* Nodlang::parse_expression(u8_t _precedence, Slot* _left_override)
+Optional<Slot*> Nodlang::parse_expression(u8_t _precedence, Optional<Slot*> _left_override)
 {
-    LOG_VERBOSE("Parser", "parse expr...\n")
-    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str())
+    LOG_VERBOSE("Parser", "parse expr...\n");
+    LOG_VERBOSE("Parser", "%s \n", parser_state.ribbon.to_string().c_str());
 
     if (!parser_state.ribbon.can_eat())
     {
-        LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n")
-        return _left_override;
+        LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n");
+        return _left_override.value_or_null();
     }
 
     /*
 		Get the left-handed operand
 	*/
-    Slot* left = _left_override;
+    Optional<Slot*> left = _left_override;
 
     if( !left )
     {
@@ -663,30 +666,34 @@ Slot* Nodlang::parse_expression(u8_t _precedence, Slot* _left_override)
 
     if (!parser_state.ribbon.can_eat())
     {
-        LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n")
+        LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n");
+        return left;
+    }
+
+    if ( !left )
+    {
+        LOG_VERBOSE("Parser", "parse expr... left is null, we return it\n");
         return left;
     }
 
     /*
 		Get the right-handed operand
 	*/
-    if ( left )
+    LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n");
+    Optional<Slot*> expression_out = parse_binary_operator_expression( _precedence, left.value() );
+    if ( expression_out )
     {
-        LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n")
-        Slot* expression_out = parse_binary_operator_expression(_precedence, *left);
-        if ( expression_out )
+        if (!parser_state.ribbon.can_eat())
         {
-            if (!parser_state.ribbon.can_eat())
-            {
-                LOG_VERBOSE("Parser", "parse expr... " OK " right parsed (last token reached)\n")
-                return expression_out;
-            }
-            LOG_VERBOSE("Parser", "parse expr... " OK " right parsed, recursive call...\n")
-            return parse_expression(_precedence, expression_out);
+            LOG_VERBOSE("Parser", "parse expr... " OK " right parsed (last token reached)\n");
+            return expression_out.raw_ptr();
         }
+        LOG_VERBOSE("Parser", "parse expr... " OK " right parsed, recursive call...\n");
+        return parse_expression(_precedence, expression_out);
     }
 
-    LOG_VERBOSE("Parser", "parse expr... left is nullptr, we return it\n")
+    LOG_VERBOSE("Parser", "parse expr... left only " OK "\n");
+
     return left;
 }
 
@@ -715,7 +722,7 @@ bool Nodlang::is_syntax_valid()
                               "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n",
                               parser_state.ribbon.concat_token_buffers(token->m_index, -10).c_str(),
                               token->m_string_start_pos
-                          )
+                          );
                     success = false;
                 }
                 opened--;
@@ -730,7 +737,7 @@ bool Nodlang::is_syntax_valid()
 
     if (opened > 0)// same opened/closed parenthesis count required.
     {
-        LOG_ERROR("Parser", "Syntax Error: Bracket count mismatch, %i still opened.\n", opened)
+        LOG_ERROR("Parser", "Syntax Error: Bracket count mismatch, %i still opened.\n", opened);
         success = false;
     }
 
@@ -755,7 +762,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
         {
             char buffer_portion[40];
             snprintf(buffer_portion, 40, "%s", &buffer[global_cursor]);
-            LOG_WARNING("Parser", "Scanner Error: unable to tokenize \"%s...\" at index %llu\n", buffer_portion, global_cursor)
+            LOG_WARNING("Parser", "Scanner Error: unable to tokenize \"%s...\" at index %llu\n", buffer_portion, global_cursor);
             return false;
         }
 
@@ -765,7 +772,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
             if( ignored_chars_size == 0)
                 ignored_chars_start_pos = new_token.m_string_start_pos;
             ignored_chars_size += new_token.m_string_length;
-            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.buffer_to_string().c_str())
+            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.buffer_to_string().c_str());
         }
         else // handle ignored_chars_accumulator then push the token in the ribbon and handle ignored_chars_accumulator
         {
@@ -792,7 +799,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
                 }
                 ignored_chars_size = 0;
             }
-            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", new_token.buffer_to_string().c_str())
+            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", new_token.buffer_to_string().c_str());
             parser_state.ribbon.push(new_token);
         }
     }
@@ -971,14 +978,14 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
     return Token::s_null;
 }
 
-Slot* Nodlang::parse_function_call()
+Optional<Slot*> Nodlang::parse_function_call()
 {
-    LOG_VERBOSE("Parser", "parse function call...\n")
+    LOG_VERBOSE("Parser", "parse function call...\n");
 
     // Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
     if (!parser_state.ribbon.can_eat(3))
     {
-        LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n")
+        LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n");
         return nullptr;
     }
 
@@ -992,7 +999,7 @@ Slot* Nodlang::parse_function_call()
         token_1.m_type == Token_t::parenthesis_open)
     {
         fct_id = token_0.word_to_string();
-        LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n")
+        LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n");
     }
     else// Try to parse operator like (ex: operator==(..,..))
     {
@@ -1001,10 +1008,11 @@ Slot* Nodlang::parse_function_call()
         if (token_0.m_type == Token_t::keyword_operator && token_1.m_type == Token_t::operator_ && token_2.m_type == Token_t::parenthesis_open)
         {
             fct_id = token_1.word_to_string();// operator
-            LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n")
-        } else
+            LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n");
+        }
+        else
         {
-            LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n")
+            LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n");
             rollback_transaction();
             return nullptr;
         }
@@ -1018,10 +1026,10 @@ Slot* Nodlang::parse_function_call()
     while (!parsingError && parser_state.ribbon.can_eat() &&
             parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
     {
-        Slot* expression_out = parse_expression();
-        if ( expression_out != nullptr )
+        Optional<Slot*> expression_out = parse_expression();
+        if ( expression_out )
         {
-            result_slots.push_back( expression_out );
+            result_slots.push_back( expression_out.value() );
             signature->push_arg( expression_out->property->get_type() );
             parser_state.ribbon.eat_if(Token_t::list_separator);
         }
@@ -1034,7 +1042,7 @@ Slot* Nodlang::parse_function_call()
     // eat "close bracket supposed" token
     if (parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null())
     {
-        LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n")
+        LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
         rollback_transaction();
         return nullptr;
     }
@@ -1050,33 +1058,33 @@ Slot* Nodlang::parse_function_call()
     }
 
     commit_transaction();
-    LOG_VERBOSE("Parser", "parse function call... " OK "\n")
+    LOG_VERBOSE("Parser", "parse function call... " OK "\n");
 
     return fct_node->value_out();
 }
 
-Scope* Nodlang::get_current_scope()
+Optional<Scope*> Nodlang::get_current_scope()
 {
     ASSERT( parser_state.scope.top() );
     return parser_state.scope.top();
 }
 
-Node* Nodlang::get_current_scope_node()
+Optional<Node*> Nodlang::get_current_scope_node()
 {
     ASSERT( parser_state.scope.top() );
     return parser_state.scope.top()->get_owner();
 }
 
-IfNode* Nodlang::parse_conditional_structure()
+Optional<IfNode*> Nodlang::parse_conditional_structure()
 {
-    LOG_VERBOSE("Parser", "try to parse conditional structure...\n")
+    LOG_VERBOSE("Parser", "try to parse conditional structure...\n");
     start_transaction();
 
     bool success = false;
-    Node*   condition = nullptr;
-    Node*   condition_true_scope_node = nullptr;
-    IfNode* if_node   = nullptr;
-    IfNode* else_node = nullptr;
+    Optional<Node*>   condition;
+    Optional<Node*>   condition_true_scope_node;
+    Optional<IfNode*> if_node;
+    Optional<IfNode*> else_node;
 
     Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
     if ( !if_token )
@@ -1107,7 +1115,7 @@ IfNode* Nodlang::parse_conditional_structure()
 
         if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
         {
-            condition_true_scope_node = parse_scope( if_node->child_slot_at(Branch_TRUE) );
+            condition_true_scope_node = parse_scope( &if_node->child_slot_at(Branch_TRUE) );
             if ( condition_true_scope_node )
             {
                 if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
@@ -1115,35 +1123,35 @@ IfNode* Nodlang::parse_conditional_structure()
                     if_node->token_else = parser_state.ribbon.get_eaten();
 
                     /* parse "else" scope */
-                    if ( parse_scope( if_node->child_slot_at( Branch_FALSE ) ) )
+                    if ( parse_scope( &if_node->child_slot_at( Branch_FALSE ) ) )
                     {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n")
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n");
                         success = true;
                     }
                     /* or parse "else if" conditional structure */
                     else if ( parse_conditional_structure() )
                     {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n")
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n");
                         success = true;
                     }
                     else
                     {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n")
+                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n");
                     }
                 } else
                 {
-                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n")
+                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
                     success = true;
                 }
             }
             else
             {
-                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n")
+                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n");
             }
         }
         else
         {
-            LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n")
+            LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n");
             success = false;
         }
     }
@@ -1155,86 +1163,86 @@ IfNode* Nodlang::parse_conditional_structure()
         return if_node;
     }
 
-    parser_state.graph->destroy( else_node );
-    parser_state.graph->destroy( condition_true_scope_node );
-    parser_state.graph->destroy( condition );
-    parser_state.graph->destroy( if_node );
+    parser_state.graph->destroy( else_node.value() );
+    parser_state.graph->destroy( condition_true_scope_node.value() );
+    parser_state.graph->destroy( condition.value() );
+    parser_state.graph->destroy( if_node.value() );
     rollback_transaction();
     return nullptr;
 }
 
-ForLoopNode* Nodlang::parse_for_loop()
+Optional<ForLoopNode*> Nodlang::parse_for_loop()
 {
-    bool success = false;
-    ForLoopNode* for_loop_node{};
+    Optional<ForLoopNode*> result;
+    Optional<ForLoopNode*> _temp_for_loop_node;
     start_transaction();
 
     Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for);
 
     if (!token_for.is_null())
     {
-        for_loop_node = parser_state.graph->create_for_loop();
+        _temp_for_loop_node = parser_state.graph->create_for_loop();
         parser_state.graph->connect(
                 *get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
-                *for_loop_node->find_slot( SlotFlag_PARENT ),
+                *_temp_for_loop_node->find_slot(SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.scope.push(for_loop_node->get_component<Scope>());
+        parser_state.scope.push(_temp_for_loop_node->get_component<Scope>());
 
-        for_loop_node->token_for = token_for;
+        _temp_for_loop_node->token_for = token_for;
 
-        LOG_VERBOSE("Parser", "parse FOR (...) block...\n")
+        LOG_VERBOSE("Parser", "parse FOR (...) block...\n");
         Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
         if (open_bracket.is_null())
         {
-            LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n")
+            LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n");
         }
         else
         {
-            Node* init_instr = parse_instr();
+            Optional<Node*> init_instr = parse_instr();
             if (!init_instr)
             {
-                LOG_ERROR("Parser", "Unable to find initial instruction.\n")
+                LOG_ERROR("Parser", "Unable to find initial instruction.\n");
             }
             else
             {
                 parser_state.graph->connect_or_merge(
                         *init_instr->find_slot( SlotFlag_OUTPUT ),
-                        for_loop_node->initialization_slot() );
+                        _temp_for_loop_node->initialization_slot() );
 
-                Node* condition = parse_instr();
-                if (!condition )
+                Optional<Node*> condition = parse_instr();
+                if ( !condition )
                 {
-                    LOG_ERROR("Parser", "Unable to find condition instruction.\n")
+                    LOG_ERROR("Parser", "Unable to find condition instruction.\n");
                 }
                 else
                 {
                     parser_state.graph->connect_or_merge(
                             *condition->find_slot( SlotFlag_OUTPUT ),
-                            for_loop_node->condition_slot(Branch_TRUE) );
+                            _temp_for_loop_node->condition_slot(Branch_TRUE) );
 
-                    Node* iter_instr = parse_instr();
-                    if (!iter_instr)
+                    Optional<Node*> iter_instr = parse_instr();
+                    if ( !iter_instr )
                     {
-                        LOG_ERROR("Parser", "Unable to find iterative instruction.\n")
+                        LOG_ERROR("Parser", "Unable to find iterative instruction.\n");
                     }
                     else
                     {
                         parser_state.graph->connect_or_merge(
                                 *iter_instr->find_slot( SlotFlag_OUTPUT ),
-                                for_loop_node->iteration_slot() );
+                                _temp_for_loop_node->iteration_slot() );
 
                         Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
                         if (close_bracket.is_null())
                         {
-                            LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n")
+                            LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n");
                         }
-                        else if (!parse_scope( for_loop_node->child_slot_at( Branch_TRUE ) ) )
+                        else if (!parse_scope( &_temp_for_loop_node->child_slot_at(Branch_TRUE ) ) )
                         {
-                            LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n")
+                            LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n");
                         }
                         else
                         {
-                            success = true;
+                            result = _temp_for_loop_node;
                         }
                     }
                 }
@@ -1243,80 +1251,82 @@ ForLoopNode* Nodlang::parse_for_loop()
         parser_state.scope.pop();
     }
 
-    if (success)
+    if ( result )
     {
         commit_transaction();
     }
     else
     {
         rollback_transaction();
-        parser_state.graph->destroy( for_loop_node );
-        for_loop_node = {};
+        parser_state.graph->destroy( _temp_for_loop_node.value_or_null() );
     }
 
-    return for_loop_node;
+    return result;
 }
 
-WhileLoopNode* Nodlang::parse_while_loop()
+Optional<WhileLoopNode*> Nodlang::parse_while_loop()
 {
-    bool success = false;
-    WhileLoopNode* while_loop_node = nullptr;
+    Optional<WhileLoopNode*> result;
+    Optional<WhileLoopNode*> _temp_while_loop_node;
+
     start_transaction();
 
     Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while);
 
     if (!token_while.is_null())
     {
-        while_loop_node = parser_state.graph->create_while_loop();
+        _temp_while_loop_node = parser_state.graph->create_while_loop();
         parser_state.graph->connect(
                 *get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
-                *while_loop_node->find_slot( SlotFlag_PARENT ),
+                *_temp_while_loop_node->find_slot(SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.scope.push(while_loop_node->get_component<Scope>() );
+        parser_state.scope.push(_temp_while_loop_node->get_component<Scope>() );
 
-        while_loop_node->token_while = token_while;
+        _temp_while_loop_node->token_while = token_while;
 
-        LOG_VERBOSE("Parser", "parse WHILE (...) { /* block */ }\n")
+        LOG_VERBOSE("Parser", "parse WHILE (...) { /* block */ }\n");
         Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
         if (open_bracket.is_null())
         {
-            LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n")
+            LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n");
         }
-        else if( Node* cond_instr = parse_instr() )
+        else if( Optional<Node*> cond_instr = parse_instr() )
         {
             parser_state.graph->connect_or_merge(
                     *cond_instr->find_slot( SlotFlag_OUTPUT ),
-                    while_loop_node->condition_slot(Branch_TRUE) );
+                    _temp_while_loop_node->condition_slot(Branch_TRUE) );
 
             Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
             if ( close_bracket.is_null() )
             {
-                LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n")
+                LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n");
             }
-            else if (!parse_scope( while_loop_node->child_slot_at( Branch_TRUE ) ) )
+            else if (!parse_scope(&_temp_while_loop_node->child_slot_at(Branch_TRUE ) ) )
             {
-                LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n")
+                LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n");
             }
             else
             {
-                success = true;
+                result = _temp_while_loop_node;
             }
         }
         parser_state.scope.pop();
     }
 
-    if (success)
+    if (result)
     {
         commit_transaction();
-        return while_loop_node;
+    }
+    else
+    {
+        rollback_transaction();
+        parser_state.graph->destroy( _temp_while_loop_node.value_or_null() );
     }
 
-    rollback_transaction();
-    parser_state.graph->destroy( while_loop_node );
-    return {};
+    return result;
 }
 
-Slot* Nodlang::parse_variable_declaration()
+Optional<Slot*> Nodlang::parse_variable_declaration()
 {
 
     if (!parser_state.ribbon.can_eat(2))
@@ -1332,9 +1342,8 @@ Slot* Nodlang::parse_variable_declaration()
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
         const TypeDescriptor* variable_type = get_type(type_token.m_type);
-        auto*           scope         = get_current_scope();
-        ASSERT(scope != nullptr ); // There must always be a scope!
-        VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope );
+        Optional<Scope*>        scope         = get_current_scope();
+        VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope.value() );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->set_type_token( type_token );
         variable_node->set_identifier_token( identifier_token );
@@ -1342,17 +1351,14 @@ Slot* Nodlang::parse_variable_declaration()
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
         if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word_ptr() == '=')
         {
-            Slot* expression_out = parse_expression();
-            if (expression_out != nullptr //&&
-                // type::is_implicitly_convertible(expression_out->get_property()->get_type(), variable_type )
-                )
+            if ( Optional<Slot*> expression_out = parse_expression() )
             {
                 parser_state.graph->connect_to_variable( *expression_out, *variable_node );
                 variable_node->set_operator_token( operator_token );
             }
             else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifier_token.word_to_string().c_str())
+                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifier_token.word_to_string().c_str());
                 rollback_transaction();
                 parser_state.graph->destroy(variable_node );
                 return nullptr;
