@@ -54,7 +54,7 @@ namespace ndbl
 
         const Token& get_identifier_token() const
         {
-            return m_value->token();
+            return m_value->token(); // when parsed, this token may be a bit different from m_variable's (trailing ignored characters)
         }
     private:
         VariableNode* m_variable = nullptr;
