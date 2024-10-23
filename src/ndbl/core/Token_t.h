@@ -39,7 +39,6 @@ namespace ndbl {
         end_of_instruction,
         end_of_line,
         any,
-        COUNT,
     };
 
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/
