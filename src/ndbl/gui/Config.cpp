@@ -151,8 +151,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     flags                                 = ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY
                                           | ConfigFlag_EXPERIMENTAL_MULTI_SELECTION;
     isolation                             = Isolation_OFF;
-    graph_unfold_duration                 = 1.5f;
-    graph_unfold_subsamples               = 50;
+    graph_view_unfold_duration                 = 2.0f; // simlate 2sec
 
     // NodableView
     tools_cfg->dockspace_right_ratio       = 0.25f;
@@ -208,13 +207,4 @@ Vec4& ndbl::Config::ui_slot_color(ndbl::SlotFlags slot_flags)
         return ui_slot_color_light;
 
     return ui_slot_color_dark;
-}
-
-u16_t ndbl::Config::ui_node_physics_sample_count(float dt) const
-{
-    ASSERT( dt >= 0.f);
-    const u16_t n_samples = (u16_t)(dt * ui_node_physics_frequency);
-    if ( n_samples == 0 ) // When frame rate is too slow, we could be in that case
-        return 1;
-    return n_samples;
 }

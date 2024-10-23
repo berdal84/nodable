@@ -363,12 +363,14 @@ bool GraphView::draw()
 	return changed;
 }
 
-void GraphView::_update(float dt, u16_t subsample_count)
+void GraphView::_update(float dt, u16_t count)
 {
-    ASSERT(subsample_count !=0 );
-    const float subsample_dt = dt / float(subsample_count);
-    for(u16_t i = 0; i < subsample_count; i++)
-        _update( subsample_dt );
+    // Guards
+    ASSERT(dt > 0.f );
+    ASSERT(count != 0 );
+
+    for(u16_t i = 0; i < count; i++)
+        _update( dt );
 }
 
 void GraphView::_update(float dt)
@@ -429,10 +431,12 @@ void GraphView::unfold()
 {
     const Config* cfg = get_config();
 
-    float dt      = cfg->graph_unfold_duration;
-    u16_t samples = cfg->graph_unfold_subsamples;
+    // Compute the number of update necessary to simulate unfolding fot dt seconds
+    const u32_t dt      = cfg->graph_view_unfold_duration;
+    const u32_t samples = 1000 * dt / cfg->tools_cfg->dt_cap;
 
-    _update(dt, samples);
+    // Run the updates
+    _update( float(dt) / samples, samples);
 }
 
 void GraphView::add_action_to_node_menu(Action_CreateNode* _action )
@@ -807,6 +811,14 @@ void GraphView::add_child(NodeView* view)
 
 void GraphView::update(float dt)
 {
-    u16_t samples = get_config()->ui_node_physics_sample_count(dt);
-    _update(dt, samples);
+    // Determines how many times update should be called
+    ASSERT( dt >= 0.f);
+    u16_t sample_count = (u16_t)(dt * get_config()->ui_node_physics_frequency);
+    if ( sample_count == 0 ) // When frame rate is too slow
+        sample_count = 1;
+    const float sample_dt = dt / float(sample_count);
+
+    // Do the update(s)
+    for(size_t i = 0; i < sample_count; ++i)
+        _update(sample_dt);
 }

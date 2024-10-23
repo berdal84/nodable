@@ -70,7 +70,6 @@ namespace ndbl
         Vec4           ui_node_highlightedColor;
         float          ui_node_speed;
         float          ui_node_physics_frequency;
-        u16_t          ui_node_physics_sample_count(float dt) const;
         ViewDetail     ui_node_detail;
         Vec4           ui_codeflow_color;
         Vec4           ui_codeflow_shadowColor;
@@ -100,8 +99,7 @@ namespace ndbl
         const char*    ui_toolbar_window_label ;
         const char*    ui_interpreter_window_label;
         Isolation      isolation;
-        float          graph_unfold_duration;
-        i32_t          graph_unfold_subsamples;
+        float          graph_view_unfold_duration; // The virtual duration used to simulate a graph view unfolding, like accelerating time.
         ConfigFlags    flags;
         tools::Config* tools_cfg;
 
