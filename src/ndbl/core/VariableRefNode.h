@@ -43,7 +43,7 @@ namespace ndbl
 
         void set_variable(VariableNode* variable)
         {
-            VERIFY( m_variable != nullptr, "Can't call twice");
+            VERIFY( m_variable == nullptr, "Can't call twice");
             m_variable = variable;
             m_value->set_type( m_variable->get_type() );
             m_value->token().word_replace( m_variable->get_identifier().c_str() );
