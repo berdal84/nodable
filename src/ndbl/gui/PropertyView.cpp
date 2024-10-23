@@ -240,9 +240,11 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
 
         case Token_t::literal_double:
         {
-            double value = get_language()->to_double(property_token.word_to_string());
 
-            if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags)) {
+            double value = get_language()->parse_double_or(property_token.word_to_string(), 0);
+
+            if (ImGui::InputDouble(label.c_str(), &value, 0.0, 0.0, "%.6f", flags))
+            {
                 std::string str;
                 get_language()->serialize_double(str, value);
                 property_token.word_replace(str.c_str());
@@ -253,7 +255,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
 
         case Token_t::literal_int:
         {
-            i32_t value = get_language()->to_int( property_token.word_to_string() );
+            i32_t value = get_language()->parse_int_or( property_token.word_to_string(), 0);
 
             if (ImGui::InputInt(label.c_str(), &value, 0, 0, flags))
             {
@@ -267,13 +269,13 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
 
         case Token_t::literal_bool:
         {
-            auto str = property_token.word_to_string();
-            bool b = get_language()->to_bool( str );
+            auto str   = property_token.word_to_string();
+            bool value = get_language()->parse_bool_or(str, false );
 
-            if (ImGui::Checkbox(label.c_str(), &b))
+            if (ImGui::Checkbox(label.c_str(), &value))
             {
                 str.clear();
-                get_language()->serialize_bool(str, b);
+                get_language()->serialize_bool(str, value);
                 property_token.word_replace(str.c_str());
                 changed = true;
             }
@@ -282,7 +284,6 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
 
         case Token_t::literal_string:
         case Token_t::any:
-        case Token_t::null:
         {
             char buf[256];
             snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
@@ -294,8 +295,12 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             }
             break;
         }
+
         default:
-            ASSERT(false); // Not implemented yet!
+        {
+            const char* buf = "error";
+            ImGui::InputText(label.c_str(), const_cast<char*>(buf), sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+        }
     }
 
     if ( _compact_mode )

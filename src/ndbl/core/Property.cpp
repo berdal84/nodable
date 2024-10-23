@@ -3,6 +3,7 @@
 #include "PropertyBag.h"
 #include "VariableNode.h"
 #include "tools/core/memory/memory.h"
+#include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -15,37 +16,27 @@ void Property::init(const TypeDescriptor* _type, PropertyFlags _flags, Node* _ow
     m_flags = _flags;
     m_owner = _owner;
     m_name  = _name;
+
+    // Ensure token matches with Property type
     init_token();
 }
 
 void Property::init_token()
 {
-    // Initialize a default Token
-    // it is required to display a default value
-    if ( m_type == type::get<double>() )
-    {
-        m_token = { Token_t::literal_double, "0.0" };
-    }
-    else if ( m_type == type::get<i16_t>() )
-    {
-        m_token = { Token_t::keyword_i16, "0" };
-    }
-    else if ( m_type == type::get<int>() )
-    {
-        m_token = { Token_t::keyword_int, "0" };
-    }
-    else if ( m_type == type::get<bool>() )
-    {
-        m_token = { Token_t::literal_bool, "false" };
-    }
-    else if ( m_type == type::get<std::string>() )
-    {
-        m_token = { Token_t::literal_string, "" };
-    }
-    else if ( m_type == type::get<any>() )
-    {
-        m_token = { Token_t::any, "" };
-    }
+    const Nodlang* language = get_language();
+
+    // Convert m_type to a Token_t
+    Token_t token_type = language->to_literal_token( m_type );
+    VERIFY(token_type != Token_t::null, "This token is not handled");
+
+    // Serialize the default value for this Token_t
+    std::string buffer;
+    language->serialize_token_t(buffer, token_type);
+
+    m_token = {
+        token_type,
+        buffer.c_str()
+    };
 }
 
 void Property::digest(Property* _property)

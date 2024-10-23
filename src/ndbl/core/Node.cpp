@@ -27,7 +27,7 @@ Node::~Node()
 void Node::init(NodeType _type, const std::string& _label)
 {
     m_props.init(this);
-    m_value = add_prop<null>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
+    m_value = add_prop<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
 
     m_name = _label;
     m_type = _type;

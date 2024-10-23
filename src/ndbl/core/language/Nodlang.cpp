@@ -218,12 +218,16 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
     return true;
 }
 
-bool Nodlang::to_bool(const std::string &_str)
+bool Nodlang::parse_bool_or(const std::string &_str, bool default_value) const
 {
-    return _str == std::string("true");
+    size_t cursor = 0;
+    Token  token  = parse_token(_str.c_str(), _str.size(), cursor);
+    if ( token.m_type == Token_t::literal_bool )
+        return _str == std::string("true");
+    return default_value;
 }
 
-std::string Nodlang::to_unquoted_string(const std::string &_quoted_str)
+std::string Nodlang::to_unquoted_string(const std::string &_quoted_str) const
 {
     ASSERT(_quoted_str.size() >= 2);
     ASSERT(_quoted_str.front() == '\"');
@@ -231,14 +235,23 @@ std::string Nodlang::to_unquoted_string(const std::string &_quoted_str)
     return std::string(++_quoted_str.cbegin(), --_quoted_str.cend());
 }
 
-double Nodlang::to_double(const std::string &_str)
+double Nodlang::parse_double_or(const std::string &_str, double default_value) const
 {
-    return stod(_str);
+    size_t cursor = 0;
+    Token  token  = parse_token(_str.c_str(), _str.size(), cursor);
+    if ( token.m_type == Token_t::literal_double )
+        return std::stod(_str);
+    return default_value;
 }
 
-int Nodlang::to_int(const std::string &_str)
+
+int Nodlang::parse_int_or(const std::string &_str, int default_value) const
 {
-    return stoi(_str);
+    size_t cursor = 0;
+    Token  token  = parse_token(_str.c_str(), _str.size(), cursor);
+    if ( token.m_type == Token_t::literal_int )
+        return stoi(_str);
+    return default_value;
 }
 
 Optional<Slot*> Nodlang::token_to_slot(Token _token)
@@ -1657,7 +1670,7 @@ std::string& Nodlang::serialize_int(std::string& _out, int i) const
 
 std::string& Nodlang::serialize_double(std::string& _out, double d) const
 {
-    _out.append( std::to_string(d) );
+    _out.append( format::number(d) );
     return _out;
 }
 
@@ -1977,6 +1990,23 @@ bool Nodlang::allow_to_attach_suffix(Token_t type) const
     return    type != Token_t::identifier          // identifiers must stay clean because they are reused
               && type != Token_t::parenthesis_open    // ")" are lost when creating AST
               && type != Token_t::parenthesis_close;  // "(" are lost when creating AST
+}
+
+Token_t Nodlang::to_literal_token(const TypeDescriptor *type) const
+{
+    if (type == type::get<double>() )
+        return Token_t::literal_double;
+    else if (type == type::get<i16_t>() )
+        return Token_t::literal_int;
+    else if (type == type::get<int>() )
+        return Token_t::literal_int;
+    else if (type == type::get<bool>() )
+        return Token_t::literal_bool;
+    else if (type == type::get<std::string>() )
+        return Token_t::literal_string;
+    else if (type == type::get<any>() )
+        return Token_t::any;
+    return Token_t::null;
 }
 
 Nodlang::ParserState::ParserState()

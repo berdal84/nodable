@@ -69,10 +69,10 @@ namespace ndbl{
         tools::Optional<Slot*>          parse_atomic_expression();
         tools::Optional<Slot*>          parse_expression(u8_t _precedence = 0, tools::Optional<Slot*> _left_override = nullptr);
         tools::Optional<Slot*>          token_to_slot(Token _token);
-        bool                            to_bool(const std::string& );
-        std::string                     to_unquoted_string(const std::string& _quoted_str);
-        double                          to_double(const std::string& );
-        int                             to_int(const std::string& );
+        bool                            parse_bool_or(const std::string&, bool default_value ) const;
+        std::string                     to_unquoted_string(const std::string& _quoted_str) const;
+        double                          parse_double_or(const std::string&, double default_value ) const;
+        int                             parse_int_or(const std::string&, int default_value ) const;
 
     private:
         bool                            allow_to_attach_suffix(Token_t type) const;
@@ -141,6 +141,7 @@ namespace ndbl{
         std::string&          to_string(std::string& /*out*/, const tools::TypeDescriptor*)const;   // Convert a type to string (by ref).
         std::string&          to_string(std::string& /*out*/, Token_t)const;              // Convert a type to a token_t (by ref).
         std::string           to_string(const tools::TypeDescriptor *) const;                       // Convert a type to string.
+        Token_t               to_literal_token(const tools::TypeDescriptor*) const;
         std::string           to_string(Token_t)const;                                    // Convert a type to a token_t.
         const tools::TypeDescriptor*    get_type(Token_t _token)const;                              // Get the type corresponding to a given token_t (must be a type keyword)
         void                  add_function(const tools::IInvokable*);                     // Adds a new function (regular or operator's implementation).
