@@ -21,6 +21,7 @@ Node::~Node()
         // DISCONNECT(each->on_change); unnecessary until both Node and Slot(s) are destroyed together
         delete each;
     }
+    on_destroy.emit();
 }
 
 void Node::init(NodeType _type, const std::string& _label)

@@ -52,6 +52,7 @@ namespace ndbl
         Node() = default;
         virtual ~Node();
 
+        SIGNAL(on_destroy);
         SIGNAL(on_name_change, const char *);
 
         void                 init(NodeType type, const std::string& name);
