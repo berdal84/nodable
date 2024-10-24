@@ -56,17 +56,16 @@ File::~File()
 
 void File::update_text_from_graph()
 {
-    const Node* root_node = _graph->root();
-
-    if ( root_node == nullptr )
+    if ( _graph->root() )
     {
-        return;
+        std::string code;
+        get_language()->_serialize_node( code, _graph->root().get(), SerializeFlag_RECURSE );
+        view.set_text(code, _isolation );
     }
-
-    std::string code;
-    get_language()->_serialize_node( code, root_node, SerializeFlag_RECURSE );
-
-    view.set_text(code, _isolation );
+    else
+    {
+        LOG_WARNING("File", "Unable to update text from graph: no root found in the Graph.\n");
+    }
 }
 
 void File::update()

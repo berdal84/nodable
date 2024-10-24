@@ -298,11 +298,6 @@ bool Node::update()
     return true;
 }
 
-bool Node::is_root() const
-{
-    return m_graph != nullptr && m_graph->root() == this;
-}
-
 const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
 {
     if ( _cache.find(flags) == _cache.end() )

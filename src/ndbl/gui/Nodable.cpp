@@ -202,7 +202,7 @@ void Nodable::update()
             {
                 if ( graph_view )
                     for(NodeView* view : graph_view->get_selected())
-                        view->get_node()->set_flags(NodeFlag_TO_DELETE);
+                        view->node()->set_flags(NodeFlag_TO_DELETE);
                 break;
             }
 
@@ -221,7 +221,7 @@ void Nodable::update()
                     std::vector<NodeView*> successors;
                     if (!graph_view->get_selected().empty())
                         for(NodeView* view : graph_view->get_selected() )
-                            for (NodeView* successor : Utils::get_components<NodeView>( view->get_node()->successors() ) )
+                            for (NodeView* successor : Utils::get_components<NodeView>(view->node()->successors() ) )
                                 successors.push_back( successor );
 
                     graph_view->set_selected(successors, SelectionMode_REPLACE);
@@ -339,11 +339,10 @@ void Nodable::update()
                 if ( !slot_view)
                 {
                     // Experimental: we try to connect a parent-less child
-                    Node* root = graph->root();
-                    if (new_node != root && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
+                    if ( !graph->is_root( new_node ) && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
                         graph->connect(
-                            root->find_slot(SlotFlag_CHILD),
+                            graph->root()->find_slot(SlotFlag_CHILD),
                             new_node->find_slot(SlotFlag_PARENT),
                             ConnectFlag_ALLOW_SIDE_EFFECTS
                         );

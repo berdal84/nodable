@@ -101,7 +101,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         // If current view has a single predecessor, we follow it, except if it is a conditional node
         //
         std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_PREV);
-        if ( !previous_nodes.empty() && !Utils::is_conditional( previous_nodes[0]->get_node() ) )
+        if ( !previous_nodes.empty() && !Utils::is_conditional(previous_nodes[0]->node() ) )
         {
             Constraint constraint("Position below previous", &Constraint::constrain_1_to_N_as_row);
             constraint.leader         = previous_nodes;
@@ -151,9 +151,9 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         std::vector<NodeView*> filtered_inputs;
         for(auto* view : inputs)
         {
-            Node* _node = view->get_node();
+            Node* _node = view->node();
             if ( _node->predecessors().empty() )
-                if ( Constraint::should_follow_output( _node, curr_nodeview->get_node() ) )
+                if ( Constraint::should_follow_output( _node, curr_nodeview->node() ) )
                     filtered_inputs.push_back(view);
         }
         if(filtered_inputs.size() > 0 )
@@ -174,7 +174,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
                 constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
             }
 
-            if ( leader->get_node()->predecessors().size() + leader->get_node()->successors().size() != 0 )
+            if (leader->node()->predecessors().size() + leader->node()->successors().size() != 0 )
             {
                 constraint.follower_pivot = BOTTOM_LEFT;
                 constraint.leader_pivot   = TOP_RIGHT;
@@ -232,7 +232,7 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
     delta += gap_direction * cfg->ui_node_gap(gap_size);
 
     // Apply a force to translate to the (single) follower
-    auto* physics_component = _follower->get_node()->get_component<Physics>();
+    auto* physics_component = _follower->node()->get_component<Physics>();
     if( !physics_component )
         return;
 
@@ -279,7 +279,7 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        auto* physics_component = clean_follower[i]->get_node()->get_component<Physics>();
+        auto* physics_component = clean_follower[i]->node()->get_component<Physics>();
         if( !physics_component )
             continue;
         Vec2 current_pos = clean_follower[i]->xform()->get_pos(WORLD_SPACE);

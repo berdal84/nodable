@@ -19,14 +19,18 @@ namespace tools
         inline constexpr          Optional(nullptr_t): _value(nullptr){}
         inline constexpr          Optional(TPtr ptr): _value(ptr){}
         inline constexpr          Optional(const Optional<TPtr>& other): _value(other._value){}
-        inline constexpr TPtr     operator->() { return value(); }
-        inline constexpr T&       operator*() { return *value(); }
-        inline constexpr          operator bool () { return has_value(); }
-        inline constexpr TPtr     value_or_null() { return has_value() ? _value : nullptr; }
-        inline constexpr TPtr     raw_ptr() { return _value; }
-        inline constexpr TPtr     value() { VERIFY(has_value(), "no value hold"); return _value; }
-        inline constexpr bool     has_value() const { return _value != nullptr; }
-        inline constexpr bool     is_empty() const { return !has_value(); }
+
+        inline constexpr TPtr     data() const { return _value; } // like a no-check get()
+        inline constexpr TPtr     get() const { VERIFY(valid(), "no value hold"); return _value; }
+        inline constexpr bool     valid() const { return _value != nullptr; }
+        inline constexpr bool     empty() const { return !valid(); }
+        inline void               reset() { _value = {}; }
+
+        inline constexpr TPtr     operator->() const { return get(); }
+        inline constexpr T&       operator*() const { return *get(); }
+        inline constexpr          operator bool () const { return valid(); }
+        inline bool operator==(const T* other) const { return other == _value; }
+        inline bool operator!=(const T* other) const { return other != _value; }
     private:
         TPtr _value;
     };

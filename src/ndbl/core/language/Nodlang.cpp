@@ -348,33 +348,31 @@ Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot
         return nullptr;
     }
 
-
     // Parse right expression
-    Optional<Slot*> right = parse_expression(ope->precedence);
-
-    if ( !right )
+    if ( Optional<Slot*> right = parse_expression(ope->precedence) )
     {
-        LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
-        rollback_transaction();
-        return nullptr;
+        // Create a function signature according to ltype, rtype and operator word
+        FunctionDescriptor* type = FunctionDescriptor::create<any()>(ope->identifier.c_str());
+        type->push_arg( _left->property->get_type());
+        type->push_arg(right->property->get_type());
+
+        FunctionNode* binary_op = parser_state.graph->create_operator(type);
+        binary_op->set_identifier_token( operator_token );
+        binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
+        binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
+
+        parser_state.graph->connect_or_merge( _left         , binary_op->lvalue_in());
+        parser_state.graph->connect_or_merge( right.get() , binary_op->rvalue_in() );
+
+        commit_transaction();
+        LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
+        return binary_op->value_out();
+
     }
 
-    // Create a function signature according to ltype, rtype and operator word
-    FunctionDescriptor* type = FunctionDescriptor::create<any()>(ope->identifier.c_str());
-    type->push_arg( _left->property->get_type());
-    type->push_arg(right->property->get_type());
-
-    FunctionNode* binary_op = parser_state.graph->create_operator(type);
-    binary_op->set_identifier_token( operator_token );
-    binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
-    binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
-
-    parser_state.graph->connect_or_merge( _left         , binary_op->lvalue_in());
-    parser_state.graph->connect_or_merge( right.value() , binary_op->rvalue_in() );
-
-    commit_transaction();
-    LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
-    return binary_op->value_out();
+    LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
+    rollback_transaction();
+    return nullptr;
 }
 
 Optional<Slot*> Nodlang::parse_unary_operator_expression(u8_t _precedence)
@@ -422,7 +420,7 @@ Optional<Slot*> Nodlang::parse_unary_operator_expression(u8_t _precedence)
     node->set_identifier_token( operator_token );
     node->lvalue_in()->property->token().m_type = out_atomic->property->token().m_type;
 
-    parser_state.graph->connect_or_merge( out_atomic.value(), node->lvalue_in() );
+    parser_state.graph->connect_or_merge( out_atomic.get(), node->lvalue_in() );
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
     commit_transaction();
@@ -601,14 +599,14 @@ Optional<Node*> Nodlang::parse_scope(Slot* _parent_scope_slot )
     // Handle nested scopes
     parser_state.graph->connect( _parent_scope_slot, new_scope_node->find_slot( SlotFlag_PARENT ), ConnectFlag_ALLOW_SIDE_EFFECTS );
 
-    parser_state.scope.push( new_scope.value() );
+    parser_state.scope.push( new_scope.get() );
     parse_code_block();
     parser_state.scope.pop();
 
     auto scope_end_token = parser_state.ribbon.eat_if(Token_t::scope_end);
     if ( !scope_end_token )
     {
-        parser_state.graph->destroy( new_scope_node.value() );
+        parser_state.graph->destroy( new_scope_node.get() );
         rollback_transaction();
         return {};
     }
@@ -662,7 +660,7 @@ Optional<Slot*> Nodlang::parse_expression(u8_t _precedence, Optional<Slot*> _lef
     if (!parser_state.ribbon.can_eat())
     {
         LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n");
-        return _left_override.value_or_null();
+        return _left_override;
     }
 
     /*
@@ -695,13 +693,13 @@ Optional<Slot*> Nodlang::parse_expression(u8_t _precedence, Optional<Slot*> _lef
 		Get the right-handed operand
 	*/
     LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n");
-    Optional<Slot*> expression_out = parse_binary_operator_expression( _precedence, left.value() );
+    Optional<Slot*> expression_out = parse_binary_operator_expression( _precedence, left.get() );
     if ( expression_out )
     {
         if (!parser_state.ribbon.can_eat())
         {
             LOG_VERBOSE("Parser", "parse expr... " OK " right parsed (last token reached)\n");
-            return expression_out.raw_ptr();
+            return expression_out.data();
         }
         LOG_VERBOSE("Parser", "parse expr... " OK " right parsed, recursive call...\n");
         return parse_expression(_precedence, expression_out);
@@ -1044,7 +1042,7 @@ Optional<Slot*> Nodlang::parse_function_call()
         Optional<Slot*> expression_out = parse_expression();
         if ( expression_out )
         {
-            result_slots.push_back( expression_out.value() );
+            result_slots.push_back( expression_out.get() );
             signature->push_arg( expression_out->property->get_type() );
             parser_state.ribbon.eat_if(Token_t::list_separator);
         }
@@ -1178,10 +1176,10 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
         return if_node;
     }
 
-    parser_state.graph->destroy( else_node.value() );
-    parser_state.graph->destroy( condition_true_scope_node.value() );
-    parser_state.graph->destroy( condition.value() );
-    parser_state.graph->destroy( if_node.value() );
+    parser_state.graph->destroy( else_node.get() );
+    parser_state.graph->destroy( condition_true_scope_node.get() );
+    parser_state.graph->destroy( condition.get() );
+    parser_state.graph->destroy( if_node.get() );
     rollback_transaction();
     return nullptr;
 }
@@ -1270,7 +1268,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
     else
     {
         rollback_transaction();
-        parser_state.graph->destroy( _temp_for_loop_node.value_or_null() );
+        parser_state.graph->destroy( _temp_for_loop_node.data() );
     }
 
     return result;
@@ -1332,7 +1330,7 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
     else
     {
         rollback_transaction();
-        parser_state.graph->destroy( _temp_while_loop_node.value_or_null() );
+        parser_state.graph->destroy( _temp_while_loop_node.data() );
     }
 
     return result;
@@ -1355,7 +1353,7 @@ Optional<Slot*> Nodlang::parse_variable_declaration()
     {
         const TypeDescriptor* variable_type = get_type(type_token.m_type);
         Optional<Scope*>        scope         = get_current_scope();
-        VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope.value() );
+        VariableNode* variable_node = parser_state.graph->create_variable(variable_type, identifier_token.word_to_string(), scope.get() );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->set_type_token( type_token );
         variable_node->set_identifier_token( identifier_token );
@@ -1365,7 +1363,7 @@ Optional<Slot*> Nodlang::parse_variable_declaration()
         {
             if ( Optional<Slot*> expression_out = parse_expression() )
             {
-                parser_state.graph->connect_to_variable( expression_out.value(), variable_node );
+                parser_state.graph->connect_to_variable( expression_out.get(), variable_node );
                 variable_node->set_operator_token( operator_token );
             }
             else

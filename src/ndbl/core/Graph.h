@@ -12,6 +12,7 @@
 #include "tools/core/types.h"
 
 #include "IScope.h"
+#include "tools/core/Optional.h"
 
 namespace ndbl
 {
@@ -68,11 +69,12 @@ namespace ndbl
         void                     clear();  // Delete all nodes, wires, edges and reset scope.
         inline GraphView*        view() const { return m_view; };
         inline void              set_view(GraphView* view = nullptr) { ASSERT(view != nullptr); m_view = view; }
-        inline void              ensure_has_root() { if (is_empty()) create_root(); }
-        inline Node*             root() const { return m_root; }
-        inline bool              is_empty() const { return m_root == nullptr; };
+        inline bool              is_empty() const { return m_root.empty(); };
         inline bool              is_dirty() const { return m_is_dirty; }
         inline void              set_dirty(bool b = true) { m_is_dirty = b; }
+        inline void              ensure_has_root() { if (is_empty()) create_root(); }
+        inline tools::Optional<Node*> root() const { return m_root; }
+        inline bool              is_root(const Node* node) const { return  m_root == node; }
 
         // node related
 
@@ -115,7 +117,7 @@ namespace ndbl
         void add(const DirectedEdge&);    // ... to the registry.
         void remove(const DirectedEdge&); // ... from the registry.
 
-        Node*              m_root     = nullptr; // Graph root (main scope), without it a graph cannot be compiled.
+        tools::Optional<Node*> m_root = nullptr; // Graph root (main scope), without it a graph cannot be compiled.
         const NodeFactory* m_factory  = nullptr;
         bool               m_is_dirty = false;
         GraphView*         m_view     = nullptr; // non-owned

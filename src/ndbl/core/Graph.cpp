@@ -26,7 +26,7 @@ Graph::~Graph()
 
 void Graph::clear()
 {
-    if ( m_root == nullptr && m_node_registry.empty() && m_edge_registry.empty() )
+    if (m_root.empty() && m_node_registry.empty() && m_edge_registry.empty() )
     {
         return;
     }
@@ -177,7 +177,7 @@ void Graph::destroy(Node* node)
     remove(node);
     if ( m_root == node )
     {
-        m_root = {};
+        m_root.reset();
     }
     m_factory->destroy_node(node);
 }

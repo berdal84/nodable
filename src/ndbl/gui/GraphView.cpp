@@ -555,7 +555,7 @@ void GraphView::reset_all_properties()
             property_view->reset();
 }
 
-Graph *GraphView::get_graph() const
+Graph *GraphView::graph() const
 {
     return m_graph;
 }
@@ -571,7 +571,7 @@ void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView*
     {
         // Generate an event from this action, add some info to the state and dispatch it.
         auto event                     = triggered_action->make_event();
-        event->data.graph              = get_graph();
+        event->data.graph              = graph();
         event->data.active_slotview    = dragged_slotview;
         event->data.desired_screen_pos = ImGui::GetMousePosOnOpeningCurrentPopup();
         get_event_manager()->dispatch(event);

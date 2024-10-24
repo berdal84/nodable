@@ -32,7 +32,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
     Optional<Slot*> function_out = language->parse_function_call();
 
     // check
-    EXPECT_TRUE(function_out.has_value());
+    EXPECT_TRUE(function_out.valid());
     EXPECT_TRUE(function_out->node->type() == NodeType_FUNCTION);
 }
 
@@ -59,6 +59,6 @@ TEST_F(Language_parse_function_call, operator_add)
     Optional<Slot*> result = language->parse_expression();
 
     // check
-    EXPECT_TRUE(result.has_value());
+    EXPECT_TRUE(result.valid());
     EXPECT_TRUE(result->node->type() == NodeType_OPERATOR);
 }

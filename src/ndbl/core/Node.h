@@ -57,21 +57,20 @@ namespace ndbl
 
         void                 init(NodeType type, const std::string& name);
         bool                 update();
-        NodeType             type() const { return m_type; }
+        inline NodeType      type() const { return m_type; }
         bool                 is_invokable() const;
-        bool                 is_root() const;
-        bool                 has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
-        void                 set_flags(NodeFlags flags) { m_flags |= flags; }
-        void                 clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
-        Graph*               graph() { return m_graph; }
-        const Graph*         graph() const { return m_graph; }
-        const std::string&   name() const { return m_name; };
-        Token&               suffix() { return m_suffix; };
-        const Token&         suffix() const { return m_suffix; };
+        inline bool          has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
+        inline void          set_flags(NodeFlags flags) { m_flags |= flags; }
+        inline void          clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
+        inline Graph*        graph() { return m_graph; }
+        inline const Graph*  graph() const { return m_graph; }
+        inline const std::string& name() const { return m_name; };
+        inline Token&        suffix() { return m_suffix; };
+        inline const Token&  suffix() const { return m_suffix; };
         void                 set_suffix(const Token& token);
         const PropertyBag&   props() const;
-        const Property*      value() const { return m_value; }
-        Property*            value() { return m_value; }
+        inline const Property* value() const { return m_value; }
+        inline Property*     value() { return m_value; }
         Slot*                value_in();
         const Slot*          value_in() const;
         Slot*                value_out();

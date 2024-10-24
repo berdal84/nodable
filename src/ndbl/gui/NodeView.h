@@ -57,7 +57,7 @@ namespace ndbl
 		NodeView();
 		~NodeView();
 
-        Node*                   get_node() const { return m_owner; }
+        Node*                   node() const { return m_owner; }
         bool                    selected() const { return  m_view_state.selected; };
         inline bool             pinned() const { return m_pinned; }
         bool                    visible() const { return m_view_state.visible; };
@@ -79,7 +79,7 @@ namespace ndbl
         void                    expand_toggle_rec();
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
-        GraphView*              get_graph() const;
+        GraphView*              graph_view() const;
         tools::BoxShape2D*             box() { return &m_view_state.box; }
         const tools::SpatialNode2D*   xform() const { return &m_view_state.box.xform; }
         tools::SpatialNode2D*         xform() { return &m_view_state.box.xform; }

@@ -333,12 +333,19 @@ bool Interpreter::debug_step_over()
 
 void Interpreter::debug_program()
 {
-    ASSERT(m_code);
-    m_is_debugging = true;
+    Optional<Node*> root = graph()->root();
+    if( root )
+    {
+        LOG_ERROR("Interpreter", "Unable to debug program. Graph has no root.\n");
+        return;
+    }
+
+    m_is_debugging       = true;
     m_is_program_running = true;
+    m_next_node          = root.get();
+
     m_cpu.clear_registers();
     m_visited_nodes.clear();
-    m_next_node = m_code->get_meta_data().graph->root();
 
     LOG_MESSAGE("Interpreter", "Debugging program ...\n");
 }

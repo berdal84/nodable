@@ -53,7 +53,7 @@ namespace ndbl
     private:
         void                  advance_cursor(i64_t _amount = 1);// Advance the instruction pointer of a given amount
         bool                  step_over(); // Step over common code (for both "run" and "debug" modes)
-
+        inline const Graph*   graph() { ASSERT(m_code); return m_code->get_meta_data().graph; }
         CPU                   m_cpu;
         bool                  m_is_program_running   = false; // TODO: use StateMachine
         bool                  m_is_debugging         = false; // TODO: use StateMachine
