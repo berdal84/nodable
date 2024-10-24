@@ -40,17 +40,15 @@ TEST_F(Language_basics, token_t_to_type)
     EXPECT_EQ(language->get_type(Token_t::keyword_bool)  , type::get<bool>());
     EXPECT_EQ(language->get_type(Token_t::keyword_double), type::get<double>() );
     EXPECT_EQ(language->get_type(Token_t::keyword_i16)   , type::get<i16_t>() );
-    EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<int>() );
     EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<i32_t>() );
     EXPECT_EQ(language->get_type(Token_t::keyword_string), type::get<std::string>() );
     EXPECT_EQ(language->get_type(Token_t::keyword_any)   , type::get<any>() );
 
-    ASSERT_ANY_THROW(language->get_type(Token_t::literal_bool));
-    ASSERT_ANY_THROW(language->get_type(Token_t::literal_double));
-    ASSERT_ANY_THROW(language->get_type(Token_t::literal_int));
-    ASSERT_ANY_THROW(language->get_type(Token_t::literal_int));
-    ASSERT_ANY_THROW(language->get_type(Token_t::literal_string));
-    ASSERT_ANY_THROW(language->get_type(Token_t::literal_any));
+    EXPECT_EQ(language->get_type(Token_t::literal_bool), nullptr);
+    EXPECT_EQ(language->get_type(Token_t::literal_double), nullptr);
+    EXPECT_EQ(language->get_type(Token_t::literal_int), nullptr);
+    EXPECT_EQ(language->get_type(Token_t::literal_string), nullptr);
+    EXPECT_EQ(language->get_type(Token_t::literal_any), nullptr);
 }
 
 TEST_F(Language_basics, type_to_string)

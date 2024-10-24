@@ -1973,8 +1973,10 @@ int Nodlang::get_precedence( const tools::FunctionDescriptor* _func_type) const
 
 const TypeDescriptor* Nodlang::get_type(Token_t _token) const
 {
-    VERIFY(is_a_type_keyword(_token), "_token_t is not a type keyword!");
-    return m_type_by_token_t.find(_token)->second;
+    auto found = m_type_by_token_t.find(_token);
+    if ( found != m_type_by_token_t.end() )
+        return found->second;
+    return nullptr;
 }
 
 Token Nodlang::parse_token(const std::string &_string) const
