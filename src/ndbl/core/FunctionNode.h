@@ -19,7 +19,7 @@ namespace ndbl
         Slot*                       lvalue_in() const { return m_argument_slot[0]; }
         Slot*                       rvalue_in() const { return m_argument_slot[1]; }
     protected:
-        Token                       m_identifier_token = Token::s_null;
+        Token                       m_identifier_token;
         const tools::FunctionDescriptor*      m_func_type; // not owned
         std::vector<Slot*>          m_argument_slot;
         std::vector<Property*>      m_argument_props;

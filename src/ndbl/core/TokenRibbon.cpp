@@ -82,7 +82,7 @@ Token TokenRibbon::eat_if(Token_t expectedType)
     {
         return eat();
     }
-    return Token::s_null;
+    return Token_t::none;
 }
 
 Token TokenRibbon::eat()

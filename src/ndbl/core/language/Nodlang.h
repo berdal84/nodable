@@ -70,9 +70,9 @@ namespace ndbl{
         tools::Optional<Slot*>          parse_expression(u8_t _precedence = 0, tools::Optional<Slot*> _left_override = nullptr);
         tools::Optional<Slot*>          token_to_slot(Token _token);
         bool                            parse_bool_or(const std::string&, bool default_value ) const;
-        std::string                     to_unquoted_string(const std::string& _quoted_str) const;
         double                          parse_double_or(const std::string&, double default_value ) const;
         int                             parse_int_or(const std::string&, int default_value ) const;
+        std::string                     remove_quotes(const std::string& _quoted_str) const;
 
     private:
         bool                            allow_to_attach_suffix(Token_t type) const;
@@ -110,9 +110,11 @@ namespace ndbl{
         std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
         std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, const std::vector<Slot*>& inputs)const;
         std::string& serialize_func_sig(std::string& _out, const tools::FunctionDescriptor*)const;
-        std::string& serialize_token_t(std::string& _out, const Token_t&)const;
+        std::string& serialize_token_t(std::string& _out, const Token_t)const;
+        std::string  serialize_token_t(Token_t _token)const;
         std::string& serialize_token(std::string& _out, const Token &) const;
         std::string& serialize_type(std::string& _out, const tools::TypeDescriptor*) const;
+        std::string  serialize_type(const tools::TypeDescriptor *_type) const;
         std::string& serialize_input(std::string& _out, const Slot &_slot, SerializeFlags _flags = SerializeFlag_NONE )const;
         std::string& serialize_output(std::string& _out, const Slot &_slot, SerializeFlags flags = SerializeFlag_NONE )const;
         std::string& _serialize_node(std::string &_out, const Node* node, SerializeFlags _flags = SerializeFlag_NONE ) const;
@@ -138,11 +140,7 @@ namespace ndbl{
         const tools::IInvokable* find_operator_fct_fallback(const tools::FunctionDescriptor*) const;  // Find an operator's function by signature (casts allowed).
         const tools::Operator* find_operator(const std::string& , tools::Operator_t) const;// Find an operator by symbol and type (unary, binary or ternary).
         const std::vector<const tools::IInvokable*>& get_api()const { return m_functions; } // Get all the functions registered in the language.
-        std::string&          to_string(std::string& /*out*/, const tools::TypeDescriptor*)const;   // Convert a type to string (by ref).
-        std::string&          to_string(std::string& /*out*/, Token_t)const;              // Convert a type to a token_t (by ref).
-        std::string           to_string(const tools::TypeDescriptor *) const;                       // Convert a type to string.
         Token_t               to_literal_token(const tools::TypeDescriptor*) const;
-        std::string           to_string(Token_t)const;                                    // Convert a type to a token_t.
         const tools::TypeDescriptor*    get_type(Token_t _token)const;                              // Get the type corresponding to a given token_t (must be a type keyword)
         void                  add_function(const tools::IInvokable*);                     // Adds a new function (regular or operator's implementation).
         int                   get_precedence(const tools::FunctionDescriptor*)const;                // Get the precedence of a given function (precedence may vary because function could be an operator implementation).

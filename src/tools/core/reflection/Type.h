@@ -35,8 +35,9 @@ namespace tools
     class ClassDescriptor;
     class Operator;
 
-    struct any{};  // Similar to TypeScript's any type
-    struct null{}; // Similar ............... unknown type
+    struct any{};  // Any type (like TypeScript's)
+    struct unknown{}; // Unknown type (like TypeScript's)
+    struct null{}; // Absence of type
 
     // Return true if T is reflected
     template<class T, typename GET_CLASS = decltype(&T::get_class)>

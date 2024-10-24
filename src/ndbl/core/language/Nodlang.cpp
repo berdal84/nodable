@@ -66,11 +66,11 @@ Nodlang::Nodlang(bool _strict)
 
     m_definition.keywords =
     {
-         { "if",   Token_t::keyword_if },
-         { "for",  Token_t::keyword_for },
-         { "while",  Token_t::keyword_while },
-         { "else", Token_t::keyword_else },
-         { "true", Token_t::literal_bool },
+         { "if",       Token_t::keyword_if },
+         { "for",      Token_t::keyword_for },
+         { "while",    Token_t::keyword_while },
+         { "else",     Token_t::keyword_else },
+         { "true",     Token_t::literal_bool },
          { "false",    Token_t::literal_bool },
          { "operator", Token_t::keyword_operator },
     };
@@ -81,7 +81,10 @@ Nodlang::Nodlang(bool _strict)
          { "string", Token_t::keyword_string, type::get<std::string>()},
          { "double", Token_t::keyword_double, type::get<double>()},
          { "i16",    Token_t::keyword_i16,    type::get<i16_t>()},
-         { "int",    Token_t::keyword_int,    type::get<i32_t>()}
+         { "int",    Token_t::keyword_int,    type::get<i32_t>()},
+         { "any",    Token_t::keyword_any,    type::get<any>()},
+         // we don't really want to parse/serialize that
+         // { "unknown",Token_t::keyword_unknown,type::get<unknown>()},
     };
 
     m_definition.operators =
@@ -227,7 +230,7 @@ bool Nodlang::parse_bool_or(const std::string &_str, bool default_value) const
     return default_value;
 }
 
-std::string Nodlang::to_unquoted_string(const std::string &_quoted_str) const
+std::string Nodlang::remove_quotes(const std::string &_quoted_str) const
 {
     ASSERT(_quoted_str.size() >= 2);
     ASSERT(_quoted_str.front() == '\"');
@@ -536,8 +539,7 @@ Optional<Node*> Nodlang::parse_instr()
     // Handle suffix
     if (parser_state.ribbon.can_eat())
     {
-        Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction);
-        if (!expected_end_of_instr_token.is_null())
+        if ( Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction) )
         {
             output_node->set_suffix(expected_end_of_instr_token );
         }
@@ -771,7 +773,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
     {
         Token new_token = parse_token(buffer, buffer_size, global_cursor);
 
-        if (new_token.is_null())
+        if ( !new_token )
         {
             char buffer_portion[40];
             snprintf(buffer_portion, 40, "%s", &buffer[global_cursor]);
@@ -800,7 +802,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
                     {
                         last_token.m_string_length += ignored_chars_size;
                     }
-                    else if (!new_token.is_null())
+                    else if ( new_token )
                     {
                         new_token.m_string_start_pos = ignored_chars_start_pos;
                         new_token.m_string_length += ignored_chars_size;
@@ -988,7 +990,7 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
         }
         return Token{type, const_cast<char*>(buffer), start_pos, cursor - start_pos};
     }
-    return Token::s_null;
+    return Token_t::none;
 }
 
 Optional<Slot*> Nodlang::parse_function_call()
@@ -1053,7 +1055,7 @@ Optional<Slot*> Nodlang::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if (parser_state.ribbon.eat_if(Token_t::parenthesis_close).is_null())
+    if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
     {
         LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
         rollback_transaction();
@@ -1190,9 +1192,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
     Optional<ForLoopNode*> _temp_for_loop_node;
     start_transaction();
 
-    Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for);
-
-    if (!token_for.is_null())
+    if ( Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for) )
     {
         _temp_for_loop_node = parser_state.graph->create_for_loop();
         parser_state.graph->connect(
@@ -1205,11 +1205,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
 
         LOG_VERBOSE("Parser", "parse FOR (...) block...\n");
         Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
-        if (open_bracket.is_null())
-        {
-            LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n");
-        }
-        else
+        if ( open_bracket)
         {
             Optional<Node*> init_instr = parse_instr();
             if (!init_instr)
@@ -1244,8 +1240,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
                                 *iter_instr->find_slot( SlotFlag_OUTPUT ),
                                 _temp_for_loop_node->iteration_slot() );
 
-                        Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
-                        if (close_bracket.is_null())
+                        if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n");
                         }
@@ -1260,6 +1255,10 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
                     }
                 }
             }
+        }
+        else
+        {
+            LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n");
         }
         parser_state.scope.pop();
     }
@@ -1284,9 +1283,7 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
 
     start_transaction();
 
-    Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while);
-
-    if (!token_while.is_null())
+    if ( Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while) )
     {
         _temp_while_loop_node = parser_state.graph->create_while_loop();
         parser_state.graph->connect(
@@ -1299,29 +1296,31 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
 
         LOG_VERBOSE("Parser", "parse WHILE (...) { /* block */ }\n");
         Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
-        if (open_bracket.is_null())
+        if ( open_bracket )
+        {
+            if( Optional<Node*> cond_instr = parse_instr() )
+            {
+                parser_state.graph->connect_or_merge(
+                        *cond_instr->find_slot(SlotFlag_OUTPUT),
+                        _temp_while_loop_node->condition_slot(Branch_TRUE));
+
+                if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
+                {
+                    LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n");
+                }
+                else if ( !parse_scope( &_temp_while_loop_node->child_slot_at(Branch_TRUE) ) )
+                {
+                    LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n");
+                }
+                else
+                {
+                    result = _temp_while_loop_node;
+                }
+            }
+        }
+        else
         {
             LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n");
-        }
-        else if( Optional<Node*> cond_instr = parse_instr() )
-        {
-            parser_state.graph->connect_or_merge(
-                    *cond_instr->find_slot( SlotFlag_OUTPUT ),
-                    _temp_while_loop_node->condition_slot(Branch_TRUE) );
-
-            Token close_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
-            if ( close_bracket.is_null() )
-            {
-                LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n");
-            }
-            else if (!parse_scope(&_temp_while_loop_node->child_slot_at(Branch_TRUE ) ) )
-            {
-                LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n");
-            }
-            else
-            {
-                result = _temp_while_loop_node;
-            }
         }
         parser_state.scope.pop();
     }
@@ -1362,7 +1361,7 @@ Optional<Slot*> Nodlang::parse_variable_declaration()
         variable_node->set_identifier_token( identifier_token );
         // try to parse assignment
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
-        if (!operator_token.is_null() && operator_token.word_size() == 1 && *operator_token.word_ptr() == '=')
+        if ( operator_token && operator_token.word_size() == 1 && *operator_token.word_ptr() == '=')
         {
             if ( Optional<Slot*> expression_out = parse_expression() )
             {
@@ -1412,7 +1411,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
                 }
 
                 // Operator
-                VERIFY(!_node->get_identifier_token().is_null(), "identifier token should have been assigned in parse_function_call");
+                VERIFY( _node->get_identifier_token(), "identifier token should have been assigned in parse_function_call");
                 serialize_token( _out, _node->get_identifier_token() );
 
                 // Right part of the expression
@@ -1430,7 +1429,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                ASSERT(!_node->get_identifier_token().is_null());
+                ASSERT( _node->get_identifier_token() );
                 serialize_token(_out, _node->get_identifier_token());
 
                 bool needs_braces    = _node->get_connected_function_type(LEFT_VALUE_PROPERTY) != nullptr;
@@ -1495,15 +1494,16 @@ std::string &Nodlang::serialize_func_sig(std::string &_out, const FunctionDescri
     return _out;
 }
 
-std::string &Nodlang::serialize_token_t(std::string &_out, const Token_t &_type) const
+std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor *_type) const
 {
-    return _out.append(to_string(_type));
+    auto found = m_keyword_by_type_id.find(_type->id());
+    if (found != m_keyword_by_type_id.cend())
+    {
+        return _out.append(found->second);
+    }
+    return _out;
 }
 
-std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor* _type) const
-{
-    return _out.append(to_string(_type));
-}
 
 std::string& Nodlang::serialize_variable_ref(std::string &_out, const VariableRefNode* _node) const
 {
@@ -1515,7 +1515,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     // 1. Serialize variable's type
 
     // If parsed
-    if (!_node->get_type_token().is_null())
+    if ( _node->get_type_token() )
     {
         serialize_token(_out, _node->get_type_token());
     }
@@ -1534,10 +1534,10 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     const Slot* slot = _node->value_in();
     if ( slot->adjacent_count() != 0 )
     {
-        if ( _node->get_operator_token().is_null() )
-            _out.append(" = ");
-        else
+        if ( _node->get_operator_token() )
             _out.append(_node->get_operator_token().buffer_to_string());
+        else
+            _out.append(" = ");
 
         serialize_input( _out, *slot, SerializeFlag_RECURSE );
     }
@@ -1565,7 +1565,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
         VERIFY( _flags & SerializeFlag_RECURSE, "Why would you call serialize_input without RECURSE flag?");
         // Append token prefix?
         if (const Token& adjacent_token = adjacent_property->token())
-            if ( !adjacent_token.is_null() )
+            if ( adjacent_token )
                 _out.append( adjacent_token.prefix_ptr(), adjacent_token.prefix_size() );
 
         // Serialize adjacent slot
@@ -1573,7 +1573,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
 
         // Append token suffix?
         if (const Token& adjacent_token = adjacent_property->token())
-            if ( !adjacent_token.is_null() )
+            if ( adjacent_token )
                 _out.append( adjacent_token.suffix_ptr(), adjacent_token.suffix_size() );
     }
 
@@ -1649,7 +1649,7 @@ std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) co
 
 std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) const
 {
-    if (!_token.is_null() && _token.has_buffer())
+    if ( _token && _token.has_buffer())
     {
         _out.append(_token.string_ptr(), _token.string_size());
     }
@@ -1676,13 +1676,13 @@ std::string& Nodlang::serialize_double(std::string& _out, double d) const
 
 std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_for_loop) const
 {
-    if( _for_loop->token_for.is_null())
+    if( _for_loop->token_for )
     {
-        serialize_token_t(_out, Token_t::keyword_for);
+        serialize_token(_out, _for_loop->token_for);
     }
     else
     {
-        serialize_token(_out, _for_loop->token_for);
+        serialize_token_t(_out, Token_t::keyword_for);
     }
 
     serialize_token_t(_out, Token_t::parenthesis_open);
@@ -1714,13 +1714,13 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
 std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode *_while_loop_node) const
 {
 
-    if( _while_loop_node->token_while.is_null())
+    if( _while_loop_node->token_while )
     {
-        serialize_token_t(_out, Token_t::keyword_while);
+        serialize_token(_out, _while_loop_node->token_while);
     }
     else
     {
-        serialize_token(_out, _while_loop_node->token_while);
+        serialize_token_t(_out, Token_t::keyword_while);
     }
 
     SerializeFlags flags = SerializeFlag_RECURSE
@@ -1745,13 +1745,13 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_condition_struct ) const
 {
     // if ...
-    if ( _condition_struct->token_if.is_null())
+    if ( _condition_struct->token_if )
     {
-        serialize_token_t(_out, Token_t::keyword_if);
+        serialize_token(_out, _condition_struct->token_if);
     }
     else
     {
-        serialize_token(_out, _condition_struct->token_if);
+        serialize_token_t(_out, Token_t::keyword_if);
     }
 
     // ... ( <condition> )
@@ -1909,17 +1909,7 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
     return nullptr;
 }
 
-std::string &Nodlang::to_string(std::string &_out, const TypeDescriptor* _type) const
-{
-    auto found = m_keyword_by_type_id.find(_type->id());
-    if (found != m_keyword_by_type_id.cend())
-    {
-        return _out.append(found->second);
-    }
-    return _out;
-}
-
-std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
+std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) const
 {
     switch (_token_t)
     {
@@ -1927,6 +1917,12 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
         case Token_t::ignore:          return _out.append("ignore");
         case Token_t::operator_:       return _out.append("operator");
         case Token_t::identifier:      return _out.append("identifier");
+        case Token_t::literal_string:  return _out.append("\"\"");
+        case Token_t::literal_double:  [[fallthrough]];
+        case Token_t::literal_int:     return _out.append("0");
+        case Token_t::literal_bool:    return _out.append("false");
+        case Token_t::literal_any:     [[fallthrough]];
+        case Token_t::literal_unknown: return _out.append("");
         default:
         {
             {
@@ -1949,16 +1945,18 @@ std::string &Nodlang::to_string(std::string &_out, Token_t _token_t) const
     }
 }
 
-std::string Nodlang::to_string(const TypeDescriptor* _type) const
+std::string Nodlang::serialize_type(const TypeDescriptor *_type) const
 {
     std::string result;
-    return to_string(result, _type);
+    serialize_type(result, _type);
+    return result;
 }
 
-std::string Nodlang::to_string(Token_t _token) const
+std::string Nodlang::serialize_token_t(Token_t _token) const
 {
     std::string result;
-    return to_string(result, _token);
+    serialize_token_t(result, _token);
+    return result;
 }
 
 int Nodlang::get_precedence( const tools::FunctionDescriptor* _func_type) const
@@ -1996,17 +1994,17 @@ Token_t Nodlang::to_literal_token(const TypeDescriptor *type) const
 {
     if (type == type::get<double>() )
         return Token_t::literal_double;
-    else if (type == type::get<i16_t>() )
+    if (type == type::get<i16_t>() )
         return Token_t::literal_int;
-    else if (type == type::get<int>() )
+    if (type == type::get<int>() )
         return Token_t::literal_int;
-    else if (type == type::get<bool>() )
+    if (type == type::get<bool>() )
         return Token_t::literal_bool;
-    else if (type == type::get<std::string>() )
+    if (type == type::get<std::string>() )
         return Token_t::literal_string;
-    else if (type == type::get<any>() )
-        return Token_t::any;
-    return Token_t::null;
+    if (type == type::get<any>() )
+        return Token_t::literal_any;
+    return Token_t::literal_unknown;
 }
 
 Nodlang::ParserState::ParserState()

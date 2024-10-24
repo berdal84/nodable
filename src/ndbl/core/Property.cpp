@@ -27,15 +27,14 @@ void Property::init_token()
 
     // Convert m_type to a Token_t
     Token_t token_type = language->to_literal_token( m_type );
-    VERIFY(token_type != Token_t::null, "This token is not handled");
+    VERIFY(token_type != Token_t::none, "This token is not handled");
 
     // Serialize the default value for this Token_t
-    std::string buffer;
-    language->serialize_token_t(buffer, token_type);
+    std::string buffer = language->serialize_token_t(token_type);
 
     m_token = {
         token_type,
-        buffer.c_str()
+        buffer
     };
 }
 

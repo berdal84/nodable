@@ -40,13 +40,19 @@ namespace ndbl
         size_t      m_string_length    = 0; //     size of ...
         size_t      m_word_start_pos   = 0; // position of the token's word (without prefix/suffix) in m_source_buffer
         size_t      m_word_length      = 0; //     size of ...
-        Token_t     m_type             = Token_t::any;
+        Token_t     m_type             = Token_t::none;
 
         Token() {}
 
         Token(Token_t _type)
         : m_type(_type)
         {}
+
+        Token(Token_t _type, const std::string& _word)
+        : Token(_type)
+        {
+            word_replace(_word.c_str());
+        }
 
         Token(Token_t _type, const char* const _word)
             : Token(_type)
@@ -103,15 +109,13 @@ namespace ndbl
         }
 
         Token(Token&& other);
+
         inline explicit operator bool () const
-        { return !this->is_null(); }
+        { return m_type != Token_t::none; }
 
         Token& operator=(const Token& other);
         Token& operator=(Token&&) noexcept;
-
-        ~Token() {
-            if( m_is_buffer_owned ) delete[] m_buffer;
-        };
+        ~Token();;
         void clear();
 
         inline bool has_buffer()const
@@ -144,11 +148,9 @@ namespace ndbl
         void        set_source_buffer(char* _buffer, size_t pos = 0, size_t size = 0);
         std::string json()const;
         bool        empty() const { return string_size() == 0; }
-        bool        is_null() const { return m_type == Token_t::null; }
         void        word_replace(const char* new_word);
         void        suffix_append(const char* str);
 
-        static const Token s_null; // To act as null Token
         static const Token s_end_of_line;
         static const Token s_end_of_instruction;
     };

@@ -56,8 +56,8 @@ namespace ndbl
         const Slot*        ref_out() const { return m_as_reference_slot; }
 
     private:
-        Token              m_type_token       = Token::s_null; // [int] var  =
-        Token              m_operator_token   = Token::s_null; //  int  var [=]
+        Token              m_type_token;     // [int] var  =
+        Token              m_operator_token; //  int  var [=]
         VariableFlags      m_vflags           = VariableFlag_NONE;
         Node*              m_scope            = nullptr;
         Slot*              m_as_declaration_slot = nullptr;

@@ -43,14 +43,23 @@ TEST_F(Language_basics, token_t_to_type)
     EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<int>() );
     EXPECT_EQ(language->get_type(Token_t::keyword_int)   , type::get<i32_t>() );
     EXPECT_EQ(language->get_type(Token_t::keyword_string), type::get<std::string>() );
+    EXPECT_EQ(language->get_type(Token_t::keyword_any)   , type::get<any>() );
+
+    ASSERT_ANY_THROW(language->get_type(Token_t::literal_bool));
+    ASSERT_ANY_THROW(language->get_type(Token_t::literal_double));
+    ASSERT_ANY_THROW(language->get_type(Token_t::literal_int));
+    ASSERT_ANY_THROW(language->get_type(Token_t::literal_int));
+    ASSERT_ANY_THROW(language->get_type(Token_t::literal_string));
+    ASSERT_ANY_THROW(language->get_type(Token_t::literal_any));
 }
 
 TEST_F(Language_basics, type_to_string)
 {
-    EXPECT_EQ(language->to_string(type::get<bool>())        , "bool" );
-    EXPECT_EQ(language->to_string(type::get<double>())      , "double" );
-    EXPECT_EQ(language->to_string(type::get<i16_t>())       , "i16" );
-    EXPECT_EQ(language->to_string(type::get<int>())         , "int" );
-    EXPECT_EQ(language->to_string(type::get<i32_t>())       , "int" );
-    EXPECT_EQ(language->to_string(type::get<std::string>()) , "string" );
+    EXPECT_EQ(language->serialize_type(type::get<bool>())        , "bool" );
+    EXPECT_EQ(language->serialize_type(type::get<double>())      , "double" );
+    EXPECT_EQ(language->serialize_type(type::get<i16_t>())       , "i16" );
+    EXPECT_EQ(language->serialize_type(type::get<int>())         , "int" );
+    EXPECT_EQ(language->serialize_type(type::get<i32_t>())       , "int" );
+    EXPECT_EQ(language->serialize_type(type::get<std::string>()) , "string" );
+    EXPECT_EQ(language->serialize_type(type::get<any>())         , "any" );
 }

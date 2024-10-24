@@ -3,9 +3,14 @@
 
 using namespace ndbl;
 
-const Token Token::s_null               = {Token_t::null};
 const Token Token::s_end_of_line        = {Token_t::ignore, "\n"};
 const Token Token::s_end_of_instruction = {Token_t::ignore, ";\n"};
+
+Token::~Token()
+{
+    if( m_is_buffer_owned )
+        delete[] m_buffer;
+}
 
 std::string Token::json() const
 {
@@ -79,12 +84,12 @@ void Token::take_prefix_suffix_from(Token* source)
 
 void Token::clear()
 {
-    m_index = 0;
-    m_type  = Token_t::null;
+    m_index            = 0;
+    m_type             = Token_t::none;
     m_string_start_pos = 0;
-    m_string_length      = 0;
+    m_string_length    = 0;
     m_word_start_pos   = 0;
-    m_word_length        = 0;
+    m_word_length      = 0;
 
     if( m_is_buffer_owned )
     {
@@ -169,7 +174,7 @@ Token& Token::operator=(Token&& other) noexcept
     other.m_string_start_pos = 0;
     other.m_word_start_pos   = 0;
     other.m_string_start_pos = 0;
-    other.m_type             = Token_t::null;
+    other.m_type             = Token_t::none;
     other.m_index            = 0;
 
     return *this;

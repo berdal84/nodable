@@ -48,6 +48,6 @@ namespace ndbl
         PropertyFlags      m_flags = PropertyFlag_NONE;
         const tools::TypeDescriptor* m_type  = nullptr;
         std::string        m_name;
-        Token              m_token = { Token_t::null };
+        Token              m_token;
     };
 }

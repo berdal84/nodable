@@ -12,23 +12,29 @@ namespace ndbl {
      */
 	enum class Token_t: i8_t
 	{
-        null = 0, // to say 'absence of token', not token 'NULL'
+        none = 0, // to say 'absence of token'
 
-        ignore ,
+        ignore,
         keyword_if,
         keyword_else,
         keyword_for,
         keyword_while,
         keyword_operator,
+        //----- types -------
         keyword_string,
         keyword_double,
         keyword_int,
         keyword_i16,
         keyword_bool,
+        keyword_any,     // like TypeScript's
+        keyword_unknown, // like TypeScript's
+        //----- literals -----
         literal_string,
         literal_double,
         literal_int,
         literal_bool,
+        literal_any,
+        literal_unknown,
         operator_,
         identifier,
         parenthesis_open,
@@ -38,13 +44,12 @@ namespace ndbl {
         scope_end ,
         end_of_instruction,
         end_of_line,
-        any,
     };
 
     /** Check if a given keyword is a type (ex: bool, int, double,...)*/
 	static constexpr bool is_a_type_keyword(Token_t _token_t)
     {
-        return _token_t >= Token_t::keyword_string && _token_t <= Token_t::keyword_bool;
+        return Token_t::keyword_string <= _token_t && _token_t <= Token_t::keyword_unknown;
     }
 
 }

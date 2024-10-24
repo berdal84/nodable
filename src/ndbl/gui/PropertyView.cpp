@@ -270,7 +270,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
         case Token_t::literal_bool:
         {
             auto str   = property_token.word_to_string();
-            bool value = get_language()->parse_bool_or(str, false );
+            bool value = get_language()->parse_bool_or(str, false);
 
             if (ImGui::Checkbox(label.c_str(), &value))
             {
@@ -283,7 +283,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
         }
 
         case Token_t::literal_string:
-        case Token_t::any:
+        case Token_t::literal_any:
         {
             char buf[256];
             snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
@@ -295,10 +295,15 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             }
             break;
         }
-
+        case Token_t::literal_unknown:
+        {
+            const char* buf = "?";
+            ImGui::InputText(label.c_str(), const_cast<char*>(buf), sizeof(buf), ImGuiInputTextFlags_ReadOnly);
+            break;
+        }
         default:
         {
-            const char* buf = "error";
+            const char* buf = "ERR";
             ImGui::InputText(label.c_str(), const_cast<char*>(buf), sizeof(buf), ImGuiInputTextFlags_ReadOnly);
         }
     }

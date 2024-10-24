@@ -30,7 +30,7 @@ namespace ndbl
         Token               eat();           // Return the next token and increment cursor
         Token               eat_if(Token_t); // Only if next token has a given type: returns it and increment cursor
         inline bool         empty()const { return m_tokens.empty(); }
-        inline const Token& get_eaten()const { return m_cursor == 0 ? Token::s_null : m_tokens[m_cursor - 1];}
+        inline const Token& get_eaten()const { ASSERT(m_cursor > 0); return m_tokens[m_cursor - 1];}
         inline Token&       prefix() { return m_prefix; }
         inline const Token& peek()const { return m_tokens[m_cursor]; }
         Token&              push(Token&);
