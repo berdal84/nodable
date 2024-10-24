@@ -6,8 +6,6 @@
 
 using namespace ndbl;
 
-DirectedEdge DirectedEdge::null{};
-
 DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
 : tail(_tail)
 , head(_head)
@@ -17,28 +15,6 @@ DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
     ASSERT(tail->node->graph() != nullptr);
     ASSERT(head->node->graph() != nullptr);
     ASSERT(tail->node->graph() == head->node->graph() );
-}
-
-bool DirectedEdge::operator!=( const DirectedEdge &other ) const
-{
-    return this->tail != other.tail || this->head == other.head;
-}
-
-DirectedEdge &DirectedEdge::operator=( const DirectedEdge& other )
-{
-    tail     = other.tail;
-    head     = other.head;
-    return *this;
-}
-
-bool DirectedEdge::operator==( const DirectedEdge &other ) const
-{
-    return this->tail == other.tail && this->head == other.head;
-}
-
-DirectedEdge::operator bool() const
-{
-    return *this != null;
 }
 
 std::string ndbl::to_string(const DirectedEdge& _edge)

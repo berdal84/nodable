@@ -338,7 +338,7 @@ void Interpreter::debug_program()
     m_is_program_running = true;
     m_cpu.clear_registers();
     m_visited_nodes.clear();
-    m_next_node = m_code->get_meta_data().graph->get_root();
+    m_next_node = m_code->get_meta_data().graph->root();
 
     LOG_MESSAGE("Interpreter", "Debugging program ...\n");
 }

@@ -24,11 +24,12 @@ namespace ndbl
 
         void          init(Node* node);
         Scope*        get_scope_at(Branch _branch) const;
-        Slot&         get_child_slot_at(Branch _branch);
-        const Slot&   get_child_slot_at(Branch _branch) const;
-        Node*         get_condition(Branch)const;
-        const Slot&   get_condition_slot(Branch) const;
-        Slot&         get_condition_slot(Branch);
+        Slot*         get_child_slot_at(Branch _branch);
+        const Slot*   get_child_slot_at(Branch _branch) const;
+        const Node*   get_condition(Branch)const;
+        Node*         get_condition(Branch);
+        const Slot*   get_condition_slot(Branch) const;
+        Slot*         get_condition_slot(Branch);
 
     private:
         std::array<Slot*, BRANCH_COUNT>    m_next_slot;
@@ -37,27 +38,33 @@ namespace ndbl
     };
 
     template<size_t BRANCH_COUNT>
-    Slot& TConditional<BRANCH_COUNT>::get_condition_slot(Branch _branch )
+    Slot* TConditional<BRANCH_COUNT>::get_condition_slot(Branch _branch )
     {
-        return const_cast<Slot&>( const_cast<const TConditional<BRANCH_COUNT>*>(this)->get_condition_slot(_branch) );
+        return const_cast<Slot*>( const_cast<const TConditional<BRANCH_COUNT>*>(this)->get_condition_slot(_branch) );
     }
 
     template<size_t BRANCH_COUNT>
-    const Slot& TConditional<BRANCH_COUNT>::get_condition_slot(Branch _branch ) const
+    const Slot* TConditional<BRANCH_COUNT>::get_condition_slot(Branch _branch ) const
     {
         VERIFY(_branch != Branch_FALSE, "Branch_FALSE has_flags no condition, use Branch_TRUE or any number greater than 0" );
         VERIFY(_branch < BRANCH_COUNT, "branch does not exist" );
-        return *m_condition_slot.at(_branch - 1);
+        return m_condition_slot.at(_branch - 1);
     }
 
     template<size_t BRANCH_COUNT>
-    Node* TConditional<BRANCH_COUNT>::get_condition(Branch _branch ) const
+    const Node* TConditional<BRANCH_COUNT>::get_condition(Branch _branch ) const
     {
         // Try to return the adjacent node connected to this branch
-        Slot* adjacent = get_condition_slot(_branch).first_adjacent();
+        Slot* adjacent = get_condition_slot(_branch)->first_adjacent();
         if( adjacent != nullptr)
             return adjacent->node;
         return nullptr;
+    }
+
+    template<size_t BRANCH_COUNT>
+    Node* TConditional<BRANCH_COUNT>::get_condition(Branch _branch )
+    {
+        return const_cast<Node*>( const_cast<TConditional*>(this)->get_condition(_branch) );
     }
 
     template<size_t BRANCH_COUNT>
@@ -83,10 +90,10 @@ namespace ndbl
     }
 
     template<size_t BRANCH_COUNT>
-    const Slot& TConditional<BRANCH_COUNT>::get_child_slot_at(Branch _branch ) const
+    const Slot* TConditional<BRANCH_COUNT>::get_child_slot_at(Branch _branch ) const
     {
         ASSERT(_branch < BRANCH_COUNT );
-        return *m_child_slot[_branch];
+        return m_child_slot[_branch];
     }
 
     template<size_t BRANCH_COUNT>
@@ -101,8 +108,8 @@ namespace ndbl
     }
 
     template<size_t BRANCH_COUNT>
-    Slot& TConditional<BRANCH_COUNT>::get_child_slot_at(Branch _branch )
+    Slot* TConditional<BRANCH_COUNT>::get_child_slot_at(Branch _branch )
     {
-        return const_cast<Slot&>(const_cast<const TConditional<BRANCH_COUNT>*>(this)->get_child_slot_at(_branch));
+        return const_cast<Slot*>(const_cast<const TConditional<BRANCH_COUNT>*>(this)->get_child_slot_at(_branch));
     }
 }

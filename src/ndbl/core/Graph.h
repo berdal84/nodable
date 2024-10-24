@@ -55,13 +55,24 @@ namespace ndbl
  		Graph(NodeFactory* factory);
 		~Graph();
 
+        // signals (can be connected)
+
         SIGNAL(on_reset);
         SIGNAL(on_update);
         SIGNAL(on_add   , Node*);
         SIGNAL(on_remove, Node*);
 
-        void                     set_view(GraphView* view = nullptr);
+        // general
+
         bool                     update();
+        void                     clear();  // Delete all nodes, wires, edges and reset scope.
+        inline GraphView*        view() const { return m_view; };
+        inline void              set_view(GraphView* view = nullptr) { ASSERT(view != nullptr); m_view = view; }
+        inline void              ensure_has_root() { if (is_empty()) create_root(); }
+        inline Node*             root() const { return m_root; }
+        inline bool              is_empty() const { return m_root == nullptr; };
+        inline bool              is_dirty() const { return m_is_dirty; }
+        inline void              set_dirty(bool b = true) { m_is_dirty = b; }
 
         // node related
 
@@ -71,13 +82,7 @@ namespace ndbl
         VariableNode*            create_variable(const tools::TypeDescriptor *_type, const std::string &_name, Scope* _scope);
         VariableRefNode*         create_variable_ref();
         VariableNode*            create_variable_decl(const tools::TypeDescriptor* _type, const char*  _name, Scope*  _scope);
-        template<typename T>
-        VariableNode* create_variable_decl(const char*  _name = "var", Scope* _scope = {})
-        { return create_variable_decl(tools::type::get<T>(), _name, _scope); }
-
         LiteralNode*             create_literal(const tools::TypeDescriptor *_type);
-        template<typename T>
-        LiteralNode*             create_literal() { return create_literal( tools::type::get<T>()); }
         FunctionNode*            create_function(const tools::FunctionDescriptor*);
         FunctionNode*            create_operator(const tools::FunctionDescriptor*);
         Node*                    create_scope();
@@ -85,36 +90,36 @@ namespace ndbl
         ForLoopNode*             create_for_loop();
         WhileLoopNode*           create_while_loop();
         void                     destroy(Node* _node);
-        void                     ensure_has_root();
-        Node*                    get_root() const { return m_root; }
-        GraphView*               get_view() const { return m_view; };
-        bool                     is_empty() const;
-        bool                     is_dirty() const { return m_is_dirty; }
-        void                     set_dirty(bool value = true) { m_is_dirty = value; }
-        void                     clear();  // Delete all nodes, wires, edges and reset scope.
-        std::vector<Node*>&      get_node_registry() {return m_node_registry;}
-        const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
-        std::multimap<SlotFlags, DirectedEdge>& get_edge_registry() {return m_edge_registry;}
+        inline std::vector<Node*>&       get_node_registry() {return m_node_registry;}
+        inline const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
+
+        template<typename T> inline VariableNode* create_variable_decl(const char*  _name = "var", Scope* _scope = {}){ return create_variable_decl(tools::type::get<T>(), _name, _scope); }
+        template<typename T> inline LiteralNode* create_literal() { return create_literal( tools::type::get<T>()); }
 
         // edge related
 
-        DirectedEdge* connect(Slot& _first, Slot& _second, ConnectFlags = ConnectFlag_NONE );
-        DirectedEdge* connect_to_variable(Slot& _out, VariableNode& _variable );
-        DirectedEdge* connect_or_merge(Slot& _out, Slot& _in);
-        void          disconnect( const DirectedEdge& _edge, ConnectFlags flags = ConnectFlag_NONE );
-
+        DirectedEdge connect(Slot* tail, Slot* head, ConnectFlags = ConnectFlag_NONE );
+        DirectedEdge connect_to_variable(Slot* output_slot, VariableNode* variable );
+        DirectedEdge connect_or_merge(Slot* tail, Slot* head);
+        void         disconnect( const DirectedEdge& edge, ConnectFlags = ConnectFlag_NONE );
+        inline std::multimap<SlotFlags, DirectedEdge>& get_edge_registry() { return m_edge_registry; }
 
     private:
-        // registries management
-        void         add(Node* _node);     // Add a given node to the registry.
-        void         remove(Node* _node);  // Remove a given node from the registry.
-        void         remove(DirectedEdge); // Remove a given edge from the registry.
+        void on_connect_hierarchical_side_effects(Slot* parent_slot, Slot* child_slot);
+        void on_connect_value_side_effects(Slot* out_slot, Slot* in_slot);
+        void on_connect_codeflow_side_effects(Slot* prev_slot, Slot* next_slot);
 
-		std::vector<Node*>               m_node_registry;        // registry to store all the nodes from this graph.
-        std::multimap<SlotFlags , DirectedEdge> m_edge_registry; // registry ot all the edges (directed edges) between the registered nodes' properties.
-        Node*              m_root{nullptr};             // Graph root (main scope), without it a graph cannot be compiled.
-        const NodeFactory* m_factory{nullptr};
-        bool               m_is_dirty{false};
-        GraphView*         m_view{nullptr};    // non-owned
+        // registries management
+        void add(Node*);           // ... to the registry.
+        void remove(Node*);        // ... from the registry.
+        void add(const DirectedEdge&);    // ... to the registry.
+        void remove(const DirectedEdge&); // ... from the registry.
+
+        Node*              m_root     = nullptr; // Graph root (main scope), without it a graph cannot be compiled.
+        const NodeFactory* m_factory  = nullptr;
+        bool               m_is_dirty = false;
+        GraphView*         m_view     = nullptr; // non-owned
+        std::vector<Node*>                      m_node_registry; // Node storage
+        std::multimap<SlotFlags , DirectedEdge> m_edge_registry; // Edge storage
     };
 }

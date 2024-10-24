@@ -1,28 +1,25 @@
 #pragma once
 #include <string>
+#include "Slot.h"
 
 namespace ndbl
 {
-    // Forward declarations
-    class Slot;
-
-    class DirectedEdge
+    struct DirectedEdge
     {
-    public:
-        static DirectedEdge null;
-
         Slot* tail;
         Slot* head;
 
-        DirectedEdge() = default;
-        DirectedEdge(const DirectedEdge & other) = default;
-        DirectedEdge(Slot* _tail, Slot* _head);
+        DirectedEdge(): tail(nullptr), head(nullptr) {};
+        DirectedEdge(Slot* tail, Slot* head);
+        DirectedEdge(const DirectedEdge&) = default;
 
-        DirectedEdge& operator=(const DirectedEdge& other);
-        operator bool () const;
-        bool operator==(const DirectedEdge& other) const;
-        bool operator!=(const DirectedEdge& other) const;
+        inline DirectedEdge& operator=(const DirectedEdge& other) { tail = other.tail; head = other.head; return *this;}
+        inline               operator bool () const { return tail != nullptr && head != nullptr; }
+        inline bool          operator!=( const DirectedEdge& other ) const { return not(*this == other); }
+        inline bool          operator==( const DirectedEdge &other ) const { return tail == other.tail && head == other.head; }
+        inline SlotFlags     type() const { return tail->type(); /* both tail and head share the same type */ }
     };
 
     std::string to_string(const DirectedEdge& _slot);
 }
+

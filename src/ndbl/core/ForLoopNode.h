@@ -19,17 +19,18 @@ namespace ndbl
     public:
         Token          token_for;
 
-        void           init(const std::string& _name);
-        Slot&          initialization_slot();
-        Slot&          iteration_slot();
-        const Slot&    initialization_slot() const;
-        const Slot&    iteration_slot() const;
-        Scope*         scope_at(Branch branch) const       { return m_wrapped_conditional.get_scope_at(branch); }
-        Slot&          child_slot_at(Branch branch)        { return m_wrapped_conditional.get_child_slot_at(branch); }
-        const Slot&    child_slot_at(Branch branch) const  { return m_wrapped_conditional.get_child_slot_at(branch); }
-        Slot&          condition_slot(Branch branch)       { return m_wrapped_conditional.get_condition_slot(branch); }
-        const Slot&    condition_slot(Branch branch) const { return m_wrapped_conditional.get_condition_slot(branch); }
-        Node*          condition(Branch branch) const      { return m_wrapped_conditional.get_condition(branch); }
+        void               init(const std::string& _name);
+        inline Slot*       iteration_slot()                    { ASSERT(m_iteration_slot); return m_iteration_slot; }
+        inline Slot*       initialization_slot()               { ASSERT(m_initialization_slot); return m_initialization_slot; }
+        inline const Slot* iteration_slot() const              { ASSERT(m_iteration_slot);return m_iteration_slot;}
+        inline const Slot* initialization_slot() const         { ASSERT(m_initialization_slot);return m_initialization_slot;}
+        inline Scope*      scope_at(Branch branch) const       { return m_wrapped_conditional.get_scope_at(branch); }
+        inline Slot*       child_slot_at(Branch branch)        { return m_wrapped_conditional.get_child_slot_at(branch); }
+        inline const Slot* child_slot_at(Branch branch) const  { return m_wrapped_conditional.get_child_slot_at(branch); }
+        inline Slot*       condition_slot(Branch branch)       { return m_wrapped_conditional.get_condition_slot(branch); }
+        inline const Slot* condition_slot(Branch branch) const { return m_wrapped_conditional.get_condition_slot(branch); }
+        inline Node*       condition(Branch branch)            { return m_wrapped_conditional.get_condition(branch); }
+        inline const Node* condition(Branch branch) const      { return m_wrapped_conditional.get_condition(branch); }
     private:
         TConditional<2> m_wrapped_conditional;
         Slot*           m_initialization_slot{nullptr};

@@ -27,6 +27,9 @@ namespace ndbl
         SlotFlag_NEXT              = SlotFlag_TYPE_CODEFLOW     | SlotFlag_ORDER_FIRST,  //  next   ---->  ..
         SlotFlag_PREV              = SlotFlag_TYPE_CODEFLOW     | SlotFlag_ORDER_SECOND, //   ..    ----> prev
 
+        SlotFlag_FREE_NEXT         = SlotFlag_NEXT | SlotFlag_NOT_FULL,
+        SlotFlag_FREE_CHILD        = SlotFlag_CHILD | SlotFlag_NOT_FULL,
+
         SlotFlag_ORDER_MASK        = SlotFlag_ORDER_SECOND | SlotFlag_ORDER_FIRST,
         SlotFlag_TYPE_MASK         = SlotFlag_TYPE_CODEFLOW | SlotFlag_TYPE_HIERARCHICAL | SlotFlag_TYPE_VALUE,
     };

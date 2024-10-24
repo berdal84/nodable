@@ -43,20 +43,20 @@ File::File()
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
         if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
-            _graph->get_view()->add_action_to_node_menu(create_node_action);
+            _graph->view()->add_action_to_node_menu(create_node_action);
 
     LOG_VERBOSE( "File", "Constructor being called.\n");
 }
 
 File::~File()
 {
-    delete _graph->get_view();
+    delete _graph->view();
     delete _graph;
 }
 
 void File::update_text_from_graph()
 {
-    const Node* root_node = _graph->get_root();
+    const Node* root_node = _graph->root();
 
     if ( root_node == nullptr )
     {

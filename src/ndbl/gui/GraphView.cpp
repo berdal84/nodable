@@ -461,7 +461,7 @@ void GraphView::frame_nodes(FrameMode mode )
                 return;
 
             // frame the root's view (top-left corner)
-            auto& root_view = *m_graph->get_root()->get_component<NodeView>();
+            auto& root_view = *m_graph->root()->get_component<NodeView>();
             frame_views( {&root_view}, true);
             break;
         }
@@ -652,7 +652,7 @@ void GraphView::cursor_state_tick()
                 m_hovered.nodeview->expand_toggle();
                 m_focused = m_hovered;
             }
-            else if (ImGui::IsMouseDragging(0, 0.f))
+            else if (ImGui::IsMouseDragging(0, 0.1f))
             {
                 if (!m_hovered.nodeview->selected())
                     set_selected({m_hovered.nodeview});

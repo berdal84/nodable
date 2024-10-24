@@ -91,20 +91,20 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
     return true;
 }
 
-void Compiler::compile_input_slot( const Slot& slot)
+void Compiler::compile_input_slot( const Slot* slot)
 {
-    if( slot.empty() )
+    if( slot->empty() )
     {
         return;
     }
-    ASSERT( slot.adjacent_count() == 1 );
-    compile_output_slot( *slot.first_adjacent() );
+    ASSERT( slot->adjacent_count() == 1 );
+    compile_output_slot( slot->first_adjacent() );
 }
 
-void Compiler::compile_output_slot( const Slot& slot)
+void Compiler::compile_output_slot(const Slot* slot)
 {
-    ASSERT(slot.has_flags(SlotFlag_OUTPUT) );
-    compile_node(slot.node);
+    ASSERT(slot->has_flags(SlotFlag_OUTPUT) );
+    compile_node(slot->node);
 }
 
 void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
@@ -186,7 +186,7 @@ void Compiler::compile_node( const Node* _node )
                 if ( !adjacent_output->node->get_class()->is<VariableNode>() )
                 {
                     // Any other slot must be compiled recursively
-                    compile_output_slot( *adjacent_output );
+                    compile_output_slot( adjacent_output );
                 }
             }
 
@@ -336,7 +336,7 @@ const Code* Compiler::compile_syntax_tree(const Graph* _graph)
 
         try
         {
-            Scope* scope = _graph->get_root()->get_component<Scope>();
+            Scope* scope = _graph->root()->get_component<Scope>();
             ASSERT(scope);
             compile_scope(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");

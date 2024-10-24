@@ -28,7 +28,7 @@ TEST_F(Graph_, connect)
     auto* slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
 
     // Act
-    DirectedEdge& edge = *graph->connect_or_merge( *slot_1, *slot_2 );
+    DirectedEdge edge = graph->connect_or_merge( slot_1, slot_2 );
 
     // Verify
     EXPECT_EQ(edge.tail->property, prop_1 );
@@ -49,7 +49,7 @@ TEST_F(Graph_, disconnect)
     auto slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
 
     EXPECT_EQ(graph->get_edge_registry().size(), 0);
-    DirectedEdge& edge = *graph->connect_or_merge( *slot_1, *slot_2 );
+    DirectedEdge edge = graph->connect_or_merge( slot_1, slot_2 );
     EXPECT_EQ(graph->get_edge_registry().size(), 1);
 
     // Act
@@ -67,9 +67,9 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_node_registry().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
-    VariableNode*     variable  = graph->create_variable(type::get<int>(), "var", nullptr);
-    FunctionDescriptor*         fct_type  = FunctionDescriptor::create<int(int, int)>("+");
-    const IInvokable* invokable = app.get_language()->find_operator_fct_exact(fct_type);
+    VariableNode*       variable  = graph->create_variable(type::get<int>(), "var", nullptr);
+    FunctionDescriptor* fct_type  = FunctionDescriptor::create<int(int, int)>("+");
+    const IInvokable*   invokable = app.get_language()->find_operator_fct_exact(fct_type);
 
     EXPECT_TRUE(invokable != nullptr);
     auto operator_node = graph->create_operator(fct_type);
@@ -77,8 +77,8 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
     graph->connect(
-            *operator_node->value_out(),
-            *variable->value_in(),
+            operator_node->value_out(),
+            variable->value_in(),
             ConnectFlag_ALLOW_SIDE_EFFECTS);
 
     EXPECT_FALSE( graph->get_node_registry().empty() );
@@ -110,11 +110,11 @@ TEST_F(Graph_, create_and_delete_relations)
     // is child of (and by reciprocity "is parent of")
     EXPECT_EQ(edges.size(), 0);
     EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
-    DirectedEdge* edge_1 = graph->connect(
-            *node_1->find_slot( SlotFlag_CHILD ),
-            *node_2->find_slot( SlotFlag_PARENT ));
+    DirectedEdge edge_1 = graph->connect(
+            node_1->find_slot( SlotFlag_CHILD ),
+            node_2->find_slot( SlotFlag_PARENT ));
     EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
-    graph->disconnect(*edge_1);
+    graph->disconnect(edge_1);
     EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
 }

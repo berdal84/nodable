@@ -369,8 +369,8 @@ Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot
     binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
     binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
 
-    parser_state.graph->connect_or_merge( *_left, *binary_op->lvalue_in());
-    parser_state.graph->connect_or_merge( *right, *binary_op->rvalue_in() );
+    parser_state.graph->connect_or_merge( _left         , binary_op->lvalue_in());
+    parser_state.graph->connect_or_merge( right.value() , binary_op->rvalue_in() );
 
     commit_transaction();
     LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
@@ -422,7 +422,7 @@ Optional<Slot*> Nodlang::parse_unary_operator_expression(u8_t _precedence)
     node->set_identifier_token( operator_token );
     node->lvalue_in()->property->token().m_type = out_atomic->property->token().m_type;
 
-    parser_state.graph->connect_or_merge( *out_atomic, *node->lvalue_in() );
+    parser_state.graph->connect_or_merge( out_atomic.value(), node->lvalue_in() );
 
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
     commit_transaction();
@@ -599,7 +599,7 @@ Optional<Node*> Nodlang::parse_scope(Slot* _parent_scope_slot )
     Optional<Scope*> new_scope         = new_scope_node->get_component<Scope>();
 
     // Handle nested scopes
-    parser_state.graph->connect( *_parent_scope_slot, *new_scope_node->find_slot( SlotFlag_PARENT ), ConnectFlag_ALLOW_SIDE_EFFECTS );
+    parser_state.graph->connect( _parent_scope_slot, new_scope_node->find_slot( SlotFlag_PARENT ), ConnectFlag_ALLOW_SIDE_EFFECTS );
 
     parser_state.scope.push( new_scope.value() );
     parse_code_block();
@@ -633,8 +633,8 @@ void Nodlang::parse_code_block()
             ASSERT(child_slot);
             // Create parent/child connection
             parser_state.graph->connect(
-                    *child_slot,
-                    *instruction->find_slot( SlotFlag_PARENT ),
+                    child_slot,
+                    instruction->find_slot( SlotFlag_PARENT ),
                     ConnectFlag_ALLOW_SIDE_EFFECTS );
         }
         else if (
@@ -1069,7 +1069,7 @@ Optional<Slot*> Nodlang::parse_function_call()
     for ( int i = 0; i < fct_node->get_arg_slots().size(); i++ )
     {
         // Connects each results to the corresponding input
-        parser_state.graph->connect_or_merge( *result_slots.at(i), *fct_node->get_arg_slot(i) );
+        parser_state.graph->connect_or_merge( result_slots.at(i), fct_node->get_arg_slot(i) );
     }
 
     commit_transaction();
@@ -1110,8 +1110,8 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
     if_node = parser_state.graph->create_cond_struct();
 
     parser_state.graph->connect(
-            *get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
-            *if_node->find_slot( SlotFlag_PARENT ),
+            get_current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
+            if_node->find_slot( SlotFlag_PARENT ),
             ConnectFlag_ALLOW_SIDE_EFFECTS );
     parser_state.scope.emplace( if_node->get_component<Scope>() );
 
@@ -1124,13 +1124,13 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
         if ( !empty_condition && (condition = parse_instr()))
         {
             parser_state.graph->connect_or_merge(
-                    *condition->find_slot(SlotFlag_OUTPUT),
+                    condition->find_slot(SlotFlag_OUTPUT),
                     if_node->condition_slot(Branch_TRUE));
         }
 
         if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
         {
-            condition_true_scope_node = parse_scope( &if_node->child_slot_at(Branch_TRUE) );
+            condition_true_scope_node = parse_scope( if_node->child_slot_at(Branch_TRUE) );
             if ( condition_true_scope_node )
             {
                 if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
@@ -1138,7 +1138,7 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
                     if_node->token_else = parser_state.ribbon.get_eaten();
 
                     /* parse "else" scope */
-                    if ( parse_scope( &if_node->child_slot_at( Branch_FALSE ) ) )
+                    if ( parse_scope( if_node->child_slot_at( Branch_FALSE ) ) )
                     {
                         LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n");
                         success = true;
@@ -1196,8 +1196,8 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
     {
         _temp_for_loop_node = parser_state.graph->create_for_loop();
         parser_state.graph->connect(
-                *get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
-                *_temp_for_loop_node->find_slot(SlotFlag_PARENT ),
+                get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
+                _temp_for_loop_node->find_slot(SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
         parser_state.scope.push(_temp_for_loop_node->get_component<Scope>());
 
@@ -1215,7 +1215,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
             else
             {
                 parser_state.graph->connect_or_merge(
-                        *init_instr->find_slot( SlotFlag_OUTPUT ),
+                        init_instr->find_slot( SlotFlag_OUTPUT ),
                         _temp_for_loop_node->initialization_slot() );
 
                 Optional<Node*> condition = parse_instr();
@@ -1226,7 +1226,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
                 else
                 {
                     parser_state.graph->connect_or_merge(
-                            *condition->find_slot( SlotFlag_OUTPUT ),
+                            condition->find_slot( SlotFlag_OUTPUT ),
                             _temp_for_loop_node->condition_slot(Branch_TRUE) );
 
                     Optional<Node*> iter_instr = parse_instr();
@@ -1237,14 +1237,14 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
                     else
                     {
                         parser_state.graph->connect_or_merge(
-                                *iter_instr->find_slot( SlotFlag_OUTPUT ),
+                                iter_instr->find_slot( SlotFlag_OUTPUT ),
                                 _temp_for_loop_node->iteration_slot() );
 
                         if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n");
                         }
-                        else if (!parse_scope( &_temp_for_loop_node->child_slot_at(Branch_TRUE ) ) )
+                        else if (!parse_scope( _temp_for_loop_node->child_slot_at(Branch_TRUE ) ) )
                         {
                             LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n");
                         }
@@ -1287,8 +1287,8 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
     {
         _temp_while_loop_node = parser_state.graph->create_while_loop();
         parser_state.graph->connect(
-                *get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
-                *_temp_while_loop_node->find_slot(SlotFlag_PARENT ),
+                get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
+                _temp_while_loop_node->find_slot(SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
         parser_state.scope.push(_temp_while_loop_node->get_component<Scope>() );
 
@@ -1301,14 +1301,14 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
             if( Optional<Node*> cond_instr = parse_instr() )
             {
                 parser_state.graph->connect_or_merge(
-                        *cond_instr->find_slot(SlotFlag_OUTPUT),
+                        cond_instr->find_slot(SlotFlag_OUTPUT),
                         _temp_while_loop_node->condition_slot(Branch_TRUE));
 
                 if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
                 {
                     LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n");
                 }
-                else if ( !parse_scope( &_temp_while_loop_node->child_slot_at(Branch_TRUE) ) )
+                else if ( !parse_scope( _temp_while_loop_node->child_slot_at(Branch_TRUE) ) )
                 {
                     LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n");
                 }
@@ -1365,7 +1365,7 @@ Optional<Slot*> Nodlang::parse_variable_declaration()
         {
             if ( Optional<Slot*> expression_out = parse_expression() )
             {
-                parser_state.graph->connect_to_variable( *expression_out, *variable_node );
+                parser_state.graph->connect_to_variable( expression_out.value(), variable_node );
                 variable_node->set_operator_token( operator_token );
             }
             else
@@ -1407,7 +1407,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
                     bool needs_braces = l_func_type && get_precedence(l_func_type) < precedence;
                     SerializeFlags flags = SerializeFlag_RECURSE
                                          | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
-                    serialize_input( _out, *args[0], flags );
+                    serialize_input( _out, args[0], flags );
                 }
 
                 // Operator
@@ -1420,7 +1420,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
                     bool needs_braces = r_func_type && get_precedence(r_func_type) < precedence;
                     SerializeFlags flags = SerializeFlag_RECURSE
                                          | needs_braces * SerializeFlag_WRAP_WITH_BRACES ;
-                    serialize_input( _out, *args[1], flags );
+                    serialize_input( _out, args[1], flags );
                 }
                 break;
             }
@@ -1435,7 +1435,7 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
                 bool needs_braces    = _node->get_connected_function_type(LEFT_VALUE_PROPERTY) != nullptr;
                 SerializeFlags flags = SerializeFlag_RECURSE
                                      | needs_braces * SerializeFlag_WRAP_WITH_BRACES;
-                serialize_input( _out, *args[0], flags );
+                serialize_input( _out, args[0], flags );
                 break;
             }
         }
@@ -1460,7 +1460,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescr
         {
             serialize_token_t(_out, Token_t::list_separator);
         }
-        serialize_input( _out, *input_slot, SerializeFlag_RECURSE );
+        serialize_input( _out, input_slot, SerializeFlag_RECURSE );
     }
 
     serialize_token_t(_out, Token_t::parenthesis_close);
@@ -1539,16 +1539,16 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
         else
             _out.append(" = ");
 
-        serialize_input( _out, *slot, SerializeFlag_RECURSE );
+        serialize_input( _out, slot, SerializeFlag_RECURSE );
     }
     return _out;
 }
 
-std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, SerializeFlags _flags ) const
+std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, SerializeFlags _flags ) const
 {
-    ASSERT( _slot.has_flags( SlotFlag_INPUT ) );
+    ASSERT( slot->has_flags( SlotFlag_INPUT ) );
 
-    const Slot*     adjacent_slot     = _slot.first_adjacent();
+    const Slot*     adjacent_slot     = slot->first_adjacent();
     const Property* adjacent_property = adjacent_slot != nullptr ? adjacent_slot->property
                                                                  : nullptr;
     // Append open brace?
@@ -1558,7 +1558,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     if ( adjacent_property == nullptr )
     {
         // Simply serialize this property
-        serialize_property(_out, _slot.property);
+        serialize_property(_out, slot->property);
     }
     else
     {
@@ -1569,7 +1569,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
                 _out.append( adjacent_token.prefix_ptr(), adjacent_token.prefix_size() );
 
         // Serialize adjacent slot
-        serialize_output( _out, *adjacent_slot, SerializeFlag_RECURSE );
+        serialize_output( _out, adjacent_slot, SerializeFlag_RECURSE );
 
         // Append token suffix?
         if (const Token& adjacent_token = adjacent_property->token())
@@ -1584,16 +1584,16 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot& _slot, Seri
     return _out;
 }
 
-std::string &Nodlang::serialize_output(std::string& _out, const Slot& _slot, SerializeFlags _flags) const
+std::string &Nodlang::serialize_output(std::string& _out, const Slot* slot, SerializeFlags _flags) const
 {
     // If output is node's output value, we serialize the node
-    if( &_slot == _slot.node->value_out() )
-        return _serialize_node(_out, _slot.node, _flags );
+    if( slot == slot->node->value_out() )
+        return _serialize_node(_out, slot->node, _flags );
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
-    ASSERT( _slot.node->type() == NodeType_VARIABLE ); // Can't be another type
-    auto variable = static_cast<const VariableNode*>( _slot.node );
-    ASSERT( &_slot == variable->ref_out() ); // Can't be another slot
+    ASSERT( slot->node->type() == NodeType_VARIABLE ); // Can't be another type
+    auto variable = static_cast<const VariableNode*>( slot->node );
+    VERIFY( slot == variable->ref_out(), "Cannot serialize an other slot from a VariableNode");
     return _out.append( variable->get_identifier() );
 }
 
@@ -1687,9 +1687,9 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
 
     serialize_token_t(_out, Token_t::parenthesis_open);
 
-    const Slot& init_slot = *_for_loop->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
-    const Slot& cond_slot = *_for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
-    const Slot& iter_slot = *_for_loop->find_slot_by_property_name( ITERATION_PROPERTY, SlotFlag_INPUT );
+    const Slot* init_slot = _for_loop->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
+    const Slot* cond_slot = _for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
+    const Slot* iter_slot = _for_loop->find_slot_by_property_name( ITERATION_PROPERTY, SlotFlag_INPUT );
 
     serialize_input( _out, init_slot, SerializeFlag_RECURSE );
     serialize_input( _out, cond_slot, SerializeFlag_RECURSE );

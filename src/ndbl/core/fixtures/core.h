@@ -49,7 +49,7 @@ public:
 
         // parse
         Graph* graph = app.parse(_source_code);
-        if (!graph->get_root())
+        if (!graph->root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
         }
@@ -85,7 +85,7 @@ public:
 
         // parse
         Graph* graph = app.parse(_source_code);
-        if (!graph->get_root())
+        if (!graph->root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
         }
@@ -122,7 +122,7 @@ public:
 
         // parse
         Graph* graph = app.parse(_source_code);
-        if (!graph->get_root())
+        if (!graph->root())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
         }

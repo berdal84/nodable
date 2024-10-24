@@ -12,8 +12,8 @@ TEST_F(Node_, find_parent)
     auto child  = app.get_graph()->create_node();
 
     app.get_graph()->connect(
-        *parent->find_slot( SlotFlag_CHILD ),
-        *child->find_slot( SlotFlag_PARENT )
+        parent->find_slot( SlotFlag_CHILD ),
+        child->find_slot( SlotFlag_PARENT )
     );
 
     EXPECT_TRUE( child->parent() );

@@ -113,14 +113,6 @@ void Graph::remove(Node* _node)
     set_dirty();
 }
 
-void Graph::ensure_has_root()
-{
-    if( is_empty() )
-    {
-        create_root();
-    }
-}
-
 VariableNode* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, Scope* _scope)
 {
     VariableNode* node = m_factory->create_variable(_type, _name, _scope);
@@ -190,52 +182,47 @@ void Graph::destroy(Node* node)
     m_factory->destroy_node(node);
 }
 
-bool Graph::is_empty() const
-{
-    return m_root == nullptr;
-}
-
-DirectedEdge* Graph::connect_or_merge(Slot&_out, Slot& _in )
+DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
 {
     // Guards
-    ASSERT( _in.has_flags( SlotFlag_INPUT ) );
-    ASSERT( _in.has_flags( SlotFlag_NOT_FULL ) );
-    ASSERT( _out.has_flags( SlotFlag_OUTPUT ) );
-    ASSERT( _out.has_flags( SlotFlag_NOT_FULL ) );
-    VERIFY(_in.property, "tail get_value must be defined" );
-    VERIFY(_out.property, "head get_value must be defined" );
-    VERIFY(_in.property != _out.property, "Can't connect same properties!" );
+    ASSERT(head->has_flags(SlotFlag_INPUT ) );
+    ASSERT(head->has_flags(SlotFlag_NOT_FULL ) );
+    ASSERT(tail->has_flags(SlotFlag_OUTPUT ) );
+    ASSERT(tail->has_flags(SlotFlag_NOT_FULL ) );
+    VERIFY(head->property, "tail property must be defined" );
+    VERIFY(tail->property, "head property must be defined" );
+    VERIFY(head->node != tail->node, "Can't connect same nodes!" );
 
     // now graph is abstract
-//    const type* out_type = __out.property->get_type();
-//    const type* in_type  = _in.property->get_type();
+//    const type* out_type = __out->property->get_type();
+//    const type* in_type  = _in->property->get_type();
 //    EXPECT( type::is_implicitly_convertible( out_type, in_type ), "dependency type should be implicitly convertible to dependent type");
 
     // case 1: merge orphan slot
-    if (_out.node == nullptr ) // if dependent is orphan
+    if (tail->node == nullptr ) // if dependent is orphan
     {
-        _in.property->digest( _out.property );
-        delete _in.property;
+        head->property->digest(tail->property );
+        delete head->property;
         // set_dirty(); // no changes on edges/nodes
-        return nullptr;
+        return {};
     }
 
     // case 2: merge literals when not connected to a variable
-    if (_out.node->type() == NodeType_LITERAL )
-        if (_in.node->type() != NodeType_VARIABLE )
+    if (tail->node->type() == NodeType_LITERAL )
+        if (head->node->type() != NodeType_VARIABLE )
         {
-            _in.property->digest( _out.property );
-            destroy(_out.node);
+            head->property->digest(tail->property );
+            destroy(tail->node);
             set_dirty(); // a node has been destroyed
-            return nullptr;
+            return {};
         }
 
     // Connect (case 4)
     set_dirty();
-    return connect( _out, _in, ConnectFlag_ALLOW_SIDE_EFFECTS );
+    return connect(tail, head, ConnectFlag_ALLOW_SIDE_EFFECTS );
 }
 
-void Graph::remove(DirectedEdge edge)
+void Graph::remove(const DirectedEdge& edge)
 {
     auto found = std::find_if( m_edge_registry.begin()
                              , m_edge_registry.end()
@@ -252,148 +239,161 @@ void Graph::remove(DirectedEdge edge)
     set_dirty(); // To express this graph changed
 }
 
-DirectedEdge* Graph::connect_to_variable(Slot& _out, VariableNode& _variable )
+DirectedEdge Graph::connect_to_variable(Slot* output_slot, VariableNode* _variable )
 {
     // Guards
-    ASSERT( _out.has_flags( SlotFlag_OUTPUT | SlotFlag_NOT_FULL ));
-    return connect_or_merge( _out, *_variable.value_in() );
+    ASSERT( output_slot->has_flags(SlotFlag_OUTPUT | SlotFlag_NOT_FULL ) );
+    return connect_or_merge( output_slot, _variable->value_in() );
 }
 
-DirectedEdge* Graph::connect(Slot& _first, Slot& _second, ConnectFlags _flags)
+DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
 {
-    ASSERT( _first.has_flags( SlotFlag_ORDER_FIRST ) );
-    ASSERT( _second.has_flags( SlotFlag_ORDER_SECOND ) );
-    ASSERT(_first.node != _second.node );
+    // Guards
+    VERIFY(tail->type() == head->type(), "Slot types are incompatible"  );
+    VERIFY(tail->node != head->node    , "Can't connect two slots from the same node");
 
-    // Insert edge
-    SlotFlags type = _first.type();
+    // Create and insert edge
+    DirectedEdge edge{tail, head};
+    add(edge);
 
-    auto& [_, edge] = *m_edge_registry.emplace( type, DirectedEdge{&_first, &_second});
-
-    // Add cross-references to each end of the edge
-    Slot *tail = edge.tail;
-    Slot *head = edge.head;
-    ASSERT(tail != head);
-    ASSERT(head != nullptr);
-    ASSERT(tail != nullptr);
-
-    tail->add_adjacent(head);
-    head->add_adjacent(tail);
+    // DirectedEdge is just data, we must add manually cross-references to each end of the edge
+    edge.tail->add_adjacent( edge.head );
+    edge.head->add_adjacent( edge.tail );
 
     // Handle side effects
     if (_flags & ConnectFlag_ALLOW_SIDE_EFFECTS )
     {
-        switch ( type )
+        switch ( edge.type() )
         {
-            case SlotFlag_TYPE_HIERARCHICAL:
-            {
-                // Ensure to Identify parent and child nodes
-                // - parent node has a CHILD slot
-                // - child node has a PARENT slot
-                Node* parent    = _first.node;  static_assert(SlotFlag_CHILD & SlotFlag_ORDER_FIRST);
-                Node* new_child = _second.node; static_assert(SlotFlag_PARENT & SlotFlag_ORDER_SECOND);
-                ASSERT( parent->has_component<Scope>());
-
-                Slot* parent_next_slot    = parent->find_slot_at( SlotFlag_NEXT, _first.position );
-                ASSERT(parent_next_slot);
-                Slot& new_child_prev_slot = *new_child->find_slot( SlotFlag_PREV );
-
-                // Case 1: Parent has only 1 child (the newly connected), we connect it as "next".
-                if ( !parent_next_slot->is_full() )
-                {
-                    connect( *parent_next_slot, new_child_prev_slot );
-                }
-                // Case 2: Connects to the last child's "next" slot.
-                //         parent
-                //           - ...
-                //           - last child ->->->
-                //           - new child <-<-<-
-                else
-                {
-                    Node* previous_child = *(parent->children().rbegin() + 1);
-                    ASSERT( previous_child );
-
-                    // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
-                    //           parent
-                    //             - ...
-                    //             - previous_child
-                    //                  - child 0
-                    //                     - ...
-                    //                     - instr n >->->->->
-                    //                  - child 1
-                    //                     - instr 0 >->->->->
-                    //                  - ...
-                    //                  - instr n ->->->->->->
-                    //             - new child <-<-<-<-<-<-<-<
-                    //
-                    if ( previous_child->has_component<Scope>() )
-                    {
-                        auto previous_child_scope = previous_child->get_component<Scope>();
-                        for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
-                        {
-                            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
-                            ASSERT(each_instr_next_slot);
-                            connect( *each_instr_next_slot, new_child_prev_slot );
-                        }
-                    }
-                    // Case 2.b: Connects to last child's "next" slot.
-                    //           parent
-                    //             - ...
-                    //             - previous_child ->->->
-                    //             - new child <-<-<-<-<-<
-                    //
-                    else
-                    {
-                        Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_NEXT | SlotFlag_NOT_FULL );
-                        connect( *last_sibling_next_slot, new_child_prev_slot );
-                    }
-                }
-                break;
-            }
-
-            case SlotFlag_TYPE_CODEFLOW:
-            {
-                Node& prev_node = *_first.node; static_assert(SlotFlag_NEXT & SlotFlag_ORDER_FIRST );
-                Node& next_node = *_second.node; static_assert(SlotFlag_PREV & SlotFlag_ORDER_SECOND );
-
-                // If previous node is a scope, connects next_node as child
-                if ( prev_node.has_component<Scope>() )
-                {
-                    connect(
-                            *prev_node.find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
-                            *next_node.find_slot( SlotFlag_PARENT ));
-                }
-                // If next node parent exists, connects next_node as a child too
-                else if ( Node* prev_parent_node = prev_node.parent() )
-                {
-                    connect(
-                            *prev_parent_node->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
-                            *next_node.find_slot( SlotFlag_PARENT ));
-                }
-
-                // Connect siblings
-                else if ( Node* prev_parent_node = prev_node.parent() )
-                {
-                    Node* current_prev_node_sibling = prev_node.successors()[0];
-                    while ( current_prev_node_sibling && current_prev_node_sibling->parent() )
-                    {
-                        connect(
-                                *current_prev_node_sibling->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
-                                *prev_parent_node->find_slot( SlotFlag_PARENT ) );
-                        current_prev_node_sibling = *current_prev_node_sibling->successors().begin();
-                    }
-                }
-                break;
-            }
-            case SlotFlag_TYPE_VALUE:
-                // Nothing to do in such case
-                break;
+            case SlotFlag_TYPE_HIERARCHICAL: on_connect_hierarchical_side_effects(edge.tail, edge.head);break;
+            case SlotFlag_TYPE_CODEFLOW:     on_connect_codeflow_side_effects(edge.tail, edge.head);break;
+            case SlotFlag_TYPE_VALUE:        on_connect_value_side_effects(edge.tail, edge.head); break;
             default:
                 ASSERT(false);// This connection type is not yet implemented
         }
     }
+
     set_dirty(); // To express this graph changed
-    return &edge;
+
+    LOG_VERBOSE("Graph", "New edge added\n");
+
+    return edge;
+}
+
+void Graph::add(const DirectedEdge& _edge)
+{
+    m_edge_registry.emplace(_edge.type(), _edge);
+}
+
+void Graph::on_connect_hierarchical_side_effects(Slot* parent_slot, Slot* child_slot)
+{
+    //
+    // This function handle side effects after a new hierarchical (PARENT/CHILD) connection has been made.
+    // It will create one of more codeflow (PREV/NEXT) connection(s) automatically.
+    //
+    Node* parent           = parent_slot->node;
+    Node* new_child        = child_slot->node;
+    Slot* parent_next_slot = parent->find_slot_at(SlotFlag_NEXT, parent_slot->position );
+
+    ASSERT(parent->has_component<Scope>());
+    ASSERT(parent_next_slot);
+
+    Slot* new_child_prev_slot = new_child->find_slot( SlotFlag_PREV );
+
+    // Case 1: Parent has only 1 child (the newly connected), we connect it as "next".
+    if ( !parent_next_slot->is_full() )
+    {
+        connect( parent_next_slot, new_child_prev_slot );
+        return;
+    }
+
+    // Case 2: Connects to the last child's "next" slot.
+    //         parent
+    //           - ...
+    //           - last child ->->->
+    //           - new child <-<-<-
+    Node* previous_child = *(parent->children().rbegin() + 1);
+    ASSERT( previous_child );
+
+    // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
+    //           parent
+    //             - ...
+    //             - previous_child
+    //                  - child 0
+    //                     - ...
+    //                     - instr n >->->->->
+    //                  - child 1
+    //                     - instr 0 >->->->->
+    //                  - ...
+    //                  - instr n ->->->->->->
+    //             - new child <-<-<-<-<-<-<-<
+    //
+    if ( previous_child->has_component<Scope>() )
+    {
+        auto previous_child_scope = previous_child->get_component<Scope>();
+        for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
+        {
+            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_FREE_NEXT );
+            ASSERT(each_instr_next_slot);
+            connect( each_instr_next_slot, new_child_prev_slot );
+        }
+        return;
+    }
+
+    // Case 2.b: Connects to last child's "next" slot.
+    //           parent
+    //             - ...
+    //             - previous_child ->->->
+    //             - new child <-<-<-<-<-<
+    //
+    Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_FREE_NEXT );
+    connect( last_sibling_next_slot, new_child_prev_slot );
+}
+
+void Graph::on_connect_value_side_effects(Slot* value_out, Slot* value_in)
+{
+    //
+    // for debug purposes only
+    //
+    LOG_VERBOSE("Graph", "Two values have been connected\n");
+}
+
+void Graph::on_connect_codeflow_side_effects(Slot* prev_slot, Slot* next_slot)
+{
+    //
+    // This function handle side effects after a new codeflow connection has been made.
+    // It will create one or more hierarchical (PARENT/CHILD) connection(s) automatically.
+    //
+    Node* prev_node = prev_slot->node;
+    Node* next_node = next_slot->node;
+
+    // If previous node is a scope, connects next_node as child
+    if ( prev_node->has_component<Scope>() )
+    {
+        connect(prev_node->find_slot( SlotFlag_FREE_CHILD ),
+                next_node->find_slot( SlotFlag_PARENT ));
+        return;
+    }
+
+    // If next node parent exists, connects next_node as a child too
+    if ( Node* prev_parent_node = prev_node->parent() )
+    {
+        connect(prev_parent_node->find_slot( SlotFlag_FREE_CHILD ),
+                next_node->find_slot( SlotFlag_PARENT ));
+        return;
+    }
+
+    // Connect siblings
+    if ( Node* prev_parent_node = prev_node->parent() )
+    {
+        Node* current_prev_node_sibling = prev_node->successors().front();
+        while ( current_prev_node_sibling && current_prev_node_sibling->parent() )
+        {
+            connect(current_prev_node_sibling->find_slot( SlotFlag_FREE_CHILD ),
+                    prev_parent_node->find_slot( SlotFlag_PARENT ) );
+            current_prev_node_sibling = current_prev_node_sibling->successors().front();
+        }
+    }
 }
 
 void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
@@ -556,7 +556,7 @@ VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const cha
 {
     if( !_scope)
     {
-        _scope = get_root()->get_component<Scope>();
+        _scope = root()->get_component<Scope>();
     }
 
     // Create variable
@@ -570,10 +570,4 @@ VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const cha
     // TODO: attach a default Literal?
 
     return var_node;
-}
-
-void Graph::set_view(ndbl::GraphView* view)
-{
-    ASSERT(view != nullptr);
-    m_view = view;
 }

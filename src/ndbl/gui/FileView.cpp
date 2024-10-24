@@ -82,7 +82,7 @@ bool FileView::draw()
         auto old_line_text = m_text_editor.GetCurrentLineText();
 
         bool is_running = get_interpreter()->is_program_running();
-        GraphView* graphview = m_file->graph().get_view();
+        GraphView* graphview = m_file->graph().view();
         auto allow_keyboard = !is_running &&
                               !graphview->has_an_active_tool();
 
@@ -141,7 +141,7 @@ bool FileView::draw()
     //-------------
 
     Graph&     graph      = m_file->graph();
-    GraphView* graph_view = graph.get_view();
+    GraphView* graph_view = graph.view();
 
     ASSERT(graph_view);
 
@@ -344,7 +344,7 @@ void FileView::refresh_overlay(Condition _condition )
 
 void FileView::update(float dt)
 {
-    GraphView* graph_view = m_file->graph().get_view();
+    GraphView* graph_view = m_file->graph().view();
     ASSERT(graph_view != nullptr);
     graph_view->update(dt);
 

@@ -954,7 +954,7 @@ Vec4 NodeView::get_color( ColorType _type ) const
 GraphView *NodeView::get_graph() const
 {
     ASSERT(get_node()->graph() != nullptr);
-    return get_node()->graph()->get_view();
+    return get_node()->graph()->view();
 }
 
 void NodeView::draw_slot(SlotView* slot_view)

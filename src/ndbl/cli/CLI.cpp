@@ -122,7 +122,7 @@ void CLI::PublicApi::quit()
 
 bool CLI::PublicApi::serialize()
 {
-    if( m_cli->get_graph()->get_root() )
+    if( m_cli->get_graph()->root() )
     {
         std::string result;
         m_cli->serialize( result );

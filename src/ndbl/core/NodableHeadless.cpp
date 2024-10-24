@@ -28,7 +28,7 @@ void NodableHeadless::shutdown()
 
 std::string& NodableHeadless::serialize( std::string& out ) const
 {
-    return m_language->_serialize_node( out, m_graph->get_root(), SerializeFlag_RECURSE );
+    return m_language->_serialize_node(out, m_graph->root(), SerializeFlag_RECURSE );
 }
 
 Graph* NodableHeadless::parse( const std::string& code )

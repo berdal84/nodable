@@ -104,7 +104,7 @@ namespace ndbl
         // cached adjacent nodes accessors
 
         Node* parent() const;
-        inline const std::vector<Node*>& successors() const { return m_adjacent_nodes_cache.get( SlotFlag_PREV); }
+        inline const std::vector<Node*>& successors() const { return m_adjacent_nodes_cache.get( SlotFlag_NEXT); }
         inline const std::vector<Node*>& children() const { return m_adjacent_nodes_cache.get( SlotFlag_CHILD ); }
         inline const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
         inline const std::vector<Node*>& outputs() const { return m_adjacent_nodes_cache.get( SlotFlag_OUTPUT ); }

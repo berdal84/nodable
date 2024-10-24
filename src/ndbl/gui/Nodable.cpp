@@ -63,7 +63,7 @@ void Nodable::update()
     // Nodable events
     IEvent*       event = nullptr;
     EventManager* event_manager     = get_event_manager();
-    GraphView*    graph_view        = m_current_file ? m_current_file->graph().get_view() : nullptr; // TODO: should be included in the event
+    GraphView*    graph_view        = m_current_file ? m_current_file->graph().view() : nullptr; // TODO: should be included in the event
     History*      curr_file_history = m_current_file ? &m_current_file->history : nullptr; // TODO: should be included in the event
     while( (event = event_manager->poll_event()) )
     {
@@ -299,15 +299,16 @@ void Nodable::update()
             case Event_CreateNode::id:
             {
                 auto _event = reinterpret_cast<Event_CreateNode*>(event);
+                Graph* graph = _event->data.graph;
 
                 // 1) create the node
-                 if ( !_event->data.graph->get_root() )
+                if ( !graph->root() )
                 {
                     LOG_ERROR("Nodable", "Unable to create_new node, no root found on this graph.\n");
                     continue;
                 }
 
-                Node* new_node  = _event->data.graph->create_node( _event->data.node_type, _event->data.node_signature );
+                Node* new_node  = graph->create_node(_event->data.node_type, _event->data.node_signature );
 
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )
@@ -334,39 +335,40 @@ void Nodable::update()
                 }
 
                 // 2) handle connections
-                if ( !_event->data.active_slotview )
+                SlotView* slot_view = _event->data.active_slotview;
+                if ( !slot_view)
                 {
                     // Experimental: we try to connect a parent-less child
-                    Node* root = _event->data.graph->get_root();
+                    Node* root = graph->root();
                     if (new_node != root && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
-                        _event->data.graph->connect(
-                            *root->find_slot(SlotFlag_CHILD),
-                            *new_node->find_slot(SlotFlag_PARENT),
+                        graph->connect(
+                            root->find_slot(SlotFlag_CHILD),
+                            new_node->find_slot(SlotFlag_PARENT),
                             ConnectFlag_ALLOW_SIDE_EFFECTS
                         );
                     }
                 }
                 else
                 {
-                    Slot* complementary_slot = new_node->find_slot_by_property_type(
-                            get_complementary_flags(_event->data.active_slotview->slot->type_and_order() ),
-                            _event->data.active_slotview->property()->get_type() );
+                    SlotFlags             complementary_flags = get_complementary_flags(slot_view->slot->type_and_order() );
+                    const TypeDescriptor* type                = slot_view->property()->get_type();
+                    Slot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
 
-                    if ( !complementary_slot )
+                    if ( complementary_slot )
                     {
                         // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
                         LOG_ERROR( "GraphView", "unable to connect this node" );
                     }
-                    else
+                    if ( complementary_slot )
                     {
-                        Slot* out = _event->data.active_slotview->slot;
+                        Slot* out = slot_view->slot;
                         Slot* in  = complementary_slot;
 
                         if ( out->has_flags( SlotFlag_ORDER_SECOND ) )
                             std::swap( out, in );
 
-                        _event->data.graph->connect( *out, *in, ConnectFlag_ALLOW_SIDE_EFFECTS );
+                        graph->connect(out, in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                         if ( Utils::is_instruction( out->node ) && out->type() == SlotFlag_TYPE_CODEFLOW )
@@ -383,7 +385,7 @@ void Nodable::update()
                 if ( auto view = new_node->get_component<NodeView>() )
                 {
                     view->xform()->set_pos(_event->data.desired_screen_pos, WORLD_SPACE);
-                    _event->data.graph->get_view()->set_selected({view});
+                    graph->view()->set_selected({view});
                 }
                 break;
             }
@@ -538,7 +540,7 @@ void Nodable::debug_program()
 void Nodable::step_over_program()
 {
     m_interpreter->debug_step_over();
-    GraphView* graph_view = m_current_file->graph().get_view();
+    GraphView* graph_view = m_current_file->graph().view();
 
     if (!m_interpreter->is_there_a_next_instr() )
     {

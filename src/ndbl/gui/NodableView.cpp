@@ -184,7 +184,7 @@ void NodableView::draw()
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
-        auto has_selection = current_file != nullptr ? !current_file->graph().get_view()->selection_empty()
+        auto has_selection = current_file != nullptr ? !current_file->graph().view()->selection_empty()
                                                      : false;
 
         if (ImGui::BeginMenu("File"))
@@ -237,7 +237,7 @@ void NodableView::draw()
                 {
                     cfg->ui_node_detail = _detail;
                     if (current_file != nullptr)
-                        current_file->graph().get_view()->reset_all_properties();
+                        current_file->graph().view()->reset_all_properties();
                 }
             };
 
@@ -524,7 +524,7 @@ bool NodableView::draw_node_properties_window()
     {
         if( File* current_file = m_app->get_current_file() )
         {
-            GraphView*             graph_view         = current_file->graph().get_view(); // Graph can't be null
+            GraphView*             graph_view         = current_file->graph().view(); // Graph can't be null
             ASSERT(graph_view != nullptr);
             std::vector<NodeView*> selected_nodeviews = graph_view->get_selected();
 
