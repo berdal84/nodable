@@ -5,6 +5,7 @@
 #include "ndbl/core/language/Nodlang.h"
 #include "tools/core/TaskManager.h"
 #include "tools/core/reflection/reflection"
+#include "tools/core/Time.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -12,10 +13,15 @@ using namespace tools;
 void CLI::init()
 {
     NodableHeadless::init();
-    std::cout << R"(== Nodable command line interface ==)" << std::endl <<
-            R"(Nodable Copyright (C) 2023-2024 Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY. )"
-            R"(This is free software, and you are welcome to redistribute it under certain conditions.)"
-              << std::endl << R"(Feel lost? type "help".)" << std::endl;
+    std::cout <<
+        "== Nodable CLI == command line interface =="
+        << std::endl <<
+        "Nodable Copyright (C) 2023-" << time::current_year() << " Bérenger DALLE-CORT. This program comes with ABSOLUTELY NO WARRANTY."
+        << std::endl <<
+        "This is free software, and you are welcome to redistribute it under certain conditions."
+        << std::endl <<
+        "(Feel lost? type \"help\"."
+        <<std::endl;
 
     // Declare CLI::PublicApi's methods into the reflection system
     using API = CLI::PublicApi;
