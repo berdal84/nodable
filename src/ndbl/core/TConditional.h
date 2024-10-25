@@ -82,7 +82,7 @@ namespace ndbl
         m_next_slot[Branch_TRUE]  = node->add_slot(node->value(), SlotFlag_NEXT, 1, Branch_TRUE);
 
         // No condition needed for the first slot
-        auto condition_property = node->add_prop<Node*>(CONDITION_PROPERTY);
+        auto condition_property = node->add_prop<bool>(CONDITION_PROPERTY);
         m_condition_slot[0]     = node->add_slot(condition_property, SlotFlag_INPUT, 1);
 
         m_child_slot[Branch_FALSE] = node->add_slot(node->value(), SlotFlag_CHILD, 1, Branch_FALSE);

@@ -1651,9 +1651,6 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
     if ( !_token )
         return _out;
 
-    if ( _token.empty() )
-        return _out;
-
     // optimized case, if we have a "word", we can serialize the whole token
     if ( _token.word_len() != 0 )
         return _out.append(_token.begin(), _token.length());
@@ -1732,7 +1729,7 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_condition_struct ) const
 {
     // if
-    serialize_token(_out, _condition_struct->token_if);
+     serialize_token(_out, _condition_struct->token_if);
 
     // condition
     SerializeFlags flags = SerializeFlag_RECURSE
