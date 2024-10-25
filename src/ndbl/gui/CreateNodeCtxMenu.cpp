@@ -64,19 +64,36 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
     }
 }
 
+template<typename charT>
+struct CaseInsensitiveEqual
+{
+    const std::locale& locale;
+    inline bool operator()(charT ch1, charT ch2)
+    {
+        return std::toupper(ch1, locale) == std::toupper(ch2, locale);
+    }
+};
+
+template<typename T>
+inline bool CaseInsensitiveFind(const T& str1, const T& str2, const std::locale& loc = std::locale())
+{
+    return std::search(str1.begin(), str1.end(),
+                       str2.begin(), str2.end(),
+                       CaseInsensitiveEqual<typename T::value_type>{loc}) != str1.end();
+}
+
 void CreateNodeCtxMenu::update_cache_based_on_user_input(SlotView* _dragged_slot, size_t _limit )
 {
+    std::string search{search_input}; // FindCaseInsensitive takes a std::string
     items_matching_search.clear();
     for ( auto& menu_item : items_with_compatible_signature )
     {
-        if( menu_item->label.find( search_input ) != std::string::npos )
-        {
-            items_matching_search.push_back(menu_item);
-            if ( items_matching_search.size() == _limit )
-            {
-                break;
-            }
-        }
+        if( !CaseInsensitiveFind(menu_item->label, search) )
+            continue;
+
+        items_matching_search.push_back(menu_item);
+        if ( items_matching_search.size() == _limit )
+            break;
     }
 }
 
