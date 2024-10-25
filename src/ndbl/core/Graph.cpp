@@ -565,3 +565,10 @@ VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const cha
 
     return var_node;
 }
+
+Node *Graph::create_empty_instruction()
+{
+    Node* node = m_factory->create_empty_instruction();
+    add(node);
+    return node;
+}

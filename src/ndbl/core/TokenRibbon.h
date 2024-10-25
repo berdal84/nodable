@@ -36,6 +36,7 @@ namespace ndbl
         inline bool         empty()const { return m_tokens.empty(); }
         inline const Token& get_eaten()const { ASSERT(m_cursor > 0); return m_tokens[m_cursor - 1];}
         inline Token&       prefix() { return m_prefix; }
+        inline bool         peek(Token_t t)const { return m_tokens[m_cursor].m_type == t; }
         inline const Token& peek()const { return m_tokens[m_cursor]; }
         Token&              push(Token&);
         void                set_source_buffer(const char* buffer); // Set the source buffer (usually shared with by all Tokens)

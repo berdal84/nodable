@@ -514,6 +514,20 @@ Optional<Node*> Nodlang::parse_instr()
 
     if ( !expression_out )
     {
+        if ( Token tok = parser_state.ribbon.eat_if(Token_t::end_of_instruction) )
+        {
+            Node* empty_instr = parser_state.graph->create_empty_instruction();
+            empty_instr->value()->token() = tok; // override with parsed token
+            commit_transaction();
+            return empty_instr;
+        }
+        if ( parser_state.ribbon.peek( Token_t::parenthesis_close ) )
+        {
+            Node* empty_instr = parser_state.graph->create_empty_instruction();
+            empty_instr->value()->token() = Token_t::ignore; // override with nothing
+            commit_transaction();
+            return empty_instr;
+        }
         LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n");
         rollback_transaction();
         return nullptr;
@@ -1244,9 +1258,12 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
                         {
                             result = _temp_for_loop_node;
                         }
-                        else if ( parse_instr() )
+                        else if ( Optional<Node*> single_instr = parse_instr() )
                         {
-                            ASSERT(false); // Implementation to do!
+                            parser_state.graph->connect( single_instr->find_slot( SlotFlag_PARENT )
+                                                       , _temp_for_loop_node->child_slot_at(Branch_TRUE)
+                                                       , ConnectFlag_ALLOW_SIDE_EFFECTS );
+                            result = _temp_for_loop_node;
                         }
                         else
                         {
@@ -1629,6 +1646,9 @@ std::string & Nodlang::_serialize_node(std::string &_out, const Node* node, Seri
             [[fallthrough]];
         case NodeType_OPERATOR:
             serialize_invokable(_out, static_cast<const FunctionNode*>(node) );
+            break;
+        case NodeType_EMPTY_INSTRUCTION:
+            serialize_token(_out, node->value()->token() );
             break;
         default:
             VERIFY(false, "Unhandled NodeType, can't serialize");
