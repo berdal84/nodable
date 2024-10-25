@@ -25,6 +25,8 @@ File::File()
 
     // FileView
     view.init(*this);
+    CONNECT(view.on_text_view_changed, &File::update_graph_from_text);
+    CONNECT(view.on_graph_view_changed, &File::update_text_from_graph);
 
     LOG_VERBOSE( "File", "View built, creating History ...\n");
 
@@ -50,6 +52,9 @@ File::File()
 
 File::~File()
 {
+    DISCONNECT(view.on_text_view_changed);
+    DISCONNECT(view.on_graph_view_changed);
+
     delete _graph->view();
     delete _graph;
 }
@@ -78,6 +83,19 @@ void File::update()
         update_graph_from_text();
         history.is_dirty = false;
     }
+
+    if( _requires_text_update )
+    {
+        update_text_from_graph();
+        _requires_text_update = false;
+    }
+    else if( _requires_graph_update )
+    {
+        update_graph_from_text();
+        _requires_graph_update = false;
+    }
+
+   _graph->update(); // ~ garbage collection
 }
 
 void File::update_graph_from_text()
@@ -151,11 +169,6 @@ bool File::read( File& file, const tools::Path& path)
     return true;
 }
 
-void File::reset()
-{
-    update_graph_from_text();
-}
-
 void File::set_isolation(Isolation isolation)
 {
     if ( _isolation == isolation )
@@ -165,6 +178,6 @@ void File::set_isolation(Isolation isolation)
     _parsed_text = view.get_text(_isolation);
 
     // when isolation changes, the text has the priority over the graph.
-    view.is_graph_dirty = true;
-    view.is_text_dirty  = false;
+    _requires_graph_update = true;
+    _requires_text_update  = false;
 }

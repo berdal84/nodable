@@ -6,6 +6,7 @@
 #include "Condition.h"
 #include "Isolation.h"
 #include "types.h"
+#include "tools/core/Signals.h"
 
 namespace ndbl
 {
@@ -42,12 +43,12 @@ namespace ndbl
         FileView(const FileView&) = delete;
 		~FileView() = default;
 
-        bool is_text_dirty;
-        bool is_graph_dirty;
+        SIGNAL(on_text_view_changed);
+        SIGNAL(on_graph_view_changed);
 
         void                           update(float d);
-        void                           init( File& _file);
-        bool                           draw();
+        void                           init(File& _file);
+        void                           draw();
         std::string                    get_text(Isolation = Isolation_OFF)const;
         void                           set_text(const std::string&, Isolation mode = Isolation_OFF);
         TextEditor*					   get_text_editor(){ return &m_text_editor; }

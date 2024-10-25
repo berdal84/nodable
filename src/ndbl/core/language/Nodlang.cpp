@@ -217,7 +217,6 @@ bool Nodlang::parse(const std::string &_source_code, Graph *_graphNode)
         LOG_ERROR("Parser", "Couldn't parse token %llu and above: %s\n", curr_token.m_index, curr_token.json().c_str());
         return false;
     }
-    parser_state.graph->set_dirty();
     return true;
 }
 

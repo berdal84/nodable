@@ -22,8 +22,6 @@ using namespace tools;
 
 FileView::FileView()
     : m_text_editor()
-    , is_graph_dirty(false)
-    , is_text_dirty(false)
     , m_child1_size(0.3f)
     , m_child2_size(0.7f)
     , m_file(nullptr)
@@ -46,13 +44,22 @@ void FileView::init(File& _file)
 	m_text_editor.SetPalette( cfg->ui_text_textEditorPalette );
 }
 
-bool FileView::draw()
+void FileView::update(float dt)
+{
+    GraphView* graph_view = m_file->graph().view();
+    ASSERT(graph_view != nullptr);
+    graph_view->update(dt);
+}
+
+void FileView::draw()
 {
     Config* cfg = get_config();
     const Vec2 margin(10.0f, 0.0f);
     Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
     Vec2 text_editor_size {m_child1_size, region_available.y};
     Vec2 graph_editor_size{m_child2_size, region_available.y};
+    bool text_view_changed = false;
+    bool graph_view_changed = false;
 
      // Splitter
     //---------
@@ -131,9 +138,9 @@ bool FileView::draw()
                                      new_cursor_position.mLine == old_cursor_position.mLine;
         auto is_selected_text_modified = new_cursor_position != old_cursor_position;
 
-        is_graph_dirty |= is_line_text_modified;
-        is_graph_dirty |= m_text_editor.IsTextChanged();
-        is_graph_dirty |= ( cfg->isolation && is_selected_text_modified);
+        text_view_changed = is_line_text_modified;
+        text_view_changed |=  m_text_editor.IsTextChanged();
+        text_view_changed |= cfg->isolation && is_selected_text_modified;
     }
     ImGui::EndChild();
 
@@ -154,7 +161,7 @@ bool FileView::draw()
     ImGui::BeginChild("graph", graph_editor_size, false, flags);
     {
         // Draw graph
-        is_text_dirty |= graph_view->draw();
+        graph_view_changed |= graph_view->draw();
 
         // Draw overlay: shortcuts
         Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
@@ -172,7 +179,10 @@ bool FileView::draw()
     }
     ImGui::EndChild();
 
-    return is_graph_dirty || is_text_dirty;
+    if ( text_view_changed )
+        on_text_view_changed.emit();
+    if ( graph_view_changed )
+        on_graph_view_changed.emit();
 }
 
 std::string FileView::get_text( Isolation mode )const
@@ -340,28 +350,4 @@ void FileView::refresh_overlay(Condition _condition )
             push_overlay({label, shortcut_str}, overlay_type);
         }
     }
-}
-
-void FileView::update(float dt)
-{
-    GraphView* graph_view = m_file->graph().view();
-    ASSERT(graph_view != nullptr);
-    graph_view->update(dt);
-
-    if( is_text_dirty )
-    {
-        m_file->update_text_from_graph();
-        is_text_dirty = false;
-
-        // Refresh constraints
-        auto physics_components = Utils::get_components<Physics>(m_file->graph().get_node_registry() );
-        Physics::destroy_constraints( physics_components );
-        Physics::create_constraints(m_file->graph().get_node_registry() );
-    }
-    else if( is_graph_dirty )
-    {
-        m_file->update_graph_from_text();
-        is_graph_dirty = false;
-    }
-    is_text_dirty |= m_file->graph().update(); // ~ garbage collection
 }

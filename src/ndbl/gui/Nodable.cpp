@@ -14,7 +14,7 @@
 #include "ndbl/core/ComponentFactory.h"
 
 #include "commands/Cmd_ConnectEdge.h"
-#include "commands/Cmd_DisconnectEdge.h"
+#include "commands/Cmd_DeleteEdge.h"
 #include "commands/Cmd_Group.h"
 
 #include "Condition.h"
@@ -270,10 +270,7 @@ void Nodable::update()
             case Event_DeleteEdge::id:
             {
                 ASSERT(curr_file_history != nullptr);
-                auto* _event = reinterpret_cast<Event_DeleteEdge*>(event);
-                DirectedEdge edge{ _event->data.first, _event->data.second };
-                Graph* graph = _event->data.first->node->graph();
-                auto command = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
+                auto command = std::make_shared<Cmd_DeleteEdge>( static_cast<Event_DeleteEdge*>(event) );
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(command));
                 break;
             }
@@ -281,14 +278,14 @@ void Nodable::update()
             case Event_SlotDisconnectAll::id:
             {
                 ASSERT(curr_file_history != nullptr);
-                auto _event = reinterpret_cast<Event_SlotDisconnectAll*>(event);
+                auto _event = static_cast<Event_SlotDisconnectAll*>(event);
                 Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 Graph* graph = _event->data.first->node->graph();
                 for(Slot* adjacent_slot: slot->adjacent() )
                 {
-                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(DirectedEdge{slot, adjacent_slot}, graph );
+                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(DirectedEdge{slot, adjacent_slot}, graph );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
@@ -568,7 +565,8 @@ void Nodable::reset_program()
         m_interpreter->stop_program();
     }
 
-    m_current_file->reset();
+    // n.b. nodable is still text oriented
+    m_current_file->update_graph_next_frame();
 }
 
 File*Nodable::new_file()
