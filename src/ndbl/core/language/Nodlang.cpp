@@ -1246,7 +1246,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
                         }
                         else if ( parse_instr() )
                         {
-                            ASSERT(false) // Implementation to do!
+                            ASSERT(false); // Implementation to do!
                         }
                         else
                         {
