@@ -286,10 +286,9 @@ void Nodable::update()
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 Graph* graph = _event->data.first->node->graph();
-                for( const auto& adjacent_slot: slot->adjacent() )
+                for(Slot* adjacent_slot: slot->adjacent() )
                 {
-                    DirectedEdge edge{slot, adjacent_slot};
-                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(edge, graph );
+                    auto each_cmd = std::make_shared<Cmd_DisconnectEdge>(DirectedEdge{slot, adjacent_slot}, graph );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));

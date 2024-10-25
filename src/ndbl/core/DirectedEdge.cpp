@@ -10,6 +10,10 @@ DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
 : tail(_tail)
 , head(_head)
 {
+    // Be sure tail is always FIRST ORDER
+    if ( tail->order() == SlotFlag_ORDER_SECOND )
+        std::swap(tail, head);
+
     ASSERT(tail->flags() & SlotFlag_ORDER_FIRST );
     ASSERT(head->flags() & SlotFlag_ORDER_SECOND );
     ASSERT(tail->node->graph() != nullptr);
