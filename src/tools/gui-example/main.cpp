@@ -1,11 +1,11 @@
 #include "AppExample.h"
-#include "tools/core/memory/MemoryManager.h"
+#include "tools/core/TryCatch.h"
 
 using namespace tools;
 
 int main(int argc, char *argv[])
 {
-    try_TOOLS_MAIN
+    TOOLS_try
     {
         // Instantiate the application using the predefined configuration
         AppExample app;
@@ -18,6 +18,6 @@ int main(int argc, char *argv[])
         }
         app.shutdown();
     }
-    catch_TOOLS_MAIN
+    TOOLS_catch
     return 0;
 }

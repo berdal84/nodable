@@ -1,12 +1,13 @@
 #include "ndbl/gui/Nodable.h"
 #include "tools/core/memory/memory.h"
+#include "tools/core/TryCatch.h"
 
 using namespace tools;
 using namespace ndbl;
 
 int main(int argc, char *argv[])
 {
-    try_TOOLS_MAIN
+    TOOLS_try
     {
         Nodable app;
         app.init();
@@ -17,6 +18,6 @@ int main(int argc, char *argv[])
         }
         app.shutdown();
     }
-    catch_TOOLS_MAIN
+    TOOLS_catch
     return 0;
 }

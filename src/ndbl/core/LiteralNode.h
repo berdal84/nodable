@@ -8,7 +8,7 @@ namespace ndbl
     class LiteralNode: public Node
     {
     public:
-        Token               token;
+        Token token = { Token_t::literal_any };
 
         LiteralNode() {};
         ~LiteralNode() override {};

@@ -734,7 +734,7 @@ bool Nodlang::is_syntax_valid()
                     LOG_ERROR("Parser",
                               "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n",
                               parser_state.ribbon.concat_token_buffers(token->m_index, -10).c_str(),
-                              token->m_string_start_pos
+                              token->m_data_pos
                           );
                     success = false;
                 }
@@ -783,9 +783,9 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
         if( new_token.m_type == Token_t::ignore)
         {
             if( ignored_chars_size == 0)
-                ignored_chars_start_pos = new_token.m_string_start_pos;
-            ignored_chars_size += new_token.m_string_length;
-            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.buffer_to_string().c_str());
+                ignored_chars_start_pos = new_token.m_data_pos;
+            ignored_chars_size += new_token.length();
+            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.string().c_str());
         }
         else // handle ignored_chars_accumulator then push the token in the ribbon and handle ignored_chars_accumulator
         {
@@ -798,21 +798,21 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
                     Token& last_token = parser_state.ribbon.back();
                      if ( allow_to_attach_suffix(last_token.m_type) )
                     {
-                        last_token.m_string_length += ignored_chars_size;
+                        last_token.m_suffix_len += ignored_chars_size;
                     }
                     else if ( new_token )
                     {
-                        new_token.m_string_start_pos = ignored_chars_start_pos;
-                        new_token.m_string_length += ignored_chars_size;
+                        new_token.m_data_pos    = ignored_chars_start_pos;
+                        new_token.m_prefix_len += ignored_chars_size;
                     }
                 }
                 else
                 {
-                    parser_state.ribbon.prefix().m_string_length += ignored_chars_size;
+                    parser_state.ribbon.prefix().m_prefix_len += ignored_chars_size;
                 }
                 ignored_chars_size = 0;
             }
-            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", new_token.buffer_to_string().c_str());
+            LOG_VERBOSE("Parser", "Push token \"%s\" to ribbon\n", new_token.string().c_str());
             parser_state.ribbon.push(new_token);
         }
     }
@@ -824,10 +824,10 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
     {
         LOG_VERBOSE("Parser", "Found ignored chars after tokenize, adding to the ribbon suffix...\n");
         Token& suffix = parser_state.ribbon.suffix();
-        suffix.m_string_start_pos = ignored_chars_start_pos;
-        suffix.m_string_length = ignored_chars_size;
+        suffix.m_data_pos   = ignored_chars_start_pos;
+        suffix.m_suffix_len = ignored_chars_size;
         ignored_chars_start_pos = 0;
-        ignored_chars_size = 0;
+        ignored_chars_size      = 0;
     }
     return true;
 }
@@ -1093,17 +1093,17 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
     LOG_VERBOSE("Parser", "try to parse conditional structure...\n");
     start_transaction();
 
-    bool success = false;
-    Optional<Node*>   condition;
-    Optional<Node*>   condition_true_scope_node;
-    Optional<IfNode*> if_node;
-    Optional<IfNode*> else_node;
-
     Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
     if ( !if_token )
     {
         return nullptr;
     }
+
+    bool success = false;
+    Optional<Node*>   condition;
+    Optional<Node*>   condition_true_scope_node;
+    Optional<IfNode*> if_node;
+    Optional<IfNode*> else_node;
 
     if_node = parser_state.graph->create_cond_struct();
 
@@ -1176,10 +1176,10 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
         return if_node;
     }
 
-    parser_state.graph->destroy( else_node.get() );
-    parser_state.graph->destroy( condition_true_scope_node.get() );
-    parser_state.graph->destroy( condition.get() );
-    parser_state.graph->destroy( if_node.get() );
+    parser_state.graph->destroy( else_node.data() );
+    parser_state.graph->destroy( condition_true_scope_node.data() );
+    parser_state.graph->destroy( condition.data() );
+    parser_state.graph->destroy( if_node.data() );
     rollback_transaction();
     return nullptr;
 }
@@ -1359,7 +1359,7 @@ Optional<Slot*> Nodlang::parse_variable_declaration()
         variable_node->set_identifier_token( identifier_token );
         // try to parse assignment
         Token operator_token = parser_state.ribbon.eat_if(Token_t::operator_);
-        if ( operator_token && operator_token.word_size() == 1 && *operator_token.word_ptr() == '=')
+        if (operator_token && operator_token.word_len() == 1 && *operator_token.word() == '=')
         {
             if ( Optional<Slot*> expression_out = parse_expression() )
             {
@@ -1533,7 +1533,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const VariableNode *
     if ( slot->adjacent_count() != 0 )
     {
         if ( _node->get_operator_token() )
-            _out.append(_node->get_operator_token().buffer_to_string());
+            _out.append(_node->get_operator_token().string());
         else
             _out.append(" = ");
 
@@ -1564,7 +1564,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, Seria
         // Append token prefix?
         if (const Token& adjacent_token = adjacent_property->token())
             if ( adjacent_token )
-                _out.append( adjacent_token.prefix_ptr(), adjacent_token.prefix_size() );
+                _out.append(adjacent_token.prefix(), adjacent_token.prefix_len() );
 
         // Serialize adjacent slot
         serialize_output( _out, adjacent_slot, SerializeFlag_RECURSE );
@@ -1572,7 +1572,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, Seria
         // Append token suffix?
         if (const Token& adjacent_token = adjacent_property->token())
             if ( adjacent_token )
-                _out.append( adjacent_token.suffix_ptr(), adjacent_token.suffix_size() );
+                _out.append(adjacent_token.suffix(), adjacent_token.suffix_len() );
     }
 
     // Append close brace?
@@ -1647,10 +1647,24 @@ std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) co
 
 std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) const
 {
-    if ( _token && _token.has_buffer())
-    {
-        _out.append(_token.string_ptr(), _token.string_size());
-    }
+    // Skip a null token
+    if ( !_token )
+        return _out;
+
+    if ( _token.empty() )
+        return _out;
+
+    // optimized case, if we have a "word", we can serialize the whole token
+    if ( _token.word_len() != 0 )
+        return _out.append(_token.begin(), _token.length());
+
+    // append prefix, default word, and suffix
+    if (_token.prefix() )
+        _out.append(_token.prefix(), _token.prefix_len());
+    serialize_token_t( _out, _token.m_type ); // <---------- default word!
+    if (_token.suffix() )
+        _out.append(_token.suffix(), _token.suffix_len());
+
     return _out;
 }
 
@@ -1674,36 +1688,22 @@ std::string& Nodlang::serialize_double(std::string& _out, double d) const
 
 std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_for_loop) const
 {
-    if( _for_loop->token_for )
-    {
-        serialize_token(_out, _for_loop->token_for);
-    }
-    else
-    {
-        serialize_token_t(_out, Token_t::keyword_for);
-    }
-
+    serialize_token(_out, _for_loop->token_for);
     serialize_token_t(_out, Token_t::parenthesis_open);
-
-    const Slot* init_slot = _for_loop->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
-    const Slot* cond_slot = _for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
-    const Slot* iter_slot = _for_loop->find_slot_by_property_name( ITERATION_PROPERTY, SlotFlag_INPUT );
-
-    serialize_input( _out, init_slot, SerializeFlag_RECURSE );
-    serialize_input( _out, cond_slot, SerializeFlag_RECURSE );
-    serialize_input( _out, iter_slot, SerializeFlag_RECURSE );
-
+    {
+        const Slot* init_slot = _for_loop->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
+        const Slot* cond_slot = _for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
+        const Slot* iter_slot = _for_loop->find_slot_by_property_name( ITERATION_PROPERTY, SlotFlag_INPUT );
+        serialize_input( _out, init_slot, SerializeFlag_RECURSE );
+        serialize_input( _out, cond_slot, SerializeFlag_RECURSE );
+        serialize_input( _out, iter_slot, SerializeFlag_RECURSE );
+    }
     serialize_token_t(_out, Token_t::parenthesis_close);
 
-    // if scope
+    // scope when condition is true
     if ( auto scope = _for_loop->scope_at( Branch_TRUE ) )
     {
         serialize_scope(_out, scope );
-    }
-    else
-    {
-        // When created manually, no scope is created, we serialize a fake one
-        _out.append("\n{\n}\n");
     }
 
     return _out;
@@ -1711,29 +1711,18 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
 
 std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode *_while_loop_node) const
 {
+    // while
+    serialize_token(_out, _while_loop_node->token_while);
 
-    if( _while_loop_node->token_while )
-    {
-        serialize_token(_out, _while_loop_node->token_while);
-    }
-    else
-    {
-        serialize_token_t(_out, Token_t::keyword_while);
-    }
-
+    // condition
     SerializeFlags flags = SerializeFlag_RECURSE
                          | SerializeFlag_WRAP_WITH_BRACES;
     serialize_input(_out, _while_loop_node->condition_slot(Branch_TRUE), flags );
 
-    // if scope
+    // scope when true
     if ( auto scope = _while_loop_node->scope_at( Branch_TRUE ) )
     {
         serialize_scope(_out, scope );
-    }
-    else
-    {
-        // When created manually, no scope is created, we serialize a fake one
-        _out.append("\n{\n}\n");
     }
 
     return _out;
@@ -1742,44 +1731,27 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
 
 std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_condition_struct ) const
 {
-    // if ...
-    if ( _condition_struct->token_if )
-    {
-        serialize_token(_out, _condition_struct->token_if);
-    }
-    else
-    {
-        serialize_token_t(_out, Token_t::keyword_if);
-    }
+    // if
+    serialize_token(_out, _condition_struct->token_if);
 
-    // ... ( <condition> )
+    // condition
     SerializeFlags flags = SerializeFlag_RECURSE
                            | SerializeFlag_WRAP_WITH_BRACES;
     serialize_input(_out, _condition_struct->condition_slot(Branch_TRUE), flags );
 
-    // ... ( ... ) <scope>
+    // scope when condition is true
     if ( Scope* scope = _condition_struct->scope_at( Branch_TRUE ) )
     {
         serialize_scope( _out, scope );
     }
-    else
+
+    // when condition is false
+    if ( const Scope* else_scope = _condition_struct->scope_at( Branch_FALSE ) )
     {
-        // When scope is undefined, serialized a fake one
-        serialize_token_t(_out, Token_t::end_of_line);
-        serialize_token_t(_out, Token_t::scope_begin);
-        serialize_token_t(_out, Token_t::end_of_line);
-        serialize_token_t(_out, Token_t::scope_end);
+        serialize_token(_out, _condition_struct->token_else); // I think I'll get problems with that. Can we have an "else" keyword without a scope?
+        _serialize_node( _out, else_scope->get_owner(), SerializeFlag_RECURSE );
     }
 
-    // else & else scope
-    if ( _condition_struct->token_else )
-    {
-        serialize_token(_out, _condition_struct->token_else);
-        if ( const Scope* else_scope = _condition_struct->scope_at( Branch_FALSE ) )
-        {
-            _serialize_node( _out, else_scope->get_owner(), SerializeFlag_RECURSE );
-        }
-    }
     return _out;
 }
 
@@ -1912,7 +1884,6 @@ std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) con
     switch (_token_t)
     {
         case Token_t::end_of_line:     return _out.append("\n"); // TODO: handle all platforms
-        case Token_t::ignore:          return _out.append("ignore");
         case Token_t::operator_:       return _out.append("operator");
         case Token_t::identifier:      return _out.append("identifier");
         case Token_t::literal_string:  return _out.append("\"\"");
@@ -1920,7 +1891,8 @@ std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) con
         case Token_t::literal_int:     return _out.append("0");
         case Token_t::literal_bool:    return _out.append("false");
         case Token_t::literal_any:     [[fallthrough]];
-        case Token_t::literal_unknown: return _out.append("");
+        case Token_t::ignore:          [[fallthrough]];
+        case Token_t::literal_unknown: return _out;
         default:
         {
             {

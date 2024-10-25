@@ -1,12 +1,12 @@
 #include "CLI.h"
-#include "tools/core/memory/MemoryManager.h"
+#include "tools/core/TryCatch.h"
 
 using tools::log;
 using namespace ndbl;
 
 int main(int argc, char *argv[])
 {
-    try_TOOLS_MAIN
+    TOOLS_try
     {
         ndbl::CLI cli;
         cli.init();
@@ -16,6 +16,6 @@ int main(int argc, char *argv[])
         }
         cli.shutdown();
     }
-    catch_TOOLS_MAIN
+    TOOLS_catch
     return 0;
 }

@@ -148,7 +148,7 @@ namespace ndbl
 
         std::string        m_name;
         PropertyBag        m_props;
-        Token              m_suffix;
+        Token              m_suffix = Token{};
         Graph*             m_graph = nullptr;
         NodeType           m_type  = NodeType_DEFAULT;
         NodeFlags          m_flags = NodeFlag_IS_DIRTY;

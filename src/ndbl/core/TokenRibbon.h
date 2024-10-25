@@ -16,7 +16,11 @@ namespace ndbl
     class TokenRibbon
     {
     public:
-        TokenRibbon(): m_cursor(0) {}
+        TokenRibbon()
+        : m_cursor(0)
+        , m_prefix(Token_t::ignore) // we want to put here characters we cannot attach to any token's prefix
+        , m_suffix(Token_t::ignore) // Same here with suffix. (reason: We do not authorize adding prefix/suffix on identifier tokens)
+        {}
 
         Token&              at(size_t index) { return m_tokens.at(index); }
         inline Token&       back() { return m_tokens.back(); };

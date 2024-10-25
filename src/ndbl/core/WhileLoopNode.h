@@ -20,7 +20,7 @@ namespace ndbl
     class WhileLoopNode : public Node
     {
     public:
-        Token          token_while;
+        Token token_while = { Token_t::keyword_while};
 
         void               init(const std::string& _name);
         inline Scope*      scope_at(Branch branch) const       { return m_wrapped_conditional.get_scope_at(branch); }

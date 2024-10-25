@@ -194,8 +194,8 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
                 {
                     char buf[256];
                     const Token &connected_property_token = connected_slot->property->token();
-                    snprintf(buf, std::min(connected_property_token.word_size() + 1, sizeof(buf)), "%s",
-                             connected_property_token.word_ptr());
+                    snprintf(buf, std::min(connected_property_token.word_len() + 1, sizeof(buf)), "%s",
+                             connected_property_token.word());
                     float w = calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     ImGui::PushStyleColor(ImGuiCol_FrameBg,
@@ -228,7 +228,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
         case Token_t::identifier:
         {
             char buf[256];
-            snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
+            snprintf(buf, std::min(property_token.word_len() + 1, sizeof(buf)), "%s", property_token.word());
             flags = 0; // ReadOnly always OFF. ImGuiInputTextFlags_ReadOnly * (connected_slot != nullptr);
             if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
             {
@@ -286,7 +286,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
         case Token_t::literal_any:
         {
             char buf[256];
-            snprintf(buf, std::min(property_token.word_size() + 1, sizeof(buf)), "%s", property_token.word_ptr());
+            snprintf(buf, std::min(property_token.word_len() + 1, sizeof(buf)), "%s", property_token.word());
 
             if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
             {

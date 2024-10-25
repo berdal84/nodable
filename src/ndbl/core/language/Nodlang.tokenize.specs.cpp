@@ -37,7 +37,7 @@ TEST_F(Language_tokenize, operator_suffix_and_prefix)
     language->tokenize(code);
     log_ribbon();
     Token token = language->parser_state.ribbon.at(2);
-    EXPECT_EQ(token.buffer_to_string(), " = ");
+    EXPECT_EQ(token.string(), " = ");
     EXPECT_EQ(token.prefix_to_string(), " ");
     EXPECT_EQ(token.suffix_to_string(), " ");
 }
@@ -48,7 +48,7 @@ TEST_F(Language_tokenize, operator_suffix)
     language->tokenize(code);
     log_ribbon();
     Token token = language->parser_state.ribbon.at(2);
-    EXPECT_EQ(token.buffer_to_string(), "= ");
+    EXPECT_EQ(token.string(), "= ");
     EXPECT_EQ(token.prefix_to_string(), "");
     EXPECT_EQ(token.suffix_to_string(), " ");
 }
@@ -59,7 +59,7 @@ TEST_F(Language_tokenize, operator_prefix)
     language->tokenize(code);
     log_ribbon();
     Token token = language->parser_state.ribbon.at(2);
-    EXPECT_EQ(token.buffer_to_string(), " =");
+    EXPECT_EQ(token.string(), " =");
     EXPECT_EQ(token.prefix_to_string(), " ");
     EXPECT_EQ(token.suffix_to_string(), "");
 }
@@ -70,11 +70,11 @@ TEST_F(Language_tokenize, add_pow2of2_and_integer )
     std::string code = "pow(2,2) + 1";
     language->tokenize(code);
     TokenRibbon& ribbon = language->parser_state.ribbon;
-    EXPECT_EQ(ribbon.at(2).buffer_to_string(), "2");
-    EXPECT_EQ(ribbon.at(3).buffer_to_string(), ",");
-    EXPECT_EQ(ribbon.at(4).buffer_to_string(), "2");
-    EXPECT_EQ(ribbon.at(5).buffer_to_string(), ")"); // parser should not add a " " prefix after ")"
-    EXPECT_EQ(ribbon.at(6).buffer_to_string(), " + ");
-    EXPECT_EQ(ribbon.at(7).buffer_to_string(), "1");
+    EXPECT_EQ(ribbon.at(2).string(), "2");
+    EXPECT_EQ(ribbon.at(3).string(), ",");
+    EXPECT_EQ(ribbon.at(4).string(), "2");
+    EXPECT_EQ(ribbon.at(5).string(), ")"); // parser should not add a " " prefix after ")"
+    EXPECT_EQ(ribbon.at(6).string(), " + ");
+    EXPECT_EQ(ribbon.at(7).string(), "1");
 
 }

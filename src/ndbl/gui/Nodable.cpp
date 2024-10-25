@@ -373,7 +373,7 @@ void Nodable::update()
                         if ( Utils::is_instruction( out->node ) && out->type() == SlotFlag_TYPE_CODEFLOW )
                         {
                             Token& token = out->node->suffix();
-                            std::string buffer = token.buffer_to_string();
+                            std::string buffer = token.string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
                                 token.suffix_append("\n");
                         }

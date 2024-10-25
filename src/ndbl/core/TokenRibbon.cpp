@@ -22,7 +22,7 @@ std::string TokenRibbon::to_string()const
 
     // get the total buffer sizes (but won't be exact, some token are serialized dynamically)
     for (const Token& each_token : m_tokens)
-        buffer_size += each_token.m_string_length;
+        buffer_size += each_token.length();
 
     out.reserve(buffer_size);
     out.append("[<TokenRibbon start>]\n");
@@ -46,17 +46,17 @@ std::string TokenRibbon::to_string()const
         line.append("[\"");
 
         if (each_token.has_buffer())
-            line.append(each_token.prefix_ptr(), each_token.prefix_size());
+            line.append(each_token.prefix(), each_token.prefix_len());
 
         line.append("\", \"");
 
         if (each_token.has_buffer())
-            line.append(each_token.word_ptr(), each_token.word_size());
+            line.append(each_token.word(), each_token.word_len());
 
         line.append("\", \"");
 
         if (each_token.has_buffer())
-            line.append(each_token.suffix_ptr(), each_token.suffix_size());
+            line.append(each_token.suffix(), each_token.suffix_len());
 
         line.append("\"]");
 
@@ -87,7 +87,7 @@ Token TokenRibbon::eat_if(Token_t expectedType)
 
 Token TokenRibbon::eat()
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_cursor, peek().buffer_to_string().c_str() );
+    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_cursor, peek().string().c_str() );
     return m_tokens.at(m_cursor++);
 }
 
@@ -113,11 +113,13 @@ void TokenRibbon::transaction_commit()
 void TokenRibbon::clear()
 {
     m_tokens.clear();
-    m_prefix.m_type             = m_suffix.m_type             = Token_t::ignore;
-    m_prefix.m_string_start_pos = m_suffix.m_string_start_pos = 0;
-    m_prefix.m_string_length      = m_suffix.m_string_length      = 0;
-    m_prefix.m_word_start_pos   = m_suffix.m_word_start_pos   = 0;
-    m_prefix.m_word_length        = m_suffix.m_word_length        = 0;
+
+    m_prefix.m_type = Token_t::ignore;
+    m_prefix.m_type = Token_t::ignore;
+
+    m_prefix.reset_lengths(); // clear but without resetting the buffer
+    m_suffix.reset_lengths();
+
     while(!m_transaction.empty())
     {
         m_transaction.pop();
@@ -148,7 +150,7 @@ std::string TokenRibbon::concat_token_buffers(size_t pos, int size)
     while( idx > 0 && idx < m_tokens.size() && step_done_count <= step_count )
     {
         Token* token = &m_tokens[idx];
-        result = step > 0 ? result + token->buffer_to_string() : token->buffer_to_string() + result;
+        result = step > 0 ? result + token->string() : token->string() + result;
 
         idx += step;
         step_done_count++;

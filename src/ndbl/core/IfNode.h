@@ -17,8 +17,8 @@ namespace ndbl
     class IfNode : public Node
     {
     public:
-        Token token_if;   // Example: { prefix: "", word: "if", suffix: " "}
-        Token token_else; // Example: { prefix: " ", word: "else", suffix: " "}
+        Token token_if   = {Token_t::keyword_if};
+        Token token_else = {Token_t::keyword_else};
         void           init(const std::string& _name);
         Scope*         scope_at(Branch branch) const       { return m_wrapped_conditional.get_scope_at(branch); }
         Slot*          child_slot_at(Branch branch)        { return m_wrapped_conditional.get_child_slot_at(branch); }

@@ -12,8 +12,8 @@ namespace ndbl
         Scope();
         ~Scope() = default;
 
-        Token token_begin;
-        Token token_end;
+        Token token_begin = {Token_t::parenthesis_open};
+        Token token_end   = {Token_t::parenthesis_close};
 
         std::vector<Node*>      get_last_instructions_rec();
         std::vector<Node*>&     get_last_instructions_rec( std::vector<Node*>& _out) override ;

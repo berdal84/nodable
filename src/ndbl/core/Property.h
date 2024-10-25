@@ -26,6 +26,7 @@ namespace ndbl
 	class Property
     {
     public:
+        Property(): m_token() {}
         void               init(const tools::TypeDescriptor*, PropertyFlags, Node*, const char* _name); // must be called once before use
         void               init_token();
         void               digest(Property *_property);
