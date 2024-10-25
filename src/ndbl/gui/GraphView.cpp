@@ -244,15 +244,6 @@ bool GraphView::draw()
                 if ( !node_view_in->visible() )
                     continue;
 
-                // Skip variable--->ref wires in certain cases
-                if (node_out->type() == NodeType_VARIABLE ) // from a variable
-                {
-                    auto variable = static_cast<VariableNode*>( node_out );
-                    if (slot_out == variable->ref_out() ) // from a reference slot (can't be a declaration link)
-                        if (!node_view_out->selected() && !node_view_in->selected() )
-                            continue;
-                }
-
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
 
                 SlotView* slot_view_out = slot_out->view;
@@ -278,6 +269,15 @@ bool GraphView::draw()
                                    (cfg->ui_wire_bezier_fade_lensqr_range.y - cfg->ui_wire_bezier_fade_lensqr_range.x);
                     style.color        = Vec4::lerp(style.color,        Vec4(0, 0, 0, 0), factor);
                     style.shadow_color = Vec4::lerp(style.shadow_color, Vec4(0, 0, 0, 0), factor);
+                }
+
+                // Draw transparent some "variable--->ref" wires in certain cases
+                if (node_out->type() == NodeType_VARIABLE ) // from a variable
+                {
+                    auto variable = static_cast<VariableNode*>( node_out );
+                    if (slot_out == variable->ref_out() ) // from a reference slot (can't be a declaration link)
+                        if (!node_view_out->selected() && !node_view_in->selected() )
+                            style.color.w *= 0.25f;
                 }
 
                 // draw the wire if necessary
