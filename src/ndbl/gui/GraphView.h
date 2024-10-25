@@ -43,6 +43,8 @@ namespace ndbl
 	    explicit GraphView(Graph* graph);
 		~GraphView();
 
+        SIGNAL(on_change);
+
         void        update(float dt);
         bool        draw();
         void        add_action_to_node_menu(Action_CreateNode* _action);

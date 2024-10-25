@@ -58,9 +58,6 @@ void Graph::clear()
 
 bool Graph::update()
 {
-    if ( !m_is_dirty )
-        return false;
-
     bool changed = false;
 
     // Delete (flagged Nodes) / Check if dirty
@@ -83,7 +80,7 @@ bool Graph::update()
     }
 
     if ( changed )
-        on_update.emit();
+        on_change.emit();
 
     return changed;
 }
@@ -96,8 +93,7 @@ void Graph::add(Node* _node)
     _node->m_graph = this;
 
     on_add.emit(_node);
-
-    set_dirty();
+    on_change.emit();
 
     LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name().c_str(), _node->get_class()->get_name());
 }
@@ -109,8 +105,7 @@ void Graph::remove(Node* _node)
     m_node_registry.erase(found);
 
     on_remove.emit(_node);
-
-    set_dirty();
+    on_change.emit();
 }
 
 VariableNode* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, Scope* _scope)
@@ -213,12 +208,10 @@ DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
         {
             head->property->digest(tail->property );
             destroy(tail->node);
-            set_dirty(); // a node has been destroyed
             return {};
         }
 
     // Connect (case 4)
-    set_dirty();
     return connect(tail, head, ConnectFlag_ALLOW_SIDE_EFFECTS );
 }
 
@@ -236,7 +229,7 @@ void Graph::remove(const DirectedEdge& edge)
     {
         LOG_WARNING("Graph", "Unable to unregister edge\n");
     }
-    set_dirty(); // To express this graph changed
+    on_change.emit();
 }
 
 DirectedEdge Graph::connect_to_variable(Slot* output_slot, VariableNode* _variable )
@@ -273,7 +266,7 @@ DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
         }
     }
 
-    set_dirty(); // To express this graph changed
+    on_change.emit();
 
     LOG_VERBOSE("Graph", "New edge added\n");
 
@@ -283,6 +276,7 @@ DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
 void Graph::add(const DirectedEdge& _edge)
 {
     m_edge_registry.emplace(_edge.type(), _edge);
+    on_change.emit();
 }
 
 void Graph::on_connect_hierarchical_side_effects(Slot* parent_slot, Slot* child_slot)
@@ -451,7 +445,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
             VERIFY(!type, "Not yet implemented yet");
     }
 
-    set_dirty(); // To express this graph changed
+    on_change.emit();
 }
 
 Node* Graph::create_scope()

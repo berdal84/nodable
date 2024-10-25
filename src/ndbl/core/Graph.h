@@ -59,7 +59,7 @@ namespace ndbl
         // signals (can be connected)
 
         SIGNAL(on_reset);
-        SIGNAL(on_update);
+        SIGNAL(on_change);
         SIGNAL(on_add   , Node*);
         SIGNAL(on_remove, Node*);
 
@@ -70,8 +70,6 @@ namespace ndbl
         inline GraphView*        view() const { return m_view; };
         inline void              set_view(GraphView* view = nullptr) { ASSERT(view != nullptr); m_view = view; }
         inline bool              is_empty() const { return m_root.empty(); };
-        inline bool              is_dirty() const { return m_is_dirty; }
-        inline void              set_dirty(bool b = true) { m_is_dirty = b; }
         inline void              ensure_has_root() { if (is_empty()) create_root(); }
         inline tools::Optional<Node*> root() const { return m_root; }
         inline bool              is_root(const Node* node) const { return  m_root == node; }
@@ -119,7 +117,6 @@ namespace ndbl
 
         tools::Optional<Node*> m_root = nullptr; // Graph root (main scope), without it a graph cannot be compiled.
         const NodeFactory* m_factory  = nullptr;
-        bool               m_is_dirty = false;
         GraphView*         m_view     = nullptr; // non-owned
         std::vector<Node*>                      m_node_registry; // Node storage
         std::multimap<SlotFlags , DirectedEdge> m_edge_registry; // Edge storage

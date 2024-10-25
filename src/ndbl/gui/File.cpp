@@ -41,6 +41,8 @@ File::File()
     _graph = new Graph(get_node_factory());
     auto* graph_view = new GraphView(_graph);
     _graph->set_view(graph_view);
+    CONNECT(_graph->on_change, &File::update_text_next_frame);
+    CONNECT(graph_view->on_change , &File::update_text_next_frame);
 
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
@@ -54,6 +56,8 @@ File::~File()
 {
     DISCONNECT(view.on_text_view_changed);
     DISCONNECT(view.on_graph_view_changed);
+    DISCONNECT(_graph->on_change);
+    DISCONNECT(_graph->view()->on_change);
 
     delete _graph->view();
     delete _graph;

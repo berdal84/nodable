@@ -67,14 +67,14 @@ GraphView::GraphView(Graph* graph)
     m_state_machine.start();
 
     CONNECT(graph->on_add    , &GraphView::decorate );
-    CONNECT(graph->on_update , &GraphView::reset_physics);
+    CONNECT(graph->on_change , &GraphView::reset_physics);
     CONNECT(graph->on_reset  , &GraphView::reset);
 }
 
 GraphView::~GraphView()
 {
     DISCONNECT(m_graph->on_add);
-    DISCONNECT(m_graph->on_update);
+    DISCONNECT(m_graph->on_change);
     DISCONNECT(m_graph->on_reset);
 }
 
@@ -366,6 +366,9 @@ bool GraphView::draw()
 
     // add some empty space
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
+
+    if ( changed )
+        on_change.emit();
 
 	return changed;
 }

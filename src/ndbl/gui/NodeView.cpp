@@ -703,14 +703,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
             // Parent graph
             {
-                std::string parentName = "NULL";
-
-                if (Graph* parent_graph = node->graph())
-                {
-                    parentName = "Graph";
-                    parentName.append( parent_graph->is_dirty() ? " (dirty)" : "");
-                }
-                ImGui::Text("Parent graph is \"%s\"", parentName.c_str());
+                ImGui::Text("Parent graph is \"%s\"", node->graph() ? "Graph" : "nullptr");
             }
 
             // Parent
