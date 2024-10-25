@@ -371,7 +371,7 @@ void Nodable::update()
                             Token& token = out->node->suffix();
                             std::string buffer = token.string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
-                                token.suffix_append("\n");
+                                token.suffix_push_back("\n");
                         }
                     }
                 }

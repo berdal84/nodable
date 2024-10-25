@@ -733,7 +733,7 @@ bool Nodlang::is_syntax_valid()
                     LOG_ERROR("Parser",
                               "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n",
                               parser_state.ribbon.concat_token_buffers(token->m_index, -10).c_str(),
-                              token->m_data_pos
+                              token->offset()
                           );
                     success = false;
                 }
@@ -782,7 +782,7 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
         if( new_token.m_type == Token_t::ignore)
         {
             if( ignored_chars_size == 0)
-                ignored_chars_start_pos = new_token.m_data_pos;
+                ignored_chars_start_pos = new_token.offset();
             ignored_chars_size += new_token.length();
             LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.string().c_str());
         }
@@ -801,8 +801,8 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
                     }
                     else if ( new_token )
                     {
-                        new_token.m_data_pos    = ignored_chars_start_pos;
-                        new_token.m_prefix_len += ignored_chars_size;
+                        new_token.set_offset(ignored_chars_start_pos);
+                        new_token.extend_prefix(ignored_chars_size);
                     }
                 }
                 else
@@ -823,8 +823,8 @@ bool Nodlang::tokenize(const char* buffer, size_t buffer_size)
     {
         LOG_VERBOSE("Parser", "Found ignored chars after tokenize, adding to the ribbon suffix...\n");
         Token& suffix = parser_state.ribbon.suffix();
-        suffix.m_data_pos   = ignored_chars_start_pos;
-        suffix.m_suffix_len = ignored_chars_size;
+        suffix.set_offset( ignored_chars_start_pos );
+        suffix.resize_suffix( ignored_chars_size );
         ignored_chars_start_pos = 0;
         ignored_chars_size      = 0;
     }

@@ -19,7 +19,7 @@ TEST(Token, constructor__with_const_char_ptr)
     EXPECT_EQ(token.word_to_string(), "toto");
     EXPECT_EQ(token.suffix_to_string(), "");
     EXPECT_EQ(token.string(), "toto");
-    EXPECT_EQ(token.m_is_buffer_owned, false);
+    EXPECT_EQ(token.m_buffer.intern, false);
 }
 
 TEST(Token, suffix_append_from_stack)
@@ -27,16 +27,15 @@ TEST(Token, suffix_append_from_stack)
     //                          >|--|<
     const char* toto = "// test\ntoto";
     Token token(Token_t::identifier, const_cast<char*>(toto), 8, 4);
-
     EXPECT_EQ(token.prefix_to_string(), "");
-    EXPECT_EQ(token.m_is_buffer_owned, false);
+    EXPECT_EQ(token.m_buffer.intern, false);
 
-    token.suffix_append(";\n");
+    token.suffix_push_back(";\n");
 
     EXPECT_EQ(token.suffix_to_string(), ";\n");
     EXPECT_EQ(token.string(), "toto;\n");
-    EXPECT_EQ(token.m_data_pos, 0);
-    EXPECT_EQ(token.m_is_buffer_owned, true);
+    EXPECT_EQ(token.offset(), 0);
+    EXPECT_EQ(token.m_buffer.intern, true);
 }
 
 TEST(Token, constructor__with_not_owned_buffer)
@@ -49,7 +48,7 @@ TEST(Token, constructor__with_not_owned_buffer)
     EXPECT_EQ(token.prefix_to_string(), "<prefix>");
     EXPECT_EQ(token.word_to_string(), "toto");
     EXPECT_EQ(token.suffix_to_string(), "<suffix>");
-    EXPECT_EQ(token.m_is_buffer_owned, false);
+    EXPECT_EQ(token.m_buffer.intern, false);
 }
 
 TEST(Token, take_prefix_suffix_from)
@@ -66,20 +65,20 @@ TEST(Token, take_prefix_suffix_from)
 
     // pre-check
     EXPECT_EQ(source.string(), "<prefix>TATA<suffix>");
-    EXPECT_FALSE(source.m_is_buffer_owned);
+    EXPECT_FALSE(source.m_buffer.intern);
 
     EXPECT_EQ(target.string(), "TOTO");
-    EXPECT_FALSE(target.m_is_buffer_owned);
+    EXPECT_FALSE(target.m_buffer.intern);
 
     // act
     target.take_prefix_suffix_from(&source);
 
     // post-check
     EXPECT_EQ(source.string(), "TATA");
-    EXPECT_FALSE(source.m_is_buffer_owned);
+    EXPECT_FALSE(source.m_buffer.intern);
 
     EXPECT_EQ(target.string(), "<prefix>TOTO<suffix>");
-    EXPECT_TRUE(target.m_is_buffer_owned);
+    EXPECT_TRUE(target.m_buffer.intern);
 }
 
 TEST(Token, replace_word__same_length)
@@ -92,14 +91,14 @@ TEST(Token, replace_word__same_length)
 
     // pre-check
     EXPECT_EQ(source.string(), "<prefix>TATA<suffix>");
-    EXPECT_FALSE(source.m_is_buffer_owned);
+    EXPECT_FALSE(source.m_buffer.intern);
 
     // act
     source.word_replace("TOTO");
 
     // post-check
     EXPECT_EQ(source.string(), "<prefix>TOTO<suffix>");
-    EXPECT_TRUE(source.m_is_buffer_owned);
+    EXPECT_TRUE(source.m_buffer.intern);
 }
 
 TEST(Token, replace_word__larger)
@@ -113,14 +112,14 @@ TEST(Token, replace_word__larger)
     // pre-check
     EXPECT_EQ(source.string(), "<prefix>42<suffix>");
     EXPECT_EQ(source.word_to_string(), "42");
-    EXPECT_FALSE(source.m_is_buffer_owned);
+    EXPECT_FALSE(source.m_buffer.intern);
 
     // act
     source.word_replace("2048");
 
     // post-check
     EXPECT_EQ(source.string(), "<prefix>2048<suffix>");
-    EXPECT_TRUE(source.m_is_buffer_owned);
+    EXPECT_TRUE(source.m_buffer.intern);
 }
 
 
@@ -135,12 +134,12 @@ TEST(Token, replace_word__smaller)
     // pre-check
     EXPECT_EQ(source.string(), "<prefix>42<suffix>");
     EXPECT_EQ(source.word_to_string(), "42");
-    EXPECT_FALSE(source.m_is_buffer_owned);
+    EXPECT_FALSE(source.m_buffer.intern);
 
     // act
     source.word_replace("0");
 
     // post-check
     EXPECT_EQ(source.string(), "<prefix>0<suffix>");
-    EXPECT_TRUE(source.m_is_buffer_owned);
+    EXPECT_TRUE(source.m_buffer.intern);
 }

@@ -6,10 +6,13 @@ using namespace ndbl;
 const Token Token::s_end_of_line        = {Token_t::ignore, "\n"};
 const Token Token::s_end_of_instruction = {Token_t::ignore, ";\n"};
 
+Token::Token(Token&& other)
+{
+    *this = std::move( other );
+};
+
 Token::~Token()
 {
-    if( m_is_buffer_owned )
-        delete[] m_buffer;
 }
 
 std::string Token::json() const
@@ -42,19 +45,12 @@ std::string Token::json() const
 
 void Token::take_prefix_suffix_from(Token* source)
 {
-    if( m_is_buffer_owned )
-        delete[] m_buffer;
-
-    std::string word_copy;
-    if ( m_buffer != nullptr )
-        word_copy.append( word(), word_len() );
+    std::string word_copy = word_to_string();
+    m_buffer.switch_to_intern_buf(length());
 
     // transfer prefix and suffix to this token, but keep the same word.
     // this operation requires the buffer to be owned
 
-    m_buffer           = new char[ length() ];
-    m_is_buffer_owned  = true;
-    m_data_pos         = 0;
     m_prefix_len       = source->m_prefix_len;
     // m_word_len      = unchanged
     m_suffix_len       = source->m_suffix_len;
@@ -62,19 +58,19 @@ void Token::take_prefix_suffix_from(Token* source)
     // copy prefix from source
     if( source->m_prefix_len )
     {
-        memcpy( begin(), source->begin(), source->m_prefix_len);
+        m_buffer.intern_buf->append(source->begin(), source->m_prefix_len);
     }
 
     // reassign word
     if( word_copy.length() )
     {
-        memcpy(word(), word_copy.data(), word_copy.length());
+        m_buffer.intern_buf->append(word_copy.data(), word_copy.length());
     }
 
     // copy suffix from source
     if( source->m_suffix_len )
     {
-        memcpy(suffix(), source->suffix(), source->m_suffix_len);
+        m_buffer.intern_buf->append(source->suffix(), source->m_suffix_len);
     }
 
     // Remove prefix and suffix on the source
@@ -86,27 +82,22 @@ void Token::clear()
 {
     m_index      = 0;
     m_type       = Token_t::none;
-    m_data_pos   = 0;
     m_prefix_len = 0;
     m_word_len   = 0;
     m_suffix_len = 0;
 
-    if( m_is_buffer_owned )
-    {
-        delete[] m_buffer;
-        m_buffer = nullptr;
-    }
+    m_buffer.delete_intern_buf();
 }
 
-void Token::set_source_buffer(char *_buffer, size_t pos, size_t size)
+void Token::set_external_buffer(char* buffer, size_t offset, size_t size)
 {
     // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
-    if( m_is_buffer_owned )
-        delete[] m_buffer;
+    m_buffer.delete_intern_buf();
 
-    m_buffer     = _buffer;
-    m_data_pos   = pos;
+    m_buffer.intern = false;
+    m_buffer.extern_buf    = buffer;
+    m_buffer.offset      = offset;
     m_prefix_len = 0;
     m_word_len   = size;
     m_suffix_len = 0;
@@ -142,12 +133,6 @@ std::string Token::string() const
     return {};
 }
 
-
-Token::Token(Token&& other)
-{
-    *this = std::move( other );
-};
-
 Token& Token::operator=(Token&& other) noexcept
 {
     if( this == &other )
@@ -155,18 +140,16 @@ Token& Token::operator=(Token&& other) noexcept
         return *this;
     }
 
-    m_buffer                 = other.m_buffer;
-    m_data_pos               = other.m_data_pos;
-    m_is_buffer_owned        = other.m_is_buffer_owned;
-    m_prefix_len             = other.m_prefix_len;
-    m_word_len               = other.m_word_len;
-    m_suffix_len             = other.m_suffix_len;
-    m_type                   = other.m_type;
-    m_index                  = other.m_index;
+    m_buffer.delete_intern_buf();
 
-    other.m_buffer           = nullptr;
-    other.m_is_buffer_owned  = false;
-    other.clear();
+    m_buffer     = other.m_buffer;
+    m_prefix_len = other.m_prefix_len;
+    m_word_len   = other.m_word_len;
+    m_suffix_len = other.m_suffix_len;
+    m_type       = other.m_type;
+    m_index      = other.m_index;
+
+    other.m_buffer     = {}; // otherwise it would destroy it
 
     return *this;
 };
@@ -175,24 +158,18 @@ Token& Token::operator=(const Token& other)
 {
     if( this == &other) return *this;
 
-    if( m_is_buffer_owned )
-    {
-        delete[] this->m_buffer;
-    }
+    m_buffer.delete_intern_buf();
 
-    m_index              = other.m_index;
-    m_data_pos           = other.m_data_pos;
-    m_prefix_len         = other.m_prefix_len;
-    m_word_len           = other.m_word_len;
-    m_suffix_len         = other.m_suffix_len;
-    m_type               = other.m_type;
-    m_is_buffer_owned    = other.m_is_buffer_owned;
+    m_index      = other.m_index;
+    m_prefix_len = other.m_prefix_len;
+    m_word_len   = other.m_word_len;
+    m_suffix_len = other.m_suffix_len;
+    m_type       = other.m_type;
 
-    if( other.m_is_buffer_owned )
+    if( other.m_buffer.intern )
     {
-        const size_t new_length = other.length();
-        m_buffer = new char[ new_length ];
-        memcpy(m_buffer, other.m_buffer, new_length);
+        m_buffer.switch_to_intern_buf(other.length());
+        m_buffer.intern_buf->append(other.begin(), other.length() );
     }
     else
     {
@@ -204,62 +181,60 @@ Token& Token::operator=(const Token& other)
 
 void Token::word_replace(const char* new_word)
 {
-    // Optimization: when buffer is owned and word has same length, we avoid to reallocate memory
     const size_t new_word_len = strlen(new_word);
-    if ( m_is_buffer_owned && word_len() == new_word_len  )
+
+    if( new_word_len == 0 )
+        if( length() == 0 )
+            return;
+
+    // Optimization: when buffer is owned and word has same length, we avoid to reallocate memory
+    if (m_buffer.intern && m_word_len == new_word_len  )
     {
-        memcpy(word(), new_word, new_word_len);
+        m_buffer.intern_buf->replace(m_prefix_len, m_word_len, new_word, new_word_len);
         return;
     }
 
-    //TODO: use logarithmic buffer? (with buffer size > string length)
-    const size_t new_length = m_prefix_len + new_word_len + m_suffix_len;
-    char*        new_buffer = new char[ new_length ]; // We do not terminate strings with NULL.
+    std::string prefix_copy = prefix_to_string();
+    std::string suffix_copy = suffix_to_string();
 
-    memcpy(new_buffer                               , prefix() , m_prefix_len);
-    memcpy(new_buffer + prefix_len()                , new_word , new_word_len  );
-    memcpy(new_buffer + prefix_len() + new_word_len , suffix() , m_suffix_len );
+    m_buffer.switch_to_intern_buf(m_prefix_len + new_word_len + m_suffix_len);
 
-    if ( m_is_buffer_owned )
-        delete[] m_buffer;
+    m_buffer.intern_buf->clear();
+    m_buffer.intern_buf->append(prefix_copy );
+    m_buffer.intern_buf->append(new_word );
+    m_buffer.intern_buf->append(suffix_copy );
 
-    m_data_pos         = 0;
-    m_buffer           = new_buffer;
-    m_is_buffer_owned  = true;
     // m_prefix_len    = no change
     m_word_len         = new_word_len;
     // m_suffix_len    = no change
 }
 
-void Token::suffix_append(const char* str)
+void Token::prefix_push_front(const char* str)
 {
     const size_t str_len = strlen(str);
-    char*        buf     = new char[length() + str_len];
+    m_buffer.switch_to_intern_buf_with_data(begin(), length());
+    m_buffer.intern_buf->insert(0, str);
+    m_prefix_len += str_len;
+}
 
-    memcpy(buf           , begin(), length() ); // copy original data
-    memcpy(buf + length(), str    , str_len);   // append str
-
-    if ( m_is_buffer_owned )
-    {
-        delete[] m_buffer;
-    }
-
-    m_data_pos         = 0;
-    m_buffer           = buf;
-    m_is_buffer_owned  = true;
-    m_suffix_len      += str_len;
+void Token::suffix_push_back(const char* str)
+{
+    const size_t str_len = strlen(str);
+    m_buffer.switch_to_intern_buf_with_data(begin(), length());
+    m_buffer.intern_buf->append(str);
+    m_suffix_len += str_len;
 }
 
 void Token::clear_prefix()
 {
-    // no matter if buffer is owned or not, we simply slide the data_position inside the string
-    m_data_pos   += m_prefix_len;
+    // Instead of erasing chars, we prefer to simply "move the cursor to the right"
+    m_buffer.offset += m_prefix_len;
     m_prefix_len  = 0;
 }
 
 void Token::clear_suffix()
 {
-    // no matter if buffer is owned or not, we simply slide the data_position inside the string
+    // Instead of erasing chars, we prefer to simply "move the cursor to the left"
     m_suffix_len  = 0;
 }
 
@@ -282,4 +257,66 @@ void Token::slide_word_end(int amount)
 
     m_word_len   = (int)m_word_len + amount;
     m_suffix_len = (int)m_suffix_len - amount;
+}
+
+void Token::set_offset(size_t pos)
+{
+    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
+    m_buffer.offset = pos;
+}
+
+void Token::resize_suffix(size_t size)
+{
+    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
+    m_suffix_len = size;
+}
+
+void Token::extend_prefix(size_t size)
+{
+    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
+    m_prefix_len += size;
+}
+
+void Token::extend_suffix(size_t size)
+{
+    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
+    resize_suffix( m_suffix_len + size);
+}
+
+Token::BimodalBuffer::~BimodalBuffer()
+{
+    delete_intern_buf();
+}
+
+void Token::BimodalBuffer::switch_to_intern_buf(size_t size)
+{
+    ASSERT( size != 0 ); // Why would you do that?
+
+    // Initialize memory
+    if ( !intern )
+    {
+        intern_buf = new std::string();
+        intern     = true;
+        offset     = 0;
+    }
+    intern_buf->reserve(size);
+}
+
+void Token::BimodalBuffer::switch_to_intern_buf_with_data(char* data, size_t size)
+{
+    switch_to_intern_buf(size);
+    intern_buf->append( data, size );
+}
+
+
+void Token::BimodalBuffer::delete_intern_buf()
+{
+    if( !intern )
+        return;
+
+    delete intern_buf;
+
+    intern     = false;
+    offset     = 0;
+    intern_buf = nullptr;
 }
