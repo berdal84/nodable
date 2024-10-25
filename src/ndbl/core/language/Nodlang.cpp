@@ -22,6 +22,7 @@
 #include "tools/core/hash.h"
 #include "tools/core/memory/memory.h"
 
+#include "ndbl/core/Utils.h"
 #include "ndbl/core/DirectedEdge.h"
 #include "ndbl/core/ForLoopNode.h"
 #include "ndbl/core/Graph.h"
@@ -515,21 +516,20 @@ Optional<Node*> Nodlang::parse_instr()
     {
         LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n");
         rollback_transaction();
-        return {};
+        return nullptr;
     }
 
-    Node* output_node = expression_out->node;
+    Node* expression = expression_out->node;
 
-    // Special case, when node is a variable
-    // we want to create a reference if variable was declared somewhere else
-    if ( expression_out->node->type() == NodeType_VARIABLE )
+    // Special case
+    if (expression->type() == NodeType_VARIABLE )
     {
-        auto variable = static_cast<VariableNode*>( expression_out->node );
-        if ( variable->parent() != nullptr )
+        auto variable = static_cast<VariableNode*>( expression );
+        if ( Utils::is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
         {
             VariableRefNode* ref = parser_state.graph->create_variable_ref();
             ref->set_variable( variable );
-            output_node = ref;
+            expression = ref;
         }
     }
 
@@ -538,7 +538,7 @@ Optional<Node*> Nodlang::parse_instr()
     {
         if ( Token expected_end_of_instr_token = parser_state.ribbon.eat_if(Token_t::end_of_instruction) )
         {
-            output_node->set_suffix(expected_end_of_instr_token );
+            expression->set_suffix(expected_end_of_instr_token);
         }
         else if (parser_state.ribbon.peek().m_type != Token_t::parenthesis_close)
         {
@@ -551,7 +551,7 @@ Optional<Node*> Nodlang::parse_instr()
     LOG_VERBOSE("Parser", "parse instruction " OK "\n");
     commit_transaction();
 
-    return output_node;
+    return expression;
 }
 
 Optional<Node*> Nodlang::parse_program()

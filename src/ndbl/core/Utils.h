@@ -25,6 +25,7 @@ namespace ndbl
         bool               is_unary_operator(const Node*);
         bool               is_binary_operator(const Node*);
         bool               is_conditional(const Node*);
+        bool               is_connected_to_codeflow(const Node *node);
     }
 
     template<class C>

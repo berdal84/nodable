@@ -27,13 +27,18 @@ Node* Utils::adjacent_node_at(const Node* _node, SlotFlags _flags, u8_t _pos)
 
 bool Utils::is_instruction(const Node* node)
 {
-    if ( auto* slot = node->find_slot(SlotFlag_PREV) )
-        if ( slot->adjacent_count() > 0 )
-            return true;
-    if ( auto* slot = node->find_slot(SlotFlag_NEXT) )
-        if ( slot->adjacent_count() > 0 )
-            return true;
+    if ( is_connected_to_codeflow(node) )
+        return true;
     if ( node->type() == NodeType_VARIABLE )
+        return true;
+    return false;
+}
+
+bool Utils::is_connected_to_codeflow(const Node *node)
+{
+    if ( node->predecessors().size() )
+        return true;
+    if ( node->successors().size() )
         return true;
     return false;
 }
