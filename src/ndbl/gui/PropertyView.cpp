@@ -282,8 +282,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
             break;
         }
 
-        case Token_t::literal_string:
-        case Token_t::literal_any:
+        default:
         {
             char buf[256];
             snprintf(buf, std::min(property_token.word_len() + 1, sizeof(buf)), "%s", property_token.word());
@@ -294,17 +293,6 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
                 changed = true;
             }
             break;
-        }
-        case Token_t::literal_unknown:
-        {
-            const char* buf = "?";
-            ImGui::InputText(label.c_str(), const_cast<char*>(buf), sizeof(buf), ImGuiInputTextFlags_ReadOnly);
-            break;
-        }
-        default:
-        {
-            const char* buf = "ERR";
-            ImGui::InputText(label.c_str(), const_cast<char*>(buf), sizeof(buf), ImGuiInputTextFlags_ReadOnly);
         }
     }
 

@@ -203,7 +203,7 @@ DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
     }
 
     // case 2: merge literals when not connected to a variable
-    if (tail->node->type() == NodeType_LITERAL )
+    if (tail->node->type() == NodeType_LITERAL && tail->property->token().word_len() < 16 )
         if (head->node->type() != NodeType_VARIABLE )
         {
             head->property->digest(tail->property );

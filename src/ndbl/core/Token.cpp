@@ -187,13 +187,6 @@ void Token::word_replace(const char* new_word)
         if( length() == 0 )
             return;
 
-    // Optimization: when buffer is owned and word has same length, we avoid to reallocate memory
-    if (m_buffer.intern && m_word_len == new_word_len  )
-    {
-        m_buffer.intern_buf->replace(m_prefix_len, m_word_len, new_word, new_word_len);
-        return;
-    }
-
     std::string prefix_copy = prefix_to_string();
     std::string suffix_copy = suffix_to_string();
 
@@ -290,8 +283,6 @@ Token::BimodalBuffer::~BimodalBuffer()
 
 void Token::BimodalBuffer::switch_to_intern_buf(size_t size)
 {
-    ASSERT( size != 0 ); // Why would you do that?
-
     // Initialize memory
     if ( !intern )
     {

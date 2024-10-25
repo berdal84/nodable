@@ -17,7 +17,7 @@ namespace ndbl
     class ForLoopNode : public Node
     {
     public:
-        Token token_for = { Token_t::keyword_for};
+        Token token_for = { Token_t::keyword_for };
 
         void               init(const std::string& _name);
         inline Slot*       iteration_slot()                    { ASSERT(m_iteration_slot); return m_iteration_slot; }

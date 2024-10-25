@@ -1233,21 +1233,24 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
                     }
                     else
                     {
-                        parser_state.graph->connect_or_merge(
-                                iter_instr->find_slot( SlotFlag_OUTPUT ),
-                                _temp_for_loop_node->iteration_slot() );
+                        parser_state.graph->connect_or_merge( iter_instr->find_slot( SlotFlag_OUTPUT ),
+                                                              _temp_for_loop_node->iteration_slot() );
 
                         if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
                         {
                             LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n");
                         }
-                        else if (!parse_scope( _temp_for_loop_node->child_slot_at(Branch_TRUE ) ) )
+                        else if ( parse_scope( _temp_for_loop_node->child_slot_at(Branch_TRUE ) ) )
                         {
-                            LOG_ERROR("Parser", "Unable to parse a scope after for(...).\n");
+                            result = _temp_for_loop_node;
+                        }
+                        else if ( parse_instr() )
+                        {
+                            ASSERT(false) // Implementation to do!
                         }
                         else
                         {
-                            result = _temp_for_loop_node;
+                            LOG_ERROR("Parser", "Unable to any instruction after this for(..) .\n");
                         }
                     }
                 }
