@@ -20,13 +20,13 @@ namespace tools
         ~ActionManager();
 
         const std::vector<IAction*>& get_actions() const; // Get all the actions (bounded and unbounded)
-        const IAction*               get_action_with_id(EventID id); // Get the actions bound to a given event id
+        const IAction*               get_action_with_id(EventID id) const; // Get the actions bound to a given event id
 
         template<typename EventT, typename... Args>
         Action<EventT>* new_action(Args&&... args);
 
         template<class ActionT>
-        ActionT* get_action() const;
+        const ActionT* get_action() const;
 
     private:
         void add_action( IAction* _action);
@@ -45,11 +45,11 @@ namespace tools
     }
 
     template<class ActionT>
-    ActionT* ActionManager::get_action() const
+    const ActionT* ActionManager::get_action() const
     {
         static_assert( std::is_base_of_v<IAction, ActionT> );
-        auto* action = get_action_with_id( ActionT::event_id );
-        return dynamic_cast<ActionT*>( action );
+        auto* action = get_action_with_id( ActionT::event_t::id );
+        return dynamic_cast<const ActionT*>( action );
     }
 
     // Globals to init/get/shutdown the action manager

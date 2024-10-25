@@ -278,10 +278,10 @@ void Nodable::update()
                 break;
             }
 
-            case Event_SlotDisconnected::id:
+            case Event_SlotDisconnectAll::id:
             {
                 ASSERT(curr_file_history != nullptr);
-                auto _event = reinterpret_cast<Event_SlotDisconnected*>(event);
+                auto _event = reinterpret_cast<Event_SlotDisconnectAll*>(event);
                 Slot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");

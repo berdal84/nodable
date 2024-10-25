@@ -39,7 +39,7 @@ ActionManager::~ActionManager()
         delete action;
 }
 
-const IAction* ActionManager::get_action_with_id(EventID id)
+const IAction* ActionManager::get_action_with_id(EventID id) const
 {
     auto found = m_actions_by_id.find(id);
     if ( found == m_actions_by_id.end() )

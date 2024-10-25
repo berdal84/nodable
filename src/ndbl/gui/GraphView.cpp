@@ -623,11 +623,83 @@ void GraphView::view_pan_state_tick()
 
 void GraphView::cursor_state_tick()
 {
+    if ( ImGui::BeginPopup(CONTEXT_POPUP) )
+    {
+        if ( ImGui::IsWindowAppearing())
+            m_create_node_menu.flag_to_be_reset();
+
+        switch ( m_focused.type )
+        {
+            case ViewItemType_NULL:
+            {
+                draw_create_node_context_menu(m_create_node_menu);
+                break;
+            }
+            case ViewItemType_EDGE:
+            {
+                ActionManager* action_manager = get_action_manager();
+                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete") )
+                {
+                    auto* event = new Event_DeleteEdge();
+                    event->data.first  = m_focused.edge.slot[0]->slot;
+                    event->data.second = m_focused.edge.slot[1]->slot;
+                    get_event_manager()->dispatch( event );
+                }
+
+                break;
+            }
+
+            case ViewItemType_SLOT:
+            {
+                if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect all") )
+                {
+                    auto* event = new Event_SlotDisconnectAll();
+                    event->data.first = m_focused.slotview->slot;
+                    get_event_manager()->dispatch( event );
+                }
+
+                break;
+            }
+            case ViewItemType_NODE:
+            {
+                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete") )
+                {
+                    auto* event = new Event_DeleteNode ();
+                    event->data.node = m_focused.nodeview->node();
+                    get_event_manager()->dispatch( event );
+                }
+
+                if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin") )
+                {
+                    m_focused.nodeview->set_pinned( !m_focused.nodeview->pinned() );
+                }
+
+                if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange") )
+                {
+                    m_focused.nodeview->arrange_recursively();
+                }
+
+                break;
+            }
+        }
+
+        ImGui::EndPopup();
+
+        // When we're focused on something with popup open, we don't want to do things based on m_hovered.type (see below)
+        if ( !m_focused.empty() )
+            return;
+    }
+
     switch (m_hovered.type)
     {
         case ViewItemType_SLOT:
         {
-            if (ImGui::IsMouseDragging(0, 0.f))
+            if ( ImGui::IsMouseClicked(1) )
+            {
+                m_focused = m_hovered;
+                ImGui::OpenPopup(CONTEXT_POPUP);
+            }
+            else if (ImGui::IsMouseDragging(0, 0.f))
             {
                 m_focused = m_hovered;
                 m_state_machine.change_state(LINE_STATE);
@@ -637,7 +709,12 @@ void GraphView::cursor_state_tick()
 
         case ViewItemType_NODE:
         {
-            if (ImGui::IsMouseReleased(0) )
+            if ( ImGui::IsMouseClicked(1) )
+            {
+                m_focused = m_hovered;
+                ImGui::OpenPopup(CONTEXT_POPUP);
+            }
+            else if (ImGui::IsMouseReleased(0) )
             {
                 // TODO: handle remove!
                 // Add/Remove/Replace selection
@@ -664,7 +741,9 @@ void GraphView::cursor_state_tick()
         case ViewItemType_EDGE:
         {
             if (ImGui::IsMouseDragging(0, 0.1f))
+            {
                 m_focused = m_hovered;
+            }
             else if (ImGui::IsMouseClicked(1))
             {
                 m_focused = m_hovered;
@@ -692,16 +771,6 @@ void GraphView::cursor_state_tick()
 
         default:
             VERIFY(false, "Unhandled case, must be implemented!");
-    }
-
-    if ( ImGui::BeginPopup(CONTEXT_POPUP) )
-    {
-        if ( ImGui::IsWindowAppearing())
-            m_create_node_menu.flag_to_be_reset();
-
-        if ( m_hovered.empty() )
-            draw_create_node_context_menu(m_create_node_menu);
-        ImGui::EndPopup();
     }
 }
 

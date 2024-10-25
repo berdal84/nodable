@@ -29,7 +29,7 @@ namespace ndbl
         EventID_MOVE_SELECTION,
         EventID_TOGGLE_ISOLATION_FLAGS,
         EventID_SLOT_DROPPED,
-        EventID_SLOT_DISCONNECTED,
+        EventID_SLOT_DISCONNECT_ALL,
         EventID_SELECTION_CHANGE,
         EventID_DELETE_EDGE,
         EventID_RESET_GRAPH,
@@ -56,8 +56,8 @@ namespace ndbl
         , second(second)
         {}
     };
-    using Event_SlotDisconnected = tools::Event<EventID_SLOT_DISCONNECTED, EventPayload_SlotPair>;
-    using Event_SlotDropped      = tools::Event<EventID_SLOT_DROPPED, EventPayload_SlotPair>;
+    using Event_SlotDisconnectAll = tools::Event<EventID_SLOT_DISCONNECT_ALL, EventPayload_SlotPair>;
+    using Event_SlotDropped       = tools::Event<EventID_SLOT_DROPPED, EventPayload_SlotPair>;
 
     struct EventPayload_Node
     {
