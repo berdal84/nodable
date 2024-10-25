@@ -73,7 +73,7 @@ void Nodable::update()
             {
                 if ( !m_interpreter->is_program_stopped() )
                     m_interpreter->stop_program();
-                m_current_file->update_graph_from_text();
+                m_current_file->set_graph_dirty();
                 break;
             }
 
@@ -82,7 +82,7 @@ void Nodable::update()
                 m_config->isolation = ~m_config->isolation;
                 if(m_current_file)
                 {
-                    m_current_file->update_graph_from_text();
+                    m_current_file->set_graph_dirty();
                 }
                 break;
             }
@@ -436,9 +436,7 @@ File* Nodable::open_file(const tools::Path& _path)
 
     if ( File::read( *file, _path ) )
     {
-        add_file(file);
-        file->update_graph_from_text();
-        return file;
+        return add_file(file);
     }
 
     delete file;
@@ -566,7 +564,7 @@ void Nodable::reset_program()
     }
 
     // n.b. nodable is still text oriented
-    m_current_file->update_graph_next_frame();
+    m_current_file->set_graph_dirty();
 }
 
 File*Nodable::new_file()
@@ -577,7 +575,6 @@ File*Nodable::new_file()
     name.append_fmt("Untitled_%i.cpp", m_untitled_file_count);
     auto* file = new File();
     file->path = name.c_str();
-    file->update_graph_from_text();
 
     return add_file(file);
 }
