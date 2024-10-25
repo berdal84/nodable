@@ -518,12 +518,12 @@ Optional<Node*> Nodlang::parse_instr()
         return {};
     }
 
-    // Get output node
     Node* output_node = expression_out->node;
+
+    // Special case, when node is a variable
+    // we want to create a reference if variable was declared somewhere else
     if ( expression_out->node->type() == NodeType_VARIABLE )
     {
-        // Special case, when node is a variable
-        // we want to create a reference if variable was declared somewhere else
         auto variable = static_cast<VariableNode*>( expression_out->node );
         if ( variable->parent() != nullptr )
         {
