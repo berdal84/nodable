@@ -436,7 +436,7 @@ void NodableView::draw()
         if ( cfg->has_flags(ConfigFlag_EXPERIMENTAL_INTERPRETER) )
             draw_interpreter_window();
         if ( draw_node_properties_window() )
-            m_app->get_current_file()->update_text_next_frame();
+            m_app->get_current_file()->set_text_dirty();
         draw_help_window();
     }
 

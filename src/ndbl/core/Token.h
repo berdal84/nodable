@@ -38,21 +38,30 @@ namespace ndbl
 
         struct BimodalBuffer
         {
+            typedef int Flags;
+            enum Flags_
+            {
+                Flags_NONE     = 0,
+                Flags_INTERN   = 1,
+                Flags_READONLY = 1 << 1
+            };
+
             union {
                 char*        extern_buf;
                 std::string* intern_buf;
             } /* data */;
             size_t offset; // to offset token start from data's address
-            bool   intern;
+            Flags  _flags;
 
             ~BimodalBuffer();
             void         delete_intern_buf();
             void         switch_to_intern_buf(size_t size);
             void         switch_to_intern_buf_with_data(char *data, size_t len);
-            inline char* data()  const { return intern ? intern_buf->data() : extern_buf; }
-
-            inline char* begin() const { return data() + offset; }
-        } m_buffer = {nullptr, 0, false }; // external nullptr
+            char*        data()  const { return intern() ? intern_buf->data() : extern_buf; }
+            char*        begin() const { return data() + offset; }
+            bool         intern() const { return _flags & BimodalBuffer::Flags_INTERN; }
+            bool         readonly() const { return _flags & BimodalBuffer::Flags_READONLY; }
+        } m_buffer = {nullptr, 0, BimodalBuffer::Flags_NONE }; // external nullptr
 
         size_t      m_prefix_len       = 0;
         size_t      m_word_len         = 0;
@@ -84,7 +93,7 @@ namespace ndbl
               size_t  size)
         : m_type(type)
         , m_word_len(size)
-        , m_buffer({ const_cast<char*>(buffer), 0, false}) // external
+        , m_buffer({ const_cast<char*>(buffer), 0, BimodalBuffer::Flags_NONE}) // external
         {
         }
 
@@ -94,7 +103,7 @@ namespace ndbl
               size_t      size)
         : m_type(type)
         , m_word_len(size)
-        , m_buffer({const_cast<char*>(buffer), offset, false}) // external
+        , m_buffer({const_cast<char*>(buffer), offset, BimodalBuffer::Flags_NONE}) // external
         {
         }
 
@@ -106,7 +115,7 @@ namespace ndbl
             , m_suffix_len(other.m_suffix_len)
             , m_buffer(other.m_buffer)
         {
-            VERIFY(!other.m_buffer.intern, "Can't create a Token from an owned const char*");
+            VERIFY( !other.m_buffer.intern(), "Can't create a Token from an owned const char*");
         }
 
         Token(Token&& other);
@@ -131,41 +140,45 @@ namespace ndbl
 
         // Get offset/positions
 
-        inline size_t offset() const { return m_buffer.offset; }
+        size_t      offset() const { return m_buffer.offset; }
+        void        set_offset(size_t new_offset);
+
+        void        prefix_reset(size_t size = 0); // word won't change;
+        void        prefix_begin_grow(size_t l_amount); // word won't change
+        void        prefix_end_grow(size_t r_amount); // word will change;
+
+        void        suffix_reset(size_t size = 0); // word won't change
+        void        suffix_end_grow(size_t r_amount); // word won't change
+        void        suffix_begin_grow(size_t l_amount); // word will change;
+
+        void        word_move_begin(int amount);
+        void        word_move_end(int amount);
+
+        void        reset_lengths(); // buffer and offset won't change
 
         // Get token portion addresses
 
-        inline char* begin() const { return m_buffer.begin(); } // token's start address
-        inline char* prefix() const { return begin(); }
-        inline char* word() const { return begin() + m_prefix_len; /* word pos is absolute */ };
-        inline char* suffix() const { return word() + m_word_len; }
-        inline char* end() const { return begin() + length(); } // token's end address (EXCLUDED)
+        char*       begin() const  { return m_buffer.begin(); } // token's start address
+        char*       prefix() const { return begin(); }
+        char*       word() const   { return begin() + m_prefix_len; /* word pos is absolute */ };
+        char*       suffix() const { return begin() + m_prefix_len +  m_word_len; }
+        char*       end() const    { return begin() + m_prefix_len +  m_word_len + m_suffix_len; }
 
         // Get token portion sizes
 
-        inline size_t length() const { return m_prefix_len + m_word_len + m_suffix_len; }
-        inline size_t prefix_len() const { return m_prefix_len; }
-        inline size_t word_len() const { return m_word_len; }
-        inline size_t suffix_len() const { return m_suffix_len; }
+        size_t      length() const     { return m_prefix_len + m_word_len + m_suffix_len; }
+        size_t      prefix_len() const { return m_prefix_len; }
+        size_t      word_len() const   { return m_word_len; }
+        size_t      suffix_len() const { return m_suffix_len; }
 
-        inline bool is_keyword_type() { return ndbl::is_a_type_keyword(m_type); } // Check if whether this token is a keyword type
+        bool        is_keyword_type() { return ndbl::is_a_type_keyword(m_type); } // Check if whether this token is a keyword type
         void        take_prefix_suffix_from(Token *source); // Transfer the prefix and suffix of a given token to this token
-        void        set_external_buffer(char* buffer, size_t offset = 0, size_t size = 0);
+        void        set_external_buffer(char* buffer, size_t offset = 0, size_t size = 0, bool external_only = false);
         std::string json()const;
         bool        empty() const { return length() == 0; }
-        void        word_replace(const char* new_word);
         void        suffix_push_back(const char* str);
-        void        clear_suffix();
-        void        clear_prefix();
-        void        slide_word_begin(int amount);
-        void        slide_word_end(int amount);
-        void        reset_lengths(); // keep buffer and data position unchanged, but reset token to zero-length
         void        prefix_push_front(const char *str);
-        void        set_offset(size_t pos);
-        void        extend_prefix(size_t size);
-        void        extend_suffix(size_t size);
-        void        resize_suffix(size_t i);
-
+        void        word_replace(const char* new_word);
         static const Token s_end_of_line;
         static const Token s_end_of_instruction;
     };

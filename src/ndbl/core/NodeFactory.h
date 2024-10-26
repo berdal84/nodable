@@ -44,6 +44,7 @@ namespace ndbl
         ForLoopNode*           create_for_loop()const;
         WhileLoopNode*         create_while_loop()const;
         Node*                  create_node()const;
+        Node*                  create_empty_instruction()const;
         void                   destroy_node(Node* node)const;
         void                   override_post_process_fct(PostProcessFct f);
 

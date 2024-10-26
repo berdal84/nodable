@@ -38,7 +38,7 @@ std::string& NodableHeadless::serialize( std::string& out ) const
 
 Graph* NodableHeadless::parse( const std::string& code )
 {
-    m_language->parse(code, m_graph );
+    m_language->parse( m_graph, code );
     return m_graph;
 }
 

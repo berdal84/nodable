@@ -177,6 +177,24 @@ void NodeFactory::override_post_process_fct( NodeFactory::PostProcessFct _functi
     m_post_process              = std::move(_function);
 }
 
+Node *NodeFactory::create_empty_instruction()const
+{
+    Node* node = create<Node>();
+    node->init(NodeType_EMPTY_INSTRUCTION, ";");
+
+    // Override token to be a ";"
+    node->value()->set_token({Token_t::end_of_instruction});
+
+    node->add_slot( node->value(), SlotFlag_PARENT , 1);
+    node->add_slot( node->value(), SlotFlag_NEXT   , 1);
+    node->add_slot( node->value(), SlotFlag_PREV   , Slot::MAX_CAPACITY);
+    node->add_slot( node->value(), SlotFlag_OUTPUT , 1);
+
+    m_post_process(node);
+
+    return node;
+}
+
 NodeFactory* ndbl::get_node_factory()
 {
     return g_node_factory;

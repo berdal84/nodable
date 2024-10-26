@@ -44,17 +44,17 @@ namespace ndbl
         Isolation              _isolation = Isolation_OFF;
         Graph*                 _graph; // graphical representation
         std::string            _parsed_text; // last parsed text buffer
-        bool                   _requires_graph_update;
-        bool                   _requires_text_update;
+        bool                   _is_graph_dirty;
+        bool                   _is_text_dirty;
+        void                   _update_graph_from_text();
+        void                   _update_text_from_graph();
     public:
-        void                   update_graph_next_frame() { _requires_graph_update = true; }
-        void                   update_text_next_frame() { _requires_text_update = true; }
-        Graph&                 graph() { return *_graph; };
+        void                   update(); // to call each frame
+        inline void            set_graph_dirty() { _is_graph_dirty = true; }
+        inline void            set_text_dirty() { _is_text_dirty = true; }
+        inline Graph&          graph() { return *_graph; };
         std::string            filename() const;
         void                   set_isolation(Isolation mode);
-        void                   update(); // to call each frame
-        void                   update_graph_from_text();
-        void                   update_text_from_graph();
         size_t                 size() const;
 
         static bool            read( File& file, const tools::Path& source ); // Read an File from a given path and update file's path.

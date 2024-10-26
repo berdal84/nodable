@@ -20,8 +20,9 @@ Property* PropertyBag::add(Property* property)
 
 Property* PropertyBag::add(const TypeDescriptor* _type, const char* _name, PropertyFlags _flags )
 {
-    VERIFY(m_owner != nullptr, "PropertyBag must be initialized");
-    ASSERT(!has(_name));
+    // guards
+    VERIFY(m_owner != nullptr , "PropertyBag must be initialized");
+    VERIFY(!has(_name)        , "Property name already used");
 
     // create the property
 

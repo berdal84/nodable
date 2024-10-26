@@ -17,6 +17,7 @@ namespace ndbl
         NodeType_LITERAL,
         NodeType_FUNCTION,
         NodeType_OPERATOR,
+        NodeType_EMPTY_INSTRUCTION,
 
         NodeType_COUNT,
     };

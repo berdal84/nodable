@@ -20,13 +20,15 @@ File::File()
 , dirty(true)
 , view()
 , history()
+, _is_graph_dirty(true) // text-based
+, _is_text_dirty(false)
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n");
 
     // FileView
     view.init(*this);
-    CONNECT(view.on_text_view_changed, &File::update_graph_from_text);
-    CONNECT(view.on_graph_view_changed, &File::update_text_from_graph);
+    CONNECT(view.on_text_view_changed, &File::set_graph_dirty);
+    CONNECT(view.on_graph_view_changed, &File::set_text_dirty);
 
     LOG_VERBOSE( "File", "View built, creating History ...\n");
 
@@ -41,8 +43,8 @@ File::File()
     _graph = new Graph(get_node_factory());
     auto* graph_view = new GraphView(_graph);
     _graph->set_view(graph_view);
-    CONNECT(_graph->on_change, &File::update_text_next_frame);
-    CONNECT(graph_view->on_change , &File::update_text_next_frame);
+    CONNECT(_graph->on_change, &File::set_text_dirty);
+    CONNECT(graph_view->on_change , &File::set_text_dirty);
 
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
@@ -63,7 +65,7 @@ File::~File()
     delete _graph;
 }
 
-void File::update_text_from_graph()
+void File::_update_text_from_graph()
 {
     if ( _graph->root() )
     {
@@ -82,34 +84,40 @@ void File::update()
     //
     // When history is dirty we update the graph from the text.
     // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-    if (history.is_dirty && !get_config()->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
+    if ( history.is_dirty )
     {
-        update_graph_from_text();
+        if ( get_config()->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
+        {
+            ASSERT(false); // Not implemented yet
+        }
+        else
+        {
+            _is_graph_dirty  = true;
+            _is_text_dirty   = false; // we are text-based
+        }
         history.is_dirty = false;
     }
 
-    if( _requires_text_update )
+    if( _is_text_dirty )
     {
-        update_text_from_graph();
-        _requires_text_update = false;
+        _update_text_from_graph();
+        _is_text_dirty = false;
     }
-    else if( _requires_graph_update )
+    else if( _is_graph_dirty )
     {
-        update_graph_from_text();
-        _requires_graph_update = false;
+        _update_graph_from_text();
+        _is_graph_dirty = false;
     }
 
    _graph->update(); // ~ garbage collection
 }
 
-void File::update_graph_from_text()
+void File::_update_graph_from_text()
 {
     // Parse source code
     // note: File owns the parsed text buffer
-    std::string result;
-    result = view.get_text(_isolation);
-    _parsed_text = result;
-    get_language()->parse(_parsed_text, _graph );
+    _parsed_text = view.get_text(_isolation);
+    get_language()->parse(_graph, _parsed_text);
 }
 
 size_t File::size() const
@@ -182,6 +190,6 @@ void File::set_isolation(Isolation isolation)
     _parsed_text = view.get_text(_isolation);
 
     // when isolation changes, the text has the priority over the graph.
-    _requires_graph_update = true;
-    _requires_text_update  = false;
+    _is_graph_dirty = true;
+    _is_text_dirty  = false;
 }

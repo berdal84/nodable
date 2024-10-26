@@ -89,6 +89,7 @@ namespace ndbl
         IfNode*                  create_cond_struct();
         ForLoopNode*             create_for_loop();
         WhileLoopNode*           create_while_loop();
+        Node*                    create_empty_instruction();
         void                     destroy(Node* _node);
         inline std::vector<Node*>&       get_node_registry() {return m_node_registry;}
         inline const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
