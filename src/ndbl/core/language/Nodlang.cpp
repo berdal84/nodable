@@ -1114,7 +1114,7 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
 
     bool success = false;
     Optional<Node*>   condition;
-    Optional<Node*>   condition_true_scope_node;
+    Optional<Node*>   condition_true_node;
     Optional<IfNode*> if_node;
     Optional<IfNode*> else_node;
 
@@ -1130,55 +1130,64 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
 
     if ( parser_state.ribbon.eat_if(Token_t::parenthesis_open) )
     {
-        auto eaten_parenthesis = parser_state.ribbon.eat_if(Token_t::parenthesis_close);
-        auto empty_condition = (bool)eaten_parenthesis;
-        if ( !empty_condition && (condition = parse_instr()))
+        // parse condition, ignore when not found
+        if ( (condition = parse_instr()) )
         {
             parser_state.graph->connect_or_merge(
                     condition->find_slot(SlotFlag_OUTPUT),
                     if_node->condition_slot(Branch_TRUE));
         }
 
-        if ( empty_condition || condition && parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
+        if ( parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
         {
-            condition_true_scope_node = parse_scope( if_node->child_slot_at(Branch_TRUE) );
-            if ( condition_true_scope_node )
+            condition_true_node = parse_scope(if_node->child_slot_at(Branch_TRUE) );
+            if ( !condition_true_node && (condition_true_node = parse_instr()) )
             {
-                if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
-                {
-                    if_node->token_else = parser_state.ribbon.get_eaten();
+                parser_state.graph->connect( if_node->child_slot_at( Branch_TRUE ),
+                                             condition_true_node->find_slot(SlotFlag_PARENT),
+                                             ConnectFlag_ALLOW_SIDE_EFFECTS);
+            }
 
-                    /* parse "else" scope */
-                    if ( parse_scope( if_node->child_slot_at( Branch_FALSE ) ) )
-                    {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " OK "\n");
-                        success = true;
-                    }
-                    /* or parse "else if" conditional structure */
-                    else if ( parse_conditional_structure() )
-                    {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE IF {...} block... " OK "\n");
-                        success = true;
-                    }
-                    else
-                    {
-                        LOG_VERBOSE("Parser", "parse IF {...} ELSE {...} block... " KO "\n");
-                    }
-                } else
+            if ( !condition_true_node )
+            {
+                LOG_VERBOSE("Parser", "Scope or single instruction expected " KO "\n");
+            }
+            else if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
+            {
+                if_node->token_else = parser_state.ribbon.get_eaten();
+
+                /* parse "else" scope */
+                if ( parse_scope( if_node->child_slot_at( Branch_FALSE ) ) )
                 {
-                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
                     success = true;
+                }
+                    /* single instruction */
+                else if ( Optional<Node*> single_instr = parse_instr() )
+                {
+                    parser_state.graph->connect( if_node->child_slot_at( Branch_FALSE ),
+                                                 single_instr->find_slot(SlotFlag_PARENT),
+                                                 ConnectFlag_ALLOW_SIDE_EFFECTS);
+                    success = true;
+                }
+                    /* or parse "else if" conditional structure */
+                else if ( parse_conditional_structure() )
+                {
+                    success = true;
+                }
+                else
+                {
+                    LOG_VERBOSE("Parser", "Parsing \"else if\" ... " KO "\n");
                 }
             }
             else
             {
-                LOG_VERBOSE("Parser", "parse IF {...} block... " KO "\n");
+                LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
+                success = true;
             }
         }
         else
         {
             LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n");
-            success = false;
         }
     }
     parser_state.scope.pop();
@@ -1190,7 +1199,7 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
     }
 
     parser_state.graph->destroy( else_node.data() );
-    parser_state.graph->destroy( condition_true_scope_node.data() );
+    parser_state.graph->destroy(condition_true_node.data() );
     parser_state.graph->destroy( condition.data() );
     parser_state.graph->destroy( if_node.data() );
     rollback_transaction();
@@ -1200,97 +1209,92 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
 Optional<ForLoopNode*> Nodlang::parse_for_loop()
 {
     Optional<ForLoopNode*> result;
-    Optional<ForLoopNode*> _temp_for_loop_node;
+    Optional<ForLoopNode*> for_node;
+
     start_transaction();
 
-    if ( Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for) )
+    Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for);
+    if ( !token_for )
     {
-        _temp_for_loop_node = parser_state.graph->create_for_loop();
-        parser_state.graph->connect(
-                get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
-                _temp_for_loop_node->find_slot(SlotFlag_PARENT ),
-                ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.scope.push(_temp_for_loop_node->get_component<Scope>());
+        rollback_transaction();
+        return nullptr;
+    }
 
-        _temp_for_loop_node->token_for = token_for;
+    for_node = parser_state.graph->create_for_loop();
+    parser_state.graph->connect(
+            get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
+            for_node->find_slot(SlotFlag_PARENT ),
+            ConnectFlag_ALLOW_SIDE_EFFECTS );
 
-        LOG_VERBOSE("Parser", "parse FOR (...) block...\n");
-        Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
-        if ( open_bracket)
+    for_node->token_for = token_for;
+
+    LOG_VERBOSE("Parser", "parse FOR (...) block...\n");
+    Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
+    if ( open_bracket)
+    {
+        parser_state.scope.push(for_node->get_component<Scope>());
+
+        // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
+
+        // parse initialization instruction
+        if ( Optional<Node*> init_instr = parse_instr() )
         {
-            Optional<Node*> init_instr = parse_instr();
-            if (!init_instr)
+            parser_state.graph->connect_or_merge(init_instr->find_slot( SlotFlag_OUTPUT ), for_node->initialization_slot() );
+
+            // parse condition instruction
+            if ( Optional<Node*> condition = parse_instr() )
             {
-                LOG_ERROR("Parser", "Unable to find initial instruction.\n");
+                parser_state.graph->connect_or_merge(condition->find_slot( SlotFlag_OUTPUT ), for_node->condition_slot(Branch_TRUE) );
+
+                // parse iteration instruction
+                if ( Optional<Node*> iter_instr = parse_instr() )
+                {
+                    parser_state.graph->connect_or_merge( iter_instr->find_slot( SlotFlag_OUTPUT ), for_node->iteration_slot() );
+                }
+            }
+        }
+
+        // parse parenthesis close
+        if ( Token parenthesis_close = parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
+        {
+            // try to parse for child scope or a single child instruction by default
+            if ( parse_scope( for_node->child_slot_at(Branch_TRUE) ) )
+            {
+                result = for_node;
+            }
+            else if (Optional<Node *> single_instr = parse_instr() )
+            {
+                parser_state.graph->connect(single_instr->find_slot(SlotFlag_PARENT),
+                                            for_node->child_slot_at(Branch_TRUE),
+                                            ConnectFlag_ALLOW_SIDE_EFFECTS);
+                result = for_node;
             }
             else
             {
-                parser_state.graph->connect_or_merge(
-                        init_instr->find_slot( SlotFlag_OUTPUT ),
-                        _temp_for_loop_node->initialization_slot() );
-
-                Optional<Node*> condition = parse_instr();
-                if ( !condition )
-                {
-                    LOG_ERROR("Parser", "Unable to find condition instruction.\n");
-                }
-                else
-                {
-                    parser_state.graph->connect_or_merge(
-                            condition->find_slot( SlotFlag_OUTPUT ),
-                            _temp_for_loop_node->condition_slot(Branch_TRUE) );
-
-                    Optional<Node*> iter_instr = parse_instr();
-                    if ( !iter_instr )
-                    {
-                        LOG_ERROR("Parser", "Unable to find iterative instruction.\n");
-                    }
-                    else
-                    {
-                        parser_state.graph->connect_or_merge( iter_instr->find_slot( SlotFlag_OUTPUT ),
-                                                              _temp_for_loop_node->iteration_slot() );
-
-                        if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
-                        {
-                            LOG_ERROR("Parser", "Unable to find close bracket after iterative instruction.\n");
-                        }
-                        else if ( parse_scope( _temp_for_loop_node->child_slot_at(Branch_TRUE ) ) )
-                        {
-                            result = _temp_for_loop_node;
-                        }
-                        else if ( Optional<Node*> single_instr = parse_instr() )
-                        {
-                            parser_state.graph->connect( single_instr->find_slot( SlotFlag_PARENT )
-                                                       , _temp_for_loop_node->child_slot_at(Branch_TRUE)
-                                                       , ConnectFlag_ALLOW_SIDE_EFFECTS );
-                            result = _temp_for_loop_node;
-                        }
-                        else
-                        {
-                            LOG_ERROR("Parser", "Unable to any instruction after this for(..) .\n");
-                        }
-                    }
-                }
+                LOG_ERROR("Parser", "Scope or single instruction expected\n");
             }
         }
         else
         {
-            LOG_ERROR("Parser", "Unable to find open bracket after for keyword.\n");
+            LOG_ERROR("Parser", "Close parenthesis was expected.\n");
         }
         parser_state.scope.pop();
+    }
+    else
+    {
+        LOG_ERROR("Parser", "Open parenthesis was expected.\n");
     }
 
     if ( result )
     {
         commit_transaction();
-    }
-    else
-    {
-        rollback_transaction();
-        parser_state.graph->destroy( _temp_for_loop_node.data() );
+        return result;
     }
 
-    return result;
+    rollback_transaction();
+    parser_state.graph->destroy(for_node.data() );
+
+    return nullptr;
 }
 
 Optional<WhileLoopNode*> Nodlang::parse_while_loop()
@@ -1315,29 +1319,40 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
         Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
         if ( open_bracket )
         {
+            // Parse an optional condition
             if( Optional<Node*> cond_instr = parse_instr() )
             {
                 parser_state.graph->connect_or_merge(
                         cond_instr->find_slot(SlotFlag_OUTPUT),
                         _temp_while_loop_node->condition_slot(Branch_TRUE));
+            }
 
-                if ( !parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
-                {
-                    LOG_ERROR("Parser", "Unable to find close bracket after condition instruction.\n");
-                }
-                else if ( !parse_scope( _temp_while_loop_node->child_slot_at(Branch_TRUE) ) )
-                {
-                    LOG_ERROR("Parser", "Unable to parse a scope after \"while(\".\n");
-                }
-                else
+            if ( parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
+            {
+                if ( parse_scope(_temp_while_loop_node->child_slot_at(Branch_TRUE)) )
                 {
                     result = _temp_while_loop_node;
                 }
+                else if (Optional<Node *> single_instr = parse_instr())
+                {
+                    parser_state.graph->connect(_temp_while_loop_node->child_slot_at(Branch_TRUE),
+                                                single_instr->find_slot(SlotFlag_PARENT),
+                                                ConnectFlag_ALLOW_SIDE_EFFECTS);
+                    result = _temp_while_loop_node;
+                }
+                else
+                {
+                    LOG_ERROR("Parser", "Scope or single instruction expected\n");
+                }
+            }
+            else
+            {
+                LOG_ERROR("Parser", "Parenthesis close expected\n");
             }
         }
         else
         {
-            LOG_ERROR("Parser", "Unable to find open bracket after \"while\"\n");
+            LOG_ERROR("Parser", "Parenthesis close expected\n");
         }
         parser_state.scope.pop();
     }
@@ -1719,10 +1734,9 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     }
     serialize_token_t(_out, Token_t::parenthesis_close);
 
-    // scope when condition is true
-    if ( auto scope = _for_loop->scope_at( Branch_TRUE ) )
+    if ( const Node* branch = _for_loop->child_slot_at( Branch_TRUE )->first_adjacent_node() )
     {
-        serialize_scope(_out, scope );
+        _serialize_node(_out, branch, SerializeFlag_RECURSE );
     }
 
     return _out;
@@ -1739,9 +1753,9 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
     serialize_input(_out, _while_loop_node->condition_slot(Branch_TRUE), flags );
 
     // scope when true
-    if ( auto scope = _while_loop_node->scope_at( Branch_TRUE ) )
+    if ( const Node* branch = _while_loop_node->child_slot_at( Branch_TRUE )->first_adjacent_node() )
     {
-        serialize_scope(_out, scope );
+        _serialize_node(_out, branch, SerializeFlag_RECURSE );
     }
 
     return _out;
@@ -1759,16 +1773,17 @@ std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_con
     serialize_input(_out, _condition_struct->condition_slot(Branch_TRUE), flags );
 
     // scope when condition is true
-    if ( Scope* scope = _condition_struct->scope_at( Branch_TRUE ) )
+    if ( const Node* branch = _condition_struct->child_slot_at( Branch_TRUE )->first_adjacent_node() )
     {
-        serialize_scope( _out, scope );
+        _serialize_node(_out, branch, SerializeFlag_RECURSE );
     }
 
     // when condition is false
-    if ( const Scope* else_scope = _condition_struct->scope_at( Branch_FALSE ) )
+    if ( const Node* branch = _condition_struct->child_slot_at( Branch_FALSE )->first_adjacent_node() )
     {
         serialize_token(_out, _condition_struct->token_else); // I think I'll get problems with that. Can we have an "else" keyword without a scope?
-        _serialize_node( _out, else_scope->get_owner(), SerializeFlag_RECURSE );
+
+        _serialize_node(_out, branch, SerializeFlag_RECURSE );
     }
 
     return _out;

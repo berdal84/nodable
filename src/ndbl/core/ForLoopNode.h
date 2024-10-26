@@ -31,6 +31,7 @@ namespace ndbl
         inline const Slot* condition_slot(Branch branch) const { return m_wrapped_conditional.get_condition_slot(branch); }
         inline Node*       condition(Branch branch)            { return m_wrapped_conditional.get_condition(branch); }
         inline const Node* condition(Branch branch) const      { return m_wrapped_conditional.get_condition(branch); }
+
     private:
         TConditional<2> m_wrapped_conditional;
         Slot*           m_initialization_slot{nullptr};

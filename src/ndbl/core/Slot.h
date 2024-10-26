@@ -38,6 +38,7 @@ namespace ndbl
         inline size_t     adjacent_count() const{return _adjacent.size();}
         inline const std::vector<Slot*>&
                           adjacent() const{return _adjacent;}
+        inline Node*      first_adjacent_node() const { return !_adjacent.empty() ? _adjacent[0]->node : nullptr; }
         inline Slot*      first_adjacent() const { return !_adjacent.empty() ? _adjacent[0] : nullptr; }
         void              expand_capacity(size_t _capacity);
         inline SlotFlags  flags() const { return _flags; }
