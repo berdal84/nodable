@@ -84,9 +84,17 @@ void File::update()
     //
     // When history is dirty we update the graph from the text.
     // (By default undo/redo are text-based only, if hybrid_history is ON, the behavior is different
-    if (history.is_dirty && !get_config()->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
+    if ( history.is_dirty )
     {
-        _update_graph_from_text();
+        if ( get_config()->has_flags(ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY) )
+        {
+            ASSERT(false); // Not implemented yet
+        }
+        else
+        {
+            _is_graph_dirty  = true;
+            _is_text_dirty   = false; // we are text-based
+        }
         history.is_dirty = false;
     }
 

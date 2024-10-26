@@ -773,11 +773,12 @@ bool Nodlang::tokenize()
 
     while (global_cursor != parser_state.buffer_size() )
     {
-        Token new_token = parse_token( parser_state.buffer(), parser_state.buffer_size(), global_cursor );
+        size_t current_cursor = global_cursor;
+        Token  new_token = parse_token( parser_state.buffer(), parser_state.buffer_size(), global_cursor );
 
         if ( !new_token )
         {
-            LOG_WARNING("Parser", "Unable to tokenize from \"%20s...\" (at index %llu)\n", parser_state.buffer_at(global_cursor), global_cursor);
+            LOG_WARNING("Parser", "Unable to tokenize from \"%20s...\" (at index %llu)\n", parser_state.buffer_at(current_cursor), global_cursor);
             return false;
         }
 
