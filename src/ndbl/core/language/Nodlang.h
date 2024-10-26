@@ -54,7 +54,8 @@ namespace ndbl{
         bool                            parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         Token                           parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         Token                           parse_token(const std::string& _string) const;
-        tools::Optional<Node*>          parse_scope(Slot* _parent_scope_slot );
+        tools::Optional<Node*>          parse_scope( Slot* parent_slot_out );
+        tools::Optional<Node*>          parse_single_scope_or_instruction(Slot* child_slot );
         tools::Optional<Node*>          parse_instr();
         tools::Optional<Slot*>          parse_variable_declaration(); // Try to parse a variable declaration (ex: "int a = 10;").
         void                            parse_code_block(); // Try to parse a code block with the option to create a scope or not (reusing the current one).

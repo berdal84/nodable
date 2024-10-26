@@ -1103,7 +1103,6 @@ Optional<Node*> Nodlang::get_current_scope_node()
 
 Optional<IfNode*> Nodlang::parse_conditional_structure()
 {
-    LOG_VERBOSE("Parser", "try to parse conditional structure...\n");
     start_transaction();
 
     Token if_token = parser_state.ribbon.eat_if(Token_t::keyword_if);
@@ -1112,9 +1111,12 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
         return nullptr;
     }
 
-    bool success = false;
+    LOG_VERBOSE("Parser", "Parsing conditional structure...\n");
+
+    Optional<IfNode*> result;
     Optional<Node*>   condition;
-    Optional<Node*>   condition_true_node;
+    Optional<Node*>   true_branch;
+    Optional<Node*>   false_branch;
     Optional<IfNode*> if_node;
     Optional<IfNode*> else_node;
 
@@ -1130,7 +1132,9 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
 
     if ( parser_state.ribbon.eat_if(Token_t::parenthesis_open) )
     {
-        // parse condition, ignore when not found
+        LOG_VERBOSE("Parser", "Parsing conditional structure's condition...\n");
+
+        // condition
         if ( (condition = parse_instr()) )
         {
             parser_state.graph->connect_or_merge(
@@ -1140,49 +1144,34 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
 
         if ( parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
         {
-            condition_true_node = parse_scope(if_node->child_slot_at(Branch_TRUE) );
-            if ( !condition_true_node && (condition_true_node = parse_instr()) )
+            // scope
+            true_branch = parse_single_scope_or_instruction(if_node->child_slot_at(Branch_TRUE));
+            if ( true_branch )
             {
-                parser_state.graph->connect( if_node->child_slot_at( Branch_TRUE ),
-                                             condition_true_node->find_slot(SlotFlag_PARENT),
-                                             ConnectFlag_ALLOW_SIDE_EFFECTS);
-            }
+                // else
+                if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
+                {
+                    if_node->token_else = parser_state.ribbon.get_eaten();
 
-            if ( !condition_true_node )
-            {
-                LOG_VERBOSE("Parser", "Scope or single instruction expected " KO "\n");
-            }
-            else if ( parser_state.ribbon.eat_if(Token_t::keyword_else) )
-            {
-                if_node->token_else = parser_state.ribbon.get_eaten();
-
-                /* parse "else" scope */
-                if ( parse_scope( if_node->child_slot_at( Branch_FALSE ) ) )
-                {
-                    success = true;
-                }
-                    /* single instruction */
-                else if ( Optional<Node*> single_instr = parse_instr() )
-                {
-                    parser_state.graph->connect( if_node->child_slot_at( Branch_FALSE ),
-                                                 single_instr->find_slot(SlotFlag_PARENT),
-                                                 ConnectFlag_ALLOW_SIDE_EFFECTS);
-                    success = true;
-                }
-                    /* or parse "else if" conditional structure */
-                else if ( parse_conditional_structure() )
-                {
-                    success = true;
+                    // else scope
+                    false_branch = parse_single_scope_or_instruction(if_node->child_slot_at(Branch_FALSE));
+                    if ( false_branch )
+                        result = if_node;
+                    // else if?
+                    else if ( parse_conditional_structure() )
+                        result = if_node;
+                    else
+                        LOG_VERBOSE("Parser", "Parsing \"else if\" ... " KO "\n");
                 }
                 else
                 {
-                    LOG_VERBOSE("Parser", "Parsing \"else if\" ... " KO "\n");
+                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
+                    result = if_node;
                 }
             }
             else
             {
-                LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
-                success = true;
+                LOG_VERBOSE("Parser", "Scope or single instruction expected " KO "\n");
             }
         }
         else
@@ -1192,14 +1181,15 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
     }
     parser_state.scope.pop();
 
-    if (success)
+    if ( result )
     {
         commit_transaction();
-        return if_node;
+        return result;
     }
 
     parser_state.graph->destroy( else_node.data() );
-    parser_state.graph->destroy(condition_true_node.data() );
+    parser_state.graph->destroy( true_branch.data() );
+    parser_state.graph->destroy( false_branch.data() );
     parser_state.graph->destroy( condition.data() );
     parser_state.graph->destroy( if_node.data() );
     rollback_transaction();
@@ -1210,88 +1200,80 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
 {
     Optional<ForLoopNode*> result;
     Optional<ForLoopNode*> for_node;
+    Optional<Node*>        true_branch;
 
     start_transaction();
 
-    Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for);
-    if ( !token_for )
+    if ( Token token_for = parser_state.ribbon.eat_if(Token_t::keyword_for) )
     {
-        rollback_transaction();
-        return nullptr;
-    }
 
-    for_node = parser_state.graph->create_for_loop();
-    parser_state.graph->connect(
-            get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
-            for_node->find_slot(SlotFlag_PARENT ),
-            ConnectFlag_ALLOW_SIDE_EFFECTS );
+        LOG_VERBOSE("Parser", "Parsing for loop ...\n");
 
-    for_node->token_for = token_for;
+        for_node = parser_state.graph->create_for_loop();
+        parser_state.graph->connect(
+                get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
+                for_node->find_slot(SlotFlag_PARENT ),
+                ConnectFlag_ALLOW_SIDE_EFFECTS );
 
-    LOG_VERBOSE("Parser", "parse FOR (...) block...\n");
-    Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
-    if ( open_bracket)
-    {
-        parser_state.scope.push(for_node->get_component<Scope>());
+        for_node->token_for = token_for;
 
-        // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
-
-        // parse initialization instruction
-        if ( Optional<Node*> init_instr = parse_instr() )
+        Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
+        if ( open_bracket)
         {
-            parser_state.graph->connect_or_merge(init_instr->find_slot( SlotFlag_OUTPUT ), for_node->initialization_slot() );
+            LOG_VERBOSE("Parser", "Parsing for loop instructions ...\n");
 
-            // parse condition instruction
-            if ( Optional<Node*> condition = parse_instr() )
+            parser_state.scope.push(for_node->get_component<Scope>());
+
+            // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
+
+            // parse initialization instruction
+            if ( Optional<Node*> init_instr = parse_instr() )
             {
-                parser_state.graph->connect_or_merge(condition->find_slot( SlotFlag_OUTPUT ), for_node->condition_slot(Branch_TRUE) );
+                parser_state.graph->connect_or_merge(init_instr->find_slot( SlotFlag_OUTPUT ), for_node->initialization_slot() );
 
-                // parse iteration instruction
-                if ( Optional<Node*> iter_instr = parse_instr() )
+                // parse condition instruction
+                if ( Optional<Node*> condition = parse_instr() )
                 {
-                    parser_state.graph->connect_or_merge( iter_instr->find_slot( SlotFlag_OUTPUT ), for_node->iteration_slot() );
+                    parser_state.graph->connect_or_merge(condition->find_slot( SlotFlag_OUTPUT ), for_node->condition_slot(Branch_TRUE) );
+
+                    // parse iteration instruction
+                    if ( Optional<Node*> iter_instr = parse_instr() )
+                    {
+                        parser_state.graph->connect_or_merge( iter_instr->find_slot( SlotFlag_OUTPUT ), for_node->iteration_slot() );
+                    }
                 }
             }
-        }
 
-        // parse parenthesis close
-        if ( Token parenthesis_close = parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
-        {
-            // try to parse for child scope or a single child instruction by default
-            if ( parse_scope( for_node->child_slot_at(Branch_TRUE) ) )
+            // parse parenthesis close
+            if ( Token parenthesis_close = parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
             {
-                result = for_node;
-            }
-            else if (Optional<Node *> single_instr = parse_instr() )
-            {
-                parser_state.graph->connect(single_instr->find_slot(SlotFlag_PARENT),
-                                            for_node->child_slot_at(Branch_TRUE),
-                                            ConnectFlag_ALLOW_SIDE_EFFECTS);
-                result = for_node;
+                true_branch = parse_single_scope_or_instruction(for_node->child_slot_at(Branch_TRUE));
+                if ( true_branch )
+                    result = for_node;
+                else
+                LOG_ERROR("Parser", "Scope or single instruction expected\n");
             }
             else
             {
-                LOG_ERROR("Parser", "Scope or single instruction expected\n");
+                LOG_ERROR("Parser", "Close parenthesis was expected.\n");
             }
+            parser_state.scope.pop();
         }
         else
         {
-            LOG_ERROR("Parser", "Close parenthesis was expected.\n");
+            LOG_ERROR("Parser", "Open parenthesis was expected.\n");
         }
-        parser_state.scope.pop();
-    }
-    else
-    {
-        LOG_ERROR("Parser", "Open parenthesis was expected.\n");
     }
 
     if ( result )
     {
+        LOG_VERBOSE("Parser", "Parsing scope " OK "\n");
         commit_transaction();
         return result;
     }
 
     rollback_transaction();
+    parser_state.graph->destroy(true_branch.data() );
     parser_state.graph->destroy(for_node.data() );
 
     return nullptr;
@@ -1300,50 +1282,44 @@ Optional<ForLoopNode*> Nodlang::parse_for_loop()
 Optional<WhileLoopNode*> Nodlang::parse_while_loop()
 {
     Optional<WhileLoopNode*> result;
-    Optional<WhileLoopNode*> _temp_while_loop_node;
+    Optional<WhileLoopNode*> while_node;
+    Optional<Node*>          true_branch;
 
     start_transaction();
 
     if ( Token token_while = parser_state.ribbon.eat_if(Token_t::keyword_while) )
     {
-        _temp_while_loop_node = parser_state.graph->create_while_loop();
+        LOG_VERBOSE("Parser", "Parsing while ...\n");
+
+        while_node = parser_state.graph->create_while_loop();
         parser_state.graph->connect(
                 get_current_scope()->get_owner()->find_slot( SlotFlag_CHILD ),
-                _temp_while_loop_node->find_slot(SlotFlag_PARENT ),
+                while_node->find_slot(SlotFlag_PARENT ),
                 ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.scope.push(_temp_while_loop_node->get_component<Scope>() );
+        parser_state.scope.push(while_node->get_component<Scope>() );
 
-        _temp_while_loop_node->token_while = token_while;
+        while_node->token_while = token_while;
 
-        LOG_VERBOSE("Parser", "parse WHILE (...) { /* block */ }\n");
-        Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open);
-        if ( open_bracket )
+        if ( Token open_bracket = parser_state.ribbon.eat_if(Token_t::parenthesis_open) )
         {
+            LOG_VERBOSE("Parser", "Parsing while condition ... \n");
+
             // Parse an optional condition
             if( Optional<Node*> cond_instr = parse_instr() )
             {
                 parser_state.graph->connect_or_merge(
                         cond_instr->find_slot(SlotFlag_OUTPUT),
-                        _temp_while_loop_node->condition_slot(Branch_TRUE));
+                        while_node->condition_slot(Branch_TRUE));
+                LOG_VERBOSE("Parser", "found!\n");
             }
 
             if ( parser_state.ribbon.eat_if(Token_t::parenthesis_close) )
             {
-                if ( parse_scope(_temp_while_loop_node->child_slot_at(Branch_TRUE)) )
-                {
-                    result = _temp_while_loop_node;
-                }
-                else if (Optional<Node *> single_instr = parse_instr())
-                {
-                    parser_state.graph->connect(_temp_while_loop_node->child_slot_at(Branch_TRUE),
-                                                single_instr->find_slot(SlotFlag_PARENT),
-                                                ConnectFlag_ALLOW_SIDE_EFFECTS);
-                    result = _temp_while_loop_node;
-                }
+                true_branch = parse_single_scope_or_instruction(while_node->child_slot_at(Branch_TRUE));
+                if ( true_branch )
+                    result = while_node;
                 else
-                {
                     LOG_ERROR("Parser", "Scope or single instruction expected\n");
-                }
             }
             else
             {
@@ -1359,12 +1335,14 @@ Optional<WhileLoopNode*> Nodlang::parse_while_loop()
 
     if (result)
     {
+        LOG_VERBOSE("Parser", "Parsing while ..." OK "\n");
         commit_transaction();
     }
     else
     {
         rollback_transaction();
-        parser_state.graph->destroy( _temp_while_loop_node.data() );
+        parser_state.graph->destroy(while_node.data() );
+        parser_state.graph->destroy(true_branch.data() );
     }
 
     return result;
@@ -2011,6 +1989,30 @@ Token_t Nodlang::to_literal_token(const TypeDescriptor *type) const
     if (type == type::get<any>() )
         return Token_t::literal_any;
     return Token_t::literal_unknown;
+}
+
+tools::Optional<Node*> Nodlang::parse_single_scope_or_instruction( Slot* child_slot )
+{
+    // guards
+    VERIFY(child_slot->has_flags(SlotFlag_FREE_CHILD), "A free CHILD slot is expected" );
+
+    LOG_VERBOSE("Parser", "Parsing single scope or instruction ... \n");
+
+    if ( auto scope = parse_scope(child_slot ) )
+    {
+        return scope;
+    }
+
+    if ( Optional<Node*> single_instr = parse_instr() )
+    {
+        Slot* parent_slot = single_instr->find_slot(SlotFlag_PARENT);
+        parser_state.graph->connect(parent_slot, child_slot, ConnectFlag_ALLOW_SIDE_EFFECTS );
+        return single_instr;
+    }
+
+    LOG_VERBOSE("Parser", "Parse single scope or instruction " KO "\n");
+
+    return nullptr;
 }
 
 Nodlang::ParserState::ParserState()
