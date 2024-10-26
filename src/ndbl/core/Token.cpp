@@ -74,8 +74,8 @@ void Token::take_prefix_suffix_from(Token* source)
     }
 
     // Remove prefix and suffix on the source
-    source->clear_suffix();
-    source->clear_prefix();
+    source->suffix_reset();
+    source->prefix_reset();
 }
 
 void Token::clear()
@@ -89,15 +89,15 @@ void Token::clear()
     m_buffer.delete_intern_buf();
 }
 
-void Token::set_external_buffer(char* buffer, size_t offset, size_t size)
+void Token::set_external_buffer(char* buffer, size_t offset, size_t size, bool external_only )
 {
     // here, we consider that the whole buffer will be into the "word" part, no suffix/prefix.
 
     m_buffer.delete_intern_buf();
 
-    m_buffer.intern = false;
-    m_buffer.extern_buf    = buffer;
-    m_buffer.offset      = offset;
+    m_buffer._flags     = BimodalBuffer::Flags_READONLY * external_only;
+    m_buffer.extern_buf = buffer;
+    m_buffer.offset     = offset;
     m_prefix_len = 0;
     m_word_len   = size;
     m_suffix_len = 0;
@@ -105,7 +105,7 @@ void Token::set_external_buffer(char* buffer, size_t offset, size_t size)
 
 std::string Token::prefix_to_string()const
 {
-    if( has_buffer() )
+    if( has_buffer() && m_prefix_len )
     {
         return std::string{prefix(), m_prefix_len};
     }
@@ -114,14 +114,14 @@ std::string Token::prefix_to_string()const
 
 std::string Token::word_to_string()const
 {
-    if( has_buffer() )
+    if( has_buffer() && m_word_len)
         return std::string{word(), m_word_len};
     return {};
 }
 
 std::string Token::suffix_to_string()const
 {
-    if( has_buffer() )
+    if( has_buffer() && m_suffix_len )
         return std::string{suffix(), m_suffix_len};
     return {};
 }
@@ -166,7 +166,7 @@ Token& Token::operator=(const Token& other)
     m_suffix_len = other.m_suffix_len;
     m_type       = other.m_type;
 
-    if( other.m_buffer.intern )
+    if( !other.m_buffer.intern() )
     {
         m_buffer.switch_to_intern_buf(other.length());
         m_buffer.intern_buf->append(other.begin(), other.length() );
@@ -184,8 +184,7 @@ void Token::word_replace(const char* new_word)
     const size_t new_word_len = strlen(new_word);
 
     if( new_word_len == 0 )
-        if( length() == 0 )
-            return;
+        return;
 
     std::string prefix_copy = prefix_to_string();
     std::string suffix_copy = suffix_to_string();
@@ -218,17 +217,11 @@ void Token::suffix_push_back(const char* str)
     m_suffix_len += str_len;
 }
 
-void Token::clear_prefix()
+void Token::prefix_reset(size_t size )
 {
     // Instead of erasing chars, we prefer to simply "move the cursor to the right"
-    m_buffer.offset += m_prefix_len;
-    m_prefix_len  = 0;
-}
-
-void Token::clear_suffix()
-{
-    // Instead of erasing chars, we prefer to simply "move the cursor to the left"
-    m_suffix_len  = 0;
+    m_buffer.offset += m_prefix_len - size;
+    m_prefix_len     = size;
 }
 
 void Token::reset_lengths()
@@ -236,44 +229,53 @@ void Token::reset_lengths()
     m_prefix_len = m_word_len = m_suffix_len = 0;
 }
 
-void Token::slide_word_begin(int amount)
+void Token::word_move_begin(int amount)
 {
-    ASSERT( amount < 0 ? -amount < m_prefix_len : amount <= m_word_len);
-
     m_prefix_len = (int)m_prefix_len + amount;
     m_word_len   = (int)m_word_len - amount;
 }
 
-void Token::slide_word_end(int amount)
+void Token::word_move_end(int amount)
 {
-    ASSERT( amount < 0 ? -amount < m_word_len : amount <= m_suffix_len);
-
     m_word_len   = (int)m_word_len + amount;
     m_suffix_len = (int)m_suffix_len - amount;
 }
 
 void Token::set_offset(size_t pos)
 {
-    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
     m_buffer.offset = pos;
 }
 
-void Token::resize_suffix(size_t size)
+void Token::suffix_reset(size_t size)
 {
-    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
     m_suffix_len = size;
 }
 
-void Token::extend_prefix(size_t size)
+void Token::prefix_begin_grow(size_t l_amount)
 {
-    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
-    m_prefix_len += size;
+    VERIFY( offset() >= l_amount, "Can't extend prefix above data's boundary");
+
+    set_offset( offset() - l_amount ); // slide
+    m_prefix_len += l_amount;
 }
 
-void Token::extend_suffix(size_t size)
+void Token::suffix_end_grow(size_t size)
 {
-    VERIFY(!m_buffer.intern, "This method is only allowed when buffer is external");
-    resize_suffix( m_suffix_len + size);
+    suffix_reset(m_suffix_len + size);
+}
+
+void Token::suffix_begin_grow(size_t l_amount)
+{
+    ASSERT( m_word_len >= l_amount );
+    m_word_len   -= l_amount;
+    m_suffix_len += l_amount;
+}
+
+void Token::prefix_end_grow(size_t r_amount)
+{
+    ASSERT( r_amount <= m_word_len);
+    m_prefix_len += r_amount;
+    m_word_len   -= r_amount;
 }
 
 Token::BimodalBuffer::~BimodalBuffer()
@@ -283,11 +285,13 @@ Token::BimodalBuffer::~BimodalBuffer()
 
 void Token::BimodalBuffer::switch_to_intern_buf(size_t size)
 {
+    ASSERT( !readonly() );
+
     // Initialize memory
-    if ( !intern )
+    if ( !intern() )
     {
         intern_buf = new std::string();
-        intern     = true;
+        _flags     = BimodalBuffer::Flags_INTERN;
         offset     = 0;
     }
     intern_buf->reserve(size);
@@ -302,12 +306,14 @@ void Token::BimodalBuffer::switch_to_intern_buf_with_data(char* data, size_t siz
 
 void Token::BimodalBuffer::delete_intern_buf()
 {
-    if( !intern )
+    if( !intern() )
         return;
 
+    VERIFY( !readonly(), "Can't delete readonly buffers" );
     delete intern_buf;
 
-    intern     = false;
+    _flags     = BimodalBuffer::Flags_NONE;
     offset     = 0;
     intern_buf = nullptr;
 }
+

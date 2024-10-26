@@ -108,10 +108,8 @@ void File::_update_graph_from_text()
 {
     // Parse source code
     // note: File owns the parsed text buffer
-    std::string result;
-    result = view.get_text(_isolation);
-    _parsed_text = result;
-    get_language()->parse(_parsed_text, _graph );
+    _parsed_text = view.get_text(_isolation);
+    get_language()->parse(_graph, _parsed_text);
 }
 
 size_t File::size() const

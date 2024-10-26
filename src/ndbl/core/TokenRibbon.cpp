@@ -18,6 +18,8 @@ Token & TokenRibbon::push(Token &_token)
 std::string TokenRibbon::to_string()const
 {
     std::string out;
+    out.append(RESET);
+
     size_t buffer_size = 0;
 
     // get the total buffer sizes (but won't be exact, some token are serialized dynamically)
@@ -87,51 +89,41 @@ Token TokenRibbon::eat_if(Token_t expectedType)
 
 Token TokenRibbon::eat()
 {
-    LOG_VERBOSE("Parser", "Eat token (idx %i) %s \n", m_cursor, peek().string().c_str() );
+    LOG_VERBOSE("TokenRibbon", "Eat token (idx %i) %s \n", m_cursor, peek().string().c_str() );
     return m_tokens.at(m_cursor++);
 }
 
-void TokenRibbon::transaction_start()
+void TokenRibbon::start_transaction()
 {
     m_transaction.push(m_cursor);
-    LOG_VERBOSE("Parser", "Start Transaction (idx %i)\n", m_cursor);
+    LOG_VERBOSE("TokenRibbon", "Start Transaction (idx %i)\n", m_cursor);
 }
 
-void TokenRibbon::transaction_rollback()
+void TokenRibbon::rollback()
 {
     m_cursor = m_transaction.top();
-    LOG_VERBOSE("Parser", "Rollback transaction (idx %i)\n", m_cursor);
+    LOG_VERBOSE("TokenRibbon", "Rollback (idx %i)\n", m_cursor);
     m_transaction.pop();
 }
 
-void TokenRibbon::transaction_commit()
+void TokenRibbon::commit()
 {
-    LOG_VERBOSE("Parser", "Commit transaction (idx %i)\n", m_cursor);
+    LOG_VERBOSE("TokenRibbon", "Commit (idx %i)\n", m_cursor);
     m_transaction.pop();
 }
 
-void TokenRibbon::clear()
+void TokenRibbon::reset(const char* new_buffer, size_t new_size)
 {
+    auto buffer = const_cast<char*>(new_buffer);
+
     m_tokens.clear();
 
-    m_prefix.m_type = Token_t::ignore;
-    m_prefix.m_type = Token_t::ignore;
-
-    m_prefix.reset_lengths(); // clear but without resetting the buffer
-    m_suffix.reset_lengths();
+    m_global_token.set_external_buffer( buffer, 0, new_size, true ); // wraps all
 
     while(!m_transaction.empty())
-    {
         m_transaction.pop();
-    }
-    m_cursor = 0;
-}
 
-void TokenRibbon::set_source_buffer(const char* const_buffer)
-{
-    auto buffer = const_cast<char*>(const_buffer);
-    m_prefix.set_external_buffer(buffer);
-    m_suffix.set_external_buffer(buffer);
+    m_cursor = 0;
 }
 
 bool TokenRibbon::can_eat(size_t count) const
@@ -140,21 +132,25 @@ bool TokenRibbon::can_eat(size_t count) const
     return m_cursor + count <= m_tokens.size() ;
 }
 
-std::string TokenRibbon::concat_token_buffers(size_t pos, int size)
+std::string TokenRibbon::range_to_string(size_t pos, int size)
 {
-    std::string result;
-    size_t idx = pos;
-    int step = size > 0 ? 1 : -1;
-    int step_count = step * size;
-    int step_done_count = 0;
-    while( idx > 0 && idx < m_tokens.size() && step_done_count <= step_count )
-    {
-        Token* token = &m_tokens[idx];
-        result = step > 0 ? result + token->string() : token->string() + result;
+    ASSERT( size != 0);
+    ASSERT( pos < m_tokens.size() );
 
-        idx += step;
-        step_done_count++;
+    // ensure size is positive
+    if( size < 0 )
+    {
+        ASSERT( -size < m_tokens.size() - pos );
+        pos  = pos + size;
+        size = -size;
+    }
+    else
+    {
+        ASSERT( pos + size < m_tokens.size() );
     }
 
+    std::string result;
+    for( size_t i = pos; i < pos + size; ++i )
+        result = result + m_tokens[pos].string();
     return result;
 }

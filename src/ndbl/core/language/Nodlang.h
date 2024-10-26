@@ -8,11 +8,12 @@
 #include "tools/core/reflection/reflection"
 #include "tools/core/System.h"
 #include "tools/core/hash.h"
+#include "tools/core/Optional.h"
 
 #include "ndbl/core/VariableNode.h"
 #include "ndbl/core/Token.h"
 #include "ndbl/core/TokenRibbon.h"
-#include "tools/core/Optional.h"
+#include "ndbl/core/Graph.h"
 
 namespace ndbl{
 
@@ -24,7 +25,6 @@ namespace ndbl{
     class FunctionNode;
     class Scope;
     class WhileLoopNode;
-    class Graph;
     class Node;
     class Property;
     class VariableNode;
@@ -49,11 +49,12 @@ namespace ndbl{
 		~Nodlang();
 
         // Parser ---------------------------------------------------------------------
-        bool                            tokenize(const std::string& _string);       // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
-        bool                            tokenize(const char* buffer, size_t buffer_size); // Tokenize a buffer of a certain length, return true for success. Tokens are stored in the token ribbon.
-        bool                            parse(const std::string& _in, Graph *_out); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
-        Token                           parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
+        bool                            tokenize(); // tokenise from curent parser state
+        bool                            tokenize(const std::string& _string); // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
+        bool                            parse(Graph* graph_out, const std::string& code_in); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
+        tools::Optional<Node*>          parse_program();
         Token                           parse_token(const std::string& _string) const;
+        Token                           parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         tools::Optional<Node*>          parse_scope( Slot* parent_slot_out );
         tools::Optional<Node*>          parse_single_scope_or_instruction(Slot* child_slot );
         tools::Optional<Node*>          parse_instr();
@@ -62,7 +63,6 @@ namespace ndbl{
         tools::Optional<IfNode*>        parse_conditional_structure(); // Try to parse a conditional structure (if/else if/.else) recursively.
         tools::Optional<ForLoopNode*>   parse_for_loop();
         tools::Optional<WhileLoopNode*> parse_while_loop();
-        tools::Optional<Node*>          parse_program();
         tools::Optional<Slot*>          parse_function_call();
         tools::Optional<Slot*>          parse_parenthesis_expression();
         tools::Optional<Slot*>          parse_unary_operator_expression(u8_t _precedence = 0);
@@ -76,27 +76,39 @@ namespace ndbl{
         std::string                     remove_quotes(const std::string& _quoted_str) const;
 
     private:
-        bool                            allow_to_attach_suffix(Token_t type) const;
-        void                            start_transaction(); // Start a parsing transaction. Must be followed by rollback_transaction or commit_transaction.
-        void                            rollback_transaction(); // Rollback the pending transaction (revert cursor to parse again from the transaction start).
-        void                            commit_transaction(); // Commit the pending transaction
+        bool                            accepts_suffix(Token_t type) const;
 		bool                            is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
-        tools::Optional<Scope*>         get_current_scope();
-        tools::Optional<Node*>          get_current_scope_node();
 
     public:
         struct ParserState
         {
-            const char*               source_buffer;      // NOT owned
-            size_t                    source_buffer_size;
-            TokenRibbon               ribbon;
-            Graph*                    graph;              // NOT owned
-            std::stack<Scope*>        scope;              // nested scopes
+            const char*         buffer() const { ASSERT(_buffer.data); return _buffer.data; }
+            size_t              buffer_size() const { return _buffer.size; }
+            void                reset_ribbon(const char* new_buf = nullptr, size_t new_size = 0);
+            void                reset_graph(Graph* new_graph);
+            void                reset_scope_stack();
+            std::string         string() const { return _ribbon.to_string(); }; // Ribbon's
+            Graph*              graph() const { ASSERT(_graph); return _graph; }
+            TokenRibbon&        tokens()  { return _ribbon; }
+            Scope*              current_scope() const { ASSERT( !_scope.empty() ); return _scope.top(); }
+            Node*               current_scope_node() const { return _scope.top()->get_owner(); };
+            void                push_scope(Scope* scope) { _scope.push( scope); };
+            void                pop_scope() { _scope.pop(); };
+            const char*         buffer_at(size_t offset) { ASSERT(offset < _buffer.size ); return _buffer.data + offset; }
+            void                start_transaction() { _ribbon.start_transaction(); }
+            void                commit() { _ribbon.commit(); }
+            void                rollback() { _ribbon.rollback(); }
+        private:
+            struct Buffer
+            {
+                const char* data = nullptr; // NOT owned
+                size_t      size = 0;
+            };
 
-            ParserState();
-            ~ParserState();
-            void set_source_buffer(const char* str, size_t size);
-            void clear();
+            Buffer              _buffer;
+            Graph*              _graph = nullptr; // NOT owned
+            TokenRibbon         _ribbon;
+            std::stack<Scope*>  _scope; // nested scopes
         } parser_state;
 
     private: bool m_strict_mode; // When strict mode is ON, any use of undeclared symbol is rejected.

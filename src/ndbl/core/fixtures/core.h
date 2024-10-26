@@ -15,7 +15,6 @@ class Core : public Test
 {
 public:
     NodableHeadless app;
-    Nodlang*        language{ nullptr}; // shorthand for app.get_language()
 
     Core()
     {
@@ -25,7 +24,8 @@ public:
     void SetUp()
     {
         app.init();
-        language = app.get_language();
+        // in some tests, we call directly some method on the language that requires we pass a Graph* ahead of time
+        app.get_language()->parser_state.reset_graph( app.get_graph() );
     }
 
     void TearDown()
@@ -137,7 +137,7 @@ public:
 
     void log_ribbon() const
     {
-        LOG_MESSAGE("fixture::core", "%s\n\n", get_language()->parser_state.ribbon.to_string().c_str());
+        LOG_MESSAGE("fixture::core", "%s\n\n", get_language()->parser_state.string().c_str());
     }
 };
 }

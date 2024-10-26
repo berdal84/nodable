@@ -557,8 +557,8 @@ VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const cha
     VariableNode* var_node = create_variable(_type, _name, _scope );
     var_node->set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
     Token token(Token_t::keyword_operator, " = ");
-    token.slide_word_begin(1);
-    token.slide_word_end(-1);
+    token.word_move_begin(1);
+    token.word_move_end(-1);
     var_node->set_operator_token( token );
 
     // TODO: attach a default Literal?
