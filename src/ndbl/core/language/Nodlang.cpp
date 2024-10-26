@@ -1155,11 +1155,11 @@ Optional<IfNode*> Nodlang::parse_conditional_structure()
         return result;
     }
 
+    parser_state.graph()->destroy( if_node.data() );
     parser_state.graph()->destroy( else_node.data() );
     parser_state.graph()->destroy( true_branch.data() );
     parser_state.graph()->destroy( false_branch.data() );
-    parser_state.graph()->destroy( condition.data() );
-    parser_state.graph()->destroy( if_node.data() );
+
     parser_state.rollback();
     return nullptr;
 }
