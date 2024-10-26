@@ -193,3 +193,55 @@ TEST_F(Language_parse_and_serialize, parse_serialize_empty_scope_with_spaces_bef
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize, partial_for1)
+{
+    std::string program = "for()";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize, partial_for2)
+{
+    std::string program = "for(;)";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize, partial_for3)
+{
+    std::string program = "for(;;)";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize, partial_for4)
+{
+    std::string program = "for(;;);";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize, partial_if1)
+{
+    std::string program = "if()";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize, partial_if2)
+{
+    std::string program = "if();";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize, partial_while1)
+{
+    std::string program = "while()";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize, partial_while2)
+{
+    std::string program = "while();";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
