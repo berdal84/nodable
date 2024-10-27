@@ -37,10 +37,8 @@ string64 SlotView::compute_tooltip() const
 {
     switch (slot->type_and_order())
     {
-        case SlotFlag_NEXT:   return "next";
-        case SlotFlag_PREV:   return "previous";
-        case SlotFlag_PARENT: return "parent";
-        case SlotFlag_CHILD:  return "children";
+        case SlotFlag_FLOW_OUT: return "flow_out";
+        case SlotFlag_FLOW_IN:  return "flow_in";
     }
 
     std::string prop_name;
@@ -98,7 +96,7 @@ bool SlotView::draw()
         case ShapeType_RECTANGLE:
         {
             // draw the rectangle
-            bool bottom = slot->has_flags(SlotFlag_ORDER_FIRST);
+            bool bottom = slot->has_flags(SlotFlag_ORDER_1ST);
             ImDrawCornerFlags corner_flags = bottom ? ImDrawCornerFlags_Bot
                                                     : ImDrawCornerFlags_Top;
             draw_list->AddRectFilled(rect.min, rect.max, ImColor(fill_color), border_radius, corner_flags );
@@ -128,7 +126,7 @@ void SlotView::update(float dt)
     {
         state.visible = false;
     }
-    else if (slot->type() == SlotFlag_TYPE_CODEFLOW )
+    else if (slot->type() == SlotFlag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
         bool desired_visibility = Utils::is_instruction( node() ) || Utils::can_be_instruction( node() );
@@ -143,7 +141,7 @@ void SlotView::update(float dt)
     //-------------------
 
     const Config* cfg = get_config();
-    if (slot->type() == SlotFlag_TYPE_CODEFLOW )
+    if (slot->type() == SlotFlag_TYPE_FLOW )
     {
         // Align the code flow slots like that (example at top-left corner)
         //

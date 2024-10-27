@@ -44,10 +44,9 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
     // Create a result/value
     m_value->set_type( _func_type->get_return_type() );
 
-    add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY );
-    add_slot(m_value, SlotFlag_PARENT, 1);
-    add_slot(m_value, SlotFlag_NEXT,   1);
-    add_slot(m_value, SlotFlag_PREV,   Slot::MAX_CAPACITY );
+    add_slot(m_value, SlotFlag_OUTPUT   , Slot::MAX_CAPACITY );
+    add_slot(m_value, SlotFlag_FLOW_OUT , 1);
+    add_slot(m_value, SlotFlag_FLOW_IN  , Slot::MAX_CAPACITY );
 
     // Create arguments
     if ( _type == NodeType_OPERATOR )

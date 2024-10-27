@@ -28,11 +28,10 @@ namespace ndbl
             m_value->set_token({Token_t::identifier});
 
             // Init Slots
-            add_slot(m_value, SlotFlag_PARENT, 1);
-            add_slot(m_value, SlotFlag_NEXT, 1);
-            add_slot(m_value, SlotFlag_PREV, Slot::MAX_CAPACITY);
-            add_slot(m_value, SlotFlag_INPUT, 1);
-            add_slot(m_value, SlotFlag_OUTPUT, 1); // ref can be connected once
+            add_slot(m_value, SlotFlag_FLOW_OUT, 1);
+            add_slot(m_value, SlotFlag_FLOW_IN , Slot::MAX_CAPACITY);
+            add_slot(m_value, SlotFlag_INPUT   , 1);
+            add_slot(m_value, SlotFlag_OUTPUT  , 1); // ref can be connected once
         }
 
         inline void on_variable_name_change(const char* name)

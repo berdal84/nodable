@@ -18,11 +18,13 @@
 #include "SlotFlag.h"
 #include "Slot.h"
 #include "NodeType.h"
+#include "Scope.h"
 
 namespace ndbl
 {
     // forward declarations
     class Graph;
+    class NodeFactory;
 
     typedef int NodeFlags;
     enum NodeFlag_
@@ -36,24 +38,26 @@ namespace ndbl
 	/**
 		The role of this class is to provide connectable Objects as Nodes.
 
-		A node is an Object (composed with Properties) that can be linked
+		A child_node is an Object (composed with Properties) that can be linked
 	    together in order to create_new graphs.
 
-		Every Node has a parent Graph. All nodes are built from a Graph,
+		Every Node has a parent Graph. All child_node are built from a Graph,
 	    which first create an instance of this class (or derived) and then
 		add some Component on it.
 	*/
     class Node
 	{
     public:
-        friend Graph;
-        
+        friend class Graph;
+        friend class NodeFactory;
+
         // Code
         Node() = default;
         virtual ~Node();
 
         SIGNAL(on_destroy);
         SIGNAL(on_name_change, const char *);
+        SIGNAL(on_scope_change, Scope*);
 
         void                 init(NodeType type, const std::string& name);
         bool                 update();
@@ -75,6 +79,15 @@ namespace ndbl
         const Slot*          value_in() const;
         Slot*                value_out();
         const Slot*          value_out() const;
+        Slot*                flow_in();
+        const Slot*          flow_in() const;
+        Slot*                flow_out();
+        const Slot*          flow_out() const;
+        Scope*               inner_scope() { return m_inner_scope; }
+        const Scope*         inner_scope() const { return m_inner_scope; }
+        Scope*               scope() { return m_scope; }
+        const Scope*         scope() const { return m_scope; };
+        void                 set_scope(Scope* scope);;
 
         // Slot related
         //-------------
@@ -102,12 +115,10 @@ namespace ndbl
 
         // cached adjacent nodes accessors
 
-        Node* parent() const;
-        inline const std::vector<Node*>& successors() const { return m_adjacent_nodes_cache.get( SlotFlag_NEXT); }
-        inline const std::vector<Node*>& children() const { return m_adjacent_nodes_cache.get( SlotFlag_CHILD ); }
+        inline const std::vector<Node*>& flow_outputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_OUT); }
         inline const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
         inline const std::vector<Node*>& outputs() const { return m_adjacent_nodes_cache.get( SlotFlag_OUTPUT ); }
-        inline const std::vector<Node*>& predecessors() const { return m_adjacent_nodes_cache.get( SlotFlag_PREV ); }
+        inline const std::vector<Node*>& flow_inputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_IN ); }
 
         // Property related
         //-----------------
@@ -143,8 +154,10 @@ namespace ndbl
         bool has_component() const
         { return m_components.has<C*>(); }
 
+        void               init_inner_scope();
+
     protected:
-        void on_slot_change(Slot::Event event, Slot *slot);
+        void               on_slot_change(Slot::Event event, Slot *slot);
 
         std::string        m_name;
         PropertyBag        m_props;
@@ -154,6 +167,8 @@ namespace ndbl
         NodeFlags          m_flags = NodeFlag_IS_DIRTY;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
+        Scope*             m_scope = nullptr; // pointer to another node's component
+        Scope*             m_inner_scope = nullptr; // pointer to this node's component
         std::unordered_map<size_t,  std::vector<Slot*>> m_slots_by_property; // property's hash to Slots
 
         struct AdjacentNodesCache

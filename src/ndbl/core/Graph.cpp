@@ -17,7 +17,8 @@ using namespace tools;
 
 Graph::Graph(NodeFactory* factory)
 : m_factory(factory)
-{}
+{
+}
 
 Graph::~Graph()
 {
@@ -26,13 +27,12 @@ Graph::~Graph()
 
 void Graph::clear()
 {
-    if (m_root.empty() && m_node_registry.empty() && m_edge_registry.empty() )
+    if ( m_root.empty() && m_node_registry.empty() && m_edge_registry.empty() )
     {
         return;
     }
 
 	LOG_VERBOSE( "Graph", "Clearing graph ...\n");
-    m_root = nullptr;
     while ( !m_node_registry.empty() )
     {
         Node* node = m_node_registry[0];
@@ -100,17 +100,15 @@ void Graph::add(Node* _node)
 
 void Graph::remove(Node* _node)
 {
-    auto found = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
-    ASSERT(found != m_node_registry.end());
-    m_node_registry.erase(found);
-
+    auto it = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
+    m_node_registry.erase(it);
     on_remove.emit(_node);
     on_change.emit();
 }
 
-VariableNode* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, Scope* _scope)
+VariableNode* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name)
 {
-    VariableNode* node = m_factory->create_variable(_type, _name, _scope);
+    VariableNode* node = m_factory->create_variable(_type, _name);
     add(node);
 	return node;
 }
@@ -138,10 +136,10 @@ void Graph::destroy(Node* node)
 
     // backup prev/next adjacent slots
     std::vector<Slot*> prev_adjacent_slot;
-    if( Slot* slot = node->find_slot(SlotFlag_PREV) )
+    if( Slot* slot = node->find_slot(SlotFlag_FLOW_IN) )
         prev_adjacent_slot = slot->adjacent();
     std::vector<Slot*> next_adjacent_slot;
-    if ( Slot* slot = node->find_slot(SlotFlag_NEXT) )
+    if ( Slot* slot = node->find_slot(SlotFlag_FLOW_OUT) )
         next_adjacent_slot = slot->adjacent();
 
     // Identify each edge connected to this node
@@ -167,29 +165,18 @@ void Graph::destroy(Node* node)
         // TODO: we must be able to pin the view from here
     }
 
-    // if it is a variable, we remove it from its scope
-    if ( node->type() == NodeType_VARIABLE )
-    {
-        VariableNode* node_variable = cast<VariableNode>(node);
-        if ( IScope* scope = node_variable->get_scope() )
-        {
-            scope->remove_variable(node_variable);
-        }
-    }
-    else if ( auto* scope = node->get_component<Scope>() )
-    {
-        if ( !scope->has_no_variable() )
-        {
-            scope->remove_all_variables();
-        }
-    }
+    // Remove from scope
+    if ( Scope* scope = node->scope() )
+        scope->remove( node );
+
+    // Remove inner_scope children
+    if ( Scope* inner_scope = node->inner_scope() )
+        inner_scope->remove_all();
 
     // unregister and delete
     remove(node);
     if ( m_root == node )
-    {
         m_root.reset();
-    }
     m_factory->destroy_node(node);
 }
 
@@ -202,7 +189,7 @@ DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
     ASSERT(tail->has_flags(SlotFlag_NOT_FULL ) );
     VERIFY(head->property, "tail property must be defined" );
     VERIFY(tail->property, "head property must be defined" );
-    VERIFY(head->node != tail->node, "Can't connect same nodes!" );
+    VERIFY(head->node != tail->node, "Can't connect same child_node!" );
 
     // now graph is abstract
 //    const type* out_type = __out->property->get_type();
@@ -257,13 +244,8 @@ DirectedEdge Graph::connect_to_variable(Slot* output_slot, VariableNode* _variab
 
 DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
 {
-    // Guards
-    VERIFY(tail->type() == head->type(), "Slot types are incompatible"  );
-    VERIFY(tail->node != head->node    , "Can't connect two slots from the same node");
-
     // Create and insert edge
-    DirectedEdge edge{tail, head};
-    add(edge);
+    DirectedEdge edge = add({tail, head});
 
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
     edge.tail->add_adjacent( edge.head );
@@ -274,9 +256,8 @@ DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
     {
         switch ( edge.type() )
         {
-            case SlotFlag_TYPE_HIERARCHICAL: on_connect_hierarchical_side_effects(edge.tail, edge.head);break;
-            case SlotFlag_TYPE_CODEFLOW:     on_connect_codeflow_side_effects(edge.tail, edge.head);break;
-            case SlotFlag_TYPE_VALUE:        on_connect_value_side_effects(edge.tail, edge.head); break;
+            case SlotFlag_TYPE_FLOW:  on_connect_flow_side_effects(edge);  break;
+            case SlotFlag_TYPE_VALUE: on_connect_value_side_effects(edge); break;
             default:
                 ASSERT(false);// This connection type is not yet implemented
         }
@@ -289,121 +270,133 @@ DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
     return edge;
 }
 
-void Graph::add(const DirectedEdge& _edge)
+DirectedEdge Graph::add(const DirectedEdge& _edge)
 {
     m_edge_registry.emplace(_edge.type(), _edge);
     on_change.emit();
+    return _edge; // copy is OK
 }
 
-void Graph::on_connect_hierarchical_side_effects(Slot* parent_slot, Slot* child_slot)
+//void Graph::on_connect_hierarchical_side_effects(Slot* parent_slot, Slot* child_slot)
+//{
+//    //
+//    // This function handle side effects after a new hierarchical (PARENT/CHILD) connection has been made.
+//    // It will create one of more codeflow (PREV/NEXT) connection(s) automatically.
+//    //
+//    Node* parent           = parent_slot->node;
+//    Node* new_child        = child_slot->node;
+//    Slot* parent_next_slot = parent->find_slot_at(SlotFlag_FLOW_OUT, parent_slot->position );
+//
+//    ASSERT(parent->has_component<Scope>());
+//    ASSERT(parent_next_slot);
+//
+//    Slot* new_child_prev_slot = new_child->find_slot(SlotFlag_FLOW_IN );
+//
+//    // Case 1: Parent has only 1 child (the newly connected), we connect it as "next".
+//    if ( !parent_next_slot->is_full() )
+//    {
+//        connect( parent_next_slot, new_child_prev_slot );
+//        return;
+//    }
+//
+//    // Case 2: Connects to the last child's "next" slot.
+//    //         parent
+//    //           - ...
+//    //           - last child ->->->
+//    //           - new child <-<-<-
+//    Node* previous_child = *(parent->children().rbegin() + 1);
+//    ASSERT( previous_child );
+//
+//    // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
+//    //           parent
+//    //             - ...
+//    //             - previous_child
+//    //                  - child 0
+//    //                     - ...
+//    //                     - instr n >->->->->
+//    //                  - child 1
+//    //                     - instr 0 >->->->->
+//    //                  - ...
+//    //                  - instr n ->->->->->->
+//    //             - new child <-<-<-<-<-<-<-<
+//    //
+//    if (Scope* previous_child_scope = previous_child->inner_scope() )
+//    {
+//        for (Node* each_instr : previous_child_scope->last_instr() )
+//        {
+//            Slot* each_instr_next_slot = each_instr->find_slot(SlotFlag_FREE_FLOW_OUT );
+//            ASSERT(each_instr_next_slot);
+//            connect( each_instr_next_slot, new_child_prev_slot );
+//        }
+//        return;
+//    }
+//
+//    // Case 2.b: Connects to last child's "next" slot.
+//    //           parent
+//    //             - ...
+//    //             - previous_child ->->->
+//    //             - new child <-<-<-<-<-<
+//    //
+//    Slot* last_sibling_next_slot = previous_child->find_slot(SlotFlag_FREE_FLOW_OUT );
+//    connect( last_sibling_next_slot, new_child_prev_slot );
+//}
+
+void Graph::on_connect_value_side_effects( DirectedEdge edge )
 {
-    //
-    // This function handle side effects after a new hierarchical (PARENT/CHILD) connection has been made.
-    // It will create one of more codeflow (PREV/NEXT) connection(s) automatically.
-    //
-    Node* parent           = parent_slot->node;
-    Node* new_child        = child_slot->node;
-    Slot* parent_next_slot = parent->find_slot_at(SlotFlag_NEXT, parent_slot->position );
+    Scope* target_scope = edge.head->node->scope();
 
-    ASSERT(parent->has_component<Scope>());
-    ASSERT(parent_next_slot);
+    if ( Scope* inner_scope = edge.head->node->inner_scope() )
+        target_scope = inner_scope;
 
-    Slot* new_child_prev_slot = new_child->find_slot( SlotFlag_PREV );
+    if ( target_scope )
+        target_scope->push_back(edge.tail->node ); // recursively
+}
 
-    // Case 1: Parent has only 1 child (the newly connected), we connect it as "next".
-    if ( !parent_next_slot->is_full() )
+void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
+{
+    ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
+    VERIFY( edge.head->adjacent_count() == 0, "TODO: Only implemented for single connections" );
+
+    Scope* scope = edge.head->node->scope();
+    if ( scope )
+        scope->remove( edge.head->node );
+}
+
+void Graph::on_connect_flow_side_effects( DirectedEdge edge )
+{
+    ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
+    VERIFY( edge.head->adjacent_count() == 1, "TODO: Only implemented for single connections" );
+
+    Node* previous_node = edge.tail->node;
+    Node* next_node     = edge.head->node;
+
+    Scope* target_scope;
+    switch ( previous_node->type() )
     {
-        connect( parent_next_slot, new_child_prev_slot );
-        return;
-    }
-
-    // Case 2: Connects to the last child's "next" slot.
-    //         parent
-    //           - ...
-    //           - last child ->->->
-    //           - new child <-<-<-
-    Node* previous_child = *(parent->children().rbegin() + 1);
-    ASSERT( previous_child );
-
-    // Case 2.a: Connects to all last instructions' "next" slot (in last child's previous_child_scope).
-    //           parent
-    //             - ...
-    //             - previous_child
-    //                  - child 0
-    //                     - ...
-    //                     - instr n >->->->->
-    //                  - child 1
-    //                     - instr 0 >->->->->
-    //                  - ...
-    //                  - instr n ->->->->->->
-    //             - new child <-<-<-<-<-<-<-<
-    //
-    if ( previous_child->has_component<Scope>() )
-    {
-        auto previous_child_scope = previous_child->get_component<Scope>();
-        for (Node* each_instr : previous_child_scope->get_last_instructions_rec() )
+        // Blocks with multiple flow_out branches
+        case NodeType_BLOCK_IF:
+        case NodeType_BLOCK_WHILE_LOOP:
+        case NodeType_BLOCK_FOR_LOOP:
         {
-            Slot* each_instr_next_slot = each_instr->find_slot( SlotFlag_FREE_NEXT );
-            ASSERT(each_instr_next_slot);
-            connect( each_instr_next_slot, new_child_prev_slot );
+            Scope* inner_scope = previous_node->inner_scope();
+            ASSERT(inner_scope);
+            target_scope = inner_scope->child_at( edge.tail->position );
+            ASSERT(target_scope);
+            break;
         }
-        return;
-    }
-
-    // Case 2.b: Connects to last child's "next" slot.
-    //           parent
-    //             - ...
-    //             - previous_child ->->->
-    //             - new child <-<-<-<-<-<
-    //
-    Slot* last_sibling_next_slot = previous_child->find_slot( SlotFlag_FREE_NEXT );
-    connect( last_sibling_next_slot, new_child_prev_slot );
-}
-
-void Graph::on_connect_value_side_effects(Slot* value_out, Slot* value_in)
-{
-    //
-    // for debug purposes only
-    //
-    LOG_VERBOSE("Graph", "Two values have been connected\n");
-}
-
-void Graph::on_connect_codeflow_side_effects(Slot* prev_slot, Slot* next_slot)
-{
-    //
-    // This function handle side effects after a new codeflow connection has been made.
-    // It will create one or more hierarchical (PARENT/CHILD) connection(s) automatically.
-    //
-    Node* prev_node = prev_slot->node;
-    Node* next_node = next_slot->node;
-
-    // If previous node is a scope, connects next_node as child
-    if ( prev_node->has_component<Scope>() )
-    {
-        connect(prev_node->find_slot( SlotFlag_FREE_CHILD ),
-                next_node->find_slot( SlotFlag_PARENT ));
-        return;
-    }
-
-    // If next node parent exists, connects next_node as a child too
-    if ( Node* prev_parent_node = prev_node->parent() )
-    {
-        connect(prev_parent_node->find_slot( SlotFlag_FREE_CHILD ),
-                next_node->find_slot( SlotFlag_PARENT ));
-        return;
-    }
-
-    // Connect siblings
-    if ( Node* prev_parent_node = prev_node->parent() )
-    {
-        Node* current_prev_node_sibling = prev_node->successors().front();
-        while ( current_prev_node_sibling && current_prev_node_sibling->parent() )
+        case NodeType_ENTRY_POINT:
         {
-            connect(current_prev_node_sibling->find_slot( SlotFlag_FREE_CHILD ),
-                    prev_parent_node->find_slot( SlotFlag_PARENT ) );
-            current_prev_node_sibling = current_prev_node_sibling->successors().front();
+            target_scope = previous_node->inner_scope();
+            break;
+        }
+        default:
+        {
+            target_scope = previous_node->scope();
         }
     }
+
+    if ( target_scope )
+        target_scope->push_back(next_node);
 }
 
 void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
@@ -418,57 +411,30 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     m_edge_registry.erase(it);
 
     // disconnect the slots
-    Slot *tail = _edge.head;
-    Slot *head = _edge.tail;
-    ASSERT(tail != head);
-    ASSERT(head != nullptr);
-    ASSERT(tail != nullptr);
+    _edge.tail->remove_adjacent(_edge.head);
+    _edge.head->remove_adjacent(_edge.tail);
 
-    tail->remove_adjacent(head);
-    head->remove_adjacent(tail);
-
-    // disconnect effectively
-    switch ( type )
+    // handle side effects
+    if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS )
     {
-        case SlotFlag_TYPE_CODEFLOW:
+        switch ( type )
         {
-            ASSERT(_edge.head->has_flags(SlotFlag_PREV));
-            Node* next = _edge.head->node;
-            Node* next_parent = next->parent();
-            if ( flags & ConnectFlag_ALLOW_SIDE_EFFECTS && next_parent )
+            case SlotFlag_TYPE_FLOW:
             {
-                while ( next && next_parent == next->parent() )
-                {
-                    disconnect({
-                            next->parent()->find_slot( SlotFlag_CHILD ),
-                            next->find_slot( SlotFlag_PARENT )
-                    });
-
-                    std::vector<Node*> successors = next->successors();
-                    next = successors.begin() != successors.end() ? *successors.begin()
-                                                                  : nullptr;
-                }
+                on_disconnect_flow_side_effects(_edge);
+                break;
             }
-
-            break;
+            case SlotFlag_TYPE_VALUE:
+            {
+                // We keep the node in the scope until it gets connected to another node from another scope
+                break;
+            }
+            default:
+                VERIFY(!type, "Not yet implemented yet");
         }
-
-        case SlotFlag_TYPE_HIERARCHICAL:
-        case SlotFlag_TYPE_VALUE:
-            // None
-            break;
-        default:
-            VERIFY(!type, "Not yet implemented yet");
     }
 
     on_change.emit();
-}
-
-Node* Graph::create_scope()
-{
-    Node* scopeNode = m_factory->create_scope();
-    add(scopeNode);
-    return scopeNode;
 }
 
 IfNode* Graph::create_cond_struct()
@@ -492,9 +458,10 @@ WhileLoopNode* Graph::create_while_loop()
     return while_loop;
 }
 
-Node* Graph::create_root()
+Node* Graph::create_entry_point()
 {
-    Node* node = m_factory->create_program();
+    VERIFY( m_root.empty(), "Can't create a root child_node, already exists" );
+    Node* node = m_factory->create_entry_point();
     add(node);
     m_root = node;
     return node;
@@ -525,8 +492,7 @@ Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signa
         case CreateNodeType_BLOCK_CONDITION:  return create_cond_struct();
         case CreateNodeType_BLOCK_FOR_LOOP:   return create_for_loop();
         case CreateNodeType_BLOCK_WHILE_LOOP: return create_while_loop();
-        case CreateNodeType_BLOCK_SCOPE:      return create_scope();
-        case CreateNodeType_BLOCK_PROGRAM:    clear(); return create_root();
+        case CreateNodeType_BLOCK_ENTRY_POINT:clear(); return create_entry_point();
 
         case CreateNodeType_VARIABLE_BOOLEAN: return create_variable_decl<bool>();
         case CreateNodeType_VARIABLE_DOUBLE:  return create_variable_decl<double>();
@@ -562,22 +528,15 @@ VariableRefNode* Graph::create_variable_ref()
     return node;
 }
 
-VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const char*  _name, Scope*  _scope)
+VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const char*  _name)
 {
-    if( !_scope)
-    {
-        _scope = root()->get_component<Scope>();
-    }
-
     // Create variable
-    VariableNode* var_node = create_variable(_type, _name, _scope );
+    VariableNode* var_node = create_variable(_type, _name );
     var_node->set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
     Token token(Token_t::keyword_operator, " = ");
     token.word_move_begin(1);
     token.word_move_end(-1);
     var_node->set_operator_token( token );
-
-    // TODO: attach a default Literal?
 
     return var_node;
 }

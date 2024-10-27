@@ -86,7 +86,7 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_FOR_LOOP } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_WHILE_LOOP } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_PROGRAM } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_ENTRY_POINT } );
     // (to create variables)
     action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
@@ -172,7 +172,8 @@ void NodableView::draw()
 
     // note: we draw this view nested in base view's begin/end (similar to ImGui API).
     m_base_view.begin_draw();
-    
+    float dt = m_base_view.delta_time();
+
     EventManager*   event_manager   = get_event_manager();
     Config*         cfg             = get_config();
     Interpreter*    interpreter     = get_interpreter();
@@ -426,7 +427,7 @@ void NodableView::draw()
         auto ds_root = m_base_view.get_dockspace(AppView::Dockspace_ROOT);
         for ( File*each_file: m_app->get_files())
         {
-            draw_file_window(ds_root, redock_all, each_file);
+            draw_file_window( dt, ds_root, redock_all, each_file);
         }
 
         draw_file_info_window();
@@ -455,7 +456,7 @@ void NodableView::draw_help_window() const
         ImGui::PopFont();
         ImGui::NewLine();
         ImGui::TextWrapped(
-                "Nodable is node-able.\n"
+                "Nodable is child_node-able.\n"
                 "\n"
                 "Nodable allows you to edit a program using both text and graph paradigms."
                 "More precisely, it means:"
@@ -463,7 +464,7 @@ void NodableView::draw_help_window() const
         ImGuiEx::BulletTextWrapped("any change on the text will affect the graph");
         ImGuiEx::BulletTextWrapped("any change (structure or values) on the graph will affect the text");
         ImGuiEx::BulletTextWrapped(
-                "but keep in mind the state is the text, any change not affecting the text (such as node positions or orphan nodes) will be lost.");
+                "but keep in mind the state is the text, any change not affecting the text (such as child_node positions or orphan child_node) will be lost.");
         ImGui::NewLine();
         ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Quick start");
@@ -472,9 +473,9 @@ void NodableView::draw_help_window() const
         ImGui::TextWrapped("Nodable UI is designed as following:\n");
         ImGuiEx::BulletTextWrapped("On the left side a (light) text editor allows to edit source code.\n");
         ImGuiEx::BulletTextWrapped(
-                "At the center, there is the graph editor where you can create_new/delete/connect nodes\n");
+                "At the center, there is the graph editor where you can create_new/delete/connect child_node\n");
         ImGuiEx::BulletTextWrapped(
-                "On the right side (this side) you will find many tabs to manage additional config such as node, interpreter, or app properties\n");
+                "On the right side (this side) you will find many tabs to manage additional config such as child_node, interpreter, or app properties\n");
         ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
                                        " There, few buttons will serve to compile, run and debug your program.");
         ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
@@ -582,7 +583,7 @@ void NodableView::draw_interpreter_window()
         ImGui::SameLine();
         ImGuiEx::DrawHelper("%s", "This is the interpreter's CPU"
                                   "\nIt contains few registers to store temporary values "
-                                  "\nlike instruction pointer, last node's value or last comparison result");
+                                  "\nlike instruction pointer, last child_node's value or last comparison result");
         ImGui::Indent();
         {
             ImGui::Separator();
@@ -731,13 +732,11 @@ void NodableView::draw_startup_window(ImGuiID dockspace_id)
     ImGui::End(); // Startup Window
 }
 
-void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file)
+void NodableView::draw_file_window( float dt, ImGuiID dockspace_id, bool redock_all, File*file)
 {
-    Interpreter* interpreter = get_interpreter();
-
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
-    ImGuiWindowFlags window_flags =
-            (file->dirty ? ImGuiWindowFlags_UnsavedDocument : 0) | ImGuiWindowFlags_NoScrollbar;
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar
+                                  | ImGuiWindowFlags_UnsavedDocument * file->dirty;
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
@@ -763,19 +762,7 @@ void NodableView::draw_file_window(ImGuiID dockspace_id, bool redock_all, File*f
         draw_history_bar(file->history);
 
         // File View in the middle
-        ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
-        FontManager*  font_manager  = get_font_manager();
-        ImGui::PushFont(font_manager->get_font(FontSlot_Code));
-        const ImVec2 size = ImGui::GetContentRegionAvail();
-
-        ImGui::BeginChild("FileView", size, false, 0);
-        {
-            file->view.draw();
-        }
-        ImGui::EndChild();
-
-        ImGui::PopFont();
-        ImGui::PopStyleColor();
+        file->view.draw( dt );
     }
     ImGui::End(); // File Window
 
@@ -811,10 +798,10 @@ void NodableView::draw_config_window()
             if ( ImGui::CollapsingHeader("Colors", flags ))
             {
                 ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[NodeType_DEFAULT].x );
-                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[NodeType_BLOCK_CONDITION].x );
+                ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[NodeType_ENTRY_POINT].x );
+                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[NodeType_BLOCK_IF].x );
                 ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[NodeType_BLOCK_FOR_LOOP].x );
                 ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[NodeType_BLOCK_WHILE_LOOP].x );
-                ImGui::ColorEdit4("scope"       , &cfg->ui_node_fill_color[NodeType_BLOCK_SCOPE].x );
                 ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[NodeType_VARIABLE].x );
                 ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[NodeType_LITERAL].x );
                 ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[NodeType_FUNCTION].x );

@@ -51,138 +51,147 @@ void FileView::update(float dt)
     graph_view->update(dt);
 }
 
-void FileView::draw()
+void FileView::draw(float dt)
 {
-    Config* cfg = get_config();
-    const Vec2 margin(10.0f, 0.0f);
-    Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
-    Vec2 text_editor_size {m_child1_size, region_available.y};
-    Vec2 graph_editor_size{m_child2_size, region_available.y};
-    bool text_view_changed = false;
-    bool graph_view_changed = false;
+    ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
+    ImGui::PushFont( get_font_manager()->get_font(FontSlot_Code) );
 
-     // Splitter
-    //---------
-
-    if (m_child1_size + m_child2_size != region_available.x )
+    ImGui::BeginChild("FileView", ImGui::GetContentRegionAvail(), false, 0);
     {
-        float ratio = region_available.x / (m_child1_size + m_child2_size);
-        m_child1_size *= ratio;
-        m_child2_size *= ratio;
-    }
+        Config* cfg = get_config();
+        const Vec2 margin(10.0f, 0.0f);
+        Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
+        Vec2 text_editor_size {m_child1_size, region_available.y};
+        Vec2 graph_editor_size{m_child2_size, region_available.y};
+        bool text_view_changed = false;
+        bool graph_view_changed = false;
 
-    Rect splitter_rect{
-        ImGui::GetCursorScreenPos(),
-        (Vec2)ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
-    };
-    splitter_rect.translate_x( m_child1_size + 2.0f );
-    ImGui::SplitterBehavior(toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
+         // Splitter
+        //---------
 
-     // TEXT EDITOR
-    //------------
-
-    Vec2 text_editor_top_left_corner = ImGui::GetCursorPos();
-    ImGui::BeginChild("text_editor", text_editor_size, false);
-    {
-        auto old_cursor_position = m_text_editor.GetCursorPosition();
-        auto old_selected_text = m_text_editor.GetSelectedText();
-        auto old_line_text = m_text_editor.GetCurrentLineText();
-
-        bool is_running = get_interpreter()->is_program_running();
-        GraphView* graphview = m_file->graph().view();
-        auto allow_keyboard = !is_running &&
-                              !graphview->has_an_active_tool();
-
-        auto allow_mouse = !is_running &&
-                           !graphview->has_an_active_tool() &&
-                           !ImGui::IsAnyItemHovered() &&
-                           !ImGui::IsAnyItemFocused();
-
-        m_text_editor.SetHandleKeyboardInputs(allow_keyboard);
-        m_text_editor.SetHandleMouseInputs(allow_mouse);
-
-        // listen to clipboard in background (disable by default)
-        if (m_experimental_clipboard_auto_paste)
+        if (m_child1_size + m_child2_size != region_available.x )
         {
-            m_experimental_clipboard_curr = ImGui::GetClipboardText();
-            if (!m_experimental_clipboard_curr.empty() &&
-                m_experimental_clipboard_curr != m_experimental_clipboard_prev)
+            float ratio = region_available.x / (m_child1_size + m_child2_size);
+            m_child1_size *= ratio;
+            m_child2_size *= ratio;
+        }
+
+        Rect splitter_rect{
+            ImGui::GetCursorScreenPos(),
+            (Vec2)ImGui::GetCursorScreenPos() + Vec2(4.0f, region_available.y)
+        };
+        splitter_rect.translate_x( m_child1_size + 2.0f );
+        ImGui::SplitterBehavior(toImGui(splitter_rect), ImGui::GetID("file_splitter"), ImGuiAxis_X, &m_child1_size, &m_child2_size, 20.0f, 20.0f);
+
+         // TEXT EDITOR
+        //------------
+
+        Vec2 text_editor_top_left_corner = ImGui::GetCursorPos();
+        ImGui::BeginChild("text_editor", text_editor_size, false);
+        {
+            auto old_cursor_position = m_text_editor.GetCursorPosition();
+            auto old_selected_text = m_text_editor.GetSelectedText();
+            auto old_line_text = m_text_editor.GetCurrentLineText();
+
+            bool is_running = get_interpreter()->is_program_running();
+            GraphView* graphview = m_file->graph().view();
+            auto allow_keyboard = !is_running &&
+                                  !graphview->has_an_active_tool();
+
+            auto allow_mouse = !is_running &&
+                               !graphview->has_an_active_tool() &&
+                               !ImGui::IsAnyItemHovered() &&
+                               !ImGui::IsAnyItemFocused();
+
+            m_text_editor.SetHandleKeyboardInputs(allow_keyboard);
+            m_text_editor.SetHandleMouseInputs(allow_mouse);
+
+            // listen to clipboard in background (disable by default)
+            if (m_experimental_clipboard_auto_paste)
             {
-                if (!m_experimental_clipboard_prev.empty())
-                    m_text_editor.InsertText(m_experimental_clipboard_curr.c_str(), true);
-                m_experimental_clipboard_prev = std::move(m_experimental_clipboard_curr);
+                m_experimental_clipboard_curr = ImGui::GetClipboardText();
+                if (!m_experimental_clipboard_curr.empty() &&
+                    m_experimental_clipboard_curr != m_experimental_clipboard_prev)
+                {
+                    if (!m_experimental_clipboard_prev.empty())
+                        m_text_editor.InsertText(m_experimental_clipboard_curr.c_str(), true);
+                    m_experimental_clipboard_prev = std::move(m_experimental_clipboard_curr);
+                }
+            }
+
+            m_file->history.enable_text_editor(true); // ensure to begin to record history
+
+            // render text editor
+            m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
+
+            // overlay
+            Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
+            overlay_rect.expand( Vec2( -2.f * cfg->ui_overlay_margin ) ); // margin
+            draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
+            ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
+
+            if ( cfg->flags & ConfigFlag_EXPERIMENTAL_MULTI_SELECTION )
+            {
+                m_file->history.enable_text_editor(false); // avoid recording events caused by graph serialisation
+            }
+
+            auto new_cursor_position = m_text_editor.GetCursorPosition();
+            auto new_selected_text   = m_text_editor.GetSelectedText();
+            auto new_line_text       = m_text_editor.GetCurrentLineText();
+
+            auto is_line_text_modified = new_line_text != old_line_text &&
+                                         new_cursor_position.mLine == old_cursor_position.mLine;
+            auto is_selected_text_modified = new_cursor_position != old_cursor_position;
+
+            text_view_changed = is_line_text_modified;
+            text_view_changed |=  m_text_editor.IsTextChanged();
+            text_view_changed |= cfg->isolation && is_selected_text_modified;
+        }
+        ImGui::EndChild();
+
+         // NodeViewItem EDITOR
+        //-------------
+
+        Graph&     graph      = m_file->graph();
+        GraphView* graph_view = graph.view();
+
+        ASSERT(graph_view);
+
+        ImGui::SameLine();
+        LOG_VERBOSE("FileView", "graph_node_view->update_world_matrix()\n");
+        ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+
+        Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
+
+        ImGui::BeginChild("graph", graph_editor_size, false, flags);
+        {
+            // Draw graph
+            graph_view_changed |= graph_view->draw(dt);
+
+            // Draw overlay: shortcuts
+            Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
+            overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
+            draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
+            ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
+
+            // Draw overlay: isolation mode ON/OFF
+            if( cfg->isolation )
+            {
+                Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_overlay_margin);
+                ImGui::SetCursorPos(cursor_pos);
+                ImGui::Text("Isolation mode ON");
             }
         }
+        ImGui::EndChild();
 
-        m_file->history.enable_text_editor(true); // ensure to begin to record history
-
-        // render text editor
-        m_text_editor.Render("Text Editor Plugin", ImGui::GetContentRegionAvail());
-
-        // overlay
-        Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
-        overlay_rect.expand( Vec2( -2.f * cfg->ui_overlay_margin ) ); // margin
-        draw_overlay(m_text_overlay_window_name.c_str(), m_overlay_data[OverlayType_TEXT], overlay_rect, Vec2(0, 1));
-        ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
-
-        if ( cfg->flags & ConfigFlag_EXPERIMENTAL_MULTI_SELECTION )
-        {
-            m_file->history.enable_text_editor(false); // avoid recording events caused by graph serialisation
-        }
-
-        auto new_cursor_position = m_text_editor.GetCursorPosition();
-        auto new_selected_text   = m_text_editor.GetSelectedText();
-        auto new_line_text       = m_text_editor.GetCurrentLineText();
-
-        auto is_line_text_modified = new_line_text != old_line_text &&
-                                     new_cursor_position.mLine == old_cursor_position.mLine;
-        auto is_selected_text_modified = new_cursor_position != old_cursor_position;
-
-        text_view_changed = is_line_text_modified;
-        text_view_changed |=  m_text_editor.IsTextChanged();
-        text_view_changed |= cfg->isolation && is_selected_text_modified;
+        if ( text_view_changed )
+            on_text_view_changed.emit();
+        if ( graph_view_changed )
+            on_graph_view_changed.emit();
     }
     ImGui::EndChild();
-
-     // NodeViewItem EDITOR
-    //-------------
-
-    Graph&     graph      = m_file->graph();
-    GraphView* graph_view = graph.view();
-
-    ASSERT(graph_view);
-
-    ImGui::SameLine();
-    LOG_VERBOSE("FileView", "graph_node_view->update_world_matrix()\n");
-    ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
-    Vec2 graph_editor_top_left_corner = ImGui::GetCursorPos();
-
-    ImGui::BeginChild("graph", graph_editor_size, false, flags);
-    {
-        // Draw graph
-        graph_view_changed |= graph_view->draw();
-
-        // Draw overlay: shortcuts
-        Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
-        overlay_rect.expand( Vec2( -2.0f * cfg->ui_overlay_margin ) ); // margin
-        draw_overlay(m_graph_overlay_window_name.c_str(), m_overlay_data[OverlayType_GRAPH], overlay_rect, Vec2(1, 1));
-        ImGuiEx::DebugRect( overlay_rect.min, overlay_rect.max, IM_COL32( 255, 255, 0, 127 ) );
-
-        // Draw overlay: isolation mode ON/OFF
-        if( cfg->isolation )
-        {
-            Vec2 cursor_pos = graph_editor_top_left_corner + Vec2( cfg->ui_overlay_margin);
-            ImGui::SetCursorPos(cursor_pos);
-            ImGui::Text("Isolation mode ON");
-        }
-    }
-    ImGui::EndChild();
-
-    if ( text_view_changed )
-        on_text_view_changed.emit();
-    if ( graph_view_changed )
-        on_graph_view_changed.emit();
+    ImGui::PopFont();
+    ImGui::PopStyleColor();
 }
 
 std::string FileView::get_text( Isolation mode )const
@@ -249,6 +258,26 @@ void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 	this->m_text_editor.SetExternalUndoBuffer(_buffer);
 }
 
+void draw_scope(const Scope* scope)
+{
+    if ( ImGui::TreeNode( scope->name() ) )
+    {
+        if ( ImGui::TreeNode("children", "children (%zu)", scope->child_scope().size()) )
+        {
+            for ( const Scope* child : scope->child_scope() )
+                draw_scope(child);
+            ImGui::TreePop();
+        }
+        if (  ImGui::TreeNode("child_node", "child_node (%zu)", scope->child_node().size())  )
+        {
+            for ( const Node* node : scope->child_node() )
+                ImGui::BulletText("%s (class %s)", node->name().c_str(), node->get_class()->get_name() );
+            ImGui::TreePop();
+        }
+        ImGui::TreePop();
+    }
+}
+
 void FileView::draw_info_panel() const
 {
     // Basic information
@@ -282,6 +311,10 @@ void FileView::draw_info_panel() const
 
         ImGui::TreePop();
     }
+
+    // Hierarchy
+    if ( Scope* main_scope = m_file->graph().main_scope() )
+        draw_scope(main_scope);
 }
 
 void FileView::experimental_clipboard_auto_paste(bool _enable)

@@ -119,7 +119,6 @@ TEST_F(Language_parse_and_serialize, parse_serialize_empty_program_with_space )
 
 TEST_F(Language_parse_and_serialize, parse_serialize_single_line_program_with_a_comment_before )
 {
-    log::set_verbosity("Parser", log::Verbosity_Verbose);
     std::string program =
             "// comment\n"
             "int a = 42;";

@@ -12,7 +12,7 @@ namespace ndbl
     class InstructionNode;
     class Node;
     class Property;
-    class Scope;
+    struct Scope;
 
     /**
      * @class Class to compile a syntax tree (Graph) to a simple instruction list (Assembly::Code)
@@ -27,7 +27,7 @@ namespace ndbl
         void compile_node( const Node*);                                          // Compile a node recursively, result depends on node type.
         void compile_input_slot(const Slot*);                                     // Compile from a Slot recursively (slot must be an OUTPUT).
         void compile_output_slot(const Slot*);                                    // Compile from a Slot recursively (slot must be an INPUT).
-        void compile_scope(const Scope*, bool _insert_fake_return = false);       // Compile a scope recursively, optionally insert a fake return statement (lack of return" keyword").
+        void compile_inner_scope(const Node*, bool _insert_fake_return = false);  // Compile a scope recursively, optionally insert a fake return statement (lack of return" keyword").
         void compile_instruction_as_condition(const Node* );                      // Compile an instruction as a condition (stores result in a register)
         void compile_for_loop(const ForLoopNode*);                                // Compile a "for loop" recursively (initial, condition, iterative instructions and inner scope).
         void compile_while_loop(const WhileLoopNode*);                            // Compile a "while loop" recursively (initial, condition, iterative instructions and inner scope).

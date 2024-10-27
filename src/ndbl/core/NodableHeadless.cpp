@@ -28,12 +28,7 @@ void NodableHeadless::shutdown()
 
 std::string& NodableHeadless::serialize( std::string& out ) const
 {
-    if ( Node* root = m_graph->root().data() )
-    {
-        return m_language->_serialize_node(out, root, SerializeFlag_RECURSE );
-    }
-    LOG_WARNING("NodableHeadless", "Trying to serialize a Graph with no root Node. Passing the string out...");
-    return out;
+    return m_language->serialize_graph(out, m_graph);
 }
 
 Graph* NodableHeadless::parse( const std::string& code )

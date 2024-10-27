@@ -7,7 +7,6 @@
 #include "tools/core/memory/memory.h"
 
 #include "ForLoopNode.h"
-#include "IScope.h"
 #include "IfNode.h"
 #include "VariableNode.h"
 #include "Utils.h"
@@ -20,98 +19,198 @@ REFLECT_STATIC_INIT
     type::Initializer<Scope>("Scope");
 }
 
-Scope::Scope()
-    : NodeComponent()
-{
-}
-
-VariableNode* Scope::find_variable(const std::string &_identifier)
+VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flags )
 {
     // Try first to find in this scope
-    for(auto it = m_variables.begin(); it < m_variables.end(); it++)
+    for(auto it = m_var.begin(); it != m_var.end(); it++)
         if ( (*it)->get_identifier() == _identifier )
             return *it;
 
-    // In case not found, find recursively
-    Node* parent = m_owner->parent();
-    ASSERT(parent != m_owner);
-    if ( !parent )
-        return nullptr;
-    auto* scope = parent->get_component<Scope>();
-    if ( !scope )
-        return nullptr;
-    ASSERT(scope != this);
-    return scope->find_variable( _identifier );
+    // not found? => recursive call in parent ...
+    if ( m_parent && flags & ScopeFlags_RECURSE )
+        return m_parent->find_var(_identifier );
+
+    return nullptr;
 }
 
-void Scope::add_variable(VariableNode* _variable)
+void Scope::push_back_ex(Node *node, ScopeFlags flags)
 {
-    if (find_variable(_variable->get_identifier()) != nullptr )
+    ASSERT(node);
+
+    if ( node->scope() )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same scope.\n", _variable->get_identifier().c_str());
+        if ( flags & ScopeFlags_ALLOW_CHANGE )
+            node->scope()->remove( node );
+        else
+            ASSERT(false); // Not handled yet
     }
-    else if ( _variable->get_scope() )
+
+
+    if ( node->type() == NodeType_VARIABLE )
     {
-        LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another scope. Remove it first.\n", _variable->get_identifier().c_str());
+        auto variable_node = static_cast<VariableNode*>( node );
+        if (find_var(variable_node->get_identifier()) != nullptr )
+        {
+            LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same inner_scope.\n", variable_node->get_identifier().c_str());
+            // we do not return, graph is abstract, it just won't compile ...
+        }
+        else if (variable_node->scope() )
+        {
+            LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another inner_scope. Remove it first.\n", variable_node->get_identifier().c_str());
+            // we do not return, graph is abstract, it just won't compile ...
+        }
+        else
+        {
+            LOG_VERBOSE("Scope", "Add '%s' variable to the inner_scope\n", variable_node->get_identifier().c_str() );
+            m_var.insert(variable_node);
+        }
     }
-    else
+
+    // Insert the node in this scope
+    node->set_scope(this);
+    m_child_node.insert(node );
+
+    // If node have an inner scope, we simply reset its parent
+    if ( node->inner_scope() )
     {
-        LOG_VERBOSE("Scope", "Add variable '%s' to the scope\n", _variable->get_identifier().c_str() );
-        m_variables.push_back(_variable);
-        _variable->reset_scope(this);
+        node->inner_scope()->reset_parent(this);
     }
+    // otherwise we migh do a recursive call
+    else if ( flags & ScopeFlags_RECURSE )
+    {
+        LOG_VERBOSE("Scope", "Push back recursively Node '%s' inputs ...\n", node->name().c_str() );
+        for ( Node* input : node->inputs() )
+            push_back_ex(input, flags);
+        LOG_VERBOSE("Scope", OK "%s's input(s) pushed.\n", node->name().c_str() );
+
+        LOG_VERBOSE("Scope", "Push back recursively Node '%s' flow_out ...\n", node->name().c_str() );
+        for ( Node* next : node->flow_outputs() )
+            push_back_ex(next, flags);
+        LOG_VERBOSE("Scope", OK "%s's flow_out(s) pushed.\n", node->name().c_str() );
+    }
+
+    on_change.emit();
 }
 
-std::vector<Node*>& Scope::get_last_instructions_rec( std::vector<Node*>& _out)
+std::vector<Node*> Scope::last_instr()
 {
-    std::vector<Node*> children = m_owner->children();
+    std::vector<Node*> result;
+    last_instr_ex(result);
+    return result;
+}
 
-    if ( children.empty() )
+std::vector<Node*>& Scope::last_instr_ex(std::vector<Node*>& out)
+{
+    if ( m_child_node.empty() )
     {
-        return _out;
+        return out;
     }
 
     // Recursive call for nested scopes
-    for( size_t i = 0; i < children.size(); ++i )
+    for( Node* child : m_child_node )
     {
-        ASSERT(children[i]);
-        if ( Scope* scope = children[i]->get_component<Scope>() )
+        if ( Scope* inner_scope = child->inner_scope() )
         {
-            scope->get_last_instructions_rec(_out); // Recursive call on nested scopes
+            inner_scope->last_instr_ex( out ); // Recursive call on nested scopes
         }
-        else if ( i == children.size() - 1 && Utils::is_instruction( children[i] ) ) // last instruction ?
+        else if (child == *m_child_node.rbegin() && Utils::is_instruction(child ) ) // last instruction ?
         {
-            _out.push_back( children[i] ); // Append the last instruction to the result
+            out.push_back( child ); // Append the last instruction to the result
         }
     }
 
-    return _out;
+    return out;
 }
 
-void Scope::remove_variable(VariableNode* _variable)
+void Scope::remove_ex(Node* node, ScopeFlags flags)
 {
-    ASSERT(_variable != nullptr);
-    ASSERT(_variable->get_scope() == this);
-    auto found = std::find(m_variables.begin(), m_variables.end(), _variable);
-    ASSERT(found != m_variables.end());
-    _variable->reset_scope();
-    m_variables.erase( found );
-}
+    ASSERT(node != nullptr);
 
-size_t Scope::remove_all_variables()
-{
-    size_t count = m_variables.size();
-    for(VariableNode* each_variable : m_variables)
+    if ( node->scope() != this || node->scope() == nullptr )
+        return;
+
+    // if it's a variable, we remove it from the vars registry
+    if ( node->type() == NodeType_VARIABLE )
     {
-        each_variable->reset_scope();
+        auto it = std::find(m_var.begin(), m_var.end(), node);
+        if (it != m_var.end() ) // might be false, see add()
+            m_var.erase( it );
     }
-    m_variables.clear();
+
+    // remove the node from the registry
+    auto it = std::find(m_child_node.begin(), m_child_node.end(), node);
+    if (it != m_child_node.end() ) // might be false, see add()
+        m_child_node.erase(it );
+
+    // reset scope
+    node->set_scope(nullptr);
+
+    // if we got an inner scope, we reset it and stop there.
+    if ( node->inner_scope() )
+    {
+        node->inner_scope()->reset_parent(nullptr );
+    }
+    // if not, we might do a recursive call
+    else if ( flags & ScopeFlags_RECURSE )
+    {
+        for ( Node* input : node->inputs() )
+            remove_ex(input, flags);
+
+        for ( Node* next : node->flow_outputs() )
+            remove_ex(next, flags);
+    }
+
+    on_change.emit();
+}
+
+size_t Scope::remove_all()
+{
+    size_t count = m_var.size();
+
+    while( !m_child_node.empty() )
+    {
+        remove_ex(*m_child_node.begin(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
+    }
+
     return count;
 }
 
-std::vector<Node*> Scope::get_last_instructions_rec()
+void Scope::reset_parent(Scope *parent)
 {
-    std::vector<Node*> result;
-    get_last_instructions_rec(result);
+    // remove from current parent's children
+    if ( m_parent )
+    {
+        auto it = std::find(m_parent->m_child_scope.begin(), m_parent->m_child_scope.end(), this );
+        if ( it != m_parent->m_child_scope.end() )
+            m_parent->m_child_scope.erase(it );
+    }
+
+    // add to new parent's children
+    if ( parent )
+        parent->m_child_scope.push_back(this);
+
+    m_parent = parent;
+}
+
+bool Scope::empty_ex(ScopeFlags flags) const
+{
+    bool result = empty();
+
+    if ( !result )
+    {
+        return result;
+    }
+    else if ( flags & ScopeFlags_RECURSE_IF_SAME_NODE )
+    {
+        for(Scope* child : m_child_scope )
+            if ( child->m_owner == m_owner )
+                result = result && child->empty_ex( flags );
+    }
+    else if ( flags & ScopeFlags_RECURSE )
+    {
+        for(Scope* child : m_child_scope )
+            result = result && child->empty_ex( flags );
+    }
+
     return result;
 }

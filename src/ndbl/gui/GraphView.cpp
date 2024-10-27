@@ -21,6 +21,7 @@
 #include "SlotView.h"
 #include "ndbl/core/ComponentFactory.h"
 #include "tools/core/StateMachine.h"
+#include "ScopeView.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -67,7 +68,7 @@ GraphView::GraphView(Graph* graph)
     m_state_machine.start();
 
     CONNECT(graph->on_add    , &GraphView::decorate );
-    CONNECT(graph->on_change , &GraphView::reset_physics);
+    CONNECT(graph->on_change , &GraphView::_on_graph_change);
     CONNECT(graph->on_reset  , &GraphView::reset);
 }
 
@@ -82,6 +83,7 @@ void GraphView::decorate(Node* node)
 {
     ComponentFactory* component_factory = get_component_factory();
 
+    // add NodeView & Physics component
     auto nodeview = component_factory->create<NodeView>();
     auto physics  = component_factory->create<Physics>( nodeview );
 
@@ -89,6 +91,22 @@ void GraphView::decorate(Node* node)
     node->add_component( physics );
 
     add_child( nodeview );
+
+    // add a ScopeView for the inner scope and any child that is owned by this node too
+    if ( Scope* scope = node->inner_scope() )
+    {
+        ScopeView* scopeview = component_factory->create<ScopeView>( scope );
+        node->add_component( scopeview );
+
+        for ( Scope* child_scope : scope->child_scope() )
+        {
+            if ( child_scope->get_owner() == node )
+            {
+                ScopeView* childview = component_factory->create<ScopeView>( child_scope );
+                node->add_component( childview );
+            }
+        }
+    }
 }
 
 ImGuiID make_wire_id(const Slot *ptr1, const Slot *ptr2)
@@ -110,7 +128,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     style.shadow_color = cfg->ui_codeflow_shadowColor,
     style.roundness    = 0.f;
 
-    if (from->slot->type() == SlotFlag_TYPE_CODEFLOW) {
+    if (from->slot->type() == SlotFlag_TYPE_FLOW) {
         style.color = cfg->ui_codeflow_color,
                 style.thickness = cfg->ui_slot_rectangle_size.x * cfg->ui_codeflow_thickness_ratio;
     } else {
@@ -131,7 +149,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     ImGuiEx::DrawWire(id, ImGui::GetWindowDrawList(), segment, style);
 }
 
-bool GraphView::draw()
+bool GraphView::draw(float dt)
 {
     bool changed = false;
 
@@ -161,6 +179,19 @@ bool GraphView::draw()
             ImGui::GetColorU32(cfg->ui_graph_grid_color_major),
             ImGui::GetColorU32(cfg->ui_graph_grid_color_minor));
 
+    // Draw Scopes
+    // main
+    if ( Scope* main_scope = graph()->main_scope() )
+        if ( ScopeView* scope_view = main_scope->view() )
+            scope_view->draw( dt, ScopeViewFlags_RECURSE);
+    // and any orphan inner scope
+    for( Node* node : graph()->get_node_registry() )
+        if ( !graph()->is_root( node ) )
+            if ( node->inner_scope() )
+                if ( node->inner_scope()->parent() == nullptr )
+                    if ( ScopeView* view = node->inner_scope()->view() )
+                        view->draw( dt, ScopeViewFlags_RECURSE );
+
     // Draw Wires (code flow ONLY)
     const ImGuiEx::WireStyle code_flow_style{
             cfg->ui_codeflow_color,
@@ -177,7 +208,7 @@ bool GraphView::draw()
             continue;
         }
 
-        std::vector<Slot *> slots = each_node->filter_slots(SlotFlag_NEXT);
+        std::vector<Slot *> slots = each_node->filter_slots(SlotFlag_FLOW_OUT);
         for (size_t slot_index = 0; slot_index < slots.size(); ++slot_index)
         {
             Slot *slot = slots[slot_index];
@@ -387,16 +418,8 @@ void GraphView::_update(float dt)
 {
     // 1. Update Physics Components
     std::vector<Physics*> physics_components = Utils::get_components<Physics>( m_graph->get_node_registry() );
-    // 1.1 Apply constraints (but apply no translation, we want to be sure order does no matter)
-    for (auto physics_component : physics_components)
-    {
-        physics_component->apply_constraints(dt);
-    }
-    // 1.3 Apply forces (translate views)
-    for(auto physics_component : physics_components)
-    {
-        physics_component->apply_forces(dt);
-    }
+    Physics::update( dt, physics_components, m_physics_dirty );
+    m_physics_dirty = false;
 
     // 2. Update NodeViews
     std::vector<NodeView*> nodeview_components = Utils::get_components<NodeView>( m_graph->get_node_registry() );
@@ -515,11 +538,9 @@ bool GraphView::selection_empty() const
     return m_selected_nodeview.empty();
 }
 
-void GraphView::reset_physics()
+void GraphView::_on_graph_change()
 {
-    auto physics_components = Utils::get_components<Physics>(m_graph->get_node_registry() );
-    Physics::destroy_constraints( physics_components );
-    Physics::create_constraints(m_graph->get_node_registry() );
+    m_physics_dirty = true;
 }
 
 void GraphView::reset()
@@ -535,7 +556,7 @@ void GraphView::reset()
     NodeView::translate(get_all_nodeviews(), far_outside);
 
     // physics
-    reset_physics();
+    m_physics_dirty = true;
 
     // frame all (100ms delayed to ensure layout is correct)
     get_event_manager()->dispatch_delayed<Event_FrameSelection>( 100, { FRAME_ALL } );
@@ -567,7 +588,7 @@ Graph *GraphView::graph() const
 
 void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview)
 {
-    ImGuiEx::ColoredShadowedText( Vec2(1, 1), Color(0, 0, 0, 255), Color(255, 255, 255, 127), "Create new node :");
+    ImGuiEx::ColoredShadowedText( Vec2(1, 1), Color(0, 0, 0, 255), Color(255, 255, 255, 127), "Create new child_node :");
     ImGui::Separator();
 
     if (Action_CreateNode* triggered_action = menu.draw_search_input( dragged_slotview, 10))
@@ -900,5 +921,12 @@ void GraphView::update(float dt)
     // Do the update(s)
     for(size_t i = 0; i < sample_count; ++i)
         _update(sample_dt);
+
+    // Update ScopeViews
+    for( Node* node : graph()->get_node_registry() )
+        if ( node->inner_scope() )
+            if ( node->inner_scope()->parent() == nullptr )
+                if ( ScopeView* view = node->inner_scope()->view() )
+                    view->update( dt, ScopeViewFlags_RECURSE );
 }
 

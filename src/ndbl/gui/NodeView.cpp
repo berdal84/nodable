@@ -89,17 +89,15 @@ std::string NodeView::get_label()
                 return "f(x)";
             return node()->name();
         }
-        case NodeType_BLOCK_SCOPE:
+        case NodeType_ENTRY_POINT:
         {
             if ( minimalist )
             {
-                if (graph_view()->graph()->root() == node() )
-                    return node()->name().substr(0, 6); // 4 char for the icon
-                return "{}";
+                return node()->name().substr(0, 6); // 4 char for the icon
             }
             return node()->name();
         }
-        case NodeType_BLOCK_CONDITION:
+        case NodeType_BLOCK_IF:
         {
             if ( minimalist )
                 return "?";
@@ -154,13 +152,13 @@ void NodeView::set_owner(Node* owner)
 
         switch ( owner->type() )
         {
+            case NodeType_ENTRY_POINT:
             case NodeType_FUNCTION:
             case NodeType_OPERATOR:
             case NodeType_BLOCK_FOR_LOOP:
-            case NodeType_BLOCK_CONDITION:
-            case NodeType_BLOCK_SCOPE:
+            case NodeType_BLOCK_IF:
             case NodeType_BLOCK_WHILE_LOOP:
-                // we don't need to actually see this view for now
+                // hide THIS property
                 if ( property->has_flags(PropertyFlag_IS_NODE_VALUE) )
                     new_view->view_state()->visible = false;
         }
@@ -198,34 +196,29 @@ void NodeView::set_owner(Node* owner)
 
     static const std::unordered_map<SlotFlags, ShapeType> shape_per_type
     {
-        { SlotFlag_TYPE_CODEFLOW    , ShapeType_RECTANGLE },
-        { SlotFlag_TYPE_VALUE       , ShapeType_CIRCLE },
-        { SlotFlag_TYPE_HIERARCHICAL, ShapeType_NONE },
+        { SlotFlag_TYPE_FLOW , ShapeType_RECTANGLE },
+        { SlotFlag_TYPE_VALUE, ShapeType_CIRCLE },
     };
 
     static const std::unordered_map<SlotFlags, Vec2> align_per_type
     {
-        { SlotFlag_INPUT  , TOP },
-        { SlotFlag_OUTPUT , BOTTOM },
-        { SlotFlag_PREV   , TOP_LEFT },
-        { SlotFlag_NEXT   , BOTTOM_LEFT }
+        {SlotFlag_INPUT  ,     TOP },
+        {SlotFlag_OUTPUT ,     BOTTOM },
+        {SlotFlag_FLOW_IN   ,  TOP_LEFT },
+        {SlotFlag_FLOW_OUT   , BOTTOM_LEFT }
     };
 
     std::unordered_map<SlotFlags, u8_t> count_per_type
     {
-        { SlotFlag_NEXT   , 0 },
-        { SlotFlag_PREV   , 0 },
-        { SlotFlag_INPUT  , 0 },
-        { SlotFlag_OUTPUT , 0 }
+        {SlotFlag_FLOW_OUT   , 0 },
+        {SlotFlag_FLOW_IN   ,  0 },
+        {SlotFlag_INPUT  ,     0 },
+        {SlotFlag_OUTPUT ,     0 }
     };
 
     // Create a view per slot
     for( Slot* slot : node()->slots() )
     {
-        // We don't want to see hierarchical slots
-        if ( slot->type() == SlotFlag_TYPE_HIERARCHICAL )
-            continue;
-
         const Vec2&      alignment     = align_per_type.at(slot->type_and_order());
         const ShapeType& shape         = shape_per_type.at(slot->type());
         const u8_t       index         = count_per_type[slot->type_and_order()]++;
@@ -296,10 +289,10 @@ void NodeView::arrange_recursively(bool _smoothly)
                 each_input->arrange_recursively();
     }
 
-    for (auto each_child: get_adjacent(SlotFlag_CHILD)  )
-    {
-        each_child->arrange_recursively();
-    }
+    if ( Scope* scope = node()->inner_scope() )
+        for ( Node* node : scope->child_node() )
+            if ( NodeView* node_view = node->get_component<NodeView>() )
+                    node_view->arrange_recursively();
 
     // Force an update of input nodes with a delta time extra high
     // to ensure all nodes will be well-placed in a single call (no smooth moves)
@@ -616,6 +609,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         ImGui::Text("Suffix token:\n       %s\n" , node->suffix().json().c_str());
         ImGui::Text("can_be_instruction(): %i"   , Utils::can_be_instruction( node ) );
         ImGui::Text("is_instruction():     %i"   , Utils::is_instruction( node ));
+
         // Draw exposed output properties
         if( ImGui::TreeNode("Other Properties") )
         {
@@ -655,12 +649,10 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
                 ImGui::TreePop();
             };
 
-            draw_node_list("Inputs:"      , node->inputs() );
-            draw_node_list("Outputs:"     , node->outputs() );
-            draw_node_list("Predecessors:", node->predecessors() );
-            draw_node_list("Successors:"  , node->successors() );
-            draw_node_list("Children:"    , node->children() );
-
+            draw_node_list("Inputs:"     , node->inputs() );
+            draw_node_list("Outputs:"    , node->outputs() );
+            draw_node_list("FlowInputs:" , node->flow_inputs() );
+            draw_node_list("FlowOutputs:", node->flow_outputs() );
             ImGui::TreePop();
         }
 
@@ -681,17 +673,36 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         }
 
         // Scope specific:
-        if (Scope* scope = node->get_component<Scope>())
+        if ( node->inner_scope() && ImGui::TreeNode("InnerScope") )
         {
-            if( ImGui::TreeNode("Variables") )
+            if( ImGui::TreeNode("Children") )
             {
-                for (VariableNode* variable : scope->variables())
+                for ( Node* child : node->inner_scope()->child_node() )
                 {
-                    std::string value = variable->value()->token().word_to_string();
-                    ImGui::BulletText("%s: %s", variable->name().c_str(), value.c_str() );
+                    ImGui::BulletText("%s (class %s)", child->name().c_str(), child->get_class()->get_name() );
                 }
                 ImGui::TreePop();
             }
+
+            if( ImGui::TreeNode("Variables ONLY") )
+            {
+                for (VariableNode* variable : node->inner_scope()->vars() )
+                {
+                    std::string value = variable->value()->token().word_to_string();
+                    ImGui::BulletText("%s (value: %s)", variable->name().c_str(), value.c_str() );
+                }
+                ImGui::TreePop();
+            }
+            ImGui::TreePop();
+        }
+
+        if ( ImGui::TreeNode("Scope") )
+        {
+            if ( node->scope() )
+                ImGui::BulletText("%s", node->scope()->name());
+            else
+                ImGui::BulletText("None");
+            ImGui::TreePop();
         }
 
         if( ImGui::TreeNode("Misc:") )
@@ -700,24 +711,6 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
             ImGui::Separator();
             bool b = node->has_flags(NodeFlag_IS_DIRTY);
             ImGui::Checkbox("Is dirty ?", &b);
-
-            // Parent graph
-            {
-                ImGui::Text("Parent graph is \"%s\"", node->graph() ? "Graph" : "nullptr");
-            }
-
-            // Parent
-            ImGui::Separator();
-            {
-                std::string parentName = "NULL";
-
-                if (Node* parent = node->parent() )
-                {
-                    parentName = parent->name() + (parent->has_flags(NodeFlag_IS_DIRTY) ? " (dirty)" : "");
-                }
-                ImGui::Text("Parent node is \"%s\"", parentName.c_str());
-            }
-            ImGui::TreePop();
         }
     }
     ImGui::Separator();
@@ -783,8 +776,10 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         }
     };
 
-    const std::vector<Node*>& children = node()->children();
-    std::for_each(children.begin(), children.end(), visit );
+    if ( Scope* scope = node()->inner_scope() )
+    {
+        std::for_each(scope->child_node().begin(), scope->child_node().end(), visit );
+    }
 
     const std::vector<Node*>& inputs = node()->inputs();
     std::for_each(inputs.begin(), inputs.end()  , visit );
@@ -834,9 +829,13 @@ std::vector<Rect> NodeView::get_rects(const std::vector<NodeView*>& _in_views, S
 void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
-    for(NodeView* each_child_view : get_adjacent(SlotFlag_CHILD) )
+
+    if ( !node()->inner_scope() )
+        return;
+
+    for(Node* child : node()->inner_scope()->child_node() )
     {
-        each_child_view->set_expanded_rec(_expanded);
+        child->get_component<NodeView>()->set_expanded_rec(_expanded);
     }
 }
 
@@ -854,7 +853,16 @@ void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 
 void NodeView::set_children_visible(bool _visible, bool _recursive)
 {
-    set_adjacent_visible( SlotFlag_CHILD, _visible, NodeViewFlag_WITH_RECURSION * _recursive );
+    m_view_state.visible = _visible;
+
+    if ( !_recursive || !node()->inner_scope() )
+        return;
+
+    // recursively
+    for(Node* child : node()->inner_scope()->child_node() )
+    {
+        child->get_component<NodeView>()->set_children_visible(_visible, _recursive);
+    }
 }
 
 void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeViewFlags node_flags)
@@ -892,24 +900,9 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    Node* parent = _view->node()->parent();
-    if ( !parent )
-    {
-        return _view;
-    }
+    ASSERT(false); // not reimplemented yet
 
-    NodeView* parent_view = parent->get_component<NodeView>();
-    if ( !parent_view )
-    {
-        return _view;
-    }
-
-    if (  _recursive )
-    {
-        return substitute_with_parent_if_not_visible(parent_view, _recursive);
-    }
-
-    return parent_view;
+    return nullptr;
 }
 
 std::vector<NodeView*> NodeView::substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recursive)

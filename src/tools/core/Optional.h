@@ -12,13 +12,14 @@ namespace tools
     template< typename TPtr, typename T = std::remove_pointer_t<TPtr> >
     struct Optional
     {
-
         static_assert( std::is_pointer_v<TPtr>, "Implemented for pointers only" );
 
         inline constexpr          Optional(): _value(nullptr) {}
         inline constexpr          Optional(nullptr_t): _value(nullptr){}
         inline constexpr          Optional(TPtr ptr): _value(ptr){}
         inline constexpr          Optional(const Optional<TPtr>& other): _value(other._value){}
+        template<typename TOther>
+        inline constexpr          Optional(const Optional<TOther>& other): _value( other.data() ){}
 
         inline constexpr TPtr     data() const { return _value; } // like a no-check get()
         inline constexpr TPtr     get() const { VERIFY(valid(), "no value hold"); return _value; }

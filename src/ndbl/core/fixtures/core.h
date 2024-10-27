@@ -18,7 +18,6 @@ public:
 
     Core()
     {
-        //tools::log::set_verbosity( tools::log::Verbosity_Verbose );
     }
 
     void SetUp()
@@ -26,6 +25,9 @@ public:
         app.init();
         // in some tests, we call directly some method on the language that requires we pass a Graph* ahead of time
         app.get_language()->parser_state.reset_graph( app.get_graph() );
+
+        tools::log::set_verbosity( tools::log::Verbosity_Message );
+        tools::log::set_verbosity( "Parser", tools::log::Verbosity_Verbose );
     }
 
     void TearDown()
@@ -45,7 +47,7 @@ public:
     template<typename return_t>
     return_t eval(const std::string &_source_code)
     {
-        static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving this scope)");
+        static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving this inner_scope)");
 
         // parse
         Graph* graph = app.parse(_source_code);

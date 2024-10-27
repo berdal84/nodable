@@ -30,15 +30,15 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
             case CreateNodeType_BLOCK_FOR_LOOP:
             case CreateNodeType_BLOCK_WHILE_LOOP:
             case CreateNodeType_BLOCK_SCOPE:
-            case CreateNodeType_BLOCK_PROGRAM:
+            case CreateNodeType_BLOCK_ENTRY_POINT:
                 // Blocks are only for code flow slots
-                if ( !dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
+                if ( !dragged_slot->allows(SlotFlag_TYPE_FLOW) )
                     continue;
                 break;
 
             default:
 
-                if ( dragged_slot->allows(SlotFlag_TYPE_CODEFLOW))
+                if ( dragged_slot->allows(SlotFlag_TYPE_FLOW))
                 {
                     // we can connect anything to a code flow slot
                 }
@@ -50,8 +50,8 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
                 {
                     // discard incompatible signatures
 
-                    if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) &&
-                         !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type)
+                    if ( dragged_slot->allows(SlotFlag_ORDER_1ST ) &&
+                        !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type)
                             )
                         continue;
 

@@ -10,8 +10,6 @@
 #include "ndbl/core/WhileLoopNode.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
-
-#include "IScope.h"
 #include "tools/core/Optional.h"
 
 namespace ndbl
@@ -31,11 +29,11 @@ namespace ndbl
 
     enum CreateNodeType
     {
+        CreateNodeType_BLOCK_ENTRY_POINT,
         CreateNodeType_BLOCK_CONDITION,
         CreateNodeType_BLOCK_FOR_LOOP,
         CreateNodeType_BLOCK_WHILE_LOOP,
         CreateNodeType_BLOCK_SCOPE,
-        CreateNodeType_BLOCK_PROGRAM,
         CreateNodeType_VARIABLE_BOOLEAN,
         CreateNodeType_VARIABLE_DOUBLE,
         CreateNodeType_VARIABLE_INTEGER,
@@ -48,7 +46,7 @@ namespace ndbl
     };
 
     /**
-     * @brief To manage a graph (nodes and edges)
+     * @brief To manage a graph (child_node and edges)
      */
 	class Graph
 	{
@@ -67,25 +65,24 @@ namespace ndbl
 
         bool                     update();
         void                     clear();  // Delete all nodes, wires, edges and reset scope.
+        Scope*                   main_scope() { return m_root ? m_root->inner_scope() : nullptr; };
         inline GraphView*        view() const { return m_view; };
         inline void              set_view(GraphView* view = nullptr) { ASSERT(view != nullptr); m_view = view; }
         inline bool              is_empty() const { return m_root.empty(); };
-        inline void              ensure_has_root() { if (is_empty()) create_root(); }
         inline tools::Optional<Node*> root() const { return m_root; }
-        inline bool              is_root(const Node* node) const { return  m_root == node; }
+        inline bool              is_root(const Node* node) const { return m_root == node; }
 
         // node related
 
         Node*                    create_node(); // Create a raw node.
         Node*                    create_node(CreateNodeType, const tools::FunctionDescriptor* _signature = nullptr); // Create a given node type in a simple way.
-        Node*                    create_root();
-        VariableNode*            create_variable(const tools::TypeDescriptor *_type, const std::string &_name, Scope* _scope);
+        Node*                    create_entry_point();
+        VariableNode*            create_variable(const tools::TypeDescriptor *_type, const std::string &_name);
         VariableRefNode*         create_variable_ref();
-        VariableNode*            create_variable_decl(const tools::TypeDescriptor* _type, const char*  _name, Scope*  _scope);
+        VariableNode*            create_variable_decl(const tools::TypeDescriptor* _type, const char* _name);
         LiteralNode*             create_literal(const tools::TypeDescriptor *_type);
         FunctionNode*            create_function(const tools::FunctionDescriptor*);
         FunctionNode*            create_operator(const tools::FunctionDescriptor*);
-        Node*                    create_scope();
         IfNode*                  create_cond_struct();
         ForLoopNode*             create_for_loop();
         WhileLoopNode*           create_while_loop();
@@ -94,8 +91,8 @@ namespace ndbl
         inline std::vector<Node*>&       get_node_registry() {return m_node_registry;}
         inline const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
 
-        template<typename T> inline VariableNode* create_variable_decl(const char*  _name = "var", Scope* _scope = {}){ return create_variable_decl(tools::type::get<T>(), _name, _scope); }
-        template<typename T> inline LiteralNode* create_literal() { return create_literal( tools::type::get<T>()); }
+        template<typename T> inline VariableNode* create_variable_decl(const char*  _name = "var"){ return create_variable_decl(tools::type::get<T>(), _name); }
+        template<typename T> inline LiteralNode*  create_literal() { return create_literal( tools::type::get<T>()); }
 
         // edge related
 
@@ -106,17 +103,17 @@ namespace ndbl
         inline std::multimap<SlotFlags, DirectedEdge>& get_edge_registry() { return m_edge_registry; }
 
     private:
-        void on_connect_hierarchical_side_effects(Slot* parent_slot, Slot* child_slot);
-        void on_connect_value_side_effects(Slot* out_slot, Slot* in_slot);
-        void on_connect_codeflow_side_effects(Slot* prev_slot, Slot* next_slot);
+        void on_disconnect_flow_side_effects(DirectedEdge);
+        void on_connect_value_side_effects(DirectedEdge);
+        void on_connect_flow_side_effects(DirectedEdge);
 
         // registries management
         void add(Node*);           // ... to the registry.
         void remove(Node*);        // ... from the registry.
-        void add(const DirectedEdge&);    // ... to the registry.
+        DirectedEdge add(const DirectedEdge&);    // ... to the registry.
         void remove(const DirectedEdge&); // ... from the registry.
 
-        tools::Optional<Node*> m_root = nullptr; // Graph root (main scope), without it a graph cannot be compiled.
+        tools::Optional<Node*> m_root;
         const NodeFactory* m_factory  = nullptr;
         GraphView*         m_view     = nullptr; // non-owned
         std::vector<Node*>                      m_node_registry; // Node storage

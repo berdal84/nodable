@@ -43,7 +43,7 @@ namespace ndbl
         // draw_xxx_window
 
         void draw_file_info_window() const;
-        void draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file);
+        void draw_file_window(float dt, ImGuiID dockspace_id, bool redock_all, File*file);
         void draw_help_window() const;
         void draw_history_bar(History&);
         void draw_imgui_config_window() const;

@@ -56,20 +56,11 @@ void NodeFactory::destroy_node(Node* node) const
 #endif
 }
 
-VariableNode* NodeFactory::create_variable(const TypeDescriptor* _type, const std::string& _name, Scope* _scope) const
+VariableNode* NodeFactory::create_variable(const TypeDescriptor* _type, const std::string& _name) const
 {
     // create
     auto node = create<VariableNode>();
     node->init(_type, _name.c_str());
-    if( _scope )
-    {
-        _scope->add_variable( node );
-    }
-    else
-    {
-        LOG_WARNING("HeadlessNodeFactory", "Variable %s has_flags been created without defining its scope.\n", _name.c_str());
-    }
-
     m_post_process(node);
 
     return node;
@@ -89,23 +80,6 @@ FunctionNode* NodeFactory::create_function(const FunctionDescriptor* _func_type,
     ASSERT( _node_type == NodeType_OPERATOR || _node_type == NodeType_FUNCTION );
     node->init(_node_type, _func_type);
     m_post_process(node);
-    return node;
-}
-
-Node* NodeFactory::create_scope() const
-{
-    Node* node = create<Node>();
-    node->init(NodeType_BLOCK_SCOPE, "{} Scope");
-
-    node->add_slot(node->value(), SlotFlag_PARENT, 1);
-    node->add_slot(node->value(), SlotFlag_NEXT, 1);
-    node->add_slot(node->value(), SlotFlag_CHILD, Slot::MAX_CAPACITY);
-    node->add_slot(node->value(), SlotFlag_PREV, Slot::MAX_CAPACITY);
-
-    auto* scope = create<Scope>();
-    node->add_component(scope);
-    m_post_process(node);
-
     return node;
 }
 
@@ -139,14 +113,12 @@ WhileLoopNode* NodeFactory::create_while_loop() const
     return node;
 }
 
-Node* NodeFactory::create_program() const
+Node* NodeFactory::create_entry_point() const
 {
     Node* node = create<Node>();
-    node->init(NodeType_BLOCK_SCOPE, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
-    node->add_slot(node->value(), SlotFlag_PARENT, 1);
-    node->add_slot(node->value(), SlotFlag_NEXT, 1);
-    node->add_slot(node->value(), SlotFlag_CHILD, Slot::MAX_CAPACITY);
-    node->add_component(create<Scope>() );
+    node->init(NodeType_ENTRY_POINT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
+    node->init_inner_scope();
     m_post_process(node);
     return node;
 }
@@ -155,9 +127,8 @@ Node* NodeFactory::create_node() const
 {
     Node* node = create<Node>();
     node->init(NodeType_DEFAULT, "");
-    node->add_slot( node->value(), SlotFlag_PARENT, 1);
-    node->add_slot( node->value(), SlotFlag_NEXT, 1);
-    node->add_slot( node->value(), SlotFlag_PREV, Slot::MAX_CAPACITY);
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
+    node->add_slot(node->value(), SlotFlag_FLOW_IN, Slot::MAX_CAPACITY);
     m_post_process(node);
     return node;
 }
@@ -185,10 +156,9 @@ Node *NodeFactory::create_empty_instruction()const
     // Override token to be a ";"
     node->value()->set_token({Token_t::end_of_instruction});
 
-    node->add_slot( node->value(), SlotFlag_PARENT , 1);
-    node->add_slot( node->value(), SlotFlag_NEXT   , 1);
-    node->add_slot( node->value(), SlotFlag_PREV   , Slot::MAX_CAPACITY);
-    node->add_slot( node->value(), SlotFlag_OUTPUT , 1);
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
+    node->add_slot(node->value(), SlotFlag_FLOW_IN , Slot::MAX_CAPACITY);
+    node->add_slot(node->value(), SlotFlag_OUTPUT  , 1);
 
     m_post_process(node);
 

@@ -139,7 +139,7 @@ bool PropertyView::draw(ViewDetail _detail)
 
         std::string  source_code;
         if( property == node->value() || node->find_slot_by_property( property, SlotFlag_OUTPUT ))
-            get_language()->_serialize_node( source_code, node, SerializeFlag_RECURSE );
+            get_language()->serialize_node(source_code, node, SerializeFlag_RECURSE);
         else
             get_language()->serialize_property(source_code, property );
 

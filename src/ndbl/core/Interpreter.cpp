@@ -317,7 +317,7 @@ bool Interpreter::debug_step_over()
         {
             case OpCode_call:
             {
-                VERIFY(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a node reference in the instruction");
+                VERIFY(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a child_node reference in the instruction");
 //                m_next_node = next_instr->eval.invokable;
                 break;
             }

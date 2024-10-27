@@ -48,7 +48,7 @@ namespace ndbl
 
         void                           update(float d);
         void                           init(File& _file);
-        void                           draw();
+        void                           draw(float dt);
         std::string                    get_text(Isolation = Isolation_OFF)const;
         void                           set_text(const std::string&, Isolation mode = Isolation_OFF);
         TextEditor*					   get_text_editor(){ return &m_text_editor; }

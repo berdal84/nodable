@@ -20,8 +20,8 @@ void ForLoopNode::init(const std::string& _name)
     m_initialization_slot = add_slot(init_prop, SlotFlag_INPUT, 1);
 
     // add conditional-related properties and slots
-    m_wrapped_conditional.init(this);
-    Property* condition_prop = m_wrapped_conditional.get_condition_slot(Branch_TRUE)->property;
+    SwitchBehavior::init(this, 2);
+    Property* condition_prop = SwitchBehavior::condition_in(Branch_TRUE)->property;
     condition_prop->token().suffix_push_back(";");
 
     // add iteration property and slot

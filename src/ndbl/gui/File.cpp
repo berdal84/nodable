@@ -70,7 +70,7 @@ void File::_update_text_from_graph()
     if ( _graph->root() )
     {
         std::string code;
-        get_language()->_serialize_node( code, _graph->root().get(), SerializeFlag_RECURSE );
+        get_language()->serialize_node(code, _graph->root().get(), SerializeFlag_RECURSE);
         view.set_text(code, _isolation );
     }
     else
@@ -98,18 +98,23 @@ void File::update()
         history.is_dirty = false;
     }
 
-    if( _is_text_dirty )
+    if ( _is_text_dirty )
     {
+        VERIFY( !_is_graph_dirty, "Incoherent state, why both would be dirty?");
+
         _update_text_from_graph();
         _is_text_dirty = false;
     }
-    else if( _is_graph_dirty )
+    else if ( _is_graph_dirty )
     {
         _update_graph_from_text();
         _is_graph_dirty = false;
     }
-
-   _graph->update(); // ~ garbage collection
+    else
+    {
+        // ~ garbage collection
+        _graph->update(); // might set _is_text_dirty flag
+    }
 }
 
 void File::_update_graph_from_text()

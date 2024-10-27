@@ -88,11 +88,32 @@ void Physics::apply_forces(float _dt)
     m_forces_sum            = Vec2();
 }
 
-void Physics::create_constraints(const std::vector<Node*>& nodes)
+void Physics::update(float dt, const std::vector<Physics *>& components, bool dirty)
 {
-    LOG_VERBOSE("Physics", "create_constraints ...\n");
-    for(Node* node: nodes )
+    LOG_VERBOSE("Physics", "Updating constraints ...\n");
+    if ( dirty )
     {
+        LOG_VERBOSE("Physics", "Constraints are dirty, refreshing ...\n");
+        for(Physics* c : components)
+            c->clear_constraints();
+        Physics::_create_constraints(components);
+    }
+
+    for (auto c : components)
+        c->apply_constraints(dt);
+
+    for(auto c : components)
+        c->apply_forces(dt);
+
+    LOG_VERBOSE("Physics", "Constraints updated.\n");
+}
+
+void Physics::_create_constraints(const std::vector<Physics*>& physics)
+{
+    LOG_VERBOSE("Physics", "_create_constraints ...\n");
+    for(Physics* physic : physics )
+    {
+        Node* node = physic->get_owner();
         auto curr_nodeview = node->get_component<NodeView>();
         ASSERT(curr_nodeview != nullptr );
 
@@ -100,7 +121,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
 
         // If current view has a single predecessor, we follow it, except if it is a conditional node
         //
-        std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_PREV);
+        std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_FLOW_IN);
         if ( !previous_nodes.empty() && !Utils::is_conditional(previous_nodes[0]->node() ) )
         {
             Constraint constraint("Position below previous", &Constraint::constrain_1_to_N_as_row);
@@ -128,10 +149,10 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         // Align in row Conditional Struct Node's children
         //------------------------------------------------
 
-        std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_NEXT);
+        std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_FLOW_OUT);
         if( Utils::is_conditional( node ) && next.size() >= 1 )
         {
-            Constraint constraint("Align conditional children in a row", &Constraint::constrain_N_to_1_as_a_row);
+            Constraint constraint("Align conditional child_node in a row", &Constraint::constrain_N_to_1_as_a_row);
             constraint.leader         = {curr_nodeview};
             constraint.leader_pivot   = BOTTOM_LEFT;
             constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
@@ -152,7 +173,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
         for(auto* view : inputs)
         {
             Node* _node = view->node();
-            if ( _node->predecessors().empty() )
+            if (_node->flow_inputs().empty() )
                 if ( Constraint::should_follow_output( _node, curr_nodeview->node() ) )
                     filtered_inputs.push_back(view);
         }
@@ -174,7 +195,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
                 constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
             }
 
-            if (leader->node()->predecessors().size() + leader->node()->successors().size() != 0 )
+            if (leader->node()->flow_inputs().size() + leader->node()->flow_outputs().size() != 0 )
             {
                 constraint.follower_pivot = BOTTOM_LEFT;
                 constraint.leader_pivot   = TOP_RIGHT;
@@ -184,17 +205,7 @@ void Physics::create_constraints(const std::vector<Node*>& nodes)
             physics_component->add_constraint(constraint);
         }
     }
-    LOG_VERBOSE("Physics", "create_constraints OK\n");
-}
-
-void Physics::destroy_constraints(std::vector<Physics*> &physics_components)
-{
-    LOG_VERBOSE("Physics", "destroy_constraints ...\n");
-    for(Physics* physics: physics_components)
-    {
-        physics->clear_constraints();
-    }
-    LOG_VERBOSE("Physics", "destroy_constraints OK\n");
+    LOG_VERBOSE("Physics", "_create_constraints OK\n");
 }
 
 void Physics::Constraint::update(float _dt)
@@ -308,7 +319,7 @@ bool Physics::Constraint::should_follow_output(const Node* node, const Node* out
     // Instruction should never follow an output (they must stick to the codeflow)
     if ( !Utils::is_instruction( node ) )
     {
-        VERIFY( !node->outputs().empty(), "You should call this method knowing that other is in node's outputs, which means the vector is not empty.");
+        VERIFY( !node->outputs().empty(), "You should call this method knowing that other is in child_node's outputs, which means the vector is not empty.");
         const bool is_first_element = node->outputs().front() == output_node;
         return is_first_element;
     }

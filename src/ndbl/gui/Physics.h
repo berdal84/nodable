@@ -71,10 +71,11 @@ namespace  ndbl
         void            apply_forces(float _dt);
         std::vector<Constraint>& get_constraints() { return m_constraints; };
         const std::vector<Constraint>& get_constraints() const { return m_constraints; };
+        static void     update(float dt, const std::vector<Physics *>&, bool dirty);
 
-        static void     create_constraints(const std::vector<Node*>&);
-        static void     destroy_constraints(std::vector<Physics *> &physics_components);
     private:
+        static void     _create_constraints(const std::vector<Physics*>&);
+
         NodeView*   m_view;
         tools::Vec2 m_forces_sum;
         tools::Vec2 m_last_frame_forces_sum;

@@ -7,14 +7,12 @@
 #include "ForLoopNode.h"
 #include "IfNode.h"
 #include "WhileLoopNode.h"
-#include "IScope.h"
 #include "FunctionNode.h"
 #include "VariableRefNode.h"
 
 namespace ndbl
 {
     // forward declarations
-    class IScope;
     class Nodlang;
     class LiteralNode;
     class ForLoopNode;
@@ -34,12 +32,11 @@ namespace ndbl
         NodeFactory();
         ~NodeFactory(){}
 
-        Node*                  create_program()const;
-        VariableNode*          create_variable(const tools::TypeDescriptor *_type, const std::string &_name, Scope* _scope)const;
+        Node*                  create_entry_point()const;
+        VariableNode*          create_variable(const tools::TypeDescriptor *_type, const std::string &_name)const;
         VariableRefNode*       create_variable_ref() const;
         LiteralNode*           create_literal(const tools::TypeDescriptor *_type)const;
         FunctionNode*          create_function(const tools::FunctionDescriptor*, NodeType node_type = NodeType_FUNCTION)const;
-        Node*                  create_scope()const;
         IfNode*                create_cond_struct()const;
         ForLoopNode*           create_for_loop()const;
         WhileLoopNode*         create_while_loop()const;

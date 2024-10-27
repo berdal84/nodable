@@ -16,7 +16,6 @@ namespace tools
 
         inline void connect(TDelegate delegate)
         {
-            LOG_VERBOSE("Signal", "connect() was called");
 #ifdef TOOLS_DEBUG
             VERIFY( !disconnect( delegate._object_ptr ), "A single object can't be connected twice to the same signal yet" )
 #endif
@@ -45,7 +44,6 @@ namespace tools
 
         inline R emit(Args...args)
         {
-            LOG_VERBOSE("Signal", "emit() was called");
             for( auto& delegate : _delegate )
                 delegate.call(args...);
         }

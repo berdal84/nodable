@@ -5,6 +5,8 @@
 #include "Graph.h"
 #include "FunctionNode.h"
 #include "Node.h"
+#include "LiteralNode.h"
+#include "VariableNode.h"
 #include "Scope.h"
 #include "DirectedEdge.h"
 
@@ -67,7 +69,7 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE( graph->get_node_registry().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
-    VariableNode*       variable  = graph->create_variable(type::get<int>(), "var", nullptr);
+    VariableNode*       variable  = graph->create_variable(type::get<int>(), "var");
     FunctionDescriptor* fct_type  = FunctionDescriptor::create<int(int, int)>("+");
     const IInvokable*   invokable = app.get_language()->find_operator_fct_exact(fct_type);
 
@@ -101,20 +103,18 @@ TEST_F(Graph_, create_and_delete_relations)
     Graph* graph = app.get_graph();
     auto& edges = graph->get_edge_registry();
     EXPECT_EQ(edges.size(), 0);
-    auto node_1 = graph->create_scope();
+    auto node_1 = graph->create_literal<int>();
     EXPECT_EQ(edges.size(), 0);
-    auto node_2 = graph->create_node();
+    auto node_2 = graph->create_variable( type::get<int>(), "a" );
 
     // Act and test
 
-    // is child of (and by reciprocity "is parent of")
+    // INPUT (and by reciprocity OUTPUT)
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
-    DirectedEdge edge_1 = graph->connect(
-            node_1->find_slot( SlotFlag_CHILD ),
-            node_2->find_slot( SlotFlag_PARENT ));
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 1);
+    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 0);
+    DirectedEdge edge_1 = graph->connect( node_1->value_out(), node_2->value_in());
+    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph->disconnect(edge_1);
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_HIERARCHICAL ).size(), 0);
+    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 0);
 }

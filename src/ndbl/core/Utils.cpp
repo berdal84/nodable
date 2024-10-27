@@ -36,9 +36,9 @@ bool Utils::is_instruction(const Node* node)
 
 bool Utils::is_connected_to_codeflow(const Node *node)
 {
-    if ( node->predecessors().size() )
+    if (node->flow_inputs().size() )
         return true;
-    if ( node->successors().size() )
+    if (node->flow_outputs().size() )
         return true;
     return false;
 }
@@ -46,7 +46,7 @@ bool Utils::is_connected_to_codeflow(const Node *node)
 bool Utils::can_be_instruction(const Node* node)
 {
     // TODO: handle case where a variable has inputs/outputs but not connected to the code flow
-    return node->slot_count(SlotFlag_TYPE_CODEFLOW) > 0 && node->inputs().empty() && node->outputs().empty();
+    return node->slot_count(SlotFlag_TYPE_FLOW) > 0 && node->inputs().empty() && node->outputs().empty();
 }
 
 bool Utils::is_unary_operator(const Node* node)
@@ -71,7 +71,7 @@ bool Utils::is_conditional(const Node* node)
     {
         case NodeType_BLOCK_FOR_LOOP:
         case NodeType_BLOCK_WHILE_LOOP:
-        case NodeType_BLOCK_CONDITION:
+        case NodeType_BLOCK_IF:
             return true;
         default:
             return false;

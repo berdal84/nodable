@@ -17,10 +17,8 @@ REFLECT_STATIC_INIT
 Node::~Node()
 {
     for(auto* each : m_slots)
-    {
-        // DISCONNECT(each->on_change); unnecessary until both Node and Slot(s) are destroyed together
         delete each;
-    }
+
     on_destroy.emit();
 }
 
@@ -279,12 +277,25 @@ const Slot* Node::value_in() const
     return find_slot_by_property(m_value, SlotFlag_INPUT );
 }
 
-Node* Node::parent() const
+
+Slot* Node::flow_out()
 {
-    auto parents = m_adjacent_nodes_cache.get( SlotFlag_PARENT );
-    if ( parents.size() == 1)
-        return parents[0];
-    return nullptr;
+    return const_cast<Slot*>( find_slot_by_property(m_value, SlotFlag_FLOW_OUT ) );
+}
+
+const Slot* Node::flow_out() const
+{
+    return find_slot_by_property(m_value, SlotFlag_FLOW_OUT );
+}
+
+Slot* Node::flow_in()
+{
+    return const_cast<Slot*>( find_slot_by_property(m_value, SlotFlag_FLOW_IN ) );
+}
+
+const Slot* Node::flow_in() const
+{
+    return find_slot_by_property(m_value, SlotFlag_FLOW_IN );
 }
 
 bool Node::update()
@@ -307,4 +318,19 @@ const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
     }
 
     return _cache.at(flags);
+}
+
+void Node::init_inner_scope()
+{
+    VERIFY( m_inner_scope == nullptr, "Can't call this more than once");
+    m_inner_scope = get_component_factory()->create<Scope>();
+    m_inner_scope->reset_parent( m_scope );
+    m_inner_scope->set_name( m_name + "'s Scope");
+    add_component( m_inner_scope );
+}
+
+void Node::set_scope(Scope *scope)
+{
+    m_scope = scope;
+    on_scope_change.emit(scope);
 }

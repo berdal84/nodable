@@ -7,7 +7,7 @@
 namespace ndbl
 {
     // forward declarations
-    class Scope;
+    struct Scope;
     class VariableNode;
     class Node;
 

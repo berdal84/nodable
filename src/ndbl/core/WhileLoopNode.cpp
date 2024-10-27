@@ -11,5 +11,5 @@ REFLECT_STATIC_INIT
 void WhileLoopNode::init(const std::string &_name)
 {
     Node::init(NodeType_BLOCK_WHILE_LOOP, _name);
-    m_wrapped_conditional.init(this);
+    SwitchBehavior::init(this, 2);
 }

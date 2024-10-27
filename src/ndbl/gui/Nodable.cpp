@@ -43,6 +43,9 @@ void Nodable::init()
     m_component_factory = init_component_factory();
     m_view->init(this); // must be last
 
+    log::set_verbosity("Physics", log::Verbosity_Error );
+    log::set_verbosity("FileView", log::Verbosity_Error );
+
     LOG_VERBOSE("ndbl::Nodable", "init_ex OK\n");
 }
 
@@ -221,7 +224,7 @@ void Nodable::update()
                     std::vector<NodeView*> successors;
                     if (!graph_view->get_selected().empty())
                         for(NodeView* view : graph_view->get_selected() )
-                            for (NodeView* successor : Utils::get_components<NodeView>(view->node()->successors() ) )
+                            for (NodeView* successor : Utils::get_components<NodeView>( view->node()->flow_outputs() ) )
                                 successors.push_back( successor );
 
                     graph_view->set_selected(successors, SelectionMode_REPLACE);
@@ -250,9 +253,9 @@ void Nodable::update()
                 Slot* tail = _event->data.first;
                 Slot* head = _event->data.second;
                 ASSERT(head != tail);
-                if ( tail->order() == SlotFlag_ORDER_SECOND )
+                if ( tail->order() == SlotFlag_ORDER_2ND )
                 {
-                    if ( head->order() == SlotFlag_ORDER_SECOND )
+                    if ( head->order() == SlotFlag_ORDER_2ND )
                     {
                         LOG_ERROR("Nodable", "Unable to connect incompatible edges\n");
                         break; // but if it still the case, that's because edges are incompatible
@@ -300,7 +303,7 @@ void Nodable::update()
                 // 1) create the node
                 if ( !graph->root() )
                 {
-                    LOG_ERROR("Nodable", "Unable to create_new node, no root found on this graph.\n");
+                    LOG_ERROR("Nodable", "Unable to create_new child_node, no root found on this graph.\n");
                     continue;
                 }
 
@@ -313,7 +316,7 @@ void Nodable::update()
                     case CreateNodeType_BLOCK_FOR_LOOP:
                     case CreateNodeType_BLOCK_WHILE_LOOP:
                     case CreateNodeType_BLOCK_SCOPE:
-                    case CreateNodeType_BLOCK_PROGRAM:
+                    case CreateNodeType_BLOCK_ENTRY_POINT:
                         new_node->set_suffix( Token::s_end_of_line );
                         break;
                     case CreateNodeType_VARIABLE_BOOLEAN:
@@ -337,36 +340,34 @@ void Nodable::update()
                     // Experimental: we try to connect a parent-less child
                     if ( !graph->is_root( new_node ) && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
-                        graph->connect(
-                            graph->root()->find_slot(SlotFlag_CHILD),
-                            new_node->find_slot(SlotFlag_PARENT),
-                            ConnectFlag_ALLOW_SIDE_EFFECTS
-                        );
+                        Scope* root_scope = graph->root()->inner_scope();
+                        VERIFY( root_scope != nullptr, "inner main_scope is expected on a root child_node");
+                        root_scope->push_back(new_node);
                     }
                 }
                 else
                 {
-                    SlotFlags             complementary_flags = get_complementary_flags(slot_view->slot->type_and_order() );
+                    SlotFlags             complementary_flags = switch_order(slot_view->slot->type_and_order());
                     const TypeDescriptor* type                = slot_view->property()->get_type();
                     Slot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
 
                     if ( complementary_slot )
                     {
                         // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
-                        LOG_ERROR( "GraphView", "unable to connect this node" );
+                        LOG_ERROR( "GraphView", "unable to connect this child_node" );
                     }
                     if ( complementary_slot )
                     {
                         Slot* out = slot_view->slot;
                         Slot* in  = complementary_slot;
 
-                        if ( out->has_flags( SlotFlag_ORDER_SECOND ) )
+                        if ( out->has_flags( SlotFlag_ORDER_2ND ) )
                             std::swap( out, in );
 
                         graph->connect(out, in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        if ( Utils::is_instruction( out->node ) && out->type() == SlotFlag_TYPE_CODEFLOW )
+                        if ( Utils::is_instruction( out->node ) && out->type() == SlotFlag_TYPE_FLOW )
                         {
                             Token& token = out->node->suffix();
                             std::string buffer = token.string();

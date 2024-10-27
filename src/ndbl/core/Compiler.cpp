@@ -47,18 +47,12 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
     {
         switch ( each_node->type() )
         {
-            case NodeType_BLOCK_SCOPE:
+            case NodeType_VARIABLE:
             {
-                auto scope = each_node->get_component<Scope>();
-                const std::vector<VariableNode*>& variables = scope->variables();
-
-                for( auto each_variable : variables )
+                if( each_node->scope() == nullptr )
                 {
-                    if( each_variable->get_scope() == nullptr )
-                    {
-                        LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_variable->name().c_str() );
-                        return false;
-                    }
+                    LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_node->name().c_str() );
+                    return false;
                 }
                 break;
             }
@@ -107,23 +101,22 @@ void Compiler::compile_output_slot(const Slot* slot)
     compile_node(slot->node);
 }
 
-void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
+void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
 {
-    ASSERT(_scope);
-    const Node* scope_owner = _scope->get_owner();
-    ASSERT(scope_owner);
+    ASSERT( node );
+    ASSERT( node->inner_scope() );
 
     // call push_stack_frame
     {
         Instruction *instr  = m_temp_code->push_instr(OpCode_push_stack_frame);
-        instr->push.scope = _scope;
+        instr->push.scope = node->inner_scope();
         char str[64];
-        snprintf(str, 64, "%s's scope", scope_owner->name().c_str());
+        snprintf(str, 64, "%s's inner_scope", node->name().c_str());
         instr->m_comment = str;
     }
 
     // push each variable
-    for(auto each_variable : _scope->variables())
+    for(auto each_variable : node->inner_scope()->vars())
     {
         Instruction* instr   = m_temp_code->push_instr(OpCode_push_var);
         instr->push.var      = each_variable;
@@ -131,7 +124,7 @@ void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     }
 
     // compile content
-    for( Node* each_node : scope_owner->children() )
+    for( Node* each_node : node->inner_scope()->child_node() )
     {
         compile_node( each_node );
     }
@@ -143,7 +136,7 @@ void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
     }
 
     // pop each variable
-    for(auto each_variable : _scope->variables())
+    for(auto each_variable : node->inner_scope()->vars())
     {
         Instruction *instr   = m_temp_code->push_instr(OpCode_pop_var);
         instr->push.var      = each_variable;
@@ -152,8 +145,8 @@ void Compiler::compile_scope(const Scope* _scope, bool _insert_fake_return)
 
     {
         Instruction *instr = m_temp_code->push_instr(OpCode_pop_stack_frame);
-        instr->pop.scope   = _scope;
-        instr->m_comment   = scope_owner->name() + "'s scope";
+        instr->pop.scope   = node->inner_scope();
+        instr->m_comment   = node->name() + "'s inner_scope";
     }
 }
 
@@ -169,7 +162,7 @@ void Compiler::compile_node( const Node* _node )
         case NodeType_BLOCK_WHILE_LOOP:
             compile_while_loop(static_cast<const WhileLoopNode*>(_node));
             break;
-        case NodeType_BLOCK_CONDITION:
+        case NodeType_BLOCK_IF:
             compile_conditional_struct(static_cast<const IfNode*>(_node));
             break;
         default:
@@ -222,15 +215,15 @@ void Compiler::compile_for_loop(const ForLoopNode* for_loop)
 
     // compile condition and memorise its position
     u64_t conditionInstrLine = m_temp_code->get_next_index();
-    compile_instruction_as_condition(for_loop->condition(Branch_TRUE));
+    compile_instruction_as_condition( for_loop->condition() );
 
     // jump if condition is not true
     Instruction* skipTrueBranch = m_temp_code->push_instr(OpCode_jne );
     skipTrueBranch->m_comment = "jump true branch";
 
-    if ( auto true_branch = for_loop->scope_at( Branch_TRUE ) )
+    if ( auto true_branch = for_loop->branch_out(Branch_TRUE) )
     {
-        compile_scope( true_branch );
+        compile_inner_scope( true_branch->node );
 
         // Compile iteration instruction
         compile_input_slot( for_loop->iteration_slot() );
@@ -249,15 +242,15 @@ void Compiler::compile_while_loop(const WhileLoopNode* while_loop)
 {
     // compile condition and memorise its position
     u64_t conditionInstrLine = m_temp_code->get_next_index();
-    compile_instruction_as_condition(while_loop->condition(Branch_TRUE));
+    compile_instruction_as_condition( while_loop->condition() );
 
     // jump if condition is not true
     Instruction* skipTrueBranch = m_temp_code->push_instr(OpCode_jne );
     skipTrueBranch->m_comment = "jump if not equal";
 
-    if ( auto whileScope = while_loop->scope_at( Branch_TRUE ) )
+    if ( auto whileScope = while_loop->branch_out( Branch_TRUE ) )
     {
-        compile_scope( whileScope );
+        compile_inner_scope( whileScope->node );
 
         // jump back to condition instruction
         auto loopJump = m_temp_code->push_instr(OpCode_jmp );
@@ -288,18 +281,18 @@ void Compiler::compile_instruction_as_condition(const Node* _instr_node)
 
 void Compiler::compile_conditional_struct(const IfNode* _cond_node)
 {
-    compile_instruction_as_condition(_cond_node->condition(Branch_TRUE)); // compile condition instruction, store result, compare
+    compile_instruction_as_condition( _cond_node->condition() ); // compile condition instruction, store result, compare
 
     Instruction* jump_over_true_branch = m_temp_code->push_instr(OpCode_jne);
     jump_over_true_branch->m_comment   = "conditional jump";
 
     Instruction* jump_after_conditional = nullptr;
 
-    if ( auto true_branch = _cond_node->scope_at( Branch_TRUE ) )
+    if ( auto true_branch = _cond_node->branch_out( Branch_TRUE ) )
     {
-        compile_scope( true_branch );
+        compile_inner_scope( true_branch->node );
 
-        if ( _cond_node->scope_at( Branch_FALSE ) )
+        if ( _cond_node->branch_out( Branch_FALSE )->node )
         {
             jump_after_conditional = m_temp_code->push_instr(OpCode_jmp);
             jump_after_conditional->m_comment = "jump after else";
@@ -309,16 +302,15 @@ void Compiler::compile_conditional_struct(const IfNode* _cond_node)
     i64_t next_index = m_temp_code->get_next_index();
     jump_over_true_branch->jmp.offset = next_index - jump_over_true_branch->line;
 
-    if ( Scope* false_scope = _cond_node->scope_at( Branch_FALSE ) )
+    if ( const Slot* false_branch = _cond_node->branch_out(Branch_FALSE ) )
     {
-        if( false_scope->get_owner()->get_class()->is<IfNode>() )
+        if( false_branch->node->get_class()->is<IfNode>() )
         {
-            auto* conditional_struct = cast<const IfNode>(false_scope->get_owner());
-            compile_conditional_struct(conditional_struct);
+            compile_conditional_struct( static_cast<const IfNode*>(false_branch->node) );
         }
         else
         {
-            compile_scope(false_scope);
+            compile_inner_scope(false_branch->node );
         }
 
         if ( jump_after_conditional )
@@ -336,9 +328,7 @@ const Code* Compiler::compile_syntax_tree(const Graph* _graph)
 
         try
         {
-            Scope* scope = _graph->root()->get_component<Scope>();
-            ASSERT(scope);
-            compile_scope(scope, true); // <--- true here is a hack, TODO: implement a real ReturnNode
+            compile_inner_scope( _graph->root().get(), true); // "true" <== here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");
         }
         catch ( const std::exception& e )

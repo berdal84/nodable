@@ -17,7 +17,11 @@ Token & TokenRibbon::push(Token &_token)
 
 std::string TokenRibbon::to_string()const
 {
-    std::string out;
+    const char* TO_VISIT       = ".";
+    const char* IN_TRANSACTION = "v";
+    const char* CURRENT        = "c";
+
+    tools::string out;
     out.append(RESET);
 
     size_t buffer_size = 0;
@@ -26,56 +30,32 @@ std::string TokenRibbon::to_string()const
     for (const Token& each_token : m_tokens)
         buffer_size += each_token.length();
 
-    out.reserve(buffer_size);
-    out.append("[<TokenRibbon start>]\n");
+    out.append("Logging token ribbon state:\n");
+    out.append("___________[TOKEN RIBBON]_________\n");
 
-    for (const Token& each_token : m_tokens)
+    for (const Token& token : m_tokens)
     {
-        tools::string256 line;
-        size_t index = each_token.m_index;
+        bool inside_transaction = !m_transaction.empty()
+                                   && token.m_index >= m_transaction.top()
+                                   && token.m_index <= m_cursor;
 
-        // Set a color to identify tokens that are inside current transaction
-        if (!m_transaction.empty() && index >= m_transaction.top() && index < m_cursor )
-        {
-            line.append(YELLOW);
-        }
-
-        if (index == m_cursor )
-            line.append(BOLDGREEN);
-
-        line.append_fmt("[%4llu]", index);
-
-        line.append("[\"");
-
-        if (each_token.has_buffer())
-            line.append(each_token.prefix(), each_token.prefix_len());
-
-        line.append("\", \"");
-
-        if (each_token.has_buffer())
-            line.append(each_token.word(), each_token.word_len());
-
-        line.append("\", \"");
-
-        if (each_token.has_buffer())
-            line.append(each_token.suffix(), each_token.suffix_len());
-
-        line.append("\"]");
-
-        if (index == m_cursor )
-            line.append(RESET);
-
-        line.push_back('\n');
-
-        out.append(line.c_str() );
+        bool is_current = token.m_index == m_cursor;
+        const char* state = is_current ? CURRENT
+                                       : inside_transaction ? IN_TRANSACTION
+                                                            : TO_VISIT;
+        tools::string512 line;
+        line.append_fmt("%s%5llu) %s \"%s\"" RESET "\n",
+                        inside_transaction ? BOLDBLACK : "",
+                        token.m_index,
+                        state,
+                        token.word_to_string().c_str());
+        out.append( line.c_str() );
     }
 
-    if (m_tokens.size() == m_cursor )
-        out.append(GREEN);
-    out.append("[<TokenRibbon end>]");
-    out.append(RESET"\n");
+    bool is_current = m_tokens.size() == m_cursor;
+    out.append_fmt("  END) %s " RESET "\n", is_current ? CURRENT : " ");
 
-    return out;
+    return out.c_str();
 }
 
 Token TokenRibbon::eat_if(Token_t expectedType)

@@ -396,7 +396,6 @@ endif ()
 add_executable(
     test-ndbl-core
     src/ndbl/core/Graph.specs.cpp
-    src/ndbl/core/Node.specs.cpp
     src/ndbl/core/Slot.specs.cpp
     src/ndbl/core/Token.specs.cpp
     src/ndbl/core/language/Nodlang.basics.specs.cpp
@@ -474,8 +473,10 @@ add_library(
     src/ndbl/gui/NodeView.cpp
     src/ndbl/gui/Physics.cpp
     src/ndbl/gui/PropertyView.cpp
+    src/ndbl/gui/SlotView.h
     src/ndbl/gui/SlotView.cpp
     src/ndbl/gui/Isolation.h
+    src/ndbl/gui/ScopeView.cpp
 )
 
 target_link_libraries(

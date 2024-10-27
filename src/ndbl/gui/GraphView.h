@@ -8,7 +8,6 @@
 #include "tools/core/reflection/reflection"
 
 #include "ndbl/core/NodeComponent.h"  // base class
-#include "ndbl/core/IScope.h"
 #include "ndbl/core/Scope.h"
 
 #include "Action.h"
@@ -19,6 +18,7 @@
 #include "ViewItem.h"
 #include "tools/core/StateMachine.h"
 #include "CreateNodeCtxMenu.h"
+#include "ScopeView.h"
 
 namespace ndbl
 {
@@ -46,11 +46,10 @@ namespace ndbl
         SIGNAL(on_change);
 
         void        update(float dt);
-        bool        draw();
+        bool        draw(float dt);
         void        add_action_to_node_menu(Action_CreateNode* _action);
         void        frame_nodes(FrameMode mode );
         bool        selection_empty() const;
-        void        reset_physics();
         void        reset(); // unfold and frame the whole graph
         bool        has_an_active_tool() const;
         void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
@@ -63,16 +62,18 @@ namespace ndbl
         tools::ViewState* view_state() { return &m_view_state; };
         void              decorate(Node* node);
     private:
-        CreateNodeCtxMenu      m_create_node_menu = {};
-        ViewItem               m_hovered{};
-        ViewItem               m_focused{};
+        CreateNodeCtxMenu      m_create_node_menu;
+        ViewItem               m_hovered;
+        ViewItem               m_focused;
         std::vector<NodeView*> m_selected_nodeview;
         tools::ViewState       m_view_state;
         Graph*                 m_graph;
+        bool                   m_physics_dirty = false;
 
         void        unfold(); // unfold the graph until it is stabilized
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
+        void        _on_graph_change();
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );

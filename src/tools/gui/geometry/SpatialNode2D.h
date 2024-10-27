@@ -27,8 +27,8 @@ namespace tools
     constexpr static Vec2 BOTTOM_RIGHT   = RIGHT + BOTTOM;
 
     /**
-     * Very simple spatial node in 2D.
-     * A scene graph can be create by creating parent/child links.
+     * Very simple spatial child_node in 2D.
+     * A scene graph can be create by creating parent/child_scope links.
      * Currently, we can only set and get the position (not implemented in TRSTransform2D)
      */
     struct SpatialNode2D
