@@ -136,6 +136,14 @@ void Graph::destroy(Node* node)
         return;
     }
 
+    // backup prev/next adjacent slots
+    std::vector<Slot*> prev_adjacent_slot;
+    if( Slot* slot = node->find_slot(SlotFlag_PREV) )
+        prev_adjacent_slot = slot->adjacent();
+    std::vector<Slot*> next_adjacent_slot;
+    if ( Slot* slot = node->find_slot(SlotFlag_NEXT) )
+        next_adjacent_slot = slot->adjacent();
+
     // Identify each edge connected to this node
     std::vector<DirectedEdge> related_edges;
     for(auto& [_type, each_edge]: m_edge_registry)
@@ -145,11 +153,19 @@ void Graph::destroy(Node* node)
             related_edges.emplace_back(each_edge);
         }
     }
+
     // Disconnect all of them
     for(const DirectedEdge& each_edge : related_edges )
     {
         disconnect(each_edge);
     };
+
+    // try to reconnect the successors with the predecessor
+    if ( prev_adjacent_slot.size() == 1 && next_adjacent_slot.size() == 1 )
+    {
+        connect( prev_adjacent_slot[0], next_adjacent_slot[0] );
+        // TODO: we must be able to pin the view from here
+    }
 
     // if it is a variable, we remove it from its scope
     if ( node->type() == NodeType_VARIABLE )
