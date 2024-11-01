@@ -55,7 +55,7 @@ namespace ndbl{
         tools::Optional<Node*>          parse_program();
         tools::Optional<Node*>          parse_scoped_block();
         tools::Optional<Node*>          parse_expression_block(Slot* input = nullptr );
-        tools::Optional<Node*>          parse_code_block();
+        tools::Optional<Node*>          parse_code_block(Slot* previous_flow_out = nullptr);
         tools::Optional<Node*>          parse_atomic_code_block();
         tools::Optional<IfNode*>        parse_if_block();
         tools::Optional<ForLoopNode*>   parse_for_block();

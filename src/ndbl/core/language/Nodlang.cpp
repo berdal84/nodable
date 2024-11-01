@@ -558,19 +558,18 @@ Optional<Node*> Nodlang::parse_program()
 
     // Create an entry point and push its scope
     Node* entry_point = parser_state.graph()->create_entry_point();
-    parser_state.push_scope( entry_point->inner_scope() );
 
     // To preserve any ignored characters stored in the global token
     // we put the prefix and suffix in resp. token_begin and end.
     Token& tok = parser_state.tokens().global_token();
     std::string prefix = tok.prefix_to_string();
     std::string suffix = tok.suffix_to_string();
-    parser_state.current_scope()->token_begin = {Token_t::ignore, prefix };
-    parser_state.current_scope()->token_end   = {Token_t::ignore, suffix };
+    entry_point->inner_scope()->token_begin = {Token_t::ignore, prefix };
+    entry_point->inner_scope()->token_end   = {Token_t::ignore, suffix };
 
     // Parse main code block
-    Optional<Node*> block = parse_code_block();
-
+    parser_state.push_scope( entry_point->inner_scope() );
+    Optional<Node*> block = parse_code_block( entry_point->flow_out() );
     parser_state.pop_scope();
 
     if ( block )
@@ -640,7 +639,7 @@ tools::Optional<Node*> Nodlang::parse_scoped_block()
     return nullptr;
 }
 
-Optional<Node*> Nodlang::parse_code_block()
+Optional<Node*> Nodlang::parse_code_block(Slot* previous_flow_out)
 {
     LOG_VERBOSE("Parser", "Parsing code block...\n" );
 
@@ -650,7 +649,7 @@ Optional<Node*> Nodlang::parse_code_block()
     parser_state.start_transaction();
 
     Node*  first_block       = nullptr;
-    Node*  last_block        = nullptr;
+    Slot*  flow_out          = previous_flow_out;
     bool   block_end_reached = false;
     size_t block_size        = 0;
 
@@ -659,11 +658,11 @@ Optional<Node*> Nodlang::parse_code_block()
         if ( Node* curr_block = parse_atomic_code_block().data() )
         {
             // linked-list like
-            if ( last_block )
+            if ( flow_out )
             {
-                if ( last_block->inner_scope() )
+                if ( flow_out->node->inner_scope() )
                 {
-                    for ( Node* last : last_block->inner_scope()->last_instr() )
+                    for ( Node* last : flow_out->node->inner_scope()->last_instr() )
                     {
                         parser_state.graph()->connect(last->flow_out(),
                                                       curr_block->flow_in(),
@@ -672,7 +671,7 @@ Optional<Node*> Nodlang::parse_code_block()
                 }
                 else
                 {
-                    parser_state.graph()->connect(last_block->flow_out(),
+                    parser_state.graph()->connect(flow_out,
                                                   curr_block->flow_in(),
                                                   ConnectFlag_ALLOW_SIDE_EFFECTS );
                 }
@@ -680,7 +679,7 @@ Optional<Node*> Nodlang::parse_code_block()
 
             if ( !first_block )
                 first_block = curr_block;
-            last_block = curr_block;
+            flow_out = curr_block->flow_out();
             block_size++;
         }
         else
