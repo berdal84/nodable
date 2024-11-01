@@ -53,10 +53,10 @@ namespace ndbl{
         bool                            parse(Graph* graph_out, const std::string& code_in); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         tools::Optional<Node*>          parse_program();
-        tools::Optional<Node*>          parse_scoped_block();
+        tools::Optional<Node*>          parse_scoped_block(Scope*);
         tools::Optional<Node*>          parse_expression_block(Slot* input = nullptr );
-        tools::Optional<Node*>          parse_code_block(Slot* previous_flow_out = nullptr);
-        tools::Optional<Node*>          parse_atomic_code_block();
+        tools::Optional<Node*>          parse_code_block(Scope*);
+        tools::Optional<Node*>          parse_atomic_code_block(Scope*);
         tools::Optional<IfNode*>        parse_if_block();
         tools::Optional<ForLoopNode*>   parse_for_block();
         tools::Optional<WhileLoopNode*> parse_while_block();

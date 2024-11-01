@@ -52,6 +52,7 @@ namespace ndbl
         const std::vector<Scope*>&     child_scope() const { return m_child_scope; }
         Scope*                         child_scope_at(size_t pos) { return m_child_scope.at(pos); };
         tools::Optional<Node*>         first_node() const { return m_child_node.empty() ? nullptr : *m_child_node.begin(); };
+        Node*                          last_node() const { return m_child_node.empty() ? nullptr : *m_child_node.rbegin(); };
 
     private:
         bool                           empty_ex(ScopeFlags) const;

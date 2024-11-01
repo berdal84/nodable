@@ -569,7 +569,7 @@ Optional<Node*> Nodlang::parse_program()
 
     // Parse main code block
     parser_state.push_scope( entry_point->inner_scope() );
-    Optional<Node*> block = parse_code_block( entry_point->flow_out() );
+    Optional<Node*> block = parse_code_block( entry_point->inner_scope() );
     parser_state.pop_scope();
 
     if ( block )
@@ -599,7 +599,7 @@ Optional<Node*> Nodlang::parse_program()
     return parser_state.graph()->root();
 }
 
-tools::Optional<Node*> Nodlang::parse_scoped_block()
+tools::Optional<Node*> Nodlang::parse_scoped_block(Scope* scope)
 {
     LOG_VERBOSE("Parser", "Parsing scoped block ...\n");
 
@@ -613,9 +613,8 @@ tools::Optional<Node*> Nodlang::parse_scoped_block()
     parser_state.start_transaction();
 
     // Handle nested scopes
-    Scope* scope = parser_state.current_scope();
     parser_state.push_scope( scope );
-    Optional<Node*> first_atomic_block = parse_code_block(); // no return check, allows empty scope
+    Optional<Node*> first_atomic_block = parse_code_block( scope ); // no return check, allows empty scope
     parser_state.pop_scope();
 
     if ( Token scope_end_token = parser_state.tokens().eat_if(Token_t::scope_end) )
@@ -639,7 +638,7 @@ tools::Optional<Node*> Nodlang::parse_scoped_block()
     return nullptr;
 }
 
-Optional<Node*> Nodlang::parse_code_block(Slot* previous_flow_out)
+Optional<Node*> Nodlang::parse_code_block(Scope* scope)
 {
     LOG_VERBOSE("Parser", "Parsing code block...\n" );
 
@@ -649,20 +648,21 @@ Optional<Node*> Nodlang::parse_code_block(Slot* previous_flow_out)
     parser_state.start_transaction();
 
     Node*  first_block       = nullptr;
-    Slot*  flow_out          = previous_flow_out;
+    Node*  last_block        = scope ? scope->last_node() : nullptr;
     bool   block_end_reached = false;
     size_t block_size        = 0;
 
     while ( parser_state.tokens().can_eat() && !block_end_reached )
     {
-        if ( Node* curr_block = parse_atomic_code_block().data() )
+        Scope* last_scope = last_block ? last_block->scope() : parser_state.current_scope();
+        if ( Node* curr_block = parse_atomic_code_block( last_scope ).data() )
         {
             // linked-list like
-            if ( flow_out )
+            if ( last_block )
             {
-                if ( flow_out->node->inner_scope() )
+                if ( last_block->inner_scope() )
                 {
-                    for ( Node* last : flow_out->node->inner_scope()->last_instr() )
+                    for ( Node* last : last_block->inner_scope()->last_instr() )
                     {
                         parser_state.graph()->connect(last->flow_out(),
                                                       curr_block->flow_in(),
@@ -671,7 +671,7 @@ Optional<Node*> Nodlang::parse_code_block(Slot* previous_flow_out)
                 }
                 else
                 {
-                    parser_state.graph()->connect(flow_out,
+                    parser_state.graph()->connect(last_block->flow_out(),
                                                   curr_block->flow_in(),
                                                   ConnectFlag_ALLOW_SIDE_EFFECTS );
                 }
@@ -679,7 +679,7 @@ Optional<Node*> Nodlang::parse_code_block(Slot* previous_flow_out)
 
             if ( !first_block )
                 first_block = curr_block;
-            flow_out = curr_block->flow_out();
+            last_block = curr_block;
             block_size++;
         }
         else
@@ -1144,7 +1144,8 @@ Optional<IfNode*> Nodlang::parse_if_block()
         if (parser_state.tokens().eat_if(Token_t::parenthesis_close) )
         {
             // scope
-            if ( Optional<Node*> block = parse_atomic_code_block() )
+            Scope* true_scope = if_node->inner_scope()->child_scope_at(Branch_TRUE);
+            if ( Optional<Node*> block = parse_atomic_code_block( true_scope ) )
             {
                 parser_state.graph()->connect(
                         if_node->branch_out(Branch_TRUE),
@@ -1236,7 +1237,8 @@ Optional<ForLoopNode*> Nodlang::parse_for_block()
             // parse parenthesis close
             if ( Token parenthesis_close = parser_state.tokens().eat_if(Token_t::parenthesis_close) )
             {
-                Optional<Node*> block = parse_atomic_code_block();
+                Scope* true_scope = for_node->inner_scope()->child_scope_at(Branch_TRUE);
+                Optional<Node*> block = parse_atomic_code_block( true_scope );
                 VERIFY(block, "TODO: Connect block");
                 if ( !block )
                     success = false; LOG_VERBOSE("Parser", KO "Scope or single instruction expected\n");
@@ -1294,7 +1296,8 @@ Optional<WhileLoopNode*> Nodlang::parse_while_block()
 
             if (parser_state.tokens().eat_if(Token_t::parenthesis_close) )
             {
-                code_block = parse_atomic_code_block();
+                Scope* true_scope = while_node->inner_scope()->child_scope_at(Branch_TRUE);
+                code_block = parse_atomic_code_block( true_scope );
                 if ( code_block )
                 {
                     parser_state.graph()->connect(
@@ -1745,15 +1748,9 @@ std::string& Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
                          | SerializeFlag_WRAP_WITH_BRACES;
     serialize_input(_out, _while_loop_node->condition_in(), flags );
 
-    // scope when true
-    if ( const Node* branch = _while_loop_node->branch_out(Branch_TRUE)->first_adjacent_node() )
+    if ( const Scope* branch = _while_loop_node->inner_scope()->child_scope().at(Branch_TRUE) )
     {
-        serialize_node(_out, branch, SerializeFlag_RECURSE);
-    }
-
-    if ( const Node* branch = _while_loop_node->branch_out(Branch_FALSE)->first_adjacent_node() )
-    {
-        serialize_node(_out, branch, SerializeFlag_RECURSE);
+        serialize_scope(_out, branch);
     }
 
     return _out;
@@ -2010,7 +2007,7 @@ Token_t Nodlang::to_literal_token(const TypeDescriptor *type) const
     return Token_t::literal_unknown;
 }
 
-Optional<Node*> Nodlang::parse_atomic_code_block()
+Optional<Node*> Nodlang::parse_atomic_code_block(Scope* scope)
 {
     LOG_VERBOSE("Parser", "Parsing atomic code block ..\n");
 
@@ -2020,7 +2017,7 @@ Optional<Node*> Nodlang::parse_atomic_code_block()
     else if (block = parse_if_block() );
     else if (block = parse_for_block() );
     else if (block = parse_while_block() );
-    else     block = parse_scoped_block();
+    else     block = parse_scoped_block(scope);
 
     // empty atomic block?
     if ( !block && parser_state.tokens().peek(Token_t::end_of_instruction) )

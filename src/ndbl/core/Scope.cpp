@@ -129,15 +129,11 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
     // if it's a variable, we remove it from the vars registry
     if ( node->type() == NodeType_VARIABLE )
     {
-        auto it = std::find(m_var.begin(), m_var.end(), node);
-        if (it != m_var.end() ) // might be false, see add()
-            m_var.erase( it );
+        m_var.erase( static_cast<VariableNode*>(node) );
     }
 
     // remove the node from the registry
-    auto it = std::find(m_child_node.begin(), m_child_node.end(), node);
-    if (it != m_child_node.end() ) // might be false, see add()
-        m_child_node.erase(it );
+    m_child_node.erase( node );
 
     // reset scope
     node->set_scope(nullptr);
@@ -200,3 +196,4 @@ bool Scope::empty_ex(ScopeFlags flags) const
 
     return result;
 }
+
