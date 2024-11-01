@@ -175,13 +175,12 @@ size_t Scope::remove_all()
 void Scope::reset_parent(Scope *parent)
 {
     if ( m_parent )
-        m_parent->m_child_scope_cache_dirty = true;
+        m_parent->m_child_scope.erase(std::find(m_parent->m_child_scope.begin(), m_parent->m_child_scope.end(), this ));
 
     if ( parent )
-        parent->m_child_scope_cache_dirty = true;
+        parent->m_child_scope.push_back(this);;
 
     m_parent = parent;
-
 }
 
 bool Scope::empty_ex(ScopeFlags flags) const
@@ -200,21 +199,4 @@ bool Scope::empty_ex(ScopeFlags flags) const
     }
 
     return result;
-}
-
-void Scope::update_child_scope_cache() const
-{
-    auto nonconst_this = const_cast<Scope*>(this);
-
-    if ( m_child_scope_cache_dirty )
-    {
-        nonconst_this->m_child_node.clear();
-
-        // Append any inner scope from any child node
-        for( Node* node : m_child_node )
-            if ( Scope* inner_scope = node->inner_scope() )
-                nonconst_this->m_child_scope_cache.push_back( inner_scope );
-
-        nonconst_this->m_child_scope_cache_dirty = false;
-    }
 }

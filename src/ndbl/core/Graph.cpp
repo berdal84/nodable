@@ -380,7 +380,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         {
             Scope* inner_scope = previous_node->inner_scope();
             ASSERT(inner_scope);
-            target_scope = inner_scope->child_at( edge.tail->position );
+            target_scope = inner_scope->child_scope_at(edge.tail->position);
             ASSERT(target_scope);
             break;
         }
