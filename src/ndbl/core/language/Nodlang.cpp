@@ -1634,10 +1634,6 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
         case NodeType_VARIABLE_REF:
             serialize_variable_ref(_out, static_cast<const VariableRefNode*>(node));
             break;
-        case NodeType_ENTRY_POINT:
-            ASSERT( node->inner_scope() );
-            serialize_scope(_out, node->inner_scope() );
-            break;
         case NodeType_FUNCTION:
             [[fallthrough]];
         case NodeType_OPERATOR:
@@ -1645,6 +1641,9 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
             break;
         case NodeType_EMPTY_INSTRUCTION:
             serialize_empty_instruction(_out, node);
+            break;
+        case NodeType_ENTRY_POINT:
+            serialize_scope(_out, node->inner_scope() );
             break;
         default:
             VERIFY(false, "Unhandled NodeType, can't serialize");
@@ -1657,8 +1656,10 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
 std::string& Nodlang::serialize_scope(std::string &_out, const Scope* scope) const
 {
     serialize_token(_out, scope->token_begin);
-    if( Optional<Node*> first_node = scope->first_node() )
-        serialize_node(_out, first_node.data(), SerializeFlag_RECURSE);
+    for(Node* node : scope->child_node() )
+    {
+        serialize_node(_out, node, SerializeFlag_RECURSE);
+    }
     serialize_token(_out, scope->token_end);
 
     return _out;
