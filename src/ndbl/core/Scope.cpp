@@ -177,19 +177,14 @@ size_t Scope::remove_all()
 
 void Scope::reset_parent(Scope *parent)
 {
-    // remove from current parent's children
     if ( m_parent )
-    {
-        auto it = std::find(m_parent->m_child_scope.begin(), m_parent->m_child_scope.end(), this );
-        if ( it != m_parent->m_child_scope.end() )
-            m_parent->m_child_scope.erase(it );
-    }
+        m_parent->m_child_scope_cache_dirty = true;
 
-    // add to new parent's children
     if ( parent )
-        parent->m_child_scope.push_back(this);
+        parent->m_child_scope_cache_dirty = true;
 
     m_parent = parent;
+
 }
 
 bool Scope::empty_ex(ScopeFlags flags) const
@@ -200,17 +195,29 @@ bool Scope::empty_ex(ScopeFlags flags) const
     {
         return result;
     }
-    else if ( flags & ScopeFlags_RECURSE_IF_SAME_NODE )
-    {
-        for(Scope* child : m_child_scope )
-            if ( child->m_owner == m_owner )
-                result = result && child->empty_ex( flags );
-    }
     else if ( flags & ScopeFlags_RECURSE )
     {
-        for(Scope* child : m_child_scope )
-            result = result && child->empty_ex( flags );
+        for(Scope* child : child_scope() )
+            if ((flags & ScopeFlags_IF_SAME_NODE) == 0 || child->m_owner == m_owner )
+                result = result && child->empty_ex( flags );
     }
 
     return result;
+}
+
+void Scope::update_child_scope_cache() const
+{
+    auto nonconst_this = const_cast<Scope*>(this);
+
+    if ( m_child_scope_cache_dirty )
+    {
+        nonconst_this->m_child_node.clear();
+
+        // Append any inner scope from any child node
+        for( Node* node : m_child_node )
+            if ( Scope* inner_scope = node->inner_scope() )
+                nonconst_this->m_child_scope_cache.push_back( inner_scope );
+
+        nonconst_this->m_child_scope_cache_dirty = false;
+    }
 }

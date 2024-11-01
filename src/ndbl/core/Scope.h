@@ -17,10 +17,10 @@ namespace ndbl
     typedef int ScopeFlags;
     enum ScopeFlags_
     {
-        ScopeFlags_NONE                 = 0,
-        ScopeFlags_RECURSE              = 1 << 0,
-        ScopeFlags_ALLOW_CHANGE         = 1 << 1, // will automatically remove from old scope when added
-        ScopeFlags_RECURSE_IF_SAME_NODE = 1 << 2,
+        ScopeFlags_NONE         = 0,
+        ScopeFlags_RECURSE      = 1 << 0,
+        ScopeFlags_ALLOW_CHANGE = 1 << 1, // will automatically remove from old scope when added
+        ScopeFlags_IF_SAME_NODE = 1 << 2,
     };
 
     class Scope : public NodeComponent
@@ -47,12 +47,13 @@ namespace ndbl
         const std::set<VariableNode*>& vars()const { return m_var; };
         std::set<Node*>&               child_node() { return  m_child_node; }
         const std::set<Node*>&         child_node() const { return m_child_node; }
-        std::vector<Scope*>&           child_scope() { return  m_child_scope; }
-        const std::vector<Scope*>&     child_scope() const { return m_child_scope; }
-        Scope*                         child_at(size_t pos) { return m_child_scope.at(pos); };
+        std::vector<Scope*>&           child_scope() { update_child_scope_cache(); return m_child_scope_cache; }
+        const std::vector<Scope*>&     child_scope() const { update_child_scope_cache(); return m_child_scope_cache; }
+        Scope*                         child_at(size_t pos) { update_child_scope_cache(); return m_child_scope_cache.at(pos); };
         tools::Optional<Node*>         first_node() const { return m_child_node.empty() ? nullptr : *m_child_node.begin(); };
 
     private:
+        void                           update_child_scope_cache() const;
         bool                           empty_ex(ScopeFlags) const;
         VariableNode*                  find_var_ex(const std::string& identifier, ScopeFlags);
         void                           push_back_ex(Node*, ScopeFlags);
@@ -62,7 +63,8 @@ namespace ndbl
         ScopeView*                     m_view = nullptr;
         std::set<VariableNode*>        m_var;
         std::set<Node*>                m_child_node;
-        std::vector<Scope*>            m_child_scope;
+        bool                           m_child_scope_cache_dirty = true;
+        std::vector<Scope*>            m_child_scope_cache;
         Scope*                         m_parent = nullptr;
         std::string                    m_name;
     };
