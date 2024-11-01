@@ -245,7 +245,9 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
     {
         std::string identifier = _token.word_to_string();
 
-        if( VariableNode* existing_variable = parser_state.current_scope()->find_var( identifier ) )
+        Scope* scope = parser_state.current_scope();
+        VERIFY(scope, "No current scope, at least one base scope is required in the scope stack");
+        if( VariableNode* existing_variable = scope->find_var( identifier ) )
         {
             return existing_variable->ref_out();
         }
