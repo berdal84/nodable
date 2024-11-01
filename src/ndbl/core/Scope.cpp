@@ -163,6 +163,11 @@ size_t Scope::remove_all()
         remove_ex(*m_child_node.begin(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
     }
 
+    // remove_all on same-owner children scopes
+    for(Scope* child : m_child_scope )
+        if ( child->get_owner() == this->get_owner() )
+            child->remove_all();
+
     return count;
 }
 
