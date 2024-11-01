@@ -123,13 +123,11 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
 {
     ASSERT(node != nullptr);
 
-    if ( node->scope() != this || node->scope() == nullptr )
-        return;
-
     // if it's a variable, we remove it from the vars registry
     if ( node->type() == NodeType_VARIABLE )
     {
-        m_var.erase( static_cast<VariableNode*>(node) );
+        auto variable = static_cast<VariableNode*>(node);
+        m_var.erase( variable );
     }
 
     // remove the node from the registry
