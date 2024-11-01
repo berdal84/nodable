@@ -1131,8 +1131,11 @@ Optional<IfNode*> Nodlang::parse_if_block()
     Optional<IfNode*> else_node;
 
     if_node = parser_state.graph()->create_cond_struct();
-    parser_state.push_scope( if_node->inner_scope() );
+    Scope* if_scope = if_node->inner_scope();
+    parser_state.push_scope(if_scope);
     if_node->token_if  = parser_state.tokens().get_eaten();
+    Scope* false_scope = if_scope->child_scope_at(Branch_FALSE);
+    Scope* true_scope  = if_scope->child_scope_at(Branch_TRUE);
 
     if (parser_state.tokens().eat_if(Token_t::parenthesis_open) )
     {
@@ -1144,7 +1147,6 @@ Optional<IfNode*> Nodlang::parse_if_block()
         if (parser_state.tokens().eat_if(Token_t::parenthesis_close) )
         {
             // scope
-            Scope* true_scope = if_node->inner_scope()->child_scope_at(Branch_TRUE);
             if ( Optional<Node*> block = parse_atomic_code_block( true_scope ) )
             {
                 parser_state.graph()->connect(
@@ -1174,6 +1176,8 @@ Optional<IfNode*> Nodlang::parse_if_block()
                 }
                 else
                 {
+                    false_scope->token_begin = {Token_t::ignore};
+                    false_scope->token_end   = {Token_t::ignore};
                     result = true;
                 }
             }
@@ -1768,16 +1772,16 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const IfNode* _co
     serialize_input(_out, _condition_struct->condition_in(), flags );
 
     // scope when condition is true
-    if ( const Node* branch = _condition_struct->branch_out(Branch_TRUE)->first_adjacent_node() )
+    if ( const Scope* branch = _condition_struct->inner_scope()->child_scope().at(Branch_TRUE) )
     {
-        serialize_node(_out, branch, SerializeFlag_RECURSE );
+        serialize_scope(_out, branch );
     }
 
     // when condition is false
-    if ( const Node* branch = _condition_struct->branch_out(Branch_FALSE)->first_adjacent_node() )
+    if ( const Scope* branch = _condition_struct->inner_scope()->child_scope().at(Branch_FALSE) )
     {
-        serialize_token(_out, _condition_struct->token_else); // I think I'll get problems with that. Can we have an "else" keyword without a scope?
-        serialize_node(_out, branch, SerializeFlag_RECURSE);
+        // serialize_token(_out, _condition_struct->token_else); // I think I'll get problems with that. Can we have an "else" keyword without a scope?
+        serialize_scope(_out, branch );
     }
 
     return _out;
