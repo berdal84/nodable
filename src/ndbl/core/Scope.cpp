@@ -28,7 +28,7 @@ VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flag
 
     // not found? => recursive call in parent ...
     if ( m_parent && flags & ScopeFlags_RECURSE )
-        return m_parent->find_var(_identifier );
+        return m_parent->find_var_ex(_identifier, flags );
 
     return nullptr;
 }
