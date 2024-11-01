@@ -46,7 +46,7 @@ namespace ndbl
         void                   override_post_process_fct(PostProcessFct f);
 
     private:
-        bool m_post_process_is_overrided;
+        bool                   m_post_process_is_overrided;
         std::function<void(Node*)>  m_post_process; // invoked after each node creation, just before to return.
     };
 

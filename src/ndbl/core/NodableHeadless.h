@@ -44,6 +44,7 @@ namespace ndbl
         tools::TaskManager* m_task_manager{};
         Nodlang*            m_language{};
         NodeFactory*        m_node_factory{};
+        ComponentFactory*   m_component_factory{};
         Interpreter*        m_interpreter{};
         bool                m_should_stop{false};
         Graph*              m_graph{};
