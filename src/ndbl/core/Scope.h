@@ -21,6 +21,7 @@ namespace ndbl
         ScopeFlags_RECURSE      = 1 << 0,
         ScopeFlags_ALLOW_CHANGE = 1 << 1, // will automatically remove from old scope when added
         ScopeFlags_IF_SAME_NODE = 1 << 2,
+        ScopeFlags_SKIP_INSERT  = 1 << 3,
     };
 
     class Scope : public NodeComponent

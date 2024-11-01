@@ -68,7 +68,8 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
 
     // Insert the node in this scope
     node->set_scope(this);
-    m_child_node.insert(node );
+    if ( (flags & ScopeFlags_SKIP_INSERT) == 0)
+        m_child_node.insert(node );
 
     // If node have an inner scope, we simply reset its parent
     if ( node->inner_scope() )
@@ -78,15 +79,11 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     // otherwise we migh do a recursive call
     else if ( flags & ScopeFlags_RECURSE )
     {
-        LOG_VERBOSE("Scope", "Push back recursively Node '%s' inputs ...\n", node->name().c_str() );
         for ( Node* input : node->inputs() )
-            push_back_ex(input, flags);
-        LOG_VERBOSE("Scope", OK "%s's input(s) pushed.\n", node->name().c_str() );
+            push_back_ex(input, flags | ScopeFlags_SKIP_INSERT ); // SKIP_INSERT: we don't want those nodes to be part of the main children
 
-        LOG_VERBOSE("Scope", "Push back recursively Node '%s' flow_out ...\n", node->name().c_str() );
         for ( Node* next : node->flow_outputs() )
             push_back_ex(next, flags);
-        LOG_VERBOSE("Scope", OK "%s's flow_out(s) pushed.\n", node->name().c_str() );
     }
 
     on_change.emit();
