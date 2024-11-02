@@ -69,7 +69,7 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     // Insert the node in this scope
     node->set_scope(this);
     if ( (flags & ScopeFlags_SKIP_INSERT) == 0)
-        m_child_node.insert(node );
+        m_child_node.push_back( node );
 
     // If node have an inner scope, we simply reset its parent
     if ( node->inner_scope() )
@@ -131,7 +131,9 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
     }
 
     // remove the node from the registry
-    m_child_node.erase( node );
+    auto it = std::find(m_child_node.begin(), m_child_node.end(), node);
+    if( it != m_child_node.end() )
+        m_child_node.erase( it );
 
     // reset scope
     node->set_scope(nullptr);
@@ -158,7 +160,7 @@ void Scope::clear()
 {
     while( !m_child_node.empty() )
     {
-        remove_ex(*m_child_node.begin(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
+        remove_ex( m_child_node.back(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
     }
 
     on_clear.emit();

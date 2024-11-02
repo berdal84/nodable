@@ -48,8 +48,8 @@ namespace ndbl
         ScopeView*                     view() const { return m_view; }
         void                           set_view(ScopeView* view) { m_view = view; }
         const std::set<VariableNode*>& vars()const { return m_var; };
-        std::set<Node*>&               child_node() { return  m_child_node; }
-        const std::set<Node*>&         child_node() const { return m_child_node; }
+        std::vector<Node*>&            child_node() { return  m_child_node; }
+        const std::vector<Node*>&      child_node() const { return m_child_node; }
         std::vector<Scope*>&           child_scope() { return m_child_scope; }
         const std::vector<Scope*>&     child_scope() const { return m_child_scope; }
         Scope*                         child_scope_at(size_t pos) { return m_child_scope.at(pos); };
@@ -65,7 +65,7 @@ namespace ndbl
 
         ScopeView*                     m_view = nullptr;
         std::set<VariableNode*>        m_var;
-        std::set<Node*>                m_child_node;
+        std::vector<Node*>             m_child_node;
         std::vector<Scope*>            m_child_scope;
         Scope*                         m_parent = nullptr;
         std::string                    m_name;
