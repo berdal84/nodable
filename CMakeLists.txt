@@ -363,6 +363,7 @@ add_library(
     src/ndbl/core/PropertyBag.cpp
     src/ndbl/core/Scope.cpp
     src/ndbl/core/Slot.cpp
+    src/ndbl/core/SwitchBehavior.cpp
     src/ndbl/core/Token.cpp
     src/ndbl/core/TokenRibbon.cpp
     src/ndbl/core/VariableNode.cpp
