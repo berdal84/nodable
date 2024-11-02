@@ -572,18 +572,19 @@ Optional<Node*> Nodlang::parse_program()
     // Create an entry point and push its scope
     Node* entry_point = parser_state.graph()->create_entry_point();
 
+    // Parse main code block
+    parser_state.push_scope( entry_point->inner_scope() );
+    Optional<Node*> block = parse_code_block( entry_point->inner_scope() );
+    parser_state.pop_scope();
+
+
     // To preserve any ignored characters stored in the global token
     // we put the prefix and suffix in resp. token_begin and end.
     Token& tok = parser_state.tokens().global_token();
     std::string prefix = tok.prefix_to_string();
     std::string suffix = tok.suffix_to_string();
-    entry_point->inner_scope()->token_begin = {Token_t::ignore, prefix };
-    entry_point->inner_scope()->token_end   = {Token_t::ignore, suffix };
-
-    // Parse main code block
-    parser_state.push_scope( entry_point->inner_scope() );
-    Optional<Node*> block = parse_code_block( entry_point->inner_scope() );
-    parser_state.pop_scope();
+    entry_point->inner_scope()->token_begin.prefix_push_front( prefix.c_str() );
+    entry_point->inner_scope()->token_end.suffix_push_back( suffix.c_str() );
 
     if ( block )
     {
@@ -1732,8 +1733,8 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
 
 std::string& Nodlang::serialize_graph(std::string &_out, const Graph* graph ) const
 {
-    if ( const Node* root = graph->root().get() )
-        serialize_node(_out, root, SerializeFlag_RECURSE);
+    if ( const Scope* scope = graph->root()->inner_scope() )
+        serialize_scope(_out, scope);
     else
         LOG_ERROR("Serializer", "a root child_node is expected to serialize the graph\n");
     return _out;

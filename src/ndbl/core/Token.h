@@ -56,7 +56,7 @@ namespace ndbl
             ~BimodalBuffer();
             void         delete_intern_buf();
             void         switch_to_intern_buf(size_t size);
-            void         switch_to_intern_buf_with_data(char *data, size_t len);
+
             char*        data()  const { return intern() ? intern_buf->data() : extern_buf; }
             char*        begin() const { return data() + offset; }
             bool         intern() const { return _flags & BimodalBuffer::Flags_INTERN; }
