@@ -1791,17 +1791,12 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const IfNode* _co
     serialize_input(_out, _condition_struct->condition_in(), flags );
 
     // scope when condition is true
-    if ( const Scope* branch = _condition_struct->inner_scope()->child_scope().at(Branch_TRUE) )
-    {
-        serialize_scope(_out, branch );
-    }
+    const std::vector<Scope *>& if_scope = _condition_struct->inner_scope()->child_scope();
+    serialize_scope(_out, if_scope[Branch_TRUE] );
 
     // when condition is false
-    if ( const Scope* branch = _condition_struct->inner_scope()->child_scope().at(Branch_FALSE) )
-    {
-        // serialize_token(_out, _condition_struct->token_else); // I think I'll get problems with that. Can we have an "else" keyword without a scope?
-        serialize_scope(_out, branch );
-    }
+    serialize_token(_out, _condition_struct->token_else);
+    serialize_scope(_out, if_scope[Branch_FALSE] );
 
     return _out;
 }
