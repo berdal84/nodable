@@ -532,6 +532,17 @@ Optional<Node*> Nodlang::parse_expression_block(Slot* input )
         // we accept  to end like "... expression end>EOF"
     }
 
+    if ( !value_out && input )
+    {
+        if (Token tok = parser_state.tokens().eat_if(Token_t::end_of_instruction))
+        {
+            input->property->set_token( tok );
+            parser_state.commit();
+            LOG_VERBOSE("Parser", OK "parse empty instruction\n");
+            return input->node;
+        }
+    }
+
     if ( value_out )
     {
         Node* expression_node = value_out->node;
@@ -1246,7 +1257,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_block()
         Token open_bracket = parser_state.tokens().eat_if(Token_t::parenthesis_open);
         if ( open_bracket)
         {
-            LOG_VERBOSE("Parser", "Parsing for loop instructions ...\n");
+            LOG_VERBOSE("Parser", "Parsing for init/condition/iter instructions ...\n");
 
             parser_state.push_scope( for_node->inner_scope() );
 
@@ -1262,9 +1273,18 @@ Optional<ForLoopNode*> Nodlang::parse_for_block()
             {
                 Scope* true_scope = for_node->inner_scope()->child_scope_at(Branch_TRUE);
                 Optional<Node*> block = parse_atomic_code_block( true_scope );
-                VERIFY(block, "TODO: Connect block");
-                if ( !block )
-                    success = false; LOG_VERBOSE("Parser", KO "Scope or single instruction expected\n");
+                if ( block )
+                {
+                    parser_state.graph()->connect(for_node->branch_out(Branch_TRUE),
+                                                  block->flow_in(),
+                                                  ConnectFlag_ALLOW_SIDE_EFFECTS);
+                    success = true;
+                    LOG_VERBOSE("Parser", "Scope or single instruction found\n");
+                }
+                else
+                {
+                    LOG_VERBOSE("Parser", KO "Scope or single instruction expected\n");
+                }
             }
             else
             {
@@ -1280,7 +1300,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_block()
 
     if ( success )
     {
-        LOG_VERBOSE("Parser", KO "Parsing inner_scope:\n%s\n", parser_state.tokens().to_string().c_str() );
+        LOG_VERBOSE("Parser", KO "For block parsed\n");
         parser_state.commit();
         return for_node;
     }
@@ -1289,7 +1309,7 @@ Optional<ForLoopNode*> Nodlang::parse_for_block()
     if ( true_branch_end )
         parser_state.graph()->destroy( true_branch_end->node );
     parser_state.graph()->destroy(for_node.data() );
-
+    LOG_VERBOSE("Parser", KO "Could not parse for block\n");
     return nullptr;
 }
 
@@ -1748,15 +1768,8 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     }
     serialize_token_t(_out, Token_t::parenthesis_close);
 
-    if ( const Node* branch = _for_loop->branch_out( Branch_TRUE )->first_adjacent_node() )
-    {
-        serialize_node(_out, branch, SerializeFlag_RECURSE);
-    }
-
-    if ( const Node* branch = _for_loop->branch_out( Branch_FALSE )->first_adjacent_node() )
-    {
-        serialize_node(_out, branch, SerializeFlag_RECURSE);
-    }
+    const std::vector<Scope *>& scopes = _for_loop->inner_scope()->child_scope();
+    serialize_scope(_out, scopes[Branch_TRUE]);
 
     return _out;
 }

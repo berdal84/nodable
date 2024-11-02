@@ -16,16 +16,13 @@ void ForLoopNode::init(const std::string& _name)
 
     // add initialization property and slot
     auto* init_prop = add_prop<any>(INITIALIZATION_PROPERTY );
-    init_prop->token().suffix_push_back(";");
     m_initialization_slot = add_slot(init_prop, SlotFlag_INPUT, 1);
 
     // add conditional-related properties and slots
     SwitchBehavior::init(this, 2);
     Property* condition_prop = SwitchBehavior::condition_in(Branch_TRUE)->property;
-    condition_prop->token().suffix_push_back(";");
 
     // add iteration property and slot
     auto iter_prop = add_prop<any>(ITERATION_PROPERTY );
     m_iteration_slot = add_slot(iter_prop, SlotFlag_INPUT, 1);
-    // iter_prop->token().suffix_push_back(";"); unnecessary
 }
