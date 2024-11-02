@@ -634,7 +634,7 @@ tools::Optional<Node*> Nodlang::parse_scoped_block(Scope* scope)
         LOG_VERBOSE("Parser", KO "Expecting close main_scope token\n");
     }
 
-    scope->remove_all();
+    scope->clear();
     parser_state.rollback();
     LOG_VERBOSE("Parser", KO "Scoped block parsed\n");
     return nullptr;

@@ -154,30 +154,27 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
     on_change.emit();
 }
 
-size_t Scope::remove_all()
+void Scope::clear()
 {
-    size_t count = m_var.size();
-
     while( !m_child_node.empty() )
     {
         remove_ex(*m_child_node.begin(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
     }
 
-    // remove_all on same-owner children scopes
-    for(Scope* child : m_child_scope )
-        if ( child->get_owner() == this->get_owner() )
-            child->remove_all();
-
-    return count;
+    on_clear.emit();
 }
 
-void Scope::reset_parent(Scope *parent)
+void Scope::reset_parent(Scope *parent, ScopeFlags flags)
 {
     if ( m_parent )
         m_parent->m_child_scope.erase(std::find(m_parent->m_child_scope.begin(), m_parent->m_child_scope.end(), this ));
 
     if ( parent )
+    {
         parent->m_child_scope.push_back(this);;
+        if ( flags & ScopeFlags_CLEAR_WITH_PARENT)
+            CONNECT( parent->on_clear, &Scope::clear );
+    }
 
     m_parent = parent;
 }
@@ -199,4 +196,3 @@ bool Scope::empty_ex(ScopeFlags flags) const
 
     return result;
 }
-

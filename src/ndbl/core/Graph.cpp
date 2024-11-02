@@ -171,7 +171,7 @@ void Graph::destroy(Node* node)
 
     // Remove inner_scope children
     if ( Scope* inner_scope = node->inner_scope() )
-        inner_scope->remove_all();
+        inner_scope->clear();
 
     // unregister and delete
     remove(node);

@@ -44,7 +44,7 @@ namespace ndbl
             {
                 m_branch_scope[branch] = component_factory->create<Scope>();
                 m_branch_scope[branch]->set_name("#"+ std::to_string(branch) );
-                m_branch_scope[branch]->reset_parent( node->inner_scope() );
+                m_branch_scope[branch]->reset_parent( node->inner_scope(), ScopeFlags_CLEAR_WITH_PARENT );
                 node->add_component( m_branch_scope[branch] );
 
                 m_flow_out[branch]     = node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1, branch);

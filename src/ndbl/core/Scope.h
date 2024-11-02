@@ -22,6 +22,7 @@ namespace ndbl
         ScopeFlags_ALLOW_CHANGE = 1 << 1, // will automatically remove from old scope when added
         ScopeFlags_IF_SAME_NODE = 1 << 2,
         ScopeFlags_SKIP_INSERT  = 1 << 3,
+        ScopeFlags_CLEAR_WITH_PARENT = 1 << 4,
     };
 
     class Scope : public NodeComponent
@@ -31,16 +32,17 @@ namespace ndbl
         Token token_end   = {Token_t::scope_end};
 
         SIGNAL(on_change);
+        SIGNAL(on_clear);
 
         const char*                    name() const { return m_name.c_str(); };
         void                           set_name(const std::string& name) { m_name = name; };
         Scope*                         parent() { return m_parent; }
         const Scope*                   parent() const { return m_parent; }
-        void                           reset_parent(Scope*);
+        void                           reset_parent(Scope*, ScopeFlags flags = ScopeFlags_NONE);
         std::vector<Node*>             last_instr();
         void                           push_back(Node* node) { push_back_ex(node, ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE ); }
         void                           remove(Node* node) { return remove_ex(node, ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE ); }
-        size_t                         remove_all();
+        void                           clear();
         bool                           empty() const { return m_child_node.empty(); }
         VariableNode*                  find_var(const std::string& identifier) { return find_var_ex( identifier, ScopeFlags_RECURSE ); } ;
         ScopeView*                     view() const { return m_view; }
