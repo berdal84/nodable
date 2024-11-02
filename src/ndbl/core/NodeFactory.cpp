@@ -153,8 +153,8 @@ Node *NodeFactory::create_empty_instruction()const
     Node* node = create<Node>();
     node->init(NodeType_EMPTY_INSTRUCTION, ";");
 
-    // Override token to be a ";"
-    node->value()->set_token({Token_t::end_of_instruction});
+    // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
+    node->value()->set_token({Token_t::ignore});
 
     node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
     node->add_slot(node->value(), SlotFlag_FLOW_IN , Slot::MAX_CAPACITY);

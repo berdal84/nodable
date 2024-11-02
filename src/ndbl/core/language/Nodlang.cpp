@@ -625,6 +625,13 @@ tools::Optional<Node*> Nodlang::parse_scoped_block(Scope* scope)
         scope->token_begin = scope_begin_token;
         scope->token_end   = scope_end_token;
 
+        if ( !first_atomic_block )
+        {
+            Node* empty_instr = parser_state.graph()->create_empty_instruction();
+            scope->push_back( empty_instr );
+            first_atomic_block = empty_instr;
+        }
+
         parser_state.commit();
         LOG_VERBOSE("Parser", OK "Scoped block parsed:\n%s\n", parser_state.tokens().to_string().c_str());
         return first_atomic_block;
@@ -649,6 +656,7 @@ Optional<Node*> Nodlang::parse_code_block(Scope* scope)
     //
     parser_state.start_transaction();
 
+    scope = scope ? scope : parser_state.current_scope();
     Node*  first_block       = nullptr;
     Node*  last_block        = scope ? scope->last_node() : nullptr;
     bool   block_end_reached = false;
@@ -656,8 +664,8 @@ Optional<Node*> Nodlang::parse_code_block(Scope* scope)
 
     while ( parser_state.tokens().can_eat() && !block_end_reached )
     {
-        Scope* last_scope = last_block ? last_block->scope() : parser_state.current_scope();
-        if ( Node* curr_block = parse_atomic_code_block( last_scope ).data() )
+        ASSERT( scope );
+        if ( Node* curr_block = parse_atomic_code_block( scope ).data() )
         {
             // linked-list like
             if ( last_block )
@@ -2026,10 +2034,14 @@ Optional<Node*> Nodlang::parse_atomic_code_block(Scope* scope)
     else     block = parse_scoped_block(scope);
 
     // empty atomic block?
-    if ( !block && parser_state.tokens().peek(Token_t::end_of_instruction) )
+    if ( !block )
     {
-        Node* empty_instr = parser_state.graph()->create_empty_instruction();
-        block = empty_instr;
+        if (Token tok = parser_state.tokens().eat_if(Token_t::end_of_instruction))
+        {
+            Node *empty_instr = parser_state.graph()->create_empty_instruction();
+            empty_instr->value()->set_token(tok);
+            block = empty_instr;
+        }
     }
 
     if ( block.valid() )

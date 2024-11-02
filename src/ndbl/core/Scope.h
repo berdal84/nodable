@@ -28,8 +28,8 @@ namespace ndbl
     class Scope : public NodeComponent
     {
     public:
-        Token token_begin = {Token_t::scope_begin};
-        Token token_end   = {Token_t::scope_end};
+        Token token_begin = {Token_t::ignore};
+        Token token_end   = {Token_t::ignore};
 
         SIGNAL(on_change);
         SIGNAL(on_clear);
