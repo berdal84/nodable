@@ -1138,7 +1138,7 @@ Optional<IfNode*> Nodlang::parse_if_block()
     bool              result = false;
     Optional<Slot*>   block_end;
     Optional<IfNode*> if_node;
-    Optional<IfNode*> else_node;
+    Optional<IfNode*> else_if;
 
     if_node = parser_state.graph()->create_cond_struct();
     Scope* if_scope = if_node->inner_scope();
@@ -1169,15 +1169,24 @@ Optional<IfNode*> Nodlang::parse_if_block()
                 {
                     if_node->token_else = parser_state.tokens().get_eaten();
 
-                    // else/else-if's block
-                    if ( else_node = parse_if_block() )
+                    if ( else_if = parse_if_block() )
                     {
                         parser_state.graph()->connect(
                                 if_node->branch_out(Branch_FALSE),
-                                else_node->flow_in(),
+                                else_if->flow_in(),
                                 ConnectFlag_ALLOW_SIDE_EFFECTS);
                         result = true;
-                        LOG_VERBOSE("Parser", OK "else/elseif block parsed.\n");
+                        LOG_VERBOSE("Parser", OK "else if block parsed.\n");
+                    }
+                    else if ( Optional<Node*> else_block = parse_atomic_code_block( false_scope ))
+                    {
+
+                        parser_state.graph()->connect(
+                                if_node->branch_out(Branch_FALSE),
+                                else_block->flow_in(),
+                                ConnectFlag_ALLOW_SIDE_EFFECTS);
+                        result = true;
+                        LOG_VERBOSE("Parser", OK "else block parsed.\n");
                     }
                     else
                     {
@@ -1211,7 +1220,7 @@ Optional<IfNode*> Nodlang::parse_if_block()
     }
 
     parser_state.graph()->destroy( if_node.data() );
-    parser_state.graph()->destroy( else_node.data() );
+    parser_state.graph()->destroy(else_if.data() );
     parser_state.rollback();
     LOG_VERBOSE("Parser", KO "Parse conditional structure \n");
 
