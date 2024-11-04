@@ -590,3 +590,12 @@ Node *Graph::create_empty_instruction()
     add(node);
     return node;
 }
+
+std::set<Scope *> Graph::get_orphan_scopes()
+{
+    std::set<Scope *> result;
+    for(Node* node : m_node_registry)
+        if ( node->inner_scope() && node->inner_scope()->is_orphan() )
+            result.insert( node->inner_scope() );
+    return result;
+}

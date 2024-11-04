@@ -62,22 +62,21 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
     }
 }
 
-void ScopeView::draw(float dt, ScopeViewFlags flags)
+void ScopeView::draw(float dt)
 {
+    m_hovered = false;
     if ( m_rect.has_area() )
     {
-        Rect draw_rect = m_rect;
-        draw_rect.min.round();
-        draw_rect.max.round();
-        draw_rect.expand(10.f );
+        m_hovered = ImGui::IsMouseHoveringRect(m_rect.min, m_rect.max);
+
+        Rect r = m_rect;
+        r.min.round();
+        r.max.round();
+        r.expand(10.f );
 
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddRectFilled(draw_rect.min, draw_rect.max, ImColor(255, 255, 255, 10), 5.f );
-        draw_list->AddRect      (draw_rect.min, draw_rect.max, ImColor(255, 255, 255, 50), 5.f );
+        draw_list->AddRectFilled(r.min, r.max, ImColor(255, 255, 255, 10), 5.f );
+        draw_list->AddRect      (r.min, r.max, ImColor(255, 255, 255, 50), 5.f );
     }
-
-    for( Scope* child : m_scope->child_scope() )
-        if ( ScopeView* view = child->view() )
-            view->draw( dt, flags );
 }
 

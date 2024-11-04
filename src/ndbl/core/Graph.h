@@ -88,8 +88,9 @@ namespace ndbl
         WhileLoopNode*           create_while_loop();
         Node*                    create_empty_instruction();
         void                     destroy(Node* _node);
-        inline std::vector<Node*>&       get_node_registry() {return m_node_registry;}
-        inline const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
+        std::set<Scope *>         get_orphan_scopes();
+        std::vector<Node*>&       get_node_registry() {return m_node_registry;}
+        const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
 
         template<typename T> inline VariableNode* create_variable_decl(const char*  _name = "var"){ return create_variable_decl(tools::type::get<T>(), _name); }
         template<typename T> inline LiteralNode*  create_literal() { return create_literal( tools::type::get<T>()); }

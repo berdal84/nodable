@@ -18,9 +18,10 @@ namespace ndbl
     {
     public:
         ScopeView(Scope* scope);
-        void          update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
-        void          draw(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE);
+        void        update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
+        void        draw(float dt);
     private:
+        bool        m_hovered = false;
         tools::Rect m_rect;
         Scope*      m_scope;
     };

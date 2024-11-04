@@ -180,17 +180,16 @@ bool GraphView::draw(float dt)
             ImGui::GetColorU32(cfg->ui_graph_grid_color_minor));
 
     // Draw Scopes
-    // main
-    if ( Scope* main_scope = graph()->main_scope() )
-        if ( ScopeView* scope_view = main_scope->view() )
-            scope_view->draw( dt, ScopeViewFlags_RECURSE);
-    // and any orphan inner scope
-    for( Node* node : graph()->get_node_registry() )
-        if ( !graph()->is_root( node ) )
-            if ( node->inner_scope() )
-                if ( node->inner_scope()->parent() == nullptr )
-                    if ( ScopeView* view = node->inner_scope()->view() )
-                        view->draw( dt, ScopeViewFlags_RECURSE );
+    for( Scope* scope : graph()->get_orphan_scopes() )
+    {
+        // draw scope
+        if (ScopeView* view = scope->view())
+            view->draw(dt);
+        // draw children
+        for (Scope* child : scope->child_scope())
+            if (ScopeView* child_view = child->view())
+                child_view->draw(dt);
+    }
 
     // Draw Wires (code flow ONLY)
     const ImGuiEx::WireStyle code_flow_style{
@@ -923,10 +922,8 @@ void GraphView::update(float dt)
         _update(sample_dt);
 
     // Update ScopeViews
-    for( Node* node : graph()->get_node_registry() )
-        if ( node->inner_scope() )
-            if ( node->inner_scope()->parent() == nullptr )
-                if ( ScopeView* view = node->inner_scope()->view() )
-                    view->update( dt, ScopeViewFlags_RECURSE );
+    for( Scope* scope : graph()->get_orphan_scopes() )
+        if ( scope->view() )
+            scope->view()->update( dt, ScopeViewFlags_RECURSE );
 }
 

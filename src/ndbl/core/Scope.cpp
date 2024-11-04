@@ -200,16 +200,6 @@ bool Scope::empty_ex(ScopeFlags flags) const
     return result;
 }
 
-bool Scope::has_ancestor(Scope* parent) const
-{
-    Scope* current_parent = m_parent;
-    while(current_parent != nullptr && current_parent != this )
-    {
-        current_parent = current_parent->parent();
-    }
-    return current_parent == this;
-}
-
 std::stack<Scope*> get_path(Scope* s)
 {
     std::stack<Scope*> path;
