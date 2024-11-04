@@ -34,7 +34,6 @@ namespace ndbl
         ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY       = 1 << 2,
         ConfigFlag_EXPERIMENTAL_MULTI_SELECTION      = 1 << 3,
         ConfigFlag_EXPERIMENTAL_INTERPRETER          = 1 << 4,
-        ConfigFlag_EXPERIMENTAL_SCOPE_VIEW_MENU      = 1 << 5,
     };
 
     struct Config
@@ -99,7 +98,8 @@ namespace ndbl
         const char*    ui_startup_window_label;
         const char*    ui_toolbar_window_label ;
         const char*    ui_interpreter_window_label;
-        float          ui_scope_padding;
+        Vec4           ui_scope_margin; // left, top, right, bottom
+        float          ui_scope_child_margin;
         Vec4           ui_scope_fill_col;
         Vec4           ui_scope_border_col;
         float          ui_scope_border_radius;

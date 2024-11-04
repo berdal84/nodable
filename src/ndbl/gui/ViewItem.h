@@ -14,6 +14,7 @@ namespace ndbl
         ViewItemType_NULL = 0,
         ViewItemType_SLOT,
         ViewItemType_EDGE,
+        ViewItemType_SCOPE,
         ViewItemType_NODE,
     };
 
@@ -29,8 +30,9 @@ namespace ndbl
                 void *ptr2;
             } raw_data;
 
-            NodeView* nodeview;
-            SlotView* slotview;
+            NodeView*  nodeview;
+            SlotView*  slotview;
+            ScopeView* scopeview;
 
             struct {
                 SlotView* slot[2];
@@ -45,6 +47,11 @@ namespace ndbl
         ViewItem(SlotView* slotview)
         : type(ViewItemType_SLOT)
         , raw_data({slotview, nullptr})
+        {}
+
+        ViewItem(ScopeView* scopeview)
+        : type(ViewItemType_SCOPE)
+        , raw_data({scopeview, nullptr})
         {}
 
         ViewItem(NodeView* nodeview)

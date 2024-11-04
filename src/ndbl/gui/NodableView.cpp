@@ -369,7 +369,6 @@ void NodableView::draw()
                 checkbox_flag("Multi-Selection"      , ConfigFlag_EXPERIMENTAL_MULTI_SELECTION);
                 checkbox_flag("Graph auto-completion", ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION);
                 checkbox_flag("Interpreter"          , ConfigFlag_EXPERIMENTAL_INTERPRETER);
-                checkbox_flag("ScopeViewMenu"        , ConfigFlag_EXPERIMENTAL_SCOPE_VIEW_MENU);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -868,7 +867,8 @@ void NodableView::draw_config_window()
 
         if (ImGui::CollapsingHeader("Scope", flags ))
         {
-            ImGui::SliderFloat("padding", &cfg->ui_scope_padding, 2, 20);
+            ImGui::SliderFloat4("margins", &cfg->ui_scope_margin.x, 2, 25);
+            ImGui::SliderFloat4("child margin", &cfg->ui_scope_child_margin, 2, 25);
             ImGui::SliderFloat("border radius", &cfg->ui_scope_border_radius, 0, 20);
             ImGui::SliderFloat("border thickness", &cfg->ui_scope_border_thickness, 0, 4);
             ImGui::ColorEdit4("fill color", &cfg->ui_scope_fill_col.x);

@@ -201,44 +201,8 @@ bool GraphView::draw(float dt)
             }
         }
     }
-
-    if (hovered_scopeview && get_config()->has_flags(ConfigFlag_EXPERIMENTAL_SCOPE_VIEW_MENU) )
-    {
-        float x_offset = 25.f * 3;
-        Vec2 pad = {-5.f - x_offset, 5.f };
-        Vec2 pos = { hovered_scopeview->rect().max.x, hovered_scopeview->rect().min.y };
-        ImGui::SetCursorScreenPos( pos + pad );
-
-        if ( ImGui::Button(ICON_FA_TRASH) )
-        {
-            auto event = new Event_DeleteNode({hovered_scopeview->get_owner()});
-            get_event_manager()->dispatch(event);
-        }
-
-        ImGui::SameLine();
-        if ( ImGui::Button(ICON_FA_OBJECT_GROUP) )
-        {
-            // Get descendent scopes
-            std::set<Scope*> children;
-            Scope::get_descendent( children, hovered_scopeview->scope(), ScopeFlags_INCLUDE_SELF );
-
-            // Extract node views from each descendent
-            std::set<NodeView*> views;
-            for(Scope* child : children)
-            {
-                // Include scope owner's view too
-                if ( child->get_owner() )
-                    if ( NodeView* view = child->get_owner()->get_component<NodeView>())
-                        views.insert( view );
-                // and every other child's
-                for(Node* node : child->child_node())
-                    if ( NodeView* view = node->get_component<NodeView>())
-                        views.insert(view);
-            }
-            // Replace selection
-            set_selected({views.begin(), views.end()});
-        }
-    }
+    if ( hovered_scopeview )
+        m_hovered = hovered_scopeview;
 
     // Draw Wires (code flow ONLY)
     const ImGuiEx::WireStyle code_flow_style{
@@ -636,9 +600,6 @@ Graph *GraphView::graph() const
 
 void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview)
 {
-    ImGuiEx::ColoredShadowedText( Vec2(1, 1), Color(0, 0, 0, 255), Color(255, 255, 255, 127), "Create new child_node :");
-    ImGui::Separator();
-
     if (Action_CreateNode* triggered_action = menu.draw_search_input( dragged_slotview, 10))
     {
         // Generate an event from this action, add some info to the state and dispatch it.
@@ -707,10 +668,65 @@ void GraphView::cursor_state_tick()
                 draw_create_node_context_menu(m_create_node_menu);
                 break;
             }
+
+            case ViewItemType_SCOPE:
+            {
+//                    Vec2 pos = hovered_scopeview->rect().top_right() ;
+//                    pos.x   -= 5.f + 25.f;
+//                    pos.y   += 5.f;
+//                    ImGui::SetCursorScreenPos( pos );
+//
+//                    Node*     scope_owner      = hovered_scopeview->scope()->get_owner();
+//                    NodeView* scope_owner_view = scope_owner->get_component<NodeView>();
+//
+//                    if ( ImGui::Button(ICON_FA_LIST ) )
+//                    {
+//                        ImGui::OpenPopup("ScopePopUp");
+//                    }
+                Node*     scope_owner      = m_focused.scopeview->scope()->get_owner();
+                NodeView* scope_owner_view = scope_owner->get_component<NodeView>();
+                if ( ImGui::MenuItem( scope_owner_view->expanded() ? "Collapse Scope" : "Expand Scope" ) )
+                {
+                    scope_owner_view->expand_toggle_rec();
+                }
+
+                if ( ImGui::MenuItem("Delete Scope") )
+                {
+                    auto event = new Event_DeleteNode({m_focused.scopeview->get_owner()});
+                    get_event_manager()->dispatch(event);
+                }
+
+                if ( ImGui::MenuItem("Select Scope") )
+                {
+                    // Get descendent scopes
+                    std::set<Scope*> children;
+                    Scope::get_descendent( children, m_focused.scopeview->scope(), ScopeFlags_INCLUDE_SELF );
+
+                    // Extract node views from each descendent
+                    std::set<NodeView*> views;
+                    for(Scope* child : children)
+                    {
+                        // Include scope owner's view too
+                        if ( child->get_owner() )
+                            if ( NodeView* view = child->get_owner()->get_component<NodeView>())
+                                views.insert( view );
+                        // and every other child's
+                        for(Node* node : child->child_node())
+                            if ( NodeView* view = node->get_component<NodeView>())
+                                views.insert(view);
+                    }
+                    // Replace selection
+                    set_selected({views.begin(), views.end()});
+                }
+
+                ImGui::Separator();
+                draw_create_node_context_menu(m_create_node_menu);
+
+                break;
+            }
             case ViewItemType_EDGE:
             {
-                ActionManager* action_manager = get_action_manager();
-                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete") )
+                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Edge") )
                 {
                     auto* event = new Event_DeleteEdge();
                     event->data.first  = m_focused.edge.slot[0]->slot;
@@ -723,7 +739,7 @@ void GraphView::cursor_state_tick()
 
             case ViewItemType_SLOT:
             {
-                if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect all") )
+                if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect Edges") )
                 {
                     auto* event = new Event_SlotDisconnectAll();
                     event->data.first = m_focused.slotview->slot;
@@ -734,19 +750,19 @@ void GraphView::cursor_state_tick()
             }
             case ViewItemType_NODE:
             {
-                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete") )
+                if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Node") )
                 {
                     auto* event = new Event_DeleteNode ();
                     event->data.node = m_focused.nodeview->node();
                     get_event_manager()->dispatch( event );
                 }
 
-                if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin") )
+                if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin Node") )
                 {
                     m_focused.nodeview->set_pinned( !m_focused.nodeview->pinned() );
                 }
 
-                if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange") )
+                if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange Node") )
                 {
                     m_focused.nodeview->arrange_recursively();
                 }
@@ -817,6 +833,16 @@ void GraphView::cursor_state_tick()
                 m_focused = m_hovered;
             }
             else if (ImGui::IsMouseClicked(1))
+            {
+                m_focused = m_hovered;
+                ImGui::OpenPopup(CONTEXT_POPUP);
+            }
+            break;
+        }
+
+        case ViewItemType_SCOPE:
+        {
+            if (ImGui::IsMouseClicked(1))
             {
                 m_focused = m_hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);

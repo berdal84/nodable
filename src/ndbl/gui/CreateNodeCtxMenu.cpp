@@ -129,10 +129,14 @@ Action_CreateNode* CreateNodeCtxMenu::draw_search_input(SlotView* dragged_slot, 
     }
 
     // Draw search input and update_cache_based_on_user_input on input change
-    if ( ImGui::InputText("Search", search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
+    ImGui::BeginGroup();
+    ImGui::Text("Create Node:");
+    ImGui::SameLine();
+    if ( ImGui::InputText("###Search", search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
     {
         update_cache_based_on_user_input(dragged_slot, 100 );
     }
+    ImGui::EndGroup();
 
     if ( !items_matching_search.empty() )
     {

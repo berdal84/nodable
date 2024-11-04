@@ -44,6 +44,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
     if ( (flags & ScopeFlags_RECURSE) == 0 )
         return;
 
+    const Config* config = get_config();
     for (Scope* child : m_scope->child_scope() )
     {
         ScopeView* child_view = child->view();
@@ -56,15 +57,17 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
         if( !child_view->m_rect.has_area() )
             continue;
 
-        child_view->m_rect.expand( get_config()->ui_scope_padding * 2.f ); // space when nesting
-
+        m_rect.expand( config->ui_scope_child_margin );
         m_rect = !m_rect.has_area() ? child_view->m_rect
                                     : Rect::merge( m_rect, child_view->m_rect );
     }
 
     if ( m_rect.has_area() )
     {
-        m_rect.expand(get_config()->ui_scope_padding * 2.f);
+        m_rect.min.x -= config->ui_scope_margin.x;
+        m_rect.min.y -= config->ui_scope_margin.y;
+        m_rect.max.x += config->ui_scope_margin.z;
+        m_rect.max.y += config->ui_scope_margin.w;
     }
 }
 
