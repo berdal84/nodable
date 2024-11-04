@@ -851,17 +851,21 @@ void NodeView::set_inputs_visible(bool _visible, bool _recursive)
     set_adjacent_visible( SlotFlag_INPUT, _visible, NodeViewFlag_WITH_RECURSION * _recursive );
 }
 
-void NodeView::set_children_visible(bool _visible, bool _recursive)
+void NodeView::set_children_visible(bool visible, bool recursively)
 {
-    m_view_state.visible = _visible;
-
-    if ( !_recursive || !node()->inner_scope() )
+    if ( !node()->inner_scope() )
         return;
 
-    // recursively
-    for(Node* child : node()->inner_scope()->child_node() )
+    std::set<Scope*> scopes;
+    Scope::get_descendent( scopes, node()->inner_scope(), 1 );
+
+    for(Scope* scope : scopes)
     {
-        child->get_component<NodeView>()->set_children_visible(_visible, _recursive);
+        for (Node* child: scope->child_node())
+        {
+            NodeView *child_view = child->get_component<NodeView>();
+            child_view->m_view_state.visible = visible;
+        }
     }
 }
 
@@ -883,11 +887,6 @@ void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeVie
     }
 }
 
-void NodeView::expand_toggle()
-{
-    set_expanded(!m_expanded);
-}
-
 NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive)
 {
     if( _view == nullptr )
@@ -900,7 +899,11 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    ASSERT(false); // not reimplemented yet
+    if ( _recursive )
+        if( Scope* scope = _view->node()->scope() )
+            if (NodeView* parent_view = scope->get_owner()->get_component<NodeView>() )
+                return parent_view->visible() ? parent_view
+                                              : substitute_with_parent_if_not_visible(parent_view, _recursive);
 
     return nullptr;
 }
@@ -919,11 +922,6 @@ std::vector<NodeView*> NodeView::substitute_with_parent_if_not_visible(const std
     }
     return std::move(out);
 };
-
-void NodeView::expand_toggle_rec()
-{
-    return set_expanded_rec(!m_expanded);
-}
 
 std::vector<NodeView*> NodeView::get_adjacent(SlotFlags flags) const
 {

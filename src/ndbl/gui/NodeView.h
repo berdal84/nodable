@@ -74,9 +74,9 @@ namespace ndbl
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
-        void                    set_children_visible(bool _visible, bool _recursive = false);
-        void                    expand_toggle();
-        void                    expand_toggle_rec();
+        void                    set_children_visible(bool visible, bool recursively = false);
+        void                    expand_toggle() { set_expanded(!m_expanded); }
+        void                    expand_toggle_rec() { return set_expanded_rec(!m_expanded); };
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
         GraphView*              graph_view() const;
