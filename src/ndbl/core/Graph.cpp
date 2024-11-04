@@ -355,11 +355,42 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
 void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
-    VERIFY( edge.head->adjacent_count() == 0, "TODO: Only implemented for single connections" );
+    
+    Scope* curr_scope = edge.head->node->scope();
 
-    Scope* scope = edge.head->node->scope();
-    if ( scope )
-        scope->remove( edge.head->node );
+    switch ( edge.head->adjacent_count())
+    {
+        case 0:
+        {
+            if ( curr_scope )
+                curr_scope->remove(edge.head->node);
+            break;
+        }
+        case 1:
+        {
+            Scope* adjacent_scope = edge.head->first_adjacent_node()->scope();
+            if ( adjacent_scope )
+                adjacent_scope->push_back(edge.head->node );
+            break;
+        }
+        default: // 2+
+        {
+            // Find the lowest common ancestor of adjacent nodes
+            std::vector<Scope *> adjacent_scopes;
+            for (Slot *adjacent: edge.head->adjacent())
+            {
+                adjacent_scopes.push_back(adjacent->node->scope());
+            }
+            Scope *target_scope = nullptr;
+            if (Scope *ancestor = Scope::lowest_common_ancestor(adjacent_scopes))
+                target_scope = ancestor->get_owner()->scope();
+
+            if (target_scope)
+                target_scope->push_back(edge.head->node);
+            else if ( curr_scope )
+                curr_scope->remove(edge.head->node);
+        }
+    }
 }
 
 void Graph::on_connect_flow_side_effects( DirectedEdge edge )
@@ -399,8 +430,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
     }
     else if ( flow_in_edge_count > 1 )
     {
-        // Closest ancestor's scope
-        Scope* ancestor = Scope::get_closest_ancestor(next_node->scope(), previous_node->scope());
+        Scope* ancestor = Scope::lowest_common_ancestor(next_node->scope(), previous_node->scope());
         target_scope = ancestor->get_owner()->scope();
     }
     else

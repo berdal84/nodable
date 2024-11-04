@@ -221,7 +221,19 @@ std::stack<Scope*> get_path(Scope* s)
     return path;
 }
 
-Scope *Scope::get_closest_ancestor(Scope* s1, Scope* s2)
+Scope* Scope::lowest_common_ancestor(const std::vector<Scope*>& scopes)
+{
+    if ( scopes.empty() )
+        return nullptr;
+    Scope* result = *scopes.begin();
+    for(auto it = scopes.begin()+1; it != scopes.end(); ++it)
+    {
+        result = lowest_common_ancestor( result, *it);
+    }
+    return result;
+}
+
+Scope *Scope::lowest_common_ancestor(Scope* s1, Scope* s2)
 {
     std::stack<Scope*> path1 = get_path(s1);
     std::stack<Scope*> path2 = get_path(s2);

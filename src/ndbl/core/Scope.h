@@ -56,7 +56,8 @@ namespace ndbl
         tools::Optional<Node*>         first_node() const { return m_child_node.empty() ? nullptr : *m_child_node.begin(); };
         Node*                          last_node() const { return m_child_node.empty() ? nullptr : *m_child_node.rbegin(); };
         bool                           has_ancestor(Scope *parent) const;
-        static Scope*                  get_closest_ancestor(Scope* s1, Scope* s2);
+        static Scope*                  lowest_common_ancestor(const std::vector<Scope*>& scopes);
+        static Scope*                  lowest_common_ancestor(Scope* s1, Scope* s2);
 
     private:
         bool                           empty_ex(ScopeFlags) const;
