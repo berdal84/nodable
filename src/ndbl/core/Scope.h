@@ -55,6 +55,8 @@ namespace ndbl
         Scope*                         child_scope_at(size_t pos) { return m_child_scope.at(pos); };
         tools::Optional<Node*>         first_node() const { return m_child_node.empty() ? nullptr : *m_child_node.begin(); };
         Node*                          last_node() const { return m_child_node.empty() ? nullptr : *m_child_node.rbegin(); };
+        bool                           has_ancestor(Scope *parent) const;
+        static Scope*                  get_closest_ancestor(Scope* s1, Scope* s2);
 
     private:
         bool                           empty_ex(ScopeFlags) const;
@@ -69,5 +71,6 @@ namespace ndbl
         std::vector<Scope*>            m_child_scope;
         Scope*                         m_parent = nullptr;
         std::string                    m_name;
+
     };
 }

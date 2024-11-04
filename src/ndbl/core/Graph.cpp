@@ -365,34 +365,47 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
 void Graph::on_connect_flow_side_effects( DirectedEdge edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
-    VERIFY( edge.head->adjacent_count() == 1, "TODO: Only implemented for single connections" );
-
-    Node* previous_node = edge.tail->node;
-    Node* next_node     = edge.head->node;
 
     Scope* target_scope;
-    switch ( previous_node->type() )
+    Node*  previous_node      = edge.tail->node;
+    Node*  next_node          = edge.head->node;
+    size_t flow_in_edge_count = edge.head->adjacent_count();
+
+    if ( flow_in_edge_count == 1)
     {
-        // Blocks with multiple flow_out branches
-        case NodeType_BLOCK_IF:
-        case NodeType_BLOCK_WHILE_LOOP:
-        case NodeType_BLOCK_FOR_LOOP:
+        switch ( previous_node->type() )
         {
-            Scope* inner_scope = previous_node->inner_scope();
-            ASSERT(inner_scope);
-            target_scope = inner_scope->child_scope_at(edge.tail->position);
-            ASSERT(target_scope);
-            break;
+            // Blocks with multiple flow_out branches
+            case NodeType_BLOCK_IF:
+            case NodeType_BLOCK_WHILE_LOOP:
+            case NodeType_BLOCK_FOR_LOOP:
+            {
+                Scope* inner_scope = previous_node->inner_scope();
+                ASSERT(inner_scope);
+                target_scope = inner_scope->child_scope_at(edge.tail->position);
+                ASSERT(target_scope);
+                break;
+            }
+            case NodeType_ENTRY_POINT:
+            {
+                target_scope = previous_node->inner_scope();
+                break;
+            }
+            default:
+            {
+                target_scope = previous_node->scope();
+            }
         }
-        case NodeType_ENTRY_POINT:
-        {
-            target_scope = previous_node->inner_scope();
-            break;
-        }
-        default:
-        {
-            target_scope = previous_node->scope();
-        }
+    }
+    else if ( flow_in_edge_count > 1 )
+    {
+        // Closest ancestor's scope
+        Scope* ancestor = Scope::get_closest_ancestor(next_node->scope(), previous_node->scope());
+        target_scope = ancestor->get_owner()->scope();
+    }
+    else
+    {
+        VERIFY(false, "Unexpected edge count");
     }
 
     if ( target_scope )

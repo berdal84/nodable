@@ -1,5 +1,6 @@
 #include "Scope.h"
 
+#include <stack>
 #include <cstring>
 #include <algorithm> // for std::find_if
 
@@ -197,4 +198,41 @@ bool Scope::empty_ex(ScopeFlags flags) const
     }
 
     return result;
+}
+
+bool Scope::has_ancestor(Scope* parent) const
+{
+    Scope* current_parent = m_parent;
+    while(current_parent != nullptr && current_parent != this )
+    {
+        current_parent = current_parent->parent();
+    }
+    return current_parent == this;
+}
+
+std::stack<Scope*> get_path(Scope* s)
+{
+    std::stack<Scope*> path;
+    path.push(s);
+    while( path.top() != nullptr )
+    {
+        path.push( path.top()->parent() );
+    }
+    return path;
+}
+
+Scope *Scope::get_closest_ancestor(Scope* s1, Scope* s2)
+{
+    std::stack<Scope*> path1 = get_path(s1);
+    std::stack<Scope*> path2 = get_path(s2);
+
+    Scope* common = nullptr;
+    while( !path1.empty() && !path2.empty() && path1.top() == path2.top() )
+    {
+        common = path1.top();
+        path1.pop();
+        path2.pop();
+    }
+
+    return common;
 }
