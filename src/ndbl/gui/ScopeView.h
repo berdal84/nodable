@@ -17,12 +17,16 @@ namespace ndbl
     class ScopeView : public NodeComponent
     {
     public:
+        typedef tools::Rect Rect;
+
         ScopeView(Scope* scope);
-        void        update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
-        void        draw(float dt);
+        void         update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
+        void         draw(float dt);
+        Scope*       scope() const { return m_scope; }
+        const Rect&  rect() const { return m_rect; }
+
     private:
-        bool        m_hovered = false;
-        tools::Rect m_rect;
+        Rect        m_rect;
         Scope*      m_scope;
     };
 }

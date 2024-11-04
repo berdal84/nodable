@@ -238,3 +238,17 @@ Scope *Scope::lowest_common_ancestor(Scope* s1, Scope* s2)
 
     return common;
 }
+
+std::set<Scope*>& Scope::get_descendent(std::set<Scope*>& out, Scope* scope, ScopeFlags flags)
+{
+    if ( flags & ScopeFlags_INCLUDE_SELF )
+    {
+        out.insert( scope );
+    }
+
+    for(Scope* child : scope->m_child_scope)
+    {
+        get_descendent(out, child, ScopeFlags_INCLUDE_SELF );
+    }
+    return out;
+}

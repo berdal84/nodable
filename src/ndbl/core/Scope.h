@@ -23,6 +23,7 @@ namespace ndbl
         ScopeFlags_IF_SAME_NODE = 1 << 2,
         ScopeFlags_SKIP_INSERT  = 1 << 3,
         ScopeFlags_CLEAR_WITH_PARENT = 1 << 4,
+        ScopeFlags_INCLUDE_SELF = 1 << 5,
     };
 
     class Scope : public NodeComponent
@@ -58,7 +59,7 @@ namespace ndbl
         bool                           is_orphan() const { return m_parent == nullptr; }
         static Scope*                  lowest_common_ancestor(const std::vector<Scope*>& scopes);
         static Scope*                  lowest_common_ancestor(Scope* s1, Scope* s2);
-
+        static std::set<Scope*>&       get_descendent(std::set<Scope*>& out, Scope* scope, ScopeFlags = ScopeFlags_INCLUDE_SELF);
     private:
         bool                           empty_ex(ScopeFlags) const;
         VariableNode*                  find_var_ex(const std::string& identifier, ScopeFlags);

@@ -135,19 +135,26 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_config_window_label                = "Settings";
     ui_startup_window_label               = "Startup";
     ui_toolbar_window_label               = "Toolbar";
-    ui_interpreter_window_label       = "VM";
+    ui_interpreter_window_label           = "VM";
+
+    // Scopes
+    ui_scope_padding                      = 7.f;
+    ui_scope_border_radius                = 7.f;
+    ui_scope_border_thickness             = 3.f;
+    ui_scope_fill_col                     = Color(255,255,255,10);
+    ui_scope_border_col                   = Color(255,255,255,40);
 
     // Graph
     ui_graph_grid_color_major             = Color(0, 0, 0, 42);
     ui_graph_grid_color_minor             = Color(0, 0, 0, 17);
-    ui_grid_subdiv_count = 4;
-    ui_grid_size = 100.0f;
+    ui_grid_subdiv_count                  = 4;
+    ui_grid_size                          = 100.0f;
 
     // Misc.
     flags                                 = ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY
                                           | ConfigFlag_EXPERIMENTAL_MULTI_SELECTION;
     isolation                             = Isolation_OFF;
-    graph_view_unfold_duration                 = 2.0f; // simlate 2sec
+    graph_view_unfold_duration            = 2.0f; // simulate 2sec
 
     // NodableView
     tools_cfg->dockspace_right_ratio       = 0.25f;

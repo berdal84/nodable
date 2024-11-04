@@ -180,15 +180,64 @@ bool GraphView::draw(float dt)
             ImGui::GetColorU32(cfg->ui_graph_grid_color_minor));
 
     // Draw Scopes
+    ScopeView* hovered_scopeview = nullptr;
     for( Scope* scope : graph()->get_orphan_scopes() )
     {
         // draw scope
         if (ScopeView* view = scope->view())
+        {
             view->draw(dt);
+            if ( ImGui::IsMouseHoveringRect(view->rect().min, view->rect().max) )
+                hovered_scopeview = view;
+        }
         // draw children
         for (Scope* child : scope->child_scope())
-            if (ScopeView* child_view = child->view())
-                child_view->draw(dt);
+        {
+            if (ScopeView* view = child->view())
+            {
+                view->draw(dt);
+                if ( ImGui::IsMouseHoveringRect(view->rect().min, view->rect().max) )
+                    hovered_scopeview = view;
+            }
+        }
+    }
+
+    if (hovered_scopeview && get_config()->has_flags(ConfigFlag_EXPERIMENTAL_SCOPE_VIEW_MENU) )
+    {
+        float x_offset = 25.f * 3;
+        Vec2 pad = {-5.f - x_offset, 5.f };
+        Vec2 pos = { hovered_scopeview->rect().max.x, hovered_scopeview->rect().min.y };
+        ImGui::SetCursorScreenPos( pos + pad );
+
+        if ( ImGui::Button(ICON_FA_TRASH) )
+        {
+            auto event = new Event_DeleteNode({hovered_scopeview->get_owner()});
+            get_event_manager()->dispatch(event);
+        }
+
+        ImGui::SameLine();
+        if ( ImGui::Button(ICON_FA_OBJECT_GROUP) )
+        {
+            // Get descendent scopes
+            std::set<Scope*> children;
+            Scope::get_descendent( children, hovered_scopeview->scope(), ScopeFlags_INCLUDE_SELF );
+
+            // Extract node views from each descendent
+            std::set<NodeView*> views;
+            for(Scope* child : children)
+            {
+                // Include scope owner's view too
+                if ( child->get_owner() )
+                    if ( NodeView* view = child->get_owner()->get_component<NodeView>())
+                        views.insert( view );
+                // and every other child's
+                for(Node* node : child->child_node())
+                    if ( NodeView* view = node->get_component<NodeView>())
+                        views.insert(view);
+            }
+            // Replace selection
+            set_selected({views.begin(), views.end()});
+        }
     }
 
     // Draw Wires (code flow ONLY)

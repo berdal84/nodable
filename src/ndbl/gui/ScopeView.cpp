@@ -3,6 +3,7 @@
 #include "ndbl/core/Scope.h"
 #include "NodeView.h"
 #include "ndbl/core/Utils.h"
+#include "Config.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -55,28 +56,29 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
         if( !child_view->m_rect.has_area() )
             continue;
 
-        child_view->m_rect.expand( 5.f ); // space when nesting
+        child_view->m_rect.expand( get_config()->ui_scope_padding * 2.f ); // space when nesting
 
         m_rect = !m_rect.has_area() ? child_view->m_rect
                                     : Rect::merge( m_rect, child_view->m_rect );
+    }
+
+    if ( m_rect.has_area() )
+    {
+        m_rect.expand(get_config()->ui_scope_padding * 2.f);
     }
 }
 
 void ScopeView::draw(float dt)
 {
-    m_hovered = false;
     if ( m_rect.has_area() )
     {
-        m_hovered = ImGui::IsMouseHoveringRect(m_rect.min, m_rect.max);
-
         Rect r = m_rect;
         r.min.round();
         r.max.round();
-        r.expand(10.f );
 
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
-        draw_list->AddRectFilled(r.min, r.max, ImColor(255, 255, 255, 10), 5.f );
-        draw_list->AddRect      (r.min, r.max, ImColor(255, 255, 255, 50), 5.f );
+        const Config* config = get_config();
+        draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32( config->ui_scope_fill_col ), config->ui_scope_border_radius );
+        draw_list->AddRect      (r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ), config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
     }
 }
-

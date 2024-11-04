@@ -365,10 +365,11 @@ void NodableView::draw()
                             cfg->set_flags(flag);
                     }
                 };
-                checkbox_flag("Hybrid history",        ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY);
-                checkbox_flag("Multi-Selection",       ConfigFlag_EXPERIMENTAL_MULTI_SELECTION);
+                checkbox_flag("Hybrid history"       , ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY);
+                checkbox_flag("Multi-Selection"      , ConfigFlag_EXPERIMENTAL_MULTI_SELECTION);
                 checkbox_flag("Graph auto-completion", ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION);
-                checkbox_flag("Interpreter",           ConfigFlag_EXPERIMENTAL_INTERPRETER);
+                checkbox_flag("Interpreter"          , ConfigFlag_EXPERIMENTAL_INTERPRETER);
+                checkbox_flag("ScopeViewMenu"        , ConfigFlag_EXPERIMENTAL_SCOPE_VIEW_MENU);
                 ImGui::EndMenu();
             }
             ImGui::EndMenu();
@@ -863,6 +864,15 @@ void NodableView::draw_config_window()
             ImGui::ColorEdit4("grid color (minor)", &cfg->ui_graph_grid_color_minor.x);
             ImGui::SliderInt("grid set_size", &cfg->ui_grid_size, 1, 500);
             ImGui::SliderInt("grid subdivisions", &cfg->ui_grid_subdiv_count, 1, 16);
+        }
+
+        if (ImGui::CollapsingHeader("Scope", flags ))
+        {
+            ImGui::SliderFloat("padding", &cfg->ui_scope_padding, 2, 20);
+            ImGui::SliderFloat("border radius", &cfg->ui_scope_border_radius, 0, 20);
+            ImGui::SliderFloat("border thickness", &cfg->ui_scope_border_thickness, 0, 4);
+            ImGui::ColorEdit4("fill color", &cfg->ui_scope_fill_col.x);
+            ImGui::ColorEdit4("border color", &cfg->ui_scope_border_col.x);
         }
 
         if (ImGui::CollapsingHeader("Shortcuts", flags ))
