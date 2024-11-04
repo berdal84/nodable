@@ -45,21 +45,24 @@ namespace ndbl{
 	 */
 	class Nodlang
     {
-	public:
+    private:
+        struct FlowPath;
+        typedef std::set<Slot*> FlowOut;
+    public:
         explicit Nodlang(bool _strict = false);
 		~Nodlang();
 
         // Parser /////////////////////////////////////////////////////////////////////
         bool                            parse(Graph* graph_out, const std::string& code_in); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        tools::Optional<Node*>          parse_program();
-        tools::Optional<Node*>          parse_scoped_block(Scope*);
-        tools::Optional<Node*>          parse_expression_block(Slot* input = nullptr );
-        tools::Optional<Node*>          parse_code_block(Scope*);
-        tools::Optional<Node*>          parse_atomic_code_block(Scope*);
-        tools::Optional<IfNode*>        parse_if_block();
-        tools::Optional<ForLoopNode*>   parse_for_block();
-        tools::Optional<WhileLoopNode*> parse_while_block();
+        FlowPath                            parse_program();
+        FlowPath                            parse_scoped_block(const FlowOut& previous_path);
+        FlowPath                            parse_expression_block(Slot* input = nullptr );
+        FlowPath                            parse_code_block(const FlowOut& flow_out);
+        FlowPath                            parse_atomic_code_block(const FlowOut& previous_path);
+        FlowPath                            parse_if_block();
+        FlowPath                            parse_for_block();
+        FlowPath                            parse_while_block();
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         tools::Optional<Slot*>          parse_variable_declaration();
         tools::Optional<Slot*>          parse_function_call();
@@ -83,6 +86,15 @@ namespace ndbl{
         bool                            accepts_suffix(Token_t type) const;
 		bool                            is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
 
+        struct FlowPath
+        {
+            Slot*   in = nullptr;
+            FlowOut out;
+            FlowPath() {}
+            FlowPath(Node* node): in(node->flow_in()), out({node->flow_out()}) {}
+            operator bool() const { return in != nullptr && !out.empty(); }
+        };
+
     public:
         struct ParserState
         {
@@ -101,6 +113,7 @@ namespace ndbl{
             void                start_transaction() { _ribbon.start_transaction(); }
             void                commit() { _ribbon.commit(); }
             void                rollback() { _ribbon.rollback(); }
+
         private:
             struct Buffer
             {
@@ -112,7 +125,8 @@ namespace ndbl{
             Graph*              _graph = nullptr; // NOT owned
             TokenRibbon         _ribbon;
             std::stack<Scope*>  _scope; // nested scopes
-        } parser_state;
+            std::vector<Slot*>  _flow_out; // last flow out slot known
+        } _state;
 
     private: bool m_strict_mode; // When strict mode is ON, any use of undeclared symbol is rejected.
                                  // When OFF, parser can produce a graph with undeclared symbols but the compiler won't be able to handle it.

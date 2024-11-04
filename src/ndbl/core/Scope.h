@@ -40,7 +40,7 @@ namespace ndbl
         Scope*                         parent() { return m_parent; }
         const Scope*                   parent() const { return m_parent; }
         void                           reset_parent(Scope*, ScopeFlags flags = ScopeFlags_NONE);
-        std::vector<Node*>             last_instr();
+        std::vector<Node*>             leaves();
         void                           push_back(Node* node) { push_back_ex(node, ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE ); }
         void                           remove(Node* node) { return remove_ex(node, ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE ); }
         void                           clear();
@@ -66,7 +66,7 @@ namespace ndbl
         VariableNode*                  find_var_ex(const std::string& identifier, ScopeFlags);
         void                           push_back_ex(Node*, ScopeFlags);
         void                           remove_ex(Node*, ScopeFlags);
-        std::vector<Node*>&            last_instr_ex(std::vector<Node*>& out);
+        std::vector<Node*>&            leaves_ex(std::vector<Node*>& out);
 
         ScopeView*                     m_view = nullptr;
         std::set<VariableNode*>        m_var;

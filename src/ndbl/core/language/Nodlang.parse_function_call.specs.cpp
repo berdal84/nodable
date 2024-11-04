@@ -16,7 +16,7 @@ TEST_F(Language_parse_function_call, dna_to_protein)
     language->tokenize("dna_to_protein(\"GATACA\")");
 
     // check
-    TokenRibbon& ribbon = language->parser_state.tokens();
+    TokenRibbon& ribbon = language->_state.tokens();
     EXPECT_EQ(ribbon.size(), 4);
     EXPECT_EQ(ribbon.at(0).m_type, Token_t::identifier);
     EXPECT_EQ(ribbon.at(1).m_type, Token_t::parenthesis_open);
@@ -39,7 +39,7 @@ TEST_F(Language_parse_function_call, operator_add)
     language->tokenize("42+42");
 
     // check
-    TokenRibbon& ribbon = language->parser_state.tokens();
+    TokenRibbon& ribbon = language->_state.tokens();
     EXPECT_EQ(ribbon.size(), 3);
     EXPECT_EQ(ribbon.at(0).m_type, Token_t::literal_int);
     EXPECT_EQ(ribbon.at(1).m_type, Token_t::operator_);

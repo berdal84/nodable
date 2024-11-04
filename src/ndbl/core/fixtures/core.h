@@ -24,7 +24,7 @@ public:
     {
         app.init();
         // in some tests, we call directly some method on the language that requires we pass a Graph* ahead of time
-        app.get_language()->parser_state.reset_graph( app.get_graph() );
+        app.get_language()->_state.reset_graph(app.get_graph() );
 
         tools::log::set_verbosity( tools::log::Verbosity_Message );
         tools::log::set_verbosity( "Parser", tools::log::Verbosity_Verbose );
@@ -139,7 +139,7 @@ public:
 
     void log_ribbon() const
     {
-        LOG_MESSAGE("fixture::core", "%s\n\n", get_language()->parser_state.string().c_str());
+        LOG_MESSAGE("fixture::core", "%s\n\n", get_language()->_state.string().c_str());
     }
 };
 }

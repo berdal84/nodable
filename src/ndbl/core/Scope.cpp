@@ -77,11 +77,12 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     {
         node->inner_scope()->reset_parent(this);
     }
-    // otherwise we migh do a recursive call
+    // otherwise we might do a recursive call
     else if ( flags & ScopeFlags_RECURSE )
     {
         for ( Node* input : node->inputs() )
-            push_back_ex(input, flags | ScopeFlags_SKIP_INSERT ); // SKIP_INSERT: we don't want those nodes to be part of the main children
+            if ( !Utils::is_instruction(input) )
+                push_back_ex(input, flags | ScopeFlags_SKIP_INSERT ); // SKIP_INSERT: we don't want those nodes to be part of the main children
 
         for ( Node* next : node->flow_outputs() )
             push_back_ex(next, flags);
@@ -90,31 +91,38 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     on_change.emit();
 }
 
-std::vector<Node*> Scope::last_instr()
+std::vector<Node*> Scope::leaves()
 {
     std::vector<Node*> result;
-    last_instr_ex(result);
+    leaves_ex(result);
+    if ( result.empty() )
+        result.push_back(get_owner());
     return result;
 }
 
-std::vector<Node*>& Scope::last_instr_ex(std::vector<Node*>& out)
+std::vector<Node*>& Scope::leaves_ex(std::vector<Node*>& out)
 {
-    if ( m_child_node.empty() )
+    if ( m_child_node.empty() && m_child_scope.empty() )
     {
         return out;
     }
 
-    // Recursive call for nested scopes
+    // Recursive call for nested nodes
     for( Node* child : m_child_node )
     {
         if ( Scope* inner_scope = child->inner_scope() )
         {
-            inner_scope->last_instr_ex( out ); // Recursive call on nested scopes
+            inner_scope->leaves_ex(out); // Recursive call on nested scopes
         }
-        else if (child == *m_child_node.rbegin() && Utils::is_instruction(child ) ) // last instruction ?
+        else if ( child == *m_child_node.rbegin() )
         {
             out.push_back( child ); // Append the last instruction to the result
         }
+    }
+
+    for( Scope* child : m_child_scope )
+    {
+        child->leaves_ex(out); // Recursive call on nested scopes
     }
 
     return out;
@@ -148,7 +156,8 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
     else if ( flags & ScopeFlags_RECURSE )
     {
         for ( Node* input : node->inputs() )
-            remove_ex(input, flags);
+            if ( input->scope() == this )
+                remove_ex(input, flags);
 
         for ( Node* next : node->flow_outputs() )
             remove_ex(next, flags);

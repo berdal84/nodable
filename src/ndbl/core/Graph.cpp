@@ -397,7 +397,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
-    Scope* target_scope;
+    Scope* target_scope       = nullptr;
     Node*  previous_node      = edge.tail->node;
     Node*  next_node          = edge.head->node;
     size_t flow_in_edge_count = edge.head->adjacent_count();
@@ -430,8 +430,11 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
     }
     else if ( flow_in_edge_count > 1 )
     {
-        Scope* ancestor = Scope::lowest_common_ancestor(next_node->scope(), previous_node->scope());
-        target_scope = ancestor->get_owner()->scope();
+        std::vector<Scope*> scopes;
+        for(Slot* adjacent : edge.head->adjacent() )
+            scopes.push_back( adjacent->node->scope() );
+        if ( Scope* ancestor = Scope::lowest_common_ancestor( scopes ) )
+            target_scope = ancestor->get_owner()->scope();
     }
     else
     {
