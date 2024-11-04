@@ -59,7 +59,8 @@ namespace ndbl
         bool                           is_orphan() const { return m_parent == nullptr; }
         static Scope*                  lowest_common_ancestor(const std::vector<Scope*>& scopes);
         static Scope*                  lowest_common_ancestor(Scope* s1, Scope* s2);
-        static std::set<Scope*>&       get_descendent(std::set<Scope*>& out, Scope* scope, ScopeFlags = ScopeFlags_INCLUDE_SELF);
+        static std::set<Scope*>&       get_descendent(std::set<Scope*>& out, Scope* scope, ScopeFlags flags = ScopeFlags_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }
+        static std::set<Scope*>&       get_descendent_ex(std::set<Scope*>& out, Scope* scope, size_t level_max = -1, ScopeFlags = ScopeFlags_INCLUDE_SELF);
     private:
         bool                           empty_ex(ScopeFlags) const;
         VariableNode*                  find_var_ex(const std::string& identifier, ScopeFlags);
