@@ -612,11 +612,20 @@ Node *Graph::create_empty_instruction()
     return node;
 }
 
-std::set<Scope *> Graph::get_orphan_scopes()
+std::set<Scope *> Graph::get_root_scopes()
 {
     std::set<Scope *> result;
     for(Node* node : m_node_registry)
         if ( node->is_a_scope() && !node->has_parent() )
             result.insert( node->internal_scope() );
+    return result;
+}
+
+std::set<Scope *> Graph::get_scopes()
+{
+    std::set<Scope *> result;
+    for(Node* node : m_node_registry)
+        if ( node->parent() )
+            result.insert( node->parent() );
     return result;
 }

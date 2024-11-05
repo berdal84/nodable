@@ -1,17 +1,19 @@
 #pragma once
-#include "ndbl/core/NodeComponent.h"
 #include "tools/gui/geometry/Rect.h"
+#include "ndbl/core/NodeComponent.h"
+#include "ndbl/core/Scope.h"
 
 namespace ndbl
 {
     // forward decl.
-    class Scope;
+    class NodeView;
 
     typedef int ScopeViewFlags;
     enum ScopeViewFlags_
     {
-        ScopeViewFlags_NONE    = 0,
-        ScopeViewFlags_RECURSE = 1
+        ScopeViewFlags_NONE          = 0,
+        ScopeViewFlags_RECURSE       = 1 << 0,
+        ScopeViewFlags_EXCLUDE_OWNER = 1 << 1,
     };
 
     class ScopeView : public NodeComponent
@@ -24,12 +26,19 @@ namespace ndbl
         void         draw(float dt);
         Scope*       scope() const { return m_scope; }
         const Rect&  rect() const { return m_rect; }
+        bool         hovered() const { return m_hovered; }
+        bool         dragged() const { return m_dragged; }
+        const std::vector<NodeView*> &nodeviews() const { return m_nodeviews; }
+        void         translate(const tools::Vec2 &delta, ScopeViewFlags flags = ScopeViewFlags_NONE);
+        size_t       depth() const { return m_scope->depth(); }
 
     private:
-        Rect        update_node(float dt, ScopeViewFlags flags, Node* node);
+        bool        is_owner() const;
+
         Rect        m_rect;
         Scope*      m_scope;
-
-        bool is_owner() const;
+        bool        m_dragged;
+        bool        m_hovered;
+        std::vector<NodeView*> m_nodeviews;
     };
 }

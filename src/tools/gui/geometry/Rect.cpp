@@ -34,6 +34,12 @@ Rect Rect::merge(const Rect& a, const Rect& b )// Return a rectangle overlapping
 {
     ASSERT(!a.is_inverted());
     ASSERT(!b.is_inverted());
+
+    if ( !a.has_area() )
+        return b;
+    if ( !b.has_area())
+        return a;
+
     Rect result;
     result.min.x = glm::min( a.min.x, b.min.x );
     result.min.y = glm::min( a.min.y, b.min.y );

@@ -88,7 +88,8 @@ namespace ndbl
         WhileLoopNode*           create_while_loop();
         Node*                    create_empty_instruction();
         void                     destroy(Node* _node);
-        std::set<Scope *>         get_orphan_scopes();
+        std::set<Scope *>         get_scopes();
+        std::set<Scope *>         get_root_scopes();
         std::vector<Node*>&       get_node_registry() {return m_node_registry;}
         const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
 

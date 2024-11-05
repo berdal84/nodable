@@ -182,29 +182,16 @@ bool GraphView::draw(float dt)
             ImGui::GetColorU32(cfg->ui_graph_grid_color_minor));
 
     // Draw Scopes
-    ScopeView* hovered_scopeview = nullptr;
-    for( Scope* scope : graph()->get_orphan_scopes() )
+    for( Scope* scope : graph()->get_scopes() )
     {
-        // draw scope
         if (ScopeView* view = scope->view())
         {
             view->draw(dt);
-            if ( ImGui::IsMouseHoveringRect(view->rect().min, view->rect().max) )
-                hovered_scopeview = view;
-        }
-        // draw children
-        for (Scope* child : scope->child_scope())
-        {
-            if (ScopeView* view = child->view())
-            {
-                view->draw(dt);
-                if ( ImGui::IsMouseHoveringRect(view->rect().min, view->rect().max) )
-                    hovered_scopeview = view;
-            }
+            if ( view->hovered() )
+                if ( m_hovered.empty() || view->depth() >= m_hovered.scopeview->depth() )
+                    m_hovered = view;
         }
     }
-    if ( hovered_scopeview )
-        m_hovered = hovered_scopeview;
 
     // Draw Wires (code flow ONLY)
     const ImGuiEx::WireStyle code_flow_style{
@@ -618,15 +605,42 @@ void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView*
 
 void GraphView::drag_state_enter()
 {
-    for(auto& each : m_selected_nodeview)
-        each->set_pinned();
+    switch ( m_focused.type )
+    {
+        case ViewItemType_SCOPE:
+        {
+            for ( NodeView* node_view : m_focused.scopeview->nodeviews() )
+                node_view->set_pinned();
+            break;
+        }
+        default:
+        {
+            for ( NodeView* node_view : get_selected() )
+                node_view->set_pinned();
+            break;
+        }
+    }
 }
 
 void GraphView::drag_state_tick()
 {
     Vec2 delta = ImGui::GetMouseDragDelta();
-    for (auto &node_view: get_selected() )
-        node_view->xform()->translate(delta);
+
+    switch ( m_focused.type )
+    {
+        case ViewItemType_SCOPE:
+        {
+            m_focused.scopeview->translate( delta );
+            break;
+        }
+
+        default:
+        {
+            for (NodeView* node_view: get_selected() )
+                node_view->xform()->translate(delta);
+            break;
+        }
+    }
 
     ImGui::ResetMouseDragDelta();
 
@@ -673,18 +687,6 @@ void GraphView::cursor_state_tick()
 
             case ViewItemType_SCOPE:
             {
-//                    Vec2 pos = hovered_scopeview->rect().top_right() ;
-//                    pos.x   -= 5.f + 25.f;
-//                    pos.y   += 5.f;
-//                    ImGui::SetCursorScreenPos( pos );
-//
-//                    Node*     scope_owner      = hovered_scopeview->scope()->get_owner();
-//                    NodeView* scope_owner_view = scope_owner->get_component<NodeView>();
-//
-//                    if ( ImGui::Button(ICON_FA_LIST ) )
-//                    {
-//                        ImGui::OpenPopup("ScopePopUp");
-//                    }
                 Node*     scope_owner      = m_focused.scopeview->scope()->get_owner();
                 NodeView* scope_owner_view = scope_owner->get_component<NodeView>();
                 if ( ImGui::MenuItem( scope_owner_view->expanded() ? "Collapse Scope" : "Expand Scope" ) )
@@ -849,6 +851,11 @@ void GraphView::cursor_state_tick()
                 m_focused = m_hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
+            else if ( ImGui::IsMouseDragging(0) )
+            {
+                m_focused = m_hovered;
+                m_state_machine.change_state(DRAG_STATE);
+            }
             break;
         }
 
@@ -999,7 +1006,7 @@ void GraphView::update(float dt)
         _update(sample_dt);
 
     // Update ScopeViews
-    for( Scope* scope : graph()->get_orphan_scopes() )
+    for( Scope* scope : graph()->get_root_scopes() )
         if ( scope->view() )
             scope->view()->update( dt, ScopeViewFlags_RECURSE );
 }
