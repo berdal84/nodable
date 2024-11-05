@@ -343,6 +343,8 @@ DirectedEdge Graph::add(const DirectedEdge& _edge)
 
 void Graph::on_connect_value_side_effects( DirectedEdge edge )
 {
+    // 1) Update Scope
+    //
     Scope* target_scope = edge.head->node->scope();
 
     if ( Scope* inner_scope = edge.head->node->inner_scope() )
@@ -350,6 +352,21 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
 
     if ( target_scope )
         target_scope->push_back(edge.tail->node ); // recursively
+
+
+    // 2) Update input's property type
+    edge.head->property->set_type( edge.tail->property->get_type() );
+}
+
+void Graph::on_disconnect_value_side_effects( DirectedEdge edge )
+{
+    ASSERT( edge.tail->type_and_order() == SlotFlag_OUTPUT );
+
+    // reset token to a default value to preserve a correct serialization
+    if ( edge.head->node->type() != NodeType_VARIABLE )
+    {
+        edge.head->property->init_token();
+    }
 }
 
 void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
@@ -472,7 +489,7 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
             }
             case SlotFlag_TYPE_VALUE:
             {
-                // We keep the node in the scope until it gets connected to another node from another scope
+                on_disconnect_value_side_effects(_edge);
                 break;
             }
             default:

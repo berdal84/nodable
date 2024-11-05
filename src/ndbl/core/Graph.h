@@ -104,6 +104,7 @@ namespace ndbl
         inline std::multimap<SlotFlags, DirectedEdge>& get_edge_registry() { return m_edge_registry; }
 
     private:
+        void on_disconnect_value_side_effects(DirectedEdge);
         void on_disconnect_flow_side_effects(DirectedEdge);
         void on_connect_value_side_effects(DirectedEdge);
         void on_connect_flow_side_effects(DirectedEdge);
