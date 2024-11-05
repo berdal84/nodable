@@ -66,9 +66,10 @@ endif ()
 
 include(FetchContent)
 FetchContent_Declare(
-        cpptrace
-        GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-        GIT_TAG        v0.5.4 # <HASH or TAG>
+    cpptrace
+    GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+    GIT_TAG        v0.5.4 # <HASH or TAG>
+    EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(cpptrace)
 
