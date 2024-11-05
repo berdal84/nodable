@@ -138,7 +138,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_interpreter_window_label           = "VM";
 
     // Scopes
-    ui_scope_margin                       = Vec4{5.f, 5.f, 5.f, 5.f};
+    ui_scope_margin                       = Vec4{10.f, 15.f, 10.f, 15.f};
     ui_scope_child_margin                 = ui_scope_margin.x;
     ui_scope_border_radius                = 7.f;
     ui_scope_border_thickness             = 3.f;
