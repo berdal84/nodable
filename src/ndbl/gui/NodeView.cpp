@@ -289,8 +289,8 @@ void NodeView::arrange_recursively(bool _smoothly)
                 each_input->arrange_recursively();
     }
 
-    if ( Scope* scope = node()->internal_scope() )
-        for ( Node* node : scope->child_node() )
+    if ( node()->is_a_scope() )
+        for ( Node* node : node()->internal_scope()->child_node() )
             if ( NodeView* node_view = node->get_component<NodeView>() )
                     node_view->arrange_recursively();
 
