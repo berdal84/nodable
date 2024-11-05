@@ -256,7 +256,7 @@ bool GraphView::draw(float dt)
                         head_pos,
                 };
                 ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
-                if (ImGui::GetHoveredID() == id && m_hovered.empty() )
+                if (ImGui::GetHoveredID() == id )
                     m_hovered = {tail, head};
             }
         }
