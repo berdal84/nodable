@@ -39,7 +39,7 @@ jobs:
         env:
           cache-name: cache-cmake-dependency-sources
         with:
-          path: ${{github.workspace}}/build/_deps/*-src
+          path: ${{runner.workspace}}/build/_deps/*-src
           key: ${{ env.cache-name }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**') }}
           restore-keys: |
             ${{ env.cache-name }}
@@ -50,8 +50,8 @@ jobs:
           cache-name: cache-cmake-dependency-builds
         with:
           path: |
-            ${{github.workspace}}/build/_deps/*-build
-            ${{github.workspace}}/build/_deps/*-subbuild
+            ${{runner.workspace}}/build/_deps/*-build
+            ${{runner.workspace}}/build/_deps/*-subbuild
           key: ${{ env.cache-name }}-${{ matrix.os }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**') }}
           restore-keys: |
             ${{ env.cache-name }}-${{ matrix.os }}
