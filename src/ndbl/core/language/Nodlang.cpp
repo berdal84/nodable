@@ -1934,7 +1934,7 @@ std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) con
         case Token_t::literal_double:  [[fallthrough]];
         case Token_t::literal_int:     return _out.append("0");
         case Token_t::literal_bool:    return _out.append("false");
-        case Token_t::literal_any:     [[fallthrough]];
+        case Token_t::literal_any:     return _out.append("0");
         case Token_t::ignore:          [[fallthrough]];
         case Token_t::literal_unknown: return _out;
         default:

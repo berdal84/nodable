@@ -68,9 +68,13 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     }
 
     // Insert the node in this scope
-    node->set_scope(this);
-    if ( (flags & ScopeFlags_SKIP_INSERT) == 0)
-        m_child_node.push_back( node );
+    if ( Utils::is_instruction(node) )
+    {
+        node->set_scope(this);
+        if ( (flags & ScopeFlags_SKIP_INSERT) == 0)
+            m_child_node.push_back( node );
+    }
+
 
     // If node have an inner scope, we simply reset its parent
     if ( node->inner_scope() )

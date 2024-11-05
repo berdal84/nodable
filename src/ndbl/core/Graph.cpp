@@ -355,7 +355,11 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
 
 
     // 2) Update input's property type
-    edge.head->property->set_type( edge.tail->property->get_type() );
+    //
+    if ( edge.head->node->type() != NodeType_VARIABLE )
+    {
+        edge.head->property->set_type( edge.tail->property->get_type() );
+    }
 }
 
 void Graph::on_disconnect_value_side_effects( DirectedEdge edge )
