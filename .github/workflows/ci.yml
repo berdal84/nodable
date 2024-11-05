@@ -42,7 +42,7 @@ jobs:
           path: ${{github.workspace}}/build/_deps/*-src
           key: ${{ env.cache-name }}-${{ hashFiles('**/CMakeLists.txt', 'cmake/**') }}
           restore-keys: |
-            ${{ env.cache-name }}-
+            ${{ env.cache-name }}
 
       - name: Cache CMake dependency build objects
         uses: actions/cache@v4
