@@ -243,7 +243,7 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
         std::string identifier = _token.word_to_string();
 
         Scope* scope = _state.current_scope();
-        VERIFY(scope, "No current scope, at least one base scope is required in the scope stack");
+        VERIFY(scope, "No current scope, at least one base parent is required in the parent stack");
         if( VariableNode* existing_variable = scope->find_var( identifier ) )
         {
             return existing_variable->ref_out();
@@ -572,7 +572,7 @@ Nodlang::FlowPath Nodlang::parse_program()
     Node* entry_point = _state.graph()->create_entry_point();
 
     // Parse main code block
-    _state.push_scope(entry_point->inner_scope() );
+    _state.push_scope(entry_point->internal_scope() );
     FlowPath path{ entry_point };
     FlowPath block_path = parse_code_block( path.out );
     path.out = block_path.out;
@@ -584,8 +584,8 @@ Nodlang::FlowPath Nodlang::parse_program()
     Token& tok = _state.tokens().global_token();
     std::string prefix = tok.prefix_to_string();
     std::string suffix = tok.suffix_to_string();
-    entry_point->inner_scope()->token_begin.prefix_push_front( prefix.c_str() );
-    entry_point->inner_scope()->token_end.suffix_push_back( suffix.c_str() );
+    entry_point->internal_scope()->token_begin.prefix_push_front(prefix.c_str() );
+    entry_point->internal_scope()->token_end.suffix_push_back(suffix.c_str() );
 
     if ( _state.tokens().can_eat( ) )
     {
@@ -1133,7 +1133,7 @@ Nodlang::FlowPath Nodlang::parse_if_block()
     Nodlang::FlowPath path;
 
     if_node = _state.graph()->create_cond_struct();
-    Scope* if_scope = if_node->inner_scope();
+    Scope* if_scope = if_node->internal_scope();
     _state.push_scope(if_scope);
     if_node->token_if  = _state.tokens().get_eaten();
 
@@ -1241,7 +1241,7 @@ Nodlang::FlowPath Nodlang::parse_for_block()
         {
             LOG_VERBOSE("Parser", "Parsing for init/condition/iter instructions ...\n");
 
-            _state.push_scope(for_node->inner_scope() );
+            _state.push_scope(for_node->internal_scope() );
 
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
@@ -1253,7 +1253,7 @@ Nodlang::FlowPath Nodlang::parse_for_block()
             // parse parenthesis close
             if ( Token parenthesis_close = _state.tokens().eat_if(Token_t::parenthesis_close) )
             {
-                _state.push_scope(for_node->inner_scope()->child_scope_at(Branch_TRUE) );
+                _state.push_scope(for_node->internal_scope()->child_scope_at(Branch_TRUE) );
                 FlowOut flow_out = { for_node->branch_out(Branch_TRUE) };
                 FlowPath block = parse_atomic_code_block(flow_out) ;
                 _state.pop_scope();
@@ -1312,7 +1312,7 @@ Nodlang::FlowPath Nodlang::parse_while_block()
         while_node->token_while = token_while;
         path.in = while_node->flow_in();
         path.out = {while_node->branch_out(Branch_FALSE)};
-        _state.push_scope(while_node->inner_scope() );
+        _state.push_scope(while_node->internal_scope() );
 
         if ( Token open_bracket = _state.tokens().eat_if(Token_t::parenthesis_open) )
         {
@@ -1323,7 +1323,7 @@ Nodlang::FlowPath Nodlang::parse_while_block()
 
             if (_state.tokens().eat_if(Token_t::parenthesis_close) )
             {
-                _state.push_scope(while_node->inner_scope()->child_scope_at(Branch_TRUE) );
+                _state.push_scope(while_node->internal_scope()->child_scope_at(Branch_TRUE) );
                 FlowOut flow_out = { while_node->branch_out(Branch_TRUE) };
                 FlowPath block = parse_atomic_code_block( flow_out );
                 _state.pop_scope();
@@ -1673,7 +1673,7 @@ std::string& Nodlang::serialize_node(std::string &_out, const Node* node, Serial
             serialize_empty_instruction(_out, node);
             break;
         case NodeType_ENTRY_POINT:
-            serialize_scope(_out, node->inner_scope() );
+            serialize_scope(_out, node->internal_scope() );
             break;
         default:
             VERIFY(false, "Unhandled NodeType, can't serialize");
@@ -1706,7 +1706,7 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
 
 std::string& Nodlang::serialize_graph(std::string &_out, const Graph* graph ) const
 {
-    if ( const Scope* scope = graph->root()->inner_scope() )
+    if ( const Scope* scope = graph->root()->internal_scope() )
         serialize_scope(_out, scope);
     else
         LOG_ERROR("Serializer", "a root child_node is expected to serialize the graph\n");
@@ -1742,7 +1742,7 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
     }
     serialize_default_buffer(_out, Token_t::parenthesis_close);
 
-    const std::vector<Scope *>& scopes = _for_loop->inner_scope()->child_scope();
+    const std::vector<Scope *>& scopes = _for_loop->internal_scope()->child_scope();
     serialize_scope(_out, scopes[Branch_TRUE]);
 
     return _out;
@@ -1758,7 +1758,7 @@ std::string& Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
                          | SerializeFlag_WRAP_WITH_BRACES;
     serialize_input(_out, _while_loop_node->condition_in(), flags );
 
-    if ( const Scope* branch = _while_loop_node->inner_scope()->child_scope().at(Branch_TRUE) )
+    if ( const Scope* branch = _while_loop_node->internal_scope()->child_scope().at(Branch_TRUE) )
     {
         serialize_scope(_out, branch);
     }
@@ -1778,7 +1778,7 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const IfNode* _co
     serialize_input(_out, _condition_struct->condition_in(), flags );
 
     // scope when condition is true
-    const std::vector<Scope *>& if_scope = _condition_struct->inner_scope()->child_scope();
+    const std::vector<Scope *>& if_scope = _condition_struct->internal_scope()->child_scope();
     serialize_scope(_out, if_scope[Branch_TRUE] );
 
     // when condition is false

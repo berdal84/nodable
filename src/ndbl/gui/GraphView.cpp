@@ -93,17 +93,19 @@ void GraphView::decorate(Node* node)
     add_child( nodeview );
 
     // add a ScopeView for the inner scope and any child that is owned by this node too
-    if ( Scope* scope = node->inner_scope() )
+    if ( node->is_a_scope() )
     {
-        ScopeView* scopeview = component_factory->create<ScopeView>( scope );
-        node->add_component( scopeview );
+        Scope*     internal_scope = node->internal_scope();
+        ScopeView* scope_view      = component_factory->create<ScopeView>( internal_scope );
 
-        for ( Scope* child_scope : scope->child_scope() )
+        node->add_component( scope_view );
+
+        for ( Scope* child_scope : internal_scope->child_scope() )
         {
             if ( child_scope->get_owner() == node )
             {
-                ScopeView* childview = component_factory->create<ScopeView>( child_scope );
-                node->add_component( childview );
+                ScopeView* child_view = component_factory->create<ScopeView>( child_scope );
+                node->add_component( child_view );
             }
         }
     }

@@ -289,7 +289,7 @@ void NodeView::arrange_recursively(bool _smoothly)
                 each_input->arrange_recursively();
     }
 
-    if ( Scope* scope = node()->inner_scope() )
+    if ( Scope* scope = node()->internal_scope() )
         for ( Node* node : scope->child_node() )
             if ( NodeView* node_view = node->get_component<NodeView>() )
                     node_view->arrange_recursively();
@@ -673,11 +673,11 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         }
 
         // Scope specific:
-        if ( node->inner_scope() && ImGui::TreeNode("InnerScope") )
+        if (node->internal_scope() && ImGui::TreeNode("InnerScope") )
         {
             if( ImGui::TreeNode("Children") )
             {
-                for ( Node* child : node->inner_scope()->child_node() )
+                for ( Node* child : node->internal_scope()->child_node() )
                 {
                     ImGui::BulletText("%s (class %s)", child->name().c_str(), child->get_class()->get_name() );
                 }
@@ -686,7 +686,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
             if( ImGui::TreeNode("Variables ONLY") )
             {
-                for (VariableNode* variable : node->inner_scope()->vars() )
+                for (VariableNode* variable : node->internal_scope()->vars() )
                 {
                     std::string value = variable->value()->token().word_to_string();
                     ImGui::BulletText("%s (value: %s)", variable->name().c_str(), value.c_str() );
@@ -698,8 +698,8 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
         if ( ImGui::TreeNode("Scope") )
         {
-            if ( node->scope() )
-                ImGui::BulletText("%s", node->scope()->name());
+            if (node->parent() )
+                ImGui::BulletText("%s", node->parent()->name());
             else
                 ImGui::BulletText("None");
             ImGui::TreePop();
@@ -776,13 +776,12 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         }
     };
 
-    if ( Scope* scope = node()->inner_scope() )
-    {
-        std::for_each(scope->child_node().begin(), scope->child_node().end(), visit );
-    }
+    if ( node()->is_a_scope() )
+        for (Node* node : node()->internal_scope()->child_node() )
+            visit(node);
 
-    const std::vector<Node*>& inputs = node()->inputs();
-    std::for_each(inputs.begin(), inputs.end()  , visit );
+    for (Node* node : node()->inputs() )
+        visit(node);
 
     Rect result = Rect::bbox(&rects);
 
@@ -830,10 +829,10 @@ void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
 
-    if ( !node()->inner_scope() )
+    if ( !node()->internal_scope() )
         return;
 
-    for(Node* child : node()->inner_scope()->child_node() )
+    for(Node* child : node()->internal_scope()->child_node() )
     {
         child->get_component<NodeView>()->set_expanded_rec(_expanded);
     }
@@ -853,11 +852,11 @@ void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 
 void NodeView::set_children_visible(bool visible, bool recursively)
 {
-    if ( !node()->inner_scope() )
+    if ( !node()->internal_scope() )
         return;
 
     std::set<Scope*> scopes;
-    Scope::get_descendent( scopes, node()->inner_scope(), 1 );
+    Scope::get_descendent(scopes, node()->internal_scope(), 1 );
 
     for(Scope* scope : scopes)
     {
@@ -900,7 +899,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
     }
 
     if ( _recursive )
-        if( Scope* scope = _view->node()->scope() )
+        if( Scope* scope = _view->node()->parent() )
             if (NodeView* parent_view = scope->get_owner()->get_component<NodeView>() )
                 return parent_view->visible() ? parent_view
                                               : substitute_with_parent_if_not_visible(parent_view, _recursive);

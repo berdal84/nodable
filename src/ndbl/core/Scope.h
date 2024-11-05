@@ -17,13 +17,13 @@ namespace ndbl
     typedef int ScopeFlags;
     enum ScopeFlags_
     {
-        ScopeFlags_NONE         = 0,
-        ScopeFlags_RECURSE      = 1 << 0,
-        ScopeFlags_ALLOW_CHANGE = 1 << 1, // will automatically remove from old scope when added
-        ScopeFlags_IF_SAME_NODE = 1 << 2,
-        ScopeFlags_SKIP_INSERT  = 1 << 3,
+        ScopeFlags_NONE              = 0,
+        ScopeFlags_RECURSE           = 1 << 0,
+        ScopeFlags_ALLOW_CHANGE      = 1 << 1, // will automatically remove from old scope when added
+        ScopeFlags_IF_SAME_NODE      = 1 << 2,
+        ScopeFlags_NO_PUSH_BACK      = 1 << 3,
         ScopeFlags_CLEAR_WITH_PARENT = 1 << 4,
-        ScopeFlags_INCLUDE_SELF = 1 << 5,
+        ScopeFlags_INCLUDE_SELF      = 1 << 5,
     };
 
     class Scope : public NodeComponent

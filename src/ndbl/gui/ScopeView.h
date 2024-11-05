@@ -26,7 +26,10 @@ namespace ndbl
         const Rect&  rect() const { return m_rect; }
 
     private:
+        Rect        update_node(float dt, ScopeViewFlags flags, Node* node);
         Rect        m_rect;
         Scope*      m_scope;
+
+        bool is_owner() const;
     };
 }

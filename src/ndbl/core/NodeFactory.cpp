@@ -118,7 +118,7 @@ Node* NodeFactory::create_entry_point() const
     Node* node = create<Node>();
     node->init(NodeType_ENTRY_POINT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
     node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
-    node->init_inner_scope();
+    node->init_internal_scope();
     m_post_process(node);
     return node;
 }

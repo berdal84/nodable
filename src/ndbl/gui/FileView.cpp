@@ -262,13 +262,13 @@ void draw_scope(const Scope* scope)
 {
     if ( ImGui::TreeNode( scope->name() ) )
     {
-        if ( ImGui::TreeNode("children", "children (%zu)", scope->child_scope().size()) )
+        if ( ImGui::TreeNode("children", "child_scope(s) (%zu)", scope->child_scope().size()) )
         {
             for ( const Scope* child : scope->child_scope() )
                 draw_scope(child);
             ImGui::TreePop();
         }
-        if (  ImGui::TreeNode("child_node", "child_node (%zu)", scope->child_node().size())  )
+        if (  ImGui::TreeNode("child_node", "child_node(s) (%zu)", scope->child_node().size())  )
         {
             for ( const Node* node : scope->child_node() )
                 ImGui::BulletText("%s (class %s)", node->name().c_str(), node->get_class()->get_name() );

@@ -47,7 +47,7 @@ public:
     template<typename return_t>
     return_t eval(const std::string &_source_code)
     {
-        static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving this inner_scope)");
+        static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving scope)");
 
         // parse
         Graph* graph = app.parse(_source_code);

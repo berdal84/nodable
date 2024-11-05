@@ -8,7 +8,6 @@
 using namespace ndbl;
 using namespace tools;
 
-
 ScopeView::ScopeView(Scope* scope)
 : NodeComponent()
 {
@@ -16,52 +15,47 @@ ScopeView::ScopeView(Scope* scope)
     scope->set_view( this );
 }
 
-void ScopeView::update(float dt, ScopeViewFlags flags)
+Rect ScopeView::update_node(float dt, ScopeViewFlags flags, Node* node)
 {
-    // Strategy:
-    // 1) reset current rect to a null area
-    // 2) gather all child node views and compute the bbox
-    // 3) recursively update and get child scope bbox
+    Rect r;
 
-    // 1)
-    m_rect = {};
-
-    // 2)
-    std::vector<NodeView*> node_views;
-    for(Node* node : m_scope->child_node() )
-        if( NodeView* node_view = node->get_component<NodeView>() )
-            node_views.push_back(node_view );
-
-    // Include owner's view if this scope is its inner scope
-    Node* owner = m_scope->get_owner();
-    if( owner->inner_scope() == m_scope )
-        node_views.push_back( owner->get_component<NodeView>() );
-
-    // grab all nodes's bbox
-    m_rect = NodeView::get_rect(node_views, WORLD_SPACE, NodeViewFlag_WITH_RECURSION | NodeViewFlag_WITH_PINNED );
-
-    // 3)
-    if ( (flags & ScopeFlags_RECURSE) == 0 )
-        return;
-
-    const Config* config = get_config();
-    for (Scope* child : m_scope->child_scope() )
+    if ( NodeView *node_view = node->get_component<NodeView>() )
     {
-        ScopeView* child_view = child->view();
-
-        if ( !child_view )
-            continue;
-
-        child_view->update( dt, flags );
-
-        if( !child_view->m_rect.has_area() )
-            continue;
-
-        m_rect.expand( config->ui_scope_child_margin );
-        m_rect = !m_rect.has_area() ? child_view->m_rect
-                                    : Rect::merge( m_rect, child_view->m_rect );
+        if ( node_view->visible() )
+            r = node_view->get_rect_ex(WORLD_SPACE, NodeViewFlag_WITH_RECURSION | NodeViewFlag_WITH_PINNED );
     }
 
+    if ( node->is_a_scope() )
+    {
+        for(Scope* s : node->internal_scope()->child_scope())
+        {
+            s->view()->update(dt, flags);
+            r = !r.has_area() ? s->view()->m_rect
+                              : Rect::merge( r, s->view()->m_rect );
+        };
+    }
+    return r;
+}
+void ScopeView::update(float dt, ScopeViewFlags flags)
+{
+    std::set<Node*> nodes { m_scope->child_node().begin(), m_scope->child_node().end() };
+
+    if ( is_owner() )
+    {
+        nodes.insert( m_scope->get_owner() );
+    }
+
+    m_rect = {};
+    for(Node* node : nodes )
+    {
+        Rect r = update_node(dt, flags, node );
+        if ( !m_rect.has_area() )
+            m_rect = r;
+        else
+            m_rect = Rect::merge( m_rect, r );
+    }
+
+    const Config* config = get_config();
     if ( m_rect.has_area() )
     {
         m_rect.min.x -= config->ui_scope_margin.x;
@@ -84,4 +78,10 @@ void ScopeView::draw(float dt)
         draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32( config->ui_scope_fill_col ), config->ui_scope_border_radius );
         draw_list->AddRect      (r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ), config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
     }
+}
+
+bool ScopeView::is_owner() const
+{
+    return m_scope->get_owner()->is_a_scope()
+        && m_scope->get_owner()->internal_scope() == m_scope;
 }

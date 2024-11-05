@@ -38,10 +38,10 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
 {
     ASSERT(node);
 
-    if ( node->scope() )
+    if (node->parent() )
     {
         if ( flags & ScopeFlags_ALLOW_CHANGE )
-            node->scope()->remove( node );
+            node->parent()->remove(node );
         else
             ASSERT(false); // Not handled yet
     }
@@ -52,41 +52,31 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
         auto variable_node = static_cast<VariableNode*>( node );
         if (find_var(variable_node->get_identifier()) != nullptr )
         {
-            LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same inner_scope.\n", variable_node->get_identifier().c_str());
+            LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same internal_scope.\n", variable_node->get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
-        else if (variable_node->scope() )
+        else if (variable_node->parent() )
         {
-            LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another inner_scope. Remove it first.\n", variable_node->get_identifier().c_str());
+            LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another internal_scope. Remove it first.\n", variable_node->get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else
         {
-            LOG_VERBOSE("Scope", "Add '%s' variable to the inner_scope\n", variable_node->get_identifier().c_str() );
+            LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scope\n", variable_node->get_identifier().c_str() );
             m_var.insert(variable_node);
         }
     }
 
     // Insert the node in this scope
-    if ( Utils::is_instruction(node) )
-    {
-        node->set_scope(this);
-        if ( (flags & ScopeFlags_SKIP_INSERT) == 0)
-            m_child_node.push_back( node );
-    }
+    node->reset_parent(this);
+    if ((flags & ScopeFlags_NO_PUSH_BACK) == 0)
+        m_child_node.push_back( node );
 
-
-    // If node have an inner scope, we simply reset its parent
-    if ( node->inner_scope() )
-    {
-        node->inner_scope()->reset_parent(this);
-    }
-    // otherwise we might do a recursive call
-    else if ( flags & ScopeFlags_RECURSE )
+    if ( ( flags & ScopeFlags_RECURSE) && !node->is_a_scope() )
     {
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
-                push_back_ex(input, flags | ScopeFlags_SKIP_INSERT ); // SKIP_INSERT: we don't want those nodes to be part of the main children
+                push_back_ex(input, flags | ScopeFlags_NO_PUSH_BACK ); // NO_PUSH_BACK: we don't want those nodes to be part of the main children
 
         for ( Node* next : node->flow_outputs() )
             push_back_ex(next, flags);
@@ -114,9 +104,9 @@ std::vector<Node*>& Scope::leaves_ex(std::vector<Node*>& out)
     // Recursive call for nested nodes
     for( Node* child : m_child_node )
     {
-        if ( Scope* inner_scope = child->inner_scope() )
+        if ( child->is_a_scope() )
         {
-            inner_scope->leaves_ex(out); // Recursive call on nested scopes
+            child->internal_scope()->leaves_ex(out); // Recursive call on nested scopes
         }
         else if ( child == *m_child_node.rbegin() )
         {
@@ -149,18 +139,12 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
         m_child_node.erase( it );
 
     // reset scope
-    node->set_scope(nullptr);
+    node->reset_parent(nullptr);
 
-    // if we got an inner scope, we reset it and stop there.
-    if ( node->inner_scope() )
-    {
-        node->inner_scope()->reset_parent(nullptr );
-    }
-    // if not, we might do a recursive call
-    else if ( flags & ScopeFlags_RECURSE )
+    if ( ( flags & ScopeFlags_RECURSE) && !node->is_a_scope() )
     {
         for ( Node* input : node->inputs() )
-            if ( input->scope() == this )
+            if ( !Utils::is_instruction(input) )
                 remove_ex(input, flags);
 
         for ( Node* next : node->flow_outputs() )
@@ -180,19 +164,26 @@ void Scope::clear()
     on_clear.emit();
 }
 
-void Scope::reset_parent(Scope *parent, ScopeFlags flags)
+void Scope::reset_parent(Scope* new_parent, ScopeFlags flags)
 {
+    // clear current parent from "this"
     if ( m_parent )
-        m_parent->m_child_scope.erase(std::find(m_parent->m_child_scope.begin(), m_parent->m_child_scope.end(), this ));
-
-    if ( parent )
     {
-        parent->m_child_scope.push_back(this);;
+        auto it = std::find(m_parent->m_child_scope.begin(), m_parent->m_child_scope.end(), this );
+        m_parent->m_child_scope.erase( it );
         if ( flags & ScopeFlags_CLEAR_WITH_PARENT)
-            CONNECT( parent->on_clear, &Scope::clear );
+            DISCONNECT(new_parent->on_clear);
     }
 
-    m_parent = parent;
+    // add "this" into new parent
+    if ( new_parent )
+    {
+        new_parent->m_child_scope.push_back(this);;
+        if ( flags & ScopeFlags_CLEAR_WITH_PARENT)
+            CONNECT(new_parent->on_clear, &Scope::clear );
+    }
+
+    m_parent = new_parent;
 }
 
 bool Scope::empty_ex(ScopeFlags flags) const

@@ -57,7 +57,6 @@ namespace ndbl
 
         SIGNAL(on_destroy);
         SIGNAL(on_name_change, const char *);
-        SIGNAL(on_scope_change, Scope*);
 
         void                 init(NodeType type, const std::string& name);
         bool                 update();
@@ -83,11 +82,11 @@ namespace ndbl
         const Slot*          flow_in() const;
         Slot*                flow_out();
         const Slot*          flow_out() const;
-        Scope*               inner_scope() { return m_inner_scope; }
-        const Scope*         inner_scope() const { return m_inner_scope; }
-        Scope*               scope() { return m_scope; }
-        const Scope*         scope() const { return m_scope; };
-        void                 set_scope(Scope* scope);;
+        bool                 is_a_scope() const { return m_is_a_scope; }
+        Scope*               internal_scope() const { ASSERT(m_is_a_scope); return m_scope; }
+        bool                 has_parent() const { return parent() != nullptr; }
+        Scope*               parent() const { return m_is_a_scope ? m_scope->parent() : m_scope; };
+        void                 reset_parent(Scope* scope);
 
         // Slot related
         //-------------
@@ -154,7 +153,7 @@ namespace ndbl
         bool has_component() const
         { return m_components.has<C*>(); }
 
-        void               init_inner_scope();
+        void               init_internal_scope();
 
     protected:
         void               on_slot_change(Slot::Event event, Slot *slot);
@@ -167,8 +166,8 @@ namespace ndbl
         NodeFlags          m_flags = NodeFlag_IS_DIRTY;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
-        Scope*             m_scope = nullptr; // pointer to another node's component
-        Scope*             m_inner_scope = nullptr; // pointer to this node's component
+        Scope*             m_scope = nullptr; // parent_scope or internal_scope
+        bool               m_is_a_scope = false;
         std::unordered_map<size_t,  std::vector<Slot*>> m_slots_by_property; // property's hash to Slots
 
         struct AdjacentNodesCache

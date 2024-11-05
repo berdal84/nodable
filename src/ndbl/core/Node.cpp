@@ -320,17 +320,26 @@ const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
     return _cache.at(flags);
 }
 
-void Node::init_inner_scope()
+void Node::init_internal_scope()
 {
-    VERIFY( m_inner_scope == nullptr, "Can't call this more than once");
-    m_inner_scope = get_component_factory()->create<Scope>();
-    m_inner_scope->reset_parent( m_scope );
-    m_inner_scope->set_name( m_name + "'s Scope");
-    add_component( m_inner_scope );
+    VERIFY( !m_is_a_scope, "Can't call this more than once");
+
+    // create internal scope
+    Scope* scope = get_component_factory()->create<Scope>();
+    scope->set_name(m_name + "'s internal scope");
+    add_component( scope );
+
+    // preserve parent
+    scope->reset_parent( this->parent() );
+
+    m_is_a_scope = true;
+    m_scope      = scope;
 }
 
-void Node::set_scope(Scope *scope)
+void Node::reset_parent(Scope *scope)
 {
-    m_scope = scope;
-    on_scope_change.emit(scope);
+    if ( is_a_scope() )
+        m_scope->reset_parent( scope );
+    else
+        m_scope = scope;
 }

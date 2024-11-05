@@ -340,7 +340,7 @@ void Nodable::update()
                     // Experimental: we try to connect a parent-less child
                     if ( !graph->is_root( new_node ) && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
-                        Scope* root_scope = graph->root()->inner_scope();
+                        Scope* root_scope = graph->root()->internal_scope();
                         VERIFY( root_scope != nullptr, "inner main_scope is expected on a root child_node");
                         root_scope->push_back(new_node);
                     }

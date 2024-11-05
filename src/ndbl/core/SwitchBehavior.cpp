@@ -13,14 +13,14 @@ void SwitchBehavior::init(Node* node, size_t branch_count)
     node->add_slot(node->value(), SlotFlag_FLOW_IN  , Slot::MAX_CAPACITY);
 
     // Add an inner scope, and attaching N (1 per branch) child scopes and FLOW_OUT slots
-    node->init_inner_scope();
+    node->init_internal_scope();
     ComponentFactory* component_factory = get_component_factory();
     for(size_t branch = 0; branch < m_branch_count; ++branch )
     {
         // child scope
         m_branch_scope[branch] = component_factory->create<Scope>();
         m_branch_scope[branch]->set_name("ChildScope_"+ std::to_string(branch) );
-        m_branch_scope[branch]->reset_parent( node->inner_scope(), ScopeFlags_CLEAR_WITH_PARENT );
+        m_branch_scope[branch]->reset_parent(node->internal_scope(), ScopeFlags_CLEAR_WITH_PARENT );
         node->add_component( m_branch_scope[branch] );
 
         // FLOW_OUT

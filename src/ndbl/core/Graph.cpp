@@ -166,12 +166,12 @@ void Graph::destroy(Node* node)
     }
 
     // Remove from scope
-    if ( Scope* scope = node->scope() )
+    if ( Scope* scope = node->parent() )
         scope->remove( node );
 
     // Remove inner_scope children
-    if ( Scope* inner_scope = node->inner_scope() )
-        inner_scope->clear();
+    if ( node->is_a_scope() )
+        node->internal_scope()->clear();
 
     // unregister and delete
     remove(node);
@@ -345,10 +345,10 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
 {
     // 1) Update Scope
     //
-    Scope* target_scope = edge.head->node->scope();
+    Scope* target_scope = edge.head->node->parent();
 
-    if ( Scope* inner_scope = edge.head->node->inner_scope() )
-        target_scope = inner_scope;
+    if ( edge.head->node->is_a_scope() )
+        target_scope = edge.head->node->internal_scope();
 
     if ( target_scope )
         target_scope->push_back(edge.tail->node ); // recursively
@@ -380,7 +380,7 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
     
-    Scope* curr_scope = edge.head->node->scope();
+    Scope* curr_scope = edge.head->node->parent();
 
     switch ( edge.head->adjacent_count())
     {
@@ -392,7 +392,7 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
         }
         case 1:
         {
-            Scope* adjacent_scope = edge.head->first_adjacent_node()->scope();
+            Scope* adjacent_scope = edge.head->first_adjacent_node()->parent();
             if ( adjacent_scope )
                 adjacent_scope->push_back(edge.head->node );
             break;
@@ -403,11 +403,11 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
             std::vector<Scope *> adjacent_scopes;
             for (Slot *adjacent: edge.head->adjacent())
             {
-                adjacent_scopes.push_back(adjacent->node->scope());
+                adjacent_scopes.push_back(adjacent->node->parent());
             }
             Scope *target_scope = nullptr;
             if (Scope *ancestor = Scope::lowest_common_ancestor(adjacent_scopes))
-                target_scope = ancestor->get_owner()->scope();
+                target_scope = ancestor->get_owner()->parent();
 
             if (target_scope)
                 target_scope->push_back(edge.head->node);
@@ -428,37 +428,31 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
 
     if ( flow_in_edge_count == 1)
     {
-        switch ( previous_node->type() )
+        if ( previous_node->is_a_scope() )
         {
-            // Blocks with multiple flow_out branches
-            case NodeType_BLOCK_IF:
-            case NodeType_BLOCK_WHILE_LOOP:
-            case NodeType_BLOCK_FOR_LOOP:
+            Scope* inner_scope = previous_node->internal_scope();
+
+            if ( inner_scope->child_scope().empty() )
             {
-                Scope* inner_scope = previous_node->inner_scope();
-                ASSERT(inner_scope);
+                target_scope = inner_scope;
+            }
+            else
+            {
                 target_scope = inner_scope->child_scope_at(edge.tail->position);
-                ASSERT(target_scope);
-                break;
             }
-            case NodeType_ENTRY_POINT:
-            {
-                target_scope = previous_node->inner_scope();
-                break;
-            }
-            default:
-            {
-                target_scope = previous_node->scope();
-            }
+        }
+        else
+        {
+            target_scope = previous_node->parent();
         }
     }
     else if ( flow_in_edge_count > 1 )
     {
         std::vector<Scope*> scopes;
         for(Slot* adjacent : edge.head->adjacent() )
-            scopes.push_back( adjacent->node->scope() );
+            scopes.push_back(adjacent->node->parent() );
         if ( Scope* ancestor = Scope::lowest_common_ancestor( scopes ) )
-            target_scope = ancestor->get_owner()->scope();
+            target_scope = ancestor->get_owner()->parent();
     }
     else
     {
@@ -622,7 +616,7 @@ std::set<Scope *> Graph::get_orphan_scopes()
 {
     std::set<Scope *> result;
     for(Node* node : m_node_registry)
-        if ( node->inner_scope() && node->inner_scope()->is_orphan() )
-            result.insert( node->inner_scope() );
+        if ( node->is_a_scope() && !node->has_parent() )
+            result.insert( node->internal_scope() );
     return result;
 }

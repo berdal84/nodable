@@ -65,7 +65,7 @@ namespace ndbl
 
         bool                     update();
         void                     clear();  // Delete all nodes, wires, edges and reset scope.
-        Scope*                   main_scope() { return m_root ? m_root->inner_scope() : nullptr; };
+        Scope*                   main_scope() { return m_root ? m_root->internal_scope() : nullptr; };
         inline GraphView*        view() const { return m_view; };
         inline void              set_view(GraphView* view = nullptr) { ASSERT(view != nullptr); m_view = view; }
         inline bool              is_empty() const { return m_root.empty(); };

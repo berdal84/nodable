@@ -49,9 +49,9 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
         {
             case NodeType_VARIABLE:
             {
-                if( each_node->scope() == nullptr )
+                if(each_node->parent() == nullptr )
                 {
-                    LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", each_node->name().c_str() );
+                    LOG_ERROR("Compiler", "\"%s\" should have a parent.\n", each_node->name().c_str() );
                     return false;
                 }
                 break;
@@ -104,19 +104,19 @@ void Compiler::compile_output_slot(const Slot* slot)
 void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
 {
     ASSERT( node );
-    ASSERT( node->inner_scope() );
+    ASSERT( node->is_a_scope() );
 
     // call push_stack_frame
     {
         Instruction *instr  = m_temp_code->push_instr(OpCode_push_stack_frame);
-        instr->push.scope = node->inner_scope();
+        instr->push.scope = node->internal_scope();
         char str[64];
-        snprintf(str, 64, "%s's inner_scope", node->name().c_str());
+        snprintf(str, 64, "%s's internal_scope", node->name().c_str());
         instr->m_comment = str;
     }
 
     // push each variable
-    for(auto each_variable : node->inner_scope()->vars())
+    for(auto each_variable : node->internal_scope()->vars())
     {
         Instruction* instr   = m_temp_code->push_instr(OpCode_push_var);
         instr->push.var      = each_variable;
@@ -124,7 +124,7 @@ void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
     }
 
     // compile content
-    for( Node* each_node : node->inner_scope()->child_node() )
+    for( Node* each_node : node->internal_scope()->child_node() )
     {
         compile_node( each_node );
     }
@@ -136,7 +136,7 @@ void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
     }
 
     // pop each variable
-    for(auto each_variable : node->inner_scope()->vars())
+    for(auto each_variable : node->internal_scope()->vars())
     {
         Instruction *instr   = m_temp_code->push_instr(OpCode_pop_var);
         instr->push.var      = each_variable;
@@ -145,8 +145,8 @@ void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
 
     {
         Instruction *instr = m_temp_code->push_instr(OpCode_pop_stack_frame);
-        instr->pop.scope   = node->inner_scope();
-        instr->m_comment   = node->name() + "'s inner_scope";
+        instr->pop.scope   = node->internal_scope();
+        instr->m_comment   = node->name() + "'s internal_scope";
     }
 }
 
