@@ -337,7 +337,7 @@ bool GraphView::draw(float dt)
 
                     ImGuiID id = make_wire_id(slot_view_out->slot, slot_in);
                     ImGuiEx::DrawWire(id, draw_list, segment, style);
-                    if (ImGui::GetHoveredID() == id && m_hovered.empty())
+                    if (ImGui::GetHoveredID() == id)
                         m_hovered = {slot_view_out, slot_view_in};
                 }
             }
