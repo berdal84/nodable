@@ -1492,19 +1492,19 @@ const Slot* Nodlang::serialize_invokable(std::string &_out, const FunctionNode* 
 std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescriptor *_signature, const std::vector<Slot*> &inputs) const
 {
     _out.append( _signature->get_identifier() );
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_default_buffer(_out, Token_t::parenthesis_open);
 
     for (const Slot* input_slot : inputs)
     {
         ASSERT( input_slot->has_flags(SlotFlag_INPUT) );
         if ( input_slot != inputs.front())
         {
-            serialize_token_t(_out, Token_t::list_separator);
+            serialize_default_buffer(_out, Token_t::list_separator);
         }
         serialize_input( _out, input_slot, SerializeFlag_RECURSE );
     }
 
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_default_buffer(_out, Token_t::parenthesis_close);
     return _out;
 }
 
@@ -1518,20 +1518,20 @@ std::string &Nodlang::serialize_func_sig(std::string &_out, const FunctionDescri
     serialize_type(_out, _signature->get_return_type());
     _out.append(" ");
     _out.append(_signature->get_identifier());
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_default_buffer(_out, Token_t::parenthesis_open);
 
     auto args = _signature->get_args();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
         {
-            serialize_token_t(_out, Token_t::list_separator);
+            serialize_default_buffer(_out, Token_t::list_separator);
             _out.append(" ");
         }
         serialize_type(_out, it->type);
     }
 
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_default_buffer(_out, Token_t::parenthesis_close);
     return _out;
 }
 
@@ -1593,7 +1593,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, Seria
                                                                  : nullptr;
     // Append open brace?
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
-        serialize_token_t(_out, Token_t::parenthesis_open);
+        serialize_default_buffer(_out, Token_t::parenthesis_open);
 
     if ( adjacent_property == nullptr )
     {
@@ -1619,7 +1619,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, Seria
 
     // Append close brace?
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
-        serialize_token_t(_out, Token_t::parenthesis_close);
+        serialize_default_buffer(_out, Token_t::parenthesis_close);
 
     return _out;
 }
@@ -1701,18 +1701,7 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
     if ( !_token )
         return _out;
 
-    // optimized case, if we have a "word", we can serialize the whole token
-    if ( _token.word_len() != 0 )
-        return _out.append(_token.begin(), _token.length());
-
-    // append prefix, default word, and suffix
-    if (_token.prefix() )
-        _out.append(_token.prefix(), _token.prefix_len());
-    serialize_token_t( _out, _token.m_type ); // <---------- default word!
-    if (_token.suffix() )
-        _out.append(_token.suffix(), _token.suffix_len());
-
-    return _out;
+    return _out.append(_token.begin(), _token.length());
 }
 
 std::string& Nodlang::serialize_graph(std::string &_out, const Graph* graph ) const
@@ -1742,7 +1731,7 @@ std::string& Nodlang::serialize_double(std::string& _out, double d) const
 std::string& Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_for_loop) const
 {
     serialize_token(_out, _for_loop->token_for);
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_default_buffer(_out, Token_t::parenthesis_open);
     {
         const Slot* init_slot = _for_loop->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
         const Slot* cond_slot = _for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
@@ -1751,7 +1740,7 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
         serialize_input( _out, cond_slot, SerializeFlag_RECURSE );
         serialize_input( _out, iter_slot, SerializeFlag_RECURSE );
     }
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_default_buffer(_out, Token_t::parenthesis_close);
 
     const std::vector<Scope *>& scopes = _for_loop->inner_scope()->child_scope();
     serialize_scope(_out, scopes[Branch_TRUE]);
@@ -1923,7 +1912,7 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
     return nullptr;
 }
 
-std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) const
+std::string& Nodlang::serialize_default_buffer(std::string& _out, Token_t _token_t) const
 {
     switch (_token_t)
     {
@@ -1931,7 +1920,7 @@ std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) con
         case Token_t::operator_:       return _out.append("operator");
         case Token_t::identifier:      return _out.append("identifier");
         case Token_t::literal_string:  return _out.append("\"\"");
-        case Token_t::literal_double:  [[fallthrough]];
+        case Token_t::literal_double:  return _out.append("0.0");
         case Token_t::literal_int:     return _out.append("0");
         case Token_t::literal_bool:    return _out.append("false");
         case Token_t::literal_any:     return _out.append("0");
@@ -1963,13 +1952,6 @@ std::string Nodlang::serialize_type(const TypeDescriptor *_type) const
 {
     std::string result;
     serialize_type(result, _type);
-    return result;
-}
-
-std::string Nodlang::serialize_token_t(Token_t _token) const
-{
-    std::string result;
-    serialize_token_t(result, _token);
     return result;
 }
 

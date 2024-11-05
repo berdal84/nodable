@@ -141,8 +141,7 @@ namespace ndbl{
         std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
         std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, const std::vector<Slot*>& inputs)const;
         std::string& serialize_func_sig(std::string& _out, const tools::FunctionDescriptor*)const;
-        std::string& serialize_token_t(std::string& _out, const Token_t)const;
-        std::string  serialize_token_t(Token_t _token)const;
+        std::string& serialize_default_buffer(std::string& _out, Token_t _token_t)const;
         std::string& serialize_token(std::string& _out, const Token &) const;
         std::string& serialize_type(std::string& _out, const tools::TypeDescriptor*) const;
         std::string  serialize_type(const tools::TypeDescriptor *_type) const;
