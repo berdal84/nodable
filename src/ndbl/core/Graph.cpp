@@ -369,7 +369,10 @@ void Graph::on_disconnect_value_side_effects( DirectedEdge edge )
     // reset token to a default value to preserve a correct serialization
     if ( edge.head->node->type() != NodeType_VARIABLE )
     {
-        edge.head->property->init_token();
+        Token& tok = edge.head->property->token();
+        std::string buf;
+        get_language()->serialize_default_buffer(buf, tok.m_type);
+        tok.word_replace( buf.c_str() );
     }
 }
 
