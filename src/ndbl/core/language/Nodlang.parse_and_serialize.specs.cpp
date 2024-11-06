@@ -239,14 +239,26 @@ TEST_F(Language_parse_and_serialize, partial_while1)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-TEST_F(Language_parse_and_serialize , example_for_loop_cpp)
+TEST_F(Language_parse_and_serialize , exemple_arithmetic)
 {
-    std::string program = "int sum   = 0;\n"
-                          "int count = 5;\n"
-                          "for(int i = 1; i <= count; i = i+1)\n"
-                          "{\n"
-                          "    sum = sum + i;\n"
-                          "}\n"
-                          "return(sum == 15);";
+    std::string program = load_example("arithmetic.cpp");
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize , example_for_loop)
+{
+    std::string program = load_example("for-loop.cpp");
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize , example_if_else)
+{
+    std::string program = load_example("if-else.cpp");
+    EXPECT_EQ(parse_and_serialize(program), program);
+}
+
+TEST_F(Language_parse_and_serialize , exemple_multi_instructions)
+{
+    std::string program = load_example("multi-instructions.cpp");
     EXPECT_EQ(parse_and_serialize(program), program);
 }

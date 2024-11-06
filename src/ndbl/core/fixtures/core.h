@@ -3,9 +3,12 @@
 #include "ndbl/core/NodableHeadless.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
+#include "tools/core/FileSystem.h"
 #include <exception>
 #include <gtest/gtest.h>
 #include <string>
+#include <fstream>
+#include <filesystem>
 
 using namespace ndbl;
 
@@ -135,6 +138,15 @@ public:
         LOG_VERBOSE("tools.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         return result;
+    }
+
+    std::string load_example(const char* filename)
+    {
+        tools::Path path = tools::Path::get_executable_path().parent_path() / "assets" / "examples" / filename;
+        std::ifstream file_stream( path.c_str() );
+        VERIFY(file_stream.is_open(), path.c_str());
+        std::string program((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
+        return program;
     }
 
     void log_ribbon() const
