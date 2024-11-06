@@ -486,89 +486,92 @@ Optional<Slot*> Nodlang::parse_parenthesis_expression()
     return result;
 }
 
-Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, Slot* input )
+Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, Slot* value_in )
 {
     _state.start_transaction();
+
+    // Parse an expression
     Optional<Slot*> value_out = parse_expression();
 
-    if ( value_out )
+    // When expression value_out is a variable that is already part of the code flow,
+    // we must create a variable reference
+    if ( value_out && value_out->node->type() == NodeType_VARIABLE )
     {
-        // Special case: substitute variable by a reference
-        if (value_out->node->type() == NodeType_VARIABLE )
+        auto variable = static_cast<VariableNode*>( value_out->node );
+        if ( Utils::is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
         {
-            auto variable = static_cast<VariableNode*>( value_out->node );
-            if ( Utils::is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
-            {
-                VariableRefNode* ref = _state.graph()->create_variable_ref();
-                ref->set_variable( variable );
-
-                value_out = ref->value_out();
-            }
+            // create a new variable reference
+            VariableRefNode* ref = _state.graph()->create_variable_ref();
+            ref->set_variable( variable );
+            // substitute value_out by variable reference's value_out
+            value_out = ref->value_out();
         }
     }
 
-    // Handle suffix
-    if (_state.tokens().can_eat())
+    if ( !_state.tokens().can_eat() )
     {
-        if ( _state.tokens().peek(Token_t::end_of_instruction ) )
-        {
-            LOG_VERBOSE("Parser", "End of instruction token found.\n" );
-        }
-        else if ( _state.tokens().peek(Token_t::parenthesis_close ) )
-        {
-            LOG_VERBOSE("Parser", "Parenthesis close detected.\n");
-        }
-        else
-        {
-            LOG_VERBOSE("Parser", "Parenthesis close expected.\n");
-            value_out.reset();
-        }
+        // we're passing here if there is no more token, which means we reached the end of file.
+        // we allow an expression to end like that.
     }
     else
     {
-        // we accept  to end like "... expression end>EOF"
+        // However, in case there are still unparsed tokens, we expect certain type of token, otherwise we reset the result
+        switch( _state.tokens().peek().m_type )
+        {
+            case Token_t::end_of_instruction:
+            case Token_t::parenthesis_close:
+                LOG_VERBOSE("Parser", "End of instruction or parenthesis close: found in next token\n");
+                break;
+            default:
+                LOG_VERBOSE("Parser", KO "End of instruction or parenthesis close expected.\n");
+                value_out.reset();
+        }
     }
 
-    // if requires a node
-    if ( !value_out && input )
+    // When expression value_out is null, but an input was provided,
+    // we must create an empty instruction if an end_of_instruction token is found
+    if (!value_out && value_in )
     {
         if (_state.tokens().peek(Token_t::end_of_instruction))
         {
-            LOG_VERBOSE("Parser", OK "parse empty instruction\n");
+            LOG_VERBOSE("Parser", "Empty expression found\n");
 
             Node* empty_instr = _state.graph()->create_empty_instruction();
             value_out = empty_instr->value_out();
         }
     }
 
-    if ( value_out )
+    // Ensure value_out is defined or rollback transaction
+    if ( !value_out )
     {
-        Node* expression_node = value_out->node;
-
-        if ( input )
-        {
-            // value_out ---> input
-            _state.graph()->connect(value_out.data(),
-                                    input,
-                                    ConnectFlag_ALLOW_SIDE_EFFECTS);
-        }
-
-        if (Token tok = _state.tokens().eat_if(Token_t::end_of_instruction))
-        {
-            expression_node->set_suffix( tok );
-        }
-
-        _state.graph()->connect( flow_out, expression_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
-        _state.commit();
-
-        LOG_VERBOSE("Parser", OK "parse instruction:\n%s\n", _state.tokens().to_string().c_str());
-        FlowPath path { expression_node };
-        return path;
+        _state.rollback();
+        LOG_VERBOSE("Parser", KO "parse instruction\n");
+        return {};
     }
 
-    _state.rollback();
-    LOG_VERBOSE("Parser", KO "parse instruction\n");
-    return {};
+    // Connects value_out to the provided input
+    if ( value_in )
+    {
+        _state.graph()->connect( value_out.data(), value_in, ConnectFlag_ALLOW_SIDE_EFFECTS);
+    }
+
+    // Add an end_of_instruction token as suffix when needed
+    if (Token tok = _state.tokens().eat_if(Token_t::end_of_instruction))
+    {
+        value_out->node->set_suffix( tok );
+    }
+
+    // Connects expression flow_in with the provided flow_out
+    if ( !flow_out.empty() )
+    {
+        _state.graph()->connect( flow_out, value_out->node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+    }
+
+    // Validate transaction
+    _state.commit();
+    LOG_VERBOSE("Parser", OK "parse instruction:\n%s\n", _state.tokens().to_string().c_str());
+
+    return FlowPath{ value_out->node };
 }
 
 Nodlang::FlowPath Nodlang::parse_program()

@@ -59,7 +59,7 @@ namespace ndbl{
         FlowPath                        parse_code_block(const FlowPathOut&);
         FlowPath                        parse_atomic_code_block(const FlowPathOut&);
         FlowPath                        parse_scoped_block(const FlowPathOut&);
-        FlowPath                        parse_expression_block(const FlowPathOut&, Slot* input = nullptr );
+        FlowPath                        parse_expression_block(const FlowPathOut&, Slot* value_in = nullptr );
         FlowPath                        parse_if_block(const FlowPathOut&);
         FlowPath                        parse_for_block(const FlowPathOut&);
         FlowPath                        parse_while_block(const FlowPathOut&);
