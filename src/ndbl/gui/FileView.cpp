@@ -186,7 +186,7 @@ void FileView::draw(float dt)
 
         if ( text_view_changed )
             on_text_view_changed.emit();
-        if ( graph_view_changed )
+        else if ( graph_view_changed )
             on_graph_view_changed.emit();
     }
     ImGui::EndChild();

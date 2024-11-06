@@ -191,7 +191,7 @@ void NodableView::draw()
         if (ImGui::BeginMenu("File"))
         {
             bool has_file = current_file != nullptr;
-            bool is_current_file_content_dirty = current_file != nullptr && current_file->dirty;
+            bool is_current_file_content_dirty = current_file != nullptr && current_file->needs_to_be_saved();
             ImGuiEx::MenuItem_EventTrigger<Event_FileNew>();
             ImGuiEx::MenuItem_EventTrigger<Event_FileBrowse>();
             ImGui::Separator();
@@ -736,7 +736,7 @@ void NodableView::draw_file_window( float dt, ImGuiID dockspace_id, bool redock_
 {
     ImGui::SetNextWindowDockID(dockspace_id, redock_all ? ImGuiCond_Always : ImGuiCond_Appearing);
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoScrollbar
-                                  | ImGuiWindowFlags_UnsavedDocument * file->dirty;
+                                  | ImGuiWindowFlags_UnsavedDocument * file->needs_to_be_saved();
 
     auto child_bg = ImGui::GetStyle().Colors[ImGuiCol_ChildBg];
     child_bg.w = 0;
