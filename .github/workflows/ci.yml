@@ -32,25 +32,20 @@ jobs:
 
       - name: Git Checkout
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: false
 
       - name: Cache Submodules
+        id: cache-submodules
         uses: actions/cache@v4
-        env:
-          cache-name: cache-submodules
         with:
           path: libs
-          key: ${{ env.cache-name }}-${{ hashFiles( '.gitmodules' ) }}
-          restore-keys: ${{ env.cache-name }}
+          key: cache-submodules-${{ hashFiles( '.gitmodules' ) }}
+          restore-keys: cache-submodules-
 
       - name: Git Checkout Submodules
-        if: steps.cache-submodules.outputs.cache-hit != 'true'
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          submodules: true
+        if: steps.cache-submodules.outputs.cache-hit == 'false'
+        run: |
+          git submodule init
+          git submodule update
 
       - name: Create Build Environment
         # Some projects don't allow in-source building, so create a separate build directory
