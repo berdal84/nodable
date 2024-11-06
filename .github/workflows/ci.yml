@@ -92,7 +92,7 @@ jobs:
     if: ${{ success() }} # see https://docs.github.com/en/actions/learn-github-actions/expressions#status-check-functions
     steps:
       - name: Git recursive checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install doxygen
@@ -101,7 +101,7 @@ jobs:
         run: cd docs && doxygen
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Nodable-Technical-Documentation
           path: ${{runner.workspace}}/Nodable/docs/doxygen
