@@ -236,3 +236,17 @@ TEST_F(Language_parse_and_serialize, partial_while1)
     std::string program = "while();";
     EXPECT_EQ(parse_and_serialize(program), program);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+TEST_F(Language_parse_and_serialize , example_for_loop_cpp)
+{
+    std::string program = "int sum   = 0;\n"
+                          "int count = 5;\n"
+                          "for(int i = 1; i <= count; i = i+1)\n"
+                          "{\n"
+                          "    sum = sum + i;\n"
+                          "}\n"
+                          "return(sum == 15);";
+    EXPECT_EQ(parse_and_serialize(program), program);
+}

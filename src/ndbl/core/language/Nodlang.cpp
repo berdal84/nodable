@@ -529,14 +529,14 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, S
         // we accept  to end like "... expression end>EOF"
     }
 
+    // if requires a node
     if ( !value_out && input )
     {
-        if (Token tok = _state.tokens().eat_if(Token_t::end_of_instruction))
+        if (_state.tokens().peek(Token_t::end_of_instruction))
         {
             LOG_VERBOSE("Parser", OK "parse empty instruction\n");
 
             Node* empty_instr = _state.graph()->create_empty_instruction();
-            empty_instr->value()->set_token( tok );
             value_out = empty_instr->value_out();
         }
     }
@@ -544,12 +544,18 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, S
     if ( value_out )
     {
         Node* expression_node = value_out->node;
+
         if ( input )
         {
             // value_out ---> input
             _state.graph()->connect(value_out.data(),
                                     input,
                                     ConnectFlag_ALLOW_SIDE_EFFECTS);
+        }
+
+        if (Token tok = _state.tokens().eat_if(Token_t::end_of_instruction))
+        {
+            expression_node->set_suffix( tok );
         }
 
         _state.graph()->connect( flow_out, expression_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
