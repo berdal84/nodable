@@ -242,6 +242,13 @@ DirectedEdge Graph::connect_to_variable(Slot* output_slot, VariableNode* _variab
     return connect_or_merge( output_slot, _variable->value_in() );
 }
 
+void Graph::connect(const std::set<Slot*>& tails, Slot* head, ConnectFlags _flags)
+{
+    if ( !tails.empty() )
+        for (Slot* _tail : tails )
+            connect(_tail, head, ConnectFlag_ALLOW_SIDE_EFFECTS );
+}
+
 DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
 {
     // Create and insert edge

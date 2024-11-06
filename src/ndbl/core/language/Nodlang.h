@@ -47,7 +47,7 @@ namespace ndbl{
     {
     private:
         struct FlowPath;
-        typedef std::set<Slot*> FlowOut;
+        typedef std::set<Slot*> FlowPathOut;
     public:
         explicit Nodlang(bool _strict = false);
 		~Nodlang();
@@ -55,14 +55,15 @@ namespace ndbl{
         // Parser /////////////////////////////////////////////////////////////////////
         bool                            parse(Graph* graph_out, const std::string& code_in); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        FlowPath                            parse_program();
-        FlowPath                            parse_scoped_block(const FlowOut& previous_path);
-        FlowPath                            parse_expression_block(Slot* input = nullptr );
-        FlowPath                            parse_code_block(const FlowOut& flow_out);
-        FlowPath                            parse_atomic_code_block(const FlowOut& previous_path);
-        FlowPath                            parse_if_block();
-        FlowPath                            parse_for_block();
-        FlowPath                            parse_while_block();
+        FlowPath                        parse_program();
+        FlowPath                        parse_code_block(const FlowPathOut&);
+        FlowPath                        parse_atomic_code_block(const FlowPathOut&);
+        FlowPath                        parse_scoped_block(const FlowPathOut&);
+        FlowPath                        parse_expression_block(const FlowPathOut&, Slot* input = nullptr );
+        FlowPath                        parse_if_block(const FlowPathOut&);
+        FlowPath                        parse_for_block(const FlowPathOut&);
+        FlowPath                        parse_while_block(const FlowPathOut&);
+        FlowPath                        parse_empty_block(const FlowPathOut&);
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         tools::Optional<Slot*>          parse_variable_declaration();
         tools::Optional<Slot*>          parse_function_call();
@@ -89,7 +90,7 @@ namespace ndbl{
         struct FlowPath
         {
             Slot*   in = nullptr;
-            FlowOut out;
+            FlowPathOut out;
             FlowPath() {}
             FlowPath(Node* node): in(node->flow_in()), out({node->flow_out()}) {}
             operator bool() const { return in != nullptr && !out.empty(); }
@@ -197,7 +198,6 @@ namespace ndbl{
         std::unordered_map<size_t, Token_t>               m_token_t_by_keyword;       // keyword reserved by the language (ex: int, string, operator, if, for, etc.)
         std::unordered_map<std::type_index, Token_t>      m_token_t_by_type_id;
         std::unordered_map<Token_t, const tools::TypeDescriptor*>   m_type_by_token_t;          // token_t to type. Works only if token_t refers to a type keyword.
-
     };
 
     template<typename T>

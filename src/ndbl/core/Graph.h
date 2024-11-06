@@ -99,6 +99,7 @@ namespace ndbl
         // edge related
 
         DirectedEdge connect(Slot* tail, Slot* head, ConnectFlags = ConnectFlag_NONE );
+        void         connect(const std::set<Slot*>& tails, Slot* head, ConnectFlags _flags);
         DirectedEdge connect_to_variable(Slot* output_slot, VariableNode* variable );
         DirectedEdge connect_or_merge(Slot* tail, Slot* head);
         void         disconnect( const DirectedEdge& edge, ConnectFlags = ConnectFlag_NONE );

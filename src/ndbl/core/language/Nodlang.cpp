@@ -486,7 +486,7 @@ Optional<Slot*> Nodlang::parse_parenthesis_expression()
     return result;
 }
 
-Nodlang::FlowPath Nodlang::parse_expression_block(Slot* input )
+Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, Slot* input )
 {
     _state.start_transaction();
     Optional<Slot*> value_out = parse_expression();
@@ -550,8 +550,11 @@ Nodlang::FlowPath Nodlang::parse_expression_block(Slot* input )
             _state.graph()->connect(value_out.data(),
                                     input,
                                     ConnectFlag_ALLOW_SIDE_EFFECTS);
-            _state.commit();
         }
+
+        _state.graph()->connect( flow_out, expression_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+        _state.commit();
+
         LOG_VERBOSE("Parser", OK "parse instruction:\n%s\n", _state.tokens().to_string().c_str());
         FlowPath path { expression_node };
         return path;
@@ -609,7 +612,7 @@ Nodlang::FlowPath Nodlang::parse_program()
     return path;
 }
 
-Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowOut& flow_out)
+Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
 {
     LOG_VERBOSE("Parser", "Parsing scoped block ...\n");
 
@@ -655,7 +658,7 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowOut& flow_out)
     return {};
 }
 
-Nodlang::FlowPath Nodlang::parse_code_block(const FlowOut& flow_out)
+Nodlang::FlowPath Nodlang::parse_code_block(const FlowPathOut& flow_out)
 {
     LOG_VERBOSE("Parser", "Parsing code block...\n" );
 
@@ -665,7 +668,7 @@ Nodlang::FlowPath Nodlang::parse_code_block(const FlowOut& flow_out)
     _state.start_transaction();
 
     FlowPath first_path;
-    FlowOut  last_flow_out     = flow_out;
+    FlowPathOut  last_flow_out     = flow_out;
     bool     block_end_reached = false;
     size_t   block_size        = 0;
 
@@ -1115,7 +1118,7 @@ Optional<Slot*> Nodlang::parse_function_call()
     return fct_node->value_out();
 }
 
-Nodlang::FlowPath Nodlang::parse_if_block()
+Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
 {
     _state.start_transaction();
 
@@ -1133,8 +1136,11 @@ Nodlang::FlowPath Nodlang::parse_if_block()
     Nodlang::FlowPath path;
 
     if_node = _state.graph()->create_cond_struct();
+    _state.graph()->connect( flow_out, if_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+
     Scope* if_scope = if_node->internal_scope();
     _state.push_scope(if_scope);
+
     if_node->token_if  = _state.tokens().get_eaten();
 
     if (_state.tokens().eat_if(Token_t::parenthesis_open) )
@@ -1142,7 +1148,7 @@ Nodlang::FlowPath Nodlang::parse_if_block()
         LOG_VERBOSE("Parser", "Parsing conditional structure's condition...\n");
 
         // condition
-        parse_expression_block(if_node->condition_in());
+        parse_expression_block(FlowPathOut{}, if_node->condition_in());
 
         if (_state.tokens().eat_if(Token_t::parenthesis_close) )
         {
@@ -1150,8 +1156,8 @@ Nodlang::FlowPath Nodlang::parse_if_block()
 
             // scope
             _state.push_scope(if_scope->child_scope_at(Branch_TRUE) );
-            FlowOut flow_out{ if_node->branch_out(Branch_TRUE) };
-            Nodlang::FlowPath block = parse_atomic_code_block( flow_out );
+            FlowPathOut branch_flow_out{if_node->branch_out(Branch_TRUE) };
+            Nodlang::FlowPath block = parse_atomic_code_block( branch_flow_out );
             _state.pop_scope();
 
             if ( block )
@@ -1166,10 +1172,10 @@ Nodlang::FlowPath Nodlang::parse_if_block()
                     if_node->token_else = _state.tokens().get_eaten();
 
                     _state.push_scope(false_scope );
-                    flow_out = { if_node->branch_out(Branch_FALSE) };
+                    branch_flow_out = { if_node->branch_out(Branch_FALSE) };
                     Nodlang::FlowPath else_block;
 
-                    if ( else_block = parse_atomic_code_block(flow_out) )
+                    if ( else_block = parse_atomic_code_block( branch_flow_out) )
                     {
                         for (auto _flow_out : else_block.out )
                             path.out.insert( _flow_out );
@@ -1217,7 +1223,7 @@ Nodlang::FlowPath Nodlang::parse_if_block()
     return {};
 }
 
-Nodlang::FlowPath Nodlang::parse_for_block()
+Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
 {
     bool         success  = false;
     ForLoopNode* for_node = nullptr;
@@ -1231,6 +1237,8 @@ Nodlang::FlowPath Nodlang::parse_for_block()
         LOG_VERBOSE("Parser", "Parsing for loop ...\n");
 
         for_node = _state.graph()->create_for_loop();
+        _state.graph()->connect( flow_out, for_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+
         for_node->token_for = token_for;
 
         path.in  = for_node->flow_in();
@@ -1246,16 +1254,17 @@ Nodlang::FlowPath Nodlang::parse_for_block()
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
             // parse init; condition; iteration or nothing
-            parse_expression_block(for_node->initialization_slot())
-            && parse_expression_block(for_node->condition_in())
-            && parse_expression_block(for_node->iteration_slot());
+            const FlowPathOut none{};
+            parse_expression_block(none, for_node->initialization_slot())
+            && parse_expression_block(none,for_node->condition_in())
+            && parse_expression_block(none, for_node->iteration_slot());
 
             // parse parenthesis close
             if ( Token parenthesis_close = _state.tokens().eat_if(Token_t::parenthesis_close) )
             {
                 _state.push_scope(for_node->internal_scope()->child_scope_at(Branch_TRUE) );
-                FlowOut flow_out = { for_node->branch_out(Branch_TRUE) };
-                FlowPath block = parse_atomic_code_block(flow_out) ;
+                FlowPathOut branch_flow_out = {for_node->branch_out(Branch_TRUE) };
+                FlowPath block = parse_atomic_code_block(branch_flow_out) ;
                 _state.pop_scope();
 
                 if ( block )
@@ -1296,7 +1305,7 @@ Nodlang::FlowPath Nodlang::parse_for_block()
     return {};
 }
 
-Nodlang::FlowPath Nodlang::parse_while_block()
+Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
 {
     bool           success    = false;
     WhileLoopNode* while_node = nullptr;
@@ -1309,6 +1318,8 @@ Nodlang::FlowPath Nodlang::parse_while_block()
         LOG_VERBOSE("Parser", "Parsing while ...\n");
 
         while_node = _state.graph()->create_while_loop();
+        _state.graph()->connect( flow_out, while_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+
         while_node->token_while = token_while;
         path.in = while_node->flow_in();
         path.out = {while_node->branch_out(Branch_FALSE)};
@@ -1319,13 +1330,13 @@ Nodlang::FlowPath Nodlang::parse_while_block()
             LOG_VERBOSE("Parser", "Parsing while condition ... \n");
 
             // Parse an optional condition
-            parse_expression_block(while_node->condition_in());
+            parse_expression_block({}, while_node->condition_in());
 
             if (_state.tokens().eat_if(Token_t::parenthesis_close) )
             {
                 _state.push_scope(while_node->internal_scope()->child_scope_at(Branch_TRUE) );
-                FlowOut flow_out = { while_node->branch_out(Branch_TRUE) };
-                FlowPath block = parse_atomic_code_block( flow_out );
+                const FlowPathOut branch_flow_out = {while_node->branch_out(Branch_TRUE) };
+                FlowPath block = parse_atomic_code_block( branch_flow_out );
                 _state.pop_scope();
 
                 if ( block)
@@ -2005,7 +2016,7 @@ Token_t Nodlang::to_literal_token(const TypeDescriptor *type) const
     return Token_t::literal_unknown;
 }
 
-Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowOut& flow_out)
+Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowPathOut& flow_out)
 {
     LOG_VERBOSE("Parser", "Parsing atomic code block ..\n");
     ASSERT(!flow_out.empty());
@@ -2013,20 +2024,12 @@ Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowOut& flow_out)
     FlowPath path;
 
     // most common case
-    if ( path = parse_scoped_block( flow_out ) ) // parse scope already handle connect
-        return path;
-
-         if (path = parse_expression_block() );
-    else if (path = parse_if_block() );
-    else if (path = parse_for_block() );
-    else     path = parse_while_block();
-
-    // empty atomic block?
-    if (!path && _state.tokens().peek(Token_t::end_of_instruction))
-    {
-        Node* node = _state.graph()->create_empty_instruction();
-        path = { node };
-    }
+         if ( path = parse_scoped_block( flow_out ) );
+    else if ( path = parse_expression_block( flow_out ) );
+    else if ( path = parse_if_block( flow_out ) );
+    else if ( path = parse_for_block( flow_out ) );
+    else if ( path = parse_while_block( flow_out ) ) ;
+    else      path = parse_empty_block( flow_out);
 
     if ( path )
     {
@@ -2034,10 +2037,6 @@ Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowOut& flow_out)
         {
             path.in->node->set_suffix(tok );
         }
-
-        // Connect new path with previous path flow out.
-        for (Slot* _flow_out : flow_out )
-            _state.graph()->connect( _flow_out, path.in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
         LOG_VERBOSE("Parser", OK "Block found (class %s)\n", path.in->node->get_class()->get_name() );
         return path;
@@ -2055,6 +2054,17 @@ std::string& Nodlang::serialize_literal(std::string &_out, const LiteralNode* no
 std::string& Nodlang::serialize_empty_instruction(std::string &_out, const Node* node) const
 {
     return serialize_token(_out, node->value()->token() );
+}
+
+Nodlang::FlowPath Nodlang::parse_empty_block(const Nodlang::FlowPathOut& flow_out)
+{
+    if ( _state.tokens().peek(Token_t::end_of_instruction) )
+    {
+        Node* node = _state.graph()->create_empty_instruction();
+        _state.graph()->connect( flow_out, node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS);
+        return FlowPath{ node };
+    }
+    return {};
 }
 
 void Nodlang::ParserState::reset_graph(Graph* new_graph)
