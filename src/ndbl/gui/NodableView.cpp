@@ -743,30 +743,28 @@ void NodableView::draw_file_window( float dt, ImGuiID dockspace_id, bool redock_
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
     ImGui::PushStyleColor(ImGuiCol_ChildBg, child_bg);
 
-    bool is_window_open = true;
-    bool visible = ImGui::Begin(file->filename().c_str(), &is_window_open, window_flags);
+    bool open    = true;
+    bool visible = ImGui::Begin(file->filename().c_str(), &open, window_flags);
 
     ImGui::PopStyleVar();
     ImGui::PopStyleColor(1);
 
-    if(visible)
+    if ( visible )
     {
-        const bool is_current_file = m_app->is_current(file);
+        // Set current file if window is focused
+        if ( ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
+            if ( !m_app->is_current(file) )
+                m_app->set_current_file(file);
 
-        if (!is_current_file && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows))
-        {
-            m_app->set_current_file(file);
-        }
-
-        // History bar on top
-        draw_history_bar(file->history);
-
-        // File View in the middle
+        // Draw content
         file->view.draw( dt );
     }
-    ImGui::End(); // File Window
+    ImGui::End();
 
-    if (!is_window_open) m_app->close_file(file);
+    if ( !open )
+    {
+        m_app->close_file(file);
+    }
 }
 
 void NodableView::draw_config_window()
@@ -894,72 +892,6 @@ void NodableView::draw_config_window()
 #endif
     }
     ImGui::End();
-}
-
-void NodableView::draw_history_bar(History& currentFileHistory)
-{
-    if (ImGui::IsMouseReleased(0))
-    {
-        m_is_history_dragged = false;
-    }
-    auto* cfg           = get_config();
-    float btn_spacing   = cfg->ui_history_btn_spacing;
-    float btn_height    = cfg->ui_history_btn_height;
-    float btn_width_max = cfg->ui_history_btn_width_max;
-
-    size_t historySize = currentFileHistory.get_size();
-    std::pair<int, int> history_range = currentFileHistory.get_command_id_range();
-    float avail_width = ImGui::GetContentRegionAvail().x;
-    float btn_width = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
-
-    for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
-    {
-        ImGui::SameLine();
-
-        std::string label("##" + std::to_string(cmd_pos));
-
-        // Draw a highlighted button for the current history position
-        if (cmd_pos == 0) {
-            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
-            ImGui::Button(label.c_str(), {btn_width, btn_height});
-            ImGui::PopStyleColor();
-        }
-        else // or a simple one for other history positions
-        {
-            ImGui::Button(label.c_str(), {btn_width, btn_height});
-        }
-
-        // Hovered item
-        if (ImGui::IsItemHovered())
-        {
-            if (ImGui::IsMouseDown(0)) // hovered + mouse down
-            {
-                m_is_history_dragged = true;
-            }
-
-            // Draw command description
-            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
-            if (ImGuiEx::BeginTooltip())
-            {
-                ImGui::Text("%s", currentFileHistory.get_cmd_description_at(cmd_pos).c_str());
-                ImGuiEx::EndTooltip();
-            }
-            ImGui::PopStyleVar();
-        }
-
-        // When dragging history
-        if (m_is_history_dragged &&
-            ImGui::GetMousePos().x > ImGui::GetItemRectMin().x &&
-            ImGui::GetMousePos().x < ImGui::GetItemRectMax().x)
-        {
-            currentFileHistory.move_cursor(cmd_pos); // update history cursor position
-        }
-
-
-    }
-    ImGui::PopStyleVar();
 }
 
 void NodableView::draw_toolbar_window()

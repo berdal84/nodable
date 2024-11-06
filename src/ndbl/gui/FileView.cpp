@@ -53,12 +53,81 @@ void FileView::update(float dt)
 
 void FileView::draw(float dt)
 {
+    // Summary
+    // 1) Draw History Bar
+    // 2) Draw Text and Graph Editors
+
+
+    // 1)
+    if (ImGui::IsMouseReleased(0))
+    {
+        m_is_history_dragged = false;
+    }
+    auto* cfg           = get_config();
+    float btn_spacing   = cfg->ui_history_btn_spacing;
+    float btn_height    = cfg->ui_history_btn_height;
+    float btn_width_max = cfg->ui_history_btn_width_max;
+
+    size_t historySize = m_file->history.get_size();
+    std::pair<int, int> history_range = m_file->history.get_command_id_range();
+    float avail_width = ImGui::GetContentRegionAvail().x;
+    float btn_width = fmin(btn_width_max, avail_width / float(historySize + 1) - btn_spacing);
+
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, { btn_spacing, 0});
+
+    for (int cmd_pos = history_range.first; cmd_pos <= history_range.second; cmd_pos++)
+    {
+        ImGui::SameLine();
+
+        std::string label("##" + std::to_string(cmd_pos));
+
+        // Draw a highlighted button for the current history position
+        if (cmd_pos == 0) {
+            ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyleColorVec4(ImGuiCol_ButtonHovered));
+            ImGui::Button(label.c_str(), {btn_width, btn_height});
+            ImGui::PopStyleColor();
+        }
+        else // or a simple one for other history positions
+        {
+            ImGui::Button(label.c_str(), {btn_width, btn_height});
+        }
+
+        // Hovered item
+        if (ImGui::IsItemHovered())
+        {
+            if (ImGui::IsMouseDown(0)) // hovered + mouse down
+            {
+                m_is_history_dragged = true;
+            }
+
+            // Draw command description
+            ImGui::PushStyleVar(ImGuiStyleVar_Alpha, float(0.8));
+            if (ImGuiEx::BeginTooltip())
+            {
+                ImGui::Text("%s", m_file->history.get_cmd_description_at(cmd_pos).c_str());
+                ImGuiEx::EndTooltip();
+            }
+            ImGui::PopStyleVar();
+        }
+
+        // When dragging history
+        if (m_is_history_dragged &&
+            ImGui::GetMousePos().x > ImGui::GetItemRectMin().x &&
+            ImGui::GetMousePos().x < ImGui::GetItemRectMax().x)
+        {
+            m_file->history.move_cursor(cmd_pos); // update history cursor position
+        }
+
+
+    }
+    ImGui::PopStyleVar();
+
+    // 2)
     ImGui::PushStyleColor(ImGuiCol_ChildBg, ImVec4(0, 0, 0, 0.35f));
     ImGui::PushFont( get_font_manager()->get_font(FontSlot_Code) );
 
     ImGui::BeginChild("FileView", ImGui::GetContentRegionAvail(), false, 0);
     {
-        Config* cfg = get_config();
         const Vec2 margin(10.0f, 0.0f);
         Vec2 region_available    = (Vec2)ImGui::GetContentRegionAvail() - margin;
         Vec2 text_editor_size {m_child1_size, region_available.y};
