@@ -455,11 +455,12 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
     }
     else if ( flow_in_edge_count > 1 )
     {
-        std::vector<Scope*> scopes;
+        // gather adjacent scopes
+        std::vector<Scope*> adjacent_scope;
         for(Slot* adjacent : edge.head->adjacent() )
-            scopes.push_back(adjacent->node->parent() );
-        if ( Scope* ancestor = Scope::lowest_common_ancestor( scopes ) )
-            target_scope = ancestor->get_owner()->parent();
+            adjacent_scope.push_back( adjacent->node->parent() );
+        // find lowest_common_ancestor
+        target_scope = Scope::lowest_common_ancestor(adjacent_scope );
     }
     else
     {
