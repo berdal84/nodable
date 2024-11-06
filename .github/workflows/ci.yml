@@ -78,13 +78,13 @@ jobs:
         run: cpack -C ${{env.BUILD_TYPE}}
 
       - name: Binary Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nodable-${{ runner.os }}
           path: ${{env.INSTALL_PATH}}/app/*
 
       - name: Package Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nodable-package-${{ runner.os }}
           path: |
