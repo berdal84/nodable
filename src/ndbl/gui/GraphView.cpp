@@ -67,7 +67,7 @@ GraphView::GraphView(Graph* graph)
 
     m_state_machine.start();
 
-    CONNECT(graph->on_add    , &GraphView::decorate );
+    CONNECT(graph->on_add    , &GraphView::decorate_node );
     CONNECT(graph->on_change , &GraphView::_on_graph_change);
     CONNECT(graph->on_reset  , &GraphView::reset);
 }
@@ -79,7 +79,7 @@ GraphView::~GraphView()
     DISCONNECT(m_graph->on_reset);
 }
 
-void GraphView::decorate(Node* node)
+void GraphView::decorate_node(Node* node)
 {
     ComponentFactory* component_factory = get_component_factory();
 
@@ -97,7 +97,7 @@ void GraphView::decorate(Node* node)
     {
         Scope*     internal_scope = node->internal_scope();
         ScopeView* scope_view      = component_factory->create<ScopeView>( internal_scope );
-
+        CONNECT(scope_view->on_hover, &GraphView::_set_hovered );
         node->add_component( scope_view );
 
         for ( Scope* child_scope : internal_scope->child_scope() )
@@ -106,6 +106,7 @@ void GraphView::decorate(Node* node)
             {
                 ScopeView* child_view = component_factory->create<ScopeView>( child_scope );
                 node->add_component( child_view );
+                CONNECT(child_view->on_hover, &GraphView::_set_hovered );
             }
         }
     }
@@ -174,24 +175,32 @@ bool GraphView::draw(float dt)
     const bool      enable_edition         = interpreter->is_program_stopped();
     std::vector<Node*> node_registry       = m_graph->get_node_registry();
 
+    // Draw Scopes
+    std::vector<Scope*> scopes_to_draw = graph()->get_scopes();
+    auto low_to_high_depth = [](Scope* s1, Scope* s2) { return s1->depth() < s2->depth(); };
+    std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
+
+    const ScopeView* focused_scope_view = m_focused.type == ViewItemType_SCOPE ? m_focused.scopeview : nullptr;
+    for( Scope* scope : scopes_to_draw )
+    {
+        if (ScopeView* view = scope->view())
+        {
+            bool highlight = view == focused_scope_view;
+            view->draw(dt, highlight);
+        }
+    }
+
     // Draw Grid
+    const Rect window_content_region = {
+        ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin(),
+        ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMax()
+    };
     ImGuiEx::Grid(
+            window_content_region,
             cfg->ui_grid_size,
             cfg->ui_grid_subdiv_count,
             ImGui::GetColorU32(cfg->ui_graph_grid_color_major),
             ImGui::GetColorU32(cfg->ui_graph_grid_color_minor));
-
-    // Draw Scopes
-    for( Scope* scope : graph()->get_scopes() )
-    {
-        if (ScopeView* view = scope->view())
-        {
-            view->draw(dt);
-            if ( view->hovered() )
-                if ( m_hovered.empty() || view->depth() >= m_hovered.scopeview->depth() )
-                    m_hovered = view;
-        }
-    }
 
     // Draw Wires (code flow ONLY)
     const ImGuiEx::WireStyle code_flow_style{
@@ -821,7 +830,7 @@ void GraphView::cursor_state_tick()
                 m_hovered.nodeview->expand_toggle();
                 m_focused = m_hovered;
             }
-            else if (ImGui::IsMouseDragging(0, 0.1f))
+            else if (ImGui::IsMouseDragging(0))
             {
                 if (!m_hovered.nodeview->selected())
                     set_selected({m_hovered.nodeview});
@@ -846,7 +855,11 @@ void GraphView::cursor_state_tick()
 
         case ViewItemType_SCOPE:
         {
-            if (ImGui::IsMouseClicked(1))
+            if (ImGui::IsMouseClicked(0))
+            {
+                m_focused = m_hovered;
+            }
+            else if (ImGui::IsMouseClicked(1))
             {
                 m_focused = m_hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
@@ -870,7 +883,12 @@ void GraphView::cursor_state_tick()
                 else if (ImGui::IsMouseClicked(1))
                     ImGui::OpenPopup(CONTEXT_POPUP);
                 else if (ImGui::IsMouseDragging(0))
-                    m_state_machine.change_state(ImGui::IsKeyDown(ImGuiKey_Space) ? VIEW_PAN_STATE : ROI_STATE);
+                {
+                    if (ImGui::IsKeyDown(ImGuiKey_Space))
+                        m_state_machine.change_state(VIEW_PAN_STATE);
+                    else
+                        m_state_machine.change_state(ROI_STATE);
+                }
             }
 
             break;
@@ -1009,5 +1027,15 @@ void GraphView::update(float dt)
     for( Scope* scope : graph()->get_root_scopes() )
         if ( scope->view() )
             scope->view()->update( dt, ScopeViewFlags_RECURSE );
+}
+
+void GraphView::_set_hovered(ScopeView* scope_view)
+{
+    if ( m_hovered.type != ViewItemType_SCOPE )
+        m_hovered = scope_view;
+    else if ( !m_hovered.scopeview )
+        m_hovered = scope_view;
+    else if ( scope_view->depth() >= m_hovered.scopeview->depth() )
+        m_hovered = scope_view;
 }
 

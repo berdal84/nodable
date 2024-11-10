@@ -142,7 +142,8 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     ui_scope_child_margin                 = ui_scope_margin.x;
     ui_scope_border_radius                = 7.f;
     ui_scope_border_thickness             = 3.f;
-    ui_scope_fill_col                     = Color(255,255,255,10);
+    ui_scope_fill_col_light               = Color(100, 100, 100);
+    ui_scope_fill_col_dark                = Color(70,70,70);
     ui_scope_border_col                   = Color(255,255,255,40);
 
     // Graph

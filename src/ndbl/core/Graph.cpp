@@ -629,11 +629,11 @@ std::set<Scope *> Graph::get_root_scopes()
     return result;
 }
 
-std::set<Scope *> Graph::get_scopes()
+std::vector<Scope *> Graph::get_scopes()
 {
-    std::set<Scope *> result;
+    std::vector<Scope *> result;
     for(Node* node : m_node_registry)
         if ( node->parent() )
-            result.insert( node->parent() );
+            result.push_back( node->parent() );
     return result;
 }

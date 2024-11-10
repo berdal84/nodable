@@ -15,6 +15,19 @@ ScopeView::ScopeView(Scope* scope)
     scope->set_view( this );
 }
 
+Theme ScopeView::theme() const
+{
+    if ( m_scope->is_orphan() )
+        return Theme_DARK;
+    ScopeView* parent_view = m_scope->parent()->view();
+    // use same theme since parent won't be drawn, contrast will be with parent's parent.
+    if ( !parent_view->must_be_draw() )
+        return parent_view->theme();
+    // flip theme to maximize contrast
+    return parent_view->theme() == Theme_LIGHT ? Theme_DARK
+                                               : Theme_LIGHT;
+}
+
 void ScopeView::update(float dt, ScopeViewFlags flags)
 {
     std::set<Node*> nodes { m_scope->child_node().begin(), m_scope->child_node().end() };
@@ -55,9 +68,14 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
     }
 }
 
-void ScopeView::draw(float dt)
+bool ScopeView::must_be_draw() const
 {
-    if ( m_rect.has_area() )
+    return m_rect.has_area() && m_nodeviews.size() >= 1;
+}
+
+void ScopeView::draw(float dt, bool highlight)
+{
+    if ( must_be_draw() )
     {
         Rect r = m_rect;
         r.min.round();
@@ -65,14 +83,16 @@ void ScopeView::draw(float dt)
 
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         const Config* config = get_config();
-        draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32( config->ui_scope_fill_col ), config->ui_scope_border_radius );
-        draw_list->AddRect      (r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ), config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
+        const Vec4& fill_col = theme() == Theme_DARK ? config->ui_scope_fill_col_light
+                                                     : config->ui_scope_fill_col_dark;
+        draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
+        if ( highlight )
+        {
+            draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ) , config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
+        }
 
-        m_hovered = ImGui::IsMouseHoveringRect( r.min, r.max);
-    }
-    else
-    {
-        m_hovered = false;
+        if ( ImGui::IsMouseHoveringRect(r.min, r.max) )
+            on_hover.emit(this);
     }
 }
 

@@ -100,7 +100,8 @@ namespace ndbl
         const char*    ui_interpreter_window_label;
         Vec4           ui_scope_margin; // left, top, right, bottom
         float          ui_scope_child_margin;
-        Vec4           ui_scope_fill_col;
+        Vec4           ui_scope_fill_col_light;
+        Vec4           ui_scope_fill_col_dark;
         Vec4           ui_scope_border_col;
         float          ui_scope_border_radius;
         float          ui_scope_border_thickness;

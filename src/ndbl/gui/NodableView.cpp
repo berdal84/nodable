@@ -869,7 +869,8 @@ void NodableView::draw_config_window()
             ImGui::SliderFloat4("child margin", &cfg->ui_scope_child_margin, 2, 25);
             ImGui::SliderFloat("border radius", &cfg->ui_scope_border_radius, 0, 20);
             ImGui::SliderFloat("border thickness", &cfg->ui_scope_border_thickness, 0, 4);
-            ImGui::ColorEdit4("fill color", &cfg->ui_scope_fill_col.x);
+            ImGui::ColorEdit4("fill color (light)", &cfg->ui_scope_fill_col_light.x);
+            ImGui::ColorEdit4("fill color (dark)", &cfg->ui_scope_fill_col_dark.x);
             ImGui::ColorEdit4("border color", &cfg->ui_scope_border_col.x);
         }
 

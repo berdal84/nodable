@@ -60,7 +60,7 @@ namespace ndbl
         Graph*            graph() const;
         void              add_child(NodeView*);
         tools::ViewState* view_state() { return &m_view_state; };
-        void              decorate(Node* node);
+        void              decorate_node(Node* node);
     private:
         CreateNodeCtxMenu      m_create_node_menu;
         ViewItem               m_hovered;
@@ -70,6 +70,7 @@ namespace ndbl
         Graph*                 m_graph;
         bool                   m_physics_dirty = false;
 
+        void        _set_hovered(ScopeView*);
         void        unfold(); // unfold the graph until it is stabilized
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
