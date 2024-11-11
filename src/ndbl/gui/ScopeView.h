@@ -1,5 +1,6 @@
 #pragma once
 #include "tools/gui/geometry/Rect.h"
+#include "tools/gui/geometry/BoxShape2D.h"
 #include "ndbl/core/NodeComponent.h"
 #include "ndbl/core/Scope.h"
 
@@ -29,22 +30,24 @@ namespace ndbl
 
         SIGNAL(on_hover, ScopeView*);
 
-        ScopeView(Scope* scope);
+        void         init(Scope*);
         void         update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
         void         draw(float dt, bool highlight);
         Scope*       scope() const { return m_scope; }
-        const Rect&  rect() const { return m_rect; }
-        const std::vector<NodeView*> &nodeviews() const { return m_nodeviews; }
-        void         translate(const tools::Vec2 &delta, ScopeViewFlags flags = ScopeViewFlags_NONE);
+        void         translate(const tools::Vec2& delta);
         size_t       depth() const { return m_scope->depth(); }
         Theme        theme() const;
         bool         must_be_draw() const;
+        void         set_pinned(bool b = true);
 
     private:
-        bool        is_owner() const;
+        void        on_reset_parent(Scope*);
+        void        on_add_node(Node*);
+        void        on_remove_node(Node*);
 
-        Rect        m_rect;
-        Scope*      m_scope;
+        Scope*               m_scope = nullptr;
+        tools::SpatialNode2D m_spatial_node;
+        Rect                 m_content_rect;
         std::vector<NodeView*> m_nodeviews;
     };
 }

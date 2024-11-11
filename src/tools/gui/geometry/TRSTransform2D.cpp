@@ -28,13 +28,13 @@ void TRSTransform2D::set_position(const Vec2& p)
 //    _matrix_dirty = true;
 //}
 
-const glm::mat3 &TRSTransform2D::get_matrix() const
+const glm::mat3 &TRSTransform2D::matrix() const
 {
     const_cast<TRSTransform2D*>(this)->_update_matrix();
     return _matrix;
 }
 
-const glm::mat3 &TRSTransform2D::get_matrix_inv() const
+const glm::mat3 &TRSTransform2D::matrix_inv() const
 {
     const_cast<TRSTransform2D*>(this)->_update_matrix();
     return _matrix_inv;

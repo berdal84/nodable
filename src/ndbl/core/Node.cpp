@@ -330,16 +330,10 @@ void Node::init_internal_scope()
     add_component( scope );
 
     // preserve parent
-    scope->reset_parent( this->parent() );
+    if ( parent() )
+        scope->reset_parent( parent() );
 
     m_is_a_scope = true;
     m_scope      = scope;
 }
 
-void Node::reset_parent(Scope *scope)
-{
-    if ( is_a_scope() )
-        m_scope->reset_parent( scope );
-    else
-        m_scope = scope;
-}

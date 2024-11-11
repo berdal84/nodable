@@ -434,7 +434,7 @@ bool NodeView::draw()
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
                     const float y = box()->pivot(BOTTOM, WORLD_SPACE).y;
-                    slot_view_out->xform()->set_pos({x, y}, WORLD_SPACE);
+                    slot_view_out->xform()->set_position({x, y}, WORLD_SPACE);
                     slot_view_out->direction = BOTTOM;
                 }
     }
@@ -738,7 +738,7 @@ void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)
 			 if ( up > 0 )  view_rect.translate_y(up );
 		else if ( down < 0 )view_rect.translate_y(down );
 
-        _view->xform()->set_pos( view_rect.center(), PARENT_SPACE );
+        _view->xform()->set_position(view_rect.center(), PARENT_SPACE);
 	}
 
 }
@@ -829,7 +829,7 @@ void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
 
-    if ( !node()->internal_scope() )
+    if ( !node()->is_a_scope() )
         return;
 
     for(Node* child : node()->internal_scope()->child_node() )
@@ -852,7 +852,7 @@ void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 
 void NodeView::set_children_visible(bool visible, bool recursively)
 {
-    if ( !node()->internal_scope() )
+    if ( !node()->is_a_scope() )
         return;
 
     std::set<Scope*> scopes;
@@ -969,13 +969,13 @@ void NodeView::translate(const std::vector<NodeView*>& _views, const Vec2& delta
 void NodeView::add_child(PropertyView* view)
 {
     xform()->add_child( view->xform() );
-    view->xform()->set_pos({0.f, 0.f}, PARENT_SPACE);
+    view->xform()->set_position({0.f, 0.f}, PARENT_SPACE);
 }
 
 void NodeView::add_child(SlotView* view)
 {
     xform()->add_child( view->xform() );
-    view->xform()->set_pos({0.f, 0.f}, PARENT_SPACE);
+    view->xform()->set_position({0.f, 0.f}, PARENT_SPACE);
     m_slot_views.push_back( view );
 }
 

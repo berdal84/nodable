@@ -5,6 +5,7 @@
 #include "tools/core/assertions.h"
 #include "TRSTransform2D.h"
 #include "Space.h"
+#include <unordered_set>
 
 namespace tools
 {
@@ -27,34 +28,36 @@ namespace tools
     constexpr static Vec2 BOTTOM_RIGHT   = RIGHT + BOTTOM;
 
     /**
-     * Very simple spatial child_node in 2D.
-     * A scene graph can be create by creating parent/child_scope links.
+     * Very simple spatial node in 2D.
+     * A scene graph can be created by linking parent and child nodes.
      * Currently, we can only set and get the position (not implemented in TRSTransform2D)
      */
     struct SpatialNode2D
     {
         SpatialNode2D(){};
         ~SpatialNode2D();
-        void                  set_pos(const Vec2 &_pos);
-        void                  set_pos(const Vec2 &_pos, Space);
+        void                  set_position(const Vec2&);
+        void                  set_position(const Vec2&, Space);
         // void                  set_rotate(float angle);
         // void                  rotate(float angle);
         // void                  set_scale(const tools::Vec2& scale);
         // void                  scale(const tools::Vec2& scale);
-        Vec2                  get_pos() const;
-        Vec2                  get_pos(Space) const;
+        Vec2                  position() const;
+        Vec2                  position(Space) const;
         void                  translate(const tools::Vec2& delta);
-        const glm::mat3&      get_world_matrix() const;
-        const glm::mat3&      get_world_matrix_inv() const;
+        const glm::mat3&      world_matrix() const     { const_cast<SpatialNode2D*>(this)->update_world_matrix(); return _world_matrix; }
+        const glm::mat3&      world_matrix_inv() const { const_cast<SpatialNode2D*>(this)->update_world_matrix(); return _world_matrix_inv; }
         void                  set_world_transform_dirty();
         void                  add_child(SpatialNode2D*);
-        void                  remove_child(SpatialNode2D* existing_child);
-        void                  remove_all_children();
-        SpatialNode2D*        get_parent();
+        void                  remove_child(SpatialNode2D* possible_child);
+
+        SpatialNode2D*        parent() { return _parent; }
         void                  update_world_matrix();
 
-        SpatialNode2D*              _parent = nullptr;
-        std::vector<SpatialNode2D*> _children;
+        typedef std::unordered_set<SpatialNode2D*> Children;
+
+        SpatialNode2D*        _parent = nullptr;
+        Children              _children;
         TRSTransform2D        _transform; // local transform, relative to the parent
         glm::mat3             _world_matrix = {1.f}; // update only on-demand when m_world_matrix_dirty is set.
         glm::mat3             _world_matrix_inv = {1.f}; // update only on-demand when m_world_matrix_dirty is set.

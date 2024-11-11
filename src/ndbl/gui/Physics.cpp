@@ -52,7 +52,7 @@ void Physics::apply_constraints(float _dt)
 
 void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
 {
-    Vec2 delta   = _target_pos - m_view->xform()->get_pos(_space);
+    Vec2 delta   = _target_pos - m_view->xform()->position(_space);
     float factor = std::max(0.0f, _factor);
     Vec2 force   = Vec2::scale(delta, factor);
     add_force( force, _recurse);
@@ -247,7 +247,7 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
     if( !physics_component )
         return;
 
-    Vec2 current_pos = _follower->xform()->get_pos(WORLD_SPACE);
+    Vec2 current_pos = _follower->xform()->position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
     physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
@@ -293,7 +293,7 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
         auto* physics_component = clean_follower[i]->node()->get_component<Physics>();
         if( !physics_component )
             continue;
-        Vec2 current_pos = clean_follower[i]->xform()->get_pos(WORLD_SPACE);
+        Vec2 current_pos = clean_follower[i]->xform()->position(WORLD_SPACE);
         Vec2 desired_pos = current_pos + delta[i];
         physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
     }

@@ -14,7 +14,7 @@ namespace tools
         SpatialNode2D       xform;
         Vec2          _half_size = {};
         inline void   set_pos(Vec2 p) { set_pos(p, PARENT_SPACE); }
-        inline void   set_pos(Vec2 p, Space space) { xform.set_pos(p, space); }
+        inline void   set_pos(Vec2 p, Space space) { xform.set_position(p, space); }
         void          set_size(const Vec2& s);
         Vec2          size() const;
         Rect          get_rect(Space = PARENT_SPACE) const;

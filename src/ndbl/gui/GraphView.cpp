@@ -96,17 +96,19 @@ void GraphView::decorate_node(Node* node)
     if ( node->is_a_scope() )
     {
         Scope*     internal_scope = node->internal_scope();
-        ScopeView* scope_view      = component_factory->create<ScopeView>( internal_scope );
+        ScopeView* scope_view      = component_factory->create<ScopeView>();
         CONNECT(scope_view->on_hover, &GraphView::_set_hovered );
         node->add_component( scope_view );
+        scope_view->init( internal_scope );
 
         for ( Scope* child_scope : internal_scope->child_scope() )
         {
             if ( child_scope->get_owner() == node )
             {
-                ScopeView* child_view = component_factory->create<ScopeView>( child_scope );
+                ScopeView* child_view = component_factory->create<ScopeView>();
                 node->add_component( child_view );
                 CONNECT(child_view->on_hover, &GraphView::_set_hovered );
+                child_view->init( child_scope );
             }
         }
     }
@@ -142,7 +144,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     // Draw
 
     ImGuiID id = make_wire_id(from->slot, nullptr);
-    Vec2 start_pos = from->xform()->get_pos(WORLD_SPACE);
+    Vec2 start_pos = from->xform()->position(WORLD_SPACE);
 
     BezierCurveSegment2D segment{
             start_pos, start_pos,
@@ -163,7 +165,7 @@ bool GraphView::draw(float dt)
     // (n.b. we could also implement a struct RootViewState wrapping ViewState)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE );
     m_view_state.box.set_size( region.size() );
-    m_view_state.box.xform.set_pos( region.center() ); // children will be relative to the center
+    m_view_state.box.xform.set_position(region.center()); // children will be relative to the center
     m_view_state.box.draw_debug_info();
 
     m_hovered = {};
@@ -245,8 +247,8 @@ bool GraphView::draw(float dt)
                 SlotView* head = adjacent_slot->view;
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = tail->xform()->get_pos(WORLD_SPACE);
-                Vec2 head_pos = head->xform()->get_pos(WORLD_SPACE);
+                Vec2 tail_pos = tail->xform()->position(WORLD_SPACE);
+                Vec2 head_pos = head->xform()->position(WORLD_SPACE);
                 BezierCurveSegment2D segment{
                         tail_pos,
                         tail_pos,
@@ -290,8 +292,8 @@ bool GraphView::draw(float dt)
                 SlotView* slot_view_out = slot_out->view;
                 SlotView* slot_view_in  = slot_in->view;
 
-                p1 = slot_view_out->xform()->get_pos(WORLD_SPACE);
-                p2 = slot_view_in->xform()->get_pos(WORLD_SPACE);
+                p1 = slot_view_out->xform()->position(WORLD_SPACE);
+                p2 = slot_view_in->xform()->position(WORLD_SPACE);
 
                 const Vec2  signed_dist = Vec2::distance(p1, p2);
                 const float lensqr_dist = signed_dist.lensqr();
@@ -618,8 +620,7 @@ void GraphView::drag_state_enter()
     {
         case ViewItemType_SCOPE:
         {
-            for ( NodeView* node_view : m_focused.scopeview->nodeviews() )
-                node_view->set_pinned();
+            m_focused.scopeview->set_pinned();
             break;
         }
         default:
@@ -909,7 +910,7 @@ void GraphView::line_state_enter()
 
 void GraphView::line_state_tick()
 {
-    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->xform()->get_pos(WORLD_SPACE)
+    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->xform()->position(WORLD_SPACE)
                                                                  : Vec2{ImGui::GetMousePos()};
 
     // Contextual menu

@@ -11,7 +11,7 @@ using namespace tools;
 BoxShape2D::BoxShape2D(const Rect &r)
 : xform()
 {
-    xform.set_pos(r.center());
+    xform.set_position(r.center());
     set_size(r.size());
 }
 
@@ -28,7 +28,7 @@ Vec2 BoxShape2D::pivot(const Vec2& pivot, Space space) const
 {
     if ( space == LOCAL_SPACE )
         return _half_size * pivot;
-    return xform.get_pos(space) + _half_size * pivot;
+    return xform.position(space) + _half_size * pivot;
 }
 
 Rect BoxShape2D::get_rect(Space space) const
@@ -88,7 +88,7 @@ void BoxShape2D::draw_debug_info()
     ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
 
     // center to parent center
-    if ( xform.get_parent() != nullptr)
-         ImGuiEx::DebugLine(xform.get_parent()->get_pos(WORLD_SPACE ), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
+    if (xform.parent() != nullptr)
+         ImGuiEx::DebugLine(xform.parent()->position(WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
 #endif
 }

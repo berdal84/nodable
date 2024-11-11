@@ -468,7 +468,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
     }
 
     if ( target_scope )
-        target_scope->push_back(next_node);
+        target_scope->push_back( next_node );
 }
 
 void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)

@@ -159,12 +159,12 @@ void SlotView::update(float dt)
                        + Vec2( dir_x * size.x * float(index), 0.f) // jump to index
                        + Vec2(0.f, alignment.y * size.y * 0.5f); // align edge vertically
 
-        box()->xform.set_pos( pos, WORLD_SPACE ); // relative to NodeView's
+        box()->xform.set_position(pos, WORLD_SPACE); // relative to NodeView's
     }
     else if (alignment_ref != nullptr )
     {
         const Vec2 pos  = alignment_ref->pivot( alignment, WORLD_SPACE);
-        box()->xform.set_pos( pos, WORLD_SPACE );
+        box()->xform.set_position(pos, WORLD_SPACE);
     }
     else
     {

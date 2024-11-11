@@ -32,6 +32,9 @@ namespace ndbl
         Token token_begin = {Token_t::ignore};
         Token token_end   = {Token_t::ignore};
 
+        SIGNAL(on_reset_parent, Scope*);
+        SIGNAL(on_add, Node*);
+        SIGNAL(on_remove, Node*);
         SIGNAL(on_change);
         SIGNAL(on_clear);
 
@@ -57,6 +60,7 @@ namespace ndbl
         tools::Optional<Node*>         first_node() const { return m_child_node.empty() ? nullptr : *m_child_node.begin(); };
         Node*                          last_node() const { return m_child_node.empty() ? nullptr : *m_child_node.rbegin(); };
         bool                           is_orphan() const { return m_parent == nullptr; }
+        static bool                    is_internal(const Scope*);
         static Scope*                  lowest_common_ancestor(const std::vector<Scope*>& scopes);
         static Scope*                  lowest_common_ancestor(Scope* s1, Scope* s2);
         static std::set<Scope*>&       get_descendent(std::set<Scope*>& out, Scope* scope, ScopeFlags flags = ScopeFlags_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }

@@ -50,6 +50,7 @@ namespace ndbl
     public:
         friend class Graph;
         friend class NodeFactory;
+        friend class Scope;
 
         // Code
         Node() = default;
@@ -86,7 +87,6 @@ namespace ndbl
         Scope*               internal_scope() const { ASSERT(m_is_a_scope); return m_scope; }
         bool                 has_parent() const { return parent() != nullptr; }
         Scope*               parent() const { return m_is_a_scope ? m_scope->parent() : m_scope; };
-        void                 reset_parent(Scope* scope);
 
         // Slot related
         //-------------

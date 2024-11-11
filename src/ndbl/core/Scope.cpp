@@ -67,8 +67,11 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
         }
     }
 
-    // Insert the node in this scope
-    node->reset_parent(this);
+    if (node->is_a_scope())
+        node->m_scope->reset_parent(this);
+    else
+        node->m_scope = this;
+
     if ((flags & ScopeFlags_NO_PUSH_BACK) == 0)
         m_child_node.push_back( node );
 
@@ -83,6 +86,7 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     }
 
     on_change.emit();
+    on_add.emit(node);
 }
 
 std::vector<Node*> Scope::leaves()
@@ -139,7 +143,10 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
         m_child_node.erase( it );
 
     // reset scope
-    node->reset_parent(nullptr);
+    if (node->is_a_scope())
+        node->m_scope->reset_parent(nullptr);
+    else
+        node->m_scope = nullptr;
 
     if ( ( flags & ScopeFlags_RECURSE) && !node->is_a_scope() )
     {
@@ -152,14 +159,14 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
     }
 
     on_change.emit();
+    on_remove.emit(node);
 }
 
 void Scope::clear()
 {
     while( !m_child_node.empty() )
-    {
-        remove_ex( m_child_node.back(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
-    }
+        if ( m_child_node.back() != get_owner() ) // owner is always there
+            remove_ex( m_child_node.back(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
 
     on_clear.emit();
 }
@@ -178,12 +185,13 @@ void Scope::reset_parent(Scope* new_parent, ScopeFlags flags)
     // add "this" into new parent
     if ( new_parent )
     {
-        new_parent->m_child_scope.push_back(this);;
+        new_parent->m_child_scope.push_back(this);
         if ( flags & ScopeFlags_CLEAR_WITH_PARENT)
             CONNECT(new_parent->on_clear, &Scope::clear );
     }
 
     m_parent = new_parent;
+    on_reset_parent.emit( new_parent );
 }
 
 bool Scope::empty_ex(ScopeFlags flags) const
@@ -263,4 +271,10 @@ std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, 
         get_descendent_ex(out, child, level_max-1, ScopeFlags_INCLUDE_SELF );
     }
     return out;
+}
+
+bool Scope::is_internal(const Scope* scope)
+{
+    return scope->get_owner()->is_a_scope()
+           && scope->get_owner()->internal_scope() == scope;
 }

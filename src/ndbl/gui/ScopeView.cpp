@@ -8,11 +8,19 @@
 using namespace ndbl;
 using namespace tools;
 
-ScopeView::ScopeView(Scope* scope)
-: NodeComponent()
+void ScopeView::init(Scope* scope)
 {
     m_scope = scope;
     scope->set_view( this );
+
+    if ( Scope* parent = scope->parent() )
+        on_reset_parent( parent );
+    for( Node* node : scope->child_node() )
+        on_add_node( node );
+
+    CONNECT( scope->on_add         , &ScopeView::on_add_node );
+    CONNECT( scope->on_remove      , &ScopeView::on_remove_node );
+    CONNECT( scope->on_reset_parent, &ScopeView::on_reset_parent );
 }
 
 Theme ScopeView::theme() const
@@ -31,10 +39,10 @@ Theme ScopeView::theme() const
 void ScopeView::update(float dt, ScopeViewFlags flags)
 {
     std::set<Node*> nodes { m_scope->child_node().begin(), m_scope->child_node().end() };
-    if ( is_owner() )
+    if ( Scope::is_internal(m_scope) )
         nodes.insert( m_scope->get_owner() );
 
-    m_rect = {};
+    Rect r = {};
     m_nodeviews.clear();
     for(Node* node : nodes )
     {
@@ -44,7 +52,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
             if (nodeView->visible())
             {
                 Rect node_rect = nodeView->get_rect_ex(WORLD_SPACE, NodeViewFlag_WITH_RECURSION | NodeViewFlag_WITH_PINNED);
-                m_rect = Rect::merge(m_rect, node_rect);
+                r = Rect::merge(r, node_rect);
             }
         }
 
@@ -53,34 +61,36 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
             for (Scope* child_scope: node->internal_scope()->child_scope())
             {
                 child_scope->view()->update(dt, flags);
-                m_rect = Rect::merge(m_rect, child_scope->view()->m_rect);
+                r = Rect::merge(r, child_scope->view()->m_content_rect );
             };
         }
     }
 
     const Config* config = get_config();
-    if ( m_rect.has_area() )
+    if ( r.has_area() )
     {
-        m_rect.min.x -= config->ui_scope_margin.x;
-        m_rect.min.y -= config->ui_scope_margin.y;
-        m_rect.max.x += config->ui_scope_margin.z;
-        m_rect.max.y += config->ui_scope_margin.w;
+        r.min.x -= config->ui_scope_margin.x;
+        r.min.y -= config->ui_scope_margin.y;
+        r.max.x += config->ui_scope_margin.z;
+        r.max.y += config->ui_scope_margin.w;
+
+        r.min.round();
+        r.max.round();
     }
+
+    m_content_rect = r;
 }
 
 bool ScopeView::must_be_draw() const
 {
-    return m_rect.has_area() && m_nodeviews.size() >= 1;
+    return m_content_rect.has_area() && m_nodeviews.size() >= 1;
 }
 
 void ScopeView::draw(float dt, bool highlight)
 {
     if ( must_be_draw() )
     {
-        Rect r = m_rect;
-        r.min.round();
-        r.max.round();
-
+        const Rect r = m_content_rect;
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         const Config* config = get_config();
         const Vec4& fill_col = theme() == Theme_DARK ? config->ui_scope_fill_col_light
@@ -96,21 +106,46 @@ void ScopeView::draw(float dt, bool highlight)
     }
 }
 
-bool ScopeView::is_owner() const
+void ScopeView::on_add_node(Node* node)
 {
-    return m_scope->get_owner()->is_a_scope()
-        && m_scope->get_owner()->internal_scope() == m_scope;
+    if( NodeView* view = node->get_component<NodeView>())
+    {
+        m_spatial_node.add_child(view->xform() );
+    }
 }
 
-void ScopeView::translate(const Vec2 &delta , ScopeViewFlags flags)
+void ScopeView::on_remove_node(Node* node)
 {
-    // translate direct nodes
-    for (NodeView* views : m_nodeviews )
-        if ( (flags & ScopeViewFlags_EXCLUDE_OWNER) == 0 || views->get_owner() != this->get_owner() )
-            views->xform()->translate(delta);
+    if( NodeView* view = node->get_component<NodeView>())
+    {
+        m_spatial_node.remove_child(view->xform() );
+    }
+}
 
-    // translate indirect nodes
-    for (Scope* scope : m_scope->child_scope() )
-        scope->view()->translate(delta, ScopeViewFlags_EXCLUDE_OWNER );
+void ScopeView::on_reset_parent(Scope* scope)
+{
+    if(m_spatial_node.parent() )
+        m_spatial_node.parent()->remove_child(&m_spatial_node );
+
+    if( scope )
+        if( scope->view() )
+            scope->view()->m_spatial_node.add_child( &m_spatial_node );
+}
+
+void ScopeView::translate(const Vec2 &delta)
+{
+    // translate scope's owner's view, only it this is the main internal scope
+    Node* owner = get_owner();
+    if ( owner->internal_scope() == m_scope )
+        if ( NodeView* owner_view = owner->get_component<NodeView>() )
+            owner_view->xform()->translate( delta );
+    // translate view (and children...)
+    m_spatial_node.translate(delta );
+}
+
+void ScopeView::set_pinned(bool b)
+{
+    for ( NodeView* node_view : m_nodeviews )
+        node_view->set_pinned( b );
 }
 

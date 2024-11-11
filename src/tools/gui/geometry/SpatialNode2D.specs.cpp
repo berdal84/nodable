@@ -13,7 +13,7 @@ TEST(SpatialNode2D, add_child)
 
     // verify
     EXPECT_TRUE(child._parent == &root );
-    EXPECT_TRUE(root._children[0] == &child );
+    EXPECT_TRUE(*root._children.begin() == &child );
 }
 
 TEST(SpatialNode2D, remove_child)
@@ -44,9 +44,9 @@ TEST(SpatialNode2D, add_child__with_offset)
 
     // verify
     EXPECT_TRUE(child._parent == &root );
-    EXPECT_TRUE(root._children[0] == &child );
-    EXPECT_FLOAT_EQ(child.get_pos().x, 10.f );
-    EXPECT_FLOAT_EQ(child.get_pos().y, 15.f );
+    EXPECT_TRUE(*root._children.begin() == &child );
+    EXPECT_FLOAT_EQ(child.position().x, 10.f );
+    EXPECT_FLOAT_EQ(child.position().y, 15.f );
 }
 
 TEST(SpatialNode2D, set_pos__LOCAL_SPACE)
@@ -62,8 +62,8 @@ TEST(SpatialNode2D, set_pos__LOCAL_SPACE)
     child.translate({-10.f, -10.f});
 
     // verify
-    EXPECT_FLOAT_EQ(child.get_pos().x, -10.f );
-    EXPECT_FLOAT_EQ(child.get_pos().y, -10.f );
+    EXPECT_FLOAT_EQ(child.position().x, -10.f );
+    EXPECT_FLOAT_EQ(child.position().y, -10.f );
 }
 
 TEST(SpatialNode2D, set_pos__PARENT_SPACE)
@@ -80,7 +80,7 @@ TEST(SpatialNode2D, set_pos__PARENT_SPACE)
     EXPECT_FLOAT_EQ(child._transform._position.y, 10.f );
 
     // act
-    child.set_pos({0.f, 0.f}, PARENT_SPACE);
+    child.set_position({0.f, 0.f}, PARENT_SPACE);
 
     // verify
     EXPECT_FLOAT_EQ(child._transform._position.x, root._transform._position.x );
@@ -106,8 +106,8 @@ TEST(SpatialNode2D, get_pos__GLOBAL_SPACE)
     // pre check
     EXPECT_FLOAT_EQ(level1._transform._position.x, 10.f );
     EXPECT_FLOAT_EQ(level1._transform._position.y, 10.f );
-    EXPECT_FLOAT_EQ(level1.get_pos(WORLD_SPACE).x, 30.f );
-    EXPECT_FLOAT_EQ(level1.get_pos(WORLD_SPACE).y, 30.f );
+    EXPECT_FLOAT_EQ(level1.position(WORLD_SPACE).x, 30.f );
+    EXPECT_FLOAT_EQ(level1.position(WORLD_SPACE).y, 30.f );
 }
 
 TEST(SpatialNode2D, set_pos__GLOBAL_SPACE)
@@ -122,15 +122,15 @@ TEST(SpatialNode2D, set_pos__GLOBAL_SPACE)
     child.translate({10.f, 10.f});
 
     // pre check
-    EXPECT_FLOAT_EQ(child.get_pos(PARENT_SPACE).x, 10.f );
-    EXPECT_FLOAT_EQ(child.get_pos(PARENT_SPACE).y, 10.f );
+    EXPECT_FLOAT_EQ(child.position(PARENT_SPACE).x, 10.f );
+    EXPECT_FLOAT_EQ(child.position(PARENT_SPACE).y, 10.f );
 
     // act
-    child.set_pos({0.f, 0.f}, WORLD_SPACE);
+    child.set_position({0.f, 0.f}, WORLD_SPACE);
 
     // check
-    EXPECT_FLOAT_EQ(child.get_pos(PARENT_SPACE).x, -10.f );
-    EXPECT_FLOAT_EQ(child.get_pos(PARENT_SPACE).y, -10.f );
-    EXPECT_FLOAT_EQ(child.get_pos(WORLD_SPACE).x, 0.f );
-    EXPECT_FLOAT_EQ(child.get_pos(WORLD_SPACE).y, 0.f );
+    EXPECT_FLOAT_EQ(child.position(PARENT_SPACE).x, -10.f );
+    EXPECT_FLOAT_EQ(child.position(PARENT_SPACE).y, -10.f );
+    EXPECT_FLOAT_EQ(child.position(WORLD_SPACE).x, 0.f );
+    EXPECT_FLOAT_EQ(child.position(WORLD_SPACE).y, 0.f );
 }
