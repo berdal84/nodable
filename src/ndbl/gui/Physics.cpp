@@ -22,29 +22,28 @@ REFLECT_STATIC_INIT
                      .extends<NodeComponent>();
 };
 
-Physics::Physics(NodeView* view)
-: NodeComponent()
-, is_active(true)
-, m_view(view)
+void Physics::init(NodeView* view)
 {
     ASSERT(view != nullptr);
+    _view      = view;
+    _is_active = true;
 }
 
 void Physics::clear_constraints()
 {
-    m_constraints.clear();
+    _constraints.clear();
 }
 
 void Physics::add_constraint(Physics::Constraint& _constraint)
 {
-    m_constraints.push_back(std::move(_constraint));
+    _constraints.push_back(std::move(_constraint));
 }
 
 void Physics::apply_constraints(float _dt)
 {
-    if( !is_active ) return;
+    if( !_is_active ) return;
 
-    for (Physics::Constraint& eachConstraint : m_constraints)
+    for (Physics::Constraint& eachConstraint : _constraints)
     {
         eachConstraint.update(_dt);
     }
@@ -52,7 +51,7 @@ void Physics::apply_constraints(float _dt)
 
 void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
 {
-    Vec2 delta   = _target_pos - m_view->xform()->position(_space);
+    Vec2 delta   = _target_pos - _view->xform()->position(_space);
     float factor = std::max(0.0f, _factor);
     Vec2 force   = Vec2::scale(delta, factor);
     add_force( force, _recurse);
@@ -60,16 +59,16 @@ void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool 
 
 void Physics::add_force( Vec2 force, bool _recurse)
 {
-    m_forces_sum += force;
+    _forces_sum += force;
 
     if ( !_recurse ) return;
 
-    for (Node* input_node: m_view->get_owner()->inputs() )
+    for (Node* input_node: _view->get_owner()->inputs() )
     {
         NodeView* input_view = input_node->get_component<NodeView>();
 
         if ( !input_view->pinned())
-            if ( Constraint::should_follow_output( input_node, m_view->get_owner() ))
+            if ( Constraint::should_follow_output(input_node, _view->get_owner() ))
                 if(auto* physics_component = input_node->get_component<Physics>())
                     physics_component->add_force(force, _recurse);
     }
@@ -78,14 +77,14 @@ void Physics::add_force( Vec2 force, bool _recurse)
 void Physics::apply_forces(float _dt)
 {
     float lensqr_max       = std::pow(100, 4);
-    float friction_coef    = lerp(0.0f, 0.5f, m_forces_sum.lensqr() / lensqr_max);
-    Vec2  soften_force_sum = Vec2::lerp(m_last_frame_forces_sum, m_forces_sum, 0.95f);
+    float friction_coef    = lerp(0.0f, 0.5f, _forces_sum.lensqr() / lensqr_max);
+    Vec2  soften_force_sum = Vec2::lerp(_last_frame_forces_sum, _forces_sum, 0.95f);
     Vec2  delta            = soften_force_sum * (1.0f - friction_coef) * _dt;
 
-    m_view->xform()->translate( delta );
+    _view->xform()->translate(delta );
 
-    m_last_frame_forces_sum = soften_force_sum;
-    m_forces_sum            = Vec2();
+    _last_frame_forces_sum = soften_force_sum;
+    _forces_sum            = Vec2();
 }
 
 void Physics::update(float dt, const std::vector<Physics *>& components, bool dirty)

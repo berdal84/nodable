@@ -660,8 +660,8 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         if( ImGui::TreeNode("Physics") )
         {
             auto* physics_component = node->get_component<Physics>();
-            ImGui::Checkbox("On/Off", &physics_component->is_active);
-            for(Physics::Constraint& constraint : physics_component->get_constraints())
+            ImGui::Checkbox("On/Off", &physics_component->is_active());
+            for(Physics::Constraint& constraint : physics_component->constraints())
             {
                 if (ImGui::TreeNode(constraint.name))
                 {

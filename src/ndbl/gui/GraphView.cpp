@@ -85,12 +85,13 @@ void GraphView::decorate_node(Node* node)
 
     // add NodeView & Physics component
     auto nodeview = component_factory->create<NodeView>();
-    auto physics  = component_factory->create<Physics>( nodeview );
+    auto physics  = component_factory->create<Physics>();
 
     node->add_component( nodeview );
     node->add_component( physics );
 
     add_child( nodeview );
+    physics->init( nodeview );
 
     // add a ScopeView for the inner scope and any child that is owned by this node too
     if ( node->is_a_scope() )
