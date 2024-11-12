@@ -205,7 +205,7 @@ void Nodable::update()
             {
                 if ( graph_view )
                     for(NodeView* view : graph_view->get_selected())
-                        view->node()->set_flags(NodeFlag_TO_DELETE);
+                        graph_view->graph()->destroy_next_frame(view->node());
                 break;
             }
 

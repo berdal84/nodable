@@ -2,12 +2,15 @@
 
 #include <numeric>
 #include "tools/core/math.h"
+#include "tools/core/assertions.h"
 #include "tools/gui/Config.h"
 #include "ndbl/core/Utils.h"
 #include "ndbl/core/Node.h"
 #include "ndbl/core/VariableNode.h"
 #include "ndbl/gui/NodeView.h"
+#include "ndbl/gui/ScopeView.h"
 #include "Config.h"
+#include "tools/gui/geometry/Pivots.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -31,22 +34,20 @@ void Physics::init(NodeView* view)
 
 void Physics::clear_constraints()
 {
-    _constraints.clear();
-}
-
-void Physics::add_constraint(Physics::Constraint& _constraint)
-{
-    _constraints.push_back(std::move(_constraint));
+    _nodeview_constraints.clear();
+    _scopeview_constraints.clear();
 }
 
 void Physics::apply_constraints(float _dt)
 {
-    if( !_is_active ) return;
+    if( !_is_active )
+        return;
 
-    for (Physics::Constraint& eachConstraint : _constraints)
-    {
-        eachConstraint.update(_dt);
-    }
+    for (auto& constraint : _nodeview_constraints)
+        constraint.update(_dt);
+
+    for (auto& constraint : _scopeview_constraints)
+        constraint.update(_dt);
 }
 
 void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
@@ -68,7 +69,7 @@ void Physics::add_force( Vec2 force, bool _recurse)
         NodeView* input_view = input_node->get_component<NodeView>();
 
         if ( !input_view->pinned())
-            if ( Constraint::should_follow_output(input_node, _view->get_owner() ))
+            if ( NodeViewConstraint::should_follow_output(input_node, _view->get_owner() ))
                 if(auto* physics_component = input_node->get_component<Physics>())
                     physics_component->add_force(force, _recurse);
     }
@@ -87,29 +88,9 @@ void Physics::apply_forces(float _dt)
     _forces_sum            = Vec2();
 }
 
-void Physics::update(float dt, const std::vector<Physics *>& components, bool dirty)
+void Physics::create_constraints(const std::vector<Physics*>& physics)
 {
-    LOG_VERBOSE("Physics", "Updating constraints ...\n");
-    if ( dirty )
-    {
-        LOG_VERBOSE("Physics", "Constraints are dirty, refreshing ...\n");
-        for(Physics* c : components)
-            c->clear_constraints();
-        Physics::_create_constraints(components);
-    }
-
-    for (auto c : components)
-        c->apply_constraints(dt);
-
-    for(auto c : components)
-        c->apply_forces(dt);
-
-    LOG_VERBOSE("Physics", "Constraints updated.\n");
-}
-
-void Physics::_create_constraints(const std::vector<Physics*>& physics)
-{
-    LOG_VERBOSE("Physics", "_create_constraints ...\n");
+    LOG_VERBOSE("Physics", "create_constraints ...\n");
     for(Physics* physic : physics )
     {
         Node* node = physic->get_owner();
@@ -123,7 +104,7 @@ void Physics::_create_constraints(const std::vector<Physics*>& physics)
         std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_FLOW_IN);
         if ( !previous_nodes.empty() && !Utils::is_conditional(previous_nodes[0]->node() ) )
         {
-            Constraint constraint("Position below previous", &Constraint::constrain_1_to_N_as_row);
+            NodeViewConstraint constraint("Position below previous", &NodeViewConstraint::constrain_1_to_N_as_row);
             constraint.leader         = previous_nodes;
             //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
             constraint.follower       = {curr_nodeview};
@@ -148,19 +129,28 @@ void Physics::_create_constraints(const std::vector<Physics*>& physics)
         // Align in row Conditional Struct Node's children
         //------------------------------------------------
 
-        std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_FLOW_OUT);
-        if( Utils::is_conditional( node ) && next.size() >= 1 )
+//        std::vector<NodeView*> next = curr_nodeview->get_adjacent(SlotFlag_FLOW_OUT);
+//        if( Utils::is_conditional( node ) && next.size() >= 1 )
+//        {
+//            NodeViewConstraint constraint("Align conditional child_node in a row", &NodeViewConstraint::constrain_N_to_1_as_a_row);
+//            constraint.leader         = {curr_nodeview};
+//            constraint.leader_pivot   = BOTTOM_LEFT;
+//            constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
+//            constraint.follower       = next;
+//            constraint.follower_pivot = TOP_LEFT;
+//            constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
+//            constraint.gap_size       = tools::Size_SM;
+//            constraint.gap_direction  = BOTTOM;
+//            constraint.row_direction  = RIGHT;
+//            physics_component->add_constraint(constraint);
+//        }
+        if( Utils::is_conditional( node ) )
         {
-            Constraint constraint("Align conditional child_node in a row", &Constraint::constrain_N_to_1_as_a_row);
-            constraint.leader         = {curr_nodeview};
-            constraint.leader_pivot   = BOTTOM_LEFT;
-            constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
-            constraint.follower       = next;
-            constraint.follower_pivot = TOP_LEFT;
-            constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
-            constraint.gap_size       = tools::Size_SM;
+            ParentChildScopeViewConstraint constraint("Align child scope views with parent");
+            constraint.parent         = node->internal_scope()->view();
+            constraint.parent_pivot   = BOTTOM;
+            constraint.gap_size       = tools::Size_XL;
             constraint.gap_direction  = BOTTOM;
-            constraint.row_direction  = RIGHT;
             physics_component->add_constraint(constraint);
         }
 
@@ -173,12 +163,12 @@ void Physics::_create_constraints(const std::vector<Physics*>& physics)
         {
             Node* _node = view->node();
             if (_node->flow_inputs().empty() )
-                if ( Constraint::should_follow_output( _node, curr_nodeview->node() ) )
+                if ( NodeViewConstraint::should_follow_output(_node, curr_nodeview->node() ) )
                     filtered_inputs.push_back(view);
         }
         if(filtered_inputs.size() > 0 )
         {
-            Constraint constraint("Align many inputs above", &Constraint::constrain_N_to_1_as_a_row);
+            NodeViewConstraint constraint("Align many inputs above", &NodeViewConstraint::constrain_N_to_1_as_a_row);
 
             auto* leader = curr_nodeview;
             constraint.leader         = {leader};
@@ -204,10 +194,10 @@ void Physics::_create_constraints(const std::vector<Physics*>& physics)
             physics_component->add_constraint(constraint);
         }
     }
-    LOG_VERBOSE("Physics", "_create_constraints OK\n");
+    LOG_VERBOSE("Physics", "create_constraints OK\n");
 }
 
-void Physics::Constraint::update(float _dt)
+void Physics::NodeViewConstraint::update(float _dt)
 {
     ASSERT(should_apply != nullptr);
     ASSERT(constrain != nullptr);
@@ -221,21 +211,21 @@ void Physics::Constraint::update(float _dt)
     (this->*constrain)(_dt);
 }
 
-void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
+void Physics::NodeViewConstraint::constrain_1_to_N_as_row(float _dt)
 {
     // This type of constrain is designed to make a single NodeView to follow many others
 
     VERIFY(!leader.empty(), "No leader found!");
     VERIFY(follower.size() == 1, "This is a one to many relationship, a single follower only is allowed");
 
-    std::vector<NodeView*> clean_follower = Physics::Constraint::clean(follower);
+    std::vector<NodeView*> clean_follower = Physics::NodeViewConstraint::clean(follower);
     if( clean_follower.empty() )
         return;
 
     Config* cfg = get_config();
     const NodeView* _follower      = clean_follower[0];
-    const BoxShape2D leaders_box          = NodeView::get_rect(leader, WORLD_SPACE, leader_flags);
-    const BoxShape2D follower_box         = _follower->get_rect_ex(WORLD_SPACE, follower_flags);
+    const BoxShape2D leaders_box   = NodeView::get_rect(leader, WORLD_SPACE, leader_flags);
+    const BoxShape2D follower_box  = _follower->get_rect_ex(WORLD_SPACE, follower_flags);
 
     // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
     Vec2 delta = BoxShape2D::diff(leaders_box, leader_pivot , follower_box, follower_pivot );
@@ -251,13 +241,13 @@ void Physics::Constraint::constrain_1_to_N_as_row(float _dt)
     physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
 
-void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
+void Physics::NodeViewConstraint::constrain_N_to_1_as_a_row(float _dt)
 {
     ASSERT(leader.size() == 1);
     ASSERT(follower.size() > 0);
 
     Config* cfg = get_config();
-    std::vector<NodeView*> clean_follower = Physics::Constraint::clean(follower);
+    std::vector<NodeView*> clean_follower = Physics::NodeViewConstraint::clean(follower);
     if( clean_follower.empty() )
         return;
 
@@ -298,7 +288,7 @@ void Physics::Constraint::constrain_N_to_1_as_a_row(float _dt)
     }
 }
 
-std::vector<NodeView *> Physics::Constraint::clean(std::vector<NodeView *> &views)
+std::vector<NodeView *> Physics::NodeViewConstraint::clean(std::vector<NodeView *> &views)
 {
     std::vector<NodeView *> result;
     for(auto* view : views)
@@ -310,7 +300,7 @@ std::vector<NodeView *> Physics::Constraint::clean(std::vector<NodeView *> &view
     return result;
 }
 
-bool Physics::Constraint::should_follow_output(const Node* node, const Node* output_node )
+bool Physics::NodeViewConstraint::should_follow_output(const Node* node, const Node* output_node )
 {
     ASSERT(node != nullptr);
     ASSERT(output_node != nullptr);
@@ -334,4 +324,41 @@ bool Physics::Constraint::should_follow_output(const Node* node, const Node* out
     }
 
     return false;
+}
+
+void Physics::ParentChildScopeViewConstraint::update(float dt)
+{
+    VERIFY( Scope::is_internal( parent->scope() ), "Only views attached to an internal scope are allowed" );
+
+    // Gather unpinned children
+    std::vector<ScopeView*> children;
+    for(Scope* child : parent->scope()->child_scope() )
+        if ( !child->view()->pinned() )
+            children.push_back(child->view() );
+
+    // make a row
+    std::vector<Rect> new_rect;
+    for(auto child : children)
+        new_rect.push_back( child->content_rect() );
+    const float gap = get_config()->ui_scope_gap( gap_size );
+    Rect::make_row(new_rect, gap );
+
+    // v align
+    const Vec2 parent_pivot_pos = parent->get_owner()
+                                  ->get_component<NodeView>()
+                                  ->box()
+                                  ->pivot( BOTTOM, WORLD_SPACE );
+    const float top = parent_pivot_pos.y + gap * gap_direction.y;
+    Rect::align_top( new_rect, top );
+
+    // translate views
+    for(size_t i = 0; i < children.size(); ++i)
+    {
+        const Vec2 desired_pos = new_rect[i].center();
+        for( Node* node : children[i]->scope()->child_node() )
+        {
+            auto c = node->get_component<Physics>();
+            c->add_force_to_move_to(desired_pos, get_config()->ui_node_speed, true, WORLD_SPACE);
+        }
+    }
 }

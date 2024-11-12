@@ -96,8 +96,9 @@ void tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child)
     ASSERT( new_child != nullptr );
     auto [it, success] = this->_children.insert(new_child);
     VERIFY( success, "Unable to insert new_child");
-    new_child->_parent = this; // by not changing child's matrix, we preserve parent space coords, xform might move on global space
-    new_child->set_world_transform_dirty();
+    const Vec2 world_position = new_child->position(WORLD_SPACE);
+    new_child->_parent = this;
+    new_child->set_position(world_position, WORLD_SPACE);
 }
 
 void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* possible_child)
@@ -106,7 +107,7 @@ void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* possible_child)
         return;
     const Vec2 world_position = possible_child->position(WORLD_SPACE);
     possible_child->_parent = nullptr;
-    possible_child->set_position(world_position );
+    possible_child->set_position(world_position, WORLD_SPACE);
     return;
 }
 

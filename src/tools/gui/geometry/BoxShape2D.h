@@ -1,6 +1,8 @@
 #pragma once
 #include "SpatialNode2D.h"
 #include "imgui.h"
+#include "Rect.h"
+#include "Axis.h"
 
 namespace tools
 {

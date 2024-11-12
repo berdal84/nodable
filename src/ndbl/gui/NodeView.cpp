@@ -285,7 +285,7 @@ void NodeView::arrange_recursively(bool _smoothly)
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
         if ( !each_input->m_pinned )
-            if ( Physics::Constraint::should_follow_output(each_input->node(), this->node() ) )
+            if ( Physics::NodeViewConstraint::should_follow_output(each_input->node(), this->node() ) )
                 each_input->arrange_recursively();
     }
 
@@ -661,7 +661,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         {
             auto* physics_component = node->get_component<Physics>();
             ImGui::Checkbox("On/Off", &physics_component->is_active());
-            for(Physics::Constraint& constraint : physics_component->constraints())
+            for(Physics::NodeViewConstraint& constraint : physics_component->nodeview_constraints())
             {
                 if (ImGui::TreeNode(constraint.name))
                 {
@@ -769,7 +769,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
             return;
         if( view->m_pinned && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
-        if( Physics::Constraint::should_follow_output(view->node(), this->node() ) )
+        if( Physics::NodeViewConstraint::should_follow_output(view->node(), this->node() ) )
         {
             Rect rect = view->get_rect_ex(space, flags);
             rects.push_back( rect );
@@ -873,8 +873,8 @@ void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeVie
     bool has_not_output = get_adjacent(SlotFlag_OUTPUT).empty();
     for( auto each_child_view : get_adjacent(slot_flags) )
     {
-        if( _visible || has_not_output || Physics::Constraint::should_follow_output(each_child_view->node(),
-                                                                                     this->node() ) )
+        if( _visible || has_not_output || Physics::NodeViewConstraint::should_follow_output(each_child_view->node(),
+                                                                                            this->node() ) )
         {
             if ( (node_flags & NodeViewFlag_WITH_RECURSION) && each_child_view->m_expanded ) // propagate only if expanded
             {
@@ -957,15 +957,6 @@ void NodeView::draw_slot(SlotView* slot_view)
     }
 }
 
-
-void NodeView::translate(const std::vector<NodeView*>& _views, const Vec2& delta)
-{
-    for (auto node_view : _views )
-    {
-        node_view->xform()->translate(delta);
-    }
-}
-
 void NodeView::add_child(PropertyView* view)
 {
     xform()->add_child( view->xform() );
@@ -985,5 +976,11 @@ PropertyView *NodeView::find_property_view(const Property* property)
     if ( found != m_property_views__all.end() )
         return found->second;
     return nullptr;
+}
+
+void NodeView::reset_all_properties()
+{
+    for( auto& [_, property_view] : m_property_views__all )
+        property_view->reset();
 }
 

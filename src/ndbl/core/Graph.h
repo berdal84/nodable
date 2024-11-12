@@ -51,6 +51,9 @@ namespace ndbl
 	class Graph
 	{
 	public:
+        typedef std::unordered_set<Node*> NodeRegistry;
+        typedef std::multimap<SlotFlags , DirectedEdge> EdgeRegistry;
+
  		Graph(NodeFactory* factory);
 		~Graph();
 
@@ -88,22 +91,23 @@ namespace ndbl
         WhileLoopNode*           create_while_loop();
         Node*                    create_empty_instruction();
         void                     destroy(Node* _node);
-        std::vector<Scope *>     get_scopes();
-        std::set<Scope *>         get_root_scopes();
-        std::vector<Node*>&       get_node_registry() {return m_node_registry;}
-        const std::vector<Node*>& get_node_registry()const {return m_node_registry;}
+        std::vector<Scope *>     scopes();
+        std::set<Scope *>        root_scopes();
+        NodeRegistry&            nodes() {return m_node_registry;}
+        const NodeRegistry&      nodes()const {return m_node_registry;}
+        void                     destroy_next_frame(Node* node) { m_node_to_delete.insert(node ); }
 
         template<typename T> inline VariableNode* create_variable_decl(const char*  _name = "var"){ return create_variable_decl(tools::type::get<T>(), _name); }
         template<typename T> inline LiteralNode*  create_literal() { return create_literal( tools::type::get<T>()); }
 
         // edge related
 
-        DirectedEdge connect(Slot* tail, Slot* head, ConnectFlags = ConnectFlag_NONE );
-        void         connect(const std::set<Slot*>& tails, Slot* head, ConnectFlags _flags);
-        DirectedEdge connect_to_variable(Slot* output_slot, VariableNode* variable );
-        DirectedEdge connect_or_merge(Slot* tail, Slot* head);
-        void         disconnect( const DirectedEdge& edge, ConnectFlags = ConnectFlag_NONE );
-        inline std::multimap<SlotFlags, DirectedEdge>& get_edge_registry() { return m_edge_registry; }
+        DirectedEdge  connect(Slot* tail, Slot* head, ConnectFlags = ConnectFlag_NONE );
+        void          connect(const std::set<Slot*>& tails, Slot* head, ConnectFlags _flags);
+        DirectedEdge  connect_to_variable(Slot* output_slot, VariableNode* variable );
+        DirectedEdge  connect_or_merge(Slot* tail, Slot* head);
+        void          disconnect( const DirectedEdge& edge, ConnectFlags = ConnectFlag_NONE );
+        EdgeRegistry& get_edge_registry() { return m_edge_registry; }
 
     private:
         void on_disconnect_value_side_effects(DirectedEdge);
@@ -120,7 +124,8 @@ namespace ndbl
         tools::Optional<Node*> m_root;
         const NodeFactory* m_factory  = nullptr;
         GraphView*         m_view     = nullptr; // non-owned
-        std::vector<Node*>                      m_node_registry; // Node storage
-        std::multimap<SlotFlags , DirectedEdge> m_edge_registry; // Edge storage
+        NodeRegistry       m_node_registry;
+        NodeRegistry       m_node_to_delete;
+        EdgeRegistry       m_edge_registry;
     };
 }

@@ -23,7 +23,6 @@ namespace ndbl
     class Graph;
     class Slot;
     class SlotView;
-    class NodeViewConstraint;
     class GraphView;
 
     /**
@@ -86,6 +85,7 @@ namespace ndbl
         tools::ViewState*       base_view() { return &m_view_state; }
         bool                    hovered() const { return m_view_state.hovered; }
         void                    set_selected(bool b = true) { m_view_state.selected = b; };
+        void                    reset_all_properties();
 
         static tools::Rect      get_rect(const std::vector<NodeView *> &_views, tools::Space = tools::WORLD_SPACE, NodeViewFlags = NodeViewFlag_NONE);
         static std::vector<tools::Rect>   get_rects(const std::vector<NodeView*>& _in_views, tools::Space space = tools::WORLD_SPACE, NodeViewFlags flags = NodeViewFlag_NONE);
@@ -94,7 +94,6 @@ namespace ndbl
         static bool             draw_as_properties_panel(NodeView* _view, bool* _show_advanced );
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
-        static void             translate(const std::vector<NodeView*>&, const tools::Vec2& delta);
     private:
         PropertyView*           find_property_view(const Property *pProperty);
         void                    add_child(PropertyView*);

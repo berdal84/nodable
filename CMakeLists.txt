@@ -194,11 +194,12 @@ target_link_libraries(
 
 add_executable(
     test-tools
-    src/tools/gui/geometry/SpatialNode2D.specs.cpp
     src/tools/core/Delegate.specs.cpp
     src/tools/core/reflection/reflection.specs.cpp
     src/tools/core/reflection/Type.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
+    src/tools/gui/geometry/Rect.specs.cpp
+    src/tools/gui/geometry/SpatialNode2D.specs.cpp
 )
 
 target_link_libraries(test-tools PUBLIC gtest_main gtest tools-core tools-gui)
@@ -397,6 +398,7 @@ endif ()
 
 add_executable(
     test-ndbl-core
+    src/ndbl/core/Graph.specs.cpp
     src/ndbl/core/Graph.specs.cpp
     src/ndbl/core/Slot.specs.cpp
     src/ndbl/core/Token.specs.cpp

@@ -66,6 +66,7 @@ namespace ndbl
         static std::set<Scope*>&       get_descendent(std::set<Scope*>& out, Scope* scope, ScopeFlags flags = ScopeFlags_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }
         static std::set<Scope*>&       get_descendent_ex(std::set<Scope*>& out, Scope* scope, size_t level_max = -1, ScopeFlags = ScopeFlags_INCLUDE_SELF);
         size_t                         depth() const { return m_parent && get_owner() ? m_parent->depth() + 1 : 0; }; // TODO: precompute and store
+
     private:
         bool                           empty_ex(ScopeFlags) const;
         VariableNode*                  find_var_ex(const std::string& identifier, ScopeFlags);

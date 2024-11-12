@@ -66,7 +66,7 @@ TEST_F(Graph_, disconnect)
 TEST_F(Graph_, clear)
 {
     Graph* graph = app.get_graph();
-    EXPECT_TRUE( graph->get_node_registry().empty() );
+    EXPECT_TRUE(graph->nodes().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
     VariableNode*       variable  = graph->create_variable(type::get<int>(), "var");
@@ -83,14 +83,14 @@ TEST_F(Graph_, clear)
             variable->value_in(),
             ConnectFlag_ALLOW_SIDE_EFFECTS);
 
-    EXPECT_FALSE( graph->get_node_registry().empty() );
+    EXPECT_FALSE(graph->nodes().empty() );
     EXPECT_FALSE( graph->get_edge_registry().empty() );
 
     // act
     graph->clear();
 
     // test
-    EXPECT_TRUE( graph->get_node_registry().empty() );
+    EXPECT_TRUE(graph->nodes().empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
     delete fct_type;

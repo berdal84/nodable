@@ -360,7 +360,7 @@ void FileView::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file->graph().get_node_registry().size());
+    ImGui::Text("Node count: %zu", m_file->graph().nodes().size());
     ImGui::Text("Edge count: %zu", m_file->graph().get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();

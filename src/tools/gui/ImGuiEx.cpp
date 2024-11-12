@@ -10,6 +10,7 @@
 #include "Texture.h"
 #include "Color.h"
 #include "tools/gui/geometry/LineSegment2D.h"
+#include "tools/gui/geometry/Axis.h"
 
 #define DEBUG_BEZIER_ENABLE 0
 

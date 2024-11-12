@@ -38,7 +38,9 @@ namespace ndbl
         size_t       depth() const { return m_scope->depth(); }
         Theme        theme() const;
         bool         must_be_draw() const;
+        bool         pinned() const { return m_pinned; };
         void         set_pinned(bool b = true);
+        const Rect&  content_rect() const { return m_content_rect; }
 
     private:
         void        on_reset_parent(Scope*);
@@ -46,6 +48,7 @@ namespace ndbl
         void        on_remove_node(Node*);
 
         Scope*               m_scope = nullptr;
+        bool                 m_pinned = false;
         tools::SpatialNode2D m_spatial_node;
         Rect                 m_content_rect;
         std::vector<NodeView*> m_nodeviews;

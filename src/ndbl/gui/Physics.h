@@ -5,37 +5,38 @@
 #include "ndbl/core/NodeComponent.h"
 #include "tools/gui/Size.h"
 #include "NodeView.h"
+#include "tools/gui/geometry/Pivots.h"
 
 namespace  ndbl
 {
     // forward declarations
     class Node;
     class NodeView;
+    class ScopeView;
 
     class Physics : public NodeComponent
     {
     public:
 
-        struct Constraint
+        struct NodeViewConstraint
         {
         public:
-            typedef void(Constraint::*Constrain)(float _dt);
-            typedef bool(Constraint::*Rule)(void);
+            typedef void(NodeViewConstraint::*Constrain)(float _dt);
+            typedef bool(NodeViewConstraint::*Rule)(void);
 
-            Constraint(
+            NodeViewConstraint(
                 const char* name,
                 Constrain   constrain,
-                Rule        rule = &Constraint::rule_always
+                Rule        rule = &NodeViewConstraint::rule_always
             )
-            : name(name)
-            , constrain(constrain)
+            : constrain(constrain)
             , should_apply(rule)
             {}
 
-            void update(float _dt);
+            void update(float dt);
 
-            void constrain_1_to_N_as_row(float _dt);
-            void constrain_N_to_1_as_a_row(float _dt);
+            void constrain_1_to_N_as_row(float dt);
+            void constrain_N_to_1_as_a_row(float dt);
             //void constrain_many_to_one(float _dt);
 
             bool rule_always() { return true; };
@@ -45,7 +46,7 @@ namespace  ndbl
             const char*   name;
             Constrain     constrain      = nullptr ;
             bool          enabled        = true;
-            Rule          should_apply   = &Constraint::rule_always;
+            Rule          should_apply   = &NodeViewConstraint::rule_always;
             NodeViewFlags leader_flags   = NodeViewFlag_WITH_PINNED;
             NodeViewFlags follower_flags = NodeViewFlag_WITH_PINNED;
             tools::Vec2   leader_pivot   = tools::RIGHT;
@@ -60,27 +61,43 @@ namespace  ndbl
             static bool should_follow_output(const Node* node, const Node* output_node );
         };
 
-        typedef std::vector<Constraint> Constraints;
+        struct ParentChildScopeViewConstraint
+        {
+            ParentChildScopeViewConstraint(const char* name): name(name), parent(nullptr) {}
+            void        update(float dt);
+            const char* name;
+            ScopeView*  parent;
+            tools::Vec2 parent_pivot;
+            tools::Size gap_size;
+            tools::Vec2 gap_direction;
+        };
+
+        typedef std::vector<NodeViewConstraint>  NodeViewConstraints;
+        typedef std::vector<ParentChildScopeViewConstraint> ScopeViewConstraints;
 
         void            init(NodeView*);
-        void            add_constraint(Constraint&);
+        void            add_constraint(ParentChildScopeViewConstraint& c) { _scopeview_constraints.push_back(std::move(c)); }
+        void            add_constraint(NodeViewConstraint& c) { _nodeview_constraints.push_back(std::move(c)); }
         void            apply_constraints(float _dt);
         void            clear_constraints();
         void            add_force( tools::Vec2 force, bool _recurse = false);
         void            add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space );
         void            apply_forces(float _dt);
-        Constraints&    constraints() { return _constraints; };
-        const Constraints& constraints() const { return _constraints; };
-        static void     update(float dt, const std::vector<Physics *>&, bool dirty);
         bool&           is_active() { return _is_active; };
+        NodeViewConstraints&        nodeview_constraints() { return _nodeview_constraints; };
+        const NodeViewConstraints&  nodeview_constraints() const { return _nodeview_constraints; };
+        ScopeViewConstraints&       scopeview_constraints() { return _scopeview_constraints; };
+        const ScopeViewConstraints& scopeview_constraints() const { return _scopeview_constraints; };
+
+        static void     create_constraints(const std::vector<Physics*>&);
 
     private:
-        static void     _create_constraints(const std::vector<Physics*>&);
         bool            _is_active = false;
         NodeView*       _view      = nullptr;
         tools::Vec2     _forces_sum;
         tools::Vec2     _last_frame_forces_sum;
-        Constraints     _constraints;
+        NodeViewConstraints  _nodeview_constraints;
+        ScopeViewConstraints _scopeview_constraints;
         REFLECT_DERIVED_CLASS()
     };
 }

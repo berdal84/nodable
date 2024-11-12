@@ -1,5 +1,6 @@
 #include "BoxShape2D.h"
 #include "tools/gui/ImGuiEx.h"
+#include "Pivots.h"
 
 #ifdef TOOLS_DEBUG
 #define DEBUG_draw_debug_info 1

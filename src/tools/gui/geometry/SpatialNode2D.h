@@ -9,23 +9,6 @@
 
 namespace tools
 {
-    // Axis
-
-    constexpr static Vec2 X_AXIS         = {1.f, 0.f};
-    constexpr static Vec2 Y_AXIS         = {0.f, 1.f};
-    constexpr static Vec2 XY_AXIS        = X_AXIS + Y_AXIS;
-
-    // Pivots
-
-    constexpr static Vec2 CENTER         = {0.f, 0.f};
-    constexpr static Vec2 BOTTOM         = Y_AXIS;
-    constexpr static Vec2 TOP            = -Y_AXIS;
-    constexpr static Vec2 RIGHT          = X_AXIS;
-    constexpr static Vec2 LEFT           = -X_AXIS;
-    constexpr static Vec2 TOP_LEFT       = LEFT + TOP;
-    constexpr static Vec2 TOP_RIGHT      = RIGHT + TOP;
-    constexpr static Vec2 BOTTOM_LEFT    = LEFT + BOTTOM;
-    constexpr static Vec2 BOTTOM_RIGHT   = RIGHT + BOTTOM;
 
     /**
      * Very simple spatial node in 2D.

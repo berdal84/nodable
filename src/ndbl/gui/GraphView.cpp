@@ -90,7 +90,6 @@ void GraphView::decorate_node(Node* node)
     node->add_component( nodeview );
     node->add_component( physics );
 
-    add_child( nodeview );
     physics->init( nodeview );
 
     // add a ScopeView for the inner scope and any child that is owned by this node too
@@ -176,10 +175,9 @@ bool GraphView::draw(float dt)
 
     ImDrawList*     draw_list              = ImGui::GetWindowDrawList();
     const bool      enable_edition         = interpreter->is_program_stopped();
-    std::vector<Node*> node_registry       = m_graph->get_node_registry();
 
     // Draw Scopes
-    std::vector<Scope*> scopes_to_draw = graph()->get_scopes();
+    std::vector<Scope*> scopes_to_draw = graph()->scopes();
     auto low_to_high_depth = [](Scope* s1, Scope* s2) { return s1->depth() < s2->depth(); };
     std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
 
@@ -213,7 +211,7 @@ bool GraphView::draw(float dt)
             cfg->ui_codeflow_thickness(),
             0.0f
     };
-    for (Node *each_node: node_registry)
+    for (Node* each_node: m_graph->nodes() )
     {
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible(each_node->get_component<NodeView>());
 
@@ -271,7 +269,7 @@ bool GraphView::draw(float dt)
             cfg->ui_wire_bezier_thickness,
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
-    for (auto node_out: node_registry)
+    for (Node* node_out: m_graph->nodes() )
     {
         for (const Slot* slot_out: node_out->filter_slots(SlotFlag_OUTPUT))
         {
@@ -346,8 +344,12 @@ bool GraphView::draw(float dt)
     }
 
     // Draw NodeViews
-    for (NodeView *nodeview: get_all_nodeviews())
+    for (Node* node : graph()->nodes()  )
     {
+        NodeView* nodeview = node->get_component<NodeView>();
+
+        if ( !nodeview)
+            continue;
         if ( nodeview->visible() == false )
             continue;
 
@@ -429,17 +431,39 @@ void GraphView::_update(float dt, u16_t count)
 
 void GraphView::_update(float dt)
 {
-    // 1. Update Physics Components
-    std::vector<Physics*> physics_components = Utils::get_components<Physics>( m_graph->get_node_registry() );
-    Physics::update( dt, physics_components, m_physics_dirty );
+    // Physics Components
+    LOG_VERBOSE("Physics", "Updating nodeview_constraints ...\n");
+    std::vector<Physics*> physics_components;
+    for(Node* node : graph()->nodes() )
+        if (auto c = node->get_component<Physics>())
+            physics_components.push_back(c);
+
+    if (m_physics_dirty)
+    {
+        LOG_VERBOSE("Physics", "Constraints are dirty, refreshing ...\n");
+        for (Physics *c: physics_components)
+            c->clear_constraints();
+        Physics::create_constraints( physics_components );
+    }
+
+    for (auto c: physics_components)
+        c->apply_constraints(dt);
+
+    for (auto c: physics_components)
+        c->apply_forces(dt);
+
+    LOG_VERBOSE("Physics", "Constraints updated.\n");
     m_physics_dirty = false;
 
-    // 2. Update NodeViews
-    std::vector<NodeView*> nodeview_components = Utils::get_components<NodeView>( m_graph->get_node_registry() );
-    for (auto eachView : nodeview_components)
-    {
-        eachView->update(dt);
-    }
+    // NodeViews
+    for (Node* node : graph()->nodes() )
+        if ( NodeView* view = node->get_component<NodeView>() )
+            view->update(dt);
+
+    // ScopeViews
+    for( Scope* scope : graph()->root_scopes() )
+        if ( scope->view() )
+            scope->view()->update( dt, ScopeViewFlags_RECURSE );
 }
 
 void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_top_left_corner)
@@ -468,9 +492,10 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     }
 
     // apply the translation
-    // TODO: Instead of applying a translation to all views, we could translate a Camera.
-    auto node_views = Utils::get_components<NodeView>( m_graph->get_node_registry() );
-    NodeView::translate(get_all_nodeviews(), delta);
+    // TODO: Instead of applying a translation to all views, apply it to all scope views
+    for (Node* node : graph()->nodes() )
+        if ( NodeView* view = node->get_component<NodeView>() )
+            view->xform()->translate( delta );
 }
 
 void GraphView::unfold()
@@ -516,9 +541,9 @@ void GraphView::frame_nodes(FrameMode mode )
     }
 }
 
-void GraphView::set_selected(const NodeViewVec& views, SelectionMode mode )
+void GraphView::set_selected(const Selection& views, SelectionMode mode )
 {
-    NodeViewVec curr_selection = m_selected_nodeview;
+    Selection curr_selection = m_selected_nodeview;
     if ( mode == SelectionMode_REPLACE )
     {
         m_selected_nodeview.clear();
@@ -536,7 +561,7 @@ void GraphView::set_selected(const NodeViewVec& views, SelectionMode mode )
     get_event_manager()->dispatch<Event_SelectionChange>(event);
 }
 
-const GraphView::NodeViewVec& GraphView::get_selected() const
+const GraphView::Selection& GraphView::get_selected() const
 {
     return m_selected_nodeview;
 }
@@ -566,18 +591,16 @@ void GraphView::reset()
 
     // make sure views are outside viewable rectangle (to avoid flickering)
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
-    NodeView::translate(get_all_nodeviews(), far_outside);
+
+    for( Node* node : graph()->nodes() )
+        if ( NodeView* v = node->get_component<NodeView>() )
+            v->xform()->translate( far_outside );
 
     // physics
     m_physics_dirty = true;
 
     // frame all (100ms delayed to ensure layout is correct)
     get_event_manager()->dispatch_delayed<Event_FrameSelection>( 100, { FRAME_ALL } );
-}
-
-std::vector<NodeView*> GraphView::get_all_nodeviews() const
-{
-     return Utils::get_components<NodeView>( m_graph->get_node_registry() );
 }
 
 bool GraphView::has_an_active_tool() const
@@ -587,9 +610,9 @@ bool GraphView::has_an_active_tool() const
 
 void GraphView::reset_all_properties()
 {
-    for( NodeView* each : get_all_nodeviews() )
-        for( auto& [_, property_view] : each->m_property_views__all )
-            property_view->reset();
+    for( Node* node : graph()->nodes() )
+        if ( NodeView* v = node->get_component<NodeView>() )
+            v->reset_all_properties();
 }
 
 Graph *GraphView::graph() const
@@ -670,8 +693,9 @@ void GraphView::view_pan_state_tick()
     ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeAll);
 
     Vec2 delta = ImGui::GetMouseDragDelta();
-    for (auto &node_view: get_all_nodeviews() )
-        node_view->xform()->translate(delta);
+    for( Node* node : graph()->nodes() )
+        if ( auto v = node->get_component<NodeView>() )
+            v->xform()->translate(delta);
 
     ImGui::ResetMouseDragDelta();
 
@@ -995,11 +1019,11 @@ void GraphView::roi_state_tick()
     {
         // Select the views included in the ROI
         std::vector<NodeView*> nodeview_in_roi;
-        for (NodeView* nodeview: get_all_nodeviews())
-        {
-            if (Rect::contains(roi, nodeview->get_rect()))
-                nodeview_in_roi.emplace_back(nodeview);
-        }
+        for ( Node* node : graph()->nodes() )
+            if ( auto v = node->get_component<NodeView>() )
+                if (Rect::contains(roi, v->get_rect()))
+                    nodeview_in_roi.emplace_back(v);
+
         bool control_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) ||
                                ImGui::IsKeyDown(ImGuiKey_RightCtrl);
         SelectionMode flags = control_pressed ? SelectionMode_ADD : SelectionMode_REPLACE;
@@ -1026,11 +1050,6 @@ void GraphView::update(float dt)
     // Do the update(s)
     for(size_t i = 0; i < sample_count; ++i)
         _update(sample_dt);
-
-    // Update ScopeViews
-    for( Scope* scope : graph()->get_root_scopes() )
-        if ( scope->view() )
-            scope->view()->update( dt, ScopeViewFlags_RECURSE );
 }
 
 void GraphView::_set_hovered(ScopeView* scope_view)

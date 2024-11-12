@@ -42,16 +42,15 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
         return false;
 
     const Nodlang* language = get_language();
-    const std::vector<Node*>& nodes = _graph->get_node_registry();
-    for( auto each_node : nodes )
+    for( Node* node : _graph->nodes() )
     {
-        switch ( each_node->type() )
+        switch ( node->type() )
         {
             case NodeType_VARIABLE:
             {
-                if(each_node->parent() == nullptr )
+                if(node->parent() == nullptr )
                 {
-                    LOG_ERROR("Compiler", "\"%s\" should have a parent.\n", each_node->name().c_str() );
+                    LOG_ERROR("Compiler", "\"%s\" should have a parent.\n", node->name().c_str() );
                     return false;
                 }
                 break;
@@ -59,7 +58,7 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
 
             case NodeType_OPERATOR:
             {
-                auto* invokable = static_cast<const FunctionNode*>(each_node);
+                auto* invokable = static_cast<const FunctionNode*>(node);
                 if ( !language->find_operator_fct(invokable->get_func_type()) )
                 {
                     std::string signature;
@@ -70,7 +69,7 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
             }
             case NodeType_FUNCTION:
             {
-                auto* invokable = static_cast<const FunctionNode*>(each_node);
+                auto* invokable = static_cast<const FunctionNode*>(node);
                 if ( !language->find_function(invokable->get_func_type()) )
                 {
                     std::string signature;

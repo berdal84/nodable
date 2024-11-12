@@ -147,5 +147,5 @@ void ScopeView::set_pinned(bool b)
 {
     for ( NodeView* node_view : m_nodeviews )
         node_view->set_pinned( b );
+    m_pinned = b;
 }
-

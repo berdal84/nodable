@@ -35,7 +35,7 @@ void Graph::clear()
 	LOG_VERBOSE( "Graph", "Clearing graph ...\n");
     while ( !m_node_registry.empty() )
     {
-        Node* node = m_node_registry[0];
+        Node* node = *m_node_registry.begin();
         LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name().c_str(), (u64_t)node );
         destroy(node);
     }
@@ -60,24 +60,16 @@ bool Graph::update()
 {
     bool changed = false;
 
-    // Delete (flagged Nodes) / Check if dirty
-    auto nodeIndex = m_node_registry.size();
-
-    while (nodeIndex > 0)
-    {
-        nodeIndex--;
-        Node* node = m_node_registry.at(nodeIndex);
-
-        if (node->has_flags(NodeFlag_TO_DELETE))
-        {
-            destroy(node);
-            changed = true;
-        }
-        else if ( node->has_flags(NodeFlag_IS_DIRTY) )
-        {
+    for(Node* node : m_node_registry)
+        if ( node->has_flags(NodeFlag_IS_DIRTY) )
             changed = node->update();
-        }
+
+    for( Node* node : m_node_to_delete )
+    {
+        destroy(node);
+        changed = true;
     }
+    m_node_to_delete.clear();
 
     if ( changed )
         on_change.emit();
@@ -85,24 +77,21 @@ bool Graph::update()
     return changed;
 }
 
-void Graph::add(Node* _node)
+void Graph::add(Node* node)
 {
-    ASSERT(std::find(m_node_registry.begin(), m_node_registry.end(), _node) == m_node_registry.end());
+	m_node_registry.insert( node );
+    node->m_graph = this;
 
-	m_node_registry.push_back(_node);
-    _node->m_graph = this;
-
-    on_add.emit(_node);
+    on_add.emit(node);
     on_change.emit();
 
-    LOG_VERBOSE("Graph", "add node %s (%s)\n", _node->name().c_str(), _node->get_class()->get_name());
+    LOG_VERBOSE("Graph", "add node %s (%s)\n", node->name().c_str(), node->get_class()->get_name());
 }
 
-void Graph::remove(Node* _node)
+void Graph::remove(Node* node)
 {
-    auto it = std::find(m_node_registry.begin(), m_node_registry.end(), _node);
-    m_node_registry.erase(it);
-    on_remove.emit(_node);
+    m_node_registry.erase( node );
+    on_remove.emit( node );
     on_change.emit();
 }
 
@@ -620,7 +609,7 @@ Node *Graph::create_empty_instruction()
     return node;
 }
 
-std::set<Scope *> Graph::get_root_scopes()
+std::set<Scope *> Graph::root_scopes()
 {
     std::set<Scope *> result;
     for(Node* node : m_node_registry)
@@ -629,7 +618,7 @@ std::set<Scope *> Graph::get_root_scopes()
     return result;
 }
 
-std::vector<Scope *> Graph::get_scopes()
+std::vector<Scope *> Graph::scopes()
 {
     std::vector<Scope *> result;
     for(Node* node : m_node_registry)

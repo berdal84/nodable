@@ -32,7 +32,6 @@ namespace ndbl
         NodeFlag_NONE                = 0,
         NodeFlag_DEFAULT             = NodeFlag_NONE,
         NodeFlag_IS_DIRTY            = 1 << 0,
-        NodeFlag_TO_DELETE           = 1 << 1,
         NodeFlag_ALL                 = ~NodeFlag_NONE,
     };
 	/**

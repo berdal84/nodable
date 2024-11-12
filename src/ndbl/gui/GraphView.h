@@ -37,7 +37,7 @@ namespace ndbl
     {
         REFLECT_BASE_CLASS()
     public:
-        typedef std::vector<NodeView*> NodeViewVec;
+        typedef std::vector<NodeView*> Selection;
         typedef tools::StateMachine    StateMachine;
 
 	    explicit GraphView(Graph* graph);
@@ -52,15 +52,15 @@ namespace ndbl
         bool        selection_empty() const;
         void        reset(); // unfold and frame the whole graph
         bool        has_an_active_tool() const;
-        void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
-        const NodeViewVec& get_selected() const;
+        void        set_selected(const Selection&, SelectionMode = SelectionMode_REPLACE);
+        const Selection& get_selected() const;
         void        reset_all_properties();
-        std::vector<NodeView*> get_all_nodeviews() const;
-        static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
         Graph*            graph() const;
         void              add_child(NodeView*);
         tools::ViewState* view_state() { return &m_view_state; };
         void              decorate_node(Node* node);
+
+        static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
     private:
         CreateNodeCtxMenu      m_create_node_menu;
         ViewItem               m_hovered;
