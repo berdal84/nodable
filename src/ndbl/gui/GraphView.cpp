@@ -833,6 +833,7 @@ void GraphView::cursor_state_tick()
             }
             else if (ImGui::IsMouseDragging(0))
             {
+                m_focused = m_hovered;
                 if (!m_hovered.nodeview->selected())
                     set_selected({m_hovered.nodeview});
                 m_state_machine.change_state(DRAG_STATE);
@@ -945,6 +946,7 @@ void GraphView::line_state_tick()
                 break;
             }
 
+            case ViewItemType_SCOPE:
             case ViewItemType_EDGE:
             case ViewItemType_NODE:
             case ViewItemType_NULL: // ...on background
