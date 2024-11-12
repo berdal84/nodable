@@ -109,6 +109,10 @@ void File::update()
         _update_text_from_graph();
         _flags = _flags & ~Flags_IS_DIRTY_MASK;  // clear dirty flags
     }
+    else
+    {
+        _graph->update();
+    }
 }
 
 void File::_update_graph_from_text()
