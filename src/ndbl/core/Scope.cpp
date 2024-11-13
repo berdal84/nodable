@@ -94,7 +94,7 @@ std::vector<Node*> Scope::leaves()
     std::vector<Node*> result;
     leaves_ex(result);
     if ( result.empty() )
-        result.push_back(get_owner());
+        result.push_back( node() );
     return result;
 }
 
@@ -165,7 +165,7 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
 void Scope::clear()
 {
     while( !m_child_node.empty() )
-        if ( m_child_node.back() != get_owner() ) // owner is always there
+        if ( m_child_node.back() != node() ) // owner is always there
             remove_ex( m_child_node.back(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
 
     on_clear.emit();
@@ -275,6 +275,6 @@ std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, 
 
 bool Scope::is_internal(const Scope* scope)
 {
-    return scope->get_owner()->is_a_scope()
-           && scope->get_owner()->internal_scope() == scope;
+    return scope->node()->is_a_scope()
+           && scope->node()->internal_scope() == scope;
 }

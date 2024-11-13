@@ -9,12 +9,13 @@
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 
-#include "TComponentBag.h"
+#include "ComponentBag.h"
 #include "DirectedEdge.h"
 #include "Property.h"
 #include "PropertyBag.h"
 #include "constants.h"
 #include "NodeComponent.h"
+#include "NodeComponentBag.h"
 #include "SlotFlag.h"
 #include "Slot.h"
 #include "NodeType.h"
@@ -86,6 +87,7 @@ namespace ndbl
         Scope*               internal_scope() const { ASSERT(m_is_a_scope); return m_scope; }
         bool                 has_parent() const { return parent() != nullptr; }
         Scope*               parent() const { return m_is_a_scope ? m_scope->parent() : m_scope; };
+        static bool          same_parent(const Node* n1, const Node* n2) { return n1->parent() == n2->parent(); }
 
         // Slot related
         //-------------
@@ -142,7 +144,7 @@ namespace ndbl
 
         template<class C>
         C* get_component() const
-        { return static_cast<C*>( m_components.get<C*>() );  }
+        { return static_cast<C*>( m_components.get<C>() );  }
 
         template<class C>
         C* get_component()
@@ -150,7 +152,7 @@ namespace ndbl
 
         template<class C>
         bool has_component() const
-        { return m_components.has<C*>(); }
+        { return m_components.has<C>(); }
 
         void               init_internal_scope();
 
@@ -179,7 +181,7 @@ namespace ndbl
 
         AdjacentNodesCache m_adjacent_nodes_cache = {this};
     private:
-        TComponentBag<NodeComponent*> m_components;
+        NodeComponentBag m_components;
 
         REFLECT_BASE_CLASS()
         POOL_REGISTRABLE(Node)

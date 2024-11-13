@@ -1,28 +1,18 @@
 #pragma once
-
-#include "tools/core/reflection/reflection"
-#include "tools/core/memory/memory.h"
-#include "TComponent.h"
+#include "Component.h"
+#include "tools/core/reflection/Type.h"
 
 namespace ndbl
 {
-    // forward declaration
+    // forward declared to avoid a dependency with Node.h
     class Node;
 
-    /**
-     * @class Base abstract class for any Node Component
-     */
-    class NodeComponent : public TComponent<Node*>
-	{
+    BASE_COMPONENT_CLASS_EX(Node, NodeComponent)
+    (
     public:
-        POOL_REGISTRABLE(NodeComponent)
-        REFLECT_DERIVED_CLASS()
-    };
+        Node*       node()       { return owner(); } // alias for owner()
+        const Node* node() const { return owner(); } // alias for owner()
 
-    template<class T>
-    struct IsNodeComponent
-    {
-        using type = std::is_base_of<NodeComponent, T>;
-        static constexpr bool value = IsNodeComponent<T>::type::value;
-    };
+        REFLECT_BASE_CLASS()
+    );
 }

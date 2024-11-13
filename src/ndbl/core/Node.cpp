@@ -22,14 +22,14 @@ Node::~Node()
     on_destroy.emit();
 }
 
-void Node::init(NodeType _type, const std::string& _label)
+void Node::init(NodeType type, const std::string& label)
 {
-    m_props.init(this);
-    m_value = add_prop<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
+    m_props.reset_owner(this);
+    m_components.reset_owner( this );
 
-    m_name = _label;
-    m_type = _type;
-    m_components.set_owner( this );
+    m_value = m_props.add<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
+    m_name  = label;
+    m_type  = type;
 }
 
 size_t Node::adjacent_slot_count(SlotFlags _flags )const
@@ -151,7 +151,8 @@ void Node::on_slot_change(Slot::Event event, Slot* slot)
 Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, size_t _position)
 {
     ASSERT( _property != nullptr );
-    ASSERT(_property->owner() == this);
+    ASSERT( _property->node() == this );
+
     Slot* slot = new Slot(this, _flags, _property, _capacity, _position);
     m_slots.push_back(slot);
 

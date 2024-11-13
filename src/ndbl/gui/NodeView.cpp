@@ -47,6 +47,7 @@ NodeView::NodeView()
     , m_last_clicked_slotview(nullptr)
     , m_state(10.0f, 35.0f)
 {
+    CONNECT( this->on_reset_owner, &NodeView::reset );
 }
 
 NodeView::~NodeView()
@@ -119,11 +120,9 @@ std::string NodeView::get_label()
 
 }
 
-void NodeView::set_owner(Node* owner)
+void NodeView::reset()
 {
-    NodeComponent::set_owner(owner);
-
-    if(owner == nullptr )
+    if ( node() == nullptr )
     {
         return;
     }
@@ -144,13 +143,13 @@ void NodeView::set_owner(Node* owner)
     m_property_views__in.clear();
     m_property_views__out.clear();
 
-    for (Property* property : owner->props() )
+    for (Property* property : node()->props() )
     {
         // Create view
         auto new_view = new PropertyView(property);
         add_child( new_view );
 
-        switch ( owner->type() )
+        switch ( node()->type() )
         {
             case NodeType_ENTRY_POINT:
             case NodeType_FUNCTION:
@@ -164,7 +163,7 @@ void NodeView::set_owner(Node* owner)
         }
 
         // Indexing
-        if (property == owner->value() )
+        if (property == node()->value() )
         {
             m_value_view = new_view;
         }
@@ -242,11 +241,11 @@ void NodeView::set_owner(Node* owner)
     }
 
     // Adjust some slot views
-    switch ( owner->type() )
+    switch ( node()->type() )
     {
         case NodeType_VARIABLE:
         {
-            auto variable = static_cast<VariableNode*>( owner );
+            auto variable = static_cast<VariableNode*>( node() );
             if ( Slot* decl_out = variable->decl_out() )
             {
                 if (SlotView *view = decl_out->view)
@@ -260,7 +259,7 @@ void NodeView::set_owner(Node* owner)
         }
         case NodeType_FUNCTION:
         {
-            auto function = static_cast<FunctionNode*>( owner );
+            auto function = static_cast<FunctionNode*>( node() );
             if ( Slot* value_out = function->value_out() )
             {
                 if (SlotView *view = value_out->view)
@@ -277,7 +276,7 @@ void NodeView::set_owner(Node* owner)
     //---------------------
 
     // note: We pass color by address to be able to change the color dynamically
-    set_color( &cfg->ui_node_fill_color[owner->type()] );
+    set_color( &cfg->ui_node_fill_color[ node()->type()] );
 }
 
 void NodeView::arrange_recursively(bool _smoothly)
@@ -900,7 +899,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
 
     if ( _recursive )
         if( Scope* scope = _view->node()->parent() )
-            if (NodeView* parent_view = scope->get_owner()->get_component<NodeView>() )
+            if (NodeView* parent_view = scope->node()->get_component<NodeView>() )
                 return parent_view->visible() ? parent_view
                                               : substitute_with_parent_if_not_visible(parent_view, _recursive);
 

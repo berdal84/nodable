@@ -403,7 +403,7 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
             }
             Scope *target_scope = nullptr;
             if (Scope *ancestor = Scope::lowest_common_ancestor(adjacent_scopes))
-                target_scope = ancestor->get_owner()->parent();
+                target_scope = ancestor->node()->parent();
 
             if (target_scope)
                 target_scope->push_back(edge.head->node);
@@ -449,7 +449,9 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         for(Slot* adjacent : edge.head->adjacent() )
             adjacent_scope.push_back( adjacent->node->parent() );
         // find lowest_common_ancestor
-        target_scope = Scope::lowest_common_ancestor(adjacent_scope );
+        target_scope = Scope::lowest_common_ancestor( adjacent_scope );
+        if ( Scope::is_internal(target_scope) )
+            target_scope = target_scope->node()->parent();
     }
     else
     {

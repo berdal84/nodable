@@ -64,12 +64,12 @@ void Physics::add_force( Vec2 force, bool _recurse)
 
     if ( !_recurse ) return;
 
-    for (Node* input_node: _view->get_owner()->inputs() )
+    for (Node* input_node: _view->node()->inputs() )
     {
         NodeView* input_view = input_node->get_component<NodeView>();
 
         if ( !input_view->pinned())
-            if ( NodeViewConstraint::should_follow_output(input_node, _view->get_owner() ))
+            if ( NodeViewConstraint::should_follow_output(input_node, _view->node() ))
                 if(auto* physics_component = input_node->get_component<Physics>())
                     physics_component->add_force(force, _recurse);
     }
@@ -91,25 +91,22 @@ void Physics::apply_forces(float _dt)
 void Physics::create_constraints(const std::vector<Physics*>& physics)
 {
     LOG_VERBOSE("Physics", "create_constraints ...\n");
-    for(Physics* physic : physics )
+    for(Physics* physics_component : physics )
     {
-        Node* node = physic->get_owner();
-        auto curr_nodeview = node->get_component<NodeView>();
-        ASSERT(curr_nodeview != nullptr );
+        Node*     node     = physics_component->node();
+        NodeView* nodeview = node->get_component<NodeView>();
 
-        auto physics_component = node->get_component<Physics>();
+        ASSERT(nodeview != nullptr );
 
-        // If current view has a single predecessor, we follow it, except if it is a conditional node
+        // Follow predecessor
         //
-        std::vector<NodeView*> previous_nodes = curr_nodeview->get_adjacent(SlotFlag_FLOW_IN);
-        if ( !previous_nodes.empty() && !Utils::is_conditional(previous_nodes[0]->node() ) )
+        std::vector<NodeView*> previous_nodes = nodeview->get_adjacent(SlotFlag_FLOW_IN);
+        if ( previous_nodes.size() == 1 && Node::same_parent( node, previous_nodes[0]->node() ) )
         {
             NodeViewConstraint constraint("Position below previous", &NodeViewConstraint::constrain_1_to_N_as_row);
             constraint.leader         = previous_nodes;
-            //constraint.leader_flags   = NodeViewFlag_WITH_RECURSION;
-            constraint.follower       = {curr_nodeview};
+            constraint.follower       = {nodeview};
             constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
-
             constraint.leader_pivot   = BOTTOM;
             constraint.follower_pivot = TOP;
 
@@ -157,20 +154,18 @@ void Physics::create_constraints(const std::vector<Physics*>& physics)
         // nodeview's inputs must be aligned on center-top
         // It's a one to many constrain.
         //
-        std::vector<NodeView*> inputs = curr_nodeview->get_adjacent(SlotFlag_INPUT);
         std::vector<NodeView*> filtered_inputs;
-        for(auto* view : inputs)
-        {
-            Node* _node = view->node();
-            if (_node->flow_inputs().empty() )
-                if ( NodeViewConstraint::should_follow_output(_node, curr_nodeview->node() ) )
-                    filtered_inputs.push_back(view);
-        }
+        for(auto* view : nodeview->get_adjacent(SlotFlag_INPUT) )
+            if ( view->node()  )
+                if ( view->node()->flow_inputs().empty() )
+                    if ( NodeViewConstraint::should_follow_output(view->node(), nodeview->node() ) )
+                        filtered_inputs.push_back(view);
+
         if(filtered_inputs.size() > 0 )
         {
             NodeViewConstraint constraint("Align many inputs above", &NodeViewConstraint::constrain_N_to_1_as_a_row);
 
-            auto* leader = curr_nodeview;
+            auto* leader = nodeview;
             constraint.leader         = {leader};
             constraint.leader_pivot   = TOP;
             constraint.follower       = filtered_inputs;
@@ -344,7 +339,7 @@ void Physics::ParentChildScopeViewConstraint::update(float dt)
     Rect::make_row(new_rect, gap );
 
     // v align
-    const Vec2 parent_pivot_pos = parent->get_owner()
+    const Vec2 parent_pivot_pos = parent->node()
                                   ->get_component<NodeView>()
                                   ->shape()
                                   ->pivot( BOTTOM, WORLD_SPACE );

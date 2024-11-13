@@ -56,14 +56,12 @@ namespace ndbl
 		NodeView();
 		~NodeView();
 
-        Node*                   node() const { return m_owner; }
         bool                    selected() const { return  m_state.selected; };
         inline bool             pinned() const { return m_pinned; }
         bool                    visible() const { return m_state.visible; };
         void                    set_pinned(bool b = true ) { m_pinned = b; }
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw();
-        void                    set_owner(Node*)override;
         void                    update(float);
         void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
@@ -100,6 +98,7 @@ namespace ndbl
         void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
+        void                    reset();
 
         static void DrawNodeRect(
                 tools::Rect rect,

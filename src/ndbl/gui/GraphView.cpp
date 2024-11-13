@@ -103,7 +103,7 @@ void GraphView::decorate_node(Node* node)
 
         for ( Scope* child_scope : internal_scope->child_scope() )
         {
-            if ( child_scope->get_owner() == node )
+            if ( child_scope->node() == node )
             {
                 ScopeView* child_view = component_factory->create<ScopeView>();
                 node->add_component( child_view );
@@ -367,7 +367,7 @@ bool GraphView::draw(float dt)
 
         // VM Cursor (scroll to the next node when VM is debugging)
         if (interpreter->is_debugging())
-            if (interpreter->is_next_node(nodeview->get_owner()))
+            if (interpreter->is_next_node( nodeview->node() ))
                 ImGui::SetScrollHereY();
     }
 
@@ -722,16 +722,16 @@ void GraphView::cursor_state_tick()
 
             case ViewItemType_SCOPE:
             {
-                Node*     scope_owner      = m_focused.scopeview->scope()->get_owner();
-                NodeView* scope_owner_view = scope_owner->get_component<NodeView>();
-                if ( ImGui::MenuItem( scope_owner_view->expanded() ? "Collapse Scope" : "Expand Scope" ) )
+                Node*     node     = m_focused.scopeview->scope()->node();
+                NodeView* nodeview = node->get_component<NodeView>();
+                if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {
-                    scope_owner_view->expand_toggle_rec();
+                    nodeview->expand_toggle_rec();
                 }
 
                 if ( ImGui::MenuItem("Delete Scope") )
                 {
-                    auto event = new Event_DeleteNode({m_focused.scopeview->get_owner()});
+                    auto event = new Event_DeleteNode({ m_focused.scopeview->node() });
                     get_event_manager()->dispatch(event);
                 }
 
@@ -746,12 +746,12 @@ void GraphView::cursor_state_tick()
                     for(Scope* child : children)
                     {
                         // Include scope owner's view too
-                        if ( child->get_owner() )
-                            if ( NodeView* view = child->get_owner()->get_component<NodeView>())
-                                views.insert( view );
+                        if ( NodeView* view = child->node()->get_component<NodeView>())
+                            views.insert( view );
+
                         // and every other child's
-                        for(Node* node : child->child_node())
-                            if ( NodeView* view = node->get_component<NodeView>())
+                        for(Node* child_node : child->child_node())
+                            if ( NodeView* view = child_node->get_component<NodeView>())
                                 views.insert(view);
                     }
                     // Replace selection

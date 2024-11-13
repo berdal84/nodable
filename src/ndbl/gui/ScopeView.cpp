@@ -40,7 +40,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
 {
     std::set<Node*> nodes { m_scope->child_node().begin(), m_scope->child_node().end() };
     if ( Scope::is_internal(m_scope) )
-        nodes.insert( m_scope->get_owner() );
+        nodes.insert( m_scope->node() );
 
     Rect r = {};
     m_nodeviews.clear();
@@ -135,9 +135,8 @@ void ScopeView::on_reset_parent(Scope* scope)
 void ScopeView::translate(const Vec2 &delta)
 {
     // translate scope's owner's view, only it this is the main internal scope
-    Node* owner = get_owner();
-    if ( owner->internal_scope() == m_scope )
-        if ( NodeView* owner_view = owner->get_component<NodeView>() )
+    if ( node()->internal_scope() == m_scope )
+        if ( NodeView* owner_view = node()->get_component<NodeView>() )
             owner_view->spatial_node().translate( delta );
     // translate view (and children...)
     m_spatial_node.translate(delta );

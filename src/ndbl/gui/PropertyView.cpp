@@ -34,7 +34,7 @@ Property* PropertyView::get_property() const
 
 Node* PropertyView::get_node() const
 {
-    return _property->owner();
+    return _property->node();
 }
 
 bool PropertyView::has_input_connected() const
@@ -185,7 +185,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
     // 2) if property is an identifier, or a literal we allow edition via an InputText, InputDouble/Int or Checkbox
 
     // 1
-    if (property->owner()->type() != NodeType_VARIABLE)
+    if ( property->node()->type() != NodeType_VARIABLE)
         if ( connected_slot != nullptr )
             switch (connected_slot->node->type())
             {

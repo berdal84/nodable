@@ -36,7 +36,7 @@ namespace ndbl
         //void             set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
         PropertyFlags      flags()const { return m_flags; }
         const std::string& name()const { return m_name; }
-        Node*              owner()const { return m_owner; }
+        Node*              node()const { return m_owner; }
         const tools::TypeDescriptor* get_type()const { return m_type; }
         bool               is_type(const tools::TypeDescriptor* other) const;
         void               set_type(const tools::TypeDescriptor *pDescriptor);
