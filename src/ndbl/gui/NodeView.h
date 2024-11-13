@@ -92,6 +92,7 @@ namespace ndbl
         static bool             draw_as_properties_panel(NodeView* _view, bool* _show_advanced );
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
+
     private:
         PropertyView*           find_property_view(const Property *pProperty);
         void                    add_child(PropertyView*);

@@ -94,6 +94,7 @@ tools::Vec2 tools::SpatialNode2D::position(Space space) const
 void tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child)
 {
     ASSERT( new_child != nullptr );
+    ASSERT( new_child->parent() == nullptr );
     auto [it, success] = this->_children.insert(new_child);
     VERIFY( success, "Unable to insert new_child");
     const Vec2 world_position = new_child->position(WORLD_SPACE);
@@ -103,6 +104,7 @@ void tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child)
 
 void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* possible_child)
 {
+    ASSERT( possible_child->parent() != nullptr );
     if ( !_children.erase(possible_child) )
         return;
     const Vec2 world_position = possible_child->position(WORLD_SPACE);
@@ -114,6 +116,6 @@ void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* possible_child)
 void tools::SpatialNode2D::translate(const tools::Vec2& delta)
 {
     // Since Transform2D cannot be rotated yet, we can apply the translation in parent space
-    _transform.set_position(_transform.position() + delta );
+    _transform.set_position( _transform.position() + delta );
     set_world_transform_dirty();
 }

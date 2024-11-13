@@ -17,6 +17,8 @@ namespace tools
      */
     struct SpatialNode2D
     {
+        typedef std::unordered_set<SpatialNode2D*> Children;
+
         SpatialNode2D(){};
         ~SpatialNode2D();
         void                  set_position(const Vec2&);
@@ -33,12 +35,11 @@ namespace tools
         void                  set_world_transform_dirty();
         void                  add_child(SpatialNode2D*);
         void                  remove_child(SpatialNode2D* possible_child);
-
-        SpatialNode2D*        parent() { return _parent; }
+        bool                  has_parent() const { return _parent != nullptr; }
+        SpatialNode2D*        parent() const { return _parent; }
         void                  update_world_matrix();
-
-        typedef std::unordered_set<SpatialNode2D*> Children;
-
+        const Children&       children() const { return _children; }
+    private:
         SpatialNode2D*        _parent = nullptr;
         Children              _children;
         TRSTransform2D        _transform; // local transform, relative to the parent

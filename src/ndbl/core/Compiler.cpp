@@ -103,7 +103,7 @@ void Compiler::compile_output_slot(const Slot* slot)
 void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
 {
     ASSERT( node );
-    ASSERT( node->is_a_scope() );
+    ASSERT(node->has_internal_scope() );
 
     // call push_stack_frame
     {

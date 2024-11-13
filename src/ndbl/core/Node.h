@@ -63,6 +63,7 @@ namespace ndbl
         bool                 update();
         inline NodeType      type() const { return m_type; }
         bool                 is_invokable() const;
+        bool                 is_expression() const;
         inline bool          has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
         inline void          set_flags(NodeFlags flags) { m_flags |= flags; }
         inline void          clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
@@ -83,11 +84,11 @@ namespace ndbl
         const Slot*          flow_in() const;
         Slot*                flow_out();
         const Slot*          flow_out() const;
-        bool                 is_a_scope() const { return m_is_a_scope; }
+        void                 init_internal_scope();
+        bool                 has_internal_scope() const { return m_is_a_scope; }
         Scope*               internal_scope() const { ASSERT(m_is_a_scope); return m_scope; }
         bool                 has_parent() const { return parent() != nullptr; }
         Scope*               parent() const { return m_is_a_scope ? m_scope->parent() : m_scope; };
-        static bool          same_parent(const Node* n1, const Node* n2) { return n1->parent() == n2->parent(); }
 
         // Slot related
         //-------------
@@ -115,10 +116,11 @@ namespace ndbl
 
         // cached adjacent nodes accessors
 
-        inline const std::vector<Node*>& flow_outputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_OUT); }
-        inline const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
-        inline const std::vector<Node*>& outputs() const { return m_adjacent_nodes_cache.get( SlotFlag_OUTPUT ); }
-        inline const std::vector<Node*>& flow_inputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_IN ); }
+        bool                      has_flow_adjacent() const;
+        const std::vector<Node*>& flow_outputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_OUT); }
+        const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
+        const std::vector<Node*>& outputs() const { return m_adjacent_nodes_cache.get( SlotFlag_OUTPUT ); }
+        const std::vector<Node*>& flow_inputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_IN ); }
 
         // Property related
         //-----------------
@@ -153,8 +155,6 @@ namespace ndbl
         template<class C>
         bool has_component() const
         { return m_components.has<C>(); }
-
-        void               init_internal_scope();
 
     protected:
         void               on_slot_change(Slot::Event event, Slot *slot);

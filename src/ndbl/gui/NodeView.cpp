@@ -288,7 +288,7 @@ void NodeView::arrange_recursively(bool _smoothly)
                 each_input->arrange_recursively();
     }
 
-    if ( node()->is_a_scope() )
+    if (node()->has_internal_scope() )
         for ( Node* node : node()->internal_scope()->child_node() )
             if ( NodeView* node_view = node->get_component<NodeView>() )
                     node_view->arrange_recursively();
@@ -668,11 +668,19 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
                     ImGui::TreePop();
                 }
             }
+            for(Physics::ScopeViewConstraint_ParentChild& constraint : physics_component->scopeview_constraints())
+            {
+                if (ImGui::TreeNode(constraint.name))
+                {
+                    ImGui::Checkbox("enabled", &constraint.enabled);
+                    ImGui::TreePop();
+                }
+            }
             ImGui::TreePop();
         }
 
         // Scope specific:
-        if (node->internal_scope() && ImGui::TreeNode("InnerScope") )
+        if ( node->has_internal_scope() && ImGui::TreeNode("InnerScope") )
         {
             if( ImGui::TreeNode("Children") )
             {
@@ -775,7 +783,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         }
     };
 
-    if ( node()->is_a_scope() )
+    if (node()->has_internal_scope() )
         for (Node* node : node()->internal_scope()->child_node() )
             visit(node);
 
@@ -828,7 +836,7 @@ void NodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
 
-    if ( !node()->is_a_scope() )
+    if ( !node()->has_internal_scope() )
         return;
 
     for(Node* child : node()->internal_scope()->child_node() )
@@ -851,7 +859,7 @@ void NodeView::set_inputs_visible(bool _visible, bool _recursive)
 
 void NodeView::set_children_visible(bool visible, bool recursively)
 {
-    if ( !node()->is_a_scope() )
+    if ( !node()->has_internal_scope() )
         return;
 
     std::set<Scope*> scopes;
@@ -982,4 +990,3 @@ void NodeView::reset_all_properties()
     for( auto& [_, property_view] : m_property_views__all )
         property_view->reset();
 }
-

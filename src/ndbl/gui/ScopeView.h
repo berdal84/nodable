@@ -34,11 +34,11 @@ namespace ndbl
         void         update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
         void         draw(float dt, bool highlight);
         Scope*       scope() const { return m_scope; }
-        void         translate(const tools::Vec2& delta);
         size_t       depth() const { return m_scope->depth(); }
         Theme        theme() const;
+        void         translate_with_owner(const tools::Vec2& vec2);
         bool         must_be_draw() const;
-        bool         pinned() const { return m_pinned; };
+        bool         pinned() const;
         void         set_pinned(bool b = true);
         const Rect&  content_rect() const { return m_content_rect; }
 

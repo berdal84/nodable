@@ -338,3 +338,13 @@ void Node::init_internal_scope()
     m_scope      = scope;
 }
 
+bool Node::has_flow_adjacent() const
+{
+    return !flow_inputs().empty() || flow_outputs().empty();
+}
+
+bool Node::is_expression() const
+{
+    return !inputs().empty();
+}
+

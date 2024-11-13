@@ -93,7 +93,7 @@ void GraphView::decorate_node(Node* node)
     physics->init( nodeview );
 
     // add a ScopeView for the inner scope and any child that is owned by this node too
-    if ( node->is_a_scope() )
+    if ( node->has_internal_scope() )
     {
         Scope*     internal_scope = node->internal_scope();
         ScopeView* scope_view      = component_factory->create<ScopeView>();
@@ -429,31 +429,131 @@ void GraphView::_update(float dt, u16_t count)
         _update( dt );
 }
 
+void GraphView::create_constraints__follow_previous(Node* node )
+{
+    VERIFY( !node->flow_inputs().empty(), "node must have at least one flow in connected");
+
+    NodeView* nodeview = node->get_component<NodeView>();
+    // create constraints so each node of the scope follows its predecessors
+    Physics::NodeViewConstraint constraint;
+    constraint.name           = "Position below previous";
+    constraint.rule           = &Physics::NodeViewConstraint::rule_1_to_N_as_row;
+    constraint.leader         = nodeview->get_adjacent(SlotFlag_FLOW_IN);
+    constraint.follower       = {nodeview};
+    constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
+    const Vec2 halignment     = constraint.leader.size() == 1 ? LEFT : CENTER;
+    constraint.leader_pivot   = halignment + BOTTOM;
+    constraint.follower_pivot = halignment + TOP;
+
+    // vertical gap
+    constraint.gap_size      = Size_MD;
+    constraint.gap_direction = BOTTOM;
+
+    node->get_component<Physics>()->add_constraint(constraint);
+};
+
+void GraphView::create_constraints_for_inputs(Node* node )
+{
+    NodeView* leader = node->get_component<NodeView>();
+    // nodeview's inputs must be aligned on center-top
+    // It's a one to many constrain.
+    //
+    std::vector<NodeView *> follower;
+    for (auto* _follower: leader->get_adjacent(SlotFlag_INPUT))
+        if ( _follower->node()->flow_inputs().empty())
+            if (Physics::NodeViewConstraint::should_follow_output( _follower->node(), leader->node() ))
+                follower.push_back( _follower );
+
+    if ( follower.empty() )
+        return;
+
+    Physics::NodeViewConstraint constraint;
+    constraint.name           = "Align many inputs above";
+    constraint.rule           = &Physics::NodeViewConstraint::rule_N_to_1_as_a_row;
+    constraint.leader         = { leader };
+    constraint.leader_pivot   = TOP;
+    constraint.follower       = follower;
+    constraint.follower_pivot = BOTTOM;
+    constraint.gap_size       = Size_SM;
+    constraint.gap_direction  = TOP;
+
+    if ( follower.size() > 1 )
+    {
+        constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
+    }
+
+    if ( node->has_flow_adjacent() )
+    {
+        constraint.follower_pivot = BOTTOM_LEFT;
+        constraint.leader_pivot   = TOP_RIGHT;
+        constraint.row_direction  = RIGHT;
+    }
+
+    node->get_component<Physics>()->add_constraint(constraint);
+};
+
+
+void GraphView::create_constraints_for_scope( Scope* scope )
+{
+    if ( !Scope::is_internal(scope) )
+    {
+        for ( Node* node : scope->child_node() )
+        {
+            create_constraints_for_node( node );
+            if (node != scope->first_node() )
+                create_constraints__follow_previous(node);
+        }
+    }
+    else if ( !scope->child_scope().empty() )
+    {
+        Physics::ScopeViewConstraint_ParentChild constraint;
+        constraint.name          = "Align child scope views with parent";
+        constraint.parent        = scope->view();
+        constraint.parent_pivot  = BOTTOM;
+        constraint.gap_size      = Size_XL;
+        constraint.gap_direction = BOTTOM;
+
+        scope->node()->get_component<Physics>()->add_constraint(constraint);
+
+        for( Scope* child : scope->child_scope() )
+        {
+            create_constraints_for_scope( child );
+        }
+    }
+}
+
+void GraphView::create_constraints_for_node(Node* node )
+{
+    if ( !node->inputs().empty() )
+        create_constraints_for_inputs(node);
+
+    if ( node->has_internal_scope() )
+        create_constraints_for_scope( node->internal_scope() );
+
+    if ( !node->flow_inputs().empty() )
+        create_constraints__follow_previous( node );
+};
+
 void GraphView::_update(float dt)
 {
     // Physics Components
-    LOG_VERBOSE("Physics", "Updating nodeview_constraints ...\n");
-    std::vector<Physics*> physics_components;
-    for(Node* node : graph()->nodes() )
-        if (auto c = node->get_component<Physics>())
-            physics_components.push_back(c);
+    LOG_VERBOSE("GraphView", "Updating nodeview_constraints ...\n");
 
-    if (m_physics_dirty)
+    if ( m_physics_dirty )
     {
-        LOG_VERBOSE("Physics", "Constraints are dirty, refreshing ...\n");
-        for (Physics *c: physics_components)
-            c->clear_constraints();
-        Physics::create_constraints( physics_components );
+        // clear all constraints, and THEN create them again
+        for (Node* node : graph()->nodes())
+            node->get_component<Physics>()->clear_constraints();
+        for (Node* node : graph()->nodes() )
+            create_constraints_for_node(node);
+        m_physics_dirty = false;
     }
 
-    for (auto c: physics_components)
-        c->apply_constraints(dt);
+    // Apply all constraints, and THEN apply all forces
+    for ( Node* node : graph()->nodes() ) node->get_component<Physics>()->apply_constraints(dt);
+    for ( Node* node : graph()->nodes() ) node->get_component<Physics>()->apply_forces(dt);
 
-    for (auto c: physics_components)
-        c->apply_forces(dt);
-
-    LOG_VERBOSE("Physics", "Constraints updated.\n");
-    m_physics_dirty = false;
+    LOG_VERBOSE("GraphView", "Constraints updated.\n");
 
     // NodeViews
     for (Node* node : graph()->nodes() )
@@ -502,7 +602,7 @@ void GraphView::unfold()
 {
     const Config* cfg = get_config();
 
-    // Compute the number of update necessary to simulate unfolding fot dt seconds
+    // Compute the number of update necessary to simulate unfolding for dt seconds
     const u32_t dt      = cfg->graph_view_unfold_duration;
     const u32_t samples = 1000 * dt / cfg->tools_cfg->dt_cap;
 
@@ -664,14 +764,14 @@ void GraphView::drag_state_tick()
     {
         case ViewItemType_SCOPE:
         {
-            m_focused.scopeview->translate( delta );
+            m_focused.scopeview->translate_with_owner( delta );
             break;
         }
 
         default:
         {
-            for (NodeView* node_view: get_selected() )
-                node_view->spatial_node().translate(delta);
+            for (NodeView* view: get_selected() )
+                view->spatial_node().translate( delta );
             break;
         }
     }

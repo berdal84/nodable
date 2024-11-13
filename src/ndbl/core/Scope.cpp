@@ -67,7 +67,7 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
         }
     }
 
-    if (node->is_a_scope())
+    if (node->has_internal_scope())
         node->m_scope->reset_parent(this);
     else
         node->m_scope = this;
@@ -75,7 +75,7 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     if ((flags & ScopeFlags_NO_PUSH_BACK) == 0)
         m_child_node.push_back( node );
 
-    if ( ( flags & ScopeFlags_RECURSE) && !node->is_a_scope() )
+    if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
     {
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
@@ -108,7 +108,7 @@ std::vector<Node*>& Scope::leaves_ex(std::vector<Node*>& out)
     // Recursive call for nested nodes
     for( Node* child : m_child_node )
     {
-        if ( child->is_a_scope() )
+        if (child->has_internal_scope() )
         {
             child->internal_scope()->leaves_ex(out); // Recursive call on nested scopes
         }
@@ -143,12 +143,12 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
         m_child_node.erase( it );
 
     // reset scope
-    if (node->is_a_scope())
+    if (node->has_internal_scope())
         node->m_scope->reset_parent(nullptr);
     else
         node->m_scope = nullptr;
 
-    if ( ( flags & ScopeFlags_RECURSE) && !node->is_a_scope() )
+    if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
     {
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
@@ -275,6 +275,6 @@ std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, 
 
 bool Scope::is_internal(const Scope* scope)
 {
-    return scope->node()->is_a_scope()
+    return scope->node()->has_internal_scope()
            && scope->node()->internal_scope() == scope;
 }

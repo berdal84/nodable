@@ -20,33 +20,20 @@ namespace  ndbl
 
         struct NodeViewConstraint
         {
-        public:
-            typedef void(NodeViewConstraint::*Constrain)(float _dt);
-            typedef bool(NodeViewConstraint::*Rule)(void);
+            typedef std::vector<NodeView*> NodeViews;
+            typedef void(NodeViewConstraint::*Rule)(float dt);
+            typedef bool(NodeViewConstraint::*Condition)(void) const;
 
-            NodeViewConstraint(
-                const char* name,
-                Constrain   constrain,
-                Rule        rule = &NodeViewConstraint::rule_always
-            )
-            : constrain(constrain)
-            , should_apply(rule)
-            {}
+            void          update(float dt);
+            void          rule_default(float) {}
+            void          rule_1_to_N_as_row(float dt);
+            void          rule_N_to_1_as_a_row(float dt);
+            bool          condition_default() const { return true; };
 
-            void update(float dt);
-
-            void constrain_1_to_N_as_row(float dt);
-            void constrain_N_to_1_as_a_row(float dt);
-            //void constrain_many_to_one(float _dt);
-
-            bool rule_always() { return true; };
-            //bool rule_no_target_expanded();
-            //bool rule_drivers_are_expanded();
-
-            const char*   name;
-            Constrain     constrain      = nullptr ;
+            const char*   name           = "untitled NodeViewConstraint";
             bool          enabled        = true;
-            Rule          should_apply   = &NodeViewConstraint::rule_always;
+            Rule          rule           = &NodeViewConstraint::rule_default;
+            Condition     should_apply   = &NodeViewConstraint::condition_default;
             NodeViewFlags leader_flags   = NodeViewFlag_WITH_PINNED;
             NodeViewFlags follower_flags = NodeViewFlag_WITH_PINNED;
             tools::Vec2   leader_pivot   = tools::RIGHT;
@@ -54,42 +41,40 @@ namespace  ndbl
             tools::Vec2   row_direction  = tools::RIGHT;
             tools::Vec2   gap_direction  = tools::CENTER;
             tools::Size   gap_size       = tools::Size_DEFAULT;
-            std::vector<NodeView*> leader;
-            std::vector<NodeView*> follower;
+            NodeViews     leader;
+            NodeViews     follower;
 
             static std::vector<NodeView*> clean( std::vector<NodeView*>& );
-            static bool should_follow_output(const Node* node, const Node* output_node );
+            static bool                   should_follow_output(const Node* node, const Node* output_node );
         };
 
-        struct ParentChildScopeViewConstraint
+        struct ScopeViewConstraint_ParentChild
         {
-            ParentChildScopeViewConstraint(const char* name): name(name), parent(nullptr) {}
             void        update(float dt);
-            const char* name;
-            ScopeView*  parent;
-            tools::Vec2 parent_pivot;
+            const char* name         = "untitled ScopeViewConstraint_ParentChild";
+            bool        enabled      = true;
+            ScopeView*  parent       = nullptr;
+            tools::Vec2 parent_pivot = tools::BOTTOM;
             tools::Size gap_size;
             tools::Vec2 gap_direction;
         };
 
         typedef std::vector<NodeViewConstraint>  NodeViewConstraints;
-        typedef std::vector<ParentChildScopeViewConstraint> ScopeViewConstraints;
+        typedef std::vector<ScopeViewConstraint_ParentChild> ScopeViewConstraints;
 
         void            init(NodeView*);
-        void            add_constraint(ParentChildScopeViewConstraint& c) { _scopeview_constraints.push_back(std::move(c)); }
+        void            add_constraint(ScopeViewConstraint_ParentChild& c) { _scopeview_constraints.push_back(std::move(c)); }
         void            add_constraint(NodeViewConstraint& c) { _nodeview_constraints.push_back(std::move(c)); }
         void            apply_constraints(float _dt);
         void            clear_constraints();
         void            add_force( tools::Vec2 force, bool _recurse = false);
-        void            add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space );
+        void            add_force_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space );
         void            apply_forces(float _dt);
         bool&           is_active() { return _is_active; };
         NodeViewConstraints&        nodeview_constraints() { return _nodeview_constraints; };
         const NodeViewConstraints&  nodeview_constraints() const { return _nodeview_constraints; };
         ScopeViewConstraints&       scopeview_constraints() { return _scopeview_constraints; };
         const ScopeViewConstraints& scopeview_constraints() const { return _scopeview_constraints; };
-
-        static void     create_constraints(const std::vector<Physics*>&);
 
     private:
         bool            _is_active = false;

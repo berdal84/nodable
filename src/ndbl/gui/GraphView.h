@@ -77,6 +77,10 @@ namespace ndbl
         bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
+        void        create_constraints__follow_previous(Node *node);
+        void        create_constraints_for_inputs(Node *node);
+        void        create_constraints_for_scope(Scope *scope);
+        void        create_constraints_for_node(Node *node);
 
         // Tools State Machine
         //--------------------
@@ -98,6 +102,5 @@ namespace ndbl
         void line_state_enter();
         void line_state_tick();
         void line_state_leave();
-
     };
 }

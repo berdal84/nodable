@@ -56,7 +56,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
             }
         }
 
-        if ( node->is_a_scope() )
+        if (node->has_internal_scope() )
         {
             for (Scope* child_scope: node->internal_scope()->child_scope())
             {
@@ -124,27 +124,35 @@ void ScopeView::on_remove_node(Node* node)
 
 void ScopeView::on_reset_parent(Scope* scope)
 {
-    if(m_spatial_node.parent() )
+    if( m_spatial_node.has_parent() )
         m_spatial_node.parent()->remove_child(&m_spatial_node );
 
+    // this view must move when scope's owner view moves
     if( scope )
         if( scope->view() )
             scope->view()->m_spatial_node.add_child( &m_spatial_node );
 }
 
-void ScopeView::translate(const Vec2 &delta)
+void ScopeView::translate_with_owner(const Vec2& delta)
 {
     // translate scope's owner's view, only it this is the main internal scope
     if ( node()->internal_scope() == m_scope )
         if ( NodeView* owner_view = node()->get_component<NodeView>() )
             owner_view->spatial_node().translate( delta );
     // translate view (and children...)
-    m_spatial_node.translate(delta );
+    m_spatial_node.translate( delta );
 }
 
 void ScopeView::set_pinned(bool b)
 {
-    for ( NodeView* node_view : m_nodeviews )
-        node_view->set_pinned( b );
     m_pinned = b;
+    scope()
+        ->node()
+        ->get_component<NodeView>()
+        ->set_pinned( b );
+}
+
+bool ScopeView::pinned() const
+{
+    return scope()->node()->get_component<NodeView>()->pinned();
 }
