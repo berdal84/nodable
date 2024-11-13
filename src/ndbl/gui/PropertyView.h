@@ -33,18 +33,18 @@ namespace ndbl
         VariableNode*    get_connected_variable() const;
         bool             has_input_connected() const;
 
-        inline const tools::ViewState*     view_state() const { return &m_view_state; };
-        inline tools::ViewState*           view_state() { return &m_view_state; };
-        inline const tools::BoxShape2D*    box() const { return &m_view_state.box; };
-        inline tools::BoxShape2D*          box() { return &m_view_state.box; };
-        inline tools::SpatialNode2D*       xform() { return &m_view_state.box.xform; };
-        inline const tools::SpatialNode2D* xform()const  { return &m_view_state.box.xform; };
+        const tools::ViewState&     state() const { return _state; };
+        tools::ViewState&           state() { return _state; };
+        const tools::BoxShape2D&    shape() const { return _state.shape(); };
+        tools::BoxShape2D&          shape() { return _state.shape(); };
+        tools::SpatialNode2D&       spatial_node() { return _state.spatial_node(); };
+        const tools::SpatialNode2D& spatial_node()const  { return _state.spatial_node();; };
 
     private: static float calc_input_width(const char* text);
     public:  static bool  draw_input(PropertyView*, bool _compact_mode, const char* _override_label);
     public:  static bool  draw_all(const std::vector<PropertyView*>&, ViewDetail);
     private:
-        Property*        m_property;
-        tools::ViewState m_view_state;
+        Property*        _property;
+        tools::ViewState _state;
     };
 }

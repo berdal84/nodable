@@ -144,7 +144,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     // Draw
 
     ImGuiID id = make_wire_id(from->slot, nullptr);
-    Vec2 start_pos = from->xform()->position(WORLD_SPACE);
+    Vec2 start_pos = from->spatial_node().position(WORLD_SPACE);
 
     BezierCurveSegment2D segment{
             start_pos, start_pos,
@@ -164,9 +164,9 @@ bool GraphView::draw(float dt)
     // Ensure view state fit with content region
     // (n.b. we could also implement a struct RootViewState wrapping ViewState)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE );
-    m_view_state.box.set_size( region.size() );
-    m_view_state.box.xform.set_position(region.center()); // children will be relative to the center
-    m_view_state.box.draw_debug_info();
+    m_view_state.shape().set_size( region.size() );
+    m_view_state.shape().set_position(region.center()); // children will be relative to the center
+    m_view_state.shape().draw_debug_info();
 
     m_hovered = {};
 
@@ -246,8 +246,8 @@ bool GraphView::draw(float dt)
                 SlotView* head = adjacent_slot->view;
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = tail->xform()->position(WORLD_SPACE);
-                Vec2 head_pos = head->xform()->position(WORLD_SPACE);
+                Vec2 tail_pos = tail->spatial_node().position(WORLD_SPACE);
+                Vec2 head_pos = head->spatial_node().position(WORLD_SPACE);
                 BezierCurveSegment2D segment{
                         tail_pos,
                         tail_pos,
@@ -291,8 +291,8 @@ bool GraphView::draw(float dt)
                 SlotView* slot_view_out = slot_out->view;
                 SlotView* slot_view_in  = slot_in->view;
 
-                p1 = slot_view_out->xform()->position(WORLD_SPACE);
-                p2 = slot_view_in->xform()->position(WORLD_SPACE);
+                p1 = slot_view_out->spatial_node().position(WORLD_SPACE);
+                p2 = slot_view_in->spatial_node().position(WORLD_SPACE);
 
                 const Vec2  signed_dist = Vec2::distance(p1, p2);
                 const float lensqr_dist = signed_dist.lensqr();
@@ -483,19 +483,19 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
     {
         // Align with the top-left corner
         views_bbox.expand(Vec2(20.0f ) ); // add a padding to avoid alignment too close from the border
-        delta = m_view_state.box.pivot(TOP_LEFT) - views_bbox.top_left();
+        delta = m_view_state.shape().pivot(TOP_LEFT) - views_bbox.top_left();
     }
     else
     {
         // Align the center of the node rectangle with the frame center
-        delta = m_view_state.box.pivot(CENTER) - views_bbox.center();
+        delta = m_view_state.shape().pivot(CENTER) - views_bbox.center();
     }
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, apply it to all scope views
     for (Node* node : graph()->nodes() )
         if ( NodeView* view = node->get_component<NodeView>() )
-            view->xform()->translate( delta );
+            view->spatial_node().translate( delta );
 }
 
 void GraphView::unfold()
@@ -594,7 +594,7 @@ void GraphView::reset()
 
     for( Node* node : graph()->nodes() )
         if ( NodeView* v = node->get_component<NodeView>() )
-            v->xform()->translate( far_outside );
+            v->spatial_node().translate( far_outside );
 
     // physics
     m_physics_dirty = true;
@@ -671,7 +671,7 @@ void GraphView::drag_state_tick()
         default:
         {
             for (NodeView* node_view: get_selected() )
-                node_view->xform()->translate(delta);
+                node_view->spatial_node().translate(delta);
             break;
         }
     }
@@ -695,7 +695,7 @@ void GraphView::view_pan_state_tick()
     Vec2 delta = ImGui::GetMouseDragDelta();
     for( Node* node : graph()->nodes() )
         if ( auto v = node->get_component<NodeView>() )
-            v->xform()->translate(delta);
+            v->spatial_node().translate(delta);
 
     ImGui::ResetMouseDragDelta();
 
@@ -936,7 +936,7 @@ void GraphView::line_state_enter()
 
 void GraphView::line_state_tick()
 {
-    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->xform()->position(WORLD_SPACE)
+    Vec2 mouse_pos_snapped = m_hovered.type == ViewItemType_SLOT ? m_hovered.slotview->spatial_node().position(WORLD_SPACE)
                                                                  : Vec2{ImGui::GetMousePos()};
 
     // Contextual menu
@@ -1035,7 +1035,7 @@ void GraphView::roi_state_tick()
 
 void GraphView::add_child(NodeView* view)
 {
-    m_view_state.box.xform.add_child( view->xform() );
+    m_view_state.spatial_node().add_child( &view->spatial_node() );
 }
 
 void GraphView::update(float dt)

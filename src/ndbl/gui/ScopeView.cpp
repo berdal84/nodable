@@ -110,7 +110,7 @@ void ScopeView::on_add_node(Node* node)
 {
     if( NodeView* view = node->get_component<NodeView>())
     {
-        m_spatial_node.add_child(view->xform() );
+        m_spatial_node.add_child( &view->spatial_node() );
     }
 }
 
@@ -118,7 +118,7 @@ void ScopeView::on_remove_node(Node* node)
 {
     if( NodeView* view = node->get_component<NodeView>())
     {
-        m_spatial_node.remove_child(view->xform() );
+        m_spatial_node.remove_child( &view->spatial_node() );
     }
 }
 
@@ -138,7 +138,7 @@ void ScopeView::translate(const Vec2 &delta)
     Node* owner = get_owner();
     if ( owner->internal_scope() == m_scope )
         if ( NodeView* owner_view = owner->get_component<NodeView>() )
-            owner_view->xform()->translate( delta );
+            owner_view->spatial_node().translate( delta );
     // translate view (and children...)
     m_spatial_node.translate(delta );
 }

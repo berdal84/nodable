@@ -45,7 +45,7 @@ NodeView::NodeView()
     , m_property_views__all()
     , m_hovered_slotview(nullptr)
     , m_last_clicked_slotview(nullptr)
-    , m_view_state(10.0f, 35.0f)
+    , m_state(10.0f, 35.0f)
 {
 }
 
@@ -160,7 +160,7 @@ void NodeView::set_owner(Node* owner)
             case NodeType_BLOCK_WHILE_LOOP:
                 // hide THIS property
                 if ( property->has_flags(PropertyFlag_IS_NODE_VALUE) )
-                    new_view->view_state()->visible = false;
+                    new_view->state().visible = false;
         }
 
         // Indexing
@@ -223,7 +223,7 @@ void NodeView::set_owner(Node* owner)
         const ShapeType& shape         = shape_per_type.at(slot->type());
         const u8_t       index         = count_per_type[slot->type_and_order()]++;
 
-        auto* view = new SlotView( slot, alignment, shape, index, this->box() );
+        auto* view = new SlotView( slot, alignment, shape, index, this->shape() );
         add_child( view );
     }
 
@@ -235,8 +235,8 @@ void NodeView::set_owner(Node* owner)
             case SlotFlag_TYPE_VALUE:
             {
                 const PropertyView* property_view = find_property_view( view->property() );
-                if ( property_view != nullptr && property_view->view_state()->visible )
-                    view->alignment_ref = property_view->box();
+                if ( property_view != nullptr && property_view->state().visible )
+                    view->alignment_ref = &property_view->shape();
             }
         }
     }
@@ -253,7 +253,7 @@ void NodeView::set_owner(Node* owner)
                 {
                     view->alignment = LEFT;
                     view->update_direction_from_alignment();
-                    view->alignment_ref = this->box();
+                    view->alignment_ref = this->shape();
                 }
             }
             break;
@@ -315,9 +315,9 @@ void NodeView::update(float dt)
 
 bool NodeView::draw()
 {
-    m_view_state.box.draw_debug_info();
+    m_state.shape().draw_debug_info();
 
-    if ( !m_view_state.visible )
+    if ( !m_state.visible )
         return false;
 
     if ( !node() )
@@ -331,7 +331,7 @@ bool NodeView::draw()
 
     // Draw background slots (rectangles)
     for( SlotView* slot_view: m_slot_views )
-        if (slot_view->shape == ShapeType_RECTANGLE)
+        if ( slot_view->shape_type == ShapeType_RECTANGLE)
             draw_slot(slot_view);
 
 	// Begin the window
@@ -350,7 +350,7 @@ bool NodeView::draw()
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( m_view_state.selected )
+    if ( m_state.selected )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -371,7 +371,7 @@ bool NodeView::draw()
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            m_view_state.selected,
+            m_state.selected,
             5.0f,
             border_width );
 
@@ -433,8 +433,8 @@ bool NodeView::draw()
                 if (SlotView *slot_view_out = slot_out->view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
-                    const float y = box()->pivot(BOTTOM, WORLD_SPACE).y;
-                    slot_view_out->xform()->set_position({x, y}, WORLD_SPACE);
+                    const float y = shape()->pivot(BOTTOM, WORLD_SPACE).y;
+                    slot_view_out->spatial_node().set_position({x, y}, WORLD_SPACE);
                     slot_view_out->direction = BOTTOM;
                 }
     }
@@ -480,11 +480,11 @@ bool NodeView::draw()
     new_size.x = std::max( 1.0f, new_size.x );
     new_size.y = std::max( 1.0f, new_size.y );
 
-    box()->set_size(Vec2::round(new_size));
+    shape()->set_size(Vec2::round(new_size));
 
     // Draw foreground slots (circles)
     for( SlotView* slot_view: m_slot_views )
-        if (slot_view->shape == ShapeType_CIRCLE)
+        if ( slot_view->shape_type == ShapeType_CIRCLE)
             draw_slot(slot_view);
 
 	ImGui::PopStyleVar();
@@ -493,7 +493,7 @@ bool NodeView::draw()
     if ( changed )
         node()->set_flags(NodeFlag_IS_DIRTY );
 
-    m_view_state.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
+    m_state.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
 
 	return changed;
 }
@@ -536,7 +536,7 @@ void NodeView::DrawNodeRect(
 
 bool NodeView::is_inside(NodeView* _other, const Rect& _rect, Space _space)
 {
-	return Rect::contains(_rect, _other->box()->get_rect(_space) );
+	return Rect::contains(_rect, _other->shape()->rect(_space) );
 }
 
 bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
@@ -725,7 +725,7 @@ void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)
         Rect shrinked_rect = _rect;
         shrinked_rect.expand( Vec2( -2, -2 ) ); // shrink
 
-		auto view_rect = _view->box()->get_rect();
+		auto view_rect = _view->shape()->rect();
 
 		auto left  = _rect.min.x - view_rect.min.x;
 		auto right = _rect.max.x - view_rect.max.x;
@@ -738,14 +738,14 @@ void NodeView::constraint_to_rect(NodeView* _view, const Rect& _rect)
 			 if ( up > 0 )  view_rect.translate_y(up );
 		else if ( down < 0 )view_rect.translate_y(down );
 
-        _view->xform()->set_position(view_rect.center(), PARENT_SPACE);
+        _view->spatial_node().set_position(view_rect.center(), PARENT_SPACE);
 	}
 
 }
 
 Rect NodeView::get_rect(Space space) const
 {
-    return m_view_state.box.get_rect(space);
+    return m_state.shape().rect(space);
 }
 
 Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
@@ -755,7 +755,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 
     std::vector<Rect> rects;
 
-    if ( m_view_state.visible )
+    if ( m_state.visible )
         rects.push_back( this->get_rect(space) );
 
     auto visit = [&](Node* node)
@@ -763,9 +763,9 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         NodeView* view = node->get_component<NodeView>();
         if( !view )
             return;
-        if( !view->m_view_state.visible )
+        if( !view->m_state.visible )
             return;
-        if(view->m_view_state.selected && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
+        if(view->m_state.selected && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
             return;
         if( view->m_pinned && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
@@ -863,7 +863,7 @@ void NodeView::set_children_visible(bool visible, bool recursively)
         for (Node* child: scope->child_node())
         {
             NodeView *child_view = child->get_component<NodeView>();
-            child_view->m_view_state.visible = visible;
+            child_view->m_state.visible = visible;
         }
     }
 }
@@ -881,7 +881,7 @@ void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeVie
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child_view->m_view_state.visible = _visible;
+            each_child_view->m_state.visible = _visible;
         }
     }
 }
@@ -893,7 +893,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    if( _view->m_view_state.visible )
+    if( _view->m_state.visible )
     {
         return _view;
     }
@@ -951,7 +951,7 @@ void NodeView::draw_slot(SlotView* slot_view)
     if( slot_view->draw() )
         m_last_clicked_slotview = slot_view;
 
-    if( slot_view->state.hovered )
+    if( slot_view->state().hovered )
     {
         m_hovered_slotview = slot_view; // last wins
     }
@@ -959,14 +959,14 @@ void NodeView::draw_slot(SlotView* slot_view)
 
 void NodeView::add_child(PropertyView* view)
 {
-    xform()->add_child( view->xform() );
-    view->xform()->set_position({0.f, 0.f}, PARENT_SPACE);
+    spatial_node().add_child( &view->spatial_node() );
+    view->spatial_node().set_position({0.f, 0.f}, PARENT_SPACE);
 }
 
 void NodeView::add_child(SlotView* view)
 {
-    xform()->add_child( view->xform() );
-    view->xform()->set_position({0.f, 0.f}, PARENT_SPACE);
+    spatial_node().add_child( &view->spatial_node() );
+    view->spatial_node().set_position({0.f, 0.f}, PARENT_SPACE);
     m_slot_views.push_back( view );
 }
 

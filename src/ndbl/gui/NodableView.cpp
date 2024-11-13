@@ -602,7 +602,7 @@ void NodableView::draw_interpreter_window()
             ImGuiEx::DrawHelper("%s", "primary accumulator");
             draw_register_value(Register_rdx);
             ImGui::SameLine();
-            ImGuiEx::DrawHelper("%s", "view_state register");
+            ImGuiEx::DrawHelper("%s", "state register");
             draw_register_value(Register_eip);
             ImGui::SameLine();
             ImGuiEx::DrawHelper("%s", "instruction pointer");
@@ -829,7 +829,7 @@ void NodableView::draw_config_window()
 
             if ( ImGui::CollapsingHeader("Misc.", flags ))
             {
-                ImGui::SliderFloat2("gap view_state (x and y-axis)", &cfg->ui_node_gap_base.x, 0.0f, 400.0f);
+                ImGui::SliderFloat2("gap state (x and y-axis)", &cfg->ui_node_gap_base.x, 0.0f, 400.0f);
                 ImGui::SliderFloat("velocity" , &cfg->ui_node_speed, 1.0f, 10.0f);
                 ImGui::SliderFloat4("padding" , &cfg->ui_node_padding.x, 0.0f, 20.0f);
                 ImGui::SliderFloat("border width", &cfg->ui_node_borderWidth, 0.0f, 10.0f);

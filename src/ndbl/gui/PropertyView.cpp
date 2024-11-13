@@ -14,10 +14,10 @@ constexpr float PROPERTY_INPUT_PADDING   = 5.0f;
 constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 
 PropertyView::PropertyView(Property* _property )
-: m_property(_property)
+: _property(_property)
 , show(false)
 , touched(false)
-, m_view_state(10.f, 10.f)
+, _state(10.f, 10.f)
 {
 }
 
@@ -29,22 +29,22 @@ void PropertyView::reset()
 
 Property* PropertyView::get_property() const
 {
-    return m_property;
+    return _property;
 }
 
 Node* PropertyView::get_node() const
 {
-    return m_property->owner();
+    return _property->owner();
 }
 
 bool PropertyView::has_input_connected() const
 {
-    return get_node()->has_input_connected( m_property );
+    return get_node()->has_input_connected(_property );
 }
 
 Slot* PropertyView::get_connected_slot() const
 {
-    const Slot* input_slot = get_node()->find_slot_by_property( m_property, SlotFlag_INPUT );
+    const Slot* input_slot = get_node()->find_slot_by_property(_property, SlotFlag_INPUT );
     if( !input_slot )
         return nullptr;
 
@@ -62,9 +62,9 @@ VariableNode* PropertyView::get_connected_variable() const
 
 bool PropertyView::draw(ViewDetail _detail)
 {
-    m_view_state.box.draw_debug_info();
+    _state.shape().draw_debug_info();
 
-    if ( !m_view_state.visible )
+    if ( !_state.visible )
         return false;
 
     bool            changed            = false;
@@ -151,8 +151,8 @@ bool PropertyView::draw(ViewDetail _detail)
     // Memorize new size and position fo this property
     const Vec2 new_size = ImGui::GetItemRectSize();
     const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
-    box()->set_pos( new_pos, WORLD_SPACE ); // GetItemRectMin is in SCREEN_SPACE
-    box()->set_size({new_size.x, node->get_component<NodeView>()->box()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
+    shape().set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
+    shape().set_size({new_size.x, node->get_component<NodeView>()->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));

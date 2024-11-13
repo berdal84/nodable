@@ -52,7 +52,7 @@ void Physics::apply_constraints(float _dt)
 
 void Physics::add_force_to_move_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
 {
-    Vec2 delta   = _target_pos - _view->xform()->position(_space);
+    Vec2 delta   = _target_pos - _view->spatial_node().position(_space);
     float factor = std::max(0.0f, _factor);
     Vec2 force   = Vec2::scale(delta, factor);
     add_force( force, _recurse);
@@ -82,7 +82,7 @@ void Physics::apply_forces(float _dt)
     Vec2  soften_force_sum = Vec2::lerp(_last_frame_forces_sum, _forces_sum, 0.95f);
     Vec2  delta            = soften_force_sum * (1.0f - friction_coef) * _dt;
 
-    _view->xform()->translate(delta );
+    _view->spatial_node().translate(delta );
 
     _last_frame_forces_sum = soften_force_sum;
     _forces_sum            = Vec2();
@@ -236,7 +236,7 @@ void Physics::NodeViewConstraint::constrain_1_to_N_as_row(float _dt)
     if( !physics_component )
         return;
 
-    Vec2 current_pos = _follower->xform()->position(WORLD_SPACE);
+    Vec2 current_pos = _follower->spatial_node().position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
     physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
@@ -282,7 +282,7 @@ void Physics::NodeViewConstraint::constrain_N_to_1_as_a_row(float _dt)
         auto* physics_component = clean_follower[i]->node()->get_component<Physics>();
         if( !physics_component )
             continue;
-        Vec2 current_pos = clean_follower[i]->xform()->position(WORLD_SPACE);
+        Vec2 current_pos = clean_follower[i]->spatial_node().position(WORLD_SPACE);
         Vec2 desired_pos = current_pos + delta[i];
         physics_component->add_force_to_move_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
     }
@@ -346,7 +346,7 @@ void Physics::ParentChildScopeViewConstraint::update(float dt)
     // v align
     const Vec2 parent_pivot_pos = parent->get_owner()
                                   ->get_component<NodeView>()
-                                  ->box()
+                                  ->shape()
                                   ->pivot( BOTTOM, WORLD_SPACE );
     const float top = parent_pivot_pos.y + gap * gap_direction.y;
     Rect::align_top( new_rect, top );

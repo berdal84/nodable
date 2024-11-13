@@ -39,24 +39,28 @@ namespace ndbl
             );
 
         const size_t    index;
-        const ShapeType shape;
+        const ShapeType shape_type;
         Vec2            direction; // cached
-        ViewState       state;
         Slot* const     slot;
         Vec2            alignment;
         const BoxShape2D* alignment_ref;
 
-        void                         update(float dt);
-        bool                         draw();
-        string64                     compute_tooltip() const;
-        inline Node*                 node()const { return slot->node; }
-        inline bool                  allows(SlotFlag flags) const { return slot->has_flags(flags); }
-        inline SpatialNode2D*        xform() { return &state.box.xform; }
-        inline const SpatialNode2D*  xform() const { return &state.box.xform; }
-        inline BoxShape2D*           box() { return &state.box; }
-        inline const BoxShape2D*     box() const { return &state.box; }
-        inline const Property*       property()const { return slot->property; }
-        inline const TypeDescriptor* property_type()const { return property() ? property()->get_type() : nullptr; }
-        void                         update_direction_from_alignment();
+        void                  update(float dt);
+        bool                  draw();
+        string64              compute_tooltip() const;
+        Node*                 node()const { return slot->node; }
+        bool                  allows(SlotFlag flags) const { return slot->has_flags(flags); }
+        SpatialNode2D&        spatial_node() { return shape().spatial_node(); }
+        const SpatialNode2D&  spatial_node() const { return shape().spatial_node(); }
+        BoxShape2D&           shape() { return _state.shape(); }
+        const BoxShape2D&     shape() const { return _state.shape(); }
+        ViewState&            state() { return _state; }
+        const ViewState&      state() const { return _state; }
+        const Property*       property()const { return slot->property; }
+        const TypeDescriptor* property_type()const { return property() ? property()->get_type() : nullptr; }
+        void                  update_direction_from_alignment();
+
+    private:
+        ViewState _state;
     };
 }

@@ -57,9 +57,9 @@ namespace ndbl
 		~NodeView();
 
         Node*                   node() const { return m_owner; }
-        bool                    selected() const { return  m_view_state.selected; };
+        bool                    selected() const { return  m_state.selected; };
         inline bool             pinned() const { return m_pinned; }
-        bool                    visible() const { return m_view_state.visible; };
+        bool                    visible() const { return m_state.visible; };
         void                    set_pinned(bool b = true ) { m_pinned = b; }
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw();
@@ -79,12 +79,12 @@ namespace ndbl
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
         GraphView*              graph_view() const;
-        tools::BoxShape2D*             box() { return &m_view_state.box; }
-        const tools::SpatialNode2D*   xform() const { return &m_view_state.box.xform; }
-        tools::SpatialNode2D*         xform() { return &m_view_state.box.xform; }
-        tools::ViewState*       base_view() { return &m_view_state; }
-        bool                    hovered() const { return m_view_state.hovered; }
-        void                    set_selected(bool b = true) { m_view_state.selected = b; };
+        tools::BoxShape2D*      shape() { return &m_state.shape(); }
+        const tools::SpatialNode2D& spatial_node() const { return m_state.spatial_node(); }
+        tools::SpatialNode2D&   spatial_node() { return m_state.spatial_node(); }
+        tools::ViewState&       state() { return m_state; }
+        bool                    hovered() const { return m_state.hovered; }
+        void                    set_selected(bool b = true) { m_state.selected = b; };
         void                    reset_all_properties();
 
         static tools::Rect      get_rect(const std::vector<NodeView *> &_views, tools::Space = tools::WORLD_SPACE, NodeViewFlags = NodeViewFlag_NONE);
@@ -113,7 +113,7 @@ namespace ndbl
         );
 
 
-        tools::ViewState m_view_state; // uses View by Composition
+        tools::ViewState m_state;
         bool            m_expanded;
         bool            m_pinned;
         float           m_opacity;

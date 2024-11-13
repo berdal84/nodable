@@ -57,7 +57,6 @@ namespace ndbl
         void        reset_all_properties();
         Graph*            graph() const;
         void              add_child(NodeView*);
-        tools::ViewState* view_state() { return &m_view_state; };
         void              decorate_node(Node* node);
 
         static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
