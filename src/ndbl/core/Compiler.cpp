@@ -48,9 +48,9 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
         {
             case NodeType_VARIABLE:
             {
-                if(node->parent() == nullptr )
+                if(node->scope() == nullptr )
                 {
-                    LOG_ERROR("Compiler", "\"%s\" should have a parent.\n", node->name().c_str() );
+                    LOG_ERROR("Compiler", "\"%s\" should have a scope.\n", node->name().c_str() );
                     return false;
                 }
                 break;

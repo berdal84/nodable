@@ -507,7 +507,7 @@ void GraphView::create_constraints_for_scope( Scope* scope )
     else if ( !scope->child_scope().empty() )
     {
         Physics::ScopeViewConstraint_ParentChild constraint;
-        constraint.name          = "Align child scope views with parent";
+        constraint.name          = "Align child scope views with scope";
         constraint.parent        = scope->view();
         constraint.parent_pivot  = BOTTOM;
         constraint.gap_size      = Size_XL;
@@ -758,13 +758,14 @@ void GraphView::drag_state_enter()
 
 void GraphView::drag_state_tick()
 {
-    Vec2 delta = ImGui::GetMouseDragDelta();
+    const Vec2 delta = ImGui::GetMouseDragDelta();
+    ImGui::ResetMouseDragDelta();
 
     switch ( m_focused.type )
     {
         case ViewItemType_SCOPE:
         {
-            m_focused.scopeview->translate_with_owner( delta );
+            m_focused.scopeview->translate( delta );
             break;
         }
 
@@ -775,8 +776,6 @@ void GraphView::drag_state_tick()
             break;
         }
     }
-
-    ImGui::ResetMouseDragDelta();
 
     if ( ImGui::IsMouseReleased(0) )
         m_state_machine.exit_state();

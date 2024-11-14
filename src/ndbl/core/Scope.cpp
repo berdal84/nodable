@@ -23,7 +23,7 @@ REFLECT_STATIC_INIT
 VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flags )
 {
     // Try first to find in this scope
-    for(auto it = m_var.begin(); it != m_var.end(); it++)
+    for(auto it = m_variable_node.begin(); it != m_variable_node.end(); it++)
         if ( (*it)->get_identifier() == _identifier )
             return *it;
 
@@ -37,49 +37,13 @@ VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flag
 void Scope::push_back_ex(Node *node, ScopeFlags flags)
 {
     ASSERT(node);
-
-    if (node->parent() )
-    {
-        if ( flags & ScopeFlags_ALLOW_CHANGE )
-            node->parent()->remove(node );
-        else
-            ASSERT(false); // Not handled yet
-    }
-
-
-    if ( node->type() == NodeType_VARIABLE )
-    {
-        auto variable_node = static_cast<VariableNode*>( node );
-        if (find_var(variable_node->get_identifier()) != nullptr )
-        {
-            LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same internal_scope.\n", variable_node->get_identifier().c_str());
-            // we do not return, graph is abstract, it just won't compile ...
-        }
-        else if (variable_node->parent() )
-        {
-            LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another internal_scope. Remove it first.\n", variable_node->get_identifier().c_str());
-            // we do not return, graph is abstract, it just won't compile ...
-        }
-        else
-        {
-            LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scope\n", variable_node->get_identifier().c_str() );
-            m_var.insert(variable_node);
-        }
-    }
-
-    if (node->has_internal_scope())
-        node->m_scope->reset_parent(this);
-    else
-        node->m_scope = this;
-
-    if ((flags & ScopeFlags_NO_PUSH_BACK) == 0)
-        m_child_node.push_back( node );
+    node_register_add( node, flags );
 
     if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
     {
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
-                push_back_ex(input, flags | ScopeFlags_NO_PUSH_BACK ); // NO_PUSH_BACK: we don't want those nodes to be part of the main children
+                push_back_ex(input, flags & ~ScopeFlags_IS_PRIMARY_NODE );
 
         for ( Node* next : node->flow_outputs() )
             push_back_ex(next, flags);
@@ -100,19 +64,19 @@ std::vector<Node*> Scope::leaves()
 
 std::vector<Node*>& Scope::leaves_ex(std::vector<Node*>& out)
 {
-    if ( m_child_node.empty() && m_child_scope.empty() )
+    if (m_primary_node.empty() && m_child_scope.empty() )
     {
         return out;
     }
 
     // Recursive call for nested nodes
-    for( Node* child : m_child_node )
+    for( Node* child : m_primary_node )
     {
         if (child->has_internal_scope() )
         {
             child->internal_scope()->leaves_ex(out); // Recursive call on nested scopes
         }
-        else if ( child == *m_child_node.rbegin() )
+        else if ( child == *m_primary_node.rbegin() )
         {
             out.push_back( child ); // Append the last instruction to the result
         }
@@ -130,43 +94,34 @@ void Scope::remove_ex(Node* node, ScopeFlags flags)
 {
     ASSERT(node != nullptr);
 
-    // if it's a variable, we remove it from the vars registry
-    if ( node->type() == NodeType_VARIABLE )
-    {
-        auto variable = static_cast<VariableNode*>(node);
-        m_var.erase( variable );
-    }
+    node_register_remove(node, flags);
 
-    // remove the node from the registry
-    auto it = std::find(m_child_node.begin(), m_child_node.end(), node);
-    if( it != m_child_node.end() )
-        m_child_node.erase( it );
+    on_change.emit();
+    on_remove.emit(node);
 
-    // reset scope
-    if (node->has_internal_scope())
-        node->m_scope->reset_parent(nullptr);
-    else
-        node->m_scope = nullptr;
-
+    // recursive call(s)
     if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
     {
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
-                remove_ex(input, flags);
+                remove_ex(input, flags & ~ScopeFlags_IS_PRIMARY_NODE );
 
         for ( Node* next : node->flow_outputs() )
             remove_ex(next, flags);
     }
-
-    on_change.emit();
-    on_remove.emit(node);
 }
 
 void Scope::clear()
 {
-    while( !m_child_node.empty() )
-        if ( m_child_node.back() != node() ) // owner is always there
-            remove_ex( m_child_node.back(), ScopeFlags_ALLOW_CHANGE | ScopeFlags_RECURSE );
+    while( !m_primary_node.empty() )
+    {
+        remove_ex( m_primary_node.back(), ScopeFlags_IS_PRIMARY_NODE );
+    }
+
+    while( !m_all_node.empty() )
+    {
+        remove_ex(*m_all_node.begin(), ScopeFlags_NONE );
+    }
 
     on_clear.emit();
 }
@@ -277,4 +232,61 @@ bool Scope::is_internal(const Scope* scope)
 {
     return scope->node()->has_internal_scope()
            && scope->node()->internal_scope() == scope;
+}
+
+void Scope::change_scope(Node* node, Scope* desired_scope )
+{
+    Scope* current_scope = node->scope();
+    if ( current_scope ) current_scope->remove( node );
+    if ( desired_scope ) desired_scope->push_back( node );
+}
+
+void Scope::node_register_remove(Node* node, ScopeFlags flags)
+{
+    VERIFY( node->scope() == this, "Node does not have this as scope");
+    const int erased_count = m_all_node.erase(node );
+    VERIFY( erased_count, "Unable to find node" );
+
+    auto it = std::find(m_primary_node.begin(), m_primary_node.end(), node );
+    if ( it != m_primary_node.end() )
+    {
+        m_primary_node.erase( it );
+
+        if ( node->type() == NodeType_VARIABLE )
+            m_variable_node.erase( static_cast<VariableNode*>(node) );
+    }
+
+    node->reset_scope();
+}
+
+void Scope::node_register_add(Node* node, ScopeFlags flags)
+{
+    VERIFY(node->scope() == nullptr, "Node should have no scope");
+
+    if ( flags & ScopeFlags_IS_PRIMARY_NODE )
+    {
+        m_primary_node.push_back( node );
+
+        if ( node->type() == NodeType_VARIABLE )
+        {
+            auto variable_node = static_cast<VariableNode*>( node );
+            if (find_var(variable_node->get_identifier()) != nullptr )
+            {
+                LOG_ERROR("Scope", "Unable to add variable '%s', already exists in the same internal_scope.\n", variable_node->get_identifier().c_str());
+                // we do not return, graph is abstract, it just won't compile ...
+            }
+            else if (variable_node->scope() )
+            {
+                LOG_ERROR("Scope", "Unable to add variable '%s', already declared in another internal_scope. Remove it first.\n", variable_node->get_identifier().c_str());
+                // we do not return, graph is abstract, it just won't compile ...
+            }
+            else
+            {
+                LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scope\n", variable_node->get_identifier().c_str() );
+                m_variable_node.insert(variable_node);
+            }
+        }
+    }
+    m_all_node.insert(node );
+    node->reset_scope(this);
 }

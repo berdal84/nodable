@@ -43,12 +43,12 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
         nodes.insert( m_scope->node() );
 
     Rect r = {};
-    m_nodeviews.clear();
+    m_inner_nodeviews.clear();
     for(Node* node : nodes )
     {
         if (NodeView *nodeView = node->get_component<NodeView>())
         {
-            m_nodeviews.push_back( nodeView );
+            m_inner_nodeviews.push_back(nodeView );
             if (nodeView->visible())
             {
                 Rect node_rect = nodeView->get_rect_ex(WORLD_SPACE, NodeViewFlag_WITH_RECURSION | NodeViewFlag_WITH_PINNED);
@@ -83,7 +83,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
 
 bool ScopeView::must_be_draw() const
 {
-    return m_content_rect.has_area() && m_nodeviews.size() >= 1;
+    return m_content_rect.has_area() && m_inner_nodeviews.size() >= 1;
 }
 
 void ScopeView::draw(float dt, bool highlight)
@@ -133,26 +133,21 @@ void ScopeView::on_reset_parent(Scope* scope)
             scope->view()->m_spatial_node.add_child( &m_spatial_node );
 }
 
-void ScopeView::translate_with_owner(const Vec2& delta)
+void ScopeView::translate(const tools::Vec2 &delta)
 {
     // translate scope's owner's view, only it this is the main internal scope
-    if ( node()->internal_scope() == m_scope )
-        if ( NodeView* owner_view = node()->get_component<NodeView>() )
-            owner_view->spatial_node().translate( delta );
+    if ( Scope::is_internal( m_scope ) )
+        node()->get_component<NodeView>()->spatial_node().translate( delta );
     // translate view (and children...)
     m_spatial_node.translate( delta );
 }
 
 void ScopeView::set_pinned(bool b)
 {
-    m_pinned = b;
-    scope()
-        ->node()
-        ->get_component<NodeView>()
-        ->set_pinned( b );
+    node()->get_component<NodeView>()->set_pinned(b);
 }
 
 bool ScopeView::pinned() const
 {
-    return scope()->node()->get_component<NodeView>()->pinned();
+    return node()->get_component<NodeView>()->pinned();
 }

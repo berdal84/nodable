@@ -241,10 +241,8 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
     if (_token.m_type == Token_t::identifier)
     {
         std::string identifier = _token.word_to_string();
-
-        Scope* scope = _state.current_scope();
-        VERIFY(scope, "No current scope, at least one base parent is required in the parent stack");
-        if( VariableNode* existing_variable = scope->find_var( identifier ) )
+        ASSERT(_state.current_scope());
+        if( VariableNode* existing_variable = _state.current_scope()->find_var( identifier ) )
         {
             return existing_variable->ref_out();
         }

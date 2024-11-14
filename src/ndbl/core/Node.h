@@ -35,16 +35,7 @@ namespace ndbl
         NodeFlag_IS_DIRTY            = 1 << 0,
         NodeFlag_ALL                 = ~NodeFlag_NONE,
     };
-	/**
-		The role of this class is to provide connectable Objects as Nodes.
 
-		A child_node is an Object (composed with Properties) that can be linked
-	    together in order to create_new graphs.
-
-		Every Node has a parent Graph. All child_node are built from a Graph,
-	    which first create an instance of this class (or derived) and then
-		add some Component on it.
-	*/
     class Node
 	{
     public:
@@ -84,11 +75,12 @@ namespace ndbl
         const Slot*          flow_in() const;
         Slot*                flow_out();
         const Slot*          flow_out() const;
+        bool                 has_scope() const { return scope() != nullptr; }
+        Scope*               scope() const { return m_parent_scope; };
+        void                 reset_scope(Scope* = nullptr);
         void                 init_internal_scope();
-        bool                 has_internal_scope() const { return m_is_a_scope; }
-        Scope*               internal_scope() const { ASSERT(m_is_a_scope); return m_scope; }
-        bool                 has_parent() const { return parent() != nullptr; }
-        Scope*               parent() const { return m_is_a_scope ? m_scope->parent() : m_scope; };
+        bool                 has_internal_scope() const { return m_internal_scope != nullptr; }
+        Scope*               internal_scope() const { ASSERT(m_internal_scope); return m_internal_scope; }
 
         // Slot related
         //-------------
@@ -118,9 +110,9 @@ namespace ndbl
 
         bool                      has_flow_adjacent() const;
         const std::vector<Node*>& flow_outputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_OUT); }
-        const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
-        const std::vector<Node*>& outputs() const { return m_adjacent_nodes_cache.get( SlotFlag_OUTPUT ); }
-        const std::vector<Node*>& flow_inputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_IN ); }
+        const std::vector<Node*>& inputs() const       { return m_adjacent_nodes_cache.get(SlotFlag_INPUT); }
+        const std::vector<Node*>& outputs() const      { return m_adjacent_nodes_cache.get(SlotFlag_OUTPUT); }
+        const std::vector<Node*>& flow_inputs() const  { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_IN); }
 
         // Property related
         //-----------------
@@ -167,8 +159,8 @@ namespace ndbl
         NodeFlags          m_flags = NodeFlag_IS_DIRTY;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
-        Scope*             m_scope = nullptr; // parent_scope or internal_scope
-        bool               m_is_a_scope = false;
+        Scope*             m_parent_scope = nullptr;
+        Scope*             m_internal_scope = nullptr;
         std::unordered_map<size_t,  std::vector<Slot*>> m_slots_by_property; // property's hash to Slots
 
         struct AdjacentNodesCache

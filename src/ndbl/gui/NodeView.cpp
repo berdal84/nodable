@@ -705,8 +705,8 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
         if ( ImGui::TreeNode("Scope") )
         {
-            if (node->parent() )
-                ImGui::BulletText("%s", node->parent()->name());
+            if (node->scope() )
+                ImGui::BulletText("%s", node->scope()->name());
             else
                 ImGui::BulletText("None");
             ImGui::TreePop();
@@ -906,7 +906,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
     }
 
     if ( _recursive )
-        if( Scope* scope = _view->node()->parent() )
+        if( Scope* scope = _view->node()->scope() )
             if (NodeView* parent_view = scope->node()->get_component<NodeView>() )
                 return parent_view->visible() ? parent_view
                                               : substitute_with_parent_if_not_visible(parent_view, _recursive);

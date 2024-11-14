@@ -104,9 +104,8 @@ void tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child)
 
 void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* possible_child)
 {
-    ASSERT( possible_child->parent() != nullptr );
-    if ( !_children.erase(possible_child) )
-        return;
+    const int success = _children.erase(possible_child);
+    VERIFY( success, "Unable to erase possible_child");
     const Vec2 world_position = possible_child->position(WORLD_SPACE);
     possible_child->_parent = nullptr;
     possible_child->set_position(world_position, WORLD_SPACE);

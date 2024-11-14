@@ -323,7 +323,7 @@ const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
 
 void Node::init_internal_scope()
 {
-    VERIFY( !m_is_a_scope, "Can't call this more than once");
+    VERIFY( m_internal_scope == nullptr, "Can't call this more than once");
 
     // create internal scope
     Scope* scope = get_component_factory()->create<Scope>();
@@ -331,20 +331,26 @@ void Node::init_internal_scope()
     add_component( scope );
 
     // preserve parent
-    if ( parent() )
-        scope->reset_parent( parent() );
+    if ( m_parent_scope )
+        scope->reset_parent( m_parent_scope );
 
-    m_is_a_scope = true;
-    m_scope      = scope;
+    m_internal_scope = scope;
 }
 
 bool Node::has_flow_adjacent() const
 {
-    return !flow_inputs().empty() || flow_outputs().empty();
+    return !flow_inputs().empty() || !flow_outputs().empty();
 }
 
 bool Node::is_expression() const
 {
     return !inputs().empty();
+}
+
+void Node::reset_scope(Scope* scope)
+{
+    if ( m_internal_scope )
+        m_internal_scope->reset_parent( scope );
+    m_parent_scope = scope;
 }
 

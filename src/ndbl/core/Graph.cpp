@@ -155,7 +155,7 @@ void Graph::destroy(Node* node)
     }
 
     // Remove from scope
-    if ( Scope* scope = node->parent() )
+    if ( Scope* scope = node->scope() )
         scope->remove( node );
 
     // Remove inner_scope children
@@ -341,7 +341,7 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
 {
     // 1) Update Scope
     //
-    Scope* target_scope = edge.head->node->parent();
+    Scope* target_scope = edge.head->node->scope();
 
     if (edge.head->node->has_internal_scope() )
         target_scope = edge.head->node->internal_scope();
@@ -375,8 +375,8 @@ void Graph::on_disconnect_value_side_effects( DirectedEdge edge )
 void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
-    
-    Scope* curr_scope = edge.head->node->parent();
+
+    Scope* curr_scope   = edge.head->node->scope();
 
     switch ( edge.head->adjacent_count())
     {
@@ -388,9 +388,8 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
         }
         case 1:
         {
-            Scope* adjacent_scope = edge.head->first_adjacent_node()->parent();
-            if ( adjacent_scope )
-                adjacent_scope->push_back(edge.head->node );
+            Node* first_adjacent = edge.head->first_adjacent_node();
+            Scope::change_scope(edge.head->node, first_adjacent->scope());
             break;
         }
         default: // 2+
@@ -399,16 +398,13 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
             std::vector<Scope *> adjacent_scopes;
             for (Slot *adjacent: edge.head->adjacent())
             {
-                adjacent_scopes.push_back(adjacent->node->parent());
+                adjacent_scopes.push_back(adjacent->node->scope());
             }
-            Scope *target_scope = nullptr;
-            if (Scope *ancestor = Scope::lowest_common_ancestor(adjacent_scopes))
-                target_scope = ancestor->node()->parent();
 
-            if (target_scope)
-                target_scope->push_back(edge.head->node);
-            else if ( curr_scope )
-                curr_scope->remove(edge.head->node);
+            Scope* target_scope = nullptr;
+            if (Scope *ancestor = Scope::lowest_common_ancestor(adjacent_scopes) )
+                target_scope = ancestor->node()->scope();
+            Scope::change_scope(edge.head->node, target_scope);
         }
     }
 }
@@ -435,7 +431,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         }
         else
         {
-            target_scope = previous_node->parent();
+            target_scope = previous_node->scope();
         }
     }
     else if ( flow_in_edge_count > 1 )
@@ -443,7 +439,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         // gather adjacent scopes
         std::vector<Scope*> adjacent_scope;
         for(Slot* adjacent : edge.head->adjacent() )
-            adjacent_scope.push_back( adjacent->node->parent() );
+            adjacent_scope.push_back(adjacent->node->scope() );
         // find lowest_common_ancestor
         target_scope = Scope::lowest_common_ancestor( adjacent_scope );
 //        if ( Scope::is_internal(target_scope) )
@@ -454,8 +450,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         VERIFY(false, "Unexpected edge count");
     }
 
-    if ( target_scope )
-        target_scope->push_back( next_node );
+    Scope::change_scope(next_node, target_scope);
 }
 
 void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
@@ -611,7 +606,7 @@ std::set<Scope *> Graph::root_scopes()
 {
     std::set<Scope *> result;
     for(Node* node : m_node_registry)
-        if (node->has_internal_scope() && !node->has_parent() )
+        if (node->has_internal_scope() && !node->has_scope() )
             result.insert( node->internal_scope() );
     return result;
 }
@@ -620,7 +615,7 @@ std::vector<Scope *> Graph::scopes()
 {
     std::vector<Scope *> result;
     for(Node* node : m_node_registry)
-        if ( node->parent() )
-            result.push_back( node->parent() );
+        if (node->scope() )
+            result.push_back(node->scope() );
     return result;
 }
