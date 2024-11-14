@@ -29,8 +29,8 @@ void App::init()
 void App::init_ex(AppView* _view, Config* _config)
 {
     // Guards
-    VERIFY(m_view == nullptr, "A view already exist. Did you call init twice?");
-    VERIFY(m_config == nullptr, "A config already exist. Did you call init twice?");
+    VERIFY(m_view == nullptr, "A view already exist. Did you call reset_name twice?");
+    VERIFY(m_config == nullptr, "A config already exist. Did you call reset_name twice?");
     VERIFY(_config != nullptr, "You must provide a config");
     VERIFY(_view != nullptr, "You must provide a view");
 

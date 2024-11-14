@@ -39,8 +39,6 @@ namespace ndbl
         SIGNAL(on_change);
         SIGNAL(on_clear);
 
-        const char*                    name() const { return m_name.c_str(); };
-        void                           set_name(const std::string& name) { m_name = name; };
         Scope*                         parent() { return m_parent; }
         const Scope*                   parent() const { return m_parent; }
         void                           reset_parent(Scope*, ScopeFlags flags = ScopeFlags_NONE);
@@ -84,7 +82,5 @@ namespace ndbl
         std::vector<Node*>             m_primary_node;
         std::vector<Scope*>            m_child_scope;
         Scope*                         m_parent = nullptr;
-        std::string                    m_name;
-
     };
 }

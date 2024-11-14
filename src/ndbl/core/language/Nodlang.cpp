@@ -1254,7 +1254,7 @@ Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
         Token open_bracket = _state.tokens().eat_if(Token_t::parenthesis_open);
         if ( open_bracket)
         {
-            LOG_VERBOSE("Parser", "Parsing for init/condition/iter instructions ...\n");
+            LOG_VERBOSE("Parser", "Parsing for reset_name/condition/iter instructions ...\n");
 
             _state.push_scope(for_node->internal_scope() );
 

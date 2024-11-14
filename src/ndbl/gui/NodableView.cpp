@@ -44,7 +44,7 @@ void NodableView::update()
 
 void NodableView::init(Nodable * _app)
 {
-    LOG_VERBOSE("ndbl::NodableView", "init ...\n");
+    LOG_VERBOSE("ndbl::NodableView", "reset_name ...\n");
     m_app = _app;
     // Initialize wrapped view and inject some code ...
     tools::App* base_app = _app->get_base_app_handle();

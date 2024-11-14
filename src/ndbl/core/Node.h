@@ -9,7 +9,6 @@
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 
-#include "ComponentBag.h"
 #include "DirectedEdge.h"
 #include "Property.h"
 #include "PropertyBag.h"

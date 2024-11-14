@@ -41,7 +41,7 @@ Graph* NodableHeadless::parse( const std::string& code )
 
 bool NodableHeadless::run_program() const
 {
-    VERIFY(m_interpreter != nullptr, "Did you call init() ?");
+    VERIFY(m_interpreter != nullptr, "Did you call reset_name() ?");
 
     try {
         m_interpreter->run_program();

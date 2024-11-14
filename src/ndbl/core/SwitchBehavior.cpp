@@ -19,7 +19,7 @@ void SwitchBehavior::init(Node* node, size_t branch_count)
     {
         // child scope
         m_branch_scope[branch] = component_factory->create<Scope>();
-        m_branch_scope[branch]->set_name("ChildScope_"+ std::to_string(branch) );
+        m_branch_scope[branch]->reset_name("Child Scope");
         m_branch_scope[branch]->reset_parent(node->internal_scope(), ScopeFlags_CLEAR_WITH_PARENT );
         node->add_component( m_branch_scope[branch] );
 

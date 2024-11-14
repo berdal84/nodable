@@ -327,7 +327,7 @@ void Node::init_internal_scope()
 
     // create internal scope
     Scope* scope = get_component_factory()->create<Scope>();
-    scope->set_name(m_name + "'s internal scope");
+    scope->reset_name("Internal Scope");
     add_component( scope );
 
     // preserve parent
