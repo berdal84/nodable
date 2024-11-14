@@ -36,7 +36,7 @@ std::string Instruction::to_string(const Instruction& _instr)
         {
             result.append(format::address( _instr.uref.ptr ));
             result.append(", *");
-            result.append( _instr.uref.type->get_name() );
+            result.append(_instr.uref.type->name() );
             break;
         }
 

@@ -17,6 +17,7 @@ namespace ndbl
     class ForLoopNode : public Node, public SwitchBehavior
     {
     public:
+        REFLECT_DERIVED_CLASS()
         Token token_for = { Token_t::keyword_for };
 
         void        init(const std::string& _name);
@@ -27,6 +28,5 @@ namespace ndbl
     private:
         Slot*       m_initialization_slot{nullptr};
         Slot*       m_iteration_slot{nullptr};
-        REFLECT_DERIVED_CLASS()
     };
 }

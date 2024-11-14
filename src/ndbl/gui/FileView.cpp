@@ -340,7 +340,7 @@ void draw_scope(const Scope* scope)
         if (  ImGui::TreeNode("child_node", "child_node(s) (%zu)", scope->child_node().size())  )
         {
             for ( const Node* node : scope->child_node() )
-                ImGui::BulletText("%s (class %s)", node->name().c_str(), node->get_class()->get_name() );
+                ImGui::BulletText("%s (class %s)", node->name().c_str(), node->get_class()->name() );
             ImGui::TreePop();
         }
         ImGui::TreePop();

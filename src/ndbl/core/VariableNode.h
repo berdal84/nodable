@@ -29,6 +29,8 @@ namespace ndbl
 	class VariableNode : public Node
     {
 	public:
+        REFLECT_DERIVED_CLASS()
+
 		~VariableNode() override {};
 
         void               init(const tools::TypeDescriptor* _type, const char* _identifier);
@@ -59,7 +61,5 @@ namespace ndbl
 
         Slot*              m_as_declaration_slot = nullptr;
         Slot*              m_as_reference_slot   = nullptr;
-
-		REFLECT_DERIVED_CLASS()
     };
 }

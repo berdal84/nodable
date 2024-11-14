@@ -52,6 +52,7 @@ namespace ndbl
     class NodeView : public NodeComponent
 	{
     public:
+        REFLECT_DERIVED_CLASS()
         friend class GraphView;
 		NodeView();
 		~NodeView();
@@ -128,7 +129,5 @@ namespace ndbl
         std::vector<PropertyView*> m_property_views__inout_strictly;
         std::vector<PropertyView*> m_property_views__out;
         std::vector<PropertyView*> m_property_views__in;
-
-        REFLECT_DERIVED_CLASS()
     };
 }

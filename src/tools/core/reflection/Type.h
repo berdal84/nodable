@@ -12,18 +12,14 @@
 
 // add this macro to a class declaration to enable reflection on it
 #define REFLECT_BASE_CLASS() \
-public:\
     virtual const tools::ClassDescriptor* get_class() const \
-    { return tools::type::get_class(this); }\
-private:
+    { return tools::type::get_class(this); }
 
 // add this macro to a class declaration to enable reflection on it.
 // Must have a parent class having REFLECT_BASE_CLASS macro.
 #define REFLECT_DERIVED_CLASS() \
-public:\
     virtual const tools::ClassDescriptor* get_class() const override \
-    { return tools::type::get_class(this); }\
-private:
+    { return tools::type::get_class(this); }
 
 namespace tools
 {
@@ -108,7 +104,8 @@ namespace tools
         template<class T>
         static TypeDescriptor* create(const char* _name);
         std::type_index           id() const { return m_id; }
-        const char*               get_name() const { return m_name.c_str(); };
+        const char*               compiler_name() const { return m_compiler_name; };
+        const char*               name() const { return m_name.c_str(); };
         bool                      is_class() const { return m_flags & TypeFlag_IS_CLASS; }
         bool                      any_of(std::vector<const TypeDescriptor*> args)const;
         bool                      has_parent() const { return m_flags & TypeFlag_HAS_PARENT; }

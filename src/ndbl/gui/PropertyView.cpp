@@ -135,7 +135,7 @@ bool PropertyView::draw(ViewDetail _detail)
 
     if ( ImGuiEx::BeginTooltip() )
     {
-        ImGui::Text("%s %s\n", property->get_type()->get_name(), property->name().c_str());
+        ImGui::Text("%s %s\n", property->get_type()->name(), property->name().c_str());
 
         std::string  source_code;
         if( property == node->value() || node->find_slot_by_property( property, SlotFlag_OUTPUT ))

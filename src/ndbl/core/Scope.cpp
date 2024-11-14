@@ -17,7 +17,7 @@ using namespace tools;
 
 REFLECT_STATIC_INIT
 {
-    type::Initializer<Scope>("Scope");
+    type::Initializer<Scope>("Scope").extends<NodeComponent>();
 }
 
 VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flags )

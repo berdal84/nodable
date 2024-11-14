@@ -78,7 +78,7 @@ std::string NodeView::get_label()
             if (minimalist)
                 return "";
             auto variable = static_cast<const VariableNode *>( node() );
-            return variable->get_type()->get_name();
+            return variable->get_type()->name();
         }
         case NodeType_OPERATOR:
         {
@@ -553,7 +553,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
         ImGui::Text(
                 "%s (%s): ",
                 property->name().c_str(),
-                property->get_type()->get_name());
+                property->get_type()->name());
 
         ImGui::SameLine();
         ImGui::Text("(?)");
@@ -568,7 +568,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
     };
 
     ImGui::Text("Name:       \"%s\"" , node->name().c_str());
-    ImGui::Text("Class:      %s"     , node->get_class()->get_name());
+    ImGui::Text("Class:      %s"     , node->get_class()->name());
 
     // Draw exposed input properties
 
@@ -600,127 +600,141 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
     changed |= draw_properties("In/Out(s)", _view->m_property_views__inout_strictly);
     ImGui::Separator();
     changed |= draw_properties("Output(s)", _view->m_property_views__out_strictly);
+
+#ifdef NDBL_DEBUG
+
+    ImGui::Separator();
+    ImGui::Text("Other Propertie(s) (%zu)", node->get_components().size() );
+    ImGui::Separator();
+    changed |= draw_labeled_property_view( _view->m_value_view );
     ImGui::Separator();
 
-    if ( tools_cfg->runtime_debug )
+    ImGui::Separator();
+    ImGui::Text("Component(s) (%zu)", node->get_components().size() );
+    ImGui::Separator();
+    for ( NodeComponent* component : node->get_components() )
     {
-        ImGui::Text("DEBUG INFO:" );
-        ImGui::Text("Suffix token:\n       %s\n" , node->suffix().json().c_str());
-        ImGui::Text("can_be_instruction(): %i"   , Utils::can_be_instruction( node ) );
-        ImGui::Text("is_instruction():     %i"   , Utils::is_instruction( node ));
-
-        // Draw exposed output properties
-        if( ImGui::TreeNode("Other Properties") )
+        ImGui::PushID( component );
+        const char* name = component->get_class()->name();
+        if( ImGui::TreeNode( name ) )
         {
-            changed |= draw_labeled_property_view( _view->m_value_view );
-            ImGui::TreePop();
-        }
-
-        // Components
-        if( ImGui::TreeNode("Components") )
-        {
-            for (const NodeComponent* component : node->get_components() )
+            if (component->get_class() == type::get<Physics>())
             {
-                ImGui::BulletText("%s", component->get_class()->get_name());
+                Physics *physics_component = static_cast<Physics *>( component );
+                ImGui::Checkbox("On/Off", &physics_component->is_active());
+
+                for (Physics::NodeViewConstraint &constraint: physics_component->nodeview_constraints())
+                {
+                    if (ImGui::TreeNode(constraint.name))
+                    {
+                        ImGui::Checkbox("enabled", &constraint.enabled);
+                        ImGui::TreePop();
+                    }
+                }
+                for (Physics::ScopeViewConstraint_ParentChild& constraint: physics_component->scopeview_constraints())
+                {
+                    if ( ImGui::TreeNode(constraint.name) )
+                    {
+                        ImGui::Checkbox("enabled", &constraint.enabled);
+                        ImGui::TreePop();
+                    }
+                }
             }
-            ImGui::TreePop();
-        }
-
-        if( ImGui::TreeNode("Slots") )
-        {
-            auto draw_node_list = [](const char *label, const std::vector<Node*> _nodes )
+            else if (component->get_class() == type::get<Scope>())
             {
-                if( !ImGui::TreeNode(label) )
+                Scope *scope = static_cast<Scope *>( component );
+                if (ImGui::TreeNode("Node(s)"))
                 {
-                    return;
-                }
-
-                if ( _nodes.empty() )
-                {
-                    ImGui::BulletText( "None" );
-                }
-
-                for (const Node* each_node : _nodes )
-                {
-                    ImGui::BulletText("- %s", each_node->name().c_str());
-                }
-
-                ImGui::TreePop();
-            };
-
-            draw_node_list("Inputs:"     , node->inputs() );
-            draw_node_list("Outputs:"    , node->outputs() );
-            draw_node_list("FlowInputs:" , node->flow_inputs() );
-            draw_node_list("FlowOutputs:", node->flow_outputs() );
-            ImGui::TreePop();
-        }
-
-        // Physics Component
-        if( ImGui::TreeNode("Physics") )
-        {
-            auto* physics_component = node->get_component<Physics>();
-            ImGui::Checkbox("On/Off", &physics_component->is_active());
-            for(Physics::NodeViewConstraint& constraint : physics_component->nodeview_constraints())
-            {
-                if (ImGui::TreeNode(constraint.name))
-                {
-                    ImGui::Checkbox("enabled", &constraint.enabled);
+                    for (Node *child: scope->child_node())
+                    {
+                        ImGui::BulletText("%s (class %s)", child->name().c_str(), child->get_class()->name());
+                    }
                     ImGui::TreePop();
                 }
-            }
-            for(Physics::ScopeViewConstraint_ParentChild& constraint : physics_component->scopeview_constraints())
-            {
-                if (ImGui::TreeNode(constraint.name))
+
+                if (ImGui::TreeNode("VariableNode(s)"))
                 {
-                    ImGui::Checkbox("enabled", &constraint.enabled);
+                    for (VariableNode *variable: scope->vars())
+                    {
+                        std::string value = variable->value()->token().word_to_string();
+                        ImGui::BulletText("%s (value: %s)", variable->name().c_str(), value.c_str());
+                    }
                     ImGui::TreePop();
                 }
             }
             ImGui::TreePop();
         }
-
-        // Scope specific:
-        if ( node->has_internal_scope() && ImGui::TreeNode("InnerScope") )
-        {
-            if( ImGui::TreeNode("Children") )
-            {
-                for ( Node* child : node->internal_scope()->child_node() )
-                {
-                    ImGui::BulletText("%s (class %s)", child->name().c_str(), child->get_class()->get_name() );
-                }
-                ImGui::TreePop();
-            }
-
-            if( ImGui::TreeNode("Variables ONLY") )
-            {
-                for (VariableNode* variable : node->internal_scope()->vars() )
-                {
-                    std::string value = variable->value()->token().word_to_string();
-                    ImGui::BulletText("%s (value: %s)", variable->name().c_str(), value.c_str() );
-                }
-                ImGui::TreePop();
-            }
-            ImGui::TreePop();
-        }
-
-        if ( ImGui::TreeNode("Scope") )
-        {
-            if (node->scope() )
-                ImGui::BulletText("%s", node->scope()->name());
-            else
-                ImGui::BulletText("None");
-            ImGui::TreePop();
-        }
-
-        if( ImGui::TreeNode("Misc:") )
-        {
-            // dirty state
-            ImGui::Separator();
-            bool b = node->has_flags(NodeFlag_IS_DIRTY);
-            ImGui::Checkbox("Is dirty ?", &b);
-        }
+        ImGui::PopID();
     }
     ImGui::Separator();
+
+    ImGui::Separator();
+    ImGui::Text("Slots");
+    ImGui::Separator();
+    auto draw_node_list = [](const char *label, const std::vector<Node*> _nodes )
+        {
+            if( !ImGui::TreeNode(label) )
+            {
+                return;
+            }
+
+            if ( _nodes.empty() )
+            {
+                ImGui::BulletText( "None" );
+            }
+
+            for (const Node* each_node : _nodes )
+            {
+                ImGui::BulletText("- %s", each_node->name().c_str());
+            }
+
+            ImGui::TreePop();
+        };
+    draw_node_list("Inputs:"     , node->inputs() );
+    draw_node_list("Outputs:"    , node->outputs() );
+    draw_node_list("FlowInputs:" , node->flow_inputs() );
+    draw_node_list("FlowOutputs:", node->flow_outputs() );
+    ImGui::Separator();
+
+    if( ImGui::TreeNode("Others") )
+    {
+        if (ImGui::BeginTable("table", 2))
+        {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("scope");
+            ImGui::TableNextColumn();
+            ImGui::Text("Scope: %s", node->scope() ? node->scope()->name() : "nullptr");
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("dirty");
+            ImGui::TableNextColumn();
+            ImGui::Text(node->has_flags(NodeFlag_IS_DIRTY) ? "yes" : "no");
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("suffix token");
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", node->suffix().json().c_str());
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("can_be_instruction");
+            ImGui::TableNextColumn();
+            ImGui::Text("%i", Utils::can_be_instruction(node));
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("is_instruction");
+            ImGui::TableNextColumn();
+            ImGui::Text("%i", Utils::is_instruction(node));
+
+            ImGui::EndTable();
+        }
+        ImGui::TreePop();
+    }
+#endif // NDBL_DEBUG
     return changed;
 }
 

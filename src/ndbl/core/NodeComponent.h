@@ -13,6 +13,8 @@ namespace ndbl
         Node*       node()       { return owner(); } // alias for owner()
         const Node* node() const { return owner(); } // alias for owner()
 
+        NodeComponent(); // required to trigger static initializer in cpp
+
         REFLECT_BASE_CLASS()
     );
 }

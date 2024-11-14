@@ -85,7 +85,7 @@ void Graph::add(Node* node)
     on_add.emit(node);
     on_change.emit();
 
-    LOG_VERBOSE("Graph", "add node %s (%s)\n", node->name().c_str(), node->get_class()->get_name());
+    LOG_VERBOSE("Graph", "add node %s (%s)\n", node->name().c_str(), node->get_class()->name());
 }
 
 void Graph::remove(Node* node)

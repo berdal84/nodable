@@ -277,7 +277,7 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
     {
         LOG_VERBOSE("Parser", OK "Token %s converted to a Literal %s\n",
                     _token.word_to_string().c_str(),
-                    literal->value()->get_type()->get_name());
+                    literal->value()->get_type()->name());
         literal->value()->set_token( _token );
         return literal->value_out();
     }
@@ -1430,7 +1430,7 @@ Optional<Slot*> Nodlang::parse_variable_declaration()
         if ( success )
         {
             LOG_VERBOSE("Parser", OK "Variable declaration: %s %s\n",
-                        variable_node->value()->get_type()->get_name(),
+                        variable_node->value()->get_type()->name(),
                         identifier_token.word_to_string().c_str());
             _state.commit();
             return variable_node->value_out();
@@ -2045,7 +2045,7 @@ Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowPathOut& flow_out)
             path.in->node->set_suffix(tok );
         }
 
-        LOG_VERBOSE("Parser", OK "Block found (class %s)\n", path.in->node->get_class()->get_name() );
+        LOG_VERBOSE("Parser", OK "Block found (class %s)\n", path.in->node->get_class()->name() );
         return path;
     }
 

@@ -8,3 +8,5 @@ REFLECT_STATIC_INIT
 {
     type::Initializer<NodeComponent>("NodeComponent");
 }
+
+NodeComponent::NodeComponent() {}

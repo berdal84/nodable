@@ -175,6 +175,7 @@ namespace ndbl
     private:
         NodeComponentBag m_components;
 
+    public:
         REFLECT_BASE_CLASS()
         POOL_REGISTRABLE(Node)
     };

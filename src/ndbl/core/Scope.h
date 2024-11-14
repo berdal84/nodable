@@ -28,6 +28,8 @@ namespace ndbl
     class Scope : public NodeComponent
     {
     public:
+        REFLECT_DERIVED_CLASS()
+
         Token token_begin = {Token_t::ignore};
         Token token_end   = {Token_t::ignore};
 

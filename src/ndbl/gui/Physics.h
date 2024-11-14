@@ -17,6 +17,7 @@ namespace  ndbl
     class Physics : public NodeComponent
     {
     public:
+        REFLECT_DERIVED_CLASS()
 
         struct NodeViewConstraint
         {
@@ -83,7 +84,6 @@ namespace  ndbl
         tools::Vec2     _last_frame_forces_sum;
         NodeViewConstraints  _nodeview_constraints;
         ScopeViewConstraints _scopeview_constraints;
-        REFLECT_DERIVED_CLASS()
     };
 }
 
