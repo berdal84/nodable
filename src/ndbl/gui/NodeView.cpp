@@ -703,7 +703,19 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
             ImGui::TableNextColumn();
             ImGui::Text("scope");
             ImGui::TableNextColumn();
-            ImGui::Text("Scope: %s", node->scope() ? node->scope()->name() : "nullptr");
+            Scope* scope = node->scope();
+            if (scope)
+            {
+                string128 label;
+                Node* scope_owner = scope->node();
+                label.append_fmt("%s %p (%s %p)", scope->name(), scope, scope_owner->name().c_str(), scope_owner);
+                if ( ImGui::Button(label.c_str()) )
+                    node->graph()->view()->set_selected({ scope_owner->get_component<NodeView>() });
+            }
+            else
+            {
+                ImGui::Text("nullptr");
+            }
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
