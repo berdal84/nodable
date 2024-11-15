@@ -502,62 +502,57 @@ void GraphView::create_constraints__align_above_recursively(const std::vector<No
             create_constraints__align_above_recursively(_leader->inputs(), _leader );
 };
 
-void GraphView::create_constraints_for_scope(Scope* scope)
+void GraphView::create_constraints_for_scope(Scope* scope )
 {
+    // constrain child scopes
     if ( !scope->child_scope().empty() )
-        create_constraints_for_nested_scope(scope);
-    else
-        create_constraints_for_unnested_scope(scope);
-}
-
-void GraphView::create_constraints_for_nested_scope(Scope* scope )
-{
-    ASSERT( !scope->child_scope().empty() );
-
-    Physics::ScopeViewConstraint_ParentChild constraint;
-    constraint.name          = "Align child scope views with scope";
-    constraint.parent        = scope->view();
-    constraint.parent_pivot  = BOTTOM;
-    constraint.gap_size      = Size_XL;
-    constraint.gap_direction = BOTTOM;
-
-    scope->node()->get_component<Physics>()->add_constraint(constraint);
-
-    for( Scope* s : scope->child_scope() )
     {
-        create_constraints_for_scope( s );
-    }
-};
+        Physics::NodeViewConstraint constraint;
+        constraint.name          = "Align child ScopeView(s)";
+        constraint.rule          = &Physics::NodeViewConstraint::rule_align_child_scopeviews;
+        constraint.leader        = {scope->node()->get_component<NodeView>()};
+        constraint.leader_pivot  = BOTTOM;
+        constraint.gap_size      = Size_XL;
+        constraint.gap_direction = BOTTOM;
+        scope->node()->get_component<Physics>()->add_constraint(constraint);
 
-void GraphView::create_constraints_for_unnested_scope(Scope* scope )
-{
+        for( Scope* child_scope : scope->child_scope() )
+        {
+            create_constraints_for_scope( child_scope );
+        }
+    }
+
+    // constrain child nodes
     for ( Node* node : scope->child_node() )
     {
         if ( !node->inputs().empty() )
             create_constraints__align_above_recursively( node->inputs(), node);
 
-        if ( node->has_internal_scope() )
-            create_constraints_for_scope( node->internal_scope() );
-
-        bool follow_previous = node != scope->first_node()
-                            || scope->is_orphan();
-        if ( follow_previous )
-            create_constraints__align_below( node, node->flow_inputs() );
+        if ( !node->flow_inputs().empty() )
+        {
+            if ( node != scope->first_node() )
+                create_constraints__align_below( node, node->flow_inputs() );
+            else if ( scope->is_orphan() )
+                create_constraints__align_below( node, node->flow_inputs() );
+        }
     }
 };
 
 void GraphView::_update(float dt)
 {
     // Physics Components
-    LOG_VERBOSE("GraphView", "Updating nodeview_constraints ...\n");
+    LOG_VERBOSE("GraphView", "Updating constraints ...\n");
 
     if ( m_physics_dirty )
     {
         // clear all constraints, and THEN create them again
         for (Node* node : graph()->nodes())
             node->get_component<Physics>()->clear_constraints();
-        for (Scope* _scope : graph()->root_scopes() )
-            create_constraints_for_scope( _scope);
+        for (Scope* _scope : graph()->orphan_scopes() )
+        {
+            ASSERT( _scope->is_orphan());
+            create_constraints_for_scope(_scope);
+        }
         m_physics_dirty = false;
     }
 
@@ -569,13 +564,11 @@ void GraphView::_update(float dt)
 
     // NodeViews
     for (Node* node : graph()->nodes() )
-        if ( NodeView* view = node->get_component<NodeView>() )
-            view->update(dt);
+        node->get_component<NodeView>()->update(dt);
 
     // ScopeViews
-    for( Scope* scope : graph()->root_scopes() )
-        if ( scope->view() )
-            scope->view()->update( dt, ScopeViewFlags_RECURSE );
+    for( Scope* scope : graph()->orphan_scopes() )
+        scope->view()->update( dt, ScopeViewFlags_RECURSE );
 }
 
 void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_top_left_corner)

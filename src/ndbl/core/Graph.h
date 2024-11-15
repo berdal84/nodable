@@ -92,7 +92,7 @@ namespace ndbl
         Node*                    create_empty_instruction();
         void                     destroy(Node* _node);
         std::vector<Scope *>     scopes();
-        std::set<Scope *>        root_scopes();
+        std::set<Scope *>        orphan_scopes();
         NodeRegistry&            nodes() {return m_node_registry;}
         const NodeRegistry&      nodes()const {return m_node_registry;}
         void                     destroy_next_frame(Node* node) { m_node_to_delete.insert(node ); }

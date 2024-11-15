@@ -622,21 +622,15 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
                 Physics *physics_component = static_cast<Physics *>( component );
                 ImGui::Checkbox("On/Off", &physics_component->is_active());
 
-                for (Physics::NodeViewConstraint &constraint: physics_component->nodeview_constraints())
+                for (Physics::NodeViewConstraint &constraint: physics_component->constraints())
                 {
-                    if (ImGui::TreeNode(constraint.name))
+                    ImGui::PushID(&constraint);
+                    if (ImGui::TreeNode(constraint.name) )
                     {
                         ImGui::Checkbox("enabled", &constraint.enabled);
                         ImGui::TreePop();
                     }
-                }
-                for (Physics::ScopeViewConstraint_ParentChild& constraint: physics_component->scopeview_constraints())
-                {
-                    if ( ImGui::TreeNode(constraint.name) )
-                    {
-                        ImGui::Checkbox("enabled", &constraint.enabled);
-                        ImGui::TreePop();
-                    }
+                    ImGui::PopID();
                 }
             }
             else if (component->get_class() == type::get<Scope>())

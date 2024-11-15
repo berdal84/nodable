@@ -34,7 +34,6 @@ void Physics::init(NodeView* view)
 void Physics::clear_constraints()
 {
     _nodeview_constraints.clear();
-    _scopeview_constraints.clear();
 }
 
 void Physics::apply_constraints(float _dt)
@@ -43,9 +42,6 @@ void Physics::apply_constraints(float _dt)
         return;
 
     for (auto& constraint : _nodeview_constraints)
-        constraint.update(_dt);
-
-    for (auto& constraint : _scopeview_constraints)
         constraint.update(_dt);
 }
 
@@ -216,14 +212,14 @@ bool Physics::NodeViewConstraint::should_follow_output(const Node* node, const N
     return false;
 }
 
-void Physics::ScopeViewConstraint_ParentChild::update(float dt)
+void Physics::NodeViewConstraint::rule_align_child_scopeviews(float _dt)
 {
     if ( !enabled )
         return;
 
     // Gather unpinned children
     std::vector<ScopeView*> children;
-    for(Scope* child : parent->scope()->child_scope() )
+    for(Scope* child : leader[0]->node()->internal_scope()->child_scope() )
         if ( !child->view()->pinned() )
             children.push_back(child->view() );
 
@@ -235,10 +231,7 @@ void Physics::ScopeViewConstraint_ParentChild::update(float dt)
     Rect::make_row(new_rect, gap );
 
     // v align
-    const Vec2 parent_pivot_pos = parent->node()
-                                  ->get_component<NodeView>()
-                                  ->shape()
-                                  ->pivot( parent_pivot, WORLD_SPACE );
+    const Vec2 parent_pivot_pos = leader[0]->shape()->pivot( leader_pivot, WORLD_SPACE );
     const float top = parent_pivot_pos.y + gap * gap_direction.y;
     Rect::align_top( new_rect, top );
 

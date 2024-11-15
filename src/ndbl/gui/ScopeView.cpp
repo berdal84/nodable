@@ -134,8 +134,7 @@ void ScopeView::on_reset_parent(Scope* scope)
 
     // this view must move when scope's owner view moves
     if( scope )
-        if( scope->view() )
-            scope->view()->m_spatial_node.add_child( &m_spatial_node );
+        scope->view()->m_spatial_node.add_child( &m_spatial_node );
 }
 
 void ScopeView::translate(const tools::Vec2 &delta)

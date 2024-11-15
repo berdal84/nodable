@@ -29,6 +29,7 @@ namespace  ndbl
             void          rule_default(float) {}
             void          rule_1_to_N_as_row(float dt);
             void          rule_N_to_1_as_a_row(float dt);
+            void          rule_align_child_scopeviews(float _dt);
             bool          condition_default() const { return true; };
 
             const char*   name           = "untitled NodeViewConstraint";
@@ -49,22 +50,9 @@ namespace  ndbl
             static bool                   should_follow_output(const Node* node, const Node* output_node );
         };
 
-        struct ScopeViewConstraint_ParentChild
-        {
-            void        update(float dt);
-            const char* name         = "untitled ScopeViewConstraint_ParentChild";
-            bool        enabled      = true;
-            ScopeView*  parent       = nullptr;
-            tools::Vec2 parent_pivot = tools::BOTTOM;
-            tools::Size gap_size;
-            tools::Vec2 gap_direction;
-        };
-
         typedef std::vector<NodeViewConstraint>  NodeViewConstraints;
-        typedef std::vector<ScopeViewConstraint_ParentChild> ScopeViewConstraints;
 
         void            init(NodeView*);
-        void            add_constraint(ScopeViewConstraint_ParentChild& c) { _scopeview_constraints.push_back(std::move(c)); }
         void            add_constraint(NodeViewConstraint& c) { _nodeview_constraints.push_back(std::move(c)); }
         void            apply_constraints(float _dt);
         void            clear_constraints();
@@ -72,10 +60,8 @@ namespace  ndbl
         void            add_force_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space );
         void            apply_forces(float _dt);
         bool&           is_active() { return _is_active; };
-        NodeViewConstraints&        nodeview_constraints() { return _nodeview_constraints; };
-        const NodeViewConstraints&  nodeview_constraints() const { return _nodeview_constraints; };
-        ScopeViewConstraints&       scopeview_constraints() { return _scopeview_constraints; };
-        const ScopeViewConstraints& scopeview_constraints() const { return _scopeview_constraints; };
+        NodeViewConstraints&        constraints() { return _nodeview_constraints; };
+        const NodeViewConstraints&  constraints() const { return _nodeview_constraints; };
 
     private:
         bool            _is_active = false;
@@ -83,7 +69,6 @@ namespace  ndbl
         tools::Vec2     _forces_sum;
         tools::Vec2     _last_frame_forces_sum;
         NodeViewConstraints  _nodeview_constraints;
-        ScopeViewConstraints _scopeview_constraints;
     };
 }
 
