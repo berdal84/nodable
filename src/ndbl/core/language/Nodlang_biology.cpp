@@ -50,10 +50,10 @@ namespace // anonymous, only accessible from this file
     }
 }
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<Nodlang_biology>("Nodlang_biology")
-            .add_method(&dna_to_protein, "dna_to_protein", "protein");
-};
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(Nodlang_biology)
+        .add_method(&dna_to_protein, "dna_to_protein", "protein");
+)
 
 Nodlang_biology::Nodlang_biology(){} // necessary to execute static code

@@ -26,7 +26,7 @@ namespace ndbl
     class ScopeView : public NodeComponent
     {
     public:
-        REFLECT_DERIVED_CLASS()
+        DECLARE_REFLECT_override
         typedef tools::Rect Rect;
 
         SIGNAL(on_hover, ScopeView*);

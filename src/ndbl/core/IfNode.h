@@ -16,11 +16,11 @@ namespace ndbl
     class IfNode : public Node, public SwitchBehavior
     {
     public:
+        DECLARE_REFLECT_override
+
         Token token_if   = {Token_t::keyword_if};
         Token token_else = {Token_t::ignore};
 
         void init(const std::string& _name);
-
-        REFLECT_DERIVED_CLASS()
     };
 }

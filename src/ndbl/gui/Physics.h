@@ -17,7 +17,7 @@ namespace  ndbl
     class Physics : public NodeComponent
     {
     public:
-        REFLECT_DERIVED_CLASS()
+        DECLARE_REFLECT_override
 
         struct NodeViewConstraint
         {

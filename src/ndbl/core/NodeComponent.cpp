@@ -4,10 +4,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<NodeComponent>("NodeComponent");
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(NodeComponent);
+)
 
 // do not move all those member declarations to .h, this code required to trigger static init above
 

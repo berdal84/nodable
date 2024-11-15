@@ -10,7 +10,7 @@ namespace ndbl
 	class FunctionNode : public Node
     {
 	public:
-        REFLECT_DERIVED_CLASS()
+        DECLARE_REFLECT_override
         void                        init(NodeType node_type, const tools::FunctionDescriptor* func_type);
         Slot*                       get_arg_slot(size_t i) const { return m_argument_slot[i]; }
         const std::vector<Slot*>&   get_arg_slots() const { return m_argument_slot; }

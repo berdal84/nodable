@@ -5,10 +5,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<VariableNode>("VariableNode").extends<Node>();
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(VariableNode).extends<Node>();
+)
 
 void VariableNode::init(const tools::TypeDescriptor* _type, const char* _identifier)
 {

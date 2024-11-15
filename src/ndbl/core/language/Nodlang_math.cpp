@@ -71,10 +71,9 @@ namespace // anonymous, accessible only in that file
     }
 }
 
-
-REFLECT_STATIC_INIT
-{
-    type::Initializer<Nodlang_math>("Nodlang_math")
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(Nodlang_math)
         .add_method<double(double, i32_t)> (&_plus, "+", "plus")
         .add_method<double(double, double)>(&_plus, "+", "plus")
         .add_method<i32_t(i32_t, i32_t)>   (&_plus, "+", "plus")
@@ -151,6 +150,6 @@ REFLECT_STATIC_INIT
         .add_method<std::string(double)>(&_print, "print")
         .add_method<std::string(i32_t)>(&_print, "print")
         .add_method<std::string(std::string)>(&_print, "print");
-};
+);
 
 Nodlang_math::Nodlang_math(){} // necessary to trigger static code execution

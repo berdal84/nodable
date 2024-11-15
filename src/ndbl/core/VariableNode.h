@@ -29,7 +29,7 @@ namespace ndbl
 	class VariableNode : public Node
     {
 	public:
-        REFLECT_DERIVED_CLASS()
+        DECLARE_REFLECT_override
 
 		~VariableNode() override {};
 

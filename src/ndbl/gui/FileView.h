@@ -39,6 +39,7 @@ namespace ndbl
     class FileView
 	{
     public:
+        DECLARE_REFLECT
         explicit FileView();
         FileView(const FileView&) = delete;
 		~FileView() = default;
@@ -75,7 +76,5 @@ namespace ndbl
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste;
         bool         m_is_history_dragged = false;
-
-        REFLECT_BASE_CLASS()
     };
 }

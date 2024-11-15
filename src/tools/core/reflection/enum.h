@@ -24,12 +24,14 @@
     static const char* ENUM##_to_string(ENUM value) \
     {\
         switch( value )\
-        {
+        {                    \
+        __REFLECT_ENUM_CONTENT
 
-#define REFLECT_ENUM_VALUE(VALUE) \
+#define REFLECT_ENUM_V(VALUE) \
             case VALUE: return #VALUE;
 
-#define REFLECT_ENUM_END \
+#define __REFLECT_ENUM_CONTENT(...) \
+            __VA_ARGS__ \
             default: return "<not reflected>";\
         } \
     }
@@ -39,9 +41,8 @@
     {\
         using EnumT = ENUM;\
         switch( value )\
-        {
+        {\
+    __REFLECT_ENUM_CONTENT
 
-#define REFLECT_ENUM_CLASS_VALUE(VALUE) \
+#define REFLECT_ENUM_CLASS_V(VALUE) \
             case EnumT::VALUE: return #VALUE;
-
-#define REFLECT_ENUM_CLASS_END REFLECT_ENUM_END

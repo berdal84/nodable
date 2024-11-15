@@ -10,16 +10,15 @@
 #include "TypeRegister.h"
 #include "tools/core/assertions.h"
 
-// add this macro to a class declaration to enable reflection on it
-#define REFLECT_BASE_CLASS() \
-    virtual const tools::ClassDescriptor* get_class() const \
-    { return tools::type::get_class(this); }
-
 // add this macro to a class declaration to enable reflection on it.
 // Must have a parent class having REFLECT_BASE_CLASS macro.
-#define REFLECT_DERIVED_CLASS() \
-    virtual const tools::ClassDescriptor* get_class() const override \
-    { return tools::type::get_class(this); }
+#define DECLARE_REFLECT_EX( VIRTUAL, OVERRIDE ) \
+    VIRTUAL const ::tools::ClassDescriptor* get_class() const OVERRIDE \
+    { return ::tools::type::get_class(this); }
+
+#define DECLARE_REFLECT          DECLARE_REFLECT_EX(        ,          )
+#define DECLARE_REFLECT_virtual  DECLARE_REFLECT_EX( virtual,          )
+#define DECLARE_REFLECT_override DECLARE_REFLECT_EX(        , override )
 
 namespace tools
 {

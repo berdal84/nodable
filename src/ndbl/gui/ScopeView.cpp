@@ -8,10 +8,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<ScopeView>("ScopeView").extends<NodeComponent>();
-};
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(ScopeView).extends<NodeComponent>();
+)
 
 void ScopeView::init(Scope* scope)
 {

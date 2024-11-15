@@ -1,5 +1,5 @@
 #pragma once
-#include "tools/core/reflection/Type.h"
+#include "tools/core/reflection/reflection"
 #include "tools/core/Signals.h"
 
 namespace ndbl
@@ -10,8 +10,7 @@ namespace ndbl
     class NodeComponent
     {
     public:
-        REFLECT_BASE_CLASS()
-
+        DECLARE_REFLECT_virtual
         SIGNAL(on_reset_owner);
 
         NodeComponent();

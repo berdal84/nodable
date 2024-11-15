@@ -5,10 +5,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<ForLoopNode>("ForLoopNode").extends<Node>();
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(ForLoopNode).extends<Node>();
+)
 
 void ForLoopNode::init(const std::string& _name)
 {

@@ -17,7 +17,7 @@ namespace ndbl
     class WhileLoopNode : public Node, public SwitchBehavior
     {
     public:
-        REFLECT_DERIVED_CLASS()
+        DECLARE_REFLECT_override
 
         Token token_while = { Token_t::keyword_while};
 

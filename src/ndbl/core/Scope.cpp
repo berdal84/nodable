@@ -15,10 +15,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<Scope>("Scope").extends<NodeComponent>();
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(Scope).extends<NodeComponent>();
+)
 
 VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flags )
 {

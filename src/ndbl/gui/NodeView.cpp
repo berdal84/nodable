@@ -26,11 +26,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<NodeView>("NodeView")
-        .extends<NodeComponent>();
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(NodeView).extends<NodeComponent>();
+)
 
 constexpr Vec4 DEFAULT_COLOR = Vec4(1.f, 0.f, 0.f);
 #define PIXEL_PERFECT true // round positions for drawing only

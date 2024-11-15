@@ -38,6 +38,9 @@ namespace ndbl
     class Node
 	{
     public:
+        DECLARE_REFLECT_virtual
+        POOL_REGISTRABLE(Node)
+
         friend class Graph;
         friend class NodeFactory;
         friend class Scope;
@@ -173,9 +176,5 @@ namespace ndbl
         AdjacentNodesCache m_adjacent_nodes_cache = {this};
     private:
         NodeComponentBag m_components;
-
-    public:
-        REFLECT_BASE_CLASS()
-        POOL_REGISTRABLE(Node)
     };
 }

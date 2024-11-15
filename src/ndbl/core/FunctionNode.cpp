@@ -7,10 +7,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<FunctionNode>("FunctionNode").extends<Node>();
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(FunctionNode).extends<Node>();
+)
 
 void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_type )
 {

@@ -26,10 +26,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<GraphView>("GraphView");
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(GraphView);
+)
 
 // Popup name
 constexpr const char* CONTEXT_POPUP    = "GraphView.ContextMenuPopup";

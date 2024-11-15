@@ -28,16 +28,16 @@ namespace ndbl
     class Scope : public NodeComponent
     {
     public:
-        REFLECT_DERIVED_CLASS()
-
-        Token token_begin = {Token_t::ignore};
-        Token token_end   = {Token_t::ignore};
+        DECLARE_REFLECT_override
 
         SIGNAL(on_reset_parent, Scope*);
         SIGNAL(on_add, Node*);
         SIGNAL(on_remove, Node*);
         SIGNAL(on_change);
         SIGNAL(on_clear);
+
+        Token token_begin = {Token_t::ignore};
+        Token token_end   = {Token_t::ignore};
 
         Scope*                         parent() { return m_parent; }
         const Scope*                   parent() const { return m_parent; }

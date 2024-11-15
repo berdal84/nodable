@@ -12,8 +12,9 @@ namespace tools
     };
 
     REFLECT_ENUM_CLASS(Operator_t)
-    REFLECT_ENUM_CLASS_VALUE(Unary)
-    REFLECT_ENUM_CLASS_VALUE(Binary)
-    REFLECT_ENUM_CLASS_VALUE(Ternary)
-    REFLECT_ENUM_CLASS_END
+    (
+        REFLECT_ENUM_CLASS_V(Unary)
+        REFLECT_ENUM_CLASS_V(Binary)
+        REFLECT_ENUM_CLASS_V(Ternary)
+    )
 }

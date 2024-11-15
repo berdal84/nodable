@@ -4,10 +4,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<LiteralNode>("LiteralNode").extends<Node>();
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(LiteralNode).extends<Node>();
+)
 
 void LiteralNode::init(const TypeDescriptor* _type, const std::string& _name)
 {

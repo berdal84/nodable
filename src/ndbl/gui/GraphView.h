@@ -35,8 +35,9 @@ namespace ndbl
 
     class GraphView
     {
-        REFLECT_BASE_CLASS()
     public:
+        DECLARE_REFLECT
+
         typedef std::vector<NodeView*> Selection;
         typedef tools::StateMachine    StateMachine;
 

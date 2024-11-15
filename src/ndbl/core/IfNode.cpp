@@ -4,11 +4,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<IfNode>("IfNode").extends<Node>();
-}
-
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(IfNode).extends<Node>();
+)
 
 void IfNode::init(const std::string&_name)
 {

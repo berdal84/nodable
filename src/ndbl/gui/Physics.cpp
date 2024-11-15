@@ -19,11 +19,10 @@ using namespace tools;
 #define DEBUG_DRAW 1
 #endif
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<Physics>("Physics")
-                     .extends<NodeComponent>();
-};
+REFLECT_STATIC_INITIALIZER
+(
+   DEFINE_REFLECT(Physics).extends<NodeComponent>();
+)
 
 void Physics::init(NodeView* view)
 {

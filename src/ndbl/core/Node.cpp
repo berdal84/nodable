@@ -9,10 +9,10 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<Node>("Node");
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(Node);
+)
 
 Node::~Node()
 {

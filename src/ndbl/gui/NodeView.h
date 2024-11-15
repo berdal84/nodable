@@ -52,7 +52,7 @@ namespace ndbl
     class NodeView : public NodeComponent
 	{
     public:
-        REFLECT_DERIVED_CLASS()
+        DECLARE_REFLECT_override
         friend class GraphView;
 		NodeView();
 		~NodeView();

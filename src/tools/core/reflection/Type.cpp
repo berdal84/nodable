@@ -8,22 +8,22 @@
 
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    // declare some types manually to get friendly names
+// declare some types manually to get friendly names
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(double);
+    DEFINE_REFLECT(bool);
+    DEFINE_REFLECT(void);
+    DEFINE_REFLECT(void*);
+    DEFINE_REFLECT(any);
+    DEFINE_REFLECT(null);
 
-    type::Initializer<double>("double");
-    type::Initializer<std::string>("string");
-    type::Initializer<bool>("bool");
-    type::Initializer<void>("void");
-    type::Initializer<void*>("void*");
-    type::Initializer< i8_t>("i8");
-    type::Initializer<i16_t>("int");
-    type::Initializer<i32_t>("i32");
-    type::Initializer<i64_t>("i64");
-    type::Initializer<any>("any");
-    type::Initializer<null>("null");
-}
+    DEFINE_REFLECT_WITH_ALIAS(std::string, "string");
+    DEFINE_REFLECT_WITH_ALIAS(i8_t       , "i8");
+    DEFINE_REFLECT_WITH_ALIAS(i16_t      , "i16");
+    DEFINE_REFLECT_WITH_ALIAS(i32_t      , "i32");
+    DEFINE_REFLECT_WITH_ALIAS(i64_t      , "i64");
+)
 
 bool type::equals(const TypeDescriptor* left, const TypeDescriptor* right)
 {
