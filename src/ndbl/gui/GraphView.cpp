@@ -502,12 +502,18 @@ void GraphView::create_constraints__align_above_recursively(const std::vector<No
             create_constraints__align_above_recursively(_leader->inputs(), _leader );
 };
 
-
-void GraphView::create_constraints_for_internal_scope(Scope* scope )
+void GraphView::create_constraints_for_scope(Scope* scope)
 {
-    ASSERT( Scope::is_internal(scope) );
-    if ( scope->child_scope().empty() )
-        return;
+    if ( !scope->child_scope().empty() )
+        create_constraints_for_nested_scope(scope);
+    else
+        create_constraints_for_unnested_scope(scope);
+}
+
+void GraphView::create_constraints_for_nested_scope(Scope* scope )
+{
+    ASSERT( !scope->child_scope().empty() );
+
     Physics::ScopeViewConstraint_ParentChild constraint;
     constraint.name          = "Align child scope views with scope";
     constraint.parent        = scope->view();
@@ -519,25 +525,23 @@ void GraphView::create_constraints_for_internal_scope(Scope* scope )
 
     for( Scope* s : scope->child_scope() )
     {
-        if ( Scope::is_internal( s ) )
-            create_constraints_for_internal_scope(s);
-        else
-            create_constraints_for_non_internal_scope(s);
+        create_constraints_for_scope( s );
     }
 };
 
-void GraphView::create_constraints_for_non_internal_scope(Scope* scope )
+void GraphView::create_constraints_for_unnested_scope(Scope* scope )
 {
-    ASSERT( !Scope::is_internal(scope) );
     for ( Node* node : scope->child_node() )
     {
         if ( !node->inputs().empty() )
             create_constraints__align_above_recursively( node->inputs(), node);
 
         if ( node->has_internal_scope() )
-            create_constraints_for_internal_scope(node->internal_scope());
+            create_constraints_for_scope( node->internal_scope() );
 
-        if ( node != scope->first_node() )
+        bool follow_previous = node != scope->first_node()
+                            || scope->is_orphan();
+        if ( follow_previous )
             create_constraints__align_below( node, node->flow_inputs() );
     }
 };
@@ -553,7 +557,7 @@ void GraphView::_update(float dt)
         for (Node* node : graph()->nodes())
             node->get_component<Physics>()->clear_constraints();
         for (Scope* _scope : graph()->root_scopes() )
-            create_constraints_for_internal_scope(_scope);
+            create_constraints_for_scope( _scope);
         m_physics_dirty = false;
     }
 

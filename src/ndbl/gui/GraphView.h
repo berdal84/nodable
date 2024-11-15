@@ -80,8 +80,8 @@ namespace ndbl
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
         void        create_constraints__align_above_recursively(const std::vector<Node*>& follower, ndbl::Node *leader);
         void        create_constraints__align_below(Node* leader, const std::vector<Node*>& follower);
-        void        create_constraints_for_internal_scope(Scope *scope);
-        void        create_constraints_for_non_internal_scope(Scope *scope);
+        void        create_constraints_for_nested_scope(Scope *scope);
+        void        create_constraints_for_unnested_scope(Scope *scope);
 
         // Tools State Machine
         //--------------------
@@ -103,5 +103,7 @@ namespace ndbl
         void line_state_enter();
         void line_state_tick();
         void line_state_leave();
+
+        void create_constraints_for_scope(Scope *scope);
     };
 }
