@@ -19,6 +19,7 @@
 #include "tools/core/StateMachine.h"
 #include "CreateNodeCtxMenu.h"
 #include "ScopeView.h"
+#include "tools/gui/geometry/Pivots.h"
 
 namespace ndbl
 {
@@ -76,7 +77,7 @@ namespace ndbl
         void        _update(float dt);
         void        _on_graph_change();
         bool        is_selected(NodeView*) const;
-        void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
+        void        frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
         void        create_constraints__align_above_recursively(const std::vector<Node*>& follower, ndbl::Node *leader);
         void        create_constraints__align_below(Node* leader, const std::vector<Node*>& follower);

@@ -571,7 +571,7 @@ void GraphView::_update(float dt)
         scope->view()->update( dt, ScopeViewFlags_RECURSE );
 }
 
-void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_top_left_corner)
+void GraphView::frame_views(const std::vector<NodeView*>& _views, const Vec2& pivot)
 {
     if (_views.empty())
     {
@@ -579,22 +579,10 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, bool _align_to
         return;
     }
 
-    // Get views' bbox
-    Rect views_bbox = NodeView::get_rect(_views);
-
-    // align
-    Vec2 delta;
-    if (_align_top_left_corner)
-    {
-        // Align with the top-left corner
-        views_bbox.expand(Vec2(20.0f ) ); // add a padding to avoid alignment too close from the border
-        delta = m_view_state.shape().pivot(TOP_LEFT) - views_bbox.top_left();
-    }
-    else
-    {
-        // Align the center of the node rectangle with the frame center
-        delta = m_view_state.shape().pivot(CENTER) - views_bbox.center();
-    }
+    BoxShape2D views_bbox = NodeView::get_rect(_views, WORLD_SPACE );
+    const Vec2 desired_pivot_pos = m_view_state.shape().pivot( pivot * 0.95f, WORLD_SPACE); // 5%  margin
+    const Vec2 pivot_pos         = views_bbox.pivot(pivot, WORLD_SPACE);
+    const Vec2 delta             = desired_pivot_pos - pivot_pos;
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, apply it to all scope views
@@ -626,19 +614,20 @@ void GraphView::frame_nodes(FrameMode mode )
     {
         case FRAME_ALL:
         {
-            if(m_graph->is_empty())
+            if( m_graph->is_empty() )
                 return;
 
-            // frame the root's view (top-left corner)
-            auto& root_view = *m_graph->root()->get_component<NodeView>();
-            frame_views( {&root_view}, true);
+            std::vector<NodeView*> views;
+            for(Node* node : graph()->nodes())
+                views.push_back( node->get_component<NodeView>() );
+            frame_views( views, CENTER );
             break;
         }
 
         case FRAME_SELECTION_ONLY:
         {
             if ( !m_selected_nodeview.empty())
-                frame_views(m_selected_nodeview, false);
+                frame_views(m_selected_nodeview, CENTER);
             break;
         }
         default:

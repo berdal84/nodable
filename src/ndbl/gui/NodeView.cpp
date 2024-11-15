@@ -830,7 +830,7 @@ Rect NodeView::get_rect(
     for (size_t i = 0; i < _views.size(); ++i)
     {
         Rect rect = _views[i]->get_rect_ex(space, flags);
-        if ( i == 0 )
+        if ( !result.has_area() )
             result = rect;
         else
             result = Rect::merge(result, rect);
