@@ -156,7 +156,7 @@ void Graph::destroy(Node* node)
 
     // Remove from scope
     if ( Scope* scope = node->scope() )
-        scope->remove( node );
+        scope->child_erase(node);
 
     // Remove inner_scope children
     if (node->has_internal_scope() )
@@ -178,7 +178,7 @@ DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
     ASSERT(tail->has_flags(SlotFlag_NOT_FULL ) );
     VERIFY(head->property, "tail property must be defined" );
     VERIFY(tail->property, "head property must be defined" );
-    VERIFY(head->node != tail->node, "Can't connect same child_node!" );
+    VERIFY(head->node != tail->node, "Can't connect same child!" );
 
     // now graph is abstract
 //    const type* out_type = __out->property->get_type();
@@ -347,7 +347,7 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
         target_scope = edge.head->node->internal_scope();
 
     if ( target_scope )
-        target_scope->push_back(edge.tail->node ); // recursively
+        target_scope->child_push_back(edge.tail->node); // recursively
 
 
     // 2) Update input's property type
@@ -383,7 +383,7 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
         case 0:
         {
             if ( curr_scope )
-                curr_scope->remove(edge.head->node);
+                curr_scope->child_erase(edge.head->node);
             break;
         }
         case 1:
@@ -420,14 +420,11 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
 
     if ( flow_in_edge_count == 1)
     {
-        if (previous_node->has_internal_scope() )
+        if ( previous_node->has_internal_scope() )
         {
-            Scope* inner_scope = previous_node->internal_scope();
-
-            if ( inner_scope->child_scope().empty() )
-                target_scope = inner_scope;
-            else
-                target_scope = inner_scope->child_scope_at(edge.tail->position);
+            target_scope = previous_node->internal_scope();
+            if ( target_scope->sub_scope().size() )
+                target_scope = target_scope->sub_scope_at( edge.tail->position );
         }
         else
         {
@@ -514,7 +511,7 @@ WhileLoopNode* Graph::create_while_loop()
 
 Node* Graph::create_entry_point()
 {
-    VERIFY( m_root.empty(), "Can't create a root child_node, already exists" );
+    VERIFY( m_root.empty(), "Can't create a root child, already exists" );
     Node* node = m_factory->create_entry_point();
     add(node);
     m_root = node;

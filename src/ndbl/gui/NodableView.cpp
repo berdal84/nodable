@@ -456,7 +456,7 @@ void NodableView::draw_help_window() const
         ImGui::PopFont();
         ImGui::NewLine();
         ImGui::TextWrapped(
-                "Nodable is child_node-able.\n"
+                "Nodable is child-able.\n"
                 "\n"
                 "Nodable allows you to edit a program using both text and graph paradigms."
                 "More precisely, it means:"
@@ -464,7 +464,7 @@ void NodableView::draw_help_window() const
         ImGuiEx::BulletTextWrapped("any change on the text will affect the graph");
         ImGuiEx::BulletTextWrapped("any change (structure or values) on the graph will affect the text");
         ImGuiEx::BulletTextWrapped(
-                "but keep in mind the state is the text, any change not affecting the text (such as child_node positions or orphan child_node) will be lost.");
+                "but keep in mind the state is the text, any change not affecting the text (such as child positions or orphan child) will be lost.");
         ImGui::NewLine();
         ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Quick start");
@@ -473,9 +473,9 @@ void NodableView::draw_help_window() const
         ImGui::TextWrapped("Nodable UI is designed as following:\n");
         ImGuiEx::BulletTextWrapped("On the left side a (light) text editor allows to edit source code.\n");
         ImGuiEx::BulletTextWrapped(
-                "At the center, there is the graph editor where you can create_new/delete/connect child_node\n");
+                "At the center, there is the graph editor where you can create_new/delete/connect child\n");
         ImGuiEx::BulletTextWrapped(
-                "On the right side (this side) you will find many tabs to manage additional config such as child_node, interpreter, or app properties\n");
+                "On the right side (this side) you will find many tabs to manage additional config such as child, interpreter, or app properties\n");
         ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
                                        " There, few buttons will serve to compile, run and debug your program.");
         ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
@@ -583,7 +583,7 @@ void NodableView::draw_interpreter_window()
         ImGui::SameLine();
         ImGuiEx::DrawHelper("%s", "This is the interpreter's CPU"
                                   "\nIt contains few registers to store temporary values "
-                                  "\nlike instruction pointer, last child_node's value or last comparison result");
+                                  "\nlike instruction pointer, last child's value or last comparison result");
         ImGui::Indent();
         {
             ImGui::Separator();

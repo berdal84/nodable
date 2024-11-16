@@ -81,9 +81,9 @@ namespace ndbl
         bool                 has_scope() const { return m_parent_scope != nullptr; }
         Scope*               scope() const { return m_parent_scope; };
         void                 reset_scope(Scope* = nullptr);
-        void                 init_internal_scope();
+        void                 init_internal_scope(size_t sub_scope_count = 0);
         bool                 has_internal_scope() const { return m_internal_scope != nullptr; }
-        Scope*               internal_scope() const { ASSERT(m_internal_scope); return m_internal_scope; }
+        Scope*               internal_scope() const { return m_internal_scope; }
 
         // Slot related
         //-------------

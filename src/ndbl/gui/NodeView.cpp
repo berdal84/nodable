@@ -288,7 +288,7 @@ void NodeView::arrange_recursively(bool _smoothly)
     }
 
     if (node()->has_internal_scope() )
-        for ( Node* node : node()->internal_scope()->child_node() )
+        for ( Node* node : node()->internal_scope()->child() )
             if ( NodeView* node_view = node->get_component<NodeView>() )
                     node_view->arrange_recursively();
 
@@ -622,7 +622,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
                 Physics *physics_component = static_cast<Physics *>( component );
                 ImGui::Checkbox("On/Off", &physics_component->is_active());
 
-                for (Physics::NodeViewConstraint &constraint: physics_component->constraints())
+                for (ViewConstraint& constraint: physics_component->constraints())
                 {
                     ImGui::PushID(&constraint);
                     if (ImGui::TreeNode(constraint.name) )
@@ -638,7 +638,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
                 Scope *scope = static_cast<Scope *>( component );
                 if (ImGui::TreeNode("Node(s)"))
                 {
-                    for (Node *child: scope->child_node())
+                    for (Node *child: scope->child())
                     {
                         ImGui::BulletText("%s (class %s)", child->name().c_str(), child->get_class()->name());
                     }
@@ -647,7 +647,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
                 if (ImGui::TreeNode("VariableNode(s)"))
                 {
-                    for (VariableNode *variable: scope->vars())
+                    for (VariableNode *variable: scope->child_vars())
                     {
                         std::string value = variable->value()->token().word_to_string();
                         ImGui::BulletText("%s (value: %s)", variable->name().c_str(), value.c_str());
@@ -803,7 +803,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
     };
 
     if (node()->has_internal_scope() )
-        for (Node* node : node()->internal_scope()->child_node() )
+        for (Node* node : node()->internal_scope()->child() )
             visit(node);
 
     for (Node* node : node()->inputs() )
@@ -858,7 +858,7 @@ void NodeView::set_expanded_rec(bool _expanded)
     if ( !node()->has_internal_scope() )
         return;
 
-    for(Node* child : node()->internal_scope()->child_node() )
+    for(Node* child : node()->internal_scope()->child() )
     {
         child->get_component<NodeView>()->set_expanded_rec(_expanded);
     }
@@ -886,7 +886,7 @@ void NodeView::set_children_visible(bool visible, bool recursively)
 
     for(Scope* scope : scopes)
     {
-        for (Node* child: scope->child_node())
+        for (Node* child: scope->child())
         {
             NodeView *child_view = child->get_component<NodeView>();
             child_view->m_state.visible = visible;

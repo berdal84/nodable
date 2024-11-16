@@ -23,7 +23,7 @@ void NodeComponent::reset_owner(Node *owner)
     on_reset_owner.emit();
 }
 
-void NodeComponent::reset_name(const char* name)
+void NodeComponent::reset_name(std::string name)
 {
-    m_name = name;
+    m_name = std::move(name);
 }

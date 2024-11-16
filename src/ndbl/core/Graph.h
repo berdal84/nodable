@@ -46,7 +46,7 @@ namespace ndbl
     };
 
     /**
-     * @brief To manage a graph (child_node and edges)
+     * @brief To manage a graph (child and edges)
      */
 	class Graph
 	{

@@ -37,13 +37,15 @@ namespace ndbl
         Scope*       scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }
         Theme        theme() const;
+        void         set_position(const tools::Vec2& pos, tools::Space space);
         void         translate(const tools::Vec2 &vec2);
         bool         must_be_draw() const;
         bool         pinned() const;
         void         set_pinned(bool b = true);
         const Rect&  content_rect() const { return m_content_rect; }
-
+        static void  draw_scope_tree(Scope* scope);
     private:
+        static void  draw_scope_tree_ex(Scope* scope);
         void        on_reset_parent(Scope*);
         void        on_add_node(Node*);
         void        on_remove_node(Node*);

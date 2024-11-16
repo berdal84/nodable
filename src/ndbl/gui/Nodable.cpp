@@ -303,7 +303,7 @@ void Nodable::update()
                 // 1) create the node
                 if ( !graph->root() )
                 {
-                    LOG_ERROR("Nodable", "Unable to create_new child_node, no root found on this graph.\n");
+                    LOG_ERROR("Nodable", "Unable to create_new child, no root found on this graph.\n");
                     continue;
                 }
 
@@ -341,8 +341,8 @@ void Nodable::update()
                     if ( !graph->is_root( new_node ) && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
                         Scope* root_scope = graph->root()->internal_scope();
-                        VERIFY( root_scope != nullptr, "inner main_scope is expected on a root child_node");
-                        root_scope->push_back(new_node);
+                        VERIFY( root_scope != nullptr, "inner main_scope is expected on a root child");
+                        root_scope->child_push_back(new_node);
                     }
                 }
                 else
@@ -354,7 +354,7 @@ void Nodable::update()
                     if ( complementary_slot )
                     {
                         // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
-                        LOG_ERROR( "GraphView", "unable to connect this child_node" );
+                        LOG_ERROR( "GraphView", "unable to connect this child" );
                     }
                     if ( complementary_slot )
                     {

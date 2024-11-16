@@ -30,7 +30,6 @@ namespace ndbl
     private:
 
         size_t                           m_branch_count = 0;
-        std::array<Scope*, BRANCH_MAX>   m_branch_scope;
         std::array<Slot*, BRANCH_MAX>    m_flow_out;
         std::array<Slot*, BRANCH_MAX-1>  m_condition_in; // branch_FALSE has no condition
     };

@@ -33,7 +33,7 @@ void Physics::init(NodeView* view)
 
 void Physics::clear_constraints()
 {
-    _nodeview_constraints.clear();
+    _constraints.clear();
 }
 
 void Physics::apply_constraints(float _dt)
@@ -41,19 +41,24 @@ void Physics::apply_constraints(float _dt)
     if( !_is_active )
         return;
 
-    for (auto& constraint : _nodeview_constraints)
+    for (auto& constraint : _constraints)
         constraint.update(_dt);
 }
 
-void Physics::add_force_to(tools::Vec2 _target_pos, float _factor, bool _recurse, tools::Space _space)
+void Physics::translate(const tools::Vec2& delta, float speed, bool recursive)
 {
-    Vec2 delta   = _target_pos - _view->spatial_node().position(_space);
-    float factor = std::max(0.0f, _factor);
-    Vec2 force   = Vec2::scale(delta, factor);
-    add_force( force, _recurse);
+    const Vec2 force = delta * speed;
+    add_force(force, recursive);
 }
 
-void Physics::add_force( Vec2 force, bool _recurse)
+void Physics::translate_to(const tools::Vec2& pos, float speed, bool recursive, tools::Space space)
+{
+    const Vec2 delta = pos - _view->spatial_node().position(space);
+    const Vec2 force = delta * speed;
+    add_force(force, recursive);
+}
+
+void Physics::add_force(const tools::Vec2& force, bool _recurse)
 {
     _forces_sum += force;
 
@@ -83,28 +88,22 @@ void Physics::apply_forces(float _dt)
     _forces_sum            = Vec2();
 }
 
-void Physics::NodeViewConstraint::update(float _dt)
+void ViewConstraint::update(float dt)
 {
-    ASSERT(should_apply != nullptr);
-    ASSERT(rule != nullptr);
-
-    if ( !enabled)
-        return;
-
-    if ( !(this->*should_apply)() )
-        return;
-
-    (this->*rule)(_dt);
+    if ( enabled )
+    {
+        (this->*rule)(dt);
+    }
 }
 
-void Physics::NodeViewConstraint::rule_1_to_N_as_row(float _dt)
+void ViewConstraint::rule_1_to_N_as_row(float dt)
 {
     // This type of constrain is designed to make a single NodeView to follow many others
 
     VERIFY(!leader.empty(), "No leader found!");
     VERIFY(follower.size() == 1, "This is a one to many relationship, a single follower only is allowed");
 
-    std::vector<NodeView*> clean_follower = Physics::NodeViewConstraint::clean(follower);
+    std::vector<NodeView*> clean_follower = ViewConstraint::clean(follower);
     if( clean_follower.empty() )
         return;
 
@@ -124,16 +123,16 @@ void Physics::NodeViewConstraint::rule_1_to_N_as_row(float _dt)
 
     Vec2 current_pos = _follower->spatial_node().position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
-    physics_component->add_force_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
+    physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
 
-void Physics::NodeViewConstraint::rule_N_to_1_as_a_row(float _dt)
+void ViewConstraint::rule_N_to_1_as_a_row(float _dt)
 {
     ASSERT(leader.size() == 1);
     ASSERT(follower.size() > 0);
 
     Config* cfg = get_config();
-    std::vector<NodeView*> clean_follower = Physics::NodeViewConstraint::clean(follower);
+    std::vector<NodeView*> clean_follower = clean(follower);
     if( clean_follower.empty() )
         return;
 
@@ -170,53 +169,50 @@ void Physics::NodeViewConstraint::rule_N_to_1_as_a_row(float _dt)
             continue;
         Vec2 current_pos = clean_follower[i]->spatial_node().position(WORLD_SPACE);
         Vec2 desired_pos = current_pos + delta[i];
-        physics_component->add_force_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
+        physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
     }
 }
 
-std::vector<NodeView *> Physics::NodeViewConstraint::clean(std::vector<NodeView *> &views)
+std::vector<NodeView*> ViewConstraint::clean(std::vector<NodeView *> &views)
 {
     std::vector<NodeView *> result;
     for(auto* view : views)
-    {
         if (view->visible())
             if (!view->pinned())
                 result.push_back(view);
-    }
     return result;
 }
 
-void Physics::NodeViewConstraint::rule_align_child_scopeviews(float _dt)
+void ViewConstraint::rule_distribute_sub_scope_views(float dt)
 {
-    if ( !enabled )
-        return;
-
-    // Gather unpinned children
-    std::vector<ScopeView*> children;
-    for(Scope* child : leader[0]->node()->internal_scope()->child_scope() )
-        if ( !child->view()->pinned() )
-            children.push_back(child->view() );
+    // filter views to constrain
+    std::vector<ScopeView*> sub_scope_view;
+    for(Scope* sub_scope : leader[0]->node()->internal_scope()->sub_scope() )
+        if ( !sub_scope->view()->pinned() )
+            if ( !sub_scope->empty() )
+                sub_scope_view.push_back(sub_scope->view() );
 
     // make a row
     std::vector<Rect> new_rect;
-    for(auto child : children)
-        new_rect.push_back( child->content_rect() );
+    for(auto s : sub_scope_view)
+        new_rect.push_back( s->content_rect() );
     const float gap = get_config()->ui_scope_gap( gap_size );
     Rect::make_row(new_rect, gap );
 
     // v align
     const Vec2 parent_pivot_pos = leader[0]->shape()->pivot( leader_pivot, WORLD_SPACE );
-    const float top = parent_pivot_pos.y + gap * gap_direction.y;
-    Rect::align_top( new_rect, top );
+    const Vec2 top              = parent_pivot_pos + Vec2{ 0.f, gap} * gap_direction;
+    Rect::align_top( new_rect, top.y );
 
-    // translate views
-    for(size_t i = 0; i < children.size(); ++i)
+    // translate each sub_scope
+    for(size_t i = 0; i < sub_scope_view.size(); ++i)
     {
-        const Vec2 desired_pos = new_rect[i].center();
-        if( auto node = children[i]->scope()->first_node() )
-        {
-            auto c = node->get_component<Physics>();
-            c->add_force_to(desired_pos, get_config()->ui_node_speed, false, WORLD_SPACE);
-        }
+        const Vec2 cur_pos = sub_scope_view[i]->content_rect().center();
+        const Vec2 new_pos = new_rect[i].center();
+        const Vec2 delta   = new_pos - cur_pos;
+
+        // we translate it's first node
+        Node* first_node = sub_scope_view[i]->scope()->first_child();
+        first_node->get_component<Physics>()->translate( delta, get_config()->ui_node_speed, false );
     }
 }

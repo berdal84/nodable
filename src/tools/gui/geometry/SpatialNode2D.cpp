@@ -76,8 +76,10 @@ tools::Vec2 tools::SpatialNode2D::position(Space space) const
     switch ( space )
     {
         default:
-            VERIFY( space != LOCAL_SPACE, "Are you sure this is what you want to do? It would return Vec2(0.f,0.f) ");
             VERIFY( false, "This space is not handled");
+
+        case LOCAL_SPACE:
+            return {0.f, 0.f};
 
         case PARENT_SPACE:
             return position(); // is default

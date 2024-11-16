@@ -21,7 +21,7 @@ void ScopeView::init(Scope* scope)
 
     if ( Scope* parent = scope->parent() )
         on_reset_parent( parent );
-    for( Node* node : scope->child_node() )
+    for( Node* node : scope->child() )
         on_add_node( node );
 
     CONNECT( scope->on_add         , &ScopeView::on_add_node );
@@ -44,47 +44,62 @@ Theme ScopeView::theme() const
 
 void ScopeView::update(float dt, ScopeViewFlags flags)
 {
-    std::set<Node*> nodes { m_scope->child_node().begin(), m_scope->child_node().end() };
-    if ( Scope::is_internal(m_scope) )
-        nodes.insert( m_scope->node() );
-
-    Rect r = {};
     m_inner_nodeviews.clear();
-    for(Node* node : nodes )
+    std::set<Node*> node_to_include {m_scope->child().begin(), m_scope->child().end() };
+
+    // Insert owner if this scope is the main internal one
+    if ( m_scope->node()->internal_scope() == m_scope )
+      node_to_include.insert(m_scope->node() );
+
+    Rect content_rect = {};
+
+    // append node's view rectangle
+    for( Node* node : node_to_include )
     {
         if (NodeView *nodeView = node->get_component<NodeView>())
         {
-            m_inner_nodeviews.push_back(nodeView );
+            m_inner_nodeviews.push_back( nodeView );
             if (nodeView->visible())
             {
                 Rect node_rect = nodeView->get_rect_ex(WORLD_SPACE, NodeViewFlag_WITH_RECURSION | NodeViewFlag_WITH_PINNED);
-                r = Rect::merge(r, node_rect);
+                content_rect = Rect::merge(content_rect, node_rect);
             }
         }
-
-        if (node->has_internal_scope() )
-        {
-            for (Scope* child_scope: node->internal_scope()->child_scope())
-            {
-                child_scope->view()->update(dt, flags);
-                r = Rect::merge(r, child_scope->view()->m_content_rect );
-            };
-        }
     }
+
+    // append child's internal scope rectangle(s)
+    for( Node* node : m_scope->child() )
+    {
+        if ( !node->has_internal_scope() )
+            continue;
+
+        m_inner_nodeviews.push_back( node->get_component<NodeView>() );
+        Scope* scope = node->internal_scope();
+        scope->view()->update(dt, flags);
+        content_rect = Rect::merge(content_rect, scope->view()->m_content_rect );
+    }
+
+    // append sub scope rectangle(s)
+    for ( Scope* sub_scope: m_scope->sub_scope() )
+    {
+        ScopeView* child_scope_view = sub_scope->view();
+        child_scope_view->update(dt, flags);
+        content_rect = Rect::merge(content_rect, child_scope_view->m_content_rect );
+    };
 
     const Config* config = get_config();
-    if ( r.has_area() )
+    if ( content_rect.has_area() )
     {
-        r.min.x -= config->ui_scope_margin.x;
-        r.min.y -= config->ui_scope_margin.y;
-        r.max.x += config->ui_scope_margin.z;
-        r.max.y += config->ui_scope_margin.w;
+        content_rect.min.x -= config->ui_scope_margin.x;
+        content_rect.min.y -= config->ui_scope_margin.y;
+        content_rect.max.x += config->ui_scope_margin.z;
+        content_rect.max.y += config->ui_scope_margin.w;
 
-        r.min.round();
-        r.max.round();
+        content_rect.min.round();
+        content_rect.max.round();
     }
 
-    m_content_rect = r;
+    m_content_rect = content_rect;
 }
 
 bool ScopeView::must_be_draw() const
@@ -141,7 +156,7 @@ void ScopeView::on_reset_parent(Scope* scope)
 void ScopeView::translate(const tools::Vec2 &delta)
 {
     // translate scope's owner's view, only it this is the main internal scope
-    if ( Scope::is_internal( m_scope ) )
+    if ( node()->internal_scope() == m_scope )
         node()->get_component<NodeView>()->spatial_node().translate( delta );
     // translate view (and children...)
     m_spatial_node.translate( delta );
@@ -155,4 +170,44 @@ void ScopeView::set_pinned(bool b)
 bool ScopeView::pinned() const
 {
     return node()->get_component<NodeView>()->pinned();
+}
+
+void ScopeView::set_position(const tools::Vec2& pos, tools::Space space)
+{
+    m_spatial_node.set_position( pos, space );
+}
+
+
+void ScopeView::draw_scope_tree(Scope *scope)
+{
+    if ( ImGui::TreeNode("Scope Tree" ) )
+    {
+        if ( scope )
+            draw_scope_tree_ex( scope );
+        else
+            ImGui::Text("nullptr");
+        ImGui::TreePop();
+    }
+}
+
+void ScopeView::draw_scope_tree_ex(Scope *scope)
+{
+    ImGui::PushID( scope );
+    for ( Scope* sub_scope : scope->sub_scope() )
+    {
+        draw_scope_tree_ex(sub_scope);
+    }
+
+    for ( Node* child : scope->child() )
+    {
+        ImGui::PushID(child);
+        if ( ImGui::TreeNode("%s (primary)", child->get_class()->name(), child->name().c_str() ) )
+        {
+            if ( child->has_internal_scope() )
+                draw_scope_tree_ex( child->internal_scope() );
+            ImGui::TreePop();
+        }
+        ImGui::PopID();
+    }
+    ImGui::PopID();
 }

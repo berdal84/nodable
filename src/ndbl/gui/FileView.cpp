@@ -327,26 +327,6 @@ void FileView::set_undo_buffer(TextEditor::IExternalUndoBuffer* _buffer ) {
 	this->m_text_editor.SetExternalUndoBuffer(_buffer);
 }
 
-void draw_scope(const Scope* scope)
-{
-    if ( ImGui::TreeNode( scope->name() ) )
-    {
-        if ( ImGui::TreeNode("children", "child_scope(s) (%zu)", scope->child_scope().size()) )
-        {
-            for ( const Scope* child : scope->child_scope() )
-                draw_scope(child);
-            ImGui::TreePop();
-        }
-        if (  ImGui::TreeNode("child_node", "child_node(s) (%zu)", scope->child_node().size())  )
-        {
-            for ( const Node* node : scope->child_node() )
-                ImGui::BulletText("%s (class %s)", node->name().c_str(), node->get_class()->name() );
-            ImGui::TreePop();
-        }
-        ImGui::TreePop();
-    }
-}
-
 void FileView::draw_info_panel() const
 {
     // Basic information
@@ -382,8 +362,8 @@ void FileView::draw_info_panel() const
     }
 
     // Hierarchy
-    if ( Scope* main_scope = m_file->graph().main_scope() )
-        draw_scope(main_scope);
+    Scope* main_scope = m_file->graph().main_scope();
+    ScopeView::draw_scope_tree( main_scope );
 }
 
 void FileView::experimental_clipboard_auto_paste(bool _enable)

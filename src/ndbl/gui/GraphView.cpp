@@ -96,20 +96,17 @@ void GraphView::decorate_node(Node* node)
     if ( node->has_internal_scope() )
     {
         Scope*     internal_scope = node->internal_scope();
-        ScopeView* scope_view      = component_factory->create<ScopeView>();
+        ScopeView* scope_view     = component_factory->create<ScopeView>();
         CONNECT(scope_view->on_hover, &GraphView::_set_hovered );
         node->add_component( scope_view );
         scope_view->init( internal_scope );
 
-        for ( Scope* child_scope : internal_scope->child_scope() )
+        for ( Scope* sub_scope : internal_scope->sub_scope() )
         {
-            if ( child_scope->node() == node )
-            {
-                ScopeView* child_view = component_factory->create<ScopeView>();
-                node->add_component( child_view );
-                CONNECT(child_view->on_hover, &GraphView::_set_hovered );
-                child_view->init( child_scope );
-            }
+            ScopeView* sub_scope_view = component_factory->create<ScopeView>();
+            node->add_component(sub_scope_view );
+            CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered );
+            sub_scope_view->init(sub_scope );
         }
     }
 }
@@ -429,18 +426,19 @@ void GraphView::_update(float dt, u16_t count)
         _update( dt );
 }
 
-void GraphView::create_constraints__align_below( Node* follower, const  std::vector<Node*>& leader )
+void GraphView::create_constraints__align_down(Node* follower, const  std::vector<Node*>& leader )
 {
-    ASSERT( !leader.empty() );
+    if( leader.empty() )
+        return;
 
     std::vector<NodeView*> leader_view;
     for ( Node* _leader : leader )
         leader_view.push_back( _leader->get_component<NodeView>() );
 
     NodeView* follower_view = follower->get_component<NodeView>();
-    Physics::NodeViewConstraint constraint;
+    ViewConstraint constraint;
     constraint.name           = "Position below previous";
-    constraint.rule           = &Physics::NodeViewConstraint::rule_1_to_N_as_row;
+    constraint.rule           = &ViewConstraint::rule_1_to_N_as_row;
     constraint.leader         = leader_view;
     constraint.follower       = {follower_view};
     constraint.follower_flags = NodeViewFlag_WITH_RECURSION;
@@ -455,27 +453,27 @@ void GraphView::create_constraints__align_below( Node* follower, const  std::vec
     follower->get_component<Physics>()->add_constraint(constraint);
 };
 
-void GraphView::create_constraints__align_above_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node* leader )
+void GraphView::create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node* leader )
 {
-    ASSERT(unfiltered_follower.size());
-    ASSERT(leader);
+    if ( unfiltered_follower.empty() )
+        return;
 
+    ASSERT(leader);
     NodeView* leader_view = leader->get_component<NodeView>();
     // nodeview's inputs must be aligned on center-top
     // It's a one to many constrain.
     //
     std::vector<NodeView*> follower;
     for (auto* _follower : unfiltered_follower )
-        if ( _follower->flow_inputs().empty())
-            if (Utils::is_output_node_in_expression(_follower, leader))
-                follower.push_back(_follower->get_component<NodeView>() );
+        if (Utils::is_output_node_in_expression(_follower, leader))
+            follower.push_back(_follower->get_component<NodeView>() );
 
     if ( follower.empty() )
         return;
 
-    Physics::NodeViewConstraint constraint;
+    ViewConstraint constraint;
     constraint.name           = "Align many inputs above";
-    constraint.rule           = &Physics::NodeViewConstraint::rule_N_to_1_as_a_row;
+    constraint.rule           = &ViewConstraint::rule_N_to_1_as_a_row;
     constraint.leader         = { leader_view };
     constraint.leader_pivot   = TOP;
     constraint.follower       = follower;
@@ -498,39 +496,40 @@ void GraphView::create_constraints__align_above_recursively(const std::vector<No
     leader->get_component<Physics>()->add_constraint(constraint);
 
     for( NodeView* _leader : follower )
-        if ( !_leader->node()->inputs().empty() )
-            create_constraints__align_above_recursively( _leader->node()->inputs(), _leader->node() );
+        create_constraints__align_top_recursively(_leader->node()->inputs(), _leader->node());
 };
 
-void GraphView::create_constraints_for_scope(Scope* scope )
+void GraphView::create_constraints(Scope* scope )
 {
-    // constrain child scopes
-    if ( !scope->child_scope().empty() )
+    // distribute child scopes
+    if ( !scope->sub_scope().empty() )
     {
-        Physics::NodeViewConstraint constraint;
+        ViewConstraint constraint;
         constraint.name          = "Align child ScopeView(s)";
-        constraint.rule          = &Physics::NodeViewConstraint::rule_align_child_scopeviews;
+        constraint.rule          = &ViewConstraint::rule_distribute_sub_scope_views;
         constraint.leader        = {scope->node()->get_component<NodeView>()};
         constraint.leader_pivot  = BOTTOM;
         constraint.gap_size      = Size_XL;
         constraint.gap_direction = BOTTOM;
         scope->node()->get_component<Physics>()->add_constraint(constraint);
-
-        for( Scope* child_scope : scope->child_scope() )
-        {
-            create_constraints_for_scope( child_scope );
-        }
     }
 
-    // constrain child nodes
-    for ( Node* node : scope->child_node() )
-    {
-        if ( !node->inputs().empty() )
-            create_constraints__align_above_recursively( node->inputs(), node);
+    for( Scope* sub_scope : scope->sub_scope() )
+        create_constraints(sub_scope);
 
-        if ( !node->flow_inputs().empty() )
-            if ( node != scope->first_node() ||  scope->is_orphan() )
-                create_constraints__align_below( node, node->flow_inputs() );
+    for ( Node* child_node : scope->child() )
+    {
+        // align child below flow_inputs
+        if (child_node != scope->first_child() || scope->is_orphan() )
+            create_constraints__align_down(child_node, child_node->flow_inputs());
+
+        // align child's inputs above
+        if ( Utils::is_instruction(child_node) )
+            create_constraints__align_top_recursively(child_node->inputs(), child_node );
+
+        // child's internal scope
+        if ( Scope* node_internal_scope = child_node->internal_scope() )
+            create_constraints( node_internal_scope );
     }
 };
 
@@ -547,12 +546,12 @@ void GraphView::_update(float dt)
             node->get_component<Physics>()->clear_constraints();
 
         for (Scope* _scope : graph()->orphan_scopes() )
-            create_constraints_for_scope(_scope);
+            create_constraints(_scope);
 
         for (Node* _node : graph()->nodes() )
             if ( _node->is_orphan() )
                 if ( !_node->flow_inputs().empty() )
-                    create_constraints__align_below( _node, _node->flow_inputs() );
+                    create_constraints__align_down(_node, _node->flow_inputs());
 
         m_physics_dirty = false;
     }
@@ -844,7 +843,7 @@ void GraphView::cursor_state_tick()
                             views.insert( view );
 
                         // and every other child's
-                        for(Node* child_node : child->child_node())
+                        for(Node* child_node : child->child())
                             if ( NodeView* view = child_node->get_component<NodeView>())
                                 views.insert(view);
                     }

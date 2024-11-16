@@ -115,7 +115,7 @@ void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
     }
 
     // push each variable
-    for(auto each_variable : node->internal_scope()->vars())
+    for(auto each_variable : node->internal_scope()->child_vars())
     {
         Instruction* instr   = m_temp_code->push_instr(OpCode_push_var);
         instr->push.var      = each_variable;
@@ -123,7 +123,7 @@ void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
     }
 
     // compile content
-    for( Node* each_node : node->internal_scope()->child_node() )
+    for( Node* each_node : node->internal_scope()->child() )
     {
         compile_node( each_node );
     }
@@ -135,7 +135,7 @@ void Compiler::compile_inner_scope(const Node* node, bool _insert_fake_return)
     }
 
     // pop each variable
-    for(auto each_variable : node->internal_scope()->vars())
+    for(auto each_variable : node->internal_scope()->child_vars())
     {
         Instruction *instr   = m_temp_code->push_instr(OpCode_pop_var);
         instr->push.var      = each_variable;

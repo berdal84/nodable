@@ -34,7 +34,7 @@ VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flag
     return nullptr;
 }
 
-void Scope::push_back_ex(Node *node, ScopeFlags flags)
+void Scope::child_push_back_ex(Node *node, ScopeFlags flags)
 {
     ASSERT(node);
     node_register_add( node, flags );
@@ -43,14 +43,11 @@ void Scope::push_back_ex(Node *node, ScopeFlags flags)
     {
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
-                push_back_ex(input, flags & ~ScopeFlags_IS_PRIMARY_NODE );
+                child_push_back_ex(input, flags & ~ScopeFlags_AS_PRIMARY_CHILD);
 
         for ( Node* next : node->flow_outputs() )
-            push_back_ex(next, flags);
+            child_push_back_ex(next, flags );
     }
-
-    on_change.emit();
-    on_add.emit(node);
 }
 
 std::vector<Node*> Scope::leaves()
@@ -64,107 +61,78 @@ std::vector<Node*> Scope::leaves()
 
 std::vector<Node*>& Scope::leaves_ex(std::vector<Node*>& out)
 {
-    if (m_primary_node.empty() && m_child_scope.empty() )
+    if ( !m_sub_scope.empty() )
     {
-        return out;
+        for( Scope* _sub_scope : m_sub_scope )
+            _sub_scope->leaves_ex(out);
+        return out; // when a scope as sub scopes, we do not consider its node as potential leaves since they are usually secondary nodes, so we return early.
     }
 
-    // Recursive call for nested nodes
-    for( Node* child : m_primary_node )
+    if ( !m_child_node.empty() )
     {
-        if (child->has_internal_scope() )
-        {
-            child->internal_scope()->leaves_ex(out); // Recursive call on nested scopes
-        }
-        else if ( child == *m_primary_node.rbegin() )
-        {
-            out.push_back( child ); // Append the last instruction to the result
-        }
-    }
+        for( Node* _child_node : m_child_node )
+            if (_child_node->has_internal_scope() )
+                _child_node->internal_scope()->leaves_ex(out); // Recursive call on nested scopes
 
-    for( Scope* child : m_child_scope )
-    {
-        child->leaves_ex(out); // Recursive call on nested scopes
+        if ( !m_child_node.back()->has_internal_scope() )
+            out.push_back( m_child_node.back() );
     }
 
     return out;
 }
 
-void Scope::remove_ex(Node* node, ScopeFlags flags)
+void Scope::child_erase_ex(Node* node, ScopeFlags flags)
 {
     ASSERT(node != nullptr);
 
     node_register_remove(node, flags);
-
-    on_change.emit();
-    on_remove.emit(node);
 
     // recursive call(s)
     if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
     {
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
-                remove_ex(input, flags & ~ScopeFlags_IS_PRIMARY_NODE );
+                child_erase_ex(input, flags & ~ScopeFlags_AS_PRIMARY_CHILD);
 
         for ( Node* next : node->flow_outputs() )
-            remove_ex(next, flags);
+            child_erase_ex(next, flags);
     }
 }
 
 void Scope::clear()
 {
-    while( !m_primary_node.empty() )
+    while( !m_child_node.empty() )
     {
-        remove_ex( m_primary_node.back(), ScopeFlags_IS_PRIMARY_NODE );
+        child_erase_ex(m_child_node.back(), ScopeFlags_AS_PRIMARY_CHILD);
     }
 
     while( !m_all_node.empty() )
     {
-        remove_ex(*m_all_node.begin(), ScopeFlags_NONE );
+        child_erase_ex(*m_all_node.begin(), ScopeFlags_NONE);
     }
 
     on_clear.emit();
 }
 
-void Scope::reset_parent(Scope* new_parent, ScopeFlags flags)
+void Scope::sub_scope_push_back( ndbl::Scope* sub_scope )
 {
-    // clear current parent from "this"
-    if ( m_parent )
-    {
-        auto it = std::find(m_parent->m_child_scope.begin(), m_parent->m_child_scope.end(), this );
-        m_parent->m_child_scope.erase( it );
-        if ( flags & ScopeFlags_CLEAR_WITH_PARENT)
-            DISCONNECT(new_parent->on_clear);
-    }
-
-    // add "this" into new parent
-    if ( new_parent )
-    {
-        new_parent->m_child_scope.push_back(this);
-        if ( flags & ScopeFlags_CLEAR_WITH_PARENT)
-            CONNECT(new_parent->on_clear, &Scope::clear );
-    }
-
-    m_parent = new_parent;
-    on_reset_parent.emit( new_parent );
+    m_sub_scope.push_back( sub_scope );
+    sub_scope->m_parent = this;
+    sub_scope->on_reset_parent.emit( this );
 }
 
 bool Scope::empty_ex(ScopeFlags flags) const
 {
-    bool result = empty();
+    bool is_empty = empty();
 
-    if ( !result )
-    {
-        return result;
-    }
-    else if ( flags & ScopeFlags_RECURSE )
-    {
-        for(Scope* child : child_scope() )
-            if ((flags & ScopeFlags_IF_SAME_NODE) == 0 || child->m_owner == m_owner )
-                result = result && child->empty_ex( flags );
-    }
+    for( Scope* _sub_scope : m_sub_scope )
+        is_empty &= _sub_scope->empty_ex(flags );
 
-    return result;
+    if ( flags & ScopeFlags_RECURSE )
+        for( Scope* _sub_scope : m_sub_scope )
+            is_empty &= _sub_scope->empty_ex(flags );
+
+    return is_empty;
 }
 
 std::stack<Scope*> get_path(Scope* s)
@@ -221,24 +189,29 @@ std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, 
     if ( level_max-1 == 0 )
         return out;
 
-    for(Scope* child : scope->m_child_scope)
+    for ( Scope* _sub_scope : scope->m_sub_scope )
     {
-        get_descendent_ex(out, child, level_max-1, ScopeFlags_INCLUDE_SELF );
+        out.insert(_sub_scope);
+        get_descendent_ex(out, _sub_scope, level_max - 1 );
     }
-    return out;
-}
 
-bool Scope::is_internal(const Scope* scope)
-{
-    return scope->node()->has_internal_scope()
-           && scope->node()->internal_scope() == scope;
+    for( Node* _child_node : scope->m_child_node )
+    {
+        if ( _child_node->has_internal_scope() )
+        {
+            out.insert( _child_node->internal_scope() );
+            get_descendent_ex(out, _child_node->internal_scope(), level_max - 1, ScopeFlags_INCLUDE_SELF );
+        }
+    }
+
+    return out;
 }
 
 void Scope::change_scope(Node* node, Scope* desired_scope )
 {
     Scope* current_scope = node->scope();
-    if ( current_scope ) current_scope->remove( node );
-    if ( desired_scope ) desired_scope->push_back( node );
+    if ( current_scope ) current_scope->child_erase(node);
+    if ( desired_scope ) desired_scope->child_push_back(node);
 }
 
 void Scope::node_register_remove(Node* node, ScopeFlags flags)
@@ -247,25 +220,27 @@ void Scope::node_register_remove(Node* node, ScopeFlags flags)
     const int erased_count = m_all_node.erase(node );
     VERIFY( erased_count, "Unable to find node" );
 
-    auto it = std::find(m_primary_node.begin(), m_primary_node.end(), node );
-    if ( it != m_primary_node.end() )
+    auto it = std::find(m_child_node.begin(), m_child_node.end(), node );
+    if (it != m_child_node.end() )
     {
-        m_primary_node.erase( it );
+        m_child_node.erase(it );
 
         if ( node->type() == NodeType_VARIABLE )
             m_variable_node.erase( static_cast<VariableNode*>(node) );
     }
 
     node->reset_scope();
+    on_change.emit();
+    on_remove.emit(node);
 }
 
 void Scope::node_register_add(Node* node, ScopeFlags flags)
 {
     VERIFY(node->scope() == nullptr, "Node should have no scope");
 
-    if ( flags & ScopeFlags_IS_PRIMARY_NODE )
+    if (flags & ScopeFlags_AS_PRIMARY_CHILD )
     {
-        m_primary_node.push_back( node );
+        m_child_node.push_back(node );
 
         if ( node->type() == NodeType_VARIABLE )
         {
@@ -287,6 +262,14 @@ void Scope::node_register_add(Node* node, ScopeFlags flags)
             }
         }
     }
-    m_all_node.insert(node );
+    m_all_node.insert( node );
     node->reset_scope(this);
+    on_change.emit();
+    on_add.emit(node);
+}
+
+void Scope::reset_parent( Scope* scope )
+{
+    m_parent = scope;
+    on_reset_parent.emit( scope );
 }
