@@ -47,7 +47,6 @@ namespace  ndbl
             NodeViews     follower;
 
             static std::vector<NodeView*> clean( std::vector<NodeView*>& );
-            static bool                   should_follow_output(const Node* node, const Node* output_node );
         };
 
         typedef std::vector<NodeViewConstraint>  NodeViewConstraints;

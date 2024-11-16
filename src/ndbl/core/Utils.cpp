@@ -1,5 +1,6 @@
 #include "Utils.h"
 #include "FunctionNode.h"
+#include "VariableNode.h"
 
 using namespace ndbl;
 
@@ -76,4 +77,22 @@ bool Utils::is_conditional(const Node* node)
         default:
             return false;
     };
+}
+
+bool Utils::is_output_node_in_expression(const Node* input_node, const Node* output_node)
+{
+    ASSERT(input_node != nullptr);
+    ASSERT(output_node != nullptr);
+
+    if ( Utils::is_instruction(input_node ) )
+    {
+        if (input_node->type() == NodeType_VARIABLE )
+        {
+            const Slot* declaration_out = static_cast<const VariableNode*>(input_node)->decl_out();
+            return declaration_out->first_adjacent_node() == output_node;
+        }
+        return false;
+    }
+
+    return input_node->outputs().front() == output_node;
 }

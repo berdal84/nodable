@@ -467,7 +467,7 @@ void GraphView::create_constraints__align_above_recursively(const std::vector<No
     std::vector<NodeView *> follower_view;
     for (auto* _follower : follower )
         if ( _follower->flow_inputs().empty())
-            if (Physics::NodeViewConstraint::should_follow_output(_follower, leader ))
+            if (Utils::is_output_node_in_expression(_follower, leader))
                 follower_view.push_back( _follower->get_component<NodeView>() );
 
     if ( follower_view.empty() )
@@ -553,6 +553,10 @@ void GraphView::_update(float dt)
             ASSERT( _scope->is_orphan());
             create_constraints_for_scope(_scope);
         }
+        for (Node* _node : graph()->nodes() )
+            if ( _node->is_orphan() )
+                if ( !_node->flow_inputs().empty() )
+                    create_constraints__align_below( _node, _node->flow_inputs() );
         m_physics_dirty = false;
     }
 

@@ -283,7 +283,7 @@ void NodeView::arrange_recursively(bool _smoothly)
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
         if ( !each_input->m_pinned )
-            if ( Physics::NodeViewConstraint::should_follow_output(each_input->node(), this->node() ) )
+            if (Utils::is_output_node_in_expression(each_input->node(), this->node()) )
                 each_input->arrange_recursively();
     }
 
@@ -795,7 +795,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
             return;
         if( view->m_pinned && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
-        if( Physics::NodeViewConstraint::should_follow_output(view->node(), this->node() ) )
+        if(Utils::is_output_node_in_expression(view->node(), this->node()) )
         {
             Rect rect = view->get_rect_ex(space, flags);
             rects.push_back( rect );
@@ -899,8 +899,8 @@ void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeVie
     bool has_not_output = get_adjacent(SlotFlag_OUTPUT).empty();
     for( auto each_child_view : get_adjacent(slot_flags) )
     {
-        if( _visible || has_not_output || Physics::NodeViewConstraint::should_follow_output(each_child_view->node(),
-                                                                                            this->node() ) )
+        if( _visible || has_not_output || Utils::is_output_node_in_expression(each_child_view->node(),
+                                                                              this->node()) )
         {
             if ( (node_flags & NodeViewFlag_WITH_RECURSION) && each_child_view->m_expanded ) // propagate only if expanded
             {

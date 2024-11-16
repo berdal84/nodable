@@ -77,7 +77,8 @@ namespace ndbl
         const Slot*          flow_in() const;
         Slot*                flow_out();
         const Slot*          flow_out() const;
-        bool                 has_scope() const { return scope() != nullptr; }
+        bool                 is_orphan() const { return m_parent_scope == nullptr; }
+        bool                 has_scope() const { return m_parent_scope != nullptr; }
         Scope*               scope() const { return m_parent_scope; };
         void                 reset_scope(Scope* = nullptr);
         void                 init_internal_scope();

@@ -64,7 +64,7 @@ void Physics::add_force( Vec2 force, bool _recurse)
         NodeView* input_view = input_node->get_component<NodeView>();
 
         if ( !input_view->pinned())
-            if ( NodeViewConstraint::should_follow_output(input_node, _view->node() ))
+            if (Utils::is_output_node_in_expression(input_node, _view->node()))
                 if(auto* physics_component = input_node->get_component<Physics>())
                     physics_component->add_force(force, _recurse);
     }
@@ -184,32 +184,6 @@ std::vector<NodeView *> Physics::NodeViewConstraint::clean(std::vector<NodeView 
                 result.push_back(view);
     }
     return result;
-}
-
-bool Physics::NodeViewConstraint::should_follow_output(const Node* node, const Node* output_node )
-{
-    ASSERT(node != nullptr);
-    ASSERT(output_node != nullptr);
-
-    // Instruction should never follow an output (they must stick to the codeflow)
-    if ( !Utils::is_instruction( node ) )
-    {
-        VERIFY( !node->outputs().empty(), "You should call this method knowing that other is in child_node's outputs, which means the vector is not empty.");
-        const bool is_first_element = node->outputs().front() == output_node;
-        return is_first_element;
-    }
-
-    // However, variables can be declared inlined (like in an if condition:  "if (int i = 0) {...}" )
-    // In that case we want the variable to follow the output.
-    if( node->type() == NodeType_VARIABLE )
-    {
-        auto variable = static_cast<const VariableNode*>( node );
-        if ( auto adjacent = variable->decl_out()->first_adjacent() )
-            return adjacent->node == output_node;
-
-    }
-
-    return false;
 }
 
 void Physics::NodeViewConstraint::rule_align_child_scopeviews(float _dt)

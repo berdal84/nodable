@@ -4,6 +4,7 @@
 #include "NodeView.h"
 #include "ndbl/core/Utils.h"
 #include "Config.h"
+#include "Physics.h"
 
 using namespace ndbl;
 using namespace tools;
