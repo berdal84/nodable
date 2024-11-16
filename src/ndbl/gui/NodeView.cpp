@@ -896,7 +896,7 @@ void NodeView::set_children_visible(bool visible, bool recursively)
 
 void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeViewFlags node_flags)
 {
-    bool has_not_output = get_adjacent(SlotFlag_OUTPUT).empty();
+    bool has_not_output = node()->outputs().empty();
     for( auto each_child_view : get_adjacent(slot_flags) )
     {
         if( _visible || has_not_output || Utils::is_output_node_in_expression(each_child_view->node(),
