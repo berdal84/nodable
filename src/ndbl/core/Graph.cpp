@@ -423,8 +423,8 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         if ( previous_node->has_internal_scope() )
         {
             target_scope = previous_node->internal_scope();
-            if ( target_scope->sub_scope().size() )
-                target_scope = target_scope->sub_scope_at( edge.tail->position );
+            if ( target_scope->is_partitioned() )
+                target_scope = target_scope->partition_at(edge.tail->position);
         }
         else
         {
@@ -439,8 +439,9 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
             adjacent_scope.push_back(adjacent->node->scope() );
         // find lowest_common_ancestor
         target_scope = Scope::lowest_common_ancestor( adjacent_scope );
-//        if ( Scope::is_internal(target_scope) )
-//            target_scope = target_scope->node()->parent();
+        // We can't use a scope having sub_scopes directly, using parent
+        if (target_scope->is_partitioned() )
+            target_scope = target_scope->parent();
     }
     else
     {
@@ -599,12 +600,13 @@ Node *Graph::create_empty_instruction()
     return node;
 }
 
-std::set<Scope *> Graph::orphan_scopes()
+std::set<Scope *> Graph::root_scopes()
 {
-    std::set<Scope *> result;
-    for(Node* node : m_node_registry)
-        if ( node->has_internal_scope() && node->internal_scope()->is_orphan() )
-            result.insert( node->internal_scope() );
+    std::set<Scope*> result;
+    for ( Node* node : m_node_registry )
+        if ( node->has_internal_scope() )
+            if ( node->internal_scope()->depth() == 0 )
+                result.insert( node->internal_scope() );
     return result;
 }
 

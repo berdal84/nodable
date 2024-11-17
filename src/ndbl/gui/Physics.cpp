@@ -187,7 +187,7 @@ void ViewConstraint::rule_distribute_sub_scope_views(float dt)
 {
     // filter views to constrain
     std::vector<ScopeView*> sub_scope_view;
-    for(Scope* sub_scope : leader[0]->node()->internal_scope()->sub_scope() )
+    for(Scope* sub_scope : leader[0]->node()->internal_scope()->partition() )
         if ( !sub_scope->view()->pinned() )
             if ( !sub_scope->empty() )
                 sub_scope_view.push_back(sub_scope->view() );

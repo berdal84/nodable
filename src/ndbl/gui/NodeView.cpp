@@ -647,7 +647,7 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
 
                 if (ImGui::TreeNode("VariableNode(s)"))
                 {
-                    for (VariableNode *variable: scope->child_vars())
+                    for (VariableNode *variable: scope->variable())
                     {
                         std::string value = variable->value()->token().word_to_string();
                         ImGui::BulletText("%s (value: %s)", variable->name().c_str(), value.c_str());

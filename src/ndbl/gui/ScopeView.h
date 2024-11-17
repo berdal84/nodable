@@ -17,10 +17,11 @@ namespace ndbl
         ScopeViewFlags_EXCLUDE_OWNER = 1 << 1,
     };
 
-    enum Theme
+    typedef bool Theme;
+    enum Theme_ : bool
     {
-        Theme_DARK,
-        Theme_LIGHT
+        Theme_DARK  = false,
+        Theme_LIGHT = true
     };
 
     class ScopeView : public NodeComponent
@@ -34,9 +35,9 @@ namespace ndbl
         void         init(Scope*);
         void         update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
         void         draw(float dt, bool highlight);
+        ScopeView*   parent() const;
         Scope*       scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }
-        Theme        theme() const;
         void         set_position(const tools::Vec2& pos, tools::Space space);
         void         translate(const tools::Vec2 &vec2);
         bool         must_be_draw() const;
@@ -53,6 +54,7 @@ namespace ndbl
         Scope*               m_scope = nullptr;
         tools::SpatialNode2D m_spatial_node;
         Rect                 m_content_rect;
-        std::vector<NodeView*> m_inner_nodeviews;
+        std::vector<NodeView*> m_wrapped_node_view;
+        Theme                m_theme;
     };
 }

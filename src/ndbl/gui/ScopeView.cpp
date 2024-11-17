@@ -29,36 +29,39 @@ void ScopeView::init(Scope* scope)
     CONNECT( scope->on_reset_parent, &ScopeView::on_reset_parent );
 }
 
-Theme ScopeView::theme() const
+ScopeView* ScopeView::parent() const
 {
-    if ( m_scope->is_orphan() )
-        return Theme_DARK;
-    ScopeView* parent_view = m_scope->parent()->view();
-    // use same theme since parent won't be drawn, contrast will be with parent's parent.
-    if ( !parent_view->must_be_draw() )
-        return parent_view->theme();
-    // flip theme to maximize contrast
-    return parent_view->theme() == Theme_LIGHT ? Theme_DARK
-                                               : Theme_LIGHT;
+    return m_scope->parent() ? m_scope->parent()->view() : nullptr;
 }
-
 void ScopeView::update(float dt, ScopeViewFlags flags)
 {
-    m_inner_nodeviews.clear();
-    std::set<Node*> node_to_include {m_scope->child().begin(), m_scope->child().end() };
+    // update theme
+    ScopeView* parent_view = parent();
+    if ( parent_view )
+    {
+        if ( parent_view->must_be_draw() )
+            m_theme = !parent_view->m_theme;
+        else
+            m_theme = parent_view->m_theme;
+    }
+    else
+    {
+        m_theme = Theme_DARK;
+    }
 
-    // Insert owner if this scope is the main internal one
-    if ( m_scope->node()->internal_scope() == m_scope )
-      node_to_include.insert(m_scope->node() );
+    m_wrapped_node_view.clear();
 
+    // nodes to include in rect computation
     Rect content_rect = {};
-
+    std::set<Node*> node_to_include {m_scope->child().begin(), m_scope->child().end() };
+    if ( !parent() || !parent()->scope()->is_partitioned() )
+        node_to_include.insert( m_scope->node() );
     // append node's view rectangle
     for( Node* node : node_to_include )
     {
         if (NodeView *nodeView = node->get_component<NodeView>())
         {
-            m_inner_nodeviews.push_back( nodeView );
+            m_wrapped_node_view.push_back(nodeView );
             if (nodeView->visible())
             {
                 Rect node_rect = nodeView->get_rect_ex(WORLD_SPACE, NodeViewFlag_WITH_RECURSION | NodeViewFlag_WITH_PINNED);
@@ -73,14 +76,13 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
         if ( !node->has_internal_scope() )
             continue;
 
-        m_inner_nodeviews.push_back( node->get_component<NodeView>() );
         Scope* scope = node->internal_scope();
         scope->view()->update(dt, flags);
         content_rect = Rect::merge(content_rect, scope->view()->m_content_rect );
     }
 
     // append sub scope rectangle(s)
-    for ( Scope* sub_scope: m_scope->sub_scope() )
+    for ( Scope* sub_scope: m_scope->partition() )
     {
         ScopeView* child_scope_view = sub_scope->view();
         child_scope_view->update(dt, flags);
@@ -104,7 +106,20 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
 
 bool ScopeView::must_be_draw() const
 {
-    return m_content_rect.has_area() && m_inner_nodeviews.size() >= 1;
+    if (!m_content_rect.has_area())
+        return false;
+
+    switch ( scope()->child().size() )
+    {
+        case 0:
+            return false;
+        case 1:
+            if ( parent()->scope() && scope()->first_child()->has_internal_scope() )
+                return false;
+            return true;
+        default:
+            return true;
+    }
 }
 
 void ScopeView::draw(float dt, bool highlight)
@@ -114,7 +129,7 @@ void ScopeView::draw(float dt, bool highlight)
         const Rect r = m_content_rect;
         ImDrawList* draw_list = ImGui::GetWindowDrawList();
         const Config* config = get_config();
-        const Vec4& fill_col = theme() == Theme_DARK ? config->ui_scope_fill_col_light
+        const Vec4& fill_col = m_theme == Theme_DARK ? config->ui_scope_fill_col_light
                                                      : config->ui_scope_fill_col_dark;
         draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
         if ( highlight )
@@ -193,7 +208,7 @@ void ScopeView::draw_scope_tree(Scope *scope)
 void ScopeView::draw_scope_tree_ex(Scope *scope)
 {
     ImGui::PushID( scope );
-    for ( Scope* sub_scope : scope->sub_scope() )
+    for ( Scope* sub_scope : scope->partition() )
     {
         draw_scope_tree_ex(sub_scope);
     }

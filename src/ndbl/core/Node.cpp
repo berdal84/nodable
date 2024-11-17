@@ -345,7 +345,7 @@ void Node::init_internal_scope(size_t sub_scope_count)
         sub_scope->reset_name(sub_scope_name);
         add_component( sub_scope );
 
-        scope->sub_scope_push_back(sub_scope);
+        scope->partition_add(sub_scope);
     }
 }
 
