@@ -865,7 +865,7 @@ void NodableView::draw_config_window()
 
         if (ImGui::CollapsingHeader("Scope", flags ))
         {
-            ImGui::SliderFloat4("margins", &cfg->ui_scope_margin.x, 2, 25);
+            ImGui::SliderFloat4("margins", &cfg->ui_scope_content_rect_margin.min.x, 2, 25);
             ImGui::SliderFloat4("child margin", &cfg->ui_scope_child_margin, 2, 25);
             ImGui::SliderFloat("border radius", &cfg->ui_scope_border_radius, 0, 20);
             ImGui::SliderFloat("border thickness", &cfg->ui_scope_border_thickness, 0, 4);

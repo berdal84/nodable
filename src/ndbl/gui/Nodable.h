@@ -68,5 +68,6 @@ namespace ndbl
         ComponentFactory*  m_component_factory = nullptr;
         u8_t               m_untitled_file_count = 0;
         std::vector<File*> m_loaded_files;
+        std::vector<File*> m_flagged_to_delete_file;
     };
 }

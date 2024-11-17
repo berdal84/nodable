@@ -10,6 +10,13 @@
 namespace tools
 {
 
+    typedef int SpatialNodeFlags;
+    enum SpatialNodeFlag_
+    {
+        SpatialNodeFlag_NONE                    = 0,
+        SpatialNodeFlag_PRESERVE_WORLD_POSITION = 1 << 0,
+    };
+
     /**
      * Very simple spatial node in 2D.
      * A scene graph can be created by linking parent and child nodes.
@@ -33,8 +40,8 @@ namespace tools
         const glm::mat3&      world_matrix() const     { const_cast<SpatialNode2D*>(this)->update_world_matrix(); return _world_matrix; }
         const glm::mat3&      world_matrix_inv() const { const_cast<SpatialNode2D*>(this)->update_world_matrix(); return _world_matrix_inv; }
         void                  set_world_transform_dirty();
-        void                  add_child(SpatialNode2D*);
-        void                  remove_child(SpatialNode2D* possible_child);
+        bool                  add_child(SpatialNode2D*, SpatialNodeFlags = SpatialNodeFlag_PRESERVE_WORLD_POSITION);
+        bool                  remove_child(SpatialNode2D*, SpatialNodeFlags = SpatialNodeFlag_PRESERVE_WORLD_POSITION);
         bool                  has_parent() const { return _parent != nullptr; }
         SpatialNode2D*        parent() const { return _parent; }
         void                  update_world_matrix();

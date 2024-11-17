@@ -35,73 +35,83 @@ ScopeView* ScopeView::parent() const
 }
 void ScopeView::update(float dt, ScopeViewFlags flags)
 {
-    // update theme
+    const Config* config = get_config();
+
+    // 1) update recursively
+    //    any scope with higher depth in the same hierarchy will be up to date.
+    for( Node* child_node : m_scope->child() )
+        if ( child_node->has_internal_scope() )
+            child_node->internal_scope()->view()->update(dt, flags);
+
+    for ( Scope* partition_scope: m_scope->partition() )
+        partition_scope->view()->update(dt, flags);
+
+    // 2) update content rectangle and wrapped node views
+    //
+    m_content_rect = {};
+    m_wrapped_node_view.clear();
+    auto wrap_nodeview = [&](NodeView* nodeview )
+    {
+        ASSERT( nodeview );
+        if ( !nodeview->visible() )
+            return;
+
+        const NodeViewFlags nodeview_flags = NodeViewFlag_WITH_RECURSION
+                                             | NodeViewFlag_WITH_PINNED;
+        Rect node_rect = nodeview->get_rect_ex(WORLD_SPACE, nodeview_flags);
+        m_content_rect = Rect::merge(m_content_rect, node_rect);
+    };
+
+    if ( !m_scope->is_partition() )
+        if ( auto nodeview = m_scope->owner()->get_component<NodeView>() )
+            wrap_nodeview( nodeview );
+
+    for( Node* node : m_scope->child() )
+        if ( auto nodeview = node->get_component<NodeView>() )
+            wrap_nodeview( nodeview );
+
+    for( Node* child_node : m_scope->child() )
+    {
+        if ( !child_node->has_internal_scope() )
+            continue;
+
+        ScopeView* child_node_scope_view = child_node->internal_scope()->view();
+        child_node_scope_view->update(dt, flags);
+        m_content_rect = Rect::merge(m_content_rect, child_node_scope_view->m_content_rect );
+    }
+
+    for ( Scope* partition_scope: m_scope->partition() )
+    {
+        ScopeView* partition_scope_view = partition_scope->view();
+        partition_scope_view->update(dt, flags);
+        m_content_rect = Rect::merge(m_content_rect, partition_scope_view->m_content_rect );
+    };
+
+    if ( must_be_draw() )
+    {
+        // Add margins to see clearly nested scopes
+        m_content_rect.min -= config->ui_scope_content_rect_margin.min;
+        m_content_rect.max += config->ui_scope_content_rect_margin.max;
+
+        // pixel perfect
+        m_content_rect.min.round();
+        m_content_rect.max.round();
+    }
+
+
+    // 2) update theme
+    //
     ScopeView* parent_view = parent();
     if ( parent_view )
     {
-        if ( parent_view->must_be_draw() )
-            m_theme = !parent_view->m_theme;
-        else
-            m_theme = parent_view->m_theme;
+        m_theme = !parent_view->m_theme;
+        if ( !parent_view->must_be_draw() )
+            m_theme = !m_theme;
     }
     else
     {
         m_theme = Theme_DARK;
     }
-
-    m_wrapped_node_view.clear();
-
-    // nodes to include in rect computation
-    Rect content_rect = {};
-    std::set<Node*> node_to_include {m_scope->child().begin(), m_scope->child().end() };
-    if ( !parent() || !parent()->scope()->is_partitioned() )
-        node_to_include.insert( m_scope->node() );
-    // append node's view rectangle
-    for( Node* node : node_to_include )
-    {
-        if (NodeView *nodeView = node->get_component<NodeView>())
-        {
-            m_wrapped_node_view.push_back(nodeView );
-            if (nodeView->visible())
-            {
-                Rect node_rect = nodeView->get_rect_ex(WORLD_SPACE, NodeViewFlag_WITH_RECURSION | NodeViewFlag_WITH_PINNED);
-                content_rect = Rect::merge(content_rect, node_rect);
-            }
-        }
-    }
-
-    // append child's internal scope rectangle(s)
-    for( Node* node : m_scope->child() )
-    {
-        if ( !node->has_internal_scope() )
-            continue;
-
-        Scope* scope = node->internal_scope();
-        scope->view()->update(dt, flags);
-        content_rect = Rect::merge(content_rect, scope->view()->m_content_rect );
-    }
-
-    // append sub scope rectangle(s)
-    for ( Scope* sub_scope: m_scope->partition() )
-    {
-        ScopeView* child_scope_view = sub_scope->view();
-        child_scope_view->update(dt, flags);
-        content_rect = Rect::merge(content_rect, child_scope_view->m_content_rect );
-    };
-
-    const Config* config = get_config();
-    if ( content_rect.has_area() )
-    {
-        content_rect.min.x -= config->ui_scope_margin.x;
-        content_rect.min.y -= config->ui_scope_margin.y;
-        content_rect.max.x += config->ui_scope_margin.z;
-        content_rect.max.y += config->ui_scope_margin.w;
-
-        content_rect.min.round();
-        content_rect.max.round();
-    }
-
-    m_content_rect = content_rect;
 }
 
 bool ScopeView::must_be_draw() const

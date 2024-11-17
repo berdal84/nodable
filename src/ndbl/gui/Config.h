@@ -98,7 +98,7 @@ namespace ndbl
         const char*    ui_startup_window_label;
         const char*    ui_toolbar_window_label ;
         const char*    ui_interpreter_window_label;
-        Vec4           ui_scope_margin; // left, top, right, bottom
+        tools::Rect    ui_scope_content_rect_margin;
         float          ui_scope_child_margin;
         Vec4           ui_scope_fill_col_light;
         Vec4           ui_scope_fill_col_dark;

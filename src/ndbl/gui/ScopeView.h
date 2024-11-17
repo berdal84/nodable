@@ -33,7 +33,7 @@ namespace ndbl
         SIGNAL(on_hover, ScopeView*);
 
         void         init(Scope*);
-        void         update(float dt, ScopeViewFlags flags = ScopeViewFlags_NONE );
+        void         update(float nodeview, ScopeViewFlags flags = ScopeViewFlags_NONE );
         void         draw(float dt, bool highlight);
         ScopeView*   parent() const;
         Scope*       scope() const { return m_scope; }

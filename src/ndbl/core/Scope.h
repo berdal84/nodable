@@ -57,13 +57,14 @@ namespace ndbl
         Node*                          last_child() const { return m_child.empty() ? nullptr : *m_child.rbegin(); };
         void                           reset_parent(Scope* new_parent);
         bool                           is_partitioned() const { return !m_partition.empty(); }
+        bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
         std::vector<Scope*>&           partition() { return m_partition; }
         const std::vector<Scope*>&     partition() const { return m_partition; }
         void                           partition_add(Scope *);
         Scope*                         partition_at(size_t pos) { return m_partition.at(pos); };
         bool                           is_orphan() const { return m_parent == nullptr; }
         size_t                         depth() const { return m_depth; };
-        static void                    change_scope(Node *node, Scope *desired_scope);
+        static void                    change_node_scope(Node *node, Scope *desired_scope);
         static Scope*                  lowest_common_ancestor(const std::vector<Scope*>& scopes);
         static Scope*                  lowest_common_ancestor(Scope* s1, Scope* s2);
         static std::set<Scope*>&       get_descendent(std::set<Scope*>& out, Scope* scope, ScopeFlags flags = ScopeFlags_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }
@@ -75,7 +76,7 @@ namespace ndbl
         void                           child_erase_ex(Node*, ScopeFlags);
         std::vector<Node*>&            leaves_ex(std::vector<Node*>& out);
         void                           node_register_add(Node *node, ScopeFlags flags);
-        void                           node_register_remove(Node *node, ScopeFlags flags);
+        bool                           node_register_remove(Node *node, ScopeFlags flags);
 
         ScopeView*                     m_view = nullptr;
         std::set<Node*>                m_related;

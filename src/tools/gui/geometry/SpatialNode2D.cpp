@@ -93,25 +93,49 @@ tools::Vec2 tools::SpatialNode2D::position(Space space) const
     }
 }
 
-void tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child)
+bool tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child, SpatialNodeFlags flags)
 {
     ASSERT( new_child != nullptr );
     ASSERT( new_child->parent() == nullptr );
-    auto [it, success] = this->_children.insert(new_child);
-    VERIFY( success, "Unable to insert new_child");
-    const Vec2 world_position = new_child->position(WORLD_SPACE);
-    new_child->_parent = this;
-    new_child->set_position(world_position, WORLD_SPACE);
+    auto [it, inserted] = this->_children.insert(new_child);
+
+    if ( !inserted )
+        return false;
+
+    if ( flags & SpatialNodeFlag_PRESERVE_WORLD_POSITION )
+    {
+        const Vec2 world_position = new_child->position(WORLD_SPACE);
+        new_child->_parent = this;
+        new_child->set_position(world_position, WORLD_SPACE);
+    }
+    else
+    {
+        new_child->_parent = this;
+    }
+    return true;
 }
 
-void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* possible_child)
+bool tools::SpatialNode2D::remove_child(tools::SpatialNode2D* child, SpatialNodeFlags flags)
 {
-    const int success = _children.erase(possible_child);
-    VERIFY( success, "Unable to erase possible_child");
-    const Vec2 world_position = possible_child->position(WORLD_SPACE);
-    possible_child->_parent = nullptr;
-    possible_child->set_position(world_position, WORLD_SPACE);
-    return;
+    ASSERT(child);
+    if (child->_parent == nullptr )
+        return false;
+
+    if ( !_children.erase(child) )
+        return false;
+
+    if ( flags & SpatialNodeFlag_PRESERVE_WORLD_POSITION )
+    {
+        const Vec2 pos = child->position(WORLD_SPACE);
+        child->_parent = nullptr;
+        child->set_position(pos, WORLD_SPACE);
+    }
+    else
+    {
+        child->_parent = nullptr;
+    }
+
+    return true;
 }
 
 void tools::SpatialNode2D::translate(const tools::Vec2& delta)

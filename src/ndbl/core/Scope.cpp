@@ -203,18 +203,24 @@ std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, 
     return out;
 }
 
-void Scope::change_scope(Node* node, Scope* desired_scope )
+void Scope::change_node_scope( Node* node, Scope* desired_scope )
 {
-    Scope* current_scope = node->scope();
-    if ( current_scope ) current_scope->child_erase(node);
-    if ( desired_scope ) desired_scope->child_push_back(node);
+    if ( Scope* current_scope = node->scope() )
+    {
+        current_scope->child_erase(node);
+    }
+
+    if ( desired_scope )
+    {
+        desired_scope->child_push_back(node);
+    }
 }
 
-void Scope::node_register_remove(Node* node, ScopeFlags flags)
+bool Scope::node_register_remove(Node* node, ScopeFlags flags)
 {
     VERIFY( node->scope() == this, "Node does not have this as scope");
-    const int erased_count = m_related.erase(node );
-    VERIFY( erased_count, "Unable to find node" );
+    if ( !m_related.erase(node ) )
+        return false;
 
     auto it = std::find(m_child.begin(), m_child.end(), node );
     if (it != m_child.end() )
@@ -228,6 +234,7 @@ void Scope::node_register_remove(Node* node, ScopeFlags flags)
     node->reset_scope();
     on_change.emit();
     on_remove.emit(node);
+    return true;
 }
 
 void Scope::node_register_add(Node* node, ScopeFlags flags)

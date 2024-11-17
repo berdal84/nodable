@@ -376,20 +376,19 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
-    Scope* curr_scope   = edge.head->node->scope();
-
+    // Ensure disconnected node gets in the right scope
+    //
+    Scope* target_scope;
     switch ( edge.head->adjacent_count())
     {
         case 0:
         {
-            if ( curr_scope )
-                curr_scope->child_erase(edge.head->node);
+            target_scope = nullptr;
             break;
         }
         case 1:
         {
-            Node* first_adjacent = edge.head->first_adjacent_node();
-            Scope::change_scope(edge.head->node, first_adjacent->scope());
+            target_scope = edge.head->first_adjacent_node()->scope();
             break;
         }
         default: // 2+
@@ -397,16 +396,15 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
             // Find the lowest common ancestor of adjacent nodes
             std::vector<Scope *> adjacent_scopes;
             for (Slot *adjacent: edge.head->adjacent())
-            {
                 adjacent_scopes.push_back(adjacent->node->scope());
-            }
 
-            Scope* target_scope = nullptr;
-            if (Scope *ancestor = Scope::lowest_common_ancestor(adjacent_scopes) )
+            if (Scope* ancestor = Scope::lowest_common_ancestor(adjacent_scopes) )
                 target_scope = ancestor->node()->scope();
-            Scope::change_scope(edge.head->node, target_scope);
+            else
+                target_scope = nullptr;
         }
     }
+    Scope::change_node_scope(edge.head->node, target_scope);
 }
 
 void Graph::on_connect_flow_side_effects( DirectedEdge edge )
@@ -448,7 +446,7 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         VERIFY(false, "Unexpected edge count");
     }
 
-    Scope::change_scope(next_node, target_scope);
+    Scope::change_node_scope(next_node, target_scope);
 }
 
 void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)

@@ -54,14 +54,22 @@ void Nodable::update()
     m_base_app.update();
     m_view->update();
 
-    // 1. Update current file
+    // 1. delete flagged files
+    for( File* file : m_flagged_to_delete_file )
+    {
+        LOG_VERBOSE("Nodable", "Delete files flagged to delete: %s\n", file->filename().c_str());
+        delete file;
+    }
+    m_flagged_to_delete_file.clear();
+
+    // 2. Update current file
     if (m_current_file && !m_interpreter->is_program_running())
     {
         m_current_file->set_isolation( m_config->isolation ); // might change
         m_current_file->update();
     }
 
-    // 2. Handle events
+    // 3. Handle events
 
     // Nodable events
     IEvent*       event = nullptr;
@@ -483,7 +491,7 @@ void Nodable::close_file( File* _file)
     auto it = std::find(m_loaded_files.begin(), m_loaded_files.end(), _file);
     VERIFY(it != m_loaded_files.end(), "Unable to find the file in the loaded_files");
     it = m_loaded_files.erase(it);
-    delete _file;
+    m_flagged_to_delete_file.push_back(_file);
 
     // Switch to the next file if possible
     if ( it != m_loaded_files.end() )
