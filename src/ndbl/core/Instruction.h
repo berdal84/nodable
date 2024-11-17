@@ -96,7 +96,7 @@ namespace ndbl
      * Store a single assembly instruction.
      * Each instruction looks like:
      * @code
-     * line_nb type left-arg right-arg comment
+     * line_nb type left-arg_at right-arg_at comment
      */
     struct Instruction
     {

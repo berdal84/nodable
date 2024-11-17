@@ -51,11 +51,11 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
                     // discard incompatible signatures
 
                     if ( dragged_slot->allows(SlotFlag_ORDER_1ST ) &&
-                        !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type)
+                        !action->event_data.node_signature->has_arg_with_type(dragged_property_type)
                             )
                         continue;
 
-                    if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
+                    if ( !action->event_data.node_signature->return_type()->equals(dragged_property_type) )
                         continue;
 
                 }

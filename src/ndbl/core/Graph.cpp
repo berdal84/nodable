@@ -102,14 +102,14 @@ VariableNode* Graph::create_variable(const TypeDescriptor *_type, const std::str
 	return node;
 }
 
-FunctionNode* Graph::create_function(const FunctionDescriptor* _type)
+FunctionNode* Graph::create_function(const FunctionDescriptor& _type)
 {
     FunctionNode* node = m_factory->create_function(_type, NodeType_FUNCTION);
     add(node);
     return node;
 }
 
-FunctionNode* Graph::create_operator(const FunctionDescriptor* _type)
+FunctionNode* Graph::create_operator(const FunctionDescriptor& _type)
 {
     FunctionNode* node = m_factory->create_function(_type, NodeType_OPERATOR);
     add(node);
@@ -510,7 +510,7 @@ WhileLoopNode* Graph::create_while_loop()
 
 Node* Graph::create_entry_point()
 {
-    VERIFY( m_root.empty(), "Can't create a root child, already exists" );
+    VERIFY( m_root.empty(), "Can't create_new a root child, already exists" );
     Node* node = m_factory->create_entry_point();
     add(node);
     m_root = node;
@@ -562,8 +562,8 @@ Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signa
             const FunctionDescriptor* signature = language->find_function(_signature)->get_sig();
             bool is_operator = language->find_operator_fct( signature ) != nullptr;
             if ( is_operator )
-                return create_operator(signature);
-            return create_function(signature);
+                return create_operator( *signature );
+            return create_function( *signature );
         }
         default:
             VERIFY(false, "Unhandled CreateNodeType.");

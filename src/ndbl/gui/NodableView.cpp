@@ -31,8 +31,8 @@ using namespace tools;
 template<typename T>
 static FunctionDescriptor* create_variable_node_signature()
 {
-    static FunctionDescriptor descriptor = FunctionDescriptor::construct<T(T)>("variable");
-    return &descriptor;
+    static FunctionDescriptor* descriptor = FunctionDescriptor::create<T(T)>("variable");
+    return descriptor;
 }
 
 void NodableView::update()

@@ -186,19 +186,21 @@ namespace tools
         static_assert( !std::is_member_function_pointer_v<FunctionT> );
 
         InvokableStaticFunction(const char* _name, const FunctionT* _function_pointer)
-            : m_function_pointer( _function_pointer )
-            , m_function_signature(FunctionDescriptor::create<FunctionT>(_name) )
-        { ASSERT( m_function_pointer ); }
+        : m_function_pointer( _function_pointer )
+        {
+            ASSERT( m_function_pointer );
+            m_function_signature.init<FunctionT>(_name);
+        }
 
         variant invoke(const std::vector<variant *> &_args) const override
         { return tools::Apply( m_function_pointer, _args ); }
 
         const FunctionDescriptor* get_sig() const override
-        { return m_function_signature; }
+        { return &m_function_signature; }
 
     private:
-        const FunctionT* m_function_pointer;
-        const FunctionDescriptor*  m_function_signature;
+        const FunctionT*   m_function_pointer;
+        FunctionDescriptor m_function_signature;
     };
 
     /**

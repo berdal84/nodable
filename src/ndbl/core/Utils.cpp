@@ -53,7 +53,7 @@ bool Utils::can_be_instruction(const Node* node)
 bool Utils::is_unary_operator(const Node* node)
 {
     if ( node->type() == NodeType_OPERATOR )
-        if (static_cast<const FunctionNode*>(node)->get_func_type()->get_arg_count() == 1 )
+        if (static_cast<const FunctionNode *>(node)->get_func_type().arg_count() == 1 )
             return true;
     return false;
 }
@@ -61,7 +61,7 @@ bool Utils::is_unary_operator(const Node* node)
 bool Utils::is_binary_operator(const Node* node)
 {
     if ( node->type() == NodeType_OPERATOR )
-        if (static_cast<const FunctionNode*>(node)->get_func_type()->get_arg_count() == 2 )
+        if (static_cast<const FunctionNode *>(node)->get_func_type().arg_count() == 2 )
             return true;
     return false;
 }

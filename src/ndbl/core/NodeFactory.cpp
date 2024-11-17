@@ -74,7 +74,7 @@ VariableRefNode* NodeFactory::create_variable_ref() const
     return node;
 }
 
-FunctionNode* NodeFactory::create_function(const FunctionDescriptor* _func_type, NodeType _node_type) const
+FunctionNode* NodeFactory::create_function(const FunctionDescriptor& _func_type, NodeType _node_type) const
 {
     auto* node = create<FunctionNode>();
     ASSERT( _node_type == NodeType_OPERATOR || _node_type == NodeType_FUNCTION );

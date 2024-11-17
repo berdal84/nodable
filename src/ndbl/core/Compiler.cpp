@@ -59,10 +59,10 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
             case NodeType_OPERATOR:
             {
                 auto* invokable = static_cast<const FunctionNode*>(node);
-                if ( !language->find_operator_fct(invokable->get_func_type()) )
+                if ( !language->find_operator_fct( &invokable->get_func_type()) )
                 {
                     std::string signature;
-                    language->serialize_func_sig(signature, invokable->get_func_type());
+                    language->serialize_func_sig(signature, &invokable->get_func_type());
                     LOG_ERROR("Compiler", "Operator is not declared: %s\n", signature.c_str());
                     return false;
                 }
@@ -70,10 +70,10 @@ bool Compiler::is_syntax_tree_valid(const Graph* _graph)
             case NodeType_FUNCTION:
             {
                 auto* invokable = static_cast<const FunctionNode*>(node);
-                if ( !language->find_function(invokable->get_func_type()) )
+                if ( !language->find_function( &invokable->get_func_type()) )
                 {
                     std::string signature;
-                    language->serialize_func_sig(signature, invokable->get_func_type());
+                    language->serialize_func_sig(signature, &invokable->get_func_type());
                     LOG_ERROR("Compiler", "Function is not declared: %s\n", signature.c_str());
                     return false;
                 }
@@ -189,12 +189,11 @@ void Compiler::compile_node( const Node* _node )
                 case NodeType_FUNCTION:
                 case NodeType_OPERATOR:
                 {
-                    Instruction*      instr     = m_temp_code->push_instr(OpCode_call);
-                    const FunctionDescriptor*   func_type = static_cast<const FunctionNode*>(_node)->get_func_type();
+                    Instruction*              instr     = m_temp_code->push_instr(OpCode_call);
+                    const FunctionDescriptor& func_type = static_cast<const FunctionNode*>(_node)->get_func_type();
 
-                    const IInvokable* invokable = get_language()->find_function( func_type ); // Get exact OR fallback function (in case of arg cast)
-                    VERIFY(invokable != nullptr, "Unable to find this function");
-                    instr->call.invokable = invokable;
+                    instr->call.invokable = get_language()->find_function( &func_type ); // Get exact OR fallback function (in case of arg cast)
+                    ASSERT(instr->call.invokable  != nullptr);
 
                     break;
                 }

@@ -332,11 +332,12 @@ Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot
     if ( Optional<Slot*> right = parse_expression(ope->precedence) )
     {
         // Create a function signature according to ltype, rtype and operator word
-        FunctionDescriptor* type = FunctionDescriptor::create<any()>(ope->identifier.c_str());
-        type->push_arg( _left->property->get_type());
-        type->push_arg(right->property->get_type());
+        FunctionDescriptor type;
+        type.init<any(any, any)>(ope->identifier.c_str());
+        type.arg_at(0).type = _left->property->get_type();
+        type.arg_at(1).type = right->property->get_type();
 
-        FunctionNode* binary_op = _state.graph()->create_operator(type);
+        FunctionNode* binary_op = _state.graph()->create_operator( type );
         binary_op->set_identifier_token( operator_token );
         binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
         binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
@@ -391,8 +392,9 @@ Optional<Slot*> Nodlang::parse_unary_operator_expression(u8_t _precedence)
     }
 
     // Create a function signature
-    FunctionDescriptor* type = FunctionDescriptor::create<any()>(operator_token.word_to_string().c_str());
-    type->push_arg( out_atomic->property->get_type());
+    FunctionDescriptor type;
+    type.init<any(any)>(operator_token.word_to_string().c_str());
+    type.arg_at(0).type = out_atomic->property->get_type();
 
     FunctionNode* node = _state.graph()->create_operator(type);
     node->set_identifier_token( operator_token );
@@ -1081,7 +1083,8 @@ Optional<Slot*> Nodlang::parse_function_call()
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    FunctionDescriptor* signature = FunctionDescriptor::create<any()>(fct_id.c_str());
+    FunctionDescriptor signature;
+    signature.init<any()>(fct_id.c_str());
 
     bool parsingError = false;
     while (!parsingError && _state.tokens().can_eat() &&
@@ -1091,7 +1094,7 @@ Optional<Slot*> Nodlang::parse_function_call()
         if ( expression_out )
         {
             result_slots.push_back( expression_out.get() );
-            signature->push_arg( expression_out->property->get_type() );
+            signature.push_arg( expression_out->property->get_type() );
             _state.tokens().eat_if(Token_t::list_separator);
         }
         else
@@ -1110,7 +1113,7 @@ Optional<Slot*> Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    FunctionNode* fct_node = _state.graph()->create_function(std::move(signature));
+    FunctionNode* fct_node = _state.graph()->create_function( signature );
 
     for ( int i = 0; i < fct_node->get_arg_slots().size(); i++ )
     {
@@ -1452,10 +1455,9 @@ const Slot* Nodlang::serialize_invokable(std::string &_out, const FunctionNode* 
     if ( _node->type() == NodeType_OPERATOR )
     {
         const std::vector<Slot*>& args = _node->get_arg_slots();
-        int precedence = get_precedence(_node->get_func_type());
+        int precedence = get_precedence(&_node->get_func_type());
 
-        const FunctionDescriptor* func_type  = _node->get_func_type();
-        switch (func_type->get_arg_count())
+        switch ( _node->get_func_type().arg_count() )
         {
             case 2:
             {
@@ -1500,7 +1502,7 @@ const Slot* Nodlang::serialize_invokable(std::string &_out, const FunctionNode* 
     }
     else
     {
-        serialize_func_call(_out, _node->get_func_type(), _node->get_arg_slots());
+        serialize_func_call(_out, &_node->get_func_type(), _node->get_arg_slots());
     }
 
     return _node->value_out();
@@ -1532,12 +1534,12 @@ std::string &Nodlang::serialize_invokable_sig(std::string &_out, const IInvokabl
 
 std::string &Nodlang::serialize_func_sig(std::string &_out, const FunctionDescriptor *_signature) const
 {
-    serialize_type(_out, _signature->get_return_type());
+    serialize_type(_out, _signature->return_type());
     _out.append(" ");
     _out.append(_signature->get_identifier());
     serialize_default_buffer(_out, Token_t::parenthesis_open);
 
-    auto args = _signature->get_args();
+    auto args = _signature->arg();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
@@ -1901,7 +1903,7 @@ void Nodlang::add_function(const tools::IInvokable* _invokable)
     serialize_func_sig(type_as_string, _invokable->get_sig());
 
     // Stops if no operator having the same identifier and argument count is found
-    if (!find_operator(_invokable->get_sig()->get_identifier(), static_cast<Operator_t>(_invokable->get_sig()->get_arg_count())))
+    if (!find_operator(_invokable->get_sig()->get_identifier(), static_cast<Operator_t>(_invokable->get_sig()->arg_count())))
     {
         LOG_VERBOSE("Nodlang", "add function: %s (in m_functions)\n", type_as_string.c_str());
         return;
@@ -1974,7 +1976,7 @@ int Nodlang::get_precedence( const tools::FunctionDescriptor* _func_type) const
     if (!_func_type)
         return std::numeric_limits<int>::min(); // default
 
-    const Operator* operator_ptr = find_operator(_func_type->get_identifier(), static_cast<Operator_t>(_func_type->get_arg_count()));
+    const Operator* operator_ptr = find_operator(_func_type->get_identifier(), static_cast<Operator_t>(_func_type->arg_count()));
 
     if (operator_ptr)
         return operator_ptr->precedence;

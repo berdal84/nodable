@@ -45,7 +45,7 @@ const FunctionDescriptor* Node::get_connected_function_type(const char* property
 
     if ( adjacent_slot )
         if (adjacent_slot->node->is_invokable() )
-            return static_cast<const FunctionNode*>(adjacent_slot->node)->get_func_type();
+            return &static_cast<const FunctionNode*>(adjacent_slot->node)->get_func_type();
 
     return nullptr;
 }

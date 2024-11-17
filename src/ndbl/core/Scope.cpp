@@ -20,6 +20,12 @@ REFLECT_STATIC_INITIALIZER
     DEFINE_REFLECT(Scope).extends<NodeComponent>();
 )
 
+Scope::~Scope()
+{
+    for( Node* related_node : m_related )
+        related_node->reset_scope();
+}
+
 VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flags )
 {
     // Try first to find in this scope
@@ -219,7 +225,7 @@ void Scope::change_node_scope( Node* node, Scope* desired_scope )
 bool Scope::node_register_remove(Node* node, ScopeFlags flags)
 {
     VERIFY( node->scope() == this, "Node does not have this as scope");
-    if ( !m_related.erase(node ) )
+    if ( m_related.erase(node ) == 0 )
         return false;
 
     auto it = std::find(m_child.begin(), m_child.end(), node );

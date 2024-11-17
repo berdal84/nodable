@@ -95,6 +95,8 @@ namespace tools
     {
         friend class  TypeRegister;
     public:
+        TypeDescriptor()
+        : m_id(std::type_index(typeid(null))), m_primitive_id( std::type_index(typeid(null)) ) {}
         TypeDescriptor(std::type_index _id, std::type_index _primitive_id)
         : m_id(_id), m_primitive_id(_primitive_id) {}
 
@@ -130,8 +132,8 @@ namespace tools
     struct FuncArg
     {
         const TypeDescriptor* type;
-        bool                  pass_by_ref;
-        std::string           name;
+        bool            pass_by_ref;
+        std::string     name;
     };
 
     /*
@@ -143,30 +145,28 @@ namespace tools
     public:
 
         template<typename T> static FunctionDescriptor* create(const char* _name);
-        template<typename T> static FunctionDescriptor construct(const char* _name);
 
-        FunctionDescriptor(std::type_index _id, std::type_index _primitive_id): TypeDescriptor(_id, _primitive_id) {}
-
+        FunctionDescriptor() = default;
+        bool                           is_exactly(const FunctionDescriptor*)const;
+        bool                           is_compatible(const FunctionDescriptor*)const;
+        const char*                    get_identifier()const { return m_name.c_str(); };
+        FuncArg&                       arg_at(size_t i) { return m_argument[i]; }
+        const FuncArg&                 arg_at(size_t i) const { return m_argument[i]; }
+        std::vector<FuncArg>&          arg() { return m_argument;};
+        const std::vector<FuncArg>&    arg()const { return m_argument;};
+        size_t                         arg_count() const { return m_argument.size(); }
+        const TypeDescriptor*          return_type() const { return m_return_type; }
+        void                           set_return_type(const TypeDescriptor* _type) { m_return_type = _type; };
+        template<typename T> void init(const char* _name);
         template<int ARG_INDEX, typename ArgsAsTuple>
         void                           push_nth_arg();
         template<typename ...Args>
         void                           push_args();
         void                           push_arg(const TypeDescriptor* _type, bool _pass_by_ref = false);
-        bool                           has_an_arg_of_type(const TypeDescriptor*)const;
-        bool                           is_exactly(const FunctionDescriptor*)const;
-        bool                           is_compatible(const FunctionDescriptor*)const;
-        const char*                    get_identifier()const { return m_name.c_str(); };
-        const FuncArg&                 get_arg(size_t i) const { return m_args[i]; }
-        std::vector<FuncArg>&          get_args() { return m_args;};
-        const std::vector<FuncArg>&    get_args()const { return m_args;};
-        size_t                         get_arg_count() const { return m_args.size(); }
-        const TypeDescriptor*          get_return_type() const { return m_return_type; }
-        void                           set_return_type(const TypeDescriptor* _type) { m_return_type = _type; };
+        bool                           has_arg_with_type(const TypeDescriptor*)const;
     private:
-        template<typename T> static void init(FunctionDescriptor*, const char* _name);
-
-        std::vector<FuncArg> m_args;
-        const TypeDescriptor*      m_return_type = type::null();
+        std::vector<FuncArg>   m_argument;
+        const TypeDescriptor*  m_return_type = type::null();
     };
 
     /**
@@ -180,10 +180,7 @@ namespace tools
     {
         friend class TypeRegister;
     public:
-        ClassDescriptor(std::type_index _id, std::type_index _primitive_id)
-        : TypeDescriptor(_id, _primitive_id)
-        {};
-
+        ClassDescriptor() = default;
         ~ClassDescriptor();
 
         template<class T>
@@ -272,42 +269,38 @@ namespace tools
     {
         static_assert( std::is_class_v<T> );
 
-        ClassDescriptor* descriptor = new ClassDescriptor(type::get_id<T>(), type::get_primitive_id<T>() );
+        ClassDescriptor* class_desc = new ClassDescriptor();
 
-        descriptor->m_name          = _name;
-        descriptor->m_compiler_name = type::get_compiler_name<T>();
-        descriptor->m_flags         = type::get_flags<T>();
+        class_desc->m_id            = type::get_id<T>();
+        class_desc->m_primitive_id  = type::get_primitive_id<T>();
+        class_desc->m_name          = _name;
+        class_desc->m_compiler_name = type::get_compiler_name<T>();
+        class_desc->m_flags         = type::get_flags<T>();
 
-        return descriptor;
-    }
-
-    template<typename T>
-    void FunctionDescriptor::init(FunctionDescriptor* _descriptor, const char* _name)
-    {
-        _descriptor->m_name          = _name;
-        _descriptor->m_compiler_name = type::get_compiler_name<T>();
-        _descriptor->m_flags         = type::get_flags<T>();
-        _descriptor->m_return_type   = type::get<typename FunctionTrait<T>::result_t >();
-
-        using Args = typename FunctionTrait<T>::args_t;
-        if constexpr ( std::tuple_size_v<Args> != 0)
-            _descriptor->push_args<Args>();
-    }
-
-    template<typename T>
-    FunctionDescriptor FunctionDescriptor::construct(const char* _name)
-    {
-        FunctionDescriptor descriptor(type::get_id<T>(), type::get_primitive_id<T>());
-        FunctionDescriptor::init<T>(&descriptor, _name);
-        return descriptor;
+        return class_desc;
     }
 
     template<typename T>
     FunctionDescriptor* FunctionDescriptor::create(const char* _name)
     {
-        FunctionDescriptor* descriptor = new FunctionDescriptor(type::get_id<T>(), type::get_primitive_id<T>());
-        FunctionDescriptor::init<T>(descriptor, _name);
+        FunctionDescriptor* descriptor = new FunctionDescriptor();
+        descriptor->init<T>(_name);
         return descriptor;
+    }
+
+    template<typename T>
+    void FunctionDescriptor::init(const char* _name)
+    {
+        m_id            = type::get_id<T>();
+        m_primitive_id  = type::get_primitive_id<T>();
+        m_compiler_name = type::get_compiler_name<T>();
+        m_flags         = type::get_flags<T>();
+        m_return_type   = type::get<typename FunctionTrait<T>::result_t >();
+        m_name          = _name;
+
+        using Args = typename FunctionTrait<T>::args_t;
+        if constexpr ( std::tuple_size_v<Args> != 0)
+            push_args<Args>();
     }
 
     template<typename T>

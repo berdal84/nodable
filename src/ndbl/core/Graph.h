@@ -84,8 +84,8 @@ namespace ndbl
         VariableRefNode*         create_variable_ref();
         VariableNode*            create_variable_decl(const tools::TypeDescriptor* _type, const char* _name);
         LiteralNode*             create_literal(const tools::TypeDescriptor *_type);
-        FunctionNode*            create_function(const tools::FunctionDescriptor*);
-        FunctionNode*            create_operator(const tools::FunctionDescriptor*);
+        FunctionNode*            create_function(const tools::FunctionDescriptor&);
+        FunctionNode*            create_operator(const tools::FunctionDescriptor&);
         IfNode*                  create_cond_struct();
         ForLoopNode*             create_for_loop();
         WhileLoopNode*           create_while_loop();

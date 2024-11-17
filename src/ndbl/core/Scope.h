@@ -39,6 +39,7 @@ namespace ndbl
         Token token_begin = {Token_t::ignore};
         Token token_end   = {Token_t::ignore};
 
+        ~Scope();
         Scope*                         parent() { return m_parent; }
         const Scope*                   parent() const { return m_parent; }
         std::vector<Node*>             leaves();
