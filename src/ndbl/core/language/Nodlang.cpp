@@ -163,11 +163,10 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
 {
     _state.reset_scope_stack();
     _state.reset_graph(graph_out );
-    _state.reset_ribbon(code.c_str(), code.size());
 
     LOG_VERBOSE("Parser", "Parsing ...\n%s\n", code.c_str());
 
-    if ( !tokenize() )
+    if ( !tokenize(code) )
     {
         return false;
     }
@@ -179,7 +178,7 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
 
     Nodlang::FlowPath path = parse_program();
 
-    if ( !path )
+    if ( path.out.empty() )
         return false;
 
     if (_state.tokens().can_eat() )
@@ -2099,6 +2098,7 @@ Nodlang* ndbl::init_language()
 
 Nodlang* ndbl::get_language()
 {
+    VERIFY(g_language, "No language found, did you call init_language?");
     return g_language;
 }
 
