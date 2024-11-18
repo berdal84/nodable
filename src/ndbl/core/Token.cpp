@@ -169,7 +169,7 @@ Token& Token::operator=(const Token& other)
     if( !other.m_buffer.intern() )
     {
         m_buffer.switch_to_intern_buf(other.length());
-        m_buffer.intern_buf->append(other.begin(), other.length() );
+        m_buffer.intern_buf->append({other.begin(), other.length()});
     }
     else
     {
