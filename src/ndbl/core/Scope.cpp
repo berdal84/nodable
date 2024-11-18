@@ -22,8 +22,13 @@ REFLECT_STATIC_INITIALIZER
 
 Scope::~Scope()
 {
-    for( Node* related_node : m_related )
-        related_node->reset_scope();
+    while( !m_related.empty() )
+    {
+        child_erase_ex( *m_related.begin(), ScopeFlags_NONE );
+    }
+    ASSERT(m_related.empty());
+    ASSERT(m_variable.empty());
+    ASSERT(m_child.empty());
 }
 
 VariableNode* Scope::find_var_ex(const std::string& _identifier, ScopeFlags flags )
