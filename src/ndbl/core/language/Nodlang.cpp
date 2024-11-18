@@ -647,7 +647,7 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
         if ( !path )
         {
             Node* empty_instr = _state.graph()->create_empty_instruction();
-            scope->child_push_back(empty_instr);
+            scope->push_back(empty_instr);
             path = empty_instr;
         }
 

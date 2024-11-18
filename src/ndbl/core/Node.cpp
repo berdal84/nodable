@@ -358,11 +358,3 @@ bool Node::is_expression() const
 {
     return !inputs().empty();
 }
-
-void Node::reset_scope(Scope* scope)
-{
-    if ( m_internal_scope )
-        m_internal_scope->reset_parent( scope );
-    m_parent_scope = scope;
-}
-

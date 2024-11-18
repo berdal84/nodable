@@ -350,7 +350,7 @@ void Nodable::update()
                     {
                         Scope* root_scope = graph->root()->internal_scope();
                         VERIFY( root_scope != nullptr, "inner main_scope is expected on a root child");
-                        root_scope->child_push_back(new_node);
+                        root_scope->push_back(new_node);
                     }
                 }
                 else

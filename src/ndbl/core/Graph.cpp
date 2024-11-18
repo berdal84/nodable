@@ -156,7 +156,7 @@ void Graph::destroy(Node* node)
 
     // Remove from scope
     if ( Scope* scope = node->scope() )
-        scope->child_erase(node);
+        scope->erase(node);
 
     // Remove inner_scope children
     if (node->has_internal_scope() )
@@ -347,7 +347,7 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
         target_scope = edge.head->node->internal_scope();
 
     if ( target_scope )
-        target_scope->child_push_back(edge.tail->node); // recursively
+        target_scope->push_back(edge.tail->node); // recursively
 
 
     // 2) Update input's property type
