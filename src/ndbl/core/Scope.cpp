@@ -27,7 +27,7 @@ Scope::~Scope()
 
     // clear partitions
     for(Scope* partition : m_partition)
-        partition->reset_parent();
+        partition->reset_parent(nullptr, ScopeFlags_PREVENT_EVENTS ); // why preventing events? => will be destroyed soon, unnecessary to emit some
     m_partition.clear();
 
     // checks
@@ -285,11 +285,13 @@ void Scope::_push_back(Node* node, ScopeFlags flags)
     on_add.emit(node);
 }
 
-void Scope::reset_parent( Scope* new_parent )
+void Scope::reset_parent( Scope* new_parent, ScopeFlags flags )
 {
     m_parent = new_parent;
     m_depth  = new_parent ? new_parent->m_depth + 1 : 0;
-    on_reset_parent.emit(new_parent );
+
+    if ( (flags & ScopeFlags_PREVENT_EVENTS) == 0 )
+        on_reset_parent.emit(new_parent );
 }
 
 void Scope::init_partition(std::vector<Scope*>& partition )

@@ -21,6 +21,7 @@ namespace ndbl
         ScopeFlags_RECURSE           = 1 << 0,
         ScopeFlags_AS_PRIMARY_CHILD  = 1 << 1,
         ScopeFlags_INCLUDE_SELF      = 1 << 2,
+        ScopeFlags_PREVENT_EVENTS    = 1 << 3,
     };
 
     class Scope : public NodeComponent
@@ -47,15 +48,14 @@ namespace ndbl
         VariableNode*                  find_variable_recursively(const std::string& identifier) { return _find_var_ex(identifier, ScopeFlags_RECURSE); } ;
         ScopeView*                     view() const { return m_view; }
         void                           set_view(ScopeView* view) { m_view = view; }
-        void                           push_back(Node* node) { _push_back_ex(node, ScopeFlags_RECURSE |
-                                                                                   ScopeFlags_AS_PRIMARY_CHILD); }
+        void                           push_back(Node* node) { _push_back_ex(node, ScopeFlags_RECURSE | ScopeFlags_AS_PRIMARY_CHILD); }
         void                           erase(Node* node) { return _erase_ex(node, ScopeFlags_RECURSE); }
         const std::set<VariableNode*>& variable()const { return m_variable; };
         std::vector<Node*>&            child() { return  m_child; }
         const std::vector<Node*>&      child() const { return m_child; }
         Node*                          first_child() const { return m_child.empty() ? nullptr : *m_child.begin(); };
         Node*                          last_child() const { return m_child.empty() ? nullptr : *m_child.rbegin(); };
-        void                           reset_parent(Scope* new_parent = nullptr);
+        void                           reset_parent(Scope* new_parent = nullptr, ScopeFlags = ScopeFlags_NONE);
         bool                           is_partitioned() const { return !m_partition.empty(); }
         bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
         std::vector<Scope*>&           partition() { return m_partition; }
