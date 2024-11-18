@@ -22,13 +22,14 @@ REFLECT_STATIC_INITIALIZER
 
 Scope::~Scope()
 {
-    while( !m_related.empty() )
-    {
-        _erase( *m_related.begin() );
-    }
+    clear();
+    for(Scope* partition : m_partition)
+        partition->reset_parent();
+    m_partition.clear();
     assert(m_related.empty());
     assert(m_variable.empty());
     assert(m_child.empty());
+    assert(m_partition.empty());
 }
 
 VariableNode* Scope::_find_var_ex(const std::string& _identifier, ScopeFlags flags )
@@ -74,8 +75,8 @@ std::vector<Node*>& Scope::_leaves_ex(std::vector<Node*>& out)
 {
     if ( !m_partition.empty() )
     {
-        for( Scope* s : m_partition )
-            s->_leaves_ex(out);
+        for( Scope* partition : m_partition )
+            partition->_leaves_ex(out);
         return out; // when a scope as sub scopes, we do not consider its node as potential leaves since they are usually secondary nodes, so we return early.
     }
 
@@ -111,11 +112,6 @@ void Scope::_erase_ex(Node* node, ScopeFlags flags)
 
 void Scope::clear()
 {
-    while( !m_child.empty() )
-    {
-        _erase_ex(m_child.back(), ScopeFlags_AS_PRIMARY_CHILD);
-    }
-
     while( !m_related.empty() )
     {
         _erase_ex(*m_related.begin(), ScopeFlags_NONE);
@@ -124,19 +120,13 @@ void Scope::clear()
     on_clear.emit();
 }
 
-void Scope::partition_add(Scope *sub_scope )
-{
-    m_partition.push_back(sub_scope );
-    sub_scope->reset_parent( this );
-}
-
 bool Scope::empty_ex(ScopeFlags flags) const
 {
     bool is_empty = empty();
 
     if ( flags & ScopeFlags_RECURSE )
-        for( Scope* s : m_partition )
-            is_empty &= s->empty_ex(flags );
+        for( const Scope* partition : m_partition )
+            is_empty &= partition->empty_ex( flags );
 
     return is_empty;
 }
@@ -195,18 +185,18 @@ std::set<Scope*>& Scope::get_descendent_ex(std::set<Scope*>& out, Scope* scope, 
     if ( level_max-1 == 0 )
         return out;
 
-    for ( Scope* _sub_scope : scope->m_partition )
+    for ( Scope* partition : scope->m_partition )
     {
-        out.insert(_sub_scope);
-        get_descendent_ex(out, _sub_scope, level_max - 1 );
+        out.insert( partition );
+        get_descendent_ex(out, partition, level_max - 1 );
     }
 
     for( Node* _child_node : scope->m_child )
     {
-        if ( _child_node->has_internal_scope() )
+        if ( Scope* internal_scope = _child_node->internal_scope() )
         {
-            out.insert( _child_node->internal_scope() );
-            get_descendent_ex(out, _child_node->internal_scope(), level_max - 1, ScopeFlags_INCLUDE_SELF );
+            out.insert( internal_scope );
+            get_descendent_ex(out, internal_scope, level_max - 1, ScopeFlags_INCLUDE_SELF );
         }
     }
 
@@ -290,4 +280,20 @@ void Scope::reset_parent( Scope* new_parent )
     m_parent = new_parent;
     m_depth  = new_parent ? new_parent->m_depth + 1 : 0;
     on_reset_parent.emit(new_parent );
+}
+
+void Scope::init_partition(std::vector<Scope*>& partition )
+{
+    VERIFY(partition.size() > 0, "Count must be greater than 0");
+    VERIFY(m_partition.empty(), "Scope::init_partition() must be called once");
+
+    m_partition = partition;
+
+    for(size_t i = 0; i <= partition.size(); ++i )
+    {
+        std::string partition_name = m_name
+                                   + " (part " + std::to_string(i) + "/" + std::to_string(partition.size()) + ")";
+        m_partition[i]->reset_name(partition_name);
+        m_partition[i]->reset_parent(this);
+    }
 }

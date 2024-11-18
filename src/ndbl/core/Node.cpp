@@ -323,30 +323,28 @@ const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
 
 void Node::init_internal_scope(size_t sub_scope_count)
 {
-    VERIFY( m_internal_scope == nullptr, "Can't call this more than once");
+    VERIFY( m_internal_scope == nullptr, "Can't call init_internal_scope() more than once");
+    VERIFY( m_parent_scope == nullptr, "Must be initialized prior to reset_parent()");
 
     // create internal scope
     Scope* scope = get_component_factory()->create<Scope>();
     scope->reset_name("Internal Scope");
     add_component( scope );
 
-    // preserve parent
-    if ( m_parent_scope )
-        scope->reset_parent( m_parent_scope );
-
-    m_internal_scope = scope;
-
-    // sub scopes
-    ComponentFactory* component_factory = get_component_factory();
-    for(size_t i = 0; i < sub_scope_count; ++i)
+    if ( sub_scope_count )
     {
-        Scope* sub_scope = component_factory->create<Scope>();
-        std::string sub_scope_name = "SubScope_" + std::to_string(i);
-        sub_scope->reset_name(sub_scope_name);
-        add_component( sub_scope );
+        std::vector<Scope*> sub_scope{sub_scope_count};
+        for( size_t i = 0; i < sub_scope_count; ++i )
+        {
+            sub_scope[i] = get_component_factory()->create<Scope>();
+            add_component( sub_scope[i] );
+        }
 
-        scope->partition_add(sub_scope);
+        scope->init_partition( sub_scope );
     }
+    m_internal_scope = scope;
+    ASSERT(m_internal_scope->is_partitioned()   == (bool)sub_scope_count);
+    ASSERT(m_internal_scope->partition().size() == sub_scope_count);
 }
 
 bool Node::has_flow_adjacent() const

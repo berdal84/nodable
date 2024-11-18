@@ -60,10 +60,10 @@ namespace ndbl
         bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
         std::vector<Scope*>&           partition() { return m_partition; }
         const std::vector<Scope*>&     partition() const { return m_partition; }
-        void                           partition_add(Scope *);
         Scope*                         partition_at(size_t pos) { return m_partition.at(pos); };
         bool                           is_orphan() const { return m_parent == nullptr; }
         size_t                         depth() const { return m_depth; };
+        void                           init_partition(std::vector<Scope*>& partition);
         static void                    change_node_scope(Node *node, Scope *desired_scope);
         static Scope*                  lowest_common_ancestor(const std::vector<Scope*>& scopes);
         static Scope*                  lowest_common_ancestor(Scope* s1, Scope* s2);
