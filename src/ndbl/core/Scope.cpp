@@ -301,11 +301,12 @@ void Scope::init_partition(std::vector<Scope*>& partition )
 
     m_partition = partition;
 
-    for(size_t i = 0; i <= partition.size(); ++i )
+    size_t i = 0;
+    for(Scope* _scope : m_partition )
     {
         std::string partition_name = m_name
-                                   + " (part " + std::to_string(i) + "/" + std::to_string(partition.size()) + ")";
-        m_partition[i]->reset_name(partition_name);
-        m_partition[i]->reset_parent(this);
+                                   + " (part " + std::to_string(i++) + "/" + std::to_string(partition.size()) + ")";
+        _scope->reset_name(partition_name);
+        _scope->reset_parent(this);
     }
 }
