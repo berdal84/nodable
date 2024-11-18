@@ -331,13 +331,14 @@ void Node::init_internal_scope(size_t sub_scope_count)
     scope->reset_name("Internal Scope");
     add_component( scope );
 
-    if ( sub_scope_count )
+    if ( sub_scope_count > 0 )
     {
-        std::vector<Scope*> sub_scope{sub_scope_count};
-        for( size_t i = 0; i < sub_scope_count; ++i )
+        std::vector<Scope*> sub_scope;
+        sub_scope.reserve(sub_scope_count);
+        while( sub_scope.size() < sub_scope_count )
         {
-            sub_scope[i] = get_component_factory()->create<Scope>();
-            add_component( sub_scope[i] );
+            sub_scope.push_back( get_component_factory()->create<Scope>() );
+            add_component( sub_scope.back() );
         }
 
         scope->init_partition( sub_scope );
