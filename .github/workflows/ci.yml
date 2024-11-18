@@ -18,7 +18,7 @@ jobs:
         os: [ubuntu-20.04, windows-2019, macos-13] # macos-12 is deprecated https://github.com/actions/runner-images/issues/10721
       fail-fast: false # see https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
     env:
-      BUILD_TYPE: Release # possible options: MinSizeRel Release, Debug, RelWithDebInfo
+      BUILD_TYPE: Debug # possible options: MinSizeRel Release, Debug, RelWithDebInfo
       BUILD_PATH: cmake-build
       INSTALL_PATH: out
     steps:
