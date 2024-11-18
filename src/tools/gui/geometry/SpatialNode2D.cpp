@@ -7,11 +7,13 @@
 
 tools::SpatialNode2D::~SpatialNode2D()
 {
-    if ( _parent != nullptr )
-        _parent->remove_child( this );
-
     while ( !_children.empty() )
+    {
         remove_child( *_children.begin() );
+    }
+
+    assert( _parent == nullptr ); // must have been reset by a high level instance
+    assert( _children.empty() );
 }
 
 
