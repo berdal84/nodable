@@ -235,7 +235,7 @@ int Nodlang::parse_int_or(const std::string &_str, int default_value) const
     return default_value;
 }
 
-Optional<Slot*> Nodlang::token_to_slot(Token _token)
+Optional<Slot*> Nodlang::token_to_slot(const Token& _token)
 {
     if (_token.m_type == Token_t::identifier)
     {

@@ -72,7 +72,7 @@ namespace ndbl{
         tools::Optional<Slot*>          parse_binary_operator_expression(u8_t _precedence, Slot* _left);
         tools::Optional<Slot*>          parse_atomic_expression();
         tools::Optional<Slot*>          parse_expression(u8_t _precedence = 0, tools::Optional<Slot*> _left_override = nullptr);
-        tools::Optional<Slot*>          token_to_slot(Token _token);
+        tools::Optional<Slot*>          token_to_slot(const Token& _token);
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         bool                            tokenize(); // tokenise from current parser state
         bool                            tokenize(const std::string& _string); // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
