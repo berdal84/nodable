@@ -22,10 +22,15 @@ REFLECT_STATIC_INITIALIZER
 
 Scope::~Scope()
 {
+    // clear nodes
     clear();
+
+    // clear partitions
     for(Scope* partition : m_partition)
         partition->reset_parent();
     m_partition.clear();
+
+    // checks
     assert(m_related.empty());
     assert(m_variable.empty());
     assert(m_child.empty());
@@ -53,9 +58,10 @@ void Scope::_push_back_ex(Node *node, ScopeFlags flags)
 
     if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
     {
+        ScopeFlags flags_non_primary = flags & ~ScopeFlags_AS_PRIMARY_CHILD;
         for ( Node* input : node->inputs() )
             if ( !Utils::is_instruction(input) )
-                _push_back_ex(input, flags & ~ScopeFlags_AS_PRIMARY_CHILD);
+                _push_back_ex(input, flags_non_primary );
 
         for ( Node* next : node->flow_outputs() )
             _push_back_ex(next, flags);
@@ -116,6 +122,10 @@ void Scope::clear()
     {
         _erase_ex(*m_related.begin(), ScopeFlags_NONE);
     }
+
+    ASSERT(m_related.size() == 0);
+    ASSERT(m_variable.size() == 0);
+    ASSERT(m_child.size() == 0);
 
     on_clear.emit();
 }
