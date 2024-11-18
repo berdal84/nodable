@@ -144,7 +144,7 @@ public:
     {
         tools::Path path = tools::Path::get_executable_path().parent_path() / "assets" / "examples" / filename;
         std::ifstream file_stream( path.c_str() );
-        VERIFY(file_stream.is_open(), path.c_str());
+        VERIFY(file_stream.is_open(), "Unable to open file!" );
         std::string program((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
         return program;
     }
