@@ -12,7 +12,7 @@ namespace ndbl
     class InstructionNode;
     class Node;
     class Property;
-    struct Scope;
+    class Scope;
 
     /**
      * @class Class to compile a syntax tree (Graph) to a simple instruction list (Assembly::Code)

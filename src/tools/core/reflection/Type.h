@@ -178,7 +178,7 @@ namespace tools
      */
     class ClassDescriptor : public TypeDescriptor
     {
-        friend class TypeRegister;
+        friend struct TypeRegister;
     public:
         ClassDescriptor() = default;
         ~ClassDescriptor();

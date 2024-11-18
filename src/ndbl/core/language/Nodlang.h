@@ -23,7 +23,7 @@ namespace ndbl{
     class IScope;
     class InstructionNode;
     class FunctionNode;
-    struct Scope;
+    class Scope;
     class WhileLoopNode;
     class Node;
     class Property;
