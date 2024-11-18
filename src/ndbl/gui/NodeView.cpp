@@ -52,10 +52,26 @@ NodeView::NodeView()
 NodeView::~NodeView()
 {
     for(auto& [_, each] : m_property_views__all )
+    {
+        spatial_node().remove_child(&each->spatial_node());
         delete each;
+    }
+    // TODO: use an array with an anum as key
+    m_property_views__all.clear();
+    m_property_views__in.clear();
+    m_property_views__out.clear();
+    m_property_views__in_strictly.clear();
+    m_property_views__out_strictly.clear();
+    m_property_views__inout_strictly.clear();
 
     for(auto* each : m_slot_views )
+    {
+        spatial_node().remove_child( &each->spatial_node() );
         delete each;
+    }
+    m_slot_views.clear();
+    m_hovered_slotview      = nullptr;
+    m_last_clicked_slotview = nullptr;
 }
 
 std::string NodeView::get_label()

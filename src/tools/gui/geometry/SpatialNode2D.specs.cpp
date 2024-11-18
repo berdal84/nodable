@@ -6,7 +6,7 @@ using namespace tools;
 TEST(SpatialNode2D, add_child)
 {
     // prepare
-    SpatialNode2D root, child;
+    SpatialNode2D child, root;
 
     // act
     root.add_child( &child );
@@ -21,7 +21,7 @@ TEST(SpatialNode2D, remove_child)
     // requires add_child to succeed
 
     // prepare
-    SpatialNode2D root, child;
+    SpatialNode2D child, root;
     root.add_child( &child );
 
     // act
@@ -36,7 +36,7 @@ TEST(SpatialNode2D, remove_child)
 TEST(SpatialNode2D, add_child__with_offset)
 {
     // prepare
-    SpatialNode2D root, child;
+    SpatialNode2D child, root;
 
     // act
     child.translate({ 10.f, 15.f});
@@ -54,8 +54,7 @@ TEST(SpatialNode2D, set_pos__LOCAL_SPACE)
     // !!! This requires add_child to pass !!!
 
     // prepare
-    SpatialNode2D root;
-    SpatialNode2D child;
+    SpatialNode2D child, root;
     root.add_child( &child );
 
     // act
@@ -71,8 +70,7 @@ TEST(SpatialNode2D, set_pos__PARENT_SPACE)
     // !!! This requires add_child__with_offset and set_pos__LOCAL_SPACE to pass !!!
 
     // prepare
-    SpatialNode2D root;
-    SpatialNode2D child;
+    SpatialNode2D child, root;
     child.translate({10.f, 10.f});
     root.add_child(&child);
 
@@ -92,9 +90,7 @@ TEST(SpatialNode2D, get_pos__GLOBAL_SPACE)
     // !!! This requires add_child and set_pos__LOCAL_SPACE to pass !!!
 
     // prepare
-    SpatialNode2D root;
-    SpatialNode2D level0;
-    SpatialNode2D level1;
+    SpatialNode2D level1, level0, root;
 
     root.add_child(&level0);
     level0.add_child(&level1);
@@ -115,8 +111,7 @@ TEST(SpatialNode2D, set_pos__GLOBAL_SPACE)
     // !!! This requires add_child and get_pos__SCREEN_SPACE to pass !!!
 
     // prepare
-    SpatialNode2D root;
-    SpatialNode2D child;
+    SpatialNode2D child, root;
     root.add_child(&child);
     root.translate({10.f, 10.f});
     child.translate({10.f, 10.f});

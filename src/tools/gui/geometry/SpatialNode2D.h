@@ -46,6 +46,8 @@ namespace tools
         SpatialNode2D*        parent() const { return _parent; }
         void                  update_world_matrix();
         const Children&       children() const { return _children; }
+        void                  clear();
+
     private:
         SpatialNode2D*        _parent = nullptr;
         Children              _children;

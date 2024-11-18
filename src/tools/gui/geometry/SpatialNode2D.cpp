@@ -7,15 +7,18 @@
 
 tools::SpatialNode2D::~SpatialNode2D()
 {
-    while ( !_children.empty() )
-    {
-        remove_child( *_children.begin() );
-    }
-
+    clear();
     assert( _parent == nullptr ); // must have been reset by a high level instance
     assert( _children.empty() );
 }
 
+void tools::SpatialNode2D::clear()
+{
+    while ( !_children.empty() )
+    {
+        remove_child( *_children.begin() );
+    }
+}
 
 void tools::SpatialNode2D::set_position(const Vec2& _pos)
 {
