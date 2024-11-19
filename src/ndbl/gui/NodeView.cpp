@@ -41,7 +41,7 @@ NodeView::NodeView()
     , m_expanded(true)
     , m_pinned(false)
     , m_value_view(nullptr)
-    , m_property_views__all()
+    , m_property_view()
     , m_hovered_slotview(nullptr)
     , m_last_clicked_slotview(nullptr)
     , m_state(10.0f, 35.0f)
@@ -51,18 +51,16 @@ NodeView::NodeView()
 
 NodeView::~NodeView()
 {
-    for(auto& [_, each] : m_property_views__all )
+    for(auto& [_, each] : m_property_view )
     {
         spatial_node().remove_child(&each->spatial_node());
         delete each;
     }
-    // TODO: use an array with an anum as key
-    m_property_views__all.clear();
-    m_property_views__in.clear();
-    m_property_views__out.clear();
-    m_property_views__in_strictly.clear();
-    m_property_views__out_strictly.clear();
-    m_property_views__inout_strictly.clear();
+
+    for(auto vector : m_property_view_with )
+    {
+        vector.clear();
+    }
 
     for(auto* each : m_slot_views )
     {
@@ -147,16 +145,7 @@ void NodeView::reset()
     // 1. Create Property views
     //-------------------------
 
-    // Reserve
-    for(auto& [_, property_view] : m_property_views__all)
-        delete property_view;
-
-    m_property_views__all.clear();
-    m_property_views__out_strictly.clear();
-    m_property_views__inout_strictly.clear();
-    m_property_views__in_strictly.clear();
-    m_property_views__in.clear();
-    m_property_views__out.clear();
+    VERIFY( m_property_view.empty(), "Cannot be called twice");
 
     for (Property* property : node()->props() )
     {
@@ -187,18 +176,18 @@ void NodeView::reset()
         bool has_out = node()->find_slot_by_property(property, SlotFlag_OUTPUT );
 
         if ( has_in)
-            m_property_views__in.push_back(new_view);
+            m_property_view_with[IN].push_back(new_view);
         if ( has_out)
-            m_property_views__out.push_back(new_view);
+            m_property_view_with[OUT].push_back(new_view);
 
         if ( has_in && has_out )
-            m_property_views__inout_strictly.push_back(new_view);
+            m_property_view_with[INOUT_STRICTLY].push_back(new_view);
         else if ( has_in )
-            m_property_views__in_strictly.push_back(new_view);
+            m_property_view_with[IN_STRICTLY].push_back(new_view);
         else if ( has_out )
-            m_property_views__out_strictly.push_back(new_view);
+            m_property_view_with[OUT_STRICTLY].push_back(new_view);
 
-        m_property_views__all.emplace(property, new_view);
+        m_property_view.emplace(property, new_view);
     }
 
     // 2. Create a SlotView per slot
@@ -402,7 +391,7 @@ bool NodeView::draw()
     ImGui::Dummy({1.f});
 
     // We currently don't need to see these property, unnecessary complexity
-    // ImGui::SameLine(); draw_properties(m_property_views__out_strictly);
+    // ImGui::SameLine(); draw_properties(m_property_views_index_index[OUT_STRICTLY]);
 
     std::string pre_label;
     std::vector<std::string> operator_label(1); // for binary (and ternary when implemented) operators
@@ -456,15 +445,15 @@ bool NodeView::draw()
     // Draw the properties depending on node type
     if ( node()->type() != NodeType_OPERATOR )
     {
-        changed |= PropertyView::draw_all(m_property_views__in_strictly,    cfg->ui_node_detail);
-        changed |= PropertyView::draw_all(m_property_views__inout_strictly, cfg->ui_node_detail);
-        changed |= PropertyView::draw_all(m_property_views__out_strictly,   cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_property_view_with[IN_STRICTLY], cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_property_view_with[INOUT_STRICTLY], cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_property_view_with[OUT_STRICTLY], cfg->ui_node_detail);
     }
     else
     {
-        for(size_t i = 0; i < m_property_views__in.size(); i++)
+        size_t i = 0;
+        for( PropertyView* property_view : m_property_view_with[IN] )
         {
-            PropertyView* property_view = m_property_views__in[i];
             ImGui::SameLine();
             changed |= property_view->draw( cfg->ui_node_detail );
 
@@ -473,6 +462,7 @@ bool NodeView::draw()
             {
                 ImGui::SameLine(); ImGui::Text("%s", operator_label[i].c_str() );
             }
+            ++i;
         }
     }
 
@@ -611,10 +601,10 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
     };
 
     ImGui::Separator();
-    changed |= draw_properties("Inputs(s)", _view->m_property_views__in_strictly);
-    changed |= draw_properties("In/Out(s)", _view->m_property_views__inout_strictly);
+    changed |= draw_properties("Inputs(s)", _view->m_property_view_with[IN_STRICTLY]);
+    changed |= draw_properties("In/Out(s)", _view->m_property_view_with[INOUT_STRICTLY]);
     ImGui::Separator();
-    changed |= draw_properties("Output(s)", _view->m_property_views__out_strictly);
+    changed |= draw_properties("Output(s)", _view->m_property_view_with[OUT_STRICTLY]);
 
 #ifdef NDBL_DEBUG
 
@@ -1014,14 +1004,14 @@ void NodeView::add_child(SlotView* view)
 
 PropertyView *NodeView::find_property_view(const Property* property)
 {
-    auto found = m_property_views__all.find( property );
-    if ( found != m_property_views__all.end() )
+    auto found = m_property_view.find(property );
+    if (found != m_property_view.end() )
         return found->second;
     return nullptr;
 }
 
 void NodeView::reset_all_properties()
 {
-    for( auto& [_, property_view] : m_property_views__all )
+    for( auto& [_, property_view] : m_property_view )
         property_view->reset();
 }

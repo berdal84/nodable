@@ -122,12 +122,20 @@ namespace ndbl
         SlotView*       m_last_clicked_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
         std::vector<SlotView*>     m_slot_views;
-        std::unordered_map<const Property*, PropertyView*> m_property_views__all;
+        std::unordered_map<const Property*, PropertyView*> m_property_view;
         PropertyView*              m_value_view;
-        std::vector<PropertyView*> m_property_views__in_strictly;
-        std::vector<PropertyView*> m_property_views__out_strictly;
-        std::vector<PropertyView*> m_property_views__inout_strictly;
-        std::vector<PropertyView*> m_property_views__out;
-        std::vector<PropertyView*> m_property_views__in;
+
+        enum IndexType
+        {
+            IN_STRICTLY = 0,
+            OUT_STRICTLY,
+            INOUT_STRICTLY,
+            IN,
+            OUT,
+
+            IndexType_COUNT
+        };
+
+        std::array<std::vector<PropertyView*>, IndexType_COUNT> m_property_view_with;
     };
 }
