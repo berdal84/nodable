@@ -6,6 +6,7 @@ include(scripts/cmake/log.cmake)
 include(scripts/cmake/set-build-ref-variable.cmake)
 
 # prerequisites:
+cmake_policy(VERSION 3.14)
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum OS X deployment version") # must be declared BEFORE project
 # GitHub Actions does not support v11
