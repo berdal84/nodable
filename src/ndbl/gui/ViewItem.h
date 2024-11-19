@@ -6,7 +6,7 @@
 namespace ndbl
 {
     // forward declarations
-    class SlotView;
+    struct SlotView;
     class NodeView;
 
     enum ViewItemType

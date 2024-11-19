@@ -93,7 +93,7 @@ namespace tools
      */
     class TypeDescriptor
     {
-        friend class  TypeRegister;
+        friend TypeRegister;
     public:
         TypeDescriptor()
         : m_id(std::type_index(typeid(null))), m_primitive_id( std::type_index(typeid(null)) ) {}
@@ -178,7 +178,7 @@ namespace tools
      */
     class ClassDescriptor : public TypeDescriptor
     {
-        friend struct TypeRegister;
+        friend TypeRegister;
     public:
         ClassDescriptor() = default;
         ~ClassDescriptor();

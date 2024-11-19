@@ -11,7 +11,7 @@ namespace ndbl
     class NodeView;
     class Node;
     class VariableNode;
-    class Slot;
+    struct Slot;
 
     /**
      * Simple struct to store a get_value view state

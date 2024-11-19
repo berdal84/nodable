@@ -11,7 +11,7 @@ namespace ndbl
     class Node;
     class Property;
     class NodeView;
-    class SlotView;
+    struct SlotView;
 
     struct Slot
     {

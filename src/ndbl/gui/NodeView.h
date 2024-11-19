@@ -21,8 +21,8 @@ namespace ndbl
     // forward declaration
     class Node;
     class Graph;
-    class Slot;
-    class SlotView;
+    struct Slot;
+    struct SlotView;
     class GraphView;
 
     /**
