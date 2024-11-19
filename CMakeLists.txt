@@ -44,7 +44,7 @@ check_pie_supported()
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD            20)
 set(CMAKE_CXX_STANDARD_REQUIRED   ON)
-set(CMAKE_CXX_EXTENSIONS          OFF) # ensure we do not use fancy extensions that are not cross platform
+set(CMAKE_CXX_EXTENSIONS          ON)
 
 # enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -63,6 +63,8 @@ endif ()
 # disable char8_t when using CPP 20
 if ( CMAKE_CXX_STANDARD EQUAL 20 )
     if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
     elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
