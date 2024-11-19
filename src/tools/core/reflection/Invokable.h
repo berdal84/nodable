@@ -149,10 +149,10 @@ namespace tools
     template<typename F>
     variant Apply(F* _function, const std::vector<variant*> &_args)
     {
-        using Args = typename FunctionTrait<F>::args_t;
-        constexpr size_t N = std::tuple_size_v<Args>;
+        using trait = FunctionTrait<F>;
+        constexpr size_t N = std::tuple_size_v<typename trait::args_t>;
         VERIFY(_args.size() == N, "Wrong number of arguments");
-        if constexpr ( std::is_void_v< typename std::result_of<F> > )
+        if constexpr ( std::is_void_v< typename trait::result_t > )
         {
             CastAndApply( _function, VectorToTuple<N>( _args ));
             return null{};
@@ -165,10 +165,10 @@ namespace tools
     template<typename MethodPtrT, typename InstanceT = typename FunctionTrait<MethodPtrT>::ClassT >
     variant Apply(MethodPtrT _method, InstanceT _instance, const std::vector<variant*> &_args)
     {
-        using Args = typename FunctionTrait<MethodPtrT>::args_t;
-        constexpr size_t N = std::tuple_size_v<Args>;
+        using trait = FunctionTrait<MethodPtrT>;
+        constexpr size_t N = std::tuple_size_v<typename trait::args_t>;
         VERIFY(_args.size() == N, "Wrong number of arguments");
-        if constexpr ( std::is_void_v< typename FunctionTrait<MethodPtrT>::result_t > )
+        if constexpr ( std::is_void_v< typename trait::result_t >  )
         {
             CastAndApply(_method, _instance, VectorToTuple<N>( _args ));
             return null{};
