@@ -42,9 +42,9 @@ include(CheckPIESupported)
 check_pie_supported()
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD            17) # cpp20 uses char8_t instead of const char* for u8"string"...
+set(CMAKE_CXX_STANDARD            17)
 set(CMAKE_CXX_STANDARD_REQUIRED   ON)
-set(CMAKE_CXX_EXTENSIONS          ON)
+set(CMAKE_CXX_EXTENSIONS          OFF) # ensure we do not use fancy extensions that are not cross platform
 
 # enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -54,11 +54,24 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DTOOLS_DEBUG -DNDBL_DEBUG")
 
 if(WIN32)
     add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions
-endif()
+endif ()
 
 if (TOOLS_NO_POOL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTOOLS_NO_POOL")
 endif ()
+
+# disable char8_t when using CPP 20
+if ( CMAKE_CXX_STANDARD EQUAL 20 )
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:char8_t-")
+    else ()
+        ndbl_err("The compiler you are using is not handled my this script, you have to manually add a case to is if/else in order to set a flag to disable char8_t")
+    endif()
+endif()
 
 # add subdirectories
 #-------------------
