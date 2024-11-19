@@ -26,11 +26,12 @@ TaskManager::TaskManager(const TaskManager::Config& config )
     m_tasks.reserve(m_conf.reserve_size );
 }
 
-void TaskManager::run_task(const std::function<void(void)>& function, u64_t delay_in_ms )
+void TaskManager::schedule_task(const std::function<void(void)>& function, u64_t delay_in_ms )
 {
     std::chrono::milliseconds d{ delay_in_ms };
 
     // Create an asynchronous function (task)
+    // TODO: using coroutines would garantee that function() is executed at a given moment in the app loop.
     auto task = std::async(std::launch::async, [=]() -> void {
         std::this_thread::sleep_for(d);
         function();
@@ -79,7 +80,7 @@ void TaskManager::run_task(std::future<void>&& task)
         ++it;
     }
 
-    VERIFY(m_tasks.size() < m_conf.max_capacity, "[TaskManager::run_task] m_tasks buffer is full. Did you call update_world_matrix() frequently? Consider increasing max_capacity when calling init_task_manager()");
+    VERIFY(m_tasks.size() < m_conf.max_capacity, "[TaskManager::schedule_task] m_tasks buffer is full. Did you call update_world_matrix() frequently? Consider increasing max_capacity when calling init_task_manager()");
 
     m_tasks.push_back(std::move(task));
 }
