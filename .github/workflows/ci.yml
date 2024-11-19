@@ -14,7 +14,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-13] # macos-12 is deprecated https://github.com/actions/runner-images/issues/10721
+        os: [ubuntu-22.04, windows-2022, macos-13] # macos-12 is deprecated https://github.com/actions/runner-images/issues/10721
       fail-fast: false # see https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
     runs-on: ${{ matrix.os }}
     env:

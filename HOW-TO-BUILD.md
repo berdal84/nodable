@@ -13,13 +13,13 @@ They both rely on external [libraries](./libs/README.md).
 ## Prerequisites:
 
 ### System
-- Windows 64bits
-- Linux 64bits (only Ubuntu is tested)
+- Windows 2022+
+- Linux (only Ubuntu 22.04+ is tested)
 - macOS 13+
 
 ### Software
-- CMake 3.14 and above
-- a C++17 compiler
+- CMake 3.14+
+- a C++20 compiler (gcc, clang, and msvc are tested)
 
 ### Libraries (for Linux ONLY)
 
