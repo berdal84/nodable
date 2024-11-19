@@ -1,8 +1,5 @@
 #include "ImGuiEx.h"
 
-#include <algorithm>
-#include <cmath>
-
 #include "tools/core/log.h"
 #include "tools/core/assertions.h"
 

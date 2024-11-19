@@ -75,10 +75,10 @@ void Physics::add_force(const tools::Vec2& force, bool _recurse)
     }
 }
 
-void Physics::apply_forces(float _dt)
+void ndbl::Physics::apply_forces(float _dt)
 {
     float lensqr_max       = std::pow(100, 4);
-    float friction_coef    = lerp(0.0f, 0.5f, _forces_sum.lensqr() / lensqr_max);
+    float friction_coef    = tools::clamped_lerp(0.0f, 0.5f, _forces_sum.lensqr() / lensqr_max);
     Vec2  soften_force_sum = Vec2::lerp(_last_frame_forces_sum, _forces_sum, 0.95f);
     Vec2  delta            = soften_force_sum * (1.0f - friction_coef) * _dt;
 

@@ -323,7 +323,7 @@ bool GraphView::draw(float dt)
                 if (style.color.w != 0.f)
                 {
                     // Determine control points
-                    float roundness = lerp(0.f, 10.f, lensqr_dist / 100.f );
+                    float roundness = tools::clamped_lerp(0.f, 10.f, lensqr_dist / 100.f);
                     cp1 = p1;
                     cp2 = p2 + slot_view_in->direction * roundness;
                     if ( slot_view_out->direction.y > 0.f ) // round out when direction is bottom
@@ -379,7 +379,7 @@ bool GraphView::draw(float dt)
             draw_list->AddCircleFilled(interpreter_cursor_pos, 5.0f, ImColor(255, 0, 0));
 
             Vec2 linePos = interpreter_cursor_pos + Vec2(-10.0f, 0.5f);
-            linePos += Vec2(sin(float(App::get_time()) * 12.0f) * 4.0f, 0.f); // wave
+            linePos += Vec2( glm::sin(float(App::get_time()) * 12.0f) * 4.0f, 0.f); // wave
             float size = 20.0f;
             float width = 2.0f;
             ImColor color = ImColor(255, 255, 255);

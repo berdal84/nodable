@@ -1,23 +1,21 @@
 #include "NodeView.h"
 
 #include <algorithm> // for std::max
-#include <cmath> // for sinus
+#include <glm/trigonometric.hpp> // for sinus
 #include <vector>
 
-#include "tools/core/math.h"
 #include "ndbl/core/Utils.h"
 #include "ndbl/core/FunctionNode.h"
 #include "ndbl/core/LiteralNode.h"
-#include "ndbl/core/language/Nodlang.h"
 
 #include "Config.h"
-#include "Event.h"
 #include "Physics.h"
 #include "PropertyView.h"
 #include "GraphView.h"
 #include "SlotView.h"
 #include "tools/gui/Config.h"
 #include "ndbl/core/Interpreter.h"
+#include "tools/core/math.h"
 
 #ifdef NDBL_DEBUG
 #define DEBUG_DRAW 0
@@ -310,7 +308,7 @@ void NodeView::arrange_recursively(bool _smoothly)
 void NodeView::update(float dt)
 {
     if(m_opacity != 1.0f)
-        lerp(m_opacity, 1.0f, 10.0f * dt);
+        tools::clamped_lerp(m_opacity, 1.0f, 10.0f * dt);
 
     for(SlotView* slot_view  : m_slot_views )
         slot_view->update( dt );
@@ -525,7 +523,7 @@ void NodeView::DrawNodeRect(
     // Draw an additional blinking rectangle when selected
     if (selected)
     {
-        auto alpha   = sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
+        auto alpha   = glm::sin(ImGui::GetTime() * 10.0F) * 0.25F + 0.5F;
         float offset = 4.0f;
         draw_list->AddRect(
             rect.min - Vec2(offset),

@@ -1,11 +1,11 @@
 #include "Nodlang_math.h"
 
 #include <string>
-#include <cmath>
-
 #include "tools/core/format.h"
 #include "tools/core/reflection/Initializer.h"
 #include "tools/core/types.h"
+#include "glm/common.hpp"
+#include "glm/trigonometric.hpp"
 
 using namespace ndbl;
 using namespace tools;
@@ -18,10 +18,10 @@ namespace // anonymous, accessible only in that file
     bool _or(bool a, bool b) { return a || b; }
     bool _to_bool(double n) { return n == 0.0; }
     bool _xor(bool a, bool b){ return a ^ b; }
-    double _cos(double n) { return cos(n); }
-    double _mod(double a, double b) { return fmod(a, b); }
+    double _cos(double n) { return glm::cos(n); }
+    double _mod(double a, double b) { return glm::mod(a, b); }
     double _secondDegreePolynomial(double a, double x, double b, double y, double c) { return a * x * x + b * y + c;}
-    double _sin(double n) { return sin(n); }
+    double _sin(double n) { return glm::sin(n); }
     std::string _to_string(bool b) { return b ? "true" : "false"; }
     std::string _to_string(double n) { return format::number(n); }
     std::string _to_string(i32_t i) { return std::to_string(i); }

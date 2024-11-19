@@ -479,7 +479,7 @@ void AppView::end_draw()
 
     // compute fps
     auto instant_fps   = compute_fps(m_last_frame_ticks, SDL_GetTicks(), cfg->fps_limit);
-    m_last_frame_fps   = lerp( m_last_frame_fps, (float)instant_fps, 1.f / 20.f); // smooth the last n frames
+    m_last_frame_fps   = tools::clamped_lerp(m_last_frame_fps, (float) instant_fps, 1.f / 20.f); // smooth the last n frames
     u32_t last_frame_ticks = m_last_frame_ticks;
     m_last_frame_dt    = last_frame_ticks - m_last_frame_ticks;
     m_last_frame_ticks = SDL_GetTicks();
