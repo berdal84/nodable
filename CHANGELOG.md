@@ -6,6 +6,7 @@ Author: Bérenger Dalle-Cort, 2017-2024
 
 ### v1.0:
     - graph is now always abstract
+    - fd
     - interpreter (build, run, debug etc) is disabled by default and is considered out of scope, but can be enabled via the Developer>Experimental menu,
     - improved the Graph user interface to create_new graph more easily,
     - implemented an optimized StateMachine to simplify code (it avoids an OOP version of it! Thanks to Rémi ;)),

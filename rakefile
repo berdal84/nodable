@@ -1,0 +1,29 @@
+require 'rake'
+require_relative 'rake/config'
+require_relative 'rake/tools_core.rb'
+
+desc "says hello"
+task :default do
+	print("Welcome to Nodable's rakefile.\nTry to run: rake build\n")
+end
+
+desc "Clean current target build files"
+task :clean do
+	
+	sh "echo Cleaning #{TARGET_NAME}...", verbose: false
+
+	if Dir.exist?(TARGET_BUILD_DIR)
+		FileUtils.remove_entry_secure(TARGET_BUILD_DIR)
+	end
+end
+
+desc "Clean all target build files"
+task :clean_all do
+	sh "echo Cleaning All...", verbose: false
+
+	if Dir.exist?(BUILD_DIR_ROOT)
+		FileUtils.remove_entry_secure(BUILD_DIR_ROOT)
+	end
+end
+
+define_module_tasks()
