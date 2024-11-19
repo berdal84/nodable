@@ -41,7 +41,7 @@ NodeView::NodeView()
     , m_expanded(true)
     , m_pinned(false)
     , m_value_view(nullptr)
-    , m_property_view()
+    , m_view_by_property()
     , m_hovered_slotview(nullptr)
     , m_last_clicked_slotview(nullptr)
     , m_state(10.0f, 35.0f)
@@ -51,13 +51,13 @@ NodeView::NodeView()
 
 NodeView::~NodeView()
 {
-    for(auto& [_, each] : m_property_view )
+    for(auto& [_, each] : m_view_by_property )
     {
         spatial_node().remove_child(&each->spatial_node());
         delete each;
     }
 
-    for(auto vector : m_property_view_with )
+    for(auto vector : m_view_by_property_type )
     {
         vector.clear();
     }
@@ -145,7 +145,7 @@ void NodeView::reset()
     // 1. Create Property views
     //-------------------------
 
-    VERIFY( m_property_view.empty(), "Cannot be called twice");
+    VERIFY(m_view_by_property.empty(), "Cannot be called twice");
 
     for (Property* property : node()->props() )
     {
@@ -176,18 +176,18 @@ void NodeView::reset()
         bool has_out = node()->find_slot_by_property(property, SlotFlag_OUTPUT );
 
         if ( has_in)
-            m_property_view_with[IN].push_back(new_view);
+            m_view_by_property_type[PropType_IN].push_back(new_view);
         if ( has_out)
-            m_property_view_with[OUT].push_back(new_view);
+            m_view_by_property_type[PropType_OUT].push_back(new_view);
 
         if ( has_in && has_out )
-            m_property_view_with[INOUT_STRICTLY].push_back(new_view);
+            m_view_by_property_type[PropType_INOUT_STRICTLY].push_back(new_view);
         else if ( has_in )
-            m_property_view_with[IN_STRICTLY].push_back(new_view);
+            m_view_by_property_type[PropType_IN_STRICTLY].push_back(new_view);
         else if ( has_out )
-            m_property_view_with[OUT_STRICTLY].push_back(new_view);
+            m_view_by_property_type[PropType_OUT_STRICTLY].push_back(new_view);
 
-        m_property_view.emplace(property, new_view);
+        m_view_by_property.emplace(property, new_view);
     }
 
     // 2. Create a SlotView per slot
@@ -445,14 +445,14 @@ bool NodeView::draw()
     // Draw the properties depending on node type
     if ( node()->type() != NodeType_OPERATOR )
     {
-        changed |= PropertyView::draw_all(m_property_view_with[IN_STRICTLY], cfg->ui_node_detail);
-        changed |= PropertyView::draw_all(m_property_view_with[INOUT_STRICTLY], cfg->ui_node_detail);
-        changed |= PropertyView::draw_all(m_property_view_with[OUT_STRICTLY], cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_view_by_property_type[PropType_IN_STRICTLY], cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_view_by_property_type[PropType_INOUT_STRICTLY], cfg->ui_node_detail);
+        changed |= PropertyView::draw_all(m_view_by_property_type[PropType_OUT_STRICTLY], cfg->ui_node_detail);
     }
     else
     {
         size_t i = 0;
-        for( PropertyView* property_view : m_property_view_with[IN] )
+        for( PropertyView* property_view : m_view_by_property_type[PropType_IN] )
         {
             ImGui::SameLine();
             changed |= property_view->draw( cfg->ui_node_detail );
@@ -601,10 +601,10 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
     };
 
     ImGui::Separator();
-    changed |= draw_properties("Inputs(s)", _view->m_property_view_with[IN_STRICTLY]);
-    changed |= draw_properties("In/Out(s)", _view->m_property_view_with[INOUT_STRICTLY]);
+    changed |= draw_properties("Inputs(s)", _view->m_view_by_property_type[PropType_IN_STRICTLY]);
+    changed |= draw_properties("In/Out(s)", _view->m_view_by_property_type[PropType_INOUT_STRICTLY]);
     ImGui::Separator();
-    changed |= draw_properties("Output(s)", _view->m_property_view_with[OUT_STRICTLY]);
+    changed |= draw_properties("Output(s)", _view->m_view_by_property_type[PropType_OUT_STRICTLY]);
 
 #ifdef NDBL_DEBUG
 
@@ -1004,14 +1004,14 @@ void NodeView::add_child(SlotView* view)
 
 PropertyView *NodeView::find_property_view(const Property* property)
 {
-    auto found = m_property_view.find(property );
-    if (found != m_property_view.end() )
+    auto found = m_view_by_property.find(property );
+    if (found != m_view_by_property.end() )
         return found->second;
     return nullptr;
 }
 
 void NodeView::reset_all_properties()
 {
-    for( auto& [_, property_view] : m_property_view )
+    for( auto& [_, property_view] : m_view_by_property )
         property_view->reset();
 }
