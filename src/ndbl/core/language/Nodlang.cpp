@@ -1184,7 +1184,7 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
                     branch_flow_out = { if_node->branch_out(Branch_FALSE) };
                     Nodlang::FlowPath else_block;
 
-                    if ( else_block = parse_atomic_code_block( branch_flow_out) )
+                    if ( (else_block = parse_atomic_code_block( branch_flow_out)) )
                     {
                         for (auto _flow_out : else_block.out )
                             path.out.insert( _flow_out );
@@ -2029,12 +2029,12 @@ Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowPathOut& flow_out)
     FlowPath path;
 
     // most common case
-         if ( path = parse_scoped_block( flow_out ) );
-    else if ( path = parse_expression_block( flow_out ) );
-    else if ( path = parse_if_block( flow_out ) );
-    else if ( path = parse_for_block( flow_out ) );
-    else if ( path = parse_while_block( flow_out ) ) ;
-    else      path = parse_empty_block( flow_out);
+         if ( (path = parse_scoped_block( flow_out )) );
+    else if ( (path = parse_expression_block( flow_out )) );
+    else if ( (path = parse_if_block( flow_out )) );
+    else if ( (path = parse_for_block( flow_out )) );
+    else if ( (path = parse_while_block( flow_out )) ) ;
+    else      (path = parse_empty_block( flow_out));
 
     if ( path )
     {
