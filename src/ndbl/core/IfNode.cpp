@@ -4,15 +4,14 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<IfNode>("IfNode").extends<Node>();
-}
-
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(IfNode).extends<Node>();
+)
 
 void IfNode::init(const std::string&_name)
 {
-    Node::init(NodeType_BLOCK_CONDITION, _name);
-    m_wrapped_conditional.init(this);
+    Node::init(NodeType_BLOCK_IF, _name);
+    SwitchBehavior::init(this, 2);
 }
 // required to link static code above

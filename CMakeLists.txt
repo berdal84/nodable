@@ -6,6 +6,7 @@ include(scripts/cmake/log.cmake)
 include(scripts/cmake/set-build-ref-variable.cmake)
 
 # prerequisites:
+cmake_policy(VERSION 3.14)
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "12.0" CACHE STRING "Minimum OS X deployment version") # must be declared BEFORE project
 # GitHub Actions does not support v11
@@ -41,9 +42,9 @@ include(CheckPIESupported)
 check_pie_supported()
 
 # specify the C++ standard
-set(CMAKE_CXX_STANDARD            17) # cpp20 uses char8_t instead of const char* for u8"string"...
+set(CMAKE_CXX_STANDARD            20)
 set(CMAKE_CXX_STANDARD_REQUIRED   ON)
-set(CMAKE_CXX_EXTENSIONS          ON)
+set(CMAKE_CXX_EXTENSIONS          OFF) # when ON, it will use the custom lib++ instead of stdlib++
 
 # enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -53,11 +54,26 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DTOOLS_DEBUG -DNDBL_DEBUG")
 
 if(WIN32)
     add_compile_definitions(NOMINMAX) # avoid min/max macros causing conflicts with min/max functions
-endif()
+endif ()
 
 if (TOOLS_NO_POOL)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTOOLS_NO_POOL")
 endif ()
+
+# disable char8_t when using CPP 20
+if ( CMAKE_CXX_STANDARD EQUAL 20 )
+    if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-char8_t")
+    elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:char8_t-")
+    else ()
+        ndbl_err("The compiler you are using is not handled my this script, you have to manually add a case to is if/else in order to set a flag to disable char8_t")
+    endif()
+endif()
 
 # add subdirectories
 #-------------------
@@ -66,9 +82,10 @@ endif ()
 
 include(FetchContent)
 FetchContent_Declare(
-        cpptrace
-        GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
-        GIT_TAG        v0.5.4 # <HASH or TAG>
+    cpptrace
+    GIT_REPOSITORY https://github.com/jeremy-rifkin/cpptrace.git
+    GIT_TAG        v0.5.4 # <HASH or TAG>
+    EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(cpptrace)
 
@@ -193,11 +210,12 @@ target_link_libraries(
 
 add_executable(
     test-tools
-    src/tools/gui/geometry/SpatialNode2D.specs.cpp
     src/tools/core/Delegate.specs.cpp
     src/tools/core/reflection/reflection.specs.cpp
     src/tools/core/reflection/Type.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
+    src/tools/gui/geometry/Rect.specs.cpp
+    src/tools/gui/geometry/SpatialNode2D.specs.cpp
 )
 
 target_link_libraries(test-tools PUBLIC gtest_main gtest tools-core tools-gui)
@@ -363,6 +381,7 @@ add_library(
     src/ndbl/core/PropertyBag.cpp
     src/ndbl/core/Scope.cpp
     src/ndbl/core/Slot.cpp
+    src/ndbl/core/SwitchBehavior.cpp
     src/ndbl/core/Token.cpp
     src/ndbl/core/TokenRibbon.cpp
     src/ndbl/core/VariableNode.cpp
@@ -396,7 +415,7 @@ endif ()
 add_executable(
     test-ndbl-core
     src/ndbl/core/Graph.specs.cpp
-    src/ndbl/core/Node.specs.cpp
+    src/ndbl/core/Graph.specs.cpp
     src/ndbl/core/Slot.specs.cpp
     src/ndbl/core/Token.specs.cpp
     src/ndbl/core/language/Nodlang.basics.specs.cpp
@@ -474,8 +493,10 @@ add_library(
     src/ndbl/gui/NodeView.cpp
     src/ndbl/gui/Physics.cpp
     src/ndbl/gui/PropertyView.cpp
+    src/ndbl/gui/SlotView.h
     src/ndbl/gui/SlotView.cpp
     src/ndbl/gui/Isolation.h
+    src/ndbl/gui/ScopeView.cpp
 )
 
 target_link_libraries(

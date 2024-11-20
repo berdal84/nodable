@@ -1,5 +1,6 @@
 #include "Rect.h"
 #include "tools/core/assertions.h"
+#include "Axis.h"
 
 using namespace tools;
 
@@ -34,6 +35,12 @@ Rect Rect::merge(const Rect& a, const Rect& b )// Return a rectangle overlapping
 {
     ASSERT(!a.is_inverted());
     ASSERT(!b.is_inverted());
+
+    if ( !a.has_area() )
+        return b;
+    if ( !b.has_area())
+        return a;
+
     Rect result;
     result.min.x = glm::min( a.min.x, b.min.x );
     result.min.y = glm::min( a.min.y, b.min.y );
@@ -64,3 +71,34 @@ bool Rect::contains( const Rect& rect, const Vec2& point )
            point.y >= rect.min.y &&
            point.y <= rect.max.y;
 }
+
+std::vector<Rect>& Rect::make_row(std::vector<Rect> &out, float gap )
+{
+    if ( out.size() < 2 )
+        return out;
+
+    for(size_t i = 1; i < out.size(); ++i)
+    {
+        const float source = out[i].min.x;
+        const float target = out[i-1].max.x + gap;
+        const float delta = target - source;
+        out[i].translate_x( delta );
+    }
+
+    return out;
+}
+
+std::vector<Rect> &Rect::align_top(std::vector<Rect>& out, float y)
+{
+    if ( out.size() == 0 )
+        return out;
+
+    for (Rect& r : out )
+    {
+        const float delta = y - r.min.y;
+        r.translate_y( delta );
+    }
+
+    return out;
+}
+

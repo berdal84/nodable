@@ -1,8 +1,5 @@
 #include "ImGuiEx.h"
 
-#include <algorithm>
-#include <cmath>
-
 #include "tools/core/log.h"
 #include "tools/core/assertions.h"
 
@@ -10,6 +7,7 @@
 #include "Texture.h"
 #include "Color.h"
 #include "tools/gui/geometry/LineSegment2D.h"
+#include "tools/gui/geometry/Axis.h"
 
 #define DEBUG_BEZIER_ENABLE 0
 
@@ -273,15 +271,10 @@ void ImGuiEx::MultiSegmentLineBehavior(
     }
 }
 
-void ImGuiEx::Grid(float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color )
+void ImGuiEx::Grid(const Rect& region, float grid_size, int subdiv_count, ImU32 major_color, ImU32 minor_color )
 {
     ImDrawList* draw_list   = ImGui::GetWindowDrawList();
     const float subdiv_size = grid_size / float(subdiv_count);
-
-    const Rect window_content_region = {
-        ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMin(),
-        ImGui::GetWindowPos() + ImGui::GetWindowContentRegionMax()
-    };
 
     Vec2  line_start;
     int   line_count;
@@ -300,24 +293,24 @@ void ImGuiEx::Grid(float grid_size, int subdiv_count, ImU32 major_color, ImU32 m
     {
         if ( axis == AXIS_HORIZONTAL )
         {
-            line_len         = window_content_region.width();
+            line_len         = region.width();
             line_dir         = X_AXIS;
             line_distrib_dir = Y_AXIS;
-            line_count       = (int)(window_content_region.height() / subdiv_size);
+            line_count       = (int)(region.height() / subdiv_size);
         }
         else
         {
-            line_len         = window_content_region.height();
+            line_len         = region.height();
             line_dir         = Y_AXIS;
             line_distrib_dir = X_AXIS;
-            line_count       = (int) (window_content_region.width() / subdiv_size);
+            line_count       = (int) (region.width() / subdiv_size);
         }
 
         for (int line_index = 0; line_index < line_count; ++line_index)
         {
              // Distribute along line_distrib_dir
             const float line_scalar_pos = float(line_index) * subdiv_size;
-            line_start = window_content_region.min + line_distrib_dir * line_scalar_pos;
+            line_start = region.min + line_distrib_dir * line_scalar_pos;
 
             // Determine color (every subdiv_count lines are major)
             ImU32& line_color = line_index % subdiv_count == 0 ? major_color : minor_color;

@@ -1,7 +1,6 @@
-#include <cmath>// for pow()
 #include <gtest/gtest.h>
-
 #include "fixtures/core.h"
+#include "glm/exponential.hpp" // for pow()
 
 using namespace ndbl;
 typedef ::testing::Core DISABLED_Interpreter_;
@@ -155,7 +154,7 @@ TEST_F(DISABLED_Interpreter_, For_loop_with_var_decl)
             "   score = score * 2;"
             "}"
             "return(score);";
-    EXPECT_EQ(eval<i32_t>(program), 1 * pow(2, 10));
+    EXPECT_EQ(eval<i32_t>(program), 1 * glm::pow(2, 10));
 }
 
 TEST_F(DISABLED_Interpreter_, declare_then_define)

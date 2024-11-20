@@ -30,15 +30,15 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
             case CreateNodeType_BLOCK_FOR_LOOP:
             case CreateNodeType_BLOCK_WHILE_LOOP:
             case CreateNodeType_BLOCK_SCOPE:
-            case CreateNodeType_BLOCK_PROGRAM:
+            case CreateNodeType_BLOCK_ENTRY_POINT:
                 // Blocks are only for code flow slots
-                if ( !dragged_slot->allows(SlotFlag_TYPE_CODEFLOW) )
+                if ( !dragged_slot->allows(SlotFlag_TYPE_FLOW) )
                     continue;
                 break;
 
             default:
 
-                if ( dragged_slot->allows(SlotFlag_TYPE_CODEFLOW))
+                if ( dragged_slot->allows(SlotFlag_TYPE_FLOW))
                 {
                     // we can connect anything to a code flow slot
                 }
@@ -50,12 +50,12 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
                 {
                     // discard incompatible signatures
 
-                    if ( dragged_slot->allows( SlotFlag_ORDER_FIRST ) &&
-                         !action->event_data.node_signature->has_an_arg_of_type(dragged_property_type)
+                    if ( dragged_slot->allows(SlotFlag_ORDER_1ST ) &&
+                        !action->event_data.node_signature->has_arg_with_type(dragged_property_type)
                             )
                         continue;
 
-                    if ( !action->event_data.node_signature->get_return_type()->equals(dragged_property_type) )
+                    if ( !action->event_data.node_signature->return_type()->equals(dragged_property_type) )
                         continue;
 
                 }
@@ -129,10 +129,14 @@ Action_CreateNode* CreateNodeCtxMenu::draw_search_input(SlotView* dragged_slot, 
     }
 
     // Draw search input and update_cache_based_on_user_input on input change
-    if ( ImGui::InputText("Search", search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
+    ImGui::BeginGroup();
+    ImGui::Text("Create Node:");
+    ImGui::SameLine();
+    if ( ImGui::InputText("###Search", search_input, 255, ImGuiInputTextFlags_EscapeClearsAll ))
     {
         update_cache_based_on_user_input(dragged_slot, 100 );
     }
+    ImGui::EndGroup();
 
     if ( !items_matching_search.empty() )
     {

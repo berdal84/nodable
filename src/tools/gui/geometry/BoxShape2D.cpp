@@ -1,5 +1,6 @@
 #include "BoxShape2D.h"
 #include "tools/gui/ImGuiEx.h"
+#include "Pivots.h"
 
 #ifdef TOOLS_DEBUG
 #define DEBUG_draw_debug_info 1
@@ -9,9 +10,9 @@
 using namespace tools;
 
 BoxShape2D::BoxShape2D(const Rect &r)
-: xform()
+: _spatial_node()
 {
-    xform.set_pos(r.center());
+    _spatial_node.set_position(r.center());
     set_size(r.size());
 }
 
@@ -19,7 +20,7 @@ BoxShape2D::BoxShape2D(
         SpatialNode2D _xform,
         const Vec2 &_size
 )
-: xform(_xform)
+: _spatial_node(_xform)
 {
     set_size(_size);
 }
@@ -28,17 +29,12 @@ Vec2 BoxShape2D::pivot(const Vec2& pivot, Space space) const
 {
     if ( space == LOCAL_SPACE )
         return _half_size * pivot;
-    return xform.get_pos(space) + _half_size * pivot;
+    return _spatial_node.position(space) + _half_size * pivot;
 }
 
-Rect BoxShape2D::get_rect(Space space) const
+Rect BoxShape2D::rect(Space space) const
 {
     return {pivot(TOP_LEFT, space), pivot(BOTTOM_RIGHT, space)};
-}
-
-Vec2 BoxShape2D::size() const
-{
-    return _half_size * 2.0f;
 }
 
 void BoxShape2D::set_size(const Vec2& size)
@@ -78,7 +74,7 @@ Vec2 BoxShape2D::diff(
 void BoxShape2D::draw_debug_info()
 {
 #if DEBUG_draw_debug_info
-    Rect r = get_rect(WORLD_SPACE);
+    Rect r = rect(WORLD_SPACE);
     if ( r.size().lensqr() < 0.1f )
         return;
 
@@ -88,7 +84,7 @@ void BoxShape2D::draw_debug_info()
     ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
 
     // center to parent center
-    if ( xform.get_parent() != nullptr)
-         ImGuiEx::DebugLine(xform.get_parent()->get_pos(WORLD_SPACE ), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
+    if ( _spatial_node.parent() != nullptr)
+         ImGuiEx::DebugLine( _spatial_node.parent()->position(WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
 #endif
 }

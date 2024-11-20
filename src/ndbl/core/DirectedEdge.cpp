@@ -10,15 +10,20 @@ DirectedEdge::DirectedEdge(Slot* _tail, Slot* _head )
 : tail(_tail)
 , head(_head)
 {
-    // Be sure tail is always FIRST ORDER
-    if ( tail->order() == SlotFlag_ORDER_SECOND )
+    // Guards
+    ASSERT(tail);
+    ASSERT(head);
+    VERIFY(tail->type() == head->type(), "Slot types are incompatible"  );
+    VERIFY(tail->node != head->node    , "Can't connect two slots from the same node");
+
+    if ( tail->order() == SlotFlag_ORDER_2ND ) // Make sure tail is always FIRST ORDER
         std::swap(tail, head);
 
-    ASSERT(tail->flags() & SlotFlag_ORDER_FIRST );
-    ASSERT(head->flags() & SlotFlag_ORDER_SECOND );
+    ASSERT(tail->flags() & SlotFlag_ORDER_1ST );
+    ASSERT(head->flags() & SlotFlag_ORDER_2ND );
     ASSERT(tail->node->graph() != nullptr);
     ASSERT(head->node->graph() != nullptr);
-    ASSERT(tail->node->graph() == head->node->graph() );
+    VERIFY(tail->node->graph() == head->node->graph(),"The slots are from Nodes from different graphs" );
 }
 
 std::string ndbl::to_string(const DirectedEdge& _edge)
@@ -35,8 +40,6 @@ std::string ndbl::to_string(const DirectedEdge& _edge)
 
         switch (_slot->flags() )
         {
-            case SlotFlag_CHILD:   result.append(", CHILD");  break;
-            case SlotFlag_PARENT:  result.append(", PARENT"); break;
             case SlotFlag_INPUT:   result.append(", INPUT");  break;
             case SlotFlag_OUTPUT:  result.append(", OUTPUT"); break;
         }
@@ -46,25 +49,20 @@ std::string ndbl::to_string(const DirectedEdge& _edge)
 
     serialize_slot_ref(_edge.tail);
 
-    auto type = _edge.tail->flags() & SlotFlag_TYPE_MASK;
     // TODO: enable reflection on SLotFlag_XXX
-    switch ( type )
+    switch ( _edge.tail->type() )
     {
         case SlotFlag_TYPE_VALUE:
             result.append(" >==(VALUE)==> ");
             break;
-        case SlotFlag_TYPE_CODEFLOW:
+        case SlotFlag_TYPE_FLOW:
             result.append(" >==(CODEFLOW)==> ");
-            break;
-        case SlotFlag_TYPE_HIERARCHICAL:
-            result.append(" >==(HIERARCHY)==> ");
             break;
         default:
             ASSERT(false); // unhandled type?
     }
 
     serialize_slot_ref(_edge.head);
-
 
     return std::move(result);
 }

@@ -11,16 +11,22 @@ Nodable sources are split in two folders under [./src](./src/README.md):
 They both rely on external [libraries](./libs/README.md).
 
 ## Prerequisites:
-- System:
-  - Windows 64bits / Linux 64bits / macOS 10.13+ 
-  - CMake 3.14+
-  - A C++11 compatible build system*
-- Libraries
-    - Require OpenGL which is usually preinstalled under macOS and Windows, under Linux install mesa (ex. for Ubuntu: `sudo apt-get install libegl1-mesa`)
-    - Under linux `pkg-config` and `libgtk-3-dev` are required. (ex. for Ubuntu: `sudo apt-get install pkg-config libgtk-3-dev`)
-      Below, are all the commands to clone, configure, and build nodable from sources.
 
-_*no help is available here for that particular subject_
+### System
+- Windows 2022+
+- Linux (only Ubuntu 22.04+ is tested)
+- macOS 13+
+
+### Software
+- CMake 3.14+
+- a C++20 compiler (gcc, clang, and msvc are tested)
+
+### Libraries (for Linux ONLY)
+
+From a terminal, run:
+```
+sudo apt-get install libegl1-mesa pkg-config libgtk-3-dev libasound2-dev
+```
 
 ## Build commands
 

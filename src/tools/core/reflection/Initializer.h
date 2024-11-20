@@ -83,8 +83,8 @@ namespace tools
 #define CAT_IMPL(a, b) a##b
 #define CAT(a, b) CAT_IMPL(a, b)
 
-#define REFLECT_STATIC_INIT\
-    static void auto_static_initializer();\
+#define REFLECT_STATIC_INITIALIZER( ... )\
+static void auto_static_initializer();\
 namespace /* using the same trick as rttr to avoid name conflicts*/\
 {\
     struct auto_static_initializer_struct\
@@ -96,4 +96,12 @@ namespace /* using the same trick as rttr to avoid name conflicts*/\
     };\
 }\
 static const auto_static_initializer_struct CAT(auto_static_initializer, __LINE__);\
-static void auto_static_initializer()
+static void auto_static_initializer()\
+{\
+    __VA_ARGS__ \
+}
+
+#define DEFINE_REFLECT_WITH_ALIAS( TYPENAME, NAME_STRING )\
+::tools::type::Initializer<TYPENAME>( NAME_STRING )
+
+#define DEFINE_REFLECT( TYPENAME ) DEFINE_REFLECT_WITH_ALIAS( TYPENAME, #TYPENAME )

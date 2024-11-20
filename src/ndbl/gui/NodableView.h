@@ -43,9 +43,8 @@ namespace ndbl
         // draw_xxx_window
 
         void draw_file_info_window() const;
-        void draw_file_window(ImGuiID dockspace_id, bool redock_all, File*file);
+        void draw_file_window(float dt, ImGuiID dockspace_id, bool redock_all, File*file);
         void draw_help_window() const;
-        void draw_history_bar(History&);
         void draw_imgui_config_window() const;
         bool draw_node_properties_window();
         void draw_config_window();
@@ -54,7 +53,6 @@ namespace ndbl
         void draw_interpreter_window();
 
         tools::Texture*    m_logo                    = nullptr;
-        bool               m_is_history_dragged      = false;
         bool               m_show_properties_editor  = false;
         bool               m_show_imgui_demo         = false;
         bool               m_show_advanced_node_properties = false;

@@ -9,13 +9,13 @@ using namespace tools;
 SlotView::SlotView(
     Slot*       slot,
     const Vec2& align,
-    ShapeType   shape,
+    ShapeType   shape_type,
     size_t      index,
     const BoxShape2D* alignment_ref
     )
 : slot(slot)
 , alignment(align)
-, shape(shape)
+, shape_type(shape_type)
 , index(index)
 , alignment_ref(alignment_ref)
 , direction()
@@ -27,20 +27,18 @@ SlotView::SlotView(
 
     // Update size from shape
     Config* config = get_config();
-    Vec2 size = shape == ShapeType_CIRCLE
+    Vec2 size = shape_type == ShapeType_CIRCLE
             ? Vec2{ config->ui_slot_circle_radius() }
             : config->ui_slot_rectangle_size;
-    box()->set_size( size );
+    shape().set_size( size );
 }
 
 string64 SlotView::compute_tooltip() const
 {
     switch (slot->type_and_order())
     {
-        case SlotFlag_NEXT:   return "next";
-        case SlotFlag_PREV:   return "previous";
-        case SlotFlag_PARENT: return "parent";
-        case SlotFlag_CHILD:  return "children";
+        case SlotFlag_FLOW_OUT: return "flow_out";
+        case SlotFlag_FLOW_IN:  return "flow_in";
     }
 
     std::string prop_name;
@@ -60,9 +58,9 @@ string64 SlotView::compute_tooltip() const
 
 bool SlotView::draw()
 {
-    state.box.draw_debug_info();
+    _state.shape().draw_debug_info();
 
-    if ( !state.visible )
+    if ( !_state.visible )
         return false;
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -72,7 +70,7 @@ bool SlotView::draw()
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
-    Rect rect            = state.box.get_rect(WORLD_SPACE );
+    Rect rect            = _state.shape().rect(WORLD_SPACE);
 
     if ( !rect.has_area() )
         return false;
@@ -82,15 +80,15 @@ bool SlotView::draw()
     ImGui::PushID(slot);
     ImGui::InvisibleButton("###", rect.size() + cfg->ui_slot_invisible_btn_expand_size);
     ImGui::PopID();
-    state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
-    Vec4 fill_color = state.hovered ? hover_color : color;
+    _state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    Vec4 fill_color = _state.hovered ? hover_color : color;
 
     // draw shape
-    switch (shape)
+    switch ( shape_type )
     {
         case ShapeType_CIRCLE:
         {
-            float r = box()->size().x;
+            float r = shape().size().x;
             draw_list->AddCircleFilled( rect.center(), r, ImColor(fill_color));
             draw_list->AddCircle( rect.center(), r, ImColor(border_color) );
             break;
@@ -98,7 +96,7 @@ bool SlotView::draw()
         case ShapeType_RECTANGLE:
         {
             // draw the rectangle
-            bool bottom = slot->has_flags(SlotFlag_ORDER_FIRST);
+            bool bottom = slot->has_flags(SlotFlag_ORDER_1ST);
             ImDrawCornerFlags corner_flags = bottom ? ImDrawCornerFlags_Bot
                                                     : ImDrawCornerFlags_Top;
             draw_list->AddRectFilled(rect.min, rect.max, ImColor(fill_color), border_radius, corner_flags );
@@ -126,24 +124,24 @@ void SlotView::update(float dt)
 
     if (slot->capacity() == 0)
     {
-        state.visible = false;
+        _state.visible = false;
     }
-    else if (slot->type() == SlotFlag_TYPE_CODEFLOW )
+    else if (slot->type() == SlotFlag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
         bool desired_visibility = Utils::is_instruction( node() ) || Utils::can_be_instruction( node() );
-        state.visible = desired_visibility;
+        _state.visible = desired_visibility;
     }
     else
     {
-        state.visible = true;
+        _state.visible = true;
     }
 
     // 2) Update position
     //-------------------
 
     const Config* cfg = get_config();
-    if (slot->type() == SlotFlag_TYPE_CODEFLOW )
+    if (slot->type() == SlotFlag_TYPE_FLOW )
     {
         // Align the code flow slots like that (example at top-left corner)
         //
@@ -152,7 +150,7 @@ void SlotView::update(float dt)
         // |  Box              |
         // ---------------------
         //
-        const Vec2  size  = box()->size();
+        const Vec2  size  = shape().size();
         const float gap   = cfg->ui_slot_gap;
         const float dir_x = -alignment.x;
 
@@ -161,12 +159,12 @@ void SlotView::update(float dt)
                        + Vec2( dir_x * size.x * float(index), 0.f) // jump to index
                        + Vec2(0.f, alignment.y * size.y * 0.5f); // align edge vertically
 
-        box()->xform.set_pos( pos, WORLD_SPACE ); // relative to NodeView's
+        shape().spatial_node().set_position(pos, WORLD_SPACE); // relative to NodeView's
     }
     else if (alignment_ref != nullptr )
     {
         const Vec2 pos  = alignment_ref->pivot( alignment, WORLD_SPACE);
-        box()->xform.set_pos( pos, WORLD_SPACE );
+        shape().spatial_node().set_position(pos, WORLD_SPACE);
     }
     else
     {

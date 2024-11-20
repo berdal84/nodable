@@ -1,12 +1,11 @@
 #pragma once
-#include <ctime>
+#include <chrono>
 
 namespace tools::time
 {
-    inline static int current_year()
+    static int current_year()
     {
-        std::time_t current_time = std::time(nullptr);
-        std::tm *const time_struct = std::localtime(&current_time);
-        return 1900 + time_struct->tm_year;
+        const std::chrono::year_month_day ymd = std::chrono::floor<std::chrono::days>( std::chrono::system_clock::now() );
+        return (int)ymd.year();
     }
 }

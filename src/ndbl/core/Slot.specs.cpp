@@ -23,11 +23,11 @@ TEST(Slot, is_full)
 TEST(Slot, adjacent_at)
 {
     // prepare
-    Slot slot  {nullptr, SlotFlag_PARENT};
+    Slot slot  {nullptr, SlotFlag_OUTPUT};
     slot.expand_capacity(2);
 
-    Slot slot_0{nullptr, SlotFlag_CHILD};
-    Slot slot_1{nullptr, SlotFlag_CHILD};
+    Slot slot_0{nullptr, SlotFlag_INPUT};
+    Slot slot_1{nullptr, SlotFlag_INPUT};
 
     slot.add_adjacent(&slot_0);
     slot.add_adjacent(&slot_1);
@@ -48,8 +48,8 @@ TEST(Slot, allows_relation)
 
     EXPECT_TRUE(slot.flags() == SlotFlag_NONE );
 
-    slot.set_flags( SlotFlag_CHILD );
+    slot.set_flags( SlotFlag_INPUT );
 
-    EXPECT_TRUE( SlotFlag_CHILD & SlotFlag_TYPE_HIERARCHICAL );
-    EXPECT_TRUE( slot.has_flags( SlotFlag_TYPE_HIERARCHICAL ) );
+    EXPECT_TRUE( SlotFlag_INPUT & SlotFlag_TYPE_VALUE );
+    EXPECT_TRUE( slot.has_flags( SlotFlag_TYPE_VALUE ) );
 }

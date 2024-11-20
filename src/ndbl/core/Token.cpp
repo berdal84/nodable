@@ -169,7 +169,7 @@ Token& Token::operator=(const Token& other)
     if( !other.m_buffer.intern() )
     {
         m_buffer.switch_to_intern_buf(other.length());
-        m_buffer.intern_buf->append(other.begin(), other.length() );
+        m_buffer.intern_buf->append({other.begin(), other.length()});
     }
     else
     {
@@ -203,18 +203,28 @@ void Token::word_replace(const char* new_word)
 
 void Token::prefix_push_front(const char* str)
 {
-    const size_t str_len = strlen(str);
-    m_buffer.switch_to_intern_buf_with_data(begin(), length());
+    if (!m_buffer.intern())
+    {
+        size_t size = length();
+        char*  data = begin();
+        m_buffer.switch_to_intern_buf(size);
+        m_buffer.intern_buf->append( data, size );
+    }
     m_buffer.intern_buf->insert(0, str);
-    m_prefix_len += str_len;
+    m_prefix_len += strlen(str);
 }
 
 void Token::suffix_push_back(const char* str)
 {
-    const size_t str_len = strlen(str);
-    m_buffer.switch_to_intern_buf_with_data(begin(), length());
+    if (!m_buffer.intern())
+    {
+        size_t size = length();
+        char*  data = begin();
+        m_buffer.switch_to_intern_buf(size);
+        m_buffer.intern_buf->append( data, size );
+    }
     m_buffer.intern_buf->append(str);
-    m_suffix_len += str_len;
+    m_suffix_len += strlen(str);
 }
 
 void Token::prefix_reset(size_t size )
@@ -295,12 +305,6 @@ void Token::BimodalBuffer::switch_to_intern_buf(size_t size)
         offset     = 0;
     }
     intern_buf->reserve(size);
-}
-
-void Token::BimodalBuffer::switch_to_intern_buf_with_data(char* data, size_t size)
-{
-    switch_to_intern_buf(size);
-    intern_buf->append( data, size );
 }
 
 

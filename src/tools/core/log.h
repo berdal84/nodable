@@ -27,8 +27,8 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 #define BOLDWHITE   "\033[1m\033[37m"      /* Bold White */
 
-#define KO RED "[KO]" RESET      // red colored "[KO]" string.
-#define OK GREEN "[OK]" RESET    // green colored "[OK]" string.
+#define KO BOLDRED   "[KO] " RESET    // red   colored "[ KO ]" string.
+#define OK BOLDGREEN "[OK] " RESET    // green colored "[ OK ]" string.
 
 #   define LOG_ERROR(...)                                                    \
     tools::log::push_message( tools::log::Verbosity_Error  , ##__VA_ARGS__ ); \
@@ -71,7 +71,7 @@ namespace tools
             Verbosity_COUNT,
 
 #ifdef TOOLS_DEBUG
-            Verbosity_DEFAULT = Verbosity_Message
+            Verbosity_DEFAULT = Verbosity_Verbose
 #else
             Verbosity_DEFAULT = Verbosity_Message
 #endif
@@ -139,7 +139,7 @@ namespace tools
         message.text.append_fmt(_format, args...);
 
         // print if allowed
-        if ( message.verbosity <= s_verbosity )
+        if ( message.verbosity <= get_verbosity(_category) )
         {
             // Select the appropriate color depending on the verbosity
             switch (_verbosity)

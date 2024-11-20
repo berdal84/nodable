@@ -8,6 +8,8 @@ namespace ndbl
     class LiteralNode: public Node
     {
     public:
+        DECLARE_REFLECT_override
+
         Token token = { Token_t::literal_any };
 
         LiteralNode() {};
@@ -17,6 +19,5 @@ namespace ndbl
 
     private:
         const tools::TypeDescriptor* m_type = nullptr;
-        REFLECT_DERIVED_CLASS()
     };
 }

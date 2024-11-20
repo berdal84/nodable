@@ -12,20 +12,16 @@ on:
 
 jobs:
   build:
-    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-20.04, windows-2019, macos-12] # macos-11 was deprecated https://github.com/actions/runner-images/issues/5583
+        os: [ubuntu-22.04, windows-2022, macos-13] # macos-12 is deprecated https://github.com/actions/runner-images/issues/10721
       fail-fast: false # see https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
+    runs-on: ${{ matrix.os }}
     env:
-      build_type: Release # possible options: MinSizeRel Release, Debug, RelWithDebInfo
+      BUILD_TYPE: Release # possible options: MinSizeRel Release, Debug, RelWithDebInfo
+      BUILD_PATH: cmake-build
+      INSTALL_PATH: out
     steps:
-      - name: Git recursive checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          submodules: true
-
       - name: Install dependencies (Linux)
         if: runner.os == 'Linux' # see https://docs.github.com/en/actions/learn-github-actions/contexts#runner-context
         run: sudo apt-get update && sudo apt-get install libegl1-mesa-dev libdbus-1-dev libgtk-3-dev
@@ -34,44 +30,61 @@ jobs:
         if: runner.os == 'macOS' # see https://docs.github.com/en/actions/learn-github-actions/contexts#runner-context
         run: brew install mesalib-glw
 
+      - name: Git Checkout
+        uses: actions/checkout@v4
+
+      - name: Cache Submodules
+        id: cache-submodules
+        uses: actions/cache@v4
+        with:
+          path: libs
+          key: cache-submodules-${{ hashFiles( '.gitmodules' ) }}
+          restore-keys: cache-submodules-
+
+      - name: Git Checkout Submodules
+        if: steps.cache-submodules.outputs.cache-hit == 'false'
+        run: |
+          git submodule init
+          git submodule update
+
       - name: Create Build Environment
         # Some projects don't allow in-source building, so create a separate build directory
         # We'll use this as our working directory for all subsequent commands
-        run: cmake -E make_directory ${{runner.workspace}}/build
+        run: cmake -E make_directory ${{env.BUILD_PATH}}
 
       - name: Configure CMake
         shell: bash
-        working-directory: ${{runner.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.build_type}} -DGITHUB_REF_NAME=${{github.ref_name}} -DGITHUB_SHA=${{github.sha}}
+        working-directory: ${{env.BUILD_PATH}}
+        run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DGITHUB_REF_NAME=${{github.ref_name}} -DGITHUB_SHA=${{github.sha}}
 
       - name: Build
-        working-directory: ${{runner.workspace}}/build
+        working-directory: ${{env.BUILD_PATH}}
         shell: bash
-        run: cmake --build . --config ${{env.build_type}} --target install
+        run: cmake --build . --config ${{env.BUILD_TYPE}} --target install
 
       - name: CTest
-        working-directory: ${{runner.workspace}}/build
+        working-directory: ${{env.BUILD_PATH}}
         shell: bash
-        run: ctest -C ${{env.build_type}} --verbose  --output-on-failure
+        run: ctest -C ${{env.BUILD_TYPE}} --verbose  --output-on-failure
 
       - name: CPack
-        working-directory: ${{runner.workspace}}/build
+        working-directory: ${{env.BUILD_PATH}}
         shell: bash
-        run: cpack -C ${{env.build_type}}
+        run: cpack -C ${{env.BUILD_TYPE}}
 
       - name: Binary Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nodable-${{ runner.os }}
-          path: ${{runner.workspace}}/nodable/out/app/*
+          path: ${{env.INSTALL_PATH}}/app/*
 
       - name: Package Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: nodable-package-${{ runner.os }}
           path: |
-            !${{runner.workspace}}/nodable/out/package/_CPack_Packages
-            ${{runner.workspace}}/nodable/out/package/*.*
+            !${{env.INSTALL_PATH}}/package/_CPack_Packages
+            ${{env.INSTALL_PATH}}/package/*.*
 
   doxygen:
     runs-on: [ubuntu-20.04]
@@ -79,7 +92,7 @@ jobs:
     if: ${{ success() }} # see https://docs.github.com/en/actions/learn-github-actions/expressions#status-check-functions
     steps:
       - name: Git recursive checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install dependencies
         run: sudo apt-get update && sudo apt-get install doxygen
@@ -88,7 +101,7 @@ jobs:
         run: cd docs && doxygen
 
       - name: Upload documentation artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Nodable-Technical-Documentation
           path: ${{runner.workspace}}/Nodable/docs/doxygen

@@ -9,29 +9,27 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<Node>("Node");
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(Node);
+)
 
 Node::~Node()
 {
     for(auto* each : m_slots)
-    {
-        // DISCONNECT(each->on_change); unnecessary until both Node and Slot(s) are destroyed together
         delete each;
-    }
+
     on_destroy.emit();
 }
 
-void Node::init(NodeType _type, const std::string& _label)
+void Node::init(NodeType type, const std::string& label)
 {
-    m_props.init(this);
-    m_value = add_prop<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
+    m_props.reset_owner(this);
+    m_components.reset_owner( this );
 
-    m_name = _label;
-    m_type = _type;
-    m_components.set_owner( this );
+    m_value = m_props.add<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
+    m_name  = label;
+    m_type  = type;
 }
 
 size_t Node::adjacent_slot_count(SlotFlags _flags )const
@@ -47,7 +45,7 @@ const FunctionDescriptor* Node::get_connected_function_type(const char* property
 
     if ( adjacent_slot )
         if (adjacent_slot->node->is_invokable() )
-            return static_cast<const FunctionNode*>(adjacent_slot->node)->get_func_type();
+            return &static_cast<const FunctionNode*>(adjacent_slot->node)->get_func_type();
 
     return nullptr;
 }
@@ -153,7 +151,8 @@ void Node::on_slot_change(Slot::Event event, Slot* slot)
 Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, size_t _position)
 {
     ASSERT( _property != nullptr );
-    ASSERT(_property->owner() == this);
+    ASSERT( _property->node() == this );
+
     Slot* slot = new Slot(this, _flags, _property, _capacity, _position);
     m_slots.push_back(slot);
 
@@ -279,12 +278,25 @@ const Slot* Node::value_in() const
     return find_slot_by_property(m_value, SlotFlag_INPUT );
 }
 
-Node* Node::parent() const
+
+Slot* Node::flow_out()
 {
-    auto parents = m_adjacent_nodes_cache.get( SlotFlag_PARENT );
-    if ( parents.size() == 1)
-        return parents[0];
-    return nullptr;
+    return const_cast<Slot*>( find_slot_by_property(m_value, SlotFlag_FLOW_OUT ) );
+}
+
+const Slot* Node::flow_out() const
+{
+    return find_slot_by_property(m_value, SlotFlag_FLOW_OUT );
+}
+
+Slot* Node::flow_in()
+{
+    return const_cast<Slot*>( find_slot_by_property(m_value, SlotFlag_FLOW_IN ) );
+}
+
+const Slot* Node::flow_in() const
+{
+    return find_slot_by_property(m_value, SlotFlag_FLOW_IN );
 }
 
 bool Node::update()
@@ -307,4 +319,41 @@ const std::vector<Node*>& Node::AdjacentNodesCache::get(SlotFlags flags ) const
     }
 
     return _cache.at(flags);
+}
+
+void Node::init_internal_scope(size_t sub_scope_count)
+{
+    VERIFY( m_internal_scope == nullptr, "Can't call init_internal_scope() more than once");
+    VERIFY( m_parent_scope == nullptr, "Must be initialized prior to reset_parent()");
+
+    // create internal scope
+    Scope* scope = get_component_factory()->create<Scope>();
+    scope->reset_name("Internal Scope");
+    add_component( scope );
+
+    if ( sub_scope_count > 0 )
+    {
+        std::vector<Scope*> sub_scope;
+        sub_scope.reserve(sub_scope_count);
+        while( sub_scope.size() < sub_scope_count )
+        {
+            sub_scope.push_back( get_component_factory()->create<Scope>() );
+            add_component( sub_scope.back() );
+        }
+
+        scope->init_partition( sub_scope );
+    }
+    m_internal_scope = scope;
+    ASSERT(m_internal_scope->is_partitioned()   == (bool)sub_scope_count);
+    ASSERT(m_internal_scope->partition().size() == sub_scope_count);
+}
+
+bool Node::has_flow_adjacent() const
+{
+    return !flow_inputs().empty() || !flow_outputs().empty();
+}
+
+bool Node::is_expression() const
+{
+    return !inputs().empty();
 }

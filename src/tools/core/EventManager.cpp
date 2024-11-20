@@ -54,5 +54,5 @@ IEvent* EventManager::dispatch( EventID _event_id )
 
 void EventManager::dispatch_delayed(u64_t delay, IEvent* event)
 {
-    get_task_manager()->run_task( [=]() -> void { dispatch(event); }, delay );
+    get_task_manager()->schedule_task([this, event]() -> void { this->dispatch(event); }, delay);
 }

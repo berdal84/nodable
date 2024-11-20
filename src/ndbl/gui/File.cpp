@@ -8,6 +8,7 @@
 #include "ndbl/core/language/Nodlang.h"
 
 #include "GraphView.h"
+#include "FileView.h"
 #include "History.h"
 #include "NodeView.h"
 #include "Physics.h"
@@ -17,11 +18,9 @@ using namespace tools;
 
 File::File()
 : path()
-, dirty(true)
 , view()
 , history()
-, _is_graph_dirty(true) // text-based
-, _is_text_dirty(false)
+, _flags(Flags_NEEDS_TO_BE_SAVED | Flags_GRAPH_IS_DIRTY ) // we're text-based!
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n");
 
@@ -70,7 +69,7 @@ void File::_update_text_from_graph()
     if ( _graph->root() )
     {
         std::string code;
-        get_language()->_serialize_node( code, _graph->root().get(), SerializeFlag_RECURSE );
+        get_language()->serialize_node(code, _graph->root().get(), SerializeFlag_RECURSE);
         view.set_text(code, _isolation );
     }
     else
@@ -92,24 +91,28 @@ void File::update()
         }
         else
         {
-            _is_graph_dirty  = true;
-            _is_text_dirty   = false; // we are text-based
+            _flags = _flags & ~Flags_TEXT_IS_DIRTY // unset text is dirty
+                   | Flags_GRAPH_IS_DIRTY; // set graph dirty (we are text-based!)
         }
         history.is_dirty = false;
     }
 
-    if( _is_text_dirty )
-    {
-        _update_text_from_graph();
-        _is_text_dirty = false;
-    }
-    else if( _is_graph_dirty )
+    if ( _flags & Flags_GRAPH_IS_DIRTY )
     {
         _update_graph_from_text();
-        _is_graph_dirty = false;
+        _graph->update();
+        _flags = _flags & ~Flags_IS_DIRTY_MASK;  // clear dirty flags
     }
-
-   _graph->update(); // ~ garbage collection
+    else if ( _flags & Flags_TEXT_IS_DIRTY )
+    {
+        _graph->update();
+        _update_text_from_graph();
+        _flags = _flags & ~Flags_IS_DIRTY_MASK;  // clear dirty flags
+    }
+    else
+    {
+        _graph->update();
+    }
 }
 
 void File::_update_graph_from_text()
@@ -138,7 +141,7 @@ bool File::write( File& file, const tools::Path& path)
         return false;
     }
 
-    if ( !file.dirty )
+    if ( (file._flags & Flags_NEEDS_TO_BE_SAVED) == 0 )
     {
         LOG_MESSAGE("File", "Nothing to save\n");
     }
@@ -148,7 +151,7 @@ bool File::write( File& file, const tools::Path& path)
     result = file.view.get_text(file._isolation);
     std::string content = result;
     out_fstream.write(content.c_str(), content.size()); // TODO: size can exceed fstream!
-    file.dirty = false;
+    file._flags &= ~Flags_NEEDS_TO_BE_SAVED; // unset flag
     file.path = path;
     LOG_MESSAGE("File", "%s saved\n", file.filename().c_str() );
 
@@ -173,7 +176,7 @@ bool File::read( File& file, const tools::Path& path)
 
     std::string content((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
     file.view.set_text(content, file._isolation);
-    file.dirty = false;
+    file._flags &= ~Flags_NEEDS_TO_BE_SAVED; // unset flag
     file.path = path;
 
     LOG_MESSAGE("File", "\"%s\" loaded (%s).\n", path.filename().c_str(), path.c_str());
@@ -190,6 +193,6 @@ void File::set_isolation(Isolation isolation)
     _parsed_text = view.get_text(_isolation);
 
     // when isolation changes, the text has the priority over the graph.
-    _is_graph_dirty = true;
-    _is_text_dirty  = false;
+    _flags &= ~Flags_IS_DIRTY_MASK; // unset flags
+    _flags |= Flags_GRAPH_IS_DIRTY;
 }

@@ -98,6 +98,15 @@ namespace ndbl
         const char*    ui_startup_window_label;
         const char*    ui_toolbar_window_label ;
         const char*    ui_interpreter_window_label;
+        tools::Rect    ui_scope_content_rect_margin;
+        float          ui_scope_child_margin;
+        Vec4           ui_scope_fill_col_light;
+        Vec4           ui_scope_fill_col_dark;
+        Vec4           ui_scope_border_col;
+        float          ui_scope_border_radius;
+        float          ui_scope_border_thickness;
+        float          ui_scope_gap_base;
+        float          ui_scope_gap(tools::Size size = tools::Size_DEFAULT) const;
         Isolation      isolation;
         float          graph_view_unfold_duration; // The virtual duration used to simulate a graph view unfolding, like accelerating time.
         ConfigFlags    flags;
@@ -106,6 +115,7 @@ namespace ndbl
         bool has_flags(ConfigFlags _flags)const { return (flags & _flags) == _flags; };
         void set_flags(ConfigFlags _flags) { flags |= _flags; }
         void clear_flags(ConfigFlags _flags) { flags &= ~_flags; }
+
     };
 
     [[nodiscard]]

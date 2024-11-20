@@ -16,23 +16,26 @@ TEST_F(Language_basics, can_get_add_operator_with_short_identifier )
 
 TEST_F(Language_basics, can_get_add_operator_with_signature )
 {
-    const FunctionDescriptor descriptor = FunctionDescriptor::construct<double(double, double)>("+");
-    EXPECT_TRUE(get_language()->find_operator_fct(&descriptor));
+    FunctionDescriptor f;
+    f.init<double(double, double)>("+");
+    EXPECT_TRUE(get_language()->find_operator_fct(&f));
 }
 
 TEST_F(Language_basics, can_get_invert_operator_with_signature )
 {
-    const FunctionDescriptor descriptor = FunctionDescriptor::construct<double(double)>("-");
-    EXPECT_TRUE(get_language()->find_operator_fct(&descriptor));
+    FunctionDescriptor f;
+    f.init<double(double)>("-");
+    EXPECT_TRUE(get_language()->find_operator_fct(&f));
 }
 
 TEST_F(Language_basics, by_ref_assign )
 {
-    const FunctionDescriptor descriptor = FunctionDescriptor::construct<double(double &, double)>("=");
-    const IInvokable* invokable  = get_language()->find_operator_fct(&descriptor);
+    FunctionDescriptor f;
+    f.init<double(double &, double)>("=");
+    const IInvokable* invokable  = get_language()->find_operator_fct(&f);
 
     EXPECT_TRUE(invokable != nullptr);
-    EXPECT_TRUE(invokable->get_sig()->get_arg(0).pass_by_ref);
+    EXPECT_TRUE(invokable->get_sig()->arg_at(0).pass_by_ref);
 }
 
 TEST_F(Language_basics, token_t_to_type)

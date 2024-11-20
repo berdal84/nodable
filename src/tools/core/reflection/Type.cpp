@@ -8,22 +8,22 @@
 
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    // declare some types manually to get friendly names
+// declare some types manually to get friendly names
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(double);
+    DEFINE_REFLECT(bool);
+    DEFINE_REFLECT(void);
+    DEFINE_REFLECT(void*);
+    DEFINE_REFLECT(any);
+    DEFINE_REFLECT(null);
 
-    type::Initializer<double>("double");
-    type::Initializer<std::string>("string");
-    type::Initializer<bool>("bool");
-    type::Initializer<void>("void");
-    type::Initializer<void*>("void*");
-    type::Initializer< i8_t>("i8");
-    type::Initializer<i16_t>("int");
-    type::Initializer<i32_t>("i32");
-    type::Initializer<i64_t>("i64");
-    type::Initializer<any>("any");
-    type::Initializer<null>("null");
-}
+    DEFINE_REFLECT_WITH_ALIAS(std::string, "string");
+    DEFINE_REFLECT_WITH_ALIAS(i8_t       , "i8");
+    DEFINE_REFLECT_WITH_ALIAS(i16_t      , "i16");
+    DEFINE_REFLECT_WITH_ALIAS(i32_t      , "i32");
+    DEFINE_REFLECT_WITH_ALIAS(i64_t      , "i64");
+)
 
 bool type::equals(const TypeDescriptor* left, const TypeDescriptor* right)
 {
@@ -167,8 +167,8 @@ const IInvokable* ClassDescriptor::get_static(const char*  _name)const
 
 void FunctionDescriptor::push_arg( const TypeDescriptor* _type, bool _pass_by_ref )
 {
-    size_t index     = m_args.size();
-    FuncArg& arg     = m_args.emplace_back();
+    size_t index     = m_argument.size();
+    FuncArg& arg     = m_argument.emplace_back();
     arg.type         = _type;
     arg.name         = "arg_" + std::to_string( index );
     arg.pass_by_ref  = _pass_by_ref;
@@ -178,18 +178,18 @@ bool FunctionDescriptor::is_exactly(const FunctionDescriptor* _other)const
 {
     if ( this == _other )
         return true;
-    if ( m_args.size() != _other->m_args.size())
+    if (m_argument.size() != _other->m_argument.size())
         return false;
     if ( m_name != _other->m_name )
         return false;
-    if ( m_args.empty() )
+    if ( m_argument.empty() )
         return true;
 
     size_t i = 0;
-    while( i < m_args.size() )
+    while(i < m_argument.size() )
     {
-        const TypeDescriptor* arg_t       = m_args[i].type;
-        const TypeDescriptor* other_arg_t = _other->m_args[i].type;
+        const TypeDescriptor* arg_t       = m_argument[i].type;
+        const TypeDescriptor* other_arg_t = _other->m_argument[i].type;
 
         if ( !arg_t->equals(other_arg_t) )
         {
@@ -204,18 +204,18 @@ bool FunctionDescriptor::is_compatible(const FunctionDescriptor* _other)const
 {
     if ( this == _other )
         return true;
-    if ( m_args.size() != _other->m_args.size())
+    if (m_argument.size() != _other->m_argument.size())
         return false;
     if ( m_name != _other->m_name )
         return false;
-    if ( m_args.empty() )
+    if ( m_argument.empty() )
         return true;
 
     size_t i = 0;
-    while( i < m_args.size() )
+    while(i < m_argument.size() )
     {
-        const TypeDescriptor* arg_t       = m_args[i].type;
-        const TypeDescriptor* other_arg_t = _other->m_args[i].type;
+        const TypeDescriptor* arg_t       = m_argument[i].type;
+        const TypeDescriptor* other_arg_t = _other->m_argument[i].type;
 
         if ( !arg_t->equals(other_arg_t) &&
              !other_arg_t->is_implicitly_convertible(arg_t) )
@@ -228,8 +228,8 @@ bool FunctionDescriptor::is_compatible(const FunctionDescriptor* _other)const
 
 }
 
-bool FunctionDescriptor::has_an_arg_of_type(const TypeDescriptor* _type) const
+bool FunctionDescriptor::has_arg_with_type(const TypeDescriptor* _type) const
 {
-    auto found = std::find_if( m_args.begin(), m_args.end(), [&_type](const FuncArg& each) { return each.type->equals(_type); } );
-    return found != m_args.end();
+    auto found = std::find_if(m_argument.begin(), m_argument.end(), [&_type](const FuncArg& each) { return each.type->equals(_type); } );
+    return found != m_argument.end();
 }

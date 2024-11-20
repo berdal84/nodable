@@ -36,8 +36,8 @@ namespace ndbl
         //void             set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
         PropertyFlags      flags()const { return m_flags; }
         const std::string& name()const { return m_name; }
-        Node*              owner()const { return m_owner; }
-        const tools::TypeDescriptor* get_type()const { return m_type; }
+        Node*              node()const { return m_owner; }
+        const tools::TypeDescriptor* get_type() const { return m_type; }
         bool               is_type(const tools::TypeDescriptor* other) const;
         void               set_type(const tools::TypeDescriptor *pDescriptor);
         void               set_token(const Token& _token) { m_token = _token; }
@@ -47,7 +47,7 @@ namespace ndbl
     private:
         Node*              m_owner = nullptr;
         PropertyFlags      m_flags = PropertyFlag_NONE;
-        const tools::TypeDescriptor* m_type  = nullptr;
+        const tools::TypeDescriptor* m_type = nullptr;
         std::string        m_name;
         Token              m_token;
     };

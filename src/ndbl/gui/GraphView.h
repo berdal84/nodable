@@ -8,7 +8,6 @@
 #include "tools/core/reflection/reflection"
 
 #include "ndbl/core/NodeComponent.h"  // base class
-#include "ndbl/core/IScope.h"
 #include "ndbl/core/Scope.h"
 
 #include "Action.h"
@@ -19,6 +18,8 @@
 #include "ViewItem.h"
 #include "tools/core/StateMachine.h"
 #include "CreateNodeCtxMenu.h"
+#include "ScopeView.h"
+#include "tools/gui/geometry/Pivots.h"
 
 namespace ndbl
 {
@@ -35,9 +36,10 @@ namespace ndbl
 
     class GraphView
     {
-        REFLECT_BASE_CLASS()
     public:
-        typedef std::vector<NodeView*> NodeViewVec;
+        DECLARE_REFLECT
+
+        typedef std::vector<NodeView*> Selection;
         typedef tools::StateMachine    StateMachine;
 
 	    explicit GraphView(Graph* graph);
@@ -46,36 +48,40 @@ namespace ndbl
         SIGNAL(on_change);
 
         void        update(float dt);
-        bool        draw();
+        bool        draw(float dt);
         void        add_action_to_node_menu(Action_CreateNode* _action);
         void        frame_nodes(FrameMode mode );
         bool        selection_empty() const;
-        void        reset_physics();
         void        reset(); // unfold and frame the whole graph
         bool        has_an_active_tool() const;
-        void        set_selected(const NodeViewVec&, SelectionMode = SelectionMode_REPLACE);
-        const NodeViewVec& get_selected() const;
+        void        set_selected(const Selection&, SelectionMode = SelectionMode_REPLACE);
+        const Selection& get_selected() const;
         void        reset_all_properties();
-        std::vector<NodeView*> get_all_nodeviews() const;
-        static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
         Graph*            graph() const;
         void              add_child(NodeView*);
-        tools::ViewState* view_state() { return &m_view_state; };
-        void              decorate(Node* node);
+        void              decorate_node(Node* node);
+
+        static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
     private:
-        CreateNodeCtxMenu      m_create_node_menu = {};
-        ViewItem               m_hovered{};
-        ViewItem               m_focused{};
+        CreateNodeCtxMenu      m_create_node_menu;
+        ViewItem               m_hovered;
+        ViewItem               m_focused;
         std::vector<NodeView*> m_selected_nodeview;
         tools::ViewState       m_view_state;
         Graph*                 m_graph;
+        bool                   m_physics_dirty = false;
 
+        void        _set_hovered(ScopeView*);
         void        unfold(); // unfold the graph until it is stabilized
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
+        void        _on_graph_change();
         bool        is_selected(NodeView*) const;
-        void        frame_views(const std::vector<NodeView*>&, bool _align_top_left_corner);
+        void        frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
+        void        create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node *leader);
+        void        create_constraints__align_down(Node* follower, const std::vector<Node*>& leader);
+        void        create_constraints(Scope *scope);
 
         // Tools State Machine
         //--------------------

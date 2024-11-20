@@ -3,9 +3,12 @@
 #include "ndbl/core/NodableHeadless.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
+#include "tools/core/FileSystem.h"
 #include <exception>
 #include <gtest/gtest.h>
 #include <string>
+#include <fstream>
+#include <filesystem>
 
 using namespace ndbl;
 
@@ -18,14 +21,16 @@ public:
 
     Core()
     {
-        //tools::log::set_verbosity( tools::log::Verbosity_Verbose );
     }
 
     void SetUp()
     {
         app.init();
         // in some tests, we call directly some method on the language that requires we pass a Graph* ahead of time
-        app.get_language()->parser_state.reset_graph( app.get_graph() );
+        app.get_language()->_state.reset_graph(app.get_graph() );
+
+        tools::log::set_verbosity( tools::log::Verbosity_Message );
+        tools::log::set_verbosity( "Parser", tools::log::Verbosity_Verbose );
     }
 
     void TearDown()
@@ -45,7 +50,7 @@ public:
     template<typename return_t>
     return_t eval(const std::string &_source_code)
     {
-        static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving this scope)");
+        static_assert(!std::is_pointer<return_t>::value, "returning a pointer from VM would fail (destroyed leaving scope)");
 
         // parse
         Graph* graph = app.parse(_source_code);
@@ -135,9 +140,18 @@ public:
         return result;
     }
 
+    std::string load_example(const char* filename)
+    {
+        tools::Path path = tools::Path::get_executable_path().parent_path() / "assets" / "examples" / filename;
+        std::ifstream file_stream( path.c_str() );
+        VERIFY(file_stream.is_open(), "Unable to open file!" );
+        std::string program((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
+        return program;
+    }
+
     void log_ribbon() const
     {
-        LOG_MESSAGE("fixture::core", "%s\n\n", get_language()->parser_state.string().c_str());
+        LOG_MESSAGE("fixture::core", "%s\n\n", get_language()->_state.string().c_str());
     }
 };
 }

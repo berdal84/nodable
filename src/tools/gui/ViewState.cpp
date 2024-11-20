@@ -16,7 +16,7 @@ ViewState::ViewState(float width, float height)
 : hovered(false)
 , visible(true)
 , selected(false)
-, box()
+, _shape()
 {
-    box.set_size({width, height});
+    _shape.set_size({width, height});
 }

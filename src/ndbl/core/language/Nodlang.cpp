@@ -10,8 +10,6 @@
 
 #include <algorithm>
 #include <cstddef>
-#include <memory>
-#include <sstream>
 #include <string>
 #include <chrono>
 #include <cctype> // isdigit, isalpha, and isalnum.
@@ -20,7 +18,6 @@
 #include "tools/core/format.h"
 #include "tools/core/log.h"
 #include "tools/core/hash.h"
-#include "tools/core/memory/memory.h"
 
 #include "ndbl/core/Utils.h"
 #include "ndbl/core/DirectedEdge.h"
@@ -48,7 +45,7 @@ static Nodlang* g_language{ nullptr };
 
 Nodlang::Nodlang(bool _strict)
     : m_strict_mode(_strict)
-    , parser_state()
+    , _state()
 {
     // A.1. Define the language
     //-------------------------
@@ -164,14 +161,12 @@ Nodlang::~Nodlang()
 
 bool Nodlang::parse(Graph* graph_out, const std::string& code)
 {
-    parser_state.reset_scope_stack();
-    parser_state.reset_graph( graph_out );
-    parser_state.reset_ribbon(code.c_str(), code.size());
+    _state.reset_scope_stack();
+    _state.reset_graph(graph_out );
 
-    LOG_VERBOSE("Parser", "Trying to evaluate evaluated: <expr>%s</expr>\"\n", code.c_str());
-    LOG_MESSAGE("Parser", "Tokenization ...\n");
+    LOG_VERBOSE("Parser", "Parsing ...\n%s\n", code.c_str());
 
-    if ( !tokenize() )
+    if ( !tokenize(code) )
     {
         return false;
     }
@@ -181,26 +176,24 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
         return false;
     }
 
-    Optional<Node*> program = parse_program();
+    Nodlang::FlowPath path = parse_program();
 
-    if ( !program )
-    {
-        LOG_WARNING("Parser", "Unable to generate program tree.\n");
+    if ( path.out.empty() )
         return false;
-    }
 
-    if (parser_state.tokens().can_eat() )
+    if (_state.tokens().can_eat() )
     {
-        parser_state.graph()->clear();
-        LOG_WARNING("Parser", "Unable to generate a full program tree.\n");
-        LOG_MESSAGE("Parser", "%s", format::title("TokenRibbon").c_str());
-        for (const Token& each_token : parser_state.tokens() )
+        _state.graph()->clear();
+        LOG_VERBOSE("Parser", KO "End of token ribbon expected\n");
+        LOG_VERBOSE("Parser", "%s", format::title("TokenRibbon").c_str());
+        for (const Token& each_token : _state.tokens() )
         {
-            LOG_MESSAGE("Parser", "token idx %i: %s\n", each_token.m_index, each_token.json().c_str());
+            LOG_VERBOSE("Parser", "token idx %i: %s\n", each_token.m_index, each_token.json().c_str());
         }
-        LOG_MESSAGE("Parser", "%s", format::title("TokenRibbon end").c_str());
-        auto curr_token = parser_state.tokens().peek();
-        LOG_ERROR("Parser", "Couldn't parse token %llu and above: %s\n", curr_token.m_index, curr_token.json().c_str());
+        LOG_VERBOSE("Parser", "%s", format::title("TokenRibbon end").c_str());
+        auto curr_token = _state.tokens().peek();
+        LOG_VERBOSE("Parser", KO "Failed to parse from token %llu/%llu and above.\n", curr_token.m_index, _state.tokens().size());
+        LOG_ERROR("Parser", "Unable to parse all the tokens\n");
         return false;
     }
     return true;
@@ -242,13 +235,13 @@ int Nodlang::parse_int_or(const std::string &_str, int default_value) const
     return default_value;
 }
 
-Optional<Slot*> Nodlang::token_to_slot(Token _token)
+Optional<Slot*> Nodlang::token_to_slot(const Token& _token)
 {
     if (_token.m_type == Token_t::identifier)
     {
         std::string identifier = _token.word_to_string();
-
-        if( VariableNode* existing_variable = parser_state.current_scope()->find_variable(identifier ) )
+        ASSERT(_state.current_scope());
+        if( VariableNode* existing_variable = _state.current_scope()->find_variable_recursively(identifier) )
         {
             return existing_variable->ref_out();
         }
@@ -258,7 +251,7 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
             // Insert a VariableNodeRef with "any" type
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() );
-            VariableRefNode* ref = parser_state.graph()->create_variable_ref();
+            VariableRefNode* ref = _state.graph()->create_variable_ref();
             ref->value()->set_token(_token );
             return ref->value_out();
         }
@@ -271,39 +264,41 @@ Optional<Slot*> Nodlang::token_to_slot(Token _token)
 
     switch (_token.m_type)
     {
-        case Token_t::literal_bool:   literal = parser_state.graph()->create_literal<bool>();        break;
-        case Token_t::literal_int:    literal = parser_state.graph()->create_literal<i32_t>();       break;
-        case Token_t::literal_double: literal = parser_state.graph()->create_literal<double>();      break;
-        case Token_t::literal_string: literal = parser_state.graph()->create_literal<std::string>(); break;
+        case Token_t::literal_bool:   literal = _state.graph()->create_literal<bool>();        break;
+        case Token_t::literal_int:    literal = _state.graph()->create_literal<i32_t>();       break;
+        case Token_t::literal_double: literal = _state.graph()->create_literal<double>();      break;
+        case Token_t::literal_string: literal = _state.graph()->create_literal<std::string>(); break;
         default:
             break; // we don't want to throw
     }
 
-    if ( literal == nullptr)
+    if ( literal )
     {
-        LOG_VERBOSE("Parser", "Unable to perform token_to_property for token %s!\n", _token.word_to_string().c_str());
-        return nullptr;
+        LOG_VERBOSE("Parser", OK "Token %s converted to a Literal %s\n",
+                    _token.word_to_string().c_str(),
+                    literal->value()->get_type()->name());
+        literal->value()->set_token( _token );
+        return literal->value_out();
     }
 
-    literal->value()->set_token( _token );
-    return literal->value_out();
+    LOG_VERBOSE("Parser", KO "Unable to run token_to_slot with token %s!\n", _token.word_to_string().c_str());
+    return nullptr;
 }
 
 Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot* _left)
 {
-    LOG_VERBOSE("Parser", "parse binary operation expr...\n");
-    LOG_VERBOSE("Parser", "%s \n", parser_state.tokens().to_string().c_str());
+    LOG_VERBOSE("Parser", "Parsing binary expression ...\n");
     ASSERT(_left != nullptr);
 
-    if (!parser_state.tokens().can_eat(2))
+    if (!_state.tokens().can_eat(2))
     {
-        LOG_VERBOSE("Parser", "parse binary operation expr...... " KO " (not enought tokens)\n");
+        LOG_VERBOSE("Parser", KO "Not enough tokens\n");
         return nullptr;
     }
 
-    parser_state.start_transaction();
-    const Token operator_token = parser_state.tokens().eat();
-    const Token operand_token  = parser_state.tokens().peek();
+    _state.start_transaction();
+    const Token operator_token = _state.tokens().eat();
+    const Token operand_token  = _state.tokens().peek();
 
     // Structure check
     const bool isValid = operator_token.m_type == Token_t::operator_ &&
@@ -311,8 +306,8 @@ Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot
 
     if (!isValid)
     {
-        parser_state.rollback();
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Structure)\n");
+        _state.rollback();
+        LOG_VERBOSE("Parser", KO "Unexpected tokens\n");
         return nullptr;
     }
 
@@ -320,16 +315,16 @@ Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot
     const Operator *ope = find_operator(word, Operator_t::Binary);
     if (ope == nullptr)
     {
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (unable to find operator %s)\n", word.c_str());
-        parser_state.rollback();
+        LOG_VERBOSE("Parser", KO "Operator %s not found\n", word.c_str());
+        _state.rollback();
         return nullptr;
     }
 
     // Precedence check
     if (ope->precedence <= _precedence && _precedence > 0)
     {// always update the first operation if they have the same precedence or less.
-        LOG_VERBOSE("Parser", "parse binary operation expr... " KO " (Precedence)\n");
-        parser_state.rollback();
+        LOG_VERBOSE("Parser", KO "Has lower precedence\n");
+        _state.rollback();
         return nullptr;
     }
 
@@ -337,48 +332,47 @@ Optional<Slot*> Nodlang::parse_binary_operator_expression(u8_t _precedence, Slot
     if ( Optional<Slot*> right = parse_expression(ope->precedence) )
     {
         // Create a function signature according to ltype, rtype and operator word
-        FunctionDescriptor* type = FunctionDescriptor::create<any()>(ope->identifier.c_str());
-        type->push_arg( _left->property->get_type());
-        type->push_arg(right->property->get_type());
+        FunctionDescriptor type;
+        type.init<any(any, any)>(ope->identifier.c_str());
+        type.arg_at(0).type = _left->property->get_type();
+        type.arg_at(1).type = right->property->get_type();
 
-        FunctionNode* binary_op = parser_state.graph()->create_operator(type);
+        FunctionNode* binary_op = _state.graph()->create_operator( type );
         binary_op->set_identifier_token( operator_token );
         binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
         binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
 
-        parser_state.graph()->connect_or_merge( _left         , binary_op->lvalue_in());
-        parser_state.graph()->connect_or_merge( right.get() , binary_op->rvalue_in() );
+        _state.graph()->connect_or_merge(_left         , binary_op->lvalue_in());
+        _state.graph()->connect_or_merge(right.get() , binary_op->rvalue_in() );
 
-        parser_state.commit();
-        LOG_VERBOSE("Parser", "parse binary operation expr... " OK "\n");
+        _state.commit();
+        LOG_VERBOSE("Parser", OK "Binary expression parsed:\n%s\n", _state.tokens().to_string().c_str());
         return binary_op->value_out();
-
     }
 
-    LOG_VERBOSE("Parser", "parseBinaryOperationExpression... " KO " (right expression is nullptr)\n");
-    parser_state.rollback();
+    LOG_VERBOSE("Parser", KO "Right expression is null\n");
+    _state.rollback();
     return nullptr;
 }
 
 Optional<Slot*> Nodlang::parse_unary_operator_expression(u8_t _precedence)
 {
     LOG_VERBOSE("Parser", "parseUnaryOperationExpression...\n");
-    LOG_VERBOSE("Parser", "%s \n", parser_state.tokens().to_string().c_str());
 
-    if (!parser_state.tokens().can_eat(2))
+    if (!_state.tokens().can_eat(2))
     {
-        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (not enough tokens)\n");
+        LOG_VERBOSE("Parser", KO "Not enough tokens\n");
         return nullptr;
     }
 
-    parser_state.start_transaction();
-    Token operator_token = parser_state.tokens().eat();
+    _state.start_transaction();
+    Token operator_token = _state.tokens().eat();
 
     // Check if we get an operator first
     if (operator_token.m_type != Token_t::operator_)
     {
-        parser_state.rollback();
-        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (operator not found)\n");
+        _state.rollback();
+        LOG_VERBOSE("Parser", KO "Expecting an operator token first\n");
         return nullptr;
     }
 
@@ -392,56 +386,57 @@ Optional<Slot*> Nodlang::parse_unary_operator_expression(u8_t _precedence)
 
     if ( !out_atomic )
     {
-        LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " KO " (right expression is nullptr)\n");
-        parser_state.rollback();
+        LOG_VERBOSE("Parser", KO "Right expression is null\n");
+        _state.rollback();
         return nullptr;
     }
 
     // Create a function signature
-    FunctionDescriptor* type = FunctionDescriptor::create<any()>(operator_token.word_to_string().c_str());
-    type->push_arg( out_atomic->property->get_type());
+    FunctionDescriptor type;
+    type.init<any(any)>(operator_token.word_to_string().c_str());
+    type.arg_at(0).type = out_atomic->property->get_type();
 
-    FunctionNode* node = parser_state.graph()->create_operator(type);
+    FunctionNode* node = _state.graph()->create_operator(type);
     node->set_identifier_token( operator_token );
     node->lvalue_in()->property->token().m_type = out_atomic->property->token().m_type;
 
-    parser_state.graph()->connect_or_merge( out_atomic.get(), node->lvalue_in() );
+    _state.graph()->connect_or_merge(out_atomic.get(), node->lvalue_in() );
 
-    LOG_VERBOSE("Parser", "parseUnaryOperationExpression... " OK "\n");
-    parser_state.commit();
+    LOG_VERBOSE("Parser", OK "Unary expression parsed:\n%s\n", _state.tokens().to_string().c_str());
+    _state.commit();
 
     return node->value_out();
 }
 
 Optional<Slot*> Nodlang::parse_atomic_expression()
 {
-    LOG_VERBOSE("Parser", "parse atomic expr... \n");
+    LOG_VERBOSE("Parser", "Parsing atomic expression ... \n");
 
-    if (!parser_state.tokens().can_eat())
+    if (!_state.tokens().can_eat())
     {
-        LOG_VERBOSE("Parser", "parse atomic expr... " KO "(not enough tokens)\n");
+        LOG_VERBOSE("Parser", KO "Not enough tokens\n");
         return nullptr;
     }
 
-    parser_state.start_transaction();
-    Token token = parser_state.tokens().eat();
+    _state.start_transaction();
+    Token token = _state.tokens().eat();
 
     if (token.m_type == Token_t::operator_)
     {
-        LOG_VERBOSE("Parser", "parse atomic expr... " KO "(token is an operator)\n");
-        parser_state.rollback();
+        LOG_VERBOSE("Parser", KO "Cannot start with an operator token\n");
+        _state.rollback();
         return nullptr;
     }
 
     if ( Optional<Slot*> result = token_to_slot(token) )
     {
-        parser_state.commit();
-        LOG_VERBOSE("Parser", "parse atomic expr... " OK "\n");
+        _state.commit();
+        LOG_VERBOSE("Parser", OK "Atomic expression parsed:\n%s\n", _state.tokens().to_string().c_str());
         return result;
     }
 
-    parser_state.rollback();
-    LOG_VERBOSE("Parser", "parse atomic expr... " KO " (result is nullptr)\n");
+    _state.rollback();
+    LOG_VERBOSE( "Parser", KO "Unable to parse token (%llu)\n", token.m_index );
 
     return nullptr;
 }
@@ -449,266 +444,322 @@ Optional<Slot*> Nodlang::parse_atomic_expression()
 Optional<Slot*> Nodlang::parse_parenthesis_expression()
 {
     LOG_VERBOSE("Parser", "parse parenthesis expr...\n");
-    LOG_VERBOSE("Parser", "%s \n", parser_state.tokens().to_string().c_str());
 
-    if (!parser_state.tokens().can_eat())
+    if (!_state.tokens().can_eat())
     {
-        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " no enough tokens.\n");
+        LOG_VERBOSE("Parser", KO "No enough tokens.\n");
         return nullptr;
     }
 
-    parser_state.start_transaction();
-    Token currentToken = parser_state.tokens().eat();
+    _state.start_transaction();
+    Token currentToken = _state.tokens().eat();
     if (currentToken.m_type != Token_t::parenthesis_open)
     {
-        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " open bracket not found.\n");
-        parser_state.rollback();
+        LOG_VERBOSE("Parser", KO "Open bracket not found.\n");
+        _state.rollback();
         return nullptr;
     }
 
     Optional<Slot*> result = parse_expression();
     if ( result )
     {
-        Token token = parser_state.tokens().eat();
+        Token token = _state.tokens().eat();
         if (token.m_type != Token_t::parenthesis_close)
         {
-            LOG_VERBOSE("Parser", "%s \n", parser_state.tokens().to_string().c_str());
-            LOG_VERBOSE("Parser", "parse parenthesis expr..." KO " ( \")\" expected instead of %s )\n",
+            LOG_VERBOSE("Parser", "%s \n", _state.tokens().to_string().c_str());
+            LOG_VERBOSE("Parser", KO "Parenthesis close expected\n",
                         token.word_to_string().c_str());
-            parser_state.rollback();
+            _state.rollback();
         }
         else
         {
-            LOG_VERBOSE("Parser", "parse parenthesis expr..." OK "\n");
-            parser_state.commit();
+            LOG_VERBOSE("Parser", OK "Parenthesis expression parsed:\n%s\n", _state.tokens().to_string().c_str());
+            _state.commit();
         }
     }
     else
     {
-        LOG_VERBOSE("Parser", "parse parenthesis expr..." KO ", expression in parenthesis is nullptr.\n");
-        parser_state.rollback();
+        LOG_VERBOSE("Parser", KO "No expression after open parenthesis.\n");
+        _state.rollback();
     }
     return result;
 }
 
-Optional<Node*> Nodlang::parse_instr()
+Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, Slot* value_in )
 {
-    parser_state.start_transaction();
+    _state.start_transaction();
 
-    Optional<Slot*> expression_out = parse_expression();
+    // Parse an expression
+    Optional<Slot*> value_out = parse_expression();
 
-    if ( !expression_out )
+    // When expression value_out is a variable that is already part of the code flow,
+    // we must create a variable reference
+    if ( value_out && value_out->node->type() == NodeType_VARIABLE )
     {
-        if ( Token tok = parser_state.tokens().eat_if(Token_t::end_of_instruction) )
-        {
-            Node* empty_instr = parser_state.graph()->create_empty_instruction();
-            empty_instr->value()->token() = tok; // override with parsed token
-            parser_state.commit();
-            return empty_instr;
-        }
-        if (parser_state.tokens().peek(Token_t::parenthesis_close ) )
-        {
-            Node* empty_instr = parser_state.graph()->create_empty_instruction();
-            empty_instr->value()->token() = Token_t::ignore; // override with nothing
-            parser_state.commit();
-            return empty_instr;
-        }
-        LOG_VERBOSE("Parser", "parse instruction " KO " (parsed is nullptr)\n");
-        parser_state.rollback();
-        return nullptr;
-    }
-
-    Node* expression = expression_out->node;
-
-    // Special case
-    if (expression->type() == NodeType_VARIABLE )
-    {
-        auto variable = static_cast<VariableNode*>( expression );
+        auto variable = static_cast<VariableNode*>( value_out->node );
         if ( Utils::is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
         {
-            VariableRefNode* ref = parser_state.graph()->create_variable_ref();
+            // create a new variable reference
+            VariableRefNode* ref = _state.graph()->create_variable_ref();
             ref->set_variable( variable );
-            expression = ref;
+            // substitute value_out by variable reference's value_out
+            value_out = ref->value_out();
         }
     }
 
-    // Handle suffix
-    if (parser_state.tokens().can_eat())
+    if ( !_state.tokens().can_eat() )
     {
-        if ( Token expected_end_of_instr_token = parser_state.tokens().eat_if(Token_t::end_of_instruction) )
+        // we're passing here if there is no more token, which means we reached the end of file.
+        // we allow an expression to end like that.
+    }
+    else
+    {
+        // However, in case there are still unparsed tokens, we expect certain type of token, otherwise we reset the result
+        switch( _state.tokens().peek().m_type )
         {
-            expression->set_suffix(expected_end_of_instr_token);
-        }
-        else if (parser_state.tokens().peek().m_type != Token_t::parenthesis_close)
-        {
-            LOG_VERBOSE("Parser", "parse instruction " KO " (end of instruction not found)\n");
-            parser_state.rollback();
-            return {};
+            case Token_t::end_of_instruction:
+            case Token_t::parenthesis_close:
+                LOG_VERBOSE("Parser", "End of instruction or parenthesis close: found in next token\n");
+                break;
+            default:
+                LOG_VERBOSE("Parser", KO "End of instruction or parenthesis close expected.\n");
+                value_out.reset();
         }
     }
 
-    LOG_VERBOSE("Parser", "parse instruction " OK "\n");
-    parser_state.commit();
+    // When expression value_out is null, but an input was provided,
+    // we must create an empty instruction if an end_of_instruction token is found
+    if (!value_out && value_in )
+    {
+        if (_state.tokens().peek(Token_t::end_of_instruction))
+        {
+            LOG_VERBOSE("Parser", "Empty expression found\n");
 
-    return expression;
+            Node* empty_instr = _state.graph()->create_empty_instruction();
+            value_out = empty_instr->value_out();
+        }
+    }
+
+    // Ensure value_out is defined or rollback transaction
+    if ( !value_out )
+    {
+        _state.rollback();
+        LOG_VERBOSE("Parser", KO "parse instruction\n");
+        return {};
+    }
+
+    // Connects value_out to the provided input
+    if ( value_in )
+    {
+        _state.graph()->connect( value_out.data(), value_in, ConnectFlag_ALLOW_SIDE_EFFECTS);
+    }
+
+    // Add an end_of_instruction token as suffix when needed
+    if (Token tok = _state.tokens().eat_if(Token_t::end_of_instruction))
+    {
+        value_out->node->set_suffix( tok );
+    }
+
+    // Connects expression flow_in with the provided flow_out
+    if ( !flow_out.empty() )
+    {
+        _state.graph()->connect( flow_out, value_out->node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+    }
+
+    // Validate transaction
+    _state.commit();
+    LOG_VERBOSE("Parser", OK "parse instruction:\n%s\n", _state.tokens().to_string().c_str());
+
+    return FlowPath{ value_out->node };
 }
 
-Optional<Node*> Nodlang::parse_program()
+Nodlang::FlowPath Nodlang::parse_program()
 {
-    VERIFY( parser_state.graph() != nullptr, "A Graph is expected");
+    VERIFY(_state.graph() != nullptr, "A Graph is expected");
 
-    parser_state.start_transaction();
+    _state.start_transaction();
 
-    Node*  root       = parser_state.graph()->create_root();
-    Scope* main_scope = root->get_component<Scope>();
-    parser_state.push_scope(main_scope);
+    // Create an entry point and push its scope
+    Node* entry_point = _state.graph()->create_entry_point();
 
-    parse_code_block();// we do not check if we parsed something empty or not, a program can be empty.
+    // Parse main code block
+    _state.push_scope(entry_point->internal_scope() );
+    FlowPath path{ entry_point };
+    FlowPath block_path = parse_code_block( path.out );
+    path.out = block_path.out;
+    _state.pop_scope();
 
-    ASSERT(main_scope->token_begin.empty());
-    ASSERT(main_scope->token_end.empty());
 
     // To preserve any ignored characters stored in the global token
     // we put the prefix and suffix in resp. token_begin and end.
-    Token& tok = parser_state.tokens().global_token();
+    Token& tok = _state.tokens().global_token();
     std::string prefix = tok.prefix_to_string();
     std::string suffix = tok.suffix_to_string();
-    // type needs to be changed from Token_t::begin/end_scope to ignore, because we don't want a default serialization ("{" or "}")
-    main_scope->token_begin = { Token_t::ignore, prefix };
-    main_scope->token_end   = { Token_t::ignore, suffix };
+    entry_point->internal_scope()->token_begin.prefix_push_front(prefix.c_str() );
+    entry_point->internal_scope()->token_end.suffix_push_back(suffix.c_str() );
 
-    parser_state.pop_scope();
-    parser_state.commit();
-    parser_state.graph()->on_reset.emit();
+    if ( _state.tokens().can_eat( ) )
+    {
+        _state.rollback();
+        _state.graph()->clear();
+        _state.graph()->on_reset.emit();
+        LOG_WARNING("Parser", "Some token remains after getting an empty code block\n");
+        LOG_MESSAGE("Parser", KO "Parse program.\n");
+        return {};
+    }
+    else if (!block_path)
+    {
+        LOG_WARNING("Parser", "Program main block is empty\n");
+    }
 
-    return root;
+    _state.commit();
+    _state.graph()->on_reset.emit();
+
+    LOG_MESSAGE("Parser", OK "Parse program.\n");
+
+    return path;
 }
 
-Optional<Node*> Nodlang::parse_scope(Slot* _parent_scope_slot )
+Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
 {
-    auto scope_begin_token = parser_state.tokens().eat_if(Token_t::scope_begin);
+    LOG_VERBOSE("Parser", "Parsing scoped block ...\n");
+
+    Scope* scope = _state.current_scope();
+    ASSERT(scope);
+    auto scope_begin_token = _state.tokens().eat_if(Token_t::scope_begin);
     if ( !scope_begin_token )
     {
+        LOG_VERBOSE("Parser", KO "Expecting main_scope begin token\n");
         return {};
     }
 
-    VERIFY(_parent_scope_slot != nullptr, "Required!");
-
-    parser_state.start_transaction();
-
-    Optional<Node*>  new_scope_node    = parser_state.graph()->create_scope();
-    Optional<Scope*> new_scope         = new_scope_node->get_component<Scope>();
+    _state.start_transaction();
 
     // Handle nested scopes
-    parser_state.graph()->connect( _parent_scope_slot, new_scope_node->find_slot( SlotFlag_PARENT ), ConnectFlag_ALLOW_SIDE_EFFECTS );
+    FlowPath path = parse_code_block( flow_out ); // no return check, allows empty scope
 
-    parser_state.push_scope( new_scope.get() );
-    parse_code_block();
-    parser_state.pop_scope();
-
-    auto scope_end_token = parser_state.tokens().eat_if(Token_t::scope_end);
-    if ( !scope_end_token )
+    if ( Token scope_end_token = _state.tokens().eat_if(Token_t::scope_end) )
     {
-        parser_state.graph()->destroy( new_scope_node.get() );
-        parser_state.rollback();
-        return {};
+        // Update scope's begin/end tokens
+        scope->token_begin = scope_begin_token;
+        scope->token_end   = scope_end_token;
+
+        if ( !path )
+        {
+            Node* empty_instr = _state.graph()->create_empty_instruction();
+            scope->push_back(empty_instr);
+            path = empty_instr;
+        }
+
+        _state.commit();
+        LOG_VERBOSE("Parser", OK "Scoped block parsed:\n%s\n", _state.tokens().to_string().c_str());
+        return path;
+    }
+    else
+    {
+        LOG_VERBOSE("Parser", KO "Expecting close main_scope token\n");
     }
 
-    new_scope->token_begin = scope_begin_token;
-    new_scope->token_end   = scope_end_token;
-    parser_state.commit();
-
-    return new_scope_node;
+    scope->clear();
+    _state.rollback();
+    LOG_VERBOSE("Parser", KO "Scoped block parsed\n");
+    return {};
 }
 
-void Nodlang::parse_code_block()
+Nodlang::FlowPath Nodlang::parse_code_block(const FlowPathOut& flow_out)
 {
-    parser_state.start_transaction();
+    LOG_VERBOSE("Parser", "Parsing code block...\n" );
 
-    bool block_end_reached = false;
-    while (parser_state.tokens().can_eat() && !block_end_reached )
+    //
+    // Parse n atomic code blocks
+    //
+    _state.start_transaction();
+
+    FlowPath first_path;
+    FlowPathOut  last_flow_out     = flow_out;
+    bool     block_end_reached = false;
+    size_t   block_size        = 0;
+
+    while (_state.tokens().can_eat() && !block_end_reached )
     {
-        if (Optional<Node*> instruction = parse_instr() )
+        if ( FlowPath current_path = parse_atomic_code_block(last_flow_out ) )
         {
-            Slot* child_slot = parser_state.current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL );
-            ASSERT(child_slot);
-            // Create parent/child connection
-            parser_state.graph()->connect(
-                    child_slot,
-                    instruction->find_slot( SlotFlag_PARENT ),
-                    ConnectFlag_ALLOW_SIDE_EFFECTS );
+            if ( !first_path )
+                first_path = current_path;
+            last_flow_out = current_path.out;
+            ++block_size;
         }
-        else if (
-            parse_conditional_structure() ||
-            parse_for_loop() ||
-            parse_while_loop() ||
-            parse_scope( parser_state.current_scope_node()->find_slot( SlotFlag_CHILD ) ) )
-        {}
         else
         {
             block_end_reached = true;
         }
     }
 
-    bool is_empty = parser_state.current_scope_node()->children().empty();
-    return  is_empty ? parser_state.rollback()
-                     : parser_state.commit();
+    FlowPath path;
+    path.in  = first_path.in;
+    path.out = last_flow_out;
+
+    if ( path )
+    {
+        _state.commit();
+        LOG_VERBOSE("Parser", OK "parse code block:\n%s\n", _state.tokens().to_string().c_str());
+        return path;
+    }
+
+    _state.rollback();
+    LOG_VERBOSE("Parser", KO "parse code block. Block size is %llu\n", block_size );
+    return {};
 }
 
 Optional<Slot*> Nodlang::parse_expression(u8_t _precedence, Optional<Slot*> _left_override)
 {
-    LOG_VERBOSE("Parser", "parse expr...\n");
-    LOG_VERBOSE("Parser", "%s \n", parser_state.tokens().to_string().c_str());
-
-    if (!parser_state.tokens().can_eat())
-    {
-        LOG_VERBOSE("Parser", "parse expr..." KO " (unable to eat a single token)\n");
-        return _left_override;
-    }
+    LOG_VERBOSE("Parser", "Parsing expression ...\n");
 
     /*
 		Get the left-handed operand
 	*/
     Optional<Slot*> left = _left_override;
 
-    if( !left )
+    if (!_state.tokens().can_eat())
     {
-                     left = parse_parenthesis_expression();
-        if ( !left ) left = parse_unary_operator_expression(_precedence);
-        if ( !left ) left = parse_function_call();
-        if ( !left ) left = parse_variable_declaration();
-        if ( !left ) left = parse_atomic_expression();
+        LOG_VERBOSE("Parser", OK "Last token reached\n");
+        return left;
     }
 
-    if (!parser_state.tokens().can_eat())
+    if ( !left ) left = parse_parenthesis_expression();
+    if ( !left ) left = parse_unary_operator_expression(_precedence);
+    if ( !left ) left = parse_function_call();
+    if ( !left ) left = parse_variable_declaration(); // nullptr => variable won't be attached on the codeflow, it's a part of an expression..
+    if ( !left ) left = parse_atomic_expression();
+
+    if (!_state.tokens().can_eat())
     {
-        LOG_VERBOSE("Parser", "parse expr... " OK " (last token reached)\n");
+        LOG_VERBOSE("Parser", OK "Last token reached\n");
         return left;
     }
 
     if ( !left )
     {
-        LOG_VERBOSE("Parser", "parse expr... left is null, we return it\n");
+        LOG_VERBOSE("Parser", OK "Left side is null, we return it\n");
         return left;
     }
 
     /*
 		Get the right-handed operand
 	*/
-    LOG_VERBOSE("Parser", "parse expr... left parsed, we parse right\n");
     Optional<Slot*> expression_out = parse_binary_operator_expression( _precedence, left.get() );
     if ( expression_out )
     {
-        if (!parser_state.tokens().can_eat())
+        if (!_state.tokens().can_eat())
         {
-            LOG_VERBOSE("Parser", "parse expr... " OK " right parsed (last token reached)\n");
+            LOG_VERBOSE("Parser", OK "Right side parsed, and last token reached\n");
             return expression_out.data();
         }
-        LOG_VERBOSE("Parser", "parse expr... " OK " right parsed, recursive call...\n");
+        LOG_VERBOSE("Parser", OK "Right side parsed, continue with a recursive call...\n");
         return parse_expression(_precedence, expression_out);
     }
 
-    LOG_VERBOSE("Parser", "parse expr... left only " OK "\n");
+    LOG_VERBOSE("Parser", OK "Returning left side only\n");
 
     return left;
 }
@@ -718,10 +769,10 @@ bool Nodlang::is_syntax_valid()
     // TODO: optimization: is this function really useful ? It check only few things.
     //                     The parsing steps that follow (parseProgram) is doing a better check, by looking to what exist in the Language.
     bool success = true;
-    auto token = parser_state.tokens().begin();
+    auto token = _state.tokens().begin();
     short int opened = 0;
 
-    while (token != parser_state.tokens().end() && success)
+    while (token != _state.tokens().end() && success)
     {
         switch (token->m_type)
         {
@@ -736,7 +787,7 @@ bool Nodlang::is_syntax_valid()
                 {
                     LOG_ERROR("Parser",
                               "Syntax Error: Unexpected close bracket after \"... %s\" (position %llu)\n",
-                              parser_state.tokens().range_to_string(token->m_index, -10).c_str(),
+                              _state.tokens().range_to_string(token->m_index, -10).c_str(),
                               token->offset()
                           );
                     success = false;
@@ -762,46 +813,49 @@ bool Nodlang::is_syntax_valid()
 
 bool Nodlang::tokenize(const std::string& _string)
 {
-    parser_state.reset_ribbon(const_cast<char *>(_string.data()), _string.length());
+    _state.reset_ribbon(const_cast<char *>(_string.data()), _string.length());
     return tokenize();
 }
 
 bool Nodlang::tokenize()
 {
+    LOG_MESSAGE("Parser", "Tokenization ...\n");
+
     size_t global_cursor       = 0;
     size_t ignored_chars_count = 0;
 
-    while (global_cursor != parser_state.buffer_size() )
+    while (global_cursor != _state.buffer_size() )
     {
         size_t current_cursor = global_cursor;
-        Token  new_token = parse_token( parser_state.buffer(), parser_state.buffer_size(), global_cursor );
+        Token  new_token = parse_token(_state.buffer(), _state.buffer_size(), global_cursor );
 
         if ( !new_token )
         {
-            LOG_WARNING("Parser", "Unable to tokenize from \"%20s...\" (at index %llu)\n", parser_state.buffer_at(current_cursor), global_cursor);
+            LOG_WARNING("Parser", KO "Unable to tokenize from \"%20s...\" (at index %llu)\n", _state.buffer_at(current_cursor), global_cursor);
             return false;
         }
 
         // accumulate ignored chars (see else case to know why)
         if( new_token.m_type == Token_t::ignore)
         {
-            if (  parser_state.tokens().empty() )
+            if (  _state.tokens().empty() )
             {
-                parser_state.tokens().global_token().prefix_end_grow( new_token.length() );
+                _state.tokens().global_token().prefix_end_grow(new_token.length() );
                 continue;
             }
 
             ignored_chars_count += new_token.length();
-            LOG_VERBOSE("Parser", "Append \"%s\" to ignored chars\n", new_token.string().c_str());
             continue;
         }
 
         if ( ignored_chars_count )
         {
             // case 1: if token type allows it => increase last token's prefix to wrap the ignored chars
-            if ( accepts_suffix(parser_state.tokens().back().m_type) )
+            Token& back = _state.tokens().back();
+            if ( accepts_suffix(back.m_type) )
             {
-                parser_state.tokens().back().suffix_end_grow(ignored_chars_count);
+                back.suffix_end_grow(ignored_chars_count);
+                LOG_VERBOSE("Parser", "      \"%s\" (update) \n", back.string().c_str() );
             }
             // case 2: increase prefix of the new_token up to wrap the ignored chars
             else if ( new_token )
@@ -811,17 +865,19 @@ bool Nodlang::tokenize()
             ignored_chars_count = 0;
         }
 
-        LOG_VERBOSE("Parser", "Push token \"%s\" to tokens\n", new_token.string().c_str());
-        parser_state.tokens().push(new_token);
+        _state.tokens().push(new_token);
+        LOG_VERBOSE("Parser", "%4llu) \"%s\" \n", new_token.m_index, new_token.string().c_str() );
     }
 
     // Append remaining ignored chars to the ribbon's suffix
     if ( ignored_chars_count )
     {
         LOG_VERBOSE("Parser", "Found ignored chars after tokenize, adding to the tokens suffix...\n");
-        Token& tok = parser_state.tokens().global_token();
+        Token& tok = _state.tokens().global_token();
         tok.suffix_begin_grow( ignored_chars_count );
     }
+
+    LOG_MESSAGE("Parser", OK "Tokenization.\n%s\n", _state.tokens().to_string().c_str() );
 
     return true;
 }
@@ -835,8 +891,8 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
     // comments
     if (first_char == '/' && char_left > 1)
     {
-        auto cursor = start_pos + 1;
-        auto second_char = buffer[cursor];
+        size_t cursor      = start_pos + 1;
+        char   second_char = buffer[cursor];
         if (second_char == '*' || second_char == '/')
         {
             // multi-line comment
@@ -990,55 +1046,56 @@ Optional<Slot*> Nodlang::parse_function_call()
     LOG_VERBOSE("Parser", "parse function call...\n");
 
     // Check if the minimum token count required is available ( 0: identifier, 1: open parenthesis, 2: close parenthesis)
-    if (!parser_state.tokens().can_eat(3))
+    if (!_state.tokens().can_eat(3))
     {
-        LOG_VERBOSE("Parser", "parse function call... " KO " aborted, not enough tokens.\n");
+        LOG_VERBOSE("Parser", KO "3 tokens min. are required\n");
         return nullptr;
     }
 
-    parser_state.start_transaction();
+    _state.start_transaction();
 
     // Try to parse regular function: function(...)
     std::string fct_id;
-    Token token_0 = parser_state.tokens().eat();
-    Token token_1 = parser_state.tokens().eat();
+    Token token_0 = _state.tokens().eat();
+    Token token_1 = _state.tokens().eat();
     if (token_0.m_type == Token_t::identifier &&
         token_1.m_type == Token_t::parenthesis_open)
     {
         fct_id = token_0.word_to_string();
-        LOG_VERBOSE("Parser", "parse function call... " OK " regular function pattern detected.\n");
+        LOG_VERBOSE("Parser", OK "Regular function pattern detected.\n");
     }
     else// Try to parse operator like (ex: operator==(..,..))
     {
-        Token token_2 = parser_state.tokens().eat();// eat a "supposed open bracket>
+        Token token_2 = _state.tokens().eat();// eat a "supposed open bracket>
 
         if (token_0.m_type == Token_t::keyword_operator && token_1.m_type == Token_t::operator_ && token_2.m_type == Token_t::parenthesis_open)
         {
             fct_id = token_1.word_to_string();// operator
-            LOG_VERBOSE("Parser", "parse function call... " OK " operator function-like pattern detected.\n");
+            LOG_VERBOSE("Parser", OK "Operator function-like pattern detected.\n");
         }
         else
         {
-            LOG_VERBOSE("Parser", "parse function call... " KO " abort, this is not a function.\n");
-            parser_state.rollback();
+            LOG_VERBOSE("Parser", KO "Not a function.\n");
+            _state.rollback();
             return nullptr;
         }
     }
     std::vector<Slot*> result_slots;
 
     // Declare a new function prototype
-    FunctionDescriptor* signature = FunctionDescriptor::create<any()>(fct_id.c_str());
+    FunctionDescriptor signature;
+    signature.init<any()>(fct_id.c_str());
 
     bool parsingError = false;
-    while (!parsingError && parser_state.tokens().can_eat() &&
-            parser_state.tokens().peek().m_type != Token_t::parenthesis_close)
+    while (!parsingError && _state.tokens().can_eat() &&
+           _state.tokens().peek().m_type != Token_t::parenthesis_close)
     {
         Optional<Slot*> expression_out = parse_expression();
         if ( expression_out )
         {
             result_slots.push_back( expression_out.get() );
-            signature->push_arg( expression_out->property->get_type() );
-            parser_state.tokens().eat_if(Token_t::list_separator);
+            signature.push_arg( expression_out->property->get_type() );
+            _state.tokens().eat_if(Token_t::list_separator);
         }
         else
         {
@@ -1047,320 +1104,345 @@ Optional<Slot*> Nodlang::parse_function_call()
     }
 
     // eat "close bracket supposed" token
-    if ( !parser_state.tokens().eat_if(Token_t::parenthesis_close) )
+    if ( !_state.tokens().eat_if(Token_t::parenthesis_close) )
     {
-        LOG_WARNING("Parser", "parse function call... " KO " abort, close parenthesis expected. \n");
-        parser_state.rollback();
+        LOG_WARNING("Parser", KO "Expecting parenthesis close\n");
+        _state.rollback();
         return nullptr;
     }
 
 
     // Find the prototype in the language library
-    FunctionNode* fct_node = parser_state.graph()->create_function(std::move(signature));
+    FunctionNode* fct_node = _state.graph()->create_function( signature );
 
     for ( int i = 0; i < fct_node->get_arg_slots().size(); i++ )
     {
         // Connects each results to the corresponding input
-        parser_state.graph()->connect_or_merge( result_slots.at(i), fct_node->get_arg_slot(i) );
+        _state.graph()->connect_or_merge(result_slots.at(i), fct_node->get_arg_slot(i) );
     }
 
-    parser_state.commit();
-    LOG_VERBOSE("Parser", "parse function call... " OK "\n");
+    _state.commit();
+    LOG_VERBOSE("Parser", KO "Function call parsed:\n%s\n", _state.tokens().to_string().c_str() );
 
     return fct_node->value_out();
 }
 
-Optional<IfNode*> Nodlang::parse_conditional_structure()
+Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
 {
-    parser_state.start_transaction();
+    _state.start_transaction();
 
-    Token if_token = parser_state.tokens().eat_if(Token_t::keyword_if);
+    Token if_token = _state.tokens().eat_if(Token_t::keyword_if);
     if ( !if_token )
     {
-        return nullptr;
+        return {};
     }
 
     LOG_VERBOSE("Parser", "Parsing conditional structure...\n");
 
-    Optional<IfNode*> result;
-    Optional<Node*>   condition;
-    Optional<Node*>   true_branch;
-    Optional<Node*>   false_branch;
-    Optional<IfNode*> if_node;
-    Optional<IfNode*> else_node;
+    bool    result = false;
+    IfNode* if_node;
 
-    if_node = parser_state.graph()->create_cond_struct();
+    Nodlang::FlowPath path;
 
-    parser_state.graph()->connect(
-            parser_state.current_scope_node()->find_slot( SlotFlag_CHILD | SlotFlag_NOT_FULL ),
-            if_node->find_slot( SlotFlag_PARENT ),
-            ConnectFlag_ALLOW_SIDE_EFFECTS );
-    parser_state.push_scope( if_node->get_component<Scope>() );
+    if_node = _state.graph()->create_cond_struct();
+    _state.graph()->connect( flow_out, if_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
 
-    if_node->token_if  = parser_state.tokens().get_eaten();
+    Scope* if_scope = if_node->internal_scope();
+    _state.push_scope(if_scope);
 
-    if (parser_state.tokens().eat_if(Token_t::parenthesis_open) )
+    if_node->token_if  = _state.tokens().get_eaten();
+
+    if (_state.tokens().eat_if(Token_t::parenthesis_open) )
     {
         LOG_VERBOSE("Parser", "Parsing conditional structure's condition...\n");
 
         // condition
-        if ( (condition = parse_instr()) )
-        {
-            parser_state.graph()->connect_or_merge(
-                    condition->find_slot(SlotFlag_OUTPUT),
-                    if_node->condition_slot(Branch_TRUE));
-        }
+        parse_expression_block(FlowPathOut{}, if_node->condition_in());
 
-        if (parser_state.tokens().eat_if(Token_t::parenthesis_close) )
+        if (_state.tokens().eat_if(Token_t::parenthesis_close) )
         {
+            path.in = if_node->flow_in();
+
             // scope
-            true_branch = parse_single_scope_or_instruction(if_node->child_slot_at(Branch_TRUE));
-            if ( true_branch )
-            {
-                // else
-                if (parser_state.tokens().eat_if(Token_t::keyword_else) )
-                {
-                    if_node->token_else = parser_state.tokens().get_eaten();
+            _state.push_scope(if_scope->partition_at(Branch_TRUE) );
+            FlowPathOut branch_flow_out{if_node->branch_out(Branch_TRUE) };
+            Nodlang::FlowPath block = parse_atomic_code_block( branch_flow_out );
+            _state.pop_scope();
 
-                    // else scope
-                    false_branch = parse_single_scope_or_instruction(if_node->child_slot_at(Branch_FALSE));
-                    if ( false_branch )
-                        result = if_node;
-                    // else if?
-                    else if ( parse_conditional_structure() )
-                        result = if_node;
+            if ( block )
+            {
+                for (auto _flow_out : block.out )
+                    path.out.insert( _flow_out );
+
+                // else
+                Scope* false_scope = if_scope->partition_at(Branch_FALSE);
+                if ( _state.tokens().eat_if(Token_t::keyword_else) )
+                {
+                    if_node->token_else = _state.tokens().get_eaten();
+
+                    _state.push_scope(false_scope );
+                    branch_flow_out = { if_node->branch_out(Branch_FALSE) };
+                    Nodlang::FlowPath else_block;
+
+                    if ( (else_block = parse_atomic_code_block( branch_flow_out)) )
+                    {
+                        for (auto _flow_out : else_block.out )
+                            path.out.insert( _flow_out );
+                        result = true;
+                        LOG_VERBOSE("Parser", OK "else block parsed.\n");
+                    }
                     else
-                        LOG_VERBOSE("Parser", "Parsing \"else if\" ... " KO "\n");
+                    {
+                        LOG_VERBOSE("Parser", KO "Single instruction or main_scope expected\n");
+                    }
+
+                    _state.pop_scope();
                 }
                 else
                 {
-                    LOG_VERBOSE("Parser", "parse IF {...} block... " OK "\n");
-                    result = if_node;
+                    false_scope->token_begin = {Token_t::ignore};
+                    false_scope->token_end   = {Token_t::ignore};
+                    path.out.insert(if_node->branch_out(Branch_FALSE) );
+                    result = true;
                 }
             }
             else
             {
-                LOG_VERBOSE("Parser", "Scope or single instruction expected " KO "\n");
+                LOG_VERBOSE("Parser", KO "Single instruction or main_scope expected\n");
             }
         }
         else
         {
-            LOG_VERBOSE("Parser", "parse IF (...) <--- close bracket missing { ... }  " KO "\n");
+            LOG_VERBOSE("Parser", KO "Close bracket expected\n");
         }
     }
-    parser_state.pop_scope();
+    _state.pop_scope();
 
     if ( result )
     {
-        parser_state.commit();
-        return result;
+        _state.commit();
+        LOG_VERBOSE("Parser", OK "Parse conditional structure:\n%s\n", _state.tokens().to_string().c_str() );
+        return path;
     }
 
-    parser_state.graph()->destroy( if_node.data() );
-    parser_state.graph()->destroy( else_node.data() );
-    parser_state.graph()->destroy( true_branch.data() );
-    parser_state.graph()->destroy( false_branch.data() );
+    _state.graph()->destroy( if_node );
+    _state.rollback();
+    LOG_VERBOSE("Parser", KO "Parse conditional structure \n");
 
-    parser_state.rollback();
-    return nullptr;
+    return {};
 }
 
-Optional<ForLoopNode*> Nodlang::parse_for_loop()
+Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
 {
-    Optional<ForLoopNode*> result;
-    Optional<ForLoopNode*> for_node;
-    Optional<Node*>        true_branch;
+    bool         success  = false;
+    ForLoopNode* for_node = nullptr;
+    FlowPath     path;
 
-    parser_state.start_transaction();
+    _state.start_transaction();
 
-    if ( Token token_for = parser_state.tokens().eat_if(Token_t::keyword_for) )
+    if ( Token token_for = _state.tokens().eat_if(Token_t::keyword_for) )
     {
 
         LOG_VERBOSE("Parser", "Parsing for loop ...\n");
 
-        for_node = parser_state.graph()->create_for_loop();
-        parser_state.graph()->connect(
-                parser_state.current_scope()->get_owner()->find_slot(SlotFlag_CHILD ),
-                for_node->find_slot(SlotFlag_PARENT ),
-                ConnectFlag_ALLOW_SIDE_EFFECTS );
+        for_node = _state.graph()->create_for_loop();
+        _state.graph()->connect( flow_out, for_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
 
         for_node->token_for = token_for;
 
-        Token open_bracket = parser_state.tokens().eat_if(Token_t::parenthesis_open);
+        path.in  = for_node->flow_in();
+        path.out = {for_node->branch_out(Branch_FALSE)};
+
+        Token open_bracket = _state.tokens().eat_if(Token_t::parenthesis_open);
         if ( open_bracket)
         {
-            LOG_VERBOSE("Parser", "Parsing for loop instructions ...\n");
+            LOG_VERBOSE("Parser", "Parsing for reset_name/condition/iter instructions ...\n");
 
-            parser_state.push_scope(for_node->get_component<Scope>());
+            _state.push_scope(for_node->internal_scope() );
 
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
-            // parse initialization instruction
-            if ( Optional<Node*> init_instr = parse_instr() )
-            {
-                parser_state.graph()->connect_or_merge(init_instr->find_slot( SlotFlag_OUTPUT ), for_node->initialization_slot() );
-
-                // parse condition instruction
-                if ( Optional<Node*> condition = parse_instr() )
-                {
-                    parser_state.graph()->connect_or_merge(condition->find_slot( SlotFlag_OUTPUT ), for_node->condition_slot(Branch_TRUE) );
-
-                    // parse iteration instruction
-                    if ( Optional<Node*> iter_instr = parse_instr() )
-                    {
-                        parser_state.graph()->connect_or_merge( iter_instr->find_slot( SlotFlag_OUTPUT ), for_node->iteration_slot() );
-                    }
-                }
-            }
+            // parse init; condition; iteration or nothing
+            const FlowPathOut none{};
+            parse_expression_block(none, for_node->initialization_slot())
+            && parse_expression_block(none,for_node->condition_in())
+            && parse_expression_block(none, for_node->iteration_slot());
 
             // parse parenthesis close
-            if ( Token parenthesis_close = parser_state.tokens().eat_if(Token_t::parenthesis_close) )
+            if ( Token parenthesis_close = _state.tokens().eat_if(Token_t::parenthesis_close) )
             {
-                true_branch = parse_single_scope_or_instruction(for_node->child_slot_at(Branch_TRUE));
-                if ( true_branch )
-                    result = for_node;
+                _state.push_scope(for_node->internal_scope()->partition_at(Branch_TRUE) );
+                FlowPathOut branch_flow_out = {for_node->branch_out(Branch_TRUE) };
+                FlowPath block = parse_atomic_code_block(branch_flow_out) ;
+                _state.pop_scope();
+
+                if ( block )
+                {
+                    for(auto each : block.out)
+                        path.out.insert( each );
+
+                    success = true;
+                    LOG_VERBOSE("Parser", "Scope or single instruction found\n");
+                }
                 else
-                LOG_ERROR("Parser", "Scope or single instruction expected\n");
+                {
+                    LOG_VERBOSE("Parser", KO "Scope or single instruction expected\n");
+                }
             }
             else
             {
-                LOG_ERROR("Parser", "Close parenthesis was expected.\n");
+                LOG_VERBOSE("Parser", KO "Close parenthesis was expected.\n");
             }
-            parser_state.pop_scope();
+            _state.pop_scope();
         }
         else
         {
-            LOG_ERROR("Parser", "Open parenthesis was expected.\n");
+            LOG_VERBOSE("Parser", KO "Open parenthesis was expected.\n");
         }
     }
 
-    if ( result )
+    if ( success )
     {
-        LOG_VERBOSE("Parser", "Parsing scope " OK "\n");
-        parser_state.commit();
-        return result;
+        LOG_VERBOSE("Parser", KO "For block parsed\n");
+        _state.commit();
+        return path;
     }
 
-    parser_state.rollback();
-    parser_state.graph()->destroy(true_branch.data() );
-    parser_state.graph()->destroy(for_node.data() );
-
-    return nullptr;
+    _state.rollback();
+    _state.graph()->destroy( for_node );
+    LOG_VERBOSE("Parser", KO "Could not parse for block\n");
+    return {};
 }
 
-Optional<WhileLoopNode*> Nodlang::parse_while_loop()
+Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
 {
-    Optional<WhileLoopNode*> result;
-    Optional<WhileLoopNode*> while_node;
-    Optional<Node*>          true_branch;
+    bool           success    = false;
+    WhileLoopNode* while_node = nullptr;
+    FlowPath       path;
 
-    parser_state.start_transaction();
+    _state.start_transaction();
 
-    if ( Token token_while = parser_state.tokens().eat_if(Token_t::keyword_while) )
+    if ( Token token_while = _state.tokens().eat_if(Token_t::keyword_while) )
     {
         LOG_VERBOSE("Parser", "Parsing while ...\n");
 
-        while_node = parser_state.graph()->create_while_loop();
-        parser_state.graph()->connect(
-                parser_state.current_scope()->get_owner()->find_slot(SlotFlag_CHILD ),
-                while_node->find_slot(SlotFlag_PARENT ),
-                ConnectFlag_ALLOW_SIDE_EFFECTS );
-        parser_state.push_scope(while_node->get_component<Scope>() );
+        while_node = _state.graph()->create_while_loop();
+        _state.graph()->connect( flow_out, while_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
 
         while_node->token_while = token_while;
+        path.in = while_node->flow_in();
+        path.out = {while_node->branch_out(Branch_FALSE)};
+        _state.push_scope(while_node->internal_scope() );
 
-        if ( Token open_bracket = parser_state.tokens().eat_if(Token_t::parenthesis_open) )
+        if ( Token open_bracket = _state.tokens().eat_if(Token_t::parenthesis_open) )
         {
             LOG_VERBOSE("Parser", "Parsing while condition ... \n");
 
             // Parse an optional condition
-            if( Optional<Node*> cond_instr = parse_instr() )
-            {
-                parser_state.graph()->connect_or_merge(
-                        cond_instr->find_slot(SlotFlag_OUTPUT),
-                        while_node->condition_slot(Branch_TRUE));
-                LOG_VERBOSE("Parser", "found!\n");
-            }
+            parse_expression_block({}, while_node->condition_in());
 
-            if (parser_state.tokens().eat_if(Token_t::parenthesis_close) )
+            if (_state.tokens().eat_if(Token_t::parenthesis_close) )
             {
-                true_branch = parse_single_scope_or_instruction(while_node->child_slot_at(Branch_TRUE));
-                if ( true_branch )
-                    result = while_node;
+                _state.push_scope(while_node->internal_scope()->partition_at(Branch_TRUE) );
+                const FlowPathOut branch_flow_out = {while_node->branch_out(Branch_TRUE) };
+                FlowPath block = parse_atomic_code_block( branch_flow_out );
+                _state.pop_scope();
+
+                if ( block)
+                {
+                    for(auto each : block.out)
+                        path.out.insert( each );
+                    success = true;
+                }
                 else
-                    LOG_ERROR("Parser", "Scope or single instruction expected\n");
+                {
+                    LOG_VERBOSE("Parser", KO "Scope or single instruction expected\n");
+                }
             }
             else
             {
-                LOG_ERROR("Parser", "Parenthesis close expected\n");
+                LOG_VERBOSE("Parser", KO "Parenthesis close expected\n");
             }
         }
         else
         {
-            LOG_ERROR("Parser", "Parenthesis close expected\n");
+            LOG_VERBOSE("Parser", KO "Parenthesis close expected\n");
         }
-        parser_state.pop_scope();
+        _state.pop_scope();
     }
 
-    if (result)
+    if ( success )
     {
-        LOG_VERBOSE("Parser", "Parsing while ..." OK "\n");
-        parser_state.commit();
-    }
-    else
-    {
-        parser_state.rollback();
-        parser_state.graph()->destroy(while_node.data() );
-        parser_state.graph()->destroy(true_branch.data() );
+        LOG_VERBOSE("Parser", "Parsing while:\n%s\n", _state.tokens().to_string().c_str() );
+        _state.commit();
+        return path;
     }
 
-    return result;
+    _state.rollback();
+    _state.graph()->destroy( while_node );
+
+    return {};
 }
 
 Optional<Slot*> Nodlang::parse_variable_declaration()
 {
-
-    if (!parser_state.tokens().can_eat(2))
+    if (!_state.tokens().can_eat(2))
     {
         return nullptr;
     }
 
-    parser_state.start_transaction();
+    _state.start_transaction();
 
-    Token type_token       = parser_state.tokens().eat();
-    Token identifier_token = parser_state.tokens().eat();
+    bool  success          = false;
+    Token type_token       = _state.tokens().eat();
+    Token identifier_token = _state.tokens().eat();
 
     if (type_token.is_keyword_type() && identifier_token.m_type == Token_t::identifier)
     {
-        const TypeDescriptor* variable_type = get_type(type_token.m_type);
-        Optional<Scope*>        scope         = parser_state.current_scope();
-        VariableNode* variable_node = parser_state.graph()->create_variable(variable_type, identifier_token.word_to_string(), scope.get() );
+        const TypeDescriptor* type = get_type(type_token.m_type);
+        VariableNode* variable_node = _state.graph()->create_variable(type, identifier_token.word_to_string() );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->set_type_token( type_token );
         variable_node->set_identifier_token( identifier_token );
-        // try to parse assignment
-        Token operator_token = parser_state.tokens().eat_if(Token_t::operator_);
+
+        // declaration with assignment ?
+        Token operator_token = _state.tokens().eat_if(Token_t::operator_);
         if (operator_token && operator_token.word_len() == 1 && *operator_token.word() == '=')
         {
+            // an expression is expected
             if ( Optional<Slot*> expression_out = parse_expression() )
             {
-                parser_state.graph()->connect_to_variable( expression_out.get(), variable_node );
+                // expression's out ----> variable's in
+                _state.graph()->connect_to_variable(expression_out.get(), variable_node );
+
                 variable_node->set_operator_token( operator_token );
+                success = true;
             }
             else
             {
-                LOG_ERROR("Parser", "Unable to parse expression to assign %s\n", identifier_token.word_to_string().c_str());
-                parser_state.rollback();
-                parser_state.graph()->destroy(variable_node );
-                return nullptr;
+                LOG_VERBOSE("Parser", KO "Initialization expression expected for %s\n", identifier_token.word_to_string().c_str());
             }
         }
+            // Declaration without assignment
+        else
+        {
+            success = true;
+        }
 
-        parser_state.commit();
-        return variable_node->value_out(); // and not ref_out()
+        if ( success )
+        {
+            LOG_VERBOSE("Parser", OK "Variable declaration: %s %s\n",
+                        variable_node->value()->get_type()->name(),
+                        identifier_token.word_to_string().c_str());
+            _state.commit();
+            return variable_node->value_out();
+        }
+
+        LOG_VERBOSE("Parser", KO "Initialization expression expected for %s\n", identifier_token.word_to_string().c_str());
+        _state.graph()->destroy(variable_node );
     }
 
-    parser_state.rollback();
+    _state.rollback();
     return nullptr;
 }
 
@@ -1368,15 +1450,14 @@ Optional<Slot*> Nodlang::parse_variable_declaration()
 // [SECTION] C. Serializer --------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode* _node) const
+const Slot* Nodlang::serialize_invokable(std::string &_out, const FunctionNode* _node) const
 {
     if ( _node->type() == NodeType_OPERATOR )
     {
         const std::vector<Slot*>& args = _node->get_arg_slots();
-        int precedence = get_precedence(_node->get_func_type());
+        int precedence = get_precedence(&_node->get_func_type());
 
-        const FunctionDescriptor* func_type  = _node->get_func_type();
-        switch (func_type->get_arg_count())
+        switch ( _node->get_func_type().arg_count() )
         {
             case 2:
             {
@@ -1421,28 +1502,28 @@ std::string &Nodlang::serialize_invokable(std::string &_out, const FunctionNode*
     }
     else
     {
-        serialize_func_call(_out, _node->get_func_type(), _node->get_arg_slots());
+        serialize_func_call(_out, &_node->get_func_type(), _node->get_arg_slots());
     }
 
-    return _out;
+    return _node->value_out();
 }
 
 std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescriptor *_signature, const std::vector<Slot*> &inputs) const
 {
     _out.append( _signature->get_identifier() );
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_default_buffer(_out, Token_t::parenthesis_open);
 
     for (const Slot* input_slot : inputs)
     {
         ASSERT( input_slot->has_flags(SlotFlag_INPUT) );
         if ( input_slot != inputs.front())
         {
-            serialize_token_t(_out, Token_t::list_separator);
+            serialize_default_buffer(_out, Token_t::list_separator);
         }
         serialize_input( _out, input_slot, SerializeFlag_RECURSE );
     }
 
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_default_buffer(_out, Token_t::parenthesis_close);
     return _out;
 }
 
@@ -1453,23 +1534,23 @@ std::string &Nodlang::serialize_invokable_sig(std::string &_out, const IInvokabl
 
 std::string &Nodlang::serialize_func_sig(std::string &_out, const FunctionDescriptor *_signature) const
 {
-    serialize_type(_out, _signature->get_return_type());
+    serialize_type(_out, _signature->return_type());
     _out.append(" ");
     _out.append(_signature->get_identifier());
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_default_buffer(_out, Token_t::parenthesis_open);
 
-    auto args = _signature->get_args();
+    auto args = _signature->arg();
     for (auto it = args.begin(); it != args.end(); it++)
     {
         if (it != args.begin())
         {
-            serialize_token_t(_out, Token_t::list_separator);
+            serialize_default_buffer(_out, Token_t::list_separator);
             _out.append(" ");
         }
         serialize_type(_out, it->type);
     }
 
-    serialize_token_t(_out, Token_t::parenthesis_close);
+    serialize_default_buffer(_out, Token_t::parenthesis_close);
     return _out;
 }
 
@@ -1482,7 +1563,6 @@ std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor *_t
     }
     return _out;
 }
-
 
 std::string& Nodlang::serialize_variable_ref(std::string &_out, const VariableRefNode* _node) const
 {
@@ -1532,7 +1612,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, Seria
                                                                  : nullptr;
     // Append open brace?
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
-        serialize_token_t(_out, Token_t::parenthesis_open);
+        serialize_default_buffer(_out, Token_t::parenthesis_open);
 
     if ( adjacent_property == nullptr )
     {
@@ -1548,7 +1628,7 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, Seria
                 _out.append(adjacent_token.prefix(), adjacent_token.prefix_len() );
 
         // Serialize adjacent slot
-        serialize_output( _out, adjacent_slot, SerializeFlag_RECURSE );
+        serialize_value_out(_out, adjacent_slot, SerializeFlag_RECURSE);
 
         // Append token suffix?
         if (const Token& adjacent_token = adjacent_property->token())
@@ -1558,16 +1638,19 @@ std::string &Nodlang::serialize_input(std::string& _out, const Slot* slot, Seria
 
     // Append close brace?
     if ( _flags & SerializeFlag_WRAP_WITH_BRACES )
-        serialize_token_t(_out, Token_t::parenthesis_close);
+        serialize_default_buffer(_out, Token_t::parenthesis_close);
 
     return _out;
 }
 
-std::string &Nodlang::serialize_output(std::string& _out, const Slot* slot, SerializeFlags _flags) const
+std::string &Nodlang::serialize_value_out(std::string& _out, const Slot* slot, SerializeFlags _flags) const
 {
     // If output is node's output value, we serialize the node
     if( slot == slot->node->value_out() )
-        return _serialize_node(_out, slot->node, _flags );
+    {
+        serialize_node(_out, slot->node, _flags);
+        return _out;
+    }
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
     ASSERT( slot->node->type() == NodeType_VARIABLE ); // Can't be another type
@@ -1576,14 +1659,13 @@ std::string &Nodlang::serialize_output(std::string& _out, const Slot* slot, Seri
     return _out.append( variable->get_identifier() );
 }
 
-std::string & Nodlang::_serialize_node(std::string &_out, const Node* node, SerializeFlags _flags ) const
+std::string& Nodlang::serialize_node(std::string &_out, const Node* node, SerializeFlags _flags ) const
 {
-    ASSERT( node );
     ASSERT( _flags == SerializeFlag_RECURSE ); // The only flag configuration handled for now
 
     switch ( node->type() )
     {
-        case NodeType_BLOCK_CONDITION:
+        case NodeType_BLOCK_IF:
             serialize_cond_struct(_out, static_cast<const IfNode*>(node) );
             break;
         case NodeType_BLOCK_FOR_LOOP:
@@ -1593,7 +1675,7 @@ std::string & Nodlang::_serialize_node(std::string &_out, const Node* node, Seri
             serialize_while_loop(_out, static_cast<const WhileLoopNode*>(node) );
             break;
         case NodeType_LITERAL:
-            serialize_property(_out, static_cast<const LiteralNode*>(node)->value());
+            serialize_literal(_out, static_cast<const LiteralNode*>(node) );
             break;
         case NodeType_VARIABLE:
             serialize_variable(_out, static_cast<const VariableNode*>(node));
@@ -1601,32 +1683,35 @@ std::string & Nodlang::_serialize_node(std::string &_out, const Node* node, Seri
         case NodeType_VARIABLE_REF:
             serialize_variable_ref(_out, static_cast<const VariableRefNode*>(node));
             break;
-        case NodeType_BLOCK_SCOPE:
-            serialize_scope(_out, node->get_component<Scope>() );
-            break;
         case NodeType_FUNCTION:
             [[fallthrough]];
         case NodeType_OPERATOR:
             serialize_invokable(_out, static_cast<const FunctionNode*>(node) );
             break;
         case NodeType_EMPTY_INSTRUCTION:
-            serialize_token(_out, node->value()->token() );
+            serialize_empty_instruction(_out, node);
+            break;
+        case NodeType_ENTRY_POINT:
+            serialize_scope(_out, node->internal_scope() );
             break;
         default:
             VERIFY(false, "Unhandled NodeType, can't serialize");
     }
+    serialize_token(_out, node->suffix() );
 
-    return serialize_token(_out, node->suffix() );
+    return _out;
 }
 
-std::string &Nodlang::serialize_scope(std::string &_out, const Scope *_scope) const
+std::string& Nodlang::serialize_scope(std::string &_out, const Scope* scope) const
 {
-    serialize_token(_out, _scope->token_begin);
-    for (const Node* child : _scope->get_owner()->children() )
+    serialize_token(_out, scope->token_begin);
+    for(Node* node : scope->child() )
     {
-        _serialize_node( _out, child, SerializeFlag_RECURSE );
+        serialize_node(_out, node, SerializeFlag_RECURSE);
     }
-    return serialize_token(_out, _scope->token_end);
+    serialize_token(_out, scope->token_end);
+
+    return _out;
 }
 
 std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) const
@@ -1635,42 +1720,37 @@ std::string &Nodlang::serialize_token(std::string& _out, const Token& _token) co
     if ( !_token )
         return _out;
 
-    // optimized case, if we have a "word", we can serialize the whole token
-    if ( _token.word_len() != 0 )
-        return _out.append(_token.begin(), _token.length());
+    return _out.append(_token.begin(), _token.length());
+}
 
-    // append prefix, default word, and suffix
-    if (_token.prefix() )
-        _out.append(_token.prefix(), _token.prefix_len());
-    serialize_token_t( _out, _token.m_type ); // <---------- default word!
-    if (_token.suffix() )
-        _out.append(_token.suffix(), _token.suffix_len());
-
+std::string& Nodlang::serialize_graph(std::string &_out, const Graph* graph ) const
+{
+    if ( const Scope* scope = graph->root()->internal_scope() )
+        serialize_scope(_out, scope);
+    else
+        LOG_ERROR("Serializer", "a root child is expected to serialize the graph\n");
     return _out;
 }
 
 std::string& Nodlang::serialize_bool(std::string& _out, bool b) const
 {
-    _out.append( b ? "true" : "false");
-    return _out;
+    return _out.append( b ? "true" : "false");
 }
 
 std::string& Nodlang::serialize_int(std::string& _out, int i) const
 {
-    _out.append( std::to_string(i) );
-    return _out;
+    return _out.append( std::to_string(i) );
 }
 
 std::string& Nodlang::serialize_double(std::string& _out, double d) const
 {
-    _out.append( format::number(d) );
-    return _out;
+    return _out.append( format::number(d) );
 }
 
-std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_for_loop) const
+std::string& Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_for_loop) const
 {
     serialize_token(_out, _for_loop->token_for);
-    serialize_token_t(_out, Token_t::parenthesis_open);
+    serialize_default_buffer(_out, Token_t::parenthesis_open);
     {
         const Slot* init_slot = _for_loop->find_slot_by_property_name( INITIALIZATION_PROPERTY, SlotFlag_INPUT );
         const Slot* cond_slot = _for_loop->find_slot_by_property_name( CONDITION_PROPERTY, SlotFlag_INPUT );
@@ -1679,17 +1759,13 @@ std::string &Nodlang::serialize_for_loop(std::string &_out, const ForLoopNode *_
         serialize_input( _out, cond_slot, SerializeFlag_RECURSE );
         serialize_input( _out, iter_slot, SerializeFlag_RECURSE );
     }
-    serialize_token_t(_out, Token_t::parenthesis_close);
-
-    if ( const Node* branch = _for_loop->child_slot_at( Branch_TRUE )->first_adjacent_node() )
-    {
-        _serialize_node(_out, branch, SerializeFlag_RECURSE );
-    }
+    serialize_default_buffer(_out, Token_t::parenthesis_close);
+    serialize_scope(_out, _for_loop->internal_scope()->partition_at(Branch_TRUE) );
 
     return _out;
 }
 
-std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode *_while_loop_node) const
+std::string& Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNode *_while_loop_node) const
 {
     // while
     serialize_token(_out, _while_loop_node->token_while);
@@ -1697,41 +1773,33 @@ std::string &Nodlang::serialize_while_loop(std::string &_out, const WhileLoopNod
     // condition
     SerializeFlags flags = SerializeFlag_RECURSE
                          | SerializeFlag_WRAP_WITH_BRACES;
-    serialize_input(_out, _while_loop_node->condition_slot(Branch_TRUE), flags );
+    serialize_input(_out, _while_loop_node->condition_in(), flags );
 
-    // scope when true
-    if ( const Node* branch = _while_loop_node->child_slot_at( Branch_TRUE )->first_adjacent_node() )
+    if ( const Scope* branch_scope = _while_loop_node->internal_scope()->partition_at(Branch_TRUE) )
     {
-        _serialize_node(_out, branch, SerializeFlag_RECURSE );
+        serialize_scope(_out, branch_scope);
     }
 
     return _out;
 }
 
 
-std::string &Nodlang::serialize_cond_struct(std::string &_out, const IfNode*_condition_struct ) const
+std::string& Nodlang::serialize_cond_struct(std::string &_out, const IfNode* if_node ) const
 {
     // if
-     serialize_token(_out, _condition_struct->token_if);
+    serialize_token(_out, if_node->token_if);
 
     // condition
     SerializeFlags flags = SerializeFlag_RECURSE
-                           | SerializeFlag_WRAP_WITH_BRACES;
-    serialize_input(_out, _condition_struct->condition_slot(Branch_TRUE), flags );
+                         | SerializeFlag_WRAP_WITH_BRACES;
+    serialize_input(_out, if_node->condition_in(), flags );
 
     // scope when condition is true
-    if ( const Node* branch = _condition_struct->child_slot_at( Branch_TRUE )->first_adjacent_node() )
-    {
-        _serialize_node(_out, branch, SerializeFlag_RECURSE );
-    }
+    serialize_scope(_out, if_node->internal_scope()->partition_at(Branch_TRUE) );
 
     // when condition is false
-    if ( const Node* branch = _condition_struct->child_slot_at( Branch_FALSE )->first_adjacent_node() )
-    {
-        serialize_token(_out, _condition_struct->token_else); // I think I'll get problems with that. Can we have an "else" keyword without a scope?
-
-        _serialize_node(_out, branch, SerializeFlag_RECURSE );
-    }
+    serialize_token(_out, if_node->token_else);
+    serialize_scope(_out, if_node->internal_scope()->partition_at(Branch_FALSE) );
 
     return _out;
 }
@@ -1835,7 +1903,7 @@ void Nodlang::add_function(const tools::IInvokable* _invokable)
     serialize_func_sig(type_as_string, _invokable->get_sig());
 
     // Stops if no operator having the same identifier and argument count is found
-    if (!find_operator(_invokable->get_sig()->get_identifier(), static_cast<Operator_t>(_invokable->get_sig()->get_arg_count())))
+    if (!find_operator(_invokable->get_sig()->get_identifier(), static_cast<Operator_t>(_invokable->get_sig()->arg_count())))
     {
         LOG_VERBOSE("Nodlang", "add function: %s (in m_functions)\n", type_as_string.c_str());
         return;
@@ -1860,7 +1928,7 @@ const Operator *Nodlang::find_operator(const std::string &_identifier, Operator_
     return nullptr;
 }
 
-std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) const
+std::string& Nodlang::serialize_default_buffer(std::string& _out, Token_t _token_t) const
 {
     switch (_token_t)
     {
@@ -1868,10 +1936,10 @@ std::string& Nodlang::serialize_token_t(std::string& _out, Token_t _token_t) con
         case Token_t::operator_:       return _out.append("operator");
         case Token_t::identifier:      return _out.append("identifier");
         case Token_t::literal_string:  return _out.append("\"\"");
-        case Token_t::literal_double:  [[fallthrough]];
+        case Token_t::literal_double:  return _out.append("0.0");
         case Token_t::literal_int:     return _out.append("0");
         case Token_t::literal_bool:    return _out.append("false");
-        case Token_t::literal_any:     [[fallthrough]];
+        case Token_t::literal_any:     return _out.append("0");
         case Token_t::ignore:          [[fallthrough]];
         case Token_t::literal_unknown: return _out;
         default:
@@ -1903,19 +1971,12 @@ std::string Nodlang::serialize_type(const TypeDescriptor *_type) const
     return result;
 }
 
-std::string Nodlang::serialize_token_t(Token_t _token) const
-{
-    std::string result;
-    serialize_token_t(result, _token);
-    return result;
-}
-
 int Nodlang::get_precedence( const tools::FunctionDescriptor* _func_type) const
 {
     if (!_func_type)
         return std::numeric_limits<int>::min(); // default
 
-    const Operator* operator_ptr = find_operator(_func_type->get_identifier(), static_cast<Operator_t>(_func_type->get_arg_count()));
+    const Operator* operator_ptr = find_operator(_func_type->get_identifier(), static_cast<Operator_t>(_func_type->arg_count()));
 
     if (operator_ptr)
         return operator_ptr->precedence;
@@ -1960,32 +2021,60 @@ Token_t Nodlang::to_literal_token(const TypeDescriptor *type) const
     return Token_t::literal_unknown;
 }
 
-tools::Optional<Node*> Nodlang::parse_single_scope_or_instruction( Slot* child_slot )
+Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowPathOut& flow_out)
 {
-    // guards
-    VERIFY(child_slot->has_flags(SlotFlag_FREE_CHILD), "A free CHILD slot is expected" );
+    LOG_VERBOSE("Parser", "Parsing atomic code block ..\n");
+    ASSERT(!flow_out.empty());
 
-    LOG_VERBOSE("Parser", "Parsing single scope or instruction ... \n");
+    FlowPath path;
 
-    if ( auto scope = parse_scope(child_slot ) )
+    // most common case
+         if ( (path = parse_scoped_block( flow_out )) );
+    else if ( (path = parse_expression_block( flow_out )) );
+    else if ( (path = parse_if_block( flow_out )) );
+    else if ( (path = parse_for_block( flow_out )) );
+    else if ( (path = parse_while_block( flow_out )) ) ;
+    else      (path = parse_empty_block( flow_out));
+
+    if ( path )
     {
-        return scope;
+        if ( Token tok = _state.tokens().eat_if(Token_t::end_of_instruction) )
+        {
+            path.in->node->set_suffix(tok );
+        }
+
+        LOG_VERBOSE("Parser", OK "Block found (class %s)\n", path.in->node->get_class()->name() );
+        return path;
     }
 
-    if ( Optional<Node*> single_instr = parse_instr() )
+    LOG_VERBOSE("Parser", KO "No block found\n");
+    return path;
+}
+
+std::string& Nodlang::serialize_literal(std::string &_out, const LiteralNode* node) const
+{
+    return serialize_property( _out, node->value() );
+}
+
+std::string& Nodlang::serialize_empty_instruction(std::string &_out, const Node* node) const
+{
+    return serialize_token(_out, node->value()->token() );
+}
+
+Nodlang::FlowPath Nodlang::parse_empty_block(const Nodlang::FlowPathOut& flow_out)
+{
+    if ( _state.tokens().peek(Token_t::end_of_instruction) )
     {
-        Slot* parent_slot = single_instr->find_slot(SlotFlag_PARENT);
-        parser_state.graph()->connect(parent_slot, child_slot, ConnectFlag_ALLOW_SIDE_EFFECTS );
-        return single_instr;
+        Node* node = _state.graph()->create_empty_instruction();
+        _state.graph()->connect( flow_out, node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS);
+        return FlowPath{ node };
     }
-
-    LOG_VERBOSE("Parser", "Parse single scope or instruction " KO "\n");
-
-    return nullptr;
+    return {};
 }
 
 void Nodlang::ParserState::reset_graph(Graph* new_graph)
 {
+    new_graph->clear();
     _graph = new_graph; // memory not owned
 }
 
@@ -2011,6 +2100,7 @@ Nodlang* ndbl::init_language()
 
 Nodlang* ndbl::get_language()
 {
+    VERIFY(g_language, "No language found, did you call init_language?");
     return g_language;
 }
 

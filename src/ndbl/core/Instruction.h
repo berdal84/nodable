@@ -29,18 +29,19 @@ namespace ndbl
     };
 
     REFLECT_ENUM(OpCode)
-    REFLECT_ENUM_VALUE(OpCode_mov)
-    REFLECT_ENUM_VALUE(OpCode_deref_qword )
-    REFLECT_ENUM_VALUE(OpCode_call)
-    REFLECT_ENUM_VALUE(OpCode_push_var)
-    REFLECT_ENUM_VALUE(OpCode_pop_var)
-    REFLECT_ENUM_VALUE(OpCode_push_stack_frame)
-    REFLECT_ENUM_VALUE(OpCode_pop_stack_frame)
-    REFLECT_ENUM_VALUE(OpCode_jmp)
-    REFLECT_ENUM_VALUE(OpCode_jne)
-    REFLECT_ENUM_VALUE(OpCode_ret)
-    REFLECT_ENUM_VALUE(OpCode_cmp)
-    REFLECT_ENUM_END
+    (
+        REFLECT_ENUM_V(OpCode_mov)
+        REFLECT_ENUM_V(OpCode_deref_qword )
+        REFLECT_ENUM_V(OpCode_call)
+        REFLECT_ENUM_V(OpCode_push_var)
+        REFLECT_ENUM_V(OpCode_pop_var)
+        REFLECT_ENUM_V(OpCode_push_stack_frame)
+        REFLECT_ENUM_V(OpCode_pop_stack_frame)
+        REFLECT_ENUM_V(OpCode_jmp)
+        REFLECT_ENUM_V(OpCode_jne)
+        REFLECT_ENUM_V(OpCode_ret)
+        REFLECT_ENUM_V(OpCode_cmp)
+    )
 
     // Unconditional jump
     struct Instruction_jmp
@@ -95,7 +96,7 @@ namespace ndbl
      * Store a single assembly instruction.
      * Each instruction looks like:
      * @code
-     * line_nb type left-arg right-arg comment
+     * line_nb type left-arg_at right-arg_at comment
      */
     struct Instruction
     {

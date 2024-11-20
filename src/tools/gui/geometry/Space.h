@@ -3,8 +3,7 @@
 namespace tools
 {
     // to distinguish the referential of a position
-    typedef int Space;
-    enum Space_: int
+    enum Space : int
     {
         UNKNOWN_SPACE  = 0,
         LOCAL_SPACE    = 1, // Relative to object's position

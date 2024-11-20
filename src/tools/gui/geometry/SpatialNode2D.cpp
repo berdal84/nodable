@@ -1,4 +1,5 @@
 #include "SpatialNode2D.h"
+#include <algorithm>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm/gtx/matrix_transform_2d.hpp"
@@ -6,34 +7,40 @@
 
 tools::SpatialNode2D::~SpatialNode2D()
 {
-    if ( _parent != nullptr )
-        _parent->remove_child( this );
-
-    remove_all_children();
+    clear();
+    assert( _parent == nullptr ); // must have been reset by a high level instance
+    assert( _children.empty() );
 }
 
-
-void tools::SpatialNode2D::set_pos(const Vec2& desired_pos)
+void tools::SpatialNode2D::clear()
 {
-    _transform.set_position( desired_pos ); // PARENT_SPACE
+    while ( !_children.empty() )
+    {
+        remove_child( *_children.begin() );
+    }
+}
+
+void tools::SpatialNode2D::set_position(const Vec2& _pos)
+{
+    _transform.set_position(_pos ); // PARENT_SPACE
     set_world_transform_dirty();
 }
 
-void tools::SpatialNode2D::set_pos(const Vec2& desired_pos, Space desired_space )
+void tools::SpatialNode2D::set_position(const Vec2& _pos, Space desired_space )
 {
     switch ( desired_space )
     {
         case PARENT_SPACE:
-            set_pos(desired_pos); // is default
+            set_position(_pos); // is default
             break;
 
         case WORLD_SPACE:
         {
             if (_parent == nullptr)
-               return set_pos(desired_pos, PARENT_SPACE); // the world is also the parent space in that case
+               return set_position(_pos, PARENT_SPACE); // the world is also the parent space in that case
 
-            glm::vec2 new_pos = _parent->get_world_matrix_inv() * glm::vec3(desired_pos.x, desired_pos.y, 1.f);
-            set_pos(new_pos);
+            glm::vec2 new_pos = _parent->world_matrix_inv() * glm::vec3(_pos.x, _pos.y, 1.f);
+            set_position(new_pos);
             break;
         }
         default:
@@ -56,91 +63,89 @@ void tools::SpatialNode2D::update_world_matrix()
         return;
 
     if ( _parent )
-        _world_matrix = _transform.get_matrix() * _parent->get_world_matrix();
+        _world_matrix = _transform.matrix() * _parent->world_matrix();
     else
-        _world_matrix = _transform.get_matrix();
+        _world_matrix = _transform.matrix();
 
     _world_matrix_inv   = glm::inverse( _world_matrix );
     _world_matrix_dirty = false;
 }
 
-tools::Vec2 tools::SpatialNode2D::get_pos() const
+tools::Vec2 tools::SpatialNode2D::position() const
 {
-    return _transform.get_position();
+    return _transform.position();
 }
 
-tools::Vec2 tools::SpatialNode2D::get_pos(Space space) const
+tools::Vec2 tools::SpatialNode2D::position(Space space) const
 {
     switch ( space )
     {
         default:
-            VERIFY( space != LOCAL_SPACE, "Are you sure this is what you want to do? It would return Vec2(0.f,0.f) ");
             VERIFY( false, "This space is not handled");
 
+        case LOCAL_SPACE:
+            return {0.f, 0.f};
+
         case PARENT_SPACE:
-            return get_pos(); // is default
+            return position(); // is default
 
         case WORLD_SPACE:
             if ( _parent == nullptr )
-                return get_pos();
+                return position();
 
-            glm::vec2 result = _parent->get_world_matrix() * glm::vec3{ get_pos().x, get_pos().y, 1.0f};
+            glm::vec2 result = _parent->world_matrix() * glm::vec3{position().x, position().y, 1.0f};
             return result;
     }
 }
 
-const glm::mat3 &tools::SpatialNode2D::get_world_matrix() const
-{
-    const_cast<SpatialNode2D*>(this)->update_world_matrix();
-    return _world_matrix;
-}
-
-
-const glm::mat3 &tools::SpatialNode2D::get_world_matrix_inv() const
-{
-    const_cast<SpatialNode2D*>(this)->update_world_matrix();
-    return _world_matrix_inv;
-}
-
-tools::SpatialNode2D *tools::SpatialNode2D::get_parent()
-{
-    return _parent;
-}
-
-void tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child)
+bool tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child, SpatialNodeFlags flags)
 {
     ASSERT( new_child != nullptr );
-    this->_children.push_back(new_child);
-    new_child->_parent = this; // by not changing child's matrix, we preserve parent space coords, xform might move on global space
-    new_child->set_world_transform_dirty();
-}
+    ASSERT( new_child->parent() == nullptr );
+    auto [it, inserted] = this->_children.insert(new_child);
 
-void tools::SpatialNode2D::remove_child(tools::SpatialNode2D* existing_child)
-{
-    for(auto it = _children.begin(); it != _children.end(); ++it )
-        if ( existing_child == *it )
-        {
-            _children.erase(it);
-            existing_child->_parent = nullptr; // by not changing child's matrix, we preserve parent space coords, xform might move on global space
-            existing_child->set_world_transform_dirty();
-            return;
-        }
-    ASSERT(false); // Unable to find child
-}
+    if ( !inserted )
+        return false;
 
-void tools::SpatialNode2D::remove_all_children()
-{
-    for( auto each : _children )
+    if ( flags & SpatialNodeFlag_PRESERVE_WORLD_POSITION )
     {
-        each->_parent = nullptr; // by not changing child's matrix, we preserve parent space coords, xform might move on global space
-        each->set_world_transform_dirty();
+        const Vec2 world_position = new_child->position(WORLD_SPACE);
+        new_child->_parent = this;
+        new_child->set_position(world_position, WORLD_SPACE);
     }
-    _children.clear();
+    else
+    {
+        new_child->_parent = this;
+    }
+    return true;
+}
+
+bool tools::SpatialNode2D::remove_child(tools::SpatialNode2D* child, SpatialNodeFlags flags)
+{
+    ASSERT(child);
+    if (child->_parent == nullptr )
+        return false;
+
+    if ( !_children.erase(child) )
+        return false;
+
+    if ( flags & SpatialNodeFlag_PRESERVE_WORLD_POSITION )
+    {
+        const Vec2 pos = child->position(WORLD_SPACE);
+        child->_parent = nullptr;
+        child->set_position(pos, WORLD_SPACE);
+    }
+    else
+    {
+        child->_parent = nullptr;
+    }
+
+    return true;
 }
 
 void tools::SpatialNode2D::translate(const tools::Vec2& delta)
 {
     // Since Transform2D cannot be rotated yet, we can apply the translation in parent space
-    _transform.set_position( _transform.get_position() + delta );
+    _transform.set_position( _transform.position() + delta );
     set_world_transform_dirty();
 }

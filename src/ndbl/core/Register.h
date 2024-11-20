@@ -20,9 +20,10 @@ namespace ndbl
     };
 
     REFLECT_ENUM(Register)
-    REFLECT_ENUM_VALUE(Register_undefined)
-    REFLECT_ENUM_VALUE(Register_rax)
-    REFLECT_ENUM_VALUE(Register_rdx)
-    REFLECT_ENUM_VALUE(Register_eip)
-    REFLECT_ENUM_END
+    (
+        REFLECT_ENUM_V(Register_undefined)
+        REFLECT_ENUM_V(Register_rax)
+        REFLECT_ENUM_V(Register_rdx)
+        REFLECT_ENUM_V(Register_eip)
+    )
 }

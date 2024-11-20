@@ -39,6 +39,7 @@ namespace ndbl
     class FileView
 	{
     public:
+        DECLARE_REFLECT
         explicit FileView();
         FileView(const FileView&) = delete;
 		~FileView() = default;
@@ -48,7 +49,7 @@ namespace ndbl
 
         void                           update(float d);
         void                           init(File& _file);
-        void                           draw();
+        void                           draw(float dt);
         std::string                    get_text(Isolation = Isolation_OFF)const;
         void                           set_text(const std::string&, Isolation mode = Isolation_OFF);
         TextEditor*					   get_text_editor(){ return &m_text_editor; }
@@ -63,7 +64,6 @@ namespace ndbl
         void                           refresh_overlay(Condition condition);
         void                           draw_overlay(const char* title, const std::vector<OverlayData>& overlay_data, const tools::Rect& rect, const tools::Vec2& position);
         size_t                         size() const;
-
     private:
         std::array<std::vector<OverlayData>, OverlayType_COUNT> m_overlay_data;
         File*        m_file;
@@ -75,7 +75,6 @@ namespace ndbl
         std::string  m_experimental_clipboard_curr;
         std::string  m_experimental_clipboard_prev;
         bool         m_experimental_clipboard_auto_paste;
-
-        REFLECT_BASE_CLASS()
+        bool         m_is_history_dragged = false;
     };
 }

@@ -3,7 +3,6 @@
 #include <string>
 #include <map>
 #include <unordered_map>
-#include <cmath> // round()
 #include <algorithm>
 
 #include "PropertyView.h"
@@ -21,9 +20,8 @@ namespace ndbl
     // forward declaration
     class Node;
     class Graph;
-    class Slot;
-    class SlotView;
-    class NodeViewConstraint;
+    struct Slot;
+    struct SlotView;
     class GraphView;
 
     /**
@@ -53,18 +51,17 @@ namespace ndbl
     class NodeView : public NodeComponent
 	{
     public:
+        DECLARE_REFLECT_override
         friend class GraphView;
 		NodeView();
 		~NodeView();
 
-        Node*                   node() const { return m_owner; }
-        bool                    selected() const { return  m_view_state.selected; };
+        bool                    selected() const { return  m_state.selected; };
         inline bool             pinned() const { return m_pinned; }
-        bool                    visible() const { return m_view_state.visible; };
+        bool                    visible() const { return m_state.visible; };
         void                    set_pinned(bool b = true ) { m_pinned = b; }
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw();
-        void                    set_owner(Node*)override;
         void                    update(float);
         void                    arrange_recursively(bool _smoothly = true);
         std::string             get_label();
@@ -74,18 +71,19 @@ namespace ndbl
         void                    set_expanded_rec(bool _expanded);
         void                    set_expanded(bool _expanded);
         void                    set_inputs_visible(bool _visible, bool _recursive = false);
-        void                    set_children_visible(bool _visible, bool _recursive = false);
-        void                    expand_toggle();
-        void                    expand_toggle_rec();
+        void                    set_children_visible(bool visible, bool recursively = false);
+        void                    expand_toggle() { set_expanded(!m_expanded); }
+        void                    expand_toggle_rec() { return set_expanded_rec(!m_expanded); };
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
         GraphView*              graph_view() const;
-        tools::BoxShape2D*             box() { return &m_view_state.box; }
-        const tools::SpatialNode2D*   xform() const { return &m_view_state.box.xform; }
-        tools::SpatialNode2D*         xform() { return &m_view_state.box.xform; }
-        tools::ViewState*       base_view() { return &m_view_state; }
-        bool                    hovered() const { return m_view_state.hovered; }
-        void                    set_selected(bool b = true) { m_view_state.selected = b; };
+        tools::BoxShape2D*      shape() { return &m_state.shape(); }
+        const tools::SpatialNode2D& spatial_node() const { return m_state.spatial_node(); }
+        tools::SpatialNode2D&   spatial_node() { return m_state.spatial_node(); }
+        tools::ViewState&       state() { return m_state; }
+        bool                    hovered() const { return m_state.hovered; }
+        void                    set_selected(bool b = true) { m_state.selected = b; };
+        void                    reset_all_properties();
 
         static tools::Rect      get_rect(const std::vector<NodeView *> &_views, tools::Space = tools::WORLD_SPACE, NodeViewFlags = NodeViewFlag_NONE);
         static std::vector<tools::Rect>   get_rects(const std::vector<NodeView*>& _in_views, tools::Space space = tools::WORLD_SPACE, NodeViewFlags flags = NodeViewFlag_NONE);
@@ -94,13 +92,14 @@ namespace ndbl
         static bool             draw_as_properties_panel(NodeView* _view, bool* _show_advanced );
         static NodeView*        substitute_with_parent_if_not_visible(NodeView* _view, bool _recursive = true);
         static std::vector<NodeView*> substitute_with_parent_if_not_visible(const std::vector<NodeView*>& _in, bool _recurse = true );
-        static void             translate(const std::vector<NodeView*>&, const tools::Vec2& delta);
+
     private:
         PropertyView*           find_property_view(const Property *pProperty);
         void                    add_child(PropertyView*);
         void                    add_child(SlotView*);
         void                    draw_slot(SlotView*);
         void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
+        void                    reset();
 
         static void DrawNodeRect(
                 tools::Rect rect,
@@ -114,7 +113,7 @@ namespace ndbl
         );
 
 
-        tools::ViewState m_view_state; // uses View by Composition
+        tools::ViewState m_state;
         bool            m_expanded;
         bool            m_pinned;
         float           m_opacity;
@@ -122,14 +121,19 @@ namespace ndbl
         SlotView*       m_last_clicked_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
         std::vector<SlotView*>     m_slot_views;
-        std::unordered_map<const Property*, PropertyView*> m_property_views__all;
+        std::unordered_map<const Property*, PropertyView*> m_view_by_property;
         PropertyView*              m_value_view;
-        std::vector<PropertyView*> m_property_views__in_strictly;
-        std::vector<PropertyView*> m_property_views__out_strictly;
-        std::vector<PropertyView*> m_property_views__inout_strictly;
-        std::vector<PropertyView*> m_property_views__out;
-        std::vector<PropertyView*> m_property_views__in;
 
-        REFLECT_DERIVED_CLASS()
+        enum PropType
+        {
+            PropType_IN_STRICTLY = 0,
+            PropType_OUT_STRICTLY,
+            PropType_INOUT_STRICTLY,
+            PropType_IN,
+            PropType_OUT,
+            PropType_COUNT
+        };
+
+        std::array<std::vector<PropertyView*>, PropType::PropType_COUNT> m_view_by_property_type;
     };
 }

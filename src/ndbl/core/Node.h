@@ -9,20 +9,22 @@
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
 
-#include "TComponentBag.h"
 #include "DirectedEdge.h"
 #include "Property.h"
 #include "PropertyBag.h"
 #include "constants.h"
 #include "NodeComponent.h"
+#include "NodeComponentBag.h"
 #include "SlotFlag.h"
 #include "Slot.h"
 #include "NodeType.h"
+#include "Scope.h"
 
 namespace ndbl
 {
     // forward declarations
     class Graph;
+    class NodeFactory;
 
     typedef int NodeFlags;
     enum NodeFlag_
@@ -30,24 +32,19 @@ namespace ndbl
         NodeFlag_NONE                = 0,
         NodeFlag_DEFAULT             = NodeFlag_NONE,
         NodeFlag_IS_DIRTY            = 1 << 0,
-        NodeFlag_TO_DELETE           = 1 << 1,
         NodeFlag_ALL                 = ~NodeFlag_NONE,
     };
-	/**
-		The role of this class is to provide connectable Objects as Nodes.
 
-		A node is an Object (composed with Properties) that can be linked
-	    together in order to create_new graphs.
-
-		Every Node has a parent Graph. All nodes are built from a Graph,
-	    which first create an instance of this class (or derived) and then
-		add some Component on it.
-	*/
     class Node
 	{
     public:
-        friend Graph;
-        
+        DECLARE_REFLECT_virtual
+        POOL_REGISTRABLE(Node)
+
+        friend class Graph;
+        friend class NodeFactory;
+        friend class Scope;
+
         // Code
         Node() = default;
         virtual ~Node();
@@ -59,6 +56,7 @@ namespace ndbl
         bool                 update();
         inline NodeType      type() const { return m_type; }
         bool                 is_invokable() const;
+        bool                 is_expression() const;
         inline bool          has_flags(NodeFlags flags)const { return (m_flags & flags) == flags; };
         inline void          set_flags(NodeFlags flags) { m_flags |= flags; }
         inline void          clear_flags(NodeFlags flags = NodeFlag_ALL) { m_flags &= ~flags; }
@@ -75,6 +73,16 @@ namespace ndbl
         const Slot*          value_in() const;
         Slot*                value_out();
         const Slot*          value_out() const;
+        Slot*                flow_in();
+        const Slot*          flow_in() const;
+        Slot*                flow_out();
+        const Slot*          flow_out() const;
+        bool                 is_orphan() const { return m_parent_scope == nullptr; }
+        bool                 has_scope() const { return m_parent_scope != nullptr; }
+        Scope*               scope() const { return m_parent_scope; };
+        void                 init_internal_scope(size_t sub_scope_count = 0);
+        bool                 has_internal_scope() const { return m_internal_scope != nullptr; }
+        Scope*               internal_scope() const { return m_internal_scope; }
 
         // Slot related
         //-------------
@@ -102,12 +110,11 @@ namespace ndbl
 
         // cached adjacent nodes accessors
 
-        Node* parent() const;
-        inline const std::vector<Node*>& successors() const { return m_adjacent_nodes_cache.get( SlotFlag_NEXT); }
-        inline const std::vector<Node*>& children() const { return m_adjacent_nodes_cache.get( SlotFlag_CHILD ); }
-        inline const std::vector<Node*>& inputs() const { return m_adjacent_nodes_cache.get( SlotFlag_INPUT ); }
-        inline const std::vector<Node*>& outputs() const { return m_adjacent_nodes_cache.get( SlotFlag_OUTPUT ); }
-        inline const std::vector<Node*>& predecessors() const { return m_adjacent_nodes_cache.get( SlotFlag_PREV ); }
+        bool                      has_flow_adjacent() const;
+        const std::vector<Node*>& flow_outputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_OUT); }
+        const std::vector<Node*>& inputs() const       { return m_adjacent_nodes_cache.get(SlotFlag_INPUT); }
+        const std::vector<Node*>& outputs() const      { return m_adjacent_nodes_cache.get(SlotFlag_OUTPUT); }
+        const std::vector<Node*>& flow_inputs() const  { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_IN); }
 
         // Property related
         //-----------------
@@ -133,7 +140,7 @@ namespace ndbl
 
         template<class C>
         C* get_component() const
-        { return static_cast<C*>( m_components.get<C*>() );  }
+        { return static_cast<C*>( m_components.get<C>() );  }
 
         template<class C>
         C* get_component()
@@ -141,10 +148,10 @@ namespace ndbl
 
         template<class C>
         bool has_component() const
-        { return m_components.has<C*>(); }
+        { return m_components.has<C>(); }
 
     protected:
-        void on_slot_change(Slot::Event event, Slot *slot);
+        void               on_slot_change(Slot::Event event, Slot *slot);
 
         std::string        m_name;
         PropertyBag        m_props;
@@ -154,6 +161,8 @@ namespace ndbl
         NodeFlags          m_flags = NodeFlag_IS_DIRTY;
         Property*          m_value = nullptr; // Short had for props.at( 0 )
         std::vector<Slot*> m_slots;
+        Scope*             m_parent_scope = nullptr;
+        Scope*             m_internal_scope = nullptr;
         std::unordered_map<size_t,  std::vector<Slot*>> m_slots_by_property; // property's hash to Slots
 
         struct AdjacentNodesCache
@@ -166,9 +175,6 @@ namespace ndbl
 
         AdjacentNodesCache m_adjacent_nodes_cache = {this};
     private:
-        TComponentBag<NodeComponent*> m_components;
-
-        REFLECT_BASE_CLASS()
-        POOL_REGISTRABLE(Node)
+        NodeComponentBag m_components;
     };
 }

@@ -1,5 +1,6 @@
 #include "Utils.h"
 #include "FunctionNode.h"
+#include "VariableNode.h"
 
 using namespace ndbl;
 
@@ -36,9 +37,9 @@ bool Utils::is_instruction(const Node* node)
 
 bool Utils::is_connected_to_codeflow(const Node *node)
 {
-    if ( node->predecessors().size() )
+    if (node->flow_inputs().size() )
         return true;
-    if ( node->successors().size() )
+    if (node->flow_outputs().size() )
         return true;
     return false;
 }
@@ -46,13 +47,13 @@ bool Utils::is_connected_to_codeflow(const Node *node)
 bool Utils::can_be_instruction(const Node* node)
 {
     // TODO: handle case where a variable has inputs/outputs but not connected to the code flow
-    return node->slot_count(SlotFlag_TYPE_CODEFLOW) > 0 && node->inputs().empty() && node->outputs().empty();
+    return node->slot_count(SlotFlag_TYPE_FLOW) > 0 && node->inputs().empty() && node->outputs().empty();
 }
 
 bool Utils::is_unary_operator(const Node* node)
 {
     if ( node->type() == NodeType_OPERATOR )
-        if (static_cast<const FunctionNode*>(node)->get_func_type()->get_arg_count() == 1 )
+        if (static_cast<const FunctionNode *>(node)->get_func_type().arg_count() == 1 )
             return true;
     return false;
 }
@@ -60,7 +61,7 @@ bool Utils::is_unary_operator(const Node* node)
 bool Utils::is_binary_operator(const Node* node)
 {
     if ( node->type() == NodeType_OPERATOR )
-        if (static_cast<const FunctionNode*>(node)->get_func_type()->get_arg_count() == 2 )
+        if (static_cast<const FunctionNode *>(node)->get_func_type().arg_count() == 2 )
             return true;
     return false;
 }
@@ -71,9 +72,27 @@ bool Utils::is_conditional(const Node* node)
     {
         case NodeType_BLOCK_FOR_LOOP:
         case NodeType_BLOCK_WHILE_LOOP:
-        case NodeType_BLOCK_CONDITION:
+        case NodeType_BLOCK_IF:
             return true;
         default:
             return false;
     };
+}
+
+bool Utils::is_output_node_in_expression(const Node* input_node, const Node* output_node)
+{
+    ASSERT(input_node != nullptr);
+    ASSERT(output_node != nullptr);
+
+    if ( Utils::is_instruction(input_node ) )
+    {
+        if (input_node->type() == NodeType_VARIABLE )
+        {
+            const Slot* declaration_out = static_cast<const VariableNode*>(input_node)->decl_out();
+            return declaration_out->first_adjacent_node() == output_node;
+        }
+        return false;
+    }
+
+    return input_node->outputs().front() == output_node;
 }

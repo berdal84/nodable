@@ -6,13 +6,16 @@ namespace tools
     static float normalize(float _value, float _min, float _max)
     { return glm::clamp(_value, _min, _max) / (_max - _min); }
 
-    template<typename T>
-    inline static float lerp(T _source, T _target, T _factor);
+    static float clamped_lerp(float a, float b, float f)
+    { return glm::mix(a, b, glm::clamp( f, 0.f, 1.f) ); }
+
+    static double clamped_lerp(double a, double b, double f)
+    { return glm::mix(a, b, glm::clamp( f, 0.0, 1.0) ); }
 
     inline float wave(float min, float max, double time, float speed)
     {
         float factor = 0.5f * ( 1.0f + std::sin( time * speed ) );
-        return lerp(min, max, factor);
+        return clamped_lerp(min, max, factor);
     }
 
     static i64_t signed_diff(u64_t a, u64_t b)
@@ -28,12 +31,4 @@ namespace tools
 
         return sign * (i64_t)unsigned_diff;
     }
-
-    template<typename T>
-    inline static float lerp(T _source, T _target, T _factor)
-    {
-        static_assert( std::is_arithmetic_v<T> );
-        return glm::mix(_source, _target, glm::clamp(_factor, T{0}, T{1}));
-    }
-
 }

@@ -149,10 +149,10 @@ namespace tools
     template<typename F>
     variant Apply(F* _function, const std::vector<variant*> &_args)
     {
-        using Args = typename FunctionTrait<F>::args_t;
-        constexpr size_t N = std::tuple_size_v<Args>;
+        using trait = FunctionTrait<F>;
+        constexpr size_t N = std::tuple_size_v<typename trait::args_t>;
         VERIFY(_args.size() == N, "Wrong number of arguments");
-        if constexpr ( std::is_void_v< typename std::result_of<F> > )
+        if constexpr ( std::is_void_v< typename trait::result_t > )
         {
             CastAndApply( _function, VectorToTuple<N>( _args ));
             return null{};
@@ -165,10 +165,10 @@ namespace tools
     template<typename MethodPtrT, typename InstanceT = typename FunctionTrait<MethodPtrT>::ClassT >
     variant Apply(MethodPtrT _method, InstanceT _instance, const std::vector<variant*> &_args)
     {
-        using Args = typename FunctionTrait<MethodPtrT>::args_t;
-        constexpr size_t N = std::tuple_size_v<Args>;
+        using trait = FunctionTrait<MethodPtrT>;
+        constexpr size_t N = std::tuple_size_v<typename trait::args_t>;
         VERIFY(_args.size() == N, "Wrong number of arguments");
-        if constexpr ( std::is_void_v< typename FunctionTrait<MethodPtrT>::result_t > )
+        if constexpr ( std::is_void_v< typename trait::result_t >  )
         {
             CastAndApply(_method, _instance, VectorToTuple<N>( _args ));
             return null{};
@@ -186,19 +186,21 @@ namespace tools
         static_assert( !std::is_member_function_pointer_v<FunctionT> );
 
         InvokableStaticFunction(const char* _name, const FunctionT* _function_pointer)
-            : m_function_pointer( _function_pointer )
-            , m_function_signature(FunctionDescriptor::create<FunctionT>(_name) )
-        { ASSERT( m_function_pointer ); }
+        : m_function_pointer( _function_pointer )
+        {
+            ASSERT( m_function_pointer );
+            m_function_signature.init<FunctionT>(_name);
+        }
 
         variant invoke(const std::vector<variant *> &_args) const override
         { return tools::Apply( m_function_pointer, _args ); }
 
         const FunctionDescriptor* get_sig() const override
-        { return m_function_signature; }
+        { return &m_function_signature; }
 
     private:
-        const FunctionT* m_function_pointer;
-        const FunctionDescriptor*  m_function_signature;
+        const FunctionT*   m_function_pointer;
+        FunctionDescriptor m_function_signature;
     };
 
     /**

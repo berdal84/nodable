@@ -22,11 +22,12 @@ namespace tools
     };
 
     REFLECT_ENUM(FontSlot)
-    REFLECT_ENUM_VALUE(FontSlot_Paragraph)
-    REFLECT_ENUM_VALUE(FontSlot_Heading)
-    REFLECT_ENUM_VALUE(FontSlot_Code)
-    REFLECT_ENUM_VALUE(FontSlot_ToolBtn)
-    REFLECT_ENUM_END
+    (
+        REFLECT_ENUM_V(FontSlot_Paragraph)
+        REFLECT_ENUM_V(FontSlot_Heading)
+        REFLECT_ENUM_V(FontSlot_Code)
+        REFLECT_ENUM_V(FontSlot_ToolBtn)
+    )
 
     struct FontManagerConfig
     {

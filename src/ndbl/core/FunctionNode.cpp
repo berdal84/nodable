@@ -7,31 +7,31 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INIT
-{
-    type::Initializer<FunctionNode>("FunctionNode").extends<Node>();
-}
+REFLECT_STATIC_INITIALIZER
+(
+    DEFINE_REFLECT(FunctionNode).extends<Node>();
+)
 
-void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_type )
+void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor& _func_type )
 {
-    Node::init(_type, _func_type->get_identifier());
+    Node::init(_type, _func_type.get_identifier());
 
     m_func_type = _func_type;
     m_identifier_token = {
         Token_t::identifier,
-        _func_type->get_identifier()
+        _func_type.get_identifier()
     };
-    m_argument_slot.resize(_func_type->get_arg_count());
-    m_argument_props.resize(_func_type->get_arg_count());
+    m_argument_slot.resize(_func_type.arg_count());
+    m_argument_props.resize(_func_type.arg_count());
 
     switch ( _type )
     {
         case NodeType_OPERATOR:
-            set_name(_func_type->get_identifier());
+            set_name(_func_type.get_identifier());
             break;
         case NodeType_FUNCTION:
         {
-            const std::string& id   = _func_type->get_identifier();
+            const std::string& id   = _func_type.get_identifier();
             std::string label       = id; // We add dynamically the brackets (see NodeView)
             std::string short_label = id.substr(0, 2) + "..";
             set_name(label.c_str());
@@ -42,23 +42,22 @@ void FunctionNode::init(NodeType _type, const tools::FunctionDescriptor* _func_t
     }
 
     // Create a result/value
-    m_value->set_type( _func_type->get_return_type() );
+    m_value->set_type(_func_type.return_type() );
 
-    add_slot(m_value, SlotFlag_OUTPUT, Slot::MAX_CAPACITY );
-    add_slot(m_value, SlotFlag_PARENT, 1);
-    add_slot(m_value, SlotFlag_NEXT,   1);
-    add_slot(m_value, SlotFlag_PREV,   Slot::MAX_CAPACITY );
+    add_slot(m_value, SlotFlag_OUTPUT   , Slot::MAX_CAPACITY );
+    add_slot(m_value, SlotFlag_FLOW_OUT , 1);
+    add_slot(m_value, SlotFlag_FLOW_IN  , Slot::MAX_CAPACITY );
 
     // Create arguments
     if ( _type == NodeType_OPERATOR )
     {
-        VERIFY(_func_type->get_arg_count() >= 1, "An operator must have one argument minimum");
-        VERIFY(_func_type->get_arg_count() <= 2, "An operator cannot have more than 2 arguments");
+        VERIFY(_func_type.arg_count() >= 1, "An operator must have one argument minimum");
+        VERIFY(_func_type.arg_count() <= 2, "An operator cannot have more than 2 arguments");
     }
 
-    for (size_t i = 0; i < _func_type->get_arg_count(); i++ )
+    for (size_t i = 0; i < _func_type.arg_count(); i++ )
     {
-        const FuncArg& arg  = _func_type->get_arg(i);
+        const FuncArg& arg  = _func_type.arg_at(i);
 
         const char* name;
         // TODO: this could be done in the NodeView instead...

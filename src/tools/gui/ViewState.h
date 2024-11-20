@@ -20,7 +20,12 @@ namespace tools
 		ViewState();
 		ViewState(float width, float height);
 
-        SpatialNode2D* xform() { return &box.xform; };
-        BoxShape2D      box; // in PARENT_SPACE
+        BoxShape2D&          shape() { return _shape; }
+        const BoxShape2D&    shape() const { return _shape; }
+        SpatialNode2D&       spatial_node() { return _shape.spatial_node(); };
+        const SpatialNode2D& spatial_node() const { return _shape.spatial_node(); };
+
+    private:
+        BoxShape2D _shape; // in PARENT_SPACE
     };
 }
