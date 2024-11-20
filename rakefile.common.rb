@@ -1,37 +1,43 @@
 require_relative "rakefile.config"
 
-def default_project(_name)
+def new_project(_name)
 	{
-	   name:         _name,
-       source_files: FileList[]
+	   name:          _name,
+	   includes:      FileList[],
+       sources:       FileList[],
+       objects:       FileList[],
     }
 end
 
-def object_files(_project)
-	_project[:source_files].clone.map{|_s| "#{BUILD_DIR}/#{_s.ext("o")}"}
+def declare_project_tasks(project)
+
+    # Generate object list
+    project[:objects] = project[:sources].map{|src| src_to_obj(src)}
+
+    # each obj depends on its src tasks
+    project[:objects].each_with_index do |obj, index|
+        src = project[:sources][index]
+        file obj => src do
+            compile_file( src, obj, project)
+        end
+    end
+
+    # main task
+    desc "Build project #{project[:name]}"
+    multitask :build => project[:objects]
 end
 
-
-def src_to_obj(_s, _project)
-	_s.ext("cpp").prepend("#{BUILD_DIR}/")
+def src_to_obj(src_file)
+	"#{OBJ_DIR}/#{src_file.ext("o")}"
 end
 
-def obj_to_src(_s, _project)
-	stem = _s.sub("#{BUILD_DIR}/", "")
-	_project[:source_files].detect{|_f| _f.ext("") == stem.ext("")}
-end
-
-def object_dependencies(_object_path, _project)
-	src_file = obj_to_src(_object_path, _project)
-	src_file
-end
-
-def compile(_target, _project)
-	src_file = obj_to_src(_target, _project)
-	system "echo Compiling #{src_file}..."
+def compile_file(src_file, obj_file, project)
+	puts "Compiling #{src_file} ..."
+	FileUtils.mkdir_p File.dirname(obj_file)
 	case TARGET_OS
         when "linux-gnu"
-	        system "gcc -c -o #{_target} #{src_file}" or raise "Compiler failed to compile #{src_file}"
+            includes = project[:includes].join(" -I")
+	        sh "gcc -I#{includes} -c -o #{obj_file} #{src_file}"
         else
             raise "Unhandled OS: #{TARGET_OS}"
     end

@@ -1,10 +1,11 @@
 
 require_relative "rakefile.tools"
+require 'fileutils'
 
 task :default => :help
 
 desc "Build the whole project"
-task :build => ['tools:core:build', 'tools:gui:build']
+task :build => ['tools:core:build']
 
 desc "says hello"
 task :help do
@@ -21,4 +22,11 @@ task :install do
     else
         raise("Unhandled operating system: #{TARGET_OS}")
     end
+end
+
+task :clean do
+    if File.exists?(BUILD_DIR)
+        FileUtils.remove_entry_secure BUILD_DIR
+    end
+    puts "Clean OK"
 end
