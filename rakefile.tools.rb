@@ -3,7 +3,8 @@ require_relative "rakefile.common"
 namespace :tools do
 namespace :core do
 
-    _project = default_project
+    _project = default_project("tools_core")
+
     _project[:source_files] |= FileList[
         "src/tools/core/EventManager.cpp",
         "src/tools/core/FileSystem.cpp",
@@ -27,7 +28,8 @@ end # namespace :core
 
 namespace :gui do
 
-    _project = default_project
+    _project = default_project("tools_gui")
+
     _project[:source_files] |= FileList[
       "src/tools/core/EventManager.cpp",
       "src/tools/core/FileSystem.cpp",
