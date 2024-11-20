@@ -28,9 +28,10 @@ end
 def compile(_target, _project)
 	src_file = obj_to_src(_target, _project)
 	sh "echo Compiling #{src_file}...", verbose: false
-	if HOST_OS == "linux-gnu"
-	    sh "gcc -c -o #{_target} #{src_file}", verbose: false
-    else
-        raise "Unhandled HOST_OS (#{HOST_OS})"
+	case COMPILER
+        when "gcc"
+	        sh "gcc -c -o #{_target} #{src_file}", verbose: false
+        else
+            raise "Unhandled compiler: #{COMPILER}"
     end
 end
