@@ -31,7 +31,7 @@ def compile(_target, _project)
 	system "echo Compiling #{src_file}..."
 	case TARGET_OS
         when "linux-gnu"
-	        system "gcc -c -o #{_target} #{src_file}"
+	        system "gcc -c -o #{_target} #{src_file}" or raise "Compiler failed to compile #{src_file}"
         else
             raise "Unhandled OS: #{TARGET_OS}"
     end
