@@ -1,6 +1,114 @@
+require "fileutils"
+require "rbconfig"
 
-require_relative "rakefile.tools"
-require 'fileutils'
+########################################################################################################################
+
+print RbConfig::CONFIG['target_os']
+
+BUILD_OS           = RbConfig::CONFIG['build_os']
+HOST_OS            = RbConfig::CONFIG['host_os']
+TARGET_OS          = RbConfig::CONFIG['target_os']
+BUILD_TYPE         = ENV["BUILD_TYPE"]      || "release"
+BUILD_DIR          = ENV["BUILD_DIR"]       || "./rake-build-#{BUILD_TYPE}"
+BINARY_DIR         = ENV["BINARY_DIR"]      || "./rake-out-#{BUILD_TYPE}"
+OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
+
+########################################################################################################################
+
+def new_project(_name)
+	{
+	   name:          _name,
+       sources:       FileList[],
+       objects:       FileList[],
+       includes:      FileList[
+           "src",
+           "src/gui",
+           "src/tools",
+           "libs",
+           "libs/whereami/src",
+           "libs/imgui",
+           "libs/imgui",
+           "libs/glm",
+           "libs/gl3w/GL",
+           "libs/gl3w",
+           "libs/SDL/include",
+           "libs/IconFontCppHeaders",
+           "libs/nativefiledialog-extended/src/include"
+       ],
+       defines: {
+           "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
+       },
+       c_compiler:   "clang",
+       cxx_compiler: "clang++"
+    }
+end
+
+def configure_project(project)
+
+    # Generate object list
+    project[:objects] = project[:sources].map{|src| src_to_obj(src)}
+
+    # each obj depends on its src tasks
+    project[:objects].each_with_index do |obj, index|
+        src = project[:sources][index]
+        file obj => src do
+            compile_file( src, obj, project)
+        end
+    end
+
+    project[:objects]
+end
+
+def src_to_obj(src_file)
+	"#{OBJ_DIR}/#{src_file.ext("o")}"
+end
+
+def compile_file(src_file, obj_file, project)
+	puts "Compiling #{src_file} ..."
+	FileUtils.mkdir_p File.dirname(obj_file)
+
+    includes = project[:includes].map{|path| "-I#{path}"}.join(" ")
+    defines  = project[:defines].map{|key,value| "-D#{key}='#{value}'" }.join(" ") # we add '' because "" are removed by the terminal
+
+    if ( project[:c_compiler] != "clang" )
+        raise "Not implemented"
+    end
+    if ( project[:cxx_compiler] != "clang++" )
+        raise "Not implemented"
+    end
+
+    flags = [
+        "-c", # obj only
+        "-Wfatal-errors",
+        #"-pedantic"
+    ].join(" ")
+
+    flags_cxx    = [
+        "--std=c++20",
+        "-fno-char8_t"
+    ].join(" ")
+
+    has_cxx_extension = [
+        ".cpp",
+        ".cc"
+    ].include? File.extname( src_file )
+
+    if has_cxx_extension
+        system "#{project[:cxx_compiler]} #{flags} #{flags_cxx} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
+    else
+        system "#{project[:c_compiler]} #{flags} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
+    end
+end
+
+def check_os_support()
+    if not system "clang --version"
+        raise "clang compiler is required, please install an retry."
+    end
+end
+
+########################################################################################################################
+
+check_os_support()
 
 task :default => :help
 
@@ -13,21 +121,19 @@ task :help do
 end
 
 desc "Install dependencies"
-task :install do
-
-    check_os_support()
-
-    puts "Ruby version is:"
+task :check do
+    print "Ruby version is: "
     system "ruby -v"
+end
 
-    if is_linux
+desc "Install dependencies"
+task :install => :check do
+    if BUILD_OS.include?("linux")
         system "sudo apt-get update && sudo apt-get install libegl1-mesa-dev libdbus-1-dev libgtk-3-dev" or raise "Unable to install packages"
-    elsif is_windows
-        # nothing
-    elsif is_mac
+    elsif BUILD_OS.include?("darwin")
         system "brew install mesalib-glw" or raise "Unable to install packages"
     else
-        raise("Unhandled operating system: #{TARGET_OS}")
+        puts "No dependencies to install (or unsupported OS)"
     end
 end
 
@@ -37,3 +143,62 @@ task :clean do
     end
     puts "Clean OK"
 end
+
+########################################################################################################################
+
+namespace :tools do
+
+    namespace :core do
+
+        project = new_project("tools_core")
+
+        project[:sources] |= FileList[
+            "src/tools/core/reflection/qword.cpp",
+            "src/tools/core/reflection/Type.cpp",
+            "src/tools/core/reflection/TypeRegister.cpp",
+            "src/tools/core/reflection/variant.cpp",
+            "src/tools/core/memory/pointers.cpp",
+            "src/tools/core/EventManager.cpp",
+            "src/tools/core/FileSystem.cpp",
+            "src/tools/core/format.cpp",
+            "src/tools/core/log.cpp",
+            "src/tools/core/StateMachine.cpp",
+            "src/tools/core/System.cpp",
+            "src/tools/core/TaskManager.cpp",
+            "libs/whereami/src/whereami.c"
+        ]
+
+        multitask :build => configure_project( project )
+
+    end # namespace :core
+
+    namespace :gui do
+
+        project = new_project("tools_gui")
+
+        project[:sources] |= FileList[
+            "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
+            "src/tools/gui/geometry/BoxShape2D.cpp",
+            "src/tools/gui/geometry/Rect.cpp",
+            "src/tools/gui/geometry/SpatialNode2D.cpp",
+            "src/tools/gui/geometry/TRSTransform2D.cpp",
+            "src/tools/gui/Action.cpp",
+            "src/tools/gui/ActionManager.cpp",
+            "src/tools/gui/ActionManagerView.cpp",
+            "src/tools/gui/App.cpp",
+            "src/tools/gui/AppView.cpp",
+            "src/tools/gui/Config.cpp",
+            "src/tools/gui/FontManager.cpp",
+            "src/tools/gui/ImGuiEx.cpp",
+            "src/tools/gui/ViewState.cpp",
+            "src/tools/gui/TextureManager.cpp",
+        ]
+
+        multitask :build => configure_project( project )
+
+    end # namespace :gui
+
+    task :build => ['core:build', 'gui:build']
+
+end # namespace :tools
+
