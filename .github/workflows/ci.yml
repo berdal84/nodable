@@ -26,6 +26,10 @@ jobs:
         with:
           submodules: true
 
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3' # Not needed with a `.ruby-version` or `.tool-versions`
+
       - name: Install
         shell: bash
         run: rake install --trace
