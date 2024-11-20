@@ -61,6 +61,7 @@ _screenshots/
 /nodable/install/
 /bin/
 /cmake-**
+/rake-**
 /.idea
 .gitconfig
 .cache

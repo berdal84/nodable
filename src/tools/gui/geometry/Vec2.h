@@ -1,11 +1,11 @@
 #pragma once
 
-#include "glm/glm/common.hpp"
-#include "glm/glm/ext/matrix_float3x3.hpp"
-#include "glm/glm/ext/matrix_transform.hpp"
-#include "glm/glm/vec2.hpp"
+#include "glm/common.hpp"
+#include "glm/ext/matrix_float3x3.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/vec2.hpp"
 
-#include "tools/core/types.h"
+#include "core/types.h"
 
 namespace tools
 {

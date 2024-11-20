@@ -2,11 +2,11 @@
 
 #include <SDL.h>
 #include <array>
-#include "tools/core/FileSystem.h"
+#include <imgui.h>
 #include <map>
 #include <string>
+#include "tools/core/FileSystem.h"
 #include "tools/core/types.h"
-#include "ImGuiEx.h"
 #include "Config.h"
 #include "tools/core/Signals.h"
 
@@ -19,6 +19,7 @@ namespace tools
     class EventManager;
     class FontManager;
     class VirtualMachine;
+    class ActionManager;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.

@@ -1,6 +1,8 @@
 #include "FontManager.h"
 #include "App.h"
 #include "Config.h"
+#include <imgui/imgui_internal.h>
+#include <IconsFontAwesome5.h>
 
 using namespace tools;
 
