@@ -44,12 +44,17 @@ namespace :shared do
                "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
            },
            c_flags: [
-           ],
-           cxx_flags: [
-                "-O2"
-           ],
+                "-O3",
+                "-c", # obj only
+                "-Wfatal-errors",
+                #"-pedantic"
+            ],
+            cxx_flags: [
+                "--std=c++17",
+                "-fno-char8_t"
+            ],
            linker_flags: [
-                "`pkg-config --cflags --libs gtk+-3.0`",
+                 "`pkg-config --cflags --libs gtk+-3.0`",
                 "`pkg-config --cflags --libs freetype2`",
                 "`sdl2-config --cflags --libs`",
                 "-l:libnfd.a",
@@ -120,16 +125,8 @@ namespace :shared do
             raise "Not implemented"
         end
 
-        flags = [
-            "-c", # obj only
-            "-Wfatal-errors",
-            #"-pedantic"
-        ].join(" ")
-
-        flags_cxx    = [
-            "--std=c++20",
-            "-fno-char8_t"
-        ].join(" ")
+        cxx_flags = project[:cxx_flags].join(" ")
+        c_flags   = project[:c_flags].join(" ")
 
         has_cxx_extension = [
             ".cpp",
@@ -137,9 +134,9 @@ namespace :shared do
         ].include? File.extname( src_file )
 
         if has_cxx_extension
-            system "#{project[:cxx_compiler]} #{flags} #{flags_cxx} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
+            system "#{project[:cxx_compiler]} #{c_flags} #{cxx_flags} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
         else
-            system "#{project[:c_compiler]} #{flags} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
+            system "#{project[:c_compiler]} #{c_flags} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
         end
     end
 
