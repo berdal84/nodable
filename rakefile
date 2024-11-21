@@ -34,7 +34,8 @@ def new_project(_name)
            "libs/SDL/include",
            "libs/IconFontCppHeaders",
            "libs/nativefiledialog-extended/src/include",
-           "libs/cpptrace"
+           "libs/cpptrace",
+           "libs/freetype/include"
        ],
        defines: {
            "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
@@ -67,7 +68,7 @@ end
 def make_executable( project )
     objects = project[:objects].join(" ")
     binary = project[:name]
-    system "clang++ -o #{binary} #{objects} -v"
+    system "clang++ -o #{binary} #{objects}  `sdl2-config --cflags --libs` -v"
 end
 
 def compile_file(src_file, obj_file, project)
@@ -220,11 +221,14 @@ lodepng[:sources] |= FileList[
     "libs/lodepng/lodepng.cpp"
 ]
 
+sdl = new_project("sdl")
+sdl[:sources] |= Dir.glob("libs/SDL/src/**.{c,cpp}")
+
 imgui = new_project("imgui")
 imgui[:sources] |= FileList[
    "libs/imgui/imgui.cpp",
    "libs/imgui/imgui_demo.cpp",
-   "libs/imgui/imgui_draw.cpp ",
+   "libs/imgui/imgui_draw.cpp",
    "libs/imgui/imgui_tables.cpp",
    "libs/imgui/imgui_widgets.cpp",
    "libs/imgui/misc/freetype/imgui_freetype.cpp",
@@ -232,7 +236,6 @@ imgui[:sources] |= FileList[
    "libs/imgui/backends/imgui_impl_opengl3.cpp",
 ]
 imgui[:sources] |= Dir.glob("libs/freetype/src/**.{c,cpp}")
-
 
 tools_gui = new_project("tools-gui")
 tools_gui[:sources] |= FileList[
@@ -265,21 +268,36 @@ tools_gui_example[:sources] |= tools_gui[:sources]
 tools_gui_example[:sources] |= gl3w[:sources]
 tools_gui_example[:sources] |= lodepng[:sources]
 tools_gui_example[:sources] |= imgui[:sources]
+# tools_gui_example[:sources] |= sdl[:sources]
 
 tools_gui_example[:includes] |= cpp_trace[:includes]
 tools_gui_example[:includes] |= tools_core[:includes]
 tools_gui_example[:includes] |= tools_gui[:includes]
+
+namespace :sdl do
+    task :build => [] do
+        commands = [
+            'cd libs/SDL',
+            'mkdir -p build',
+            'cd build',
+            '../configure',
+            'make',
+            'sudo make install'
+        ]
+        system commands.join(" && ")
+    end
+end
 
 namespace :tools do
     task :build => 'link' do
         puts "Build done"
     end
 
-    task :link => 'build_objs' do
+    task :link => ['sdl:build', 'compile'] do
         make_executable( tools_gui_example )
         puts "Linking done"
     end
 
     desc "Build the tools gui app example"
-    multitask :build_objs => compile_objects( tools_gui_example )
+    multitask :compile => compile_objects( tools_gui_example )
 end
