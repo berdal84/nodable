@@ -12,6 +12,7 @@ BUILD_TYPE         = ENV["BUILD_TYPE"]      || "release"
 BUILD_DIR          = ENV["BUILD_DIR"]       || "./rake-build-#{BUILD_TYPE}"
 BINARY_DIR         = ENV["BINARY_DIR"]      || "./rake-out-#{BUILD_TYPE}"
 OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
+INSTALL_PATH       = ENV["INSTALL_PATH"]    || "./out"
 
 ########################################################################################################################
 
@@ -55,8 +56,7 @@ namespace :shared do
                 "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
            ],
            c_compiler:   "clang",
-           cxx_compiler: "clang++",
-           assets: FileList['assets/**/*']
+           cxx_compiler: "clang++"
         }
     end
 
@@ -84,8 +84,6 @@ namespace :shared do
         objects      = project[:objects].join(" ")
         binary       = "#{BUILD_DIR}/#{project[:name]}"
         linker_flags = project[:linker_flags].join(" ")
-        system "rm -rf #{BUILD_DIR}/assets"
-        system "cp -r assets #{BUILD_DIR}"
         system "clang++ -o #{binary} #{objects} -Llibs/nativefiledialog-extended/build/src #{project[:linker_flags].join(" ")} -v"
     end
 
@@ -298,15 +296,38 @@ tools_gui_example[:includes] |= tools_gui[:includes]
 
 namespace :tools do
 
+    task :install => [] do
+        commands = [
+            "rm -rf #{INSTALL_PATH}",
+            "mkdir -p #{INSTALL_PATH}",
+            "cp -r #{BUILD_DIR}/assets #{BUILD_DIR}/#{tools_gui_example[:name]} #{INSTALL_PATH}", 
+        ].join(" && ")
+        system commands
+    end
+
     task :run => [] do
         sh "exec #{BUILD_DIR}/#{tools_gui_example[:name]}" or raise "error"
     end
 
-    task :build => 'binary'
+    multitask :build => [
+        'binary',
+        'copy_assets'
+    ]
 
-    task :binary => ['deps', 'objs'] do
+    task :copy_assets => [] do
+        print "Copying assets..."
+        commands = [
+            "mkdir -p #{BUILD_DIR}/assets",
+            "cp -r assets/** #{BUILD_DIR}/assets",
+        ].join(" && " )
+        system commands
+    end
+
+    task :binary => [
+        'deps',
+        'objs'
+    ] do
         make_executable( tools_gui_example )
-        puts "Build OK"
     end
 
     task :deps => [
@@ -319,5 +340,7 @@ namespace :tools do
     multitask :objs => compile_objects( tools_gui_example )
 end
 
+task :ci => ['tools:build', 'tools:install']
 task :build => 'tools:build'
+task :install => 'tools:install'
 task :run => 'tools:run'
