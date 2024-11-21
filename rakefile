@@ -68,7 +68,7 @@ end
 def make_executable( project )
     objects = project[:objects].join(" ")
     binary = project[:name]
-    system "clang++ -o #{binary} #{objects}  `sdl2-config --cflags --libs` -v"
+    system "clang++ -o #{binary} #{objects}  `pkg-config freetype2 --cflags --libs` `sdl2-config --cflags --libs` -v"
 end
 
 def compile_file(src_file, obj_file, project)
@@ -288,12 +288,25 @@ namespace :sdl do
     end
 end
 
+namespace :freetype do
+    task :build => [] do
+        commands = [
+            'cd libs/freetype',
+            'mkdir -p build && cd build',
+            'cmake ..',
+            'make',
+            'sudo make install'
+        ]
+        system commands.join(" && ")
+    end
+end
+
 namespace :tools do
     task :build => 'link' do
         puts "Build done"
     end
 
-    task :link => ['sdl:build', 'compile'] do
+    task :link => ['freetype:build', 'sdl:build', 'compile'] do
         make_executable( tools_gui_example )
         puts "Linking done"
     end
