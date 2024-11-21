@@ -18,8 +18,9 @@ jobs:
       fail-fast: false # see https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs#handling-failures
     runs-on: ${{ matrix.os }}
     env:
-      BUILD_TYPE: debug
-      INSTALL_PATH: out
+      # Those are read by rake script
+      BUILD_TYPE:  debug
+      INSTALL_DIR: out
     steps:
       - name: Git Checkout
         uses: actions/checkout@v4
@@ -30,16 +31,20 @@ jobs:
         with:
           ruby-version: '3.3' # Not needed with a `.ruby-version` or `.tool-versions`
 
-      - name: Install
+      - name: Install Dependencies
         shell: bash
         run: rake install --trace
 
       - name: Build
         shell: bash
-        run: rake ci --trace
+        run: rake build --trace
+
+      - name: Pack
+        shell: bash
+        run: rake pack --trace
 
       - name: Binary Artifact
         uses: actions/upload-artifact@v4
         with:
           name: nodable-${{ runner.os }}
-          path: ${{env.INSTALL_PATH}}/*
+          path: ${{env.INSTALL_DIR}}/*

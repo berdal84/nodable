@@ -12,7 +12,7 @@ BUILD_TYPE         = ENV["BUILD_TYPE"]      || "release"
 BUILD_DIR          = ENV["BUILD_DIR"]       || "./rake-build-#{BUILD_TYPE}"
 BINARY_DIR         = ENV["BINARY_DIR"]      || "./rake-out-#{BUILD_TYPE}"
 OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
-INSTALL_PATH       = ENV["INSTALL_PATH"]    || "./out"
+INSTALL_DIR       = ENV["INSTALL_DIR"]    || "./out"
 
 ########################################################################################################################
 
@@ -46,6 +46,7 @@ namespace :shared do
            c_flags: [
            ],
            cxx_flags: [
+                "-O2"
            ],
            linker_flags: [
                 "`pkg-config --cflags --libs gtk+-3.0`",
@@ -56,7 +57,8 @@ namespace :shared do
                 "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
            ],
            c_compiler:   "clang",
-           cxx_compiler: "clang++"
+           cxx_compiler: "clang++",
+           asset_folder_path: "assets" # a single folder
         }
     end
 
@@ -76,11 +78,28 @@ namespace :shared do
         project[:objects]
     end
 
+    def copy_assets_to_build_dir( project )
+        print "Copying assets..."
+        commands = [
+            "mkdir -p #{BUILD_DIR}/#{project[:asset_folder_path]}",
+            "cp -r #{project[:asset_folder_path]}/** #{BUILD_DIR}/#{project[:asset_folder_path]}",
+        ].join(" && ")
+        system commands
+    end
+
+    def copy_build_to_install_dir( project )
+        commands = [
+            "mkdir -p #{INSTALL_DIR}",
+            "cp -r #{BUILD_DIR}/#{project[:asset_folder_path]} #{BUILD_DIR}/#{project[:name]} #{INSTALL_DIR}", 
+        ].join(" && ")
+        system commands
+    end
+
     def src_to_obj(src_file)
     	"#{OBJ_DIR}/#{src_file.ext("o")}"
     end
 
-    def make_executable( project )
+    def build_executable_binary( project )
         objects      = project[:objects].join(" ")
         binary       = "#{BUILD_DIR}/#{project[:name]}"
         linker_flags = project[:linker_flags].join(" ")
@@ -133,42 +152,14 @@ end # namespace shared
 
 ########################################################################################################################
 
-check_os_support()
-
-task :default => :help
-
-desc "says hello"
-task :help do
-	print("Welcome to Nodable's rakefile.\nFor more info, run: rake --tasks\n")
-end
-
-desc "Install dependencies"
-task :check do
-    print "Ruby version is: "
-    system "ruby -v"
-end
-
-desc "Install dependencies"
-task :install => :check do
-    if BUILD_OS.include?("linux")
-        system "sudo apt-get update && sudo apt-get install libegl1-mesa-dev libdbus-1-dev libgtk-3-dev" or raise "Unable to install packages"
-    elsif BUILD_OS.include?("darwin")
-        system "brew install mesalib-glw" or raise "Unable to install packages"
-    else
-        puts "No dependencies to install (or unsupported OS)"
-    end
-end
-
-task :clean do
-    if File.exists?(BUILD_DIR)
-        FileUtils.remove_entry_secure BUILD_DIR
-    end
-    puts "Clean OK"
-end
-
-########################################################################################################################
-
 namespace :libs do
+
+    task :build_all => [
+        'nfd',
+        'cpptrace',
+        'sdl',
+        'freetype'
+    ]
 
     task :nfd => [] do
         commands = [
@@ -241,6 +232,11 @@ gl3w[:sources] |= FileList[
     "libs/gl3w/GL/gl3w.c"
 ]
 
+texteditor = new_project("texteditor")
+texteditor[:sources] |= FileList[
+    "libs/ImGuiColorTextEdit/TextEditor.cpp"
+]
+
 lodepng = new_project("lodepng")
 lodepng[:sources] |= FileList[
     "libs/lodepng/lodepng.cpp"
@@ -259,7 +255,7 @@ imgui[:sources] |= FileList[
 ]
 imgui[:sources] |= Dir.glob("libs/freetype/src/**.{c,cpp}")
 
-tools_gui = new_project("tools-gui")
+tools_gui = new_project("tools_gui")
 tools_gui[:sources] |= FileList[
     "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
     "src/tools/gui/geometry/BoxShape2D.cpp",
@@ -294,40 +290,125 @@ tools_gui_example[:sources] |= imgui[:sources]
 tools_gui_example[:includes] |= tools_core[:includes]
 tools_gui_example[:includes] |= tools_gui[:includes]
 
+ndbl_core = new_project("ndbl_core")
+ndbl_core[:sources] |= FileList[
+    "src/ndbl/core/language/Nodlang.cpp",
+    "src/ndbl/core/language/Nodlang_biology.cpp",
+    "src/ndbl/core/language/Nodlang_math.cpp",
+    "src/ndbl/core/Code.cpp",
+    "src/ndbl/core/Compiler.cpp",
+    "src/ndbl/core/ComponentFactory.cpp",
+    "src/ndbl/core/DirectedEdge.cpp",
+    "src/ndbl/core/ForLoopNode.cpp",
+    "src/ndbl/core/FunctionNode.cpp",
+    "src/ndbl/core/Graph.cpp",
+    "src/ndbl/core/IfNode.cpp",
+    "src/ndbl/core/Instruction.cpp",
+    "src/ndbl/core/Interpreter.cpp",
+    "src/ndbl/core/LiteralNode.cpp",
+    "src/ndbl/core/NodableHeadless.cpp",
+    "src/ndbl/core/Node.cpp",
+    "src/ndbl/core/NodeComponent.cpp",
+    "src/ndbl/core/NodeFactory.cpp",
+    "src/ndbl/core/Property.cpp",
+    "src/ndbl/core/PropertyBag.cpp",
+    "src/ndbl/core/Scope.cpp",
+    "src/ndbl/core/Slot.cpp",
+    "src/ndbl/core/SwitchBehavior.cpp",
+    "src/ndbl/core/Token.cpp",
+    #"src/ndbl/core/Token.specs.cpp",
+    "src/ndbl/core/TokenRibbon.cpp",
+    "src/ndbl/core/Utils.cpp",
+    "src/ndbl/core/VariableNode.cpp",
+    "src/ndbl/core/WhileLoopNode.cpp",
+]
+
+ndbl_gui = new_project("ndbl_gui")
+ndbl_gui[:sources] |= FileList[
+    "src/ndbl/gui/CreateNodeCtxMenu.cpp",
+    "src/ndbl/gui/GraphView.cpp",
+    "src/ndbl/gui/Nodable.cpp",
+    #"src/ndbl/gui/benchmark.cpp",
+    "src/ndbl/gui/Config.cpp",
+    "src/ndbl/gui/File.cpp",
+    "src/ndbl/gui/FileView.cpp",
+    "src/ndbl/gui/History.cpp",
+    "src/ndbl/gui/NodableView.cpp",
+    "src/ndbl/gui/NodeView.cpp",
+    "src/ndbl/gui/Physics.cpp",
+    "src/ndbl/gui/PropertyView.cpp",
+    "src/ndbl/gui/ScopeView.cpp",
+    "src/ndbl/gui/SlotView.cpp",
+]
+
+ndbl_app = new_project("nodable")
+ndbl_app[:sources] |= FileList[
+    "src/ndbl/app/main.cpp",
+]
+ndbl_app[:sources] |= tools_core[:sources]
+ndbl_app[:sources] |= tools_gui[:sources]
+ndbl_app[:sources] |= ndbl_core[:sources]
+ndbl_app[:sources] |= ndbl_gui[:sources]
+ndbl_app[:sources] |= gl3w[:sources]
+ndbl_app[:sources] |= lodepng[:sources]
+ndbl_app[:sources] |= imgui[:sources]
+ndbl_app[:sources] |= texteditor[:sources]
+
+ndbl_app[:defines] .merge!({
+    "NDBL_APP_NAME":       "\"nodable\"",
+    "NDBL_APP_ASSETS_DIR": "\"assets\"",
+    "NDBL_BUILD_REF":      "\"local\""
+})
+
+ndbl_cli = new_project("ndbl_cli")
+ndbl_cli[:sources] |= FileList[
+    "src/ndbl/cli/CLI.cpp",
+    "src/ndbl/cli/main.cpp",
+]
+ndbl_cli[:sources] |= tools_core[:sources]
+ndbl_cli[:sources] |= ndbl_core[:sources]
+
 namespace :tools do
 
-    task :install => [] do
-        commands = [
-            "rm -rf #{INSTALL_PATH}",
-            "mkdir -p #{INSTALL_PATH}",
-            "cp -r #{BUILD_DIR}/assets #{BUILD_DIR}/#{tools_gui_example[:name]} #{INSTALL_PATH}", 
-        ].join(" && ")
-        system commands
+    project = tools_gui_example
+
+    task :pack => [] do
+        copy_build_to_install_dir(project)
     end
 
     task :run => [] do
-        sh "exec #{BUILD_DIR}/#{tools_gui_example[:name]}" or raise "error"
+        sh "exec #{BUILD_DIR}/#{project[:name]}" or raise "error"
     end
 
-    multitask :build => [
-        'binary',
-        'copy_assets'
-    ]
-
-    task :copy_assets => [] do
-        print "Copying assets..."
-        commands = [
-            "mkdir -p #{BUILD_DIR}/assets",
-            "cp -r assets/** #{BUILD_DIR}/assets",
-        ].join(" && " )
-        system commands
-    end
-
-    task :binary => [
-        'deps',
+    task :build => [
+        'libs:build_all',
         'objs'
     ] do
-        make_executable( tools_gui_example )
+        build_executable_binary( project )
+        copy_assets_to_build_dir( project )
+    end
+
+    multitask :objs => compile_objects( project )
+end
+
+namespace :ndbl do
+
+    project = ndbl_app
+
+    task :pack => [] do
+        copy_build_to_install_dir(project)
+    end
+
+    task :run => [] do
+        sh "exec #{BUILD_DIR}/#{project[:name]}" or raise "error"
+    end
+
+    task :build => [
+        'libs:build_all',
+        'objs'
+    ] do
+        build_executable_binary( project )
+        copy_assets_to_build_dir( project )
     end
 
     task :deps => [
@@ -337,10 +418,48 @@ namespace :tools do
         'libs:cpptrace'
     ]
 
-    multitask :objs => compile_objects( tools_gui_example )
+    multitask :objs => compile_objects( project )
 end
 
-task :ci => ['tools:build', 'tools:install']
-task :build => 'tools:build'
-task :install => 'tools:install'
-task :run => 'tools:run'
+
+########################################################################################################################
+
+check_os_support()
+
+task :default => :help
+
+desc "says hello"
+task :help do
+    print("Welcome to Nodable's rakefile.\nFor more info, run: rake --tasks\n")
+end
+
+desc "Print Ruby version"
+task :check do
+    print "Ruby version is: "
+    system "ruby -v"
+end
+
+desc "Install dependencies"
+task :install => :check do
+    if BUILD_OS.include?("linux")
+        system "sudo apt-get update && sudo apt-get install libegl1-mesa-dev libdbus-1-dev libgtk-3-dev" or raise "Unable to install packages"
+    elsif BUILD_OS.include?("darwin")
+        system "brew install mesalib-glw" or raise "Unable to install packages"
+    else
+        puts "No dependencies to install (or unsupported OS)"
+    end
+end
+
+task :build   => ['tools:build', 'ndbl:build']
+task :pack    => ['tools:pack' , 'ndbl:pack']
+task :run     => ['tools:run'  , 'ndbl:run']
+
+task :clean do
+    if File.exists?(INSTALL_DIR)
+        FileUtils.remove_entry_secure INSTALL_DIR
+    end
+    if File.exists?(BUILD_DIR)
+        FileUtils.remove_entry_secure BUILD_DIR
+    end
+    puts "Clean OK"
+end
