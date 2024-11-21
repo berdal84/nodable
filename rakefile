@@ -15,104 +15,123 @@ OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
 
 ########################################################################################################################
 
-def new_project(_name)
-	{
-	   name:          _name,
-       sources:       FileList[],
-       objects:       FileList[],
-       includes:      FileList[
-           "src",
-           "src/gui",
-           "src/tools",
-           "libs",
-           "libs/whereami/src",
-           "libs/imgui",
-           "libs/imgui",
-           "libs/glm",
-           "libs/gl3w/GL",
-           "libs/gl3w",
-           "libs/SDL/include",
-           "libs/IconFontCppHeaders",
-           "libs/nativefiledialog-extended/src/include",
-           "libs/cpptrace",
-           "libs/freetype/include"
-       ],
-       defines: {
-           "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
-       },
-       c_compiler:   "clang",
-       cxx_compiler: "clang++"
-    }
-end
+namespace :shared do
+    def new_project(_name)
+    	{
+    	   name:          _name,
+           sources:       FileList[],
+           objects:       FileList[],
+           includes:      FileList[
+               "src",
+               "src/gui",
+               "src/tools",
+               "libs",
+               "libs/whereami/src",
+               "libs/imgui",
+               "libs/imgui",
+               "libs/glm",
+               "libs/gl3w/GL",
+               "libs/gl3w",
+               "libs/SDL/include",
+               "libs/IconFontCppHeaders",
+               "libs/nativefiledialog-extended/src/include",
+               "libs/cpptrace",
+               "libs/freetype/include",
+               "/usr/include/X11/mesa/GL"
+           ],
+           defines: {
+               "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
+           },
+           c_flags: [
+           ],
+           cxx_flags: [
+           ],
+           linker_flags: [
+                "`pkg-config --cflags --libs gtk+-3.0`",
+                "`pkg-config --cflags --libs freetype2`",
+                "`sdl2-config --cflags --libs`",
+                "-l:libnfd.a",
+                "-lGL",
+                "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+           ],
+           c_compiler:   "clang",
+           cxx_compiler: "clang++",
+           assets: FileList['assets/**/*']
+        }
+    end
 
-def compile_objects(project)
+    def compile_objects(project)
 
-    # Generate object list
-    project[:objects] = project[:sources].map{|src| src_to_obj(src)}
+        # Generate object list
+        project[:objects] = project[:sources].map{|src| src_to_obj(src)}
 
-    # each obj depends on its src tasks
-    project[:objects].each_with_index do |obj, index|
-        src = project[:sources][index]
-        file obj => src do
-            compile_file( src, obj, project)
+        # each obj depends on its src tasks
+        project[:objects].each_with_index do |obj, index|
+            src = project[:sources][index]
+            file obj => src do
+                compile_file( src, obj, project)
+            end
+        end
+
+        project[:objects]
+    end
+
+    def src_to_obj(src_file)
+    	"#{OBJ_DIR}/#{src_file.ext("o")}"
+    end
+
+    def make_executable( project )
+        objects      = project[:objects].join(" ")
+        binary       = "#{BUILD_DIR}/#{project[:name]}"
+        linker_flags = project[:linker_flags].join(" ")
+        system "rm -rf #{BUILD_DIR}/assets"
+        system "cp -r assets #{BUILD_DIR}"
+        system "clang++ -o #{binary} #{objects} -Llibs/nativefiledialog-extended/build/src #{project[:linker_flags].join(" ")} -v"
+    end
+
+    def compile_file(src_file, obj_file, project)
+    	puts "Compiling #{src_file} ..."
+    	FileUtils.mkdir_p File.dirname(obj_file)
+
+        includes = project[:includes].map{|path| "-I#{path}"}.join(" ")
+        defines  = project[:defines].map{|key,value| "-D#{key}='#{value}'" }.join(" ") # we add '' because "" are removed by the terminal
+
+        if ( project[:c_compiler] != "clang" )
+            raise "Not implemented"
+        end
+        if ( project[:cxx_compiler] != "clang++" )
+            raise "Not implemented"
+        end
+
+        flags = [
+            "-c", # obj only
+            "-Wfatal-errors",
+            #"-pedantic"
+        ].join(" ")
+
+        flags_cxx    = [
+            "--std=c++20",
+            "-fno-char8_t"
+        ].join(" ")
+
+        has_cxx_extension = [
+            ".cpp",
+            ".cc"
+        ].include? File.extname( src_file )
+
+        if has_cxx_extension
+            system "#{project[:cxx_compiler]} #{flags} #{flags_cxx} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
+        else
+            system "#{project[:c_compiler]} #{flags} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
         end
     end
 
-    project[:objects]
-end
-
-def src_to_obj(src_file)
-	"#{OBJ_DIR}/#{src_file.ext("o")}"
-end
-
-def make_executable( project )
-    objects = project[:objects].join(" ")
-    binary = project[:name]
-    system "clang++ -o #{binary} #{objects}  `pkg-config freetype2 --cflags --libs` `sdl2-config --cflags --libs` -v"
-end
-
-def compile_file(src_file, obj_file, project)
-	puts "Compiling #{src_file} ..."
-	FileUtils.mkdir_p File.dirname(obj_file)
-
-    includes = project[:includes].map{|path| "-I#{path}"}.join(" ")
-    defines  = project[:defines].map{|key,value| "-D#{key}='#{value}'" }.join(" ") # we add '' because "" are removed by the terminal
-
-    if ( project[:c_compiler] != "clang" )
-        raise "Not implemented"
+    def check_os_support()
+        if not system "clang --version"
+            raise "clang compiler is required, please install an retry."
+        end
     end
-    if ( project[:cxx_compiler] != "clang++" )
-        raise "Not implemented"
-    end
-
-    flags = [
-        "-c", # obj only
-        "-Wfatal-errors",
-        #"-pedantic"
-    ].join(" ")
-
-    flags_cxx    = [
-        "--std=c++20",
-        "-fno-char8_t"
-    ].join(" ")
-
-    has_cxx_extension = [
-        ".cpp",
-        ".cc"
-    ].include? File.extname( src_file )
-
-    if has_cxx_extension
-        system "#{project[:cxx_compiler]} #{flags} #{flags_cxx} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
-    else
-        system "#{project[:c_compiler]} #{flags} #{defines} #{includes} -o #{obj_file} #{src_file}" or raise("Unable to compile file!")
-    end
-end
-
-def check_os_support()
-    if not system "clang --version"
-        raise "clang compiler is required, please install an retry."
-    end
-end
+end # namespace shared
 
 ########################################################################################################################
 
@@ -151,49 +170,56 @@ end
 
 ########################################################################################################################
 
-cpp_trace = new_project("cpp_trace")
-cpp_trace[:sources] |= FileList[
-   "src/binary/elf.cpp",
-   "src/binary/mach-o.cpp",
-   "src/binary/module_base.cpp",
-   "src/binary/object.cpp",
-   "src/binary/pe.cpp",
-   "src/binary/safe_dl.cpp",
-   "src/cpptrace.cpp",
-   "src/ctrace.cpp",
-   "src/exceptions.cpp",
-   "src/from_current.cpp",
-   "src/options.cpp",
-   "src/utils.cpp",
-   "src/demangle/demangle_with_cxxabi.cpp",
-   "src/demangle/demangle_with_nothing.cpp",
-   "src/demangle/demangle_with_winapi.cpp",
-   "src/snippets/snippet.cpp",
-   "src/symbols/dwarf/debug_map_resolver.cpp",
-   "src/symbols/dwarf/dwarf_resolver.cpp",
-   "src/symbols/symbols_core.cpp",
-   "src/symbols/symbols_with_addr2line.cpp",
-   "src/symbols/symbols_with_dbghelp.cpp",
-   "src/symbols/symbols_with_dl.cpp",
-   "src/symbols/symbols_with_libbacktrace.cpp",
-   "src/symbols/symbols_with_libdwarf.cpp",
-   "src/symbols/symbols_with_nothing.cpp",
-   "src/unwind/unwind_with_dbghelp.cpp",
-   "src/unwind/unwind_with_execinfo.cpp",
-   "src/unwind/unwind_with_libunwind.cpp",
-   "src/unwind/unwind_with_nothing.cpp",
-   "src/unwind/unwind_with_unwind.cpp",
-   "src/unwind/unwind_with_winapi.cpp",
-   "src/utils/microfmt.cpp",
-   "src/utils/utils.cpp",
-   "src/platform/dbghelp_syminit_manager.cpp",
-].map{|str| "libs/cpptrace/#{str}"}
+namespace :libs do
 
-cpp_trace[:includes] |= FileList[
-    "libs/cpptrace/src",
-    "libs/cpptrace/include"
-]
+    task :nfd => [] do
+        commands = [
+            "rm -rf libs/nativefiledialog-extended/build",
+            'cd libs/nativefiledialog-extended',
+            'mkdir -p build',
+            'cd build',
+            'cmake -DCMAKE_BUILD_TYPE=Release ..',
+            'cmake --build .'
+        ]
+        system commands.join(" && ")
+    end
 
+    task :cpptrace => [] do
+        commands = [
+            "cd libs/cpptrace",
+            "mkdir -p build && cd build",
+            "cmake .. -DCMAKE_BUILD_TYPE=Release",
+            "make -j",
+            "sudo make install"
+        ]
+        system commands.join(" && ")
+    end
+
+    task :sdl => [] do
+        commands = [
+            'cd libs/SDL',
+            'mkdir -p build',
+            'cd build',
+            '../configure',
+            'make',
+            'sudo make install'
+        ]
+        system commands.join(" && ")
+    end
+
+    task :freetype => [] do
+        commands = [
+            'cd libs/freetype',
+            'mkdir -p build && cd build',
+            'cmake ..',
+            'make',
+            'sudo make install'
+        ]
+        system commands.join(" && ")
+    end
+end # namespace libs
+
+########################################################################################################################
 
 tools_core = new_project("tools-core")
 tools_core[:sources] |= FileList[
@@ -201,7 +227,7 @@ tools_core[:sources] |= FileList[
     "src/tools/core/reflection/Type.cpp",
     "src/tools/core/reflection/TypeRegister.cpp",
     "src/tools/core/reflection/variant.cpp",
-    "src/tools/core/memory/pointers.cpp",
+    #"src/tools/core/memory/pointers.cpp",
     "src/tools/core/EventManager.cpp",
     "src/tools/core/FileSystem.cpp",
     "src/tools/core/format.cpp",
@@ -221,9 +247,6 @@ lodepng = new_project("lodepng")
 lodepng[:sources] |= FileList[
     "libs/lodepng/lodepng.cpp"
 ]
-
-sdl = new_project("sdl")
-sdl[:sources] |= Dir.glob("libs/SDL/src/**.{c,cpp}")
 
 imgui = new_project("imgui")
 imgui[:sources] |= FileList[
@@ -263,75 +286,38 @@ tools_gui_example[:sources] |= FileList[
     "src/tools/gui-example/AppExampleView.cpp",
     "src/tools/gui-example/main.cpp"
 ]
-tools_gui_example[:sources] |= cpp_trace[:sources]
+
 tools_gui_example[:sources] |= tools_core[:sources]
 tools_gui_example[:sources] |= tools_gui[:sources]
 tools_gui_example[:sources] |= gl3w[:sources]
 tools_gui_example[:sources] |= lodepng[:sources]
 tools_gui_example[:sources] |= imgui[:sources]
-# tools_gui_example[:sources] |= sdl[:sources]
 
-tools_gui_example[:includes] |= cpp_trace[:includes]
 tools_gui_example[:includes] |= tools_core[:includes]
 tools_gui_example[:includes] |= tools_gui[:includes]
 
-namespace :nfd do
-    static = 'libs/nativefiledialog-extended/build/src/libnfd.a'
-    task :build => :static
-    task :clean do
-        system "rm -rf libs/nativefiledialog-extended/build"
-    end
-    task :static do
-        commands = [
-            'cd libs/nativefiledialog-extended',
-            'mkdir -p build',
-            'cd build',
-            'cmake -DCMAKE_BUILD_TYPE=Release ..',
-            'cmake --build .'
-        ]
-        system commands.join(" && ")
-    end
-end
-
-namespace :sdl do
-    task :build => [] do
-        commands = [
-            'cd libs/SDL',
-            'mkdir -p build',
-            'cd build',
-            '../configure',
-            'make',
-            'sudo make install'
-        ]
-        system commands.join(" && ")
-    end
-end
-
-namespace :freetype do
-    task :build => [] do
-        commands = [
-            'cd libs/freetype',
-            'mkdir -p build && cd build',
-            'cmake ..',
-            'make',
-            'sudo make install'
-        ]
-        system commands.join(" && ")
-    end
-end
-
 namespace :tools do
-    task :build => 'link' do
-        puts "Build done"
+
+    task :run => [] do
+        sh "exec #{BUILD_DIR}/#{tools_gui_example[:name]}" or raise "error"
     end
 
-    task :link => ['nfd:build', 'freetype:build', 'sdl:build', 'compile'] do
+    task :build => 'binary'
+
+    task :binary => ['deps', 'objs'] do
         make_executable( tools_gui_example )
-        puts "Linking done"
+        puts "Build OK"
     end
 
-    desc "Build the tools gui app example"
-    multitask :compile => compile_objects( tools_gui_example )
+    task :deps => [
+        'libs:nfd',
+        'libs:freetype',
+        'libs:sdl',
+        'libs:cpptrace'
+    ]
+
+    multitask :objs => compile_objects( tools_gui_example )
 end
 
-task :build => ['tools:build']
+task :build => 'tools:build'
+task :run => 'tools:run'
