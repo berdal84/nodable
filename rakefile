@@ -194,6 +194,7 @@ cpp_trace[:includes] |= FileList[
     "libs/cpptrace/include"
 ]
 
+
 tools_core = new_project("tools-core")
 tools_core[:sources] |= FileList[
     "src/tools/core/reflection/qword.cpp",
@@ -274,6 +275,24 @@ tools_gui_example[:includes] |= cpp_trace[:includes]
 tools_gui_example[:includes] |= tools_core[:includes]
 tools_gui_example[:includes] |= tools_gui[:includes]
 
+namespace :nfd do
+    static = 'libs/nativefiledialog-extended/build/src/libnfd.a'
+    task :build => :static
+    task :clean do
+        system "rm -rf libs/nativefiledialog-extended/build"
+    end
+    task :static do
+        commands = [
+            'cd libs/nativefiledialog-extended',
+            'mkdir -p build',
+            'cd build',
+            'cmake -DCMAKE_BUILD_TYPE=Release ..',
+            'cmake --build .'
+        ]
+        system commands.join(" && ")
+    end
+end
+
 namespace :sdl do
     task :build => [] do
         commands = [
@@ -306,7 +325,7 @@ namespace :tools do
         puts "Build done"
     end
 
-    task :link => ['freetype:build', 'sdl:build', 'compile'] do
+    task :link => ['nfd:build', 'freetype:build', 'sdl:build', 'compile'] do
         make_executable( tools_gui_example )
         puts "Linking done"
     end
@@ -314,3 +333,5 @@ namespace :tools do
     desc "Build the tools gui app example"
     multitask :compile => compile_objects( tools_gui_example )
 end
+
+task :build => ['tools:build']
