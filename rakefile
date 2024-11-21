@@ -33,7 +33,8 @@ def new_project(_name)
            "libs/gl3w",
            "libs/SDL/include",
            "libs/IconFontCppHeaders",
-           "libs/nativefiledialog-extended/src/include"
+           "libs/nativefiledialog-extended/src/include",
+           "libs/cpptrace"
        ],
        defines: {
            "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
@@ -43,7 +44,7 @@ def new_project(_name)
     }
 end
 
-def configure_project(project)
+def compile_objects(project)
 
     # Generate object list
     project[:objects] = project[:sources].map{|src| src_to_obj(src)}
@@ -61,6 +62,12 @@ end
 
 def src_to_obj(src_file)
 	"#{OBJ_DIR}/#{src_file.ext("o")}"
+end
+
+def make_executable( project )
+    objects = project[:objects].join(" ")
+    binary = project[:name]
+    system "clang++ -o #{binary} #{objects} -v"
 end
 
 def compile_file(src_file, obj_file, project)
@@ -112,9 +119,6 @@ check_os_support()
 
 task :default => :help
 
-desc "Build the whole project"
-task :build => ['tools:build']
-
 desc "says hello"
 task :help do
 	print("Welcome to Nodable's rakefile.\nFor more info, run: rake --tasks\n")
@@ -146,59 +150,136 @@ end
 
 ########################################################################################################################
 
+cpp_trace = new_project("cpp_trace")
+cpp_trace[:sources] |= FileList[
+   "src/binary/elf.cpp",
+   "src/binary/mach-o.cpp",
+   "src/binary/module_base.cpp",
+   "src/binary/object.cpp",
+   "src/binary/pe.cpp",
+   "src/binary/safe_dl.cpp",
+   "src/cpptrace.cpp",
+   "src/ctrace.cpp",
+   "src/exceptions.cpp",
+   "src/from_current.cpp",
+   "src/options.cpp",
+   "src/utils.cpp",
+   "src/demangle/demangle_with_cxxabi.cpp",
+   "src/demangle/demangle_with_nothing.cpp",
+   "src/demangle/demangle_with_winapi.cpp",
+   "src/snippets/snippet.cpp",
+   "src/symbols/dwarf/debug_map_resolver.cpp",
+   "src/symbols/dwarf/dwarf_resolver.cpp",
+   "src/symbols/symbols_core.cpp",
+   "src/symbols/symbols_with_addr2line.cpp",
+   "src/symbols/symbols_with_dbghelp.cpp",
+   "src/symbols/symbols_with_dl.cpp",
+   "src/symbols/symbols_with_libbacktrace.cpp",
+   "src/symbols/symbols_with_libdwarf.cpp",
+   "src/symbols/symbols_with_nothing.cpp",
+   "src/unwind/unwind_with_dbghelp.cpp",
+   "src/unwind/unwind_with_execinfo.cpp",
+   "src/unwind/unwind_with_libunwind.cpp",
+   "src/unwind/unwind_with_nothing.cpp",
+   "src/unwind/unwind_with_unwind.cpp",
+   "src/unwind/unwind_with_winapi.cpp",
+   "src/utils/microfmt.cpp",
+   "src/utils/utils.cpp",
+   "src/platform/dbghelp_syminit_manager.cpp",
+].map{|str| "libs/cpptrace/#{str}"}
+
+cpp_trace[:includes] |= FileList[
+    "libs/cpptrace/src",
+    "libs/cpptrace/include"
+]
+
+tools_core = new_project("tools-core")
+tools_core[:sources] |= FileList[
+    "src/tools/core/reflection/qword.cpp",
+    "src/tools/core/reflection/Type.cpp",
+    "src/tools/core/reflection/TypeRegister.cpp",
+    "src/tools/core/reflection/variant.cpp",
+    "src/tools/core/memory/pointers.cpp",
+    "src/tools/core/EventManager.cpp",
+    "src/tools/core/FileSystem.cpp",
+    "src/tools/core/format.cpp",
+    "src/tools/core/log.cpp",
+    "src/tools/core/StateMachine.cpp",
+    "src/tools/core/System.cpp",
+    "src/tools/core/TaskManager.cpp",
+    "libs/whereami/src/whereami.c"
+]
+
+gl3w = new_project("gl3w")
+gl3w[:sources] |= FileList[
+    "libs/gl3w/GL/gl3w.c"
+]
+
+lodepng = new_project("lodepng")
+lodepng[:sources] |= FileList[
+    "libs/lodepng/lodepng.cpp"
+]
+
+imgui = new_project("imgui")
+imgui[:sources] |= FileList[
+   "libs/imgui/imgui.cpp",
+   "libs/imgui/imgui_demo.cpp",
+   "libs/imgui/imgui_draw.cpp ",
+   "libs/imgui/imgui_tables.cpp",
+   "libs/imgui/imgui_widgets.cpp",
+   "libs/imgui/misc/freetype/imgui_freetype.cpp",
+   "libs/imgui/backends/imgui_impl_sdl.cpp",
+   "libs/imgui/backends/imgui_impl_opengl3.cpp",
+]
+imgui[:sources] |= Dir.glob("libs/freetype/src/**.{c,cpp}")
+
+
+tools_gui = new_project("tools-gui")
+tools_gui[:sources] |= FileList[
+    "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
+    "src/tools/gui/geometry/BoxShape2D.cpp",
+    "src/tools/gui/geometry/Rect.cpp",
+    "src/tools/gui/geometry/SpatialNode2D.cpp",
+    "src/tools/gui/geometry/TRSTransform2D.cpp",
+    "src/tools/gui/Action.cpp",
+    "src/tools/gui/ActionManager.cpp",
+    "src/tools/gui/ActionManagerView.cpp",
+    "src/tools/gui/App.cpp",
+    "src/tools/gui/AppView.cpp",
+    "src/tools/gui/Config.cpp",
+    "src/tools/gui/FontManager.cpp",
+    "src/tools/gui/ImGuiEx.cpp",
+    "src/tools/gui/ViewState.cpp",
+    "src/tools/gui/TextureManager.cpp",
+]
+
+tools_gui_example = new_project("tools-gui-example")
+tools_gui_example[:sources] |= FileList[
+    "src/tools/gui-example/AppExample.cpp",
+    "src/tools/gui-example/AppExampleView.cpp",
+    "src/tools/gui-example/main.cpp"
+]
+tools_gui_example[:sources] |= cpp_trace[:sources]
+tools_gui_example[:sources] |= tools_core[:sources]
+tools_gui_example[:sources] |= tools_gui[:sources]
+tools_gui_example[:sources] |= gl3w[:sources]
+tools_gui_example[:sources] |= lodepng[:sources]
+tools_gui_example[:sources] |= imgui[:sources]
+
+tools_gui_example[:includes] |= cpp_trace[:includes]
+tools_gui_example[:includes] |= tools_core[:includes]
+tools_gui_example[:includes] |= tools_gui[:includes]
+
 namespace :tools do
+    task :build => 'link' do
+        puts "Build done"
+    end
 
-    namespace :core do
+    task :link => 'build_objs' do
+        make_executable( tools_gui_example )
+        puts "Linking done"
+    end
 
-        project = new_project("tools_core")
-
-        project[:sources] |= FileList[
-            "src/tools/core/reflection/qword.cpp",
-            "src/tools/core/reflection/Type.cpp",
-            "src/tools/core/reflection/TypeRegister.cpp",
-            "src/tools/core/reflection/variant.cpp",
-            "src/tools/core/memory/pointers.cpp",
-            "src/tools/core/EventManager.cpp",
-            "src/tools/core/FileSystem.cpp",
-            "src/tools/core/format.cpp",
-            "src/tools/core/log.cpp",
-            "src/tools/core/StateMachine.cpp",
-            "src/tools/core/System.cpp",
-            "src/tools/core/TaskManager.cpp",
-            "libs/whereami/src/whereami.c"
-        ]
-
-        multitask :build => configure_project( project )
-
-    end # namespace :core
-
-    namespace :gui do
-
-        project = new_project("tools_gui")
-
-        project[:sources] |= FileList[
-            "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
-            "src/tools/gui/geometry/BoxShape2D.cpp",
-            "src/tools/gui/geometry/Rect.cpp",
-            "src/tools/gui/geometry/SpatialNode2D.cpp",
-            "src/tools/gui/geometry/TRSTransform2D.cpp",
-            "src/tools/gui/Action.cpp",
-            "src/tools/gui/ActionManager.cpp",
-            "src/tools/gui/ActionManagerView.cpp",
-            "src/tools/gui/App.cpp",
-            "src/tools/gui/AppView.cpp",
-            "src/tools/gui/Config.cpp",
-            "src/tools/gui/FontManager.cpp",
-            "src/tools/gui/ImGuiEx.cpp",
-            "src/tools/gui/ViewState.cpp",
-            "src/tools/gui/TextureManager.cpp",
-        ]
-
-        multitask :build => configure_project( project )
-
-    end # namespace :gui
-
-    task :build => ['core:build', 'gui:build']
-
-end # namespace :tools
-
+    desc "Build the tools gui app example"
+    multitask :build_objs => compile_objects( tools_gui_example )
+end
