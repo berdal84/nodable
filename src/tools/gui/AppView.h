@@ -5,6 +5,7 @@
 #include <imgui.h>
 #include <map>
 #include <string>
+#include "TextureManager.h"
 #include "tools/core/FileSystem.h"
 #include "tools/core/types.h"
 #include "Config.h"
@@ -15,7 +16,6 @@ namespace tools
     // forward declarations
     class App;
     class History;
-    class TextureManager;
     class EventManager;
     class FontManager;
     class VirtualMachine;
