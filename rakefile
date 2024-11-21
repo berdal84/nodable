@@ -12,38 +12,42 @@ BUILD_TYPE         = ENV["BUILD_TYPE"]      || "release"
 BUILD_DIR          = ENV["BUILD_DIR"]       || "./rake-build-#{BUILD_TYPE}"
 BINARY_DIR         = ENV["BINARY_DIR"]      || "./rake-out-#{BUILD_TYPE}"
 OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
-INSTALL_DIR       = ENV["INSTALL_DIR"]    || "./out"
+INSTALL_DIR        = ENV["INSTALL_DIR"]    || "./out"
+
+BUILD_OS_LINUX              = BUILD_OS.include?("linux")
+BUILD_OS_MACOS              = BUILD_OS.include?("darwin")
+WINDOWS_OS_MACOS            = BUILD_OS.include?("windows") || BUILD_OS.include?("mingw32")
 
 ########################################################################################################################
 
 namespace :shared do
     def new_project(_name)
     	{
-    	   name:          _name,
-           sources:       FileList[],
-           objects:       FileList[],
-           includes:      FileList[
-               "src",
-               "src/gui",
-               "src/tools",
-               "libs",
-               "libs/whereami/src",
-               "libs/imgui",
-               "libs/imgui",
-               "libs/glm",
-               "libs/gl3w/GL",
-               "libs/gl3w",
-               "libs/SDL/include",
-               "libs/IconFontCppHeaders",
-               "libs/nativefiledialog-extended/src/include",
-               "libs/cpptrace",
-               "libs/freetype/include",
-               "/usr/include/X11/mesa/GL"
-           ],
-           defines: {
-               "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
-           },
-           c_flags: [
+            name:          _name,
+            sources:       FileList[],
+            objects:       FileList[],
+            includes:      FileList[
+                "src",
+                "src/gui",
+                "src/tools",
+                "libs",
+                "libs/whereami/src",
+                "libs/imgui",
+                "libs/imgui",
+                "libs/glm",
+                "libs/gl3w/GL",
+                "libs/gl3w",
+                "libs/SDL/include",
+                "libs/IconFontCppHeaders",
+                "libs/nativefiledialog-extended/src/include",
+                "libs/cpptrace",
+                "libs/freetype/include",
+                "/usr/include/X11/mesa/GL"
+            ],
+            defines: {
+                "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
+            },
+            c_flags: [
                 "-O3",
                 "-c", # obj only
                 "-Wfatal-errors",
@@ -53,8 +57,15 @@ namespace :shared do
                 "--std=c++17",
                 "-fno-char8_t"
             ],
-           linker_flags: [
-                 "`pkg-config --cflags --libs gtk+-3.0`",
+            linux_flags: [
+
+            ],
+            macos_flags: [
+                "-framework AppKit"
+            ],
+            linker_flags: [
+                "-Llibs/nativefiledialog-extended/build/src",
+                "`pkg-config --cflags --libs gtk+-3.0`",
                 "`pkg-config --cflags --libs freetype2`",
                 "`sdl2-config --cflags --libs`",
                 "-l:libnfd.a",
@@ -105,10 +116,19 @@ namespace :shared do
     end
 
     def build_executable_binary( project )
-        objects      = project[:objects].join(" ")
-        binary       = "#{BUILD_DIR}/#{project[:name]}"
-        linker_flags = project[:linker_flags].join(" ")
-        system "clang++ -o #{binary} #{objects} -Llibs/nativefiledialog-extended/build/src #{project[:linker_flags].join(" ")} -v"
+        objects = project[:objects].join(" ")
+        binary  = "#{BUILD_DIR}/#{project[:name]}"
+        flags   = project[:linker_flags].join(" ")
+
+        if BUILD_OS_LINUX
+            flags += project[:linux_flags].join(" ")
+        elsif BUILD_OS_MACOS
+            flags += project[:macos_flags].join(" ")
+        else WINDOWS_OS_MACOS
+            flags += project[:windows_flags].join(" ")
+        end
+
+        system "clang++ -o #{binary} #{objects} #{flags} -v"
     end
 
     def compile_file(src_file, obj_file, project)
@@ -438,9 +458,9 @@ end
 
 desc "Install dependencies"
 task :install => :check do
-    if BUILD_OS.include?("linux")
+    if BUILD_OS_LINUX
         system "sudo apt-get update && sudo apt-get install libegl1-mesa-dev libdbus-1-dev libgtk-3-dev" or raise "Unable to install packages"
-    elsif BUILD_OS.include?("darwin")
+    elsif BUILD_OS_MACOS
         system "brew install mesalib-glw" or raise "Unable to install packages"
     else
         puts "No dependencies to install (or unsupported OS)"
