@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       # Those are read by rake script
-      BUILD_TYPE:  debug
+      BUILD_TYPE:  release # release|debug
       INSTALL_DIR: out
     steps:
       - name: Git Checkout
