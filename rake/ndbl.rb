@@ -31,7 +31,6 @@ namespace :ndbl do
         "src/ndbl/core/VariableNode.cpp",
         "src/ndbl/core/WhileLoopNode.cpp",
     ]
-    declare_project_tasks( core )
 
     gui = new_project("ndbl_gui")
     gui[:sources] |= FileList[

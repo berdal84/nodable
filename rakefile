@@ -7,6 +7,9 @@ require_relative 'rake/common'
 require_relative 'rake/tools'
 require_relative 'rake/ndbl'
 
+CLEAN.include [OBJ_DIR]
+CLOBBER.include [BUILD_DIR]
+
 task :default => :help
 
 desc "says hello"
@@ -28,17 +31,3 @@ end
 task :build => ['tools:build', 'ndbl:build'] do puts "Build DONE" end
 task :pack  => ['tools:pack' , 'ndbl:pack'] do puts "Pack DONE" end
 task :run   => ['tools:run'  , 'ndbl:run']
-
-
-# TODO: use the officials tools to clean properly
-task :clean do
-    puts "Cleaning install dir ..."
-    if File.exists?(INSTALL_DIR)
-        FileUtils.remove_entry_secure INSTALL_DIR
-    end
-    puts "Cleaning build dir ..."
-    if File.exists?(BUILD_DIR)
-        FileUtils.remove_entry_secure BUILD_DIR
-    end
-    puts "Clean DONE"
-end

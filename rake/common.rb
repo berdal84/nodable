@@ -52,10 +52,15 @@ def new_project(name)
         ] 
     end
 
+    defines = {
+        "NDBL_APP_ASSETS_DIR": "\\\"#{asset_folder_path}\\\"",
+        "NDBL_APP_NAME": "\\\"nodable\\\"",
+        "NDBL_BUILD_REF": "\\\"local\\\"",
+    }
     if BUILD_OS_WINDOWS
-        defines = {"IMGUI_USER_CONFIG": "\"<tools/gui/ImGuiExConfig.h>\""}
+        defines.merge!({"IMGUI_USER_CONFIG": "\"<tools/gui/ImGuiExConfig.h>\""})
     else
-        defines = {"IMGUI_USER_CONFIG": "'<tools/gui/ImGuiExConfig.h>'"}
+        defines.merge!({"IMGUI_USER_CONFIG": "'<tools/gui/ImGuiExConfig.h>'"})
     end
     
     if BUILD_TYPE_RELEASE
@@ -78,8 +83,17 @@ def new_project(name)
     }
 end
 
-def preprocess_project( project )
-    project[:objects] = project[:sources].map{|src| src_to_obj(src)}
+def src_to_obj( obj )
+    "#{OBJ_DIR}/#{ obj.ext(".o")}"
+end
+
+def obj_to_src( obj, _project)
+    stem = obj.sub("#{OBJ_DIR}/", "").ext("")
+    _project[:sources].detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
+end
+
+def cook_project( project )
+    objects = project[:sources].map{|src| src_to_obj(src) };
 
     # stringify arrays
     project[:str_includes]     = project[:includes].map{|path| "-I#{path}"}.join(" ")
@@ -88,24 +102,39 @@ def preprocess_project( project )
     project[:str_defines]      = project[:defines].map{|key,value| "-D#{key}=#{value}" }.join(" ")
     project[:str_linker_flags] = project[:linker_flags].join(" ")
 
-    project[:objects]
+    objects
 end
 
 def declare_project_tasks(project)
+
+    system "mkdir -p #{BUILD_DIR}"
+    system "mkdir -p #{OBJ_DIR}"
+
+    objects = cook_project(project)
 
     desc "Copy in #{INSTALL_DIR} the files to distribute the software"
     task :pack do
         copy_build_to_install_dir(project)
     end
 
-    desc "Compile (if needed) and link them in a binary"
+    desc "Compile project"
+    task :build => :link
+
+    desc "Link objects"
     task :link => [:compile, 'libs:build_all'] do
         build_executable_binary( project )
         copy_assets_to_build_dir( project )
     end    
 
-    preprocess_project(project)
-    multitask :compile => compile_objects(project)
+    multitask :compile => objects
+
+    objects.each do |obj|
+        src = obj_to_src( obj, project )
+        # desc "Compiles #{src}"
+        file obj => src do |task|
+            compile_file( task.source, task.name, project)
+		end
+	end
 end
 
 def copy_assets_to_build_dir( project )
@@ -128,10 +157,6 @@ def copy_build_to_install_dir( project )
     system commands
 end
 
-def src_to_obj(src_file)
-	"#{OBJ_DIR}/#{src_file.ext("o")}"
-end
-
 def build_executable_binary( project )
 
     objects        = project[:objects].join(" ")
@@ -139,16 +164,6 @@ def build_executable_binary( project )
     linker_flags   = project[:str_linker_flags]
 
     system "#{CXX_COMPILER} -o #{binary} #{objects} #{linker_flags} -v"
-end
-
-def compile_objects( project )
-    project[:objects].each_with_index do |obj, index|
-        src = project[:sources][index]
-        file obj => src do
-            compile_file( src, obj, project)
-        end
-    end
-    project[:objects]
 end
 
 def compile_file(src, obj, project)

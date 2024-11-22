@@ -90,5 +90,5 @@ namespace :tools do
     end
 
     desc "Build tools"
-    task :build => ['core:link', 'gui:link', 'gui_example:link']
+    task :build => ['core:build', 'gui:build', 'gui_example:build']
 end

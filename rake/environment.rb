@@ -6,10 +6,9 @@ TARGET_OS          = RbConfig::CONFIG['target_os']
 BUILD_TYPE         = (ENV["BUILD_TYPE"] || "release").downcase
 BUILD_TYPE_RELEASE = BUILD_TYPE == "release"
 BUILD_TYPE_DEBUG   = !BUILD_TYPE_RELEASE
-BUILD_DIR          = ENV["BUILD_DIR"]       || "./rake-build-#{BUILD_TYPE}"
-BINARY_DIR         = ENV["BINARY_DIR"]      || "./rake-out-#{BUILD_TYPE}"
+BUILD_DIR          = ENV["BUILD_DIR"]       || "rake-build-#{BUILD_TYPE}"
 OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
-INSTALL_DIR        = ENV["INSTALL_DIR"]    || "./out"
+INSTALL_DIR        = ENV["INSTALL_DIR"]     || "out"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
 BUILD_OS_WINDOWS   = BUILD_OS.include?("windows") || BUILD_OS.include?("mingw32")
