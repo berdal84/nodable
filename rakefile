@@ -106,12 +106,15 @@ namespace :shared do
     end
 
     def copy_assets_to_build_dir( project )
-        print "Copying assets..."
+        source      = "#{project[:asset_folder_path]}/**"
+        destination = "#{BUILD_DIR}/#{project[:asset_folder_path]}"
+        puts "Copying assets from #{source} to #{destination}"
         commands = [
-            "mkdir -p #{BUILD_DIR}/#{project[:asset_folder_path]}",
-            "cp -r #{project[:asset_folder_path]}/** #{BUILD_DIR}/#{project[:asset_folder_path]}",
+            "mkdir -p #{destination}",
+            "cp -r #{source} #{destination}",
         ].join(" && ")
         system commands
+        puts "Copying assets DONE"
     end
 
     def copy_build_to_install_dir( project )
@@ -464,16 +467,18 @@ task :install => [] do
     end
 end
 
-task :build   => ['tools:build', 'ndbl:build']
-task :pack    => ['tools:pack' , 'ndbl:pack']
+task :build   => ['tools:build', 'ndbl:build'] do puts "Build DONE" end
+task :pack    => ['tools:pack' , 'ndbl:pack'] do puts "Pack DONE" end
 task :run     => ['tools:run'  , 'ndbl:run']
 
 task :clean do
+    puts "Cleaning install dir ..."
     if File.exists?(INSTALL_DIR)
         FileUtils.remove_entry_secure INSTALL_DIR
     end
+    puts "Cleaning build dir ..."
     if File.exists?(BUILD_DIR)
         FileUtils.remove_entry_secure BUILD_DIR
     end
-    puts "Clean OK"
+    puts "Clean DONE"
 end
