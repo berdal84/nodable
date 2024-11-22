@@ -146,19 +146,17 @@ namespace :shared do
     end
 
     def compile_file(src_file, obj_file, project)
+
     	puts "Compiling #{src_file} ..."
     	FileUtils.mkdir_p File.dirname(obj_file)
 
-        includes = project[:includes].map{|path| "-I#{path}"}.join(" ")
-        defines  = project[:defines].map{|key,value| "-D#{key}='#{value}'" }.join(" ") # we add '' because "" are removed by the terminal
-
-        if ( project[:c_compiler] != "clang" )
-            raise "Not implemented"
-        end
-        if ( project[:cxx_compiler] != "clang++" )
-            raise "Not implemented"
+        if BUILD_OS_LINUX or BUILD_OS_MACOS
+            defines = project[:defines].map{|key,value| "-D#{key}='#{value}'" }.join(" ") # need to add quotes
+        else BUILD_OS_WINDOWS
+            defines = project[:defines].map{|key,value| "-D#{key}=#{value}" }.join(" ") # no quotes
         end
 
+        includes  = project[:includes].map{|path| "-I#{path}"}.join(" ")
         cxx_flags = project[:cxx_flags].join(" ")
         c_flags   = project[:c_flags].join(" ")
 
