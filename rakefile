@@ -71,7 +71,8 @@ namespace :shared do
 
             ],
             macos_flags: [
-                "-framework AppKit"
+                "-framework CoreFoundation",
+                "-framework Cacoa"
             ],
             linker_flags: [
                 "-Llibs/nativefiledialog-extended/build/src",
