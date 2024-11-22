@@ -5,7 +5,6 @@ CXX_COMPILER = "clang++"
 def new_project(name)
 
     sources  = FileList[]
-    objects  = FileList[]
     includes = FileList[
         "src",
         "src/ndbl",
@@ -25,12 +24,9 @@ def new_project(name)
         "/usr/include/X11/mesa/GL"
     ]
     c_flags  = [
-        "-c", # obj only
-        "-Wfatal-errors",
-        "-pedantic"
     ]
     cxx_flags = [
-        "--std=c++17",
+        "--std=c++20",
         "-fno-char8_t"
     ]
     linker_flags = [
@@ -52,28 +48,38 @@ def new_project(name)
         ] 
     end
 
-    defines = {
-        "NDBL_APP_ASSETS_DIR": "\\\"#{asset_folder_path}\\\"",
-        "NDBL_APP_NAME": "\\\"nodable\\\"",
-        "NDBL_BUILD_REF": "\\\"local\\\"",
-    }
+    defines = []
     if BUILD_OS_WINDOWS
-        defines.merge!({"IMGUI_USER_CONFIG": "\"<tools/gui/ImGuiExConfig.h>\""})
+        defines |= [
+            "IMGUI_USER_CONFIG=\"<tools/gui/ImGuiExConfig.h>\""
+        ]
     else
-        defines.merge!({"IMGUI_USER_CONFIG": "'<tools/gui/ImGuiExConfig.h>'"})
+        defines |= [
+            "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
+            "NDBL_APP_ASSETS_DIR=\\\"#{asset_folder_path}\\\"",
+            "NDBL_APP_NAME=\\\"#{name}\\\"",
+            "NDBL_BUILD_REF=\\\"local\\\"",
+        ]
     end
     
     if BUILD_TYPE_RELEASE
-        c_flags |= ["-O3"] 
+        c_flags |= [
+            "-O3"
+        ] 
     elsif BUILD_TYPE_DEBUG
-        c_flags |= ["-g", "-O0"]
+        c_flags |= [
+            "-g", # generates symbols
+            "-O0", # no optim
+            "-Wfatal-errors",
+            "-pedantic"
+        ]
     end
 
     # project
     {
         name:     name,
         sources:  sources,
-        objects: objects,
+        # objects: objects, they are generated, see get_objects()
         includes: includes,
         defines: defines,
         c_flags: c_flags,
@@ -87,30 +93,28 @@ def src_to_obj( obj )
     "#{OBJ_DIR}/#{ obj.ext(".o")}"
 end
 
+def src_to_dep( src )
+    "#{DEPS_DIR}/#{src.ext(".d")}"
+end
+
 def obj_to_src( obj, _project)
     stem = obj.sub("#{OBJ_DIR}/", "").ext("")
     _project[:sources].detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
-def cook_project( project )
-    objects = project[:sources].map{|src| src_to_obj(src) };
+def get_objects( project )
+    if not project[:objects]
+        project[:objects] = project[:sources].map{|src| src_to_obj(src) };
+    end
+    project[:objects]
+end
 
-    # stringify arrays
-    project[:str_includes]     = project[:includes].map{|path| "-I#{path}"}.join(" ")
-    project[:str_cxx_flags]    = project[:cxx_flags].join(" ")
-    project[:str_c_flags]      = project[:c_flags].join(" ")
-    project[:str_defines]      = project[:defines].map{|key,value| "-D#{key}=#{value}" }.join(" ")
-    project[:str_linker_flags] = project[:linker_flags].join(" ")
-
-    objects
+def create_dirs( project ) 
+    system "mkdir -p #{BUILD_DIR}"
+    system "mkdir -p #{OBJ_DIR}"
 end
 
 def declare_project_tasks(project)
-
-    system "mkdir -p #{BUILD_DIR}"
-    system "mkdir -p #{OBJ_DIR}"
-
-    objects = cook_project(project)
 
     desc "Copy in #{INSTALL_DIR} the files to distribute the software"
     task :pack do
@@ -126,13 +130,14 @@ def declare_project_tasks(project)
         copy_assets_to_build_dir( project )
     end    
 
+    objects = get_objects( project )
+
     multitask :compile => objects
 
     objects.each do |obj|
         src = obj_to_src( obj, project )
-        # desc "Compiles #{src}"
         file obj => src do |task|
-            compile_file( task.source, task.name, project)
+            compile_file( src, project)
 		end
 	end
 end
@@ -159,28 +164,43 @@ end
 
 def build_executable_binary( project )
 
-    objects        = project[:objects].join(" ")
+    objects        = get_objects( project ).join(" ")
     binary         = "#{BUILD_DIR}/#{project[:name]}"
-    linker_flags   = project[:str_linker_flags]
+    linker_flags   = project[:linker_flags].join(" ")
 
-    system "#{CXX_COMPILER} -o #{binary} #{objects} #{linker_flags} -v"
+    sh "#{CXX_COMPILER} -o #{binary} #{objects} #{linker_flags} -v", verbose: VERBOSE
 end
 
-def compile_file(src, obj, project)
+def compile_file(src, project)
 
-	puts "Compiling #{src} ..."
-	FileUtils.mkdir_p File.dirname(obj)
-
-    includes  = project[:str_includes]
-    cxx_flags = project[:str_cxx_flags]
-    c_flags   = project[:str_c_flags]
-    defines   = project[:str_defines]
+    # Generate stringified version of the flags
+    # TODO: store this in a cache?
+    includes     = project[:includes].map{|path| "-I#{path}"}.join(" ")
+    cxx_flags    = project[:cxx_flags].join(" ")
+    c_flags      = project[:c_flags].join(" ")
+    defines      = project[:defines].map{|d| "-D\"#{d}\"" }.join(" ")
+    linker_flags = project[:linker_flags].join(" ")
 
     if File.extname( src ) == ".cpp"
-       cmd = "#{CXX_COMPILER} #{c_flags} #{cxx_flags} #{defines} #{includes} -o #{obj} #{src}"
+        # TODO: add a regular flags for both, and remove this c_flags below
+       compiler = "#{CXX_COMPILER} #{cxx_flags}"
     else
-       cmd = "#{C_COMPILER} #{c_flags} #{defines} #{includes} -o #{obj} #{src}"
+       compiler = "#{C_COMPILER} #{c_flags}"
     end
 
-    system cmd or raise "#{cmd} FAILED!"
+    obj = src_to_obj( src )
+    dep = src_to_dep( src )
+    dep_flags = "-MD -MF#{dep}"
+
+    
+    puts "Compiling #{src} ..."
+    if VERBOSE
+        puts "-- obj: #{obj}"
+        puts "-- dep: #{dep}"
+    end
+
+    FileUtils.mkdir_p File.dirname(obj)
+    FileUtils.mkdir_p File.dirname(dep)
+
+    sh "#{compiler} -c #{includes} #{defines} #{dep_flags} -o #{obj} #{src}", verbose: VERBOSE
 end

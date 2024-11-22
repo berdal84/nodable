@@ -64,12 +64,6 @@ namespace :ndbl do
     app[:sources] |= $imgui[:sources]
     app[:sources] |= $texteditor[:sources]
 
-    app[:defines].merge!({
-        "NDBL_APP_NAME":       "nodable",
-        "NDBL_APP_ASSETS_DIR": "assets",
-        "NDBL_BUILD_REF":      "local"
-    })
-
     namespace :core do
         declare_project_tasks( core )
     end
