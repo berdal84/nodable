@@ -38,7 +38,7 @@ namespace :shared do
             objects:       FileList[],
             includes:      FileList[
                 "src",
-                "src/gui",
+                "src/ndbl",
                 "src/tools",
                 "libs",
                 "libs/whereami/src",
@@ -55,7 +55,7 @@ namespace :shared do
                 "/usr/include/X11/mesa/GL"
             ],
             defines: {
-                "IMGUI_USER_CONFIG": "\"tools/gui/ImGuiExConfig.h\"" # extend ImVec2 and ImVec4 constructors & more..
+                "IMGUI_USER_CONFIG": "<tools/gui/ImGuiExConfig.h>" # we use <> syntax because quotes behave differently depending on OS
             },
             c_flags: [
                 "-O3",
