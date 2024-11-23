@@ -15,7 +15,7 @@ $tools_core[:sources] |= FileList[
     "src/tools/core/System.cpp",
     "src/tools/core/TaskManager.cpp"
 ]
-$tools_core[:sources] |= $whereami[:sources] # this lib is only objects
+$tools_core[:depends_on] |= [$whereami] # this lib is only objects
 #---------------------------------------------------------------------------
 $tools_gui = new_project("tools_gui", "objects")
 $tools_gui[:sources] |= FileList[
@@ -35,9 +35,7 @@ $tools_gui[:sources] |= FileList[
     "src/tools/gui/ViewState.cpp",
     "src/tools/gui/TextureManager.cpp",
 ]
-$tools_gui[:sources] |= $gl3w[:sources]
-$tools_gui[:sources] |= $lodepng[:sources]
-$tools_gui[:sources] |= $imgui[:sources]
+$tools_gui[:depends_on] |= [$gl3w, $lodepng, $imgui]
 #---------------------------------------------------------------------------
 app = new_project("tools-gui-example", "executable")
 app[:sources] |= FileList[
@@ -45,15 +43,13 @@ app[:sources] |= FileList[
     "src/tools/gui-example/AppExampleView.cpp",
     "src/tools/gui-example/main.cpp"
 ]
-app[:sources] |= $tools_core[:sources] 
-app[:sources] |= $tools_gui[:sources]
+app[:depends_on] |= [$tools_core, $tools_gui]
 #---------------------------------------------------------------------------
 desc "Build tools"
 task :tools => 'tools:build'
 namespace :tools do
 
-    desc "Build tools"
-    task :build => [:core, :gui, :app]
+    task :build => :app
 
     task :core => 'core:build'
     namespace :core do

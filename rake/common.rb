@@ -5,6 +5,7 @@ CXX_COMPILER = "clang++"
 def new_project(name, type)
 
     sources  = FileList[]
+    depends_on = FileList[]
     includes = FileList[
         "src",
         "src/ndbl",
@@ -82,6 +83,7 @@ def new_project(name, type)
         name:     name,
         type:     type,
         sources:  sources,
+        depends_on: depends_on,
         # objects: objects, they are generated, see get_objects()
         includes: includes,
         defines: defines,
@@ -105,11 +107,23 @@ def obj_to_src( obj, _project)
     _project[:sources].detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
+def to_objects( sources )
+    sources.map{|src| src_to_obj(src) };
+end
+
 def get_objects( project )
     if not project[:objects]
-        project[:objects] = project[:sources].map{|src| src_to_obj(src) };
+        project[:objects] = to_objects( project[:sources] )
     end
     project[:objects]
+end
+
+def get_all_objects( project )
+    objects = get_objects( project )
+    project[:depends_on].each do |other_project|
+        objects |= get_all_objects( other_project )
+    end    
+    objects
 end
 
 def declare_project_tasks(project)
@@ -151,10 +165,9 @@ def declare_project_tasks(project)
         end
     end    
 
+    multitask :compile => get_all_objects( project )
+
     objects = get_objects( project )
-
-    multitask :compile => objects
-
     objects.each_with_index do |obj, index|
         src = obj_to_src( obj, project )
         
@@ -191,7 +204,7 @@ end
 
 def build_static_library( project )
 
-    objects        = get_objects( project ).join(" ")
+    objects        = get_all_objects( project ).join(" ")
     binary         = get_library_name( project )
     linker_flags   = project[:linker_flags].join(" ")
 
@@ -205,7 +218,7 @@ end
 
 def build_executable_binary( project )
 
-    objects        = get_objects( project ).join(" ")
+    objects        = get_all_objects( project ).join(" ")
     binary         = get_binary_name( project )
     linker_flags   = project[:linker_flags].join(" ")
 

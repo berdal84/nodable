@@ -55,11 +55,11 @@ app = new_project("nodable", "executable")
 app[:sources] |= FileList[
     "src/ndbl/app/main.cpp",
 ]
-app[:sources] |= $tools_core[:sources]
-app[:sources] |= $tools_gui[:sources]
-app[:sources] |= $text_editor[:sources]
-app[:sources] |= core[:sources]
-app[:sources] |= gui[:sources]
+app[:depends_on] |= [
+    $tools_core, $tools_gui,
+    $text_editor,
+    core, gui
+]
 #---------------------------------------------------------------------------
 task :ndbl => 'ndbl:build'
 namespace :ndbl do
