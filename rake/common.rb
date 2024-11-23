@@ -1,6 +1,4 @@
-
-C_COMPILER   = "clang"
-CXX_COMPILER = "clang++"
+require_relative 'environment'
 
 def new_project(name, type)
 
@@ -135,7 +133,7 @@ def declare_project_tasks(project)
 
     desc "Copy in #{INSTALL_DIR} the files to distribute the software"
     task :pack do
-        copy_build_to_install_dir(project)
+        _pack(project)
     end
 
     desc "Compile #{project[:type]}"
@@ -190,7 +188,7 @@ def copy_assets_to_build_dir( project )
     system commands or raise "Unable to copy assets"
 end
 
-def copy_build_to_install_dir( project )
+def _pack( project )
     commands = [
         "mkdir -p #{INSTALL_DIR}",
         "cp -r #{BUILD_DIR}/#{project[:asset_folder_path]} #{BUILD_DIR}/#{project[:name]} #{INSTALL_DIR}", 
