@@ -122,22 +122,36 @@ def declare_project_tasks(project)
     end
 
     desc "Compile project"
-    task :build => :link
+    task :build => :link do
+        copy_assets_to_build_dir( project )
+    end
 
     desc "Link objects"
     task :link => [:compile, 'libs:build_all'] do
         build_executable_binary( project )
-        copy_assets_to_build_dir( project )
     end    
 
     objects = get_objects( project )
 
     multitask :compile => objects
 
-    objects.each do |obj|
+    objects.each_with_index do |obj, index|
         src = obj_to_src( obj, project )
+        
+        def get_percent( value, count )
+            "#{(value*100)/count}%"
+        end
+
         file obj => src do |task|
+            
+            puts "#{project[:name]} #{get_percent(index, objects.count)} - Compiling #{src} ..."
+            
             compile_file( src, project)
+
+            next_index = index+1
+            if next_index == objects.count
+                puts "#{project[:name]} #{get_percent(next_index, objects.count)} - DONE!"
+            end
 		end
 	end
 end
@@ -145,13 +159,14 @@ end
 def copy_assets_to_build_dir( project )
     source      = "#{project[:asset_folder_path]}/**"
     destination = "#{BUILD_DIR}/#{project[:asset_folder_path]}"
-    puts "Copying assets from #{source} to #{destination}"
+    puts "#{project[:name]} Copying assets ..."
+    puts "source: #{source}, destination: #{destination}"
     commands = [
         "mkdir -p #{destination}",
         "cp -r #{source} #{destination}",
     ].join(" && ")
-    system commands
-    puts "Copying assets DONE"
+    system commands or raise "Unable to copy assets"
+    puts "#{project[:name]} Copying assets OK"
 end
 
 def copy_build_to_install_dir( project )
@@ -163,12 +178,16 @@ def copy_build_to_install_dir( project )
 end
 
 def build_executable_binary( project )
-
+    
     objects        = get_objects( project ).join(" ")
     binary         = "#{BUILD_DIR}/#{project[:name]}"
     linker_flags   = project[:linker_flags].join(" ")
 
+    puts "#{project[:name]} Linking #{binary}..."
+
     sh "#{CXX_COMPILER} -o #{binary} #{objects} #{linker_flags} -v", verbose: VERBOSE
+
+    puts "#{project[:name]} Linking #{binary} OK"
 end
 
 def compile_file(src, project)
@@ -193,7 +212,6 @@ def compile_file(src, project)
     dep_flags = "-MD -MF#{dep}"
 
     
-    puts "Compiling #{src} ..."
     if VERBOSE
         puts "-- obj: #{obj}"
         puts "-- dep: #{dep}"
