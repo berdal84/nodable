@@ -2,7 +2,7 @@
 C_COMPILER   = "clang"
 CXX_COMPILER = "clang++"
 
-def new_project(name)
+def new_project(name, type)
 
     sources  = FileList[]
     includes = FileList[
@@ -23,6 +23,7 @@ def new_project(name)
         "libs/freetype/include",
         "/usr/include/X11/mesa/GL"
     ]
+
     c_flags  = [
     ]
     cxx_flags = [
@@ -78,6 +79,7 @@ def new_project(name)
     # project
     {
         name:     name,
+        type:     type,
         sources:  sources,
         # objects: objects, they are generated, see get_objects()
         includes: includes,
@@ -94,7 +96,7 @@ def src_to_obj( obj )
 end
 
 def src_to_dep( src )
-    "#{DEPS_DIR}/#{src.ext(".d")}"
+    "#{DEP_DIR}/#{src.ext(".d")}"
 end
 
 def obj_to_src( obj, _project)
@@ -109,11 +111,6 @@ def get_objects( project )
     project[:objects]
 end
 
-def create_dirs( project ) 
-    system "mkdir -p #{BUILD_DIR}"
-    system "mkdir -p #{OBJ_DIR}"
-end
-
 def declare_project_tasks(project)
 
     desc "Copy in #{INSTALL_DIR} the files to distribute the software"
@@ -122,13 +119,20 @@ def declare_project_tasks(project)
     end
 
     desc "Compile project"
-    task :build => :link do
+    task :build =>  :binary do
         copy_assets_to_build_dir( project )
     end
 
-    desc "Link objects"
-    task :link => [:compile, 'libs:build_all'] do
-        build_executable_binary( project )
+    desc "Build executable binary"
+    task :binary => :compile do
+        case project[:type] 
+        when "executable"
+            build_executable_binary( project )
+        when "static"
+            build_static_library( project )
+        else
+            raise "Unexpected project type: #{project[:type]}"
+        end
     end    
 
     objects = get_objects( project )
@@ -138,20 +142,10 @@ def declare_project_tasks(project)
     objects.each_with_index do |obj, index|
         src = obj_to_src( obj, project )
         
-        def get_percent( value, count )
-            "#{(value*100)/count}%"
-        end
-
+        # desc "#{project[:name]}: to build #{src}"
         file obj => src do |task|
-            
-            puts "#{project[:name]} #{get_percent(index, objects.count)} - Compiling #{src} ..."
-            
+            puts "#{project[:name]} | Compiling #{src} ..."
             compile_file( src, project)
-
-            next_index = index+1
-            if next_index == objects.count
-                puts "#{project[:name]} #{get_percent(next_index, objects.count)} - DONE!"
-            end
 		end
 	end
 end
@@ -177,13 +171,29 @@ def copy_build_to_install_dir( project )
     system commands
 end
 
+def build_static_library( project )
+
+    objects        = get_objects( project ).join(" ")
+    binary         = "#{LIB_DIR}/#{project[:name]}".ext(".a")
+    linker_flags   = project[:linker_flags].join(" ")
+
+    puts "#{project[:name]} Creating static library #{binary}..."
+
+    FileUtils.mkdir_p File.dirname(binary)
+    sh "llvm-ar r #{binary} #{objects}", verbose: VERBOSE
+
+    puts "#{project[:name]} Static library #{binary} OK"
+end
+
 def build_executable_binary( project )
-    
+
     objects        = get_objects( project ).join(" ")
     binary         = "#{BUILD_DIR}/#{project[:name]}"
     linker_flags   = project[:linker_flags].join(" ")
 
     puts "#{project[:name]} Linking #{binary}..."
+
+    FileUtils.mkdir_p File.dirname(binary)
 
     sh "#{CXX_COMPILER} -o #{binary} #{objects} #{linker_flags} -v", verbose: VERBOSE
 

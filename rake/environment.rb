@@ -9,7 +9,8 @@ BUILD_TYPE_RELEASE = BUILD_TYPE == "release"
 BUILD_TYPE_DEBUG   = !BUILD_TYPE_RELEASE
 BUILD_DIR          = ENV["BUILD_DIR"]       || "rake-build-#{BUILD_TYPE}"
 OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
-DEPS_DIR           = ENV["DEPS_DIR"]        || "#{BUILD_DIR}/deps"
+LIB_DIR            = ENV["LIB_DIR"]         || "#{BUILD_DIR}/lib"
+DEP_DIR            = ENV["DEP_DIR"]         || "#{BUILD_DIR}/dep"
 INSTALL_DIR        = ENV["INSTALL_DIR"]     || "out"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
