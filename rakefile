@@ -28,6 +28,6 @@ task :install => [] do
     end
 end
 
-task :build => ['ndbl:app:build'] do puts "Build DONE" end
-task :pack  => ['ndbl:app:pack'] do puts "Pack DONE" end
-task :run   => ['ndbl:app:run']
+task :build => ['ndbl:build'] do puts "Build DONE" end
+task :pack  => ['ndbl:pack'] do puts "Pack DONE" end
+task :run   => ['ndbl:run']

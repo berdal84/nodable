@@ -76,5 +76,6 @@ namespace :ndbl do
         declare_project_tasks( app )
     end
 
-    task :build => ['ndbl:core:link', 'ndbl:gui:link', 'ndbl:app:link']
+    task :build => ['ndbl:app:build']
+    task :pack  => ['ndbl:app:pack']
 end
