@@ -34,7 +34,7 @@ $text_editor[:sources] |= FileList[
 #---------------------------------------------------------------------------
 task :libs => 'libs:build'
 namespace :libs do
-    
+
     namespace :gl3w do
         declare_project_tasks( $gl3w )
     end
@@ -64,7 +64,7 @@ namespace :libs do
         'gl3w:build',
         'imgui:build',
         'lodepng:build',
-        'texteditor:build',
+        'text_editor:build',
     ]
     #---------------------------------------------------------------------------
     task :nfd => [] do
