@@ -32,21 +32,26 @@ def new_project(name, type)
     ]
     linker_flags = [
         "-L#{LIB_DIR}",
-        "-Llibs/nativefiledialog-extended/build/src",
-        "`pkg-config --cflags --libs gtk+-3.0`",
+        "-Llibs/nativefiledialog-extended/build/src",        
         "`pkg-config --cflags --libs freetype2`",
         "`sdl2-config --cflags --libs`",
         "-lnfd", # Native File Dialog
         "-lGL",
         "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
     ]
+    if BUILD_OS_LINUX
+        linker_flags |= [
+            "`pkg-config --cflags --libs gtk+-3.0`",
+        ]
+    end
+
     asset_folder_path = "assets" # a single folder
 
     # OS specific
     if BUILD_OS_MACOS
         linker_flags |= [
             "-framework CoreFoundation",
-            "-framework Cacoa"
+            "-framework Cocoa"
         ] 
     end
 
