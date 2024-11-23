@@ -26,7 +26,7 @@ def new_project(name, type)
     c_flags  = [
     ]
     cxx_flags = [
-        "--stdlib=libstdc++", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
+        # "-stdlib=platform", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
         "--std=c++20",
         "-fno-char8_t"
     ]
