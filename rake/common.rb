@@ -36,7 +36,7 @@ def new_project(name, type)
         "`pkg-config --cflags --libs gtk+-3.0`",
         "`pkg-config --cflags --libs freetype2`",
         "`sdl2-config --cflags --libs`",
-        "-l:libnfd.a",
+        "-lnfd", # Native File Dialog
         "-lGL",
         "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
     ]
@@ -114,23 +114,38 @@ end
 
 def declare_project_tasks(project)
 
+    desc "Clean intermediate *.o files"
+    task :clean do
+        get_objects(project).delete()
+    end
+
     desc "Copy in #{INSTALL_DIR} the files to distribute the software"
     task :pack do
         copy_build_to_install_dir(project)
     end
 
-    desc "Compile project"
+    desc "Compile #{project[:type]}"
     task :build =>  :binary do
+        puts "#{project[:name]} Copying assets ..."
         copy_assets_to_build_dir( project )
+        puts "#{project[:name]} Copying assets OK"
     end
 
     desc "Build executable binary"
     task :binary => :compile do
         case project[:type] 
         when "executable"
+            puts "#{project[:name]} Linking ..."
             build_executable_binary( project )
+            puts "#{project[:name]} Linking OK"
+
         when "static"
+            puts "#{project[:name]} Creating static library ..."
             build_static_library( project )
+            puts "#{project[:name]} Static library OK"
+            
+        when "objects"
+            puts "#{project[:name]} Objects OK"
         else
             raise "Unexpected project type: #{project[:type]}"
         end
@@ -154,14 +169,12 @@ end
 def copy_assets_to_build_dir( project )
     source      = "#{project[:asset_folder_path]}/**"
     destination = "#{BUILD_DIR}/#{project[:asset_folder_path]}"
-    puts "#{project[:name]} Copying assets ..."
     puts "source: #{source}, destination: #{destination}"
     commands = [
         "mkdir -p #{destination}",
         "cp -r #{source} #{destination}",
     ].join(" && ")
     system commands or raise "Unable to copy assets"
-    puts "#{project[:name]} Copying assets OK"
 end
 
 def copy_build_to_install_dir( project )
@@ -172,33 +185,33 @@ def copy_build_to_install_dir( project )
     system commands
 end
 
+def get_library_name( project )
+    "#{LIB_DIR}/lib#{project[:name].ext(".a")}"
+end
+
 def build_static_library( project )
 
     objects        = get_objects( project ).join(" ")
-    binary         = "#{LIB_DIR}/#{project[:name]}".ext(".a")
+    binary         = get_library_name( project )
     linker_flags   = project[:linker_flags].join(" ")
-
-    puts "#{project[:name]} Creating static library #{binary}..."
 
     FileUtils.mkdir_p File.dirname(binary)
     sh "llvm-ar r #{binary} #{objects}", verbose: VERBOSE
+end
 
-    puts "#{project[:name]} Static library #{binary} OK"
+def get_binary_name( project )
+    "#{BUILD_DIR}/#{project[:name]}"
 end
 
 def build_executable_binary( project )
 
     objects        = get_objects( project ).join(" ")
-    binary         = "#{BUILD_DIR}/#{project[:name]}"
+    binary         = get_binary_name( project )
     linker_flags   = project[:linker_flags].join(" ")
-
-    puts "#{project[:name]} Linking #{binary}..."
 
     FileUtils.mkdir_p File.dirname(binary)
 
     sh "#{CXX_COMPILER} -o #{binary} #{objects} #{linker_flags} -v", verbose: VERBOSE
-
-    puts "#{project[:name]} Linking #{binary} OK"
 end
 
 def compile_file(src, project)
@@ -209,7 +222,7 @@ def compile_file(src, project)
     cxx_flags    = project[:cxx_flags].join(" ")
     c_flags      = project[:c_flags].join(" ")
     defines      = project[:defines].map{|d| "-D\"#{d}\"" }.join(" ")
-    linker_flags = project[:linker_flags].join(" ")
+    linker_flags = project[:linker_flags].join(" -l")
 
     if File.extname( src ) == ".cpp"
         # TODO: add a regular flags for both, and remove this c_flags below
