@@ -55,18 +55,13 @@ def new_project(name, type)
         ] 
     end
 
-    if BUILD_OS_WINDOWS
-        defines = [
-            "IMGUI_USER_CONFIG=\"<tools/gui/ImGuiExConfig.h>\""
-        ]
-    else
-        defines = [
-            "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
-            "NDBL_APP_ASSETS_DIR=\\\"#{asset_folder_path}\\\"",
-            "NDBL_APP_NAME=\\\"#{name}\\\"",
-            "NDBL_BUILD_REF=\\\"local\\\"",
-        ]
-    end
+
+    defines = [
+        "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
+        "NDBL_APP_ASSETS_DIR=\\\"#{asset_folder_path}\\\"",
+        "NDBL_APP_NAME=\\\"#{name}\\\"",
+        "NDBL_BUILD_REF=\\\"local\\\"",
+    ]
     
     if BUILD_TYPE_RELEASE
         compiler_flags = [
