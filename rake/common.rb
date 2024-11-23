@@ -26,6 +26,7 @@ def new_project(name, type)
     c_flags  = [
     ]
     cxx_flags = [
+        "--stdlib=libstdc++", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
         "--std=c++20",
         "-fno-char8_t"
     ]
@@ -43,19 +44,18 @@ def new_project(name, type)
 
     # OS specific
     if BUILD_OS_MACOS
-        flags |= [
+        linker_flags |= [
             "-framework CoreFoundation",
             "-framework Cacoa"
         ] 
     end
 
-    defines = []
     if BUILD_OS_WINDOWS
-        defines |= [
+        defines = [
             "IMGUI_USER_CONFIG=\"<tools/gui/ImGuiExConfig.h>\""
         ]
     else
-        defines |= [
+        defines = [
             "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
             "NDBL_APP_ASSETS_DIR=\\\"#{asset_folder_path}\\\"",
             "NDBL_APP_NAME=\\\"#{name}\\\"",
@@ -64,11 +64,11 @@ def new_project(name, type)
     end
     
     if BUILD_TYPE_RELEASE
-        c_flags |= [
+        compiler_flags = [
             "-O3"
         ] 
     elsif BUILD_TYPE_DEBUG
-        c_flags |= [
+        compiler_flags = [
             "-g", # generates symbols
             "-O0", # no optim
             "-Wfatal-errors",
@@ -85,6 +85,7 @@ def new_project(name, type)
         # objects: objects, they are generated, see get_objects()
         includes: includes,
         defines: defines,
+        compiler_flags: compiler_flags,
         c_flags: c_flags,
         cxx_flags: cxx_flags,
         linker_flags: linker_flags,
@@ -234,12 +235,13 @@ def compile_file(src, project)
     c_flags      = project[:c_flags].join(" ")
     defines      = project[:defines].map{|d| "-D\"#{d}\"" }.join(" ")
     linker_flags = project[:linker_flags].join(" -l")
+    compiler_flags = project[:compiler_flags].join(" ")
 
     if File.extname( src ) == ".cpp"
         # TODO: add a regular flags for both, and remove this c_flags below
-       compiler = "#{CXX_COMPILER} #{cxx_flags}"
+       compiler = "#{CXX_COMPILER} #{cxx_flags} #{compiler_flags}"
     else
-       compiler = "#{C_COMPILER} #{c_flags}"
+       compiler = "#{C_COMPILER} #{c_flags} #{compiler_flags}"
     end
 
     obj = src_to_obj( src )
