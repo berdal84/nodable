@@ -31,6 +31,7 @@ def new_project(name, type)
         "-fno-char8_t"
     ]
     linker_flags = [
+        "-L#{LIB_DIR}",
         "-Llibs/nativefiledialog-extended/build/src",
         "`pkg-config --cflags --libs gtk+-3.0`",
         "`pkg-config --cflags --libs freetype2`",

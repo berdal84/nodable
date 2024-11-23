@@ -28,7 +28,7 @@ namespace :tools do
     end
 
     namespace :gui do
-        gui = new_project("tools_gui", "static")
+        gui = new_project("tools-gui", "static")
         gui[:sources] |= FileList[
             "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
             "src/tools/gui/geometry/BoxShape2D.cpp",
@@ -57,7 +57,12 @@ namespace :tools do
             "src/tools/gui-example/AppExampleView.cpp",
             "src/tools/gui-example/main.cpp"
         ]
-
+        app[:linker_flags] |= [
+            "-l:imgui.a",
+            "-l:gl3w.a",
+            "-l:tools-core.a",
+            "-l:tools-gui.a",
+        ]
         declare_project_tasks( app )
     end
 

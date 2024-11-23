@@ -9,6 +9,7 @@ namespace :libs do
         'cpptrace',
         'sdl',
         'freetype',
+        'gl3w:build',
         'imgui:build',
         'lodepng:build',
         'texteditor:build',

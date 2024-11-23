@@ -6,7 +6,7 @@ namespace :ndbl do
     task :pack  => ['app:pack']
 
     namespace :core do
-        core = new_project("ndbl_core", "static")
+        core = new_project("ndbl-core", "static")
         core[:sources] |= FileList[
             "src/ndbl/core/language/Nodlang.cpp",
             "src/ndbl/core/language/Nodlang_biology.cpp",
@@ -42,7 +42,7 @@ namespace :ndbl do
     end
     
     namespace :gui do        
-        gui = new_project("ndbl_gui", "static")
+        gui = new_project("ndbl-gui", "static")
         gui[:sources] |= FileList[
             "src/ndbl/gui/CreateNodeCtxMenu.cpp",
             "src/ndbl/gui/GraphView.cpp",
@@ -66,6 +66,15 @@ namespace :ndbl do
         app = new_project("nodable", "executable")
         app[:sources] |= FileList[
             "src/ndbl/app/main.cpp",
+        ]
+        app[:linker_flags] |= [
+            "-limgui",
+            "-lgl3w",
+            "-ltexteditor",
+            "-ltools-core",
+            "-ltools-gui",
+            "-lndbl-gui",
+            "-lndbl-core"
         ]
         declare_project_tasks( app )
     end
