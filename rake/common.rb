@@ -134,13 +134,13 @@ def declare_project_tasks(project)
 
     desc "Copy in #{INSTALL_DIR} the files to distribute the software"
     task :pack do
-        _pack(project)
+        _pack_to( "#{INSTALL_DIR}", project)
     end
 
     desc "Compile #{project[:type]}"
     task :build =>  :binary do
         puts "#{project[:name]} Copying assets ..."
-        copy_assets_to_build_dir( project )
+        copy_assets_to("#{BUILD_DIR}/#{project[:asset_folder_path]}", project )
         puts "#{project[:name]} Copying assets OK"
     end
 
@@ -178,23 +178,17 @@ def declare_project_tasks(project)
 	end
 end
 
-def copy_assets_to_build_dir( project )
-    source      = "#{project[:asset_folder_path]}/**"
-    destination = "#{BUILD_DIR}/#{project[:asset_folder_path]}"
+def copy_assets_to( destination, project )
+    source = project[:asset_folder_path]
     puts "source: #{source}, destination: #{destination}"
-    commands = [
-        "mkdir -p #{destination}",
-        "cp -r #{source} #{destination}",
-    ].join(" && ")
-    system commands or raise "Unable to copy assets"
+    FileUtils.mkdir_p destination
+    FileUtils.copy_entry( source, destination)
 end
 
-def _pack( project )
-    commands = [
-        "mkdir -p #{INSTALL_DIR}",
-        "cp -r #{BUILD_DIR}/#{project[:asset_folder_path]} #{BUILD_DIR}/#{project[:name]} #{INSTALL_DIR}", 
-    ].join(" && ")
-    system commands
+def _pack_to( destination, project )
+    copy_assets_to( "#{destination}/#{project[:asset_folder_path]}/", project )
+    FileUtils.mkdir_p destination
+    FileUtils.copy( get_binary_name( project ), destination)
 end
 
 def get_library_name( project )
