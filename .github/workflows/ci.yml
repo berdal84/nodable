@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       # Those are read by rake script
-      BUILD_TYPE:  release # release|debug
+      BUILD_TYPE:  debug # release|debug
       INSTALL_DIR: out
       VERBOSE: true
     steps:
