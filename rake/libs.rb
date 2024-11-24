@@ -66,6 +66,7 @@ namespace :libs do
         'imgui:build',
         'lodepng:build',
         'text_editor:build',
+        'googletest',
     ]
     #---------------------------------------------------------------------------
     task :nfd => [] do
