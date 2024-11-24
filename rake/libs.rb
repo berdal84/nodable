@@ -74,7 +74,7 @@ namespace :libs do
             'cd libs/nativefiledialog-extended',
             'mkdir -p build',
             'cd build',
-            'cmake -DCMAKE_BUILD_TYPE=Release ..',
+            'cmake .. -DCMAKE_BUILD_TYPE=Release',
             'cmake --build .'
         ]
         system commands.join(" && ")
@@ -110,6 +110,17 @@ namespace :libs do
             'cmake ..',
             'make',
             'sudo make install'
+        ]
+        system commands.join(" && ")
+    end
+    #---------------------------------------------------------------------------
+    task :googletest => [] do
+        commands = [
+            'cd libs/googletest',
+            'mkdir -p build && cd build',
+            'cmake ..',
+            'make',
+            'sudo make install',
         ]
         system commands.join(" && ")
     end
