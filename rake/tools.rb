@@ -18,6 +18,7 @@ $tools_core.sources |= FileList[
     "src/tools/core/TaskManager.cpp"
 ]
 $tools_core.link_library |= [$whereami]
+
 #---------------------------------------------------------------------------
 $tools_gui = new_target_from_base("tools_gui", TargetType::OBJECTS)
 $tools_gui.sources |= FileList[
@@ -51,13 +52,31 @@ app.link_library |= [$tools_core, $tools_gui]
 
 #---------------------------------------------------------------------------
 
+tools_test = new_target_from_base("tools-test", TargetType::EXECUTABLE)
+tools_test.sources |= FileList[
+    "src/tools/core/Delegate.specs.cpp",
+    "src/tools/core/string.specs.cpp",
+    "src/tools/core/reflection/reflection.specs.cpp",
+    "src/tools/gui/geometry/SpatialNode2D.specs.cpp",
+    "src/tools/gui/geometry/Rect.specs.cpp"
+]
+tools_test.linker_flags |= [
+    "-lgtest",
+    "-lgtest_main"
+]
+tools_test.link_library |= [$tools_core, $tools_gui]
+
+#---------------------------------------------------------------------------
+
 desc "Build tools"
-task :tools => 'tools:build'
 namespace :tools do
 
-    task :build => :app
+    task :build => ['core:build', 'gui:build', 'app:build', 'test:build']
 
-    task :core => 'core:build'
+    task :test => [] do
+        sh "#{get_binary_build_path(tools_test)}"
+    end
+    
     namespace :core do
         tasks_for_target( $tools_core )
     end
@@ -71,5 +90,10 @@ namespace :tools do
     namespace :app do
         tasks_for_target( app )
     end
+
+    namespace :test do
+        tasks_for_target( tools_test )
+    end
+
 end
 #---------------------------------------------------------------------------

@@ -40,6 +40,10 @@ jobs:
         shell: bash
         run: rake build --trace
 
+      - name: Test
+        shell: bash
+        run: rake test --trace
+
       - name: Pack
         shell: bash
         run: rake pack --trace
