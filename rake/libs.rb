@@ -1,22 +1,22 @@
 require_relative "common"
 #---------------------------------------------------------------------------
 $whereami = new_project("whereami", "objects")
-$whereami[:sources] |= FileList[
+$whereami.sources |= FileList[
     "libs/whereami/src/whereami.c"
 ]
 #---------------------------------------------------------------------------
 $gl3w = new_project("gl3w", "objects")
-$gl3w[:sources] |= FileList[
+$gl3w.sources |= FileList[
     "libs/gl3w/GL/gl3w.c"
 ]
 #---------------------------------------------------------------------------
 $lodepng = new_project("lodepng", "objects")
-$lodepng[:sources] |= FileList[
+$lodepng.sources |= FileList[
     "libs/lodepng/lodepng.cpp"
 ]
 #---------------------------------------------------------------------------
 $imgui = new_project("imgui", "objects")
-$imgui[:sources] |= FileList[
+$imgui.sources |= FileList[
    "libs/imgui/imgui.cpp",
    "libs/imgui/imgui_demo.cpp",
    "libs/imgui/imgui_draw.cpp",
@@ -28,7 +28,7 @@ $imgui[:sources] |= FileList[
 ]
 #---------------------------------------------------------------------------
 $text_editor = new_project("text_editor", "objects")
-$text_editor[:sources] |= FileList[
+$text_editor.sources |= FileList[
     "libs/ImGuiColorTextEdit/TextEditor.cpp"
 ]
 #---------------------------------------------------------------------------

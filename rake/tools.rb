@@ -1,7 +1,7 @@
 require_relative 'libs'
 #---------------------------------------------------------------------------
 $tools_core = new_project("tools_core", "objects")
-$tools_core[:sources] |= FileList[
+$tools_core.sources |= FileList[
     "src/tools/core/reflection/qword.cpp",
     "src/tools/core/reflection/Type.cpp",
     "src/tools/core/reflection/TypeRegister.cpp",
@@ -15,10 +15,10 @@ $tools_core[:sources] |= FileList[
     "src/tools/core/System.cpp",
     "src/tools/core/TaskManager.cpp"
 ]
-$tools_core[:depends_on] |= [$whereami] # this lib is only objects
+$tools_core.depends_on |= [$whereami] # this lib is only objects
 #---------------------------------------------------------------------------
 $tools_gui = new_project("tools_gui", "objects")
-$tools_gui[:sources] |= FileList[
+$tools_gui.sources |= FileList[
     "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
     "src/tools/gui/geometry/BoxShape2D.cpp",
     "src/tools/gui/geometry/Rect.cpp",
@@ -35,15 +35,15 @@ $tools_gui[:sources] |= FileList[
     "src/tools/gui/ViewState.cpp",
     "src/tools/gui/TextureManager.cpp",
 ]
-$tools_gui[:depends_on] |= [$gl3w, $lodepng, $imgui]
+$tools_gui.depends_on |= [$gl3w, $lodepng, $imgui]
 #---------------------------------------------------------------------------
 app = new_project("tools-gui-example", "executable")
-app[:sources] |= FileList[
+app.sources |= FileList[
     "src/tools/gui-example/AppExample.cpp",
     "src/tools/gui-example/AppExampleView.cpp",
     "src/tools/gui-example/main.cpp"
 ]
-app[:depends_on] |= [$tools_core, $tools_gui]
+app.depends_on |= [$tools_core, $tools_gui]
 #---------------------------------------------------------------------------
 desc "Build tools"
 task :tools => 'tools:build'

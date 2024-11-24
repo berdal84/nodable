@@ -1,10 +1,28 @@
 require_relative 'environment'
 
+Project = Struct.new(
+    :name,
+    :type,
+    :sources,
+    :depends_on,
+    :includes,
+    :defines,
+    :compiler_flags,
+    :c_flags,
+    :cxx_flags,
+    :linker_flags,
+    :asset_folder_path
+)
+
 def new_project(name, type)
 
-    sources  = FileList[]
-    depends_on = FileList[]
-    includes = FileList[
+    project = Project.new
+
+    project.name = name
+    project.type = type
+    project.sources  = FileList[]
+    project.depends_on = FileList[]
+    project.includes = FileList[
         "src",
         "src/ndbl",
         "src/tools",
@@ -23,14 +41,14 @@ def new_project(name, type)
         "/usr/include/X11/mesa/GL"
     ]
 
-    c_flags  = [
+    project.c_flags  = [
     ]
-    cxx_flags = [
+    project.cxx_flags = [
         # "-stdlib=platform", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
         "--std=c++20",
         "-fno-char8_t"
     ]
-    linker_flags = [
+    project.linker_flags = [
         "-L#{LIB_DIR}",
         "-Llibs/nativefiledialog-extended/build/src",        
         "`pkg-config --cflags --libs freetype2`",
@@ -39,58 +57,40 @@ def new_project(name, type)
         "-lGL",
         "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
     ]
+
     if BUILD_OS_LINUX
-        linker_flags |= [
+        project.linker_flags |= [
             "`pkg-config --cflags --libs gtk+-3.0`",
         ]
-    end
-
-    asset_folder_path = "assets" # a single folder
-
-    # OS specific
-    if BUILD_OS_MACOS
-        linker_flags |= [
+    elsif BUILD_OS_MACOS
+        project.linker_flags |= [
             "-framework CoreFoundation",
             "-framework Cocoa"
         ] 
     end
 
+    project.asset_folder_path = "assets" # a single folder
 
-    defines = [
+    project.defines = [
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
-        "NDBL_APP_ASSETS_DIR=\\\"#{asset_folder_path}\\\"",
-        "NDBL_APP_NAME=\\\"#{name}\\\"",
+        "NDBL_APP_ASSETS_DIR=\\\"#{project.asset_folder_path}\\\"",
+        "NDBL_APP_NAME=\\\"#{project.name}\\\"",
         "NDBL_BUILD_REF=\\\"local\\\"",
     ]
     
     if BUILD_TYPE_RELEASE
-        compiler_flags = [
+        project.compiler_flags = [
             "-O3"
         ] 
     elsif BUILD_TYPE_DEBUG
-        compiler_flags = [
+        project.compiler_flags = [
             "-g", # generates symbols
             "-O0", # no optim
             "-Wfatal-errors",
             "-pedantic"
         ]
     end
-
-    # project
-    {
-        name:     name,
-        type:     type,
-        sources:  sources,
-        depends_on: depends_on,
-        # objects: objects, they are generated, see get_objects()
-        includes: includes,
-        defines: defines,
-        compiler_flags: compiler_flags,
-        c_flags: c_flags,
-        cxx_flags: cxx_flags,
-        linker_flags: linker_flags,
-        asset_folder_path: asset_folder_path # a single folder
-    }
+    project
 end
 
 def src_to_obj( obj )
@@ -103,7 +103,7 @@ end
 
 def obj_to_src( obj, _project)
     stem = obj.sub("#{OBJ_DIR}/", "").ext("")
-    _project[:sources].detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
+    _project.sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
 def to_objects( sources )
@@ -111,10 +111,7 @@ def to_objects( sources )
 end
 
 def get_objects( project )
-    if not project[:objects]
-        project[:objects] = to_objects( project[:sources] )
-    end
-    project[:objects]
+    to_objects( project.sources )
 end
 
 def get_all_objects( project )
@@ -137,30 +134,30 @@ def declare_project_tasks(project)
         _pack_to( "#{INSTALL_DIR}", project)
     end
 
-    desc "Compile #{project[:type]}"
+    desc "Compile #{project.type}"
     task :build =>  :binary do
-        puts "#{project[:name]} Copying assets ..."
-        copy_assets_to("#{BUILD_DIR}/#{project[:asset_folder_path]}", project )
-        puts "#{project[:name]} Copying assets OK"
+        puts "#{project.name} Copying assets ..."
+        copy_assets_to("#{BUILD_DIR}", project )
+        puts "#{project.name} Copying assets OK"
     end
 
     desc "Build executable binary"
     task :binary => :compile do
-        case project[:type] 
+        case project.type
         when "executable"
-            puts "#{project[:name]} Linking ..."
+            puts "#{project.name} Linking ..."
             build_executable_binary( project )
-            puts "#{project[:name]} Linking OK"
+            puts "#{project.name} Linking OK"
 
         when "static"
-            puts "#{project[:name]} Creating static library ..."
+            puts "#{project.name} Creating static library ..."
             build_static_library( project )
-            puts "#{project[:name]} Static library OK"
+            puts "#{project.name} Static library OK"
             
         when "objects"
-            puts "#{project[:name]} Objects OK"
+            puts "#{project.name} Objects OK"
         else
-            raise "Unexpected project type: #{project[:type]}"
+            raise "Unexpected project type: #{project.type}"
         end
     end    
 
@@ -170,50 +167,50 @@ def declare_project_tasks(project)
     objects.each_with_index do |obj, index|
         src = obj_to_src( obj, project )
         
-        # desc "#{project[:name]}: to build #{src}"
+        # desc "#{project.name}: to build #{src}"
         file obj => src do |task|
-            puts "#{project[:name]} | Compiling #{src} ..."
+            puts "#{project.name} | Compiling #{src} ..."
             compile_file( src, project)
 		end
 	end
 end
 
 def copy_assets_to( destination, project )
-    source = project[:asset_folder_path]
+    source = project.asset_folder_path
     puts "source: #{source}, destination: #{destination}"
     FileUtils.mkdir_p destination
-    FileUtils.copy_entry( source, destination)
+    FileUtils.copy_entry( source, "#{destination}/#{project.asset_folder_path}")
 end
 
 def _pack_to( destination, project )
-    copy_assets_to( "#{destination}/#{project[:asset_folder_path]}/", project )
+    copy_assets_to( destination, project )
     FileUtils.mkdir_p destination
     FileUtils.copy( get_binary_name( project ), destination)
 end
 
 def get_library_name( project )
-    "#{LIB_DIR}/lib#{project[:name].ext(".a")}"
+    "#{LIB_DIR}/lib#{project.name.ext(".a")}"
 end
 
 def build_static_library( project )
 
     objects        = get_all_objects( project ).join(" ")
     binary         = get_library_name( project )
-    linker_flags   = project[:linker_flags].join(" ")
+    linker_flags   = project.linker_flags.join(" ")
 
     FileUtils.mkdir_p File.dirname(binary)
     sh "llvm-ar r #{binary} #{objects}", verbose: VERBOSE
 end
 
 def get_binary_name( project )
-    "#{BUILD_DIR}/#{project[:name]}"
+    "#{BUILD_DIR}/#{project.name}"
 end
 
 def build_executable_binary( project )
 
     objects        = get_all_objects( project ).join(" ")
     binary         = get_binary_name( project )
-    linker_flags   = project[:linker_flags].join(" ")
+    linker_flags   = project.linker_flags.join(" ")
 
     FileUtils.mkdir_p File.dirname(binary)
 
@@ -224,12 +221,12 @@ def compile_file(src, project)
 
     # Generate stringified version of the flags
     # TODO: store this in a cache?
-    includes     = project[:includes].map{|path| "-I#{path}"}.join(" ")
-    cxx_flags    = project[:cxx_flags].join(" ")
-    c_flags      = project[:c_flags].join(" ")
-    defines      = project[:defines].map{|d| "-D\"#{d}\"" }.join(" ")
-    linker_flags = project[:linker_flags].join(" -l")
-    compiler_flags = project[:compiler_flags].join(" ")
+    includes     = project.includes.map{|path| "-I#{path}"}.join(" ")
+    cxx_flags    = project.cxx_flags.join(" ")
+    c_flags      = project.c_flags.join(" ")
+    defines      = project.defines.map{|d| "-D\"#{d}\"" }.join(" ")
+    linker_flags = project.linker_flags.join(" -l")
+    compiler_flags = project.compiler_flags.join(" ")
 
     if File.extname( src ) == ".cpp"
         # TODO: add a regular flags for both, and remove this c_flags below

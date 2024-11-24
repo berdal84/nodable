@@ -1,7 +1,7 @@
 require_relative 'tools'
 #---------------------------------------------------------------------------
 core = new_project("ndbl_core", "objects")
-core[:sources] |= FileList[
+core.sources |= FileList[
     "src/ndbl/core/language/Nodlang.cpp",
     "src/ndbl/core/language/Nodlang_biology.cpp",
     "src/ndbl/core/language/Nodlang_math.cpp",
@@ -34,7 +34,7 @@ core[:sources] |= FileList[
 ]
 #---------------------------------------------------------------------------
 gui = new_project("ndbl_gui", "objects")
-gui[:sources] |= FileList[
+gui.sources |= FileList[
     "src/ndbl/gui/CreateNodeCtxMenu.cpp",
     "src/ndbl/gui/GraphView.cpp",
     "src/ndbl/gui/Nodable.cpp",
@@ -52,10 +52,10 @@ gui[:sources] |= FileList[
 ]
 #---------------------------------------------------------------------------
 app = new_project("nodable", "executable")
-app[:sources] |= FileList[
+app.sources |= FileList[
     "src/ndbl/app/main.cpp",
 ]
-app[:depends_on] |= [
+app.depends_on |= [
     $tools_core, $tools_gui,
     $text_editor,
     core, gui
