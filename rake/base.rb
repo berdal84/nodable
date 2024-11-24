@@ -4,7 +4,7 @@ require_relative '_utils'
 def new_target_from_base(name, type)
 
     target = new_empty_target(name, type)
-    target.includes = FileList[
+    target.includes |= FileList[
         "src",
         "src/ndbl",
         "src/tools",
@@ -22,12 +22,12 @@ def new_target_from_base(name, type)
         "libs/freetype/include",
         "/usr/include/X11/mesa/GL"
     ]
-    target.cxx_flags = [
+    target.cxx_flags |= [
         # "-stdlib=platform", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
         "--std=c++20",
         "-fno-char8_t"
     ]
-    target.linker_flags = [
+    target.linker_flags |= [
         "-L#{LIB_DIR}",
         "-Llibs/nativefiledialog-extended/build/src",        
         "`pkg-config --cflags --libs freetype2`",
@@ -50,19 +50,23 @@ def new_target_from_base(name, type)
 
     target.asset_folder_path = "assets" # a single folder
 
-    target.defines = [
+    target.defines |= [
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
         "NDBL_APP_ASSETS_DIR=\\\"#{target.asset_folder_path}\\\"",
         "NDBL_APP_NAME=\\\"#{target.name}\\\"",
         "NDBL_BUILD_REF=\\\"local\\\"",
     ]
     
+    if BUILD_OS_WINDOWS
+        target.defines |= ["WIN32"] # MSVC-like   
+    end
+
     if BUILD_TYPE_RELEASE
-        target.compiler_flags = [
+        target.compiler_flags |= [
             "-O3"
         ] 
     elsif BUILD_TYPE_DEBUG
-        target.compiler_flags = [
+        target.compiler_flags |= [
             "-g", # generates symbols
             "-O0", # no optim
             "-Wfatal-errors",
