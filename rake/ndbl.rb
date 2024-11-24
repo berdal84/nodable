@@ -1,7 +1,9 @@
+require_relative 'base'
 require_relative 'tools'
+
 #---------------------------------------------------------------------------
-core = new_project("ndbl_core", "objects")
-core.sources |= FileList[
+ndbl_core = new_target_from_base("ndbl_core", TargetType::OBJECTS)
+ndbl_core.sources |= FileList[
     "src/ndbl/core/language/Nodlang.cpp",
     "src/ndbl/core/language/Nodlang_biology.cpp",
     "src/ndbl/core/language/Nodlang_math.cpp",
@@ -33,8 +35,8 @@ core.sources |= FileList[
     "src/ndbl/core/WhileLoopNode.cpp",
 ]
 #---------------------------------------------------------------------------
-gui = new_project("ndbl_gui", "objects")
-gui.sources |= FileList[
+ndbl_gui = new_target_from_base("ndbl_gui", TargetType::OBJECTS)
+ndbl_gui.sources |= FileList[
     "src/ndbl/gui/CreateNodeCtxMenu.cpp",
     "src/ndbl/gui/GraphView.cpp",
     "src/ndbl/gui/Nodable.cpp",
@@ -51,15 +53,18 @@ gui.sources |= FileList[
     "src/ndbl/gui/SlotView.cpp",
 ]
 #---------------------------------------------------------------------------
-app = new_project("nodable", "executable")
-app.sources |= FileList[
+ndbl_app = new_target_from_base("nodable", TargetType::EXECUTABLE)
+ndbl_app.sources |= FileList[
     "src/ndbl/app/main.cpp",
 ]
-app.depends_on |= [
-    $tools_core, $tools_gui,
+ndbl_app.link_library |= [
+    $tools_gui,
+    $tools_core,
     $text_editor,
-    core, gui
+    ndbl_core,
+    ndbl_gui
 ]
+
 #---------------------------------------------------------------------------
 task :ndbl => 'ndbl:build'
 namespace :ndbl do
@@ -68,15 +73,15 @@ namespace :ndbl do
     task :pack  => ['app:pack']
 
     namespace :core do
-        declare_project_tasks( core )
+        tasks_for_target( ndbl_core )
     end
     
     namespace :gui do        
-        declare_project_tasks( gui )
+        tasks_for_target( ndbl_gui )
     end
 
     namespace :app do
-        declare_project_tasks( app )
+        tasks_for_target( ndbl_app )
     end
 end
 #---------------------------------------------------------------------------

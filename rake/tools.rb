@@ -1,6 +1,8 @@
+require_relative 'base'
 require_relative 'libs'
+
 #---------------------------------------------------------------------------
-$tools_core = new_project("tools_core", "objects")
+$tools_core = new_target_from_base("tools_core", TargetType::OBJECTS)
 $tools_core.sources |= FileList[
     "src/tools/core/reflection/qword.cpp",
     "src/tools/core/reflection/Type.cpp",
@@ -15,9 +17,9 @@ $tools_core.sources |= FileList[
     "src/tools/core/System.cpp",
     "src/tools/core/TaskManager.cpp"
 ]
-$tools_core.depends_on |= [$whereami] # this lib is only objects
+$tools_core.link_library |= [$whereami]
 #---------------------------------------------------------------------------
-$tools_gui = new_project("tools_gui", "objects")
+$tools_gui = new_target_from_base("tools_gui", TargetType::OBJECTS)
 $tools_gui.sources |= FileList[
     "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
     "src/tools/gui/geometry/BoxShape2D.cpp",
@@ -35,16 +37,20 @@ $tools_gui.sources |= FileList[
     "src/tools/gui/ViewState.cpp",
     "src/tools/gui/TextureManager.cpp",
 ]
-$tools_gui.depends_on |= [$gl3w, $lodepng, $imgui]
+$tools_gui.link_library |= [$gl3w, $lodepng, $imgui]
+
 #---------------------------------------------------------------------------
-app = new_project("tools-gui-example", "executable")
+
+app = new_target_from_base("tools-gui-example", TargetType::EXECUTABLE)
 app.sources |= FileList[
     "src/tools/gui-example/AppExample.cpp",
     "src/tools/gui-example/AppExampleView.cpp",
     "src/tools/gui-example/main.cpp"
 ]
-app.depends_on |= [$tools_core, $tools_gui]
+app.link_library |= [$tools_core, $tools_gui]
+
 #---------------------------------------------------------------------------
+
 desc "Build tools"
 task :tools => 'tools:build'
 namespace :tools do
@@ -53,17 +59,17 @@ namespace :tools do
 
     task :core => 'core:build'
     namespace :core do
-        declare_project_tasks( $tools_core )
+        tasks_for_target( $tools_core )
     end
 
     task :gui => ['gui:build']
     namespace :gui do
-        declare_project_tasks( $tools_gui )
+        tasks_for_target( $tools_gui )
     end
 
     task :app => ['app:build']
     namespace :app do
-        declare_project_tasks( app )
+        tasks_for_target( app )
     end
 end
 #---------------------------------------------------------------------------

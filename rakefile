@@ -1,9 +1,9 @@
 require 'fileutils'
 require 'rake/clean'
 
-require_relative 'rake/environment'
+require_relative 'rake/_utils'
 require_relative 'rake/libs'
-require_relative 'rake/common'
+require_relative 'rake/base'
 require_relative 'rake/tools'
 require_relative 'rake/ndbl'
 

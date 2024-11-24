@@ -1,21 +1,22 @@
-require_relative "common"
+require_relative "base"
+
 #---------------------------------------------------------------------------
-$whereami = new_project("whereami", "objects")
+$whereami = new_target_from_base("whereami", TargetType::OBJECTS)
 $whereami.sources |= FileList[
     "libs/whereami/src/whereami.c"
 ]
 #---------------------------------------------------------------------------
-$gl3w = new_project("gl3w", "objects")
+$gl3w = new_target_from_base("gl3w", TargetType::OBJECTS)
 $gl3w.sources |= FileList[
     "libs/gl3w/GL/gl3w.c"
 ]
 #---------------------------------------------------------------------------
-$lodepng = new_project("lodepng", "objects")
+$lodepng = new_target_from_base("lodepng", TargetType::OBJECTS)
 $lodepng.sources |= FileList[
     "libs/lodepng/lodepng.cpp"
 ]
 #---------------------------------------------------------------------------
-$imgui = new_project("imgui", "objects")
+$imgui = new_target_from_base("imgui", TargetType::OBJECTS)
 $imgui.sources |= FileList[
    "libs/imgui/imgui.cpp",
    "libs/imgui/imgui_demo.cpp",
@@ -27,7 +28,7 @@ $imgui.sources |= FileList[
    "libs/imgui/backends/imgui_impl_opengl3.cpp",
 ]
 #---------------------------------------------------------------------------
-$text_editor = new_project("text_editor", "objects")
+$text_editor = new_target_from_base("text_editor", TargetType::OBJECTS)
 $text_editor.sources |= FileList[
     "libs/ImGuiColorTextEdit/TextEditor.cpp"
 ]
@@ -36,23 +37,23 @@ task :libs => 'libs:build'
 namespace :libs do
 
     namespace :gl3w do
-        declare_project_tasks( $gl3w )
+        tasks_for_target( $gl3w )
     end
 
     namespace :text_editor do
-        declare_project_tasks( $text_editor )
+        tasks_for_target( $text_editor )
     end
 
     namespace :lodepng do
-        declare_project_tasks( $lodepng )    
+        tasks_for_target( $lodepng )    
     end
     
     namespace :imgui do
-        declare_project_tasks( $imgui )
+        tasks_for_target( $imgui )
     end
 
     namespace :whereami do
-        declare_project_tasks( $whereami )
+        tasks_for_target( $whereami )
     end
 
     #---------------------------------------------------------------------------
