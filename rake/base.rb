@@ -58,7 +58,10 @@ def new_target_from_base(name, type)
     ]
     
     if BUILD_OS_WINDOWS
-        target.defines |= ["WIN32"] # MSVC-like   
+        target.defines |= [
+            "WIN32", # to have an MSVC-like macro 
+            "NOMINMAX", # in WIN32, min and max are macros by default, it creates conflicts with std::min/std::max
+        ]  
     end
 
     if BUILD_TYPE_RELEASE
