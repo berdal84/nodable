@@ -87,7 +87,7 @@ ndbl_test.link_library |= [
 ]
 
 # On GitHub actions, the only runner able to run this is the macos one
-if ENV["NDBL_ENABLE_GUI_TEST"] or (GITHUB_ACTIONS and TARGET_OS_MACOS)
+if ENV["NDBL_ENABLE_GUI_TEST"] or (GITHUB_ACTIONS and BUILD_OS_MACOS)
     ndbl_test.sources |= [
         "src/ndbl/gui/Nodable.specs.cpp"
     ]
