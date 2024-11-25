@@ -64,12 +64,49 @@ ndbl_app.link_library |= [
     ndbl_core,
     ndbl_gui
 ]
+#---------------------------------------------------------------------------
+ndbl_test = new_target_from_base("ndbl-specs", TargetType::EXECUTABLE)
+ndbl_test.sources |= FileList[
+    "src/ndbl/core/language/Nodlang.parse_and_serialize.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse_token.specs.cpp",
+    "src/ndbl/core/language/Nodlang.tokenize.specs.cpp",
+    "src/ndbl/core/Graph.specs.cpp",
+    "src/ndbl/core/Interpreter.specs.cpp",
+]
+
+ndbl_test.linker_flags |= [
+    "-lgtest",
+    "-lgtest_main"
+]
+
+ndbl_test.link_library |= [
+    $tools_core,
+    $tools_gui,
+    ndbl_core
+]
+
+# On GitHub actions, the only runner able to run this is the macos one
+if ENV["NDBL_ENABLE_GUI_TEST"] or (GITHUB_ACTIONS and TARGET_OS_MACOS)
+    ndbl_test.sources |= [
+        "src/ndbl/gui/Nodable.specs.cpp"
+    ]
+    ndbl_test.link_library |= [
+        ndbl_gui,
+        $text_editor
+    ]
+else
+    puts "Nodable GUI tests will be disable, export NDBL_ENABLE_GUI_TEST env var to enable them."
+end
+
 
 #---------------------------------------------------------------------------
 task :ndbl => 'ndbl:build'
 namespace :ndbl do
-
-    task :build => ['core:build', 'gui:build', 'app:build']
+    task :clean => ['core:clean', 'gui:clean', 'app:clean', 'test:clean']
+    task :rebuild => ['clean', 'build']
+    task :build => ['core:build', 'gui:build', 'app:build', 'test:build']
+    task :test  => ['test:run']
     task :pack  => ['app:pack']
 
     namespace :core do
@@ -82,6 +119,10 @@ namespace :ndbl do
 
     namespace :app do
         tasks_for_target( ndbl_app )
+    end
+
+    namespace :test do
+        tasks_for_target( ndbl_test )
     end
 end
 #---------------------------------------------------------------------------

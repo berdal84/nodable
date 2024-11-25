@@ -71,7 +71,13 @@ tools_test.link_library |= [$tools_core, $tools_gui]
 desc "Build tools"
 namespace :tools do
 
+    desc "Clean tools"
+    task :clean => ['core:clean', 'gui:clean', 'app:clean', 'test:clean']
+    desc "Rebuild tools"
+    task :rebuild => ['clean', 'build']
+    desc "Build tools"
     task :build => ['core:build', 'gui:build', 'app:build', 'test:build']
+    task :test  => ['test:run']
 
     task :test => [] do
         sh "#{get_binary_build_path(tools_test)}"
@@ -81,12 +87,12 @@ namespace :tools do
         tasks_for_target( $tools_core )
     end
 
-    task :gui => ['gui:build']
+    task :gui
     namespace :gui do
         tasks_for_target( $tools_gui )
     end
 
-    task :app => ['app:build']
+    task :app
     namespace :app do
         tasks_for_target( app )
     end

@@ -19,6 +19,7 @@ INSTALL_DIR        = ENV["INSTALL_DIR"]     || "out"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
 BUILD_OS_WINDOWS   = BUILD_OS.include?("windows") || BUILD_OS.include?("mingw32")
+GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 
 if VERBOSE
     system "echo Ruby version: && ruby -v"
@@ -196,20 +197,29 @@ def tasks_for_target(target)
     binary  = get_binary_build_path(target)
     objects = get_objects(target)
 
-    desc "Clean intermediate *.o files"
+    desc "Clean #{target.name}'s intermediate files"
     task :clean do
-        objects.delete()
+        FileUtils.rm_f objects
+    end
+
+    if target.type == TargetType::EXECUTABLE
+        desc "Run the #{target.name}"
+        task :run => [ :build ] do
+            sh "./#{get_binary_build_path(target)}"
+        end
     end
 
     if target.type == TargetType::EXECUTABLE or target.type == TargetType::STATIC_LIBRARY
         desc "Copy in #{INSTALL_DIR} the files to distribute the software"
         task :pack do
-            
-                _pack_to( "#{INSTALL_DIR}", target)
+            _pack_to( "#{INSTALL_DIR}", target)
         end
     end
 
-    desc "Compile #{target.type}"
+    desc "Clean and build target #{target.name}"
+    task :rebuild => [:clean, :build]
+
+    desc "Compile #{target.name}"
     task :build => binary do
         if target.asset_folder_path
             puts "#{target.name} Copying assets ..."
@@ -218,8 +228,8 @@ def tasks_for_target(target)
         end
     end
 
-    desc "Build executable binary"
-    file binary => :compile do
+
+    file binary => :link do
         case target.type
         when TargetType::EXECUTABLE
             puts "#{target.name} Linking ..."
@@ -230,15 +240,14 @@ def tasks_for_target(target)
             puts "#{target.name} Creating static library ..."
             build_static_library( target )
             puts "#{target.name} Static library OK"
-            
         when TargetType::OBJECTS
-            puts "#{target.name} Objects OK"
+            # nothing to go
         else
-            raise "Unexpected target type: #{target.type}, see TargetType for possible values"
-        end
+            raise "Unhandled case: #{target.type}"
+        end 
     end    
 
-    multitask :compile => get_objects_to_link( target )
+    multitask :link => get_objects_to_link( target )
 
     objects.each_with_index do |obj, index|
         src = obj_to_src( obj, target )
