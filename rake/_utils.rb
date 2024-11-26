@@ -207,7 +207,6 @@ def tasks_for_target(target)
 
             if target.asset_folder_path
                 puts "#{target.name} Copying assets ..."
-                puts "source: #{target.asset_folder_path}, destination: #{destination}"
                 FileUtils.mkdir_p "#{destination}/#{target.asset_folder_path}"
                 FileUtils.copy_entry( target.asset_folder_path, "#{destination}/#{target.asset_folder_path}")
             end
@@ -219,7 +218,14 @@ def tasks_for_target(target)
     task :rebuild => [:clean, :build]
 
     desc "Compile #{target.name}"
-    task :build => binary
+    task :build => binary do 
+        if target.asset_folder_path
+            puts "#{target.name} Copying assets ..."
+            destination = "#{BUILD_DIR}/#{target.name}"
+            FileUtils.mkdir_p "#{destination}/#{target.asset_folder_path}"
+            FileUtils.copy_entry( target.asset_folder_path, "#{destination}/#{target.asset_folder_path}")
+        end
+    end
 
     file binary => :link do
         case target.type

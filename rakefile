@@ -12,11 +12,16 @@ CLOBBER.include [INSTALL_DIR, BUILD_DIR, LIB_DIR] # final files
 
 task :default => :help
 
-desc "says hello"
+desc "Print help"
 task :help do
-    print("Welcome to Nodable's rakefile.\nFor more info, run: rake --tasks\n")
+    print("Welcome to Nodable's rakefile.\nFor more info, run: rake -T\n")
 end
 
-task :build => ['libs:install', 'tools:build', 'ndbl:build'] do puts "Build DONE" end
-task :test  => ['tools:test', 'ndbl:test']
-task :install  => ['ndbl:install'] do puts "Pack DONE" end
+desc "Build tools and ndbl"
+task :build    => ['tools:build'  , 'ndbl:build']   do puts "Build OK" end
+
+desc "Run tests for tools and ndbl"
+task :test     => ['tools:test'   , 'ndbl:test']    do puts "Test OK" end
+
+desc "Install tools example app and nodable"
+task :install  => ['tools:install', 'ndbl:install'] do puts "Install OK" end

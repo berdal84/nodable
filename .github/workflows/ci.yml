@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Dependencies
         shell: bash
-        run: rake install --trace
+        run: rake libs:install --trace
 
       - name: Build
         shell: bash
@@ -44,9 +44,9 @@ jobs:
         shell: bash
         run: rake test --trace
 
-      - name: Pack
+      - name: Install
         shell: bash
-        run: rake pack --trace
+        run: rake install --trace
 
       - name: Binary Artifact
         uses: actions/upload-artifact@v4
