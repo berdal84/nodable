@@ -7,12 +7,12 @@ namespace :libs do
 
     task :install => [
         'freetype',
+        'whereami:build',
         'gl3w:build',
         'imgui:build',
         'lodepng:build',
         'text_editor:build',
         'googletest:install',
-        'whereami:install',
         'nfd:install',
         'cpptrace:install',
         'sdl:install',

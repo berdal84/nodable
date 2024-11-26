@@ -144,7 +144,7 @@ def build_static_library( target )
 end
 
 def get_binary_build_path( target )
-    "#{BUILD_DIR}/#{target.name}"
+    "#{BUILD_DIR}/#{target.name}/#{target.name}"
 end
 
 def build_executable_binary( target )
@@ -223,7 +223,7 @@ def tasks_for_target(target)
     task :build => binary do
         if target.asset_folder_path
             puts "#{target.name} Copying assets ..."
-            copy_assets_to("#{BUILD_DIR}", target )
+            copy_assets_to("#{BUILD_DIR}/#{target.name}", target )
             puts "#{target.name} Copying assets OK"
         end
     end
