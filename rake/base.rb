@@ -4,10 +4,14 @@ require_relative '_utils'
 def new_target_from_base(name, type)
 
     target = new_empty_target(name, type)
+
     target.includes |= FileList[
         "src",
         "src/ndbl",
-        "src/tools",
+        "src/tools"
+    ]
+
+    target.includes |= FileList[
         "libs",
         "libs/whereami/src",
         "libs/imgui",
@@ -17,14 +21,31 @@ def new_target_from_base(name, type)
         "libs/gl3w",
         "libs/IconFontCppHeaders",
         "/usr/include/X11/mesa/GL",
+        "libs/cpptrace/include",
+        "libs/freetype/include",
+        "libs/googletest/googletest/include",
+        "libs/nativefiledialog-extended/src/include",
         "libs/SDL/include",
-        "libs/freetype/include"
     ]
+
+    target.linker_flags |= [
+        "-L#{BUILD_DIR}/cpptrace",
+        "-L#{BUILD_DIR}/cpptrace/_deps/libdwarf-build/src/lib/libdwarf",
+        "-L#{BUILD_DIR}/cpptrace/_deps/zstd-build/lib",
+        "-L#{BUILD_DIR}/freetype",
+        "-L#{BUILD_DIR}/googletest/lib",
+        "-L#{BUILD_DIR}/nfd/src",
+        "-L#{BUILD_DIR}/sdl",
+    ]
+
     target.cxx_flags |= [
         "--std=c++20",
         "-fno-char8_t"
     ]
+
     target.linker_flags |= [
+        "-lfreetype -lbz2 -lpng16 -lz -lharfbuzz -lbrotlidec",
+        "-lSDL2 -lSDL2main",
     ]
 
     if BUILD_OS_WINDOWS
@@ -37,8 +58,6 @@ def new_target_from_base(name, type)
     else
         target.linker_flags |= [
             "-lGL", # OpenGL
-            "`pkg-config freetype2 --cflags --libs`",
-            "`pkg-config sdl2 --cflags --libs` -lSDL2main",
             "-lcpptrace -ldwarf -lz -lzstd -ldl", # see https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
             "-lnfd",
         ]
@@ -61,7 +80,7 @@ def new_target_from_base(name, type)
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
         "NDBL_APP_ASSETS_DIR=\\\"#{target.asset_folder_path}\\\"",
         "NDBL_APP_NAME=\\\"#{target.name}\\\"",
-        "NDBL_BUILD_REF=\\\"local\\\"",
+        "NDBL_BUILD_REF=\\\"local\\\""
     ]
     
     if BUILD_OS_WINDOWS

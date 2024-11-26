@@ -2,17 +2,17 @@ require_relative "base"
 require_relative "_utils"
 require_relative "_cmake"
 
-task :libs => 'libs:install'
+task :libs => 'libs:build'
 namespace :libs do
 
-    task :install => [
+    task :build => [
         'install_system_deps',
         # compile .a/.lib first
-        'freetype:install',
-        'googletest:install',
+        'freetype:build',
+        'googletest:build',
         'nfd:install',
-        'cpptrace:install',
-        'sdl:install',
+        'cpptrace:build',
+        'sdl:build',
         # then .o
         'whereami:build',
         'gl3w:build',

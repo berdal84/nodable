@@ -34,7 +34,7 @@ jobs:
 
       - name: Install Dependencies
         shell: bash
-        run: rake libs:install --trace
+        run: rake libs --trace
 
       - name: Build
         shell: bash
