@@ -119,7 +119,7 @@ end
 def copy_assets_to( destination, target )
     source = target.asset_folder_path
     puts "source: #{source}, destination: #{destination}"
-    FileUtils.mkdir_p destination
+    FileUtils.mkdir_p "#{destination}/#{target.asset_folder_path}"
     FileUtils.copy_entry( source, "#{destination}/#{target.asset_folder_path}")
 end
 
