@@ -52,17 +52,13 @@ app.link_library |= [$tools_core, $tools_gui]
 
 #---------------------------------------------------------------------------
 
-tools_test = new_target_from_base("tools-test", TargetType::EXECUTABLE)
+tools_test = new_target_from_test("tools-test", TargetType::EXECUTABLE)
 tools_test.sources |= FileList[
     "src/tools/core/Delegate.specs.cpp",
     "src/tools/core/string.specs.cpp",
     "src/tools/core/reflection/reflection.specs.cpp",
     "src/tools/gui/geometry/SpatialNode2D.specs.cpp",
     "src/tools/gui/geometry/Rect.specs.cpp"
-]
-tools_test.linker_flags |= [
-    "-lgtest",
-    "-lgtest_main"
 ]
 tools_test.link_library |= [$tools_core, $tools_gui]
 

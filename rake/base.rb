@@ -15,25 +15,22 @@ def new_target_from_base(name, type)
         "libs/glm",
         "libs/gl3w/GL",
         "libs/gl3w",
-        "libs/SDL/include",
         "libs/IconFontCppHeaders",
-        "libs/nativefiledialog-extended/src/include",
-        "libs/cpptrace",
-        "libs/freetype/include",
         "/usr/include/X11/mesa/GL",
+        "#{INSTALL_DIR}/freetype/include/freetype2",
+        "#{INSTALL_DIR}/sdl/include/SDL2",
         "#{INSTALL_DIR}/cpptrace/include",
         "#{INSTALL_DIR}/nfd/include",
-        "#{INSTALL_DIR}/sdl/include",
     ]
     target.cxx_flags |= [
         "--std=c++20",
         "-fno-char8_t"
     ]
     target.linker_flags |= [
-        "-L#{INSTALL_DIR}/sdl/freetype -lfreetype",
+        "-L#{INSTALL_DIR}/freetype/lib -lfreetype",
         "-L#{INSTALL_DIR}/sdl/lib -lSDL2 -lSDL2main",
-        "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
         "-L#{INSTALL_DIR}/cpptrace/lib -lcpptrace", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+        "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
     ]
     if BUILD_OS_WINDOWS
         target.linker_flags |= [
@@ -89,5 +86,22 @@ def new_target_from_base(name, type)
             "-pedantic"
         ]
     end
+    target
+end
+
+
+def new_target_from_test(name, type)
+
+    if type != TargetType::EXECUTABLE
+        raise "Please provide TargetType::EXECUTABLE as type" # we want the same interface, that's why type is an arg
+    end
+
+    target = new_target_from_base( name, type)
+    target.includes |= [
+        "#{INSTALL_DIR}/googletest/include",
+    ]
+    target.linker_flags |= [
+        "-L#{INSTALL_DIR}/googletest/lib -lgtest -lgtest_main",
+    ]
     target
 end

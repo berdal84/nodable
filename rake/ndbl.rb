@@ -65,7 +65,7 @@ ndbl_app.link_library |= [
     ndbl_gui
 ]
 #---------------------------------------------------------------------------
-ndbl_test = new_target_from_base("ndbl-specs", TargetType::EXECUTABLE)
+ndbl_test = new_target_from_test("ndbl-specs", TargetType::EXECUTABLE)
 ndbl_test.sources |= FileList[
     "src/ndbl/core/language/Nodlang.parse_and_serialize.specs.cpp",
     "src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp",
