@@ -87,15 +87,9 @@ namespace :libs do
 
     #---------------------------------------------------------------------------
 
-    task :freetype => [] do
-        commands = [
-            'cd libs/freetype',
-            'mkdir -p build && cd build',
-            'cmake ..',
-            'make',
-            'sudo make install'
-        ]
-        system commands.join(" && ")
+        namespace :freetype do
+       freetype = CMakeTarget.new(name: "freetype", path: "libs/freetype" )
+       tasks_for_cmake_target( freetype )
     end
 
 end # namespace libs
