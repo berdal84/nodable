@@ -30,7 +30,7 @@ def new_target_from_base(name, type)
         "-fno-char8_t"
     ]
     target.linker_flags |= [
-        "-L#{INSTALL_DIR}/sdl/freetype -lfreetype2",
+        "-L#{INSTALL_DIR}/sdl/freetype -lfreetype",
         "-L#{INSTALL_DIR}/sdl/lib -lSDL2 -lSDL2main",
         "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
         "-L#{INSTALL_DIR}/cpptrace/lib -lcpptrace", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
