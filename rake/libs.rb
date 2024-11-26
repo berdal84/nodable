@@ -6,7 +6,7 @@ task :libs => 'libs:install'
 namespace :libs do
 
     task :install => [
-        'freetype',
+        'freetype:install',
         'whereami:build',
         'gl3w:build',
         'imgui:build',
