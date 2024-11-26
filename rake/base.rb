@@ -20,22 +20,35 @@ def new_target_from_base(name, type)
         "libs/nativefiledialog-extended/src/include",
         "libs/cpptrace",
         "libs/freetype/include",
-        "/usr/include/X11/mesa/GL"
+        "/usr/include/X11/mesa/GL",
+        "#{INSTALL_DIR}/cpptrace/include",
+        "#{INSTALL_DIR}/nfd/include",
+        "#{INSTALL_DIR}/sdl/include",
     ]
     target.cxx_flags |= [
-        # "-stdlib=platform", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
         "--std=c++20",
         "-fno-char8_t"
     ]
     target.linker_flags |= [
-        "-L#{LIB_DIR}",
-        "-Llibs/nativefiledialog-extended/build/src",        
-        "`pkg-config --cflags --libs freetype2`",
-        "`sdl2-config --cflags --libs`",
-        "-lnfd", # Native File Dialog
-        "-lGL",
-        "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+   #     "-L#{INSTALL_DIR}/sdl/lib -lSDL2 -lSDL2main",
+    #    "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
+   #     "-L#{INSTALL_DIR}/cpptrace/lib -lcpptrace", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
     ]
+    if BUILD_OS_WINDOWS
+        target.linker_flags |= [
+            "-lole32 -luuid -lshell32", # for nfd
+            "-Wl,/SUBSYSTEM:CONSOLE",
+            "-lopengl32",
+            "-lcpptrace -ldbghelp" # for cpptrace
+            #TODO: freetype2
+        ]
+    else
+        target.linker_flags |= [
+            "-lGL",
+            "-lfreetype2",
+            "-ldwarf -lz -lzstd -ldl" # for cpptrace
+        ]
+    end
 
     if BUILD_OS_LINUX
         target.linker_flags |= [
@@ -59,6 +72,7 @@ def new_target_from_base(name, type)
     
     if BUILD_OS_WINDOWS
         target.defines |= [
+            "_DLL",
             "WIN32", # to have an MSVC-like macro 
             "NOMINMAX", # in WIN32, min and max are macros by default, it creates conflicts with std::min/std::max
         ]  
