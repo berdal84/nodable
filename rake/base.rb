@@ -30,9 +30,10 @@ def new_target_from_base(name, type)
         "-fno-char8_t"
     ]
     target.linker_flags |= [
-   #     "-L#{INSTALL_DIR}/sdl/lib -lSDL2 -lSDL2main",
-    #    "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
-   #     "-L#{INSTALL_DIR}/cpptrace/lib -lcpptrace", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+        "-L#{INSTALL_DIR}/sdl/freetype -lfreetype2",
+        "-L#{INSTALL_DIR}/sdl/lib -lSDL2 -lSDL2main",
+        "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
+        "-L#{INSTALL_DIR}/cpptrace/lib -lcpptrace", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
     ]
     if BUILD_OS_WINDOWS
         target.linker_flags |= [
@@ -40,12 +41,10 @@ def new_target_from_base(name, type)
             "-Wl,/SUBSYSTEM:CONSOLE",
             "-lopengl32",
             "-lcpptrace -ldbghelp" # for cpptrace
-            #TODO: freetype2
         ]
     else
         target.linker_flags |= [
             "-lGL",
-            "-lfreetype2",
             "-ldwarf -lz -lzstd -ldl" # for cpptrace
         ]
     end
