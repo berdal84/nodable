@@ -20,7 +20,7 @@ jobs:
     env:
       # Those are read by rake script
       BUILD_TYPE:  debug # release|debug
-      INSTALL_DIR: out
+      INSTALL_DIR: install
       VERBOSE: true
     steps:
       - name: Git Checkout
@@ -52,4 +52,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: nodable-${{ runner.os }}
-          path: ${{env.INSTALL_DIR}}/*
+          path: ${{env.INSTALL_DIR}}/nodable/*
