@@ -30,7 +30,7 @@ namespace :libs do
         elsif BUILD_OS_MACOS
             sh "brew install mesalib-glw" or raise "Unable to install packages"
         elsif BUILD_OS_WINDOWS
-            sh "nothing to install for your system"
+            puts "No system dependencies to install for #{BUILD_OS_WINDOWS}"
         else
             raise "Your system (#{BUILD_OS}) is not supported by this script"
         end
