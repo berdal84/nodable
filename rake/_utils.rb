@@ -116,19 +116,6 @@ def get_objects_to_link( target )
     objects
 end
 
-def copy_assets_to( destination, target )
-    source = target.asset_folder_path
-    puts "source: #{source}, destination: #{destination}"
-    FileUtils.mkdir_p "#{destination}/#{target.asset_folder_path}"
-    FileUtils.copy_entry( source, "#{destination}/#{target.asset_folder_path}")
-end
-
-def _pack_to( destination, target )
-    copy_assets_to( destination, target )
-    FileUtils.mkdir_p destination
-    FileUtils.copy( get_binary_build_path( target ), destination)
-end
-
 def get_library_name( target )
     "#{LIB_DIR}/lib#{target.name.ext(".a")}"
 end
@@ -211,8 +198,20 @@ def tasks_for_target(target)
 
     if target.type == TargetType::EXECUTABLE or target.type == TargetType::STATIC_LIBRARY
         desc "Copy in #{INSTALL_DIR} the files to distribute the software"
-        task :pack do
-            _pack_to( "#{INSTALL_DIR}", target)
+        task :install => :build do
+            puts "#{target.name} Installing ..."
+            destination = "#{INSTALL_DIR}/#{target.name}"
+            puts "#{target.name} Copying binary ..."
+            FileUtils.mkdir_p destination
+            FileUtils.copy( get_binary_build_path( target ), destination)
+
+            if target.asset_folder_path
+                puts "#{target.name} Copying assets ..."
+                puts "source: #{target.asset_folder_path}, destination: #{destination}"
+                FileUtils.mkdir_p "#{destination}/#{target.asset_folder_path}"
+                FileUtils.copy_entry( target.asset_folder_path, "#{destination}/#{target.asset_folder_path}")
+            end
+            puts "#{target.name} Install OK"
         end
     end
 
@@ -220,14 +219,7 @@ def tasks_for_target(target)
     task :rebuild => [:clean, :build]
 
     desc "Compile #{target.name}"
-    task :build => binary do
-        if target.asset_folder_path
-            puts "#{target.name} Copying assets ..."
-            copy_assets_to("#{BUILD_DIR}/#{target.name}", target )
-            puts "#{target.name} Copying assets OK"
-        end
-    end
-
+    task :build => binary
 
     file binary => :link do
         case target.type

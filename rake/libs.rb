@@ -6,17 +6,35 @@ task :libs => 'libs:install'
 namespace :libs do
 
     task :install => [
-        'freetype:install',
+        'install_deps',
+        # .o
         'whereami:build',
         'gl3w:build',
         'imgui:build',
         'lodepng:build',
         'text_editor:build',
+        # .lib/.a
+        'freetype:install',
         'googletest:install',
         'nfd:install',
         'cpptrace:install',
         'sdl:install',
     ]
+
+    desc "Install dependencies"
+    task :install_deps => [] do
+        if BUILD_OS_LINUX
+            cmd = "sudo apt-get update && sudo apt-get install libegl1-mesa-dev libdbus-1-dev libgtk-3-dev"
+            puts "We need to escalate privileges to run:"
+            sh cmd or raise "Unable to install packages"
+        elsif BUILD_OS_MACOS
+            sh "brew install mesalib-glw" or raise "Unable to install packages"
+        elsif BUILD_OS_WINDOWS
+            sh "nothing to install for your system"
+        else
+            raise "Your system (#{BUILD_OS}) is not supported by this script"
+        end
+    end
 
     namespace :gl3w do
         $gl3w = new_target_from_base("gl3w", TargetType::OBJECTS)
@@ -87,7 +105,7 @@ namespace :libs do
 
     #---------------------------------------------------------------------------
 
-        namespace :freetype do
+    namespace :freetype do
        freetype = CMakeTarget.new(name: "freetype", path: "libs/freetype" )
        tasks_for_cmake_target( freetype )
     end
