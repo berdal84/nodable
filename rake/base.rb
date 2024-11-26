@@ -17,33 +17,30 @@ def new_target_from_base(name, type)
         "libs/gl3w",
         "libs/IconFontCppHeaders",
         "/usr/include/X11/mesa/GL",
-        "#{INSTALL_DIR}/freetype/include/freetype2",
-        "#{INSTALL_DIR}/sdl/include/SDL2",
-        "#{INSTALL_DIR}/cpptrace/include",
-        "#{INSTALL_DIR}/nfd/include",
+        "libs/SDL/include",
+        "libs/freetype/include"
     ]
     target.cxx_flags |= [
         "--std=c++20",
         "-fno-char8_t"
     ]
     target.linker_flags |= [
-        "-L#{INSTALL_DIR}/freetype/lib -lfreetype -lpng -lbz2 -lbrotlidec",
-        "-L#{INSTALL_DIR}/sdl/lib -lSDL2 -lSDL2main",
-        "-L#{INSTALL_DIR}/cpptrace/lib -lcpptrace", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
-        "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
     ]
 
     if BUILD_OS_WINDOWS
         target.linker_flags |= [
+            "-Wl,/SUBSYSTEM:CONSOLE", # WinMain vs main, here we want to use main
             "-lopengl32",
-            "-lole32 -luuid -lshell32", # for nfd
-            "-Wl,/SUBSYSTEM:CONSOLE",
-            "-ldbghelp" # for cpptrace
+            "-lnfd -lole32 -luuid -lshell32",
+            "-lcpptrace -ldbghelp" # see https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
         ]
     else
         target.linker_flags |= [
             "-lGL", # OpenGL
-            "-ldwarf -lz -lzstd -ldl" # for cpptrace
+            "`pkg-config freetype2 --cflags --libs`",
+            "`pkg-config sdl2 --cflags --libs` -lSDL2main",
+            "-lcpptrace -ldwarf -lz -lzstd -ldl", # see https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+            "-lnfd",
         ]
 
         if BUILD_OS_LINUX

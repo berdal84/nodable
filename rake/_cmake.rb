@@ -7,7 +7,6 @@ CMakeTarget = Struct.new(
 
 def tasks_for_cmake_target( target )
     build_dir   = "#{BUILD_DIR}/#{target.path}"
-    install_dir = "#{INSTALL_DIR}/#{target.name}"
 
     task :rebuild => [:clean, :build]
 
@@ -31,7 +30,11 @@ def tasks_for_cmake_target( target )
     end
 
     task :install => :build do
-        FileUtils.mkdir_p install_dir
-        sh "cmake --install #{build_dir} --prefix #{install_dir}"
+        cmd = "cmake --install #{build_dir}"
+        if BUILD_OS_LINUX or BUILD_OS_MACOS
+            sh "sudo #{cmd}" 
+        else
+            sh cmd
+        end
     end
 end
