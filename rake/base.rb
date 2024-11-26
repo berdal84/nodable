@@ -27,34 +27,35 @@ def new_target_from_base(name, type)
         "-fno-char8_t"
     ]
     target.linker_flags |= [
-        "-L#{INSTALL_DIR}/freetype/lib -lfreetype",
+        "-L#{INSTALL_DIR}/freetype/lib -lfreetype -lpng -lbz2 -lbrotlidec",
         "-L#{INSTALL_DIR}/sdl/lib -lSDL2 -lSDL2main",
         "-L#{INSTALL_DIR}/cpptrace/lib -lcpptrace", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
         "-L#{INSTALL_DIR}/nfd/lib -lnfd", # Native File Dialog
     ]
+
     if BUILD_OS_WINDOWS
         target.linker_flags |= [
+            "-lopengl32",
             "-lole32 -luuid -lshell32", # for nfd
             "-Wl,/SUBSYSTEM:CONSOLE",
-            "-lopengl32",
-            "-lcpptrace -ldbghelp" # for cpptrace
+            "-ldbghelp" # for cpptrace
         ]
     else
         target.linker_flags |= [
-            "-lGL",
+            "-lGL", # OpenGL
             "-ldwarf -lz -lzstd -ldl" # for cpptrace
         ]
-    end
 
-    if BUILD_OS_LINUX
-        target.linker_flags |= [
-            "`pkg-config --cflags --libs gtk+-3.0`",
-        ]
-    elsif BUILD_OS_MACOS
-        target.linker_flags |= [
-            "-framework CoreFoundation",
-            "-framework Cocoa"
-        ] 
+        if BUILD_OS_LINUX
+            target.linker_flags |= [
+                "`pkg-config --cflags --libs gtk+-3.0`",
+            ]
+        elsif BUILD_OS_MACOS
+            target.linker_flags |= [
+                "-framework CoreFoundation",
+                "-framework Cocoa"
+            ]
+        end
     end
 
     target.asset_folder_path = "assets" # a single folder

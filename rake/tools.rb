@@ -69,11 +69,18 @@ namespace :tools do
 
     desc "Clean tools"
     task :clean => ['core:clean', 'gui:clean', 'app:clean', 'test:clean']
+
     desc "Rebuild tools"
     task :rebuild => ['clean', 'build']
+
     desc "Build tools"
     task :build => ['core:build', 'gui:build', 'app:build', 'test:build']
+
+    desc "Run google tests against core and gui"
     task :test  => ['test:run']
+
+    desc "Build and install app"
+    task :install => ['build', 'app:install']
 
     task :test => [] do
         sh "#{get_binary_build_path(tools_test)}"
