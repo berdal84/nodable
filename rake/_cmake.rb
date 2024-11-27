@@ -31,10 +31,14 @@ def tasks_for_cmake_target( target )
     task :rebuild => [:clean, :build]
 
     task :clean do
-        FileUtils.rm_f build_dir
+        puts "Cleaning ..."
+        FileUtils.rm_rf build_dir
+        puts "Cleaned"
     end
 
-    task :build do
+    task :build => build_dir
+
+    file build_dir do
          # ensure folder exists
          if Dir.exist? build_dir
              FileUtils.rm_rf build_dir
