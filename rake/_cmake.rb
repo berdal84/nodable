@@ -55,11 +55,11 @@ def tasks_for_cmake_target( target )
     end
 
     task :install => :build do
-         cmd = "cmake --install #{build_dir} --prefix #{install_dir}"
-         if BUILD_OS_LINUX or BUILD_OS_MACOS
-             sh "sudo #{cmd}" 
+        cmd = "cmake --install #{build_dir} --prefix #{install_dir}"
+        if not install_dir and (BUILD_OS_LINUX or BUILD_OS_MACOS)
+            sh "sudo #{cmd}" 
         else
-             sh "#{cmd}"
-         end
+            sh "#{cmd}"
+        end
     end
 end
