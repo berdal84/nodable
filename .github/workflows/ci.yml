@@ -20,7 +20,6 @@ jobs:
     env:
       # Those are read by rake script
       BUILD_TYPE:  debug # release|debug
-      INSTALL_DIR: out
       VERBOSE: true
     steps:
       - name: Git Checkout
@@ -44,12 +43,8 @@ jobs:
         shell: bash
         run: rake test --trace
 
-      - name: Pack
-        shell: bash
-        run: rake pack --trace
-
       - name: Binary Artifact
         uses: actions/upload-artifact@v4
         with:
           name: nodable-${{ runner.os }}
-          path: ${{env.INSTALL_DIR}}/*
+          path: build-${{env.BUILD_TYPE}}/nodable

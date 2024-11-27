@@ -79,10 +79,6 @@ namespace :tools do
     task :build => ['core:build', 'gui:build', 'app:build', 'test:build']
     task :test  => ['test:run']
 
-    task :test => [] do
-        sh "#{get_binary_build_path(tools_test)}"
-    end
-    
     namespace :core do
         tasks_for_target( $tools_core )
     end

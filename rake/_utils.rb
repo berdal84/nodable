@@ -11,15 +11,15 @@ TARGET_OS          = RbConfig::CONFIG['target_os']
 BUILD_TYPE         = (ENV["BUILD_TYPE"] || "release").downcase
 BUILD_TYPE_RELEASE = BUILD_TYPE == "release"
 BUILD_TYPE_DEBUG   = !BUILD_TYPE_RELEASE
-BUILD_DIR          = ENV["BUILD_DIR"]       || "rake-build-#{BUILD_TYPE}"
+BUILD_DIR          = ENV["BUILD_DIR"]       || "build-#{BUILD_TYPE}"
 OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
 LIB_DIR            = ENV["LIB_DIR"]         || "#{BUILD_DIR}/lib"
 DEP_DIR            = ENV["DEP_DIR"]         || "#{BUILD_DIR}/dep"
-INSTALL_DIR        = ENV["INSTALL_DIR"]     || "out"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
 BUILD_OS_WINDOWS   = BUILD_OS.include?("windows") || BUILD_OS.include?("mingw32")
 GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
+MACOSX_VERSION_MIN = "12.0" # GitHub Actions does not support 11.0
 
 if VERBOSE
     system "echo Ruby version: && ruby -v"
@@ -123,12 +123,6 @@ def copy_assets_to( destination, target )
     FileUtils.copy_entry( source, "#{destination}/#{target.asset_folder_path}")
 end
 
-def _pack_to( destination, target )
-    copy_assets_to( destination, target )
-    FileUtils.mkdir_p destination
-    FileUtils.copy( get_binary_build_path( target ), destination)
-end
-
 def get_library_name( target )
     "#{LIB_DIR}/lib#{target.name.ext(".a")}"
 end
@@ -143,14 +137,18 @@ def build_static_library( target )
     sh "llvm-ar r #{binary} #{objects}", verbose: VERBOSE
 end
 
-def get_binary_build_path( target )
+def get_build_dir( target )
     "#{BUILD_DIR}/#{target.name}"
+end
+
+def get_binary( target )
+    "#{get_build_dir(target)}/#{target.name}"
 end
 
 def build_executable_binary( target )
 
     objects        = get_objects_to_link(target).join(" ")
-    binary         = get_binary_build_path( target )
+    binary         = get_binary( target )
     linker_flags   = target.linker_flags.join(" ")
 
     FileUtils.mkdir_p File.dirname(binary)
@@ -194,25 +192,15 @@ end
 
 def tasks_for_target(target)
 
-    binary  = get_binary_build_path(target)
-    objects = get_objects(target)
-
     desc "Clean #{target.name}'s intermediate files"
     task :clean do
-        FileUtils.rm_f objects
+        FileUtils.rm_f get_objects(target)
     end
 
     if target.type == TargetType::EXECUTABLE
         desc "Run the #{target.name}"
         task :run => [ :build ] do
-            sh "./#{get_binary_build_path(target)}"
-        end
-    end
-
-    if target.type == TargetType::EXECUTABLE or target.type == TargetType::STATIC_LIBRARY
-        desc "Copy in #{INSTALL_DIR} the files to distribute the software"
-        task :pack do
-            _pack_to( "#{INSTALL_DIR}", target)
+            sh "./#{get_binary(target)}"
         end
     end
 
@@ -220,16 +208,16 @@ def tasks_for_target(target)
     task :rebuild => [:clean, :build]
 
     desc "Compile #{target.name}"
-    task :build => binary do
+    task :build => get_binary(target) do
         if target.asset_folder_path
             puts "#{target.name} Copying assets ..."
-            copy_assets_to("#{BUILD_DIR}", target )
+            copy_assets_to( get_build_dir(target), target )
             puts "#{target.name} Copying assets OK"
         end
     end
 
 
-    file binary => :link do
+    file get_binary(target) => :link do
         case target.type
         when TargetType::EXECUTABLE
             puts "#{target.name} Linking ..."
@@ -249,7 +237,7 @@ def tasks_for_target(target)
 
     multitask :link => get_objects_to_link( target )
 
-    objects.each_with_index do |obj, index|
+    get_objects(target).each_with_index do |obj, index|
         src = obj_to_src( obj, target )
         file obj => src do |task|
             puts "#{target.name} | Compiling #{src} ..."

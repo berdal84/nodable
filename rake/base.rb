@@ -27,11 +27,12 @@ def new_target_from_base(name, type)
         "--std=c++20",
         "-fno-char8_t"
     ]
+        
     target.linker_flags |= [
         "-L#{LIB_DIR}",
         "-Llibs/nativefiledialog-extended/build/src",        
         "`pkg-config --cflags --libs freetype2`",
-        "`sdl2-config --cflags --libs`",
+        "`sdl2-config --cflags --static-libs`",
         "-lnfd", # Native File Dialog
         "-lGL",
         "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
@@ -45,7 +46,7 @@ def new_target_from_base(name, type)
         target.linker_flags |= [
             "-framework CoreFoundation",
             "-framework Cocoa"
-        ] 
+        ]
     end
 
     target.asset_folder_path = "assets" # a single folder
@@ -64,9 +65,15 @@ def new_target_from_base(name, type)
         ]  
     end
 
+    if BUILD_OS_MACOS
+        target.compiler_flags |= [
+            "-mmacosx-version-min=#{MACOSX_VERSION_MIN}",
+        ]
+    end
+
     if BUILD_TYPE_RELEASE
         target.compiler_flags |= [
-            "-O3"
+            "-O2"
         ] 
     elsif BUILD_TYPE_DEBUG
         target.compiler_flags |= [
