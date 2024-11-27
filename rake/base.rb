@@ -68,7 +68,7 @@ def new_target_from_base(name, type)
             ]
         elsif BUILD_OS_MACOS
             target.linker_flags |= [
-                "-mmacosx-version-min=12.0", # Github does not support 11.x
+                "-mmacosx-version-min=#{MACOSX_VERSION_MIN}",
                 "-framework CoreFoundation",
                 "-framework Cocoa"
             ]
