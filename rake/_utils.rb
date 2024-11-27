@@ -11,11 +11,9 @@ TARGET_OS          = RbConfig::CONFIG['target_os']
 BUILD_TYPE         = (ENV["BUILD_TYPE"] || "release").downcase
 BUILD_TYPE_RELEASE = BUILD_TYPE == "release"
 BUILD_TYPE_DEBUG   = !BUILD_TYPE_RELEASE
-BUILD_DIR          = ENV["BUILD_DIR"]       || "rake-build-#{BUILD_TYPE}"
+BUILD_DIR          = ENV["BUILD_DIR"]       || "build-#{BUILD_TYPE}"
 OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
-LIB_DIR            = ENV["LIB_DIR"]         || "#{BUILD_DIR}/lib"
 DEP_DIR            = ENV["DEP_DIR"]         || "#{BUILD_DIR}/dep"
-INSTALL_DIR        = ENV["INSTALL_DIR"]     || "install"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
 BUILD_OS_WINDOWS   = BUILD_OS.include?("windows") || BUILD_OS.include?("mingw32")
@@ -193,24 +191,6 @@ def tasks_for_target(target)
         desc "Run the #{target.name}"
         task :run => [ :build ] do
             sh "./#{get_binary_build_path(target)}"
-        end
-    end
-
-    if target.type == TargetType::EXECUTABLE or target.type == TargetType::STATIC_LIBRARY
-        desc "Copy in #{INSTALL_DIR} the files to distribute the software"
-        task :install => :build do
-            puts "#{target.name} Installing ..."
-            destination = "#{INSTALL_DIR}/#{target.name}"
-            puts "#{target.name} Copying binary ..."
-            FileUtils.mkdir_p destination
-            FileUtils.copy( get_binary_build_path( target ), destination)
-
-            if target.asset_folder_path
-                puts "#{target.name} Copying assets ..."
-                FileUtils.mkdir_p "#{destination}/#{target.asset_folder_path}"
-                FileUtils.copy_entry( target.asset_folder_path, "#{destination}/#{target.asset_folder_path}")
-            end
-            puts "#{target.name} Install OK"
         end
     end
 

@@ -10,7 +10,7 @@ namespace :libs do
         # compile .a/.lib first
         'freetype:build',
         'googletest:build',
-        'nfd:install',
+        'nfd:build',
         'cpptrace:build',
         'sdl:build',
         # then .o

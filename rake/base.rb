@@ -115,10 +115,10 @@ def new_target_from_test(name, type)
 
     target = new_target_from_base( name, type)
     target.includes |= [
-        "#{INSTALL_DIR}/googletest/include",
+        "#{BUILD_DIR}/googletest/include",
     ]
     target.linker_flags |= [
-        "-L#{INSTALL_DIR}/googletest/lib -lgtest -lgtest_main",
+        "-L#{BUILD_DIR}/googletest/lib -lgtest -lgtest_main",
     ]
     target
 end

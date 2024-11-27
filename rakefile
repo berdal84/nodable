@@ -8,7 +8,7 @@ require_relative 'rake/tools'
 require_relative 'rake/ndbl'
 
 CLEAN.include [OBJ_DIR, DEP_DIR ] # intermediate files
-CLOBBER.include [INSTALL_DIR, BUILD_DIR, LIB_DIR] # final files
+CLOBBER.include [BUILD_DIR] # final files
 
 task :default => :help
 
@@ -22,6 +22,3 @@ task :build    => ['tools:build'  , 'ndbl:build']   do puts "Build OK" end
 
 desc "Run tests for tools and ndbl"
 task :test     => ['tools:test'   , 'ndbl:test']    do puts "Test OK" end
-
-desc "Install tools example app and nodable"
-task :install  => ['tools:install', 'ndbl:install'] do puts "Install OK" end
