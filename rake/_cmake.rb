@@ -22,6 +22,12 @@ def tasks_for_cmake_target( target )
     build_dir   = "#{BUILD_DIR}/cmake/#{target.name}"
     install_dir = BUILD_DIR # two folders (lib and include) will be created
 
+    if BUILD_TYPE == "release"
+        config = "Release"
+    else
+        config = "Debug"
+    end
+
     task :rebuild => [:clean, :build]
 
     task :clean do
@@ -45,17 +51,11 @@ def tasks_for_cmake_target( target )
             config_flags = "-G \"Visual Studio 17 2022\" -A x64"
          end
          sh "#{config_cmd} #{config_flags} #{target.config_flags}" # configure
-
-         if BUILD_TYPE == "release"
-            config = "Release"
-         else
-            config = "Debug"
-         end
          sh "cmake --build #{build_dir} --config #{config} #{target.build_flags}"
     end
 
     task :install => :build do
-        cmd = "cmake --install #{build_dir} --prefix #{install_dir}"
+        cmd = "cmake --install #{build_dir} --config #{config} --prefix #{install_dir}"
         if not install_dir and (BUILD_OS_LINUX or BUILD_OS_MACOS)
             sh "sudo #{cmd}" 
         else
