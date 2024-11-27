@@ -20,7 +20,7 @@ jobs:
     env:
       # Those are read by rake script
       BUILD_TYPE:  debug # release|debug
-      INSTALL_DIR: install
+      INSTALL_DIR: out
       VERBOSE: true
     steps:
       - name: Git Checkout
