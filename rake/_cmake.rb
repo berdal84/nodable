@@ -25,7 +25,7 @@ def tasks_for_cmake_target( target )
          end
          directory build_dir # ensure folder exists
          sh "cmake -S #{target.path} -B #{build_dir} -DCMAKE_OSX_DEPLOYMENT_TARGET=#{MACOSX_VERSION_MIN}" # configure
-         sh "cmake --build #{build_dir} --config #{config} --target all"
+         sh "cmake --build #{build_dir} --config #{config}"
     end
 
     task :install => :build do
