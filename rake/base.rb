@@ -30,6 +30,7 @@ def new_target_from_base(name, type)
         "NDBL_APP_ASSETS_DIR=\\\"#{target.asset_folder_path}\\\"",
         "NDBL_APP_NAME=\\\"#{target.name}\\\"",
         "NDBL_BUILD_REF=\\\"local\\\"",
+        "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
     
 
@@ -85,28 +86,29 @@ def new_target_from_base(name, type)
             "-lSDL2 -lSDL2-static -lSDL2main",
             "-lcpptrace -ldbghelp", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
             "-lnfd -lole32 -luuid -lshell32",
-            "-Wl,/SUBSYSTEM:CONSOLE", # WinMain vs main, here we want to use main
             "-luser32",
             "-lkernel32",
             "-lgdi32",
             "-limm32",
             "-lshell32",
+            "-Xlinker /SUBSYSTEM:CONSOLE", # LINK : fatal error LNK1561: entry point must be defined (WinMain vs main, here we want to use main)
             "-Xlinker /NODEFAULTLIB"
         ]
 
+        # see https://learn.microsoft.com/en-us/cpp/c-runtime-library/crt-library-features?view=msvc-170#c-runtime-lib-files
         if BUILD_TYPE_DEBUG
             target.linker_flags |= [
                 "-lmsvcrtd",
                 "-lucrtd",
                 "-lvcruntimed",
-                "-lmsvcprtd",
+                "-llibcpmtd",
             ]
         else
             target.linker_flags |= [
                 "-lmsvcrt",
                 "-lucrt",
                 "-lvcruntime",
-                "-lmsvcprt",
+                "-llibcpmt",
             ]
         end
 

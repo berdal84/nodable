@@ -28,13 +28,25 @@ def tasks_for_cmake_target( target )
          if Dir.exist? build_dir
              FileUtils.rm_rf build_dir
          end
+
+         directory build_dir # ensure folder exists
+
+         config_cmd = "cmake -S #{target.path} -B #{build_dir}"
+
+         if BUILD_OS_MACOS
+            config_flags = "-DCMAKE_OSX_DEPLOYMENT_TARGET=#{MACOSX_VERSION_MIN}"
+         elsif BUILD_OS_LINUX
+            # none
+         elsif BUILD_OS_MINGW
+            config_flags = "-G \"Visual Studio 17 2022\" -A x64"
+         end
+         sh "#{config_cmd} #{config_flags}" # configure
+
          if BUILD_TYPE == "release"
             config = "Release"
          else
             config = "Debug"
          end
-         directory build_dir # ensure folder exists
-         sh "cmake -S #{target.path} -B #{build_dir} -DCMAKE_OSX_DEPLOYMENT_TARGET=#{MACOSX_VERSION_MIN}" # configure
          sh "cmake --build #{build_dir} --config #{config}"
     end
 
