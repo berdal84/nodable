@@ -29,9 +29,8 @@ def new_target_from_base(name, type)
     ]
         
     target.linker_flags |= [
-        "-L#{LIB_DIR}",
-        "-Llibs/nativefiledialog-extended/build/src",        
-        "`pkg-config --cflags --libs freetype2`",
+        "-L#{LIB_DIR}", 
+        "`pkg-config --cflags --libs --static freetype2`",
         "`sdl2-config --cflags --static-libs`",
         "-lnfd", # Native File Dialog
         "-lGL",
