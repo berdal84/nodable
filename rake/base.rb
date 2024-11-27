@@ -59,8 +59,8 @@ def new_target_from_base(name, type)
 
         target.linker_flags |= [
             "-lGL", # opengl
-            "`pkg-config --cflags --libs --static freetype2`",
-            "`sdl2-config --cflags --static-libs`",
+            "-lfreetype -lpng -lz -lbrotlidec -lbz2",
+            "-lSDL2 -lSDL2main",
             #"-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
             "-lnfd `pkg-config --cflags --libs gtk+-3.0`",
         ]
