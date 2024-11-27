@@ -5,6 +5,16 @@ CMakeTarget = Struct.new(
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
+
+def get_cmake_install_flags( target )
+    # We try a single folder c: on windows
+    if BUILD_OS_MINGW
+        "--prefix #{CMAKE_INSTALL_PREFIX_MINGW}"
+    else
+        ""
+    end
+end
+
 def tasks_for_cmake_target( target )
     build_dir = "#{BUILD_DIR}/#{target.name}"
 
@@ -29,11 +39,11 @@ def tasks_for_cmake_target( target )
     end
 
     task :install => :build do
-         cmd = "cmake --install #{build_dir}"
+         cmd = "cmake --install #{build_dir} #{get_cmake_install_flags(target)}"
          if BUILD_OS_LINUX or BUILD_OS_MACOS
              sh "sudo #{cmd}" 
         else
-             sh cmd
+             sh "#{cmd}"
          end
     end
 end

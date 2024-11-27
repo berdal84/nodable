@@ -25,7 +25,7 @@ task :install => [] do
         sh cmd or raise "Unable to install packages"
     elsif BUILD_OS_MACOS
         sh "brew install mesalib-glw" or raise "Unable to install packages"
-    elsif BUILD_OS_WINDOWS
+    elsif BUILD_OS_MINGW
         puts "No system dependencies to install for #{BUILD_OS}"
     else
         raise "Your system (#{BUILD_OS}) is not supported by this script"

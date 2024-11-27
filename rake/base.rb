@@ -22,31 +22,6 @@ def new_target_from_base(name, type)
         "libs/freetype/include",
         "/usr/include/X11/mesa/GL"
     ]
-    target.cxx_flags |= [
-        # "-stdlib=platform", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
-        "--std=c++20",
-        "-fno-char8_t"
-    ]
-        
-    target.linker_flags |= [
-        "-L#{LIB_DIR}", 
-        "`pkg-config --cflags --libs --static freetype2`",
-        "`sdl2-config --cflags --static-libs`",
-        "-lnfd", # Native File Dialog
-        "-lGL",
-        "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
-    ]
-
-    if BUILD_OS_LINUX
-        target.linker_flags |= [
-            "`pkg-config --cflags --libs gtk+-3.0`",
-        ]
-    elsif BUILD_OS_MACOS
-        target.linker_flags |= [
-            "-framework CoreFoundation",
-            "-framework Cocoa"
-        ]
-    end
 
     target.asset_folder_path = "assets" # a single folder
 
@@ -57,18 +32,6 @@ def new_target_from_base(name, type)
         "NDBL_BUILD_REF=\\\"local\\\"",
     ]
     
-    if BUILD_OS_WINDOWS
-        target.defines |= [
-            "WIN32", # to have an MSVC-like macro 
-            "NOMINMAX", # in WIN32, min and max are macros by default, it creates conflicts with std::min/std::max
-        ]  
-    end
-
-    if BUILD_OS_MACOS
-        target.compiler_flags |= [
-            "-mmacosx-version-min=#{MACOSX_VERSION_MIN}",
-        ]
-    end
 
     if BUILD_TYPE_RELEASE
         target.compiler_flags |= [
@@ -82,5 +45,85 @@ def new_target_from_base(name, type)
             "-pedantic"
         ]
     end
+
+    target.cxx_flags |= [
+        # "-stdlib=platform", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
+        "--std=c++20",
+        "-fno-char8_t"
+    ]
+        
+    target.linker_flags |= [
+        "-L#{LIB_DIR}", 
+    ]
+
+    if BUILD_OS_LINUX or BUILD_OS_MACOS
+
+        target.linker_flags |= [
+            "-lGL", # opengl
+            "`pkg-config --cflags --libs --static freetype2`",
+            "`sdl2-config --cflags --static-libs`",
+            "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+            "-lnfd `pkg-config --cflags --libs gtk+-3.0`",
+        ]
+
+        if BUILD_OS_MACOS
+
+            target.linker_flags |= [
+                "-lnfd -framework CoreFoundation -framework Cocoa"
+            ]
+
+            target.compiler_flags |= [
+                "-mmacosx-version-min=#{MACOSX_VERSION_MIN}",
+            ]
+        end
+
+    elsif BUILD_OS_MINGW
+
+        target.linker_flags |= [
+            "-lopengl32",
+            "-lfreetype",
+            "-lSDL2 -lSDL2-static -lSDL2main",
+            "-lcpptrace -ldbghelp", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+            "-lnfd -lole32 -luuid -lshell32",
+            "-Wl,/SUBSYSTEM:CONSOLE", # WinMain vs main, here we want to use main
+            "-luser32",
+            "-lkernel32",
+            "-lgdi32",
+            "-limm32",
+            "-lshell32",
+            "-Xlinker /NODEFAULTLIB"
+        ]
+
+        if BUILD_TYPE_DEBUG
+            target.linker_flags |= [
+                "-lmsvcrtd",
+                "-lucrtd",
+                "-lvcruntimed",
+                "-lmsvcprtd",
+            ]
+        else
+            target.linker_flags |= [
+                "-lmsvcrt",
+                "-lucrt",
+                "-lvcruntime",
+                "-lmsvcprt",
+            ]
+        end
+
+        target.includes |= [
+            "#{CMAKE_INSTALL_PREFIX_MINGW}\\include", # windows does not add to the path automatically
+        ]
+
+        target.linker_flags |= [
+            "-L#{CMAKE_INSTALL_PREFIX_MINGW}\\lib", # windows does not add to the path automatically
+        ]
+
+        target.defines |= [
+            "WIN32", # to have an MSVC-like macro 
+            "NOMINMAX", # in WIN32, min and max are macros by default, it creates conflicts with std::min/std::max
+        ] 
+
+    end
+
     target
 end

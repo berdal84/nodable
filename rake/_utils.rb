@@ -17,15 +17,16 @@ LIB_DIR            = ENV["LIB_DIR"]         || "#{BUILD_DIR}/lib"
 DEP_DIR            = ENV["DEP_DIR"]         || "#{BUILD_DIR}/dep"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
-BUILD_OS_WINDOWS   = BUILD_OS.include?("windows") || BUILD_OS.include?("mingw32")
+BUILD_OS_MINGW     = BUILD_OS.include?("mingw")
 GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 MACOSX_VERSION_MIN = "12.0" # GitHub Actions does not support 11.0
+CMAKE_INSTALL_PREFIX_MINGW = "\"c:\\Program Files (x86)\\nodable-build-dependencies\""
 
 if VERBOSE
     system "echo Ruby version: && ruby -v"
     puts "BUILD_OS_LINUX:     #{BUILD_OS_LINUX}"
     puts "BUILD_OS_MACOS:     #{BUILD_OS_MACOS}"
-    puts "BUILD_OS_WINDOWS:   #{BUILD_OS_WINDOWS}"
+    puts "BUILD_OS_MINGW:   #{BUILD_OS_MINGW}"
     
     puts "COMPILER_FOUND:     #{COMPILER_FOUND}"
     puts "BUILD_TYPE_RELEASE: #{BUILD_TYPE_RELEASE}"
@@ -34,7 +35,7 @@ end
 
 if not COMPILER_FOUND
     raise "Unable to find #{C_COMPILER}, this compiler is required, please install an retry."
-elsif (not BUILD_OS_LINUX) and (not BUILD_OS_MACOS) and (not BUILD_OS_WINDOWS)
+elsif (not BUILD_OS_LINUX) and (not BUILD_OS_MACOS) and (not BUILD_OS_MINGW)
     raise "Unable to determine the operating system"
 end
 
