@@ -47,7 +47,6 @@ module TargetType
   OBJECTS        = 2
 end
 
-namespace :Utils do
 Target = Struct.new(
     :name,
     :type,
@@ -150,6 +149,7 @@ def get_binary( target )
         path.ext(".exe")
     else
         path
+    end
 end
 
 def build_executable_binary( target )
@@ -249,5 +249,4 @@ def tasks_for_target(target)
             compile_file( src, target)
         end
     end
-end
 end
