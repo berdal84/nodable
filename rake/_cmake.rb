@@ -18,10 +18,6 @@ def new_cmake_target(name, path)
     )
 end
 
-def get_cmake_install_flags( target )
-    "--prefix #{LIB_DIR}"
-end
-
 def tasks_for_cmake_target( target )
     build_dir   = "#{BUILD_DIR}/cmake/#{target.name}"
     install_dir = BUILD_DIR # two folders (lib and include) will be created
