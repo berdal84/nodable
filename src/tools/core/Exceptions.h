@@ -1,15 +1,12 @@
 #pragma once
-
-#include <cpptrace/cpptrace.hpp>
+#include <stdexcept>
 
 namespace tools
 {
-    typedef cpptrace::runtime_error runtime_error;
-    typedef cpptrace::domain_error  domain_error;
-
-    class unreachable : public domain_error
+    class unreachable : public std::logic_error
     {
     public:
-        unreachable(): domain_error("This code should not be reachable") {}
+        unreachable(): std::logic_error("This code should not be reachable") {}
     };
 }
+
