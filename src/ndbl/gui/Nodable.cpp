@@ -190,18 +190,6 @@ void Nodable::update()
                 break;
             }
 
-            case Event_SelectionChange::id:
-            {
-                if (m_current_file == nullptr )
-                    break;
-                auto _event = reinterpret_cast<Event_SelectionChange*>( event );
-
-                Condition_ condition = _event->data.new_selection.empty() ? Condition_ENABLE_IF_HAS_NO_SELECTION
-                                                                          : Condition_ENABLE_IF_HAS_SELECTION;
-                m_current_file->view.clear_overlay();
-                m_current_file->view.refresh_overlay(condition );
-                break;
-            }
             case EventID_FILE_OPENED:
             {
                 ASSERT(m_current_file != nullptr );
@@ -212,7 +200,7 @@ void Nodable::update()
             case Event_DeleteNode::id:
             {
                 if ( graph_view )
-                    for(NodeView* view : graph_view->selected().node)
+                    for(NodeView* view : graph_view->selection().node() )
                         graph_view->graph()->destroy_next_frame(view->node());
                 break;
             }
@@ -220,22 +208,20 @@ void Nodable::update()
             case Event_ArrangeNode::id:
             {
                 if ( graph_view )
-                    for(NodeView* view : graph_view->selected().node)
+                    for(NodeView* view : graph_view->selection().node() )
                         view->arrange_recursively();
                 break;
             }
 
             case Event_SelectNext::id:
             {
-                if (graph_view && !graph_view->selected().empty())
+                if (graph_view && !graph_view->selection().empty())
                 {
-                    std::vector<NodeView*> successors;
-                    if (!graph_view->selected().empty())
-                        for(NodeView* view : graph_view->selected().node )
+                    graph_view->selection().clear();
+                    if (!graph_view->selection().empty())
+                        for(NodeView* view : graph_view->selection().node() )
                             for (NodeView* successor : Utils::get_components<NodeView>( view->node()->flow_outputs() ) )
-                                successors.push_back( successor );
-
-                    graph_view->set_selected(successors, SelectionMode_REPLACE);
+                                graph_view->selection().append( successor );
                 }
 
                 break;
@@ -243,14 +229,15 @@ void Nodable::update()
 
             case Event_ToggleFolding::id:
             {
-                if ( graph_view && !graph_view->selection_empty() )
-                    for(NodeView* view : graph_view->selected().node)
-                    {
-                        auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
-                        _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()
-                                                         : view->expand_toggle();
-                    }
+                if ( graph_view )
+                    break;
 
+                for(NodeView* view : graph_view->selection().node())
+                {
+                    auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
+                    _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()
+                                                     : view->expand_toggle();
+                }
                 break;
             }
 
@@ -389,7 +376,8 @@ void Nodable::update()
                 if ( auto view = new_node->get_component<NodeView>() )
                 {
                     view->spatial_node().set_position(_event->data.desired_screen_pos, WORLD_SPACE);
-                    graph->view()->set_selected({view});
+                    graph->view()->selection().clear();
+                    graph->view()->selection().append(view);
                 }
                 break;
             }
@@ -546,7 +534,7 @@ void Nodable::step_over_program()
 
     if (!m_interpreter->is_there_a_next_instr() )
     {
-        graph_view->set_selected({}, SelectionMode_REPLACE);
+        graph_view->selection().clear();
         return;
     }
 
@@ -554,8 +542,8 @@ void Nodable::step_over_program()
     if ( !next_node )
         return;
 
-    NodeView* view = next_node->get_component<NodeView>();
-    graph_view->set_selected({view});
+    graph_view->selection().clear();
+    graph_view->selection().append( next_node->get_component<NodeView>() );
 }
 
 void Nodable::stop_program()

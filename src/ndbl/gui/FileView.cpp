@@ -57,6 +57,11 @@ void FileView::draw(float dt)
     // 1) Draw History Bar
     // 2) Draw Text and Graph Editors
 
+    clear_overlay();
+    Condition condition_flags = m_file->graph().view()->selection().empty()
+                              ? Condition_ENABLE_IF_HAS_NO_SELECTION
+                              : Condition_ENABLE_IF_HAS_SELECTION;
+    refresh_overlay( condition_flags );
 
     // 1)
     if (ImGui::IsMouseReleased(0))

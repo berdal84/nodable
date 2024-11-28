@@ -708,7 +708,10 @@ bool NodeView::draw_as_properties_panel(NodeView *_view, bool* _show_advanced)
                 Node* scope_owner = scope->node();
                 label.append_fmt("%s %p (%s %p)", scope->name(), scope, scope_owner->name().c_str(), scope_owner);
                 if ( ImGui::Button(label.c_str()) )
-                    node->graph()->view()->set_selected({ scope_owner->get_component<NodeView>() });
+                {
+                    node->graph()->view()->selection().clear();
+                    node->graph()->view()->selection().append( scope_owner->get_component<NodeView>() );
+                }
             }
             else
             {

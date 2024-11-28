@@ -77,7 +77,7 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_Undo>("Undo", Shortcut{SDLK_z, KMOD_CTRL } );
     action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
     action_manager->new_action<Event_ToggleIsolationFlags>("Isolation", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
-    action_manager->new_action<Event_SelectionChange>("Deselect", Shortcut{0, KMOD_NONE, "Click on background" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_GraphViewSelectionChanged>("Deselect", Shortcut{0, KMOD_NONE, "Click on background" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{FRAME_ALL } );
@@ -185,7 +185,7 @@ void NodableView::draw()
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
-        auto has_selection = current_file != nullptr ? !current_file->graph().view()->selection_empty()
+        auto has_selection = current_file != nullptr ? !current_file->graph().view()->selection().empty()
                                                      : false;
 
         if (ImGui::BeginMenu("File"))
@@ -525,17 +525,15 @@ bool NodableView::draw_node_properties_window()
     {
         if( File* current_file = m_app->get_current_file() )
         {
-            GraphView*             graph_view         = current_file->graph().view(); // Graph can't be null
-            ASSERT(graph_view != nullptr);
-            const std::vector<NodeView*>& selected_nodeviews = graph_view->selected().node;
-
-            if (selected_nodeviews.size() == 1)
+            const GraphView* graph_view = current_file->graph().view(); // Graph can't be null
+            const size_t selection_size = graph_view->selection().node().size();
+            if ( selection_size == 1)
             {
                 ImGui::Indent(10.0f);
-                NodeView *first_node_view = selected_nodeviews.front();
+                NodeView* first_node_view = graph_view->selection().node().front();
                 changed |= NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
             }
-            else if (selected_nodeviews.size() > 1)
+            else if ( selection_size > 1)
             {
                 ImGui::Indent(10.0f);
                 ImGui::Text("Multi-Selection");

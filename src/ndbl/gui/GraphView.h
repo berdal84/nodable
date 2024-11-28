@@ -3,6 +3,7 @@
 #include <map>
 #include <string>
 #include <functional>
+#include <vector>
 
 #include "tools/gui/ViewState.h"  // base class
 #include "tools/core/reflection/reflection"
@@ -50,11 +51,10 @@ namespace ndbl
         bool        draw(float dt);
         void        add_action_to_node_menu(Action_CreateNode* _action);
         void        frame_nodes(FrameMode mode );
-        bool        selection_empty() const;
         void        reset(); // unfold and frame the whole graph
         bool        has_an_active_tool() const;
-        void        set_selected(const Selection&, SelectionMode = SelectionMode_REPLACE);
-        const Selection& selected() const;
+        Selection& selection() { return m_selection; }
+        const Selection& selection() const { return m_selection; }
         void        reset_all_properties();
         Graph*            graph() const;
         void              add_child(NodeView*);
@@ -65,7 +65,7 @@ namespace ndbl
         CreateNodeCtxMenu      m_create_node_menu;
         ViewItem               m_hovered;
         ViewItem               m_focused;
-        Selection              m_selected;
+        Selection              m_selection;
         tools::ViewState       m_view_state;
         Graph*                 m_graph;
         bool                   m_physics_dirty = false;
@@ -75,7 +75,6 @@ namespace ndbl
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
         void        _on_graph_change();
-        bool        is_selected(NodeView*) const;
         void        frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
         void        create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node *leader);

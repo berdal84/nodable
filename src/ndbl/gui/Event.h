@@ -82,10 +82,10 @@ namespace ndbl
 
     struct EventPayload_SelectionChange
     {
-        Selection new_selection;
-        Selection old_selection;
+        GraphView* graph_view;
+        // Selection old_selection; was unused
     };
-    using Event_SelectionChange = tools::Event<EventID_SELECTION_CHANGE, EventPayload_SelectionChange>;
+    using Event_GraphViewSelectionChanged = tools::Event<EventID_SELECTION_CHANGE, EventPayload_SelectionChange>;
 
     struct EventPayload_CreateNode
     {

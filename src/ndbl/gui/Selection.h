@@ -7,79 +7,60 @@ namespace ndbl
 {
     struct Selection
     {
-        Selection()
-        {}
-
-        Selection(ScopeView* view)
-        { add(view); }
-
-        Selection(NodeView* view)
-        { add(view); }
-
-        Selection(const std::vector<NodeView*>& views)
+        void append(NodeView* view)
         {
-            for ( auto view : views )
-                add( view );
-        }
-
-        void remove_all()
-        {
-            for( NodeView* view : node )
-            {
-                view->state().selected = false;
-            }
-
-            for( ScopeView* view : scope  )
-            {
-                view->state().selected = false;
-            }
-
-            node.clear();
-            scope.clear();
-        }
-
-        void add(const Selection& selection)
-        {
-            for ( auto each : selection.node ) add( each );
-            for ( auto each : selection.scope ) add( each );
-        }
-
-        void add(NodeView* view)
-        {
-            node.push_back(view);
+            _node.push_back(view);
             view->state().selected = true;
         }
 
-        void add(ScopeView* view)
+        void append(ScopeView* view)
         {
-            scope.push_back(view);
+            _scope.push_back(view);
             view->state().selected = true;
         }
 
         void remove(NodeView* view)
         {
             view->state().selected = false;
-            node.erase( std::find(node.begin(), node.end(), view) );
+            _node.erase( std::find(_node.begin(), _node.end(), view) );
         }
 
         void remove(ScopeView* view)
         {
             view->state().selected = false;
-            scope.erase( std::find(scope.begin(), scope.end(), view) );
+            _scope.erase( std::find(_scope.begin(), _scope.end(), view) );
         }
 
-        [[nodiscard]] bool empty() const
+        bool empty() const
         {
-            return node.empty() && scope.empty();
+            return _node.empty() && _scope.empty();
         }
 
-        bool has(NodeView* view) const
+        bool contains(NodeView* view) const
         {
-            return std::find(node.begin(), node.end(), view) != node.end();
+            return std::find(_node.begin(), _node.end(), view) != _node.end();
         }
 
-        std::vector<NodeView*>  node;
-        std::vector<ScopeView*> scope;
+        void clear()
+        {
+            for( NodeView* view : _node )
+            {
+                view->state().selected = false;
+            }
 
+            for( ScopeView* view : _scope  )
+            {
+                view->state().selected = false;
+            }
+
+            _node.clear();
+            _scope.clear();
+        }
+
+        const std::vector<NodeView*>& node() const { return _node; };
+        const std::vector<ScopeView*>& scope() const { return _scope; };
+    private:
+        std::vector<NodeView*>  _node;
+        std::vector<ScopeView*> _scope;
     };
 }
