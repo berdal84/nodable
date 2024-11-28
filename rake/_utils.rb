@@ -17,7 +17,8 @@ DEP_DIR            = "#{BUILD_DIR}/dep"
 BIN_DIR            = "#{BUILD_DIR}/bin"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
-BUILD_OS_MINGW     = BUILD_OS.include?("mingw")cleGITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
+BUILD_OS_MINGW     = BUILD_OS.include?("mingw")
+GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 MACOSX_VERSION_MIN = "12.0" # GitHub Actions does not support 11.0
 CMAKE_INSTALL_PREFIX_MINGW = "\"c:\\Program Files (x86)\\nodable-build-dependencies\""
 
