@@ -132,7 +132,7 @@ bool ScopeView::must_be_draw() const
     }
 }
 
-void ScopeView::draw(float dt, bool highlight)
+void ScopeView::draw(float dt)
 {
     if ( must_be_draw() )
     {
@@ -142,13 +142,15 @@ void ScopeView::draw(float dt, bool highlight)
         const Vec4& fill_col = m_theme == Theme_DARK ? config->ui_scope_fill_col_light
                                                      : config->ui_scope_fill_col_dark;
         draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
-        if ( highlight )
+        if ( m_state.selected )
         {
             draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ) , config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
         }
 
         if ( ImGui::IsMouseHoveringRect(r.min, r.max) )
+        {
             on_hover.emit(this);
+        }
     }
 }
 
@@ -156,7 +158,7 @@ void ScopeView::on_add_node(Node* node)
 {
     if( NodeView* view = node->get_component<NodeView>())
     {
-        m_spatial_node.add_child( &view->spatial_node() );
+        m_state.spatial_node().add_child( &view->spatial_node() );
     }
 }
 
@@ -164,18 +166,18 @@ void ScopeView::on_remove_node(Node* node)
 {
     if( NodeView* view = node->get_component<NodeView>())
     {
-        m_spatial_node.remove_child( &view->spatial_node() );
+        m_state.spatial_node().remove_child( &view->spatial_node() );
     }
 }
 
 void ScopeView::on_reset_parent(Scope* scope)
 {
-    if( m_spatial_node.has_parent() )
-        m_spatial_node.parent()->remove_child(&m_spatial_node );
+    if( m_state.spatial_node().has_parent() )
+        m_state.spatial_node().parent()->remove_child(&m_state.spatial_node() );
 
     // this view must move when scope's owner view moves
     if( scope )
-        scope->view()->m_spatial_node.add_child( &m_spatial_node );
+        scope->view()->m_state.spatial_node().add_child( &m_state.spatial_node() );
 }
 
 void ScopeView::translate(const tools::Vec2 &delta)
@@ -184,7 +186,7 @@ void ScopeView::translate(const tools::Vec2 &delta)
     if ( node()->internal_scope() == m_scope )
         node()->get_component<NodeView>()->spatial_node().translate( delta );
     // translate view (and children...)
-    m_spatial_node.translate( delta );
+    m_state.spatial_node().translate( delta );
 }
 
 void ScopeView::set_pinned(bool b)
@@ -199,9 +201,8 @@ bool ScopeView::pinned() const
 
 void ScopeView::set_position(const tools::Vec2& pos, tools::Space space)
 {
-    m_spatial_node.set_position( pos, space );
+    m_state.spatial_node().set_position( pos, space );
 }
-
 
 void ScopeView::draw_scope_tree(Scope *scope)
 {

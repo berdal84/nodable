@@ -11,7 +11,7 @@
 #include "ndbl/core/Scope.h"
 
 #include "Action.h"
-
+#include "Selection.h"
 #include "NodeView.h"
 #include "SlotView.h"
 #include "types.h"
@@ -39,7 +39,6 @@ namespace ndbl
     public:
         DECLARE_REFLECT
 
-        typedef std::vector<NodeView*> Selection;
         typedef tools::StateMachine    StateMachine;
 
 	    explicit GraphView(Graph* graph);
@@ -55,7 +54,7 @@ namespace ndbl
         void        reset(); // unfold and frame the whole graph
         bool        has_an_active_tool() const;
         void        set_selected(const Selection&, SelectionMode = SelectionMode_REPLACE);
-        const Selection& get_selected() const;
+        const Selection& selected() const;
         void        reset_all_properties();
         Graph*            graph() const;
         void              add_child(NodeView*);
@@ -66,7 +65,7 @@ namespace ndbl
         CreateNodeCtxMenu      m_create_node_menu;
         ViewItem               m_hovered;
         ViewItem               m_focused;
-        std::vector<NodeView*> m_selected_nodeview;
+        Selection              m_selected;
         tools::ViewState       m_view_state;
         Graph*                 m_graph;
         bool                   m_physics_dirty = false;

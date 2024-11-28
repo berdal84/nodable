@@ -9,6 +9,7 @@
 #include "Event.h"
 #include "FrameMode.h"
 #include "SlotView.h"
+#include "Selection.h"
 
 namespace ndbl
 {
@@ -79,12 +80,12 @@ namespace ndbl
     };
     using Event_ToggleFolding = tools::Event<EventID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
 
-    struct EventPayload_NodeViewSelectionChange
+    struct EventPayload_SelectionChange
     {
-        std::vector<NodeView*> new_selection;
-        std::vector<NodeView*> old_selection;
+        Selection new_selection;
+        Selection old_selection;
     };
-    using Event_SelectionChange = tools::Event<EventID_SELECTION_CHANGE, EventPayload_NodeViewSelectionChange>;
+    using Event_SelectionChange = tools::Event<EventID_SELECTION_CHANGE, EventPayload_SelectionChange>;
 
     struct EventPayload_CreateNode
     {

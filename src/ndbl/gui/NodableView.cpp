@@ -527,7 +527,7 @@ bool NodableView::draw_node_properties_window()
         {
             GraphView*             graph_view         = current_file->graph().view(); // Graph can't be null
             ASSERT(graph_view != nullptr);
-            std::vector<NodeView*> selected_nodeviews = graph_view->get_selected();
+            const std::vector<NodeView*>& selected_nodeviews = graph_view->selected().node;
 
             if (selected_nodeviews.size() == 1)
             {

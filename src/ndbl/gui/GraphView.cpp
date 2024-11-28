@@ -178,13 +178,11 @@ bool GraphView::draw(float dt)
     auto low_to_high_depth = [](Scope* s1, Scope* s2) { return s1->depth() < s2->depth(); };
     std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
 
-    const ScopeView* focused_scope_view = m_focused.type == ViewItemType_SCOPE ? m_focused.scopeview : nullptr;
     for( Scope* scope : scopes_to_draw )
     {
         if (ScopeView* view = scope->view())
         {
-            bool highlight = view == focused_scope_view;
-            view->draw(dt, highlight);
+            view->draw(dt);
         }
     }
 
@@ -627,8 +625,8 @@ void GraphView::frame_nodes(FrameMode mode )
 
         case FRAME_SELECTION_ONLY:
         {
-            if ( !m_selected_nodeview.empty())
-                frame_views(m_selected_nodeview, CENTER);
+            if ( !m_selected.node.empty())
+                frame_views(m_selected.node, CENTER);
             break;
         }
         default:
@@ -638,37 +636,33 @@ void GraphView::frame_nodes(FrameMode mode )
 
 void GraphView::set_selected(const Selection& views, SelectionMode mode )
 {
-    Selection curr_selection = m_selected_nodeview;
+    Selection curr_selection = m_selected;
     if ( mode == SelectionMode_REPLACE )
     {
-        m_selected_nodeview.clear();
-        for(auto& each : curr_selection )
+        m_selected.remove_all();
+        for(auto& each : curr_selection.node )
             each->set_selected(false);
     }
 
-    for(auto& each : views)
-    {
-        m_selected_nodeview.emplace_back(each);
-        each->set_selected();
-    }
+    m_selected.add( views ) ;
 
-    EventPayload_NodeViewSelectionChange event{ m_selected_nodeview, curr_selection };
+    EventPayload_SelectionChange event{m_selected, curr_selection };
     get_event_manager()->dispatch<Event_SelectionChange>(event);
 }
 
-const GraphView::Selection& GraphView::get_selected() const
+const Selection& GraphView::selected() const
 {
-    return m_selected_nodeview;
+    return m_selected;
 }
 
 bool GraphView::is_selected(NodeView* view) const
 {
-    return std::find( m_selected_nodeview.begin(), m_selected_nodeview.end(), view) != m_selected_nodeview.end();
+    return m_selected.has(view);
 }
 
 bool GraphView::selection_empty() const
 {
-    return m_selected_nodeview.empty();
+    return m_selected.empty();
 }
 
 void GraphView::_on_graph_change()
@@ -688,8 +682,8 @@ void GraphView::reset()
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
 
     for( Node* node : graph()->nodes() )
-        if ( NodeView* v = node->get_component<NodeView>() )
-            v->spatial_node().translate( far_outside );
+        if ( auto* view = node->get_component<NodeView>() )
+            view->spatial_node().translate( far_outside );
 
     // physics
     m_physics_dirty = true;
@@ -735,20 +729,10 @@ void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView*
 
 void GraphView::drag_state_enter()
 {
-    switch ( m_focused.type )
-    {
-        case ViewItemType_SCOPE:
-        {
-            m_focused.scopeview->set_pinned();
-            break;
-        }
-        default:
-        {
-            for ( NodeView* node_view : get_selected() )
-                node_view->set_pinned();
-            break;
-        }
-    }
+    for ( NodeView* view : m_selected.node )
+        view->set_pinned();
+    for ( ScopeView* view : m_selected.scope )
+        view->set_pinned();
 }
 
 void GraphView::drag_state_tick()
@@ -766,7 +750,7 @@ void GraphView::drag_state_tick()
 
         default:
         {
-            for (NodeView* view: get_selected() )
+            for (NodeView* view : m_selected.node )
                 view->spatial_node().translate( delta );
             break;
         }
@@ -836,20 +820,20 @@ void GraphView::cursor_state_tick()
                     Scope::get_descendent( children, m_focused.scopeview->scope(), ScopeFlags_INCLUDE_SELF );
 
                     // Extract node views from each descendent
-                    std::set<NodeView*> views;
+                    std::vector<NodeView*> views;
                     for(Scope* child : children)
                     {
                         // Include scope owner's view too
-                        if ( NodeView* view = child->node()->get_component<NodeView>())
-                            views.insert( view );
+                        if ( auto* view = child->node()->get_component<NodeView>())
+                            views.push_back( view );
 
                         // and every other child's
                         for(Node* child_node : child->child())
-                            if ( NodeView* view = child_node->get_component<NodeView>())
-                                views.insert(view);
+                            if ( auto* view = child_node->get_component<NodeView>())
+                                views.push_back(view);
                     }
                     // Replace selection
-                    set_selected({views.begin(), views.end()});
+                    set_selected(views);
                 }
 
                 ImGui::Separator();
@@ -911,6 +895,12 @@ void GraphView::cursor_state_tick()
             return;
     }
 
+    // TODO: handle remove!
+    // Add/Remove/Replace selection
+    SelectionMode selection_flags = SelectionMode_REPLACE;
+    if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl))
+        selection_flags = SelectionMode_ADD;
+
     switch (m_hovered.type)
     {
         case ViewItemType_SLOT:
@@ -937,12 +927,7 @@ void GraphView::cursor_state_tick()
             }
             else if (ImGui::IsMouseReleased(0) )
             {
-                // TODO: handle remove!
-                // Add/Remove/Replace selection
-                SelectionMode flags = SelectionMode_REPLACE;
-                if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl))
-                    flags = SelectionMode_ADD;
-                set_selected({m_hovered.nodeview}, flags);
+                set_selected(m_hovered.nodeview, selection_flags);
                 m_focused = m_hovered;
             }
             else if (ImGui::IsMouseDoubleClicked(0))
@@ -954,7 +939,7 @@ void GraphView::cursor_state_tick()
             {
                 m_focused = m_hovered;
                 if (!m_hovered.nodeview->selected())
-                    set_selected({m_hovered.nodeview});
+                    set_selected(m_hovered.nodeview);
                 m_state_machine.change_state(DRAG_STATE);
             }
             break;
@@ -976,8 +961,9 @@ void GraphView::cursor_state_tick()
 
         case ViewItemType_SCOPE:
         {
-            if (ImGui::IsMouseClicked(0))
+            if (ImGui::IsMouseReleased(0) )
             {
+                set_selected(m_hovered.scopeview, selection_flags);
                 m_focused = m_hovered;
             }
             else if (ImGui::IsMouseClicked(1))
@@ -988,6 +974,7 @@ void GraphView::cursor_state_tick()
             else if ( ImGui::IsMouseDragging(0) )
             {
                 m_focused = m_hovered;
+                set_selected(m_hovered.scopeview);
                 m_state_machine.change_state(DRAG_STATE);
             }
             break;

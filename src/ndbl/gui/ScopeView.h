@@ -3,6 +3,7 @@
 #include "tools/gui/geometry/BoxShape2D.h"
 #include "ndbl/core/NodeComponent.h"
 #include "ndbl/core/Scope.h"
+#include "tools/gui/ViewState.h"
 
 namespace ndbl
 {
@@ -34,7 +35,8 @@ namespace ndbl
 
         void         init(Scope*);
         void         update(float nodeview, ScopeViewFlags flags = ScopeViewFlags_NONE );
-        void         draw(float dt, bool highlight);
+        void         draw(float dt);
+        tools::ViewState& state() { return m_state; }
         ScopeView*   parent() const;
         Scope*       scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }
@@ -51,8 +53,8 @@ namespace ndbl
         void        on_add_node(Node*);
         void        on_remove_node(Node*);
 
+        tools::ViewState     m_state;
         Scope*               m_scope = nullptr;
-        tools::SpatialNode2D m_spatial_node;
         Rect                 m_content_rect;
         std::vector<NodeView*> m_wrapped_node_view;
         Theme                m_theme;

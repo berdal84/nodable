@@ -212,7 +212,7 @@ void Nodable::update()
             case Event_DeleteNode::id:
             {
                 if ( graph_view )
-                    for(NodeView* view : graph_view->get_selected())
+                    for(NodeView* view : graph_view->selected().node)
                         graph_view->graph()->destroy_next_frame(view->node());
                 break;
             }
@@ -220,18 +220,18 @@ void Nodable::update()
             case Event_ArrangeNode::id:
             {
                 if ( graph_view )
-                    for(NodeView* view : graph_view->get_selected())
+                    for(NodeView* view : graph_view->selected().node)
                         view->arrange_recursively();
                 break;
             }
 
             case Event_SelectNext::id:
             {
-                if (graph_view && !graph_view->get_selected().empty())
+                if (graph_view && !graph_view->selected().empty())
                 {
                     std::vector<NodeView*> successors;
-                    if (!graph_view->get_selected().empty())
-                        for(NodeView* view : graph_view->get_selected() )
+                    if (!graph_view->selected().empty())
+                        for(NodeView* view : graph_view->selected().node )
                             for (NodeView* successor : Utils::get_components<NodeView>( view->node()->flow_outputs() ) )
                                 successors.push_back( successor );
 
@@ -244,7 +244,7 @@ void Nodable::update()
             case Event_ToggleFolding::id:
             {
                 if ( graph_view && !graph_view->selection_empty() )
-                    for(NodeView* view : graph_view->get_selected())
+                    for(NodeView* view : graph_view->selected().node)
                     {
                         auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
                         _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()
