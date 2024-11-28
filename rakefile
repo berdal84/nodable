@@ -7,7 +7,7 @@ require_relative 'rake/base'
 require_relative 'rake/tools'
 require_relative 'rake/ndbl'
 
-CLEAN.include [OBJ_DIR, DEP_DIR, LIB_DIR] # intermediate files
+CLEAN.include [OBJ_DIR, DEP_DIR] # intermediate files
 CLOBBER.include [BUILD_DIR] # final files
 
 task :default => :help

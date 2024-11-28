@@ -12,13 +12,12 @@ BUILD_TYPE         = (ENV["BUILD_TYPE"] || "release").downcase
 BUILD_TYPE_RELEASE = BUILD_TYPE == "release"
 BUILD_TYPE_DEBUG   = !BUILD_TYPE_RELEASE
 BUILD_DIR          = ENV["BUILD_DIR"]       || "build-#{BUILD_TYPE}"
-OBJ_DIR            = ENV["OBJ_DIR"]         || "#{BUILD_DIR}/obj"
-LIB_DIR            = ENV["LIB_DIR"]         || "#{BUILD_DIR}/lib"
-DEP_DIR            = ENV["DEP_DIR"]         || "#{BUILD_DIR}/dep"
+OBJ_DIR            = "#{BUILD_DIR}/obj"
+DEP_DIR            = "#{BUILD_DIR}/dep"
+BIN_DIR            = "#{BUILD_DIR}/bin"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
 BUILD_OS_MACOS     = BUILD_OS.include?("darwin")
-BUILD_OS_MINGW     = BUILD_OS.include?("mingw")
-GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
+BUILD_OS_MINGW     = BUILD_OS.include?("mingw")cleGITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 MACOSX_VERSION_MIN = "12.0" # GitHub Actions does not support 11.0
 CMAKE_INSTALL_PREFIX_MINGW = "\"c:\\Program Files (x86)\\nodable-build-dependencies\""
 
@@ -26,7 +25,7 @@ if VERBOSE
     system "echo Ruby version: && ruby -v"
     puts "BUILD_OS_LINUX:     #{BUILD_OS_LINUX}"
     puts "BUILD_OS_MACOS:     #{BUILD_OS_MACOS}"
-    puts "BUILD_OS_MINGW:   #{BUILD_OS_MINGW}"
+    puts "BUILD_OS_MINGW:     #{BUILD_OS_MINGW}"
     
     puts "COMPILER_FOUND:     #{COMPILER_FOUND}"
     puts "BUILD_TYPE_RELEASE: #{BUILD_TYPE_RELEASE}"
@@ -117,15 +116,21 @@ def get_objects_to_link( target )
     objects
 end
 
-def copy_assets_to( destination, target )
-    source = target.asset_folder_path
-    puts "source: #{source}, destination: #{destination}"
-    FileUtils.mkdir_p destination
-    FileUtils.copy_entry( source, "#{destination}/#{target.asset_folder_path}")
+def copy_assets_to( dest_dir, target )
+    from = target.asset_folder_path
+    to   = "#{dest_dir}/#{target.asset_folder_path}"
+    if Dir.exist?(to)
+        puts "Skip assets copy (#{to} already exists)"
+    else
+        puts "#{target.name} Copying assets to #{to} ..."
+        FileUtils.mkdir_p to
+        FileUtils.copy_entry( from, to )
+        puts "#{target.name} Assets copy OK"
+    end    
 end
 
 def get_library_name( target )
-    "#{LIB_DIR}/lib#{target.name.ext(".a")}"
+    "#{BUILD_DIR}/lib/lib#{target.name.ext(".a")}"
 end
 
 def build_static_library( target )
@@ -138,23 +143,23 @@ def build_static_library( target )
     sh "llvm-ar r #{binary} #{objects}", verbose: VERBOSE
 end
 
-def get_build_dir( target )
-    "#{BUILD_DIR}/#{target.name}"
-end
-
 def get_binary( target )
-    "#{get_build_dir(target)}/#{target.name}"
+    if BUILD_OS_MINGW
+        ext = ".exe"
+    end
+    "#{BIN_DIR}/#{target.name}".ext(ext)
 end
 
 def build_executable_binary( target )
 
     objects        = get_objects_to_link(target).join(" ")
     binary         = get_binary( target )
+    defines        = target.defines.map{|d| "-D\"#{d}\"" }.join(" ")
     linker_flags   = target.linker_flags.join(" ")
 
     FileUtils.mkdir_p File.dirname(binary)
 
-    sh "#{CXX_COMPILER} -o #{binary} #{objects} #{linker_flags} -v", verbose: VERBOSE
+    sh "#{CXX_COMPILER} #{defines} -o #{binary} #{objects} #{linker_flags} -v", verbose: VERBOSE
 end
 
 def compile_file(src, target)
@@ -211,12 +216,9 @@ def tasks_for_target(target)
     desc "Compile #{target.name}"
     task :build => get_binary(target) do
         if target.asset_folder_path
-            puts "#{target.name} Copying assets ..."
-            copy_assets_to( get_build_dir(target), target )
-            puts "#{target.name} Copying assets OK"
+            copy_assets_to( BIN_DIR, target ) # easier to copy there to run the app immediately
         end
     end
-
 
     file get_binary(target) => :link do
         case target.type

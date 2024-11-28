@@ -17,10 +17,9 @@ def new_target_from_base(name, type)
         "libs/gl3w",
         "libs/SDL/include",
         "libs/IconFontCppHeaders",
-        "libs/nativefiledialog-extended/src/include",
-        "libs/cpptrace",
-        "libs/freetype/include",
-        "/usr/include/X11/mesa/GL"
+        "/usr/include/X11/mesa/GL",
+        "#{BUILD_DIR}/include",
+        "#{BUILD_DIR}/include/freetype2"
     ]
 
     target.asset_folder_path = "assets" # a single folder
@@ -43,7 +42,7 @@ def new_target_from_base(name, type)
             "-g", # generates symbols
             "-O0", # no optim
             "-Wfatal-errors",
-            "-pedantic"
+            #"-pedantic"
         ]
     end
 
@@ -54,7 +53,7 @@ def new_target_from_base(name, type)
     ]
         
     target.linker_flags |= [
-        "-L#{LIB_DIR}", 
+        "-L#{BUILD_DIR}/lib",
     ]
 
     if BUILD_OS_LINUX or BUILD_OS_MACOS
@@ -63,7 +62,7 @@ def new_target_from_base(name, type)
             "-lGL", # opengl
             "`pkg-config --cflags --libs --static freetype2`",
             "`sdl2-config --cflags --static-libs`",
-            "-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+            #"-lcpptrace -ldwarf -lz -lzstd -ldl", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
             "-lnfd `pkg-config --cflags --libs gtk+-3.0`",
         ]
 
@@ -83,8 +82,8 @@ def new_target_from_base(name, type)
         target.linker_flags |= [
             "-lopengl32",
             "-lfreetype",
-            "-lSDL2 -lSDL2-static -lSDL2main",
-            "-lcpptrace -ldbghelp", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
+            "-lSDL2main -lSDL2",
+            #"-lcpptrace -ldbghelp", # https://github.com/jeremy-rifkin/cpptrace?tab=readme-ov-file#use-without-cmake
             "-lnfd -lole32 -luuid -lshell32",
             "-luser32",
             "-lkernel32",

@@ -64,6 +64,7 @@ ndbl_app.link_library |= [
     ndbl_core,
     ndbl_gui
 ]
+
 #---------------------------------------------------------------------------
 ndbl_test = new_target_from_base("ndbl-specs", TargetType::EXECUTABLE)
 ndbl_test.sources |= FileList[

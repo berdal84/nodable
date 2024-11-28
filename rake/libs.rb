@@ -10,7 +10,6 @@ namespace :libs do
         'freetype:install',
         'googletest:install',
         'nfd:install',
-        'cpptrace:install',
         'sdl:install',
         # then .o
         'whereami:build',
@@ -72,16 +71,6 @@ namespace :libs do
         tasks_for_cmake_target( nfd )
     end
 
-    namespace :cpptrace do
-        cpptrace = CMakeTarget.new(name: "cpptrace", path: "libs/cpptrace" )
-        tasks_for_cmake_target( cpptrace )
-    end
-
-    namespace :sdl do
-        sdl = CMakeTarget.new(name: "sdl", path: "libs/SDL" )
-        tasks_for_cmake_target( sdl )
-    end
-
     namespace :googletest do
        googletest = CMakeTarget.new(name: "googletest", path: "libs/googletest" )
        tasks_for_cmake_target( googletest )
@@ -90,6 +79,11 @@ namespace :libs do
     namespace :freetype do
        freetype = CMakeTarget.new(name: "freetype", path: "libs/freetype" )
        tasks_for_cmake_target( freetype )
+    end
+
+    namespace :sdl do
+       sdl = CMakeTarget.new(name: "sdl", path: "libs/SDL" )
+       tasks_for_cmake_target( sdl )
     end
 
 end # namespace libs

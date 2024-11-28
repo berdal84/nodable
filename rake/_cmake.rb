@@ -2,21 +2,29 @@
 CMakeTarget = Struct.new(
     :name,
     :path,
+    :config_flags,
+    :install_flags,
+    :build_flags,
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
+def new_cmake_target(name, path)
+    CMakeTarget.new(
+        name: name,
+        path: path,
+        config_flags: "",
+        install_flags: "",
+        build_flags: ""
+    )
+end
 
 def get_cmake_install_flags( target )
-    # We try a single folder c: on windows
-    if BUILD_OS_MINGW
-        "--prefix #{CMAKE_INSTALL_PREFIX_MINGW}"
-    else
-        ""
-    end
+    "--prefix #{LIB_DIR}"
 end
 
 def tasks_for_cmake_target( target )
-    build_dir = "#{BUILD_DIR}/#{target.name}"
+    build_dir   = "#{BUILD_DIR}/cmake/#{target.name}"
+    install_dir = BUILD_DIR # two folders (lib and include) will be created
 
     task :rebuild => [:clean, :build]
 
@@ -25,11 +33,11 @@ def tasks_for_cmake_target( target )
     end
 
     task :build do
+         # ensure folder exists
          if Dir.exist? build_dir
              FileUtils.rm_rf build_dir
          end
-
-         directory build_dir # ensure folder exists
+         FileUtils.mkdir_p build_dir
 
          config_cmd = "cmake -S #{target.path} -B #{build_dir}"
 
@@ -40,18 +48,18 @@ def tasks_for_cmake_target( target )
          elsif BUILD_OS_MINGW
             config_flags = "-G \"Visual Studio 17 2022\" -A x64"
          end
-         sh "#{config_cmd} #{config_flags}" # configure
+         sh "#{config_cmd} #{config_flags} #{target.config_flags}" # configure
 
          if BUILD_TYPE == "release"
             config = "Release"
          else
             config = "Debug"
          end
-         sh "cmake --build #{build_dir} --config #{config}"
+         sh "cmake --build #{build_dir} --config #{config} #{target.build_flags}"
     end
 
     task :install => :build do
-         cmd = "cmake --install #{build_dir} #{get_cmake_install_flags(target)}"
+         cmd = "cmake --install #{build_dir} --prefix #{install_dir}"
          if BUILD_OS_LINUX or BUILD_OS_MACOS
              sh "sudo #{cmd}" 
         else
