@@ -159,7 +159,7 @@ def build_executable_binary( target )
 
     FileUtils.mkdir_p File.dirname(binary)
 
-    sh "#{CXX_COMPILER} #{defines} -o #{binary} #{objects} #{linker_flags} -v", verbose: VERBOSE
+    sh "#{CXX_COMPILER} #{defines} -o #{binary} #{objects} #{linker_flags}", verbose: VERBOSE
 end
 
 def compile_file(src, target)
