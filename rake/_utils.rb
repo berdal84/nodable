@@ -145,10 +145,11 @@ def build_static_library( target )
 end
 
 def get_binary( target )
+    path = "#{BIN_DIR}/#{target.name}"
     if BUILD_OS_MINGW
-        ext = ".exe"
-    end
-    "#{BIN_DIR}/#{target.name}".ext(ext)
+        path.ext(".exe")
+    else
+        path
 end
 
 def build_executable_binary( target )

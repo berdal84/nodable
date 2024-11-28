@@ -31,7 +31,6 @@ def new_target_from_base(name, type)
         "NDBL_BUILD_REF=\\\"local\\\"",
         "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
-    
 
     if BUILD_TYPE_RELEASE
         target.compiler_flags |= [
@@ -47,13 +46,13 @@ def new_target_from_base(name, type)
     end
 
     target.cxx_flags |= [
-        # "-stdlib=platform", # ‘libc++’ (with extensions), ‘libstdc++’ (standard), or ‘platform’ (default).
         "--std=c++20",
         "-fno-char8_t"
     ]
         
     target.linker_flags |= [
         "-L#{BUILD_DIR}/lib",
+        "-v"
     ]
 
     if BUILD_OS_LINUX or BUILD_OS_MACOS
