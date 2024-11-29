@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <memory>
 #include <cstddef>
-#include <cpptrace/cpptrace.hpp>
+#include <stdexcept>
 
 #ifndef TOOLS_TRY_CATCH_ENABLE
 #   define TOOLS_TRY_CATCH_ENABLE true
@@ -15,15 +15,14 @@
     try
 
 #define TOOLS_catch \
-    catch(const cpptrace::logic_error& logic_error) \
+    catch(const std::logic_error& e) \
     { \
-        logic_error.trace().print_with_snippets();  \
-        std::cout << std::flush; \
+        std::cout << e.what() << std::flush; \
         exit(1); \
     } \
-    catch(const std::exception & std_error) \
+    catch(const std::exception & e) \
     { \
-        std::cout << std_error.what() << std::flush; \
+        std::cout << e.what() << std::flush; \
         exit(1); \
     }
 

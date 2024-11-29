@@ -1,10 +1,10 @@
-#include "AppView.h"
+#include <gl3w/GL/gl3w.h> // must be included first
 
+#include "AppView.h"
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl.h>
 #include <lodepng/lodepng.h> // to save screenshot as PNG
 #include <nfd.h>
-#include <gl3w.h>
 
 #include "tools/core/log.h"
 #include "tools/core/System.h"
@@ -12,6 +12,8 @@
 #include "tools/core/memory/memory.h"
 #include "tools/gui/TextureManager.h"
 #include "tools/gui/FontManager.h"
+#include "tools/gui/ActionManager.h"
+#include "tools/gui/ImGuiEx.h"
 
 #include "App.h"
 #include "Config.h"

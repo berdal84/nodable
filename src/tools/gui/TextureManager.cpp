@@ -1,7 +1,8 @@
+#include <gl3w/GL/gl3w.h> // must be included first
+#include <gl3w/GL/glcorearb.h>
+
 #include "TextureManager.h"
 
-#include <gl3w/GL/gl3w.h>
-#include <gl3w/GL/glcorearb.h>
 #include <lodepng/lodepng.h>
 #include <map>
 #include <string>

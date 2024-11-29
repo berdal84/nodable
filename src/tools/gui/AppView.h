@@ -2,11 +2,12 @@
 
 #include <SDL.h>
 #include <array>
-#include "tools/core/FileSystem.h"
+#include <imgui.h>
 #include <map>
 #include <string>
+#include "TextureManager.h"
+#include "tools/core/FileSystem.h"
 #include "tools/core/types.h"
-#include "ImGuiEx.h"
 #include "Config.h"
 #include "tools/core/Signals.h"
 
@@ -15,10 +16,10 @@ namespace tools
     // forward declarations
     class App;
     class History;
-    class TextureManager;
     class EventManager;
     class FontManager;
     class VirtualMachine;
+    class ActionManager;
 
 	/*
 		This class contain the basic setup for and OpenGL/SDL basic window.
