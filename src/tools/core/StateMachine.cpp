@@ -67,7 +67,7 @@ State* StateMachine::add_state(const char* _name)
 
 void StateMachine::add_state(State* state)
 {
-    u32_t key = hash::hash_cstr(state->name);
+    const u32_t key = Hash::hash32( state->name );
     VERIFY(m_state.find(key) == m_state.end(), "State name already exists");
     m_state.insert({key, state});
 }
@@ -86,7 +86,7 @@ void StateMachine::exit_state()
 
 State *StateMachine::get_state(const char *name)
 {
-    auto it = m_state.find( hash::hash_cstr(name) );
+    auto it = m_state.find( Hash::hash32(name) );
     if( it != m_state.end())
         return it->second;
     return nullptr;

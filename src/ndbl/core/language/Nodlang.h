@@ -7,7 +7,7 @@
 
 #include "tools/core/reflection/reflection"
 #include "tools/core/System.h"
-#include "tools/core/hash.h"
+#include "tools/core/Hash.h"
 #include "tools/core/Optional.h"
 
 #include "ndbl/core/VariableNode.h"
