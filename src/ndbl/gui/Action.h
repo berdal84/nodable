@@ -17,7 +17,6 @@ namespace ndbl
     using Action_ToggleFolding   = Action<Event_ToggleFolding>;
     using Action_SelectNext      = Action<Event_SelectNext>;
     using Action_ToggleIsolate   = Action<Event_ToggleIsolationFlags>;
-    using Action_SelectionChange = Action<Event_GraphViewSelectionChanged>;
     using Action_MoveGraph       = Action<Event_MoveSelection>;
 
     // 2) Advanced actions (custom events)

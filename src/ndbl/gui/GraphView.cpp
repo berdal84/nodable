@@ -734,14 +734,10 @@ void GraphView::drag_state_enter()
 {
     for( const Element& elem : m_selection.data() )
     {
-        if ( auto nodeview = elem.get_if<NodeView*>() )
-        {
+        if ( auto* nodeview = elem.get_if<NodeView*>() )
             nodeview->set_pinned();
-        }
-        else if ( auto scopeview = elem.get_if<ScopeView*>() )
-        {
+        else if ( auto* scopeview = elem.get_if<ScopeView*>() )
             scopeview->set_pinned();
-        }
     }
 }
 
@@ -750,16 +746,12 @@ void GraphView::drag_state_tick()
     const Vec2 delta = ImGui::GetMouseDragDelta();
     ImGui::ResetMouseDragDelta();
 
-    if ( auto scopeview = m_focused.get_if<ScopeView*>() )
+    for ( const Selection::element_t& elem : m_selection.data() )
     {
-        scopeview->translate( delta );
-    }
-    else if ( auto nodeview = m_focused.get_if<NodeView*>() )
-    {
-        for ( NodeView* view : m_selection.collect<NodeView*>() )
-        {
-            view->spatial_node().translate(delta);
-        }
+        if ( auto* nodeview = elem.get_if<NodeView*>() )
+            nodeview->spatial_node().translate(delta);
+        else if ( auto* scopeview = elem.get_if<ScopeView*>() )
+            scopeview->translate(delta);
     }
 
     if ( ImGui::IsMouseReleased(0) )
@@ -842,7 +834,6 @@ void GraphView::cursor_state_tick()
                     // Replace selection
                     m_selection.clear();
                     m_selection.append( views.begin(), views.end() ) ;
-                    get_event_manager()->dispatch<Event_GraphViewSelectionChanged>({this});
                 }
 
                 ImGui::Separator();
@@ -908,7 +899,7 @@ void GraphView::cursor_state_tick()
         if ( !m_focused.empty() )
             return;
     }
-    bool select_hovered = false;
+
     switch ( m_hovered.index() )
     {
         case Element::index_of<SlotView*>():
@@ -922,32 +913,6 @@ void GraphView::cursor_state_tick()
             {
                 m_focused = m_hovered;
                 m_state_machine.change_state(LINE_STATE);
-            }
-            break;
-        }
-
-        case Element::index_of<NodeView*>():
-        {
-            if ( ImGui::IsMouseClicked(1) )
-            {
-                m_focused = m_hovered;
-                ImGui::OpenPopup(CONTEXT_POPUP);
-            }
-            else if (ImGui::IsMouseReleased(0) )
-            {
-                select_hovered = true;
-                m_focused = m_hovered;
-            }
-            else if (ImGui::IsMouseDoubleClicked(0))
-            {
-                m_hovered.get<NodeView*>()->expand_toggle();
-                m_focused = m_hovered;
-            }
-            else if (ImGui::IsMouseDragging(0))
-            {
-                select_hovered = true;
-                m_focused = m_hovered;
-                m_state_machine.change_state(DRAG_STATE);
             }
             break;
         }
@@ -966,11 +931,36 @@ void GraphView::cursor_state_tick()
             break;
         }
 
+        case Element::index_of<NodeView*>():
         case Element::index_of<ScopeView*>():
         {
+            const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
+            auto handle_selection = [&](Element& hovered_elem, bool want_selected, bool allow_multi_selection )
+            {
+                if ( want_selected )
+                {
+                    if ( !allow_multi_selection )
+                        m_selection.clear();
+                    m_selection.append( hovered_elem );
+                }
+                else if ( !allow_multi_selection )
+                {
+                    m_selection.remove( hovered_elem );
+                }
+                else
+                {
+                    m_selection.clear();
+                }
+            };
+
             if (ImGui::IsMouseReleased(0) )
             {
-                select_hovered = true;
+                bool want_selected = true;
+                if ( ctrl_pressed )
+                {
+                    want_selected = !m_selection.contains( m_hovered );
+                }
+                handle_selection( m_hovered, want_selected, ctrl_pressed );
                 m_focused = m_hovered;
             }
             else if (ImGui::IsMouseClicked(1))
@@ -980,8 +970,9 @@ void GraphView::cursor_state_tick()
             }
             else if ( ImGui::IsMouseDragging(0) )
             {
+                if ( bool wants_selection = !m_selection.contains( m_hovered ) )
+                    handle_selection( m_hovered, wants_selection, ctrl_pressed ); // always allow multi selection in that case
                 m_focused = m_hovered;
-                select_hovered = true;
                 m_state_machine.change_state(DRAG_STATE);
             }
             break;
@@ -1011,30 +1002,6 @@ void GraphView::cursor_state_tick()
 
         default:
             VERIFY(false, "Unhandled case, must be implemented!");
-    }
-
-    if ( select_hovered )
-    {
-        const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-
-        if ( ctrl_pressed )
-        {
-            if ( m_selection.contains(m_hovered) )
-            {
-                m_selection.remove( m_hovered );
-            }
-            else
-            {
-                m_selection.append( m_hovered );
-            }
-        }
-        else
-        {
-            m_selection.clear();
-            m_selection.append( m_hovered );
-        }
-
-        get_event_manager()->dispatch<Event_GraphViewSelectionChanged>({this});
     }
 }
 
@@ -1124,18 +1091,17 @@ void GraphView::roi_state_tick()
     if (ImGui::IsMouseReleased(0))
     {
         // Get the views included in the ROI
-        std::deque<NodeView*> nodeviews_inside_roi;
+        std::set<NodeView*> nodeviews_inside_roi;
         for ( Node* node : graph()->nodes() )
             if ( auto view = node->get_component<NodeView>() )
                 if ( Rect::contains(roi, view->get_rect()) )
-                    nodeviews_inside_roi.push_back( view );
+                    nodeviews_inside_roi.insert( view );
 
         // Select them
         const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
         if ( !ctrl_pressed )
             m_selection.clear();
         m_selection.append(nodeviews_inside_roi.begin(), nodeviews_inside_roi.end() );
-        get_event_manager()->dispatch<Event_GraphViewSelectionChanged>({this});
 
         m_state_machine.exit_state();
     }

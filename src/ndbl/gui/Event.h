@@ -79,13 +79,6 @@ namespace ndbl
     };
     using Event_ToggleFolding = tools::Event<EventID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
 
-    struct EventPayload_SelectionChange
-    {
-        GraphView* graph_view;
-        // Selection old_selection; was unused
-    };
-    using Event_GraphViewSelectionChanged = tools::Event<EventID_SELECTION_CHANGE, EventPayload_SelectionChange>;
-
     struct EventPayload_CreateNode
     {
         CreateNodeType       node_type;          // The note type to create
