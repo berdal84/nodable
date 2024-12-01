@@ -95,7 +95,9 @@ namespace ndbl
         std::set<Scope *>        root_scopes();
         NodeRegistry&            nodes() {return m_node_registry;}
         const NodeRegistry&      nodes()const {return m_node_registry;}
-        void                     destroy_next_frame(Node* node) { m_node_to_delete.insert(node ); }
+        void                     destroy_next_frame_ex(Node* node, bool with_inputs );
+        void                     destroy_next_frame(Node* node) { destroy_next_frame_ex( node, false ); }
+        void                     destroy_next_frame(Scope* scope);
 
         template<typename T> inline VariableNode* create_variable_decl(const char*  _name = "var"){ return create_variable_decl(tools::type::get<T>(), _name); }
         template<typename T> inline LiteralNode*  create_literal() { return create_literal( tools::type::get<T>()); }

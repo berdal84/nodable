@@ -612,3 +612,25 @@ std::vector<Scope *> Graph::scopes()
             result.push_back( node->scope() );
     return result;
 }
+
+void Graph::destroy_next_frame(Scope *scope)
+{
+    const bool with_inputs = true;
+    destroy_next_frame_ex( scope->owner(), with_inputs );
+
+    for ( Node* node : scope->child() )
+        destroy_next_frame_ex( node, with_inputs );
+
+    for ( Scope* scope : scope->partition() )
+        destroy_next_frame( scope );
+}
+
+void Graph::destroy_next_frame_ex(Node *node, bool with_inputs)
+{
+    m_node_to_delete.insert(node);
+
+    if ( with_inputs )
+        for ( auto input : node->inputs() )
+            if ( node->scope() == input->scope() )
+                destroy_next_frame_ex( input, with_inputs );
+}
