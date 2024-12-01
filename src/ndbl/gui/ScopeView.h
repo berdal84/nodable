@@ -46,7 +46,9 @@ namespace ndbl
         bool         pinned() const;
         void         set_pinned(bool b = true);
         const Rect&  content_rect() const { return m_content_rect; }
+        void         arrange_content();
         static void  draw_scope_tree(Scope* scope);
+
     private:
         static void  draw_scope_tree_ex(Scope* scope);
         void        on_reset_parent(Scope*);
