@@ -116,5 +116,5 @@ template<>
 struct std::hash<ndbl::EdgeView>
 {
     std::size_t operator()(const ndbl::EdgeView& edge) const noexcept
-    { return tools::Hash::hash32(edge); }
+    { return tools::Hash::hash(edge); }
 };

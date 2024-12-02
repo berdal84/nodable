@@ -69,7 +69,14 @@ namespace tools
         State* m_default_state = nullptr;
         State* m_current_state = nullptr;
         State* m_next_state    = nullptr;
-        std::unordered_map<u32_t, State*> m_state; // u32_t is state.name hash
+
+        struct NoHash
+        {
+            constexpr u64_t operator()(u64_t u) const // pass through
+            { return u; }
+        };
+
+        std::unordered_map<u64_t, State*, NoHash> m_state; // u32_t is state.name hash
     };
 
 } // namespace tools
