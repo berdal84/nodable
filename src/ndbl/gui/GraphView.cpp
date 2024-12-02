@@ -936,32 +936,30 @@ void GraphView::cursor_state_tick()
         case Element::index_of<ScopeView*>():
         {
             const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-            auto handle_selection = [&](Element& hovered_elem, bool want_selected, bool allow_multi_selection )
+            auto handle_selection = [&](Element& hovered_elem, bool want_selected = true, bool allow_multi_selection = false )
             {
-                if ( want_selected )
+                if ( allow_multi_selection )
                 {
-                    if ( !allow_multi_selection )
-                        m_selection.clear();
-                    m_selection.append( hovered_elem );
-                }
-                else if ( !allow_multi_selection )
-                {
-                    m_selection.remove( hovered_elem );
+                    if ( want_selected )
+                        m_selection.append( hovered_elem );
+                    else
+                        m_selection.remove( hovered_elem );
                 }
                 else
                 {
                     m_selection.clear();
+                    if ( want_selected )
+                    {
+                        m_selection.append( hovered_elem );
+                    }
                 }
             };
 
-            if (ImGui::IsMouseReleased(0) )
+            if ( ImGui::IsMouseReleased(0) )
             {
-                bool want_selected = true;
-                if ( ctrl_pressed )
-                {
-                    want_selected = !m_selection.contains( m_hovered );
-                }
-                handle_selection( m_hovered, want_selected, ctrl_pressed );
+                bool select = ctrl_pressed ? !m_selection.contains( m_hovered ) // toggle when ctrl is pressed
+                                           : true;
+                handle_selection( m_hovered, select, ctrl_pressed );
                 m_focused = m_hovered;
             }
             else if (ImGui::IsMouseClicked(1))
@@ -971,8 +969,10 @@ void GraphView::cursor_state_tick()
             }
             else if ( ImGui::IsMouseDragging(0) )
             {
-                if ( bool wants_selection = !m_selection.contains( m_hovered ) )
-                    handle_selection( m_hovered, wants_selection, ctrl_pressed ); // always allow multi selection in that case
+                if ( !m_selection.contains( m_hovered ) )
+                {
+                     handle_selection( m_hovered );
+                }
                 m_focused = m_hovered;
                 m_state_machine.change_state(DRAG_STATE);
             }
