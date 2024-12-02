@@ -161,7 +161,7 @@ add_library(
     src/tools/core/assertions.h
     src/tools/core/format.cpp
     src/tools/core/format.h
-    src/tools/core/hash.h
+    src/tools/core/Hash.h
     src/tools/core/log.cpp
     src/tools/core/log.h
     src/tools/core/math.h

@@ -197,33 +197,52 @@ void Nodable::update()
                 m_current_file->view.refresh_overlay(Condition_ENABLE_IF_HAS_NO_SELECTION );
                 break;
             }
-            case Event_DeleteNode::id:
+            case Event_DeleteSelection::id:
             {
                 if ( graph_view )
-                    for(NodeView* view : graph_view->selection().node() )
-                        graph_view->graph()->destroy_next_frame(view->node());
+                {
+                    for(const Element& elem : graph_view->selection().data() )
+                    {
+                        if ( auto nodeview = elem.get_if<NodeView*>() )
+                            graph_view->graph()->destroy_next_frame( nodeview->node() );
+                        else if ( auto scopeview = elem.get_if<ScopeView*>() )
+                            graph_view->graph()->destroy_next_frame( scopeview->scope() );
+                    }
+                }
+
                 break;
             }
 
-            case Event_ArrangeNode::id:
+            case Event_ArrangeSelection::id:
             {
                 if ( graph_view )
-                    for(NodeView* view : graph_view->selection().node() )
-                        view->arrange_recursively();
+                {
+                    for(const Element& elem : graph_view->selection().data() )
+                    {
+                        switch ( elem.index() )
+                        {
+                            case Element::index_of<NodeView*>():
+                                elem.get<NodeView*>()->arrange_recursively();
+                                break;
+                            case Element::index_of<ScopeView*>():
+                                elem.get<ScopeView*>()->arrange_content();
+                                break;
+                        }
+                    }
+                }
+
                 break;
             }
 
             case Event_SelectNext::id:
             {
-                if (graph_view && !graph_view->selection().empty())
+                if ( graph_view && graph_view->selection().contains<NodeView*>() )
                 {
                     graph_view->selection().clear();
-                    if (!graph_view->selection().empty())
-                        for(NodeView* view : graph_view->selection().node() )
-                            for (NodeView* successor : Utils::get_components<NodeView>( view->node()->flow_outputs() ) )
-                                graph_view->selection().append( successor );
+                    for(NodeView* view : graph_view->selection().collect<NodeView*>() )
+                        for (NodeView* successor : Utils::get_components<NodeView>( view->node()->flow_outputs() ) )
+                            graph_view->selection().append( successor );
                 }
-
                 break;
             }
 
@@ -232,7 +251,7 @@ void Nodable::update()
                 if ( graph_view )
                     break;
 
-                for(NodeView* view : graph_view->selection().node())
+                for( NodeView* view : graph_view->selection().collect<NodeView*>() )
                 {
                     auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
                     _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()

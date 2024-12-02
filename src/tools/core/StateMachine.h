@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include "types.h"
 #include "tools/core/assertions.h"
-#include "tools/core/hash.h"
+#include "tools/core/Hash.h"
 #include "tools/core/Delegate.h"
 
 #ifdef TOOLS_DEBUG

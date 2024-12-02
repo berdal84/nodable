@@ -9,7 +9,6 @@
 #include "Event.h"
 #include "FrameMode.h"
 #include "SlotView.h"
-#include "Selection.h"
 
 namespace ndbl
 {
@@ -65,8 +64,8 @@ namespace ndbl
         Node* node;
     };
     using Event_DeleteEdge  = tools::Event<EventID_DELETE_EDGE, EventPayload_SlotPair>;
-    using Event_DeleteNode  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;
-    using Event_ArrangeNode = tools::Event<EventID_ARRANGE_NODE, EventPayload_Node>;
+    using Event_DeleteSelection  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;
+    using Event_ArrangeSelection     = tools::Event<EventID_ARRANGE_NODE>;
     using Event_SelectNext  = tools::Event<EventID_SELECT_NEXT, EventPayload_Node>;
 
     enum ToggleFoldingMode
@@ -79,13 +78,6 @@ namespace ndbl
         ToggleFoldingMode mode;
     };
     using Event_ToggleFolding = tools::Event<EventID_TOGGLE_FOLDING, EventPayload_ToggleFoldingEvent>;
-
-    struct EventPayload_SelectionChange
-    {
-        GraphView* graph_view;
-        // Selection old_selection; was unused
-    };
-    using Event_GraphViewSelectionChanged = tools::Event<EventID_SELECTION_CHANGE, EventPayload_SelectionChange>;
 
     struct EventPayload_CreateNode
     {

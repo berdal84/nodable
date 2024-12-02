@@ -60,6 +60,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
                                              | NodeViewFlag_WITH_PINNED;
         Rect node_rect = nodeview->get_rect_ex(WORLD_SPACE, nodeview_flags);
         m_content_rect = Rect::merge(m_content_rect, node_rect);
+        m_wrapped_node_view.push_back(nodeview);
     };
 
     if ( !m_scope->is_partition() )
@@ -236,4 +237,12 @@ void ScopeView::draw_scope_tree_ex(Scope *scope)
         ImGui::PopID();
     }
     ImGui::PopID();
+}
+
+void ScopeView::arrange_content()
+{
+    for( NodeView* view : m_wrapped_node_view )
+    {
+        view->arrange_recursively();
+    }
 }

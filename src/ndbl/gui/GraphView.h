@@ -5,22 +5,21 @@
 #include <functional>
 #include <vector>
 
-#include "tools/gui/ViewState.h"  // base class
 #include "tools/core/reflection/reflection"
+#include "tools/core/VariantVector.h"
+#include "tools/gui/ViewState.h"
+#include "tools/gui/geometry/Pivots.h"
 
 #include "ndbl/core/NodeComponent.h"  // base class
 #include "ndbl/core/Scope.h"
 
 #include "Action.h"
-#include "Selection.h"
 #include "NodeView.h"
 #include "SlotView.h"
 #include "types.h"
-#include "ViewItem.h"
 #include "tools/core/StateMachine.h"
 #include "CreateNodeCtxMenu.h"
 #include "ScopeView.h"
-#include "tools/gui/geometry/Pivots.h"
 
 namespace ndbl
 {
@@ -29,11 +28,10 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    enum SelectionMode
-    {
-        SelectionMode_ADD     = 0,
-        SelectionMode_REPLACE = 1,
-    };
+    struct EdgeView { SlotView* tail = nullptr; SlotView* head = nullptr; } ;
+    using Selection = tools::VariantVector<NodeView*, ScopeView*, SlotView*, EdgeView> ;
+    using Element   = Selection::element_t;
+
 
     class GraphView
     {
@@ -63,8 +61,8 @@ namespace ndbl
         static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
     private:
         CreateNodeCtxMenu      m_create_node_menu;
-        ViewItem               m_hovered;
-        ViewItem               m_focused;
+        Element                m_hovered;
+        Element                m_focused;
         Selection              m_selection;
         tools::ViewState       m_view_state;
         Graph*                 m_graph;
@@ -75,6 +73,7 @@ namespace ndbl
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
         void        _on_graph_change();
+        void        _on_selection_change(Selection::EventT, Element);
         void        frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
         void        create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node *leader);

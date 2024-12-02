@@ -63,8 +63,8 @@ void NodableView::init(Nodable * _app)
     tools::ActionManager* action_manager = get_action_manager();
     ASSERT(action_manager != nullptr); // initialized by base_view
     // (With shortcut)
-    action_manager->new_action<Event_DeleteNode>("Delete", Shortcut{SDLK_DELETE, KMOD_NONE } );
-    action_manager->new_action<Event_ArrangeNode>("Arrange", Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
+    action_manager->new_action<Event_DeleteSelection>("Delete", Shortcut{SDLK_DELETE, KMOD_NONE } );
+    action_manager->new_action<Event_ArrangeSelection>("Arrange", Shortcut{SDLK_a, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_ToggleFolding>("Fold", Shortcut{SDLK_x, KMOD_NONE }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_SelectNext>("Next", Shortcut{SDLK_n, KMOD_NONE } );
     action_manager->new_action<Event_FileSave>(ICON_FA_SAVE " Save", Shortcut{SDLK_s, KMOD_CTRL } );
@@ -77,7 +77,6 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_Undo>("Undo", Shortcut{SDLK_z, KMOD_CTRL } );
     action_manager->new_action<Event_Redo>("Redo", Shortcut{SDLK_y, KMOD_CTRL } );
     action_manager->new_action<Event_ToggleIsolationFlags>("Isolation", Shortcut{SDLK_i, KMOD_CTRL }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_TEXT_EDITOR );
-    action_manager->new_action<Event_GraphViewSelectionChanged>("Deselect", Shortcut{0, KMOD_NONE, "Click on background" }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_MoveSelection>("Drag whole graph", Shortcut{SDLK_SPACE, KMOD_NONE, "Space + Drag" }, Condition_ENABLE | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame Selection", Shortcut{SDLK_f, KMOD_NONE }, EventPayload_FrameNodeViews{FRAME_SELECTION_ONLY }, Condition_ENABLE_IF_HAS_SELECTION | Condition_HIGHLIGHTED_IN_GRAPH_EDITOR );
     action_manager->new_action<Event_FrameSelection>("Frame All", Shortcut{SDLK_f, KMOD_LCTRL }, EventPayload_FrameNodeViews{FRAME_ALL } );
@@ -280,7 +279,7 @@ void NodableView::draw()
             if (ImGui::MenuItem("Reset", NULL, false, interpreter_is_stopped))
                 event_manager->dispatch( EventID_RESET_GRAPH );
 
-            ImGuiEx::MenuItem_EventTrigger<Event_ArrangeNode>(false, has_selection);
+            ImGuiEx::MenuItem_EventTrigger<Event_ArrangeSelection>(false, has_selection);
             ImGuiEx::MenuItem_EventTrigger<Event_ToggleFolding>(false, has_selection);
 
             if (ImGui::MenuItem("Expand/Collapse recursive", nullptr, false, has_selection))
@@ -526,17 +525,20 @@ bool NodableView::draw_node_properties_window()
         if( File* current_file = m_app->get_current_file() )
         {
             const GraphView* graph_view = current_file->graph().view(); // Graph can't be null
-            const size_t selection_size = graph_view->selection().node().size();
-            if ( selection_size == 1)
+            switch ( graph_view->selection().count<NodeView*>() )
             {
-                ImGui::Indent(10.0f);
-                NodeView* first_node_view = graph_view->selection().node().front();
-                changed |= NodeView::draw_as_properties_panel(first_node_view, &m_show_advanced_node_properties);
-            }
-            else if ( selection_size > 1)
-            {
-                ImGui::Indent(10.0f);
-                ImGui::Text("Multi-Selection");
+                case 0:
+                    break;
+                case 1:
+                {
+                    ImGui::Indent(10.0f);
+                    auto* first_nodeview = graph_view->selection().first_of<NodeView*>();
+                    changed |= NodeView::draw_as_properties_panel(first_nodeview, &m_show_advanced_node_properties);
+                    break;
+                }
+                default:
+                    ImGui::Indent(10.0f);
+                    ImGui::Text("Multi-Selection");
             }
         }
     }
