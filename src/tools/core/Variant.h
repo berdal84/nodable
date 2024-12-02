@@ -33,6 +33,8 @@ namespace tools
         static constexpr size_t index_null = 0; // mono state's
 
         Variant() = default;
+        Variant(const Variant&) = default;
+        Variant(Variant&&) = default;
 
         template<class T>
         Variant(T data)
@@ -47,6 +49,7 @@ namespace tools
         }
 
         Variant& operator=(const Variant& other) = default;
+        Variant& operator=(Variant&& other) = default;
 
         template<class T>
         T get() const
