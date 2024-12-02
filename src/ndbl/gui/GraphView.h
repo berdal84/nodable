@@ -28,7 +28,14 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    struct EdgeView { SlotView* tail = nullptr; SlotView* head = nullptr; } ;
+    struct EdgeView
+    {
+        SlotView* tail = nullptr;
+        SlotView* head = nullptr;
+        bool operator==(const EdgeView& other) const // required to compare tools::VariantVector<..., EdgeView>
+        { return tail == other.tail && head == other.head; }
+    };
+
     using Selection = tools::VariantVector<NodeView*, ScopeView*, SlotView*, EdgeView> ;
     using Element   = Selection::element_t;
 
@@ -103,3 +110,11 @@ namespace ndbl
 
     };
 }
+
+// Custom hash provided to work in std::hash<std::variant<EdgeView, ...>>
+template<>
+struct std::hash<ndbl::EdgeView>
+{
+    std::size_t operator()(const ndbl::EdgeView& edge) const noexcept
+    { return tools::Hash::hash32(edge); }
+};

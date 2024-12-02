@@ -936,31 +936,27 @@ void GraphView::cursor_state_tick()
         case Element::index_of<ScopeView*>():
         {
             const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
-            auto handle_selection = [&](Element& hovered_elem, bool want_selected = true, bool allow_multi_selection = false )
+
+            if ( ImGui::IsMouseReleased(0) )
             {
-                if ( allow_multi_selection )
+                if ( ctrl_pressed )
                 {
-                    if ( want_selected )
-                        m_selection.append( hovered_elem );
+                    if ( !m_selection.contains( m_hovered ) )
+                    {
+                        m_selection.append( m_hovered );
+                        m_focused = m_hovered;
+                    }
                     else
-                        m_selection.remove( hovered_elem );
+                    {
+                        m_selection.remove( m_hovered );
+                    }
                 }
                 else
                 {
                     m_selection.clear();
-                    if ( want_selected )
-                    {
-                        m_selection.append( hovered_elem );
-                    }
+                    m_selection.append( m_hovered );
+                    m_focused = m_hovered;
                 }
-            };
-
-            if ( ImGui::IsMouseReleased(0) )
-            {
-                bool select = ctrl_pressed ? !m_selection.contains( m_hovered ) // toggle when ctrl is pressed
-                                           : true;
-                handle_selection( m_hovered, select, ctrl_pressed );
-                m_focused = m_hovered;
             }
             else if (ImGui::IsMouseClicked(1))
             {
@@ -969,11 +965,12 @@ void GraphView::cursor_state_tick()
             }
             else if ( ImGui::IsMouseDragging(0) )
             {
-                if ( !m_selection.contains( m_hovered ) )
+                if ( !m_selection.contains( m_hovered) )
                 {
-                     handle_selection( m_hovered );
+                    if ( !ctrl_pressed )
+                        m_selection.clear();
+                    m_selection.append( m_hovered );
                 }
-                m_focused = m_hovered;
                 m_state_machine.change_state(DRAG_STATE);
             }
             break;
