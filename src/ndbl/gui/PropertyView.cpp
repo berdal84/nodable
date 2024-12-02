@@ -64,7 +64,7 @@ bool PropertyView::draw(ViewDetail _detail)
 {
     _state.shape().draw_debug_info();
 
-    if ( !_state.visible )
+    if ( !_state.visible() )
         return false;
 
     bool            changed            = false;

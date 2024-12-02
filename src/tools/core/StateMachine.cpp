@@ -67,9 +67,9 @@ State* StateMachine::add_state(const char* _name)
 
 void StateMachine::add_state(State* state)
 {
-    const u32_t key = Hash::hash32( state->name );
-    VERIFY(m_state.find(key) == m_state.end(), "State name already exists");
-    m_state.insert({key, state});
+    const auto key = Hash::hash( state->name );
+    const auto& [it, success] = m_state.emplace( key, state);
+    VERIFY(success, "State name already exists");
 }
 
 void StateMachine::change_state(State* state)
@@ -86,7 +86,7 @@ void StateMachine::exit_state()
 
 State *StateMachine::get_state(const char *name)
 {
-    auto it = m_state.find( Hash::hash32(name) );
+    auto it = m_state.find( Hash::hash(name) );
     if( it != m_state.end())
         return it->second;
     return nullptr;

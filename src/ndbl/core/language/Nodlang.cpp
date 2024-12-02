@@ -120,7 +120,7 @@ Nodlang::Nodlang(bool _strict)
 
     for( auto [keyword, token_t] : m_definition.keywords)
     {
-        m_token_t_by_keyword.insert({Hash::hash32(keyword), token_t});
+        m_token_t_by_keyword.insert({Hash::hash(keyword), token_t});
         m_keyword_by_token_t.insert({token_t, keyword});
     }
 
@@ -128,7 +128,7 @@ Nodlang::Nodlang(bool _strict)
     {
         m_keyword_by_token_t.insert({token_t, keyword});
         m_keyword_by_type_id.insert({type->id(), keyword});
-        m_token_t_by_keyword.insert({Hash::hash32(keyword), token_t});
+        m_token_t_by_keyword.insert({Hash::hash(keyword), token_t});
         m_token_t_by_type_id.insert({type->id(), token_t});
         m_type_by_token_t.insert({token_t, type});
     }
@@ -1029,7 +1029,7 @@ Token Nodlang::parse_token(const char* buffer, size_t buffer_size, size_t& globa
 
         Token_t type = Token_t::identifier;
 
-        const u32_t key = Hash::hash32( buffer + start_pos, cursor - start_pos );
+        const auto key = Hash::hash( buffer + start_pos, cursor - start_pos );
         auto keyword_found = m_token_t_by_keyword.find( key );
         if (keyword_found != m_token_t_by_keyword.end())
         {
@@ -1813,8 +1813,7 @@ const IInvokable* Nodlang::find_function(const char* _signature_hint) const
         return nullptr;
     }
 
-    const u32_t key = Hash::hash32(_signature_hint);
-    return find_function( key );
+    return find_function( Hash::hash(_signature_hint) );
 }
 
 const tools::IInvokable* Nodlang::find_function(u32_t _hash) const

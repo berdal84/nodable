@@ -6,7 +6,8 @@
 #include <vector>
 
 #include "tools/core/reflection/reflection"
-#include "tools/core/VariantVector.h"
+#include "tools/core/Variant.h"
+#include "tools/core/UniqueOrderedVariantList.h"
 #include "tools/gui/ViewState.h"
 #include "tools/gui/geometry/Pivots.h"
 
@@ -28,10 +29,16 @@ namespace ndbl
     class Graph;
     using tools::Vec2;
 
-    struct EdgeView { SlotView* tail = nullptr; SlotView* head = nullptr; } ;
-    using Selection = tools::VariantVector<NodeView*, ScopeView*, SlotView*, EdgeView> ;
-    using Element   = Selection::element_t;
+    struct EdgeView
+    {
+        SlotView* tail = nullptr;
+        SlotView* head = nullptr;
+        bool operator==(const EdgeView& other) const // required to compare tools::Variant<..., EdgeView>
+        { return tail == other.tail && head == other.head; }
+    };
 
+    using Selectable = tools::Variant<NodeView*, ScopeView*, SlotView*, EdgeView> ;
+    using Selection  = tools::UniqueOrderedVariantList<Selectable> ;
 
     class GraphView
     {
@@ -61,8 +68,8 @@ namespace ndbl
         static void       draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
     private:
         CreateNodeCtxMenu      m_create_node_menu;
-        Element                m_hovered;
-        Element                m_focused;
+        Selectable             m_hovered;
+        Selectable             m_focused;
         Selection              m_selection;
         tools::ViewState       m_view_state;
         Graph*                 m_graph;
@@ -73,7 +80,7 @@ namespace ndbl
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
         void        _on_graph_change();
-        void        _on_selection_change(Selection::EventT, Element);
+        void        _on_selection_change(Selection::EventType, Selection::ElemType );
         void        frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
         void        create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node *leader);
@@ -103,3 +110,11 @@ namespace ndbl
 
     };
 }
+
+// Custom hash provided to work in std::hash<std::variant<EdgeView, ...>>
+template<>
+struct std::hash<ndbl::EdgeView>
+{
+    std::size_t operator()(const ndbl::EdgeView& edge) const noexcept
+    { return tools::Hash::hash(edge); }
+};

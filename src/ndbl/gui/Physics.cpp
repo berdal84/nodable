@@ -68,7 +68,7 @@ void Physics::add_force(const tools::Vec2& force, bool _recurse)
     {
         NodeView* input_view = input_node->get_component<NodeView>();
 
-        if ( !input_view->pinned())
+        if ( !input_view->state().pinned())
             if (Utils::is_output_node_in_expression(input_node, _view->node()))
                 if(auto* physics_component = input_node->get_component<Physics>())
                     physics_component->add_force(force, _recurse);
@@ -177,8 +177,8 @@ std::vector<NodeView*> ViewConstraint::clean(std::vector<NodeView *> &views)
 {
     std::vector<NodeView *> result;
     for(auto* view : views)
-        if (view->visible())
-            if (!view->pinned())
+        if (view->state().visible())
+            if (!view->state().pinned())
                 result.push_back(view);
     return result;
 }

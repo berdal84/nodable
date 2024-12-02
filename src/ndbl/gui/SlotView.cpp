@@ -60,7 +60,7 @@ bool SlotView::draw()
 {
     _state.shape().draw_debug_info();
 
-    if ( !_state.visible )
+    if ( !_state.visible() )
         return false;
 
     ImDrawList* draw_list = ImGui::GetWindowDrawList();
@@ -80,8 +80,9 @@ bool SlotView::draw()
     ImGui::PushID(slot);
     ImGui::InvisibleButton("###", rect.size() + cfg->ui_slot_invisible_btn_expand_size);
     ImGui::PopID();
-    _state.hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
-    Vec4 fill_color = _state.hovered ? hover_color : color;
+    bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_RectOnly);
+    _state.set_hovered( hovered );
+    const Vec4 fill_color = hovered ? hover_color : color;
 
     // draw shape
     switch ( shape_type )
@@ -124,17 +125,17 @@ void SlotView::update(float dt)
 
     if (slot->capacity() == 0)
     {
-        _state.visible = false;
+        _state.set_visible(false);
     }
     else if (slot->type() == SlotFlag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
         bool desired_visibility = Utils::is_instruction( node() ) || Utils::can_be_instruction( node() );
-        _state.visible = desired_visibility;
+        _state.set_visible( desired_visibility );
     }
     else
     {
-        _state.visible = true;
+        _state.set_visible(true);
     }
 
     // 2) Update position

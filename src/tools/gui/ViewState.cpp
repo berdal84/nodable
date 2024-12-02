@@ -13,10 +13,7 @@ ViewState::ViewState()
 }
 
 ViewState::ViewState(float width, float height)
-: hovered(false)
-, visible(true)
-, selected(false)
-, _shape()
+: _shape()
 {
     _shape.set_size({width, height});
 }
