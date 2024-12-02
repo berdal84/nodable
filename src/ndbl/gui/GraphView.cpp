@@ -646,7 +646,7 @@ void GraphView::_on_graph_change()
     m_physics_dirty = true;
 }
 
-void GraphView::_on_selection_change(Selection::EventType type, Selectable elem)
+void GraphView::_on_selection_change(Selection::EventType type, Selection::ElemType elem)
 {
     bool selected = type == Selection::EventType::Append;
 

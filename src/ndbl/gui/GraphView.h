@@ -80,7 +80,7 @@ namespace ndbl
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
         void        _on_graph_change();
-        void        _on_selection_change(Selection::EventType, Selection::ElementT );
+        void        _on_selection_change(Selection::EventType, Selection::ElemType );
         void        frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
         void        create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node *leader);

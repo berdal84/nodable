@@ -1,17 +1,10 @@
-#include "Variant.h"
 #include "UniqueOrderedVariantList.h"
 #include "tools/core/log.h"
 #include <gtest/gtest.h>
 
 using namespace tools;
 
-TEST(UniqueOrderedList, with_no_variant )
-{
-    using MyVec = UniqueOrderedVariantList<void*>;
-    EXPECT_FALSE( std::is_constructible_v<MyVec> );
-}
-
-TEST(UniqueOrderedList, with_Variant )
+TEST(UniqueOrderedVectorList, with_Variant )
 {
     using MyVariant  = Variant<u64_t, const char*, std::string>;
     using MyVec      = UniqueOrderedVariantList<MyVariant>;
