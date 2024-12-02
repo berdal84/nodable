@@ -646,23 +646,23 @@ void GraphView::_on_graph_change()
     m_physics_dirty = true;
 }
 
-void GraphView::_on_selection_change(Selection::EventT type, Element elem)
+void GraphView::_on_selection_change(Selection::EventType type, Selectable elem)
 {
-    bool selected = type == Selection::EventT_Append;
+    bool selected = type == Selection::EventType::Append;
 
     switch ( elem.index() )
     {
-        case Element::index_of<ScopeView*>():
+        case Selectable::index_of<ScopeView*>():
         {
             elem.get<ScopeView*>()->state().set_selected( selected );
             break;
         }
-        case Element::index_of<NodeView*>():
+        case Selectable::index_of<NodeView*>():
         {
             elem.get<NodeView*>()->state().set_selected( selected );
             break;
         }
-        case Element::index_of<EdgeView>():
+        case Selectable::index_of<EdgeView>():
         {
             break;
         }
@@ -732,7 +732,7 @@ void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView*
 
 void GraphView::drag_state_enter()
 {
-    for( const Element& elem : m_selection.data() )
+    for( const Selectable& elem : m_selection.data() )
     {
         if ( auto* nodeview = elem.get_if<NodeView*>() )
             nodeview->state().set_pinned();
@@ -746,7 +746,7 @@ void GraphView::drag_state_tick()
     const Vec2 delta = ImGui::GetMouseDragDelta();
     ImGui::ResetMouseDragDelta();
 
-    for ( const Selection::element_t& elem : m_selection.data() )
+    for ( const Selectable& elem : m_selection.data() )
     {
         if ( auto* nodeview = elem.get_if<NodeView*>() )
             nodeview->spatial_node().translate(delta);
@@ -790,13 +790,13 @@ void GraphView::cursor_state_tick()
 
         switch ( m_focused.index() )
         {
-            case Element::index_null:
+            case Selectable::index_null:
             {
                 draw_create_node_context_menu(m_create_node_menu);
                 break;
             }
 
-            case Element::index_of<ScopeView*>():
+            case Selectable::index_of<ScopeView*>():
             {
                 auto      scopeview = m_focused.get<ScopeView*>();
                 Node*     node     = scopeview->scope()->node();
@@ -842,7 +842,7 @@ void GraphView::cursor_state_tick()
                 break;
             }
 
-            case Element::index_of<EdgeView>():
+            case Selectable::index_of<EdgeView>():
             {
                 auto edge = m_focused.get<EdgeView>();
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Edge") )
@@ -856,7 +856,7 @@ void GraphView::cursor_state_tick()
                 break;
             }
 
-            case Element::index_of<SlotView*>():
+            case Selectable::index_of<SlotView*>():
             {
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect Edges") )
                 {
@@ -868,7 +868,7 @@ void GraphView::cursor_state_tick()
                 break;
             }
 
-            case Element::index_of<NodeView*>():
+            case Selectable::index_of<NodeView*>():
             {
                 auto nodeview = m_focused.get<NodeView*>();
 
@@ -903,7 +903,7 @@ void GraphView::cursor_state_tick()
 
     switch ( m_hovered.index() )
     {
-        case Element::index_of<SlotView*>():
+        case Selectable::index_of<SlotView*>():
         {
             if ( ImGui::IsMouseClicked(1) )
             {
@@ -918,7 +918,7 @@ void GraphView::cursor_state_tick()
             break;
         }
 
-        case Element::index_of<EdgeView>():
+        case Selectable::index_of<EdgeView>():
         {
             if (ImGui::IsMouseDragging(0, 0.1f))
             {
@@ -932,8 +932,8 @@ void GraphView::cursor_state_tick()
             break;
         }
 
-        case Element::index_of<NodeView*>():
-        case Element::index_of<ScopeView*>():
+        case Selectable::index_of<NodeView*>():
+        case Selectable::index_of<ScopeView*>():
         {
             const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
 
@@ -976,7 +976,7 @@ void GraphView::cursor_state_tick()
             break;
         }
 
-        case Element::index_null:
+        case Selectable::index_null:
         {
             if ( ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
             {

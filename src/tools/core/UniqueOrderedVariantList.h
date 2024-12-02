@@ -4,38 +4,54 @@
 #include <vector>
 #include <deque>
 #include <unordered_set>
-#include <variant>
-#include <iterator> // for forward_iterator, see append
 #include "Signals.h"
 #include "Hash.h"
-#include "Variant.h"
+
+#if TOOLS_DEBUG
+#include "assertions.h"
+#define UNIQUE_ORDERED_LIST_ASSERT(...) ASSERT( __VA_ARGS__ )
+#else
+#define UNIQUE_ORDERED_LIST_ASSERT(...)
+#endif
 
 namespace tools
 {
-    template<typename ...Args>
-    struct VariantVector
+    template<typename ElementT>
+    struct UniqueOrderedVariantList
     {
-        using element_t = Variant<Args...>;
+        UniqueOrderedVariantList() = delete;
+        ~UniqueOrderedVariantList() = delete;
+    };
 
-        enum EventT
+    //
+    // Ordered list of unique elements
+    // Uses a hashset (rely on std::hash<ElementT> ) and a list to guarantee uniqueness and order.
+    //
+    template<typename ...Args>
+    struct UniqueOrderedVariantList<Variant<Args...>>
+    {
+        using ElementT = Variant<Args...>;
+        static_assert( std::is_default_constructible_v<std::hash<ElementT>>, "std::hash<ElementT> must be implemented");
+
+        enum class EventType
         {
-            EventT_Append,
-            EventT_Remove,
+            Append,
+            Remove,
         };
 
-        SIGNAL(on_change, EventT, element_t);
+        SIGNAL(on_change, EventType, ElementT);
 
         bool empty() const
         {
             return _unique_elem.empty();
         }
 
-        bool contains(const element_t& elem) const // Constant on average, worst case linear in the size of the container.
+        bool contains(const ElementT& elem) const // Constant on average, worst case linear in the size of the container.
         {
-            return _unique_elem.contains( elem.hash() );
+            return _unique_elem.contains( _hash(elem) );
         }
 
-        const std::list<element_t>& data() const
+        const std::list<ElementT>& data() const
         {
             return _ordered_elem;
         }
@@ -47,9 +63,9 @@ namespace tools
                 return;
             }
 
-            for( const element_t& elem : _ordered_elem )
+            for( const ElementT& elem : _ordered_elem )
             {
-                on_change.emit( EventT_Remove, elem );
+                on_change.emit( EventType::Remove, elem );
             }
             _unique_elem.clear();
             _ordered_elem.clear();
@@ -67,15 +83,15 @@ namespace tools
             return count;
         }
 
-        template<class T> bool contains() const // O(1), read from cache.
+        template<class OtherT> bool contains() const // O(1), read from cache.
         {
-            constexpr size_t index = element_t::template index_of<T>();
+            constexpr size_t index = ElementT::template index_of<OtherT>();
             return _count_by_index.contains( index );
         }
 
         template<class T> size_t count() const // O(1), read from cache.
         {
-            constexpr size_t index = element_t::template index_of<T>();
+            constexpr size_t index = ElementT::template index_of<T>();
             if ( _count_by_index.contains( index ) )
             {
                 return _count_by_index.at( index );
@@ -86,40 +102,39 @@ namespace tools
         template<typename T>
         bool append(T* ptr)
         {
-            element_t elem{ptr};
+            ElementT elem{ptr};
             return append( elem );
         }
 
         template<typename T>
         bool append(T& data)
         {
-            return append(element_t{data});
+            return append(ElementT{data});
         }
 
-        bool append(element_t& elem)  // Constant on average, worst case linear in the size of the container.
+        bool append(ElementT& elem)  // Constant on average, worst case linear in the size of the container.
         {
-            const auto& [_, inserted] = _unique_elem.insert( elem.hash() );
+            const auto& [_, inserted] = _unique_elem.insert( _hash(elem) );
             if ( inserted )
             {
                 _ordered_elem.push_back( elem );
-                on_change.emit( EventT_Append, elem );
+                on_change.emit( EventType::Append, elem );
                 _count_by_index[elem.index()]++;
-
-                ASSERT( _unique_elem.contains( elem.hash() ) );
+                UNIQUE_ORDERED_LIST_ASSERT( contains( elem ) );
                 return true;
             }
             return false;
         }
 
-        bool remove(const element_t& elem)// Constant on average, worst case linear in the size of the container.
+        bool remove(const ElementT& elem)// Constant on average, worst case linear in the size of the container.
         {
-            if ( _unique_elem.erase( elem.hash() ) )
+            if ( _unique_elem.erase( _hash(elem) ) )
             {
                 auto it = std::find( _ordered_elem.begin(), _ordered_elem.end(), elem );
-                on_change.emit( EventT_Remove, elem );
+                on_change.emit( EventType::Remove, elem );
                 _ordered_elem.erase( it );
                 _count_by_index[it->index()]--;
-                ASSERT( !contains(elem) );
+                UNIQUE_ORDERED_LIST_ASSERT( !contains( elem ) );
                 return true;
             }
             return false;
@@ -132,7 +147,7 @@ namespace tools
             if ( _count == 0 )
                 return {};
 
-            for ( const element_t& elem : _ordered_elem )
+            for ( const ElementT& elem : _ordered_elem )
                 if ( T ptr = elem.template get_if<T>() )
                     return ptr;
 
@@ -151,22 +166,19 @@ namespace tools
             result.reserve( _count ); // 1 allocation max :)
 
             // OPTIM: we could use a cache per type_index if necessary ( type_index => list<T*> )
-            for ( const element_t& elem : _ordered_elem )
+            for ( const ElementT& elem : _ordered_elem )
                 if ( T data = elem.template get_if<T>() )
                     result.push_back( data );
 
             return result;
         }
-    private:
-        struct NoHash
-        {
-            // simply pass the value as-is, our u32_t is already a hash
-            constexpr u32_t operator()(u32_t u) const
-            { return u; }
-        };
 
-        std::unordered_set<u32_t, NoHash>  _unique_elem{};  // unordered_set because we need uniqueness, furthermore unordered_set::contains is faster than std::find on a list
-        std::list<element_t>               _ordered_elem{}; // list, because it " supports constant time insertion and removal of elements from anywhere in the container." (see https://devdocs.io/cpp/container/list)
+        u64_t _hash(const ElementT& elem) const
+        { return std::hash<ElementT>{}(elem); }
+
+    private:
+        std::unordered_set<u64_t>          _unique_elem{};  // unordered_set, because we need uniqueness, furthermore unordered_set::contains is faster than std::find on a list
+        std::list<ElementT>                _ordered_elem{}; // list, because it " supports constant time insertion and removal of elements from anywhere in the container." (see https://devdocs.io/cpp/container/list)
         std::unordered_map<size_t, size_t> _count_by_index{};
     };
 }

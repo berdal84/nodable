@@ -201,7 +201,7 @@ void Nodable::update()
             {
                 if ( graph_view )
                 {
-                    for(const Element& elem : graph_view->selection().data() )
+                    for(const Selectable& elem : graph_view->selection().data() )
                     {
                         if ( auto nodeview = elem.get_if<NodeView*>() )
                             graph_view->graph()->destroy_next_frame( nodeview->node() );
@@ -217,14 +217,14 @@ void Nodable::update()
             {
                 if ( graph_view )
                 {
-                    for(const Element& elem : graph_view->selection().data() )
+                    for(const Selectable& elem : graph_view->selection().data() )
                     {
                         switch ( elem.index() )
                         {
-                            case Element::index_of<NodeView*>():
+                            case Selectable::index_of<NodeView*>():
                                 elem.get<NodeView*>()->arrange_recursively();
                                 break;
-                            case Element::index_of<ScopeView*>():
+                            case Selectable::index_of<ScopeView*>():
                                 elem.get<ScopeView*>()->arrange_content();
                                 break;
                         }

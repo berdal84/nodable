@@ -28,6 +28,8 @@ namespace tools
     template<typename ...Ts>
     struct Variant
     {
+        friend struct std::hash<Variant>;
+
         static constexpr size_t index_null = 0; // mono state's
 
         Variant() = default;
@@ -77,10 +79,17 @@ namespace tools
         template<typename T>
         static constexpr size_t index_of()
         { return tools::index_of<T, std::tuple<std::monostate, Ts...> >(); }
-
-        u32_t hash() const
-        { return std::hash<decltype(_data)>{}(_data); }
     private:
         std::variant<std::monostate, Ts...> _data;
     };
 }
+
+template<typename ...Args>
+struct std::hash<tools::Variant<Args...>>
+{
+    u64_t operator()(const tools::Variant<Args...>& v) const
+    {
+        // hash the wrapped variant
+        return std::hash<decltype(v._data)>{}(v._data);
+    }
+};
