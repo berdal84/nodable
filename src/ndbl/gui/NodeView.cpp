@@ -37,7 +37,6 @@ NodeView::NodeView()
     , m_colors({&DEFAULT_COLOR})
     , m_opacity(1.0f)
     , m_expanded(true)
-    , m_pinned(false)
     , m_value_view(nullptr)
     , m_view_by_property()
     , m_hovered_slotview(nullptr)
@@ -161,7 +160,7 @@ void NodeView::reset()
             case NodeType_BLOCK_WHILE_LOOP:
                 // hide THIS property
                 if ( property->has_flags(PropertyFlag_IS_NODE_VALUE) )
-                    new_view->state().visible = false;
+                    new_view->state().set_visible(false);
         }
 
         // Indexing
@@ -236,7 +235,7 @@ void NodeView::reset()
             case SlotFlag_TYPE_VALUE:
             {
                 const PropertyView* property_view = find_property_view( view->property() );
-                if ( property_view != nullptr && property_view->state().visible )
+                if ( property_view != nullptr && property_view->state().visible() )
                     view->alignment_ref = &property_view->shape();
             }
         }
@@ -285,7 +284,7 @@ void NodeView::arrange_recursively(bool _smoothly)
 {
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
-        if ( !each_input->m_pinned )
+        if ( !each_input->state().pinned() )
             if (Utils::is_output_node_in_expression(each_input->node(), this->node()) )
                 each_input->arrange_recursively();
     }
@@ -302,7 +301,7 @@ void NodeView::arrange_recursively(bool _smoothly)
         update(float(1000));
     }
 
-    m_pinned = false;
+    m_state.set_pinned(false);
 }
 
 void NodeView::update(float dt)
@@ -318,7 +317,7 @@ bool NodeView::draw()
 {
     m_state.shape().draw_debug_info();
 
-    if ( !m_state.visible )
+    if ( !m_state.visible() )
         return false;
 
     if ( !node() )
@@ -351,7 +350,7 @@ bool NodeView::draw()
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( m_state.selected )
+    if ( m_state.selected() )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -372,7 +371,7 @@ bool NodeView::draw()
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            m_state.selected,
+            m_state.selected(),
             5.0f,
             border_width );
 
@@ -495,7 +494,8 @@ bool NodeView::draw()
     if ( changed )
         node()->set_flags(NodeFlag_IS_DIRTY );
 
-    m_state.hovered = is_rect_hovered || m_hovered_slotview != nullptr;
+    const bool _hovered = is_rect_hovered || m_hovered_slotview != nullptr;
+    m_state.set_hovered( _hovered );
 
 	return changed;
 }
@@ -788,7 +788,7 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 
     std::vector<Rect> rects;
 
-    if ( m_state.visible )
+    if ( m_state.visible() )
         rects.push_back( this->get_rect(space) );
 
     auto visit = [&](Node* node)
@@ -796,11 +796,11 @@ Rect NodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         NodeView* view = node->get_component<NodeView>();
         if( !view )
             return;
-        if( !view->m_state.visible )
+        if( !view->m_state.visible() )
             return;
-        if(view->m_state.selected && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
+        if(view->m_state.selected() && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
             return;
-        if( view->m_pinned && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
+        if( view->m_state.pinned() && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
         if(Utils::is_output_node_in_expression(view->node(), this->node()) )
         {
@@ -895,8 +895,8 @@ void NodeView::set_children_visible(bool visible, bool recursively)
     {
         for (Node* child: scope->child())
         {
-            NodeView *child_view = child->get_component<NodeView>();
-            child_view->m_state.visible = visible;
+            NodeView* child_view = child->get_component<NodeView>();
+            child_view->m_state.set_visible( visible );
         }
     }
 }
@@ -914,7 +914,7 @@ void NodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeVie
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child_view->m_state.visible = _visible;
+            each_child_view->m_state.set_visible( _visible );
         }
     }
 }
@@ -926,7 +926,7 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
         return _view;
     }
 
-    if( _view->m_state.visible )
+    if( _view->m_state.visible() )
     {
         return _view;
     }
@@ -934,8 +934,8 @@ NodeView* NodeView::substitute_with_parent_if_not_visible(NodeView* _view, bool 
     if ( _recursive )
         if( Scope* scope = _view->node()->scope() )
             if (NodeView* parent_view = scope->node()->get_component<NodeView>() )
-                return parent_view->visible() ? parent_view
-                                              : substitute_with_parent_if_not_visible(parent_view, _recursive);
+                return parent_view->state().visible() ? parent_view
+                                                      : substitute_with_parent_if_not_visible(parent_view, _recursive);
 
     return nullptr;
 }
@@ -984,7 +984,7 @@ void NodeView::draw_slot(SlotView* slot_view)
     if( slot_view->draw() )
         m_last_clicked_slotview = slot_view;
 
-    if( slot_view->state().hovered )
+    if( slot_view->state().hovered() )
     {
         m_hovered_slotview = slot_view; // last wins
     }

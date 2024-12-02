@@ -56,10 +56,6 @@ namespace ndbl
 		NodeView();
 		~NodeView();
 
-        bool                    selected() const { return  m_state.selected; };
-        inline bool             pinned() const { return m_pinned; }
-        bool                    visible() const { return m_state.visible; };
-        void                    set_pinned(bool b = true ) { m_pinned = b; }
         std::vector<NodeView*>  get_adjacent(SlotFlags) const;
         bool                    draw();
         void                    update(float);
@@ -81,8 +77,6 @@ namespace ndbl
         const tools::SpatialNode2D& spatial_node() const { return m_state.spatial_node(); }
         tools::SpatialNode2D&   spatial_node() { return m_state.spatial_node(); }
         tools::ViewState&       state() { return m_state; }
-        bool                    hovered() const { return m_state.hovered; }
-        void                    set_selected(bool b = true) { m_state.selected = b; };
         void                    reset_all_properties();
 
         static tools::Rect      get_rect(const std::vector<NodeView *> &_views, tools::Space = tools::WORLD_SPACE, NodeViewFlags = NodeViewFlag_NONE);
@@ -115,7 +109,6 @@ namespace ndbl
 
         tools::ViewState m_state;
         bool            m_expanded;
-        bool            m_pinned;
         float           m_opacity;
         SlotView*       m_hovered_slotview;
         SlotView*       m_last_clicked_slotview;

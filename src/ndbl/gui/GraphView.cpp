@@ -157,7 +157,7 @@ bool GraphView::draw(float dt)
 {
     bool changed = false;
 
-    if ( !m_view_state.visible )
+    if ( !m_view_state.visible() )
         return false;
 
     // Ensure view state fit with content region
@@ -234,9 +234,9 @@ bool GraphView::draw(float dt)
 
                 if ( each_successor_view == nullptr )
                     continue;
-                if ( each_view->visible() == false )
+                if ( !each_view->state().visible() )
                     continue;
-                if ( each_successor_view->visible() == false )
+                if ( !each_successor_view->state().visible() )
                     continue;
 
                 SlotView* tail = slot->view;
@@ -280,9 +280,9 @@ bool GraphView::draw(float dt)
                 auto *node_view_out = slot_out->node->get_component<NodeView>();
                 auto *node_view_in  = slot_in->node->get_component<NodeView>();
 
-                if ( !node_view_out->visible() )
+                if ( !node_view_out->state().visible() )
                     continue;
-                if ( !node_view_in->visible() )
+                if ( !node_view_in->state().visible() )
                     continue;
 
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
@@ -316,7 +316,7 @@ bool GraphView::draw(float dt)
                 {
                     auto variable = static_cast<VariableNode*>( node_out );
                     if (slot_out == variable->ref_out() ) // from a reference slot (can't be a declaration link)
-                        if (!node_view_out->selected() && !node_view_in->selected() )
+                        if (!node_view_out->state().selected() && !node_view_in->state().selected() )
                             style.color.w *= 0.25f;
                 }
 
@@ -350,12 +350,12 @@ bool GraphView::draw(float dt)
 
         if ( !nodeview)
             continue;
-        if ( nodeview->visible() == false )
+        if ( !nodeview->state().visible() )
             continue;
 
         changed |= nodeview->draw();
 
-        if ( nodeview->hovered() ) // no check if something else is hovered, last node always win against an edge
+        if ( nodeview->state().hovered() ) // no check if something else is hovered, last node always win against an edge
         {
             if ( nodeview->m_hovered_slotview != nullptr)
             {
@@ -654,12 +654,12 @@ void GraphView::_on_selection_change(Selection::EventT type, Element elem)
     {
         case Element::index_of<ScopeView*>():
         {
-            elem.get<ScopeView*>()->state().selected = selected;
+            elem.get<ScopeView*>()->state().set_selected( selected );
             break;
         }
         case Element::index_of<NodeView*>():
         {
-            elem.get<NodeView*>()->set_selected( selected );
+            elem.get<NodeView*>()->state().set_selected( selected );
             break;
         }
         case Element::index_of<EdgeView>():
@@ -735,9 +735,9 @@ void GraphView::drag_state_enter()
     for( const Element& elem : m_selection.data() )
     {
         if ( auto* nodeview = elem.get_if<NodeView*>() )
-            nodeview->set_pinned();
+            nodeview->state().set_pinned();
         else if ( auto* scopeview = elem.get_if<ScopeView*>() )
-            scopeview->set_pinned();
+            scopeview->state().set_pinned();
     }
 }
 
@@ -881,7 +881,8 @@ void GraphView::cursor_state_tick()
 
                 if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin Node") )
                 {
-                    nodeview->set_pinned( !nodeview->pinned() );
+                    const bool pinned = nodeview->state().pinned();
+                    nodeview->state().set_pinned( !pinned );
                 }
 
                 if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange Node") )

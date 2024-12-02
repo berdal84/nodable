@@ -53,7 +53,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
     auto wrap_nodeview = [&](NodeView* nodeview )
     {
         ASSERT( nodeview );
-        if ( !nodeview->visible() )
+        if ( !nodeview->state().visible() )
             return;
 
         const NodeViewFlags nodeview_flags = NodeViewFlag_WITH_RECURSION
@@ -143,7 +143,7 @@ void ScopeView::draw(float dt)
         const Vec4& fill_col = m_theme == Theme_DARK ? config->ui_scope_fill_col_light
                                                      : config->ui_scope_fill_col_dark;
         draw_list->AddRectFilled(r.min, r.max, ImGui::GetColorU32(fill_col), config->ui_scope_border_radius );
-        if ( m_state.selected )
+        if ( m_state.selected() )
         {
             draw_list->AddRect(r.min, r.max, ImGui::GetColorU32( config->ui_scope_border_col ) , config->ui_scope_border_radius, 0, config->ui_scope_border_thickness );
         }
@@ -192,12 +192,12 @@ void ScopeView::translate(const tools::Vec2 &delta)
 
 void ScopeView::set_pinned(bool b)
 {
-    node()->get_component<NodeView>()->set_pinned(b);
+    node()->get_component<NodeView>()->state().set_pinned(b);
 }
 
 bool ScopeView::pinned() const
 {
-    return node()->get_component<NodeView>()->pinned();
+    return node()->get_component<NodeView>()->state().pinned();
 }
 
 void ScopeView::set_position(const tools::Vec2& pos, tools::Space space)
