@@ -7,7 +7,7 @@
 
 #include "tools/core/reflection/reflection"
 #include "tools/core/Variant.h"
-#include "tools/core/UniqueOrderedVariantList.h"
+#include "tools/core/UniqueVariantList.h"
 #include "tools/gui/ViewState.h"
 #include "tools/gui/geometry/Pivots.h"
 
@@ -38,7 +38,7 @@ namespace ndbl
     };
 
     using Selectable = tools::Variant<NodeView*, ScopeView*, SlotView*, EdgeView> ;
-    using Selection  = tools::UniqueOrderedVariantList<Selectable> ;
+    using Selection  = tools::UniqueVariantList<Selectable> ;
 
     class GraphView
     {
@@ -80,7 +80,7 @@ namespace ndbl
         void        _update(float dt, u16_t iterations);
         void        _update(float dt);
         void        _on_graph_change();
-        void        _on_selection_change(Selection::EventType, Selection::ElemType );
+        void        _on_selection_change(Selection::EventType, Selection::Element );
         void        frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
         void        draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview = nullptr );
         void        create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node *leader);

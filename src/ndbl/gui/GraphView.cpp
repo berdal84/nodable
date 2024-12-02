@@ -646,7 +646,7 @@ void GraphView::_on_graph_change()
     m_physics_dirty = true;
 }
 
-void GraphView::_on_selection_change(Selection::EventType type, Selection::ElemType elem)
+void GraphView::_on_selection_change(Selection::EventType type, Selection::Element elem)
 {
     bool selected = type == Selection::EventType::Append;
 
@@ -732,7 +732,7 @@ void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView*
 
 void GraphView::drag_state_enter()
 {
-    for( const Selectable& elem : m_selection.data() )
+    for( const Selectable& elem : m_selection )
     {
         if ( auto* nodeview = elem.get_if<NodeView*>() )
             nodeview->state().set_pinned();
@@ -746,7 +746,7 @@ void GraphView::drag_state_tick()
     const Vec2 delta = ImGui::GetMouseDragDelta();
     ImGui::ResetMouseDragDelta();
 
-    for ( const Selectable& elem : m_selection.data() )
+    for ( const Selectable& elem : m_selection )
     {
         if ( auto* nodeview = elem.get_if<NodeView*>() )
             nodeview->spatial_node().translate(delta);

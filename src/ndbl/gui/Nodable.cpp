@@ -201,7 +201,7 @@ void Nodable::update()
             {
                 if ( graph_view )
                 {
-                    for(const Selectable& elem : graph_view->selection().data() )
+                    for(const Selectable& elem : graph_view->selection() )
                     {
                         if ( auto nodeview = elem.get_if<NodeView*>() )
                             graph_view->graph()->destroy_next_frame( nodeview->node() );
@@ -217,7 +217,7 @@ void Nodable::update()
             {
                 if ( graph_view )
                 {
-                    for(const Selectable& elem : graph_view->selection().data() )
+                    for( const Selectable& elem : graph_view->selection() )
                     {
                         switch ( elem.index() )
                         {
