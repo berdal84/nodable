@@ -63,9 +63,12 @@ namespace tools
 
         template<typename AlternativeT>
         bool append(AlternativeT data)
-        { return append(Element{data}); } // we use add_lvalue_reference to handle pointers
+        {
+            Element elem{data};
+            return append(elem);
+        }
 
-        bool append(Element& elem )
+        bool append(const Element& elem )
         {
             const bool ok = _wrapped_list.append(elem);
             if ( ok )
