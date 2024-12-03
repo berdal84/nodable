@@ -44,7 +44,7 @@ check_pie_supported()
 # specify the C++ standard
 set(CMAKE_CXX_STANDARD            20)
 set(CMAKE_CXX_STANDARD_REQUIRED   ON)
-set(CMAKE_CXX_EXTENSIONS          OFF) # when ON, it will use the custom lib++ instead of stdlib++
+set(CMAKE_CXX_EXTENSIONS          OFF) # when OFF, uses lib++20/gnu++20 instead of c++20, see https://cmake.org/cmake/help/latest/prop_tgt/CXX_EXTENSIONS.html#prop_tgt:CXX_EXTENSIONS
 
 # enable threads (we have some std::async in ndbl_app)
 set(THREADS_PREFER_PTHREAD_FLAG ON)
