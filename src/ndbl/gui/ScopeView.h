@@ -37,6 +37,7 @@ namespace ndbl
         void         update(float nodeview, ScopeViewFlags flags = ScopeViewFlags_NONE );
         void         draw(float dt);
         tools::ViewState& state() { return m_state; }
+        bool         has_parent() const { return m_scope->parent() != nullptr; }
         ScopeView*   parent() const;
         Scope*       scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }

@@ -33,6 +33,7 @@ ScopeView* ScopeView::parent() const
 {
     return m_scope->parent() ? m_scope->parent()->view() : nullptr;
 }
+
 void ScopeView::update(float dt, ScopeViewFlags flags)
 {
     const Config* config = get_config();
@@ -125,7 +126,7 @@ bool ScopeView::must_be_draw() const
         case 0:
             return false;
         case 1:
-            if ( parent()->scope() && scope()->first_child()->has_internal_scope() )
+            if ( scope()->first_child()->has_internal_scope() && has_parent() )
                 return false;
             return true;
         default:
