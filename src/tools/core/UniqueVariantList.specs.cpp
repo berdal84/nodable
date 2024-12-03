@@ -1,13 +1,14 @@
-#include "UniqueOrderedVariantList.h"
+#include "Variant.h"
+#include "UniqueVariantList.h"
 #include "tools/core/log.h"
 #include <gtest/gtest.h>
 
 using namespace tools;
 
-TEST(UniqueOrderedVectorList, with_Variant )
+TEST(UniqueVectorList, with_Variant )
 {
     using MyVariant  = Variant<u64_t, const char*, std::string>;
-    using MyVec      = UniqueOrderedVariantList<MyVariant>;
+    using MyVec      = UniqueVariantList<MyVariant>;
 
     MyVec vec;
 
@@ -24,8 +25,8 @@ TEST(UniqueOrderedVectorList, with_Variant )
     EXPECT_TRUE( vec.contains(a) );
     EXPECT_TRUE( vec.contains(b) );
 
-    EXPECT_TRUE( vec.data().front() == a );
-    EXPECT_TRUE( vec.data().back() == b );
+    EXPECT_TRUE( vec.front() == a );
+    EXPECT_TRUE( vec.back() == b );
 
     vec.clear();
 

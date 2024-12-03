@@ -210,9 +210,9 @@ target_link_libraries(
 
 add_executable(
     test-tools
-    src/tools/core/UniqueOrderedList.specs.cpp
+    src/tools/core/UniqueList.specs.cpp
     src/tools/core/Variant.specs.cpp
-    src/tools/core/UniqueOrderedVariantList.specs.cpp
+    src/tools/core/UniqueVariantList.specs.cpp
     src/tools/core/Delegate.specs.cpp
     src/tools/core/reflection/reflection.specs.cpp
     src/tools/core/reflection/Type.specs.cpp
