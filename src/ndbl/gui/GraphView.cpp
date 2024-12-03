@@ -81,8 +81,10 @@ GraphView::~GraphView()
     DISCONNECT(_m_graph->on_reset  , this);
 }
 
-void GraphView::decorate_node(Node* node)
+void GraphView::_on_add_node(Node* node)
 {
+    // Anything done here must be cleaned in _on_remove_node
+
     ComponentFactory* component_factory = get_component_factory();
 
     // add NodeView & Physics component
@@ -97,21 +99,39 @@ void GraphView::decorate_node(Node* node)
     // add a ScopeView for the inner scope and any child that is owned by this node too
     if ( node->has_internal_scope() )
     {
-        Scope*     internal_scope = node->internal_scope();
-        ScopeView* scope_view     = component_factory->create<ScopeView>();
-        CONNECT(scope_view->on_hover, &GraphView::_set_hovered );
+        Scope* internal_scope = node->internal_scope();
+        auto*  scope_view     = component_factory->create<ScopeView>();
         CONNECT(scope_view->on_hover, &GraphView::_set_hovered, this);
         node->add_component( scope_view );
         scope_view->init( internal_scope );
 
+        add_child(scope_view);
+
         for ( Scope* sub_scope : internal_scope->partition() )
         {
-            ScopeView* sub_scope_view = component_factory->create<ScopeView>();
+            auto* sub_scope_view = component_factory->create<ScopeView>();
             node->add_component(sub_scope_view );
-            CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered );
             CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered, this );
             sub_scope_view->init(sub_scope );
         }
+    }
+}
+
+void GraphView::_on_remove_node(Node* node)
+{
+    // cleans _on_add_node
+
+    // TODO: we should do remove_component<T> for NodeView, Physics, Scope, ScopeView, etc
+    //       but it's not a big issue since they do not need a special cleaning before to be destroyed.
+
+    if ( node->has_internal_scope() )
+    {
+        Scope* internal_scope = node->internal_scope();
+        remove_child(internal_scope->view());
+
+        DISCONNECT(internal_scope->view()->on_hover, this);
+        for ( Scope* sub_scope : internal_scope->partition() )
+            DISCONNECT(sub_scope->view()->on_hover, this);
     }
 }
 
@@ -163,10 +183,9 @@ bool GraphView::draw(float dt)
         return false;
 
     // Ensure view state fit with content region
-    // (n.b. we could also implement a struct RootViewState wrapping ViewState)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE );
     _m_view_state.shape().set_size( region.size() );
-    _m_view_state.shape().set_position(region.center()); // children will be relative to the center
+    _m_view_state.shape().set_position(region.center()); // children will follow (n.b. child position is relative to center)
     _m_view_state.shape().draw_debug_info();
 
     _m_hovered = {};
@@ -512,11 +531,11 @@ void GraphView::_create_constraints(Scope* scope )
         ViewConstraint constraint;
         constraint.name          = "Align ScopeView partitions";
         constraint.rule          = &ViewConstraint::rule_distribute_sub_scope_views;
-        constraint.leader        = {scope->node()->get_component<NodeView>()};
+        constraint.leader        = {scope->owner()->get_component<NodeView>()};
         constraint.leader_pivot  = BOTTOM;
         constraint.gap_size      = Size_XL;
         constraint.gap_direction = BOTTOM;
-        scope->node()->get_component<Physics>()->add_constraint(constraint);
+        scope->owner()->get_component<Physics>()->add_constraint(constraint);
     }
 
     for ( Scope* sub_scope : scope->partition() )
@@ -801,7 +820,7 @@ void GraphView::cursor_state_tick()
             case Selectable::index_of<ScopeView*>():
             {
                 auto      scopeview = _m_focused.get<ScopeView*>();
-                Node*     node     = scopeview->scope()->node();
+                Node*     node     = scopeview->scope()->owner();
                 NodeView* nodeview = node->get_component<NodeView>();
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {
@@ -825,7 +844,7 @@ void GraphView::cursor_state_tick()
                     for(Scope* child : children)
                     {
                         // Include scope owner's view too
-                        if ( auto* view = child->node()->get_component<NodeView>())
+                        if ( auto* view = child->owner()->get_component<NodeView>())
                             views.push_back( view );
 
                         // and every other child's
@@ -1105,11 +1124,6 @@ void GraphView::roi_state_tick()
 
         _m_state_machine.exit_state();
     }
-}
-
-void GraphView::add_child(NodeView* view)
-{
-    m_view_state.spatial_node().add_child( &view->spatial_node() );
 }
 
 void GraphView::update(float dt)

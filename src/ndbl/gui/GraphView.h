@@ -62,8 +62,8 @@ namespace ndbl
         const Selection&       selection() const { return _m_selection; }
         void                   reset_all_properties();
         Graph*                 graph() const;
-        void                   add_child(NodeView*);
-        void                   decorate_node(Node* node);
+        template<typename T> void add_child(T* view)    { _m_view_state.spatial_node().add_child( &view->spatial_node() );    };
+        template<typename T> void remove_child(T* view) { _m_view_state.spatial_node().remove_child( &view->spatial_node() ); };
 
         static void            draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
     private:
@@ -75,6 +75,8 @@ namespace ndbl
         Graph*                 _m_graph;
         bool                   _m_physics_dirty = false;
 
+        void                   _on_add_node(Node* node);
+        void                   _on_remove_node(Node* node);
         void                   _set_hovered(ScopeView*);
         void                   _unfold(); // unfold the graph until it is stabilized
         void                   _update(float dt, u16_t iterations);
