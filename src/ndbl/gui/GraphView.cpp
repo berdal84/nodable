@@ -41,44 +41,44 @@ constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
 constexpr const char* LINE_STATE       = "Line Tool";
 
 GraphView::GraphView(Graph* graph)
-: m_graph(graph)
-, m_state_machine(this)
+: _m_graph(graph)
+, _m_state_machine(this)
 {
     ASSERT(graph != nullptr);
-    m_state_machine.add_state(CURSOR_STATE);
-    m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
-    m_state_machine.set_default_state(CURSOR_STATE);
+    _m_state_machine.add_state(CURSOR_STATE);
+    _m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
+    _m_state_machine.set_default_state(CURSOR_STATE);
 
-    m_state_machine.add_state(ROI_STATE);
-    m_state_machine.bind<&GraphView::roi_state_enter>(ROI_STATE, When::OnEnter);
-    m_state_machine.bind<&GraphView::roi_state_tick>(ROI_STATE, When::OnTick);
+    _m_state_machine.add_state(ROI_STATE);
+    _m_state_machine.bind<&GraphView::roi_state_enter>(ROI_STATE, When::OnEnter);
+    _m_state_machine.bind<&GraphView::roi_state_tick>(ROI_STATE, When::OnTick);
 
-    m_state_machine.add_state(DRAG_STATE);
-    m_state_machine.bind<&GraphView::drag_state_enter>(DRAG_STATE, When::OnEnter);
-    m_state_machine.bind<&GraphView::drag_state_tick>(DRAG_STATE, When::OnTick);
+    _m_state_machine.add_state(DRAG_STATE);
+    _m_state_machine.bind<&GraphView::drag_state_enter>(DRAG_STATE, When::OnEnter);
+    _m_state_machine.bind<&GraphView::drag_state_tick>(DRAG_STATE, When::OnTick);
 
-    m_state_machine.add_state(VIEW_PAN_STATE);
-    m_state_machine.bind<&GraphView::view_pan_state_tick>(VIEW_PAN_STATE, When::OnTick);
+    _m_state_machine.add_state(VIEW_PAN_STATE);
+    _m_state_machine.bind<&GraphView::view_pan_state_tick>(VIEW_PAN_STATE, When::OnTick);
 
-    m_state_machine.add_state(LINE_STATE);
-    m_state_machine.bind<&GraphView::line_state_enter>(LINE_STATE, When::OnEnter);
-    m_state_machine.bind<&GraphView::line_state_tick>(LINE_STATE, When::OnTick);
-    m_state_machine.bind<&GraphView::line_state_leave>(LINE_STATE, When::OnLeave);
+    _m_state_machine.add_state(LINE_STATE);
+    _m_state_machine.bind<&GraphView::line_state_enter>(LINE_STATE, When::OnEnter);
+    _m_state_machine.bind<&GraphView::line_state_tick>(LINE_STATE, When::OnTick);
+    _m_state_machine.bind<&GraphView::line_state_leave>(LINE_STATE, When::OnLeave);
 
-    m_state_machine.start();
+    _m_state_machine.start();
 
     CONNECT(graph->on_add    , &GraphView::decorate_node );
     CONNECT(graph->on_change , &GraphView::_on_graph_change);
     CONNECT(graph->on_reset  , &GraphView::reset);
 
-    CONNECT(m_selection.on_change, &GraphView::_on_selection_change);
+    CONNECT(_m_selection.on_change, &GraphView::_on_selection_change);
 }
 
 GraphView::~GraphView()
 {
-    DISCONNECT(m_graph->on_add);
-    DISCONNECT(m_graph->on_change);
-    DISCONNECT(m_graph->on_reset);
+    DISCONNECT(_m_graph->on_add);
+    DISCONNECT(_m_graph->on_change);
+    DISCONNECT(_m_graph->on_reset);
 }
 
 void GraphView::decorate_node(Node* node)
@@ -157,17 +157,17 @@ bool GraphView::draw(float dt)
 {
     bool changed = false;
 
-    if ( !m_view_state.visible() )
+    if ( !_m_view_state.visible() )
         return false;
 
     // Ensure view state fit with content region
     // (n.b. we could also implement a struct RootViewState wrapping ViewState)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE );
-    m_view_state.shape().set_size( region.size() );
-    m_view_state.shape().set_position(region.center()); // children will be relative to the center
-    m_view_state.shape().draw_debug_info();
+    _m_view_state.shape().set_size( region.size() );
+    _m_view_state.shape().set_position(region.center()); // children will be relative to the center
+    _m_view_state.shape().draw_debug_info();
 
-    m_hovered = {};
+    _m_hovered = {};
 
     Config*         cfg                    = get_config();
     Interpreter*    interpreter            = get_interpreter();
@@ -208,7 +208,7 @@ bool GraphView::draw(float dt)
             cfg->ui_codeflow_thickness(),
             0.0f
     };
-    for (Node* each_node: m_graph->nodes() )
+    for (Node* each_node: _m_graph->nodes() )
     {
         NodeView *each_view = NodeView::substitute_with_parent_if_not_visible(each_node->get_component<NodeView>());
 
@@ -254,7 +254,7 @@ bool GraphView::draw(float dt)
                 ImGuiEx::DrawWire(id, draw_list, segment, code_flow_style);
                 if (ImGui::GetHoveredID() == id )
                 {
-                    m_hovered = EdgeView{tail, head};
+                    _m_hovered = EdgeView{tail, head};
                 }
             }
         }
@@ -268,7 +268,7 @@ bool GraphView::draw(float dt)
             cfg->ui_wire_bezier_thickness,
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
-    for (Node* node_out: m_graph->nodes() )
+    for (Node* node_out: _m_graph->nodes() )
     {
         for (const Slot* slot_out: node_out->filter_slots(SlotFlag_OUTPUT))
         {
@@ -298,7 +298,7 @@ bool GraphView::draw(float dt)
 
                 // Animate style
                 ImGuiEx::WireStyle style = default_wire_style;
-                if ( m_selection.contains( node_view_out ) || m_selection.contains( node_view_in ) )
+                if ( _m_selection.contains( node_view_out ) || _m_selection.contains( node_view_in ) )
                 {
                     style.color.w *= wave(0.5f, 1.f, (float) App::get_time(), 10.f);
                 }
@@ -336,7 +336,7 @@ bool GraphView::draw(float dt)
                     ImGuiEx::DrawWire(id, draw_list, segment, style);
                     if (ImGui::GetHoveredID() == id)
                     {
-                        m_hovered = EdgeView{slot_view_out, slot_view_in};
+                        _m_hovered = EdgeView{slot_view_out, slot_view_in};
                     }
                 }
             }
@@ -359,10 +359,10 @@ bool GraphView::draw(float dt)
         {
             if ( nodeview->m_hovered_slotview != nullptr)
             {
-                m_hovered = nodeview->m_hovered_slotview;
+                _m_hovered = nodeview->m_hovered_slotview;
             }
             else
-                m_hovered = {nodeview};
+                _m_hovered = {nodeview};
         }
 
         // VM Cursor (scroll to the next node when VM is debugging)
@@ -394,18 +394,18 @@ bool GraphView::draw(float dt)
         }
     }
 
-    m_state_machine.tick();
+    _m_state_machine.tick();
 
     // Debug Infos
     if (cfg->tools_cfg->runtime_debug)
     {
         if (ImGui::Begin("GraphViewToolStateMachine"))
         {
-            ImGui::Text("current_tool:         %s" , m_state_machine.get_current_state_name());
-            ImGui::Text("m_focused.type:       %zu", m_focused.index() );
-            ImGui::Text("m_hovered.type:       %zu", m_hovered.index() );
+            ImGui::Text("current_tool:         %s" , _m_state_machine.get_current_state_name());
+            ImGui::Text("_m_focused.type:       %zu", _m_focused.index() );
+            ImGui::Text("_m_hovered.type:       %zu", _m_hovered.index() );
             Vec2 mouse_pos = ImGui::GetMousePos();
-            ImGui::Text("m_mouse_pos:          (%f, %f)", mouse_pos.x, mouse_pos.y);
+            ImGui::Text("_m_mouse_pos:          (%f, %f)", mouse_pos.x, mouse_pos.y);
         }
         ImGui::End();
     }
@@ -429,7 +429,7 @@ void GraphView::_update(float dt, u16_t count)
         _update( dt );
 }
 
-void GraphView::create_constraints__align_down(Node* follower, const  std::vector<Node*>& leader )
+void GraphView::_create_constraints__align_down(Node* follower, const  std::vector<Node*>& leader )
 {
     if( leader.empty() )
         return;
@@ -456,7 +456,7 @@ void GraphView::create_constraints__align_down(Node* follower, const  std::vecto
     follower->get_component<Physics>()->add_constraint(constraint);
 };
 
-void GraphView::create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node* leader )
+void GraphView::_create_constraints__align_top_recursively(const std::vector<Node*>& unfiltered_follower, ndbl::Node* leader )
 {
     if ( unfiltered_follower.empty() )
         return;
@@ -499,10 +499,10 @@ void GraphView::create_constraints__align_top_recursively(const std::vector<Node
     leader->get_component<Physics>()->add_constraint(constraint);
 
     for( NodeView* _leader : follower )
-        create_constraints__align_top_recursively(_leader->node()->inputs(), _leader->node());
+        _create_constraints__align_top_recursively(_leader->node()->inputs(), _leader->node());
 };
 
-void GraphView::create_constraints(Scope* scope )
+void GraphView::_create_constraints(Scope* scope )
 {
     // distribute child scopes
     if ( scope->is_partitioned() )
@@ -519,22 +519,22 @@ void GraphView::create_constraints(Scope* scope )
 
     for ( Scope* sub_scope : scope->partition() )
     {
-        create_constraints(sub_scope);
+        _create_constraints(sub_scope);
     }
 
     for ( Node* child_node : scope->child() )
     {
         // align child below flow_inputs
         if (child_node != scope->first_child() || scope->is_orphan() )
-            create_constraints__align_down(child_node, child_node->flow_inputs());
+            _create_constraints__align_down(child_node, child_node->flow_inputs());
 
         // align child's inputs above
         if ( Utils::is_instruction(child_node) )
-            create_constraints__align_top_recursively(child_node->inputs(), child_node );
+            _create_constraints__align_top_recursively(child_node->inputs(), child_node );
 
         // child's internal scope
         if ( child_node->has_internal_scope() )
-            create_constraints( child_node->internal_scope() );
+            _create_constraints( child_node->internal_scope() );
     }
 };
 
@@ -543,7 +543,7 @@ void GraphView::_update(float dt)
     // Physics Components
     LOG_VERBOSE("GraphView", "Updating constraints ...\n");
 
-    if ( m_physics_dirty )
+    if ( _m_physics_dirty )
     {
         // clear all constraints, and THEN create them again
 
@@ -551,13 +551,13 @@ void GraphView::_update(float dt)
             node->get_component<Physics>()->clear_constraints();
 
         for (Scope* _scope : graph()->root_scopes() )
-            create_constraints(_scope);
+            _create_constraints(_scope);
 
         for (Node* _node : graph()->nodes() )
             if ( _node->is_orphan() )
-                create_constraints__align_down(_node, _node->flow_inputs());
+                _create_constraints__align_down(_node, _node->flow_inputs());
 
-        m_physics_dirty = false;
+        _m_physics_dirty = false;
     }
 
     // Apply all constraints, and THEN apply all forces
@@ -575,7 +575,7 @@ void GraphView::_update(float dt)
         scope->view()->update( dt, ScopeViewFlags_RECURSE );
 }
 
-void GraphView::frame_views(const std::vector<NodeView*>& _views, const Vec2& pivot)
+void GraphView::_frame_views(const std::vector<NodeView*>& _views, const Vec2& pivot)
 {
     if (_views.empty())
     {
@@ -584,7 +584,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, const Vec2& pi
     }
 
     BoxShape2D views_bbox = NodeView::get_rect(_views, WORLD_SPACE );
-    const Vec2 desired_pivot_pos = m_view_state.shape().pivot( pivot * 0.95f, WORLD_SPACE); // 5%  margin
+    const Vec2 desired_pivot_pos = _m_view_state.shape().pivot( pivot * 0.95f, WORLD_SPACE); // 5%  margin
     const Vec2 pivot_pos         = views_bbox.pivot(pivot, WORLD_SPACE);
     const Vec2 delta             = desired_pivot_pos - pivot_pos;
 
@@ -595,7 +595,7 @@ void GraphView::frame_views(const std::vector<NodeView*>& _views, const Vec2& pi
             view->spatial_node().translate( delta );
 }
 
-void GraphView::unfold()
+void GraphView::_unfold()
 {
     const Config* cfg = get_config();
 
@@ -609,7 +609,7 @@ void GraphView::unfold()
 
 void GraphView::add_action_to_node_menu(Action_CreateNode* _action )
 {
-    m_create_node_menu.add_action(_action);
+    _m_create_node_menu.add_action(_action);
 }
 
 void GraphView::frame_nodes(FrameMode mode )
@@ -618,21 +618,21 @@ void GraphView::frame_nodes(FrameMode mode )
     {
         case FRAME_ALL:
         {
-            if( m_graph->is_empty() )
+            if( _m_graph->is_empty() )
                 return;
 
             std::vector<NodeView*> views;
             for(Node* node : graph()->nodes())
                 views.push_back( node->get_component<NodeView>() );
-            frame_views( views, CENTER );
+            _frame_views( views, CENTER );
             break;
         }
 
         case FRAME_SELECTION_ONLY:
         {
-            if ( m_selection.contains<NodeView*>())
+            if ( _m_selection.contains<NodeView*>())
             {
-                frame_views( m_selection.collect<NodeView*>(), CENTER );
+                _frame_views( _m_selection.collect<NodeView*>(), CENTER );
             }
             break;
         }
@@ -643,7 +643,7 @@ void GraphView::frame_nodes(FrameMode mode )
 
 void GraphView::_on_graph_change()
 {
-    m_physics_dirty = true;
+    _m_physics_dirty = true;
 }
 
 void GraphView::_on_selection_change(Selection::EventType type, Selection::Element elem)
@@ -675,11 +675,11 @@ void GraphView::_on_selection_change(Selection::EventType type, Selection::Eleme
 
 void GraphView::reset()
 {
-    if ( m_graph->is_empty() )
+    if ( _m_graph->is_empty() )
         return;
 
     // unfold the graph (does not work great when nodes are rendered for the first time)
-    unfold();
+    _unfold();
 
     // make sure views are outside viewable rectangle (to avoid flickering)
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
@@ -689,7 +689,7 @@ void GraphView::reset()
             view->spatial_node().translate( far_outside );
 
     // physics
-    m_physics_dirty = true;
+    _m_physics_dirty = true;
 
     // frame all (100ms delayed to ensure layout is correct)
     get_event_manager()->dispatch_delayed<Event_FrameSelection>( 100, { FRAME_ALL } );
@@ -697,7 +697,7 @@ void GraphView::reset()
 
 bool GraphView::has_an_active_tool() const
 {
-    return !m_state_machine.has_default_state();
+    return !_m_state_machine.has_default_state();
 }
 
 void GraphView::reset_all_properties()
@@ -709,12 +709,12 @@ void GraphView::reset_all_properties()
 
 Graph *GraphView::graph() const
 {
-    return m_graph;
+    return _m_graph;
 }
 
 //-----------------------------------------------------------------------------
 
-void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview)
+void GraphView::_draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview)
 {
     if (Action_CreateNode* triggered_action = menu.draw_search_input( dragged_slotview, 10))
     {
@@ -732,7 +732,7 @@ void GraphView::draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView*
 
 void GraphView::drag_state_enter()
 {
-    for( const Selectable& elem : m_selection )
+    for( const Selectable& elem : _m_selection )
     {
         if ( auto* nodeview = elem.get_if<NodeView*>() )
             nodeview->state().set_pinned();
@@ -746,7 +746,7 @@ void GraphView::drag_state_tick()
     const Vec2 delta = ImGui::GetMouseDragDelta();
     ImGui::ResetMouseDragDelta();
 
-    for ( const Selectable& elem : m_selection )
+    for ( const Selectable& elem : _m_selection )
     {
         if ( auto* nodeview = elem.get_if<NodeView*>() )
             nodeview->spatial_node().translate(delta);
@@ -755,7 +755,7 @@ void GraphView::drag_state_tick()
     }
 
     if ( ImGui::IsMouseReleased(0) )
-        m_state_machine.exit_state();
+        _m_state_machine.exit_state();
 }
 
 
@@ -776,7 +776,7 @@ void GraphView::view_pan_state_tick()
     ImGui::ResetMouseDragDelta();
 
     if ( ImGui::IsMouseReleased(0) )
-        m_state_machine.exit_state();
+        _m_state_machine.exit_state();
 }
 
 //-----------------------------------------------------------------------------
@@ -786,19 +786,19 @@ void GraphView::cursor_state_tick()
     if ( ImGui::BeginPopup(CONTEXT_POPUP) )
     {
         if ( ImGui::IsWindowAppearing())
-            m_create_node_menu.flag_to_be_reset();
+            _m_create_node_menu.flag_to_be_reset();
 
-        switch ( m_focused.index() )
+        switch ( _m_focused.index() )
         {
             case Selectable::index_null:
             {
-                draw_create_node_context_menu(m_create_node_menu);
+                _draw_create_node_context_menu(_m_create_node_menu);
                 break;
             }
 
             case Selectable::index_of<ScopeView*>():
             {
-                auto      scopeview = m_focused.get<ScopeView*>();
+                auto      scopeview = _m_focused.get<ScopeView*>();
                 Node*     node     = scopeview->scope()->node();
                 NodeView* nodeview = node->get_component<NodeView>();
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
@@ -832,19 +832,19 @@ void GraphView::cursor_state_tick()
                                 views.push_back(view);
                     }
                     // Replace selection
-                    m_selection.clear();
-                    m_selection.append( views.begin(), views.end() ) ;
+                    _m_selection.clear();
+                    _m_selection.append( views.begin(), views.end() ) ;
                 }
 
                 ImGui::Separator();
-                draw_create_node_context_menu(m_create_node_menu);
+                _draw_create_node_context_menu(_m_create_node_menu);
 
                 break;
             }
 
             case Selectable::index_of<EdgeView>():
             {
-                auto edge = m_focused.get<EdgeView>();
+                auto edge = _m_focused.get<EdgeView>();
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Edge") )
                 {
                     auto* event = new Event_DeleteEdge();
@@ -861,7 +861,7 @@ void GraphView::cursor_state_tick()
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect Edges") )
                 {
                     auto* event = new Event_SlotDisconnectAll();
-                    event->data.first = m_focused.get<SlotView*>()->slot;
+                    event->data.first = _m_focused.get<SlotView*>()->slot;
                     get_event_manager()->dispatch( event );
                 }
 
@@ -870,7 +870,7 @@ void GraphView::cursor_state_tick()
 
             case Selectable::index_of<NodeView*>():
             {
-                auto nodeview = m_focused.get<NodeView*>();
+                auto nodeview = _m_focused.get<NodeView*>();
 
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Delete Node") )
                 {
@@ -896,24 +896,24 @@ void GraphView::cursor_state_tick()
 
         ImGui::EndPopup();
 
-        // When we're focused on something with popup open, we don't want to do things based on m_hovered.type (see below)
-        if ( !m_focused.empty() )
+        // When we're focused on something with popup open, we don't want to do things based on _m_hovered.type (see below)
+        if ( !_m_focused.empty() )
             return;
     }
 
-    switch ( m_hovered.index() )
+    switch ( _m_hovered.index() )
     {
         case Selectable::index_of<SlotView*>():
         {
             if ( ImGui::IsMouseClicked(1) )
             {
-                m_focused = m_hovered;
+                _m_focused = _m_hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
             else if (ImGui::IsMouseDragging(0, 0.f))
             {
-                m_focused = m_hovered;
-                m_state_machine.change_state(LINE_STATE);
+                _m_focused = _m_hovered;
+                _m_state_machine.change_state(LINE_STATE);
             }
             break;
         }
@@ -922,11 +922,11 @@ void GraphView::cursor_state_tick()
         {
             if (ImGui::IsMouseDragging(0, 0.1f))
             {
-                m_focused = m_hovered;
+                _m_focused = _m_hovered;
             }
             else if (ImGui::IsMouseClicked(1))
             {
-                m_focused = m_hovered;
+                _m_focused = _m_hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
             break;
@@ -941,37 +941,37 @@ void GraphView::cursor_state_tick()
             {
                 if ( ctrl_pressed )
                 {
-                    if ( !m_selection.contains( m_hovered ) )
+                    if ( !_m_selection.contains( _m_hovered ) )
                     {
-                        m_selection.append( m_hovered );
-                        m_focused = m_hovered;
+                        _m_selection.append( _m_hovered );
+                        _m_focused = _m_hovered;
                     }
                     else
                     {
-                        m_selection.remove( m_hovered );
+                        _m_selection.remove( _m_hovered );
                     }
                 }
                 else
                 {
-                    m_selection.clear();
-                    m_selection.append( m_hovered );
-                    m_focused = m_hovered;
+                    _m_selection.clear();
+                    _m_selection.append( _m_hovered );
+                    _m_focused = _m_hovered;
                 }
             }
             else if (ImGui::IsMouseClicked(1))
             {
-                m_focused = m_hovered;
+                _m_focused = _m_hovered;
                 ImGui::OpenPopup(CONTEXT_POPUP);
             }
             else if ( ImGui::IsMouseDragging(0) )
             {
-                if ( !m_selection.contains( m_hovered) )
+                if ( !_m_selection.contains( _m_hovered) )
                 {
                     if ( !ctrl_pressed )
-                        m_selection.clear();
-                    m_selection.append( m_hovered );
+                        _m_selection.clear();
+                    _m_selection.append( _m_hovered );
                 }
-                m_state_machine.change_state(DRAG_STATE);
+                _m_state_machine.change_state(DRAG_STATE);
             }
             break;
         }
@@ -981,17 +981,17 @@ void GraphView::cursor_state_tick()
             if ( ImGui::IsWindowHovered(ImGuiFocusedFlags_ChildWindows) )
             {
                 if (ImGui::IsMouseClicked(0))
-                    m_selection.clear(); // Deselect All (Click on the background)
+                    _m_selection.clear(); // Deselect All (Click on the background)
                 else if (ImGui::IsMouseReleased(0))
-                    m_focused = {};
+                    _m_focused = {};
                 else if (ImGui::IsMouseClicked(1))
                     ImGui::OpenPopup(CONTEXT_POPUP);
                 else if (ImGui::IsMouseDragging(0))
                 {
                     if (ImGui::IsKeyDown(ImGuiKey_Space))
-                        m_state_machine.change_state(VIEW_PAN_STATE);
+                        _m_state_machine.change_state(VIEW_PAN_STATE);
                     else
-                        m_state_machine.change_state(ROI_STATE);
+                        _m_state_machine.change_state(ROI_STATE);
                 }
             }
 
@@ -1007,13 +1007,13 @@ void GraphView::cursor_state_tick()
 
 void GraphView::line_state_enter()
 {
-    ASSERT( m_focused.holds_alternative<SlotView*>() );
+    ASSERT( _m_focused.holds_alternative<SlotView*>() );
 }
 
 void GraphView::line_state_tick()
 {
     Vec2 mouse_pos_snapped = Vec2{ImGui::GetMousePos()};
-    if ( auto slotview = m_hovered.get_if<SlotView*>() )
+    if ( auto slotview = _m_hovered.get_if<SlotView*>() )
     {
         mouse_pos_snapped = slotview->spatial_node().position(WORLD_SPACE);
     }
@@ -1024,27 +1024,27 @@ void GraphView::line_state_tick()
         mouse_pos_snapped = ImGui::GetMousePosOnOpeningCurrentPopup();
 
         if ( ImGui::IsWindowAppearing() )
-            m_create_node_menu.flag_to_be_reset();
+            _m_create_node_menu.flag_to_be_reset();
 
-        if ( m_hovered.empty() )
-            draw_create_node_context_menu(m_create_node_menu, m_focused.get<SlotView*>() );
+        if ( _m_hovered.empty() )
+            _draw_create_node_context_menu(_m_create_node_menu, _m_focused.get<SlotView*>() );
 
         if ( ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
-            m_state_machine.exit_state();
+            _m_state_machine.exit_state();
 
         ImGui::EndPopup();
     }
     else if ( ImGui::IsMouseReleased(0) )
     {
-        if ( m_hovered.holds_alternative<SlotView*>() )
+        if ( _m_hovered.holds_alternative<SlotView*>() )
         {
-            if ( m_focused != m_hovered )
+            if ( _m_focused != _m_hovered )
             {
                 auto event = new Event_SlotDropped();
-                event->data.first  = m_focused.get<SlotView*>()->slot;
-                event->data.second = m_hovered.get<SlotView*>()->slot;
+                event->data.first  = _m_focused.get<SlotView*>()->slot;
+                event->data.second = _m_hovered.get<SlotView*>()->slot;
                 get_event_manager()->dispatch(event);
-                m_state_machine.exit_state();
+                _m_state_machine.exit_state();
             }
         }
         else
@@ -1054,28 +1054,28 @@ void GraphView::line_state_tick()
     }
 
     // Draw a temporary wire from focused/dragged slotview to the mouse cursor
-    draw_wire_from_slot_to_pos( m_focused.get<SlotView*>(), mouse_pos_snapped );
+    GraphView::draw_wire_from_slot_to_pos( _m_focused.get<SlotView*>(), mouse_pos_snapped );
 }
 
 void GraphView::line_state_leave()
 {
-    m_focused = {};
+    _m_focused = {};
 }
 
 //-----------------------------------------------------------------------------
 
 void GraphView::roi_state_enter()
 {
-    m_roi_state_start_pos = ImGui::GetMousePos();
-    m_roi_state_end_pos   = ImGui::GetMousePos();;
+    _m_roi_state_start_pos = ImGui::GetMousePos();
+    _m_roi_state_end_pos   = ImGui::GetMousePos();;
 }
 
 void GraphView::roi_state_tick()
 {
-    m_roi_state_end_pos = ImGui::GetMousePos();
+    _m_roi_state_end_pos = ImGui::GetMousePos();
 
     // Get normalized ROI rectangle
-    Rect roi = Rect::normalize({m_roi_state_start_pos, m_roi_state_end_pos});
+    Rect roi = Rect::normalize({_m_roi_state_start_pos, _m_roi_state_end_pos});
 
     // Expand to avoid null area
     const int roi_border_width = 2;
@@ -1098,10 +1098,10 @@ void GraphView::roi_state_tick()
         // Select them
         const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
         if ( !ctrl_pressed )
-            m_selection.clear();
-        m_selection.append(nodeviews_inside_roi.begin(), nodeviews_inside_roi.end() );
+            _m_selection.clear();
+        _m_selection.append(nodeviews_inside_roi.begin(), nodeviews_inside_roi.end() );
 
-        m_state_machine.exit_state();
+        _m_state_machine.exit_state();
     }
 }
 
@@ -1126,11 +1126,11 @@ void GraphView::update(float dt)
 
 void GraphView::_set_hovered(ScopeView* scope_view)
 {
-    if ( !m_hovered.holds_alternative<ScopeView*>() )
-        m_hovered = scope_view;
-    else if ( m_hovered.empty() )
-        m_hovered = scope_view;
-    else if ( scope_view->depth() >= m_hovered.get<ScopeView*>()->depth() )
-        m_hovered = scope_view;
+    if ( !_m_hovered.holds_alternative<ScopeView*>() )
+        _m_hovered = scope_view;
+    else if ( _m_hovered.empty() )
+        _m_hovered = scope_view;
+    else if ( scope_view->depth() >= _m_hovered.get<ScopeView*>()->depth() )
+        _m_hovered = scope_view;
 }
 

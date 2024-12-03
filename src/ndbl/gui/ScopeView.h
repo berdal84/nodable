@@ -48,6 +48,9 @@ namespace ndbl
         void         set_pinned(bool b = true);
         const Rect&  content_rect() const { return m_content_rect; }
         void         arrange_content();
+        const tools::SpatialNode2D& spatial_node() const { return m_state.spatial_node(); }
+        tools::SpatialNode2D&       spatial_node() { return m_state.spatial_node(); }
+
         static void  draw_scope_tree(Scope* scope);
 
     private:
