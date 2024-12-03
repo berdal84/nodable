@@ -24,9 +24,9 @@ void ScopeView::init(Scope* scope)
     for( Node* node : scope->child() )
         on_add_node( node );
 
-    CONNECT( scope->on_add         , &ScopeView::on_add_node );
-    CONNECT( scope->on_remove      , &ScopeView::on_remove_node );
-    CONNECT( scope->on_reset_parent, &ScopeView::on_reset_parent );
+    CONNECT( scope->on_add         , &ScopeView::on_add_node     , this);
+    CONNECT( scope->on_remove      , &ScopeView::on_remove_node  , this);
+    CONNECT( scope->on_reset_parent, &ScopeView::on_reset_parent , this);
 }
 
 ScopeView* ScopeView::parent() const

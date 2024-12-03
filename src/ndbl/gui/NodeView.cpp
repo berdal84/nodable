@@ -43,7 +43,7 @@ NodeView::NodeView()
     , m_last_clicked_slotview(nullptr)
     , m_state(10.0f, 35.0f)
 {
-    CONNECT( this->on_reset_owner, &NodeView::reset );
+    CONNECT( this->on_reset_owner, &NodeView::reset, this );
 }
 
 NodeView::~NodeView()

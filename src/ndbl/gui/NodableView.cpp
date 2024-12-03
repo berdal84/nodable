@@ -51,8 +51,8 @@ void NodableView::init(Nodable * _app)
     ASSERT(base_app != nullptr);
     m_base_view.init(base_app);
 
-    CONNECT(m_base_view.on_reset_layout              , &NodableView::_on_reset_layout);
-    CONNECT(m_base_view.on_draw_splashscreen_content , &NodableView::_on_draw_splashscreen_content);
+    CONNECT(m_base_view.on_reset_layout              , &NodableView::_on_reset_layout             , this);
+    CONNECT(m_base_view.on_draw_splashscreen_content , &NodableView::_on_draw_splashscreen_content, this);
 
     // Load splashscreen image
     Config* cfg = get_config();
@@ -156,8 +156,8 @@ void NodableView::_on_reset_layout()
 
 void NodableView::shutdown()
 {
-    DISCONNECT(m_base_view.on_reset_layout);
-    DISCONNECT(m_base_view.on_draw_splashscreen_content);
+    DISCONNECT(m_base_view.on_reset_layout             , this);
+    DISCONNECT(m_base_view.on_draw_splashscreen_content, this);
 
     // We could do this there, but the base view is responsible for shutdow the texture manager we used, so all textures will be released.
     // get_texture_manager()->release(m_logo);

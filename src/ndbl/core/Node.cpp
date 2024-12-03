@@ -157,7 +157,7 @@ Slot* Node::add_slot(Property *_property, SlotFlags _flags, size_t _capacity, si
     m_slots.push_back(slot);
 
     // listen to events to clear cache
-    CONNECT(slot->on_change, &Node::on_slot_change);
+    CONNECT(slot->on_change, &Node::on_slot_change, this);
 
     // Update property to slots index
     const size_t key = (size_t)_property;

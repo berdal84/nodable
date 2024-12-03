@@ -60,5 +60,5 @@ namespace tools
 //
 #define SIGNAL( NAME, ... ) tools::Signal<void, ##__VA_ARGS__> NAME
 
-#define CONNECT( SIGNAL, METHOD_PTR ) SIGNAL.connect<METHOD_PTR>( this )
-#define DISCONNECT( SIGNAL ) SIGNAL.disconnect( this )
+#define CONNECT( SIGNAL, METHOD_PTR, OBJ_PTR ) SIGNAL.connect<METHOD_PTR>( OBJ_PTR )
+#define DISCONNECT( SIGNAL, OBJ_PTR ) SIGNAL.disconnect( OBJ_PTR )

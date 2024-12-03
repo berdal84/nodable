@@ -48,8 +48,8 @@ namespace ndbl
             m_value->token().word_replace( m_variable->get_identifier().c_str() );
 
             // bind signals
-            CONNECT( m_variable->on_name_change, &VariableRefNode::on_variable_name_change );
-            CONNECT( m_variable->on_destroy, &VariableRefNode::clear_variable );
+            CONNECT( m_variable->on_name_change, &VariableRefNode::on_variable_name_change, this );
+            CONNECT( m_variable->on_destroy, &VariableRefNode::clear_variable, this );
         }
 
         void clear_variable()
@@ -58,8 +58,8 @@ namespace ndbl
                 return;
 
             // unbind signals
-            DISCONNECT(m_variable->on_destroy);
-            DISCONNECT(m_variable->on_name_change);
+            DISCONNECT(m_variable->on_destroy, this);
+            DISCONNECT(m_variable->on_name_change, this);
 
             m_variable = nullptr;
         }

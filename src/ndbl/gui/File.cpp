@@ -26,8 +26,8 @@ File::File()
 
     // FileView
     view.init(*this);
-    CONNECT(view.on_text_view_changed, &File::set_graph_dirty);
-    CONNECT(view.on_graph_view_changed, &File::set_text_dirty);
+    CONNECT(view.on_text_view_changed , &File::set_graph_dirty, this);
+    CONNECT(view.on_graph_view_changed, &File::set_text_dirty , this);
 
     LOG_VERBOSE( "File", "View built, creating History ...\n");
 
@@ -42,8 +42,8 @@ File::File()
     _graph = new Graph(get_node_factory());
     auto* graph_view = new GraphView(_graph);
     _graph->set_view(graph_view);
-    CONNECT(_graph->on_change, &File::set_text_dirty);
-    CONNECT(graph_view->on_change , &File::set_text_dirty);
+    CONNECT(_graph->on_change     , &File::set_text_dirty, this);
+    CONNECT(graph_view->on_change , &File::set_text_dirty, this);
 
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
@@ -55,10 +55,10 @@ File::File()
 
 File::~File()
 {
-    DISCONNECT(view.on_text_view_changed);
-    DISCONNECT(view.on_graph_view_changed);
-    DISCONNECT(_graph->on_change);
-    DISCONNECT(_graph->view()->on_change);
+    DISCONNECT(view.on_text_view_changed   , this);
+    DISCONNECT(view.on_graph_view_changed  , this);
+    DISCONNECT(_graph->on_change           , this);
+    DISCONNECT(_graph->view()->on_change   , this);
 
     delete _graph->view();
     delete _graph;

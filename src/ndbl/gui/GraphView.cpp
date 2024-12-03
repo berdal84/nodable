@@ -67,18 +67,18 @@ GraphView::GraphView(Graph* graph)
 
     _m_state_machine.start();
 
-    CONNECT(graph->on_add    , &GraphView::decorate_node );
-    CONNECT(graph->on_change , &GraphView::_on_graph_change);
-    CONNECT(graph->on_reset  , &GraphView::reset);
-
-    CONNECT(_m_selection.on_change, &GraphView::_on_selection_change);
+    CONNECT(graph->on_add    , &GraphView::_on_add_node     , this );
+    CONNECT(graph->on_remove , &GraphView::_on_remove_node  , this );
+    CONNECT(graph->on_change , &GraphView::_on_graph_change , this );
+    CONNECT(graph->on_reset  , &GraphView::reset            , this );
+    CONNECT(_m_selection.on_change, &GraphView::_on_selection_change, this );
 }
 
 GraphView::~GraphView()
 {
-    DISCONNECT(_m_graph->on_add);
-    DISCONNECT(_m_graph->on_change);
-    DISCONNECT(_m_graph->on_reset);
+    DISCONNECT(_m_graph->on_add    , this);
+    DISCONNECT(_m_graph->on_change , this);
+    DISCONNECT(_m_graph->on_reset  , this);
 }
 
 void GraphView::decorate_node(Node* node)
@@ -100,6 +100,7 @@ void GraphView::decorate_node(Node* node)
         Scope*     internal_scope = node->internal_scope();
         ScopeView* scope_view     = component_factory->create<ScopeView>();
         CONNECT(scope_view->on_hover, &GraphView::_set_hovered );
+        CONNECT(scope_view->on_hover, &GraphView::_set_hovered, this);
         node->add_component( scope_view );
         scope_view->init( internal_scope );
 
@@ -108,6 +109,7 @@ void GraphView::decorate_node(Node* node)
             ScopeView* sub_scope_view = component_factory->create<ScopeView>();
             node->add_component(sub_scope_view );
             CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered );
+            CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered, this );
             sub_scope_view->init(sub_scope );
         }
     }
