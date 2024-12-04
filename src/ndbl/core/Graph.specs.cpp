@@ -17,10 +17,22 @@ using namespace ndbl;
 using namespace tools;
 typedef ::testing::Core Graph_;
 
+TEST_F(Graph_, constructor)
+{
+    EXPECT_TRUE(app.graph()->is_empty());
+    EXPECT_NE(app.graph()->root_node(), nullptr );
+}
+
+TEST_F(Graph_, create_node)
+{
+    ASTNode* node = app.graph()->create_node();
+    EXPECT_EQ(node->scope(), app.graph()->root_scope());
+}
+
 TEST_F(Graph_, connect)
 {
     // Prepare
-    Graph* graph = app.get_graph();
+    Graph* graph = app.graph();
     auto* node_1 = graph->create_node();
     auto* prop_1 = node_1->add_prop<bool>("prop_1");
     auto* slot_1 = node_1->add_slot(prop_1, SlotFlag_OUTPUT, 1);
@@ -41,7 +53,7 @@ TEST_F(Graph_, connect)
 TEST_F(Graph_, disconnect)
 {
     // Prepare
-    Graph* graph = app.get_graph();
+    Graph* graph = app.graph();
     auto node_1 = graph->create_node();
     auto prop_1 = node_1->add_prop<bool>("prop_1");
     auto slot_1 = node_1->add_slot(prop_1, SlotFlag_OUTPUT, 1);
@@ -55,7 +67,7 @@ TEST_F(Graph_, disconnect)
     EXPECT_EQ(graph->get_edge_registry().size(), 1);
 
     // Act
-    graph->disconnect(edge, ConnectFlag_ALLOW_SIDE_EFFECTS );
+    graph->disconnect(edge, GraphFlag_ALLOW_SIDE_EFFECTS );
 
     // Check
     EXPECT_EQ(graph->get_edge_registry().size() , 0);
@@ -65,8 +77,8 @@ TEST_F(Graph_, disconnect)
 
 TEST_F(Graph_, clear)
 {
-    Graph* graph = app.get_graph();
-    EXPECT_TRUE(graph->nodes().empty() );
+    Graph* graph = app.graph();
+    EXPECT_TRUE( graph->is_empty() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 
     FunctionDescriptor  f;
@@ -82,16 +94,17 @@ TEST_F(Graph_, clear)
     graph->connect(
             operator_node->value_out(),
             variable->value_in(),
-            ConnectFlag_ALLOW_SIDE_EFFECTS);
+            GraphFlag_ALLOW_SIDE_EFFECTS);
 
-    EXPECT_FALSE(graph->nodes().empty() );
+    EXPECT_FALSE( graph->is_empty() );
     EXPECT_FALSE( graph->get_edge_registry().empty() );
 
     // act
-    graph->clear();
+    graph->reset();
 
     // test
-    EXPECT_TRUE(graph->nodes().empty() );
+    EXPECT_TRUE( graph->is_empty() );
+    EXPECT_TRUE( graph->nodes().size() == 1 && *graph->nodes().cbegin() == graph->root_node() );
     EXPECT_TRUE( graph->get_edge_registry().empty() );
 }
 
@@ -99,7 +112,7 @@ TEST_F(Graph_, clear)
 TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
-    Graph* graph = app.get_graph();
+    Graph* graph = app.graph();
     auto& edges = graph->get_edge_registry();
     EXPECT_EQ(edges.size(), 0);
     auto node_1 = graph->create_literal<int>();
@@ -116,4 +129,42 @@ TEST_F(Graph_, create_and_delete_relations)
     EXPECT_EQ(edges.size(), 1);
     graph->disconnect(edge_1);
     EXPECT_EQ(ASTUtils::get_adjacent_nodes(node_2, SlotFlag_TYPE_VALUE ).size(), 0);
+}
+
+TEST_F(Graph_, erase_node_from_non_root_scope)
+{
+    // prepare
+    Graph*   graph     = app.graph();
+    ASTIf*   cond_node = graph->create_cond_struct();
+    ASTScope* branch   = cond_node->internal_scope()->partition_at(Branch_TRUE);
+    ASTNode* child     = graph->create_node( branch );
+
+    EXPECT_EQ(child->scope(), branch);
+
+    graph->find_and_destroy( child );
+
+    EXPECT_FALSE( graph->contains( child ) );
+    EXPECT_TRUE( branch->empty() );
+}
+
+
+TEST_F(Graph_, erase_first_node_of_a_scope_with_another_child_after)
+{
+    // prepare
+    Graph*   graph     = app.graph();
+    ASTIf*   cond_node = graph->create_cond_struct();
+    ASTScope* branch   = cond_node->internal_scope()->partition_at(Branch_TRUE);
+    ASTNode* child1     = graph->create_node( branch );
+    ASTNode* child2     = graph->create_node();
+    graph->connect( child1->flow_out(), child2->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
+
+    EXPECT_EQ(child1->scope(), branch);
+    EXPECT_EQ(child2->scope(), branch);
+
+    graph->find_and_destroy( child1 );
+
+    EXPECT_FALSE( graph->contains( child1 ) );
+    EXPECT_TRUE(  graph->contains( child2 ) );
+    EXPECT_TRUE( branch->contains( child2 ) );
+    EXPECT_FALSE( branch->empty() );
 }

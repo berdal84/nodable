@@ -1,6 +1,6 @@
-#include "PropertyView.h"
+#include "ASTNodePropertyView.h"
 
-#include "tools/core/Entity.h"
+#include "tools/core/ComponentsOf.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/ASTNode.h"
 #include "ndbl/core/Interpreter.h"
@@ -14,36 +14,38 @@ constexpr Vec2  PROPERTY_TOGGLE_BTN_SIZE = Vec2(12.0, 22.0f);
 constexpr float PROPERTY_INPUT_PADDING   = 5.0f;
 constexpr float PROPERTY_INPUT_SIZE_MIN  = 12.0f;
 
-PropertyView::PropertyView(ASTNodeProperty* _property )
+ASTNodePropertyView::ASTNodePropertyView(ASTNodeProperty* _property )
 : _property(_property)
 , show(false)
 , touched(false)
-, _state(10.f, 10.f)
+, _state()
+, _spatial_node()
+, _shape({10.f, 10.f}, &_spatial_node)
 {
 }
 
-void PropertyView::reset()
+void ASTNodePropertyView::reset()
 {
     touched    = false;
     show = false;
 }
 
-ASTNodeProperty* PropertyView::get_property() const
+ASTNodeProperty* ASTNodePropertyView::get_property() const
 {
     return _property;
 }
 
-ASTNode* PropertyView::get_node() const
+ASTNode* ASTNodePropertyView::get_node() const
 {
     return _property->node();
 }
 
-bool PropertyView::has_input_connected() const
+bool ASTNodePropertyView::has_input_connected() const
 {
     return get_node()->has_input_connected(_property );
 }
 
-ASTNodeSlot* PropertyView::get_connected_slot() const
+ASTNodeSlot* ASTNodePropertyView::get_connected_slot() const
 {
     const ASTNodeSlot* input_slot = get_node()->find_slot_by_property(_property, SlotFlag_INPUT );
     if( !input_slot )
@@ -52,7 +54,7 @@ ASTNodeSlot* PropertyView::get_connected_slot() const
     return input_slot->first_adjacent();
 }
 
-ASTVariable* PropertyView::get_connected_variable() const
+ASTVariable* ASTNodePropertyView::get_connected_variable() const
 {
     ASTNodeSlot* adjacent_slot = get_connected_slot();
     if( !adjacent_slot )
@@ -61,9 +63,9 @@ ASTVariable* PropertyView::get_connected_variable() const
     return cast<ASTVariable>(adjacent_slot->node);
 }
 
-bool PropertyView::draw(ViewDetail _detail)
+bool ASTNodePropertyView::draw(ViewDetail _detail)
 {
-    _state.shape().draw_debug_info();
+    _shape.draw_debug_info();
 
     if ( !_state.visible() )
         return false;
@@ -113,7 +115,7 @@ bool PropertyView::draw(ViewDetail _detail)
     if ( this->show )
     {
         const bool compact_mode = true;
-        changed = PropertyView::draw_input(this, compact_mode, nullptr);
+        changed = ASTNodePropertyView::draw_input(this, compact_mode, nullptr);
 
         if ( ImGui::IsItemFocused() )
         {
@@ -152,8 +154,8 @@ bool PropertyView::draw(ViewDetail _detail)
     // Memorize new size and position fo this property
     const Vec2 new_size = ImGui::GetItemRectSize();
     const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
-    shape().set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
-    shape().set_size({new_size.x, node->entity()->get<ASTNodeView>()->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
+    _shape.set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
+    _shape.set_size({new_size.x, node->components()->get<ASTNodeView>()->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
@@ -161,12 +163,12 @@ bool PropertyView::draw(ViewDetail _detail)
     return changed;
 }
 
-float PropertyView::calc_input_width(const char *buf)
+float ASTNodePropertyView::calc_input_width(const char *buf)
 {
     return PROPERTY_INPUT_PADDING + std::max(ImGui::CalcTextSize(buf).x, PROPERTY_INPUT_SIZE_MIN);
 }
 
-bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const char* _override_label)
+bool ASTNodePropertyView::draw_input(ASTNodePropertyView* _view, bool _compact_mode, const char* _override_label)
 {
     ASTNodeProperty*           property       = _view->get_property();
     ASTToken&              property_token = property->token();
@@ -200,7 +202,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
                     float w = calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                                          connected_slot->node->entity()->get<ASTNodeView>()->get_color(Color_FILL));
+                                          connected_slot->node->components()->get<ASTNodeView>()->get_color(Color_FILL));
                     if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
                     {
                         // is ReadOnly
@@ -303,7 +305,7 @@ bool PropertyView::draw_input(PropertyView* _view, bool _compact_mode, const cha
     return changed;
 }
 
-bool PropertyView::draw_all(const std::vector<PropertyView *>& views, ViewDetail _detail)
+bool ASTNodePropertyView::draw_all(const std::vector<ASTNodePropertyView *>& views, ViewDetail _detail)
 {
     bool changed = false;
 

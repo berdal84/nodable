@@ -34,7 +34,7 @@ namespace ndbl
             add_slot(m_value, SlotFlag_OUTPUT  , 1); // ref can be connected once
         }
 
-        inline void on_variable_name_change(const std::string& name)
+        void on_variable_name_change(const std::string& name)
         {
             m_value->token().word_replace( name.c_str() );
         }
@@ -49,7 +49,7 @@ namespace ndbl
 
             // bind signals
             CONNECT(m_variable->on_name_change, &ASTVariableRef::on_variable_name_change, this );
-            CONNECT(m_variable->on_destroy, &ASTVariableRef::clear_variable, this );
+            CONNECT(m_variable->on_shutdown, &ASTVariableRef::clear_variable, this );
         }
 
         void clear_variable()
@@ -58,7 +58,7 @@ namespace ndbl
                 return;
 
             // unbind signals
-            DISCONNECT(m_variable->on_destroy, this);
+            DISCONNECT(m_variable->on_shutdown, this);
             DISCONNECT(m_variable->on_name_change, this);
 
             m_variable = nullptr;

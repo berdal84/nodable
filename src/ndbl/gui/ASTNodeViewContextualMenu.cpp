@@ -1,9 +1,9 @@
-#include "CreateNodeCtxMenu.h"
+#include "ASTNodeViewContextualMenu.h"
 
 using namespace ndbl;
 using namespace tools;
 
-void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
+void ASTNodeViewContextualMenu::update_cache_based_on_signature(ASTNodeSlotView* dragged_slot)
 {
     items_with_compatible_signature.clear();
 
@@ -30,7 +30,7 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
             case CreateNodeType_BLOCK_FOR_LOOP:
             case CreateNodeType_BLOCK_WHILE_LOOP:
             case CreateNodeType_BLOCK_SCOPE:
-            case CreateNodeType_BLOCK_ENTRY_POINT:
+            case CreateNodeType_ROOT:
                 // Blocks are only for code flow slots
                 if ( !dragged_slot->allows(SlotFlag_TYPE_FLOW) )
                     continue;
@@ -82,7 +82,7 @@ inline bool CaseInsensitiveFind(const T& str1, const T& str2, const std::locale&
                        CaseInsensitiveEqual<typename T::value_type>{loc}) != str1.end();
 }
 
-void CreateNodeCtxMenu::update_cache_based_on_user_input(SlotView* _dragged_slot, size_t _limit )
+void ASTNodeViewContextualMenu::update_cache_based_on_user_input(ASTNodeSlotView* _dragged_slot, size_t _limit )
 {
     std::string search{search_input}; // FindCaseInsensitive takes a std::string
     items_matching_search.clear();
@@ -97,18 +97,18 @@ void CreateNodeCtxMenu::update_cache_based_on_user_input(SlotView* _dragged_slot
     }
 }
 
-void CreateNodeCtxMenu::flag_to_be_reset()
+void ASTNodeViewContextualMenu::flag_to_be_reset()
 {
     must_be_reset_flag   = true;
 }
 
-void CreateNodeCtxMenu::add_action(Action_CreateNode* action)
+void ASTNodeViewContextualMenu::add_action(Action_CreateNode* action)
 {
     items.push_back(action);
 }
 
 
-Action_CreateNode* CreateNodeCtxMenu::draw_search_input(SlotView* dragged_slot, size_t _result_max_count )
+Action_CreateNode* ASTNodeViewContextualMenu::draw_search_input(ASTNodeSlotView* dragged_slot, size_t _result_max_count )
 {
     if ( must_be_reset_flag )
     {

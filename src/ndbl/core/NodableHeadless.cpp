@@ -9,15 +9,20 @@ using namespace ndbl;
 
 void NodableHeadless::init()
 {
+    // init managers
     m_task_manager    = tools::init_task_manager();
     m_language        = init_language();
     m_node_factory    = init_node_factory();
     m_interpreter     = init_interpreter();
-    m_graph           = new Graph(m_node_factory);
+
+    // configure
+    m_graph = new Graph(m_node_factory);
+    m_language->_state.reset( m_graph ); // in some cases (like during tests), we call parse_xxx methods that implicitly requires the state to be reset
 }
 
 void NodableHeadless::shutdown()
 {
+    ASSERT(m_graph);
     clear();
     delete m_graph;
     tools::shutdown_task_manager(m_task_manager);
@@ -83,7 +88,7 @@ Nodlang* NodableHeadless::get_language() const
     return m_language;
 }
 
-Graph* NodableHeadless::get_graph() const
+Graph* NodableHeadless::graph() const
 {
     return m_graph;
 }
@@ -105,7 +110,7 @@ void NodableHeadless::update()
 void NodableHeadless::clear()
 {
     delete m_asm_code;
-    m_graph->clear();
+    m_graph->reset();
     release_program();
     m_source_code.clear();
 }

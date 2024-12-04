@@ -85,7 +85,7 @@ void NodableView::init(Nodable * _app)
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " For Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_FOR_LOOP } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " While Loop", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_WHILE_LOOP } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Scope", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_SCOPE } );
-    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{CreateNodeType_BLOCK_ENTRY_POINT } );
+    action_manager->new_action<Event_CreateNode>(ICON_FA_CODE " Entry Point", Shortcut{}, EventPayload_CreateNode{CreateNodeType_ROOT } );
     // (to create variables)
     action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Boolean Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_BOOLEAN, create_variable_node_signature<bool>() } );
     action_manager->new_action<Event_CreateNode>(ICON_FA_DATABASE " Double Variable", Shortcut{}, EventPayload_CreateNode{CreateNodeType_VARIABLE_DOUBLE, create_variable_node_signature<double>() } );
@@ -184,7 +184,7 @@ void NodableView::draw()
     if (ImGui::BeginMenuBar())
     {
         History* current_file_history = current_file ? &current_file->history : nullptr;
-        auto has_selection = current_file != nullptr ? !current_file->graph().view()->selection().empty()
+        auto has_selection = current_file != nullptr ? !current_file->graph()->components()->get<GraphView>()->selection().empty()
                                                      : false;
 
         if (ImGui::BeginMenu("File"))
@@ -237,7 +237,7 @@ void NodableView::draw()
                 {
                     cfg->ui_node_detail = _detail;
                     if (current_file != nullptr)
-                        current_file->graph().view()->reset_all_properties();
+                        current_file->graph()->components()->get<GraphView>()->reset_all_properties();
                 }
             };
 
@@ -366,7 +366,6 @@ void NodableView::draw()
                 };
                 checkbox_flag("Hybrid history"       , ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY);
                 checkbox_flag("Multi-Selection"      , ConfigFlag_EXPERIMENTAL_MULTI_SELECTION);
-                checkbox_flag("Graph auto-completion", ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION);
                 checkbox_flag("Interpreter"          , ConfigFlag_EXPERIMENTAL_INTERPRETER);
                 ImGui::EndMenu();
             }
@@ -455,7 +454,7 @@ void NodableView::draw_help_window() const
         ImGui::PopFont();
         ImGui::NewLine();
         ImGui::TextWrapped(
-                "Nodable is child-able.\n"
+                "Nodable is primary_child-able.\n"
                 "\n"
                 "Nodable allows you to edit a program using both text and graph paradigms."
                 "More precisely, it means:"
@@ -463,7 +462,7 @@ void NodableView::draw_help_window() const
         ImGuiEx::BulletTextWrapped("any change on the text will affect the graph");
         ImGuiEx::BulletTextWrapped("any change (structure or values) on the graph will affect the text");
         ImGuiEx::BulletTextWrapped(
-                "but keep in mind the state is the text, any change not affecting the text (such as child positions or orphan child) will be lost.");
+                "but keep in mind the state is the text, any change not affecting the text (such as child positions or orphan primary_child) will be lost.");
         ImGui::NewLine();
         ImGui::PushFont(font_manager->get_font(FontSlot_Heading));
         ImGui::Text("Quick start");
@@ -472,9 +471,9 @@ void NodableView::draw_help_window() const
         ImGui::TextWrapped("Nodable UI is designed as following:\n");
         ImGuiEx::BulletTextWrapped("On the left side a (light) text editor allows to edit source code.\n");
         ImGuiEx::BulletTextWrapped(
-                "At the center, there is the graph editor where you can create_new/delete/connect child\n");
+                "At the center, there is the graph editor where you can create_new/delete/connect primary_child\n");
         ImGuiEx::BulletTextWrapped(
-                "On the right side (this side) you will find many tabs to manage additional config such as child, interpreter, or app properties\n");
+                "On the right side (this side) you will find many tabs to manage additional config such as primary_child, interpreter, or app properties\n");
         ImGuiEx::BulletTextWrapped("At the top, between the menu and the editors, there is a tool bar."
                                        " There, few buttons will serve to compile, run and debug your program.");
         ImGuiEx::BulletTextWrapped("And at the bottom, below the editors, there is a status bar."
@@ -524,7 +523,7 @@ bool NodableView::draw_node_properties_window()
     {
         if( File* current_file = m_app->get_current_file() )
         {
-            const GraphView* graph_view = current_file->graph().view(); // Graph can't be null
+            const GraphView* graph_view = current_file->graph()->components()->get<GraphView>(); // Graph can't be null
             switch ( graph_view->selection().count<ASTNodeView*>() )
             {
                 case 0:
@@ -583,7 +582,7 @@ void NodableView::draw_interpreter_window()
         ImGui::SameLine();
         ImGuiEx::DrawHelper("%s", "This is the interpreter's CPU"
                                   "\nIt contains few registers to store temporary values "
-                                  "\nlike instruction pointer, last child's value or last comparison result");
+                                  "\nlike instruction pointer, last primary_child's value or last comparison result");
         ImGui::Indent();
         {
             ImGui::Separator();
@@ -866,7 +865,7 @@ void NodableView::draw_config_window()
         if (ImGui::CollapsingHeader("Scope", flags ))
         {
             ImGui::SliderFloat4("margins", &cfg->ui_scope_content_rect_margin.min.x, 2, 25);
-            ImGui::SliderFloat4("child margin", &cfg->ui_scope_child_margin, 2, 25);
+            ImGui::SliderFloat4("primary_child margin", &cfg->ui_scope_child_margin, 2, 25);
             ImGui::SliderFloat("border radius", &cfg->ui_scope_border_radius, 0, 20);
             ImGui::SliderFloat("border thickness", &cfg->ui_scope_border_thickness, 0, 4);
             ImGui::ColorEdit4("fill color (light)", &cfg->ui_scope_fill_col_light.x);

@@ -16,10 +16,7 @@ REFLECT_STATIC_INITIALIZER
 
 ASTNode::~ASTNode()
 {
-    for(auto* each : m_slots)
-        delete each;
-
-    on_destroy.emit();
+    assert(m_slots.empty());
 }
 
 void ASTNode::init(ASTNodeType type, const std::string& label)
@@ -29,6 +26,21 @@ void ASTNode::init(ASTNodeType type, const std::string& label)
     m_value = m_props.add<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
     set_name(label);
     m_type  = type;
+}
+
+void ASTNode::shutdown()
+{
+    while( !m_slots.empty() )
+    {
+        delete m_slots.back();
+        m_slots.pop_back();
+    }
+    if ( m_internal_scope )
+    {
+        m_internal_scope->shutdown();
+    }
+    m_component_collection.shutdown();
+    on_shutdown.emit();
 }
 
 size_t ASTNode::adjacent_slot_count(SlotFlags _flags )const
@@ -314,21 +326,10 @@ void ASTNode::init_internal_scope(size_t sub_scope_count)
     VERIFY( m_internal_scope == nullptr, "Can't call init_internal_scope() more than once");
     VERIFY( m_parent_scope == nullptr, "Must be initialized prior to reset_parent()");
 
-    // create internal scope
-    ASTScope* scope = entity()->emplace<ASTScope>();
+    auto* scope = this->components()->create<ASTScope>();
     scope->set_name("Internal Scope");
+    scope->init(sub_scope_count);
 
-    if ( sub_scope_count > 0 )
-    {
-        std::vector<ASTScope*> sub_scope;
-        sub_scope.reserve(sub_scope_count);
-        while( sub_scope.size() < sub_scope_count )
-        {
-            sub_scope.push_back(entity()->emplace<ASTScope>() );
-        }
-
-        scope->init_partition( sub_scope );
-    }
     m_internal_scope = scope;
     ASSERT(m_internal_scope->is_partitioned()   == (bool)sub_scope_count);
     ASSERT(m_internal_scope->partition().size() == sub_scope_count);
@@ -342,4 +343,17 @@ bool ASTNode::has_flow_adjacent() const
 bool ASTNode::is_expression() const
 {
     return !inputs().empty();
+}
+
+void ASTNode::reset_scope(ASTScope* scope)
+{
+#ifdef TOOLS_DEBUG
+    if ( scope == nullptr )
+        VERIFY( m_flags & ASTNodeFlag_WAS_IN_A_SCOPE_ONCE, "This node never been in a scope, why would you reset it to nullptr? (that's the default value)")
+#endif
+    m_flags |= ASTNodeFlag_WAS_IN_A_SCOPE_ONCE;
+    m_parent_scope = scope;
+
+    if ( m_internal_scope )
+        m_internal_scope->reset_parent( scope );
 }

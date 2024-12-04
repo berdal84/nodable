@@ -11,7 +11,7 @@ namespace ndbl
     class ASTNode;
     class ASTNodeProperty;
     class ASTNodeView;
-    struct SlotView;
+    struct ASTNodeSlotView;
 
     struct ASTNodeSlot
     {
@@ -57,7 +57,7 @@ namespace ndbl
         ASTNode* const      node; // parent node
         ASTNodeProperty* const  property; // parent node's property
         SlotFlags        _flags = SlotFlag_NONE;
-        SlotView*        view = nullptr;
+        ASTNodeSlotView*        view = nullptr;
         std::vector<ASTNodeSlot*> _adjacent;
 
         static constexpr size_t MAX_CAPACITY = 8;

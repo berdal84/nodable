@@ -148,26 +148,29 @@ include_directories(
 add_library(
     tools-core
     STATIC
-    src/tools/core/Entity.h
-    src/tools/core/Component.cpp
+    src/tools/core/ComponentsOf.h
     src/tools/core/Event.h
     src/tools/core/EventManager.cpp
     src/tools/core/EventManager.h
+    src/tools/core/FileSystem.cpp
+    src/tools/core/FileSystem.h
+    src/tools/core/Hash.h
     src/tools/core/StateMachine.cpp
     src/tools/core/StateMachine.h
+    src/tools/core/System.cpp
+    src/tools/core/System.h
     src/tools/core/TIdentifier.h
     src/tools/core/TaskManager.cpp
     src/tools/core/TaskManager.cpp
     src/tools/core/TaskManager.h
     src/tools/core/TaskManager.h
+    src/tools/core/TryCatch.h
     src/tools/core/assertions.h
     src/tools/core/format.cpp
     src/tools/core/format.h
-    src/tools/core/Hash.h
     src/tools/core/log.cpp
     src/tools/core/log.h
     src/tools/core/math.h
-    src/tools/core/TryCatch.h
     src/tools/core/memory/Pool.h
     src/tools/core/memory/Pool.inl
     src/tools/core/memory/PoolManager.cpp
@@ -175,26 +178,22 @@ add_library(
     src/tools/core/memory/memory.h
     src/tools/core/memory/pointers.cpp
     src/tools/core/memory/pointers.h
+    src/tools/core/reflection/Initializer.h
     src/tools/core/reflection/Invokable.h
     src/tools/core/reflection/Operator.h
     src/tools/core/reflection/Operator_t.h
-    src/tools/core/reflection/Initializer.h
-    src/tools/core/reflection/enum.h
-    src/tools/core/reflection/qword.cpp
-    src/tools/core/reflection/qword.h
-    src/tools/core/reflection/reflection
     src/tools/core/reflection/Type.cpp
     src/tools/core/reflection/Type.h
     src/tools/core/reflection/TypeRegister.cpp
     src/tools/core/reflection/TypeRegister.h
+    src/tools/core/reflection/enum.h
+    src/tools/core/reflection/qword.cpp
+    src/tools/core/reflection/qword.h
+    src/tools/core/reflection/reflection
     src/tools/core/reflection/union.h
     src/tools/core/reflection/variant.cpp
     src/tools/core/reflection/variant.h
     src/tools/core/string.h
-    src/tools/core/System.cpp
-    src/tools/core/System.h
-    src/tools/core/FileSystem.cpp
-    src/tools/core/FileSystem.h
     src/tools/core/types.h
     src/tools/gui/Color.h
     # libraries
@@ -220,7 +219,7 @@ add_executable(
     src/tools/core/reflection/Type.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
     src/tools/gui/geometry/Rect.specs.cpp
-    src/tools/gui/geometry/SpatialNode2D.specs.cpp
+    src/tools/gui/geometry/SpatialNode.specs.cpp
 )
 
 target_link_libraries(test-tools PUBLIC gtest_main gtest tools-core tools-gui)
@@ -250,8 +249,8 @@ add_library(
     src/tools/gui/geometry/Space.h
     src/tools/gui/geometry/Vec2.h
     src/tools/gui/geometry/Vec4.h
-    src/tools/gui/geometry/SpatialNode2D.h
-    src/tools/gui/geometry/SpatialNode2D.cpp
+    src/tools/gui/geometry/SpatialNode.h
+    src/tools/gui/geometry/SpatialNode.cpp
     src/tools/gui/geometry/TRSTransform2D.h
     src/tools/gui/geometry/TRSTransform2D.cpp
     src/tools/gui/Action.cpp
@@ -487,19 +486,19 @@ add_library(
     src/ndbl/gui/Config.cpp
     src/ndbl/gui/Config.h
     src/ndbl/gui/GraphView.cpp
-    src/ndbl/gui/CreateNodeCtxMenu.cpp
+    src/ndbl/gui/ASTNodeViewContextualMenu.cpp
     src/ndbl/gui/History.cpp
     src/ndbl/gui/File.cpp
     src/ndbl/gui/FileView.cpp
     src/ndbl/gui/Nodable.cpp
     src/ndbl/gui/NodableView.cpp
     src/ndbl/gui/ASTNodeView.cpp
-    src/ndbl/gui/Physics.cpp
-    src/ndbl/gui/PropertyView.cpp
-    src/ndbl/gui/SlotView.h
-    src/ndbl/gui/SlotView.cpp
+    src/ndbl/gui/PhysicsComponent.cpp
+    src/ndbl/gui/ASTNodePropertyView.cpp
+    src/ndbl/gui/ASTNodeSlotView.h
+    src/ndbl/gui/ASTNodeSlotView.cpp
     src/ndbl/gui/Isolation.h
-    src/ndbl/gui/ScopeView.cpp
+    src/ndbl/gui/ASTScopeView.cpp
 )
 
 target_link_libraries(

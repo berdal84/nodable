@@ -19,33 +19,18 @@ class Core : public Test
 public:
     NodableHeadless app;
 
-    Core()
-    {
-    }
-
-    void SetUp()
+    void SetUp() override
     {
         app.init();
-        // in some tests, we call directly some method on the language that requires we pass a Graph* ahead of time
-        app.get_language()->_state.reset_graph(app.get_graph() );
 
         tools::log::set_verbosity( tools::log::Verbosity_Message );
         tools::log::set_verbosity( "Parser", tools::log::Verbosity_Verbose );
     }
 
-    void TearDown()
+    void TearDown() override
     {
-        try
-        {
-            app.shutdown();
-        }
-        catch (std::exception& error)
-        {
-            LOG_ERROR(__FILE__, "Exception during app.shutdown(): %s\n", error.what() );
-        }
+        app.shutdown();
     }
-
-    ~Core() = default;
 
     template<typename return_t>
     return_t eval(const std::string &_source_code)
@@ -54,7 +39,7 @@ public:
 
         // parse
         Graph* graph = app.parse(_source_code);
-        if (!graph->root())
+        if (!graph->root_node())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
         }
@@ -90,7 +75,7 @@ public:
 
         // parse
         Graph* graph = app.parse(_source_code);
-        if (!graph->root())
+        if (!graph->root_node())
         {
             throw std::runtime_error("parse_and_serialize: Unable to generate program.");
         }
@@ -126,11 +111,7 @@ public:
         LOG_VERBOSE("core", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
-        Graph* graph = app.parse(_source_code);
-        if (!graph->root())
-        {
-            throw std::runtime_error("parse_and_serialize: Unable to generate program.");
-        }
+        app.parse(_source_code);
 
         // serialize
         std::string result;

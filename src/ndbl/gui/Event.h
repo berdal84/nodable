@@ -8,7 +8,7 @@
 
 #include "Event.h"
 #include "FrameMode.h"
-#include "SlotView.h"
+#include "ASTNodeSlotView.h"
 
 namespace ndbl
 {
@@ -81,11 +81,11 @@ namespace ndbl
 
     struct EventPayload_CreateNode
     {
-        CreateNodeType       node_type;          // The note type to create
-        const FunctionDescriptor*      node_signature;     // The signature of the node that must be created
-        SlotView*            active_slotview;    // The slot view being dragged.
-        Graph*               graph;              // The graph to create the node into
-        Vec2                 desired_screen_pos; // The desired position for the new node view
+        CreateNodeType            node_type;          // The note type to create
+        const FunctionDescriptor* node_signature;     // The signature of the node that must be created
+        ASTNodeSlotView*          active_slotview;    // The slot view being dragged.
+        Graph*                    graph;              // The graph to create the node into
+        Vec2                      desired_screen_pos; // The desired position for the new node view
 
         explicit EventPayload_CreateNode(CreateNodeType node_type )
         : node_type(node_type)

@@ -1,15 +1,15 @@
-#include "Physics.h"
+#include "PhysicsComponent.h"
 
 #include <numeric>
 #include "tools/core/math.h"
 #include "tools/core/assertions.h"
-#include "tools/core/Entity.h"
+#include "tools/core/ComponentsOf.h"
 #include "tools/gui/Config.h"
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTNode.h"
 #include "ndbl/core/ASTVariable.h"
 #include "ndbl/gui/ASTNodeView.h"
-#include "ndbl/gui/ScopeView.h"
+#include "ndbl/gui/ASTScopeView.h"
 #include "Config.h"
 #include "tools/gui/geometry/Pivots.h"
 
@@ -22,27 +22,29 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-   DEFINE_REFLECT(Physics).extends<Component>();
+   DEFINE_REFLECT(PhysicsComponent).extends<ComponentFor<ASTNode>>();
 )
 
 
-Physics::Physics()
+PhysicsComponent::PhysicsComponent()
+: ComponentFor<ASTNode>("Physics")
 {
-    CONNECT(Component::on_owner_init, &Physics::_on_owner_init, this);
+    CONNECT(ComponentFor::on_set_entity, &PhysicsComponent::_on_owner_init, this);
 }
 
-void Physics::_on_owner_init(tools::Entity* entity)
+void PhysicsComponent::_on_owner_init(ASTNode* owner)
 {
-    _view      = entity->require<ASTNodeView>("Physics component initialization");
+    _view      = owner->components()->get<ASTNodeView>();
+    ASSERT(_view);
     _is_active = true;
 }
 
-void Physics::clear_constraints()
+void PhysicsComponent::clear_constraints()
 {
     _constraints.clear();
 }
 
-void Physics::apply_constraints(float _dt)
+void PhysicsComponent::apply_constraints(float _dt)
 {
     if( !_is_active )
         return;
@@ -51,20 +53,20 @@ void Physics::apply_constraints(float _dt)
         constraint.update(_dt);
 }
 
-void Physics::translate(const tools::Vec2& delta, float speed, bool recursive)
+void PhysicsComponent::translate(const tools::Vec2& delta, float speed, bool recursive)
 {
     const Vec2 force = delta * speed;
     add_force(force, recursive);
 }
 
-void Physics::translate_to(const tools::Vec2& pos, float speed, bool recursive, tools::Space space)
+void PhysicsComponent::translate_to(const tools::Vec2& pos, float speed, bool recursive, tools::Space space)
 {
-    const Vec2 delta = pos - _view->spatial_node().position(space);
+    const Vec2 delta = pos - _view->spatial_node()->position(space);
     const Vec2 force = delta * speed;
     add_force(force, recursive);
 }
 
-void Physics::add_force(const tools::Vec2& force, bool _recurse)
+void PhysicsComponent::add_force(const tools::Vec2& force, bool _recurse)
 {
     _forces_sum += force;
 
@@ -72,23 +74,23 @@ void Physics::add_force(const tools::Vec2& force, bool _recurse)
 
     for (ASTNode* input_node: _view->node()->inputs() )
     {
-        ASTNodeView* input_view = input_node->entity()->get<ASTNodeView>();
+        ASTNodeView* input_view = input_node->components()->get<ASTNodeView>();
 
-        if ( !input_view->state().pinned())
+        if ( !input_view->state()->pinned())
             if (ASTUtils::is_output_node_in_expression(input_node, _view->node()))
-                if(auto* physics_component = input_node->entity()->get<Physics>())
+                if(auto* physics_component = input_node->components()->get<PhysicsComponent>())
                     physics_component->add_force(force, _recurse);
     }
 }
 
-void ndbl::Physics::apply_forces(float _dt)
+void ndbl::PhysicsComponent::apply_forces(float _dt)
 {
     float lensqr_max       = std::pow(100, 4);
     float friction_coef    = tools::clamped_lerp(0.0f, 0.5f, _forces_sum.lensqr() / lensqr_max);
     Vec2  soften_force_sum = Vec2::lerp(_last_frame_forces_sum, _forces_sum, 0.95f);
     Vec2  delta            = soften_force_sum * (1.0f - friction_coef) * _dt;
 
-    _view->spatial_node().translate( delta );
+    _view->spatial_node()->translate( delta );
 
     _last_frame_forces_sum = soften_force_sum;
     _forces_sum            = Vec2();
@@ -115,19 +117,19 @@ void ViewConstraint::rule_1_to_N_as_row(float dt)
 
     Config* cfg = get_config();
     const ASTNodeView* _follower      = clean_follower[0];
-    const BoxShape2D leaders_box   = ASTNodeView::get_rect(leader, WORLD_SPACE, leader_flags);
-    const BoxShape2D follower_box  = _follower->get_rect_ex(WORLD_SPACE, follower_flags);
+    const BoxShape2D leaders_box{ ASTNodeView::get_rect(leader, WORLD_SPACE, leader_flags) };
+    const BoxShape2D follower_box{ _follower->get_rect_ex(WORLD_SPACE, follower_flags) };
 
     // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
     Vec2 delta = BoxShape2D::diff(leaders_box, leader_pivot , follower_box, follower_pivot );
     delta += gap_direction * cfg->ui_node_gap(gap_size);
 
     // Apply a force to translate to the (single) follower
-    auto* physics_component = _follower->entity()->get<Physics>();
+    auto* physics_component = _follower->entity()->components()->get<PhysicsComponent>();
     if( !physics_component )
         return;
 
-    Vec2 current_pos = _follower->spatial_node().position(WORLD_SPACE);
+    Vec2 current_pos = _follower->spatial_node()->position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
     physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
@@ -170,10 +172,10 @@ void ViewConstraint::rule_N_to_1_as_a_row(float _dt)
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        auto* physics_component = clean_follower[i]->entity()->get<Physics>();
+        auto* physics_component = clean_follower[i]->entity()->components()->get<PhysicsComponent>();
         if( !physics_component )
             continue;
-        Vec2 current_pos = clean_follower[i]->spatial_node().position(WORLD_SPACE);
+        Vec2 current_pos = clean_follower[i]->spatial_node()->position(WORLD_SPACE);
         Vec2 desired_pos = current_pos + delta[i];
         physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
     }
@@ -183,8 +185,8 @@ std::vector<ASTNodeView*> ViewConstraint::clean(std::vector<ASTNodeView *> &view
 {
     std::vector<ASTNodeView *> result;
     for(auto* view : views)
-        if (view->state().visible())
-            if (!view->state().pinned())
+        if (view->state()->visible())
+            if (!view->state()->pinned())
                 result.push_back(view);
     return result;
 }
@@ -192,7 +194,7 @@ std::vector<ASTNodeView*> ViewConstraint::clean(std::vector<ASTNodeView *> &view
 void ViewConstraint::rule_distribute_sub_scope_views(float dt)
 {
     // filter views to constrain
-    std::vector<ScopeView*> sub_scope_view;
+    std::vector<ASTScopeView*> sub_scope_view;
     for(ASTScope* sub_scope : leader[0]->node()->internal_scope()->partition() )
         if ( !sub_scope->view()->pinned() )
             if ( !sub_scope->empty() )
@@ -218,9 +220,8 @@ void ViewConstraint::rule_distribute_sub_scope_views(float dt)
         const Vec2 delta   = new_pos - cur_pos;
 
         // we translate it's first node
-        ASTNode* first_node = sub_scope_view[i]->scope()->first_child();
-        auto* physics = first_node->entity()->get<Physics>();
-        ASSERT(physics != nullptr);
+        auto* physics = sub_scope_view[i]->entity()->components()->get<PhysicsComponent>();
+        VERIFY(physics, "A PhysicsComponent is required on this entity to apply a force to");
         physics->translate(delta, get_config()->ui_node_speed, false );
     }
 }

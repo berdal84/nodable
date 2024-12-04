@@ -225,9 +225,9 @@ TEST_F(Language_parse_and_serialize, partial_if2)
     std::string program = "if();else;";
     EXPECT_EQ(parse_and_serialize(program), program);
     std::string program2 = "if()else;";
-    EXPECT_ANY_THROW(parse_and_serialize(program2));
+    EXPECT_EQ(parse_and_serialize(program2), "");
     std::string program3 = "if()else";
-    EXPECT_ANY_THROW(parse_and_serialize(program3));
+    EXPECT_EQ(parse_and_serialize(program3), "");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

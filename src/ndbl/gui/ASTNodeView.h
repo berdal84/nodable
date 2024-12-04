@@ -5,13 +5,13 @@
 #include <unordered_map>
 #include <algorithm>
 
-#include "tools/core/Component.h"// base class
+#include "tools/core/ComponentFor.h"// base class
 #include "tools/gui/geometry/BoxShape2D.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/ViewState.h"
 #include "ndbl/core/ASTNodeProperty.h"
-#include "PropertyView.h"
-#include "SlotView.h"
+#include "ASTNodePropertyView.h"
+#include "ASTNodeSlotView.h"
 #include "types.h"
 #include "ViewDetail.h"
 
@@ -21,7 +21,7 @@ namespace ndbl
     class ASTNode;
     class Graph;
     struct ASTNodeSlot;
-    struct SlotView;
+    struct ASTNodeSlotView;
     class GraphView;
 
     /**
@@ -48,13 +48,14 @@ namespace ndbl
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
-    class ASTNodeView : public tools::Component
+    class ASTNodeView : public tools::ComponentFor<ASTNode>
 	{
     public:
         DECLARE_REFLECT_override
         friend class GraphView;
-		ASTNodeView();
-		~ASTNodeView();
+        ASTNodeView() = delete;
+		ASTNodeView(tools::BoxShape2D*);
+		~ASTNodeView() override;
 
         ASTNode*                node() const { return m_node; }
         std::vector<ASTNodeView*>  get_adjacent(SlotFlags) const;
@@ -73,11 +74,12 @@ namespace ndbl
         void                    expand_toggle_rec() { return set_expanded_rec(!m_expanded); };
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
-        GraphView*              graph_view() const;
-        tools::BoxShape2D*      shape() { return &m_state.shape(); }
-        const tools::SpatialNode2D& spatial_node() const { return m_state.spatial_node(); }
-        tools::SpatialNode2D&   spatial_node() { return m_state.spatial_node(); }
-        tools::ViewState&       state() { return m_state; }
+        tools::BoxShape2D*      shape() { return m_shape; }
+        const tools::BoxShape2D*shape() const { return m_shape; }
+        const tools::SpatialNode* spatial_node() const { return m_spatial_node; }
+        tools::SpatialNode*     spatial_node() { return m_spatial_node; }
+        tools::ViewState*       state() { return &m_view_state; }
+        const tools::ViewState* state() const { return &m_view_state; }
         void                    reset_all_properties();
 
         static tools::Rect      get_rect(const std::vector<ASTNodeView *> &_views, tools::Space = tools::WORLD_SPACE, NodeViewFlags = NodeViewFlag_NONE);
@@ -89,11 +91,11 @@ namespace ndbl
         static std::vector<ASTNodeView*> substitute_with_parent_if_not_visible(const std::vector<ASTNodeView*>& _in, bool _recurse = true );
 
     private:
-        void                    on_owner_init(tools::Entity*);
-        PropertyView*           find_property_view(const ASTNodeProperty *pProperty);
-        void                    add_child(PropertyView*);
-        void                    add_child(SlotView*);
-        void                    draw_slot(SlotView*);
+        void                    on_owner_init(ASTNode*);
+        ASTNodePropertyView*    find_property_view(const ASTNodeProperty *pProperty);
+        void                    add_child(ASTNodePropertyView*);
+        void                    add_child(ASTNodeSlotView*);
+        void                    draw_slot(ASTNodeSlotView*);
         void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
 
         static void DrawNodeRect(
@@ -107,16 +109,18 @@ namespace ndbl
             float border_width
         );
 
-        ASTNode*         m_node;
-        tools::ViewState m_state;
-        bool            m_expanded;
-        float           m_opacity;
-        SlotView*       m_hovered_slotview;
-        SlotView*       m_last_clicked_slotview;
+        ASTNode*                   m_node;
+        tools::SpatialNode*        m_spatial_node;
+        tools::BoxShape2D*         m_shape;
+        tools::ViewState           m_view_state;
+        bool                       m_expanded;
+        float                      m_opacity;
+        ASTNodeSlotView*       m_hovered_slotview;
+        ASTNodeSlotView*       m_last_clicked_slotview;
         std::array<const tools::Vec4*, Color_COUNT> m_colors;
-        std::vector<SlotView*>     m_slot_views;
-        std::unordered_map<const ASTNodeProperty*, PropertyView*> m_view_by_property;
-        PropertyView*              m_value_view;
+        std::vector<ASTNodeSlotView*>     m_slot_views;
+        std::unordered_map<const ASTNodeProperty*, ASTNodePropertyView*> m_view_by_property;
+        ASTNodePropertyView*              m_value_view;
 
         enum PropType
         {
@@ -128,6 +132,6 @@ namespace ndbl
             PropType_COUNT
         };
 
-        std::array<std::vector<PropertyView*>, PropType::PropType_COUNT> m_view_by_property_type;
+        std::array<std::vector<ASTNodePropertyView*>, PropType::PropType_COUNT> m_view_by_property_type;
     };
 }

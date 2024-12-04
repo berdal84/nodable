@@ -8,6 +8,7 @@
 #include "tools/core/memory/memory.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
+#include "tools/core/ComponentsOf.h"
 
 #include "constants.h"
 #include "ASTSlotLink.h"
@@ -16,40 +17,46 @@
 #include "ASTNodeSlotFlag.h"
 #include "ASTNodeSlot.h"
 #include "ASTNodeType.h"
-#include "ASTScope.h"
 
 namespace ndbl
 {
     // forward declarations
     class Graph;
     class ASTNodeFactory;
+    class ASTScope;
 
     typedef int ASTNodeFlags;
     enum ASTNodeFlag_
     {
-        ASTNodeFlag_NONE     = 0,
-        ASTNodeFlag_IS_DIRTY = 1 << 0,
-        ASTNodeFlag_ALL      = ~ASTNodeFlag_NONE,
-        ASTNodeFlag_DEFAULT  = ASTNodeFlag_NONE,
+        ASTNodeFlag_NONE                = 0,
+        ASTNodeFlag_IS_DIRTY            = 1 << 0,
+        ASTNodeFlag_WAS_IN_A_SCOPE_ONCE = 1 << 1,
+        ASTNodeFlag_MUST_BE_DELETED          = 1 << 2,
+        ASTNodeFlag_ALL                 = ~ASTNodeFlag_NONE,
+        ASTNodeFlag_DEFAULT             = ASTNodeFlag_NONE,
     };
 
-    class ASTNode : public tools::Component
+    class ASTNode
 	{
     public:
-        DECLARE_REFLECT_override
+        DECLARE_REFLECT_virtual
         POOL_REGISTRABLE(ASTNode)
 
+        friend class ASTScope;
         friend class Graph;
         friend class ASTNodeFactory;
-        friend class ASTScope;
 
         // Code
-        ASTNode() {}
-        ~ASTNode();
+        ASTNode(): m_component_collection(this) {};
+        virtual ~ASTNode();
 
-        SIGNAL(on_destroy);
+        SIGNAL(on_shutdown); // emit once shutdown() has been called
+        SIGNAL(on_name_change, const std::string&);
 
         void                 init(ASTNodeType type, const std::string& name);
+        void                 shutdown();
+        const std::string&   name() const { return m_name; }
+        void                 set_name(const std::string& name) { m_name = name; on_name_change.emit(name); }
         bool                 update();
         ASTNodeType          type() const { return m_type; }
         bool                 is_invokable() const;
@@ -73,12 +80,12 @@ namespace ndbl
         const ASTNodeSlot*          flow_in() const;
         ASTNodeSlot*                flow_out();
         const ASTNodeSlot*          flow_out() const;
-        bool                 is_orphan() const { return m_parent_scope == nullptr; }
-        bool                 has_scope() const { return m_parent_scope != nullptr; }
-        ASTScope*               scope() const { return m_parent_scope; };
-        void                 init_internal_scope(size_t sub_scope_count = 0);
-        bool                 has_internal_scope() const { return m_internal_scope != nullptr; }
-        ASTScope*               internal_scope() const { return m_internal_scope; }
+        bool                        is_orphan() const { return m_parent_scope == nullptr; }
+        ASTScope*                   scope() const { return m_parent_scope; };
+        bool                        has_scope() const { return m_parent_scope != nullptr; }
+        void                        init_internal_scope(size_t sub_scope_count = 0);
+        bool                        has_internal_scope() const { return m_internal_scope != nullptr; }
+        ASTScope*                   internal_scope() const { return m_internal_scope; }
 
         // Slot related
         //-------------
@@ -99,7 +106,7 @@ namespace ndbl
         ASTNodeSlot*                find_slot_by_property(const ASTNodeProperty*, SlotFlags );
         const ASTNodeSlot*          find_slot_by_property(const ASTNodeProperty*, SlotFlags ) const;
         ASTNodeSlot*                find_adjacent_at(SlotFlags, size_t _index ) const;
-        size_t               slot_count(SlotFlags) const;
+        size_t                      slot_count(SlotFlags) const;
         std::vector<ASTNodeSlot*>&  slots() { return m_slots; }
         const std::vector<ASTNodeSlot*>& slots() const { return m_slots; }
 
@@ -124,9 +131,14 @@ namespace ndbl
         ASTNodeProperty* add_prop(const char* _name, PropertyFlags _flags = PropertyFlag_NONE)
         { return m_props.add<ValueT>(_name, _flags); }
 
+    public:  template<class T> T* get_component() const { return m_component_collection.get<T>(); }
+    public:  tools::ComponentsOf<ASTNode>*       components()       { return &m_component_collection; }
+    public:  const tools::ComponentsOf<ASTNode>* components() const { return &m_component_collection; }
+    private: tools::ComponentsOf<ASTNode>        m_component_collection;
     protected:
+        void               reset_scope(ASTScope*);
         void               on_slot_change(ASTNodeSlot::Event event, ASTNodeSlot *slot);
-
+        std::string               m_name;
         ASTNodePropertyBag        m_props;
         ASTToken              m_suffix = ASTToken{};
         Graph*             m_graph = nullptr;

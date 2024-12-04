@@ -1,18 +1,18 @@
-#include "SpatialNode2D.h"
+#include "SpatialNode.h"
 #include <algorithm>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm/gtx/matrix_transform_2d.hpp"
 #undef GLM_ENABLE_EXPERIMENTAL
 
-tools::SpatialNode2D::~SpatialNode2D()
+tools::SpatialNode::~SpatialNode()
 {
     clear();
     assert( _parent == nullptr ); // must have been reset by a high level instance
     assert( _children.empty() );
 }
 
-void tools::SpatialNode2D::clear()
+void tools::SpatialNode::clear()
 {
     while ( !_children.empty() )
     {
@@ -20,13 +20,13 @@ void tools::SpatialNode2D::clear()
     }
 }
 
-void tools::SpatialNode2D::set_position(const Vec2& _pos)
+void tools::SpatialNode::set_position(const Vec2& _pos)
 {
     _transform.set_position(_pos ); // PARENT_SPACE
     set_world_transform_dirty();
 }
 
-void tools::SpatialNode2D::set_position(const Vec2& _pos, Space desired_space )
+void tools::SpatialNode::set_position(const Vec2& _pos, Space desired_space )
 {
     switch ( desired_space )
     {
@@ -48,16 +48,16 @@ void tools::SpatialNode2D::set_position(const Vec2& _pos, Space desired_space )
     }
 }
 
-void tools::SpatialNode2D::set_world_transform_dirty()
+void tools::SpatialNode::set_world_transform_dirty()
 {
     _world_matrix_dirty = true;
-    for (SpatialNode2D* child : _children)
+    for (SpatialNode* child : _children)
     {
         child->set_world_transform_dirty();
     }
 }
 
-void tools::SpatialNode2D::update_world_matrix()
+void tools::SpatialNode::update_world_matrix()
 {
     if ( !_world_matrix_dirty )
         return;
@@ -71,12 +71,12 @@ void tools::SpatialNode2D::update_world_matrix()
     _world_matrix_dirty = false;
 }
 
-tools::Vec2 tools::SpatialNode2D::position() const
+tools::Vec2 tools::SpatialNode::position() const
 {
     return _transform.position();
 }
 
-tools::Vec2 tools::SpatialNode2D::position(Space space) const
+tools::Vec2 tools::SpatialNode::position(Space space) const
 {
     switch ( space )
     {
@@ -98,10 +98,12 @@ tools::Vec2 tools::SpatialNode2D::position(Space space) const
     }
 }
 
-bool tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child, SpatialNodeFlags flags)
+bool tools::SpatialNode::add_child(tools::SpatialNode* new_child, SpatialNodeFlags flags)
 {
     ASSERT( new_child != nullptr );
-    ASSERT( new_child->parent() == nullptr );
+    VERIFY( new_child->parent() == nullptr, "Child already has a parent, remove it first from parent" );
+    VERIFY( new_child != this, "Adding itself as primary_child" );
+
     auto [it, inserted] = this->_children.insert(new_child);
 
     if ( !inserted )
@@ -120,7 +122,7 @@ bool tools::SpatialNode2D::add_child(tools::SpatialNode2D* new_child, SpatialNod
     return true;
 }
 
-bool tools::SpatialNode2D::remove_child(tools::SpatialNode2D* child, SpatialNodeFlags flags)
+bool tools::SpatialNode::remove_child(tools::SpatialNode* child, SpatialNodeFlags flags)
 {
     ASSERT(child);
     if (child->_parent == nullptr )
@@ -143,7 +145,7 @@ bool tools::SpatialNode2D::remove_child(tools::SpatialNode2D* child, SpatialNode
     return true;
 }
 
-void tools::SpatialNode2D::translate(const tools::Vec2& delta)
+void tools::SpatialNode::translate(const tools::Vec2& delta)
 {
     // Since Transform2D cannot be rotated yet, we can apply the translation in parent space
     _transform.set_position( _transform.position() + delta );

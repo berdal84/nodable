@@ -1,5 +1,5 @@
 #pragma once
-#include "tools/core/Entity.h"
+#include "tools/core/ComponentsOf.h"
 #include "ASTNode.h"
 #include "ASTNodeSlot.h"
 #include "ASTScope.h"
@@ -32,7 +32,7 @@ namespace ndbl
     {
         if( ASTNode* adjacent_node = adjacent_node_at(_node, _flags, _pos) )
         {
-            return adjacent_node->entity()->get<ComponentT>();
+            return adjacent_node->components()->get<ComponentT>();
         }
         return {};
     }
@@ -41,14 +41,10 @@ namespace ndbl
     static std::vector<ComponentT*> ASTUtils::adjacent_components(const ASTNode* _node, SlotFlags _flags)
     {
         std::vector<ComponentT*> result;
-        auto adjacent_nodes = get_adjacent_nodes( _node, _flags );
-        for(auto adjacent_node : adjacent_nodes )
-        {
-            if( ComponentT* component = adjacent_node->entity()->get<ComponentT>() )
-            {
+        for(auto _adjacent_node : get_adjacent_nodes( _node, _flags ) )
+            if( ComponentT* component = _adjacent_node->components()->get<ComponentT>() )
                 result.push_back( component );
-            }
-        }
+
         return result;
     }
 }

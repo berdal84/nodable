@@ -11,7 +11,7 @@
 #include "FileView.h"
 #include "History.h"
 #include "ASTNodeView.h"
-#include "Physics.h"
+#include "PhysicsComponent.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -24,6 +24,18 @@ File::File()
 {
     LOG_VERBOSE( "File", "Constructor being called ...\n");
 
+    // Graph
+    _graph           = new Graph(get_node_factory());
+    auto* graph_view = _graph->components()->create<GraphView>();
+
+    CONNECT(_graph->changed     , &File::set_text_dirty, this);
+    CONNECT(graph_view->on_change , &File::set_text_dirty, this);
+
+    // Fill the "create node" context menu
+    for( IAction* action : get_action_manager()->get_actions() )
+        if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
+            graph_view->add_action_to_node_menu(create_node_action);
+
     // FileView
     view.init(*this);
     CONNECT(view.on_text_view_changed , &File::set_graph_dirty, this);
@@ -35,21 +47,6 @@ File::File()
     TextEditor*       text_editor     = view.get_text_editor();
     TextEditorBuffer* text_editor_buf = history.configure_text_editor_undo_buffer(text_editor);
     view.set_undo_buffer(text_editor_buf);
-
-    LOG_VERBOSE( "File", "History built, creating graph ...\n");
-
-    // Graph
-    _graph = new Graph(get_node_factory());
-    auto* graph_view = new GraphView(_graph);
-    _graph->set_view(graph_view);
-    CONNECT(_graph->on_change     , &File::set_text_dirty, this);
-    CONNECT(graph_view->on_change , &File::set_text_dirty, this);
-
-    // Fill the "create node" context menu
-    for( IAction* action : get_action_manager()->get_actions() )
-        if ( auto create_node_action = dynamic_cast<Action_CreateNode*>(action))
-            _graph->view()->add_action_to_node_menu(create_node_action);
-
     LOG_VERBOSE( "File", "Constructor being called.\n");
 }
 
@@ -57,19 +54,17 @@ File::~File()
 {
     DISCONNECT(view.on_text_view_changed   , this);
     DISCONNECT(view.on_graph_view_changed  , this);
-    DISCONNECT(_graph->on_change           , this);
-    DISCONNECT(_graph->view()->on_change   , this);
+    DISCONNECT(_graph->changed           , this);
 
-    delete _graph->view();
     delete _graph;
 }
 
 void File::_update_text_from_graph()
 {
-    if ( _graph->root() )
+    if ( auto* root_node = _graph->root_node() )
     {
         std::string code;
-        get_language()->serialize_node(code, _graph->root().get(), SerializeFlag_RECURSE);
+        get_language()->serialize_node(code, root_node, SerializeFlag_RECURSE);
         view.set_text(code, _isolation );
     }
     else

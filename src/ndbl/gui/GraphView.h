@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-#include "tools/core/Component.h"  // base class
+#include "tools/core/ComponentFor.h"  // base class
 #include "tools/core/reflection/reflection"
 #include "tools/core/Variant.h"
 #include "tools/core/UniqueVariantList.h"
@@ -16,11 +16,11 @@
 
 #include "Action.h"
 #include "ASTNodeView.h"
-#include "SlotView.h"
+#include "ASTNodeSlotView.h"
 #include "types.h"
 #include "tools/core/StateMachine.h"
-#include "CreateNodeCtxMenu.h"
-#include "ScopeView.h"
+#include "ASTNodeViewContextualMenu.h"
+#include "ASTScopeView.h"
 
 namespace ndbl
 {
@@ -31,24 +31,22 @@ namespace ndbl
 
     struct EdgeView
     {
-        SlotView* tail = nullptr;
-        SlotView* head = nullptr;
+        ASTNodeSlotView* tail = nullptr;
+        ASTNodeSlotView* head = nullptr;
         bool operator==(const EdgeView& other) const // required to compare tools::Variant<..., EdgeView>
         { return tail == other.tail && head == other.head; }
     };
 
-    using Selectable = tools::Variant<ASTNodeView*, ScopeView*, SlotView*, EdgeView> ;
+    using Selectable = tools::Variant<ASTNodeView*, ASTScopeView*, ASTNodeSlotView*, EdgeView> ;
     using Selection  = tools::UniqueVariantList<Selectable> ;
 
-    class GraphView
+    class GraphView : public tools::ComponentFor<Graph>
     {
     public:
-        DECLARE_REFLECT
+        DECLARE_REFLECT_override
 
-        typedef tools::StateMachine    StateMachine;
-
-	    explicit GraphView(Graph* graph);
-		~GraphView();
+	    GraphView();
+		~GraphView() override;
 
         SIGNAL(on_change);
 
@@ -61,28 +59,29 @@ namespace ndbl
         Selection&             selection() { return _m_selection; }
         const Selection&       selection() const { return _m_selection; }
         void                   reset_all_properties();
-        Graph*                 graph() const;
+        Graph*                 graph() const { return m_entity; } // alias for entity
         void                   add_child(ASTNodeView*);
-        void                   _on_add_node(ASTNode* node);
 
-        static void            draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
+        static void            draw_wire_from_slot_to_pos(ASTNodeSlotView *from, const Vec2 &end_pos);
     private:
-        CreateNodeCtxMenu      _m_create_node_menu;
+        ASTNodeViewContextualMenu      _m_create_node_menu;
         Selectable             _m_hovered;
         Selectable             _m_focused;
         Selection              _m_selection;
-        tools::ViewState       _m_view_state;
-        Graph*                 _m_graph;
+        tools::SpatialNode     _m_spatial_data;
+        tools::BoxShape2D      _m_shape;
         bool                   _m_physics_dirty = false;
 
-        void                   _set_hovered(ScopeView*);
+        void                   _on_set_entity(Graph*);
+        void                   _on_add_node(ASTNode* node);
+        void                   _set_hovered(ASTScopeView*);
         void                   _unfold(); // unfold the graph until it is stabilized
         void                   _update(float dt, u16_t iterations);
         void                   _update(float dt);
         void                   _on_graph_change();
         void                   _on_selection_change(Selection::EventType, Selection::Element );
         void                   _frame_views(const std::vector<ASTNodeView*>&, const Vec2& pivot );
-        void                   _draw_create_node_context_menu(CreateNodeCtxMenu&, SlotView* dragged_slotview = nullptr );
+        void                   _draw_create_node_context_menu(ASTNodeViewContextualMenu&, ASTNodeSlotView* dragged_slotview = nullptr );
         void                   _create_constraints__align_top_recursively(const std::vector<ASTNode*>& follower, ndbl::ASTNode *leader);
         void                   _create_constraints__align_down(ASTNode* follower, const std::vector<ASTNode*>& leader);
         void                   _create_constraints(ASTScope *scope);

@@ -23,7 +23,7 @@
 #include "GraphView.h"
 #include "NodableView.h"
 #include "ASTNodeView.h"
-#include "SlotView.h"
+#include "ASTNodeSlotView.h"
 #include "ndbl/core/ASTUtils.h"
 
 using namespace ndbl;
@@ -72,7 +72,7 @@ void Nodable::update()
     // Nodable events
     IEvent*       event = nullptr;
     EventManager* event_manager     = get_event_manager();
-    GraphView*    graph_view        = m_current_file ? m_current_file->graph().view() : nullptr; // TODO: should be included in the event
+    GraphView*    graph_view        = m_current_file ? m_current_file->graph()->components()->get<GraphView>() : nullptr; // TODO: should be included in the event
     History*      curr_file_history = m_current_file ? &m_current_file->history : nullptr; // TODO: should be included in the event
     while( (event = event_manager->poll_event()) )
     {
@@ -202,9 +202,9 @@ void Nodable::update()
                     for(const Selectable& elem : graph_view->selection() )
                     {
                         if ( auto nodeview = elem.get_if<ASTNodeView*>() )
-                            graph_view->graph()->destroy_next_frame(nodeview->entity()->get<ASTNode>() );
-                        else if ( auto scopeview = elem.get_if<ScopeView*>() )
-                            graph_view->graph()->destroy_next_frame( scopeview->scope() );
+                            graph_view->graph()->flag_node_to_delete(nodeview->entity(), GraphFlag_NONE);
+                        else if ( auto scopeview = elem.get_if<ASTScopeView*>() )
+                            graph_view->graph()->flag_scope_to_delete(scopeview->scope());
                     }
                 }
 
@@ -222,8 +222,8 @@ void Nodable::update()
                             case Selectable::index_of<ASTNodeView*>():
                                 elem.get<ASTNodeView*>()->arrange_recursively();
                                 break;
-                            case Selectable::index_of<ScopeView*>():
-                                elem.get<ScopeView*>()->arrange_content();
+                            case Selectable::index_of<ASTScopeView*>():
+                                elem.get<ASTScopeView*>()->arrange_content();
                                 break;
                         }
                     }
@@ -238,8 +238,8 @@ void Nodable::update()
                 {
                     graph_view->selection().clear();
                     for(auto* _view : graph_view->selection().collect<ASTNodeView*>() )
-                        for (auto* _successor : _view->entity()->get<ASTNode>()->flow_outputs() )
-                            if (auto* _successor_view = _successor->entity()->get<ASTNodeView>() )
+                        for (auto* _successor : _view->entity()->components()->get<ASTNode>()->flow_outputs() )
+                            if (auto* _successor_view = _successor->components()->get<ASTNodeView>() )
                                 graph_view->selection().append( _successor_view );
                 }
                 break;
@@ -314,13 +314,15 @@ void Nodable::update()
                 Graph* graph = _event->data.graph;
 
                 // 1) create the node
-                if ( !graph->root() )
+                if ( !graph->root_node() )
                 {
-                    LOG_ERROR("Nodable", "Unable to create_new child, no root found on this graph.\n");
+                    LOG_ERROR("Nodable", "Unable to create_new primary_child, no root found on this graph.\n");
                     continue;
                 }
 
-                ASTNode* new_node  = graph->create_node(_event->data.node_type, _event->data.node_signature );
+                ASTNode* new_node  = graph->create_node( _event->data.node_type,
+                                                         _event->data.node_signature,
+                                                         graph->root_scope() );
 
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )
@@ -329,7 +331,7 @@ void Nodable::update()
                     case CreateNodeType_BLOCK_FOR_LOOP:
                     case CreateNodeType_BLOCK_WHILE_LOOP:
                     case CreateNodeType_BLOCK_SCOPE:
-                    case CreateNodeType_BLOCK_ENTRY_POINT:
+                    case CreateNodeType_ROOT:
                         new_node->set_suffix(ASTToken::s_end_of_line );
                         break;
                     case CreateNodeType_VARIABLE_BOOLEAN:
@@ -347,29 +349,18 @@ void Nodable::update()
                 }
 
                 // 2) handle connections
-                SlotView* slot_view = _event->data.active_slotview;
-                if ( !slot_view)
-                {
-                    // Experimental: we try to connect a parent-less child
-                    if ( !graph->is_root( new_node ) && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
-                    {
-                        ASTScope* root_scope = graph->root()->internal_scope();
-                        VERIFY( root_scope != nullptr, "inner main_scope is expected on a root child");
-                        root_scope->push_back(new_node);
-                    }
-                }
-                else
+                if ( ASTNodeSlotView* slot_view = _event->data.active_slotview )
                 {
                     SlotFlags             complementary_flags = switch_order(slot_view->slot->type_and_order());
                     const TypeDescriptor* type                = slot_view->property()->get_type();
                     ASTNodeSlot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
 
-                    if ( complementary_slot )
+                    if ( !complementary_slot )
                     {
                         // TODO: this case should not happens, instead we should check ahead of time whether or not this not can be attached
-                        LOG_ERROR( "GraphView", "unable to connect this child" );
+                        LOG_ERROR( "GraphView", "unable to connect this primary_child" );
                     }
-                    if ( complementary_slot )
+                    else
                     {
                         ASTNodeSlot* out = slot_view->slot;
                         ASTNodeSlot* in  = complementary_slot;
@@ -377,7 +368,7 @@ void Nodable::update()
                         if ( out->has_flags( SlotFlag_ORDER_2ND ) )
                             std::swap( out, in );
 
-                        graph->connect(out, in, ConnectFlag_ALLOW_SIDE_EFFECTS );
+                        graph->connect(out, in, GraphFlag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
                         if (ASTUtils::is_instruction(out->node ) && out->type() == SlotFlag_TYPE_FLOW )
@@ -391,11 +382,11 @@ void Nodable::update()
                 }
 
                 // set new_node's view position, select it
-                if ( auto view = new_node->entity()->get<ASTNodeView>() )
+                if ( auto view = new_node->components()->get<ASTNodeView>() )
                 {
-                    view->spatial_node().set_position(_event->data.desired_screen_pos, WORLD_SPACE);
-                    graph->view()->selection().clear();
-                    graph->view()->selection().append(view);
+                    view->spatial_node()->set_position(_event->data.desired_screen_pos, WORLD_SPACE);
+                    graph_view->selection().clear();
+                    graph_view->selection().append(view);
                 }
                 break;
             }
@@ -517,7 +508,7 @@ bool Nodable::compile_and_load_program() const
     }
 
     Compiler compiler{};
-    auto asm_code = compiler.compile_syntax_tree(&m_current_file->graph());
+    auto asm_code = compiler.compile_syntax_tree( m_current_file->graph() );
     if (!asm_code)
     {
         return false;
@@ -547,7 +538,7 @@ void Nodable::debug_program()
 void Nodable::step_over_program()
 {
     m_interpreter->debug_step_over();
-    GraphView* graph_view = m_current_file->graph().view();
+    GraphView* graph_view = m_current_file->graph()->components()->get<GraphView>();
 
     if (!m_interpreter->is_there_a_next_instr() )
     {
@@ -560,7 +551,7 @@ void Nodable::step_over_program()
         return;
 
     graph_view->selection().clear();
-    graph_view->selection().append(next_node->entity()->get<ASTNodeView>() );
+    graph_view->selection().append(next_node->components()->get<ASTNodeView>() );
 }
 
 void Nodable::stop_program()

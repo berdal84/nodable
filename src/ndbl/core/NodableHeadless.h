@@ -32,7 +32,7 @@ namespace ndbl
         bool                run_program() const;
         bool                release_program();
         Nodlang*            get_language() const;
-        Graph*              get_graph() const;
+        Graph*              graph() const;
         tools::qword        get_last_result() const;
         const std::string&  get_source_code() const;
 

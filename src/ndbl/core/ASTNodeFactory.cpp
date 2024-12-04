@@ -25,96 +25,89 @@ ASTNodeFactory::ASTNodeFactory()
 , m_post_process_is_overrided(false)
 {}
 
-template<typename T, typename ...Args >
-T* create(Args... args)
-{
-    auto* entity = new Entity();
-    return entity->emplace<T>(args...);
-}
-
 ASTVariable* ASTNodeFactory::create_variable(const TypeDescriptor* _type, const std::string& _name) const
 {
     // create
-    auto node = create<ASTVariable>();
-    node->init(_type, _name.c_str());
-    m_post_process(node);
+    auto ast_node = new ASTVariable();
+    ast_node->init(_type, _name.c_str());
+    m_post_process(ast_node);
 
-    return node;
+    return ast_node;
 }
 
 ASTVariableRef* ASTNodeFactory::create_variable_ref() const
 {
-    auto node = create<ASTVariableRef>();
-    node->init();
-    m_post_process(node);
-    return node;
+    auto  ast_node = new ASTVariableRef();
+    ast_node->init();
+    m_post_process(ast_node);
+    return ast_node;
 }
 
 ASTFunctionCall* ASTNodeFactory::create_function(const FunctionDescriptor& _func_type, ASTNodeType _node_type) const
 {
-    auto* node = create<ASTFunctionCall>();
+    auto* ast_node = new ASTFunctionCall();
     ASSERT(_node_type == ASTNodeType_OPERATOR || _node_type == ASTNodeType_FUNCTION );
-    node->init(_node_type, _func_type);
-    m_post_process(node);
-    return node;
+    ast_node->init(_node_type, _func_type);
+    m_post_process(ast_node);
+    return ast_node;
 }
 
 ASTIf* ASTNodeFactory::create_cond_struct() const
 {
-    auto* node = create<ASTIf>();
-    node->init("If");
+    auto* ast_node = new ASTIf();
+    ast_node->init("If");
 
-    m_post_process(node);
+    m_post_process(ast_node);
 
-    return node;
+    return ast_node;
 }
 
 ASTForLoop* ASTNodeFactory::create_for_loop() const
 {
-    auto node = create<ASTForLoop>();
-    node->init("For");
+    auto* ast_node = new ASTForLoop();
+    ast_node->init("For");
 
-    m_post_process(node);
+    m_post_process(ast_node);
 
-    return node;
+    return ast_node;
 }
 
 ASTWhileLoop* ASTNodeFactory::create_while_loop() const
 {
-    auto node = create<ASTWhileLoop>();
-    node->init("While");
+    auto* ast_node = new ASTWhileLoop();
+    ast_node->init("While");
 
-    m_post_process(node);
+    m_post_process(ast_node);
 
-    return node;
+    return ast_node;
 }
 
 ASTNode* ASTNodeFactory::create_entry_point() const
 {
-    ASTNode* node = create<ASTNode>();
-    node->init(ASTNodeType_ENTRY_POINT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
-    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
-    node->init_internal_scope();
-    m_post_process(node);
-    return node;
+    auto* ast_node = new ASTNode();
+    ast_node->init(ASTNodeType_ENTRY_POINT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
+    ast_node->init_internal_scope();
+    m_post_process(ast_node);
+    return ast_node;
 }
 
 ASTNode* ASTNodeFactory::create_node() const
 {
-    ASTNode* node = create<ASTNode>();
-    node->init(ASTNodeType_DEFAULT, "");
-    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
-    node->add_slot(node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
-    m_post_process(node);
-    return node;
+    auto* ast_node = new ASTNode();
+    ast_node->init(ASTNodeType_DEFAULT, "");
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
+    m_post_process(ast_node);
+    return ast_node;
 }
 
 ASTLiteral* ASTNodeFactory::create_literal(const TypeDescriptor *_type) const
 {
-    auto node = create<ASTLiteral>();
-    node->init(_type, "Literal");
-    m_post_process(node);
-    return node;
+    auto* ast_node = new ASTLiteral();
+    ast_node->init(_type, "Literal");
+    m_post_process(ast_node);
+    return ast_node;
 }
 
 void ASTNodeFactory::override_post_process_fct(ASTNodeFactory::PostProcessFct _function)
@@ -124,21 +117,21 @@ void ASTNodeFactory::override_post_process_fct(ASTNodeFactory::PostProcessFct _f
     m_post_process              = std::move(_function);
 }
 
-ASTNode *ASTNodeFactory::create_empty_instruction()const
+ASTNode* ASTNodeFactory::create_empty_instruction()const
 {
-    ASTNode* node = create<ASTNode>();
-    node->init(ASTNodeType_EMPTY_INSTRUCTION, ";");
+    auto* ast_node = new ASTNode();
+    ast_node->init(ASTNodeType_EMPTY_INSTRUCTION, ";");
 
     // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
-    node->value()->set_token({ASTToken_t::ignore});
+    ast_node->value()->set_token({ASTToken_t::ignore});
 
-    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
-    node->add_slot(node->value(), SlotFlag_FLOW_IN , ASTNodeSlot::MAX_CAPACITY);
-    node->add_slot(node->value(), SlotFlag_OUTPUT  , 1);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN , ASTNodeSlot::MAX_CAPACITY);
+    ast_node->add_slot(ast_node->value(), SlotFlag_OUTPUT  , 1);
 
-    m_post_process(node);
+    m_post_process(ast_node);
 
-    return node;
+    return ast_node;
 }
 
 ASTNodeFactory* ndbl::get_node_factory()

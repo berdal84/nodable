@@ -9,13 +9,15 @@
 #include "ndbl/core/ASTLiteral.h"
 
 #include "Config.h"
-#include "Physics.h"
-#include "PropertyView.h"
+#include "PhysicsComponent.h"
+#include "ASTNodePropertyView.h"
 #include "GraphView.h"
-#include "SlotView.h"
+#include "ASTNodeSlotView.h"
 #include "tools/gui/Config.h"
 #include "ndbl/core/Interpreter.h"
 #include "tools/core/math.h"
+#include "SpatialNodeComponent.h"
+#include "BoxShapeComponent.h"
 
 #ifdef NDBL_DEBUG
 #define DEBUG_DRAW 0
@@ -26,15 +28,17 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(ASTNodeView).extends<Component>();
+    DEFINE_REFLECT(ASTNodeView).extends<ComponentFor<ASTNode>>();
 )
 
 constexpr Vec4 DEFAULT_COLOR = Vec4(1.f, 0.f, 0.f);
 #define PIXEL_PERFECT true // round positions for drawing only
 
-ASTNodeView::ASTNodeView()
-    : Component()
-    , m_node()
+ASTNodeView::ASTNodeView(
+    tools::BoxShape2D*  shape
+    )
+    : ComponentFor<ASTNode>("View")
+    , m_node(nullptr)
     , m_colors({&DEFAULT_COLOR})
     , m_opacity(1.0f)
     , m_expanded(true)
@@ -42,16 +46,21 @@ ASTNodeView::ASTNodeView()
     , m_view_by_property()
     , m_hovered_slotview(nullptr)
     , m_last_clicked_slotview(nullptr)
-    , m_state(10.0f, 35.0f)
+    , m_view_state()
+    , m_shape(shape)
+    , m_spatial_node(shape->spatial_node())
 {
-    CONNECT(Component::on_owner_init, &ASTNodeView::on_owner_init, this );
+    ASSERT(m_spatial_node);
+    ASSERT(m_shape);
+
+    CONNECT(ComponentFor::on_set_entity, &ASTNodeView::on_owner_init, this );
 }
 
 ASTNodeView::~ASTNodeView()
 {
     for(auto& [_, each] : m_view_by_property )
     {
-        spatial_node().remove_child(&each->spatial_node());
+        m_spatial_node->remove_child( each->spatial_node() );
         delete each;
     }
 
@@ -62,7 +71,7 @@ ASTNodeView::~ASTNodeView()
 
     for(auto* each : m_slot_views )
     {
-        spatial_node().remove_child( &each->spatial_node() );
+        m_spatial_node->remove_child( each->spatial_node() );
         delete each;
     }
     m_slot_views.clear();
@@ -131,9 +140,9 @@ std::string ASTNodeView::get_label()
 
 }
 
-void ASTNodeView::on_owner_init(tools::Entity* entity)
+void ASTNodeView::on_owner_init(ASTNode* node)
 {
-    m_node = entity->require<ASTNode>("ASTNodeView needs an ASTNode");
+    m_node = node;
 
     Config* cfg = get_config();
 
@@ -145,7 +154,7 @@ void ASTNodeView::on_owner_init(tools::Entity* entity)
     for (ASTNodeProperty* property : m_node->props() )
     {
         // Create view
-        auto new_view = new PropertyView(property);
+        auto new_view = new ASTNodePropertyView(property);
         add_child( new_view );
 
         switch ( m_node->type() )
@@ -158,7 +167,7 @@ void ASTNodeView::on_owner_init(tools::Entity* entity)
             case ASTNodeType_BLOCK_WHILE_LOOP:
                 // hide THIS property
                 if ( property->has_flags(PropertyFlag_IS_NODE_VALUE) )
-                    new_view->state().set_visible(false);
+                    new_view->state()->set_visible(false);
         }
 
         // Indexing
@@ -221,7 +230,7 @@ void ASTNodeView::on_owner_init(tools::Entity* entity)
         const ShapeType& shape         = shape_per_type.at(slot->type());
         const u8_t       index         = count_per_type[slot->type_and_order()]++;
 
-        auto* view = new SlotView( slot, alignment, shape, index, this->shape() );
+        auto* view = new ASTNodeSlotView(slot, alignment, shape, index, this->shape() );
         add_child( view );
     }
 
@@ -232,9 +241,9 @@ void ASTNodeView::on_owner_init(tools::Entity* entity)
         {
             case SlotFlag_TYPE_VALUE:
             {
-                const PropertyView* property_view = find_property_view( view->property() );
-                if ( property_view != nullptr && property_view->state().visible() )
-                    view->alignment_ref = &property_view->shape();
+                const ASTNodePropertyView* property_view = find_property_view(view->property() );
+                if ( property_view != nullptr && property_view->state()->visible() )
+                    view->alignment_ref = property_view->shape();
             }
         }
     }
@@ -247,7 +256,7 @@ void ASTNodeView::on_owner_init(tools::Entity* entity)
             auto variable = static_cast<ASTVariable*>( m_node );
             if ( ASTNodeSlot* decl_out = variable->decl_out() )
             {
-                if (SlotView *view = decl_out->view)
+                if (ASTNodeSlotView *view = decl_out->view)
                 {
                     view->alignment = LEFT;
                     view->update_direction_from_alignment();
@@ -261,7 +270,7 @@ void ASTNodeView::on_owner_init(tools::Entity* entity)
             auto function = static_cast<ASTFunctionCall*>( m_node );
             if ( ASTNodeSlot* value_out = function->value_out() )
             {
-                if (SlotView *view = value_out->view)
+                if (ASTNodeSlotView *view = value_out->view)
                 {
                     view->direction     = BOTTOM;
                     view->alignment_ref = nullptr;
@@ -282,14 +291,14 @@ void ASTNodeView::arrange_recursively(bool _smoothly)
 {
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
-        if ( !each_input->state().pinned() )
+        if ( !each_input->m_view_state.pinned() )
             if (ASTUtils::is_output_node_in_expression(each_input->m_node, m_node ) )
                 each_input->arrange_recursively();
     }
 
     if (m_node->has_internal_scope() )
-        for ( ASTNode* node : m_node->internal_scope()->child() )
-            if ( ASTNodeView* node_view = node->entity()->get<ASTNodeView>() )
+        for ( ASTNode* node : m_node->internal_scope()->primary_child() )
+            if ( auto * node_view = node->components()->get<ASTNodeView>() )
                     node_view->arrange_recursively();
 
     // Force an update of input nodes with a delta time extra high
@@ -299,7 +308,7 @@ void ASTNodeView::arrange_recursively(bool _smoothly)
         update(float(1000));
     }
 
-    m_state.set_pinned(false);
+    m_view_state.set_pinned(false);
 }
 
 void ASTNodeView::update(float dt)
@@ -307,15 +316,15 @@ void ASTNodeView::update(float dt)
     if(m_opacity != 1.0f)
         tools::clamped_lerp(m_opacity, 1.0f, 10.0f * dt);
 
-    for(SlotView* slot_view  : m_slot_views )
+    for(ASTNodeSlotView* slot_view  : m_slot_views )
         slot_view->update( dt );
 }
 
 bool ASTNodeView::draw()
 {
-    m_state.shape().draw_debug_info();
+    m_shape->draw_debug_info();
 
-    if ( !m_state.visible() )
+    if ( !m_view_state.visible() )
         return false;
 
     if ( !m_node )
@@ -328,7 +337,7 @@ bool ASTNodeView::draw()
     m_last_clicked_slotview = nullptr; // reset every frame
 
     // Draw background slots (rectangles)
-    for( SlotView* slot_view: m_slot_views )
+    for( ASTNodeSlotView* slot_view: m_slot_views )
         if ( slot_view->shape_type == ShapeType_RECTANGLE)
             draw_slot(slot_view);
 
@@ -348,7 +357,7 @@ bool ASTNodeView::draw()
 
 	// Draw the background of the Group
     Vec4 border_color = cfg->ui_node_borderColor;
-    if ( m_state.selected() )
+    if ( m_view_state.selected() )
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
@@ -369,7 +378,7 @@ bool ASTNodeView::draw()
             cfg->ui_node_borderColor,
             cfg->ui_node_shadowColor,
             border_color,
-            m_state.selected(),
+            m_view_state.selected(),
             5.0f,
             border_width );
 
@@ -428,11 +437,11 @@ bool ASTNodeView::draw()
 
         if (m_node->type() == ASTNodeType_FUNCTION )
             if (ASTNodeSlot *slot_out = m_node->value_out())
-                if (SlotView *slot_view_out = slot_out->view)
+                if (ASTNodeSlotView *slot_view_out = slot_out->view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
                     const float y = shape()->pivot(BOTTOM, WORLD_SPACE).y;
-                    slot_view_out->spatial_node().set_position({x, y}, WORLD_SPACE);
+                    slot_view_out->spatial_node()->set_position({x, y}, WORLD_SPACE);
                     slot_view_out->direction = BOTTOM;
                 }
     }
@@ -440,14 +449,14 @@ bool ASTNodeView::draw()
     // Draw the properties depending on node type
     if (m_node->type() != ASTNodeType_OPERATOR )
     {
-        changed |= PropertyView::draw_all(m_view_by_property_type[PropType_IN_STRICTLY], cfg->ui_node_detail);
-        changed |= PropertyView::draw_all(m_view_by_property_type[PropType_INOUT_STRICTLY], cfg->ui_node_detail);
-        changed |= PropertyView::draw_all(m_view_by_property_type[PropType_OUT_STRICTLY], cfg->ui_node_detail);
+        changed |= ASTNodePropertyView::draw_all(m_view_by_property_type[PropType_IN_STRICTLY], cfg->ui_node_detail);
+        changed |= ASTNodePropertyView::draw_all(m_view_by_property_type[PropType_INOUT_STRICTLY], cfg->ui_node_detail);
+        changed |= ASTNodePropertyView::draw_all(m_view_by_property_type[PropType_OUT_STRICTLY], cfg->ui_node_detail);
     }
     else
     {
         size_t i = 0;
-        for( PropertyView* property_view : m_view_by_property_type[PropType_IN] )
+        for( ASTNodePropertyView* property_view : m_view_by_property_type[PropType_IN] )
         {
             ImGui::SameLine();
             changed |= property_view->draw( cfg->ui_node_detail );
@@ -482,7 +491,7 @@ bool ASTNodeView::draw()
     shape()->set_size(Vec2::round(new_size));
 
     // Draw foreground slots (circles)
-    for( SlotView* slot_view: m_slot_views )
+    for( ASTNodeSlotView* slot_view: m_slot_views )
         if ( slot_view->shape_type == ShapeType_CIRCLE)
             draw_slot(slot_view);
 
@@ -493,7 +502,7 @@ bool ASTNodeView::draw()
         m_node->set_flags(ASTNodeFlag_IS_DIRTY );
 
     const bool _hovered = is_rect_hovered || m_hovered_slotview != nullptr;
-    m_state.set_hovered( _hovered );
+    m_view_state.set_hovered(_hovered );
 
 	return changed;
 }
@@ -542,11 +551,10 @@ bool ASTNodeView::is_inside(ASTNodeView* _other, const Rect& _rect, Space _space
 bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advanced)
 {
     bool changed = false;
-    tools::Config* tools_cfg = tools::get_config();
     ASTNode* node = _view->m_node;
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
-    auto draw_labeled_property_view = [&](PropertyView* _property_view) -> bool
+    auto draw_labeled_property_view = [&](ASTNodePropertyView* _property_view) -> bool
     {
         ASTNodeProperty*property = _property_view->get_property();
         // label (<name> (<type>): )
@@ -565,7 +573,7 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
         }
         // input
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        return PropertyView::draw_input(_property_view, !_show_advanced, nullptr);
+        return ASTNodePropertyView::draw_input(_property_view, !_show_advanced, nullptr);
     };
 
     ImGui::Text("Name:       \"%s\"" , node->name().c_str());
@@ -573,7 +581,7 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
 
     // Draw exposed input properties
 
-    auto draw_properties = [&](const char* title, const std::vector<PropertyView*>& views) -> bool
+    auto draw_properties = [&](const char* title, const std::vector<ASTNodePropertyView*>& views) -> bool
     {
         bool changed = false;
         ImGui::Text("%s:", title);
@@ -605,61 +613,40 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
 #ifdef NDBL_DEBUG
 
     ImGui::Separator();
-    ImGui::Text("Other Propertie(s) (%zu)", node->entity()->components().size() );
-    ImGui::Separator();
     changed |= draw_labeled_property_view( _view->m_value_view );
     ImGui::Separator();
 
     ImGui::Separator();
-    ImGui::Text("Component(s) (%zu)", node->entity()->components().size() );
+    ImGui::Text("Component(s) (%zu)", node->components()->size() );
     ImGui::Separator();
-    for ( Component* component : node->entity()->components() )
+    for (ComponentFor<ASTNode>* component : *node->components() )
     {
-        ImGui::PushID( component );
-        const char* name = component->get_class()->name();
-        if( ImGui::TreeNode( name ) )
+        if( ImGui::TreeNode(component, "Component %s", component->name().c_str() ) )
         {
-            if (component->get_class() == type::get<Physics>())
+            if ( component != *node->components()->begin() )
+                ImGui::Separator();
+
+            if ( component->get_class() == type::get<PhysicsComponent>())
             {
-                Physics *physics_component = static_cast<Physics *>( component );
+                auto* physics_component = reinterpret_cast<PhysicsComponent*>( component );
+
                 ImGui::Checkbox("On/Off", &physics_component->is_active());
 
                 for (ViewConstraint& constraint: physics_component->constraints())
                 {
-                    ImGui::PushID(&constraint);
-                    if (ImGui::TreeNode(constraint.name) )
+                    if (ImGui::TreeNode(&constraint, "%s", constraint.name) )
                     {
                         ImGui::Checkbox("enabled", &constraint.enabled);
                         ImGui::TreePop();
                     }
-                    ImGui::PopID();
                 }
             }
             else if (component->get_class() == type::get<ASTScope>())
             {
-                ASTScope *scope = static_cast<ASTScope *>( component );
-                if (ImGui::TreeNode("Node(s)"))
-                {
-                    for (ASTNode *child: scope->child())
-                    {
-                        ImGui::BulletText("%s (class %s)", child->name().c_str(), child->get_class()->name());
-                    }
-                    ImGui::TreePop();
-                }
-
-                if (ImGui::TreeNode("VariableNode(s)"))
-                {
-                    for (ASTVariable *variable: scope->variable())
-                    {
-                        std::string value = variable->value()->token().word_to_string();
-                        ImGui::BulletText("%s (value: %s)", variable->name().c_str(), value.c_str());
-                    }
-                    ImGui::TreePop();
-                }
+                ASTScopeView::ImGuiTreeNode_ASTScope("ASTScope", static_cast<ASTScope *>( component ));
             }
             ImGui::TreePop();
         }
-        ImGui::PopID();
     }
     ImGui::Separator();
 
@@ -703,12 +690,14 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
             if (scope)
             {
                 string128 label;
-                auto* _node = scope->entity()->get<ASTNode>();
+                ASTNode* _node = scope->entity();
                 label.append_fmt("%s %p (%s %p)", scope->name().c_str(), scope, _node->name().c_str(), _node);
                 if ( ImGui::Button(label.c_str()) )
                 {
-                    node->graph()->view()->selection().clear();
-                    node->graph()->view()->selection().append(_node->entity()->get<ASTNodeView>() );
+                    GraphView* graph_view = node->graph()->components()->get<GraphView>();
+                    ASSERT(graph_view);
+                    graph_view->selection().clear();
+                    graph_view->selection().append(_node->components()->get<ASTNodeView>() );
                 }
             }
             else
@@ -769,14 +758,14 @@ void ASTNodeView::constraint_to_rect(ASTNodeView* _view, const Rect& _rect)
 			 if ( up > 0 )  view_rect.translate_y(up );
 		else if ( down < 0 )view_rect.translate_y(down );
 
-        _view->spatial_node().set_position(view_rect.center(), PARENT_SPACE);
+        _view->m_spatial_node->set_position(view_rect.center(), PARENT_SPACE);
 	}
 
 }
 
 Rect ASTNodeView::get_rect(Space space) const
 {
-    return m_state.shape().rect(space);
+    return m_shape->rect(space);
 }
 
 Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
@@ -786,21 +775,21 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 
     std::vector<Rect> rects;
 
-    if ( m_state.visible() )
+    if ( m_view_state.visible() )
         rects.push_back( this->get_rect(space) );
 
     auto visit = [&](ASTNode* node)
     {
-        auto* view = node->entity()->get<ASTNodeView>();
+        auto* view = node->components()->get<ASTNodeView>();
         if( !view )
             return;
-        if( !view->m_state.visible() )
+        if( !view->m_view_state.visible() )
             return;
-        if(view->m_state.selected() && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
+        if( view->m_view_state.selected() && (flags & NodeViewFlag_EXCLUDE_UNSELECTED) )
             return;
-        if( view->m_state.pinned() && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
+        if( view->m_view_state.pinned() && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
-        if(ASTUtils::is_output_node_in_expression(view->m_node, this->node()) )
+        if( ASTUtils::is_output_node_in_expression(view->m_node, this->node()) )
         {
             Rect rect = view->get_rect_ex(space, flags);
             rects.push_back( rect );
@@ -808,7 +797,7 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
     };
 
     if (m_node->has_internal_scope() )
-        for (ASTNode* node : m_node->internal_scope()->child() )
+        for (ASTNode* node : m_node->internal_scope()->primary_child() )
             visit(node);
 
     for (ASTNode* node : m_node->inputs() )
@@ -863,9 +852,9 @@ void ASTNodeView::set_expanded_rec(bool _expanded)
     if ( !m_node->has_internal_scope() )
         return;
 
-    for(ASTNode* child : m_node->internal_scope()->child() )
+    for(ASTNode* _child_node : m_node->internal_scope()->primary_child() )
     {
-        child->entity()->get<ASTNodeView>()->set_expanded_rec(_expanded);
+        _child_node->components()->get<ASTNodeView>()->set_expanded_rec(_expanded);
     }
 }
 
@@ -889,12 +878,13 @@ void ASTNodeView::set_children_visible(bool visible, bool recursively)
     std::set<ASTScope*> scopes;
     ASTScope::get_descendent(scopes, m_node->internal_scope(), 1 );
 
-    for(ASTScope* scope : scopes)
+    for(ASTScope* _scope : scopes)
     {
-        for (ASTNode* child: scope->child())
+        for (ASTNode* _child_node: _scope->primary_child())
         {
-            auto* child_view = child->entity()->get<ASTNodeView>();
-            child_view->m_state.set_visible( visible );
+            auto* view = _child_node->components()->get<ASTNodeView>();
+            VERIFY(view, "ASTNodeView is required on this _child_node");
+            view->state()->set_visible(visible );
         }
     }
 }
@@ -912,7 +902,7 @@ void ASTNodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, Node
                 each_child_view->set_children_visible(_visible, true);
                 each_child_view->set_inputs_visible(_visible, true);
             }
-            each_child_view->m_state.set_visible( _visible );
+            each_child_view->m_view_state.set_visible(_visible );
         }
     }
 }
@@ -924,15 +914,15 @@ ASTNodeView* ASTNodeView::substitute_with_parent_if_not_visible(ASTNodeView* _vi
         return _view;
     }
 
-    if( _view->m_state.visible() )
+    if( _view->m_view_state.visible() )
     {
         return _view;
     }
 
     if ( _recursive )
         if( ASTScope* scope = _view->m_node->scope() )
-            if (ASTNodeView* parent_view = scope->entity()->get<ASTNodeView>() )
-                return parent_view->state().visible() ? parent_view
+            if (ASTNodeView* parent_view = scope->entity()->components()->get<ASTNodeView>() )
+                return parent_view->m_view_state.visible() ? parent_view
                                                       : substitute_with_parent_if_not_visible(parent_view, _recursive);
 
     return nullptr;
@@ -971,37 +961,31 @@ Vec4 ASTNodeView::get_color(ColorType _type ) const
      return *color;
 }
 
-GraphView *ASTNodeView::graph_view() const
-{
-    ASSERT(m_node->graph() != nullptr);
-    return m_node->graph()->view();
-}
-
-void ASTNodeView::draw_slot(SlotView* slot_view)
+void ASTNodeView::draw_slot(ASTNodeSlotView* slot_view)
 {
     if( slot_view->draw() )
         m_last_clicked_slotview = slot_view;
 
-    if( slot_view->state().hovered() )
+    if( slot_view->state()->hovered() )
     {
         m_hovered_slotview = slot_view; // last wins
     }
 }
 
-void ASTNodeView::add_child(PropertyView* view)
+void ASTNodeView::add_child(ASTNodePropertyView* view)
 {
-    spatial_node().add_child( &view->spatial_node() );
-    view->spatial_node().set_position({0.f, 0.f}, PARENT_SPACE);
+    m_spatial_node->add_child( view->spatial_node() );
+    view->spatial_node()->set_position({0.f, 0.f}, PARENT_SPACE);
 }
 
-void ASTNodeView::add_child(SlotView* view)
+void ASTNodeView::add_child(ASTNodeSlotView* view)
 {
-    spatial_node().add_child( &view->spatial_node() );
-    view->spatial_node().set_position({0.f, 0.f}, PARENT_SPACE);
+    m_spatial_node->add_child( view->spatial_node() );
+    view->spatial_node()->set_position({0.f, 0.f}, PARENT_SPACE);
     m_slot_views.push_back( view );
 }
 
-PropertyView *ASTNodeView::find_property_view(const ASTNodeProperty* property)
+ASTNodePropertyView *ASTNodeView::find_property_view(const ASTNodeProperty* property)
 {
     auto found = m_view_by_property.find(property );
     if (found != m_view_by_property.end() )

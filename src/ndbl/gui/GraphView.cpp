@@ -18,16 +18,18 @@
 #include "Event.h"
 #include "Nodable.h"
 #include "ASTNodeView.h"
-#include "Physics.h"
-#include "SlotView.h"
-#include "ScopeView.h"
+#include "PhysicsComponent.h"
+#include "ASTNodeSlotView.h"
+#include "ASTScopeView.h"
+#include "SpatialNodeComponent.h"
+#include "BoxShapeComponent.h"
 
 using namespace ndbl;
 using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(GraphView);
+    DEFINE_REFLECT(GraphView).extends<tools::ComponentFor<Graph>>();
 )
 
 // Popup name
@@ -39,11 +41,12 @@ constexpr const char* DRAG_STATE       = "Drag Node Tool";
 constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
 constexpr const char* LINE_STATE       = "Line Tool";
 
-GraphView::GraphView(Graph* graph)
-: _m_graph(graph)
+GraphView::GraphView()
+: ComponentFor<Graph>("View")
 , _m_state_machine(this)
+, _m_spatial_data()
+, _m_shape({100.f, 100.f}, &_m_spatial_data ) // non null area
 {
-    ASSERT(graph != nullptr);
     _m_state_machine.add_state(CURSOR_STATE);
     _m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
     _m_state_machine.set_default_state(CURSOR_STATE);
@@ -66,38 +69,55 @@ GraphView::GraphView(Graph* graph)
 
     _m_state_machine.start();
 
-    CONNECT(graph->on_add    , &GraphView::_on_add_node    , this );
-    CONNECT(graph->on_change , &GraphView::_on_graph_change , this );
-    CONNECT(graph->on_reset  , &GraphView::reset            , this );
     CONNECT(_m_selection.on_change, &GraphView::_on_selection_change, this );
+    CONNECT(on_set_entity         , &GraphView::_on_set_entity      , this);
 }
 
 GraphView::~GraphView()
 {
-    DISCONNECT(_m_graph->on_add    , this);
-    DISCONNECT(_m_graph->on_change , this);
-    DISCONNECT(_m_graph->on_reset  , this);
+    DISCONNECT(graph()->node_added , this);
+    DISCONNECT(graph()->changed    , this);
+    DISCONNECT(graph()->completed  , this);
+}
+
+void GraphView::_on_set_entity(Graph*)
+{
+    CONNECT(graph()->node_added     , &GraphView::_on_add_node    , this );
+    CONNECT(graph()->changed        , &GraphView::_on_graph_change , this );
+    CONNECT(graph()->resetted       , &GraphView::reset            , this );
+    CONNECT(graph()->completed      , &GraphView::reset            , this );
 }
 
 void GraphView::_on_add_node(ASTNode* node)
 {
-    // add NodeView & Physics component
-    node->entity()->emplace<ASTNodeView>();
-    node->entity()->emplace<Physics>();
+    // spatial component
+    auto* _spatial_component = node->components()->create<SpatialNodeComponent>();
+
+    // shape component
+    BoxShape2D shape;
+    shape.set_size({20.f, 35.f});
+    shape.set_spatial_node( _spatial_component->data() );
+    auto* shape_component = node->components()->create<BoxShapeComponent>(shape);
+
+    // view state component
+    node->components()->create<ASTNodeView>( shape_component->data() );
+
+    // physics component
+    node->components()->create<PhysicsComponent>();
 
     // add a ScopeView for the inner scope and any child that is owned by this node too
     if ( node->has_internal_scope() )
     {
         ASTScope*  internal_scope = node->internal_scope();
-        auto*      scope_view     = node->entity()->emplace<ScopeView>();
+        auto*      scope_view     = node->components()->create<ASTScopeView>();
         CONNECT(scope_view->on_hover, &GraphView::_set_hovered, this);
-        scope_view->init( internal_scope );
+        scope_view->init( internal_scope, _spatial_component->data() );
 
         for ( ASTScope* sub_scope : internal_scope->partition() )
         {
-            auto* sub_scope_view = node->entity()->emplace<ScopeView>();
+            auto* sub_scope_view = node->components()->create<ASTScopeView>();
             CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered, this );
-            sub_scope_view->init(sub_scope );
+            sub_scope_view->init(sub_scope, _spatial_component->data() );
         }
     }
 }
@@ -109,7 +129,7 @@ ImGuiID make_wire_id(const ASTNodeSlot *ptr1, const ASTNodeSlot *ptr2)
     return ImGui::GetID(id.c_str());
 }
 
-void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
+void GraphView::draw_wire_from_slot_to_pos(ASTNodeSlotView *from, const Vec2 &end_pos)
 {
     VERIFY(from != nullptr, "from slot can't be nullptr");
 
@@ -132,7 +152,7 @@ void GraphView::draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos)
     // Draw
 
     ImGuiID id = make_wire_id(from->slot, nullptr);
-    Vec2 start_pos = from->spatial_node().position(WORLD_SPACE);
+    Vec2 start_pos = from->spatial_node()->position(WORLD_SPACE);
 
     BezierCurveSegment2D segment{
             start_pos, start_pos,
@@ -146,15 +166,12 @@ bool GraphView::draw(float dt)
 {
     bool changed = false;
 
-    if ( !_m_view_state.visible() )
-        return false;
-
     // Ensure view state fit with content region
     // (n.b. we could also implement a struct RootViewState wrapping ViewState)
     Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE );
-    _m_view_state.shape().set_size( region.size() );
-    _m_view_state.shape().set_position(region.center()); // children will be relative to the center
-    _m_view_state.shape().draw_debug_info();
+    _m_shape.set_size( region.size() );
+    _m_shape.set_position(region.center()); // children will be relative to the center
+    _m_shape.draw_debug_info();
 
     _m_hovered = {};
 
@@ -171,7 +188,7 @@ bool GraphView::draw(float dt)
 
     for( ASTScope* scope : scopes_to_draw )
     {
-        if (ScopeView* view = scope->view())
+        if (ASTScopeView* view = scope->view())
         {
             view->draw(dt);
         }
@@ -197,9 +214,9 @@ bool GraphView::draw(float dt)
             cfg->ui_codeflow_thickness(),
             0.0f
     };
-    for (ASTNode* each_node: _m_graph->nodes() )
+    for (ASTNode* each_node: graph()->nodes() )
     {
-        ASTNodeView *each_view = ASTNodeView::substitute_with_parent_if_not_visible(each_node->entity()->get<ASTNodeView>() );
+        ASTNodeView *each_view = ASTNodeView::substitute_with_parent_if_not_visible(each_node->components()->get<ASTNodeView>() );
 
         if (!each_view) {
             continue;
@@ -218,22 +235,22 @@ bool GraphView::draw(float dt)
             for (const auto &adjacent_slot: slot->adjacent())
             {
                 ASTNode*     each_successor_node  = adjacent_slot->node;
-                ASTNodeView* possibly_hidden_view = each_successor_node->entity()->get<ASTNodeView>();
+                ASTNodeView* possibly_hidden_view = each_successor_node->components()->get<ASTNodeView>();
                 ASTNodeView* each_successor_view  = ASTNodeView::substitute_with_parent_if_not_visible(possibly_hidden_view);
 
                 if ( each_successor_view == nullptr )
                     continue;
-                if ( !each_view->state().visible() )
+                if ( !each_view->state()->visible() )
                     continue;
-                if ( !each_successor_view->state().visible() )
+                if ( !each_successor_view->state()->visible() )
                     continue;
 
-                SlotView* tail = slot->view;
-                SlotView* head = adjacent_slot->view;
+                ASTNodeSlotView* tail = slot->view;
+                ASTNodeSlotView* head = adjacent_slot->view;
 
                 ImGuiID id = make_wire_id(slot, adjacent_slot);
-                Vec2 tail_pos = tail->spatial_node().position(WORLD_SPACE);
-                Vec2 head_pos = head->spatial_node().position(WORLD_SPACE);
+                Vec2 tail_pos = tail->spatial_node()->position(WORLD_SPACE);
+                Vec2 head_pos = head->spatial_node()->position(WORLD_SPACE);
                 BezierCurveSegment2D segment{
                         tail_pos,
                         tail_pos,
@@ -257,7 +274,7 @@ bool GraphView::draw(float dt)
             cfg->ui_wire_bezier_thickness,
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
-    for (ASTNode* node_out: _m_graph->nodes() )
+    for (ASTNode* node_out: graph()->nodes() )
     {
         for (const ASTNodeSlot* slot_out: node_out->filter_slots(SlotFlag_OUTPUT))
         {
@@ -266,21 +283,21 @@ bool GraphView::draw(float dt)
                 if (slot_in == nullptr)
                     continue;
 
-                auto *node_view_out = slot_out->node->entity()->get<ASTNodeView>();
-                auto *node_view_in  = slot_in->node->entity()->get<ASTNodeView>();
+                auto *node_view_out = slot_out->node->components()->get<ASTNodeView>();
+                auto *node_view_in  = slot_in->node->components()->get<ASTNodeView>();
 
-                if ( !node_view_out->state().visible() )
+                if ( !node_view_out->state()->visible() )
                     continue;
-                if ( !node_view_in->state().visible() )
+                if ( !node_view_in->state()->visible() )
                     continue;
 
                 Vec2 p1, cp1, cp2, p2; // BezierCurveSegment's points
 
-                SlotView* slot_view_out = slot_out->view;
-                SlotView* slot_view_in  = slot_in->view;
+                ASTNodeSlotView* slot_view_out = slot_out->view;
+                ASTNodeSlotView* slot_view_in  = slot_in->view;
 
-                p1 = slot_view_out->spatial_node().position(WORLD_SPACE);
-                p2 = slot_view_in->spatial_node().position(WORLD_SPACE);
+                p1 = slot_view_out->spatial_node()->position(WORLD_SPACE);
+                p2 = slot_view_in->spatial_node()->position(WORLD_SPACE);
 
                 const Vec2  signed_dist = Vec2::distance(p1, p2);
                 const float lensqr_dist = signed_dist.lensqr();
@@ -305,7 +322,7 @@ bool GraphView::draw(float dt)
                 {
                     auto variable = static_cast<ASTVariable*>( node_out );
                     if (slot_out == variable->ref_out() ) // from a reference slot (can't be a declaration link)
-                        if (!node_view_out->state().selected() && !node_view_in->state().selected() )
+                        if (!node_view_out->state()->selected() && !node_view_in->state()->selected() )
                             style.color.w *= 0.25f;
                 }
 
@@ -335,16 +352,16 @@ bool GraphView::draw(float dt)
     // Draw NodeViews
     for (ASTNode* node : graph()->nodes()  )
     {
-        ASTNodeView* nodeview = node->entity()->get<ASTNodeView>();
+        ASTNodeView* nodeview = node->components()->get<ASTNodeView>();
 
         if ( !nodeview)
             continue;
-        if ( !nodeview->state().visible() )
+        if ( !nodeview->state()->visible() )
             continue;
 
         changed |= nodeview->draw();
 
-        if ( nodeview->state().hovered() ) // no check if something else is hovered, last node always win against an edge
+        if ( nodeview->state()->hovered() ) // no check if something else is hovered, last node always win against an edge
         {
             if ( nodeview->m_hovered_slotview != nullptr)
             {
@@ -356,7 +373,7 @@ bool GraphView::draw(float dt)
 
         // VM Cursor (scroll to the next node when VM is debugging)
         if (interpreter->is_debugging())
-            if (interpreter->is_next_node(nodeview->entity()->get<ASTNode>() ))
+            if (interpreter->is_next_node( nodeview->node() ))
                 ImGui::SetScrollHereY();
     }
 
@@ -364,7 +381,7 @@ bool GraphView::draw(float dt)
     if (interpreter->is_program_running())
     {
         const ASTNode* node = interpreter->get_next_node();
-        if (const ASTNodeView* view = node->entity()->get<ASTNodeView>())
+        if (const ASTNodeView* view = node->components()->get<ASTNodeView>())
         {
             Vec2 left = view->get_rect().left();
             Vec2 interpreter_cursor_pos = Vec2::round(left);
@@ -425,9 +442,9 @@ void GraphView::_create_constraints__align_down(ASTNode* follower, const  std::v
 
     std::vector<ASTNodeView*> leader_view;
     for ( ASTNode* _leader : leader )
-        leader_view.push_back(_leader->entity()->get<ASTNodeView>() );
+        leader_view.push_back(_leader->components()->get<ASTNodeView>() );
 
-    ASTNodeView* follower_view = follower->entity()->get<ASTNodeView>();
+    ASTNodeView* follower_view = follower->components()->get<ASTNodeView>();
     ViewConstraint constraint;
     constraint.name           = "Position below previous";
     constraint.rule           = &ViewConstraint::rule_1_to_N_as_row;
@@ -442,7 +459,7 @@ void GraphView::_create_constraints__align_down(ASTNode* follower, const  std::v
     constraint.gap_size      = Size_MD;
     constraint.gap_direction = BOTTOM;
 
-    follower->entity()->get<Physics>()->add_constraint(constraint);
+    follower->components()->get<PhysicsComponent>()->add_constraint(constraint);
 };
 
 void GraphView::_create_constraints__align_top_recursively(const std::vector<ASTNode*>& unfiltered_follower, ndbl::ASTNode* leader )
@@ -451,14 +468,14 @@ void GraphView::_create_constraints__align_top_recursively(const std::vector<AST
         return;
 
     ASSERT(leader);
-    ASTNodeView* leader_view = leader->entity()->get<ASTNodeView>();
+    ASTNodeView* leader_view = leader->components()->get<ASTNodeView>();
     // nodeview's inputs must be aligned on center-top
     // It's a one to many constrain.
     //
     std::vector<ASTNodeView*> follower;
     for (auto* _follower : unfiltered_follower )
         if (ASTUtils::is_output_node_in_expression(_follower, leader))
-            follower.push_back(_follower->entity()->get<ASTNodeView>() );
+            follower.push_back(_follower->components()->get<ASTNodeView>() );
 
     if ( follower.empty() )
         return;
@@ -485,7 +502,7 @@ void GraphView::_create_constraints__align_top_recursively(const std::vector<AST
         constraint.row_direction  = RIGHT;
     }
 
-    leader->entity()->get<Physics>()->add_constraint(constraint);
+    leader->components()->get<PhysicsComponent>()->add_constraint(constraint);
 
     for( ASTNodeView* _leader : follower )
         _create_constraints__align_top_recursively(_leader->node()->inputs(), _leader->node());
@@ -499,11 +516,11 @@ void GraphView::_create_constraints(ASTScope* scope )
         ViewConstraint constraint;
         constraint.name          = "Align ScopeView partitions";
         constraint.rule          = &ViewConstraint::rule_distribute_sub_scope_views;
-        constraint.leader        = {scope->entity()->get<ASTNodeView>()};
+        constraint.leader        = {scope->entity()->components()->get<ASTNodeView>()};
         constraint.leader_pivot  = BOTTOM;
         constraint.gap_size      = Size_XL;
         constraint.gap_direction = BOTTOM;
-        scope->entity()->get<Physics>()->add_constraint(constraint);
+        scope->entity()->components()->get<PhysicsComponent>()->add_constraint(constraint);
     }
 
     for ( ASTScope* sub_scope : scope->partition() )
@@ -511,7 +528,7 @@ void GraphView::_create_constraints(ASTScope* scope )
         _create_constraints(sub_scope);
     }
 
-    for ( ASTNode* child_node : scope->child() )
+    for ( ASTNode* child_node : scope->primary_child() )
     {
         // align child below flow_inputs
         if (child_node != scope->first_child() || scope->is_orphan() )
@@ -529,6 +546,8 @@ void GraphView::_create_constraints(ASTScope* scope )
 
 void GraphView::_update(float dt)
 {
+    ASSERT( graph() );
+
     // Physics Components
     LOG_VERBOSE("GraphView", "Updating constraints ...\n");
 
@@ -537,7 +556,7 @@ void GraphView::_update(float dt)
         // clear all constraints, and THEN create them again
 
         for (ASTNode* node : graph()->nodes())
-            if ( auto* physics = node->entity()->get<Physics>())
+            if ( auto* physics = node->components()->get<PhysicsComponent>())
                 physics->clear_constraints();
 
         for (ASTScope* _scope : graph()->root_scopes() )
@@ -545,24 +564,32 @@ void GraphView::_update(float dt)
 
         for (ASTNode* _node : graph()->nodes() )
             if ( _node->is_orphan() )
-                _create_constraints__align_down(_node, _node->flow_inputs());
+               _create_constraints__align_down(_node, _node->flow_inputs());
 
         _m_physics_dirty = false;
     }
 
     // Apply all constraints, and THEN apply all forces
-    for ( ASTNode* node : graph()->nodes() ) node->entity()->get<Physics>()->apply_constraints(dt);
-    for ( ASTNode* node : graph()->nodes() ) node->entity()->get<Physics>()->apply_forces(dt);
+    // TODO: store PhysicsComponent contiguously, and iterate over all of them.
+    //       this requires to store the components on a per Graph basis.
+    for ( ASTNode* node : graph()->nodes() )
+        if ( auto* view = node->get_component<PhysicsComponent>() )
+            view->apply_constraints(dt);
+    for ( ASTNode* node : graph()->nodes() )
+        if ( auto* view = node->get_component<PhysicsComponent>() )
+            view->add_force(dt);
 
     LOG_VERBOSE("GraphView", "Constraints updated.\n");
 
     // NodeViews
     for (ASTNode* node : graph()->nodes() )
-        node->entity()->get<ASTNodeView>()->update(dt);
+        if ( auto* view = node->components()->get<ASTNodeView>() )
+            view->update(dt);
 
     // ScopeViews
-    for( ASTScope* scope : graph()->root_scopes() )
-        scope->view()->update( dt, ScopeViewFlags_RECURSE );
+    if( ASTNode* root = graph()->root_node() )
+        if ( auto* view = root->get_component<ASTScopeView>())
+            view->update( dt, ScopeViewFlags_RECURSE );
 }
 
 void GraphView::_frame_views(const std::vector<ASTNodeView*>& _views, const Vec2& pivot)
@@ -573,16 +600,16 @@ void GraphView::_frame_views(const std::vector<ASTNodeView*>& _views, const Vec2
         return;
     }
 
-    BoxShape2D views_bbox = ASTNodeView::get_rect(_views, WORLD_SPACE );
-    const Vec2 desired_pivot_pos = _m_view_state.shape().pivot( pivot * 0.95f, WORLD_SPACE); // 5%  margin
+    BoxShape2D views_bbox        = ASTNodeView::get_rect(_views, WORLD_SPACE );
+    const Vec2 desired_pivot_pos = _m_shape.pivot( pivot * 0.95f, WORLD_SPACE); // 5%  margin
     const Vec2 pivot_pos         = views_bbox.pivot(pivot, WORLD_SPACE);
     const Vec2 delta             = desired_pivot_pos - pivot_pos;
 
     // apply the translation
     // TODO: Instead of applying a translation to all views, apply it to all scope views
     for (ASTNode* node : graph()->nodes() )
-        if ( ASTNodeView* view = node->entity()->get<ASTNodeView>() )
-            view->spatial_node().translate( delta );
+        if ( ASTNodeView* view = node->components()->get<ASTNodeView>() )
+            view->spatial_node()->translate( delta );
 }
 
 void GraphView::_unfold()
@@ -608,12 +635,12 @@ void GraphView::frame_nodes(FrameMode mode )
     {
         case FRAME_ALL:
         {
-            if( _m_graph->is_empty() )
+            if( graph()->is_empty() )
                 return;
 
             std::vector<ASTNodeView*> views;
             for(ASTNode* node : graph()->nodes())
-                views.push_back(node->entity()->get<ASTNodeView>() );
+                views.push_back(node->components()->get<ASTNodeView>() );
             _frame_views( views, CENTER );
             break;
         }
@@ -642,14 +669,14 @@ void GraphView::_on_selection_change(Selection::EventType type, Selection::Eleme
 
     switch ( elem.index() )
     {
-        case Selectable::index_of<ScopeView*>():
+        case Selectable::index_of<ASTScopeView*>():
         {
-            elem.get<ScopeView*>()->state().set_selected( selected );
+            elem.get<ASTScopeView*>()->state()->set_selected(selected );
             break;
         }
         case Selectable::index_of<ASTNodeView*>():
         {
-            elem.get<ASTNodeView*>()->state().set_selected(selected );
+            elem.get<ASTNodeView*>()->state()->set_selected(selected );
             break;
         }
         case Selectable::index_of<EdgeView>():
@@ -665,7 +692,7 @@ void GraphView::_on_selection_change(Selection::EventType type, Selection::Eleme
 
 void GraphView::reset()
 {
-    if ( _m_graph->is_empty() )
+    if ( graph()->is_empty() )
         return;
 
     // unfold the graph (does not work great when nodes are rendered for the first time)
@@ -675,8 +702,8 @@ void GraphView::reset()
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
 
     for( ASTNode* node : graph()->nodes() )
-        if ( auto* view = node->entity()->get<ASTNodeView>() )
-            view->spatial_node().translate( far_outside );
+        if ( auto* view = node->components()->get<ASTNodeView>() )
+            view->spatial_node()->translate( far_outside );
 
     // physics
     _m_physics_dirty = true;
@@ -693,18 +720,13 @@ bool GraphView::has_an_active_tool() const
 void GraphView::reset_all_properties()
 {
     for( ASTNode* node : graph()->nodes() )
-        if ( ASTNodeView* v = node->entity()->get<ASTNodeView>() )
+        if ( ASTNodeView* v = node->components()->get<ASTNodeView>() )
             v->reset_all_properties();
-}
-
-Graph *GraphView::graph() const
-{
-    return _m_graph;
 }
 
 //-----------------------------------------------------------------------------
 
-void GraphView::_draw_create_node_context_menu(CreateNodeCtxMenu& menu, SlotView* dragged_slotview)
+void GraphView::_draw_create_node_context_menu(ASTNodeViewContextualMenu& menu, ASTNodeSlotView* dragged_slotview)
 {
     if (Action_CreateNode* triggered_action = menu.draw_search_input( dragged_slotview, 10))
     {
@@ -725,9 +747,9 @@ void GraphView::drag_state_enter()
     for( const Selectable& elem : _m_selection )
     {
         if ( auto* nodeview = elem.get_if<ASTNodeView*>() )
-            nodeview->state().set_pinned();
-        else if ( auto* scopeview = elem.get_if<ScopeView*>() )
-            scopeview->state().set_pinned();
+            nodeview->state()->set_pinned();
+        else if ( auto* scopeview = elem.get_if<ASTScopeView*>() )
+            scopeview->state()->set_pinned();
     }
 }
 
@@ -738,10 +760,17 @@ void GraphView::drag_state_tick()
 
     for ( const Selectable& elem : _m_selection )
     {
+        ASTNode* node = nullptr;
         if ( auto* nodeview = elem.get_if<ASTNodeView*>() )
-            nodeview->spatial_node().translate(delta);
-        else if ( auto* scopeview = elem.get_if<ScopeView*>() )
-            scopeview->translate(delta);
+            node = nodeview->entity();
+        else if ( auto* scopeview = elem.get_if<ASTScopeView*>() )
+            node = scopeview->entity();
+
+        if ( node )
+        {
+            auto* _spatial_component = node->components()->get<SpatialNodeComponent>();
+            _spatial_component->data()->translate(delta);
+        }
     }
 
     if ( ImGui::IsMouseReleased(0) )
@@ -760,8 +789,8 @@ void GraphView::view_pan_state_tick()
 
     Vec2 delta = ImGui::GetMouseDragDelta();
     for( ASTNode* node : graph()->nodes() )
-        if ( auto v = node->entity()->get<ASTNodeView>() )
-            v->spatial_node().translate(delta);
+        if ( auto v = node->components()->get<ASTNodeView>() )
+            v->spatial_node()->translate(delta);
 
     ImGui::ResetMouseDragDelta();
 
@@ -786,11 +815,11 @@ void GraphView::cursor_state_tick()
                 break;
             }
 
-            case Selectable::index_of<ScopeView*>():
+            case Selectable::index_of<ASTScopeView*>():
             {
-                auto      scopeview = _m_focused.get<ScopeView*>();
-                ASTNode*     node     = scopeview->scope()->node();
-                ASTNodeView* nodeview = node->entity()->get<ASTNodeView>();
+                auto      scopeview = _m_focused.get<ASTScopeView*>();
+                ASTNode*     node     = scopeview->entity();
+                ASTNodeView* nodeview = node->components()->get<ASTNodeView>();
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {
                     nodeview->expand_toggle_rec();
@@ -798,7 +827,7 @@ void GraphView::cursor_state_tick()
 
                 if ( ImGui::MenuItem("Delete Scope") )
                 {
-                    auto event = new Event_DeleteSelection({scopeview->scope()->node() });
+                    auto event = new Event_DeleteSelection({scopeview->entity()});
                     get_event_manager()->dispatch(event);
                 }
 
@@ -813,12 +842,12 @@ void GraphView::cursor_state_tick()
                     for(ASTScope* child : children)
                     {
                         // Include scope owner's view too
-                        if ( auto* view = child->entity()->get<ASTNodeView>())
+                        if ( auto* view = child->entity()->components()->get<ASTNodeView>())
                             views.push_back( view );
 
                         // and every other child's
-                        for(ASTNode* child_node : child->child())
-                            if ( auto* view = child_node->entity()->get<ASTNodeView>())
+                        for(ASTNode* child_node : child->primary_child())
+                            if ( auto* view = child_node->components()->get<ASTNodeView>())
                                 views.push_back(view);
                     }
                     // Replace selection
@@ -846,12 +875,12 @@ void GraphView::cursor_state_tick()
                 break;
             }
 
-            case Selectable::index_of<SlotView*>():
+            case Selectable::index_of<ASTNodeSlotView*>():
             {
                 if ( ImGui::MenuItem(ICON_FA_TRASH " Disconnect Edges") )
                 {
                     auto* event = new Event_SlotDisconnectAll();
-                    event->data.first = _m_focused.get<SlotView*>()->slot;
+                    event->data.first = _m_focused.get<ASTNodeSlotView*>()->slot;
                     get_event_manager()->dispatch( event );
                 }
 
@@ -871,8 +900,8 @@ void GraphView::cursor_state_tick()
 
                 if ( ImGui::MenuItem(ICON_FA_MAP_PIN " Pin/Unpin Node") )
                 {
-                    const bool pinned = nodeview->state().pinned();
-                    nodeview->state().set_pinned( !pinned );
+                    const bool pinned = nodeview->state()->pinned();
+                    nodeview->state()->set_pinned( !pinned );
                 }
 
                 if ( ImGui::MenuItem(ICON_FA_WINDOW_RESTORE " Arrange Node") )
@@ -893,7 +922,7 @@ void GraphView::cursor_state_tick()
 
     switch ( _m_hovered.index() )
     {
-        case Selectable::index_of<SlotView*>():
+        case Selectable::index_of<ASTNodeSlotView*>():
         {
             if ( ImGui::IsMouseClicked(1) )
             {
@@ -923,7 +952,7 @@ void GraphView::cursor_state_tick()
         }
 
         case Selectable::index_of<ASTNodeView*>():
-        case Selectable::index_of<ScopeView*>():
+        case Selectable::index_of<ASTScopeView*>():
         {
             const bool ctrl_pressed = ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl);
 
@@ -997,15 +1026,15 @@ void GraphView::cursor_state_tick()
 
 void GraphView::line_state_enter()
 {
-    ASSERT( _m_focused.holds_alternative<SlotView*>() );
+    ASSERT( _m_focused.holds_alternative<ASTNodeSlotView*>() );
 }
 
 void GraphView::line_state_tick()
 {
     Vec2 mouse_pos_snapped = Vec2{ImGui::GetMousePos()};
-    if ( auto slotview = _m_hovered.get_if<SlotView*>() )
+    if ( auto slotview = _m_hovered.get_if<ASTNodeSlotView*>() )
     {
-        mouse_pos_snapped = slotview->spatial_node().position(WORLD_SPACE);
+        mouse_pos_snapped = slotview->spatial_node()->position(WORLD_SPACE);
     }
 
     // Contextual menu
@@ -1017,7 +1046,7 @@ void GraphView::line_state_tick()
             _m_create_node_menu.flag_to_be_reset();
 
         if ( _m_hovered.empty() )
-            _draw_create_node_context_menu(_m_create_node_menu, _m_focused.get<SlotView*>() );
+            _draw_create_node_context_menu(_m_create_node_menu, _m_focused.get<ASTNodeSlotView*>() );
 
         if ( ImGui::IsMouseClicked(0) || ImGui::IsMouseClicked(1) )
             _m_state_machine.exit_state();
@@ -1026,13 +1055,13 @@ void GraphView::line_state_tick()
     }
     else if ( ImGui::IsMouseReleased(0) )
     {
-        if ( _m_hovered.holds_alternative<SlotView*>() )
+        if ( _m_hovered.holds_alternative<ASTNodeSlotView*>() )
         {
             if ( _m_focused != _m_hovered )
             {
                 auto event = new Event_SlotDropped();
-                event->data.first  = _m_focused.get<SlotView*>()->slot;
-                event->data.second = _m_hovered.get<SlotView*>()->slot;
+                event->data.first  = _m_focused.get<ASTNodeSlotView*>()->slot;
+                event->data.second = _m_hovered.get<ASTNodeSlotView*>()->slot;
                 get_event_manager()->dispatch(event);
                 _m_state_machine.exit_state();
             }
@@ -1044,7 +1073,7 @@ void GraphView::line_state_tick()
     }
 
     // Draw a temporary wire from focused/dragged slotview to the mouse cursor
-    GraphView::draw_wire_from_slot_to_pos( _m_focused.get<SlotView*>(), mouse_pos_snapped );
+    GraphView::draw_wire_from_slot_to_pos(_m_focused.get<ASTNodeSlotView*>(), mouse_pos_snapped );
 }
 
 void GraphView::line_state_leave()
@@ -1081,7 +1110,7 @@ void GraphView::roi_state_tick()
         // Get the views included in the ROI
         std::set<ASTNodeView*> nodeviews_inside_roi;
         for ( ASTNode* node : graph()->nodes() )
-            if ( auto view = node->entity()->get<ASTNodeView>() )
+            if ( auto view = node->components()->get<ASTNodeView>() )
                 if ( Rect::contains(roi, view->get_rect()) )
                     nodeviews_inside_roi.insert( view );
 
@@ -1097,7 +1126,9 @@ void GraphView::roi_state_tick()
 
 void GraphView::add_child(ASTNodeView* view)
 {
-    _m_view_state.spatial_node().add_child( &view->spatial_node() );
+    SpatialNode* _spatial_node = view->spatial_node();
+    VERIFY(_spatial_node != nullptr, "A SpatialNode is required to add_child");
+    _m_spatial_data.add_child( _spatial_node );
 }
 
 void GraphView::update(float dt)
@@ -1114,13 +1145,13 @@ void GraphView::update(float dt)
         _update(sample_dt);
 }
 
-void GraphView::_set_hovered(ScopeView* scope_view)
+void GraphView::_set_hovered(ASTScopeView* scope_view)
 {
-    if ( !_m_hovered.holds_alternative<ScopeView*>() )
+    if ( !_m_hovered.holds_alternative<ASTScopeView*>() )
         _m_hovered = scope_view;
     else if ( _m_hovered.empty() )
         _m_hovered = scope_view;
-    else if ( scope_view->depth() >= _m_hovered.get<ScopeView*>()->depth() )
+    else if ( scope_view->depth() >= _m_hovered.get<ASTScopeView*>()->depth() )
         _m_hovered = scope_view;
 }
 
