@@ -2,15 +2,15 @@
 
 #include <fstream>
 
-#include "ndbl/core/Utils.h"
-#include "ndbl/core/FunctionNode.h"
-#include "ndbl/core/LiteralNode.h"
+#include "ndbl/core/ASTUtils.h"
+#include "ndbl/core/ASTFunctionCall.h"
+#include "ndbl/core/ASTLiteral.h"
 #include "ndbl/core/language/Nodlang.h"
 
 #include "GraphView.h"
 #include "FileView.h"
 #include "History.h"
-#include "NodeView.h"
+#include "ASTNodeView.h"
 #include "Physics.h"
 
 using namespace ndbl;

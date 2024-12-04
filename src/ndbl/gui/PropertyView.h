@@ -7,11 +7,11 @@
 namespace ndbl
 {
     // forward declarations
-    class Property;
-    class NodeView;
-    class Node;
-    class VariableNode;
-    struct Slot;
+    class ASTNodeProperty;
+    class ASTNodeView;
+    class ASTNode;
+    class ASTVariable;
+    struct ASTNodeSlot;
 
     /**
      * Simple struct to store a get_value view state
@@ -23,14 +23,14 @@ namespace ndbl
         bool        show;
         bool        touched;
 
-        PropertyView(Property*);
+        PropertyView(ASTNodeProperty*);
 
         bool             draw(ViewDetail); // return true when changed
         void             reset();
-        Property*        get_property() const;
-        Node*            get_node() const;
-        Slot*            get_connected_slot() const;
-        VariableNode*    get_connected_variable() const;
+        ASTNodeProperty*        get_property() const;
+        ASTNode*            get_node() const;
+        ASTNodeSlot*            get_connected_slot() const;
+        ASTVariable*    get_connected_variable() const;
         bool             has_input_connected() const;
 
         const tools::ViewState&     state() const { return _state; };
@@ -44,7 +44,7 @@ namespace ndbl
     public:  static bool  draw_input(PropertyView*, bool _compact_mode, const char* _override_label);
     public:  static bool  draw_all(const std::vector<PropertyView*>&, ViewDetail);
     private:
-        Property*        _property;
+        ASTNodeProperty*        _property;
         tools::ViewState _state;
     };
 }

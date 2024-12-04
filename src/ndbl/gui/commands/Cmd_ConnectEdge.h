@@ -1,6 +1,6 @@
 #pragma once
 #include "ndbl/gui/Command.h"
-#include "ndbl/core/Node.h"
+#include "ndbl/core/ASTNode.h"
 #include "ndbl/core/Graph.h"
 
 namespace ndbl
@@ -8,7 +8,7 @@ namespace ndbl
     class Cmd_ConnectEdge : public AbstractCommand
     {
     public:
-        explicit Cmd_ConnectEdge(DirectedEdge _edge)
+        explicit Cmd_ConnectEdge(ASTSlotLink _edge)
         : m_edge(_edge)
         , m_graph(_edge.tail->node->graph()) // deduce graph from edge source' owner
         {
@@ -37,7 +37,7 @@ namespace ndbl
 
     private:
         std::string   m_description;
-        DirectedEdge  m_edge;
+        ASTSlotLink  m_edge;
         Graph*        m_graph;
     };
 }

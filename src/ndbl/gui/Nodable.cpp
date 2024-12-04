@@ -6,12 +6,11 @@
 #include "tools/core/System.h"
 #include "tools/core/EventManager.h"
 
-#include "ndbl/core/FunctionNode.h"
-#include "ndbl/core/LiteralNode.h"
-#include "ndbl/core/Slot.h"
+#include "ndbl/core/ASTFunctionCall.h"
+#include "ndbl/core/ASTLiteral.h"
+#include "ndbl/core/ASTNodeSlot.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/ComponentFactory.h"
 
 #include "commands/Cmd_ConnectEdge.h"
 #include "commands/Cmd_DeleteEdge.h"
@@ -23,9 +22,9 @@
 #include "File.h"
 #include "GraphView.h"
 #include "NodableView.h"
-#include "NodeView.h"
+#include "ASTNodeView.h"
 #include "SlotView.h"
-#include "ndbl/core/Utils.h"
+#include "ndbl/core/ASTUtils.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -40,7 +39,6 @@ void Nodable::init()
     m_language          = init_language();
     m_interpreter       = init_interpreter();
     m_node_factory      = init_node_factory();
-    m_component_factory = init_component_factory();
     m_view->init(this); // must be last
 
     log::set_verbosity("Physics", log::Verbosity_Error );
@@ -203,8 +201,8 @@ void Nodable::update()
                 {
                     for(const Selectable& elem : graph_view->selection() )
                     {
-                        if ( auto nodeview = elem.get_if<NodeView*>() )
-                            graph_view->graph()->destroy_next_frame( nodeview->node() );
+                        if ( auto nodeview = elem.get_if<ASTNodeView*>() )
+                            graph_view->graph()->destroy_next_frame(nodeview->entity()->get<ASTNode>() );
                         else if ( auto scopeview = elem.get_if<ScopeView*>() )
                             graph_view->graph()->destroy_next_frame( scopeview->scope() );
                     }
@@ -221,8 +219,8 @@ void Nodable::update()
                     {
                         switch ( elem.index() )
                         {
-                            case Selectable::index_of<NodeView*>():
-                                elem.get<NodeView*>()->arrange_recursively();
+                            case Selectable::index_of<ASTNodeView*>():
+                                elem.get<ASTNodeView*>()->arrange_recursively();
                                 break;
                             case Selectable::index_of<ScopeView*>():
                                 elem.get<ScopeView*>()->arrange_content();
@@ -236,12 +234,13 @@ void Nodable::update()
 
             case Event_SelectNext::id:
             {
-                if ( graph_view && graph_view->selection().contains<NodeView*>() )
+                if ( graph_view && graph_view->selection().contains<ASTNodeView*>() )
                 {
                     graph_view->selection().clear();
-                    for(NodeView* view : graph_view->selection().collect<NodeView*>() )
-                        for (NodeView* successor : Utils::get_components<NodeView>( view->node()->flow_outputs() ) )
-                            graph_view->selection().append( successor );
+                    for(auto* _view : graph_view->selection().collect<ASTNodeView*>() )
+                        for (auto* _successor : _view->entity()->get<ASTNode>()->flow_outputs() )
+                            if (auto* _successor_view = _successor->entity()->get<ASTNodeView>() )
+                                graph_view->selection().append( _successor_view );
                 }
                 break;
             }
@@ -251,7 +250,7 @@ void Nodable::update()
                 if ( graph_view )
                     break;
 
-                for( NodeView* view : graph_view->selection().collect<NodeView*>() )
+                for( ASTNodeView* view : graph_view->selection().collect<ASTNodeView*>() )
                 {
                     auto _event = reinterpret_cast<Event_ToggleFolding*>(event);
                     _event->data.mode == RECURSIVELY ? view->expand_toggle_rec()
@@ -264,8 +263,8 @@ void Nodable::update()
             {
                 ASSERT(curr_file_history != nullptr);
                 auto _event = reinterpret_cast<Event_SlotDropped*>(event);
-                Slot* tail = _event->data.first;
-                Slot* head = _event->data.second;
+                ASTNodeSlot* tail = _event->data.first;
+                ASTNodeSlot* head = _event->data.second;
                 ASSERT(head != tail);
                 if ( tail->order() == SlotFlag_ORDER_2ND )
                 {
@@ -277,7 +276,7 @@ void Nodable::update()
                     LOG_VERBOSE("Nodable", "Swapping edges to try to connect them\n");
                     std::swap(tail, head);
                 }
-                DirectedEdge edge(tail, head);
+                ASTSlotLink edge(tail, head);
                 auto cmd = std::make_shared<Cmd_ConnectEdge>(edge);
                 curr_file_history->push_command(cmd);
 
@@ -296,13 +295,13 @@ void Nodable::update()
             {
                 ASSERT(curr_file_history != nullptr);
                 auto _event = static_cast<Event_SlotDisconnectAll*>(event);
-                Slot* slot = _event->data.first;
+                ASTNodeSlot* slot = _event->data.first;
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 Graph* graph = _event->data.first->node->graph();
-                for(Slot* adjacent_slot: slot->adjacent() )
+                for(ASTNodeSlot* adjacent_slot: slot->adjacent() )
                 {
-                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(DirectedEdge{slot, adjacent_slot}, graph );
+                    auto each_cmd = std::make_shared<Cmd_DeleteEdge>(ASTSlotLink{slot, adjacent_slot}, graph );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );
                 }
                 curr_file_history->push_command(std::static_pointer_cast<AbstractCommand>(cmd_grp));
@@ -321,7 +320,7 @@ void Nodable::update()
                     continue;
                 }
 
-                Node* new_node  = graph->create_node(_event->data.node_type, _event->data.node_signature );
+                ASTNode* new_node  = graph->create_node(_event->data.node_type, _event->data.node_signature );
 
                 // Insert an end of line and end of instruction
                 switch ( _event->data.node_type )
@@ -331,13 +330,13 @@ void Nodable::update()
                     case CreateNodeType_BLOCK_WHILE_LOOP:
                     case CreateNodeType_BLOCK_SCOPE:
                     case CreateNodeType_BLOCK_ENTRY_POINT:
-                        new_node->set_suffix( Token::s_end_of_line );
+                        new_node->set_suffix(ASTToken::s_end_of_line );
                         break;
                     case CreateNodeType_VARIABLE_BOOLEAN:
                     case CreateNodeType_VARIABLE_DOUBLE:
                     case CreateNodeType_VARIABLE_INTEGER:
                     case CreateNodeType_VARIABLE_STRING:
-                        new_node->set_suffix( Token::s_end_of_instruction );
+                        new_node->set_suffix(ASTToken::s_end_of_instruction );
                         break;
                     case CreateNodeType_LITERAL_BOOLEAN:
                     case CreateNodeType_LITERAL_DOUBLE:
@@ -354,7 +353,7 @@ void Nodable::update()
                     // Experimental: we try to connect a parent-less child
                     if ( !graph->is_root( new_node ) && m_config->has_flags( ConfigFlag_EXPERIMENTAL_GRAPH_AUTOCOMPLETION ) )
                     {
-                        Scope* root_scope = graph->root()->internal_scope();
+                        ASTScope* root_scope = graph->root()->internal_scope();
                         VERIFY( root_scope != nullptr, "inner main_scope is expected on a root child");
                         root_scope->push_back(new_node);
                     }
@@ -363,7 +362,7 @@ void Nodable::update()
                 {
                     SlotFlags             complementary_flags = switch_order(slot_view->slot->type_and_order());
                     const TypeDescriptor* type                = slot_view->property()->get_type();
-                    Slot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
+                    ASTNodeSlot*                 complementary_slot  = new_node->find_slot_by_property_type(complementary_flags, type);
 
                     if ( complementary_slot )
                     {
@@ -372,8 +371,8 @@ void Nodable::update()
                     }
                     if ( complementary_slot )
                     {
-                        Slot* out = slot_view->slot;
-                        Slot* in  = complementary_slot;
+                        ASTNodeSlot* out = slot_view->slot;
+                        ASTNodeSlot* in  = complementary_slot;
 
                         if ( out->has_flags( SlotFlag_ORDER_2ND ) )
                             std::swap( out, in );
@@ -381,9 +380,9 @@ void Nodable::update()
                         graph->connect(out, in, ConnectFlag_ALLOW_SIDE_EFFECTS );
 
                         // Ensure has a "\n" when connecting using CODEFLOW (to split lines)
-                        if ( Utils::is_instruction( out->node ) && out->type() == SlotFlag_TYPE_FLOW )
+                        if (ASTUtils::is_instruction(out->node ) && out->type() == SlotFlag_TYPE_FLOW )
                         {
-                            Token& token = out->node->suffix();
+                            ASTToken& token = out->node->suffix();
                             std::string buffer = token.string();
                             if ( buffer.empty() || std::find(buffer.rbegin(), buffer.rend(), '\n') == buffer.rend() )
                                 token.suffix_push_back("\n");
@@ -392,7 +391,7 @@ void Nodable::update()
                 }
 
                 // set new_node's view position, select it
-                if ( auto view = new_node->get_component<NodeView>() )
+                if ( auto view = new_node->entity()->get<ASTNodeView>() )
                 {
                     view->spatial_node().set_position(_event->data.desired_screen_pos, WORLD_SPACE);
                     graph->view()->selection().clear();
@@ -425,7 +424,6 @@ void Nodable::shutdown()
     // shutdown managers & co.
     shutdown_interpreter(m_interpreter);
     shutdown_node_factory(m_node_factory);
-    shutdown_component_factory(m_component_factory);
     shutdown_language(m_language);
     m_view->shutdown();
     m_base_app.shutdown();
@@ -557,12 +555,12 @@ void Nodable::step_over_program()
         return;
     }
 
-    const Node* next_node = m_interpreter->get_next_node();
+    const ASTNode* next_node = m_interpreter->get_next_node();
     if ( !next_node )
         return;
 
     graph_view->selection().clear();
-    graph_view->selection().append( next_node->get_component<NodeView>() );
+    graph_view->selection().append(next_node->entity()->get<ASTNodeView>() );
 }
 
 void Nodable::stop_program()

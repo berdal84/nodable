@@ -5,17 +5,17 @@
 #include <functional>
 #include <vector>
 
+#include "tools/core/Component.h"  // base class
 #include "tools/core/reflection/reflection"
 #include "tools/core/Variant.h"
 #include "tools/core/UniqueVariantList.h"
 #include "tools/gui/ViewState.h"
 #include "tools/gui/geometry/Pivots.h"
 
-#include "ndbl/core/NodeComponent.h"  // base class
-#include "ndbl/core/Scope.h"
+#include "ndbl/core/ASTScope.h"
 
 #include "Action.h"
-#include "NodeView.h"
+#include "ASTNodeView.h"
 #include "SlotView.h"
 #include "types.h"
 #include "tools/core/StateMachine.h"
@@ -37,7 +37,7 @@ namespace ndbl
         { return tail == other.tail && head == other.head; }
     };
 
-    using Selectable = tools::Variant<NodeView*, ScopeView*, SlotView*, EdgeView> ;
+    using Selectable = tools::Variant<ASTNodeView*, ScopeView*, SlotView*, EdgeView> ;
     using Selection  = tools::UniqueVariantList<Selectable> ;
 
     class GraphView
@@ -62,8 +62,8 @@ namespace ndbl
         const Selection&       selection() const { return _m_selection; }
         void                   reset_all_properties();
         Graph*                 graph() const;
-        void                   add_child(NodeView*);
-        void                   decorate_node(Node* node);
+        void                   add_child(ASTNodeView*);
+        void                   _on_add_node(ASTNode* node);
 
         static void            draw_wire_from_slot_to_pos(SlotView *from, const Vec2 &end_pos);
     private:
@@ -81,11 +81,11 @@ namespace ndbl
         void                   _update(float dt);
         void                   _on_graph_change();
         void                   _on_selection_change(Selection::EventType, Selection::Element );
-        void                   _frame_views(const std::vector<NodeView*>&, const Vec2& pivot );
+        void                   _frame_views(const std::vector<ASTNodeView*>&, const Vec2& pivot );
         void                   _draw_create_node_context_menu(CreateNodeCtxMenu&, SlotView* dragged_slotview = nullptr );
-        void                   _create_constraints__align_top_recursively(const std::vector<Node*>& follower, ndbl::Node *leader);
-        void                   _create_constraints__align_down(Node* follower, const std::vector<Node*>& leader);
-        void                   _create_constraints(Scope *scope);
+        void                   _create_constraints__align_top_recursively(const std::vector<ASTNode*>& follower, ndbl::ASTNode *leader);
+        void                   _create_constraints__align_down(ASTNode* follower, const std::vector<ASTNode*>& leader);
+        void                   _create_constraints(ASTScope *scope);
 
         // Tools State Machine
         //--------------------

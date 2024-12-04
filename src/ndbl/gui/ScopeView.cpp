@@ -1,8 +1,8 @@
 #include "ScopeView.h"
 #include "tools/core/assertions.h"
-#include "ndbl/core/Scope.h"
-#include "NodeView.h"
-#include "ndbl/core/Utils.h"
+#include "ndbl/core/ASTScope.h"
+#include "ASTNodeView.h"
+#include "ndbl/core/ASTUtils.h"
 #include "Config.h"
 #include "Physics.h"
 
@@ -11,17 +11,17 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(ScopeView).extends<NodeComponent>();
+    DEFINE_REFLECT(ScopeView).extends<Component>();
 )
 
-void ScopeView::init(Scope* scope)
+void ScopeView::init(ASTScope* scope)
 {
     m_scope = scope;
     scope->set_view( this );
 
-    if ( Scope* parent = scope->parent() )
+    if ( ASTScope* parent = scope->parent() )
         on_reset_parent( parent );
-    for( Node* node : scope->child() )
+    for( ASTNode* node : scope->child() )
         on_add_node( node );
 
     CONNECT( scope->on_add         , &ScopeView::on_add_node     , this);
@@ -40,18 +40,18 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
 
     // 1) update recursively
     //    any scope with higher depth in the same hierarchy will be up to date.
-    for( Node* child_node : m_scope->child() )
+    for( ASTNode* child_node : m_scope->child() )
         if ( child_node->has_internal_scope() )
             child_node->internal_scope()->view()->update(dt, flags);
 
-    for ( Scope* partition_scope: m_scope->partition() )
+    for ( ASTScope* partition_scope: m_scope->partition() )
         partition_scope->view()->update(dt, flags);
 
     // 2) update content rectangle and wrapped node views
     //
     m_content_rect = {};
     m_wrapped_node_view.clear();
-    auto wrap_nodeview = [&](NodeView* nodeview )
+    auto wrap_nodeview = [&](ASTNodeView* nodeview )
     {
         ASSERT( nodeview );
         if ( !nodeview->state().visible() )
@@ -65,14 +65,14 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
     };
 
     if ( !m_scope->is_partition() )
-        if ( auto nodeview = m_scope->owner()->get_component<NodeView>() )
+        if ( auto nodeview = m_scope->entity()->get<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
-    for( Node* node : m_scope->child() )
-        if ( auto nodeview = node->get_component<NodeView>() )
+    for( ASTNode* node : m_scope->child() )
+        if ( auto nodeview = node->entity()->get<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
-    for( Node* child_node : m_scope->child() )
+    for( ASTNode* child_node : m_scope->child() )
     {
         if ( !child_node->has_internal_scope() )
             continue;
@@ -82,7 +82,7 @@ void ScopeView::update(float dt, ScopeViewFlags flags)
         m_content_rect = Rect::merge(m_content_rect, child_node_scope_view->m_content_rect );
     }
 
-    for ( Scope* partition_scope: m_scope->partition() )
+    for ( ASTScope* partition_scope: m_scope->partition() )
     {
         ScopeView* partition_scope_view = partition_scope->view();
         partition_scope_view->update(dt, flags);
@@ -156,23 +156,23 @@ void ScopeView::draw(float dt)
     }
 }
 
-void ScopeView::on_add_node(Node* node)
+void ScopeView::on_add_node(ASTNode* node)
 {
-    if( NodeView* view = node->get_component<NodeView>())
+    if( ASTNodeView* view = node->entity()->get<ASTNodeView>())
     {
         m_state.spatial_node().add_child( &view->spatial_node() );
     }
 }
 
-void ScopeView::on_remove_node(Node* node)
+void ScopeView::on_remove_node(ASTNode* node)
 {
-    if( NodeView* view = node->get_component<NodeView>())
+    if( ASTNodeView* view = node->entity()->get<ASTNodeView>())
     {
         m_state.spatial_node().remove_child( &view->spatial_node() );
     }
 }
 
-void ScopeView::on_reset_parent(Scope* scope)
+void ScopeView::on_reset_parent(ASTScope* scope)
 {
     if( m_state.spatial_node().has_parent() )
         m_state.spatial_node().parent()->remove_child(&m_state.spatial_node() );
@@ -185,20 +185,20 @@ void ScopeView::on_reset_parent(Scope* scope)
 void ScopeView::translate(const tools::Vec2 &delta)
 {
     // translate scope's owner's view, only it this is the main internal scope
-    if ( node()->internal_scope() == m_scope )
-        node()->get_component<NodeView>()->spatial_node().translate( delta );
+    if (scope()->entity()->get<ASTNode>()->internal_scope() == m_scope )
+        scope()->entity()->get<ASTNodeView>()->spatial_node().translate(delta );
     // translate view (and children...)
     m_state.spatial_node().translate( delta );
 }
 
 void ScopeView::set_pinned(bool b)
 {
-    node()->get_component<NodeView>()->state().set_pinned(b);
+    entity()->get<ASTNodeView>()->state().set_pinned(b);
 }
 
 bool ScopeView::pinned() const
 {
-    return node()->get_component<NodeView>()->state().pinned();
+    return entity()->get<ASTNodeView>()->state().pinned();
 }
 
 void ScopeView::set_position(const tools::Vec2& pos, tools::Space space)
@@ -206,7 +206,7 @@ void ScopeView::set_position(const tools::Vec2& pos, tools::Space space)
     m_state.spatial_node().set_position( pos, space );
 }
 
-void ScopeView::draw_scope_tree(Scope *scope)
+void ScopeView::draw_scope_tree(ASTScope *scope)
 {
     if ( ImGui::TreeNode("Scope Tree" ) )
     {
@@ -218,15 +218,15 @@ void ScopeView::draw_scope_tree(Scope *scope)
     }
 }
 
-void ScopeView::draw_scope_tree_ex(Scope *scope)
+void ScopeView::draw_scope_tree_ex(ASTScope *scope)
 {
     ImGui::PushID( scope );
-    for ( Scope* sub_scope : scope->partition() )
+    for ( ASTScope* sub_scope : scope->partition() )
     {
         draw_scope_tree_ex(sub_scope);
     }
 
-    for ( Node* child : scope->child() )
+    for ( ASTNode* child : scope->child() )
     {
         ImGui::PushID(child);
         if ( ImGui::TreeNode("%s (primary)", child->get_class()->name(), child->name().c_str() ) )
@@ -242,7 +242,7 @@ void ScopeView::draw_scope_tree_ex(Scope *scope)
 
 void ScopeView::arrange_content()
 {
-    for( NodeView* view : m_wrapped_node_view )
+    for( ASTNodeView* view : m_wrapped_node_view )
     {
         view->arrange_recursively();
     }

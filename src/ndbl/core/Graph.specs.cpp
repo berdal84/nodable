@@ -3,15 +3,15 @@
 #include "tools/core/reflection/Type.h"
 
 #include "Graph.h"
-#include "FunctionNode.h"
-#include "Node.h"
-#include "LiteralNode.h"
-#include "VariableNode.h"
-#include "Scope.h"
-#include "DirectedEdge.h"
+#include "ASTFunctionCall.h"
+#include "ASTNode.h"
+#include "ASTLiteral.h"
+#include "ASTVariable.h"
+#include "ASTScope.h"
+#include "ASTSlotLink.h"
 
 #include "fixtures/core.h"
-#include "Utils.h"
+#include "ASTUtils.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -30,7 +30,7 @@ TEST_F(Graph_, connect)
     auto* slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
 
     // Act
-    DirectedEdge edge = graph->connect_or_merge( slot_1, slot_2 );
+    ASTSlotLink edge = graph->connect_or_merge(slot_1, slot_2 );
 
     // Verify
     EXPECT_EQ(edge.tail->property, prop_1 );
@@ -51,7 +51,7 @@ TEST_F(Graph_, disconnect)
     auto slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
 
     EXPECT_EQ(graph->get_edge_registry().size(), 0);
-    DirectedEdge edge = graph->connect_or_merge( slot_1, slot_2 );
+    ASTSlotLink edge = graph->connect_or_merge(slot_1, slot_2 );
     EXPECT_EQ(graph->get_edge_registry().size(), 1);
 
     // Act
@@ -72,7 +72,7 @@ TEST_F(Graph_, clear)
     FunctionDescriptor  f;
     f.init<int(int, int)>("+");
     const IInvokable*   invokable = app.get_language()->find_operator_fct_exact(&f);
-    VariableNode*       variable  = graph->create_variable(type::get<int>(), "var");
+    ASTVariable*       variable  = graph->create_variable(type::get<int>(), "var");
 
     EXPECT_TRUE(invokable != nullptr);
     auto operator_node = graph->create_operator(f);
@@ -110,10 +110,10 @@ TEST_F(Graph_, create_and_delete_relations)
 
     // INPUT (and by reciprocity OUTPUT)
     EXPECT_EQ(edges.size(), 0);
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 0);
-    DirectedEdge edge_1 = graph->connect( node_1->value_out(), node_2->value_in());
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 1);
+    EXPECT_EQ(ASTUtils::get_adjacent_nodes(node_2, SlotFlag_TYPE_VALUE ).size(), 0);
+    ASTSlotLink edge_1 = graph->connect(node_1->value_out(), node_2->value_in());
+    EXPECT_EQ(ASTUtils::get_adjacent_nodes(node_2, SlotFlag_TYPE_VALUE ).size(), 1);
     EXPECT_EQ(edges.size(), 1);
     graph->disconnect(edge_1);
-    EXPECT_EQ( Utils::get_adjacent_nodes( node_2, SlotFlag_TYPE_VALUE ).size(), 0);
+    EXPECT_EQ(ASTUtils::get_adjacent_nodes(node_2, SlotFlag_TYPE_VALUE ).size(), 0);
 }

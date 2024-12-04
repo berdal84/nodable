@@ -41,14 +41,14 @@ namespace ndbl
         inline bool           is_program_running() const{ return m_is_program_running; }
         inline bool           is_debugging() const{ return m_is_debugging; }
         inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
-        inline const Node*    get_next_node() const {return m_next_node; } // Get the next node to be executed. Works in debug mode only.
+        inline const ASTNode*    get_next_node() const {return m_next_node; } // Get the next node to be executed. Works in debug mode only.
         tools::qword          get_last_result() const; // Get the last instruction's result
         bool                  is_there_a_next_instr() const; // Check if there is a next instruction (internally check instruction pointer's position)
         Instruction*          get_next_instr() const; // Get the next instruction to execute
         tools::qword          read_cpu_register(Register _register) const; // Read a given CPU register
         const Code *          get_program_asm_code(); // Get current program ptr
-        bool                  is_next_node(const Node* _node)const { return m_next_node == _node; } // Check if a given Node is the next to be executed
-        bool                  was_visited(const Node *) const;
+        bool                  is_next_node(const ASTNode* _node)const { return m_next_node == _node; } // Check if a given Node is the next to be executed
+        bool                  was_visited(const ASTNode *) const;
 
     private:
         void                  advance_cursor(i64_t _amount = 1);// Advance the instruction pointer of a given amount
@@ -58,9 +58,9 @@ namespace ndbl
         bool                  m_is_program_running   = false; // TODO: use StateMachine
         bool                  m_is_debugging         = false; // TODO: use StateMachine
         const Code*           m_code                 = nullptr;
-        const Node*           m_next_node            = nullptr;
+        const ASTNode*           m_next_node            = nullptr;
         Instruction*          m_last_step_next_instr = nullptr;
-        std::set<const Node*> m_visited_nodes;
+        std::set<const ASTNode*> m_visited_nodes;
     };
 
     [[nodiscard]]

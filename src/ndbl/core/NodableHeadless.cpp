@@ -12,7 +12,6 @@ void NodableHeadless::init()
     m_task_manager    = tools::init_task_manager();
     m_language        = init_language();
     m_node_factory    = init_node_factory();
-    m_component_factory = init_component_factory();
     m_interpreter     = init_interpreter();
     m_graph           = new Graph(m_node_factory);
 }
@@ -25,7 +24,6 @@ void NodableHeadless::shutdown()
     shutdown_language(m_language);
     shutdown_node_factory(m_node_factory);
     shutdown_interpreter(m_interpreter);
-    shutdown_component_factory(m_component_factory);
 }
 
 std::string& NodableHeadless::serialize( std::string& out ) const
@@ -41,7 +39,7 @@ Graph* NodableHeadless::parse( const std::string& code )
 
 bool NodableHeadless::run_program() const
 {
-    VERIFY(m_interpreter != nullptr, "Did you call reset_name() ?");
+    VERIFY(m_interpreter != nullptr, "Did you call set_name() ?");
 
     try {
         m_interpreter->run_program();

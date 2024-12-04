@@ -12,12 +12,12 @@
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/Size.h"
 
-#include "ndbl/core/NodeType.h"
+#include "ndbl/core/ASTNodeType.h"
 
 #include "types.h"
 #include "ViewDetail.h"
 #include "Isolation.h"
-#include "ndbl/core/SlotFlag.h"
+#include "ndbl/core/ASTNodeSlotFlag.h"
 
 namespace ndbl
 {
@@ -63,7 +63,7 @@ namespace ndbl
         Vec4           ui_node_padding; // left, top, right, bottom
         float          ui_node_borderWidth;
         float          ui_node_instructionBorderRatio; // ratio to apply to borderWidth
-        std::array<Vec4,NodeType_COUNT> ui_node_fill_color;
+        std::array<Vec4,ASTNodeType_COUNT> ui_node_fill_color;
         Vec4           ui_node_shadowColor;
         Vec4           ui_node_borderColor;
         Vec4           ui_node_borderHighlightedColor;

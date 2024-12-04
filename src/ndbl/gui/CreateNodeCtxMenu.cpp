@@ -42,7 +42,7 @@ void CreateNodeCtxMenu::update_cache_based_on_signature(SlotView* dragged_slot)
                 {
                     // we can connect anything to a code flow slot
                 }
-                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->property_type()->is<Node*>() )
+                else if ( dragged_slot->allows(SlotFlag_INPUT) && dragged_slot->property_type()->is<ASTNode*>() )
                 {
                     // we can connect anything to a Node ref input
                 }

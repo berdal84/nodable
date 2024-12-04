@@ -75,7 +75,7 @@ static void mutate_N_instances__enterlaced_with_another_type__using_Pool_create(
         for ( auto _ : state )
         {
             // benchmark begin
-            for( auto& each : pool->get_all<DataPool<128>>() )
+            for( auto& each : pool->components<DataPool<128>>() )
             {
                 each.data[0] = 'X';
                 each.data[63] = 'Y';

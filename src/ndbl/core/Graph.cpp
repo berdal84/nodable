@@ -2,20 +2,20 @@
 
 #include <algorithm>    // std::find_if
 
-#include "DirectedEdge.h"
-#include "IfNode.h"
-#include "LiteralNode.h"
-#include "Node.h"
-#include "NodeFactory.h"
-#include "Scope.h"
-#include "VariableNode.h"
+#include "ASTSlotLink.h"
+#include "ASTIf.h"
+#include "ASTLiteral.h"
+#include "ASTNode.h"
+#include "ASTNodeFactory.h"
+#include "ASTScope.h"
+#include "ASTVariable.h"
 #include "language/Nodlang.h"
-#include "VariableRefNode.h"
+#include "ASTVariableRef.h"
 
 using namespace ndbl;
 using namespace tools;
 
-Graph::Graph(NodeFactory* factory)
+Graph::Graph(ASTNodeFactory* factory)
 : m_factory(factory)
 {
 }
@@ -35,7 +35,7 @@ void Graph::clear()
 	LOG_VERBOSE( "Graph", "Clearing graph ...\n");
     while ( !m_node_registry.empty() )
     {
-        Node* node = *m_node_registry.begin();
+        ASTNode* node = *m_node_registry.begin();
         LOG_VERBOSE("Graph", "destroying node \"%s\" (id: %zu)\n", node->name().c_str(), (u64_t)node );
         destroy(node);
     }
@@ -60,11 +60,11 @@ bool Graph::update()
 {
     bool changed = false;
 
-    for(Node* node : m_node_registry)
-        if ( node->has_flags(NodeFlag_IS_DIRTY) )
+    for(ASTNode* node : m_node_registry)
+        if ( node->has_flags(ASTNodeFlag_IS_DIRTY) )
             changed = node->update();
 
-    for( Node* node : m_node_to_delete )
+    for( ASTNode* node : m_node_to_delete )
     {
         destroy(node);
         changed = true;
@@ -77,7 +77,7 @@ bool Graph::update()
     return changed;
 }
 
-void Graph::add(Node* node)
+void Graph::add(ASTNode* node)
 {
 	m_node_registry.insert( node );
     node->m_graph = this;
@@ -88,35 +88,35 @@ void Graph::add(Node* node)
     LOG_VERBOSE("Graph", "add node %s (%s)\n", node->name().c_str(), node->get_class()->name());
 }
 
-void Graph::remove(Node* node)
+void Graph::remove(ASTNode* node)
 {
     m_node_registry.erase( node );
     on_remove.emit( node );
     on_change.emit();
 }
 
-VariableNode* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name)
+ASTVariable* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name)
 {
-    VariableNode* node = m_factory->create_variable(_type, _name);
+    ASTVariable* node = m_factory->create_variable(_type, _name);
     add(node);
 	return node;
 }
 
-FunctionNode* Graph::create_function(const FunctionDescriptor& _type)
+ASTFunctionCall* Graph::create_function(const FunctionDescriptor& _type)
 {
-    FunctionNode* node = m_factory->create_function(_type, NodeType_FUNCTION);
+    ASTFunctionCall* node = m_factory->create_function(_type, ASTNodeType_FUNCTION);
     add(node);
     return node;
 }
 
-FunctionNode* Graph::create_operator(const FunctionDescriptor& _type)
+ASTFunctionCall* Graph::create_operator(const FunctionDescriptor& _type)
 {
-    FunctionNode* node = m_factory->create_function(_type, NodeType_OPERATOR);
+    ASTFunctionCall* node = m_factory->create_function(_type, ASTNodeType_OPERATOR);
     add(node);
     return node;
 }
 
-void Graph::destroy(Node* node)
+void Graph::destroy(ASTNode* node)
 {
     if( node == nullptr )
     {
@@ -124,15 +124,15 @@ void Graph::destroy(Node* node)
     }
 
     // backup prev/next adjacent slots
-    std::vector<Slot*> prev_adjacent_slot;
-    if( Slot* slot = node->find_slot(SlotFlag_FLOW_IN) )
+    std::vector<ASTNodeSlot*> prev_adjacent_slot;
+    if( ASTNodeSlot* slot = node->find_slot(SlotFlag_FLOW_IN) )
         prev_adjacent_slot = slot->adjacent();
-    std::vector<Slot*> next_adjacent_slot;
-    if ( Slot* slot = node->find_slot(SlotFlag_FLOW_OUT) )
+    std::vector<ASTNodeSlot*> next_adjacent_slot;
+    if ( ASTNodeSlot* slot = node->find_slot(SlotFlag_FLOW_OUT) )
         next_adjacent_slot = slot->adjacent();
 
     // Identify each edge connected to this node
-    std::vector<DirectedEdge> related_edges;
+    std::vector<ASTSlotLink> related_edges;
     for(auto& [_type, each_edge]: m_edge_registry)
     {
         if(each_edge.tail->node == node || each_edge.head->node == node )
@@ -142,7 +142,7 @@ void Graph::destroy(Node* node)
     }
 
     // Disconnect all of them
-    for(const DirectedEdge& each_edge : related_edges )
+    for(const ASTSlotLink& each_edge : related_edges )
     {
         disconnect(each_edge);
     };
@@ -155,17 +155,18 @@ void Graph::destroy(Node* node)
     }
 
     // Remove from scope
-    if ( Scope* scope = node->scope() )
+    if ( ASTScope* scope = node->scope() )
         scope->erase(node);
 
     // unregister and delete
     remove(node);
     if ( m_root == node )
         m_root.reset();
-    m_factory->destroy_node(node);
+
+    delete node;
 }
 
-DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
+ASTSlotLink Graph::connect_or_merge(ASTNodeSlot* tail, ASTNodeSlot* head )
 {
     // Guards
     ASSERT(head->has_flags(SlotFlag_INPUT ) );
@@ -191,8 +192,8 @@ DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
     }
 
     // case 2: merge literals when not connected to a variable
-    if (tail->node->type() == NodeType_LITERAL && tail->property->token().word_len() < 16 )
-        if (head->node->type() != NodeType_VARIABLE )
+    if (tail->node->type() == ASTNodeType_LITERAL && tail->property->token().word_len() < 16 )
+        if (head->node->type() != ASTNodeType_VARIABLE )
         {
             head->property->digest(tail->property );
             destroy(tail->node);
@@ -203,7 +204,7 @@ DirectedEdge Graph::connect_or_merge(Slot* tail, Slot* head )
     return connect(tail, head, ConnectFlag_ALLOW_SIDE_EFFECTS );
 }
 
-void Graph::remove(const DirectedEdge& edge)
+void Graph::remove(const ASTSlotLink& edge)
 {
     auto found = std::find_if( m_edge_registry.begin()
                              , m_edge_registry.end()
@@ -220,24 +221,24 @@ void Graph::remove(const DirectedEdge& edge)
     on_change.emit();
 }
 
-DirectedEdge Graph::connect_to_variable(Slot* output_slot, VariableNode* _variable )
+ASTSlotLink Graph::connect_to_variable(ASTNodeSlot* output_slot, ASTVariable* _variable )
 {
     // Guards
     ASSERT( output_slot->has_flags(SlotFlag_OUTPUT | SlotFlag_NOT_FULL ) );
     return connect_or_merge( output_slot, _variable->value_in() );
 }
 
-void Graph::connect(const std::set<Slot*>& tails, Slot* head, ConnectFlags _flags)
+void Graph::connect(const std::set<ASTNodeSlot*>& tails, ASTNodeSlot* head, ConnectFlags _flags)
 {
     if ( !tails.empty() )
-        for (Slot* _tail : tails )
+        for (ASTNodeSlot* _tail : tails )
             connect(_tail, head, ConnectFlag_ALLOW_SIDE_EFFECTS );
 }
 
-DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
+ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, ConnectFlags _flags)
 {
     // Create and insert edge
-    DirectedEdge edge = add({tail, head});
+    ASTSlotLink edge = add({tail, head});
 
     // DirectedEdge is just data, we must add manually cross-references to each end of the edge
     edge.tail->add_adjacent( edge.head );
@@ -262,7 +263,7 @@ DirectedEdge Graph::connect(Slot* tail, Slot* head, ConnectFlags _flags)
     return edge;
 }
 
-DirectedEdge Graph::add(const DirectedEdge& _edge)
+ASTSlotLink Graph::add(const ASTSlotLink& _edge)
 {
     m_edge_registry.emplace(_edge.type(), _edge);
     on_change.emit();
@@ -333,11 +334,11 @@ DirectedEdge Graph::add(const DirectedEdge& _edge)
 //    connect( last_sibling_next_slot, new_child_prev_slot );
 //}
 
-void Graph::on_connect_value_side_effects( DirectedEdge edge )
+void Graph::on_connect_value_side_effects(ASTSlotLink edge )
 {
     // 1) Update Scope
     //
-    Scope* target_scope = edge.head->node->scope();
+    ASTScope* target_scope = edge.head->node->scope();
 
     if (edge.head->node->has_internal_scope() )
         target_scope = edge.head->node->internal_scope();
@@ -348,40 +349,37 @@ void Graph::on_connect_value_side_effects( DirectedEdge edge )
 
     // 2) Update input's property type
     //
-    if ( edge.head->node->type() != NodeType_VARIABLE )
+    if (edge.head->node->type() != ASTNodeType_VARIABLE )
     {
         edge.head->property->set_type( edge.tail->property->get_type() );
     }
 }
 
-void Graph::on_disconnect_value_side_effects( DirectedEdge edge )
+void Graph::on_disconnect_value_side_effects(ASTSlotLink edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_OUTPUT );
 
     // reset token to a default value to preserve a correct serialization
-    if ( edge.head->node->type() != NodeType_VARIABLE )
+    if (edge.head->node->type() != ASTNodeType_VARIABLE )
     {
-        Token& tok = edge.head->property->token();
+        ASTToken& tok = edge.head->property->token();
         std::string buf;
         get_language()->serialize_default_buffer(buf, tok.m_type);
         tok.word_replace( buf.c_str() );
     }
 }
 
-void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
+void Graph::on_disconnect_flow_side_effects(ASTSlotLink edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
     // Ensure disconnected node gets in the right scope
     //
-    Scope* target_scope;
+    ASTScope* target_scope = nullptr;
     switch ( edge.head->adjacent_count())
     {
         case 0:
-        {
-            target_scope = nullptr;
             break;
-        }
         case 1:
         {
             target_scope = edge.head->first_adjacent_node()->scope();
@@ -390,26 +388,26 @@ void Graph::on_disconnect_flow_side_effects( DirectedEdge edge )
         default: // 2+
         {
             // Find the lowest common ancestor of adjacent nodes
-            std::vector<Scope *> adjacent_scopes;
-            for (Slot *adjacent: edge.head->adjacent())
+            std::vector<ASTScope *> adjacent_scopes;
+            for (ASTNodeSlot *adjacent: edge.head->adjacent())
                 adjacent_scopes.push_back(adjacent->node->scope());
 
-            if (Scope* ancestor = Scope::lowest_common_ancestor(adjacent_scopes) )
+            if (ASTScope* ancestor = ASTScope::lowest_common_ancestor(adjacent_scopes) )
+            {
                 target_scope = ancestor->node()->scope();
-            else
-                target_scope = nullptr;
+            }
         }
     }
-    Scope::change_node_scope(edge.head->node, target_scope);
+    ASTScope::change_node_scope(edge.head->node, target_scope);
 }
 
-void Graph::on_connect_flow_side_effects( DirectedEdge edge )
+void Graph::on_connect_flow_side_effects(ASTSlotLink edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
-    Scope* target_scope       = nullptr;
-    Node*  previous_node      = edge.tail->node;
-    Node*  next_node          = edge.head->node;
+    ASTScope* target_scope       = nullptr;
+    ASTNode*  previous_node      = edge.tail->node;
+    ASTNode*  next_node          = edge.head->node;
     size_t flow_in_edge_count = edge.head->adjacent_count();
 
     if ( flow_in_edge_count == 1)
@@ -428,11 +426,11 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
     else if ( flow_in_edge_count > 1 )
     {
         // gather adjacent scopes
-        std::vector<Scope*> adjacent_scope;
-        for(Slot* adjacent : edge.head->adjacent() )
+        std::vector<ASTScope*> adjacent_scope;
+        for(ASTNodeSlot* adjacent : edge.head->adjacent() )
             adjacent_scope.push_back(adjacent->node->scope() );
         // find lowest_common_ancestor
-        target_scope = Scope::lowest_common_ancestor( adjacent_scope );
+        target_scope = ASTScope::lowest_common_ancestor(adjacent_scope );
         // We can't use a scope having sub_scopes directly, using parent
         if (target_scope->is_partitioned() )
             target_scope = target_scope->parent();
@@ -442,10 +440,10 @@ void Graph::on_connect_flow_side_effects( DirectedEdge edge )
         VERIFY(false, "Unexpected edge count");
     }
 
-    Scope::change_node_scope(next_node, target_scope);
+    ASTScope::change_node_scope(next_node, target_scope);
 }
 
-void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
+void Graph::disconnect(const ASTSlotLink& _edge, ConnectFlags flags)
 {
     // find the edge to disconnect
     SlotFlags type = _edge.tail->flags() & SlotFlag_TYPE_MASK;
@@ -483,51 +481,51 @@ void Graph::disconnect( const DirectedEdge& _edge, ConnectFlags flags)
     on_change.emit();
 }
 
-IfNode* Graph::create_cond_struct()
+ASTIf* Graph::create_cond_struct()
 {
-    IfNode* condStructNode = m_factory->create_cond_struct();
+    ASTIf* condStructNode = m_factory->create_cond_struct();
     add(condStructNode);
     return condStructNode;
 }
 
-ForLoopNode* Graph::create_for_loop()
+ASTForLoop* Graph::create_for_loop()
 {
-    ForLoopNode* for_loop = m_factory->create_for_loop();
+    ASTForLoop* for_loop = m_factory->create_for_loop();
     add(for_loop);
     return for_loop;
 }
 
-WhileLoopNode* Graph::create_while_loop()
+ASTWhileLoop* Graph::create_while_loop()
 {
-    WhileLoopNode* while_loop = m_factory->create_while_loop();
+    ASTWhileLoop* while_loop = m_factory->create_while_loop();
     add(while_loop);
     return while_loop;
 }
 
-Node* Graph::create_entry_point()
+ASTNode* Graph::create_entry_point()
 {
     VERIFY( m_root.empty(), "Can't create_new a root child, already exists" );
-    Node* node = m_factory->create_entry_point();
+    ASTNode* node = m_factory->create_entry_point();
     add(node);
     m_root = node;
     return node;
 }
 
-Node* Graph::create_node()
+ASTNode* Graph::create_node()
 {
-    Node* node = m_factory->create_node();
+    ASTNode* node = m_factory->create_node();
     add(node);
     return node;
 }
 
-LiteralNode* Graph::create_literal(const TypeDescriptor *_type)
+ASTLiteral* Graph::create_literal(const TypeDescriptor *_type)
 {
-    LiteralNode* node = m_factory->create_literal(_type);
+    ASTLiteral* node = m_factory->create_literal(_type);
     add(node);
     return node;
 }
 
-Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signature )
+ASTNode* Graph::create_node(CreateNodeType _type, const FunctionDescriptor* _signature )
 {
     switch ( _type )
     {
@@ -567,19 +565,19 @@ Node* Graph::create_node( CreateNodeType _type, const FunctionDescriptor* _signa
     }
 }
 
-VariableRefNode* Graph::create_variable_ref()
+ASTVariableRef* Graph::create_variable_ref()
 {
-    VariableRefNode* node = m_factory->create_variable_ref();
+    ASTVariableRef* node = m_factory->create_variable_ref();
     add(node);
     return node;
 }
 
-VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const char*  _name)
+ASTVariable* Graph::create_variable_decl(const TypeDescriptor* _type, const char*  _name)
 {
     // Create variable
-    VariableNode* var_node = create_variable(_type, _name );
+    ASTVariable* var_node = create_variable(_type, _name );
     var_node->set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
-    Token token(Token_t::keyword_operator, " = ");
+    ASTToken token(ASTToken_t::keyword_operator, " = ");
     token.word_move_begin(1);
     token.word_move_end(-1);
     var_node->set_operator_token( token );
@@ -587,45 +585,45 @@ VariableNode* Graph::create_variable_decl(const TypeDescriptor* _type, const cha
     return var_node;
 }
 
-Node *Graph::create_empty_instruction()
+ASTNode *Graph::create_empty_instruction()
 {
-    Node* node = m_factory->create_empty_instruction();
+    ASTNode* node = m_factory->create_empty_instruction();
     add(node);
     return node;
 }
 
-std::set<Scope *> Graph::root_scopes()
+std::set<ASTScope *> Graph::root_scopes()
 {
-    std::set<Scope*> result;
-    for ( Node* node : m_node_registry )
+    std::set<ASTScope*> result;
+    for ( ASTNode* node : m_node_registry )
         if ( node->has_internal_scope() )
             if ( node->internal_scope()->depth() == 0 )
                 result.insert( node->internal_scope() );
     return result;
 }
 
-std::vector<Scope *> Graph::scopes()
+std::vector<ASTScope *> Graph::scopes()
 {
-    std::vector<Scope *> result;
-    for(Node* node : m_node_registry)
+    std::vector<ASTScope *> result;
+    for(ASTNode* node : m_node_registry)
         if ( node->scope() )
             result.push_back( node->scope() );
     return result;
 }
 
-void Graph::destroy_next_frame(Scope *scope)
+void Graph::destroy_next_frame(ASTScope *scope)
 {
     const bool with_inputs = true;
-    destroy_next_frame_ex( scope->owner(), with_inputs );
+    destroy_next_frame_ex( scope->node(), with_inputs );
 
-    for ( Node* node : scope->child() )
+    for ( ASTNode* node : scope->child() )
         destroy_next_frame_ex( node, with_inputs );
 
-    for ( Scope* scope : scope->partition() )
+    for ( ASTScope* scope : scope->partition() )
         destroy_next_frame( scope );
 }
 
-void Graph::destroy_next_frame_ex(Node *node, bool with_inputs)
+void Graph::destroy_next_frame_ex(ASTNode *node, bool with_inputs)
 {
     m_node_to_delete.insert(node);
 

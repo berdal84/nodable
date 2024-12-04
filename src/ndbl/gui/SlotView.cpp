@@ -1,17 +1,17 @@
 #include "SlotView.h"
 #include "Config.h"
 #include "Event.h"
-#include "ndbl/core/Utils.h"
+#include "ndbl/core/ASTUtils.h"
 
 using namespace ndbl;
 using namespace tools;
 
 SlotView::SlotView(
-    Slot*       slot,
-    const Vec2& align,
-    ShapeType   shape_type,
-    size_t      index,
-    const BoxShape2D* alignment_ref
+        ASTNodeSlot*       slot,
+        const Vec2& align,
+        ShapeType   shape_type,
+        size_t      index,
+        const BoxShape2D* alignment_ref
     )
 : slot(slot)
 , alignment(align)
@@ -130,7 +130,7 @@ void SlotView::update(float dt)
     else if (slot->type() == SlotFlag_TYPE_FLOW )
     {
         // A code flow slot has to be hidden when cannot be an instruction or is not
-        bool desired_visibility = Utils::is_instruction( node() ) || Utils::can_be_instruction( node() );
+        bool desired_visibility = ASTUtils::is_instruction(node() ) || ASTUtils::can_be_instruction(node() );
         _state.set_visible( desired_visibility );
     }
     else

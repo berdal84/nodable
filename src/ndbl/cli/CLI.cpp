@@ -89,7 +89,7 @@ void CLI::update()
     }
 
     // Priority 3: append to source code, parse, compile, and run the code;
-    get_language()->serialize_default_buffer(user_input, Token_t::end_of_instruction);
+    get_language()->serialize_default_buffer(user_input, ASTToken_t::end_of_instruction);
     m_source_code.append(user_input);
     parse(m_source_code) &&
     compile() &&

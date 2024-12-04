@@ -13,7 +13,7 @@
 namespace ndbl
 {
     // forward declaration
-    class NodeView;
+    class ASTNodeView;
     using tools::Vec2;
     using tools::FunctionDescriptor;
 
@@ -49,9 +49,9 @@ namespace ndbl
     using Event_FrameSelection = tools::Event<EventID_REQUEST_FRAME_SELECTION, EventPayload_FrameNodeViews>;
 
     struct EventPayload_SlotPair {
-        Slot* first;
-        Slot* second;
-        EventPayload_SlotPair(Slot* first = {}, Slot* second = {})
+        ASTNodeSlot* first;
+        ASTNodeSlot* second;
+        EventPayload_SlotPair(ASTNodeSlot* first = {}, ASTNodeSlot* second = {})
         : first(first)
         , second(second)
         {}
@@ -61,7 +61,7 @@ namespace ndbl
 
     struct EventPayload_Node
     {
-        Node* node;
+        ASTNode* node;
     };
     using Event_DeleteEdge  = tools::Event<EventID_DELETE_EDGE, EventPayload_SlotPair>;
     using Event_DeleteSelection  = tools::Event<EventID_DELETE_NODE, EventPayload_Node>;

@@ -10,7 +10,7 @@
 #include "tools/gui/TextureManager.h"
 #include "tools/gui/AppView.h"
 
-#include "ndbl/core/Utils.h"
+#include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/Register.h"
 #include "ndbl/core/language/Nodlang.h"
@@ -22,7 +22,7 @@
 #include "GraphView.h"
 #include "History.h"
 #include "Nodable.h"
-#include "NodeView.h"
+#include "ASTNodeView.h"
 #include "build_info.h"
 
 using namespace ndbl;
@@ -44,7 +44,7 @@ void NodableView::update()
 
 void NodableView::init(Nodable * _app)
 {
-    LOG_VERBOSE("ndbl::NodableView", "reset_name ...\n");
+    LOG_VERBOSE("ndbl::NodableView", "set_name ...\n");
     m_app = _app;
     // Initialize wrapped view and inject some code ...
     tools::App* base_app = _app->get_base_app_handle();
@@ -525,15 +525,15 @@ bool NodableView::draw_node_properties_window()
         if( File* current_file = m_app->get_current_file() )
         {
             const GraphView* graph_view = current_file->graph().view(); // Graph can't be null
-            switch ( graph_view->selection().count<NodeView*>() )
+            switch ( graph_view->selection().count<ASTNodeView*>() )
             {
                 case 0:
                     break;
                 case 1:
                 {
                     ImGui::Indent(10.0f);
-                    auto* first_nodeview = graph_view->selection().first_of<NodeView*>();
-                    changed |= NodeView::draw_as_properties_panel(first_nodeview, &m_show_advanced_node_properties);
+                    auto* first_nodeview = graph_view->selection().first_of<ASTNodeView*>();
+                    changed |= ASTNodeView::draw_as_properties_panel(first_nodeview, &m_show_advanced_node_properties);
                     break;
                 }
                 default:
@@ -795,15 +795,15 @@ void NodableView::draw_config_window()
             ImGui::Indent();
             if ( ImGui::CollapsingHeader("Colors", flags ))
             {
-                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[NodeType_DEFAULT].x );
-                ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[NodeType_ENTRY_POINT].x );
-                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[NodeType_BLOCK_IF].x );
-                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[NodeType_BLOCK_FOR_LOOP].x );
-                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[NodeType_BLOCK_WHILE_LOOP].x );
-                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[NodeType_VARIABLE].x );
-                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[NodeType_LITERAL].x );
-                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[NodeType_FUNCTION].x );
-                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[NodeType_OPERATOR].x );
+                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[ASTNodeType_DEFAULT].x );
+                ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[ASTNodeType_ENTRY_POINT].x );
+                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_IF].x );
+                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_FOR_LOOP].x );
+                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_WHILE_LOOP].x );
+                ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[ASTNodeType_VARIABLE].x );
+                ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[ASTNodeType_LITERAL].x );
+                ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[ASTNodeType_FUNCTION].x );
+                ImGui::ColorEdit4("operator"    , &cfg->ui_node_fill_color[ASTNodeType_OPERATOR].x );
                 ImGui::Separator();
                 ImGui::ColorEdit4("highlighted"         , &cfg->ui_node_highlightedColor.x);
                 ImGui::ColorEdit4("shadow"              , &cfg->ui_node_shadowColor.x);

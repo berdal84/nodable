@@ -1,22 +1,23 @@
 #pragma once
 
+#include "tools/core/Component.h"
 #include "tools/gui/geometry/Space.h"
 #include "tools/gui/geometry/SpatialNode2D.h"
-#include "ndbl/core/NodeComponent.h"
 #include "tools/gui/Size.h"
-#include "NodeView.h"
 #include "tools/gui/geometry/Pivots.h"
+#include "ASTNodeView.h"
 
 namespace  ndbl
 {
     // forward declarations
-    class Node;
-    class NodeView;
+    class Entity;
+    class ASTNode;
+    class ASTNodeView;
     class ScopeView;
 
     struct ViewConstraint
     {
-        typedef std::vector<NodeView*> NodeViews;
+        typedef std::vector<ASTNodeView*> NodeViews;
         typedef void(ViewConstraint::*Rule)(float dt);
 
         void          update(float dt);
@@ -38,16 +39,17 @@ namespace  ndbl
         NodeViews     leader;
         NodeViews     follower;
 
-        static std::vector<NodeView*> clean( std::vector<NodeView*>& );
+        static std::vector<ASTNodeView*> clean(std::vector<ASTNodeView*>& );
     };
 
-    class Physics : public NodeComponent
+    class Physics : public tools::Component
     {
     public:
         DECLARE_REFLECT_override
         typedef std::vector<ViewConstraint> Constraints;
 
-        void            init(NodeView*);
+        Physics();
+
         void            add_constraint(ViewConstraint& c) { _constraints.push_back(std::move(c)); }
         void            apply_constraints(float dt);
         void            clear_constraints();
@@ -60,8 +62,10 @@ namespace  ndbl
         const Constraints&  constraints() const { return _constraints; };
 
     private:
+        void            _on_owner_init(tools::Entity*);
+
         bool            _is_active = false;
-        NodeView*       _view      = nullptr;
+        ASTNodeView*    _view      = nullptr;
         tools::Vec2     _forces_sum;
         tools::Vec2     _last_frame_forces_sum;
         Constraints     _constraints;

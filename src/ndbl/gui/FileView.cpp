@@ -2,17 +2,17 @@
 
 #include "tools/gui/ImGuiTypeConvert.h"
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/Node.h"
+#include "ndbl/core/ASTNode.h"
 #include "ndbl/core/Interpreter.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/Utils.h"
+#include "ndbl/core/ASTUtils.h"
 
 
 #include "Config.h"
 #include "Event.h"
 #include "File.h"
 #include "GraphView.h"
-#include "NodeView.h"
+#include "ASTNodeView.h"
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
 #include "Physics.h"
@@ -367,7 +367,7 @@ void FileView::draw_info_panel() const
     }
 
     // Hierarchy
-    Scope* main_scope = m_file->graph().main_scope();
+    ASTScope* main_scope = m_file->graph().main_scope();
     ScopeView::draw_scope_tree( main_scope );
 }
 

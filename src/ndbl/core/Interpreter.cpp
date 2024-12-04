@@ -1,8 +1,8 @@
 #include "Interpreter.h"
 
 #include <string>
-#include "FunctionNode.h"
-#include "VariableNode.h"
+#include "ASTFunctionCall.h"
+#include "ASTVariable.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -151,7 +151,7 @@ bool Interpreter::step_over()
             else if(ptr_type->is<void *>() )
             {
                 LOG_VERBOSE("Interpreter", "deref_qword void* (aka Node*) (%p): %s\n", qword->ptr,
-                            ((Node *) qword->ptr)->name().c_str() );
+                            ((ASTNode *) qword->ptr)->name().c_str() );
             }
             else if(ptr_type->is<any>() )
             {
@@ -178,7 +178,7 @@ bool Interpreter::step_over()
         case OpCode_push_var:
         {
             advance_cursor();
-            VariableNode* variable = next_instr->push.var;
+            ASTVariable* variable = next_instr->push.var;
             ASSERT(variable->has_flags(VariableFlag_DECLARED) == false);
             ASSERT(variable->has_flags(VariableFlag_INITIALIZED) == false);
             variable->set_flags(VariableFlag_DECLARED);
@@ -333,7 +333,7 @@ bool Interpreter::debug_step_over()
 
 void Interpreter::debug_program()
 {
-    Optional<Node*> root = graph()->root();
+    Optional<ASTNode*> root = graph()->root();
     if( root )
     {
         LOG_ERROR("Interpreter", "Unable to debug program. Graph has no root.\n");
@@ -390,7 +390,7 @@ const Code *Interpreter::get_program_asm_code()
     return m_code;
 }
 
-bool Interpreter::was_visited(const Node* node) const
+bool Interpreter::was_visited(const ASTNode* node) const
 {
     return m_visited_nodes.find(node) != m_visited_nodes.end();
 }

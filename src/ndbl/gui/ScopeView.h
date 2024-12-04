@@ -1,14 +1,14 @@
 #pragma once
+#include "tools/core/Component.h"
 #include "tools/gui/geometry/Rect.h"
 #include "tools/gui/geometry/BoxShape2D.h"
-#include "ndbl/core/NodeComponent.h"
-#include "ndbl/core/Scope.h"
 #include "tools/gui/ViewState.h"
+#include "ndbl/core/ASTScope.h"
 
 namespace ndbl
 {
     // forward decl.
-    class NodeView;
+    class ASTNodeView;
 
     typedef int ScopeViewFlags;
     enum ScopeViewFlags_
@@ -25,7 +25,7 @@ namespace ndbl
         Theme_LIGHT = true
     };
 
-    class ScopeView : public NodeComponent
+    class ScopeView : public tools::Component
     {
     public:
         DECLARE_REFLECT_override
@@ -33,13 +33,13 @@ namespace ndbl
 
         SIGNAL(on_hover, ScopeView*);
 
-        void         init(Scope*);
+        void         init(ASTScope*);
         void         update(float nodeview, ScopeViewFlags flags = ScopeViewFlags_NONE );
         void         draw(float dt);
         tools::ViewState& state() { return m_state; }
         bool         has_parent() const { return m_scope->parent() != nullptr; }
         ScopeView*   parent() const;
-        Scope*       scope() const { return m_scope; }
+        ASTScope*       scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }
         void         set_position(const tools::Vec2& pos, tools::Space space);
         void         translate(const tools::Vec2 &vec2);
@@ -51,18 +51,18 @@ namespace ndbl
         const tools::SpatialNode2D& spatial_node() const { return m_state.spatial_node(); }
         tools::SpatialNode2D&       spatial_node() { return m_state.spatial_node(); }
 
-        static void  draw_scope_tree(Scope* scope);
+        static void  draw_scope_tree(ASTScope* scope);
 
     private:
-        static void  draw_scope_tree_ex(Scope* scope);
-        void        on_reset_parent(Scope*);
-        void        on_add_node(Node*);
-        void        on_remove_node(Node*);
+        static void  draw_scope_tree_ex(ASTScope* scope);
+        void        on_reset_parent(ASTScope*);
+        void        on_add_node(ASTNode*);
+        void        on_remove_node(ASTNode*);
 
         tools::ViewState     m_state;
-        Scope*               m_scope = nullptr;
+        ASTScope*               m_scope = nullptr;
         Rect                 m_content_rect;
-        std::vector<NodeView*> m_wrapped_node_view;
+        std::vector<ASTNodeView*> m_wrapped_node_view;
         Theme                m_theme;
     };
 }

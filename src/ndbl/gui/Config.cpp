@@ -80,11 +80,11 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     for (auto& col : ui_node_fill_color)
         col = Vec4(0.7f, 0.9f, 0.7f, 1.0f); // green;
 
-    ui_node_fill_color[NodeType_VARIABLE]     =  Color(171, 190, 255);
-    ui_node_fill_color[NodeType_VARIABLE_REF] =  ui_node_fill_color[NodeType_VARIABLE];
-    ui_node_fill_color[NodeType_LITERAL]      =  Color(200, 200, 200);
-    ui_node_fill_color[NodeType_FUNCTION]     =  Color(255, 199, 115);
-    ui_node_fill_color[NodeType_OPERATOR]     =  ui_node_fill_color[NodeType_FUNCTION];
+    ui_node_fill_color[ASTNodeType_VARIABLE]     =  Color(171, 190, 255);
+    ui_node_fill_color[ASTNodeType_VARIABLE_REF] =  ui_node_fill_color[ASTNodeType_VARIABLE];
+    ui_node_fill_color[ASTNodeType_LITERAL]      =  Color(200, 200, 200);
+    ui_node_fill_color[ASTNodeType_FUNCTION]     =  Color(255, 199, 115);
+    ui_node_fill_color[ASTNodeType_OPERATOR]     =  ui_node_fill_color[ASTNodeType_FUNCTION];
 
     ui_slot_border_color                  = Vec4(0.2f, 0.2f, 0.2f, 1.0f);
     ui_slot_hovered_color                 = Color(200, 200, 200);

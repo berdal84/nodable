@@ -148,6 +148,8 @@ include_directories(
 add_library(
     tools-core
     STATIC
+    src/tools/core/Entity.h
+    src/tools/core/Component.cpp
     src/tools/core/Event.h
     src/tools/core/EventManager.cpp
     src/tools/core/EventManager.h
@@ -369,27 +371,25 @@ set_target_properties(tools-gui-example PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY
 add_library(
     ndbl-core
     STATIC
-    src/ndbl/core/NodeComponent.cpp
-    src/ndbl/core/ComponentFactory.cpp
-    src/ndbl/core/IfNode.cpp
-    src/ndbl/core/DirectedEdge.cpp
-    src/ndbl/core/ForLoopNode.cpp
+    src/ndbl/core/ASTIf.cpp
+    src/ndbl/core/ASTSlotLink.cpp
+    src/ndbl/core/ASTForLoop.cpp
     src/ndbl/core/Graph.cpp
-    src/ndbl/core/Utils.cpp
-    src/ndbl/core/FunctionNode.cpp
-    src/ndbl/core/LiteralNode.cpp
-    src/ndbl/core/Node.cpp
-    src/ndbl/core/NodeFactory.cpp
-    src/ndbl/core/Property.cpp
-    src/ndbl/core/PropertyBag.cpp
-    src/ndbl/core/Scope.cpp
-    src/ndbl/core/Slot.cpp
-    src/ndbl/core/SwitchBehavior.cpp
-    src/ndbl/core/Token.cpp
-    src/ndbl/core/TokenRibbon.cpp
-    src/ndbl/core/VariableNode.cpp
+    src/ndbl/core/ASTUtils.cpp
+    src/ndbl/core/ASTFunctionCall.cpp
+    src/ndbl/core/ASTLiteral.cpp
+    src/ndbl/core/ASTNode.cpp
+    src/ndbl/core/ASTNodeFactory.cpp
+    src/ndbl/core/ASTNodeProperty.cpp
+    src/ndbl/core/ASTNodePropertyBag.cpp
+    src/ndbl/core/ASTScope.cpp
+    src/ndbl/core/ASTNodeSlot.cpp
+    src/ndbl/core/ASTSwitchBehavior.cpp
+    src/ndbl/core/ASTToken.cpp
+    src/ndbl/core/ASTTokenRibbon.cpp
+    src/ndbl/core/ASTVariable.cpp
     src/ndbl/core/Interpreter.cpp
-    src/ndbl/core/WhileLoopNode.cpp
+    src/ndbl/core/ASTWhileLoop.cpp
     src/ndbl/core/Code.cpp
     src/ndbl/core/Compiler.cpp
     src/ndbl/core/Instruction.cpp
@@ -419,8 +419,8 @@ add_executable(
     test-ndbl-core
     src/ndbl/core/Graph.specs.cpp
     src/ndbl/core/Graph.specs.cpp
-    src/ndbl/core/Slot.specs.cpp
-    src/ndbl/core/Token.specs.cpp
+    src/ndbl/core/ASTNodeSlot.specs.cpp
+    src/ndbl/core/ASTToken.specs.cpp
     src/ndbl/core/language/Nodlang.basics.specs.cpp
     src/ndbl/core/language/Nodlang.tokenize.specs.cpp
     src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp
@@ -493,7 +493,7 @@ add_library(
     src/ndbl/gui/FileView.cpp
     src/ndbl/gui/Nodable.cpp
     src/ndbl/gui/NodableView.cpp
-    src/ndbl/gui/NodeView.cpp
+    src/ndbl/gui/ASTNodeView.cpp
     src/ndbl/gui/Physics.cpp
     src/ndbl/gui/PropertyView.cpp
     src/ndbl/gui/SlotView.h
