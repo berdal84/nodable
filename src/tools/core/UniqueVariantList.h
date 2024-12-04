@@ -128,6 +128,7 @@ namespace tools
                     return ptr;
 
             ASSERT(false); // unreachable case
+            return {};
         }
 
         template<class AlternativeT>
