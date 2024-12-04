@@ -1,11 +1,12 @@
 #pragma once
 
-#include "tools/core/Component.h"
+#include "tools/core/ComponentFor.h"
 #include "tools/gui/geometry/Space.h"
-#include "tools/gui/geometry/SpatialNode2D.h"
+#include "tools/gui/geometry/SpatialNode.h"
 #include "tools/gui/Size.h"
 #include "tools/gui/geometry/Pivots.h"
 #include "ASTNodeView.h"
+#include "ndbl/core/ASTNode.h"
 
 namespace  ndbl
 {
@@ -13,7 +14,7 @@ namespace  ndbl
     class Entity;
     class ASTNode;
     class ASTNodeView;
-    class ScopeView;
+    class ASTScopeView;
 
     struct ViewConstraint
     {
@@ -42,13 +43,13 @@ namespace  ndbl
         static std::vector<ASTNodeView*> clean(std::vector<ASTNodeView*>& );
     };
 
-    class Physics : public tools::Component
+    class PhysicsComponent : public tools::ComponentFor<ASTNode>
     {
     public:
         DECLARE_REFLECT_override
         typedef std::vector<ViewConstraint> Constraints;
 
-        Physics();
+        PhysicsComponent();
 
         void            add_constraint(ViewConstraint& c) { _constraints.push_back(std::move(c)); }
         void            apply_constraints(float dt);
@@ -62,7 +63,7 @@ namespace  ndbl
         const Constraints&  constraints() const { return _constraints; };
 
     private:
-        void            _on_owner_init(tools::Entity*);
+        void            _on_owner_init(ASTNode*);
 
         bool            _is_active = false;
         ASTNodeView*    _view      = nullptr;

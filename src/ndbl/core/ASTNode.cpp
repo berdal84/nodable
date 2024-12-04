@@ -315,7 +315,7 @@ void ASTNode::init_internal_scope(size_t sub_scope_count)
     VERIFY( m_parent_scope == nullptr, "Must be initialized prior to reset_parent()");
 
     // create internal scope
-    ASTScope* scope = entity()->emplace<ASTScope>();
+    auto* scope = this->components()->create<ASTScope>();
     scope->set_name("Internal Scope");
 
     if ( sub_scope_count > 0 )
@@ -324,7 +324,7 @@ void ASTNode::init_internal_scope(size_t sub_scope_count)
         sub_scope.reserve(sub_scope_count);
         while( sub_scope.size() < sub_scope_count )
         {
-            sub_scope.push_back(entity()->emplace<ASTScope>() );
+            sub_scope.push_back( this->components()->create<ASTScope>() );
         }
 
         scope->init_partition( sub_scope );
@@ -342,4 +342,12 @@ bool ASTNode::has_flow_adjacent() const
 bool ASTNode::is_expression() const
 {
     return !inputs().empty();
+}
+
+void ASTNode::reset_scope(ASTScope* scope)
+{
+    ASSERT( (m_flags & ASTNodeFlag_WAS_IN_A_SCOPE_ONCE) || scope != nullptr );
+
+    m_flags |= ASTNodeFlag_WAS_IN_A_SCOPE_ONCE;
+    m_parent_scope = scope;
 }

@@ -15,7 +15,7 @@
 #include "ASTNodeView.h"
 #include "commands/Cmd_ReplaceText.h"
 #include "commands/Cmd_WrappedTextEditorUndoRecord.h"
-#include "Physics.h"
+#include "PhysicsComponent.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -42,13 +42,14 @@ void FileView::init(File& _file)
 	m_text_editor.SetLanguageDefinition(lang);
 	m_text_editor.SetImGuiChildIgnored(true);
 	m_text_editor.SetPalette( cfg->ui_text_textEditorPalette );
+
+    m_graph_view = m_file->graph()->components()->get<GraphView>();
+    VERIFY( m_graph_view, "A GraphView component is required by FileView" );
 }
 
 void FileView::update(float dt)
 {
-    GraphView* graph_view = m_file->graph().view();
-    ASSERT(graph_view != nullptr);
-    graph_view->update(dt);
+    m_graph_view->update(dt);
 }
 
 void FileView::draw(float dt)
@@ -58,7 +59,7 @@ void FileView::draw(float dt)
     // 2) Draw Text and Graph Editors
 
     clear_overlay();
-    Condition condition_flags = m_file->graph().view()->selection().empty()
+    Condition condition_flags = m_graph_view->selection().empty()
                               ? Condition_ENABLE_IF_HAS_NO_SELECTION
                               : Condition_ENABLE_IF_HAS_SELECTION;
     refresh_overlay( condition_flags );
@@ -168,12 +169,11 @@ void FileView::draw(float dt)
             auto old_line_text = m_text_editor.GetCurrentLineText();
 
             bool is_running = get_interpreter()->is_program_running();
-            GraphView* graphview = m_file->graph().view();
             auto allow_keyboard = !is_running &&
-                                  !graphview->has_an_active_tool();
+                                  !m_graph_view->has_an_active_tool();
 
             auto allow_mouse = !is_running &&
-                               !graphview->has_an_active_tool() &&
+                               !m_graph_view->has_an_active_tool() &&
                                !ImGui::IsAnyItemHovered() &&
                                !ImGui::IsAnyItemFocused();
 
@@ -226,11 +226,6 @@ void FileView::draw(float dt)
          // NodeViewItem EDITOR
         //-------------
 
-        Graph&     graph      = m_file->graph();
-        GraphView* graph_view = graph.view();
-
-        ASSERT(graph_view);
-
         ImGui::SameLine();
         LOG_VERBOSE("FileView", "graph_node_view->update_world_matrix()\n");
         ImGuiWindowFlags flags = (ImGuiWindowFlags_)(ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
@@ -240,7 +235,7 @@ void FileView::draw(float dt)
         ImGui::BeginChild("graph", graph_editor_size, false, flags);
         {
             // Draw graph
-            graph_view_changed |= graph_view->draw(dt);
+            graph_view_changed |= m_graph_view->draw(dt);
 
             // Draw overlay: shortcuts
             Rect overlay_rect = ImGuiEx::GetContentRegion(WORLD_SPACE );
@@ -345,8 +340,8 @@ void FileView::draw_info_panel() const
     // Statistics
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
-    ImGui::Text("Node count: %zu", m_file->graph().nodes().size());
-    ImGui::Text("Edge count: %zu", m_file->graph().get_edge_registry().size());
+    ImGui::Text("Node count: %zu", m_file->graph()->nodes().size());
+    ImGui::Text("Edge count: %zu", m_file->graph()->get_edge_registry().size());
     ImGui::Unindent();
     ImGui::NewLine();
 
@@ -367,8 +362,9 @@ void FileView::draw_info_panel() const
     }
 
     // Hierarchy
-    ASTScope* main_scope = m_file->graph().main_scope();
-    ScopeView::draw_scope_tree( main_scope );
+    ASTScope* scope = m_file->graph()->root_scope();
+    VERIFY(scope, "An ASTScope root is required to draw the AST as an ImGui tree");
+    ASTScopeView::ImGuiTreeNode_ASTScope("Graph's Root Scope", scope);
 }
 
 void FileView::experimental_clipboard_auto_paste(bool _enable)

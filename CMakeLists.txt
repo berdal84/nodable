@@ -148,8 +148,7 @@ include_directories(
 add_library(
     tools-core
     STATIC
-    src/tools/core/Entity.h
-    src/tools/core/Component.cpp
+    src/tools/core/ComponentCollection.h
     src/tools/core/Event.h
     src/tools/core/EventManager.cpp
     src/tools/core/EventManager.h
@@ -220,7 +219,7 @@ add_executable(
     src/tools/core/reflection/Type.specs.cpp
     src/tools/core/memory/Pool.specs.cpp
     src/tools/gui/geometry/Rect.specs.cpp
-    src/tools/gui/geometry/SpatialNode2D.specs.cpp
+    src/tools/gui/geometry/SpatialNode.specs.cpp
 )
 
 target_link_libraries(test-tools PUBLIC gtest_main gtest tools-core tools-gui)
@@ -250,8 +249,8 @@ add_library(
     src/tools/gui/geometry/Space.h
     src/tools/gui/geometry/Vec2.h
     src/tools/gui/geometry/Vec4.h
-    src/tools/gui/geometry/SpatialNode2D.h
-    src/tools/gui/geometry/SpatialNode2D.cpp
+    src/tools/gui/geometry/SpatialNode.h
+    src/tools/gui/geometry/SpatialNode.cpp
     src/tools/gui/geometry/TRSTransform2D.h
     src/tools/gui/geometry/TRSTransform2D.cpp
     src/tools/gui/Action.cpp
@@ -487,19 +486,19 @@ add_library(
     src/ndbl/gui/Config.cpp
     src/ndbl/gui/Config.h
     src/ndbl/gui/GraphView.cpp
-    src/ndbl/gui/CreateNodeCtxMenu.cpp
+    src/ndbl/gui/ASTNodeViewContextualMenu.cpp
     src/ndbl/gui/History.cpp
     src/ndbl/gui/File.cpp
     src/ndbl/gui/FileView.cpp
     src/ndbl/gui/Nodable.cpp
     src/ndbl/gui/NodableView.cpp
     src/ndbl/gui/ASTNodeView.cpp
-    src/ndbl/gui/Physics.cpp
-    src/ndbl/gui/PropertyView.cpp
-    src/ndbl/gui/SlotView.h
-    src/ndbl/gui/SlotView.cpp
+    src/ndbl/gui/PhysicsComponent.cpp
+    src/ndbl/gui/ASTNodePropertyView.cpp
+    src/ndbl/gui/ASTNodeSlotView.h
+    src/ndbl/gui/ASTNodeSlotView.cpp
     src/ndbl/gui/Isolation.h
-    src/ndbl/gui/ScopeView.cpp
+    src/ndbl/gui/ASTScopeView.cpp
 )
 
 target_link_libraries(

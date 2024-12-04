@@ -34,7 +34,7 @@ namespace ndbl
             add_slot(m_value, SlotFlag_OUTPUT  , 1); // ref can be connected once
         }
 
-        inline void on_variable_name_change(const std::string& name)
+        void on_variable_name_change(const std::string& name)
         {
             m_value->token().word_replace( name.c_str() );
         }

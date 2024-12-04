@@ -99,15 +99,16 @@ namespace ndbl{
     public:
         struct ParserState
         {
+            void                reset(Graph* g) { reset_ribbon(); reset_graph(g); reset_scope_stack(); }
+            void                reset_ribbon(const char* new_buf = nullptr, size_t new_size = 0);
+            void                reset_graph(Graph*);
+            void                reset_scope_stack();
             const char*         buffer() const { ASSERT(_buffer.data); return _buffer.data; }
             size_t              buffer_size() const { return _buffer.size; }
-            void                reset_ribbon(const char* new_buf = nullptr, size_t new_size = 0);
-            void                reset_graph(Graph* new_graph);
-            void                reset_scope_stack();
             std::string         string() const { return _ribbon.to_string(); }; // Ribbon's
             Graph*              graph() const { ASSERT(_graph); return _graph; }
-            ASTTokenRibbon&        tokens()  { return _ribbon; }
-            ASTScope*              current_scope() const { ASSERT(!_scope.empty() ); return _scope.top(); }
+            ASTTokenRibbon&     tokens()  { return _ribbon; }
+            ASTScope*           current_scope() const { VERIFY(!_scope.empty(), "Stack is empty!"); return _scope.top(); }
             void                push_scope(ASTScope* scope) { _scope.push(scope); };
             void                pop_scope() { _scope.pop(); };
             const char*         buffer_at(size_t offset) { ASSERT(offset < _buffer.size ); return _buffer.data + offset; }

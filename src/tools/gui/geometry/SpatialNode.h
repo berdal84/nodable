@@ -1,11 +1,12 @@
 #pragma once
 #include "glm/glm/mat3x3.hpp"
-#include "Rect.h"
-#include "Vec2.h"
+#include <unordered_set>
 #include "tools/core/assertions.h"
+#include "tools/core/ComponentFor.h"
 #include "TRSTransform2D.h"
 #include "Space.h"
-#include <unordered_set>
+#include "Rect.h"
+#include "Vec2.h"
 
 namespace tools
 {
@@ -19,37 +20,34 @@ namespace tools
 
     /**
      * Very simple spatial node in 2D.
-     * A scene graph can be created by linking parent and child nodes.
+     * A scene graph can be created by linking parent and primary_child nodes.
      * Currently, we can only set and get the position (not implemented in TRSTransform2D)
      */
-    struct SpatialNode2D
+    class SpatialNode
     {
-        typedef std::unordered_set<SpatialNode2D*> Children;
+    public:
+        typedef std::unordered_set<SpatialNode*> Children;
 
-        SpatialNode2D(){};
-        ~SpatialNode2D();
+        ~SpatialNode();
+
         void                  set_position(const Vec2&);
         void                  set_position(const Vec2&, Space);
-        // void                  set_rotate(float angle);
-        // void                  rotate(float angle);
-        // void                  set_scale(const tools::Vec2& scale);
-        // void                  scale(const tools::Vec2& scale);
         Vec2                  position() const;
         Vec2                  position(Space) const;
         void                  translate(const tools::Vec2& delta);
-        const glm::mat3&      world_matrix() const     { const_cast<SpatialNode2D*>(this)->update_world_matrix(); return _world_matrix; }
-        const glm::mat3&      world_matrix_inv() const { const_cast<SpatialNode2D*>(this)->update_world_matrix(); return _world_matrix_inv; }
+        const glm::mat3&      world_matrix() const     { const_cast<SpatialNode*>(this)->update_world_matrix(); return _world_matrix; }
+        const glm::mat3&      world_matrix_inv() const { const_cast<SpatialNode*>(this)->update_world_matrix(); return _world_matrix_inv; }
         void                  set_world_transform_dirty();
-        bool                  add_child(SpatialNode2D*, SpatialNodeFlags = SpatialNodeFlag_PRESERVE_WORLD_POSITION);
-        bool                  remove_child(SpatialNode2D*, SpatialNodeFlags = SpatialNodeFlag_PRESERVE_WORLD_POSITION);
+        bool                  add_child(SpatialNode*, SpatialNodeFlags = SpatialNodeFlag_PRESERVE_WORLD_POSITION);
+        bool                  remove_child(SpatialNode*, SpatialNodeFlags = SpatialNodeFlag_PRESERVE_WORLD_POSITION);
         bool                  has_parent() const { return _parent != nullptr; }
-        SpatialNode2D*        parent() const { return _parent; }
+        SpatialNode*          parent() const { return _parent; }
         void                  update_world_matrix();
         const Children&       children() const { return _children; }
         void                  clear();
 
     private:
-        SpatialNode2D*        _parent = nullptr;
+        SpatialNode*          _parent = nullptr;
         Children              _children;
         TRSTransform2D        _transform; // local transform, relative to the parent
         glm::mat3             _world_matrix = {1.f}; // update only on-demand when m_world_matrix_dirty is set.

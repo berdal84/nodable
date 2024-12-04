@@ -27,7 +27,7 @@ void CLI::init()
     using API = CLI::PublicApi;
     tools::type::Initializer<API>("PublicAPI")
         //                 vvv---- method     vvvvv--- alias
-        .add_method(&API::clear            , "clear")
+        .add_method(&API::clear            , "reset")
         .add_method(&API::help             , "help")
         .add_method(&API::quit             , "exit")
         .add_method(&API::quit             , "quit")
@@ -122,7 +122,7 @@ void CLI::PublicApi::quit()
 
 bool CLI::PublicApi::serialize()
 {
-    if( m_cli->get_graph()->root() )
+    if(m_cli->graph()->root_node() )
     {
         std::string result;
         m_cli->serialize( result );

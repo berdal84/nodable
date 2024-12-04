@@ -4,10 +4,10 @@
 
 namespace ndbl
 {
-    class CreateNodeCtxMenu
+    class ASTNodeViewContextualMenu
     {
     public:
-        Action_CreateNode*       draw_search_input(SlotView* _dragged_slot, size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
+        Action_CreateNode*       draw_search_input(ASTNodeSlotView* _dragged_slot, size_t _result_max_count ); // Return the triggered action, user has to deal with the Action.
         void                     flag_to_be_reset();
         void                     add_action(Action_CreateNode*);
 
@@ -17,7 +17,7 @@ namespace ndbl
         std::vector<Action_CreateNode*> items;                           // All the available items
         std::vector<Action_CreateNode*> items_with_compatible_signature; // Only the items having a compatible signature (with the slot dragged)
         std::vector<Action_CreateNode*> items_matching_search;           // Only the items having a compatible signature AND matching the search_input.
-        void                     update_cache_based_on_signature(SlotView* _dragged_slot);
-        void                     update_cache_based_on_user_input(SlotView* _dragged_slot, size_t _limit );
+        void                     update_cache_based_on_signature(ASTNodeSlotView* _dragged_slot);
+        void                     update_cache_based_on_user_input(ASTNodeSlotView* _dragged_slot, size_t _limit );
     };
 }

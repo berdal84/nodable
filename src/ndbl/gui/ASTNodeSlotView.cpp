@@ -1,4 +1,4 @@
-#include "SlotView.h"
+#include "ASTNodeSlotView.h"
 #include "Config.h"
 #include "Event.h"
 #include "ndbl/core/ASTUtils.h"
@@ -6,7 +6,7 @@
 using namespace ndbl;
 using namespace tools;
 
-SlotView::SlotView(
+ASTNodeSlotView::ASTNodeSlotView(
         ASTNodeSlot*       slot,
         const Vec2& align,
         ShapeType   shape_type,
@@ -19,6 +19,9 @@ SlotView::SlotView(
 , index(index)
 , alignment_ref(alignment_ref)
 , direction()
+, _spatial_node()
+, _shape({1.f, 1.f}, &_spatial_node)
+, _state()
 {
     ASSERT(slot != nullptr);
 
@@ -30,10 +33,10 @@ SlotView::SlotView(
     Vec2 size = shape_type == ShapeType_CIRCLE
             ? Vec2{ config->ui_slot_circle_radius() }
             : config->ui_slot_rectangle_size;
-    shape().set_size( size );
+    _shape.set_size( size );
 }
 
-string64 SlotView::compute_tooltip() const
+string64 ASTNodeSlotView::compute_tooltip() const
 {
     switch (slot->type_and_order())
     {
@@ -56,9 +59,9 @@ string64 SlotView::compute_tooltip() const
     return std::move(result);
 }
 
-bool SlotView::draw()
+bool ASTNodeSlotView::draw()
 {
-    _state.shape().draw_debug_info();
+    _shape.draw_debug_info();
 
     if ( !_state.visible() )
         return false;
@@ -70,7 +73,7 @@ bool SlotView::draw()
     Vec4  border_color   = cfg->ui_slot_border_color;
     float border_radius  = cfg->ui_slot_border_radius;
     Vec4  hover_color    = cfg->ui_slot_hovered_color;
-    Rect rect            = _state.shape().rect(WORLD_SPACE);
+    Rect rect            = _shape.rect(WORLD_SPACE);
 
     if ( !rect.has_area() )
         return false;
@@ -89,7 +92,7 @@ bool SlotView::draw()
     {
         case ShapeType_CIRCLE:
         {
-            float r = shape().size().x;
+            float r = _shape.size().x;
             draw_list->AddCircleFilled( rect.center(), r, ImColor(fill_color));
             draw_list->AddCircle( rect.center(), r, ImColor(border_color) );
             break;
@@ -118,7 +121,7 @@ bool SlotView::draw()
     return ImGui::IsItemClicked();
 }
 
-void SlotView::update(float dt)
+void ASTNodeSlotView::update(float dt)
 {
     // 1) Update visibility
     //---------------------
@@ -151,7 +154,7 @@ void SlotView::update(float dt)
         // |  Box              |
         // ---------------------
         //
-        const Vec2  size  = shape().size();
+        const Vec2  size  = _shape.size();
         const float gap   = cfg->ui_slot_gap;
         const float dir_x = -alignment.x;
 
@@ -160,12 +163,12 @@ void SlotView::update(float dt)
                        + Vec2( dir_x * size.x * float(index), 0.f) // jump to index
                        + Vec2(0.f, alignment.y * size.y * 0.5f); // align edge vertically
 
-        shape().spatial_node().set_position(pos, WORLD_SPACE); // relative to NodeView's
+        _spatial_node.set_position(pos, WORLD_SPACE); // relative to NodeView's
     }
     else if (alignment_ref != nullptr )
     {
         const Vec2 pos  = alignment_ref->pivot( alignment, WORLD_SPACE);
-        shape().spatial_node().set_position(pos, WORLD_SPACE);
+        _spatial_node.set_position(pos, WORLD_SPACE);
     }
     else
     {
@@ -173,7 +176,7 @@ void SlotView::update(float dt)
     }
 }
 
-void SlotView::update_direction_from_alignment()
+void ASTNodeSlotView::update_direction_from_alignment()
 {
     direction = Vec2::normalize( alignment );
 }

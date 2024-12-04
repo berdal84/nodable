@@ -317,7 +317,7 @@ bool Interpreter::debug_step_over()
         {
             case OpCode_call:
             {
-                VERIFY(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a child reference in the instruction");
+                VERIFY(false, "Not implemented, we might add break points in a dedicated data structure instead of storing a primary_child reference in the instruction");
 //                m_next_node = next_instr->eval.invokable;
                 break;
             }
@@ -333,8 +333,8 @@ bool Interpreter::debug_step_over()
 
 void Interpreter::debug_program()
 {
-    Optional<ASTNode*> root = graph()->root();
-    if( root )
+    Optional<ASTNode*> root = graph()->root_node();
+    if( !root.valid() )
     {
         LOG_ERROR("Interpreter", "Unable to debug program. Graph has no root.\n");
         return;

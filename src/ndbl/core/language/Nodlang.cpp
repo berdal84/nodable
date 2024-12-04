@@ -161,8 +161,7 @@ Nodlang::~Nodlang()
 
 bool Nodlang::parse(Graph* graph_out, const std::string& code)
 {
-    _state.reset_scope_stack();
-    _state.reset_graph(graph_out );
+    _state.reset(graph_out);
 
     LOG_VERBOSE("Parser", "Parsing ...\n%s\n", code.c_str());
 
@@ -183,7 +182,7 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
 
     if (_state.tokens().can_eat() )
     {
-        _state.graph()->clear();
+        _state.graph()->reset();
         LOG_VERBOSE("Parser", KO "End of token ribbon expected\n");
         LOG_VERBOSE("Parser", "%s", format::title("TokenRibbon").c_str());
         for (const ASTToken& each_token : _state.tokens() )
@@ -241,7 +240,7 @@ Optional<ASTNodeSlot*> Nodlang::token_to_slot(const ASTToken& _token)
     {
         std::string identifier = _token.word_to_string();
         ASSERT(_state.current_scope());
-        if( ASTVariable* existing_variable = _state.current_scope()->find_variable_recursively(identifier) )
+        if( ASTVariable* existing_variable = _state.current_scope()->find_variable(identifier) )
         {
             return existing_variable->ref_out();
         }
@@ -251,7 +250,7 @@ Optional<ASTNodeSlot*> Nodlang::token_to_slot(const ASTToken& _token)
             // Insert a VariableNodeRef with "any" type
             LOG_WARNING( "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() );
-            ASTVariableRef* ref = _state.graph()->create_variable_ref();
+            ASTVariableRef* ref = _state.graph()->create_variable_ref( _state.current_scope() );
             ref->value()->set_token(_token );
             return ref->value_out();
         }
@@ -264,10 +263,10 @@ Optional<ASTNodeSlot*> Nodlang::token_to_slot(const ASTToken& _token)
 
     switch (_token.m_type)
     {
-        case ASTToken_t::literal_bool: literal = _state.graph()->create_literal<bool>();        break;
-        case ASTToken_t::literal_int: literal = _state.graph()->create_literal<i32_t>();       break;
-        case ASTToken_t::literal_double: literal = _state.graph()->create_literal<double>();      break;
-        case ASTToken_t::literal_string: literal = _state.graph()->create_literal<std::string>(); break;
+        case ASTToken_t::literal_bool:   literal = _state.graph()->create_literal<bool>( _state.current_scope() );        break;
+        case ASTToken_t::literal_int:    literal = _state.graph()->create_literal<i32_t>( _state.current_scope() );       break;
+        case ASTToken_t::literal_double: literal = _state.graph()->create_literal<double>( _state.current_scope() );      break;
+        case ASTToken_t::literal_string: literal = _state.graph()->create_literal<std::string>( _state.current_scope() ); break;
         default:
             break; // we don't want to throw
     }
@@ -337,7 +336,7 @@ Optional<ASTNodeSlot*> Nodlang::parse_binary_operator_expression(u8_t _precedenc
         type.arg_at(0).type = _left->property->get_type();
         type.arg_at(1).type = right->property->get_type();
 
-        ASTFunctionCall* binary_op = _state.graph()->create_operator(type );
+        ASTFunctionCall* binary_op = _state.graph()->create_operator( type, _state.current_scope() );
         binary_op->set_identifier_token( operator_token );
         binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
         binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
@@ -396,7 +395,7 @@ Optional<ASTNodeSlot*> Nodlang::parse_unary_operator_expression(u8_t _precedence
     type.init<any(any)>(operator_token.word_to_string().c_str());
     type.arg_at(0).type = out_atomic->property->get_type();
 
-    ASTFunctionCall* node = _state.graph()->create_operator(type);
+    ASTFunctionCall* node = _state.graph()->create_operator( type, _state.current_scope() );
     node->set_identifier_token( operator_token );
     node->lvalue_in()->property->token().m_type = out_atomic->property->token().m_type;
 
@@ -500,7 +499,7 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, A
         if ( ASTUtils::is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
         {
             // create a new variable reference
-            ASTVariableRef* ref = _state.graph()->create_variable_ref();
+            ASTVariableRef* ref = _state.graph()->create_variable_ref( _state.current_scope() );
             ref->set_variable( variable );
             // substitute value_out by variable reference's value_out
             value_out = ref->value_out();
@@ -535,7 +534,7 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, A
         {
             LOG_VERBOSE("Parser", "Empty expression found\n");
 
-            ASTNode* empty_instr = _state.graph()->create_empty_instruction();
+            ASTNode* empty_instr = _state.graph()->create_empty_instruction( _state.current_scope() );
             value_out = empty_instr->value_out();
         }
     }
@@ -551,7 +550,7 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, A
     // Connects value_out to the provided input
     if ( value_in )
     {
-        _state.graph()->connect( value_out.data(), value_in, ConnectFlag_ALLOW_SIDE_EFFECTS);
+        _state.graph()->connect( value_out.data(), value_in, GraphFlag_ALLOW_SIDE_EFFECTS);
     }
 
     // Add an end_of_instruction token as suffix when needed
@@ -563,7 +562,7 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, A
     // Connects expression flow_in with the provided flow_out
     if ( !flow_out.empty() )
     {
-        _state.graph()->connect( flow_out, value_out->node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+        _state.graph()->connect( flow_out, value_out->node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
     }
 
     // Validate transaction
@@ -580,14 +579,12 @@ Nodlang::FlowPath Nodlang::parse_program()
     _state.start_transaction();
 
     // Create an entry point and push its scope
-    ASTNode* entry_point = _state.graph()->create_entry_point();
+    ASTScope* scope = _state.graph()->root_scope();
 
     // Parse main code block
-    _state.push_scope(entry_point->internal_scope() );
-    FlowPath path{ entry_point };
-    FlowPath block_path = parse_code_block( path.out );
-    path.out = block_path.out;
-    _state.pop_scope();
+    FlowPath program_path{ scope->entity() };
+    FlowPath block_path = parse_code_block( program_path.out );
+    program_path.out = block_path.out;
 
 
     // To preserve any ignored characters stored in the global token
@@ -595,14 +592,14 @@ Nodlang::FlowPath Nodlang::parse_program()
     ASTToken& tok = _state.tokens().global_token();
     std::string prefix = tok.prefix_to_string();
     std::string suffix = tok.suffix_to_string();
-    entry_point->internal_scope()->token_begin.prefix_push_front(prefix.c_str() );
-    entry_point->internal_scope()->token_end.suffix_push_back(suffix.c_str() );
+    scope->token_begin.prefix_push_front(prefix.c_str() );
+    scope->token_end.suffix_push_back(suffix.c_str() );
 
     if ( _state.tokens().can_eat( ) )
     {
         _state.rollback();
-        _state.graph()->clear();
-        _state.graph()->on_reset.emit();
+        _state.graph()->reset();
+        _state.graph()->completed.emit();
         LOG_WARNING("Parser", "Some token remains after getting an empty code block\n");
         LOG_MESSAGE("Parser", KO "Parse program.\n");
         return {};
@@ -613,11 +610,11 @@ Nodlang::FlowPath Nodlang::parse_program()
     }
 
     _state.commit();
-    _state.graph()->on_reset.emit();
+    _state.graph()->completed.emit();
 
     LOG_MESSAGE("Parser", OK "Parse program.\n");
 
-    return path;
+    return program_path;
 }
 
 Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
@@ -629,7 +626,7 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
     auto scope_begin_token = _state.tokens().eat_if(ASTToken_t::scope_begin);
     if ( !scope_begin_token )
     {
-        LOG_VERBOSE("Parser", KO "Expecting main_scope begin token\n");
+        LOG_VERBOSE("Parser", KO "Expecting root_scope begin token\n");
         return {};
     }
 
@@ -646,8 +643,7 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
 
         if ( !path )
         {
-            ASTNode* empty_instr = _state.graph()->create_empty_instruction();
-            scope->push_back(empty_instr);
+            ASTNode* empty_instr = _state.graph()->create_empty_instruction( scope );
             path = empty_instr;
         }
 
@@ -657,10 +653,10 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
     }
     else
     {
-        LOG_VERBOSE("Parser", KO "Expecting close main_scope token\n");
+        LOG_VERBOSE("Parser", KO "Expecting close root_scope token\n");
     }
 
-    scope->clear();
+    ASSERT(scope->empty());
     _state.rollback();
     LOG_VERBOSE("Parser", KO "Scoped block parsed\n");
     return {};
@@ -1113,7 +1109,7 @@ Optional<ASTNodeSlot*> Nodlang::parse_function_call()
 
 
     // Find the prototype in the language library
-    ASTFunctionCall* fct_node = _state.graph()->create_function(signature );
+    ASTFunctionCall* fct_node = _state.graph()->create_function( signature, _state.current_scope() );
 
     for ( int i = 0; i < fct_node->get_arg_slots().size(); i++ )
     {
@@ -1144,8 +1140,8 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
 
     Nodlang::FlowPath path;
 
-    if_node = _state.graph()->create_cond_struct();
-    _state.graph()->connect( flow_out, if_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+    if_node = _state.graph()->create_cond_struct( _state.current_scope() );
+    _state.graph()->connect( flow_out, if_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
     ASTScope* if_scope = if_node->internal_scope();
     _state.push_scope(if_scope);
@@ -1193,7 +1189,7 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
                     }
                     else
                     {
-                        LOG_VERBOSE("Parser", KO "Single instruction or main_scope expected\n");
+                        LOG_VERBOSE("Parser", KO "Single instruction or root_scope expected\n");
                     }
 
                     _state.pop_scope();
@@ -1208,7 +1204,7 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
             }
             else
             {
-                LOG_VERBOSE("Parser", KO "Single instruction or main_scope expected\n");
+                LOG_VERBOSE("Parser", KO "Single instruction or root_scope expected\n");
             }
         }
         else
@@ -1225,7 +1221,7 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
         return path;
     }
 
-    _state.graph()->destroy( if_node );
+    _state.graph()->find_and_destroy(if_node);
     _state.rollback();
     LOG_VERBOSE("Parser", KO "Parse conditional structure \n");
 
@@ -1245,8 +1241,8 @@ Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
 
         LOG_VERBOSE("Parser", "Parsing for loop ...\n");
 
-        for_node = _state.graph()->create_for_loop();
-        _state.graph()->connect( flow_out, for_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+        for_node = _state.graph()->create_for_loop( _state.current_scope() );
+        _state.graph()->connect( flow_out, for_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
         for_node->token_for = token_for;
 
@@ -1308,8 +1304,11 @@ Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
         return path;
     }
 
+    if ( for_node )
+    {
+        _state.graph()->find_and_destroy(for_node);
+    }
     _state.rollback();
-    _state.graph()->destroy( for_node );
     LOG_VERBOSE("Parser", KO "Could not parse for block\n");
     return {};
 }
@@ -1326,8 +1325,8 @@ Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
     {
         LOG_VERBOSE("Parser", "Parsing while ...\n");
 
-        while_node = _state.graph()->create_while_loop();
-        _state.graph()->connect( flow_out, while_node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS );
+        while_node = _state.graph()->create_while_loop( _state.current_scope() );
+        _state.graph()->connect( flow_out, while_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
         while_node->token_while = token_while;
         path.in = while_node->flow_in();
@@ -1379,7 +1378,11 @@ Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
     }
 
     _state.rollback();
-    _state.graph()->destroy( while_node );
+
+    if ( while_node )
+    {
+        _state.graph()->find_and_destroy(while_node);
+    }
 
     return {};
 }
@@ -1400,7 +1403,7 @@ Optional<ASTNodeSlot*> Nodlang::parse_variable_declaration()
     if (type_token.is_keyword_type() && identifier_token.m_type == ASTToken_t::identifier)
     {
         const TypeDescriptor* type = get_type(type_token.m_type);
-        ASTVariable* variable_node = _state.graph()->create_variable(type, identifier_token.word_to_string() );
+        ASTVariable* variable_node = _state.graph()->create_variable( type, identifier_token.word_to_string(), _state.current_scope() );
         variable_node->set_flags(VariableFlag_DECLARED);
         variable_node->set_type_token( type_token );
         variable_node->set_identifier_token( identifier_token );
@@ -1439,7 +1442,7 @@ Optional<ASTNodeSlot*> Nodlang::parse_variable_declaration()
         }
 
         LOG_VERBOSE("Parser", KO "Initialization expression expected for %s\n", identifier_token.word_to_string().c_str());
-        _state.graph()->destroy(variable_node );
+        _state.graph()->find_and_destroy(variable_node);
     }
 
     _state.rollback();
@@ -1705,7 +1708,7 @@ std::string& Nodlang::serialize_node(std::string &_out, const ASTNode* node, Ser
 std::string& Nodlang::serialize_scope(std::string &_out, const ASTScope* scope) const
 {
     serialize_token(_out, scope->token_begin);
-    for(ASTNode* node : scope->child() )
+    for(ASTNode* node : scope->primary_child() )
     {
         serialize_node(_out, node, SerializeFlag_RECURSE);
     }
@@ -1725,10 +1728,10 @@ std::string &Nodlang::serialize_token(std::string& _out, const ASTToken& _token)
 
 std::string& Nodlang::serialize_graph(std::string &_out, const Graph* graph ) const
 {
-    if ( const ASTScope* scope = graph->root()->internal_scope() )
+    if ( const ASTScope* scope = graph->root_node()->internal_scope() )
         serialize_scope(_out, scope);
     else
-        LOG_ERROR("Serializer", "a root child is expected to serialize the graph\n");
+        LOG_ERROR("Serializer", "a root primary_child is expected to serialize the graph\n");
     return _out;
 }
 
@@ -2064,8 +2067,8 @@ Nodlang::FlowPath Nodlang::parse_empty_block(const Nodlang::FlowPathOut& flow_ou
 {
     if ( _state.tokens().peek(ASTToken_t::end_of_instruction) )
     {
-        ASTNode* node = _state.graph()->create_empty_instruction();
-        _state.graph()->connect( flow_out, node->flow_in(), ConnectFlag_ALLOW_SIDE_EFFECTS);
+        ASTNode* node = _state.graph()->create_empty_instruction( _state.current_scope() );
+        _state.graph()->connect( flow_out, node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS);
         return FlowPath{ node };
     }
     return {};
@@ -2073,7 +2076,7 @@ Nodlang::FlowPath Nodlang::parse_empty_block(const Nodlang::FlowPathOut& flow_ou
 
 void Nodlang::ParserState::reset_graph(Graph* new_graph)
 {
-    new_graph->clear();
+    new_graph->reset();
     _graph = new_graph; // memory not owned
 }
 
@@ -2081,6 +2084,9 @@ void Nodlang::ParserState::reset_scope_stack()
 {
     while(!_scope.empty())
         _scope.pop();
+
+    ASTScope* scope = graph()->root_scope(); // zero-depth scope, always there
+    _scope.push( scope );
 }
 
 void Nodlang::ParserState::reset_ribbon(const char* new_buf, size_t new_size)

@@ -1,5 +1,5 @@
 #pragma once
-#include "SpatialNode2D.h"
+#include "SpatialNode.h"
 #include "imgui.h"
 #include "Rect.h"
 #include "Axis.h"
@@ -9,15 +9,17 @@ namespace tools
     class BoxShape2D
     {
     public:
-        BoxShape2D() {}
-        BoxShape2D(const Rect&);
-        BoxShape2D(SpatialNode2D, const Vec2& size);
+        BoxShape2D() = default;
+        BoxShape2D(const Vec2& size);
+        BoxShape2D(const Vec2& size, SpatialNode*);
+        BoxShape2D(const Rect& rect); // from Rect's size
 
-        SpatialNode2D& spatial_node() { return _spatial_node; }
-        const SpatialNode2D& spatial_node() const { return _spatial_node; }
-        inline void   set_position(Vec2 p) { set_position(p, PARENT_SPACE); }
-        inline void   set_position(Vec2 p, Space space) { _spatial_node.set_position(p, space); }
+        SpatialNode* spatial_node() { return _spatial_node; }
+        const SpatialNode* spatial_node() const { return _spatial_node; }
+        Vec2          position(Space space = PARENT_SPACE) const;
+        void          set_position(Vec2 p, Space space = PARENT_SPACE ) { _spatial_node->set_position(p, space); }
         void          set_size(const Vec2& s);
+        void          set_spatial_node(SpatialNode* spatial_node ) { _spatial_node = spatial_node; }
         Vec2          size() const { return _half_size * 2.0f; }
         const Vec2&   half_size() const { return _half_size; }
         Rect          rect(Space = PARENT_SPACE) const;
@@ -28,7 +30,7 @@ namespace tools
                            const Vec2& axis = XY_AXIS
                            ); // Return the delta between two Box pivots on a given axis
     private:
-        Vec2          _half_size = {};
-        SpatialNode2D _spatial_node;
+        Vec2          _half_size    = {0.f, 0.f};
+        SpatialNode*  _spatial_node = nullptr;
     };
 }

@@ -61,7 +61,7 @@ namespace ndbl
         void                   update(); // to call each frame
         void                   set_graph_dirty() { _flags |= Flags_GRAPH_IS_DIRTY; }
         void                   set_text_dirty() {_flags |= Flags_TEXT_IS_DIRTY; }
-        Graph&                 graph() { return *_graph; };
+        Graph*                 graph() { return _graph; };
         std::string            filename() const;
         void                   set_isolation(Isolation mode);
         size_t                 size() const;

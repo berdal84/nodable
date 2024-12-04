@@ -100,22 +100,21 @@ void Compiler::compile_output_slot(const ASTNodeSlot* slot)
     compile_node(slot->node);
 }
 
-void Compiler::compile_inner_scope(const ASTNode* node, bool _insert_fake_return)
+void Compiler::compile_scope(const ASTScope* scope, bool _insert_fake_return)
 {
-    ASSERT( node );
-    ASSERT(node->has_internal_scope() );
+    ASSERT(scope);
 
     // call push_stack_frame
     {
-        Instruction *instr  = m_temp_code->push_instr(OpCode_push_stack_frame);
-        instr->push.scope = node->internal_scope();
+        Instruction *instr = m_temp_code->push_instr(OpCode_push_stack_frame);
+        instr->push.scope  = scope;
         char str[64];
-        snprintf(str, 64, "%s's internal_scope", node->name().c_str());
+        snprintf(str, 64, "%s's internal_scope", scope->node()->name().c_str());
         instr->m_comment = str;
     }
 
     // push each variable
-    for(auto each_variable : node->internal_scope()->variable())
+    for(auto each_variable : scope->variable())
     {
         Instruction* instr   = m_temp_code->push_instr(OpCode_push_var);
         instr->push.var      = each_variable;
@@ -123,7 +122,7 @@ void Compiler::compile_inner_scope(const ASTNode* node, bool _insert_fake_return
     }
 
     // compile content
-    for( ASTNode* each_node : node->internal_scope()->child() )
+    for( ASTNode* each_node : scope->primary_child() )
     {
         compile_node( each_node );
     }
@@ -135,7 +134,7 @@ void Compiler::compile_inner_scope(const ASTNode* node, bool _insert_fake_return
     }
 
     // pop each variable
-    for(auto each_variable : node->internal_scope()->variable())
+    for(auto each_variable : scope->variable())
     {
         Instruction *instr   = m_temp_code->push_instr(OpCode_pop_var);
         instr->push.var      = each_variable;
@@ -144,8 +143,8 @@ void Compiler::compile_inner_scope(const ASTNode* node, bool _insert_fake_return
 
     {
         Instruction *instr = m_temp_code->push_instr(OpCode_pop_stack_frame);
-        instr->pop.scope   = node->internal_scope();
-        instr->m_comment   = node->name() + "'s internal_scope";
+        instr->pop.scope   = scope;
+        instr->m_comment   = scope->node()->name() + "'s internal_scope";
     }
 }
 
@@ -221,7 +220,7 @@ void Compiler::compile_for_loop(const ASTForLoop* for_loop)
 
     if ( auto true_branch = for_loop->branch_out(Branch_TRUE) )
     {
-        compile_inner_scope( true_branch->node );
+        compile_scope( true_branch->node->internal_scope() );
 
         // Compile iteration instruction
         compile_input_slot( for_loop->iteration_slot() );
@@ -248,7 +247,7 @@ void Compiler::compile_while_loop(const ASTWhileLoop* while_loop)
 
     if ( auto whileScope = while_loop->branch_out( Branch_TRUE ) )
     {
-        compile_inner_scope( whileScope->node );
+        compile_scope( whileScope->node->internal_scope() );
 
         // jump back to condition instruction
         auto loopJump = m_temp_code->push_instr(OpCode_jmp );
@@ -288,7 +287,7 @@ void Compiler::compile_conditional_struct(const ASTIf* _cond_node)
 
     if ( auto true_branch = _cond_node->branch_out( Branch_TRUE ) )
     {
-        compile_inner_scope( true_branch->node );
+        compile_scope( true_branch->node->internal_scope() );
 
         if ( _cond_node->branch_out( Branch_FALSE )->node )
         {
@@ -308,7 +307,7 @@ void Compiler::compile_conditional_struct(const ASTIf* _cond_node)
         }
         else
         {
-            compile_inner_scope(false_branch->node );
+            compile_scope( false_branch->node->internal_scope() );
         }
 
         if ( jump_after_conditional )
@@ -326,7 +325,7 @@ const Code* Compiler::compile_syntax_tree(const Graph* _graph)
 
         try
         {
-            compile_inner_scope( _graph->root().get(), true); // "true" <== here is a hack, TODO: implement a real ReturnNode
+            compile_scope( _graph->root_node()->internal_scope(), true); // "true" <== here is a hack, TODO: implement a real ReturnNode
             LOG_MESSAGE("Compiler", "Program compiled.\n");
         }
         catch ( const std::exception& e )

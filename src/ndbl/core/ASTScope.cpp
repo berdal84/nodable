@@ -17,37 +17,29 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(ASTScope).extends<Component>();
+    DEFINE_REFLECT(ASTScope).extends<ComponentFor<ASTNode>>();
 )
 
 ASTScope::ASTScope()
 {
-    CONNECT(Component::on_owner_init, &ASTScope::on_init_owner, this);
-}
-
-void ASTScope::on_init_owner(Entity* owner)
-{
-    m_node = owner->require<ASTNode>("and ASTScope needs to reference an ASTNode");
+    CONNECT(ComponentFor::on_owner_init, &ASTScope::on_init_owner, this);
 }
 
 ASTScope::~ASTScope()
 {
-    // clear nodes
-    clear();
-
-    // clear partitions
-    for(ASTScope* partition : m_partition)
-        partition->reset_parent(nullptr, ScopeFlags_PREVENT_EVENTS ); // why preventing events? => will be destroyed soon, unnecessary to emit some
-    m_partition.clear();
-
     // checks
-    assert(m_related.empty());
-    assert(m_variable.empty());
     assert(m_child.empty());
+    assert(m_variable.empty());
+    assert(m_primary_node.empty());
     assert(m_partition.empty());
 }
 
-ASTVariable* ASTScope::_find_var_ex(const std::string& _identifier, ScopeFlags flags )
+void ASTScope::on_init_owner(ASTNode* owner)
+{
+    m_node = owner; // note: Emtity might not hold this component, but ASTScope should be able to function
+}
+
+ASTVariable* ASTScope::find_variable(const std::string& _identifier, ScopeFlags flags )
 {
     // Try first to find in this scope
     for(auto it = m_variable.begin(); it != m_variable.end(); it++)
@@ -55,35 +47,74 @@ ASTVariable* ASTScope::_find_var_ex(const std::string& _identifier, ScopeFlags f
             return *it;
 
     // not found? => recursive call in parent ...
-    if ( m_parent && flags & ScopeFlags_RECURSE )
-        return m_parent->_find_var_ex(_identifier, flags);
+    if ( m_parent && flags & ScopeFlags_RECURSE_PARENT_SCOPES )
+        return m_parent->find_variable(_identifier, flags);
 
     return nullptr;
 }
 
-void ASTScope::_push_back_ex(ASTNode *node, ScopeFlags flags)
+bool ASTScope::_append(ASTNode *node, ScopeFlags flags)
 {
     ASSERT(node);
-    _push_back(node, flags);
+    VERIFY(node->scope() == nullptr, "Node should have no scope");
+    VERIFY(node != this->node(), "Can't add a node into its own internal scope" );
 
-    if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
+    if (flags & ScopeFlags_AS_PRIMARY_CHILD )
     {
-        ScopeFlags flags_non_primary = flags & ~ScopeFlags_AS_PRIMARY_CHILD;
-        for ( ASTNode* input : node->inputs() )
-            if ( !ASTUtils::is_instruction(input) )
-                _push_back_ex(input, flags_non_primary );
+        m_primary_node.push_back(node );
 
-        for ( ASTNode* next : node->flow_outputs() )
-            _push_back_ex(next, flags);
+        if (node->type() == ASTNodeType_VARIABLE )
+        {
+            auto variable_node = reinterpret_cast<ASTVariable*>( node );
+            if (find_variable(variable_node->get_identifier()) != nullptr )
+            {
+                LOG_ERROR("Scope", "Unable to _push_back_item variable '%s', already exists in the same internal_scope.\n", variable_node->get_identifier().c_str());
+                // we do not return, graph is abstract, it just won't compile ...
+            }
+            else if (variable_node->scope() )
+            {
+                LOG_ERROR("Scope", "Unable to _push_back_item variable '%s', already declared in another internal_scope. Remove it first.\n", variable_node->get_identifier().c_str());
+                // we do not return, graph is abstract, it just won't compile ...
+            }
+            else
+            {
+                LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scope\n", variable_node->get_identifier().c_str() );
+                m_variable.insert(variable_node);
+            }
+        }
     }
+
+    const ASTScope* curr_scope = node->scope();
+    const auto& [it, ok] = m_child.insert(node );
+
+    if ( ok )
+    {
+        node->reset_scope(this);
+        if ( node->has_internal_scope() )
+            node->internal_scope()->reset_parent( this );
+
+        for ( ASTNode* input : node->inputs() )
+            if ( input->scope() == curr_scope )
+                _append(input, flags & ~ScopeFlags_AS_PRIMARY_CHILD );
+
+        if ( flags & ScopeFlags_AS_PRIMARY_CHILD )
+            for ( ASTNode* next : node->flow_outputs() )
+                if ( next->scope() == curr_scope )
+                    _append(next, flags);
+
+        on_change.emit();
+        on_add.emit(node);
+    }
+
+    return ok;
 }
 
 std::vector<ASTNode*> ASTScope::leaves()
 {
     std::vector<ASTNode*> result;
     _leaves_ex(result);
-    if ( result.empty() )
-        result.push_back( node() );
+    if ( result.empty() && m_node != nullptr )
+        result.push_back( m_node );
     return result;
 }
 
@@ -96,57 +127,66 @@ std::vector<ASTNode*>& ASTScope::_leaves_ex(std::vector<ASTNode*>& out)
         return out; // when a scope as sub scopes, we do not consider its node as potential leaves since they are usually secondary nodes, so we return early.
     }
 
-    if ( !m_child.empty() )
+    if ( !m_primary_node.empty() )
     {
-        for( ASTNode* _child_node : m_child )
+        for( ASTNode* _child_node : m_primary_node )
             if (_child_node->has_internal_scope() )
                 _child_node->internal_scope()->_leaves_ex(out); // Recursive call on nested scopes
 
-        if ( !m_child.back()->has_internal_scope() )
-            out.push_back(m_child.back() );
+        if ( !m_primary_node.back()->has_internal_scope() )
+            out.push_back(m_primary_node.back() );
     }
 
     return out;
 }
 
-void ASTScope::_erase_ex(ASTNode* node, ScopeFlags flags)
+void ASTScope::_remove(std::vector<ASTNode *> &removed_nodes, ndbl::ASTNode *node, ndbl::ScopeFlags flags)
 {
-    ASSERT(node != nullptr);
-    _erase(node);
+    ASSERT( node );
+    ASSERT( node->scope() == this); // node can't be inside its own Scope
 
-    // recursive call(s)
-    if ( ( flags & ScopeFlags_RECURSE) && !node->has_internal_scope() )
+    // inputs first
+    for ( ASTNode* input : node->inputs() )
+        if ( input->scope() == this )
+            this->_remove(removed_nodes, input, flags & ~ScopeFlags_AS_PRIMARY_CHILD );
+
+    // if node is a primary node
+    // erase all the primary node, from the last to this one
+    auto it = std::find(m_primary_node.begin(), m_primary_node.end(), node );
+    while( it != m_primary_node.end() )
     {
-        for ( ASTNode* input : node->inputs() )
-            if ( !ASTUtils::is_instruction(input) )
-                _erase_ex(input, flags & ~ScopeFlags_AS_PRIMARY_CHILD);
-
-        for ( ASTNode* next : node->flow_outputs() )
-            _erase_ex(next, flags);
-    }
-}
-
-void ASTScope::clear()
-{
-    while( !m_related.empty() )
-    {
-        _erase_ex(*m_related.begin(), ScopeFlags_NONE);
+        removed_nodes.push_back( *it );
+        if ( (*it)->type() == ASTNodeType_VARIABLE )
+            m_variable.erase( static_cast<ASTVariable*>(*it) );
+        it = m_primary_node.erase( it );
     }
 
-    ASSERT(m_related.size() == 0);
-    ASSERT(m_variable.size() == 0);
-    ASSERT(m_child.size() == 0);
+    // erase node + side effects
+    m_child.erase( node );
+    node->reset_scope(nullptr);
+    if ( node->has_internal_scope() )
+        node->internal_scope()->reset_parent(); // TODO: this could be removed, internal_scope must always have the same parent
+    removed_nodes.push_back(node);
 
-    on_clear.emit();
+    if ( (flags & ScopeFlags_PREVENT_EVENTS) == 0 )
+    {
+        on_change.emit();
+        on_remove.emit(node);
+    }
+
+#ifdef TOOLS_DEBUG
+    for (auto* _node : removed_nodes )
+        ASSERT( _node->scope() == nullptr );
+#endif
 }
 
-bool ASTScope::empty_ex(ScopeFlags flags) const
+bool ASTScope::empty(ScopeFlags flags) const
 {
-    bool is_empty = empty();
+    bool is_empty = m_child.empty();
 
-    if ( flags & ScopeFlags_RECURSE )
+    if (flags & ScopeFlags_RECURSE_CHILD_PARTITION )
         for( const ASTScope* partition : m_partition )
-            is_empty &= partition->empty_ex( flags );
+            is_empty &= partition->empty(flags);
 
     return is_empty;
 }
@@ -211,7 +251,7 @@ std::set<ASTScope*>& ASTScope::get_descendent_ex(std::set<ASTScope*>& out, ASTSc
         get_descendent_ex(out, partition, level_max - 1 );
     }
 
-    for( ASTNode* _child_node : scope->m_child )
+    for( ASTNode* _child_node : scope->m_primary_node )
     {
         if ( ASTScope* internal_scope = _child_node->internal_scope() )
         {
@@ -223,76 +263,28 @@ std::set<ASTScope*>& ASTScope::get_descendent_ex(std::set<ASTScope*>& out, ASTSc
     return out;
 }
 
-void ASTScope::change_node_scope(ASTNode* node, ASTScope* desired_scope )
+void ASTScope::change_scope(ASTNode* node, ASTScope* desired_scope, ScopeFlags flags )
 {
-    if ( ASTScope* current_scope = node->scope() )
-    {
-        current_scope->erase(node);
-    }
+    ASTScope* current_scope = node->scope();
 
-    if ( desired_scope )
-    {
-        desired_scope->push_back(node);
-    }
-}
+    // pre-checks
+    ASSERT( desired_scope != nullptr);
+    ASSERT( current_scope != nullptr);
 
-bool ASTScope::_erase(ASTNode *node)
-{
-    VERIFY( node->scope() == this, "Node does not have this as scope");
-    if ( m_related.erase(node ) == 0 )
-        return false;
+    std::vector<ASTNode*> removed_nodes;
+    current_scope->_remove(removed_nodes, node, flags);
 
-    auto it = std::find(m_child.begin(), m_child.end(), node );
-    if (it != m_child.end() )
-    {
-        m_child.erase(it );
+#ifdef TOOLS_DEBUG
+    for (auto* _node : removed_nodes )
+        ASSERT( _node->scope() == nullptr);
+#endif
 
-        if (node->type() == ASTNodeType_VARIABLE )
-            m_variable.erase(static_cast<ASTVariable*>(node) );
-    }
+    desired_scope->_append(node, flags);
 
-    node->m_parent_scope = nullptr;
-    if ( node->has_internal_scope() )
-        node->internal_scope()->reset_parent();
-    on_change.emit();
-    on_remove.emit(node);
-    return true;
-}
-
-void ASTScope::_push_back(ASTNode* node, ScopeFlags flags)
-{
-    VERIFY(node->scope() == nullptr, "Node should have no scope");
-
-    if (flags & ScopeFlags_AS_PRIMARY_CHILD )
-    {
-        m_child.push_back(node );
-
-        if (node->type() == ASTNodeType_VARIABLE )
-        {
-            auto variable_node = static_cast<ASTVariable*>( node );
-            if (find_variable_recursively(variable_node->get_identifier()) != nullptr )
-            {
-                LOG_ERROR("Scope", "Unable to _push_back variable '%s', already exists in the same internal_scope.\n", variable_node->get_identifier().c_str());
-                // we do not return, graph is abstract, it just won't compile ...
-            }
-            else if (variable_node->scope() )
-            {
-                LOG_ERROR("Scope", "Unable to _push_back variable '%s', already declared in another internal_scope. Remove it first.\n", variable_node->get_identifier().c_str());
-                // we do not return, graph is abstract, it just won't compile ...
-            }
-            else
-            {
-                LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scope\n", variable_node->get_identifier().c_str() );
-                m_variable.insert(variable_node);
-            }
-        }
-    }
-    node->m_parent_scope = this;
-    if ( node->has_internal_scope() )
-        node->internal_scope()->reset_parent( this );
-    m_related.insert(node );
-    on_change.emit();
-    on_add.emit(node);
+#ifdef TOOLS_DEBUG
+    for (auto* _node : removed_nodes )
+        ASSERT( _node->scope() == desired_scope);
+#endif
 }
 
 void ASTScope::reset_parent(ASTScope* new_parent, ScopeFlags flags )
@@ -321,3 +313,50 @@ void ASTScope::init_partition(std::vector<ASTScope*>& partition )
     }
 }
 
+void ASTScope::init_scope(ASTNode* node, ASTScope* scope)
+{
+    ASSERT(node->scope() == nullptr);
+    scope->_append(node);
+}
+
+void ASTScope::change_children_scope(ASTScope* source, ASTScope* target)
+{
+    VERIFY(source, "a source Scope is required");
+    VERIFY(target, "a target Scope is required");
+
+    // remove primary child
+    if ( !source->primary_child().empty() )
+        change_scope(source->primary_child().front(), target, ScopeFlags_AS_PRIMARY_CHILD);
+    ASSERT( source->primary_child().empty());
+
+    // remove remaining child
+    for (ASTNode* _child : source->child() )
+        change_scope(_child, target );
+    ASSERT( source->child().empty());
+
+    // Also clean any partition
+    for( ASTScope* _scope : source->partition() )
+    {
+        change_children_scope(_scope, target);
+    }
+
+    VERIFY(source->empty(), "should be empty after having moved all its children" );
+}
+
+void ASTScope::reset_scope(ASTNode* node)
+{
+    ASSERT(node->scope());
+    std::vector<ASTNode*> removed_node;
+    node->scope()->_remove( removed_node, node );
+    ASSERT(removed_node.size() >= 1);
+}
+
+bool ASTScope::contains(ASTNode* node) const
+{
+    return m_child.contains( node );
+}
+
+bool ASTScope::is_primary(ASTNode* node) const
+{
+    return std::find(m_primary_node.begin(), m_primary_node.end(), node) != m_primary_node.end();
+}
