@@ -56,7 +56,7 @@ namespace tools
     {
     public:
         using id_t = typename ID64<T>::id_t; // for extern use only
-        inline static const PoolID<T> null{};
+        static const PoolID<T> null{};
 
         constexpr PoolID() = default;
         explicit constexpr PoolID(u64_t _id);
@@ -69,16 +69,16 @@ namespace tools
 
         T* get() const; // Return a pointer to the data from the Pool having an id == this->id
         void reset();
-        inline explicit operator bool () const;
-        inline explicit operator u64_t () const;
-        inline PoolID<T>& operator=(PoolID<T> other);
-        inline bool operator==(const PoolID<T>& other) const;
-        inline bool operator!=(const PoolID<T>& other) const;
-        inline T* operator -> ();
-        inline T* operator -> () const;
-        inline T& operator *  ();
-        inline T& operator *  () const;
-        inline ID64<T> id() const { return m_id; }
+        explicit operator bool () const;
+        explicit operator u64_t () const;
+        PoolID<T>& operator=(PoolID<T> other);
+        bool operator==(const PoolID<T>& other) const;
+        bool operator!=(const PoolID<T>& other) const;
+        T* operator -> ();
+        T* operator -> () const;
+        T& operator *  ();
+        T& operator *  () const;
+        ID64<T> id() const { return m_id; }
     private:
         ID64<T> m_id;
     };
@@ -93,19 +93,19 @@ namespace tools
     public:
         using index_t = size_t; // for extern use only
         static constexpr size_t invalid_index = ~0;
-        inline IPoolVector(void* _data_ptr, size_t _elem_size, std::type_index _type_index);
+        IPoolVector(void* _data_ptr, size_t _elem_size, std::type_index _type_index);
         virtual ~IPoolVector() {};
         virtual size_t size() const = 0;
         virtual void   pop_back() = 0;
         virtual void   swap(size_t, size_t) = 0;
         virtual u64_t poolid_at( size_t _pos ) const = 0;
-        inline std::type_index type_index() const;
-        inline const char* type_name() const;
-        inline void* operator[](size_t _pos) const;
-        template<class T, typename ...Args> inline T& emplace_back(Args ...args);
-        template<class T> inline T& emplace_back();
-        template<class T> inline std::vector<T>& get();
-        template<class T> inline const std::vector<T>& get() const;
+        std::type_index type_index() const;
+        const char* type_name() const;
+        void* operator[](size_t _pos) const;
+        template<class T, typename ...Args> T& emplace_back(Args ...args);
+        template<class T> T& emplace_back();
+        template<class T> std::vector<T>& get();
+        template<class T> const std::vector<T>& get() const;
     protected:
         void*           m_vector_ptr;
         size_t          m_elem_size;
@@ -184,23 +184,23 @@ namespace tools
         explicit Pool(const Config&);
         ~Pool();
 
-        template<typename T>          inline IPoolVector* init_for();
-        template<typename T>          inline T* get(u64_t id);
-        template<typename T>          inline T* get(PoolID<T> _id);
-        template<typename T>          inline void get(std::vector<T*>& _out, const std::vector<PoolID<T>>& _ids);
-        template<typename T>          inline std::vector<T*> get(const std::vector<PoolID<T>>& _ids);
-        template<typename T>          inline std::vector<T>& get_all();
-        template<typename T, typename ...Args> inline PoolID<T> create(Args... args);
-        template<typename T>          inline PoolID<T> create();
-        template<typename T>          inline void destroy(PoolID<T> _id );
-        template<typename ContainerT> inline void destroy_all(const ContainerT& ids);
+        template<typename T>          IPoolVector* init_for();
+        template<typename T>          T* get(u64_t id);
+        template<typename T>          T* get(PoolID<T> _id);
+        template<typename T>          void get(std::vector<T*>& _out, const std::vector<PoolID<T>>& _ids);
+        template<typename T>          std::vector<T*> get(const std::vector<PoolID<T>>& _ids);
+        template<typename T>          std::vector<T>& get_all();
+        template<typename T, typename ...Args> PoolID<T> create(Args... args);
+        template<typename T>          PoolID<T> create();
+        template<typename T>          void destroy(PoolID<T> _id );
+        template<typename ContainerT> void destroy_all(const ContainerT& ids);
     private:
 
-        inline PoolID<>::id_t generate_id();
+        PoolID<>::id_t generate_id();
 
-        template<typename T>          inline PoolID<T>    make_record(T* data, IPoolVector * vec, size_t pos );
-        template<typename T>          inline IPoolVector* get_pool_vector();
-        template<typename T>          inline IPoolVector* find_or_init_pool_vector(); // prefer get_pool_vector if you are sure it exists
+        template<typename T>          PoolID<T>    make_record(T* data, IPoolVector * vec, size_t pos );
+        template<typename T>          IPoolVector* get_pool_vector();
+        template<typename T>          IPoolVector* find_or_init_pool_vector(); // prefer get_pool_vector if you are sure it exists
 
         const Config                                      m_config;
         PoolID<>::id_t                                    m_first_free_id; // Linked-list of free ids

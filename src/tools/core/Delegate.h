@@ -36,14 +36,14 @@ namespace tools
             return d;
         }
 
-        inline void bind(void* object_ptr)
+        void bind(void* object_ptr)
         { _object_ptr = object_ptr; }
 
-        inline R call(Args... args) const
+        R call(Args... args) const
         { return (*_method_caller_ptr)(_object_ptr, args...); }
 
         // To act as a null method called
-        inline static R _method_caller_null(void* object_ptr, Args... args)
+        static R _method_caller_null(void* object_ptr, Args... args)
         {
             if constexpr ( !std::is_void_v<R> )
                 return {};
@@ -51,7 +51,7 @@ namespace tools
         }
 
         template <class T,  R(T::*TMethod)(Args...)>
-        inline static R _method_caller(void* object_ptr, Args... args)
+        static R _method_caller(void* object_ptr, Args... args)
         {
             T* p = static_cast<T*>(object_ptr);
             VERIFY(p != nullptr, "object_ptr is null, did you provided it?");

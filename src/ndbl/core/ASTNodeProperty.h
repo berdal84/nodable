@@ -41,8 +41,8 @@ namespace ndbl
         bool               is_type(const tools::TypeDescriptor* other) const;
         void               set_type(const tools::TypeDescriptor *pDescriptor);
         void               set_token(const ASTToken& _token) { m_token = _token; }
-        inline ASTToken&      token() { return m_token; }
-        inline const ASTToken&token() const { return m_token; }
+        ASTToken&      token() { return m_token; }
+        const ASTToken&token() const { return m_token; }
 
     private:
         ASTNode*              m_owner = nullptr;

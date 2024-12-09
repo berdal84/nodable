@@ -61,17 +61,17 @@ namespace ndbl
         ASTNodeType          type() const { return m_type; }
         bool                 is_invokable() const;
         bool                 is_expression() const;
-        inline bool          has_flags(ASTNodeFlags flags)const { return (m_flags & flags) == flags; };
-        inline void          set_flags(ASTNodeFlags flags) { m_flags |= flags; }
-        inline void          clear_flags(ASTNodeFlags flags = ASTNodeFlag_ALL) { m_flags &= ~flags; }
-        inline Graph*        graph() { return m_graph; }
-        inline const Graph*  graph() const { return m_graph; }
-        inline ASTToken&        suffix() { return m_suffix; };
-        inline const ASTToken&  suffix() const { return m_suffix; };
+        bool          has_flags(ASTNodeFlags flags)const { return (m_flags & flags) == flags; };
+        void          set_flags(ASTNodeFlags flags) { m_flags |= flags; }
+        void          clear_flags(ASTNodeFlags flags = ASTNodeFlag_ALL) { m_flags &= ~flags; }
+        Graph*        graph() { return m_graph; }
+        const Graph*  graph() const { return m_graph; }
+        ASTToken&        suffix() { return m_suffix; };
+        const ASTToken&  suffix() const { return m_suffix; };
         void                 set_suffix(const ASTToken& token);
         const ASTNodePropertyBag&   props() const;
-        inline const ASTNodeProperty* value() const { return m_value; }
-        inline ASTNodeProperty*     value() { return m_value; }
+        const ASTNodeProperty* value() const { return m_value; }
+        ASTNodeProperty*     value() { return m_value; }
         ASTNodeSlot*                value_in();
         const ASTNodeSlot*          value_in() const;
         ASTNodeSlot*                value_out();

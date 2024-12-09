@@ -23,7 +23,7 @@ namespace ndbl
 
         void                reset(const char* buffer = nullptr, size_t size = 0);
         ASTToken&              at(size_t index) { return m_tokens.at(index); }
-        inline ASTToken&       back() { return m_tokens.back(); };
+        ASTToken&       back() { return m_tokens.back(); };
         std::vector<ASTToken>::iterator
                             begin() { return m_tokens.begin(); };
         std::vector<ASTToken>::iterator
@@ -32,13 +32,13 @@ namespace ndbl
         std::string         range_to_string(size_t pos, int size);
         ASTToken               eat();           // Return the next token and increment cursor
         ASTToken               eat_if(ASTToken_t); // Only if next token has a given type: returns it and increment cursor
-        inline bool         empty()const { return m_tokens.empty(); }
-        inline const ASTToken& get_eaten()const { ASSERT(m_cursor > 0); return m_tokens[m_cursor - 1];}
-        inline bool         peek(ASTToken_t t)const { return m_tokens[m_cursor].m_type == t; }
-        inline const ASTToken& peek()const { return m_tokens[m_cursor]; }
+        bool         empty()const { return m_tokens.empty(); }
+        const ASTToken& get_eaten()const { ASSERT(m_cursor > 0); return m_tokens[m_cursor - 1];}
+        bool         peek(ASTToken_t t)const { return m_tokens[m_cursor].m_type == t; }
+        const ASTToken& peek()const { return m_tokens[m_cursor]; }
         ASTToken&              push(ASTToken&);
-        inline ASTToken&       global_token() { return m_global_token; }
-        inline size_t       size()const { return m_tokens.size(); }
+        ASTToken&       global_token() { return m_global_token; }
+        size_t       size()const { return m_tokens.size(); }
         std::string         to_string() const; // Generate a colored string highlighting the current and past tokens
         void                start_transaction();    // Start a transaction by saving the cursor position in a stack (allows nested transactions).
         void                rollback(); // Restore the cursor position where the last transaction started.

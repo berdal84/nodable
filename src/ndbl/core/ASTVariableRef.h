@@ -64,7 +64,7 @@ namespace ndbl
             m_variable = nullptr;
         }
 
-        inline const ASTToken& get_identifier_token() const
+        const ASTToken& get_identifier_token() const
         {
             return m_value->token(); // when parsed, this token may be a bit different from m_variable's (trailing ignored characters)
         }

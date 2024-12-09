@@ -120,7 +120,7 @@ namespace ndbl
 
         ASTToken(ASTToken&& other);
 
-        inline explicit operator bool () const
+        explicit operator bool () const
         { return m_type != ASTToken_t::none; }
 
         ASTToken& operator=(const ASTToken& other);
@@ -128,7 +128,7 @@ namespace ndbl
         ~ASTToken();
 
         void        clear();
-        inline bool has_buffer()const { return m_buffer.data() != nullptr; }
+        bool has_buffer()const { return m_buffer.data() != nullptr; }
 
         // Convert token portion to string
         // Warning: this costs an allocation, use xxx_ptr() and xxx_size() when possible.

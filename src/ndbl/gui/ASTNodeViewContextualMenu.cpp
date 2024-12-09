@@ -68,14 +68,14 @@ template<typename charT>
 struct CaseInsensitiveEqual
 {
     const std::locale& locale;
-    inline bool operator()(charT ch1, charT ch2)
+    bool operator()(charT ch1, charT ch2)
     {
         return std::toupper(ch1, locale) == std::toupper(ch2, locale);
     }
 };
 
 template<typename T>
-inline bool CaseInsensitiveFind(const T& str1, const T& str2, const std::locale& loc = std::locale())
+bool CaseInsensitiveFind(const T& str1, const T& str2, const std::locale& loc = std::locale())
 {
     return std::search(str1.begin(), str1.end(),
                        str2.begin(), str2.end(),

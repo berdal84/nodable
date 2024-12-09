@@ -60,7 +60,7 @@ public:
         delete graph;
     }
 
-    inline std::string get_random_double_as_string()
+    std::string get_random_double_as_string()
     {
         return std::to_string( distribution(generator) );
     }

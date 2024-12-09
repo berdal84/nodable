@@ -35,21 +35,21 @@ namespace ndbl
         SIGNAL(on_change, Event, ASTNodeSlot*);
 
         ASTNodeSlot*             adjacent_at(u8_t) const;
-        inline size_t     adjacent_count() const{return _adjacent.size();}
-        inline const std::vector<ASTNodeSlot*>&
+        size_t     adjacent_count() const{return _adjacent.size();}
+        const std::vector<ASTNodeSlot*>&
                           adjacent() const{return _adjacent;}
-        inline ASTNode*      first_adjacent_node() const { return !_adjacent.empty() ? _adjacent[0]->node : nullptr; }
-        inline ASTNodeSlot*      first_adjacent() const { return !_adjacent.empty() ? _adjacent[0] : nullptr; }
+        ASTNode*      first_adjacent_node() const { return !_adjacent.empty() ? _adjacent[0]->node : nullptr; }
+        ASTNodeSlot*      first_adjacent() const { return !_adjacent.empty() ? _adjacent[0] : nullptr; }
         void              expand_capacity(size_t _capacity);
-        inline SlotFlags  flags() const { return _flags; }
-        inline void       set_flags( SlotFlags flags){_flags |= flags;}
-        inline bool       has_flags( SlotFlags flags ) const{return (_flags & flags) == flags;}
-        inline SlotFlags  type() const{return _flags & SlotFlag_TYPE_MASK;}
-        inline SlotFlags  type_and_order() const { return _flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK); }
-        inline SlotFlags  order() const{return _flags & SlotFlag_ORDER_MASK;}
-        inline bool       empty() const{return _adjacent.empty();}
-        inline size_t     capacity() const{return _adjacent.capacity(); }
-        inline bool       is_full() const {return !has_flags(SlotFlag_NOT_FULL);}
+        SlotFlags  flags() const { return _flags; }
+        void       set_flags( SlotFlags flags){_flags |= flags;}
+        bool       has_flags( SlotFlags flags ) const{return (_flags & flags) == flags;}
+        SlotFlags  type() const{return _flags & SlotFlag_TYPE_MASK;}
+        SlotFlags  type_and_order() const { return _flags & (SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK); }
+        SlotFlags  order() const{return _flags & SlotFlag_ORDER_MASK;}
+        bool       empty() const{return _adjacent.empty();}
+        size_t     capacity() const{return _adjacent.capacity(); }
+        bool       is_full() const {return !has_flags(SlotFlag_NOT_FULL);}
         void              add_adjacent(ASTNodeSlot*);
         void              remove_adjacent(ASTNodeSlot*);
 

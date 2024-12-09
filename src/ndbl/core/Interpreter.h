@@ -38,10 +38,10 @@ namespace ndbl
         void                  stop_program();
         void                  debug_program(); // Run the program in debug mode. Then call step_over() to advance step by step.
         bool                  debug_step_over(); // Execute the next instruction. Works only in debug mode, use debug_program() and is_debugging()
-        inline bool           is_program_running() const{ return m_is_program_running; }
-        inline bool           is_debugging() const{ return m_is_debugging; }
-        inline bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
-        inline const ASTNode*    get_next_node() const {return m_next_node; } // Get the next node to be executed. Works in debug mode only.
+        bool           is_program_running() const{ return m_is_program_running; }
+        bool           is_debugging() const{ return m_is_debugging; }
+        bool           is_program_stopped() const{ return !m_is_debugging && !m_is_program_running; }
+        const ASTNode*    get_next_node() const {return m_next_node; } // Get the next node to be executed. Works in debug mode only.
         tools::qword          get_last_result() const; // Get the last instruction's result
         bool                  is_there_a_next_instr() const; // Check if there is a next instruction (internally check instruction pointer's position)
         Instruction*          get_next_instr() const; // Get the next instruction to execute
@@ -53,7 +53,7 @@ namespace ndbl
     private:
         void                  advance_cursor(i64_t _amount = 1);// Advance the instruction pointer of a given amount
         bool                  step_over(); // Step over common code (for both "run" and "debug" modes)
-        inline const Graph*   graph() { ASSERT(m_code); return m_code->get_meta_data().graph; }
+        const Graph*   graph() { ASSERT(m_code); return m_code->get_meta_data().graph; }
         CPU                   m_cpu;
         bool                  m_is_program_running   = false; // TODO: use StateMachine
         bool                  m_is_debugging         = false; // TODO: use StateMachine

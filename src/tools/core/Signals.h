@@ -14,7 +14,7 @@ namespace tools
 
         Signal(){}
 
-        inline void connect(TDelegate delegate)
+        void connect(TDelegate delegate)
         {
 #ifdef TOOLS_DEBUG
             VERIFY( !disconnect( delegate._object_ptr ), "A single object can't be connected twice to the same signal yet" )
@@ -23,10 +23,10 @@ namespace tools
         }
 
         template<auto TMethod>
-        inline void connect(void* object_ptr) // Shorthand
+        void connect(void* object_ptr) // Shorthand
         { connect( TDelegate::template from_method<TMethod>(object_ptr) ); }
 
-        inline bool disconnect(void* ptr) // Disconnects any delegate related to this pointer. TODO: we should have an indexed storage using a hash per delegate based on TMethod and _object_ptr instead
+        bool disconnect(void* ptr) // Disconnects any delegate related to this pointer. TODO: we should have an indexed storage using a hash per delegate based on TMethod and _object_ptr instead
         {
             auto it = _delegate.rbegin();
             while ( it != _delegate.rend() )
@@ -42,7 +42,7 @@ namespace tools
             return false;
         }
 
-        inline R emit(Args...args)
+        R emit(Args...args)
         {
             for( auto& delegate : _delegate )
                 delegate.call(args...);
