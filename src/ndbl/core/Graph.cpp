@@ -449,7 +449,7 @@ void Graph::on_disconnect_flow_side_effects(ASTSlotLink edge )
             }
         }
     }
-    ASTScope::change_scope(edge.head->node, target_scope, ScopeFlags_APPEND_AS_PRIMARY_NODE );
+    ASTScope::change_scope(edge.head->node, target_scope );
 }
 
 void Graph::on_connect_flow_side_effects(ASTSlotLink edge )
@@ -493,7 +493,7 @@ void Graph::on_connect_flow_side_effects(ASTSlotLink edge )
 
     if ( target_scope == nullptr )
         target_scope = root_scope();
-    ASTScope::change_scope(next_node, target_scope, ScopeFlags_APPEND_AS_PRIMARY_NODE);
+    ASTScope::change_scope(next_node, target_scope);
 }
 
 EdgeRegistry::iterator Graph::disconnect(const ASTSlotLink& edge, GraphFlags flags)
@@ -675,11 +675,11 @@ void Graph::flag_scope_to_delete(ASTScope* scope)
 
     flag_node_to_delete(scope->entity(), GraphFlag_ALLOW_SIDE_EFFECTS);
 
-    for ( ASTNode* node : scope->primary_child() )
+    for ( ASTNode* node : scope->child() )
         flag_node_to_delete(node, GraphFlag_ALLOW_SIDE_EFFECTS);
 
-    for ( ASTScope* scope : scope->partition() )
-        flag_scope_to_delete(scope);
+    for ( ASTScope* _scope : scope->partition() )
+        flag_scope_to_delete(_scope);
 }
 
 void Graph::flag_node_to_delete(ASTNode *node, GraphFlags flags)

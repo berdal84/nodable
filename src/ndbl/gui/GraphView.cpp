@@ -528,10 +528,11 @@ void GraphView::_create_constraints(ASTScope* scope )
         _create_constraints(sub_scope);
     }
 
-    for ( ASTNode* child_node : scope->primary_child() )
+    std::vector<ASTNode*> backbone = scope->backbone();
+    for ( ASTNode* child_node : backbone )
     {
         // align child below flow_inputs
-        if (child_node != scope->first_child() || scope->is_orphan() )
+        if ( child_node != backbone.front() || scope->is_orphan() )
             _create_constraints__align_down(child_node, child_node->flow_inputs());
 
         // align child's inputs above
@@ -846,7 +847,7 @@ void GraphView::cursor_state_tick()
                             views.push_back( view );
 
                         // and every other child's
-                        for(ASTNode* child_node : child->primary_child())
+                        for( ASTNode* child_node : child->backbone() )
                             if ( auto* view = child_node->components()->get<ASTNodeView>())
                                 views.push_back(view);
                     }

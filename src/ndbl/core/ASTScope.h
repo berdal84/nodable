@@ -23,7 +23,6 @@ namespace ndbl
         ScopeFlags_RECURSE_CHILD_PARTITION = 1 << 1,
         ScopeFlags_INCLUDE_SELF            = 1 << 2,
         ScopeFlags_PREVENT_EVENTS          = 1 << 3,
-        ScopeFlags_APPEND_AS_PRIMARY_NODE  = 1 << 4,
     };
 
     class ASTScope : public tools::ComponentFor<ASTNode>
@@ -46,7 +45,6 @@ namespace ndbl
         void                           init(size_t partition_count = 0);
         void                           shutdown();
         bool                           contains(ASTNode* node) const;
-        void                           on_init_owner(ASTNode* );
         ASTScope*                      parent() { return m_parent; }
         const ASTScope*                parent() const { return m_parent; }
         std::vector<ASTNode*>          leaves();
@@ -56,10 +54,9 @@ namespace ndbl
         void                           set_view(ASTScopeView* view) { m_view = view; } // TODO: remove this, use components
         const std::set<ASTVariable*>&  variable()const { return m_variable; };
         const std::set<ASTNode*>&      child() const { return m_child; }
-        std::vector<ASTNode*>&         primary_child() { return  m_primary_node; }
-        const std::vector<ASTNode*>&   primary_child() const { return m_primary_node; }
-        ASTNode*                       first_child() const { return m_primary_node.empty() ? nullptr : *m_primary_node.begin(); };
-        ASTNode*                       last_child() const { return m_primary_node.empty() ? nullptr : *m_primary_node.rbegin(); };
+        void                           reset_backbone_head(ASTNode* node = nullptr);
+        bool                           has_backbone_head() const { return m_backbone_head != nullptr; }
+        const std::vector<ASTNode*>&   backbone() const; // return a list of nodes from the entry_point to the end of the scope (result is cached, recomputed only when necessary)
         void                           reset_parent(ASTScope* new_parent = nullptr, ScopeFlags = ScopeFlags_NONE);
         bool                           is_partitioned() const { return !m_partition.empty(); }
         bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
@@ -77,16 +74,18 @@ namespace ndbl
         static void                    reset_scope(ASTNode* scoped_node);
         static void                    transfer_children_to(ASTScope* source, ASTScope* target);
         static void                    change_scope(ASTNode *node, ASTScope* desired_scope, ScopeFlags = ScopeFlags_NONE);
-
     private:
         void                           _append(ASTNode *, ScopeFlags = ScopeFlags_NONE);
         void                           _remove(std::vector<ASTNode*>& out_removed, ASTNode *node, ScopeFlags = ScopeFlags_NONE);
         std::vector<ASTNode*>&         _leaves_ex(std::vector<ASTNode*>& out);
+        void                           _update_backbone_cache();
 
         ASTScopeView*                  m_view = nullptr;
         std::set<ASTNode*>             m_child;
+        ASTNode*                       m_backbone_head = nullptr;
+        std::vector<ASTNode*>          m_backbone_cache;
+        bool                           m_backbone_cache_is_dirty = true;
         std::set<ASTVariable*>         m_variable;
-        std::vector<ASTNode*>          m_primary_node;
         std::vector<ASTScope*>         m_partition;
         ASTScope*                      m_parent = nullptr;
         size_t                         m_depth = 0;

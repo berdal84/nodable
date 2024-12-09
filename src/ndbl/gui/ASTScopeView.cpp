@@ -26,7 +26,7 @@ void ASTScopeView::init(ASTScope* scope, SpatialNode* spatial_node)
 
     if ( ASTScope* parent = scope->parent() )
         on_reset_parent( parent );
-    for( ASTNode* node : scope->primary_child() )
+    for( ASTNode* node : scope->child() )
         on_add_node( node );
 
     CONNECT(scope->on_add         , &ASTScopeView::on_add_node     , this);
@@ -45,9 +45,9 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
 
     // 1) update recursively
     //    any scope with higher depth in the same hierarchy will be up to date.
-    for( ASTNode* child_node : m_scope->primary_child() )
-        if ( child_node->has_internal_scope() )
-            child_node->internal_scope()->view()->update(dt, flags);
+    for( ASTNode* child_node : m_scope->child() )
+        if ( ASTScope* internal_scope = child_node->internal_scope() )
+            internal_scope->view()->update(dt, flags);
 
     for ( ASTScope* partition_scope: m_scope->partition() )
         partition_scope->view()->update(dt, flags);
@@ -73,18 +73,18 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
         if ( auto nodeview = m_scope->entity()->components()->get<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
-    for( ASTNode* node : m_scope->primary_child() )
+    for( ASTNode* node : m_scope->child() )
         if ( auto nodeview = node->components()->get<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
-    for( ASTNode* child_node : m_scope->primary_child() )
+    for( ASTNode* child_node : m_scope->backbone() )
     {
-        if ( !child_node->has_internal_scope() )
-            continue;
-
-        ASTScopeView* child_node_scope_view = child_node->internal_scope()->view();
-        child_node_scope_view->update(dt, flags);
-        m_content_rect = Rect::merge(m_content_rect, child_node_scope_view->m_content_rect );
+        if ( child_node->has_internal_scope() )
+        {
+            ASTScopeView* child_node_scope_view = child_node->internal_scope()->view();
+            child_node_scope_view->update(dt, flags);
+            m_content_rect = Rect::merge(m_content_rect, child_node_scope_view->m_content_rect );
+        }
     }
 
     for ( ASTScope* partition_scope: m_scope->partition() )
@@ -126,14 +126,17 @@ bool ASTScopeView::must_be_draw() const
     if (!m_content_rect.has_area())
         return false;
 
-    switch (scope()->primary_child().size() )
+    switch ( scope()->child().size() )
     {
         case 0:
             return false;
         case 1:
-            if ( scope()->first_child()->has_internal_scope() && has_parent() )
+        {
+            ASTNode* single_node = *scope()->child().begin();
+            if ( single_node->has_internal_scope() && this->has_parent() )
                 return false;
             return true;
+        }
         default:
             return true;
     }
@@ -253,17 +256,17 @@ void ASTScopeView::ImGuiTreeNode_ASTNode(ASTNode* node)
 void ASTScopeView::ImGuiTreeNode_ASTScopeContent(ASTScope *scope)
 {
     ImGui::PushID( scope );
-
-    if ( ImGui::TreeNodeEx(&scope->primary_child(), ImGuiTreeNodeFlags_DefaultOpen, "Children (primary)" ) )
+    std::vector<ASTNode*> backbone = scope->backbone();
+    if ( ImGui::TreeNodeEx(&backbone, ImGuiTreeNodeFlags_DefaultOpen, "Children (backbone, ordered)" ) )
     {
-        for ( ASTNode* child : scope->primary_child() )
+        for ( ASTNode* _node : backbone )
         {
-            ImGuiTreeNode_ASTNode(child);
+            ImGuiTreeNode_ASTNode(_node);
         }
         ImGui::TreePop();
     }
 
-    if ( ImGui::TreeNode(&scope->variable(), "Children (vars only)") )
+    if ( ImGui::TreeNode(&scope->variable(), "Children (vars only, unordered)") )
     {
         for ( ASTNode* child : scope->variable() )
         {
@@ -272,7 +275,7 @@ void ASTScopeView::ImGuiTreeNode_ASTScopeContent(ASTScope *scope)
         ImGui::TreePop();
     }
 
-    if ( ImGui::TreeNode(&scope->child(), "Children (all)") )
+    if ( ImGui::TreeNode(&scope->child(), "Children (all, unordered)") )
     {
         for ( ASTNode* child : scope->child() )
         {

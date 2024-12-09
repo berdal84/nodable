@@ -296,10 +296,10 @@ void ASTNodeView::arrange_recursively(bool _smoothly)
                 each_input->arrange_recursively();
     }
 
-    if (m_node->has_internal_scope() )
-        for ( ASTNode* node : m_node->internal_scope()->primary_child() )
-            if ( auto * node_view = node->components()->get<ASTNodeView>() )
-                    node_view->arrange_recursively();
+    if (ASTScope* internal_scope = m_node->internal_scope() )
+        for ( ASTNode* _node : internal_scope->backbone() )
+            if ( auto* _node_view = _node->components()->get<ASTNodeView>() )
+                    _node_view->arrange_recursively();
 
     // Force an update of input nodes with a delta time extra high
     // to ensure all nodes will be well-placed in a single call (no smooth moves)
@@ -796,12 +796,14 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         }
     };
 
-    if (m_node->has_internal_scope() )
-        for (ASTNode* node : m_node->internal_scope()->primary_child() )
-            visit(node);
+    if ( ASTScope* _internal_scope = m_node->internal_scope() )
+        for (ASTNode* _node : _internal_scope->backbone() ) // TODO: use ASTScopeView's content_rect instead?
+            visit(_node);
 
-    for (ASTNode* node : m_node->inputs() )
-        visit(node);
+    for (ASTNode* _node : m_node->inputs() )
+    {
+        visit(_node);
+    }
 
     Rect result = Rect::bbox(&rects);
 
@@ -849,13 +851,10 @@ void ASTNodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
 
-    if ( !m_node->has_internal_scope() )
-        return;
-
-    for(ASTNode* _child_node : m_node->internal_scope()->primary_child() )
-    {
-        _child_node->components()->get<ASTNodeView>()->set_expanded_rec(_expanded);
-    }
+    if ( ASTScope* _internal_scope = m_node->internal_scope() )
+        for( ASTNode* _node : _internal_scope->backbone() )
+            if ( auto* view = _node->components()->get<ASTNodeView>() )
+                view->set_expanded_rec(_expanded);
 }
 
 void ASTNodeView::set_expanded(bool _expanded)
@@ -879,14 +878,9 @@ void ASTNodeView::set_children_visible(bool visible, bool recursively)
     ASTScope::get_descendent(scopes, m_node->internal_scope(), 1 );
 
     for(ASTScope* _scope : scopes)
-    {
-        for (ASTNode* _child_node: _scope->primary_child())
-        {
-            auto* view = _child_node->components()->get<ASTNodeView>();
-            VERIFY(view, "ASTNodeView is required on this _child_node");
-            view->state()->set_visible(visible );
-        }
-    }
+        for (ASTNode* _child_node: _scope->backbone())
+            if ( auto* view = _child_node->components()->get<ASTNodeView>() )
+                view->state()->set_visible(visible );
 }
 
 void ASTNodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeViewFlags node_flags)

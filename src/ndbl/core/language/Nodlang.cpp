@@ -1708,7 +1708,7 @@ std::string& Nodlang::serialize_node(std::string &_out, const ASTNode* node, Ser
 std::string& Nodlang::serialize_scope(std::string &_out, const ASTScope* scope) const
 {
     serialize_token(_out, scope->token_begin);
-    for(ASTNode* node : scope->primary_child() )
+    for(ASTNode* node : scope->backbone() )
     {
         serialize_node(_out, node, SerializeFlag_RECURSE);
     }

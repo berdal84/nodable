@@ -121,10 +121,10 @@ void Compiler::compile_scope(const ASTScope* scope, bool _insert_fake_return)
         instr->m_comment     = each_variable->name();
     }
 
-    // compile content
-    for( ASTNode* each_node : scope->primary_child() )
+    // compile backbone (from entry_point to the scope's end)
+    for( const ASTNode* node : scope->backbone() )
     {
-        compile_node( each_node );
+        compile_node( node );
     }
 
     // before to pop, we could insert a return value
