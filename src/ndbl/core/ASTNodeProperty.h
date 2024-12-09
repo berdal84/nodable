@@ -26,8 +26,9 @@ namespace ndbl
 	class ASTNodeProperty
     {
     public:
-        ASTNodeProperty(): m_token() {}
-        void               init(const tools::TypeDescriptor*, PropertyFlags, ASTNode*, const char* _name); // must be called once before use
+        ASTNodeProperty() = delete;
+        explicit ASTNodeProperty(ASTNode* owner);
+        void               init(const tools::TypeDescriptor*, PropertyFlags, const char* _name); // must be called once before use
         void               init_token();
         void               digest(ASTNodeProperty *_property);
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
@@ -36,19 +37,19 @@ namespace ndbl
         //void             set_name(const char* _name) { m_name = _name; } names are indexed in PropertyBag, can't change
         PropertyFlags      flags()const { return m_flags; }
         const std::string& name()const { return m_name; }
-        ASTNode*              node()const { return m_owner; }
+        ASTNode*           node()const { return m_node; }
         const tools::TypeDescriptor* get_type() const { return m_type; }
         bool               is_type(const tools::TypeDescriptor* other) const;
         void               set_type(const tools::TypeDescriptor *pDescriptor);
         void               set_token(const ASTToken& _token) { m_token = _token; }
-        ASTToken&      token() { return m_token; }
-        const ASTToken&token() const { return m_token; }
+        ASTToken&          token() { return m_token; }
+        const ASTToken&    token() const { return m_token; }
 
     private:
-        ASTNode*              m_owner = nullptr;
+        ASTToken           m_token;
+        ASTNode*           m_node; // owner
         PropertyFlags      m_flags = PropertyFlag_NONE;
-        const tools::TypeDescriptor* m_type = nullptr;
         std::string        m_name;
-        ASTToken              m_token;
+        const tools::TypeDescriptor* m_type = nullptr;
     };
 }

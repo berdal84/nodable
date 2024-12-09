@@ -1,20 +1,21 @@
 #include "ASTNodeProperty.h"
-
-#include "ASTNodePropertyBag.h"
 #include "ASTVariable.h"
-#include "tools/core/memory/memory.h"
 #include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
 using namespace tools;
 
-void ASTNodeProperty::init(const TypeDescriptor* _type, PropertyFlags _flags, ASTNode* _owner, const char* _name)
+ASTNodeProperty::ASTNodeProperty(ASTNode* owner)
+: m_node(owner)
+, m_token()
+{}
+
+void ASTNodeProperty::init(const TypeDescriptor* _type, PropertyFlags _flags, const char* _name)
 {
     VERIFY(m_type == nullptr, "must be initialized once");
     VERIFY(_type != nullptr, "type can't be nullptr");
     m_type  = _type;
     m_flags = _flags;
-    m_owner = _owner;
     m_name  = _name;
 
     // Ensure token matches with Property type

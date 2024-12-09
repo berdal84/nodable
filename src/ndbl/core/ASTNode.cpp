@@ -17,19 +17,29 @@ REFLECT_STATIC_INITIALIZER
 ASTNode::~ASTNode()
 {
     assert(m_slots.empty());
+    assert(m_properties_by_name.empty());
+    assert(m_properties.empty());
+    assert(m_component_collection.components().empty());
 }
 
 void ASTNode::init(ASTNodeType type, const std::string& label)
 {
-    m_props.reset_owner(this);
-
-    m_value = m_props.add<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
+    m_value = add_prop<any>(DEFAULT_PROPERTY, PropertyFlag_IS_NODE_VALUE );
     set_name(label);
     m_type  = type;
 }
 
 void ASTNode::shutdown()
 {
+    while( !m_properties.empty() )
+    {
+        size_t erased_count = m_properties_by_name.erase( m_properties.back()->name() );
+        ASSERT(erased_count==1);
+        delete m_properties.back();
+        m_properties.pop_back();
+    }
+
+
     while( !m_slots.empty() )
     {
         delete m_slots.back();
@@ -41,11 +51,6 @@ void ASTNode::shutdown()
     }
     m_component_collection.shutdown();
     on_shutdown.emit();
-}
-
-size_t ASTNode::adjacent_slot_count(SlotFlags _flags )const
-{
-    return filter_adjacent_slots( _flags ).size();
 }
 
 const FunctionDescriptor* ASTNode::get_connected_function_type(const char* property_name) const
@@ -61,11 +66,6 @@ const FunctionDescriptor* ASTNode::get_connected_function_type(const char* prope
     return nullptr;
 }
 
-ASTNodeSlot* ASTNode::find_slot_by_property_name(const char* _property_name, SlotFlags _flags)
-{
-    return const_cast<ASTNodeSlot*>( const_cast<const ASTNode*>(this)->find_slot_by_property_name(_property_name, _flags));
-}
-
 const ASTNodeSlot* ASTNode::find_slot_by_property_name(const char* property_name, SlotFlags desired_way) const
 {
     const ASTNodeProperty* property = get_prop(property_name);
@@ -74,31 +74,6 @@ const ASTNodeSlot* ASTNode::find_slot_by_property_name(const char* property_name
         return find_slot_by_property( property, desired_way );
     }
     return nullptr;
-}
-
-const ASTNodeProperty* ASTNode::get_prop(const char *_name) const
-{
-    return m_props.find_by_name( _name );
-}
-
-ASTNodeProperty* ASTNode::get_prop(const char *_name)
-{
-    return m_props.find_by_name( _name );
-}
-
-ASTNodeSlot* ASTNode::find_slot(SlotFlags _flags)
-{
-    return const_cast<ASTNodeSlot*>( const_cast<const ASTNode*>(this)->find_slot(_flags));
-}
-
-const ASTNodeSlot* ASTNode::find_slot(SlotFlags _flags) const
-{
-    return find_slot_by_property(m_value, _flags );
-}
-
-ASTNodeSlot* ASTNode::find_slot_at(SlotFlags _flags, size_t _position)
-{
-    return const_cast<ASTNodeSlot*>( const_cast<const ASTNode*>(this)->find_slot_at(_flags, _position));
 }
 
 const ASTNodeSlot* ASTNode::find_slot_at(SlotFlags _flags, size_t _position) const
@@ -113,19 +88,7 @@ const ASTNodeSlot* ASTNode::find_slot_at(SlotFlags _flags, size_t _position) con
     return nullptr;
 }
 
-ASTNodeSlot& ASTNode::slot_at(size_t pos)
-{
-    ASSERT(m_slots.size() < pos);
-    return *m_slots[pos];
-}
-
-const ASTNodeSlot& ASTNode::slot_at(size_t pos) const
-{
-    ASSERT(m_slots.size() < pos);
-    return *m_slots[pos];
-}
-
-ASTNodeSlot* ASTNode::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _type)
+ASTNodeSlot* ASTNode::find_slot_by_property_type(SlotFlags flags, const TypeDescriptor* _type) const
 {
     for(ASTNodeSlot* slot : filter_slots(flags ) )
     {
@@ -135,11 +98,6 @@ ASTNodeSlot* ASTNode::find_slot_by_property_type(SlotFlags flags, const TypeDesc
         }
     }
     return nullptr;
-}
-
-ASTNodeProperty* ASTNode::add_prop(const TypeDescriptor* _type, const char *_name, PropertyFlags _flags)
-{
-    return m_props.add(_type, _name, _flags);
 }
 
 void ASTNode::on_slot_change(ASTNodeSlot::Event event, ASTNodeSlot* slot)
@@ -184,16 +142,6 @@ bool ASTNode::has_input_connected(const ASTNodeProperty* property ) const
 {
     const ASTNodeSlot* slot = find_slot_by_property(property, SlotFlag_INPUT );
     return slot && slot->adjacent_count() > 0;
-}
-
-size_t ASTNode::slot_count(SlotFlags flags) const
-{
-    return filter_slots( flags ).size();
-}
-
-ASTNodeSlot* ASTNode::find_slot_by_property(const ASTNodeProperty* property_id, SlotFlags _flags)
-{
-    return const_cast<ASTNodeSlot*>( const_cast<const ASTNode*>( this )->find_slot_by_property(property_id, _flags ) );
 }
 
 const ASTNodeSlot* ASTNode::find_slot_by_property(const ASTNodeProperty* property_ptr, SlotFlags _flags) const
@@ -246,11 +194,6 @@ std::vector<ASTNodeSlot*> ASTNode::filter_slots(SlotFlags _flags ) const
 void ASTNode::set_suffix(const ASTToken& token)
 {
     m_suffix = token;
-}
-
-const ASTNodePropertyBag& ASTNode::props() const
-{
-    return m_props;
 }
 
 bool ASTNode::is_invokable() const
@@ -356,4 +299,51 @@ void ASTNode::reset_scope(ASTScope* scope)
 
     if ( m_internal_scope )
         m_internal_scope->reset_parent( scope );
+}
+
+bool ASTNode::has_prop(const char* _name) const
+{
+    return m_properties_by_name.find(_name) != m_properties_by_name.end();
+}
+
+ASTNodeProperty* ASTNode::add_prop(const TypeDescriptor* type, const char* name, PropertyFlags flags )
+{
+    // guards
+    VERIFY(!has_prop(name), "Property name already used");
+
+    // create
+    auto* new_property = new ASTNodeProperty(this);
+    new_property->init(type, flags, name);
+
+    // register / index
+    m_properties.push_back(new_property);
+    m_properties_by_name.insert({new_property->name(), new_property});
+
+    return new_property;
+}
+
+const ASTNodeProperty* ASTNode::find_first_prop(PropertyFlags _flags, const TypeDescriptor *_type) const
+{
+    auto filter = [_flags, _type](const std::pair<const std::string, ASTNodeProperty*>& pair) -> bool
+    {
+        auto* property = pair.second;
+        return type::is_implicitly_convertible(property->get_type(), _type)
+               && ( property->has_flags( _flags ) );
+    };
+
+    auto found = std::find_if(m_properties_by_name.begin(), m_properties_by_name.end(), filter );
+    if ( found != m_properties_by_name.end())
+        return found->second;
+    return nullptr;
+}
+
+const ASTNodeProperty* ASTNode::find_prop_by_name(const char* name) const
+{
+    for(auto& [_name, property] : m_properties_by_name )
+    {
+        if( _name == name)
+            return property;
+    }
+    ASSERT(false);
+    return nullptr;
 }

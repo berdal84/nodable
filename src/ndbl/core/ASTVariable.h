@@ -37,14 +37,14 @@ namespace ndbl
         bool               has_vflags(VariableFlags flags)const { return (m_vflags & flags) == flags; };
         void               set_vflags(VariableFlags flags) { m_vflags |= flags; }
         void               clear_vflags(VariableFlags flags = VariableFlag_ALL) { m_vflags &= ~flags; }
-        const tools::TypeDescriptor* get_type() const { return m_value->get_type(); }
-        const ASTToken&       get_type_token() const { return m_type_token; }
+        const tools::TypeDescriptor* get_type() const { return value()->get_type(); }
+        const ASTToken&    get_type_token() const { return m_type_token; }
         std::string        get_identifier() const { return get_identifier_token().word_to_string(); }
-        const ASTToken&       get_identifier_token() const { return m_value->token(); }
-        ASTToken&             get_identifier_token() { return m_value->token(); }
-        const ASTToken&       get_operator_token() const { return m_operator_token; }
+        const ASTToken&    get_identifier_token() const { return value()->token(); }
+        ASTToken&          get_identifier_token() { return value()->token(); }
+        const ASTToken&    get_operator_token() const { return m_operator_token; }
         void               set_type_token(const ASTToken& tok) { m_type_token = tok; }
-        void               set_identifier_token(const ASTToken& tok) { m_value->set_token(tok); }
+        void               set_identifier_token(const ASTToken& tok) { value()->set_token(tok); }
         void               set_operator_token(const ASTToken& tok) { m_operator_token = tok; }
 
         // Aliases
@@ -57,7 +57,7 @@ namespace ndbl
     private:
         ASTToken              m_type_token       = {ASTToken_t::keyword_unknown }; // [int] var  =
         ASTToken              m_operator_token   = {ASTToken_t::operator_ };       //  int  var [=]
-        VariableFlags      m_vflags           = VariableFlag_NONE;
+        VariableFlags         m_vflags           = VariableFlag_NONE;
 
         ASTNodeSlot*              m_as_declaration_slot = nullptr;
         ASTNodeSlot*              m_as_reference_slot   = nullptr;

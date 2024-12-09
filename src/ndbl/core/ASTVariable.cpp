@@ -16,15 +16,15 @@ void ASTVariable::init(const tools::TypeDescriptor* _type, const char* _identifi
     ASTNode::init(ASTNodeType_VARIABLE, "Variable");
 
     // Init identifier property
-    m_value->set_type(_type);
-    m_value->set_token({ASTToken_t::identifier});
-    m_value->token().word_replace(_identifier); // might come from std::string::c_str()
+    value()->set_type(_type);
+    value()->set_token({ASTToken_t::identifier});
+    value()->token().word_replace(_identifier); // might come from std::string::c_str()
 
     // Init Slots
-    add_slot(m_value, SlotFlag_INPUT, 1); // to connect an initialization expression
-    add_slot(m_value, SlotFlag_FLOW_OUT, 1);
-    add_slot(m_value, SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
+    add_slot(value(), SlotFlag_INPUT, 1); // to connect an initialization expression
+    add_slot(value(), SlotFlag_FLOW_OUT, 1);
+    add_slot(value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
 
-    m_as_declaration_slot = add_slot(m_value, SlotFlag_OUTPUT, 1); // as declaration
-    m_as_reference_slot   = add_slot(m_value, SlotFlag_OUTPUT, ASTNodeSlot::MAX_CAPACITY ); // as reference
+    m_as_declaration_slot = add_slot(value(), SlotFlag_OUTPUT, 1); // as declaration
+    m_as_reference_slot   = add_slot(value(), SlotFlag_OUTPUT, ASTNodeSlot::MAX_CAPACITY ); // as reference
 }

@@ -380,7 +380,6 @@ add_library(
     src/ndbl/core/ASTNode.cpp
     src/ndbl/core/ASTNodeFactory.cpp
     src/ndbl/core/ASTNodeProperty.cpp
-    src/ndbl/core/ASTNodePropertyBag.cpp
     src/ndbl/core/ASTScope.cpp
     src/ndbl/core/ASTNodeSlot.cpp
     src/ndbl/core/ASTSwitchBehavior.cpp

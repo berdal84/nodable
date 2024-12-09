@@ -42,11 +42,11 @@ void ASTFunctionCall::init(ASTNodeType _type, const tools::FunctionDescriptor& _
     }
 
     // Create a result/value
-    m_value->set_type(_func_type.return_type() );
+    value()->set_type(_func_type.return_type() );
 
-    add_slot(m_value, SlotFlag_OUTPUT   , ASTNodeSlot::MAX_CAPACITY );
-    add_slot(m_value, SlotFlag_FLOW_OUT , 1);
-    add_slot(m_value, SlotFlag_FLOW_IN  , ASTNodeSlot::MAX_CAPACITY );
+    add_slot(value(), SlotFlag_OUTPUT   , ASTNodeSlot::MAX_CAPACITY );
+    add_slot(value(), SlotFlag_FLOW_OUT , 1);
+    add_slot(value(), SlotFlag_FLOW_IN  , ASTNodeSlot::MAX_CAPACITY );
 
     // Create arguments
     if (_type == ASTNodeType_OPERATOR )
