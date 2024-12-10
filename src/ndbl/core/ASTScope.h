@@ -54,9 +54,9 @@ namespace ndbl
         void                           set_view(ASTScopeView* view) { m_view = view; } // TODO: remove this, use components
         const std::set<ASTVariable*>&  variable()const { return m_variable; };
         const std::set<ASTNode*>&      child() const { return m_child; }
-        void                           reset_backbone_head(ASTNode* node = nullptr);
-        bool                           has_backbone_head() const { return m_backbone_head != nullptr; }
-        const std::vector<ASTNode*>&   backbone() const; // return a list of nodes from the entry_point to the end of the scope (result is cached, recomputed only when necessary)
+        ASTNode*                       head() const { return m_head; }
+        void                           reset_head(ASTNode* node = nullptr);
+        const std::vector<ASTNode*>&   backbone() const; // backbone is a vector of nodes starting from the scope's head including all flow_outputs in this scope (recursively)
         void                           reset_parent(ASTScope* new_parent = nullptr, ScopeFlags = ScopeFlags_NONE);
         bool                           is_partitioned() const { return !m_partition.empty(); }
         bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
@@ -75,16 +75,16 @@ namespace ndbl
         static void                    transfer_children_to(ASTScope* source, ASTScope* target);
         static void                    change_scope(ASTNode *node, ASTScope* desired_scope, ScopeFlags = ScopeFlags_NONE);
     private:
-        void                           _append(ASTNode *, ScopeFlags = ScopeFlags_NONE);
-        void                           _remove(std::vector<ASTNode*>& out_removed, ASTNode *node, ScopeFlags = ScopeFlags_NONE);
+        void                           _append(ASTNode*, ScopeFlags = ScopeFlags_NONE);
+        void                           _remove(ASTNode*, ScopeFlags = ScopeFlags_NONE);
         std::vector<ASTNode*>&         _leaves_ex(std::vector<ASTNode*>& out);
         void                           _update_backbone_cache();
 
         ASTScopeView*                  m_view = nullptr;
         std::set<ASTNode*>             m_child;
-        ASTNode*                       m_backbone_head = nullptr;
-        std::vector<ASTNode*>          m_backbone_cache;
-        bool                           m_backbone_cache_is_dirty = true;
+        ASTNode*                       m_head = nullptr; // backbone's start
+        std::vector<ASTNode*>          m_cached_backbone;
+        bool                           m_cached_backbone_dirty = true;
         std::set<ASTVariable*>         m_variable;
         std::vector<ASTScope*>         m_partition;
         ASTScope*                      m_parent = nullptr;

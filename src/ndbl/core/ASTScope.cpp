@@ -29,7 +29,7 @@ ASTScope::~ASTScope()
 {
     assert(m_child.empty());
     assert(m_variable.empty());
-    assert(m_backbone_head == nullptr);
+    assert(m_head == nullptr);
     assert(m_partition.empty());
 }
 
@@ -62,7 +62,7 @@ void ASTScope::shutdown()
     {
         ASSERT(false); // TODO: remove all
     }
-    reset_backbone_head();
+    reset_head();
 }
 
 ASTVariable* ASTScope::find_variable(const std::string& _identifier, ScopeFlags flags )
@@ -81,7 +81,7 @@ ASTVariable* ASTScope::find_variable(const std::string& _identifier, ScopeFlags 
 
 void ASTScope::_append(ASTNode *node, ScopeFlags flags)
 {
-    m_backbone_cache_is_dirty = true;
+    m_cached_backbone_dirty = true;
 
     constexpr ScopeFlags allowed_flags = ScopeFlags_PREVENT_EVENTS;
     ASSERT( (flags & ~allowed_flags) == 0); // Incompatible flag
@@ -121,9 +121,9 @@ void ASTScope::_append(ASTNode *node, ScopeFlags flags)
             _append(input, flags);
 
     node->reset_scope(this);
-    if ( m_backbone_head == nullptr )
+    if (m_head == nullptr )
     {
-        reset_backbone_head(node);
+        reset_head(node);
     }
 
     // emit event
@@ -152,7 +152,7 @@ std::vector<ASTNode*>& ASTScope::_leaves_ex(std::vector<ASTNode*>& out)
         return out; // when a scope as sub scopes, we do not consider its node as potential leaves since they are usually secondary nodes, so we return early.
     }
 
-    ASTNode* node = m_backbone_head;
+    ASTNode* node = m_head;
     while( node != nullptr )
     {
         if (node->has_internal_scope() )
@@ -176,29 +176,28 @@ std::vector<ASTNode*>& ASTScope::_leaves_ex(std::vector<ASTNode*>& out)
     return out;
 }
 
-void ASTScope::_remove(std::vector<ASTNode *> &removed_nodes, ndbl::ASTNode *node, ndbl::ScopeFlags flags)
+void ASTScope::_remove(ndbl::ASTNode *node, ndbl::ScopeFlags flags)
 {
     constexpr ScopeFlags allowed_flags = ScopeFlags_PREVENT_EVENTS;
     ASSERT( (flags & ~allowed_flags) == 0); // Incompatible flag
     ASSERT( node );
     ASSERT( node->scope() == this); // node can't be inside its own Scope
 
-    m_backbone_cache_is_dirty = true;
+    m_cached_backbone_dirty = true;
 
     // inputs first
     for ( ASTNode* input : node->inputs() )
         if ( input->scope() == this )
-            this->_remove(removed_nodes, input, flags );
+            this->_remove(input, flags );
 
     // erase node + side effects
     m_child.erase( node );
-    if (m_backbone_head == node )
+    if (m_head == node )
     {
-        this->reset_backbone_head();
+        this->reset_head();
     }
     node->reset_scope(nullptr);
 
-    removed_nodes.push_back(node);
     if ( node->type() == ASTNodeType_VARIABLE )
     {
         m_variable.erase( reinterpret_cast<ASTVariable*>(node) );
@@ -210,10 +209,7 @@ void ASTScope::_remove(std::vector<ASTNode *> &removed_nodes, ndbl::ASTNode *nod
         on_remove.emit(node);
     }
 
-#ifdef TOOLS_DEBUG
-    for (auto* _node : removed_nodes )
-        ASSERT( _node->scope() == nullptr );
-#endif
+    ASSERT( node->scope() == nullptr);
 }
 
 bool ASTScope::empty(ScopeFlags flags) const
@@ -287,7 +283,7 @@ std::set<ASTScope*>& ASTScope::get_descendent_ex(std::set<ASTScope*>& out, ASTSc
         get_descendent_ex(out, partition, level_max - 1 );
     }
 
-    ASTNode* node = scope->m_backbone_head;
+    ASTNode* node = scope->m_head;
     while( node != nullptr )
     {
         if ( ASTScope* internal_scope = node->internal_scope() )
@@ -316,9 +312,6 @@ void ASTScope::change_scope(ASTNode* node, ASTScope* desired_scope, ScopeFlags f
     ASTScope* current_scope = node->scope();
     ASSERT( desired_scope != nullptr);
     ASSERT( current_scope != nullptr);
-    // TODO: what should we do? transfer as an backbone head too? never? it depends... of what?
-    // TODO: should we add it as backbone head since target has none?
-    ASSERT(false); // TODO: handle backbone_head transfer
 
     if ( desired_scope == current_scope )
     {
@@ -326,14 +319,8 @@ void ASTScope::change_scope(ASTNode* node, ASTScope* desired_scope, ScopeFlags f
         return;
     }
 
-    std::vector<ASTNode*> removed_nodes;
-    current_scope->_remove(removed_nodes, node, flags & ScopeFlags_PREVENT_EVENTS); // this is the only flag useful here
+    current_scope->_remove(node, flags & ScopeFlags_PREVENT_EVENTS); // this is the only flag useful here
     desired_scope->_append(node, flags);
-
-#ifdef TOOLS_DEBUG
-    for (auto* _node : removed_nodes )
-        ASSERT( _node->scope() == desired_scope);
-#endif
 }
 
 void ASTScope::reset_parent(ASTScope* new_parent, ScopeFlags flags )
@@ -377,9 +364,7 @@ void ASTScope::transfer_children_to(ASTScope* source, ASTScope* target)
 void ASTScope::reset_scope(ASTNode* node)
 {
     ASSERT(node->scope());
-    std::vector<ASTNode*> removed_node;
-    node->scope()->_remove( removed_node, node );
-    ASSERT(!removed_node.empty());
+    node->scope()->_remove(node);
 }
 
 bool ASTScope::contains(ASTNode* node) const
@@ -387,33 +372,33 @@ bool ASTScope::contains(ASTNode* node) const
     return m_child.contains( node );
 }
 
-void ASTScope::reset_backbone_head(ASTNode* node)
+void ASTScope::reset_head(ASTNode* node)
 {
 #ifdef TOOLS_DEBUG
     VERIFY( !node || node->scope() == this, "Node must be from this scope");
-    VERIFY(!m_backbone_head || m_backbone_head->scope() == this, "node as backbone head should never be removed before to reset backbone head")
+    VERIFY(!m_head || m_head->scope() == this, "node as backbone head should never be removed before to reset backbone head")
 #endif
-    m_backbone_head = node;
+    m_head = node;
 }
 
 const std::vector<ASTNode*>& ASTScope::backbone() const
 {
     const_cast<ASTScope*>(this)->_update_backbone_cache();
-    return m_backbone_cache;
+    return m_cached_backbone;
 }
 
 void ASTScope::_update_backbone_cache()
 {
-    if ( !m_backbone_cache_is_dirty )
+    if ( !m_cached_backbone_dirty )
         return;
 
-    m_backbone_cache.clear();
-    ASTNode* curr_node = m_backbone_head;
+    m_cached_backbone.clear();
+    ASTNode* curr_node = m_head;
     while( curr_node != nullptr && curr_node->scope() == this )
     {
-        m_backbone_cache.push_back( curr_node );
+        m_cached_backbone.push_back(curr_node );
         ASSERT( curr_node->flow_out()->adjacent_count() <= 1);
         curr_node = curr_node->flow_out()->first_adjacent_node();
     }
-    m_backbone_cache_is_dirty = false;
+    m_cached_backbone_dirty = false;
 }
