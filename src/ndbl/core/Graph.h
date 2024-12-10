@@ -128,10 +128,10 @@ namespace ndbl
     private:
         void _init();
         void _clear();
-        void on_disconnect_value_side_effects(ASTSlotLink);
-        void on_disconnect_flow_side_effects(ASTSlotLink);
-        void on_connect_value_side_effects(ASTSlotLink);
-        void on_connect_flow_side_effects(ASTSlotLink);
+        void on_disconnect_value_side_effects(const ASTSlotLink&);
+        void on_disconnect_flow_side_effects(const ASTSlotLink&);
+        void on_connect_value_side_effects(const ASTSlotLink&);
+        void on_connect_flow_side_effects(const ASTSlotLink&);
 
         void                   insert(ASTNode*, ASTScope*);
         void                   shutdown_node(ASTNode* node);

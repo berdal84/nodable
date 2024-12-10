@@ -382,7 +382,7 @@ ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags _fla
 //    connect( last_sibling_next_slot, new_child_prev_slot );
 //}
 
-void Graph::on_connect_value_side_effects(ASTSlotLink edge )
+void Graph::on_connect_value_side_effects(const ASTSlotLink& edge )
 {
     // 1) Update Scope
     //
@@ -402,7 +402,7 @@ void Graph::on_connect_value_side_effects(ASTSlotLink edge )
     }
 }
 
-void Graph::on_disconnect_value_side_effects(ASTSlotLink edge )
+void Graph::on_disconnect_value_side_effects(const ASTSlotLink& edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_OUTPUT );
 
@@ -416,7 +416,7 @@ void Graph::on_disconnect_value_side_effects(ASTSlotLink edge )
     }
 }
 
-void Graph::on_disconnect_flow_side_effects(ASTSlotLink edge )
+void Graph::on_disconnect_flow_side_effects(const ASTSlotLink& edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
@@ -452,7 +452,7 @@ void Graph::on_disconnect_flow_side_effects(ASTSlotLink edge )
     ASTScope::change_scope(edge.head->node, target_scope );
 }
 
-void Graph::on_connect_flow_side_effects(ASTSlotLink edge )
+void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
