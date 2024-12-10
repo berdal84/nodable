@@ -459,19 +459,22 @@ void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge )
     ASTScope* target_scope       = nullptr;
     ASTNode*  previous_node      = edge.tail->node;
     ASTNode*  next_node          = edge.head->node;
-    size_t flow_in_edge_count = edge.head->adjacent_count();
+    size_t    flow_in_edge_count = edge.head->adjacent_count();
 
     if ( flow_in_edge_count == 1)
     {
+        target_scope = previous_node->scope();
+
         if ( previous_node->has_internal_scope() )
         {
-            target_scope = previous_node->internal_scope();
-            if ( target_scope->is_partitioned() )
-                target_scope = target_scope->partition_at(edge.tail->position);
-        }
-        else
-        {
-            target_scope = previous_node->scope();
+            ASSERT(false);
+// TODO: add a distinction between flow_out/flow_in and flow_enter
+//       flow_out must have 0 or 1 connections
+//       no flow_out connection means, we have to follow parent node's flow_out, and if there is no parent, it's the end of the program.
+//
+//            target_scope = previous_node->internal_scope();
+//            if ( target_scope->is_partitioned() )
+//                target_scope = target_scope->partition_at(edge.tail->position);
         }
     }
     else if ( flow_in_edge_count > 1 )
