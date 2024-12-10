@@ -20,8 +20,9 @@ namespace ndbl
         SlotFlag_ORDER_2ND     = 1 << 1,
 
         SlotFlag_TYPE_VALUE    = 1 << 2,
-        SlotFlag_TYPE_FLOW     = 1 << 4,
+        SlotFlag_TYPE_FLOW     = 1 << 3,
 
+        SlotFlag_IS_BRANCH     = 1 << 4,
         SlotFlag_IS_THIS       = 1 << 5,
         SlotFlag_NOT_FULL      = 1 << 6,
 

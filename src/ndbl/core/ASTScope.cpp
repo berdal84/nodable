@@ -234,16 +234,15 @@ std::stack<ASTScope*> get_path(ASTScope* s)
     return path;
 }
 
-ASTScope* ASTScope::lowest_common_ancestor(const std::vector<ASTScope*>& scopes)
+ASTScope* ASTScope::lowest_common_ancestor(const std::set<ASTScope*>& scopes)
 {
-    if ( scopes.empty() )
-        return nullptr;
-    ASTScope* result = *scopes.begin();
-    for(auto it = scopes.begin()+1; it != scopes.end(); ++it)
+    ASTScope* lca_scope = nullptr;
+    for( ASTScope* curr_scope : scopes )
     {
-        result = lowest_common_ancestor( result, *it);
+        lca_scope = lca_scope ? lowest_common_ancestor( lca_scope, curr_scope )
+                              : curr_scope;
     }
-    return result;
+    return lca_scope;
 }
 
 ASTScope* ASTScope::lowest_common_ancestor(ASTScope* s1, ASTScope* s2)

@@ -9,17 +9,19 @@ void ASTSwitchBehavior::init(ASTNode* node, size_t branch_count)
 
     m_branch_count = branch_count;
 
-    // Add a FLOW_IN slot accepting N inputs
-    node->add_slot(node->value(), SlotFlag_FLOW_IN  , ASTNodeSlot::MAX_CAPACITY);
+    node->add_slot(node->value(), SlotFlag_FLOW_IN  , ASTNodeSlot::MAX_CAPACITY); // accepts N inputs
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT , 1); // accepts 0 or 1 output
 
-    // Add an inner scope (some sub scopes) and FLOW_OUT slots
     node->init_internal_scope( branch_count );
+
+    // add 1 slot per branch
+    SlotFlags flags = SlotFlag_FLOW_OUT | SlotFlag_IS_BRANCH;
     for(size_t branch = 0; branch < branch_count; ++branch )
     {
-        m_flow_out[branch] = node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1, branch);
+        m_branch_slot[branch] = node->add_slot(node->value(), flags, 1, branch);
     }
 
-    // Add i-1 conditions (no condition for the default branch)
+    // add 1 condition per branch except for the default branch
     for(size_t branch = 1; branch < branch_count; ++branch )
     {
         auto condition_property  = node->add_prop<tools::any>(CONDITION_PROPERTY);

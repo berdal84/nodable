@@ -66,7 +66,7 @@ namespace ndbl
         bool                           is_orphan() const { return m_parent == nullptr; }
         size_t                         depth() const { return m_depth; };
         ASTNode*                       node() const { return m_entity; };
-        static ASTScope*               lowest_common_ancestor(const std::vector<ASTScope*>& scopes);
+        static ASTScope*               lowest_common_ancestor(const std::set<ASTScope*>& scopes);
         static ASTScope*               lowest_common_ancestor(ASTScope* s1, ASTScope* s2);
         static std::set<ASTScope*>&    get_descendent(std::set<ASTScope*>& out, ASTScope* scope, ScopeFlags flags = ScopeFlags_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }
         static std::set<ASTScope*>&    get_descendent_ex(std::set<ASTScope*>& out, ASTScope* scope, size_t level_max = -1, ScopeFlags = ScopeFlags_INCLUDE_SELF);

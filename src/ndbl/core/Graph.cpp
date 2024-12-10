@@ -318,27 +318,36 @@ ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags _fla
     return edge;
 }
 
-void Graph::on_connect_value_side_effects(const ASTSlotLink& edge )
+void Graph::on_connect_value_side_effects(const ASTSlotLink& edge ) const
 {
-    // 1) Update Scope
-    //
-    ASTScope* target_scope = edge.head->node->scope();
-
-    if (edge.head->node->has_internal_scope() )
-        target_scope = edge.head->node->internal_scope();
-
-    ASTScope::change_scope(edge.tail->node, target_scope );
-
-
-    // 2) Update input's property type
-    //
-    if (edge.head->node->type() != ASTNodeType_VARIABLE )
+    // ensure the tail node has the right scope
+    // must be:
+    // - unchanged in case of a node already part of the code flow
+    // - or: head node's scope / internal scope if any
+    if ( !edge.tail->node->has_flow_adjacent() )
     {
-        edge.head->property->set_type( edge.tail->property->get_type() );
+        ASTNode*  tail_node    = edge.tail->node;
+        ASTNode*  head_node    = edge.head->node;
+        ASTScope* target_scope = head_node->scope();
+
+        if ( head_node->has_internal_scope() )
+        {
+            target_scope = head_node->internal_scope();
+        }
+
+        ASTScope::change_scope( tail_node, target_scope );
+    }
+
+    // make sure head property type matches with tail, update head when needed.
+    if ( edge.head->node->type() != ASTNodeType_VARIABLE )
+    {
+        const ASTNodeProperty* tail_prop = edge.tail->property;
+        ASTNodeProperty* head_prop = edge.head->property;
+        head_prop->set_type( tail_prop->get_type() );
     }
 }
 
-void Graph::on_disconnect_value_side_effects(const ASTSlotLink& edge )
+void Graph::on_disconnect_value_side_effects(const ASTSlotLink& edge ) const
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_OUTPUT );
 
@@ -352,7 +361,7 @@ void Graph::on_disconnect_value_side_effects(const ASTSlotLink& edge )
     }
 }
 
-void Graph::on_disconnect_flow_side_effects(const ASTSlotLink& edge )
+void Graph::on_disconnect_flow_side_effects(const ASTSlotLink& edge ) const
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
@@ -370,25 +379,24 @@ void Graph::on_disconnect_flow_side_effects(const ASTSlotLink& edge )
         }
         default: // 2+
         {
-            // Find the lowest common ancestor of adjacent nodes
-            std::vector<ASTScope *> adjacent_scopes;
-            for (ASTNodeSlot *adjacent: edge.head->adjacent())
-                adjacent_scopes.push_back(adjacent->node->scope());
+            // Find the lowest common ancestor of adjacent node(s)
+            std::set<ASTScope*> scopes;
+            for(ASTNodeSlot* _adjacent_slot : edge.head->adjacent() )
+                scopes.insert(_adjacent_slot->node->scope());
+            ASTScope* ancestor = ASTScope::lowest_common_ancestor(scopes);
 
-            if (ASTScope* ancestor = ASTScope::lowest_common_ancestor(adjacent_scopes) )
+            if ( ancestor != nullptr )
             {
-                target_scope = ancestor;
-                if ( target_scope->node() != nullptr )
-                {
-                    target_scope = target_scope->node()->scope();
-                }
+                ASSERT( ancestor->parent() != nullptr );
+                target_scope = ancestor->parent();
+                ASSERT(false); // TODO: here we must create a flow edge from the ancestor's node to edge.head->node
             }
         }
     }
     ASTScope::change_scope(edge.head->node, target_scope );
 }
 
-void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge )
+void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge ) const
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
@@ -399,28 +407,29 @@ void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge )
 
     if ( flow_in_edge_count == 1)
     {
-        target_scope = previous_node->scope();
-
-        if ( previous_node->has_internal_scope() )
+        // When connecting to a branch, we want to add the head node into the corresponding branch's scope
+        if ( edge.tail->has_flags(SlotFlag_IS_BRANCH) )
         {
-            ASSERT(false);
-// TODO: add a distinction between flow_out/flow_in and flow_enter
-//       flow_out must have 0 or 1 connections
-//       no flow_out connection means, we have to follow parent node's flow_out, and if there is no parent, it's the end of the program.
-//
-//            target_scope = previous_node->internal_scope();
-//            if ( target_scope->is_partitioned() )
-//                target_scope = target_scope->partition_at(edge.tail->position);
+            ASTScope* internal_scope = previous_node->internal_scope();
+            ASSERT(internal_scope);
+            ASSERT(internal_scope->is_partitioned());
+            ASTScope* branch_scope = internal_scope->partition_at(edge.tail->position);
+            target_scope = branch_scope;
+        }
+        else
+        {
+            target_scope = previous_node->scope();
         }
     }
     else if ( flow_in_edge_count > 1 )
     {
         // gather adjacent scopes
-        std::vector<ASTScope*> adjacent_scope;
+        std::set<ASTScope*> adjacent_scope;
         for(ASTNodeSlot* adjacent : edge.head->adjacent() )
-            adjacent_scope.push_back(adjacent->node->scope() );
+            adjacent_scope.insert(adjacent->node->scope() );
         // find lowest_common_ancestor
-        target_scope = ASTScope::lowest_common_ancestor( adjacent_scope );
+        if ( adjacent_scope.size() > 1 )
+            target_scope = ASTScope::lowest_common_ancestor( adjacent_scope );
         // We can't use a scope having sub_scopes directly, using parent
         if (target_scope->is_partitioned() )
             target_scope = target_scope->parent();
