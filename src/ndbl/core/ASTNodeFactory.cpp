@@ -86,7 +86,7 @@ ASTNode* ASTNodeFactory::create_entry_point() const
 {
     auto* ast_node = new ASTNode();
     ast_node->init(ASTNodeType_ENTRY_POINT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_BRANCH, 1);
     ast_node->init_internal_scope();
     m_post_process(ast_node);
     return ast_node;

@@ -121,10 +121,6 @@ void ASTScope::_append(ASTNode *node, ScopeFlags flags)
             _append(input, flags);
 
     node->reset_scope(this);
-    if (m_head == nullptr )
-    {
-        reset_head(node);
-    }
 
     // emit event
     if ( !(flags & ScopeFlags_PREVENT_EVENTS) )
@@ -314,11 +310,11 @@ void ASTScope::change_scope(ASTNode* node, ASTScope* desired_scope, ScopeFlags f
 
     if ( desired_scope == current_scope )
     {
-        LOG_VERBOSE("ASTScope", "change_scope skipped, current and desired scopes are the same\n");
         return;
     }
 
-    current_scope->_remove(node, flags & ScopeFlags_PREVENT_EVENTS); // this is the only flag useful here
+    const ScopeFlags remove_flags = flags & ScopeFlags_PREVENT_EVENTS; // other flags are unused in here
+    current_scope->_remove(node, remove_flags);
     desired_scope->_append(node, flags);
 }
 
