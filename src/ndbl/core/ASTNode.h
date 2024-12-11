@@ -44,7 +44,7 @@ namespace ndbl
         friend class ASTNodeFactory;
 //===== CONSTRUCTORS/DESTRUCTORS =======================================================================================
     public:
-        ASTNode(): m_component_collection(this) {};
+        ASTNode(): m_component_collection(this), m_adjacent_nodes_cache(this) {};
         virtual ~ASTNode();
 //===== SIGNALS ========================================================================================================
         SIGNAL(on_shutdown); // emit once shutdown() has been called
@@ -84,11 +84,14 @@ namespace ndbl
         const ASTNodeSlot*          flow_in() const;
         ASTNodeSlot*                flow_out();
         const ASTNodeSlot*          flow_out() const;
+        ASTNodeSlot*                flow_branch_out();
+        const ASTNodeSlot*          flow_branch_out() const;
         ASTNodeSlot*                add_slot(ASTNodeProperty *, SlotFlags, size_t _capacity, size_t _position = 0);
         size_t                      adjacent_slot_count(SlotFlags flags)const { return filter_adjacent_slots(flags).size(); }
         ASTNodeSlot*                slot_at(size_t pos) { return m_slots.at(pos); }
         const ASTNodeSlot*          slot_at(size_t pos) const { return m_slots.at(pos); }
-        std::vector<ASTNodeSlot*>   filter_slots(SlotFlags ) const;
+        std::vector<ASTNodeSlot*>   filter_slots(SlotFlags) const;
+        std::vector<ASTNodeSlot*>   filter_slots(const std::function<bool(const ASTNodeSlot*)>& predicate) const;
         std::vector<ASTNodeSlot*>   filter_adjacent_slots(SlotFlags) const;
         ASTNodeSlot*                find_slot(SlotFlags flags) { return find_slot_by_property(m_value, flags ); }// implicitly DEFAULT_PROPERTY's slot
         const ASTNodeSlot*          find_slot(SlotFlags flags) const { return find_slot_by_property(m_value, flags ); }// implicitly DEFAULT_PROPERTY's slot
@@ -141,10 +144,12 @@ namespace ndbl
     private:
         struct AdjacentNodesCache
         {
-            const std::vector<ASTNode*>& get(SlotFlags flags) const;
+            explicit AdjacentNodesCache(const ASTNode* node): _node(node) {}
+            const std::vector<ASTNode*>& get(SlotFlags) const;
             void set_dirty() { _cache.clear(); }
-            const ASTNode* _node = nullptr;
-            std::unordered_map<SlotFlags, std::vector<ASTNode*>> _cache = {};
+        private:
+            const ASTNode* _node;
+            std::unordered_map<SlotFlags, std::vector<ASTNode*>> _cache;
         };
 
         static constexpr size_t self_property_index = 0; //
@@ -157,9 +162,9 @@ namespace ndbl
         ASTNodeProperty*       m_value  = nullptr; // Short had for prop_at( self_property_index )
         ASTScope*              m_parent_scope   = nullptr;
         ASTScope*              m_internal_scope = nullptr;
-        AdjacentNodesCache     m_adjacent_nodes_cache = {this};
+        AdjacentNodesCache     m_adjacent_nodes_cache;
         std::vector<ASTNodeSlot*>                                m_slots;
-        std::unordered_map<size_t,  std::vector<ASTNodeSlot*>>   m_slots_by_property; // property's hash to Slots
+        std::unordered_map<const ASTNodeProperty*, std::vector<ASTNodeSlot*>>   m_slots_by_property; // TODO: use multimap
         std::vector<ASTNodeProperty*>                            m_properties;
         std::map<std::string, ASTNodeProperty*>                  m_properties_by_name;
         tools::ComponentsOf<ASTNode>                             m_component_collection;

@@ -106,23 +106,20 @@ void ASTNode::on_slot_change(ASTNodeSlot::Event event, ASTNodeSlot* slot)
     this->m_adjacent_nodes_cache.set_dirty();
 }
 
-ASTNodeSlot* ASTNode::add_slot(ASTNodeProperty *_property, SlotFlags _flags, size_t _capacity, size_t _position)
+ASTNodeSlot* ASTNode::add_slot(ASTNodeProperty* property, SlotFlags flags, size_t capacity, size_t position)
 {
-    ASSERT( _property != nullptr );
-    ASSERT( _property->node() == this );
+    ASSERT( property != nullptr );
+    ASSERT( property->node() == this );
 
-    ASTNodeSlot* slot = new ASTNodeSlot(this, _flags, _property, _capacity, _position);
+    ASTNodeSlot* slot = new ASTNodeSlot(this, flags, property, capacity, position);
     m_slots.push_back(slot);
+
+    // Insert in "prop to slot" index
+    // TODO: use a vector of vector? (having same size_t indexes as m_properties vector => O(1) access )
+    m_slots_by_property[property].push_back(slot);
 
     // listen to events to clear cache
     CONNECT(slot->on_change, &ASTNode::on_slot_change, this);
-
-    // Update property to slots index
-    const size_t key = (size_t)_property;
-    if (m_slots_by_property.find(key) != m_slots_by_property.end() )
-        m_slots_by_property.at(key).push_back(slot );
-    else
-        m_slots_by_property.emplace(key, std::vector<ASTNodeSlot*>{slot});
 
     return slot;
 }
@@ -144,12 +141,12 @@ bool ASTNode::has_input_connected(const ASTNodeProperty* property ) const
     return slot && slot->adjacent_count() > 0;
 }
 
-const ASTNodeSlot* ASTNode::find_slot_by_property(const ASTNodeProperty* property_ptr, SlotFlags _flags) const
+const ASTNodeSlot* ASTNode::find_slot_by_property(const ASTNodeProperty* prop, SlotFlags flags) const
 {
-    const size_t key = (size_t)property_ptr;
-    if (m_slots_by_property.find(key) != m_slots_by_property.end() )
-        for( ASTNodeSlot* slot : m_slots_by_property.at(key) )
-            if( slot->has_flags(_flags) )
+    auto it = m_slots_by_property.find(prop);
+    if ( it != m_slots_by_property.end() )
+        for( ASTNodeSlot* slot : it->second )
+            if( slot->has_flags(flags) )
                 return slot;
     return nullptr;
 }
@@ -177,19 +174,22 @@ ASTNodeSlot* ASTNode::find_adjacent_at(SlotFlags _flags, size_t _index ) const
     return nullptr;
 }
 
-std::vector<ASTNodeSlot*> ASTNode::filter_slots(SlotFlags _flags ) const
+std::vector<ASTNodeSlot*> ASTNode::filter_slots(SlotFlags flags) const
 {
-    std::vector<ASTNodeSlot*> result;
-    for(auto& slot : m_slots)
+    const auto if_has_flags = [flags](const ASTNodeSlot* _slot)
     {
-        if( slot && slot->has_flags(_flags) )
-        {
-            result.push_back(const_cast<ASTNodeSlot*>(slot));
-        }
-    }
-    return result;
+        ASSERT_DEBUG_ONLY(_slot != nullptr);
+        return _slot->has_flags(flags);
+    };
+    return filter_slots(if_has_flags);
 }
 
+std::vector<ASTNodeSlot*> ASTNode::filter_slots(const std::function<bool(const ASTNodeSlot*)>& predicate) const
+{
+    std::vector<ASTNodeSlot*> result;
+    std::copy_if( m_slots.begin(), m_slots.end(), std::back_inserter(result), predicate);
+    return result;
+}
 
 void ASTNode::set_suffix(const ASTToken& token)
 {
@@ -221,15 +221,42 @@ const ASTNodeSlot* ASTNode::value_in() const
     return find_slot_by_property(m_value, SlotFlag_INPUT );
 }
 
+ASTNodeSlot* ASTNode::flow_branch_out()
+{
+    auto* const_this = const_cast<const ASTNode*>(this);
+    return const_cast<ASTNodeSlot*>( const_this->flow_branch_out());
+}
+
+const ASTNodeSlot* ASTNode::flow_branch_out() const
+{
+    auto it = m_slots_by_property.find(m_value);
+    if ( it != m_slots_by_property.end() )
+    {
+        const auto& [_, slots] = *it;
+        for( ASTNodeSlot* slot : slots )
+            if( slot->has_flags(SlotFlag_FLOW_OUT | SlotFlag_IS_BRANCH) )
+                return slot;
+    }
+    return nullptr;
+}
 
 ASTNodeSlot* ASTNode::flow_out()
 {
-    return const_cast<ASTNodeSlot*>( find_slot_by_property(m_value, SlotFlag_FLOW_OUT ) );
+    auto* const_this = const_cast<const ASTNode*>(this);
+    return const_cast<ASTNodeSlot*>( const_this->flow_out());
 }
 
 const ASTNodeSlot* ASTNode::flow_out() const
 {
-    return find_slot_by_property(m_value, SlotFlag_FLOW_OUT );
+    auto it = m_slots_by_property.find(m_value);
+    if ( it != m_slots_by_property.end() )
+    {
+        const auto& [_, slots] = *it;
+        for( ASTNodeSlot* slot : slots )
+            if( slot->has_flags(SlotFlag_FLOW_OUT) && !slot->has_flags(SlotFlag_IS_BRANCH) ) // branches are specific flow_out, we don't want to grab them here
+                return slot;
+    }
+    return nullptr;
 }
 
 ASTNodeSlot* ASTNode::flow_in()
