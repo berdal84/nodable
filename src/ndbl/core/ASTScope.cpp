@@ -393,9 +393,22 @@ void ASTScope::_update_backbone_cache()
     ASTNode* curr_node = m_head;
     while( curr_node != nullptr && curr_node->scope() == this )
     {
+        // add current
         m_cached_backbone.push_back(curr_node );
-        ASSERT( curr_node->flow_out()->adjacent_count() <= 1);
-        curr_node = curr_node->flow_out()->first_adjacent_node();
+
+        // get next
+        if ( ASTUtils::is_conditional(curr_node) )
+        {
+            // const std::vector<ASTNode*> _backbone = curr_node->internal_scope()->
+            VERIFY(false, "TODO: implement a function to get the node following a given scope (just after its output)");
+        }
+        else // regular nodes have a flow_out
+        {
+            ASTNodeSlot* out = curr_node->flow_out();
+            ASSERT( out );
+            ASSERT( out->adjacent_count() <= 1);
+            curr_node = out->first_adjacent_node();
+        }
     }
     m_cached_backbone_dirty = false;
 }
