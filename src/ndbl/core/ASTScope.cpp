@@ -117,8 +117,9 @@ void ASTScope::_append(ASTNode *node, ScopeFlags flags)
 
     // Insert inputs recursively
     for ( ASTNode* input : node->inputs() )
-        if (input->scope() == previous_scope )
-            _append(input, flags);
+        if ( input->type() != ASTNodeType_VARIABLE ) // variables must be manually added
+            if (input->scope() == previous_scope )
+                _append(input, flags);
 
     node->reset_scope(this);
 
@@ -184,7 +185,8 @@ void ASTScope::_remove(ndbl::ASTNode *node, ndbl::ScopeFlags flags)
     // inputs first
     for ( ASTNode* input : node->inputs() )
         if ( input->scope() == this )
-            this->_remove(input, flags );
+            if ( input->type() != ASTNodeType_VARIABLE ) // variables must be manually removed
+                this->_remove(input, flags );
 
     // erase node + side effects
     m_child.erase( node );
