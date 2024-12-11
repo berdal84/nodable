@@ -400,7 +400,6 @@ void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge ) const
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
-    ASTScope* target_scope       = nullptr;
     ASTNode*  previous_node      = edge.tail->node;
     ASTNode*  next_node          = edge.head->node;
     size_t    flow_in_edge_count = edge.head->adjacent_count();
@@ -412,36 +411,49 @@ void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge ) const
         {
             ASTScope* internal_scope = previous_node->internal_scope();
             ASSERT(internal_scope);
-            ASSERT(internal_scope->is_partitioned());
-            ASTScope* branch_scope = internal_scope->partition_at(edge.tail->position);
-            target_scope = branch_scope;
+            if (internal_scope->is_partitioned())
+            {
+                ASTScope* branch_scope = internal_scope->partition_at(edge.tail->position);
+                ASTScope::change_scope(next_node, branch_scope);
+                branch_scope->reset_head(next_node);
+            }
+            else
+            {
+                ASTScope::change_scope(next_node, internal_scope);
+                internal_scope->reset_head(next_node);
+            }
         }
         else
         {
-            target_scope = previous_node->scope();
+            ASTScope::change_scope( next_node, previous_node->scope() );
         }
     }
     else if ( flow_in_edge_count > 1 )
     {
         // gather adjacent scopes
-        std::set<ASTScope*> adjacent_scope;
+        std::set<ASTScope*> scopes;
         for(ASTNodeSlot* adjacent : edge.head->adjacent() )
-            adjacent_scope.insert(adjacent->node->scope() );
-        // find lowest_common_ancestor
-        if ( adjacent_scope.size() > 1 )
-            target_scope = ASTScope::lowest_common_ancestor( adjacent_scope );
-        // We can't use a scope having sub_scopes directly, using parent
-        if (target_scope->is_partitioned() )
-            target_scope = target_scope->parent();
+            scopes.insert(adjacent->node->scope() );
+
+        if (scopes.size() == 1 )
+        {
+            ASTScope::change_scope( next_node, *scopes.begin() );
+        }
+        else
+        {
+            ASTScope* target_scope = ASTScope::lowest_common_ancestor(scopes );
+            if (target_scope->is_partitioned() ) // We can't use a scope having sub_scopes directly, using parent
+            {
+                target_scope = target_scope->parent();
+            }
+            ASTScope::change_scope( next_node, target_scope );
+            // node: no need to branch_scope->reset_head(next_node) here, since when we have 2 flow in or more, we can't be the head
+        }
     }
     else
     {
         VERIFY(false, "Unexpected edge count");
     }
-
-    if ( target_scope == nullptr )
-        target_scope = root_scope();
-    ASTScope::change_scope(next_node, target_scope);
 }
 
 EdgeRegistry::iterator Graph::disconnect(const ASTSlotLink& edge, GraphFlags flags)

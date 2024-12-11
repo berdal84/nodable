@@ -89,10 +89,21 @@ namespace ndbl{
 
         struct FlowPath
         {
-            ASTNodeSlot*   in = nullptr;
-            FlowPathOut out;
-            FlowPath() {}
-            FlowPath(ASTNode* node): in(node->flow_in()), out({node->flow_out()}) {}
+            ASTNodeSlot* in;
+            FlowPathOut  out;
+            FlowPath(): in(nullptr), out() {};
+            FlowPath(ASTNode* node)
+            : in(node->flow_in())
+            , out()
+            {
+                ASTNodeSlot* _flow_out = node->flow_out();
+                if ( _flow_out == nullptr )
+                {
+                    _flow_out = node->flow_branch_out();
+                }
+                ASSERT_DEBUG_ONLY(_flow_out);
+                out.insert(_flow_out);
+            }
             operator bool() const { return in != nullptr && !out.empty(); }
         };
 
