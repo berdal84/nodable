@@ -1,6 +1,7 @@
 #include "GraphView.h"
 
 #include <algorithm>
+#include <ranges>
 #include "tools/core/types.h"
 #include "tools/core/log.h"
 #include "tools/gui/ImGuiEx.h"
@@ -578,7 +579,7 @@ void GraphView::_update(float dt)
             view->apply_constraints(dt);
     for ( ASTNode* node : graph()->nodes() )
         if ( auto* view = node->get_component<PhysicsComponent>() )
-            view->add_force(dt);
+            view->apply_forces(dt);
 
     LOG_VERBOSE("GraphView", "Constraints updated.\n");
 
