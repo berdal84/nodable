@@ -15,10 +15,9 @@ void ASTSwitchBehavior::init(ASTNode* node, size_t branch_count)
     node->init_internal_scope( branch_count );
 
     // add 1 slot per branch
-    SlotFlags flags = SlotFlag_FLOW_OUT | SlotFlag_IS_BRANCH;
     for(size_t branch = 0; branch < branch_count; ++branch )
     {
-        m_branch_slot[branch] = node->add_slot(node->value(), flags, 1, branch);
+        m_branch_slot[branch] = node->add_slot(node->value(), SlotFlag_FLOW_ENTER, 1, branch);
     }
 
     // add 1 condition per branch except for the default branch

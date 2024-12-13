@@ -110,6 +110,10 @@ ASTNodeSlot* ASTNode::add_slot(ASTNodeProperty* property, SlotFlags flags, size_
 {
     ASSERT( property != nullptr );
     ASSERT( property->node() == this );
+    if ( (flags & SlotFlag_FLOW_OUT) == SlotFlag_FLOW_OUT)
+    {
+        VERIFY( capacity == 1, "SlotFlag_FLOW_OUT can only have a capacity of 1" );
+    }
 
     ASTNodeSlot* slot = new ASTNodeSlot(this, flags, property, capacity, position);
     m_slots.push_back(slot);
@@ -221,20 +225,20 @@ const ASTNodeSlot* ASTNode::value_in() const
     return find_slot_by_property(m_value, SlotFlag_INPUT );
 }
 
-ASTNodeSlot* ASTNode::flow_branch_out()
+ASTNodeSlot* ASTNode::flow_enter()
 {
     auto* const_this = const_cast<const ASTNode*>(this);
-    return const_cast<ASTNodeSlot*>( const_this->flow_branch_out());
+    return const_cast<ASTNodeSlot*>( const_this->flow_enter());
 }
 
-const ASTNodeSlot* ASTNode::flow_branch_out() const
+const ASTNodeSlot* ASTNode::flow_enter() const
 {
     auto it = m_slots_by_property.find(m_value);
     if ( it != m_slots_by_property.end() )
     {
         const auto& [_, slots] = *it;
         for( ASTNodeSlot* slot : slots )
-            if( slot->has_flags(SlotFlag_FLOW_OUT | SlotFlag_IS_BRANCH) )
+            if( slot->has_flags(SlotFlag_FLOW_ENTER) )
                 return slot;
     }
     return nullptr;

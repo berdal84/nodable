@@ -45,9 +45,6 @@ namespace ndbl{
 	 */
 	class Nodlang
     {
-    private:
-        struct FlowPath;
-        typedef std::set<ASTNodeSlot*> FlowPathOut;
     public:
         explicit Nodlang(bool _strict = false);
 		~Nodlang();
@@ -55,15 +52,15 @@ namespace ndbl{
         // Parser /////////////////////////////////////////////////////////////////////
         bool                            parse(Graph* graph_out, const std::string& code_in); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        FlowPath                        parse_program();
-        FlowPath                        parse_code_block(const FlowPathOut&);
-        FlowPath                        parse_atomic_code_block(const FlowPathOut&);
-        FlowPath                        parse_scoped_block(const FlowPathOut&);
-        FlowPath                        parse_expression_block(const FlowPathOut&, ASTNodeSlot* value_in = nullptr );
-        FlowPath                        parse_if_block(const FlowPathOut&);
-        FlowPath                        parse_for_block(const FlowPathOut&);
-        FlowPath                        parse_while_block(const FlowPathOut&);
-        FlowPath                        parse_empty_block(const FlowPathOut&);
+        ASTScope*                       parse_program();
+        ASTNode*                        parse_code_block(ASTNodeSlot* flow_out);
+        ASTNode*                        parse_atomic_code_block(ASTNodeSlot* flow_out);
+        ASTNode*                        parse_scoped_block(ASTNodeSlot* flow_out);
+        ASTNode*                        parse_expression_block(ASTNodeSlot* flow_out, ASTNodeSlot* value_in = nullptr );
+        ASTNode*                        parse_if_block(ASTNodeSlot* flow_out);
+        ASTNode*                        parse_for_block(ASTNodeSlot* flow_out);
+        ASTNode*                        parse_while_block(ASTNodeSlot* flow_out);
+        ASTNode*                        parse_empty_block(ASTNodeSlot* flow_out);
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         tools::Optional<ASTNodeSlot*>          parse_variable_declaration();
         tools::Optional<ASTNodeSlot*>          parse_function_call();
@@ -86,27 +83,6 @@ namespace ndbl{
     private:
         bool                            accepts_suffix(ASTToken_t type) const;
 		bool                            is_syntax_valid(); // Check if the syntax of the token ribbon is correct. (ex: ["12", "-"] is incorrect)
-
-        struct FlowPath
-        {
-            ASTNodeSlot* in;
-            FlowPathOut  out;
-            FlowPath(): in(nullptr), out() {};
-            FlowPath(ASTNode* node)
-            : in(node->flow_in())
-            , out()
-            {
-                ASTNodeSlot* _flow_out = node->flow_out();
-                if ( _flow_out == nullptr )
-                {
-                    _flow_out = node->flow_branch_out();
-                }
-                ASSERT_DEBUG_ONLY(_flow_out);
-                out.insert(_flow_out);
-            }
-            operator bool() const { return in != nullptr && !out.empty(); }
-        };
-
     public:
         struct ParserState
         {
@@ -122,7 +98,7 @@ namespace ndbl{
             ASTScope*           current_scope() const { VERIFY(!_scope.empty(), "Stack is empty!"); return _scope.top(); }
             void                push_scope(ASTScope* scope) { _scope.push(scope); };
             void                pop_scope() { _scope.pop(); };
-            const char*         buffer_at(size_t offset) { ASSERT(offset < _buffer.size ); return _buffer.data + offset; }
+            const char*         buffer_at(size_t offset) const { ASSERT(offset < _buffer.size ); return _buffer.data + offset; }
             void                start_transaction() { _ribbon.start_transaction(); }
             void                commit() { _ribbon.commit(); }
             void                rollback() { _ribbon.rollback(); }

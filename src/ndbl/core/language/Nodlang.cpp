@@ -175,10 +175,12 @@ bool Nodlang::parse(Graph* graph_out, const std::string& code)
         return false;
     }
 
-    Nodlang::FlowPath path = parse_program();
+    ASTScope* scope = parse_program();
 
-    if ( path.out.empty() )
+    if ( scope->empty(ScopeFlags_RECURSE_CHILD_PARTITION) )
+    {
         return false;
+    }
 
     if (_state.tokens().can_eat() )
     {
@@ -484,7 +486,7 @@ Optional<ASTNodeSlot*> Nodlang::parse_parenthesis_expression()
     return result;
 }
 
-Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, ASTNodeSlot* value_in )
+ASTNode* Nodlang::parse_expression_block(ASTNodeSlot* flow_out, ASTNodeSlot* value_in )
 {
     _state.start_transaction();
 
@@ -560,7 +562,7 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, A
     }
 
     // Connects expression flow_in with the provided flow_out
-    if ( !flow_out.empty() )
+    if ( flow_out != nullptr )
     {
         _state.graph()->connect( flow_out, value_out->node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
     }
@@ -569,10 +571,10 @@ Nodlang::FlowPath Nodlang::parse_expression_block(const FlowPathOut& flow_out, A
     _state.commit();
     LOG_VERBOSE("Parser", OK "parse instruction:\n%s\n", _state.tokens().to_string().c_str());
 
-    return FlowPath{ value_out->node };
+    return value_out->node;
 }
 
-Nodlang::FlowPath Nodlang::parse_program()
+ASTScope* Nodlang::parse_program()
 {
     VERIFY(_state.graph() != nullptr, "A Graph is expected");
 
@@ -582,10 +584,7 @@ Nodlang::FlowPath Nodlang::parse_program()
     ASTScope* scope = _state.graph()->root_scope();
 
     // Parse main code block
-    FlowPath program_path{ scope->entity() };
-    FlowPath block_path = parse_code_block( program_path.out );
-    program_path.out = block_path.out;
-
+    ASTNode* block_last_node = parse_code_block( scope->node()->flow_enter() );
 
     // To preserve any ignored characters stored in the global token
     // we put the prefix and suffix in resp. token_begin and end.
@@ -602,9 +601,9 @@ Nodlang::FlowPath Nodlang::parse_program()
         _state.graph()->completed.emit();
         LOG_WARNING("Parser", "Some token remains after getting an empty code block\n");
         LOG_MESSAGE("Parser", KO "Parse program.\n");
-        return {};
+        return scope;
     }
-    else if (!block_path)
+    else if ( block_last_node == nullptr )
     {
         LOG_WARNING("Parser", "Program main block is empty\n");
     }
@@ -614,15 +613,13 @@ Nodlang::FlowPath Nodlang::parse_program()
 
     LOG_MESSAGE("Parser", OK "Parse program.\n");
 
-    return program_path;
+    return scope;
 }
 
-Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
+ASTNode* Nodlang::parse_scoped_block(ASTNodeSlot* flow_out)
 {
     LOG_VERBOSE("Parser", "Parsing scoped block ...\n");
 
-    ASTScope* scope = _state.current_scope();
-    ASSERT(scope);
     auto scope_begin_token = _state.tokens().eat_if(ASTToken_t::scope_begin);
     if ( !scope_begin_token )
     {
@@ -630,10 +627,12 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
         return {};
     }
 
+    ASTScope* scope = _state.current_scope();
+    ASSERT(scope);
     _state.start_transaction();
 
     // Handle nested scopes
-    FlowPath path = parse_code_block( flow_out ); // no return check, allows empty scope
+    ASTNode* last_block = parse_code_block( flow_out ); // no return check, allows empty scope
 
     if ( ASTToken scope_end_token = _state.tokens().eat_if(ASTToken_t::scope_end) )
     {
@@ -641,15 +640,15 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
         scope->token_begin = scope_begin_token;
         scope->token_end   = scope_end_token;
 
-        if ( !path )
+        if ( last_block == nullptr )
         {
             ASTNode* empty_instr = _state.graph()->create_empty_instruction( scope );
-            path = empty_instr;
+            last_block = empty_instr;
         }
 
         _state.commit();
         LOG_VERBOSE("Parser", OK "Scoped block parsed:\n%s\n", _state.tokens().to_string().c_str());
-        return path;
+        return last_block;
     }
     else
     {
@@ -662,7 +661,7 @@ Nodlang::FlowPath Nodlang::parse_scoped_block(const FlowPathOut& flow_out)
     return {};
 }
 
-Nodlang::FlowPath Nodlang::parse_code_block(const FlowPathOut& flow_out)
+ASTNode* Nodlang::parse_code_block(ASTNodeSlot* flow_out)
 {
     LOG_VERBOSE("Parser", "Parsing code block...\n" );
 
@@ -671,18 +670,15 @@ Nodlang::FlowPath Nodlang::parse_code_block(const FlowPathOut& flow_out)
     //
     _state.start_transaction();
 
-    FlowPath first_path;
-    FlowPathOut  last_flow_out     = flow_out;
+    ASTNodeSlot* last_node_flow_out  = flow_out;
     bool     block_end_reached = false;
     size_t   block_size        = 0;
 
     while (_state.tokens().can_eat() && !block_end_reached )
     {
-        if ( FlowPath current_path = parse_atomic_code_block(last_flow_out ) )
+        if ( ASTNode* current_block = parse_atomic_code_block(last_node_flow_out) )
         {
-            if ( !first_path )
-                first_path = current_path;
-            last_flow_out = current_path.out;
+            last_node_flow_out = current_block->flow_out();
             ++block_size;
         }
         else
@@ -691,20 +687,16 @@ Nodlang::FlowPath Nodlang::parse_code_block(const FlowPathOut& flow_out)
         }
     }
 
-    FlowPath path;
-    path.in  = first_path.in;
-    path.out = last_flow_out;
-
-    if ( path )
+    if (last_node_flow_out != nullptr && last_node_flow_out != flow_out )
     {
         _state.commit();
         LOG_VERBOSE("Parser", OK "parse code block:\n%s\n", _state.tokens().to_string().c_str());
-        return path;
+        return last_node_flow_out->node;
     }
 
     _state.rollback();
     LOG_VERBOSE("Parser", KO "parse code block. Block size is %llu\n", block_size );
-    return {};
+    return nullptr;
 }
 
 Optional<ASTNodeSlot*> Nodlang::parse_expression(u8_t _precedence, Optional<ASTNodeSlot*> _left_override)
@@ -1123,7 +1115,7 @@ Optional<ASTNodeSlot*> Nodlang::parse_function_call()
     return fct_node->value_out();
 }
 
-Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
+ASTNode* Nodlang::parse_if_block(ASTNodeSlot* flow_out)
 {
     _state.start_transaction();
 
@@ -1135,13 +1127,10 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
 
     LOG_VERBOSE("Parser", "Parsing conditional structure...\n");
 
-    bool    result = false;
-    ASTIf* if_node;
+    bool    success = false;
+    ASTIf*  if_node = _state.graph()->create_cond_struct( _state.current_scope() );
 
-    Nodlang::FlowPath path;
-
-    if_node = _state.graph()->create_cond_struct( _state.current_scope() );
-    _state.graph()->connect( flow_out, if_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
+    _state.graph()->connect(flow_out, if_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
     ASTScope* if_scope = if_node->internal_scope();
     _state.push_scope(if_scope);
@@ -1153,38 +1142,27 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
         LOG_VERBOSE("Parser", "Parsing conditional structure's condition...\n");
 
         // condition
-        parse_expression_block(FlowPathOut{}, if_node->condition_in());
+        parse_expression_block(nullptr, if_node->condition_in());
 
         if (_state.tokens().eat_if(ASTToken_t::parenthesis_close) )
         {
-            path.in = if_node->flow_in();
-
             // scope
             _state.push_scope(if_scope->partition_at(Branch_TRUE) );
-            FlowPathOut branch_flow_out{if_node->branch_out(Branch_TRUE) };
-            Nodlang::FlowPath block = parse_atomic_code_block( branch_flow_out );
+            ASTNode* block = parse_atomic_code_block( if_node->branch_out(Branch_TRUE) );
             _state.pop_scope();
 
             if ( block )
             {
-                for (auto _flow_out : block.out )
-                    path.out.insert( _flow_out );
-
                 // else
                 ASTScope* false_scope = if_scope->partition_at(Branch_FALSE);
                 if ( _state.tokens().eat_if(ASTToken_t::keyword_else) )
                 {
                     if_node->token_else = _state.tokens().get_eaten();
-
                     _state.push_scope(false_scope );
-                    branch_flow_out = { if_node->branch_out(Branch_FALSE) };
-                    Nodlang::FlowPath else_block;
 
-                    if ( (else_block = parse_atomic_code_block( branch_flow_out)) )
+                    if ( ASTNode* else_block = parse_atomic_code_block( if_node->branch_out(Branch_FALSE) ) )
                     {
-                        for (auto _flow_out : else_block.out )
-                            path.out.insert( _flow_out );
-                        result = true;
+                        success = true;
                         LOG_VERBOSE("Parser", OK "else block parsed.\n");
                     }
                     else
@@ -1198,8 +1176,7 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
                 {
                     false_scope->token_begin = {ASTToken_t::ignore};
                     false_scope->token_end   = {ASTToken_t::ignore};
-                    path.out.insert(if_node->branch_out(Branch_FALSE) );
-                    result = true;
+                    success = true;
                 }
             }
             else
@@ -1214,11 +1191,12 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
     }
     _state.pop_scope();
 
-    if ( result )
+    if ( success )
     {
         _state.commit();
         LOG_VERBOSE("Parser", OK "Parse conditional structure:\n%s\n", _state.tokens().to_string().c_str() );
-        return path;
+        // TODO: connect true/false branches flow_out to scope flow_leave?"
+        return if_node;
     }
 
     _state.graph()->find_and_destroy(if_node);
@@ -1228,11 +1206,10 @@ Nodlang::FlowPath Nodlang::parse_if_block(const FlowPathOut& flow_out)
     return {};
 }
 
-Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
+ASTNode* Nodlang::parse_for_block(ASTNodeSlot* flow_out)
 {
     bool         success  = false;
     ASTForLoop* for_node = nullptr;
-    FlowPath     path;
 
     _state.start_transaction();
 
@@ -1246,9 +1223,6 @@ Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
 
         for_node->token_for = token_for;
 
-        path.in  = for_node->flow_in();
-        path.out = {for_node->branch_out(Branch_FALSE)};
-
         ASTToken open_bracket = _state.tokens().eat_if(ASTToken_t::parenthesis_open);
         if ( open_bracket)
         {
@@ -1259,24 +1233,19 @@ Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
             // parse init; condition; iteration or nothing
-            const FlowPathOut none{};
-            parse_expression_block(none, for_node->initialization_slot())
-            && parse_expression_block(none,for_node->condition_in())
-            && parse_expression_block(none, for_node->iteration_slot());
+            parse_expression_block(nullptr, for_node->initialization_slot())
+            && parse_expression_block(nullptr, for_node->condition_in())
+            && parse_expression_block(nullptr, for_node->iteration_slot());
 
             // parse parenthesis close
             if ( ASTToken parenthesis_close = _state.tokens().eat_if(ASTToken_t::parenthesis_close) )
             {
                 _state.push_scope(for_node->internal_scope()->partition_at(Branch_TRUE) );
-                FlowPathOut branch_flow_out = {for_node->branch_out(Branch_TRUE) };
-                FlowPath block = parse_atomic_code_block(branch_flow_out) ;
+                ASTNode* block = parse_atomic_code_block( for_node->branch_out(Branch_TRUE) ) ;
                 _state.pop_scope();
 
                 if ( block )
                 {
-                    for(auto each : block.out)
-                        path.out.insert( each );
-
                     success = true;
                     LOG_VERBOSE("Parser", "Scope or single instruction found\n");
                 }
@@ -1299,9 +1268,10 @@ Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
 
     if ( success )
     {
-        LOG_VERBOSE("Parser", KO "For block parsed\n");
+        LOG_VERBOSE("Parser", OK "For block parsed\n");
         _state.commit();
-        return path;
+        // TODO: Should we connect true/false branches to scope's flow_leave Slot?
+        return for_node;
     }
 
     if ( for_node )
@@ -1313,11 +1283,10 @@ Nodlang::FlowPath Nodlang::parse_for_block(const FlowPathOut& flow_out)
     return {};
 }
 
-Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
+ASTNode* Nodlang::parse_while_block( ASTNodeSlot* flow_out )
 {
     bool           success    = false;
     ASTWhileLoop* while_node = nullptr;
-    FlowPath       path;
 
     _state.start_transaction();
 
@@ -1327,11 +1296,8 @@ Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
 
         while_node = _state.graph()->create_while_loop( _state.current_scope() );
         _state.graph()->connect( flow_out, while_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
-
         while_node->token_while = token_while;
-        path.in = while_node->flow_in();
-        path.out = {while_node->branch_out(Branch_FALSE)};
-        _state.push_scope(while_node->internal_scope() );
+        _state.push_scope( while_node->internal_scope() );
 
         if ( ASTToken open_bracket = _state.tokens().eat_if(ASTToken_t::parenthesis_open) )
         {
@@ -1343,14 +1309,11 @@ Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
             if (_state.tokens().eat_if(ASTToken_t::parenthesis_close) )
             {
                 _state.push_scope(while_node->internal_scope()->partition_at(Branch_TRUE) );
-                const FlowPathOut branch_flow_out = {while_node->branch_out(Branch_TRUE) };
-                FlowPath block = parse_atomic_code_block( branch_flow_out );
+                ASTNode* block = parse_atomic_code_block( while_node->branch_out(Branch_TRUE) );
                 _state.pop_scope();
 
                 if ( block)
                 {
-                    for(auto each : block.out)
-                        path.out.insert( each );
                     success = true;
                 }
                 else
@@ -1374,7 +1337,8 @@ Nodlang::FlowPath Nodlang::parse_while_block( const FlowPathOut& flow_out )
     {
         LOG_VERBOSE("Parser", "Parsing while:\n%s\n", _state.tokens().to_string().c_str() );
         _state.commit();
-        return path;
+        // TODO: Should we connect true/false branches to scope's flow_leave SLot?
+        return while_node;
     }
 
     _state.rollback();
@@ -2023,34 +1987,33 @@ ASTToken_t Nodlang::to_literal_token(const TypeDescriptor *type) const
     return ASTToken_t::literal_unknown;
 }
 
-Nodlang::FlowPath Nodlang::parse_atomic_code_block(const FlowPathOut& flow_out)
+ASTNode* Nodlang::parse_atomic_code_block(ASTNodeSlot* flow_out)
 {
     LOG_VERBOSE("Parser", "Parsing atomic code block ..\n");
-    ASSERT(!flow_out.empty());
-
-    FlowPath path;
+    ASSERT(flow_out);
 
     // most common case
-         if ( (path = parse_scoped_block( flow_out )) );
-    else if ( (path = parse_expression_block( flow_out )) );
-    else if ( (path = parse_if_block( flow_out )) );
-    else if ( (path = parse_for_block( flow_out )) );
-    else if ( (path = parse_while_block( flow_out )) ) ;
-    else      (path = parse_empty_block( flow_out));
+    ASTNode* block = nullptr;
+         if ( (block = parse_scoped_block(flow_out)) );
+    else if ( (block = parse_expression_block(flow_out)) );
+    else if ( (block = parse_if_block(flow_out)) );
+    else if ( (block = parse_for_block(flow_out)) );
+    else if ( (block = parse_while_block(flow_out)) ) ;
+    else      (block = parse_empty_block(flow_out));
 
-    if ( path )
+    if ( block )
     {
         if ( ASTToken tok = _state.tokens().eat_if(ASTToken_t::end_of_instruction) )
         {
-            path.in->node->set_suffix(tok );
+            block->set_suffix(tok );
         }
 
-        LOG_VERBOSE("Parser", OK "Block found (class %s)\n", path.in->node->get_class()->name() );
-        return path;
+        LOG_VERBOSE("Parser", OK "Block found (class %s)\n", block->get_class()->name() );
+        return block;
     }
 
     LOG_VERBOSE("Parser", KO "No block found\n");
-    return path;
+    return block;
 }
 
 std::string& Nodlang::serialize_literal(std::string &_out, const ASTLiteral* node) const
@@ -2063,15 +2026,15 @@ std::string& Nodlang::serialize_empty_instruction(std::string &_out, const ASTNo
     return serialize_token(_out, node->value()->token() );
 }
 
-Nodlang::FlowPath Nodlang::parse_empty_block(const Nodlang::FlowPathOut& flow_out)
+ASTNode* Nodlang::parse_empty_block(ASTNodeSlot* flow_out)
 {
     if ( _state.tokens().peek(ASTToken_t::end_of_instruction) )
     {
         ASTNode* node = _state.graph()->create_empty_instruction( _state.current_scope() );
         _state.graph()->connect( flow_out, node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS);
-        return FlowPath{ node };
+        return node;
     }
-    return {};
+    return nullptr;
 }
 
 void Nodlang::ParserState::reset_graph(Graph* new_graph)
