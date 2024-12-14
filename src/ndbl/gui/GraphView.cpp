@@ -22,7 +22,6 @@
 #include "PhysicsComponent.h"
 #include "ASTNodeSlotView.h"
 #include "ASTScopeView.h"
-#include "BoxShapeComponent.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -90,13 +89,9 @@ void GraphView::_on_set_entity(Graph*)
 
 void GraphView::_on_add_node(ASTNode* node)
 {
-    // shape component
-    BoxShape2D shape;
-    shape.set_size({20.f, 35.f});
-    auto* shape_component = node->components()->create<BoxShapeComponent>(shape);
-
-    // view state component
-   auto* nodeview = node->components()->create<ASTNodeView>( shape_component->data() );
+   // view state component
+    auto* nodeview = node->components()->create<ASTNodeView>();
+    nodeview->set_size({20.f, 35.f});
 
     // physics component
     node->components()->create<PhysicsComponent>();

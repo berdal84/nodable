@@ -55,8 +55,7 @@ namespace ndbl
     public:
         DECLARE_REFLECT_override
         friend class GraphView;
-        ASTNodeView() = delete;
-		ASTNodeView(tools::BoxShape2D*);
+        ASTNodeView();
 		~ASTNodeView() override;
 
         ASTNode*                node() const { return m_node; }
@@ -76,11 +75,12 @@ namespace ndbl
         void                    expand_toggle_rec() { return set_expanded_rec(!m_expanded); };
         void                    set_color( const tools::Vec4* _color, ColorType _type = Color_FILL );
         tools::Vec4             get_color(ColorType _type) const;
-        tools::BoxShape2D*      shape() { return m_shape; }
-        const tools::BoxShape2D*shape() const { return m_shape; }
-        void                    translate(const tools::Vec2& delta) { m_spatial_node->translate(delta); }
-        const tools::SpatialNode* spatial_node() const { return m_spatial_node; }
-        tools::SpatialNode*     spatial_node() { return m_spatial_node; }
+        void                    set_size(const tools::Vec2& size) { m_shape.set_size(size); }
+        tools::BoxShape2D*      shape() { return &m_shape; }
+        const tools::BoxShape2D*shape() const { return &m_shape; }
+        void                    translate(const tools::Vec2& delta) { m_shape.spatial_node()->translate(delta); }
+        const tools::SpatialNode* spatial_node() const { return m_shape.spatial_node(); }
+        tools::SpatialNode*     spatial_node() { return m_shape.spatial_node(); }
         tools::ViewState*       state() { return &m_view_state; }
         const tools::ViewState* state() const { return &m_view_state; }
         void                    reset_all_properties();
@@ -112,8 +112,7 @@ namespace ndbl
         );
 
         ASTNode*                   m_node;
-        tools::SpatialNode*        m_spatial_node;
-        tools::BoxShape2D*         m_shape;
+        tools::BoxShape2D          m_shape;
         tools::ViewState           m_view_state;
         bool                       m_expanded;
         float                      m_opacity;

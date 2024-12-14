@@ -16,7 +16,6 @@
 #include "tools/gui/Config.h"
 #include "ndbl/core/Interpreter.h"
 #include "tools/core/math.h"
-#include "BoxShapeComponent.h"
 
 #ifdef NDBL_DEBUG
 #define DEBUG_DRAW 0
@@ -33,9 +32,7 @@ REFLECT_STATIC_INITIALIZER
 constexpr Vec4 DEFAULT_COLOR = Vec4(1.f, 0.f, 0.f);
 #define PIXEL_PERFECT true // round positions for drawing only
 
-ASTNodeView::ASTNodeView(
-    tools::BoxShape2D*  shape
-    )
+ASTNodeView::ASTNodeView()
     : ComponentFor<ASTNode>("View")
     , m_node(nullptr)
     , m_colors({&DEFAULT_COLOR})
@@ -46,12 +43,8 @@ ASTNodeView::ASTNodeView(
     , m_hovered_slotview(nullptr)
     , m_last_clicked_slotview(nullptr)
     , m_view_state()
-    , m_shape(shape)
-    , m_spatial_node(shape->spatial_node())
+    , m_shape()
 {
-    ASSERT(m_spatial_node);
-    ASSERT(m_shape);
-
     CONNECT(ComponentFor::on_set_entity, &ASTNodeView::on_owner_init, this );
 }
 
@@ -59,7 +52,7 @@ ASTNodeView::~ASTNodeView()
 {
     for(auto& [_, each] : m_view_by_property )
     {
-        m_spatial_node->remove_child( each->spatial_node() );
+        spatial_node()->remove_child( each->spatial_node() );
         delete each;
     }
 
@@ -70,7 +63,7 @@ ASTNodeView::~ASTNodeView()
 
     for(auto* each : m_slot_views )
     {
-        m_spatial_node->remove_child( each->spatial_node() );
+        spatial_node()->remove_child( each->spatial_node() );
         delete each;
     }
     m_slot_views.clear();
@@ -321,7 +314,7 @@ void ASTNodeView::update(float dt)
 
 bool ASTNodeView::draw()
 {
-    m_shape->draw_debug_info();
+    m_shape.draw_debug_info();
 
     if ( !m_view_state.visible() )
         return false;
@@ -757,14 +750,14 @@ void ASTNodeView::constraint_to_rect(ASTNodeView* _view, const Rect& _rect)
 			 if ( up > 0 )  view_rect.translate_y(up );
 		else if ( down < 0 )view_rect.translate_y(down );
 
-        _view->m_spatial_node->set_position(view_rect.center(), PARENT_SPACE);
+        _view->spatial_node()->set_position(view_rect.center(), PARENT_SPACE);
 	}
 
 }
 
 Rect ASTNodeView::get_rect(Space space) const
 {
-    return m_shape->rect(space);
+    return m_shape.rect(space);
 }
 
 Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
