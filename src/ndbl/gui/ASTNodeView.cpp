@@ -965,19 +965,6 @@ void ASTNodeView::draw_slot(ASTNodeSlotView* slot_view)
     }
 }
 
-void ASTNodeView::add_child(ASTNodePropertyView* view)
-{
-    m_spatial_node->add_child( view->spatial_node() );
-    view->spatial_node()->set_position({0.f, 0.f}, PARENT_SPACE);
-}
-
-void ASTNodeView::add_child(ASTNodeSlotView* view)
-{
-    m_spatial_node->add_child( view->spatial_node() );
-    view->spatial_node()->set_position({0.f, 0.f}, PARENT_SPACE);
-    m_slot_views.push_back( view );
-}
-
 ASTNodePropertyView *ASTNodeView::find_property_view(const ASTNodeProperty* property)
 {
     auto found = m_view_by_property.find(property );

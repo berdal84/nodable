@@ -14,10 +14,9 @@ REFLECT_STATIC_INITIALIZER
     DEFINE_REFLECT(ASTScopeView).extends<ComponentFor<ASTNode>>();
 )
 
-void ASTScopeView::init(ASTScope* scope, tools::SpatialNode* spatial_node)
+void ASTScopeView::init(ASTScope* scope)
 {
     ASSERT(scope);
-    m_spatial_node = spatial_node;
     m_scope = scope;
     scope->set_view( this );
 
@@ -162,9 +161,9 @@ void ASTScopeView::draw(float dt)
 
 void ASTScopeView::on_add_node(ASTNode* node)
 {
-    if( ASTNodeView* view = node->component<ASTNodeView>())
+    if( auto* view = node->component<ASTNodeView>())
     {
-        m_spatial_node->add_child( view->spatial_node() );
+        add_child( view );
     }
 }
 
@@ -172,7 +171,7 @@ void ASTScopeView::on_remove_node(ASTNode* node)
 {
     if( ASTNodeView* view = node->component<ASTNodeView>())
     {
-        m_spatial_node->remove_child( view->spatial_node() );
+        remove_child( view );
     }
 }
 

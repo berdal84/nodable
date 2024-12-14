@@ -10,6 +10,7 @@
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/ViewState.h"
 #include "ndbl/core/ASTNodeProperty.h"
+#include "ndbl/gui/concepts/CView.h"
 #include "ASTNodePropertyView.h"
 #include "ASTNodeSlotView.h"
 #include "types.h"
@@ -20,6 +21,7 @@ namespace ndbl
     // forward declaration
     class ASTNode;
     class Graph;
+    class ASTScopeView;
     struct ASTNodeSlot;
     struct ASTNodeSlotView;
     class GraphView;
@@ -94,8 +96,7 @@ namespace ndbl
     private:
         void                    on_owner_init(ASTNode*);
         ASTNodePropertyView*    find_property_view(const ASTNodeProperty *pProperty);
-        void                    add_child(ASTNodePropertyView*);
-        void                    add_child(ASTNodeSlotView*);
+        void                    add_child(CView auto* view);
         void                    draw_slot(ASTNodeSlotView*);
         void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
 
@@ -135,4 +136,15 @@ namespace ndbl
 
         std::array<std::vector<ASTNodePropertyView*>, PropType::PropType_COUNT> m_view_by_property_type;
     };
+
+    void ASTNodeView::add_child(CView auto* child)
+    {
+        spatial_node()->add_child( child->spatial_node() );
+        child->spatial_node()->set_position({0.f, 0.f}, tools::PARENT_SPACE);
+
+        if constexpr ( std::is_same_v<decltype(child), ASTNodeSlotView*> )
+        {
+            m_slot_views.push_back(child);
+        }
+    }
 }

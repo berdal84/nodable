@@ -96,7 +96,7 @@ void GraphView::_on_add_node(ASTNode* node)
     auto* shape_component = node->components()->create<BoxShapeComponent>(shape);
 
     // view state component
-    node->components()->create<ASTNodeView>( shape_component->data() );
+   auto* nodeview = node->components()->create<ASTNodeView>( shape_component->data() );
 
     // physics component
     node->components()->create<PhysicsComponent>();
@@ -107,13 +107,15 @@ void GraphView::_on_add_node(ASTNode* node)
         ASTScope*  internal_scope = node->internal_scope();
         auto*      scope_view     = node->components()->create<ASTScopeView>();
         CONNECT(scope_view->on_hover, &GraphView::_set_hovered, this);
-        scope_view->init( internal_scope, shape_component->data()->spatial_node() );
+        scope_view->init( internal_scope );
+        scope_view->add_child( nodeview );
 
         for ( ASTScope* sub_scope : internal_scope->partition() )
         {
             auto* sub_scope_view = node->components()->create<ASTScopeView>();
             CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered, this );
-            sub_scope_view->init( sub_scope, shape_component->data()->spatial_node() );
+            sub_scope_view->init( sub_scope );
+            nodeview->add_child( sub_scope_view );
         }
     }
 }

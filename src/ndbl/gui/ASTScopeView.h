@@ -4,6 +4,7 @@
 #include "tools/gui/geometry/BoxShape2D.h"
 #include "tools/gui/ViewState.h"
 #include "ndbl/core/ASTScope.h"
+#include "ndbl/gui/concepts/CView.h"
 
 namespace ndbl
 {
@@ -35,7 +36,7 @@ namespace ndbl
 
         ASTScopeView(): tools::ComponentFor<ASTNode>("ScopeView") {}
 
-        void         init(ASTScope*, tools::SpatialNode*);
+        void         init(ASTScope*);
         void         update(float dt, ScopeViewFlags = ScopeViewFlags_NONE );
         void         draw(float dt);
         tools::ViewState* state() { return &m_view_state; }
@@ -43,16 +44,18 @@ namespace ndbl
         ASTScopeView*parent() const;
         ASTScope*    scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }
-        void         set_position(const tools::Vec2& pos, tools::Space space ) { return m_spatial_node->set_position( pos, space );}
-        void         translate(const tools::Vec2& delta) { m_spatial_node->translate(delta); }
+        tools::SpatialNode* spatial_node() { return &m_spatial_node; }
+        void         set_position(const tools::Vec2& pos, tools::Space space ) { return m_spatial_node.set_position( pos, space );}
+        void         translate(const tools::Vec2& delta) { m_spatial_node.translate(delta); }
         bool         must_be_draw() const;
         bool         pinned() const;
         void         set_pinned(bool b = true);
         const Rect&  content_rect() const { return m_content_rect; }
         void         arrange_content();
+        void         add_child(CView auto* child);
+        void         remove_child(CView auto* child);
 
         static void  ImGuiTreeNode_ASTScope(const char* title, ASTScope*);
-
     private:
         static void  ImGuiTreeNode_ASTScopeContent(ASTScope*);
         static void  ImGuiTreeNode_ASTNode(ASTNode*);
@@ -60,10 +63,21 @@ namespace ndbl
         void         on_remove_node(ASTNode*);
 
         tools::ViewState          m_view_state;
-        tools::SpatialNode*       m_spatial_node = nullptr;
+        tools::SpatialNode        m_spatial_node;
         ASTScope*                 m_scope = nullptr;
         Rect                      m_content_rect;
         std::vector<ASTNodeView*> m_wrapped_node_view;
         Theme                     m_theme;
     };
+
+    void ASTScopeView::add_child(CView auto* child)
+    {
+        spatial_node()->add_child( child->spatial_node() );
+        child->spatial_node()->set_position({0.f, 0.f}, tools::PARENT_SPACE);
+    }
+
+    void ASTScopeView::remove_child(CView auto* child)
+    {
+        spatial_node()->remove_child( child->spatial_node() );
+    }
 }
