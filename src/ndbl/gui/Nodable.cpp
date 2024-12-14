@@ -72,7 +72,7 @@ void Nodable::update()
     // Nodable events
     IEvent*       event = nullptr;
     EventManager* event_manager     = get_event_manager();
-    GraphView*    graph_view        = m_current_file ? m_current_file->graph()->components()->get<GraphView>() : nullptr; // TODO: should be included in the event
+    GraphView*    graph_view        = m_current_file ? m_current_file->graph()->component<GraphView>() : nullptr; // TODO: should be included in the event
     History*      curr_file_history = m_current_file ? &m_current_file->history : nullptr; // TODO: should be included in the event
     while( (event = event_manager->poll_event()) )
     {
@@ -238,8 +238,8 @@ void Nodable::update()
                 {
                     graph_view->selection().clear();
                     for(auto* _view : graph_view->selection().collect<ASTNodeView*>() )
-                        for (auto* _successor : _view->entity()->components()->get<ASTNode>()->flow_outputs() )
-                            if (auto* _successor_view = _successor->components()->get<ASTNodeView>() )
+                        for (auto* _successor : _view->entity()->component<ASTNode>()->flow_outputs() )
+                            if (auto* _successor_view = _successor->component<ASTNodeView>() )
                                 graph_view->selection().append( _successor_view );
                 }
                 break;
@@ -382,7 +382,7 @@ void Nodable::update()
                 }
 
                 // set new_node's view position, select it
-                if ( auto view = new_node->components()->get<ASTNodeView>() )
+                if ( auto view = new_node->component<ASTNodeView>() )
                 {
                     view->spatial_node()->set_position(_event->data.desired_screen_pos, WORLD_SPACE);
                     graph_view->selection().clear();
@@ -538,7 +538,7 @@ void Nodable::debug_program()
 void Nodable::step_over_program()
 {
     m_interpreter->debug_step_over();
-    GraphView* graph_view = m_current_file->graph()->components()->get<GraphView>();
+    GraphView* graph_view = m_current_file->graph()->component<GraphView>();
 
     if (!m_interpreter->is_there_a_next_instr() )
     {
@@ -551,7 +551,7 @@ void Nodable::step_over_program()
         return;
 
     graph_view->selection().clear();
-    graph_view->selection().append(next_node->components()->get<ASTNodeView>() );
+    graph_view->selection().append(next_node->component<ASTNodeView>() );
 }
 
 void Nodable::stop_program()

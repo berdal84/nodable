@@ -74,6 +74,7 @@ namespace ndbl
         ASTNode*                 root_node() const { return m_node_registry.front(); /* we have the guarantee it exists, see constructor */}
         ASTScope*                root_scope() const;
 
+        template<class T> T*              component() const  { return m_components.get<T>(); }
         tools::ComponentsOf<Graph>*       components()       { return &m_components; }
         const tools::ComponentsOf<Graph>* components() const { return &m_components; }
 

@@ -154,7 +154,7 @@ bool ASTNodePropertyView::draw(ViewDetail _detail)
     const Vec2 new_size = ImGui::GetItemRectSize();
     const Vec2 new_pos  = ImGui::GetItemRectMin() + ImGui::GetItemRectSize() * 0.5f;
     _shape.set_position(new_pos, WORLD_SPACE); // GetItemRectMin is in SCREEN_SPACE
-    _shape.set_size({new_size.x, node->components()->get<ASTNodeView>()->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
+    _shape.set_size({new_size.x, node->component<ASTNodeView>()->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
 
 #if DEBUG_DRAW
     ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
@@ -201,7 +201,7 @@ bool ASTNodePropertyView::draw_input(ASTNodePropertyView* _view, bool _compact_m
                     float w = calc_input_width(buf);
                     ImGui::PushItemWidth(w);
                     ImGui::PushStyleColor(ImGuiCol_FrameBg,
-                                          connected_slot->node->components()->get<ASTNodeView>()->get_color(Color_FILL));
+                                          connected_slot->node->component<ASTNodeView>()->get_color(Color_FILL));
                     if (ImGui::InputText(label.c_str(), buf, sizeof(buf), flags))
                     {
                         // is ReadOnly

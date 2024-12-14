@@ -66,11 +66,11 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
     };
 
     if ( !m_scope->is_partition() )
-        if ( auto nodeview = m_scope->entity()->components()->get<ASTNodeView>() )
+        if ( auto nodeview = m_scope->entity()->component<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
     for( ASTNode* node : m_scope->child() )
-        if ( auto nodeview = node->components()->get<ASTNodeView>() )
+        if ( auto nodeview = node->component<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
     for( ASTNode* child_node : m_scope->backbone() )
@@ -162,7 +162,7 @@ void ASTScopeView::draw(float dt)
 
 void ASTScopeView::on_add_node(ASTNode* node)
 {
-    if( ASTNodeView* view = node->components()->get<ASTNodeView>())
+    if( ASTNodeView* view = node->component<ASTNodeView>())
     {
         m_spatial_node->add_child( view->spatial_node() );
     }
@@ -170,7 +170,7 @@ void ASTScopeView::on_add_node(ASTNode* node)
 
 void ASTScopeView::on_remove_node(ASTNode* node)
 {
-    if( ASTNodeView* view = node->components()->get<ASTNodeView>())
+    if( ASTNodeView* view = node->component<ASTNodeView>())
     {
         m_spatial_node->remove_child( view->spatial_node() );
     }

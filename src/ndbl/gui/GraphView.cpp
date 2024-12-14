@@ -212,7 +212,7 @@ bool GraphView::draw(float dt)
     };
     for (ASTNode* each_node: graph()->nodes() )
     {
-        ASTNodeView *each_view = ASTNodeView::substitute_with_parent_if_not_visible(each_node->components()->get<ASTNodeView>() );
+        ASTNodeView *each_view = ASTNodeView::substitute_with_parent_if_not_visible(each_node->component<ASTNodeView>() );
 
         if (!each_view) {
             continue;
@@ -231,7 +231,7 @@ bool GraphView::draw(float dt)
             for (const auto &adjacent_slot: slot->adjacent())
             {
                 ASTNode*     each_successor_node  = adjacent_slot->node;
-                ASTNodeView* possibly_hidden_view = each_successor_node->components()->get<ASTNodeView>();
+                ASTNodeView* possibly_hidden_view = each_successor_node->component<ASTNodeView>();
                 ASTNodeView* each_successor_view  = ASTNodeView::substitute_with_parent_if_not_visible(possibly_hidden_view);
 
                 if ( each_successor_view == nullptr )
@@ -279,8 +279,8 @@ bool GraphView::draw(float dt)
                 if (slot_in == nullptr)
                     continue;
 
-                auto *node_view_out = slot_out->node->components()->get<ASTNodeView>();
-                auto *node_view_in  = slot_in->node->components()->get<ASTNodeView>();
+                auto *node_view_out = slot_out->node->component<ASTNodeView>();
+                auto *node_view_in  = slot_in->node->component<ASTNodeView>();
 
                 if ( !node_view_out->state()->visible() )
                     continue;
@@ -348,7 +348,7 @@ bool GraphView::draw(float dt)
     // Draw NodeViews
     for (ASTNode* node : graph()->nodes()  )
     {
-        ASTNodeView* nodeview = node->components()->get<ASTNodeView>();
+        ASTNodeView* nodeview = node->component<ASTNodeView>();
 
         if ( !nodeview)
             continue;
@@ -377,7 +377,7 @@ bool GraphView::draw(float dt)
     if (interpreter->is_program_running())
     {
         const ASTNode* node = interpreter->get_next_node();
-        if (const ASTNodeView* view = node->components()->get<ASTNodeView>())
+        if (const ASTNodeView* view = node->component<ASTNodeView>())
         {
             Vec2 left = view->get_rect().left();
             Vec2 interpreter_cursor_pos = Vec2::round(left);
@@ -438,9 +438,9 @@ void GraphView::_create_constraints__align_down(ASTNode* follower, const  std::v
 
     std::vector<ASTNodeView*> leader_view;
     for ( ASTNode* _leader : leader )
-        leader_view.push_back(_leader->components()->get<ASTNodeView>() );
+        leader_view.push_back(_leader->component<ASTNodeView>() );
 
-    ASTNodeView* follower_view = follower->components()->get<ASTNodeView>();
+    ASTNodeView* follower_view = follower->component<ASTNodeView>();
     ViewConstraint constraint;
     constraint.name           = "Position below previous";
     constraint.rule           = &ViewConstraint::rule_1_to_N_as_row;
@@ -455,7 +455,7 @@ void GraphView::_create_constraints__align_down(ASTNode* follower, const  std::v
     constraint.gap_size      = Size_MD;
     constraint.gap_direction = BOTTOM;
 
-    follower->components()->get<PhysicsComponent>()->add_constraint(constraint);
+    follower->component<PhysicsComponent>()->add_constraint(constraint);
 };
 
 void GraphView::_create_constraints__align_top_recursively(const std::vector<ASTNode*>& unfiltered_follower, ndbl::ASTNode* leader )
@@ -464,14 +464,14 @@ void GraphView::_create_constraints__align_top_recursively(const std::vector<AST
         return;
 
     ASSERT(leader);
-    ASTNodeView* leader_view = leader->components()->get<ASTNodeView>();
+    ASTNodeView* leader_view = leader->component<ASTNodeView>();
     // nodeview's inputs must be aligned on center-top
     // It's a one to many constrain.
     //
     std::vector<ASTNodeView*> follower;
     for (auto* _follower : unfiltered_follower )
         if (ASTUtils::is_output_node_in_expression(_follower, leader))
-            follower.push_back(_follower->components()->get<ASTNodeView>() );
+            follower.push_back(_follower->component<ASTNodeView>() );
 
     if ( follower.empty() )
         return;
@@ -498,7 +498,7 @@ void GraphView::_create_constraints__align_top_recursively(const std::vector<AST
         constraint.row_direction  = RIGHT;
     }
 
-    leader->components()->get<PhysicsComponent>()->add_constraint(constraint);
+    leader->component<PhysicsComponent>()->add_constraint(constraint);
 
     for( ASTNodeView* _leader : follower )
         _create_constraints__align_top_recursively(_leader->node()->inputs(), _leader->node());
@@ -512,11 +512,11 @@ void GraphView::_create_constraints(ASTScope* scope )
         ViewConstraint constraint;
         constraint.name          = "Align ScopeView partitions";
         constraint.rule          = &ViewConstraint::rule_distribute_sub_scope_views;
-        constraint.leader        = {scope->entity()->components()->get<ASTNodeView>()};
+        constraint.leader        = {scope->entity()->component<ASTNodeView>()};
         constraint.leader_pivot  = BOTTOM;
         constraint.gap_size      = Size_XL;
         constraint.gap_direction = BOTTOM;
-        scope->entity()->components()->get<PhysicsComponent>()->add_constraint(constraint);
+        scope->entity()->component<PhysicsComponent>()->add_constraint(constraint);
     }
 
     for ( ASTScope* sub_scope : scope->partition() )
@@ -553,7 +553,7 @@ void GraphView::_update(float dt)
         // clear all constraints, and THEN create them again
 
         for (ASTNode* node : graph()->nodes())
-            if ( auto* physics = node->components()->get<PhysicsComponent>())
+            if ( auto* physics = node->component<PhysicsComponent>())
                 physics->clear_constraints();
 
         _create_constraints(graph()->root_scope());
@@ -565,22 +565,22 @@ void GraphView::_update(float dt)
     // TODO: store PhysicsComponent contiguously, and iterate over all of them.
     //       this requires to store the components on a per Graph basis.
     for ( ASTNode* node : graph()->nodes() )
-        if ( auto* view = node->get_component<PhysicsComponent>() )
-            view->apply_constraints(dt);
+        if ( auto* _physics = node->component<PhysicsComponent>() )
+            _physics->apply_constraints(dt);
     for ( ASTNode* node : graph()->nodes() )
-        if ( auto* view = node->get_component<PhysicsComponent>() )
-            view->apply_forces(dt);
+        if ( auto* _physics = node->component<PhysicsComponent>() )
+            _physics->apply_forces(dt);
 
     LOG_VERBOSE("GraphView", "Constraints updated.\n");
 
     // NodeViews
     for (ASTNode* node : graph()->nodes() )
-        if ( auto* view = node->components()->get<ASTNodeView>() )
+        if ( auto* view = node->component<ASTNodeView>() )
             view->update(dt);
 
     // ScopeViews
     if( ASTNode* root = graph()->root_node() )
-        if ( auto* view = root->get_component<ASTScopeView>())
+        if ( auto* view = root->component<ASTScopeView>())
             view->update( dt, ScopeViewFlags_RECURSE );
 }
 
@@ -600,7 +600,7 @@ void GraphView::_frame_views(const std::vector<ASTNodeView*>& _views, const Vec2
     // apply the translation
     // TODO: Instead of applying a translation to all views, apply it to all scope views
     for (ASTNode* node : graph()->nodes() )
-        if ( ASTNodeView* view = node->components()->get<ASTNodeView>() )
+        if ( ASTNodeView* view = node->component<ASTNodeView>() )
             view->spatial_node()->translate( delta );
 }
 
@@ -632,7 +632,7 @@ void GraphView::frame_nodes(FrameMode mode )
 
             std::vector<ASTNodeView*> views;
             for(ASTNode* node : graph()->nodes())
-                views.push_back(node->components()->get<ASTNodeView>() );
+                views.push_back(node->component<ASTNodeView>() );
             _frame_views( views, CENTER );
             break;
         }
@@ -694,7 +694,7 @@ void GraphView::reset()
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
 
     for( ASTNode* node : graph()->nodes() )
-        if ( auto* view = node->components()->get<ASTNodeView>() )
+        if ( auto* view = node->component<ASTNodeView>() )
             view->spatial_node()->translate( far_outside );
 
     // physics
@@ -712,7 +712,7 @@ bool GraphView::has_an_active_tool() const
 void GraphView::reset_all_properties()
 {
     for( ASTNode* node : graph()->nodes() )
-        if ( ASTNodeView* v = node->components()->get<ASTNodeView>() )
+        if ( ASTNodeView* v = node->component<ASTNodeView>() )
             v->reset_all_properties();
 }
 
@@ -774,7 +774,7 @@ void GraphView::view_pan_state_tick()
 
     Vec2 delta = ImGui::GetMouseDragDelta();
     for( ASTNode* node : graph()->nodes() )
-        if ( auto v = node->components()->get<ASTNodeView>() )
+        if ( auto v = node->component<ASTNodeView>() )
             v->spatial_node()->translate(delta);
 
     ImGui::ResetMouseDragDelta();
@@ -804,7 +804,7 @@ void GraphView::cursor_state_tick()
             {
                 auto      scopeview = _m_focused.get<ASTScopeView*>();
                 ASTNode*     node     = scopeview->entity();
-                ASTNodeView* nodeview = node->components()->get<ASTNodeView>();
+                ASTNodeView* nodeview = node->component<ASTNodeView>();
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {
                     nodeview->expand_toggle_rec();
@@ -827,12 +827,12 @@ void GraphView::cursor_state_tick()
                     for(ASTScope* child : children)
                     {
                         // Include scope owner's view too
-                        if ( auto* view = child->entity()->components()->get<ASTNodeView>())
+                        if ( auto* view = child->entity()->component<ASTNodeView>())
                             views.push_back( view );
 
                         // and every other child's
                         for( ASTNode* child_node : child->backbone() )
-                            if ( auto* view = child_node->components()->get<ASTNodeView>())
+                            if ( auto* view = child_node->component<ASTNodeView>())
                                 views.push_back(view);
                     }
                     // Replace selection
@@ -1095,7 +1095,7 @@ void GraphView::roi_state_tick()
         // Get the views included in the ROI
         std::set<ASTNodeView*> nodeviews_inside_roi;
         for ( ASTNode* node : graph()->nodes() )
-            if ( auto view = node->components()->get<ASTNodeView>() )
+            if ( auto view = node->component<ASTNodeView>() )
                 if ( Rect::contains(roi, view->get_rect()) )
                     nodeviews_inside_roi.insert( view );
 

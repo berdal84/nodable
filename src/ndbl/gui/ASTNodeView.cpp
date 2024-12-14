@@ -297,7 +297,7 @@ void ASTNodeView::arrange_recursively(bool _smoothly)
 
     if (ASTScope* internal_scope = m_node->internal_scope() )
         for ( ASTNode* _node : internal_scope->backbone() )
-            if ( auto* _node_view = _node->components()->get<ASTNodeView>() )
+            if ( auto* _node_view = _node->component<ASTNodeView>() )
                     _node_view->arrange_recursively();
 
     // Force an update of input nodes with a delta time extra high
@@ -693,10 +693,10 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
                 label.append_fmt("%s %p (%s %p)", scope->name().c_str(), scope, _node->name().c_str(), _node);
                 if ( ImGui::Button(label.c_str()) )
                 {
-                    GraphView* graph_view = node->graph()->components()->get<GraphView>();
+                    GraphView* graph_view = node->graph()->component<GraphView>();
                     ASSERT(graph_view);
                     graph_view->selection().clear();
-                    graph_view->selection().append(_node->components()->get<ASTNodeView>() );
+                    graph_view->selection().append(_node->component<ASTNodeView>() );
                 }
             }
             else
@@ -779,7 +779,7 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 
     auto visit = [&](ASTNode* node)
     {
-        auto* view = node->components()->get<ASTNodeView>();
+        auto* view = node->component<ASTNodeView>();
         if( !view )
             return;
         if( !view->m_view_state.visible() )
@@ -852,7 +852,7 @@ void ASTNodeView::set_expanded_rec(bool _expanded)
 
     if ( ASTScope* _internal_scope = m_node->internal_scope() )
         for( ASTNode* _node : _internal_scope->backbone() )
-            if ( auto* view = _node->components()->get<ASTNodeView>() )
+            if ( auto* view = _node->component<ASTNodeView>() )
                 view->set_expanded_rec(_expanded);
 }
 
@@ -878,7 +878,7 @@ void ASTNodeView::set_children_visible(bool visible, bool recursively)
 
     for(ASTScope* _scope : scopes)
         for (ASTNode* _child_node: _scope->backbone())
-            if ( auto* view = _child_node->components()->get<ASTNodeView>() )
+            if ( auto* view = _child_node->component<ASTNodeView>() )
                 view->state()->set_visible(visible );
 }
 
@@ -914,7 +914,7 @@ ASTNodeView* ASTNodeView::substitute_with_parent_if_not_visible(ASTNodeView* _vi
 
     if ( _recursive )
         if( ASTScope* scope = _view->m_node->scope() )
-            if (ASTNodeView* parent_view = scope->entity()->components()->get<ASTNodeView>() )
+            if (ASTNodeView* parent_view = scope->entity()->component<ASTNodeView>() )
                 return parent_view->m_view_state.visible() ? parent_view
                                                       : substitute_with_parent_if_not_visible(parent_view, _recursive);
 

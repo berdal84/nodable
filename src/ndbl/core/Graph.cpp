@@ -657,7 +657,7 @@ void Graph::flag_node_to_delete(ASTNode *node, GraphFlags flags)
 
 ASTScope* Graph::root_scope() const
 {
-    return root_node()->components()->get<ASTScope>();
+    return root_node()->internal_scope();
 }
 
 bool Graph::contains(ASTNode* node) const

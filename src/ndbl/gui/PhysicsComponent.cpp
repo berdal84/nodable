@@ -34,7 +34,7 @@ PhysicsComponent::PhysicsComponent()
 
 void PhysicsComponent::_on_owner_init(ASTNode* owner)
 {
-    _view      = owner->components()->get<ASTNodeView>();
+    _view      = owner->component<ASTNodeView>();
     ASSERT(_view);
     _is_active = true;
 }
@@ -74,11 +74,11 @@ void PhysicsComponent::add_force(const tools::Vec2& force, bool _recurse)
 
     for (ASTNode* input_node: _view->node()->inputs() )
     {
-        ASTNodeView* input_view = input_node->components()->get<ASTNodeView>();
+        ASTNodeView* input_view = input_node->component<ASTNodeView>();
 
         if ( !input_view->state()->pinned())
             if (ASTUtils::is_output_node_in_expression(input_node, _view->node()))
-                if(auto* physics_component = input_node->components()->get<PhysicsComponent>())
+                if(auto* physics_component = input_node->component<PhysicsComponent>())
                     physics_component->add_force(force, _recurse);
     }
 }
@@ -125,7 +125,7 @@ void ViewConstraint::rule_1_to_N_as_row(float dt)
     delta += gap_direction * cfg->ui_node_gap(gap_size);
 
     // Apply a force to translate to the (single) follower
-    auto* physics_component = _follower->entity()->components()->get<PhysicsComponent>();
+    auto* physics_component = _follower->entity()->component<PhysicsComponent>();
     if( !physics_component )
         return;
 
@@ -172,7 +172,7 @@ void ViewConstraint::rule_N_to_1_as_a_row(float _dt)
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        auto* physics_component = clean_follower[i]->entity()->components()->get<PhysicsComponent>();
+        auto* physics_component = clean_follower[i]->entity()->component<PhysicsComponent>();
         if( !physics_component )
             continue;
         Vec2 current_pos = clean_follower[i]->spatial_node()->position(WORLD_SPACE);
@@ -220,7 +220,7 @@ void ViewConstraint::rule_distribute_sub_scope_views(float dt)
         const Vec2 delta   = new_pos - cur_pos;
 
         // we translate it's first node
-        auto* physics = sub_scope_view[i]->entity()->components()->get<PhysicsComponent>();
+        auto* physics = sub_scope_view[i]->entity()->component<PhysicsComponent>();
         VERIFY(physics, "A PhysicsComponent is required on this entity to apply a force to");
         physics->translate(delta, get_config()->ui_node_speed, false );
     }

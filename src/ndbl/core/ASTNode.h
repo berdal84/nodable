@@ -137,7 +137,7 @@ namespace ndbl
         ASTNodeProperty*        add_prop(const char* name, PropertyFlags flags = PropertyFlag_NONE ) { return add_prop(tools::type::get<T>(), name, flags); }
 //===== COMPONENT RELATED METHODS ======================================================================================
     public:
-        template<class T> T*                get_component() const { return m_component_collection.get<T>(); }
+        template<class T> T*                component() const  { return m_component_collection.get<T>(); }
         tools::ComponentsOf<ASTNode>*       components()       { return &m_component_collection; }
         const tools::ComponentsOf<ASTNode>* components() const { return &m_component_collection; }
 //===== MEMBERS ========================================================================================================
