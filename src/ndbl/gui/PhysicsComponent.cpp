@@ -1,6 +1,7 @@
 #include "PhysicsComponent.h"
 
 #include <numeric>
+#include <ranges> // for std::iota
 #include "tools/core/math.h"
 #include "tools/core/assertions.h"
 #include "tools/core/ComponentsOf.h"
@@ -200,28 +201,30 @@ void ViewConstraint::rule_distribute_sub_scope_views(float dt)
             if ( !sub_scope->empty() )
                 sub_scope_view.push_back(sub_scope->view() );
 
+    // get all content rects
+    std::vector<Rect> new_content_rect;
+    for(auto _view : sub_scope_view)
+        new_content_rect.push_back( _view->content_rect() );
+
     // make a row
-    std::vector<Rect> new_rect;
-    for(auto s : sub_scope_view)
-        new_rect.push_back( s->content_rect() );
     const float gap = get_config()->ui_scope_gap( gap_size );
-    Rect::make_row(new_rect, gap );
+    Rect::make_row(new_content_rect, gap );
 
     // v align
-    const Vec2 parent_pivot_pos = leader[0]->shape()->pivot( leader_pivot, WORLD_SPACE );
-    const Vec2 top              = parent_pivot_pos + Vec2{ 0.f, gap} * gap_direction;
-    Rect::align_top( new_rect, top.y );
+    const Vec2 align_pos = leader[0]->shape()->pivot(leader_pivot, WORLD_SPACE )
+                         + Vec2{0.f, gap} * gap_direction;
+    Rect::align_top(new_content_rect, align_pos.y );
 
     // translate each sub_scope
     for(size_t i = 0; i < sub_scope_view.size(); ++i)
     {
         const Vec2 cur_pos = sub_scope_view[i]->content_rect().center();
-        const Vec2 new_pos = new_rect[i].center();
-        const Vec2 delta   = new_pos - cur_pos;
+        const Vec2 new_pos = new_content_rect[i].center();
+        const Vec2 delta = new_pos - cur_pos;
 
-        // we translate it's first node
-        auto* physics = sub_scope_view[i]->entity()->component<PhysicsComponent>();
+        // Apply force to translate head
+        auto* physics = sub_scope_view[i]->scope()->head()->component<PhysicsComponent>();
         VERIFY(physics, "A PhysicsComponent is required on this entity to apply a force to");
-        physics->translate(delta, get_config()->ui_node_speed, false );
+        physics->translate(delta, get_config()->ui_node_speed, true );
     }
 }
