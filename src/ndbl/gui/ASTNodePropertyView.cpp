@@ -19,8 +19,7 @@ ASTNodePropertyView::ASTNodePropertyView(ASTNodeProperty* _property )
 , show(false)
 , touched(false)
 , _state()
-, _spatial_node()
-, _shape({10.f, 10.f}, &_spatial_node)
+, _shape(Vec2{10.f, 10.f})
 {
 }
 

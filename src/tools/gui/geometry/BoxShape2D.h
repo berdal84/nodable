@@ -11,15 +11,13 @@ namespace tools
     public:
         BoxShape2D() = default;
         BoxShape2D(const Vec2& size);
-        BoxShape2D(const Vec2& size, SpatialNode*);
-        BoxShape2D(const Rect& rect); // from Rect's size
+        explicit BoxShape2D(const Rect& rect); // will produce a centered box from rectangle size
 
-        SpatialNode* spatial_node() { return _spatial_node; }
-        const SpatialNode* spatial_node() const { return _spatial_node; }
+        SpatialNode* spatial_node() { return &_spatial_node; }
+        const SpatialNode* spatial_node() const { return &_spatial_node; }
         Vec2          position(Space space = PARENT_SPACE) const;
-        void          set_position(Vec2 p, Space space = PARENT_SPACE ) { _spatial_node->set_position(p, space); }
+        void          set_position(Vec2 p, Space space = PARENT_SPACE ) { _spatial_node.set_position(p, space); }
         void          set_size(const Vec2& s);
-        void          set_spatial_node(SpatialNode* spatial_node ) { _spatial_node = spatial_node; }
         Vec2          size() const { return _half_size * 2.0f; }
         const Vec2&   half_size() const { return _half_size; }
         Rect          rect(Space = PARENT_SPACE) const;
@@ -31,6 +29,6 @@ namespace tools
                            ); // Return the delta between two Box pivots on a given axis
     private:
         Vec2          _half_size    = {0.f, 0.f};
-        SpatialNode*  _spatial_node = nullptr;
+        SpatialNode   _spatial_node;
     };
 }

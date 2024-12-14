@@ -43,7 +43,7 @@ namespace ndbl
         ASTScopeView*parent() const;
         ASTScope*    scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }
-        void         set_position(const tools::Vec2& pos, tools::Space);
+        void         set_position(const tools::Vec2& pos, tools::Space space ) { return m_spatial_node->set_position( pos, space );}
         void         translate(const tools::Vec2& delta) { m_spatial_node->translate(delta); }
         bool         must_be_draw() const;
         bool         pinned() const;
@@ -56,12 +56,11 @@ namespace ndbl
     private:
         static void  ImGuiTreeNode_ASTScopeContent(ASTScope*);
         static void  ImGuiTreeNode_ASTNode(ASTNode*);
-        void         on_reset_parent(ASTScope*);
         void         on_add_node(ASTNode*);
         void         on_remove_node(ASTNode*);
 
         tools::ViewState          m_view_state;
-        tools::SpatialNode*       m_spatial_node;
+        tools::SpatialNode*       m_spatial_node = nullptr;
         ASTScope*                 m_scope = nullptr;
         Rect                      m_content_rect;
         std::vector<ASTNodeView*> m_wrapped_node_view;

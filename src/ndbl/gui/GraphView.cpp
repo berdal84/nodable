@@ -22,7 +22,6 @@
 #include "PhysicsComponent.h"
 #include "ASTNodeSlotView.h"
 #include "ASTScopeView.h"
-#include "SpatialNodeComponent.h"
 #include "BoxShapeComponent.h"
 
 using namespace ndbl;
@@ -46,7 +45,7 @@ GraphView::GraphView()
 : ComponentFor<Graph>("View")
 , _m_state_machine(this)
 , _m_spatial_data()
-, _m_shape({100.f, 100.f}, &_m_spatial_data ) // non null area
+, _m_shape( Vec2{100.f, 100.f} ) // non null area
 {
     _m_state_machine.add_state(CURSOR_STATE);
     _m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
@@ -91,13 +90,9 @@ void GraphView::_on_set_entity(Graph*)
 
 void GraphView::_on_add_node(ASTNode* node)
 {
-    // spatial component
-    auto* _spatial_component = node->components()->create<SpatialNodeComponent>();
-
     // shape component
     BoxShape2D shape;
     shape.set_size({20.f, 35.f});
-    shape.set_spatial_node( _spatial_component->data() );
     auto* shape_component = node->components()->create<BoxShapeComponent>(shape);
 
     // view state component
@@ -112,13 +107,13 @@ void GraphView::_on_add_node(ASTNode* node)
         ASTScope*  internal_scope = node->internal_scope();
         auto*      scope_view     = node->components()->create<ASTScopeView>();
         CONNECT(scope_view->on_hover, &GraphView::_set_hovered, this);
-        scope_view->init( internal_scope, _spatial_component->data() );
+        scope_view->init( internal_scope, shape_component->data()->spatial_node() );
 
         for ( ASTScope* sub_scope : internal_scope->partition() )
         {
             auto* sub_scope_view = node->components()->create<ASTScopeView>();
             CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered, this );
-            sub_scope_view->init(sub_scope, _spatial_component->data() );
+            sub_scope_view->init( sub_scope, shape_component->data()->spatial_node() );
         }
     }
 }
@@ -561,12 +556,7 @@ void GraphView::_update(float dt)
             if ( auto* physics = node->components()->get<PhysicsComponent>())
                 physics->clear_constraints();
 
-        for (ASTScope* _scope : graph()->root_scopes() )
-            _create_constraints(_scope);
-
-        for (ASTNode* _node : graph()->nodes() )
-            if ( _node->is_orphan() )
-               _create_constraints__align_down(_node, _node->flow_inputs());
+        _create_constraints(graph()->root_scope());
 
         _m_physics_dirty = false;
     }
@@ -602,7 +592,7 @@ void GraphView::_frame_views(const std::vector<ASTNodeView*>& _views, const Vec2
         return;
     }
 
-    BoxShape2D views_bbox        = ASTNodeView::get_rect(_views, WORLD_SPACE );
+    BoxShape2D views_bbox{ ASTNodeView::get_rect(_views, WORLD_SPACE ) };
     const Vec2 desired_pivot_pos = _m_shape.pivot( pivot * 0.95f, WORLD_SPACE); // 5%  margin
     const Vec2 pivot_pos         = views_bbox.pivot(pivot, WORLD_SPACE);
     const Vec2 delta             = desired_pivot_pos - pivot_pos;
@@ -762,17 +752,10 @@ void GraphView::drag_state_tick()
 
     for ( const Selectable& elem : _m_selection )
     {
-        ASTNode* node = nullptr;
         if ( auto* nodeview = elem.get_if<ASTNodeView*>() )
-            node = nodeview->entity();
+            nodeview->translate(delta);
         else if ( auto* scopeview = elem.get_if<ASTScopeView*>() )
-            node = scopeview->entity();
-
-        if ( node )
-        {
-            auto* _spatial_component = node->components()->get<SpatialNodeComponent>();
-            _spatial_component->data()->translate(delta);
-        }
+            scopeview->translate(delta);
     }
 
     if ( ImGui::IsMouseReleased(0) )

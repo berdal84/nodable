@@ -10,23 +10,14 @@
 using namespace tools;
 
 BoxShape2D::BoxShape2D(const Vec2 & size)
+: _half_size( size * 0.5f )
 {
-    set_size( size );
 }
 
-BoxShape2D::BoxShape2D(
-        const Vec2 & size,
-        SpatialNode* spatial_data
-)
-: _spatial_node(spatial_data )
+BoxShape2D::BoxShape2D(const Rect& rect)
+: _half_size( rect.size() * 0.5f  )
 {
-    set_size( size );
-}
-
-BoxShape2D::BoxShape2D(const Rect &rect)
-: _spatial_node(nullptr)
-, _half_size( rect.size() / 2.f )
-{
+    _spatial_node.set_position(rect.center());
 }
 
 Vec2 BoxShape2D::pivot(const Vec2& pivot, Space space) const
@@ -38,9 +29,7 @@ Vec2 BoxShape2D::pivot(const Vec2& pivot, Space space) const
 
 Vec2 BoxShape2D::position(Space space) const
 {
-    if ( _spatial_node )
-        return _spatial_node->position(space);
-    return {0.f, 0.f};
+    return _spatial_node.position(space);
 }
 
 Rect BoxShape2D::rect(Space space) const
@@ -95,7 +84,7 @@ void BoxShape2D::draw_debug_info()
     ImGuiEx::DebugCircle(r.center(), 2.f, ImColor(255, 0,0)); // center
 
     // center to parent center
-    if (_spatial_node != nullptr && _spatial_node->parent() != nullptr)
-         ImGuiEx::DebugLine(_spatial_node->parent()->position(WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
+    if ( _spatial_node.parent() != nullptr)
+         ImGuiEx::DebugLine(_spatial_node.parent()->position(WORLD_SPACE), r.center(), ImColor(255, 0, 255, 127 ), 4.f);
 #endif
 }

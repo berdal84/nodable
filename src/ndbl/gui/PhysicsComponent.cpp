@@ -151,13 +151,13 @@ void ViewConstraint::rule_N_to_1_as_a_row(float _dt)
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        box[i] = clean_follower[i]->get_rect_ex(WORLD_SPACE, follower_flags);
+        box[i] = BoxShape2D{ clean_follower[i]->get_rect_ex(WORLD_SPACE, follower_flags) };
 
         // Determine the delta required to snap the current follower with either the leaders or the previous follower.
         if ( i == 0 )
         {
             // First box is aligned with the leader
-            const BoxShape2D leader_box = leader[0]->get_rect_ex(WORLD_SPACE, leader_flags);
+            const BoxShape2D leader_box{ leader[0]->get_rect_ex(WORLD_SPACE, leader_flags) };
             delta[i] = BoxShape2D::diff(leader_box, leader_pivot, box[i], follower_pivot);
             delta[i] += gap * gap_direction;
         }

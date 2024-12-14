@@ -19,8 +19,7 @@ ASTNodeSlotView::ASTNodeSlotView(
 , index(index)
 , alignment_ref(alignment_ref)
 , direction()
-, _spatial_node()
-, _shape({1.f, 1.f}, &_spatial_node)
+, _shape(Vec2{1.f, 1.f})
 , _state()
 {
     ASSERT(slot != nullptr);
@@ -163,12 +162,12 @@ void ASTNodeSlotView::update(float dt)
                        + Vec2( dir_x * size.x * float(index), 0.f) // jump to index
                        + Vec2(0.f, alignment.y * size.y * 0.5f); // align edge vertically
 
-        _spatial_node.set_position(pos, WORLD_SPACE); // relative to NodeView's
+        spatial_node()->set_position(pos, WORLD_SPACE); // relative to NodeView's
     }
     else if (alignment_ref != nullptr )
     {
         const Vec2 pos  = alignment_ref->pivot( alignment, WORLD_SPACE);
-        _spatial_node.set_position(pos, WORLD_SPACE);
+        spatial_node()->set_position(pos, WORLD_SPACE);
     }
     else
     {

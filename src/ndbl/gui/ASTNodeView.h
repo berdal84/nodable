@@ -76,6 +76,7 @@ namespace ndbl
         tools::Vec4             get_color(ColorType _type) const;
         tools::BoxShape2D*      shape() { return m_shape; }
         const tools::BoxShape2D*shape() const { return m_shape; }
+        void                    translate(const tools::Vec2& delta) { m_spatial_node->translate(delta); }
         const tools::SpatialNode* spatial_node() const { return m_spatial_node; }
         tools::SpatialNode*     spatial_node() { return m_spatial_node; }
         tools::ViewState*       state() { return &m_view_state; }

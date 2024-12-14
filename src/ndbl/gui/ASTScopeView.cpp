@@ -3,7 +3,6 @@
 #include "ndbl/core/ASTScope.h"
 #include "ASTNodeView.h"
 #include "Config.h"
-#include "SpatialNodeComponent.h"
 #include "ndbl/core/ASTFunctionCall.h"
 #include "ndbl/core/language/Nodlang.h"
 
@@ -15,23 +14,20 @@ REFLECT_STATIC_INITIALIZER
     DEFINE_REFLECT(ASTScopeView).extends<ComponentFor<ASTNode>>();
 )
 
-void ASTScopeView::init(ASTScope* scope, SpatialNode* spatial_node)
+void ASTScopeView::init(ASTScope* scope, tools::SpatialNode* spatial_node)
 {
     ASSERT(scope);
-    ASSERT(spatial_node);
-
     m_spatial_node = spatial_node;
-    m_scope        = scope;
+    m_scope = scope;
     scope->set_view( this );
 
-    if ( ASTScope* parent = scope->parent() )
-        on_reset_parent( parent );
     for( ASTNode* node : scope->child() )
+    {
         on_add_node( node );
+    }
 
     CONNECT(scope->on_add         , &ASTScopeView::on_add_node     , this);
     CONNECT(scope->on_remove      , &ASTScopeView::on_remove_node  , this);
-    CONNECT(scope->on_reset_parent, &ASTScopeView::on_reset_parent , this);
 }
 
 ASTScopeView* ASTScopeView::parent() const
@@ -180,13 +176,6 @@ void ASTScopeView::on_remove_node(ASTNode* node)
     }
 }
 
-void ASTScopeView::on_reset_parent(ASTScope*)
-{
-   // unused
-   // note: in the past ASTScopeView and ASTNodeView were not sharing the same SpatialNode
-   //       we were here adding/removing this view's SpatialNode to/from its current parent
-}
-
 void ASTScopeView::set_pinned(bool b)
 {
     m_view_state.set_pinned(b);
@@ -195,11 +184,6 @@ void ASTScopeView::set_pinned(bool b)
 bool ASTScopeView::pinned() const
 {
     return m_view_state.pinned();
-}
-
-void ASTScopeView::set_position(const tools::Vec2& pos, tools::Space space)
-{
-    m_spatial_node->set_position( pos, space );
 }
 
 void ASTScopeView::ImGuiTreeNode_ASTScope(const char* title, ASTScope* scope)

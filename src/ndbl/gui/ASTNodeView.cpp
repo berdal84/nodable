@@ -16,7 +16,6 @@
 #include "tools/gui/Config.h"
 #include "ndbl/core/Interpreter.h"
 #include "tools/core/math.h"
-#include "SpatialNodeComponent.h"
 #include "BoxShapeComponent.h"
 
 #ifdef NDBL_DEBUG

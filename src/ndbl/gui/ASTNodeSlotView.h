@@ -43,8 +43,8 @@ namespace ndbl
         tools::string64       compute_tooltip() const;
         ASTNode*              node()const { return slot->node; }
         bool                  allows(ASTNodeSlotFlag flags) const { return slot->has_flags(flags); }
-        tools::SpatialNode*          spatial_node() { return &_spatial_node; }
-        const tools::SpatialNode*    spatial_node() const { return &_spatial_node; }
+        tools::SpatialNode*          spatial_node() { return _shape.spatial_node(); }
+        const tools::SpatialNode*    spatial_node() const { return _shape.spatial_node(); }
         tools::BoxShape2D*           shape() { return &_shape; }
         const tools::BoxShape2D*     shape() const { return &_shape; }
         tools::ViewState*        state() { return &_state; }
@@ -54,8 +54,7 @@ namespace ndbl
         void                  update_direction_from_alignment();
 
     private:
-        tools::ViewState _state;
-        tools::BoxShape2D   _shape;
-        tools::SpatialNode  _spatial_node;
+        tools::ViewState  _state;
+        tools::BoxShape2D _shape;
     };
 }
