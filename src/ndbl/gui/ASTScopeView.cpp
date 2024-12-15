@@ -57,10 +57,8 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
         if ( !nodeview->state()->visible() )
             return;
 
-        const NodeViewFlags nodeview_flags = NodeViewFlag_WITH_RECURSION
-                                             | NodeViewFlag_WITH_PINNED;
-        Rect node_rect = nodeview->get_rect_ex(WORLD_SPACE, nodeview_flags);
-        m_content_rect = Rect::merge(m_content_rect, node_rect);
+        const Rect r = nodeview->get_rect(WORLD_SPACE);
+        m_content_rect = Rect::merge(m_content_rect, r);
         m_wrapped_node_view.push_back(nodeview);
     };
 
