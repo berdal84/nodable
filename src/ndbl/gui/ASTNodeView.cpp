@@ -193,36 +193,51 @@ void ASTNodeView::on_owner_init(ASTNode* node)
         delete each;
     m_slot_views.clear();
 
-    static const std::unordered_map<SlotFlags, ShapeType> shape_per_type
+    auto get_shapetype = [](const ASTNodeSlot* slot)
     {
-        { SlotFlag_TYPE_FLOW , ShapeType_RECTANGLE },
-        { SlotFlag_TYPE_VALUE, ShapeType_CIRCLE },
+        switch ( slot->flags() & SlotFlag_TYPE_MASK )
+        {
+            case SlotFlag_TYPE_FLOW:
+                return ShapeType_RECTANGLE;
+            case SlotFlag_TYPE_VALUE:
+                return ShapeType_CIRCLE;
+            default:
+                ASSERT(false); // no implemented yet
+                return ShapeType_CIRCLE;
+        }
     };
 
-    static const std::unordered_map<SlotFlags, Vec2> align_per_type
+    auto get_pivot = [](const ASTNodeSlot* slot)
     {
-        {SlotFlag_INPUT  ,     TOP },
-        {SlotFlag_OUTPUT ,     BOTTOM },
-        {SlotFlag_FLOW_IN   ,  TOP_LEFT },
-        {SlotFlag_FLOW_OUT   , BOTTOM_LEFT }
+        switch( slot->flags() & ( SlotFlag_TYPE_MASK | SlotFlag_ORDER_MASK ) )
+        {
+            case SlotFlag_INPUT:
+                return TOP;
+            case SlotFlag_OUTPUT:
+                return BOTTOM;
+            case SlotFlag_FLOW_IN:
+                return TOP_LEFT;
+            case SlotFlag_FLOW_OUT:
+                return BOTTOM_LEFT;
+            default:
+                ASSERT(false); // not implemented yet
+                return TOP;
+        }
     };
 
     std::unordered_map<SlotFlags, u8_t> count_per_type
     {
-        {SlotFlag_FLOW_OUT   , 0 },
-        {SlotFlag_FLOW_IN   ,  0 },
-        {SlotFlag_INPUT  ,     0 },
-        {SlotFlag_OUTPUT ,     0 }
+        {SlotFlag_FLOW_OUT, 0 },
+        {SlotFlag_FLOW_IN , 0 },
+        {SlotFlag_INPUT   , 0 },
+        {SlotFlag_OUTPUT  , 0 }
     };
 
     // Create a view per slot
     for( ASTNodeSlot* slot : m_node->slots() )
     {
-        const Vec2&      alignment     = align_per_type.at(slot->type_and_order());
-        const ShapeType& shape         = shape_per_type.at(slot->type());
-        const u8_t       index         = count_per_type[slot->type_and_order()]++;
-
-        auto* view = new ASTNodeSlotView(slot, alignment, shape, index, this->shape() );
+        const u8_t index = count_per_type.at(slot->type_and_order())++;
+        auto* view = new ASTNodeSlotView(slot, get_pivot(slot), get_shapetype(slot), index, shape() );
         add_child( view );
     }
 
