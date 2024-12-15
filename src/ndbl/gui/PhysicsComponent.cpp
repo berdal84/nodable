@@ -118,7 +118,7 @@ void ViewConstraint::rule_1_to_N_as_row(float dt)
 
     Config* cfg = get_config();
     const ASTNodeView* _follower      = clean_follower[0];
-    const BoxShape2D leaders_box{ ASTNodeView::get_rect(leader, WORLD_SPACE, leader_flags) };
+    const BoxShape2D leaders_box{ASTNodeView::bounding_rect(leader, WORLD_SPACE, leader_flags) };
     const BoxShape2D follower_box{ _follower->get_rect_ex(WORLD_SPACE, follower_flags) };
 
     // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.

@@ -34,14 +34,12 @@ constexpr Vec4 DEFAULT_COLOR = Vec4(1.f, 0.f, 0.f);
 
 ASTNodeView::ASTNodeView()
     : ComponentFor<ASTNode>("View")
-    , m_node(nullptr)
     , m_colors({&DEFAULT_COLOR})
     , m_opacity(1.0f)
     , m_expanded(true)
     , m_value_view(nullptr)
     , m_view_by_property()
     , m_hovered_slotview(nullptr)
-    , m_last_clicked_slotview(nullptr)
     , m_view_state()
     , m_shape()
 {
@@ -67,8 +65,7 @@ ASTNodeView::~ASTNodeView()
         delete each;
     }
     m_slot_views.clear();
-    m_hovered_slotview      = nullptr;
-    m_last_clicked_slotview = nullptr;
+    m_hovered_slotview = nullptr;
 }
 
 std::string ASTNodeView::get_label()
@@ -77,65 +74,63 @@ std::string ASTNodeView::get_label()
 
     bool minimalist = cfg->ui_node_detail == ViewDetail::MINIMALIST;
 
-    switch (m_node->type() )
+    switch (node()->type() )
     {
         case ASTNodeType_VARIABLE_REF:
         {
             if ( minimalist )
                 return "&";
-            return m_node->name();
+            return node()->name();
         }
         case ASTNodeType_VARIABLE:
         {
             if (minimalist)
                 return "";
-            auto variable = static_cast<const ASTVariable *>( m_node );
+            auto variable = static_cast<const ASTVariable *>( node() );
             return variable->get_type()->name();
         }
         case ASTNodeType_OPERATOR:
         {
-            return m_node->name();
+            return node()->name();
         }
         case ASTNodeType_FUNCTION:
         {
             if ( minimalist )
                 return "f(x)";
-            return m_node->name();
+            return node()->name();
         }
         case ASTNodeType_ENTRY_POINT:
         {
             if ( minimalist )
             {
-                return m_node->name().substr(0, 6); // 4 char for the icon
+                return node()->name().substr(0, 6); // 4 char for the icon
             }
-            return m_node->name();
+            return node()->name();
         }
         case ASTNodeType_BLOCK_IF:
         {
             if ( minimalist )
                 return "?";
-            return m_node->name();
+            return node()->name();
         }
         case ASTNodeType_BLOCK_FOR_LOOP:
         {
             if ( minimalist )
                 return "for";
-            return m_node->name();
+            return node()->name();
         }
         default:
         {
             if ( minimalist )
-                return m_node->name().substr(0, 3) + ".";
-            return m_node->name();
+                return node()->name().substr(0, 3) + ".";
+            return node()->name();
         }
     }
 
 }
 
-void ASTNodeView::on_owner_init(ASTNode* node)
+void ASTNodeView::on_owner_init(ASTNode* _)
 {
-    m_node = node;
-
     Config* cfg = get_config();
 
     // 1. Create Property views
@@ -143,13 +138,13 @@ void ASTNodeView::on_owner_init(ASTNode* node)
 
     VERIFY(m_view_by_property.empty(), "Cannot be called twice");
 
-    for (ASTNodeProperty* property : m_node->props() )
+    for (ASTNodeProperty* property : node()->props() )
     {
         // Create view
         auto new_view = new ASTNodePropertyView(property);
         add_child( new_view );
 
-        switch ( m_node->type() )
+        switch ( node()->type() )
         {
             case ASTNodeType_ENTRY_POINT:
             case ASTNodeType_FUNCTION:
@@ -163,13 +158,13 @@ void ASTNodeView::on_owner_init(ASTNode* node)
         }
 
         // Indexing
-        if (property == m_node->value() )
+        if (property == node()->value() )
         {
             m_value_view = new_view;
         }
 
-        bool has_in  = m_node->find_slot_by_property(property, SlotFlag_INPUT );
-        bool has_out = m_node->find_slot_by_property(property, SlotFlag_OUTPUT );
+        bool has_in  = node()->find_slot_by_property(property, SlotFlag_INPUT );
+        bool has_out = node()->find_slot_by_property(property, SlotFlag_OUTPUT );
 
         if ( has_in)
             m_view_by_property_type[PropType_IN].push_back(new_view);
@@ -234,7 +229,7 @@ void ASTNodeView::on_owner_init(ASTNode* node)
     };
 
     // Create a view per slot
-    for( ASTNodeSlot* slot : m_node->slots() )
+    for( ASTNodeSlot* slot : node()->slots() )
     {
         const u8_t index = count_per_type.at(slot->type_and_order())++;
         auto* view = new ASTNodeSlotView(slot, get_pivot(slot), get_shapetype(slot), index, shape() );
@@ -256,11 +251,11 @@ void ASTNodeView::on_owner_init(ASTNode* node)
     }
 
     // Adjust some slot views
-    switch ( m_node->type() )
+    switch ( node()->type() )
     {
         case ASTNodeType_VARIABLE:
         {
-            auto variable = static_cast<ASTVariable*>( m_node );
+            auto variable = static_cast<ASTVariable*>( node() );
             if ( ASTNodeSlot* decl_out = variable->decl_out() )
             {
                 if (ASTNodeSlotView *view = decl_out->view)
@@ -274,7 +269,7 @@ void ASTNodeView::on_owner_init(ASTNode* node)
         }
         case ASTNodeType_FUNCTION:
         {
-            auto function = static_cast<ASTFunctionCall*>( m_node );
+            auto function = static_cast<ASTFunctionCall*>( node() );
             if ( ASTNodeSlot* value_out = function->value_out() )
             {
                 if (ASTNodeSlotView *view = value_out->view)
@@ -291,7 +286,7 @@ void ASTNodeView::on_owner_init(ASTNode* node)
     //---------------------
 
     // note: We pass color by address to be able to change the color dynamically
-    set_color( &cfg->ui_node_fill_color[ m_node->type()] );
+    set_color( &cfg->ui_node_fill_color[ node()->type()] );
 }
 
 void ASTNodeView::arrange_recursively(bool _smoothly)
@@ -299,11 +294,11 @@ void ASTNodeView::arrange_recursively(bool _smoothly)
     for (auto each_input: get_adjacent(SlotFlag_INPUT) )
     {
         if ( !each_input->m_view_state.pinned() )
-            if (ASTUtils::is_output_node_in_expression(each_input->m_node, m_node ) )
+            if (ASTUtils::is_output_node_in_expression(each_input->node(), node() ) )
                 each_input->arrange_recursively();
     }
 
-    if (ASTScope* internal_scope = m_node->internal_scope() )
+    if (ASTScope* internal_scope = node()->internal_scope() )
         for ( ASTNode* _node : internal_scope->backbone() )
             if ( auto* _node_view = _node->component<ASTNodeView>() )
                     _node_view->arrange_recursively();
@@ -334,14 +329,12 @@ bool ASTNodeView::draw()
     if ( !m_view_state.visible() )
         return false;
 
-    if ( !m_node )
-        return false;
+    ASSERT( node() );
 
     Config*     cfg       = get_config();
 	bool        changed   = false;
 
-    m_hovered_slotview      = nullptr; // reset every frame
-    m_last_clicked_slotview = nullptr; // reset every frame
+    m_hovered_slotview    = nullptr; // reset every frame
 
     // Draw background slots (rectangles)
     for( ASTNodeSlotView* slot_view: m_slot_views )
@@ -368,13 +361,13 @@ bool ASTNodeView::draw()
     {
         border_color = cfg->ui_node_borderHighlightedColor;
     }
-    else if ( ASTUtils::is_instruction(m_node ) )
+    else if ( ASTUtils::is_instruction(node() ) )
     {
         border_color = cfg->ui_node_fill_color[ASTNodeType_DEFAULT];
     }
 
     float border_width = cfg->ui_node_borderWidth;
-    if( ASTUtils::is_instruction(m_node ) )
+    if( ASTUtils::is_instruction(node() ) )
     {
         border_width *= cfg->ui_node_instructionBorderRatio;
     }
@@ -408,12 +401,12 @@ bool ASTNodeView::draw()
     std::vector<std::string> operator_label(1); // for binary (and ternary when implemented) operators
     std::string post_label;
 
-    switch ( m_node->type() )
+    switch ( node()->type() )
     {
         case ASTNodeType_OPERATOR:
-            if ( ASTUtils::is_unary_operator(m_node ) )
+            if ( ASTUtils::is_unary_operator(node() ) )
                 pre_label = get_label();
-            else if ( ASTUtils::is_binary_operator(m_node ) )
+            else if ( ASTUtils::is_binary_operator(node() ) )
                 operator_label[0] = get_label();
             // else if (node->is_ternary_operator()
             break;
@@ -442,8 +435,8 @@ bool ASTNodeView::draw()
 
         // Update slot_view_out to be positioned below the pre_label
 
-        if (m_node->type() == ASTNodeType_FUNCTION )
-            if (ASTNodeSlot *slot_out = m_node->value_out())
+        if (node()->type() == ASTNodeType_FUNCTION )
+            if (ASTNodeSlot *slot_out = node()->value_out())
                 if (ASTNodeSlotView *slot_view_out = slot_out->view)
                 {
                     const float x = ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f;
@@ -454,7 +447,7 @@ bool ASTNodeView::draw()
     }
 
     // Draw the properties depending on node type
-    if (m_node->type() != ASTNodeType_OPERATOR )
+    if (node()->type() != ASTNodeType_OPERATOR )
     {
         changed |= ASTNodePropertyView::draw_all(m_view_by_property_type[PropType_IN_STRICTLY], cfg->ui_node_detail);
         changed |= ASTNodePropertyView::draw_all(m_view_by_property_type[PropType_INOUT_STRICTLY], cfg->ui_node_detail);
@@ -506,7 +499,7 @@ bool ASTNodeView::draw()
 	ImGui::PopID();
 
     if ( changed )
-        m_node->set_flags(ASTNodeFlag_IS_DIRTY );
+        node()->set_flags(ASTNodeFlag_IS_DIRTY );
 
     const bool _hovered = is_rect_hovered || m_hovered_slotview != nullptr;
     m_view_state.set_hovered(_hovered );
@@ -550,15 +543,10 @@ void ASTNodeView::DrawNodeRect(
     }
 }
 
-bool ASTNodeView::is_inside(ASTNodeView* _other, const Rect& _rect, Space _space)
-{
-	return Rect::contains(_rect, _other->shape()->rect(_space) );
-}
-
 bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advanced)
 {
     bool changed = false;
-    ASTNode* node = _view->m_node;
+    ASTNode* node = _view->node();
     const float labelColumnWidth = ImGui::GetContentRegionAvail().x / 2.0f;
 
     auto draw_labeled_property_view = [&](ASTNodePropertyView* _property_view) -> bool
@@ -744,37 +732,6 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
     return changed;
 }
 
-void ASTNodeView::constraint_to_rect(ASTNodeView* _view, const Rect& _rect)
-{
-	
-	if ( !ASTNodeView::is_inside(_view, _rect ))
-    {
-        Rect shrinked_rect = _rect;
-        shrinked_rect.expand( Vec2( -2, -2 ) ); // shrink
-
-		auto view_rect = _view->shape()->rect();
-
-		auto left  = _rect.min.x - view_rect.min.x;
-		auto right = _rect.max.x - view_rect.max.x;
-		auto up    = _rect.min.y - view_rect.min.y;
-		auto down  = _rect.max.y - view_rect.max.y;
-
-		     if ( left > 0 )  view_rect.translate_x(left );
-		else if ( right < 0 ) view_rect.translate_x(right );
-			 
-			 if ( up > 0 )  view_rect.translate_y(up );
-		else if ( down < 0 )view_rect.translate_y(down );
-
-        _view->spatial_node()->set_position(view_rect.center(), PARENT_SPACE);
-	}
-
-}
-
-Rect ASTNodeView::get_rect(Space space) const
-{
-    return m_shape.rect(space);
-}
-
 Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
 {
     if( (flags & NodeViewFlag_WITH_RECURSION) == 0 )
@@ -796,18 +753,18 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
             return;
         if( view->m_view_state.pinned() && (flags & NodeViewFlag_WITH_PINNED ) == 0 )
             return;
-        if( ASTUtils::is_output_node_in_expression(view->m_node, this->node()) )
+        if( ASTUtils::is_output_node_in_expression(view->node(), this->node()) )
         {
             Rect rect = view->get_rect_ex(space, flags);
             rects.push_back( rect );
         }
     };
 
-    if ( ASTScope* _internal_scope = m_node->internal_scope() )
+    if ( ASTScope* _internal_scope = node()->internal_scope() )
         for (ASTNode* _node : _internal_scope->backbone() ) // TODO: use ASTScopeView's content_rect instead?
             visit(_node);
 
-    for (ASTNode* _node : m_node->inputs() )
+    for (ASTNode* _node : node()->inputs() )
     {
         visit(_node);
     }
@@ -823,42 +780,31 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
     return result;
 }
 
-Rect ASTNodeView::get_rect(
-    const std::vector<ASTNodeView *> &_views,
+Rect
+ASTNodeView::bounding_rect(
+    const std::vector<ASTNodeView *>& view,
     Space space,
     NodeViewFlags flags
 )
 {
-    Rect result;
-    for (size_t i = 0; i < _views.size(); ++i)
+    // collect rectangles
+    // note: we could save 1 allocation by computing the bbox of each rectangle instead of building this vector,
+    //       but I prefer to keep responsibilities separated.
+    std::vector<Rect> rect;
+    rect.reserve(view.size());
+    for (size_t i = 0; i < view.size(); ++i)
     {
-        Rect rect = _views[i]->get_rect_ex(space, flags);
-        if ( !result.has_area() )
-            result = rect;
-        else
-            result = Rect::bounding_rect(result, rect);
+        rect.emplace_back( view[i]->get_rect_ex(space, flags) ) ;
     }
-    return result;
-}
-
-std::vector<Rect> ASTNodeView::get_rects(const std::vector<ASTNodeView*>& _in_views, Space space, NodeViewFlags flags)
-{
-    std::vector<Rect> rects;
-    rects.reserve(_in_views.size());
-    size_t i = 0;
-    while( i < _in_views.size() )
-    {
-        rects[i] = _in_views[i]->get_rect_ex(space, flags);
-        ++i;
-    }
-    return std::move( rects );
+    // compute bbox
+    return Rect::bounding_rect(rect);
 }
 
 void ASTNodeView::set_expanded_rec(bool _expanded)
 {
     set_expanded(_expanded);
 
-    if ( ASTScope* _internal_scope = m_node->internal_scope() )
+    if ( ASTScope* _internal_scope = node()->internal_scope() )
         for( ASTNode* _node : _internal_scope->backbone() )
             if ( auto* view = _node->component<ASTNodeView>() )
                 view->set_expanded_rec(_expanded);
@@ -878,11 +824,11 @@ void ASTNodeView::set_inputs_visible(bool _visible, bool _recursive)
 
 void ASTNodeView::set_children_visible(bool visible, bool recursively)
 {
-    if ( !m_node->has_internal_scope() )
+    if ( !node()->has_internal_scope() )
         return;
 
     std::set<ASTScope*> scopes;
-    ASTScope::get_descendent(scopes, m_node->internal_scope(), 1 );
+    ASTScope::get_descendent(scopes, node()->internal_scope(), 1 );
 
     for(ASTScope* _scope : scopes)
         for (ASTNode* _child_node: _scope->backbone())
@@ -892,10 +838,10 @@ void ASTNodeView::set_children_visible(bool visible, bool recursively)
 
 void ASTNodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeViewFlags node_flags)
 {
-    bool has_not_output = m_node->outputs().empty();
+    bool has_not_output = node()->outputs().empty();
     for( auto each_child_view : get_adjacent(slot_flags) )
     {
-        if(_visible || has_not_output || ASTUtils::is_output_node_in_expression(each_child_view->m_node,
+        if(_visible || has_not_output || ASTUtils::is_output_node_in_expression(each_child_view->node(),
                                                                                 this->node()) )
         {
             if ( (node_flags & NodeViewFlag_WITH_RECURSION) && each_child_view->m_expanded ) // propagate only if expanded
@@ -921,7 +867,7 @@ ASTNodeView* ASTNodeView::substitute_with_parent_if_not_visible(ASTNodeView* _vi
     }
 
     if ( _recursive )
-        if( ASTScope* scope = _view->m_node->scope() )
+        if( ASTScope* scope = _view->node()->scope() )
             if (ASTNodeView* parent_view = scope->entity()->component<ASTNodeView>() )
                 return parent_view->m_view_state.visible() ? parent_view
                                                       : substitute_with_parent_if_not_visible(parent_view, _recursive);
@@ -929,24 +875,9 @@ ASTNodeView* ASTNodeView::substitute_with_parent_if_not_visible(ASTNodeView* _vi
     return nullptr;
 }
 
-std::vector<ASTNodeView*> ASTNodeView::substitute_with_parent_if_not_visible(const std::vector<ASTNodeView*>& _in, bool _recursive)
-{
-    std::vector<ASTNodeView*> out;
-    out.reserve(_in.size()); // Wort but more probable case
-    for(auto each : _in)
-    {
-        auto each_or_substitute = ASTNodeView::substitute_with_parent_if_not_visible(each, _recursive);
-        if (each_or_substitute)
-        {
-            out.push_back(each_or_substitute);
-        }
-    }
-    return std::move(out);
-};
-
 std::vector<ASTNodeView*> ASTNodeView::get_adjacent(SlotFlags flags) const
 {
-    return ASTUtils::adjacent_components<ASTNodeView>(m_node, flags);
+    return ASTUtils::adjacent_components<ASTNodeView>(node(), flags);
 }
 
 void ASTNodeView::set_color(const Vec4* _color, ColorType _type )
@@ -964,8 +895,7 @@ Vec4 ASTNodeView::get_color(ColorType _type ) const
 
 void ASTNodeView::draw_slot(ASTNodeSlotView* slot_view)
 {
-    if( slot_view->draw() )
-        m_last_clicked_slotview = slot_view;
+    slot_view->draw();
 
     if( slot_view->state()->hovered() )
     {

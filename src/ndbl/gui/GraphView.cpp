@@ -588,7 +588,7 @@ void GraphView::_frame_views(const std::vector<ASTNodeView*>& _views, const Vec2
         return;
     }
 
-    BoxShape2D views_bbox{ ASTNodeView::get_rect(_views, WORLD_SPACE ) };
+    BoxShape2D views_bbox{ASTNodeView::bounding_rect(_views, WORLD_SPACE) };
     const Vec2 desired_pivot_pos = _m_shape.pivot( pivot * 0.95f, WORLD_SPACE); // 5%  margin
     const Vec2 pivot_pos         = views_bbox.pivot(pivot, WORLD_SPACE);
     const Vec2 delta             = desired_pivot_pos - pivot_pos;
