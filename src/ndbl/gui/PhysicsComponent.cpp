@@ -126,12 +126,10 @@ void ViewConstraint::rule_1_to_N_as_row(float dt)
     delta += gap_direction * cfg->ui_node_gap(gap_size);
 
     // Apply a force to translate to the (single) follower
-    auto* physics_component = _follower->entity()->component<PhysicsComponent>();
-    if( !physics_component )
-        return;
-
     Vec2 current_pos = _follower->spatial_node()->position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
+    auto* physics_component = _follower->entity()->component<PhysicsComponent>();
+    VERIFY(physics_component, "Component required");
     physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
 
