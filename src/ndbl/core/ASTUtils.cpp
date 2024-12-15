@@ -81,16 +81,12 @@ bool ASTUtils::is_conditional(const ASTNode* node)
 
 bool ASTUtils::is_output_node_in_expression(const ASTNode* input_node, const ASTNode* output_node)
 {
+#ifdef NDBL_DEBUG
     ASSERT(input_node);
     ASSERT(output_node);
-
-    if ( input_node->scope() != output_node->scope())
-    {
-        return false;
-    }
-
     const bool is_an_output = std::find(input_node->outputs().begin(), input_node->outputs().end(), output_node) != input_node->outputs().end();
     ASSERT(is_an_output);
+#endif
 
     if ( ASTUtils::is_instruction(input_node ) )
     {

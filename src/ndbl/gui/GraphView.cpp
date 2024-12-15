@@ -529,8 +529,7 @@ void GraphView::_create_constraints(ASTScope* scope )
             _create_constraints__align_down(child_node, child_node->flow_inputs());
 
         // align child's inputs above
-        if ( ASTUtils::is_instruction(child_node) )
-            _create_constraints__align_top_recursively(child_node->inputs(), child_node );
+        _create_constraints__align_top_recursively(child_node->inputs(), child_node );
 
         // child's internal scope
         if ( child_node->has_internal_scope() )
