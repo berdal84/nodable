@@ -111,9 +111,9 @@ namespace tools
         
         static bool contains(const Rect& a, const Rect& b );
         static bool contains(const Rect& rect, const Vec2& point );
-        static Rect merge(const Rect& a, const Rect& b );
-        static Rect bbox(const std::vector<Rect>* rects );
-        static Rect bbox(const std::vector<Vec2>* points );
+        static Rect bounding_rect(const Rect& a, const Rect& b );
+        static Rect bounding_rect(const std::vector<Rect>& rect );
+        static Rect bounding_rect(const std::vector<Vec2>* points );
         static std::vector<Rect>& make_row( std::vector<Rect> &out, float gap = 0.0f );
         static std::vector<Rect>& align_top(std::vector<Rect>& out, float p);
     };

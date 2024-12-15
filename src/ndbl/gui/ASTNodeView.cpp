@@ -812,7 +812,7 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         visit(_node);
     }
 
-    Rect result = Rect::bbox(&rects);
+    Rect result = Rect::bounding_rect(rects);
 
 #if DEBUG_DRAW
     Rect screen_rect = result;
@@ -836,7 +836,7 @@ Rect ASTNodeView::get_rect(
         if ( !result.has_area() )
             result = rect;
         else
-            result = Rect::merge(result, rect);
+            result = Rect::bounding_rect(result, rect);
     }
     return result;
 }

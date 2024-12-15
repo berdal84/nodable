@@ -58,7 +58,7 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
             return;
 
         const Rect r = nodeview->get_rect(WORLD_SPACE);
-        m_content_rect = Rect::merge(m_content_rect, r);
+        m_content_rect = Rect::bounding_rect(m_content_rect, r);
         m_wrapped_node_view.push_back(nodeview);
     };
 
@@ -76,7 +76,7 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
         {
             ASTScopeView* child_node_scope_view = child_node->internal_scope()->view();
             child_node_scope_view->update(dt, flags);
-            m_content_rect = Rect::merge(m_content_rect, child_node_scope_view->m_content_rect );
+            m_content_rect = Rect::bounding_rect(m_content_rect, child_node_scope_view->m_content_rect);
         }
     }
 
@@ -84,7 +84,7 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
     {
         ASTScopeView* partition_scope_view = partition_scope->view();
         partition_scope_view->update(dt, flags);
-        m_content_rect = Rect::merge(m_content_rect, partition_scope_view->m_content_rect );
+        m_content_rect = Rect::bounding_rect(m_content_rect, partition_scope_view->m_content_rect);
     };
 
     if ( must_be_draw() )
