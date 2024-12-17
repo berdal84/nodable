@@ -598,7 +598,7 @@ ASTScope* Nodlang::parse_program()
     {
         _state.rollback();
         _state.graph()->reset();
-        _state.graph()->completed.emit();
+        _state.graph()->signal_is_complete.emit();
         LOG_WARNING("Parser", "Some token remains after getting an empty code block\n");
         LOG_MESSAGE("Parser", KO "Parse program.\n");
         return scope;
@@ -609,7 +609,7 @@ ASTScope* Nodlang::parse_program()
     }
 
     _state.commit();
-    _state.graph()->completed.emit();
+    _state.graph()->signal_is_complete.emit();
 
     LOG_MESSAGE("Parser", OK "Parse program.\n");
 

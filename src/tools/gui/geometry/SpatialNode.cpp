@@ -8,8 +8,8 @@
 tools::SpatialNode::~SpatialNode()
 {
     clear();
-    assert( _parent == nullptr ); // must have been reset by a high level instance
-    assert( _children.empty() );
+    assert( _parent == nullptr ); // remove this instance from its parent before to delete it.
+    assert( _children.empty() ); // _parent is responsible for removing its children before they get delete.
 }
 
 void tools::SpatialNode::clear()

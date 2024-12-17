@@ -202,7 +202,7 @@ void Nodable::update()
                     for(const Selectable& elem : graph_view->selection() )
                     {
                         if ( auto nodeview = elem.get_if<ASTNodeView*>() )
-                            graph_view->graph()->flag_node_to_delete(nodeview->entity(), GraphFlag_NONE);
+                            graph_view->graph()->flag_node_to_delete(nodeview->node(), GraphFlag_NONE);
                         else if ( auto scopeview = elem.get_if<ASTScopeView*>() )
                             graph_view->graph()->flag_scope_to_delete(scopeview->scope());
                     }
@@ -238,7 +238,7 @@ void Nodable::update()
                 {
                     graph_view->selection().clear();
                     for(auto* _view : graph_view->selection().collect<ASTNodeView*>() )
-                        for (auto* _successor : _view->entity()->component<ASTNode>()->flow_outputs() )
+                        for (auto* _successor : _view->node()->component<ASTNode>()->flow_outputs() )
                             if (auto* _successor_view = _successor->component<ASTNodeView>() )
                                 graph_view->selection().append( _successor_view );
                 }
@@ -404,7 +404,7 @@ void Nodable::update()
 
 void Nodable::shutdown()
 {
-    LOG_VERBOSE("ndbl::Nodable", "shutdown ...\n");
+    LOG_VERBOSE("ndbl::Nodable", "_handle_shutdown ...\n");
 
     for( File* each_file : m_loaded_files )
     {
@@ -422,7 +422,7 @@ void Nodable::shutdown()
 
     delete m_view;
 
-    LOG_VERBOSE("ndbl::Nodable", "shutdown " OK "\n");
+    LOG_VERBOSE("ndbl::Nodable", "_handle_shutdown " OK "\n");
 }
 
 File* Nodable::open_asset_file(const tools::Path& _path)

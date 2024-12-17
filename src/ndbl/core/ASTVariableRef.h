@@ -48,8 +48,8 @@ namespace ndbl
             value()->token().word_replace( m_variable->get_identifier().c_str() );
 
             // bind signals
-            CONNECT(m_variable->on_name_change, &ASTVariableRef::on_variable_name_change, this );
-            CONNECT(m_variable->on_shutdown, &ASTVariableRef::clear_variable, this );
+            m_variable->on_name_change.connect<&ASTVariableRef::on_variable_name_change>(this);
+            m_variable->on_shutdown.connect<&ASTVariableRef::clear_variable>(this);
         }
 
         void clear_variable()
@@ -58,8 +58,8 @@ namespace ndbl
                 return;
 
             // unbind signals
-            DISCONNECT(m_variable->on_shutdown, this);
-            DISCONNECT(m_variable->on_name_change, this);
+            assert(m_variable->on_name_change.disconnect<&ASTVariableRef::on_variable_name_change>(this));
+            assert(m_variable->on_shutdown.disconnect<&ASTVariableRef::clear_variable>(this));
 
             m_variable = nullptr;
         }

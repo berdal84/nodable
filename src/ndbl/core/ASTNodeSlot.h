@@ -31,9 +31,6 @@ namespace ndbl
             Event_Remove
         };
 
-        // assign your own delegate once here, it will be called when this Slot changes
-        SIGNAL(on_change, Event, ASTNodeSlot*);
-
         ASTNodeSlot*             adjacent_at(u8_t) const;
         size_t     adjacent_count() const{return _adjacent.size();}
         const std::vector<ASTNodeSlot*>&
@@ -53,6 +50,7 @@ namespace ndbl
         void              add_adjacent(ASTNodeSlot*);
         void              remove_adjacent(ASTNodeSlot*);
 
+        tools::Signal<void(Event, ASTNodeSlot*)> on_change;
         const size_t     position; // In case multiple Slot exists for the same type and order, we distinguish them with their position.
         ASTNode* const      node; // parent node
         ASTNodeProperty* const  property; // parent node's property

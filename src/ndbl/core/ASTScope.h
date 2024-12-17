@@ -4,7 +4,7 @@
 #include <set>
 #include "tools/core/Signals.h"
 #include "tools/core/Optional.h"
-#include "tools/core/ComponentFor.h"
+#include "tools/core/Component.h"
 #include "ASTToken.h"
 #include "ASTNode.h"
 
@@ -25,16 +25,16 @@ namespace ndbl
         ScopeFlags_PREVENT_EVENTS          = 1 << 3,
     };
 
-    class ASTScope : public tools::ComponentFor<ASTNode>
+    class ASTScope : public tools::Component<ASTNode>
     {
     public:
         DECLARE_REFLECT_override
 
-        SIGNAL(on_reset_parent, ASTScope*);
-        SIGNAL(on_add, ASTNode*);
-        SIGNAL(on_remove, ASTNode*);
-        SIGNAL(on_change);
-        SIGNAL(on_clear);
+        tools::Signal<void(ASTScope*)> on_reset_parent;
+        tools::Signal<void(ASTNode*)>  on_add;
+        tools::Signal<void(ASTNode*)>  on_remove;
+        tools::SimpleSignal            on_change;
+        tools::SimpleSignal            on_clear;
 
         ASTToken token_begin = {ASTToken_t::ignore};
         ASTToken token_end   = {ASTToken_t::ignore};
@@ -42,8 +42,6 @@ namespace ndbl
         ASTScope();
         ~ASTScope();
 
-        void                           init(size_t partition_count = 0);
-        void                           shutdown();
         bool                           contains(ASTNode* node) const;
         ASTScope*                      parent() { return m_parent; }
         const ASTScope*                parent() const { return m_parent; }
@@ -60,12 +58,13 @@ namespace ndbl
         void                           reset_parent(ASTScope* new_parent = nullptr, ScopeFlags = ScopeFlags_NONE);
         bool                           is_partitioned() const { return !m_partition.empty(); }
         bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
+        void                           create_partitions(size_t count);
         std::vector<ASTScope*>&        partition() { return m_partition; }
         const std::vector<ASTScope*>&  partition() const { return m_partition; }
         ASTScope*                      partition_at(size_t pos) { return m_partition.at(pos); };
         bool                           is_orphan() const { return m_parent == nullptr; }
         size_t                         depth() const { return m_depth; };
-        ASTNode*                       node() const { return m_entity; };
+        ASTNode*                       node() const { return entity(); }; // alias for entity
         static ASTScope*               lowest_common_ancestor(const std::set<ASTScope*>& scopes);
         static ASTScope*               lowest_common_ancestor(ASTScope* s1, ASTScope* s2);
         static std::set<ASTScope*>&    get_descendent(std::set<ASTScope*>& out, ASTScope* scope, ScopeFlags flags = ScopeFlags_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }
@@ -75,6 +74,7 @@ namespace ndbl
         static void                    transfer_children_to(ASTScope* source, ASTScope* target);
         static void                    change_scope(ASTNode *node, ASTScope* desired_scope, ScopeFlags = ScopeFlags_NONE);
     private:
+        void                           _on_shutdown();
         void                           _append(ASTNode*, ScopeFlags = ScopeFlags_NONE);
         void                           _remove(ASTNode*, ScopeFlags = ScopeFlags_NONE);
         std::vector<ASTNode*>&         _leaves_ex(std::vector<ASTNode*>& out);

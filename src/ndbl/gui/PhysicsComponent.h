@@ -1,6 +1,6 @@
 #pragma once
 
-#include "tools/core/ComponentFor.h"
+#include "tools/core/Component.h"
 #include "tools/gui/geometry/Space.h"
 #include "tools/gui/geometry/SpatialNode.h"
 #include "tools/gui/Size.h"
@@ -43,7 +43,7 @@ namespace  ndbl
         static std::vector<ASTNodeView*> clean(std::vector<ASTNodeView*>& );
     };
 
-    class PhysicsComponent : public tools::ComponentFor<ASTNode>
+    class PhysicsComponent : public tools::Component<ASTNode>
     {
     public:
         DECLARE_REFLECT_override
@@ -63,7 +63,7 @@ namespace  ndbl
         const Constraints&  constraints() const { return _constraints; };
 
     private:
-        void            _on_owner_init(ASTNode*);
+        void _on_init();
 
         bool            _is_active = false;
         ASTNodeView*    _view      = nullptr;

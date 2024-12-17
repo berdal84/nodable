@@ -28,7 +28,7 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(GraphView).extends<tools::ComponentFor<Graph>>();
+    DEFINE_REFLECT(GraphView).extends<tools::Component<Graph>>();
 )
 
 // Popup name
@@ -41,11 +41,30 @@ constexpr const char* VIEW_PAN_STATE   = "Grab View Tool";
 constexpr const char* LINE_STATE       = "Line Tool";
 
 GraphView::GraphView()
-: ComponentFor<Graph>("View")
+: Component<Graph>("View")
 , _m_state_machine(this)
 , _m_spatial_data()
 , _m_shape( Vec2{100.f, 100.f} ) // non null area
 {
+    Component::signal_init.connect<&GraphView::_handle_init>(this);
+    Component::signal_shutdown.connect<&GraphView::_handle_shutdown>(this);
+}
+
+GraphView::~GraphView()
+{
+    assert(Component::signal_init.disconnect<&GraphView::_handle_init>(this));
+    assert(Component::signal_shutdown.disconnect<&GraphView::_handle_shutdown>(this));
+}
+
+void GraphView::_handle_init()
+{
+    _m_selection.on_change.connect<&GraphView::_on_selection_change>(this);
+    graph()->signal_add_node.connect<&GraphView::_handle_add_node>(this);
+    graph()->signal_remove_node.connect<&GraphView::_handle_remove_node>(this);
+    graph()->signal_change.connect<&GraphView::_on_graph_change>(this);
+    graph()->signal_reset.connect<&GraphView::reset>(this);
+    graph()->signal_is_complete.connect<&GraphView::reset>(this);
+
     _m_state_machine.add_state(CURSOR_STATE);
     _m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
     _m_state_machine.set_default_state(CURSOR_STATE);
@@ -67,27 +86,19 @@ GraphView::GraphView()
     _m_state_machine.bind<&GraphView::line_state_leave>(LINE_STATE, When::OnLeave);
 
     _m_state_machine.start();
-
-    CONNECT(_m_selection.on_change, &GraphView::_on_selection_change, this );
-    CONNECT(on_set_entity         , &GraphView::_on_set_entity      , this);
 }
 
-GraphView::~GraphView()
+void GraphView::_handle_shutdown()
 {
-    DISCONNECT(graph()->node_added , this);
-    DISCONNECT(graph()->changed    , this);
-    DISCONNECT(graph()->completed  , this);
+    assert(_m_selection.on_change.disconnect<&GraphView::_on_selection_change>(this));
+    assert( graph()->signal_add_node.disconnect<&GraphView::_handle_add_node>(this) );
+    assert( graph()->signal_remove_node.disconnect<&GraphView::_handle_remove_node>(this) );
+    assert( graph()->signal_change.disconnect<&GraphView::_on_graph_change>(this) );
+    assert( graph()->signal_reset.disconnect<&GraphView::reset>(this) );
+    assert( graph()->signal_is_complete.disconnect<&GraphView::reset>(this) );
 }
 
-void GraphView::_on_set_entity(Graph*)
-{
-    CONNECT(graph()->node_added     , &GraphView::_on_add_node    , this );
-    CONNECT(graph()->changed        , &GraphView::_on_graph_change , this );
-    CONNECT(graph()->resetted       , &GraphView::reset            , this );
-    CONNECT(graph()->completed      , &GraphView::reset            , this );
-}
-
-void GraphView::_on_add_node(ASTNode* node)
+void GraphView::_handle_add_node(ASTNode* node)
 {
    // view state component
     auto* nodeview = node->components()->create<ASTNodeView>();
@@ -100,19 +111,22 @@ void GraphView::_on_add_node(ASTNode* node)
     if ( node->has_internal_scope() )
     {
         ASTScope*  internal_scope = node->internal_scope();
-        auto*      scope_view     = node->components()->create<ASTScopeView>();
-        CONNECT(scope_view->on_hover, &GraphView::_set_hovered, this);
-        scope_view->init( internal_scope );
+        auto*      scope_view     = node->components()->create<ASTScopeView>(internal_scope);
+        scope_view->on_hover.connect<&GraphView::_set_hovered>(this);
         scope_view->add_child( nodeview );
 
         for ( ASTScope* sub_scope : internal_scope->partition() )
         {
-            auto* sub_scope_view = node->components()->create<ASTScopeView>();
-            CONNECT(sub_scope_view->on_hover, &GraphView::_set_hovered, this );
-            sub_scope_view->init( sub_scope );
-            nodeview->add_child( sub_scope_view );
+            auto* sub_scope_view = node->components()->create<ASTScopeView>(sub_scope);
+            sub_scope_view->on_hover.connect<&GraphView::_set_hovered>(this);
+            nodeview->_add_child(sub_scope_view);
         }
     }
+}
+
+void GraphView::_handle_remove_node(ASTNode* node)
+{
+
 }
 
 ImGuiID make_wire_id(const ASTNodeSlot *ptr1, const ASTNodeSlot *ptr2)
@@ -1108,7 +1122,7 @@ void GraphView::roi_state_tick()
 void GraphView::add_child(ASTNodeView* view)
 {
     SpatialNode* _spatial_node = view->spatial_node();
-    VERIFY(_spatial_node != nullptr, "A SpatialNode is required to add_child");
+    VERIFY(_spatial_node != nullptr, "A SpatialNode is required to _add_child");
     _m_spatial_data.add_child( _spatial_node );
 }
 

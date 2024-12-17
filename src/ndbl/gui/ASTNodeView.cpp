@@ -26,110 +26,35 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(ASTNodeView).extends<ComponentFor<ASTNode>>();
+    DEFINE_REFLECT(ASTNodeView).extends<Component<ASTNode>>();
 )
 
 constexpr Vec4 DEFAULT_COLOR = Vec4(1.f, 0.f, 0.f);
 #define PIXEL_PERFECT true // round positions for drawing only
 
 ASTNodeView::ASTNodeView()
-    : ComponentFor<ASTNode>("View")
+    : Component<ASTNode>("View")
     , m_colors({&DEFAULT_COLOR})
     , m_opacity(1.0f)
     , m_expanded(true)
     , m_value_view(nullptr)
-    , m_view_by_property()
     , m_hovered_slotview(nullptr)
-    , m_view_state()
-    , m_shape()
 {
-    CONNECT(ComponentFor::on_set_entity, &ASTNodeView::on_owner_init, this );
+    Component::signal_init.connect<&ASTNodeView::_handle_init>(this);
+    Component::signal_shutdown.connect<&ASTNodeView::_handle_shutdown>(this);
 }
 
 ASTNodeView::~ASTNodeView()
 {
-    for(auto& [_, each] : m_view_by_property )
-    {
-        spatial_node()->remove_child( each->spatial_node() );
-        delete each;
-    }
-
+    // assert(Component::signal_init.disconnect<&ASTNodeView::_on_init>(this)); unnecessary
+    // assert(Component::signal_shutdown.disconnect<&ASTNodeView::_on_shutdown>(this)); unnecessary
+    assert(m_slot_views.empty());
+    assert(m_view_by_property.empty());
     for(auto vector : m_view_by_property_type )
-    {
-        vector.clear();
-    }
-
-    for(auto* each : m_slot_views )
-    {
-        spatial_node()->remove_child( each->spatial_node() );
-        delete each;
-    }
-    m_slot_views.clear();
-    m_hovered_slotview = nullptr;
+        assert(vector.empty());
 }
 
-std::string ASTNodeView::get_label()
-{
-    Config* cfg = get_config();
-
-    bool minimalist = cfg->ui_node_detail == ViewDetail::MINIMALIST;
-
-    switch (node()->type() )
-    {
-        case ASTNodeType_VARIABLE_REF:
-        {
-            if ( minimalist )
-                return "&";
-            return node()->name();
-        }
-        case ASTNodeType_VARIABLE:
-        {
-            if (minimalist)
-                return "";
-            auto variable = static_cast<const ASTVariable *>( node() );
-            return variable->get_type()->name();
-        }
-        case ASTNodeType_OPERATOR:
-        {
-            return node()->name();
-        }
-        case ASTNodeType_FUNCTION:
-        {
-            if ( minimalist )
-                return "f(x)";
-            return node()->name();
-        }
-        case ASTNodeType_ENTRY_POINT:
-        {
-            if ( minimalist )
-            {
-                return node()->name().substr(0, 6); // 4 char for the icon
-            }
-            return node()->name();
-        }
-        case ASTNodeType_BLOCK_IF:
-        {
-            if ( minimalist )
-                return "?";
-            return node()->name();
-        }
-        case ASTNodeType_BLOCK_FOR_LOOP:
-        {
-            if ( minimalist )
-                return "for";
-            return node()->name();
-        }
-        default:
-        {
-            if ( minimalist )
-                return node()->name().substr(0, 3) + ".";
-            return node()->name();
-        }
-    }
-
-}
-
-void ASTNodeView::on_owner_init(ASTNode* _)
+void ASTNodeView::_handle_init()
 {
     Config* cfg = get_config();
 
@@ -142,7 +67,7 @@ void ASTNodeView::on_owner_init(ASTNode* _)
     {
         // Create view
         auto new_view = new ASTNodePropertyView(property);
-        add_child( new_view );
+        _add_child(new_view);
 
         switch ( node()->type() )
         {
@@ -221,19 +146,19 @@ void ASTNodeView::on_owner_init(ASTNode* _)
     };
 
     std::unordered_map<SlotFlags, u8_t> count_per_type
-    {
-        {SlotFlag_FLOW_OUT, 0 },
-        {SlotFlag_FLOW_IN , 0 },
-        {SlotFlag_INPUT   , 0 },
-        {SlotFlag_OUTPUT  , 0 }
-    };
+            {
+                    {SlotFlag_FLOW_OUT, 0 },
+                    {SlotFlag_FLOW_IN , 0 },
+                    {SlotFlag_INPUT   , 0 },
+                    {SlotFlag_OUTPUT  , 0 }
+            };
 
     // Create a view per slot
     for( ASTNodeSlot* slot : node()->slots() )
     {
         const u8_t index = count_per_type.at(slot->type_and_order())++;
         auto* view = new ASTNodeSlotView(slot, get_pivot(slot), get_shapetype(slot), index, shape() );
-        add_child( view );
+        _add_child(view);
     }
 
     // Make sure inputs/outputs are aligned with the property views (if present) and not the node's view.
@@ -243,7 +168,7 @@ void ASTNodeView::on_owner_init(ASTNode* _)
         {
             case SlotFlag_TYPE_VALUE:
             {
-                const ASTNodePropertyView* property_view = find_property_view(view->property() );
+                const ASTNodePropertyView* property_view = _find_property_view(view->property());
                 if ( property_view != nullptr && property_view->state()->visible() )
                     view->alignment_ref = property_view->shape();
             }
@@ -287,6 +212,91 @@ void ASTNodeView::on_owner_init(ASTNode* _)
 
     // note: We pass color by address to be able to change the color dynamically
     set_color( &cfg->ui_node_fill_color[ node()->type()] );
+}
+
+void ASTNodeView::_handle_shutdown()
+{
+    for(auto& [_, each] : m_view_by_property )
+    {
+        spatial_node()->remove_child( each->spatial_node() );
+        delete each;
+    }
+    m_view_by_property.clear();
+
+    for(auto& vector : m_view_by_property_type )
+    {
+        vector.clear();
+    }
+
+    for(auto* each : m_slot_views )
+    {
+        spatial_node()->remove_child( each->spatial_node() );
+        delete each;
+    }
+    m_slot_views.clear();
+
+    m_hovered_slotview = nullptr;
+}
+
+std::string ASTNodeView::get_label()
+{
+    Config* cfg = get_config();
+
+    bool minimalist = cfg->ui_node_detail == ViewDetail::MINIMALIST;
+
+    switch (node()->type() )
+    {
+        case ASTNodeType_VARIABLE_REF:
+        {
+            if ( minimalist )
+                return "&";
+            return node()->name();
+        }
+        case ASTNodeType_VARIABLE:
+        {
+            if (minimalist)
+                return "";
+            auto variable = static_cast<const ASTVariable *>( node() );
+            return variable->get_type()->name();
+        }
+        case ASTNodeType_OPERATOR:
+        {
+            return node()->name();
+        }
+        case ASTNodeType_FUNCTION:
+        {
+            if ( minimalist )
+                return "f(x)";
+            return node()->name();
+        }
+        case ASTNodeType_ENTRY_POINT:
+        {
+            if ( minimalist )
+            {
+                return node()->name().substr(0, 6); // 4 char for the icon
+            }
+            return node()->name();
+        }
+        case ASTNodeType_BLOCK_IF:
+        {
+            if ( minimalist )
+                return "?";
+            return node()->name();
+        }
+        case ASTNodeType_BLOCK_FOR_LOOP:
+        {
+            if ( minimalist )
+                return "for";
+            return node()->name();
+        }
+        default:
+        {
+            if ( minimalist )
+                return node()->name().substr(0, 3) + ".";
+            return node()->name();
+        }
+    }
+
 }
 
 void ASTNodeView::arrange_recursively(bool _smoothly)
@@ -339,7 +349,7 @@ bool ASTNodeView::draw()
     // Draw background slots (rectangles)
     for( ASTNodeSlotView* slot_view: m_slot_views )
         if ( slot_view->shape_type == ShapeType_RECTANGLE)
-            draw_slot(slot_view);
+            _draw_slot(slot_view);
 
 	// Begin the window
 	//-----------------
@@ -493,7 +503,7 @@ bool ASTNodeView::draw()
     // Draw foreground slots (circles)
     for( ASTNodeSlotView* slot_view: m_slot_views )
         if ( slot_view->shape_type == ShapeType_CIRCLE)
-            draw_slot(slot_view);
+            _draw_slot(slot_view);
 
 	ImGui::PopStyleVar();
 	ImGui::PopID();
@@ -614,7 +624,7 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
     ImGui::Separator();
     ImGui::Text("Component(s) (%zu)", node->components()->size() );
     ImGui::Separator();
-    for (ComponentFor<ASTNode>* component : *node->components() )
+    for (Component<ASTNode>* component : *node->components() )
     {
         if( ImGui::TreeNode(component, "Component %s", component->name().c_str() ) )
         {
@@ -819,7 +829,7 @@ void ASTNodeView::set_expanded(bool _expanded)
 
 void ASTNodeView::set_inputs_visible(bool _visible, bool _recursive)
 {
-    set_adjacent_visible( SlotFlag_INPUT, _visible, NodeViewFlag_WITH_RECURSION * _recursive );
+    _set_adjacent_visible(SlotFlag_INPUT, _visible, NodeViewFlag_WITH_RECURSION * _recursive);
 }
 
 void ASTNodeView::set_children_visible(bool visible, bool recursively)
@@ -836,7 +846,7 @@ void ASTNodeView::set_children_visible(bool visible, bool recursively)
                 view->state()->set_visible(visible );
 }
 
-void ASTNodeView::set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeViewFlags node_flags)
+void ASTNodeView::_set_adjacent_visible(SlotFlags slot_flags, bool _visible, NodeViewFlags node_flags)
 {
     bool has_not_output = node()->outputs().empty();
     for( auto each_child_view : get_adjacent(slot_flags) )
@@ -893,7 +903,7 @@ Vec4 ASTNodeView::get_color(ColorType _type ) const
      return *color;
 }
 
-void ASTNodeView::draw_slot(ASTNodeSlotView* slot_view)
+void ASTNodeView::_draw_slot(ASTNodeSlotView* slot_view)
 {
     slot_view->draw();
 
@@ -903,7 +913,7 @@ void ASTNodeView::draw_slot(ASTNodeSlotView* slot_view)
     }
 }
 
-ASTNodePropertyView *ASTNodeView::find_property_view(const ASTNodeProperty* property)
+ASTNodePropertyView *ASTNodeView::_find_property_view(const ASTNodeProperty* property)
 {
     auto found = m_view_by_property.find(property );
     if (found != m_view_by_property.end() )

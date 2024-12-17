@@ -346,7 +346,7 @@ void AppView::begin_draw()
             dock_window( k_status_window_name, Dockspace_BOTTOM );
 
             // Possibly execute some user-defined code
-            on_reset_layout.emit();
+            signal_reset_layout.emit();
 
             // Finish the build
             ImGui::DockBuilderFinish( m_dockspaces[Dockspace_ROOT] );
@@ -547,7 +547,7 @@ void AppView::draw_splashscreen()
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
     if ( ImGui::BeginPopupModal( cfg->splashscreen_window_label, &show_splashscreen, flags) )
     {
-        on_draw_splashscreen_content.emit();
+        signal_draw_splashscreen_content.emit();
         ImGui::EndPopup();
     }
 }

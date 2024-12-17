@@ -11,29 +11,34 @@
 #include "ASTIf.h"
 #include "ASTVariable.h"
 #include "ASTUtils.h"
+#include "Graph.h"
 
 using namespace ndbl;
 using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(ASTScope).extends<ComponentFor<ASTNode>>();
+    DEFINE_REFLECT(ASTScope).extends<Component<ASTNode>>();
 )
 
 ASTScope::ASTScope()
-: ComponentFor<ASTNode>("ASTScope")
+: Component<ASTNode>("ASTScope")
 {
+    // Component::signal_init.connect<&ASTScope::on_init>(this);
+    Component::signal_shutdown.connect<&ASTScope::_on_shutdown>(this);
+    // Component::signal_name_change.connect<&ASTScope::_on_name_change>(this);
 }
 
 ASTScope::~ASTScope()
 {
+    assert(m_parent == nullptr);
+    assert(m_head == nullptr);
     assert(m_child.empty());
     assert(m_variable.empty());
-    assert(m_head == nullptr);
     assert(m_partition.empty());
 }
 
-void ASTScope::init(size_t partition_count)
+void ASTScope::create_partitions(size_t partition_count)
 {
     for( size_t i = 0; i < partition_count; ++i )
     {
@@ -41,7 +46,7 @@ void ASTScope::init(size_t partition_count)
         _name += name();
         _name += " (part " + std::to_string(i+1) + "/" + std::to_string(partition_count) + ")";
 
-        auto* _scope = m_entity->components()->create<ASTScope>();
+        auto* _scope = node()->components()->create<ASTScope>();
         _scope->set_name(_name);
         _scope->reset_parent(this);
 
@@ -50,18 +55,21 @@ void ASTScope::init(size_t partition_count)
     ASSERT(m_partition.size() == partition_count);
 }
 
-void ASTScope::shutdown()
+void ASTScope::_on_shutdown()
 {
-    while ( !m_partition.empty() )
+    ASSERT(m_parent == nullptr); // Remove this scope from parent first
+
+    // reset partitions (they will be shutdown individually by the ComponentBag)
+    for(ASTScope* partition : m_partition )
     {
-        m_entity->components()->destroy(m_partition.back() );
-        m_partition.pop_back();
+        partition->reset_parent(nullptr);
     }
-    std::vector<ASTNode*> removed_nodes;
-    while ( !m_child.empty() )
-    {
-        ASSERT(false); // TODO: remove all
-    }
+    m_partition.clear();
+
+    // move children to default scope
+    ASTScope* default_scope = node()->graph()->root_scope();
+    ASTScope::transfer_children_to(this, default_scope);
+
     reset_head();
 }
 

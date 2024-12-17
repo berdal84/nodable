@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <algorithm>
 
-#include "tools/core/ComponentFor.h"// base class
+#include "tools/core/Component.h"// base class
 #include "tools/gui/geometry/BoxShape2D.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/gui/ViewState.h"
@@ -49,7 +49,7 @@ namespace ndbl
 	/**
 	 * This class implement a view for Nodes using ImGui.
 	 */
-    class ASTNodeView : public tools::ComponentFor<ASTNode>
+    class ASTNodeView : public tools::Component<ASTNode>
 	{
     public:
         DECLARE_REFLECT_override
@@ -89,11 +89,12 @@ namespace ndbl
         static ASTNodeView*     substitute_with_parent_if_not_visible(ASTNodeView*, bool _recursive = true);
 
     private:
-        void                    on_owner_init(ASTNode*);
-        ASTNodePropertyView*    find_property_view(const ASTNodeProperty*);
-        void                    add_child(CView auto* view);
-        void                    draw_slot(ASTNodeSlotView*);
-        void                    set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
+        void                    _handle_init();
+        void                    _handle_shutdown();
+        ASTNodePropertyView*    _find_property_view(const ASTNodeProperty*);
+        void                    _add_child(CView auto* view);
+        void                    _draw_slot(ASTNodeSlotView*);
+        void                    _set_adjacent_visible(SlotFlags, bool _visible, NodeViewFlags = NodeViewFlag_NONE);
 
         static void DrawNodeRect(
                 tools::Rect rect,
@@ -129,14 +130,14 @@ namespace ndbl
         std::array<std::vector<ASTNodePropertyView*>, PropType::PropType_COUNT> m_view_by_property_type;
     };
 
-    void ASTNodeView::add_child(CView auto* child)
+    void ASTNodeView::_add_child(CView auto* view)
     {
-        spatial_node()->add_child( child->spatial_node() );
-        child->spatial_node()->set_position({0.f, 0.f}, tools::PARENT_SPACE);
+        spatial_node()->add_child(view->spatial_node() );
+        view->spatial_node()->set_position({0.f, 0.f}, tools::PARENT_SPACE);
 
-        if constexpr ( std::is_same_v<decltype(child), ASTNodeSlotView*> )
+        if constexpr ( std::is_same_v<decltype(view), ASTNodeSlotView*> )
         {
-            m_slot_views.push_back(child);
+            m_slot_views.push_back(view);
         }
     }
 }

@@ -37,7 +37,7 @@ namespace tools
             Remove,
         };
 
-        SIGNAL(on_change, EventType, Element);
+        tools::Signal<void(EventType, Element)> on_change;
 
         Element& front()
         { return _wrapped_list.front(); }

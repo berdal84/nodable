@@ -8,7 +8,7 @@
 #include "tools/core/memory/memory.h"
 #include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
-#include "tools/core/ComponentsOf.h"
+#include "tools/core/Component.h"
 
 #include "constants.h"
 #include "ASTSlotLink.h"
@@ -47,8 +47,8 @@ namespace ndbl
         ASTNode(): m_component_collection(this), m_adjacent_nodes_cache(this) {};
         virtual ~ASTNode();
 //===== SIGNALS ========================================================================================================
-        SIGNAL(on_shutdown); // emit once shutdown() has been called
-        SIGNAL(on_name_change, const std::string&);
+        tools::SimpleSignal                     on_shutdown; // emit once shutdown() has been called
+        tools::Signal<void(const std::string&)> on_name_change;
 //===== COMMON METHODS =================================================================================================
         void                        init(ASTNodeType type, const std::string& name);
         void                        shutdown();
@@ -138,8 +138,8 @@ namespace ndbl
 //===== COMPONENT RELATED METHODS ======================================================================================
     public:
         template<class T> T*                component() const  { return m_component_collection.get<T>(); }
-        tools::ComponentsOf<ASTNode>*       components()       { return &m_component_collection; }
-        const tools::ComponentsOf<ASTNode>* components() const { return &m_component_collection; }
+        tools::ComponentBag<ASTNode>*       components()       { return &m_component_collection; }
+        const tools::ComponentBag<ASTNode>* components() const { return &m_component_collection; }
 //===== MEMBERS ========================================================================================================
     private:
         struct AdjacentNodesCache
@@ -167,6 +167,6 @@ namespace ndbl
         std::unordered_map<const ASTNodeProperty*, std::vector<ASTNodeSlot*>>   m_slots_by_property; // TODO: use multimap
         std::vector<ASTNodeProperty*>                            m_properties;
         std::map<std::string, ASTNodeProperty*>                  m_properties_by_name;
-        tools::ComponentsOf<ASTNode>                             m_component_collection;
+        tools::ComponentBag<ASTNode>                             m_component_collection;
     };
 }

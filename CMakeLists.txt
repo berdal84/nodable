@@ -148,7 +148,7 @@ include_directories(
 add_library(
     tools-core
     STATIC
-    src/tools/core/ComponentsOf.h
+    src/tools/core/Component.h
     src/tools/core/Event.h
     src/tools/core/EventManager.cpp
     src/tools/core/EventManager.h

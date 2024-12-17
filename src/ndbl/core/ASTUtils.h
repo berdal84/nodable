@@ -1,5 +1,5 @@
 #pragma once
-#include "tools/core/ComponentsOf.h"
+#include "tools/core/Component.h"
 #include "ASTNode.h"
 #include "ASTNodeSlot.h"
 #include "ASTScope.h"

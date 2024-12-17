@@ -39,16 +39,12 @@ void ASTNode::shutdown()
         m_properties.pop_back();
     }
 
-
     while( !m_slots.empty() )
     {
         delete m_slots.back();
         m_slots.pop_back();
     }
-    if ( m_internal_scope )
-    {
-        m_internal_scope->shutdown();
-    }
+
     m_component_collection.shutdown();
     on_shutdown.emit();
 }
@@ -123,7 +119,7 @@ ASTNodeSlot* ASTNode::add_slot(ASTNodeProperty* property, SlotFlags flags, size_
     m_slots_by_property[property].push_back(slot);
 
     // listen to events to clear cache
-    CONNECT(slot->on_change, &ASTNode::on_slot_change, this);
+    slot->on_change.connect<&ASTNode::on_slot_change>(this);
 
     return slot;
 }
@@ -302,7 +298,7 @@ void ASTNode::init_internal_scope(size_t sub_scope_count)
 
     auto* scope = this->components()->create<ASTScope>();
     scope->set_name("Internal Scope");
-    scope->init(sub_scope_count);
+    scope->create_partitions(sub_scope_count);
 
     m_internal_scope = scope;
     ASSERT(m_internal_scope->is_partitioned()   == (bool)sub_scope_count);

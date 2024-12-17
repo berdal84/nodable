@@ -55,8 +55,8 @@ namespace tools
             Dockspace_COUNT,
         };
 
-        SIGNAL(on_reset_layout); // add custom code during layout reset
-        SIGNAL(on_draw_splashscreen_content); // to insert custom code into the splashscreen window
+        tools::SimpleSignal signal_reset_layout; // add custom code during layout reset
+        tools::SimpleSignal signal_draw_splashscreen_content; // to insert custom code into the splashscreen window
 
         bool        show_splashscreen = true; // flag to show/hide splashscreen
         void        init(App*);

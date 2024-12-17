@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-#include "tools/core/ComponentFor.h"  // base class
+#include "tools/core/Component.h"  // base class
 #include "tools/core/reflection/reflection"
 #include "tools/core/Variant.h"
 #include "tools/core/UniqueVariantList.h"
@@ -40,7 +40,7 @@ namespace ndbl
     using Selectable = tools::Variant<ASTNodeView*, ASTScopeView*, ASTNodeSlotView*, EdgeView> ;
     using Selection  = tools::UniqueVariantList<Selectable> ;
 
-    class GraphView : public tools::ComponentFor<Graph>
+    class GraphView : public tools::Component<Graph>
     {
     public:
         DECLARE_REFLECT_override
@@ -48,7 +48,7 @@ namespace ndbl
 	    GraphView();
 		~GraphView() override;
 
-        SIGNAL(on_change);
+        tools::SimpleSignal on_change;
 
         void                   update(float dt);
         bool                   draw(float dt);
@@ -59,7 +59,7 @@ namespace ndbl
         Selection&             selection() { return _m_selection; }
         const Selection&       selection() const { return _m_selection; }
         void                   reset_all_properties();
-        Graph*                 graph() const { return m_entity; } // alias for entity
+        Graph*                 graph() const { return entity(); } // alias for entity
         void                   add_child(ASTNodeView*);
 
         static void            draw_wire_from_slot_to_pos(ASTNodeSlotView *from, const Vec2 &end_pos);
@@ -72,8 +72,10 @@ namespace ndbl
         tools::BoxShape2D      _m_shape;
         bool                   _m_physics_dirty = false;
 
-        void                   _on_set_entity(Graph*);
-        void                   _on_add_node(ASTNode* node);
+        void                   _handle_init();
+        void                   _handle_shutdown();
+        void                   _handle_add_node(ASTNode* node);
+        void                   _handle_remove_node(ASTNode* node);
         void                   _set_hovered(ASTScopeView*);
         void                   _unfold(); // unfold the graph until it is stabilized
         void                   _update(float dt, u16_t iterations);

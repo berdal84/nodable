@@ -26,6 +26,7 @@ Graph::Graph(ASTNodeFactory* factory)
 Graph::~Graph()
 {
     _clear();
+    m_components.shutdown();
     assert(m_node_registry.empty());
     assert(m_edge_registry.empty());
 }
@@ -48,11 +49,14 @@ void Graph::_clear()
 {
     LOG_MESSAGE("Graph", "Clearing ...\n");
 
+    // delete from last to first (which is the root)
     while ( !m_node_registry.empty() )
     {
-        ASTNode* node = m_node_registry.back();
-        shutdown_node(node);
-        m_node_registry.pop_back();
+        auto last = m_node_registry.end() - 1;
+        ASTNode* node = *last;
+        erase(last);
+        clean_node(node);
+        node->shutdown();
         delete node;
     }
 
@@ -80,7 +84,7 @@ void Graph::reset()
 
     this->_clear();
     this->_init();
-    resetted.emit();
+    signal_reset.emit();
 
     LOG_VERBOSE("Graph", "Reset " OK "\n");
 }
@@ -106,14 +110,16 @@ bool Graph::update()
     while( !node_to_delete.empty() )
     {
         _changed |= true;
-        shutdown_node(node_to_delete.top());
-        delete node_to_delete.top();
+        ASTNode* node = node_to_delete.top();
+        clean_node(node);
+        node->shutdown();
+        delete node;
         node_to_delete.pop();
     }
 
     if ( _changed )
     {
-        changed.emit();
+        signal_change.broadcast(); // TODO: rather be signal_update, signal_change is already emitted within function calls from this method
     }
 
     return _changed;
@@ -139,13 +145,24 @@ void Graph::insert(ASTNode* node, ASTScope* scope)
     node->m_graph = this;
 	m_node_registry.push_back( node );
 
-    node_added.emit(node);
-    changed.emit();
+    signal_add_node.emit(node);
+    signal_change.broadcast();
 
     LOG_VERBOSE("Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name().c_str(), node->get_class()->name());
 }
 
-void Graph::shutdown_node(ASTNode* node)
+NodeRegistry::iterator Graph::erase(NodeRegistry::iterator it)
+{
+    ASTNode* node = *it;
+    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): erasing ...\n", node, node->name().c_str() );
+    const auto& next = m_node_registry.erase( it );
+    signal_remove_node.emit(node);
+    signal_change.broadcast();
+    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): erased\n", node, node->name().c_str() );
+    return next;
+}
+
+void Graph::clean_node(ASTNode* node)
 {
     ASSERT( node );
     LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name().c_str() );
@@ -165,29 +182,11 @@ void Graph::shutdown_node(ASTNode* node)
             edge_it = disconnect(edge_it);
     }
 
-    if ( ASTScope* _scope = node->internal_scope() )
-    {
-        ASTScope::transfer_children_to(_scope, root_scope());
-    }
-
     if ( node->scope() )
     {
         ASTScope::reset_scope(node);
     }
-
-    node->shutdown();
     LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): pre_erased\n", node, node->name().c_str() );
-}
-
-NodeRegistry::iterator Graph::erase(NodeRegistry::iterator it)
-{
-    ASTNode* node = *it;
-    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): erasing ...\n", node, node->name().c_str() );
-    const auto& next = m_node_registry.erase( it );
-    node_removed.emit( node );
-    changed.emit();
-    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): erased\n", node, node->name().c_str() );
-    return next;
 }
 
 ASTVariable* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, ASTScope* scope)
@@ -217,22 +216,24 @@ void Graph::find_and_destroy(ASTNode* node)
     ASSERT( it != m_node_registry.end() );
 
     // backup slots
-    std::vector<ASTNodeSlot*> prev_adjacent_slot;
-    if( ASTNodeSlot* slot = node->find_slot(SlotFlag_FLOW_IN) )
-        prev_adjacent_slot = slot->adjacent();
-    std::vector<ASTNodeSlot*> next_adjacent_slot;
-    if ( ASTNodeSlot* slot = node->find_slot(SlotFlag_FLOW_OUT) )
-        next_adjacent_slot = slot->adjacent();
+    const ASTNodeSlot* flow_in  = node->flow_in();
+    const ASTNodeSlot* flow_out = node->flow_out();
+    const bool flow_can_be_maintained = flow_in->adjacent_count() == 1
+                                     && flow_out->adjacent_count() == 1;
+    ASTNodeSlot* prev_adjacent_slot = flow_in->first_adjacent();
+    ASTNodeSlot* next_adjacent_slot = flow_out->first_adjacent();
 
-    shutdown_node(node);
+    clean_node(node); // flow_in/out will be cleared
 
     // try to maintain flow
-    if ( prev_adjacent_slot.size() == 1 && next_adjacent_slot.size() == 1)
+    if ( flow_can_be_maintained )
     {
-        connect( prev_adjacent_slot[0], next_adjacent_slot[0], GraphFlag_ALLOW_SIDE_EFFECTS );
+        connect(prev_adjacent_slot, next_adjacent_slot, GraphFlag_ALLOW_SIDE_EFFECTS );
     }
 
     erase(it);
+    node->shutdown();
+
     delete node;
 }
 
@@ -311,7 +312,7 @@ ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags _fla
         }
     }
 
-    changed.emit();
+    signal_change.broadcast();
 
     LOG_VERBOSE("Graph", "New edge added\n");
 
@@ -502,7 +503,7 @@ EdgeRegistry::iterator Graph::disconnect(EdgeRegistry::iterator it, GraphFlags f
         }
     }
 
-    changed.emit();
+    signal_change.broadcast();
     return it;
 }
 

@@ -2,7 +2,7 @@
 #include "glm/glm/mat3x3.hpp"
 #include <unordered_set>
 #include "tools/core/assertions.h"
-#include "tools/core/ComponentFor.h"
+#include "tools/core/Component.h"
 #include "TRSTransform2D.h"
 #include "Space.h"
 #include "Rect.h"

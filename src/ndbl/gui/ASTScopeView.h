@@ -1,5 +1,5 @@
 #pragma once
-#include "tools/core/ComponentFor.h"
+#include "tools/core/Component.h"
 #include "tools/gui/geometry/Rect.h"
 #include "tools/gui/geometry/BoxShape2D.h"
 #include "tools/gui/ViewState.h"
@@ -26,17 +26,17 @@ namespace ndbl
         Theme_LIGHT = true
     };
 
-    class ASTScopeView : public tools::ComponentFor<ASTNode>
+    class ASTScopeView : public tools::Component<ASTNode>
     {
     public:
         DECLARE_REFLECT_override
         typedef tools::Rect Rect;
 
-        SIGNAL(on_hover, ASTScopeView*);
+        tools::Signal<void(ASTScopeView*)> on_hover;
 
-        ASTScopeView(): tools::ComponentFor<ASTNode>("ScopeView") {}
+        ASTScopeView() = delete;
+        ASTScopeView(ASTScope*);
 
-        void         init(ASTScope*);
         void         update(float dt, ScopeViewFlags = ScopeViewFlags_NONE );
         void         draw(float dt);
         tools::ViewState* state() { return &m_view_state; }
@@ -54,13 +54,15 @@ namespace ndbl
         void         arrange_content();
         void         add_child(CView auto* child);
         void         remove_child(CView auto* child);
-
+    private:
+        void         _on_shutdown();
+        void         _on_add_node(ASTNode*);
+        void         _on_remove_node(ASTNode*);
+    public:
         static void  ImGuiTreeNode_ASTScope(const char* title, ASTScope*);
     private:
         static void  ImGuiTreeNode_ASTScopeContent(ASTScope*);
         static void  ImGuiTreeNode_ASTNode(ASTNode*);
-        void         on_add_node(ASTNode*);
-        void         on_remove_node(ASTNode*);
 
         tools::ViewState          m_view_state;
         tools::SpatialNode        m_spatial_node;

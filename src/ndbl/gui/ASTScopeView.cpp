@@ -11,22 +11,29 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-    DEFINE_REFLECT(ASTScopeView).extends<ComponentFor<ASTNode>>();
+    DEFINE_REFLECT(ASTScopeView).extends<Component<ASTNode>>();
 )
 
-void ASTScopeView::init(ASTScope* scope)
+ASTScopeView::ASTScopeView(ASTScope* scope)
+:  tools::Component<ASTNode>("ScopeView")
+, m_scope(scope)
 {
-    ASSERT(scope);
-    m_scope = scope;
+    Component::signal_shutdown.connect<&ASTScopeView::_on_shutdown>(this);
+
     scope->set_view( this );
 
     for( ASTNode* node : scope->child() )
     {
-        on_add_node( node );
+        _on_add_node(node);
     }
 
-    CONNECT(scope->on_add         , &ASTScopeView::on_add_node     , this);
-    CONNECT(scope->on_remove      , &ASTScopeView::on_remove_node  , this);
+    scope->on_add.connect<&ASTScopeView::_on_add_node>(this);
+    scope->on_remove.connect<&ASTScopeView::_on_remove_node>(this);
+}
+
+void ASTScopeView::_on_shutdown()
+{
+    spatial_node()->clear();
 }
 
 ASTScopeView* ASTScopeView::parent() const
@@ -157,7 +164,7 @@ void ASTScopeView::draw(float dt)
     }
 }
 
-void ASTScopeView::on_add_node(ASTNode* node)
+void ASTScopeView::_on_add_node(ASTNode* node)
 {
     if( auto* view = node->component<ASTNodeView>())
     {
@@ -165,7 +172,7 @@ void ASTScopeView::on_add_node(ASTNode* node)
     }
 }
 
-void ASTScopeView::on_remove_node(ASTNode* node)
+void ASTScopeView::_on_remove_node(ASTNode* node)
 {
     if( ASTNodeView* view = node->component<ASTNodeView>())
     {

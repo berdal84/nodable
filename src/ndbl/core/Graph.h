@@ -5,7 +5,7 @@
 #include <vector>
 #include <queue>
 
-#include "tools/core/ComponentsOf.h"
+#include "tools/core/Component.h"
 #include "ndbl/core/ASTNode.h"
 #include "ndbl/core/ASTNodeFactory.h"
 #include "ndbl/core/ASTWhileLoop.h"
@@ -60,11 +60,11 @@ namespace ndbl
 
         // signals (can be connected)
 
-        SIGNAL(resetted);
-        SIGNAL(changed);
-        SIGNAL(node_added   , ASTNode*);
-        SIGNAL(node_removed, ASTNode*);
-        SIGNAL(completed); // when parser or user is done
+        tools::SimpleSignal           signal_reset;
+        tools::SimpleBroadcastSignal  signal_change;
+        tools::Signal<void(ASTNode*)> signal_add_node;
+        tools::Signal<void(ASTNode*)> signal_remove_node;
+        tools::SimpleSignal           signal_is_complete; // user defined, usually when parser or user is done
 
         // general
 
@@ -75,8 +75,8 @@ namespace ndbl
         ASTScope*                root_scope() const;
 
         template<class T> T*              component() const  { return m_components.get<T>(); }
-        tools::ComponentsOf<Graph>*       components()       { return &m_components; }
-        const tools::ComponentsOf<Graph>* components() const { return &m_components; }
+        tools::ComponentBag<Graph>*       components()       { return &m_components; }
+        const tools::ComponentBag<Graph>* components() const { return &m_components; }
 
         // node related
         ASTNode*                 create_node() { return create_node( this->root_scope() ); }
@@ -135,13 +135,13 @@ namespace ndbl
         void on_connect_flow_side_effects(const ASTSlotLink&) const;
 
         void                   insert(ASTNode*, ASTScope*);
-        void                   shutdown_node(ASTNode* node);
         NodeRegistry::iterator erase(NodeRegistry::iterator);
+        void                   clean_node(ASTNode* node);
         EdgeRegistry::iterator disconnect(EdgeRegistry::iterator, GraphFlags = GraphFlag_NONE );
 
         const ASTNodeFactory* m_factory  = nullptr;
         NodeRegistry          m_node_registry;
         EdgeRegistry          m_edge_registry;
-        tools::ComponentsOf<Graph> m_components;
+        tools::ComponentBag<Graph> m_components;
     };
 }

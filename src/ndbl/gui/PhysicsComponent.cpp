@@ -4,7 +4,7 @@
 #include <ranges> // for std::iota
 #include "tools/core/math.h"
 #include "tools/core/assertions.h"
-#include "tools/core/ComponentsOf.h"
+#include "tools/core/Component.h"
 #include "tools/gui/Config.h"
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTNode.h"
@@ -23,19 +23,19 @@ using namespace tools;
 
 REFLECT_STATIC_INITIALIZER
 (
-   DEFINE_REFLECT(PhysicsComponent).extends<ComponentFor<ASTNode>>();
+   DEFINE_REFLECT(PhysicsComponent).extends<Component<ASTNode>>();
 )
 
 
 PhysicsComponent::PhysicsComponent()
-: ComponentFor<ASTNode>("Physics")
+: Component<ASTNode>("Physics")
 {
-    CONNECT(ComponentFor::on_set_entity, &PhysicsComponent::_on_owner_init, this);
+    Component::signal_init.connect<&PhysicsComponent::_on_init>(this);
 }
 
-void PhysicsComponent::_on_owner_init(ASTNode* owner)
+void PhysicsComponent::_on_init()
 {
-    _view      = owner->component<ASTNodeView>();
+    _view      = entity()->component<ASTNodeView>();
     ASSERT(_view);
     _is_active = true;
 }
@@ -128,7 +128,7 @@ void ViewConstraint::rule_1_to_N_as_row(float dt)
     // Apply a force to translate to the (single) follower
     Vec2 current_pos = _follower->spatial_node()->position(WORLD_SPACE);
     Vec2 desired_pos = current_pos + delta;
-    auto* physics_component = _follower->entity()->component<PhysicsComponent>();
+    auto* physics_component = _follower->node()->component<PhysicsComponent>();
     VERIFY(physics_component, "Component required");
     physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
 }
@@ -171,7 +171,7 @@ void ViewConstraint::rule_N_to_1_as_a_row(float _dt)
 
     for(size_t i = 0; i < clean_follower.size(); i++)
     {
-        auto* physics_component = clean_follower[i]->entity()->component<PhysicsComponent>();
+        auto* physics_component = clean_follower[i]->node()->component<PhysicsComponent>();
         if( !physics_component )
             continue;
         Vec2 current_pos = clean_follower[i]->spatial_node()->position(WORLD_SPACE);
