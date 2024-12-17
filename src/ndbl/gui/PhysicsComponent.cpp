@@ -213,6 +213,9 @@ void ViewConstraint::rule_distribute_sub_scope_views(float dt)
                          + Vec2{0.f, gap} * gap_direction;
     Rect::align_top(new_content_rect, align_pos.y );
 
+    // h align
+    Rect::center(new_content_rect, align_pos.x );
+
     // translate each sub_scope
     for(size_t i = 0; i < sub_scope_view.size(); ++i)
     {

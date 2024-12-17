@@ -115,7 +115,8 @@ namespace tools
         static Rect bounding_rect(const std::vector<Rect>& rect );
         static Rect bounding_rect(const std::vector<Vec2>* points );
         static std::vector<Rect>& make_row( std::vector<Rect> &out, float gap = 0.0f );
-        static std::vector<Rect>& align_top(std::vector<Rect>& out, float p);
+        static std::vector<Rect>& align_top(std::vector<Rect>& out, float y);
+        static std::vector<Rect>& center(std::vector<Rect>& out, float x);
     };
 
 }

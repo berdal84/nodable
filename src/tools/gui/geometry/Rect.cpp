@@ -98,3 +98,16 @@ std::vector<Rect> &Rect::align_top(std::vector<Rect>& out, float y)
     return out;
 }
 
+std::vector<Rect>& Rect::center(std::vector<Rect>& out, float x)
+{
+    if ( out.size() == 0 )
+        return out;
+
+    const Rect  bounding = Rect::bounding_rect(out);
+    const float delta    = x - bounding.center().x;
+
+    for (Rect& r : out )
+        r.translate_x( delta );
+
+    return out;
+}
