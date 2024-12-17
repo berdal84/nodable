@@ -134,8 +134,8 @@ void ASTScope::_append(ASTNode *node, ScopeFlags flags)
     // emit event
     if ( !(flags & ScopeFlags_PREVENT_EVENTS) )
     {
-        on_change.emit();
-        on_add.emit(node);
+        signal_change.emit();
+        signal_add_node.emit(node);
     }
 }
 
@@ -211,8 +211,8 @@ void ASTScope::_remove(ndbl::ASTNode *node, ndbl::ScopeFlags flags)
 
     if ( (flags & ScopeFlags_PREVENT_EVENTS) == 0 )
     {
-        on_change.emit();
-        on_remove.emit(node);
+        signal_change.emit();
+        signal_remove_node.emit(node);
     }
 
     ASSERT( node->scope() == nullptr);
@@ -334,7 +334,7 @@ void ASTScope::reset_parent(ASTScope* new_parent, ScopeFlags flags )
     m_depth  = new_parent ? new_parent->m_depth + 1 : 0;
 
     if ( (flags & ScopeFlags_PREVENT_EVENTS) == 0 )
-        on_reset_parent.emit(new_parent );
+        signal_reset_parent.emit(new_parent );
 }
 
 void ASTScope::init_scope(ASTNode* node, ASTScope* scope)

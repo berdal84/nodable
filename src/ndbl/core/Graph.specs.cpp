@@ -47,7 +47,7 @@ TEST_F(Graph_, connect)
     // Verify
     EXPECT_EQ(edge.tail->property, prop_1 );
     EXPECT_EQ(edge.head->property, prop_2 );
-    EXPECT_EQ(graph->get_edge_registry().size(), 1);
+    EXPECT_EQ(graph->edges().size(), 1);
  }
 
 TEST_F(Graph_, disconnect)
@@ -62,15 +62,15 @@ TEST_F(Graph_, disconnect)
     auto prop_2 = node_2->add_prop<bool>("prop_2");
     auto slot_2 = node_2->add_slot(prop_2, SlotFlag_INPUT, 1);
 
-    EXPECT_EQ(graph->get_edge_registry().size(), 0);
+    EXPECT_EQ(graph->edges().size(), 0);
     ASTSlotLink edge = graph->connect_or_merge(slot_1, slot_2 );
-    EXPECT_EQ(graph->get_edge_registry().size(), 1);
+    EXPECT_EQ(graph->edges().size(), 1);
 
     // Act
     graph->disconnect(edge, GraphFlag_ALLOW_SIDE_EFFECTS );
 
     // Check
-    EXPECT_EQ(graph->get_edge_registry().size() , 0);
+    EXPECT_EQ(graph->edges().size() , 0);
     EXPECT_EQ( node_1->adjacent_slot_count( SlotFlag_OUTPUT ), 0);
     EXPECT_EQ( node_2->adjacent_slot_count( SlotFlag_INPUT ) , 0);
 }
@@ -79,7 +79,7 @@ TEST_F(Graph_, clear)
 {
     Graph* graph = app.graph();
     EXPECT_TRUE( graph->is_empty() );
-    EXPECT_TRUE( graph->get_edge_registry().empty() );
+    EXPECT_TRUE(graph->edges().empty() );
 
     FunctionDescriptor  f;
     f.init<int(int, int)>("+");
@@ -89,7 +89,7 @@ TEST_F(Graph_, clear)
     EXPECT_TRUE(invokable != nullptr);
     auto operator_node = graph->create_operator(f);
 
-    EXPECT_TRUE( graph->get_edge_registry().empty() );
+    EXPECT_TRUE(graph->edges().empty() );
 
     graph->connect(
             operator_node->value_out(),
@@ -97,7 +97,7 @@ TEST_F(Graph_, clear)
             GraphFlag_ALLOW_SIDE_EFFECTS);
 
     EXPECT_FALSE( graph->is_empty() );
-    EXPECT_FALSE( graph->get_edge_registry().empty() );
+    EXPECT_FALSE(graph->edges().empty() );
 
     // act
     graph->reset();
@@ -105,7 +105,7 @@ TEST_F(Graph_, clear)
     // test
     EXPECT_TRUE( graph->is_empty() );
     EXPECT_TRUE( graph->nodes().size() == 1 && *graph->nodes().cbegin() == graph->root_node() );
-    EXPECT_TRUE( graph->get_edge_registry().empty() );
+    EXPECT_TRUE(graph->edges().empty() );
 }
 
 
@@ -113,7 +113,7 @@ TEST_F(Graph_, create_and_delete_relations)
 {
     // prepare
     Graph* graph = app.graph();
-    auto& edges = graph->get_edge_registry();
+    auto& edges = graph->edges();
     EXPECT_EQ(edges.size(), 0);
     auto node_1 = graph->create_literal<int>();
     EXPECT_EQ(edges.size(), 0);

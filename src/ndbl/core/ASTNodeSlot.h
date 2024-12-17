@@ -50,7 +50,7 @@ namespace ndbl
         void              add_adjacent(ASTNodeSlot*);
         void              remove_adjacent(ASTNodeSlot*);
 
-        tools::Signal<void(Event, ASTNodeSlot*)> on_change;
+        tools::Signal<void(Event, ASTNodeSlot*)> signal_change;
         const size_t     position; // In case multiple Slot exists for the same type and order, we distinguish them with their position.
         ASTNode* const      node; // parent node
         ASTNodeProperty* const  property; // parent node's property

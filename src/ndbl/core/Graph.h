@@ -57,28 +57,33 @@ namespace ndbl
 	public:
  		Graph(ASTNodeFactory*);
 		~Graph();
-
-        // signals (can be connected)
-
+//====== Data =======================================================================================================
+    public:
         tools::SimpleSignal           signal_reset;
         tools::SimpleBroadcastSignal  signal_change;
         tools::Signal<void(ASTNode*)> signal_add_node;
         tools::Signal<void(ASTNode*)> signal_remove_node;
         tools::SimpleSignal           signal_is_complete; // user defined, usually when parser or user is done
-
-        // general
-
+    private:
+        const ASTNodeFactory*         m_factory{};
+        NodeRegistry                  m_node_registry;
+        EdgeRegistry                  m_edge_registry;
+        tools::ComponentBag<Graph>    m_components;
+//====== Common Methods ================================================================================================
+    public:
         bool                     update();
         void                     reset();  // Delete all nodes, wires, edges and reset scope.
         bool                     is_empty() const { return root_scope()->empty(); };
         ASTNode*                 root_node() const { return m_node_registry.front(); /* we have the guarantee it exists, see constructor */}
         ASTScope*                root_scope() const;
-
         template<class T> T*              component() const  { return m_components.get<T>(); }
         tools::ComponentBag<Graph>*       components()       { return &m_components; }
         const tools::ComponentBag<Graph>* components() const { return &m_components; }
-
-        // node related
+    private:
+        void                    _init();
+        void                    _clear();
+//====== Node(s) Related ===============================================================================================
+    public:
         ASTNode*                 create_node() { return create_node( this->root_scope() ); }
         ASTNode*                 create_node(ASTScope*); // Create a raw node.
         ASTNode*                 create_node(CreateNodeType type, const tools::FunctionDescriptor* desc = nullptr) { return create_node(type, desc, this->root_scope()); }
@@ -116,32 +121,23 @@ namespace ndbl
         template<typename T> ASTVariable* create_variable_decl(const char* name, ASTScope* scope ){ return create_variable_decl( tools::type::get<T>(), name, scope); }
         template<typename T> ASTLiteral*  create_literal()                 { return create_literal( tools::type::get<T>(), this->root_scope() ); }
         template<typename T> ASTLiteral*  create_literal(ASTScope* scope ) { return create_literal( tools::type::get<T>(), scope ); }
-
-        // edge related
-
-        ASTSlotLink  connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags = GraphFlag_NONE );
-        void         connect(const std::set<ASTNodeSlot*>& tails, ASTNodeSlot* head, GraphFlags _flags);
-        ASTSlotLink  connect_to_variable(ASTNodeSlot* output_slot, ASTVariable* variable );
-        ASTSlotLink  connect_or_merge(ASTNodeSlot* tail, ASTNodeSlot* head);
-        EdgeRegistry::iterator disconnect(const ASTSlotLink&, GraphFlags = GraphFlag_NONE);
-        EdgeRegistry&          get_edge_registry() { return m_edge_registry; }
-
     private:
-        void _init();
-        void _clear();
-        void on_disconnect_value_side_effects(const ASTSlotLink&) const;
-        void on_disconnect_flow_side_effects(const ASTSlotLink&) const;
-        void on_connect_value_side_effects(const ASTSlotLink&) const;
-        void on_connect_flow_side_effects(const ASTSlotLink&) const;
-
-        void                   insert(ASTNode*, ASTScope*);
-        NodeRegistry::iterator erase(NodeRegistry::iterator);
-        void                   clean_node(ASTNode* node);
-        EdgeRegistry::iterator disconnect(EdgeRegistry::iterator, GraphFlags = GraphFlag_NONE );
-
-        const ASTNodeFactory* m_factory  = nullptr;
-        NodeRegistry          m_node_registry;
-        EdgeRegistry          m_edge_registry;
-        tools::ComponentBag<Graph> m_components;
+        void                   _insert(ASTNode*, ASTScope*);
+        NodeRegistry::iterator _erase(NodeRegistry::iterator);
+        void                   _clean_node(ASTNode* node);
+//====== Edge(s) Related ===============================================================================================
+    public:
+        ASTSlotLink             connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags = GraphFlag_NONE );
+        void                    connect(const std::set<ASTNodeSlot*>& tails, ASTNodeSlot* head, GraphFlags _flags);
+        ASTSlotLink             connect_to_variable(ASTNodeSlot* output_slot, ASTVariable* variable );
+        ASTSlotLink             connect_or_merge(ASTNodeSlot* tail, ASTNodeSlot* head);
+        EdgeRegistry::iterator  disconnect(const ASTSlotLink&, GraphFlags = GraphFlag_NONE);
+        const EdgeRegistry&     edges() const { return m_edge_registry; }
+    private:
+        void                    _handle_disconnect_value_side_effects(const ASTSlotLink&) const;
+        void                    _handle_disconnect_flow_side_effects(const ASTSlotLink&) const;
+        void                    _handle_connect_value_side_effects(const ASTSlotLink&) const;
+        void                    _handle_connect_flow_side_effects(const ASTSlotLink&) const;
+        EdgeRegistry::iterator  _disconnect(EdgeRegistry::iterator, GraphFlags = GraphFlag_NONE );
     };
 }

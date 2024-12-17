@@ -29,7 +29,7 @@ File::File()
     auto* graph_view = _graph->components()->create<GraphView>();
 
     _graph->signal_change.connect<&File::set_text_dirty>(this);
-    graph_view->on_change.connect<&File::set_text_dirty>(this);
+    graph_view->signal_change.connect<&File::set_text_dirty>(this);
 
     // Fill the "create node" context menu
     for( IAction* action : get_action_manager()->get_actions() )
@@ -38,8 +38,8 @@ File::File()
 
     // FileView
     view.init(*this);
-    view.on_text_view_changed.connect<&File::set_graph_dirty>(this);
-    view.on_graph_view_changed.connect<&File::set_text_dirty>(this);
+    view.signal_text_view_changed.connect<&File::set_graph_dirty>(this);
+    view.signal_graph_view_changed.connect<&File::set_text_dirty>(this);
 
     LOG_VERBOSE( "File", "View built, creating History ...\n");
 
@@ -53,9 +53,9 @@ File::File()
 File::~File()
 {
     assert(_graph->signal_change.disconnect<&File::set_text_dirty>(this));
-    assert(_graph->component<GraphView>()->on_change.disconnect<&File::set_text_dirty>(this));
-    assert(view.on_text_view_changed.disconnect<&File::set_graph_dirty>(this));
-    assert( view.on_graph_view_changed.disconnect<&File::set_text_dirty>(this));
+    assert(_graph->component<GraphView>()->signal_change.disconnect<&File::set_text_dirty>(this));
+    assert(view.signal_text_view_changed.disconnect<&File::set_graph_dirty>(this));
+    assert(view.signal_graph_view_changed.disconnect<&File::set_text_dirty>(this));
 
     delete _graph;
 }

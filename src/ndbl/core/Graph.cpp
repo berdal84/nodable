@@ -36,9 +36,9 @@ void Graph::_init()
     LOG_MESSAGE("Graph", "Initializing ...\n");
     ASSERT( m_node_registry.empty() ); // Root must be first, registry should be empty
 
-    // create and insert root
+    // create and _insert root
     ASTNode* root  = m_factory->create_entry_point();
-    this->insert(root, nullptr);
+    this->_insert(root, nullptr);
 
     LOG_VERBOSE("Graph", "-- add root node %p (name: %s, class: %s)\n", root, root->name().c_str(), root->get_class()->name());
     ASSERT( root_node() == root );
@@ -54,8 +54,8 @@ void Graph::_clear()
     {
         auto last = m_node_registry.end() - 1;
         ASTNode* node = *last;
-        erase(last);
-        clean_node(node);
+        _erase(last);
+        _clean_node(node);
         node->shutdown();
         delete node;
     }
@@ -111,7 +111,7 @@ bool Graph::update()
     {
         _changed |= true;
         ASTNode* node = node_to_delete.top();
-        clean_node(node);
+        _clean_node(node);
         node->shutdown();
         delete node;
         node_to_delete.pop();
@@ -125,17 +125,17 @@ bool Graph::update()
     return _changed;
 }
 
-void Graph::insert(ASTNode* node, ASTScope* scope)
+void Graph::_insert(ASTNode* node, ASTScope* scope)
 {
-    // do the inverse of Graph::erase(ASTNode* node)
+    // do the inverse of Graph::_erase(ASTNode* node)
 
     if ( !scope )
     {
-        VERIFY(m_node_registry.empty(), "only the first insertscopeed node (root) can have no scope");
+        VERIFY(m_node_registry.empty(), "only the first _insertscopeed node (root) can have no scope");
     }
     else
     {
-        VERIFY( root_node(), "a root node must be inserted first" );
+        VERIFY( root_node(), "a root node must be _inserted first" );
         VERIFY( node->scope() == nullptr, "Scope must be unset, it must be passed as an arg" );
         VERIFY( scope,"A Node must have a scope prior to be added to the graph" );
         VERIFY( scope->node()->graph() == this, "The Scope you provided is from a different graph" );
@@ -151,18 +151,18 @@ void Graph::insert(ASTNode* node, ASTScope* scope)
     LOG_VERBOSE("Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name().c_str(), node->get_class()->name());
 }
 
-NodeRegistry::iterator Graph::erase(NodeRegistry::iterator it)
+NodeRegistry::iterator Graph::_erase(NodeRegistry::iterator it)
 {
     ASTNode* node = *it;
     LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): erasing ...\n", node, node->name().c_str() );
     const auto& next = m_node_registry.erase( it );
     signal_remove_node.emit(node);
     signal_change.broadcast();
-    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): erased\n", node, node->name().c_str() );
+    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): _erased\n", node, node->name().c_str() );
     return next;
 }
 
-void Graph::clean_node(ASTNode* node)
+void Graph::_clean_node(ASTNode* node)
 {
     ASSERT( node );
     LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name().c_str() );
@@ -179,34 +179,34 @@ void Graph::clean_node(ASTNode* node)
     {
         edge_it = std::find_if(edge_it, m_edge_registry.end(), concerns_node);
         if ( edge_it != m_edge_registry.end() )
-            edge_it = disconnect(edge_it);
+            edge_it = _disconnect(edge_it);
     }
 
     if ( node->scope() )
     {
         ASTScope::reset_scope(node);
     }
-    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): pre_erased\n", node, node->name().c_str() );
+    LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name().c_str() );
 }
 
 ASTVariable* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, ASTScope* scope)
 {
     ASTVariable* node = m_factory->create_variable(_type, _name);
-    insert(node, scope);
+    _insert(node, scope);
 	return node;
 }
 
 ASTFunctionCall* Graph::create_function(const FunctionDescriptor& _type, ASTScope* scope)
 {
     ASTFunctionCall* node = m_factory->create_function(_type, ASTNodeType_FUNCTION);
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 
 ASTFunctionCall* Graph::create_operator(const FunctionDescriptor& _type, ASTScope* scope)
 {
     ASTFunctionCall* node = m_factory->create_function(_type, ASTNodeType_OPERATOR);
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 
@@ -223,7 +223,7 @@ void Graph::find_and_destroy(ASTNode* node)
     ASTNodeSlot* prev_adjacent_slot = flow_in->first_adjacent();
     ASTNodeSlot* next_adjacent_slot = flow_out->first_adjacent();
 
-    clean_node(node); // flow_in/out will be cleared
+    _clean_node(node); // flow_in/out will be cleared
 
     // try to maintain flow
     if ( flow_can_be_maintained )
@@ -231,7 +231,7 @@ void Graph::find_and_destroy(ASTNode* node)
         connect(prev_adjacent_slot, next_adjacent_slot, GraphFlag_ALLOW_SIDE_EFFECTS );
     }
 
-    erase(it);
+    _erase(it);
     node->shutdown();
 
     delete node;
@@ -291,7 +291,7 @@ void Graph::connect(const std::set<ASTNodeSlot*>& tails, ASTNodeSlot* head, Grap
 
 ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags _flags)
 {
-    // Create and insert edge
+    // Create and _insert edge
     auto it = m_edge_registry.emplace(tail->type(), ASTSlotLink{tail, head});
     ASTSlotLink& edge = it->second;
 
@@ -305,8 +305,10 @@ ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags _fla
     {
         switch ( edge.type() )
         {
-            case SlotFlag_TYPE_FLOW:  on_connect_flow_side_effects(edge);  break;
-            case SlotFlag_TYPE_VALUE: on_connect_value_side_effects(edge); break;
+            case SlotFlag_TYPE_FLOW:
+                _handle_connect_flow_side_effects(edge);  break;
+            case SlotFlag_TYPE_VALUE:
+                _handle_connect_value_side_effects(edge); break;
             default:
                 ASSERT(false);// This connection type is not yet implemented
         }
@@ -319,7 +321,7 @@ ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags _fla
     return edge;
 }
 
-void Graph::on_connect_value_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_connect_value_side_effects(const ASTSlotLink& edge ) const
 {
     // ensure the tail node has the right scope
     // must be:
@@ -348,7 +350,7 @@ void Graph::on_connect_value_side_effects(const ASTSlotLink& edge ) const
     }
 }
 
-void Graph::on_disconnect_value_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_disconnect_value_side_effects(const ASTSlotLink& edge ) const
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_OUTPUT );
 
@@ -362,7 +364,7 @@ void Graph::on_disconnect_value_side_effects(const ASTSlotLink& edge ) const
     }
 }
 
-void Graph::on_disconnect_flow_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_disconnect_flow_side_effects(const ASTSlotLink& edge ) const
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
@@ -397,7 +399,7 @@ void Graph::on_disconnect_flow_side_effects(const ASTSlotLink& edge ) const
     ASTScope::change_scope(edge.head->node, target_scope );
 }
 
-void Graph::on_connect_flow_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge ) const
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
@@ -467,16 +469,16 @@ EdgeRegistry::iterator Graph::disconnect(const ASTSlotLink& edge, GraphFlags fla
             {
                 return edge == _pair.second;
             });
-    return disconnect( it, flags );
+    return _disconnect( it, flags );
 }
 
-EdgeRegistry::iterator Graph::disconnect(EdgeRegistry::iterator it, GraphFlags flags)
+EdgeRegistry::iterator Graph::_disconnect(EdgeRegistry::iterator it, GraphFlags flags)
 {
     // find the edge to disconnect
     ASTSlotLink& _edge = it->second;
     SlotFlags    type  = it->first;
 
-    // erase it from the registry
+    // _erase it from the registry
     it = m_edge_registry.erase(it);
 
     // disconnect the slots
@@ -490,12 +492,12 @@ EdgeRegistry::iterator Graph::disconnect(EdgeRegistry::iterator it, GraphFlags f
         {
             case SlotFlag_TYPE_FLOW:
             {
-                on_disconnect_flow_side_effects(_edge);
+                _handle_disconnect_flow_side_effects(_edge);
                 break;
             }
             case SlotFlag_TYPE_VALUE:
             {
-                on_disconnect_value_side_effects(_edge);
+                _handle_disconnect_value_side_effects(_edge);
                 break;
             }
             default:
@@ -510,35 +512,35 @@ EdgeRegistry::iterator Graph::disconnect(EdgeRegistry::iterator it, GraphFlags f
 ASTIf* Graph::create_cond_struct(ASTScope* scope)
 {
     ASTIf* node = m_factory->create_cond_struct();
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 
 ASTForLoop* Graph::create_for_loop(ASTScope* scope)
 {
     ASTForLoop* node = m_factory->create_for_loop();
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 
 ASTWhileLoop* Graph::create_while_loop(ASTScope* scope)
 {
     ASTWhileLoop* ast_node = m_factory->create_while_loop();
-    insert(ast_node, scope);
+    _insert(ast_node, scope);
     return ast_node;
 }
 
 ASTNode* Graph::create_node(ASTScope* scope)
 {
     ASTNode* node = m_factory->create_node();
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 
 ASTLiteral* Graph::create_literal(const TypeDescriptor* _type, ASTScope* scope)
 {
     ASTLiteral* node = m_factory->create_literal(_type);
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 
@@ -586,7 +588,7 @@ ASTNode* Graph::create_node(CreateNodeType _type, const FunctionDescriptor* _sig
 ASTVariableRef* Graph::create_variable_ref(ASTScope* scope)
 {
     ASTVariableRef* node = m_factory->create_variable_ref();
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 
@@ -606,7 +608,7 @@ ASTVariable* Graph::create_variable_decl(const TypeDescriptor* type, const char*
 ASTNode *Graph::create_empty_instruction(ASTScope* scope)
 {
     ASTNode* node = m_factory->create_empty_instruction();
-    insert(node, scope);
+    _insert(node, scope);
     return node;
 }
 

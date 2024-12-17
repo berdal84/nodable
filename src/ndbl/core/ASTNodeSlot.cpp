@@ -66,7 +66,7 @@ void ASTNodeSlot::add_adjacent(ASTNodeSlot* other)
     {
         _flags &= ~SlotFlag_NOT_FULL; // Make sure IS_NOT_FULL is 0
     }
-    on_change.emit(Event_Add, other);
+    signal_change.emit(Event_Add, other);
 }
 
 void ASTNodeSlot::remove_adjacent(ASTNodeSlot* other)
@@ -75,7 +75,7 @@ void ASTNodeSlot::remove_adjacent(ASTNodeSlot* other)
     VERIFY(it != _adjacent.end(), "Slot* not found");
     _adjacent.erase(it );
     _flags |= SlotFlag_NOT_FULL;
-    on_change.emit(Event_Remove, other);
+    signal_change.emit(Event_Remove, other);
 }
 
 void ASTNodeSlot::expand_capacity(size_t capacity )

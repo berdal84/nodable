@@ -46,7 +46,7 @@ void ASTNode::shutdown()
     }
 
     m_component_collection.shutdown();
-    on_shutdown.emit();
+    signal_shutdown.emit();
 }
 
 const FunctionDescriptor* ASTNode::get_connected_function_type(const char* property_name) const
@@ -96,7 +96,7 @@ ASTNodeSlot* ASTNode::find_slot_by_property_type(SlotFlags flags, const TypeDesc
     return nullptr;
 }
 
-void ASTNode::on_slot_change(ASTNodeSlot::Event event, ASTNodeSlot* slot)
+void ASTNode::_handle_slot_change(ASTNodeSlot::Event event, ASTNodeSlot* slot)
 {
     // LOG_MESSAGE("Node", "Slot event: %i, %p\n", event, slot);
     this->m_adjacent_nodes_cache.set_dirty();
@@ -119,7 +119,7 @@ ASTNodeSlot* ASTNode::add_slot(ASTNodeProperty* property, SlotFlags flags, size_
     m_slots_by_property[property].push_back(slot);
 
     // listen to events to clear cache
-    slot->on_change.connect<&ASTNode::on_slot_change>(this);
+    slot->signal_change.connect<&ASTNode::_handle_slot_change>(this);
 
     return slot;
 }

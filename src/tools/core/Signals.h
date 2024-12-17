@@ -24,14 +24,14 @@ namespace tools
     //          int _m_value = 0;
     //      }
     //      Number number;
-    //      tools::Signal<void(int)> on_change;
-    //      on_change.connect<&Number::set_value>(&number); // &Number::set_value has same type as signal template argument
-    //      on_change.emit(42);
+    //      tools::Signal<void(int)> signal_change;
+    //      signal_change.connect<&Number::set_value>(&number); // &Number::set_value has same type as signal template argument
+    //      signal_change.emit(42);
     //      assert(number.value() == 42);
     //
     //      // note that trying to connect another method will fail, see BroadcastSignal instead
     //      Number another_number;
-    //      on_change.connect<&Number::set_value>(&another_number);
+    //      signal_change.connect<&Number::set_value>(&another_number);
     //
     template<typename SignalReturnT, typename ...SignalArgsT>
     struct Signal<SignalReturnT(SignalArgsT...)>

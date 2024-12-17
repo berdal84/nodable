@@ -58,7 +58,7 @@ GraphView::~GraphView()
 
 void GraphView::_handle_init()
 {
-    _m_selection.on_change.connect<&GraphView::_on_selection_change>(this);
+    _m_selection.signal_change.connect<&GraphView::_on_selection_change>(this);
     graph()->signal_add_node.connect<&GraphView::_handle_add_node>(this);
     graph()->signal_remove_node.connect<&GraphView::_handle_remove_node>(this);
     graph()->signal_change.connect<&GraphView::_on_graph_change>(this);
@@ -90,7 +90,7 @@ void GraphView::_handle_init()
 
 void GraphView::_handle_shutdown()
 {
-    assert(_m_selection.on_change.disconnect<&GraphView::_on_selection_change>(this));
+    assert(_m_selection.signal_change.disconnect<&GraphView::_on_selection_change>(this));
     assert( graph()->signal_add_node.disconnect<&GraphView::_handle_add_node>(this) );
     assert( graph()->signal_remove_node.disconnect<&GraphView::_handle_remove_node>(this) );
     assert( graph()->signal_change.disconnect<&GraphView::_on_graph_change>(this) );
@@ -112,13 +112,13 @@ void GraphView::_handle_add_node(ASTNode* node)
     {
         ASTScope*  internal_scope = node->internal_scope();
         auto*      scope_view     = node->components()->create<ASTScopeView>(internal_scope);
-        scope_view->on_hover.connect<&GraphView::_set_hovered>(this);
+        scope_view->signal_hover.connect<&GraphView::_handle_hover>(this);
         scope_view->add_child( nodeview );
 
         for ( ASTScope* sub_scope : internal_scope->partition() )
         {
             auto* sub_scope_view = node->components()->create<ASTScopeView>(sub_scope);
-            sub_scope_view->on_hover.connect<&GraphView::_set_hovered>(this);
+            sub_scope_view->signal_hover.connect<&GraphView::_handle_hover>(this);
             nodeview->_add_child(sub_scope_view);
         }
     }
@@ -427,7 +427,7 @@ bool GraphView::draw(float dt)
     ImGui::SetCursorPosY(ImGui::GetCursorPosY() + 100.0f);
 
     if ( changed )
-        on_change.emit();
+        signal_change.emit();
 
 	return changed;
 }
@@ -1140,7 +1140,7 @@ void GraphView::update(float dt)
         _update(sample_dt);
 }
 
-void GraphView::_set_hovered(ASTScopeView* scope_view)
+void GraphView::_handle_hover(ASTScopeView* scope_view)
 {
     if ( !_m_hovered.holds_alternative<ASTScopeView*>() )
         _m_hovered = scope_view;

@@ -408,7 +408,7 @@ void NodableView::draw()
     }
 
     // 2. Draw windows
-    // All draw_xxx_window() are ImGui windows docked to a dockspace (defined in on_reset_layout() )
+    // All draw_xxx_window() are ImGui windows docked to a dockspace (defined in signal_reset_layout() )
 
     if(!m_app->has_files())
     {

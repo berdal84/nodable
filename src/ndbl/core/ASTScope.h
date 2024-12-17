@@ -30,11 +30,11 @@ namespace ndbl
     public:
         DECLARE_REFLECT_override
 
-        tools::Signal<void(ASTScope*)> on_reset_parent;
-        tools::Signal<void(ASTNode*)>  on_add;
-        tools::Signal<void(ASTNode*)>  on_remove;
-        tools::SimpleSignal            on_change;
-        tools::SimpleSignal            on_clear;
+        tools::Signal<void(ASTScope*)> signal_reset_parent;
+        tools::Signal<void(ASTNode*)>  signal_add_node;
+        tools::Signal<void(ASTNode*)>  signal_remove_node;
+        tools::SimpleSignal            signal_change;
+        tools::SimpleSignal            signal_clear;
 
         ASTToken token_begin = {ASTToken_t::ignore};
         ASTToken token_end   = {ASTToken_t::ignore};

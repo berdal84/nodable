@@ -32,7 +32,7 @@ namespace ndbl
         DECLARE_REFLECT_override
         typedef tools::Rect Rect;
 
-        tools::Signal<void(ASTScopeView*)> on_hover;
+        tools::Signal<void(ASTScopeView*)> signal_hover;
 
         ASTScopeView() = delete;
         ASTScopeView(ASTScope*);
@@ -56,8 +56,8 @@ namespace ndbl
         void         remove_child(CView auto* child);
     private:
         void         _on_shutdown();
-        void         _on_add_node(ASTNode*);
-        void         _on_remove_node(ASTNode*);
+        void         _handle_add_node(ASTNode *node);
+        void         _handle_remove_node(ASTNode *node);
     public:
         static void  ImGuiTreeNode_ASTScope(const char* title, ASTScope*);
     private:

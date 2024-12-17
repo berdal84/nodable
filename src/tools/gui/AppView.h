@@ -72,7 +72,7 @@ namespace tools
         bool        is_fullscreen() const;
         void        set_fullscreen( bool b );
         void        set_title( const char* string );
-        void        dock_window(const char* window_name, Dockspace)const; // Must be called within on_reset_layout
+        void        dock_window(const char* window_name, Dockspace)const; // Must be called within signal_reset_layout
         void        reset_layout();
         std::vector<unsigned char> take_screenshot() const;
         float       delta_time() const { return 1.f / m_last_frame_fps; }

@@ -47,13 +47,13 @@ namespace ndbl
         ASTNode(): m_component_collection(this), m_adjacent_nodes_cache(this) {};
         virtual ~ASTNode();
 //===== SIGNALS ========================================================================================================
-        tools::SimpleSignal                     on_shutdown; // emit once shutdown() has been called
-        tools::Signal<void(const std::string&)> on_name_change;
+        tools::SimpleSignal                     signal_shutdown; // emit once shutdown() has been called
+        tools::Signal<void(const std::string&)> signal_name_change;
 //===== COMMON METHODS =================================================================================================
         void                        init(ASTNodeType type, const std::string& name);
         void                        shutdown();
         const std::string&          name() const { return m_name; }
-        void                        set_name(const std::string& name) { m_name = name; on_name_change.emit(name); }
+        void                        set_name(const std::string& name) { m_name = name; signal_name_change.emit(name); }
         bool                        update();
         ASTNodeType                 type() const { return m_type; }
         bool                        is_invokable() const;
@@ -112,7 +112,7 @@ namespace ndbl
         const std::vector<ASTNode*>& flow_inputs() const  { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_IN); }
         const std::vector<ASTNode*>& flow_outputs() const { return m_adjacent_nodes_cache.get(SlotFlag_FLOW_OUT); }
     protected:
-        void                        on_slot_change(ASTNodeSlot::Event event, ASTNodeSlot *slot);
+        void                        _handle_slot_change(ASTNodeSlot::Event event, ASTNodeSlot *slot);
 //===== PROPERTY RELATED METHODS =======================================================================================
     public:
         const ASTNodeProperty*  value() const { return m_value; }

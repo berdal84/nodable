@@ -254,9 +254,9 @@ void FileView::draw(float dt)
         ImGui::EndChild();
 
         if ( text_view_changed )
-            on_text_view_changed.emit();
+            signal_text_view_changed.emit();
         else if ( graph_view_changed )
-            on_graph_view_changed.emit();
+            signal_graph_view_changed.emit();
     }
     ImGui::EndChild();
     ImGui::PopFont();
@@ -341,7 +341,7 @@ void FileView::draw_info_panel() const
     ImGui::Text("Graph statistics:");
     ImGui::Indent();
     ImGui::Text("Node count: %zu", m_file->graph()->nodes().size());
-    ImGui::Text("Edge count: %zu", m_file->graph()->get_edge_registry().size());
+    ImGui::Text("Edge count: %zu", m_file->graph()->edges().size());
     ImGui::Unindent();
     ImGui::NewLine();
 

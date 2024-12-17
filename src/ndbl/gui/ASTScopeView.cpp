@@ -22,13 +22,15 @@ ASTScopeView::ASTScopeView(ASTScope* scope)
 
     scope->set_view( this );
 
+    // Simulate we added the current child.
+    // Indeed, Signals currently do not store a history (unlike what you can do with RxJS for example)
     for( ASTNode* node : scope->child() )
     {
-        _on_add_node(node);
+        _handle_add_node(node);
     }
 
-    scope->on_add.connect<&ASTScopeView::_on_add_node>(this);
-    scope->on_remove.connect<&ASTScopeView::_on_remove_node>(this);
+    scope->signal_add_node.connect<&ASTScopeView::_handle_add_node>(this);
+    scope->signal_remove_node.connect<&ASTScopeView::_handle_remove_node>(this);
 }
 
 void ASTScopeView::_on_shutdown()
@@ -159,12 +161,12 @@ void ASTScopeView::draw(float dt)
 
         if ( ImGui::IsMouseHoveringRect(r.min, r.max) )
         {
-            on_hover.emit(this);
+            signal_hover.emit(this);
         }
     }
 }
 
-void ASTScopeView::_on_add_node(ASTNode* node)
+void ASTScopeView::_handle_add_node(ASTNode* node)
 {
     if( auto* view = node->component<ASTNodeView>())
     {
@@ -172,7 +174,7 @@ void ASTScopeView::_on_add_node(ASTNode* node)
     }
 }
 
-void ASTScopeView::_on_remove_node(ASTNode* node)
+void ASTScopeView::_handle_remove_node(ASTNode* node)
 {
     if( ASTNodeView* view = node->component<ASTNodeView>())
     {

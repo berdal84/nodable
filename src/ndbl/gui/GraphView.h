@@ -48,7 +48,7 @@ namespace ndbl
 	    GraphView();
 		~GraphView() override;
 
-        tools::SimpleSignal on_change;
+        tools::SimpleSignal signal_change;
 
         void                   update(float dt);
         bool                   draw(float dt);
@@ -76,7 +76,7 @@ namespace ndbl
         void                   _handle_shutdown();
         void                   _handle_add_node(ASTNode* node);
         void                   _handle_remove_node(ASTNode* node);
-        void                   _set_hovered(ASTScopeView*);
+        void                   _handle_hover(ASTScopeView *scope_view);
         void                   _unfold(); // unfold the graph until it is stabilized
         void                   _update(float dt, u16_t iterations);
         void                   _update(float dt);

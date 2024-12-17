@@ -44,8 +44,8 @@ namespace ndbl
         FileView(const FileView&) = delete;
 		~FileView() = default;
 
-        tools::SimpleSignal on_text_view_changed;
-        tools::SimpleSignal on_graph_view_changed;
+        tools::SimpleSignal signal_text_view_changed;
+        tools::SimpleSignal signal_graph_view_changed;
 
         void                           update(float d);
         void                           init(File& _file);

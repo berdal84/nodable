@@ -16,7 +16,7 @@ namespace tools
 
     //
     // Extend UniqueOrderedList specifically for Variant<Args...>
-    // Also provide a signal on_change to listen to append/remove events
+    // Also provide a signal signal_change to listen to append/remove events
     //
     template<typename ...Args>
     struct UniqueVariantList<Variant<Args...>>
@@ -37,7 +37,7 @@ namespace tools
             Remove,
         };
 
-        tools::Signal<void(EventType, Element)> on_change;
+        tools::Signal<void(EventType, Element)> signal_change;
 
         Element& front()
         { return _wrapped_list.front(); }
@@ -52,7 +52,7 @@ namespace tools
         {
             for( const Element& elem : _wrapped_list.data() )
             {
-                on_change.emit( EventType::Remove, elem );
+                signal_change.emit( EventType::Remove, elem );
             }
             _wrapped_list.clear();
             _count_by_index.clear();
@@ -74,7 +74,7 @@ namespace tools
             if ( ok )
             {
                 _count_by_index[elem.index()]++;
-                on_change.emit( EventType::Append, elem );
+                signal_change.emit( EventType::Append, elem );
             }
             return ok;
         }
@@ -95,7 +95,7 @@ namespace tools
             const bool ok = _wrapped_list.remove(elem);
             {
                 _count_by_index[elem.index()]--;
-                on_change.emit( EventType::Append, elem );
+                signal_change.emit( EventType::Append, elem );
             }
             return ok;
         }
