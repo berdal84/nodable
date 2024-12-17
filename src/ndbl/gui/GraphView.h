@@ -57,15 +57,16 @@ namespace ndbl
         const Selection&       selection() const { return _m_selection; }
         void                   reset_all_properties();
         Graph*                 graph() const { return entity(); } // alias for entity
-        void                   add_child(ASTNodeView*);
+        void                   add_child(ASTScopeView*);
+        void                   remove_child(ASTScopeView*);
 
         static void            draw_wire_from_slot_to_pos(ASTNodeSlotView *from, const Vec2 &end_pos);
     private:
+        tools::SpatialNode*    spatial_node() { return _m_shape.spatial_node(); }
         ASTNodeViewContextualMenu      _m_create_node_menu;
         Selectable             _m_hovered;
         Selectable             _m_focused;
         Selection              _m_selection;
-        tools::SpatialNode     _m_spatial_data;
         tools::BoxShape2D      _m_shape;
         bool                   _m_physics_dirty = false;
 

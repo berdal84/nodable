@@ -43,7 +43,6 @@ constexpr const char* LINE_STATE       = "Line Tool";
 GraphView::GraphView()
 : Component<Graph>("View")
 , _m_state_machine(this)
-, _m_spatial_data()
 , _m_shape( Vec2{100.f, 100.f} ) // non null area
 {
     Component::signal_init.connect<&GraphView::_handle_init>(this);
@@ -115,6 +114,11 @@ void GraphView::_handle_add_node(ASTNode* node)
         scope_view->signal_hover.connect<&GraphView::_handle_hover>(this);
         scope_view->add_child( nodeview );
 
+        if ( graph()->root_node() == node )
+        {
+            add_child( scope_view );
+        }
+
         for ( ASTScope* sub_scope : internal_scope->partition() )
         {
             auto* sub_scope_view = node->components()->create<ASTScopeView>(sub_scope);
@@ -126,7 +130,11 @@ void GraphView::_handle_add_node(ASTNode* node)
 
 void GraphView::_handle_remove_node(ASTNode* node)
 {
-
+    if ( graph()->root_node() )
+        if ( node->has_internal_scope() )
+            if ( auto* view = node->internal_scope()->view() )
+                if ( view->spatial_node()->has_parent() )
+                    remove_child( view );
 }
 
 ImGuiID make_wire_id(const ASTNodeSlot *ptr1, const ASTNodeSlot *ptr2)
@@ -175,7 +183,7 @@ bool GraphView::draw(float dt)
 
     // Ensure view state fit with content region
     // (n.b. we could also implement a struct RootViewState wrapping ViewState)
-    Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE );
+    Rect region = ImGuiEx::GetContentRegion(WORLD_SPACE);
     _m_shape.set_size( region.size() );
     _m_shape.set_position(region.center()); // children will be relative to the center
     _m_shape.draw_debug_info();
@@ -762,10 +770,19 @@ void GraphView::drag_state_tick()
 
     for ( const Selectable& elem : _m_selection )
     {
-        if ( auto* nodeview = elem.get_if<ASTNodeView*>() )
+        if ( auto* nodeview = elem.get_if<ASTNodeView*>())
+        {
             nodeview->translate(delta);
-        else if ( auto* scopeview = elem.get_if<ASTScopeView*>() )
+            nodeview->state()->set_pinned();
+        }
+        else if ( auto* scopeview = elem.get_if<ASTScopeView*>())
+        {
             scopeview->translate(delta);
+            scopeview->state()->set_pinned();
+//            if ( ASTNode* _node = scopeview->scope()->head() )
+//                if ( ASTNodeView* _nodeview = _node->component<ASTNodeView>())
+//                    _nodeview->state()->set_pinned();
+        }
     }
 
     if ( ImGui::IsMouseReleased(0) )
@@ -1119,11 +1136,18 @@ void GraphView::roi_state_tick()
     }
 }
 
-void GraphView::add_child(ASTNodeView* view)
+void GraphView::add_child(ASTScopeView* view)
 {
     SpatialNode* _spatial_node = view->spatial_node();
-    VERIFY(_spatial_node != nullptr, "A SpatialNode is required to _add_child");
-    _m_spatial_data.add_child( _spatial_node );
+    assert(_spatial_node);
+    spatial_node()->add_child( _spatial_node );
+}
+
+void GraphView::remove_child(ASTScopeView* view)
+{
+    SpatialNode* _spatial_node = view->spatial_node();
+    assert(_spatial_node);
+    spatial_node()->remove_child( _spatial_node );
 }
 
 void GraphView::update(float dt)
