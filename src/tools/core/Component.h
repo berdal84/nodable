@@ -30,18 +30,18 @@ namespace tools
         tools::SimpleSignal signal_init; // called after component knows its entity
         tools::SimpleSignal signal_shutdown; // called before to be deleted, when component still knows its entity
     private:
-        EntityT*            _m_entity;
-        std::string         _m_name;
+        EntityT*              _m_entity{};
+        const TypeDescriptor* _m_type_desc{};
+        std::string           _m_name{};
 //====== Methods =======================================================================================================
     public:
-        DECLARE_REFLECT_virtual
-
         Component() = delete;
         Component(const char* name)
-                : _m_name(name)
-                , _m_entity(nullptr)
+        : _m_name(name)
+        , _m_type_desc(type::get<Component>())
         {}
         virtual ~Component() = default;
+        // TODO: if ComponentBag could delete from the real type (not this base), we could remove virtual destructor no?
 
         EntityT* entity() const
         {
@@ -58,12 +58,19 @@ namespace tools
             // TODO: Can't we have a constexpr name?
             _m_name = name;
         }
+
+        const TypeDescriptor* get_class() const
+        {
+            return _m_type_desc;
+        }
+
 //====== Internal================================== ====================================================================
     private:
-        void _init(EntityT* entity)
+        void _init(EntityT* entity, const TypeDescriptor* type_desc )
         {
-            LOG_VERBOSE("Component", "_init \"%s\" ...\n", _m_name.c_str());
-            _m_entity = entity;
+            LOG_VERBOSE("Component", "_init \"%s\" (type: %s ) ...\n", _m_name.c_str(), type_desc->name() );
+            _m_entity    = entity;
+            _m_type_desc = type_desc;
             signal_init.emit();
         }
 
@@ -71,20 +78,21 @@ namespace tools
         {
             LOG_VERBOSE("Component", "_shutdown \"%s\" ...\n", _m_name.c_str());
             signal_shutdown.emit();
-            _m_entity = nullptr;
+            _m_entity    = nullptr;
+            _m_type_desc = nullptr;
         }
     };
 
     //
     // Handle a set of components for an entity class EntityT
     //
-    // minimalist example:
+    // minimalist example with components having a default constructor:
     //    struct MyEntity
     //    {
-    //         ComponentsOf<MyEntity>& components() { return m_components }
-    //         const ComponentsOf<MyEntity>& components() const { return m_components }
+    //         template<typename T>   create_component() { return _m_components.create<T>(); }
+    //         template<typename T>   get_component()    { return _m_components.get<T>(); }
     //    private:
-    //         ComponentsOf<MyEntity> m_components;
+    //         ComponentBag<MyEntity> _m_components;
     //    }
     //
     template<typename EntityT>
@@ -228,9 +236,10 @@ namespace tools
         void _append(T* c)
         {
             _m_component.push_back(c );
-            auto it = _m_component_indexed_by_typeid.emplace(std::type_index(typeid(T)), c );
+            const auto* type = type::get<T>();
+            auto it = _m_component_indexed_by_typeid.emplace( type->id() , c );
             ASSERT(it != _m_component_indexed_by_typeid.end() );
-            c->_init(_m_entity);
+            c->_init( _m_entity, type );
         }
 
         // for later conversion to an allocator

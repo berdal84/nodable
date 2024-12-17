@@ -52,7 +52,6 @@ namespace ndbl
     class ASTNodeView : public tools::Component<ASTNode>
 	{
     public:
-        DECLARE_REFLECT_override
         friend class GraphView;
         ASTNodeView();
 		~ASTNodeView() override;

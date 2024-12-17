@@ -29,13 +29,13 @@ namespace ndbl
     class ASTScopeView : public tools::Component<ASTNode>
     {
     public:
-        DECLARE_REFLECT_override
         typedef tools::Rect Rect;
 
         tools::Signal<void(ASTScopeView*)> signal_hover;
 
         ASTScopeView() = delete;
         ASTScopeView(ASTScope*);
+        ~ASTScopeView() override = default;
 
         void         update(float dt, ScopeViewFlags = ScopeViewFlags_NONE );
         void         draw(float dt);

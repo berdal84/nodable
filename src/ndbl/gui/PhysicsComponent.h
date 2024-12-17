@@ -46,10 +46,10 @@ namespace  ndbl
     class PhysicsComponent : public tools::Component<ASTNode>
     {
     public:
-        DECLARE_REFLECT_override
         typedef std::vector<ViewConstraint> Constraints;
 
         PhysicsComponent();
+        ~PhysicsComponent() override = default;
 
         void            add_constraint(ViewConstraint& c) { _constraints.push_back(std::move(c)); }
         void            apply_constraints(float dt);

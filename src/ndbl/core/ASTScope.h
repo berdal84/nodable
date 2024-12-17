@@ -28,8 +28,6 @@ namespace ndbl
     class ASTScope : public tools::Component<ASTNode>
     {
     public:
-        DECLARE_REFLECT_override
-
         tools::Signal<void(ASTScope*)> signal_reset_parent;
         tools::Signal<void(ASTNode*)>  signal_add_node;
         tools::Signal<void(ASTNode*)>  signal_remove_node;
@@ -40,7 +38,7 @@ namespace ndbl
         ASTToken token_end   = {ASTToken_t::ignore};
 
         ASTScope();
-        ~ASTScope();
+        ~ASTScope() override;
 
         bool                           contains(ASTNode* node) const;
         ASTScope*                      parent() { return m_parent; }

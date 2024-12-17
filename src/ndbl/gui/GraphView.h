@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "tools/core/Component.h"  // base class
-#include "tools/core/reflection/reflection"
 #include "tools/core/Variant.h"
 #include "tools/core/UniqueVariantList.h"
 #include "tools/gui/ViewState.h"
@@ -43,8 +42,6 @@ namespace ndbl
     class GraphView : public tools::Component<Graph>
     {
     public:
-        DECLARE_REFLECT_override
-
 	    GraphView();
 		~GraphView() override;
 
