@@ -18,20 +18,28 @@ namespace tools
     struct ComponentBag;
 
     //
-    // Class to extend to create a component for the entity of class EntityT
-    // see ComponentsOf<class EntityT>
+    // Base class to implement a new Component for class/struct EntityT
     //
     template<typename EntityT>
+    requires std::is_object_v<EntityT>
     class Component
     {
         friend class ComponentBag<EntityT>;
+//====== Data ==========================================================================================================
+    protected:
+        tools::SimpleSignal signal_init; // called after component knows its entity
+        tools::SimpleSignal signal_shutdown; // called before to be deleted, when component still knows its entity
+    private:
+        EntityT*            _m_entity;
+        std::string         _m_name;
+//====== Methods =======================================================================================================
     public:
         DECLARE_REFLECT_virtual
 
         Component() = delete;
         Component(const char* name)
-        : _m_name(name)
-        , _m_entity(nullptr)
+                : _m_name(name)
+                , _m_entity(nullptr)
         {}
         virtual ~Component() = default;
 
@@ -47,14 +55,9 @@ namespace tools
 
         void set_name(const std::string& name)
         {
+            // TODO: Can't we have a constexpr name?
             _m_name = name;
-            signal_name_change.emit(_m_name );
         }
-//====== Signals (to be connected or not by the implementation) ========================================================
-    protected:
-        tools::SimpleSignal                     signal_init; // called after instantiation, once component knows its entity
-        tools::SimpleSignal                     signal_shutdown; // called before to be deleted, when component still knows its entity
-        tools::Signal<void(const std::string&)> signal_name_change;
 //====== Internal================================== ====================================================================
     private:
         void _init(EntityT* entity)
@@ -70,13 +73,10 @@ namespace tools
             signal_shutdown.emit();
             _m_entity = nullptr;
         }
-
-        EntityT*    _m_entity;
-        std::string _m_name;
     };
 
     //
-    // Handle a set of components for an entity class E
+    // Handle a set of components for an entity class EntityT
     //
     // minimalist example:
     //    struct MyEntity
@@ -87,20 +87,28 @@ namespace tools
     //         ComponentsOf<MyEntity> m_components;
     //    }
     //
-    template<typename E>
+    template<typename EntityT>
     struct ComponentBag
 	{
-        using ComponentT     = Component<E>;
+        using ComponentT     = Component<EntityT>;
         using iterator       = typename std::vector<ComponentT*>::iterator;
         using const_iterator = typename std::vector<ComponentT*>::const_iterator;
-
-        ComponentBag(const ComponentBag&) = default;
-
-        explicit ComponentBag(E* entity)
-        : _entity_ptr(entity)
+        using ComponentByTypeIndex = std::unordered_multimap<std::type_index, ComponentT*>;
+//====== Data ==========================================================================================================
+    private:
+        ComponentByTypeIndex     _m_component_indexed_by_typeid;
+        std::vector<ComponentT*> _m_component;
+        EntityT*                 _m_entity;
+//====== Methods =======================================================================================================
+    public:
+        ComponentBag() = delete;
+        explicit ComponentBag(EntityT* entity)
+        : _m_entity(entity)
         {
             ASSERT(entity);
         };
+        ComponentBag(const ComponentBag&) = delete;
+        ComponentBag(ComponentBag&&) = delete;
 
         ~ComponentBag()
         {
@@ -110,14 +118,12 @@ namespace tools
 
         void shutdown() noexcept // free memory
         {
+            // TODO: we could optimize these two loops by iterating once.
+            //       but for some reasons components have unordered dependencies that needs to be fixed.
             for(ComponentT* component : _m_component)
-            {
                 component->_shutdown();
-            }
             for(ComponentT* component : _m_component)
-            {
                 _deallocate(component);
-            }
             _m_component.clear();
             _m_component_indexed_by_typeid.clear();
         }
@@ -224,16 +230,12 @@ namespace tools
             _m_component.push_back(c );
             auto it = _m_component_indexed_by_typeid.emplace(std::type_index(typeid(T)), c );
             ASSERT(it != _m_component_indexed_by_typeid.end() );
-            c->_init(_entity_ptr);
+            c->_init(_m_entity);
         }
 
         // for later conversion to an allocator
 
         template<typename T, typename ...Args> T*   _allocate(Args...args)   { return new T(args...); }
         template<class T>                      void _deallocate(T* ptr){ delete ptr; }
-
-        E* _entity_ptr;
-        std::unordered_multimap<std::type_index, ComponentT*> _m_component_indexed_by_typeid;
-        std::vector<ComponentT*> _m_component;
     };
 }
