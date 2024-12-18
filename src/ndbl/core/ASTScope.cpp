@@ -293,13 +293,21 @@ std::set<ASTScope*>& ASTScope::get_descendent_ex(std::set<ASTScope*>& out, ASTSc
     return out;
 }
 
-void ASTScope::reset_parent(ASTScope* new_parent )
+void ASTScope::reset_parent(ASTScope* new_parent)
 {
+    VERIFY(new_parent != m_parent, "new_parent is expected to be different than the current one");
     m_parent = new_parent;
+    _set_depth_cache_dirty();
+}
 
-    // TODO: depth value may be incorrect when reparenting a scope having child scopes
-    //       I can fix this by returning a cached value (recomputed on the fly when dirty).
-    m_depth  = new_parent ? new_parent->m_depth + 1 : 0;
+void ASTScope::_set_depth_cache_dirty()
+{
+    m_cached_depth_dirty = true;
+
+    // recurse
+    for(ASTNode* child : m_child)
+        if (ASTScope* child_scope = child->internal_scope() )
+            child_scope->_set_depth_cache_dirty();
 }
 
 bool ASTScope::contains(ASTNode* node) const
@@ -316,10 +324,13 @@ void ASTScope::reset_head(ASTNode* node)
     m_head = node;
 }
 
-const std::vector<ASTNode*>& ASTScope::backbone() const
+void ASTScope::_update_depth_cache()
 {
-    const_cast<ASTScope*>(this)->_update_backbone_cache();
-    return m_cached_backbone;
+    if ( !m_cached_depth_dirty )
+        return;
+
+    m_cached_depth = m_parent ? m_parent->depth() + 1 : 0;
+    m_cached_depth_dirty = false;
 }
 
 void ASTScope::_update_backbone_cache()

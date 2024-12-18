@@ -34,10 +34,11 @@ namespace ndbl
         ASTNode*                  m_head = nullptr; // backbone's start
         std::vector<ASTNode*>     m_cached_backbone;
         bool                      m_cached_backbone_dirty = true;
+        size_t                    m_cached_depth = 0;
+        bool                      m_cached_depth_dirty = true;
         std::set<ASTVariable*>    m_variable;
         std::vector<ASTScope*>    m_partition;
         ASTScope*                 m_parent = nullptr;
-        size_t                    m_depth = 0;
 //== Methods ===========================================================================================================
     public:
         ASTScope();
@@ -57,7 +58,7 @@ namespace ndbl
         const std::set<ASTNode*>&      child() const { return m_child; }
         ASTNode*                       head() const { return m_head; }
         void                           reset_head(ASTNode* node = nullptr);
-        const std::vector<ASTNode*>&   backbone() const; // backbone is a vector of nodes starting from the scope's head including all flow_outputs in this scope (recursively)
+        const std::vector<ASTNode*>&   backbone() const { const_cast<ASTScope*>(this)->_update_backbone_cache(); return m_cached_backbone; } // backbone is a vector of nodes starting from the scope's head including all flow_outputs in this scope (recursively)
         void                           reset_parent(ASTScope* new_parent = nullptr);
         bool                           is_partitioned() const { return !m_partition.empty(); }
         bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
@@ -66,7 +67,7 @@ namespace ndbl
         const std::vector<ASTScope*>&  partition() const { return m_partition; }
         ASTScope*                      partition_at(size_t pos) { return m_partition.at(pos); };
         bool                           is_orphan() const { return m_parent == nullptr; }
-        size_t                         depth() const { return m_depth; };
+        size_t                         depth() const { const_cast<ASTScope*>(this)->_update_depth_cache(); return m_cached_depth; };
         ASTNode*                       node() const { return entity(); }; // alias for entity
         static ASTScope*               lowest_common_ancestor(const std::set<ASTScope*>& scopes);
         static ASTScope*               lowest_common_ancestor(ASTScope* s1, ASTScope* s2);
@@ -76,5 +77,7 @@ namespace ndbl
         void                           _on_shutdown();
         std::vector<ASTNode*>&         _leaves_ex(std::vector<ASTNode*>& out);
         void                           _update_backbone_cache();
+        void                           _update_depth_cache();
+        void                           _set_depth_cache_dirty();
     };
 }
