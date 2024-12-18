@@ -26,8 +26,8 @@ namespace tools
     //
     struct State
     {
-        const char*      name  = nullptr;
-        SimpleDelegate  delegate[When_COUNT];
+        const char*      name{};
+        SimpleDelegate   delegate[When_COUNT]{};
     };
 
     class StateMachine
@@ -60,12 +60,12 @@ namespace tools
         void exit_state();
 
     private:
+        bool   started() const { return m_current_state != nullptr; }
         void   add_state(State*);
         State* get_state(const char* name);
-        void   change_state(State*);
+        void   set_next_state(State *state);
 
         void*  m_context_ptr;
-        bool   m_started       = false;
         State* m_default_state = nullptr;
         State* m_current_state = nullptr;
         State* m_next_state    = nullptr;
