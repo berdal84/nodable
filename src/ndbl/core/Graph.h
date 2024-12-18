@@ -63,6 +63,8 @@ namespace ndbl
         tools::SimpleBroadcastSignal  signal_change;
         tools::Signal<void(ASTNode*)> signal_add_node;
         tools::Signal<void(ASTNode*)> signal_remove_node;
+        using ScopeChanged = void(ASTNode*, ASTScope* /* old_scope */, ASTScope* /* new_scope */ ) ;
+        tools::Signal<ScopeChanged>   signal_handle_changed_scope;
         tools::SimpleSignal           signal_is_complete; // user defined, usually when parser or user is done
     private:
         const ASTNodeFactory*         m_factory{};
@@ -122,9 +124,13 @@ namespace ndbl
         template<typename T> ASTLiteral*  create_literal()                 { return create_literal( tools::type::get<T>(), this->root_scope() ); }
         template<typename T> ASTLiteral*  create_literal(ASTScope* scope ) { return create_literal( tools::type::get<T>(), scope ); }
     private:
-        void                   _insert(ASTNode*, ASTScope*);
-        NodeRegistry::iterator _erase(NodeRegistry::iterator);
-        void                   _clean_node(ASTNode* node);
+        void                    _insert(ASTNode*, ASTScope*);
+        NodeRegistry::iterator  _erase(NodeRegistry::iterator);
+        void                    _clean_node(ASTNode* node);
+
+        void                    _reset_scope(ASTNode* scoped_node);
+        void                    _transfer_children(ASTScope* from, ASTScope* to);
+        void                    _change_scope(ASTNode *node, ASTScope* desired_scope);
 //====== Edge(s) Related ===============================================================================================
     public:
         ASTSlotLink             connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags = GraphFlag_NONE );
@@ -134,10 +140,10 @@ namespace ndbl
         EdgeRegistry::iterator  disconnect(const ASTSlotLink&, GraphFlags = GraphFlag_NONE);
         const EdgeRegistry&     edges() const { return m_edge_registry; }
     private:
-        void                    _handle_disconnect_value_side_effects(const ASTSlotLink&) const;
-        void                    _handle_disconnect_flow_side_effects(const ASTSlotLink&) const;
-        void                    _handle_connect_value_side_effects(const ASTSlotLink&) const;
-        void                    _handle_connect_flow_side_effects(const ASTSlotLink&) const;
+        void                    _handle_disconnect_value_side_effects(const ASTSlotLink&);
+        void                    _handle_disconnect_flow_side_effects(const ASTSlotLink&);
+        void                    _handle_connect_value_side_effects(const ASTSlotLink&);
+        void                    _handle_connect_flow_side_effects(const ASTSlotLink&);
         EdgeRegistry::iterator  _disconnect(EdgeRegistry::iterator, GraphFlags = GraphFlag_NONE );
     };
 }

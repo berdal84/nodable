@@ -29,16 +29,10 @@ REFLECT_STATIC_INITIALIZER
     DEFINE_REFLECT(ASTNodeView).extends<Component<ASTNode>>();
 )
 
-constexpr Vec4 DEFAULT_COLOR = Vec4(1.f, 0.f, 0.f);
 #define PIXEL_PERFECT true // round positions for drawing only
 
 ASTNodeView::ASTNodeView()
-    : Component<ASTNode>("View")
-    , m_colors({&DEFAULT_COLOR})
-    , m_opacity(1.0f)
-    , m_expanded(true)
-    , m_value_view(nullptr)
-    , m_hovered_slotview(nullptr)
+: Component<ASTNode>("View")
 {
     Component::signal_init.connect<&ASTNodeView::_handle_init>(this);
     Component::signal_shutdown.connect<&ASTNodeView::_handle_shutdown>(this);
@@ -46,8 +40,8 @@ ASTNodeView::ASTNodeView()
 
 ASTNodeView::~ASTNodeView()
 {
-    // assert(Component::signal_init.disconnect<&ASTNodeView::_on_init>(this)); unnecessary
-    // assert(Component::signal_shutdown.disconnect<&ASTNodeView::_on_shutdown>(this)); unnecessary
+    assert(Component::signal_init.disconnect<&ASTNodeView::_handle_init>(this));
+    assert(Component::signal_shutdown.disconnect<&ASTNodeView::_handle_shutdown>(this));
     assert(m_slot_views.empty());
     assert(m_view_by_property.empty());
     for(auto vector : m_view_by_property_type )
@@ -212,26 +206,53 @@ void ASTNodeView::_handle_init()
 
     // note: We pass color by address to be able to change the color dynamically
     set_color( &cfg->ui_node_fill_color[ node()->type()] );
+
+    // 4. Create ScopeView(s)
+    //-----------------------
+
+    // add a ScopeView for the inner scope and any child that is owned by this node too
+    if ( ASTScope* internal_scope = node()->internal_scope() )
+    {
+        // Create scopeviews (front is the internal, others are partitions)
+        m_scopeviews.reserve(1 + internal_scope->partition().size() );
+
+        // internal
+        auto& scopeview = m_scopeviews.emplace_back();
+        scopeview.init(internal_scope);
+        _add_child(&scopeview);
+
+        // partitions
+        // TODO: we might need to reconsider the fact we have this concept of partitions, it creates a special case
+        //       we could instead, add dynamically a scope/scopeview to any node connected to a branch?
+        for (ASTScope* _scope : internal_scope->partition() )
+        {
+            auto& _scopeview = m_scopeviews.emplace_back();
+            _scopeview.init(_scope);
+            _add_child(&_scopeview);
+        }
+    }
 }
 
 void ASTNodeView::_handle_shutdown()
 {
+    spatial_node()->clear();
+
     for(auto& [_, each] : m_view_by_property )
-    {
-        spatial_node()->remove_child( each->spatial_node() );
         delete each;
-    }
     m_view_by_property.clear();
 
     for(auto& vector : m_view_by_property_type )
-    {
         vector.clear();
-    }
+    // no m_view_by_property_type.clear(), it is an array ;)
 
     for(auto* each : m_slot_views )
-    {
-        spatial_node()->remove_child( each->spatial_node() );
         delete each;
+    m_slot_views.clear();
+
+    // from begin to end => because parent is first, and is responsible un-parenting.
+    for(auto& _scopeview : m_scopeviews )
+    {
+        _scopeview.shutdown();
     }
     m_slot_views.clear();
 
@@ -328,8 +349,11 @@ void ASTNodeView::update(float dt)
     if(m_opacity != 1.0f)
         tools::clamped_lerp(m_opacity, 1.0f, 10.0f * dt);
 
-    for(ASTNodeSlotView* slot_view  : m_slot_views )
-        slot_view->update( dt );
+    for(ASTNodeSlotView* _slotview  : m_slot_views )
+        _slotview->update( dt );
+
+    for(ASTScopeView& _scopeview  : m_scopeviews )
+        _scopeview.update( dt );
 }
 
 bool ASTNodeView::draw()

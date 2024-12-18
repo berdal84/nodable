@@ -109,7 +109,7 @@ void Compiler::compile_scope(const ASTScope* scope, bool _insert_fake_return)
         Instruction *instr = m_temp_code->push_instr(OpCode_push_stack_frame);
         instr->push.scope  = scope;
         char str[64];
-        snprintf(str, 64, "%s's internal_scope", scope->node()->name().c_str());
+        snprintf(str, 64, "%s's scopeview", scope->node()->name().c_str());
         instr->m_comment = str;
     }
 
@@ -144,7 +144,7 @@ void Compiler::compile_scope(const ASTScope* scope, bool _insert_fake_return)
     {
         Instruction *instr = m_temp_code->push_instr(OpCode_pop_stack_frame);
         instr->pop.scope   = scope;
-        instr->m_comment   = scope->node()->name() + "'s internal_scope";
+        instr->m_comment   = scope->node()->name() + "'s scopeview";
     }
 }
 

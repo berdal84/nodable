@@ -129,17 +129,17 @@ void Graph::_insert(ASTNode* node, ASTScope* scope)
 {
     // do the inverse of Graph::_erase(ASTNode* node)
 
-    if ( !scope )
+    if ( scope != nullptr )
     {
-        VERIFY(m_node_registry.empty(), "only the first _insertscopeed node (root) can have no scope");
+        VERIFY( !m_node_registry.empty(), "can't insert a scoped node first, a root node (with a nullptr scope) should be inserted before." );
+        VERIFY( node->scope() == nullptr, "node must be unscoped, use scope argument instead" );
+        VERIFY( scope->node()->graph() == this, "the provided scope belong to another graph" );
+        assert(!node->has_flags(ASTNodeFlag_WAS_IN_A_SCOPE_ONCE)); // double-check
+        scope->append(node);
     }
     else
     {
-        VERIFY( root_node(), "a root node must be _inserted first" );
-        VERIFY( node->scope() == nullptr, "Scope must be unset, it must be passed as an arg" );
-        VERIFY( scope,"A Node must have a scope prior to be added to the graph" );
-        VERIFY( scope->node()->graph() == this, "The Scope you provided is from a different graph" );
-        ASTScope::init_scope(node, scope);
+        VERIFY( m_node_registry.empty(), "you didn't provided a scope argument, which is only valid for the first insert (root node).");
     }
 
     node->m_graph = this;
@@ -182,10 +182,19 @@ void Graph::_clean_node(ASTNode* node)
             edge_it = _disconnect(edge_it);
     }
 
+    // unset scope
     if ( node->scope() )
     {
-        ASTScope::reset_scope(node);
+        _reset_scope(node);
     }
+
+    // transfer children to default scope
+    if ( node->internal_scope() && !node->internal_scope()->empty() )
+    {
+        VERIFY( node != root_node(), "root should not have children at this stage, it must be cleaned last." );
+        _transfer_children(node->internal_scope(), root_scope());
+    }
+
     LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name().c_str() );
 }
 
@@ -321,7 +330,7 @@ ASTSlotLink Graph::connect(ASTNodeSlot* tail, ASTNodeSlot* head, GraphFlags _fla
     return edge;
 }
 
-void Graph::_handle_connect_value_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_connect_value_side_effects(const ASTSlotLink& edge )
 {
     // ensure the tail node has the right scope
     // must be:
@@ -338,7 +347,7 @@ void Graph::_handle_connect_value_side_effects(const ASTSlotLink& edge ) const
             target_scope = head_node->internal_scope();
         }
 
-        ASTScope::change_scope( tail_node, target_scope );
+        _change_scope(tail_node, target_scope);
     }
 
     // make sure head property type matches with tail, update head when needed.
@@ -350,7 +359,7 @@ void Graph::_handle_connect_value_side_effects(const ASTSlotLink& edge ) const
     }
 }
 
-void Graph::_handle_disconnect_value_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_disconnect_value_side_effects(const ASTSlotLink& edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_OUTPUT );
 
@@ -364,7 +373,7 @@ void Graph::_handle_disconnect_value_side_effects(const ASTSlotLink& edge ) cons
     }
 }
 
-void Graph::_handle_disconnect_flow_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_disconnect_flow_side_effects(const ASTSlotLink& edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
@@ -396,10 +405,10 @@ void Graph::_handle_disconnect_flow_side_effects(const ASTSlotLink& edge ) const
             }
         }
     }
-    ASTScope::change_scope(edge.head->node, target_scope );
+    _change_scope(edge.head->node, target_scope);
 }
 
-void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge ) const
+void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge )
 {
     ASSERT( edge.tail->type_and_order() == SlotFlag_FLOW_OUT );
 
@@ -417,18 +426,18 @@ void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge ) const
             if (internal_scope->is_partitioned())
             {
                 ASTScope* branch_scope = internal_scope->partition_at(edge.tail->position);
-                ASTScope::change_scope(next_node, branch_scope);
+                _change_scope(next_node, branch_scope);
                 branch_scope->reset_head(next_node);
             }
             else
             {
-                ASTScope::change_scope(next_node, internal_scope);
+                _change_scope(next_node, internal_scope);
                 internal_scope->reset_head(next_node);
             }
         }
         else
         {
-            ASTScope::change_scope( next_node, previous_node->scope() );
+            _change_scope(next_node, previous_node->scope());
         }
     }
     else if ( flow_in_edge_count > 1 )
@@ -440,7 +449,7 @@ void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge ) const
 
         if (scopes.size() == 1 )
         {
-            ASTScope::change_scope( next_node, *scopes.begin() );
+            _change_scope(next_node, *scopes.begin());
         }
         else
         {
@@ -449,7 +458,7 @@ void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge ) const
             {
                 target_scope = target_scope->parent();
             }
-            ASTScope::change_scope( next_node, target_scope );
+            _change_scope(next_node, target_scope);
             // node: no need to branch_scope->reset_head(next_node) here, since when we have 2 flow in or more, we can't be the head
         }
     }
@@ -668,3 +677,50 @@ bool Graph::contains(ASTNode* node) const
     return std::find( m_node_registry.begin(), m_node_registry.end(), node ) != m_node_registry.end();
 }
 
+
+void Graph::_change_scope(ASTNode* node, ASTScope* desired_scope)
+{
+    ASTScope* current_scope = node->scope();
+
+    VERIFY( current_scope != nullptr, "node must be scoped to be changed for another scope");
+    VERIFY( desired_scope != nullptr, "a non null desired scope is expected");
+
+    if ( desired_scope == current_scope )
+    {
+        return;
+    }
+
+    current_scope->remove(node);
+    desired_scope->append(node);
+
+    signal_handle_changed_scope.emit(node, current_scope, desired_scope);
+}
+
+void Graph::_transfer_children(ASTScope* source, ASTScope* target)
+{
+    ASSERT(source);
+    ASSERT(target);
+
+    // transfer nodes
+    auto child = source->child();
+    for(ASTNode* _node : child)
+    {
+        _change_scope(_node, target);
+        ASSERT(_node->scope() == target);
+    }
+
+    // transfer partition's content
+    for( ASTScope* _scope : source->partition() )
+    {
+        _transfer_children(_scope, target);
+        ASSERT(_scope->empty());
+    }
+
+    ASSERT(source->empty());
+}
+
+void Graph::_reset_scope(ASTNode* node)
+{
+    ASSERT(node->scope());
+    node->scope()->remove(node);
+}

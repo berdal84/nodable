@@ -51,6 +51,31 @@ namespace ndbl
 	 */
     class ASTNodeView : public tools::Component<ASTNode>
 	{
+        constexpr static tools::Vec4 DEFAULT_COLOR{1.f, 0.f, 0.f};
+//== Data ==============================================================================================================
+    private:
+        enum PropType
+        {
+            PropType_IN_STRICTLY = 0,
+            PropType_OUT_STRICTLY,
+            PropType_INOUT_STRICTLY,
+            PropType_IN,
+            PropType_OUT,
+            PropType_COUNT
+        };
+
+        tools::BoxShape2D          m_shape;
+        tools::ViewState           m_view_state;
+        bool                       m_expanded{true};
+        float                      m_opacity{1.f};
+        ASTNodeSlotView*           m_hovered_slotview{};
+        std::vector<ASTScopeView>  m_scopeviews;
+        std::array<const tools::Vec4*, Color_COUNT> m_colors {&DEFAULT_COLOR};
+        std::vector<ASTNodeSlotView*>     m_slot_views;
+        std::unordered_map<const ASTNodeProperty*, ASTNodePropertyView*> m_view_by_property;
+        ASTNodePropertyView*              m_value_view{};
+        std::array<std::vector<ASTNodePropertyView*>, PropType::PropType_COUNT> m_view_by_property_type;
+//== Methods ===========================================================================================================
     public:
         friend class GraphView;
         ASTNodeView();
@@ -82,7 +107,9 @@ namespace ndbl
         tools::ViewState*       state() { return &m_view_state; }
         const tools::ViewState* state() const { return &m_view_state; }
         void                    reset_all_properties();
-
+        ASTScopeView*           scopeview() { return const_cast<ASTScopeView*>( const_cast<const ASTNodeView*>(this)->scopeview()); }
+        const ASTScopeView*     scopeview() const { return m_scopeviews.empty() ? nullptr : &m_scopeviews.front(); }
+        std::vector<ASTScopeView>& scopeviews() { return m_scopeviews; }
         static tools::Rect      bounding_rect(const std::vector<ASTNodeView *>&, tools::Space = tools::WORLD_SPACE, NodeViewFlags = NodeViewFlag_NONE);
         static bool             draw_as_properties_panel(ASTNodeView*, bool* show_advanced );
         static ASTNodeView*     substitute_with_parent_if_not_visible(ASTNodeView*, bool _recursive = true);
@@ -105,28 +132,6 @@ namespace ndbl
             float border_radius,
             float border_width
         );
-
-        tools::BoxShape2D          m_shape;
-        tools::ViewState           m_view_state;
-        bool                       m_expanded;
-        float                      m_opacity;
-        ASTNodeSlotView*           m_hovered_slotview;
-        std::array<const tools::Vec4*, Color_COUNT> m_colors;
-        std::vector<ASTNodeSlotView*>     m_slot_views;
-        std::unordered_map<const ASTNodeProperty*, ASTNodePropertyView*> m_view_by_property;
-        ASTNodePropertyView*              m_value_view;
-
-        enum PropType
-        {
-            PropType_IN_STRICTLY = 0,
-            PropType_OUT_STRICTLY,
-            PropType_INOUT_STRICTLY,
-            PropType_IN,
-            PropType_OUT,
-            PropType_COUNT
-        };
-
-        std::array<std::vector<ASTNodePropertyView*>, PropType::PropType_COUNT> m_view_by_property_type;
     };
 
     void ASTNodeView::_add_child(CView auto* view)

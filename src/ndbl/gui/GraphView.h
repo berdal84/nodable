@@ -57,9 +57,6 @@ namespace ndbl
         const Selection&       selection() const { return _m_selection; }
         void                   reset_all_properties();
         Graph*                 graph() const { return entity(); } // alias for entity
-        void                   add_child(ASTScopeView*);
-        void                   remove_child(ASTScopeView*);
-
         static void            draw_wire_from_slot_to_pos(ASTNodeSlotView *from, const Vec2 &end_pos);
     private:
         tools::SpatialNode*    spatial_node() { return _m_shape.spatial_node(); }
@@ -74,6 +71,7 @@ namespace ndbl
         void                   _handle_shutdown();
         void                   _handle_add_node(ASTNode* node);
         void                   _handle_remove_node(ASTNode* node);
+        void                   _handle_change_scope(ASTNode* node, ASTScope* old_scope, ASTScope* new_scope);
         void                   _handle_hover(ASTScopeView *scope_view);
         void                   _unfold(); // unfold the graph until it is stabilized
         void                   _update(float dt, u16_t iterations);

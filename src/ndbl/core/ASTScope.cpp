@@ -5,7 +5,6 @@
 #include <algorithm> // for std::find_if
 
 #include "tools/core/log.h"
-#include "tools/core/memory/memory.h"
 
 #include "ASTForLoop.h"
 #include "ASTIf.h"
@@ -31,6 +30,9 @@ ASTScope::ASTScope()
 
 ASTScope::~ASTScope()
 {
+    // assert(Component::signal_init.disconnect<&ASTScope::on_init>(this));
+    assert(Component::signal_shutdown.disconnect<&ASTScope::_on_shutdown>(this));
+    // assert(Component::signal_name_change.disconnect<&ASTScope::_on_name_change>(this));
     assert(m_parent == nullptr);
     assert(m_head == nullptr);
     assert(m_child.empty());
@@ -66,10 +68,7 @@ void ASTScope::_on_shutdown()
     }
     m_partition.clear();
 
-    // move children to default scope
-    ASTScope* default_scope = node()->graph()->root_scope();
-    ASTScope::transfer_children_to(this, default_scope);
-
+    VERIFY( m_child.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
     reset_head();
 }
 
@@ -87,12 +86,9 @@ ASTVariable* ASTScope::find_variable(const std::string& _identifier, ScopeFlags 
     return nullptr;
 }
 
-void ASTScope::_append(ASTNode *node, ScopeFlags flags)
+void ASTScope::append(ASTNode *node)
 {
     m_cached_backbone_dirty = true;
-
-    constexpr ScopeFlags allowed_flags = ScopeFlags_PREVENT_EVENTS;
-    ASSERT( (flags & ~allowed_flags) == 0); // Incompatible flag
 
     const ASTScope* previous_scope = node->scope();
     ASSERT(node);
@@ -108,17 +104,17 @@ void ASTScope::_append(ASTNode *node, ScopeFlags flags)
         auto variable_node = reinterpret_cast<ASTVariable*>( node );
         if (find_variable(variable_node->get_identifier()) != nullptr )
         {
-            LOG_ERROR("Scope", "Unable to append variable '%s', already exists in the same internal_scope.\n", variable_node->get_identifier().c_str());
+            LOG_ERROR("Scope", "Unable to append variable '%s', already exists in the same scopeview.\n", variable_node->get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else if (variable_node->scope() )
         {
-            LOG_ERROR("Scope", "Unable to append variable '%s', already declared in another internal_scope. Remove it first.\n", variable_node->get_identifier().c_str());
+            LOG_ERROR("Scope", "Unable to append variable '%s', already declared in another scopeview. Remove it first.\n", variable_node->get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else
         {
-            LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scope\n", variable_node->get_identifier().c_str() );
+            LOG_VERBOSE("Scope", "Add '%s' variable to the scopeview\n", variable_node->get_identifier().c_str() );
             m_variable.insert(variable_node);
         }
     }
@@ -127,16 +123,9 @@ void ASTScope::_append(ASTNode *node, ScopeFlags flags)
     for ( ASTNode* input : node->inputs() )
         if ( input->type() != ASTNodeType_VARIABLE ) // variables must be manually added
             if (input->scope() == previous_scope )
-                _append(input, flags);
+                append(input);
 
     node->reset_scope(this);
-
-    // emit event
-    if ( !(flags & ScopeFlags_PREVENT_EVENTS) )
-    {
-        signal_change.emit();
-        signal_add_node.emit(node);
-    }
 }
 
 std::vector<ASTNode*> ASTScope::leaves()
@@ -181,10 +170,8 @@ std::vector<ASTNode*>& ASTScope::_leaves_ex(std::vector<ASTNode*>& out)
     return out;
 }
 
-void ASTScope::_remove(ndbl::ASTNode *node, ndbl::ScopeFlags flags)
+void ASTScope::remove(ndbl::ASTNode *node)
 {
-    constexpr ScopeFlags allowed_flags = ScopeFlags_PREVENT_EVENTS;
-    ASSERT( (flags & ~allowed_flags) == 0); // Incompatible flag
     ASSERT( node );
     ASSERT( node->scope() == this); // node can't be inside its own Scope
 
@@ -194,25 +181,19 @@ void ASTScope::_remove(ndbl::ASTNode *node, ndbl::ScopeFlags flags)
     for ( ASTNode* input : node->inputs() )
         if ( input->scope() == this )
             if ( input->type() != ASTNodeType_VARIABLE ) // variables must be manually removed
-                this->_remove(input, flags );
+                remove(input);
 
     // erase node + side effects
     m_child.erase( node );
     if (m_head == node )
     {
-        this->reset_head();
+        reset_head();
     }
     node->reset_scope(nullptr);
 
     if ( node->type() == ASTNodeType_VARIABLE )
     {
         m_variable.erase( reinterpret_cast<ASTVariable*>(node) );
-    }
-
-    if ( (flags & ScopeFlags_PREVENT_EVENTS) == 0 )
-    {
-        signal_change.emit();
-        signal_remove_node.emit(node);
     }
 
     ASSERT( node->scope() == nullptr);
@@ -312,64 +293,13 @@ std::set<ASTScope*>& ASTScope::get_descendent_ex(std::set<ASTScope*>& out, ASTSc
     return out;
 }
 
-void ASTScope::change_scope(ASTNode* node, ASTScope* desired_scope, ScopeFlags flags )
-{
-    ASTScope* current_scope = node->scope();
-    ASSERT( desired_scope != nullptr);
-    ASSERT( current_scope != nullptr);
-
-    if ( desired_scope == current_scope )
-    {
-        return;
-    }
-
-    const ScopeFlags remove_flags = flags & ScopeFlags_PREVENT_EVENTS; // other flags are unused in here
-    current_scope->_remove(node, remove_flags);
-    desired_scope->_append(node, flags);
-}
-
-void ASTScope::reset_parent(ASTScope* new_parent, ScopeFlags flags )
+void ASTScope::reset_parent(ASTScope* new_parent )
 {
     m_parent = new_parent;
+
+    // TODO: depth value may be incorrect when reparenting a scope having child scopes
+    //       I can fix this by returning a cached value (recomputed on the fly when dirty).
     m_depth  = new_parent ? new_parent->m_depth + 1 : 0;
-
-    if ( (flags & ScopeFlags_PREVENT_EVENTS) == 0 )
-        signal_reset_parent.emit(new_parent );
-}
-
-void ASTScope::init_scope(ASTNode* node, ASTScope* scope)
-{
-    ASSERT( !node->has_flags(ASTNodeFlag_WAS_IN_A_SCOPE_ONCE) );
-    scope->_append(node);
-}
-
-void ASTScope::transfer_children_to(ASTScope* source, ASTScope* target)
-{
-    ASSERT(source);
-    ASSERT(target);
-
-    // transfer nodes
-    auto child = source->child();
-    for(ASTNode* _node : child)
-    {
-        change_scope(_node, target );
-        ASSERT(_node->scope() == target);
-    }
-
-    // transfer partition's content
-    for( ASTScope* _scope : source->partition() )
-    {
-        transfer_children_to(_scope, target);
-        ASSERT(_scope->empty());
-    }
-
-    ASSERT(source->empty());
-}
-
-void ASTScope::reset_scope(ASTNode* node)
-{
-    ASSERT(node->scope());
-    node->scope()->_remove(node);
 }
 
 bool ASTScope::contains(ASTNode* node) const

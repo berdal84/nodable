@@ -16,6 +16,26 @@ namespace  ndbl
     class ASTNodeView;
     class ASTScopeView;
 
+    //
+    // TODO: this struct should be replaced by a very simple one, all the code should move where each ViewConstrain
+    //       instance is created, maybe using factories if we need to reuse code.
+    //       But as-is, it is a mess. This code alone is not well understandable, and the code where ViewConstrain are
+    //       instantiated is not completely clear.
+    //       It should be like:
+    //
+    //       struct ViewConstraint
+    //      {
+    //          bool  enabled = false;
+    //          ViewConstraint(const char* name, std::function<void(float)>&& update_function)
+    //          : _m_name(name)
+    //          , _m_update_function(update_function)
+    //          {}
+    //          void update(float dt) { if(enabled) _m_update_function(dt); }
+    //      private:
+    //          std::string                _m_name;
+    //          std::function<void(float)> _m_update_function;
+    //      }
+    //
     struct ViewConstraint
     {
         typedef std::vector<ASTNodeView*> NodeViews;

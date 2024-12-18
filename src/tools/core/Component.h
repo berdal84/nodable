@@ -83,6 +83,11 @@ namespace tools
         }
     };
 
+    template<typename T, typename EntityT>
+    concept ComponentFor = requires (T t) {
+        std::is_base_of_v<Component<EntityT>, T>;
+    };
+
     //
     // Handle a set of components for an entity class EntityT
     //
@@ -141,7 +146,7 @@ namespace tools
             return _m_component.size();
         }
 
-        template<typename T>
+        template<ComponentFor<EntityT> T>
         bool has() const
         {
             return get<T>() != nullptr;
@@ -152,7 +157,7 @@ namespace tools
             return _m_component;
         }
 
-        template<typename T>
+        template<ComponentFor<EntityT> T>
         T* create()
         {
             auto* c = _allocate<T>();
@@ -160,7 +165,7 @@ namespace tools
             return c;
         }
 
-        template<typename T, typename ...Args>
+        template<ComponentFor<EntityT> T, typename ...Args>
         T* create(Args...args)
         {
             auto* c = _allocate<T>(args...);
@@ -168,17 +173,18 @@ namespace tools
             return c;
         }
 
-        template<typename T>
+        template<ComponentFor<EntityT> T>
         void destroy(T* component)
         {
             auto it = std::find_if(_m_component_indexed_by_typeid.begin(), _m_component_indexed_by_typeid.end(), [&](const auto& pair) { return pair.second == component; });
             ASSERT(it != _m_component_indexed_by_typeid.end());
             _m_component_indexed_by_typeid.erase(it);
             _m_component.erase(std::find(_m_component.begin(), _m_component.end(), component ) );
+            component->_shutdown();
             _deallocate(component);
         }
 
-        template<typename T>
+        template<ComponentFor<EntityT> T>
         T* get() const
         {
             const T* c = _get_by_type<T>();
@@ -187,7 +193,7 @@ namespace tools
             return nullptr;
         }
 
-        template<class T>
+        template<ComponentFor<EntityT> T>
         static std::vector<T*> get_every(const std::vector<ComponentBag*>& entities)
         {
             std::vector<T*> result;
@@ -201,7 +207,7 @@ namespace tools
             return result;
         }
 
-        template<class T>
+        template<ComponentFor<EntityT> T>
         T* require(const char* reason) const
         {
             T* component = get<T>();
@@ -215,7 +221,7 @@ namespace tools
         const_iterator cend() const   { return _m_component.cend(); }
     private:
 
-        template<typename T>
+        template<ComponentFor<EntityT> T>
         const T* _get_by_type() const
         {
             auto it = _m_component_indexed_by_typeid.find(std::type_index(typeid(T)));
@@ -226,13 +232,13 @@ namespace tools
             return nullptr;
         }
 
-        template<typename T>
+        template<ComponentFor<EntityT> T>
         const_iterator _find(T* ptr) const
         {
             return std::find(_m_component.begin(), _m_component.end(), ptr);
         }
 
-        template<class T>
+        template<ComponentFor<EntityT> T>
         void _append(T* c)
         {
             _m_component.push_back(c );

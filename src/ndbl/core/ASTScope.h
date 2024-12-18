@@ -2,8 +2,6 @@
 
 #include <vector>
 #include <set>
-#include "tools/core/Signals.h"
-#include "tools/core/Optional.h"
 #include "tools/core/Component.h"
 #include "ASTToken.h"
 #include "ASTNode.h"
@@ -22,24 +20,31 @@ namespace ndbl
         ScopeFlags_RECURSE_PARENT_SCOPES   = 1 << 0,
         ScopeFlags_RECURSE_CHILD_PARTITION = 1 << 1,
         ScopeFlags_INCLUDE_SELF            = 1 << 2,
-        ScopeFlags_PREVENT_EVENTS          = 1 << 3,
     };
 
     class ASTScope : public tools::Component<ASTNode>
     {
+//== Data ==============================================================================================================
     public:
-        tools::Signal<void(ASTScope*)> signal_reset_parent;
-        tools::Signal<void(ASTNode*)>  signal_add_node;
-        tools::Signal<void(ASTNode*)>  signal_remove_node;
-        tools::SimpleSignal            signal_change;
-        tools::SimpleSignal            signal_clear;
-
-        ASTToken token_begin = {ASTToken_t::ignore};
-        ASTToken token_end   = {ASTToken_t::ignore};
-
+        ASTToken                  token_begin = {ASTToken_t::ignore};
+        ASTToken                  token_end   = {ASTToken_t::ignore};
+    private:
+        ASTScopeView*             m_view = nullptr;
+        std::set<ASTNode*>        m_child;
+        ASTNode*                  m_head = nullptr; // backbone's start
+        std::vector<ASTNode*>     m_cached_backbone;
+        bool                      m_cached_backbone_dirty = true;
+        std::set<ASTVariable*>    m_variable;
+        std::vector<ASTScope*>    m_partition;
+        ASTScope*                 m_parent = nullptr;
+        size_t                    m_depth = 0;
+//== Methods ===========================================================================================================
+    public:
         ASTScope();
         ~ASTScope() override;
 
+        void                           append(ASTNode*);
+        void                           remove(ASTNode*);
         bool                           contains(ASTNode* node) const;
         ASTScope*                      parent() { return m_parent; }
         const ASTScope*                parent() const { return m_parent; }
@@ -53,7 +58,7 @@ namespace ndbl
         ASTNode*                       head() const { return m_head; }
         void                           reset_head(ASTNode* node = nullptr);
         const std::vector<ASTNode*>&   backbone() const; // backbone is a vector of nodes starting from the scope's head including all flow_outputs in this scope (recursively)
-        void                           reset_parent(ASTScope* new_parent = nullptr, ScopeFlags = ScopeFlags_NONE);
+        void                           reset_parent(ASTScope* new_parent = nullptr);
         bool                           is_partitioned() const { return !m_partition.empty(); }
         bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
         void                           create_partitions(size_t count);
@@ -67,25 +72,9 @@ namespace ndbl
         static ASTScope*               lowest_common_ancestor(ASTScope* s1, ASTScope* s2);
         static std::set<ASTScope*>&    get_descendent(std::set<ASTScope*>& out, ASTScope* scope, ScopeFlags flags = ScopeFlags_INCLUDE_SELF) { return get_descendent_ex(out, scope, -1, flags); }
         static std::set<ASTScope*>&    get_descendent_ex(std::set<ASTScope*>& out, ASTScope* scope, size_t level_max = -1, ScopeFlags = ScopeFlags_INCLUDE_SELF);
-        static void                    init_scope(ASTNode* unscoped_node, ASTScope *scope);
-        static void                    reset_scope(ASTNode* scoped_node);
-        static void                    transfer_children_to(ASTScope* source, ASTScope* target);
-        static void                    change_scope(ASTNode *node, ASTScope* desired_scope, ScopeFlags = ScopeFlags_NONE);
     private:
         void                           _on_shutdown();
-        void                           _append(ASTNode*, ScopeFlags = ScopeFlags_NONE);
-        void                           _remove(ASTNode*, ScopeFlags = ScopeFlags_NONE);
         std::vector<ASTNode*>&         _leaves_ex(std::vector<ASTNode*>& out);
         void                           _update_backbone_cache();
-
-        ASTScopeView*                  m_view = nullptr;
-        std::set<ASTNode*>             m_child;
-        ASTNode*                       m_head = nullptr; // backbone's start
-        std::vector<ASTNode*>          m_cached_backbone;
-        bool                           m_cached_backbone_dirty = true;
-        std::set<ASTVariable*>         m_variable;
-        std::vector<ASTScope*>         m_partition;
-        ASTScope*                      m_parent = nullptr;
-        size_t                         m_depth = 0;
     };
 }

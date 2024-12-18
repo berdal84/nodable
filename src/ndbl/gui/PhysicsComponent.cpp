@@ -193,6 +193,13 @@ std::vector<ASTNodeView*> ViewConstraint::clean(std::vector<ASTNodeView *> &view
 void ViewConstraint::rule_distribute_sub_scope_views(float dt)
 {
     // filter views to constrain
+    //
+    // TODO: there is an issue here, due to the specific case of Scope being partitions (sharing the same node with
+    //       their parent scope), it is complicated to disable the constraints when the partition contains a single
+    //       nested scope (e.g. in a while/if/for/etc.).
+    //       The concept of partition should be removed. They must be either dynamically added/removed when user
+    //       connects a node to a branch, or they must be attached to a separate node.
+    //
     std::vector<ASTScopeView*> sub_scope_view;
     for(ASTScope* sub_scope : leader[0]->node()->internal_scope()->partition() )
         if ( !sub_scope->view()->pinned() )

@@ -9,33 +9,19 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(ASTScopeView).extends<Component<ASTNode>>();
-)
-
-ASTScopeView::ASTScopeView(ASTScope* scope)
-:  tools::Component<ASTNode>("ScopeView")
-, m_scope(scope)
+void ASTScopeView::init(ASTScope* scope)
 {
-    Component::signal_shutdown.connect<&ASTScopeView::_on_shutdown>(this);
+    ASSERT(scope != nullptr);
 
-    scope->set_view( this );
-
-    // Simulate we added the current child.
-    // Indeed, Signals currently do not store a history (unlike what you can do with RxJS for example)
-    for( ASTNode* node : scope->child() )
-    {
-        _handle_add_node(node);
-    }
-
-    scope->signal_add_node.connect<&ASTScopeView::_handle_add_node>(this);
-    scope->signal_remove_node.connect<&ASTScopeView::_handle_remove_node>(this);
+    m_scope = scope;
+    scope->set_view(this);
 }
 
-void ASTScopeView::_on_shutdown()
+void ASTScopeView::shutdown()
 {
     spatial_node()->clear();
+    m_scope->set_view(nullptr);
+    m_scope = nullptr;
 }
 
 ASTScopeView* ASTScopeView::parent() const
@@ -72,7 +58,7 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
     };
 
     if ( !m_scope->is_partition() )
-        if ( auto nodeview = m_scope->entity()->component<ASTNodeView>() )
+        if ( auto nodeview = m_scope->node()->component<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
     for( ASTNode* node : m_scope->child() )
@@ -163,22 +149,6 @@ void ASTScopeView::draw(float dt)
         {
             signal_hover.emit(this);
         }
-    }
-}
-
-void ASTScopeView::_handle_add_node(ASTNode* node)
-{
-    if( auto* view = node->component<ASTNodeView>())
-    {
-        add_child( view );
-    }
-}
-
-void ASTScopeView::_handle_remove_node(ASTNode* node)
-{
-    if( ASTNodeView* view = node->component<ASTNodeView>())
-    {
-        remove_child( view );
     }
 }
 

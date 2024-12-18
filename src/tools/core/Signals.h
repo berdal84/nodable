@@ -39,7 +39,6 @@ namespace tools
         using DelegateT = Delegate<SignalReturnT(SignalArgsT...)>; // the expected delegate type to connect with
 
         Signal() = default;
-        Signal(const Signal&) = delete;
         Signal(const DelegateT& delegate)
         : _m_delegate(delegate)
         {}

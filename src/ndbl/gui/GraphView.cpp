@@ -47,22 +47,6 @@ GraphView::GraphView()
 {
     Component::signal_init.connect<&GraphView::_handle_init>(this);
     Component::signal_shutdown.connect<&GraphView::_handle_shutdown>(this);
-}
-
-GraphView::~GraphView()
-{
-    assert(Component::signal_init.disconnect<&GraphView::_handle_init>(this));
-    assert(Component::signal_shutdown.disconnect<&GraphView::_handle_shutdown>(this));
-}
-
-void GraphView::_handle_init()
-{
-    _m_selection.signal_change.connect<&GraphView::_on_selection_change>(this);
-    graph()->signal_add_node.connect<&GraphView::_handle_add_node>(this);
-    graph()->signal_remove_node.connect<&GraphView::_handle_remove_node>(this);
-    graph()->signal_change.connect<&GraphView::_on_graph_change>(this);
-    graph()->signal_reset.connect<&GraphView::reset>(this);
-    graph()->signal_is_complete.connect<&GraphView::reset>(this);
 
     _m_state_machine.add_state(CURSOR_STATE);
     _m_state_machine.bind<&GraphView::cursor_state_tick>(CURSOR_STATE, When::OnTick);
@@ -83,58 +67,111 @@ void GraphView::_handle_init()
     _m_state_machine.bind<&GraphView::line_state_enter>(LINE_STATE, When::OnEnter);
     _m_state_machine.bind<&GraphView::line_state_tick>(LINE_STATE, When::OnTick);
     _m_state_machine.bind<&GraphView::line_state_leave>(LINE_STATE, When::OnLeave);
+}
+
+GraphView::~GraphView()
+{
+    assert(Component::signal_init.disconnect<&GraphView::_handle_init>(this));
+    assert(Component::signal_shutdown.disconnect<&GraphView::_handle_shutdown>(this));
+}
+
+void GraphView::_handle_init()
+{
+    // add nodes present before connecting signals
+    for( auto* node : graph()->nodes() )
+    {
+        _handle_add_node(node);
+    }
+
+    _m_selection.signal_change.connect<&GraphView::_on_selection_change>(this);
+    graph()->signal_add_node.connect<&GraphView::_handle_add_node>(this);
+    graph()->signal_remove_node.connect<&GraphView::_handle_remove_node>(this);
+    graph()->signal_handle_changed_scope.connect<&GraphView::_handle_change_scope>(this);
+    graph()->signal_change.connect<&GraphView::_on_graph_change>(this);
+    graph()->signal_reset.connect<&GraphView::reset>(this);
+    graph()->signal_is_complete.connect<&GraphView::reset>(this);
 
     _m_state_machine.start();
 }
 
 void GraphView::_handle_shutdown()
 {
+    _m_state_machine.stop();
+
     assert(_m_selection.signal_change.disconnect<&GraphView::_on_selection_change>(this));
     assert( graph()->signal_add_node.disconnect<&GraphView::_handle_add_node>(this) );
     assert( graph()->signal_remove_node.disconnect<&GraphView::_handle_remove_node>(this) );
     assert( graph()->signal_change.disconnect<&GraphView::_on_graph_change>(this) );
     assert( graph()->signal_reset.disconnect<&GraphView::reset>(this) );
     assert( graph()->signal_is_complete.disconnect<&GraphView::reset>(this) );
+
+    // add nodes still present after connecting signals
+    for( auto* node : graph()->nodes() )
+    {
+        _handle_remove_node(node);
+    }
 }
 
 void GraphView::_handle_add_node(ASTNode* node)
 {
-   // view state component
+    // view
     auto* nodeview = node->components()->create<ASTNodeView>();
     nodeview->set_size({20.f, 35.f});
 
-    // physics component
-    node->components()->create<PhysicsComponent>();
+    for ( auto& _scopeview : nodeview->scopeviews() )
+        _scopeview.signal_hover.connect<&GraphView::_handle_hover>(this); // I'm not sure if this is a good approach...
 
-    // add a ScopeView for the inner scope and any child that is owned by this node too
-    if ( node->has_internal_scope() )
+    if( graph()->root_node() == node )
     {
-        ASTScope*  internal_scope = node->internal_scope();
-        auto*      scope_view     = node->components()->create<ASTScopeView>(internal_scope);
-        scope_view->signal_hover.connect<&GraphView::_handle_hover>(this);
-        scope_view->add_child( nodeview );
-
-        if ( graph()->root_node() == node )
-        {
-            add_child( scope_view );
-        }
-
-        for ( ASTScope* sub_scope : internal_scope->partition() )
-        {
-            auto* sub_scope_view = node->components()->create<ASTScopeView>(sub_scope);
-            sub_scope_view->signal_hover.connect<&GraphView::_handle_hover>(this);
-            nodeview->_add_child(sub_scope_view);
-        }
+        // root must be parented to the graph view itself
+        spatial_node()->add_child( nodeview->spatial_node() );
     }
+    else
+    {
+        SpatialNode* scopeview_spatial_node = node->scope()->view()->spatial_node();
+        scopeview_spatial_node->add_child( nodeview->spatial_node() );
+    }
+
+    // physics
+    node->components()->create<PhysicsComponent>();
 }
 
 void GraphView::_handle_remove_node(ASTNode* node)
 {
-    if ( graph()->root_node() )
-        if ( node->has_internal_scope() )
-            if ( auto* view = node->internal_scope()->view() )
-                if ( view->spatial_node()->has_parent() )
-                    remove_child( view );
+    // clean physics
+    auto* physics_component = node->component<PhysicsComponent>();
+    VERIFY(physics_component, "Should have been created from _handle_add_node()");
+    node->components()->destroy( physics_component );
+
+    // clean nodeview
+    auto* nodeview = node->component<ASTNodeView>();
+    VERIFY(nodeview, "Should have been created from _handle_add_node()");
+
+    for ( auto& _scopeview : nodeview->scopeviews() )
+    {
+        assert(_scopeview.signal_hover.disconnect<&GraphView::_handle_hover>(this)); // I'm not sure if this is a good approach...
+    }
+
+    if( SpatialNode* _parent = nodeview->spatial_node()->parent() )
+    {
+        _parent->remove_child( nodeview->spatial_node() );
+    }
+
+    node->components()->destroy( nodeview );
+}
+
+void GraphView::_handle_change_scope(ASTNode* node, ASTScope* old_scope, ASTScope* new_scope)
+{
+    auto* nodeview = node->component<ASTNodeView>();
+    VERIFY(nodeview, "a nodeview must be present since we are in a GraphView");
+
+    // Un-parent from old scope's spatial node
+    if( ASTScopeView* _scopeview = old_scope->view() )
+        _scopeview->spatial_node()->remove_child( nodeview->spatial_node() );
+
+    // Parent to new scope or default to graph's spatial node
+    if( ASTScopeView* _scopeview = new_scope->view() )
+        _scopeview->spatial_node()->add_child( nodeview->spatial_node() );
 }
 
 ImGuiID make_wire_id(const ASTNodeSlot *ptr1, const ASTNodeSlot *ptr2)
@@ -198,6 +235,7 @@ bool GraphView::draw(float dt)
 
     // Draw Scopes
     std::vector<ASTScope*> scopes_to_draw = graph()->scopes();
+    // TODO: we should sort them only when a new parent/child connection is created/deleted
     auto low_to_high_depth = [](ASTScope* s1, ASTScope* s2) { return s1->depth() < s2->depth(); };
     std::sort(scopes_to_draw.begin(), scopes_to_draw.end(), low_to_high_depth);
 
@@ -770,18 +808,26 @@ void GraphView::drag_state_tick()
 
     for ( const Selectable& elem : _m_selection )
     {
-        if ( auto* nodeview = elem.get_if<ASTNodeView*>())
+        auto* nodeview = elem.get_if<ASTNodeView*>();
+
+        if ( nodeview )
         {
             nodeview->translate(delta);
             nodeview->state()->set_pinned();
         }
-        else if ( auto* scopeview = elem.get_if<ASTScopeView*>())
+        else if ( auto* scopeview = elem.get_if<ASTScopeView*>() )
         {
-            scopeview->translate(delta);
-            scopeview->state()->set_pinned();
-//            if ( ASTNode* _node = scopeview->scope()->head() )
-//                if ( ASTNodeView* _nodeview = _node->component<ASTNodeView>())
-//                    _nodeview->state()->set_pinned();
+            nodeview = scopeview->node()->component<ASTNodeView>();
+
+            if ( scopeview->scope()->is_partition() )
+            {
+                scopeview->translate(delta);
+            }
+            else
+            {
+                nodeview->translate(delta);
+                nodeview->state()->set_pinned();
+            }
         }
     }
 
@@ -829,9 +875,8 @@ void GraphView::cursor_state_tick()
 
             case Selectable::index_of<ASTScopeView*>():
             {
-                auto      scopeview = _m_focused.get<ASTScopeView*>();
-                ASTNode*     node     = scopeview->entity();
-                ASTNodeView* nodeview = node->component<ASTNodeView>();
+                const auto* scopeview = _m_focused.get<ASTScopeView*>();
+                auto* nodeview = scopeview->node()->component<ASTNodeView>();
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {
                     nodeview->expand_toggle_rec();
@@ -839,7 +884,7 @@ void GraphView::cursor_state_tick()
 
                 if ( ImGui::MenuItem("Delete Scope") )
                 {
-                    auto event = new Event_DeleteSelection({scopeview->entity()});
+                    auto event = new Event_DeleteSelection({scopeview->node()});
                     get_event_manager()->dispatch(event);
                 }
 
@@ -1134,20 +1179,6 @@ void GraphView::roi_state_tick()
 
         _m_state_machine.exit_state();
     }
-}
-
-void GraphView::add_child(ASTScopeView* view)
-{
-    SpatialNode* _spatial_node = view->spatial_node();
-    assert(_spatial_node);
-    spatial_node()->add_child( _spatial_node );
-}
-
-void GraphView::remove_child(ASTScopeView* view)
-{
-    SpatialNode* _spatial_node = view->spatial_node();
-    assert(_spatial_node);
-    spatial_node()->remove_child( _spatial_node );
 }
 
 void GraphView::update(float dt)

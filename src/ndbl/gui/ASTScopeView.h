@@ -26,19 +26,30 @@ namespace ndbl
         Theme_LIGHT = true
     };
 
-    class ASTScopeView : public tools::Component<ASTNode>
+    class ASTScopeView
     {
+        using Rect = tools::Rect;
+//== Data ==============================================================================================================
     public:
-        typedef tools::Rect Rect;
-
         tools::Signal<void(ASTScopeView*)> signal_hover;
+    private:
+        tools::ViewState          m_view_state{};
+        tools::SpatialNode        m_spatial_node{};
+        ASTScope*                 m_scope{};
+        Rect                      m_content_rect{};
+        std::vector<ASTNodeView*> m_wrapped_node_view{};
+        Theme                     m_theme{};
+//== Methods ===========================================================================================================
+    public:
+        ASTScopeView() = default;
+        ASTScopeView(const ASTScopeView&) = default;
 
-        ASTScopeView() = delete;
-        ASTScopeView(ASTScope*);
-        ~ASTScopeView() override = default;
-
+        void         init(ASTScope*);
+        void         shutdown();
         void         update(float dt, ScopeViewFlags = ScopeViewFlags_NONE );
         void         draw(float dt);
+        ASTNode*       node() const { return scope()->node(); }
+        const ASTNode* node() { return scope()->node(); }
         tools::ViewState* state() { return &m_view_state; }
         bool         has_parent() const { return m_scope->parent() != nullptr; }
         ASTScopeView*parent() const;
@@ -52,34 +63,10 @@ namespace ndbl
         void         set_pinned(bool b = true);
         const Rect&  content_rect() const { return m_content_rect; }
         void         arrange_content();
-        void         add_child(CView auto* child);
-        void         remove_child(CView auto* child);
-    private:
-        void         _on_shutdown();
-        void         _handle_add_node(ASTNode *node);
-        void         _handle_remove_node(ASTNode *node);
     public:
         static void  ImGuiTreeNode_ASTScope(const char* title, ASTScope*);
     private:
         static void  ImGuiTreeNode_ASTScopeContent(ASTScope*);
         static void  ImGuiTreeNode_ASTNode(ASTNode*);
-
-        tools::ViewState          m_view_state;
-        tools::SpatialNode        m_spatial_node;
-        ASTScope*                 m_scope = nullptr;
-        Rect                      m_content_rect;
-        std::vector<ASTNodeView*> m_wrapped_node_view;
-        Theme                     m_theme;
     };
-
-    void ASTScopeView::add_child(CView auto* child)
-    {
-        spatial_node()->add_child( child->spatial_node() );
-        child->spatial_node()->set_position({0.f, 0.f}, tools::PARENT_SPACE);
-    }
-
-    void ASTScopeView::remove_child(CView auto* child)
-    {
-        spatial_node()->remove_child( child->spatial_node() );
-    }
 }
