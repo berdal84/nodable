@@ -28,8 +28,8 @@ namespace ndbl
         ASTNodeSlot*         condition_in(Branch branch = Branch_TRUE)       { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]; }
     private:
 
-        size_t                           m_branch_count = 0;
-        std::array<ASTNodeSlot*, BRANCH_MAX>    m_branch_slot;
+        size_t                                    m_branch_count = 0;
+        std::array<ASTNodeSlot*, BRANCH_MAX>      m_branch_slot;
         std::array<ASTNodeSlot*, BRANCH_MAX - 1>  m_condition_in; // branch_FALSE has no condition
     };
 }

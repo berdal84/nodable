@@ -6,6 +6,7 @@
 #include "ASTIf.h"
 #include "ASTLiteral.h"
 #include "ASTNode.h"
+#include "ASTUtils.h"
 #include "ASTNodeFactory.h"
 #include "ASTScope.h"
 #include "ASTVariable.h"
@@ -37,7 +38,7 @@ void Graph::_init()
     ASSERT( m_node_registry.empty() ); // Root must be first, registry should be empty
 
     // create and _insert root
-    ASTNode* root  = m_factory->create_entry_point();
+    ASTNode* root  = m_factory->create_root_scope();
     this->_insert(root, nullptr);
 
     LOG_VERBOSE("Graph", "-- add root node %p (name: %s, class: %s)\n", root, root->name().c_str(), root->get_class()->name());
@@ -189,13 +190,19 @@ void Graph::_clean_node(ASTNode* node)
     }
 
     // transfer children to default scope
-    if ( node->internal_scope() && !node->internal_scope()->empty() )
+    if (ASTScope* _internal_scope = node->internal_scope() )
     {
-        VERIFY( node != root_node(), "root should not have children at this stage, it must be cleaned last." );
-        _transfer_children(node->internal_scope(), root_scope());
+        _transfer_children( _internal_scope, root_scope());
     }
 
     LOG_VERBOSE("Graph", "-- node %p (name: \"%s\"): pre__erased\n", node, node->name().c_str() );
+}
+
+ASTNode* Graph::create_scope(ASTScope* scope)
+{
+    auto* node = m_factory->create_scope();
+    _insert(node, scope);
+    return node;
 }
 
 ASTVariable* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, ASTScope* scope)
@@ -221,6 +228,9 @@ ASTFunctionCall* Graph::create_operator(const FunctionDescriptor& _type, ASTScop
 
 void Graph::find_and_destroy(ASTNode* node)
 {
+    if (!node)
+        return;
+
     auto it = std::find(m_node_registry.begin(), m_node_registry.end(), node);
     ASSERT( it != m_node_registry.end() );
 
@@ -418,22 +428,21 @@ void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge )
 
     if ( flow_in_edge_count == 1)
     {
-        // When connecting to a branch, we want to add the head node into the corresponding branch's scope
-        if ( edge.tail->has_flags(SlotFlag_IS_BRANCH) )
+        if ( edge.tail->has_flags(SlotFlag_IS_INTERNAL) )
         {
-            ASTScope* internal_scope = previous_node->internal_scope();
-            ASSERT(internal_scope);
-            if (internal_scope->is_partitioned())
+            ASTScope* target_scope = previous_node->internal_scope();
+            if ( ASTUtils::is_conditional(previous_node) )
             {
-                ASTScope* branch_scope = internal_scope->partition_at(edge.tail->position);
-                _change_scope(next_node, branch_scope);
-                branch_scope->reset_head(next_node);
+                if( !next_node->has_internal_scope() && !ASTUtils::is_connected_to_codeflow(next_node) )
+                {
+                    // insert a scope between target_scope and next_node
+                    ASTNode* intermediate_node = create_scope(target_scope);
+                    target_scope->reset_head(intermediate_node);
+                    target_scope = intermediate_node->internal_scope();
+                }
             }
-            else
-            {
-                _change_scope(next_node, internal_scope);
-                internal_scope->reset_head(next_node);
-            }
+            _change_scope(next_node, target_scope);
+            target_scope->reset_head(next_node); // since slot has IS_BRANCH, this node must become the head
         }
         else
         {
@@ -454,8 +463,9 @@ void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge )
         else
         {
             ASTScope* target_scope = ASTScope::lowest_common_ancestor(scopes );
-            if (target_scope->is_partitioned() ) // We can't use a scope having sub_scopes directly, using parent
+            if( ASTUtils::is_conditional(target_scope->node()) )
             {
+                // We don't want to add a node in a conditional scope, we must pick the parent
                 target_scope = target_scope->parent();
             }
             _change_scope(next_node, target_scope);
@@ -640,29 +650,22 @@ std::vector<ASTScope *> Graph::scopes()
     return result;
 }
 
-void Graph::flag_scope_to_delete(ASTScope* scope)
-{
-    VERIFY( scope->node() != nullptr, "scope has no entity/node !!!");
-    ASSERT( scope->node()->graph() == this );
-
-    flag_node_to_delete(scope->entity(), GraphFlag_ALLOW_SIDE_EFFECTS);
-
-    for ( ASTNode* node : scope->child() )
-        flag_node_to_delete(node, GraphFlag_ALLOW_SIDE_EFFECTS);
-
-    for ( ASTScope* _scope : scope->partition() )
-        flag_scope_to_delete(_scope);
-}
-
 void Graph::flag_node_to_delete(ASTNode *node, GraphFlags flags)
 {
     ASSERT(node->graph() == this);
 
-    // trash inputs first, when needed
     if ( flags & GraphFlag_ALLOW_SIDE_EFFECTS )
+    {
+        // delete inputs when they share the same scope
         for ( auto input : node->inputs() )
             if ( node->scope() == input->scope() )
                 flag_node_to_delete(input, flags);
+
+        // delete children
+        if ( ASTScope* scope = node->internal_scope() )
+            for ( ASTNode* _child : scope->child() )
+                flag_node_to_delete(_child, flags);
+    }
 
     node->set_flags(ASTNodeFlag_MUST_BE_DELETED);
 }
@@ -693,7 +696,7 @@ void Graph::_change_scope(ASTNode* node, ASTScope* desired_scope)
     current_scope->remove(node);
     desired_scope->append(node);
 
-    signal_handle_changed_scope.emit(node, current_scope, desired_scope);
+    signal_change_scope.emit(node, current_scope, desired_scope);
 }
 
 void Graph::_transfer_children(ASTScope* source, ASTScope* target)
@@ -701,19 +704,11 @@ void Graph::_transfer_children(ASTScope* source, ASTScope* target)
     ASSERT(source);
     ASSERT(target);
 
-    // transfer nodes
-    auto child = source->child();
-    for(ASTNode* _node : child)
+    std::set<ASTNode*> child_copy{source->child()};
+    for(ASTNode* _child : child_copy)
     {
-        _change_scope(_node, target);
-        ASSERT(_node->scope() == target);
-    }
-
-    // transfer partition's content
-    for( ASTScope* _scope : source->partition() )
-    {
-        _transfer_children(_scope, target);
-        ASSERT(_scope->empty());
+        _change_scope(_child, target);
+        ASSERT(_child->scope() == target);
     }
 
     ASSERT(source->empty());

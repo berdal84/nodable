@@ -65,12 +65,12 @@ void ASTNodeView::_handle_init()
 
         switch ( node()->type() )
         {
-            case ASTNodeType_ENTRY_POINT:
+            case ASTNodeType_SCOPE:
             case ASTNodeType_FUNCTION:
             case ASTNodeType_OPERATOR:
-            case ASTNodeType_BLOCK_FOR_LOOP:
-            case ASTNodeType_BLOCK_IF:
-            case ASTNodeType_BLOCK_WHILE_LOOP:
+            case ASTNodeType_FOR_LOOP:
+            case ASTNodeType_IF_ELSE:
+            case ASTNodeType_WHILE_LOOP:
                 // hide THIS property
                 if ( property->has_flags(PropertyFlag_IS_NODE_VALUE) )
                     new_view->state()->set_visible(false);
@@ -207,29 +207,15 @@ void ASTNodeView::_handle_init()
     // note: We pass color by address to be able to change the color dynamically
     set_color( &cfg->ui_node_fill_color[ node()->type()] );
 
-    // 4. Create ScopeView(s)
-    //-----------------------
+    // 4. Create ScopeView
+    //--------------------
 
-    // add a ScopeView for the inner scope and any child that is owned by this node too
     if ( ASTScope* internal_scope = node()->internal_scope() )
     {
-        // Create scopeviews (front is the internal, others are partitions)
-        m_scopeviews.reserve(1 + internal_scope->partition().size() );
-
-        // internal
-        auto& scopeview = m_scopeviews.emplace_back();
-        scopeview.init(internal_scope);
-        _add_child(&scopeview);
-
-        // partitions
-        // TODO: we might need to reconsider the fact we have this concept of partitions, it creates a special case
-        //       we could instead, add dynamically a scope/scopeview to any node connected to a branch?
-        for (ASTScope* _scope : internal_scope->partition() )
-        {
-            auto& _scopeview = m_scopeviews.emplace_back();
-            _scopeview.init(_scope);
-            _add_child(&_scopeview);
-        }
+        auto* scopeview = new ASTScopeView();
+        scopeview->init(internal_scope);
+        _add_child(scopeview);
+        m_internal_scopeview = scopeview;
     }
 }
 
@@ -249,12 +235,8 @@ void ASTNodeView::_handle_shutdown()
         delete each;
     m_slot_views.clear();
 
-    // from begin to end => because parent is first, and is responsible un-parenting.
-    for(auto& _scopeview : m_scopeviews )
-    {
-        _scopeview.shutdown();
-    }
-    m_slot_views.clear();
+    if(m_internal_scopeview )
+        m_internal_scopeview->shutdown();
 
     m_hovered_slotview = nullptr;
 }
@@ -290,7 +272,7 @@ std::string ASTNodeView::get_label()
                 return "f(x)";
             return node()->name();
         }
-        case ASTNodeType_ENTRY_POINT:
+        case ASTNodeType_SCOPE:
         {
             if ( minimalist )
             {
@@ -298,13 +280,13 @@ std::string ASTNodeView::get_label()
             }
             return node()->name();
         }
-        case ASTNodeType_BLOCK_IF:
+        case ASTNodeType_IF_ELSE:
         {
             if ( minimalist )
                 return "?";
             return node()->name();
         }
-        case ASTNodeType_BLOCK_FOR_LOOP:
+        case ASTNodeType_FOR_LOOP:
         {
             if ( minimalist )
                 return "for";
@@ -352,8 +334,8 @@ void ASTNodeView::update(float dt)
     for(ASTNodeSlotView* _slotview  : m_slot_views )
         _slotview->update( dt );
 
-    for(ASTScopeView& _scopeview  : m_scopeviews )
-        _scopeview.update( dt );
+    if ( m_internal_scopeview )
+        m_internal_scopeview->update( dt );
 }
 
 bool ASTNodeView::draw()

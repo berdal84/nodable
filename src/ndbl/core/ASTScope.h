@@ -60,12 +60,6 @@ namespace ndbl
         void                           reset_head(ASTNode* node = nullptr);
         const std::vector<ASTNode*>&   backbone() const { const_cast<ASTScope*>(this)->_update_backbone_cache(); return m_cached_backbone; } // backbone is a vector of nodes starting from the scope's head including all flow_outputs in this scope (recursively)
         void                           reset_parent(ASTScope* new_parent = nullptr);
-        bool                           is_partitioned() const { return !m_partition.empty(); }
-        bool                           is_partition() const { return m_parent && m_parent->is_partitioned(); }
-        void                           create_partitions(size_t count);
-        std::vector<ASTScope*>&        partition() { return m_partition; }
-        const std::vector<ASTScope*>&  partition() const { return m_partition; }
-        ASTScope*                      partition_at(size_t pos) { return m_partition.at(pos); };
         bool                           is_orphan() const { return m_parent == nullptr; }
         size_t                         depth() const { const_cast<ASTScope*>(this)->_update_depth_cache(); return m_cached_depth; };
         ASTNode*                       node() const { return entity(); }; // alias for entity

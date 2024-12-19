@@ -53,28 +53,28 @@ namespace ndbl{
         bool                            parse(Graph* graph_out, const std::string& code_in); // Try to convert a source code (input string) to a program tree (output graph). Return true if evaluation went well and false otherwise.
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         ASTScope*                       parse_program();
-        ASTNode*                        parse_code_block(ASTNodeSlot* flow_out);
-        ASTNode*                        parse_atomic_code_block(ASTNodeSlot* flow_out);
-        ASTNode*                        parse_scoped_block(ASTNodeSlot* flow_out);
-        ASTNode*                        parse_expression_block(ASTNodeSlot* flow_out, ASTNodeSlot* value_in = nullptr );
-        ASTNode*                        parse_if_block(ASTNodeSlot* flow_out);
-        ASTNode*                        parse_for_block(ASTNodeSlot* flow_out);
-        ASTNode*                        parse_while_block(ASTNodeSlot* flow_out);
-        ASTNode*                        parse_empty_block(ASTNodeSlot* flow_out);
+        ASTNode*                        parse_code_block(ASTScope* parent_scope, ASTNodeSlot* flow_out);
+        ASTNode*                        parse_atomic_code_block(ASTScope* parent_scope, ASTNodeSlot* flow_out);
+        ASTNode*                        parse_scoped_block(ASTScope* parent_scope, ASTNodeSlot* flow_out);
+        ASTNode*                        parse_expression_block(ASTScope* parent_scope, ASTNodeSlot* flow_out, ASTNodeSlot* value_in = nullptr);
+        ASTNode*                        parse_if_block(ASTScope* parent_scope, ASTNodeSlot* flow_out);
+        ASTNode*                        parse_for_block(ASTScope* parent_scope, ASTNodeSlot* flow_out);
+        ASTNode*                        parse_while_block(ASTScope* parent_scope, ASTNodeSlot* flow_out);
+        ASTNode*                        parse_empty_block(ASTScope* parent_scope, ASTNodeSlot* flow_out);
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-        tools::Optional<ASTNodeSlot*>          parse_variable_declaration();
-        tools::Optional<ASTNodeSlot*>          parse_function_call();
-        tools::Optional<ASTNodeSlot*>          parse_parenthesis_expression();
-        tools::Optional<ASTNodeSlot*>          parse_unary_operator_expression(u8_t _precedence = 0);
-        tools::Optional<ASTNodeSlot*>          parse_binary_operator_expression(u8_t _precedence, ASTNodeSlot* _left);
-        tools::Optional<ASTNodeSlot*>          parse_atomic_expression();
-        tools::Optional<ASTNodeSlot*>          parse_expression(u8_t _precedence = 0, tools::Optional<ASTNodeSlot*> _left_override = nullptr);
-        tools::Optional<ASTNodeSlot*>          token_to_slot(const ASTToken& _token);
+        ASTNodeSlot*                    parse_variable_declaration(ASTScope* parent_scope);
+        ASTNodeSlot*                    parse_function_call(ASTScope* parent_scope);
+        ASTNodeSlot*                    parse_parenthesis_expression(ASTScope* parent_scope);
+        ASTNodeSlot*                    parse_unary_operator_expression(ASTScope* parent_scope, u8_t _precedence = 0);
+        ASTNodeSlot*                    parse_binary_operator_expression(ASTScope* parent_scope, u8_t _precedence, ASTNodeSlot* _left);
+        ASTNodeSlot*                    parse_atomic_expression(ASTScope* parent_scope);
+        ASTNodeSlot*                    parse_expression(ASTScope* parent_scope, u8_t _precedence = 0, ASTNodeSlot* _left_override = nullptr);
+        ASTNodeSlot*                    token_to_slot(ASTScope* parent_scope, const ASTToken& _token);
         //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
         bool                            tokenize(); // tokenise from current parser state
         bool                            tokenize(const std::string& _string); // Tokenize a string, return true for success. Tokens are stored in the token ribbon.
-        ASTToken                           parse_token(const std::string& _string) const;
-        ASTToken                           parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
+        ASTToken                        parse_token(const std::string& _string) const;
+        ASTToken                        parse_token(const char *buffer, size_t buffer_size, size_t &global_cursor) const; // parse a single token from position _cursor in _string.
         bool                            parse_bool_or(const std::string&, bool default_value ) const;
         double                          parse_double_or(const std::string&, double default_value ) const;
         int                             parse_int_or(const std::string&, int default_value ) const;
@@ -86,18 +86,14 @@ namespace ndbl{
     public:
         struct ParserState
         {
-            void                reset(Graph* g) { reset_ribbon(); reset_graph(g); reset_scope_stack(); }
+            void                reset(Graph* g) { reset_ribbon(); reset_graph(g); }
             void                reset_ribbon(const char* new_buf = nullptr, size_t new_size = 0);
             void                reset_graph(Graph*);
-            void                reset_scope_stack();
             const char*         buffer() const { ASSERT(_buffer.data); return _buffer.data; }
             size_t              buffer_size() const { return _buffer.size; }
             std::string         string() const { return _ribbon.to_string(); }; // Ribbon's
             Graph*              graph() const { ASSERT(_graph); return _graph; }
             ASTTokenRibbon&     tokens()  { return _ribbon; }
-            ASTScope*           current_scope() const { VERIFY(!_scope.empty(), "Stack is empty!"); return _scope.top(); }
-            void                push_scope(ASTScope* scope) { _scope.push(scope); };
-            void                pop_scope() { _scope.pop(); };
             const char*         buffer_at(size_t offset) const { ASSERT(offset < _buffer.size ); return _buffer.data + offset; }
             void                start_transaction() { _ribbon.start_transaction(); }
             void                commit() { _ribbon.commit(); }
@@ -113,7 +109,6 @@ namespace ndbl{
             Buffer              _buffer;
             Graph*              _graph = nullptr; // NOT owned
             ASTTokenRibbon         _ribbon;
-            std::stack<ASTScope*>  _scope; // nested scopes
             std::vector<ASTNodeSlot*>  _flow_out; // last flow out slot known
         } _state;
 

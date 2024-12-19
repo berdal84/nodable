@@ -48,8 +48,8 @@ namespace ndbl
         void         shutdown();
         void         update(float dt, ScopeViewFlags = ScopeViewFlags_NONE );
         void         draw(float dt);
-        ASTNode*       node() const { return scope()->node(); }
-        const ASTNode* node() { return scope()->node(); }
+        ASTNode*       node() { return scope()->node(); }
+        const ASTNode* node() const { return scope()->node(); }
         tools::ViewState* state() { return &m_view_state; }
         bool         has_parent() const { return m_scope->parent() != nullptr; }
         ASTScopeView*parent() const;

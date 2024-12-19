@@ -40,23 +40,6 @@ ASTScope::~ASTScope()
     assert(m_partition.empty());
 }
 
-void ASTScope::create_partitions(size_t partition_count)
-{
-    for( size_t i = 0; i < partition_count; ++i )
-    {
-        std::string _name;
-        _name += name();
-        _name += " (part " + std::to_string(i+1) + "/" + std::to_string(partition_count) + ")";
-
-        auto* _scope = node()->components()->create<ASTScope>();
-        _scope->set_name(_name);
-        _scope->reset_parent(this);
-
-        m_partition.push_back(_scope);
-    }
-    ASSERT(m_partition.size() == partition_count);
-}
-
 void ASTScope::_on_shutdown()
 {
     ASSERT(m_parent == nullptr); // Remove this scope from parent first
@@ -104,17 +87,17 @@ void ASTScope::append(ASTNode *node)
         auto variable_node = reinterpret_cast<ASTVariable*>( node );
         if (find_variable(variable_node->get_identifier()) != nullptr )
         {
-            LOG_ERROR("Scope", "Unable to append variable '%s', already exists in the same scopeview.\n", variable_node->get_identifier().c_str());
+            LOG_ERROR("Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", variable_node->get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else if (variable_node->scope() )
         {
-            LOG_ERROR("Scope", "Unable to append variable '%s', already declared in another scopeview. Remove it first.\n", variable_node->get_identifier().c_str());
+            LOG_ERROR("Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", variable_node->get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else
         {
-            LOG_VERBOSE("Scope", "Add '%s' variable to the scopeview\n", variable_node->get_identifier().c_str() );
+            LOG_VERBOSE("Scope", "Add '%s' variable to the internal_scopeview\n", variable_node->get_identifier().c_str() );
             m_variable.insert(variable_node);
         }
     }

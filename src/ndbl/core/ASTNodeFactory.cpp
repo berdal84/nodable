@@ -82,11 +82,25 @@ ASTWhileLoop* ASTNodeFactory::create_while_loop() const
     return ast_node;
 }
 
-ASTNode* ASTNodeFactory::create_entry_point() const
+ASTNode* ASTNodeFactory::create_scope() const
 {
     auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_ENTRY_POINT, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_BRANCH, 1);
+    ast_node->init(ASTNodeType_SCOPE, "Scope");
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_INTERNAL, 1);
+    ast_node->init_internal_scope();
+    m_post_process(ast_node);
+    return ast_node;
+}
+
+ASTNode* ASTNodeFactory::create_root_scope() const
+{
+    auto* ast_node = new ASTNode();
+    ast_node->init(ASTNodeType_SCOPE, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
+    // ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY); nothing can be before...
+    // ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1); nothing after either...
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_INTERNAL, 1); // ...but something inside!
     ast_node->init_internal_scope();
     m_post_process(ast_node);
     return ast_node;

@@ -69,7 +69,7 @@ namespace ndbl
         bool                       m_expanded{true};
         float                      m_opacity{1.f};
         ASTNodeSlotView*           m_hovered_slotview{};
-        std::vector<ASTScopeView>  m_scopeviews;
+        ASTScopeView*              m_internal_scopeview{};
         std::array<const tools::Vec4*, Color_COUNT> m_colors {&DEFAULT_COLOR};
         std::vector<ASTNodeSlotView*>     m_slot_views;
         std::unordered_map<const ASTNodeProperty*, ASTNodePropertyView*> m_view_by_property;
@@ -107,9 +107,8 @@ namespace ndbl
         tools::ViewState*       state() { return &m_view_state; }
         const tools::ViewState* state() const { return &m_view_state; }
         void                    reset_all_properties();
-        ASTScopeView*           scopeview() { return const_cast<ASTScopeView*>( const_cast<const ASTNodeView*>(this)->scopeview()); }
-        const ASTScopeView*     scopeview() const { return m_scopeviews.empty() ? nullptr : &m_scopeviews.front(); }
-        std::vector<ASTScopeView>& scopeviews() { return m_scopeviews; }
+        ASTScopeView*           internal_scopeview() { return m_internal_scopeview; }
+        const ASTScopeView*     internal_scopeview() const { return m_internal_scopeview; }
         static tools::Rect      bounding_rect(const std::vector<ASTNodeView *>&, tools::Space = tools::WORLD_SPACE, NodeViewFlags = NodeViewFlag_NONE);
         static bool             draw_as_properties_panel(ASTNodeView*, bool* show_advanced );
         static ASTNodeView*     substitute_with_parent_if_not_visible(ASTNodeView*, bool _recursive = true);

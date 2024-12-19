@@ -86,7 +86,7 @@ void GraphView::_handle_init()
     _m_selection.signal_change.connect<&GraphView::_on_selection_change>(this);
     graph()->signal_add_node.connect<&GraphView::_handle_add_node>(this);
     graph()->signal_remove_node.connect<&GraphView::_handle_remove_node>(this);
-    graph()->signal_handle_changed_scope.connect<&GraphView::_handle_change_scope>(this);
+    graph()->signal_change_scope.connect<&GraphView::_handle_change_scope>(this);
     graph()->signal_change.connect<&GraphView::_on_graph_change>(this);
     graph()->signal_reset.connect<&GraphView::reset>(this);
     graph()->signal_is_complete.connect<&GraphView::reset>(this);
@@ -118,8 +118,8 @@ void GraphView::_handle_add_node(ASTNode* node)
     auto* nodeview = node->components()->create<ASTNodeView>();
     nodeview->set_size({20.f, 35.f});
 
-    for ( auto& _scopeview : nodeview->scopeviews() )
-        _scopeview.signal_hover.connect<&GraphView::_handle_hover>(this); // I'm not sure if this is a good approach...
+    if (ASTScopeView* scopeview = nodeview->internal_scopeview() )
+        scopeview->signal_hover.connect<&GraphView::_handle_hover>(this); // I'm not sure if this is a good approach...
 
     if( graph()->root_node() == node )
     {
@@ -147,9 +147,9 @@ void GraphView::_handle_remove_node(ASTNode* node)
     auto* nodeview = node->component<ASTNodeView>();
     VERIFY(nodeview, "Should have been created from _handle_add_node()");
 
-    for ( auto& _scopeview : nodeview->scopeviews() )
+    if ( ASTScopeView* scopeview = nodeview->internal_scopeview() )
     {
-        assert(_scopeview.signal_hover.disconnect<&GraphView::_handle_hover>(this)); // I'm not sure if this is a good approach...
+        assert(scopeview->signal_hover.disconnect<&GraphView::_handle_hover>(this)); // I'm not sure if this is a good approach...
     }
 
     if( SpatialNode* _parent = nodeview->spatial_node()->parent() )
@@ -564,7 +564,7 @@ void GraphView::_create_constraints__align_top_recursively(const std::vector<AST
 void GraphView::_create_constraints(ASTScope* scope )
 {
     // distribute child scopes
-    if ( scope->is_partitioned() )
+    if ( ASTUtils::is_conditional(scope->node()) )
     {
         ViewConstraint constraint;
         constraint.name          = "Align ScopeView partitions";
@@ -576,11 +576,6 @@ void GraphView::_create_constraints(ASTScope* scope )
         scope->entity()->component<PhysicsComponent>()->add_constraint(constraint);
     }
 
-    for ( ASTScope* sub_scope : scope->partition() )
-    {
-        _create_constraints(sub_scope);
-    }
-
     std::vector<ASTNode*> backbone = scope->backbone();
     for ( ASTNode* child_node : backbone )
     {
@@ -590,11 +585,11 @@ void GraphView::_create_constraints(ASTScope* scope )
 
         // align child's inputs above
         _create_constraints__align_top_recursively(child_node->inputs(), child_node );
-
-        // child's internal scope
-        if ( child_node->has_internal_scope() )
-            _create_constraints( child_node->internal_scope() );
     }
+
+    for ( ASTNode* _child_node : scope->child() )
+        if ( ASTScope* _child_scope = _child_node->internal_scope() )
+            _create_constraints(_child_scope);
 };
 
 void GraphView::_update(float dt)
@@ -818,16 +813,8 @@ void GraphView::drag_state_tick()
         else if ( auto* scopeview = elem.get_if<ASTScopeView*>() )
         {
             nodeview = scopeview->node()->component<ASTNodeView>();
-
-            if ( scopeview->scope()->is_partition() )
-            {
-                scopeview->translate(delta);
-            }
-            else
-            {
-                nodeview->translate(delta);
-                nodeview->state()->set_pinned();
-            }
+            nodeview->translate(delta);
+            nodeview->state()->set_pinned();
         }
     }
 
@@ -875,7 +862,7 @@ void GraphView::cursor_state_tick()
 
             case Selectable::index_of<ASTScopeView*>():
             {
-                const auto* scopeview = _m_focused.get<ASTScopeView*>();
+                auto* scopeview = _m_focused.get<ASTScopeView*>();
                 auto* nodeview = scopeview->node()->component<ASTNodeView>();
                 if ( ImGui::MenuItem( nodeview->expanded() ? "Collapse Scope" : "Expand Scope" ) )
                 {

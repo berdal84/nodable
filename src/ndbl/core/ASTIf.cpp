@@ -11,7 +11,7 @@ REFLECT_STATIC_INITIALIZER
 
 void ASTIf::init(const std::string&_name)
 {
-    ASTNode::init(ASTNodeType_BLOCK_IF, _name);
+    ASTNode::init(ASTNodeType_IF_ELSE, _name);
     ASTSwitchBehavior::init(this, 2);
 }
 // required to link static code above

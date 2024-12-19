@@ -70,9 +70,9 @@ bool ASTUtils::is_conditional(const ASTNode* node)
 {
     switch ( node->type() )
     {
-        case ASTNodeType_BLOCK_FOR_LOOP:
-        case ASTNodeType_BLOCK_WHILE_LOOP:
-        case ASTNodeType_BLOCK_IF:
+        case ASTNodeType_FOR_LOOP:
+        case ASTNodeType_WHILE_LOOP:
+        case ASTNodeType_IF_ELSE:
             return true;
         default:
             return false;

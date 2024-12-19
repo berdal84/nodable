@@ -12,7 +12,7 @@ REFLECT_STATIC_INITIALIZER
 
 void ASTForLoop::init(const std::string& _name)
 {
-    ASTNode::init(ASTNodeType_BLOCK_FOR_LOOP, _name);
+    ASTNode::init(ASTNodeType_FOR_LOOP, _name);
 
     // add initialization property and slot
     auto* init_prop = add_prop<any>(INITIALIZATION_PROPERTY );

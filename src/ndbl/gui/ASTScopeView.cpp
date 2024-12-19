@@ -39,9 +39,6 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
         if ( ASTScope* internal_scope = child_node->internal_scope() )
             internal_scope->view()->update(dt, flags);
 
-    for ( ASTScope* partition_scope: m_scope->partition() )
-        partition_scope->view()->update(dt, flags);
-
     // 2) update content rectangle and wrapped node views
     //
     m_content_rect = {};
@@ -57,15 +54,15 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
         m_wrapped_node_view.push_back(nodeview);
     };
 
-    if ( !m_scope->is_partition() )
-        if ( auto nodeview = m_scope->node()->component<ASTNodeView>() )
-            wrap_nodeview( nodeview );
+    // sibling nodeview is always wrapped inside its own scopeview
+    if ( auto sibling_nodeview = m_scope->node()->component<ASTNodeView>() )
+        wrap_nodeview( sibling_nodeview );
 
     for( ASTNode* node : m_scope->child() )
         if ( auto nodeview = node->component<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
-    for( ASTNode* child_node : m_scope->backbone() )
+    for( ASTNode* child_node : m_scope->child() )
     {
         if ( child_node->has_internal_scope() )
         {
@@ -74,13 +71,6 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
             m_content_rect = Rect::bounding_rect(m_content_rect, child_node_scope_view->m_content_rect);
         }
     }
-
-    for ( ASTScope* partition_scope: m_scope->partition() )
-    {
-        ASTScopeView* partition_scope_view = partition_scope->view();
-        partition_scope_view->update(dt, flags);
-        m_content_rect = Rect::bounding_rect(m_content_rect, partition_scope_view->m_content_rect);
-    };
 
     if ( must_be_draw() )
     {
@@ -209,6 +199,7 @@ void ASTScopeView::ImGuiTreeNode_ASTNode(ASTNode* node)
         {
             ImGuiTreeNode_ASTScopeContent(node->internal_scope());
         }
+
         ImGui::TreePop();
     }
 };
@@ -243,21 +234,6 @@ void ASTScopeView::ImGuiTreeNode_ASTScopeContent(ASTScope *scope)
         }
         ImGui::TreePop();
     }
-
-    if ( !scope->partition().empty()
-         && ImGui::TreeNodeEx(&scope->partition(), ImGuiTreeNodeFlags_DefaultOpen, "Partition(s)") )
-    {
-        for ( ASTScope* sub_scope : scope->partition() )
-        {
-            if ( ImGui::TreeNode(sub_scope, "%s", sub_scope->name().c_str() ) )
-            {
-                ImGuiTreeNode_ASTScopeContent(sub_scope);
-                ImGui::TreePop();
-            }
-        }
-        ImGui::TreePop();
-    }
-
     ImGui::PopID();
 }
 

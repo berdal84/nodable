@@ -795,10 +795,10 @@ void NodableView::draw_config_window()
             if ( ImGui::CollapsingHeader("Colors", flags ))
             {
                 ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[ASTNodeType_DEFAULT].x );
-                ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[ASTNodeType_ENTRY_POINT].x );
-                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_IF].x );
-                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_FOR_LOOP].x );
-                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[ASTNodeType_BLOCK_WHILE_LOOP].x );
+                ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[ASTNodeType_SCOPE].x );
+                ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[ASTNodeType_IF_ELSE].x );
+                ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[ASTNodeType_FOR_LOOP].x );
+                ImGui::ColorEdit4("while loop"  , &cfg->ui_node_fill_color[ASTNodeType_WHILE_LOOP].x );
                 ImGui::ColorEdit4("variable"    , &cfg->ui_node_fill_color[ASTNodeType_VARIABLE].x );
                 ImGui::ColorEdit4("literal"     , &cfg->ui_node_fill_color[ASTNodeType_LITERAL].x );
                 ImGui::ColorEdit4("function"    , &cfg->ui_node_fill_color[ASTNodeType_FUNCTION].x );

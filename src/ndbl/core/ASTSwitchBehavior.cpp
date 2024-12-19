@@ -12,7 +12,7 @@ void ASTSwitchBehavior::init(ASTNode* node, size_t branch_count)
     node->add_slot(node->value(), SlotFlag_FLOW_IN  , ASTNodeSlot::MAX_CAPACITY); // accepts N inputs
     node->add_slot(node->value(), SlotFlag_FLOW_OUT , 1); // accepts 0 or 1 output
 
-    node->init_internal_scope( branch_count );
+    node->init_internal_scope();
 
     // add 1 slot per branch
     for(size_t branch = 0; branch < branch_count; ++branch )

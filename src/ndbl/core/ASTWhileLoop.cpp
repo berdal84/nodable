@@ -10,6 +10,6 @@ REFLECT_STATIC_INITIALIZER
 
 void ASTWhileLoop::init(const std::string &_name)
 {
-    ASTNode::init(ASTNodeType_BLOCK_WHILE_LOOP, _name);
+    ASTNode::init(ASTNodeType_WHILE_LOOP, _name);
     ASTSwitchBehavior::init(this, 2);
 }

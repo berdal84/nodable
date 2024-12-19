@@ -64,7 +64,7 @@ namespace ndbl
         tools::Signal<void(ASTNode*)> signal_add_node;
         tools::Signal<void(ASTNode*)> signal_remove_node;
         using ScopeChanged = void(ASTNode*, ASTScope* /* old_scope */, ASTScope* /* new_scope */ ) ;
-        tools::Signal<ScopeChanged>   signal_handle_changed_scope;
+        tools::Signal<ScopeChanged>   signal_change_scope;
         tools::SimpleSignal           signal_is_complete; // user defined, usually when parser or user is done
     private:
         const ASTNodeFactory*         m_factory{};
@@ -110,13 +110,13 @@ namespace ndbl
         ASTWhileLoop*            create_while_loop(ASTScope*);
         ASTNode*                 create_empty_instruction() { return create_empty_instruction(root_scope()); }
         ASTNode*                 create_empty_instruction(ASTScope*);
+        ASTNode*                 create_scope(ASTScope* scope);
         void                     find_and_destroy(ASTNode* node);
         std::vector<ASTScope *>  scopes();
         std::set<ASTScope *>     root_scopes();
         NodeRegistry&            nodes() {return m_node_registry;}
         const NodeRegistry&      nodes()const {return m_node_registry;}
         void                     flag_node_to_delete(ASTNode* node, GraphFlags = GraphFlag_NONE);
-        void                     flag_scope_to_delete(ASTScope*);
         bool                     contains(ASTNode*) const;
 
         template<typename T> ASTVariable* create_variable_decl(const char* name = "var")          { return create_variable_decl( tools::type::get<T>(), name, this->root_scope()); }

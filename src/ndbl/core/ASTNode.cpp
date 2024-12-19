@@ -253,7 +253,7 @@ const ASTNodeSlot* ASTNode::flow_out() const
     {
         const auto& [_, slots] = *it;
         for( ASTNodeSlot* slot : slots )
-            if( slot->has_flags(SlotFlag_FLOW_OUT) && !slot->has_flags(SlotFlag_IS_BRANCH) ) // branches are specific flow_out, we don't want to grab them here
+            if( slot->has_flags(SlotFlag_FLOW_OUT) && !slot->has_flags(SlotFlag_IS_INTERNAL) ) // branches are specific flow_out, we don't want to grab them here
                 return slot;
     }
     return nullptr;
@@ -291,18 +291,15 @@ const std::vector<ASTNode*>& ASTNode::AdjacentNodesCache::get(SlotFlags flags ) 
     return _cache.at(flags);
 }
 
-void ASTNode::init_internal_scope(size_t sub_scope_count)
+void ASTNode::init_internal_scope()
 {
     VERIFY( m_internal_scope == nullptr, "Can't call init_internal_scope() more than once");
     VERIFY( m_parent_scope == nullptr, "Must be initialized prior to reset_parent()");
 
     auto* scope = this->components()->create<ASTScope>();
     scope->set_name("Internal Scope");
-    scope->create_partitions(sub_scope_count);
 
     m_internal_scope = scope;
-    ASSERT(m_internal_scope->is_partitioned()   == (bool)sub_scope_count);
-    ASSERT(m_internal_scope->partition().size() == sub_scope_count);
 }
 
 bool ASTNode::has_flow_adjacent() const

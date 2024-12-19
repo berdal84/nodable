@@ -69,7 +69,7 @@ namespace ndbl
         bool                        is_orphan() const { return m_parent_scope == nullptr; }
         ASTScope*                   scope() const { return m_parent_scope; };
         bool                        has_scope() const { return m_parent_scope != nullptr; }
-        void                        init_internal_scope(size_t sub_scope_count = 0);
+        void                        init_internal_scope();
         bool                        has_internal_scope() const { return m_internal_scope != nullptr; }
         ASTScope*                   internal_scope() const { return m_internal_scope; }
     protected:

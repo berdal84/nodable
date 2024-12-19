@@ -134,37 +134,39 @@ TEST_F(Graph_, create_and_delete_relations)
 TEST_F(Graph_, erase_node_from_non_root_scope)
 {
     // prepare
-    Graph*   graph     = app.graph();
-    ASTIf*   cond_node = graph->create_cond_struct();
-    ASTScope* branch   = cond_node->internal_scope()->partition_at(Branch_TRUE);
-    ASTNode* child     = graph->create_node( branch );
+    Graph* graph = app.graph();
+    ASTNode* scope_node = graph->create_scope(graph->root_scope() );
+    graph->connect(graph->root_node()->flow_enter(), scope_node->flow_in());
+    ASTNode* child = graph->create_node(scope_node->internal_scope() );
 
-    EXPECT_EQ(child->scope(), branch);
+    EXPECT_EQ(child->scope(), scope_node->internal_scope() );
 
     graph->find_and_destroy( child );
 
     EXPECT_FALSE( graph->contains( child ) );
-    EXPECT_TRUE( branch->empty() );
+    EXPECT_TRUE(scope_node->internal_scope()->empty() );
 }
 
 
 TEST_F(Graph_, erase_first_node_of_a_scope_with_another_child_after)
 {
     // prepare
-    Graph*   graph     = app.graph();
-    ASTIf*   cond_node = graph->create_cond_struct();
-    ASTScope* branch   = cond_node->internal_scope()->partition_at(Branch_TRUE);
-    ASTNode* child1     = graph->create_node( branch );
-    ASTNode* child2     = graph->create_node();
+    Graph* graph = app.graph();
+
+    ASTNode* scope_node = graph->create_scope( graph->root_scope() );
+    ASTNode* child1 = graph->create_node();
+    ASTNode* child2 = graph->create_node();
+
+    graph->connect( scope_node->flow_enter(), child1->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
     graph->connect( child1->flow_out(), child2->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
-    EXPECT_EQ(child1->scope(), branch);
-    EXPECT_EQ(child2->scope(), branch);
+    EXPECT_EQ(child1->scope(), scope_node->internal_scope() );
+    EXPECT_EQ(child1->scope(), child2->scope());
 
     graph->find_and_destroy( child1 );
 
-    EXPECT_FALSE( graph->contains( child1 ) );
-    EXPECT_TRUE(  graph->contains( child2 ) );
-    EXPECT_TRUE( branch->contains( child2 ) );
-    EXPECT_FALSE( branch->empty() );
+    EXPECT_FALSE(graph->contains( child1 ));
+    EXPECT_TRUE(graph->contains( child2 ));
+    EXPECT_FALSE(scope_node->internal_scope()->contains(child1) );
+    EXPECT_TRUE(scope_node->internal_scope()->contains(child2 ) );
 }

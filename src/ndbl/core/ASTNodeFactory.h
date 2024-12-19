@@ -32,17 +32,18 @@ namespace ndbl
         ASTNodeFactory();
         ~ASTNodeFactory(){}
 
-        ASTNode*                  create_entry_point()const;
+        ASTNode*              create_root_scope()const;
+        ASTNode*              create_scope()const;
         ASTVariable*          create_variable(const tools::TypeDescriptor *_type, const std::string &_name)const;
         ASTVariableRef*       create_variable_ref() const;
         ASTLiteral*           create_literal(const tools::TypeDescriptor *_type)const;
-        ASTFunctionCall*          create_function(const tools::FunctionDescriptor&, ASTNodeType node_type = ASTNodeType_FUNCTION)const;
+        ASTFunctionCall*      create_function(const tools::FunctionDescriptor&, ASTNodeType node_type = ASTNodeType_FUNCTION)const;
         ASTIf*                create_cond_struct()const;
         ASTForLoop*           create_for_loop()const;
         ASTWhileLoop*         create_while_loop()const;
-        ASTNode*                  create_node()const;
-        ASTNode*                  create_empty_instruction()const;
-        void                   override_post_process_fct(PostProcessFct f);
+        ASTNode*              create_node()const;
+        ASTNode*              create_empty_instruction()const;
+        void                  override_post_process_fct(PostProcessFct f);
 
     private:
         bool                   m_post_process_is_overrided;

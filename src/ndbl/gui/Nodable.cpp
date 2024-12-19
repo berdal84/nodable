@@ -204,7 +204,7 @@ void Nodable::update()
                         if ( auto nodeview = elem.get_if<ASTNodeView*>() )
                             graph_view->graph()->flag_node_to_delete(nodeview->node(), GraphFlag_NONE);
                         else if ( auto scopeview = elem.get_if<ASTScopeView*>() )
-                            graph_view->graph()->flag_scope_to_delete(scopeview->scope());
+                            graph_view->graph()->flag_node_to_delete(scopeview->node(), GraphFlag_ALLOW_SIDE_EFFECTS);
                     }
                 }
 
