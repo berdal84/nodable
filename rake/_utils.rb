@@ -32,9 +32,9 @@ if VERBOSE
 end
 
 if PLATFORM_DESKTOP
-    $c_compiler   = "clang-15"
-    $cxx_compiler = "clang++-15"
-    $linker       = "clang++-15"
+    $c_compiler   = "clang"
+    $cxx_compiler = "clang++"
+    $linker       = "clang++"
 elsif PLATFORM_WEB
     $c_compiler   = "emcc"
     $cxx_compiler = "emcc"
