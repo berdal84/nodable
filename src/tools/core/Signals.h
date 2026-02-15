@@ -1,5 +1,6 @@
 #pragma once
 #include "Delegate.h"
+#include <algorithm>
 #include <vector>
 
 namespace tools
