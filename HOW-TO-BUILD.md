@@ -16,6 +16,7 @@ They both rely on external [libraries](./libs/README.md).
 
 ### System
 - Ubuntu 22.04+
+- Windows
 
 ### Software
 - clang (C++20 compatible)
@@ -37,6 +38,8 @@ Few details about the commands above:
 - `--branch v<major>.<minor>.<patch>` is to target a specific tag, it is recommended to get a stable version. You can try a more recent if you wish. Browse [tags list](https://github.com/berdal84/nodable/tags).
 
 ### Install and Build
+
+Make sure CC and CXX env vars are set to `clang` and `clang++` respectively, since the build script only works with that specific compiler.
 
 Run the following commands:
 

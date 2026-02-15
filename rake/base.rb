@@ -30,12 +30,18 @@ def new_target_from_base(name, type)
 
     target.cxx_flags |= [
         "-std=c++20",
+
+        # related to ImGui
         "-fno-char8_t",
+        "-Wno-nontrivial-memcall",
+        "-Wno-nontrivial-memaccess", # ImGui has several warnings like this one: "warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiListClipperData' [-Wnontrivial-memcall]"
+        "-Wno-unused-function", # imstb_rectpack.h:233:16: error: unused function 'stbrp_setup_heuristic' [-Werror,-Wunused-function]  233 | STBRP_DEF void stbrp_setup_heuristic(stbrp_context *context, int heuristic)
     ]
 
     # ---- PLATFORM_XXX specific --------
     if PLATFORM_WEB
         target.compiler_flags |= [
+            "-v",
             "-s USE_PTHREADS=1",
             "-s USE_FREETYPE=1",
             "-s USE_SDL=2",
@@ -54,16 +60,68 @@ def new_target_from_base(name, type)
         ]
 
     elsif PLATFORM_DESKTOP
+        
         target.includes |= [
-            # ImGui includes SDL and freetype2 from their respective folder, we need to manually include them
-            "/usr/include/freetype2",
-            "/usr/include/SDL2",
+            "libs/sdl/include",
+            "libs/freetype/include",
+            "libs/nativefiledialog-extended/src/include"
         ]
-        target.linker_flags |= [
-            "-lnfd `pkg-config --libs gtk+-3.0`",
-            "`pkg-config --libs --static sdl2`",
-            "`pkg-config --libs --static freetype2 gl`",
-        ] # NativeFileDialog
+
+        if BUILD_OS_LINUX
+            target.linker_flags |= [
+                "-lnfd", `pkg-config --libs gtk+-3.0`,
+                `pkg-config --libs --static sdl2`,
+                `pkg-config --libs --static freetype2 gl`,
+            ] # NativeFileDialog
+
+        elsif BUILD_OS_WINDOWS      
+            
+            target.includes |= [
+                "\"/c/Program Files (x86)/Windows Kits/10/Include/\""
+            ]   
+
+            target.defines |= [
+                "NOMINMAX", # avoids windows min/max to collide (see https://stackoverflow.com/questions/11544073/how-do-i-deal-with-the-max-macro-in-windows-h-colliding-with-max-in-std)
+                "__PRFCHWINTRIN_H", # issues with clang (SDL_endian.h:41:1: error: definition of builtin function '_m_prefetch')
+            ]
+
+            target.linker_flags |= [
+                # External libraries (/libs or system-wide)
+                "-l#{BUILD_DIR}/libs/nativefiledialog-extended/lib/nfd.lib",
+                `pkg-config --libs --static bzip2 opengl sdl2 freetype2`.chomp!(),
+                "-Wl,/SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
+                "-Wl,/NODEFAULTLIB:libcmt"
+            ] # NativeFileDialog
+
+            if BUILD_TYPE_RELEASE
+                
+                target.compiler_flags |= [
+                    "-D_MT",
+                    # "-D_DLL"
+                ]
+
+                target.linker_flags |= [
+                    # We don't need to link those since "-D_DLL" is commented out
+                    # "-lmsvcrt",
+                    # "-lucrt",
+                    # "-lvcruntime",
+                    # "-lmsvcprt",
+                ]
+            else
+
+                target.compiler_flags |= [
+                    "-D_MT",
+                    "-D_DLL"
+                ]
+
+                target.linker_flags |= [
+                    "-lmsvcrtd",
+                    "-lucrtd",
+                    "-lvcruntimed",
+                    "-lmsvcprtd",
+                ]
+            end
+        end
     end
 
     # ---- BUILD_TYPE_XXX specific --------
@@ -75,7 +133,6 @@ def new_target_from_base(name, type)
         target.compiler_flags |= [
             "-g", # generates symbols
             "-O0", # no optim
-            "-Wfatal-errors",
             #"-pedantic"
         ]
         target.defines |= [

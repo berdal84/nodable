@@ -11,11 +11,12 @@ PLATFORM_WEB       = PLATFORM == "web"
 BUILD_TYPE         = (ENV["BUILD_TYPE"] || "release").downcase
 BUILD_TYPE_RELEASE = BUILD_TYPE == "release"
 BUILD_TYPE_DEBUG   = BUILD_TYPE != "release"
-BUILD_DIR          = ENV["BUILD_DIR"] || "build-#{PLATFORM}-#{BUILD_TYPE}"
+BUILD_DIR          = ENV["BUILD_DIR"] || "build-#{PLATFORM}-#{BUILD_OS}-#{BUILD_TYPE}"
 OBJ_DIR            = "#{BUILD_DIR}/obj"
 DEP_DIR            = "#{BUILD_DIR}/dep"
 BIN_DIR            = "#{BUILD_DIR}/bin"
 BUILD_OS_LINUX     = BUILD_OS.include?("linux")
+BUILD_OS_WINDOWS   = BUILD_OS.include?("mingw32")
 GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"
 HTTP_SERVER_PORT     = "8000"
@@ -23,10 +24,13 @@ HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 
 if VERBOSE
     system "echo Ruby version: && ruby -v"
-    puts "BUILD_OS_LINUX:     #{BUILD_OS_LINUX}"
+    puts "BUILD_OS:           #{BUILD_OS}"
+    puts "HOST_OS:            #{HOST_OS}"
     puts "PLATFORM:           #{PLATFORM}"
     puts "BUILD_TYPE_RELEASE: #{BUILD_TYPE_RELEASE}"
     puts "BUILD_TYPE_DEBUG:   #{BUILD_TYPE_DEBUG}"
+    puts "BUILD_OS_LINUX:     #{BUILD_OS_LINUX}"
+    puts "BUILD_OS_WINDOWS:   #{BUILD_OS_WINDOWS}"
     puts "HTTP_SERVER_HOSTNAME: #{HTTP_SERVER_HOSTNAME}"
     puts "HTTP_SERVER_PORT:     #{HTTP_SERVER_PORT}"
 end
@@ -34,7 +38,7 @@ end
 if PLATFORM_DESKTOP
     $c_compiler   = "clang"
     $cxx_compiler = "clang++"
-    $linker       = "clang++"
+    $linker       = "clang"
 elsif PLATFORM_WEB
     $c_compiler   = "emcc"
     $cxx_compiler = "emcc"
@@ -118,6 +122,8 @@ def get_binary_path( target )
     path = "#{BIN_DIR}/#{target.name}"
     if PLATFORM_WEB
         path = path.ext("html")
+    elsif BUILD_OS_WINDOWS
+        path = path.ext("exe")
     end
     path
 end
@@ -146,7 +152,7 @@ def compile_file(src, target)
     cmd += ["-o", obj, src]
 
     # Run the command
-    sh "#{cmd.join(" ")}", verbose: VERBOSE
+    return system("#{cmd.join(" ")}")
 end
 
 def link_binary( target )
@@ -157,13 +163,13 @@ def link_binary( target )
 
     binary_path    = get_binary_path(target)
     objects        = get_objects__incl_deps(target).join(" ")
-    defines        = target.defines.map{|d| "-D\"#{d}\"" }.join(" ")
+    defines        = format_defines(target).join(" ")
     compiler_flags = target.compiler_flags.join(" ")
     linker_flags   = target.linker_flags.join(" ")
 
     FileUtils.mkdir_p File.dirname(binary_path)
 
-    sh "#{$linker} #{compiler_flags} #{defines} -o #{binary_path} #{objects} #{linker_flags}", verbose: VERBOSE
+    return system("#{$linker} #{compiler_flags} #{defines} -o #{binary_path} #{objects} #{linker_flags}")
 end
 
 def format_defines(target)
@@ -301,9 +307,9 @@ def tasks_for_target(target)
         task :run => :build do
 
             if PLATFORM_DESKTOP
-                sh "./#{get_binary_path(target)}"
+                system("./#{get_binary_path(target)}")
             elsif PLATFORM_WEB
-                sh "emrun --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}"
+                system("emrun --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}")
             end
         end
     end
@@ -313,7 +319,7 @@ def tasks_for_target(target)
         src = obj_to_src( obj, target )
         file obj => src do |task|
             puts "#{target.name} | Compiling #{src} ..."
-            compile_file( src, target)
+            compile_file( src, target) or raise "Unable to compile #{src}!"
         end
     end
 end

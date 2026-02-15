@@ -49,61 +49,159 @@ task :rebuild_all do
 
     platforms.each do |platform|
         build_types.each do |build_type|
-            sh "rake -m clobber build PLATFORM=#{platform}  BUILD_TYPE=#{build_type}"
+            system("rake -m clobber build PLATFORM=#{platform}  BUILD_TYPE=#{build_type}")
         end
     end
 end
 
-task :install do
+task :install => ['install:default']
 
-    if not BUILD_OS_LINUX
-        raise "Your system (#{BUILD_OS}) is not supported by this script"
-    end
-
-    packages = [
-        "build-essential",
-        "libegl1-mesa-dev",
-        "libdbus-1-dev",
-        "libgtk-3-dev", # for NDF (native file dialog), can theoretically be removed see NFD_sdl.h
-        "libgtest-dev",
-        "libfreetype-dev",
-        "libsdl2-dev",
-        # "libstdc++-11-dev", comes with clang in principle
-    ].join(" ")
-
-    sh "sudo apt-get update && sudo apt-get install #{packages}"
-
-    if PLATFORM_WEB
-
-        # Install EMSDK
-        #--------------
-
+namespace :install do
+            
+    task :emsdk do
         # Download and install the latest SDK tools.
-        sh "libs/emsdk/emsdk install latest"
+        system("libs/emsdk/emsdk install latest")
 
         # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-        sh "libs/emsdk/emsdk activate latest"
+        system("libs/emsdk/emsdk activate latest")
+    end
 
-    elsif PLATFORM_DESKTOP   
+    task :nativefiledialog do
+        src_dir   = "./libs/nativefiledialog-extended"
+        build_dir = "./#{BUILD_DIR}/libs/nativefiledialog-extended"
+        config    = "Release"
 
-        # Install NFD (native file dialog)
-        #---------------------------------
-
-        nfd_src_dir   = "./libs/nativefiledialog-extended"
-        nfd_build_dir = "./#{BUILD_DIR}/libs/nativefiledialog-extended"
-        nfd_config    = "Release"
-
-        # Make build directory
-        FileUtils.mkdir_p nfd_build_dir
+        FileUtils.mkdir_p build_dir
         
         # Configure project
-        sh "cmake -S #{nfd_src_dir} -B #{nfd_build_dir}"
+        system("cmake -S #{src_dir} -B #{build_dir}")
 
         # Build project
-        sh "cmake --build #{nfd_build_dir} --config #{nfd_config}"
+        system("cmake --build #{build_dir} --config #{config}")
 
         # Install (in /usr/local)
-        sh "sudo cmake --install #{nfd_build_dir} --config #{nfd_config}"
+        # Note: we install locally because it would require admin privileges to install system-wide.
+        install_cmd = "cmake --install #{build_dir} --config #{config} --prefix #{build_dir}"
+        if BUILD_OS_LINUX
+            install_cmd = "sudo #{install_cmd}"
+        end
+        system(install_cmd)
+    end
+
+    # task :zlib  do
+
+    #     src_dir   = "./libs/zlib"
+    #     build_dir = "./#{BUILD_DIR}/libs/zlib"
+    #     config    = "Release"
+
+    #     # Make build directory
+    #     FileUtils.mkdir_p build_dir
+        
+    #     # Configure project
+    #     system("cmake -S #{src_dir} -B #{build_dir}"
+
+    #     # Build project
+    #     system("cmake --build #{build_dir} --config #{config} --target zlibstatic"
+    # end
+
+
+    # task :png do
+
+    #     src_dir   = "./libs/png"
+    #     build_dir = "./#{BUILD_DIR}/libs/png"
+    #     config    = "Release"
+
+    #     # Make build directory
+    #     FileUtils.mkdir_p build_dir
+        
+    #     # Configure project
+    #     system("cmake -S #{src_dir} -B #{build_dir} -DCMAKE_BUILD_TYPE=#{config} -DBUILD_SHARED_LIBS=OFF"
+
+    #     # Build project
+    #     system("cmake --build #{build_dir} --config #{config}"
+    # end
+
+    # task :freetype do
+    #     src_dir   = "./libs/freetype"
+    #     build_dir = "./#{BUILD_DIR}/libs/freetype"
+    #     config    = "Optimized"
+
+    #     # Make build directory
+    #     FileUtils.mkdir_p build_dir
+        
+    #     # Configure project
+    #     system("cmake -S #{src_dir} -B #{build_dir}"
+
+    #     # Build project
+    #     system("cmake --build #{build_dir} --config #{config}"
+
+    #     # Install (in /usr/local)
+    #     # Note: we install locally because it would require admin privileges to install system-wide.
+    #     system("cmake --install #{build_dir} --config #{config} --prefix #{build_dir}"
+    # end
+
+    # task :bzip2 do
+    #     src_dir   = "./libs/freetype"
+    #     build_dir = "./#{BUILD_DIR}/libs/freetype"
+    #     config    = "Optimized"
+
+    #     # Make build directory
+    #     FileUtils.mkdir_p build_dir
+        
+    #     # Configure project
+    #     system("cmake -S #{src_dir} -B #{build_dir}"
+
+    #     # Build project
+    #     system("cmake --build #{build_dir} --config #{config}"
+
+    #     # Install (in /usr/local)
+    #     # Note: we install locally because it would require admin privileges to install system-wide.
+    #     system("cmake --install #{build_dir} --config #{config} --prefix #{build_dir}"
+    # end
+
+    task :default do
+        if BUILD_OS_LINUX
+            packages = [
+                "build-essential",
+                "libegl1-mesa-dev",
+                "libdbus-1-dev",
+                "libgtk-3-dev", # for NDF (native file dialog), can theoretically be removed see sdl.h
+                "libgtest-dev",
+                "libfreetype-dev",
+                "libsdl2-dev",
+                # "libstdc++-11-dev", comes with clang in principle
+            ].join(" ")
+
+            system("sudo apt-get update && sudo apt-get install #{packages}")
+
+        elsif BUILD_OS_WINDOWS
+            #
+            # Requires VCPKG
+            #
+            # clone https://github.com/microsoft/vcpkg
+            # cd vcpkg
+            # bootstrap-vcpkg.bat
+            #
+            # From there, you have access to vcpkg and pkg-config commands in the shell
+            #
+            packages = [
+                "zlib",
+                "libpng",
+                "freetype",
+                "sdl2",
+                "opengl"
+            ].join(" ")
+
+            system("vcpkg install #{packages} --triplet x64-windows-static") # add --triplet x64-windows-static to get static libs
+        else
+            raise "Your system (#{BUILD_OS}) is not supported by this script"
+        end
+
+        if PLATFORM_WEB
+            Rake::Task['install:emsdk'].invoke
+        elsif PLATFORM_DESKTOP   
+            Rake::Task['install:nativefiledialog'].invoke
+        end
     end
 end
 
@@ -111,5 +209,5 @@ end
 desc "Count Line Of Code (requires cloc, count in ./src by default)"
 task :cloc, [:arg1] do |t, args|
     _path = args[:arg1] || "./src"
-    sh "cloc --by-file-by-lang #{_path}"
+    system("cloc --by-file-by-lang #{_path}")
 end
