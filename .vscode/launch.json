@@ -1,0 +1,24 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Nodable (release)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/build-desktop-mingw32-release/bin/nodable.exe",
+            "args": [],
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "name": "Nodable (debug)",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/build-desktop-mingw32-debug/bin/nodable.exe",
+            "args": [],
+            "cwd": "${workspaceRoot}"
+        }
+    ]
+}
