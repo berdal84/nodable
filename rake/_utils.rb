@@ -22,6 +22,11 @@ HTTP_SERVER_HOSTNAME = "0.0.0.0"
 HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 
+# Temporary defines,
+VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static"                  : "/dev/null"
+VCPKG_INSTALLED      = BUILD_OS_WINDOWS ? "./vcpkg_installed"                   : "/dev/null"
+VCPKG                = BUILD_OS_WINDOWS ? "#{VCPKG_INSTALLED}/#{VCPKG_TRIPLET}" : "/dev/null"
+
 if VERBOSE
     system "echo Ruby version: && ruby -v"
     puts "BUILD_OS:           #{BUILD_OS}"
@@ -64,6 +69,7 @@ Target = Struct.new(
     :cxx_flags,
     :linker_flags,
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
+    :vcpkg, # list of vcpkg package names
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -81,6 +87,7 @@ def new_empty_target(name, type)
     target.defines = []
     target.compiler_flags = []
     target.link_library = []
+    target.vcpkg = []
     target
 end
 
@@ -142,14 +149,17 @@ def compile_file(src, target)
     args += ['-c'] # no linking
     args += get_includes_flags(target)
     args += get_defines_flags(target)
-    args += get_dependency_flags(src)
-    args += ["-MJ", src_to_obj(src)bj.ext("o.json")] # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
-    args += ["-o", src_to_obj(src), src]
+    args += ["-MD", "-MF#{src_to_dep(src)}"]
+    args += ["-MJ", src_to_obj(src).ext("o.json")] # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
+    args += ["-o",  src_to_obj(src)]
+    args += [src]
+
+    # print(args.join(" "))
 
     # Run the command
-    if is_cpp
-        return system("#{$cxx_compiler} #{args.join(" ")}")
-    return system("#{$c_compiler} #{args.join(" ")}")
+    command = "#{is_cpp ? $cxx_compiler : $c_compiler} -v #{args.join(" ")}"
+
+    return system(command)
 end
 
 def link_binary( target )
@@ -164,11 +174,32 @@ def link_binary( target )
     args += get_defines_flags(target)   
     args += ['-o',  get_binary_path(target)]
     args += get_objects__incl_deps(target)
-    args += target.linker_flags
+    args += get_linker_flags(target)
 
-    FileUtils.mkdir_p File.dirname(binary_path)
+    FileUtils.mkdir_p File.dirname(get_binary_path(target))
 
-    return system("#{$linker} #{args.join(" ")}")
+    command = "#{$linker} -v #{args.join(" ")}"
+
+    return system(command)
+end
+
+def get_linker_flags(target)
+    flags  = []
+    flags += target.linker_flags
+
+    if BUILD_OS_WINDOWS
+        if target.vcpkg
+            flags.append( pkg_config("--libs --static #{target.vcpkg.join(" ")}") )
+        end
+    end
+
+    flags
+end
+
+def pkg_config(args)
+    result = `#{VCPKG}/tools/pkgconf/pkgconf.exe --with-path #{VCPKG}/lib/pkgconfig #{args}`
+    #print("pkg_config result is: #{result}")
+    result.chomp # chomp removes EOL
 end
 
 def get_defines_flags(target)
@@ -176,11 +207,16 @@ def get_defines_flags(target)
 end
 
 def get_includes_flags(target)
-    target.includes.map{|f| "-I#{File.absolute_path(f)}"}
-end
+    flags  = []
+    flags += target.includes.map{|f| "-I#{File.absolute_path(f)}"}
 
-def get_dependency_flags(source)
-    ["-MD", "-MF#{src_to_dep(source)}"]
+    if BUILD_OS_WINDOWS
+        if target.vcpkg
+            flags.append( pkg_config("--cflags-only-I #{target.vcpkg.join(" ")}") )
+        end
+    end
+
+    flags
 end
 
 def get_assets_src(target)

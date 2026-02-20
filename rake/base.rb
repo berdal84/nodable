@@ -74,29 +74,27 @@ def new_target_from_base(name, type)
 
         elsif BUILD_OS_WINDOWS      
             
-            vcpkg = "./vcpkg_installed/x64-windows-static"
-
-            target.includes |= [
-                "#{vcpkg}/include",
-                "#{vcpkg}/include/SDL2",
-                "\"/c/Program Files (x86)/Windows Kits/10/Include/\""
-            ]   
+            target.includes |= []   
 
             target.defines |= [
+                "SDL_MAIN_HANDLED",
                 "NOMINMAX", # avoids windows min/max to collide (see https://stackoverflow.com/questions/11544073/how-do-i-deal-with-the-max-macro-in-windows-h-colliding-with-max-in-std)
                 "__PRFCHWINTRIN_H", # issues with clang (SDL_endian.h:41:1: error: definition of builtin function '_m_prefetch')
             ]
 
             target.linker_flags |= [
-                "-Wl,/SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
-                "-Wl,/NODEFAULTLIB:libcmt",
-                "-L#{BUILD_DIR}/libs/nativefiledialog-extended/lib",
-                "-L#{vcpkg}/lib",
-                "-lnfd",
-                "-lSDL2-static -lkernel32 -luser32 -lgdi32 -lwinmm -limm32 -lole32 -loleaut32 -lversion -luuid -ladvapi32 -lsetupapi -lshell32 -ldinput8",
-                "-lfreetype -lbz2 -llibpng16 -lzlib -lbrotlidec -lbrotlicommon",
-                "-lOpenGL32",
+                "-Xlinker /NODEFAULTLIB:libcmt",
+                "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
+                "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
+                "-L#{BUILD_DIR}/libs/nativefiledialog-extended/lib", "-lnfd",
+
             ] # NativeFileDialog
+
+            target.vcpkg = [
+                'sdl2',
+                'freetype2',
+                'opengl'
+            ]
 
             if BUILD_TYPE_RELEASE
                 
