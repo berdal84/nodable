@@ -1,11 +1,11 @@
 {
-  "name": "nodable",
   "dependencies": [
+        "pkgconf",
         "zlib",
         "libpng",
         "freetype",
         "sdl2",
         "opengl",
         "gtest"
-    ]
+  ]
 }
