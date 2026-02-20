@@ -62,14 +62,14 @@ def new_target_from_base(name, type)
     elsif PLATFORM_DESKTOP
         
         target.includes |= [
-            "libs/nativefiledialog-extended/src/include"
+            "libs/nativefiledialog-extended/src/include",
+            `pkg-config --cflags-only-I sdl2 freetype2 gl`
         ]
 
         if BUILD_OS_LINUX
             target.linker_flags |= [
                 "-lnfd", `pkg-config --libs gtk+-3.0`,
-                `pkg-config --libs --static sdl2`,
-                `pkg-config --libs --static freetype2 gl`,
+                `pkg-config --libs --static sdl2 freetype2 gl`,
             ] # NativeFileDialog
 
         elsif BUILD_OS_WINDOWS      
