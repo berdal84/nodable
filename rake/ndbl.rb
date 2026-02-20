@@ -75,7 +75,7 @@ elsif  PLATFORM_DESKTOP
     ndbl_app.assets = ndbl_assets
 end
 
-ndbl_app.link_library |= [
+ndbl_app.depends_on_target |= [
     $tools_gui,
     $tools_core,
     $text_editor,
@@ -89,10 +89,10 @@ ndbl_test.sources |= FileList[
 ]
 
 ndbl_test.linker_flags |= [
-    pkg_config('--libs --static gtest')
-]
+     pkg_config('--libs --static gtest gtest_main'),
+ ]
 
-ndbl_test.link_library |= [
+ndbl_test.depends_on_target |= [
     $tools_core,
     $tools_gui,
     ndbl_core
@@ -107,7 +107,7 @@ else
     ndbl_test.sources |= [
         "src/ndbl/gui/Nodable.specs.cpp"
     ]
-    ndbl_test.link_library |= [
+    ndbl_test.depends_on_target |= [
         ndbl_gui,
         $text_editor
     ]

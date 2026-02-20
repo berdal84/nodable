@@ -23,7 +23,7 @@ HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static": "x64-linux-static" 
 VCPKG_INSTALLED      = "./vcpkg_installed/#{VCPKG_TRIPLET}"
-PKG_CONFIG_BIN       = BUILD_OS_WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe --with-path #{VCPKG_INSTALLED}/lib/pkgconfig" : 'pkg-config'
+PKG_CONFIG_BIN       =  "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe --with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
 
 if VERBOSE
     system "echo Ruby version: && ruby -v"
@@ -59,7 +59,7 @@ Target = Struct.new(
     :name,
     :type, # TARGET_TYPE_XXX
     :sources, # list of .c|.cpp files
-    :link_library, # list of other targets to link with (their compiled *.o will be linked)
+    :depends_on_target, # list of other targets to link with (their compiled *.o will be linked)
     :includes, # list of path dir to include
     :defines,
     :compiler_flags,
@@ -76,7 +76,7 @@ def new_empty_target(name, type)
     target.name = name
     target.type = type
     target.sources  = FileList[]
-    target.link_library = []
+    target.depends_on_target = []
     target.includes = FileList[]
     target.c_flags  = []
     target.cxx_flags = []
@@ -84,7 +84,7 @@ def new_empty_target(name, type)
     target.assets = FileList[]
     target.defines = []
     target.compiler_flags = []
-    target.link_library = []
+    target.depends_on_target = []
     # target.vcpkg = []
     target
 end
@@ -116,7 +116,7 @@ def get_objects__incl_deps( target )
     objects = get_self_objects( target )
 
     # Append dependencies's objects
-    target.link_library.each do |other_target|
+    target.depends_on_target.each do |other_target|
         objects |= get_objects__incl_deps( other_target )
     end
 
@@ -155,7 +155,7 @@ def compile_file(src, target)
     # print(args.join(" "))
 
     # Run the command
-    command = "#{is_cpp ? $cxx_compiler : $c_compiler} -v #{args.join(" ")}"
+    command = "#{is_cpp ? $cxx_compiler : $c_compiler} #{args.join(" ")}"
 
     return system(command)
 end
@@ -176,7 +176,7 @@ def link_binary( target )
 
     FileUtils.mkdir_p File.dirname(get_binary_path(target))
 
-    command = "#{$linker} -v #{args.join(" ")}"
+    command = "#{$linker} #{args.join(" ")}"
 
     return system(command)
 end
@@ -186,7 +186,9 @@ def get_defines_flags(target)
 end
 
 def get_includes_flags(target)
-    target.includes.map{|f| "-I#{File.absolute_path(f)}"}
+    # We now have to set -I manually
+    # target.includes.map{|f| "-I#{File.absolute_path(f)}"}
+    target.includes
 end
 
 def get_assets_src(target)

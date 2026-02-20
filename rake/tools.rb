@@ -19,7 +19,7 @@ $tools_core.sources |= FileList[
 ]
 
 if PLATFORM_DESKTOP
-    $tools_core.link_library |= [$whereami]
+    $tools_core.depends_on_target |= [$whereami]
 end
 
 #---------------------------------------------------------------------------
@@ -41,11 +41,7 @@ $tools_gui.sources |= FileList[
     "src/tools/gui/ViewState.cpp",
     "src/tools/gui/TextureManager.cpp",
 ]
-$tools_gui.link_library |= [$lodepng, $imgui]
-
-if PLATFORM_DESKTOP
-    $tools_gui.link_library |= [$gl3w]
-end
+$tools_gui.depends_on_target |= [$lodepng, $imgui]
 
 #---------------------------------------------------------------------------
 
@@ -61,7 +57,7 @@ app.assets = FileList[
     "fonts/fa-solid-900.ttf",
     "fonts/JetBrainsMono-*.ttf", # 4 variants
 ]
-app.link_library |= [$tools_core, $tools_gui]
+app.depends_on_target |= [$tools_core, $tools_gui]
 
 #---------------------------------------------------------------------------
 
@@ -75,10 +71,10 @@ tools_test.sources |= FileList[
 ]
 
 tools_test.linker_flags |= [
-    pkg_config('--libs --static gtest')
+    pkg_config('--libs --static gtest gtest_main'),
 ]
 
-tools_test.link_library |= [$tools_core, $tools_gui]
+tools_test.depends_on_target |= [$tools_core, $tools_gui]
 
 #---------------------------------------------------------------------------
 desc "Build tools"

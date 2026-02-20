@@ -57,135 +57,25 @@ end
 task :install => ['install:default']
 
 namespace :install do
-            
-    task :emsdk do
-        # Download and install the latest SDK tools.
-        system("libs/emsdk/emsdk install latest")
-
-        # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-        system("libs/emsdk/emsdk activate latest")
-    end
-
-    task :nativefiledialog do
-        src_dir   = "./libs/nativefiledialog-extended"
-        build_dir = "./#{BUILD_DIR}/libs/nativefiledialog-extended"
-        config    = "Release"
-
-        FileUtils.mkdir_p build_dir
-        
-        # Configure project
-        system("cmake -S #{src_dir} -B #{build_dir} -DCMAKE_POLICY_VERSION_MINIMUM=3.5") # -DCMAKE_POLICY_VERSION_MINIMUM=3.5 => because recent versions of CMake are incompatible
-
-        # Build project
-        system("cmake --build #{build_dir} --config #{config}")
-
-        # Install (in /usr/local)
-        # Note: we install locally because it would require admin privileges to install system-wide.
-        install_cmd = "cmake --install #{build_dir} --config #{config} --prefix #{build_dir}"
-        if BUILD_OS_LINUX
-            install_cmd = "sudo #{install_cmd}"
-        end
-        system(install_cmd)
-    end
-
-    # task :zlib  do
-
-    #     src_dir   = "./libs/zlib"
-    #     build_dir = "./#{BUILD_DIR}/libs/zlib"
-    #     config    = "Release"
-
-    #     # Make build directory
-    #     FileUtils.mkdir_p build_dir
-        
-    #     # Configure project
-    #     system("cmake -S #{src_dir} -B #{build_dir}"
-
-    #     # Build project
-    #     system("cmake --build #{build_dir} --config #{config} --target zlibstatic"
-    # end
-
-
-    # task :png do
-
-    #     src_dir   = "./libs/png"
-    #     build_dir = "./#{BUILD_DIR}/libs/png"
-    #     config    = "Release"
-
-    #     # Make build directory
-    #     FileUtils.mkdir_p build_dir
-        
-    #     # Configure project
-    #     system("cmake -S #{src_dir} -B #{build_dir} -DCMAKE_BUILD_TYPE=#{config} -DBUILD_SHARED_LIBS=OFF"
-
-    #     # Build project
-    #     system("cmake --build #{build_dir} --config #{config}"
-    # end
-
-    # task :freetype do
-    #     src_dir   = "./libs/freetype"
-    #     build_dir = "./#{BUILD_DIR}/libs/freetype"
-    #     config    = "Optimized"
-
-    #     # Make build directory
-    #     FileUtils.mkdir_p build_dir
-        
-    #     # Configure project
-    #     system("cmake -S #{src_dir} -B #{build_dir}"
-
-    #     # Build project
-    #     system("cmake --build #{build_dir} --config #{config}"
-
-    #     # Install (in /usr/local)
-    #     # Note: we install locally because it would require admin privileges to install system-wide.
-    #     system("cmake --install #{build_dir} --config #{config} --prefix #{build_dir}"
-    # end
-
-    # task :bzip2 do
-    #     src_dir   = "./libs/freetype"
-    #     build_dir = "./#{BUILD_DIR}/libs/freetype"
-    #     config    = "Optimized"
-
-    #     # Make build directory
-    #     FileUtils.mkdir_p build_dir
-        
-    #     # Configure project
-    #     system("cmake -S #{src_dir} -B #{build_dir}"
-
-    #     # Build project
-    #     system("cmake --build #{build_dir} --config #{config}"
-
-    #     # Install (in /usr/local)
-    #     # Note: we install locally because it would require admin privileges to install system-wide.
-    #     system("cmake --install #{build_dir} --config #{config} --prefix #{build_dir}"
-    # end
 
     task :default do
-        if BUILD_OS_LINUX
-            packages = [
-                "build-essential",
-                "libegl1-mesa-dev",
-                "libdbus-1-dev",
-                "libgtk-3-dev", # for NDF (native file dialog), can theoretically be removed see sdl.h
-                "libgtest-dev",
-                "libfreetype-dev",
-                "libsdl2-dev",
-                # "libstdc++-11-dev", comes with clang in principle
-            ].join(" ")
 
-            system("sudo apt-get update && sudo apt-get install #{packages}")
-
-        elsif BUILD_OS_WINDOWS
+        if BUILD_OS_LINUX or BUILD_OS_WINDOWS
             system("vcpkg install --triplet #{VCPKG_TRIPLET}")
         else
             raise "Your system (#{BUILD_OS}) is not supported by this script"
         end
 
         if PLATFORM_WEB
-            Rake::Task['install:emsdk'].invoke
-        elsif PLATFORM_DESKTOP   
-            Rake::Task['install:nativefiledialog'].invoke
+            # Download and install the latest SDK tools.
+            system("libs/emsdk/emsdk install latest")
+
+            # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+            system("libs/emsdk/emsdk activate latest")
         end
+
     end
+    
 end
 
 

@@ -4,21 +4,20 @@ require_relative '_utils'
 def new_target_from_base(name, type)
 
     target = new_empty_target(name, type)
-    target.includes |= FileList[
+    target.includes = [
         # internal
-        "src",
-        "src/ndbl",
-        "src/tools",
+        "-Isrc",
+        "-Isrc/ndbl",
+        "-Isrc/tools",
         # external
-        "libs",
-        "libs/gl3w",
-        "libs/gl3w/GL",
-        "libs/glm",
-        "libs/IconFontCppHeaders",
-        "libs/imgui",
-        "libs/imgui",
-        "libs/whereami/src",
-        "libs/nativefiledialog-extended/src/include",
+        "-Ilibs",
+        "-Ilibs/gl3w",
+        "-Ilibs/gl3w/GL",
+        "-Ilibs/glm",
+        "-Ilibs/IconFontCppHeaders",
+        "-Ilibs/imgui",
+        "-Ilibs/imgui",
+        "-Ilibs/whereami/src"
     ]
 
     target.defines |= [
@@ -76,7 +75,7 @@ def new_target_from_base(name, type)
 
             target.compiler_flags |= [
                pkg_config("--cflags-only-I sdl2 freetype2 opengl")
-            ]   
+            ]
 
             target.defines |= [
                 "SDL_MAIN_HANDLED",
@@ -85,10 +84,10 @@ def new_target_from_base(name, type)
             ]
 
             target.linker_flags |= [
-                "-Xlinker /NODEFAULTLIB:libcmt",
+                "-v",
                 "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
-                "-L#{BUILD_DIR}/libs/nativefiledialog-extended/lib", "-lnfd",
+                "-lnfd", "-lgl3w", # has no *.pc file to work with pkg_config
                 pkg_config("--libs --static sdl2 freetype2 opengl")
             ] # NativeFileDialog
 
@@ -144,5 +143,20 @@ def new_target_from_base(name, type)
 end
 
 def pkg_config(args)
-    return `#{PKG_CONFIG_BIN} #{args}`.chomp!() # On windows, we get and EOL!
+    command = "#{PKG_CONFIG_BIN} #{args}"
+
+    print("Running: #{command}\n")
+
+    result = `#{command}`
+    if result
+        result = result.chomp("\n") # Make sure string does not contains "\r", "\n", or "\r\n"
+    end
+
+    print(" --result: #{result}\n")
+
+    result
+end
+
+task :pkgconf , [:arg] do |task, args|
+    print pkg_config(args[:arg])
 end

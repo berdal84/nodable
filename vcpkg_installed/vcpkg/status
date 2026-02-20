@@ -109,6 +109,15 @@ Abi: 244deaf559bc1a29549b8ff2de834dce1483951d9f0eaa2b7bbe8d426231f9d2
 Description: Google Testing and Mocking Framework
 Status: install ok installed
 
+Package: nativefiledialog-extended
+Version: 1.3.0
+Depends: vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: x64-windows-static
+Multi-Arch: same
+Abi: cac6b9aec172ec8902c9b53981f1eed7b62d7adb2f8541d16dc0cd74c8a03def
+Description: Native File Dialog Extended
+Status: install ok installed
+
 Package: egl-registry
 Version: 2025-05-27
 Architecture: x64-windows-static
@@ -171,5 +180,15 @@ Architecture: x64-windows-static
 Multi-Arch: same
 Abi: bd5d5a450881a2e855de5bb4fbbc030278fd371942f71c186603c3f51ac973bc
 Description: Simple DirectMedia Layer is a cross-platform development library designed to provide low level access to audio, keyboard, mouse, joystick, and graphics hardware via OpenGL and Direct3D.
+Status: install ok installed
+
+Package: gl3w
+Version: 2018-05-31
+Port-Version: 5
+Depends: egl-registry, opengl-registry, vcpkg-cmake:x64-windows, vcpkg-cmake-config:x64-windows
+Architecture: x64-windows-static
+Multi-Arch: same
+Abi: 8a479b0ce90d638a389d0e702c366fd93261f962ec06173037eee5f039140e91
+Description: Simple OpenGL core profile loading
 Status: install ok installed
 

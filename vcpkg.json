@@ -6,6 +6,8 @@
         "freetype",
         "sdl2",
         "opengl",
-        "gtest"
+        "gtest",
+        "nativefiledialog-extended",
+        "gl3w"
   ]
 }

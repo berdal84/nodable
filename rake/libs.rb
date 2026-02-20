@@ -3,10 +3,6 @@ require_relative 'base'
 # declare here the external libraries we need to build as OBJECTS
 
 #---------------------------------------------------------------------------
-$gl3w = new_target_from_base("gl3w", TARGET_TYPE_OBJECTS)
-$gl3w.sources |= FileList[
-    "libs/gl3w/GL/gl3w.c"
-]
 
 $text_editor = new_target_from_base("text_editor", TARGET_TYPE_OBJECTS)
 $text_editor.sources |= FileList[
@@ -39,8 +35,7 @@ namespace :libs do
 
     if PLATFORM_DESKTOP
         task :build => [
-            'whereami:build',
-            'gl3w:build'
+            'whereami:build'
         ]
     end
 
@@ -49,10 +44,6 @@ namespace :libs do
         'lodepng:build',
         'imgui:build'
     ]
-
-    namespace :gl3w do
-        tasks_for_target( $gl3w )
-    end
 
     namespace :text_editor do
         tasks_for_target( $text_editor )
