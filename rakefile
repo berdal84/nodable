@@ -176,11 +176,11 @@ namespace :install do
 
         elsif BUILD_OS_WINDOWS
 
-            if BUILD_TYPE_RELEASE
+            # if BUILD_TYPE_RELEASE
                 system("vcpkg install --triplet x64-windows-static")
-            else
-                raise "Not implemented yet!"
-            end
+            # else
+                # system("vcpkg install --triplet x64-windows-static") # no need for specific packages right now...
+            # end
 
         else
             raise "Your system (#{BUILD_OS}) is not supported by this script"
