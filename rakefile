@@ -74,7 +74,7 @@ namespace :install do
         FileUtils.mkdir_p build_dir
         
         # Configure project
-        system("cmake -S #{src_dir} -B #{build_dir}")
+        system("cmake -S #{src_dir} -B #{build_dir} -DCMAKE_POLICY_VERSION_MINIMUM=3.5") # -DCMAKE_POLICY_VERSION_MINIMUM=3.5 => because recent versions of CMake are incompatible
 
         # Build project
         system("cmake --build #{build_dir} --config #{config}")
@@ -175,7 +175,13 @@ namespace :install do
             system("sudo apt-get update && sudo apt-get install #{packages}")
 
         elsif BUILD_OS_WINDOWS
-            system("vcpkg install --triplet x64-windows-static") # add --triplet x64-windows-static to get static libs
+
+            if BUILD_TYPE_RELEASE
+                system("vcpkg install --triplet x64-windows-static")
+            else
+                raise "Not implemented yet!"
+            end
+
         else
             raise "Your system (#{BUILD_OS}) is not supported by this script"
         end
