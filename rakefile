@@ -175,24 +175,7 @@ namespace :install do
             system("sudo apt-get update && sudo apt-get install #{packages}")
 
         elsif BUILD_OS_WINDOWS
-            #
-            # Requires VCPKG
-            #
-            # clone https://github.com/microsoft/vcpkg
-            # cd vcpkg
-            # bootstrap-vcpkg.bat
-            #
-            # From there, you have access to vcpkg and pkg-config commands in the shell
-            #
-            packages = [
-                "zlib",
-                "libpng",
-                "freetype",
-                "sdl2",
-                "opengl"
-            ].join(" ")
-
-            system("vcpkg install #{packages} --triplet x64-windows-static") # add --triplet x64-windows-static to get static libs
+            system("vcpkg install --triplet x64-windows-static") # add --triplet x64-windows-static to get static libs
         else
             raise "Your system (#{BUILD_OS}) is not supported by this script"
         end

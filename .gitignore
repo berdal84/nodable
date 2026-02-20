@@ -37,7 +37,7 @@
 
 # Nodable
 *.log
-*.json
+compile_commands.json
 
 # Executables
 # *.exe
@@ -49,6 +49,10 @@
 *.VC.db
 *\temp
 build/Nodable.vcxproj.user
+
+# VCPKG 
+# I keep installed packages, to be able to compile offline
+# vcpkg_installed/
 
 *.db
 _screenshots/

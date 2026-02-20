@@ -1,0 +1,11 @@
+{
+  "name": "nodable",
+  "dependencies": [
+        "zlib",
+        "libpng",
+        "freetype",
+        "sdl2",
+        "opengl",
+        "gtest"
+    ]
+}

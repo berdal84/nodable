@@ -62,8 +62,6 @@ def new_target_from_base(name, type)
     elsif PLATFORM_DESKTOP
         
         target.includes |= [
-            "libs/sdl/include",
-            "libs/freetype/include",
             "libs/nativefiledialog-extended/src/include"
         ]
 
@@ -76,7 +74,11 @@ def new_target_from_base(name, type)
 
         elsif BUILD_OS_WINDOWS      
             
+            vcpkg = "./vcpkg_installed/x64-windows-static"
+
             target.includes |= [
+                "#{vcpkg}/include",
+                `pkg-config --cflags-only-I sdl2 freetype2 opengl`.chomp!(),
                 "\"/c/Program Files (x86)/Windows Kits/10/Include/\""
             ]   
 
@@ -88,7 +90,7 @@ def new_target_from_base(name, type)
             target.linker_flags |= [
                 # External libraries (/libs or system-wide)
                 "-l#{BUILD_DIR}/libs/nativefiledialog-extended/lib/nfd.lib",
-                `pkg-config --libs --static bzip2 opengl sdl2 freetype2`.chomp!(),
+                `pkg-config --libs --static sdl2 freetype2 opengl`.chomp!(),
                 "-Wl,/SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Wl,/NODEFAULTLIB:libcmt"
             ] # NativeFileDialog
