@@ -175,13 +175,7 @@ namespace :install do
             system("sudo apt-get update && sudo apt-get install #{packages}")
 
         elsif BUILD_OS_WINDOWS
-
-            # if BUILD_TYPE_RELEASE
-                system("vcpkg install --triplet x64-windows-static")
-            # else
-                # system("vcpkg install --triplet x64-windows-static") # no need for specific packages right now...
-            # end
-
+            system("vcpkg install --triplet #{VCPKG_TRIPLET}")
         else
             raise "Your system (#{BUILD_OS}) is not supported by this script"
         end

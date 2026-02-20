@@ -89,8 +89,7 @@ ndbl_test.sources |= FileList[
 ]
 
 ndbl_test.linker_flags |= [
-    "-lgtest",
-    "-lgtest_main"
+    pkg_config('--libs --static gtest')
 ]
 
 ndbl_test.link_library |= [

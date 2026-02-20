@@ -73,10 +73,11 @@ tools_test.sources |= FileList[
     "src/tools/gui/geometry/SpatialNode.specs.cpp",
     "src/tools/gui/geometry/Rect.specs.cpp"
 ]
+
 tools_test.linker_flags |= [
-    "-lgtest",
-    "-lgtest_main"
+    pkg_config('--libs --static gtest')
 ]
+
 tools_test.link_library |= [$tools_core, $tools_gui]
 
 #---------------------------------------------------------------------------

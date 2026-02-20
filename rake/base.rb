@@ -18,6 +18,7 @@ def new_target_from_base(name, type)
         "libs/imgui",
         "libs/imgui",
         "libs/whereami/src",
+        "libs/nativefiledialog-extended/src/include",
     ]
 
     target.defines |= [
@@ -60,21 +61,22 @@ def new_target_from_base(name, type)
         ]
 
     elsif PLATFORM_DESKTOP
-        
-        target.includes |= [
-            "libs/nativefiledialog-extended/src/include",
-            `pkg-config --cflags-only-I sdl2 freetype2 gl`
-        ]
 
         if BUILD_OS_LINUX
+            target.compiler_flags |= [
+                pkg_config("--cflags-only-I sdl2 freetype2 gl")
+            ]
+
             target.linker_flags |= [
-                "-lnfd", `pkg-config --libs gtk+-3.0`,
-                `pkg-config --libs --static sdl2 freetype2 gl`,
-            ] # NativeFileDialog
+                "-lnfd", `#{PKG_CONFIG_BIN} --libs gtk+-3.0`,
+                pkg_config("--libs --static sdl2 freetype2 gl"),
+            ]
 
         elsif BUILD_OS_WINDOWS      
-            
-            target.includes |= []   
+
+            target.compiler_flags |= [
+               pkg_config("--cflags-only-I sdl2 freetype2 opengl")
+            ]   
 
             target.defines |= [
                 "SDL_MAIN_HANDLED",
@@ -87,14 +89,8 @@ def new_target_from_base(name, type)
                 "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
                 "-L#{BUILD_DIR}/libs/nativefiledialog-extended/lib", "-lnfd",
-
+                pkg_config("--libs --static sdl2 freetype2 opengl")
             ] # NativeFileDialog
-
-            target.vcpkg = [
-                'sdl2',
-                'freetype2',
-                'opengl'
-            ]
 
             if BUILD_TYPE_RELEASE
                 
@@ -145,4 +141,8 @@ def new_target_from_base(name, type)
     end
 
     target
+end
+
+def pkg_config(args)
+    return `#{PKG_CONFIG_BIN} #{args}`.chomp!() # On windows, we get and EOL!
 end

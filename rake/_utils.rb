@@ -21,11 +21,9 @@ GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"
 HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
-
-# Temporary defines,
-VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static"                  : "/dev/null"
-VCPKG_INSTALLED      = BUILD_OS_WINDOWS ? "./vcpkg_installed"                   : "/dev/null"
-VCPKG                = BUILD_OS_WINDOWS ? "#{VCPKG_INSTALLED}/#{VCPKG_TRIPLET}" : "/dev/null"
+VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static": "x64-linux-static" 
+VCPKG_INSTALLED      = "./vcpkg_installed/#{VCPKG_TRIPLET}"
+PKG_CONFIG_BIN       = BUILD_OS_WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe --with-path #{VCPKG_INSTALLED}/lib/pkgconfig" : 'pkg-config'
 
 if VERBOSE
     system "echo Ruby version: && ruby -v"
@@ -69,7 +67,7 @@ Target = Struct.new(
     :cxx_flags,
     :linker_flags,
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
-    :vcpkg, # list of vcpkg package names
+    # :vcpkg, # list of vcpkg package names
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -87,7 +85,7 @@ def new_empty_target(name, type)
     target.defines = []
     target.compiler_flags = []
     target.link_library = []
-    target.vcpkg = []
+    # target.vcpkg = []
     target
 end
 
@@ -174,7 +172,7 @@ def link_binary( target )
     args += get_defines_flags(target)   
     args += ['-o',  get_binary_path(target)]
     args += get_objects__incl_deps(target)
-    args += get_linker_flags(target)
+    args += target.linker_flags
 
     FileUtils.mkdir_p File.dirname(get_binary_path(target))
 
@@ -183,40 +181,12 @@ def link_binary( target )
     return system(command)
 end
 
-def get_linker_flags(target)
-    flags  = []
-    flags += target.linker_flags
-
-    if BUILD_OS_WINDOWS
-        if target.vcpkg
-            flags.append( pkg_config("--libs --static #{target.vcpkg.join(" ")}") )
-        end
-    end
-
-    flags
-end
-
-def pkg_config(args)
-    result = `#{VCPKG}/tools/pkgconf/pkgconf.exe --with-path #{VCPKG}/lib/pkgconfig #{args}`
-    #print("pkg_config result is: #{result}")
-    result.chomp # chomp removes EOL
-end
-
 def get_defines_flags(target)
     target.defines.map{|d| "-D\"#{d}\"" }
 end
 
 def get_includes_flags(target)
-    flags  = []
-    flags += target.includes.map{|f| "-I#{File.absolute_path(f)}"}
-
-    if BUILD_OS_WINDOWS
-        if target.vcpkg
-            flags.append( pkg_config("--cflags-only-I #{target.vcpkg.join(" ")}") )
-        end
-    end
-
-    flags
+    target.includes.map{|f| "-I#{File.absolute_path(f)}"}
 end
 
 def get_assets_src(target)
