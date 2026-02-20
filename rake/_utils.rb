@@ -134,25 +134,22 @@ def compile_file(src, target)
     FileUtils.mkdir_p File.dirname( src_to_obj( src ) )
     FileUtils.mkdir_p File.dirname( src_to_dep( src ) )
 
-    # Get the command as string
-    # build a command from an array of strings, similarly to docker
-    # [<program>, <arg1>, <arg2>, ...]
-
+    # Prepare compiler arguments
     is_cpp = File.extname( src ) == ".cpp"
-
-    cmd = [is_cpp ? $cxx_compiler : $c_compiler]
-    cmd += target.compiler_flags
-    cmd += is_cpp ? target.cxx_flags : target.c_flags
-    cmd += ['-c'] # no linking
-    cmd += format_includes(target)
-    cmd += format_defines(target)
-    cmd += get_dependency_flags(src)
-    obj = src_to_obj( src )
-    cmd += ["-MJ", obj.ext("o.json")] # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
-    cmd += ["-o", obj, src]
+    args = []
+    args += target.compiler_flags
+    args += is_cpp ? target.cxx_flags : target.c_flags
+    args += ['-c'] # no linking
+    args += get_includes_flags(target)
+    args += get_defines_flags(target)
+    args += get_dependency_flags(src)
+    args += ["-MJ", src_to_obj(src)bj.ext("o.json")] # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
+    args += ["-o", src_to_obj(src), src]
 
     # Run the command
-    return system("#{cmd.join(" ")}")
+    if is_cpp
+        return system("#{$cxx_compiler} #{args.join(" ")}")
+    return system("#{$c_compiler} #{args.join(" ")}")
 end
 
 def link_binary( target )
@@ -161,22 +158,24 @@ def link_binary( target )
         raise "Target type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
     end
 
-    binary_path    = get_binary_path(target)
-    objects        = get_objects__incl_deps(target).join(" ")
-    defines        = format_defines(target).join(" ")
-    compiler_flags = target.compiler_flags.join(" ")
-    linker_flags   = target.linker_flags.join(" ")
+    # Prepare linker arguments
+    args = []
+    args += target.compiler_flags
+    args += get_defines_flags(target)   
+    args += ['-o',  get_binary_path(target)]
+    args += get_objects__incl_deps(target)
+    args += target.linker_flags
 
     FileUtils.mkdir_p File.dirname(binary_path)
 
-    return system("#{$linker} #{compiler_flags} #{defines} -o #{binary_path} #{objects} #{linker_flags}")
+    return system("#{$linker} #{args.join(" ")}")
 end
 
-def format_defines(target)
+def get_defines_flags(target)
     target.defines.map{|d| "-D\"#{d}\"" }
 end
 
-def format_includes(target)
+def get_includes_flags(target)
     target.includes.map{|f| "-I#{File.absolute_path(f)}"}
 end
 

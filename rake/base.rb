@@ -116,14 +116,14 @@ def new_target_from_base(name, type)
 
                 target.compiler_flags |= [
                     "-D_MT",
-                    "-D_DLL"
+                    # "-D_DLL"
                 ]
 
                 target.linker_flags |= [
-                    "-lmsvcrtd",
-                    "-lucrtd",
-                    "-lvcruntimed",
-                    "-lmsvcprtd",
+                    # "-lmsvcrtd",
+                    # "-lucrtd",
+                    # "-lvcruntimed",
+                    # "-lmsvcprtd",
                 ]
             end
         end
