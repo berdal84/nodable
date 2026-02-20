@@ -4,7 +4,7 @@
 using namespace tools;
 using namespace ndbl;
 
-int wmain(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     TOOLS_try
     {
