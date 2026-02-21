@@ -43,7 +43,6 @@ def new_target_from_base(name, type)
         ]
     end
 
-    # ---- PLATFORM_XXX specific --------
     if WEB
         target.compiler_flags |= [
             "-v",

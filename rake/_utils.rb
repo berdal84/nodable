@@ -368,9 +368,9 @@ def tasks_for_target(target)
         desc "Run #{target.name}"
         task :run => :build do
 
-            if PLATFORM_DESKTOP
+            if DESKTOP
                 system("./#{get_binary_path(target)}")
-            elsif PLATFORM_WEB
+            elsif WEB
                 system("emrun --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}")
             end
         end
