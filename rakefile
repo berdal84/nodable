@@ -54,26 +54,19 @@ task :rebuild_all do
     end
 end
 
-task :install => ['install:default']
+task :install do
+    if WEB
+        # Download and install the latest SDK tools.
+        sh "extern/emsdk/emsdk install latest"
 
-namespace :install do
-
-    task :default do
-
-        sh "vcpkg install --triplet #{VCPKG_TRIPLET} --x-install-root=./vcpkg/#{OS}"
-
-        if WEB
-            # Download and install the latest SDK tools.
-            sh "extern/emsdk/emsdk install latest"
-
-            # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-            sh "extern/emsdk/emsdk activate latest"
-        end
-
+        # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+        sh "extern/emsdk/emsdk activate latest"
     end
-    
 end
 
+task :vcpkg do
+    sh "vcpkg install --triplet #{VCPKG_TRIPLET} --x-install-root=./vcpkg/#{OS}"
+end
 
 desc "Count Line Of Code (requires cloc, count in ./src by default)"
 task :cloc, [:arg1] do |t, args|
