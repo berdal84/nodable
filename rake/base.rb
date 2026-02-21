@@ -30,6 +30,11 @@ def new_target_from_base(name, type)
         "-fno-char8_t", # related to ImGui
     ]
 
+    if VERBOSE
+        target.compiler_flags.append("-v")
+        target.linker_flags.append("-v")
+    end
+
     if WINDOWS
         target.cxx_flags |= [
             "-Wno-nontrivial-memcall",
@@ -83,8 +88,7 @@ def new_target_from_base(name, type)
                 "__PRFCHWINTRIN_H", # issues with clang (SDL_endian.h:41:1: error: definition of builtin function '_m_prefetch')
             ]
 
-            target.linker_flags |= [
-                "-v",
+            target.linker_flags |= [                
                 "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
                 # Add libraries and deps using pkg-config / pkgconf
