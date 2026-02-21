@@ -55,6 +55,14 @@ def get_build_type()
     return build_type
 end
 
+def get_pkg_config_bin()
+  if WINDOWS 
+    return "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe"
+  elsif LINUX
+    return "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf"  
+  end
+end
+
 ARCHITECTURE       = get_architecture()      # Must match with vcpkg convention
 OS                 = get_os()                # Must match with vcpkg convention
 VERBOSE            = !!ENV["VERBOSE"]
@@ -77,7 +85,7 @@ HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 VCPKG_TRIPLET        = get_vcpkg_triplet()
 VCPKG_INSTALLED      = "./vcpkg/#{OS}/#{VCPKG_TRIPLET}"
-PKG_CONFIG_BIN       = WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe" : "pkg-config"
+PKG_CONFIG_BIN       = get_pkg_config_bin()
 PKG_CONFIG_ARGS      = "--with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
 PKG_CONFIG_CMD       = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS}"
 

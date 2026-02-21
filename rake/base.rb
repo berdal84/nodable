@@ -65,14 +65,22 @@ def new_target_from_base(name, type)
 
     elsif DESKTOP
 
+        target.linker_flags |= [
+            # Add libraries manually when there is no no *.pc file to work with pkg_config
+            "-lnfd",
+            "-lgl3w",
+            "-llodepng",
+        ]  
+
         if LINUX
             target.compiler_flags |= [
-                pkg_config("--cflags-only-I sdl2 freetype2 gl")
+                pkg_config("--cflags-only-I sdl2 freetype2")
             ]
 
             target.linker_flags |= [
-                "-lnfd", `#{PKG_CONFIG_BIN} --libs gtk+-3.0`,
-                pkg_config("--libs --static sdl2 freetype2 gl"),
+                "-lstdc++", # when using clang (instead of clang++) we don't have it automatically
+                pkg_config("--libs gtk+-3.0"), # required by -lnfd
+                pkg_config("--libs --static sdl2 freetype2 gl dbus-1"),
             ]
 
         elsif WINDOWS      
@@ -92,10 +100,6 @@ def new_target_from_base(name, type)
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
                 # Add libraries and deps using pkg-config / pkgconf
                 pkg_config("--libs --static sdl2 freetype2 opengl"),
-                # Add libraries manually when there is no no *.pc file to work with pkg_config
-                "-lnfd",
-                "-lgl3w",
-                "-llodepng",
             ] # NativeFileDialog
 
             if RELEASE
