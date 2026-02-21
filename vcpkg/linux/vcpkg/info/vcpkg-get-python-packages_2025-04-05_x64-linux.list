@@ -1,0 +1,8 @@
+x64-linux/
+x64-linux/share/
+x64-linux/share/vcpkg-get-python-packages/
+x64-linux/share/vcpkg-get-python-packages/copyright
+x64-linux/share/vcpkg-get-python-packages/vcpkg-port-config.cmake
+x64-linux/share/vcpkg-get-python-packages/vcpkg.spdx.json
+x64-linux/share/vcpkg-get-python-packages/vcpkg_abi_info.txt
+x64-linux/share/vcpkg-get-python-packages/x_vcpkg_get_python_packages.cmake

@@ -1,0 +1,22 @@
+prefix=${pcfiledir}/../..
+original_prefix=${prefix}
+exec_prefix=${prefix}
+bindir=${prefix}/bin
+libdir=${prefix}/lib
+includedir=${prefix}/../include
+system_bus_default_address=unix:path=${prefix}/var/run/dbus/system_bus_socket
+datarootdir=${prefix}/../share
+datadir=${prefix}/../share
+sysconfdir=${prefix}/${prefix}/etc/dbus
+session_bus_services_dir=${datadir}/dbus-1/services
+system_bus_services_dir=${datadir}/dbus-1/system-services
+interfaces_dir=${datadir}/dbus-1/interfaces
+daemondir=${prefix}/bin
+
+Name: dbus
+Description: Free desktop message bus
+Version: 1.16.2
+Libs: "-L${libdir}" -ldbus-1
+Libs.private:  -lrt
+Cflags: "-I${includedir}/dbus-1.0" "-I${libdir}/dbus-1.0/include" 
+
