@@ -10,15 +10,21 @@ on:
   pull_request:
     branches: [master]
 
+
+
 jobs:
   build:
-    runs-on: [windows-2025, ubuntu-22.04]
+    strategy:
+      fail-fast: false
+      matrix:
+        OS: [ windows-2025, ubuntu-22.04 ]
+    runs-on: ${{ matrix.os }}
     env:
       # Those are read by rake script
-      BUILD_TYPE:         release # release|debug
-      BUILD_DIR:          ./out
-      TARGET:             desktop # desktop|web
-      VERBOSE:            true
+      BUILD_TYPE: release # release|debug
+      BUILD_DIR: ./out
+      TARGET: desktop # desktop|web
+      VERBOSE: true
       NDBL_SKIP_GUI_TEST: true
     steps:
       - uses: actions/checkout@v4 # We don't rely on any submodule now, we use vcpkg (see ./vcpkg) and copy-pasted sources (see ./extern)
