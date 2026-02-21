@@ -68,10 +68,10 @@ namespace :install do
 
         if PLATFORM_WEB
             # Download and install the latest SDK tools.
-            system("libs/emsdk/emsdk install latest")
+            system("extern/emsdk/emsdk install latest")
 
             # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-            system("libs/emsdk/emsdk activate latest")
+            system("extern/emsdk/emsdk activate latest")
         end
 
     end
