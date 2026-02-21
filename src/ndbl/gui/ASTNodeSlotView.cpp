@@ -100,8 +100,8 @@ bool ASTNodeSlotView::draw()
         {
             // draw the rectangle
             bool bottom = slot->has_flags(SlotFlag_ORDER_1ST);
-            ImDrawCornerFlags corner_flags = bottom ? ImDrawCornerFlags_Bot
-                                                    : ImDrawCornerFlags_Top;
+            ImDrawFlags corner_flags = bottom ? ImDrawFlags_RoundCornersBottom
+                                              : ImDrawFlags_RoundCornersTop;
             draw_list->AddRectFilled(rect.min, rect.max, ImColor(fill_color), border_radius, corner_flags );
             draw_list->AddRect(rect.min, rect.max, ImColor(border_color), border_radius, corner_flags );
             break;

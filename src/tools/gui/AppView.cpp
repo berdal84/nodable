@@ -1,7 +1,7 @@
 #include "AppView.h"
-#include <lodepng/lodepng.h> // to save screenshot as PNG
+#include <lodepng.h> // to save screenshot as PNG
 #include <imgui/backends/imgui_impl_opengl3.h>
-#include <imgui/backends/imgui_impl_sdl.h>
+#include <imgui/backends/imgui_impl_sdl2.h>
 
 #if PLATFORM_DESKTOP
     #include <nfd.h>

@@ -1,5 +1,5 @@
 #pragma once
-#include "glm/glm/mat3x3.hpp"
+#include "glm/mat3x3.hpp"
 #include <unordered_set>
 #include "tools/core/assertions.h"
 #include "tools/core/Component.h"

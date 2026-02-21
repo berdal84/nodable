@@ -1,6 +1,6 @@
 #pragma once
 #include "glm/vec2.hpp"
-#include "glm/glm/mat3x3.hpp"
+#include "glm/mat3x3.hpp"
 
 #include "Vec2.h"
 

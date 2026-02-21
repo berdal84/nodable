@@ -42,6 +42,8 @@ $tools_gui.sources |= FileList[
     "src/tools/gui/TextureManager.cpp",
 ]
 
+$tools_gui.depends_on_target |= [$imgui]
+
 #---------------------------------------------------------------------------
 
 app = new_target_from_base("tools-gui-example", TARGET_TYPE_EXECUTABLE)

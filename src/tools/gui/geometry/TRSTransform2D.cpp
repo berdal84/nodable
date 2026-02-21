@@ -1,7 +1,7 @@
 #include "TRSTransform2D.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
-#include "glm/glm/gtx/matrix_transform_2d.hpp"
+#include "glm/gtx/matrix_transform_2d.hpp"
 #undef GLM_ENABLE_EXPERIMENTAL
 
 #include "tools/core/assertions.h"

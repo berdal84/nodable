@@ -10,7 +10,6 @@
         "nativefiledialog-extended",
         "gl3w",
         "lodepng",
-        { "name": "imgui", "version>=": "1.89.2" },
         { "name":  "glm",  "version>=": "1.0.3"  }
   ]
 }

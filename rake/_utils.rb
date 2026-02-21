@@ -23,7 +23,9 @@ HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static": "x64-linux-static" 
 VCPKG_INSTALLED      = "./vcpkg_installed/#{VCPKG_TRIPLET}"
-PKG_CONFIG_BIN       =  "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe --with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
+PKG_CONFIG_BIN       = "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe"
+PKG_CONFIG_ARGS      = "--with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
+PKG_CONFIG_CMD       = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS}"
 
 if VERBOSE
     system "echo Ruby version: && ruby -v"
@@ -329,4 +331,29 @@ def tasks_for_target(target)
             compile_file( src, target) or raise "Unable to compile #{src}!"
         end
     end
+end
+
+def pkg_config(args)
+
+    if not File.exist?(PKG_CONFIG_BIN)
+        print("Unable to find PKG_CONFIG_BIN (#{PKG_CONFIG_BIN})\n")
+        return ""
+    end
+
+    command = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS} #{args}"
+
+    # print("Running: #{command}\n")
+
+    result = `#{command}` || ""
+    if result
+        result = result.chomp("\n") # Make sure string does not contains "\r", "\n", or "\r\n"
+    end
+
+    # print(" --result: #{result}\n")
+
+    result
+end
+
+task :pkgconf , [:arg] do |task, args|
+    print pkg_config(args[:arg])
 end

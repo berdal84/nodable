@@ -1,6 +1,6 @@
 #include "TextureManager.h"
 #include "tools/gui/GL/helpers.h"
-#include <lodepng/lodepng.h>
+#include <lodepng.h>
 
 #include "Texture.h"
 #include "tools/core/log.h"

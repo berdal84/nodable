@@ -10,9 +10,10 @@ def new_target_from_base(name, type)
         "-Isrc/ndbl",
         "-Isrc/tools",
         # external
-        "-Ilibs",
-        "-Ilibs/IconFontCppHeaders",
-        "-Ilibs/whereami/src",
+        "-Iextern",
+        "-Iextern/imgui",
+        "-Iextern/IconFontCppHeaders",
+        "-Iextern/whereami/src",
     ]
 
     target.defines |= [
@@ -88,7 +89,6 @@ def new_target_from_base(name, type)
                 "-lnfd",
                 "-lgl3w",
                 "-llodepng",
-                "-limgui",
             ] # NativeFileDialog
 
             if BUILD_TYPE_RELEASE
@@ -140,23 +140,4 @@ def new_target_from_base(name, type)
     end
 
     target
-end
-
-def pkg_config(args)
-    command = "#{PKG_CONFIG_BIN} #{args}"
-
-    print("Running: #{command}\n")
-
-    result = `#{command}`
-    if result
-        result = result.chomp("\n") # Make sure string does not contains "\r", "\n", or "\r\n"
-    end
-
-    print(" --result: #{result}\n")
-
-    result
-end
-
-task :pkgconf , [:arg] do |task, args|
-    print pkg_config(args[:arg])
 end
