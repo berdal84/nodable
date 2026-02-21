@@ -6,14 +6,14 @@ def new_target_from_base(name, type)
     target = new_empty_target(name, type)
     target.includes = [
         # internal
-        "-Isrc",
-        "-Isrc/ndbl",
-        "-Isrc/tools",
+        "-I./src",
+        "-I./src/ndbl",
+        "-I./src/tools",
         # external
-        "-Iextern",
-        "-Iextern/imgui",
-        "-Iextern/IconFontCppHeaders",
-        "-Iextern/whereami/src",
+        "-I./extern",
+        "-I./extern/imgui",
+        "-I./extern/IconFontCppHeaders",
+        "-I./extern/whereami/src",
     ]
 
     target.defines |= [
