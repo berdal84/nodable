@@ -31,12 +31,15 @@ jobs:
           ruby-version: '3.3' # Not needed with a `.ruby-version` or `.tool-versions`
 
       - name: Install Dependencies
+        shell: bash
         run: rake install
 
       - name: Build
+        shell: bash
         run: rake build
 
       - name: Test
+        shell: bash
         run: rake test
 
       - name: Binary Artifact
