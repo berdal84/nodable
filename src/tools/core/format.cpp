@@ -46,7 +46,7 @@ string32  format::time_point_to_string(const std::chrono::system_clock::time_poi
 {
     std::time_t time = std::chrono::system_clock::to_time_t(time_point);
     // The result of ctime and ctime_s is formatted like: "Www Mmm dd hh:mm:ss yyyy\n\0" (24 chars + end of line + end of string)
-#ifdef WIN32
+#ifdef NDBL_WINDOWS
     char str[26];
     ctime_s(str, sizeof str, &time);
     return {str, 24};

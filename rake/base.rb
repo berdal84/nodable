@@ -21,6 +21,7 @@ def new_target_from_base(name, type)
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"local\\\"",
         "NDBL_#{TARGET.upcase}",
+        "NDBL_#{OS.upcase}",
         "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
