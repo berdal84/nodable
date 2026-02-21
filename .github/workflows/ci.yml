@@ -30,7 +30,7 @@ jobs:
       
       - name: Build
         # run: rake install # NOT REQUIRED since we add binaries to the sources
-        run: rake build
+        run: rake -j 1 build
 
       - name: Test
         run: rake test
