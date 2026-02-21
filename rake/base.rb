@@ -4,16 +4,16 @@ require_relative '_utils'
 def new_target_from_base(name, type)
 
     target = new_empty_target(name, type)
-    target.includes = [
+    target.includes = FileList[
         # internal
-        "-I./src",
-        "-I./src/ndbl",
-        "-I./src/tools",
+        "src",
+        "src/ndbl",
+        "src/tools",
         # external
-        "-I./extern",
-        "-I./extern/imgui",
-        "-I./extern/IconFontCppHeaders",
-        "-I./extern/whereami/src",
+        "extern",
+        "extern/imgui",
+        "extern/IconFontCppHeaders",
+        "extern/whereami/src",
     ]
 
     target.defines |= [

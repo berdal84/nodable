@@ -244,9 +244,7 @@ def get_defines_flags(target)
 end
 
 def get_includes_flags(target)
-    # We now have to set -I manually
-    # target.includes.map{|f| "-I#{File.absolute_path(f)}"}
-    target.includes
+    target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}
 end
 
 def get_assets_src(target)
