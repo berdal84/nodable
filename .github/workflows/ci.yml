@@ -12,7 +12,7 @@ on:
 
 jobs:
   build:
-    runs-on: [windows-2025]
+    runs-on: [windows-2025, ubuntu-22.04]
     env:
       # Those are read by rake script
       BUILD_TYPE:         release # release|debug
