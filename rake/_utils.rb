@@ -81,20 +81,19 @@ PKG_CONFIG_BIN       = WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe" 
 PKG_CONFIG_ARGS      = "--with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
 PKG_CONFIG_CMD       = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS}"
 
-
-if VERBOSE
-    puts "------------------------------------------------------------------------------------------------------"
-    puts "RUBY version: ....... #{`ruby -v`}"
-    puts "HOST_OS: ............ #{HOST_OS}"
-    puts "OS:.................. #{OS}"
-    puts "ARCHITECTURE: ....... #{ARCHITECTURE}"
-    puts "TARGET: ............. #{TARGET}"
-    puts "BUILD_TYPE: ......... #{BUILD_TYPE}"
-    puts "VCPKG_TRIPLET: ...... #{VCPKG_TRIPLET}"
-    puts "HTTP_SERVER_HOSTNAME: #{HTTP_SERVER_HOSTNAME}"
-    puts "HTTP_SERVER_PORT:     #{HTTP_SERVER_PORT}"
-    puts "------------------------------------------------------------------------------------------------------"
-end
+puts "------------------------------------------------------------------------------------------------------"
+puts "RUBY version: ....... #{`ruby -v`}"
+puts "HOST_OS: ............ #{HOST_OS}"
+puts "OS:.................. #{OS}"
+puts "ARCHITECTURE: ....... #{ARCHITECTURE}"
+puts "TARGET: ............. #{TARGET}"
+puts "BUILD_TYPE: ......... #{BUILD_TYPE}"
+puts "VCPKG_TRIPLET: ...... #{VCPKG_TRIPLET}"
+puts "HTTP_SERVER_HOSTNAME: #{HTTP_SERVER_HOSTNAME}"
+puts "HTTP_SERVER_PORT:     #{HTTP_SERVER_PORT}"
+puts "Dir.pwd: ............ #{Dir.pwd }"
+puts "__FILE__: ........... #{File.dirname(__FILE__)}"
+puts "------------------------------------------------------------------------------------------------------"
 
 if DESKTOP
     $c_compiler   = "clang"
