@@ -21,27 +21,14 @@ jobs:
       VERBOSE:            true
       NDBL_SKIP_GUI_TEST: true
     steps:
-      - name: Git Checkout
-        uses: actions/checkout@v4 # We don't rely on any submodule now, we use vcpkg (see ./vcpkg) and copy-pasted sources (see ./extern)
-
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '4.0.1' # Not needed with a `.ruby-version` or `.tool-versions`
+      - uses: actions/checkout@v4 # We don't rely on any submodule now, we use vcpkg (see ./vcpkg) and copy-pasted sources (see ./extern)
       
-      - name: Build
-        # run: rake install # NOT REQUIRED since we add binaries to the sources
-        run: rake -j 1 build
+      #- run: rake install # NOT REQUIRED since we add binaries to the sources
+      - run: rake build
 
-      - name: Test
-        run: rake test
+      - run: rake test
 
-      - name: Binary Artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: nodable-${{ env.TARGET }}-${{ env.BUILD_TYPE }}
           path: ./out/bin/
-
-      # - name: Build
-      #   if: env.TARGET == 'web'
-      #   shell: bash
-      #   run: source extern/emsdk/emsdk_env.sh && rake ndbl:build  
