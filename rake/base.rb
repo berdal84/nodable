@@ -20,8 +20,8 @@ def new_target_from_base(name, type)
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"local\\\"",
-        "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
-        "PLATFORM_#{PLATFORM.upcase}"
+        "NDBL_#{TARGET.upcase}",
+        "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
     target.cxx_flags |= [
@@ -35,7 +35,7 @@ def new_target_from_base(name, type)
     ]
 
     # ---- PLATFORM_XXX specific --------
-    if PLATFORM_WEB
+    if WEB
         target.compiler_flags |= [
             "-v",
             "-s USE_PTHREADS=1",
@@ -55,9 +55,9 @@ def new_target_from_base(name, type)
             "--emrun"
         ]
 
-    elsif PLATFORM_DESKTOP
+    elsif DESKTOP
 
-        if BUILD_OS_LINUX
+        if LINUX
             target.compiler_flags |= [
                 pkg_config("--cflags-only-I sdl2 freetype2 gl")
             ]
@@ -67,7 +67,7 @@ def new_target_from_base(name, type)
                 pkg_config("--libs --static sdl2 freetype2 gl"),
             ]
 
-        elsif BUILD_OS_WINDOWS      
+        elsif WINDOWS      
 
             target.compiler_flags |= [
                pkg_config("--cflags-only-I sdl2 freetype2 opengl")
@@ -123,11 +123,11 @@ def new_target_from_base(name, type)
     end
 
     # ---- BUILD_TYPE_XXX specific --------
-    if BUILD_TYPE_RELEASE
+    if RELEASE
         target.compiler_flags |= [
             "-O2"
         ]
-    elsif BUILD_TYPE_DEBUG
+    elsif DEBUG
         target.compiler_flags |= [
             "-g", # generates symbols
             "-O0", # no optim

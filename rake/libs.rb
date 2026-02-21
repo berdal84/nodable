@@ -29,7 +29,7 @@ $whereami.sources |= FileList[
 #---------------------------------------------------------------------------
 namespace :libs do
 
-    if PLATFORM_DESKTOP
+    if DESKTOP
         task :build => [
             'whereami:build'
         ]

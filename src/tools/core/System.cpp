@@ -5,7 +5,7 @@
 
 using namespace tools;
 
-#if PLATFORM_DESKTOP
+#if NDBL_DESKTOP
 int run_command(const char* command)
 {
     int exit_code = ::system(command);
@@ -31,7 +31,7 @@ void System::clear_console() /* cf: https://stackoverflow.com/questions/6486289/
     }
 }
 
-#elif PLATFORM_WEB
+#elif NDBL_WEB
 #include <emscripten.h>
 
 EM_JS(void, call_clear_console, (), {

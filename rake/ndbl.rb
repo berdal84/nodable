@@ -61,7 +61,7 @@ ndbl_assets = FileList[
     "./images/nodable-logo-xs.png",
 ]
 
-if PLATFORM_WEB
+if WEB
 
     # Preload assets (they will be compiled in a binary .data)
     ndbl_app.linker_flags |= ndbl_assets.map{|path| "--preload-file #{path}" }
@@ -71,7 +71,7 @@ if PLATFORM_WEB
         "http/.htaccess:.htaccess"
     ]
 
-elsif  PLATFORM_DESKTOP
+elsif DESKTOP
     ndbl_app.assets = ndbl_assets
 end
 
@@ -121,7 +121,7 @@ namespace :ndbl do
     task :rebuild => ['clean', 'build']
     task :build => ['core:build', 'gui:build', 'app:build']
 
-    if !PLATFORM_WEB
+    if DESKTOP
         task :clean => ['test:clean']
         task :build => ['test:build']
         task :test  => ['test:run']

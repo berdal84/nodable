@@ -44,12 +44,12 @@ task :run   => ['ndbl:app:run']
 desc "Rebuild all targets (web & desktop, debug & release)"
 task :rebuild_all do
 
-    platforms = ["web", "desktop"]
+    targets     = ["web",   "desktop"]
     build_types = ["debug", "release"]
 
-    platforms.each do |platform|
+    targets.each do |platform|
         build_types.each do |build_type|
-            sh "rake -m clobber build PLATFORM=#{platform}  BUILD_TYPE=#{build_type}"
+            sh "rake -m clobber build TARGET=#{platform}  BUILD_TYPE=#{build_type}"
         end
     end
 end
@@ -60,13 +60,9 @@ namespace :install do
 
     task :default do
 
-        if BUILD_OS_LINUX or BUILD_OS_WINDOWS
-            sh "vcpkg install --triplet #{VCPKG_TRIPLET}"
-        else
-            raise "Your system (#{BUILD_OS}) is not supported by this script"
-        end
+        sh "vcpkg install --triplet #{VCPKG_TRIPLET}"
 
-        if PLATFORM_WEB
+        if WEB
             # Download and install the latest SDK tools.
             sh "extern/emsdk/emsdk install latest"
 

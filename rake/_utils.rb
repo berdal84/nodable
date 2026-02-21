@@ -2,49 +2,104 @@ require "rbconfig"
 require 'json'
 require 'date' # To add date in .clang export
 
-VERBOSE            = ENV["VERBOSE"] == "1"
-BUILD_OS           = RbConfig::CONFIG['build_os']
+def get_architecture()
+    host_cpu = RbConfig::CONFIG['host_cpu']
+    if host_cpu != "x86_64"
+        raise "This script is not compatible with #{host_cpu} architecture!"
+    end
+
+    return "x64"
+end
+
+def get_os()
+    
+    build_os = RbConfig::CONFIG['build_os']
+
+    if build_os.include?("linux")
+        return "linux"
+    elsif build_os.include?("mingw32") # Ruby is built on mingw32 (w32 does not stands for 32bits)
+        return "windows"
+    end
+
+    raise "This script is not compatible with #{build_os}!"
+end
+
+def get_vcpkg_triplet()
+    triplet = "#{ARCHITECTURE}-#{OS}"
+
+    if OS == "windows"
+        triplet += "-static" # windows convention is different than linux, dynamic by default
+    end
+
+    triplet
+end
+
+def get_target()
+    target = (ENV["TARGET"] || "desktop").downcase
+
+    if target != "desktop" and target != "web"
+        raise "Unexpected target: #{target}! (expecting web|desktop)"
+    end
+
+    return target
+end
+
+def get_build_type()
+    build_type = (ENV["BUILD_TYPE"] || "release").downcase
+
+    if build_type != "release" and build_type != "debug"
+        raise "Unexpected build_type: #{build_type}! (expecting release|debug)"
+    end
+
+    return build_type
+end
+
+ARCHITECTURE       = get_architecture()      # Must match with vcpkg convention
+OS                 = get_os()                # Must match with vcpkg convention
+VERBOSE            = !!ENV["VERBOSE"]
 HOST_OS            = RbConfig::CONFIG['host_os']
-PLATFORM           = (ENV["PLATFORM"] || "desktop").downcase
-PLATFORM_DESKTOP   = PLATFORM == "desktop"
-PLATFORM_WEB       = PLATFORM == "web"
-BUILD_TYPE         = (ENV["BUILD_TYPE"] || "release").downcase
-BUILD_TYPE_RELEASE = BUILD_TYPE == "release"
-BUILD_TYPE_DEBUG   = BUILD_TYPE != "release"
-BUILD_DIR          = ENV["BUILD_DIR"] || "build-#{PLATFORM}-#{BUILD_OS}-#{BUILD_TYPE}"
+TARGET             = get_target()
+DESKTOP            = TARGET == "desktop"
+WEB                = TARGET == "web"
+BUILD_TYPE         = get_build_type()
+RELEASE            = BUILD_TYPE == "release"
+DEBUG              = BUILD_TYPE == "debug"
+BUILD_DIR          = ENV["BUILD_DIR"] || "build-#{TARGET}-#{ARCHITECTURE}-#{OS}-#{BUILD_TYPE}"
 OBJ_DIR            = "#{BUILD_DIR}/obj"
 DEP_DIR            = "#{BUILD_DIR}/dep"
 BIN_DIR            = "#{BUILD_DIR}/bin"
-BUILD_OS_LINUX     = BUILD_OS.include?("linux")
-BUILD_OS_WINDOWS   = BUILD_OS.include?("mingw32")
+LINUX              = OS == "linux"
+WINDOWS            = OS == "windows"
 GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"
 HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
-VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static": "x64-linux" 
+VCPKG_TRIPLET        = get_vcpkg_triplet()
 VCPKG_INSTALLED      = "./vcpkg_installed/#{VCPKG_TRIPLET}"
-PKG_CONFIG_BIN       = BUILD_OS_WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe" : "pkg-config"
+PKG_CONFIG_BIN       = WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe" : "pkg-config"
 PKG_CONFIG_ARGS      = "--with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
 PKG_CONFIG_CMD       = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS}"
 
+
 if VERBOSE
-    system "echo Ruby version: && ruby -v"
-    puts "BUILD_OS:           #{BUILD_OS}"
-    puts "HOST_OS:            #{HOST_OS}"
-    puts "PLATFORM:           #{PLATFORM}"
-    puts "BUILD_TYPE_RELEASE: #{BUILD_TYPE_RELEASE}"
-    puts "BUILD_TYPE_DEBUG:   #{BUILD_TYPE_DEBUG}"
-    puts "BUILD_OS_LINUX:     #{BUILD_OS_LINUX}"
-    puts "BUILD_OS_WINDOWS:   #{BUILD_OS_WINDOWS}"
+    puts "------------------------------------------------------------------------------------------------------"
+    puts "RUBY version: ....... #{`ruby -v`}"
+    puts "HOST_OS: ............ #{HOST_OS}"
+    puts "OS:.................. #{OS}"
+    puts "ARCHITECTURE: ....... #{ARCHITECTURE}"
+    puts "TARGET: ............. #{TARGET}"
+    puts "BUILD_TYPE: ......... #{BUILD_TYPE}"
+    puts "VCPKG_TRIPLET: ...... #{VCPKG_TRIPLET}"
     puts "HTTP_SERVER_HOSTNAME: #{HTTP_SERVER_HOSTNAME}"
     puts "HTTP_SERVER_PORT:     #{HTTP_SERVER_PORT}"
+    puts "------------------------------------------------------------------------------------------------------"
 end
 
-if PLATFORM_DESKTOP
+if DESKTOP
     $c_compiler   = "clang"
     $cxx_compiler = "clang++"
     $linker       = "clang"
-elsif PLATFORM_WEB
+elsif WEB
     $c_compiler   = "emcc"
     $cxx_compiler = "emcc"
     $linker       = "emcc"
@@ -127,9 +182,9 @@ end
 
 def get_binary_path( target )
     path = "#{BIN_DIR}/#{target.name}"
-    if PLATFORM_WEB
+    if WEB
         path = path.ext("html")
-    elsif BUILD_OS_WINDOWS
+    elsif DESKTOP and WINDOWS
         path = path.ext("exe")
     end
     path
@@ -335,7 +390,7 @@ end
 
 def pkg_config(args)
 
-    if BUILD_OS_WINDOWS and not File.exist?(PKG_CONFIG_BIN)
+    if WINDOWS and not File.exist?(PKG_CONFIG_BIN)
         print("Unable to find PKG_CONFIG_BIN (#{PKG_CONFIG_BIN})\n")
         return ""
     end

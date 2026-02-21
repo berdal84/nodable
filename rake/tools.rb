@@ -18,7 +18,7 @@ $tools_core.sources |= FileList[
     "src/tools/core/TaskManager.cpp"
 ]
 
-if PLATFORM_DESKTOP
+if DESKTOP
     $tools_core.depends_on_target |= [$whereami]
 end
 
@@ -93,7 +93,7 @@ namespace :tools do
         'app:build',
     ]
 
-    if !PLATFORM_WEB
+    if DESKTOP
         task :clean => ['test:clean']
         task :build => ['test:build']
         task :test  => ['test:run']
