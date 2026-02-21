@@ -25,14 +25,17 @@ def new_target_from_base(name, type)
     ]
 
     target.cxx_flags |= [
-        "-std=c++20",
-
-        # related to ImGui
-        "-fno-char8_t",
-        "-Wno-nontrivial-memcall",
-        "-Wno-nontrivial-memaccess", # ImGui has several warnings like this one: "warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiListClipperData' [-Wnontrivial-memcall]"
-        "-Wno-unused-function", # imstb_rectpack.h:233:16: error: unused function 'stbrp_setup_heuristic' [-Werror,-Wunused-function]  233 | STBRP_DEF void stbrp_setup_heuristic(stbrp_context *context, int heuristic)
+        "-std=c++20",        
+        "-fno-char8_t", # related to ImGui
     ]
+
+    if WINDOWS
+        target.cxx_flags |= [
+            "-Wno-nontrivial-memcall",
+            "-Wno-nontrivial-memaccess", # ImGui has several warnings like this one: "warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiListClipperData' [-Wnontrivial-memcall]"
+            "-Wno-unused-function", # imstb_rectpack.h:233:16: error: unused function 'stbrp_setup_heuristic' [-Werror,-Wunused-function]  233 | STBRP_DEF void stbrp_setup_heuristic(stbrp_context *context, int heuristic)
+        ]
+    end
 
     # ---- PLATFORM_XXX specific --------
     if WEB
