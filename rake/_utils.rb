@@ -21,9 +21,9 @@ GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"
 HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
-VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static": "x64-linux-static" 
+VCPKG_TRIPLET        = BUILD_OS_WINDOWS ? "x64-windows-static": "x64-linux" 
 VCPKG_INSTALLED      = "./vcpkg_installed/#{VCPKG_TRIPLET}"
-PKG_CONFIG_BIN       = "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe"
+PKG_CONFIG_BIN       = BUILD_OS_WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe" : "pkg-config"
 PKG_CONFIG_ARGS      = "--with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
 PKG_CONFIG_CMD       = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS}"
 
@@ -335,7 +335,7 @@ end
 
 def pkg_config(args)
 
-    if not File.exist?(PKG_CONFIG_BIN)
+    if BUILD_OS_WINDOWS and not File.exist?(PKG_CONFIG_BIN)
         print("Unable to find PKG_CONFIG_BIN (#{PKG_CONFIG_BIN})\n")
         return ""
     end

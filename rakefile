@@ -49,7 +49,7 @@ task :rebuild_all do
 
     platforms.each do |platform|
         build_types.each do |build_type|
-            system("rake -m clobber build PLATFORM=#{platform}  BUILD_TYPE=#{build_type}")
+            sh "rake -m clobber build PLATFORM=#{platform}  BUILD_TYPE=#{build_type}"
         end
     end
 end
@@ -61,17 +61,17 @@ namespace :install do
     task :default do
 
         if BUILD_OS_LINUX or BUILD_OS_WINDOWS
-            system("vcpkg install --triplet #{VCPKG_TRIPLET}")
+            sh "vcpkg install --triplet #{VCPKG_TRIPLET}"
         else
             raise "Your system (#{BUILD_OS}) is not supported by this script"
         end
 
         if PLATFORM_WEB
             # Download and install the latest SDK tools.
-            system("extern/emsdk/emsdk install latest")
+            sh "extern/emsdk/emsdk install latest"
 
             # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-            system("extern/emsdk/emsdk activate latest")
+            sh "extern/emsdk/emsdk activate latest"
         end
 
     end
