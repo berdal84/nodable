@@ -41,7 +41,6 @@ $tools_gui.sources |= FileList[
     "src/tools/gui/ViewState.cpp",
     "src/tools/gui/TextureManager.cpp",
 ]
-$tools_gui.depends_on_target |= [$lodepng, $imgui]
 
 #---------------------------------------------------------------------------
 

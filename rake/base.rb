@@ -11,13 +11,8 @@ def new_target_from_base(name, type)
         "-Isrc/tools",
         # external
         "-Ilibs",
-        "-Ilibs/gl3w",
-        "-Ilibs/gl3w/GL",
-        "-Ilibs/glm",
         "-Ilibs/IconFontCppHeaders",
-        "-Ilibs/imgui",
-        "-Ilibs/imgui",
-        "-Ilibs/whereami/src"
+        "-Ilibs/whereami/src",
     ]
 
     target.defines |= [
@@ -87,8 +82,13 @@ def new_target_from_base(name, type)
                 "-v",
                 "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
-                "-lnfd", "-lgl3w", # has no *.pc file to work with pkg_config
-                pkg_config("--libs --static sdl2 freetype2 opengl")
+                # Add libraries and deps using pkg-config / pkgconf
+                pkg_config("--libs --static sdl2 freetype2 opengl"),
+                # Add libraries manually when there is no no *.pc file to work with pkg_config
+                "-lnfd",
+                "-lgl3w",
+                "-llodepng",
+                "-limgui",
             ] # NativeFileDialog
 
             if BUILD_TYPE_RELEASE

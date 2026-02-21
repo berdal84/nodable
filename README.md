@@ -35,6 +35,6 @@ Nodable is licensed under the GPL License, see [LICENSE](./LICENSE). Each submod
 
 ### Credits
 
-Nodable is developed by [@berdal84](https://github.com/berdal84) and rely on many ([libraries](./libs/README.md)).
+Nodable is developed by [@berdal84](https://github.com/berdal84) and rely on many ([libraries](extern/README.md)).
 
 More information about this project on [Nodable website](https://nodable.42borgata.com/).

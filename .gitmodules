@@ -1,24 +1,3 @@
-[submodule "libs/imgui"]
-	path = libs/imgui
-	url = ../imgui
-[submodule "libs/IconFontCppHeaders"]
-	path = libs/IconFontCppHeaders
-	url = ../IconFontCppHeaders
-[submodule "libs/ImGuiColorTextEdit"]
-	path = libs/ImGuiColorTextEdit
-	url = ../ImGuiColorTextEdit
 [submodule "libs/whereami"]
 	path = libs/whereami
 	url = https://github.com/gpakosz/whereami.git
-[submodule "libs/nativefiledialog-extended"]
-	path = libs/nativefiledialog-extended
-	url = https://github.com/btzy/nativefiledialog-extended.git
-[submodule "libs/google/benchmark"]
-	path = libs/google/benchmark
-	url = https://github.com/google/benchmark.git
-[submodule "libs/glm"]
-	path = libs/glm
-	url = https://github.com/g-truc/glm.git
-[submodule "libs/emsdk"]
-	path = libs/emsdk
-	url = https://github.com/emscripten-core/emsdk.git

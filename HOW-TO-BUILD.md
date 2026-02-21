@@ -10,7 +10,7 @@ Nodable sources are split in two folders under [./src](./src/README.md):
 - [./src/ndbl](src/ndbl/README.md) project.
 - [./src/tools](src/tools/README.md) project.
 
-They both rely on external [libraries](./libs/README.md).
+They both rely on external [libraries](extern/README.md).
 
 ## Prerequisites:
 
