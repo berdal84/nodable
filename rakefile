@@ -60,7 +60,7 @@ namespace :install do
 
     task :default do
 
-        sh "vcpkg install --triplet #{VCPKG_TRIPLET}"
+        sh "vcpkg install --triplet #{VCPKG_TRIPLET} --x-install-root=./vcpkg/#{OS}"
 
         if WEB
             # Download and install the latest SDK tools.

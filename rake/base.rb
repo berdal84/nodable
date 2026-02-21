@@ -91,7 +91,7 @@ def new_target_from_base(name, type)
                 "-llodepng",
             ] # NativeFileDialog
 
-            if BUILD_TYPE_RELEASE
+            if RELEASE
                 
                 target.compiler_flags |= [
                     "-D_MT",

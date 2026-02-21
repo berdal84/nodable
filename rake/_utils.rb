@@ -4,7 +4,8 @@ require 'date' # To add date in .clang export
 
 def get_architecture()
     host_cpu = RbConfig::CONFIG['host_cpu']
-    if host_cpu != "x86_64"
+
+    if host_cpu != "x86_64" and host_cpu != "x64"
         raise "This script is not compatible with #{host_cpu} architecture!"
     end
 
@@ -75,7 +76,7 @@ HTTP_SERVER_HOSTNAME = "0.0.0.0"
 HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 VCPKG_TRIPLET        = get_vcpkg_triplet()
-VCPKG_INSTALLED      = "./vcpkg_installed/#{VCPKG_TRIPLET}"
+VCPKG_INSTALLED      = "./vcpkg/#{OS}/#{VCPKG_TRIPLET}"
 PKG_CONFIG_BIN       = WINDOWS ? "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe" : "pkg-config"
 PKG_CONFIG_ARGS      = "--with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
 PKG_CONFIG_CMD       = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS}"
