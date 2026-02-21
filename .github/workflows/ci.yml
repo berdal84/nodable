@@ -22,24 +22,18 @@ jobs:
       NDBL_SKIP_GUI_TEST: true
     steps:
       - name: Git Checkout
-        uses: actions/checkout@v4
-        with:
-          submodules: false # We don't rely on any submodule now, we use vcpkg (see ./vcpkg) and copy-pasted sources (see ./extern)
+        uses: actions/checkout@v4 # We don't rely on any submodule now, we use vcpkg (see ./vcpkg) and copy-pasted sources (see ./extern)
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3' # Not needed with a `.ruby-version` or `.tool-versions`
+          ruby-version: '4.0' # Not needed with a `.ruby-version` or `.tool-versions`
 
       - name: Install Dependencies
-        shell: bash
         run: rake install
 
-      - name: Build
-        shell: bash
         run: rake build
 
       - name: Test
-        shell: bash
         run: rake test
 
       - name: Binary Artifact
