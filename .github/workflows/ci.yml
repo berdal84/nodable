@@ -26,11 +26,10 @@ jobs:
 
       - uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '4.0' # Not needed with a `.ruby-version` or `.tool-versions`
-
-      - name: Install Dependencies
-        run: rake install
-
+          ruby-version: '4.0.1' # Not needed with a `.ruby-version` or `.tool-versions`
+      
+      - name: Build
+        # run: rake install # NOT REQUIRED since we add binaries to the sources
         run: rake build
 
       - name: Test
@@ -41,7 +40,6 @@ jobs:
         with:
           name: nodable-${{ env.TARGET }}-${{ env.BUILD_TYPE }}
           path: ./out/bin/
-
 
       # - name: Build
       #   if: env.TARGET == 'web'
