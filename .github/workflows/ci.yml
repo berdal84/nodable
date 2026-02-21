@@ -24,7 +24,7 @@ jobs:
       - name: Git Checkout
         uses: actions/checkout@v4
         with:
-          submodules: true
+          submodules: false # We don't rely on any submodule now, we use vcpkg (see ./vcpkg) and copy-pasted sources (see ./extern)
 
       - uses: ruby/setup-ruby@v1
         with:
