@@ -12,16 +12,13 @@ on:
 
 jobs:
   build:
-    strategy:
-      matrix:
-        target: [desktop, web]
-    runs-on: [ubuntu-22.04]
+    runs-on: [windows-2022]
     env:
       # Those are read by rake script
-      BUILD_TYPE: release # release|debug
-      BUILD_DIR: ./out
-      TARGET:    ${{ matrix.target }} # desktop|web
-      VERBOSE: true
+      BUILD_TYPE:         release # release|debug
+      BUILD_DIR:          ./out
+      TARGET:             desktop # desktop|web
+      VERBOSE:            true
       NDBL_SKIP_GUI_TEST: true
     steps:
       - name: Git Checkout
@@ -34,22 +31,12 @@ jobs:
           ruby-version: '3.3' # Not needed with a `.ruby-version` or `.tool-versions`
 
       - name: Install Dependencies
-        shell: bash
         run: rake install
 
       - name: Build
-        if: env.TARGET == 'web'
-        shell: bash
-        run: source libs/emsdk/emsdk_env.sh && rake --multitask ndbl:build
-
-      - name: Build
-        if: env.TARGET == 'desktop'
-        shell: bash
-        run: rake --multitask build
+        run: rake build
 
       - name: Test
-        if: env.TARGET == 'desktop'
-        shell: bash
         run: rake test
 
       - name: Binary Artifact
@@ -57,3 +44,9 @@ jobs:
         with:
           name: nodable-${{ env.TARGET }}-${{ env.BUILD_TYPE }}
           path: ./out/bin/
+
+
+      # - name: Build
+      #   if: env.TARGET == 'web'
+      #   shell: bash
+      #   run: source extern/emsdk/emsdk_env.sh && rake ndbl:build  
