@@ -1,8 +1,9 @@
 #include "Graph.h"
 
 #include <algorithm>    // std::find_if
+#include <imgui/imgui_internal.h>
+
 #include "language/Nodlang.h"
-#include "imgui_internal.h"
 #include "ASTForLoop.h"
 #include "ASTFunctionCall.h"
 #include "ASTIf.h"
