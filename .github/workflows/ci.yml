@@ -14,13 +14,13 @@ jobs:
   build:
     strategy:
       matrix:
-        platform: [desktop, web]
+        target: [desktop, web]
     runs-on: [ubuntu-22.04]
     env:
       # Those are read by rake script
       BUILD_TYPE: release # release|debug
       BUILD_DIR: ./out
-      PLATFORM: ${{ matrix.platform }} # dektop|web
+      TARGET:    ${{ matrix.target }} # desktop|web
       VERBOSE: true
       NDBL_SKIP_GUI_TEST: true
     steps:
@@ -38,22 +38,22 @@ jobs:
         run: rake install
 
       - name: Build
-        if: env.PLATFORM == 'web'
+        if: env.TARGET == 'web'
         shell: bash
         run: source libs/emsdk/emsdk_env.sh && rake --multitask ndbl:build
 
       - name: Build
-        if: env.PLATFORM == 'desktop'
+        if: env.TARGET == 'desktop'
         shell: bash
         run: rake --multitask build
 
       - name: Test
-        if: env.PLATFORM == 'desktop'
+        if: env.TARGET == 'desktop'
         shell: bash
         run: rake test
 
       - name: Binary Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: nodable-${{ env.PLATFORM }}-${{ env.BUILD_TYPE }}
+          name: nodable-${{ env.TARGET }}-${{ env.BUILD_TYPE }}
           path: ./out/bin/
