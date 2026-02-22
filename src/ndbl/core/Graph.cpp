@@ -523,6 +523,10 @@ void Graph::disconnect(ASTSlotLink& _edge, GraphFlags flags)
             default:
                 VERIFY(false, "Unexpected _edge.type()");
         }
+
+        auto it = find(_edge, flags);
+        VERIFY(it !=  m_edge_registry.end(), "You're trying to disconnect an edge that is not registered! Did you run this twice?");
+        m_edge_registry.erase(it);
     }
 
     signal_change.broadcast();
