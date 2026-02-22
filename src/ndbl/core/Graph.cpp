@@ -52,15 +52,16 @@ void Graph::_clear()
     TOOLS_LOG(tools::Verbosity_Diagnostic, "Graph", "Clearing ...\n");
 
     // delete from last to first (which is the root)
-    while ( !m_node_registry.empty() )
+    for(auto it = m_node_registry.rbegin(); it != m_node_registry.rend(); ++it)
     {
-        auto last = m_node_registry.end() - 1;
-        ASTNode* node = *last;
-        _erase(last);
+        ASTNode* node = *it;
         _clean_node(node);
+        _remove(node);        
         node->shutdown();
         delete node;
     }
+
+    m_node_registry.clear();
 
 #ifdef NDBL_DEBUG
     if ( !m_edge_registry.empty() )
@@ -153,15 +154,12 @@ void Graph::_insert(ASTNode* node, ASTScope* scope)
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- add node %p (name: %s, class: %s)\n", node, node->name().c_str(), node->get_class()->name());
 }
 
-NodeRegistry::iterator Graph::_erase(NodeRegistry::iterator it)
+void Graph::_remove(ASTNode* node)
 {
-    ASTNode* node = *it;
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): erasing ...\n", node, node->name().c_str() );
-    const auto& next = m_node_registry.erase( it );
     signal_remove_node.emit(node);
     signal_change.broadcast();
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): _erased\n", node, node->name().c_str() );
-    return next;
 }
 
 void Graph::_clean_node(ASTNode* node)
@@ -169,19 +167,23 @@ void Graph::_clean_node(ASTNode* node)
     ASSERT( node );
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Graph", "-- node %p (name: \"%s\"): pre_erasing ...\n", node, node->name().c_str() );
 
-    // Identify each edge connected to this node
+    // disconnect and erase any link related to this node
     auto concerns_node = [&](const std::pair<SlotFlags, ASTSlotLink>& pair )
     {
         const ASTSlotLink& edge = pair.second;
         return edge.tail->node == node
                || edge.head->node == node;
-    };
-    auto edge_it = m_edge_registry.begin();
-    while( edge_it != m_edge_registry.end() )
+    };    
+    auto it = m_edge_registry.begin();
+    while( it != m_edge_registry.end() )
     {
-        edge_it = std::find_if(edge_it, m_edge_registry.end(), concerns_node);
-        if ( edge_it != m_edge_registry.end() )
-            edge_it = _disconnect(edge_it);
+        it = std::find_if(it, m_edge_registry.end(), concerns_node);
+        if ( it != m_edge_registry.end() )
+        {
+            ASTSlotLink& edge = it->second;
+            disconnect(edge);
+            it = remove(it); // TODO: reconsider this: is it performant? should we erase all at once? probably...
+        }
     }
 
     // unset scope
@@ -251,7 +253,8 @@ void Graph::find_and_destroy(ASTNode* node)
         connect(prev_adjacent_slot, next_adjacent_slot, GraphFlag_ALLOW_SIDE_EFFECTS );
     }
 
-    _erase(it);
+    _remove(node);
+    m_node_registry.erase(it);
     node->shutdown();
 
     delete node;
@@ -479,28 +482,25 @@ void Graph::_handle_connect_flow_side_effects(const ASTSlotLink& edge )
     }
 }
 
-EdgeRegistry::iterator Graph::disconnect(const ASTSlotLink& edge, GraphFlags flags)
+EdgeRegistry::iterator Graph::find(const ASTSlotLink& edge, GraphFlags flags)
 {
     auto [range_begin, range_end] = m_edge_registry.equal_range( edge.type() & ~SlotFlag_TYPE_MASK);
-    auto it = std::find_if(
+    return std::find_if(
             range_begin,
             range_end,
             [&](const auto& _pair) -> bool
             {
                 return edge == _pair.second;
             });
-    return _disconnect( it, flags );
 }
 
-EdgeRegistry::iterator Graph::_disconnect(EdgeRegistry::iterator it, GraphFlags flags)
+EdgeRegistry::iterator Graph::remove(EdgeRegistry::iterator it)
 {
-    // find the edge to disconnect
-    ASTSlotLink& _edge = it->second;
-    SlotFlags    type  = it->first;
+    return m_edge_registry.erase(it);
+}
 
-    // _erase it from the registry
-    it = m_edge_registry.erase(it);
-
+void Graph::disconnect(ASTSlotLink& _edge, GraphFlags flags)
+{
     // disconnect the slots
     _edge.tail->remove_adjacent(_edge.head);
     _edge.head->remove_adjacent(_edge.tail);
@@ -508,7 +508,7 @@ EdgeRegistry::iterator Graph::_disconnect(EdgeRegistry::iterator it, GraphFlags 
     // handle side effects
     if ( flags & GraphFlag_ALLOW_SIDE_EFFECTS )
     {
-        switch ( type )
+        switch ( _edge.type() )
         {
             case SlotFlag_TYPE_FLOW:
             {
@@ -521,12 +521,11 @@ EdgeRegistry::iterator Graph::_disconnect(EdgeRegistry::iterator it, GraphFlags 
                 break;
             }
             default:
-                VERIFY(!type, "Not yet implemented yet");
+                VERIFY(false, "Unexpected _edge.type()");
         }
     }
 
     signal_change.broadcast();
-    return it;
 }
 
 ASTIf* Graph::create_cond_struct(ASTScope* scope)

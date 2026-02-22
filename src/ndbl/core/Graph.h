@@ -122,7 +122,7 @@ namespace ndbl
         template<typename T> ASTLiteral*  create_literal(ASTScope* scope ) { return create_literal( tools::type::get<T>(), scope ); }
     private:
         void                    _insert(ASTNode*, ASTScope*);
-        NodeRegistry::iterator  _erase(NodeRegistry::iterator);
+        void                    _remove(ASTNode*);
         void                    _clean_node(ASTNode* node);
 
         void                    _reset_scope(ASTNode* scoped_node);
@@ -134,13 +134,14 @@ namespace ndbl
         void                    connect(const std::set<ASTNodeSlot*>& tails, ASTNodeSlot* head, GraphFlags _flags);
         ASTSlotLink             connect_to_variable(ASTNodeSlot* output_slot, ASTVariable* variable );
         ASTSlotLink             connect_or_merge(ASTNodeSlot* tail, ASTNodeSlot* head);
-        EdgeRegistry::iterator  disconnect(const ASTSlotLink&, GraphFlags = GraphFlag_NONE);
+        void                    disconnect(ASTSlotLink&, GraphFlags = GraphFlag_NONE );
+        EdgeRegistry::iterator  remove(EdgeRegistry::iterator);
+        EdgeRegistry::iterator  find(const ASTSlotLink&, GraphFlags = GraphFlag_NONE);
         const EdgeRegistry&     edges() const { return m_edge_registry; }
     private:
         void                    _handle_disconnect_value_side_effects(const ASTSlotLink&);
         void                    _handle_disconnect_flow_side_effects(const ASTSlotLink&);
         void                    _handle_connect_value_side_effects(const ASTSlotLink&);
         void                    _handle_connect_flow_side_effects(const ASTSlotLink&);
-        EdgeRegistry::iterator  _disconnect(EdgeRegistry::iterator, GraphFlags = GraphFlag_NONE );
     };
 }
