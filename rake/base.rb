@@ -37,11 +37,12 @@ def new_target_from_base(name, type)
         "-fno-char8_t", # related to ImGui
     ]
 
-    target.linker_flags |= [
-        "-stdlib=libstdc++"
-    ]
-
     if WINDOWS
+        
+        target.compiler_flags |=[
+            "-fms-extensions" # turn ON MSVC compatibility
+        ]
+
         target.cxx_flags |= [
             "-Wno-nontrivial-memcall",
             "-Wno-nontrivial-memaccess", # ImGui has several warnings like this one: "warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiListClipperData' [-Wnontrivial-memcall]"
