@@ -104,13 +104,11 @@ puts "__FILE__: ........... #{File.dirname(__FILE__)}"
 puts "------------------------------------------------------------------------------------------------------"
 
 if DESKTOP
-    $c_compiler   = "clang"
-    $cxx_compiler = "clang"
-    $linker       = "clang"
+    $compiler   = "clang"
+    $linker     = "clang"
 elsif WEB
-    $c_compiler   = "emcc"
-    $cxx_compiler = "emcc"
-    $linker       = "emcc"
+    $compiler   = "emcc"
+    $linker     = "emcc"
 else
     raise "Unexpected platform!"
 end
@@ -220,7 +218,7 @@ def compile_file(src, target)
     # print(args.join(" "))
 
     # Run the command
-    command = "#{is_cpp ? $cxx_compiler : $c_compiler} #{args.join(" ")}"
+    command = "#{$compiler} #{args.join(" ")}"
 
     system(command, exception: true)
 end
