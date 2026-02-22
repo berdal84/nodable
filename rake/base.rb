@@ -25,7 +25,11 @@ def new_target_from_base(name, type)
         "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
-    target.cxx_flags |= [
+    target.linker_flags |= [
+        "-stdlib=libstdc++" # we use clang, not clang++, since behavior differs in windows and linux, we do NOT use clang++
+    ]
+
+    target.cxx_flags |= [        
         "-std=c++20",        
         "-fno-char8_t", # related to ImGui
     ]
@@ -79,7 +83,7 @@ def new_target_from_base(name, type)
 
             target.linker_flags |= [
                 "-lstdc++", # when using clang (instead of clang++) we don't have it automatically
-                pkg_config("--libs gtk+-3.0"), # required by -lnfd
+                `pkg-config --libs gtk+-3.0`, # required by -lnfd
                 pkg_config("--libs --static sdl2 freetype2 gl dbus-1"),
             ]
 
