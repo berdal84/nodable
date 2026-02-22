@@ -26,9 +26,10 @@ jobs:
       VERBOSE: true
       NDBL_SKIP_GUI_TEST: true
     steps:
-      - uses: actions/checkout@v4 # We don't rely on any submodule now, we use vcpkg (see ./vcpkg) and copy-pasted sources (see ./extern)
-      
-      #- run: rake install # NOT REQUIRED since we add binaries to the sources
+      - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
+
+      - run: rake install
+
       - run: rake build
 
       - run: rake test
