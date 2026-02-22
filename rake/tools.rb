@@ -72,7 +72,7 @@ tools_test.sources |= FileList[
 ]
 
 tools_test.linker_flags |= [
-    pkg_config('--libs --static gtest gtest_main'),
+    pkg_config('--libs --static gtest_main'),
 ]
 
 tools_test.depends_on_target |= [$tools_core, $tools_gui]

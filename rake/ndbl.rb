@@ -89,7 +89,7 @@ ndbl_test.sources |= FileList[
 ]
 
 ndbl_test.linker_flags |= [
-     pkg_config('--libs --static gtest gtest_main'),
+     pkg_config('--libs --static gtest_main'),
  ]
 
 ndbl_test.depends_on_target |= [
