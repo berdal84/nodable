@@ -105,7 +105,7 @@ puts "--------------------------------------------------------------------------
 
 if DESKTOP
     $c_compiler   = "clang"
-    $cxx_compiler = "clang++"
+    $cxx_compiler = "clang"
     $linker       = "clang"
 elsif WEB
     $c_compiler   = "emcc"
