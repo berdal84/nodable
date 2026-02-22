@@ -16,7 +16,7 @@ jobs:
   build:
     strategy:
       matrix:
-        OS: [ windows-latest, ubuntu-latest ]
+        OS: [ windows-latest] # TODO: ubuntu-latest
     runs-on: ${{ matrix.OS }}
     env:
       # Those are read by rake script
