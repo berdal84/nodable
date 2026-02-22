@@ -17,7 +17,7 @@ jobs:
     strategy:
       matrix:
         OS: [ windows-latest, ubuntu-latest ]
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.OS }}
     env:
       # Those are read by rake script
       BUILD_TYPE: release # release|debug
@@ -36,5 +36,5 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: nodable-${{ env.TARGET }}-${{ env.BUILD_TYPE }}
+          name: nodable-${{ env.TARGET }}-${{ matrix.OS }}-${{ env.BUILD_TYPE }}
           path: ./out/bin/
