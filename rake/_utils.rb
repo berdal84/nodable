@@ -222,7 +222,7 @@ def compile_file(src, target)
     # Run the command
     command = "#{is_cpp ? $cxx_compiler : $c_compiler} #{args.join(" ")}"
 
-    return system(command)
+    system(command, exception: true)
 end
 
 def link_binary( target )
@@ -243,7 +243,7 @@ def link_binary( target )
 
     command = "#{$linker} #{args.join(" ")}"
 
-    return system(command)
+    system(command, exception: true)
 end
 
 def get_defines_flags(target)
@@ -377,9 +377,9 @@ def tasks_for_target(target)
         task :run => :build do
 
             if DESKTOP
-                system("./#{get_binary_path(target)}")
+                system("./#{get_binary_path(target)}", exception: true)
             elsif WEB
-                system("emrun --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}")
+                system("emrun --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}", exception: true)
             end
         end
     end
@@ -389,7 +389,7 @@ def tasks_for_target(target)
         src = obj_to_src( obj, target )
         file obj => src do |task|
             puts "#{target.name} | Compiling #{src} ..."
-            compile_file( src, target) or raise "Unable to compile #{src}!"
+            compile_file( src, target)
         end
     end
 end
@@ -403,15 +403,13 @@ def pkg_config(args)
 
     command = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS} #{args}"
 
-    # print("Running: #{command}\n")
-
     result = `#{command}` || ""
-    if result
-        result = result.chomp("\n") # Make sure string does not contains "\r", "\n", or "\r\n"
+
+    if WINDOWS and result != ""
+        # Make sure string does not contains "\r", "\n", or "\r\n"
+        result = result.chomp("\n")
     end
-
-    # print(" --result: #{result}\n")
-
+    
     result
 end
 
