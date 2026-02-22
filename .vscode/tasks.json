@@ -1,0 +1,23 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"command": "rake ndbl:app:build BUILD_TYPE=debug",
+			"label": "Build (debug)",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build"
+			}
+		},
+		{
+			"type": "shell",
+			"command": "rake ndbl:app:build",
+			"label": "Build (release)",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build"
+			}
+		}
+	]
+}

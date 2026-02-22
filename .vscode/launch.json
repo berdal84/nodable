@@ -5,20 +5,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Nodable (release)",
+            "name": "Build + Debug",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build-desktop-mingw32-release/bin/nodable.exe",
+            "program": "${workspaceRoot}/build-desktop-x64-windows-debug/bin/nodable.exe",
             "args": [],
-            "cwd": "${workspaceRoot}"
-        },
-        {
-            "name": "Nodable (debug)",
-            "type": "lldb",
-            "request": "launch",
-            "program": "${workspaceRoot}/build-desktop-mingw32-debug/bin/nodable.exe",
-            "args": [],
-            "cwd": "${workspaceRoot}"
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "Build (debug)"
         }
     ]
 }
