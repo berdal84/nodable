@@ -65,7 +65,6 @@ task :install do
             "libgtest-dev",
             "libfreetype-dev",
             "libsdl2-dev",
-            # "libstdc++-11-dev", comes with clang in principle
         ].join(" ")
 
         system("sudo apt-get update && sudo apt-get install #{packages}", exception: true)
