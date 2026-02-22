@@ -4,6 +4,12 @@ require_relative '_utils'
 def new_target_from_base(name, type)
 
     target = new_empty_target(name, type)
+    
+    if VERBOSE
+        target.compiler_flags.append("-v")
+        target.linker_flags.append("-v")
+    end
+
     target.includes = FileList[
         # internal
         "src",
@@ -35,11 +41,6 @@ def new_target_from_base(name, type)
         "-stdlib=libstdc++"
     ]
 
-    if VERBOSE
-        target.compiler_flags.append("-v")
-        target.linker_flags.append("-v")
-    end
-
     if WINDOWS
         target.cxx_flags |= [
             "-Wno-nontrivial-memcall",
@@ -50,7 +51,6 @@ def new_target_from_base(name, type)
 
     if WEB
         target.compiler_flags |= [
-            "-v",
             "-s USE_PTHREADS=1",
             "-s USE_FREETYPE=1",
             "-s USE_SDL=2",
