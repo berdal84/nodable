@@ -405,7 +405,7 @@ def pkg_config(args)
 
     result = `#{command}` || ""
 
-    if WINDOWS and result != ""
+    if result != ""
         # Make sure string does not contains "\r", "\n", or "\r\n"
         result = result.chomp("\n")
     end
