@@ -71,22 +71,16 @@ def new_target_from_base(name, type)
 
     elsif DESKTOP
 
-        target.linker_flags |= [
-            # Add libraries manually when there is no no *.pc file to work with pkg_config
-            "-lnfd",
-            "-lgl3w",
-            "-llodepng",
-        ]  
-
         if LINUX
             target.compiler_flags |= [
-                pkg_config("--cflags sdl2 freetype2")
+                pkg_config("--cflags sdl2 freetype2 gl")
             ]
 
             target.linker_flags |= [
                 # TODO: simplify usage of packages (ideas: only declare names, the generate flags when needed, of add system path to pkg_config)
                 `pkg-config --libs gtk+-3.0`.chomp, # required by -lnfd
-                pkg_config("--libs --static sdl2 freetype2 gl dbus-1"),
+                # Add libraries and deps using pkg-config / pkgconf, and the one that have no pkgconfig
+                pkg_config("--libs --static sdl2 freetype2 gl dbus-1"), "-lnfd", "-lgl3w", "-llodepng",
             ]
 
         elsif WINDOWS      
@@ -104,8 +98,8 @@ def new_target_from_base(name, type)
             target.linker_flags |= [                
                 "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
-                # Add libraries and deps using pkg-config / pkgconf
-                pkg_config("--libs --static sdl2 freetype2 opengl"),
+                # Add libraries and deps using pkg-config / pkgconf, and the one that have no pkgconfig
+                pkg_config("--libs --static sdl2 freetype2 opengl"), "-lnfd", "-lgl3w", "-llodepng",
             ] # NativeFileDialog
 
             if RELEASE
