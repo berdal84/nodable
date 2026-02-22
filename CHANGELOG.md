@@ -2,14 +2,20 @@
 Nodable Change log :
 ====================
 
-Author: Bérenger Dalle-Cort, 2017-2025
+Author: Bérenger Dalle-Cort, 2017-2026
+
 
 ### v1.0:
+    - TODO: make code simpler, try to identify when there is too much abstraction.
+    - TODO: physics: update should happens ONLY run once or when user request it. This is confusing for the user and costly in terms of performance.
+    - TODO: physics: should be applied inside each scope, and then to between each scopes
+    - use vcpkg and store compiled libraries (compilation takes now less than 2min)
     - use now C++20
     - introduced ASTScope (represented in GraphView too)
     - removed every single line related to compilation and execution (it's out of scope now)
-    - removed WIN32 and macOS platforms
+    - removed macOS platforms
     - added WEB platform (uses emscripten)
+    - use Rake as build tools (no more CMake)
     - graph is now always abstract
     - interpreter (build, run, debug etc) is disabled by default and is considered out of scope, but can be enabled via the Developer>Experimental menu,
     - improved the Graph user interface to create_new graph more easily,
