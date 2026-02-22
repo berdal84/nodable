@@ -37,9 +37,19 @@ task :rebuild => [:clobber, :build] do
     print("Rebuild DONE\n")
 end
 
-multitask :build => ['libs:build', 'tools:build', 'ndbl:build'] do puts "Build DONE" end
-task :test  => ['tools:test', 'ndbl:test']
 task :run   => ['ndbl:app:run']
+
+task :build => [
+    'libs:build',
+    'tools:app:build',
+    'ndbl:app:build',
+]
+
+task :test  => [
+    'tools:test',
+    'ndbl:test'
+]
+
 
 desc "Rebuild all targets (web & desktop, debug & release)"
 task :rebuild_all do
