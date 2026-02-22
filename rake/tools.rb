@@ -71,6 +71,10 @@ tools_test.sources |= FileList[
     "src/tools/gui/geometry/Rect.specs.cpp"
 ]
 
+tools_test.c_flags |= [
+    pkg_config('--cflags --static gtest_main'),
+]
+
 tools_test.linker_flags |= [
     pkg_config('--libs --static gtest_main'),
 ]
