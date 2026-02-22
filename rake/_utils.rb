@@ -403,10 +403,8 @@ def pkg_config(args)
 
     result = `#{command}` || ""
 
-    if result != ""
-        # Make sure string does not contains "\r", "\n", or "\r\n"
-        result = result.chomp("\n")
-    end
+    # Make sure string does not contains "\r", "\n", or "\r\n"
+    result = result.chomp
     
     result
 end
