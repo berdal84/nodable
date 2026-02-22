@@ -72,12 +72,12 @@ tools_test.sources |= FileList[
 ]
 
 tools_test.c_flags |= [
-    pkg_config('--cflags --static gtest_main'),
+    pkg_config('--cflags --static gtest_main gtest'),
 ]
 
-tools_test.linker_flags |= [
-    pkg_config('--libs --static gtest_main'),
-]
+tools_test.linker_flags.insert(
+    0, pkg_config('--libs --static gtest_main gtest') # must be inserted first
+)
 
 tools_test.depends_on_target |= [$tools_core, $tools_gui]
 
