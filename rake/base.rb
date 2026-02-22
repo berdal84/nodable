@@ -84,7 +84,8 @@ def new_target_from_base(name, type)
             ]
 
             target.linker_flags |= [
-                `pkg-config --libs gtk+-3.0`, # required by -lnfd
+                # TODO: simplify usage of packages (ideas: only declare names, the generate flags when needed, of add system path to pkg_config)
+                `pkg-config --libs gtk+-3.0`.chomp, # required by -lnfd
                 pkg_config("--libs --static sdl2 freetype2 gl dbus-1"),
             ]
 
