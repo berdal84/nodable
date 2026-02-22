@@ -79,7 +79,7 @@ def new_target_from_base(name, type)
 
         if LINUX
             target.compiler_flags |= [
-                pkg_config("--cflags-only-I sdl2 freetype2")
+                pkg_config("--cflags sdl2 freetype2")
             ]
 
             target.linker_flags |= [
@@ -90,7 +90,7 @@ def new_target_from_base(name, type)
         elsif WINDOWS      
 
             target.compiler_flags |= [
-               pkg_config("--cflags-only-I sdl2 freetype2 opengl")
+               pkg_config("--cflags sdl2 freetype2 opengl")
             ]
 
             target.defines |= [
