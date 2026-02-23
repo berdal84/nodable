@@ -1,10 +1,8 @@
-[Home](../README.md) -> libs
+[Home](../README.md) | [Build](../HOW-TO-BUILD.md) | Libraries
 
 # Libraries (external)
 
-Making nodable would have been impossible without reusing the code of those libraries.
-
-This folder contains all the external source code as submodules. The [CMakeList.txt](CMakeLists.txt) define a target per library to make use easy from other CMakeLists.
+Nodable relies on many dependencies, thanks to the authors!
 
 ## Credits
 ### Libraries
@@ -35,3 +33,8 @@ _If I forgot to mention something in here, please let me know at: berenger [at] 
 | Name                                                    | Author(s) |
 |:--------------------------------------------------------|:----------|
 | [*JetBrains Mono*]( https://www.jetbrains.com/lp/mono/) | Jetbrains |
+
+## Folder structure
+
+- `vcpkg/` contains many of the dependencies as binaries (per architecture-os triplet)
+- `external/` contains additionnal dependencies as source code.
