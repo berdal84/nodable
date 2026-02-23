@@ -11,7 +11,6 @@
         "nativefiledialog-extended",
         "gl3w",
         "lodepng",
-        { "name":  "glm",  "version>=": "1.0.3"  },
-        { "name": "libx11", "platform": "!windows" }
+        { "name":  "glm",  "version>=": "1.0.3"  }
   ]
 }

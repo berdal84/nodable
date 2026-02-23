@@ -86,7 +86,6 @@ def new_target_from_base(name, type)
                 get_library_linker_flags("sdl2"      , "static"),
                 get_library_linker_flags("freetype2" , "static"),
                 get_library_linker_flags("gl"        , "static"),
-                get_library_linker_flags("dbus-1"    , "static"), # Not sure I have to do this, TODO: double check..
                 get_library_linker_flags("nfd"       , "static"),
                 get_library_linker_flags("gl3w"      , "static"),
                 get_library_linker_flags("lodepng"   , "static"),

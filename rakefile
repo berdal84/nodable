@@ -67,7 +67,13 @@ end
 task :install do
 
     if DESKTOP        
-        puts "INFO: Nothing to install on #{ARCHITECTURE}-#{OS}"
+        
+        if LINUX
+            # The CI may not have it
+            system("sudo apt install libx11-dev", exception: true)
+        else
+            puts "INFO: Nothing to install on #{ARCHITECTURE}-#{OS}"
+        end
         
     elsif WEB
         # Download and install the latest SDK tools.
