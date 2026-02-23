@@ -75,21 +75,30 @@ def new_target_from_base(name, type)
 
 
             target.compiler_flags |= [
-                pkg_config("--cflags sdl2 freetype2 gl")
+                get_library_cflags("sdl2"),
+                get_library_cflags("freetype2"),
+                get_library_cflags("gl"),
             ]
 
             target.linker_flags |= [
                 "-lstdc++", # note: -llibstdc++ was not working, it requires to be installed.
                 # TODO: simplify usage of packages (ideas: only declare names, the generate flags when needed, of add system path to pkg_config)
                 `pkg-config --libs gtk+-3.0`.chomp, # required by -lnfd
-                # Add libraries and deps using pkg-config / pkgconf, and the one that have no pkgconfig
-                pkg_config("--libs --static sdl2 freetype2 gl dbus-1"), "-lnfd", "-lgl3w", "-llodepng",
+                get_library_linker_flags("sdl2"      , "static"),
+                get_library_linker_flags("freetype2" , "static"),
+                get_library_linker_flags("gl"        , "static"),
+                get_library_linker_flags("dbus-1"    , "static"), # Not sure I have to do this, TODO: double check..
+                get_library_linker_flags("nfd"       , "static"),
+                get_library_linker_flags("gl3w"      , "static"),
+                get_library_linker_flags("lodepng"   , "static"),
             ]
 
         elsif WINDOWS      
 
             target.compiler_flags |= [
-               pkg_config("--cflags sdl2 freetype2 opengl")
+                get_library_cflags("sdl2"),
+                get_library_cflags("freetype2"),
+                get_library_cflags("opengl"),
             ]
 
             target.defines |= [
@@ -102,7 +111,12 @@ def new_target_from_base(name, type)
                 "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
                 # Add libraries and deps using pkg-config / pkgconf, and the one that have no pkgconfig
-                pkg_config("--libs --static sdl2 freetype2 opengl"), "-lnfd", "-lgl3w", "-llodepng",
+                get_library_linker_flags("sdl2"      , "static"),
+                get_library_linker_flags("freetype2" , "static"),
+                get_library_linker_flags("opengl"    , "static"),
+                get_library_linker_flags("nfd"       , "static"),
+                get_library_linker_flags("gl3w"      , "static"),
+                get_library_linker_flags("lodepng"   , "static"),
             ]
 
             if RELEASE

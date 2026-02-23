@@ -55,11 +55,11 @@ def get_build_type()
     return build_type
 end
 
-def get_pkg_config_bin()
+def get_pkgconf_binary()
   if WINDOWS 
-    return "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf.exe"
+    return "#{VCPKG}/tools/pkgconf/pkgconf.exe"
   elsif LINUX
-    return "#{VCPKG_INSTALLED}/tools/pkgconf/pkgconf"  
+    return "#{VCPKG}/tools/pkgconf/pkgconf"  
   end
 end
 
@@ -76,7 +76,7 @@ DEBUG              = BUILD_TYPE == "debug"
 BUILD_DIR          = ENV["BUILD_DIR"] || "build-#{TARGET}-#{ARCHITECTURE}-#{OS}-#{BUILD_TYPE}"
 OBJ_DIR            = "#{BUILD_DIR}/obj"
 DEP_DIR            = "#{BUILD_DIR}/dep"
-BIN_DIR            = "#{BUILD_DIR}/bin"
+BIN_DIR            = "#{BUILD_DIR}/bin" # TODO: ambigous, we also consider this folder as dist/, FIXME
 LINUX              = OS == "linux"
 WINDOWS            = OS == "windows"
 GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
@@ -84,10 +84,11 @@ HTTP_SERVER_HOSTNAME = "0.0.0.0"
 HTTP_SERVER_PORT     = "8000"
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 VCPKG_TRIPLET        = get_vcpkg_triplet()
-VCPKG_INSTALLED      = "./vcpkg/#{OS}/#{VCPKG_TRIPLET}"
-PKG_CONFIG_BIN       = get_pkg_config_bin()
-PKG_CONFIG_ARGS      = "--with-path #{VCPKG_INSTALLED}/lib/pkgconfig"
-PKG_CONFIG_CMD       = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS}"
+VCPKG                = "./vcpkg/#{OS}/#{VCPKG_TRIPLET}"
+PKGCONF_BINARY       = get_pkgconf_binary()
+PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG}/lib/pkgconfig"
+COMPILER             = DESKTOP ? "clang" : "emcc"
+LINKER               = DESKTOP ? "clang" : "emcc"
 
 puts "------------------------------------------------------------------------------------------------------"
 puts "RUBY version: ....... #{`ruby -v`}"
@@ -96,22 +97,17 @@ puts "OS:.................. #{OS}"
 puts "ARCHITECTURE: ....... #{ARCHITECTURE}"
 puts "TARGET: ............. #{TARGET}"
 puts "BUILD_TYPE: ......... #{BUILD_TYPE}"
+puts "VCPKG: .............. #{VCPKG}"
 puts "VCPKG_TRIPLET: ...... #{VCPKG_TRIPLET}"
 puts "HTTP_SERVER_HOSTNAME: #{HTTP_SERVER_HOSTNAME}"
 puts "HTTP_SERVER_PORT:     #{HTTP_SERVER_PORT}"
+puts "PKGCONF_BINARY: ..... #{PKGCONF_BINARY}"
+puts "PKGCONF: ............ #{PKGCONF}"
+puts "COMPILER: ........... #{COMPILER}"
+puts "LINKER: ............. #{LINKER}"
 puts "Dir.pwd: ............ #{Dir.pwd }"
 puts "__FILE__: ........... #{File.dirname(__FILE__)}"
 puts "------------------------------------------------------------------------------------------------------"
-
-if DESKTOP
-    $compiler   = "clang"
-    $linker     = "clang"
-elsif WEB
-    $compiler   = "emcc"
-    $linker     = "emcc"
-else
-    raise "Unexpected platform!"
-end
 
 TARGET_TYPE_OBJECTS    = "objects"
 TARGET_TYPE_EXECUTABLE = "executable"
@@ -218,7 +214,7 @@ def compile_file(src, target)
     # print(args.join(" "))
 
     # Run the command
-    command = "#{$compiler} #{args.join(" ")}"
+    command = "#{COMPILER} #{args.join(" ")}"
 
     system(command, exception: true)
 end
@@ -239,7 +235,7 @@ def link_binary( target )
 
     FileUtils.mkdir_p File.dirname(get_binary_path(target))
 
-    command = "#{$linker} #{args.join(" ")}"
+    command = "#{LINKER} #{args.join(" ")}"
 
     system(command, exception: true)
 end
@@ -392,23 +388,47 @@ def tasks_for_target(target)
     end
 end
 
-def pkg_config(args)
+def get_library_cflags(libname)
 
-    if WINDOWS and not File.exist?(PKG_CONFIG_BIN)
-        print("Unable to find PKG_CONFIG_BIN (#{PKG_CONFIG_BIN})\n")
-        return ""
+    pkg_config_flags = ['--cflags']
+    
+    # try to get pkg-config flags first
+    has_pkg_config = system("#{PKGCONF} --exists #{libname}")
+
+    if has_pkg_config
+        flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
+    else
+        flags = "" # user must set -Ipath/to/include
     end
 
-    command = "#{PKG_CONFIG_BIN} #{PKG_CONFIG_ARGS} #{args}"
+    puts "get_library_cflags(#{libname}) => #{flags}"
 
-    result = `#{command}` || ""
+    return flags
 
-    # Make sure string does not contains "\r", "\n", or "\r\n"
-    result = result.chomp
-    
-    result
 end
 
-task :pkgconf , [:arg] do |task, args|
-    print pkg_config(args[:arg])
+def get_library_linker_flags(libname, type)
+
+    is_static = type == "static"
+    
+    is_static or raise "type not supported: #{type}"
+    
+    pkg_config_flags = ['--libs']
+    
+    if is_static
+        pkg_config_flags.append("--static")
+    end
+
+    # try to get pkg-config flags first
+    has_pkg_config = system("#{PKGCONF} --exists #{libname}")
+
+    if has_pkg_config
+        flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
+    else
+        flags = "-l#{libname}" 
+    end
+
+    puts "get_library_linker_flags(#{libname}, #{type}) => #{flags}"
+
+    return flags
 end
