@@ -72,11 +72,14 @@ def new_target_from_base(name, type)
     elsif DESKTOP
 
         if LINUX
+
+
             target.compiler_flags |= [
                 pkg_config("--cflags sdl2 freetype2 gl")
             ]
 
             target.linker_flags |= [
+                "-lstdc++", # note: -llibstdc++ was not working, it requires to be installed.
                 # TODO: simplify usage of packages (ideas: only declare names, the generate flags when needed, of add system path to pkg_config)
                 `pkg-config --libs gtk+-3.0`.chomp, # required by -lnfd
                 # Add libraries and deps using pkg-config / pkgconf, and the one that have no pkgconfig
