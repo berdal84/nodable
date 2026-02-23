@@ -4,8 +4,6 @@
 #include <unordered_map>
 #include <typeindex>
 
-#include "../log.h"
-
 namespace tools
 {
     // forward declaration

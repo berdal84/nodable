@@ -85,12 +85,17 @@ ndbl_app.depends_on_target |= [
 #---------------------------------------------------------------------------
 ndbl_test = new_target_from_base("ndbl-specs", TARGET_TYPE_EXECUTABLE)
 ndbl_test.sources |= FileList[
-    "src/ndbl/core/**/*.specs.cpp"
+    "src/ndbl/core/**/*.specs.cpp",
+    "src/ndbl/test/main.cpp",
+]
+
+ndbl_test.c_flags |= [
+    pkg_config('--cflags --static gtest'),
 ]
 
 ndbl_test.linker_flags |= [
-     pkg_config('--libs --static gtest_main'),
- ]
+     pkg_config('--libs --static gtest'),
+]
 
 ndbl_test.depends_on_target |= [
     $tools_core,

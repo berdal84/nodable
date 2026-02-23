@@ -100,7 +100,7 @@ def new_target_from_base(name, type)
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
                 # Add libraries and deps using pkg-config / pkgconf, and the one that have no pkgconfig
                 pkg_config("--libs --static sdl2 freetype2 opengl"), "-lnfd", "-lgl3w", "-llodepng",
-            ] # NativeFileDialog
+            ]
 
             if RELEASE
                 
