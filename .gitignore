@@ -1,33 +1,9 @@
 # OS
 .DS_Store
 
-# Prerequisites
-*.d
-
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
-
 # Precompiled Headers
 *.gch
 *.pch
-
-# Compiled Dynamic libraries
-*.so
-*.dylib
-#*.dll
-
-# Fortran module files
-*.mod
-*.smod
-
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-#*.lib
 
 # sublime text workspace
 *.sublime-workspace
@@ -52,7 +28,7 @@ build/Nodable.vcxproj.user
 
 # VCPKG 
 # I keep installed packages, to be able to compile offline
-# vcpkg_installed/
+# vcpkg/
 
 *.db
 _screenshots/
