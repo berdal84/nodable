@@ -70,7 +70,12 @@ task :install do
         
         if LINUX
             # The CI may not have it
-            system("sudo apt install libx11-dev", exception: true)
+            # Even if we add them via vcpkg for convenience, we still need to install the system packages
+            apt_packages = [
+                "libx11-dev",
+                "libgl1-mesa-dev",
+            ]
+            system("sudo apt install #{apt_packages.join(" ")}", exception: true)
         else
             puts "INFO: Nothing to install on #{ARCHITECTURE}-#{OS}"
         end
