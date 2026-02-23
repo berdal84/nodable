@@ -24,9 +24,9 @@ jobs:
       BUILD_TYPE: release # release|debug
       BUILD_DIR: ./out
       TARGET: desktop # desktop|web
-      VERBOSE: true
+      # VERBOSE: true
       NDBL_SKIP_GUI_TEST: true
-      RAKEOPT: "-j 1" # use 1 job to be able to read text outputs correctly when debugging
+      RAKEOPT: "-m" # "-j 1" # use 1 job to be able to read text outputs correctly when debugging
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
 
