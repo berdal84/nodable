@@ -202,8 +202,8 @@ def generate_vcpkg_flags( target )
     target.vcpkg.each do |vcpkg_name|
 
         # we use |= to make sure there is no duplicates
-        target.cxx_flags    |= [get_library_cflags(vcpkg_name)]
-        target.linker_flags |= [get_library_linker_flags(vcpkg_name, "static")]
+        target.cxx_flags    |= get_library_cflags(vcpkg_name).split(" ")
+        target.linker_flags |= get_library_linker_flags(vcpkg_name, "static").split(" ")
     
     end
 
