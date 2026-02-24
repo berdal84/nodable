@@ -1,8 +1,29 @@
 require_relative 'base'
-require_relative 'libs'
 
 #---------------------------------------------------------------------------
+$imgui_sources = FileList[
+   "extern/imgui/imgui.cpp",
+   "extern/imgui/imgui_demo.cpp",
+   "extern/imgui/imgui_draw.cpp",
+   "extern/imgui/imgui_tables.cpp",
+   "extern/imgui/imgui_widgets.cpp",
+   "extern/imgui/misc/freetype/imgui_freetype.cpp",
+   "extern/imgui/backends/imgui_impl_sdl2.cpp",
+   "extern/imgui/backends/imgui_impl_opengl3.cpp",
+   # not from imgui, but related to
+   "extern/ImGuiColorTextEdit/TextEditor.cpp"
+]
+#---------------------------------------------------------------------------
+$whereami_sources = FileList[
+    "extern/whereami/src/whereami.c"
+]
+#---------------------------------------------------------------------------
 $tools_core = new_target_from_base("tools_core", TARGET_TYPE_OBJECTS)
+
+if DESKTOP
+    $tools_core.sources |= $whereami_sources
+end
+
 $tools_core.sources |= FileList[
     "src/tools/core/reflection/qword.cpp",
     "src/tools/core/reflection/Type.cpp",
@@ -18,12 +39,11 @@ $tools_core.sources |= FileList[
     "src/tools/core/TaskManager.cpp"
 ]
 
-if DESKTOP
-    $tools_core.depends_on_target |= [$whereami]
-end
-
 #---------------------------------------------------------------------------
 $tools_gui = new_target_from_base("tools_gui", TARGET_TYPE_OBJECTS)
+
+$tools_gui.sources |= $imgui_sources;
+
 $tools_gui.sources |= FileList[
     "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
     "src/tools/gui/geometry/BoxShape2D.cpp",
@@ -42,8 +62,6 @@ $tools_gui.sources |= FileList[
     "src/tools/gui/TextureManager.cpp",
 ]
 
-$tools_gui.depends_on_target |= [$imgui]
-
 #---------------------------------------------------------------------------
 
 app = new_target_from_base("tools-gui-example", TARGET_TYPE_EXECUTABLE)
@@ -58,7 +76,10 @@ app.assets = FileList[
     "fonts/fa-solid-900.ttf",
     "fonts/JetBrainsMono-*.ttf", # 4 variants
 ]
-app.depends_on_target |= [$tools_core, $tools_gui]
+app.depends_on_target |= [
+    $tools_core,
+    $tools_gui
+]
 
 #---------------------------------------------------------------------------
 
@@ -72,15 +93,14 @@ tools_test.sources |= FileList[
     "src/tools/test/main.cpp",
 ]
 
-tools_test.c_flags |= [
-    get_library_cflags('gtest'),
+tools_test.vcpkg |= [
+    "gtest"
 ]
 
-tools_test.linker_flags |= [
-    get_library_linker_flags('gtest', 'static'),
+tools_test.depends_on_target |= [
+    $tools_core,
+    $tools_gui
 ]
-
-tools_test.depends_on_target |= [$tools_core, $tools_gui]
 
 #---------------------------------------------------------------------------
 desc "Build tools"

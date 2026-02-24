@@ -1,7 +1,6 @@
 require 'fileutils'
 require 'rake/clean'
 
-require_relative 'rake/libs'
 require_relative 'rake/base'
 require_relative 'rake/tools'
 require_relative 'rake/ndbl'
@@ -40,7 +39,6 @@ end
 task :run   => ['ndbl:app:run']
 
 task :build => [
-    'libs:build',
     'tools:app:build',
     'ndbl:app:build',
 ]

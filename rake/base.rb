@@ -73,31 +73,29 @@ def new_target_from_base(name, type)
 
         if LINUX
 
-
-            target.compiler_flags |= [
-                get_library_cflags("sdl2"),
-                get_library_cflags("freetype2"),
-                get_library_cflags("gl"),
+            target.vcpkg = [
+                "sdl2",
+                "freetype2",
+                "gl",
+                "nfd",
+                "dbus-1", # required by nfd (that has no .pc file)
+                "gl3w",
+                "lodepng",
             ]
 
             target.linker_flags |= [
                 "-lstdc++", # note: -llibstdc++ was not working, it requires to be installed.
-                # TODO: simplify usage of packages (ideas: only declare names, the generate flags when needed, of add system path to pkg_config)
-                get_library_linker_flags("sdl2"      , "static"),
-                get_library_linker_flags("freetype2" , "static"),
-                get_library_linker_flags("gl"        , "static"),
-                get_library_linker_flags("nfd"       , "static"),
-                get_library_linker_flags("dbus-1"    , "static"), # required by nfd (that has no .pc file)
-                get_library_linker_flags("gl3w"      , "static"),
-                get_library_linker_flags("lodepng"   , "static"),
             ]
 
         elsif WINDOWS      
 
-            target.compiler_flags |= [
-                get_library_cflags("sdl2"),
-                get_library_cflags("freetype2"),
-                get_library_cflags("opengl"),
+            target.vcpkg = [
+                "sdl2",
+                "freetype2",
+                "opengl",
+                "nfd",
+                "gl3w",
+                "lodepng",
             ]
 
             target.defines |= [
@@ -109,13 +107,6 @@ def new_target_from_base(name, type)
             target.linker_flags |= [                
                 "-Xlinker /SUBSYSTEM:CONSOLE", # We compile a console app, windows needs to know that main() is the entry point instead of WinMain
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
-                # Add libraries and deps using pkg-config / pkgconf, and the one that have no pkgconfig
-                get_library_linker_flags("sdl2"      , "static"),
-                get_library_linker_flags("freetype2" , "static"),
-                get_library_linker_flags("opengl"    , "static"),
-                get_library_linker_flags("nfd"       , "static"),
-                get_library_linker_flags("gl3w"      , "static"),
-                get_library_linker_flags("lodepng"   , "static"),
             ]
 
             if RELEASE

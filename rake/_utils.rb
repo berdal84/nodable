@@ -90,6 +90,7 @@ PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG}/lib/pkgconfig"
 COMPILER             = DESKTOP ? "clang" : "emcc"
 LINKER               = DESKTOP ? "clang" : "emcc"
 
+if VERBOSE
 puts "------------------------------------------------------------------------------------------------------"
 puts "RUBY version: ....... #{`ruby -v`}"
 puts "HOST_OS: ............ #{HOST_OS}"
@@ -108,6 +109,7 @@ puts "LINKER: ............. #{LINKER}"
 puts "Dir.pwd: ............ #{Dir.pwd }"
 puts "__FILE__: ........... #{File.dirname(__FILE__)}"
 puts "------------------------------------------------------------------------------------------------------"
+end # if VERBOSE
 
 TARGET_TYPE_OBJECTS    = "objects"
 TARGET_TYPE_EXECUTABLE = "executable"
@@ -126,7 +128,8 @@ Target = Struct.new(
     :cxx_flags,
     :linker_flags,
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
-    # :vcpkg, # list of vcpkg package names
+    :vcpkg, # list of vcpkg package names
+    :is_ready_to_compile_and_link, # is ready to compile (e.g. pkg-config was run)
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -143,8 +146,8 @@ def new_empty_target(name, type)
     target.assets = FileList[]
     target.defines = []
     target.compiler_flags = []
-    target.depends_on_target = []
-    # target.vcpkg = []
+    target.vcpkg = []
+    target.is_ready_to_compile_and_link = false;
     target
 end
 
@@ -192,7 +195,49 @@ def get_binary_path( target )
     path
 end
 
+def generate_vcpkg_flags( target )
+
+    puts "#{target.name} | Generate vcpkg flags .."
+
+    target.vcpkg.each do |vcpkg_name|
+        target.cxx_flags.append( get_library_cflags(vcpkg_name) )
+        target.linker_flags.append( get_library_linker_flags(vcpkg_name, "static") )
+    end
+
+    puts "#{target.name} | Generate vcpkg flags DONE"
+end
+
+$mutex = Mutex.new
+
+def ensure_is_ready_to_compile_and_link(target)
+    
+    # Check the flag (read, we don't need to lock our)
+    if target.is_ready_to_compile_and_link
+        return
+    end
+
+    # Now we sync, since we want to write
+    $mutex.synchronize do
+
+        # Might have changed
+        if target.is_ready_to_compile_and_link
+            return
+        end
+
+        target.is_ready_to_compile_and_link = true
+    end
+
+    puts "#{target.name} | Prepare .."
+    
+    generate_vcpkg_flags(target)
+
+    puts "#{target.name} | Prepare DONE"
+
+end
+
 def compile_file(src, target)
+
+    ensure_is_ready_to_compile_and_link(target)
     
     # Ensure target folders exist
     FileUtils.mkdir_p File.dirname( src_to_obj( src ) )
@@ -224,6 +269,8 @@ def link_binary( target )
     if (target.type != TARGET_TYPE_EXECUTABLE)
         raise "Target type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
     end
+
+    ensure_is_ready_to_compile_and_link(target)
 
     # Prepare linker arguments
     args = []
@@ -335,7 +382,7 @@ def tasks_for_target(target)
         multitask :build => objects_with_deps do
             puts "#{target.name} | Build DONE"
         end
-        
+
     elsif target.type == TARGET_TYPE_EXECUTABLE
 
         desc "Compile and link binary (#{target.name})"
@@ -384,6 +431,7 @@ def tasks_for_target(target)
         file obj => src do |task|
             puts "#{target.name} | Compiling #{src} ..."
             compile_file( src, target)
+            puts "#{target.name} | Compiling #{src} DONE"
         end
     end
 end
@@ -398,7 +446,7 @@ def get_library_cflags(libname)
     if has_pkg_config
         flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
     else
-        flags = "" # user must set -Ipath/to/include
+        flags = "-I#{VCPKG}/include" # try this..
     end
 
     puts "get_library_cflags(#{libname}) => #{flags}"

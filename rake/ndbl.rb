@@ -78,7 +78,6 @@ end
 ndbl_app.depends_on_target |= [
     $tools_gui,
     $tools_core,
-    $text_editor,
     ndbl_core,
     ndbl_gui
 ]
@@ -89,12 +88,8 @@ ndbl_test.sources |= FileList[
     "src/ndbl/test/main.cpp",
 ]
 
-ndbl_test.c_flags |= [
-    get_library_cflags('gtest'),
-]
-
-ndbl_test.linker_flags |= [
-    get_library_linker_flags('gtest', 'static'),
+ndbl_test.vcpkg |= [
+    "gtest"
 ]
 
 ndbl_test.depends_on_target |= [
@@ -113,8 +108,7 @@ else
         "src/ndbl/gui/Nodable.specs.cpp"
     ]
     ndbl_test.depends_on_target |= [
-        ndbl_gui,
-        $text_editor
+        ndbl_gui
     ]
 end
 
