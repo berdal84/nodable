@@ -200,8 +200,11 @@ def generate_vcpkg_flags( target )
     puts "#{target.name} | Generate vcpkg flags .."
 
     target.vcpkg.each do |vcpkg_name|
-        target.cxx_flags.append( get_library_cflags(vcpkg_name) )
-        target.linker_flags.append( get_library_linker_flags(vcpkg_name, "static") )
+
+        # we use |= to make sure there is no duplicates
+        target.cxx_flags    |= [get_library_cflags(vcpkg_name)]
+        target.linker_flags |= [get_library_linker_flags(vcpkg_name, "static")]
+    
     end
 
     puts "#{target.name} | Generate vcpkg flags DONE"
@@ -347,9 +350,9 @@ def update_compile_commands_json()
     File.write( output_file, content)
 
     # debug log
-    if VERBOSE 
-        puts content
-    end
+    #if VERBOSE 
+    #    puts content
+    #end
 end
 
 def tasks_for_target(target)

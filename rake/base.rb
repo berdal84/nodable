@@ -76,9 +76,8 @@ def new_target_from_base(name, type)
             target.vcpkg = [
                 "sdl2",
                 "freetype2",
-                "gl",
-                "nfd",
-                "dbus-1", # required by nfd (that has no .pc file)
+                "gl", # equivqlent of opengl for linux
+                "nfd", "dbus-1", # required by nfd (that has no .pc file)
                 "gl3w",
                 "lodepng",
             ]
