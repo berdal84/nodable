@@ -210,29 +210,26 @@ end
 $mutex = Mutex.new
 
 def ensure_is_ready_to_compile_and_link(target)
-    
-    # Check the flag (read, we don't need to lock our)
+
+    # Let's check if ready first (we don't need to sync threads to read)
     if target.is_ready_to_compile_and_link
         return
     end
 
-    # Now we sync, since we want to write
-    $mutex.synchronize do
+    # Since multiple task may run this in parrallel, we need to lock this portion
+    $mutex.synchronize {
 
         # Might have changed
         if target.is_ready_to_compile_and_link
             return
         end
-
-        target.is_ready_to_compile_and_link = true
-    end
-
-    puts "#{target.name} | Prepare .."
+        puts "#{target.name} | Prepare .."
     
-    generate_vcpkg_flags(target)
+        generate_vcpkg_flags(target)
+        target.is_ready_to_compile_and_link = true
 
-    puts "#{target.name} | Prepare DONE"
-
+        puts "#{target.name} | Prepare DONE"
+    }    
 end
 
 def compile_file(src, target)
