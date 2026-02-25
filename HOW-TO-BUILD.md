@@ -63,9 +63,15 @@ Run the following commands:
 rake build
 ```
 
-> _Note: The default target is "desktop", but you can build for the "web" by exporting `TARGET=web` to your environment or adding it as command line argument._
+Build output should be available in `build-desktop-<arch>-<os>-debug/bin`, simply run `./nodable` from this folder
 
-Build output should be available in `build-desktop-<arch>-<os>-release/bin`, simply run `./nodable` from this folder
+You can run rake build with additionnal flags:
+
+```console
+rake build [-- --build-type=release --target=web|desktop --verbose]
+```
+
+To know more, run `rake help`.
 
 ## Run
 

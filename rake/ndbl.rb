@@ -98,9 +98,8 @@ ndbl_test.depends_on_target |= [
     ndbl_core
 ]
 
-# On GitHub actions, I couldn't run this test with Linux yet.
-if ENV["NDBL_SKIP_GUI_TEST"]
-    puts "NDBL_SKIP_GUI_TEST is ON, skip GUI specs."
+if OPTIONS.ignore_gui_tests
+    puts "ignore_gui_tests is TRUE, skip GUI specs."
 else
     ndbl_test.assets |= ndbl_app.assets;
 

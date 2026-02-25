@@ -2,6 +2,7 @@ require "rbconfig"
 require 'json'
 require 'date' # To add date in .clang export
 require 'optparse'
+require 'rubygems'
 
 # Enums-like ------------------------------------------------------------------------------------------------
 
@@ -36,12 +37,16 @@ BINARY_CLOC            = 'cloc'
 OPTIONS = Struct.new(
     :verbose,
     :build_type,
+    :build_dir,
     :target,
+    :ignore_gui_tests,
     keyword_init: true
 ).new(
-    verbose:    false,
-    build_type: BUILD_TYPE_DEFAULT,
-    target:     TARGET_DEFAULT,
+    verbose:            false,
+    build_dir:          nil, 
+    build_type:         BUILD_TYPE_DEFAULT,
+    target:             TARGET_DEFAULT,
+    ignore_gui_tests: false,
 )
 
 # Define a parser
@@ -57,8 +62,16 @@ $option_parser.on('-b', '--build-type=BUILD_TYPE', BUILD_TYPES, "#{BUILD_TYPES.j
     OPTIONS.build_type = value
 end
 
-$option_parser.on("-v", "--verbose", "default: #{OPTIONS.verbose}") {
+$option_parser.on('-b', '--build-dir=BUILD_DIR', "default: ./build-{target}-{arch}-{os}-{build_type} ") do |value|
+    OPTIONS.build_dir = value
+end
+
+$option_parser.on("-v", "--verbose", "Print diagnostic messages") {
     OPTIONS.verbose = true
+}
+
+$option_parser.on("--ignore-gui-tests", "Disable any test that requires to open a window") {
+    OPTIONS.ignore_gui_tests = true
 }
 
 # Extract flags (after `--`)
@@ -152,7 +165,7 @@ DESKTOP              = OPTIONS.target == TARGET_DESKTOP
 WEB                  = OPTIONS.target == TARGET_WEB
 RELEASE              = OPTIONS.build_type == BUILD_TYPE_RELEASE
 DEBUG                = OPTIONS.build_type == BUILD_TYPE_DEBUG
-BUILD_DIR            = ENV["BUILD_DIR"] || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_type}"
+BUILD_DIR            = OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_type}"
 OBJ_DIR              = "#{BUILD_DIR}/obj"
 DEP_DIR              = "#{BUILD_DIR}/dep"
 BIN_DIR              = "#{BUILD_DIR}/bin" # TODO: ambigous, we also consider this folder as dist/, FIXME
