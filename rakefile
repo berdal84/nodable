@@ -25,6 +25,8 @@ desc "Build apps"
 task :build => [
     'tools:app:build',
     'ndbl:app:build',
+    'tools:test:build',
+    'ndbl:test:build'
 ]
 
 desc "Build and run tests"

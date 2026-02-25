@@ -21,22 +21,20 @@ jobs:
     runs-on: ${{ matrix.OS }}
     env:
       # Those are read by rake script
-      BUILD_TYPE: release # release|debug
       BUILD_DIR: ./out
-      TARGET: desktop # desktop|web
       # VERBOSE: true
       NDBL_SKIP_GUI_TEST: true
-      RAKEOPT: "-m" # "-j 1" # use 1 job to be able to read text outputs correctly when debugging
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
 
       - run: rake install
 
-      - run: rake build 
+      - run: rake -m build -- --build_type=release
 
-      - run: rake test
+      - run: ./tools-tests && ./nodable-tests
+        working-directory: ${{ env.BUILD_DIR }}/bin/
 
       - uses: actions/upload-artifact@v4
         with:
           name: nodable-${{ env.TARGET }}-${{ matrix.OS }}-${{ env.BUILD_TYPE }}
-          path: ./out/bin/
+          path: ${{ env.BUILD_DIR }}/bin/

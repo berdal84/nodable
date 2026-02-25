@@ -83,7 +83,7 @@ app.depends_on_target |= [
 
 #---------------------------------------------------------------------------
 
-tools_test = new_target_from_base("tools-test", TARGET_TYPE_EXECUTABLE)
+tools_test = new_target_from_base("tools-tests", TARGET_TYPE_EXECUTABLE)
 tools_test.sources |= FileList[
     "src/tools/core/Delegate.specs.cpp",
     "src/tools/core/string.specs.cpp",

@@ -82,7 +82,7 @@ ndbl_app.depends_on_target |= [
     ndbl_gui
 ]
 #---------------------------------------------------------------------------
-ndbl_test = new_target_from_base("ndbl-specs", TARGET_TYPE_EXECUTABLE)
+ndbl_test = new_target_from_base("nodable-tests", TARGET_TYPE_EXECUTABLE)
 ndbl_test.sources |= FileList[
     "src/ndbl/core/**/*.specs.cpp",
     "src/ndbl/test/main.cpp",
