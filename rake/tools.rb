@@ -103,14 +103,18 @@ tools_test.depends_on_target |= [
 ]
 
 #---------------------------------------------------------------------------
-desc "Build tools"
 namespace :tools do
 
-    desc "Clean tools"
-    task :clean => ['core:clean', 'gui:clean', 'app:clean']
-    desc "Rebuild tools"
-    task :rebuild => ['clean', 'build']
-    desc "Build tools"
+    task :clean => [
+        'core:clean',
+        'gui:clean',
+        'app:clean'
+    ]
+
+    task :rebuild => [
+        'clean',
+        'build'
+    ]
 
     task :build => [
         'core:build',
@@ -119,9 +123,9 @@ namespace :tools do
     ]
 
     if DESKTOP
-        task :clean => ['test:clean']
-        task :build => ['test:build']
-        task :test  => ['test:run']
+        task :clean => 'test:clean'
+        task :build => 'test:build'
+        task :test  => 'test:run'
     end
 
     namespace :core do

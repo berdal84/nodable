@@ -1,8 +1,90 @@
 require "rbconfig"
 require 'json'
 require 'date' # To add date in .clang export
+require 'optparse'
 
-def get_architecture()
+# Enums-like ------------------------------------------------------------------------------------------------
+
+TARGET_TYPE_OBJECTS    = "objects"
+TARGET_TYPE_EXECUTABLE = "executable"
+
+TARGET_WEB             = "web"
+TARGET_DESKTOP         = "desktop"
+TARGET_DEFAULT         = TARGET_DESKTOP
+TARGETS                = [TARGET_DESKTOP, TARGET_WEB]
+
+BUILD_TYPE_DEBUG       = "debug"
+BUILD_TYPE_OPTIMIZED   = "optimized"
+BUILD_TYPE_RELEASE     = "release"
+BUILD_TYPE_DEFAULT     = BUILD_TYPE_DEBUG
+BUILD_TYPES            = [BUILD_TYPE_DEBUG, BUILD_TYPE_OPTIMIZED, BUILD_TYPE_RELEASE]
+
+# must match with vcpkg triplet naming convention
+VCPKG_OS_NAME_WINDOWS  = "windows"
+VCPKG_OS_NAME_LINUX    = "linux"
+
+BINARY_CLANG           = "clang"
+BINARY_EMCC            = "emcc"
+BINARY_EMRUN           = "emrun"
+BINARY_CLOC            = 'cloc'
+
+# Enums-like (end) ------------------------------------------------------------------------------------------
+
+# Command Line Arguments ------------------------------------------------------------------------------------
+
+# Declare/define a struct to store parsed options
+OPTIONS = Struct.new(
+    :verbose,
+    :build_type,
+    :target,
+    keyword_init: true
+).new(
+    verbose:    false,
+    build_type: BUILD_TYPE_DEFAULT,
+    target:     TARGET_DEFAULT,
+)
+
+# Define a parser
+$option_parser = OptionParser.new
+
+$option_parser.banner = "Usage: rake <task> -- [flags]"
+
+$option_parser.on('-t', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (default: #{TARGET_DEFAULT})",  ) do |value|
+    OPTIONS.target = value
+end
+
+$option_parser.on('-b', '--build-type=BUILD_TYPE', BUILD_TYPES, "#{BUILD_TYPES.join("|")} (default: #{BUILD_TYPE_DEFAULT})") do |value|
+    OPTIONS.build_type = value
+end
+
+$option_parser.on("-v", "--verbose", "default: #{OPTIONS.verbose}") {
+    OPTIONS.verbose = true
+}
+
+# Extract flags (after `--`)
+flags = ARGV.drop(1)
+flags_index = ARGV.index('--')
+if flags_index != nil
+    flags = ARGV[(flags_index + 1)..-1]
+end
+
+# Parse flags and handle errors
+begin
+    $option_parser.parse!(flags)
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument, OptionParser::InvalidArgument => e
+    $stdout.puts e
+    $stdout.puts $option_parser.help
+    $stderr.puts "Unable to parse flags, see reason message and help above."
+    exit 1
+end
+
+# Command Line Arguments (end) ----------------------------------------------------------------------------------
+
+# Global Constants ----------------------------------------------------------------------------------------------
+
+# Architecture (we use VCPKG naming convention)
+ARCH = ->() {
+
     host_cpu = RbConfig::CONFIG['host_cpu']
 
     if host_cpu != "x86_64" and host_cpu != "x64"
@@ -10,9 +92,10 @@ def get_architecture()
     end
 
     return "x64"
-end
+}.call()
 
-def get_os()
+# Operating System (we use VCPKG naming convention)
+OS = ->() { 
     
     build_os = RbConfig::CONFIG['build_os']
 
@@ -23,85 +106,74 @@ def get_os()
     end
 
     raise "This script is not compatible with #{build_os}!"
-end
+}.call()   
 
-def get_vcpkg_triplet()
-    triplet = "#{ARCHITECTURE}-#{OS}"
+# Helpers to simplify branching (if LINUX ... elif WINDOWS ... else ... end )
+LINUX   = OS == VCPKG_OS_NAME_LINUX
+WINDOWS = OS == VCPKG_OS_NAME_WINDOWS
+
+# Triplet (we use VCPKG naming convention)
+VCPKG_TRIPLET = ->() {
+
+    triplet = "#{ARCH}-#{OS}"
 
     if OS == "windows"
         triplet += "-static" # windows convention is different than linux, dynamic by default
     end
 
     triplet
-end
+    
+}.call()
 
-def get_target()
-    target = (ENV["TARGET"] || "desktop").downcase
+# Path to installed folder (we decided to separate linux and windows folders)
+VCPKG_INSTALL_ROOT  = "./vcpkg/#{OS}"
+VCPKG_PACKAGES_ROOT = "#{VCPKG_INSTALL_ROOT}/#{VCPKG_TRIPLET}"
 
-    if target != "desktop" and target != "web"
-        raise "Unexpected target: #{target}! (expecting web|desktop)"
+PKGCONF_BINARY = ->() {
+
+    path = "#{VCPKG_PACKAGES_ROOT}/tools/pkgconf/pkgconf"
+
+    if WINDOWS 
+        path = path.ext("exe")
     end
 
-    return target
-end
-
-def get_build_type()
-    build_type = (ENV["BUILD_TYPE"] || "release").downcase
-
-    if build_type != "release" and build_type != "debug"
-        raise "Unexpected build_type: #{build_type}! (expecting release|debug)"
+    if not File.exist?(path)
+        $stderr.puts "Error: PKGCONF_BINARY '#{path}' does not exist! In principle this file is in the source code, but perhaps you delete it and forgot to run 'rake vcpkg'? "
+        exit 1
     end
 
-    return build_type
-end
+    path 
 
-def get_pkgconf_binary()
-  if WINDOWS 
-    return "#{VCPKG}/tools/pkgconf/pkgconf.exe"
-  elsif LINUX
-    return "#{VCPKG}/tools/pkgconf/pkgconf"  
-  end
-end
+}.call()
 
-ARCHITECTURE       = get_architecture()      # Must match with vcpkg convention
-OS                 = get_os()                # Must match with vcpkg convention
-VERBOSE            = !!ENV["VERBOSE"]
-HOST_OS            = RbConfig::CONFIG['host_os']
-TARGET             = get_target()
-DESKTOP            = TARGET == "desktop"
-WEB                = TARGET == "web"
-BUILD_TYPE         = get_build_type()
-RELEASE            = BUILD_TYPE == "release"
-DEBUG              = BUILD_TYPE == "debug"
-BUILD_DIR          = ENV["BUILD_DIR"] || "build-#{TARGET}-#{ARCHITECTURE}-#{OS}-#{BUILD_TYPE}"
-OBJ_DIR            = "#{BUILD_DIR}/obj"
-DEP_DIR            = "#{BUILD_DIR}/dep"
-BIN_DIR            = "#{BUILD_DIR}/bin" # TODO: ambigous, we also consider this folder as dist/, FIXME
-LINUX              = OS == "linux"
-WINDOWS            = OS == "windows"
-GITHUB_ACTIONS     = ENV["GITHUB_ACTIONS"]
-HTTP_SERVER_HOSTNAME = "0.0.0.0"
-HTTP_SERVER_PORT     = "8000"
+PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib/pkgconfig"
+HOST_OS              = RbConfig::CONFIG['host_os']
+DESKTOP              = OPTIONS.target == TARGET_DESKTOP
+WEB                  = OPTIONS.target == TARGET_WEB
+RELEASE              = OPTIONS.build_type == BUILD_TYPE_RELEASE
+DEBUG                = OPTIONS.build_type == BUILD_TYPE_DEBUG
+BUILD_DIR            = ENV["BUILD_DIR"] || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_type}"
+OBJ_DIR              = "#{BUILD_DIR}/obj"
+DEP_DIR              = "#{BUILD_DIR}/dep"
+BIN_DIR              = "#{BUILD_DIR}/bin" # TODO: ambigous, we also consider this folder as dist/, FIXME
+
+GITHUB_ACTIONS       = ENV["GITHUB_ACTIONS"]
+HTTP_SERVER_HOSTNAME = "0.0.0.0"  # TODO: add to flags
+HTTP_SERVER_PORT     = "8000" # TODO: add to flags
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
-VCPKG_TRIPLET        = get_vcpkg_triplet()
-VCPKG                = "./vcpkg/#{OS}/#{VCPKG_TRIPLET}"
-PKGCONF_BINARY       = get_pkgconf_binary()
-PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG}/lib/pkgconfig"
-COMPILER             = DESKTOP ? "clang" : "emcc"
-LINKER               = DESKTOP ? "clang" : "emcc"
+COMPILER             = DESKTOP ? BINARY_CLANG : BINARY_EMCC # Same binary to compile both C and CPP
+LINKER               = DESKTOP ? BINARY_CLANG : BINARY_EMCC # Same binary to compile both C and CPP
 
-if VERBOSE
+if OPTIONS.verbose
 puts "------------------------------------------------------------------------------------------------------"
+puts "OPTIONS: ............ #{OPTIONS}"
 puts "RUBY version: ....... #{`ruby -v`}"
 puts "HOST_OS: ............ #{HOST_OS}"
 puts "OS:.................. #{OS}"
-puts "ARCHITECTURE: ....... #{ARCHITECTURE}"
-puts "TARGET: ............. #{TARGET}"
-puts "BUILD_TYPE: ......... #{BUILD_TYPE}"
-puts "VCPKG: .............. #{VCPKG}"
+puts "ARCH: ............... #{ARCH}"
+puts "VCPKG_PACKAGES_ROOT:  #{VCPKG_PACKAGES_ROOT}"
 puts "VCPKG_TRIPLET: ...... #{VCPKG_TRIPLET}"
-puts "HTTP_SERVER_HOSTNAME: #{HTTP_SERVER_HOSTNAME}"
-puts "HTTP_SERVER_PORT:     #{HTTP_SERVER_PORT}"
+puts "HTTP_SERVER_URL: .... #{HTTP_SERVER_URL}"
 puts "PKGCONF_BINARY: ..... #{PKGCONF_BINARY}"
 puts "PKGCONF: ............ #{PKGCONF}"
 puts "COMPILER: ........... #{COMPILER}"
@@ -109,18 +181,17 @@ puts "LINKER: ............. #{LINKER}"
 puts "Dir.pwd: ............ #{Dir.pwd }"
 puts "__FILE__: ........... #{File.dirname(__FILE__)}"
 puts "------------------------------------------------------------------------------------------------------"
-end # if VERBOSE
+end # if OPTIONS.verbose
 
-TARGET_TYPE_OBJECTS    = "objects"
-TARGET_TYPE_EXECUTABLE = "executable"
+# Global Constants (end) ------------------------------------------------------------------------------------------
 
-#---------------------------------------------------------------------------
+# Target utilities ------------------------------------------------------------------------------------------------
 
 Target = Struct.new(
     :name,
-    :type, # TARGET_TYPE_XXX
+    :type, # TARGET_XXX
     :sources, # list of .c|.cpp files
-    :depends_on_target, # list of other targets to link with (their compiled *.o will be linked)
+    :depends_on_target, # list of other targets to link with (if their sources are not compiled yet, it will compile them as *.o and will be linked)
     :includes, # list of path dir to include
     :defines,
     :compiler_flags,
@@ -128,8 +199,10 @@ Target = Struct.new(
     :cxx_flags,
     :linker_flags,
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
-    :vcpkg, # list of vcpkg package names
+    :vcpkg, # list of (static) vcpkg package names
     :is_ready_to_compile_and_link, # is ready to compile (e.g. pkg-config was run)
+    :cached_includes_flags,
+    :cached_defines_flags,
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -148,6 +221,8 @@ def new_empty_target(name, type)
     target.compiler_flags = []
     target.vcpkg = []
     target.is_ready_to_compile_and_link = false;
+    target.cached_includes_flags = ""
+    target.cached_defines_flags  = ""
     target
 end
 
@@ -195,22 +270,34 @@ def get_binary_path( target )
     path
 end
 
-def generate_vcpkg_flags( target )
+def generate_flags_for_vcpkg( target )
 
-    puts "#{target.name} | Generate vcpkg flags .."
+    puts "#{target.name} | Generate flags for vcpkg .."
+    puts "#{target.name} | -- vcpkg list: #{target.vcpkg}"
 
+    temp_cxx_flags    = []
+    temp_linker_flags = []
+    
     target.vcpkg.each do |vcpkg_name|
 
         # we use |= to make sure there is no duplicates
-        target.cxx_flags    |= get_library_cflags(vcpkg_name).split(" ")
-        target.linker_flags |= get_library_linker_flags(vcpkg_name, "static").split(" ")
+        temp_cxx_flags    |= get_library_cflags(vcpkg_name).split(" ")
+        temp_linker_flags |= get_library_linker_flags(vcpkg_name, "static").split(" ")
     
     end
+
+    # we use += here because we would like to see compiler warnings if a flag from these temp_xxx_flags already exist in the target.xxx_flags,
+    # that would mean some flags can be removed from target.xxx_flags perhaps...
+    target.cxx_flags    += temp_cxx_flags 
+    target.linker_flags += temp_linker_flags
+
+    puts "#{target.name} | -- cxx_flags added:    #{temp_cxx_flags}"
+    puts "#{target.name} | -- linker_flags added: #{temp_linker_flags}"
 
     puts "#{target.name} | Generate vcpkg flags DONE"
 end
 
-$mutex = Mutex.new
+$ensure_is_ready_to_compile_and_link_mutex = Mutex.new
 
 def ensure_is_ready_to_compile_and_link(target)
 
@@ -220,15 +307,23 @@ def ensure_is_ready_to_compile_and_link(target)
     end
 
     # Since multiple task may run this in parrallel, we need to lock this portion
-    $mutex.synchronize {
+    $ensure_is_ready_to_compile_and_link_mutex.synchronize {
 
         # Might have changed
         if target.is_ready_to_compile_and_link
             return
         end
+
         puts "#{target.name} | Prepare .."
     
-        generate_vcpkg_flags(target)
+        # First, we have to generate flags for vcpkg
+        # then we cache flags
+
+        generate_flags_for_vcpkg(target)
+
+        target.cached_defines_flags  = target.defines.map{|d|  "--define-macro=\"#{d}\"" } # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-D-macro
+        target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"} # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
+
         target.is_ready_to_compile_and_link = true
 
         puts "#{target.name} | Prepare DONE"
@@ -239,22 +334,35 @@ def compile_file(src, target)
 
     ensure_is_ready_to_compile_and_link(target)
     
+    is_cpp = File.extname( src ) == ".cpp"
+
+    dep = src_to_dep( src )
+    obj = src_to_obj( src )
+
     # Ensure target folders exist
-    FileUtils.mkdir_p File.dirname( src_to_obj( src ) )
-    FileUtils.mkdir_p File.dirname( src_to_dep( src ) )
+    FileUtils.mkdir_p File.dirname( obj )
+    FileUtils.mkdir_p File.dirname( dep )
 
     # Prepare compiler arguments
-    is_cpp = File.extname( src ) == ".cpp"
     args = []
     args += target.compiler_flags
     args += is_cpp ? target.cxx_flags : target.c_flags
-    args += ['-c'] # no linking
-    args += get_includes_flags(target)
-    args += get_defines_flags(target)
-    args += ["-MD", "-MF#{src_to_dep(src)}"]
-    args += ["-MJ", src_to_obj(src).ext("o.json")] # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
-    args += ["-o",  src_to_obj(src)]
-    args += [src]
+
+    args += [
+        "-c", # no linking
+        target.cached_includes_flags,
+        target.cached_defines_flags,
+
+        # Write dependency database
+        # TODO: skip this in release might speed up build?
+        "--write-user-dependencies", # Write a depfile containing user headers https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MMD
+        "-MF#{dep}", # Write depfile output from -MMD, -MD, -MM, or -M to <file> https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MF-file
+        "-MJ#{obj.ext("o.json")}", # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
+    ]
+    args += [
+        "--output=#{obj}",
+        src
+    ]
 
     # print(args.join(" "))
 
@@ -275,8 +383,8 @@ def link_binary( target )
     # Prepare linker arguments
     args = []
     args += target.compiler_flags
-    args += get_defines_flags(target)   
-    args += ['-o',  get_binary_path(target)]
+    args += target.cached_defines_flags   
+    args += ["--output=#{get_binary_path(target)}"]
     args += get_objects__incl_deps(target)
     args += target.linker_flags
 
@@ -285,14 +393,6 @@ def link_binary( target )
     command = "#{LINKER} #{args.join(" ")}"
 
     system(command, exception: true)
-end
-
-def get_defines_flags(target)
-    target.defines.map{|d| "-D\"#{d}\"" }
-end
-
-def get_includes_flags(target)
-    target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}
 end
 
 def get_assets_src(target)
@@ -317,7 +417,7 @@ def split_asset_pattern(pattern)  # pattern: "<source>:<destination>" (destinati
     arr = pattern.split(':')
 
     # Source is required
-    source = arr[0] or raise ("Wrong pattern: #{pattern}")
+    source = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<source>:<destination>'")
 
     # Destination is optional, by default we copy relative to repository root
     destination = "#{BIN_DIR}/#{arr[1] || source}";
@@ -333,7 +433,12 @@ def copy_asset(source, destination)
 end
 
 def update_compile_commands_json()
-    # Generate compile_commands.json for clangd
+
+    #
+    # Update compile_commands.json
+    # This file can be read by clangd to perform static analysis (e.g. in VSCode or CLION )
+    #
+
     output_file = "./compile_commands.json"
 
     # clear existing file
@@ -348,11 +453,6 @@ def update_compile_commands_json()
     commands = command_files.map{|f| File.read(f)}.join()
     content = "[" + commands[0...-2] + "]" # -2: remove trailing comma
     File.write( output_file, content)
-
-    # debug log
-    #if VERBOSE 
-    #    puts content
-    #end
 end
 
 def tasks_for_target(target)
@@ -360,32 +460,26 @@ def tasks_for_target(target)
     objects = get_self_objects(target)
     objects_with_deps = get_objects__incl_deps(target)
 
-    desc "Clean intermediate files (#{target.name})"
     task :clean do
         FileUtils.rm_f objects
     end
 
-    desc "Clean intermediate files including dependencies (#{target.name})"
     task :clean_all do
         FileUtils.rm_f objects_with_deps
     end
 
-    desc "Clean and build (#{target.name})"
     task :rebuild => [:clean, :build]
 
-    desc "Clean and build all (#{target.name})"
     task :rebuild_all => [:clean_all, :build]
 
     if target.type == TARGET_TYPE_OBJECTS
 
-        desc "Compile individual objects (#{target.name})"
         multitask :build => objects_with_deps do
             puts "#{target.name} | Build DONE"
         end
 
     elsif target.type == TARGET_TYPE_EXECUTABLE
 
-        desc "Compile and link binary (#{target.name})"
         task :build => [:link, :copy_assets] do
             puts "#{target.name} | Build DONE"
         end
@@ -414,13 +508,12 @@ def tasks_for_target(target)
             update_compile_commands_json()
         end
 
-        desc "Run #{target.name}"
         task :run => :build do
 
             if DESKTOP
                 system("./#{get_binary_path(target)}", exception: true)
             elsif WEB
-                system("emrun --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}", exception: true)
+                system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}", exception: true)
             end
         end
     end
@@ -446,13 +539,14 @@ def get_library_cflags(libname)
     if has_pkg_config
         flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
     else
-        flags = "-I#{VCPKG}/include" # try this..
+        flags = "-I#{VCPKG_PACKAGES_ROOT}/include" # try this..
     end
 
-    puts "get_library_cflags(#{libname}) => #{flags}"
+    if OPTIONS.verbose
+        puts "get_library_cflags(#{libname}) => #{flags}"
+    end
 
     return flags
-
 end
 
 def get_library_linker_flags(libname, type)
@@ -476,7 +570,29 @@ def get_library_linker_flags(libname, type)
         flags = "-l#{libname}" 
     end
 
-    puts "get_library_linker_flags(#{libname}, #{type}) => #{flags}"
+    if OPTIONS.verbose 
+        "get_library_linker_flags(#{libname}, #{type}) => #{flags}"
+    end
 
     return flags
+end
+
+# Target utilities (end) ------------------------------------------------------------------------------------------------
+
+# Others
+
+def vcpkg_install()
+    system("vcpkg install --triplet #{VCPKG_TRIPLET} --x-install-root=#{VCPKG_INSTALL_ROOT}", exception: true)
+end
+
+def count_lines_of_code(at_location = "./")
+    begin
+        puts "Counting lines .."
+        sh "#{BINARY_CLOC} --by-file-by-lang #{at_location}", verbose: true
+        puts "Counting lines DONE"
+    rescue
+        $stderr.puts "Error: Unable to count lines. The program '#{BINARY_CLOC}' is required for that, make sure you have it installed."
+                puts "       Note that cloc is available at https://github.com/AlDanial/cloc"
+        exit 1
+    end
 end

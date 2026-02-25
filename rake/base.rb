@@ -5,7 +5,7 @@ def new_target_from_base(name, type)
 
     target = new_empty_target(name, type)
     
-    if VERBOSE
+    if OPTIONS.verbose
         target.compiler_flags.append("-v")
         target.linker_flags.append("-v")
     end
@@ -26,7 +26,7 @@ def new_target_from_base(name, type)
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"local\\\"",
-        "NDBL_#{TARGET.upcase}",
+        "NDBL_#{OPTIONS.target.upcase}",
         "NDBL_#{OS.upcase}",
         "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]

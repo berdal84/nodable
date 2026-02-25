@@ -113,17 +113,29 @@ else
 end
 
 #---------------------------------------------------------------------------
-task :ndbl => 'ndbl:build'
 namespace :ndbl do
 
-    task :clean => ['core:clean', 'gui:clean', 'app:clean']
-    task :rebuild => ['clean', 'build']
-    task :build => ['core:build', 'gui:build', 'app:build']
+    task :clean => [
+        'core:clean',
+        'gui:clean',
+        'app:clean'
+    ]
+
+    task :rebuild => [
+        'clean',
+        'build'
+    ]
+
+    task :build => [
+        'core:build',
+        'gui:build',
+        'app:build'
+    ]
 
     if DESKTOP
-        task :clean => ['test:clean']
-        task :build => ['test:build']
-        task :test  => ['test:run']
+        task :clean => 'test:clean'
+        task :build => 'test:build'
+        task :test  => 'test:run'
     end
 
     namespace :core do
