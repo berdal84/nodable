@@ -36,7 +36,7 @@ BINARY_CLOC            = 'cloc'
 # Declare/define a struct to store parsed options
 OPTIONS = Struct.new(
     :verbose,
-    :build_type,
+    :build_config,
     :build_dir,
     :target,
     :ignore_gui_tests,
@@ -44,7 +44,7 @@ OPTIONS = Struct.new(
 ).new(
     verbose:            false,
     build_dir:          nil, 
-    build_type:         BUILD_CONFIG_DEFAULT,
+    build_config:       BUILD_CONFIG_DEFAULT,
     target:             TARGET_DEFAULT,
     ignore_gui_tests: false,
 )
@@ -59,10 +59,10 @@ $option_parser.on('-t', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (defau
 end
 
 $option_parser.on('-c', '--build-config=BUILD_CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
-    OPTIONS.build_type = value
+    OPTIONS.build_config = value
 end
 
-$option_parser.on('-d', '--build-dir=BUILD_DIR', "Build directory, absolute or relative to the rakefile (default: 'build-{target}-{arch}-{os}-{build_type}')") do |value|
+$option_parser.on('-d', '--build-dir=BUILD_DIR', "Build directory, absolute or relative to the rakefile (default: 'build-{target}-{arch}-{os}-{build_config}')") do |value|
     OPTIONS.build_dir = value
 end
 
@@ -163,10 +163,10 @@ PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib
 HOST_OS              = RbConfig::CONFIG['host_os']
 DESKTOP              = OPTIONS.target == TARGET_DESKTOP
 WEB                  = OPTIONS.target == TARGET_WEB
-RELEASE              = OPTIONS.build_type == BUILD_CONFIG_RELEASE
-DEBUG                = OPTIONS.build_type == BUILD_CONFIG_DEBUG
-OPTIMIZED            = OPTIONS.build_type == BUILD_CONFIG_OPTIMIZED
-BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_type}", Dir.pwd )
+RELEASE              = OPTIONS.build_config == BUILD_CONFIG_RELEASE
+DEBUG                = OPTIONS.build_config == BUILD_CONFIG_DEBUG
+OPTIMIZED            = OPTIONS.build_config == BUILD_CONFIG_OPTIMIZED
+BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_config}", Dir.pwd )
 DIST_DIR             = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
 OBJ_DIR              = "#{BUILD_DIR}/obj"
 DEP_DIR              = "#{BUILD_DIR}/dep"
@@ -503,7 +503,7 @@ def tasks_for_target(target)
         task :run => :build do
 
             if DESKTOP
-                system("./#{get_binary_path(target)}", exception: true)
+                system(get_binary_path(target), exception: true)
             elsif WEB
                 system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}", exception: true)
             end
