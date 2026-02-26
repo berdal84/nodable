@@ -32,9 +32,9 @@ def new_target_from_base(name, type)
     ]
 
     target.cxx_flags |= [
-        "-x c++", # we use clang, not clang++, since behavior differs in windows and linux, we do NOT use clang++
-        "-std=c++20",        
-        "-fno-char8_t", # related to ImGui
+        "-x c++",       # we use clang, not clang++ (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-x)
+        "-std=c++20",   # see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-std       
+        "-fno-char8_t", # related to ImGui and font awesome (const char* and concatenation would fail without it)
     ]
 
     if WINDOWS
@@ -71,6 +71,10 @@ def new_target_from_base(name, type)
 
     elsif DESKTOP
 
+        target.linker_flags |= [
+            "-lstdc++", # note: -llibstdc++ was not working, it requires to be installed.
+        ]
+
         if LINUX
 
             target.vcpkg = [
@@ -80,10 +84,6 @@ def new_target_from_base(name, type)
                 "nfd", "dbus-1", # required by nfd (that has no .pc file)
                 "gl3w",
                 "lodepng",
-            ]
-
-            target.linker_flags |= [
-                "-lstdc++", # note: -llibstdc++ was not working, it requires to be installed.
             ]
 
         elsif WINDOWS      
@@ -116,18 +116,20 @@ def new_target_from_base(name, type)
     end
 
     # ---- BUILD_CONFIG_XXX specific --------
-    
+
     if RELEASE
 
         target.compiler_flags |= [
-            "-O2", # Moderate level of optimization which enables most optimizations. (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O2)
+            "-Oz", # O2 + extra reduced size (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption)
+            # "-pedantic", # https://clang.llvm.org/docs/UsersManual.html#cmdoption-pedantic
+            "-Werror",
         ]
 
     elsif OPTIMIZED
 
         target.compiler_flags |= [
             "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
-            "-O1", # Somewhere between -O0 and -O2. (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O2)
+            "-O2", # Moderate level of optimization which enables most optimizations. (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O2)
         ]
 
     elsif DEBUG
@@ -135,7 +137,6 @@ def new_target_from_base(name, type)
         target.compiler_flags |= [
             "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
             "-O0", # No optimizations (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O0)
-            #"-pedantic"
         ]
 
         target.defines |= [
