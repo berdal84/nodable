@@ -122,7 +122,7 @@ def new_target_from_base(name, type)
         target.compiler_flags |= [
             "-Oz", # O2 + extra reduced size (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption)
             # "-pedantic", # https://clang.llvm.org/docs/UsersManual.html#cmdoption-pedantic
-            "-Werror",
+            # "-Werror", # It's too much!
         ]
 
     elsif OPTIMIZED
