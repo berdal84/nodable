@@ -34,16 +34,13 @@ jobs:
 
       - run: rake install -- --target=${{env.TARGET}}
 
-      - run: rake -m build -- --target=${{env.TARGET}} --build-dir=${{env.BUILD_DIR}} --build-type=release --ignore-gui-tests
+      - run: rake -m build -- --target=${{env.TARGET}} --build-dir=${{env.BUILD_DIR}} --build-config=release --ignore-gui-tests
 
       - run: ./tools-tests && ./nodable-tests
-        working-directory: ${{env.BUILD_DIR}}/bin/
+        working-directory: ${{env.BUILD_DIR}}/dist/
 
       - uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.includes.artfact_name}}
-          path: |
-            ${{env.BUILD_DIR}}/bin/
-            !**/nodable-tests*
-            !**/tools*
+          path: ${{env.BUILD_DIR}}/dist/
             

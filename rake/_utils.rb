@@ -58,7 +58,7 @@ $option_parser.on('-t', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (defau
     OPTIONS.target = value
 end
 
-$option_parser.on('-c', '--build-configuration=BUILD_CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
+$option_parser.on('-c', '--build-config=BUILD_CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
     OPTIONS.build_type = value
 end
 
@@ -167,9 +167,10 @@ RELEASE              = OPTIONS.build_type == BUILD_CONFIG_RELEASE
 DEBUG                = OPTIONS.build_type == BUILD_CONFIG_DEBUG
 OPTIMIZED            = OPTIONS.build_type == BUILD_CONFIG_OPTIMIZED
 BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_type}", Dir.pwd )
+DIST_DIR             = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
 OBJ_DIR              = "#{BUILD_DIR}/obj"
 DEP_DIR              = "#{BUILD_DIR}/dep"
-BIN_DIR              = "#{BUILD_DIR}/bin" # TODO: ambigous, we also consider this folder as dist/, FIXME
+BIN_DIR              = "#{BUILD_DIR}/bin" # binaries will be generated there
 
 GITHUB_ACTIONS       = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"  # TODO: add to flags
@@ -217,6 +218,7 @@ Target = Struct.new(
     :is_initialized, # is ready to compile (e.g. pkg-config was run)
     :cached_includes_flags,
     :cached_defines_flags,
+    :distribute,
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -237,6 +239,7 @@ def new_empty_target(name, type)
     target.is_initialized = false;
     target.cached_includes_flags = ""
     target.cached_defines_flags  = ""
+    target.distribute = false
     target
 end
 
@@ -402,43 +405,6 @@ def link_binary( target )
     system("#{LINKER} #{args}", exception: true)
 end
 
-def get_assets_src(target)
-    assets = []
-    target.assets.each do |pattern|
-        source, destination = split_asset_pattern(pattern)
-        assets.append( source )
-    end
-    assets
-end
-
-def get_assets_dest(target)
-    assets = []
-    target.assets.each do |pattern|
-        source, destination =  split_asset_pattern(pattern)
-        assets.append( destination )
-    end
-    assets
-end
-
-def split_asset_pattern(pattern)  # pattern: "<source>:<destination>" (destination is optional)
-    arr = pattern.split(':')
-
-    # Source is required
-    source = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<source>:<destination>'")
-
-    # Destination is optional, by default we copy relative to repository root
-    destination = "#{BIN_DIR}/#{arr[1] || source}";
-
-    [source, destination]
-end
-
-def copy_asset(source, destination)
-    FileUtils.rm_f destination
-    FileUtils.mkdir_p File.dirname(destination)
-    FileUtils.copy_file( source, destination )
-    puts "  Copy asset: #{source} => #{destination}"
-end
-
 def update_compile_commands_json()
 
     #
@@ -487,20 +453,39 @@ def tasks_for_target(target)
 
     elsif target.type == TARGET_TYPE_EXECUTABLE
 
-        task :build => [:link, :copy_assets] do
-            puts "#{target.name} | Build DONE"
-        end
+        task :build => [:link] do
 
-        # assets
-        assets_src = get_assets_src(target)
-        assets_dst = get_assets_dest(target)
-        multitask :copy_assets => assets_dst do 
-            puts "Assets copy DONE"
-        end
-        target.assets.each_with_index do |_, i|
-            file assets_dst[i] => assets_src[i] do
-                copy_asset(assets_src[i], assets_dst[i])
+            if target.distribute            
+                binary_path = get_binary_path(target)
+                src = binary_path
+                dst = "#{DIST_DIR}/#{File.basename(src)}"
+
+                FileUtils.mkdir_p(File.dirname(dst))
+                FileUtils.cp( src, dst )            
+                puts "  Copy binary: #{src} => #{dst}"          
+            end  
+
+            # Copy assets
+            target.assets.each_with_index do |pattern, i|
+
+                # Handle pattern (format is <src>[:<dest>], by default dest=src)
+                arr = pattern.split(':') 
+                src = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<src>[:<dest>]'")
+                dst = "#{BIN_DIR}/#{arr[1] || src}";
+
+                FileUtils.mkdir_p File.dirname(dst)
+                FileUtils.cp( src, dst )
+                puts "  Copy asset: #{src} => #{dst}"
+
+                if target.distribute
+                    dst = "#{DIST_DIR}/#{arr[1] || src}";
+                    FileUtils.mkdir_p(File.dirname(dst))
+                    FileUtils.cp( src, dst )
+                    puts "  Copy asset: #{src} => #{dst}"
+                end
             end
+
+            puts "#{target.name} | Build DONE"
         end
         
         task :link => get_binary_path(target)

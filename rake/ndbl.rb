@@ -43,6 +43,9 @@ ndbl_gui.sources |= FileList[
 ]
 #---------------------------------------------------------------------------
 ndbl_app = new_target_from_base("nodable", TARGET_TYPE_EXECUTABLE)
+
+ndbl_app.distribute = true # will copy binary and assets into DIST_DIR
+
 ndbl_app.sources |= FileList[
     "src/ndbl/app/main.cpp",
 ]
