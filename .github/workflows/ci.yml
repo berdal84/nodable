@@ -31,6 +31,8 @@ jobs:
       BUILD_DIR: build
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
+        with:
+          fetch-tags: true # Tag history is needed to generate nodable version
 
       - run: rake install -- --target=${{env.TARGET}}
 
