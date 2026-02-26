@@ -14,18 +14,18 @@ on:
 
 jobs:
   build:
+
     strategy:
       fail-fast: false
       matrix:
-        OS: [windows-2025-vs2026, ubuntu-24.04] # see https://github.com/actions/runner-images?tab=readme-ov-file
+        # see https://github.com/actions/runner-images?tab=readme-ov-file
         includes:
           - os: windows-2025-vs2026
             artfact_name: nodable-x64-windows
-
           - os: ubuntu-24.04
             artfact_name: nodable-x64-linux
 
-    runs-on: ${{ matrix.OS }}
+    runs-on: ${{ matrix.includes.os }}
     env:
       TARGET:    desktop
       BUILD_DIR: build
