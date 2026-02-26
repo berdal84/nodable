@@ -108,52 +108,41 @@ def new_target_from_base(name, type)
                 "-Xlinker /ENTRY:mainCRTStartup", # make sure entry point is main() (not wmain)
             ]
 
-            if RELEASE
-                
-                target.compiler_flags |= [
-                    "-D_MT",
-                    # "-D_DLL"
-                ]
-
-                target.linker_flags |= [
-                    # We don't need to link those since "-D_DLL" is commented out
-                    # "-lmsvcrt",
-                    # "-lucrt",
-                    # "-lvcruntime",
-                    # "-lmsvcprt",
-                ]
-            else
-
-                target.compiler_flags |= [
-                    "-D_MT",
-                    # "-D_DLL"
-                ]
-
-                target.linker_flags |= [
-                    # "-lmsvcrtd",
-                    # "-lucrtd",
-                    # "-lvcruntimed",
-                    # "-lmsvcprtd",
-                ]
-            end
+            target.compiler_flags |= [
+                "-D_MT",
+                # "-D_DLL"
+            ]
         end
     end
 
-    # ---- BUILD_TYPE_XXX specific --------
+    # ---- BUILD_CONFIG_XXX specific --------
+    
     if RELEASE
+
         target.compiler_flags |= [
-            "-O2"
+            "-O2", # Moderate level of optimization which enables most optimizations. (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O2)
         ]
-    elsif DEBUG
+
+    elsif OPTIMIZED
+
         target.compiler_flags |= [
-            "-g", # generates symbols
-            "-O0", # no optim
+            "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
+            "-O1", # Somewhere between -O0 and -O2. (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O2)
+        ]
+
+    elsif DEBUG
+
+        target.compiler_flags |= [
+            "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
+            "-O0", # No optimizations (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O0)
             #"-pedantic"
         ]
+
         target.defines |= [
             "TOOLS_DEBUG",
             "NDBL_DEBUG"
         ]
+
     end
 
     target

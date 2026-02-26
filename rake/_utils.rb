@@ -14,11 +14,11 @@ TARGET_DESKTOP         = "desktop"
 TARGET_DEFAULT         = TARGET_DESKTOP
 TARGETS                = [TARGET_DESKTOP, TARGET_WEB]
 
-BUILD_TYPE_DEBUG       = "debug"
-BUILD_TYPE_OPTIMIZED   = "optimized"
-BUILD_TYPE_RELEASE     = "release"
-BUILD_TYPE_DEFAULT     = BUILD_TYPE_DEBUG
-BUILD_TYPES            = [BUILD_TYPE_DEBUG, BUILD_TYPE_OPTIMIZED, BUILD_TYPE_RELEASE]
+BUILD_CONFIG_DEBUG       = "debug"
+BUILD_CONFIG_OPTIMIZED   = "optimized"
+BUILD_CONFIG_RELEASE     = "release"
+BUILD_CONFIG_DEFAULT     = BUILD_CONFIG_DEBUG
+BUILD_CONFIGS            = [BUILD_CONFIG_DEBUG, BUILD_CONFIG_OPTIMIZED, BUILD_CONFIG_RELEASE]
 
 # must match with vcpkg triplet naming convention
 VCPKG_OS_NAME_WINDOWS  = "windows"
@@ -44,7 +44,7 @@ OPTIONS = Struct.new(
 ).new(
     verbose:            false,
     build_dir:          nil, 
-    build_type:         BUILD_TYPE_DEFAULT,
+    build_type:         BUILD_CONFIG_DEFAULT,
     target:             TARGET_DEFAULT,
     ignore_gui_tests: false,
 )
@@ -58,11 +58,11 @@ $option_parser.on('-t', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (defau
     OPTIONS.target = value
 end
 
-$option_parser.on('-b', '--build-type=BUILD_TYPE', BUILD_TYPES, "#{BUILD_TYPES.join("|")} (default: #{BUILD_TYPE_DEFAULT})") do |value|
+$option_parser.on('-c', '--build-configuration=BUILD_CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
     OPTIONS.build_type = value
 end
 
-$option_parser.on('-b', '--build-dir=BUILD_DIR', "default: ./build-{target}-{arch}-{os}-{build_type} ") do |value|
+$option_parser.on('-d', '--build-dir=BUILD_DIR', "Build directory, absolute or relative to the rakefile (default: 'build-{target}-{arch}-{os}-{build_type}')") do |value|
     OPTIONS.build_dir = value
 end
 
@@ -163,9 +163,10 @@ PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib
 HOST_OS              = RbConfig::CONFIG['host_os']
 DESKTOP              = OPTIONS.target == TARGET_DESKTOP
 WEB                  = OPTIONS.target == TARGET_WEB
-RELEASE              = OPTIONS.build_type == BUILD_TYPE_RELEASE
-DEBUG                = OPTIONS.build_type == BUILD_TYPE_DEBUG
-BUILD_DIR            = OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_type}"
+RELEASE              = OPTIONS.build_type == BUILD_CONFIG_RELEASE
+DEBUG                = OPTIONS.build_type == BUILD_CONFIG_DEBUG
+OPTIMIZED            = OPTIONS.build_type == BUILD_CONFIG_OPTIMIZED
+BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_type}", Dir.pwd )
 OBJ_DIR              = "#{BUILD_DIR}/obj"
 DEP_DIR              = "#{BUILD_DIR}/dep"
 BIN_DIR              = "#{BUILD_DIR}/bin" # TODO: ambigous, we also consider this folder as dist/, FIXME
@@ -213,7 +214,7 @@ Target = Struct.new(
     :linker_flags,
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
     :vcpkg, # list of (static) vcpkg package names
-    :is_ready_to_compile_and_link, # is ready to compile (e.g. pkg-config was run)
+    :is_initialized, # is ready to compile (e.g. pkg-config was run)
     :cached_includes_flags,
     :cached_defines_flags,
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
@@ -233,7 +234,7 @@ def new_empty_target(name, type)
     target.defines = []
     target.compiler_flags = []
     target.vcpkg = []
-    target.is_ready_to_compile_and_link = false;
+    target.is_initialized = false;
     target.cached_includes_flags = ""
     target.cached_defines_flags  = ""
     target
@@ -288,8 +289,10 @@ def generate_flags_for_vcpkg( target )
     puts "#{target.name} | Generate flags for vcpkg .."
     puts "#{target.name} | -- vcpkg list: #{target.vcpkg}"
 
-    temp_cxx_flags    = []
-    temp_linker_flags = []
+    # We must add default include path for headers and libraries because some vcpkg do not have a .pc file
+    # and their location is 99% of the time in those two folders:
+    temp_cxx_flags    = ["-I#{VCPKG_PACKAGES_ROOT}/include"]
+    temp_linker_flags = ["-L#{VCPKG_PACKAGES_ROOT}/lib"]
     
     target.vcpkg.each do |vcpkg_name|
 
@@ -310,42 +313,46 @@ def generate_flags_for_vcpkg( target )
     puts "#{target.name} | Generate vcpkg flags DONE"
 end
 
-$ensure_is_ready_to_compile_and_link_mutex = Mutex.new
+$mutex_initializing = Mutex.new
 
-def ensure_is_ready_to_compile_and_link(target)
+def ensure_is_initialized(target)
 
     # Let's check if ready first (we don't need to sync threads to read)
-    if target.is_ready_to_compile_and_link
+    if target.is_initialized
         return
     end
 
     # Since multiple task may run this in parrallel, we need to lock this portion
-    $ensure_is_ready_to_compile_and_link_mutex.synchronize {
+    $mutex_initializing.synchronize {
 
-        # Might have changed
-        if target.is_ready_to_compile_and_link
+        # There is a possibility where 1 task already started to execute this scope while an other was waiting to execute it too.
+        # In such case, once the first finishes the execution (and set the flag to true) the second enter
+        # But, the second should abort.
+        if target.is_initialized
             return
         end
 
-        puts "#{target.name} | Prepare .."
+        puts "#{target.name} | Initialization .."
     
         # First, we have to generate flags for vcpkg
         # then we cache flags
 
         generate_flags_for_vcpkg(target)
 
-        target.cached_defines_flags  = target.defines.map{|d|  "--define-macro=\"#{d}\"" } # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-D-macro
-        target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"} # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
+        # Then, we cache some flags as string to share the data accross multiple compilation units
 
-        target.is_ready_to_compile_and_link = true
+        target.cached_defines_flags  = target.defines.map{|d|  "--define-macro=\"#{d}\"" }.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-D-macro
+        target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
 
-        puts "#{target.name} | Prepare DONE"
+        target.is_initialized = true
+
+        puts "#{target.name} | Initialization DONE"
     }    
 end
 
 def compile_file(src, target)
 
-    ensure_is_ready_to_compile_and_link(target)
+    ensure_is_initialized(target)
     
     is_cpp = File.extname( src ) == ".cpp"
 
@@ -356,33 +363,22 @@ def compile_file(src, target)
     FileUtils.mkdir_p File.dirname( obj )
     FileUtils.mkdir_p File.dirname( dep )
 
-    # Prepare compiler arguments
-    args = []
-    args += target.compiler_flags
-    args += is_cpp ? target.cxx_flags : target.c_flags
-
-    args += [
+    args = [
+        target.compiler_flags,
+        is_cpp ? target.cxx_flags : target.c_flags,
         "-c", # no linking
         target.cached_includes_flags,
         target.cached_defines_flags,
-
         # Write dependency database
         # TODO: skip this in release might speed up build?
         "--write-user-dependencies", # Write a depfile containing user headers https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MMD
         "-MF#{dep}", # Write depfile output from -MMD, -MD, -MM, or -M to <file> https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MF-file
         "-MJ#{obj.ext("o.json")}", # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
-    ]
-    args += [
         "--output=#{obj}",
         src
-    ]
+    ].join(" ")
 
-    # print(args.join(" "))
-
-    # Run the command
-    command = "#{COMPILER} #{args.join(" ")}"
-
-    system(command, exception: true)
+    system("#{COMPILER} #{args}", exception: true)
 end
 
 def link_binary( target )
@@ -391,21 +387,19 @@ def link_binary( target )
         raise "Target type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
     end
 
-    ensure_is_ready_to_compile_and_link(target)
+    ensure_is_initialized(target)
 
-    # Prepare linker arguments
-    args = []
-    args += target.compiler_flags
-    args += target.cached_defines_flags   
-    args += ["--output=#{get_binary_path(target)}"]
-    args += get_objects__incl_deps(target)
-    args += target.linker_flags
+    args = [
+        target.compiler_flags,
+        target.cached_defines_flags,
+        "--output=#{get_binary_path(target)}",
+        get_objects__incl_deps(target),
+        target.linker_flags
+    ].join(" ")
 
     FileUtils.mkdir_p File.dirname(get_binary_path(target))
 
-    command = "#{LINKER} #{args.join(" ")}"
-
-    system(command, exception: true)
+    system("#{LINKER} #{args}", exception: true)
 end
 
 def get_assets_src(target)
@@ -542,7 +536,7 @@ def tasks_for_target(target)
     end
 end
 
-def get_library_cflags(libname)
+def get_library_cflags(libname, fallback="-I#{VCPKG_PACKAGES_ROOT}/include")
 
     pkg_config_flags = ['--cflags']
     
@@ -552,27 +546,21 @@ def get_library_cflags(libname)
     if has_pkg_config
         flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
     else
-        flags = "-I#{VCPKG_PACKAGES_ROOT}/include" # try this..
-    end
-
-    if OPTIONS.verbose
-        puts "get_library_cflags(#{libname}) => #{flags}"
+        flags = fallback
     end
 
     return flags
 end
 
-def get_library_linker_flags(libname, type)
+def get_library_linker_flags(libname, type, fallback="-l#{libname}")
 
-    is_static = type == "static"
-    
-    is_static or raise "type not supported: #{type}"
+    type == "static" or raise "Unexpected type: #{type}, for now only 'static' is supported."
     
     pkg_config_flags = ['--libs']
     
-    if is_static
+    #if is_static
         pkg_config_flags.append("--static")
-    end
+    #end
 
     # try to get pkg-config flags first
     has_pkg_config = system("#{PKGCONF} --exists #{libname}")
@@ -580,11 +568,7 @@ def get_library_linker_flags(libname, type)
     if has_pkg_config
         flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
     else
-        flags = "-l#{libname}" 
-    end
-
-    if OPTIONS.verbose 
-        "get_library_linker_flags(#{libname}, #{type}) => #{flags}"
+        flags = fallback
     end
 
     return flags
