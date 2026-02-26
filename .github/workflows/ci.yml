@@ -37,7 +37,7 @@ jobs:
       - run: rake -m build -- --target=${{env.TARGET}} --build-dir=${{env.BUILD_DIR}} --build-config=release --ignore-gui-tests
 
       - run: ./tools-tests && ./nodable-tests
-        working-directory: ${{env.BUILD_DIR}}/dist/
+        working-directory: ${{env.BUILD_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
       - uses: actions/upload-artifact@v4
         with:
