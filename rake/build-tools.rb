@@ -81,7 +81,7 @@ TARGET_TYPE_OBJECTS      = "self_objects"
 TARGET_TYPE_EXECUTABLE   = "executable"
 
 TARGET_WINDOWS           = "windows"
-TARGET_LINUX             = "linux-x64"
+TARGET_LINUX             = "linux"
 TARGET_EMSCRIPTEN        = "emscripten" # web assembly
 TARGET_DEFAULT           = BUILD_OS == OS_WINDOWS ? TARGET_WINDOWS : TARGET_LINUX
 TARGETS                  = [TARGET_WINDOWS, TARGET_LINUX, TARGET_EMSCRIPTEN]
