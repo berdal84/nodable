@@ -81,7 +81,7 @@ task :install do
             ]
             system("sudo apt install #{apt_packages.join(" ")}", exception: true)
         else
-            puts "INFO: Nothing to install on #{ARCH}-#{OS}"
+            puts "INFO: Nothing to install on #{ARCH}-#{BUILD_OS}"
         end
         
     elsif WEB
