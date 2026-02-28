@@ -85,11 +85,16 @@ task :install do
         end
         
     elsif WEB
-        # Download and install the latest SDK tools.
-        system("extern/emsdk/emsdk install latest", exception: true)
 
-        # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-        system("extern/emsdk/emsdk activate latest", exception: true)
+        if LINUX
+            system("extern/emsdk/emsdk install latest --system" , exception: true) # Download and install the latest SDK tools.
+            system("extern/emsdk/emsdk activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+            
+        elsif WINDOWS
+            system("extern/emsdk/emsdk.bat install latest --system" , exception: true) # Download and install the latest SDK tools.
+            system("extern/emsdk/emsdk.bat activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+        end
+
     end
 end
 
