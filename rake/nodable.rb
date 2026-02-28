@@ -61,7 +61,7 @@ def target(name, type)
 
     # disable some warnings
     target.cxx_flags |= [
-        "-Wno-nontrivial-memcall", # imgui/imgui_internal.h:1933:38: warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiStackTool' [-Wnontrivial-memcall]
+        LINUX ?  "-Wno-nontrivial-memaccess" : "-Wno-nontrivial-memcall", # imgui/imgui_internal.h:1933:38: warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiStackTool' [-Wnontrivial-memcall]
         "-Wno-unused-function",    # imstb_rectpack.h:233:16: error: unused function 'stbrp_setup_heuristic' [-Werror,-Wunused-function]  233 | STBRP_DEF void stbrp_setup_heuristic(stbrp_context *context, int heuristic)
     ]
 
