@@ -327,8 +327,8 @@ def bt_target_get_objects( target, recursively = false )
     objects = []
 
     if recursively
-        target.depends_on_target.each do |other_target|
-            objects += bt_target_get_objects( other_target, recursively: true )
+        target.depends_on_target.each do |each_dependency_target|
+            objects += bt_target_get_objects( each_dependency_target, recursively: true )
         end
     end
 
