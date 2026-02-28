@@ -68,7 +68,7 @@ def target(name, type)
 
     if EMSCRIPTEN
 
-        target.defines = [
+        target.defines |= [
             "NDBL_WEB"
         ]
 
@@ -101,7 +101,7 @@ def target(name, type)
 
     else
 
-        target.defines = [
+        target.defines |= [
             "NDBL_DESKTOP"
         ]
 
