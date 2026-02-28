@@ -3,7 +3,7 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
 
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
     #include <nfd.h>
 #endif
 
@@ -44,7 +44,7 @@ void AppView::init(App* _app)
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "setup SDL ...\n");
 
     // Decide GL+GLSL versions
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
     // GL 3.0 + GLSL 130
     const char* glsl_version = "#version 130";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -82,7 +82,7 @@ void AppView::init(App* _app)
     m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
     VERIFY(m_sdl_gl_context, "SDL_GL_CreateContext failed" );
 
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
     SDL_GL_SetSwapInterval(1); // https://wiki.libsdl.org/SDL2/SDL_GL_SetSwapInterval
     gl3wInit();
 #endif
@@ -195,7 +195,7 @@ void AppView::init(App* _app)
     {
         TOOLS_LOG(tools::Verbosity_Error, "tools::AppView", "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
     }
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
     if (NFD_Init() != NFD_OKAY)
     {
         TOOLS_LOG(tools::Verbosity_Error, "tools::AppView", "Unable to NFD_Init\n");
@@ -223,7 +223,7 @@ void AppView::shutdown()
     SDL_GL_DeleteContext     (m_sdl_gl_context);
     SDL_DestroyWindow        (m_sdl_window);
     SDL_Quit                 ();
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Quitting NFD (Native File Dialog) ...\n");
     NFD_Quit();
 #endif
@@ -531,7 +531,7 @@ void AppView::end_draw()
     SDL_SetWindowTitle(m_sdl_window, title);
 }
 
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
 bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const
 {
     nfdchar_t *picked_path;
@@ -609,7 +609,7 @@ void AppView::draw_splashscreen()
 
 std::vector<unsigned char> AppView::take_screenshot() const
 {
-#if NDBL_WEB
+#ifdef NDBL_WEB
     return {};
     // TODO: some glXXX are unavailable, but anyways it's not something we need in WEB, we can use browser for that.
 #else

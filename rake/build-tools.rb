@@ -54,31 +54,26 @@ BUILD_OS = ->() {
 }.call()   
 
 # Architecture (we use VCPKG naming convention)
-ARCH_x86_64 = "x86_64"
-ARCH_x64    = "x64"
-ARCH = ->() {
+ARCH_64    = "x64"
+ARCH_32    = "x32"
+
+DEFAULT_ARCH = ->() {
 
     host_cpu = RbConfig::CONFIG['host_cpu']
 
-    if host_cpu != ARCH_x86_64 and host_cpu != ARCH_x64
-        raise "This script is not compatible with #{host_cpu} architecture!"
+    if host_cpu == "x64"
+        return ARCH_64
     end
-
-    return ARCH_x64
-}.call()
-
-# Triplet (we use VCPKG naming convention)
-VCPKG_TRIPLET = ->() {
-
-    triplet = "#{ARCH}-#{BUILD_OS}"
-
-    if BUILD_OS == OS_WINDOWS
-        triplet += "-static" # windows convention is different than linux, dynamic by default
-    end
-
-    triplet
     
+    if host_cpu == "x86_64"
+        return ARCH_64
+    end
+
+    raise "This script is not compatible with #{host_cpu} architecture!"
+
 }.call()
+
+BUILD_ARCH = DEFAULT_ARCH
 
 # Enums ------------------------------------------------------------------------------------------------
 
@@ -173,6 +168,20 @@ WINDOWS    = OPTIONS.target == TARGET_WINDOWS
 EMSCRIPTEN = OPTIONS.target == TARGET_EMSCRIPTEN
 WEB        = EMSCRIPTEN
 DESKTOP    = LINUX || WINDOWS
+ARCH       = EMSCRIPTEN ? ARCH_32 : DEFAULT_ARCH
+
+# Triplet (we use VCPKG naming convention)
+VCPKG_TRIPLET = ->() {
+
+    triplet = "#{BUILD_ARCH}-#{BUILD_OS}"
+
+    if BUILD_OS == OS_WINDOWS
+        triplet += "-static" # windows convention is different than linux, dynamic by default
+    end
+
+    triplet
+    
+}.call()
 
 # Path to installed folder (we decided to separate linux and windows folders)
 VCPKG_INSTALL_ROOT  = "./vcpkg/#{BUILD_OS}"
@@ -200,7 +209,7 @@ HOST_OS              = RbConfig::CONFIG['host_os']
 RELEASE              = OPTIONS.build_config == BUILD_CONFIG_RELEASE
 DEBUG                = OPTIONS.build_config == BUILD_CONFIG_DEBUG
 OPTIMIZED            = OPTIONS.build_config == BUILD_CONFIG_OPTIMIZED
-BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OPTIONS.build_config}", Dir.pwd )
+BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{OPTIONS.build_config}", Dir.pwd )
 DIST_DIR             = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
 OBJ_DIR              = "#{BUILD_DIR}/obj"
 DEP_DIR              = "#{BUILD_DIR}/dep"
@@ -219,7 +228,7 @@ puts "OPTIONS: ............ #{OPTIONS}"
 puts "RUBY version: ....... #{`ruby -v`}"
 puts "HOST_OS: ............ #{HOST_OS}"
 puts "BUILD_OS:............ #{BUILD_OS}"
-puts "ARCH: ............... #{ARCH}"
+puts "BUILD_ARCH: ......... #{BUILD_ARCH}"
 puts "VCPKG_PACKAGES_ROOT:  #{VCPKG_PACKAGES_ROOT}"
 puts "VCPKG_TRIPLET: ...... #{VCPKG_TRIPLET}"
 puts "HTTP_SERVER_URL: .... #{HTTP_SERVER_URL}"

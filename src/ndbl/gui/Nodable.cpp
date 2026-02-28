@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#if NDBL_WEB
+#ifdef NDBL_WEB
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #endif
@@ -56,7 +56,7 @@ void Nodable::_do_frame()
     draw();
 };
 
-#if NDBL_WEB
+#ifdef NDBL_WEB
 void emscripten_do_frame()
 {
     Nodable::instance()->_do_frame();
@@ -65,7 +65,7 @@ void emscripten_do_frame()
 
 void Nodable::run()
 {
-#if NDBL_WEB
+#ifdef NDBL_WEB
     emscripten_set_main_loop(&emscripten_do_frame, 0, true);
 #else
     while( !should_stop() )

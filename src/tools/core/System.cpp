@@ -5,7 +5,7 @@
 
 using namespace tools;
 
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
 int run_command(const char* command)
 {
     int exit_code = ::system(command);

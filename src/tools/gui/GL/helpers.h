@@ -1,6 +1,6 @@
 #pragma once
 
-#if NDBL_DESKTOP
+#ifdef NDBL_DESKTOP
     #include <GL/gl3w.h>
     #include <GL/glcorearb.h>
 #elif NDBL_WEB
