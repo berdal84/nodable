@@ -1,4 +1,7 @@
 #include "format.h"
+#include <chrono>
+#include <ctime>
+#include "assertions.h"
 
 using namespace tools;
 
@@ -45,12 +48,7 @@ void format::limit_trailing_zeros(std::string& str, int _trailing_max)
 string32  format::time_point_to_string(const std::chrono::system_clock::time_point &time_point)
 {
     std::time_t time = std::chrono::system_clock::to_time_t(time_point);
-    // The result of ctime and ctime_s is formatted like: "Www Mmm dd hh:mm:ss yyyy\n\0" (24 chars + end of line + end of string)
-#ifdef NDBL_WINDOWS
-    char str[26];
-    ctime_s(str, sizeof str, &time);
-    return {str, 24};
-#else
-    return {ctime(&time), 24};
-#endif
+    char buf[32] = {};
+    std::strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", std::localtime(&time));
+    return {buf};
 }
