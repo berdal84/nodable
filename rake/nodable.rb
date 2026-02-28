@@ -186,16 +186,16 @@ end
 # TARGETS
 #---------------------------------------------------------------------------
 
-$tools_core = target("tools_core", TARGET_TYPE_OBJECTS)
+tools_core = target("tools_core", TARGET_TYPE_OBJECTS)
 
 if DESKTOP
-    $tools_core.sources |= [
+    tools_core.sources |= [
         # whereami - to be aware of the binary's path at runtime
         "extern/whereami/src/whereami.c"
     ]
 end
 
-$tools_core.sources |= FileList[
+tools_core.sources |= FileList[
     "src/tools/core/reflection/qword.cpp",
     "src/tools/core/reflection/Type.cpp",
     "src/tools/core/reflection/TypeRegister.cpp",
@@ -211,10 +211,10 @@ $tools_core.sources |= FileList[
 ]
 
 #---------------------------------------------------------------------------
-$tools_gui = target("tools_gui", TARGET_TYPE_OBJECTS)
+tools_gui = target("tools_gui", TARGET_TYPE_OBJECTS)
 
 
-$tools_gui.sources |= FileList[
+tools_gui.sources |= FileList[
 
    # Imgui and related sources
    "extern/imgui/imgui.cpp",
@@ -261,8 +261,8 @@ app.assets = FileList[
     "fonts/JetBrainsMono-*.ttf", # 4 variants
 ]
 app.depends_on_target |= [
-    $tools_core,
-    $tools_gui
+    tools_core,
+    tools_gui
 ]
 
 #---------------------------------------------------------------------------
@@ -282,8 +282,8 @@ tools_test.vcpkg |= [
 ]
 
 tools_test.depends_on_target |= [
-    $tools_core,
-    $tools_gui
+    tools_core,
+    tools_gui
 ]
 
 #---------------------------------------------------------------------------
@@ -364,8 +364,8 @@ else
 end
 
 ndbl_app.depends_on_target |= [
-    $tools_gui,
-    $tools_core,
+    tools_gui,
+    tools_core,
     ndbl_core,
     ndbl_gui
 ]
@@ -381,8 +381,8 @@ ndbl_test.vcpkg |= [
 ]
 
 ndbl_test.depends_on_target |= [
-    $tools_core,
-    $tools_gui,
+    tools_core,
+    tools_gui,
     ndbl_core
 ]
 
@@ -429,12 +429,12 @@ namespace :tools do
     end
 
     namespace :core do
-        bt_tasks_for_target( $tools_core )
+        bt_tasks_for_target( tools_core )
     end
 
     task :gui
     namespace :gui do
-        bt_tasks_for_target( $tools_gui )
+        bt_tasks_for_target( tools_gui )
     end
 
     task :app

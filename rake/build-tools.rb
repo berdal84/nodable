@@ -250,6 +250,7 @@ Target = Struct.new(
     :c_flags,
     :cached_defines_flags,
     :cached_includes_flags,
+    :compiled_objects_count,
     :compiler_flags,
     :cxx_flags,
     :defines,
@@ -273,6 +274,7 @@ def bt_target(name, type)
     target.c_flags                  = []
     target.cached_defines_flags     = ""
     target.cached_includes_flags    = ""
+    target.compiled_objects_count   = []
     target.compiler_flags           = []
     target.cxx_flags                = []
     target.defines                  = []
@@ -411,6 +413,9 @@ def bt_target_initialize_if_needed(target)
 
         target.is_initialized = true
 
+        # 3) init some vars
+        target.compiled_objects_count = 0
+
         bt_log(target, "Initialization DONE")
     }    
 end
@@ -508,28 +513,33 @@ end
 
 def bt_tasks_for_target(target)
 
-    # 1) Gather some data to reuse above
-
-    self_objects = bt_target_get_objects( target, recursively: false ) # Get the objects from this target...
-    all_objects  = bt_target_get_objects( target, recursively: true  ) # ... and also the objects plus any dependency's objects
-
-    self_sources = bt_target_get_sources( target, recursively: false ) # Get the sources from this target...
-    # all_sources  = bt_target_get_sources( target, recursively: true  ) # ... and also the sources plus any dependency's sources
-
-    # 2) define tasks
-
     task :clean do
-        FileUtils.rm_f self_objects
+        FileUtils.rm_f bt_target_get_objects( target, recursively: false )
     end
 
     task :clean_all do
-        FileUtils.rm_f all_objects
+        FileUtils.rm_f bt_target_get_objects( target, recursively: true  )
     end
 
     task :rebuild     => [:clean    , :build]
     task :rebuild_all => [:clean_all, :build]
 
-    multitask :compile_objects => all_objects do # all_objects may contain objects from dependencies, they are compiled by their respective target
+    # Define a task per source to build
+    # Not that we do not include the sources from dependencies here,
+    # each dependency declares its own tasks, if this target requires an other target's task,
+    # it will be invoked by rake automatically.
+    bt_target_get_objects(target).each_with_index do |obj, index|
+        src = bt_find_src_for_obj( target.sources, obj )
+        file obj => src do |task|
+            bt_log(target, "Compiling #{src} ...")
+            bt_target_compile_file( target, src )
+            target.compiled_objects_count += 1
+            progress = 100 * target.compiled_objects_count / (bt_target_get_objects(target).size() )
+            bt_log(target, "Compiling #{src} DONE - (Progress #{progress}%)")
+        end
+    end
+
+    multitask :compile_objects => bt_target_get_objects(target, recursively: true) do
         bt_log(target, "Updating llvm compilation database ...")
         bt_update_llvm_json_compilation_database()
         bt_log(target, "Updating llvm compilation database DONE")
@@ -537,7 +547,7 @@ def bt_tasks_for_target(target)
 
     if target.type == TARGET_TYPE_OBJECTS
         
-        task :build => :compile_objects
+        multitask :build => :compile_objects
         
     elsif target.type == TARGET_TYPE_EXECUTABLE
 
@@ -585,18 +595,6 @@ def bt_tasks_for_target(target)
         end
     end
 
-    # Define a task per source to build
-    # Not that we do not include the sources from dependencies here,
-    # each dependency declares its own tasks, if this target requires an other target's task,
-    # it will be invoked by rake automatically.
-    self_sources.each_with_index do |src, index|
-        obj = bt_convert_src_to_obj( src )
-        file obj => src do |task|
-            bt_log(target, "Compiling #{src} ...")
-            bt_target_compile_file( target, src )
-            bt_log(target, "Compiling #{src} DONE")
-        end
-    end
 end
 
 # Target utilities (end) ------------------------------------------------------------------------------------------------
