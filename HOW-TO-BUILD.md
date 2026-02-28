@@ -19,7 +19,7 @@ We use a custom build system that relies on RubyRake, it supports linux and wind
 ### Requirements
 - 64bits operating system
 - LLVM v20+ (we use clang as compiler and linker)
-- Ruby 3+
+- Ruby 3.4+
 - [vcpkg](https://vcpkg.io/) (optional, only to make changes to the libraries)
 
 ### Under Windows

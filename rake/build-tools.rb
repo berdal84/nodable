@@ -1,18 +1,49 @@
+#---------------------------------------------------------------------------------
+# BUILD TOOLS - ruby functions / rake tasks to build a simple C++ project
+#----------------------------------------------------------------------------------
+#
+# A friend of mine has always been pisted about CMake, and he converted me to
+# his "I'll do it by myself" state of mind.
+# I have to admit that I was doubting, but eventually I could do what I wanted
+# with ~500 additionnal lines of code to replace the feature I really wanted
+# from CMake.
+#
+# The constrains I set for this script are:
+#   - only two platforms: DESKTOP and WEB,
+#   - only two OS: windows and linux, with a single architecture (x64 / x86_64)
+#   - only two compilers: clang v21+ for DESKTOP, and emcc (emscriptem)
+#     for the WEB,
+#   - no dynamic dependencies such as submodules: the external dependencies sources
+#     are stored in this repository, except big stuff like MSVC, clang, etc.
+#     For large dependencies that would require long compilation time: store
+#     them as binary (using vcpkg).
+#
+# Some of the consequences:
+#   - I am now free to do whatever I want in my build system (putain oui!),
+#   - I undertand what's happening, I can see the code and debug like with a real
+#     programming language.
+#   - I reduced the compilation time from ~10 to ~2 minutes (mainly due to storing
+#     libs as binary),
+#   - the repo size grew a little bit.
+#
+#                                                  Bérenger, 2026
+#
+
 require "rbconfig"
 require 'json'
 require 'date' # To add date in .clang export
 require 'optparse'
 require 'rubygems'
 
-# Enums-like ------------------------------------------------------------------------------------------------
+# Enums ------------------------------------------------------------------------------------------------
 
-TARGET_TYPE_OBJECTS    = "objects"
-TARGET_TYPE_EXECUTABLE = "executable"
+TARGET_TYPE_OBJECTS      = "self_objects"
+TARGET_TYPE_EXECUTABLE   = "executable"
 
-TARGET_WEB             = "web"
-TARGET_DESKTOP         = "desktop"
-TARGET_DEFAULT         = TARGET_DESKTOP
-TARGETS                = [TARGET_DESKTOP, TARGET_WEB]
+TARGET_WEB               = "web"
+TARGET_DESKTOP           = "desktop"
+TARGET_DEFAULT           = TARGET_DESKTOP
+TARGETS                  = [TARGET_DESKTOP, TARGET_WEB]
 
 BUILD_CONFIG_DEBUG       = "debug"
 BUILD_CONFIG_OPTIMIZED   = "optimized"
@@ -20,16 +51,15 @@ BUILD_CONFIG_RELEASE     = "release"
 BUILD_CONFIG_DEFAULT     = BUILD_CONFIG_DEBUG
 BUILD_CONFIGS            = [BUILD_CONFIG_DEBUG, BUILD_CONFIG_OPTIMIZED, BUILD_CONFIG_RELEASE]
 
-# must match with vcpkg triplet naming convention
-VCPKG_OS_NAME_WINDOWS  = "windows"
-VCPKG_OS_NAME_LINUX    = "linux"
+VCPKG_OS_NAME_WINDOWS    = "windows" # must match with vcpkg triplet naming convention
+VCPKG_OS_NAME_LINUX      = "linux" # must match with vcpkg triplet naming convention
+ 
+BINARY_CLANG             = "clang"
+BINARY_EMCC              = "emcc"
+BINARY_EMRUN             = "emrun"
+BINARY_CLOC              = 'cloc'
 
-BINARY_CLANG           = "clang"
-BINARY_EMCC            = "emcc"
-BINARY_EMRUN           = "emrun"
-BINARY_CLOC            = 'cloc'
-
-# Enums-like (end) ------------------------------------------------------------------------------------------
+# Enums (end) ------------------------------------------------------------------------------------------
 
 # Command Line Arguments ------------------------------------------------------------------------------------
 
@@ -49,7 +79,6 @@ OPTIONS = Struct.new(
     ignore_gui_tests: false,
 )
 
-# Define a parser
 $option_parser = OptionParser.new
 
 $option_parser.banner = "Usage: rake <task> -- [flags]"
@@ -203,81 +232,98 @@ end # if OPTIONS.verbose
 # Target utilities ------------------------------------------------------------------------------------------------
 
 Target = Struct.new(
-    :name,
-    :type, # TARGET_XXX
-    :sources, # list of .c|.cpp files
-    :depends_on_target, # list of other targets to link with (if their sources are not compiled yet, it will compile them as *.o and will be linked)
-    :includes, # list of path dir to include
-    :defines,
-    :compiler_flags,
-    :c_flags,
-    :cxx_flags,
-    :linker_flags,
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
-    :vcpkg, # list of (static) vcpkg package names
-    :is_initialized, # is ready to compile (e.g. pkg-config was run)
-    :cached_includes_flags,
+    :c_flags,
     :cached_defines_flags,
+    :cached_includes_flags,
+    :compiler_flags,
+    :cxx_flags,
+    :defines,
+    :depends_on_target, # list of other targets to link with (if their sources are not compiled yet, it will compile them as *.o and will be linked)
     :distribute,
+    :includes, # list of path dir to include
+    :is_initialized, # is ready to compile (e.g. pkg-config was run)
+    :linker_flags,
+    :name,
+    :sources, # list of .c|.cpp files
+    :type, # TARGET_XXX
+    :vcpkg, # list of (static) vcpkg package names
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
-def new_empty_target(name, type)
+def bt_target(name, type)
+    
     target = Target.new
-    target.name = name
-    target.type = type
-    target.sources  = FileList[]
-    target.depends_on_target = []
-    target.includes = FileList[]
-    target.c_flags  = []
-    target.cxx_flags = []
-    target.linker_flags = []
-    target.assets = FileList[]
-    target.defines = []
-    target.compiler_flags = []
-    target.vcpkg = []
-    target.is_initialized = false;
-    target.cached_includes_flags = ""
-    target.cached_defines_flags  = ""
-    target.distribute = false
-    target
+
+    target.assets                   = FileList[]
+    target.c_flags                  = []
+    target.cached_defines_flags     = ""
+    target.cached_includes_flags    = ""
+    target.compiler_flags           = []
+    target.cxx_flags                = []
+    target.defines                  = []
+    target.depends_on_target        = []
+    target.distribute               = false
+    target.includes                 = FileList[]
+    target.is_initialized           = false;
+    target.linker_flags             = []
+    target.name                     = name
+    target.sources                  = FileList[]
+    target.type                     = type
+    target.vcpkg                    = []
+
+    return target
+
 end
 
-def src_to_obj( obj )
+def bt_convert_src_to_obj( obj )
     "#{OBJ_DIR}/#{ obj.ext(".o")}"
 end
 
-def src_to_dep( src )
+def bt_convert_src_to_dep( src )
     "#{DEP_DIR}/#{src.ext(".d")}"
 end
 
-def obj_to_src( obj, _target)
+def bt_find_src_for_obj( sources, obj )
     stem = obj.sub("#{OBJ_DIR}/", "").ext("")
-    _target.sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
+    sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
-def to_objects( sources )
-    sources.map{|src| src_to_obj(src) };
+def bt_convert_array_of_src_to_obj( sources )
+    sources.map{|src| bt_convert_src_to_obj(src) };
 end
 
-def get_self_objects( target )
-    to_objects( target.sources )
-end
-
-def get_objects__incl_deps( target )
+def bt_target_get_sources( target, recursively = false )
     
-    # Take this target's objects
-    objects = get_self_objects( target )
+    sources = []
 
-    # Append dependencies's objects
-    target.depends_on_target.each do |other_target|
-        objects |= get_objects__incl_deps( other_target )
+    if recursively
+        target.depends_on_target.each do |other_target|
+            sources += bt_target_get_sources( other_target, recursively: true )
+        end
     end
+
+    sources += target.sources
+
+    sources
+end
+
+def bt_target_get_objects( target, recursively = false )
+    
+    objects = []
+
+    if recursively
+        target.depends_on_target.each do |other_target|
+            objects += bt_target_get_objects( other_target, recursively: true )
+        end
+    end
+
+    objects += bt_convert_array_of_src_to_obj( target.sources )
 
     objects
 end
 
-def get_binary_path( target )
+def bt_target_get_binary_path( target )
     path = "#{BIN_DIR}/#{target.name}"
     if WEB
         path = path.ext("html")
@@ -287,46 +333,17 @@ def get_binary_path( target )
     path
 end
 
-def generate_flags_for_vcpkg( target )
+$_mutex_initializing = Mutex.new
 
-    puts "#{target.name} | Generate flags for vcpkg .."
-    puts "#{target.name} | -- vcpkg list: #{target.vcpkg}"
+def bt_target_initialize_if_needed(target)
 
-    # We must add default include path for headers and libraries because some vcpkg do not have a .pc file
-    # and their location is 99% of the time in those two folders:
-    temp_cxx_flags    = ["-I#{VCPKG_PACKAGES_ROOT}/include"]
-    temp_linker_flags = ["-L#{VCPKG_PACKAGES_ROOT}/lib"]
-    
-    target.vcpkg.each do |vcpkg_name|
-
-        # we use |= to make sure there is no duplicates
-        temp_cxx_flags    |= get_library_cflags(vcpkg_name).split(" ")
-        temp_linker_flags |= get_library_linker_flags(vcpkg_name, "static").split(" ")
-    
-    end
-
-    # we use += here because we would like to see compiler warnings if a flag from these temp_xxx_flags already exist in the target.xxx_flags,
-    # that would mean some flags can be removed from target.xxx_flags perhaps...
-    target.cxx_flags    += temp_cxx_flags 
-    target.linker_flags += temp_linker_flags
-
-    puts "#{target.name} | -- cxx_flags added:    #{temp_cxx_flags}"
-    puts "#{target.name} | -- linker_flags added: #{temp_linker_flags}"
-
-    puts "#{target.name} | Generate vcpkg flags DONE"
-end
-
-$mutex_initializing = Mutex.new
-
-def ensure_is_initialized(target)
-
-    # Let's check if ready first (we don't need to sync threads to read)
+    # Perform a quick check that won't lock the thread (readonly)
     if target.is_initialized
         return
     end
 
-    # Since multiple task may run this in parrallel, we need to lock this portion
-    $mutex_initializing.synchronize {
+    # We synchronize this scope to make sure only 1 thread at a time can run it
+    $_mutex_initializing.synchronize {
 
         # There is a possibility where 1 task already started to execute this scope while an other was waiting to execute it too.
         # In such case, once the first finishes the execution (and set the flag to true) the second enter
@@ -335,32 +352,63 @@ def ensure_is_initialized(target)
             return
         end
 
-        puts "#{target.name} | Initialization .."
+        bt_log( target, "Initialization .." )
     
-        # First, we have to generate flags for vcpkg
-        # then we cache flags
+        # 1) Generate flags for linked libraries
+        #    It relies on pkgconf for vcpkg, if library can't be found we add a default flag (-lmylib)
+        #
+        bt_log( target, "Generate flags for vcpkg ..")
+        bt_log( target, "-- vcpkg list: #{target.vcpkg}")
+        # We must add default include path for headers and libraries because some vcpkg do not have a .pc file
+        # and their location is 99% of the time in those two folders:
+        temp_cxx_flags    = ["-I#{VCPKG_PACKAGES_ROOT}/include"]
+        temp_linker_flags = ["-L#{VCPKG_PACKAGES_ROOT}/lib"]
 
-        generate_flags_for_vcpkg(target)
+        target.vcpkg.each do |vcpkg_name|
 
-        # Then, we cache some flags as string to share the data accross multiple compilation units
+            has_pkg_config = system("#{PKGCONF} --exists #{vcpkg_name}")
 
+            if !has_pkg_config
+                temp_linker_flags |= ["-l#{vcpkg_name}"] # By default, we simply link it, considering that 99% of the time the *.lib|a|so is in the base folder.
+            else
+                lib_cxx_flags      = `#{PKGCONF} --cflags #{vcpkg_name}`.chomp        # Get compiler flags (ex: "-I/path/to/folder"      
+                lib_linker_flags   = `#{PKGCONF} --libs --static #{vcpkg_name}`.chomp # Get linker flags (ex: "-L/path/to/lib/folder -lxxx" 
+
+                temp_cxx_flags    |=    lib_cxx_flags.split(" ") # we use |= to make sure there is no duplicates
+                temp_linker_flags |= lib_linker_flags.split(" ")
+            end
+
+        end
+
+        # we use += here because we would like to see compiler warnings if a flag from these temp_xxx_flags already exist in the target.xxx_flags,
+        # that would mean some flags can be removed from target.xxx_flags perhaps...
+        target.cxx_flags    += temp_cxx_flags 
+        target.linker_flags += temp_linker_flags
+
+        bt_log( target, "-- cxx_flags added:    #{temp_cxx_flags}")
+        bt_log( target, "-- linker_flags added: #{temp_linker_flags}")
+
+        bt_log( target, "Generate vcpkg flags DONE")
+
+        # 2) Cache some flags as string to share the data accross multiple compilation units
+        #
         target.cached_defines_flags  = target.defines.map{|d|  "--define-macro=\"#{d}\"" }.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-D-macro
         target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
 
         target.is_initialized = true
 
-        puts "#{target.name} | Initialization DONE"
+        bt_log(target, "Initialization DONE")
     }    
 end
 
-def compile_file(src, target)
+def bt_target_compile_file(target, src)
 
-    ensure_is_initialized(target)
+    bt_target_initialize_if_needed(target)
     
     is_cpp = File.extname( src ) == ".cpp"
 
-    dep = src_to_dep( src )
-    obj = src_to_obj( src )
+    dep = bt_convert_src_to_dep( src )
+    obj = bt_convert_src_to_obj( src )
 
     # Ensure target folders exist
     FileUtils.mkdir_p File.dirname( obj )
@@ -384,32 +432,36 @@ def compile_file(src, target)
     system("#{COMPILER} #{args}", exception: true)
 end
 
-def link_binary( target )
+def bt_target_link( target )
 
     if (target.type != TARGET_TYPE_EXECUTABLE)
         raise "Target type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
     end
 
-    ensure_is_initialized(target)
+    bt_target_initialize_if_needed(target)
+
+    binary = bt_target_get_binary_path(target)
 
     args = [
         target.compiler_flags,
         target.cached_defines_flags,
-        "--output=#{get_binary_path(target)}",
-        get_objects__incl_deps(target),
+        "--output=#{binary}",
+        bt_target_get_objects(target, recursively: true ),
         target.linker_flags
     ].join(" ")
 
-    FileUtils.mkdir_p File.dirname(get_binary_path(target))
+    FileUtils.mkdir_p File.dirname(binary)
 
     system("#{LINKER} #{args}", exception: true)
 end
 
-def update_compile_commands_json()
+def bt_update_llvm_json_compilation_database()
 
     #
-    # Update compile_commands.json
-    # This file can be read by clangd to perform static analysis (e.g. in VSCode or CLION )
+    # Update ./compile_commands.json
+    # This file can be read by clangd to perform static analysis (e.g. with cnagd, in VSCode or CLION )
+    # 
+    # see https://clang.llvm.org/docs/JSONCompilationDatabase.html
     #
 
     output_file = "./compile_commands.json"
@@ -428,41 +480,66 @@ def update_compile_commands_json()
     File.write( output_file, content)
 end
 
-def tasks_for_target(target)
+def bt_file_copy_or_overwrite(src, dst)
+    
+    # Ensure destination folder exists
+    dst_dir = File.dirname(dst)
+    FileUtils.mkdir_p dst_dir
 
-    objects = get_self_objects(target)
-    objects_with_deps = get_objects__incl_deps(target)
+    # Copy file (will overwrite)
+    FileUtils.cp( src, dst )
+
+    puts "  File copied: #{src} => #{dst}"
+end
+
+def bt_tasks_for_target(target)
+
+    # 1) Gather some data to reuse above
+
+    self_objects = bt_target_get_objects( target, recursively: false ) # Get the objects from this target...
+    all_objects  = bt_target_get_objects( target, recursively: true  ) # ... and also the objects plus any dependency's objects
+
+    self_sources = bt_target_get_sources( target, recursively: false ) # Get the sources from this target...
+    # all_sources  = bt_target_get_sources( target, recursively: true  ) # ... and also the sources plus any dependency's sources
+
+    # 2) define tasks
 
     task :clean do
-        FileUtils.rm_f objects
+        FileUtils.rm_f self_objects
     end
 
     task :clean_all do
-        FileUtils.rm_f objects_with_deps
+        FileUtils.rm_f all_objects
     end
 
-    task :rebuild => [:clean, :build]
-
+    task :rebuild     => [:clean    , :build]
     task :rebuild_all => [:clean_all, :build]
 
+    multitask :compile_objects => all_objects do # all_objects may contain objects from dependencies, they are compiled by their respective target
+        bt_log(target, "Updating llvm compilation database ...")
+        bt_update_llvm_json_compilation_database()
+        bt_log(target, "Updating llvm compilation database DONE")
+    end
+
     if target.type == TARGET_TYPE_OBJECTS
-
-        multitask :build => objects_with_deps do
-            puts "#{target.name} | Build DONE"
-        end
-
+        
+        task :build => :compile_objects
+        
     elsif target.type == TARGET_TYPE_EXECUTABLE
 
-        task :build => [:link] do
+        binary = bt_target_get_binary_path(target)
+
+        file binary => :compile_objects do
+            bt_log(target, "Linking '#{binary}' ...")
+            bt_target_link(target)
+            bt_log(target, "Linking '#{binary}' DONE")
+        end
+
+        task :build => binary do
 
             if target.distribute            
-                binary_path = get_binary_path(target)
-                src = binary_path
-                dst = "#{DIST_DIR}/#{File.basename(src)}"
-
-                FileUtils.mkdir_p(File.dirname(dst))
-                FileUtils.cp( src, dst )            
-                puts "  Copy binary: #{src} => #{dst}"          
+                binary_filename = File.basename(binary)
+                bt_file_copy_or_overwrite( binary, "#{DIST_DIR}/#{binary_filename}" )
             end  
 
             # Copy assets
@@ -471,103 +548,52 @@ def tasks_for_target(target)
                 # Handle pattern (format is <src>[:<dest>], by default dest=src)
                 arr = pattern.split(':') 
                 src = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<src>[:<dest>]'")
-                dst = "#{BIN_DIR}/#{arr[1] || src}";
+                dst = "#{arr[1] || src}"
 
-                FileUtils.mkdir_p File.dirname(dst)
-                FileUtils.cp( src, dst )
-                puts "  Copy asset: #{src} => #{dst}"
+                bt_file_copy_or_overwrite( src, "#{BIN_DIR}/#{dst}" )
 
                 if target.distribute
-                    dst = "#{DIST_DIR}/#{arr[1] || src}";
-                    FileUtils.mkdir_p(File.dirname(dst))
-                    FileUtils.cp( src, dst )
-                    puts "  Copy asset: #{src} => #{dst}"
+                    bt_file_copy_or_overwrite( src, "#{DIST_DIR}/#{dst}" )
                 end
             end
 
-            puts "#{target.name} | Build DONE"
+            bt_log(target, "Build DONE")
         end
         
-        task :link => get_binary_path(target)
-
-        file get_binary_path(target) => :compile_objects do
-            puts "#{target.name} | Linking '#{get_binary_path(target)}'..."
-            link_binary(target)
-            puts "#{target.name} | Linking '#{get_binary_path(target)}' DONE"
-        end
-
-        multitask :compile_objects => objects_with_deps do
-            update_compile_commands_json()
-        end
-
         task :run => :build do
-
+            bt_log(target, "Running ...")
             if DESKTOP
-                system(get_binary_path(target), exception: true)
+                system(binary, exception: true)
             elsif WEB
-                system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{get_binary_path(target)}", exception: true)
+                system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{binary}", exception: true)
             end
+            bt_log(target, "Running DONE")
         end
     end
 
-    # Add a task per object to build (dependencies excluded)
-    objects.each_with_index do |obj, index|
-        src = obj_to_src( obj, target )
+    # Define a task per source to build
+    # Not that we do not include the sources from dependencies here,
+    # each dependency declares its own tasks, if this target requires an other target's task,
+    # it will be invoked by rake automatically.
+    self_sources.each_with_index do |src, index|
+        obj = bt_convert_src_to_obj( src )
         file obj => src do |task|
-            puts "#{target.name} | Compiling #{src} ..."
-            compile_file( src, target)
-            puts "#{target.name} | Compiling #{src} DONE"
+            bt_log(target, "Compiling #{src} ...")
+            bt_target_compile_file( target, src )
+            bt_log(target, "Compiling #{src} DONE")
         end
     end
-end
-
-def get_library_cflags(libname, fallback="-I#{VCPKG_PACKAGES_ROOT}/include")
-
-    pkg_config_flags = ['--cflags']
-    
-    # try to get pkg-config flags first
-    has_pkg_config = system("#{PKGCONF} --exists #{libname}")
-
-    if has_pkg_config
-        flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
-    else
-        flags = fallback
-    end
-
-    return flags
-end
-
-def get_library_linker_flags(libname, type, fallback="-l#{libname}")
-
-    type == "static" or raise "Unexpected type: #{type}, for now only 'static' is supported."
-    
-    pkg_config_flags = ['--libs']
-    
-    #if is_static
-        pkg_config_flags.append("--static")
-    #end
-
-    # try to get pkg-config flags first
-    has_pkg_config = system("#{PKGCONF} --exists #{libname}")
-
-    if has_pkg_config
-        flags = `#{PKGCONF} #{pkg_config_flags.join(" ")} #{libname}`.chomp
-    else
-        flags = fallback
-    end
-
-    return flags
 end
 
 # Target utilities (end) ------------------------------------------------------------------------------------------------
 
 # Others
 
-def vcpkg_install()
+def bt_vcpkg_install()
     system("vcpkg install --triplet #{VCPKG_TRIPLET} --x-install-root=#{VCPKG_INSTALL_ROOT}", exception: true)
 end
 
-def count_lines_of_code(at_location = "./")
+def bt_count_lines_of_code(at_location = "./")
     begin
         puts "Counting lines .."
         sh "#{BINARY_CLOC} --by-file-by-lang #{at_location}", verbose: true
@@ -577,4 +603,8 @@ def count_lines_of_code(at_location = "./")
                 puts "       Note that cloc is available at https://github.com/AlDanial/cloc"
         exit 1
     end
+end
+
+def bt_log(target, message)
+    puts "#{target.name} | #{message}"
 end
