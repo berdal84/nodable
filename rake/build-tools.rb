@@ -35,24 +35,67 @@ require 'date' # To add date in .clang export
 require 'optparse'
 require 'rubygems'
 
+# First, detect BUILD_OS and ARCHitecture:
+
+OS_LINUX   = "linux"   # Operating System (we use VCPKG naming convention, type: `vcpkg help triplet`)
+OS_WINDOWS = "windows"
+
+BUILD_OS = ->() { 
+    
+    build_os = RbConfig::CONFIG['build_os']
+
+    if build_os.include?("linux")
+        return OS_LINUX
+    elsif build_os.include?("mingw32") # Ruby is built on mingw32 (w32 does not stands for 32bits)
+        return OS_WINDOWS
+    end
+
+    raise "This script is not compatible with #{build_os}!"
+}.call()   
+
+# Architecture (we use VCPKG naming convention)
+ARCH_x86_64 = "x86_64"
+ARCH_x64    = "x64"
+ARCH = ->() {
+
+    host_cpu = RbConfig::CONFIG['host_cpu']
+
+    if host_cpu != ARCH_x86_64 and host_cpu != ARCH_x64
+        raise "This script is not compatible with #{host_cpu} architecture!"
+    end
+
+    return ARCH_x64
+}.call()
+
+# Triplet (we use VCPKG naming convention)
+VCPKG_TRIPLET = ->() {
+
+    triplet = "#{ARCH}-#{BUILD_OS}"
+
+    if BUILD_OS == OS_WINDOWS
+        triplet += "-static" # windows convention is different than linux, dynamic by default
+    end
+
+    triplet
+    
+}.call()
+
 # Enums ------------------------------------------------------------------------------------------------
 
 TARGET_TYPE_OBJECTS      = "self_objects"
 TARGET_TYPE_EXECUTABLE   = "executable"
 
-TARGET_WEB               = "web"
-TARGET_DESKTOP           = "desktop"
-TARGET_DEFAULT           = TARGET_DESKTOP
-TARGETS                  = [TARGET_DESKTOP, TARGET_WEB]
+TARGET_WINDOWS           = "windows"
+TARGET_LINUX             = "linux-x64"
+TARGET_EMSCRIPTEN        = "emscripten" # web assembly
+TARGET_DEFAULT           = BUILD_OS == OS_WINDOWS ? TARGET_WINDOWS : TARGET_LINUX
+TARGETS                  = [TARGET_WINDOWS, TARGET_LINUX, TARGET_EMSCRIPTEN]
 
 BUILD_CONFIG_DEBUG       = "debug"
 BUILD_CONFIG_OPTIMIZED   = "optimized"
 BUILD_CONFIG_RELEASE     = "release"
 BUILD_CONFIG_DEFAULT     = BUILD_CONFIG_DEBUG
 BUILD_CONFIGS            = [BUILD_CONFIG_DEBUG, BUILD_CONFIG_OPTIMIZED, BUILD_CONFIG_RELEASE]
-
-VCPKG_OS_NAME_WINDOWS    = "windows" # must match with vcpkg triplet naming convention
-VCPKG_OS_NAME_LINUX      = "linux" # must match with vcpkg triplet naming convention
  
 BINARY_CLANG             = "clang"
 BINARY_EMCC              = "emcc"
@@ -124,58 +167,22 @@ end
 
 # Global Constants ----------------------------------------------------------------------------------------------
 
-# Architecture (we use VCPKG naming convention)
-ARCH = ->() {
-
-    host_cpu = RbConfig::CONFIG['host_cpu']
-
-    if host_cpu != "x86_64" and host_cpu != "x64"
-        raise "This script is not compatible with #{host_cpu} architecture!"
-    end
-
-    return "x64"
-}.call()
-
-# Operating System (we use VCPKG naming convention)
-OS = ->() { 
-    
-    build_os = RbConfig::CONFIG['build_os']
-
-    if build_os.include?("linux")
-        return "linux"
-    elsif build_os.include?("mingw32") # Ruby is built on mingw32 (w32 does not stands for 32bits)
-        return "windows"
-    end
-
-    raise "This script is not compatible with #{build_os}!"
-}.call()   
-
-# Helpers to simplify branching (if LINUX ... elif WINDOWS ... else ... end )
-LINUX   = OS == VCPKG_OS_NAME_LINUX
-WINDOWS = OS == VCPKG_OS_NAME_WINDOWS
-
-# Triplet (we use VCPKG naming convention)
-VCPKG_TRIPLET = ->() {
-
-    triplet = "#{ARCH}-#{OS}"
-
-    if OS == "windows"
-        triplet += "-static" # windows convention is different than linux, dynamic by default
-    end
-
-    triplet
-    
-}.call()
+# Helpers to simplify branching (if LINUX ... elif WINDOWS ... elif EMSCRIPTEN ... end )
+LINUX      = OPTIONS.target == TARGET_LINUX
+WINDOWS    = OPTIONS.target == TARGET_WINDOWS
+EMSCRIPTEN = OPTIONS.target == TARGET_EMSCRIPTEN
+WEB        = EMSCRIPTEN
+DESKTOP    = LINUX || WINDOWS
 
 # Path to installed folder (we decided to separate linux and windows folders)
-VCPKG_INSTALL_ROOT  = "./vcpkg/#{OS}"
+VCPKG_INSTALL_ROOT  = "./vcpkg/#{BUILD_OS}"
 VCPKG_PACKAGES_ROOT = "#{VCPKG_INSTALL_ROOT}/#{VCPKG_TRIPLET}"
 
 PKGCONF_BINARY = ->() {
 
     path = "#{VCPKG_PACKAGES_ROOT}/tools/pkgconf/pkgconf"
 
-    if WINDOWS 
+    if BUILD_OS == OS_WINDOWS 
         path = path.ext("exe")
     end
 
@@ -190,12 +197,10 @@ PKGCONF_BINARY = ->() {
 
 PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib/pkgconfig"
 HOST_OS              = RbConfig::CONFIG['host_os']
-DESKTOP              = OPTIONS.target == TARGET_DESKTOP
-WEB                  = OPTIONS.target == TARGET_WEB
 RELEASE              = OPTIONS.build_config == BUILD_CONFIG_RELEASE
 DEBUG                = OPTIONS.build_config == BUILD_CONFIG_DEBUG
 OPTIMIZED            = OPTIONS.build_config == BUILD_CONFIG_OPTIMIZED
-BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OS}-#{OPTIONS.build_config}", Dir.pwd )
+BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{ARCH}-#{OPTIONS.build_config}", Dir.pwd )
 DIST_DIR             = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
 OBJ_DIR              = "#{BUILD_DIR}/obj"
 DEP_DIR              = "#{BUILD_DIR}/dep"
@@ -205,15 +210,15 @@ GITHUB_ACTIONS       = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"  # TODO: add to flags
 HTTP_SERVER_PORT     = "8000" # TODO: add to flags
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
-COMPILER             = DESKTOP ? BINARY_CLANG : BINARY_EMCC # Same binary to compile both C and CPP
-LINKER               = DESKTOP ? BINARY_CLANG : BINARY_EMCC # Same binary to compile both C and CPP
+COMPILER             = EMSCRIPTEN ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
+LINKER               = EMSCRIPTEN ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
 
 if OPTIONS.verbose
 puts "------------------------------------------------------------------------------------------------------"
 puts "OPTIONS: ............ #{OPTIONS}"
 puts "RUBY version: ....... #{`ruby -v`}"
 puts "HOST_OS: ............ #{HOST_OS}"
-puts "OS:.................. #{OS}"
+puts "BUILD_OS:............ #{BUILD_OS}"
 puts "ARCH: ............... #{ARCH}"
 puts "VCPKG_PACKAGES_ROOT:  #{VCPKG_PACKAGES_ROOT}"
 puts "VCPKG_TRIPLET: ...... #{VCPKG_TRIPLET}"

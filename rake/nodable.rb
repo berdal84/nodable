@@ -43,7 +43,6 @@ def target(name, type)
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{OPTIONS.build_config}\\\"",
         "NDBL_#{OPTIONS.target.upcase}",
-        "NDBL_#{OS.upcase}",
         "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
@@ -66,7 +65,12 @@ def target(name, type)
         ]
     end
 
-    if WEB
+    if EMSCRIPTEN
+
+        target.defines = [
+            "NDBL_WEB"
+        ]
+
         target.compiler_flags |= [
             "-s USE_PTHREADS=1",
             "-s USE_FREETYPE=1",
@@ -85,7 +89,20 @@ def target(name, type)
             "--emrun"
         ]
 
-    elsif DESKTOP
+        target.vcpkg = [
+            # "sdl2",
+            # "freetype2",
+            # "opengl",
+            # "nfd",
+            # "gl3w",
+            "lodepng",
+        ]
+
+    else
+
+        target.defines = [
+            "NDBL_DESKTOP"
+        ]
 
         target.linker_flags |= [
             "-lstdc++", # note: -llibstdc++ was not working, it requires to be installed.
@@ -171,7 +188,7 @@ end
 
 $tools_core = target("tools_core", TARGET_TYPE_OBJECTS)
 
-if DESKTOP
+if !EMSCRIPTEN
     $tools_core.sources |= [
         # whereami - to be aware of the binary's path at runtime
         "extern/whereami/src/whereami.c"
@@ -332,7 +349,7 @@ ndbl_assets = FileList[
     "./images/nodable-logo-xs.png",
 ]
 
-if WEB
+if EMSCRIPTEN
 
     # Preload assets (they will be compiled in a binary .data)
     ndbl_app.linker_flags |= ndbl_assets.map{|path| "--preload-file #{path}" }
@@ -342,7 +359,7 @@ if WEB
         "http/.htaccess:.htaccess"
     ]
 
-elsif DESKTOP
+else
     ndbl_app.assets = ndbl_assets
 end
 
