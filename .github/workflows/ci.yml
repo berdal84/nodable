@@ -21,29 +21,29 @@ jobs:
         # see https://github.com/actions/runner-images?tab=readme-ov-file
         includes:
           - os: windows-2025-vs2026
-            artfact_name: nodable-x64-windows
+            artifact_name: nodable-x64-windows
           - os: ubuntu-24.04
-            artfact_name: nodable-x64-linux
+            artifact_name: nodable-x64-linux
 
     runs-on: ${{ matrix.includes.os }}
     env:
-      TARGET:    desktop
-      BUILD_DIR: build
+      # TARGET:    desktop
+      BUILD_DIR: "./${{matrix.includes.artifact_name}}"
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
         with:
           fetch-tags:  true # Tag history is needed to generate nodable version and..
           fetch-depth: 100  # ..we also need some commits to generate the version name (uses `git describe --tags`), until now this value was enough.
 
-      - run: rake install -- --target=${{env.TARGET}}
+      - run: rake install
 
-      - run: rake -m build -- --target=${{env.TARGET}} --build-dir=${{env.BUILD_DIR}} --build-config=release --ignore-gui-tests
+      - run: rake -m build --build-dir=${{env.BUILD_DIR}} --build-config=release --ignore-gui-tests
 
       - run: ./tools-tests && ./nodable-tests
         working-directory: ${{env.BUILD_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.includes.artfact_name}}
+          name: ${{matrix.includes.artifact_name}}
           path: ${{env.BUILD_DIR}}/dist/
             
