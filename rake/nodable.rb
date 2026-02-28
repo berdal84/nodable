@@ -188,7 +188,7 @@ end
 
 $tools_core = target("tools_core", TARGET_TYPE_OBJECTS)
 
-if !EMSCRIPTEN
+if DESKTOP
     $tools_core.sources |= [
         # whereami - to be aware of the binary's path at runtime
         "extern/whereami/src/whereami.c"

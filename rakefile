@@ -23,7 +23,7 @@ require_relative 'rake/nodable'
 #---------------------------------------------------------------------------
 
 CLEAN.include [OBJ_DIR, DEP_DIR, BIN_DIR] # remove intermediate files
-CLOBBER.include [BUILD_DIR]               # remove intermediate and any other build files
+CLOBBER.include [OUTPUT_DIR]               # remove intermediate and any other build files
 
 #---------------------------------------------------------------------------
 # HIGH LEVEL TASKS

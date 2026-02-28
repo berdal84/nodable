@@ -125,11 +125,11 @@ $option_parser.on('-t', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (defau
     OPTIONS.target = value
 end
 
-$option_parser.on('-c', '--build-config=BUILD_CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
+$option_parser.on('-b', '--build=BUILD_CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
     OPTIONS.build_config = value
 end
 
-$option_parser.on('-d', '--build-dir=BUILD_DIR', "Build directory, absolute or relative to the rakefile (default: 'build-{target}-{arch}-{os}-{build_config}')") do |value|
+$option_parser.on('-o', '--output-dir=OUTPUT_DIR', "Build output directory, absolute or relative to the rakefile (default: 'build-{target}-{arch}-{os}-{build_config}')") do |value|
     OPTIONS.build_dir = value
 end
 
@@ -137,7 +137,7 @@ $option_parser.on("-v", "--verbose", "Print diagnostic messages") {
     OPTIONS.verbose = true
 }
 
-$option_parser.on("--ignore-gui-tests", "Disable any test that requires to open a window") {
+$option_parser.on("--no-gui-tests", "Disable any test that requires to open a window") {
     OPTIONS.ignore_gui_tests = true
 }
 
@@ -209,11 +209,11 @@ HOST_OS              = RbConfig::CONFIG['host_os']
 RELEASE              = OPTIONS.build_config == BUILD_CONFIG_RELEASE
 DEBUG                = OPTIONS.build_config == BUILD_CONFIG_DEBUG
 OPTIMIZED            = OPTIONS.build_config == BUILD_CONFIG_OPTIMIZED
-BUILD_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{OPTIONS.build_config}", Dir.pwd )
-DIST_DIR             = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
-OBJ_DIR              = "#{BUILD_DIR}/obj"
-DEP_DIR              = "#{BUILD_DIR}/dep"
-BIN_DIR              = "#{BUILD_DIR}/bin" # binaries will be generated there
+OUTPUT_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{OPTIONS.build_config}", Dir.pwd )
+DIST_DIR             = "#{OUTPUT_DIR}/dist" # Distribution files will be copied there (after a build)
+OBJ_DIR              = "#{OUTPUT_DIR}/obj"
+DEP_DIR              = "#{OUTPUT_DIR}/dep"
+BIN_DIR              = "#{OUTPUT_DIR}/bin" # binaries will be generated there
 
 GITHUB_ACTIONS       = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"  # TODO: add to flags

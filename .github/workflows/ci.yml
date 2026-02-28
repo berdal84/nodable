@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.includes.os }}
     env:
       # TARGET:    desktop
-      BUILD_DIR: "./${{matrix.includes.artifact_name}}"
+      OUTPUT_DIR: "./${{matrix.includes.artifact_name}}"
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
         with:
@@ -37,13 +37,13 @@ jobs:
 
       - run: rake install
 
-      - run: rake -m build --build-dir=${{env.BUILD_DIR}} --build-config=release --ignore-gui-tests
+      - run: rake -m build -- --output-dir=${{env.OUTPUT_DIR}} --build=release --no-gui-tests
 
       - run: ./tools-tests && ./nodable-tests
-        working-directory: ${{env.BUILD_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
+        working-directory: ${{env.OUTPUT_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
       - uses: actions/upload-artifact@v4
         with:
           name: ${{matrix.includes.artifact_name}}
-          path: ${{env.BUILD_DIR}}/dist/
+          path: ${{env.OUTPUT_DIR}}/dist/
             
