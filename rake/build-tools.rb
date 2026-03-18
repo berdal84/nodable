@@ -619,7 +619,7 @@ def bt_tasks_for_target(target)
             if DESKTOP
                 system(binary, exception: true)
             elsif WEB
-                system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{binary}", exception: true)
+                system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{binary.ext("html")}", exception: true)
             end
             bt_log(target, "Running DONE")
         end
