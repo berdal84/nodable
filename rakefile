@@ -100,10 +100,10 @@ end
 
 desc "Recompiles vcpkg binaries"
 task :vcpkg_install do
-    vcpkg_install()
+    bt_vcpkg_install()
 end
 
 desc "Count the lines of code in ./src folder"
 task :count_lines do |t, args|
-    count_lines_of_code('src')
+    bt_count_lines_of_code('src')
 end
