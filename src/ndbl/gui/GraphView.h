@@ -10,6 +10,7 @@
 #include "tools/core/UniqueVariantList.h"
 #include "tools/gui/ViewState.h"
 #include "tools/gui/geometry/Pivots.h"
+#include "tools/gui/Size.h"
 
 #include "ndbl/core/ASTScope.h"
 
@@ -24,9 +25,11 @@
 namespace ndbl
 {
     // forward declarations
-    class Nodable;
-    class Graph;
-    using tools::Vec2;
+    class  Nodable;
+    class  Graph;
+    struct ViewConstraint;
+    struct EdgeView;
+    using  tools::Vec2;
 
     struct EdgeView
     {
@@ -66,6 +69,7 @@ namespace ndbl
         Selection              _m_selection;
         tools::BoxShape2D      _m_shape;
         bool                   _m_physics_dirty = false;
+        std::vector<ViewConstraint> _m_contraints;
 
         void                   _handle_init();
         void                   _handle_shutdown();
@@ -89,8 +93,8 @@ namespace ndbl
         // The data (for some states)
 
         tools::StateMachine    _m_state_machine;
-        tools::Vec2            _m_roi_state_start_pos;
-        tools::Vec2            _m_roi_state_end_pos;
+        tools::Vec2            _m_state_roi_start_pos;
+        tools::Vec2            _m_state_roi_end_pos;
 
         // The behavior
 
@@ -104,6 +108,34 @@ namespace ndbl
         void line_state_tick();
         void line_state_leave();
 
+    };
+
+    
+    // Set of data and rules to apply constraints to 1 or more views
+    // See each rule in rule_xxx(float) functions.
+    struct ViewConstraint
+    {
+        typedef std::vector<ASTNodeView*> NodeViews;
+        typedef void(ViewConstraint::*Rule)(float dt);
+
+        void          update(float dt);
+        void          rule_default(float) {}
+        void          rule_1_to_N_as_row(float dt);
+        void          rule_N_to_1_as_a_row(float dt);
+        void          rule_distribute_sub_scope_views(float _dt);
+
+        const char*   name           = "untitled NodeViewConstraint";
+        bool          enabled        = true;
+        Rule          rule           = &ViewConstraint::rule_default;
+        NodeViewFlags leader_flags   = NodeViewFlag_WITH_PINNED;
+        NodeViewFlags follower_flags = NodeViewFlag_WITH_PINNED;
+        tools::Vec2   leader_pivot   = tools::RIGHT;
+        tools::Vec2   follower_pivot = tools::LEFT;
+        tools::Vec2   row_direction  = tools::RIGHT;
+        tools::Vec2   gap_direction  = tools::CENTER;
+        tools::Size   gap_size       = tools::Size_DEFAULT;
+        NodeViews     leader;
+        NodeViews     follower;
     };
 }
 

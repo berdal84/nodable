@@ -469,7 +469,9 @@ void GraphView::_create_constraints__align_down(ASTNode* follower, const  std::v
         leader_view.push_back(_leader->component<ASTNodeView>() );
 
     ASTNodeView* follower_view = follower->component<ASTNodeView>();
-    ViewConstraint constraint;
+
+    auto& constraint = _m_contraints.emplace_back();
+
     constraint.name           = "Position below previous";
     constraint.rule           = &ViewConstraint::rule_1_to_N_as_row;
     constraint.leader         = leader_view;
@@ -483,7 +485,6 @@ void GraphView::_create_constraints__align_down(ASTNode* follower, const  std::v
     constraint.gap_size      = Size_MD;
     constraint.gap_direction = BOTTOM;
 
-    follower->component<PhysicsComponent>()->add_constraint(constraint);
 };
 
 void GraphView::_create_constraints__align_top_recursively(const std::vector<ASTNode*>& unfiltered_follower, ndbl::ASTNode* leader )
@@ -504,7 +505,7 @@ void GraphView::_create_constraints__align_top_recursively(const std::vector<AST
     if ( follower.empty() )
         return;
 
-    ViewConstraint constraint;
+    auto& constraint = _m_contraints.emplace_back();
     constraint.name           = "Align many inputs above";
     constraint.rule           = &ViewConstraint::rule_N_to_1_as_a_row;
     constraint.leader         = { leader_view };
@@ -526,8 +527,6 @@ void GraphView::_create_constraints__align_top_recursively(const std::vector<AST
         constraint.row_direction  = RIGHT;
     }
 
-    leader->component<PhysicsComponent>()->add_constraint(constraint);
-
     for( ASTNodeView* _leader : follower )
         _create_constraints__align_top_recursively(_leader->node()->inputs(), _leader->node());
 };
@@ -539,7 +538,7 @@ void GraphView::_create_constraints(ASTScope* scope )
     {
         auto* switch_behavior = dynamic_cast<ASTSwitchBehavior*>( scope->node() ); // OMG, dynamic cast! we need to erase this class at some point...
 
-        ViewConstraint constraint;
+        auto& constraint = _m_contraints.emplace_back();
         constraint.name          = "Align ScopeView partitions";
         constraint.rule          = &ViewConstraint::rule_distribute_sub_scope_views;
         constraint.leader        = {scope->entity()->component<ASTNodeView>()};
@@ -552,7 +551,6 @@ void GraphView::_create_constraints(ASTScope* scope )
         }
         constraint.gap_size      = Size_XL;
         constraint.gap_direction = BOTTOM;
-        scope->entity()->component<PhysicsComponent>()->add_constraint(constraint);
     }
 
     std::vector<ASTNode*> backbone = scope->backbone();
@@ -578,25 +576,20 @@ void GraphView::_update(float dt)
     // Physics Components
     // TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "GraphView", "Updating constraints ...\n");
 
+    // Reset constraints when necessary
     if ( _m_physics_dirty )
     {
-        // clear all constraints, and THEN create them again
-
-        for (ASTNode* node : graph()->nodes())
-            if ( auto* physics = node->component<PhysicsComponent>())
-                physics->clear_constraints();
-
+        _m_contraints.clear();
         _create_constraints(graph()->root_scope());
 
         _m_physics_dirty = false;
     }
 
-    // Apply all constraints, and THEN apply all forces
-    // TODO: store PhysicsComponent contiguously, and iterate over all of them.
-    //       this requires to store the components on a per Graph basis.
-    for ( ASTNode* node : graph()->nodes() )
-        if ( auto* _physics = node->component<PhysicsComponent>() )
-            _physics->apply_constraints(dt);
+    // Apply contraints (constraints => forces)
+    for (ViewConstraint& vc : _m_contraints)
+        vc.update(dt);
+
+    // Apply forces (forces => positons)
     for ( ASTNode* node : graph()->nodes() )
         if ( auto* _physics = node->component<PhysicsComponent>() )
             _physics->apply_forces(dt);
@@ -1100,16 +1093,16 @@ void GraphView::line_state_leave()
 
 void GraphView::roi_state_enter()
 {
-    _m_roi_state_start_pos = ImGui::GetMousePos();
-    _m_roi_state_end_pos   = ImGui::GetMousePos();;
+    _m_state_roi_start_pos = ImGui::GetMousePos();
+    _m_state_roi_end_pos   = ImGui::GetMousePos();;
 }
 
 void GraphView::roi_state_tick()
 {
-    _m_roi_state_end_pos = ImGui::GetMousePos();
+    _m_state_roi_end_pos = ImGui::GetMousePos();
 
     // Get normalized ROI rectangle
-    Rect roi = Rect::normalize({_m_roi_state_start_pos, _m_roi_state_end_pos});
+    Rect roi = Rect::normalize({_m_state_roi_start_pos, _m_state_roi_end_pos});
 
     // Expand to avoid null area
     const int roi_border_width = 2;
@@ -1163,3 +1156,146 @@ void GraphView::_handle_hover(ASTScopeView* scope_view)
         _m_hovered = scope_view;
 }
 
+std::vector<ASTNodeView*> get_clean_views(std::vector<ASTNodeView*>& possibly_hidden_views)
+{
+    std::vector<ASTNodeView*> result;
+    for(ASTNodeView* view : possibly_hidden_views)
+        if (view->state()->visible())
+            if (!view->state()->pinned())
+                result.push_back(view);
+    return std::move(result);
+}
+
+void ViewConstraint::update(float dt)
+{
+    if ( enabled )
+    {
+        (this->*rule)(dt);
+    }
+}
+
+void ViewConstraint::rule_1_to_N_as_row(float dt)
+{
+    // This type of constrain is designed to make a single NodeView to follow many others
+
+    VERIFY(!leader.empty(), "No leader found!");
+    VERIFY(follower.size() == 1, "This is a one to many relationship, a single follower only is allowed");
+
+    std::vector<ASTNodeView*> clean_follower = get_clean_views(follower);
+    if( clean_follower.empty() )
+        return;
+
+    Config* cfg = get_config();
+    const ASTNodeView* _follower      = clean_follower[0];
+    const BoxShape2D leaders_box{ASTNodeView::bounding_rect(leader, WORLD_SPACE, leader_flags) };
+    const BoxShape2D follower_box{ _follower->get_rect_ex(WORLD_SPACE, follower_flags) };
+
+    // Compute how much the follower box needs to be moved to snap the leader's box at a given pivots.
+    Vec2 delta = BoxShape2D::diff(leaders_box, leader_pivot , follower_box, follower_pivot );
+    delta += gap_direction * cfg->ui_node_gap(gap_size);
+
+    // Apply a force to translate to the (single) follower
+    Vec2 current_pos = _follower->spatial_node()->position(WORLD_SPACE);
+    Vec2 desired_pos = current_pos + delta;
+    auto* physics_component = _follower->node()->component<PhysicsComponent>();
+    VERIFY(physics_component, "Component required");
+    physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
+}
+
+void ViewConstraint::rule_N_to_1_as_a_row(float _dt)
+{
+    ASSERT(leader.size() == 1);
+    ASSERT(follower.size() > 0);
+
+    Config* cfg = get_config();
+    std::vector<ASTNodeView*> clean_follower = get_clean_views(follower);
+    if( clean_follower.empty() )
+        return;
+
+    // Form a row with each view box
+    std::vector<BoxShape2D>  box(follower.size());
+    std::vector<Vec2> delta(follower.size());
+    const Vec2        gap = cfg->ui_node_gap(gap_size);
+
+    for(size_t i = 0; i < clean_follower.size(); i++)
+    {
+        box[i] = BoxShape2D{ clean_follower[i]->get_rect_ex(WORLD_SPACE, follower_flags) };
+
+        // Determine the delta required to snap the current follower with either the leaders or the previous follower.
+        if ( i == 0 )
+        {
+            // First box is aligned with the leader
+            const BoxShape2D leader_box{ leader[0]->get_rect_ex(WORLD_SPACE, leader_flags) };
+            delta[i] = BoxShape2D::diff(leader_box, leader_pivot, box[i], follower_pivot);
+            delta[i] += gap * gap_direction;
+        }
+        else
+        {
+            // i+1 box is aligned with the i
+            delta[i] = BoxShape2D::diff(box[i - 1] , row_direction, box[i], -row_direction);
+            delta[i] += gap * row_direction;
+            delta[i] -= delta[i-1]; //
+        }
+    }
+
+    for(size_t i = 0; i < clean_follower.size(); i++)
+    {
+        auto* physics_component = clean_follower[i]->node()->component<PhysicsComponent>();
+        if( !physics_component )
+            continue;
+        Vec2 current_pos = clean_follower[i]->spatial_node()->position(WORLD_SPACE);
+        Vec2 desired_pos = current_pos + delta[i];
+        physics_component->translate_to(desired_pos, cfg->ui_node_speed, true, WORLD_SPACE);
+    }
+}
+
+void ViewConstraint::rule_distribute_sub_scope_views(float dt)
+{
+    // filter views to constrain
+    //
+    // TODO: there is an issue here, due to the specific case of Scope being partitions (sharing the same node with
+    //       their parent scope), it is complicated to disable the constraints when the partition contains a single
+    //       nested scope (e.g. in a while/if/for/etc.).
+    //       The concept of partition should be removed. They must be either dynamically added/removed when user
+    //       connects a node to a branch, or they must be attached to a separate node.
+    //
+    std::vector<ASTScopeView*> sub_scope_view;
+    for( ASTNodeView* _follower : follower )
+    {
+        ASTScopeView* _follower_scopeview = _follower->internal_scopeview();
+        ASSERT(_follower_scopeview);
+        if ( !_follower_scopeview->pinned() )
+            if ( _follower_scopeview->must_be_draw() )
+                sub_scope_view.push_back( _follower_scopeview );
+    }
+
+    // get all content rects
+    std::vector<Rect> new_content_rect;
+    for(auto _view : sub_scope_view)
+        new_content_rect.push_back( _view->content_rect() );
+
+    // make a row
+    const float gap = get_config()->ui_scope_gap( gap_size );
+    Rect::make_row(new_content_rect, gap );
+
+    // v align
+    const Vec2 align_pos = leader[0]->shape()->pivot(leader_pivot, WORLD_SPACE )
+                         + Vec2{0.f, gap} * gap_direction;
+    Rect::align_top(new_content_rect, align_pos.y );
+
+    // h align
+    Rect::center(new_content_rect, align_pos.x );
+
+    // translate each sub_scope
+    for(size_t i = 0; i < sub_scope_view.size(); ++i)
+    {
+        const Vec2 cur_pos = sub_scope_view[i]->content_rect().center();
+        const Vec2 new_pos = new_content_rect[i].center();
+        const Vec2 delta = new_pos - cur_pos;
+
+        // Apply force to translate head
+        auto* physics = sub_scope_view[i]->scope()->head()->component<PhysicsComponent>();
+        VERIFY(physics, "A PhysicsComponent is required on this entity to apply a force to");
+        physics->translate(delta, get_config()->ui_node_speed, true );
+    }
+}

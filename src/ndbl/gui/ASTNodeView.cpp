@@ -655,14 +655,14 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
 
                 ImGui::Checkbox("On/Off", &physics_component->is_active());
 
-                for (ViewConstraint& constraint: physics_component->constraints())
-                {
-                    if (ImGui::TreeNode(&constraint, "%s", constraint.name) )
-                    {
-                        ImGui::Checkbox("enabled", &constraint.enabled);
-                        ImGui::TreePop();
-                    }
-                }
+                // for (ViewConstraint& constraint: physics_component->constraints())
+                // {
+                //     if (ImGui::TreeNode(&constraint, "%s", constraint.name) )
+                //     {
+                //         ImGui::Checkbox("enabled", &constraint.enabled);
+                //         ImGui::TreePop();
+                //     }
+                // }
             }
             else if (component->get_class() == type::get<ASTScope>())
             {

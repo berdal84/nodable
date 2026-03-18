@@ -89,9 +89,10 @@ namespace tools
     };
 
     //
-    // Handle a set of components for an entity class EntityT
+    // ComponentBag:
+    //      Handle a set of components for an entity class EntityT
     //
-    // minimalist example with components having a default constructor:
+    // Minimalist example with components having a default constructor:
     //    struct MyEntity
     //    {
     //         template<typename T>   create_component() { return _m_components.create<T>(); }
