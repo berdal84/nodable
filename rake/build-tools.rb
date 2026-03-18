@@ -469,14 +469,24 @@ def bt_target_link( target )
     args = [
         target.compiler_flags,
         target.cached_defines_flags,
-        "--output=#{binary}",
+        "-o #{binary}", # Output binary (emcc requires "-o path/to/file" syntax )
         bt_target_get_objects(target, recursively: true ),
         target.linker_flags
-    ].join(" ")
+    ]
+    
+    if EMSCRIPTEN
+        if BUILD_OS == BUILD_OS_WINDOWS
+            args += ["--output-eol", "windows"]
+        elsif BUILD_OS == BUILD_OS_LINUX
+            args += ["--output-eol", "linux"]
+        else
+            raise "Unexpected HOST_OS: #{HOST_OS}"
+        end
+    end
 
     FileUtils.mkdir_p File.dirname(binary)
 
-    system("#{LINKER} #{args}", exception: true)
+    system("#{LINKER} #{args.join(" ")}", exception: true)
 end
 
 def bt_update_llvm_json_compilation_database()
