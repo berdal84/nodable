@@ -37,17 +37,17 @@ require 'rubygems'
 
 # First, detect BUILD_OS and ARCHitecture:
 
-OS_LINUX   = "linux"   # Operating System (we use VCPKG naming convention, type: `vcpkg help triplet`)
-OS_WINDOWS = "windows"
+BUILD_OS_LINUX   = "linux"   # Operating System (we use VCPKG naming convention, type: `vcpkg help triplet`)
+BUILD_OS_WINDOWS = "windows"
 
 BUILD_OS = ->() { 
     
     build_os = RbConfig::CONFIG['build_os']
 
     if build_os.include?("linux")
-        return OS_LINUX
+        return BUILD_OS_LINUX
     elsif build_os.include?("mingw32") # Ruby is built on mingw32 (w32 does not stands for 32bits)
-        return OS_WINDOWS
+        return BUILD_OS_WINDOWS
     end
 
     raise "This script is not compatible with #{build_os}!"
@@ -83,7 +83,7 @@ TARGET_TYPE_EXECUTABLE   = "executable"
 TARGET_WINDOWS           = "windows"
 TARGET_LINUX             = "linux"
 TARGET_EMSCRIPTEN        = "emscripten" # web assembly
-TARGET_DEFAULT           = BUILD_OS == OS_WINDOWS ? TARGET_WINDOWS : TARGET_LINUX
+TARGET_DEFAULT           = BUILD_OS == BUILD_OS_WINDOWS ? TARGET_WINDOWS : TARGET_LINUX
 TARGETS                  = [TARGET_WINDOWS, TARGET_LINUX, TARGET_EMSCRIPTEN]
 
 BUILD_CONFIG_DEBUG       = "debug"
@@ -173,31 +173,36 @@ ARCH       = EMSCRIPTEN ? ARCH_32 : DEFAULT_ARCH
 # Triplet (we use VCPKG naming convention)
 VCPKG_TRIPLET = ->() {
 
-    triplet = "#{BUILD_ARCH}-#{BUILD_OS}"
-
-    if BUILD_OS == OS_WINDOWS
-        triplet += "-static" # windows convention is different than linux, dynamic by default
+    if LINUX
+        return "x64-linux"
     end
 
-    triplet
+    if WINDOWS
+        return "x64-windows-static" # windows convention is different than linux, dynamic by default
+    end
+
+    if EMSCRIPTEN
+        return "wasm32-emscripten"
+    end
+
+    raise "Unknown VCPKG_TRIPLET for this target"
     
 }.call()
 
 # Path to installed folder (we decided to separate linux and windows folders)
-VCPKG_INSTALL_ROOT  = "./vcpkg/#{BUILD_OS}"
+VCPKG_INSTALL_ROOT  = "./vcpkg/#{OPTIONS.target}"
 VCPKG_PACKAGES_ROOT = "#{VCPKG_INSTALL_ROOT}/#{VCPKG_TRIPLET}"
 
 PKGCONF_BINARY = ->() {
 
     path = "#{VCPKG_PACKAGES_ROOT}/tools/pkgconf/pkgconf"
 
-    if BUILD_OS == OS_WINDOWS 
+    if BUILD_OS == BUILD_OS_WINDOWS 
         path = path.ext("exe")
     end
 
     if not File.exist?(path)
         $stderr.puts "Error: PKGCONF_BINARY '#{path}' does not exist! In principle this file is in the source code, but perhaps you delete it and forgot to run 'rake vcpkg'? "
-        exit 1
     end
 
     path 
