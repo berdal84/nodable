@@ -8,7 +8,7 @@
             "name": "Build + Debug",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build-desktop-x64-windows-debug/bin/nodable.exe",
+            "program": "${workspaceRoot}/build-windows-debug/bin/nodable.exe",
             "args": [],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "Build (debug)"
