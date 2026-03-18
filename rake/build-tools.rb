@@ -346,8 +346,8 @@ end
 
 def bt_target_get_binary_path( target )
     path = "#{BIN_DIR}/#{target.name}"
-    if WEB
-        path = path.ext("html")
+    if EMSCRIPTEN
+        path = path.ext("js") # will generate also a .wasm, .wasm.map and *.data
     elsif DESKTOP and WINDOWS
         path = path.ext("exe")
     end
@@ -577,8 +577,23 @@ def bt_tasks_for_target(target)
         task :build => binary do
 
             if target.distribute            
+                
+                # Copy the binary
                 binary_filename = File.basename(binary)
                 bt_file_copy_or_overwrite( binary, "#{DIST_DIR}/#{binary_filename}" )
+
+                # And some additionnal file
+                if EMSCRIPTEN
+                    binary_no_ext = binary_filename.ext("")
+                    binary_and_additionnal_files = FileList[
+                       "#{BIN_DIR}/#{binary_no_ext}.wasm",
+                       "#{BIN_DIR}/#{binary_no_ext}.wasm.map",
+                       "#{BIN_DIR}/#{binary_no_ext}.data",
+                    ];
+                    binary_and_additionnal_files.each do |each|;
+                        bt_file_copy_or_overwrite( each, "#{DIST_DIR}/#{File.basename(each)}" )
+                    end
+                end
             end  
 
             # Copy assets

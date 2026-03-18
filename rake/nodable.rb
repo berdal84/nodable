@@ -356,7 +356,8 @@ if EMSCRIPTEN
 
     # Provide headers for deployment (note: requires https when deployed).
     ndbl_app.assets = [
-        "http/.htaccess:.htaccess"
+        "http/.htaccess:.htaccess",
+        "http/nodable.html:nodable.html",
     ]
 
 else
