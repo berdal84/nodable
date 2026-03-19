@@ -15,7 +15,6 @@
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTNodeSlot.h"
 #include "ndbl/core/ASTFunctionCall.h"
-#include "ndbl/core/ASTSwitchBehavior.h"
 
 #include "Config.h"
 #include "Event.h"
@@ -526,16 +525,14 @@ void GraphView::_create_constraints(ASTScope* scope )
     // distribute child scopes
     if ( ASTUtils::is_conditional(scope->node()) )
     {
-        auto* switch_behavior = dynamic_cast<ASTSwitchBehavior*>( scope->node() ); // OMG, dynamic cast! we need to erase this class at some point...
-
         auto& constraint = _m_contraints.emplace_back();
         constraint.name          = "Align ScopeView partitions";
         constraint.rule          = &ViewConstraintRule_distribute_sub_scope_views;
         constraint.leader        = {scope->entity()->component<ASTNodeView>()};
         constraint.leader_pivot  = BOTTOM;
-        for(Branch i = 0; i < switch_behavior->branch_count(); ++i )
+        for(Branch i = 0; i < scope->node()->branch_count(); ++i )
         {
-            auto branch = switch_behavior->branch_out(i);
+            auto branch = scope->node()->branch_out(i);
             ASTNodeView* nodeview = branch->node->component<ASTNodeView>();
             constraint.follower.push_back( nodeview );
         }

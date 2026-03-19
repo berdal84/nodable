@@ -17,13 +17,10 @@
 namespace ndbl{
 
     // forward declarations
-    class ASTIf;
-    class ASTForLoop;
     class IScope;
     class InstructionNode;
     class ASTFunctionCall;
     class ASTScope;
-    class ASTWhileLoop;
     class ASTNode;
     class ASTNodeProperty;
     class ASTVariable;
@@ -132,9 +129,9 @@ namespace ndbl{
         std::string& serialize_value_out(std::string& _out, const ASTNodeSlot *slot, SerializeFlags _flags = SerializeFlag_NONE )const;
         std::string& serialize_node(std::string &_out, const ASTNode*, SerializeFlags _flags = SerializeFlag_NONE) const;
         std::string& serialize_scope(std::string& _out, const ASTScope*)const;
-        std::string& serialize_for_loop(std::string& _out, const ASTForLoop *_for_loop)const;
-        std::string& serialize_while_loop(std::string& _out, const ASTWhileLoop *_while_loop_node)const;
-        std::string& serialize_cond_struct(std::string& _out, const ASTIf*if_node ) const;
+        std::string& serialize_for_loop(std::string& _out, const ASTNode* _for_loop)const;
+        std::string& serialize_while_loop(std::string& _out, const ASTNode*_while_loop_node)const;
+        std::string& serialize_cond_struct(std::string& _out, const ASTNode* if_node ) const;
         std::string& serialize_literal(std::string& _out, const ASTLiteral*) const;
         std::string& serialize_variable(std::string& _out, const ASTVariable*) const;
         std::string& serialize_variable_ref(std::string &_out, const ASTVariableRef *_node) const;

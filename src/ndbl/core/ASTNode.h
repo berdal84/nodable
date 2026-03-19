@@ -20,6 +20,15 @@ namespace ndbl
     // forward declarations
     class Graph;
     class ASTScope;
+    class ASTNode;
+    class ASTNodeSlot;
+    
+    typedef size_t Branch;
+    enum Branch_ : size_t
+    {
+        Branch_FALSE = 0,
+        Branch_TRUE  = 1,
+    };
 
     typedef int ASTNodeFlags;
     enum ASTNodeFlag_
@@ -27,7 +36,7 @@ namespace ndbl
         ASTNodeFlag_NONE                = 0,
         ASTNodeFlag_IS_DIRTY            = 1 << 0,
         ASTNodeFlag_WAS_IN_A_SCOPE_ONCE = 1 << 1,
-        ASTNodeFlag_MUST_BE_DELETED          = 1 << 2,
+        ASTNodeFlag_MUST_BE_DELETED     = 1 << 2,
         ASTNodeFlag_ALL                 = ~ASTNodeFlag_NONE,
         ASTNodeFlag_DEFAULT             = ASTNodeFlag_NONE,
     };
@@ -65,11 +74,27 @@ namespace ndbl
         bool                        is_orphan() const { return m_parent_scope == nullptr; }
         ASTScope*                   scope() const { return m_parent_scope; };
         bool                        has_scope() const { return m_parent_scope != nullptr; }
+//===== CONDITIONAL NODES RELATED METHODS ==========================================================================================
+        ASTNodeSlot*                branch_out(Branch branch)                       { ASSERT(branch < m_branch_count); return m_branch_slot[branch]; }
+        const ASTNodeSlot*          branch_out(Branch branch) const                 { ASSERT(branch < m_branch_count); return m_branch_slot[branch]; }
+        size_t                      branch_count() const                            { return m_branch_count; }
+        const ASTNode*              condition(Branch branch = Branch_TRUE) const    { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]->first_adjacent_node(); }
+        ASTNode*                    condition(Branch branch = Branch_TRUE)          { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]->first_adjacent_node(); }
+        const ASTNodeSlot*          condition_in(Branch branch = Branch_TRUE) const { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]; }
+        ASTNodeSlot*                condition_in(Branch branch = Branch_TRUE)       { ASSERT(Branch_FALSE < branch && branch < m_branch_count); return m_condition_in[branch - 1]; }
         void                        init_internal_scope();
         bool                        has_internal_scope() const { return m_internal_scope != nullptr; }
         ASTScope*                   internal_scope() const { return m_internal_scope; }
     protected:
         void                        reset_scope(ASTScope*);
+    private:
+        void                        branch_init(size_t branch_count);
+//===== ITERATIVE NODES RELATED METHODS ==========================================================================================
+    public:        
+        ASTNodeSlot*                iteration_slot()            { ASSERT(m_iteration_slot); return m_iteration_slot; }
+        ASTNodeSlot*                initialization_slot()       { ASSERT(m_initialization_slot); return m_initialization_slot; }
+        const ASTNodeSlot*          iteration_slot() const      { ASSERT(m_iteration_slot);return m_iteration_slot;}
+        const ASTNodeSlot*          initialization_slot() const { ASSERT(m_initialization_slot);return m_initialization_slot;}
 //===== SLOT RELATED METHODS ===========================================================================================
     public:
         ASTNodeSlot*                value_in();
@@ -127,8 +152,8 @@ namespace ndbl
         const ASTNodeProperty*  find_prop_by_name(const char* name) const;
         ASTNodeProperty*        find_first_prop(PropertyFlags flags, const tools::TypeDescriptor* type ) { return const_cast<ASTNodeProperty*>( const_cast<const ASTNode*>(this)->find_first_prop(flags, type) );}
         const ASTNodeProperty*  find_first_prop(PropertyFlags, const tools::TypeDescriptor* ) const;
-        ASTNodeProperty*        get_this_property() { return m_properties.at(self_property_index); }
-        const ASTNodeProperty*  get_this_property() const { return m_properties.at(self_property_index); }
+        ASTNodeProperty*        get_this_property() { return m_properties.at(SELF_PROPERTY_INDEX); }
+        const ASTNodeProperty*  get_this_property() const { return m_properties.at(SELF_PROPERTY_INDEX); }
         template<typename T>
         ASTNodeProperty*        add_prop(const char* name, PropertyFlags flags = PropertyFlag_NONE ) { return add_prop(tools::type::get<T>(), name, flags); }
 //===== COMPONENT RELATED METHODS ======================================================================================
@@ -136,7 +161,7 @@ namespace ndbl
         template<class T> T*                component() const  { return m_component_collection.get<T>(); }
         tools::ComponentBag<ASTNode>*       components()       { return &m_component_collection; }
         const tools::ComponentBag<ASTNode>* components() const { return &m_component_collection; }
-//===== MEMBERS ========================================================================================================
+//===== COMMON MEMBERS ==================================================================================================
     private:
         struct AdjacentNodesCache
         {
@@ -148,21 +173,38 @@ namespace ndbl
             std::unordered_map<SlotFlags, std::vector<ASTNode*>> _cache;
         };
 
-        static constexpr size_t self_property_index = 0; //
+        static constexpr size_t SELF_PROPERTY_INDEX = 0;
 
         std::string            m_name;
-        ASTToken               m_suffix = ASTToken{};
+        ASTToken               m_suffix   = ASTToken{};
         Graph*                 m_graph  = nullptr;
         ASTNodeType            m_type   = ASTNodeType_DEFAULT;
         ASTNodeFlags           m_flags  = ASTNodeFlag_IS_DIRTY;
         ASTNodeProperty*       m_value  = nullptr; // Short had for prop_at( self_property_index )
-        ASTScope*              m_parent_scope   = nullptr;
-        ASTScope*              m_internal_scope = nullptr;
+        ASTScope*              m_parent_scope   = nullptr;        
         AdjacentNodesCache     m_adjacent_nodes_cache;
-        std::vector<ASTNodeSlot*>                                m_slots;
-        std::unordered_map<const ASTNodeProperty*, std::vector<ASTNodeSlot*>>   m_slots_by_property; // TODO: use multimap
-        std::vector<ASTNodeProperty*>                            m_properties;
+        std::vector<ASTNodeSlot*>                                m_slots; // TODO: size-fixed array?
+        std::unordered_map<const ASTNodeProperty*, std::vector<ASTNodeSlot*>>   m_slots_by_property;// TODO: use multimap?
+        std::vector<ASTNodeProperty*>                            m_properties; // TODO: size-fixed array?
         std::map<std::string, ASTNodeProperty*>                  m_properties_by_name;
         tools::ComponentBag<ASTNode>                             m_component_collection;
+
+//===== MEMBERS for conditionnal nodes ================================================================================================
+
+        static constexpr size_t                     BRANCH_MAX = 2;
+
+    public:
+        ASTToken                                    branch_prefix = {ASTToken_t::ignore}; // e.g. if|for|while
+        ASTToken                                    branch_suffix = {ASTToken_t::ignore}; // e.g. else
+    private:
+        size_t                                      m_branch_count      = 0;
+        std::array<ASTNodeSlot*, BRANCH_MAX>        m_branch_slot;
+        std::array<ASTNodeSlot*, BRANCH_MAX - 1>    m_condition_in;
+        ASTScope*                                   m_internal_scope = nullptr;
+
+//===== MEMBERS for iterative nodes ================================================================================================
+
+        ASTNodeSlot*                                m_initialization_slot = {nullptr};
+        ASTNodeSlot*                                m_iteration_slot      = {nullptr};
     };
 }

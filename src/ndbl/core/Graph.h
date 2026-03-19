@@ -83,38 +83,38 @@ namespace ndbl
         void                    _clear();
 //====== Node(s) Related ===============================================================================================
     public:
-        ASTNode*                 create_node() { return create_node( this->root_scope() ); }
-        ASTNode*                 create_node(ASTScope*); // Create a raw node.
-        ASTNode*                 create_node(CreateNodeType type, const tools::FunctionDescriptor* desc = nullptr) { return create_node(type, desc, this->root_scope()); }
-        ASTNode*                 create_node(CreateNodeType, const tools::FunctionDescriptor*, ASTScope*);
-        ASTVariable*             create_variable(const tools::TypeDescriptor* type, const std::string& name) { return create_variable(type, name, this->root_scope()); }
-        ASTVariable*             create_variable(const tools::TypeDescriptor* type, const std::string& name, ASTScope* scope );
-        ASTVariableRef*          create_variable_ref() { return create_variable_ref( this->root_scope()); }
-        ASTVariableRef*          create_variable_ref(ASTScope*);
-        ASTVariable*             create_variable_decl(const tools::TypeDescriptor* type, const char* name) { return create_variable_decl(type, name, this->root_scope()); }
-        ASTVariable*             create_variable_decl(const tools::TypeDescriptor* _type, const char* _name, ASTScope*);
-        ASTLiteral*              create_literal(const tools::TypeDescriptor* type) { return create_literal(type, this->root_scope()); }
-        ASTLiteral*              create_literal(const tools::TypeDescriptor *_type, ASTScope*);
-        ASTFunctionCall*         create_function(const tools::FunctionDescriptor& desc) { return create_function(desc, this->root_scope()); }
-        ASTFunctionCall*         create_function(const tools::FunctionDescriptor&, ASTScope*);
-        ASTFunctionCall*         create_operator(const tools::FunctionDescriptor& desc) { return create_operator(desc, this->root_scope()); }
-        ASTFunctionCall*         create_operator(const tools::FunctionDescriptor&, ASTScope*);
-        ASTIf*                   create_cond_struct() { return create_cond_struct(root_scope()); }
-        ASTIf*                   create_cond_struct(ASTScope*);
-        ASTForLoop*              create_for_loop() { return create_for_loop(root_scope()); }
-        ASTForLoop*              create_for_loop(ASTScope*);
-        ASTWhileLoop*            create_while_loop() { return create_while_loop(root_scope()); }
-        ASTWhileLoop*            create_while_loop(ASTScope*);
-        ASTNode*                 create_empty_instruction() { return create_empty_instruction(root_scope()); }
-        ASTNode*                 create_empty_instruction(ASTScope*);
-        ASTNode*                 create_scope(ASTScope* scope);
-        void                     find_and_destroy(ASTNode* node);
-        std::vector<ASTScope *>  scopes();
-        std::set<ASTScope *>     root_scopes();
-        NodeRegistry&            nodes() {return m_node_registry;}
-        const NodeRegistry&      nodes()const {return m_node_registry;}
-        void                     flag_node_to_delete(ASTNode* node, GraphFlags = GraphFlag_NONE);
-        bool                     contains(ASTNode*) const;
+        ASTNode*                create_node() { return create_node( this->root_scope() ); }
+        ASTNode*                create_node(ASTScope*); // Create a raw node.
+        ASTNode*                create_node(CreateNodeType type, const tools::FunctionDescriptor* desc = nullptr) { return create_node(type, desc, this->root_scope()); }
+        ASTNode*                create_node(CreateNodeType, const tools::FunctionDescriptor*, ASTScope*);
+        ASTVariable*            create_variable(const tools::TypeDescriptor* type, const std::string& name) { return create_variable(type, name, this->root_scope()); }
+        ASTVariable*            create_variable(const tools::TypeDescriptor* type, const std::string& name, ASTScope* scope );
+        ASTVariableRef*         create_variable_ref() { return create_variable_ref( this->root_scope()); }
+        ASTVariableRef*         create_variable_ref(ASTScope*);
+        ASTVariable*            create_variable_decl(const tools::TypeDescriptor* type, const char* name) { return create_variable_decl(type, name, this->root_scope()); }
+        ASTVariable*            create_variable_decl(const tools::TypeDescriptor* _type, const char* _name, ASTScope*);
+        ASTLiteral*             create_literal(const tools::TypeDescriptor* type) { return create_literal(type, this->root_scope()); }
+        ASTLiteral*             create_literal(const tools::TypeDescriptor *_type, ASTScope*);
+        ASTFunctionCall*        create_function(const tools::FunctionDescriptor& desc) { return create_function(desc, this->root_scope()); }
+        ASTFunctionCall*        create_function(const tools::FunctionDescriptor&, ASTScope*);
+        ASTFunctionCall*        create_operator(const tools::FunctionDescriptor& desc) { return create_operator(desc, this->root_scope()); }
+        ASTFunctionCall*        create_operator(const tools::FunctionDescriptor&, ASTScope*);
+        ASTNode*                create_cond_struct() { return create_cond_struct(root_scope()); }
+        ASTNode*                create_cond_struct(ASTScope*);
+        ASTNode*                create_for_loop() { return create_for_loop(root_scope()); }
+        ASTNode*                create_for_loop(ASTScope*);
+        ASTNode*                create_while_loop() { return create_while_loop(root_scope()); }
+        ASTNode*                create_while_loop(ASTScope*);
+        ASTNode*                create_empty_instruction() { return create_empty_instruction(root_scope()); }
+        ASTNode*                create_empty_instruction(ASTScope*);
+        ASTNode*                create_scope(ASTScope* scope);
+        void                    find_and_destroy(ASTNode* node);
+        std::vector<ASTScope *> scopes();
+        std::set<ASTScope *>    root_scopes();
+        NodeRegistry&           nodes() {return m_node_registry;}
+        const NodeRegistry&     nodes()const {return m_node_registry;}
+        void                    flag_node_to_delete(ASTNode* node, GraphFlags = GraphFlag_NONE);
+        bool                    contains(ASTNode*) const;
 
         template<typename T> ASTVariable* create_variable_decl(const char* name = "var")          { return create_variable_decl( tools::type::get<T>(), name, this->root_scope()); }
         template<typename T> ASTVariable* create_variable_decl(const char* name, ASTScope* scope ){ return create_variable_decl( tools::type::get<T>(), name, scope); }

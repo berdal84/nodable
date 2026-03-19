@@ -10,9 +10,7 @@
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTFunctionCall.h"
 #include "ndbl/core/ASTLiteral.h"
-#include "ndbl/core/ASTForLoop.h"
 #include "ndbl/core/ASTFunctionCall.h"
-#include "ndbl/core/ASTIf.h"
 #include "ndbl/core/ASTLiteral.h"
 #include "ndbl/core/ASTNode.h"
 #include "ndbl/core/ASTScope.h"
@@ -20,7 +18,6 @@
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTVariable.h"
 #include "ndbl/core/ASTVariableRef.h"
-#include "ndbl/core/ASTWhileLoop.h"
 
 #include "Config.h"
 #include "ASTNodePropertyView.h"

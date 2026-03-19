@@ -290,21 +290,17 @@ tools_test.depends_on_target |= [
 ndbl_core = target("ndbl_core", TARGET_TYPE_OBJECTS)
 ndbl_core.sources |= FileList[
     "src/ndbl/core/language/Nodlang.cpp",
-    "src/ndbl/core/ASTForLoop.cpp",
     "src/ndbl/core/ASTFunctionCall.cpp",
-    "src/ndbl/core/ASTIf.cpp",
     "src/ndbl/core/ASTLiteral.cpp",
     "src/ndbl/core/ASTNode.cpp",
     "src/ndbl/core/ASTNodeProperty.cpp",
     "src/ndbl/core/ASTNodeSlot.cpp",
     "src/ndbl/core/ASTScope.cpp",
     "src/ndbl/core/ASTSlotLink.cpp",
-    "src/ndbl/core/ASTSwitchBehavior.cpp",
     "src/ndbl/core/ASTToken.cpp",
     "src/ndbl/core/ASTTokenRibbon.cpp",
     "src/ndbl/core/ASTUtils.cpp",
     "src/ndbl/core/ASTVariable.cpp",
-    "src/ndbl/core/ASTWhileLoop.cpp",
     "src/ndbl/core/Graph.cpp",    
     "src/ndbl/core/NodableHeadless.cpp",
 ]

@@ -4,9 +4,7 @@
 #include <imgui/imgui_internal.h>
 
 #include "language/Nodlang.h"
-#include "ASTForLoop.h"
 #include "ASTFunctionCall.h"
-#include "ASTIf.h"
 #include "ASTLiteral.h"
 #include "ASTNode.h"
 #include "ASTScope.h"
@@ -14,7 +12,6 @@
 #include "ASTUtils.h"
 #include "ASTVariable.h"
 #include "ASTVariableRef.h"
-#include "ASTWhileLoop.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -532,23 +529,23 @@ void Graph::disconnect(ASTSlotLink& _edge, GraphFlags flags)
     signal_change.broadcast();
 }
 
-ASTIf* Graph::create_cond_struct(ASTScope* scope)
+ASTNode* Graph::create_cond_struct(ASTScope* scope)
 {
-    ASTIf* node = ASTUtils::create_cond_struct();
+    ASTNode* node = ASTUtils::create_cond_struct();
     _insert(node, scope);
     return node;
 }
 
-ASTForLoop* Graph::create_for_loop(ASTScope* scope)
+ASTNode* Graph::create_for_loop(ASTScope* scope)
 {
-    ASTForLoop* node = ASTUtils::create_for_loop();
+    ASTNode* node = ASTUtils::create_for_loop();
     _insert(node, scope);
     return node;
 }
 
-ASTWhileLoop* Graph::create_while_loop(ASTScope* scope)
+ASTNode* Graph::create_while_loop(ASTScope* scope)
 {
-    ASTWhileLoop* ast_node = ASTUtils::create_while_loop();
+    ASTNode* ast_node = ASTUtils::create_while_loop();
     _insert(ast_node, scope);
     return ast_node;
 }

@@ -21,16 +21,13 @@
 
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTSlotLink.h"
-#include "ndbl/core/ASTForLoop.h"
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/ASTIf.h"
 #include "ndbl/core/ASTFunctionCall.h"
 #include "ndbl/core/ASTLiteral.h"
 #include "ndbl/core/ASTNodeProperty.h"
 #include "ndbl/core/ASTScope.h"
 #include "ndbl/core/ASTVariable.h"
 #include "ndbl/core/ASTVariableRef.h"
-#include "ndbl/core/ASTWhileLoop.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -1120,9 +1117,9 @@ ASTNode* Nodlang::parse_if_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing conditional structure...\n");
 
-    bool    success = false;
-    ASTIf*  if_node = _state.graph()->create_cond_struct( parent_scope );
-    if_node->token_if  = _state.tokens().get_eaten();
+    bool     success  = false;
+    ASTNode* if_node  = _state.graph()->create_cond_struct( parent_scope );
+    if_node->branch_prefix = _state.tokens().get_eaten();
 
     _state.graph()->connect(flow_out, if_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
@@ -1143,7 +1140,7 @@ ASTNode* Nodlang::parse_if_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
                 // else
                 if ( _state.tokens().eat_if(ASTToken_t::keyword_else) )
                 {
-                    if_node->token_else = _state.tokens().get_eaten();
+                    if_node->branch_suffix = _state.tokens().get_eaten();
 
                     if ( ASTNode* else_block = parse_atomic_code_block( if_node->internal_scope(), if_node->branch_out(Branch_FALSE) ) )
                     {
@@ -1188,8 +1185,8 @@ ASTNode* Nodlang::parse_if_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
 
 ASTNode* Nodlang::parse_for_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
 {
-    bool         success  = false;
-    ASTForLoop* for_node = nullptr;
+    bool        success     = false;
+    ASTNode*    for_node    = nullptr;
 
     _state.start_transaction();
 
@@ -1198,7 +1195,7 @@ ASTNode* Nodlang::parse_for_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
         for_node = _state.graph()->create_for_loop( parent_scope );
-        for_node->token_for = token_for;
+        for_node->branch_prefix = token_for;
 
         _state.graph()->connect( flow_out, for_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
@@ -1259,9 +1256,9 @@ ASTNode* Nodlang::parse_for_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
 
 ASTNode* Nodlang::parse_while_block(ASTScope* parent_scope,  ASTNodeSlot* flow_out)
 {
-    bool           success    = false;
-    ASTWhileLoop*  while_node = nullptr;
-    ASTNode*       block      = nullptr;
+    bool        success     = false;
+    ASTNode*    while_node  = nullptr;
+    ASTNode*    block       = nullptr;
 
     _state.start_transaction();
 
@@ -1270,7 +1267,7 @@ ASTNode* Nodlang::parse_while_block(ASTScope* parent_scope,  ASTNodeSlot* flow_o
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
         while_node = _state.graph()->create_while_loop( parent_scope );
-        while_node->token_while = token_while;
+        while_node->branch_prefix = token_while;
 
         _state.graph()->connect( flow_out, while_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
@@ -1604,13 +1601,13 @@ std::string& Nodlang::serialize_node(std::string &_out, const ASTNode* node, Ser
     switch ( node->type() )
     {
         case ASTNodeType_IF_ELSE:
-            serialize_cond_struct(_out, static_cast<const ASTIf*>(node) );
+            serialize_cond_struct(_out, node );
             break;
         case ASTNodeType_FOR_LOOP:
-            serialize_for_loop(_out, static_cast<const ASTForLoop*>(node) );
+            serialize_for_loop(_out, node );
             break;
         case ASTNodeType_WHILE_LOOP:
-            serialize_while_loop(_out, static_cast<const ASTWhileLoop*>(node) );
+            serialize_while_loop(_out, node );
             break;
         case ASTNodeType_LITERAL:
             serialize_literal(_out, static_cast<const ASTLiteral*>(node) );
@@ -1686,9 +1683,9 @@ std::string& Nodlang::serialize_double(std::string& _out, double d) const
     return _out.append( format::number(d) );
 }
 
-std::string& Nodlang::serialize_for_loop(std::string &_out, const ASTForLoop *_for_loop) const
+std::string& Nodlang::serialize_for_loop(std::string &_out, const ASTNode* _for_loop) const
 {
-    serialize_token(_out, _for_loop->token_for);
+    serialize_token(_out, _for_loop->branch_prefix);
     serialize_default_buffer(_out, ASTToken_t::parenthesis_open);
     {
         const ASTNodeSlot* init_slot = _for_loop->find_slot_by_property_name(INITIALIZATION_PROPERTY, SlotFlag_INPUT );
@@ -1704,10 +1701,10 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const ASTForLoop *_f
     return _out;
 }
 
-std::string& Nodlang::serialize_while_loop(std::string &_out, const ASTWhileLoop *_while_loop_node) const
+std::string& Nodlang::serialize_while_loop(std::string &_out, const ASTNode* _while_loop_node) const
 {
     // while
-    serialize_token(_out, _while_loop_node->token_while);
+    serialize_token(_out, _while_loop_node->branch_prefix);
 
     // condition
     SerializeFlags flags = SerializeFlag_RECURSE
@@ -1723,10 +1720,10 @@ std::string& Nodlang::serialize_while_loop(std::string &_out, const ASTWhileLoop
 }
 
 
-std::string& Nodlang::serialize_cond_struct(std::string &_out, const ASTIf* if_node ) const
+std::string& Nodlang::serialize_cond_struct(std::string &_out, const ASTNode* if_node ) const
 {
     // if
-    serialize_token(_out, if_node->token_if);
+    serialize_token(_out, if_node->branch_prefix );
 
     // condition
     SerializeFlags flags = SerializeFlag_RECURSE
@@ -1737,7 +1734,7 @@ std::string& Nodlang::serialize_cond_struct(std::string &_out, const ASTIf* if_n
     serialize_node(_out, if_node->branch_out(Branch_TRUE)->first_adjacent_node(), SerializeFlag_RECURSE );
 
     // when condition is false
-    serialize_token(_out, if_node->token_else);
+    serialize_token(_out, if_node->branch_suffix);
     serialize_node(_out, if_node->branch_out(Branch_FALSE)->first_adjacent_node(), SerializeFlag_RECURSE );
 
     return _out;

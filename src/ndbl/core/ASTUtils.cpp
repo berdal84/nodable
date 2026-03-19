@@ -1,9 +1,7 @@
 #include "ASTUtils.h"
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "ASTForLoop.h"
 #include "ASTFunctionCall.h"
-#include "ASTIf.h"
 #include "ASTLiteral.h"
 #include "ASTNode.h"
 #include "ASTScope.h"
@@ -11,7 +9,6 @@
 #include "ASTUtils.h"
 #include "ASTVariable.h"
 #include "ASTVariableRef.h"
-#include "ASTWhileLoop.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -39,24 +36,24 @@ ASTFunctionCall* ASTUtils::create_function(const FunctionDescriptor& _func_type,
     return ast_node;
 }
 
-ASTIf* ASTUtils::create_cond_struct()
+ASTNode* ASTUtils::create_cond_struct()
 {
-    auto* ast_node = new ASTIf();
-    ast_node->init("If");
+    auto* ast_node = new ASTNode();
+    ast_node->init(ASTNodeType_IF_ELSE, "If");
     return ast_node;
 }
 
-ASTForLoop* ASTUtils::create_for_loop()
+ASTNode* ASTUtils::create_for_loop()
 {
-    auto* ast_node = new ASTForLoop();
-    ast_node->init("For");
+    auto* ast_node = new ASTNode();
+    ast_node->init(ASTNodeType_FOR_LOOP, "For");
     return ast_node;
 }
 
-ASTWhileLoop* ASTUtils::create_while_loop()
+ASTNode* ASTUtils::create_while_loop()
 {
-    auto* ast_node = new ASTWhileLoop();
-    ast_node->init("While");
+    auto* ast_node = new ASTNode();
+    ast_node->init(ASTNodeType_WHILE_LOOP, "While");
     return ast_node;
 }
 

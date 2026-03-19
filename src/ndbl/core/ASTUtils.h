@@ -7,14 +7,11 @@
 namespace ndbl
 {
     // Forward declarations
-    class ASTForLoop;
     class ASTFunctionCall;
-    class ASTIf;
     class ASTLiteral;
     class ASTNode;
     class ASTVariable;
     class ASTVariableRef;
-    class ASTWhileLoop;
     class Nodlang;
 
     namespace ASTUtils
@@ -27,9 +24,9 @@ namespace ndbl
         ASTVariableRef*       create_variable_ref();
         ASTLiteral*           create_literal(const tools::TypeDescriptor*);
         ASTFunctionCall*      create_function(const tools::FunctionDescriptor&, ASTNodeType = ASTNodeType_FUNCTION);
-        ASTIf*                create_cond_struct();
-        ASTForLoop*           create_for_loop();
-        ASTWhileLoop*         create_while_loop();
+        ASTNode*              create_cond_struct();
+        ASTNode*              create_for_loop();
+        ASTNode*              create_while_loop();
         ASTNode*              create_node();
         ASTNode*              create_empty_instruction();
 

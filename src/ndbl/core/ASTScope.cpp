@@ -6,8 +6,6 @@
 
 #include "tools/core/log.h"
 
-#include "ASTForLoop.h"
-#include "ASTIf.h"
 #include "ASTVariable.h"
 #include "ASTUtils.h"
 #include "Graph.h"
