@@ -666,7 +666,7 @@ bool ASTNodeView::draw_as_properties_panel(ASTNodeView *_view, bool* _show_advan
             }
             else if (component->get_class() == type::get<ASTScope>())
             {
-                ASTScopeView::ImGuiTreeNode_ASTScope("ASTScope", static_cast<ASTScope *>( component ));
+                TreeNode_ASTScope("ASTScope", static_cast<ASTScope *>( component ));
             }
             ImGui::TreePop();
         }

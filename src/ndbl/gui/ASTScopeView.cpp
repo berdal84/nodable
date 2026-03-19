@@ -152,19 +152,27 @@ bool ASTScopeView::pinned() const
     return m_view_state.pinned();
 }
 
-void ASTScopeView::ImGuiTreeNode_ASTScope(const char* title, ASTScope* scope)
+void ASTScopeView::arrange_content()
+{
+    for( ASTNodeView* view : m_wrapped_node_view )
+    {
+        view->arrange_recursively();
+    }
+}
+
+void ndbl::TreeNode_ASTScope(const char* title, ASTScope* scope)
 {
     if ( ImGui::TreeNode( title ) )
     {
         if ( scope )
-            ImGuiTreeNode_ASTScopeContent(scope);
+            TreeNode_ASTScopeContent(scope);
         else
             ImGui::Text("nullptr");
         ImGui::TreePop();
     }
 }
 
-void ASTScopeView::ImGuiTreeNode_ASTNode(ASTNode* node)
+void ndbl::TreeNode_ASTNode(ASTNode* node)
 {
     bool open = false;
     switch ( node->type() )
@@ -197,14 +205,14 @@ void ASTScopeView::ImGuiTreeNode_ASTNode(ASTNode* node)
     {
         if ( node->has_internal_scope() )
         {
-            ImGuiTreeNode_ASTScopeContent(node->internal_scope());
+            TreeNode_ASTScopeContent(node->internal_scope());
         }
 
         ImGui::TreePop();
     }
 };
 
-void ASTScopeView::ImGuiTreeNode_ASTScopeContent(ASTScope *scope)
+void ndbl::TreeNode_ASTScopeContent(ASTScope *scope)
 {
     ImGui::PushID( scope );
     std::vector<ASTNode*> backbone = scope->backbone();
@@ -212,7 +220,7 @@ void ASTScopeView::ImGuiTreeNode_ASTScopeContent(ASTScope *scope)
     {
         for ( ASTNode* _node : backbone )
         {
-            ImGuiTreeNode_ASTNode(_node);
+            TreeNode_ASTNode(_node);
         }
         ImGui::TreePop();
     }
@@ -221,7 +229,7 @@ void ASTScopeView::ImGuiTreeNode_ASTScopeContent(ASTScope *scope)
     {
         for ( ASTNode* child : scope->variable() )
         {
-            ImGuiTreeNode_ASTNode(child);
+            TreeNode_ASTNode(child);
         }
         ImGui::TreePop();
     }
@@ -230,17 +238,9 @@ void ASTScopeView::ImGuiTreeNode_ASTScopeContent(ASTScope *scope)
     {
         for ( ASTNode* child : scope->child() )
         {
-            ImGuiTreeNode_ASTNode(child);
+            TreeNode_ASTNode(child);
         }
         ImGui::TreePop();
     }
     ImGui::PopID();
-}
-
-void ASTScopeView::arrange_content()
-{
-    for( ASTNodeView* view : m_wrapped_node_view )
-    {
-        view->arrange_recursively();
-    }
 }

@@ -51,7 +51,7 @@ namespace ndbl
         ASTNode*       node() { return scope()->node(); }
         const ASTNode* node() const { return scope()->node(); }
         tools::ViewState* state() { return &m_view_state; }
-        bool         has_parent() const { return m_scope->parent() != nullptr; }
+        bool         has_parent() const { return parent() != nullptr; }
         ASTScopeView*parent() const;
         ASTScope*    scope() const { return m_scope; }
         size_t       depth() const { return m_scope->depth(); }
@@ -63,10 +63,12 @@ namespace ndbl
         void         set_pinned(bool b = true);
         const Rect&  content_rect() const { return m_content_rect; }
         void         arrange_content();
-    public:
-        static void  ImGuiTreeNode_ASTScope(const char* title, ASTScope*);
-    private:
-        static void  ImGuiTreeNode_ASTScopeContent(ASTScope*);
-        static void  ImGuiTreeNode_ASTNode(ASTNode*);
     };
+
+    
+    // extra ImGui-related tools
+    
+    void TreeNode_ASTScope(const char* title, ndbl::ASTScope*);
+    void TreeNode_ASTScopeContent(ndbl::ASTScope*);
+    void TreeNode_ASTNode(ndbl::ASTNode*);
 }

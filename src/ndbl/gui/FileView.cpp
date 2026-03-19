@@ -343,7 +343,7 @@ void FileView::draw_info_panel() const
     // Hierarchy
     ASTScope* scope = m_file->graph()->root_scope();
     VERIFY(scope, "An ASTScope root is required to draw the AST as an ImGui tree");
-    ASTScopeView::ImGuiTreeNode_ASTScope("Graph's Root Scope", scope);
+    TreeNode_ASTScope("Graph's Root Scope", scope);
 }
 
 void FileView::experimental_clipboard_auto_paste(bool _enable)
