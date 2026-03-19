@@ -449,16 +449,6 @@ bool GraphView::draw(float dt)
 	return changed;
 }
 
-void GraphView::_update(float dt, u16_t count)
-{
-    // Guards
-    ASSERT(dt > 0.f );
-    ASSERT(count != 0 );
-
-    for(u16_t i = 0; i < count; i++)
-        _update( dt );
-}
-
 void GraphView::_create_constraints__align_down(ASTNode* follower, const  std::vector<ASTNode*>& leader )
 {
     if( leader.empty() )
@@ -569,7 +559,21 @@ void GraphView::_create_constraints(ASTScope* scope )
             _create_constraints(_child_scope);
 };
 
-void GraphView::_update(float dt)
+void GraphView::update(float dt)
+{
+    // Determines how many times update should be called
+    ASSERT( dt >= 0.f);
+    u16_t sample_count = (u16_t)(dt * get_config()->ui_node_physics_frequency);
+    if ( sample_count == 0 ) // When frame rate is too slow
+        sample_count = 1;
+    const float sample_dt = dt / float(sample_count);
+
+    // Do the update(s)
+    for(size_t i = 0; i < sample_count; ++i)
+        _update_once(sample_dt);
+}
+
+void GraphView::_update_once(float dt)
 {
     ASSERT( graph() );
 
@@ -609,7 +613,7 @@ void GraphView::_update(float dt)
             view->update( dt, ScopeViewFlags_RECURSE );
 }
 
-void GraphView::_unfold()
+void GraphView::_update_until_unfold()
 {
     const Config* cfg = get_config();
 
@@ -618,7 +622,12 @@ void GraphView::_unfold()
     const u32_t samples = 1000 * dt / cfg->tools_cfg->dt_cap;
 
     // Run the updates
-    _update( float(dt) / samples, samples);
+    ASSERT(samples != 0 );
+    auto sample_dt = float(dt) / samples;
+    ASSERT(sample_dt > 0.f );
+
+    for(u32_t i = 0; i < samples; ++i)
+        _update_once( sample_dt );
 }
 
 void GraphView::add_action_to_node_menu(Action_CreateNode* _action )
@@ -703,8 +712,7 @@ void GraphView::reset()
     if ( graph()->is_empty() )
         return;
 
-    // unfold the graph (does not work great when nodes are rendered for the first time)
-    _unfold();
+    _update_until_unfold(); // Otherwise it would not render a nice graph when nodes are rendered for the first time
 
     // make sure views are outside viewable rectangle (to avoid flickering)
     Vec2 far_outside = Vec2(-1000.f, -1000.0f);
@@ -1132,20 +1140,6 @@ void GraphView::roi_state_tick()
 
         _m_state_machine.exit_state();
     }
-}
-
-void GraphView::update(float dt)
-{
-    // Determines how many times update should be called
-    ASSERT( dt >= 0.f);
-    u16_t sample_count = (u16_t)(dt * get_config()->ui_node_physics_frequency);
-    if ( sample_count == 0 ) // When frame rate is too slow
-        sample_count = 1;
-    const float sample_dt = dt / float(sample_count);
-
-    // Do the update(s)
-    for(size_t i = 0; i < sample_count; ++i)
-        _update(sample_dt);
 }
 
 void GraphView::_handle_hover(ASTScopeView* scope_view)

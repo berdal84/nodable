@@ -77,9 +77,8 @@ namespace ndbl
         void                   _handle_remove_node(ASTNode* node);
         void                   _handle_change_scope(ASTNode* node, ASTScope* old_scope, ASTScope* new_scope);
         void                   _handle_hover(ASTScopeView *scope_view);
-        void                   _unfold(); // unfold the graph until it is stabilized
-        void                   _update(float dt, u16_t iterations);
-        void                   _update(float dt);
+        void                   _update_until_unfold();
+        void                   _update_once(float dt);
         void                   _on_graph_change();
         void                   _on_selection_change(Selection::EventType, Selection::Element );
         void                   _draw_create_node_context_menu(ASTNodeViewContextualMenu&, ASTNodeSlotView* dragged_slotview = nullptr );

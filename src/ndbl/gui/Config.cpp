@@ -156,7 +156,7 @@ ndbl::Config::Config(tools::Config* _tools_cfg)
     flags                                 = ConfigFlag_EXPERIMENTAL_HYBRID_HISTORY
                                           | ConfigFlag_EXPERIMENTAL_MULTI_SELECTION;
     isolation                             = Isolation_OFF;
-    graph_view_unfold_duration            = 2.0f; // simulate 2sec
+    graph_view_unfold_duration            = 2.0f; // in sec.
 
     // NodableView
     tools_cfg->dockspace_right_ratio       = 0.25f;
