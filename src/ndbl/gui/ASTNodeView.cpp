@@ -52,8 +52,8 @@ ASTNodeView::ASTNodeView()
 
 ASTNodeView::~ASTNodeView()
 {
-    assert(Component::signal_init.disconnect<&ASTNodeView::_handle_init>(this));
-    assert(Component::signal_shutdown.disconnect<&ASTNodeView::_handle_shutdown>(this));
+    Component::signal_init.disconnect();
+    Component::signal_shutdown.disconnect();
     assert(m_slot_views.empty());
     assert(m_view_by_property.empty());
     for(auto vector : m_view_by_property_type )

@@ -50,30 +50,26 @@ namespace tools
         requires std::is_member_function_pointer_v<decltype(TMethod)>
         void connect(void* object_ptr)
         {
-            VERIFY(!_m_delegate.callable(), "Broadcasting not allowed. Did you called this multiple times on purpose? Use SignalN or SignalNR instead" ); // if callable => we called this method more than once
             auto delegate = DelegateT::template from_method<TMethod>(object_ptr);
-            VERIFY( delegate.callable(), "Cannot call TMethod with the object_ptr you provided" );
             connect(delegate);
-            // TODO: return an identifier/hash to disconnect with?
         }
 
         void connect(const DelegateT& delegate)
         {
-            _m_delegate = delegate;
+            ASSERT_DEBUG_ONLY(!_m_delegate.callable()); // Did you forgot to disconnect() before?
+                                                        // Broadcasting not allowed. Did you called this multiple times on purpose?
+                                                        // Use SignalN or SignalNR instead.
+            ASSERT_DEBUG_ONLY(delegate.callable());     // Delegate should be callable..
+            if( delegate.callable() )                   // ..and, in release we don't want to call it.
+                _m_delegate = delegate;
+
+            // we do not return an id since a Signal cannot have more than one connection (see BroadcastSignal).
         }
 
-        template<auto TMethod>
-        requires std::is_member_function_pointer_v<decltype(TMethod)>
-        bool disconnect(void* ptr)
+        void disconnect()
         {
-            auto d = DelegateT::template from_method<TMethod>(ptr);
-
-            if (_m_delegate != d)
-                return false;
-
+            ASSERT_DEBUG_ONLY(_m_delegate.callable()); // Did you call connect() before?
             _m_delegate = {};
-
-            return true;
         }
 
         SignalReturnT emit(SignalArgsT...args) const // emit signal to the listener, if any.

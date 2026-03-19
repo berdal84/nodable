@@ -53,8 +53,8 @@ namespace ndbl
                 return;
 
             // unbind signals
-            assert(m_variable->signal_name_change.disconnect<&ASTVariableRef::handle_name_change>(this));
-            assert(m_variable->signal_shutdown.disconnect<&ASTVariableRef::clear_variable>(this));
+            m_variable->signal_name_change.disconnect();
+            m_variable->signal_shutdown.disconnect();
 
             m_variable = nullptr;
         }

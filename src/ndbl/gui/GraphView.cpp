@@ -73,8 +73,8 @@ GraphView::GraphView()
 
 GraphView::~GraphView()
 {
-    assert(Component::signal_init.disconnect<&GraphView::_handle_init>(this));
-    assert(Component::signal_shutdown.disconnect<&GraphView::_handle_shutdown>(this));
+    Component::signal_init.disconnect(); // SimpleSignal
+    Component::signal_shutdown.disconnect();
 }
 
 void GraphView::_handle_init()
@@ -86,10 +86,10 @@ void GraphView::_handle_init()
     }
 
     _m_selection.signal_change.connect<&GraphView::_on_selection_change>(this);
+    graph()->signal_change.connect<&GraphView::_on_graph_change>(this);
     graph()->signal_add_node.connect<&GraphView::_handle_add_node>(this);
     graph()->signal_remove_node.connect<&GraphView::_handle_remove_node>(this);
     graph()->signal_change_scope.connect<&GraphView::_handle_change_scope>(this);
-    graph()->signal_change.connect<&GraphView::_on_graph_change>(this);
     graph()->signal_reset.connect<&GraphView::reset>(this);
     graph()->signal_is_complete.connect<&GraphView::reset>(this);
 
@@ -100,12 +100,12 @@ void GraphView::_handle_shutdown()
 {
     _m_state_machine.stop();
 
-    assert(_m_selection.signal_change.disconnect<&GraphView::_on_selection_change>(this));
-    assert( graph()->signal_add_node.disconnect<&GraphView::_handle_add_node>(this) );
-    assert( graph()->signal_remove_node.disconnect<&GraphView::_handle_remove_node>(this) );
-    assert( graph()->signal_change.disconnect<&GraphView::_on_graph_change>(this) );
-    assert( graph()->signal_reset.disconnect<&GraphView::reset>(this) );
-    assert( graph()->signal_is_complete.disconnect<&GraphView::reset>(this) );
+    _m_selection.signal_change.disconnect();
+    graph()->signal_add_node.disconnect();
+    graph()->signal_remove_node.disconnect();
+    graph()->signal_reset.disconnect();
+    graph()->signal_is_complete.disconnect();
+    ASSERT_DEBUG_ONLY( graph()->signal_change.disconnect<&GraphView::_on_graph_change>(this) );
 
     // add nodes still present after connecting signals
     for( auto* node : graph()->nodes() )
@@ -151,7 +151,7 @@ void GraphView::_handle_remove_node(ASTNode* node)
 
     if ( ASTScopeView* scopeview = nodeview->internal_scopeview() )
     {
-        assert(scopeview->signal_hover.disconnect<&GraphView::_handle_hover>(this)); // I'm not sure if this is a good approach...
+        scopeview->signal_hover.disconnect(); // I'm not sure if this is a good approach...
     }
 
     if( SpatialNode* _parent = nodeview->spatial_node()->parent() )

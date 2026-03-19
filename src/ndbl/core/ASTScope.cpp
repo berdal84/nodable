@@ -31,7 +31,7 @@ ASTScope::ASTScope()
 ASTScope::~ASTScope()
 {
     // assert(Component::signal_init.disconnect<&ASTScope::on_init>(this));
-    assert(Component::signal_shutdown.disconnect<&ASTScope::_on_shutdown>(this));
+    Component::signal_shutdown.disconnect();
     // assert(Component::signal_name_change.disconnect<&ASTScope::_on_name_change>(this));
     assert(m_parent == nullptr);
     assert(m_head == nullptr);

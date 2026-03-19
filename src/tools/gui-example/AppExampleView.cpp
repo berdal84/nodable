@@ -40,8 +40,8 @@ void AppExampleView::_reset_layout()
 
 void AppExampleView::shutdown()
 {
-    assert(m_base_view.signal_draw_splashscreen_content.disconnect<&AppExampleView::_draw_splashscreen_content>(this));
-    assert(m_base_view.signal_reset_layout.disconnect<&AppExampleView::_reset_layout>(this));
+    m_base_view.signal_draw_splashscreen_content.disconnect();
+    m_base_view.signal_reset_layout.disconnect();
 
     // Here we undo what we did in init()
     m_base_view.shutdown(); // base view will release its resources

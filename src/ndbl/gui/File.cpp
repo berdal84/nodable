@@ -53,9 +53,9 @@ File::File()
 File::~File()
 {
     assert(_graph->signal_change.disconnect<&File::set_text_dirty>(this));
-    assert(_graph->component<GraphView>()->signal_change.disconnect<&File::set_text_dirty>(this));
-    assert(view.signal_text_view_changed.disconnect<&File::set_graph_dirty>(this));
-    assert(view.signal_graph_view_changed.disconnect<&File::set_text_dirty>(this));
+    _graph->component<GraphView>()->signal_change.disconnect();
+    view.signal_text_view_changed.disconnect();
+    view.signal_graph_view_changed.disconnect();
 
     delete _graph;
 }

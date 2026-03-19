@@ -133,19 +133,19 @@ void NodableView::_on_reset_layout()
 {
     auto* cfg = get_config();
     // Dock windows to specific dockspace
-    m_base_view.dock_window( cfg->ui_help_window_label             , AppView::Dockspace_RIGHT);
-    m_base_view.dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT);
-    m_base_view.dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT);
-    m_base_view.dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT);
-    m_base_view.dock_window(cfg->ui_interpreter_window_label  , AppView::Dockspace_RIGHT);
-    m_base_view.dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT);
-    m_base_view.dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP);
+    m_base_view.dock_window( cfg->ui_help_window_label             , AppView::Dockspace_RIGHT );
+    m_base_view.dock_window( cfg->ui_config_window_label           , AppView::Dockspace_RIGHT );
+    m_base_view.dock_window( cfg->ui_file_info_window_label        , AppView::Dockspace_RIGHT );
+    m_base_view.dock_window( cfg->ui_node_properties_window_label  , AppView::Dockspace_RIGHT );
+    m_base_view.dock_window( cfg->ui_interpreter_window_label      , AppView::Dockspace_RIGHT );
+    m_base_view.dock_window( cfg->ui_imgui_config_window_label     , AppView::Dockspace_RIGHT );
+    m_base_view.dock_window( cfg->ui_toolbar_window_label          , AppView::Dockspace_TOP   );
 };
 
 void NodableView::shutdown()
 {
-    assert(m_base_view.signal_reset_layout.disconnect<&NodableView::_on_reset_layout>(this));
-    assert(m_base_view.signal_draw_splashscreen_content.disconnect<&NodableView::_on_draw_splashscreen_content>(this));
+    m_base_view.signal_reset_layout.disconnect();
+    m_base_view.signal_draw_splashscreen_content.disconnect();
 
     // We could do this there, but the base view is responsible for shutdow the texture manager we used, so all textures will be released.
     // get_texture_manager()->release(m_logo);
