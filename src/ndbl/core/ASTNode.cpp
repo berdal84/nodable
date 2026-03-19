@@ -31,7 +31,7 @@ void ASTNode::init(ASTNodeType type, const std::string& label)
 
     switch (type)
     {
-        case ASTNodeType_IF_ELSE:
+        case ASTNodeType_IF_ELSE:            
             branch_prefix = {ASTToken_t::keyword_if};
             branch_init(2);
             break;
@@ -364,8 +364,8 @@ ASTNodeProperty* ASTNode::add_prop(const TypeDescriptor* type, const char* name,
     VERIFY(!has_prop(name), "Property name already used");
 
     // create
-    auto* new_property = new ASTNodeProperty(this);
-    new_property->init(type, flags, name);
+    auto* new_property = new ASTNodeProperty; // TODO: use a static-sized array with a given limit (ex: 10 props)
+    new_property->init(this, type, flags, name);
 
     // register / index
     m_properties.push_back(new_property);

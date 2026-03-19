@@ -25,10 +25,7 @@ namespace ndbl
 	class ASTNodeProperty
     {
     public:
-        ASTNodeProperty() = delete;
-        explicit ASTNodeProperty(ASTNode* owner);
-        void               init(const tools::TypeDescriptor*, PropertyFlags, const char* _name); // must be called once before use
-        void               init_token();
+        void               init(ASTNode* owner, const tools::TypeDescriptor*, PropertyFlags, const char* _name); // must be called once before use
         void               digest(ASTNodeProperty *_property);
         bool               has_flags(PropertyFlags flags)const { return (m_flags & flags) == flags; };
         void               set_flags(PropertyFlags flags) { m_flags |= flags; }
@@ -46,7 +43,7 @@ namespace ndbl
 
     private:
         ASTToken           m_token;
-        ASTNode*           m_node; // owner
+        ASTNode*           m_node  = nullptr; // owner
         PropertyFlags      m_flags = PropertyFlag_NONE;
         std::string        m_name;
         const tools::TypeDescriptor* m_type = nullptr;

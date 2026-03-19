@@ -5,32 +5,22 @@
 using namespace ndbl;
 using namespace tools;
 
-ASTNodeProperty::ASTNodeProperty(ASTNode* owner)
-: m_node(owner)
-, m_token()
-{}
-
-void ASTNodeProperty::init(const TypeDescriptor* _type, PropertyFlags _flags, const char* _name)
+void ASTNodeProperty::init(
+    ASTNode*                node,
+    const TypeDescriptor*   type,
+    PropertyFlags           flags,
+    const char*             name
+)
 {
-    VERIFY(m_type == nullptr, "must be initialized once");
-    VERIFY(_type != nullptr, "type can't be nullptr");
-    m_type  = _type;
-    m_flags = _flags;
-    m_name  = _name;
+    VERIFY( node != nullptr     , "node is required!");
+    VERIFY( m_type == nullptr   , "must be initialized once");
+    VERIFY( type != nullptr     , "type can't be nullptr"   );
 
-    // Ensure token matches with Property type
-    init_token();
-}
+    m_node  = node;
+    m_flags = flags;
+    m_name  = name;
 
-void ASTNodeProperty::init_token()
-{
-    const Nodlang* language = get_language();
-
-    // Convert m_type to a Token_t
-    ASTToken_t token_type = language->to_literal_token(m_type );
-    VERIFY(token_type != ASTToken_t::none, "This token is not handled");
-
-    m_token = { token_type };
+    set_type(type);
 }
 
 void ASTNodeProperty::digest(ASTNodeProperty* _property)
@@ -45,8 +35,17 @@ bool ASTNodeProperty::is_type(const TypeDescriptor* other) const
 
 void ASTNodeProperty::set_type(const tools::TypeDescriptor* type)
 {
-    bool change = type != m_type;
+    // Make sure m_token matches with the new type if type changed
+    if (type != m_type)
+    {
+        const Nodlang* language = get_language();
+
+        // Convert m_type to a Token_t
+        ASTToken_t token_type = language->to_literal_token(type);
+        VERIFY(token_type != ASTToken_t::none, "This token is not handled");
+
+        m_token = { token_type };
+    }
+
     m_type = type;
-    if (change)
-        init_token();
 }
