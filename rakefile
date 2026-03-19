@@ -52,8 +52,8 @@ task :build => [
 
 task :rebuild_all do
     TARGETS.each do |each_target|
-        BUILD_TYPES.each do |each_build_type|
-            system("rake -m clobber build -- --target=#{each_target}  --build_type=#{each_build_type}", exception: true)
+        BUILD_CONFIGS.each do |each_build_config|
+            system("rake -m clobber build -- --target=#{each_target}  --build=#{each_build_config}", exception: true)
         end
     end
 end
