@@ -112,21 +112,17 @@ namespace ndbl
 
     
     // Set of data and rules to apply constraints to 1 or more views
-    // See each rule in rule_xxx(float) functions.
+    // See each rule in rule_xxx(ViewConstraint* constraint, float dt) functions.
     struct ViewConstraint
     {
-        typedef std::vector<ASTNodeView*> NodeViews;
-        typedef void(ViewConstraint::*Rule)(float dt);
+        // Types
 
-        void          update(float dt); // apply current rule
-        void          rule_default(float) {}
-        void          rule_1_to_N_as_row(float dt);
-        void          rule_N_to_1_as_a_row(float dt);
-        void          rule_distribute_sub_scope_views(float _dt);
+        using Views = std::vector<ASTNodeView*>;
+        using Rule  = void(*)(ViewConstraint*, float);
+
+        // Data
 
         const char*   name           = "untitled NodeViewConstraint";
-        // bool          enabled        = true; // DISABLED on 2026-03-18: was not used, we might want to have two containers instead.
-        Rule          rule           = &ViewConstraint::rule_default;
         NodeViewFlags leader_flags   = NodeViewFlag_WITH_PINNED;
         NodeViewFlags follower_flags = NodeViewFlag_WITH_PINNED;
         tools::Vec2   leader_pivot   = tools::RIGHT;
@@ -134,9 +130,18 @@ namespace ndbl
         tools::Vec2   row_direction  = tools::RIGHT;
         tools::Vec2   gap_direction  = tools::CENTER;
         tools::Size   gap_size       = tools::Size_DEFAULT;
-        NodeViews     leader;
-        NodeViews     follower;
+        Views         leader;
+        Views         follower;
+        Rule          rule;
+
+        // bool          enabled        = true; // DISABLED on 2026-03-18: was not used, we might want to have two containers instead.
     };
+
+    // Functions (rules to assign to ViewConstraint.rule)
+
+    static void   ViewConstraintRule_1_to_N_as_row(ViewConstraint*, float dt);
+    static void   ViewConstraintRule_N_to_1_as_a_row(ViewConstraint*, float dt);
+    static void   ViewConstraintRule_distribute_sub_scope_views(ViewConstraint*, float _dt);
 }
 
 // Custom hash provided to work in std::hash<std::variant<EdgeView, ...>>
