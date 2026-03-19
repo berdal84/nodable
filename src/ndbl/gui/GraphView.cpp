@@ -1168,10 +1168,7 @@ std::vector<ASTNodeView*> get_clean_views(std::vector<ASTNodeView*>& possibly_hi
 
 void ViewConstraint::update(float dt)
 {
-    if ( enabled )
-    {
-        (this->*rule)(dt);
-    }
+    (this->*rule)(dt);
 }
 
 void ViewConstraint::rule_1_to_N_as_row(float dt)

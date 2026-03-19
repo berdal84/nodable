@@ -118,14 +118,14 @@ namespace ndbl
         typedef std::vector<ASTNodeView*> NodeViews;
         typedef void(ViewConstraint::*Rule)(float dt);
 
-        void          update(float dt);
+        void          update(float dt); // apply current rule
         void          rule_default(float) {}
         void          rule_1_to_N_as_row(float dt);
         void          rule_N_to_1_as_a_row(float dt);
         void          rule_distribute_sub_scope_views(float _dt);
 
         const char*   name           = "untitled NodeViewConstraint";
-        bool          enabled        = true;
+        // bool          enabled        = true; // DISABLED on 2026-03-18: was not used, we might want to have two containers instead.
         Rule          rule           = &ViewConstraint::rule_default;
         NodeViewFlags leader_flags   = NodeViewFlag_WITH_PINNED;
         NodeViewFlags follower_flags = NodeViewFlag_WITH_PINNED;
