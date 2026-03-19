@@ -133,8 +133,6 @@ namespace ndbl
         Views         leader;
         Views         follower;
         Rule          rule;
-
-        // bool          enabled        = true; // DISABLED on 2026-03-18: was not used, we might want to have two containers instead.
     };
 
     // Functions (rules to assign to ViewConstraint.rule)

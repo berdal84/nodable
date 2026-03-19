@@ -22,7 +22,6 @@ namespace  ndbl
         PhysicsComponent();
         ~PhysicsComponent() override = default;
 
-        void  clear_constraints();
         void  add_force(const tools::Vec2&  force, bool recurse = false);
         void  translate(const tools::Vec2& delta, float speed, bool recursive );
         void  translate_to(const tools::Vec2&  pos, float speed, bool recursive, tools::Space space );
