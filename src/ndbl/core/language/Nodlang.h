@@ -8,6 +8,7 @@
 #include "tools/core/reflection/reflection"
 #include "tools/core/System.h"
 #include "tools/core/Hash.h"
+#include "tools/core/Containers.h"
 
 #include "ndbl/core/ASTVariable.h"
 #include "ndbl/core/ASTToken.h"
@@ -119,7 +120,7 @@ namespace ndbl{
         std::string& serialize_double(std::string& _out, double d) const;
         const ASTNodeSlot*  serialize_invokable(std::string&_out, const ASTFunctionCall*) const;
         std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
-        std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, const std::vector<ASTNodeSlot*>& inputs)const;
+        std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, tools::ArrayView<const ASTNodeSlot*> inputs)const;
         std::string& serialize_func_sig(std::string& _out, const tools::FunctionDescriptor*)const;
         std::string& serialize_default_buffer(std::string& _out, ASTToken_t _token_t)const;
         std::string& serialize_token(std::string& _out, const ASTToken &) const;

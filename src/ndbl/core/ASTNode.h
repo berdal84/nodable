@@ -107,7 +107,7 @@ namespace ndbl
         const ASTNodeSlot*          flow_out() const;
         ASTNodeSlot*                flow_enter();
         const ASTNodeSlot*          flow_enter() const;
-        ASTNodeSlot*                add_slot(ASTNodeProperty *, SlotFlags, size_t _capacity, size_t _position = 0);
+        ASTNodeSlot*                add_slot(ASTNodeProperty *, SlotFlags, size_t limit_capacity = 0, size_t _position = 0);
         size_t                      adjacent_slot_count(SlotFlags flags)const { return filter_adjacent_slots(flags).size(); }
         ASTNodeSlot*                slot_at(size_t pos) { return m_slots.at(pos); }
         const ASTNodeSlot*          slot_at(size_t pos) const { return m_slots.at(pos); }

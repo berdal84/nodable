@@ -270,6 +270,7 @@ app.depends_on_target |= [
 tools_test = target("tools-tests", TARGET_TYPE_EXECUTABLE)
 tools_test.sources |= FileList[
     "src/tools/core/Delegate.specs.cpp",
+    "src/tools/core/Containers.specs.cpp",
     "src/tools/core/string.specs.cpp",
     "src/tools/core/reflection/reflection.specs.cpp",
     "src/tools/gui/geometry/SpatialNode.specs.cpp",

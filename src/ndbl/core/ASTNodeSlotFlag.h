@@ -22,7 +22,7 @@ namespace ndbl
         SlotFlag_TYPE_VALUE    = 1 << 2,
         SlotFlag_TYPE_FLOW     = 1 << 3,
 
-        SlotFlag_IS_INTERNAL     = 1 << 4,
+        SlotFlag_IS_INTERNAL   = 1 << 4,
         SlotFlag_NOT_FULL      = 1 << 5,
 
         SlotFlag_OUTPUT        = SlotFlag_TYPE_VALUE | SlotFlag_ORDER_1ST,

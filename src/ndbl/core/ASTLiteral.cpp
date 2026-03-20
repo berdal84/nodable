@@ -15,7 +15,7 @@ void ASTLiteral::init(const TypeDescriptor* _type, const std::string& _name)
     value()->set_type(_type);
 
     add_slot(value(), SlotFlag_FLOW_OUT , 1);
-    add_slot(value(), SlotFlag_FLOW_IN  , ASTNodeSlot::MAX_CAPACITY);
+    add_slot(value(), SlotFlag_FLOW_IN);
     add_slot(value(), SlotFlag_OUTPUT   , 1);
 }
 

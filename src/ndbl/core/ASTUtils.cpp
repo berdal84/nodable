@@ -61,7 +61,7 @@ ASTNode* ASTUtils::create_scope()
 {
     auto* ast_node = new ASTNode();
     ast_node->init(ASTNodeType_SCOPE, "Scope");
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN);
     ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
     ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_INTERNAL, 1);
     ast_node->init_internal_scope();
@@ -86,7 +86,7 @@ ASTNode* ASTUtils::create_node()
     auto* ast_node = new ASTNode();
     ast_node->init(ASTNodeType_DEFAULT, "");
     ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN);
     return ast_node;
 }
 
@@ -106,7 +106,7 @@ ASTNode* ASTUtils::create_empty_instruction()
     ast_node->value()->set_token({ASTToken_t::ignore});
 
     ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN , ASTNodeSlot::MAX_CAPACITY);
+    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN);
     ast_node->add_slot(ast_node->value(), SlotFlag_OUTPUT  , 1);
 
     return ast_node;

@@ -23,8 +23,8 @@ void ASTVariable::init(const tools::TypeDescriptor* _type, const char* _identifi
     // Init Slots
     add_slot(value(), SlotFlag_INPUT, 1); // to connect an initialization expression
     add_slot(value(), SlotFlag_FLOW_OUT, 1);
-    add_slot(value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY);
+    add_slot(value(), SlotFlag_FLOW_IN);
 
     m_as_declaration_slot = add_slot(value(), SlotFlag_OUTPUT, 1); // as declaration
-    m_as_reference_slot   = add_slot(value(), SlotFlag_OUTPUT, ASTNodeSlot::MAX_CAPACITY ); // as reference
+    m_as_reference_slot   = add_slot(value(), SlotFlag_OUTPUT); // as reference
 }

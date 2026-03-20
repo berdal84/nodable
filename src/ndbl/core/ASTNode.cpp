@@ -139,7 +139,10 @@ ASTNodeSlot* ASTNode::add_slot(ASTNodeProperty* property, SlotFlags flags, size_
         VERIFY( capacity == 1, "SlotFlag_FLOW_OUT can only have a capacity of 1" );
     }
 
-    ASTNodeSlot* slot = new ASTNodeSlot(this, flags, property, capacity, position);
+    ASTNodeSlot* slot = new ASTNodeSlot(flags, capacity, position);
+    slot->node     = this;
+    slot->property = property;
+
     m_slots.push_back(slot);
 
     // Insert in "prop to slot" index
@@ -406,7 +409,7 @@ void ASTNode::branch_init(size_t branch_count)
 
     m_branch_count = branch_count;
 
-    add_slot(value(), SlotFlag_FLOW_IN  , ASTNodeSlot::MAX_CAPACITY); // accepts N inputs
+    add_slot(value(), SlotFlag_FLOW_IN);      // accepts N inputs
     add_slot(value(), SlotFlag_FLOW_OUT , 1); // accepts 0 or 1 output
 
     init_internal_scope();

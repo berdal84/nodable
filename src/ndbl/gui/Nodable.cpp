@@ -325,7 +325,7 @@ void Nodable::update()
 
                 auto cmd_grp = std::make_shared<Cmd_Group>("Disconnect All Edges");
                 Graph* graph = _event->data.first->node->graph();
-                for(ASTNodeSlot* adjacent_slot: slot->adjacent() )
+                for(ASTNodeSlot* adjacent_slot : slot->adjacent() )
                 {
                     auto each_cmd = std::make_shared<Cmd_DeleteEdge>(ASTSlotLink{slot, adjacent_slot}, graph );
                     cmd_grp->push_cmd( std::static_pointer_cast<AbstractCommand>(each_cmd) );

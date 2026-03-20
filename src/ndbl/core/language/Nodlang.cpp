@@ -13,6 +13,7 @@
 #include <string>
 #include <chrono>
 #include <cctype> // isdigit, isalpha, and isalnum.
+#include <ranges> // for std::view::enumerate
 
 #include "tools/core/reflection/reflection"
 #include "tools/core/format.h"
@@ -1093,7 +1094,7 @@ ASTNodeSlot* Nodlang::parse_function_call(ASTScope* parent_scope)
     // Find the prototype in the language library
     ASTFunctionCall* fct_node = _state.graph()->create_function( signature, parent_scope );
 
-    for ( int i = 0; i < fct_node->get_arg_slots().size(); i++ )
+    for ( int i = 0; i < fct_node->get_arg_slots().size; i++ )
     {
         // Connects each results to the corresponding input
         _state.graph()->connect_or_merge(result_slots.at(i), fct_node->get_arg_slot(i) );
@@ -1386,7 +1387,7 @@ const ASTNodeSlot* Nodlang::serialize_invokable(std::string &_out, const ASTFunc
 {
     if (_node->type() == ASTNodeType_OPERATOR )
     {
-        const std::vector<ASTNodeSlot*>& args = _node->get_arg_slots();
+        tools::ArrayView<const ASTNodeSlot*> args = _node->get_arg_slots();
         int precedence = get_precedence(&_node->get_func_type());
 
         switch ( _node->get_func_type().arg_count() )
@@ -1434,13 +1435,13 @@ const ASTNodeSlot* Nodlang::serialize_invokable(std::string &_out, const ASTFunc
     }
     else
     {
-        serialize_func_call(_out, &_node->get_func_type(), _node->get_arg_slots());
+        serialize_func_call(_out, &_node->get_func_type(), _node->get_arg_slots() );
     }
 
     return _node->value_out();
 }
 
-std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescriptor *_signature, const std::vector<ASTNodeSlot*> &inputs) const
+std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescriptor *_signature, tools::ArrayView<const ASTNodeSlot*> inputs) const
 {
     _out.append( _signature->get_identifier() );
     serialize_default_buffer(_out, ASTToken_t::parenthesis_open);
@@ -1448,7 +1449,7 @@ std::string &Nodlang::serialize_func_call(std::string &_out, const FunctionDescr
     for (const ASTNodeSlot* input_slot : inputs)
     {
         ASSERT( input_slot->has_flags(SlotFlag_INPUT) );
-        if ( input_slot != inputs.front())
+        if ( input_slot != inputs[0])
         {
             serialize_default_buffer(_out, ASTToken_t::list_separator);
         }

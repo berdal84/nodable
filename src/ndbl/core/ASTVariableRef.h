@@ -29,7 +29,7 @@ namespace ndbl
 
             // Init Slots
             add_slot(value(), SlotFlag_FLOW_OUT, 1);
-            add_slot(value(), SlotFlag_FLOW_IN , ASTNodeSlot::MAX_CAPACITY);
+            add_slot(value(), SlotFlag_FLOW_IN);
             add_slot(value(), SlotFlag_INPUT   , 1);
             add_slot(value(), SlotFlag_OUTPUT  , 1); // ref can be connected once
         }
