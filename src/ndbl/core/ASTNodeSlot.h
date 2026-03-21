@@ -41,7 +41,7 @@ namespace ndbl
         SlotFlags    order() const{return _flags & SlotFlag_ORDER_MASK;}
         bool         empty() const{return _adjacent.empty();}
         size_t       capacity() const{return _capacity; }
-        bool         is_full() const {return !has_flags(SlotFlag_NOT_FULL);}
+        bool         is_full() const {return has_flags(SlotFlag_IS_FULL);}
         void         add_adjacent(ASTNodeSlot*);
         bool         remove_adjacent(ASTNodeSlot*);
 

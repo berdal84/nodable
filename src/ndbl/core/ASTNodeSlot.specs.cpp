@@ -4,9 +4,15 @@
 
 using namespace ndbl;
 
+TEST(Slot, default_flags)
+{
+    ASTNodeSlot slot;
+    EXPECT_EQ(slot.flags(), SlotFlag_NONE);
+}
+
 TEST(Slot, default_capacity)
 {
-    ASTNodeSlot slot{SlotFlag_OUTPUT};
+    ASTNodeSlot slot;
     EXPECT_TRUE(slot.capacity() == slot._adjacent.capacity());
 }
 
@@ -46,13 +52,13 @@ TEST(Slot, adjacent_at)
 
 TEST(Slot, allows_relation)
 {
-    // prepare
     ASTNodeSlot slot;
 
-    EXPECT_EQ(slot.flags(), SlotFlag_NOT_FULL);
-
+    // act
     slot.set_flags( SlotFlag_INPUT );
 
-    EXPECT_TRUE( SlotFlag_INPUT & SlotFlag_TYPE_VALUE );
+    // verfy
     EXPECT_TRUE( slot.has_flags( SlotFlag_TYPE_VALUE ) );
+    EXPECT_TRUE( slot.has_flags( SlotFlag_ORDER_2ND ) );
+    EXPECT_TRUE( slot.has_flags( SlotFlag_INPUT ) ); // is TYPE_VALUE + ORDER_2ND
 }

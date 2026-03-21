@@ -14,11 +14,10 @@ ASTNodeSlot::ASTNodeSlot(
 , _flags(flags)
 , position(position)
 {
-    VERIFY(!has_flags(SlotFlag_NOT_FULL), "SlotFlag_NOT_FULL is for readonly use" );
+    VERIFY(!has_flags(SlotFlag_IS_FULL), "SlotFlag_IS_FULL is for readonly use" );
     if (_capacity == 0)
         _capacity = _adjacent.capacity();
     ASSERT( _capacity <= _adjacent.capacity() );
-    _flags |= SlotFlag_NOT_FULL;
 }
 
 ASTNodeSlot* ASTNodeSlot::adjacent_at(u8_t pos) const
@@ -38,7 +37,7 @@ void ASTNodeSlot::add_adjacent(ASTNodeSlot* other)
     _adjacent.push_back( other );
     if ( _adjacent.size == _capacity )
     {
-        _flags &= ~SlotFlag_NOT_FULL; // Make sure IS_NOT_FULL is 0
+        _flags |= SlotFlag_IS_FULL; // make sure IS_FULL is 1
     }
     signal_change.emit(Event_Add, other);
 }
@@ -52,7 +51,7 @@ bool ASTNodeSlot::remove_adjacent(ASTNodeSlot* other)
         return false;
     }
     _adjacent.erase(it );
-    _flags |= SlotFlag_NOT_FULL;
+    _flags &= ~SlotFlag_IS_FULL; // make sure IS_FULL is 0
     signal_change.emit(Event_Remove, other);
     return true;
 }

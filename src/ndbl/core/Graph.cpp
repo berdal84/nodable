@@ -261,9 +261,9 @@ ASTSlotLink Graph::connect_or_merge(ASTNodeSlot* tail, ASTNodeSlot* head )
 {
     // Guards
     ASSERT(head->has_flags(SlotFlag_INPUT ) );
-    ASSERT(head->has_flags(SlotFlag_NOT_FULL ) );
+    ASSERT(!head->is_full());
     ASSERT(tail->has_flags(SlotFlag_OUTPUT ) );
-    ASSERT(tail->has_flags(SlotFlag_NOT_FULL ) );
+    ASSERT(!tail->is_full());
     VERIFY(head->property, "tail property must be defined" );
     VERIFY(tail->property, "head property must be defined" );
     VERIFY(head->node != tail->node, "Can't connect same primary_child!" );
@@ -298,7 +298,8 @@ ASTSlotLink Graph::connect_or_merge(ASTNodeSlot* tail, ASTNodeSlot* head )
 ASTSlotLink Graph::connect_to_variable(ASTNodeSlot* output_slot, ASTVariable* _variable )
 {
     // Guards
-    ASSERT( output_slot->has_flags(SlotFlag_OUTPUT | SlotFlag_NOT_FULL ) );
+    ASSERT( output_slot->has_flags(SlotFlag_OUTPUT) );
+    ASSERT( !output_slot->is_full() );
     return connect_or_merge( output_slot, _variable->value_in() );
 }
 
