@@ -73,7 +73,11 @@ namespace tools
         {
             auto pos = it - begin();
 
-            std::move(it+1, end(), it);
+            // Move remaining elements to the left
+            for(size_t i = pos; i < size - 1; i++)
+            {
+                data[i] = data[i+1];
+            }
 
             --size;
 
