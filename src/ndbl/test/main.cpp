@@ -1,5 +1,6 @@
-#include "ndbl/gui/unity_build.cpp"
+#include "ndbl/gui/index.h"
 
+// unity build
 #include "ndbl/core/ASTNodeSlot.specs.cpp"
 #include "ndbl/core/ASTToken.specs.cpp"
 #include "ndbl/core/Graph.specs.cpp"
@@ -8,9 +9,8 @@
 #include "ndbl/core/language/Nodlang.parse_function_call.specs.cpp"
 #include "ndbl/core/language/Nodlang.parse_token.specs.cpp"
 #include "ndbl/core/language/Nodlang.tokenize.specs.cpp"
+// unity build (end)
 
-#include "tools/core/log.h"
-#include "tools/core/reflection/reflection"
 #include <gtest/gtest.h>
 
 int main(int argc, char **argv)

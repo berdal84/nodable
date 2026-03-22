@@ -1,6 +1,4 @@
-#pragma once
-
-#include "tools/core/unity_build.cpp"
+#include "index.cpp"
 #include "geometry/BezierCurveSegment2D.cpp"
 #include "geometry/BoxShape2D.cpp"
 #include "geometry/Rect.cpp"

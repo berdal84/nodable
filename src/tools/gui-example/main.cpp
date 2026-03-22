@@ -1,8 +1,9 @@
-#include "tools/gui/unity_build.cpp"
+#include "tools/gui/index.h"
+
+// unity build
 #include "tools/gui-example/AppExample.cpp"
 #include "tools/gui-example/AppExampleView.cpp"
-
-#include "tools/core/TryCatch.h"
+// unity build (end)
 
 using namespace tools;
 

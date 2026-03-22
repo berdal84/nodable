@@ -186,19 +186,28 @@ end
 # TARGETS
 #---------------------------------------------------------------------------
 
-extern = target("extern", TARGET_TYPE_OBJECTS)
+common = target("unity-builds", TARGET_TYPE_OBJECTS)
+
+common.sources = [
+    "src/tools/core/unity_build.cpp",
+    "src/ndbl/core/unity_build.cpp"
+]
 
 if DESKTOP
-    extern.sources |= [
+    common.sources |= [
         # whereami - to be aware of the binary's path at runtime
         "extern/whereami/src/whereami.c"
     ]
 end
 
 
-extern_gui = target("extern-gui", TARGET_TYPE_OBJECTS)
+common_with_gui = target("unity-builds", TARGET_TYPE_OBJECTS)
 
-extern_gui.sources = FileList[
+common_with_gui.sources = FileList[
+    
+    "src/tools/gui/unity_build.cpp",
+    "src/ndbl/gui/unity_build.cpp",
+
     # Imgui and related sources
     "extern/imgui/imgui.cpp",
     "extern/imgui/imgui_demo.cpp",
@@ -210,6 +219,8 @@ extern_gui.sources = FileList[
     "extern/imgui/backends/imgui_impl_opengl3.cpp",
     "extern/ImGuiColorTextEdit/TextEditor.cpp", # not from imgui, but related to
 ]
+
+common_with_gui.depends_on_target = [ common ]
 
 #---------------------------------------------------------------------------
 
@@ -226,8 +237,7 @@ tools_app.assets = FileList[
 ]
 
 tools_app.depends_on_target = [
-    extern,
-    extern_gui
+    common_with_gui
 ]
 
 #---------------------------------------------------------------------------
@@ -243,8 +253,7 @@ tools_test.vcpkg |= [
 ]
 
 tools_test.depends_on_target = [
-    extern,
-    extern_gui
+    common_with_gui
 ]
 
 #---------------------------------------------------------------------------
@@ -287,8 +296,7 @@ else
 end
 
 ndbl_app.depends_on_target = [
-    extern,
-    extern_gui
+    common_with_gui
 ]
 
 #---------------------------------------------------------------------------
@@ -302,8 +310,7 @@ ndbl_test.vcpkg |= [
 ]
 
 ndbl_test.depends_on_target = [
-    extern,
-    extern_gui,
+    common_with_gui
 ]
 
 if OPTIONS.ignore_gui_tests
@@ -374,12 +381,9 @@ namespace :ndbl do
         task :test  => 'test:run'
     end
 
-    namespace :extern do
-        bt_tasks_for_target( extern )
-    end
-
-    namespace :extern_gui do
-        bt_tasks_for_target( extern_gui )
+    namespace :common do
+        bt_tasks_for_target( common )
+        bt_tasks_for_target( common_with_gui )
     end
 
     namespace :app do

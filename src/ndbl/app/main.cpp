@@ -1,6 +1,4 @@
-#include "ndbl/gui/unity_build.cpp"
-#include "ndbl/gui/Nodable.h"
-#include "tools/core/TryCatch.h"
+#include "ndbl/gui/index.h"
 
 using namespace tools;
 using namespace ndbl;
