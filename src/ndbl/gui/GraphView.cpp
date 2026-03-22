@@ -27,11 +27,6 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(GraphView).extends<tools::Component<Graph>>();
-)
-
 // Popup name
 constexpr const char* CONTEXT_POPUP    = "GraphView.ContextMenuPopup";
 // Tool names

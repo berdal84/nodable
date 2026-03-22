@@ -1,0 +1,18 @@
+#pragma once
+
+#include "tools/core/unity_build.cpp"
+#include "geometry/BezierCurveSegment2D.cpp"
+#include "geometry/BoxShape2D.cpp"
+#include "geometry/Rect.cpp"
+#include "geometry/SpatialNode.cpp"
+#include "geometry/TRSTransform2D.cpp"
+#include "Action.cpp"
+#include "ActionManager.cpp"
+#include "ActionManagerView.cpp"
+#include "App.cpp"
+#include "AppView.cpp"
+#include "Config.cpp"
+#include "FontManager.cpp"
+#include "ImGuiEx.cpp"
+#include "TextureManager.cpp"
+#include "ViewState.cpp"

@@ -27,16 +27,11 @@
 
 
 #ifdef NDBL_DEBUG
-#define DEBUG_DRAW 0
+#define NDBL_ASTNODEVIEW_DEBUG_DRAW 0
 #endif
 
 using namespace ndbl;
 using namespace tools;
-
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(ASTNodeView).extends<Component<ASTNode>>();
-)
 
 #define PIXEL_PERFECT true // round positions for drawing only
 
@@ -792,7 +787,7 @@ Rect ASTNodeView::get_rect_ex(tools::Space space, NodeViewFlags flags) const
         }
     }
 
-#if DEBUG_DRAW
+#if NDBL_ASTNODEVIEW_DEBUG_DRAW
     Rect screen_rect = result;
     screen_rect.translate(get_pos(space) - get_pos(PARENT_SPACE) );
     ImGuiEx::DebugRect(screen_rect.min, screen_rect.max, IM_COL32( 0, 255, 0, 60 ), 2 );

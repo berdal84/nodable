@@ -6,11 +6,6 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(ASTFunctionCall).extends<ASTNode>();
-)
-
 void ASTFunctionCall::init(ASTNodeType _type, const tools::FunctionDescriptor& _func_type )
 {
     ASTNode::init(_type, _func_type.get_identifier());

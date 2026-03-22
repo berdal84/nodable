@@ -10,11 +10,6 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(ASTNode);
-)
-
 ASTNode::~ASTNode()
 {
     assert(m_slots.empty());

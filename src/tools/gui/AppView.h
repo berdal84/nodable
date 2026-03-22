@@ -13,8 +13,7 @@
 namespace tools
 {
     // forward declarations
-    class App;
-    class History;
+    class App;    
     class TextureManager;
     class EventManager;
     class FontManager;

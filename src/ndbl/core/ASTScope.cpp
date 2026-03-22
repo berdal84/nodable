@@ -13,11 +13,6 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(ASTScope).extends<Component<ASTNode>>();
-)
-
 ASTScope::ASTScope()
 : Component<ASTNode>("ASTScope")
 {

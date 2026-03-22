@@ -4,11 +4,6 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(ASTLiteral).extends<ASTNode>();
-)
-
 void ASTLiteral::init(const TypeDescriptor* _type, const std::string& _name)
 {
     ASTNode::init(ASTNodeType_LITERAL, _name);

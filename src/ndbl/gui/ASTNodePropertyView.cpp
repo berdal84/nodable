@@ -153,7 +153,7 @@ bool ASTNodePropertyView::draw(ViewDetail _detail)
     _shape.set_size({new_size.x, node->component<ASTNodeView>()->shape()->size().y}); // We always want the box to fit with the node, it's easier to align things on it
 
 #if DEBUG_DRAW
-    ImGuiEx::DebugCircle( rect.center(), 2.5f, ImColor(0,0,0));
+    ImGuiEx::DebugCircle( spatial_node()->position(), 2.5f, ImColor(0,0,0));
 #endif
     return changed;
 }

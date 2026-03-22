@@ -21,12 +21,6 @@ using namespace tools;
 #define DEBUG_DRAW 1
 #endif
 
-REFLECT_STATIC_INITIALIZER
-(
-   DEFINE_REFLECT(PhysicsComponent).extends<Component<ASTNode>>();
-)
-
-
 PhysicsComponent::PhysicsComponent()
 : Component<ASTNode>("Physics")
 {

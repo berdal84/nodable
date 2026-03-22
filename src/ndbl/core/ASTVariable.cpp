@@ -5,11 +5,6 @@
 using namespace ndbl;
 using namespace tools;
 
-REFLECT_STATIC_INITIALIZER
-(
-    DEFINE_REFLECT(ASTVariable).extends<ASTNode>();
-)
-
 void ASTVariable::init(const tools::TypeDescriptor* _type, const char* _identifier)
 {
     // Init node

@@ -1,3 +1,4 @@
+#include "ndbl/gui/unity_build.cpp"
 #include "ndbl/gui/Nodable.h"
 #include "tools/core/TryCatch.h"
 
@@ -6,6 +7,8 @@ using namespace ndbl;
 
 int main(int argc, char *argv[])
 {
+    ndbl::init_reflection_with_gui();
+
     TOOLS_try
     {
         Nodable app;

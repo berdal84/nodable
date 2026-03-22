@@ -4,11 +4,11 @@
 
 using namespace tools;
 
-ndbl::Config* g_conf{nullptr};
+ndbl::Config* g_ndbl_conf{nullptr};
 
 ndbl::Config* ndbl::init_config()
 {
-    ASSERT(g_conf == nullptr);
+    ASSERT(g_ndbl_conf == nullptr);
 
     // Make sure to get a valid tools::Config
     tools::Config* tools_cfg = tools::get_config();
@@ -17,22 +17,22 @@ ndbl::Config* ndbl::init_config()
         tools_cfg = tools::init_config();
     }
 
-    g_conf = new Config(tools_cfg);
+    g_ndbl_conf = new Config(tools_cfg);
 
-    return g_conf;
+    return g_ndbl_conf;
 }
 
 void ndbl::shutdown_config(Config* config)
 {
-    ASSERT(g_conf == config); // singleton
-    tools::shutdown_config(g_conf->tools_cfg);
-    delete g_conf;
-    g_conf = nullptr;
+    ASSERT(g_ndbl_conf == config); // singleton
+    tools::shutdown_config(g_ndbl_conf->tools_cfg);
+    delete g_ndbl_conf;
+    g_ndbl_conf = nullptr;
 }
 
 ndbl::Config* ndbl::get_config()
 {
-    return g_conf;
+    return g_ndbl_conf;
 }
 
 ndbl::Config::Config(tools::Config* _tools_cfg)
