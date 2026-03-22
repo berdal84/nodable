@@ -114,7 +114,7 @@ OPTIONS = Struct.new(
     build_dir:          nil, 
     build_config:       BUILD_CONFIG_DEFAULT,
     target:             TARGET_DEFAULT,
-    ignore_gui_tests: false,
+    ignore_gui_tests:   false,
 )
 
 $option_parser = OptionParser.new
@@ -268,6 +268,7 @@ Target = Struct.new(
     :sources, # list of .c|.cpp files
     :type, # TARGET_XXX
     :vcpkg, # list of (static) vcpkg package names
+    :release_with_lto,
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -292,6 +293,7 @@ def bt_target(name, type)
     target.sources                  = FileList[]
     target.type                     = type
     target.vcpkg                    = []
+    target.release_with_lto         = false # costly
 
     return target
 
@@ -410,6 +412,18 @@ def bt_target_initialize_if_needed(target)
         bt_log( target, "-- linker_flags added: #{temp_linker_flags}")
 
         bt_log( target, "Generate vcpkg flags DONE")
+        
+        # Enable LTO (link time optimization)
+        if RELEASE and target.release_with_lto
+
+            lto_flags = [
+                "-flto",        # lto|lto=thin, LTO: link time optimization
+                "-fuse-ld=lld"  # required by LTO
+            ]
+            
+            target.linker_flags   |= lto_flags;
+            target.compiler_flags |= lto_flags;
+        end
 
         # 2) Cache some flags as string to share the data accross multiple compilation units
         #

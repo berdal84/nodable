@@ -250,7 +250,8 @@ tools_test.depends_on_target = [
 #---------------------------------------------------------------------------
 ndbl_app = target("nodable", TARGET_TYPE_EXECUTABLE)
 
-ndbl_app.distribute = true # will copy binary and assets into DIST_DIR
+ndbl_app.distribute       = true  # will copy binary and assets into DIST_DIR
+ndbl_app.release_with_lto = true; # Link time optims
 
 ndbl_app.sources = FileList[
     "src/ndbl/app/main.cpp",
