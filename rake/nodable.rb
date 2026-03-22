@@ -302,7 +302,8 @@ ndbl_test.vcpkg |= [
 ]
 
 ndbl_test.depends_on_target = [
-    extern
+    extern,
+    extern_gui,
 ]
 
 if OPTIONS.ignore_gui_tests
@@ -312,10 +313,6 @@ else
 
     ndbl_test.sources |= [
         "src/ndbl/gui/Nodable.specs.cpp"
-    ]
-
-    ndbl_test.depends_on_target += [
-        extern_gui
     ]
 end
 
