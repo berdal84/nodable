@@ -268,7 +268,6 @@ Target = Struct.new(
     :sources, # list of .c|.cpp files
     :type, # TARGET_XXX
     :vcpkg, # list of (static) vcpkg package names
-    :release_with_lto,
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -293,7 +292,6 @@ def bt_target(name, type)
     target.sources                  = FileList[]
     target.type                     = type
     target.vcpkg                    = []
-    target.release_with_lto         = false # costly
 
     return target
 
@@ -392,13 +390,12 @@ def bt_target_initialize_if_needed(target)
             return
         end
 
-        bt_log( target, "Initialization .." )
+        bt_debug( target, "Initialization .." )
     
         # 1) Generate flags for linked libraries
         #    It relies on pkgconf for vcpkg, if library can't be found we add a default flag (-lmylib)
         #
-        bt_log( target, "Generate flags for vcpkg ..")
-        bt_log( target, "-- vcpkg list: #{target.vcpkg}")
+        bt_debug( target, "Generate flags for vcpkg (#{target.vcpkg})..")
         # We must add default include path for headers and libraries because some vcpkg do not have a .pc file
         # and their location is 99% of the time in those two folders:
         temp_cxx_flags    = ["-I#{VCPKG_PACKAGES_ROOT}/include"]
@@ -425,10 +422,9 @@ def bt_target_initialize_if_needed(target)
         target.cxx_flags    += temp_cxx_flags 
         target.linker_flags += temp_linker_flags
 
-        bt_log( target, "-- cxx_flags added:    #{temp_cxx_flags}")
-        bt_log( target, "-- linker_flags added: #{temp_linker_flags}")
-
-        bt_log( target, "Generate vcpkg flags DONE")
+        bt_debug( target, "-- cxx_flags added:    #{temp_cxx_flags}")
+        bt_debug( target, "-- linker_flags added: #{temp_linker_flags}")
+        bt_debug( target, "Generate vcpkg flags DONE")
         
         # Enable LTO (link time optimization)
         if RELEASE and target.release_with_lto
@@ -452,7 +448,7 @@ def bt_target_initialize_if_needed(target)
         # 3) init some vars
         target.compiled_objects_count = 0
 
-        bt_log(target, "Initialization DONE")
+        bt_debug(target, "Initialization DONE")
     }    
 end
 
@@ -495,6 +491,8 @@ def bt_target_link( target )
 
     bt_target_initialize_if_needed(target)
 
+    bt_log(target, "Linking ...")
+
     binary = bt_target_get_binary_path(target)
 
     args = [
@@ -518,6 +516,8 @@ def bt_target_link( target )
     FileUtils.mkdir_p File.dirname(binary)
 
     system("#{LINKER} #{args.join(" ")}", exception: true)
+
+    bt_log(target, "Linking DONE - (#{binary})")
 end
 
 def bt_update_llvm_json_compilation_database()
@@ -582,14 +582,12 @@ def bt_tasks_for_target(target)
             bt_target_compile_file( target, src )
             target.compiled_objects_count += 1
             progress = 100 * target.compiled_objects_count / (bt_target_get_objects(target).size() )
-            bt_log(target, "Compiling #{src} DONE - (Progress #{progress}%)")
         end
     end
 
     multitask :compile_objects => bt_target_get_objects(target, recursively: true) do
-        bt_log(target, "Updating llvm compilation database ...")
+        bt_debug(target, "Updating llvm compilation database ...")
         bt_update_llvm_json_compilation_database()
-        bt_log(target, "Updating llvm compilation database DONE")
     end
 
     if target.type == TARGET_TYPE_OBJECTS
@@ -601,9 +599,7 @@ def bt_tasks_for_target(target)
         binary = bt_target_get_binary_path(target)
 
         file binary => :compile_objects do
-            bt_log(target, "Linking '#{binary}' ...")
             bt_target_link(target)
-            bt_log(target, "Linking '#{binary}' DONE")
         end
 
         task :build => binary do
@@ -681,4 +677,10 @@ end
 
 def bt_log(target, message)
     puts "#{target.name} | #{message}"
+end
+
+def bt_debug(target, message)
+    if OPTIONS.verbose
+        puts "#{target.name} | #{message}"
+    end
 end

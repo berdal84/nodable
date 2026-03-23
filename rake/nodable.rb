@@ -186,27 +186,17 @@ end
 # TARGETS
 #---------------------------------------------------------------------------
 
-common = target("unity-builds", TARGET_TYPE_OBJECTS)
+common = target("common", TARGET_TYPE_OBJECTS)
 
-common.sources = [
+common.sources = FileList[
+
+    # unity builds
+    # TODO: automatize the generation of each **/unity_build.cpp
     "src/tools/core/unity_build.cpp",
-    "src/ndbl/core/unity_build.cpp"
-]
-
-if DESKTOP
-    common.sources |= [
-        # whereami - to be aware of the binary's path at runtime
-        "extern/whereami/src/whereami.c"
-    ]
-end
-
-
-common_with_gui = target("unity-builds", TARGET_TYPE_OBJECTS)
-
-common_with_gui.sources = FileList[
-    
+    "src/ndbl/core/unity_build.cpp",
     "src/tools/gui/unity_build.cpp",
     "src/ndbl/gui/unity_build.cpp",
+    # unity builds (end)
 
     # Imgui and related sources
     "extern/imgui/imgui.cpp",
@@ -220,7 +210,12 @@ common_with_gui.sources = FileList[
     "extern/ImGuiColorTextEdit/TextEditor.cpp", # not from imgui, but related to
 ]
 
-common_with_gui.depends_on_target = [ common ]
+if DESKTOP
+    common.sources |= [
+        # whereami - to be aware of the binary's path at runtime
+        "extern/whereami/src/whereami.c"
+    ]
+end
 
 #---------------------------------------------------------------------------
 
@@ -237,7 +232,7 @@ tools_app.assets = FileList[
 ]
 
 tools_app.depends_on_target = [
-    common_with_gui
+    common
 ]
 
 #---------------------------------------------------------------------------
@@ -253,14 +248,13 @@ tools_test.vcpkg |= [
 ]
 
 tools_test.depends_on_target = [
-    common_with_gui
+    common
 ]
 
 #---------------------------------------------------------------------------
 ndbl_app = target("nodable", TARGET_TYPE_EXECUTABLE)
 
 ndbl_app.distribute       = true  # will copy binary and assets into DIST_DIR
-ndbl_app.release_with_lto = true; # Link time optims
 
 ndbl_app.sources = FileList[
     "src/ndbl/app/main.cpp",
@@ -296,7 +290,7 @@ else
 end
 
 ndbl_app.depends_on_target = [
-    common_with_gui
+    common
 ]
 
 #---------------------------------------------------------------------------
@@ -310,7 +304,7 @@ ndbl_test.vcpkg |= [
 ]
 
 ndbl_test.depends_on_target = [
-    common_with_gui
+    common
 ]
 
 if OPTIONS.ignore_gui_tests
@@ -325,6 +319,12 @@ end
 
 #---------------------------------------------------------------------------
 # TASKS
+#---------------------------------------------------------------------------
+
+namespace :common do
+    bt_tasks_for_target( common )
+end
+
 #---------------------------------------------------------------------------
 
 namespace :tools do
@@ -379,11 +379,6 @@ namespace :ndbl do
         task :clean => 'test:clean'
         task :build => 'test:build'
         task :test  => 'test:run'
-    end
-
-    namespace :common do
-        bt_tasks_for_target( common )
-        bt_tasks_for_target( common_with_gui )
     end
 
     namespace :app do
