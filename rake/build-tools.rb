@@ -427,7 +427,7 @@ def bt_target_initialize_if_needed(target)
         bt_debug( target, "Generate vcpkg flags DONE")
         
         # Enable LTO (link time optimization)
-        if RELEASE and target.release_with_lto
+        if RELEASE
 
             lto_flags = [
                 "-flto",        # lto|lto=thin, LTO: link time optimization
