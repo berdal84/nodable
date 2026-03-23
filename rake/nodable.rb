@@ -63,6 +63,7 @@ def target(name, type)
     target.cxx_flags |= [
         LINUX ?  "-Wno-nontrivial-memaccess" : "-Wno-nontrivial-memcall", # imgui/imgui_internal.h:1933:38: warning: first argument in call to 'memset' is a pointer to non-trivially copyable type 'ImGuiStackTool' [-Wnontrivial-memcall]
         "-Wno-unused-function",    # imstb_rectpack.h:233:16: error: unused function 'stbrp_setup_heuristic' [-Werror,-Wunused-function]  233 | STBRP_DEF void stbrp_setup_heuristic(stbrp_context *context, int heuristic)
+        "-Wno-deprecated-declarations",
     ]
 
     if EMSCRIPTEN
@@ -186,19 +187,10 @@ end
 # TARGETS
 #---------------------------------------------------------------------------
 
-common = target("common", TARGET_TYPE_OBJECTS)
-
-common.sources = FileList[
-
-    # unity builds
-    # TODO: automatize the generation of each **/unity_build.cpp
-    "src/tools/core/unity_build.cpp",
-    "src/ndbl/core/unity_build.cpp",
-    "src/tools/gui/unity_build.cpp",
-    "src/ndbl/gui/unity_build.cpp",
-    # unity builds (end)
-
-    # Imgui and related sources
+extern = target("extern", TARGET_TYPE_OBJECTS)
+extern.unity_build_slice_size = 32
+extern.sources = FileList[
+    # External - ImGui & related
     "extern/imgui/imgui.cpp",
     "extern/imgui/imgui_demo.cpp",
     "extern/imgui/imgui_draw.cpp",
@@ -211,11 +203,84 @@ common.sources = FileList[
 ]
 
 if DESKTOP
-    common.sources |= [
-        # whereami - to be aware of the binary's path at runtime
+    extern.sources |= [
+        # External - whereami (to be aware of the binary's path at runtime)
         "extern/whereami/src/whereami.c"
     ]
 end
+
+
+common = target("common", TARGET_TYPE_OBJECTS)
+common.unity_build_slice_size = 256
+common.sources     = FileList[
+
+    # Tools Core
+    "src/tools/core/index.cpp",
+    "src/tools/core/reflection/qword.cpp",
+    "src/tools/core/reflection/Type.cpp",
+    "src/tools/core/reflection/TypeRegister.cpp",
+    "src/tools/core/reflection/variant.cpp",
+    "src/tools/core/EventManager.cpp",
+    "src/tools/core/FileSystem.cpp",
+    "src/tools/core/format.cpp",
+    "src/tools/core/log.cpp",
+    "src/tools/core/StateMachine.cpp",
+    "src/tools/core/System.cpp",
+    "src/tools/core/TaskManager.cpp",
+
+    # Tools GUI
+    "src/tools/gui/index.cpp",
+    "src/tools/gui/geometry/BezierCurveSegment2D.cpp",
+    "src/tools/gui/geometry/BoxShape2D.cpp",
+    "src/tools/gui/geometry/Rect.cpp",
+    "src/tools/gui/geometry/SpatialNode.cpp",
+    "src/tools/gui/geometry/TRSTransform2D.cpp",
+    "src/tools/gui/Action.cpp",
+    "src/tools/gui/ActionManager.cpp",
+    "src/tools/gui/ActionManagerView.cpp",
+    "src/tools/gui/App.cpp",
+    "src/tools/gui/AppView.cpp",
+    "src/tools/gui/Config.cpp",
+    "src/tools/gui/FontManager.cpp",
+    "src/tools/gui/ImGuiEx.cpp",
+    "src/tools/gui/TextureManager.cpp",
+    "src/tools/gui/ViewState.cpp",
+
+    # Nodable Core
+    "src/ndbl/core/index.cpp",
+    "src/ndbl/core/language/Nodlang.cpp",
+    "src/ndbl/core/ASTFunctionCall.cpp",
+    "src/ndbl/core/ASTLiteral.cpp",
+    "src/ndbl/core/ASTNode.cpp",
+    "src/ndbl/core/ASTNodeProperty.cpp",
+    "src/ndbl/core/ASTNodeSlot.cpp",
+    "src/ndbl/core/ASTScope.cpp",
+    "src/ndbl/core/ASTSlotLink.cpp",
+    "src/ndbl/core/ASTToken.cpp",
+    "src/ndbl/core/ASTTokenRibbon.cpp",
+    "src/ndbl/core/ASTVariable.cpp",
+    "src/ndbl/core/ASTUtils.cpp",
+    "src/ndbl/core/Graph.cpp",
+    "src/ndbl/core/NodableHeadless.cpp",
+
+    # Nodable GUI
+    "src/ndbl/gui/index.cpp",
+    "src/ndbl/gui/ASTNodePropertyView.cpp",
+    "src/ndbl/gui/ASTNodeSlotView.cpp",
+    "src/ndbl/gui/ASTNodeView.cpp",
+    "src/ndbl/gui/ASTNodeViewContextualMenu.cpp",
+    "src/ndbl/gui/ASTScopeView.cpp",
+    "src/ndbl/gui/Config.cpp",
+    "src/ndbl/gui/File.cpp",
+    "src/ndbl/gui/FileView.cpp",
+    "src/ndbl/gui/GraphView.cpp",
+    "src/ndbl/gui/History.cpp",
+    "src/ndbl/gui/Nodable.cpp",
+    "src/ndbl/gui/NodableView.cpp",
+    "src/ndbl/gui/PhysicsComponent.cpp",
+]
+
+common.depends_on_target = [extern]
 
 #---------------------------------------------------------------------------
 
@@ -253,7 +318,7 @@ tools_test.depends_on_target = [
 
 #---------------------------------------------------------------------------
 ndbl_app = target("nodable", TARGET_TYPE_EXECUTABLE)
-
+ndbl_app.unity_build_slice_size = 16
 ndbl_app.distribute       = true  # will copy binary and assets into DIST_DIR
 
 ndbl_app.sources = FileList[
@@ -320,6 +385,10 @@ end
 #---------------------------------------------------------------------------
 # TASKS
 #---------------------------------------------------------------------------
+
+namespace :extern do
+    bt_tasks_for_target( extern )
+end
 
 namespace :common do
     bt_tasks_for_target( common )
