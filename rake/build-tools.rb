@@ -300,11 +300,28 @@ def bt_target(name, type)
 end
 
 def bt_convert_src_to_obj( obj )
-    "#{OBJ_DIR}/#{ obj.ext(".o")}"
+    "#{OBJ_DIR}/#{obj.ext(".o")}"
 end
 
 def bt_convert_src_to_dep( src )
     "#{DEP_DIR}/#{src.ext(".d")}"
+end
+
+def bt_find_deps_for_src( src )
+    
+    # get *.d file
+    dep = bt_convert_src_to_dep( src )
+
+    deps = []
+
+    if File.exist?(dep)
+        content = File.read(dep)
+        content = content.split(": ")[1]
+        content = content.gsub(/\\$/, '').strip  # Remove line continuations
+        deps    = content.split " "
+    end
+
+    deps
 end
 
 def bt_find_src_for_obj( sources, obj )
@@ -322,11 +339,11 @@ def bt_target_get_sources( target, recursively = false )
 
     if recursively
         target.depends_on_target.each do |other_target|
-            sources += bt_target_get_sources( other_target, recursively: true )
+            sources |= bt_target_get_sources( other_target, recursively: true )
         end
     end
 
-    sources += target.sources
+    sources |= target.sources
 
     sources
 end
@@ -337,11 +354,11 @@ def bt_target_get_objects( target, recursively = false )
 
     if recursively
         target.depends_on_target.each do |each_dependency_target|
-            objects += bt_target_get_objects( each_dependency_target, recursively: true )
+            objects |= bt_target_get_objects( each_dependency_target, recursively: true )
         end
     end
 
-    objects += bt_convert_array_of_src_to_obj( target.sources )
+    objects |= bt_convert_array_of_src_to_obj( target.sources )
 
     objects
 end
@@ -558,8 +575,9 @@ def bt_tasks_for_target(target)
     # each dependency declares its own tasks, if this target requires an other target's task,
     # it will be invoked by rake automatically.
     bt_target_get_objects(target).each_with_index do |obj, index|
-        src = bt_find_src_for_obj( target.sources, obj )
-        file obj => src do |task|
+        src  = bt_find_src_for_obj(target.sources, obj)
+        deps = bt_find_deps_for_src(src) # *.c|cpp, and any deps in *.d
+        file obj => [src, *deps] do |task|
             bt_log(target, "Compiling #{src} ...")
             bt_target_compile_file( target, src )
             target.compiled_objects_count += 1
