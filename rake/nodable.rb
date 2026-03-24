@@ -281,7 +281,7 @@ common.sources = FileList[
     "src/ndbl/gui/PhysicsComponent.cpp",
 ]
 
-common.unity_build_slice_size = RELEASE ? common.sources.size : 4
+common.unity_build_slice_size = RELEASE ? 512 : 4
 
 common.depends_on_target = [extern]
 
@@ -308,8 +308,16 @@ tools_app.depends_on_target = [
 tools_test = target("tools-tests", TARGET_TYPE_EXECUTABLE)
 
 tools_test.sources |= FileList[
+    "src/tools/core/Delegate.specs.cpp",
+    "src/tools/core/Containers.specs.cpp",
+    "src/tools/core/string.specs.cpp",
+    "src/tools/core/reflection/reflection.specs.cpp",
+    "src/tools/gui/geometry/SpatialNode.specs.cpp",
+    "src/tools/gui/geometry/Rect.specs.cpp",
     "src/tools/test/main.cpp",
 ]
+
+tools_test.unity_build_slice_size = RELEASE ? 512 : 4
 
 tools_test.vcpkg |= [
     "gtest"
@@ -362,16 +370,17 @@ ndbl_app.depends_on_target = [
 
 #---------------------------------------------------------------------------
 ndbl_test = target("nodable-tests", TARGET_TYPE_EXECUTABLE)
+
 ndbl_test.sources |= FileList[
+    "src/ndbl/core/ASTNodeSlot.specs.cpp",
+    "src/ndbl/core/ASTToken.specs.cpp",
+    "src/ndbl/core/Graph.specs.cpp",
+    "src/ndbl/core/language/Nodlang.basics.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse_and_serialize.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse_function_call.specs.cpp",
+    "src/ndbl/core/language/Nodlang.parse_token.specs.cpp",
+    "src/ndbl/core/language/Nodlang.tokenize.specs.cpp",
     "src/ndbl/test/main.cpp",
-]
-
-ndbl_test.vcpkg |= [
-    "gtest"
-]
-
-ndbl_test.depends_on_target = [
-    common
 ]
 
 if OPTIONS.ignore_gui_tests
@@ -383,6 +392,16 @@ else
         "src/ndbl/gui/Nodable.specs.cpp"
     ]
 end
+
+ndbl_test.unity_build_slice_size = ndbl_test.sources.size
+
+ndbl_test.vcpkg |= [
+    "gtest"
+]
+
+ndbl_test.depends_on_target = [
+    common
+]
 
 #---------------------------------------------------------------------------
 # TASKS
