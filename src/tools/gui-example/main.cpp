@@ -1,9 +1,5 @@
 #include "tools/gui/index.h"
-
-// unity build
-#include "tools/gui-example/AppExample.cpp"
-#include "tools/gui-example/AppExampleView.cpp"
-// unity build (end)
+#include "AppExample.h"
 
 using namespace tools;
 

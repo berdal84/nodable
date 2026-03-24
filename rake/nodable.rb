@@ -289,7 +289,9 @@ common.depends_on_target = [extern]
 
 tools_app = target("tools-gui-example", TARGET_TYPE_EXECUTABLE)
 
-tools_app.sources |= FileList[
+tools_app.sources |= FileList[    
+    "src/tools/gui-example/AppExample.cpp",
+    "src/tools/gui-example/AppExampleView.cpp",
     "src/tools/gui-example/main.cpp"
 ]
 tools_app.assets = FileList[
@@ -302,6 +304,8 @@ tools_app.assets = FileList[
 tools_app.depends_on_target = [
     common
 ]
+
+tools_app.unity_build_slice_size = RELEASE ? 512 : 4
 
 #---------------------------------------------------------------------------
 
