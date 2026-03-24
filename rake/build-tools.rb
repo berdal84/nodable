@@ -614,7 +614,7 @@ def bt_file_copy_or_overwrite(src, dst)
 end
 
 def bt_tasks_for_target(target)
-
+namespace target.name do    
     task :clean do
         FileUtils.rm_f bt_target_get_objects( target, recursively: false )
     end
@@ -707,7 +707,7 @@ def bt_tasks_for_target(target)
             bt_log(target, "Running DONE")
         end
     end
-
+end # namespace end
 end
 
 # Target utilities (end) ------------------------------------------------------------------------------------------------
