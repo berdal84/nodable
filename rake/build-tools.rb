@@ -29,11 +29,8 @@
 #                                                  Bérenger, 2026
 #
 
-require "rbconfig"
-require 'json'
-require 'date' # To add date in .clang export
-require 'optparse'
-require 'rubygems'
+require 'rbconfig' # for RbConfig::CONFIG (access to CPU, ARCH etc.)
+require 'optparse' # for OptionParser (parse flags)
 
 # First, detect BUILD_OS and ARCHitecture:
 
