@@ -116,7 +116,7 @@ OPTIONS = Struct.new(
 
 $option_parser = OptionParser.new
 
-$option_parser.banner = "Usage: rake <task> -- [flags]"
+$option_parser.banner = "Usage: rake <task> [options]\n\nOptions:"
 
 $option_parser.on('-t', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (default: #{TARGET_DEFAULT})",  ) do |value|
     OPTIONS.target = value
@@ -734,5 +734,22 @@ end
 def bt_debug(target, message)
     if OPTIONS.verbose
         puts "#{target.name} | #{message}"
+    end
+end
+
+def bt_print_help()
+
+    # Print regular option parser help
+    print $option_parser.help    
+    puts "Tasks:"
+
+    # Print tasks
+    # mimics rake --tasks without invoking rake again
+    column_width = 32 # matches with option_parser formatting
+    Rake.application.tasks.each do |task|
+        next if !task.comment
+        name = task.name + ' '
+        name = name.ljust(column_width, '.') # dots from last space to comment
+        puts "    #{name} #{task.full_comment}"
     end
 end
