@@ -188,7 +188,7 @@ end
 #---------------------------------------------------------------------------
 
 extern = target("extern", TARGET_TYPE_OBJECTS)
-extern.unity_build_slice_size = 32
+
 extern.sources = FileList[
     # External - ImGui & related
     "extern/imgui/imgui.cpp",
@@ -209,10 +209,11 @@ if DESKTOP
     ]
 end
 
+extern.unity_build_slice_size = extern.sources.size
 
 common = target("common", TARGET_TYPE_OBJECTS)
-common.unity_build_slice_size = 256
-common.sources     = FileList[
+
+common.sources = FileList[
 
     # Tools Core
     "src/tools/core/index.cpp",
@@ -280,6 +281,8 @@ common.sources     = FileList[
     "src/ndbl/gui/PhysicsComponent.cpp",
 ]
 
+common.unity_build_slice_size = RELEASE ? common.sources.size : 4
+
 common.depends_on_target = [extern]
 
 #---------------------------------------------------------------------------
@@ -318,8 +321,7 @@ tools_test.depends_on_target = [
 
 #---------------------------------------------------------------------------
 ndbl_app = target("nodable", TARGET_TYPE_EXECUTABLE)
-ndbl_app.unity_build_slice_size = 16
-ndbl_app.distribute       = true  # will copy binary and assets into DIST_DIR
+ndbl_app.distribute = true  # will copy binary and assets into DIST_DIR
 
 ndbl_app.sources = FileList[
     "src/ndbl/app/main.cpp",

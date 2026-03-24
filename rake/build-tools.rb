@@ -458,7 +458,7 @@ def bt_target_initialize_if_needed(target)
         target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
 
         # 3) Generate unity_build slices
-        if target.unity_build_slice_size > 0
+        if target.unity_build_slice_size > 1
 
             # bt_log(target, "Unity Build - Slicing ...")
 

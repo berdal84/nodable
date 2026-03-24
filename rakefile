@@ -43,7 +43,7 @@ desc "Run nodable"
 task :run =>  'ndbl:app:run'
 
 desc "Build apps"
-task :build => [
+multitask :build => [
     'tools:app:build',
     'ndbl:app:build',
     'tools:test:build',
