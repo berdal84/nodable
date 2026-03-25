@@ -649,8 +649,52 @@ def bt_file_copy_or_overwrite(src, dst)
     # Copy file (will overwrite)
     FileUtils.cp( src, dst )
 
-    puts "  File copied: #{src} => #{dst}"
+    puts "  File copied: #{src} => #{dst}" if VERBOSE
 end
+
+# def bt_get_distribuable_files(target)
+
+#     result = FileList[]
+
+#     bt_get_asset_pairs(target).each do |src|
+#         result += src
+#     end
+
+#     if WEB
+#         # Binary and associated files
+#         basename = File.basename( bt_target_get_binary_path(target) ).ext("") # clean extension out
+#         result += [
+#             "#{BIN_DIR}/#{basename}.html", # User can override this by adding an asset
+#             "#{BIN_DIR}/#{basename}.js",
+#             "#{BIN_DIR}/#{basename}.wasm",
+#             "#{BIN_DIR}/#{basename}.wasm.map",
+#             "#{BIN_DIR}/#{basename}.data",
+#         ];
+#     else
+#         # Binary only
+#         # TODO: copy debug infos?
+#         binary = File.basename( bt_target_get_binary_path(target) )
+#         result += FileList[
+#             "#{BIN_DIR}/#{binary}"
+#         ]
+#     end
+#     result
+# end
+
+# def bt_get_asset_pairs(target)
+#     result = []
+#     target.assets.each_with_index do |pattern, i|
+#         # Handle pattern (format is <src>[:<dest>], by default dest=src)
+#         arr = pattern.split(':') 
+#         src = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<src>[:<dest>]'")
+#         dst = "#{arr[1] || src}"
+#         result.append( [src, dst] )
+#     end
+#     result
+# end
+
+# def bt_get_asset_dst(target)
+# end
 
 def bt_tasks_for_target(target)
 namespace target.name do    
@@ -679,20 +723,19 @@ namespace target.name do
         end
     end
 
-    multitask :compile_objects => bt_target_get_objects(target, recursively: true) do
-        bt_debug(target, "Updating llvm compilation database ...")
-        bt_update_llvm_json_compilation_database()
-    end
+    case target.type
+    when TARGET_TYPE_OBJECTS
+        
+        multitask :build => bt_target_get_objects(target, recursively: true) do
+            bt_update_llvm_json_compilation_database()
+        end
 
-    if target.type == TARGET_TYPE_OBJECTS
-        
-        multitask :build => :compile_objects
-        
-    elsif target.type == TARGET_TYPE_EXECUTABLE
+    when TARGET_TYPE_EXECUTABLE
 
         binary = bt_target_get_binary_path(target)
 
-        file binary => :compile_objects do
+        file binary => bt_target_get_objects(target, recursively: true) do
+            bt_update_llvm_json_compilation_database()
             bt_target_link(target)
         end
 
@@ -729,15 +772,15 @@ namespace target.name do
 
                 bt_file_copy_or_overwrite( src, "#{BIN_DIR}/#{dst}" )
 
-                if target.distribute
+            if target.distribute                            
                     bt_file_copy_or_overwrite( src, "#{DIST_DIR}/#{dst}" )
                 end
-            end
+            end  
 
             bt_log(target, "Build DONE")
         end
         
-        task :run => :build do
+        task :run => binary do
             bt_log(target, "Running ...")
             case PLATFORM
             when PLATFORM_WEB
@@ -747,7 +790,7 @@ namespace target.name do
             end
             bt_log(target, "Running DONE")
         end
-    end
+    end # case target.type
 end # namespace end
 end
 
