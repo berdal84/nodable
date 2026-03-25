@@ -37,7 +37,7 @@ jobs:
 
       - run: rake install
 
-      - run: rake -m build -- --output-dir=${{env.OUTPUT_DIR}} --build=release --no-gui-tests
+      - run: rake build -- --output-dir=${{env.OUTPUT_DIR}} --config=release --no-gui-tests
 
       - run: ./tools-tests && ./nodable-tests
         working-directory: ${{env.OUTPUT_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist

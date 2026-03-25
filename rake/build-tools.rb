@@ -29,7 +29,7 @@
 #                                                  Bérenger, 2026
 #
 
-require 'rbconfig' # for RbConfig::CONFIG (access to CPU, ARCH etc.)
+require 'rbconfig' # for RbConfig::CONFIG (access to build_os etc.)
 require 'optparse' # for OptionParser (parse flags)
 
 # First, detect BUILD_OS and ARCHitecture:
@@ -101,41 +101,41 @@ BINARY_CLOC              = 'cloc'
 # Declare/define a struct to store parsed options
 OPTIONS = Struct.new(
     :verbose,
-    :build_config,
-    :build_dir,
+    :config,
+    :output_dir,
     :target,
-    :ignore_gui_tests,
+    :no_gui_tests,
     keyword_init: true
 ).new(
     verbose:            false,
-    build_dir:          nil, 
-    build_config:       BUILD_CONFIG_DEFAULT,
+    output_dir:          nil, 
+    config:       BUILD_CONFIG_DEFAULT,
     target:             TARGET_DEFAULT,
-    ignore_gui_tests:   false,
+    no_gui_tests:   false,
 )
 
 $option_parser = OptionParser.new
 
 $option_parser.banner = "Usage: rake <task> [options]\n\nOptions:"
 
-$option_parser.on('-t', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (default: #{TARGET_DEFAULT})",  ) do |value|
+$option_parser.on('-T', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (default: #{TARGET_DEFAULT})",  ) do |value|
     OPTIONS.target = value
 end
 
-$option_parser.on('-b', '--build=BUILD_CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
-    OPTIONS.build_config = value
+$option_parser.on('-C', '--config=CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
+    OPTIONS.config = value
 end
 
-$option_parser.on('-o', '--output-dir=OUTPUT_DIR', "Build output directory, absolute or relative to the rakefile (default: 'build-{target}-{arch}-{os}-{build_config}')") do |value|
-    OPTIONS.build_dir = value
+$option_parser.on('-O', '--output-dir=OUTPUT_DIR', "Output directory (default: 'build-{target}-{config}')") do |value|
+    OPTIONS.output_dir = value
 end
 
-$option_parser.on("-v", "--verbose", "Print diagnostic messages") {
+$option_parser.on("-V", "--verbose", "Print diagnostic messages") {
     OPTIONS.verbose = true
 }
 
-$option_parser.on("--no-gui-tests", "Disable any test that requires to open a window") {
-    OPTIONS.ignore_gui_tests = true
+$option_parser.on("--no-gui-tests", "Skip tests requiring a GUI") {
+    OPTIONS.no_gui_tests = true
 }
 
 # Extract flags (after `--`)
@@ -165,7 +165,6 @@ WINDOWS    = OPTIONS.target == TARGET_WINDOWS
 EMSCRIPTEN = OPTIONS.target == TARGET_EMSCRIPTEN
 WEB        = EMSCRIPTEN
 DESKTOP    = LINUX || WINDOWS
-ARCH       = EMSCRIPTEN ? ARCH_32 : DEFAULT_ARCH
 
 # Triplet (we use VCPKG naming convention)
 VCPKG_TRIPLET = ->() {
@@ -208,10 +207,10 @@ PKGCONF_BINARY = ->() {
 
 PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib/pkgconfig"
 HOST_OS              = RbConfig::CONFIG['host_os']
-RELEASE              = OPTIONS.build_config == BUILD_CONFIG_RELEASE
-DEBUG                = OPTIONS.build_config == BUILD_CONFIG_DEBUG
-OPTIMIZED            = OPTIONS.build_config == BUILD_CONFIG_OPTIMIZED
-OUTPUT_DIR            = File.expand_path( OPTIONS.build_dir || "build-#{OPTIONS.target}-#{OPTIONS.build_config}", Dir.pwd )
+RELEASE              = OPTIONS.config == BUILD_CONFIG_RELEASE
+DEBUG                = OPTIONS.config == BUILD_CONFIG_DEBUG
+OPTIMIZED            = OPTIONS.config == BUILD_CONFIG_OPTIMIZED
+OUTPUT_DIR            = File.expand_path( OPTIONS.output_dir || "build-#{OPTIONS.target}-#{OPTIONS.config}", Dir.pwd )
 DIST_DIR             = "#{OUTPUT_DIR}/dist" # Distribution files will be copied there (after a build)
 OBJ_DIR              = "#{OUTPUT_DIR}/obj"
 DEP_DIR              = "#{OUTPUT_DIR}/dep"
@@ -265,7 +264,8 @@ Target = Struct.new(
     :sources, # list of .c|.cpp files
     :type, # TARGET_XXX
     :vcpkg, # list of (static) vcpkg package names
-    :unity_build_slice_size, # file count per group (0 => disable)
+    :unity_build_on, # enable/disable unity build
+    :unity_build_slice_size, # file count per slice
     keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
 )
 
@@ -290,7 +290,8 @@ def bt_target(name, type)
     target.sources                  = FileList[]
     target.type                     = type
     target.vcpkg                    = []
-    target.unity_build_slice_size              = 0
+    target.unity_build_on           = false
+    target.unity_build_slice_size   = RELEASE ? 512 : 4
 
     return target
 
@@ -455,17 +456,15 @@ def bt_target_initialize_if_needed(target)
         target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
 
         # 3) Generate unity_build slices
-        if target.sources.size > 1 && target.unity_build_slice_size > 1
+        if target.unity_build_on && target.sources.size > 1 && target.unity_build_slice_size > 1
 
-            # bt_log(target, "Unity Build - Slicing ...")
+            bt_debug(target, "Unity Build - Slicing ...")
 
-            unity_build_slice_size_sources = FileList[]
+            unity_sources = FileList[]
 
             # Generate each slice
             require 'digest'
-
             slices = target.sources.each_slice(target.unity_build_slice_size)
-            
             slices.each_with_index do |slice, index|
                 
                 content = [
@@ -476,9 +475,9 @@ def bt_target_initialize_if_needed(target)
                 ].join("\n")
 
                 hash       = Digest::SHA256.hexdigest(content)[0..17]     # We want to make sure filename changes even if index does not
-                filename   = "#{OUTPUT_DIR}/generated/#{target.name}/slice-#{index}-#{hash}.cpp"
+                filename   = "#{OUTPUT_DIR}/generated/#{target.name}/slice-#{1+index}-#{hash}.cpp"
 
-                unity_build_slice_size_sources += [filename]
+                unity_sources += [filename]
 
                 FileUtils.mkdir_p File.dirname( filename )
 
@@ -492,7 +491,7 @@ def bt_target_initialize_if_needed(target)
 
             # Then we replace the sources by the unity build ones
             # We want this change to be propagater to any target that depends on this target.
-            target.sources = unity_build_slice_size_sources
+            target.sources = unity_sources
 
         end
         
