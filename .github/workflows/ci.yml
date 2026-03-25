@@ -32,19 +32,19 @@ jobs:
 
     runs-on: ${{ matrix.includes.os }}
     env:
-      # TARGET:    desktop
-      OUTPUT_DIR: "./${{matrix.includes.artifact_name}}"
+      TARGET:     ${{matrix.includes.target}}
+      OUTPUT_DIR: ${{matrix.includes.artifact_name}}
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
         with:
           fetch-tags:  true # Tag history is needed to generate nodable version and..
           fetch-depth: 100  # ..we also need some commits to generate the version name (uses `git describe --tags`), until now this value was enough.
 
-      - run: rake install
+      - run: rake install -- --target=${{env.TARGET}}
 
-      - run: rake build -- --output-dir=${{env.OUTPUT_DIR}} --target=${{matrix.includes.target}} --config=release --no-gui-tests
+      - run: rake build -- --target=${{env.TARGET}} --output-dir=${{env.OUTPUT_DIR}} --config=release --no-gui-tests
 
-      - if: matrix.includes.target != 'emscripten'
+      - if: env.TARGET != 'emscripten'
         run: ./tools-tests && ./nodable-tests
         working-directory: ${{env.OUTPUT_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
