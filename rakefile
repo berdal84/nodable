@@ -68,7 +68,7 @@ end
 desc "Remove intermediate files and any other files"
 task :clobber do
     # see clean to know why we do not use FileUtils
-    sh "rm -rf #{BUILD_DIR}"
+    sh "rm -rf #{BUILD_DIR} #{DIST_DIR}"
 end
 
 

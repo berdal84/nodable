@@ -249,8 +249,8 @@ CONFIG                  = @options.config
 RELEASE                 = CONFIG == CONFIG_RELEASE
 DEBUG                   = CONFIG == CONFIG_DEBUG
 OPTIMIZED               = CONFIG == CONFIG_OPTIMIZED
-BUILD_DIR               = File.expand_path( @options.build_dir || "build-#{@options.platform}-#{@options.config}", Dir.pwd )
-DIST_DIR                = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
+BUILD_DIR               = File.expand_path( @options.build_dir || "build-#{PLATFORM}-#{CONFIG}", Dir.pwd )
+DIST_DIR                = "dist/#{PLATFORM}/#{CONFIG}" # Distribution files will be copied there (after a build)
 OBJ_DIR                 = "#{BUILD_DIR}/obj"
 DEP_DIR                 = "#{BUILD_DIR}/dep"
 BIN_DIR                 = "#{BUILD_DIR}/bin" # binaries will be generated there

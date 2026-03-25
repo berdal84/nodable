@@ -20,16 +20,16 @@ jobs:
       matrix:
         # see https://github.com/actions/runner-images?tab=readme-ov-file
         includes:
-          - target: windows
+          - platform: windows
             os: windows-2025-vs2026
-          - target: web
+          - platform: web
             os: windows-2025-vs2026 # do not change: tested on windows only
-          - target: linux
+          - platform: linux
             os: ubuntu-24.04
 
     runs-on: ${{ matrix.includes.os }}
     env:
-      TARGET:         ${{matrix.includes.target}}
+      PLATFORM:       ${{matrix.includes.platform}}
       CONFIG:         "release"
       BUILD_DIR:      "build"
       HEADLESS_TESTS: 1
@@ -41,20 +41,20 @@ jobs:
 
       - run: rake install
 
-      - if: env.TARGET == 'web'
+      - if: env.PLATFORM == 'web'
         run: |
           extern/emsdk/emsdk_env.ps1
           rake build
 
-      - if: env.TARGET != 'web'
+      - if: env.PLATFORM != 'web'
         run: rake build
 
-      - if: env.TARGET != 'web'
+      - if: env.PLATFORM != 'web'
         run: ./tools-tests && ./nodable-tests
         working-directory: ${{env.BUILD_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
       - uses: actions/upload-artifact@v4
         with:
-          name: "nodable-${{env.TARGET}}"
-          path: ${{env.BUILD_DIR}}/dist/
+          name: "nodable-${{env.PLATFORM}}"
+          path: "dist/${{env.PLATFORM}}/${{env.CONFIG}}"
             

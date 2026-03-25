@@ -15,10 +15,8 @@
 *.log
 compile_commands.json
 
-# Executables
-# *.exe
-# *.out
-# *.app
+# Distribution files
+dist/
 
 # Visual studio
 .vs
