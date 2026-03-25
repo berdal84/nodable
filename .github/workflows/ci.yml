@@ -24,7 +24,7 @@ jobs:
             os: windows-2025-vs2026
             artifact_name: nodable-x64-windows
           - target: emscripten
-            os: windows-2025-vs2026
+            os: ubuntu-24.04
             artifact_name: nodable-x64-emscripten
           - target: linux
             os: ubuntu-24.04
