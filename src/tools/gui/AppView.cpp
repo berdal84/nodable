@@ -51,7 +51,7 @@ void AppView::init(App* _app)
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
-#elif NDBL_WEB
+#elif __EMSCRIPTEN__
     // GL ES 2.0 + GLSL 100
     const char* glsl_version = "#version 100";
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -562,7 +562,7 @@ bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const
     }
 }
 
-#elif NDBL_WEB
+#elif __EMSCRIPTEN__
 
 EM_JS(void, call_pick_file_path, (bool), {
   alert('pick_file_path_impl not implemented yet');
@@ -609,7 +609,7 @@ void AppView::draw_splashscreen()
 
 std::vector<unsigned char> AppView::take_screenshot() const
 {
-#ifdef NDBL_WEB
+#ifdef __EMSCRIPTEN__
     return {};
     // TODO: some glXXX are unavailable, but anyways it's not something we need in WEB, we can use browser for that.
 #else

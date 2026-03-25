@@ -31,7 +31,7 @@ void System::clear_console() /* cf: https://stackoverflow.com/questions/6486289/
     }
 }
 
-#elif NDBL_WEB
+#elif __EMSCRIPTEN__
 #include <emscripten.h>
 
 EM_JS(void, call_clear_console, (), {
