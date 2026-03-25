@@ -2,7 +2,7 @@
 
 #include <algorithm>
 
-#ifdef NDBL_WEB
+#ifdef __EMSCRIPTEN__
 #include <emscripten.h>
 #include <emscripten/html5.h>
 #endif
@@ -54,25 +54,31 @@ void Nodable::_do_frame()
 {
     update();
     draw();
-};
+}
 
-#ifdef NDBL_WEB
-void emscripten_do_frame()
+#ifdef __EMSCRIPTEN__
+namespace ndbl
 {
-    Nodable::instance()->_do_frame();
+    Nodable* g_instance = nullptr;
+    void emscripten_loop()
+    {
+        VERIFY(g_instance != nullptr, "Did you forgot to set g_instance prior to set_main_loop?");
+        g_instance->_do_frame();
+    }
 }
 #endif
 
 void Nodable::run()
 {
-#ifdef NDBL_WEB
-    emscripten_set_main_loop(&emscripten_do_frame, 0, true);
-#else
+  #ifdef __EMSCRIPTEN__
+    g_instance = this;
+    emscripten_set_main_loop(&ndbl::emscripten_loop, 0, true);
+  #else
     while( !should_stop() )
     {
         _do_frame();
-    }
-#endif
+    }    
+  #endif
 }
 
 void Nodable::update()
