@@ -73,8 +73,8 @@ end
 
 
 task :rebuild_all do
-    BUILD_CONFIGS.each do |config|
-        system("rake -m clean build -- --config=#{config}", exception: true)
+    BUILD_CONFIGS.each do |each_config|
+        system("rake -m clean build -- --config=#{each_config} --platform=#{PLATFORM}", exception: true)
     end
 end
 
@@ -135,7 +135,7 @@ def target(name, type)
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
         "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",
-        "NDBL_#{TARGET.upcase}",
+        "NDBL_#{PLATFORM.upcase}",
         "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 

@@ -76,18 +76,19 @@ BUILD_ARCH = DEFAULT_ARCH
 
 TARGET_TYPE_OBJECTS     = "self_objects"
 TARGET_TYPE_EXECUTABLE  = "executable"
-TARGET_WINDOWS          = "windows"
-TARGET_LINUX            = "linux"
-TARGET_WEB              = "web"
-TARGETS                 = [TARGET_WINDOWS, TARGET_LINUX, TARGET_WEB]
-TARGET_DEFAULT          = ->() {
+PLATFORM_WINDOWS        = "windows"
+PLATFORM_LINUX          = "linux"
+PLATFORM_WEB            = "web"
+PLATFORMS               = [PLATFORM_WINDOWS, PLATFORM_LINUX, PLATFORM_WEB]
+
+PLATFORM_DEFAULT = ->() {
     case BUILD_OS
     when BUILD_OS_WINDOWS
-        return TARGET_WINDOWS
+        return PLATFORM_WINDOWS
     when BUILD_OS_LINUX
-        return TARGET_LINUX
+        return PLATFORM_LINUX
     end
-    raise "Unable to determine TARGET_DEFAULT: BUILD_OS is #{BUILD_OS}"
+    raise "Unable to determine PLATFORM_DEFAULT: BUILD_OS is #{BUILD_OS}"
 }.call()
 
 CONFIG_DEBUG            = "debug"
@@ -106,7 +107,7 @@ BINARY_CLOC             = 'cloc'
 # Command Line Arguments ------------------------------------------------------------------------------------
 
 @options_parser = OptionParser.new
-@options_parser.banner = "Usage: rake <task> [@options]\n\nOptions:"
+@options_parser.banner = "Usage: rake <task> [-- options]\n\nOptions:"
 
 def _get_environment_variable_or(env_var_name, default=nil, allowed_values=nil)
 
@@ -131,28 +132,28 @@ end
     :verbose,
     :config,
     :build_dir,
-    :target,
+    :platform,
     :headless_tests,
     keyword_init: true
 ).new(
-                 # We read from environment, it is sometimes more convenient to define them once rather than setting flags multiple times for each command.
-    verbose:      _get_environment_variable_or('VERBOSE'      , default=false),
-    build_dir:   _get_environment_variable_or('BUILD_DIR'   , default=nil), 
-    config:       _get_environment_variable_or('CONFIG'       , default=CONFIG_DEFAULT , allowed_values=BUILD_CONFIGS ),
-    target:       _get_environment_variable_or('TARGET'       , default=TARGET_DEFAULT       , allowed_values=TARGETS),
-    headless_tests: _get_environment_variable_or('HEADLESS_TESTS', default=false),
+                    # We read from environment, it is sometimes more convenient to define them once rather than setting flags multiple times for each command.
+    verbose:        _get_environment_variable_or('VERBOSE'          , default=false),
+    build_dir:      _get_environment_variable_or('BUILD_DIR'        , default=nil), 
+    config:         _get_environment_variable_or('CONFIG'           , default=CONFIG_DEFAULT    , allowed_values=BUILD_CONFIGS ),
+    platform:       _get_environment_variable_or('PLATFORM'         , default=PLATFORM_DEFAULT  , allowed_values=PLATFORMS),
+    headless_tests: _get_environment_variable_or('HEADLESS_TESTS'   , default=false),
 )
 
 
-@options_parser.on('--target=TARGET', TARGETS, "#{TARGETS.join("|")} (default: #{TARGET_DEFAULT})",  ) do |value|
-    @options.target = value
+@options_parser.on('--platform=PLATFORM', PLATFORMS, "#{PLATFORMS.join("|")} (default: #{PLATFORM_DEFAULT})",  ) do |value|
+    @options.platform = value
 end
 
 @options_parser.on('--config=CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{CONFIG_DEFAULT})") do |value|
     @options.config = value
 end
 
-@options_parser.on('--build-dir=BUILD_DIR', "Build directory (default: './build-{target}-{config}')") do |value|
+@options_parser.on('--build-dir=BUILD_DIR', "Build directory (default: build-{platform}-{config})") do |value|
     @options.build_dir = value
 end
 
@@ -185,42 +186,41 @@ end
 
 # Global Constants ----------------------------------------------------------------------------------------------
 
-# Helpers to simplify branching (if LINUX ... elif WINDOWS ... elif WEB ... end )
-TARGET     = @options.target
-LINUX      = TARGET == TARGET_LINUX
-WINDOWS    = TARGET == TARGET_WINDOWS
-WEB        = TARGET == TARGET_WEB
-DESKTOP    = !WEB
-
-HEADLESS_TESTS = @options.headless_tests
+PLATFORM        = @options.platform
+LINUX           = PLATFORM == PLATFORM_LINUX
+WINDOWS         = PLATFORM == PLATFORM_WINDOWS
+WEB             = PLATFORM == PLATFORM_WEB
+DESKTOP         = !WEB
+HEADLESS_TESTS  = @options.headless_tests
+VERBOSE         = @options.verbose
 
 # Triplet (we use VCPKG naming convention)
 VCPKG_TRIPLET = ->() {
 
-    case TARGET
-    when TARGET_LINUX
+    case PLATFORM
+    when PLATFORM_LINUX
         return "x64-linux"
-    when TARGET_WINDOWS
+    when PLATFORM_WINDOWS
         return "x64-windows-static" # windows convention is different than linux, dynamic by default
-    when TARGET_WEB
+    when PLATFORM_WEB
         return "wasm32-emscripten"
     end
 
-    raise "Unknown VCPKG_TRIPLET for this target: #{TARGET}"
+    raise "Unknown VCPKG_TRIPLET for this platform: #{PLATFORM}"
     
 }.call()
 
 # Path to installed folder (we decided to separate linux and windows folders)
 VCPKG_INSTALL_ROOT  = ->() {
-    case TARGET
-    when TARGET_LINUX
+    case PLATFORM
+    when PLATFORM_LINUX
         return "./vcpkg/linux"    
-    when TARGET_WINDOWS
+    when PLATFORM_WINDOWS
         return "./vcpkg/windows" 
-    when TARGET_WEB
+    when PLATFORM_WEB
         return "./vcpkg/emscripten" 
     end
-    raise "Unable to determine VCPKG_INSTALL_ROOT: TARGET is #{TARGET}"
+    raise "Unable to determine VCPKG_INSTALL_ROOT: PLATFORM is #{PLATFORM}"
 }.call()
 
 VCPKG_PACKAGES_ROOT = "#{VCPKG_INSTALL_ROOT}/#{VCPKG_TRIPLET}"
@@ -233,32 +233,33 @@ PKGCONF_BINARY = ->() {
         path = path.ext("exe")
     end
 
-    if not File.exist?(path)
-        $stderr.puts "Error: PKGCONF_BINARY '#{path}' does not exist! In principle this file is in the source code, but perhaps you delete it and forgot to run 'rake vcpkg'? "
+    if (not File.exist?(path)) && PLATFORM != PLATFORM_WEB
+        puts "Warning: PKGCONF_BINARY '#{path}' does not exist!"
+        puts "         In principle this file is in the source code."
+        puts "         Perhaps you delete it and forgot to run 'rake vcpkg' ?"
     end
 
     path 
 
 }.call()
 
-PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib/pkgconfig"
-HOST_OS              = RbConfig::CONFIG['host_os']
-CONFIG               = @options.config
-RELEASE              = CONFIG == CONFIG_RELEASE
-DEBUG                = CONFIG == CONFIG_DEBUG
-OPTIMIZED            = CONFIG == CONFIG_OPTIMIZED
-BUILD_DIR           = File.expand_path( @options.build_dir || "build-#{@options.target}-#{@options.config}", Dir.pwd )
-DIST_DIR             = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
-OBJ_DIR              = "#{BUILD_DIR}/obj"
-DEP_DIR              = "#{BUILD_DIR}/dep"
-BIN_DIR              = "#{BUILD_DIR}/bin" # binaries will be generated there
-
-GITHUB_ACTIONS       = ENV["GITHUB_ACTIONS"]
-HTTP_SERVER_HOSTNAME = "0.0.0.0"  # TODO: add to flags
-HTTP_SERVER_PORT     = "8000" # TODO: add to flags
-HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
-COMPILER             = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
-LINKER               = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
+PKGCONF                 = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib/pkgconfig"
+HOST_OS                 = RbConfig::CONFIG['host_os']
+CONFIG                  = @options.config
+RELEASE                 = CONFIG == CONFIG_RELEASE
+DEBUG                   = CONFIG == CONFIG_DEBUG
+OPTIMIZED               = CONFIG == CONFIG_OPTIMIZED
+BUILD_DIR               = File.expand_path( @options.build_dir || "build-#{@options.platform}-#{@options.config}", Dir.pwd )
+DIST_DIR                = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
+OBJ_DIR                 = "#{BUILD_DIR}/obj"
+DEP_DIR                 = "#{BUILD_DIR}/dep"
+BIN_DIR                 = "#{BUILD_DIR}/bin" # binaries will be generated there
+GITHUB_ACTIONS          = ENV["GITHUB_ACTIONS"]
+HTTP_SERVER_HOSTNAME    = "0.0.0.0"  # TODO: add to flags
+HTTP_SERVER_PORT        = "8000" # TODO: add to flags
+HTTP_SERVER_URL         = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
+COMPILER                = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
+LINKER                  = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
 
 if @options.verbose
 puts "------------------------------------------------------------------------------------------------------"
@@ -580,7 +581,7 @@ end
 def bt_target_link( target )
 
     if (target.type != TARGET_TYPE_EXECUTABLE)
-        raise "Target type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
+        raise "#{target.name}'s type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
     end
 
     bt_target_initialize_if_needed(target)
@@ -738,8 +739,8 @@ namespace target.name do
         
         task :run => :build do
             bt_log(target, "Running ...")
-            case TARGET
-            when TARGET_WEB
+            case PLATFORM
+            when PLATFORM_WEB
                 system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{binary.ext("html")}", exception: true)
             else
                 system(binary, exception: true)
@@ -771,11 +772,11 @@ def bt_count_lines_of_code(at_location = "./")
 end
 
 def bt_log(target, message)
-    puts "[#{target.name}:#{@options.target}:#{@options.config}] #{message}"
+    puts "[#{target.name}:#{PLATFORM}:#{CONFIG}] #{message}"
 end
 
 def bt_debug(target, message)
-    bt_log(target,message) if @options.verbose
+    bt_log(target,message) if VERBOSE
 end
 
 def bt_print_help()
