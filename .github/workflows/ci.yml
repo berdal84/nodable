@@ -20,9 +20,14 @@ jobs:
       matrix:
         # see https://github.com/actions/runner-images?tab=readme-ov-file
         includes:
-          - os: windows-2025-vs2026
+          - target: windows
+            os: windows-2025-vs2026
             artifact_name: nodable-x64-windows
-          - os: ubuntu-24.04
+          - target: emscripten
+            os: windows-2025-vs2026
+            artifact_name: nodable-x64-emscripten
+          - target: linux
+            os: ubuntu-24.04
             artifact_name: nodable-x64-linux
 
     runs-on: ${{ matrix.includes.os }}
@@ -37,9 +42,10 @@ jobs:
 
       - run: rake install
 
-      - run: rake build -- --output-dir=${{env.OUTPUT_DIR}} --config=release --no-gui-tests
+      - run: rake build -- --output-dir=${{env.OUTPUT_DIR}} --target=${{matrix.includes.target}} --config=release --no-gui-tests
 
-      - run: ./tools-tests && ./nodable-tests
+      - if: matrix.includes.target != 'emscripten'
+        run: ./tools-tests && ./nodable-tests
         working-directory: ${{env.OUTPUT_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
       - uses: actions/upload-artifact@v4
