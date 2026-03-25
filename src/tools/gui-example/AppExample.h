@@ -19,6 +19,7 @@ namespace tools
         void        draw();
         bool        should_stop() const { return m_base_app.should_stop(); };
         App*        base_app_handle() { return &m_base_app; }
+        void        _do_frame();
     private:
         void        request_stop();
 

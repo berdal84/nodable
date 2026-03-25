@@ -398,8 +398,8 @@ if WEB # TODO: automatize this in build-tools.rb
     # Provide headers for deployment (note: requires https when deployed).
     tools_app.assets = [
         "http/.htaccess:.htaccess",
+        "http/tools-app-example.html:tools-app-example.html",
     ]
-
 else
     tools_app.assets = tools_assets
 end

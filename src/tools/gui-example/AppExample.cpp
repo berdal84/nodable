@@ -1,6 +1,11 @@
 #include "AppExample.h"
 #include "AppExampleView.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#include <emscripten/html5.h>
+#endif
+
 using namespace tools;
 
 void AppExample::init()
@@ -17,13 +22,35 @@ void AppExample::init()
     //
 }
 
+void AppExample::_do_frame()
+{
+    update();
+    draw();
+}
+
+#ifdef __EMSCRIPTEN__
+namespace tools
+{
+    AppExample* g_instance = nullptr;
+    void emscripten_loop()
+    {
+        VERIFY(g_instance != nullptr, "Did you forgot to set g_instance prior to set_main_loop?");
+        g_instance->_do_frame();
+    }
+}
+#endif
+
 void AppExample::run()
 {
+  #ifdef __EMSCRIPTEN__
+    g_instance = this;
+    emscripten_set_main_loop(&tools::emscripten_loop, 0, true);
+  #else
     while( !should_stop() )
     {
-        update();
-        draw();
-    }
+        _do_frame();
+    }    
+  #endif
 }
 
 void AppExample::update()
