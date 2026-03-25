@@ -727,7 +727,7 @@ def bt_count_lines_of_code(at_location = "./")
 end
 
 def bt_log(target, message)
-    puts "#{target.name} | #{message}"
+    puts "[#{target.name}|#{OPTIONS.target}|#{OPTIONS.config}] #{message}"
 end
 
 def bt_debug(target, message)
