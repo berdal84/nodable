@@ -23,33 +23,35 @@ jobs:
           - target: windows
             os: windows-2025-vs2026
           - target: web
-            os: ubuntu-24.04
+            os: windows-2025-vs2026 # do not change: tested on windows only
           - target: linux
             os: ubuntu-24.04
 
     runs-on: ${{ matrix.includes.os }}
     env:
-      TARGET:     ${{matrix.includes.target}}
-      OUTPUT_DIR: "build"
+      TARGET:         ${{matrix.includes.target}}
+      CONFIG:         "release"
+      BUILD_DIR:      "build"
+      HEADLESS_TESTS: 1
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
         with:
           fetch-tags:  true # Tag history is needed to generate nodable version and..
           fetch-depth: 100  # ..we also need some commits to generate the version name (uses `git describe --tags`), until now this value was enough.
 
-      - run: rake install -- --target=${{env.TARGET}}
+      - run: rake install
 
       - if: env.TARGET == 'web'
-        run: source extern/emsdk/emsdk_env.sh
+        run: extern/emsdk/emsdk_env.ps1
 
-      - run: rake build -- --target=${{env.TARGET}} --output-dir=${{env.OUTPUT_DIR}} --config=release --no-gui-tests
+      - run: rake build
 
       - if: env.TARGET != 'web'
         run: ./tools-tests && ./nodable-tests
-        working-directory: ${{env.OUTPUT_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
+        working-directory: ${{env.BUILD_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
       - uses: actions/upload-artifact@v4
         with:
           name: "nodable-${{env.TARGET}}"
-          path: ${{env.OUTPUT_DIR}}/dist/
+          path: ${{env.BUILD_DIR}}/dist/
             

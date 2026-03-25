@@ -68,7 +68,7 @@ end
 desc "Remove intermediate files and any other files"
 task :clobber do
     # see clean to know why we do not use FileUtils
-    sh "rm -rf #{OUTPUT_DIR}"
+    sh "rm -rf #{BUILD_DIR}"
 end
 
 
@@ -119,11 +119,6 @@ def target(name, type)
     
     target.unity_build_on = true
 
-    if OPTIONS.verbose
-        target.compiler_flags.tools_append("-v")
-        target.linker_flags.tools_append("-v")
-    end
-
     target.includes = FileList[
         # internal
         "src",
@@ -139,8 +134,8 @@ def target(name, type)
     target.defines |= [
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
-        "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{OPTIONS.config}\\\"",
-        "NDBL_#{OPTIONS.target.upcase}",
+        "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",
+        "NDBL_#{TARGET.upcase}",
         "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
@@ -480,8 +475,8 @@ ndbl_test.sources |= FileList[
 ndbl_test_gui_sources = FileList[
     "src/ndbl/gui/Nodable.specs.cpp"
 ]
-if OPTIONS.no_gui_tests
-    puts "no_gui_tests is TRUE, #{ndbl_test_gui_sources} won't be included."
+if HEADLESS_TESTS
+    puts "HEADLESS_TESTS is TRUE, #{ndbl_test_gui_sources} won't be included."
 else
     ndbl_test.assets  |= ndbl_app.assets
     ndbl_test.sources |= ndbl_test_gui_sources

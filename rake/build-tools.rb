@@ -74,68 +74,94 @@ BUILD_ARCH = DEFAULT_ARCH
 
 # Enums ------------------------------------------------------------------------------------------------
 
-TARGET_TYPE_OBJECTS      = "self_objects"
-TARGET_TYPE_EXECUTABLE   = "executable"
+TARGET_TYPE_OBJECTS     = "self_objects"
+TARGET_TYPE_EXECUTABLE  = "executable"
+TARGET_WINDOWS          = "windows"
+TARGET_LINUX            = "linux"
+TARGET_WEB              = "web"
+TARGETS                 = [TARGET_WINDOWS, TARGET_LINUX, TARGET_WEB]
+TARGET_DEFAULT          = ->() {
+    case BUILD_OS
+    when BUILD_OS_WINDOWS
+        return TARGET_WINDOWS
+    when BUILD_OS_LINUX
+        return TARGET_LINUX
+    end
+    raise "Unable to determine TARGET_DEFAULT: BUILD_OS is #{BUILD_OS}"
+}.call()
 
-TARGET_WINDOWS           = "windows"
-TARGET_LINUX             = "linux"
-TARGET_WEB               = "web"
-TARGET_DEFAULT           = BUILD_OS == BUILD_OS_WINDOWS ? TARGET_WINDOWS : TARGET_LINUX
-TARGETS                  = [TARGET_WINDOWS, TARGET_LINUX, TARGET_WEB]
-
-BUILD_CONFIG_DEBUG       = "debug"
-BUILD_CONFIG_OPTIMIZED   = "optimized"
-BUILD_CONFIG_RELEASE     = "release"
-BUILD_CONFIG_DEFAULT     = BUILD_CONFIG_DEBUG
-BUILD_CONFIGS            = [BUILD_CONFIG_DEBUG, BUILD_CONFIG_OPTIMIZED, BUILD_CONFIG_RELEASE]
+CONFIG_DEBUG            = "debug"
+CONFIG_OPTIMIZED        = "optimized"
+CONFIG_RELEASE          = "release"
+CONFIG_DEFAULT          = CONFIG_DEBUG
+BUILD_CONFIGS           = [CONFIG_DEBUG, CONFIG_OPTIMIZED, CONFIG_RELEASE]
  
-BINARY_CLANG             = "clang"
-BINARY_EMCC              = "emcc"  # Assumes emsdk_env has been initialized
-BINARY_EMRUN             = "emrun" # Assumes emsdk_env has been initialized
-BINARY_CLOC              = 'cloc'
+BINARY_CLANG            = "clang"
+BINARY_EMCC             = "emcc"  # Assumes emsdk_env has been initialized
+BINARY_EMRUN            = "emrun" # Assumes emsdk_env has been initialized
+BINARY_CLOC             = 'cloc'
 
 # Enums (end) ------------------------------------------------------------------------------------------
 
 # Command Line Arguments ------------------------------------------------------------------------------------
 
-# Declare/define a struct to store parsed options
-OPTIONS = Struct.new(
+@options_parser = OptionParser.new
+@options_parser.banner = "Usage: rake <task> [@options]\n\nOptions:"
+
+def _get_environment_variable_or(env_var_name, default=nil, allowed_values=nil)
+
+    has_env_var = ENV.key?(env_var_name)
+    
+    # Always check for the default value
+    if (allowed_values != nil and !allowed_values.include?(default))
+        raise "Invalid default value for ENV[#{env_var_name}]: '#{default}'. Allowed values: #{allowed_values.join(', ')}"
+    end
+
+    value = has_env_var ? ENV[env_var_name] : default
+
+    if (allowed_values != nil and !allowed_values.include?(value))
+        raise "Invalid ENV[#{env_var_name}]: '#{value}'. Allowed values: #{allowed_values.join(', ')}"  
+    end
+    
+    return value      
+end
+
+# Declare/define a struct to store parsed @options
+@options = Struct.new(
     :verbose,
     :config,
-    :output_dir,
+    :build_dir,
     :target,
-    :no_gui_tests,
+    :headless_tests,
     keyword_init: true
 ).new(
-    verbose:            false,
-    output_dir:          nil, 
-    config:       BUILD_CONFIG_DEFAULT,
-    target:             TARGET_DEFAULT,
-    no_gui_tests:   false,
+                 # We read from environment, it is sometimes more convenient to define them once rather than setting flags multiple times for each command.
+    verbose:      _get_environment_variable_or('VERBOSE'      , default=false),
+    build_dir:   _get_environment_variable_or('BUILD_DIR'   , default=nil), 
+    config:       _get_environment_variable_or('CONFIG'       , default=CONFIG_DEFAULT , allowed_values=BUILD_CONFIGS ),
+    target:       _get_environment_variable_or('TARGET'       , default=TARGET_DEFAULT       , allowed_values=TARGETS),
+    headless_tests: _get_environment_variable_or('HEADLESS_TESTS', default=false),
 )
 
-$option_parser = OptionParser.new
 
-$option_parser.banner = "Usage: rake <task> [options]\n\nOptions:"
-
-$option_parser.on('-T', '--target=TARGET', TARGETS, "#{TARGETS.join("|")} (default: #{TARGET_DEFAULT})",  ) do |value|
-    OPTIONS.target = value
+@options_parser.on('--target=TARGET', TARGETS, "#{TARGETS.join("|")} (default: #{TARGET_DEFAULT})",  ) do |value|
+    @options.target = value
 end
 
-$option_parser.on('-C', '--config=CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{BUILD_CONFIG_DEFAULT})") do |value|
-    OPTIONS.config = value
+@options_parser.on('--config=CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{CONFIG_DEFAULT})") do |value|
+    @options.config = value
 end
 
-$option_parser.on('-O', '--output-dir=OUTPUT_DIR', "Output directory (default: 'build-{target}-{config}')") do |value|
-    OPTIONS.output_dir = value
+@options_parser.on('--build-dir=BUILD_DIR', "Build directory (default: './build-{target}-{config}')") do |value|
+    @options.build_dir = value
 end
 
-$option_parser.on("-V", "--verbose", "Print diagnostic messages") {
-    OPTIONS.verbose = true
+@options_parser.on("-v", "--verbose", "Print diagnostic messages") {
+    @options.verbose = true
 }
 
-$option_parser.on("--no-gui-tests", "Skip tests requiring a GUI") {
-    OPTIONS.no_gui_tests = true
+@options_parser.on("--headless-tests", "Skip tests requiring a GUI") {
+    @options.headless_tests = true
 }
 
 # Extract flags (after `--`)
@@ -147,10 +173,10 @@ end
 
 # Parse flags and handle errors
 begin
-    $option_parser.parse!(flags)
+    @options_parser.parse!(flags)
 rescue OptionParser::InvalidOption, OptionParser::MissingArgument, OptionParser::InvalidArgument => e
     $stdout.puts e
-    $stdout.puts $option_parser.help
+    $stdout.puts @options_parser.help
     $stderr.puts "Unable to parse flags, see reason message and help above."
     exit 1
 end
@@ -160,10 +186,13 @@ end
 # Global Constants ----------------------------------------------------------------------------------------------
 
 # Helpers to simplify branching (if LINUX ... elif WINDOWS ... elif WEB ... end )
-LINUX      = OPTIONS.target == TARGET_LINUX
-WINDOWS    = OPTIONS.target == TARGET_WINDOWS
-WEB        = OPTIONS.target == TARGET_WEB
+TARGET     = @options.target
+LINUX      = TARGET == TARGET_LINUX
+WINDOWS    = TARGET == TARGET_WINDOWS
+WEB        = TARGET == TARGET_WEB
 DESKTOP    = !WEB
+
+HEADLESS_TESTS = @options.headless_tests
 
 # Triplet (we use VCPKG naming convention)
 VCPKG_TRIPLET = ->() {
@@ -182,7 +211,18 @@ VCPKG_TRIPLET = ->() {
 }.call()
 
 # Path to installed folder (we decided to separate linux and windows folders)
-VCPKG_INSTALL_ROOT  = "./vcpkg/#{OPTIONS.target}"
+VCPKG_INSTALL_ROOT  = ->() {
+    case TARGET
+    when TARGET_LINUX
+        return "./vcpkg/linux"    
+    when TARGET_WINDOWS
+        return "./vcpkg/windows" 
+    when TARGET_WEB
+        return "./vcpkg/emscripten" 
+    end
+    raise "Unable to determine VCPKG_INSTALL_ROOT: TARGET is #{TARGET}"
+}.call()
+
 VCPKG_PACKAGES_ROOT = "#{VCPKG_INSTALL_ROOT}/#{VCPKG_TRIPLET}"
 
 PKGCONF_BINARY = ->() {
@@ -203,14 +243,15 @@ PKGCONF_BINARY = ->() {
 
 PKGCONF              = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib/pkgconfig"
 HOST_OS              = RbConfig::CONFIG['host_os']
-RELEASE              = OPTIONS.config == BUILD_CONFIG_RELEASE
-DEBUG                = OPTIONS.config == BUILD_CONFIG_DEBUG
-OPTIMIZED            = OPTIONS.config == BUILD_CONFIG_OPTIMIZED
-OUTPUT_DIR            = File.expand_path( OPTIONS.output_dir || "build-#{OPTIONS.target}-#{OPTIONS.config}", Dir.pwd )
-DIST_DIR             = "#{OUTPUT_DIR}/dist" # Distribution files will be copied there (after a build)
-OBJ_DIR              = "#{OUTPUT_DIR}/obj"
-DEP_DIR              = "#{OUTPUT_DIR}/dep"
-BIN_DIR              = "#{OUTPUT_DIR}/bin" # binaries will be generated there
+CONFIG               = @options.config
+RELEASE              = CONFIG == CONFIG_RELEASE
+DEBUG                = CONFIG == CONFIG_DEBUG
+OPTIMIZED            = CONFIG == CONFIG_OPTIMIZED
+BUILD_DIR           = File.expand_path( @options.build_dir || "build-#{@options.target}-#{@options.config}", Dir.pwd )
+DIST_DIR             = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
+OBJ_DIR              = "#{BUILD_DIR}/obj"
+DEP_DIR              = "#{BUILD_DIR}/dep"
+BIN_DIR              = "#{BUILD_DIR}/bin" # binaries will be generated there
 
 GITHUB_ACTIONS       = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"  # TODO: add to flags
@@ -219,9 +260,9 @@ HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 COMPILER             = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
 LINKER               = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
 
-if OPTIONS.verbose
+if @options.verbose
 puts "------------------------------------------------------------------------------------------------------"
-puts "OPTIONS: ............ #{OPTIONS}"
+puts "@options: ............ #{@options}"
 puts "RUBY version: ....... #{`ruby -v`}"
 puts "HOST_OS: ............ #{HOST_OS}"
 puts "BUILD_OS:............ #{BUILD_OS}"
@@ -236,7 +277,7 @@ puts "LINKER: ............. #{LINKER}"
 puts "Dir.pwd: ............ #{Dir.pwd }"
 puts "__FILE__: ........... #{File.dirname(__FILE__)}"
 puts "------------------------------------------------------------------------------------------------------"
-end # if OPTIONS.verbose
+end # if @options.verbose
 
 # Global Constants (end) ------------------------------------------------------------------------------------------
 
@@ -289,18 +330,23 @@ def bt_target(name, type)
     target.unity_build_on           = false
     target.unity_build_slice_size   = RELEASE ? 512 : 4
 
+    if @options.verbose
+        target.compiler_flags.append("-v")
+        target.linker_flags.append("-v")
+    end
+
     return target
 
 end
 
 def bt_convert_src_to_obj( src )   
-    relative_src = src.sub("#{OUTPUT_DIR}/", "") # Some sources are generated and are not stored in ./src
+    relative_src = src.sub("#{BUILD_DIR}/", "") # Some sources are generated and are not stored in ./src
     obj = "#{OBJ_DIR}/#{relative_src.ext(".o")}"
     obj
 end
 
 def bt_convert_src_to_dep( src )
-    relative_src = src.sub("#{OUTPUT_DIR}/", "") # Some sources are generated and are not stored in ./src
+    relative_src = src.sub("#{BUILD_DIR}/", "") # Some sources are generated and are not stored in ./src
     dep = "#{DEP_DIR}/#{relative_src.ext(".d")}"
     dep
 end
@@ -327,7 +373,7 @@ def bt_find_src_for_obj( sources, obj )
     
     # hack
     if stem.start_with?("generated")
-        stem = "#{OUTPUT_DIR}/#{stem}"
+        stem = "#{BUILD_DIR}/#{stem}"
     end
     
     sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
@@ -471,7 +517,7 @@ def bt_target_initialize_if_needed(target)
                 ].join("\n")
 
                 hash       = Digest::SHA256.hexdigest(content)[0..17]     # We want to make sure filename changes even if index does not
-                filename   = "#{OUTPUT_DIR}/generated/#{target.name}/slice-#{1+index}-#{hash}.cpp"
+                filename   = "#{BUILD_DIR}/generated/#{target.name}/slice-#{1+index}-#{hash}.cpp"
 
                 unity_sources += [filename]
 
@@ -724,19 +770,17 @@ def bt_count_lines_of_code(at_location = "./")
 end
 
 def bt_log(target, message)
-    puts "[#{target.name}|#{OPTIONS.target}|#{OPTIONS.config}] #{message}"
+    puts "[#{target.name}:#{@options.target}:#{@options.config}] #{message}"
 end
 
 def bt_debug(target, message)
-    if OPTIONS.verbose
-        puts "#{target.name} | #{message}"
-    end
+    bt_log(target,message) if @options.verbose
 end
 
 def bt_print_help()
 
     # Print regular option parser help
-    print $option_parser.help    
+    print @options_parser.help    
     puts "Tasks:"
 
     # Print tasks
