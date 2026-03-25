@@ -383,12 +383,26 @@ tools_app.sources |= FileList[
     "src/tools/gui-example/AppExampleView.cpp",
     "src/tools/gui-example/main.cpp"
 ]
-tools_app.assets = FileList[
+
+tools_assets = FileList[
     # Fonts
     "fonts/CenturyGothic.ttf",
     "fonts/fa-solid-900.ttf",
     "fonts/JetBrainsMono-*.ttf", # 4 variants
 ]
+
+if WEB # TODO: automatize this in build-tools.rb    
+    # Preload assets (they will be compiled in a binary .data)
+    tools_app.linker_flags |= tools_assets.map{|path| "--preload-file #{path}" }
+
+    # Provide headers for deployment (note: requires https when deployed).
+    tools_app.assets = [
+        "http/.htaccess:.htaccess",
+    ]
+
+else
+    tools_app.assets = tools_assets
+end
 
 tools_app.depends_on_target = [
     common
@@ -438,7 +452,7 @@ ndbl_assets = FileList[
     "./images/nodable-logo-xs.png",
 ]
 
-if WEB
+if WEB # TODO: automatize this in build-tools.rb
 
     # Preload assets (they will be compiled in a binary .data)
     ndbl_app.linker_flags |= ndbl_assets.map{|path| "--preload-file #{path}" }
