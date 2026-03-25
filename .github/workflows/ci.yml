@@ -42,9 +42,12 @@ jobs:
       - run: rake install
 
       - if: env.TARGET == 'web'
-        run: extern/emsdk/emsdk_env.ps1
+        run: |
+          extern/emsdk/emsdk_env.ps1
+          rake build
 
-      - run: rake build
+      - if: env.TARGET != 'web'
+        run: rake build
 
       - if: env.TARGET != 'web'
         run: ./tools-tests && ./nodable-tests
