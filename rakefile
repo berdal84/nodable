@@ -81,32 +81,22 @@ end
 desc "Install system dependencies"
 task :install do
 
-    if DESKTOP        
-        
-        if LINUX
-            # The CI may not have it
-            # Even if we add them via vcpkg for convenience, we still need to install the system packages
-            apt_packages = [
-                "libx11-dev",
-                "libgl1-mesa-dev",
-            ]
-            system("sudo apt install #{apt_packages.join(" ")}", exception: true)
-        else
-            puts "INFO: Nothing to install on #{BUILD_OS}"
-        end
-        
+    if LINUX            
+        # The CI may not have it
+        # Even if we add them via vcpkg for convenience, we still need to install the system packages
+        apt_packages = [
+            "libx11-dev",
+            "libgl1-mesa-dev",
+        ]
+        system("sudo apt install #{apt_packages.join(" ")}", exception: true)
+    
+    elsif WINDOWS
+        puts "INFO: NOthing to install on windows"
     elsif WEB
-
-        if LINUX
-            system("extern/emsdk/emsdk install latest --system" , exception: true) # Download and install the latest SDK tools.
-            system("extern/emsdk/emsdk activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-            
-        elsif WINDOWS
-            system("extern/emsdk/emsdk.bat install latest --system" , exception: true) # Download and install the latest SDK tools.
-            system("extern/emsdk/emsdk.bat activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-        end
-
-    end
+        system("python extern/emsdk/emsdk.py install latest --system", exception: true)  # Download and install the latest SDK tools.
+        system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+        puts("emsdk environment has been activated, consider running source extern/emsdk/emdsk_env.sh to get commands (emcc, emrun, etc)")
+    end    
 end
 
 desc "Recompiles vcpkg binaries"
@@ -174,7 +164,7 @@ def target(name, type)
         "-Wno-deprecated-declarations",
     ]
 
-    if EMSCRIPTEN
+    if WEB
 
         target.defines |= [
             "NDBL_WEB"
@@ -453,7 +443,7 @@ ndbl_assets = FileList[
     "./images/nodable-logo-xs.png",
 ]
 
-if EMSCRIPTEN
+if WEB
 
     # Preload assets (they will be compiled in a binary .data)
     ndbl_app.linker_flags |= ndbl_assets.map{|path| "--preload-file #{path}" }

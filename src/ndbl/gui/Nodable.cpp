@@ -11,6 +11,7 @@
 #include "tools/core/System.h"
 #include "tools/core/EventManager.h"
 
+#include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTFunctionCall.h"
 #include "ndbl/core/ASTLiteral.h"
 #include "ndbl/core/ASTNodeSlot.h"
@@ -28,7 +29,6 @@
 #include "NodableView.h"
 #include "ASTNodeView.h"
 #include "ASTNodeSlotView.h"
-#include "ndbl/core/ASTUtils.h"
 
 using namespace ndbl;
 using namespace tools;

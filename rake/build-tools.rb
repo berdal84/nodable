@@ -79,9 +79,9 @@ TARGET_TYPE_EXECUTABLE   = "executable"
 
 TARGET_WINDOWS           = "windows"
 TARGET_LINUX             = "linux"
-TARGET_EMSCRIPTEN        = "emscripten" # web assembly
+TARGET_WEB               = "web"
 TARGET_DEFAULT           = BUILD_OS == BUILD_OS_WINDOWS ? TARGET_WINDOWS : TARGET_LINUX
-TARGETS                  = [TARGET_WINDOWS, TARGET_LINUX, TARGET_EMSCRIPTEN]
+TARGETS                  = [TARGET_WINDOWS, TARGET_LINUX, TARGET_WEB]
 
 BUILD_CONFIG_DEBUG       = "debug"
 BUILD_CONFIG_OPTIMIZED   = "optimized"
@@ -90,8 +90,8 @@ BUILD_CONFIG_DEFAULT     = BUILD_CONFIG_DEBUG
 BUILD_CONFIGS            = [BUILD_CONFIG_DEBUG, BUILD_CONFIG_OPTIMIZED, BUILD_CONFIG_RELEASE]
  
 BINARY_CLANG             = "clang"
-BINARY_EMCC              = "./extern/emsdk/upstream/emscripten/emcc"
-BINARY_EMRUN             = "./extern/emsdk/upstream/emscripten/emrun"
+BINARY_EMCC              = "emcc"  # Assumes emsdk_env has been initialized
+BINARY_EMRUN             = "emrun" # Assumes emsdk_env has been initialized
 BINARY_CLOC              = 'cloc'
 
 # Enums (end) ------------------------------------------------------------------------------------------
@@ -159,29 +159,25 @@ end
 
 # Global Constants ----------------------------------------------------------------------------------------------
 
-# Helpers to simplify branching (if LINUX ... elif WINDOWS ... elif EMSCRIPTEN ... end )
+# Helpers to simplify branching (if LINUX ... elif WINDOWS ... elif WEB ... end )
 LINUX      = OPTIONS.target == TARGET_LINUX
 WINDOWS    = OPTIONS.target == TARGET_WINDOWS
-EMSCRIPTEN = OPTIONS.target == TARGET_EMSCRIPTEN
-WEB        = EMSCRIPTEN
-DESKTOP    = LINUX || WINDOWS
+WEB        = OPTIONS.target == TARGET_WEB
+DESKTOP    = !WEB
 
 # Triplet (we use VCPKG naming convention)
 VCPKG_TRIPLET = ->() {
 
-    if LINUX
+    case TARGET
+    when TARGET_LINUX
         return "x64-linux"
-    end
-
-    if WINDOWS
+    when TARGET_WINDOWS
         return "x64-windows-static" # windows convention is different than linux, dynamic by default
-    end
-
-    if EMSCRIPTEN
+    when TARGET_WEB
         return "wasm32-emscripten"
     end
 
-    raise "Unknown VCPKG_TRIPLET for this target"
+    raise "Unknown VCPKG_TRIPLET for this target: #{TARGET}"
     
 }.call()
 
@@ -220,8 +216,8 @@ GITHUB_ACTIONS       = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME = "0.0.0.0"  # TODO: add to flags
 HTTP_SERVER_PORT     = "8000" # TODO: add to flags
 HTTP_SERVER_URL      = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
-COMPILER             = EMSCRIPTEN ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
-LINKER               = EMSCRIPTEN ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
+COMPILER             = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
+LINKER               = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
 
 if OPTIONS.verbose
 puts "------------------------------------------------------------------------------------------------------"
@@ -375,7 +371,7 @@ end
 
 def bt_target_get_binary_path( target )
     path = "#{BIN_DIR}/#{target.name}"
-    if EMSCRIPTEN
+    if WEB
         path = path.ext("js") # will generate also a .wasm, .wasm.map and *.data
     elsif DESKTOP and WINDOWS
         path = path.ext("exe")
@@ -555,7 +551,7 @@ def bt_target_link( target )
         target.linker_flags
     ]
     
-    if EMSCRIPTEN
+    if WEB
         if BUILD_OS == BUILD_OS_WINDOWS
             args += ["--output-eol", "windows"]
         elsif BUILD_OS == BUILD_OS_LINUX
@@ -662,7 +658,7 @@ namespace target.name do
                 bt_file_copy_or_overwrite( binary, "#{DIST_DIR}/#{binary_filename}" )
 
                 # And some additionnal file
-                if EMSCRIPTEN
+                if WEB
                     binary_no_ext = binary_filename.ext("")
                     binary_and_additionnal_files = FileList[
                        "#{BIN_DIR}/#{binary_no_ext}.wasm",
@@ -695,10 +691,11 @@ namespace target.name do
         
         task :run => :build do
             bt_log(target, "Running ...")
-            if DESKTOP
-                system(binary, exception: true)
-            elsif WEB
+            case TARGET
+            when TARGET_WEB
                 system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{binary.ext("html")}", exception: true)
+            else
+                system(binary, exception: true)
             end
             bt_log(target, "Running DONE")
         end

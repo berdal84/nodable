@@ -22,18 +22,15 @@ jobs:
         includes:
           - target: windows
             os: windows-2025-vs2026
-            artifact_name: nodable-x64-windows
-          - target: emscripten
+          - target: web
             os: ubuntu-24.04
-            artifact_name: nodable-x64-emscripten
           - target: linux
             os: ubuntu-24.04
-            artifact_name: nodable-x64-linux
 
     runs-on: ${{ matrix.includes.os }}
     env:
       TARGET:     ${{matrix.includes.target}}
-      OUTPUT_DIR: ${{matrix.includes.artifact_name}}
+      OUTPUT_DIR: "build"
     steps:
       - uses: actions/checkout@v4 # no submodules (libs are in the sources, see ./vcpkg and ./extern)
         with:
@@ -42,14 +39,17 @@ jobs:
 
       - run: rake install -- --target=${{env.TARGET}}
 
+      - if: env.TARGET == 'web'
+        run: source extern/emsdk/emsdk_env.sh
+
       - run: rake build -- --target=${{env.TARGET}} --output-dir=${{env.OUTPUT_DIR}} --config=release --no-gui-tests
 
-      - if: env.TARGET != 'emscripten'
+      - if: env.TARGET != 'web'
         run: ./tools-tests && ./nodable-tests
         working-directory: ${{env.OUTPUT_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
       - uses: actions/upload-artifact@v4
         with:
-          name: ${{matrix.includes.artifact_name}}
+          name: "nodable-${{env.TARGET}}"
           path: ${{env.OUTPUT_DIR}}/dist/
             
