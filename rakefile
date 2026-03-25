@@ -29,14 +29,25 @@ end
 desc "Run nodable"
 task :run =>  'nodable:run'
 
-desc "Build all"
-multitask :build => [
-    'tools-app-example:build',
-    'nodable:build',
-    'tools-tests:build'
-]
 if DESKTOP
-    task :build => 'nodable-tests:build'
+    desc "Build all"
+    multitask :build => [
+        'tools-app-example:build',
+        'nodable:build',
+        'tools-tests:build',
+        'nodable-tests:build'
+    ]
+
+    desc "Run all tests"
+    task :test => [
+        'tools-tests:run',
+        'nodable-tests:run'
+    ]
+else
+    multitask :build => [
+        'tools-app-example:build',
+        'nodable:build',
+    ]
 end
 
 desc "Clean and Build"
@@ -44,14 +55,6 @@ task :rebuild => [
     'clean',
     'build',
 ]
-
-desc "Run all tests"
-task :test => [
-    'tools-tests:run'
-]
-if DESKTOP
-    task :test => 'nodable-tests:run'
-end
 
 desc "Remove intermediate files"
 task :clean do
