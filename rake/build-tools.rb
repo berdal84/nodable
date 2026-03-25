@@ -90,8 +90,8 @@ BUILD_CONFIG_DEFAULT     = BUILD_CONFIG_DEBUG
 BUILD_CONFIGS            = [BUILD_CONFIG_DEBUG, BUILD_CONFIG_OPTIMIZED, BUILD_CONFIG_RELEASE]
  
 BINARY_CLANG             = "clang"
-BINARY_EMCC              = "emcc"
-BINARY_EMRUN             = "emrun"
+BINARY_EMCC              = "./extern/emsdk/upstream/emscripten/emcc"
+BINARY_EMRUN             = "./extern/emsdk/upstream/emscripten/emrun"
 BINARY_CLOC              = 'cloc'
 
 # Enums (end) ------------------------------------------------------------------------------------------
