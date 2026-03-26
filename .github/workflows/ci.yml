@@ -53,8 +53,9 @@ jobs:
         run: ./tools-tests && ./nodable-tests
         working-directory: ${{env.BUILD_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
 
-      - uses: actions/upload-artifact@v4
+      - run: rake nodable:zip
+
+      - uses: actions/upload-artifact@v7
         with:
           name: "nodable-${{env.PLATFORM}}"
-          path: "dist/${{env.PLATFORM}}/${{env.CONFIG}}"
-            
+          path: "build/dist/nodable.zip"

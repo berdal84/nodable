@@ -250,7 +250,7 @@ RELEASE                 = CONFIG == CONFIG_RELEASE
 DEBUG                   = CONFIG == CONFIG_DEBUG
 OPTIMIZED               = CONFIG == CONFIG_OPTIMIZED
 BUILD_DIR               = File.expand_path( @options.build_dir || "build-#{PLATFORM}-#{CONFIG}", Dir.pwd )
-DIST_DIR                = "dist/#{PLATFORM}/#{CONFIG}" # Distribution files will be copied there (after a build)
+DIST_DIR                = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
 OBJ_DIR                 = "#{BUILD_DIR}/obj"
 DEP_DIR                 = "#{BUILD_DIR}/dep"
 BIN_DIR                 = "#{BUILD_DIR}/bin" # binaries will be generated there
@@ -294,7 +294,6 @@ Target = Struct.new(
     :cxx_flags,
     :defines,
     :depends_on_target, # list of other targets to link with (if their sources are not compiled yet, it will compile them as *.o and will be linked)
-    :distribute,
     :includes, # list of path dir to include
     :is_initialized, # is ready to compile (e.g. pkg-config was run)
     :linker_flags,
@@ -320,7 +319,6 @@ def bt_target(name, type)
     target.cxx_flags                = []
     target.defines                  = []
     target.depends_on_target        = []
-    target.distribute               = false
     target.includes                 = FileList[]
     target.is_initialized           = false;
     target.linker_flags             = []
@@ -649,7 +647,7 @@ def bt_file_copy_or_overwrite(src, dst)
     # Copy file (will overwrite)
     FileUtils.cp( src, dst )
 
-    puts "  File copied: #{src} => #{dst}" if VERBOSE
+    puts "  File copied: #{src} => #{dst}"
 end
 
 # def bt_get_distribuable_files(target)
@@ -696,6 +694,16 @@ end
 # def bt_get_asset_dst(target)
 # end
 
+def bt_split_asset_pattern(pattern)
+
+    # Handle pattern (format is <src>[:<dest>], by default dest=src)
+    arr = pattern.split(':') 
+    src = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<src>[:<dest>]'")
+    dst = "#{arr[1] || src}"
+
+    return src, dst
+end
+
 def bt_tasks_for_target(target)
 namespace target.name do    
     task :clean do
@@ -741,40 +749,10 @@ namespace target.name do
 
         task :build => binary do
 
-            if target.distribute            
-                
-                if WEB
-                    binary_filename = File.basename(binary).ext("") # clean extension out
-                    binary_and_additionnal_files = FileList[
-                       "#{BIN_DIR}/#{binary_filename}.html", # User can override this by adding an asset
-                       "#{BIN_DIR}/#{binary_filename}.js",
-                       "#{BIN_DIR}/#{binary_filename}.wasm",
-                       "#{BIN_DIR}/#{binary_filename}.wasm.map",
-                       "#{BIN_DIR}/#{binary_filename}.data",
-                    ];
-                    binary_and_additionnal_files.each do |each|;
-                        bt_file_copy_or_overwrite( each, "#{DIST_DIR}/#{File.basename(each)}" )
-                    end
-                else
-                    # Copy the binary
-                    binary_filename = File.basename(binary)
-                    bt_file_copy_or_overwrite( binary, "#{DIST_DIR}/#{binary_filename}" )
-                end
-            end  
-
             # Copy assets
             target.assets.each_with_index do |pattern, i|
-
-                # Handle pattern (format is <src>[:<dest>], by default dest=src)
-                arr = pattern.split(':') 
-                src = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<src>[:<dest>]'")
-                dst = "#{arr[1] || src}"
-
+                src, dst = bt_split_asset_pattern(pattern)
                 bt_file_copy_or_overwrite( src, "#{BIN_DIR}/#{dst}" )
-
-            if target.distribute                            
-                    bt_file_copy_or_overwrite( src, "#{DIST_DIR}/#{dst}" )
-                end
             end  
 
             bt_log(target, "Build DONE")
@@ -789,6 +767,39 @@ namespace target.name do
                 system(binary, exception: true)
             end
             bt_log(target, "Running DONE")
+        end
+
+        task :zip do
+
+            # Copy binary and related files + assets into dist folder
+            if WEB
+                binary_filename = File.basename(binary).ext("") # clean extension out
+                binary_and_additionnal_files = FileList[
+                "#{BIN_DIR}/#{binary_filename}.html", # User can override this by adding an asset
+                "#{BIN_DIR}/#{binary_filename}.js",
+                "#{BIN_DIR}/#{binary_filename}.wasm",
+                "#{BIN_DIR}/#{binary_filename}.wasm.map",
+                "#{BIN_DIR}/#{binary_filename}.data",
+                ];
+                binary_and_additionnal_files.each do |each|;
+                    bt_file_copy_or_overwrite( each, "#{DIST_DIR}/#{File.basename(each)}" )
+                end
+            else
+                # Copy the binary
+                binary_filename = File.basename(binary)
+                bt_file_copy_or_overwrite( binary, "#{DIST_DIR}/#{binary_filename}" )
+            end
+            target.assets.each_with_index do |pattern, i|
+                src, dst = bt_split_asset_pattern(pattern)
+                bt_file_copy_or_overwrite( src, "#{DIST_DIR}/#{dst}" )
+            end
+
+            # Zip all the files
+            zip_filename = "#{DIST_DIR}/#{target.name}.zip"
+            FileUtils.rm zip_filename if File.exist? zip_filename
+            level = 9 # zip compression level
+            sh "zip -r -#{level} #{zip_filename} #{DIST_DIR}"
+
         end
     end # case target.type
 end # namespace end
