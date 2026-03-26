@@ -798,8 +798,13 @@ namespace target.name do
             zip_filename = "#{DIST_DIR}/#{target.name}.zip"
             FileUtils.rm zip_filename if File.exist? zip_filename
             level = 9 # zip compression level
-            sh "zip -r -#{level} #{zip_filename} #{DIST_DIR}"
 
+            if BUILD_OS == BUILD_OS_WINDOWS
+                # GitHub Runner OS has 7zip on windows
+                sh "7z a -tzip -mx#{level} #{zip_filename} #{DIST_DIR}"
+            else
+                sh "zip -r -#{level} #{zip_filename} #{DIST_DIR}"
+            end
         end
     end # case target.type
 end # namespace end
