@@ -58,19 +58,13 @@ task :rebuild => [
 
 desc "Remove intermediate files"
 task :clean do
-    folders_to_delete = [OBJ_DIR, DEP_DIR, BIN_DIR]
-    # This code is slow:
-    # FileUtils.rm_rf folders_to_delete
-    # That's why we use:
-    sh "rm -rf #{folders_to_delete.join(" ")}"
+    bt_clean()
 end
 
 desc "Remove intermediate files and any other files"
 task :clobber do
-    # see clean to know why we do not use FileUtils
-    sh "rm -rf #{BUILD_DIR}"
+    bt_clobber()
 end
-
 
 task :rebuild_all do
     BUILD_CONFIGS.each do |each_config|

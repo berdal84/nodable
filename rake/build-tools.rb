@@ -250,7 +250,8 @@ RELEASE                 = CONFIG == CONFIG_RELEASE
 DEBUG                   = CONFIG == CONFIG_DEBUG
 OPTIMIZED               = CONFIG == CONFIG_OPTIMIZED
 BUILD_DIR               = File.expand_path( @options.build_dir || "build-#{PLATFORM}-#{CONFIG}", Dir.pwd )
-DIST_DIR                = "#{BUILD_DIR}/dist" # Distribution files will be copied there (after a build)
+ZIPPED_DIST_DIR         = "dist"
+DIST_DIR                = "#{BUILD_DIR}/dist" # To gather dist files prior to be zipped
 OBJ_DIR                 = "#{BUILD_DIR}/obj"
 DEP_DIR                 = "#{BUILD_DIR}/dep"
 BIN_DIR                 = "#{BUILD_DIR}/bin" # binaries will be generated there
@@ -795,7 +796,7 @@ namespace target.name do
             end
 
             # Zip all the files
-            zip_filename = "#{DIST_DIR}/#{target.name}.zip"
+            zip_filename = "#{ZIPPED_DIST_DIR}/#{target.name}-#{PLATFORM}-#{CONFIG}.zip"
             FileUtils.rm zip_filename if File.exist? zip_filename
             level = 9 # zip compression level
 
@@ -853,4 +854,19 @@ def bt_print_help()
         name = name.ljust(column_width, '.') # dots from last space to comment
         puts "    #{name} #{task.full_comment}"
     end
+end
+
+
+def bt_clean()
+    folders_to_delete = [OBJ_DIR, DEP_DIR, BIN_DIR, DIST_DIR]
+    # This code is slow:
+    # FileUtils.rm_rf folders_to_delete
+    # That's why we use:
+    sh "rm", "-rf", *folders_to_delete
+end
+
+def bt_clobber()
+    folders_to_delete = [BUILD_DIR, ZIPPED_DIST_DIR]
+    # see bt_clean() to know why we do not use FileUtils
+    sh "rm", "-rf", *folders_to_delete
 end

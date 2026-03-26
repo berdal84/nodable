@@ -57,6 +57,5 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name:    "nodable-${{env.PLATFORM}}"
-          path:    "build/dist/nodable.zip"
+          path:    "dist/nodable-${{env.PLATFORM}}-${{env.CONFIG}}.zip"
           archive: false # This is already done
