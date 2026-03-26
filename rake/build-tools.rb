@@ -300,7 +300,12 @@ Target = Struct.new(
     :vcpkg, # list of (static) vcpkg package names
     :unity_build_on, # enable/disable unity build
     :unity_build_slice_size, # file count per slice
-    keyword_init: true # If the optional keyword_init keyword argument is set to true, .new takes keyword arguments instead of normal arguments.
+    :_build_dir,
+    :_dist_dir,
+    :_bin_dir,
+    :_dep_dir,
+    :_obj_dir,
+    :_src_dir,
 )
 
 def bt_target(name, type)
@@ -326,6 +331,13 @@ def bt_target(name, type)
     target.unity_build_on           = false
     target.unity_build_slice_size   = RELEASE ? 512 : 4
 
+    target._build_dir               = "#{BUILD_DIR}/#{target.name}"
+    target._dist_dir                = "#{target._build_dir}/dist"
+    target._bin_dir                 = "#{target._build_dir}/bin"
+    target._dep_dir                 = "#{target._build_dir}/dep"
+    target._obj_dir                 = "#{target._build_dir}/obj"
+    target._src_dir                 = "#{target._build_dir}/src"
+
     if @options.verbose
         target.compiler_flags.append("-v")
         target.linker_flags.append("-v")
@@ -335,36 +347,12 @@ def bt_target(name, type)
 
 end
 
-def bt_target_get_build_dir(target)
-    "#{BUILD_DIR}/#{target.name}"
-end
-
-def bt_target_get_dist_dir(target)
-    "#{bt_target_get_build_dir(target)}/dist"
-end
-
-def bt_target_get_bin_dir(target)
-    "#{bt_target_get_build_dir(target)}/bin"
-end
-
-def bt_target_get_dep_dir(target)
-    "#{bt_target_get_build_dir(target)}/dep"
-end
-
-def bt_target_get_unitybuild_dir(target)
-    "#{bt_target_get_build_dir(target)}/generated"
-end
-
-def bt_target_get_obj_dir(target)
-    "#{bt_target_get_build_dir(target)}/obj"
-end
-
 def bt_target_convert_src_to_obj( target, src )   
-    "#{bt_target_get_obj_dir(target)}/#{src.ext(".o")}"
+    "#{target._obj_dir}/#{src.ext(".o")}"
 end
 
 def bt_target_convert_src_to_dep( target, src )
-    "#{bt_target_get_dep_dir(target)}/#{src.ext(".d")}"
+    "#{target._dep_dir}/#{src.ext(".d")}"
 end
 
 def bt_target_find_deps_for_src( target, src )
@@ -385,7 +373,7 @@ def bt_target_find_deps_for_src( target, src )
 end
 
 def bt_target_find_src_for_obj( target, obj )
-    stem = obj.sub("#{bt_target_get_obj_dir(target)}/", "").ext("")    
+    stem = obj.sub("#{target._obj_dir}/", "").ext("")    
     target.sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
@@ -422,7 +410,7 @@ def bt_target_get_objects( target, recursively = false )
 end
 
 def bt_target_get_binary_path( target )
-    path = "#{bt_target_get_bin_dir(target)}/#{target.name}"
+    path = "#{target._bin_dir}/#{target.name}"
     if WEB
         path = path.ext("html") # will generate also a *.js, *.wasm, *.wasm.map and *.data
     elsif DESKTOP and WINDOWS
@@ -523,7 +511,7 @@ def bt_target_initialize_if_needed(target)
                 ].join("\n")
 
                 hash       = Digest::SHA256.hexdigest(content)[0..17]     # We want to make sure filename changes even if index does not
-                filename   = "#{bt_target_get_unitybuild_dir(target)}/slice-#{1+index}-#{hash}.cpp"
+                filename   = "#{target._src_dir}/slice-#{1+index}-#{hash}.cpp"
 
                 unity_sources += [filename]
 
@@ -620,95 +608,20 @@ def bt_target_link( target )
     bt_log(target, "Linking DONE - (#{binary})")
 end
 
-def bt_update_llvm_json_compilation_database()
+def bt_target_clean(target, recursively = false)
+    # FileUtils.rm_rf was too slow, that's why we use:
+    sh "rm", "-rf", target._build_dir
 
-    #
-    # Update ./compile_commands.json
-    # This file can be read by clangd to perform static analysis (e.g. with cnagd, in VSCode or CLION )
-    # 
-    # see https://clang.llvm.org/docs/JSONCompilationDatabase.html
-    #
-
-    output_file = "./compile_commands.json"
-
-    # clear existing file
-    if File.exist? output_file
-        FileUtils.rm_f output_file
+    if recursively
+        target.depends_on_target.each do |each_dependency|
+            bt_target_clean(each_dependency, recursively: true)
+        end
     end
-
-    # Grab all *.o.json files from object dir
-    command_files = FileList["#{BUILD_DIR}/**/*.json"]
-
-    # combine
-    commands = command_files.map{|f| File.read(f)}.join()
-    content = "[" + commands[0...-2] + "]" # -2: remove trailing comma
-    File.write( output_file, content)
 end
 
-def bt_file_copy_or_overwrite(src, dst)
-    
-    # Ensure destination folder exists
-    dst_dir = File.dirname(dst)
-    FileUtils.mkdir_p dst_dir
-
-    # Copy file (will overwrite)
-    FileUtils.cp( src, dst )
-
-    puts "  File copied: #{src} => #{dst}"
-end
-
-# def bt_get_distribuable_files(target)
-
-#     result = FileList[]
-
-#     bt_get_asset_pairs(target).each do |src|
-#         result += src
-#     end
-
-#     if WEB
-#         # Binary and associated files
-#         basename = File.basename( bt_target_get_binary_path(target) ).ext("") # clean extension out
-#         result += [
-#             "#{BIN_DIR}/#{basename}.html", # User can override this by adding an asset
-#             "#{BIN_DIR}/#{basename}.js",
-#             "#{BIN_DIR}/#{basename}.wasm",
-#             "#{BIN_DIR}/#{basename}.wasm.map",
-#             "#{BIN_DIR}/#{basename}.data",
-#         ];
-#     else
-#         # Binary only
-#         # TODO: copy debug infos?
-#         binary = File.basename( bt_target_get_binary_path(target) )
-#         result += FileList[
-#             "#{BIN_DIR}/#{binary}"
-#         ]
-#     end
-#     result
-# end
-
-# def bt_get_asset_pairs(target)
-#     result = []
-#     target.assets.each_with_index do |pattern, i|
-#         # Handle pattern (format is <src>[:<dest>], by default dest=src)
-#         arr = pattern.split(':') 
-#         src = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<src>[:<dest>]'")
-#         dst = "#{arr[1] || src}"
-#         result.append( [src, dst] )
-#     end
-#     result
-# end
-
-# def bt_get_asset_dst(target)
-# end
-
-def bt_split_asset_pattern(pattern)
-
-    # Handle pattern (format is <src>[:<dest>], by default dest=src)
-    arr = pattern.split(':') 
-    src = arr[0] or raise ("Wrong pattern: #{pattern}, expecting '<src>[:<dest>]'")
-    dst = "#{arr[1] || src}"
-
-    return src, dst
+def bt_clobber()
+    # FileUtils.rm_rf was too slow, that's why we use:
+    sh "rm", "-rf", BUILD_DIR, ZIPPED_DIST_DIR
 end
 
 def bt_tasks_for_target(target)
@@ -743,7 +656,7 @@ namespace target.name do
     when TARGET_TYPE_OBJECTS
         
         multitask :build => bt_target_get_objects(target, recursively: true) do
-            bt_update_llvm_json_compilation_database()
+            _update_llvm_json_compilation_database()
         end
 
     when TARGET_TYPE_EXECUTABLE
@@ -751,7 +664,7 @@ namespace target.name do
         binary = bt_target_get_binary_path(target)
 
         file binary => bt_target_get_objects(target, recursively: true) do
-            bt_update_llvm_json_compilation_database()
+            _update_llvm_json_compilation_database()
             bt_target_link(target)
         end
 
@@ -759,8 +672,8 @@ namespace target.name do
 
             # Copy assets
             target.assets.each_with_index do |pattern, i|
-                src, dst = bt_split_asset_pattern(pattern)
-                bt_file_copy_or_overwrite( src, "#{bt_target_get_bin_dir(target)}/#{dst}" )
+                src, dst = _split_asset_pattern(pattern)
+                _file_copy_or_overwrite( src, "#{target._bin_dir}/#{dst}" )
             end  
 
             bt_log(target, "Build DONE")
@@ -779,9 +692,6 @@ namespace target.name do
 
         task :zip do
 
-            bin_dir   = bt_target_get_bin_dir(target)
-            dist_dir  = bt_target_get_dist_dir(target)
-
             # Copy binary and related files + assets into dist folder
             if WEB
                 binary_filename = File.basename(binary).ext("") # clean extension out
@@ -793,16 +703,16 @@ namespace target.name do
                 "#{bin_dir}/#{binary_filename}.data",
                 ];
                 binary_and_additionnal_files.each do |each|;
-                    bt_file_copy_or_overwrite( each, "#{dist_dir}/#{File.basename(each)}" )
+                    _file_copy_or_overwrite( each, "#{target._dist_dir}/#{File.basename(each)}" )
                 end
             else
                 # Copy the binary
                 binary_filename = File.basename(binary)
-                bt_file_copy_or_overwrite( binary, "#{dist_dir}/#{binary_filename}" )
+                _file_copy_or_overwrite( binary, "#{target._dist_dir}/#{binary_filename}" )
             end
             target.assets.each_with_index do |pattern, i|
-                src, dst = bt_split_asset_pattern(pattern)
-                bt_file_copy_or_overwrite( src, "#{dist_dir}/#{dst}" )
+                src, dst = _split_asset_pattern(pattern)
+                _file_copy_or_overwrite( src, "#{target._dist_dir}/#{dst}" )
             end
 
             # Zip all the files
@@ -816,9 +726,9 @@ namespace target.name do
 
             if BUILD_OS == BUILD_OS_WINDOWS
                 # GitHub Runner OS has 7zip on windows
-                sh "7z a -tzip -mx#{level} #{zip_filename} #{dist_dir}/*"
+                sh "7z a -tzip -mx#{level} #{zip_filename} #{target._dist_dir}/*"
             else
-                sh "cd #{dist_dir} && zip -r -#{level} #{zip_filename} ."
+                sh "cd #{target._dist_dir} && zip -r -#{level} #{zip_filename} ."
             end
         end
     end # case target.type
@@ -870,25 +780,50 @@ def bt_print_help()
     end
 end
 
+def _update_llvm_json_compilation_database()
 
-def bt_target_clean(target, recursively = false)
-    folders_to_delete = [
-        bt_target_get_build_dir(target),
-    ]
-    # This code is slow:
-    # FileUtils.rm_rf folders_to_delete
-    # That's why we use:
-    sh "rm", "-rf", *folders_to_delete
+    #
+    # Update ./compile_commands.json
+    # This file can be read by clangd to perform static analysis (e.g. with cnagd, in VSCode or CLION )
+    # 
+    # see https://clang.llvm.org/docs/JSONCompilationDatabase.html
+    #
 
-    if recursively
-        target.depends_on_target.each do |each_dependency|
-            bt_target_clean(each_dependency, recursively: true)
-        end
+    output_file = "./compile_commands.json"
+
+    # clear existing file
+    if File.exist? output_file
+        FileUtils.rm_f output_file
     end
+
+    # Grab all *.o.json files from object dir
+    command_files = FileList["#{BUILD_DIR}/**/*.json"]
+
+    # combine
+    commands = command_files.map{|f| File.read(f)}.join()
+    content = "[" + commands[0...-2] + "]" # -2: remove trailing comma
+    File.write( output_file, content)
 end
 
-def bt_clobber()
-    folders_to_delete = [BUILD_DIR, ZIPPED_DIST_DIR]
-    # see bt_clean() to know why we do not use FileUtils
-    sh "rm", "-rf", *folders_to_delete
+def _file_copy_or_overwrite(src, dst)
+    
+    # Ensure destination folder exists
+    dst_dir = File.dirname(dst)
+    FileUtils.mkdir_p dst_dir
+
+    # Copy file (will overwrite)
+    FileUtils.cp( src, dst )
+
+    puts "  File copied: #{src} => #{dst}"
+end
+
+# With a string like "<src>[:<dest>]", returns src, dst.
+# dst = src when not defined.
+def _split_asset_pattern(pattern)
+
+    arr = pattern.split(':') 
+    src = arr[0] or raise ("Wrong asset pattern: '#{pattern}', expecting '<src>[:<dest>]'")
+    dst = "#{arr[1] || src}"
+
+    return src, dst
 end
