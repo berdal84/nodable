@@ -15,123 +15,6 @@ require_relative 'rake/build-tools' # Import my custom tools to build C++ deskto
 Rake::TaskManager.record_task_metadata = true
 
 #---------------------------------------------------------------------------
-# HIGH LEVEL TASKS
-#---------------------------------------------------------------------------
-
-desc "Running rake without task"
-task :default => :help
-
-desc "Print this help message"
-task :help do
-    print_help()
-end
-
-desc "Run nodable"
-task :run =>  'nodable:run'
-
-if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
-    desc "Build all"
-    multitask :build => [
-        'tools-app-example:build',
-        'nodable:build',
-        'tools-tests:build',
-        'nodable-tests:build'
-    ]
-
-    desc "Run all tests"
-    task :test => [
-        'tools-tests:run',
-        'nodable-tests:run'
-    ]
-else
-    multitask :build => [
-        'tools-app-example:build',
-        'nodable:build',
-    ]
-
-    desc "Run all tests"
-    task :test do
-        puts "No tests to run when PLATFORM=#{PLATFORM}"
-    end
-end
-
-desc "Clean and Build"
-task :rebuild => [
-    'clean',
-    'build',
-]
-
-desc "Remove intermediate files"
-task :clean => [
-    'nodable:clean',
-    'extern:clean',
-    'common:clean',
-    'tools-app-example:clean',
-    'nodable-tests:clean',
-    'tools-tests:clean',
-]
-
-desc "Remove intermediate files and any other files"
-task :clobber do
-    clobber()
-end
-
-task :rebuild_all do
-    BUILD_CONFIGS.each do |each_config|
-        system("rake -m clean build -- --config=#{each_config} --platform=#{PLATFORM}", exception: true)
-    end
-end
-
-APT_PACKAGES = [
-    "libx11-dev",
-    "libgl1-mesa-dev",
-]
-
-def install_emsdk()
-    system("python extern/emsdk/emsdk.py install latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-end
-
-def activate_emsdk()
-    system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
-end
-
-task :ci do
-    case PLATFORM
-    when PLATFORM_LINUX            
-        run_sudo_apt_install(APT_PACKAGES)
-    when PLATFORM_WEB  
-        install_emsdk()
-        activate_emsdk()
-    else
-        puts "INFO: Nothing to install on CI for #{PLATFORM}"
-    end    
-end
-
-desc "Install system dependencies"
-task :install do
-    case PLATFORM
-    when PLATFORM_LINUX             
-        run_sudo_apt_install(APT_PACKAGES)    
-    when PLATFORM_WEB
-        install_emsdk()
-        activate_emsdk()
-        puts("emsdk environment has been activated, consider running source extern/emsdk/emdsk_env.sh to get commands (emcc, emrun, etc)")
-    else
-        puts "INFO: Nothing to install on #{PLATFORM}"
-    end
-end
-
-desc "Recompiles vcpkg binaries"
-task :vcpkg_install do
-    bt_vcpkg_install()
-end
-
-desc "Count the lines of code in ./src folder"
-task :count_lines do |t, args|
-    bt_count_lines_of_code('src')
-end
-
-#---------------------------------------------------------------------------
 # BASE TARGET - all targets are created from this one
 #---------------------------------------------------------------------------
 
@@ -492,6 +375,123 @@ ndbl_test.vcpkg |= [
 ndbl_test.depends_on_target = [
     common
 ]
+
+#---------------------------------------------------------------------------
+# HIGH LEVEL TASKS
+#---------------------------------------------------------------------------
+
+desc "Running rake without task"
+task :default => :help
+
+desc "Print this help message"
+task :help do
+    print_help()
+end
+
+desc "Run nodable"
+task :run =>  'nodable:run'
+
+if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
+    desc "Build all"
+    multitask :build => [
+        'tools-app-example:build',
+        'nodable:build',
+        'tools-tests:build',
+        'nodable-tests:build'
+    ]
+
+    desc "Run all tests"
+    task :test => [
+        'tools-tests:run',
+        'nodable-tests:run'
+    ]
+else
+    multitask :build => [
+        'tools-app-example:build',
+        'nodable:build',
+    ]
+
+    desc "Run all tests"
+    task :test do
+        puts "No tests to run when PLATFORM=#{PLATFORM}"
+    end
+end
+
+desc "Clean and Build"
+task :rebuild => [
+    'clean',
+    'build',
+]
+
+desc "Remove intermediate files"
+task :clean => [
+    'nodable:clean',
+    'extern:clean',
+    'common:clean',
+    'tools-app-example:clean',
+    'nodable-tests:clean',
+    'tools-tests:clean',
+]
+
+desc "Remove intermediate files and any other files"
+task :clobber do
+    clobber()
+end
+
+task :rebuild_all do
+    BUILD_CONFIGS.each do |each_config|
+        system("rake -m clean build -- --config=#{each_config} --platform=#{PLATFORM}", exception: true)
+    end
+end
+
+APT_PACKAGES = [
+    "libx11-dev",
+    "libgl1-mesa-dev",
+]
+
+def install_emsdk()
+    system("python extern/emsdk/emsdk.py install latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+end
+
+def activate_emsdk()
+    system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+end
+
+task :ci do
+    case PLATFORM
+    when PLATFORM_LINUX            
+        run_sudo_apt_install(APT_PACKAGES)
+    when PLATFORM_WEB  
+        install_emsdk()
+        activate_emsdk()
+    else
+        puts "INFO: Nothing to install on CI for #{PLATFORM}"
+    end    
+end
+
+desc "Install system dependencies"
+task :install do
+    case PLATFORM
+    when PLATFORM_LINUX             
+        run_sudo_apt_install(APT_PACKAGES)    
+    when PLATFORM_WEB
+        install_emsdk()
+        activate_emsdk()
+        puts("emsdk environment has been activated, consider running source extern/emsdk/emdsk_env.sh to get commands (emcc, emrun, etc)")
+    else
+        puts "INFO: Nothing to install on #{PLATFORM}"
+    end
+end
+
+desc "Recompiles vcpkg binaries"
+task :vcpkg_install do
+    bt_vcpkg_install()
+end
+
+desc "Count the lines of code in ./src folder"
+task :count_lines do |t, args|
+    bt_count_lines_of_code('src')
+end
 
 #---------------------------------------------------------------------------
 # TARGETS' TASKS - automatically generated
