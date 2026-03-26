@@ -797,7 +797,11 @@ namespace target.name do
 
             # Zip all the files
             zip_filename = "#{ZIPPED_DIST_DIR}/#{target.name}-#{PLATFORM}-#{CONFIG}.zip"
+            
             FileUtils.rm zip_filename if File.exist? zip_filename
+            
+            FileUtils.mkdir_p File.dirname( zip_filename )
+            
             level = 9 # zip compression level
 
             if BUILD_OS == BUILD_OS_WINDOWS
