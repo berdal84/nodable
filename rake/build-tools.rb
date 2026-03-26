@@ -796,7 +796,7 @@ namespace target.name do
             end
 
             # Zip all the files
-            zip_filename = "#{ZIPPED_DIST_DIR}/#{target.name}-#{PLATFORM}-#{CONFIG}.zip"
+            zip_filename = File.absolute_path "#{ZIPPED_DIST_DIR}/#{target.name}-#{PLATFORM}-#{CONFIG}.zip"
             
             FileUtils.rm zip_filename if File.exist? zip_filename
             
@@ -806,9 +806,9 @@ namespace target.name do
 
             if BUILD_OS == BUILD_OS_WINDOWS
                 # GitHub Runner OS has 7zip on windows
-                sh "7z a -tzip -mx#{level} #{zip_filename} #{DIST_DIR}"
+                sh "7z a -tzip -mx#{level} #{zip_filename} #{DIST_DIR}/*"
             else
-                sh "zip -r -#{level} #{zip_filename} #{DIST_DIR}"
+                sh "cd #{DIST_DIR} && zip -r -#{level} #{zip_filename} ."
             end
         end
     end # case target.type
