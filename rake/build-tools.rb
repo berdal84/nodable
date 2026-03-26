@@ -191,7 +191,7 @@ LINUX           = PLATFORM == PLATFORM_LINUX
 WINDOWS         = PLATFORM == PLATFORM_WINDOWS
 WEB             = PLATFORM == PLATFORM_WEB
 DESKTOP         = !WEB
-HEADLESS_TESTS  = @options.headless_tests
+HEADLESS_TESTS  = !!@options.headless_tests
 VERBOSE         = @options.verbose
 
 # Triplet (we use VCPKG naming convention)
