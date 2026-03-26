@@ -754,11 +754,11 @@ namespace target.name do
             if WEB
                 binary_filename = File.basename(binary).ext("") # clean extension out
                 binary_and_additionnal_files = FileList[
-                "#{bin_dir}/#{binary_filename}.html", # User can override this by adding an asset
-                "#{bin_dir}/#{binary_filename}.js",
-                "#{bin_dir}/#{binary_filename}.wasm",
-                "#{bin_dir}/#{binary_filename}.wasm.map",
-                "#{bin_dir}/#{binary_filename}.data",
+                "#{target._bin_dir}/#{binary_filename}.html", # User can override this by adding an asset
+                "#{target._bin_dir}/#{binary_filename}.js",
+                "#{target._bin_dir}/#{binary_filename}.wasm",
+                "#{target._bin_dir}/#{binary_filename}.wasm.map",
+                "#{target._bin_dir}/#{binary_filename}.data",
                 ];
                 binary_and_additionnal_files.each do |each|;
                     file_copy_or_overwrite( each, "#{target._dist_dir}/#{File.basename(each)}" )
