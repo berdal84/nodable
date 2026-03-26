@@ -114,7 +114,10 @@ end
 
 def base_target(name, type)
 
-    target = target(name=name, type=type)
+    target = target(
+        name,
+        type,
+    )
     
     target.unity_build_on = true
 
@@ -131,25 +134,17 @@ def base_target(name, type)
     ]
 
     target.defines |= [
+        "TOOLS_#{CONFIG.upcase}", "TOOLS_#{PLATFORM.upcase}",
+        "NDBL_#{CONFIG.upcase}" , "NDBL_#{PLATFORM.upcase}",
         "IMGUI_USER_CONFIG=\\\"tools/gui/ImGuiExConfig.h\\\"",
         "NDBL_APP_NAME=\\\"nodable\\\"",
-        "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",
-        "NDBL_#{PLATFORM.upcase}",
-        "CPPTRACE_STATIC_DEFINE" #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
+        "NDBL_BUILD_REF=\\\"#{`git describe --tags HEAD`.chomp}-#{CONFIG}\\\"",        
+        "CPPTRACE_STATIC_DEFINE", #  error LNK2019: unresolved external symbol "__declspec(dllimport) public: void __cdecl cpptrace::stacktrace::print_with_snippets...
     ]
 
-    target.cxx_flags |= [
-        "-x c++",       # we use clang, not clang++ (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-x)
-        "-std=c++20",   # see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-std       
+    target.cxx_flags |= [              
         "-fno-char8_t", # related to ImGui and font awesome (const char* and concatenation would fail without it)
     ]
-
-    if WINDOWS
-        
-        target.compiler_flags |=[
-            "-fms-extensions" # turn ON MSVC compatibility
-        ]
-    end
 
     # disable some warnings
     target.cxx_flags |= [
@@ -239,37 +234,6 @@ def base_target(name, type)
                 # "-D_DLL"
             ]
         end
-    end
-
-    # ---- BUILD_CONFIG_XXX specific --------
-
-    if RELEASE
-
-        target.compiler_flags |= [
-            "-Oz", # O2 + extra reduced size (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption)
-            # "-pedantic", # https://clang.llvm.org/docs/UsersManual.html#cmdoption-pedantic
-            # "-Werror", # It's too much!
-        ]
-
-    elsif OPTIMIZED
-
-        target.compiler_flags |= [
-            "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
-            "-O2", # Moderate level of optimization which enables most optimizations. (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O2)
-        ]
-
-    elsif DEBUG
-
-        target.compiler_flags |= [
-            "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
-            "-O0", # No optimizations (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O0)
-        ]
-
-        target.defines |= [
-            "TOOLS_DEBUG",
-            "NDBL_DEBUG"
-        ]
-
     end
 
     target

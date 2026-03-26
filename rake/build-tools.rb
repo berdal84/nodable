@@ -258,6 +258,26 @@ HTTP_SERVER_URL         = "http://#{HTTP_SERVER_HOSTNAME}:#{HTTP_SERVER_PORT}/"
 COMPILER                = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
 LINKER                  = WEB ? BINARY_EMCC : BINARY_CLANG # Same binary to compile both C and CPP
 
+CXXSTD98                = "-std=c++98" # see https://clang.llvm.org/cxx_status.html
+CXXSTD03                = "-std=c++03"
+CXXSTD11                = "-std=c++11"
+CXXSTD14                = "-std=c++14"
+CXXSTD17                = "-std=c++17"
+CXXSTD20                = "-std=c++20"
+CXXSTD23                = "-std=c++23"
+CXXSTD2X                = "-std=c++2c"
+
+ALLOWED_CXXSTDS = [
+    CXXSTD98,
+    CXXSTD03,
+    CXXSTD11,
+    CXXSTD14,
+    CXXSTD17,
+    CXXSTD20,
+    CXXSTD23,
+    CXXSTD2X,
+]
+
 if @options.verbose
 puts "------------------------------------------------------------------------------------------------------"
 puts "@options: ............ #{@options}"
@@ -308,7 +328,13 @@ Target = Struct.new(
     :_src_dir,
 )
 
-def target(name, type)
+def target(
+    name,
+    type,
+    cxxstd = CXXSTD20
+    )
+
+    raise "Wrong value for cxxstd:\n  Allowed: #{ALLOWED_CXXSTDS.join ", "}.\n  Actual: #{cxxstd}" if not ALLOWED_CXXSTDS.include?(cxxstd)
     
     target = Target.new
 
@@ -338,9 +364,46 @@ def target(name, type)
     target._obj_dir                 = "#{target._build_dir}/obj"
     target._src_dir                 = "#{target._build_dir}/src"
 
-    if @options.verbose
-        target.compiler_flags.append("-v")
-        target.linker_flags.append("-v")
+    if VERBOSE
+        target.compiler_flags   |= ["-v"]
+        target.linker_flags     |= ["-v"]
+    end
+
+    target.cxx_flags |= [
+        "-x c++", # we use clang, not clang++ (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-x)
+        cxxstd,   # see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-std 
+    ]
+    
+    if WINDOWS        
+        target.compiler_flags |=[
+            "-fms-extensions" # turn ON MSVC compatibility
+        ]
+    end
+
+    # Set some flags related to optimization depending on CONFIG
+    case CONFIG
+    when CONFIG_RELEASE
+
+        target.compiler_flags |= [
+            "-Oz", # O2 + extra reduced size (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption)
+            # "-pedantic", # https://clang.llvm.org/docs/UsersManual.html#cmdoption-pedantic
+            # "-Werror", # It's too much!
+        ]
+
+    when CONFIG_OPTIMIZED
+
+        target.compiler_flags |= [
+            "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
+            "-O2", # Moderate level of optimization which enables most optimizations. (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O2)
+        ]
+
+    when CONFIG_DEBUG
+
+        target.compiler_flags |= [
+            "-g",  # Generate debug information (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-g)
+            "-O0", # No optimizations (see https://clang.llvm.org/docs/CommandGuide/clang.html#cmdoption-O0)
+        ]
+
     end
 
     return target
