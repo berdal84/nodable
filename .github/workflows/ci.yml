@@ -49,8 +49,7 @@ jobs:
       - if: env.PLATFORM != 'web'
         run: rake build
 
-      - if: env.PLATFORM != 'web'
-        run: rake test
+      - run: rake test
 
       - run: rake nodable:zip
 

@@ -29,7 +29,7 @@ end
 desc "Run nodable"
 task :run =>  'nodable:run'
 
-if DESKTOP
+if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
     desc "Build all"
     multitask :build => [
         'tools-app-example:build',
@@ -48,6 +48,11 @@ else
         'tools-app-example:build',
         'nodable:build',
     ]
+
+    desc "Run all tests"
+    task :test do
+        puts "No tests to run when PLATFORM=#{PLATFORM}"
+    end
 end
 
 desc "Clean and Build"
