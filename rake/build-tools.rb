@@ -251,10 +251,6 @@ DEBUG                   = CONFIG == CONFIG_DEBUG
 OPTIMIZED               = CONFIG == CONFIG_OPTIMIZED
 BUILD_DIR               = @options.build_dir || "build-#{PLATFORM}-#{CONFIG}"
 ZIPPED_DIST_DIR         = "dist"
-DIST_DIR                = "#{BUILD_DIR}/dist" # To gather dist files prior to be zipped
-OBJ_DIR                 = "#{BUILD_DIR}/obj"
-DEP_DIR                 = "#{BUILD_DIR}/dep"
-BIN_DIR                 = "#{BUILD_DIR}/bin" # binaries will be generated there
 GITHUB_ACTIONS          = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME    = "0.0.0.0"  # TODO: add to flags
 HTTP_SERVER_PORT        = "8000" # TODO: add to flags
@@ -339,18 +335,42 @@ def bt_target(name, type)
 
 end
 
-def bt_convert_src_to_obj( src )   
-    "#{OBJ_DIR}/#{src.ext(".o")}"
+def bt_target_get_build_dir(target)
+    "#{BUILD_DIR}/#{target.name}"
 end
 
-def bt_convert_src_to_dep( src )
-    "#{DEP_DIR}/#{src.ext(".d")}"
+def bt_target_get_dist_dir(target)
+    "#{bt_target_get_build_dir(target)}/dist"
 end
 
-def bt_find_deps_for_src( src )
+def bt_target_get_bin_dir(target)
+    "#{bt_target_get_build_dir(target)}/bin"
+end
+
+def bt_target_get_dep_dir(target)
+    "#{bt_target_get_build_dir(target)}/dep"
+end
+
+def bt_target_get_unitybuild_dir(target)
+    "#{bt_target_get_build_dir(target)}/generated"
+end
+
+def bt_target_get_obj_dir(target)
+    "#{bt_target_get_build_dir(target)}/obj"
+end
+
+def bt_target_convert_src_to_obj( target, src )   
+    "#{bt_target_get_obj_dir(target)}/#{src.ext(".o")}"
+end
+
+def bt_target_convert_src_to_dep( target, src )
+    "#{bt_target_get_dep_dir(target)}/#{src.ext(".d")}"
+end
+
+def bt_target_find_deps_for_src( target, src )
     
     # get *.d file
-    dep = bt_convert_src_to_dep( src )
+    dep = bt_target_convert_src_to_dep( target, src )
 
     deps = []
 
@@ -364,9 +384,9 @@ def bt_find_deps_for_src( src )
     deps
 end
 
-def bt_find_src_for_obj( sources, obj )
-    stem = obj.sub("#{OBJ_DIR}/", "").ext("")    
-    sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
+def bt_target_find_src_for_obj( target, obj )
+    stem = obj.sub("#{bt_target_get_obj_dir(target)}/", "").ext("")    
+    target.sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
 def bt_target_get_sources( target, recursively = false )
@@ -396,13 +416,13 @@ def bt_target_get_objects( target, recursively = false )
         end
     end
 
-    objects |= target.sources.map{|src| bt_convert_src_to_obj(src) };
+    objects |= target.sources.map{|src| bt_target_convert_src_to_obj( target, src) };
 
     objects
 end
 
 def bt_target_get_binary_path( target )
-    path = "#{BIN_DIR}/#{target.name}"
+    path = "#{bt_target_get_bin_dir(target)}/#{target.name}"
     if WEB
         path = path.ext("html") # will generate also a *.js, *.wasm, *.wasm.map and *.data
     elsif DESKTOP and WINDOWS
@@ -503,7 +523,7 @@ def bt_target_initialize_if_needed(target)
                 ].join("\n")
 
                 hash       = Digest::SHA256.hexdigest(content)[0..17]     # We want to make sure filename changes even if index does not
-                filename   = "#{BUILD_DIR}/generated/#{target.name}/slice-#{1+index}-#{hash}.cpp"
+                filename   = "#{bt_target_get_unitybuild_dir(target)}/slice-#{1+index}-#{hash}.cpp"
 
                 unity_sources += [filename]
 
@@ -538,8 +558,8 @@ def bt_target_compile_file(target, src)
     
     is_cpp = File.extname( src ) == ".cpp"
 
-    dep = bt_convert_src_to_dep( src )
-    obj = bt_convert_src_to_obj( src )
+    dep = bt_target_convert_src_to_dep( target, src )
+    obj = bt_target_convert_src_to_obj( target, src )
 
     # Ensure target folders exist
     FileUtils.mkdir_p File.dirname( obj )
@@ -617,7 +637,7 @@ def bt_update_llvm_json_compilation_database()
     end
 
     # Grab all *.o.json files from object dir
-    command_files = FileList["#{OBJ_DIR}/**/*.json"]
+    command_files = FileList["#{BUILD_DIR}/**/*.json"]
 
     # combine
     commands = command_files.map{|f| File.read(f)}.join()
@@ -692,13 +712,14 @@ def bt_split_asset_pattern(pattern)
 end
 
 def bt_tasks_for_target(target)
-namespace target.name do    
+namespace target.name do
+
     task :clean do
-        FileUtils.rm_f bt_target_get_objects( target, recursively: false )
+        bt_target_clean( target )
     end
 
     task :clean_all do
-        FileUtils.rm_f bt_target_get_objects( target, recursively: true  )
+        bt_target_clean( target, recursively: true )
     end
 
     task :rebuild     => [:clean    , :build]
@@ -709,8 +730,8 @@ namespace target.name do
     # each dependency declares its own tasks, if this target requires an other target's task,
     # it will be invoked by rake automatically.
     bt_target_get_objects(target).each_with_index do |obj, index|
-        src  = bt_find_src_for_obj(target.sources, obj)
-        deps = bt_find_deps_for_src(src) # *.c|cpp, and any deps in *.d
+        src  = bt_target_find_src_for_obj(target, obj)
+        deps = bt_target_find_deps_for_src(target, src) # *.c|cpp, and any deps in *.d
         file obj => [src, *deps] do |task|
             bt_log(target, "Compiling #{src} ...")
             bt_target_compile_file( target, src )
@@ -739,7 +760,7 @@ namespace target.name do
             # Copy assets
             target.assets.each_with_index do |pattern, i|
                 src, dst = bt_split_asset_pattern(pattern)
-                bt_file_copy_or_overwrite( src, "#{BIN_DIR}/#{dst}" )
+                bt_file_copy_or_overwrite( src, "#{bt_target_get_bin_dir(target)}/#{dst}" )
             end  
 
             bt_log(target, "Build DONE")
@@ -758,27 +779,30 @@ namespace target.name do
 
         task :zip do
 
+            bin_dir   = bt_target_get_bin_dir(target)
+            dist_dir  = bt_target_get_dist_dir(target)
+
             # Copy binary and related files + assets into dist folder
             if WEB
                 binary_filename = File.basename(binary).ext("") # clean extension out
                 binary_and_additionnal_files = FileList[
-                "#{BIN_DIR}/#{binary_filename}.html", # User can override this by adding an asset
-                "#{BIN_DIR}/#{binary_filename}.js",
-                "#{BIN_DIR}/#{binary_filename}.wasm",
-                "#{BIN_DIR}/#{binary_filename}.wasm.map",
-                "#{BIN_DIR}/#{binary_filename}.data",
+                "#{bin_dir}/#{binary_filename}.html", # User can override this by adding an asset
+                "#{bin_dir}/#{binary_filename}.js",
+                "#{bin_dir}/#{binary_filename}.wasm",
+                "#{bin_dir}/#{binary_filename}.wasm.map",
+                "#{bin_dir}/#{binary_filename}.data",
                 ];
                 binary_and_additionnal_files.each do |each|;
-                    bt_file_copy_or_overwrite( each, "#{DIST_DIR}/#{File.basename(each)}" )
+                    bt_file_copy_or_overwrite( each, "#{dist_dir}/#{File.basename(each)}" )
                 end
             else
                 # Copy the binary
                 binary_filename = File.basename(binary)
-                bt_file_copy_or_overwrite( binary, "#{DIST_DIR}/#{binary_filename}" )
+                bt_file_copy_or_overwrite( binary, "#{dist_dir}/#{binary_filename}" )
             end
             target.assets.each_with_index do |pattern, i|
                 src, dst = bt_split_asset_pattern(pattern)
-                bt_file_copy_or_overwrite( src, "#{DIST_DIR}/#{dst}" )
+                bt_file_copy_or_overwrite( src, "#{dist_dir}/#{dst}" )
             end
 
             # Zip all the files
@@ -792,9 +816,9 @@ namespace target.name do
 
             if BUILD_OS == BUILD_OS_WINDOWS
                 # GitHub Runner OS has 7zip on windows
-                sh "7z a -tzip -mx#{level} #{zip_filename} #{DIST_DIR}/*"
+                sh "7z a -tzip -mx#{level} #{zip_filename} #{dist_dir}/*"
             else
-                sh "cd #{DIST_DIR} && zip -r -#{level} #{zip_filename} ."
+                sh "cd #{dist_dir} && zip -r -#{level} #{zip_filename} ."
             end
         end
     end # case target.type
@@ -847,12 +871,20 @@ def bt_print_help()
 end
 
 
-def bt_clean()
-    folders_to_delete = [OBJ_DIR, DEP_DIR, BIN_DIR, DIST_DIR]
+def bt_target_clean(target, recursively = false)
+    folders_to_delete = [
+        bt_target_get_build_dir(target),
+    ]
     # This code is slow:
     # FileUtils.rm_rf folders_to_delete
     # That's why we use:
     sh "rm", "-rf", *folders_to_delete
+
+    if recursively
+        target.depends_on_target.each do |each_dependency|
+            bt_target_clean(each_dependency, recursively: true)
+        end
+    end
 end
 
 def bt_clobber()

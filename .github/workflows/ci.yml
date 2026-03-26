@@ -50,8 +50,7 @@ jobs:
         run: rake build
 
       - if: env.PLATFORM != 'web'
-        run: ./tools-tests && ./nodable-tests
-        working-directory: ${{env.BUILD_DIR}}/bin/ # must run tests in /bin/, tests are not copied in dist
+        run: rake test
 
       - run: rake nodable:zip
 

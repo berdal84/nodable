@@ -57,9 +57,14 @@ task :rebuild => [
 ]
 
 desc "Remove intermediate files"
-task :clean do
-    bt_clean()
-end
+task :clean => [
+    'nodable:clean',
+    'extern:clean',
+    'common:clean',
+    'tools-app-example:clean',
+    'nodable-tests:clean',
+    'tools-tests:clean',
+]
 
 desc "Remove intermediate files and any other files"
 task :clobber do
