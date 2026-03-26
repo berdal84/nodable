@@ -379,10 +379,6 @@ def bt_find_src_for_obj( sources, obj )
     sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
-def bt_convert_array_of_src_to_obj( sources )
-    sources.map{|src| bt_convert_src_to_obj(src) };
-end
-
 def bt_target_get_sources( target, recursively = false )
     
     sources = []
@@ -410,7 +406,7 @@ def bt_target_get_objects( target, recursively = false )
         end
     end
 
-    objects |= bt_convert_array_of_src_to_obj( target.sources )
+    objects |= target.sources.map{|src| bt_convert_src_to_obj(src) };
 
     objects
 end
