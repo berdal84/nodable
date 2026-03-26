@@ -82,25 +82,43 @@ task :rebuild_all do
     end
 end
 
+APT_PACKAGES = [
+    "libx11-dev",
+    "libgl1-mesa-dev",
+]
+
+def install_emsdk()
+    system("python extern/emsdk/emsdk.py install latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+end
+
+def activate_emsdk()
+    system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+end
+
+task :ci do
+    case PLATFORM
+    when PLATFORM_LINUX            
+        run_sudo_apt_install(APT_PACKAGES)
+    when PLATFORM_WEB  
+        install_emsdk()
+        activate_emsdk()
+    else
+        puts "INFO: Nothing to install on CI for #{PLATFORM}"
+    end    
+end
+
 desc "Install system dependencies"
 task :install do
-
-    if LINUX            
-        # The CI may not have it
-        # Even if we add them via vcpkg for convenience, we still need to install the system packages
-        apt_packages = [
-            "libx11-dev",
-            "libgl1-mesa-dev",
-        ]
-        system("sudo apt install #{apt_packages.join(" ")}", exception: true)
-    
-    elsif WINDOWS
-        puts "INFO: NOthing to install on windows"
-    elsif WEB
-        system("python extern/emsdk/emsdk.py install latest --system", exception: true)  # Download and install the latest SDK tools.
-        system("python extern/emsdk/emsdk.py activate latest --system", exception: true) # Make the "latest" SDK "active" for the current user. (writes .emscripten file)
+    case PLATFORM
+    when PLATFORM_LINUX             
+        run_sudo_apt_install(APT_PACKAGES)    
+    when PLATFORM_WEB
+        install_emsdk()
+        activate_emsdk()
         puts("emsdk environment has been activated, consider running source extern/emsdk/emdsk_env.sh to get commands (emcc, emrun, etc)")
-    end    
+    else
+        puts "INFO: Nothing to install on #{PLATFORM}"
+    end
 end
 
 desc "Recompiles vcpkg binaries"

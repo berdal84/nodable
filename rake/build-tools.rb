@@ -886,3 +886,6 @@ def file_pattern_split(pattern)
     return src, dst
 end
 
+def run_sudo_apt_install(packages)
+    system("sudo apt install #{packages.join(" ")}", exception: true)
+end

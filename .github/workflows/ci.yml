@@ -39,7 +39,7 @@ jobs:
           fetch-tags:  true # Tag history is needed to generate nodable version and..
           fetch-depth: 100  # ..we also need some commits to generate the version name (uses `git describe --tags`), until now this value was enough.
 
-      - run: rake install
+      - run: rake ci
 
       - if: env.PLATFORM == 'web'
         run: |
