@@ -23,7 +23,7 @@ task :default => :help
 
 desc "Print this help message"
 task :help do
-    bt_print_help()
+    print_help()
 end
 
 desc "Run nodable"
@@ -68,7 +68,7 @@ task :clean => [
 
 desc "Remove intermediate files and any other files"
 task :clobber do
-    bt_clobber()
+    clobber()
 end
 
 task :rebuild_all do
@@ -112,9 +112,9 @@ end
 # BASE TARGET - all targets are created from this one
 #---------------------------------------------------------------------------
 
-def target(name, type)
+def base_target(name, type)
 
-    target = bt_target(name=name, type=type)
+    target = target(name=name, type=type)
     
     target.unity_build_on = true
 
@@ -279,7 +279,7 @@ end
 # TARGETS
 #---------------------------------------------------------------------------
 
-extern = target("extern", TARGET_TYPE_OBJECTS)
+extern = base_target("extern", TARGET_TYPE_OBJECTS)
 
 extern.sources = FileList[
     # External - ImGui & related
@@ -301,7 +301,7 @@ if DESKTOP
     ]
 end
 
-common = target("common", TARGET_TYPE_OBJECTS)
+common = base_target("common", TARGET_TYPE_OBJECTS)
 
 common.sources = FileList[
 
@@ -375,7 +375,7 @@ common.depends_on_target = [extern]
 
 #---------------------------------------------------------------------------
 
-tools_app = target("tools-app-example", TARGET_TYPE_EXECUTABLE)
+tools_app = base_target("tools-app-example", TARGET_TYPE_EXECUTABLE)
 
 tools_app.sources |= FileList[    
     "src/tools/gui-example/AppExample.cpp",
@@ -409,7 +409,7 @@ tools_app.depends_on_target = [
 
 #---------------------------------------------------------------------------
 
-tools_test = target("tools-tests", TARGET_TYPE_EXECUTABLE)
+tools_test = base_target("tools-tests", TARGET_TYPE_EXECUTABLE)
 
 tools_test.sources |= FileList[
     "src/tools/core/Delegate.specs.cpp",
@@ -430,7 +430,7 @@ tools_test.depends_on_target = [
 ]
 
 #---------------------------------------------------------------------------
-ndbl_app = target("nodable", TARGET_TYPE_EXECUTABLE)
+ndbl_app = base_target("nodable", TARGET_TYPE_EXECUTABLE)
 
 ndbl_app.sources = FileList[
     "src/ndbl/app/main.cpp",
@@ -470,7 +470,7 @@ ndbl_app.depends_on_target = [
 ]
 
 #---------------------------------------------------------------------------
-ndbl_test = target("nodable-tests", TARGET_TYPE_EXECUTABLE)
+ndbl_test = base_target("nodable-tests", TARGET_TYPE_EXECUTABLE)
 
 ndbl_test.sources |= FileList[
     "src/ndbl/core/ASTNodeSlot.specs.cpp",
@@ -508,11 +508,11 @@ ndbl_test.depends_on_target = [
 # TARGETS' TASKS - automatically generated
 #---------------------------------------------------------------------------
 
-bt_tasks_for_target( extern )
-bt_tasks_for_target( common )
-bt_tasks_for_target( tools_app )
-bt_tasks_for_target( tools_test )
-bt_tasks_for_target( ndbl_app )
-bt_tasks_for_target( ndbl_test )
+target_define_tasks( extern )
+target_define_tasks( common )
+target_define_tasks( tools_app )
+target_define_tasks( tools_test )
+target_define_tasks( ndbl_app )
+target_define_tasks( ndbl_test )
 
 #---------------------------------------------------------------------------

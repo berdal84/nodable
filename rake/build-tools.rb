@@ -279,7 +279,7 @@ end # if @options.verbose
 
 # Global Constants (end) ------------------------------------------------------------------------------------------
 
-# Target utilities ------------------------------------------------------------------------------------------------
+# Target API ------------------------------------------------------------------------------------------------
 
 Target = Struct.new(
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
@@ -308,7 +308,7 @@ Target = Struct.new(
     :_src_dir,
 )
 
-def bt_target(name, type)
+def target(name, type)
     
     target = Target.new
 
@@ -347,18 +347,18 @@ def bt_target(name, type)
 
 end
 
-def bt_target_convert_src_to_obj( target, src )   
+def target_src_to_obj( target, src )   
     "#{target._obj_dir}/#{src.ext(".o")}"
 end
 
-def bt_target_convert_src_to_dep( target, src )
+def target_src_to_dep( target, src )
     "#{target._dep_dir}/#{src.ext(".d")}"
 end
 
-def bt_target_find_deps_for_src( target, src )
+def target_find_alldeps_from_src( target, src )
     
     # get *.d file
-    dep = bt_target_convert_src_to_dep( target, src )
+    dep = target_src_to_dep( target, src )
 
     deps = []
 
@@ -372,18 +372,18 @@ def bt_target_find_deps_for_src( target, src )
     deps
 end
 
-def bt_target_find_src_for_obj( target, obj )
+def target_find_src_from_obj( target, obj )
     stem = obj.sub("#{target._obj_dir}/", "").ext("")    
     target.sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
-def bt_target_get_sources( target, recursively = false )
+def target_sources( target, recursively = false )
     
     sources = []
 
     if recursively
         target.depends_on_target.each do |other_target|
-            sources |= bt_target_get_sources( other_target, recursively: true )
+            sources |= target_sources( other_target, recursively: true )
         end
     end
 
@@ -392,24 +392,24 @@ def bt_target_get_sources( target, recursively = false )
     sources
 end
 
-def bt_target_get_objects( target, recursively = false )
+def target_objects( target, recursively = false )
     
-    bt_target_initialize_if_needed(target)
+    target_initialize_if_needed(target)
 
     objects = []
 
     if recursively
         target.depends_on_target.each do |each_dependency_target|
-            objects |= bt_target_get_objects( each_dependency_target, recursively: true )
+            objects |= target_objects( each_dependency_target, recursively: true )
         end
     end
 
-    objects |= target.sources.map{|src| bt_target_convert_src_to_obj( target, src) };
+    objects |= target.sources.map{|src| target_src_to_obj( target, src) };
 
     objects
 end
 
-def bt_target_get_binary_path( target )
+def target_binary_file( target )
     path = "#{target._bin_dir}/#{target.name}"
     if WEB
         path = path.ext("html") # will generate also a *.js, *.wasm, *.wasm.map and *.data
@@ -421,7 +421,7 @@ end
 
 $_mutex_initializing = Mutex.new
 
-def bt_target_initialize_if_needed(target)
+def target_initialize_if_needed(target)
 
     # Perform a quick check that won't lock the thread (readonly)
     if target.is_initialized
@@ -438,12 +438,12 @@ def bt_target_initialize_if_needed(target)
             return
         end
 
-        bt_debug( target, "Initialization .." )
+        debug( target, "Initialization .." )
     
         # 1) Generate flags for linked libraries
         #    It relies on pkgconf for vcpkg, if library can't be found we add a default flag (-lmylib)
         #
-        bt_debug( target, "Generate flags for vcpkg (#{target.vcpkg})..")
+        debug( target, "Generate flags for vcpkg (#{target.vcpkg})..")
         # We must add default include path for headers and libraries because some vcpkg do not have a .pc file
         # and their location is 99% of the time in those two folders:
         temp_cxx_flags    = ["-I#{VCPKG_PACKAGES_ROOT}/include"]
@@ -470,9 +470,9 @@ def bt_target_initialize_if_needed(target)
         target.cxx_flags    += temp_cxx_flags 
         target.linker_flags += temp_linker_flags
 
-        bt_debug( target, "-- cxx_flags added:    #{temp_cxx_flags}")
-        bt_debug( target, "-- linker_flags added: #{temp_linker_flags}")
-        bt_debug( target, "Generate vcpkg flags DONE")
+        debug( target, "-- cxx_flags added:    #{temp_cxx_flags}")
+        debug( target, "-- linker_flags added: #{temp_linker_flags}")
+        debug( target, "Generate vcpkg flags DONE")
         
         # Enable LTO (link time optimization)
         if RELEASE
@@ -494,7 +494,7 @@ def bt_target_initialize_if_needed(target)
         # 3) Generate unity_build slices
         if target.unity_build_on && target.sources.size > 1 && target.unity_build_slice_size > 1
 
-            bt_debug(target, "Unity Build - Slicing ...")
+            debug(target, "Unity Build - Slicing ...")
 
             unity_sources = FileList[]
 
@@ -536,18 +536,18 @@ def bt_target_initialize_if_needed(target)
         
         target.is_initialized = true
         
-        bt_debug(target, "Initialization DONE")
+        debug(target, "Initialization DONE")
     }    
 end
 
-def bt_target_compile_file(target, src)
+def target_compile_file(target, src)
 
-    bt_target_initialize_if_needed(target)
+    target_initialize_if_needed(target)
     
     is_cpp = File.extname( src ) == ".cpp"
 
-    dep = bt_target_convert_src_to_dep( target, src )
-    obj = bt_target_convert_src_to_obj( target, src )
+    dep = target_src_to_dep( target, src )
+    obj = target_src_to_obj( target, src )
 
     # Ensure target folders exist
     FileUtils.mkdir_p File.dirname( obj )
@@ -571,23 +571,23 @@ def bt_target_compile_file(target, src)
     system("#{COMPILER} #{args}", exception: true)
 end
 
-def bt_target_link( target )
+def target_link( target )
 
     if (target.type != TARGET_TYPE_EXECUTABLE)
         raise "#{target.name}'s type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
     end
 
-    bt_target_initialize_if_needed(target)
+    target_initialize_if_needed(target)
 
-    bt_log(target, "Linking ...")
+    log(target, "Linking ...")
 
-    binary = bt_target_get_binary_path(target)
+    binary = target_binary_file(target)
 
     args = [
         target.compiler_flags,
         target.cached_defines_flags,
         "-o #{binary}", # Output binary (emcc requires "-o path/to/file" syntax )
-        bt_target_get_objects(target, recursively: true ),
+        target_objects(target, recursively: true ),
         target.linker_flags
     ]
     
@@ -605,34 +605,29 @@ def bt_target_link( target )
 
     system("#{LINKER} #{args.join(" ")}", exception: true)
 
-    bt_log(target, "Linking DONE - (#{binary})")
+    log(target, "Linking DONE - (#{binary})")
 end
 
-def bt_target_clean(target, recursively = false)
+def target_clean(target, recursively = false)
     # FileUtils.rm_rf was too slow, that's why we use:
     sh "rm", "-rf", target._build_dir
 
     if recursively
         target.depends_on_target.each do |each_dependency|
-            bt_target_clean(each_dependency, recursively: true)
+            target_clean(each_dependency, recursively: true)
         end
     end
 end
 
-def bt_clobber()
-    # FileUtils.rm_rf was too slow, that's why we use:
-    sh "rm", "-rf", BUILD_DIR, ZIPPED_DIST_DIR
-end
-
-def bt_tasks_for_target(target)
+def target_define_tasks(target)
 namespace target.name do
 
     task :clean do
-        bt_target_clean( target )
+        target_clean( target )
     end
 
     task :clean_all do
-        bt_target_clean( target, recursively: true )
+        target_clean( target, recursively: true )
     end
 
     task :rebuild     => [:clean    , :build]
@@ -642,12 +637,12 @@ namespace target.name do
     # Not that we do not include the sources from dependencies here,
     # each dependency declares its own tasks, if this target requires an other target's task,
     # it will be invoked by rake automatically.
-    bt_target_get_objects(target).each_with_index do |obj, index|
-        src  = bt_target_find_src_for_obj(target, obj)
-        deps = bt_target_find_deps_for_src(target, src) # *.c|cpp, and any deps in *.d
+    target_objects(target).each_with_index do |obj, index|
+        src  = target_find_src_from_obj(target, obj)
+        deps = target_find_alldeps_from_src(target, src) # *.c|cpp, and any deps in *.d
         file obj => [src, *deps] do |task|
-            bt_log(target, "Compiling #{src} ...")
-            bt_target_compile_file( target, src )
+            log(target, "Compiling #{src} ...")
+            target_compile_file( target, src )
             target.compiled_objects_count += 1
         end
     end
@@ -655,39 +650,39 @@ namespace target.name do
     case target.type
     when TARGET_TYPE_OBJECTS
         
-        multitask :build => bt_target_get_objects(target, recursively: true) do
-            _update_llvm_json_compilation_database()
+        multitask :build => target_objects(target, recursively: true) do
+            update_llvm_json_compilation_database()
         end
 
     when TARGET_TYPE_EXECUTABLE
 
-        binary = bt_target_get_binary_path(target)
+        binary = target_binary_file(target)
 
-        file binary => bt_target_get_objects(target, recursively: true) do
-            _update_llvm_json_compilation_database()
-            bt_target_link(target)
+        file binary => target_objects(target, recursively: true) do
+            update_llvm_json_compilation_database()
+            target_link(target)
         end
 
         task :build => binary do
 
             # Copy assets
-            target.assets.each_with_index do |pattern, i|
-                src, dst = _split_asset_pattern(pattern)
-                _file_copy_or_overwrite( src, "#{target._bin_dir}/#{dst}" )
+            target.assets.each_with_index do |file_pattern, i|
+                src, dst = file_pattern_split(file_pattern)
+                file_copy_or_overwrite( src, "#{target._bin_dir}/#{dst}" )
             end  
 
-            bt_log(target, "Build DONE")
+            log(target, "Build DONE")
         end
         
         task :run => binary do
-            bt_log(target, "Running ...")
+            log(target, "Running ...")
             case PLATFORM
             when PLATFORM_WEB
                 system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{binary.ext("html")}", exception: true)
             else
                 system(binary, exception: true)
             end
-            bt_log(target, "Running DONE")
+            log(target, "Running DONE")
         end
 
         task :zip do
@@ -703,16 +698,16 @@ namespace target.name do
                 "#{bin_dir}/#{binary_filename}.data",
                 ];
                 binary_and_additionnal_files.each do |each|;
-                    _file_copy_or_overwrite( each, "#{target._dist_dir}/#{File.basename(each)}" )
+                    file_copy_or_overwrite( each, "#{target._dist_dir}/#{File.basename(each)}" )
                 end
             else
                 # Copy the binary
                 binary_filename = File.basename(binary)
-                _file_copy_or_overwrite( binary, "#{target._dist_dir}/#{binary_filename}" )
+                file_copy_or_overwrite( binary, "#{target._dist_dir}/#{binary_filename}" )
             end
             target.assets.each_with_index do |pattern, i|
-                src, dst = _split_asset_pattern(pattern)
-                _file_copy_or_overwrite( src, "#{target._dist_dir}/#{dst}" )
+                src, dst = file_pattern_split(pattern)
+                file_copy_or_overwrite( src, "#{target._dist_dir}/#{dst}" )
             end
 
             # Zip all the files
@@ -735,15 +730,20 @@ namespace target.name do
 end # namespace end
 end
 
-# Target utilities (end) ------------------------------------------------------------------------------------------------
+# Target API (end) ------------------------------------------------------------------------------------------------
 
 # Others
 
-def bt_vcpkg_install()
+def clobber()
+    # FileUtils.rm_rf was too slow, that's why we use:
+    sh "rm", "-rf", BUILD_DIR, ZIPPED_DIST_DIR
+end
+
+def vcpkg_install()
     system("vcpkg install --triplet #{VCPKG_TRIPLET} --x-install-root=#{VCPKG_INSTALL_ROOT}", exception: true)
 end
 
-def bt_count_lines_of_code(at_location = "./")
+def count_lines_of_code(at_location = "./")
     begin
         puts "Counting lines .."
         sh "#{BINARY_CLOC} --by-file-by-lang #{at_location}", verbose: true
@@ -755,15 +755,15 @@ def bt_count_lines_of_code(at_location = "./")
     end
 end
 
-def bt_log(target, message)
+def log(target, message)
     puts "[#{target.name}:#{PLATFORM}:#{CONFIG}] #{message}"
 end
 
-def bt_debug(target, message)
-    bt_log(target,message) if VERBOSE
+def debug(target, message)
+    log(target,message) if VERBOSE
 end
 
-def bt_print_help()
+def print_help()
 
     # Print regular option parser help
     print @options_parser.help    
@@ -780,7 +780,7 @@ def bt_print_help()
     end
 end
 
-def _update_llvm_json_compilation_database()
+def update_llvm_json_compilation_database()
 
     #
     # Update ./compile_commands.json
@@ -805,7 +805,7 @@ def _update_llvm_json_compilation_database()
     File.write( output_file, content)
 end
 
-def _file_copy_or_overwrite(src, dst)
+def file_copy_or_overwrite(src, dst)
     
     # Ensure destination folder exists
     dst_dir = File.dirname(dst)
@@ -819,7 +819,7 @@ end
 
 # With a string like "<src>[:<dest>]", returns src, dst.
 # dst = src when not defined.
-def _split_asset_pattern(pattern)
+def file_pattern_split(pattern)
 
     arr = pattern.split(':') 
     src = arr[0] or raise ("Wrong asset pattern: '#{pattern}', expecting '<src>[:<dest>]'")
@@ -827,3 +827,4 @@ def _split_asset_pattern(pattern)
 
     return src, dst
 end
+
