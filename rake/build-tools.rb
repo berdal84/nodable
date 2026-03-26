@@ -249,7 +249,7 @@ CONFIG                  = @options.config
 RELEASE                 = CONFIG == CONFIG_RELEASE
 DEBUG                   = CONFIG == CONFIG_DEBUG
 OPTIMIZED               = CONFIG == CONFIG_OPTIMIZED
-BUILD_DIR               = File.expand_path( @options.build_dir || "build-#{PLATFORM}-#{CONFIG}", Dir.pwd )
+BUILD_DIR               = @options.build_dir || "build-#{PLATFORM}-#{CONFIG}"
 ZIPPED_DIST_DIR         = "dist"
 DIST_DIR                = "#{BUILD_DIR}/dist" # To gather dist files prior to be zipped
 OBJ_DIR                 = "#{BUILD_DIR}/obj"
@@ -340,15 +340,11 @@ def bt_target(name, type)
 end
 
 def bt_convert_src_to_obj( src )   
-    relative_src = src.sub("#{BUILD_DIR}/", "") # Some sources are generated and are not stored in ./src
-    obj = "#{OBJ_DIR}/#{relative_src.ext(".o")}"
-    obj
+    "#{OBJ_DIR}/#{src.ext(".o")}"
 end
 
 def bt_convert_src_to_dep( src )
-    relative_src = src.sub("#{BUILD_DIR}/", "") # Some sources are generated and are not stored in ./src
-    dep = "#{DEP_DIR}/#{relative_src.ext(".d")}"
-    dep
+    "#{DEP_DIR}/#{src.ext(".d")}"
 end
 
 def bt_find_deps_for_src( src )
@@ -369,13 +365,7 @@ def bt_find_deps_for_src( src )
 end
 
 def bt_find_src_for_obj( sources, obj )
-    stem = obj.sub("#{OBJ_DIR}/", "").ext("")
-    
-    # hack
-    if stem.start_with?("generated")
-        stem = "#{BUILD_DIR}/#{stem}"
-    end
-    
+    stem = obj.sub("#{OBJ_DIR}/", "").ext("")    
     sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
 end
 
