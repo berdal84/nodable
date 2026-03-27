@@ -391,26 +391,16 @@ end
 desc "Run nodable"
 task :run =>  'nodable:run'
 
-if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
-    desc "Build all"
-    multitask :build => [
-        'tools-app-example:build',
-        'nodable:build',
-        'tools-tests:build',
-        'nodable-tests:build'
-    ]
+desc "Build nodable"
+multitask :build => 'nodable:build'
 
+if PLATFORM == PLATFORM_WINDOWS or PLATFORM == PLATFORM_LINUX
     desc "Run all tests"
     task :test => [
         'tools-tests:run',
         'nodable-tests:run'
     ]
 else
-    multitask :build => [
-        'tools-app-example:build',
-        'nodable:build',
-    ]
-
     desc "Run all tests"
     task :test do
         puts "No tests to run when PLATFORM=#{PLATFORM}"
@@ -424,24 +414,10 @@ task :rebuild => [
 ]
 
 desc "Remove intermediate files"
-task :clean => [
-    'nodable:clean',
-    'extern:clean',
-    'common:clean',
-    'tools-app-example:clean',
-    'nodable-tests:clean',
-    'tools-tests:clean',
-]
+define_clean_task()
 
 desc "Remove intermediate files and any other files"
-task :clobber  => [
-    'nodable:clobber',
-    'extern:clobber',
-    'common:clobber',
-    'tools-app-example:clobber',
-    'nodable-tests:clobber',
-    'tools-tests:clobber',
-]
+define_clobber_task()
 
 task :rebuild_all do
     BUILD_CONFIGS.each do |each_config|
@@ -508,8 +484,5 @@ target_define_tasks( tools_app )
 target_define_tasks( tools_test )
 target_define_tasks( ndbl_app )
 target_define_tasks( ndbl_test )
-
-define_clean_task()
-define_clobber_task()
 
 #---------------------------------------------------------------------------
