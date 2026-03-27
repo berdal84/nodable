@@ -434,9 +434,14 @@ task :clean => [
 ]
 
 desc "Remove intermediate files and any other files"
-task :clobber do
-    clobber()
-end
+task :clobber  => [
+    'nodable:clobber',
+    'extern:clobber',
+    'common:clobber',
+    'tools-app-example:clobber',
+    'nodable-tests:clobber',
+    'tools-tests:clobber',
+]
 
 task :rebuild_all do
     BUILD_CONFIGS.each do |each_config|
@@ -503,5 +508,8 @@ target_define_tasks( tools_app )
 target_define_tasks( tools_test )
 target_define_tasks( ndbl_app )
 target_define_tasks( ndbl_test )
+
+define_clean_task()
+define_clobber_task()
 
 #---------------------------------------------------------------------------

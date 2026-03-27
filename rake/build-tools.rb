@@ -106,8 +106,8 @@ BINARY_CLOC             = 'cloc'
 
 # Command Line Arguments ------------------------------------------------------------------------------------
 
-@options_parser = OptionParser.new
-@options_parser.banner = "Usage: rake <task> [-- options]\n\nOptions:"
+@OPTIONS_PARSER = OptionParser.new
+@OPTIONS_PARSER.banner = "Usage: rake <task> [-- options]\n\nOptions:"
 
 def _get_environment_variable_or(env_var_name, default=nil, allowed_values=nil)
 
@@ -127,8 +127,8 @@ def _get_environment_variable_or(env_var_name, default=nil, allowed_values=nil)
     return value      
 end
 
-# Declare/define a struct to store parsed @options
-@options = Struct.new(
+# Declare/define a struct to store parsed @OPTIONS
+@OPTIONS = Struct.new(
     :verbose,
     :config,
     :build_dir,
@@ -145,24 +145,24 @@ end
 )
 
 
-@options_parser.on('--platform=PLATFORM', PLATFORMS, "#{PLATFORMS.join("|")} (default: #{PLATFORM_DEFAULT})",  ) do |value|
-    @options.platform = value
+@OPTIONS_PARSER.on('--platform=PLATFORM', PLATFORMS, "#{PLATFORMS.join("|")} (default: #{PLATFORM_DEFAULT})",  ) do |value|
+    @OPTIONS.platform = value
 end
 
-@options_parser.on('--config=CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{CONFIG_DEFAULT})") do |value|
-    @options.config = value
+@OPTIONS_PARSER.on('--config=CONFIG', BUILD_CONFIGS, "#{BUILD_CONFIGS.join("|")} (default: #{CONFIG_DEFAULT})") do |value|
+    @OPTIONS.config = value
 end
 
-@options_parser.on('--build-dir=BUILD_DIR', "Build directory (default: build-{platform}-{config})") do |value|
-    @options.build_dir = value
+@OPTIONS_PARSER.on('--build-dir=BUILD_DIR', "Build directory (default: build-{platform}-{config})") do |value|
+    @OPTIONS.build_dir = value
 end
 
-@options_parser.on("-v", "--verbose", "Print diagnostic messages") {
-    @options.verbose = true
+@OPTIONS_PARSER.on("-v", "--verbose", "Print diagnostic messages") {
+    @OPTIONS.verbose = true
 }
 
-@options_parser.on("--headless-tests", "Skip tests requiring a GUI") {
-    @options.headless_tests = true
+@OPTIONS_PARSER.on("--headless-tests", "Skip tests requiring a GUI") {
+    @OPTIONS.headless_tests = true
 }
 
 # Extract flags (after `--`)
@@ -174,10 +174,10 @@ end
 
 # Parse flags and handle errors
 begin
-    @options_parser.parse!(flags)
+    @OPTIONS_PARSER.parse!(flags)
 rescue OptionParser::InvalidOption, OptionParser::MissingArgument, OptionParser::InvalidArgument => e
     $stdout.puts e
-    $stdout.puts @options_parser.help
+    $stdout.puts @OPTIONS_PARSER.help
     $stderr.puts "Unable to parse flags, see reason message and help above."
     exit 1
 end
@@ -186,13 +186,13 @@ end
 
 # Global Constants ----------------------------------------------------------------------------------------------
 
-PLATFORM        = @options.platform
+PLATFORM        = @OPTIONS.platform
 LINUX           = PLATFORM == PLATFORM_LINUX
 WINDOWS         = PLATFORM == PLATFORM_WINDOWS
 WEB             = PLATFORM == PLATFORM_WEB
 DESKTOP         = !WEB
-HEADLESS_TESTS  = !!@options.headless_tests
-VERBOSE         = @options.verbose
+HEADLESS_TESTS  = !!@OPTIONS.headless_tests
+VERBOSE         = @OPTIONS.verbose
 
 # Triplet (we use VCPKG naming convention)
 VCPKG_TRIPLET = ->() {
@@ -245,11 +245,11 @@ PKGCONF_BINARY = ->() {
 
 PKGCONF                 = "#{PKGCONF_BINARY} --with-path #{VCPKG_PACKAGES_ROOT}/lib/pkgconfig"
 HOST_OS                 = RbConfig::CONFIG['host_os']
-CONFIG                  = @options.config
+CONFIG                  = @OPTIONS.config
 RELEASE                 = CONFIG == CONFIG_RELEASE
 DEBUG                   = CONFIG == CONFIG_DEBUG
 OPTIMIZED               = CONFIG == CONFIG_OPTIMIZED
-BUILD_DIR               = @options.build_dir || "build-#{PLATFORM}-#{CONFIG}"
+BUILD_DIR               = @OPTIONS.build_dir || "build-#{PLATFORM}-#{CONFIG}"
 ZIPPED_DIST_DIR         = "dist"
 GITHUB_ACTIONS          = ENV["GITHUB_ACTIONS"]
 HTTP_SERVER_HOSTNAME    = "0.0.0.0"  # TODO: add to flags
@@ -278,9 +278,9 @@ ALLOWED_CXXSTDS = [
     CXXSTD2X,
 ]
 
-if @options.verbose
+if @OPTIONS.verbose
 puts "------------------------------------------------------------------------------------------------------"
-puts "@options: ............ #{@options}"
+puts "@OPTIONS: ........... #{@OPTIONS}"
 puts "RUBY version: ....... #{`ruby -v`}"
 puts "HOST_OS: ............ #{HOST_OS}"
 puts "BUILD_OS:............ #{BUILD_OS}"
@@ -295,7 +295,7 @@ puts "LINKER: ............. #{LINKER}"
 puts "Dir.pwd: ............ #{Dir.pwd }"
 puts "__FILE__: ........... #{File.dirname(__FILE__)}"
 puts "------------------------------------------------------------------------------------------------------"
-end # if @options.verbose
+end # if @OPTIONS.verbose
 
 # Global Constants (end) ------------------------------------------------------------------------------------------
 
@@ -304,9 +304,6 @@ end # if @options.verbose
 Target = Struct.new(
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
     :c_flags,
-    :cached_defines_flags,
-    :cached_includes_flags,
-    :compiled_objects_count,
     :compiler_flags,
     :cxx_flags,
     :defines,
@@ -320,13 +317,20 @@ Target = Struct.new(
     :vcpkg, # list of (static) vcpkg package names
     :unity_build_on, # enable/disable unity build
     :unity_build_slice_size, # file count per slice
-    :_build_dir,
-    :_dist_dir,
-    :_bin_dir,
-    :_dep_dir,
-    :_obj_dir,
-    :_src_dir,
+    :binary, # path to the binary (.exe, .html, etc)
+    :build_dir,
+    :dist_dir,
+    :bin_dir,
+    :dep_dir,
+    :obj_dir,
+    :src_dir,
+    :cached_defines_flags,
+    :cached_includes_flags,
+    :sources_to_compile,
+    :objects_to_link,
 )
+
+@TARGETS = []
 
 def target(
     name,
@@ -336,13 +340,23 @@ def target(
 
     raise "Wrong value for cxxstd:\n  Allowed: #{ALLOWED_CXXSTDS.join ", "}.\n  Actual: #{cxxstd}" if not ALLOWED_CXXSTDS.include?(cxxstd)
     
-    target = Target.new
+    target      = Target.new
+    build_dir   = "#{BUILD_DIR}/#{name}"
+
+    target.build_dir                = build_dir
+    target.dist_dir                 = "#{build_dir}/dist"
+    target.bin_dir                  = "#{build_dir}/bin"
+    target.dep_dir                  = "#{build_dir}/dep"
+    target.obj_dir                  = "#{build_dir}/obj"
+    target.src_dir                  = "#{build_dir}/unity-build-slices"
+
+    target.cached_defines_flags     = ""
+    target.cached_includes_flags    = ""
+    target.sources_to_compile       = []
+    target.objects_to_link          = []
 
     target.assets                   = FileList[]
     target.c_flags                  = []
-    target.cached_defines_flags     = ""
-    target.cached_includes_flags    = ""
-    target.compiled_objects_count   = []
     target.compiler_flags           = []
     target.cxx_flags                = []
     target.defines                  = []
@@ -356,13 +370,14 @@ def target(
     target.vcpkg                    = []
     target.unity_build_on           = false
     target.unity_build_slice_size   = RELEASE ? 512 : 4
+    target.binary                   = "#{target.bin_dir}/#{target.name}"
 
-    target._build_dir               = "#{BUILD_DIR}/#{target.name}"
-    target._dist_dir                = "#{target._build_dir}/dist"
-    target._bin_dir                 = "#{target._build_dir}/bin"
-    target._dep_dir                 = "#{target._build_dir}/dep"
-    target._obj_dir                 = "#{target._build_dir}/obj"
-    target._src_dir                 = "#{target._build_dir}/src"
+    case PLATFORM
+    when PLATFORM_WEB
+        target.binary = target.binary.ext("html") # will generate also a *.js, *.wasm, *.wasm.map and *.data
+    when PLATFORM_WINDOWS
+        target.binary = target.binary.ext("exe")
+    end
 
     if VERBOSE
         target.compiler_flags   |= ["-v"]
@@ -406,25 +421,32 @@ def target(
 
     end
 
-    return target
 
+    @TARGETS += [target]
+
+    return target
 end
 
 def target_src_to_obj( target, src )   
-    "#{target._obj_dir}/#{src.ext(".o")}"
+    "#{target.obj_dir}/#{src.ext(".o")}"
 end
 
 def target_src_to_dep( target, src )
-    "#{target._dep_dir}/#{src.ext(".d")}"
+    "#{target.dep_dir}/#{src.ext(".d")}"
 end
 
-def target_find_alldeps_from_src( target, src )
+def target_find_alldeps_from_obj( target, obj )
     
-    # get *.d file
-    dep = target_src_to_dep( target, src )
+    src = target_find_src_from_obj( target, obj )
 
+    if src == nil
+        return []
+    end
+     
+    # get *.d file
     deps = []
 
+    dep = target_src_to_dep( target, src )
     if File.exist?(dep)
         content = File.read(dep)
         content = content.split(": ")[1]
@@ -432,61 +454,103 @@ def target_find_alldeps_from_src( target, src )
         deps    = content.split " "
     end
 
-    deps
+    [src, *deps]
 end
 
 def target_find_src_from_obj( target, obj )
-    stem = obj.sub("#{target._obj_dir}/", "").ext("")    
-    target.sources.detect{|src| src.ext("") == stem } or raise "unable to find #{obj}'s source (stem: #{stem})"
-end
 
-def target_sources( target, recursively = false )
-    
-    sources = []
+    # remove obj_dir prefix, this will give a path relative rakefile's dir
+    relative_stem = obj.sub("#{target.obj_dir}/", "").ext("")
 
-    if recursively
-        target.depends_on_target.each do |other_target|
-            sources |= target_sources( other_target, recursively: true )
-        end
+    src = target.sources_to_compile.detect{|src| src.ext("") == relative_stem }
+
+    if src == nil && obj.include?(target.obj_dir)
+        puts target
+        puts target.sources_to_compile
+        puts obj
+        raise "Possible error: the stem contains obj_dir for this target, but the file could not be found!"
     end
 
-    sources |= target.sources
-
-    sources
+    src
 end
 
-def target_objects( target, recursively = false )
-    
-    target_initialize_if_needed(target)
+def target_compile_file(target, src)
 
-    objects = []
+    log(target, "Compiling #{src} ...")
 
-    if recursively
-        target.depends_on_target.each do |each_dependency_target|
-            objects |= target_objects( each_dependency_target, recursively: true )
-        end
+    is_cpp = File.extname( src ) == ".cpp"
+
+    dep = target_src_to_dep( target, src )
+    obj = target_src_to_obj( target, src )
+
+    # Ensure target folders exist
+    FileUtils.mkdir_p File.dirname( obj )
+    FileUtils.mkdir_p File.dirname( dep )
+
+    args = [
+        target.compiler_flags,
+        is_cpp ? target.cxx_flags : target.c_flags,
+        "-c", # no linking
+        target.cached_includes_flags,
+        target.cached_defines_flags,
+        # Write dependency database
+        # TODO: skip this in release might speed up build?
+        "--write-user-dependencies", # Write a depfile containing user headers https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MMD
+        "-MF#{dep}", # Write depfile output from -MMD, -MD, -MM, or -M to <file> https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MF-file
+        "-MJ#{obj.ext("o.json")}", # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
+        "--output=#{obj}",
+        src
+    ].join(" ")
+
+    system("#{COMPILER} #{args}", exception: true)
+
+    log(target, "Compiling #{src} DONE")
+end
+
+def target_link( target )
+
+    if (target.type != TARGET_TYPE_EXECUTABLE)
+        raise "#{target.name}'s type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
     end
 
-    objects |= target.sources.map{|src| target_src_to_obj( target, src) };
+    log(target, "Linking ...")
 
-    objects
-end
-
-def target_binary_file( target )
-    path = "#{target._bin_dir}/#{target.name}"
+    args = [
+        target.compiler_flags,
+        target.cached_defines_flags,
+        "-o #{target.binary}", # Output binary (emcc requires "-o path/to/file" syntax )
+        target.objects_to_link,
+        target.linker_flags
+    ]
+    
     if WEB
-        path = path.ext("html") # will generate also a *.js, *.wasm, *.wasm.map and *.data
-    elsif DESKTOP and WINDOWS
-        path = path.ext("exe")
+        if BUILD_OS == BUILD_OS_WINDOWS
+            args += ["--output-eol", "windows"]
+        elsif BUILD_OS == BUILD_OS_LINUX
+            args += ["--output-eol", "linux"]
+        else
+            raise "Unexpected HOST_OS: #{HOST_OS}"
+        end
     end
-    path
+
+    FileUtils.mkdir_p File.dirname(target.binary)
+
+    system("#{LINKER} #{args.join(" ")}", exception: true)
+
+    log(target, "Linking DONE - (#{target.binary})")
 end
 
 $_mutex_initializing = Mutex.new
 
-def target_initialize_if_needed(target)
+# Ensure this target and any dependent target is initialized
+def target_ensure_is_initialized(target)
+    
+    # Initialize recursively
+    target.depends_on_target.each do |each_target|
+        target_ensure_is_initialized(each_target)
+    end
 
-    # Perform a quick check that won't lock the thread (readonly)
+        # Perform a quick check that won't lock the thread (readonly)
     if target.is_initialized
         return
     end
@@ -501,8 +565,15 @@ def target_initialize_if_needed(target)
             return
         end
 
-        debug( target, "Initialization .." )
-    
+        log( target, "Initializing ..." )
+
+
+        FileUtils.mkdir_p target.bin_dir
+        FileUtils.mkdir_p target.obj_dir
+        FileUtils.mkdir_p target.dist_dir
+        FileUtils.mkdir_p target.dep_dir
+        FileUtils.mkdir_p target.src_dir
+
         # 1) Generate flags for linked libraries
         #    It relies on pkgconf for vcpkg, if library can't be found we add a default flag (-lmylib)
         #
@@ -555,9 +626,10 @@ def target_initialize_if_needed(target)
         target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
 
         # 3) Generate unity_build slices
+        unity_sources = nil
         if target.unity_build_on && target.sources.size > 1 && target.unity_build_slice_size > 1
 
-            debug(target, "Unity Build - Slicing ...")
+            log(target, "Unity Build - Slicing ...")
 
             unity_sources = FileList[]
 
@@ -574,7 +646,7 @@ def target_initialize_if_needed(target)
                 ].join("\n")
 
                 hash       = Digest::SHA256.hexdigest(content)[0..17]     # We want to make sure filename changes even if index does not
-                filename   = "#{target._src_dir}/slice-#{1+index}-#{hash}.cpp"
+                filename   = "#{target.src_dir}/slice-#{1+index}-#{hash}.cpp"
 
                 unity_sources += [filename]
 
@@ -583,167 +655,124 @@ def target_initialize_if_needed(target)
                 if !File.exist?(filename)
                     File.write(filename, content)
                 end
-
-                # puts "Slice files #{slice}, content is:"
-                # puts content
             end
 
-            # Then we replace the sources by the unity build ones
-            # We want this change to be propagater to any target that depends on this target.
-            target.sources = unity_sources
-
+            log(target, "Unity Build - #{unity_sources.size} slice(s) were generated (slice size: #{target.unity_build_slice_size})")
         end
-        
-        # 4) init some vars
-        target.compiled_objects_count = 0
-        
-        target.is_initialized = true
-        
-        debug(target, "Initialization DONE")
-    }    
-end
 
-def target_compile_file(target, src)
-
-    target_initialize_if_needed(target)
-    
-    is_cpp = File.extname( src ) == ".cpp"
-
-    dep = target_src_to_dep( target, src )
-    obj = target_src_to_obj( target, src )
-
-    # Ensure target folders exist
-    FileUtils.mkdir_p File.dirname( obj )
-    FileUtils.mkdir_p File.dirname( dep )
-
-    args = [
-        target.compiler_flags,
-        is_cpp ? target.cxx_flags : target.c_flags,
-        "-c", # no linking
-        target.cached_includes_flags,
-        target.cached_defines_flags,
-        # Write dependency database
-        # TODO: skip this in release might speed up build?
-        "--write-user-dependencies", # Write a depfile containing user headers https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MMD
-        "-MF#{dep}", # Write depfile output from -MMD, -MD, -MM, or -M to <file> https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MF-file
-        "-MJ#{obj.ext("o.json")}", # Write a compilation database entry per input, see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-MJ-arg
-        "--output=#{obj}",
-        src
-    ].join(" ")
-
-    system("#{COMPILER} #{args}", exception: true)
-end
-
-def target_link( target )
-
-    if (target.type != TARGET_TYPE_EXECUTABLE)
-        raise "#{target.name}'s type is expected to be: '#{TARGET_TYPE_EXECUTABLE}', actual: #{target.type}"
-    end
-
-    target_initialize_if_needed(target)
-
-    log(target, "Linking ...")
-
-    binary = target_binary_file(target)
-
-    args = [
-        target.compiler_flags,
-        target.cached_defines_flags,
-        "-o #{binary}", # Output binary (emcc requires "-o path/to/file" syntax )
-        target_objects(target, recursively: true ),
-        target.linker_flags
-    ]
-    
-    if WEB
-        if BUILD_OS == BUILD_OS_WINDOWS
-            args += ["--output-eol", "windows"]
-        elsif BUILD_OS == BUILD_OS_LINUX
-            args += ["--output-eol", "linux"]
+        if unity_sources
+            target.sources_to_compile = unity_sources
         else
-            raise "Unexpected HOST_OS: #{HOST_OS}"
+            target.sources_to_compile = target.sources.dup
         end
-    end
 
-    FileUtils.mkdir_p File.dirname(binary)
+        # Generate a cache of all objects the objects to link
+        target.objects_to_link |= target.sources_to_compile.map{|src|target_src_to_obj(target, src)}
+        target.objects_to_link |= target.depends_on_target.map{|t|t.objects_to_link}.flatten
 
-    system("#{LINKER} #{args.join(" ")}", exception: true)
+        target.is_initialized = true
 
-    log(target, "Linking DONE - (#{binary})")
+        # puts "sources_to_compile:"
+        # puts "  ", target.sources_to_compile.join("\n  ")
+
+        # puts "objects_to_link:"
+        # puts "  ", target.objects_to_link.join("\n  ")
+
+        log(target, "Initialized")
+    }
 end
 
-def target_clean(target, recursively = false)
-    # FileUtils.rm_rf was too slow, that's why we use:
-    sh "rm", "-rf", target._build_dir
+# Check that this target and any dependent target is initialized
+def target_is_initialized(target)
+    
+    return false if !target.is_initialized
+    
+    target.depends_on_target.each do |t|
+        return false if !target_is_initialized(t)
+    end
 
-    if recursively
-        target.depends_on_target.each do |each_dependency|
-            target_clean(each_dependency, recursively: true)
+    return true
+end
+
+def target_build_objects(target)
+
+    target_ensure_is_initialized(target)
+
+    # Usually we would use multitask to run N tasks,
+    # but objects_to_link want be predetermined be we want the target's initialization to be lazy.
+    threads = []
+    target.objects_to_link.each do |obj|
+        threads << Thread.new(obj) do |obj|
+            Rake::Task[obj].invoke
         end
     end
+    threads.each(&:join)
+
+    update_llvm_json_compilation_database()
 end
 
 def target_define_tasks(target)
-namespace target.name do
+
+    namespace target.name do
+
+    # Handle *.o files that are inside this target's obj_dir
+    rule %r{#{Regexp.escape(target.obj_dir)}/.*\.o$} => [
+        *->(obj){target_find_alldeps_from_obj(target, obj)}
+    ] do |t|
+        target_compile_file(target, t.sources[0] )
+    end    
+
+    #task :init do
+        # TODO: There is a problem, because the configuration that is used during this task
+        #       won't match with the tasks generated when this rakefile was loaded.
+        #       We must avoid loops to generate tasks.
+    #    target_ensure_is_initialized(target, force=true)
+    #end
 
     task :clean do
-        target_clean( target )
+        # FileUtils.rm_rf was too slow, that's why we use:
+        sh "rm", "-rf", target.build_dir
     end
 
-    task :clean_all do
-        target_clean( target, recursively: true )
+    task :clobber do
+        # Remove build dir and dist file
+        sh "rm", "-rf", target.build_dir, target.binary
     end
 
-    task :rebuild     => [:clean    , :build]
-    task :rebuild_all => [:clean_all, :build]
-
-    # Define a task per source to build
-    # Not that we do not include the sources from dependencies here,
-    # each dependency declares its own tasks, if this target requires an other target's task,
-    # it will be invoked by rake automatically.
-    target_objects(target).each_with_index do |obj, index|
-        src  = target_find_src_from_obj(target, obj)
-        deps = target_find_alldeps_from_src(target, src) # *.c|cpp, and any deps in *.d
-        file obj => [src, *deps] do |task|
-            log(target, "Compiling #{src} ...")
-            target_compile_file( target, src )
-            target.compiled_objects_count += 1
-        end
-    end
+    task :rebuild => [:clean, :build]
 
     case target.type
     when TARGET_TYPE_OBJECTS
         
-        multitask :build => target_objects(target, recursively: true) do
-            update_llvm_json_compilation_database()
+        task :build  do
+            target_build_objects(target)
         end
 
     when TARGET_TYPE_EXECUTABLE
 
-        binary = target_binary_file(target)
-
-        file binary => target_objects(target, recursively: true) do
-            update_llvm_json_compilation_database()
+        file target.binary do
+            target_build_objects(target)
             target_link(target)
         end
 
-        task :build => binary do
+        task :build => target.binary do
 
             # Copy assets
             target.assets.each_with_index do |file_pattern, i|
                 src, dst = file_pattern_split(file_pattern)
-                file_copy_or_overwrite( src, "#{target._bin_dir}/#{dst}" )
+                file_copy_or_overwrite( src, "#{target.bin_dir}/#{dst}" )
             end  
 
             log(target, "Build DONE")
         end
         
-        task :run => binary do
+        task :run => :build do
             log(target, "Running ...")
             case PLATFORM
             when PLATFORM_WEB
-                system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{binary.ext("html")}", exception: true)
+                system("#{BINARY_EMRUN} --hostname #{HTTP_SERVER_HOSTNAME} --port #{HTTP_SERVER_PORT} #{target.binary}", exception: true)
             else
-                system(binary, exception: true)
+                system(target.binary, exception: true)
             end
             log(target, "Running DONE")
         end
@@ -753,19 +782,19 @@ namespace target.name do
             # Copy binary and related files + assets into dist folder
             if WEB
                 binary_and_additionnal_files = FileList[
-                    "#{target._bin_dir}/#{File.basename(binary).ext(".*")}", # .html, .js, .wasm, etc.
+                    "#{target.bin_dir}/#{File.basename(target.binary).ext(".*")}", # .html, .js, .wasm, etc.
                 ];
                 binary_and_additionnal_files.each do |each|;
-                    file_copy_or_overwrite( each, "#{target._dist_dir}/#{File.basename(each)}" )
+                    file_copy_or_overwrite( each, "#{target.dist_dir}/#{File.basename(each)}" )
                 end
             else
                 # Copy the binary
-                binary_filename = File.basename(binary)
-                file_copy_or_overwrite( binary, "#{target._dist_dir}/#{binary_filename}" )
+                binary_filename = File.basename(target.binary)
+                file_copy_or_overwrite( target.binary, "#{target.dist_dir}/#{binary_filename}" )
             end
             target.assets.each_with_index do |pattern, i|
                 src, dst = file_pattern_split(pattern)
-                file_copy_or_overwrite( src, "#{target._dist_dir}/#{dst}" )
+                file_copy_or_overwrite( src, "#{target.dist_dir}/#{dst}" )
             end
 
             # Zip all the files
@@ -779,23 +808,18 @@ namespace target.name do
 
             if BUILD_OS == BUILD_OS_WINDOWS
                 # GitHub Runner OS has 7zip on windows
-                sh "7z a -tzip -mx#{level} #{zip_filename} #{target._dist_dir}/*"
+                sh "7z a -tzip -mx#{level} #{zip_filename} #{target.dist_dir}/*"
             else
-                sh "cd #{target._dist_dir} && zip -r -#{level} #{zip_filename} ."
+                sh "cd #{target.dist_dir} && zip -r -#{level} #{zip_filename} ."
             end
         end
     end # case target.type
-end # namespace end
+    end # namespace end
 end
 
 # Target API (end) ------------------------------------------------------------------------------------------------
 
 # Others
-
-def clobber()
-    # FileUtils.rm_rf was too slow, that's why we use:
-    sh "rm", "-rf", BUILD_DIR, ZIPPED_DIST_DIR
-end
 
 def vcpkg_install()
     system("vcpkg install --triplet #{VCPKG_TRIPLET} --x-install-root=#{VCPKG_INSTALL_ROOT}", exception: true)
@@ -824,7 +848,7 @@ end
 def print_help()
 
     # Print regular option parser help
-    print @options_parser.help    
+    print @OPTIONS_PARSER.help    
     puts "Tasks:"
 
     # Print tasks
@@ -888,4 +912,26 @@ end
 
 def run_sudo_apt_install(packages)
     system("sudo apt install #{packages.join(" ")}", exception: true)
+end
+
+# Define task :clean to clean all targets
+# All targets created with target() will be included
+def define_clean_task()
+
+    task :clean => [
+        *@TARGETS.map{|t|"#{t.name}:clean"}
+    ]
+
+end
+
+
+# Define task :clobber to clean all targets
+# All targets created with target() will be included
+def define_clobber_task()
+
+    task :clobber do 
+        #Using file utils was too slow
+        system "rm", "-rf", BUILD_DIR
+    end
+
 end
