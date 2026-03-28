@@ -3,8 +3,8 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"command": "rake ndbl:app:build BUILD_TYPE=debug",
-			"label": "Build (debug)",
+			"command": "CONFIG=debug rake clean tools-tests:build nodable-tests:build",
+			"label": "build:tests",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build"
@@ -12,8 +12,26 @@
 		},
 		{
 			"type": "shell",
-			"command": "rake ndbl:app:build",
-			"label": "Build (release)",
+			"command": "CONFIG=debug rake build",
+			"label": "build:debug",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build"
+			}
+		},
+		{
+			"type": "shell",
+			"command": "CONFIG=optimized rake build",
+			"label": "build:optimized",
+			"problemMatcher": [],
+			"group": {
+				"kind": "build"
+			}
+		},
+		{
+			"type": "shell",
+			"command": "CONFIG=release rake build",
+			"label": "build:release",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build"

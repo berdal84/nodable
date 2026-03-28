@@ -5,13 +5,40 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Build + Debug",
+            "name": "tests",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build-windows-debug/bin/nodable.exe",
+            "program": "${workspaceRoot}/build-windows-debug/nodable-tests/bin/nodable-tests.exe",
+            "args": [
+                "--gtest_break_on_failure"
+            ],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build:tests"
+        },
+        {
+            "name": "debug",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/build-windows-debug/nodable/bin/nodable.exe",
             "args": [],
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "Build (debug)"
+            "preLaunchTask": "build:debug"
+        },{
+            "name": "optimized",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/build-windows-optimized/nodable/bin/nodable.exe",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build:optimized"
+        },{
+            "name": "release",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceRoot}/build-windows-release/nodable/bin/nodable.exe",
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": "build:release"
         }
     ]
 }

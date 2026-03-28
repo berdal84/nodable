@@ -210,8 +210,6 @@ common.sources = FileList[
     # Nodable Core
     "src/ndbl/core/index.cpp",
     "src/ndbl/core/language/Nodlang.cpp",
-    "src/ndbl/core/ASTFunctionCall.cpp",
-    "src/ndbl/core/ASTLiteral.cpp",
     "src/ndbl/core/ASTNode.cpp",
     "src/ndbl/core/ASTNodeProperty.cpp",
     "src/ndbl/core/ASTNodeSlot.cpp",
@@ -219,7 +217,6 @@ common.sources = FileList[
     "src/ndbl/core/ASTSlotLink.cpp",
     "src/ndbl/core/ASTToken.cpp",
     "src/ndbl/core/ASTTokenRibbon.cpp",
-    "src/ndbl/core/ASTVariable.cpp",
     "src/ndbl/core/ASTUtils.cpp",
     "src/ndbl/core/Graph.cpp",
     "src/ndbl/core/NodableHeadless.cpp",
@@ -343,6 +340,7 @@ ndbl_app.depends_on_target = [
 ndbl_test = base_target("nodable-tests", TARGET_TYPE_EXECUTABLE)
 
 ndbl_test.sources |= FileList[
+    "src/ndbl/core/ASTNode.specs.cpp",
     "src/ndbl/core/ASTNodeSlot.specs.cpp",
     "src/ndbl/core/ASTToken.specs.cpp",
     "src/ndbl/core/Graph.specs.cpp",

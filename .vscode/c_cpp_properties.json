@@ -5,12 +5,25 @@
             "includePath": [
                 "${workspaceFolder}/**"
             ],
+            "compilerArgs": [
+                "-fno-char8_t"
+            ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
+                "TOOLS_DEBUG",
+                "TOOLS_WINDOWS",
                 "NDBL_DEBUG",
-                "NDBL_DESKTOP"
+                "NDBL_WINDOWS",
+                "IMGUI_USER_CONFIG=\"tools/gui/ImGuiExConfig.h\"",
+                "NDBL_APP_NAME=\"nodable\"",
+                "NDBL_BUILD_REF=\"nodable-clang-configuration\"",
+                "CPPTRACE_STATIC_DEFINE",
+                "NDBL_DESKTOP",
+                "SDL_MAIN_HANDLED",
+                "NOMINMAX",
+                "__PRFCHWINTRIN_H" 
             ],
             "windowsSdkVersion": "10.0.26100.0",
             "cStandard": "c17",
