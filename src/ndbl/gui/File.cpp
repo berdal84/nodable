@@ -3,8 +3,6 @@
 #include <fstream>
 
 #include "ndbl/core/ASTUtils.h"
-#include "ndbl/core/ASTFunctionCall.h"
-#include "ndbl/core/ASTLiteral.h"
 #include "ndbl/core/language/Nodlang.h"
 
 #include "GraphView.h"

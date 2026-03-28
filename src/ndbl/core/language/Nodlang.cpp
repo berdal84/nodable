@@ -23,12 +23,8 @@
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTSlotLink.h"
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/ASTFunctionCall.h"
-#include "ndbl/core/ASTLiteral.h"
 #include "ndbl/core/ASTNodeProperty.h"
 #include "ndbl/core/ASTScope.h"
-#include "ndbl/core/ASTVariable.h"
-#include "ndbl/core/ASTVariableRef.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -231,9 +227,9 @@ ASTNodeSlot* Nodlang::token_to_slot(ASTScope* parent_scope, const ASTToken& _tok
     if (_token.m_type == ASTToken_t::identifier)
     {
         std::string identifier = _token.word_to_string();
-        if( ASTVariable* existing_variable = parent_scope->find_variable(identifier) )
+        if( ASTNode* existing = parent_scope->find_variable(identifier) )
         {
-            return existing_variable->ref_out();
+            return existing->variable_data().ref_out();
         }
 
         if ( !m_strict_mode )
@@ -241,7 +237,7 @@ ASTNodeSlot* Nodlang::token_to_slot(ASTScope* parent_scope, const ASTToken& _tok
             // Insert a VariableNodeRef with "any" type
             TOOLS_LOG(tools::Verbosity_Warning,  "Parser", "%s is not declared (strict mode), abstract graph can be generated but compilation will fail.\n",
                          _token.word_to_string().c_str() );
-            ASTVariableRef* ref = _state.graph()->create_variable_ref( parent_scope );
+            ASTNode* ref = _state.graph()->create_variable_ref( parent_scope );
             ref->value()->set_token(_token );
             return ref->value_out();
         }
@@ -250,7 +246,7 @@ ASTNodeSlot* Nodlang::token_to_slot(ASTScope* parent_scope, const ASTToken& _tok
         return nullptr;
     }
 
-    ASTLiteral* literal{};
+    ASTNode* literal = nullptr;
 
     switch (_token.m_type)
     {
@@ -327,17 +323,20 @@ ASTNodeSlot* Nodlang::parse_binary_operator_expression(ASTScope* parent_scope, u
         type.arg_at(0).type = _left->property->get_type();
         type.arg_at(1).type = right->property->get_type();
 
-        ASTFunctionCall* binary_op = _state.graph()->create_operator( type, _left->node->scope() );
-        binary_op->set_identifier_token( operator_token );
-        binary_op->lvalue_in()->property->token().m_type = _left->property->token().m_type;
-        binary_op->rvalue_in()->property->token().m_type = right->property->token().m_type;
+        ASTNode* binary_op_node = _state.graph()->create_operator( type, _left->node->scope() );
 
-        _state.graph()->connect_or_merge(_left, binary_op->lvalue_in());
-        _state.graph()->connect_or_merge(right, binary_op->rvalue_in() );
+        auto& binary_op = binary_op_node->invokable_data();
+
+        binary_op.set_identifier_token(operator_token);
+        binary_op.lvalue_in()->property->token().m_type = _left->property->token().m_type;
+        binary_op.rvalue_in()->property->token().m_type = right->property->token().m_type;
+
+        _state.graph()->connect_or_merge(_left, binary_op.lvalue_in());
+        _state.graph()->connect_or_merge(right, binary_op.rvalue_in() );
 
         _state.commit();
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Binary expression parsed:\n%s\n", _state.tokens().to_string().c_str());
-        return binary_op->value_out();
+        return binary_op_node->value_out();
     }
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_KO " Right expression is null\n");
@@ -386,11 +385,11 @@ ASTNodeSlot* Nodlang::parse_unary_operator_expression(ASTScope* parent_scope, u8
     type.init<any(any)>(operator_token.word_to_string().c_str());
     type.arg_at(0).type = out_atomic->property->get_type();
 
-    ASTFunctionCall* node = _state.graph()->create_operator( type, parent_scope );
-    node->set_identifier_token( operator_token );
-    node->lvalue_in()->property->token().m_type = out_atomic->property->token().m_type;
+    ASTNode* node = _state.graph()->create_operator( type, parent_scope );
+    node->invokable_data().set_identifier_token( operator_token );
+    node->invokable_data().lvalue_in()->property->token().m_type = out_atomic->property->token().m_type;
 
-    _state.graph()->connect_or_merge(out_atomic, node->lvalue_in() );
+    _state.graph()->connect_or_merge(out_atomic, node->invokable_data().lvalue_in() );
 
     TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " Unary expression parsed:\n%s\n", _state.tokens().to_string().c_str());
     _state.commit();
@@ -486,14 +485,15 @@ ASTNode* Nodlang::parse_expression_block(ASTScope* parent_scope, ASTNodeSlot* fl
     // we must create a variable reference
     if ( value_out && value_out->node->type() == ASTNodeType_VARIABLE )
     {
-        auto variable = static_cast<ASTVariable*>( value_out->node );
+        ASTNode* variable = value_out->node;
+
         if ( ASTUtils::is_connected_to_codeflow(variable) ) // in such case, we have to reference the variable, since a given variable can't be twice (be declared twice) in the codeflow
         {
             // create a new variable reference
-            ASTVariableRef* ref = _state.graph()->create_variable_ref( parent_scope );
-            ref->set_variable( variable );
+            ASTNode* ref_node = _state.graph()->create_variable_ref( parent_scope );
+            ref_node->variable_ref_data().set_variable( variable );
             // substitute value_out by variable reference's value_out
-            value_out = ref->value_out();
+            value_out = ref_node->value_out();
         }
     }
 
@@ -1092,12 +1092,12 @@ ASTNodeSlot* Nodlang::parse_function_call(ASTScope* parent_scope)
 
 
     // Find the prototype in the language library
-    ASTFunctionCall* fct_node = _state.graph()->create_function( signature, parent_scope );
+    ASTNode* fct_node = _state.graph()->create_function( signature, parent_scope );
 
-    for ( int i = 0; i < fct_node->get_arg_slots().size; i++ )
+    for ( int i = 0; i < fct_node->invokable_data().get_arg_slots().size; i++ )
     {
         // Connects each results to the corresponding input
-        _state.graph()->connect_or_merge(result_slots.at(i), fct_node->get_arg_slot(i) );
+        _state.graph()->connect_or_merge(result_slots.at(i), fct_node->invokable_data().get_arg_slot(i) );
     }
 
     _state.commit();
@@ -1120,7 +1120,7 @@ ASTNode* Nodlang::parse_if_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
 
     bool     success  = false;
     ASTNode* if_node  = _state.graph()->create_cond_struct( parent_scope );
-    if_node->branch_prefix = _state.tokens().get_eaten();
+    if_node->switch_behavior_data().m_branch_prefix = _state.tokens().get_eaten();
 
     _state.graph()->connect(flow_out, if_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
@@ -1129,21 +1129,21 @@ ASTNode* Nodlang::parse_if_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing conditional structure's condition...\n");
 
         // condition
-        parse_expression_block(if_node->internal_scope(), nullptr, if_node->condition_in());
+        parse_expression_block(if_node->internal_scope(), nullptr, if_node->switch_behavior_data().condition_in());
 
         if (_state.tokens().eat_if(ASTToken_t::parenthesis_close) )
         {
             // scope
-            ASTNode* block = parse_atomic_code_block( if_node->internal_scope(), if_node->branch_out(Branch_TRUE) );
+            ASTNode* block = parse_atomic_code_block( if_node->internal_scope(), if_node->switch_behavior_data().branch_out(Branch_TRUE) );
 
             if ( block )
             {
                 // else
                 if ( _state.tokens().eat_if(ASTToken_t::keyword_else) )
                 {
-                    if_node->branch_suffix = _state.tokens().get_eaten();
+                    if_node->switch_behavior_data().m_branch_suffix = _state.tokens().get_eaten();
 
-                    if ( ASTNode* else_block = parse_atomic_code_block( if_node->internal_scope(), if_node->branch_out(Branch_FALSE) ) )
+                    if ( ASTNode* else_block = parse_atomic_code_block( if_node->internal_scope(), if_node->switch_behavior_data().branch_out(Branch_FALSE) ) )
                     {
                         success = true;
                         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", TOOLS_OK " else block parsed.\n");
@@ -1196,7 +1196,7 @@ ASTNode* Nodlang::parse_for_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing for loop ...\n");
 
         for_node = _state.graph()->create_for_loop( parent_scope );
-        for_node->branch_prefix = token_for;
+        for_node->switch_behavior_data().m_branch_prefix = token_for;
 
         _state.graph()->connect( flow_out, for_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
@@ -1208,14 +1208,14 @@ ASTNode* Nodlang::parse_for_block(ASTScope* parent_scope, ASTNodeSlot* flow_out)
             // first we parse three instructions, no matter if we find them, we'll continue (we are parsing something abstract)
 
             // parse init; condition; iteration or nothing
-            parse_expression_block(for_node->internal_scope(), nullptr, for_node->initialization_slot())
-            && parse_expression_block(for_node->internal_scope(), nullptr, for_node->condition_in())
-            && parse_expression_block(for_node->internal_scope(), nullptr, for_node->iteration_slot());
+            parse_expression_block(for_node->internal_scope(), nullptr, for_node->switch_behavior_data().initialization_slot())
+            && parse_expression_block(for_node->internal_scope(), nullptr, for_node->switch_behavior_data().condition_in())
+            && parse_expression_block(for_node->internal_scope(), nullptr, for_node->switch_behavior_data().iteration_slot());
 
             // parse parenthesis close
             if ( ASTToken parenthesis_close = _state.tokens().eat_if(ASTToken_t::parenthesis_close) )
             {
-                ASTNode* block = parse_atomic_code_block( for_node->internal_scope(), for_node->branch_out(Branch_TRUE) ) ;
+                ASTNode* block = parse_atomic_code_block( for_node->internal_scope(), for_node->switch_behavior_data().branch_out(Branch_TRUE) ) ;
 
                 if ( block )
                 {
@@ -1268,7 +1268,7 @@ ASTNode* Nodlang::parse_while_block(ASTScope* parent_scope,  ASTNodeSlot* flow_o
         TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while ...\n");
 
         while_node = _state.graph()->create_while_loop( parent_scope );
-        while_node->branch_prefix = token_while;
+        while_node->switch_behavior_data().m_branch_prefix = token_while;
 
         _state.graph()->connect( flow_out, while_node->flow_in(), GraphFlag_ALLOW_SIDE_EFFECTS );
 
@@ -1277,11 +1277,11 @@ ASTNode* Nodlang::parse_while_block(ASTScope* parent_scope,  ASTNodeSlot* flow_o
             TOOLS_DEBUG_LOG(tools::Verbosity_Diagnostic, "Parser", "Parsing while condition ... \n");
 
             // Parse an optional condition
-            parse_expression_block(while_node->internal_scope(), nullptr, while_node->condition_in());
+            parse_expression_block(while_node->internal_scope(), nullptr, while_node->switch_behavior_data().condition_in());
 
             if (_state.tokens().eat_if(ASTToken_t::parenthesis_close) )
             {
-                block = parse_atomic_code_block( while_node->internal_scope(), while_node->branch_out(Branch_TRUE) );
+                block = parse_atomic_code_block( while_node->internal_scope(), while_node->switch_behavior_data().branch_out(Branch_TRUE) );
                 if ( block )
                 {
                     success = true;
@@ -1333,10 +1333,13 @@ ASTNodeSlot* Nodlang::parse_variable_declaration(ASTScope* parent_scope)
     if (type_token.is_keyword_type() && identifier_token.m_type == ASTToken_t::identifier)
     {
         const TypeDescriptor* type = get_type(type_token.m_type);
-        ASTVariable* variable_node = _state.graph()->create_variable( type, identifier_token.word_to_string(), parent_scope );
-        variable_node->set_flags(VariableFlag_DECLARED);
-        variable_node->set_type_token( type_token );
-        variable_node->set_identifier_token( identifier_token );
+        ASTNode* variable_node = _state.graph()->create_variable( type, identifier_token.word_to_string(), parent_scope );
+
+        auto& variable_data = variable_node->variable_data();
+
+        variable_data.set_flags(VariableFlag_DECLARED);
+        variable_data.set_type_token( type_token );
+        variable_data.set_identifier_token( identifier_token );
 
         // declaration with assignment ?
         ASTToken operator_token = _state.tokens().eat_if(ASTToken_t::operator_);
@@ -1348,7 +1351,7 @@ ASTNodeSlot* Nodlang::parse_variable_declaration(ASTScope* parent_scope)
                 // expression's out ----> variable's in
                 _state.graph()->connect_to_variable(expression_out, variable_node );
 
-                variable_node->set_operator_token( operator_token );
+                variable_data.set_operator_token( operator_token );
                 success = true;
             }
             else
@@ -1383,14 +1386,14 @@ ASTNodeSlot* Nodlang::parse_variable_declaration(ASTScope* parent_scope)
 // [SECTION] C. Serializer --------------------------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------------------------------------------------
 
-const ASTNodeSlot* Nodlang::serialize_invokable(std::string &_out, const ASTFunctionCall* _node) const
+const ASTNodeSlot* Nodlang::serialize_invokable(std::string &_out, const ASTNode* _node) const
 {
     if (_node->type() == ASTNodeType_OPERATOR )
     {
-        tools::ArrayView<const ASTNodeSlot*> args = _node->get_arg_slots();
-        int precedence = get_precedence(&_node->get_func_type());
+        tools::ArrayView<const ASTNodeSlot*> args = _node->invokable_data().get_arg_slots();
+        int precedence = get_precedence(_node->invokable_data().get_func_type());
 
-        switch ( _node->get_func_type().arg_count() )
+        switch ( _node->invokable_data().get_func_type()->arg_count() )
         {
             case 2:
             {
@@ -1404,8 +1407,8 @@ const ASTNodeSlot* Nodlang::serialize_invokable(std::string &_out, const ASTFunc
                 }
 
                 // Operator
-                VERIFY( _node->get_identifier_token(), "identifier token should have been assigned in parse_function_call");
-                serialize_token( _out, _node->get_identifier_token() );
+                VERIFY( _node->invokable_data().get_identifier_token(), "identifier token should have been assigned in parse_function_call");
+                serialize_token( _out, _node->invokable_data().get_identifier_token() );
 
                 // Right part of the expression
                 {
@@ -1422,8 +1425,8 @@ const ASTNodeSlot* Nodlang::serialize_invokable(std::string &_out, const ASTFunc
             {
                 // operator ( ... innerOperator ... )   ex:   -(a+b)
 
-                ASSERT( _node->get_identifier_token() );
-                serialize_token(_out, _node->get_identifier_token());
+                ASSERT( _node->invokable_data().get_identifier_token() );
+                serialize_token(_out, _node->invokable_data().get_identifier_token());
 
                 bool needs_braces    = _node->get_connected_function_type(LEFT_VALUE_PROPERTY) != nullptr;
                 SerializeFlags flags = SerializeFlag_RECURSE
@@ -1435,7 +1438,7 @@ const ASTNodeSlot* Nodlang::serialize_invokable(std::string &_out, const ASTFunc
     }
     else
     {
-        serialize_func_call(_out, &_node->get_func_type(), _node->get_arg_slots() );
+        serialize_func_call(_out, _node->invokable_data().get_func_type(), _node->invokable_data().get_arg_slots() );
     }
 
     return _node->value_out();
@@ -1497,19 +1500,22 @@ std::string &Nodlang::serialize_type(std::string &_out, const TypeDescriptor *_t
     return _out;
 }
 
-std::string& Nodlang::serialize_variable_ref(std::string &_out, const ASTVariableRef* _node) const
+std::string& Nodlang::serialize_variable_ref(std::string &_out, const ASTNode* _node) const
 {
-    return serialize_token( _out, _node->get_identifier_token() );
+    ASSERT(_node->is_variable_ref());
+    return serialize_token( _out, _node->variable_ref_data().get_identifier_token() );
 }
 
-std::string& Nodlang::serialize_variable(std::string &_out, const ASTVariable *_node) const
+std::string& Nodlang::serialize_variable(std::string &_out, const ASTNode *_node) const
 {
+    ASSERT(_node->is_variable());
+
     // 1. Serialize variable's type
 
     // If parsed
-    if ( _node->get_type_token() )
+    if ( _node->variable_data().get_type_token() )
     {
-        serialize_token(_out, _node->get_type_token());
+        serialize_token(_out, _node->variable_data().get_type_token());
     }
     else // If created in the graph by the user
     {
@@ -1518,7 +1524,7 @@ std::string& Nodlang::serialize_variable(std::string &_out, const ASTVariable *_
     }
 
     // 2. Serialize variable identifier
-    serialize_token( _out, _node->get_identifier_token() );
+    serialize_token( _out, _node->variable_data().get_identifier_token() );
 
     // 3. Initialisation
     //    When a VariableNode has its input connected, we serialize it as its initialisation expression
@@ -1526,8 +1532,8 @@ std::string& Nodlang::serialize_variable(std::string &_out, const ASTVariable *_
     const ASTNodeSlot* slot = _node->value_in();
     if ( slot->adjacent_count() != 0 )
     {
-        if ( _node->get_operator_token() )
-            _out.append(_node->get_operator_token().string());
+        if ( _node->variable_data().get_operator_token() )
+            _out.append(_node->variable_data().get_operator_token().string());
         else
             _out.append(" = ");
 
@@ -1587,9 +1593,9 @@ std::string &Nodlang::serialize_value_out(std::string& _out, const ASTNodeSlot* 
 
     // Otherwise, it might be a variable reference, so we serialize the identifier only
     ASSERT(slot->node->type() == ASTNodeType_VARIABLE ); // Can't be another type
-    auto variable = static_cast<const ASTVariable*>( slot->node );
-    VERIFY( slot == variable->ref_out(), "Cannot serialize an other slot from a VariableNode");
-    return _out.append( variable->get_identifier() );
+    auto& variable = slot->node->variable_data();
+    VERIFY( slot == variable.ref_out(), "Cannot serialize an other slot from a VariableNode");
+    return _out.append( variable.get_identifier() );
 }
 
 std::string& Nodlang::serialize_node(std::string &_out, const ASTNode* node, SerializeFlags _flags ) const
@@ -1601,37 +1607,18 @@ std::string& Nodlang::serialize_node(std::string &_out, const ASTNode* node, Ser
 
     switch ( node->type() )
     {
-        case ASTNodeType_IF_ELSE:
-            serialize_cond_struct(_out, node );
-            break;
-        case ASTNodeType_FOR_LOOP:
-            serialize_for_loop(_out, node );
-            break;
-        case ASTNodeType_WHILE_LOOP:
-            serialize_while_loop(_out, node );
-            break;
-        case ASTNodeType_LITERAL:
-            serialize_literal(_out, static_cast<const ASTLiteral*>(node) );
-            break;
-        case ASTNodeType_VARIABLE:
-            serialize_variable(_out, static_cast<const ASTVariable*>(node));
-            break;
-        case ASTNodeType_VARIABLE_REF:
-            serialize_variable_ref(_out, static_cast<const ASTVariableRef*>(node));
-            break;
-        case ASTNodeType_FUNCTION:
-            [[fallthrough]];
-        case ASTNodeType_OPERATOR:
-            serialize_invokable(_out, static_cast<const ASTFunctionCall*>(node) );
-            break;
-        case ASTNodeType_EMPTY_INSTRUCTION:
-            serialize_empty_instruction(_out, node);
-            break;
-        case ASTNodeType_SCOPE:
-            serialize_scope(_out, node->internal_scope() );
-            break;
-        default:
-            VERIFY(false, "Unhandled NodeType, can't serialize");
+        case ASTNodeType_IF_ELSE:           serialize_cond_struct(_out, node );             break;
+        case ASTNodeType_FOR_LOOP:          serialize_for_loop(_out, node );                break;
+        case ASTNodeType_WHILE_LOOP:        serialize_while_loop(_out, node );              break;
+        case ASTNodeType_LITERAL:           serialize_literal(_out, node );                 break;
+        case ASTNodeType_VARIABLE:          serialize_variable(_out, node );                break;
+        case ASTNodeType_VARIABLE_REF:      serialize_variable_ref(_out, node );            break;
+        case ASTNodeType_FUNCTION:          [[fallthrough]];        
+        case ASTNodeType_OPERATOR:          serialize_invokable(_out, node );               break;
+        case ASTNodeType_EMPTY_INSTRUCTION: serialize_empty_instruction(_out, node);        break;
+        case ASTNodeType_ROOT:              [[fallthrough]];
+        case ASTNodeType_SCOPE:             serialize_scope(_out, node->internal_scope() ); break;
+        default:                            VERIFY(false, "Unhandled NodeType, can't serialize");
     }
     serialize_token(_out, node->suffix() );
 
@@ -1686,7 +1673,9 @@ std::string& Nodlang::serialize_double(std::string& _out, double d) const
 
 std::string& Nodlang::serialize_for_loop(std::string &_out, const ASTNode* _for_loop) const
 {
-    serialize_token(_out, _for_loop->branch_prefix);
+    ASSERT( _for_loop->type() == ASTNodeType_FOR_LOOP );
+
+    serialize_token(_out, _for_loop->switch_behavior_data().m_branch_prefix);
     serialize_default_buffer(_out, ASTToken_t::parenthesis_open);
     {
         const ASTNodeSlot* init_slot = _for_loop->find_slot_by_property_name(INITIALIZATION_PROPERTY, SlotFlag_INPUT );
@@ -1697,22 +1686,24 @@ std::string& Nodlang::serialize_for_loop(std::string &_out, const ASTNode* _for_
         serialize_input( _out, iter_slot, SerializeFlag_RECURSE );
     }
     serialize_default_buffer(_out, ASTToken_t::parenthesis_close);
-    serialize_node(_out, _for_loop->branch_out(Branch_TRUE)->first_adjacent_node(), SerializeFlag_RECURSE );
+    serialize_node(_out, _for_loop->switch_behavior_data().branch_out(Branch_TRUE)->first_adjacent_node(), SerializeFlag_RECURSE );
 
     return _out;
 }
 
 std::string& Nodlang::serialize_while_loop(std::string &_out, const ASTNode* _while_loop_node) const
 {
+    ASSERT( _while_loop_node->type() == ASTNodeType_WHILE_LOOP );
+
     // while
-    serialize_token(_out, _while_loop_node->branch_prefix);
+    serialize_token(_out, _while_loop_node->switch_behavior_data().m_branch_prefix);
 
     // condition
     SerializeFlags flags = SerializeFlag_RECURSE
                          | SerializeFlag_WRAP_WITH_BRACES;
-    serialize_input(_out, _while_loop_node->condition_in(), flags );
+    serialize_input(_out, _while_loop_node->switch_behavior_data().condition_in(), flags );
 
-    if ( const ASTNode* _node = _while_loop_node->branch_out(Branch_TRUE)->first_adjacent_node() )
+    if ( const ASTNode* _node = _while_loop_node->switch_behavior_data().branch_out(Branch_TRUE)->first_adjacent_node() )
     {
         serialize_node(_out, _node, SerializeFlag_RECURSE);
     }
@@ -1723,20 +1714,22 @@ std::string& Nodlang::serialize_while_loop(std::string &_out, const ASTNode* _wh
 
 std::string& Nodlang::serialize_cond_struct(std::string &_out, const ASTNode* if_node ) const
 {
+    ASSERT( if_node->type() == ASTNodeType_IF_ELSE );
+
     // if
-    serialize_token(_out, if_node->branch_prefix );
+    serialize_token(_out, if_node->switch_behavior_data().m_branch_prefix );
 
     // condition
     SerializeFlags flags = SerializeFlag_RECURSE
                          | SerializeFlag_WRAP_WITH_BRACES;
-    serialize_input(_out, if_node->condition_in(), flags );
+    serialize_input(_out, if_node->switch_behavior_data().condition_in(), flags );
 
     // when condition is true
-    serialize_node(_out, if_node->branch_out(Branch_TRUE)->first_adjacent_node(), SerializeFlag_RECURSE );
+    serialize_node(_out, if_node->switch_behavior_data().branch_out(Branch_TRUE)->first_adjacent_node(), SerializeFlag_RECURSE );
 
     // when condition is false
-    serialize_token(_out, if_node->branch_suffix);
-    serialize_node(_out, if_node->branch_out(Branch_FALSE)->first_adjacent_node(), SerializeFlag_RECURSE );
+    serialize_token(_out, if_node->switch_behavior_data().m_branch_suffix);
+    serialize_node(_out, if_node->switch_behavior_data().branch_out(Branch_FALSE)->first_adjacent_node(), SerializeFlag_RECURSE );
 
     return _out;
 }
@@ -1897,13 +1890,15 @@ ASTNode* Nodlang::parse_atomic_code_block(ASTScope* parent_scope, ASTNodeSlot* f
     return nullptr;
 }
 
-std::string& Nodlang::serialize_literal(std::string &_out, const ASTLiteral* node) const
+std::string& Nodlang::serialize_literal(std::string &_out, const ASTNode* node) const
 {
+    ASSERT( node->type() == ASTNodeType_LITERAL );
     return serialize_property( _out, node->value() );
 }
 
 std::string& Nodlang::serialize_empty_instruction(std::string &_out, const ASTNode* node) const
 {
+    ASSERT( node->type() == ASTNodeType_EMPTY_INSTRUCTION );
     return serialize_token(_out, node->value()->token() );
 }
 
@@ -1936,6 +1931,11 @@ Nodlang* ndbl::init_language()
     ASSERT(g_language == nullptr);
     g_language = new Nodlang();
     return g_language;
+}
+
+bool ndbl::has_language()
+{
+    return g_language != nullptr;
 }
 
 Nodlang* ndbl::get_language()

@@ -1,5 +1,4 @@
 #include "ASTNodeProperty.h"
-#include "ASTVariable.h"
 #include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
@@ -33,19 +32,25 @@ bool ASTNodeProperty::is_type(const TypeDescriptor* other) const
     return m_type->equals( other );
 }
 
-void ASTNodeProperty::set_type(const tools::TypeDescriptor* type)
+void ASTNodeProperty::set_type(const tools::TypeDescriptor* new_type)
 {
+    if ( m_type == new_type ) return;
+
+    m_type = new_type;
+
     // Make sure m_token matches with the new type if type changed
-    if (type != m_type)
-    {
-        const Nodlang* language = get_language();
+    
+    //
+    // TODO: In terms on responsiblities, it's not OK that this class
+    //       initialize itself m_token because it requires access to the language.
+    //       I think it would be more clear if we add an ASTNodeProperty factory function in ASTUtils
+    //
+    if (!has_language()) return; // Had to do this because when I test a node without a language, it crashes there.
 
-        // Convert m_type to a Token_t
-        ASTToken_t token_type = language->to_literal_token(type);
-        VERIFY(token_type != ASTToken_t::none, "This token is not handled");
+    const Nodlang* language = get_language();
+    // Convert m_type to a Token_t
+    ASTToken_t token_type = language->to_literal_token(m_type);
+    VERIFY(token_type != ASTToken_t::none, "This token is not handled");
 
-        m_token = { token_type };
-    }
-
-    m_type = type;
+    m_token = { token_type };
 }

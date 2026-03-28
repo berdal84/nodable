@@ -8,16 +8,10 @@
 #include "tools/gui/Config.h"
 
 #include "ndbl/core/ASTUtils.h"
-#include "ndbl/core/ASTFunctionCall.h"
-#include "ndbl/core/ASTLiteral.h"
-#include "ndbl/core/ASTFunctionCall.h"
-#include "ndbl/core/ASTLiteral.h"
 #include "ndbl/core/ASTNode.h"
 #include "ndbl/core/ASTScope.h"
 #include "ndbl/core/ASTSlotLink.h"
 #include "ndbl/core/ASTUtils.h"
-#include "ndbl/core/ASTVariable.h"
-#include "ndbl/core/ASTVariableRef.h"
 
 #include "Config.h"
 #include "ASTNodePropertyView.h"
@@ -69,6 +63,7 @@ void ASTNodeView::_handle_init()
 
         switch ( node()->type() )
         {
+            case ASTNodeType_ROOT:
             case ASTNodeType_SCOPE:
             case ASTNodeType_FUNCTION:
             case ASTNodeType_OPERATOR:
@@ -178,8 +173,7 @@ void ASTNodeView::_handle_init()
     {
         case ASTNodeType_VARIABLE:
         {
-            auto variable = static_cast<ASTVariable*>( node() );
-            if ( ASTNodeSlot* decl_out = variable->decl_out() )
+            if ( ASTNodeSlot* decl_out = node()->variable_data().decl_out() )
             {
                 if (ASTNodeSlotView *view = decl_out->view)
                 {
@@ -192,8 +186,7 @@ void ASTNodeView::_handle_init()
         }
         case ASTNodeType_FUNCTION:
         {
-            auto function = static_cast<ASTFunctionCall*>( node() );
-            if ( ASTNodeSlot* value_out = function->value_out() )
+            if ( ASTNodeSlot* value_out = node()->value_out() )
             {
                 if (ASTNodeSlotView *view = value_out->view)
                 {
@@ -263,8 +256,7 @@ std::string ASTNodeView::get_label()
         {
             if (minimalist)
                 return "";
-            auto variable = static_cast<const ASTVariable *>( node() );
-            return variable->get_type()->name();
+            return node()->variable_data().get_type()->name();
         }
         case ASTNodeType_OPERATOR:
         {
@@ -276,6 +268,7 @@ std::string ASTNodeView::get_label()
                 return "f(x)";
             return node()->name();
         }
+        case ASTNodeType_ROOT:
         case ASTNodeType_SCOPE:
         {
             if ( minimalist )
@@ -383,7 +376,7 @@ bool ASTNodeView::draw()
     }
     else if ( ASTUtils::is_instruction(node() ) )
     {
-        border_color = cfg->ui_node_fill_color[ASTNodeType_DEFAULT];
+        border_color = cfg->ui_node_fill_color[ASTNodeType_NULL];
     }
 
     float border_width = cfg->ui_node_borderWidth;

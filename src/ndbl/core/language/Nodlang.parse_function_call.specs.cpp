@@ -1,7 +1,6 @@
 #include "../fixtures/core.h"
 #include <gtest/gtest.h>
 #include "tools/core/log.h"
-#include "ndbl/core/ASTFunctionCall.h"
 
 using namespace ndbl;
 

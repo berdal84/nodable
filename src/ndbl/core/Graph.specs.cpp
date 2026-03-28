@@ -3,10 +3,7 @@
 #include "tools/core/reflection/Type.h"
 
 #include "Graph.h"
-#include "ASTFunctionCall.h"
 #include "ASTNode.h"
-#include "ASTLiteral.h"
-#include "ASTVariable.h"
 #include "ASTScope.h"
 #include "ASTSlotLink.h"
 
@@ -84,7 +81,7 @@ TEST_F(Graph_, clear)
     FunctionDescriptor  f;
     f.init<int(int, int)>("+");
 
-    ASTVariable* variable  = graph->create_variable(type::get<int>(), "var");
+    ASTNode* variable  = graph->create_variable(type::get<int>(), "var");
     auto operator_node = graph->create_operator(f);
 
     EXPECT_TRUE(graph->edges().empty() );

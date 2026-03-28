@@ -10,7 +10,6 @@ namespace ndbl
 {
     // forward decl.
     class ASTNode;
-    class ASTVariable;
     class ASTScopeView;
 
     typedef int ScopeFlags;
@@ -26,19 +25,19 @@ namespace ndbl
     {
 //== Data ==============================================================================================================
     public:
-        ASTToken                  token_begin = {ASTToken_t::ignore};
-        ASTToken                  token_end   = {ASTToken_t::ignore};
-    private:
-        ASTScopeView*             m_view = nullptr;
-        std::set<ASTNode*>        m_child;
-        ASTNode*                  m_head = nullptr; // backbone's start
-        std::vector<ASTNode*>     m_cached_backbone;
-        bool                      m_cached_backbone_dirty = true;
-        size_t                    m_cached_depth = 0;
-        bool                      m_cached_depth_dirty = true;
-        std::set<ASTVariable*>    m_variable;
-        std::vector<ASTScope*>    m_partition;
-        ASTScope*                 m_parent = nullptr;
+        ASTToken                        token_begin = {ASTToken_t::ignore};
+        ASTToken                        token_end   = {ASTToken_t::ignore};
+    private:        
+        ASTScopeView*                   m_view = nullptr;
+        std::set<ASTNode*>              m_children;
+        ASTNode*                        m_head = nullptr; // backbone's start
+        std::set<ASTNode*>              m_variables;
+        std::vector<ASTScope*>          m_partition;
+        ASTScope*                       m_parent = nullptr;
+        mutable std::vector<ASTNode*>   m_cached_backbone;
+        mutable bool                    m_cached_backbone_dirty = true;
+        mutable size_t                  m_cached_depth = 0;
+        mutable bool                    m_cached_depth_dirty = true;
 //== Methods ===========================================================================================================
     public:
         ASTScope();
@@ -51,17 +50,17 @@ namespace ndbl
         const ASTScope*                parent() const { return m_parent; }
         std::vector<ASTNode*>          leaves();
         bool                           empty(ScopeFlags = ScopeFlags_NONE) const;
-        ASTVariable*                   find_variable(const std::string& identifier, ScopeFlags = ScopeFlags_RECURSE_PARENT_SCOPES);
+        ASTNode*                       find_variable(const std::string& identifier, ScopeFlags = ScopeFlags_RECURSE_PARENT_SCOPES);
         ASTScopeView*                  view() const { return m_view; } // TODO: remove this, use components
         void                           set_view(ASTScopeView* view) { m_view = view; } // TODO: remove this, use components
-        const std::set<ASTVariable*>&  variable()const { return m_variable; };
-        const std::set<ASTNode*>&      child() const { return m_child; }
+        const std::set<ASTNode*>&      variables()const { return m_variables; };
+        const std::set<ASTNode*>&      children() const { return m_children; }
         ASTNode*                       head() const { return m_head; }
         void                           reset_head(ASTNode* node = nullptr);
-        const std::vector<ASTNode*>&   backbone() const { const_cast<ASTScope*>(this)->_update_backbone_cache(); return m_cached_backbone; } // backbone is a vector of nodes starting from the scope's head including all flow_outputs in this scope (recursively)
+        const std::vector<ASTNode*>&   backbone() const { _update_backbone_cache(); return m_cached_backbone; } // backbone is a vector of nodes starting from the scope's head including all flow_outputs in this scope (recursively)
         void                           reset_parent(ASTScope* new_parent = nullptr);
         bool                           is_orphan() const { return m_parent == nullptr; }
-        size_t                         depth() const { const_cast<ASTScope*>(this)->_update_depth_cache(); return m_cached_depth; };
+        size_t                         depth() const { _update_depth_cache(); return m_cached_depth; };
         ASTNode*                       node() const { return entity(); }; // alias for entity
         static ASTScope*               lowest_common_ancestor(const std::set<ASTScope*>& scopes);
         static ASTScope*               lowest_common_ancestor(ASTScope* s1, ASTScope* s2);
@@ -70,8 +69,8 @@ namespace ndbl
     private:
         void                           _on_shutdown();
         std::vector<ASTNode*>&         _leaves_ex(std::vector<ASTNode*>& out);
-        void                           _update_backbone_cache();
-        void                           _update_depth_cache();
-        void                           _set_depth_cache_dirty();
+        void                           _update_backbone_cache() const;
+        void                           _update_depth_cache() const;
+        void                           _set_depth_cache_dirty() const;
     };
 }

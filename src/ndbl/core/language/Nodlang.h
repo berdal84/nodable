@@ -10,7 +10,6 @@
 #include "tools/core/Hash.h"
 #include "tools/core/Containers.h"
 
-#include "ndbl/core/ASTVariable.h"
 #include "ndbl/core/ASTToken.h"
 #include "ndbl/core/ASTTokenRibbon.h"
 #include "ndbl/core/Graph.h"
@@ -20,12 +19,9 @@ namespace ndbl{
     // forward declarations
     class IScope;
     class InstructionNode;
-    class ASTFunctionCall;
     class ASTScope;
     class ASTNode;
     class ASTNodeProperty;
-    class ASTVariable;
-    class ASTVariableRef;
 
     typedef int SerializeFlags;
     enum SerializeFlag_
@@ -118,7 +114,7 @@ namespace ndbl{
         std::string& serialize_bool(std::string& _out, bool b) const;
         std::string& serialize_int(std::string& _out, int i) const;
         std::string& serialize_double(std::string& _out, double d) const;
-        const ASTNodeSlot*  serialize_invokable(std::string&_out, const ASTFunctionCall*) const;
+        const ASTNodeSlot*  serialize_invokable(std::string&_out, const ASTNode*) const;
         std::string& serialize_invokable_sig(std::string& _out, const tools::IInvokable*)const;
         std::string& serialize_func_call(std::string& _out, const tools::FunctionDescriptor *_signature, tools::ArrayView<const ASTNodeSlot*> inputs)const;
         std::string& serialize_func_sig(std::string& _out, const tools::FunctionDescriptor*)const;
@@ -133,9 +129,9 @@ namespace ndbl{
         std::string& serialize_for_loop(std::string& _out, const ASTNode* _for_loop)const;
         std::string& serialize_while_loop(std::string& _out, const ASTNode*_while_loop_node)const;
         std::string& serialize_cond_struct(std::string& _out, const ASTNode* if_node ) const;
-        std::string& serialize_literal(std::string& _out, const ASTLiteral*) const;
-        std::string& serialize_variable(std::string& _out, const ASTVariable*) const;
-        std::string& serialize_variable_ref(std::string &_out, const ASTVariableRef *_node) const;
+        std::string& serialize_literal(std::string& _out, const ASTNode*) const;
+        std::string& serialize_variable(std::string& _out, const ASTNode*) const;
+        std::string& serialize_variable_ref(std::string &_out, const ASTNode *_node) const;
         std::string& serialize_empty_instruction(std::string &_out, const ASTNode *_node) const;
         std::string& serialize_property(std::string &_out, const ASTNodeProperty*) const;
 
@@ -166,8 +162,9 @@ namespace ndbl{
     };
 
     [[nodiscard]]
-    Nodlang* init_language();
-    Nodlang* get_language();
-    void     shutdown_language(Nodlang*); // undo init_language()
+    Nodlang*    init_language();
+    bool        has_language();
+    Nodlang*    get_language();
+    void        shutdown_language(Nodlang*); // undo init_language()
 }
 

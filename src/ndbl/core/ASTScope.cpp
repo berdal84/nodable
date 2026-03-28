@@ -6,7 +6,6 @@
 
 #include "tools/core/log.h"
 
-#include "ASTVariable.h"
 #include "ASTUtils.h"
 #include "Graph.h"
 
@@ -28,8 +27,8 @@ ASTScope::~ASTScope()
     // assert(Component::signal_name_change.disconnect<&ASTScope::_on_name_change>(this));
     assert(m_parent == nullptr);
     assert(m_head == nullptr);
-    assert(m_child.empty());
-    assert(m_variable.empty());
+    assert(m_children.empty());
+    assert(m_variables.empty());
     assert(m_partition.empty());
 }
 
@@ -44,15 +43,15 @@ void ASTScope::_on_shutdown()
     }
     m_partition.clear();
 
-    VERIFY( m_child.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
+    VERIFY( m_children.empty(), "Scope must be empty to shutdown, since nodes can't have a nullptr scope, Graph is responsible for it");
     reset_head();
 }
 
-ASTVariable* ASTScope::find_variable(const std::string& _identifier, ScopeFlags flags )
+ASTNode* ASTScope::find_variable(const std::string& _identifier, ScopeFlags flags )
 {
     // Try first to find in this scope
-    for(ASTVariable* node : m_variable)
-        if ( node->get_identifier() == _identifier )
+    for(ASTNode* node : m_variables)
+        if ( node->variable_data().get_identifier() == _identifier )
             return node;
 
     // not found? => recursive call in parent ...
@@ -72,26 +71,26 @@ void ASTScope::append(ASTNode *node)
     VERIFY(node != this->node(), "Can't add a node into its own internal scope" );
 
     // Insert
-    const auto& [_, ok] = m_child.insert(node); ASSERT(ok);
+    const auto& [_, ok] = m_children.insert(node); ASSERT(ok);
 
     // insert as variable?
     if (node->type() == ASTNodeType_VARIABLE )
     {
-        auto variable_node = reinterpret_cast<ASTVariable*>( node );
-        if (find_variable(variable_node->get_identifier()) != nullptr )
+        const ASTNode::VariableData& variable_data = node->variable_data();
+        if (find_variable(variable_data.get_identifier()) != nullptr )
         {
-            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", variable_node->get_identifier().c_str());
+            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already exists in the same internal_scopeview.\n", variable_data.get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
-        else if (variable_node->scope() )
+        else if (node->scope() )
         {
-            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", variable_node->get_identifier().c_str());
+            TOOLS_LOG(tools::Verbosity_Error, "Scope", "Unable to append variable '%s', already declared in another internal_scopeview. Remove it first.\n", variable_data.get_identifier().c_str());
             // we do not return, graph is abstract, it just won't compile ...
         }
         else
         {
-            TOOLS_LOG(tools::Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", variable_node->get_identifier().c_str() );
-            m_variable.insert(variable_node);
+            TOOLS_LOG(tools::Verbosity_Diagnostic, "Scope", "Add '%s' variable to the internal_scopeview\n", variable_data.get_identifier().c_str() );
+            m_variables.insert(node);
         }
     }
 
@@ -156,20 +155,20 @@ void ASTScope::remove(ndbl::ASTNode *node)
     // inputs first
     for ( ASTNode* input : node->inputs() )
         if ( input->scope() == this )
-            if ( input->type() != ASTNodeType_VARIABLE ) // variables must be manually removed
+            if ( !input->is_variable() ) // variables must be manually removed
                 remove(input);
 
     // erase node + side effects
-    m_child.erase( node );
+    m_children.erase( node );
     if (m_head == node )
     {
         reset_head();
     }
     node->reset_scope(nullptr);
 
-    if ( node->type() == ASTNodeType_VARIABLE )
+    if ( node->is_variable() )
     {
-        m_variable.erase( reinterpret_cast<ASTVariable*>(node) );
+        m_variables.erase(node);
     }
 
     ASSERT( node->scope() == nullptr);
@@ -177,7 +176,7 @@ void ASTScope::remove(ndbl::ASTNode *node)
 
 bool ASTScope::empty(ScopeFlags flags) const
 {
-    bool is_empty = m_child.empty();
+    bool is_empty = m_children.empty();
 
     if (flags & ScopeFlags_RECURSE_CHILD_PARTITION )
         for( const ASTScope* partition : m_partition )
@@ -276,19 +275,19 @@ void ASTScope::reset_parent(ASTScope* new_parent)
     _set_depth_cache_dirty();
 }
 
-void ASTScope::_set_depth_cache_dirty()
+void ASTScope::_set_depth_cache_dirty() const
 {
     m_cached_depth_dirty = true;
 
     // recurse
-    for(ASTNode* child : m_child)
+    for(ASTNode* child : m_children)
         if (ASTScope* child_scope = child->internal_scope() )
             child_scope->_set_depth_cache_dirty();
 }
 
 bool ASTScope::contains(ASTNode* node) const
 {
-    return m_child.contains( node );
+    return m_children.contains( node );
 }
 
 void ASTScope::reset_head(ASTNode* node)
@@ -300,7 +299,7 @@ void ASTScope::reset_head(ASTNode* node)
     m_head = node;
 }
 
-void ASTScope::_update_depth_cache()
+void ASTScope::_update_depth_cache()  const
 {
     if ( !m_cached_depth_dirty )
         return;
@@ -309,7 +308,7 @@ void ASTScope::_update_depth_cache()
     m_cached_depth_dirty = false;
 }
 
-void ASTScope::_update_backbone_cache()
+void ASTScope::_update_backbone_cache() const
 {
     if ( !m_cached_backbone_dirty )
         return;

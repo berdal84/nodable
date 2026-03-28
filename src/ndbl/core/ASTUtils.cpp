@@ -1,115 +1,140 @@
 #include "ASTUtils.h"
 
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
-#include "ASTFunctionCall.h"
-#include "ASTLiteral.h"
 #include "ASTNode.h"
 #include "ASTScope.h"
 #include "ASTSlotLink.h"
 #include "ASTUtils.h"
-#include "ASTVariable.h"
-#include "ASTVariableRef.h"
 
 using namespace ndbl;
 using namespace tools;
 
-ASTVariable* ASTUtils::create_variable(const TypeDescriptor* _type, const std::string& _name)
+ASTNode* ASTUtils::create_variable(const TypeDescriptor* _type, const std::string& _name)
 {
     // create
-    auto ast_node = new ASTVariable();
-    ast_node->init(_type, _name.c_str());
-    return ast_node;
+    auto node = new ASTNode(ASTNodeType_VARIABLE);
+    node->init("Var.");
+    node->variable_data().init(_type, _name.c_str());
+    return node;
 }
 
-ASTVariableRef* ASTUtils::create_variable_ref()
+ASTNode* ASTUtils::create_variable_ref()
 {
-    auto ast_node = new ASTVariableRef();
-    ast_node->init();
-    return ast_node;
+    auto node = new ASTNode(ASTNodeType_VARIABLE_REF);
+    node->init("Ref.");
+    node->variable_ref_data().init();
+    return node;
 }
 
-ASTFunctionCall* ASTUtils::create_function(const FunctionDescriptor& _func_type, ASTNodeType _node_type)
+ASTNode* ASTUtils::create_function(const FunctionDescriptor& _func_type, ASTNodeType _node_type)
 {
-    auto* ast_node = new ASTFunctionCall();
     ASSERT(_node_type == ASTNodeType_OPERATOR || _node_type == ASTNodeType_FUNCTION );
-    ast_node->init(_node_type, _func_type);
-    return ast_node;
+
+    auto* node = new ASTNode(_node_type);
+
+    node->init(_func_type.get_identifier());
+    node->invokable_data().init(_func_type);
+    
+    return node;
 }
 
 ASTNode* ASTUtils::create_cond_struct()
 {
-    auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_IF_ELSE, "If");
-    return ast_node;
+    auto* node = new ASTNode(ASTNodeType_IF_ELSE);
+
+    node->init("If");
+    node->init_internal_scope();
+    node->switch_behavior_create_branches(2);
+    node->switch_behavior_data().m_branch_prefix = {ASTToken_t::keyword_if};
+
+    return node;
 }
 
 ASTNode* ASTUtils::create_for_loop()
 {
-    auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_FOR_LOOP, "For");
-    return ast_node;
+    auto* node = new ASTNode(ASTNodeType_FOR_LOOP);
+
+    node->init("For");
+
+    node->switch_behavior_data().m_branch_prefix = {ASTToken_t::keyword_for};
+
+    // add initialization property and slot
+    auto* init_prop = node->add_prop<any>(INITIALIZATION_PROPERTY);
+    node->switch_behavior_data().m_initialization_slot = node->add_slot(init_prop, SlotFlag_INPUT, 1);
+
+    // add conditional-related properties and slots
+    node->init_internal_scope();
+    node->switch_behavior_create_branches(2);
+
+    // add iteration property and slot
+    auto iter_prop = node->add_prop<any>(ITERATION_PROPERTY);
+    node->switch_behavior_data().m_iteration_slot = node->add_slot(iter_prop, SlotFlag_INPUT, 1);
+
+    return node;
 }
 
 ASTNode* ASTUtils::create_while_loop()
 {
-    auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_WHILE_LOOP, "While");
-    return ast_node;
+    auto* node = new ASTNode(ASTNodeType_WHILE_LOOP);    
+    node->init("While");
+    node->init_internal_scope();
+    node->switch_behavior_create_branches(2);
+    node->switch_behavior_data().m_branch_prefix = {ASTToken_t::keyword_while};
+    return node;
 }
 
 ASTNode* ASTUtils::create_scope()
 {
-    auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_SCOPE, "Scope");
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN);
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_INTERNAL, 1);
-    ast_node->init_internal_scope();
-
-    return ast_node;
+    auto* node = new ASTNode(ASTNodeType_SCOPE);
+    node->init("Scope");
+    node->add_slot(node->value(), SlotFlag_FLOW_IN);
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_INTERNAL, 1);
+    node->init_internal_scope();
+    return node;
 }
 
 ASTNode* ASTUtils::create_root_scope()
 {
-    auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_SCOPE, ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
-    // ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY); nothing can be before...
-    // ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1); nothing after either...
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_INTERNAL, 1); // ...but something inside!
-    ast_node->init_internal_scope();
-
-    return ast_node;
+    auto* node = new ASTNode(ASTNodeType_ROOT);
+    node->init(ICON_FA_ARROW_ALT_CIRCLE_DOWN " BEGIN");
+    // add_slot(node->value(), SlotFlag_FLOW_IN, ASTNodeSlot::MAX_CAPACITY); nothing can be before...
+    // add_slot(node->value(), SlotFlag_FLOW_OUT, 1); nothing after either...
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT | SlotFlag_IS_INTERNAL, 1); // ...but something inside!
+    node->init_internal_scope();
+    return node;
 }
 
 ASTNode* ASTUtils::create_node()
 {
-    auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_DEFAULT, "");
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN);
-    return ast_node;
+    auto* node = new ASTNode;
+    node->init("");
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
+    node->add_slot(node->value(), SlotFlag_FLOW_IN);
+    return node;
 }
 
-ASTLiteral* ASTUtils::create_literal(const TypeDescriptor *_type)
+ASTNode* ASTUtils::create_literal(const TypeDescriptor *_type)
 {
-    auto* ast_node = new ASTLiteral();
-    ast_node->init(_type, "Literal");
-    return ast_node;
+    auto* node = new ASTNode(ASTNodeType_LITERAL);
+    node->init("Lit.");
+    node->literal_data().init(_type);
+    return node;
 }
 
 ASTNode* ASTUtils::create_empty_instruction()
 {
-    auto* ast_node = new ASTNode();
-    ast_node->init(ASTNodeType_EMPTY_INSTRUCTION, ";");
+    auto* node = new ASTNode(ASTNodeType_EMPTY_INSTRUCTION);
+    node->init(";");
 
     // Token will be/or not overriden as a Token_t::end_of_instruction by the parser
-    ast_node->value()->set_token({ASTToken_t::ignore});
+    node->value()->set_token({ASTToken_t::ignore});
 
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_OUT, 1);
-    ast_node->add_slot(ast_node->value(), SlotFlag_FLOW_IN);
-    ast_node->add_slot(ast_node->value(), SlotFlag_OUTPUT  , 1);
+    node->add_slot(node->value(), SlotFlag_FLOW_OUT, 1);
+    node->add_slot(node->value(), SlotFlag_FLOW_IN);
+    node->add_slot(node->value(), SlotFlag_OUTPUT  , 1);
 
-    return ast_node;
+    return node;
 }
 
 std::vector<ASTNode*> ASTUtils::get_adjacent_nodes(const ASTNode* _node, SlotFlags _flags)
@@ -161,7 +186,7 @@ bool ASTUtils::can_be_instruction(const ASTNode* node)
 bool ASTUtils::is_unary_operator(const ASTNode* node)
 {
     if (node->type() == ASTNodeType_OPERATOR )
-        if (static_cast<const ASTFunctionCall *>(node)->get_func_type().arg_count() == 1 )
+        if (node->invokable_data().get_func_type()->arg_count() == 1 )
             return true;
     return false;
 }
@@ -169,7 +194,7 @@ bool ASTUtils::is_unary_operator(const ASTNode* node)
 bool ASTUtils::is_binary_operator(const ASTNode* node)
 {
     if (node->type() == ASTNodeType_OPERATOR )
-        if (static_cast<const ASTFunctionCall *>(node)->get_func_type().arg_count() == 2 )
+        if (node->invokable_data().get_func_type()->arg_count() == 2 )
             return true;
     return false;
 }
@@ -200,10 +225,15 @@ bool ASTUtils::is_output_node_in_expression(const ASTNode* input_node, const AST
     {
         if (input_node->type() == ASTNodeType_VARIABLE )
         {
-            const ASTNodeSlot* declaration_out = static_cast<const ASTVariable*>(input_node)->decl_out();
+            const ASTNodeSlot* declaration_out = input_node->variable_data().decl_out();
             return declaration_out->first_adjacent_node() == output_node;
         }
         return false;
     }
     return input_node->outputs().front() == output_node;
+}
+
+bool ASTUtils::is_initialized(const ASTNode* node)
+{
+    return node != nullptr && node->is_initialized();
 }

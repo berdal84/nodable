@@ -10,11 +10,8 @@
 #include "tools/gui/Color.h"
 
 #include "ndbl/core/Graph.h"
-#include "ndbl/core/ASTLiteral.h"
-#include "ndbl/core/ASTVariable.h"
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTNodeSlot.h"
-#include "ndbl/core/ASTFunctionCall.h"
 
 #include "Config.h"
 #include "Event.h"
@@ -366,8 +363,7 @@ bool GraphView::draw(float dt)
                 // Draw transparent some "variable--->ref" wires in certain cases
                 if (node_out->type() == ASTNodeType_VARIABLE ) // from a variable
                 {
-                    auto variable = static_cast<ASTVariable*>( node_out );
-                    if (slot_out == variable->ref_out() ) // from a reference slot (can't be a declaration link)
+                    if (slot_out == node_out->variable_data().ref_out() ) // from a reference slot (can't be a declaration link)
                         if (!node_view_out->state()->selected() && !node_view_in->state()->selected() )
                             style.color.w *= 0.25f;
                 }
@@ -525,9 +521,9 @@ void GraphView::_create_constraints(ASTScope* scope )
         constraint.rule          = &ViewConstraintRule_distribute_sub_scope_views;
         constraint.leader        = {scope->entity()->component<ASTNodeView>()};
         constraint.leader_pivot  = BOTTOM;
-        for(Branch i = 0; i < scope->node()->branch_count(); ++i )
+        for(Branch i = 0; i < scope->node()->switch_behavior_data().branch_count(); ++i )
         {
-            auto branch = scope->node()->branch_out(i);
+            auto branch = scope->node()->switch_behavior_data().branch_out(i);
             ASTNodeView* nodeview = branch->node->component<ASTNodeView>();
             constraint.follower.push_back( nodeview );
         }
@@ -546,7 +542,7 @@ void GraphView::_create_constraints(ASTScope* scope )
         _create_constraints__align_top_recursively(child_node->inputs(), child_node );
     }
 
-    for ( ASTNode* _child_node : scope->child() )
+    for ( ASTNode* _child_node : scope->children() )
         if ( ASTScope* _child_scope = _child_node->internal_scope() )
             _create_constraints(_child_scope);
 };

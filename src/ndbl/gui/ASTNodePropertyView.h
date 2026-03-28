@@ -10,7 +10,6 @@ namespace ndbl
     class ASTNodeProperty;
     class ASTNodeView;
     class ASTNode;
-    class ASTVariable;
     struct ASTNodeSlot;
 
     /**
@@ -30,7 +29,7 @@ namespace ndbl
         ASTNodeProperty* get_property() const;
         ASTNode*         get_node() const;
         ASTNodeSlot*     get_connected_slot() const;
-        ASTVariable*     get_connected_variable() const;
+        ASTNode*         get_connected_variable() const;
         bool             has_input_connected() const;
 
         const tools::ViewState*     state() const { return &_state; };

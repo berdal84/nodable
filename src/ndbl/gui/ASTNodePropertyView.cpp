@@ -52,13 +52,13 @@ ASTNodeSlot* ASTNodePropertyView::get_connected_slot() const
     return input_slot->first_adjacent();
 }
 
-ASTVariable* ASTNodePropertyView::get_connected_variable() const
+ASTNode* ASTNodePropertyView::get_connected_variable() const
 {
     ASTNodeSlot* adjacent_slot = get_connected_slot();
     if( !adjacent_slot )
         return nullptr;
 
-    return cast<ASTVariable>(adjacent_slot->node);
+    return adjacent_slot->node;
 }
 
 bool ASTNodePropertyView::draw(ViewDetail _detail)

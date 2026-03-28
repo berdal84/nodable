@@ -642,7 +642,7 @@ void NodableView::draw_config_window()
             ImGui::Indent();
             if ( ImGui::CollapsingHeader("Colors", flags ))
             {
-                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[ASTNodeType_DEFAULT].x );
+                ImGui::ColorEdit4("default"     , &cfg->ui_node_fill_color[ASTNodeType_NULL].x );
                 ImGui::ColorEdit4("entry point" , &cfg->ui_node_fill_color[ASTNodeType_SCOPE].x );
                 ImGui::ColorEdit4("condition"   , &cfg->ui_node_fill_color[ASTNodeType_IF_ELSE].x );
                 ImGui::ColorEdit4("for loop"    , &cfg->ui_node_fill_color[ASTNodeType_FOR_LOOP].x );

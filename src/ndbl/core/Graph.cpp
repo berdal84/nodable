@@ -4,14 +4,10 @@
 #include <imgui/imgui_internal.h>
 
 #include "language/Nodlang.h"
-#include "ASTFunctionCall.h"
-#include "ASTLiteral.h"
 #include "ASTNode.h"
 #include "ASTScope.h"
 #include "ASTSlotLink.h"
 #include "ASTUtils.h"
-#include "ASTVariable.h"
-#include "ASTVariableRef.h"
 
 using namespace ndbl;
 using namespace tools;
@@ -205,23 +201,23 @@ ASTNode* Graph::create_scope(ASTScope* scope)
     return node;
 }
 
-ASTVariable* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, ASTScope* scope)
+ASTNode* Graph::create_variable(const TypeDescriptor *_type, const std::string& _name, ASTScope* scope)
 {
-    ASTVariable* node = ASTUtils::create_variable(_type, _name);
+    ASTNode* node = ASTUtils::create_variable(_type, _name);
     _insert(node, scope);
 	return node;
 }
 
-ASTFunctionCall* Graph::create_function(const FunctionDescriptor& _type, ASTScope* scope)
+ASTNode* Graph::create_function(const FunctionDescriptor& _type, ASTScope* scope)
 {
-    ASTFunctionCall* node = ASTUtils::create_function(_type, ASTNodeType_FUNCTION);
+    ASTNode* node = ASTUtils::create_function(_type, ASTNodeType_FUNCTION);
     _insert(node, scope);
     return node;
 }
 
-ASTFunctionCall* Graph::create_operator(const FunctionDescriptor& _type, ASTScope* scope)
+ASTNode* Graph::create_operator(const FunctionDescriptor& _type, ASTScope* scope)
 {
-    ASTFunctionCall* node = ASTUtils::create_function(_type, ASTNodeType_OPERATOR);
+    ASTNode* node = ASTUtils::create_function(_type, ASTNodeType_OPERATOR);
     _insert(node, scope);
     return node;
 }
@@ -295,7 +291,7 @@ ASTSlotLink Graph::connect_or_merge(ASTNodeSlot* tail, ASTNodeSlot* head )
     return connect(tail, head, GraphFlag_ALLOW_SIDE_EFFECTS );
 }
 
-ASTSlotLink Graph::connect_to_variable(ASTNodeSlot* output_slot, ASTVariable* _variable )
+ASTSlotLink Graph::connect_to_variable(ASTNodeSlot* output_slot, ASTNode* _variable )
 {
     // Guards
     ASSERT( output_slot->has_flags(SlotFlag_OUTPUT) );
@@ -558,9 +554,9 @@ ASTNode* Graph::create_node(ASTScope* scope)
     return node;
 }
 
-ASTLiteral* Graph::create_literal(const TypeDescriptor* _type, ASTScope* scope)
+ASTNode* Graph::create_literal(const TypeDescriptor* _type, ASTScope* scope)
 {
-    ASTLiteral* node = ASTUtils::create_literal(_type);
+    ASTNode* node = ASTUtils::create_literal(_type);
     _insert(node, scope);
     return node;
 }
@@ -602,22 +598,23 @@ ASTNode* Graph::create_node(CreateNodeType _type, const FunctionDescriptor* _sig
     }
 }
 
-ASTVariableRef* Graph::create_variable_ref(ASTScope* scope)
+ASTNode* Graph::create_variable_ref(ASTScope* scope)
 {
-    ASTVariableRef* node = ASTUtils::create_variable_ref();
+    ASTNode* node = ASTUtils::create_variable_ref();
     _insert(node, scope);
     return node;
 }
 
-ASTVariable* Graph::create_variable_decl(const TypeDescriptor* type, const char*  name, ASTScope* scope)
+ASTNode* Graph::create_variable_decl(const TypeDescriptor* type, const char*  name, ASTScope* scope)
 {
     // Create variable
-    ASTVariable* var_node = create_variable(type, name, scope);
-    var_node->set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
+    ASTNode* var_node = create_variable(type, name, scope);
+    var_node->variable_data().set_flags(VariableFlag_DECLARED); // yes, when created from the graph view, variables can be undeclared (== no scope).
+
     ASTToken token(ASTToken_t::keyword_operator, " = ");
     token.word_move_begin(1);
     token.word_move_end(-1);
-    var_node->set_operator_token( token );
+    var_node->variable_data().set_operator_token( token );
 
     return var_node;
 }
@@ -661,7 +658,7 @@ void Graph::flag_node_to_delete(ASTNode *node, GraphFlags flags)
 
         // delete children
         if ( ASTScope* scope = node->internal_scope() )
-            for ( ASTNode* _child : scope->child() )
+            for ( ASTNode* _child : scope->children() )
                 flag_node_to_delete(_child, flags);
     }
 
@@ -702,7 +699,7 @@ void Graph::_transfer_children(ASTScope* source, ASTScope* target)
     ASSERT(source);
     ASSERT(target);
 
-    std::set<ASTNode*> child_copy{source->child()};
+    std::set<ASTNode*> child_copy{source->children()};
     for(ASTNode* _child : child_copy)
     {
         _change_scope(_child, target);

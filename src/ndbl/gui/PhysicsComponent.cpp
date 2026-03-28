@@ -8,7 +8,6 @@
 #include "tools/gui/Config.h"
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTNode.h"
-#include "ndbl/core/ASTVariable.h"
 #include "ndbl/gui/ASTNodeView.h"
 #include "ndbl/gui/ASTScopeView.h"
 #include "Config.h"

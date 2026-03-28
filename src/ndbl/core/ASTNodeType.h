@@ -7,8 +7,9 @@ namespace ndbl
     {
         // enum is used to index arrays, must start at 0 with no gaps
 
-        ASTNodeType_DEFAULT = 0,
+        ASTNodeType_NULL = 0,
         ASTNodeType_SCOPE,
+        ASTNodeType_ROOT,
         ASTNodeType_IF_ELSE,
         ASTNodeType_FOR_LOOP,
         ASTNodeType_WHILE_LOOP,

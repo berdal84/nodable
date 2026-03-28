@@ -3,7 +3,6 @@
 #include "ndbl/core/ASTScope.h"
 #include "ASTNodeView.h"
 #include "Config.h"
-#include "ndbl/core/ASTFunctionCall.h"
 #include "ndbl/core/language/Nodlang.h"
 
 using namespace ndbl;
@@ -35,7 +34,7 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
 
     // 1) update recursively
     //    any scope with higher depth in the same hierarchy will be up to date.
-    for( ASTNode* child_node : m_scope->child() )
+    for( ASTNode* child_node : m_scope->children() )
         if ( ASTScope* internal_scope = child_node->internal_scope() )
             internal_scope->view()->update(dt, flags);
 
@@ -58,11 +57,11 @@ void ASTScopeView::update(float dt, ScopeViewFlags flags)
     if ( auto sibling_nodeview = m_scope->node()->component<ASTNodeView>() )
         wrap_nodeview( sibling_nodeview );
 
-    for( ASTNode* node : m_scope->child() )
+    for( ASTNode* node : m_scope->children() )
         if ( auto nodeview = node->component<ASTNodeView>() )
             wrap_nodeview( nodeview );
 
-    for( ASTNode* child_node : m_scope->child() )
+    for( ASTNode* child_node : m_scope->children() )
     {
         if ( child_node->has_internal_scope() )
         {
@@ -104,13 +103,13 @@ bool ASTScopeView::must_be_draw() const
     if (!m_content_rect.has_area())
         return false;
 
-    switch ( scope()->child().size() )
+    switch ( scope()->children().size() )
     {
         case 0:
             return false;
         case 1:
         {
-            ASTNode* single_node = *scope()->child().begin();
+            ASTNode* single_node = *scope()->children().begin();
             if ( single_node->has_internal_scope() && this->has_parent() )
                 return false;
             return true;
@@ -180,19 +179,17 @@ void ndbl::TreeNode_ASTNode(ASTNode* node)
         case ASTNodeType_OPERATOR:
         case ASTNodeType_FUNCTION:
         {
-            auto* func_node = dynamic_cast<ASTFunctionCall*>( node );
             std::string signature;
-            get_language()->serialize_func_sig(signature, &func_node->get_func_type());
+            get_language()->serialize_func_sig(signature, node->invokable_data().get_func_type());
             char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", func_node, func_node->name().c_str(), func_node->get_class()->name(), signature.c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s, %s)", node, node->name().c_str(), node->get_class()->name(), signature.c_str());
             break;
         }
         case ASTNodeType_VARIABLE:
         {
-            auto* variable = dynamic_cast<ASTVariable*>( node );
-            std::string value = variable->value()->token().word_to_string();
+            std::string value = node->value()->token().word_to_string();
             char str[255];
-            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", variable, value.c_str(), variable->name().c_str());
+            open = ImGui::TreeNode(node, "[%p] \"%s\" (%s)", node, value.c_str(), node->name().c_str());
             break;
         }
         default:
@@ -218,27 +215,27 @@ void ndbl::TreeNode_ASTScopeContent(ASTScope *scope)
     std::vector<ASTNode*> backbone = scope->backbone();
     if ( ImGui::TreeNodeEx(&backbone, ImGuiTreeNodeFlags_DefaultOpen, "Children (backbone, ordered)" ) )
     {
-        for ( ASTNode* _node : backbone )
+        for ( ASTNode* each_node : backbone )
         {
-            TreeNode_ASTNode(_node);
+            TreeNode_ASTNode(each_node);
         }
         ImGui::TreePop();
     }
 
-    if ( ImGui::TreeNode(&scope->variable(), "Children (vars only, unordered)") )
+    if ( ImGui::TreeNode(&scope->variables(), "Children (vars only, unordered)") )
     {
-        for ( ASTNode* child : scope->variable() )
+        for ( ASTNode* each_node : scope->variables() )
         {
-            TreeNode_ASTNode(child);
+            TreeNode_ASTNode(each_node);
         }
         ImGui::TreePop();
     }
 
-    if ( ImGui::TreeNode(&scope->child(), "Children (all, unordered)") )
+    if ( ImGui::TreeNode(&scope->children(), "Children (all, unordered)") )
     {
-        for ( ASTNode* child : scope->child() )
+        for ( ASTNode* each_node : scope->children() )
         {
-            TreeNode_ASTNode(child);
+            TreeNode_ASTNode(each_node);
         }
         ImGui::TreePop();
     }
