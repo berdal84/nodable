@@ -303,6 +303,8 @@ end # if @OPTIONS.verbose
 
 Target = Struct.new(
     :assets, # List of patterns like: "<source>" or "<source>:<destination>"
+    :cached_assets_src,
+    :cached_assets_dst,
     :c_flags,
     :compiler_flags,
     :cxx_flags,
@@ -354,6 +356,10 @@ def target(
     target.cached_includes_flags    = ""
     target.sources_to_compile       = []
     target.objects_to_link          = []
+
+    target.assets                   = []
+    target.cached_assets_src        = []
+    target.cached_assets_dst        = []
 
     target.assets                   = FileList[]
     target.c_flags                  = []
@@ -646,6 +652,14 @@ def target_initialize(target)
     target.objects_to_link |= target.sources_to_compile.map{|src|target_src_to_obj(target, src)}
     target.objects_to_link |= target.depends_on_target.map{|t|t.objects_to_link}.flatten
 
+    # 5) Split each asset pattern to determine their source and destination paths
+    target.assets.each_with_index do |file_pattern|
+        src, dst    = file_pattern_split(file_pattern)
+        target.cached_assets_src.append(src)
+        target.cached_assets_dst.append("#{target.bin_dir}/#{dst}")
+    end  
+
+
     target.is_initialized = true
 
     # puts "sources_to_compile:"
@@ -693,19 +707,6 @@ def target_define_tasks(target)
 
     task :rebuild => [:clean, :build]
 
-
-    target.assets.each_with_index do |file_pattern, i|
-
-        src, dst    = file_pattern_split(file_pattern)
-        asset_src   = src
-        asset_dest  = "#{target.bin_dir}/#{dst}"
-
-        file asset_src => asset_dest do
-            file_copy_or_overwrite( asset_src, asset_dest )
-        end
-
-    end  
-
     case target.type
     when TARGET_TYPE_OBJECTS
 
@@ -722,10 +723,18 @@ def target_define_tasks(target)
 
         task :link => target.binary 
 
-        task :build => :link do
-            log(target, "Build DONE")
+        # Declare a task per asset to copy
+        target.cached_assets_src.each_with_index do |src, i|
+            dst = target.cached_assets_dst[i]
+            file dst => src do
+                file_copy_or_overwrite( src, dst )
+            end
         end
-        
+
+        multitask :copy_assets => target.cached_assets_dst
+
+        task :build => [:link, :copy_assets]
+                
         task :run => :build do
             log(target, "Running ...")
             case PLATFORM
