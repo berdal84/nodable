@@ -707,27 +707,28 @@ def target_define_tasks(target)
 
     task :rebuild => [:clean, :build]
 
+    multitask :objects => target.objects_to_link do
+        update_llvm_json_compilation_database()
+    end
+
     case target.type
     when TARGET_TYPE_OBJECTS
 
-        task :build => target.objects_to_link do
-            update_llvm_json_compilation_database()
-        end
+        task :build => :objects
 
     when TARGET_TYPE_EXECUTABLE
 
-        file target.binary => target.objects_to_link do
-            update_llvm_json_compilation_database()
+        file target.binary => :objects do
             target_link(target)
         end
 
         task :link => target.binary 
 
         # Declare a task per asset to copy
-        target.cached_assets_src.each_with_index do |src, i|
-            dst = target.cached_assets_dst[i]
+        target.cached_assets_dst.each_with_index do |dst, i|
+            src = target.cached_assets_src[i]
             file dst => src do
-                file_copy_or_overwrite( src, dst )
+                file_copy_or_overwrite(src, dst)
             end
         end
 
