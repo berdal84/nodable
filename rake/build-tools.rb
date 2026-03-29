@@ -370,7 +370,7 @@ def target(
     target.vcpkg                    = []
     target.unity_build_on           = false
     target.unity_build_slice_size   = RELEASE ? 512 : 4
-    target.binary                   = "#{target.bin_dir}/#{target.name}"
+    target.binary                   = File.absolute_path "#{target.bin_dir}/#{target.name}"
 
     case PLATFORM
     when PLATFORM_WEB
@@ -439,22 +439,22 @@ def target_find_alldeps_from_obj( target, obj )
     
     src = target_find_src_from_obj( target, obj )
 
-    if src == nil
-        return []
-    end
+    raise "Unable to find src from '#{obj}' for '#{target.name}'" if src == nil
      
-    # get *.d file
-    deps = []
+    deps = [src]
 
+    # get *.d file that contains a list of the dependencies
     dep = target_src_to_dep( target, src )
-    if File.exist?(dep)
-        content = File.read(dep)
-        content = content.split(": ")[1]
-        content = content.gsub(/\\$/, '').strip  # Remove line continuations
-        deps    = content.split " "
+    if !File.exist?(dep)
+        return deps
     end
 
-    [src, *deps]
+    content = File.read(dep)
+    content = content.split(": ")[1]
+    content = content.gsub(/\\$/, '').strip  # Remove line continuations
+    deps    = content.split " "
+
+    deps
 end
 
 def target_find_src_from_obj( target, obj )
@@ -540,194 +540,147 @@ def target_link( target )
     log(target, "Linking DONE - (#{target.binary})")
 end
 
-$_mutex_initializing = Mutex.new
 
-# Ensure this target and any dependent target is initialized
-def target_ensure_is_initialized(target)
-    
-    # Initialize recursively
-    target.depends_on_target.each do |each_target|
-        target_ensure_is_initialized(each_target)
-    end
+def target_initialize(target)
 
-        # Perform a quick check that won't lock the thread (readonly)
-    if target.is_initialized
-        return
-    end
+    debug( target, "Initializing ..." )
 
-    # We synchronize this scope to make sure only 1 thread at a time can run it
-    $_mutex_initializing.synchronize {
+    FileUtils.mkdir_p target.bin_dir
+    FileUtils.mkdir_p target.obj_dir
+    FileUtils.mkdir_p target.dist_dir
+    FileUtils.mkdir_p target.dep_dir
+    FileUtils.mkdir_p target.src_dir
 
-        # There is a possibility where 1 task already started to execute this scope while an other was waiting to execute it too.
-        # In such case, once the first finishes the execution (and set the flag to true) the second enter
-        # But, the second should abort.
-        if target.is_initialized
-            return
-        end
+    # 1) Generate flags for linked libraries
+    #    It relies on pkgconf for vcpkg, if library can't be found we add a default flag (-lmylib)
+    #
+    debug( target, "Generate flags for vcpkg (#{target.vcpkg})..")
+    # We must add default include path for headers and libraries because some vcpkg do not have a .pc file
+    # and their location is 99% of the time in those two folders:
+    temp_cxx_flags    = ["-I#{VCPKG_PACKAGES_ROOT}/include"]
+    temp_linker_flags = ["-L#{VCPKG_PACKAGES_ROOT}/lib"]
 
-        log( target, "Initializing ..." )
+    target.vcpkg.each do |vcpkg_name|
 
+        has_pkg_config = system("#{PKGCONF} --exists #{vcpkg_name}")
 
-        FileUtils.mkdir_p target.bin_dir
-        FileUtils.mkdir_p target.obj_dir
-        FileUtils.mkdir_p target.dist_dir
-        FileUtils.mkdir_p target.dep_dir
-        FileUtils.mkdir_p target.src_dir
-
-        # 1) Generate flags for linked libraries
-        #    It relies on pkgconf for vcpkg, if library can't be found we add a default flag (-lmylib)
-        #
-        debug( target, "Generate flags for vcpkg (#{target.vcpkg})..")
-        # We must add default include path for headers and libraries because some vcpkg do not have a .pc file
-        # and their location is 99% of the time in those two folders:
-        temp_cxx_flags    = ["-I#{VCPKG_PACKAGES_ROOT}/include"]
-        temp_linker_flags = ["-L#{VCPKG_PACKAGES_ROOT}/lib"]
-
-        target.vcpkg.each do |vcpkg_name|
-
-            has_pkg_config = system("#{PKGCONF} --exists #{vcpkg_name}")
-
-            if !has_pkg_config
-                temp_linker_flags |= ["-l#{vcpkg_name}"] # By default, we simply link it, considering that 99% of the time the *.lib|a|so is in the base folder.
-            else
-                lib_cxx_flags      = `#{PKGCONF} --cflags #{vcpkg_name}`.chomp        # Get compiler flags (ex: "-I/path/to/folder"      
-                lib_linker_flags   = `#{PKGCONF} --libs --static #{vcpkg_name}`.chomp # Get linker flags (ex: "-L/path/to/lib/folder -lxxx" 
-
-                temp_cxx_flags    |=    lib_cxx_flags.split(" ") # we use |= to make sure there is no duplicates
-                temp_linker_flags |= lib_linker_flags.split(" ")
-            end
-
-        end
-
-        # we use += here because we would like to see compiler warnings if a flag from these temp_xxx_flags already exist in the target.xxx_flags,
-        # that would mean some flags can be removed from target.xxx_flags perhaps...
-        target.cxx_flags    += temp_cxx_flags 
-        target.linker_flags += temp_linker_flags
-
-        debug( target, "-- cxx_flags added:    #{temp_cxx_flags}")
-        debug( target, "-- linker_flags added: #{temp_linker_flags}")
-        debug( target, "Generate vcpkg flags DONE")
-        
-        # Enable LTO (link time optimization)
-        if RELEASE
-
-            lto_flags = [
-                "-flto",        # lto|lto=thin, LTO: link time optimization
-                "-fuse-ld=lld"  # required by LTO
-            ]
-            
-            target.linker_flags   |= lto_flags;
-            target.compiler_flags |= lto_flags;
-        end
-
-        # 2) Cache some flags as string to share the data accross multiple compilation units
-        #
-        target.cached_defines_flags  = target.defines.map{|d|  "--define-macro=\"#{d}\"" }.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-D-macro
-        target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
-
-        # 3) Generate unity_build slices
-        unity_sources = nil
-        if target.unity_build_on && target.sources.size > 1 && target.unity_build_slice_size > 1
-
-            log(target, "Unity Build - Slicing ...")
-
-            unity_sources = FileList[]
-
-            # Generate each slice
-            require 'digest'
-            slices = target.sources.each_slice(target.unity_build_slice_size)
-            slices.each_with_index do |slice, index|
-                
-                content = [
-                    "//",
-                    "// This code was generated by #{__FILE__}, do not edit.",
-                    "//",
-                    *slice.map{|file| "#include \"#{File.absolute_path file}\"" }
-                ].join("\n")
-
-                hash       = Digest::SHA256.hexdigest(content)[0..17]     # We want to make sure filename changes even if index does not
-                filename   = "#{target.src_dir}/slice-#{1+index}-#{hash}.cpp"
-
-                unity_sources += [filename]
-
-                FileUtils.mkdir_p File.dirname( filename )
-
-                if !File.exist?(filename)
-                    File.write(filename, content)
-                end
-            end
-
-            log(target, "Unity Build - #{unity_sources.size} slice(s) were generated (slice size: #{target.unity_build_slice_size})")
-        end
-
-        if unity_sources
-            target.sources_to_compile = unity_sources
+        if !has_pkg_config
+            temp_linker_flags |= ["-l#{vcpkg_name}"] # By default, we simply link it, considering that 99% of the time the *.lib|a|so is in the base folder.
         else
-            target.sources_to_compile = target.sources.dup
+            lib_cxx_flags      = `#{PKGCONF} --cflags #{vcpkg_name}`.chomp        # Get compiler flags (ex: "-I/path/to/folder"      
+            lib_linker_flags   = `#{PKGCONF} --libs --static #{vcpkg_name}`.chomp # Get linker flags (ex: "-L/path/to/lib/folder -lxxx" 
+
+            temp_cxx_flags    |=    lib_cxx_flags.split(" ") # we use |= to make sure there is no duplicates
+            temp_linker_flags |= lib_linker_flags.split(" ")
         end
 
-        # Generate a cache of all objects the objects to link
-        target.objects_to_link |= target.sources_to_compile.map{|src|target_src_to_obj(target, src)}
-        target.objects_to_link |= target.depends_on_target.map{|t|t.objects_to_link}.flatten
-
-        target.is_initialized = true
-
-        # puts "sources_to_compile:"
-        # puts "  ", target.sources_to_compile.join("\n  ")
-
-        # puts "objects_to_link:"
-        # puts "  ", target.objects_to_link.join("\n  ")
-
-        log(target, "Initialized")
-    }
-end
-
-# Check that this target and any dependent target is initialized
-def target_is_initialized(target)
-    
-    return false if !target.is_initialized
-    
-    target.depends_on_target.each do |t|
-        return false if !target_is_initialized(t)
     end
 
-    return true
-end
+    # we use += here because we would like to see compiler warnings if a flag from these temp_xxx_flags already exist in the target.xxx_flags,
+    # that would mean some flags can be removed from target.xxx_flags perhaps...
+    target.cxx_flags    += temp_cxx_flags 
+    target.linker_flags += temp_linker_flags
 
-def target_build_objects(target)
+    debug( target, "-- cxx_flags added:    #{temp_cxx_flags}")
+    debug( target, "-- linker_flags added: #{temp_linker_flags}")
+    debug( target, "Generate vcpkg flags DONE")
+    
+    # Enable LTO (link time optimization)
+    if RELEASE
 
-    target_ensure_is_initialized(target)
+        lto_flags = [
+            "-flto",        # lto|lto=thin, LTO: link time optimization
+            "-fuse-ld=lld"  # required by LTO
+        ]
+        
+        target.linker_flags   |= lto_flags;
+        target.compiler_flags |= lto_flags;
+    end
 
-    # Usually we would use multitask to run N tasks,
-    # but objects_to_link want be predetermined be we want the target's initialization to be lazy.
-    threads = []
-    target.objects_to_link.each do |obj|
-        threads << Thread.new(obj) do |obj|
-            Rake::Task[obj].invoke
+    # 2) Cache some flags as string to share the data accross multiple compilation units
+    #
+    target.cached_defines_flags  = target.defines.map{|d|  "--define-macro=\"#{d}\"" }.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-D-macro
+    target.cached_includes_flags = target.includes.map{|f| "--include-directory=#{File.absolute_path(f)}"}.join(" ") # see https://clang.llvm.org/docs/ClangCommandLineReference.html#cmdoption-clang-I-dir
+
+    # 3) Generate unity_build slices
+    unity_sources = nil
+    if target.unity_build_on && target.sources.size > 1 && target.unity_build_slice_size > 1
+
+        debug(target, "Unity Build - Slicing ...")
+
+        unity_sources = FileList[]
+
+        # Generate each slice
+        require 'digest'
+        slices = target.sources.each_slice(target.unity_build_slice_size)
+        slices.each_with_index do |slice, index|
+            
+            content = [
+                "//",
+                "// This code was generated by #{__FILE__}, do not edit.",
+                "//",
+                *slice.map{|file| "#include \"#{File.absolute_path file}\"" }
+            ].join("\n")
+
+            hash       = Digest::SHA256.hexdigest(content)[0..17]     # We want to make sure filename changes even if index does not
+            filename   = "#{target.src_dir}/slice-#{1+index}-#{hash}.cpp"
+
+            unity_sources += [filename]
+
+            FileUtils.mkdir_p File.dirname( filename )
+
+            if !File.exist?(filename)
+                File.write(filename, content)
+            end
         end
-    end
-    threads.each(&:join)
 
-    update_llvm_json_compilation_database()
+        debug(target, "Unity Build - #{unity_sources.size} slice(s) were generated (slice size: #{target.unity_build_slice_size})")
+    end
+
+    if unity_sources
+        target.sources_to_compile = unity_sources
+    else
+        target.sources_to_compile = target.sources.dup
+    end
+
+    # Generate a cache of all objects the objects to link
+    target.objects_to_link |= target.sources_to_compile.map{|src|target_src_to_obj(target, src)}
+    target.objects_to_link |= target.depends_on_target.map{|t|t.objects_to_link}.flatten
+
+    target.is_initialized = true
+
+    # puts "sources_to_compile:"
+    # puts "  ", target.sources_to_compile.join("\n  ")
+
+    # puts "objects_to_link:"
+    # puts "  ", target.objects_to_link.join("\n  ")
+
+    debug(target, "Initialized")
 end
 
+# Define all the tasks for a given build target
+# DO NOT mutate target after you called this.
 def target_define_tasks(target)
 
     namespace target.name do
 
-    # Handle *.o files that are inside this target's obj_dir
-    rule %r{#{Regexp.escape(target.obj_dir)}/.*\.o$} => [
-        *->(obj){target_find_alldeps_from_obj(target, obj)}
-    ] do |t|
-        target_compile_file(target, t.sources[0] )
-    end    
+    task :init => target.depends_on_target.map{|t|"#{t.name}:init"} do
+        return if target.is_initialized
+        target_initialize(target)
+    end
 
-    #task :init do
-        # TODO: There is a problem, because the configuration that is used during this task
-        #       won't match with the tasks generated when this rakefile was loaded.
-        #       We must avoid loops to generate tasks.
-    #    target_ensure_is_initialized(target, force=true)
-    #end
+    # Since we do not have a "configure" step, it is important to make
+    # sure the target is initialized each time we run this script.
+    Rake::Task[:init].invoke
+
+    # Declare a task per source we have to compile
+    # (strictly for this target, this does not include target dependencies's sources, each target dependency declares its own tasks).
+    target.sources_to_compile.each do |src|
+        obj = target_src_to_obj(target, src)
+        file obj => target_find_alldeps_from_obj(target, obj) do
+            target_compile_file(target, src)
+        end    
+    end
 
     task :clean do
         # FileUtils.rm_rf was too slow, that's why we use:
@@ -741,28 +694,36 @@ def target_define_tasks(target)
 
     task :rebuild => [:clean, :build]
 
+
+    target.assets.each_with_index do |file_pattern, i|
+
+        src, dst    = file_pattern_split(file_pattern)
+        asset_src   = src
+        asset_dest  = "#{target.bin_dir}/#{dst}"
+
+        file asset_src => asset_dest do
+            file_copy_or_overwrite( asset_src, asset_dest )
+        end
+
+    end  
+
     case target.type
     when TARGET_TYPE_OBJECTS
-        
-        task :build  do
-            target_build_objects(target)
+
+        task :build => target.objects_to_link do
+            update_llvm_json_compilation_database()
         end
 
     when TARGET_TYPE_EXECUTABLE
 
-        file target.binary do
-            target_build_objects(target)
+        file target.binary => target.objects_to_link do
+            update_llvm_json_compilation_database()
             target_link(target)
         end
 
-        task :build => target.binary do
+        task :link => target.binary 
 
-            # Copy assets
-            target.assets.each_with_index do |file_pattern, i|
-                src, dst = file_pattern_split(file_pattern)
-                file_copy_or_overwrite( src, "#{target.bin_dir}/#{dst}" )
-            end  
-
+        task :build => :link do
             log(target, "Build DONE")
         end
         
