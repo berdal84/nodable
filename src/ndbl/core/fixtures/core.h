@@ -34,7 +34,7 @@ public:
 
     std::string parse_and_serialize(const std::string &_source_code)
     {
-        TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
+        TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize parsing \"%s\"\n", _source_code.c_str());
 
         // parse
         app.parse(_source_code);
@@ -42,7 +42,7 @@ public:
         // serialize
         std::string result;
         app.serialize( result );
-        TOOLS_DEBUG_LOG(tools::Verbosity_Message, "tools.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
+        TOOLS_DEBUG_LOG(tools::Verbosity_Message, "core.h", "parse_and_serialize serialize_node() output is: \"%s\"\n", result.c_str());
 
         return result;
     }
@@ -52,7 +52,11 @@ public:
     {
         tools::Path _path = tools::Path::get_executable_path().parent_path() / path;
         std::ifstream file_stream( _path.c_str() );
-        VERIFY(file_stream.is_open(), "Unable to open file!" );
+        if(!file_stream.is_open())
+        {
+            TOOLS_LOG(tools::Verbosity_Message, "core.h", "Can't open '%s'\n", _path.string().c_str() );
+            ASSERT(false && "Unable to open file!" );
+        }
         std::string program((std::istreambuf_iterator<char>(file_stream)), std::istreambuf_iterator<char>());
         return program;
     }
