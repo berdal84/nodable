@@ -359,7 +359,7 @@ ndbl_test_gui_sources = FileList[
 ndbl_test.assets |= ndbl_app.assets # we load some .cpp files in tests
 
 if HEADLESS_TESTS
-    puts "HEADLESS_TESTS is TRUE, #{ndbl_test_gui_sources} won't be included."
+    puts "HEADLESS_TESTS is TRUE, #{ndbl_test_gui_sources} won't be included." if VERBOSE
 else
     ndbl_test.sources |= ndbl_test_gui_sources
 end
