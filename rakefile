@@ -305,16 +305,16 @@ ndbl_app.sources = FileList[
 
 ndbl_assets = FileList[
     # Examples
-    "./examples/arithmetic.cpp",
-    "./examples/for-loop.cpp",
-    "./examples/if-else.cpp",
-    "./examples/multi-instructions.cpp",
+    "examples/arithmetic.cpp",
+    "examples/for-loop.cpp",
+    "examples/if-else.cpp",
+    "examples/multi-instructions.cpp",
     # Fonts
-    "./fonts/CenturyGothic.ttf",
-    "./fonts/fa-solid-900.ttf",
-    "./fonts/JetBrainsMono-*.ttf", # 4 variants
+    "fonts/CenturyGothic.ttf",
+    "fonts/fa-solid-900.ttf",
+    "fonts/JetBrainsMono-*.ttf", # 4 variants
     # Images
-    "./images/nodable-logo-xs.png",
+    "images/nodable-logo-xs.png",
 ]
 
 if WEB # TODO: automatize this in build-tools.rb
@@ -464,12 +464,12 @@ end
 
 desc "Recompiles vcpkg binaries"
 task :vcpkg_install do
-    bt_vcpkg_install()
+    vcpkg_install()
 end
 
 desc "Count the lines of code in ./src folder"
 task :count_lines do |t, args|
-    bt_count_lines_of_code('src')
+    count_lines_of_code('src')
 end
 
 #---------------------------------------------------------------------------
