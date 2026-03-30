@@ -3,8 +3,8 @@
 	"tasks": [
 		{
 			"type": "shell",
-			"command": "CONFIG=debug rake clean tools-tests:build nodable-tests:build",
-			"label": "build:tests",
+			"command": "CONFIG=debug rake tools-tests:build nodable-tests:build",
+			"label": "nodable-tests:build:debug",
 			"problemMatcher": [],
 			"group": {
 				"kind": "build"

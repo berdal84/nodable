@@ -8,34 +8,54 @@
             "name": "tests",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build-windows-debug/nodable-tests/bin/nodable-tests.exe",
+            "linux": {
+                "program": "${workspaceRoot}/build-linux-debug/nodable-tests/bin/nodable-tests",
+            },
+            "windows": {
+                "program": "${workspaceRoot}/build-windows-debug/nodable-tests/bin/nodable-tests.exe",
+            },
             "args": [
                 "--gtest_break_on_failure"
             ],
             "cwd": "${workspaceRoot}",
-            "preLaunchTask": "build:tests"
+            "preLaunchTask": "nodable-tests:build:debug"
         },
         {
-            "name": "debug",
+            "name": "nodable:debug",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build-windows-debug/nodable/bin/nodable.exe",
+            "linux": {
+                "program": "${workspaceRoot}/build-linux-debug/nodable/bin/nodable",
+            },
+            "windows": {
+                "program": "${workspaceRoot}/build-windows-debug/nodable/bin/nodable.exe",
+            },
             "args": [],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build:debug"
         },{
-            "name": "optimized",
+            "name": "nodable:optimized",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build-windows-optimized/nodable/bin/nodable.exe",
+            "linux": {
+                "program": "${workspaceRoot}/build-linux-optimized/nodable/bin/nodable",
+            },
+            "windows": {
+                "program": "${workspaceRoot}/build-windows-optimized/nodable/bin/nodable.exe",
+            },
             "args": [],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build:optimized"
         },{
-            "name": "release",
+            "name": "nodable:release",
             "type": "lldb",
             "request": "launch",
-            "program": "${workspaceRoot}/build-windows-release/nodable/bin/nodable.exe",
+            "linux": {
+                "program": "${workspaceRoot}/build-linux-release/nodable/bin/nodable",
+            },
+            "windows": {
+                "program": "${workspaceRoot}/build-windows-release/nodable/bin/nodable.exe",
+            },
             "args": [],
             "cwd": "${workspaceRoot}",
             "preLaunchTask": "build:release"
