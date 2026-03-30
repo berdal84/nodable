@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <array>
 
 #include "tools/core/assertions.h"
 #include "tools/core/Component.h"
