@@ -2,6 +2,7 @@
 
 #include <utility>
 
+#include "gui/FontManager.h"
 #include "tools/core/log.h"
 #include "tools/core/System.h"
 #include "tools/gui/ActionManagerView.h"

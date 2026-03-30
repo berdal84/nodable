@@ -1,6 +1,5 @@
 #include "EventManager.h"
 #include "assertions.h"
-#include "log.h"
 #include "TaskManager.h"
 
 using namespace tools;

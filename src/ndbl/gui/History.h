@@ -4,15 +4,8 @@
 #include <ctime>
 #include <string>
 #include <memory>
-#include "tools/gui/ImGuiEx.h"
-#include "tools/core/log.h"
-#include "tools/core/reflection/reflection"
-
-#include "ndbl/core/Graph.h"
-#include "ndbl/core/ASTNodeProperty.h"
-
+#include "ImGuiColorTextEdit/TextEditor.h"
 #include "ndbl/gui/Command.h"
-#include "ndbl/gui/types.h"
 
 namespace ndbl
 {

@@ -1,13 +1,11 @@
 #include "GraphView.h"
 
 #include <algorithm>
-#include <ranges>
 #include "tools/core/types.h"
-#include "tools/core/log.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/core/math.h"
 #include "tools/core/StateMachine.h"
-#include "tools/gui/Color.h"
+#include "tools/gui/App.h"
 
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/ASTUtils.h"
@@ -15,7 +13,6 @@
 
 #include "Config.h"
 #include "Event.h"
-#include "Nodable.h"
 #include "ASTNodeView.h"
 #include "PhysicsComponent.h"
 #include "ASTNodeSlotView.h"

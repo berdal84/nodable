@@ -1,11 +1,9 @@
 #pragma once
 
 #include "tools/core/reflection/Type.h"
-#include "tools/gui/ImGuiEx.h"
 
 #include "ndbl/core/ASTNodeSlot.h"
 #include "ndbl/core/ASTNodeProperty.h"
-#include "types.h"
 #include "tools/gui/geometry/Vec2.h"
 #include "tools/gui/ViewState.h"
 

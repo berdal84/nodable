@@ -1,10 +1,6 @@
 #include "Type.h"
 #include "Invokable.h"
-#include "reflection"
-#include <stdexcept>// std::runtime_error
-
 #include <algorithm> // find_if
-#include "Operator.h"
 
 using namespace tools;
 

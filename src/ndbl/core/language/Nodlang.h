@@ -2,12 +2,7 @@
 
 #include <string>
 #include <vector>
-#include <stack>
-#include <exception>
-
-#include "tools/core/reflection/reflection"
-#include "tools/core/System.h"
-#include "tools/core/Hash.h"
+#include "core/reflection/Operator_t.h"
 #include "tools/core/Containers.h"
 
 #include "ndbl/core/ASTToken.h"

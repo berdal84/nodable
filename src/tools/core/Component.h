@@ -1,15 +1,12 @@
 #pragma once
 
 #include <string>
-#include <memory>
 #include <algorithm>
 #include <vector>
-#include <unordered_map>
 
 #include "Signals.h"
-#include "types.h"
 #include "assertions.h"
-#include "reflection/reflection"
+#include "core/reflection/Type.h"
 
 namespace tools
 {

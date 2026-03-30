@@ -1,6 +1,5 @@
 #pragma once
 
-#include <unordered_map>
 #include "tools/gui/ViewState.h"
 #include "ViewDetail.h"
 

@@ -1,11 +1,10 @@
 #pragma once
 
-#include "tools/core/reflection/reflection"
-#include "tools/gui/ViewState.h"
-
 #include "Condition.h"
+#include "ImGuiColorTextEdit/TextEditor.h"
 #include "Isolation.h"
-#include "types.h"
+#include "core/reflection/Type.h"
+#include "gui/geometry/Rect.h"
 #include "tools/core/Signals.h"
 
 namespace ndbl

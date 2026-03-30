@@ -1,5 +1,4 @@
 #include "Config.h"
-#include "tools/gui/Color.h"
 #include "tools/gui/Config.h"
 
 using namespace tools;

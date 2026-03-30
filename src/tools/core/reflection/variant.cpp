@@ -1,4 +1,5 @@
 #include "variant.h"
+#include "core/assertions.h"
 #include "tools/core/format.h"
 
 using namespace tools;

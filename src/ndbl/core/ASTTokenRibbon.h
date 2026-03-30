@@ -16,6 +16,9 @@ namespace ndbl
     class ASTTokenRibbon
     {
     public:
+
+        using iterator = std::vector<ASTToken>::iterator;
+
         ASTTokenRibbon()
         : m_cursor(0)
         , m_global_token(ASTToken_t::ignore)
@@ -23,11 +26,9 @@ namespace ndbl
 
         void                reset(const char* buffer = nullptr, size_t size = 0);
         ASTToken&           at(size_t index) { return m_tokens.at(index); }
-        ASTToken&           back() { return m_tokens.back(); };
-        std::vector<ASTToken>::iterator
-                            begin() { return m_tokens.begin(); };
-        std::vector<ASTToken>::iterator
-                            end() { return m_tokens.end(); };
+        ASTToken&           back() { return m_tokens.back(); };        
+        iterator            begin() { return m_tokens.begin(); };
+        iterator            end() { return m_tokens.end(); };
         bool                can_eat(size_t count = 1)const;
         std::string         range_to_string(size_t begin, size_t end); // format ribbon from range [begin, end-1]
         ASTToken            eat();           // Return the next token and increment cursor

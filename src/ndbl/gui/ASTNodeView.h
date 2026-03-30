@@ -1,20 +1,15 @@
 #pragma once
 
 #include <string>
-#include <map>
 #include <unordered_map>
-#include <algorithm>
 
 #include "tools/core/Component.h"// base class
 #include "tools/gui/geometry/BoxShape2D.h"
-#include "tools/gui/ImGuiEx.h"
 #include "tools/gui/ViewState.h"
 #include "ndbl/core/ASTNodeProperty.h"
 #include "ndbl/gui/concepts/CView.h"
 #include "ASTNodePropertyView.h"
 #include "ASTNodeSlotView.h"
-#include "types.h"
-#include "ViewDetail.h"
 
 namespace ndbl
 {

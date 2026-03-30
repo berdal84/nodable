@@ -1,6 +1,5 @@
 #include "ASTNodePropertyView.h"
 
-#include "tools/core/Component.h"
 #include "ndbl/core/language/Nodlang.h"
 #include "ndbl/core/ASTNode.h"
 #include "ASTNodeView.h"

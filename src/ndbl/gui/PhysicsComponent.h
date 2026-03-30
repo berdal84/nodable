@@ -2,9 +2,6 @@
 
 #include "tools/core/Component.h"
 #include "tools/gui/geometry/Space.h"
-#include "tools/gui/geometry/SpatialNode.h"
-#include "tools/gui/Size.h"
-#include "tools/gui/geometry/Pivots.h"
 #include "ASTNodeView.h"
 #include "ndbl/core/ASTNode.h"
 

@@ -1,18 +1,13 @@
 #pragma once
 
-#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
-
-#include "tools/core/reflection/reflection"
-#include "tools/core/log.h"
 
 #include "Isolation.h"
 #include "ndbl/gui/FileView.h"
 #include "ndbl/gui/History.h"
 #include "ndbl/gui/Nodable.h"
-#include "ndbl/gui/types.h"
 
 namespace ndbl
 {

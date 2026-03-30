@@ -1,5 +1,6 @@
 #include "StateMachine.h"
 #include "tools/core/assertions.h"
+#include "Hash.h"
 
 using namespace tools;
 

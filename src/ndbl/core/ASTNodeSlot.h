@@ -3,8 +3,6 @@
 #include "tools/core/Signals.h"
 #include "tools/core/Containers.h"
 
-#include <vector>
-
 namespace ndbl
 {
     // Forward declaration

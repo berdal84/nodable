@@ -1,6 +1,5 @@
 #include "TaskManager.h"
 #include "assertions.h"
-#include "log.h"
 #include <thread> // for std::this_thread::sleep_for
 
 using std::chrono::system_clock;

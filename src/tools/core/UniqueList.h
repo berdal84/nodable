@@ -1,7 +1,5 @@
 #pragma once
-#include <typeindex>
 #include <unordered_set>
-#include <vector>
 #include <list>
 #include "types.h"
 
@@ -89,7 +87,7 @@ namespace tools
         {
             if ( _unique_elem.erase( _hash(elem) ) )
             {
-                auto it = std::find( _ordered_elem.begin(), _ordered_elem.end(), elem );
+                auto it = std::ranges::find( _ordered_elem.begin(), _ordered_elem.end(), elem );
                 _ordered_elem.erase( it );
                 return true;
             }

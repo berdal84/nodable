@@ -2,10 +2,9 @@
 
 #include <cassert>
 #include <cstring> // for memcpy
-#include <memory> // for std::move
 #include <cstdarg> // va_list, va_start, va_end
 #include <cstdio>
-#include "types.h"
+#include <utility> // std::move
 
 namespace tools
 {

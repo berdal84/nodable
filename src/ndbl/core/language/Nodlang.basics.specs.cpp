@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "ndbl/core/fixtures/core.h"
-#include "tools/core/reflection/reflection"
+#include "tools/core/reflection/index.h"
 
 using namespace ndbl;
 using namespace tools;

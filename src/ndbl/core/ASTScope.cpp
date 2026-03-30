@@ -2,7 +2,6 @@
 
 #include <stack>
 #include <cstring>
-#include <algorithm> // for std::find_if
 
 #include "tools/core/log.h"
 

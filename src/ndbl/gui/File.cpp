@@ -9,7 +9,6 @@
 #include "FileView.h"
 #include "History.h"
 #include "ASTNodeView.h"
-#include "PhysicsComponent.h"
 
 using namespace ndbl;
 using namespace tools;

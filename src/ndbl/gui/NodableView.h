@@ -1,11 +1,5 @@
 #pragma once
 
-#include <string>
-#include <map>
-#include <array>
-
-#include "tools/core/reflection/reflection"
-#include "tools/core/types.h"
 #include "tools/gui/AppView.h"
 
 namespace ndbl

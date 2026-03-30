@@ -1,13 +1,7 @@
 #pragma once
 
-#include <future>
-#include <memory>
-#include <string>
-
 #include "tools/gui/App.h"
-
 #include "Config.h"
-#include "types.h"
 
 namespace ndbl
 {

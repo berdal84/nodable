@@ -8,7 +8,6 @@
 
 #include "FunctionTraits.h"
 #include "TypeRegister.h"
-#include "tools/core/assertions.h"
 
 // add this macro to a class declaration to enable reflection on it.
 // Must have a parent class having REFLECT_BASE_CLASS macro.

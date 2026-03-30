@@ -1,5 +1,8 @@
 #pragma once
-#include "tools/core/reflection/reflection"
+
+#include <vector>
+#include <array>
+#include "core/reflection/enum.h"
 
 namespace tools
 {

@@ -1,23 +1,15 @@
 #pragma once
 
-#include <string>
-#include <vector>
-#include <memory>
-
-#include "tools/core/reflection/reflection"
 #include "tools/core/types.h"
-#include "tools/gui/AppView.h"
 #include "tools/gui/Config.h"
-#include "tools/gui/FontManager.h"
-#include "tools/gui/ImGuiEx.h"
 #include "tools/gui/Size.h"
+#include "tools/gui/ImGuiEx.h"
 
 #include "ndbl/core/ASTNodeType.h"
+#include "ndbl/core/ASTNodeSlotFlag.h"
 
-#include "types.h"
 #include "ViewDetail.h"
 #include "Isolation.h"
-#include "ndbl/core/ASTNodeSlotFlag.h"
 
 namespace ndbl
 {

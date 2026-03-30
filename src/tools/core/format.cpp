@@ -1,7 +1,6 @@
 #include "format.h"
 #include <chrono>
 #include <ctime>
-#include "assertions.h"
 
 using namespace tools;
 

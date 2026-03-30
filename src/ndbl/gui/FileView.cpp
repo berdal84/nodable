@@ -1,10 +1,10 @@
 #include "FileView.h"
 
+#include "tools/gui/FontManager.h"
 #include "tools/gui/ImGuiTypeConvert.h"
 #include "ndbl/core/Graph.h"
 #include "ndbl/core/ASTNode.h"
 #include "ndbl/core/language/Nodlang.h"
-#include "ndbl/core/ASTUtils.h"
 
 
 #include "Config.h"
@@ -12,9 +12,6 @@
 #include "File.h"
 #include "GraphView.h"
 #include "ASTNodeView.h"
-#include "commands/Cmd_ReplaceText.h"
-#include "commands/Cmd_WrappedTextEditorUndoRecord.h"
-#include "PhysicsComponent.h"
 
 using namespace ndbl;
 using namespace tools;

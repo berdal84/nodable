@@ -1,10 +1,7 @@
 #pragma once
 
 #include <string>
-#include <array>
-#include <memory> // std::shared_ptr
 
-#include "tools/core/assertions.h"
 #include "tools/core/types.h"
 #include "qword.h"
 #include "Type.h"

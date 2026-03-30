@@ -1,16 +1,10 @@
 #pragma once
 
 #include <string>
-#include <memory>
-#include <algorithm>
 
 #include "tools/core/assertions.h"
-#include "tools/core/reflection/reflection"
-#include "tools/core/types.h"
 #include "tools/core/Component.h"
 
-#include "constants.h"
-#include "ASTSlotLink.h"
 #include "ASTNodeProperty.h"
 #include "ASTNodeSlot.h"
 #include "ASTNodeType.h"

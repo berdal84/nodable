@@ -3,8 +3,8 @@
 #include <IconFontCppHeaders/IconsFontAwesome5.h>
 #include "ASTNode.h"
 #include "ASTScope.h"
-#include "ASTSlotLink.h"
 #include "ASTUtils.h"
+#include "core/constants.h"
 
 using namespace ndbl;
 using namespace tools;

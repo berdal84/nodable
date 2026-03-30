@@ -3,16 +3,12 @@
 #include <map>
 #include <string>
 #include <vector>
-#include <queue>
 #include <set>
 
 #include "ASTUtils.h"
 #include "ASTSlotLink.h"
 #include "ASTScope.h"
 #include "tools/core/Component.h" // for ComponentBag<T>
-
-#include "tools/core/reflection/reflection"
-#include "tools/core/types.h"
 
 namespace ndbl
 {

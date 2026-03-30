@@ -1,4 +1,6 @@
 #pragma once
+#include "core/assertions.h"
+#include "core/types.h"
 #include <glm/common.hpp>
 
 namespace tools

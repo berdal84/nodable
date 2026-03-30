@@ -1,4 +1,5 @@
 #include "log.h"
+#include <iostream>
 
 using namespace tools;
 

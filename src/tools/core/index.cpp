@@ -1,5 +1,4 @@
 #include "index.h"
-#include "reflection/reflection"
 
 void tools::init_reflection()
 {

@@ -2,7 +2,6 @@
 #include "Invokable.h"
 #include "Type.h"
 #include "TypeRegister.h"
-#include <vector>
 
 namespace tools
 {

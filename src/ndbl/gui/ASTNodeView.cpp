@@ -5,12 +5,10 @@
 #include <vector>
 
 #include "tools/core/math.h"
-#include "tools/gui/Config.h"
 
 #include "ndbl/core/ASTUtils.h"
 #include "ndbl/core/ASTNode.h"
 #include "ndbl/core/ASTScope.h"
-#include "ndbl/core/ASTSlotLink.h"
 #include "ndbl/core/ASTUtils.h"
 
 #include "Config.h"

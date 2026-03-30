@@ -1,11 +1,7 @@
 #pragma once
 
 #include "ndbl/core/ASTToken.h"
-#include "tools/core/reflection/variant.h"
-#include "tools/core/types.h"// for constants and forward declarations
-
 #include <string>
-#include <vector>
 
 namespace ndbl
 {

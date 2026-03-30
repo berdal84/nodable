@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include "Action.h"
 
 namespace ndbl

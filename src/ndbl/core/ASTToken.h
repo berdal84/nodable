@@ -1,13 +1,8 @@
 #pragma once
 
 #include <string>
-#include <utility>
-#include <vector>
-#include <memory>
 #include <cstring>
 
-#include "tools/core/string.h"
-#include "tools/core/reflection/reflection"
 #include "tools/core/assertions.h"
 #include "ASTToken_t.h"
 

@@ -1,10 +1,7 @@
 #pragma once
-#include "tools/core/Component.h"
 #include "tools/gui/geometry/Rect.h"
-#include "tools/gui/geometry/BoxShape2D.h"
 #include "tools/gui/ViewState.h"
 #include "ndbl/core/ASTScope.h"
-#include "ndbl/gui/concepts/CView.h"
 
 namespace ndbl
 {
