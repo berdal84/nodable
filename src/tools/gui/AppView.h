@@ -58,7 +58,6 @@ namespace tools
         ActionManager*      action_manager   = nullptr;
         SDL_GLContext       sdl_gl_context   = nullptr;
         SDL_Window*         sdl_window       = nullptr;
-        u32_t               ticks        = 0;
         u32_t               dt_in_ms         = 1000 / 30;
         float               dt_in_s          = 1.f/30.f;
         float               smoothed_fps     = 30.f;

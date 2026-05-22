@@ -291,6 +291,8 @@ void tools::appview_update(AppViewState* view)
 
 void tools::appview_begin(AppViewState* view)
 {
+    ASSERT(view != nullptr);
+
     Config* cfg                 = get_config();
     bool    is_main_window_open = true;
 
@@ -469,14 +471,6 @@ void tools::appview_begin(AppViewState* view)
     }
 }
 
-float compute_fps(u32_t start, u32_t end, float default_val)
-{
-    u32_t dt = end - start;
-    if ( dt == 0 )
-        return default_val;
-    return 1000.f / dt;
-}
-
 void tools::appview_end(AppViewState* view)
 {
     ASSERT(view != nullptr);
@@ -513,22 +507,27 @@ void tools::appview_end(AppViewState* view)
 
     SDL_GL_SwapWindow(view->sdl_window);
 
+    static Uint64 before = 0; // to store SDL_GetTicks64();
+
     // Should we limit the FPS (is it too fast?)
-    u32_t delta = SDL_GetTicks() - view->ticks;
+    Uint64 delta = SDL_GetTicks64() - before;
     if ( cfg->fps_limit_on && delta < cfg->dt_cap )
     {
-        u32_t delay = cfg->dt_cap - delta;
-        if(delay > 6) // Skip 6ms delays, SDL_Delay has no guarantee to be precise
+        Uint64 delay = cfg->dt_cap - delta;
+        if( delay > 6 ) // Skip 6ms delays, SDL_Delay has no guarantee to be precise
             SDL_Delay( delay );
     }
 
+    
     // update FPS, delta time, etc.
-    u32_t ticks         = SDL_GetTicks();
-    float fps           = compute_fps(view->ticks, SDL_GetTicks(), cfg->fps_limit);
+
+    Uint64 now          = SDL_GetTicks64();
+    Uint64 dt           = (now - before);
+    float  fps          = 1000.0f / float(dt);
     view->smoothed_fps  = tools::clamped_lerp(view->smoothed_fps, fps, 1.f / 20.f); // smooth the last n frames
-    view->dt_in_ms      = ticks - view->ticks;
-    view->dt_in_s       = float(view->dt_in_ms) / 1000.f;
-    view->ticks         = ticks;
+    view->dt_in_ms      = float(dt);
+    view->dt_in_s       = float(dt) / 1000.f;
+    before              = now;
 
     TOOLS_LOG( TOOLS_MESSAGE, "Nodable", "dt: %f sec, %i msec \n", view->dt_in_s, view->dt_in_ms);
 

@@ -47,7 +47,14 @@ void tools::app_main_loop(AppState* app)
     while( !app_should_stop(app) )
     {
         app_update(app);
-        app_draw(app);
+
+        appview_begin(app->view);
+        
+        //
+        // Insert any ImGui code here
+        //
+
+        appview_end(app->view);
     }
 }
 
@@ -79,15 +86,4 @@ void tools::app_update(AppState* app)
 {
     appview_update(app->view);
     app->task_manager->update();
-}
-
-void tools::app_draw(AppState* app)
-{
-    ASSERT(app->view != nullptr);
-
-    appview_begin(app->view);
-    //
-    // You can add some ImGui stuff here to debug
-    //
-    appview_end(app->view);
 }
