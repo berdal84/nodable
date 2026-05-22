@@ -26,6 +26,7 @@ namespace tools
         Path         filename() const;
         bool         empty() const;
         Path         parent_path() const;
+        Path&        absolute();
 
         static bool exists(const Path& path)
         { return std::filesystem::exists(path.m_path); };
@@ -38,8 +39,10 @@ namespace tools
 
         static bool  create_directories(const Path&);
         static Path  get_executable_path();            // Get the executable directory absolute path
+        static Path  absolute(const Path &_path);
+        static Path  get_asset_path(const char* _relative_path); // return a valid path (absolute or relative depending platform)
+
     private:
         std::filesystem::path m_path;
     };
-
 }

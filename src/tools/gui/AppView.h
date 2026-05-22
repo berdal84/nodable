@@ -1,95 +1,89 @@
 #pragma once
 
 #include <SDL.h>
+#include <vector>
 #include <array>
+#include "gui/ActionManager.h"
+#include "imgui.h"
 #include "tools/core/FileSystem.h"
-#include <map>
 #include <string>
 #include "tools/core/types.h"
-#include "ImGuiEx.h"
-#include "Config.h"
 #include "tools/core/Signals.h"
 
 namespace tools
 {
     // forward declarations
-    class App;    
+    class AppState;    
     class TextureManager;
     class EventManager;
     class FontManager;
     class VirtualMachine;
 
-	/*
-		This class contain the basic setup for and OpenGL/SDL basic window.
-	*/
-	class AppView
+    enum DialogType // Helps to configure the file browse dialog
+    {
+        DIALOG_SaveAs,   // Allows to set a new file or select an existing file
+        DIALOG_Browse    // Only allows to pick a file
+    };
+
+    /*
+        * Enum to identify dockspaces
+        *
+        -------------------------------------
+        |                TOP                |
+        |-----------------------------------|
+        |           CENTER         |  RIGHT |
+        |-----------------------------------|
+        |              BOTTOM               |
+        ------------------------------------
+        */
+    enum Dockspace
+    {
+        Dockspace_ROOT,
+        Dockspace_CENTER,
+        Dockspace_RIGHT,
+        Dockspace_BOTTOM,
+        Dockspace_TOP,
+        Dockspace_COUNT,
+    };
+
+	struct AppViewState
 	{
-	public:
-        friend App;
-
-        enum DialogType // Helps to configure the file browse dialog
-        {
-            DIALOG_SaveAs,   // Allows to set a new file or select an existing file
-            DIALOG_Browse    // Only allows to pick a file
-        };
-
-        /*
-         * Enum to identify dockspaces
-         *
-         -------------------------------------
-         |                TOP                |
-         |-----------------------------------|
-         |           CENTER         |  RIGHT |
-         |-----------------------------------|
-         |              BOTTOM               |
-         ------------------------------------
-         */
-        enum Dockspace
-        {
-            Dockspace_ROOT,
-            Dockspace_CENTER,
-            Dockspace_RIGHT,
-            Dockspace_BOTTOM,
-            Dockspace_TOP,
-            Dockspace_COUNT,
-        };
-
         tools::SimpleSignal signal_reset_layout; // add custom code during layout reset
         tools::SimpleSignal signal_draw_splashscreen_content; // to insert custom code into the splashscreen window
 
-        bool        show_splashscreen = true; // flag to show/hide splashscreen
-        void        init(App*);
-        void        update();
-        void        begin_draw();
-        void        end_draw();
-        void        shutdown();
-        void        draw_splashscreen(); // If needed, use begin/end_splashscreen static methods to override this. Ex: if ( AppView::begin_splashscreen(m_app->config) ) { /* your code here */; AppView::end_splashscreen(); }
-        ImGuiID     get_dockspace(Dockspace)const;
-        bool        pick_file_path(tools::Path& _out_path, DialogType) const; // pick a file and store its path in _out_path
-        static int  fps();      // get the current frame per second (un-smoothed)
-        void        save_screenshot(tools::Path) const; // Save an LCT_RGBA PNG image to path
-        bool        is_fullscreen() const;
-        void        set_fullscreen( bool b );
-        void        set_title( const char* string );
-        void        dock_window(const char* window_name, Dockspace)const; // Must be called within signal_reset_layout
-        void        reset_layout();
-        std::vector<unsigned char> take_screenshot() const;
-        float       delta_time() const { return 1.f / m_last_frame_fps; }
-    private:
-        std::string         m_title;
-        TextureManager*     m_texture_manager  = nullptr;
-        FontManager*        m_font_manager     = nullptr;
-        EventManager*       m_event_manager    = nullptr;
-        ActionManager*      m_action_manager   = nullptr;
-        SDL_GLContext       m_sdl_gl_context   = nullptr;
-        SDL_Window*         m_sdl_window       = nullptr;
-        u32_t               m_last_frame_ticks = 0;
-        u32_t               m_last_frame_dt    = 1000 / 30;
-        float               m_last_frame_fps   = 30.f;
-        App*                m_app              = nullptr;
-        bool                m_is_layout_initialized = false;
+        std::string         title;
+        TextureManager*     texture_manager  = nullptr;
+        FontManager*        font_manager     = nullptr;
+        EventManager*       event_manager    = nullptr;
+        ActionManager*      action_manager   = nullptr;
+        SDL_GLContext       sdl_gl_context   = nullptr;
+        SDL_Window*         sdl_window       = nullptr;
+        u32_t               ticks        = 0;
+        u32_t               dt_in_ms         = 1000 / 30;
+        float               dt_in_s          = 1.f/30.f;
+        float               smoothed_fps     = 30.f;
+        AppState*           app              = nullptr;
+        bool                is_layout_initialized = false;
+        bool                show_splashscreen = true; // flag to show/hide splashscreen
         std::array<ImGuiID, Dockspace_COUNT>
-                            m_dockspaces{};
-
+                            dockspaces{};
     };
+
+    void        appview_init(AppViewState*, AppState*);
+    void        appview_update(AppViewState*);
+    void        appview_begin(AppViewState*);
+    void        appview_end(AppViewState*);
+    void        appview_shutdown(AppViewState*);
+    void        appview_draw_splashscreen(AppViewState*); // If needed, use begin/end_splashscreen static methods to override this. Ex: if ( AppView::begin_splashscreen(m_app->config) ) { /* your code here */; AppView::end_splashscreen(); }
+    ImGuiID     appview_get_dockspace(AppViewState*, Dockspace);
+    int         appview_fps(AppViewState*);      // get the current frame per second (un-smoothed)
+    void        appview_save_screenshot(const AppViewState*, tools::Path); // Save an LCT_RGBA PNG image to path
+    bool        appview_is_fullscreen(const AppViewState*);
+    void        appview_set_fullscreen(AppViewState*, bool b );
+    void        appview_set_title(AppViewState*, const char* string );
+    void        appview_dock_window(AppViewState*,const char* window_name, Dockspace); // Must be called within signal_reset_layout
+    void        appview_reset_layout_next_frame(AppViewState*);
+    std::vector<unsigned char> appview_take_screenshot(const AppViewState*);
+    
+    bool        pick_file_path(tools::Path& _out_path, DialogType); // pick a file and store its path in _out_path
 }

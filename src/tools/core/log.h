@@ -43,6 +43,11 @@
 #   define TOOLS_LOG_MESSAGE_MEMORY_MAX 2*1000*1000
 #endif
 
+#define TOOLS_ERROR tools::Verbosity_Error
+#define TOOLS_WARNING tools::Verbosity_Warning
+#define TOOLS_MESSAGE tools::Verbosity_Message
+#define TOOLS_DIAG tools::Verbosity_Diagnostic
+
 namespace tools
 {
     // Different verbosity levels a message can have

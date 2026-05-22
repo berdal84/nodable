@@ -81,3 +81,28 @@ Path Path::get_executable_path()
     return "./fake-executable";
 #endif
 }
+
+tools::Path& Path::absolute()
+{
+    if ( this->is_absolute() )
+        return *this;
+
+    (*this) = Path::absolute(*this);
+    return *this;
+}
+
+tools::Path Path::absolute(const tools::Path& _path)
+{
+    if ( _path.is_absolute() )
+        return _path;
+    // note: in __EMSCRIPTEN__, parent_path is "."
+    Path result = Path::get_executable_path().parent_path() / _path;
+    return result;
+}
+
+// TODO: this function is useless, we can use directly make_absolute
+tools::Path Path::get_asset_path(const char* _str)
+{
+    Path result = absolute(_str);
+    return result;
+}

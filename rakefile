@@ -234,7 +234,6 @@ common.sources = FileList[
     "src/ndbl/gui/GraphView.cpp",
     "src/ndbl/gui/History.cpp",
     "src/ndbl/gui/Nodable.cpp",
-    "src/ndbl/gui/NodableView.cpp",
     "src/ndbl/gui/PhysicsComponent.cpp",
 ]
 

@@ -1,4 +1,7 @@
 #include "AppView.h"
+#include "SDL_timer.h"
+#include "core/assertions.h"
+#include "gui/ImGuiEx.h"
 #include <lodepng.h> // to save screenshot as PNG
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_sdl2.h>
@@ -22,16 +25,16 @@ using namespace tools;
 
 constexpr const char* k_status_window_name = "Status Bar";
 
-void AppView::init(App* _app)
+void tools::appview_init(AppViewState* view, AppState* app)
 {
+    ASSERT(view!=nullptr);
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init ...\n");
-    ASSERT(_app != nullptr);
-    m_app = _app;
-    Config* cfg = get_config();
-
-    m_texture_manager = init_texture_manager();
-    m_event_manager   = init_event_manager();
-    m_action_manager  = init_action_manager();
+    ASSERT(app != nullptr);
+    
+    view->app = app;
+    view->texture_manager = init_texture_manager();
+    view->event_manager   = init_event_manager();
+    view->action_manager  = init_action_manager();
 
     // Setup SDL
     if (SDL_Init(SDL_INIT_VIDEO|SDL_INIT_TIMER) != 0)
@@ -66,8 +69,10 @@ void AppView::init(App* _app)
     
     SDL_DisplayMode current;
     SDL_GetCurrentDisplayMode(0, &current);
-    m_title = cfg->app_default_title;
-    m_sdl_window = SDL_CreateWindow( cfg->app_default_title,
+
+    Config* cfg = get_config();
+    view->title = cfg->app_default_title;
+    view->sdl_window = SDL_CreateWindow( cfg->app_default_title,
                                      SDL_WINDOWPOS_CENTERED,
                                      SDL_WINDOWPOS_CENTERED,
                                      800,
@@ -77,10 +82,10 @@ void AppView::init(App* _app)
                                      SDL_WINDOW_MAXIMIZED |
                                      SDL_WINDOW_SHOWN
     );
-    VERIFY(m_sdl_window, "SDL_CreateWindow failed" );
+    VERIFY(view->sdl_window, "SDL_CreateWindow failed" );
     
-    m_sdl_gl_context = SDL_GL_CreateContext(m_sdl_window);
-    VERIFY(m_sdl_gl_context, "SDL_GL_CreateContext failed" );
+    view->sdl_gl_context = SDL_GL_CreateContext(view->sdl_window);
+    VERIFY(view->sdl_gl_context, "SDL_GL_CreateContext failed" );
 
 #ifdef NDBL_DESKTOP
     SDL_GL_SetSwapInterval(1); // https://wiki.libsdl.org/SDL2/SDL_GL_SetSwapInterval
@@ -175,7 +180,7 @@ void AppView::init(App* _app)
     //style.ScaleAllSizes(1.25f);
 
     // load fonts
-    m_font_manager = init_font_manager();
+    view->font_manager = init_font_manager();
 
     // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
     if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -186,7 +191,7 @@ void AppView::init(App* _app)
 
     // Setup Platform/Renderer bindings
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init backend for OpenGL ...\n");
-    if( !ImGui_ImplSDL2_InitForOpenGL(m_sdl_window, m_sdl_gl_context) )
+    if( !ImGui_ImplSDL2_InitForOpenGL(view->sdl_window, view->sdl_gl_context) )
     {
         TOOLS_LOG(tools::Verbosity_Error, "tools::AppView", "Unable to ImGui_ImplSDL2_InitForOpenGL\n");
     }
@@ -201,18 +206,18 @@ void AppView::init(App* _app)
         TOOLS_LOG(tools::Verbosity_Error, "tools::AppView", "Unable to NFD_Init\n");
     }
 #endif
-    show_splashscreen = cfg->show_splashscreen_default;
+    view->show_splashscreen = cfg->show_splashscreen_default;
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "init DONE\n");
 }
 
-void AppView::shutdown()
+void tools::appview_shutdown(AppViewState* view)
 {
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down ...\n");
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down managers ...\n");
-    shutdown_action_manager(m_action_manager);
-    shutdown_event_manager(m_event_manager);
-    shutdown_font_manager(m_font_manager);
-    shutdown_texture_manager(m_texture_manager);
+    shutdown_action_manager(view->action_manager);
+    shutdown_event_manager(view->event_manager);
+    shutdown_font_manager(view->font_manager);
+    shutdown_texture_manager(view->texture_manager);
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down OpenGL3 ...\n");
     ImGui_ImplOpenGL3_Shutdown();
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutting down SDL2 ...\n");
@@ -220,8 +225,8 @@ void AppView::shutdown()
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Destroying ImGui context ...\n");
     ImGui::DestroyContext    ();
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutdown SDL ...\n");
-    SDL_GL_DeleteContext     (m_sdl_gl_context);
-    SDL_DestroyWindow        (m_sdl_window);
+    SDL_GL_DeleteContext     (view->sdl_gl_context);
+    SDL_DestroyWindow        (view->sdl_window);
     SDL_Quit                 ();
 #ifdef NDBL_DESKTOP
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Quitting NFD (Native File Dialog) ...\n");
@@ -230,7 +235,7 @@ void AppView::shutdown()
     TOOLS_LOG(tools::Verbosity_Diagnostic, "tools::AppView", "Shutdown OK\n");
 }
 
-void AppView::update()
+void tools::appview_update(AppViewState* view)
 {
     SDL_Event event;
     while (SDL_PollEvent(&event))
@@ -241,7 +246,7 @@ void AppView::update()
         {
             case SDL_WINDOWEVENT:
                 if( event.window.event == SDL_WINDOWEVENT_CLOSE)
-                    m_app->request_stop();
+                    app_request_stop(view->app);
                 break;
             case SDL_KEYDOWN:
 
@@ -250,7 +255,7 @@ void AppView::update()
                 {
                     // Test all the shortcuts with Ctrl or Alt modifiers
 
-                    for(const IAction* _action: m_action_manager->get_actions() )
+                    for(const IAction* _action: view->action_manager->get_actions() )
                     {
                         // first, priority to shortcuts with mod
                         if ( _action->shortcut.mod != KMOD_NONE)
@@ -258,7 +263,7 @@ void AppView::update()
                                 if ( _action->shortcut.mod & event.key.keysym.mod ) // same mod
                                      if ( _action->shortcut.key == event.key.keysym.sym) // same key
                                     {
-                                        m_event_manager->dispatch(_action->event_id );
+                                        view->event_manager->dispatch(_action->event_id );
                                         break;
                                     }
                     }
@@ -267,14 +272,14 @@ void AppView::update()
                 {
                     // Test all other shortcuts
 
-                    for(const IAction* _action: m_action_manager->get_actions() )
+                    for(const IAction* _action: view->action_manager->get_actions() )
                     {
                         if ( _action->shortcut.mod == KMOD_NONE )
                             if ( _action->event_id )
                                 if ( _action->shortcut.key == event.key.keysym.sym)
                                 {
                                     IEvent* event_to_dispatch = _action->make_event();
-                                    m_event_manager->dispatch( event_to_dispatch );
+                                    view->event_manager->dispatch( event_to_dispatch );
                                     break;
                                 }
                     }
@@ -284,14 +289,14 @@ void AppView::update()
     }
 }
 
-void AppView::begin_draw()
+void tools::appview_begin(AppViewState* view)
 {
     Config* cfg                 = get_config();
     bool    is_main_window_open = true;
 
     // Begin Frame
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplSDL2_NewFrame(m_sdl_window);
+    ImGui_ImplSDL2_NewFrame(view->sdl_window);
     ImGuiEx::NewFrame();
     ImGui::NewFrame();
 
@@ -316,7 +321,7 @@ void AppView::begin_draw()
     {
         ImGui::PopStyleVar( 3 );
 
-        ImGui::SetCurrentFont(m_font_manager->get_font(FontSlot_Paragraph ) );
+        ImGui::SetCurrentFont(view->font_manager->get_font(FontSlot_Paragraph ) );
 
         // Show/Hide ImGui Demo Window
         if ( cfg->imgui_demo )
@@ -326,59 +331,59 @@ void AppView::begin_draw()
         }
 
         // Splashscreen
-        draw_splashscreen();
+        appview_draw_splashscreen(view);
 
         // Build layout
-        if ( !m_is_layout_initialized )
+        if ( !view->is_layout_initialized )
         {
             // Dockspace IDs
-            m_dockspaces[Dockspace_ROOT] = ImGui::GetID( "Dockspace_ROOT" );
-            m_dockspaces[Dockspace_CENTER] = ImGui::GetID( "Dockspace_CENTER" );
-            m_dockspaces[Dockspace_RIGHT] = ImGui::GetID( "Dockspace_RIGHT" );
-            m_dockspaces[Dockspace_BOTTOM] = ImGui::GetID( "Dockspace_BOTTOM" );
-            m_dockspaces[Dockspace_TOP] = ImGui::GetID( "Dockspace_TOP" );
+            view->dockspaces[Dockspace_ROOT] = ImGui::GetID( "Dockspace_ROOT" );
+            view->dockspaces[Dockspace_CENTER] = ImGui::GetID( "Dockspace_CENTER" );
+            view->dockspaces[Dockspace_RIGHT] = ImGui::GetID( "Dockspace_RIGHT" );
+            view->dockspaces[Dockspace_BOTTOM] = ImGui::GetID( "Dockspace_BOTTOM" );
+            view->dockspaces[Dockspace_TOP] = ImGui::GetID( "Dockspace_TOP" );
 
             // Split root to have N dockspaces
             ImVec2 viewport_size = ImGui::GetMainViewport()->Size;
 
-            ImGui::DockBuilderRemoveNode( m_dockspaces[Dockspace_ROOT] );// Clear out existing layout
-            ImGui::DockBuilderAddNode( m_dockspaces[Dockspace_ROOT], ImGuiDockNodeFlags_DockSpace );
-            ImGui::DockBuilderSetNodeSize( m_dockspaces[Dockspace_ROOT], viewport_size );
+            ImGui::DockBuilderRemoveNode( view->dockspaces[Dockspace_ROOT] );// Clear out existing layout
+            ImGui::DockBuilderAddNode( view->dockspaces[Dockspace_ROOT], ImGuiDockNodeFlags_DockSpace );
+            ImGui::DockBuilderSetNodeSize( view->dockspaces[Dockspace_ROOT], viewport_size );
 
-            ImGui::DockBuilderSplitNode( m_dockspaces[Dockspace_ROOT], ImGuiDir_Down, 0.5f, &m_dockspaces[Dockspace_BOTTOM], &m_dockspaces[Dockspace_CENTER] );
-            ImGui::DockBuilderSetNodeSize( m_dockspaces[Dockspace_BOTTOM], ImVec2( viewport_size.x, cfg->dockspace_bottom_size ) );
+            ImGui::DockBuilderSplitNode( view->dockspaces[Dockspace_ROOT], ImGuiDir_Down, 0.5f, &view->dockspaces[Dockspace_BOTTOM], &view->dockspaces[Dockspace_CENTER] );
+            ImGui::DockBuilderSetNodeSize( view->dockspaces[Dockspace_BOTTOM], ImVec2( viewport_size.x, cfg->dockspace_bottom_size ) );
 
-            ImGui::DockBuilderSplitNode( m_dockspaces[Dockspace_CENTER], ImGuiDir_Up, 0.5f, &m_dockspaces[Dockspace_TOP], &m_dockspaces[Dockspace_CENTER] );
-            ImGui::DockBuilderSetNodeSize( m_dockspaces[Dockspace_TOP], ImVec2( viewport_size.x, cfg->dockspace_top_size ) );
+            ImGui::DockBuilderSplitNode( view->dockspaces[Dockspace_CENTER], ImGuiDir_Up, 0.5f, &view->dockspaces[Dockspace_TOP], &view->dockspaces[Dockspace_CENTER] );
+            ImGui::DockBuilderSetNodeSize( view->dockspaces[Dockspace_TOP], ImVec2( viewport_size.x, cfg->dockspace_top_size ) );
 
-            ImGui::DockBuilderSplitNode( m_dockspaces[Dockspace_CENTER], ImGuiDir_Right, cfg->dockspace_right_ratio, &m_dockspaces[Dockspace_RIGHT], &m_dockspaces[Dockspace_CENTER] );
+            ImGui::DockBuilderSplitNode( view->dockspaces[Dockspace_CENTER], ImGuiDir_Right, cfg->dockspace_right_ratio, &view->dockspaces[Dockspace_RIGHT], &view->dockspaces[Dockspace_CENTER] );
 
             // Configure dockspaces
-            ImGui::DockBuilderGetNode( m_dockspaces[Dockspace_CENTER] )->HasCloseButton = false;
-            ImGui::DockBuilderGetNode( m_dockspaces[Dockspace_RIGHT] )->HasCloseButton = false;
-            ImGuiDockNode* ds_bottom_builder = ImGui::DockBuilderGetNode( m_dockspaces[Dockspace_BOTTOM] );
+            ImGui::DockBuilderGetNode( view->dockspaces[Dockspace_CENTER] )->HasCloseButton = false;
+            ImGui::DockBuilderGetNode( view->dockspaces[Dockspace_RIGHT] )->HasCloseButton = false;
+            ImGuiDockNode* ds_bottom_builder = ImGui::DockBuilderGetNode( view->dockspaces[Dockspace_BOTTOM] );
             ds_bottom_builder->HasCloseButton = false;
 
             ds_bottom_builder->SharedFlags = ImGuiDockNodeFlags_NoDocking;
-            ImGuiDockNode* ds_top_builder = ImGui::DockBuilderGetNode( m_dockspaces[Dockspace_TOP] );
+            ImGuiDockNode* ds_top_builder = ImGui::DockBuilderGetNode( view->dockspaces[Dockspace_TOP] );
             ds_top_builder->HasCloseButton = false;
             ds_top_builder->WantHiddenTabBarToggle = true;
             ds_top_builder->WantLockSizeOnce = true;
 
             // Dock windows
-            dock_window( k_status_window_name, Dockspace_BOTTOM );
+            appview_dock_window(view, k_status_window_name, Dockspace_BOTTOM );
 
             // Possibly execute some user-defined code
-            signal_reset_layout.emit();
+            view->signal_reset_layout.emit();
 
             // Finish the build
-            ImGui::DockBuilderFinish( m_dockspaces[Dockspace_ROOT] );
+            ImGui::DockBuilderFinish( view->dockspaces[Dockspace_ROOT] );
 
-            m_is_layout_initialized = true;
+            view->is_layout_initialized = true;
         }
 
         // Define root as current dockspace
-        ImGui::DockSpace( get_dockspace( Dockspace_ROOT ) );
+        ImGui::DockSpace( view->dockspaces[Dockspace_ROOT] );
 
         // Status Window
         if ( ImGui::Begin( k_status_window_name ) && !get_log_state().messages.empty())
@@ -472,8 +477,10 @@ float compute_fps(u32_t start, u32_t end, float default_val)
     return 1000.f / dt;
 }
 
-void AppView::end_draw()
+void tools::appview_end(AppViewState* view)
 {
+    ASSERT(view != nullptr);
+
     Config* cfg = get_config();
 
     // End Frame
@@ -482,7 +489,7 @@ void AppView::end_draw()
     ImGui::Render();
     ImGuiEx::EndFrame();
 
-    SDL_GL_MakeCurrent(m_sdl_window, m_sdl_gl_context);
+    SDL_GL_MakeCurrent(view->sdl_window, view->sdl_gl_context);
     ImGuiIO& io = ImGui::GetIO();
 
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
@@ -504,10 +511,10 @@ void AppView::end_draw()
         SDL_GL_MakeCurrent(backup_current_window, backup_current_context);
     }
 
-    SDL_GL_SwapWindow(m_sdl_window);
+    SDL_GL_SwapWindow(view->sdl_window);
 
-    // slow down fps?
-    u32_t delta = SDL_GetTicks() - m_last_frame_ticks;
+    // Should we limit the FPS (is it too fast?)
+    u32_t delta = SDL_GetTicks() - view->ticks;
     if ( cfg->fps_limit_on && delta < cfg->dt_cap )
     {
         u32_t delay = cfg->dt_cap - delta;
@@ -515,24 +522,27 @@ void AppView::end_draw()
             SDL_Delay( delay );
     }
 
-    // compute fps
-    auto instant_fps   = compute_fps(m_last_frame_ticks, SDL_GetTicks(), cfg->fps_limit);
-    m_last_frame_fps   = tools::clamped_lerp(m_last_frame_fps, (float) instant_fps, 1.f / 20.f); // smooth the last n frames
-    u32_t last_frame_ticks = m_last_frame_ticks;
-    m_last_frame_dt    = last_frame_ticks - m_last_frame_ticks;
-    m_last_frame_ticks = SDL_GetTicks();
+    // update FPS, delta time, etc.
+    u32_t ticks         = SDL_GetTicks();
+    float fps           = compute_fps(view->ticks, SDL_GetTicks(), cfg->fps_limit);
+    view->smoothed_fps  = tools::clamped_lerp(view->smoothed_fps, fps, 1.f / 20.f); // smooth the last n frames
+    view->dt_in_ms      = ticks - view->ticks;
+    view->dt_in_s       = float(view->dt_in_ms) / 1000.f;
+    view->ticks         = ticks;
+
+    TOOLS_LOG( TOOLS_MESSAGE, "Nodable", "dt: %f sec, %i msec \n", view->dt_in_s, view->dt_in_ms);
 
     // Format nice title
     char title[256];
-    snprintf(title, 256, "%s | %4.0ffps %s", m_title.c_str(), m_last_frame_fps, cfg->fps_limit_on ? "" : "unlimited!");
+    snprintf(title, 256, "%s | %4.0ffps %s", view->title.c_str(), view->smoothed_fps, cfg->fps_limit_on ? "" : "unlimited!");
     title[255] = '\0';
 
     // Update window title
-    SDL_SetWindowTitle(m_sdl_window, title);
+    SDL_SetWindowTitle(view->sdl_window, title);
 }
 
 #ifdef NDBL_DESKTOP
-bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const
+bool tools::pick_file_path(Path& _out_path, DialogType _dialog_type)
 {
     nfdchar_t *picked_path;
     nfdresult_t result;
@@ -568,7 +578,7 @@ EM_JS(void, call_pick_file_path, (bool), {
   alert('pick_file_path_impl not implemented yet');
   throw 'all done';
 });
-bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const
+static bool tools::pick_file_path(Path& _out_path, DialogType _dialog_type) const
 {
     bool result;
     call_pick_file_path(result);
@@ -576,20 +586,20 @@ bool AppView::pick_file_path(Path& _out_path, DialogType _dialog_type) const
 }
 #endif
 
-ImGuiID AppView::get_dockspace(Dockspace dockspace)const
+ImGuiID tools::appview_get_dockspace(AppViewState* view, Dockspace dockspace)
 {
-    return m_dockspaces[dockspace];
+    return view->dockspaces[dockspace];
 }
 
-void AppView::dock_window(const char* window_name, Dockspace dockspace)const
+void tools::appview_dock_window(AppViewState* view, const char* window_name, Dockspace dockspace)
 {
-    ImGui::DockBuilderDockWindow(window_name, m_dockspaces[dockspace]);
+    ImGui::DockBuilderDockWindow(window_name, view->dockspaces[dockspace]);
 }
 
-void AppView::draw_splashscreen()
+void tools::appview_draw_splashscreen(AppViewState* view)
 {
     Config* cfg = get_config();
-    if ( show_splashscreen && !ImGui::IsPopupOpen( cfg->splashscreen_window_label))
+    if ( view->show_splashscreen && !ImGui::IsPopupOpen( cfg->splashscreen_window_label))
     {
         ImGui::OpenPopup( cfg->splashscreen_window_label);
     }
@@ -598,16 +608,14 @@ void AppView::draw_splashscreen()
     ImGui::SetNextWindowPos(ImGui::GetMainViewport()->GetCenter(), 0, ImVec2(0.5f, 0.5f));
 
     auto flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_AlwaysAutoResize;
-    if ( ImGui::BeginPopupModal( cfg->splashscreen_window_label, &show_splashscreen, flags) )
+    if ( ImGui::BeginPopupModal( cfg->splashscreen_window_label, &view->show_splashscreen, flags) )
     {
-        signal_draw_splashscreen_content.emit();
+        view->signal_draw_splashscreen_content.emit();
         ImGui::EndPopup();
     }
 }
 
-
-
-std::vector<unsigned char> AppView::take_screenshot() const
+std::vector<unsigned char> tools::appview_take_screenshot(const AppViewState* view)
 {
 #ifdef __EMSCRIPTEN__
     return {};
@@ -615,7 +623,7 @@ std::vector<unsigned char> AppView::take_screenshot() const
 #else
     TOOLS_LOG(tools::Verbosity_Message, "tools::AppView", "Taking screenshot ...\n");
     int width, height;
-    SDL_GetWindowSize(m_sdl_window, &width, &height);
+    SDL_GetWindowSize(view->sdl_window, &width, &height);
     GLsizei stride = 4 * width;
     GLsizei bufferSize = stride * height;
     std::vector<unsigned char> buffer(bufferSize);
@@ -639,36 +647,31 @@ std::vector<unsigned char> AppView::take_screenshot() const
 }
 
 
-bool AppView::is_fullscreen() const
+bool tools::appview_is_fullscreen(const AppViewState* view)
 {
-    return SDL_GetWindowFlags(m_sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
+    return SDL_GetWindowFlags(view->sdl_window) & (SDL_WindowFlags::SDL_WINDOW_FULLSCREEN | SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP);
 }
 
-void AppView::set_fullscreen(bool b)
+void tools::appview_set_fullscreen(AppViewState* view, bool b)
 {
-    SDL_SetWindowFullscreen(m_sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
+    SDL_SetWindowFullscreen(view->sdl_window, b ? SDL_WindowFlags::SDL_WINDOW_FULLSCREEN_DESKTOP : 0);
 }
 
-int AppView::fps()
+void tools::appview_save_screenshot(const AppViewState* view, tools::Path path)
 {
-    return (int)ImGui::GetIO().Framerate;
-}
-
-void AppView::save_screenshot( tools::Path path) const
-{
-    std::vector<unsigned char> out = take_screenshot();
+    std::vector<unsigned char> out = appview_take_screenshot(view);
     TOOLS_LOG(tools::Verbosity_Message, "tools::App", "Save screenshot ...\n");
     lodepng::save_file(out, path.string());
     TOOLS_LOG(tools::Verbosity_Message, "tools::App", "Save screenshot " TOOLS_OK " (%s)\n", path.c_str());
 }
 
-void AppView::set_title( const char* title )
+void tools::appview_set_title(AppViewState* view, const char* title )
 {
-    m_title = title;
-    SDL_SetWindowTitle( m_sdl_window, title );
+    view->title = title;
+    SDL_SetWindowTitle( view->sdl_window, view->title.c_str() );
 }
 
-void AppView::reset_layout()
+void tools::appview_reset_layout_next_frame(AppViewState* view)
 {
-    m_is_layout_initialized = false;
+    view->is_layout_initialized = false;
 }

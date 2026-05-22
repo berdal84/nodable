@@ -1,6 +1,8 @@
 #include "FontManager.h"
 #include "App.h"
 #include "Config.h"
+#include "core/FileSystem.h"
+#include "gui/ImGuiEx.h"
 
 using namespace tools;
 
@@ -67,7 +69,7 @@ ImFont* FontManager::load_font(const FontConfig& font_config)
         imfont_cfg.RasterizerMultiply = 1.2f;
         imfont_cfg.OversampleH = 2;
         imfont_cfg.OversampleV = 3;
-        tools::Path absolute_path = App::get_asset_path(font_config.path);
+        Path absolute_path = Path::get_asset_path(font_config.path);
         TOOLS_LOG(tools::Verbosity_Diagnostic, "NodableView", "Adding text_font from file ... %s\n", absolute_path.c_str());
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), font_config.size * m_config->subsamples, &imfont_cfg);
     }
@@ -91,7 +93,7 @@ ImFont* FontManager::load_font(const FontConfig& font_config)
         imfont_cfg.OversampleV = 3;
         //imfont_cfg.GlyphOffset.y = -(text_font.icons_size - text_font.size)/2.f;
         imfont_cfg.GlyphMinAdvanceX = font_config.icons_size * m_config->subsamples; // monospace to fix text alignment in drop down menus.
-        tools::Path absolute_path = App::get_asset_path(m_config->icon.path);
+        Path absolute_path = Path::get_asset_path(m_config->icon.path);
         font = io.Fonts->AddFontFromFileTTF(absolute_path.string().c_str(), font_config.icons_size * m_config->subsamples, &imfont_cfg, icons_ranges);
         TOOLS_LOG(tools::Verbosity_Diagnostic, "NodableView", "Merging icons font ...\n");
     }

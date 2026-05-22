@@ -1,5 +1,6 @@
 #include "App.h"
 
+#include "core/assertions.h"
 #include "tools/core/TaskManager.h"
 #include "tools/core/System.h"
 
@@ -10,102 +11,83 @@
 
 using namespace tools;
 
-void App::init()
+void tools::app_init(AppState* app)
 {
     // Create and initialize a view
-    auto* view = new AppView();
-    view->init(this);
-    m_flags |= Flag_OWNS_VIEW_MEMORY;
+    auto* view = new AppViewState();
+    appview_init(view, app);
+    app->flags |= AppFlag_OWNS_VIEW_MEMORY;
 
     // Initialize a config
     Config* config = init_config();
-    m_flags |= Flag_OWNS_CONFIG_MEMORY;
+    app->flags |= AppFlag_OWNS_CONFIG_MEMORY;
 
     // Perform additional initialization
-    init_ex(m_view, config);
+    app_init_ex(app, view, config);
 }
 
-void App::init_ex(AppView* _view, Config* _config)
+void tools::app_init_ex(AppState* app, AppViewState* view, Config* config)
 {
     // Guards
-    VERIFY(m_view == nullptr, "A view already exist. Did you call set_name twice?");
-    VERIFY(m_config == nullptr, "A config already exist. Did you call set_name twice?");
-    VERIFY(_config != nullptr, "You must provide a config");
-    VERIFY(_view != nullptr, "You must provide a view");
+    VERIFY(app->view == nullptr, "A view already exist. Did you call set_name twice?");
+    VERIFY(app->config == nullptr, "A config already exist. Did you call set_name twice?");
+    VERIFY(config != nullptr, "You must provide a config");
+    VERIFY(view != nullptr, "You must provide a view");
 
     // Store existing data
-    m_view   = _view;
-    m_config = _config;
+    app->view   = view;
+    app->config = config;
 
     // Initialize managers
-    m_task_manager    = init_task_manager();
+    app->task_manager = init_task_manager();
 }
 
-void App::run()
+void tools::app_main_loop(AppState* app)
 {    
-    while( !should_stop() )
+    while( !app_should_stop(app) )
     {
-        update();
-        draw();
+        app_update(app);
+        app_draw(app);
     }
 }
 
-void App::shutdown()
+void tools::app_shutdown(AppState* app)
 {
     TOOLS_LOG(tools::Verbosity_Message, "tools::BaseApp", "Shutting down ...\n");
 
     // Optionally shutdown view
-    if (m_flags & Flag_OWNS_VIEW_MEMORY )
+    if (app->flags & AppFlag_OWNS_VIEW_MEMORY )
     {
-        m_view->shutdown();
+        appview_shutdown(app->view);
     }
 
     // Optionally shutdown config
-    if (m_flags & Flag_OWNS_CONFIG_MEMORY )
+    if (app->flags & AppFlag_OWNS_CONFIG_MEMORY )
     {
-        ASSERT(m_config != nullptr);
-        shutdown_config(m_config);
+        ASSERT(app->config != nullptr);
+        shutdown_config(app->config);
+        app->config = nullptr;
     }
 
     // managers
-    shutdown_task_manager(m_task_manager);
+    shutdown_task_manager(app->task_manager);
 
     TOOLS_LOG(tools::Verbosity_Message, "tools::BaseApp", "Shutdown OK\n");
 }
 
-void App::update()
+void tools::app_update(AppState* app)
 {
-    m_view->update();
-    m_task_manager->update();
+    appview_update(app->view);
+    app->task_manager->update();
 }
 
-void App::draw()
+void tools::app_draw(AppState* app)
 {
-    m_view->begin_draw();
+    ASSERT(app->view != nullptr);
+
+    appview_begin(app->view);
     //
     // You can add some ImGui stuff here to debug
     //
-    m_view->end_draw();
-}
-
-double App::get_time()
-{
-    return ImGui::GetTime();
-}
-
-
-Path& App::make_absolute(Path& _path)
-{
-    if ( _path.is_absolute() )
-        return _path;
-    // note: in __EMSCRIPTEN__, parent_path is "."
-    _path = Path::get_executable_path().parent_path() / _path;
-    return _path;
-}
-
-Path App::get_asset_path(const char* _str)
-{
-    Path asset_path{_str};
-    App::make_absolute(asset_path);
-    return asset_path;
+    appview_end(app->view);
 }

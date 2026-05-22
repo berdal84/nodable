@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
+#include "gui/AppView.h"
 #include "ndbl/gui/Nodable.h"
-#include "ndbl/gui/NodableView.h"
 #include "tools/core/System.h"
 
 #include <thread>
@@ -68,7 +68,7 @@ namespace testing
             {
                 tools::Path::create_directories(path.parent_path());
             }
-            app.get_view()->save_screenshot(path);
+            tools::appview_save_screenshot(&app.get_view()->base, path);
         }
     };
 }

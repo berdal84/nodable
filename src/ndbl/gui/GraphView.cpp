@@ -1,6 +1,7 @@
 #include "GraphView.h"
 
 #include <algorithm>
+#include "imgui.h"
 #include "tools/core/types.h"
 #include "tools/gui/ImGuiEx.h"
 #include "tools/core/math.h"
@@ -314,6 +315,7 @@ bool GraphView::draw(float dt)
             cfg->ui_wire_bezier_thickness,
             cfg->ui_wire_bezier_roundness.x // roundness min
     };
+    float time = ImGui::GetTime();
     for (ASTNode* node_out: graph()->nodes() )
     {
         for (const ASTNodeSlot* slot_out: node_out->filter_slots(SlotFlag_OUTPUT))
@@ -346,7 +348,7 @@ bool GraphView::draw(float dt)
                 ImGuiEx::WireStyle style = default_wire_style;
                 if ( _m_selection.contains( node_view_out ) || _m_selection.contains( node_view_in ) )
                 {
-                    style.color.w *= wave(0.5f, 1.f, (float) App::get_time(), 10.f);
+                    style.color.w *= wave(0.5f, 1.f, time, 10.f);
                 }
                 else if (lensqr_dist > cfg->ui_wire_bezier_fade_lensqr_range.x)
                 {
@@ -1104,7 +1106,8 @@ void GraphView::roi_state_tick()
     roi.expand(Vec2{roi_border_width*0.5f});
 
     // Draw the ROI rectangle
-    float alpha = wave(0.5f, 0.75f, (float) App::get_time(), 10.f);
+    float time = ImGui::GetTime();
+    float alpha = wave(0.5f, 0.75f, time, 10.f);
     auto* draw_list = ImGui::GetWindowDrawList();
     draw_list->AddRect(roi.min, roi.max, ImColor(1.f, 1.f, 1.f, alpha), roi_border_width, ImDrawFlags_RoundCornersAll , roi_border_width );
 
